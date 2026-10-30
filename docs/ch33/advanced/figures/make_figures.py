@@ -403,8 +403,129 @@ def clique_collapse():
     print(f"wrote clique_collapse.svg   {total} -> {n_exp}, worst {worst}")
 
 
+# === 그림으로 보는 AI: 같은 엣지, 다른 차례 ==================================
+#
+# 사슬 하나에 시각을 앞에서 뒤로 붙이느냐 뒤에서 앞으로 붙이느냐에 따라
+# 도달할 수 있는 노드가 10 개와 2 개로 갈린다. 정적 그래프는 두 경우가 같다.
+# 무작위 시간 그래프에서도 정적 쪽이 얼마나 과다하게 세는지 함께 잰다.
+
+def time_order():
+    import random
+
+    import networkx as nx
+
+    n = 10
+    chain = [(i, i + 1) for i in range(n - 1)]
+    S = nx.Graph(chain)
+    static_reach = len(nx.node_connected_component(S, 0))
+
+    def t_reach(edges_t, s=0):
+        reach = {s: 0}
+        for u, v, t in sorted(edges_t, key=lambda e: e[2]):
+            for a, b in ((u, v), (v, u)):
+                if a in reach and reach[a] <= t and b not in reach:
+                    reach[b] = t
+        return set(reach)
+
+    fwd = [(u, v, i + 1) for i, (u, v) in enumerate(chain)]
+    rev = [(u, v, n - 1 - i) for i, (u, v) in enumerate(chain)]
+    r_fwd, r_rev = t_reach(fwd), t_reach(rev)
+
+    # 무작위 시간 그래프에서도 재어 둔다
+    random.seed(1)
+    N, T = 40, 120
+    ev = []
+    for t in range(1, T + 1):
+        u, v = random.sample(range(N), 2)
+        ev.append((u, v, t))
+    Srand = nx.Graph([(u, v) for u, v, _ in ev])
+    s_tot = sum(len(nx.node_connected_component(Srand, s)) if s in Srand
+                else 1 for s in range(N))
+    t_tot = sum(len(t_reach(ev, s)) for s in range(N))
+    ratio = s_tot / t_tot
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert len(r_fwd) == static_reach, "앞으로 가면 전부 닿아야 한다"
+    assert len(r_rev) < len(r_fwd), "거꾸로면 막혀야 한다"
+    assert ratio > 1.0, "정적 쪽이 더 많이 세어야 한다"
+
+    # 추이성이 깨지는 최소 보기도 여기서 확인해 둔다 (본문이 인용한다)
+    tri_ev = [("a", "b", 2), ("b", "c", 1)]
+    assert "b" in t_reach(tri_ev, "a"), "a 는 b 에 닿아야 한다"
+    assert "c" in t_reach(tri_ev, "b"), "b 는 c 에 닿아야 한다"
+    assert "c" not in t_reach(tri_ev, "a"), "그런데 a 는 c 에 닿지 않아야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.2),
+                                   gridspec_kw={"width_ratios": [1.35, 1]})
+
+    # --- 왼쪽: 두 차례 -----------------------------------------------------
+    for row, (times, reach, lab) in enumerate(
+            ((range(1, n), r_fwd, "timestamps 1, 2, ... , 9"),
+             (range(n - 1, 0, -1), r_rev, "timestamps 9, 8, ... , 1"))):
+        y = 0.70 - row * 0.42
+        xs = np.linspace(0.06, 0.94, n)
+        for i, t in enumerate(times):
+            ax1.plot([xs[i], xs[i + 1]], [y, y], color=INK, linewidth=1.5,
+                     alpha=0.5, zorder=1)
+            ax1.text((xs[i] + xs[i + 1]) / 2, y + 0.055, str(t), fontsize=7.6,
+                     color=INK, ha="center", alpha=0.85)
+        on = [i for i in range(n) if i in reach]
+        off = [i for i in range(n) if i not in reach]
+        ax1.scatter(xs[off], [y] * len(off), s=90, color=INK, alpha=0.18,
+                    zorder=3)
+        ax1.scatter(xs[on], [y] * len(on), s=95, color=ACCENT, zorder=4,
+                    edgecolors="white", linewidths=1.1)
+        ax1.scatter([xs[0]], [y], s=250, facecolors="none", edgecolors=INK,
+                    linewidths=1.6, zorder=5)
+        ax1.text(0.5, y - 0.13, f"{lab}   -   node 0 reaches {len(reach)}",
+                 ha="center", fontsize=9, color=INK)
+    ax1.text(0.06, 0.92, "start here", fontsize=8.4, color=INK, alpha=0.8)
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0.05, 1.0)
+    ax1.axis("off")
+    ax1.set_title("the same nine edges, twice", fontsize=10, color=INK,
+                  weight="bold")
+
+    # --- 오른쪽: 세 수 -----------------------------------------------------
+    labs = ["the static graph", "times forward", "times reversed"]
+    vals = [static_reach, len(r_fwd), len(r_rev)]
+    cols = [INK, MUTED, ACCENT]
+    ax2.barh(range(3), vals, color=cols, height=0.5, alpha=0.85)
+    ax2.set_yticks(range(3))
+    ax2.set_yticklabels(labs, fontsize=9)
+    ax2.invert_yaxis()
+    for i, v in enumerate(vals):
+        ax2.text(v - 0.25, i, f"{v} ", va="center", ha="right", fontsize=10,
+                 color="white", weight="bold")
+    ax2.set_xlabel("nodes node 0 can reach", fontsize=9)
+    ax2.set_xlim(0, static_reach * 1.08)
+    ax2.set_title("one of these is not a measurement", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.grid(alpha=0.13, axis="x")
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+    ax2.text(0.5, -0.30,
+             f"on a random temporal graph the static view\n"
+             f"still over-counts reach by {ratio:.2f}x",
+             transform=ax2.transAxes, ha="center", fontsize=8.6, color=INK)
+
+    fig.text(0.5, -0.05,
+             "the static graph cannot tell the two apart - it has already "
+             "thrown the order away.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "time_order.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote time_order.svg   static {static_reach}, fwd {len(r_fwd)}, "
+          f"rev {len(r_rev)}, random ratio {ratio:.3f}")
+
+
 if __name__ == "__main__":
     two_causes()
     reach_varies()
     unstable_encoding()
     clique_collapse()
+    time_order()
