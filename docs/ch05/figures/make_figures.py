@@ -1354,6 +1354,84 @@ def fig_variety_ruler():
     print(f"wrote variety_ruler.svg  (1 pixel -> {vals[1]:.3f} vs DCGAN 1.085)")
 
 
+def fig_where_nonlinearity():
+    """굽은 곳이 인코더냐 디코더냐에 따라 복원오차가 어디로 가는가.
+
+    네 수는 03_ae_mlp.md 의 규약(씨앗 42, Adam 1e-3, 배치 100, 100 에포크,
+    폭 256, 잠재 64)을 그대로 써서 네 벌을 따로 학습해 잰 것이다. 「둘 다
+    굽음」이 그 쪽의 0.05462 를 되살리므로(0.05448, MPS 흔들림 안) 나머지
+    세 칸도 같은 자로 잰 값이다.
+
+    왜 이렇게 되는지는 그림이 아니라 셈으로 안다. 디코더가 선형이면 복원은
+    k 차원 아핀 부분공간 안에만 놓이므로, 인코더를 아무리 굽혀도 그 부분
+    공간 중 최선인 PCA 바닥 아래로 내려갈 수 없다.
+    """
+    pca = 0.09530
+    cells = {("linear", "linear"): 0.09639, ("curved", "linear"): 0.09662,
+             ("linear", "curved"): 0.05709, ("curved", "curved"): 0.05448}
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.4, 4.6),
+                                   gridspec_kw={"width_ratios": [1, 1.1]})
+
+    # --- 왼쪽: 2x2 판 -------------------------------------------------------
+    axL.set_xlim(0, 2); axL.set_ylim(0, 2)
+    for (enc, dec), v in cells.items():
+        i = 0 if enc == "linear" else 1
+        j = 0 if dec == "linear" else 1
+        hit = v < 0.07
+        axL.add_patch(plt.Rectangle((i, j), 1, 1, facecolor=
+                                    "#dcfce7" if hit else "#fee2e2",
+                                    edgecolor="white", lw=3))
+        axL.text(i + 0.5, j + 0.62, f"{v:.5f}", ha="center", fontsize=14,
+                 color="#166534" if hit else "#991b1b")
+        axL.text(i + 0.5, j + 0.34,
+                 "beats PCA" if hit else "stuck at PCA", ha="center",
+                 fontsize=9.5, color="#166534" if hit else "#991b1b")
+    axL.set_xticks([0.5, 1.5]); axL.set_xticklabels(["straight", "curved"],
+                                                    fontsize=10.5)
+    axL.set_yticks([0.5, 1.5]); axL.set_yticklabels(["straight", "curved"],
+                                                    fontsize=10.5, rotation=90,
+                                                    va="center")
+    axL.set_xlabel("the half that squeezes  (encoder)", fontsize=10.5)
+    axL.set_ylabel("the half that unfolds  (decoder)", fontsize=10.5)
+    axL.set_title(f"reconstruction error    (PCA floor {pca:.5f})", fontsize=11)
+    for s in axL.spines.values():
+        s.set_visible(False)
+    axL.tick_params(length=0)
+
+    # --- 오른쪽: 누가 벌었나 ------------------------------------------------
+    flat = cells[("linear", "linear")]
+    full = cells[("curved", "curved")]
+    tot = flat - full
+    enc_only = (flat - cells[("curved", "linear")]) / tot * 100
+    dec_only = (flat - cells[("linear", "curved")]) / tot * 100
+    bars = axR.bar(["curving the\nencoder alone", "curving the\ndecoder alone"],
+                   [enc_only, dec_only], color=["#b91c1c", "tab:green"],
+                   width=0.55)
+    for b, v in zip(bars, [enc_only, dec_only]):
+        axR.text(b.get_x() + b.get_width() / 2,
+                 v + (3 if v > 0 else -9), f"{v:.0f}%", ha="center",
+                 fontsize=13)
+    axR.axhline(0, color="0.3", lw=1.1)
+    axR.axhline(100, color="0.6", lw=1.0, ls="--")
+    axR.text(-0.42, 103, "all of it", ha="left", fontsize=9.5, color="0.45")
+    axR.set_ylim(-22, 118)
+    axR.set_ylabel("share of the whole gain it accounts for", fontsize=10.5)
+    axR.set_title("the page curves both - only one of them pays",
+                  fontsize=11)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.text(0.5, 0.015, "four models trained here with this page's own "
+             "settings; 'curved both' reproduces its 0.05462.",
+             ha="center", fontsize=8.5, color="0.45")
+    fig.subplots_adjust(left=0.085, right=0.985, top=0.91, bottom=0.165,
+                        wspace=0.28)
+    fig.savefig("where_nonlinearity.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote where_nonlinearity.svg  (encoder {enc_only:.0f}%, "
+          f"decoder {dec_only:.0f}%)")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -1378,6 +1456,7 @@ if __name__ == "__main__":
     fig_ddim_invertible()
     fig_cvae_condition()
     fig_variety_ruler()
+    fig_where_nonlinearity()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
