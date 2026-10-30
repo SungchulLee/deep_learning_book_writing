@@ -121,5 +121,91 @@ def who_said_two():
           f"greedy {k_greedy}, louvain {k_louvain}")
 
 
+# === 그림으로 보는 AI: 랜덤워크가 언어를 닮는 조건 ===========================
+#
+# DeepWalk 의 근거는 "차수가 거듭제곱 꼴이면 워크의 노드 출현 빈도도 거듭제곱
+# 꼴이 되어 낱말 빈도를 닮는다" 는 것이다. 앞부분(빈도 ~ 차수)은 어느 그래프
+# 에서나 성립하지만, 뒷부분(거듭제곱 꼴)은 그래프에 달렸다. 둘 다 직접 잰다.
+
+def walks_like_language():
+    import collections
+    import random
+
+    import networkx as nx
+
+    random.seed(0)
+
+    def counts(G, n_walks=200, length=40):
+        c = collections.Counter()
+        nodes = list(G.nodes())
+        for _ in range(n_walks):
+            v = random.choice(nodes)
+            for _ in range(length):
+                c[v] += 1
+                nb = list(G.neighbors(v))
+                if not nb:
+                    break
+                v = random.choice(nb)
+        return c
+
+    data = {}
+    for nm, G in (("scale-free", nx.barabasi_albert_graph(400, 2, seed=0)),
+                  ("karate club", nx.karate_club_graph())):
+        c = counts(G)
+        deg = np.array([G.degree(v) for v in G.nodes()], float)
+        vis = np.array([c[v] for v in G.nodes()], float)
+        corr = float(np.corrcoef(deg, vis)[0, 1])
+        v, k = np.unique(deg, return_counts=True)
+        slope = float(np.polyfit(np.log(v), np.log(k), 1)[0])
+        data[nm] = (deg, vis, corr, v, k, slope)
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    for nm, (_, _, corr, _, _, _) in data.items():
+        assert corr > 0.9, f"{nm}: 방문 빈도가 차수를 따라야 한다"
+    assert data["scale-free"][5] < data["karate club"][5] - 0.5, \
+        "두 그래프의 차수 분포 꼴이 달라야 이 그림의 이야기가 된다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.0))
+
+    for nm, col, mk in (("scale-free", ACCENT, "o"),
+                        ("karate club", MUTED, "s")):
+        deg, vis, corr, v, k, slope = data[nm]
+        ax1.scatter(deg, vis / vis.sum(), s=22, color=col, alpha=0.6,
+                    marker=mk, label=f"{nm}   r = {corr:.3f}")
+        ax2.loglog(v, k, mk + "-", color=col, ms=5, linewidth=1.4,
+                   alpha=0.85, label=f"{nm}   slope {slope:.2f}")
+    ax1.set_xlabel("degree", fontsize=9)
+    ax1.set_ylabel("share of walk visits", fontsize=9)
+    ax1.set_title("visits follow degree - on any graph", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.legend(fontsize=8.2, loc="upper left", framealpha=0.9)
+    ax1.grid(alpha=0.13)
+
+    ax2.set_xlabel("degree", fontsize=9)
+    ax2.set_ylabel("how many nodes", fontsize=9)
+    ax2.set_title("but the shape is the graph's own", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.legend(fontsize=8.2, loc="upper right", framealpha=0.9)
+    ax2.grid(alpha=0.13, which="both")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             "the borrowing is justified by the right-hand picture, not the "
+             "left one.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "walks_like_language.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote walks_like_language.svg   " + "  ".join(
+        f"{nm}: r={d[2]:.3f} slope={d[5]:.2f}" for nm, d in data.items()))
+
+
 if __name__ == "__main__":
     who_said_two()
+    walks_like_language()
