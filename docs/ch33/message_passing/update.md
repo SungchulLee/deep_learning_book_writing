@@ -42,6 +42,48 @@ LSTM형은 hidden뿐 아니라 cell 상태 c도 유지한다. 각 노드의 (h,c
 
 GRU·LSTM은 더 많은 선형 연산과 상태를 필요로 한다. 게이트가 장거리 정보를 선택하는 데 도움을 줄 수 있지만 어떤 그래프·작업에서도 단순 MLP보다 더 표현력이 높거나 깊은 모델을 안정하게 학습한다는 일반 순위는 없다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 게이트가 치운 것은 기억이 아니라 제약이었다
+
+노드 상태에 GRU 를 얹는다는 생각은 Li·Tarlow·Brockschmidt·Zemel 의 Gated Graph
+Sequence Neural Networks(ICLR 2016)에서 왔는데, 그들이 적어 둔 이유는 "장거리 기억"
+이 아니다. 출발점이 된 Scarselli 등의 2009년 GNN 은 전파를 **고정점까지** 돌리고 그
+수렴한 해에서 그래디언트를 얻었다(Almeida–Pineda). 그러려면 전파가 **축약 사상**이어야
+한다. 논문의 말 그대로, *"parameters must be constrained so that the propagation step
+is a contraction map. This is needed to ensure convergence, but it may limit the
+expressivity of the model."* 고정 횟수 $T$ 만큼만 돌리는 쪽으로 바꾼 것은 메모리를
+더 쓰는 대신 **그 제약을 없애기 위해서**였다.
+
+축약이 무엇을 강제하는지는 재 보면 또렷하다. 노드 21개 경로 그래프에서 $h \leftarrow
+\rho Sh + b$ 를 돌리되 출발점을 50가지로 — 하나는 영벡터, 나머지는 서로 39 만큼이나
+떨어진 난수로 — 잡으면, 50개가 모두 **$9\times10^{-16}$ 안쪽의 같은 점**에 내려앉는다.
+고정점이 초기값을 지우는 것이다. 논문이 *"there is no point in initializing node
+representations"* 이라고 적은 것이 이것이고, 그래서 원래 모델에는 노드 피처를 넣을
+자리가 없었다. GG-NN 이 노드 주석을 입력으로 받을 수 있게 된 것은 고정점을 버린 덕이다.
+
+![왼쪽은 서로 멀리 떨어진 쉰 개의 출발점에서 시작한 궤적이 모두 같은 고정점으로 수렴해 10의 마이너스 16제곱 안쪽에서 만나는 로그 눈금 그림, 오른쪽은 축약 상수 0.9, 0.7, 0.5 에서 영향이 거리에 따라 직선으로 떨어지는 반면 열어 둔 게이트는 스무 홉까지 평평하게 1을 유지하는 그림](figures/what_the_gate_removed.svg)
+
+두 번째가 더 중요하다. 축약 상수가 $\rho$ 면 $\delta$ 홉 떨어진 노드의 영향이
+$\rho^{\delta}$ 로 줄어든다 — 논문 Appendix A 의 계산이고, 재 보면 $\rho=0.9$ 에서
+20홉 떨어진 노드의 영향이 $1.8\times10^{-4}$, $\rho=0.5$ 에서는 $7\times10^{-12}$ 다.
+그리고 **더 오래 돌려도 소용이 없다.** $\rho=0.9$ 의 고정점은 303번째 반복에서 정해지고,
+거기서 10,000번을 더 돌려도 $4\times10^{-15}$ 밖에 움직이지 않는다. 고정점 모델의
+도달 거리는 반복 횟수가 아니라 $\rho$ 가 정한다. 제약을 걸지 않은 쪽은 그럴 까닭이
+없어서, 열어 둔 게이트는 같은 경로에서 20홉까지 값을 **정확히 1.0** 으로 나른다.
+
+그림은 여기까지다. 열어 둔 게이트는 **할 수 있는 일의 범위**를 보인 것이지 학습이
+실제로 그런 게이트를 찾는다는 뜻이 아니고, 위에서 이미 적었듯 게이트가 어떤 그래프·작업
+에서도 더 낫다는 일반 순위는 없다. 이 그림이 말해 주는 것은 하나다 — 2016년의 바꿈은
+성능을 올리려는 선택이 아니라 **구조적으로 닫혀 있던 문을 연 것**이었다.
+
+_확인한 곳 — Y. Li, D. Tarlow, M. Brockschmidt, R. Zemel, "Gated Graph Sequence
+Neural Networks", ICLR 2016 (arXiv:1511.05493), 2절과 Appendix A; F. Scarselli
+et al., "The Graph Neural Network Model", IEEE Trans. Neural Networks 20(1), 2009,
+61–80. 수는 모두 이 쪽의 `figures/make_figures.py` 에서 직접 잰다._
+
+</div>
+
 ## 6. 집계의 한계와 깊이
 
 mean 집계가 {1}과 {1,1,1}을 같은 메시지로 바꾸고 자기 상태도 같다면, 이후의 결정적 U는 이 두 입력을 구분할 수 없다. 업데이트를 복잡하게 해도 이미 집계에서 잃은 다중도 정보를 되살리는 것은 아니다.

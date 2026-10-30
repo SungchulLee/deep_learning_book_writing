@@ -127,5 +127,138 @@ def one_skeleton():
           "  ".join(f"{k} {v:.1e}" for k, v in gaps.items()))
 
 
+# === 그림으로 보는 AI: 게이트가 치운 것은 기억이 아니라 제약이었다 ===========
+#
+# Scarselli 의 GNN 은 전파를 고정점까지 돌렸고, 그러려면 전파가 축약 사상이어야
+# 했다. 그 제약이 둘을 강제한다 - 고정점이 초기값과 무관해지고, 영향이 거리에
+# 따라 rho^delta 로 줄어든다. Li 등의 Appendix A 를 그대로 재어 본다.
+
+def what_the_gate_removed():
+    import networkx as nx
+
+    n = 21
+    A = nx.to_numpy_array(nx.path_graph(n), weight=None)
+    S = A / np.maximum(A.sum(1, keepdims=True), 1)
+    b = np.zeros(n)
+    b[0] = 1.0
+    rng = np.random.default_rng(0)
+
+    # --- (1) 축약이면 고정점은 출발점을 지운다 -----------------------------
+    mu_demo = 0.9
+    starts = [np.zeros(n)] + [rng.normal(scale=10.0, size=n) for _ in range(49)]
+    traj, fixed = [], []
+    for h0 in starts:
+        h, path = h0.copy(), [h0.copy()]
+        for _ in range(2000):
+            h = mu_demo * S @ h + b
+            if len(path) < 400:
+                path.append(h.copy())
+        traj.append(np.array(path))
+        fixed.append(h)
+    F = np.array(fixed)
+    spread = float(np.abs(F - F[0]).max())
+    start_spread = float(np.abs(np.array(starts) - starts[0]).max())
+    assert spread < 1e-12 < start_spread, "출발점은 달라도 고정점은 같아야 한다"
+
+    # --- (2) 영향은 거리에 따라 기하적으로 줄고, 반복으로는 늘지 않는다 ----
+    curves = {}
+    for mu in (0.9, 0.7, 0.5):
+        h = np.zeros(n)
+        it = 0
+        while True:
+            new = mu * S @ h + b
+            it += 1
+            if np.abs(new - h).max() < 1e-15:
+                h = new
+                break
+            h = new
+        more = h.copy()
+        for _ in range(10000):
+            more = mu * S @ more + b
+        curves[mu] = (h / h[0], it, float(np.abs(more - h).max()))
+        assert curves[mu][2] < 1e-13, "고정점은 더 돌려도 움직이지 않아야 한다"
+    assert curves[0.9][0][20] < 1e-3, "20 홉이면 영향이 사라져야 한다"
+
+    # --- (3) 제약이 없으면 그대로 나를 수 있다 ------------------------------
+    g = np.zeros(n)
+    g[0] = 1.0
+    open_gate = [1.0]
+    for t in range(1, n):
+        g = np.maximum(g, A @ g)
+        open_gate.append(float(g[t]))
+    assert min(open_gate) == 1.0, "열린 게이트는 값을 그대로 날라야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.2),
+                                   gridspec_kw={"width_ratios": [1, 1.1]})
+
+    # --- 왼쪽: 쉰 개의 출발점이 한 점으로 ----------------------------------
+    star = F[0]
+    for k, path in enumerate(traj):
+        d = np.abs(path - star).max(1)
+        d = np.maximum(d, 1e-17)
+        ax1.plot(np.arange(len(d)), d, lw=0.8,
+                 color=INK if k else ACCENT, alpha=0.95 if k == 0 else 0.22,
+                 zorder=3 if k == 0 else 1)
+    ax1.axhline(spread, color=MUTED, lw=1.3, ls="--")
+    ax1.text(8, spread * 3.2,
+             f"all 50 land within {spread:.0e} of each other",
+             ha="left", fontsize=8.6, color=MUTED)
+    ax1.plot([], [], lw=1.4, color=ACCENT, label="started from all zeros")
+    ax1.plot([], [], lw=1.4, color=INK, alpha=0.4,
+             label=f"49 random starts, up to {start_spread:.0f} away")
+    ax1.set_yscale("log")
+    ax1.set_ylim(1e-17, 1e3)
+    ax1.set_xlim(0, 400)
+    ax1.set_xlabel("iteration", fontsize=8.8)
+    ax1.set_ylabel("distance from the fixed point", fontsize=8.8)
+    ax1.set_title("a contraction erases where you began", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.legend(fontsize=8.2, loc="upper right", framealpha=0.92)
+
+    # --- 오른쪽: 거리에 따른 영향 ------------------------------------------
+    hops = np.arange(n)
+    for mu, col in zip((0.9, 0.7, 0.5), (ACCENT, MUTED, INK)):
+        r, it, drift = curves[mu]
+        ax2.plot(hops, np.maximum(r, 1e-16), "o-", ms=3.4, lw=1.4, color=col,
+                 label=rf"contraction, $\rho={mu}$   (fixed point at step {it})")
+    ax2.plot(hops, open_gate, "s-", ms=3.4, lw=1.6, color="#4a7c59",
+             label="a gate held open - no contraction asked for")
+    ax2.set_yscale("log")
+    ax2.set_ylim(1e-13, 6.0)
+    ax2.set_xlim(-0.5, n - 0.5)
+    ax2.set_xticks(range(0, n, 4))
+    ax2.set_xlabel("distance in hops from the node carrying the signal",
+                   fontsize=8.8)
+    ax2.set_ylabel("influence, relative to the source", fontsize=8.8)
+    ax2.set_title("and its reach is set by the constraint, not by the "
+                  "step count", fontsize=9.6, color=INK, weight="bold")
+    ax2.legend(fontsize=8.0, loc="lower left", framealpha=0.92)
+
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        ax.grid(alpha=0.13)
+        ax.set_axisbelow(True)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.text(0.5, -0.05,
+             f"path of {n} nodes, one unit of signal held at node 0.  Running "
+             f"{10000:,} further iterations past the fixed point moves it by "
+             f"at most {max(c[2] for c in curves.values()):.0e} - "
+             "more steps buy no more reach.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.savefig(HERE / "what_the_gate_removed.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote what_the_gate_removed.svg   50 starts (spread "
+          f"{start_spread:.0f}) -> one fixed point within {spread:.1e};  " +
+          "; ".join(f"rho={m}: node20 {c[0][20]:.2e}, settles at {c[1]}, "
+                    f"drift {c[2]:.0e}" for m, c in curves.items()))
+
+
 if __name__ == "__main__":
     one_skeleton()
+    what_the_gate_removed()
