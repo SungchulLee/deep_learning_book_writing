@@ -91,6 +91,7 @@ def mask_only():
         after.append(acc(net, xte, yte))
         kept.append(net.kept())
 
+        torch.manual_seed(1000 + seed)       # 견줄 그물도 씨앗을 고정한다.
         ref = nn.Sequential(nn.Linear(64, 300), nn.ReLU(), nn.Linear(300, 10))
         o2 = torch.optim.Adam(ref.parameters(), lr=0.01)
         for _ in range(800):
