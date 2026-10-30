@@ -187,6 +187,105 @@ def reach_varies():
           f"k=2 spread {min(reach2)}-{max(reach2)}, corr {corr:.3f}")
 
 
+# === 그림으로 보는 AI: 위치 인코딩이 유일하지 않다 ============================
+#
+# 라플라시안 고유벡터를 위치 인코딩으로 쓰면 **같은 그래프에 여러 답**이 나온다.
+# 부호가 정해지지 않고, 중복 고유값의 고유공간에서는 기저 자체가 임의다.
+# 노드 번호만 섞어 다시 분해해 그 차이를 직접 잰다.
+
+def unstable_encoding():
+    import networkx as nx
+
+    G = nx.karate_club_graph()
+    n = G.number_of_nodes()
+    L = np.asarray(nx.normalized_laplacian_matrix(G).todense())
+    w, U = np.linalg.eigh(L)
+    k = 8
+
+    uniq, cnt = np.unique(np.round(w, 8), return_counts=True)
+    mult = {float(v): int(c) for v, c in zip(uniq, cnt) if c > 1}
+    worst = max(mult.items(), key=lambda kv: kv[1]) if mult else (None, 1)
+
+    rng = np.random.RandomState(0)
+    perm = rng.permutation(n)
+    G2 = nx.relabel_nodes(G, {i: int(perm[i]) for i in range(n)})
+    L2 = np.asarray(nx.normalized_laplacian_matrix(
+        G2, nodelist=sorted(G2)).todense())
+    _, U2 = np.linalg.eigh(L2)
+
+    pe1 = U[:, 1:k + 1]
+    pe2 = U2[:, 1:k + 1][perm]
+    d_raw = float(np.abs(pe1 - pe2).max())
+    sgn = np.sign((pe1 * pe2).sum(0))
+    sgn[sgn == 0] = 1
+    d_sgn = float(np.abs(pe1 - pe2 * sgn).max())
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert d_raw > 0.1, "다시 분해하면 인코딩이 달라져야 한다"
+    assert d_sgn < 1e-6, "부호만 맞추면 같아져야 한다"
+    assert worst[1] > 1, "중복 고유값이 있어야 이 그림의 이야기가 된다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.0),
+                                   gridspec_kw={"width_ratios": [1.2, 1]})
+
+    # --- 왼쪽: 스펙트럼과 중복 ---------------------------------------------
+    ax1.scatter(range(len(w)), w, s=30, color=INK, alpha=0.75, zorder=3)
+    hit = [i for i, v in enumerate(np.round(w, 8)) if v == round(worst[0], 8)]
+    ax1.scatter(hit, w[hit], s=60, color=ACCENT, zorder=4,
+                edgecolors="white", linewidths=1.0)
+    ax1.annotate(f"eigenvalue {worst[0]:.0f} appears {worst[1]} times\n"
+                 f"any rotation of those {worst[1]} vectors is equally valid",
+                 xy=(hit[len(hit) // 2], worst[0]), xytext=(-6, -58),
+                 textcoords="offset points", fontsize=8.6, color=ACCENT,
+                 ha="center",
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.0))
+    ax1.set_xlabel("index", fontsize=9)
+    ax1.set_ylabel("eigenvalue", fontsize=9)
+    ax1.set_title("the basis is not unique", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.grid(alpha=0.13)
+
+    # --- 오른쪽: 다시 분해하면 ---------------------------------------------
+    ax2.bar([0, 1], [d_raw, max(d_sgn, 0)], color=[ACCENT, MUTED],
+            width=0.5, alpha=0.85)
+    ax2.set_xticks([0, 1])
+    ax2.set_xticklabels(["as computed", "after matching\nthe signs"],
+                        fontsize=9)
+    ax2.text(0, d_raw * 1.03, f"{d_raw:.4f}", ha="center", fontsize=10,
+             color=INK, weight="bold")
+    ax2.text(1, d_raw * 0.06, f"  {d_sgn:.4f}", ha="center", fontsize=10,
+             color=MUTED, weight="bold")
+    ax2.set_ylabel("largest change in the encoding", fontsize=9)
+    ax2.set_ylim(0, d_raw * 1.22)
+    ax2.set_title("same graph, nodes renumbered", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.grid(alpha=0.13, axis="y")
+    ax2.text(0.5, 0.52, f"with {k} vectors there are\n"
+                        f"2^{k} = {2 ** k} sign choices,\nall of them valid",
+             transform=ax2.transAxes, ha="center", va="center",
+             fontsize=8.8, color=INK,
+             bbox=dict(boxstyle="round,pad=0.45", facecolor="white",
+                       edgecolor=INK, alpha=0.92))
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.05,
+             "the whole difference was sign - nothing about the graph "
+             "changed at all.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "unstable_encoding.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote unstable_encoding.svg   mult {mult}, raw {d_raw:.4f}, "
+          f"signed {d_sgn:.1e}")
+
+
 if __name__ == "__main__":
     two_causes()
     reach_varies()
+    unstable_encoding()
