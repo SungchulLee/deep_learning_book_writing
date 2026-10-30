@@ -440,6 +440,37 @@ REINFORCE는 어림 쌓인 리워드를 곧바로 가장 좋게 하여 파라메
 
 쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 배치 계산, GPU 빠르게 하기, 더 야무진 파라메터 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 정리가 약속한 것은 "그래디언트"가 아니었다
+
+REINFORCE는 알고리즘 이름이기 전에 **머리글자**다. 로널드 윌리엄스(Ronald Williams)가 1992년 논문에서 이 꼴의 고침을 쓰는 알고리즘 **갈래 전체**에 붙인 이름이고, 풀면 이렇다 — "REward Increment = Nonnegative Factor × Offset Reinforcement × Characteristic Eligibility". 고침 식의 네 조각을 그대로 읽은 것이다.
+
+$$
+\underbrace{\Delta w_{ij}}_{\text{REward Increment}} \;=\;
+\underbrace{\alpha_{ij}}_{\substack{\text{Nonnegative}\\ \text{Factor}}}\;
+\underbrace{(r - b_{ij})}_{\substack{\text{Offset}\\ \text{Reinforcement}}}\;
+\underbrace{e_{ij}}_{\substack{\text{Characteristic}\\ \text{Eligibility}}}
+$$
+
+그리고 이 갈래가 흥미로운 까닭이 논문의 정리 1인데, **흔히 전해지는 것보다 약한 말**을 한다. 고침의 기댓값이 폴리시 그래디언트와 **같다**고 하지 않는다. 둘의 **내적이 음이 아니다**라고 한다.
+
+> "For any REINFORCE algorithm, the inner product of $E\{\Delta W \mid W\}$ and $\nabla_W E\{r \mid W\}$ is **nonnegative**."
+
+같아지는 경우는 따로 단서가 붙어 있다 — $\alpha_{ij} = \alpha$ 가 **$i$ 와 $j$ 에 상관없이 같을 때**다. 그때만 $E\{\Delta W\} = \alpha \nabla_W E\{r\}$ 다.
+
+![가운데에서 뻗어 나간 화살표 셋을 그린 그림. 굵은 검정 화살표가 참 그래디언트이고, 그 위에 정확히 포개진 파란 화살표는 모든 파라메터에 같은 스텝을 줄 때로 0.000도 어긋나 있다. 호박빛 화살표는 파라메터마다 스텝이 다를 때로 35.841도 벌어져 있지만 여전히 내적이 양수인 반평면 안에 있다. 아래에 둘 다 오르막이지만 그래디언트인 것은 하나뿐이라고 적혀 있다.](figures/theorem_one.svg)
+
+작은 밴딧에서 기댓값을 닫힌 식으로 정확히 셈해 보면 그 차이가 그대로 보인다. 모든 파라메터에 같은 $\alpha$ 를 주면 고침 벡터가 그래디언트와 **0.000도** — 완전히 포개진다. $\alpha$ 를 파라메터마다 다르게 주면 **35.841도** 벌어진다. 그런데도 내적은 양수라서, 오르막이기는 하다.
+
+**여기서 오늘 우리가 거의 늘 어기는 단서가 드러난다.** 좌표마다 스텝 크기를 다르게 잡는 옵티마이저 — Adam이 대표적이다 — 를 쓰면 $\alpha$ 가 파라메터마다 달라진다. 곧 정리 1의 **등호 조건이 깨진다.** 그래도 스텝이 모두 음이 아닌 한 내적이 양수라는 쪽은 살아 있으므로 학습은 오르막을 간다. 다만 그때 밟고 있는 방향은 **폴리시 그래디언트가 아니다.**
+
+그러니 "REINFORCE는 폴리시 그래디언트를 따라간다"는 문장은 조건부로 참이다. 실제로 쓰는 설정에서 보증되는 것은 **올라간다는 것까지**이고, 어느 쪽으로 얼마나 올라가는지는 옵티마이저가 함께 정한다. 위 구현에서 러닝레이트와 최적화기를 바꿨을 때 학습 곡선의 모양까지 달라지는 것을 두고 "구현 문제"로만 보기 어려운 까닭이 여기에 있다 — 바꾼 것이 보폭만이 아니라 **방향**이기도 하기 때문이다.
+
+_확인한 곳 — R. J. Williams, "Simple Statistical Gradient-Following Algorithms for Connectionist Reinforcement Learning", *Machine Learning* **8**, 229–256 (1992). 머리글자 풀이와 정리 1의 진술, 그리고 $\alpha_{ij}=\alpha$ 일 때만 등호가 된다는 단서가 모두 234쪽에 있다. 그림의 두 각은 그림을 그리는 코드가 작은 밴딧에서 기댓값을 닫힌 식으로 정확히 셈해 얻으며, 내적이 음이 아니라는 정리 1 자체를 먼저 확인한 뒤에만 그린다._
+
+</div>
+
 ## 연습문제
 
 <div class="drillbox" markdown>

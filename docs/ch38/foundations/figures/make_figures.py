@@ -180,5 +180,77 @@ def baseline_not_the_mean():
           f"   median {med:.2f}x")
 
 
+# === 그림으로 보는 AI: 정리 1 이 약속하는 것 ==================================
+#
+# 윌리엄스의 정리 1 은 "그래디언트와 같다"가 아니라 "그래디언트와의 **내적이
+# 음이 아니다**"이다. 같아지는 것은 alpha 가 모든 i 에 대해 같을 때뿐이다.
+# 두 벡터는 언제나 한 평면에 놓이므로, 그래디언트를 x 축에 두고 고침 벡터를
+# 실제 각도로 그리면 **투영 손실 없이 정확히** 그릴 수 있다.
+
+def theorem_one_promises():
+    theta = np.array([0.3, -0.7, 0.2])
+    r = np.array([1.0, 0.4, 2.0])
+    p = _softmax(theta)
+    g = p * (r - float((p * r).sum()))          # 정확한 그래디언트
+
+    cases = [("same alpha for every i", np.array([0.10, 0.10, 0.10]), MUTED),
+             ("alpha differs by i", np.array([0.30, 0.02, 0.10]), ACCENT)]
+    drawn = []
+    for label, alpha, col in cases:
+        u = alpha * g                            # E{dW} = diag(alpha) g
+        ip = float(u @ g)
+        cos = ip / (np.linalg.norm(u) * np.linalg.norm(g))
+        ang = float(np.degrees(np.arccos(np.clip(cos, -1.0, 1.0))))
+        drawn.append((label, ang, ip, col))
+        # 정리 1 — 내적은 음이 아니다. 언제나 참이므로 단언한다.
+        assert ip >= -1e-15, "정리 1 이 깨지면 이 그림의 이야기가 없다"
+    assert drawn[0][1] < 1e-6, "같은 alpha 면 나란해야 한다"
+    assert drawn[1][1] > 1.0, "다른 alpha 면 어긋나야 한다"
+
+    fig, ax = plt.subplots(figsize=(8.6, 4.6))
+
+    # 내적이 양수인 반평면
+    th = np.linspace(-90, 90, 200)
+    ax.fill(np.r_[0, np.cos(np.radians(th))] * 1.28,
+            np.r_[0, np.sin(np.radians(th))] * 1.28,
+            color=INK, alpha=0.055, linewidth=0)
+    ax.plot([0, 0], [-1.28, 1.28], color=INK, linewidth=0.8, alpha=0.35,
+            linestyle=":")
+    ax.text(0.04, 1.20, "inner product > 0 to the right of this line",
+            fontsize=8.0, color=INK, alpha=0.75)
+
+    ax.annotate("", xy=(1.0, 0.0), xytext=(0, 0),
+                arrowprops=dict(arrowstyle="-|>", color=INK, linewidth=2.6))
+    ax.text(1.03, 0.0, "the true gradient", fontsize=9.4, color=INK,
+            va="center", weight="bold")
+
+    for label, ang, ip, col in drawn:
+        rad = np.radians(ang)
+        L = 0.80
+        ax.annotate("", xy=(L * np.cos(rad), L * np.sin(rad)), xytext=(0, 0),
+                    arrowprops=dict(arrowstyle="-|>", color=col,
+                                    linewidth=2.2))
+        ax.text(L * np.cos(rad) * 1.06 + 0.02, L * np.sin(rad) * 1.06 + 0.03,
+                f"{label}\n{ang:.3f} deg off", fontsize=8.6, color=col,
+                va="bottom", weight="bold")
+
+    ax.set_xlim(-0.30, 1.72)
+    ax.set_ylim(-0.32, 1.34)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    ax.set_title("what Theorem 1 actually guarantees", fontsize=10.5,
+                 color=INK, weight="bold", pad=6)
+    fig.text(0.5, 0.015,
+             "both updates climb. only the uniform one is the gradient.",
+             ha="center", fontsize=9.0, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "theorem_one.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote theorem_one.svg   "
+          + "   ".join(f"{l}: {a:.3f} deg" for l, a, _, _ in drawn))
+
+
 if __name__ == "__main__":
     baseline_not_the_mean()
+    theorem_one_promises()
