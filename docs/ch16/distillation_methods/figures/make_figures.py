@@ -117,5 +117,92 @@ def temperature_scaling():
           f"fixed {fixed[0]:.4f}->{fixed[-1]:.4f}, cos {cos[-1]:.3f}")
 
 
+# === 그림으로 보는 AI: 0 이 된 로스가 뜻하는 것 ==============================
+#
+# 교사·학생 양쪽 투영을 제약 없이 함께 배우면 **둘 다 0 으로 보내는** 해가
+# 있다. 로스는 정확히 0 이 되는데 남은 피처도 0 이다. 기준 한쪽을 고정해야
+# 로스가 뜻을 가진다.
+
+def projection_collapse():
+    import torch
+    import torch.nn as nn
+
+    n, dt, ds, p = 256, 64, 48, 32
+    torch.manual_seed(0)
+    ft = torch.randn(n, dt)          # 고정 교사 피처
+    fs = torch.randn(n, ds)          # 학생 피처
+
+    def run(free_teacher, steps=1500):
+        torch.manual_seed(1)
+        ps = nn.Linear(ds, p, bias=False)
+        pt = nn.Linear(dt, p, bias=False)
+        params = list(ps.parameters())
+        if free_teacher:
+            params += list(pt.parameters())
+        else:
+            for q in pt.parameters():
+                q.requires_grad_(False)
+        opt = torch.optim.Adam(params, lr=0.01)
+        for _ in range(steps):
+            opt.zero_grad()
+            loss = ((ps(fs) - pt(ft)) ** 2).mean()
+            loss.backward()
+            opt.step()
+        with torch.no_grad():
+            return loss.item(), ps(fs).norm().item(), pt(ft).norm().item()
+
+    l_free, a_free, b_free = run(True)
+    l_fix, a_fix, b_fix = run(False)
+
+    assert l_free < l_fix * 1e-3, "양쪽을 풀면 로스가 0 으로 내려가야 한다"
+    assert a_free < a_fix * 1e-2, "그런데 피처도 같이 0 이 되어야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.0, 4.0))
+    labels = ["both projections\nlearnable", "teacher side\nfixed"]
+    cols = [ACCENT, MUTED]
+
+    ax1.bar(range(2), [l_free, l_fix], color=cols, width=0.5, alpha=0.88)
+    for i, v in enumerate([l_free, l_fix]):
+        ax1.text(i, v + l_fix * 0.04, f"{v:.6f}", ha="center", fontsize=10.5,
+                 color=INK, weight="bold")
+    ax1.set_xticks(range(2))
+    ax1.set_xticklabels(labels, fontsize=9)
+    ax1.set_ylabel("feature distillation loss", fontsize=9.5)
+    ax1.set_ylim(0, l_fix * 1.3)
+    ax1.set_title("the better-looking number", fontsize=10, color=ACCENT,
+                  weight="bold")
+    ax1.grid(alpha=0.13, axis="y")
+
+    ax2.bar(range(2), [a_free, a_fix], color=cols, width=0.5, alpha=0.88)
+    for i, v in enumerate([a_free, a_fix]):
+        ax2.text(i, v + a_fix * 0.04, f"{v:.2f}", ha="center", fontsize=10.5,
+                 color=INK, weight="bold")
+    ax2.set_xticks(range(2))
+    ax2.set_xticklabels(labels, fontsize=9)
+    ax2.set_ylabel("size of what is left to compare", fontsize=9.5)
+    ax2.set_ylim(0, a_fix * 1.3)
+    ax2.set_title("what was actually matched", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.grid(alpha=0.13, axis="y")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8.5, colors=INK)
+        for sp in ax.spines.values():
+            sp.set_color(INK)
+            sp.set_linewidth(0.7)
+
+    fig.text(0.5, -0.05,
+             "a loss of exactly zero, reached by sending both sides to zero. "
+             "nothing was preserved.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "projection_collapse.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote projection_collapse.svg   free loss {l_free:.2e} "
+          f"norm {a_free:.3f} | fixed loss {l_fix:.4f} norm {a_fix:.2f}")
+
+
 if __name__ == "__main__":
     temperature_scaling()
+    projection_collapse()
