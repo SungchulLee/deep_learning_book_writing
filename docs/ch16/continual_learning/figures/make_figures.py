@@ -176,5 +176,104 @@ def forgetting_speed():
           f"break {below}, twos then {new_then:.1f}%")
 
 
+# === 그림으로 보는 AI: BWT 하나만 보면 안 되는 까닭 ==========================
+#
+# AA = LA + (T-1)/T * BWT 는 **항등식**이다. 그래서 셋 가운데 둘만 독립이다.
+# 그 값은 BWT 를 "덜 배워서" 좋게 만들 수 있다는 것이다 — 배운 것이 없으면
+# 잊을 것도 없다. 아무것도 배우지 않는 모형의 BWT 가 0 인 것을 직접 보인다.
+
+def bwt_is_gameable():
+    import torch
+    import torch.nn as nn
+
+    T = 4
+    data = [_encode(_facts(k), torch) for k in range(1, T + 1)]
+    lf = nn.CrossEntropyLoss()
+
+    def matrix(lr, seed=0):
+        torch.manual_seed(seed)
+        net = nn.Sequential(nn.Linear(20, 50), nn.Sigmoid(), nn.Linear(50, 19))
+        a = np.zeros((T, T))
+        for j in range(T):
+            opt = torch.optim.SGD(net.parameters(), lr=lr, momentum=0.9)
+            for _ in range(120):
+                opt.zero_grad()
+                lf(net(data[j][0]), data[j][1]).backward()
+                opt.step()
+            for i in range(T):
+                with torch.no_grad():
+                    a[i, j] = (net(data[i][0]).argmax(1)
+                               == data[i][1]).float().mean().item() * 100
+        return a
+
+    rows = []
+    for name, lr in (("learns\nproperly", 0.5),
+                     ("barely\nlearns", 0.001),
+                     ("learns\nnothing", 0.0)):
+        a = matrix(lr)
+        aa = a[:, -1].mean()
+        la = np.diag(a).mean()
+        bwt = float(np.mean([a[i, -1] - a[i, i] for i in range(T - 1)]))
+        assert abs(aa - (la + (T - 1) / T * bwt)) < 1e-6, (
+            "AA = LA + (T-1)/T * BWT 는 항등식이어야 한다")
+        rows.append((name, aa, la, bwt))
+
+    assert rows[2][3] > rows[0][3], (
+        "아무것도 안 배우는 쪽의 BWT 가 더 좋아야 이 그림의 이야기가 성립한다")
+    assert rows[2][1] < rows[0][1], "그런데 AA 는 더 나빠야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.0))
+    names = [r[0] for r in rows]
+    xs = np.arange(len(rows))
+
+    # --- 왼쪽: BWT 로 줄 세우면 -------------------------------------------
+    bwts = [r[3] for r in rows]
+    cols = [INK, MUTED, ACCENT]
+    ax1.bar(xs, bwts, color=cols, width=0.55, alpha=0.88)
+    for x, v in zip(xs, bwts):
+        ax1.text(x, v + (3 if v >= 0 else -7), f"{v:+.1f}", ha="center",
+                 fontsize=10, color=INK, weight="bold")
+    ax1.axhline(0, color=INK, linewidth=0.8)
+    ax1.set_xticks(xs)
+    ax1.set_xticklabels(names, fontsize=8.6)
+    ax1.set_ylabel("backward transfer (%p)", fontsize=9)
+    ax1.set_ylim(min(bwts) * 1.3, 22)
+    ax1.set_title("ranked by BWT: doing nothing wins", fontsize=10,
+                  color=ACCENT, weight="bold")
+    ax1.grid(alpha=0.13, axis="y")
+
+    # --- 오른쪽: AA 로 줄 세우면 -------------------------------------------
+    aas = [r[1] for r in rows]
+    ax2.bar(xs, aas, color=cols, width=0.55, alpha=0.88)
+    for x, v in zip(xs, aas):
+        ax2.text(x, v + 1.5, f"{v:.1f}", ha="center", fontsize=10,
+                 color=INK, weight="bold")
+    ax2.set_xticks(xs)
+    ax2.set_xticklabels(names, fontsize=8.6)
+    ax2.set_ylabel("average accuracy (%)", fontsize=9)
+    ax2.set_ylim(0, max(aas) * 1.28)
+    ax2.set_title("ranked by AA: it comes last", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.grid(alpha=0.13, axis="y")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for sp in ax.spines.values():
+            sp.set_color(INK)
+            sp.set_linewidth(0.7)
+
+    fig.text(0.5, -0.05,
+             "same three models, two orderings. "
+             "AA = LA + (T-1)/T x BWT held exactly in all three.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "bwt_gameable.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote bwt_gameable.svg   BWT {[round(r[3],1) for r in rows]}   "
+          f"AA {[round(r[1],1) for r in rows]}")
+
+
 if __name__ == "__main__":
     forgetting_speed()
+    bwt_is_gameable()
