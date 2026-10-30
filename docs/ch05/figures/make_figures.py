@@ -823,6 +823,47 @@ def fig_step2_two_ladders():
     print("wrote step2_two_ladders.svg")
 
 
+# === 그림 16: 피어슨이 1901년에 던진 물음 ===================================
+def fig_pearson_two_lines():
+    """같은 점에 세 직선. 둘은 "무엇이 정답인가"에 따라 갈리고 하나는 갈리지 않는다.
+
+    점은 씨앗 0으로 이 코드가 만든 것이고 기울기 셋도 여기서 잰다. 피어슨
+    논문에 실린 수가 아니다 — 보이려는 것은 수가 아니라 **갈린다는 사실**이다.
+    """
+    rng = np.random.default_rng(0)
+    n = 120
+    x = rng.normal(0, 1, n)
+    y = 0.8 * x + rng.normal(0, 0.6, n)
+    mx, my = x.mean(), y.mean()
+
+    b_yx = np.polyfit(x, y, 1)[0]                       # y 를 정답으로 두고
+    b_xy = 1.0 / np.polyfit(y, x, 1)[0]                 # x 를 정답으로 두고
+    Xc = np.c_[x - mx, y - my]
+    Vt = np.linalg.svd(Xc, full_matrices=False)[2]
+    b_pca = Vt[0, 1] / Vt[0, 0]
+    # 축을 바꿔 다시 재면 같은 직선으로 돌아온다
+    Vs = np.linalg.svd(np.c_[y - my, x - mx], full_matrices=False)[2]
+    assert abs(1.0 / (Vs[0, 1] / Vs[0, 0]) - b_pca) < 1e-9
+
+    fig, ax = plt.subplots(figsize=(7.4, 5.4))
+    ax.scatter(x, y, s=13, color="0.55", alpha=0.65, linewidths=0, zorder=2)
+    xs = np.linspace(x.min() - 0.3, x.max() + 0.3, 2)
+    for b, c, lab in ((b_yx, "tab:blue", f"treat y as the answer   slope {b_yx:.2f}"),
+                      (b_xy, "tab:green", f"treat x as the answer   slope {b_xy:.2f}"),
+                      (b_pca, "#c2410c", f"ask neither (PCA)        slope {b_pca:.2f}")):
+        ax.plot(xs, my + b * (xs - mx), color=c, lw=2.1, label=lab, zorder=3)
+    ax.text(0.02, 0.97,
+            "swap x and y, redo the orange line:\nit comes back the same line",
+            transform=ax.transAxes, va="top", fontsize=9, color="#c2410c")
+    ax.legend(fontsize=9, frameon=False, loc="lower right")
+    ax.set_xlabel("x", fontsize=10); ax.set_ylabel("y", fontsize=10)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.10, right=0.98, top=0.97, bottom=0.11)
+    fig.savefig("pearson_two_lines.svg", transparent=True)
+    plt.close(fig)
+    print("wrote pearson_two_lines.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -840,6 +881,7 @@ if __name__ == "__main__":
     fig_ddim_steps()
     fig_rulers_disagree()
     fig_step2_two_ladders()
+    fig_pearson_two_lines()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
