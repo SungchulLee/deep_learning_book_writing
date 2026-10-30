@@ -213,6 +213,107 @@ def idf_effect():
     print(f"wrote idf_effect.svg   tf {s_tf:.3f}  tfidf {s_tfidf:.3f}")
 
 
+
+
+# === 그림으로 보는 AI: 가장 좋은 여섯과 가장 좋은 여섯 묶음 ===================
+#
+# 참 모수를 **완전히 안다**고 두고 — 곧 추정 오차가 0 인 세상에서 — 하나씩
+# 가장 좋은 k 개를 고른 것과 묶음으로 가장 좋은 k 개를 비교한다. 둘이 다르다면
+# 그것은 불확실성 때문이 아니라 **묶음이라는 사실 자체** 때문이다.
+
+N_ASSET, K_PICK, N_GROUP = 30, 6, 5
+
+
+def set_is_not_its_members():
+    rng = np.random.default_rng(7)
+    grp = np.repeat(np.arange(N_GROUP), N_ASSET // N_GROUP)
+    sd = rng.uniform(0.12, 0.20, N_ASSET)
+    mu = 0.05 + 0.02 * rng.random(N_ASSET)
+    mu[grp == 0] += 0.075                 # 한 무리가 개별로는 가장 좋아 보인다
+    corr = np.where(grp[:, None] == grp[None, :], 0.92, 0.05)
+    np.fill_diagonal(corr, 1.0)
+    cov = corr * np.outer(sd, sd)
+    solo = mu / sd
+
+    def sharpe(idx):
+        idx = np.array(idx)
+        w = np.ones(len(idx)) / len(idx)
+        return float(w @ mu[idx] / np.sqrt(w @ cov[np.ix_(idx, idx)] @ w))
+
+    greedy = np.argsort(-solo)[:K_PICK]
+    best = list(greedy)
+    cur = sharpe(best)
+    for _ in range(500):
+        improved = False
+        for pos in range(K_PICK):
+            for cand in range(N_ASSET):
+                if cand in best:
+                    continue
+                trial = best.copy()
+                trial[pos] = cand
+                sc = sharpe(trial)
+                if sc > cur + 1e-12:
+                    best, cur, improved = trial, sc, True
+        if not improved:
+            break
+    best = np.array(best)
+
+    # 그림이 주장하는 것을 먼저 확인한다
+    assert cur > sharpe(greedy) * 1.2, "묶음이 크게 낫지 않으면 이 그림의 이야기가 없다"
+    assert solo[best].mean() < solo[greedy].mean(), \
+        "더 좋은 묶음이 개별로는 더 나빠야 이야기의 핵심이 산다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.2),
+                                   gridspec_kw={"width_ratios": [1.25, 1]})
+
+    for row, (idx, name, col) in enumerate(
+            ((greedy, "the 6 best one by one", INK),
+             (best, "the best 6 as a set", ACCENT))):
+        counts = np.bincount(grp[idx], minlength=N_GROUP)
+        ax1.barh(np.arange(N_GROUP) + (0.19 if row else -0.19), counts,
+                 height=0.36, color=col, alpha=0.86, label=name)
+    ax1.set_yticks(range(N_GROUP))
+    ax1.set_yticklabels([f"group {g}" for g in range(N_GROUP)], fontsize=9)
+    ax1.set_xlabel("how many of the 6 picks come from this group", fontsize=9)
+    ax1.set_title("picking one by one lands in one group", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.legend(fontsize=8.4, framealpha=0.92, loc="upper right")
+    ax1.set_xlim(0, K_PICK * 1.45)
+    ax1.grid(alpha=0.13, axis="x")
+
+    vals = [sharpe(greedy), cur]
+    ax2.bar([0, 1], vals, color=[INK, ACCENT], width=0.5, alpha=0.88)
+    for i, v in enumerate(vals):
+        ax2.text(i, v + 0.03, f"{v:.3f}", ha="center", fontsize=11,
+                 color=INK, weight="bold")
+    ax2.set_xticks([0, 1])
+    ax2.set_xticklabels(["best one by one", "best as a set"], fontsize=9)
+    ax2.set_ylabel("Sharpe of the resulting portfolio", fontsize=9.5)
+    ax2.set_ylim(0, max(vals) * 1.25)
+    ax2.set_title(f"{cur / vals[0]:.2f}x apart", fontsize=10, color=ACCENT,
+                  weight="bold")
+    ax2.grid(alpha=0.13, axis="y")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for sp in ax.spines.values():
+            sp.set_color(INK)
+            sp.set_linewidth(0.7)
+
+    fig.text(0.5, -0.06,
+             f"true parameters known exactly - no estimation error anywhere. "
+             f"the better set has the LOWER average solo Sharpe "
+             f"({solo[best].mean():.3f} against {solo[greedy].mean():.3f}).",
+             ha="center", fontsize=8.4, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "set_not_members.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote set_not_members.svg   greedy {vals[0]:.4f}  set {cur:.4f}  "
+          f"solo {solo[greedy].mean():.4f} vs {solo[best].mean():.4f}")
+
+
 if __name__ == "__main__":
+    set_is_not_its_members()
     idf_effect()
     safety_first()
