@@ -1003,6 +1003,93 @@ def fig_gan_saturation():
     print(f"wrote gan_saturation.svg  (epoch 10: {vals[1]:.1f}x fainter)")
 
 
+def fig_dcgan_bundle():
+    """GAN 에서 DCGAN 으로 넘어갈 때 실제로 몇 가지가 바뀌었는가.
+
+    왼쪽 목록과 오른쪽 막대는 모두 **이 책 두 쪽의 코드에서 읽은 것**이다.
+    파라미터 수는 거기 적힌 모듈을 그대로 세운 뒤 센 것이고, 어느 논문의
+    수도 아니다.
+    """
+    import torch.nn as nn
+    Z = 64
+    g_mlp = nn.Sequential(nn.Linear(Z, 256), nn.LeakyReLU(0.2),
+                          nn.Linear(256, 512), nn.LeakyReLU(0.2),
+                          nn.Linear(512, 784), nn.Tanh())
+    d_mlp = nn.Sequential(nn.Flatten(), nn.Linear(784, 512), nn.LeakyReLU(0.2),
+                          nn.Linear(512, 256), nn.LeakyReLU(0.2),
+                          nn.Linear(256, 1))
+    g_cnv = nn.ModuleList([
+        nn.Sequential(nn.Linear(Z, 128 * 7 * 7), nn.BatchNorm1d(128 * 7 * 7),
+                      nn.ReLU()),
+        nn.Sequential(nn.ConvTranspose2d(128, 64, 4, 2, 1), nn.BatchNorm2d(64),
+                      nn.ReLU(), nn.ConvTranspose2d(64, 1, 4, 2, 1), nn.Tanh())])
+    d_cnv = nn.Sequential(nn.Conv2d(1, 64, 4, 2, 1), nn.LeakyReLU(0.2),
+                          nn.Conv2d(64, 128, 4, 2, 1), nn.BatchNorm2d(128),
+                          nn.LeakyReLU(0.2), nn.Flatten(),
+                          nn.Linear(128 * 7 * 7, 1))
+    cnt = lambda m: sum(p.numel() for p in m.parameters())
+    gm, gc, dm, dc = cnt(g_mlp), cnt(g_cnv), cnt(d_mlp), cnt(d_cnv)
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.8, 4.5),
+                                   gridspec_kw={"width_ratios": [1.45, 1]})
+
+    # --- 왼쪽: 무엇이 그대로이고 무엇이 바뀌었나 -----------------------------
+    same = ["seed 42", "batch 100", "30 epochs", "z size 64",
+            "Adam, lr 2e-4", "betas (0.5, 0.999)", "the same loss",
+            "the same judge"]
+    diff = ["fully connected  ->  convolution",
+            "no batchnorm  ->  batchnorm, both sides",
+            "generator's LeakyReLU  ->  ReLU",
+            f"discriminator {dm:,}  ->  {dc:,} weights"]
+    axL.text(0.02, 0.95, "held fixed", fontsize=11, color="0.35",
+             transform=axL.transAxes, weight="bold")
+    for i, s in enumerate(same):
+        axL.text(0.035, 0.86 - i * 0.072, f"-  {s}", fontsize=9.6, color="0.45",
+                 transform=axL.transAxes)
+    axL.text(0.46, 0.95, "changed - the page names only the first",
+             fontsize=11, color="#b91c1c", transform=axL.transAxes,
+             weight="bold")
+    for i, s in enumerate(diff):
+        axL.text(0.475, 0.86 - i * 0.105, f"{i+1}.  {s}", fontsize=9.6,
+                 color="#b91c1c", transform=axL.transAxes)
+    axL.axvline(0.44, color="0.8", lw=1.0)
+    axL.set_xticks([]); axL.set_yticks([])
+    axL.spines[:].set_visible(False)
+    axL.set_title("one arrow in the table, four changes in the code",
+                  fontsize=11)
+
+    # --- 오른쪽: 파라미터 수 -------------------------------------------------
+    x = np.arange(2)
+    axR.bar(x - 0.19, [gm, dm], 0.37, label="MLP  (prev. page)", color="0.62")
+    axR.bar(x + 0.19, [gc, dc], 0.37, label="conv  (this page)", color="tab:blue")
+    for xi, (a, b) in zip(x, [(gm, gc), (dm, dc)]):
+        axR.text(xi - 0.19, a + 14000, f"{a/1000:.0f}k", ha="center", fontsize=9.3)
+        axR.text(xi + 0.19, b + 14000, f"{b/1000:.0f}k", ha="center", fontsize=9.3)
+    axR.text(0, 625000, "same size (ratio 1.00)", ha="center", fontsize=9.6,
+             color="0.3")
+    axR.annotate(f"a quarter of it\n(ratio {dc/dm:.2f})", xy=(1.19, 160000),
+                 xytext=(1.19, 320000), ha="center", fontsize=9.6,
+                 color="#b91c1c",
+                 arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.1))
+    axR.set_xticks(x)
+    axR.set_xticklabels(["the one that draws", "the one that judges"],
+                        fontsize=10)
+    axR.set_ylabel("number of weights", fontsize=10)
+    axR.set_ylim(0, 790000)
+    axR.legend(fontsize=9.3, frameon=False, loc="upper right")
+    axR.set_title("and one of them quietly shrank", fontsize=11)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.text(0.5, 0.015, "every number here was read off the code on these two "
+             "pages - none of it comes from the DCGAN paper.",
+             ha="center", fontsize=8.5, color="0.45")
+    fig.subplots_adjust(left=0.025, right=0.985, top=0.91, bottom=0.12,
+                        wspace=0.18)
+    fig.savefig("dcgan_bundle.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote dcgan_bundle.svg  (G {gm:,}->{gc:,}, D {dm:,}->{dc:,})")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -1023,6 +1110,7 @@ if __name__ == "__main__":
     fig_pearson_two_lines()
     fig_diffusion_attention()
     fig_gan_saturation()
+    fig_dcgan_bundle()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
