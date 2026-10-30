@@ -614,6 +614,136 @@ def smoothing_limit():
           f"norm spread {spread:.2f}")
 
 
+# === 그림으로 보는 AI: 메타 경로를 세면 큰 노드가 다 가져간다 ================
+#
+# 메타 경로를 처음 이름 붙인 PathSim(VLDB 2011)이 함께 지적한 것이 경로 인스턴스를
+# 그냥 세면 "눈에 잘 띄는" 노드로 쏠린다는 것이었다. 작은 서지 그래프를 지어
+# 얼마나 쏠리는지, 그들이 제안한 정규화가 그것을 어떻게 바꾸는지를 센다.
+
+def counting_favours_the_prolific():
+    from collections import Counter
+
+    n_a, n_p, n_v = 40, 160, 5
+    rng = np.random.default_rng(7)
+
+    # --- 저자 셋은 다작, 나머지는 평범. 저자마다 주로 가는 학회가 있다 -----
+    prod = np.array([30, 22, 16]
+                    + [2 + int(rng.integers(0, 4)) for _ in range(n_a - 3)],
+                    float)
+    home = rng.integers(0, n_v, n_a)
+    home[0], home[1], home[2] = 0, 1, 2
+    AP = np.zeros((n_a, n_p))
+    PV = np.zeros((n_p, n_v))
+    for p in range(n_p):
+        v = rng.integers(0, n_v)
+        PV[p, v] = 1
+        w = prod * (1.0 + 3.0 * (home == v))
+        k = int(rng.integers(1, 4))
+        AP[rng.choice(n_a, size=k, replace=False, p=w / w.sum()), p] = 1
+    papers = AP.sum(1)
+    big3 = list(np.argsort(-papers)[:3])
+
+    def pathsim(C):
+        d = np.diag(C)
+        return 2 * C / (d[:, None] + d[None, :])
+
+    def nearest(M):
+        M = M.copy()
+        np.fill_diagonal(M, -np.inf)
+        return M.argmax(1)
+
+    AV = AP @ PV
+    paths = {"A-P-A": AP @ AP.T, "A-P-V-P-A": AV @ AV.T}
+    wins, share = {}, {}
+    for mp, C in paths.items():
+        for lab, M in (("raw count", C), ("PathSim", pathsim(C))):
+            t = nearest(M)
+            wins[(mp, lab)] = Counter(t)
+            share[(mp, lab)] = sum(wins[(mp, lab)][a] for a in big3) / n_a
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert share[("A-P-V-P-A", "raw count")] == 1.0, \
+        "긴 메타 경로에서는 다작 저자 셋이 모든 질의를 가져가야 한다"
+    for mp in paths:
+        assert share[(mp, "PathSim")] < 0.3 < share[(mp, "raw count")], \
+            "정규화가 쏠림을 크게 줄여야 한다"
+    agree_raw = int((nearest(paths["A-P-A"])
+                     == nearest(paths["A-P-V-P-A"])).sum())
+    agree_ps = int((nearest(pathsim(paths["A-P-A"]))
+                    == nearest(pathsim(paths["A-P-V-P-A"]))).sum())
+    assert agree_ps < n_a // 2, "메타 경로를 바꾸면 답이 많이 달라져야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.3),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    # --- 왼쪽: 쓴 논문 수와 "가장 닮은 저자" 로 뽑힌 횟수 -------------------
+    jig = rng.normal(0, 0.09, n_a)
+    for lab, col, mk in (("raw count", ACCENT, "o"), ("PathSim", MUTED, "s")):
+        w = wins[("A-P-V-P-A", lab)]
+        ax1.scatter(papers + jig, [w[a] for a in range(n_a)], s=42, marker=mk,
+                    color=col, alpha=0.78, edgecolors="white", linewidths=0.8,
+                    label=lab, zorder=3)
+    for a in big3:
+        ax1.annotate(f"{int(papers[a])} papers",
+                     (papers[a], wins[("A-P-V-P-A", "raw count")][a]),
+                     textcoords="offset points", xytext=(-8, 9), fontsize=8,
+                     color=ACCENT, ha="right")
+    ax1.set_xlabel("papers this author wrote", fontsize=8.8)
+    ax1.set_ylabel("times returned as the nearest author\n"
+                   f"across all {n_a} queries", fontsize=8.8)
+    ax1.set_title("A-P-V-P-A: who gets returned, and why", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.legend(fontsize=8.4, loc="upper center", framealpha=0.92)
+    ax1.set_ylim(-1.2, 24)
+
+    # --- 오른쪽: 세 다작 저자가 가져가는 몫 --------------------------------
+    keys = [("A-P-A", "raw count"), ("A-P-A", "PathSim"),
+            ("A-P-V-P-A", "raw count"), ("A-P-V-P-A", "PathSim")]
+    xs = np.arange(4)
+    vals = [share[k] for k in keys]
+    cols = [ACCENT, MUTED, ACCENT, MUTED]
+    ax2.bar(xs, vals, 0.54, color=cols, alpha=0.82)
+    for x, v in zip(xs, vals):
+        ax2.text(x, v + 0.022, f"{v * n_a:.0f} of {n_a}", ha="center",
+                 fontsize=9.4, color=INK, weight="bold")
+    ax2.set_xticks(xs)
+    ax2.set_xticklabels([f"{mp}\n{lab}" for mp, lab in keys], fontsize=8.2)
+    ax2.set_ylim(0, 1.2)
+    ax2.set_yticks(np.arange(0, 1.01, 0.25))
+    ax2.set_yticklabels([f"{t:.0%}" for t in np.arange(0, 1.01, 0.25)])
+    ax2.set_ylabel("queries whose answer is one of\nthe three most prolific "
+                   "authors", fontsize=8.8)
+    ax2.set_title("the same graph, four ways of asking", fontsize=10,
+                  color=INK, weight="bold")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        ax.grid(alpha=0.13, axis="y")
+        ax.set_axisbelow(True)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.text(0.5, -0.07,
+             f"a made-up bibliographic graph: {n_a} authors, {n_p} papers, "
+             f"{n_v} venues; the busiest author wrote {papers.max():.0f}, "
+             f"the median {np.median(papers):.0f}.  "
+             f"The two meta paths name the same nearest author for "
+             f"{agree_ps} of {n_a} authors under PathSim "
+             f"({agree_raw} of {n_a} by raw count).",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.savefig(HERE / "counting_favours_the_prolific.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote counting_favours_the_prolific.svg   " + "; ".join(
+        f"{mp}/{lab} big-3 share {share[(mp, lab)] * n_a:.0f}/{n_a}"
+        for mp, lab in keys)
+        + f";  metapath agreement raw {agree_raw}/{n_a} pathsim "
+          f"{agree_ps}/{n_a};  papers max {papers.max():.0f} "
+          f"median {np.median(papers):.0f}")
+
+
 if __name__ == "__main__":
     two_causes()
     reach_varies()
@@ -621,3 +751,4 @@ if __name__ == "__main__":
     clique_collapse()
     time_order()
     smoothing_limit()
+    counting_favours_the_prolific()
