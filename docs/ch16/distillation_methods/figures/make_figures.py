@@ -203,6 +203,88 @@ def projection_collapse():
           f"norm {a_free:.3f} | fixed loss {l_fix:.4f} norm {a_fix:.2f}")
 
 
+# === 그림으로 보는 AI: 네 방법이 묶어 두는 수의 개수 =========================
+#
+# "무엇을 맞추는가" 를 **몇 개를 맞추는가** 로 바꿔 세면 네 방법의 차이가
+# 자릿수로 드러난다. 어텐션 전달이 피처 증류의 채널을 덜어 낸 것이라는 점도
+# 숫자로 그대로 나온다 (채널 수만큼 작아진다).
+
+def how_many_numbers():
+    import torch
+    import torch.nn as nn
+
+    b, n_cls = 32, 10
+    torch.manual_seed(0)
+    net = nn.Sequential(
+        nn.Conv2d(3, 32, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
+        nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
+        nn.Conv2d(64, 128, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
+    )
+    h = torch.randn(b, 3, 32, 32)
+    feats = []
+    for layer in net:
+        h = layer(h)
+        if isinstance(layer, nn.MaxPool2d):
+            feats.append(h)
+
+    f = feats[-1]
+    ch, hh, ww = f.shape[1], f.shape[2], f.shape[3]
+    counts = [
+        ("output\nlogits", b * n_cls, INK),
+        ("attention\nmap", hh * ww * b, MUTED),
+        ("relation\nB x B", b * b, "#9a6b4f"),
+        ("feature map\none layer", ch * hh * ww * b, ACCENT),
+        ("feature maps\nall three", sum(t[0].numel() for t in feats) * b,
+         ACCENT),
+    ]
+    out = counts[0][1]
+
+    # 어텐션은 피처에서 채널을 덜어 낸 것이다 — 정확히 채널 수만큼 작다
+    assert counts[3][1] == counts[1][1] * ch, (
+        "어텐션 지도는 피처 맵을 채널로 나눈 크기여야 한다")
+    assert counts[4][1] > counts[3][1], "레이어를 더 쓰면 더 커져야 한다"
+
+    fig, ax = plt.subplots(figsize=(9.2, 4.3))
+    xs = np.arange(len(counts))
+    vals = [c[1] for c in counts]
+    bars = ax.bar(xs, vals, color=[c[2] for c in counts], width=0.58,
+                  alpha=0.88)
+    ax.set_yscale("log")
+    for x, v in zip(xs, vals):
+        ax.text(x, v * 1.35, f"{v:,}\n{v / out:.0f}x", ha="center",
+                fontsize=8.8, color=INK, weight="bold")
+
+    ax.annotate("", xy=(1, counts[1][1] * 1.08), xytext=(3, counts[3][1] * 0.92),
+                arrowprops=dict(arrowstyle="<->", color=ACCENT, lw=1.2,
+                                connectionstyle="arc3,rad=0.25"))
+    ax.text(2.0, counts[3][1] * 0.22, f"summing away\n{ch} channels",
+            ha="center", fontsize=8.4, color=ACCENT)
+
+    ax.set_xticks(xs)
+    ax.set_xticklabels([c[0] for c in counts], fontsize=8.6)
+    ax.set_ylabel("numbers the teacher pins down (log)", fontsize=9.5)
+    ax.set_ylim(top=max(vals) * 12)
+    ax.set_title("same batch, same teacher - four very different grips",
+                 fontsize=10.5, color=INK, weight="bold", pad=10)
+    ax.grid(alpha=0.13, axis="y", which="both")
+    ax.tick_params(labelsize=8.5, colors=INK)
+    for sp in ax.spines.values():
+        sp.set_color(INK)
+        sp.set_linewidth(0.7)
+
+    fig.text(0.5, -0.05,
+             f"batch of {b}, {n_cls} classes, a small conv net. "
+             "counting what is constrained, not what it costs to compute.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "how_many_numbers.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote how_many_numbers.svg   " +
+          ", ".join(f"{c[0].replace(chr(10),' ')}={c[1]:,}" for c in counts))
+
+
 if __name__ == "__main__":
     temperature_scaling()
     projection_collapse()
+    how_many_numbers()
