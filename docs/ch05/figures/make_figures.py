@@ -1274,6 +1274,86 @@ def fig_cvae_condition(N=12000, K=8):
           f"{spans[2]:.2f})")
 
 
+def fig_variety_ruler():
+    """클래스 안 다양함이라는 자가 무엇을 다양함으로 세는가.
+
+    진짜 MNIST 를 **그대로 두고 자리만 옮긴다.** 새로 만들어진 다양함은
+    하나도 없는데 자는 올라간다. 한 칸만 옮겨도 이 장의 가장 높은 값인
+    DCGAN 의 1.085 를 넘는다.
+
+    모델은 쓰지 않는다. 모든 수는 여기서 진짜 MNIST 로 센 것이다.
+    """
+    tf = transforms.ToTensor()
+    te = torchvision.datasets.MNIST(DATA, train=False, download=True, transform=tf)
+    from torch.utils.data import DataLoader
+    X = torch.cat([x for x, _ in DataLoader(te, batch_size=2000)])
+    y = torch.cat([l for _, l in DataLoader(te, batch_size=2000)])
+
+    def ruler(Z):
+        return sum(Z[y == c].var(0, unbiased=False).mean().item()
+                   for c in range(10)) / 10
+
+    base = ruler(X)
+
+    def jitter(m, seed=0):
+        if m == 0:
+            return X.clone()
+        g = torch.Generator().manual_seed(seed)
+        dx = torch.randint(-m, m + 1, (len(X),), generator=g)
+        dy = torch.randint(-m, m + 1, (len(X),), generator=g)
+        Z = X.clone()
+        for i in range(len(X)):
+            Z[i, 0] = torch.roll(X[i, 0], (int(dy[i]), int(dx[i])), (0, 1))
+        return Z
+
+    shifts = [0, 1, 2, 3, 4]
+    zs = {m: jitter(m) for m in shifts}
+    vals = [ruler(zs[m]) / base for m in shifts]
+
+    fig = plt.figure(figsize=(12.6, 4.8))
+    gs = fig.add_gridspec(2, 2, width_ratios=[1.12, 1], height_ratios=[1, 1],
+                          left=0.065, right=0.985, top=0.88, bottom=0.13,
+                          wspace=0.2, hspace=0.42)
+    axc = fig.add_subplot(gs[:, 0])
+
+    axc.plot(shifts, vals, "o-", color="#c2410c", lw=2.1, ms=7)
+    for m, v in zip(shifts, vals):
+        axc.annotate(f"{v:.3f}", xy=(m, v), xytext=(0, 10),
+                     textcoords="offset points", ha="center", fontsize=9.5,
+                     color="#c2410c")
+    for v, n, c in ((0.953, "GAN", "0.5"), (1.047, "DDPM", "0.5"),
+                    (1.085, "DCGAN - the chapter's best", "tab:blue")):
+        axc.plot([-0.25, 4.15], [v, v], color=c, lw=1.0, ls="--")
+        axc.text(4.28, v, n, va="center", fontsize=9, color=c)
+    axc.set_xticks(shifts)
+    axc.set_xlabel("every real digit moved by up to this many pixels",
+                   fontsize=10)
+    axc.set_ylabel("what the variety ruler reports", fontsize=10)
+    axc.set_xlim(-0.25, 5.6); axc.set_ylim(0.9, 1.55)
+    axc.set_title("nothing new was drawn - the digits were only nudged",
+                  fontsize=11)
+    axc.spines[["top", "right"]].set_visible(False)
+
+    # --- 오른쪽: 눈으로 보는 같은 일 ----------------------------------------
+    pick = [3, 2, 1, 18, 4, 8, 11, 0]
+    for row, (m, lab) in enumerate([(0, f"untouched - ruler {vals[0]:.3f}"),
+                                    (1, f"moved by 1 pixel - ruler {vals[1]:.3f}")]):
+        sub = gs[row, 1].subgridspec(1, len(pick), wspace=0.08)
+        for k, idx in enumerate(pick):
+            ax = fig.add_subplot(sub[0, k])
+            ax.imshow(zs[m][idx, 0], cmap="gray_r", vmin=0, vmax=1)
+            ax.set_xticks([]); ax.set_yticks([]); ax.spines[:].set_visible(False)
+        fig.text(0.60, 0.845 - row * 0.425, lab, fontsize=9.6,
+                 color="0.3" if m == 0 else "#c2410c")
+
+    fig.text(0.5, 0.015, "every picture on the right is a real MNIST digit. "
+             "counted here on the 10,000 test digits - no model was run.",
+             ha="center", fontsize=8.5, color="0.45")
+    fig.savefig("variety_ruler.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote variety_ruler.svg  (1 pixel -> {vals[1]:.3f} vs DCGAN 1.085)")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -1297,6 +1377,7 @@ if __name__ == "__main__":
     fig_dcgan_bundle()
     fig_ddim_invertible()
     fig_cvae_condition()
+    fig_variety_ruler()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
