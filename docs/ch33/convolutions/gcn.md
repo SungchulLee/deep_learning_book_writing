@@ -269,6 +269,30 @@ $$H'=\sigma(\tilde D^{-1/2}\tilde A\tilde D^{-1/2}HW+b)$$
 
 매 호출에서 각 노드의 자기 루프를 추가한다. 기존 입력의 루프를 검사·제거하지 않아 이미 루프가 있으면 중복으로 계산한다. 일반 중복 엣지도 각 항이 별도로 합산·차수에 반영된다. 입력을 단순 그래프로 가정할지 다중 메시지로 볼지 먼저 정해야 한다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 자기 루프는 "나도 넣는다"가 아니라 고유값 때문이었다
+
+위 식의 $\tilde A = A + I$ 를 두고 흔히 "이웃만 보지 말고 자기 피처도 함께 넣는다"고 설명한다. 틀린 말은 아니지만, 토마스 키프(Thomas Kipf)와 막스 벨링(Max Welling)이 그것을 넣은 까닭은 **모델링이 아니라 수치**였다.
+
+논문은 자기 루프 없는 1차 모형 $I + D^{-1/2}AD^{-1/2}$ 를 먼저 적고 바로 이렇게 덧붙인다.
+
+> "Note that $I_N + D^{-1/2}AD^{-1/2}$ now has eigenvalues in the range [0, 2]. **Repeated application of this operator can therefore lead to numerical instabilities and exploding/vanishing gradients** when used in a deep neural network model. To alleviate this problem, we introduce the following renormalization trick…"
+
+그 재정규화가 $\tilde A = A + I$ 로 바꾸어 다시 차수로 나누는 일, 곧 위 식이다. 논문에 붙은 이름도 "renormalization trick"이고, 실험 표에서 다른 전파 방식들과 **나란히 비교되는 한 줄**이다.
+
+![두 판으로 나뉜 그림. 왼쪽은 두 연산자의 고유값을 수직선 위에 찍은 것으로, 자기 루프 없는 쪽은 0 부근부터 2까지 퍼져 있고 최대 절댓값이 2.000이며, 재정규화한 쪽은 마이너스 0.42부터 1까지에 머물고 최대 절댓값이 1.000이다. 오른쪽은 레이어를 쌓았을 때 피처 노름이 어떻게 되는지를 로그 눈금으로 그린 것으로, 고유값이 2까지 가는 쪽은 서른두 레이어에서 10의 9제곱 대로 치솟고 재정규화한 쪽은 1.94에 머문다.](figures/renormalization.svg)
+
+가라테 클럽 그래프에서 두 연산자를 직접 재어 보면 논문이 적은 그대로다. 자기 루프 없는 쪽의 고유값은 $[0.285, 2.000]$ 이라 **스펙트럼 반지름이 정확히 2**이고, 재정규화한 쪽은 $[-0.420, 1.000]$ 으로 **1을 넘지 않는다.** 그리고 레이어를 서른둘까지 쌓으면 앞쪽은 피처 노름이 $8.5\times10^{9}$ 로 달아나고 뒤쪽은 1.94에 머문다.
+
+**그러니 이 쪽 식에 $I$ 가 붙어 있는 것은 두 가지 일을 한꺼번에 한다.** 자기 피처를 섞어 주는 것은 맞지만, 그것을 **고유값을 1 아래로 끌어내리는 방식으로** 한다. 같은 "자기 자신도 본다"를 구현하더라도 $H' = \sigma(W_1 H + W_2 \hat A H)$ 처럼 따로 적으면 스펙트럼 이야기는 따라오지 않는다.
+
+그리고 여기에 이 쪽이 경고한 자리가 걸린다. 매 호출마다 루프를 **검사 없이 더하므로**, 이미 루프가 있는 입력에서는 $\tilde A$ 의 대각이 2가 되어 차수도 스펙트럼도 논문이 보증한 것과 달라진다. 효능이 고유값에서 오는 장치라면, 고유값을 바꾸는 입력은 그 효능도 함께 바꾼다.
+
+_확인한 곳 — T. N. Kipf, M. Welling, "Semi-Supervised Classification with Graph Convolutional Networks", ICLR 2017 (arXiv:1609.02907). 인용한 문장과 "renormalization trick" 이라는 이름은 논문 2.1절이며, 식 (8) 로 실험 표에 올라 있다. 그림의 수는 그림을 그리는 코드가 가라테 클럽 그래프에 직접 재고, 두 스펙트럼 반지름과 한쪽만 발산한다는 것을 먼저 확인한 뒤에만 그린다._
+
+</div>
+
 ## 3. 텐서와 정보 전달 방향
 
 X는 n×d_in, W는 d_in×d_out이다. x_transformed=XW를 한 번 계산하고 source의 행을 엣지별로 가져온다. 각 메시지에 1/√(d̃_src d̃_dst)를 곱한 뒤 **dst로 scatter_add**한다.

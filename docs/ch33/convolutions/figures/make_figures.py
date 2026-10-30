@@ -169,5 +169,99 @@ def wl_stops():
           f"cc {cc1}/{cc2}, tri {tri1}/{tri2}")
 
 
+# === 그림으로 보는 AI: 자기 루프는 모델링이 아니라 수치 때문이었다 ============
+#
+# Kipf & Welling 은 I + D^-1/2 A D^-1/2 의 고유값이 [0,2] 라서 깊이 쌓으면
+# 터지거나 사라진다고 적고, 자기 루프를 더해 다시 정규화했다. 두 연산자의
+# 스펙트럼과 레이어를 쌓았을 때의 노름을 직접 잰다.
+
+def renormalization():
+    import networkx as nx
+
+    G = nx.karate_club_graph()
+    n = G.number_of_nodes()
+    A = np.zeros((n, n))
+    for u, v in G.edges():
+        A[u, v] = A[v, u] = 1.0
+
+    Dm = np.diag(A.sum(1) ** -0.5)
+    P_naive = np.eye(n) + Dm @ A @ Dm                 # 논문 식 (7)
+    At = A + np.eye(n)
+    Dmt = np.diag(At.sum(1) ** -0.5)
+    P_renorm = Dmt @ At @ Dmt                         # 재정규화, 식 (8)
+
+    w_naive = np.linalg.eigvalsh(P_naive)
+    w_renorm = np.linalg.eigvalsh(P_renorm)
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert abs(w_naive).max() > 1.9, "식 (7) 의 스펙트럼 반지름은 2 에 닿아야 한다"
+    assert abs(w_renorm).max() <= 1.0 + 1e-9, "재정규화는 1 을 넘지 않아야 한다"
+
+    H = np.random.RandomState(0).randn(n, 8)
+    ks = [1, 2, 4, 8, 16, 32]
+    nv = [np.linalg.norm(np.linalg.matrix_power(P_naive, k) @ H) for k in ks]
+    rn = [np.linalg.norm(np.linalg.matrix_power(P_renorm, k) @ H) for k in ks]
+    assert nv[-1] > 1e6 and rn[-1] < 10, "한쪽만 터져야 이 그림의 이야기가 된다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.0))
+
+    # --- 왼쪽: 두 스펙트럼 --------------------------------------------------
+    for i, (w, lab, col) in enumerate(
+            ((w_naive, "I + D^-1/2 A D^-1/2", INK),
+             (w_renorm, "renormalized (self-loops)", ACCENT))):
+        y = 0.72 - i * 0.40
+        ax1.scatter(w, [y] * len(w), s=26, color=col, alpha=0.75,
+                    zorder=3)
+        ax1.plot([min(w), max(w)], [y, y], color=col, linewidth=1.0,
+                 alpha=0.35)
+        ax1.text(0.5, y + 0.15, lab, fontsize=9, color=col, ha="center",
+                 family="monospace", transform=ax1.get_yaxis_transform(),
+                 clip_on=False)
+        ax1.text(max(w), y - 0.13, f"max |lambda| = {abs(w).max():.3f}",
+                 fontsize=8.6, color=col, ha="right")
+    ax1.axvline(1.0, color=INK, linestyle=":", linewidth=1.0, alpha=0.5)
+    ax1.text(1.0, 0.03, " 1", fontsize=8.4, color=INK, alpha=0.7)
+    ax1.set_xlim(-0.75, 2.25)
+    ax1.set_ylim(0.0, 1.0)
+    ax1.set_yticks([])
+    ax1.set_xlabel("eigenvalues", fontsize=9)
+    ax1.set_title("what the self-loop changes", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.tick_params(labelsize=8, colors=INK)
+    for s in ax1.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    # --- 오른쪽: 쌓으면 어떻게 되는가 --------------------------------------
+    ax2.semilogy(ks, nv, "s--", color=INK, linewidth=1.9, ms=5.5,
+                 label="eigenvalues up to 2")
+    ax2.semilogy(ks, rn, "o-", color=ACCENT, linewidth=2.1, ms=5.5,
+                 label="renormalized")
+    ax2.annotate(f"{nv[-1]:.0e}", xy=(ks[-1], nv[-1]), xytext=(-46, -4),
+                 textcoords="offset points", fontsize=8.6, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.8))
+    ax2.annotate(f"{rn[-1]:.2f}", xy=(ks[-1], rn[-1]), xytext=(-40, 8),
+                 textcoords="offset points", fontsize=8.6, color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.8))
+    ax2.set_xlabel("layers k", fontsize=9)
+    ax2.set_ylabel("norm of the propagated features", fontsize=9)
+    ax2.set_title("stacked, one of them leaves", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.legend(fontsize=8.2, loc="upper left", framealpha=0.9)
+    ax2.grid(alpha=0.13, which="both")
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "renormalization.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote renormalization.svg   radius {abs(w_naive).max():.3f} vs "
+          f"{abs(w_renorm).max():.3f}, k=32 norm {nv[-1]:.1e} vs {rn[-1]:.2f}")
+
+
 if __name__ == "__main__":
     wl_stops()
+    renormalization()
