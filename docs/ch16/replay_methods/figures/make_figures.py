@@ -159,5 +159,143 @@ def rehearsal_vs_pseudo():
           f"pseudo {[round(v) for v in pseudo]} none {none:.1f}")
 
 
+# === 그림으로 보는 AI: 투영이 약속하는 것은 0 이지 음수가 아니다 =============
+#
+# A-GEM 은 새 경사가 참조 경사와 충돌하면(내적<0) 충돌 성분만 덜어 낸다.
+# 덜어 낸 뒤의 내적은 **정확히 0** 이다 — 옛 로스를 **덜 나빠지게** 할 뿐
+# **좋아지게** 하지는 않는다. 그리고 제약이 자주 걸리면 새 과제가 안 배워진다.
+
+def _flat_grad(params, torch):
+    return torch.cat([p.grad.flatten() for p in params])
+
+
+def _agem_run(use_agem, seed, torch, nn, steps=60):
+    xo, yo = _encode(_facts(1), torch)
+    xt, yt = _encode(_facts(2), torch)
+    lf = nn.CrossEntropyLoss()
+
+    torch.manual_seed(seed)
+    net = nn.Sequential(nn.Linear(20, 50), nn.Sigmoid(), nn.Linear(50, 19))
+    ps = list(net.parameters())
+
+    def acc(x, y):
+        with torch.no_grad():
+            return (net(x).argmax(1) == y).float().mean().item() * 100
+
+    opt = torch.optim.SGD(ps, lr=0.5)
+    for _ in range(4000):
+        opt.zero_grad()
+        lf(net(xo), yo).backward()
+        opt.step()
+        if acc(xo, yo) == 100:
+            break
+
+    before, after = [], []
+    for _ in range(steps):
+        net.zero_grad()
+        lf(net(xo), yo).backward()
+        gref = _flat_grad(ps, torch).clone()
+        net.zero_grad()
+        lf(net(xt), yt).backward()
+        g = _flat_grad(ps, torch).clone()
+
+        d0 = torch.dot(g, gref).item()
+        before.append(d0)
+        if use_agem and d0 < 0:
+            g = g - (torch.dot(g, gref) / torch.dot(gref, gref)) * gref
+        after.append(torch.dot(g, gref).item())
+
+        i = 0
+        with torch.no_grad():
+            for p in ps:
+                n = p.numel()
+                p -= 0.5 * g[i:i + n].view_as(p)
+                i += n
+    return np.array(before), np.array(after), acc(xo, yo), acc(xt, yt)
+
+
+def projection_stops_only():
+    import torch
+    import torch.nn as nn
+
+    before, after, old_a, new_a = _agem_run(True, 0, torch, nn)
+    _, _, old_n, new_n = _agem_run(False, 0, torch, nn)
+    conflict = before < 0
+    scale = np.abs(before[conflict]).mean()
+
+    assert conflict.sum() > len(before) * 0.5, "충돌이 잦아야 이야기가 성립한다"
+    assert np.abs(after[conflict]).max() < scale * 1e-4, (
+        "투영 뒤 내적은 (상대적으로) 0 이어야 한다")
+    assert old_a > old_n, "A-GEM 이 옛 과제를 더 지켜야 한다"
+    assert new_a < new_n, "그 값으로 새 과제가 덜 배워져야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.0),
+                                   gridspec_kw={"width_ratios": [1.2, 1]})
+
+    # --- 왼쪽: 투영 전후의 내적 -------------------------------------------
+    t = np.arange(1, len(before) + 1)
+    ax1.axhline(0, color=INK, linewidth=1.0)
+    ax1.plot(t, before, "o", color=INK, ms=3.6, alpha=0.65,
+             label="before projection")
+    # 투영은 충돌한 스텝에만 걸린다. 안 걸린 스텝까지 이어 그리면
+    # "0 을 넘지 않는다"는 설명과 어긋나는 뾰족한 선이 생긴다.
+    af = np.where(conflict, after, np.nan)
+    ax1.plot(t, af, "-", color=ACCENT, linewidth=2.4,
+             label="after projection (where it binds)")
+    ax1.plot(t[~conflict], before[~conflict], "o", color=MUTED, ms=6,
+             label="no conflict, left alone")
+    ax1.annotate("on every step it binds,\nit lands exactly on zero",
+                 xy=(t[len(t) // 2], 0), xytext=(t[len(t) // 3],
+                                                 before.min() * 0.55),
+                 fontsize=8.6, color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.0))
+    ax1.set_xlabel("update step", fontsize=9.5)
+    ax1.set_ylabel("g . g_ref", fontsize=9.5)
+    ax1.set_title(f"the constraint bound on {int(conflict.sum())} of "
+                  f"{len(before)} steps", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.legend(fontsize=8.4, loc="lower right", framealpha=0.9)
+    ax1.grid(alpha=0.13)
+
+    # --- 오른쪽: 그 값 -----------------------------------------------------
+    xs = np.arange(2)
+    w = 0.36
+    ax2.bar(xs - w / 2, [old_n, new_n], width=w, color=INK, alpha=0.75,
+            label="no projection")
+    ax2.bar(xs + w / 2, [old_a, new_a], width=w, color=ACCENT, alpha=0.9,
+            label="A-GEM")
+    for x, v in ((xs[0] - w / 2, old_n), (xs[1] - w / 2, new_n),
+                 (xs[0] + w / 2, old_a), (xs[1] + w / 2, new_a)):
+        ax2.text(x, v + 2.5, f"{v:.0f}", ha="center", fontsize=9.5,
+                 color=INK, weight="bold")
+    ax2.set_xticks(xs)
+    ax2.set_xticklabels(["old task", "new task"], fontsize=9)
+    ax2.set_ylabel("accuracy (%)", fontsize=9.5)
+    ax2.set_ylim(0, 118)
+    ax2.set_title("kept one by giving up the other", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.legend(fontsize=8.4, loc="upper center", framealpha=0.9)
+    ax2.grid(alpha=0.13, axis="y")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8.5, colors=INK)
+        for sp in ax.spines.values():
+            sp.set_color(INK)
+            sp.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             "one seed, two tasks of addition facts. an extreme case - "
+             "the constraint binds almost every step.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "agem_projection.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote agem_projection.svg   bound {int(conflict.sum())}/"
+          f"{len(before)}   old {old_n:.0f}->{old_a:.0f}  "
+          f"new {new_n:.0f}->{new_a:.0f}")
+
+
 if __name__ == "__main__":
     rehearsal_vs_pseudo()
+    projection_stops_only()
