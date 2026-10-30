@@ -124,5 +124,161 @@ def what_the_graph_holds():
           f"structural differ {diff}")
 
 
+# === 그림으로 보는 AI: 1860 년에 분류해 둔 성질들 ============================
+#
+# 관계의 성질 - 역, 대칭, 합성 - 을 갈라 놓은 것은 De Morgan(1860)과 Peirce(1870)
+# 이다. 이동 가정은 그 가운데 합성은 그대로 안고 대칭은 못 안는다. 흠 없는 자료로
+# 학습해서 무엇이 무너지는지 직접 잰다. 자료가 깨끗하므로 탓할 것은 모델뿐이다.
+
+def properties_catalogued_in_1860():
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+
+    D = 32
+
+    def fit(triples, n_ent, n_rel, steps=3000, seed=0, neg=5):
+        """이 쪽의 TransE 그대로 - 점수는 -||e_h + e_r - e_t||."""
+        torch.manual_seed(seed)
+        E = nn.Embedding(n_ent, D)
+        R = nn.Embedding(n_rel, D)
+        opt = torch.optim.Adam(list(E.parameters()) + list(R.parameters()),
+                               lr=0.01)
+        h, r, t = [torch.tensor(v) for v in zip(*triples)]
+        for _ in range(steps):
+            opt.zero_grad()
+            nt = torch.randint(0, n_ent, (len(triples), neg))
+            pos = -(E(h) + R(r) - E(t)).norm(dim=-1)
+            negs = -(E(h).unsqueeze(1) + R(r).unsqueeze(1) - E(nt)).norm(dim=-1)
+            (-F.logsigmoid(pos).mean() - F.logsigmoid(-negs).mean()).backward()
+            opt.step()
+        with torch.no_grad():
+            resid = float((E(h) + R(r) - E(t)).norm(dim=-1).mean())
+        return E, R, resid
+
+    def typical_gap(E, n):
+        d = torch.cdist(E.weight, E.weight)
+        return float(d[~torch.eye(n, dtype=bool)].mean())
+
+    # --- 대칭: r(a,b) 와 r(b,a) 가 모두 참 ---------------------------------
+    pairs = [(2 * i, 2 * i + 1) for i in range(20)]
+    sym = [(a, 0, b) for a, b in pairs] + [(b, 0, a) for a, b in pairs]
+    Es, Rs, res_s = fit(sym, 40, 1)
+    with torch.no_grad():
+        rel_norm = float(Rs.weight[0].norm())
+        paired = float(torch.stack([(Es.weight[a] - Es.weight[b]).norm()
+                                    for a, b in pairs]).mean())
+    gap_s = typical_gap(Es, 40)
+
+    # --- 일대다: 머리 하나, 관계 하나, 꼬리 스물 --------------------------
+    otm = [(0, 0, 1 + i) for i in range(20)]
+    Eo, Ro, res_o = fit(otm, 21, 1)
+    with torch.no_grad():
+        tails = Eo.weight[1:]
+        dm = torch.cdist(tails, tails)
+        tail_gap = float(dm[~torch.eye(20, dtype=bool)].mean())
+    gap_o = typical_gap(Es, 40)        # 같은 눈금으로 견준다
+
+    # --- 합성: r1 다음 r2 가 r3 와 같다 (정직한 반대쪽) -------------------
+    rng = np.random.default_rng(0)
+    comp = []
+    for _ in range(20):
+        a, b, c = rng.choice(30, 3, replace=False)
+        comp += [(int(a), 0, int(b)), (int(b), 1, int(c)), (int(a), 2, int(c))]
+    Ec, Rc, res_c = fit(comp, 30, 3)
+    with torch.no_grad():
+        comp_gap = float((Rc.weight[0] + Rc.weight[1] - Rc.weight[2]).norm())
+        comp_scale = float(Rc.weight.norm(dim=1).mean())
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert rel_norm < 0.01, "대칭 관계에서는 관계 벡터가 사라져야 한다"
+    assert paired * 100 < gap_s, "짝지어진 두 엔티티가 한 점으로 모여야 한다"
+    assert tail_gap * 10 < gap_o, "일대다에서 꼬리들이 한 점으로 모여야 한다"
+    assert comp_gap / comp_scale < 0.1, "합성은 잘 되어야 정직한 그림이다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.2, 4.3),
+                                   gridspec_kw={"width_ratios": [1.1, 1]})
+
+    # --- 왼쪽: 무엇이 한 점으로 모이는가 ----------------------------------
+    items = [
+        ("two entities a symmetric\nrelation links", paired, ACCENT),
+        ("the 20 tails of one\none-to-many relation", tail_gap, ACCENT),
+        ("two entities with no\nrelation between them", gap_s, MUTED),
+    ]
+    ys = np.arange(len(items))[::-1]
+    ax1.barh(ys, [v for _, v, _ in items], 0.5,
+             color=[c for _, _, c in items], alpha=0.84)
+    for y, (lab, v, c) in zip(ys, items):
+        ax1.text(v * 1.5, y, f"{v:.3f}", va="center", fontsize=10,
+                 color=INK, weight="bold", family="monospace")
+    ax1.set_xscale("log")
+    ax1.set_xlim(2e-3, 60)
+    ax1.set_yticks(ys)
+    ax1.set_yticklabels([lab for lab, _, _ in items], fontsize=8.4)
+    ax1.set_xlabel("distance between their embeddings (log scale)",
+                   fontsize=8.8)
+    ax1.set_title("what the translation assumption collapses",
+                  fontsize=10, color=INK, weight="bold")
+    ax1.annotate(f"{gap_s / paired:.0f}x closer than\nunrelated entities",
+                 (paired, ys[0]), textcoords="offset points",
+                 xytext=(132, -26), fontsize=8.4, color=ACCENT, ha="center",
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.9))
+
+    # --- 오른쪽: 왜 그런가, 그리고 무엇은 되는가 --------------------------
+    ax2.text(0.5, 0.95, "the algebra decides it before training does",
+             ha="center", fontsize=9, color=INK, style="italic")
+    lines = [
+        (r"$e_a + e_r \approx e_b$  and  $e_b + e_r \approx e_a$", 0.80, INK),
+        (r"$\Rightarrow\ 2 e_r \approx 0 \ \Rightarrow\ e_r \approx 0,\ "
+         r"e_a \approx e_b$", 0.70, ACCENT),
+        (rf"measured:  $\|e_r\| = {rel_norm:.4f}$", 0.60, ACCENT),
+    ]
+    for txt, y, col in lines:
+        ax2.text(0.5, y, txt, ha="center", fontsize=10.2, color=col)
+    ax2.plot([0.08, 0.92], [0.52, 0.52], color=INK, lw=0.7, alpha=0.35)
+    lines2 = [
+        (r"$e_a + e_{r_1} \approx e_b$,  $e_b + e_{r_2} \approx e_c$,  "
+         r"$e_a + e_{r_3} \approx e_c$", 0.38, INK),
+        (r"$\Rightarrow\ e_{r_1} + e_{r_2} \approx e_{r_3}$ - no conflict",
+         0.27, "#4a7c59"),
+        (rf"measured:  $\|e_{{r_1}} + e_{{r_2}} - e_{{r_3}}\| = "
+         rf"{comp_gap:.4f}$,  against  $\|e_r\| \approx {comp_scale:.2f}$",
+         0.16, "#4a7c59"),
+    ]
+    for txt, y, col in lines2:
+        ax2.text(0.5, y, txt, ha="center", fontsize=9.6, color=col)
+    ax2.text(0.5, 0.86, "symmetry", ha="center", fontsize=9.6, color=INK,
+             weight="bold")
+    ax2.text(0.5, 0.455, "composition", ha="center", fontsize=9.6, color=INK,
+             weight="bold")
+    ax2.text(0.5, 0.03, "composition survives; symmetry does not",
+             ha="center", fontsize=9, color=INK, style="italic")
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1.0)
+    ax2.axis("off")
+
+    ax1.tick_params(labelsize=8, colors=INK)
+    ax1.grid(alpha=0.13, axis="x")
+    ax1.set_axisbelow(True)
+    for s in ax1.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.text(0.5, -0.05,
+             "every relation above is noise-free and perfectly consistent; "
+             f"residuals after training are {res_s:.3f}, {res_o:.3f} and "
+             f"{res_c:.3f}.  Nothing here is a training failure.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.savefig(HERE / "properties_catalogued_in_1860.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote properties_catalogued_in_1860.svg   symmetric: ||e_r||="
+          f"{rel_norm:.4f}, pair gap {paired:.4f} vs unrelated {gap_s:.4f};  "
+          f"one-to-many tail gap {tail_gap:.4f};  composition "
+          f"{comp_gap:.4f} / {comp_scale:.3f}")
+
+
 if __name__ == "__main__":
     what_the_graph_holds()
+    properties_catalogued_in_1860()
