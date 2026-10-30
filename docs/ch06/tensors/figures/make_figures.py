@@ -1254,7 +1254,109 @@ def amdahl_ceiling():
           f"serial={serial:.3f} ceil1={ceil[0]:.2f} ceil64={ceil[-1]:.1f}")
 
 
+# === 그림으로 보는 AI: 체크포인트를 몇 군데 둘 것인가 ==========================
+#
+# 체크포인트를 잘게 쪼갤수록 좋을 것 같지만 **아니다.** 구간을 늘리면 구간
+# 경계 자체를 저장해야 해서 어느 지점을 지나면 자리도 시간도 다시 나빠진다.
+# 그 최적점이 블록 수의 제곱근 언저리라는 것이 그리방크가 보인 것이다.
+# 수는 전부 여기서 직접 잰다.
+
+def checkpoint_tradeoff():
+    import math
+    import time
+
+    import torch
+    import torch.nn as nn
+    from torch.utils.checkpoint import checkpoint_sequential
+
+    torch.manual_seed(0)
+    N, W, B = 32, 512, 64
+    net = nn.Sequential(*[nn.Sequential(nn.Linear(W, W), nn.ReLU())
+                          for _ in range(N)])
+    x = torch.randn(B, W, requires_grad=True)
+
+    def once(segs):
+        saved = []
+        with torch.autograd.graph.saved_tensors_hooks(
+                lambda t: (saved.append(t.numel() * t.element_size()), t)[1],
+                lambda t: t):
+            y = net(x) if segs == 0 else checkpoint_sequential(
+                net, segs, x, use_reentrant=False)
+            y.sum().backward()
+        net.zero_grad(set_to_none=True)
+        x.grad = None
+        return sum(saved) / 1024
+
+    def timed(segs, reps=12, rounds=5):
+        """최소값을 쓴다 — 벽시계는 위로만 튄다."""
+        for _ in range(3):
+            once(segs)
+        best = None
+        for _ in range(rounds):
+            t0 = time.perf_counter()
+            for _ in range(reps):
+                once(segs)
+            t = (time.perf_counter() - t0) / reps * 1e3
+            best = t if best is None else min(best, t)
+        return best
+
+    base_kb, base_ms = once(0), timed(0)
+    segs = [2, 4, 8, 16, 32]
+    mem = [once(s) / base_kb for s in segs]
+    tim = [timed(s) / base_ms for s in segs]
+    best = segs[min(range(len(segs)), key=lambda i: mem[i])]
+    assert min(mem) < 0.5, "체크포인트가 자리를 줄이지 못하면 이 그림의 이야기가 없다"
+    assert mem[-1] > min(mem), "구간을 끝까지 쪼개면 자리가 도로 늘어야 한다"
+
+    fig, ax = plt.subplots(figsize=(8.4, 4.4))
+    ax.semilogx(segs, mem, "o-", base=2, color=ACCENT, linewidth=2.1, ms=7,
+                label="activations kept")
+    ax.semilogx(segs, tim, "s--", base=2, color=INK, linewidth=1.9, ms=6,
+                label="time taken")
+    ax.axhline(1.0, color=INK, linestyle=":", linewidth=1.0, alpha=0.5)
+    ax.text(segs[0], 1.03, "  no checkpointing", fontsize=8.2, color=INK,
+            alpha=0.75)
+
+    root = math.sqrt(N)
+    ax.axvline(root, color=ACCENT, linestyle=":", linewidth=1.3, alpha=0.8)
+    ax.annotate(f"sqrt({N}) = {root:.1f}", xy=(root, 1.55),
+                xytext=(10, 0), textcoords="offset points", fontsize=8.6,
+                color=ACCENT)
+
+    i = segs.index(best)
+    ax.annotate(f"least memory\n{segs[i]} segments",
+                xy=(segs[i], mem[i]), xytext=(-6, 34),
+                textcoords="offset points", ha="center", fontsize=8.4,
+                color=INK,
+                arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+
+    ax.set_xticks(segs)
+    ax.set_xticklabels([str(s) for s in segs])
+    ax.set_xlabel(f"segments the {N} blocks are cut into", fontsize=9.5)
+    ax.set_ylabel("relative to no checkpointing", fontsize=9.5)
+    ax.set_title("cutting finer stops helping", fontsize=10.5, color=INK,
+                 weight="bold", pad=8)
+    ax.legend(fontsize=9, framealpha=0.92)
+    ax.grid(alpha=0.13, which="both")
+    ax.tick_params(labelsize=8.5, colors=INK)
+    for s in ax.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             f"at {segs[-1]} segments every boundary must be stored, so memory "
+             f"climbs back from {min(mem):.2f}x to {mem[-1]:.2f}x.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "checkpoint_tradeoff.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote checkpoint_tradeoff.svg   mem {[round(m,2) for m in mem]}  "
+          f"time {[round(t,2) for t in tim]}  best={best}")
+
+
 if __name__ == "__main__":
+    checkpoint_tradeoff()
     amdahl_ceiling()
     checkpoint_is_a_program()
     adam_proof()
