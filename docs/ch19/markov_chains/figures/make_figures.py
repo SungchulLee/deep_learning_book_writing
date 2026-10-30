@@ -407,8 +407,154 @@ def viterbi_versus_pointwise():
           f"({differ / tries:.1%})   zero {zero}")
 
 
+# === 그림으로 보는 AI: 섀넌의 사다리와 그 끝 =================================
+#
+# 1948 년에 섀넌이 손으로 한 것이 이 쪽의 생성기다 — 차수를 올릴수록 영어를
+# 닮아 간다. 그런데 그 "닮음"에는 끝이 있다. 올리다 보면 **원문을 그대로
+# 베끼게** 되고, 그때 닮음은 완벽하다. 쪽의 2절이 경고한 "학습 문구를 복제"다.
+#
+# 쓰는 글은 게티즈버그 연설(1863, 퍼블릭 도메인)이고, 아스키뿐이다.
+# 수는 전부 여기서 센다. 말뭉치가 작으므로 **그 크기를 함께 적는다** —
+# 글이 길수록 문턱이 뒤로 밀린다는 것도 세 크기로 재어 보인다.
+
+GETTYSBURG = (
+    "Four score and seven years ago our fathers brought forth on this "
+    "continent a new nation conceived in Liberty and dedicated to the "
+    "proposition that all men are created equal Now we are engaged in a "
+    "great civil war testing whether that nation or any nation so conceived "
+    "and so dedicated can long endure We are met on a great battle field of "
+    "that war We have come to dedicate a portion of that field as a final "
+    "resting place for those who here gave their lives that that nation "
+    "might live It is altogether fitting and proper that we should do this "
+    "But in a larger sense we can not dedicate we can not consecrate we can "
+    "not hallow this ground The brave men living and dead who struggled here "
+    "have consecrated it far above our poor power to add or detract The "
+    "world will little note nor long remember what we say here but it can "
+    "never forget what they did here It is for us the living rather to be "
+    "dedicated here to the unfinished work which they who fought here have "
+    "thus far so nobly advanced It is rather for us to be here dedicated to "
+    "the great task remaining before us that from these honored dead we take "
+    "increased devotion to that cause for which they gave the last full "
+    "measure of devotion that we here highly resolve that these dead shall "
+    "not have died in vain that this nation under God shall have a new birth "
+    "of freedom and that government of the people by the people for the "
+    "people shall not perish from the earth"
+)
+
+
+def shannon_ladder():
+    import collections
+    import random
+
+    full = GETTYSBURG.split()
+
+    def copied_fraction(words, order, seed, n=60):
+        """만든 글에서 원문에 그대로 있는 가장 긴 토막이 차지하는 몫."""
+        rng = random.Random(seed)
+        table = collections.defaultdict(list)
+        for i in range(len(words) - order):
+            table[tuple(words[i:i + order])].append(words[i + order])
+        cur = tuple(words[:order])
+        out = list(cur)
+        for _ in range(n):
+            nxt = table.get(cur)
+            if not nxt:
+                break
+            out.append(rng.choice(nxt))
+            cur = tuple(out[-order:])
+        src = " ".join(words)
+        best = 0
+        for i in range(len(out)):
+            for j in range(i + best + 1, len(out) + 1):
+                if " ".join(out[i:j]) in src:
+                    best = max(best, j - i)
+                else:
+                    break
+        return best / len(out)
+
+    orders = [1, 2, 3, 4]
+    sizes = [len(full) // 4, len(full) // 2, len(full)]
+    curves = []
+    for n_w in sizes:
+        w = full[:n_w]
+        curves.append([sum(copied_fraction(w, k, s) for s in range(12)) / 12
+                       for k in orders])
+
+    # 그림이 주장하는 것을 먼저 확인한다
+    assert all(c[0] < 0.5 for c in curves), "차수 1 은 대체로 새 글이어야 한다"
+    assert all(c[-1] > 0.95 for c in curves), "차수 4 는 거의 통째로 베껴야 한다"
+    assert curves[0][1] > curves[-1][1], "글이 길수록 문턱이 뒤로 밀려야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.2),
+                                   gridspec_kw={"width_ratios": [1, 1.1]})
+
+    # --- 왼쪽: 1948년의 사다리 --------------------------------------------
+    rungs = [
+        ("zero order", "XFOML RXKHRJFFJUJ ZLPWCFWKCYJ", True),
+        ("first order", "letter frequencies only", False),
+        ("second order", "digrams as in English", False),
+        ("word level", "whole words, then word pairs", False),
+    ]
+    ax1.text(0.5, 0.95, "Shannon's approximations to English, 1948",
+             ha="center", fontsize=9.2, color=INK, style="italic")
+    for i, (name, body, verbatim) in enumerate(rungs):
+        y = 0.76 - i * 0.175
+        ax1.add_patch(plt.Rectangle((0.04, y - 0.058), 0.92, 0.128,
+                                    facecolor=ACCENT, alpha=0.07 + i * 0.035,
+                                    edgecolor=ACCENT, linewidth=0.9))
+        ax1.text(0.09, y + 0.038, name, fontsize=8.8, color=ACCENT,
+                 weight="bold", va="center")
+        ax1.text(0.09, y - 0.022, body, fontsize=7.8, color=INK, va="center",
+                 family="monospace" if verbatim else "sans-serif")
+    ax1.annotate("", xy=(0.975, 0.10), xytext=(0.975, 0.80),
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.6))
+    ax1.text(0.5, 0.045,
+             '"the resemblance to ordinary English text\n'
+             'increases quite noticeably at each step"',
+             ha="center", va="center", fontsize=8.2, color=INK,
+             style="italic")
+    ax1.set_xlim(0, 1.02)
+    ax1.set_ylim(0, 1.02)
+    ax1.axis("off")
+
+    # --- 오른쪽: 사다리의 끝 ----------------------------------------------
+    for n_w, curve, style in zip(sizes, curves, ["o:", "s--", "D-"]):
+        ax2.plot(orders, [c * 100 for c in curve], style, ms=6,
+                 linewidth=1.9,
+                 color=ACCENT if n_w == sizes[-1] else INK,
+                 alpha=1.0 if n_w == sizes[-1] else 0.55,
+                 label=f"{n_w} words of text")
+    ax2.axhline(100, color=INK, linestyle=":", linewidth=1.0, alpha=0.5)
+    ax2.text(orders[0], 101.5, "  entirely copied", fontsize=8.2,
+             color=INK, alpha=0.8)
+    ax2.set_xticks(orders)
+    ax2.set_xlabel("order of the chain", fontsize=9.5)
+    ax2.set_ylabel("of the output, how much is verbatim (%)", fontsize=9.5)
+    ax2.set_title("where the resemblance comes from", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.set_ylim(0, 112)
+    ax2.legend(fontsize=8.2, loc="lower right", framealpha=0.92)
+    ax2.grid(alpha=0.13)
+    ax2.tick_params(labelsize=8.5, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             "more text pushes the cliff to the right. none of these sizes "
+             "avoids it.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "shannon_ladder.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote shannon_ladder.svg   sizes {sizes}   "
+          f"copied {[[round(c, 2) for c in cu] for cu in curves]}")
+
+
 if __name__ == "__main__":
     markov_onegin()
     pearson_walk()
     pagerank_damping()
     viterbi_versus_pointwise()
+    shannon_ladder()
