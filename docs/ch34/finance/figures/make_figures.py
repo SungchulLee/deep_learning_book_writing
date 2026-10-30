@@ -109,5 +109,110 @@ def safety_first():
           f"disaster {p_s:.4f}->{p_r:.4f}   sharpe {sh_s:.3f}->{sh_r:.3f}")
 
 
+
+
+# === 그림으로 보는 AI: 흔한 말이 닮음을 가로채는 자리 =========================
+#
+# 스파크 존스 1972 의 요지 — 드문 말이 흔한 말보다 값지다 — 를 실제 글에서
+# 잰다. IDF 없이 재면 문서 닮음의 대부분이 "the, and, of" 같은 말에서 온다.
+#
+# IMDB 평을 읽으므로 **저장소 뿌리에서** 돌린다. 30 초 안팎 걸린다.
+
+N_DOCS, N_COMMON, MIN_DF = 3000, 20, 5
+
+
+def idf_effect():
+    import glob
+    import math
+    import re
+    from collections import Counter
+
+    files = (sorted(glob.glob("./data/aclImdb/train/pos/*.txt"))[:N_DOCS // 2]
+             + sorted(glob.glob("./data/aclImdb/train/neg/*.txt"))[:N_DOCS // 2])
+    docs = [re.findall(r"[a-z]{2,}",
+                       open(f, encoding="utf-8", errors="ignore").read().lower())
+            for f in files]
+    n = len(docs)
+    df = Counter()
+    for d in docs:
+        df.update(set(d))
+    vocab = [w for w, c in df.items() if c >= MIN_DF]
+    pos = {w: i for i, w in enumerate(vocab)}
+    idf = np.array([math.log(n / df[w]) for w in vocab])
+
+    tf = np.zeros((n, len(vocab)), dtype=np.float32)
+    for i, d in enumerate(docs):
+        for w, v in Counter(x for x in d if x in pos).items():
+            tf[i, pos[w]] = v
+
+    order = np.argsort(-np.array([df[w] for w in vocab]))
+    common = order[:N_COMMON]
+
+    def common_share(weights):
+        wn = weights / (np.linalg.norm(weights, axis=1, keepdims=True) + 1e-9)
+        rng = np.random.default_rng(0)
+        q = rng.choice(n, 300, replace=False)
+        sims = wn[q] @ wn.T
+        contrib = (wn[q][:, common][:, :, None]
+                   * wn.T[common][None, :, :]).sum(1)
+        mask = np.ones_like(sims, dtype=bool)
+        mask[np.arange(300), q] = False
+        return float(contrib[mask].sum() / sims[mask].sum())
+
+    s_tf, s_tfidf = common_share(tf), common_share(tf * idf)
+
+    # 그림이 주장하는 것을 먼저 확인한다
+    assert s_tf > 0.6, "IDF 없이도 흔한 말이 지배하지 않으면 이 그림의 이야기가 없다"
+    assert s_tfidf < s_tf / 3, "IDF 가 그 몫을 크게 줄이지 못하면 이야기가 없다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.2),
+                                   gridspec_kw={"width_ratios": [1, 1.1]})
+
+    bars = [s_tf, s_tfidf]
+    ax1.bar([0, 1], bars, color=[INK, ACCENT], width=0.5, alpha=0.88)
+    for i, v in enumerate(bars):
+        ax1.text(i, v + 0.02, f"{v * 100:.1f}%", ha="center", fontsize=11,
+                 color=INK, weight="bold")
+    ax1.set_xticks([0, 1])
+    ax1.set_xticklabels(["counts only", "counts x idf"], fontsize=9.5)
+    ax1.set_ylabel(f"share of similarity from the {N_COMMON} commonest words",
+                   fontsize=9)
+    ax1.set_ylim(0, 1.0)
+    ax1.set_title("what the similarity is actually made of", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.grid(alpha=0.13, axis="y")
+
+    top = [vocab[i] for i in common[:12]]
+    ax2.axis("off")
+    ax2.set_title(f"the {N_COMMON} commonest words", fontsize=10, color=INK,
+                  weight="bold")
+    for k, w in enumerate(top):
+        r, c = divmod(k, 3)
+        ax2.text(0.06 + c * 0.32, 0.80 - r * 0.17, w, fontsize=13,
+                 color=INK, family="monospace")
+    ax2.text(0.5, 0.06,
+             "without idf, 'similar documents' means\n"
+             "documents that use these at similar rates",
+             ha="center", fontsize=9, color=ACCENT)
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1)
+
+    ax1.tick_params(labelsize=8, colors=INK)
+    for sp in ax1.spines.values():
+        sp.set_color(INK)
+        sp.set_linewidth(0.7)
+
+    fig.text(0.5, -0.05,
+             f"{n:,} film reviews, any word appearing in at least {MIN_DF} "
+             f"of them.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "idf_effect.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote idf_effect.svg   tf {s_tf:.3f}  tfidf {s_tfidf:.3f}")
+
+
 if __name__ == "__main__":
+    idf_effect()
     safety_first()
