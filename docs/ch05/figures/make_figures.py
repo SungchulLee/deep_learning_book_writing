@@ -741,6 +741,51 @@ def fig_ddim_steps():
     print("wrote ddim_steps.svg")
 
 
+# === 그림 14: 자를 바꾸면 줄이 바뀐다 =======================================
+def fig_rulers_disagree():
+    """5장 개요의 표를 자마다 등수로 바꾸어 세 줄로 세운다.
+
+    같은 여섯 모델, 같은 한 벌의 표본인데 자를 바꾸면 줄이 바뀐다. 선이
+    엇갈리는 자리가 요점이다. 수는 모두 개요 표의 값이고 등수만 여기서
+    셈한다 — 다양함은 1.00이 기준이므로 |1 - x|로 줄을 세운다.
+    """
+    m = {"AE": (0.737, 0.580, 0.640), "VAE": (0.758, 0.887, 0.628),
+         "GAN": (0.908, 0.945, 0.953), "DCGAN": (0.909, 0.970, 1.085),
+         "DDPM": (0.940, 0.986, 1.047), "DDIM-10": (0.904, 0.971, 0.979)}
+    rulers = [("judge\nconfidence", lambda v: -v[0]),
+              ("class\nbalance", lambda v: -v[1]),
+              ("within-class variety\nscored as |1 - x|", lambda v: abs(v[2] - 1))]
+    order = [sorted(m, key=lambda n, k=k: k(m[n])) for _, k in rulers]
+    rank = {k: [o.index(k) + 1 for o in order] for k in m}
+    assert rank["DDIM-10"] == [4, 2, 1] and rank["DCGAN"] == [2, 3, 4]
+    assert rank["AE"][1:] == [6, 5] and rank["VAE"][1:] == [5, 6]
+
+    col = {"AE": "#999999", "VAE": "tab:blue", "GAN": "tab:green",
+           "DCGAN": "tab:olive", "DDPM": "tab:red", "DDIM-10": "tab:orange"}
+    xs = [0, 1, 2]
+    fig, ax = plt.subplots(figsize=(9.0, 5.0))
+    for name, rk in rank.items():
+        ax.plot(xs, rk, "-o", color=col[name], lw=2.0, ms=7, zorder=3)
+        ax.text(-0.08, rk[0], name, ha="right", va="center",
+                fontsize=9.5, color=col[name])
+        ax.text(2.08, rk[2], name, ha="left", va="center",
+                fontsize=9.5, color=col[name])
+    for x in xs:
+        ax.axvline(x, color="0.88", lw=1.0, zorder=0)
+    ax.set_xticks(xs)
+    ax.set_xticklabels([r for r, _ in rulers], fontsize=9.5)
+    ax.set_yticks(range(1, 7))
+    ax.set_ylabel("rank", fontsize=10)
+    ax.set_ylim(6.6, 0.4)                               # 1등이 위
+    ax.set_xlim(-0.95, 2.95)
+    ax.tick_params(axis="x", length=0)
+    ax.spines[["top", "right", "bottom"]].set_visible(False)
+    fig.subplots_adjust(left=0.16, right=0.86, top=0.97, bottom=0.14)
+    fig.savefig("rulers_disagree.svg", transparent=True)
+    plt.close(fig)
+    print("wrote rulers_disagree.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -756,6 +801,7 @@ if __name__ == "__main__":
     fig_gan_samples()
     fig_gan_vs_dcgan()
     fig_ddim_steps()
+    fig_rulers_disagree()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
