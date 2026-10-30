@@ -346,7 +346,135 @@ def gamma_ceiling():
           f"g=0.5 ends {curves[0.5][-1]:.4f} (cap {mean_f/0.5:.4f})")
 
 
+# === 그림으로 보는 AI: lambda 와 Omega 는 따로 정해지지 않는다 ===============
+#
+# 벌점은 lambda * Omega 로만 나타나므로 (lambda/c, c*Omega) 는 같은 목적함수다.
+# 그래서 **같은 lambda 로 세 방법을 견주는 것** 은 방법이 아니라 Omega 의
+# 눈금을 견주는 일이 된다. 세 눈금이 실제로 얼마나 다른지 잰다.
+
+def lambda_omega_scale():
+    import torch
+    import torch.nn as nn
+
+    def facts(k):
+        s = set()
+        for j in range(1, 10):
+            s.add((k, j))
+            s.add((j, k))
+        return sorted(s)
+
+    pairs = facts(1)
+    x = torch.zeros(len(pairs), 20)
+    y = torch.zeros(len(pairs), dtype=torch.long)
+    for i, (a, b) in enumerate(pairs):
+        x[i, a - 1] = 1
+        x[i, 10 + b - 1] = 1
+        y[i] = a + b
+    lf = nn.CrossEntropyLoss()
+
+    torch.manual_seed(0)
+    net = nn.Sequential(nn.Linear(20, 50), nn.Sigmoid(), nn.Linear(50, 19))
+    ps = list(net.parameters())
+
+    def flat():
+        return torch.cat([p.grad.flatten() for p in ps]).clone()
+
+    def params():
+        return torch.cat([p.detach().flatten() for p in ps]).clone()
+
+    n = sum(p.numel() for p in ps)
+    w = torch.zeros(n)
+    start = params()
+    opt = torch.optim.SGD(ps, lr=0.3, momentum=0.9)
+    for _ in range(400):                      # SI 는 학습 경로를 따라 쌓는다
+        prev = params()
+        opt.zero_grad()
+        lf(net(x), y).backward()
+        g = flat()
+        opt.step()
+        w += -g * (params() - prev)
+    end = params()
+    om_si = torch.clamp(w, min=0) / ((end - start) ** 2 + 1e-3)
+
+    f = torch.zeros(n)
+    for i in range(len(x)):
+        net.zero_grad()
+        lf(net(x[i:i + 1]), y[i:i + 1]).backward()
+        f += flat() ** 2
+    om_ewc = f / len(x)
+
+    m = torch.zeros(n)
+    for i in range(len(x)):
+        net.zero_grad()
+        (net(x[i:i + 1]) ** 2).sum().backward()
+        m += flat().abs()
+    om_mas = m / len(x)
+
+    names = ["EWC", "SI", "MAS"]
+    sums = [om_ewc.sum().item(), om_si.sum().item(), om_mas.sum().item()]
+    ratio = max(sums) / min(sums)
+    assert ratio > 1e4, f"눈금이 자릿수로 달라야 이야기가 성립한다 ({ratio})"
+
+    th = torch.randn(n)
+    base = 50.0 / 2 * (om_ewc * th ** 2).sum().item()
+    cs = [1.0, 10.0, 1000.0]
+    vals = [(50.0 / c) / 2 * ((c * om_ewc) * th ** 2).sum().item() for c in cs]
+    assert max(abs(v - base) for v in vals) < abs(base) * 1e-6, (
+        "lambda 를 나누고 Omega 를 곱하면 같은 값이어야 한다")
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.1),
+                                   gridspec_kw={"width_ratios": [1, 1.1]})
+
+    cols = [INK, MUTED, ACCENT]
+    ax1.bar(range(3), sums, color=cols, width=0.55, alpha=0.88)
+    ax1.set_yscale("log")
+    for i, v in enumerate(sums):
+        ax1.text(i, v * 2.2, f"{v:,.4g}", ha="center", fontsize=10,
+                 color=INK, weight="bold")
+    ax1.set_xticks(range(3))
+    ax1.set_xticklabels(names, fontsize=9.5)
+    ax1.set_ylabel("total importance (log)", fontsize=9.5)
+    ax1.set_ylim(top=max(sums) * 60)
+    ax1.set_title(f"{ratio:,.0f}x apart on the same network",
+                  fontsize=10, color=INK, weight="bold")
+    ax1.grid(alpha=0.13, axis="y", which="both")
+
+    ax2.axis("off")
+    ax2.text(0.5, 0.93, "the penalty only ever uses the product",
+             ha="center", fontsize=9.2, color=INK, style="italic")
+    ax2.text(0.5, 0.80, "lambda  x  Omega", ha="center", fontsize=13,
+             color=ACCENT, family="monospace", weight="bold")
+    for k, (c, v) in enumerate(zip(cs, vals)):
+        yy = 0.56 - k * 0.145
+        ax2.add_patch(plt.Rectangle((0.04, yy - 0.055), 0.92, 0.115,
+                                    facecolor=INK, alpha=0.06,
+                                    edgecolor=INK, linewidth=0.6))
+        ax2.text(0.09, yy, f"lambda/{c:<6g}  Omega x {c:<6g}", fontsize=9,
+                 color=INK, family="monospace", va="center")
+        ax2.text(0.95, yy, f"{v:.8f}", fontsize=9, color=ACCENT,
+                 family="monospace", va="center", ha="right")
+    ax2.text(0.5, 0.06,
+             "same objective, eight decimals.\n"
+             "so a shared lambda compares the scales, not the methods.",
+             ha="center", va="bottom", fontsize=8.6, color=INK)
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1)
+
+    ax1.tick_params(labelsize=8.5, colors=INK)
+    for sp in ax1.spines.values():
+        sp.set_color(INK)
+        sp.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "lambda_omega.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote lambda_omega.svg   sums {[round(s,4) for s in sums]}  "
+          f"ratio {ratio:,.0f}")
+
+
 if __name__ == "__main__":
     two_tasks_agree()
     labels_or_not()
     gamma_ceiling()
+    lambda_omega_scale()
