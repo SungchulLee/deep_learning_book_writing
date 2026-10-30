@@ -285,7 +285,126 @@ def unstable_encoding():
           f"signed {d_sgn:.1e}")
 
 
+# === 그림으로 보는 AI: 클리크 확장이 몇 가지를 뭉개는가 ======================
+#
+# 이 쪽 4절이 하이퍼엣지 하나와 쌍 셋이 같은 삼각형이 된다고 적었다.
+# 노드 넷에서 가능한 하이퍼그래프를 전부 만들어 **몇 가지가 같은 그래프로
+# 무너지는지** 직접 센다.
+
+def clique_collapse():
+    import collections
+    import itertools
+
+    V = [0, 1, 2, 3]
+    cand = [frozenset(c) for r in (2, 3) for c in itertools.combinations(V, r)]
+
+    def clique(H):
+        E = set()
+        for e in H:
+            for p in itertools.combinations(sorted(e), 2):
+                E.add(p)
+        return frozenset(E)
+
+    groups = collections.defaultdict(int)
+    total = 0
+    for r in range(1, len(cand) + 1):
+        for H in itertools.combinations(cand, r):
+            total += 1
+            groups[clique(H)] += 1
+    n_exp = len(groups)
+    worst = max(groups.values())
+
+    one = (frozenset({0, 1, 2}),)
+    three = (frozenset({0, 1}), frozenset({1, 2}), frozenset({0, 2}))
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert clique(one) == clique(three), "쪽의 보기가 성립해야 한다"
+    assert n_exp < total, "뭉개짐이 있어야 이 그림의 이야기가 된다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.2),
+                                   gridspec_kw={"width_ratios": [1.2, 1]})
+
+    # --- 왼쪽: 쪽의 보기 ---------------------------------------------------
+    tri = {0: (0.0, 0.30), 1: (0.34, 0.30), 2: (0.17, 0.60)}
+
+    def put(ax, off, nodes, col):
+        p = {k: (x + off, y) for k, (x, y) in nodes.items()}
+        ax.scatter([q[0] for q in p.values()], [q[1] for q in p.values()],
+                   s=110, color=INK, zorder=4, edgecolors="white",
+                   linewidths=1.2)
+        return p
+
+    p1 = put(ax1, 0.06, tri, ACCENT)
+    ax1.add_patch(plt.Polygon([p1[k] for k in (0, 1, 2)], closed=True,
+                              facecolor=ACCENT, alpha=0.26,
+                              edgecolor=ACCENT, linewidth=1.6, zorder=2))
+    ax1.text(0.23, 0.76, "one hyperedge\n{1,2,3}", ha="center", fontsize=8.6,
+             color=ACCENT, weight="bold")
+
+    p2 = put(ax1, 0.58, tri, MUTED)
+    for a, b in ((0, 1), (1, 2), (0, 2)):
+        ax1.plot([p2[a][0], p2[b][0]], [p2[a][1], p2[b][1]], color=MUTED,
+                 linewidth=2.0, zorder=2)
+    ax1.text(0.75, 0.76, "three pairwise\nedges", ha="center", fontsize=8.6,
+             color=MUTED, weight="bold")
+
+    ax1.annotate("", xy=(0.49, 0.42), xytext=(0.44, 0.42),
+                 arrowprops=dict(arrowstyle="-", color=INK, lw=0.0))
+    for x in (0.45, 0.47, 0.49, 0.51, 0.53):
+        ax1.plot([x], [0.42], marker="o", ms=1.6, color=INK, alpha=0.5)
+
+    p3 = put(ax1, 0.32, {k: (x, y - 0.48) for k, (x, y) in tri.items()}, INK)
+    for a, b in ((0, 1), (1, 2), (0, 2)):
+        ax1.plot([p3[a][0], p3[b][0]], [p3[a][1], p3[b][1]], color=INK,
+                 linewidth=2.0, zorder=2)
+    # 화살표가 서로 엇갈리거나 아래 삼각형을 뚫지 않게 짧게 긋는다
+    ax1.annotate("", xy=(0.44, 0.17), xytext=(0.26, 0.25),
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=1.2,
+                                 alpha=0.7))
+    ax1.annotate("", xy=(0.56, 0.17), xytext=(0.74, 0.25),
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=1.2,
+                                 alpha=0.7))
+    ax1.text(0.50, -0.26, "the same clique expansion", ha="center",
+             fontsize=9.5, color=INK, weight="bold")
+    ax1.set_xlim(-0.02, 1.02)
+    ax1.set_ylim(-0.36, 0.92)
+    ax1.set_aspect("equal")
+    ax1.axis("off")
+    ax1.set_title("what the section's example says", fontsize=10, color=INK,
+                  weight="bold")
+
+    # --- 오른쪽: 세어 보면 -------------------------------------------------
+    ax2.text(0.5, 0.90, "on just 4 nodes", ha="center", fontsize=9.5,
+             color=INK, style="italic")
+    ax2.text(0.5, 0.72, f"{total:,}", ha="center", fontsize=26,
+             color=ACCENT, weight="bold")
+    ax2.text(0.5, 0.61, "hypergraphs", ha="center", fontsize=10,
+             color=ACCENT)
+    ax2.annotate("", xy=(0.5, 0.49), xytext=(0.5, 0.56),
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=1.4))
+    ax2.text(0.5, 0.38, f"{n_exp}", ha="center", fontsize=26, color=INK,
+             weight="bold")
+    ax2.text(0.5, 0.28, "distinct clique expansions", ha="center",
+             fontsize=10, color=INK)
+    ax2.text(0.5, 0.13,
+             f"one of them absorbs {worst} of them\n"
+             f"on average {total / n_exp:.1f} collapse together",
+             ha="center", va="top", fontsize=8.8, color=INK)
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1)
+    ax2.axis("off")
+    ax2.set_title("counted, not asserted", fontsize=10, color=INK,
+                  weight="bold")
+
+    fig.tight_layout()
+    fig.savefig(HERE / "clique_collapse.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote clique_collapse.svg   {total} -> {n_exp}, worst {worst}")
+
+
 if __name__ == "__main__":
     two_causes()
     reach_varies()
     unstable_encoding()
+    clique_collapse()
