@@ -238,6 +238,104 @@ def konigsberg():
           f"{len(odd2)} after one bridge")
 
 
+# === 그림으로 보는 AI: 행렬을 곱하면 더 멀리 간다 =============================
+#
+# A^k 의 (i,j) 가 길이 k 인 보행의 수다. 믿지 말고 일일이 세어 맞춰 본다.
+# 그리고 trace(A^3) 이 삼각형 수의 여섯 배라는 것도 확인한다.
+#
+# 주의: nx.karate_club_graph() 의 엣지에는 weight 가 있어서 to_numpy_array 가
+# 기본으로 **가중 행렬**을 준다. weight=None 을 주지 않으면 전부 틀린다.
+
+def walks_by_multiplying():
+    import networkx as nx
+
+    G = nx.karate_club_graph()
+    A = nx.to_numpy_array(G, weight=None).astype(int)
+    assert set(np.unique(A).tolist()) <= {0, 1}, "0/1 행렬이어야 한다"
+
+    def brute(k, s, t):
+        cnt = 0
+
+        def rec(v, left):
+            nonlocal cnt
+            if left == 0:
+                if v == t:
+                    cnt += 1
+                return
+            for u in G.neighbors(v):
+                rec(u, left - 1)
+
+        rec(s, k)
+        return cnt
+
+    s, t = 0, 33
+    ks = [1, 2, 3, 4]
+    mat = [int(np.linalg.matrix_power(A, k)[s, t]) for k in ks]
+    hand = [brute(k, s, t) for k in ks]
+    assert mat == hand, "행렬 거듭제곱이 직접 센 값과 같아야 한다"
+
+    tri = sum(nx.triangles(G).values()) // 3
+    tr3 = int(np.trace(np.linalg.matrix_power(A, 3)))
+    assert tr3 == 6 * tri, "trace(A^3) 이 삼각형의 여섯 배여야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.0),
+                                   gridspec_kw={"width_ratios": [1.1, 1]})
+
+    # --- 왼쪽: 세어 보면 맞는다 -------------------------------------------
+    x = np.arange(len(ks))
+    ax1.bar(x - 0.19, mat, width=0.36, color=ACCENT, alpha=0.85,
+            label="entry of A^k")
+    ax1.bar(x + 0.19, hand, width=0.36, color=MUTED, alpha=0.85,
+            label="walks counted one by one")
+    for i, v in enumerate(mat):
+        ax1.text(i, v * 1.04 + max(mat) * 0.02, f"{v}", ha="center",
+                 fontsize=9, color=INK)
+    ax1.set_xticks(x)
+    ax1.set_xticklabels([f"k={k}" for k in ks], fontsize=9)
+    ax1.set_ylabel(f"walks of length k from node {s} to node {t}",
+                   fontsize=9)
+    ax1.set_ylim(0, max(mat) * 1.16)        # 맨 위 숫자가 잘리지 않게
+    ax1.set_title("multiplying the matrix IS walking", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.legend(fontsize=8.2, loc="upper left", framealpha=0.9)
+    ax1.grid(alpha=0.13, axis="y")
+
+    # --- 오른쪽: 대각선이 세는 것 ------------------------------------------
+    ax2.text(0.5, 0.86, "and the diagonal counts returns", ha="center",
+             fontsize=9.5, color=INK, style="italic")
+    ax2.text(0.5, 0.66, f"trace(A^3)  =  {tr3}", ha="center", fontsize=14,
+             color=ACCENT, family="monospace", weight="bold")
+    ax2.text(0.5, 0.50, f"triangles x 6  =  {tri} x 6  =  {6 * tri}",
+             ha="center", fontsize=12, color=INK, family="monospace")
+    ax2.annotate("", xy=(0.5, 0.57), xytext=(0.5, 0.61),
+                 arrowprops=dict(arrowstyle="-", color=INK, lw=0.0))
+    ax2.plot([0.22, 0.78], [0.585, 0.585], color=INK, linewidth=0.8,
+             alpha=0.4)
+    ax2.text(0.5, 0.33,
+             "a length-3 walk that returns to its start\n"
+             "is a triangle, counted once per corner\n"
+             "and once per direction",
+             ha="center", va="top", fontsize=8.8, color=INK)
+    ax2.text(0.5, 0.05, "checked, not assumed", ha="center", fontsize=8.6,
+             color=ACCENT, style="italic")
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1)
+    ax2.axis("off")
+
+    for ax in (ax1,):
+        ax.tick_params(labelsize=8, colors=INK)
+        for sp in ax.spines.values():
+            sp.set_color(INK)
+            sp.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "walks.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote walks.svg   A^k[{s},{t}] {mat} == brute {hand}, "
+          f"trace(A^3) {tr3} == 6*{tri}")
+
+
 if __name__ == "__main__":
     cospectral()
     konigsberg()
+    walks_by_multiplying()
