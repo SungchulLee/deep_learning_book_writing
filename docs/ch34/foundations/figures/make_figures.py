@@ -128,5 +128,73 @@ def filled_versus_observed():
                       for f, a, b, c in zip(FRACS, svd, mf, base)))
 
 
+# === 그림으로 보는 AI: 누르지 않은 것을 싫어함으로 읽으면 ====================
+#
+# 쪽의 6절이 적어 둔 거짓 음성 식을 그대로 돌려 본다. 참 취향과 **무관한**
+# 노출(알려짐)을 두고, 본 것 가운데 좋아하는 것만 누르게 한다. 그러고 나서
+# 누름 비율을 그대로 점수로 쓰면 무엇을 배우는지 잰다. 수는 전부 여기서 셈한다.
+
+BIAS_U, BIAS_I, BIAS_D = 600, 200, 4
+
+
+def absence_is_not_dislike():
+    rng = np.random.default_rng(0)
+    p = rng.normal(0, 1, (BIAS_U, BIAS_D))
+    q = rng.normal(0, 1, (BIAS_I, BIAS_D))
+    pref = 1.0 / (1.0 + np.exp(-(p @ q.T)))
+    expo = rng.beta(0.6, 3.0, BIAS_I)                 # 취향과 무관한 알려짐
+    seen = rng.random((BIAS_U, BIAS_I)) < expo[None, :]
+    click = seen & (rng.random((BIAS_U, BIAS_I)) < pref)
+
+    naive = click.mean(0)
+    true_pref = pref.mean(0)
+    debias = click.sum(0) / (seen.sum(0) + 1e-9)
+
+    def corr(a, b):
+        return float(np.corrcoef(a, b)[0, 1])
+
+    c_pref, c_expo = corr(naive, true_pref), corr(naive, expo)
+    d_pref, d_expo = corr(debias, true_pref), corr(debias, expo)
+
+    # 그림이 주장하는 것을 먼저 확인한다
+    assert c_expo > 0.9, "순진한 점수가 노출을 따라가지 않으면 이 그림의 이야기가 없다"
+    assert abs(c_pref) < 0.3, "순진한 점수가 취향과 상관이 높으면 이야기가 없다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.2))
+
+    ax1.scatter(true_pref, naive, s=16, color=INK, alpha=0.45,
+                edgecolors="none")
+    ax1.set_xlabel("true average preference for the item", fontsize=9)
+    ax1.set_ylabel("click rate, no-click read as dislike", fontsize=9)
+    ax1.set_title(f"against what people actually like\nr = {c_pref:+.3f}",
+                  fontsize=10, color=INK, weight="bold")
+
+    ax2.scatter(expo, naive, s=16, color=ACCENT, alpha=0.6, edgecolors="none")
+    ax2.set_xlabel("how widely the item was shown", fontsize=9)
+    ax2.set_ylabel("click rate, no-click read as dislike", fontsize=9)
+    ax2.set_title(f"against how often it was seen\nr = {c_expo:+.3f}",
+                  fontsize=10, color=ACCENT, weight="bold")
+
+    for ax in (ax1, ax2):
+        ax.grid(alpha=0.13)
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.06,
+             f"the naive score is a popularity meter.  dividing by exposure "
+             f"moves it to r = {d_pref:+.3f} with preference and "
+             f"{d_expo:+.3f} with exposure - better aimed, still noisy.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "absence_bias.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote absence_bias.svg   naive: pref {c_pref:+.3f} expo "
+          f"{c_expo:+.3f}   debiased: pref {d_pref:+.3f} expo {d_expo:+.3f}")
+
+
 if __name__ == "__main__":
+    absence_is_not_dislike()
     filled_versus_observed()
