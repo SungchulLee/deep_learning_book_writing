@@ -251,6 +251,100 @@ def theorem_one_promises():
           + "   ".join(f"{l}: {a:.3f} deg" for l, a, _, _ in drawn))
 
 
+# === 그림으로 보는 AI: 더 잘 맞히는 비평자가 더 나쁜 방향을 준다 ==============
+#
+# 서튼 외 1999 의 정리 2 는 비평자가 **호환 조건**을 지킬 때만 등호를 준다.
+# 호환은 "잘 맞힌다"가 아니라 "어느 함수 공간에 사는가"의 조건이다. 그래서
+# Q 를 훨씬 잘 맞히는 비평자가 그래디언트는 크게 어긋나게 만들 수 있다.
+# 작은 밴딧에서 둘을 정확히 셈해 견준다.
+
+def compatible_not_accurate():
+    theta = np.array([0.3, -0.7, 0.2])
+    r = np.array([1.0, 0.4, 2.0])
+    K = len(r)
+    p = _softmax(theta)
+    # S[a, i] = d log pi(a) / d theta_i  — 호환 특징
+    S = np.stack([_score(p, i, K) for i in range(K)], axis=1)
+    g = S.T @ (p * r)                               # 정확한 그래디언트
+
+    rootW = np.diag(np.sqrt(p))
+
+    def fit(basis):
+        w = np.linalg.lstsq(rootW @ basis, rootW @ r, rcond=None)[0]
+        f = basis @ w
+        return f, float((p * (r - f) ** 2).sum()), S.T @ (p * f)
+
+    f_c, err_c, g_c = fit(S)                        # 호환 — 점수 특징으로 선형
+    basis_i = np.stack([np.ones(K), np.arange(K, dtype=float)], axis=1)
+    f_i, err_i, g_i = fit(basis_i)                  # 비호환 — 다른 기저
+
+    def ang(u, v):
+        c = float(u @ v) / (np.linalg.norm(u) * np.linalg.norm(v))
+        return float(np.degrees(np.arccos(np.clip(c, -1.0, 1.0))))
+
+    a_c, a_i = ang(g_c, g), ang(g_i, g)
+    # 정리 2 — 호환이면 등호다. 언제나 참이므로 단언한다.
+    assert a_c < 1e-6, "호환 비평자가 그래디언트를 정확히 주어야 한다"
+    # 이 그림의 요지 — 더 잘 맞히는 쪽이 더 어긋난다
+    assert err_i < err_c and a_i > a_c, "요지가 성립하지 않으면 그리지 않는다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.2),
+                                   gridspec_kw={"width_ratios": [1.1, 1]})
+
+    # --- 왼쪽: 비평자가 리턴을 얼마나 잘 맞히는가 --------------------------
+    x = np.arange(K)
+    ax1.plot(x, r, "o-", color=INK, linewidth=2.2, ms=9, label="true return")
+    ax1.plot(x, f_i, "s--", color=MUTED, linewidth=1.9, ms=7,
+             label=f"incompatible critic   err {err_i:.3f}")
+    ax1.plot(x, f_c, "^--", color=ACCENT, linewidth=1.9, ms=7,
+             label=f"compatible critic   err {err_c:.3f}")
+    ax1.set_xticks(x)
+    ax1.set_xticklabels([f"action {i}" for i in x], fontsize=8.6)
+    ax1.set_ylabel("value", fontsize=9.5)
+    ax1.set_title("how well each critic fits", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.legend(fontsize=8.2, framealpha=0.92)
+    ax1.grid(alpha=0.13)
+    ax1.tick_params(labelsize=8.5, colors=INK)
+    for sp in ax1.spines.values():
+        sp.set_color(INK)
+        sp.set_linewidth(0.7)
+
+    # --- 오른쪽: 그래서 어느 쪽을 가리키는가 -------------------------------
+    ax2.annotate("", xy=(1.0, 0.0), xytext=(0, 0),
+                 arrowprops=dict(arrowstyle="-|>", color=INK, linewidth=2.6))
+    ax2.text(1.03, 0.0, "true gradient", fontsize=9.2, color=INK,
+             va="center", weight="bold")
+    for a, col, lab in ((a_c, ACCENT, "compatible"),
+                        (a_i, MUTED, "incompatible")):
+        rad = np.radians(a)
+        ax2.annotate("", xy=(0.78 * np.cos(rad), 0.78 * np.sin(rad)),
+                     xytext=(0, 0),
+                     arrowprops=dict(arrowstyle="-|>", color=col,
+                                     linewidth=2.2))
+        ax2.text(0.80 * np.cos(rad) + 0.03, 0.80 * np.sin(rad) + 0.04,
+                 f"{lab}\n{a:.3f} deg off", fontsize=8.7, color=col,
+                 va="bottom", weight="bold")
+    ax2.set_xlim(-0.22, 1.62)
+    ax2.set_ylim(-0.26, 0.92)
+    ax2.set_aspect("equal")
+    ax2.axis("off")
+    ax2.set_title("where each one points", fontsize=10, color=INK,
+                  weight="bold")
+
+    fig.text(0.5, -0.03,
+             f"the critic that fits {err_c / err_i:.0f}x better is the one "
+             f"that misses the gradient.",
+             ha="center", fontsize=8.9, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "compatible_not_accurate.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote compatible_not_accurate.svg   compat {a_c:.3f}deg err "
+          f"{err_c:.4f}   incompat {a_i:.3f}deg err {err_i:.4f}")
+
+
 if __name__ == "__main__":
     baseline_not_the_mean()
     theorem_one_promises()
+    compatible_not_accurate()
