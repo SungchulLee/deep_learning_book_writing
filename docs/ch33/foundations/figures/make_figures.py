@@ -335,7 +335,132 @@ def walks_by_multiplying():
           f"trace(A^3) {tr3} == 6*{tri}")
 
 
+# === 그림으로 보는 AI: 접속 행렬은 회로에서 왔다 =============================
+#
+# 엣지에 아무렇게나 붙이는 방향은 Kirchhoff 가 1847 년에 전류의 기준 방향으로
+# 붙인 그것이다. 방향을 뒤집어도 B B^T 가 꿈쩍하지 않는 것, 그리고 B 의 모든
+# 소행렬식이 0 이나 +-1 뿐이고 0 이 아닌 것이 정확히 스패닝 트리인 것을 다 센다.
+
+def circuits_and_trees():
+    import itertools
+
+    import networkx as nx
+
+    edges = [(0, 1), (0, 2), (1, 2), (1, 3), (2, 3), (2, 4), (3, 4)]
+    G = nx.Graph(edges)
+    n, m = G.number_of_nodes(), len(edges)
+    A = nx.to_numpy_array(G, nodelist=range(n), weight=None)
+    D = np.diag(A.sum(1))
+    rng = np.random.default_rng(0)
+
+    def incidence(orient):
+        B = np.zeros((n, m))
+        for k, (u, v) in enumerate(edges):
+            a, b = (u, v) if orient[k] else (v, u)
+            B[a, k], B[b, k] = 1.0, -1.0
+        return B
+
+    # --- 방향은 씻겨 나간다 -------------------------------------------------
+    n_try = 200
+    worst = max(float(np.abs(incidence(o) @ incidence(o).T - (D - A)).max())
+                for o in rng.integers(0, 2, (n_try, m)))
+    assert worst == 0.0, "방향을 뒤집어도 B B^T 는 같아야 한다"
+
+    C = np.abs(incidence(np.ones(m, int)))
+    n_differ = int((np.abs(C @ C.T - (D - A)) > 1e-9).sum())
+    assert np.allclose(C @ C.T, D + A) and n_differ == 2 * m, \
+        "부호 없는 쪽은 D+A 이고 D-A 와 엣지마다 두 칸씩 달라야 한다"
+
+    # --- B 의 소행렬식은 0 이거나 +-1 이고, 0 이 아닌 것이 트리다 ----------
+    orient = rng.integers(0, 2, m)
+    B = incidence(orient)
+    reduced = B[1:, :]
+    subsets = list(itertools.combinations(range(m), n - 1))
+    dets = {S: int(round(float(np.linalg.det(reduced[:, S])))) for S in subsets}
+    trees = set()
+    for S in subsets:
+        H = nx.Graph([edges[k] for k in S])
+        H.add_nodes_from(range(n))
+        if nx.is_connected(H):
+            trees.add(S)
+    assert set(dets.values()) <= {-1, 0, 1}, "소행렬식은 0 이나 +-1 뿐이어야 한다"
+    assert {S for S, d in dets.items() if d} == trees, \
+        "0 이 아닌 소행렬식과 스패닝 트리가 같은 집합이어야 한다"
+    cofactors = {int(round(float(np.linalg.det(
+        np.delete(np.delete(D - A, i, 0), i, 1))))) for i in range(n)}
+    assert cofactors == {len(trees)}, "어느 여인수든 트리 개수여야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.3),
+                                   gridspec_kw={"width_ratios": [1, 1.2]})
+
+    # --- 왼쪽: 기준 방향을 붙인 회로 ---------------------------------------
+    pos = {0: (0.0, 1.0), 1: (1.0, 1.45), 2: (1.0, 0.45),
+           3: (2.0, 1.0), 4: (2.1, 0.0)}
+    for k, (u, v) in enumerate(edges):
+        a, b = (u, v) if orient[k] else (v, u)
+        ax1.annotate("", pos[b], pos[a],
+                     arrowprops=dict(arrowstyle="-|>", color=MUTED, lw=1.5,
+                                     shrinkA=13, shrinkB=13, mutation_scale=13))
+    for v, (xx, yy) in pos.items():
+        ax1.add_patch(plt.Circle((xx, yy), 0.13, facecolor="white",
+                                 edgecolor=INK, lw=1.4, zorder=3))
+        ax1.text(xx, yy, str(v), ha="center", va="center", fontsize=9.5,
+                 color=INK, zorder=4)
+    ax1.text(1.05, -0.52, "the arrows are a choice, like the reference\n"
+                          "direction for a current in 1847",
+             ha="center", fontsize=8.6, color=MUTED, style="italic")
+    ax1.text(1.05, -0.95,
+             f"re-chosen {n_try} times: largest change\n"
+             f"in $B B^T$ = {worst:.0f}",
+             ha="center", fontsize=9, color=INK)
+    ax1.set_xlim(-0.45, 2.55)
+    ax1.set_ylim(-1.3, 1.8)
+    ax1.axis("off")
+    ax1.set_title("5 nodes, 7 edges, one arbitrary orientation",
+                  fontsize=10, color=INK, weight="bold")
+
+    # --- 오른쪽: 35 개의 소행렬식 ------------------------------------------
+    cols, rows = 7, 5
+    face = {0: "#d9dbdd", 1: ACCENT, -1: MUTED}
+    for i, S in enumerate(subsets):
+        r, c = divmod(i, cols)
+        x0, y0 = c, rows - 1 - r
+        d = dets[S]
+        ax2.add_patch(plt.Rectangle((x0 + 0.06, y0 + 0.06), 0.88, 0.88,
+                                    facecolor=face[d],
+                                    alpha=0.95 if d else 0.65,
+                                    edgecolor=INK, linewidth=0.6))
+        ax2.text(x0 + 0.5, y0 + 0.5, f"{d:+d}" if d else "0", ha="center",
+                 va="center", fontsize=10,
+                 color="white" if d else INK, weight="bold")
+    ax2.set_xlim(-0.08, cols + 0.08)
+    ax2.set_ylim(-1.5, rows + 0.1)
+    n_zero = sum(1 for d in dets.values() if d == 0)
+    ax2.text(cols / 2, -0.35,
+             f"every one of the {len(subsets)} four-column minors of $B$ is "
+             f"$0$, $+1$ or $-1$",
+             ha="center", fontsize=9, color=INK)
+    ax2.text(cols / 2, -0.95,
+             f"the {len(subsets) - n_zero} non-zero ones are exactly the "
+             f"{len(trees)} spanning trees,\n"
+             f"and every cofactor of $D-A$ equals {len(trees)} as well",
+             ha="center", va="top", fontsize=9, color=ACCENT)
+    ax2.axis("off")
+    ax2.set_title("pick 4 of the 7 columns, take the determinant",
+                  fontsize=10, color=INK, weight="bold")
+
+    fig.tight_layout()
+    fig.savefig(HERE / "circuits_and_trees.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote circuits_and_trees.svg   worst BB^T change {worst:.0f} over "
+          f"{n_try} orientations; CC^T differs in {n_differ} cells; "
+          f"{len(subsets) - n_zero} non-zero minors == {len(trees)} trees; "
+          f"cofactors {sorted(cofactors)}")
+
+
 if __name__ == "__main__":
     cospectral()
     konigsberg()
     walks_by_multiplying()
+    circuits_and_trees()
