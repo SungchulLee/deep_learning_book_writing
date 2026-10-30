@@ -786,6 +786,43 @@ def fig_rulers_disagree():
     print("wrote rulers_disagree.svg")
 
 
+# === 그림 15: 같은 스텝2, 다른 결과 =========================================
+def fig_step2_two_ladders():
+    """두 사다리의 스텝2가 같은 수법인데 결과가 갈린다.
+
+    둘 다 "닫힌 형태 해 -> 경사 하강법"이고 둘 다 같은 자(심판이 읽은 %)로
+    쟀다. 분류 쪽은 10.32%포인트를 벌고 표현 쪽은 0.02%포인트에 그친다.
+    표현 쪽의 0은 실험이 모자라서가 아니라 1988년에 미리 알려진 값이다.
+
+    수는 4.1절과 이 절의 표에 실린 것이다.
+    """
+    bars = [("classification ladder\n(templates -> linear, trained)", 10.32, "tab:green"),
+            ("representation ladder\n(PCA -> AE_Linear)", 0.02, "#777777")]
+    fig, ax = plt.subplots(figsize=(7.8, 4.0))
+    for i, (lab, v, c) in enumerate(bars):
+        ax.barh(i, v, height=0.46, color=c, alpha=0.85, zorder=3)
+        ax.text(v + 0.22, i, f"+{v:.2f} points", va="center", fontsize=10,
+                color=c, fontweight="bold")
+    ax.axvline(0, color="0.5", lw=1.0)
+    # 아래 막대에는 이론이 미리 적어 둔 값이 있다
+    # 아래(표현 사다리) 막대를 가리켜야 한다 - invert_yaxis 뒤 index 1 이 아래다
+    ax.annotate("theory, 1988: this step\ncannot gain anything",
+                xy=(0.10, 1.20), xytext=(3.0, 1.50), fontsize=9, color="#777777",
+                arrowprops=dict(arrowstyle="->", color="#999999", lw=1.1))
+    ax.set_yticks(range(len(bars)))
+    ax.set_yticklabels([b[0] for b in bars], fontsize=9.5)
+    ax.set_ylim(-0.6, 1.75)
+    ax.set_xlim(-0.4, 14.2)
+    ax.set_xlabel("what step 2 gained, in points of judge-read accuracy", fontsize=10)
+    ax.invert_yaxis()
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    fig.subplots_adjust(left=0.30, right=0.985, top=0.95, bottom=0.17)
+    fig.savefig("step2_two_ladders.svg", transparent=True)
+    plt.close(fig)
+    print("wrote step2_two_ladders.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -802,6 +839,7 @@ if __name__ == "__main__":
     fig_gan_vs_dcgan()
     fig_ddim_steps()
     fig_rulers_disagree()
+    fig_step2_two_ladders()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
