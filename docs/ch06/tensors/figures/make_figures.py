@@ -1556,7 +1556,99 @@ def empty_is_not_empty():
           f"at {sizes}   ratio {t_z[-1] / t_e[-1]:.0f}x")
 
 
+# === 그림으로 보는 AI: 뷰냐 사본이냐는 고른 것이 아니다 ========================
+#
+# 뷰는 (시작점, 모양, 스트라이드) 셋으로만 적힌다. 그래서 **등차수열로 고르는
+# 것**은 뷰가 되고 아무 자리나 찍어 고르는 것은 될 수 없다. 규칙이 아니라
+# 표현력의 한계다. 어느 쪽이 뷰인지는 여기서 직접 확인해 적는다.
+
+def view_or_copy():
+    import torch
+
+    a = torch.arange(10.)
+
+    def shares(x, y):
+        return (x.untyped_storage().data_ptr()
+                == y.untyped_storage().data_ptr())
+
+    same_values = (a[::2].tolist() == a[[0, 2, 4, 6, 8]].tolist())
+    assert same_values, "두 표현이 같은 값을 줘야 이 그림의 이야기가 산다"
+    assert shares(a, a[::2]) and not shares(a, a[[0, 2, 4, 6, 8]]), \
+        "한쪽만 뷰여야 한다"
+
+    rows = []
+    for name, fn in (("a[2:7]", lambda: a[2:7]),
+                     ("a[::3]", lambda: a[::3]),
+                     ("a[[3,1,4]]", lambda: a[[3, 1, 4]]),
+                     ("a[a > 5]", lambda: a[a > 5])):
+        r = fn()
+        rows.append((name, shares(a, r), r.stride()[0], r.storage_offset()))
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.0),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    # --- 왼쪽: 같은 값, 다른 기제 ------------------------------------------
+    ax1.text(0.5, 0.93, "the same five numbers", ha="center", fontsize=9.5,
+             color=INK, style="italic")
+    for k, (expr, isview, note) in enumerate(
+            (("a[::2]", True, "start 0, stride 2 - writable as a rule"),
+             ("a[[0,2,4,6,8]]", False, "a rule WOULD reach these.\nthe form copies anyway"))):
+        y = 0.68 - k * 0.26
+        col = ACCENT if isview else INK
+        ax1.add_patch(plt.Rectangle((0.04, y - 0.085), 0.92, 0.185,
+                                    facecolor=col, alpha=0.14,
+                                    edgecolor=col, linewidth=1.0))
+        ax1.text(0.09, y + 0.035, expr, fontsize=11, family="monospace",
+                 color=INK, va="center")
+        ax1.text(0.93, y + 0.035, "view" if isview else "copy", fontsize=11,
+                 color=col, ha="right", va="center", weight="bold")
+        ax1.text(0.09, y - 0.050, note, fontsize=8.0, color=col,
+                 va="center", linespacing=1.4)
+
+    ax1.text(0.5, 0.15, "the category is set by the form you write,\n"
+                        "not by whether the positions happen to be regular",
+             ha="center", va="center", fontsize=8.6, color=INK)
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0.06, 1.0)
+    ax1.axis("off")
+    ax1.set_title("what a view can say", fontsize=10, color=INK,
+                  weight="bold")
+
+    # --- 오른쪽: 확인한 표 --------------------------------------------------
+    ax2.text(0.5, 0.92, "checked, not assumed", ha="center", fontsize=9.3,
+             color=INK, style="italic")
+    for k, (name, isview, st, off) in enumerate(rows):
+        y = 0.72 - k * 0.165
+        col = ACCENT if isview else INK
+        ax2.add_patch(plt.Rectangle((0.04, y - 0.055), 0.92, 0.120,
+                                    facecolor=col,
+                                    alpha=0.14 if isview else 0.06,
+                                    edgecolor=col, linewidth=0.9))
+        ax2.text(0.09, y + 0.005, name, fontsize=9.6, family="monospace",
+                 color=INK, va="center")
+        ax2.text(0.60, y + 0.005, f"stride {st}", fontsize=8.4,
+                 family="monospace", color=INK, va="center", alpha=0.85)
+        ax2.text(0.93, y + 0.005, "view" if isview else "copy",
+                 fontsize=9.6, color=col, ha="right", va="center",
+                 weight="bold")
+    ax2.text(0.5, 0.10, "reading hands back a tensor, so it needs a layout.\n"
+                        "writing hands back nothing, so it can scatter.",
+             ha="center", va="center", fontsize=8.6, color=INK)
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0.02, 1.0)
+    ax2.axis("off")
+    ax2.set_title("which ones are views", fontsize=10, color=INK,
+                  weight="bold")
+
+    fig.tight_layout()
+    fig.savefig(HERE / "view_or_copy.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote view_or_copy.svg   {[(n, v) for n, v, _, _ in rows]}")
+
+
 if __name__ == "__main__":
+    view_or_copy()
     empty_is_not_empty()
     aliasing_three_ways()
     checkpoint_tradeoff()
