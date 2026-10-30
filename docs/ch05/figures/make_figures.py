@@ -1432,6 +1432,72 @@ def fig_where_nonlinearity():
           f"decoder {dec_only:.0f}%)")
 
 
+def fig_cifar_provenance():
+    """CIFAR-10 이 어디서 잘려 나왔는가, 그리고 그 어미에게 무슨 일이 있었는가.
+
+    CIFAR-10 쪽 수(60,000 장, 열 가지, 한 가지에 6,000 장, 32x32x3)는
+    `data/cifar-10-batches-py` 를 직접 세어 적었다. 어미 자료의 수(약 8천만
+    장, 워드넷 명사 약 7만 5천 개)는 **그 논문에 적힌 값을 옮긴 것**이며
+    여기서 세지 않았다 — 그림 안에 그렇게 밝혀 둔다.
+    """
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.6, 4.4),
+                                   gridspec_kw={"width_ratios": [1, 1.25]})
+
+    # --- 왼쪽: 크기 ---------------------------------------------------------
+    names = ["the parent set\n(reported: ~80,000,000)",
+             "CIFAR-10\n(counted here: 60,000)"]
+    vals = [80_000_000, 60_000]
+    axL.barh(names[::-1], vals[::-1], color=["tab:blue", "0.65"], height=0.5)
+    axL.set_xscale("log")
+    axL.text(80_000_000, 1.33, " 80 million", va="center", fontsize=10,
+             color="0.4")
+    axL.text(60_000, 0.33, " 60 thousand", va="center", fontsize=10,
+             color="0.4")
+    axL.annotate("CIFAR-10 is 0.075% of it", xy=(60_000, 0.0),
+                 xytext=(2.2e6, -0.42), fontsize=10, color="tab:blue",
+                 arrowprops=dict(arrowstyle="->", color="tab:blue", lw=1.1))
+    axL.set_xlim(1e4, 4e8); axL.set_ylim(-0.75, 1.75)
+    axL.set_xlabel("number of pictures", fontsize=10)
+    axL.set_title("a hand-picked corner of something much larger", fontsize=11)
+    axL.spines[["top", "right", "left"]].set_visible(False)
+    axL.tick_params(axis="y", length=0, labelsize=9.5)
+
+    # --- 오른쪽: 무슨 일이 있었나 -------------------------------------------
+    ev = [(2008, "the parent set is built\nby searching the web for\n"
+                 "every noun in a dictionary\n(~75,000 of them), each\n"
+                 "picture shrunk to 32x32", "tab:blue", 1),
+          (2009, "CIFAR-10 is cut out of it:\n10 ordinary classes,\n"
+                 "6,000 pictures each,\nlabelled by hand", "0.35", -1),
+          (2020, "the parent set is taken down\nby the people who made it.\n"
+                 "nobody had checked what\nthe dictionary's uglier nouns\n"
+                 "had pulled in", "#b91c1c", 1)]
+    axR.axhline(0, color="0.35", lw=1.2)
+    for i, (yr, txt, c, up) in enumerate(ev):
+        axR.plot([i], [0], "o", color=c, ms=10, zorder=3)
+        axR.plot([i, i], [0, 0.20 * up], color=c, lw=1.1)
+        axR.text(i, 0.26 * up, f"{yr}", ha="center",
+                 va="bottom" if up > 0 else "top", fontsize=11.5, color=c,
+                 weight="bold")
+        axR.text(i, 0.56 * up, txt, ha="center",
+                 va="bottom" if up > 0 else "top", fontsize=8.8, color=c)
+    axR.set_xlim(-0.6, 2.6); axR.set_ylim(-1.65, 1.75)
+    axR.set_yticks([]); axR.set_xticks([])
+    axR.spines[:].set_visible(False)
+    axR.set_title("where these 60,000 pictures came from", fontsize=11)
+
+    fig.text(0.5, 0.015, "CIFAR-10's counts were read off the copy in this "
+             "repo; the parent's counts are quoted from its paper, not "
+             "measured here.", ha="center", fontsize=8.5, color="0.45")
+    fig.text(0.72, 0.075, "CIFAR-10 itself was never withdrawn, and is still "
+             "used - this page uses it.", ha="center", fontsize=9,
+             color="0.35")
+    fig.subplots_adjust(left=0.175, right=0.985, top=0.9, bottom=0.18,
+                        wspace=0.1)
+    fig.savefig("cifar_provenance.svg", transparent=True)
+    plt.close(fig)
+    print("wrote cifar_provenance.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -1457,6 +1523,7 @@ if __name__ == "__main__":
     fig_cvae_condition()
     fig_variety_ruler()
     fig_where_nonlinearity()
+    fig_cifar_provenance()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
