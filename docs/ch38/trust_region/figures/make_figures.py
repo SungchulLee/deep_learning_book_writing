@@ -234,6 +234,74 @@ def clipping_does_not_bound():
           f"{rats[-1]:.3f} (eps {EPS})   KL -> {kls[-1]:.4f}")
 
 
+# === 그림으로 보는 AI: 크게 한 걸음 걸으면 탐욕 폴리시가 된다 =================
+#
+# 카케이드 2002 의 요지는 "더 나은 액션"이 아니라 "**가장 좋은** 액션"으로
+# 간다는 것이다. 지수족 폴리시에서 자연경사로 충분히 크게 걸으면 호환 비평자가
+# 가장 높게 본 액션 — 곧 폴리시 반복 한 걸음의 결과 — 에 닿는다. 직접 잰다.
+
+def big_natural_step_is_greedy():
+    rng = np.random.default_rng(0)
+    K = 5
+    theta = rng.normal(0, 1, K)
+    r = rng.normal(0, 1, K)
+
+    def sm(z):
+        e = np.exp(z - z.max())
+        return e / e.sum()
+
+    p = sm(theta)
+    S = np.stack([(np.arange(K) == i).astype(float) - p[i] for i in range(K)],
+                 axis=1)
+    rootW = np.diag(np.sqrt(p))
+    w = np.linalg.lstsq(rootW @ S, rootW @ r, rcond=None)[0]   # 호환 비평자
+    greedy = int(np.argmax(S @ w))                              # 탐욕 한 걸음
+    g = S.T @ (p * r)                                           # 일반 경사
+
+    steps = np.logspace(-1, 3, 40)
+    nat = np.array([sm(theta + s * w) for s in steps])
+    ord_ = np.array([sm(theta + s * g) for s in steps])
+    assert int(np.argmax(nat[-1])) == greedy, \
+        "자연경사가 크게 걸어 탐욕 액션에 닿지 않으면 이 그림의 이야기가 없다"
+    other = int(np.argmax(ord_[-1]))
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.1), sharey=True)
+    for ax, P, title in ((ax1, nat, "natural gradient"),
+                         (ax2, ord_, "ordinary gradient")):
+        for a in range(K):
+            is_g = (a == greedy)
+            ax.semilogx(steps, P[:, a],
+                        color=ACCENT if is_g else INK,
+                        linewidth=2.4 if is_g else 1.2,
+                        alpha=1.0 if is_g else 0.45,
+                        label=f"action {a}" + ("  (greedy)" if is_g else ""))
+        ax.set_xlabel("size of the single step", fontsize=9.5)
+        ax.set_title(title, fontsize=10, color=INK, weight="bold")
+        ax.grid(alpha=0.13, which="both")
+        ax.tick_params(labelsize=8.5, colors=INK)
+        for sp in ax.spines.values():
+            sp.set_color(INK)
+            sp.set_linewidth(0.7)
+    ax1.set_ylabel("probability of each action", fontsize=9.5)
+    ax1.legend(fontsize=7.8, loc="center left", framealpha=0.92)
+    ax2.annotate(f"settles on action {other},\nnot the greedy one",
+                 xy=(steps[-1], ord_[-1, other]), xytext=(-120, -46),
+                 textcoords="offset points", fontsize=8.5, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+
+    fig.text(0.5, -0.04,
+             f"the compatible critic ranks action {greedy} best. one large "
+             f"natural step reaches it; the ordinary gradient does not.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "natural_step_greedy.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote natural_step_greedy.svg   greedy={greedy} "
+          f"natural->{int(np.argmax(nat[-1]))} ordinary->{other}")
+
+
 if __name__ == "__main__":
     theory_to_algorithm()
     clipping_does_not_bound()
+    big_natural_step_is_greedy()
