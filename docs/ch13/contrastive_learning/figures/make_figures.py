@@ -435,7 +435,84 @@ def mask_ratio():
                       for r, a, b in zip(RATIOS, nb_err, base_err)))
 
 
+# === 그림으로 보는 AI: 큐가 성립하려면 인코더가 느려야 한다 ==================
+#
+# MoCo 논문의 모멘텀 제거 실험을 그대로 옮기고, 그 수가 왜 그렇게 나오는지를
+# 산술로 붙인다. 큐 K=65536, 배치 256 이면 큐를 한 번 갈아 끼우는 데 256 스텝이
+# 걸린다. 그동안 키 인코더에 남아 있는 옛 웨이트의 몫이 m^256 이다.
+# 정확도는 논문 것을 그대로 옮기고, 남아 있는 몫은 여기서 셈한다.
+
+MOCO_M = (0.0, 0.9, 0.99, 0.999, 0.9999)
+MOCO_ACC = (None, 55.2, 57.8, 59.0, 58.9)       # None = 수렴 실패
+MOCO_K, MOCO_B = 65536, 256
+
+
+def momentum_consistency():
+    steps = MOCO_K // MOCO_B
+    retain = [m ** steps for m in MOCO_M]
+
+    # 그림이 주장하는 것을 먼저 확인한다
+    best = max(a for a in MOCO_ACC if a is not None)
+    i_best = MOCO_ACC.index(best)
+    assert retain[i_best] > 0.5, \
+        "가장 좋은 m 에서 옛 웨이트가 절반 넘게 남지 않으면 이 그림의 이야기가 없다"
+    assert retain[1] < 1e-6, "m=0.9 에서 거의 다 갈려야 이야기가 성립한다"
+
+    fig, ax = plt.subplots(figsize=(8.8, 4.3))
+    xs = np.arange(len(MOCO_M))
+
+    ax.semilogy(xs, [max(r, 1e-14) for r in retain], "o-", color=ACCENT,
+                linewidth=2.2, ms=7, label="old weights still in the key encoder")
+    ax.set_ylabel("share surviving one queue span  (log)", fontsize=9.5,
+                  color=ACCENT)
+    ax.tick_params(axis="y", labelcolor=ACCENT, labelsize=8)
+    ax.set_ylim(1e-14, 6)
+
+    ax2 = ax.twinx()
+    ok = [(i, a) for i, a in enumerate(MOCO_ACC) if a is not None]
+    ax2.plot([i for i, _ in ok], [a for _, a in ok], "s--", color=INK,
+             linewidth=1.9, ms=7, label="accuracy reported in the paper")
+    ax2.set_ylabel("linear accuracy (%)  - from the paper", fontsize=9.5,
+                   color=INK)
+    ax2.tick_params(axis="y", labelcolor=INK, labelsize=8)
+    ax2.set_ylim(50, 64)
+    for i, a in ok:
+        ax2.annotate(f"{a}", (i, a), textcoords="offset points",
+                     xytext=(0, 9), ha="center", fontsize=8.6, color=INK)
+
+    ax2.annotate("fails to converge", (0, 51.4), ha="center", fontsize=9,
+                 color=ACCENT, weight="bold")
+
+    ax.set_xticks(xs)
+    ax.set_xticklabels([("0" if m == 0 else f"{m:g}") for m in MOCO_M],
+                       fontsize=9)
+    ax.set_xlabel("momentum m of the key encoder", fontsize=9.5)
+    ax.set_title("the queue only works if the encoder barely moves",
+                 fontsize=10.5, color=INK, weight="bold", pad=8)
+    ax.grid(alpha=0.14, which="major")
+    for s in list(ax.spines.values()) + list(ax2.spines.values()):
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    h1, l1 = ax.get_legend_handles_labels()
+    h2, l2 = ax2.get_legend_handles_labels()
+    ax.legend(h1 + h2, l1 + l2, fontsize=8.5, loc="lower right",
+              framealpha=0.92)
+
+    fig.text(0.5, -0.05,
+             f"queue of {MOCO_K:,} at batch {MOCO_B} takes {steps} steps to "
+             f"refill; the share plotted is m to the power {steps}.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "momentum_consistency.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote momentum_consistency.svg   "
+          + "  ".join(f"m={m:g}: {r:.3e}" for m, r in zip(MOCO_M, retain)))
+
+
 if __name__ == "__main__":
     color_shortcut()
     projection_gap()
     mask_ratio()
+    momentum_consistency()
