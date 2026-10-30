@@ -1145,7 +1145,117 @@ def checkpoint_is_a_program():
           f"{len(ops)} ops, {call_ops}")
 
 
+# === 그림으로 보는 AI: 암달의 1967년 상한 =====================================
+#
+# 가속기가 아무리 빨라져도 **못 줄이는 몫**이 속도를 가둔다. 여기서 못 줄이는
+# 몫은 자료를 올리고 내리는 시간이다. 왼쪽은 그 꼴, 오른쪽은 이 기계에서 잰
+# 상한. 가속기가 없으면 CPU 로 재고 그림 안에 그렇게 적는다.
+
+def amdahl_ceiling():
+    import time
+
+    import torch
+
+    dev = "mps" if torch.backends.mps.is_available() else (
+        "cuda" if torch.cuda.is_available() else "cpu")
+
+    def sync():
+        if dev == "mps":
+            torch.mps.synchronize()
+        elif dev == "cuda":
+            torch.cuda.synchronize()
+
+    def bench(fn, reps=50, rounds=5):
+        for _ in range(10):
+            fn()
+        sync()
+        best = None
+        for _ in range(rounds):
+            t0 = time.perf_counter()
+            for _ in range(reps):
+                fn()
+            sync()
+            t = (time.perf_counter() - t0) / reps * 1e3
+            best = t if best is None else min(best, t)
+        return best
+
+    torch.manual_seed(0)
+    n = 1024
+    a = torch.randn(n, n, device=dev)
+    b = torch.randn(n, n, device=dev)
+    host = torch.randn(n, n)
+
+    t_mm = bench(lambda: a @ b)
+    t_up = bench(lambda: host.to(dev), reps=20)
+    t_dn = bench(lambda: a.to("cpu"), reps=20)
+    serial = t_up + t_dn
+    assert serial > 0 and t_mm > 0
+
+    ks = [1, 2, 4, 8, 16, 32, 64]
+    ceil = [(k * t_mm + serial) / serial for k in ks]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.0),
+                                   gridspec_kw={"width_ratios": [1, 1.15]})
+
+    # --- 왼쪽: 줄어드는 몫과 안 줄어드는 몫 --------------------------------
+    for i, (lab, par) in enumerate((("on the CPU", 1.00),
+                                    ("4x faster", 0.25),
+                                    ("infinitely fast", 0.0))):
+        y = 0.72 - i * 0.26
+        ax1.add_patch(plt.Rectangle((0.06, y), 0.52 * par, 0.15,
+                                    facecolor=INK, alpha=0.30,
+                                    edgecolor=INK, linewidth=0.8))
+        ax1.add_patch(plt.Rectangle((0.06 + 0.52 * par, y), 0.26, 0.15,
+                                    facecolor=ACCENT, alpha=0.55,
+                                    edgecolor=ACCENT, linewidth=0.8))
+        ax1.text(0.04, y + 0.075, lab, ha="right", va="center", fontsize=8.6,
+                 color=INK)
+    ax1.text(0.32, 0.93, "compute", ha="center", fontsize=8.6, color=INK)
+    ax1.text(0.84, 0.93, "moving the data", ha="center", fontsize=8.6,
+             color=ACCENT, weight="bold")
+    ax1.text(0.5, 0.10, "the amber block never shrinks.\n"
+                        "it is what sets the ceiling.",
+             ha="center", va="center", fontsize=8.8, color=INK)
+    ax1.set_xlim(-0.22, 1.12)
+    ax1.set_ylim(0.02, 1.02)
+    ax1.axis("off")
+    ax1.set_title("Amdahl, 1967", fontsize=10, color=INK, weight="bold")
+
+    # --- 오른쪽: 이 기계에서 잰 상한 ---------------------------------------
+    ax2.semilogx(ks, ceil, "o-", color=ACCENT, linewidth=2.0, ms=6,
+                 base=2)
+    for k, c in zip(ks, ceil):
+        if k in (1, 8, 64):
+            ax2.annotate(f"{c:.1f}x", xy=(k, c), xytext=(0, 11),
+                         textcoords="offset points", ha="center",
+                         fontsize=8.6, color=INK)
+    ax2.set_xlabel(f"matmuls done per round trip  ({n} x {n})", fontsize=9)
+    ax2.set_ylabel("best speedup still possible", fontsize=9)
+    ax2.set_title(f"measured here, on {dev}", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.set_xticks(ks)
+    ax2.set_xticklabels([str(k) for k in ks])
+    ax2.set_ylim(0, max(ceil) * 1.16)      # 맨 위 라벨이 잘리지 않게
+    ax2.grid(alpha=0.13, which="both")
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"one round trip costs {serial:.3f} ms, one matmul "
+             f"{t_mm:.3f} ms. send once and keep it there.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "amdahl_ceiling.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote amdahl_ceiling.svg   dev={dev} mm={t_mm:.3f} "
+          f"serial={serial:.3f} ceil1={ceil[0]:.2f} ceil64={ceil[-1]:.1f}")
+
+
 if __name__ == "__main__":
+    amdahl_ceiling()
     checkpoint_is_a_program()
     adam_proof()
     summation_order()
