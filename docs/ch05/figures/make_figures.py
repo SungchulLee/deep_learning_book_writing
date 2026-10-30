@@ -1178,6 +1178,102 @@ def fig_ddim_invertible(T=1000):
           f"1000 steps {err[-1]:.1f}%)")
 
 
+def fig_cvae_condition(N=12000, K=8):
+    """조건이 답을 얼마나 좁히는가 — 사분면을 주는 것과 라벨을 주는 것.
+
+    CVAE 를 내놓은 글이 MNIST 에서 쓴 조건은 라벨이 아니라 **그림의 사분면
+    한둘셋**이었다. 그 조건은 답을 하나로 좁히지 못한다. 여기서는 모델을
+    쓰지 않고 **진짜 MNIST 만으로** 그것을 센다 — 주어진 자리가 가장 비슷한
+    진짜 숫자 K 개를 찾아 그 라벨이 몇 가지인지 보는 것이다.
+
+    왼쪽 띠의 질의 하나는 효과가 잘 보이게 고른 것이고, 오른쪽 막대가
+    고르지 않고 센 값이다.
+    """
+    tf = transforms.ToTensor()
+    ds = torchvision.datasets.MNIST(DATA, train=True, download=True, transform=tf)
+    X = torch.stack([ds[i][0][0] for i in range(N)])
+    y = torch.tensor([ds[i][1] for i in range(N)])
+
+    def feats(nq):
+        if nq == 1:
+            return X[:, :14, :14].reshape(N, -1)
+        if nq == 2:
+            return X[:, :14, :].reshape(N, -1)
+        f = X.clone(); f[:, 14:, 14:] = 0
+        return f.reshape(N, -1)
+
+    g = torch.Generator().manual_seed(0)
+    qs = torch.randperm(N, generator=g)[:800]
+    spans = []
+    for nq in (1, 2, 3):
+        F = feats(nq); c = []
+        for qi in qs:
+            d = ((F - F[qi]) ** 2).sum(1); d[qi] = 1e9
+            c.append(len(set(y[d.argsort()[:K]].tolist())))
+        spans.append(float(torch.tensor(c, dtype=torch.float).mean()))
+
+    # 효과가 잘 보이는 질의 하나를 고른다 (왼쪽 띠 전용)
+    F1 = feats(1)
+    ink = F1.sum(1)
+    floor = float(ink.median())          # 거의 빈 사분면은 아무것과나 맞는다
+    best, bq = -1, None
+    for qi in qs[:300]:
+        if ink[qi] < floor:
+            continue
+        d = ((F1 - F1[qi]) ** 2).sum(1); d[qi] = 1e9
+        nb = d.argsort()[:6]
+        k = len(set(y[nb].tolist()))
+        if k > best:
+            best, bq, bnb = k, int(qi), nb
+
+    fig = plt.figure(figsize=(12.6, 4.4))
+    gs = fig.add_gridspec(2, 8, height_ratios=[1, 1.05],
+                          left=0.105, right=0.985, top=0.84, bottom=0.14,
+                          wspace=0.35, hspace=0.45)
+
+    # --- 왼쪽 위: 주어진 자리 + 그와 맞는 진짜 숫자들 -----------------------
+    axq = fig.add_subplot(gs[0, 0])
+    shown = X[bq].clone(); shown[14:, :] = 0.12; shown[:14, 14:] = 0.12
+    axq.imshow(shown, cmap="gray_r"); axq.set_xticks([]); axq.set_yticks([])
+    axq.set_title("what you are given", fontsize=9)
+    for s in axq.spines.values():
+        s.set_color("#c2410c"); s.set_linewidth(1.6)
+    for i, j in enumerate(bnb):
+        ax = fig.add_subplot(gs[0, i + 1])
+        ax.imshow(X[j], cmap="gray_r"); ax.set_xticks([]); ax.set_yticks([])
+        ax.set_title(f"a {y[j].item()}", fontsize=9)
+        ax.spines[:].set_visible(False)
+    fig.text(0.105, 0.90, "one quadrant, and the real digits that match it - "
+             f"{best} different answers",
+             fontsize=10.5, color="#c2410c")
+
+    # --- 아래: 조건이 답을 얼마나 좁히는가 ----------------------------------
+    axb = fig.add_subplot(gs[1, :])
+    labs = ["1 quadrant", "2 quadrants", "3 quadrants", "the label\n(this page)"]
+    vals = spans + [1.0]
+    cols = ["#c2410c"] * 3 + ["tab:blue"]
+    bars = axb.barh(labs[::-1], vals[::-1], color=cols[::-1], height=0.6)
+    for b, v in zip(bars, vals[::-1]):
+        axb.text(v + 0.03, b.get_y() + b.get_height() / 2, f"{v:.2f}",
+                 va="center", fontsize=10)
+    axb.axvline(1.0, color="0.55", lw=1.0, ls="--")
+    axb.set_xlim(0, 2.75)
+    axb.set_xlabel(f"how many different digits the {K} closest real matches "
+                   "still span", fontsize=10)
+    axb.text(2.70, 1.5, "the paper's three settings", ha="right", fontsize=9.5,
+             color="#c2410c")
+    axb.spines[["top", "right"]].set_visible(False)
+    axb.tick_params(labelsize=9.5)
+
+    fig.text(0.5, 0.012, "counted on real MNIST only - no model was run. "
+             "the top strip is one query chosen to show the effect.",
+             ha="center", fontsize=8.5, color="0.45")
+    fig.savefig("cvae_condition.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote cvae_condition.svg  (spans {spans[0]:.2f}/{spans[1]:.2f}/"
+          f"{spans[2]:.2f})")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -1200,6 +1296,7 @@ if __name__ == "__main__":
     fig_gan_saturation()
     fig_dcgan_bundle()
     fig_ddim_invertible()
+    fig_cvae_condition()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
