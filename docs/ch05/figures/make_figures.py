@@ -1566,6 +1566,145 @@ def fig_eps_units(T=1000):
           f"{amp[-1]/amp[0]:,.0f}x spread)")
 
 
+def fig_outside_measured():
+    """「바깥에 떨어진다」를 두 가지 자로 재면 서로 다른 말을 한다.
+
+    저장해 둔 `mnist_ae_mlp64.pt` 와 `mnist_ae_mlp2_latent.pt` 로 잰다.
+    앞엣것의 복원 MSE 가 0.05462 로 5.1절 값과 같아 같은 모델임을 확인했다.
+
+    왼쪽 곡선은 **64차원 잠재 표현에서 좌표를 d개만 떼어** 잰 것이다.
+    d차원 오토인코더를 따로 학습한 것이 아니므로 그렇게 읽지 말 것 —
+    「좌표 d개 사이에 서로 묶임이 얼마나 쌓여 있는가」를 보는 것이다.
+
+    부피 배수는 상관행렬 R 의 행렬식으로 det(R)^(-1/2) 이다. 좌표마다 따로
+    정규분포를 두고 곱한 것이 참 분포보다 몇 배 넓은 자리를 덮는지를 뜻한다.
+    """
+    from torch.utils.data import DataLoader, TensorDataset
+    import torch.nn.functional as Fn
+    import torch.optim as optim
+
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                        "..", "..", ".."))
+    tf = transforms.Compose([transforms.ToTensor(),
+                             transforms.Normalize((0.1307,), (0.3081,))])
+    te = torchvision.datasets.MNIST(DATA, train=False, download=True,
+                                    transform=tf)
+    X = torch.cat([x for x, _ in DataLoader(te, batch_size=2000)]).flatten(1)
+
+    def build(k):
+        return nn.ModuleDict({
+            "enc": nn.Sequential(nn.Linear(784, 256), nn.ReLU(),
+                                 nn.Linear(256, k)),
+            "dec": nn.Sequential(nn.Linear(k, 256), nn.ReLU(),
+                                 nn.Linear(256, 784))})
+
+    def codes(k):
+        """저장된 체크포인트가 있으면 쓰고, 없으면 그 쪽의 규약으로 학습한다.
+
+        `*.pt` 는 .gitignore 에 걸려 저장소에 없으므로, 내려받아 쓰는 사람은
+        여기서 100 에포크를 돌게 된다(잠재 2와 64를 합쳐 십여 분).
+        """
+        lat = os.path.join(root, f"mnist_ae_mlp{k}_latent.pt")
+        if os.path.exists(lat):                 # 잠재 표현만 저장해 둔 것이 있다
+            return torch.load(lat, weights_only=True,
+                              map_location="cpu")[0].double()
+        p = os.path.join(root, f"mnist_ae_mlp{k}.pt")
+        m = build(k)
+        if os.path.exists(p):
+            m.load_state_dict(torch.load(p, weights_only=True,
+                                         map_location="cpu"))
+        else:
+            tr = torchvision.datasets.MNIST(DATA, train=True, download=True,
+                                            transform=tf)
+            Xtr = torch.cat([x for x, _ in DataLoader(tr, batch_size=2000)]
+                            ).flatten(1)
+            torch.manual_seed(42)
+            m = build(k)
+            o = optim.Adam(m.parameters(), lr=1e-3)
+            dl = DataLoader(TensorDataset(Xtr), batch_size=100, shuffle=True)
+            for _ in range(100):
+                for (xb,) in dl:
+                    o.zero_grad()
+                    Fn.mse_loss(m["dec"](m["enc"](xb)), xb).backward()
+                    o.step()
+            torch.save(m.state_dict(), p)
+        m.eval()
+        with torch.no_grad():
+            return m["enc"](X).double()
+
+    z64, z2 = codes(64), codes(2)
+
+    def inflation(z):
+        s = z.std(0)
+        R = torch.cov(z.T) / (s[:, None] * s[None, :])
+        return float(torch.exp(-0.5 * torch.linalg.slogdet(R)[1]))
+
+    def nn_ratio(z):
+        z = z.double()
+        g = torch.Generator().manual_seed(0)
+        s = torch.randn(z.shape, generator=g).double() * z.std(0) + z.mean(0)
+        d = torch.cdist(z, z); d.fill_diagonal_(1e9)
+        return float(torch.cdist(s, z).min(1).values.median() /
+                     d.min(1).values.median())
+
+    ds = [2, 4, 8, 16, 32, 48, 64]
+    infl = [inflation(z64[:, :d]) for d in ds]
+    i2, i64 = inflation(z2.double()), infl[-1]
+    r2, r64 = nn_ratio(z2), nn_ratio(z64)
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.4, 4.6),
+                                   gridspec_kw={"width_ratios": [1.1, 1]})
+
+    axL.plot(ds, infl, "o-", color="#c2410c", lw=2.1, ms=6.5)
+    axL.annotate(f"{i64:,.0f}x", xy=(64, i64), xytext=(-12, 6),
+                 textcoords="offset points", ha="right", fontsize=11,
+                 color="#c2410c")
+    axL.annotate(f"{infl[0]:.2f}x", xy=(2, infl[0]), xytext=(7, 13),
+                 textcoords="offset points", ha="left", fontsize=10.5,
+                 color="#c2410c")
+    axL.axhline(1.0, color="0.5", lw=1.0, ls="--")
+    axL.text(62, 1.14, "a perfect fit would sit here", ha="right", fontsize=9.3,
+             color="0.45")
+    axL.set_yscale("log")
+    axL.set_xlabel("how many of the 64 coordinates you look at", fontsize=10)
+    axL.set_ylabel("how much roomier the fitted bell is\n"
+                   "than the codes really are", fontsize=10)
+    axL.set_title("the mismatch is flat, then it explodes", fontsize=11)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    x = np.arange(2)
+    axR.bar(x - 0.19, [r2, i2], 0.37, color="0.65", label="latent 2")
+    axR.bar(x + 0.19, [r64, i64], 0.37, color="#c2410c", label="latent 64")
+    for xi, (a, b) in zip(x, [(r2, r64), (i2, i64)]):
+        axR.text(xi - 0.19, a * 1.18, f"{a:.2f}x", ha="center", fontsize=10)
+        axR.text(xi + 0.19, b * 1.18,
+                 f"{b:,.0f}x" if b > 10 else f"{b:.2f}x", ha="center",
+                 fontsize=10)
+    axR.set_yscale("log"); axR.set_ylim(0.6, 4000)
+    axR.set_xticks(x)
+    axR.set_xticklabels(["how FAR the draws land\n(nearest real code)",
+                         "which DIRECTION they point\n(roominess above)"],
+                        fontsize=9.6)
+    axR.axhline(1.0, color="0.5", lw=1.0, ls="--")
+    axR.text(0, 170, "this ruler says\nthe two are alike", ha="center",
+             fontsize=9.4, color="0.4")
+    axR.text(1, 2200, "this one does not", ha="center", fontsize=9.4,
+             color="#c2410c")
+    axR.legend(fontsize=9.3, frameon=False, loc="upper left")
+    axR.set_title("two rulers, two answers", fontsize=11)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.text(0.5, 0.015, "measured on the saved autoencoders from this "
+             "section - nothing was retrained.", ha="center", fontsize=8.8,
+             color="0.45")
+    fig.subplots_adjust(left=0.085, right=0.985, top=0.91, bottom=0.185,
+                        wspace=0.26)
+    fig.savefig("outside_measured.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote outside_measured.svg  (k2 {i2:.2f}x, k64 {i64:,.0f}x; "
+          f"dist {r2:.2f} vs {r64:.2f})")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -1593,6 +1732,7 @@ if __name__ == "__main__":
     fig_where_nonlinearity()
     fig_cifar_provenance()
     fig_eps_units()
+    fig_outside_measured()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
