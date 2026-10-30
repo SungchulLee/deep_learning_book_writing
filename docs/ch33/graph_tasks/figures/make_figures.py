@@ -612,8 +612,196 @@ def drop_or_merge():
         for r in rows))
 
 
+# === 그림으로 보는 AI: 배치가 한 그래프의 노드들일 때 ========================
+#
+# BatchNorm 은 "같은 미니배치의 다른 **예제들**" 로 통계를 낸다. 이 쪽은 그래프를
+# 하나씩 넣으므로 그 배치가 분류하려는 그래프의 **노드들**이다. 그 결과 학습 모드와
+# 평가 모드가 같은 입력에 다른 답을 내고, 정규 그래프인 사이클에서 무너진다.
+
+def batch_of_one_graph():
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+
+    class GCNLayer(nn.Module):
+        def __init__(self, i, o):
+            super().__init__()
+            self.lin = nn.Linear(i, o)
+
+        def forward(self, x, ei):
+            n = x.shape[0]
+            loop = torch.arange(n)
+            sa = torch.cat([ei[0], loop])
+            da = torch.cat([ei[1], loop])
+            deg = torch.zeros(n)
+            deg.scatter_add_(0, da, torch.ones(da.shape[0]))
+            norm = (deg[sa] * deg[da]).pow(-0.5)
+            norm[norm == float("inf")] = 0
+            h = self.lin(x)
+            msg = h[sa] * norm.unsqueeze(1)
+            out = torch.zeros(n, h.shape[1])
+            out.scatter_add_(0, da.unsqueeze(1).expand_as(msg), msg)
+            return out
+
+    class GC(nn.Module):
+        """이 쪽 본문의 모델 그대로."""
+
+        def __init__(self, i, h, o, num_layers=3):
+            super().__init__()
+            self.convs = nn.ModuleList(
+                [GCNLayer(i if k == 0 else h, h) for k in range(num_layers)])
+            self.bns = nn.ModuleList(
+                [nn.BatchNorm1d(h) for _ in range(num_layers)])
+            self.classifier = nn.Sequential(nn.Linear(h, h), nn.ReLU(),
+                                            nn.Linear(h, o))
+
+        def forward(self, x, ei):
+            for c, b in zip(self.convs, self.bns):
+                x = F.relu(b(c(x, ei)))
+            return self.classifier(x.sum(0, keepdim=True))
+
+    def dataset(n_graphs=300):
+        np.random.seed(42)
+        gs = []
+        for i in range(n_graphs):
+            lab = i % 3
+            n = np.random.randint(5, 10)
+            if lab == 0:
+                e = [(j, j + 1) for j in range(n - 1)]
+            elif lab == 1:
+                e = [(0, j) for j in range(1, n)]
+            else:
+                e = [(j, (j + 1) % n) for j in range(n)]
+            src = [a for a, _ in e] + [b for _, b in e]
+            dst = [b for _, b in e] + [a for a, _ in e]
+            gs.append({"x": torch.ones(n, 1), "y": lab,
+                       "ei": torch.tensor([src, dst], dtype=torch.long)})
+        return gs
+
+    torch.manual_seed(42)
+    gs = dataset()
+    train, test = gs[:240], gs[240:]
+    model = GC(1, 32, 3)
+    opt = torch.optim.Adam(model.parameters(), lr=0.01)
+    model.train()
+    for _ in range(50):
+        np.random.shuffle(train)
+        for g in train:
+            opt.zero_grad()
+            F.cross_entropy(model(g["x"], g["ei"]),
+                            torch.tensor([g["y"]])).backward()
+            opt.step()
+
+    ys = np.array([g["y"] for g in test])
+    preds = {}
+    for mode in ("eval", "train"):
+        getattr(model, mode)()
+        with torch.no_grad():
+            preds[mode] = np.array([model(g["x"], g["ei"]).argmax(1).item()
+                                    for g in test])
+    acc = {m: {c: float((preds[m][ys == c] == c).mean()) for c in range(3)}
+           for m in preds}
+    overall = {m: float((preds[m] == ys).mean()) for m in preds}
+    flips = float((preds["eval"] != preds["train"]).mean())
+
+    # --- 노드들 사이의 흩어짐: 사이클은 정확히 0 이다 ----------------------
+    spread = {0: [], 1: [], 2: []}
+    model.train()
+    with torch.no_grad():
+        for g in test:
+            x = g["x"]
+            for k, (c, b) in enumerate(zip(model.convs, model.bns)):
+                h = c(x, g["ei"])
+                if k == 0:
+                    spread[g["y"]].append(float(h.std(0).mean()))
+                x = F.relu(b(h))
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert max(spread[2]) == 0.0, "사이클은 노드마다 똑같아야 한다 (정확히 0)"
+    assert min(spread[0] + spread[1]) > 1e-3, "다른 둘은 0 이 아니어야 한다"
+    assert overall["train"] == 1.0, "학습 모드에서는 세 무리를 다 맞혀야 한다"
+    assert acc["eval"][2] == 0.0, "평가 모드에서 사이클을 하나도 못 맞혀야 한다"
+    assert abs(overall["eval"] - 2 / 3) < 1e-9, "이 쪽이 적어 둔 0.667 이어야 한다"
+
+    NAMES = ["path", "star", "cycle"]
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.2),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    # --- 왼쪽: 같은 모델, 같은 입력, 두 모드 ------------------------------
+    xs = np.arange(3)
+    w = 0.34
+    ax1.bar(xs - w / 2, [acc["train"][c] for c in range(3)], w, color=MUTED,
+            alpha=0.85, label="training mode - stats from this graph's nodes")
+    ax1.bar(xs + w / 2, [acc["eval"][c] for c in range(3)], w, color=ACCENT,
+            alpha=0.85, label="eval mode - the running statistics")
+    for c in range(3):
+        for off, mode in ((-w / 2, "train"), (w / 2, "eval")):
+            v = acc[mode][c]
+            ax1.text(c + off, v + 0.03, f"{v:.0%}", ha="center", fontsize=9.4,
+                     color=INK, weight="bold")
+    ax1.annotate("every cycle wrong", (2 + w / 2, 0.02),
+                 textcoords="offset points", xytext=(6, 54), ha="center",
+                 fontsize=8.8, color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.0))
+    ax1.set_xticks(xs)
+    ax1.set_xticklabels(NAMES, fontsize=10)
+    ax1.set_ylim(0, 1.32)
+    ax1.set_yticks(np.arange(0, 1.01, 0.25))
+    ax1.set_yticklabels([f"{t:.0%}" for t in np.arange(0, 1.01, 0.25)])
+    ax1.set_ylabel("accuracy on the 60 test graphs", fontsize=8.8)
+    ax1.set_title("one trained model, one test set, two answers",
+                  fontsize=10, color=INK, weight="bold")
+    ax1.legend(fontsize=8.2, loc="upper left", framealpha=0.92)
+
+    # --- 오른쪽: 왜 사이클인가 --------------------------------------------
+    vals = [float(np.mean(spread[c])) for c in range(3)]
+    errs = [float(np.std(spread[c])) for c in range(3)]
+    ys2 = np.arange(3)[::-1]
+    ax2.barh(ys2, [max(v, 1e-4) for v in vals], 0.46,
+             xerr=[errs[c] for c in range(3)],
+             color=[MUTED, MUTED, ACCENT], alpha=0.85,
+             error_kw=dict(ecolor=INK, capsize=4, lw=1.0))
+    for y, c in zip(ys2, range(3)):
+        txt = "exactly 0" if vals[c] == 0.0 else f"{vals[c]:.3f}"
+        ax2.text(max(vals[c], 1e-4) * 1.5, y, txt, va="center", fontsize=9.4,
+                 color=ACCENT if vals[c] == 0 else INK, weight="bold",
+                 family="monospace")
+    ax2.set_xscale("log")
+    ax2.set_xlim(8e-5, 5)
+    ax2.set_yticks(ys2)
+    ax2.set_yticklabels(NAMES, fontsize=10)
+    ax2.set_xlabel("spread of the layer-1 activations across the nodes\n"
+                   "of a single graph (log scale)", fontsize=8.8)
+    ax2.set_title("a cycle is regular, so its nodes are identical",
+                  fontsize=10, color=INK, weight="bold")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        ax.grid(alpha=0.13)
+        ax.set_axisbelow(True)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.text(0.5, -0.06,
+             f"the page's own model and data after its 50 epochs.  Overall "
+             f"test accuracy is {overall['train']:.3f} in training mode and "
+             f"{overall['eval']:.3f} in eval mode; the two modes disagree on "
+             f"{flips:.0%} of the test graphs.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.savefig(HERE / "batch_of_one_graph.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote batch_of_one_graph.svg   eval {overall['eval']:.3f} vs "
+          f"train-mode {overall['train']:.3f}, {flips:.0%} disagree;  "
+          f"per class eval {[round(acc['eval'][c], 3) for c in range(3)]};  "
+          f"spread {[f'{v:.3e}' for v in vals]}")
+
+
 if __name__ == "__main__":
     size_blindness()
     every_ordering()
     extensive_target()
     drop_or_merge()
+    batch_of_one_graph()
