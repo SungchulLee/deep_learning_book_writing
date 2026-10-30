@@ -147,5 +147,115 @@ def mask_only():
           f"kept {np.mean(kept):.1f}%")
 
 
+# === 그림으로 보는 AI: 분류기 대신 오토인코더로 고르기 ======================
+#
+# Expert Gate 는 어느 전문가를 쓸지 **분류기로 고르지 않는다.** 과제마다 한
+# 레이어 오토인코더를 두고, 테스트 입력을 가장 잘 되살리는 쪽을 고른다.
+# 오토인코더들은 서로의 자료를 본 적이 없고, 테스트 때 과제 이름도 필요 없다.
+
+def autoencoder_gate():
+    import torch
+    import torch.nn as nn
+    from sklearn.datasets import load_digits
+    from sklearn.model_selection import train_test_split
+
+    d = load_digits()
+    x = torch.tensor(d.data, dtype=torch.float32) / 16.0
+    y = torch.tensor(d.target)
+    xtr, xte, ytr, yte = train_test_split(x, y, test_size=0.3,
+                                          random_state=0, stratify=y)
+    tasks = [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]]
+
+    def sub(xs, ys, t):
+        m = torch.isin(ys, torch.tensor(t))
+        return xs[m], ys[m]
+
+    torch.manual_seed(0)
+    aes = []
+    for t in tasks:                       # 과제마다 한 레이어 오토인코더
+        xt, _ = sub(xtr, ytr, t)
+        ae = nn.Sequential(nn.Linear(64, 20), nn.Sigmoid(),
+                           nn.Linear(20, 64), nn.Sigmoid())
+        opt = torch.optim.Adam(ae.parameters(), lr=0.01)
+        for _ in range(600):
+            opt.zero_grad()
+            ((ae(xt) - xt) ** 2).mean().backward()
+            opt.step()
+        aes.append(ae)
+
+    k = len(tasks)
+    conf = np.zeros((k, k))
+    correct = total = 0
+    for ti, t in enumerate(tasks):
+        xt, _ = sub(xte, yte, t)
+        with torch.no_grad():
+            errs = torch.stack([((ae(xt) - xt) ** 2).mean(1) for ae in aes])
+        pick = errs.argmin(0)
+        for p in pick.tolist():
+            conf[ti, p] += 1
+        correct += (pick == ti).sum().item()
+        total += len(xt)
+
+    acc = 100.0 * correct / total
+    chance = 100.0 / k
+    assert acc > 4 * chance, (
+        f"재구성 오차로 고르는 것이 우연보다 한참 나아야 한다 ({acc} vs {chance})")
+
+    cn = conf / conf.sum(1, keepdims=True) * 100
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.2),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    im = ax1.imshow(cn, cmap="pink_r", vmin=0, vmax=100)
+    for i in range(k):
+        for j in range(k):
+            ax1.text(j, i, f"{cn[i, j]:.0f}", ha="center", va="center",
+                     fontsize=9,
+                     color="white" if cn[i, j] > 55 else INK)
+    ax1.set_xticks(range(k))
+    ax1.set_yticks(range(k))
+    ax1.set_xticklabels([f"T{j}" for j in range(k)], fontsize=9)
+    ax1.set_yticklabels([f"T{i}" for i in range(k)], fontsize=9)
+    ax1.set_xlabel("expert chosen", fontsize=9.5)
+    ax1.set_ylabel("task the input came from", fontsize=9.5)
+    ax1.set_title("lowest reconstruction error wins", fontsize=10,
+                  color=INK, weight="bold")
+    fig.colorbar(im, ax=ax1, label="% of inputs")
+
+    ax2.bar([0, 1], [chance, acc], color=[INK, ACCENT], width=0.5,
+            alpha=[0.4, 0.9][0])
+    bars = ax2.bar([0, 1], [chance, acc], color=[INK, ACCENT], width=0.5)
+    bars[0].set_alpha(0.4)
+    bars[1].set_alpha(0.9)
+    for i, v in enumerate([chance, acc]):
+        ax2.text(i, v + 2.5, f"{v:.1f}%", ha="center", fontsize=12,
+                 color=INK, weight="bold")
+    ax2.set_xticks([0, 1])
+    ax2.set_xticklabels(["picking at\nrandom",
+                         "by reconstruction\nerror"], fontsize=9)
+    ax2.set_ylabel("right expert chosen (%)", fontsize=9.5)
+    ax2.set_ylim(0, 118)
+    ax2.set_title("no task label at test time", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.grid(alpha=0.13, axis="y")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8.5, colors=INK)
+        for sp in ax.spines.values():
+            sp.set_color(INK)
+            sp.set_linewidth(0.7)
+
+    fig.text(0.5, -0.05,
+             "8x8 digits in five pairs. the five autoencoders never saw each "
+             "other's data and were never trained against each other.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "autoencoder_gate.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote autoencoder_gate.svg   gating {acc:.1f}% vs chance {chance:.0f}%")
+
+
 if __name__ == "__main__":
     mask_only()
+    autoencoder_gate()
