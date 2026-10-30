@@ -118,5 +118,144 @@ def size_blindness():
     print(f"wrote size_blindness.svg   {gaps}  duplicate {gaps2}")
 
 
+# === 그림으로 보는 AI: 40,320 가지로 읽어도 같은 답 ==========================
+#
+# "Order Matters"(ICLR 2016)가 보인 것은 집합을 차례가 있는 것처럼 읽히면 답이
+# 차례를 따라 흔들린다는 것이었다. 노드 8개의 모든 차례 40,320 가지를 전부 돌려
+# 이 쪽의 Set2Set 과 보통 LSTM 이 각각 몇 가지 답을 내는지 센다.
+
+def every_ordering():
+    import itertools
+
+    import torch
+    import torch.nn as nn
+
+    class Set2Set(nn.Module):
+        """이 쪽 본문의 구현을 그대로 옮긴 것."""
+
+        def __init__(self, in_ch, processing_steps=3):
+            super().__init__()
+            self.steps = processing_steps
+            self.lstm = nn.LSTMCell(2 * in_ch, in_ch)
+            self.in_ch = in_ch
+
+        def forward(self, x, batch):
+            ng = batch.max().item() + 1
+            q = torch.zeros(ng, self.in_ch)
+            c = torch.zeros(ng, self.in_ch)
+            r = torch.zeros(ng, self.in_ch)
+            for _ in range(self.steps):
+                q, c = self.lstm(torch.cat([q, r], dim=-1), (q, c))
+                e = (x * q[batch]).sum(dim=-1)
+                e_max = torch.full((ng,), float("-inf"))
+                e_max.scatter_reduce_(0, batch, e, reduce="amax")
+                a = torch.exp(e - e_max[batch])
+                a_sum = torch.zeros(ng)
+                a_sum.scatter_add_(0, batch, a)
+                a = a / a_sum[batch].clamp(min=1e-10)
+                r = torch.zeros(ng, self.in_ch)
+                r.scatter_add_(0, batch.unsqueeze(1).expand_as(x),
+                               x * a.unsqueeze(1))
+            return torch.cat([q, r], dim=-1)
+
+    torch.manual_seed(42)
+    n, d = 8, 8
+    x = torch.randn(n, d)
+    batch = torch.zeros(n, dtype=torch.long)
+    s2s = Set2Set(d, processing_steps=3)
+    lstm = nn.LSTM(d, 2 * d, batch_first=True)
+
+    perms = list(itertools.permutations(range(n)))
+    rows_s, rows_l = [], []
+    with torch.no_grad():
+        for p in perms:
+            idx = torch.tensor(p)
+            rows_s.append(s2s(x[idx], batch)[0])
+            rows_l.append(lstm(x[idx].unsqueeze(0))[0][0, -1])
+    S = torch.stack(rows_s).numpy()
+    L = torch.stack(rows_l).numpy()
+
+    spread_s = float((S.max(0) - S.min(0)).max())
+    spread_l = float((L.max(0) - L.min(0)).max())
+    uniq_s = len({tuple(np.round(v, 6)) for v in S})
+    uniq_l = len({tuple(np.round(v, 6)) for v in L})
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert len(perms) == 40320, "8! 가지를 모두 돌려야 한다"
+    assert spread_s < 1e-5, "Set2Set 의 흔들림은 반올림 수준이어야 한다"
+    assert spread_l > 100 * spread_s, "LSTM 은 비교할 수 없이 크게 흔들려야 한다"
+    assert uniq_l == len(perms) and uniq_s < 10, \
+        "LSTM 은 차례마다 다른 답을, Set2Set 은 사실상 한 답을 내야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.2),
+                                   gridspec_kw={"width_ratios": [1.3, 1]})
+
+    # --- 왼쪽: 첫 좌표의 분포 ---------------------------------------------
+    col = 0
+    ax1.hist(L[:, col], bins=90, color=INK, alpha=0.55,
+             label=f"an LSTM reading the same {n} nodes")
+    centre = float(S[:, col].mean())
+    ax1.axvline(centre, color=ACCENT, lw=2.4, zorder=5,
+                label="Set2Set - every ordering, one line")
+    ax1.annotate(f"all {len(perms):,} orderings\nland inside "
+                 f"{spread_s:.0e} of each other",
+                 (centre, ax1.get_ylim()[1] * 0.62),
+                 textcoords="offset points", xytext=(38, 0), fontsize=8.6,
+                 color=ACCENT, va="center",
+                 bbox=dict(facecolor="white", alpha=0.86, edgecolor="none",
+                           pad=2.5),
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=1.0))
+    ax1.set_xlabel("first coordinate of the readout", fontsize=8.8)
+    ax1.set_ylabel(f"orderings (of {len(perms):,})", fontsize=8.8)
+    ax1.set_title(f"every one of the {n}! ways to present the set",
+                  fontsize=10, color=INK, weight="bold")
+    ax1.legend(fontsize=8.4, loc="upper left", framealpha=0.92)
+
+    # --- 오른쪽: 서로 다른 답은 몇 개인가 ---------------------------------
+    ys = np.array([1, 0])
+    vals = [uniq_l, uniq_s]
+    labs = ["LSTM", "Set2Set"]
+    cols = [INK, ACCENT]
+    ax2.barh(ys, vals, 0.46, color=cols, alpha=0.82)
+    for y, v in zip(ys, vals):
+        ax2.text(v * 1.35, y, f"{v:,}", va="center", fontsize=12, color=INK,
+                 weight="bold")
+    ax2.set_xscale("log")
+    ax2.set_xlim(0.6, 4e5)
+    ax2.set_yticks(ys)
+    ax2.set_yticklabels(labs, fontsize=10)
+    ax2.set_xlabel("distinct answers, rounded to 1e-6 (log scale)",
+                   fontsize=8.8)
+    ax2.set_title("how many different answers came out", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.text(1.0, -0.62,
+             f"the {uniq_s} are float32 round-off: adding the same numbers\n"
+             "in a different order does not give the same bits",
+             fontsize=8.3, color=ACCENT, style="italic", va="top")
+    ax2.set_ylim(-1.1, 1.5)
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        ax.grid(alpha=0.13)
+        ax.set_axisbelow(True)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.text(0.5, -0.04,
+             f"untrained modules, seed 42.  Across orderings the LSTM swings "
+             f"by up to {spread_l:.2f} on one of its {2 * d} coordinates; "
+             f"Set2Set by {spread_s:.0e} on all of them.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.savefig(HERE / "every_ordering.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote every_ordering.svg   {len(perms):,} orderings;  Set2Set "
+          f"spread {spread_s:.3e} / {uniq_s} distinct;  LSTM spread "
+          f"{spread_l:.3e} / {uniq_l:,} distinct")
+
+
 if __name__ == "__main__":
     size_blindness()
+    every_ordering()
