@@ -139,5 +139,110 @@ def two_tasks_agree():
           f"{[round(g, 2) for g in gaps]}")
 
 
+# === 그림으로 보는 AI: 라벨을 보는 중요도와 안 보는 중요도 ===================
+#
+# EWC 의 피셔는 **라벨이 있어야** 셈한다. MAS 는 출력의 크기만 보므로 라벨을
+# 쓰지 않는다. 라벨을 섞어 보면 둘이 얼마나 다른 것을 재는지 바로 드러난다.
+
+def labels_or_not():
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+
+    def facts(k):
+        s = set()
+        for j in range(1, 10):
+            s.add((k, j))
+            s.add((j, k))
+        return sorted(s)
+
+    pairs = facts(1)
+    x = torch.zeros(len(pairs), 20)
+    y = torch.zeros(len(pairs), dtype=torch.long)
+    for i, (a, b) in enumerate(pairs):
+        x[i, a - 1] = 1
+        x[i, 10 + b - 1] = 1
+        y[i] = a + b
+
+    lf = nn.CrossEntropyLoss()
+    torch.manual_seed(0)
+    net = nn.Sequential(nn.Linear(20, 50), nn.Sigmoid(), nn.Linear(50, 19))
+    opt = torch.optim.SGD(net.parameters(), lr=0.5, momentum=0.9)
+    for _ in range(400):
+        opt.zero_grad()
+        lf(net(x), y).backward()
+        opt.step()
+    ps = list(net.parameters())
+
+    def flat():
+        return torch.cat([p.grad.flatten() for p in ps]).clone()
+
+    def fisher(labels):                 # 라벨이 필요하다
+        acc = None
+        for i in range(len(x)):
+            net.zero_grad()
+            lf(net(x[i:i + 1]), labels[i:i + 1]).backward()
+            g = flat() ** 2
+            acc = g if acc is None else acc + g
+        return acc / len(x)
+
+    def mas():                          # 라벨을 보지 않는다
+        acc = None
+        for i in range(len(x)):
+            net.zero_grad()
+            (net(x[i:i + 1]) ** 2).sum().backward()
+            g = flat().abs()
+            acc = g if acc is None else acc + g
+        return acc / len(x)
+
+    g = torch.Generator().manual_seed(1)
+    y_shuf = y[torch.randperm(len(y), generator=g)]
+    f_true, f_shuf = fisher(y), fisher(y_shuf)
+    m1, m2 = mas(), mas()
+
+    def cos(a, b):
+        return F.cosine_similarity(a, b, dim=0).item()
+
+    vals = [cos(f_true, f_shuf), cos(m1, m2), cos(f_true, m1)]
+    assert vals[1] > 0.999, "MAS 는 라벨을 안 보므로 두 번 재도 같아야 한다"
+    assert vals[0] < 0.9, "피셔는 라벨을 섞으면 달라져야 한다"
+
+    fig, ax = plt.subplots(figsize=(8.8, 4.2))
+    labels = ["EWC Fisher\ntrue labels vs shuffled",
+              "MAS\nmeasured twice",
+              "EWC vs MAS\non the same network"]
+    cols = [INK, ACCENT, MUTED]
+    bars = ax.bar(range(3), vals, color=cols, width=0.55, alpha=0.88)
+    for i, v in enumerate(vals):
+        ax.text(i, v + 0.03, f"{v:.2f}", ha="center", fontsize=12,
+                color=INK, weight="bold")
+    ax.axhline(1.0, color=INK, linestyle=":", linewidth=1.2, alpha=0.6)
+    ax.text(2.45, 1.015, "identical", fontsize=8.4, color=INK, alpha=0.75,
+            ha="right")
+
+    ax.set_xticks(range(3))
+    ax.set_xticklabels(labels, fontsize=8.8)
+    ax.set_ylabel("cosine between the two importance vectors", fontsize=9.5)
+    ax.set_ylim(0, 1.18)
+    ax.set_title("shuffle the labels and only one of them notices",
+                 fontsize=10.5, color=INK, weight="bold", pad=10)
+    ax.grid(alpha=0.13, axis="y")
+    ax.tick_params(labelsize=8.5, colors=INK)
+    for sp in ax.spines.values():
+        sp.set_color(INK)
+        sp.set_linewidth(0.7)
+
+    fig.text(0.5, -0.05,
+             "one trained network, same weights throughout. "
+             "the third bar is why they are not interchangeable.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "labels_or_not.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote labels_or_not.svg   {[round(v,3) for v in vals]}")
+
+
 if __name__ == "__main__":
     two_tasks_agree()
+    labels_or_not()
