@@ -262,6 +262,84 @@ def renormalization():
           f"{abs(w_renorm).max():.3f}, k=32 norm {nv[-1]:.1e} vs {rn[-1]:.2f}")
 
 
+# === 그림으로 보는 AI: 고유기저에서는 국소가 공짜가 아니다 ====================
+#
+# 고유기저에서 계수를 주는 필터는 임펄스 하나를 그래프 전체로 퍼뜨린다.
+# 라플라시안의 K 차 다항식은 정확히 K 홉까지만 닿는다. 둘 다 직접 잰다.
+
+def locality():
+    import networkx as nx
+
+    G = nx.karate_club_graph()
+    n = G.number_of_nodes()
+    A = np.zeros((n, n))
+    for u, v in G.edges():
+        A[u, v] = A[v, u] = 1.0
+    L = np.diag(A.sum(1)) - A
+    w, U = np.linalg.eigh(L)
+    hops = nx.single_source_shortest_path_length(G, 0)
+    x = np.zeros(n)
+    x[0] = 1.0
+
+    theta = np.random.RandomState(0).randn(n)
+    y_spec = U @ (theta * (U.T @ x))
+    nz_spec = np.abs(y_spec) > 1e-10
+
+    Ln = L / np.abs(w).max()
+    poly = {}
+    for K in (1, 2, 3):
+        P = sum(np.linalg.matrix_power(Ln, k) for k in range(K + 1))
+        m = np.abs(P @ x) > 1e-10
+        poly[K] = (int(m.sum()), max(hops[v] for v in range(n) if m[v]))
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert nz_spec.all(), "고유기저 필터는 모든 노드에 닿아야 한다"
+    for K, (_, reach) in poly.items():
+        assert reach == K, f"K={K} 다항식은 정확히 {K} 홉이어야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.0),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    pos = nx.spring_layout(G, seed=3)
+    for ax, mask, title in (
+            (ax1, nz_spec, "a filter set in the eigenbasis"),
+            (ax2, np.abs(sum(np.linalg.matrix_power(Ln, k)
+                             for k in range(2)) @ x) > 1e-10,
+             "a degree-1 polynomial in L")):
+        for u, v in G.edges():
+            ax.plot([pos[u][0], pos[v][0]], [pos[u][1], pos[v][1]],
+                    color=INK, linewidth=0.6, alpha=0.25, zorder=1)
+        on = [v for v in G.nodes() if mask[v]]
+        off = [v for v in G.nodes() if not mask[v]]
+        ax.scatter([pos[v][0] for v in off], [pos[v][1] for v in off],
+                   s=60, color=INK, alpha=0.18, zorder=2)
+        ax.scatter([pos[v][0] for v in on], [pos[v][1] for v in on],
+                   s=70, color=ACCENT, zorder=3, edgecolors="white",
+                   linewidths=1.0)
+        ax.scatter([pos[0][0]], [pos[0][1]], s=230, facecolors="none",
+                   edgecolors=INK, linewidths=1.8, zorder=4)
+        ax.set_title(title, fontsize=10, color=INK, weight="bold")
+        ax.text(0.5, -0.04, f"{len(on)} of {n} nodes touched",
+                transform=ax.transAxes, ha="center", fontsize=9,
+                color=ACCENT)
+        ax.axis("off")
+
+    ax1.annotate("impulse here", pos[0], textcoords="offset points",
+                 xytext=(16, 16), fontsize=8.4, color=INK,
+                 arrowprops=dict(arrowstyle="-", color=INK, lw=0.7))
+    ax2.text(0.5, -0.125,
+             "   ".join(f"K={K}: {r} hops" for K, (_, r) in poly.items()),
+             transform=ax2.transAxes, ha="center", fontsize=8.8, color=INK,
+             family="monospace")
+
+    fig.tight_layout()
+    fig.savefig(HERE / "locality.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote locality.svg   spectral {int(nz_spec.sum())}/{n}, "
+          f"poly {poly}")
+
+
 if __name__ == "__main__":
     wl_stops()
     renormalization()
+    locality()
