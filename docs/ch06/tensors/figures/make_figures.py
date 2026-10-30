@@ -1445,9 +1445,10 @@ def aliasing_three_ways():
 
 # === 그림으로 보는 AI: empty 는 비어 있지 않다 ================================
 #
-# 왼쪽은 **직접 보인다** — 알아보기 쉬운 값으로 채운 텐서를 놓아준 뒤 같은 크기로
-# empty 를 부르면 그 값이 그대로 돌아온다. 오른쪽은 왜 그렇게 두는가, 곧 채우는
-# 값이 크기에 비례한다는 것. 수는 전부 여기서 직접 잰다.
+# 왼쪽은 놓아준 값이 그대로 돌아오는지를 크기마다 여러 번 세어 본 것이다.
+# **언제나 돌아오지는 않는다** — 할당기 상태에 달려 있어 같은 기계에서도 갈린다.
+# 그래서 단언하지 않고 센 값을 그대로 적는다. 오른쪽은 왜 안 채워 두는가, 곧
+# 채우는 값이 크기에 비례한다는 것이고 이쪽은 언제나 참이라 단언한다.
 
 def empty_is_not_empty():
     import gc
@@ -1456,19 +1457,26 @@ def empty_is_not_empty():
     import torch
 
     MARK = 12345.0
-    n = 4096
-    old = torch.full((n,), MARK)
-    ptr = old.data_ptr()
-    del old
-    gc.collect()
+    sizes = [4096, 65536, 1_000_000]
+    trials = 6
 
-    trials, hits = 8, []
-    for _ in range(trials):
-        e = torch.empty(n)
-        hits.append((e.data_ptr() == ptr, int((e == MARK).sum())))
-        del e
-    seen = sum(1 for same, k in hits if k > 0)
-    assert seen > 0, "옛 값이 한 번도 안 보이면 이 그림의 이야기가 없다"
+    # 표시한 값을 넣고 놓아준 뒤 같은 크기로 empty 를 받는다. **되돌아오는지는
+    # 할당기 상태에 달려 있고 부르는 쪽이 고를 수 없다** — 같은 기계에서도
+    # 크기에 따라, 앞서 무엇을 했느냐에 따라 갈린다. 그래서 되돌아왔다고
+    # 단언하지 않고 몇 번 되돌아왔는지를 세어 그대로 적는다.
+    reuse = []
+    for n in sizes:
+        hit = 0
+        for _ in range(trials):
+            old = torch.full((n,), MARK)
+            ptr = old.data_ptr()
+            del old
+            gc.collect()
+            e = torch.empty(n)
+            if e.data_ptr() == ptr and int((e == MARK).sum()) == n:
+                hit += 1
+            del e
+        reuse.append(hit)
 
     def bench(fn, reps=200):
         for _ in range(20):
@@ -1490,30 +1498,31 @@ def empty_is_not_empty():
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.0),
                                    gridspec_kw={"width_ratios": [1, 1.15]})
 
-    # --- 왼쪽: 놓아준 값이 그대로 돌아온다 ---------------------------------
-    ax1.text(0.5, 0.92, f"a tensor full of {MARK:.0f}, then freed",
-             ha="center", fontsize=9.5, color=INK, style="italic")
-    for i in range(3):
-        y = 0.70 - i * 0.185
-        same, k = hits[i]
-        ax1.add_patch(plt.Rectangle((0.06, y - 0.055), 0.88, 0.125,
-                                    facecolor=ACCENT, alpha=0.13,
-                                    edgecolor=ACCENT, linewidth=0.9))
-        ax1.text(0.11, y + 0.008, f"torch.empty({n})", fontsize=9,
+    # --- 왼쪽: 되돌아오기도 하고 아니기도 하다 -----------------------------
+    ax1.text(0.5, 0.92, f"fill with {MARK:.0f}, free, then torch.empty",
+             ha="center", fontsize=9.3, color=INK, style="italic")
+    for i, (n, hit) in enumerate(zip(sizes, reuse)):
+        y = 0.68 - i * 0.185
+        col = ACCENT if hit else INK
+        ax1.add_patch(plt.Rectangle((0.05, y - 0.058), 0.90, 0.130,
+                                    facecolor=col,
+                                    alpha=0.15 if hit else 0.07,
+                                    edgecolor=col, linewidth=0.9))
+        ax1.text(0.10, y + 0.007, f"n = {n:,}", fontsize=9,
                  family="monospace", color=INK, va="center")
-        ax1.text(0.90, y + 0.008, f"{k:,} of {n:,} still {MARK:.0f}",
-                 fontsize=8.6, color=ACCENT, ha="right", va="center",
-                 weight="bold")
-    ax1.text(0.5, 0.235, f"same address every time: "
-                         f"{sum(1 for s, _ in hits if s)}/{trials}",
-             ha="center", fontsize=8.6, color=INK)
-    ax1.text(0.5, 0.10, "freeing does not hand the memory back.\n"
-                        "it hands it to a pool, and empty skips the write.",
-             ha="center", va="center", fontsize=8.6, color=INK, alpha=0.9)
+        ax1.text(0.91, y + 0.007,
+                 f"{hit} of {trials} came back full of {MARK:.0f}",
+                 fontsize=8.5, color=col, ha="right", va="center",
+                 weight="bold" if hit else "normal")
+    ax1.text(0.5, 0.10,
+             "whether the old block comes back is not\n"
+             "something the caller gets to choose.",
+             ha="center", va="center", fontsize=8.7, color=INK)
     ax1.set_xlim(0, 1)
     ax1.set_ylim(0.02, 1.0)
     ax1.axis("off")
-    ax1.set_title("what came back", fontsize=10, color=INK, weight="bold")
+    ax1.set_title("what came back, this run", fontsize=10, color=INK,
+                  weight="bold")
 
     # --- 오른쪽: 채우는 값은 크기를 탄다 -----------------------------------
     ax2.loglog(Ns, t_z, "s--", color=INK, linewidth=1.9, ms=6,
@@ -1536,15 +1545,15 @@ def empty_is_not_empty():
         s.set_linewidth(0.7)
 
     fig.text(0.5, -0.03,
-             "the flat line is the whole point - and the reason the numbers "
-             "it returns are somebody's, not nobody's.",
+             "skipping the write is the point. what is left in its place "
+             "is not decided by you.",
              ha="center", fontsize=8.8, style="italic", color=INK)
     fig.tight_layout()
     fig.savefig(HERE / "empty_is_not_empty.svg", transparent=True,
                 bbox_inches="tight")
     plt.close(fig)
-    print(f"wrote empty_is_not_empty.svg   옛 값 {seen}/{trials}   "
-          f"ratio {t_z[-1] / t_e[-1]:.0f}x")
+    print(f"wrote empty_is_not_empty.svg   reuse {reuse} of {trials} "
+          f"at {sizes}   ratio {t_z[-1] / t_e[-1]:.0f}x")
 
 
 if __name__ == "__main__":
