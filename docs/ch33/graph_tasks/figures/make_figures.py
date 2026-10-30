@@ -442,7 +442,178 @@ def extensive_target():
         f"{r}: {mu[r]:.4f}+-{sd[r]:.4f} ({npar[r]} par)" for r in ROWS))
 
 
+# === 그림으로 보는 AI: 버리기와 합치기 ======================================
+#
+# 다단계 그래프 분할(1993-1998)은 그래프를 줄일 때 노드를 **합쳤다**. 붙어 있던
+# 두 노드를 하나로 묶고 그 엣지를 모두 물려받게 해서 연결성을 지킨다. TopK 는
+# 노드를 **버린다**. 같은 비율로 줄여 무엇이 남는지 센다.
+
+def drop_or_merge():
+    import itertools
+
+    import networkx as nx
+    import torch
+    import torch.nn as nn
+
+    torch.manual_seed(0)
+    dumbbell = nx.disjoint_union(nx.complete_graph(8), nx.complete_graph(8))
+    dumbbell.add_edge(0, 8)
+    GRAPHS = [
+        ("balanced tree", nx.balanced_tree(2, 4)),
+        ("path P20", nx.path_graph(20)),
+        ("random G(30, 0.12)", nx.gnp_random_graph(30, 0.12, seed=3)),
+        ("4 x 5 grid", nx.grid_2d_graph(4, 5)),
+        ("karate club", nx.karate_club_graph()),
+        ("two K8 + a bridge", dumbbell),
+    ]
+
+    def top_k(G, seed, ratio=0.5):
+        """이 쪽의 규칙 그대로 - 노드별 Linear 점수, 상위 k 의 유도 부분그래프."""
+        torch.manual_seed(seed)
+        n = G.number_of_nodes()
+        x = torch.randn(n, 8)
+        with torch.no_grad():
+            s = nn.Linear(8, 1)(x).squeeze(-1)
+        k = max(1, int(np.floor(ratio * n)))
+        keep = sorted(torch.topk(s, k).indices.tolist())
+        return G.subgraph(keep).copy(), keep, k
+
+    def coarsen(G, target):
+        """1998 년 식 - 매칭을 찾아 두 노드를 합치고 엣지를 물려받는다."""
+        H = G.copy()
+        members = {v: {v} for v in G}
+        while H.number_of_nodes() > target:
+            match = nx.max_weight_matching(H, maxcardinality=True)
+            if not match:
+                break
+            for u, v in match:
+                if H.number_of_nodes() <= target:
+                    break
+                if u in H and v in H:
+                    members[u] |= members.pop(v)
+                    H = nx.contracted_nodes(H, u, v, self_loops=False)
+        return H, members
+
+    rows = []
+    for gi, (name, G) in enumerate(GRAPHS):
+        G = nx.convert_node_labels_to_integers(G)
+        S, keep, k = top_k(G, gi)
+        pairs = list(itertools.combinations(keep, 2))
+        before = [(u, v) for u, v in pairs if nx.has_path(G, u, v)]
+        still = sum(1 for u, v in before if nx.has_path(S, u, v))
+        C, members = coarsen(G, k)
+        owner = {o: s for s, ms in members.items() for o in ms}
+        intact = all(nx.has_path(C, owner[u], owner[v]) for u, v in before)
+        rows.append(dict(
+            name=name, n=G.number_of_nodes(), k=k, graph=G, kept=S,
+            comps=nx.number_connected_components(S),
+            isolated=sum(1 for v in S if S.degree(v) == 0),
+            edges=S.number_of_edges() / G.number_of_edges(),
+            reach=still / len(before), n_pairs=len(before), n_still=still,
+            coarse_comps=nx.number_connected_components(C), intact=intact))
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert all(r["intact"] and r["coarse_comps"] == 1 for r in rows), \
+        "합치기는 연결성을 지켜야 한다"
+    assert all(r["edges"] < 0.4 for r in rows), \
+        "노드 절반을 버리면 엣지는 그보다 훨씬 많이 사라져야 한다"
+    worst = min(rows, key=lambda r: r["reach"])
+    assert worst["reach"] < 0.15, "가장 나쁜 경우가 또렷해야 한다"
+    assert max(r["reach"] for r in rows) > 0.9, \
+        "거의 잃지 않는 그래프도 있어야 정직한 그림이다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.2, 4.4),
+                                   gridspec_kw={"width_ratios": [1.1, 1]})
+
+    # --- 왼쪽: 남은 노드끼리 아직 닿는가 ----------------------------------
+    order = sorted(rows, key=lambda r: r["reach"])
+    ys = np.arange(len(order))[::-1]
+    ax1.barh(ys, [r["reach"] for r in order], 0.5, color=ACCENT, alpha=0.82,
+             label="drop the low-scoring half (TopK)")
+    ax1.barh(ys, [1.0] * len(order), 0.5, facecolor="none", edgecolor=MUTED,
+             linewidth=1.6, linestyle="--",
+             label="merge pairs instead (1998)")
+    for y, r in zip(ys, order):
+        ax1.text(1.08, y,
+                 f"{r['n_still']}/{r['n_pairs']} pairs   "
+                 f"({r['comps']} piece{'' if r['comps'] == 1 else 's'}, "
+                 f"{r['isolated']} stranded)",
+                 va="center", fontsize=8.2, color=INK, family="monospace")
+    ax1.set_yticks(ys)
+    ax1.set_yticklabels([f"{r['name']}\n{r['n']} -> {r['k']} nodes"
+                         for r in order], fontsize=8.2)
+    ax1.set_xlim(0, 2.62)
+    ax1.set_xticks(np.arange(0, 1.01, 0.25))
+    ax1.set_xticklabels([f"{t:.0%}" for t in np.arange(0, 1.01, 0.25)])
+    ax1.set_xlabel("kept pairs that can still reach each other", fontsize=8.8)
+    ax1.set_title("halve the nodes, and see what still connects",
+                  fontsize=10, color=INK, weight="bold")
+    ax1.set_ylim(-1.45, len(order) - 0.42)
+    ax1.legend(fontsize=8.4, loc="lower left", framealpha=0.0, ncol=2,
+               handlelength=1.8)
+
+    # --- 오른쪽: 가장 심한 경우를 그려 본다 --------------------------------
+    T = worst["graph"]
+    S = worst["kept"]
+    pos = {}
+    depth = nx.single_source_shortest_path_length(T, 0)
+    per = {}
+    for v, dd in sorted(depth.items(), key=lambda kv: (kv[1], kv[0])):
+        per.setdefault(dd, []).append(v)
+    for dd, vs in per.items():
+        for i, v in enumerate(vs):
+            pos[v] = ((i + 0.5) / len(vs), -dd * 0.26)
+    for u, v in T.edges():
+        inside = S.has_edge(u, v)
+        ax2.plot([pos[u][0], pos[v][0]], [pos[u][1], pos[v][1]],
+                 color=ACCENT if inside else INK,
+                 alpha=0.9 if inside else 0.13,
+                 lw=1.8 if inside else 1.0, zorder=1)
+    for v in T.nodes():
+        kept = v in S
+        ax2.add_patch(plt.Circle(pos[v], 0.021,
+                                 facecolor=ACCENT if kept else "white",
+                                 edgecolor=INK if kept else "#b9bcc0",
+                                 alpha=1.0 if kept else 0.55,
+                                 linewidth=1.0, zorder=3))
+    ax2.set_xlim(-0.05, 1.05)
+    ax2.set_ylim(-1.42, 0.17)
+    ax2.axis("off")
+    ax2.set_title(f"{worst['name']}: the half that survived",
+                  fontsize=10, color=INK, weight="bold")
+    ax2.text(0.5, -1.20,
+             f"{worst['k']} nodes kept, {worst['isolated']} of them with no "
+             f"edge left;\n{worst['n_still']} of {worst['n_pairs']} kept "
+             f"pairs can still reach each other",
+             ha="center", fontsize=8.8, color=INK)
+
+    ax1.tick_params(labelsize=8, colors=INK)
+    ax1.grid(alpha=0.13, axis="x")
+    ax1.set_axisbelow(True)
+    for s in ax1.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.text(0.5, -0.05,
+             "scores from an untrained node-wise Linear, as on this page.  "
+             "Merging keeps one component in all six; the edge set shrinks to "
+             + "-".join(f"{int(round(100 * f))}"
+                        for f in (min(r["edges"] for r in rows),
+                                  max(r["edges"] for r in rows)))
+             + "% under TopK.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.savefig(HERE / "drop_or_merge.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote drop_or_merge.svg   " + "; ".join(
+        f"{r['name']}: {r['comps']} comps, {r['isolated']} isolated, "
+        f"{r['edges']:.0%} edges, reach {r['n_still']}/{r['n_pairs']}"
+        for r in rows))
+
+
 if __name__ == "__main__":
     size_blindness()
     every_ordering()
     extensive_target()
+    drop_or_merge()

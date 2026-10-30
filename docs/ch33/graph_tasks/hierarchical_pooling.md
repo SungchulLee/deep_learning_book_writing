@@ -92,6 +92,45 @@ score는 각 노드 피처에 Linear(in_ch,1)를 적용한다. 인접 구조는 
 
 따라서 bridge가 제거되면 연결성이 깨질 수 있고, 기존 여러 성분도 그대로 일부만 남을 수 있다. 동점 점수에서 인덱스에 의존하는 선택은 순열 처리의 경계 사례다. hard 선택은 선택 경계에서 매끄럽지 않지만 선택 피처와 게이트 값에는 gradient가 흐를 수 있다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 버리기와 합치기
+
+"제거된 노드를 통과하던 경로를 새 엣지로 이어 주는 contraction 은 아니다" — 바로 위에
+적은 이 한 줄이 1990년대의 그래프 축소와 이 쪽의 TopKPool 을 가르는 자리다. 그래프를
+반씩 줄여 나가며 분할하는 **다단계 기법**(Bui–Jones 1993, Hendrickson–Leland 1995,
+Karypis–Kumar 1998)은 노드를 버리지 않고 **합쳤다.** 붙어 있는 두 노드를 매칭으로 묶어
+하나로 만들고, 그 둘이 가지고 있던 엣지를 전부 새 노드에 물려준다. Karypis 와 Kumar 의
+말 그대로, *"in order to **preserve the connectivity information** in the coarser
+graph, the edges of v are the union of the edges of the vertices in $V^v_i$"* 이고,
+같은 상대로 가는 엣지가 둘 이상이면 웨이트를 더한다. 연결성을 지키는 것이 축소의 조건
+이었다.
+
+노드를 절반으로 줄여 두 방식을 나란히 재면 차이가 또렷하다. 그래프 여섯 개에 이 쪽의
+규칙대로 — 노드별 Linear 점수의 상위 절반 — TopK 를 적용하면, 남은 노드가 **이어져
+있던 쌍 가운데 아직 서로 닿는 비율**이 균형 트리에서 105쌍 중 **7쌍**이다. 트리는
+10조각으로 부서지고 남긴 15개 가운데 7개는 엣지가 하나도 없다. 노드를 절반 버렸는데
+엣지는 **17%** 만 남는다.
+
+![왼쪽은 그래프 여섯 개에 대해 TopK 로 노드를 절반 줄인 뒤 남은 쌍 가운데 아직 서로 닿는 비율을 가로 막대로 그리고 합치기 방식은 언제나 100퍼센트라는 점선 테두리로 겹쳐 보인 그림, 오른쪽은 균형 트리에서 살아남은 절반을 색으로 칠해 대부분이 서로 떨어져 있음을 보인 그림](figures/drop_or_merge.svg)
+
+여섯 개 모두에서 합치기는 성분 수를 그대로 1로 지킨다. 원래 이어져 있던 모든 쌍이
+축소 뒤에도 각자의 덩어리를 통해 닿는다는 것도 따로 확인했다.
+
+그림은 여기까지다. **버리기가 늘 나쁘다는 뜻이 아니다.** 가라테 클럽에서는 TopK 로
+절반을 버려도 136쌍이 전부 그대로 닿는다 — 촘촘한 그래프에서는 길이 여럿이라 하나쯤
+끊어져도 남는다. 무너지는 것은 트리와 경로처럼 **길이 하나뿐인 그래프**다. 그러니 이
+그림이 재는 것은 두 pooling 의 우열이 아니라, 줄이려는 그래프에 **다른 길이 있는지**다.
+그리고 위에서 적었듯 여기 쓴 점수는 학습되지 않은 Linear 라서, 학습된 점수가 bridge
+노드를 살려 둘지 어떨지는 이 그림이 말해 주지 않는다.
+
+_확인한 곳 — G. Karypis, V. Kumar, "A Fast and High Quality Multilevel Scheme for
+Partitioning Irregular Graphs", SIAM J. Sci. Comput. 20(1), 1998, 359–392 (3절
+coarsening phase); 그 글이 출발점으로 든 T. Bui, C. Jones, 1993 과 B. Hendrickson,
+R. Leland, 1995. 수는 모두 이 쪽의 `figures/make_figures.py` 에서 직접 센다._
+
+</div>
+
 mask와 node_map은 장치를 지정하지 않아 CPU에 만들어진다. x·edge_index만 CUDA로 옮기면 모든 인덱싱이 자동으로 맞지 않는다. 반환값에 원래 선택 idx나 그래프 소속을 포함하지 않으므로 추가 복원·배치 처리는 별도로 설계해야 한다.
 
 ## 4. SimpleDiffPool의 수식
