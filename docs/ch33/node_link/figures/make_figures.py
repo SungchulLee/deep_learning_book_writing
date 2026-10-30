@@ -206,6 +206,137 @@ def walks_like_language():
         f"{nm}: r={d[2]:.3f} slope={d[5]:.2f}" for nm, d in data.items()))
 
 
+# === 그림으로 보는 AI: 드문 이웃이 더 말해 준다 ==============================
+#
+# Adamic-Adar 의 1/log 웨이트는 그래프 이론이 아니라 홈페이지끼리 얼마나 닮았는지
+# 재려던 데서 나왔다. 웨이트가 실제로 허브를 끌어내리는지, 그리고 그 보정이 이
+# 그래프의 예측을 낫게 하는지를 따로 잰다. 뒤쪽 답은 "아니오" 다.
+
+def rare_neighbours_say_more():
+    import itertools
+    import math
+
+    import networkx as nx
+
+    G = nx.karate_club_graph()
+    nodes = list(G.nodes())
+    deg = dict(G.degree())
+    pairs = list(itertools.combinations(nodes, 2))
+    hubs = sorted(deg, key=deg.get, reverse=True)[:2]
+
+    # --- 허브가 공통 이웃 질량에서 차지하는 몫 -----------------------------
+    nb = {v: set(G.neighbors(v)) for v in nodes}
+    cn_all = cn_hub = 0.0
+    aa_all = aa_hub = 0.0
+    for u, v in pairs:
+        for w in nb[u] & nb[v]:
+            wt = 1.0 / math.log(deg[w]) if deg[w] > 1 else 0.0
+            cn_all += 1
+            aa_all += wt
+            if w in hubs:
+                cn_hub += 1
+                aa_hub += wt
+    cn_share, aa_share = cn_hub / cn_all, aa_hub / aa_all
+    assert aa_share < cn_share, "1/log 웨이트는 허브의 몫을 줄여야 한다"
+
+    # --- 그 보정이 예측을 낫게 하는가: 엣지 20% 를 가리고 열 번 ------------
+    edges = list(G.edges())
+    k_hold = len(edges) // 5
+    scores = {"CN": [], "AA": []}
+    for seed in range(10):
+        rng = np.random.default_rng(seed)
+        held = [edges[i] for i in rng.permutation(len(edges))[:k_hold]]
+        H = G.copy()
+        H.remove_edges_from(held)
+        nh = {v: set(H.neighbors(v)) for v in nodes}
+        truth = {frozenset(e) for e in held}
+        present = {frozenset(e) for e in H.edges()}
+        cand = [p for p in pairs if frozenset(p) not in present]
+        fns = {"CN": lambda u, v: len(nh[u] & nh[v]),
+               "AA": lambda u, v: sum(1 / math.log(len(nh[w]))
+                                      for w in nh[u] & nh[v]
+                                      if len(nh[w]) > 1)}
+        for nm, f in fns.items():
+            top = sorted(cand, key=lambda p: -f(*p))[:k_hold]
+            scores[nm].append(sum(1 for p in top if frozenset(p) in truth))
+    n_cand = len(cand)
+    base = k_hold / n_cand
+    mu = {nm: float(np.mean(s)) for nm, s in scores.items()}
+    sd = {nm: float(np.std(s)) for nm, s in scores.items()}
+    assert abs(mu["CN"] - mu["AA"]) < max(sd.values()), \
+        "두 점수의 차가 흩어짐보다 크면 이 그림의 이야기가 아니다"
+    assert min(mu.values()) / k_hold > 5 * base, "둘 다 무작위보다 훨씬 나아야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.0),
+                                   gridspec_kw={"width_ratios": [1, 1.05]})
+
+    # --- 왼쪽: 웨이트는 제 일을 한다 ---------------------------------------
+    labs = ["plain count\nof common\nneighbours", "weighted by\n1 / log(degree)"]
+    shares = [cn_share, aa_share]
+    x = np.arange(2)
+    ax1.bar(x, shares, 0.52, color=ACCENT, alpha=0.85,
+            label=f"from the two hubs (degree {deg[hubs[0]]}, {deg[hubs[1]]})")
+    ax1.bar(x, [1 - s for s in shares], 0.52, bottom=shares, color=INK,
+            alpha=0.2, label="from the other 32 nodes")
+    for i, s in enumerate(shares):
+        ax1.text(i, s / 2, f"{s:.1%}", ha="center", va="center", fontsize=11,
+                 color="white", weight="bold")
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(labs, fontsize=8.6)
+    ax1.set_ylim(0, 1.3)
+    ax1.set_yticks(np.arange(0, 1.01, 0.25))
+    ax1.set_yticklabels([f"{t:.0%}" for t in np.arange(0, 1.01, 0.25)])
+    ax1.set_ylabel("share of the evidence", fontsize=9)
+    ax1.set_title("the weight does what it promises", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.legend(fontsize=8, loc="upper center", framealpha=0.0,
+               handlelength=1.3)
+
+    # --- 오른쪽: 그래도 예측은 같다 ----------------------------------------
+    y = np.arange(3)[::-1]
+    vals = [mu["CN"] / k_hold, mu["AA"] / k_hold, base]
+    errs = [sd["CN"] / k_hold, sd["AA"] / k_hold, 0.0]
+    cols = [INK, ACCENT, MUTED]
+    names = ["common neighbours", "Adamic-Adar", "pick at random"]
+    ax2.barh(y, vals, 0.5, xerr=errs, color=cols, alpha=0.8,
+             error_kw=dict(ecolor=INK, capsize=4, lw=1.1))
+    for yy, v, e, nm in zip(y, vals, errs, names):
+        txt = f"{v:.1%}" + (f"  +- {e:.1%}" if e else "")
+        ax2.text(v + e + 0.012, yy, txt, va="center", fontsize=9, color=INK,
+                 family="monospace")
+    ax2.set_yticks(y)
+    ax2.set_yticklabels(names, fontsize=9)
+    ax2.set_xlim(0, 0.42)
+    ax2.set_xticks(np.arange(0, 0.41, 0.1))
+    ax2.set_xticklabels([f"{t:.0%}" for t in np.arange(0, 0.41, 0.1)])
+    ax2.set_xlabel(f"share of the {k_hold} hidden edges recovered "
+                   f"in the top {k_hold}", fontsize=8.8)
+    ax2.set_title("but here it buys nothing", fontsize=10, color=INK,
+                  weight="bold")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        ax.grid(alpha=0.13, axis="x" if ax is ax2 else "y")
+        ax.set_axisbelow(True)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"karate club, 10 random hold-outs of {k_hold} edges; the gap "
+             "between the top two is smaller than their spread.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "rare_neighbours_say_more.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote rare_neighbours_say_more.svg   hub share {cn_share:.3f} -> "
+          f"{aa_share:.3f};  CN {mu['CN']:.2f}+-{sd['CN']:.2f}  "
+          f"AA {mu['AA']:.2f}+-{sd['AA']:.2f}  of {k_hold}, "
+          f"random {base*k_hold:.2f}")
+
+
 if __name__ == "__main__":
     who_said_two()
     walks_like_language()
+    rare_neighbours_say_more()
