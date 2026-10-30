@@ -650,6 +650,141 @@ def cycle_is_fourier():
           f"complex {d_complex:.1e}, real {d_real:.3f}, doubled {n_double}")
 
 
+# === 그림으로 보는 AI: 굽은 면에서 온 부등식 ================================
+#
+# Cheeger 의 부등식은 그래프가 아니라 콤팩트 리만 다양체에서 나왔다. 그래프로
+# 옮겨진 뒤 이 쪽에 실린 꼴이 phi^2/2 <= mu1 <= 2phi 인데, 두 끝의 비가 언제나
+# 정확히 4/phi 라서 병목이 좁을수록 부등식이 말해 주는 것이 줄어든다. 그것을 잰다.
+
+def bound_from_a_curved_surface():
+    import itertools
+
+    import networkx as nx
+
+    dumbbell = nx.disjoint_union(nx.complete_graph(6), nx.complete_graph(6))
+    dumbbell.add_edge(0, 6)
+    GRAPHS = [
+        ("two K6 joined\nby one edge", dumbbell),
+        ("path P10", nx.path_graph(10)),
+        ("cycle C12", nx.cycle_graph(12)),
+        ("random G(16, 0.3)", nx.gnp_random_graph(16, 0.3, seed=0)),
+        ("hypercube Q4", nx.hypercube_graph(4)),
+        ("complete K10", nx.complete_graph(10)),
+        ("star S10", nx.star_graph(9)),
+    ]
+
+    def exact_conductance(G):
+        """모든 쪽집합을 세어 phi 를 정확히 구한다 (근사도 sweep 도 아니다)."""
+        n = G.number_of_nodes()
+        A = nx.to_numpy_array(G, nodelist=range(n), weight=None)
+        d = A.sum(1)
+        vol = d.sum()
+        best = None
+        for mask in range(1, 1 << (n - 1)):
+            S = np.array([(mask >> i) & 1 for i in range(n - 1)] + [0], bool)
+            v = d[S].sum()
+            if v == 0 or v == vol:
+                continue
+            phi = A[S][:, ~S].sum() / min(v, vol - v)
+            if best is None or phi < best:
+                best = phi
+        return float(best)
+
+    def mu_one(G):
+        n = G.number_of_nodes()
+        A = nx.to_numpy_array(G, nodelist=range(n), weight=None)
+        dm = np.diag(A.sum(1) ** -0.5)
+        return float(np.sort(np.linalg.eigvalsh(np.eye(n) - dm @ A @ dm))[1])
+
+    rows = []
+    for name, G in GRAPHS:
+        G = nx.convert_node_labels_to_integers(G)
+        phi, mu = exact_conductance(G), mu_one(G)
+        lo, hi = phi ** 2 / 2, 2 * phi
+        assert lo - 1e-9 <= mu <= hi + 1e-9, f"{name}: 부등식이 깨졌다"
+        rows.append((name, phi, lo, mu, hi))
+
+    widths = [hi / lo for _, _, lo, _, hi in rows]
+    for _, phi, lo, _, hi in rows:
+        assert abs(hi / lo - 4 / phi) < 1e-9, "두 끝의 비는 언제나 4/phi 여야 한다"
+    assert max(widths) > 100, "병목 그래프에서 폭이 100 배를 넘어야 이 이야기가 된다"
+    tight = [n for n, _, _, mu, hi in rows if abs(mu - hi) < 1e-9]
+    assert tight, "위쪽 끝이 실제로 닿는 그래프가 있어야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.2, 4.4),
+                                   gridspec_kw={"width_ratios": [1.3, 1]})
+
+    # --- 왼쪽: 일곱 그래프의 괄호 -----------------------------------------
+    ys = np.arange(len(rows))[::-1]
+    for y, (name, phi, lo, mu, hi) in zip(ys, rows):
+        ax1.plot([lo, hi], [y, y], lw=7, color=INK, alpha=0.16,
+                 solid_capstyle="butt")
+        for v in (lo, hi):
+            ax1.plot([v, v], [y - 0.22, y + 0.22], lw=1.4, color=INK)
+        ax1.plot([mu], [y], "o", ms=8, color=ACCENT, zorder=4)
+        ax1.text(4.0, y, f"{hi / lo:>4.0f}x wide", va="center",
+                 fontsize=8.6, color=MUTED, family="monospace")
+    ax1.set_yticks(ys)
+    ax1.set_yticklabels([r[0] for r in rows], fontsize=8.4)
+    ax1.set_xscale("log")
+    ax1.set_xlim(2e-4, 40)
+    ax1.set_xlabel("value (log scale)", fontsize=8.8)
+    ax1.set_title(r"the bracket $\varphi^2/2 \leq \mu_1 \leq 2\varphi$, "
+                  r"with $\varphi$ found by exhaustive search",
+                  fontsize=9.6, color=INK, weight="bold")
+    ax1.plot([], [], "o", color=ACCENT, ms=8, label=r"$\mu_1$, where it lands")
+    ax1.plot([], [], lw=7, color=INK, alpha=0.16,
+             label="everything the inequality allows")
+    ax1.legend(fontsize=8.2, loc="lower left", framealpha=0.92)
+
+    # --- 오른쪽: 폭은 phi 만의 함수다 --------------------------------------
+    grid = np.logspace(np.log10(0.02), 0, 200)
+    ax2.plot(grid, 4 / grid, "-", color=INK, lw=1.4, alpha=0.6,
+             label=r"$2\varphi \,/\, (\varphi^2/2) = 4/\varphi$")
+    for name, phi, lo, mu, hi in rows:
+        ax2.plot([phi], [hi / lo], "o", ms=7, color=ACCENT, zorder=4)
+    worst = max(rows, key=lambda r: r[4] / r[2])
+    ax2.annotate(worst[0].replace("\n", " "), (worst[1], worst[4] / worst[2]),
+                 textcoords="offset points", xytext=(42, 6), fontsize=8.4,
+                 color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.9))
+    best = min(rows, key=lambda r: r[4] / r[2])
+    ax2.annotate(f"{best[0]} - the best case\nthe inequality ever has",
+                 (best[1], best[4] / best[2]), textcoords="offset points",
+                 xytext=(-30, 46), fontsize=8.4, color=ACCENT, ha="right",
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.9,
+                                 connectionstyle="arc3,rad=0.25"))
+    ax2.set_xscale("log")
+    ax2.set_yscale("log")
+    ax2.set_xlabel(r"$\varphi$ - the tighter the bottleneck, the smaller",
+                   fontsize=8.8)
+    ax2.set_ylabel("how far apart the two ends are", fontsize=8.8)
+    ax2.set_title("the gap is a function of nothing else", fontsize=9.6,
+                  color=INK, weight="bold")
+    ax2.legend(fontsize=8.6, loc="upper right", framealpha=0.92)
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        ax.grid(alpha=0.13)
+        ax.set_axisbelow(True)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.045,
+             "normalized Laplacian; conductance by volume, as on this page.  "
+             r"$\mu_1$ touches the upper end for " + " and ".join(tight) + ".",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "bound_from_a_curved_surface.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote bound_from_a_curved_surface.svg   " + "; ".join(
+        f"{n.replace(chr(10), ' ')} phi={p:.4f} mu1={m:.4f} "
+        f"[{lo:.4f},{hi:.4f}] {hi/lo:.0f}x"
+        for n, p, lo, m, hi in rows))
+
+
 if __name__ == "__main__":
     wl_stops()
     renormalization()
@@ -657,3 +792,4 @@ if __name__ == "__main__":
     attention_at_init()
     table_vs_function()
     cycle_is_fourier()
+    bound_from_a_curved_surface()
