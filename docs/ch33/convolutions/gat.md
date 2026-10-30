@@ -260,6 +260,30 @@ demo_attention_visualization은 노드6개, 임의 피처와 **새 무작위 GAT
 
 학습된 계수라도 다른 입력·정규화와 모델 표현의 영향을 받는다. 큰 α 하나를 해당 엣지의 인과 효과나 반드시 중요한 과학적·경제적 관계로 해석하려면 별도 분석이 필요하다. 무작위 계수 출력은 더더욱 그런 근거가 아니다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 설계서에 적힌 기대 하나가 이 절의 경고가 되었다
+
+GAT 논문의 초록은 이 레이어가 무엇을 하려는 것인지를 한 문장에 담았다 — 이웃마다 **다른 웨이트를 암묵적으로 매기되**, "without requiring any kind of costly matrix operation (such as inversion) or depending on knowing the graph structure upfront". 앞 쪽들의 내력을 그대로 뒤집은 설계다. 고유분해도 없고, 그래프 전체를 미리 알 필요도 없다.
+
+그 목록에 기대가 하나 더 들어 있었다. 논문 2.2절이 GCN 대비 장점을 꼽으며 이렇게 적는다.
+
+> "analyzing the learned attentional weights may lead to benefits in **interpretability**, as was the case in the machine translation domain (e.g. the qualitative analysis of Bahdanau et al. (2015))."
+
+기계 번역에서 어텐션 그림이 그랬듯 그래프에서도 **읽을 수 있을 것**이라는 기대다. 바로 위 문단이 길게 경고하고 있는 것이 그 기대의 뒷이야기다.
+
+![두 판으로 나뉜 그림. 왼쪽은 같은 엣지의 양방향 계수를 가로세로에 찍은 산점도로, GCN 점들은 대각선 위에 정확히 놓여 최대 차이가 0이고 GAT 점들은 대각선에서 멀리 흩어져 최대 차이가 0.946이다. 오른쪽은 학습을 전혀 하지 않은 상태의 어텐션 엔트로피를 균등 대비 비율로 그린 히스토그램으로, 균등을 나타내는 1 보다 한참 왼쪽에 몰려 있고 평균이 0.640이다.](figures/attention_at_init.svg)
+
+두 가지를 재어 보았다. 하나는 **비대칭**이다. GCN의 계수는 차수만으로 정해지므로 같은 엣지의 양방향이 **정확히 같다** — 잰 차이가 0이다. GAT의 α는 수신 노드별 softmax라 방향마다 다르고, 최대 **0.946**까지 벌어진다. 같은 연결을 두고 "u가 v에게 얼마나 중요한가"와 그 반대가 전혀 다른 수가 된다. 해석할 때 **어느 방향의 수인지**부터 정해야 하는 까닭이다.
+
+다른 하나가 이 절의 경고에 수를 붙인다. **학습을 한 번도 하지 않은** 무작위 GAT의 어텐션을 재면 엔트로피가 균등의 **0.640배**다. 균등하지 않다는 뜻이고, 눈으로 보면 "이 이웃이 중요하다"고 말하는 것처럼 보인다는 뜻이다. 임의의 웨이트와 임의의 피처만으로 그렇다.
+
+**그러니 큰 α는 그 자체로 아무 주장도 아니다.** softmax는 무엇을 넣든 뾰족한 분포를 만들어 내고, 뾰족함은 학습의 증거가 아니라 softmax의 성질이다. 위 문단이 "무작위 계수 출력은 더더욱 그런 근거가 아니다"라고 적어 둔 자리가 여기이고, 2018년의 설계서가 기대로 적어 둔 해석 가능성이 오늘 **따로 증명해야 할 주장**으로 남은 까닭도 여기에 있다.
+
+_확인한 곳 — P. Veličković, G. Cucurull, A. Casanova, A. Romero, P. Liò, Y. Bengio, "Graph Attention Networks", ICLR 2018 (arXiv:1710.10903). 인용한 두 문장은 초록과 2.2절이며, 같은 2.2절이 "No eigendecompositions or similar costly matrix operations are required" 라고 적는다. 그림의 수는 그림을 그리는 코드가 가라테 클럽 그래프에 직접 재며, GCN 계수가 완전히 대칭이라는 것과 학습 전 어텐션이 균등하지 않다는 것을 먼저 확인한 뒤에만 그린다._
+
+</div>
+
 ## 7. 실행 계약과 계산 비용
 
 edge_index는2×m 정수 인덱스이고 x·모델과 같은 장치를 사용해야 한다. 새 중간 텐서는 x 장치에 만들지만 dtype을 명시적으로 따르지 않는 부분이 있어 혼합 정밀도·배정밀도 사용을 자동 지원한다고 가정하지 않는다. scatter_reduce 등 연산의 장치·자동 미분 지원도 사용하는 PyTorch 환경에서 확인한다.

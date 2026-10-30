@@ -339,7 +339,122 @@ def locality():
           f"poly {poly}")
 
 
+# === 그림으로 보는 AI: 학습하지 않은 어텐션도 확신에 차 보인다 ================
+#
+# GCN 의 계수는 차수로 정해져 **완전히 대칭**이고, GAT 의 알파는 수신 노드별
+# softmax 라 비대칭이다. 그런데 **학습 전** 임의 웨이트만으로도 어텐션이 이미
+# 균등에서 멀리 떨어져 있다 — 큰 알파 하나가 그 자체로는 아무 근거가 아니다.
+
+def attention_at_init():
+    import math
+
+    import networkx as nx
+    import torch
+
+    torch.manual_seed(0)
+    G = nx.karate_club_graph()
+    n = G.number_of_nodes()
+    edges = ([(u, v) for u, v in G.edges()] + [(v, u) for u, v in G.edges()]
+             + [(i, i) for i in range(n)])
+    src = torch.tensor([e[0] for e in edges])
+    dst = torch.tensor([e[1] for e in edges])
+
+    F = 8
+    X = torch.randn(n, 4)
+    W = torch.randn(4, F) * 0.5
+    a = torch.randn(2 * F) * 0.5
+    H = X @ W
+    sc = torch.nn.functional.leaky_relu(
+        (torch.cat([H[src], H[dst]], 1) * a).sum(1), 0.2)
+    alpha = torch.zeros(len(edges))
+    for d in range(n):
+        m = dst == d
+        alpha[m] = torch.softmax(sc[m], 0)
+
+    At = np.zeros((n, n))
+    for u, v in G.edges():
+        At[u, v] = At[v, u] = 1.0
+    At = At + np.eye(n)
+    dt = At.sum(1)
+
+    amap = {(u, v): alpha[i].item()
+            for i, (u, v) in enumerate(zip(src.tolist(), dst.tolist()))}
+    pairs = [(u, v) for (u, v) in amap if (v, u) in amap and u != v]
+    gcn_uv = [1 / np.sqrt(dt[u] * dt[v]) for u, v in pairs]
+    gcn_vu = [1 / np.sqrt(dt[v] * dt[u]) for u, v in pairs]
+    gat_uv = [amap[(u, v)] for u, v in pairs]
+    gat_vu = [amap[(v, u)] for u, v in pairs]
+
+    asym_gcn = max(abs(x - y) for x, y in zip(gcn_uv, gcn_vu))
+    asym_gat = max(abs(x - y) for x, y in zip(gat_uv, gat_vu))
+
+    ratios = []
+    for d in range(n):
+        m = dst == d
+        p = alpha[m]
+        k = int(m.sum())
+        if k > 1:
+            ent = float(-(p * p.clamp(min=1e-12).log()).sum())
+            ratios.append(ent / math.log(k))
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert asym_gcn < 1e-12, "GCN 계수는 완전히 대칭이어야 한다"
+    assert asym_gat > 0.1, "GAT 어텐션은 비대칭이어야 한다"
+    assert np.mean(ratios) < 0.95, \
+        "학습 전 어텐션이 균등하면 이 그림의 이야기가 없다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1))
+
+    # --- 왼쪽: 양방향 계수 ------------------------------------------------
+    lim = max(max(gat_uv), max(gat_vu)) * 1.08
+    ax1.plot([0, lim], [0, lim], color=INK, linestyle=":", linewidth=1.1,
+             alpha=0.6)
+    ax1.scatter(gat_uv, gat_vu, s=26, color=ACCENT, alpha=0.75,
+                label=f"GAT    max gap {asym_gat:.3f}")
+    ax1.scatter(gcn_uv, gcn_vu, s=26, color=MUTED, alpha=0.85,
+                marker="s", label=f"GCN    max gap {asym_gcn:.0e}")
+    ax1.text(lim * 0.60, lim * 0.52, "symmetric", fontsize=8.4, color=INK,
+             rotation=45, alpha=0.7)
+    ax1.set_xlabel("coefficient u -> v", fontsize=9)
+    ax1.set_ylabel("coefficient v -> u", fontsize=9)
+    ax1.set_title("the same edge, both directions", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.legend(fontsize=8.2, loc="upper left", framealpha=0.9)
+    ax1.grid(alpha=0.13)
+
+    # --- 오른쪽: 학습 전 어텐션의 쏠림 -------------------------------------
+    ax2.hist(ratios, bins=12, color=ACCENT, alpha=0.8)
+    ax2.axvline(1.0, color=INK, linestyle="--", linewidth=1.3)
+    ax2.text(1.0, ax2.get_ylim()[1] * 0.93, " uniform", fontsize=8.6,
+             color=INK, va="top")
+    ax2.axvline(float(np.mean(ratios)), color=MUTED, linewidth=1.6)
+    ax2.text(float(np.mean(ratios)) - 0.012, ax2.get_ylim()[1] * 0.55,
+             f"mean {np.mean(ratios):.3f} ", fontsize=8.6, color=MUTED,
+             ha="right")
+    ax2.set_xlim(0, 1.12)
+    ax2.set_xlabel("attention entropy, as a fraction of uniform",
+                   fontsize=9)
+    ax2.set_ylabel("nodes", fontsize=9)
+    ax2.set_title("before any training at all", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.grid(alpha=0.13, axis="y")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "attention_at_init.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote attention_at_init.svg   asym gcn {asym_gcn:.0e} gat "
+          f"{asym_gat:.3f}, entropy ratio {np.mean(ratios):.4f}")
+
+
 if __name__ == "__main__":
     wl_stops()
     renormalization()
     locality()
+    attention_at_init()
