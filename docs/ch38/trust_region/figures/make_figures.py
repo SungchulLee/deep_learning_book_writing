@@ -128,5 +128,112 @@ def theory_to_algorithm():
           f"   pinned median {np.median(pinned):.1f}x")
 
 
+# === 그림으로 보는 AI: 자르기는 비를 묶어 두지 않는다 =========================
+#
+# 자르기는 그 액션을 **더 밀 이유**를 없앨 뿐, 이미 넘어간 비를 끌어오지 않는다.
+# 같은 배치로 에폭을 거듭하면 비가 eps 를 지나 계속 간다. 씨앗 여덟 개로 재어
+# 중앙값을 적는다.
+
+def clipping_does_not_bound():
+    def _sm(z):
+        e = np.exp(z - z.max())
+        return e / e.sum()
+
+    def _kl(p, q):
+        return float((p * (np.log(p + 1e-30) - np.log(q + 1e-30))).sum())
+
+    EPS, K, LR = 0.2, 6, 0.05
+
+    def run(epochs, seed):
+        rng = np.random.default_rng(seed)
+        z0 = rng.normal(0, 1, K)
+        p0 = _sm(z0)
+        A = rng.normal(0, 1, K)
+        z = z0.copy()
+        for _ in range(epochs):
+            p = _sm(z)
+            r = p / p0
+            active = (r * A) <= (np.clip(r, 1 - EPS, 1 + EPS) * A)
+            g = np.zeros(K)
+            for i in range(K):
+                if active[i]:
+                    dr = -p[i] * p
+                    dr[i] = p[i] * (1 - p[i])
+                    g += A[i] / p0[i] * dr
+            z += LR * g
+        p = _sm(z)
+        return _kl(p0, p), float(np.abs(p / p0 - 1).max())
+
+    eps_list = [1, 2, 5, 10, 20, 50, 100, 200]
+    kls, rats = [], []
+    for ep in eps_list:
+        out = [run(ep, s) for s in range(8)]
+        kls.append(float(np.median([k for k, _ in out])))
+        rats.append(float(np.median([r for _, r in out])))
+    # 이 그림의 요지 — 비가 eps 를 넘어간다
+    assert rats[-1] > EPS, "비가 eps 안에 머물면 이 그림의 이야기가 없다"
+    assert rats[0] < EPS, "처음에는 안에 있어야 대비가 된다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.1),
+                                   gridspec_kw={"width_ratios": [1, 1.15]})
+
+    # --- 왼쪽: 자른 목표의 생김새 ------------------------------------------
+    r = np.linspace(0.4, 1.8, 400)
+    for A, col, lab, sgn in ((1.0, ACCENT, "advantage > 0", 1),
+                             (-1.0, MUTED, "advantage < 0", -1)):
+        obj = np.minimum(r * A, np.clip(r, 1 - EPS, 1 + EPS) * A)
+        ax1.plot(r, obj * sgn, color=col, linewidth=2.1, label=lab)
+    for v in (1 - EPS, 1 + EPS):
+        ax1.axvline(v, color=INK, linestyle=":", linewidth=1.1, alpha=0.65)
+    ax1.text(1 + EPS, ax1.get_ylim()[1] * 0.96, "  1 + eps", fontsize=8.2,
+             color=INK, va="top")
+    ax1.text(1 - EPS, ax1.get_ylim()[1] * 0.96, "1 - eps  ", fontsize=8.2,
+             color=INK, va="top", ha="right")
+    ax1.set_xlabel("probability ratio r", fontsize=9.5)
+    ax1.set_ylabel("objective (sign-aligned)", fontsize=9.5)
+    ax1.set_title("flat means no gradient, not no motion", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.legend(fontsize=8.3, framealpha=0.92)
+    ax1.grid(alpha=0.13)
+    ax1.tick_params(labelsize=8.5, colors=INK)
+    for sp in ax1.spines.values():
+        sp.set_color(INK)
+        sp.set_linewidth(0.7)
+
+    # --- 오른쪽: 에폭을 거듭하면 ------------------------------------------
+    ax2.semilogx(eps_list, rats, "o-", color=ACCENT, linewidth=2.1, ms=6,
+                 label="largest |r - 1|")
+    ax2.axhline(EPS, color=ACCENT, linestyle="--", linewidth=1.4)
+    ax2.text(eps_list[0], EPS + 0.012, " the clip, eps = 0.2", fontsize=8.4,
+             color=ACCENT)
+    ax2b = ax2.twinx()
+    ax2b.semilogx(eps_list, kls, "s--", color=INK, linewidth=1.8, ms=5,
+                  label="KL(old || new)")
+    ax2b.set_ylabel("KL(old || new)", fontsize=9.3, color=INK)
+    ax2b.tick_params(labelsize=8.3, colors=INK)
+    ax2.set_xlabel("epochs over the same batch", fontsize=9.5)
+    ax2.set_ylabel("largest |r - 1|", fontsize=9.5, color=ACCENT)
+    ax2.set_title("the ratio walks straight past it", fontsize=10,
+                  color=INK, weight="bold")
+    ax2.grid(alpha=0.13, which="both")
+    ax2.tick_params(labelsize=8.5, colors=INK)
+    for sp in list(ax2.spines.values()) + list(ax2b.spines.values()):
+        sp.set_color(INK)
+        sp.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"after {eps_list[-1]} epochs the worst ratio sits at "
+             f"{rats[-1]:.3f}, about {rats[-1] / EPS:.1f}x the clip, with "
+             f"KL {kls[-1]:.3f}.",
+             ha="center", fontsize=8.7, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "clipping_does_not_bound.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote clipping_does_not_bound.svg   ratio {rats[0]:.3f} -> "
+          f"{rats[-1]:.3f} (eps {EPS})   KL -> {kls[-1]:.4f}")
+
+
 if __name__ == "__main__":
     theory_to_algorithm()
+    clipping_does_not_bound()
