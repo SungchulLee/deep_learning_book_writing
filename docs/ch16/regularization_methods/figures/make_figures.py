@@ -243,6 +243,110 @@ def labels_or_not():
     print(f"wrote labels_or_not.svg   {[round(v,3) for v in vals]}")
 
 
+# === 그림으로 보는 AI: 감마가 정하는 것은 굳기의 천장이다 ====================
+#
+# 온라인 EWC 의 재귀 F~_t = g F~_{t-1} + F_t 에서 g=1 이면 중요도가 과제 수에
+# 비례해 쌓인다 — 천장이 없다. g<1 이면 기하급수가 되어 F/(1-g) 에서 멈춘다.
+# 정확한 순차 베이즈라면 g=1 이므로, g<1 은 유도에서 나온 값이 아니라 **고른
+# 값**이다. 피셔는 실제로 과제를 차례로 배우며 잰다.
+
+def gamma_ceiling():
+    import torch
+    import torch.nn as nn
+
+    def facts(k):
+        s = set()
+        for j in range(1, 10):
+            s.add((k, j))
+            s.add((j, k))
+        return sorted(s)
+
+    def enc(pairs):
+        x = torch.zeros(len(pairs), 20)
+        y = torch.zeros(len(pairs), dtype=torch.long)
+        for i, (a, b) in enumerate(pairs):
+            x[i, a - 1] = 1
+            x[i, 10 + b - 1] = 1
+            y[i] = a + b
+        return x, y
+
+    n_tasks = 9
+    data = [enc(facts(k)) for k in range(1, n_tasks + 1)]
+    lf = nn.CrossEntropyLoss()
+
+    torch.manual_seed(0)
+    net = nn.Sequential(nn.Linear(20, 60), nn.Sigmoid(), nn.Linear(60, 19))
+    ps = list(net.parameters())
+
+    fishers = []
+    for t in range(n_tasks):
+        x, y = data[t]
+        opt = torch.optim.SGD(ps, lr=0.3, momentum=0.9)
+        for _ in range(250):
+            opt.zero_grad()
+            lf(net(x), y).backward()
+            opt.step()
+        f = torch.zeros(sum(p.numel() for p in ps))
+        for i in range(len(x)):
+            net.zero_grad()
+            lf(net(x[i:i + 1]), y[i:i + 1]).backward()
+            f += torch.cat([p.grad.flatten() for p in ps]) ** 2
+        fishers.append(f / len(x))
+
+    gammas = [1.0, 0.9, 0.7, 0.5]
+    acc = {g: torch.zeros_like(fishers[0]) for g in gammas}
+    curves = {g: [] for g in gammas}
+    for t in range(n_tasks):
+        for g in gammas:
+            acc[g] = g * acc[g] + fishers[t]
+            curves[g].append(acc[g].sum().item())
+
+    mean_f = float(np.mean([f.sum().item() for f in fishers]))
+    assert curves[1.0][-1] > curves[1.0][len(curves[1.0]) // 2], (
+        "g=1 이면 계속 쌓여야 한다")
+    for g in gammas[1:]:
+        assert curves[g][-1] <= mean_f / (1 - g) * 1.05, (
+            f"g={g} 는 F/(1-g) 를 넘지 않아야 한다")
+
+    fig, ax = plt.subplots(figsize=(8.8, 4.3))
+    t = np.arange(1, n_tasks + 1)
+    cols = {1.0: ACCENT, 0.9: INK, 0.7: MUTED, 0.5: "#9a6b4f"}
+    for g in gammas:
+        ax.plot(t, curves[g], "o-", color=cols[g], linewidth=2.1, ms=5.5,
+                label=f"gamma = {g}")
+        if g < 1.0:
+            cap = mean_f / (1 - g)
+            ax.axhline(cap, color=cols[g], linestyle=":", linewidth=1.1,
+                       alpha=0.65)
+    ax.text(n_tasks, mean_f / (1 - 0.9) * 0.985,
+            "dotted lines: the ceiling  F / (1 - gamma)",
+            fontsize=8.2, color=INK, alpha=0.8, ha="right", va="top")
+
+    ax.set_xlabel("tasks seen", fontsize=9.5)
+    ax.set_ylabel("total accumulated importance", fontsize=9.5)
+    ax.set_xticks(t)
+    ax.set_title("gamma is a ceiling on how rigid the model may become",
+                 fontsize=10.5, color=INK, weight="bold", pad=9)
+    ax.legend(fontsize=8.6, loc="upper left", framealpha=0.9)
+    ax.grid(alpha=0.13)
+    ax.tick_params(labelsize=8.5, colors=INK)
+    for sp in ax.spines.values():
+        sp.set_color(INK)
+        sp.set_linewidth(0.7)
+
+    fig.text(0.5, -0.05,
+             "Fishers measured by actually training the nine tasks in turn. "
+             "gamma = 1 is the Bayesian value and the one with no ceiling.",
+             ha="center", fontsize=8.5, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "gamma_ceiling.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote gamma_ceiling.svg   g=1 ends {curves[1.0][-1]:.4f}, "
+          f"g=0.5 ends {curves[0.5][-1]:.4f} (cap {mean_f/0.5:.4f})")
+
+
 if __name__ == "__main__":
     two_tasks_agree()
     labels_or_not()
+    gamma_ceiling()
