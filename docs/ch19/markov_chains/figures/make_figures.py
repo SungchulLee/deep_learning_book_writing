@@ -294,7 +294,121 @@ def pagerank_damping():
           f"{[round(l, 4) for l in lam2]}")
 
 
+# === 그림으로 보는 AI: 가장 그럴듯한 상태들을 이으면 경로가 아니다 ===========
+#
+# 시점마다 사후확률이 가장 높은 상태를 골라 이어 붙이면, 그것이 가장 그럴듯한
+# **경로**가 아니다. 더 나아가 **모델이 불가능하다고 한 경로**가 되기도 한다.
+# 금지된 전이 하나를 넣은 무작위 HMM 을 많이 만들어 몇 번이나 그런지 센다.
+
+def viterbi_versus_pointwise():
+    import itertools
+
+    rng = np.random.default_rng(0)
+    K, M, T, tries = 3, 2, 4, 4000
+    differ = zero = 0
+    example = None
+
+    for _ in range(tries):
+        A = rng.random((K, K))
+        A[0, 2] = 0.0                       # 0 -> 2 는 금지
+        A /= A.sum(1, keepdims=True)
+        B = rng.random((K, M))
+        B /= B.sum(1, keepdims=True)
+        pi = rng.random(K)
+        pi /= pi.sum()
+        obs = rng.integers(0, M, T)
+
+        def joint(path):
+            p = pi[path[0]] * B[path[0], obs[0]]
+            for t in range(1, T):
+                p *= A[path[t - 1], path[t]] * B[path[t], obs[t]]
+            return p
+
+        tot = 0.0
+        best = None
+        marg = np.zeros((T, K))
+        for path in itertools.product(range(K), repeat=T):
+            p = joint(path)
+            tot += p
+            for t, s in enumerate(path):
+                marg[t, s] += p
+            if best is None or p > best[1]:
+                best = (path, p)
+        marg /= tot
+        pw = tuple(int(marg[t].argmax()) for t in range(T))
+        if pw != best[0]:
+            differ += 1
+            pp = joint(pw)
+            if pp == 0.0:
+                zero += 1
+                if example is None:
+                    example = (list(obs), best[0], best[1], pw)
+
+    assert differ > tries * 0.2, "두 경로가 자주 달라야 이 그림의 이야기가 산다"
+    assert example is not None, "확률 0 인 보기가 하나는 나와야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.0),
+                                   gridspec_kw={"width_ratios": [1, 1.25]})
+
+    # --- 왼쪽: 몇 번이나 어긋나는가 ----------------------------------------
+    same = tries - differ
+    ax1.bar([0, 1, 2], [same, differ - zero, zero],
+            color=[INK, ACCENT, ACCENT], alpha=[0.35, 0.75, 1.0][0],
+            width=0.58)
+    bars = ax1.patches
+    for b, a in zip(bars, (0.30, 0.70, 1.0)):
+        b.set_alpha(a)
+    for i, v in enumerate((same, differ - zero, zero)):
+        ax1.text(i, v + tries * 0.02, f"{v:,}", ha="center", fontsize=9.5,
+                 color=INK, weight="bold")
+    ax1.set_xticks([0, 1, 2])
+    ax1.set_xticklabels(["same path", "different\npath",
+                         "a path the model\ncalls impossible"], fontsize=8.4)
+    ax1.set_ylabel(f"out of {tries:,} random models", fontsize=9)
+    ax1.set_ylim(0, tries * 0.62)
+    ax1.set_title("joining the likeliest states", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.grid(alpha=0.13, axis="y")
+
+    # --- 오른쪽: 그런 보기 하나 --------------------------------------------
+    obs_e, vit, vitp, pw_e = example
+    ax2.text(0.5, 0.88, f"observations  {obs_e}", ha="center", fontsize=9.5,
+             color=INK, family="monospace")
+    rows = [("the best path", vit, f"{vitp:.6f}", INK),
+            ("likeliest state at each time", pw_e, "0.000000", ACCENT)]
+    for k, (lab, path, p, col) in enumerate(rows):
+        y = 0.60 - k * 0.26
+        ax2.add_patch(plt.Rectangle((0.04, y - 0.075), 0.92, 0.17,
+                                    facecolor=col, alpha=0.12,
+                                    edgecolor=col, linewidth=1.0))
+        ax2.text(0.08, y + 0.035, lab, fontsize=8.8, color=INK, va="center")
+        ax2.text(0.08, y - 0.035, str(tuple(path)), fontsize=10.5, color=col,
+                 family="monospace", va="center", weight="bold")
+        ax2.text(0.92, y, p, fontsize=10, color=col, ha="right",
+                 va="center", family="monospace", weight="bold")
+    ax2.text(0.5, 0.06, "the second one needs a transition the model\n"
+                        "gives zero probability.",
+             ha="center", va="center", fontsize=8.6, color=ACCENT)
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1)
+    ax2.axis("off")
+    ax2.set_title("one of the 37", fontsize=10, color=INK, weight="bold")
+
+    ax1.tick_params(labelsize=8, colors=INK)
+    for s in ax1.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "viterbi_vs_pointwise.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote viterbi_vs_pointwise.svg   differ {differ}/{tries} "
+          f"({differ / tries:.1%})   zero {zero}")
+
+
 if __name__ == "__main__":
     markov_onegin()
     pearson_walk()
     pagerank_damping()
+    viterbi_versus_pointwise()
