@@ -149,5 +149,78 @@ def beta_sweep():
           + "  ".join(f"b={b:g}: {s:.4f}" for b, s in zip(BETAS, scores)))
 
 
+
+
+# === 그림으로 보는 AI: 같은 답을 내는 다른 주의 =============================
+#
+# 주의 가중치가 설명인가를 두고 2019 년에 오간 논쟁의 **기제**를 그대로 잰다.
+# 출력이 값 벡터들의 가중합이면, 물건 수가 값 차원보다 많을 때 같은 출력을
+# 내는 가중치가 **여럿** 있다. 선형계획으로 원래 분포에서 가장 먼 것을 찾는다.
+
+ATTN_CASES = ((20, 8), (20, 16), (20, 19), (50, 8))
+ATTN_TRIALS = 30
+
+
+def attention_not_unique():
+    from scipy.optimize import linprog
+
+    rng = np.random.default_rng(0)
+    means = []
+    for n, d in ATTN_CASES:
+        tvs = []
+        for _ in range(ATTN_TRIALS):
+            v = rng.normal(0, 1, (n, d))
+            a = rng.dirichlet(np.ones(n) * 0.7)
+            out = v.T @ a
+            c = -np.sign(rng.normal(size=n))
+            a_eq = np.vstack([v.T, np.ones(n)])
+            b_eq = np.concatenate([out, [1.0]])
+            r = linprog(c, A_eq=a_eq, b_eq=b_eq, bounds=[(0, 1)] * n,
+                        method="highs")
+            if r.status == 0:
+                tvs.append(0.5 * np.abs(r.x - a).sum())
+        means.append(float(np.mean(tvs)))
+
+    # 그림이 주장하는 것을 먼저 확인한다
+    tight = [i for i, (n, d) in enumerate(ATTN_CASES) if n - 1 <= d]
+    assert tight and means[tight[0]] < 1e-6, \
+        "제약이 꽉 차면 분포가 하나여야 이 그림의 이야기가 성립한다"
+    assert max(means) > 0.5, "멀리 갈 수 없으면 이야기가 없다"
+
+    fig, ax = plt.subplots(figsize=(8.6, 4.3))
+    labels = [f"{n} items\n{d}-dim values" for n, d in ATTN_CASES]
+    cols = [INK if m < 1e-6 else ACCENT for m in means]
+    ax.bar(range(len(means)), means, color=cols, width=0.56, alpha=0.88)
+    for i, m in enumerate(means):
+        ax.text(i, m + 0.02, f"{m:.3f}", ha="center", fontsize=10, color=INK,
+                weight="bold")
+    ax.set_xticks(range(len(means)))
+    ax.set_xticklabels(labels, fontsize=9)
+    ax.set_ylabel("how far the attention can move\n(total variation)",
+                  fontsize=9.5)
+    ax.set_ylim(0, 1.0)
+    ax.set_title("same output, different attention", fontsize=10.5,
+                 color=INK, weight="bold", pad=8)
+    ax.grid(alpha=0.13, axis="y")
+    ax.tick_params(labelsize=8, colors=INK)
+    for s in ax.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.09,
+             "the output is identical to machine precision in every case. "
+             "only when the constraints bite (20 items, 19 dims) is the "
+             "attention forced to be unique.",
+             ha="center", fontsize=8.4, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "attention_not_unique.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote attention_not_unique.svg   "
+          + "  ".join(f"n={n},d={d}: {m:.3f}"
+                      for (n, d), m in zip(ATTN_CASES, means)))
+
+
 if __name__ == "__main__":
+    attention_not_unique()
     beta_sweep()
