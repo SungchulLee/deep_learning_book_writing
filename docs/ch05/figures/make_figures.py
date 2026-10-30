@@ -864,6 +864,80 @@ def fig_pearson_two_lines():
     print("wrote pearson_two_lines.svg")
 
 
+def fig_diffusion_attention(T=1000):
+    """2015년 방식과 2020년 방식이 1,000스텝에 품을 어떻게 나누어 주는가.
+
+    왼쪽 칸의 날짜는 각 논문이 arXiv 에 처음 올라온 달이고, 오른쪽 칸의
+    곡선은 **이 쪽이 쓰는 일정**(`betas = linspace(1e-4, 0.02, 1000)`)으로
+    여기서 셈한 것이다. 어느 논문에 실린 수도 아니다.
+
+    무게는 Ho 2020 식 (12) 가 L_simple 에서 떼어 낸 계수
+    beta_t^2 / (2 sigma_t^2 alpha_t (1 - abar_t)) 에 sigma_t^2 = beta_t 를
+    넣은 것이다. 둘을 나란히 보려고 각각 합이 100%가 되게 고쳐 적었다 —
+    L_simple 쪽의 상수는 그 자체로는 뜻이 없기 때문이다.
+    """
+    betas = np.linspace(1e-4, 0.02, T)
+    alphas = 1.0 - betas
+    abar = np.cumprod(alphas)
+    lam = betas / (2 * alphas * (1 - abar))
+    old = lam / lam.sum() * 100                      # 2015: 무게가 붙은 하한
+    new = np.full(T, 100.0 / T)                      # 2020: 모든 스텝이 같다
+    t = np.arange(1, T + 1)
+    head = old[:100].sum()                           # 앞 100스텝이 가져가는 몫
+    assert abs(old.sum() - 100) < 1e-6 and abs(new.sum() - 100) < 1e-6
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.6, 4.9),
+                                   gridspec_kw={"width_ratios": [1.05, 1]})
+
+    # --- 왼쪽: 이 장의 여섯 모델이 세상에 나온 차례 -------------------------
+    rows = [("VAE", 2013.96, "tab:blue"), ("GAN", 2014.46, "tab:red"),
+            ("diffusion\n(the idea)", 2015.21, "#c2410c"),
+            ("DCGAN", 2015.88, "tab:red"),
+            ("DDPM", 2020.46, "#c2410c"), ("DDIM", 2020.79, "#c2410c")]
+    for i, (name, yr, c) in enumerate(rows):
+        up = i % 2 == 0
+        axL.plot([yr, yr], [0, 0.42 if up else -0.42], color=c, lw=1.0, alpha=0.5)
+        axL.plot([yr], [0], "o", color=c, ms=8, zorder=3)
+        axL.text(yr, 0.52 if up else -0.52, name, ha="center",
+                 va="bottom" if up else "top", fontsize=9.5, color=c)
+    axL.annotate("", xy=(2020.40, -0.95), xytext=(2015.27, -0.95),
+                 arrowprops=dict(arrowstyle="<->", color="0.4", lw=1.2))
+    axL.text(2017.8, -1.08, "five years, and almost nobody used it",
+             ha="center", va="top", fontsize=9.5, color="0.35")
+    axL.axhline(0, color="0.3", lw=1.1)
+    axL.set_xlim(2013.4, 2021.3); axL.set_ylim(-1.75, 1.3)
+    axL.set_yticks([]); axL.set_xticks(range(2014, 2022, 2))
+    axL.set_xlabel("year the paper was first posted", fontsize=10)
+    axL.set_title("the idea did not arrive last", fontsize=11)
+    axL.spines[["top", "right", "left"]].set_visible(False)
+
+    # --- 오른쪽: 품을 어떻게 나누는가 ---------------------------------------
+    axR.plot(t, old, color="#c2410c", lw=2.0, label="the 2015 recipe")
+    axR.plot(t, new, color="tab:green", lw=2.0, label="the 2020 recipe (this page)")
+    axR.set_yscale("log")
+    axR.fill_between(t[:100], 1e-4, old[:100], color="#c2410c", alpha=0.12)
+    axR.annotate(f"the first 100 steps take {head:.0f}%\nof all the practice",
+                 xy=(28, old[27]), xytext=(150, 1.9),
+                 arrowprops=dict(arrowstyle="->", color="#c2410c", lw=1.1),
+                 fontsize=9.5, color="#c2410c")
+    axR.text(640, 0.145, "the 2020 recipe gives\nthose same 100 steps 10%",
+             fontsize=9.5, color="tab:green", ha="center")
+    axR.set_xlabel("step  (1 = picture almost clean,  1000 = pure noise)", fontsize=10)
+    axR.set_ylabel("share of all the practice,\nper step  (%)", fontsize=10)
+    axR.set_ylim(3e-3, 9)
+    axR.legend(fontsize=9.5, frameon=False, loc="lower center")
+    axR.set_title("what 2020 changed: where the practice goes", fontsize=11)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.text(0.5, 0.012, "left: posting dates.  right: computed here from this "
+             "page's own schedule - not a number from either paper.",
+             ha="center", fontsize=8.5, color="0.45")
+    fig.subplots_adjust(left=0.055, right=0.985, top=0.92, bottom=0.17, wspace=0.26)
+    fig.savefig("diffusion_attention.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote diffusion_attention.svg  (first 100 steps: {head:.1f}% vs 10%)")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -882,6 +956,7 @@ if __name__ == "__main__":
     fig_rulers_disagree()
     fig_step2_two_ladders()
     fig_pearson_two_lines()
+    fig_diffusion_attention()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
