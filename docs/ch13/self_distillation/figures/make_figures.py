@@ -140,5 +140,81 @@ def dark_knowledge(epochs=2):
           f"entropy T1 {ent1:.3f}  T4 {ent4:.3f}  uniform {unif:.3f}")
 
 
+# === 그림으로 보는 AI: 평균이 가속이 되는 자리 ================================
+#
+# 폴랴크-유디츠키 1992 의 결과 — 잡음 섞인 반복값을 **평균내면** 반복값 자체보다
+# 훨씬 정확해진다 — 를 잡음 섞인 이차식에서 잰다. 쪽의 9절이 EMA 와 이 평균은
+# 같은 연산이 아니라고 못 박아 두었으므로, 여기서 재는 것은 **균등 평균** 쪽이다.
+
+AVG_D, AVG_T = 20, 4000
+
+
+def averaging_gain(lrs=(0.05, 0.15)):
+    rng = np.random.default_rng(0)
+    a = np.diag(np.linspace(0.3, 3.0, AVG_D))
+    xstar = rng.normal(size=AVG_D)
+
+    def run(lr):
+        x = np.zeros(AVG_D)
+        avg = np.zeros(AVG_D)
+        ex, ea = [], []
+        for t in range(1, AVG_T + 1):
+            g = a @ (x - xstar) + rng.normal(0, 1.0, AVG_D)
+            x = x - lr * g
+            avg = avg + (x - avg) / t
+            ex.append(np.linalg.norm(x - xstar))
+            ea.append(np.linalg.norm(avg - xstar))
+        return np.array(ex), np.array(ea)
+
+    out = {lr: run(lr) for lr in lrs}
+    tail = slice(AVG_T // 2, None)
+    ratios = {lr: out[lr][0][tail].mean() / out[lr][1][tail].mean()
+              for lr in lrs}
+    assert min(ratios.values()) > 3, \
+        "평균이 반복값보다 크게 낫지 않으면 이 그림의 이야기가 없다"
+
+    big, small = max(lrs), min(lrs)
+    assert out[big][0][tail].mean() > out[small][0][tail].mean(), \
+        "큰 걸음의 반복값이 더 나쁘지 않으면 뒷이야기가 성립하지 않는다"
+
+    fig, ax = plt.subplots(figsize=(8.8, 4.3))
+    steps = np.arange(1, AVG_T + 1)
+    ex, ea = out[big]
+    ax.semilogy(steps, ex, color=INK, linewidth=0.9, alpha=0.45,
+                label=f"the iterate itself  (step {big})")
+    ax.semilogy(steps, ea, color=ACCENT, linewidth=2.2,
+                label=f"the running average of it")
+    ex2, _ = out[small]
+    ax.semilogy(steps, ex2, color=INK, linewidth=0.9, alpha=0.8,
+                linestyle="--", label=f"the iterate with a smaller step "
+                                      f"({small})")
+
+    ax.annotate(f"{ratios[big]:.1f}x lower", (AVG_T * 0.62, ea[int(AVG_T * 0.62)]),
+                textcoords="offset points", xytext=(0, 20), ha="center",
+                fontsize=9, color=ACCENT, weight="bold")
+    ax.set_xlabel("step", fontsize=9.5)
+    ax.set_ylabel("distance to the optimum  (log)", fontsize=9.5)
+    ax.set_title("averaging buys accuracy the steps never had",
+                 fontsize=10.5, color=INK, weight="bold", pad=8)
+    ax.legend(fontsize=8.5, framealpha=0.92, loc="upper right")
+    ax.grid(alpha=0.14, which="both")
+    ax.tick_params(labelsize=8, colors=INK)
+    for s in ax.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.05,
+             f"noisy quadratic in {AVG_D} dimensions. the big-step average "
+             f"even beats the small-step iterate.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "averaging_gain.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote averaging_gain.svg   "
+          + "  ".join(f"lr={lr}: {r:.1f}x" for lr, r in ratios.items()))
+
+
 if __name__ == "__main__":
     dark_knowledge()
+    averaging_gain()
