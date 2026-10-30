@@ -336,7 +336,163 @@ def rare_neighbours_say_more():
           f"random {base*k_hold:.2f}")
 
 
+# === 그림으로 보는 AI: 끼리끼리라는 가정 ====================================
+#
+# 노드 분류 쪽의 SBM 은 같은 무리끼리 0.3, 다른 무리끼리 0.02 로 잇는다. 그 비율이
+# 곧 호모필리이고, 메시지 패싱이 기대는 것이 그것이다. 이름표만 퍼뜨리는 가장
+# 단순한 방법으로 얼마나 가는지, 그리고 호모필리를 없애면 어디까지 떨어지는지를 잰다.
+
+def birds_of_a_feather():
+    import networkx as nx
+    import torch
+
+    N, C = 90, 3
+    y = np.array([0] * 30 + [1] * 30 + [2] * 30)
+    mask = np.zeros(N, bool)
+    for c in range(C):
+        mask[c * 30:c * 30 + 3] = True
+    seed_hot = np.zeros((N, C))
+    seed_hot[mask, y[mask]] = 1.0
+    chance = 1.0 / C
+
+    def make(seed, p_in, p_out):
+        probs = [[p_in if i == j else p_out for j in range(C)] for i in range(C)]
+        return nx.stochastic_block_model([30] * C, probs, seed=seed)
+
+    def features(seed):
+        torch.manual_seed(seed)
+        x = torch.randn(N, 16)
+        x[:, :3] += torch.tensor(y, dtype=torch.float).unsqueeze(1) * 0.5
+        return x.numpy()
+
+    def feat_only(x):
+        cen = np.stack([x[mask & (y == c)].mean(0) for c in range(C)])
+        pred = np.argmin(((x[:, None, :] - cen[None]) ** 2).sum(-1), 1)
+        return (pred[~mask] == y[~mask]).mean()
+
+    def propagate(G, iters=50):
+        A = nx.to_numpy_array(G, nodelist=range(N), weight=None)
+        cur = seed_hot.copy()
+        for _ in range(iters):
+            cur = A @ cur
+            s = cur.sum(1, keepdims=True)
+            s[s == 0] = 1
+            cur = cur / s
+            cur[mask] = seed_hot[mask]
+        return (cur.argmax(1)[~mask] == y[~mask]).mean()
+
+    def homophily(G):
+        e = list(G.edges())
+        return sum(1 for u, v in e if y[u] == y[v]) / len(e)
+
+    SEEDS = range(10)
+    feat = np.array([feat_only(features(s)) for s in SEEDS])
+
+    # --- p_out 을 쓸어 가며 호모필리와 정확도를 함께 잰다 -------------------
+    sweep = []
+    for p_out in (0.02, 0.05, 0.09, 0.14, 0.20, 0.26, 0.30):
+        gs = [make(s, 0.3, p_out) for s in SEEDS]
+        sweep.append((np.mean([homophily(g) for g in gs]),
+                      np.array([propagate(g) for g in gs])))
+
+    named = {}
+    for key, (p_in, p_out) in (("page", (0.3, 0.02)), ("flat", (0.3, 0.3)),
+                               ("reversed", (0.02, 0.3))):
+        gs = [make(s, p_in, p_out) for s in SEEDS]
+        named[key] = (np.mean([homophily(g) for g in gs]),
+                      np.array([propagate(g) for g in gs]))
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert named["page"][1].mean() > 0.9, "이 쪽의 그래프에서는 퍼뜨리기만 해도 된다"
+    assert feat.mean() < 0.5, "피처만으로는 거의 못 맞혀야 한다"
+    assert named["reversed"][1].mean() + named["reversed"][1].std() < chance, \
+        "뒤집은 그래프는 찍기보다 못해야 이 그림의 이야기가 된다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    # --- 왼쪽: 호모필리를 쓸어 가며 ---------------------------------------
+    hx = np.array([h for h, _ in sweep])
+    hm = np.array([a.mean() for _, a in sweep])
+    hs = np.array([a.std() for _, a in sweep])
+    ax1.fill_between(hx, hm - hs, hm + hs, color=ACCENT, alpha=0.16)
+    ax1.plot(hx, hm, "o-", color=ACCENT, ms=5, lw=1.6,
+             label="spread the 9 labels along the edges")
+    ax1.axhline(feat.mean(), color=MUTED, lw=1.5, ls="--",
+                label=f"the 16 features alone  ({feat.mean():.0%})")
+    ax1.fill_between([hx.min(), hx.max()], feat.mean() - feat.std(),
+                     feat.mean() + feat.std(), color=MUTED, alpha=0.13)
+    ax1.axhline(chance, color=INK, lw=1.1, ls=":",
+                label=f"guessing  ({chance:.0%})")
+    ax1.annotate("the page sits here", (hx[0], hm[0]),
+                 textcoords="offset points", xytext=(34, -14), fontsize=8.6,
+                 color=INK, arrowprops=dict(arrowstyle="->", color=INK, lw=0.8))
+    ax1.set_xlabel("homophily - share of edges that join the same class",
+                   fontsize=8.8)
+    ax1.set_ylabel("accuracy on the 81 unlabelled nodes", fontsize=8.8)
+    ax1.set_ylim(0, 1.05)
+    ax1.set_yticks(np.arange(0, 1.01, 0.25))
+    ax1.set_yticklabels([f"{t:.0%}" for t in np.arange(0, 1.01, 0.25)])
+    ax1.set_title("what the 9 labels are worth", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.legend(fontsize=8, loc="lower right", framealpha=0.92)
+
+    # --- 오른쪽: 세 가지 그래프 -------------------------------------------
+    keys = ["page", "flat", "reversed"]
+    labs = ["0.30 inside\n0.02 across\n(this page)",
+            "0.30 inside\n0.30 across",
+            "0.02 inside\n0.30 across"]
+    xs = np.arange(3)
+    mus = np.array([named[k][1].mean() for k in keys])
+    sds = np.array([named[k][1].std() for k in keys])
+    cols = [ACCENT, INK, MUTED]
+    ax2.bar(xs, mus, 0.5, yerr=sds, color=cols, alpha=0.82,
+            error_kw=dict(ecolor=INK, capsize=4, lw=1.1))
+    ax2.axhline(chance, color=INK, lw=1.1, ls=":")
+    ax2.text(2.47, chance + 0.02, "guessing", fontsize=8.2, color=INK,
+             ha="right", style="italic")
+    for xx, mu, sd, k in zip(xs, mus, sds, keys):
+        ax2.text(xx, mu + sd + 0.035, f"{mu:.0%}", ha="center", fontsize=10.5,
+                 color=INK, weight="bold")
+        ax2.text(xx, 0.03, f"h = {named[k][0]:.2f}", ha="center",
+                 va="bottom", fontsize=8.4, color="white", weight="bold")
+    ax2.annotate("below guessing - the\ngraph now misleads",
+                 (1.76, mus[2] + 0.02), textcoords="offset points",
+                 xytext=(-2, 58), ha="center", fontsize=8.4, color=MUTED,
+                 arrowprops=dict(arrowstyle="->", color=MUTED, lw=0.9))
+    ax2.set_xticks(xs)
+    ax2.set_xticklabels(labs, fontsize=8.2)
+    ax2.set_ylim(0, 1.22)
+    ax2.set_yticks(np.arange(0, 1.01, 0.25))
+    ax2.set_yticklabels([f"{t:.0%}" for t in np.arange(0, 1.01, 0.25)])
+    ax2.set_title("the same method, three graphs", fontsize=10, color=INK,
+                  weight="bold")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        ax.grid(alpha=0.13, axis="y")
+        ax.set_axisbelow(True)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.06,
+             "90 nodes, 9 labelled, 10 graph and feature seeds.  h = "
+             "homophily.  Nothing on the right is trained, and none of it "
+             "sees the features.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "birds_of_a_feather.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("wrote birds_of_a_feather.svg   features %.3f+-%.3f;  " % (
+        feat.mean(), feat.std()) + "  ".join(
+        f"{k} h={named[k][0]:.3f} acc={named[k][1].mean():.3f}"
+        f"+-{named[k][1].std():.3f}" for k in keys))
+
+
 if __name__ == "__main__":
     who_said_two()
     walks_like_language()
     rare_neighbours_say_more()
+    birds_of_a_feather()
