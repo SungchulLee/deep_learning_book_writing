@@ -453,8 +453,108 @@ def attention_at_init():
           f"{asym_gat:.3f}, entropy ratio {np.mean(ratios):.4f}")
 
 
+# === 그림으로 보는 AI: 표에서 함수로 =========================================
+#
+# 노드마다 임베딩 한 줄을 들고 있으면 파라메터가 노드 수에 비례해 자라고,
+# 새 노드에는 줄 자체가 없다. 이웃을 모으는 **함수**는 파라메터가 고정이고
+# 새 노드에도 바로 답을 낸다. 둘 다 직접 센다.
+
+def table_vs_function():
+    import networkx as nx
+    import torch
+    import torch.nn as nn
+
+    torch.manual_seed(0)
+    G = nx.karate_club_graph()
+    n, d, fin = G.number_of_nodes(), 16, 8
+
+    table = nn.Embedding(n, d)
+    sage = nn.Linear(2 * fin, d)
+    p_table = sum(p.numel() for p in table.parameters())
+    p_sage = sum(p.numel() for p in sage.parameters())
+
+    X = torch.randn(n, fin)
+    new = n
+    G2 = G.copy()
+    G2.add_node(new)
+    for v in (0, 1, 33):
+        G2.add_edge(new, v)
+
+    has_row = new < table.num_embeddings
+    nb = torch.stack([X[v] for v in G2.neighbors(new)]).mean(0, keepdim=True)
+    emb = sage(torch.cat([torch.randn(1, fin), nb], 1))
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert not has_row, "새 노드는 표에 줄이 없어야 한다"
+    assert emb.shape == (1, d), "함수는 새 노드에도 임베딩을 내야 한다"
+
+    sizes = [34, 100, 1000, 10000, 100000]
+    tbl = [s * d for s in sizes]
+    fn = [p_sage] * len(sizes)
+    assert tbl[-1] > fn[-1] * 100, "표가 훨씬 빨리 자라야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.0))
+
+    # --- 왼쪽: 표에는 새 노드의 줄이 없다 ---------------------------------
+    for i in range(6):
+        y = 0.80 - i * 0.105
+        ax1.add_patch(plt.Rectangle((0.12, y - 0.040), 0.52, 0.080,
+                                    facecolor=ACCENT, alpha=0.16,
+                                    edgecolor=ACCENT, linewidth=0.8))
+        ax1.text(0.07, y, f"{i}" if i < 5 else "...", fontsize=9,
+                 color=INK, va="center", ha="right", family="monospace")
+    y = 0.80 - 6 * 0.105
+    ax1.add_patch(plt.Rectangle((0.12, y - 0.040), 0.52, 0.080,
+                                facecolor="none", edgecolor=INK,
+                                linewidth=1.3, linestyle="--"))
+    ax1.text(0.07, y, f"{new}", fontsize=9, color=INK, va="center",
+             ha="right", family="monospace", weight="bold")
+    ax1.text(0.38, y, "no row", fontsize=9.5, color=INK, va="center",
+             ha="center", style="italic")
+    ax1.text(0.38, 0.92, "one row per node", ha="center", fontsize=9.5,
+             color=ACCENT, weight="bold")
+    ax1.text(0.38, 0.02,
+             "a node that arrives after training\nhas nothing to look up",
+             ha="center", fontsize=8.8, color=INK)
+    ax1.set_xlim(0, 0.76)
+    ax1.set_ylim(-0.02, 1.0)
+    ax1.axis("off")
+    ax1.set_title("the transductive answer", fontsize=10, color=INK,
+                  weight="bold")
+
+    # --- 오른쪽: 파라메터가 자라는가 --------------------------------------
+    ax2.loglog(sizes, tbl, "s--", color=INK, linewidth=1.9, ms=5.5,
+               label="embedding table")
+    ax2.loglog(sizes, fn, "o-", color=ACCENT, linewidth=2.1, ms=5.5,
+               label="aggregating function")
+    ax2.annotate(f"{tbl[-1]:,}", xy=(sizes[-1], tbl[-1]), xytext=(-56, -4),
+                 textcoords="offset points", fontsize=8.6, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.8))
+    ax2.annotate(f"{fn[-1]:,}", xy=(sizes[-1], fn[-1]), xytext=(-40, 10),
+                 textcoords="offset points", fontsize=8.6, color=ACCENT,
+                 arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.8))
+    ax2.set_xlabel("nodes in the graph", fontsize=9)
+    ax2.set_ylabel("parameters", fontsize=9)
+    ax2.set_title("what has to be stored", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.legend(fontsize=8.4, loc="upper left", framealpha=0.9)
+    ax2.grid(alpha=0.13, which="both")
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "table_vs_function.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote table_vs_function.svg   table {p_table} vs fn {p_sage}, "
+          f"new node row: {has_row}")
+
+
 if __name__ == "__main__":
     wl_stops()
     renormalization()
     locality()
     attention_at_init()
+    table_vs_function()
