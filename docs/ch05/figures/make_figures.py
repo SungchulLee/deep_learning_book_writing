@@ -1498,6 +1498,74 @@ def fig_cifar_provenance():
     print("wrote cifar_provenance.svg")
 
 
+def fig_eps_units(T=1000):
+    """잡음을 맞히라는 로스가 1,000스텝을 얼마나 고르지 않게 다루는가.
+
+    둘 다 **이 쪽이 쓰는 일정**으로 여기서 셈한 것이고 논문의 수가 아니다.
+
+    왼쪽: 학습이 전혀 없는 예측기 eps = x_t / sqrt(1 - abar_t) 가 내는 MSE.
+    목표 eps 의 분산이 1 이므로 1.0 은 「그냥 0이라고 답하기」의 값이다.
+    E[x0^2] = 1 로 두었다(정규화한 자료라 대략 그렇다).
+
+    오른쪽: eps 를 조금 틀렸을 때 그것이 원본 그림으로 돌아가며 곱해지는
+    배수 sqrt((1 - abar_t) / abar_t). x0 를 x_t 에서 되짚을 때 sqrt(abar_t)
+    로 나누기 때문이다.
+    """
+    b = np.linspace(1e-4, 0.02, T)
+    ab = np.cumprod(1 - b)
+    t = np.arange(1, T + 1)
+    triv = ab / (1 - ab)
+    amp = np.sqrt((1 - ab) / ab)
+    n_easy = int((triv < 0.1).sum())
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.4, 4.6))
+
+    axL.plot(t, triv, color="#c2410c", lw=2.1)
+    axL.axhline(1.0, color="0.45", lw=1.1, ls="--")
+    axL.text(990, 1.5, "what you get by just answering zero", ha="right",
+             fontsize=9.3, color="0.45")
+    axL.axvspan(T - n_easy, T, color="#c2410c", alpha=0.08)
+    axL.annotate(f"on {n_easy} of the 1,000 steps a formula\nwith nothing to "
+                 "learn already gets\nwithin a tenth of the target",
+                 xy=(700, triv[699]), xytext=(330, 2e-4), fontsize=9.3,
+                 color="#c2410c",
+                 arrowprops=dict(arrowstyle="->", color="#c2410c", lw=1.1))
+    axL.set_yscale("log")
+    axL.set_xlabel("step  (1 = almost clean,  1000 = pure noise)", fontsize=10)
+    axL.set_ylabel("error left for a predictor\nthat learns nothing",
+                   fontsize=10)
+    axL.set_title("how much is actually left to learn", fontsize=11)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    axR.plot(t, amp, color="tab:blue", lw=2.1)
+    axR.axhline(1.0, color="0.45", lw=1.1, ls="--")
+    for tt in (1, 1000):
+        axR.annotate(f"{amp[tt-1]:.2f}x" if tt == 1 else f"{amp[tt-1]:.0f}x",
+                     xy=(tt, amp[tt - 1]), xytext=(14 if tt == 1 else -14, 8),
+                     textcoords="offset points",
+                     ha="left" if tt == 1 else "right", fontsize=10.5,
+                     color="tab:blue")
+    axR.text(500, 0.035, f"the same slip is punished\n"
+             f"{amp[-1]/amp[0]:,.0f} times harder at one end\nthan at the other",
+             ha="center", fontsize=9.3, color="tab:blue")
+    axR.set_yscale("log")
+    axR.set_xlabel("step  (1 = almost clean,  1000 = pure noise)", fontsize=10)
+    axR.set_ylabel("how much a small slip in the answer\n"
+                   "is magnified in the picture", fontsize=10)
+    axR.set_title("what getting it slightly wrong costs", fontsize=11)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.text(0.5, 0.015, "the loss on this page gives all 1,000 steps the "
+             "same weight. computed here from this page's own schedule.",
+             ha="center", fontsize=8.8, color="0.45")
+    fig.subplots_adjust(left=0.095, right=0.985, top=0.91, bottom=0.175,
+                        wspace=0.3)
+    fig.savefig("eps_units.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote eps_units.svg  ({n_easy} easy steps, "
+          f"{amp[-1]/amp[0]:,.0f}x spread)")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -1524,6 +1592,7 @@ if __name__ == "__main__":
     fig_variety_ruler()
     fig_where_nonlinearity()
     fig_cifar_provenance()
+    fig_eps_units()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
