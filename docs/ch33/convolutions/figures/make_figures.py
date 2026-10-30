@@ -552,9 +552,108 @@ def table_vs_function():
           f"new node row: {has_row}")
 
 
+# === 그림으로 보는 AI: 고리에서는 푸리에와 정확히 같다, 기저를 맞추면 ========
+#
+# 고리 그래프에서 라플라시안 고유값은 2-2cos(2 pi k/n) 이고 복소 지수가
+# 고유벡터다. 그 기저에서는 고유기저 곱이 **정확히** 순환 겹말기가 된다.
+# 그런데 eigh 가 돌려주는 실수 기저에서는 그렇지 않다 — 고유값이 겹쳐 있어
+# 고유공간 안의 기저가 임의이기 때문이다. 셋 다 직접 잰다.
+
+def cycle_is_fourier():
+    import networkx as nx
+
+    n = 12
+    C = nx.cycle_graph(n)
+    L = np.asarray(nx.laplacian_matrix(C).todense()).astype(float)
+    w, U = np.linalg.eigh(L)
+
+    theory = np.sort([2 - 2 * np.cos(2 * np.pi * k / n) for k in range(n)])
+    gap_eig = float(np.abs(np.sort(w) - theory).max())
+
+    F = np.array([[np.exp(-2j * np.pi * i * k / n) for k in range(n)]
+                  for i in range(n)]) / np.sqrt(n)
+    lam = np.array([2 - 2 * np.cos(2 * np.pi * k / n) for k in range(n)])
+    gap_vec = float(np.abs(L @ F - F @ np.diag(lam)).max())
+
+    rng = np.random.RandomState(0)
+    x, h = rng.randn(n), rng.randn(n)
+    circ = np.real(np.fft.ifft(np.fft.fft(h) * np.fft.fft(x)))
+    d_complex = float(np.abs(
+        F @ ((F.conj().T @ h) * (F.conj().T @ x)) * np.sqrt(n) - circ).max())
+    d_real = float(np.abs(U @ ((U.T @ h) * (U.T @ x)) - circ).max())
+
+    uw, cnt = np.unique(np.round(w, 8), return_counts=True)
+    n_double = int((cnt == 2).sum())
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert gap_eig < 1e-10, "고유값이 이론값과 같아야 한다"
+    assert gap_vec < 1e-10, "복소 지수가 고유벡터여야 한다"
+    assert d_complex < 1e-9, "복소 기저에서는 겹말기 정리가 성립해야 한다"
+    assert d_real > 1.0, "실수 기저에서는 깨져야 이 그림의 이야기가 된다"
+    assert n_double > 0, "겹친 고유값이 있어야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.1),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    # --- 왼쪽: 고유값이 코사인 곡선 위에 ----------------------------------
+    kk = np.linspace(0, n, 400)
+    ax1.plot(kk, 2 - 2 * np.cos(2 * np.pi * kk / n), color=INK,
+             linewidth=1.3, alpha=0.5, label="2 - 2 cos(2 pi k / n)")
+    ax1.scatter(range(n), [2 - 2 * np.cos(2 * np.pi * k / n)
+                           for k in range(n)], s=55, color=ACCENT, zorder=3,
+                edgecolors="white", linewidths=1.0,
+                label="Laplacian eigenvalues")
+    ax1.set_xlabel("k", fontsize=9)
+    ax1.set_ylabel("eigenvalue", fontsize=9)
+    ax1.set_title(f"a cycle of {n}: the spectrum is a cosine", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.legend(fontsize=8.2, loc="lower center", framealpha=0.92)
+    ax1.set_ylim(-0.55, 4.45)   # 범례가 꼭대기 점을 가리지 않게
+    ax1.text(0.5, -0.255, f"matches to {gap_eig:.0e}   -   "
+                          f"{n_double} eigenvalues are doubled",
+             transform=ax1.transAxes, ha="center", fontsize=8.6, color=INK)
+    ax1.grid(alpha=0.13)
+
+    # --- 오른쪽: 겹말기 정리가 어디서 성립하나 ----------------------------
+    labs = ["complex exponential\nbasis", "the basis eigh\nreturns"]
+    vals = [d_complex, d_real]
+    cols = [MUTED, ACCENT]
+    ax2.bar(range(2), [max(v, 1e-16) for v in vals], color=cols, width=0.48,
+            alpha=0.85)
+    ax2.set_yscale("log")
+    ax2.set_xticks(range(2))
+    ax2.set_xticklabels(labs, fontsize=8.8)
+    for i, v in enumerate(vals):
+        ax2.text(i, v * 2.2, f"{v:.1e}" if v < 1 else f"{v:.2f}",
+                 ha="center", fontsize=9.5, color=INK, weight="bold")
+    ax2.set_ylabel("gap from true circular convolution", fontsize=9)
+    ax2.set_ylim(1e-16, max(vals) * 1e3)
+    ax2.set_title("same graph, same signals", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.grid(alpha=0.13, axis="y", which="both")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.05,
+             "the convolution theorem needs one particular basis. the "
+             "eigensolver has no reason to pick it.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "cycle_is_fourier.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote cycle_is_fourier.svg   eig gap {gap_eig:.1e}, "
+          f"complex {d_complex:.1e}, real {d_real:.3f}, doubled {n_double}")
+
+
 if __name__ == "__main__":
     wl_stops()
     renormalization()
     locality()
     attention_at_init()
     table_vs_function()
+    cycle_is_fourier()
