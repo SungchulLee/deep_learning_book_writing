@@ -103,5 +103,90 @@ def two_causes():
           f"{prop_u[-1]:.4f} / flat {scal_u[0]:.4f}")
 
 
+# === 그림으로 보는 AI: 같은 깊이인데 보는 범위가 다르다 =======================
+#
+# JK 논문의 출발점은 "같은 레이어 수인데도 노드마다 끌어오는 범위가 다르다"
+# 는 관찰이다. 랜덤워크로 그것을 직접 잰다. 차수만으로 설명되지 않는다는
+# 것까지 상관계수로 확인한다.
+
+def reach_varies():
+    import networkx as nx
+
+    G = nx.karate_club_graph()
+    n = G.number_of_nodes()
+    A = nx.to_numpy_array(G)
+    P = A / A.sum(1, keepdims=True)
+    deg = dict(G.degree())
+    hub = max(deg, key=deg.get)
+    peri = min(deg, key=deg.get)
+
+    ks = [1, 2, 3, 4]
+    reach_hub, reach_per = [], []
+    for k in ks:
+        Pk = np.linalg.matrix_power(P, k)
+        reach_hub.append(int((Pk[hub] > 1e-9).sum()))
+        reach_per.append(int((Pk[peri] > 1e-9).sum()))
+
+    P2 = np.linalg.matrix_power(P, 2)
+    reach2 = [int((P2[v] > 1e-9).sum()) for v in range(n)]
+    corr = float(np.corrcoef([deg[v] for v in range(n)], reach2)[0, 1])
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert max(reach2) - min(reach2) > 10, "같은 k 에서 범위가 갈려야 한다"
+    assert reach_hub[0] > reach_per[0], "허브가 먼저 퍼져야 한다"
+    assert abs(corr) < 0.8, "차수만으로 설명되면 이 그림의 이야기가 약해진다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.0))
+
+    ax1.plot(ks, reach_hub, "o-", color=ACCENT, linewidth=2.1, ms=6,
+             label=f"node {hub}  (degree {deg[hub]})")
+    ax1.plot(ks, reach_per, "s--", color=MUTED, linewidth=2.1, ms=6,
+             label=f"node {peri}  (degree {deg[peri]})")
+    ax1.axhline(n, color=INK, linestyle=":", linewidth=1.0, alpha=0.6)
+    ax1.text(ks[0], n + 0.6, f"the whole graph ({n})", fontsize=8.4,
+             color=INK, alpha=0.75)
+    ax1.set_xticks(ks)
+    ax1.set_xlabel("layers k", fontsize=9)
+    ax1.set_ylabel("nodes reached", fontsize=9)
+    ax1.set_ylim(0, n + 4)
+    ax1.set_title("two nodes, the same depth", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.legend(fontsize=8.4, loc="lower right", framealpha=0.9)
+    ax1.grid(alpha=0.13)
+
+    ax2.hist(reach2, bins=range(min(reach2), max(reach2) + 2), color=ACCENT,
+             alpha=0.82)
+    ax2.set_xlabel("nodes reached at k = 2", fontsize=9)
+    ax2.set_ylabel("how many nodes", fontsize=9)
+    ax2.set_title("every node, at one depth", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.text(0.97, 0.93,
+             f"from {min(reach2)} to {max(reach2)} of {n}\n"
+             f"correlation with degree {corr:.2f}",
+             transform=ax2.transAxes, ha="right", va="top", fontsize=8.8,
+             color=INK,
+             bbox=dict(boxstyle="round,pad=0.45", facecolor="white",
+                       edgecolor=INK, alpha=0.9))
+    ax2.grid(alpha=0.13, axis="y")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             "one depth does not buy one receptive field - and degree alone "
+             "does not predict which.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "reach_varies.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote reach_varies.svg   hub {reach_hub} peri {reach_per}, "
+          f"k=2 spread {min(reach2)}-{max(reach2)}, corr {corr:.3f}")
+
+
 if __name__ == "__main__":
     two_causes()
+    reach_varies()
