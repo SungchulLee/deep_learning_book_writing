@@ -279,6 +279,121 @@ def properties_catalogued_in_1860():
           f"{comp_gap:.4f} / {comp_scale:.3f}")
 
 
+# === 그림으로 보는 AI: 이웃은 표본이 아니다 =================================
+#
+# Feld(1991) - 내 친구들은 나보다 친구가 많다. 아무 노드나 고르는 것과 아무 엣지를
+# 따라가는 것은 다른 추출이고, 그 차이가 분산/평균이다. 이 쪽의 그래프에서 그
+# 항등식이 정확히 맞는지, 그리고 한 계정이 보는 이웃이 전체와 얼마나 다른지를 잰다.
+
+def a_neighbour_is_not_a_sample():
+    import networkx as nx
+
+    # 이 쪽 본문의 그래프 그대로
+    G = nx.stochastic_block_model([80, 20], [[0.05, 0.01], [0.01, 0.15]],
+                                  seed=42)
+    n = 100
+    is_bot = np.array([0] * 80 + [1] * 20)
+    deg = np.array([G.degree(v) for v in range(n)], float)
+
+    node_mean = float(deg.mean())
+    nbr_mean = float((deg ** 2).sum() / deg.sum())
+    identity = node_mean + float(deg.var()) / node_mean
+    connected = [v for v in range(n) if G.degree(v) > 0]
+    below = sum(1 for v in connected
+                if deg[v] < np.mean([deg[u] for u in G.neighbors(v)]))
+
+    bot_share_all = float(is_bot.mean())
+    nbrs_of_normal = [u for v in range(80) for u in G.neighbors(v)]
+    bot_share_seen = float(np.mean([is_bot[u] == 1 for u in nbrs_of_normal]))
+    deg_normal, deg_bot = float(deg[:80].mean()), float(deg[80:].mean())
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert abs(nbr_mean - identity) < 1e-9, "Feld 항등식이 정확히 맞아야 한다"
+    assert nbr_mean > node_mean, "이웃이 더 많이 이어져 있어야 한다"
+    assert below > len(connected) / 2, "절반 넘는 계정이 제 이웃보다 적어야 한다"
+    assert deg_bot < deg_normal, \
+        "확률이 세 배라도 무리가 작아 평균 차수는 더 낮아야 한다"
+    assert bot_share_seen < bot_share_all / 2, \
+        "한 계정이 보는 봇 비율이 전체보다 훨씬 낮아야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.2),
+                                   gridspec_kw={"width_ratios": [1, 1.1]})
+
+    # --- 왼쪽: Feld ---------------------------------------------------------
+    xs = np.arange(2)
+    vals = [node_mean, nbr_mean]
+    ax1.bar(xs, vals, 0.5, color=[MUTED, ACCENT], alpha=0.85)
+    for x, v in zip(xs, vals):
+        ax1.text(x, v + 0.12, f"{v:.3f}", ha="center", fontsize=11,
+                 color=INK, weight="bold")
+    ax1.set_xticks(xs)
+    ax1.set_xticklabels(["pick an account\nat random",
+                         "follow an edge\nand look at who\nyou land on"],
+                        fontsize=8.6)
+    ax1.set_xlim(-0.6, 2.55)
+    ax1.set_ylim(0, 6.6)
+    ax1.set_ylabel("connections that account has", fontsize=8.8)
+    ax1.set_title("the same graph, two ways of drawing from it",
+                  fontsize=10, color=INK, weight="bold")
+    ax1.annotate("", (1, node_mean), (1, nbr_mean),
+                 arrowprops=dict(arrowstyle="<->", color=INK, lw=1.1))
+    ax1.text(1.3, (node_mean + nbr_mean) / 2,
+             f"gap = variance / mean\n= {deg.var():.2f} / {node_mean:.2f}\n"
+             f"= {deg.var() / node_mean:.3f}",
+             fontsize=8.4, color=INK, va="center")
+    ax1.text(0.98, 5.75,
+             f"{below} of the {len(connected)} connected accounts have fewer\n"
+             f"connections than their own neighbours average",
+             ha="center", fontsize=8.6, color=INK, style="italic")
+
+    # --- 오른쪽: 한 계정이 보는 것 ----------------------------------------
+    ys = np.array([1, 0])
+    vals2 = [bot_share_all, bot_share_seen]
+    ax2.barh(ys, vals2, 0.44, color=[MUTED, ACCENT], alpha=0.85)
+    for y, v in zip(ys, vals2):
+        ax2.text(v + 0.008, y, f"{v:.1%}", va="center", fontsize=11,
+                 color=INK, weight="bold")
+    ax2.set_yticks(ys)
+    ax2.set_yticklabels(["bots, as a share of\nall 100 accounts",
+                         "bots, as a share of what\na normal account sees"],
+                        fontsize=8.6)
+    ax2.set_xlim(0, 0.30)
+    ax2.set_xticks(np.arange(0, 0.26, 0.05))
+    ax2.set_xticklabels([f"{t:.0%}" for t in np.arange(0, 0.26, 0.05)])
+    ax2.set_ylim(-1.5, 1.6)
+    ax2.set_title("and what one round of message passing reaches",
+                  fontsize=10, color=INK, weight="bold")
+    ax2.text(0.005, -0.82,
+             f"the bot group is wired at 0.15 against 0.05,\n"
+             f"yet it is the smaller group: bots average\n"
+             f"{deg_bot:.2f} connections, normal accounts "
+             f"{deg_normal:.2f}.",
+             fontsize=8.6, color=INK, va="center")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        ax.grid(alpha=0.13, axis="y" if ax is ax1 else "x")
+        ax.set_axisbelow(True)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.text(0.5, -0.045,
+             "the page's own 100-account graph, seed 42.  Every number is "
+             "counted from it directly.",
+             ha="center", fontsize=8.6, style="italic", color=INK)
+    fig.savefig(HERE / "a_neighbour_is_not_a_sample.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote a_neighbour_is_not_a_sample.svg   node {node_mean:.3f} vs "
+          f"neighbour {nbr_mean:.3f} (identity {identity:.3f}); {below}/"
+          f"{len(connected)} below; bots {bot_share_all:.1%} of all but "
+          f"{bot_share_seen:.1%} of what a normal account sees; degrees "
+          f"{deg_normal:.2f} normal / {deg_bot:.2f} bot")
+
+
 if __name__ == "__main__":
     what_the_graph_holds()
     properties_catalogued_in_1860()
+    a_neighbour_is_not_a_sample()
