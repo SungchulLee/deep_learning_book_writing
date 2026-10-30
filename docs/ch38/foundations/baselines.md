@@ -460,6 +460,39 @@
 
 쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 배치 계산, GPU 빠르게 하기, 더 야무진 파라메터 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 평균을 빼는 것이 가장 좋은 선택은 아니다
+
+베이스라인은 나중에 덧붙인 재주가 아니라 **처음부터 식 안에 있었다.** 로널드 윌리엄스(Ronald Williams)가 1992년에 REINFORCE를 정의한 식이
+
+$$
+\Delta w_{ij} = \alpha_{ij}\,(r - b_{ij})\,e_{ij}
+$$
+
+이고, 그 $b_{ij}$ 가 베이스라인이다. REINFORCE라는 이름 자체가 이 네 조각의 머리글자다 — "REward Increment = Nonnegative Factor × Offset Reinforcement × Characteristic Eligibility". 가운데의 **Offset Reinforcement** 가 바로 $r - b$ 다.
+
+그런데 윌리엄스는 같은 논문 8.3절에서 **무엇을 빼야 하는지는 자기 분석이 말해 주지 않는다**고 적어 두었다. "One important limitation of the analysis given here is that it offers no basis for choosing among various choices of reinforcement baseline." 그러고는 분산을 가장 작게 만드는 선택을 따로 언급하며 이렇게 덧붙인다 — "This turns out to yield **not the mean reinforcement** as in the usual reinforcement comparison approach, but another quantity that is more difficult to estimate effectively."
+
+![왼쪽은 액션 셋짜리 작은 문제에서 파라메터마다 분산을 가장 작게 하는 베이스라인을 점으로 찍은 그림이다. 세 점이 0.574, 1.237, 1.538 로 서로 다르고, 평균 리턴을 나타내는 세로 점선 1.301 과도 모두 어긋나 있다. 오른쪽은 무작위로 뽑은 배치 2,000 개, 파라메터 6,947 개에 대해 평균 베이스라인을 쓸 때의 분산을 최적 베이스라인을 쓸 때의 분산으로 나눈 값의 분포로, 중앙값이 4.7배이고 평균 베이스라인이 베이스라인을 아예 안 쓰는 것보다 나쁜 경우가 21.6퍼센트라고 적혀 있다.](figures/baseline_not_the_mean.svg)
+
+그 "다른 양"이 무엇인지 정확히 셈해 보면 이렇다. 분산을 최소로 만드는 베이스라인은 **리턴을 점수의 제곱으로 웨이트 주어 평균 낸 것**이다.
+
+$$
+b^{*}_{i} \;=\; \frac{\mathbb{E}\!\left[g_i^2\, r\right]}{\mathbb{E}\!\left[g_i^2\right]},
+\qquad g_i = \frac{\partial \log \pi}{\partial \theta_i}
+$$
+
+**값함수가 아니다.** 그리고 분모·분자에 $g_i$ 가 들어 있으므로 **파라메터마다 값이 다르다.** 왼쪽 그림의 작은 보기에서 세 파라메터의 $b^{*}$ 는 0.574, 1.237, 1.538로 흩어지는데, 평균 리턴은 1.301 하나뿐이다.
+
+얼마나 손해인지 세어 보았다. 배치를 무작위로 2,000가지 뽑아 파라메터 6,947개를 보면, 평균 리턴을 베이스라인으로 쓸 때의 분산이 $b^{*}$ 를 쓸 때보다 **중앙값으로 4.7배** 크다. 그리고 더 뜻밖의 쪽이 있다 — **21.6%에서는 평균을 빼는 것이 아예 안 빼는 것보다 나빴다.** 빼기만 하면 분산이 준다는 보장은 없다.
+
+**그렇다고 이 쪽의 `ValueNetwork` 가 틀린 것은 아니다.** 윌리엄스가 같은 문장에서 적어 둔 대로 $b^{*}$ 는 "more difficult to estimate effectively" 다 — $g_i^2$ 으로 웨이트를 준 평균이라 파라메터마다 따로, 그것도 경사의 크기까지 알아야 어림할 수 있다. 값함수는 그보다 훨씬 싸게 얻어지고 대개 충분히 잘 듣는다. 요점은 값함수를 쓰지 말라는 것이 아니라, **그것이 최적이어서 쓰는 것이 아니라 쌀 수 있어서 쓰는 것**임을 알고 쓰자는 데 있다. 분산이 줄지 않는 자리를 만났을 때 베이스라인 말고 다른 데를 뒤지게 되는 것이 그 차이다.
+
+_확인한 곳 — R. J. Williams, "Simple Statistical Gradient-Following Algorithms for Connectionist Reinforcement Learning", *Machine Learning* **8**, 229–256 (1992). 머리글자 풀이는 234쪽, 베이스라인을 고를 근거가 없다는 말과 "not the mean reinforcement" 는 8.3절이다. 그림의 수는 그림을 그리는 코드가 작은 밴딧에서 기댓값을 닫힌 식으로 **정확히** 셈해 얻는다. 다만 4.7배와 21.6%는 **거기서 뽑은 배치에 대해 센 값**이지 정리가 아니다 — 다르게 뽑으면 수도 달라진다._
+
+</div>
+
 ## 연습문제
 
 <div class="drillbox" markdown>
