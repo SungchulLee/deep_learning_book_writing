@@ -523,9 +523,101 @@ def time_order():
           f"rev {len(r_rev)}, random ratio {ratio:.3f}")
 
 
+# === 그림으로 보는 AI: 극한은 "모두 같아짐"이 아니다 =========================
+#
+# 이 쪽 3절이 S^k H -> q q^T H (q_i 는 sqrt(d~_i) 에 비례) 라고 적었다.
+# 그러면 방향은 모두 같아지지만 **크기는 차수의 제곱근에 비례해 남는다.**
+# 노름이 sqrt(차수) 에 정확히 비례하는지, 방향이 정말 하나인지 직접 잰다.
+
+def smoothing_limit():
+    import networkx as nx
+
+    G = nx.karate_club_graph()
+    n = G.number_of_nodes()
+    A = nx.to_numpy_array(G, weight=None)
+    At = A + np.eye(n)
+    dt = At.sum(1)
+    S = np.diag(dt ** -0.5) @ At @ np.diag(dt ** -0.5)
+    H = np.random.RandomState(0).randn(n, 4)
+
+    Hk = np.linalg.matrix_power(S, 200) @ H
+    q = np.sqrt(dt)
+    q = q / np.linalg.norm(q)
+    pred = np.outer(q, q) @ H
+
+    norms = np.linalg.norm(Hk, axis=1)
+    ratio = norms / np.sqrt(dt)
+    unit = Hk / np.linalg.norm(Hk, axis=1, keepdims=True)
+    dir_gap = float(np.abs(unit - unit[0]).max())
+    spread = float(norms.max() / norms.min())
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert np.abs(Hk - pred).max() < 1e-8, "극한이 q q^T H 여야 한다"
+    assert ratio.max() / ratio.min() - 1 < 1e-8, "노름이 sqrt(차수) 에 비례해야 한다"
+    assert dir_gap < 1e-8, "방향은 하나로 모여야 한다"
+    assert spread > 2.0, "크기는 남아야 이 그림의 이야기가 된다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.0))
+
+    # --- 왼쪽: 노름 대 sqrt(차수) ------------------------------------------
+    xs = np.sqrt(dt)
+    ax1.scatter(xs, norms, s=55, color=ACCENT, zorder=3,
+                edgecolors="white", linewidths=1.0)
+    line = np.linspace(0, xs.max() * 1.08, 20)
+    ax1.plot(line, ratio[0] * line, color=INK, linestyle="--",
+             linewidth=1.2, alpha=0.7, label="a straight line through 0")
+    ax1.set_xlabel("sqrt(degree with self-loop)", fontsize=9)
+    ax1.set_ylabel("size of the node's row after 200 layers", fontsize=9)
+    ax1.set_title("what is left is not nothing", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.legend(fontsize=8.4, loc="upper left", framealpha=0.9)
+    ax1.grid(alpha=0.13)
+    ax1.set_xlim(0, xs.max() * 1.08)
+    ax1.set_ylim(0, norms.max() * 1.12)
+
+    # --- 오른쪽: 방향과 크기 -----------------------------------------------
+    ax2.text(0.5, 0.90, "after 200 layers, every node", ha="center",
+             fontsize=9.5, color=INK, style="italic")
+    rows = [("points the same way", f"directions differ by {dir_gap:.0e}",
+             MUTED),
+            ("but not the same length",
+             f"longest / shortest = {spread:.2f}", ACCENT)]
+    for i, (lab, val, col) in enumerate(rows):
+        y = 0.68 - i * 0.26
+        ax2.add_patch(plt.Rectangle((0.03, y - 0.095), 0.94, 0.19,
+                                    facecolor=col, alpha=0.13,
+                                    edgecolor=col, linewidth=0.9))
+        ax2.text(0.5, y + 0.035, lab, ha="center", fontsize=10.5,
+                 color=col, weight="bold")
+        ax2.text(0.5, y - 0.048, val, ha="center", fontsize=9,
+                 color=INK, family="monospace")
+    ax2.text(0.5, 0.11,
+             "the surviving length is sqrt(degree).\n"
+             "features are gone; the degree is not.",
+             ha="center", va="top", fontsize=9, color=INK)
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1)
+    ax2.axis("off")
+    ax2.set_title("counted, not asserted", fontsize=10, color=INK,
+                  weight="bold")
+
+    ax1.tick_params(labelsize=8, colors=INK)
+    for s in ax1.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.tight_layout()
+    fig.savefig(HERE / "smoothing_limit.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote smoothing_limit.svg   dir gap {dir_gap:.1e}, "
+          f"norm spread {spread:.2f}")
+
+
 if __name__ == "__main__":
     two_causes()
     reach_varies()
     unstable_encoding()
     clique_collapse()
     time_order()
+    smoothing_limit()
