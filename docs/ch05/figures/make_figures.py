@@ -1774,6 +1774,78 @@ def fig_nested_code():
     print(f"wrote nested_code.svg  (worst {ratio.max():.2f}x at d={d[k]})")
 
 
+def fig_shuffled_pixels():
+    """화소 자리를 한 번 섞으면 누가 무너지는가.
+
+    네 수는 04_ae_cnn.md 의 규약(씨앗 42, Adam 1e-3, 배치 100, 100 에포크,
+    잠재 64)으로 네 벌을 따로 학습해 잰 것이다. 섞지 않은 두 벌이 그 쪽의
+    0.0243 과 5.1절의 0.0546 을 되살린다(0.02465, 0.05448 - MPS 흔들림 안).
+
+    섞기는 784자리의 고정 순열 하나이고 학습·시험 그림에 똑같이 건다.
+    순열은 전단사라 화소값의 모임이 그대로이므로 MSE 를 견줄 수 있다.
+    """
+    mlp_n, mlp_s = 0.05448, 0.05460
+    cnv_n, cnv_s = 0.02465, 0.04705
+    edge_n = (mlp_n - cnv_n) / mlp_n * 100
+    edge_s = (mlp_s - cnv_s) / mlp_s * 100
+
+    tf = transforms.ToTensor()
+    te = torchvision.datasets.MNIST(DATA, train=False, download=True,
+                                    transform=tf)
+    from torch.utils.data import DataLoader
+    X = torch.cat([x for x, _ in DataLoader(te, batch_size=2000)])
+    perm = torch.randperm(784, generator=torch.Generator().manual_seed(7))
+    P = X.flatten(1)[:, perm].reshape(-1, 1, 28, 28)
+
+    fig = plt.figure(figsize=(12.6, 4.7))
+    gs = fig.add_gridspec(2, 2, width_ratios=[1, 1.25],
+                          left=0.045, right=0.985, top=0.86, bottom=0.13,
+                          wspace=0.2, hspace=0.42)
+
+    pick = [3, 2, 1, 18, 4]
+    for row, (src, lab, c) in enumerate([(X, "what the networks normally see",
+                                          "0.3"),
+                                         (P, "the same digits, pixels shuffled "
+                                          "once and for all", "#b91c1c")]):
+        sub = gs[row, 0].subgridspec(1, len(pick), wspace=0.08)
+        for k, idx in enumerate(pick):
+            ax = fig.add_subplot(sub[0, k])
+            ax.imshow(src[idx, 0], cmap="gray_r", vmin=0, vmax=1)
+            ax.set_xticks([]); ax.set_yticks([]); ax.spines[:].set_visible(False)
+        fig.text(0.045, 0.875 - row * 0.425, lab, fontsize=9.6, color=c)
+
+    axR = fig.add_subplot(gs[:, 1])
+    x = np.arange(2)
+    axR.bar(x - 0.19, [mlp_n, cnv_n], 0.37, color="0.65", label="normal")
+    axR.bar(x + 0.19, [mlp_s, cnv_s], 0.37, color="#b91c1c",
+            label="pixels shuffled")
+    for xi, (a, b) in zip(x, [(mlp_n, mlp_s), (cnv_n, cnv_s)]):
+        axR.text(xi - 0.19, a + 0.0016, f"{a:.4f}", ha="center", fontsize=9.4)
+        axR.text(xi + 0.19, b + 0.0016, f"{b:.4f}", ha="center", fontsize=9.4)
+        axR.text(xi, max(a, b) + 0.0075, f"x{b/a:.2f}", ha="center",
+                 fontsize=12.5, color="0.3" if b / a < 1.2 else "#b91c1c")
+    axR.set_xticks(x)
+    axR.set_xticklabels(["the MLP autoencoder",
+                         "the convolutional one"], fontsize=10.5)
+    axR.set_ylabel("reconstruction error", fontsize=10)
+    axR.set_ylim(0, 0.078)
+    axR.legend(fontsize=9.5, frameon=False, loc="upper left")
+    axR.set_title("only one of them was relying on where the pixels were",
+                  fontsize=11)
+    axR.spines[["top", "right"]].set_visible(False)
+    axR.text(1.0, 0.0705, f"convolution's edge over the MLP:\n"
+             f"{edge_n:.0f}%  ->  {edge_s:.0f}%", ha="center", va="top",
+             fontsize=10, color="#b91c1c")
+
+    fig.text(0.5, 0.015, "four autoencoders trained here with this page's own "
+             "settings; the unshuffled pair reproduces its 0.0243 and 0.0546.",
+             ha="center", fontsize=8.5, color="0.45")
+    fig.savefig("shuffled_pixels.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote shuffled_pixels.svg  (conv x{cnv_s/cnv_n:.2f}, "
+          f"edge {edge_n:.0f}%->{edge_s:.0f}%)")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -1803,6 +1875,7 @@ if __name__ == "__main__":
     fig_eps_units()
     fig_outside_measured()
     fig_nested_code()
+    fig_shuffled_pixels()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
