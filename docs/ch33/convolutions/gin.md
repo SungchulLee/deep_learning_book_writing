@@ -50,6 +50,28 @@ $$h_G=\operatorname{CONCAT}_{l=0}^{L}
 
 고차 GNN, 위치·구조 인코딩과 고유 식별자를 가진 모델은 비교 정보·상태가 다를 수 있다. GIN을 모든 종류의 그래프 모델보다 강한 구조로 부르지 않는다. 표현력의 이론적 상한·최적화·데이터 일반화는 서로 다른 문제다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 천장을 그린 사람들은 학습을 생각하고 있지 않았다
+
+이 쪽은 GIN의 표현력을 1-WL에 붙여 재고 있다. 그 1-WL이 어디서 왔는가. 1968년 모스크바에서 나온 여섯 쪽짜리 글이다 — 보리스 바이스파일러(Boris Weisfeiler)와 안드레이 레만(Andrei Leman)의 「그래프를 표준형으로 줄이는 일과 그 과정에서 나타나는 대수」.
+
+**그 글은 동형 판정법을 내놓은 것이 아니었다.** 번역본에서 `test` 라는 낱말은 **한 번도 나오지 않고**, `canonical` 은 **스무 번** 나온다. 그들이 하려던 것은 그래프를 표준형으로 줄이는 일이었고, 줄이는 도중에 나타나는 **대수** $A(\Gamma)$ 가 새 불변량이라는 것이 요지였다. 그 1절에 적힌 절차가 이것이다.
+
+> "Associate with every vertex of the graph the characteristic vector which has one component equal to the number of neighbors of this vertex. Then divide vertices into classes… associate with every vertex the characteristic vector $v_i = (l, v_{i1}, v_{i2}, \dots)$, where $v_{ik}$ is the number of neighbors of vertex $i$ from class $k$… Now again divide vertices into classes according to new characteristic vectors…"
+
+이웃의 분류를 세어 제 분류를 고치고, 그것을 되풀이한다. **이 쪽 1절의 색 정제와 글자 그대로 같은 절차**이고, 메시지 패싱이 하는 일과도 같다. 쉰 해 뒤에 표현력의 천장으로 불리게 되는 것이, 학습이라는 말이 없던 자리에서 표준형을 구하려다 적힌 셈이다.
+
+![왼쪽은 두 그래프를 그린 것이다. 하나는 육각형 C6이고 다른 하나는 떨어져 있는 삼각형 둘이며, 둘 다 노드 여섯 개, 엣지 여섯 개, 모든 차수가 2라고 적혀 있다. 오른쪽은 재어 본 결과를 늘어놓은 표다. 1-WL의 색 가짓수가 첫 라운드에도 넷째 라운드에도 양쪽 모두 하나이고, 합 집계를 쓰는 GNN의 임베딩 차이가 0이며, 그 아래에 연결성분 수가 하나와 둘, 삼각형 수가 영과 둘로 서로 다르다고 적혀 있다.](figures/wl_stops.svg)
+
+바로 위 문단이 든 보기를 실제로 돌려 보았다. $C_6$ 과 떨어진 삼각형 둘은 노드도 엣지도 차수도 모두 같다. 1-WL은 **첫 라운드부터 넷째 라운드까지 색을 한 번도 가르지 못하고**(양쪽 다 색이 하나), 합 집계에 합 readout을 쓴 최대 표현력 GNN도 두 그래프에 **차이가 정확히 0.0인** 임베딩을 준다. 그런데 연결성분은 하나와 둘이고 삼각형은 영과 둘이다. **세면 바로 갈리는 것을 이 방법들은 끝내 못 본다.**
+
+**그러니 "1-WL만큼 강하다"는 말은 칭찬인 동시에 한계의 이름이다.** 위 문단이 GIN을 모든 그래프 모델보다 강하다고 부르지 않는 까닭이고, 표현력과 일반화를 따로 두라는 까닭이기도 하다. 천장이 높아서 거기 닿은 것이 아니라, 1968년에 다른 목적으로 그어진 선이 마침 거기 있었던 것이다. 삼각형을 세야 하는 문제라면 더 강한 집계를 찾을 것이 아니라 **삼각형 수를 피처로 넣는 쪽**이 빠르다.
+
+_확인한 곳 — B. Yu. Weisfeiler, A. A. Leman, "A reduction of a graph to canonical form and an algebra arising during this reduction", *NTI* Ser. 2, No. 9, 12–16 (1968). 인용한 1절과 낱말 횟수는 [영역본](https://www.iti.zcu.cz/wl2018/pdf/wl_paper_translation.pdf) 을 내려받아 직접 세었다. K. Xu, W. Hu, J. Leskovec, S. Jegelka, "How Powerful are Graph Neural Networks?", ICLR 2019. 그림의 수는 그림을 그리는 코드가 직접 세며, 두 그래프가 동형이 아니고 1-WL이 색을 가르지 못한다는 것을 먼저 확인한 뒤에만 그린다._
+
+</div>
+
 ## 6. 계산과 평가
 
 단순 합의 비용은 엣지 수와 피처 폭에 비례하고 노드별 MLP 비용이 추가된다. 큰 차수에서 합의 크기, 폭·정규화·레이어 수와 gradient 상태를 함께 확인한다. 이 페이지는 구조·이론 설명이며 학습 구현이나 성능 실험을 제공하지 않는다.
