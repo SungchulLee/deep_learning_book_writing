@@ -1705,6 +1705,75 @@ def fig_outside_measured():
           f"dist {r2:.2f} vs {r64:.2f})")
 
 
+def fig_nested_code():
+    """PCA 의 64개 좌표에는 순서가 있고 선형 AE 의 64개에는 없다.
+
+    수는 02_ae_linear.md 의 규약(씨앗 42, Adam 1e-3, 배치 100, 100 에포크,
+    잠재 64)으로 선형 AE 한 벌을 따로 학습해 잰 것이다. 64개를 다 쥐었을 때
+    0.09639 가 나왔는데 그 쪽이 적은 0.09582 보다 0.6% 높다 — MPS 의 실행 간
+    흔들림으로 보이며, 아래 견줌은 **같은 한 벌 안에서** 이루어지므로 그
+    차이에 흔들리지 않는다.
+
+    재는 법: 64개 가운데 d개만 남기고 나머지는 그 좌표의 평균으로 채운 뒤
+    되살린다. PCA 는 앞에서부터 d개가 곧 최선이다. AE 는 고를 순서가 없어
+    무작위로 20벌 골랐고, 띠가 그 최소~최대다.
+    """
+    d = np.array([1, 2, 4, 8, 16, 32, 48, 64])
+    pca = np.array([0.63980, 0.58645, 0.50464, 0.39442, 0.28296, 0.17728,
+                    0.12552, 0.09530])
+    ae = np.array([0.70278, 0.69196, 0.66633, 0.63035, 0.53723, 0.38138,
+                   0.23437, 0.09639])
+    lo = np.array([0.69020, 0.67318, 0.64421, 0.60582, 0.51352, 0.34809,
+                   0.21575, 0.09639])
+    hi = np.array([0.70582, 0.70237, 0.68671, 0.64789, 0.56923, 0.44083,
+                   0.26485, 0.09639])
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.4, 4.6),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    axL.plot(d, pca, "o-", color="tab:green", lw=2.1, ms=6,
+             label="PCA - keep the first d")
+    axL.plot(d, ae, "s-", color="#c2410c", lw=2.1, ms=6,
+             label="linear AE - keep any d")
+    axL.fill_between(d, lo, hi, color="#c2410c", alpha=0.17)
+    axL.annotate("they meet only here,\nwith all 64 in hand",
+                 xy=(64, 0.0958), xytext=(3.1, 0.255), fontsize=9.6,
+                 color="0.3",
+                 arrowprops=dict(arrowstyle="->", color="0.45", lw=1.1))
+    axL.set_xscale("log", base=2)
+    axL.set_xticks(d); axL.set_xticklabels(d)
+    axL.set_xlabel("how many of the 64 numbers you keep", fontsize=10)
+    axL.set_ylabel("reconstruction error", fontsize=10)
+    axL.set_title("one of these codes can be cut short", fontsize=11)
+    axL.legend(fontsize=9.5, frameon=False, loc="upper right")
+    axL.spines[["top", "right"]].set_visible(False)
+
+    ratio = ae / pca
+    axR.plot(d, ratio, "o-", color="#c2410c", lw=2.1, ms=6)
+    axR.axhline(1.0, color="0.5", lw=1.0, ls="--")
+    k = int(ratio.argmax())
+    axR.annotate(f"{ratio[k]:.2f}x", xy=(d[k], ratio[k]), xytext=(0, 10),
+                 textcoords="offset points", ha="center", fontsize=11,
+                 color="#c2410c")
+    axR.text(1.1, 1.03, "same cost as PCA", fontsize=9.3, color="0.45")
+    axR.set_xscale("log", base=2)
+    axR.set_xticks(d); axR.set_xticklabels(d)
+    axR.set_ylim(0.9, 2.45)
+    axR.set_xlabel("how many of the 64 numbers you keep", fontsize=10)
+    axR.set_ylabel("how many times worse the AE is", fontsize=10)
+    axR.set_title("the penalty for having no order", fontsize=11)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.text(0.5, 0.015, "both measured here on one linear autoencoder "
+             "trained with this page's settings. dropped numbers are replaced "
+             "by their average.", ha="center", fontsize=8.5, color="0.45")
+    fig.subplots_adjust(left=0.08, right=0.985, top=0.91, bottom=0.175,
+                        wspace=0.24)
+    fig.savefig("nested_code.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote nested_code.svg  (worst {ratio.max():.2f}x at d={d[k]})")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -1733,6 +1802,7 @@ if __name__ == "__main__":
     fig_cifar_provenance()
     fig_eps_units()
     fig_outside_measured()
+    fig_nested_code()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
