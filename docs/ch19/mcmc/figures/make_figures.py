@@ -107,5 +107,103 @@ def rejected_samples_count():
           f"   {err_drop / err_all:.1f}x")
 
 
+# === 그림으로 보는 AI: 수락률 1 이 말해 주지 않는 것 ==========================
+#
+# 깁스는 거절이 없다. 수락률은 언제나 1.000 이고, 그래서 그 수로는 사슬이 잘
+# 도는지 알 수 없다. 상관 rho 를 올려 가며 유효표본수를 재면 1% 까지 주저앉는다.
+# 쪽의 5절이 적어 둔 rho^2 를 수로 보이는 셈이다.
+
+def _ess(v):
+    """자기상관을 더해 유효표본수를 센다 (초기 양수 구간까지)."""
+    v = v - v.mean()
+    n = len(v)
+    f = np.fft.rfft(v, 2 * n)
+    ac = np.fft.irfft(f * np.conj(f))[:n].real
+    ac /= ac[0]
+    s = 0.0
+    for k in range(1, n):
+        if ac[k] <= 0:
+            break
+        s += ac[k]
+    return n / (1 + 2 * s)
+
+
+def gibbs_acceptance_tells_nothing():
+    rng = np.random.default_rng(0)
+
+    def gibbs(rho, n=100_000):
+        x = y = 0.0
+        sd = np.sqrt(1 - rho * rho)
+        out = np.empty(n)
+        for i in range(n):
+            x = rho * y + sd * rng.standard_normal()
+            y = rho * x + sd * rng.standard_normal()
+            out[i] = y
+        return out
+
+    rhos = [0.0, 0.5, 0.9, 0.99]
+    n = 100_000
+    frac = [_ess(gibbs(r, n)) / n for r in rhos]
+    # 이 그림이 주장하는 것 — 수락률은 그대로인데 쓸모는 무너진다
+    assert frac[0] > 0.9 and frac[-1] < 0.05, \
+        "상관이 커질 때 유효표본 비율이 무너져야 이 그림의 이야기가 산다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.0))
+
+    # --- 왼쪽: 두 수를 나란히 ----------------------------------------------
+    xs = np.arange(len(rhos))
+    ax1.plot(xs, [1.0] * len(rhos), "s--", color=INK, lw=1.8, ms=7,
+             label="acceptance rate")
+    ax1.plot(xs, frac, "o-", color=ACCENT, lw=2.2, ms=7,
+             label="effective samples / draws")
+    for i, f in enumerate(frac):
+        ax1.annotate(f"{f:.4f}", xy=(i, f), xytext=(0, -17),
+                     textcoords="offset points", ha="center", fontsize=8.4,
+                     color=ACCENT)
+    ax1.set_xticks(xs)
+    ax1.set_xticklabels([f"{r:g}" for r in rhos])
+    ax1.set_xlabel("correlation of the target", fontsize=9)
+    ax1.set_ylabel("fraction", fontsize=9)
+    ax1.set_ylim(-0.08, 1.12)
+    ax1.set_title("one number never moves", fontsize=10, color=INK,
+                  weight="bold")
+    ax1.legend(fontsize=8.4, loc="upper right", framealpha=0.95)
+    ax1.grid(alpha=0.13)
+
+    # --- 오른쪽: 10만 번 걸어 얻은 것 --------------------------------------
+    worth = [f * n for f in frac]
+    ax2.bar(xs, worth, color=[INK if i < len(xs) - 1 else ACCENT
+                              for i in range(len(xs))], width=0.55,
+            alpha=0.85)
+    for i, w in enumerate(worth):
+        ax2.text(i, w + n * 0.025, f"{w:,.0f}", ha="center", fontsize=9,
+                 color=INK)
+    ax2.set_xticks(xs)
+    ax2.set_xticklabels([f"{r:g}" for r in rhos])
+    ax2.set_xlabel("correlation of the target", fontsize=9)
+    ax2.set_ylabel(f"what {n:,} draws are worth", fontsize=9)
+    ax2.set_ylim(0, n * 1.16)
+    ax2.set_title("what they are actually worth", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.grid(alpha=0.13, axis="y")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             "nothing was ever rejected. the acceptance rate is 1.000 in "
+             "every one of these runs.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "gibbs_acceptance.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote gibbs_acceptance.svg   ESS/n {[round(f, 4) for f in frac]}")
+
+
 if __name__ == "__main__":
     rejected_samples_count()
+    gibbs_acceptance_tells_nothing()
