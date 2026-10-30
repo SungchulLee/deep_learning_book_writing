@@ -40,6 +40,28 @@ $$\text{단} \quad \bar{D}_\text{KL}(\pi_{\theta_\text{옛}} \| \pi_\theta) \leq
 
 여기서 $\bar{D}_\text{KL}$은 상태에 걸친 평균 쿨백-라이블러 어긋남이고 $\delta$은 신뢰 영역 반지름(흔히 $0.01$)이다.
 
+<div class="storybox" markdown>
+
+**그림으로 보는 AI 1.** 정리에서 알고리즘으로 가는 길에 난 두 자리
+
+위 두 절을 나란히 읽으면 조용히 바뀐 데가 둘이다. 정리는 **벌점**으로 적혀 있는데 알고리즘은 **하드 제약**을 쓰고, 정리는 **모든 상태에서의 최대** KL을 말하는데 알고리즘은 **평균** KL을 쓴다. 눈여겨볼 것은 이 바꿔 쓰기를 뒷사람이 지적한 것이 아니라 **TRPO 논문이 스스로 적어 두었다**는 점이다.
+
+첫째에 대해 — "In practice, if we used the penalty coefficient $C$ recommended by the theory above, the step sizes would be **very small**." 그래서 계수를 줄이고 싶은데 "it is hard to robustly choose the penalty coefficient, so we use a hard constraint instead of a penalty, with parameter $\delta$." 이론이 준 $C$ 를 그대로 쓰면 걸음이 너무 작아 쓸 수 없더라는 것이다.
+
+둘째에 대해 — 상태마다 제약을 하나씩 두는 문제는 "impractical to solve due to the large number of constraints"이고, 그래서 평균을 쓰는 것을 논문은 **"a heuristic approximation"** 이라고 부른다. 어림이라고 제 입으로 적은 것이다.
+
+![왼쪽은 정리가 요구하는 것과 알고리즘이 실제로 하는 것을 화살표로 짝지은 그림이다. KL 에 대한 벌점이 델타를 쓰는 하드 제약으로, 모든 상태에서의 KL 이 평균 KL 로 바뀌며 각각 그 까닭이 아래에 적혀 있다. 오른쪽은 가로축이 상태 수인 로그 그래프로, 가장 큰 KL 을 평균 KL 로 나눈 값이 상태 열 개에서 1.5배, 백 개에서 4.0배, 천 개에서 5.6배, 만 개에서 7.7배로 꾸준히 커진다.](figures/theory_to_algorithm.svg)
+
+둘째 바꿔 쓰기가 얼마나 느슨한지는 재어 볼 수 있다. 상태마다 폴리시를 한 스텝 바꿔 놓고 **가장 큰 KL**을 **평균 KL**로 나눠 보면, 상태가 열 개일 때 1.5배인 것이 만 개가 되면 **7.7배**가 된다. 평균 KL을 흔히 쓰는 $\delta = 0.01$ 에 맞춰 놓아도 어떤 상태에서는 그보다 **여섯 배 넘게** 큰 변화가 일어난다 — 상태 천 개에서 씨앗 열 개를 돌려 중앙값 6.1배였다.
+
+**그리고 벌어지는 방향이 하필 나쁜 쪽이다.** 상태가 많을수록 차이가 커지는데, 신뢰 영역이 필요한 문제가 바로 상태가 많은 문제다. 작은 문제에서 "평균이나 최대나 비슷하다"고 확인하고 큰 문제로 옮기면, 확인한 성질이 함께 따라오지 않는다.
+
+**그렇다고 TRPO가 틀린 것은 아니다.** 논문은 최대 KL 판을 따로 돌려 보고 "the average KL divergence constraint has a similar effect as the theoretically justified maximum KL divergence"라고 적어 두었다 — 다만 그 확인은 카트폴에서만 할 수 있었다고 함께 밝힌다. 요점은 이것이다. 아래 3절부터 보게 될 켤레 그래디언트도 되짚어 가는 줄 찾기도 **정리가 보증한 그 문제를 푸는 것이 아니라, 두 번 갈아 끼운 뒤의 문제를 푼다.** 한결같은 나아짐이 수학으로 보장된다고 읽으면 안 되는 까닭이 그것이다.
+
+_확인한 곳 — J. Schulman, S. Levine, P. Moritz, M. Jordan, P. Abbeel, "Trust Region Policy Optimization", ICML 2015 (arXiv:1502.05477). 벌점 계수를 쓰면 걸음이 너무 작다는 말과 하드 제약으로 바꾼다는 말은 4절과 5절의 요약, 평균 KL을 "heuristic approximation"이라 부른 것은 4절, 최대 KL 판과 비슷하더라는 실험은 8절이다. 한결같은 나아짐 경계 자체는 S. Kakade, J. Langford, "Approximately Optimal Approximate Reinforcement Learning" (2002) 에서 온다. 오른쪽 그림의 수는 그림을 그리는 코드가 씨앗을 박고 직접 재어 얻는다._
+
+</div>
+
 ---
 
 ## 3. 알고리즘
