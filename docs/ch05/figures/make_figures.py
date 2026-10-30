@@ -1090,6 +1090,94 @@ def fig_dcgan_bundle():
     print(f"wrote dcgan_bundle.svg  (G {gm:,}->{gc:,}, D {dm:,}->{dc:,})")
 
 
+def fig_ddim_invertible(T=1000):
+    """DDIM 을 거꾸로 돌려 z 를 되찾을 때, 스텝을 줄이면 얼마나 어긋나는가.
+
+    왼쪽은 **장난감**이다. 자료를 1차원 두 봉우리 섞음으로 두면 참
+    잡음예측기를 식으로 적을 수 있어 학습한 모델 없이 DDIM 의 두 식을
+    그대로 돌릴 수 있다. MNIST 에서 잰 수가 아니다.
+
+    되짚기가 근사인 까닭: 뽑는 걸음은 eps(x_t, t) 로 t -> t' 로 가는데,
+    거꾸로 가려면 그 eps 가 있어야 하지만 손에 있는 것은 x_t' 뿐이라
+    eps(x_t', t') 로 바꿔치기한다. 스텝이 많을수록 그 틈이 작다.
+
+    오른쪽은 이 쪽 표의 시간 열을 그대로 옮긴 것이다.
+    """
+    betas = np.linspace(1e-4, 0.02, T)
+    abar = np.cumprod(1.0 - betas)
+    MU, SD, W = np.array([-2.0, 2.0]), np.array([0.5, 0.5]), np.array([0.5, 0.5])
+
+    def eps_true(x, t):
+        a = abar[t]
+        var = a * SD ** 2 + (1 - a)
+        d = x[:, None] - (np.sqrt(a) * MU)[None, :]
+        lp = -0.5 * d ** 2 / var - 0.5 * np.log(var) + np.log(W)
+        w = np.exp(lp - lp.max(1, keepdims=True)); w /= w.sum(1, keepdims=True)
+        return -np.sqrt(1 - a) * (w * (-d / var)).sum(1)
+
+    def hop(x, t, tn):
+        e = eps_true(x, t)
+        x0 = (x - np.sqrt(1 - abar[t]) * e) / np.sqrt(abar[t])
+        an = abar[tn] if tn >= 0 else 1.0
+        return np.sqrt(an) * x0 + np.sqrt(1 - an) * e
+
+    def roundtrip(n):
+        ts = np.linspace(T - 1, 0, n + 1).round().astype(int)
+        z = np.random.default_rng(0).normal(size=4000)
+        x = z.copy()
+        for i in range(n):
+            x = hop(x, ts[i], ts[i + 1])
+        for i in range(n, 0, -1):
+            x = hop(x, ts[i], ts[i - 1])
+        return np.sqrt(np.mean((x - z) ** 2)) / z.std() * 100
+
+    steps = [10, 20, 50, 100, 200, 500, 1000]
+    err = [roundtrip(n) for n in steps]
+    page = {1000: 2495, 100: 290, 50: 158, 20: 69, 10: 26}
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.4, 4.7))
+
+    axL.plot(steps, err, "o-", color="#c2410c", lw=2.0, ms=6)
+    for n in (10, 100, 1000):
+        e = err[steps.index(n)]
+        axL.annotate(f"{e:.1f}%", xy=(n, e), xytext=(16, 7),
+                     textcoords="offset points", ha="left", fontsize=10,
+                     color="#c2410c")
+    axL.axhspan(10, 60, color="#c2410c", alpha=0.07)
+    axL.text(620, 22, "a z this wrong is\nno use as a code", fontsize=9.5,
+             color="#c2410c", ha="right")
+    axL.set_xscale("log"); axL.set_yscale("log")
+    axL.set_xlabel("number of steps", fontsize=10)
+    axL.set_ylabel("how far off the recovered z is  (%)", fontsize=10)
+    axL.set_title("toy run - can you get the z back?", fontsize=11)
+    axL.grid(alpha=0.25, which="both", lw=0.5)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    ks = sorted(page)
+    axR.plot(ks, [page[k] for k in ks], "s-", color="tab:blue", lw=2.0, ms=6)
+    for k in ks:
+        axR.annotate(f"{page[k]}s", xy=(k, page[k]), xytext=(0, 11),
+                     textcoords="offset points", ha="center", fontsize=9.5,
+                     color="tab:blue")
+    axR.set_xscale("log"); axR.set_yscale("log")
+    axR.set_xlim(7.5, 1700); axR.set_ylim(18, 4600)
+    axR.set_xlabel("number of steps", fontsize=10)
+    axR.set_ylabel("seconds to draw 5,000 pictures", fontsize=10)
+    axR.set_title("this page's table - what the steps cost", fontsize=11)
+    axR.grid(alpha=0.25, which="both", lw=0.5)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.text(0.5, 0.015, "the same dial moves both: the cheap end is also the "
+             "end where the code cannot be recovered.",
+             ha="center", fontsize=9, color="0.4")
+    fig.subplots_adjust(left=0.07, right=0.985, top=0.91, bottom=0.17,
+                        wspace=0.24)
+    fig.savefig("ddim_invertible.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote ddim_invertible.svg  (10 steps {err[0]:.1f}%, "
+          f"1000 steps {err[-1]:.1f}%)")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -1111,6 +1199,7 @@ if __name__ == "__main__":
     fig_diffusion_attention()
     fig_gan_saturation()
     fig_dcgan_bundle()
+    fig_ddim_invertible()
 
 
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
