@@ -204,6 +204,111 @@ def gibbs_acceptance_tells_nothing():
     print(f"wrote gibbs_acceptance.svg   ESS/n {[round(f, 4) for f in frac]}")
 
 
+# === 그림으로 보는 AI: 문턱을 통과하면서 반을 못 본 사슬 =====================
+#
+# 봉우리 둘짜리 목표에서 체인 넷을 **모두 한쪽에서** 출발시킨다. 걸음이 좁아
+# 건너갈 수 없으므로 넷이 사이좋게 같은 봉우리만 돈다 — 그래서 R-hat 이
+# 1.01 을 가볍게 통과한다. 겔만과 루빈이 "흩뜨린 출발점"을 조건으로 단 까닭이다.
+
+def rhat_passes_while_trapped():
+    def logp(x):
+        a = -0.5 * (x + 8) ** 2
+        b = -0.5 * (x - 8) ** 2
+        m = np.maximum(a, b)
+        return m + np.log(np.exp(a - m) + np.exp(b - m))
+
+    def chain(x0, n=20_000, step=0.5, seed=0):
+        r = np.random.default_rng(seed)
+        x = x0
+        out = np.empty(n)
+        for i in range(n):
+            y = x + step * r.standard_normal()
+            if np.log(r.random()) < logp(y) - logp(x):
+                x = y
+            out[i] = x
+        return out
+
+    def split_rhat(chains):
+        s = [c[:len(c) // 2] for c in chains] + [c[len(c) // 2:] for c in chains]
+        n = len(s[0])
+        means = np.array([x.mean() for x in s])
+        W = np.array([x.var(ddof=1) for x in s]).mean()
+        B = n * means.var(ddof=1)
+        return np.sqrt(((n - 1) / n * W + B / n) / W)
+
+    same = [chain(8.0, seed=s) for s in range(4)]
+    both = [chain(8.0 if s % 2 else -8.0, seed=s) for s in range(4)]
+    r_same, r_both = split_rhat(same), split_rhat(both)
+    x_same = np.concatenate(same)
+    left_frac = float(np.mean(x_same < 0))
+
+    assert r_same < 1.01, "갇힌 사슬이 문턱을 통과해야 이 그림의 이야기가 산다"
+    assert left_frac < 0.01, "한쪽 봉우리만 돌아야 한다"
+    assert r_both > r_same, "흩뜨려 출발하면 R-hat 이 더 커져야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.8, 4.0),
+                                   gridspec_kw={"width_ratios": [1.2, 1]})
+
+    # --- 왼쪽: 사슬이 본 것과 못 본 것 -------------------------------------
+    grid = np.linspace(-13, 13, 600)
+    dens = np.exp(logp(grid))
+    dens /= np.trapz(dens, grid)
+    ax1.plot(grid, dens, color=INK, lw=1.5, ls=":", label="the target")
+    ax1.fill_between(grid, 0, dens, where=grid < 0, color=INK, alpha=0.13)
+    ax1.hist(x_same, bins=np.linspace(-13, 13, 120), density=True,
+             color=ACCENT, alpha=0.65, label="all four chains")
+    ax1.annotate("never visited", xy=(-8, np.exp(logp(np.array([-8.0])))[0] /
+                                      np.trapz(np.exp(logp(grid)), grid)),
+                 xytext=(16, 34), textcoords="offset points", fontsize=8.8,
+                 color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=1.0))
+    ax1.set_xlabel("x", fontsize=9)
+    ax1.set_ylabel("density", fontsize=9)
+    ax1.set_title("half the distribution, missed entirely", fontsize=10,
+                  color=INK, weight="bold")
+    ax1.legend(fontsize=8.2, framealpha=0.9)
+    ax1.grid(alpha=0.12)
+
+    # --- 오른쪽: 그런데 진단은 통과한다 ------------------------------------
+    # 1.0013 과 문턱 1.01 의 차이가 보이려면 R-hat 자체가 아니라 R-hat - 1 을
+    # 로그로 그려야 한다. 한 축에 1.0013 과 8.53 을 같이 담을 길이 그것뿐이다.
+    ax2.bar([0, 1], [r_same - 1, r_both - 1], color=[ACCENT, INK], width=0.5,
+            alpha=0.85)
+    ax2.set_yscale("log")
+    ax2.axhline(0.01, color=INK, ls="--", lw=1.3)
+    ax2.text(1.45, 0.0115, "threshold", fontsize=8.4, color=INK,
+             va="bottom", ha="right")
+    for i, v in enumerate((r_same, r_both)):
+        ax2.text(i, (v - 1) * 1.45, f"R-hat {v:.4f}", ha="center",
+                 fontsize=9.2, color=INK, weight="bold")
+    ax2.set_xticks([0, 1])
+    ax2.set_xticklabels(["all started\nin one peak", "started on\nboth sides"],
+                        fontsize=9)
+    ax2.set_ylabel("split R-hat minus 1 (log)", fontsize=9)
+    ax2.set_ylim((r_same - 1) / 4, (r_both - 1) * 6)
+    ax2.set_title("only one of these is a warning", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.grid(alpha=0.13, axis="y", which="both")
+
+    for ax in (ax1, ax2):
+        ax.tick_params(labelsize=8, colors=INK)
+        for s in ax.spines.values():
+            s.set_color(INK)
+            s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.04,
+             f"{left_frac:.4f} of the draws landed in the left peak, which "
+             f"holds half the mass. the diagnostic reads {r_same:.4f}.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "rhat_trapped.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote rhat_trapped.svg   trapped R-hat {r_same:.4f} "
+          f"left {left_frac:.4f}   spread-out {r_both:.4f}")
+
+
 if __name__ == "__main__":
     rejected_samples_count()
     gibbs_acceptance_tells_nothing()
+    rhat_passes_while_trapped()
