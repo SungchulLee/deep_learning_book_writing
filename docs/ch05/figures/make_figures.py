@@ -1846,38 +1846,11 @@ def fig_shuffled_pixels():
           f"edge {edge_n:.0f}%->{edge_s:.0f}%)")
 
 
-if __name__ == "__main__":
-    fig_pca_reconstructions()
-    fig_recon_ladder()
-    fig_latent_2d()
-    fig_ae_vs_vae_2d()
-    fig_class_share()
-    fig_ae_linear_descent()
-    fig_cvae_label_sweep()
-    fig_two_rulers()
-    fig_forward_diffusion()
-    fig_kl_tradeoff()
-    fig_quality_vs_cost()
-    fig_gan_samples()
-    fig_gan_vs_dcgan()
-    fig_ddim_steps()
-    fig_rulers_disagree()
-    fig_step2_two_ladders()
-    fig_pearson_two_lines()
-    fig_diffusion_attention()
-    fig_gan_saturation()
-    fig_dcgan_bundle()
-    fig_ddim_invertible()
-    fig_cvae_condition()
-    fig_variety_ruler()
-    fig_where_nonlinearity()
-    fig_cifar_provenance()
-    fig_eps_units()
-    fig_outside_measured()
-    fig_nested_code()
-    fig_shuffled_pixels()
-
-
+# 아래 fig_samples 는 main 에서 부르지 않는다 — 학습해 둔 다섯 모델이
+# 있어야 돌아가는데 그 .pt 들이 저장소에 없기 때문이다. 쓸 때는 이
+# 함수만 따로 import 해서 부른다. 다만 정의는 반드시 main 보다 **위**에
+# 둔다 — main 아래의 정의는 스크립트를 직접 돌릴 때 실행 순서상 늦어,
+# main 에서 부르려 하면 NameError 가 난다.
 # === 그림 8: 네 모델이 만들어 낸 표본 =======================================
 @torch.no_grad()
 def fig_samples():
@@ -1949,3 +1922,35 @@ def fig_samples():
     fig.savefig("samples.svg", transparent=True)
     plt.close(fig)
     print("wrote samples.svg")
+
+
+if __name__ == "__main__":
+    fig_pca_reconstructions()
+    fig_recon_ladder()
+    fig_latent_2d()
+    fig_ae_vs_vae_2d()
+    fig_class_share()
+    fig_ae_linear_descent()
+    fig_cvae_label_sweep()
+    fig_two_rulers()
+    fig_forward_diffusion()
+    fig_kl_tradeoff()
+    fig_quality_vs_cost()
+    fig_gan_samples()
+    fig_gan_vs_dcgan()
+    fig_ddim_steps()
+    fig_rulers_disagree()
+    fig_step2_two_ladders()
+    fig_pearson_two_lines()
+    fig_diffusion_attention()
+    fig_gan_saturation()
+    fig_dcgan_bundle()
+    fig_ddim_invertible()
+    fig_cvae_condition()
+    fig_variety_ruler()
+    fig_where_nonlinearity()
+    fig_cifar_provenance()
+    fig_eps_units()
+    fig_outside_measured()
+    fig_nested_code()
+    fig_shuffled_pixels()
