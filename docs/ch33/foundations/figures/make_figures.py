@@ -135,5 +135,109 @@ def cospectral():
           f"atlas clashes {counts}")
 
 
+# === 그림으로 보는 AI: 그래프 이론의 첫 정리는 "없다" 였다 ====================
+#
+# 오일러 1736. 쾨니히스베르크의 땅 넷과 다리 일곱. 차수가 모두 홀수라 그런
+# 산책은 없다. 지리를 전부 버리고 **차수만** 남긴 것이 그래프라는 생각의 시작.
+# 다리를 하나 더 놓으면 답이 뒤집히는 것까지 직접 판정한다.
+
+def konigsberg():
+    import networkx as nx
+
+    G = nx.MultiGraph()
+    G.add_edges_from([("A", "B"), ("A", "B"), ("A", "C"), ("A", "C"),
+                      ("A", "D"), ("B", "D"), ("C", "D")])
+    deg = dict(G.degree())
+    odd = [v for v, d in deg.items() if d % 2 == 1]
+
+    G2 = G.copy()
+    G2.add_edge("B", "C")
+    odd2 = [v for v, d in dict(G2.degree()).items() if d % 2 == 1]
+
+    # --- 그림이 주장하는 것을 먼저 확인한다 -------------------------------
+    assert G.number_of_edges() == 7 and G.number_of_nodes() == 4
+    assert len(odd) == 4, "네 땅이 모두 홀수 차수여야 한다"
+    assert not nx.has_eulerian_path(G), "산책이 없어야 한다"
+    assert len(odd2) == 2 and nx.has_eulerian_path(G2), \
+        "다리 하나로 답이 뒤집혀야 한다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.6, 4.2),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    # --- 왼쪽: 일곱 다리 ---------------------------------------------------
+    pos = {"A": (0.50, 0.50), "B": (0.50, 0.86),
+           "C": (0.50, 0.14), "D": (0.90, 0.50)}
+    seen = {}
+    for u, v in G.edges():
+        key = tuple(sorted((u, v)))
+        i = seen.get(key, 0)
+        seen[key] = i + 1
+        rad = 0.0 if i == 0 else 0.42
+        ax1.annotate("", xy=pos[v], xytext=pos[u],
+                     arrowprops=dict(arrowstyle="-", color=ACCENT,
+                                     linewidth=1.9,
+                                     connectionstyle=f"arc3,rad={rad}"))
+    for v, (x, y) in pos.items():
+        ax1.scatter([x], [y], s=620, color=INK, zorder=4,
+                    edgecolors="white", linewidths=1.6)
+        ax1.text(x, y, f"{deg[v]}", color="white", fontsize=12,
+                 ha="center", va="center", zorder=5, weight="bold")
+    ax1.text(0.50, 0.50 - 0.12, "island", fontsize=8.2, color=INK,
+             ha="center", alpha=0.8)
+    ax1.text(0.17, 0.50, "seven bridges,\nfour pieces of land",
+             ha="center", va="center", fontsize=9, color=INK)
+    ax1.text(0.60, 0.02, "the number in each circle is its degree",
+             ha="center", fontsize=8.4, color=INK, alpha=0.8)
+    ax1.set_xlim(-0.02, 1.08)
+    ax1.set_ylim(-0.02, 1.0)
+    ax1.set_aspect("equal")
+    ax1.axis("off")
+    ax1.set_title("Konigsberg, 1736", fontsize=10, color=INK, weight="bold")
+
+    # --- 오른쪽: 규칙과 뒤집힘 ---------------------------------------------
+    rows = [("odd-degree nodes: 0", "a closed walk exists", MUTED),
+            ("odd-degree nodes: 2", "an open walk exists", MUTED),
+            ("anything else", "no such walk", ACCENT)]
+    for i, (lhs, rhs, col) in enumerate(rows):
+        y = 0.88 - i * 0.125
+        ax2.add_patch(plt.Rectangle((0.02, y - 0.052), 0.96, 0.104,
+                                    facecolor=col, alpha=0.12,
+                                    edgecolor=col, linewidth=0.8))
+        ax2.text(0.06, y, lhs, fontsize=8.8, color=INK, va="center",
+                 family="monospace")
+        ax2.text(0.94, y, rhs, fontsize=8.8, color=col, va="center",
+                 ha="right")
+    ax2.text(0.5, 0.515, f"Konigsberg has {len(odd)}", ha="center",
+             fontsize=11, color=ACCENT, weight="bold")
+    ax2.text(0.5, 0.425, "so Euler proved it cannot be done", ha="center",
+             fontsize=9, color=INK)
+
+    ax2.plot([0.08, 0.92], [0.345, 0.345], color=INK, linewidth=0.7,
+             alpha=0.35)
+    ax2.text(0.5, 0.265, "add one more bridge, B to C", ha="center",
+             fontsize=9, color=INK, style="italic")
+    ax2.text(0.5, 0.16, f"odd-degree nodes: {len(odd2)}", ha="center",
+             fontsize=10, color=MUTED, family="monospace", weight="bold")
+    ax2.text(0.5, 0.06, "and now the walk exists", ha="center",
+             fontsize=9.5, color=MUTED, weight="bold")
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0.02, 1.0)
+    ax2.axis("off")
+    ax2.set_title("counting, not walking", fontsize=10, color=INK,
+                  weight="bold")
+
+    fig.text(0.5, -0.02,
+             "the rivers, the distances and the shapes were thrown away. "
+             "only the degrees decided it.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "konigsberg.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote konigsberg.svg   degrees {deg}, odd {len(odd)} -> "
+          f"{len(odd2)} after one bridge")
+
+
 if __name__ == "__main__":
     cospectral()
+    konigsberg()
