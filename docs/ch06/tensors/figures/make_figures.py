@@ -1443,7 +1443,112 @@ def aliasing_three_ways():
     print(f"wrote aliasing_three_ways.svg   before={before} after={after}")
 
 
+# === 그림으로 보는 AI: empty 는 비어 있지 않다 ================================
+#
+# 왼쪽은 **직접 보인다** — 알아보기 쉬운 값으로 채운 텐서를 놓아준 뒤 같은 크기로
+# empty 를 부르면 그 값이 그대로 돌아온다. 오른쪽은 왜 그렇게 두는가, 곧 채우는
+# 값이 크기에 비례한다는 것. 수는 전부 여기서 직접 잰다.
+
+def empty_is_not_empty():
+    import gc
+    import time
+
+    import torch
+
+    MARK = 12345.0
+    n = 4096
+    old = torch.full((n,), MARK)
+    ptr = old.data_ptr()
+    del old
+    gc.collect()
+
+    trials, hits = 8, []
+    for _ in range(trials):
+        e = torch.empty(n)
+        hits.append((e.data_ptr() == ptr, int((e == MARK).sum())))
+        del e
+    seen = sum(1 for same, k in hits if k > 0)
+    assert seen > 0, "옛 값이 한 번도 안 보이면 이 그림의 이야기가 없다"
+
+    def bench(fn, reps=200):
+        for _ in range(20):
+            fn()
+        best = None
+        for _ in range(5):
+            t0 = time.perf_counter()
+            for _ in range(reps):
+                fn()
+            t = (time.perf_counter() - t0) / reps * 1e6
+            best = t if best is None else min(best, t)
+        return best
+
+    Ns = [10 ** 4, 10 ** 5, 10 ** 6, 10 ** 7]
+    t_e = [bench(lambda N=N: torch.empty(N)) for N in Ns]
+    t_z = [bench(lambda N=N: torch.zeros(N)) for N in Ns]
+    assert t_z[-1] > t_e[-1] * 10, "zeros 가 크기를 타야 이 그림의 이야기가 산다"
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.0, 4.0),
+                                   gridspec_kw={"width_ratios": [1, 1.15]})
+
+    # --- 왼쪽: 놓아준 값이 그대로 돌아온다 ---------------------------------
+    ax1.text(0.5, 0.92, f"a tensor full of {MARK:.0f}, then freed",
+             ha="center", fontsize=9.5, color=INK, style="italic")
+    for i in range(3):
+        y = 0.70 - i * 0.185
+        same, k = hits[i]
+        ax1.add_patch(plt.Rectangle((0.06, y - 0.055), 0.88, 0.125,
+                                    facecolor=ACCENT, alpha=0.13,
+                                    edgecolor=ACCENT, linewidth=0.9))
+        ax1.text(0.11, y + 0.008, f"torch.empty({n})", fontsize=9,
+                 family="monospace", color=INK, va="center")
+        ax1.text(0.90, y + 0.008, f"{k:,} of {n:,} still {MARK:.0f}",
+                 fontsize=8.6, color=ACCENT, ha="right", va="center",
+                 weight="bold")
+    ax1.text(0.5, 0.235, f"same address every time: "
+                         f"{sum(1 for s, _ in hits if s)}/{trials}",
+             ha="center", fontsize=8.6, color=INK)
+    ax1.text(0.5, 0.10, "freeing does not hand the memory back.\n"
+                        "it hands it to a pool, and empty skips the write.",
+             ha="center", va="center", fontsize=8.6, color=INK, alpha=0.9)
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0.02, 1.0)
+    ax1.axis("off")
+    ax1.set_title("what came back", fontsize=10, color=INK, weight="bold")
+
+    # --- 오른쪽: 채우는 값은 크기를 탄다 -----------------------------------
+    ax2.loglog(Ns, t_z, "s--", color=INK, linewidth=1.9, ms=6,
+               label="torch.zeros(N)")
+    ax2.loglog(Ns, t_e, "o-", color=ACCENT, linewidth=2.1, ms=6,
+               label="torch.empty(N)")
+    ax2.annotate(f"{t_z[-1] / t_e[-1]:,.0f}x apart",
+                 xy=(Ns[-1], t_z[-1]), xytext=(-104, -6),
+                 textcoords="offset points", fontsize=8.8, color=INK,
+                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.9))
+    ax2.set_xlabel("number of elements", fontsize=9)
+    ax2.set_ylabel("microseconds per call", fontsize=9)
+    ax2.set_title("why it is left unwritten", fontsize=10, color=INK,
+                  weight="bold")
+    ax2.legend(fontsize=8.4, loc="upper left", framealpha=0.9)
+    ax2.grid(alpha=0.13, which="both")
+    ax2.tick_params(labelsize=8, colors=INK)
+    for s in ax2.spines.values():
+        s.set_color(INK)
+        s.set_linewidth(0.7)
+
+    fig.text(0.5, -0.03,
+             "the flat line is the whole point - and the reason the numbers "
+             "it returns are somebody's, not nobody's.",
+             ha="center", fontsize=8.8, style="italic", color=INK)
+    fig.tight_layout()
+    fig.savefig(HERE / "empty_is_not_empty.svg", transparent=True,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote empty_is_not_empty.svg   옛 값 {seen}/{trials}   "
+          f"ratio {t_z[-1] / t_e[-1]:.0f}x")
+
+
 if __name__ == "__main__":
+    empty_is_not_empty()
     aliasing_three_ways()
     checkpoint_tradeoff()
     amdahl_ceiling()
