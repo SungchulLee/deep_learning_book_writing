@@ -2033,14 +2033,14 @@ def fig_lead_howmany():
     plt.close(fig); print("wrote lead_howmany.svg")
 
 
-def fig_lead_funnel():
+def fig_pca_funnel():
     """PCA-2 는 숫자를 뒤섞지 않고 네 곳으로 빨아들인다.
 
-    짝은 그 쪽 3절이 적은 것이고 이 저장소에서 직접 돌려 확인했다
-    (그림이 쓰는 열 장, 숫자마다 첫 장).
+    들머리에 있던 것을 3절로 옮겼다 — 그 절이 적는 「4와 9는 둘 다 7」이
+    바로 이 그림이다. 짝은 그 쪽 그림이 쓰는 열 장(숫자마다 첫 장)으로
+    PCA-2 를 돌려 심판에게 읽혀 얻은 것이고 이 저장소에서 확인했다.
     """
     dest = {0: 0, 1: 1, 2: 3, 3: 3, 4: 7, 5: 0, 6: 0, 7: 7, 8: 0, 9: 7}
-    targets = [0, 1, 3, 7]
     fig, ax = plt.subplots(figsize=(8.8, 4.3))
     ypos = {d: 9 - d for d in range(10)}
     tpos = {t: i for i, t in enumerate([7, 3, 1, 0])}
@@ -2066,10 +2066,87 @@ def fig_lead_funnel():
     ax.set_xticks([]); ax.set_yticks([]); ax.spines[:].set_visible(False)
     ax.set_title("squeeze a digit down to 2 numbers and back: "
                  "ten digits land on four", fontsize=11.5)
-    # 어느 숫자가 어디로 가는지는 화살표가 말한다. 아래에 글로 되풀이하지 않는다.
     fig.subplots_adjust(left=0.02, right=0.98, top=0.91, bottom=0.075)
-    fig.savefig("lead_funnel.svg", transparent=True)
-    plt.close(fig); print("wrote lead_funnel.svg")
+    fig.savefig("pca_funnel.svg", transparent=True)
+    plt.close(fig); print("wrote pca_funnel.svg")
+
+
+def fig_lead_projections(n=120):
+    """PCA 와 회귀가 갈리는 까닭 — 무엇까지의 거리를 줄이느냐가 다르다.
+
+    통계에서 쓰는 표준 그림이다. 같은 점에 두 직선을 긋고, 각 점에서
+    **자기 직선까지 내리는 선**을 함께 그린다. 왼쪽은 직선에 수직으로
+    내리고(PCA), 오른쪽은 세로로 곧장 내린다(최소제곱 회귀).
+
+    점은 이 쪽 상자의 `fig_pearson_two_lines` 와 **같은 자료**다 — 같은
+    생성기에 같은 씨앗 0, 같은 n = 120. 그래서 기울기도 그 그림과 똑같이
+    나오고(PCA 1.00, 회귀 0.75) 두 그림이 서로를 받친다.
+    """
+    rng = np.random.default_rng(0)
+    x = rng.normal(0, 1, n)
+    y = 0.8 * x + rng.normal(0, 0.6, n)
+    mx, my = x.mean(), y.mean()
+
+    b_ols, a_ols = np.polyfit(x, y, 1)
+    Xc = np.c_[x - mx, y - my]
+    Vt = np.linalg.svd(Xc, full_matrices=False)[2]
+    b_pca = Vt[0, 1] / Vt[0, 0]
+    a_pca = my - b_pca * mx
+
+    def perp_foot(bb, aa):
+        t = (x + bb * (y - aa)) / (1 + bb ** 2)
+        return t, aa + bb * t
+
+    # 각자 제 자로 재면 제가 이긴다 — 그림이 거짓말하지 않도록 못박는다
+    def perp_sse(bb, aa):
+        return float((((y - (aa + bb * x)) ** 2) / (1 + bb ** 2)).sum())
+    def vert_sse(bb, aa):
+        return float((((y - (aa + bb * x)) ** 2)).sum())
+    assert perp_sse(b_pca, a_pca) < perp_sse(b_ols, a_ols)
+    assert vert_sse(b_ols, a_ols) < vert_sse(b_pca, a_pca)
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.4, 4.9), sharex=True,
+                                   sharey=True)
+    xs = np.array([x.min() - 0.45, x.max() + 0.45])
+
+    # --- 왼쪽: PCA — 직선까지 수직으로 ------------------------------------
+    fx, fy = perp_foot(b_pca, a_pca)
+    for i in range(n):
+        axL.plot([x[i], fx[i]], [y[i], fy[i]], color="#c2410c", lw=0.9,
+                 alpha=0.45, zorder=2)
+    axL.plot(xs, a_pca + b_pca * xs, color="#c2410c", lw=2.3, zorder=3)
+    axL.scatter(x, y, s=15, color="0.35", zorder=4, linewidths=0)
+    axL.set_title(f"PCA — the line that sits closest to the cloud\n"
+                  f"slope {b_pca:.2f}", fontsize=11)
+    axL.text(0.97, 0.05, "every point drops at a right angle",
+             transform=axL.transAxes, fontsize=9.8, color="#c2410c",
+             ha="right", va="bottom")
+
+    # --- 오른쪽: 회귀 — 세로로 곧장 ---------------------------------------
+    for i in range(n):
+        axR.plot([x[i], x[i]], [y[i], a_ols + b_ols * x[i]], color="tab:blue",
+                 lw=0.9, alpha=0.45, zorder=2)
+    axR.plot(xs, a_ols + b_ols * xs, color="tab:blue", lw=2.3, zorder=3)
+    axR.scatter(x, y, s=15, color="0.35", zorder=4, linewidths=0)
+    axR.set_title(f"regression — the line that predicts y from x\n"
+                  f"slope {b_ols:.2f}", fontsize=11)
+    axR.text(0.97, 0.05, "every point drops straight down",
+             transform=axR.transAxes, fontsize=9.8, color="tab:blue",
+             ha="right", va="bottom")
+
+    for ax in (axL, axR):
+        ax.set_xlabel("x", fontsize=10)
+        ax.set_aspect("equal", adjustable="box")
+        ax.spines[["top", "right"]].set_visible(False)
+    axL.set_ylabel("y", fontsize=10)
+
+    fig.suptitle("same points, two different lines — because they shorten "
+                 "different distances", fontsize=12.5, y=0.985)
+    fig.subplots_adjust(left=0.065, right=0.985, top=0.80, bottom=0.11,
+                        wspace=0.12)
+    fig.savefig("lead_projections.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote lead_projections.svg  (PCA {b_pca:.2f}, OLS {b_ols:.2f})")
 
 
 def fig_lead_tie():
@@ -2591,7 +2668,8 @@ if __name__ == "__main__":
 
     # --- 들머리 그림 (쪽의 물음을 세우는 자리) ---------------------------
     fig_lead_howmany()
-    fig_lead_funnel()
+    fig_lead_projections()
+    fig_pca_funnel()
     fig_lead_tie()
     fig_lead_same_trick()
     fig_lead_flip()
