@@ -2150,23 +2150,58 @@ def fig_lead_projections(n=120):
 
 
 def fig_lead_tie():
-    """6만 번 고쳐 배웠는데 공식과 같은 자리에 선다."""
-    fig, ax = plt.subplots(figsize=(8.6, 3.9))
-    names = ["a formula,\nsolved once", "gradient descent,\n60,000 updates"]
-    vals = [0.09530, 0.09582]
-    bars = ax.barh([1, 0], vals, color=["tab:green", "#c2410c"], height=0.5)
-    for y, v in zip([1, 0], vals):
-        ax.text(v + 0.0016, y, f"{v:.5f}", va="center", fontsize=11)
-    ax.set_yticks([1, 0]); ax.set_yticklabels(names, fontsize=10.5)
-    ax.set_xlim(0, 0.125)
-    ax.set_xlabel("reconstruction error  (lower is better)", fontsize=10)
-    # 설명 문장은 본문의 몫이다 — 두 막대의 길이가 같다는 것이 요점이고,
-    # 그것은 막대 자신이 말한다.
-    ax.set_ylim(-0.62, 1.62)
-    ax.set_title("the same answer, reached two ways", fontsize=11.5)
-    ax.spines[["top", "right", "left"]].set_visible(False)
-    ax.tick_params(axis="y", length=0)
-    fig.subplots_adjust(left=0.23, right=0.97, top=0.86, bottom=0.22)
+    """같은 문제를 푸는 두 길. 방법이 다른 것이지 문제가 다른 것이 아니다.
+
+    요점은 **같은 식을 푼다**는 데 있다. 둘 다 「784개를 64개로 줄였다
+    되살렸을 때 제곱오차가 가장 작게」라는 한 문제를 풀고, 한쪽은 공식으로
+    한 번에, 한쪽은 조금씩 고쳐 가며 푼다. 그림이 그 관계를 보이도록
+    문제를 위에 한 번만 적고 두 길이 거기서 갈라져 나오게 했다.
+    """
+    fig = plt.figure(figsize=(9.6, 4.6))
+    ax = fig.add_axes([0, 0, 1, 1]); ax.set_xlim(0, 1); ax.set_ylim(0, 1)
+    ax.axis("off")
+
+    # --- 위: 둘이 함께 푸는 하나의 문제 ------------------------------------
+    ax.add_patch(plt.Rectangle((0.14, 0.76), 0.72, 0.17, facecolor="0.94",
+                               edgecolor="0.70", lw=1.2))
+    ax.text(0.5, 0.875, "one and the same problem", ha="center",
+            fontsize=11.5, weight="bold", color="0.2")
+    ax.text(0.5, 0.805,
+            "keep only 64 numbers, and make the squared error of the "
+            "rebuilt picture as small as it can be",
+            ha="center", fontsize=10, color="0.35")
+
+    # --- 갈라지는 두 길 -----------------------------------------------------
+    for x0, x1 in ((0.5, 0.29), (0.5, 0.71)):
+        ax.annotate("", xy=(x1, 0.655), xytext=(x0, 0.755),
+                    arrowprops=dict(arrowstyle="-|>", color="0.55", lw=1.6))
+    ax.text(0.325, 0.705, "solve it", ha="right", fontsize=9.5, color="0.45")
+    ax.text(0.675, 0.705, "search for it", ha="left", fontsize=9.5,
+            color="0.45")
+
+    routes = [(0.29, "tab:green", "a formula, once",
+               "eigen-decomposition — no seed, no epochs", 0.09530),
+              (0.71, "#c2410c", "gradient descent",
+               "100 epochs x 600 batches = 60,000 updates", 0.09582)]
+    for cx, col, name, how, val in routes:
+        ax.add_patch(plt.Rectangle((cx - 0.195, 0.47), 0.39, 0.185,
+                                   facecolor=col, alpha=0.13,
+                                   edgecolor=col, lw=1.4))
+        ax.text(cx, 0.595, name, ha="center", fontsize=11.5, weight="bold",
+                color=col)
+        ax.text(cx, 0.523, how, ha="center", fontsize=9.3, color="0.4")
+        ax.annotate("", xy=(cx, 0.345), xytext=(cx, 0.455),
+                    arrowprops=dict(arrowstyle="-|>", color=col, lw=1.6))
+        ax.text(cx, 0.265, f"{val:.5f}", ha="center", fontsize=19, color=col)
+
+    # --- 아래: 같은 자리에 닿는다 -------------------------------------------
+    ax.annotate("", xy=(0.60, 0.205), xytext=(0.40, 0.205),
+                arrowprops=dict(arrowstyle="<->", color="0.45", lw=1.3))
+    ax.text(0.5, 0.165, "0.00052 apart — and the search ends up on the "
+            "wrong side of it", ha="center", fontsize=10, color="0.35")
+    ax.text(0.5, 0.065, "reconstruction error on the test digits "
+            "(lower is better)", ha="center", fontsize=9, color="0.5")
+
     fig.savefig("lead_tie.svg", transparent=True)
     plt.close(fig); print("wrote lead_tie.svg")
 
