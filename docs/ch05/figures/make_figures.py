@@ -2380,6 +2380,183 @@ def fig_lead_average_blur():
           f"{d_best:.4f})")
 
 
+def fig_lead_loss_wanders():
+    """로스가 내려가면 좋아지는 것이 아니다. 01_gan 3절 표의 수."""
+    ep = [1, 10, 20, 30]
+    D = [0.811, 0.589, 1.026, 1.037]
+    G = [1.687, 2.607, 1.360, 1.310]
+    fig, ax = plt.subplots(figsize=(8.8, 4.2))
+    ax.plot(ep, D, "o-", color="tab:blue", lw=2.3, ms=8, label="the one that judges")
+    ax.plot(ep, G, "s-", color="#c2410c", lw=2.3, ms=8, label="the one that draws")
+    ax.axhline(2 * np.log(2), color="tab:blue", lw=1.0, ls=":")
+    ax.axhline(np.log(2), color="#c2410c", lw=1.0, ls=":")
+    ax.text(33.2, 2 * np.log(2), " balance 1.386", va="center", fontsize=9,
+            color="tab:blue")
+    ax.text(33.2, np.log(2), " balance 0.693", va="center", fontsize=9,
+            color="#c2410c")
+    for e, d, g in zip(ep, D, G):
+        ax.text(e, d - 0.16, f"{d:.3f}", ha="center", fontsize=9, color="tab:blue")
+        ax.text(e, g + 0.11, f"{g:.3f}", ha="center", fontsize=9, color="#c2410c")
+    ax.set_xticks(ep); ax.set_xlabel("epoch", fontsize=10)
+    ax.set_xlim(-1, 39); ax.set_ylim(0.3, 3.0)
+    ax.set_ylabel("loss", fontsize=10)
+    ax.legend(fontsize=9.5, frameon=False, loc="upper left")
+    ax.set_title("neither loss settles — and that is normal here",
+                 fontsize=11.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.085, right=0.90, top=0.88, bottom=0.14)
+    fig.savefig("lead_loss_wanders.svg", transparent=True)
+    plt.close(fig); print("wrote lead_loss_wanders.svg")
+
+
+def fig_lead_scoreboard_lies():
+    """성적표는 더 나쁘고 결과물은 더 좋다. 02_dcgan 의 표에서 옮긴 수."""
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.6, 4.2))
+    gapG, gapD = abs(1.310 - np.log(2)), abs(3.362 - np.log(2))
+    axL.bar([0, 1], [gapG, gapD], color=["0.72", "#b91c1c"], width=0.5)
+    for x, v, raw in zip([0, 1], [gapG, gapD], [1.310, 3.362]):
+        axL.text(x, v + 0.07, f"{v:.2f}", ha="center", fontsize=11)
+        axL.text(x, 0.12, f"loss {raw}", ha="center", fontsize=9, color="white")
+    axL.set_xticks([0, 1]); axL.set_xticklabels(["GAN", "DCGAN"], fontsize=11)
+    axL.set_ylim(0, 3.3)
+    axL.set_ylabel("how far the drawer's loss sits\nfrom the balance point",
+                   fontsize=10)
+    axL.set_title("the report card  (DCGAN looks worse)", fontsize=11,
+                  color="#b91c1c")
+    axL.spines[["top", "right"]].set_visible(False)
+
+    x = np.arange(2)
+    axR.bar(x - 0.19, [0.945, 0.953], 0.37, color="0.72", label="GAN")
+    axR.bar(x + 0.19, [0.970, 1.085], 0.37, color="tab:green", label="DCGAN")
+    for xi, (a, b) in zip(x, [(0.945, 0.970), (0.953, 1.085)]):
+        axR.text(xi - 0.19, a + 0.022, f"{a:.3f}", ha="center", fontsize=9.5)
+        axR.text(xi + 0.19, b + 0.022, f"{b:.3f}", ha="center", fontsize=9.5)
+    axR.set_xticks(x)
+    axR.set_xticklabels(["all ten made\nequally often", "as varied as\nreal handwriting"],
+                        fontsize=10)
+    axR.set_ylim(0, 1.32)
+    axR.legend(fontsize=9.5, frameon=False, loc="upper left")
+    axR.set_title("the pictures  (DCGAN is better)", fontsize=11,
+                  color="tab:green")
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.subplots_adjust(left=0.095, right=0.98, top=0.86, bottom=0.15,
+                        wspace=0.3)
+    fig.savefig("lead_scoreboard_lies.svg", transparent=True)
+    plt.close(fig); print("wrote lead_scoreboard_lies.svg")
+
+
+def fig_lead_price_in_time():
+    """값이 품질이 아니라 시간으로 옮겨 간다.
+
+    가로축은 **그림 한 장에 그물을 몇 번 지나는가**다. 이 수는 5장의 표에
+    그대로 있다(1, 10, 1,000). 초는 쪽이 적어 둔 자리에만 붙인다 —
+    한 번짜리 모델의 초는 이 책이 재지 않았으므로 지어내지 않는다.
+    """
+    names = ["GAN / DCGAN", "DDIM, 10 steps", "DDPM, 1,000 steps"]
+    passes = [1, 10, 1000]
+    secs = [None, 26, 2495]
+    cols = ["0.72", "tab:green", "#b91c1c"]
+    y = [2, 1, 0]                       # 위에서부터 GAN, DDIM, DDPM
+
+    fig, ax = plt.subplots(figsize=(9.4, 3.8))
+    ax.barh(y, passes, color=cols, height=0.52)
+    for yy, pz, sc in zip(y, passes, secs):
+        txt = f"{pz:,} pass" + ("es" if pz > 1 else "")
+        if sc is not None:
+            txt += f"   —   {sc:,} s" + ("  (42 min)" if sc > 1000 else "")
+        ax.text(pz * 1.35, yy, txt, va="center", fontsize=10.5,
+                color="#b91c1c" if pz == 1000 else "0.3")
+    ax.set_yticks(y); ax.set_yticklabels(names, fontsize=10.5)
+    ax.set_xscale("log"); ax.set_xlim(0.8, 250000)
+    ax.set_xlabel("times through the network for one picture", fontsize=10)
+    ax.text(1.0, -0.72, "the one-pass models are not timed in seconds on "
+            "this page, so none is shown for them",
+            fontsize=8.8, color="0.5")
+    ax.set_ylim(-0.95, 2.6)
+    ax.set_title("the bill moved — from how good to how long", fontsize=11.5)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    fig.subplots_adjust(left=0.20, right=0.97, top=0.86, bottom=0.23)
+    fig.savefig("lead_price_in_time.svg", transparent=True)
+    plt.close(fig); print("wrote lead_price_in_time.svg")
+
+
+def fig_lead_never_a_digit(t_show=400):
+    """그물은 숫자를 그리라는 말을 들은 적이 없다.
+
+    진짜 MNIST 한 장에 이 쪽의 일정으로 잡음을 섞어 t 시각 그림을 만들고,
+    거기 섞인 잡음을 나란히 둔다. 그물이 보는 것도 맞혀야 하는 것도 숫자가
+    아니다. 씨앗을 박아 두어 돌릴 때마다 같은 그림이 나온다.
+    """
+    T = 1000
+    ab = np.cumprod(1 - np.linspace(1e-4, 0.02, T))
+    tf = transforms.ToTensor()
+    te = torchvision.datasets.MNIST(DATA, train=False, download=True,
+                                    transform=tf)
+    from torch.utils.data import DataLoader
+    X = torch.cat([x for x, _ in DataLoader(te, batch_size=2000)])
+    x0 = (X[0, 0] * 2 - 1).numpy()
+    rng = np.random.default_rng(0)
+    eps = rng.normal(size=x0.shape)
+    a = ab[t_show - 1]
+    xt = np.sqrt(a) * x0 + np.sqrt(1 - a) * eps
+
+    fig, axes = plt.subplots(1, 4, figsize=(10.4, 3.2))
+    panels = [(x0, "the real digit\n(the net never sees this)", "0.45"),
+              (xt, f"what the net is shown\n(step {t_show} of 1,000)", "0.2"),
+              (eps, "what it must name\n(the noise that was added)", "#c2410c"),
+              (None, None, None)]
+    for ax, (im, ttl, c) in zip(axes, panels):
+        if im is None:
+            ax.axis("off")
+            ax.text(0.5, 0.52, "neither of the two\npictures it works with\n"
+                    "is a digit", ha="center", va="center", fontsize=11,
+                    color="#c2410c", transform=ax.transAxes)
+            continue
+        ax.imshow(im, cmap="gray_r")
+        ax.set_xticks([]); ax.set_yticks([])
+        for sp in ax.spines.values():
+            sp.set_color(c); sp.set_linewidth(1.6 if c != "0.45" else 0.8)
+        ax.set_title(ttl, fontsize=9.8, color=c)
+    fig.suptitle("the machine is never once asked to draw a digit",
+                 fontsize=12, y=0.975)
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.70, bottom=0.03,
+                        wspace=0.12)
+    fig.savefig("lead_never_a_digit.svg", transparent=True)
+    plt.close(fig); print("wrote lead_never_a_digit.svg")
+
+
+def fig_lead_96x():
+    """같은 웨이트로 뽑는 법만 바꾼다. 02_ddim 3절 표."""
+    steps = [1000, 100, 50, 20, 10]
+    secs = [2495, 290, 158, 69, 26]
+    conf = [0.940, 0.924, 0.923, 0.916, 0.904]
+    fig, ax = plt.subplots(figsize=(8.8, 4.2))
+    ax.plot(secs, conf, "o-", color="#c2410c", lw=2.2, ms=8)
+    for s_, c_, st in zip(secs, conf, steps):
+        ax.annotate(f"{st} steps", xy=(s_, c_), xytext=(0, 11),
+                    textcoords="offset points", ha="center", fontsize=9.5,
+                    color="0.35")
+        ax.annotate(f"{c_:.3f}", xy=(s_, c_), xytext=(0, -17),
+                    textcoords="offset points", ha="center", fontsize=9.5,
+                    color="#c2410c")
+    ax.annotate("", xy=(26, 0.884), xytext=(2495, 0.884),
+                arrowprops=dict(arrowstyle="<->", color="0.45", lw=1.2))
+    ax.text(255, 0.879, "96x faster, and 0.036 of confidence given up",
+            ha="center", va="top", fontsize=10, color="0.35")
+    ax.set_xscale("log")
+    ax.set_xlabel("seconds to draw 5,000 pictures", fontsize=10)
+    ax.set_ylabel("does it still look like a digit?", fontsize=10)
+    ax.set_ylim(0.868, 0.955)
+    ax.set_title("same weights, never retrained — only the way of drawing changed",
+                 fontsize=11.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.10, right=0.975, top=0.88, bottom=0.14)
+    fig.savefig("lead_96x.svg", transparent=True)
+    plt.close(fig); print("wrote lead_96x.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
