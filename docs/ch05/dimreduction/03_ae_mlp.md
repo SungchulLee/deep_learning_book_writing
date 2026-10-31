@@ -137,8 +137,9 @@ if __name__ == "__main__":
           f"인코더 {enc_p:,}  같은 숫자로 {identity(rec):.2f}%")
     if k == 64:
         torch.save(m.state_dict(), "mnist_ae_mlp64.pt")   # 5.3절이 읽어 쓴다
-    if k == 2:                                  # 잠재 공간 그림에 쓸 좌표
-        with torch.no_grad():
+    if k == 2:
+        torch.save(m.state_dict(), "mnist_ae_mlp2.pt")    # 3절이 읽어 쓴다
+        with torch.no_grad():                   # 잠재 공간 그림에 쓸 좌표
             z = torch.cat([m.enc(Xte[i:i + 1000].to(device)).cpu()
                            for i in range(0, len(Xte), 1000)])
         torch.save((z, yte), "mnist_ae_mlp2_latent.pt")
@@ -220,7 +221,157 @@ MSE로는 28% 나아졌을 뿐인데 **숫자 정체는 두 배 가까이 올랐
 
 가운데 AE_MLP-2는 숫자마다 다른 방향으로 갈라져 나간다. **70.13%가 이 갈라짐이다.**
 
-오른쪽은 그 잠재 공간을 격자로 훑어 하나하나 디코딩한 것이다. 가운데 언저리에서는 숫자들이 서로 이어지며 모양이 부드럽게 바뀌고, 바깥으로 가면 뭉개진다.
+오른쪽은 그 잠재 공간을 격자로 훑어 하나하나 디코딩한 것이다. 숫자들이 서로 이어지며 모양이 부드럽게 바뀐다.
+
+### 빈 곳을 복호하면 정말 숫자가 아닌가
+
+**여기서 눈에 걸리는 것이 하나 있다.** 가운데 그림에는 점이 하나도 없는 **빈 곳**이 넓은데, 오른쪽 격자에는 그 자리에도 멀쩡한 숫자가 들어앉아 있다. 뭉개진 얼룩이 나와야 할 것 같은데 그렇지 않다.
+
+짐작하지 말고 재자. 격자는 잠재 표현의 2~98 분위를 16×16으로 훑는다. 칸마다 **가장 가까운 시험 잠재 표현까지의 거리**와, 복호한 그림을 심판에게 보였을 때의 **확신도**를 짝지으면 된다.
+
+```python
+"""빈 곳을 복호하면 정말 숫자가 아닌가 — 격자 칸마다 재어 본다.
+
+3절의 격자 그림에는 점이 하나도 없는 자리에도 멀쩡한 숫자가 들어앉아 있다.
+짐작하지 말고 칸마다 재자 — 가장 가까운 시험 잠재 표현까지의 거리와,
+복호한 그림을 심판에게 보였을 때의 확신도를 짝짓는다.
+
+읽는 것: 위 블록이 남긴 mnist_ae_mlp2.pt 와 5.1절 개요가 남긴 mnist_judge.pt.
+실행: 이 쪽의 코드를 파일로 갈무리해 저장소 뿌리에서 돌린다.
+"""
+import torch
+import torch.nn as nn
+import torchvision
+import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
+
+MEAN, STD = 0.1307, 0.3081
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+tf = transforms.Compose([transforms.ToTensor(),
+                         transforms.Normalize((MEAN,), (STD,))])
+te_ds = torchvision.datasets.MNIST("./data", train=False, download=True,
+                                   transform=tf)
+Xte = torch.cat([x for x, _ in DataLoader(te_ds, batch_size=2000)])
+Xte = Xte.reshape(-1, 784)
+
+
+# === 두 모델 ================================================================
+class MLPAE(nn.Module):
+    def __init__(self, k):
+        super().__init__()
+        self.enc = nn.Sequential(nn.Linear(784, 256), nn.ReLU(),
+                                 nn.Linear(256, k))
+        self.dec = nn.Sequential(nn.Linear(k, 256), nn.ReLU(),
+                                 nn.Linear(256, 784))
+
+
+class JudgeCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+def load(cls, path, *a):
+    m = cls(*a)
+    m.load_state_dict(torch.load(path, map_location="cpu", weights_only=True))
+    return m.eval()
+
+
+# === 격자: 3절 그림이 쓰는 것과 똑같이 2~98 분위 상자를 16x16 ================
+@torch.no_grad()
+def main():
+    ae = load(MLPAE, "mnist_ae_mlp2.pt", 2)
+    judge = load(JudgeCNN, "mnist_judge.pt")
+
+    z = ae.enc(Xte)
+    lo, hi = z.quantile(0.02, dim=0), z.quantile(0.98, dim=0)
+    mid, half, n = (lo + hi) / 2, (hi - lo) / 2, 16
+    gx = torch.linspace(lo[0], hi[0], n); gy = torch.linspace(lo[1], hi[1], n)
+    cells = torch.stack([torch.stack([x, y]) for y in gy.flip(0) for x in gx])
+    step = ((gx[1] - gx[0]) + (gy[1] - gy[0])) / 2
+
+    def probe(pts):
+        """(최근접 잠재 거리, 반지름 안의 점 수, 확신도, 화소 최근접 거리)."""
+        d = torch.cdist(pts, z)
+        img = ae.dec(pts)
+        conf = judge(img.reshape(-1, 1, 28, 28)).softmax(dim=1).max(1).values
+        return (d.min(dim=1).values, (d < step / 2).sum(dim=1), conf,
+                torch.cdist(img, Xte).min(dim=1).values)
+
+    nn_d, cnt, conf, _ = probe(cells)
+    empty = cnt == 0
+    order = nn_d.argsort(); q = len(order) // 4
+
+    print(f"  격자 칸 사이 간격 {step:.3f}")
+    print(f"  점이 하나도 없는 칸  {empty.sum().item()}/256   "
+          f"확신도 {conf[empty].mean():.3f}")
+    print(f"  점이 있는 칸         {(~empty).sum().item()}/256   "
+          f"확신도 {conf[~empty].mean():.3f}")
+    print(f"  가장 가까운 64칸  거리 {nn_d[order[:q]].mean():.3f}  "
+          f"확신도 {conf[order[:q]].mean():.3f}")
+    print(f"  가장 먼 64칸      거리 {nn_d[order[-q:]].mean():.3f}  "
+          f"확신도 {conf[order[-q:]].mean():.3f}")
+    print("  최근접 거리와 확신도의 상관 "
+          f"{torch.corrcoef(torch.stack([nn_d, conf]))[0, 1]:+.3f}")
+
+    ref = torch.cdist(Xte[:500], Xte).kthvalue(2, dim=1).values.mean()
+    print(f"\n  상자를 넓히면 (진짜 시험 그림끼리의 최근접 거리 {ref:.2f})")
+    for s in (1.0, 2.0, 5.0, 10.0):
+        L, H = mid - half * s, mid + half * s
+        ax = torch.linspace(L[0], H[0], n); ay = torch.linspace(L[1], H[1], n)
+        pts = torch.stack([torch.stack([x, y]) for y in ay.flip(0) for x in ax])
+        d, _, cf, px = probe(pts)
+        cls = judge(ae.dec(pts).reshape(-1, 1, 28, 28)).argmax(1)
+        print(f"    {s:4.1f}배  잠재 거리 {d.mean():6.2f}  "
+              f"화소 거리 {px.mean():6.2f}  확신도 {cf.mean():.3f}  "
+              f"숫자 {len(set(cls.tolist()))}가지")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+**출력:**
+
+```
+  격자 칸 사이 간격 1.090
+  점이 하나도 없는 칸  17/256   확신도 0.889
+  점이 있는 칸         239/256   확신도 0.883
+  가장 가까운 64칸  거리 0.038  확신도 0.900
+  가장 먼 64칸      거리 0.481  확신도 0.885
+  최근접 거리와 확신도의 상관 +0.005
+
+  상자를 넓히면 (진짜 시험 그림끼리의 최근접 거리 14.93)
+     1.0배  잠재 거리   0.20  화소 거리  13.22  확신도 0.883  숫자 10가지
+     2.0배  잠재 거리   3.07  화소 거리  22.88  확신도 0.951  숫자 10가지
+     5.0배  잠재 거리  21.16  화소 거리  95.49  확신도 0.959  숫자 8가지
+    10.0배  잠재 거리  54.06  화소 거리 231.59  확신도 0.977  숫자 7가지
+```
+
+**빈 곳이라고 나빠지지 않는다.** 점이 하나도 없는 17칸의 확신도가 **0.889**로, 점이 있는 239칸의 0.883과 같다. 가장 먼 64칸(0.481)과 가장 가까운 64칸(0.038)도 0.885 대 0.900이다. 거리와 확신도의 **상관이 +0.005**이니 사실상 관계가 없다.
+
+까닭은 **디코더가 내놓을 수 있는 그림의 가짓수**에 있다. 디코더는 수 2개를 받아 784개를 내놓는데, 받는 것이 2개뿐이니 **내놓을 수 있는 그림 전체가 784차원 안의 2차원 면**이다. 무엇을 집어넣든 그 면 위의 한 점이 나온다. 학습이 그 면을 숫자들에 꿰매 놓았으므로 숫자와 숫자 사이는 **잡음이 아니라 중간 모양**이 된다. 잡음이 될 자유도가 애초에 없다.
+
+그러면 상자를 넓히면 어떻게 되는가. 열 배로 넓혀 보았다.
+
+![칸이 둘인 그림. 왼쪽은 쪽이 보이는 2~98 분위 상자를 복호한 격자로 또렷한 숫자들이고 진짜 숫자까지의 화소 거리가 13.22, 심판 확신도가 0.883이다. 오른쪽은 같은 상자를 열 배로 넓혀 복호한 것으로 여전히 잡음이 아니라 획이 과장된 숫자꼴인데 진짜 숫자까지의 거리가 231.59로 멀어지고 심판 확신도는 오히려 0.977로 올라간다](../figures/no_noise.svg)
+
+**오른쪽도 잡음이 아니다.** 잠재 공간에서 평균 54.06만큼 떨어진 자리 — 격자 간격 1.09의 쉰 배다 — 인데 나오는 것은 여전히 숫자꼴이다. 달라지는 것은 획이 과장되고 가짓수가 줄어든다는 점으로, 열 가지였던 것이 일곱 가지가 된다.
+
+**그런데 심판은 오히려 더 자신 있어 한다.** 0.883에서 **0.977**로 올라간다. 같은 그림을 화소로 재면 반대 방향이다 — 진짜 MNIST 그림까지의 거리가 13.22에서 **231.59**로 열일곱 배 멀어진다.
+
+견줄 자리를 적어 두면, **진짜 시험 그림끼리 가장 가까운 것들 사이가 평균 14.93**이다. 곧 왼쪽 격자의 그림들은 **진짜 숫자끼리 떨어진 만큼도 안 떨어져 있고**(13.22 대 14.93), 오른쪽 것들은 그 열다섯 배 밖에 있다.
+
+그러니 이 자리에서 **확신도는 믿을 자가 아니다.** 본 적 없는 입력에 대고 자신 있게 답하는 것은 심판의 성질이지 그림의 성질이 아니다. [장 개요](../index.md)가 「자를 만들어 놓고 그 자가 무엇을 재는지 다시 캐물어야 하는 자리가 여러 번 나온다」고 적은 그 자리가 여기다.
 
 ---
 
@@ -228,9 +379,11 @@ MSE로는 28% 나아졌을 뿐인데 **숫자 정체는 두 배 가까이 올랐
 
 되살리기는 잘된다. 그렇다면 **없던 그림을 만들 수 있는가?**
 
-만들려면 잠재 공간에서 점 하나를 **뽑아** 디코딩하면 된다. 그런데 어디서 뽑아야 하는가? 위 그림을 보면 점들이 고르게 퍼져 있지 않다. 클래스 사이에는 점이 없는 **빈 곳**이 있고, 전체가 어떤 모양으로 퍼져 있는지도 정해진 바가 없다.
+만들려면 잠재 공간에서 점 하나를 **뽑아** 디코딩하면 된다. 그런데 어디서 뽑아야 하는가?
 
-**오토인코더는 잠재 표현을 만드는 법을 배웠을 뿐, 잠재 표현이 어떻게 분포하는지는 배우지 않았다.** 로스 어디에도 잠재 표현을 어떤 모양으로 퍼뜨리라는 요구가 없다.
+3절이 재어 본 바로는 **2차원에서는 아무 데서나 뽑아도 숫자가 나온다.** 그러니 여기서는 말썽이 없어 보인다. 문제는 그것이 **2차원이어서인지 오토인코더라서인지** 아직 모른다는 데 있다.
+
+**오토인코더는 잠재 표현을 만드는 법을 배웠을 뿐, 잠재 표현이 어떻게 분포하는지는 배우지 않았다.** 로스 어디에도 잠재 표현을 어떤 모양으로 퍼뜨리라는 요구가 없다. 2차원에서 그것이 탈이 나지 않은 것은 **퍼질 자리가 좁아서**이지 배워서가 아니다.
 
 그렇다면 실제로 뽑아 보면 어떻게 되는가? [다음 쪽](06_sampling.md)이 점 열 개를 뽑아 넣어 보고, 답이 **잠재 차원에 달려 있음**을 보인다. 위의 2차원 그림에서 짐작하는 것과 64차원에서 실제로 벌어지는 일이 다르다.
 

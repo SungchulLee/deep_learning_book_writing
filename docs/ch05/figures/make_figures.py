@@ -178,8 +178,15 @@ def fig_recon_ladder():
 def fig_latent_2d():
     """왼쪽은 흩어진 점, 오른쪽은 그 공간을 격자로 훑어 복호한 것.
 
-    오토인코더의 잠재 공간에는 **빈 곳**이 있다는 점이 요점이다. 빈 곳을
-    복호하면 숫자가 아닌 것이 나온다. VAE가 고치려는 것이 바로 이것이다.
+    **이 독스트링은 한때 「빈 곳을 복호하면 숫자가 아닌 것이 나온다」고
+    적고 있었는데, 이 그림 자체가 그것을 반박한다.** 잠재 차원이 2 일 때는
+    빈 칸도 멀쩡한 숫자를 내놓는다. 재어 보면 점이 하나도 없는 칸의 확신도가
+    0.889 로 점이 있는 칸의 0.883 과 같고, 최근접 거리와 확신도의 상관이
+    +0.005 다. 까닭은 06_sampling 이 재어 둔 대로 **2차원에는 빗나갈 자리가
+    거의 없기** 때문이다(덮는 자리가 참 분포의 1.01배. 64차원에서는 576배).
+
+    빈 곳이 말썽이 되는 것은 잠재 차원이 커진 뒤이고, VAE 가 고치려는 것도
+    그쪽이다. 격자는 2~98 분위 상자만 훑는다는 점도 함께 적어 둔다.
     """
     (Xtr, _), (Xte, yte) = load_flat()
     mu, evecs, _ = pca_basis(Xtr)
@@ -216,6 +223,57 @@ def fig_latent_2d():
     fig.savefig("latent_2d.svg", transparent=True)
     plt.close(fig)
     print("wrote latent_2d.svg")
+
+
+@torch.no_grad()
+def fig_no_noise():
+    """상자를 열 배로 넓혀도 디코더는 잡음을 내지 못한다.
+
+    디코더가 닿을 수 있는 그림 전체가 잠재 차원과 같은 2차원 곡면이므로,
+    무엇을 넣든 그 곡면 위에 떨어진다. 그래서 바깥으로 나가도 「잡음」이
+    아니라 **더 과장된 숫자꼴**이 나온다 - 진짜 숫자에서는 멀어지는데
+    심판은 오히려 더 자신 있어 한다. 자를 의심해야 하는 자리다.
+
+    수는 docs/ch05/dimreduction/03_ae_mlp.md 3절이 싣는 것과 같다.
+    """
+    (_, _), (Xte, _) = load_flat()
+    ae = load(MLPAE, 2, "ae_mlp2")
+    judge = JudgeCNN()
+    judge.load_state_dict(torch.load(f"{MODELS}/mnist_judge.pt",
+                                     map_location="cpu", weights_only=True))
+    judge.eval()
+
+    z = ae.enc(Xte)
+    lo, hi = z.quantile(0.02, dim=0), z.quantile(0.98, dim=0)
+    mid, half = (lo + hi) / 2, (hi - lo) / 2
+    n = 16
+
+    fig, axes = plt.subplots(1, 2, figsize=(9.2, 5.0))
+    for ax, sc in zip(axes, (1.0, 10.0)):
+        L, H = mid - half * sc, mid + half * sc
+        gx = torch.linspace(L[0], H[0], n); gy = torch.linspace(L[1], H[1], n)
+        pts = torch.stack([torch.stack([x, y]) for y in gy.flip(0) for x in gx])
+        img = ae.dec(pts)
+        canvas = img.reshape(n, n, 28, 28)
+        canvas = torch.cat([torch.cat([canvas[i, j] for j in range(n)], dim=1)
+                            for i in range(n)], dim=0)
+        ax.imshow((canvas * STD + MEAN).clamp(0, 1), cmap="gray",
+                  vmin=0, vmax=1)
+        conf = judge(img.reshape(-1, 1, 28, 28)).softmax(dim=1).max(1).values
+        px = torch.cdist(img, Xte).min(dim=1).values
+        ax.set_title(f"the same box, {sc:g}x wider" if sc > 1
+                     else "the box the page shows", fontsize=11.5)
+        ax.set_xlabel(f"nearest real digit: {px.mean():.2f}      "
+                      f"judge: {conf.mean():.3f}", fontsize=10.5)
+        ax.set_xticks([]); ax.set_yticks([])
+    fig.text(0.5, 0.045,
+             "real digits sit 14.93 from their own nearest neighbour.  "
+             "ten times out it is still a digit shape - never noise.",
+             ha="center", fontsize=10, color="0.35")
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.93, bottom=0.14,
+                        wspace=0.08)
+    fig.savefig("no_noise.svg", transparent=True)
+    plt.close(fig); print("wrote no_noise.svg")
 
 
 class VAEModel(nn.Module):
@@ -2798,6 +2856,7 @@ if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
     fig_latent_2d()
+    fig_no_noise()
     fig_ae_vs_vae_2d()
     fig_class_share()
     fig_ae_linear_descent()
