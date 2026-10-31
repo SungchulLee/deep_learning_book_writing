@@ -2559,12 +2559,19 @@ def fig_lead_kl_buys():
     ax.text(2.12, bal[2], "are all ten made\nequally often?", va="center",
             fontsize=10, color="tab:green")
     ax.set_xticks(x); ax.set_xticklabels(models, fontsize=11)
-    ax.set_xlim(-0.35, 3.25); ax.set_ylim(0.46, 1.03)
+    # 두 자를 한 축에 겹쳐 그리므로 눈금의 뜻을 밝혀 둔다. 둘 다 0~1 이고
+    # 1 이 가장 좋은데 1 의 뜻이 서로 다르다 - 그것은 글이 적는다
+    ax.axhline(1.0, color="0.65", ls=":", lw=1.2)
+    ax.text(-0.3, 1.012, "1.00  the most either ruler can give", fontsize=9.5,
+            color="0.5")
+    ax.set_ylabel("score   0 = worst,  1 = best", fontsize=10.5)
+    ax.set_xlim(-0.35, 3.25); ax.set_ylim(0.46, 1.09)
     ax.set_yticks([])
     ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.set_yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     ax.set_title("adding the new term: one ruler barely moves, "
                  "the other leaps", fontsize=11.5)
-    fig.subplots_adjust(left=0.04, right=0.98, top=0.88, bottom=0.12)
+    fig.subplots_adjust(left=0.115, right=0.98, top=0.88, bottom=0.13)
     fig.savefig("lead_kl_buys.svg", transparent=True)
     plt.close(fig); print("wrote lead_kl_buys.svg")
 
