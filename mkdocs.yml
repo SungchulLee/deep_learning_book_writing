@@ -108,7 +108,7 @@ nav:
         - "EfficientNet — 깊이·너비·해상도의 복합 스케일링": ch04/11_transfer_efficientnet.md
         - "ConvNeXt — 트랜스포머 설계를 반영한 CNN": ch04/14_transfer_convnext.md
         - "ViT — 비전 트랜스포머": ch04/12_transfer_vit.md
-    - 5 MNIST로 보는 생성:
+    - 5 MNIST와 CIFAR-10으로 보는 생성:
       - 장 개요: ch05/index.md
       - 5.1 차원축소:
         - "차원 축소 방법 개요": ch05/dimreduction/index.md
