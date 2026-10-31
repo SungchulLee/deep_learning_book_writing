@@ -292,6 +292,173 @@ if __name__ == "__main__":
 
 ---
 
+## 3. VAE는 잠재 표현을 **만든** 것이 아니라 **민** 것이다
+
+여기까지 읽으면 이렇게 정리하기 쉽다 — 오토인코더는 잠재 표현이 어디 있는지 모르고, VAE는 $N(0, I)$에 두었다. **반만 맞다.** KL 항은 잠재 표현을 $N(0, I)$ **쪽으로 밀** 뿐이고, 되살리기 항이 반대로 당긴다. 둘이 겨룬 끝에 어디에 앉았는지는 **재어 보아야** 안다.
+
+가르는 길이 둘 있다.
+
+- **(가)** 인코더가 내놓는 평균들을 모아 **좌표마다 표준편차**를 잰다. 정말 $N(0, I)$가 되었다면 64개가 모두 1 언저리여야 한다.
+- **(나)** 「$N(0, I)$에서 뽑기」와 「제 잠재 표현에 **맞춘** 정규분포에서 뽑기」를 견준다. 정말 $N(0, I)$라면 **둘이 같은 값**을 내야 한다.
+
+[5.1절의 마지막 쪽](../dimreduction/06_sampling.md)이 오토인코더에 건 바로 그 시험이다.
+
+```python
+"""VAE 는 잠재 표현을 N(0, I) 로 「만든」 것인가 「민」 것인가.
+
+가르는 길이 둘 있다.
+
+  (가) 인코더가 내놓는 평균들을 모아 좌표마다 표준편차를 재 본다.
+       정말 N(0, I) 가 되었다면 64개 좌표가 모두 1 언저리여야 한다.
+  (나) 「N(0, I) 에서 뽑기」와 「제 잠재 표현에 맞춘 정규분포에서 뽑기」를
+       견준다. 정말 N(0, I) 라면 둘이 같은 값을 내야 한다.
+
+읽는 것: 위 블록이 남긴 mnist_vae64_beta1.0.pt 와 5.1절 개요가 남긴
+mnist_judge.pt. 실행: 이 쪽의 코드를 파일로 갈무리해 저장소 뿌리에서 돌린다.
+"""
+import torch
+import torch.nn as nn
+import torchvision
+import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
+
+SEED, N_SAMPLE, K = 42, 5000, 64
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+tf = transforms.Compose([transforms.ToTensor(),
+                         transforms.Normalize((0.1307,), (0.3081,))])
+te_ds = torchvision.datasets.MNIST("./data", train=False, download=True,
+                                   transform=tf)
+Xte = torch.cat([x.flatten(1) for x, _ in DataLoader(te_ds, batch_size=2000)])
+
+
+class VAE(nn.Module):
+    def __init__(self, k, n_cond=0):
+        super().__init__()
+        self.enc = nn.Sequential(nn.Linear(784 + n_cond, 256), nn.ReLU())
+        self.mu = nn.Linear(256, k); self.logvar = nn.Linear(256, k)
+        self.dec = nn.Sequential(nn.Linear(k + n_cond, 256), nn.ReLU(),
+                                 nn.Linear(256, 784))
+
+
+class JudgeCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+
+def load(cls, path, *a):
+    m = cls(*a)
+    m.load_state_dict(torch.load(path, map_location="cpu", weights_only=True))
+    return m.eval().to(device)
+
+
+@torch.no_grad()
+def read(flat):
+    """심판에게 읽히고 (평균 확신도, 클래스 균형도, 가장 많은 클래스 몫, 그 숫자)."""
+    p = torch.cat([judge(flat[i:i + 1000].reshape(-1, 1, 28, 28).to(device))
+                   .softmax(1).cpu() for i in range(0, len(flat), 1000)])
+    conf, lab = p.max(1)
+    share = torch.bincount(lab, minlength=10).float() / len(lab)
+    nz = share[share > 0]
+    bal = float(-(nz * nz.log()).sum() / torch.tensor(10.0).log())
+    return float(conf.mean()), bal, float(share.max()), int(share.argmax())
+
+
+@torch.no_grad()
+def main():
+    c, b, mx, d = read(Xte)
+    print(f"  진짜 시험 그림 10,000장   확신도 {c:.3f}  균형도 {b:.3f}  "
+          f"가장 많은 숫자 {mx * 100:.1f}% ({d})\n")
+
+    # (가) 인코더가 내놓는 평균들이 정말 N(0, I) 처럼 퍼져 있는가
+    z = torch.cat([vae.mu(vae.enc(Xte[i:i + 1000].to(device))).cpu()
+                   for i in range(0, len(Xte), 1000)])
+    sd = z.std(0)
+    print(f"  좌표 {K}개의 표준편차   평균 {sd.mean():.3f}  "
+          f"최소 {sd.min():.3f}  최대 {sd.max():.3f}   (N(0,I) 라면 모두 1.000)")
+    for t in (0.1, 0.5, 0.9):
+        print(f"    표준편차가 {t} 보다 작은 좌표   {int((sd < t).sum()):2d}개 / {K}")
+
+    # (나) 뽑는 자리를 바꾸면 값이 달라지는가
+    print()
+    g = torch.Generator().manual_seed(SEED)
+    base = torch.randn(N_SAMPLE, K, generator=g)
+    for name, pts in [("N(0, I)", base), ("맞춘 정규분포", base * sd + z.mean(0))]:
+        s = torch.cat([vae.dec(pts[i:i + 1000].to(device)).cpu()
+                       for i in range(0, N_SAMPLE, 1000)])
+        c, b, mx, d = read(s)
+        print(f"  {name:12s} 확신도 {c:.3f}  균형도 {b:.3f}  "
+              f"가장 많은 숫자 {mx * 100:.1f}% ({d})")
+
+
+if __name__ == "__main__":
+    vae = load(VAE, "mnist_vae64_beta1.0.pt", K)
+    judge = load(JudgeCNN, "mnist_judge.pt")
+    main()
+```
+
+**출력:**
+
+```
+  진짜 시험 그림 10,000장   확신도 0.992  균형도 0.999  가장 많은 숫자 11.4% (1)
+
+  좌표 64개의 표준편차   평균 0.657  최소 0.040  최대 1.084   (N(0,I) 라면 모두 1.000)
+    표준편차가 0.1 보다 작은 좌표   14개 / 64
+    표준편차가 0.5 보다 작은 좌표   19개 / 64
+    표준편차가 0.9 보다 작은 좌표   39개 / 64
+
+  N(0, I)      확신도 0.769  균형도 0.877  가장 많은 숫자 35.6% (3)
+  맞춘 정규분포      확신도 0.773  균형도 0.886  가장 많은 숫자 34.4% (3)
+```
+
+### (가) $N(0, I)$가 되지 않았다
+
+좌표 64개의 표준편차가 **평균 0.657**이고 **최소 0.040**이다. $N(0, I)$라면 모두 1.000이어야 한다.
+
+| 표준편차가 이보다 작은 좌표 | 개수 |
+|---|---|
+| 0.1 | **14개 / 64** |
+| 0.5 | 19개 / 64 |
+| 0.9 | 39개 / 64 |
+
+**64개 가운데 14개는 사실상 쓰이지 않는다.** 어떤 그림이 들어와도 그 좌표의 값이 거의 움직이지 않는다는 뜻이다. 잠재 표현 전체를 보면 $N(0, I)$라는 둥근 공이 아니라, **그보다 낮은 차원에 납작하게 눌린 무엇**이다.
+
+### (나) 그런데 그 어긋남이 결과를 거의 바꾸지 않는다
+
+| 뽑는 자리 | 확신도 | 균형도 | 가장 많은 숫자 |
+|---|---|---|---|
+| $N(0, I)$ | 0.769 | 0.877 | 3이 35.6% |
+| 맞춘 정규분포 | 0.773 | **0.886** | 3이 34.4% |
+
+**0.009 차이다.** (가)에서 본 어긋남이 그렇게 큰데도, 자리를 정확히 맞추어 준 것이 거의 아무것도 벌지 못한다.
+
+오토인코더에서는 같은 처방이 **0.438에서 0.533으로 0.095**를 벌었다([5.1절 마지막 쪽](../dimreduction/06_sampling.md)). 열 배 넘게 큰 차이인데도 거기서는 여전히 실패였다.
+
+### 그래서 VAE가 산 것은 무엇인가
+
+**「잠재 표현이 정확히 $N(0, I)$가 되는 것」이 아니다.** 그것은 사지 못했다. 산 것은 **그 언저리 어디서 뽑아도 숫자가 나오는 것**이다. 자리를 조금 틀리게 잡아도 결과가 거의 같다는 (나)가 바로 그 뜻이고, 오토인코더에는 그것이 없어서 어디서 뽑느냐가 중요했는데 **어느 자리도 듣지 않았다.**
+
+그리고 **다 가지지도 못했다.**
+
+| | 균형도 | 가장 많은 숫자 |
+|---|---|---|
+| 진짜 시험 그림 10,000장 | **0.999** | 1이 11.4% |
+| VAE-64 표본 5,000장 | 0.877 | 3이 35.6% |
+
+진짜 자료는 0.999이고 가장 많은 숫자도 11.4%로 고른 몫(10%)에 거의 붙어 있다. VAE는 0.877이고 3 하나가 **셋에 하나**를 차지한다. **민 것이지 맞춘 것이 아니다.**
+
+그러니 「오토인코더는 못 하고 VAE는 한다」로 읽으면 반만 맞다. 정확히는 — **민 것이고, 미는 것으로 충분했으며, 그래도 끝까지 가지는 못했다.** 더 세게 밀면 어떻게 되는지가 [다음 쪽](02_beta_vae.md)의 손잡이다. 그리고 거기서도 공짜가 아니다.
+
+---
+
 ## 연습문제
 
 <div class="drillbox" markdown>
