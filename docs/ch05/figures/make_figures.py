@@ -2564,7 +2564,9 @@ def fig_lead_kl_buys():
     ax.axhline(1.0, color="0.65", ls=":", lw=1.2)
     ax.text(-0.3, 1.012, "1.00  the most either ruler can give", fontsize=9.5,
             color="0.5")
-    ax.set_ylabel("score   0 = worst,  1 = best", fontsize=10.5)
+    # 바닥이 서로 다르다 - 확신도는 0.10(열 칸 균등), 고름은 0(한 숫자만).
+    # 그러니 「0 = worst」라고 적으면 안 된다
+    ax.set_ylabel("score   1 = best for both", fontsize=10.5)
     ax.set_xlim(-0.35, 3.25); ax.set_ylim(0.46, 1.09)
     ax.set_yticks([])
     ax.spines[["top", "right", "left"]].set_visible(False)
