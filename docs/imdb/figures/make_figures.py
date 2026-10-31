@@ -381,6 +381,132 @@ def fig_lead_frozen_flip():
     plt.close(fig); print("wrote lead_frozen_flip.svg")
 
 
+def fig_lead_spread():
+    """4걸음: 읽어야 할 것은 81.51 이 아니라 4.74 다."""
+    import matplotlib.pyplot as plt
+    rows = [("step 2   linear",    78.69, 78.92, 78.80, 0.23, "0.55"),
+            ("step 3   average",   86.92, 87.26, 87.03, 0.34, "0.55"),
+            ("step 4   LSTM",      78.76, 83.51, 81.51, 4.74, "#b91c1c")]
+    fig, ax = plt.subplots(figsize=(9.0, 3.5))
+    for i, (name, lo, hi, mu, sp, c) in enumerate(rows):
+        y = 2 - i
+        ax.plot([lo, hi], [y, y], lw=9, color=c, alpha=0.30,
+                solid_capstyle="butt")
+        ax.plot([mu], [y], "o", ms=10, color=c)
+        ax.text(hi + 0.35, y, f"spread {sp:.2f}", va="center", fontsize=10.5,
+                color=c)
+    ax.axvline(78.80, color="0.55", ls=":", lw=1.3)
+    ax.annotate("worst of five seeds: 78.76\nbelow step 2's average",
+                xy=(78.76, 0), xytext=(79.6, -0.62), fontsize=10,
+                color="#b91c1c",
+                arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.2))
+    ax.set_yticks([2, 1, 0]); ax.set_yticklabels([r[0] for r in rows],
+                                                 fontsize=10.5)
+    ax.set_ylim(-0.95, 2.6); ax.set_xlim(78.0, 89.6)
+    ax.set_xlabel("accuracy over five seeds, IMDB test set  (%)", fontsize=10.5)
+    ax.set_title("the dot is the score; the bar is whether to believe it",
+                 fontsize=11.5)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    fig.subplots_adjust(left=0.19, right=0.97, top=0.86, bottom=0.26)
+    fig.savefig("lead_spread.svg", transparent=True)
+    plt.close(fig); print("wrote lead_spread.svg")
+
+
+def fig_lead_path_vs_spread():
+    """5걸음: 흔들린 하나만 경로가 길다."""
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(figsize=(8.6, 4.0))
+    # 3걸음과 5걸음은 두 축 모두에서 사실상 같은 자리다. 겹쳐 그리는 것이
+    # 이 그림의 요점이므로 하나를 테두리로 두어 둘 다 보이게 한다.
+    ax.plot([1], [0.34], "o", ms=22, mfc="none", mec="0.45", mew=2.2)
+    ax.plot([1], [0.33], "o", ms=12, color="#15803d")
+    ax.annotate("step 3  average     spread 0.34\n"
+                "step 5  attention   spread 0.33\n"
+                "(the same place on both axes)",
+                xy=(1, 0.33), xytext=(22, 6), textcoords="offset points",
+                fontsize=10.5, color="0.25")
+    ax.plot([400], [4.74], "o", ms=13, color="#b91c1c")
+    ax.annotate("step 4  LSTM\nspread 4.74", xy=(400, 4.74), xytext=(-16, -4),
+                textcoords="offset points", fontsize=10.5, color="#b91c1c",
+                ha="right")
+    ax.set_xscale("log"); ax.set_xticks([1, 10, 100, 400])
+    ax.set_xticklabels(["1", "10", "100", "400"])
+    ax.set_xlim(0.55, 1400); ax.set_ylim(-0.6, 6.0)
+    ax.set_xlabel("steps a word must pass through to reach the output, "
+                  "at most  (log)", fontsize=10.5)
+    ax.set_ylabel("spread over five seeds\n(points)", fontsize=10.5)
+    ax.set_title("the only model with a long path is the only unsteady one",
+                 fontsize=11.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.13, right=0.97, top=0.87, bottom=0.17)
+    fig.savefig("lead_path_vs_spread.svg", transparent=True)
+    plt.close(fig); print("wrote lead_path_vs_spread.svg")
+
+
+def fig_lead_steady_not_top():
+    """6걸음: 가장 안 흔들리는데 가장 높지는 않다.
+
+    흔들림이 0.17 에서 4.74 까지 28배 벌어져 있어 세로를 로그로 둔다.
+    선형 눈금이면 LSTM 하나가 다 차지하고 나머지 넷이 바닥에 붙는다.
+    """
+    import matplotlib.pyplot as plt
+    pts = [("step 2  linear",      78.80, 0.23, "0.55",   (0, 15), "center"),
+           ("step 4  LSTM",        81.51, 4.74, "#b91c1c", (0, -24), "center"),
+           ("step 6  transformer", 85.98, 0.17, "#1d4ed8", (0, -26), "center"),
+           ("step 5  attention",   86.11, 0.33, "0.45",   (-8, 16), "center"),
+           ("step 3  average",     87.03, 0.34, "#15803d", (13, -4), "left")]
+    fig, ax = plt.subplots(figsize=(8.8, 4.2))
+    for name, x, y, c, off, ha in pts:
+        ax.plot([x], [y], "o", ms=12, color=c)
+        ax.annotate(name, xy=(x, y), xytext=off, textcoords="offset points",
+                    ha=ha, fontsize=10.5, color=c)
+    ax.axvline(87.03, color="#15803d", ls=":", lw=1.3)
+    ax.text(86.80, 3.4, "the ceiling is still step 3", ha="right",
+            fontsize=10.5, color="#15803d")
+    ax.axhline(0.17, color="#1d4ed8", ls=":", lw=1.3)
+    ax.text(79.9, 0.185, "steadiest run of the chapter", fontsize=10.5,
+            color="#1d4ed8")
+    ax.set_yscale("log")
+    ax.set_yticks([0.2, 0.5, 1, 2, 5])
+    ax.set_yticklabels(["0.2", "0.5", "1", "2", "5"])
+    ax.minorticks_off()
+    ax.set_xlim(77.7, 90.6); ax.set_ylim(0.11, 9.0)
+    ax.set_xlabel("accuracy, IMDB test set  (%)", fontsize=10.5)
+    ax.set_ylabel("spread over five seeds\n(points, log)", fontsize=10.5)
+    ax.set_title("steadiest is not highest", fontsize=11.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.13, right=0.97, top=0.88, bottom=0.16)
+    fig.savefig("lead_steady_not_top.svg", transparent=True)
+    plt.close(fig); print("wrote lead_steady_not_top.svg")
+
+
+def fig_lead_protocol_flip():
+    """별점: 같은 두 모델인데 재는 자리를 옮기면 부호가 바뀐다."""
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(figsize=(8.0, 4.0))
+    vals = [0.80, -1.46]
+    cols = ["#15803d", "#b91c1c"]
+    labs = ["measured at epoch 5\n(this chapter's protocol)",
+            "measured at each model's\nown best epoch"]
+    ax.bar([0, 1], vals, width=0.42, color=cols)
+    for x, v in zip([0, 1], vals):
+        ax.text(x, v + (0.13 if v > 0 else -0.21), f"{v:+.2f} points",
+                ha="center", fontsize=12, color=cols[0 if v > 0 else 1])
+    ax.axhline(0, color="0.3", lw=1.2)
+    ax.set_xticks([0, 1]); ax.set_xticklabels(labs, fontsize=10.5)
+    ax.set_xlim(-0.6, 1.6); ax.set_ylim(-2.2, 1.5)
+    ax.set_ylabel("attention minus average\n(8-class accuracy, points)",
+                  fontsize=10.5)
+    ax.set_title("same two models, same data - the ruler moved, the sign flipped",
+                 fontsize=11.5)
+    ax.spines[["top", "right", "bottom"]].set_visible(False)
+    ax.tick_params(axis="x", length=0)
+    fig.subplots_adjust(left=0.17, right=0.97, top=0.87, bottom=0.19)
+    fig.savefig("lead_protocol_flip.svg", transparent=True)
+    plt.close(fig); print("wrote lead_protocol_flip.svg")
+
+
 if __name__ == "__main__":
     fig_lstm_curves()
     fig_rung23_curves()
@@ -390,3 +516,7 @@ if __name__ == "__main__":
     fig_lead_words()
     fig_lead_embed_dim()
     fig_lead_frozen_flip()
+    fig_lead_spread()
+    fig_lead_path_vs_spread()
+    fig_lead_steady_not_top()
+    fig_lead_protocol_flip()
