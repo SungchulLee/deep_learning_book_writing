@@ -2435,7 +2435,7 @@ def fig_lead_worse_than_nothing():
 
     fig.suptitle("four careful steps, and none of them beats doing nothing",
                  fontsize=12.5, y=0.985)
-    fig.text(0.5, 0.02, "every number read off this page's own tables.",
+    fig.text(0.5, 0.02, "CIFAR-10 - every number read off this page's own tables.",
              ha="center", fontsize=8.8, color="0.45")
     fig.subplots_adjust(left=0.075, right=0.98, top=0.80, bottom=0.17,
                         wspace=0.22)
