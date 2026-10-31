@@ -2021,7 +2021,8 @@ def fig_lead_howmany():
     ax.set_xticks(xs)
     ax.set_xticklabels([f"{k}\nnumbers" for k in ks], fontsize=10)
     ax.set_ylim(0, 112)
-    ax.set_ylabel("still reads as the same digit", fontsize=10)
+    ax.set_ylabel("the chapter-3 CNN still reads\nthe same digit  (%)",
+                  fontsize=10)
     ax.axhline(98.83, color="0.45", lw=1.0, ls="--")
     # 설명 문장도 이름표도 적지 않는다. 바로 아래 본문이 같은 말을 하고,
     # 점선은 맨 오른쪽 784 막대의 꼭대기와 같은 높이라 저 혼자 읽힌다.
@@ -2030,6 +2031,10 @@ def fig_lead_howmany():
     # 어느 방법으로 줄인 것인지 밝히는 이름표. 이 절은 방법을 넷 시험하는데
     # 이 막대는 그 가운데 첫째(PCA)로 잰 것이다.
     ax.text(-0.42, 105, "PCA", fontsize=11, color="0.45")
+    # 맨 오른쪽 막대는 줄이지 않은 원본이다. 100 이 아닌 까닭은 심판 자신이
+    # 그만큼밖에 못 맞히기 때문이고, 점선이 그 천장이다.
+    ax.text(4.46, 105, "ceiling = the judge itself", ha="right", fontsize=9.5,
+            color="0.55")
     ax.spines[["top", "right"]].set_visible(False)
     fig.subplots_adjust(left=0.10, right=0.98, top=0.88, bottom=0.14)
     fig.savefig("lead_howmany.svg", transparent=True)
