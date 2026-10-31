@@ -143,6 +143,29 @@
 .md-typeset .storybox > :first-child { margin-top: 0.6rem; }
 .md-typeset .storybox > :last-child { margin-bottom: 0.6rem; }
 
+/* 자두 상자(.leadbox) 「들어가는 이야기」 — 쪽이 푸는 물음을 쪽의 **맨 앞**에서
+   연다. 교과서체로 바로 들어가는 대신, 바깥 세상의 어느 자리나 이 쪽이 뒤에서
+   뒤집을 물음 하나로 시작한다.
+
+   위의 호박빛 storybox 와 갈래가 다르다. storybox 는 **연재**라 쪽 안에서 1부터
+   번호를 매기고 그 쪽의 어느 블록에 딸리지만, 이것은 **역할**이다 — 쪽마다
+   하나뿐이고 늘 맨 앞이라 번호가 언제나 1이 되어 아무것도 가리지 못하므로
+   번호를 매기지 않는다. `~/Documents/book/statistics_in_korean` 에서 꼴을 가져왔다.
+
+   점선이 아니라 왼쪽 굵은 띠를 쓴다. 점선은 storybox 의 「인용해 온 옛 물건」
+   느낌이고, 들머리는 인용이 아니라 **이 책이 거는 말**이기 때문이다. */
+.md-typeset .leadbox {
+    margin: 1.6em 0 1.8em;
+    padding: 0.1rem 0.9rem;
+    border: 0.05rem solid rgba(140, 90, 150, 0.40);
+    border-left: 0.22rem solid #8c5a96;
+    border-radius: 0 0.1rem 0.1rem 0;
+    background-color: rgba(140, 90, 150, 0.03);
+}
+
+.md-typeset .leadbox > :first-child { margin-top: 0.6rem; }
+.md-typeset .leadbox > :last-child { margin-bottom: 0.6rem; }
+
 .md-typeset .drillbox {
     margin: 1.6em 0;
     padding: 0.1rem 0.8rem;
