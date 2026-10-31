@@ -2206,6 +2206,86 @@ def fig_lead_tie():
     plt.close(fig); print("wrote lead_tie.svg")
 
 
+def fig_lead_curved(n=110):
+    """같은 규칙, 다른 꼴 — 곧은 선과 굽은 선에 저마다 수직으로 내린다.
+
+    01_pca 들머리의 왼쪽 칸을 그대로 이어받는다. 거기서는 곧은 선에
+    수직으로 내렸는데, 여기서는 **굽은 선**에 수직으로 내린다. 내리는
+    규칙은 글자 그대로 같고 **허락된 꼴만 다르다.**
+
+    자료는 굽은 길 위에 흩뿌린 점이다(씨앗 1). 오른쪽 곡선은 그 점들에
+    **맞춘** 것이지 만들 때 쓴 곡선을 그대로 보여 주는 것이 아니다 —
+    주성분 방향으로 펴서 3차 다항식을 최소제곱으로 맞춘다. 두 손해는
+    촘촘히 찍은 점까지의 거리를 재서 여기서 셈한다.
+
+    2차원 장난감이다. 이 쪽이 실제로 하는 일은 784차원에서 64차원짜리
+    굽은 면을 찾는 것이라 그림으로 그릴 수 없다.
+    """
+    rng = np.random.default_rng(1)
+    t = rng.uniform(-2.0, 2.0, n)
+    cx, cy = t, 0.40 * t ** 3 - 1.05 * t      # 굽은 길 (S자)
+    dydt = 1.20 * t ** 2 - 1.05
+    nx, ny = -dydt, np.ones_like(t)           # 그 길의 법선
+    nn_ = np.hypot(nx, ny); nx, ny = nx / nn_, ny / nn_
+    r = rng.normal(0, 0.17, n)
+    x, y = cx + r * nx, cy + r * ny
+
+    mx, my = x.mean(), y.mean()
+    Vt = np.linalg.svd(np.c_[x - mx, y - my], full_matrices=False)[2]
+    d = Vt[0]                                  # 제1주성분 방향
+    u = (x - mx) * d[0] + (y - my) * d[1]      # 선 위 좌표
+    v = -(x - mx) * d[1] + (y - my) * d[0]     # 선에서 떨어진 거리
+    sse_line = float((v ** 2).sum())
+
+    coef = np.polyfit(u, v, 3)                 # 편 좌표에서 곡선을 맞춘다
+    us = np.linspace(u.min() - 0.15, u.max() + 0.15, 1200)
+    vs = np.polyval(coef, us)
+    curve = np.c_[mx + us * d[0] - vs * d[1], my + us * d[1] + vs * d[0]]
+    line = np.c_[mx + us * d[0], my + us * d[1]]
+
+    def feet(target):
+        k = np.argmin((target[None, :, 0] - x[:, None]) ** 2 +
+                      (target[None, :, 1] - y[:, None]) ** 2, axis=1)
+        return target[k]
+    fl, fc = feet(line), feet(curve)
+    sse_curve = float((((x - fc[:, 0]) ** 2 + (y - fc[:, 1]) ** 2)).sum())
+    assert sse_curve < sse_line            # 굽은 쪽이 이겨야 그림이 참이다
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.4, 4.9), sharex=True,
+                                   sharey=True)
+    for ax, (foot, path, col, ttl, sub) in zip(
+            (axL, axR),
+            [(fl, line, "#c2410c", "a straight line",
+              "the best straight line there is"),
+             (fc, curve, "tab:green", "a curved line",
+              "same rule, only the shape is freer")]):
+        for i2 in range(n):
+            ax.plot([x[i2], foot[i2, 0]], [y[i2], foot[i2, 1]], color=col,
+                    lw=0.9, alpha=0.45, zorder=2)
+        ax.plot(path[:, 0], path[:, 1], color=col, lw=2.4, zorder=3)
+        ax.scatter(x, y, s=15, color="0.35", zorder=4, linewidths=0)
+        ax.set_title(f"{ttl}\n{sub}", fontsize=11, color=col)
+        ax.set_aspect("equal", adjustable="box")
+        ax.set_xticks([]); ax.set_yticks([])
+        ax.spines[:].set_visible(False)
+    axL.text(0.5, -0.02, f"total squared distance  {sse_line:.1f}",
+             transform=axL.transAxes, ha="center", fontsize=10.5,
+             color="#c2410c")
+    axR.text(0.5, -0.02, f"total squared distance  {sse_curve:.1f}",
+             transform=axR.transAxes, ha="center", fontsize=10.5,
+             color="tab:green")
+
+    fig.suptitle("every point still drops at a right angle — "
+                 "only what it drops onto has changed", fontsize=12.5,
+                 y=0.975)
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.78, bottom=0.09,
+                        wspace=0.06)
+    fig.savefig("lead_curved.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote lead_curved.svg  (line {sse_line:.1f} -> curve "
+          f"{sse_curve:.1f}, {100*(1-sse_curve/sse_line):.0f}% less)")
+
+
 def fig_lead_same_trick():
     """같은 수법이 숫자에서는 벌고 사진에서는 못 번다."""
     fig, ax = plt.subplots(figsize=(8.4, 4.0))
@@ -2706,6 +2786,7 @@ if __name__ == "__main__":
     fig_lead_projections()
     fig_pca_funnel()
     fig_lead_tie()
+    fig_lead_curved()
     fig_lead_same_trick()
     fig_lead_flip()
     fig_lead_worse_than_nothing()
