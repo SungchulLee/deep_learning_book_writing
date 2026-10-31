@@ -1924,6 +1924,86 @@ def fig_samples():
     print("wrote samples.svg")
 
 
+def fig_who_wins():
+    """자 넷을 들이대면 금메달이 갈린다.
+
+    수는 모두 5장 개요의 표에서 옮긴 것이고 여기서 다시 재지 않는다.
+    차례는 그 수로 **코드가 매긴다** — 손으로 적지 않으므로 표를 고치면
+    시상대도 따라 바뀐다.
+
+    값싸기 칸만 꼴이 다르다. 넷이 순전파 1회로 **똑같이 1등**이라 한 칸에
+    묶어 적고, 두 자에서 1등을 한 DDPM 이 여기서 꼴찌라는 것을 함께 보인다.
+    억지로 하나를 세우면(이름 차례 따위로) 없는 우열을 지어내게 된다.
+    """
+    models = ["AE", "VAE", "GAN", "DCGAN", "DDPM", "DDIM"]
+    conf = [0.737, 0.758, 0.908, 0.909, 0.940, 0.904]
+    bal = [0.580, 0.887, 0.945, 0.970, 0.986, 0.971]
+    var = [0.640, 0.628, 0.953, 1.085, 1.047, 0.979]       # 진짜가 1.00
+    fwd = [1, 1, 1, 1, 1000, 10]
+
+    quality = [("does it still look\nlike a digit?", [-c for c in conf]),
+               ("are all ten made\nequally often?", [-b for b in bal]),
+               ("as varied as real\nhandwriting?", [abs(v - 1.0) for v in var])]
+
+    fig, axes = plt.subplots(1, 4, figsize=(13.2, 4.4),
+                             gridspec_kw={"width_ratios": [1, 1, 1, 1.25]})
+    GOLD, GREY = "#c89b1e", "0.74"
+    winners = []
+
+    for ax, (name, key) in zip(axes, quality):
+        order = sorted(range(6), key=lambda i: (key[i], models[i]))[:3]
+        winners.append(models[order[0]])
+        for slot, (rank, h) in enumerate(zip([1, 0, 2], [0.66, 1.0, 0.44])):
+            i = order[rank]
+            gold = rank == 0
+            ax.add_patch(plt.Rectangle((slot - 0.45, 0), 0.90, h,
+                                       facecolor=GOLD if gold else GREY,
+                                       edgecolor="white", lw=2))
+            ax.text(slot, h / 2, models[i], ha="center", va="center",
+                    fontsize=11.5 if gold else 10,
+                    color="white" if gold else "0.2",
+                    weight="bold" if gold else "normal")
+            ax.text(slot, h + 0.05, str(rank + 1), ha="center", fontsize=9.5,
+                    color="0.45")
+        ax.set_title(name, fontsize=10.5, color="0.2")
+        ax.set_xlim(-0.8, 2.8); ax.set_ylim(0, 1.45)
+        ax.set_xticks([]); ax.set_yticks([]); ax.spines[:].set_visible(False)
+
+    # --- 값싸기: 시상대가 아니라 값 그대로 ---------------------------------
+    # 넷이 순전파 1회로 똑같다. 억지로 하나를 세우면(이름 차례 따위로) 없는
+    # 우열을 지어내게 되므로, 여기만 꼴을 바꾸어 값을 그대로 늘어놓는다.
+    ax = axes[3]
+    o = sorted(range(6), key=lambda i: (fwd[i], models[i]))
+    y = np.arange(6)[::-1]
+    cols = ["#b91c1c" if fwd[i] == max(fwd) else GOLD if fwd[i] == 1 else GREY
+            for i in o]
+    ax.barh(y, [fwd[i] for i in o], color=cols, height=0.62)
+    for yy, i in zip(y, o):
+        ax.text(fwd[i] * 1.35, yy, f"{fwd[i]:,}", va="center", fontsize=9.5,
+                color="#b91c1c" if fwd[i] == max(fwd) else "0.35")
+    ax.set_yticks(y); ax.set_yticklabels([models[i] for i in o], fontsize=9.5)
+    ax.set_xscale("log"); ax.set_xlim(0.7, 6000)
+    ax.set_xticks([1, 10, 100, 1000]); ax.set_xticklabels(["1", "10", "100", "1,000"],
+                                                          fontsize=8.5)
+    ax.set_xlabel("passes through the network", fontsize=9)
+    ax.text(3.4, 3.45, "four tie\nat one", fontsize=9, color="#9a7714")
+    ax.set_title("how cheap is\none picture?", fontsize=10.5, color="0.2")
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+
+    uniq = len(set(winners))
+    fig.suptitle("the same six machines, judged four ways — and the gold "
+                 "medal keeps moving", fontsize=12.5, y=0.985)
+    fig.text(0.5, 0.025, "ranked by the code straight from chapter 5's own "
+             "table; nothing here was re-measured.", ha="center",
+             fontsize=8.8, color="0.45")
+    fig.subplots_adjust(left=0.02, right=0.975, top=0.76, bottom=0.145,
+                        wspace=0.18)
+    fig.savefig("who_wins.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote who_wins.svg  (quality winners: {winners} -> {uniq} distinct)")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -1954,3 +2034,4 @@ if __name__ == "__main__":
     fig_outside_measured()
     fig_nested_code()
     fig_shuffled_pixels()
+    fig_who_wins()
