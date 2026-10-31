@@ -2023,13 +2023,8 @@ def fig_lead_howmany():
     ax.set_ylim(0, 112)
     ax.set_ylabel("still reads as the same digit", fontsize=10)
     ax.axhline(98.83, color="0.45", lw=1.0, ls="--")
-    ax.annotate("64 of the 784 keep\nalmost everything —\n12x smaller, 1.02 points lost",
-                xy=(3.0, 96.0), xytext=(1.72, 52), fontsize=10,
-                color="tab:green", ha="center",
-                arrowprops=dict(arrowstyle="->", color="tab:green", lw=1.2))
-    ax.annotate("2 is far too few", xy=(0, 35.66), xytext=(0.55, 26),
-                fontsize=10, color="#b91c1c",
-                arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.2))
+    # 설명 문장도 이름표도 적지 않는다. 바로 아래 본문이 같은 말을 하고,
+    # 점선은 맨 오른쪽 784 막대의 꼭대기와 같은 높이라 저 혼자 읽힌다.
     ax.set_title("how many of a digit's 784 numbers do you actually need?",
                  fontsize=11.5)
     ax.spines[["top", "right"]].set_visible(False)
