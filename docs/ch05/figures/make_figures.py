@@ -2316,55 +2316,60 @@ def fig_lead_same_trick():
 
 
 def fig_lead_flip():
-    """같은 바꿈인데 한 번은 내려가고 한 번은 올라간다.
+    """뒤집힘은 과적합이 아니다 — 잠재 2 에서 conv 는 학습 오차마저 높다.
 
-    가로는 인코더가 지닌 파라메터 수, 세로는 복원 오차다. 화살표는 둘 다
-    **완전 연결에서 컨볼루션으로** 가는 같은 바꿈인데, 잠재 64 에서는
-    왼쪽아래(적게 쓰고 더 잘한다)로, 잠재 2 에서는 왼쪽위(적게 쓰고 더
-    못한다)로 간다. 네 수는 모두 이 쪽의 두 표에서 옮겼다.
+    가로는 **학습** 자료에서의 복원 오차, 세로는 **시험** 자료에서의 그것.
+    점선이 둘이 같은 자리다. 점이 그 선 위로 멀리 뜨면 과적합이고,
+    선 가까이면 외운 것이 아니라 못 맞힌 것이다.
 
-    그림 안에는 **설명 문장을 적지 않는다.** 축 이름과 모델 이름과 수까지다 —
-    읽는 일은 한국어 본문의 몫이다.
+    네 수는 이 쪽의 규약(씨앗 42, Adam 1e-3, 배치 100, 100 에포크)으로
+    네 벌을 따로 학습해 여기서 쟀다. 시험값이 이 쪽 두 표의 0.0546·
+    0.0243·0.422·0.474 를 되살리므로 학습값도 같은 자로 읽을 수 있다.
+
+    파라메터 수를 축으로 쓰지 않는다. conv 인코더의 컨볼루션 부분은
+    k 와 무관하게 4,800 개로 똑같고 달라지는 것은 짜내는 마지막 한 겹뿐이라,
+    두 모델의 총수를 견주는 것은 서로 다른 일을 하는 부분끼리 더해 견주는
+    꼴이 된다.
     """
-    cases = [(64, (217408, 0.0546), (105216, 0.0243)),
-             (2,  (201474, 0.422),  (7938,   0.474))]
-    fig, axes = plt.subplots(1, 2, figsize=(11.2, 4.6))
+    cases = [(64, (0.05510, 0.05462), (0.02304, 0.02427)),
+             (2,  (0.39441, 0.42230), (0.47117, 0.47423))]
+    fig, axes = plt.subplots(1, 2, figsize=(11.2, 4.8))
     for ax, (k, mlp, cnn) in zip(axes, cases):
-        better = cnn[1] < mlp[1]
-        col = "tab:green" if better else "#b91c1c"
+        worse = cnn[1] > mlp[1]
+        col = "#b91c1c" if worse else "tab:green"
+        lo = min(mlp[0], mlp[1], cnn[0], cnn[1])
+        hi = max(mlp[0], mlp[1], cnn[0], cnn[1])
+        pad = (hi - lo) * 0.42
+        lim = (lo - pad, hi + pad)
+        ax.plot(lim, lim, color="0.70", lw=1.1, ls="--", zorder=1)
         ax.annotate("", xy=cnn, xytext=mlp,
-                    arrowprops=dict(arrowstyle="-|>", color=col, lw=2.6,
+                    arrowprops=dict(arrowstyle="-|>", color=col, lw=2.5,
                                     shrinkA=13, shrinkB=13))
-        # 딱지는 화살표 반대쪽으로 — 점이 오른쪽이면 오른쪽에, 왼쪽이면 왼쪽에
+        # 화살표가 왼쪽아래에서 오른쪽위로 가므로, 아래 점은 오른쪽아래에
+        # 위 점은 왼쪽위에 적어야 겹치지 않는다
+        lower = mlp if mlp[0] < cnn[0] else cnn
         for (px, py), name, c in ((mlp, "AE_MLP", "0.45"), (cnn, "AE_CNN", col)):
-            right = px > min(mlp[0], cnn[0])
-            dx, ha = (17, "left") if right else (-17, "right")
+            is_low = (px, py) == lower
+            dx, dy, ha = (16, -14, "left") if is_low else (-16, 12, "right")
             ax.plot([px], [py], "o", ms=13, color=c, zorder=3)
-            ax.annotate(name, xy=(px, py), xytext=(dx, 11),
+            ax.annotate(name, xy=(px, py), xytext=(dx, dy),
                         textcoords="offset points", ha=ha, fontsize=11,
                         color=c)
-            ax.annotate(f"{py:.4f}" if py < 0.1 else f"{py:.3f}",
-                        xy=(px, py), xytext=(dx, -4),
-                        textcoords="offset points", ha=ha, fontsize=10.5,
-                        color=c)
-            ax.annotate(f"{px:,}", xy=(px, py), xytext=(dx, -19),
-                        textcoords="offset points", ha=ha, fontsize=9,
-                        color="0.55")
-        lo, hi = sorted([mlp[1], cnn[1]])
-        pad = (hi - lo) * 0.62
-        ax.set_ylim(lo - pad, hi + pad)
-        ax.set_xscale("log"); ax.set_xlim(1100, 3200000)
-        ax.set_xlabel("encoder parameters", fontsize=10)
+            ax.annotate(f"{px:.3f}  /  {py:.3f}", xy=(px, py),
+                        xytext=(dx, dy - 15), textcoords="offset points",
+                        ha=ha, fontsize=9.5, color="0.5")
+        ax.set_xlim(lim); ax.set_ylim(lim)
+        ax.set_aspect("equal", adjustable="box")
+        ax.set_xlabel("error on the training digits", fontsize=10)
         ax.set_title(f"{k}", fontsize=22, color="0.25", pad=14)
         ax.spines[["top", "right"]].set_visible(False)
-    axes[0].set_ylabel("reconstruction error", fontsize=10)
+    axes[0].set_ylabel("error on the test digits", fontsize=10)
     fig.text(0.5, 0.925, "numbers kept", ha="center", fontsize=10.5,
              color="0.45")
     fig.subplots_adjust(left=0.085, right=0.98, top=0.80, bottom=0.14,
-                        wspace=0.22)
+                        wspace=0.30)
     fig.savefig("lead_flip.svg", transparent=True)
-    plt.close(fig)
-    print("wrote lead_flip.svg")
+    plt.close(fig); print("wrote lead_flip.svg")
 
 
 def fig_lead_worse_than_nothing():
