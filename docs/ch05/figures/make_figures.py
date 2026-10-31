@@ -2027,6 +2027,9 @@ def fig_lead_howmany():
     # 점선은 맨 오른쪽 784 막대의 꼭대기와 같은 높이라 저 혼자 읽힌다.
     ax.set_title("how many of a digit's 784 numbers do you actually need?",
                  fontsize=11.5)
+    # 어느 방법으로 줄인 것인지 밝히는 이름표. 이 절은 방법을 넷 시험하는데
+    # 이 막대는 그 가운데 첫째(PCA)로 잰 것이다.
+    ax.text(-0.42, 105, "PCA", fontsize=11, color="0.45")
     ax.spines[["top", "right"]].set_visible(False)
     fig.subplots_adjust(left=0.10, right=0.98, top=0.88, bottom=0.14)
     fig.savefig("lead_howmany.svg", transparent=True)
