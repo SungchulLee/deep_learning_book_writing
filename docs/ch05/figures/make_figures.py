@@ -2066,10 +2066,8 @@ def fig_lead_funnel():
     ax.set_xticks([]); ax.set_yticks([]); ax.spines[:].set_visible(False)
     ax.set_title("squeeze a digit down to 2 numbers and back: "
                  "ten digits land on four", fontsize=11.5)
-    fig.text(0.5, 0.025, "six of the ten change. 4 and 9 both become 7; "
-             "5, 6 and 8 all become 0. only 0, 1, 3, 7 survive.",
-             ha="center", fontsize=9, color="0.45")
-    fig.subplots_adjust(left=0.02, right=0.98, top=0.90, bottom=0.11)
+    # 어느 숫자가 어디로 가는지는 화살표가 말한다. 아래에 글로 되풀이하지 않는다.
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.91, bottom=0.075)
     fig.savefig("lead_funnel.svg", transparent=True)
     plt.close(fig); print("wrote lead_funnel.svg")
 
@@ -2085,15 +2083,13 @@ def fig_lead_tie():
     ax.set_yticks([1, 0]); ax.set_yticklabels(names, fontsize=10.5)
     ax.set_xlim(0, 0.125)
     ax.set_xlabel("reconstruction error  (lower is better)", fontsize=10)
-    ax.annotate("100 epochs x 600 batches of learning\nbuy 0.00052 — in the wrong direction",
-                xy=(0.0955, -0.26), xytext=(0.0515, -0.92), fontsize=10,
-                color="#c2410c", ha="center",
-                arrowprops=dict(arrowstyle="->", color="#c2410c", lw=1.2))
-    ax.set_ylim(-1.35, 1.55)
+    # 설명 문장은 본문의 몫이다 — 두 막대의 길이가 같다는 것이 요점이고,
+    # 그것은 막대 자신이 말한다.
+    ax.set_ylim(-0.62, 1.62)
     ax.set_title("the same answer, reached two ways", fontsize=11.5)
     ax.spines[["top", "right", "left"]].set_visible(False)
     ax.tick_params(axis="y", length=0)
-    fig.subplots_adjust(left=0.23, right=0.97, top=0.88, bottom=0.30)
+    fig.subplots_adjust(left=0.23, right=0.97, top=0.86, bottom=0.22)
     fig.savefig("lead_tie.svg", transparent=True)
     plt.close(fig); print("wrote lead_tie.svg")
 
@@ -2223,12 +2219,7 @@ def fig_lead_cliff():
     ax.set_xticks(range(3)); ax.set_xticklabels(names, fontsize=10)
     ax.set_ylim(0, 1.13)
     ax.set_ylabel("how sure the judge is it is a digit", fontsize=10)
-    ax.annotate("rebuilding costs\nalmost nothing", xy=(0.74, 0.97),
-                xytext=(0.30, 0.56), fontsize=10, color="tab:green", ha="center",
-                arrowprops=dict(arrowstyle="->", color="tab:green", lw=1.1))
-    ax.annotate("inventing one\nfalls off a cliff", xy=(1.74, 0.76),
-                xytext=(1.30, 0.40), fontsize=10, color="#b91c1c", ha="center",
-                arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.1))
+    # 벼랑이 눈에 보이므로 문장을 덧붙이지 않는다.
     ax.set_title("the decoder will rebuild any digit — "
                  "so why can it not invent one?", fontsize=11.5)
     ax.spines[["top", "right"]].set_visible(False)
