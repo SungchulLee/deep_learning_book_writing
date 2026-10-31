@@ -2228,6 +2228,158 @@ def fig_lead_cliff():
     plt.close(fig); print("wrote lead_cliff.svg")
 
 
+def fig_lead_kl_buys():
+    """KL 항이 사는 것은 숫자다움이 아니라 고름이다. 5.2 개요 표의 수."""
+    models = ["autoencoder", "VAE", "beta-VAE"]
+    conf = [0.777, 0.769, 0.794]
+    bal = [0.541, 0.877, 0.950]
+    fig, ax = plt.subplots(figsize=(8.4, 4.2))
+    x = [0, 1, 2]
+    ax.plot(x, conf, "o-", color="0.6", lw=2.4, ms=9)
+    ax.plot(x, bal, "o-", color="tab:green", lw=2.4, ms=9)
+    for xi, (c, b) in zip(x, zip(conf, bal)):
+        ax.text(xi, c - 0.045, f"{c:.3f}", ha="center", fontsize=10, color="0.4")
+        ax.text(xi, b + 0.028, f"{b:.3f}", ha="center", fontsize=10,
+                color="tab:green")
+    ax.text(2.12, conf[2], "does it look\nlike a digit?", va="center",
+            fontsize=10, color="0.45")
+    ax.text(2.12, bal[2], "are all ten made\nequally often?", va="center",
+            fontsize=10, color="tab:green")
+    ax.set_xticks(x); ax.set_xticklabels(models, fontsize=11)
+    ax.set_xlim(-0.35, 3.25); ax.set_ylim(0.46, 1.03)
+    ax.set_yticks([])
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.set_title("adding the new term: one ruler barely moves, "
+                 "the other leaps", fontsize=11.5)
+    fig.subplots_adjust(left=0.04, right=0.98, top=0.88, bottom=0.12)
+    fig.savefig("lead_kl_buys.svg", transparent=True)
+    plt.close(fig); print("wrote lead_kl_buys.svg")
+
+
+def fig_lead_price_tag():
+    """치른 값과 산 것. 복원은 나빠지고 쏠림은 풀린다."""
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(10.4, 4.0))
+    axL.bar([0, 1], [0.0546, 0.0750], color=["0.72", "#b91c1c"], width=0.5)
+    for x, v in zip([0, 1], [0.0546, 0.0750]):
+        axL.text(x, v + 0.0026, f"{v:.4f}", ha="center", fontsize=11)
+    axL.set_xticks([0, 1]); axL.set_xticklabels(["autoencoder", "VAE"],
+                                                fontsize=10.5)
+    axL.set_ylim(0, 0.098)
+    axL.set_ylabel("reconstruction error", fontsize=10)
+    axL.set_title("what it costs  (worse)", fontsize=11, color="#b91c1c")
+    axL.spines[["top", "right"]].set_visible(False)
+
+    axR.bar([0, 1], [66, 36], color=["#b91c1c", "tab:green"], width=0.5)
+    for x, v in zip([0, 1], [66, 36]):
+        axR.text(x, v + 2.2, f"{v}%", ha="center", fontsize=11)
+    axR.set_xticks([0, 1]); axR.set_xticklabels(["autoencoder", "VAE"],
+                                                fontsize=10.5)
+    axR.set_ylim(0, 86)
+    axR.set_ylabel("share taken by the commonest digit", fontsize=10)
+    axR.set_title("what it buys  (better)", fontsize=11, color="tab:green")
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.subplots_adjust(left=0.085, right=0.98, top=0.86, bottom=0.12,
+                        wspace=0.28)
+    fig.savefig("lead_price_tag.svg", transparent=True)
+    plt.close(fig); print("wrote lead_price_tag.svg")
+
+
+def fig_lead_dial():
+    """손잡이를 돌리면 둘이 반대로 간다. 어디서 멈출지는 알려 주지 않는다."""
+    betas = [0, 0.5, 1.0, 4.0]
+    rec = [0.0546, 0.0577, 0.0750, 0.1351]
+    bal = [0.541, 0.784, 0.877, 0.950]
+    x = np.arange(4)
+    fig, ax = plt.subplots(figsize=(9.0, 4.2))
+    ax.plot(x, [r / rec[0] for r in rec], "s-", color="#b91c1c", lw=2.3, ms=8)
+    ax.plot(x, [b / bal[0] for b in bal], "o-", color="tab:green", lw=2.3, ms=8)
+    for xi, r, b in zip(x, rec, bal):
+        # 빨강은 아래, 초록은 위로 갈라 둔다 — 같은 쪽에 두면 1.0 에서 겹친다
+        ax.text(xi, r / rec[0] - 0.145, f"{r:.4f}", ha="center", fontsize=9.5,
+                color="#b91c1c")
+        ax.text(xi, b / bal[0] + 0.085, f"{b:.3f}", ha="center", fontsize=9.5,
+                color="tab:green")
+    ax.text(3.16, rec[3] / rec[0], "reconstruction\n(getting worse)",
+            va="center", fontsize=10, color="#b91c1c")
+    ax.text(3.16, bal[3] / bal[0], "all ten equally often\n(getting better)",
+            va="center", fontsize=10, color="tab:green")
+    ax.set_xticks(x)
+    ax.set_xticklabels(["0\n(no term)", "0.5", "1.0", "4.0"], fontsize=10.5)
+    ax.set_xlabel("the one knob", fontsize=10.5)
+    ax.set_xlim(-0.35, 4.75); ax.set_ylim(0.5, 2.95)
+    ax.set_yticks([])
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.set_title("both keep going — so where do you stop?", fontsize=11.5)
+    fig.subplots_adjust(left=0.03, right=0.98, top=0.88, bottom=0.17)
+    fig.savefig("lead_dial.svg", transparent=True)
+    plt.close(fig); print("wrote lead_dial.svg")
+
+
+def fig_lead_who_disobeys():
+    """말을 안 듣는 것이 기계의 힘 때문이 아니다."""
+    fig, ax = plt.subplots(figsize=(9.2, 4.1))
+    names = ["small machine\n(2 numbers)", "big machine\n(64 numbers)",
+             "the same big machine,\nhanded a real digit's numbers"]
+    vals = [99.66, 73.64, 98.42]
+    cols = ["tab:green", "#b91c1c", "tab:blue"]
+    ax.bar(range(3), vals, color=cols, width=0.55)
+    for i, v in enumerate(vals):
+        ax.text(i, v + 1.6, f"{v:.2f}%", ha="center", fontsize=12)
+    ax.set_xticks(range(3)); ax.set_xticklabels(names, fontsize=10)
+    ax.set_ylim(0, 116)
+    ax.set_ylabel("asked for a 7, got a 7", fontsize=10)
+    ax.set_title("the big machine disobeys — but not because it cannot obey",
+                 fontsize=11.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.085, right=0.98, top=0.87, bottom=0.17)
+    fig.savefig("lead_who_disobeys.svg", transparent=True)
+    plt.close(fig); print("wrote lead_who_disobeys.svg")
+
+
+def fig_lead_average_blur():
+    """제곱오차가 애매할 때 고르는 답은 여럿의 한가운데다.
+
+    진짜 MNIST 만 쓴다. 3 을 여러 장 모아 평균 내면 아무도 그렇게 쓰지 않는
+    흐릿한 3 이 나오는데, 화소 제곱오차로 보면 그것이 가장 점수가 높다.
+    """
+    tf = transforms.ToTensor()
+    te = torchvision.datasets.MNIST(DATA, train=False, download=True,
+                                    transform=tf)
+    from torch.utils.data import DataLoader
+    X = torch.cat([x for x, _ in DataLoader(te, batch_size=2000)])
+    y = torch.cat([l for _, l in DataLoader(te, batch_size=2000)])
+    threes = X[y == 3][:, 0]
+    mean3 = threes.mean(0)
+    # 평균이 어느 한 장보다도 제곱오차가 작다는 것을 셈으로 확인한다
+    d_mean = ((threes - mean3) ** 2).mean().item()
+    d_best = min(((threes - threes[k]) ** 2).mean().item() for k in range(60))
+
+    fig = plt.figure(figsize=(10.6, 3.4))
+    gs = fig.add_gridspec(1, 8, left=0.015, right=0.985, top=0.80, bottom=0.14,
+                          wspace=0.10)
+    for k in range(6):
+        ax = fig.add_subplot(gs[0, k])
+        ax.imshow(threes[k], cmap="gray_r", vmin=0, vmax=1)
+        ax.set_xticks([]); ax.set_yticks([]); ax.spines[:].set_visible(False)
+        if k == 0:
+            ax.set_title("six real 3s", fontsize=10.5, loc="left", color="0.3")
+    ax = fig.add_subplot(gs[0, 7])
+    ax.imshow(mean3, cmap="gray_r", vmin=0, vmax=1)
+    ax.set_xticks([]); ax.set_yticks([])
+    for sp in ax.spines.values():
+        sp.set_color("#b91c1c"); sp.set_linewidth(2.0)
+    ax.set_title("their average", fontsize=10.5, color="#b91c1c")
+    fig.text(0.5, 0.035,
+             f"nobody writes the one on the right — yet by squared error it "
+             f"beats every real 3  ({d_mean:.4f} against {d_best:.4f})",
+             ha="center", fontsize=9.6, color="0.35")
+    fig.savefig("lead_average_blur.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote lead_average_blur.svg  (mean {d_mean:.4f} vs best real "
+          f"{d_best:.4f})")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
