@@ -195,6 +195,16 @@ def fig_latent_2d():
     ae = load(MLPAE, 2, "ae_mlp2")
     ae_z = ae.enc(Xte)
 
+    # 격자를 먼저 세운다. 가운데 칸에 겹쳐 그려야 어느 점이 어느 그림인지
+    # 독자가 짚을 수 있다 (오른쪽 칸의 왼쪽 위 = 격자의 왼쪽 위)
+    lo = ae_z.quantile(0.02, dim=0); hi = ae_z.quantile(0.98, dim=0)
+    n = 16
+    gx = torch.linspace(lo[0], hi[0], n); gy = torch.linspace(lo[1], hi[1], n)
+    grid = torch.stack([torch.stack([x, y]) for y in gy.flip(0) for x in gx])
+    step = ((gx[1] - gx[0]) + (gy[1] - gy[0])) / 2
+    # 반지름 반 칸 안에 시험 점이 하나도 없는 칸 — 3절이 재는 그 17칸이다
+    empty = (torch.cdist(grid, ae_z) < step / 2).sum(dim=1) == 0
+
     fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.4))
     for ax, z, title in [(axes[0], pca_z, "PCA-2 latent"),
                          (axes[1], ae_z, "AE_MLP-2 latent")]:
@@ -204,14 +214,22 @@ def fig_latent_2d():
                         alpha=0.55, linewidths=0, rasterized=True)
         ax.set_title(title, fontsize=11)
         ax.set_xticks([]); ax.set_yticks([])
+
+    g = axes[1]
+    g.scatter(grid[:, 0], grid[:, 1], marker="+", c="black", s=16,
+              linewidths=0.55, alpha=0.9, zorder=3)
+    g.scatter(grid[empty, 0], grid[empty, 1], marker="o", s=52,
+              facecolors="none", edgecolors="#b91c1c", linewidths=1.2,
+              zorder=4)
+    g.add_patch(plt.Rectangle((lo[0], lo[1]), hi[0] - lo[0], hi[1] - lo[1],
+                              fill=False, ec="0.35", lw=0.9, ls=":", zorder=2))
+    g.set_xlabel(f"+  the 16x16 grid decoded on the right\n"
+                 f"o  no test point within half a cell "
+                 f"({int(empty.sum())} of {n * n})", fontsize=9)
+
     cb = fig.colorbar(sc, ax=axes[1], fraction=0.046, ticks=range(10))
     cb.ax.tick_params(labelsize=8)
 
-    # AE 잠재 공간을 격자로 훑어 복호한다
-    lo = ae_z.quantile(0.02, dim=0); hi = ae_z.quantile(0.98, dim=0)
-    n = 16
-    gx = torch.linspace(lo[0], hi[0], n); gy = torch.linspace(lo[1], hi[1], n)
-    grid = torch.stack([torch.stack([x, y]) for y in gy.flip(0) for x in gx])
     dec = ae.dec(grid).reshape(n, n, 28, 28)
     canvas = torch.cat([torch.cat([dec[i, j] for j in range(n)], dim=1)
                         for i in range(n)], dim=0)
@@ -219,7 +237,7 @@ def fig_latent_2d():
     axes[2].set_title("AE_MLP-2 decoded over a grid", fontsize=11)
     axes[2].axis("off")
 
-    fig.subplots_adjust(left=0.01, right=0.99, top=0.93, bottom=0.02, wspace=0.12)
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.93, bottom=0.11, wspace=0.12)
     fig.savefig("latent_2d.svg", transparent=True)
     plt.close(fig)
     print("wrote latent_2d.svg")
