@@ -231,7 +231,65 @@ def fig_stars_crossover():
         print(f"   {e:2d}    {a[e-1]:6.2f}  {b[e-1]:6.2f}   {b[e-1]-a[e-1]:+5.2f}")
 
 
+# =========================================================================
+#  들머리 그림 — 쪽의 물음을 세우는 자리. 그 쪽 수만 쓰고 다시 재지 않는다.
+#  그림 안에는 설명 문장을 적지 않는다. 축 이름과 수까지다.
+# =========================================================================
+
+def fig_lead_two_ladders():
+    """한 사다리는 끝까지 오르고, 한 사다리는 가운데서 꺾인다.
+
+    MNIST 네 칸은 4.1절 표에서, IMDB 여섯 칸과 스프레드는 이 장 개요 표에서
+    옮겼다. 여기서 다시 재지 않는다.
+    """
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    mn = [82.03, 92.35, 97.90, 99.21]
+    im = [65.16, 78.80, 87.03, 81.51, 86.11, 85.98]
+    sp = [0.0, 0.23, 0.34, 4.74, 0.33, 0.17]      # 스텝1은 학습이 없어 스프레드가 없다
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.4, 4.5))
+
+    axL.plot(range(1, 5), mn, "o-", color="tab:green", lw=2.4, ms=9)
+    for x, v, (dx, dy, ha) in zip(range(1, 5), mn,
+                                  [(0, -21, "center"), (14, -16, "left"),
+                                   (14, -16, "left"), (0, 14, "center")]):
+        axL.annotate(f"{v:.2f}", xy=(x, v), xytext=(dx, dy),
+                     textcoords="offset points", ha=ha, fontsize=10,
+                     color="tab:green")
+    axL.set_xticks(range(1, 5)); axL.set_xlim(0.5, 4.5)
+    axL.set_ylim(78, 103)
+    axL.set_title("MNIST", fontsize=13, color="0.25")
+
+    axR.errorbar(range(1, 7), im, yerr=sp, fmt="o-", color="#c2410c", lw=2.4,
+                 ms=9, capsize=5, ecolor="#c2410c", elinewidth=1.6)
+    # 점마다 비어 있는 쪽으로 — 4걸음은 오차막대가 아래로 길어 오른쪽에 둔다
+    off = [(0, -21, "center"), (13, -16, "left"), (0, 17, "center"),
+           (15, 0, "left"), (0, -21, "center"), (0, -21, "center")]
+    for x, v, (dx, dy, ha) in zip(range(1, 7), im, off):
+        axR.annotate(f"{v:.2f}", xy=(x, v), xytext=(dx, dy),
+                     textcoords="offset points", ha=ha, fontsize=10,
+                     color="#c2410c")
+    axR.plot([3], [im[2]], "o", ms=16, mfc="none", mec="#c2410c", mew=2.2)
+    axR.set_xticks(range(1, 7)); axR.set_xlim(0.5, 6.8)
+    axR.set_ylim(61, 93)
+    axR.set_title("IMDB", fontsize=13, color="0.25")
+
+    for ax in (axL, axR):
+        ax.set_xlabel("step", fontsize=10.5)
+        ax.spines[["top", "right"]].set_visible(False)
+    axL.set_ylabel("accuracy  (%)", fontsize=10.5)
+
+    fig.subplots_adjust(left=0.08, right=0.98, top=0.89, bottom=0.14,
+                        wspace=0.18)
+    fig.savefig("lead_two_ladders.svg", transparent=True)
+    plt.close(fig)
+    print("wrote lead_two_ladders.svg")
+
+
 if __name__ == "__main__":
     fig_lstm_curves()
     fig_rung23_curves()
     fig_stars_crossover()
+    fig_lead_two_ladders()
