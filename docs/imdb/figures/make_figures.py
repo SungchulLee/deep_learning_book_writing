@@ -288,8 +288,105 @@ def fig_lead_two_ladders():
     print("wrote lead_two_ladders.svg")
 
 
+def fig_lead_headroom():
+    """같은 수법인데 남은 자리의 80% 를 먹고 30% 를 먹는다. 1걸음 쪽의 표."""
+    import matplotlib.pyplot as plt
+    rows = [("MNIST  (10 classes)", 10, 82.03, "tab:green"),
+            ("IMDB  (2 classes)", 50, 65.16, "#c2410c")]
+    fig, ax = plt.subplots(figsize=(9.2, 3.4))
+    for y, (name, chance, got, col) in zip((1, 0), rows):
+        ax.barh(y, 100 - chance, left=chance, height=0.46, color="0.88")
+        ax.barh(y, got - chance, left=chance, height=0.46, color=col)
+        ax.plot([chance, chance], [y - .3, y + .3], color="0.35", lw=1.6)
+        ax.text(chance - 1.5, y, f"{chance}", ha="right", va="center",
+                fontsize=10, color="0.35")
+        ax.text(got + 1.5, y, f"{got:.2f}", ha="left", va="center",
+                fontsize=11, color=col)
+        pct = (got - chance) / (100 - chance) * 100
+        ax.text(99, y + 0.34, f"{pct:.0f}%", ha="right", va="bottom",
+                fontsize=13, color=col)
+    ax.set_yticks([1, 0]); ax.set_yticklabels([r[0] for r in rows], fontsize=10.5)
+    ax.set_xlim(0, 104); ax.set_xticks([0, 25, 50, 75, 100])
+    ax.set_xlabel("accuracy  (%)", fontsize=10)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    fig.subplots_adjust(left=0.20, right=0.98, top=0.93, bottom=0.22)
+    fig.savefig("lead_headroom.svg", transparent=True)
+    plt.close(fig); print("wrote lead_headroom.svg")
+
+
+def fig_lead_words():
+    """피처는 그대로인데 위로 올라오는 단어가 통째로 바뀐다. 2걸음 쪽의 표."""
+    import matplotlib.pyplot as plt
+    avg = ["and", "is", "of", "great", "in", "as",
+           "the", "his", "very", "a", "best", "love"]
+    learned = ["great", "excellent", "wonderful", "best", "love", "perfect",
+               "amazing", "well", "beautiful", "loved", "highly", "favorite"]
+    stop = {"and", "is", "of", "in", "as", "the", "his", "a", "very"}
+    fig, ax = plt.subplots(figsize=(8.6, 4.2))
+    ax.set_xlim(0, 2); ax.set_ylim(0.3, 13.5); ax.axis("off")
+    ax.text(0.5, 13.0, "averaged", ha="center", fontsize=12, color="0.4")
+    ax.text(1.5, 13.0, "learned", ha="center", fontsize=12, color="#c2410c")
+    for i2, (a, b) in enumerate(zip(avg, learned)):
+        y = 12 - i2
+        ax.text(0.5, y, a, ha="center", fontsize=12,
+                color="0.72" if a in stop else "0.2")
+        ax.text(1.5, y, b, ha="center", fontsize=12, color="#c2410c")
+    ax.plot([1.0, 1.0], [0.6, 12.6], color="0.85", lw=1.0)
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.97, bottom=0.02)
+    fig.savefig("lead_words.svg", transparent=True)
+    plt.close(fig); print("wrote lead_words.svg")
+
+
+def fig_lead_embed_dim():
+    """임베딩을 넓혀도 금세 평평해진다. 3걸음 쪽의 표."""
+    import matplotlib.pyplot as plt
+    d = [1, 4, 16, 64]
+    a = [71.16, 80.05, 84.56, 86.96]
+    fig, ax = plt.subplots(figsize=(8.4, 4.0))
+    ax.plot(d, a, "o-", color="#c2410c", lw=2.4, ms=9)
+    for x, v in zip(d, a):
+        ax.annotate(f"{v:.2f}", xy=(x, v), xytext=(0, -21),
+                    textcoords="offset points", ha="center", fontsize=10.5,
+                    color="#c2410c")
+    ax.set_xscale("log", base=2); ax.set_xticks(d); ax.set_xticklabels(d)
+    ax.set_xlim(0.8, 90); ax.set_ylim(66, 91)
+    ax.set_xlabel("numbers per word", fontsize=10.5)
+    ax.set_ylabel("accuracy  (%)", fontsize=10.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.10, right=0.98, top=0.95, bottom=0.15)
+    fig.savefig("lead_embed_dim.svg", transparent=True)
+    plt.close(fig); print("wrote lead_embed_dim.svg")
+
+
+def fig_lead_frozen_flip():
+    """임베딩을 어떻게 다루느냐에 따라 3걸음->5걸음의 부호가 바뀐다."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    names = ["learned", "learned,\nthen frozen", "borrowed,\nfrozen"]
+    vals = [-0.83, 0.63, 12.22]
+    cols = ["#b91c1c", "0.72", "tab:green"]
+    fig, ax = plt.subplots(figsize=(8.0, 4.2))
+    ax.bar(range(3), vals, color=cols, width=0.5)
+    for i2, v in enumerate(vals):
+        ax.text(i2, v + (0.5 if v > 0 else -1.1), f"{v:+.2f}", ha="center",
+                fontsize=12.5, color=cols[i2])
+    ax.axhline(0, color="0.35", lw=1.2)
+    ax.set_xticks(range(3)); ax.set_xticklabels(names, fontsize=10.5)
+    ax.set_ylim(-3.2, 14.2)
+    ax.set_ylabel("step 3  ->  step 5   (%p)", fontsize=10.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.12, right=0.98, top=0.95, bottom=0.17)
+    fig.savefig("lead_frozen_flip.svg", transparent=True)
+    plt.close(fig); print("wrote lead_frozen_flip.svg")
+
+
 if __name__ == "__main__":
     fig_lstm_curves()
     fig_rung23_curves()
     fig_stars_crossover()
     fig_lead_two_ladders()
+    fig_lead_headroom()
+    fig_lead_words()
+    fig_lead_embed_dim()
+    fig_lead_frozen_flip()
