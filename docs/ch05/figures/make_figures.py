@@ -2004,6 +2004,244 @@ def fig_who_wins():
     print(f"wrote who_wins.svg  (quality winners: {winners} -> {uniq} distinct)")
 
 
+# =========================================================================
+#  들머리 그림 — 쪽의 물음을 세우는 자리. 그 쪽 수만 쓰고 다시 재지 않는다.
+# =========================================================================
+
+def fig_lead_howmany():
+    """784개 가운데 몇 개면 되는가. 5.1 개요 표의 수를 그대로 쓴다."""
+    ks = [2, 16, 32, 64, 784]
+    ident = [35.66, 83.69, 94.39, 97.81, 98.83]
+    fig, ax = plt.subplots(figsize=(8.6, 4.0))
+    xs = np.arange(len(ks))
+    cols = ["#b91c1c", "0.72", "0.72", "tab:green", "0.45"]
+    ax.bar(xs, ident, color=cols, width=0.6)
+    for x, k, v in zip(xs, ks, ident):
+        ax.text(x, v + 1.6, f"{v:.2f}%", ha="center", fontsize=10)
+    ax.set_xticks(xs)
+    ax.set_xticklabels([f"{k}\nnumbers" for k in ks], fontsize=10)
+    ax.set_ylim(0, 112)
+    ax.set_ylabel("still reads as the same digit", fontsize=10)
+    ax.axhline(98.83, color="0.45", lw=1.0, ls="--")
+    ax.annotate("64 of the 784 keep\nalmost everything —\n12x smaller, 1.02 points lost",
+                xy=(3.0, 96.0), xytext=(1.72, 52), fontsize=10,
+                color="tab:green", ha="center",
+                arrowprops=dict(arrowstyle="->", color="tab:green", lw=1.2))
+    ax.annotate("2 is far too few", xy=(0, 35.66), xytext=(0.55, 26),
+                fontsize=10, color="#b91c1c",
+                arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.2))
+    ax.set_title("how many of a digit's 784 numbers do you actually need?",
+                 fontsize=11.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.10, right=0.98, top=0.88, bottom=0.14)
+    fig.savefig("lead_howmany.svg", transparent=True)
+    plt.close(fig); print("wrote lead_howmany.svg")
+
+
+def fig_lead_funnel():
+    """PCA-2 는 숫자를 뒤섞지 않고 네 곳으로 빨아들인다.
+
+    짝은 그 쪽 3절이 적은 것이고 이 저장소에서 직접 돌려 확인했다
+    (그림이 쓰는 열 장, 숫자마다 첫 장).
+    """
+    dest = {0: 0, 1: 1, 2: 3, 3: 3, 4: 7, 5: 0, 6: 0, 7: 7, 8: 0, 9: 7}
+    targets = [0, 1, 3, 7]
+    fig, ax = plt.subplots(figsize=(8.8, 4.3))
+    ypos = {d: 9 - d for d in range(10)}
+    tpos = {t: i for i, t in enumerate([7, 3, 1, 0])}
+    cmap = {0: "#2563eb", 1: "#16a34a", 3: "#c2410c", 7: "#9333ea"}
+    for d in range(10):
+        t = dest[d]
+        y0, y1 = ypos[d], tpos[t] * 3 + 1.5
+        kept = d == t
+        ax.annotate("", xy=(2.62, y1), xytext=(0.38, y0),
+                    arrowprops=dict(arrowstyle="-|>", color=cmap[t],
+                                    lw=2.4 if not kept else 1.1,
+                                    alpha=0.85 if not kept else 0.35,
+                                    connectionstyle="arc3,rad=0.12"))
+        ax.text(0.1, y0, str(d), ha="center", va="center", fontsize=13,
+                color="0.25" if not kept else "0.6")
+    for t, i in tpos.items():
+        ax.text(2.9, i * 3 + 1.5, str(t), ha="center", va="center", fontsize=17,
+                color="white", weight="bold",
+                bbox=dict(boxstyle="circle,pad=0.42", fc=cmap[t], ec="none"))
+    ax.text(0.1, 11.6, "you wrote", ha="center", fontsize=10, color="0.35")
+    ax.text(2.9, 11.6, "it comes back as", ha="center", fontsize=10, color="0.35")
+    ax.set_xlim(-0.35, 3.45); ax.set_ylim(-0.7, 12.3)
+    ax.set_xticks([]); ax.set_yticks([]); ax.spines[:].set_visible(False)
+    ax.set_title("squeeze a digit down to 2 numbers and back: "
+                 "ten digits land on four", fontsize=11.5)
+    fig.text(0.5, 0.025, "six of the ten change. 4 and 9 both become 7; "
+             "5, 6 and 8 all become 0. only 0, 1, 3, 7 survive.",
+             ha="center", fontsize=9, color="0.45")
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.90, bottom=0.11)
+    fig.savefig("lead_funnel.svg", transparent=True)
+    plt.close(fig); print("wrote lead_funnel.svg")
+
+
+def fig_lead_tie():
+    """6만 번 고쳐 배웠는데 공식과 같은 자리에 선다."""
+    fig, ax = plt.subplots(figsize=(8.6, 3.9))
+    names = ["a formula,\nsolved once", "gradient descent,\n60,000 updates"]
+    vals = [0.09530, 0.09582]
+    bars = ax.barh([1, 0], vals, color=["tab:green", "#c2410c"], height=0.5)
+    for y, v in zip([1, 0], vals):
+        ax.text(v + 0.0016, y, f"{v:.5f}", va="center", fontsize=11)
+    ax.set_yticks([1, 0]); ax.set_yticklabels(names, fontsize=10.5)
+    ax.set_xlim(0, 0.125)
+    ax.set_xlabel("reconstruction error  (lower is better)", fontsize=10)
+    ax.annotate("100 epochs x 600 batches of learning\nbuy 0.00052 — in the wrong direction",
+                xy=(0.0955, -0.26), xytext=(0.0515, -0.92), fontsize=10,
+                color="#c2410c", ha="center",
+                arrowprops=dict(arrowstyle="->", color="#c2410c", lw=1.2))
+    ax.set_ylim(-1.35, 1.55)
+    ax.set_title("the same answer, reached two ways", fontsize=11.5)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    fig.subplots_adjust(left=0.23, right=0.97, top=0.88, bottom=0.30)
+    fig.savefig("lead_tie.svg", transparent=True)
+    plt.close(fig); print("wrote lead_tie.svg")
+
+
+def fig_lead_same_trick():
+    """같은 수법이 숫자에서는 벌고 사진에서는 못 번다."""
+    fig, ax = plt.subplots(figsize=(8.4, 4.0))
+    sets = ["MNIST\n(handwritten digits)", "CIFAR-10\n(colour photographs)"]
+    straight = [0.0953, 0.1337]
+    curved = [0.0546, 0.1341]
+    x = np.arange(2)
+    ax.bar(x - 0.19, straight, 0.37, color="0.72", label="straight path")
+    ax.bar(x + 0.19, curved, 0.37, color="tab:green", label="curved path")
+    for xi, (a, b) in zip(x, zip(straight, curved)):
+        ax.text(xi - 0.19, a + 0.004, f"{a:.4f}", ha="center", fontsize=9.5)
+        ax.text(xi + 0.19, b + 0.004, f"{b:.4f}", ha="center", fontsize=9.5)
+        gain = (a - b) / a * 100
+        ax.text(xi, max(a, b) + 0.019,
+                f"{gain:+.0f}%" if abs(gain) > 1 else "no gain",
+                ha="center", fontsize=13,
+                color="tab:green" if gain > 1 else "#b91c1c")
+    ax.set_xticks(x); ax.set_xticklabels(sets, fontsize=10.5)
+    ax.set_ylim(0, 0.175)
+    ax.set_ylabel("reconstruction error", fontsize=10)
+    ax.legend(fontsize=9.5, frameon=False, loc="upper left")
+    ax.set_title("the very same change — bend the path — twice",
+                 fontsize=11.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.11, right=0.98, top=0.88, bottom=0.14)
+    fig.savefig("lead_same_trick.svg", transparent=True)
+    plt.close(fig); print("wrote lead_same_trick.svg")
+
+
+def fig_lead_flip():
+    """잠재 64 에서 이기던 쪽이 2 에서 진다."""
+    fig, ax = plt.subplots(figsize=(8.0, 4.2))
+    mlp = [0.0546, 0.422]
+    cnn = [0.0243, 0.474]
+    for vals, name, c in ((mlp, "AE_MLP", "tab:blue"), (cnn, "AE_CNN", "#c2410c")):
+        rel = [vals[0] / 0.0546, vals[1] / 0.422]
+        ax.plot([0, 1], rel, "o-", color=c, lw=2.4, ms=9)
+        ax.text(-0.06, rel[0], name, ha="right", va="center", fontsize=11, color=c)
+        ax.text(1.06, rel[1], name, ha="left", va="center", fontsize=11, color=c)
+    ax.text(0, 1.30, "keep 64 numbers", ha="center", fontsize=11, color="0.25")
+    ax.text(1, 1.30, "keep 2 numbers", ha="center", fontsize=11, color="0.25")
+    ax.annotate("wins by 56%", xy=(0.04, 0.470), xytext=(0.30, 0.40),
+                fontsize=10, color="#c2410c",
+                arrowprops=dict(arrowstyle="->", color="#c2410c", lw=1.1))
+    ax.annotate("now loses", xy=(1.0, 1.123), xytext=(0.74, 1.21),
+                fontsize=10, color="#c2410c",
+                arrowprops=dict(arrowstyle="->", color="#c2410c", lw=1.1))
+    ax.set_xlim(-0.42, 1.42); ax.set_ylim(0.32, 1.42)
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.set_ylabel("reconstruction error\n(each column scaled to AE_MLP = 1)",
+                  fontsize=10)
+    ax.set_title("same two machines, same data — the order turns over",
+                 fontsize=11.5)
+    ax.spines[:].set_visible(False)
+    fig.subplots_adjust(left=0.13, right=0.97, top=0.87, bottom=0.07)
+    fig.savefig("lead_flip.svg", transparent=True)
+    plt.close(fig); print("wrote lead_flip.svg")
+
+
+def fig_lead_worse_than_nothing():
+    """애써 배운 표현이 아무것도 안 한 것을 넘지 못한다.
+
+    왼쪽은 **같은 MLP 탐침**으로 견준 것이라 like-for-like 다(원시 화소
+    50.94%, PCA 50.22, 선형 AE 51.54, 깊은 AE 50.84, conv AE 납작하게
+    43.52). 오른쪽은 양쪽이 쓸 수 있는 가장 좋은 머리끼리 — 이 절의 최선
+    58.67% 대 원시 화소에 CNN 을 얹은 72.58% 다. 모두 그 쪽의 표에서 옮겼다.
+    """
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.4, 4.2),
+                                   gridspec_kw={"width_ratios": [1.5, 1]})
+
+    names = ["PCA", "linear AE", "deep AE", "conv AE\n(flattened)"]
+    vals = [50.22, 51.54, 50.84, 43.52]
+    base = 50.94
+    axL.bar(range(4), vals, color=["0.72", "0.72", "0.72", "#b91c1c"],
+            width=0.58)
+    for i, v in enumerate(vals):
+        axL.text(i, v + 0.9, f"{v:.2f}", ha="center", fontsize=10)
+    axL.axhline(base, color="tab:green", lw=1.7, ls="--")
+    axL.text(3.45, 59.5, f"raw pixels, nothing learned — {base}%",
+             ha="right", fontsize=10, color="tab:green")
+    axL.annotate("", xy=(3.3, base), xytext=(3.3, 58.6),
+                 arrowprops=dict(arrowstyle="->", color="tab:green", lw=1.0))
+    axL.set_xticks(range(4)); axL.set_xticklabels(names, fontsize=10)
+    axL.set_ylim(0, 66)
+    axL.set_ylabel("accuracy, same MLP probe on top", fontsize=10)
+    axL.set_title("like for like: four steps against doing nothing",
+                  fontsize=11)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    axR.bar([0, 1], [58.67, 72.58], color=["#b91c1c", "tab:green"], width=0.5)
+    for x, v in zip([0, 1], [58.67, 72.58]):
+        axR.text(x, v + 1.4, f"{v:.2f}%", ha="center", fontsize=11.5)
+    axR.annotate("", xy=(0.5, 58.67), xytext=(0.5, 72.58),
+                 arrowprops=dict(arrowstyle="<->", color="0.4", lw=1.3))
+    axR.text(0.56, 65.6, "13.91\npoints", fontsize=10, color="0.3")
+    axR.set_xticks([0, 1])
+    axR.set_xticklabels(["this section's best\n(conv AE + CNN head)",
+                         "raw pixels\n+ CNN"], fontsize=10)
+    axR.set_ylim(0, 88)
+    axR.set_title("best against best", fontsize=11)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.suptitle("four careful steps, and none of them beats doing nothing",
+                 fontsize=12.5, y=0.985)
+    fig.text(0.5, 0.02, "every number read off this page's own tables.",
+             ha="center", fontsize=8.8, color="0.45")
+    fig.subplots_adjust(left=0.075, right=0.98, top=0.80, bottom=0.17,
+                        wspace=0.22)
+    fig.savefig("lead_worse_than_nothing.svg", transparent=True)
+    plt.close(fig); print("wrote lead_worse_than_nothing.svg")
+
+
+def fig_lead_cliff():
+    """되살리기는 되는데 만들기는 안 된다."""
+    fig, ax = plt.subplots(figsize=(8.4, 4.0))
+    names = ["real digits", "rebuilt from\ntheir own 64 numbers",
+             "made from\n64 numbers we invented"]
+    vals = [0.992, 0.988, 0.776]
+    cols = ["0.55", "tab:green", "#b91c1c"]
+    ax.bar(range(3), vals, color=cols, width=0.56)
+    for i, v in enumerate(vals):
+        ax.text(i, v + 0.012, f"{v:.3f}", ha="center", fontsize=11.5)
+    ax.set_xticks(range(3)); ax.set_xticklabels(names, fontsize=10)
+    ax.set_ylim(0, 1.13)
+    ax.set_ylabel("how sure the judge is it is a digit", fontsize=10)
+    ax.annotate("rebuilding costs\nalmost nothing", xy=(0.74, 0.97),
+                xytext=(0.30, 0.56), fontsize=10, color="tab:green", ha="center",
+                arrowprops=dict(arrowstyle="->", color="tab:green", lw=1.1))
+    ax.annotate("inventing one\nfalls off a cliff", xy=(1.74, 0.76),
+                xytext=(1.30, 0.40), fontsize=10, color="#b91c1c", ha="center",
+                arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.1))
+    ax.set_title("the decoder will rebuild any digit — "
+                 "so why can it not invent one?", fontsize=11.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.subplots_adjust(left=0.10, right=0.98, top=0.88, bottom=0.16)
+    fig.savefig("lead_cliff.svg", transparent=True)
+    plt.close(fig); print("wrote lead_cliff.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
