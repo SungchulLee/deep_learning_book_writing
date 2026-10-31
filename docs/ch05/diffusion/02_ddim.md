@@ -81,7 +81,7 @@ _확인한 곳 — J. Song, C. Meng, S. Ermon, "Denoising Diffusion Implicit Mod
 """DDIM. 스텝을 건너뛰어 같은 모델에서 더 싸게 뽑는다.
 
 앞 쪽에서 학습해 둔 mnist_ddpm.pt를 읽어 쓴다. 모델은 손대지 않는다.
-자료·심판·U-Net 정의는 앞 쪽과 같다.
+자료·심판·U-Net 정의는 앞 쪽과 같다. 아래 표의 확신도·고름·클래스 안 다양함도 같은 자이며, 세는 법은 [절 개요](index.md)와 [장 개요](../index.md)에 적혀 있다.
 """
 import json, time
 import torch, torch.nn as nn, torch.nn.functional as F, torch.optim as optim
