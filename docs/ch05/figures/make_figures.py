@@ -2316,33 +2316,55 @@ def fig_lead_same_trick():
 
 
 def fig_lead_flip():
-    """잠재 64 에서 이기던 쪽이 2 에서 진다."""
-    fig, ax = plt.subplots(figsize=(8.0, 4.2))
-    mlp = [0.0546, 0.422]
-    cnn = [0.0243, 0.474]
-    for vals, name, c in ((mlp, "AE_MLP", "tab:blue"), (cnn, "AE_CNN", "#c2410c")):
-        rel = [vals[0] / 0.0546, vals[1] / 0.422]
-        ax.plot([0, 1], rel, "o-", color=c, lw=2.4, ms=9)
-        ax.text(-0.06, rel[0], name, ha="right", va="center", fontsize=11, color=c)
-        ax.text(1.06, rel[1], name, ha="left", va="center", fontsize=11, color=c)
-    ax.text(0, 1.30, "keep 64 numbers", ha="center", fontsize=11, color="0.25")
-    ax.text(1, 1.30, "keep 2 numbers", ha="center", fontsize=11, color="0.25")
-    ax.annotate("wins by 56%", xy=(0.04, 0.470), xytext=(0.30, 0.40),
-                fontsize=10, color="#c2410c",
-                arrowprops=dict(arrowstyle="->", color="#c2410c", lw=1.1))
-    ax.annotate("now loses", xy=(1.0, 1.123), xytext=(0.74, 1.21),
-                fontsize=10, color="#c2410c",
-                arrowprops=dict(arrowstyle="->", color="#c2410c", lw=1.1))
-    ax.set_xlim(-0.42, 1.42); ax.set_ylim(0.32, 1.42)
-    ax.set_xticks([]); ax.set_yticks([])
-    ax.set_ylabel("reconstruction error\n(each column scaled to AE_MLP = 1)",
-                  fontsize=10)
-    ax.set_title("same two machines, same data — the order turns over",
-                 fontsize=11.5)
-    ax.spines[:].set_visible(False)
-    fig.subplots_adjust(left=0.13, right=0.97, top=0.87, bottom=0.07)
+    """같은 바꿈인데 한 번은 내려가고 한 번은 올라간다.
+
+    가로는 인코더가 지닌 파라메터 수, 세로는 복원 오차다. 화살표는 둘 다
+    **완전 연결에서 컨볼루션으로** 가는 같은 바꿈인데, 잠재 64 에서는
+    왼쪽아래(적게 쓰고 더 잘한다)로, 잠재 2 에서는 왼쪽위(적게 쓰고 더
+    못한다)로 간다. 네 수는 모두 이 쪽의 두 표에서 옮겼다.
+
+    그림 안에는 **설명 문장을 적지 않는다.** 축 이름과 모델 이름과 수까지다 —
+    읽는 일은 한국어 본문의 몫이다.
+    """
+    cases = [(64, (217408, 0.0546), (105216, 0.0243)),
+             (2,  (201474, 0.422),  (7938,   0.474))]
+    fig, axes = plt.subplots(1, 2, figsize=(11.2, 4.6))
+    for ax, (k, mlp, cnn) in zip(axes, cases):
+        better = cnn[1] < mlp[1]
+        col = "tab:green" if better else "#b91c1c"
+        ax.annotate("", xy=cnn, xytext=mlp,
+                    arrowprops=dict(arrowstyle="-|>", color=col, lw=2.6,
+                                    shrinkA=13, shrinkB=13))
+        # 딱지는 화살표 반대쪽으로 — 점이 오른쪽이면 오른쪽에, 왼쪽이면 왼쪽에
+        for (px, py), name, c in ((mlp, "AE_MLP", "0.45"), (cnn, "AE_CNN", col)):
+            right = px > min(mlp[0], cnn[0])
+            dx, ha = (17, "left") if right else (-17, "right")
+            ax.plot([px], [py], "o", ms=13, color=c, zorder=3)
+            ax.annotate(name, xy=(px, py), xytext=(dx, 11),
+                        textcoords="offset points", ha=ha, fontsize=11,
+                        color=c)
+            ax.annotate(f"{py:.4f}" if py < 0.1 else f"{py:.3f}",
+                        xy=(px, py), xytext=(dx, -4),
+                        textcoords="offset points", ha=ha, fontsize=10.5,
+                        color=c)
+            ax.annotate(f"{px:,}", xy=(px, py), xytext=(dx, -19),
+                        textcoords="offset points", ha=ha, fontsize=9,
+                        color="0.55")
+        lo, hi = sorted([mlp[1], cnn[1]])
+        pad = (hi - lo) * 0.62
+        ax.set_ylim(lo - pad, hi + pad)
+        ax.set_xscale("log"); ax.set_xlim(1100, 3200000)
+        ax.set_xlabel("encoder parameters", fontsize=10)
+        ax.set_title(f"{k}", fontsize=22, color="0.25", pad=14)
+        ax.spines[["top", "right"]].set_visible(False)
+    axes[0].set_ylabel("reconstruction error", fontsize=10)
+    fig.text(0.5, 0.925, "numbers kept", ha="center", fontsize=10.5,
+             color="0.45")
+    fig.subplots_adjust(left=0.085, right=0.98, top=0.80, bottom=0.14,
+                        wspace=0.22)
     fig.savefig("lead_flip.svg", transparent=True)
-    plt.close(fig); print("wrote lead_flip.svg")
+    plt.close(fig)
+    print("wrote lead_flip.svg")
 
 
 def fig_lead_worse_than_nothing():
