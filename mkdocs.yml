@@ -288,10 +288,11 @@ nav:
         - "Skip-gram 과 네거티브 샘플링": embeddings/02_context.md
       - 6.3 세어서 만드는 길:
         - "동시 출현 · PPMI · SVD": embeddings/03_counting.md
-      - 6.4 가져다 쓰는 임베딩:
-        - GloVe 임베딩: embeddings/glove_embedding.md
-        - 임베딩 분석: embeddings/04_embedding_analysis.md
+      - 6.4 담은 것과 못 담은 것:
+        - "유추 · 반대말 · 한 낱말에 벡터 하나": embeddings/04_what_it_holds.md
         - 임베딩 시각화: embeddings/04_embedding_visualization.md
+      - 6.5 가져다 쓰는 임베딩:
+        - GloVe 임베딩: embeddings/glove_embedding.md
     - "7 IMDB로 보는 텍스트 분류":
       - 장 개요: imdb/index.md
       - "7.1 단어 빈도 기반 분류":
