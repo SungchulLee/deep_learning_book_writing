@@ -217,17 +217,6 @@ nav:
         - 교차 엔트로피 로스: ch07/loss/cross_entropy.md
         - "쿨백–라이블러 발산": ch07/loss/kl_divergence.md
         - L2 로스 (평균 제곱 오차): ch07/loss/l2_loss.md
-    - "8 트랜스포머와 대규모 언어 모델":
-      - 장 개요: transformer/index.md
-      - "8.1 어텐션 식을 연다":
-        - "스케일 내적과 멀티헤드": transformer/01_scaled_attention.md
-      - "8.2 가리개와 생성":
-        - "마스킹이 하는 일": transformer/02_masking.md
-      - "8.3 뽑는 법":
-        - "greedy · temperature · top-k": transformer/03_sampling.md
-      - "8.4 규모":
-        - "크게 만들면 어떻게 되는가": transformer/04_scale.md
-  - "II 핵심 아키텍처":
     - 3 MNIST로 보는 분류:
       - 장 개요: ch03/index.md
       - 3.1 템플릿 학습:
@@ -326,6 +315,17 @@ nav:
         - 트랜스포머: imdb/06_transformer.md
       - "7.7 다중 클래스 분류":
         - "리뷰 평점 예측": imdb/07_stars.md
+    - "8 트랜스포머와 대규모 언어 모델":
+      - 장 개요: transformer/index.md
+      - "8.1 어텐션 식을 연다":
+        - "스케일 내적과 멀티헤드": transformer/01_scaled_attention.md
+      - "8.2 가리개와 생성":
+        - "마스킹이 하는 일": transformer/02_masking.md
+      - "8.3 뽑는 법":
+        - "greedy · temperature · top-k": transformer/03_sampling.md
+      - "8.4 규모":
+        - "크게 만들면 어떻게 되는가": transformer/04_scale.md
+  - "II 핵심 아키텍처":
     - 9 뉴럴 넷트웍의 구성 요소:
       - 장 개요: ch08/index.md
       - 9.1 엑티베이션 함수:
