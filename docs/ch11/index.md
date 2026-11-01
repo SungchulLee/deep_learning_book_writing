@@ -1,18 +1,12 @@
 # 시퀀스 모델
 
-문장과 시계열처럼 순서에 따라 의미가 달라지는 데이터를 시퀀스라고 한다. 이 장에서는 단어를 벡터로 표현하는 임베딩에서 시작해 RNN, LSTM과 GRU, Seq2Seq, 어텐션으로 이어지는 모델 구조를 살펴본다. 각 구조가 정보를 어떻게 전달하고, 어떤 제약을 보완하는지에 초점을 맞춘다.
+문장과 시계열처럼 순서에 따라 의미가 달라지는 데이터를 시퀀스라고 한다. 이 장에서는 [6장](../embeddings/index.md)이 만든 단어 벡터를 받아 RNN, LSTM과 GRU, Seq2Seq, 어텐션으로 이어지는 모델 구조를 살펴본다. 각 구조가 정보를 어떻게 전달하고, 어떤 제약을 보완하는지에 초점을 맞춘다.
 
-## 1. 단어 임베딩
+## 1. 단어 임베딩은 6장이 다룬다
 
-임베딩은 단어 ID를 학습 가능한 벡터로 바꾼다. 단어 사이의 관계는 벡터를 만드는 것만으로 생기지 않으며, 학습 데이터와 목적 함수에 따라 형성된다.
+단어 ID를 학습 가능한 벡터로 바꾸는 일 자체는 **[6장 단어로 보는 임베딩](../embeddings/index.md)**이 처음부터 다룬다 — 간단한 임베딩, Word2Vec(CBOW·Skip-gram·네거티브 샘플링), N-그램으로 배우는 길, 그리고 GloVe와 사전 학습 임베딩까지다.
 
-- [간단한 임베딩](embeddings/01_simple_embeddings.md): 임베딩 조회와 원핫 벡터의 관계
-- [Word2Vec](embeddings/01_word2vec_full.md): 단어와 주변 문맥을 이용한 표현 학습
-- [CBOW](embeddings/02_cbow_model.md)와 [Skip-gram](embeddings/03_skipgram_model.md): 문맥과 중심 단어를 예측하는 두 방식
-- [네거티브 샘플링](embeddings/02_negative_sampling.md): 일부 음성 예제를 이용하는 이진 분류 목적 함수
-- [GloVe](embeddings/glove_embedding.md): 단어 동시 출현 통계를 이용한 임베딩
-- [사전 학습 임베딩](embeddings/03_pretrained_embeddings.md), [분석](embeddings/04_embedding_analysis.md), [시각화](embeddings/04_embedding_visualization.md)
-- [로스 함수 비교](embeddings/01_loss_comparison.md): 다음 단어 예측에서 교차 엔트로피와 음의 로그 우도의 관계
+이 장은 그 벡터들을 **받아서** 순서를 다루는 구조로 넘어간다.
 
 ## 2. 순환 뉴럴 넷트웍
 

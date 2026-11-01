@@ -280,22 +280,41 @@ nav:
         - "개요": ch05/diffusion/index.md
         - DDPM: ch05/diffusion/01_ddpm.md
         - DDIM: ch05/diffusion/02_ddim.md
-    - "6 IMDB 텍스트 분류":
+    - "6 단어로 보는 임베딩":
+      - 장 개요: embeddings/index.md
+      - 6.1 단어를 수로 바꾼다:
+        - 간단한 임베딩: embeddings/01_simple_embeddings.md
+        - 임베딩 분석: embeddings/04_embedding_analysis.md
+        - 임베딩 시각화: embeddings/04_embedding_visualization.md
+      - 6.2 Word2Vec:
+        - Word2Vec 전체: embeddings/01_word2vec_full.md
+        - CBOW 모델: embeddings/02_cbow_model.md
+        - Skip-gram 모델: embeddings/03_skipgram_model.md
+        - "네거티브 샘플링": embeddings/02_negative_sampling.md
+      - 6.3 N-그램으로 배우는 임베딩:
+        - N-그램 교차 엔트로피: embeddings/02_ngram_cross_entropy.md
+        - N-그램 함수형 API: embeddings/03_ngram_functional.md
+        - N-그램 NLL 로스: embeddings/04_ngram_nll_loss.md
+        - 로스 함수 비교: embeddings/01_loss_comparison.md
+      - 6.4 가져다 쓰는 임베딩:
+        - GloVe 임베딩: embeddings/glove_embedding.md
+        - 사전 학습 임베딩: embeddings/03_pretrained_embeddings.md
+    - "7 IMDB로 보는 텍스트 분류":
       - 장 개요: imdb/index.md
-      - "6.1 단어 빈도 기반 분류":
+      - "7.1 단어 빈도 기반 분류":
         - "최근접 중심 분류기": imdb/01_counting.md
-      - "6.2 선형 분류":
+      - "7.2 선형 분류":
         - "선형 분류기의 웨이트 학습": imdb/02_linear.md
-      - 6.3 임베딩:
+      - 7.3 임베딩:
         - "임베딩 학습": imdb/03_embedding.md
         - "사전 학습 임베딩": imdb/03_frozen.md
-      - "6.4 순환 뉴럴 넷트웍":
+      - "7.4 순환 뉴럴 넷트웍":
         - LSTM: imdb/04_lstm.md
-      - "6.5 셀프 어텐션":
+      - "7.5 셀프 어텐션":
         - 셀프 어텐션: imdb/05_attention.md
-      - "6.6 트랜스포머":
+      - "7.6 트랜스포머":
         - 트랜스포머: imdb/06_transformer.md
-      - "6.7 다중 클래스 분류":
+      - "7.7 다중 클래스 분류":
         - "리뷰 평점 예측": imdb/07_stars.md
     - 9 뉴럴 넷트웍의 구성 요소:
       - 장 개요: ch08/index.md
@@ -473,21 +492,7 @@ nav:
         - 비국소 뉴럴 넷트웍: ch10/vit/non_local.md
     - "12 시퀀스 모델":
       - 장 개요: ch11/index.md
-      - "12.1 단어 임베딩":
-        - GloVe 임베딩: ch11/embeddings/glove_embedding.md
-        - 간단한 임베딩: ch11/embeddings/01_simple_embeddings.md
-        - 로스 함수 비교: ch11/embeddings/01_loss_comparison.md
-        - Word2Vec 전체: ch11/embeddings/01_word2vec_full.md
-        - N-그램 교차 엔트로피: ch11/embeddings/02_ngram_cross_entropy.md
-        - CBOW 모델: ch11/embeddings/02_cbow_model.md
-        - "네거티브 샘플링": ch11/embeddings/02_negative_sampling.md
-        - N-그램 함수형 API: ch11/embeddings/03_ngram_functional.md
-        - Skip-gram 모델: ch11/embeddings/03_skipgram_model.md
-        - 사전 학습 임베딩: ch11/embeddings/03_pretrained_embeddings.md
-        - N-그램 NLL 로스: ch11/embeddings/04_ngram_nll_loss.md
-        - 임베딩 분석: ch11/embeddings/04_embedding_analysis.md
-        - 임베딩 시각화: ch11/embeddings/04_embedding_visualization.md
-      - 12.2 순환 뉴럴 넷트웍:
+      - 12.1 순환 뉴럴 넷트웍:
         - 순환 뉴럴 넷트웍의 기초: ch11/rnn/rnn_fundamentals.md
         - 기본 RNN: ch11/rnn/vanilla_rnn.md
         - "시간 역전파(BPTT)": ch11/rnn/bptt.md
@@ -504,7 +509,7 @@ nav:
         - "어텐션 메커니즘": ch11/rnn/09_attention_mechanism.md
         - 텍스트 생성: ch11/rnn/10_text_generation.md
         - RNN 유틸리티: ch11/rnn/rnn_utils.md
-      - 12.3 LSTM과 GRU:
+      - 12.2 LSTM과 GRU:
         - LSTM 구조: ch11/lstm_gru/lstm_architecture.md
         - "LSTM 셀 상태": ch11/lstm_gru/cell_state.md
         - GRU 구조: ch11/lstm_gru/gru_architecture.md
@@ -516,7 +521,7 @@ nav:
         - GRU: ch11/lstm_gru/41_gru.md
         - Seq2Seq: ch11/lstm_gru/42_seq2seq.md
         - 어텐션 Seq2Seq: ch11/lstm_gru/43_attention_seq2seq.md
-      - "12.4 Seq2Seq":
+      - "12.3 Seq2Seq":
         - 길이 정규화: ch11/seq2seq/length_normalization.md
         - 프랑스어→영어 번역: ch11/seq2seq/seq2seq_code.md
         - 데이터 전처리: ch11/seq2seq/data_preprocessing.md
@@ -526,7 +531,7 @@ nav:
         - 추론: ch11/seq2seq/inference.md
         - Seq2Seq 모델: ch11/seq2seq/seq2seq_model.md
         - 학습: ch11/seq2seq/train.md
-      - 12.5 어텐션:
+      - 12.4 어텐션:
         - 어텐션의 기초: ch11/attention/attention_fundamentals.md
         - "셀프 어텐션": ch11/attention/self_attention.md
         - "멀티헤드 어텐션": ch11/attention/multi_head_attention.md
