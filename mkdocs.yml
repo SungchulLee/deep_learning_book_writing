@@ -283,11 +283,8 @@ nav:
       - 장 개요: embeddings/index.md
       - 6.1 단어는 수가 아니다:
         - "조회가 곧 행렬 곱이다": embeddings/01_not_a_number.md
-      - 6.2 Word2Vec:
-        - Word2Vec 전체: embeddings/01_word2vec_full.md
-        - CBOW 모델: embeddings/02_cbow_model.md
-        - Skip-gram 모델: embeddings/03_skipgram_model.md
-        - "네거티브 샘플링": embeddings/02_negative_sampling.md
+      - 6.2 둘레가 뜻을 만든다:
+        - "Skip-gram 과 네거티브 샘플링": embeddings/02_context.md
       - 6.3 N-그램으로 배우는 임베딩:
         - N-그램 교차 엔트로피: embeddings/02_ngram_cross_entropy.md
         - N-그램 함수형 API: embeddings/03_ngram_functional.md
