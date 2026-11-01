@@ -217,6 +217,7 @@ nav:
         - 교차 엔트로피 로스: ch07/loss/cross_entropy.md
         - "쿨백–라이블러 발산": ch07/loss/kl_divergence.md
         - L2 로스 (평균 제곱 오차): ch07/loss/l2_loss.md
+        - "N-그램으로 보는 NLL 로스": embeddings/04_ngram_nll_loss.md
     - 3 MNIST로 보는 분류:
       - 장 개요: ch03/index.md
       - 3.1 템플릿 학습:
@@ -285,11 +286,8 @@ nav:
         - "조회가 곧 행렬 곱이다": embeddings/01_not_a_number.md
       - 6.2 둘레가 뜻을 만든다:
         - "Skip-gram 과 네거티브 샘플링": embeddings/02_context.md
-      - 6.3 N-그램으로 배우는 임베딩:
-        - N-그램 교차 엔트로피: embeddings/02_ngram_cross_entropy.md
-        - N-그램 함수형 API: embeddings/03_ngram_functional.md
-        - N-그램 NLL 로스: embeddings/04_ngram_nll_loss.md
-        - 로스 함수 비교: embeddings/01_loss_comparison.md
+      - 6.3 세어서 만드는 길:
+        - "동시 출현 · PPMI · SVD": embeddings/03_counting.md
       - 6.4 가져다 쓰는 임베딩:
         - GloVe 임베딩: embeddings/glove_embedding.md
         - 임베딩 분석: embeddings/04_embedding_analysis.md
