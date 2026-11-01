@@ -150,7 +150,7 @@ print(f"두 합이 같은가        : {np.allclose(A.sum(axis=1).sum(), A.sum(ax
 
 이 기록의 시간 차이는 약 10%였다. NumPy의 반복 방식과 CPU 캐시, 입력의 메모리 배치가 함께 영향을 준다. 더 불규칙한 접근이 항상 일정 배율의 손해를 내는 것은 아니다. 핵심은 같은 수의 덧셈이라도 데이터 접근 방식에 따라 시간이 달라질 수 있다는 점이다.
 
-이 성질은 뒤에서 PyTorch의 `view`, `reshape`, `contiguous`를 이해할 때 다시 나온다. 자세한 것은 [7장의 메모리 배치와 스트라이드](../../ch06/tensor_attrs/memory_layout_strides.md)에 있다.
+이 성질은 뒤에서 PyTorch의 `view`, `reshape`, `contiguous`를 이해할 때 다시 나온다. 자세한 것은 [1.5절 메모리 배치와 스트라이드](../../ch06/tensor_attrs/memory_layout_strides.md)에 있다.
 
 ---
 

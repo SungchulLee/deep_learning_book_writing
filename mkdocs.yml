@@ -41,7 +41,7 @@ exclude_docs: |
 nav:
   - "소개": index.md
   - "I 기초":
-    - "1 입문":
+    - "1 입문과 PyTorch 기초":
       - 장 개요: ch01/index.md
       - 1.1 컴퓨터 구조:
         - "CPU와 메모리": ch01/hardware/01_cpu_and_memory.md
@@ -54,7 +54,90 @@ nav:
       - 1.3 PyTorch:
         - NumPy에서 PyTorch로: ch01/pytorch/01_numpy_to_tensor.md
         - "CPU와 GPU 성능 비교": ch01/pytorch/02_cpu_vs_gpu.md
-    - 2 학습 패러다임과 고전 모델:
+      - "PyTorch 기초 — 길잡이": ch06/index.md
+      - 1.4 텐서:
+        - 스칼라를 텐서로: ch06/tensors/01_scalar_to_tensor.md
+        - 리스트를 텐서로: ch06/tensors/02_list_to_tensor.md
+        - 범위를 텐서로: ch06/tensors/03_range_to_tensor.md
+        - NumPy 배열을 텐서로: ch06/tensors/04_numpy_array_to_tensor.md
+        - Pandas를 텐서로: ch06/tensors/05_pandas_to_tensor.md
+        - 팩토리 함수: ch06/tensors/06_factory_functions.md
+        - "별칭, 뷰, clone의 차이": ch06/tensors/07_clone_vs_inplace.md
+        - 인덱싱과 슬라이싱: ch06/tensors/08_indexing_slicing.md
+        - 재구성과 뷰: ch06/tensors/09_reshaping_views.md
+        - 산술 연산: ch06/tensors/10_arithmetic_operations.md
+        - 브로드캐스팅: ch06/tensors/11_broadcasting.md
+        - 논리 연산: ch06/tensors/13_logical_operations.md
+        - 고윳값과 SVD: ch06/tensors/15_eigenvalues_svd.md
+        - 텐서 비교: ch06/tensors/17_tensor_comparison.md
+        - 야코비안과 고차 미분: ch06/tensors/19_gradient_computation.md
+        - 사용자 정의 함수: ch06/tensors/20_custom_functions.md
+        - 간단한 뉴럴 넷트웍: ch06/tensors/21_simple_neural_network.md
+        - 최적화 기초: ch06/tensors/22_optimization_basics.md
+        - GPU 연산: ch06/tensors/23_gpu_operations.md
+        - 혼합 정밀도: ch06/tensors/24_mixed_precision.md
+        - 메모리 관리: ch06/tensors/25_memory_management.md
+        - 데이터 적재: ch06/tensors/26_data_loading.md
+        - 모델 체크포인트: ch06/tensors/27_model_checkpoint.md
+        - 실전 예제: ch06/tensors/28_real_world_example.md
+      - 1.5 텐서 속성:
+        - 메모리 배치와 스트라이드: ch06/tensor_attrs/memory_layout_strides.md
+        - Autograd 관련 속성: ch06/tensor_attrs/01_autograd_related.md
+        - 데이터 관련 속성: ch06/tensor_attrs/02_data_related.md
+        - "형상, 자료형, 장치": ch06/tensor_attrs/03_shape_dtype_device.md
+        - 메모리와 저장소: ch06/tensor_attrs/04_memory_and_storage.md
+        - Linear 웨이트 관례: ch06/tensor_attrs/05_linear_weight_convention.md
+        - cat 시각화: ch06/tensor_attrs/06_cat_visualization.md
+        - 제자리 연산과 autograd 제약: ch06/tensor_attrs/07_inplace_operations.md
+        - 불리언 마스킹과 where: ch06/tensor_attrs/09_indexing_masking.md
+        - 생성 방법: ch06/tensor_attrs/10_creation_methods.md
+        - 축약과 통계: ch06/tensor_attrs/11_reductions_statistics.md
+        - 이어 붙이기와 나누기: ch06/tensor_attrs/13_concatenation_splitting.md
+        - 행렬 연산: ch06/tensor_attrs/14_matrix_operations.md
+        - 비교, 범위 제한, 정렬: ch06/tensor_attrs/15_comparison_clamping_sorting.md
+      - 1.6 자동 미분:
+        - 경사 계산: ch06/autograd/gradient_computation.md
+        - 스칼라에 대한 기본 역전파: ch06/autograd/01_basic_scalar_backward.md
+        - 경사 누적: ch06/autograd/02_gradient_accumulation.md
+        - retain_graph: ch06/autograd/03_retain_graph.md
+        - 작은 학습 단계: ch06/autograd/04_mini_training_step.md
+        - 완전한 선형 회귀: ch06/autograd/05_complete_linear_regression.md
+        - Module을 이용한 선형 회귀: ch06/autograd/06_linear_regression_with_module.md
+        - 경사 추적을 언제 멈출 것인가: ch06/autograd/07_when_to_stop_tracking_grads.md
+        - 경사 추적 끄기: ch06/autograd/08_turn_off_gradient_tracking.md
+        - detach와 detach_: ch06/autograd/09_detach_vs_detach_.md
+        - with torch.no_grad(): ch06/autograd/10_with_torch_no_grad.md
+        - 최적화기 방식의 갱신: ch06/autograd/11_optimizer_like_updates.md
+        - NumPy로 변환하기: ch06/autograd/12_converting_to_numpy.md
+        - 레이어 출력하기: ch06/autograd/13_print_layers.md
+        - OrderedDict를 이용한 레이어 이름 짓기: ch06/autograd/14_layer_naming_with_ordereddict.md
+        - 사용자 정의 Module을 이용한 레이어 이름 짓기: ch06/autograd/15_layer_naming_with_custom_module.md
+        - 파라메터 동결과 해제: ch06/autograd/16_freeze_and_unfreeze_parameters.md
+        - 함정과 점검 사항: ch06/autograd/17_pitfalls_and_sanity_checks.md
+        - 경사를 0으로 만드는 세 가지 방법: ch06/autograd/18_three_ways_to_zero_gradients.md
+        - 큰 배치를 위한 경사 누적: ch06/autograd/19_gradient_accumulation_for_large_batches.md
+        - 경사 크기 조정이 중요한 이유: ch06/autograd/20_why_gradient_scaling_matters.md
+        - 경사 누적을 쓰는 학습 루프: ch06/autograd/21_training_loop_with_grad_accumulation.md
+        - v를 이용한 벡터 역전파: ch06/autograd/22_vector_backward_with_v.md
+        - 벡터 역전파 - 선형 사례 1: ch06/autograd/23_vector_backward_linear_case_1.md
+        - 벡터 역전파 - 선형 사례 2: ch06/autograd/24_vector_backward_linear_case_2.md
+        - 벡터 역전파 - 비선형 전체 야코비안: ch06/autograd/25_vector_backward_nonlinear_full_jacobian.md
+        - 벡터 역전파의 함정: ch06/autograd/26_pitfalls_of_vector_backward.md
+        - 배치 VJP: ch06/autograd/27_batch_vjp.md
+        - Autograd 바닥부터 만들기: ch06/autograd/autograd_from_scratch.md
+      - 1.7 경사 하강법:
+        - 최급상승 방향으로서의 경사: ch06/gradient_descent/steepest_direction.md
+        - 러닝레이트와 이동 폭: ch06/gradient_descent/learning_rate.md
+        - 볼록 최적화와 비볼록 최적화: ch06/gradient_descent/convex_nonconvex.md
+        - 배치, 미니배치, 확률적 경사 하강법: ch06/gradient_descent/batch_minibatch_sgd.md
+        - NumPy로 직접 구현하는 경사 하강법: ch06/gradient_descent/01_manual_gradient_numpy.md
+        - 배치와 미니배치 SGD: ch06/gradient_descent/01_batch_vs_minibatch_sgd.md
+        - Adam 최적화기: ch06/gradient_descent/01_adam_optimizer.md
+        - MNIST 뉴럴 넷트웍: ch06/gradient_descent/01_neural_network_mnist.md
+        - PyTorch Autograd 기초: ch06/gradient_descent/02_pytorch_autograd_basics.md
+        - 간단한 선형 회귀: ch06/gradient_descent/03_simple_linear_regression.md
+        - 경사 하강법 시각화: ch06/gradient_descent/04_visualizing_gradient_descent.md
+    - "2 학습 패러다임과 통계적 학습":
       - 장 개요: ch02/index.md
       - 2.1 인공지능 학습 패러다임:
         - "데이터 탐색과 분석": ch02/paradigms/analyze_available.md
@@ -71,6 +154,70 @@ nav:
         - DBSCAN과 병합 군집화: ch02/clustering/02_dbscan_agglomerative.md
         - "가우시안 혼합 모델": ch02/clustering/03_gmm.md
         - 군집화 평가 지표: ch02/metrics/clustering.md
+      - "통계적 학습 — 길잡이": ch07/index.md
+      - 2.4 최대가능도 추정:
+        - 최대가능도 추정: ch07/mle/mle.md
+        - 회귀에서의 최대가능도: ch07/mle/mle_regression.md
+        - 분류에서의 최대가능도: ch07/mle/mle_classification.md
+        - 확률적 해석: ch07/mle/probabilistic_interpretation.md
+        - 표지-재포획 MLE: ch07/mle/capture_recapture_mle.md
+        - 정규분포 MLE: ch07/mle/normal_distribution_mle.md
+        - 로지스틱 회귀 MLE: ch07/mle/logistic_regression_mle.md
+        - "가우시안 혼합 EM": ch07/mle/mixture_of_gaussians_em.md
+        - 뉴럴 넷트웍 MLE: ch07/mle/neural_network_mle.md
+      - 2.5 선형 회귀:
+        - NumPy로 만드는 선형 회귀: ch07/linear_regression/02_linear_regression_numpy.md
+        - PyTorch로 직접 계산하는 선형 회귀: ch07/linear_regression/03_linear_regression_manual_pytorch.md
+        - Autograd로 만드는 선형 회귀: ch07/linear_regression/04_linear_regression_autograd.md
+        - nn 모듈로 만드는 선형 회귀: ch07/linear_regression/05_linear_regression_nn_module.md
+        - 다변량 회귀: ch07/linear_regression/06_multivariate_regression.md
+        - 다항 회귀: ch07/linear_regression/07_polynomial_regression.md
+        - 정칙화: ch07/linear_regression/08_regularization.md
+        - 미니배치 학습: ch07/linear_regression/09_mini_batch_training.md
+        - 완전한 파이프라인: ch07/linear_regression/10_complete_pipeline.md
+        - "해석적 해": ch07/linear_regression/closed_form.md
+        - 텐서로 만드는 데이터셋: ch07/linear_regression/dataset_from_tensor.md
+        - "경사 하강법을 이용한 해": ch07/linear_regression/gd_solution.md
+        - NumPy로 만드는 경사 하강법: ch07/linear_regression/gradient_descent_numpy.md
+        - PyTorch로 만드는 경사 하강법: ch07/linear_regression/gradient_descent_torch.md
+        - 라쏘 회귀: ch07/linear_regression/lasso_regression.md
+        - 선형 회귀: ch07/linear_regression/linear_regression.md
+        - scikit-learn으로 하는 선형 회귀: ch07/linear_regression/lr_sklearn.md
+        - 최소한의 PyTorch: ch07/linear_regression/minimal_torch.md
+        - 다중 출력: ch07/linear_regression/multiple_outputs.md
+        - 정규 방정식: ch07/linear_regression/normal_equation.md
+        - 다항 피처: ch07/linear_regression/polynomial_features.md
+        - 릿지 회귀: ch07/linear_regression/ridge_regression.md
+        - SPY에 대한 WMT 회귀: ch07/linear_regression/wmt_on_spy.md
+      - 2.6 로지스틱 회귀:
+        - 이진 분류: ch07/logistic_regression/binary_classification.md
+        - 시그모이드 함수: ch07/logistic_regression/sigmoid.md
+        - 결정 경계: ch07/logistic_regression/decision_boundary.md
+        - 경사 계산: ch07/logistic_regression/gradient.md
+        - 정칙화된 로지스틱 회귀: ch07/logistic_regression/regularized.md
+        - 소개: ch07/logistic_regression/01_introduction.md
+        - 사용자 정의 데이터셋: ch07/logistic_regression/01_custom_dataset.md
+        - 간단한 이진 분류: ch07/logistic_regression/02_simple_binary_classification.md
+        - DataLoader로 배치 처리하기: ch07/logistic_regression/02_dataloader_batching.md
+        - 다중 클래스 분류: ch07/logistic_regression/02_multiclass_classification.md
+        - scikit-learn 데이터로 실습하기: ch07/logistic_regression/03_with_sklearn_data.md
+        - 모델 체크포인트: ch07/logistic_regression/03_model_checkpointing.md
+        - BCE를 쓰는 경사 하강법: ch07/logistic_regression/04_gradient_descent_with_bce.md
+        - BCEWithLogitsLoss를 쓰는 경사 하강법: ch07/logistic_regression/05_gradient_descent_with_bcewithlogitsloss.md
+        - 경사 하강법 심화: ch07/logistic_regression/06_gradient_descent_advanced.md
+        - scikit-learn과의 비교: ch07/logistic_regression/07_sklearn_comparison.md
+        - IMDB 텍스트 분류: ch07/logistic_regression/08_imdb_text_classification.md
+      - 2.7 소프트맥스 회귀:
+        - 기초: ch07/softmax_regression/01_fundamentals.md
+        - 다중 클래스 분류: ch07/softmax_regression/multiclass.md
+        - 소프트맥스 회귀의 한계: ch07/softmax_regression/02_limits.md
+        - 심화: ch07/softmax_regression/04_advanced.md
+        - 종합 프로젝트: ch07/softmax_regression/05_comprehensive.md
+      - 2.8 로스 함수:
+        - 교차 엔트로피 로스: ch07/loss/cross_entropy.md
+        - "쿨백–라이블러 발산": ch07/loss/kl_divergence.md
+        - L2 로스 (평균 제곱 오차): ch07/loss/l2_loss.md
+  - "II 핵심 아키텍처":
     - 3 MNIST로 보는 분류:
       - 장 개요: ch03/index.md
       - 3.1 템플릿 학습:
@@ -150,155 +297,6 @@ nav:
         - 트랜스포머: imdb/06_transformer.md
       - "6.7 다중 클래스 분류":
         - "리뷰 평점 예측": imdb/07_stars.md
-    - 7 PyTorch 기초:
-      - 장 개요: ch06/index.md
-      - 7.1 텐서:
-        - 스칼라를 텐서로: ch06/tensors/01_scalar_to_tensor.md
-        - 리스트를 텐서로: ch06/tensors/02_list_to_tensor.md
-        - 범위를 텐서로: ch06/tensors/03_range_to_tensor.md
-        - NumPy 배열을 텐서로: ch06/tensors/04_numpy_array_to_tensor.md
-        - Pandas를 텐서로: ch06/tensors/05_pandas_to_tensor.md
-        - 팩토리 함수: ch06/tensors/06_factory_functions.md
-        - "별칭, 뷰, clone의 차이": ch06/tensors/07_clone_vs_inplace.md
-        - 인덱싱과 슬라이싱: ch06/tensors/08_indexing_slicing.md
-        - 재구성과 뷰: ch06/tensors/09_reshaping_views.md
-        - 산술 연산: ch06/tensors/10_arithmetic_operations.md
-        - 브로드캐스팅: ch06/tensors/11_broadcasting.md
-        - 논리 연산: ch06/tensors/13_logical_operations.md
-        - 고윳값과 SVD: ch06/tensors/15_eigenvalues_svd.md
-        - 텐서 비교: ch06/tensors/17_tensor_comparison.md
-        - 야코비안과 고차 미분: ch06/tensors/19_gradient_computation.md
-        - 사용자 정의 함수: ch06/tensors/20_custom_functions.md
-        - 간단한 뉴럴 넷트웍: ch06/tensors/21_simple_neural_network.md
-        - 최적화 기초: ch06/tensors/22_optimization_basics.md
-        - GPU 연산: ch06/tensors/23_gpu_operations.md
-        - 혼합 정밀도: ch06/tensors/24_mixed_precision.md
-        - 메모리 관리: ch06/tensors/25_memory_management.md
-        - 데이터 적재: ch06/tensors/26_data_loading.md
-        - 모델 체크포인트: ch06/tensors/27_model_checkpoint.md
-        - 실전 예제: ch06/tensors/28_real_world_example.md
-      - 7.2 텐서 속성:
-        - 메모리 배치와 스트라이드: ch06/tensor_attrs/memory_layout_strides.md
-        - Autograd 관련 속성: ch06/tensor_attrs/01_autograd_related.md
-        - 데이터 관련 속성: ch06/tensor_attrs/02_data_related.md
-        - "형상, 자료형, 장치": ch06/tensor_attrs/03_shape_dtype_device.md
-        - 메모리와 저장소: ch06/tensor_attrs/04_memory_and_storage.md
-        - Linear 웨이트 관례: ch06/tensor_attrs/05_linear_weight_convention.md
-        - cat 시각화: ch06/tensor_attrs/06_cat_visualization.md
-        - 제자리 연산과 autograd 제약: ch06/tensor_attrs/07_inplace_operations.md
-        - 불리언 마스킹과 where: ch06/tensor_attrs/09_indexing_masking.md
-        - 생성 방법: ch06/tensor_attrs/10_creation_methods.md
-        - 축약과 통계: ch06/tensor_attrs/11_reductions_statistics.md
-        - 이어 붙이기와 나누기: ch06/tensor_attrs/13_concatenation_splitting.md
-        - 행렬 연산: ch06/tensor_attrs/14_matrix_operations.md
-        - 비교, 범위 제한, 정렬: ch06/tensor_attrs/15_comparison_clamping_sorting.md
-      - 7.3 자동 미분:
-        - 경사 계산: ch06/autograd/gradient_computation.md
-        - 스칼라에 대한 기본 역전파: ch06/autograd/01_basic_scalar_backward.md
-        - 경사 누적: ch06/autograd/02_gradient_accumulation.md
-        - retain_graph: ch06/autograd/03_retain_graph.md
-        - 작은 학습 단계: ch06/autograd/04_mini_training_step.md
-        - 완전한 선형 회귀: ch06/autograd/05_complete_linear_regression.md
-        - Module을 이용한 선형 회귀: ch06/autograd/06_linear_regression_with_module.md
-        - 경사 추적을 언제 멈출 것인가: ch06/autograd/07_when_to_stop_tracking_grads.md
-        - 경사 추적 끄기: ch06/autograd/08_turn_off_gradient_tracking.md
-        - detach와 detach_: ch06/autograd/09_detach_vs_detach_.md
-        - with torch.no_grad(): ch06/autograd/10_with_torch_no_grad.md
-        - 최적화기 방식의 갱신: ch06/autograd/11_optimizer_like_updates.md
-        - NumPy로 변환하기: ch06/autograd/12_converting_to_numpy.md
-        - 레이어 출력하기: ch06/autograd/13_print_layers.md
-        - OrderedDict를 이용한 레이어 이름 짓기: ch06/autograd/14_layer_naming_with_ordereddict.md
-        - 사용자 정의 Module을 이용한 레이어 이름 짓기: ch06/autograd/15_layer_naming_with_custom_module.md
-        - 파라메터 동결과 해제: ch06/autograd/16_freeze_and_unfreeze_parameters.md
-        - 함정과 점검 사항: ch06/autograd/17_pitfalls_and_sanity_checks.md
-        - 경사를 0으로 만드는 세 가지 방법: ch06/autograd/18_three_ways_to_zero_gradients.md
-        - 큰 배치를 위한 경사 누적: ch06/autograd/19_gradient_accumulation_for_large_batches.md
-        - 경사 크기 조정이 중요한 이유: ch06/autograd/20_why_gradient_scaling_matters.md
-        - 경사 누적을 쓰는 학습 루프: ch06/autograd/21_training_loop_with_grad_accumulation.md
-        - v를 이용한 벡터 역전파: ch06/autograd/22_vector_backward_with_v.md
-        - 벡터 역전파 - 선형 사례 1: ch06/autograd/23_vector_backward_linear_case_1.md
-        - 벡터 역전파 - 선형 사례 2: ch06/autograd/24_vector_backward_linear_case_2.md
-        - 벡터 역전파 - 비선형 전체 야코비안: ch06/autograd/25_vector_backward_nonlinear_full_jacobian.md
-        - 벡터 역전파의 함정: ch06/autograd/26_pitfalls_of_vector_backward.md
-        - 배치 VJP: ch06/autograd/27_batch_vjp.md
-        - Autograd 바닥부터 만들기: ch06/autograd/autograd_from_scratch.md
-      - 7.4 경사 하강법:
-        - 최급상승 방향으로서의 경사: ch06/gradient_descent/steepest_direction.md
-        - 러닝레이트와 이동 폭: ch06/gradient_descent/learning_rate.md
-        - 볼록 최적화와 비볼록 최적화: ch06/gradient_descent/convex_nonconvex.md
-        - 배치, 미니배치, 확률적 경사 하강법: ch06/gradient_descent/batch_minibatch_sgd.md
-        - NumPy로 직접 구현하는 경사 하강법: ch06/gradient_descent/01_manual_gradient_numpy.md
-        - 배치와 미니배치 SGD: ch06/gradient_descent/01_batch_vs_minibatch_sgd.md
-        - Adam 최적화기: ch06/gradient_descent/01_adam_optimizer.md
-        - MNIST 뉴럴 넷트웍: ch06/gradient_descent/01_neural_network_mnist.md
-        - PyTorch Autograd 기초: ch06/gradient_descent/02_pytorch_autograd_basics.md
-        - 간단한 선형 회귀: ch06/gradient_descent/03_simple_linear_regression.md
-        - 경사 하강법 시각화: ch06/gradient_descent/04_visualizing_gradient_descent.md
-    - 8 통계적 학습:
-      - 장 개요: ch07/index.md
-      - 8.1 최대가능도 추정:
-        - 최대가능도 추정: ch07/mle/mle.md
-        - 회귀에서의 최대가능도: ch07/mle/mle_regression.md
-        - 분류에서의 최대가능도: ch07/mle/mle_classification.md
-        - 확률적 해석: ch07/mle/probabilistic_interpretation.md
-        - 표지-재포획 MLE: ch07/mle/capture_recapture_mle.md
-        - 정규분포 MLE: ch07/mle/normal_distribution_mle.md
-        - 로지스틱 회귀 MLE: ch07/mle/logistic_regression_mle.md
-        - "가우시안 혼합 EM": ch07/mle/mixture_of_gaussians_em.md
-        - 뉴럴 넷트웍 MLE: ch07/mle/neural_network_mle.md
-      - 8.2 선형 회귀:
-        - NumPy로 만드는 선형 회귀: ch07/linear_regression/02_linear_regression_numpy.md
-        - PyTorch로 직접 계산하는 선형 회귀: ch07/linear_regression/03_linear_regression_manual_pytorch.md
-        - Autograd로 만드는 선형 회귀: ch07/linear_regression/04_linear_regression_autograd.md
-        - nn 모듈로 만드는 선형 회귀: ch07/linear_regression/05_linear_regression_nn_module.md
-        - 다변량 회귀: ch07/linear_regression/06_multivariate_regression.md
-        - 다항 회귀: ch07/linear_regression/07_polynomial_regression.md
-        - 정칙화: ch07/linear_regression/08_regularization.md
-        - 미니배치 학습: ch07/linear_regression/09_mini_batch_training.md
-        - 완전한 파이프라인: ch07/linear_regression/10_complete_pipeline.md
-        - "해석적 해": ch07/linear_regression/closed_form.md
-        - 텐서로 만드는 데이터셋: ch07/linear_regression/dataset_from_tensor.md
-        - "경사 하강법을 이용한 해": ch07/linear_regression/gd_solution.md
-        - NumPy로 만드는 경사 하강법: ch07/linear_regression/gradient_descent_numpy.md
-        - PyTorch로 만드는 경사 하강법: ch07/linear_regression/gradient_descent_torch.md
-        - 라쏘 회귀: ch07/linear_regression/lasso_regression.md
-        - 선형 회귀: ch07/linear_regression/linear_regression.md
-        - scikit-learn으로 하는 선형 회귀: ch07/linear_regression/lr_sklearn.md
-        - 최소한의 PyTorch: ch07/linear_regression/minimal_torch.md
-        - 다중 출력: ch07/linear_regression/multiple_outputs.md
-        - 정규 방정식: ch07/linear_regression/normal_equation.md
-        - 다항 피처: ch07/linear_regression/polynomial_features.md
-        - 릿지 회귀: ch07/linear_regression/ridge_regression.md
-        - SPY에 대한 WMT 회귀: ch07/linear_regression/wmt_on_spy.md
-      - 8.3 로지스틱 회귀:
-        - 이진 분류: ch07/logistic_regression/binary_classification.md
-        - 시그모이드 함수: ch07/logistic_regression/sigmoid.md
-        - 결정 경계: ch07/logistic_regression/decision_boundary.md
-        - 경사 계산: ch07/logistic_regression/gradient.md
-        - 정칙화된 로지스틱 회귀: ch07/logistic_regression/regularized.md
-        - 소개: ch07/logistic_regression/01_introduction.md
-        - 사용자 정의 데이터셋: ch07/logistic_regression/01_custom_dataset.md
-        - 간단한 이진 분류: ch07/logistic_regression/02_simple_binary_classification.md
-        - DataLoader로 배치 처리하기: ch07/logistic_regression/02_dataloader_batching.md
-        - 다중 클래스 분류: ch07/logistic_regression/02_multiclass_classification.md
-        - scikit-learn 데이터로 실습하기: ch07/logistic_regression/03_with_sklearn_data.md
-        - 모델 체크포인트: ch07/logistic_regression/03_model_checkpointing.md
-        - BCE를 쓰는 경사 하강법: ch07/logistic_regression/04_gradient_descent_with_bce.md
-        - BCEWithLogitsLoss를 쓰는 경사 하강법: ch07/logistic_regression/05_gradient_descent_with_bcewithlogitsloss.md
-        - 경사 하강법 심화: ch07/logistic_regression/06_gradient_descent_advanced.md
-        - scikit-learn과의 비교: ch07/logistic_regression/07_sklearn_comparison.md
-        - IMDB 텍스트 분류: ch07/logistic_regression/08_imdb_text_classification.md
-      - 8.4 소프트맥스 회귀:
-        - 기초: ch07/softmax_regression/01_fundamentals.md
-        - 다중 클래스 분류: ch07/softmax_regression/multiclass.md
-        - 소프트맥스 회귀의 한계: ch07/softmax_regression/02_limits.md
-        - 심화: ch07/softmax_regression/04_advanced.md
-        - 종합 프로젝트: ch07/softmax_regression/05_comprehensive.md
-      - 8.5 로스 함수:
-        - 교차 엔트로피 로스: ch07/loss/cross_entropy.md
-        - "쿨백–라이블러 발산": ch07/loss/kl_divergence.md
-        - L2 로스 (평균 제곱 오차): ch07/loss/l2_loss.md
-  - "II 핵심 아키텍처":
     - 9 뉴럴 넷트웍의 구성 요소:
       - 장 개요: ch08/index.md
       - 9.1 엑티베이션 함수:
