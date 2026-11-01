@@ -294,6 +294,112 @@ def fig_no_noise():
     plt.close(fig); print("wrote no_noise.svg")
 
 
+def fig_conv_flip():
+    """컨볼루션 걸음이 잠재 64 에서는 벌고 2 에서는 잃는다.
+
+    5.1 의 lead_flip 과 같은 꼴 - 화살표가 가리키는 방향이 곧 결론이다.
+    가로는 복원 오차(작을수록 좋다), 세로는 고름(클수록 좋다)이므로
+    **왼쪽 위로 가면 양쪽 다 좋아진 것**이다. 두 칸의 가로 눈금이 열 배
+    다르므로 칸을 나누었다. 수는 04_conv_vae 쪽의 출력 그대로다.
+    """
+    import matplotlib.pyplot as plt
+    panels = [("latent 64", (0.07499, 0.877), (0.04228, 0.927),
+               (0.030, 0.082), (0.855, 0.945)),
+              ("latent 2", (0.42744, 0.950), (0.46375, 0.919),
+               (0.415, 0.478), (0.905, 0.962))]
+    fig, axes = plt.subplots(1, 2, figsize=(9.6, 4.3))
+    for ax, (title, a, b, xl, yl) in zip(axes, panels):
+        good = b[0] < a[0] and b[1] > a[1]
+        col = "#15803d" if good else "#b91c1c"
+        # VAE 를 기준으로 「둘 다 좋아진 칸」과 「둘 다 나빠진 칸」을 칠한다.
+        # 화살표만으로는 두 칸이 같은 대각선으로 보여 뒤집힘이 드러나지 않는다
+        ax.add_patch(plt.Rectangle((xl[0], a[1]), a[0] - xl[0], yl[1] - a[1],
+                                   color="#15803d", alpha=0.085, zorder=0))
+        ax.add_patch(plt.Rectangle((a[0], yl[0]), xl[1] - a[0], a[1] - yl[0],
+                                   color="#b91c1c", alpha=0.085, zorder=0))
+        # 이름표는 축의 두 먼 귀퉁이에 둔다 - 칠한 칸이 늘 왼위/오른아래이므로
+        ax.text(0.015, 0.975, "better on both", transform=ax.transAxes,
+                ha="left", va="top", fontsize=9.5, color="#15803d")
+        ax.text(0.985, 0.025, "worse on both", transform=ax.transAxes,
+                ha="right", va="bottom", fontsize=9.5, color="#b91c1c")
+        ax.annotate("", xy=b, xytext=a,
+                    arrowprops=dict(arrowstyle="-|>", color=col, lw=2.6,
+                                    mutation_scale=22))
+        ax.plot(*a, "o", ms=11, color="0.55")
+        ax.plot(*b, "o", ms=11, color=col)
+        ax.annotate("VAE", xy=a, xytext=(0, -20), textcoords="offset points",
+                    ha="center", fontsize=10.5, color="0.4")
+        ax.annotate("conv VAE", xy=b, xytext=(0, -22 if good else 14),
+                    textcoords="offset points", ha="center", fontsize=10.5,
+                    color=col)
+        ax.set_xlim(*xl); ax.set_ylim(*yl)
+        ax.set_title(f"{title}   -   {'both rulers improve' if good else 'both rulers worsen'}",
+                     fontsize=11, color=col)
+        ax.set_xlabel("reconstruction error   (lower is better)", fontsize=10)
+        ax.spines[["top", "right"]].set_visible(False)
+    axes[0].set_ylabel("class balance of samples\n(higher is better)", fontsize=10)
+    fig.text(0.5, 0.025, "up and to the left = better on both.  "
+                         "the arrow flips when the bottleneck narrows.",
+             ha="center", fontsize=10, color="0.35")
+    fig.subplots_adjust(left=0.10, right=0.98, top=0.90, bottom=0.21, wspace=0.22)
+    fig.savefig("conv_flip.svg", transparent=True)
+    plt.close(fig); print("wrote conv_flip.svg")
+
+
+def fig_conv_obedience():
+    """컨볼루션이 되살리기는 크게 고치고 말 듣는 일은 못 고친다.
+
+    네 자를 한 그림에 포개지 않는다 - 1 의 뜻이 저마다 다르고, 작은 변화
+    둘은 이 절이 재어 둔 샘플링 스프레드(확신도 0.010, 고름 0.013) 안이라
+    부를 수 없다. 그래서 **부를 수 있는 둘만** 칸을 나누어 보인다.
+    수는 05_conv_cvae 쪽의 출력 그대로다.
+    """
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(1, 2, figsize=(9.4, 4.3))
+
+    axL, axR = axes
+    v = [0.07618, 0.04215]
+    axL.bar([0, 1], v, width=0.44, color=["0.6", "#15803d"])
+    for x, y in zip([0, 1], v):
+        axL.text(x, y + 0.0022, f"{y:.5f}", ha="center", fontsize=11.5,
+                 color="0.25")
+    axL.set_xticks([0, 1]); axL.set_xticklabels(["cVAE", "conv cVAE"],
+                                                fontsize=11)
+    axL.set_ylim(0, 0.094)
+    axL.set_ylabel("reconstruction error\n(lower is better)", fontsize=10.5)
+    axL.set_title("the convolution step works", fontsize=11.5, color="#15803d")
+    axL.text(0.5, 0.086, "45% less error", ha="center", fontsize=11,
+             color="#15803d")
+
+    o = [73.64, 72.38]
+    axR.bar([0, 1], o, width=0.44, color=["0.6", "#b91c1c"])
+    for x, y in zip([0, 1], o):
+        axR.text(x, y + 1.3, f"{y:.2f}%", ha="center", fontsize=11.5,
+                 color="0.25")
+    axR.axhline(99.66, color="0.5", ls=":", lw=1.3)
+    axR.text(0.97, 0.81, "the same model with a 2-number\nbottleneck reaches 99.66%",
+             transform=axR.transAxes, ha="right", va="top", fontsize=9.5,
+             color="0.45")
+    axR.set_xticks([0, 1]); axR.set_xticklabels(["cVAE", "conv cVAE"],
+                                                fontsize=11)
+    axR.set_ylim(0, 112)
+    axR.set_ylabel("asked for a digit, got that digit  (%)", fontsize=10.5)
+    axR.set_title("but not on the thing we came for", fontsize=11.5,
+                  color="#b91c1c")
+
+    for ax in axes:
+        ax.spines[["top", "right"]].set_visible(False)
+    fig.text(0.5, 0.028,
+             "the other two rulers moved too little to call: confidence "
+             "+0.021 and balance +0.012, against sampling spreads of "
+             "0.010 and 0.013.",
+             ha="center", fontsize=9.5, color="0.4")
+    fig.subplots_adjust(left=0.10, right=0.97, top=0.89, bottom=0.19,
+                        wspace=0.30)
+    fig.savefig("conv_obedience.svg", transparent=True)
+    plt.close(fig); print("wrote conv_obedience.svg")
+
+
 class VAEModel(nn.Module):
     def __init__(self, k, n_cond=0):
         super().__init__()
@@ -2884,6 +2990,8 @@ if __name__ == "__main__":
     fig_recon_ladder()
     fig_latent_2d()
     fig_no_noise()
+    fig_conv_flip()
+    fig_conv_obedience()
     fig_ae_vs_vae_2d()
     fig_class_share()
     fig_ae_linear_descent()

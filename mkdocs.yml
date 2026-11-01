@@ -123,6 +123,7 @@ nav:
         - VAE: ch05/latent_generative/01_vae.md
         - β-VAE: ch05/latent_generative/02_beta_vae.md
         - cVAE: ch05/latent_generative/03_cvae.md
+        - 컨볼루션 VAE: ch05/latent_generative/04_conv_vae.md
       - 5.3 적대적 생성모델:
         - "개요": ch05/generative/index.md
         - GAN: ch05/generative/01_gan.md
