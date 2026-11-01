@@ -297,16 +297,15 @@ nav:
         - 로스 함수 비교: embeddings/01_loss_comparison.md
       - 6.4 가져다 쓰는 임베딩:
         - GloVe 임베딩: embeddings/glove_embedding.md
-        - 사전 학습 임베딩: embeddings/03_pretrained_embeddings.md
     - "7 IMDB로 보는 텍스트 분류":
       - 장 개요: imdb/index.md
       - "7.1 단어 빈도 기반 분류":
         - "최근접 중심 분류기": imdb/01_counting.md
       - "7.2 선형 분류":
         - "선형 분류기의 웨이트 학습": imdb/02_linear.md
-      - 7.3 임베딩:
-        - "임베딩 학습": imdb/03_embedding.md
-        - "사전 학습 임베딩": imdb/03_frozen.md
+      - "7.3 임베딩을 얹으면":
+        - "단어를 벡터로": imdb/03_embedding.md
+        - "빌려 온 벡터": imdb/03_frozen.md
       - "7.4 순환 뉴럴 넷트웍":
         - LSTM: imdb/04_lstm.md
       - "7.5 셀프 어텐션":
