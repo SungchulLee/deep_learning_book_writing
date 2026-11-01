@@ -221,6 +221,12 @@ nav:
       - 장 개요: transformer/index.md
       - "8.1 어텐션 식을 연다":
         - "스케일 내적과 멀티헤드": transformer/01_scaled_attention.md
+      - "8.2 가리개와 생성":
+        - "마스킹이 하는 일": transformer/02_masking.md
+      - "8.3 뽑는 법":
+        - "greedy · temperature · top-k": transformer/03_sampling.md
+      - "8.4 규모":
+        - "크게 만들면 어떻게 되는가": transformer/04_scale.md
   - "II 핵심 아키텍처":
     - 3 MNIST로 보는 분류:
       - 장 개요: ch03/index.md
