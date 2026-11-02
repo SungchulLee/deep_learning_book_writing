@@ -409,7 +409,172 @@ class VAEModel(nn.Module):
         self.dec = nn.Sequential(nn.Linear(k + n_cond, 256), nn.ReLU(), nn.Linear(256, 784))
 
 
-# === 그림 4: 2차원에서는 오토인코더도 멀쩡하다 =============================
+# === 컨볼루션 두 쪽이 본문에서 쓰는 그림 ===================================
+def fig_conv_off_tradeoff():
+    """04_conv_vae 5절 - 세 줄은 맞바꿈 위에 있고 한 줄은 바깥에 있다.
+
+    수는 모두 이 절 다섯 쪽의 출력에서 그대로 옮긴 것이다 (잠재 64).
+    가로는 복원 오차라 왼쪽이 좋고, 세로는 뽑은 그림의 고름이라 위가 좋다.
+    그러니 왼쪽 위가 둘 다 좋은 자리다.
+    """
+    pts = [("autoencoder",   0.0546, 0.541, "#6b7280"),
+           ("VAE",           0.0750, 0.877, "#6b7280"),
+           ("beta-VAE (b=4)", 0.1351, 0.950, "#6b7280"),
+           ("conv VAE",      0.0423, 0.927, "#b91c1c")]
+
+    fig, ax = plt.subplots(figsize=(7.4, 4.8))
+    ax.axhspan(0.90, 1.02, 0.0, 0.30, color="#15803d", alpha=0.07)
+    ax.text(0.0305, 1.012, "good at both", fontsize=10.5, color="#15803d",
+            ha="left", va="top")
+
+    tl = [p for p in pts if p[3] == "#6b7280"]          # 맞바꿈 위의 세 점
+    tl.sort(key=lambda p: p[1])
+    ax.plot([p[1] for p in tl], [p[2] for p in tl], "-", color="#6b7280",
+            lw=1.6, zorder=1)
+    ax.text(0.106, 0.820, "along this line, balance is\npaid for with recon",
+            fontsize=10, color="#6b7280", ha="center", va="top")
+
+    for name, x, y, c in pts:
+        big = c != "#6b7280"
+        ax.plot(x, y, "o", ms=13 if big else 9, color=c, zorder=3)
+        ax.annotate(f"{name}\n{x:.4f} / {y:.3f}", (x, y),
+                    (16, -10) if big else (0, -34),
+                    textcoords="offset points",
+                    ha="left" if big else "center",
+                    fontsize=10.5 if big else 9.5, color=c,
+                    fontweight="bold" if big else "normal")
+
+    ax.set_xlabel("reconstruction MSE   (left is better)", fontsize=11)
+    ax.set_ylabel("balance of the samples   (up is better)", fontsize=11)
+    ax.set_xlim(0.028, 0.152); ax.set_ylim(0.47, 1.04)
+    ax.set_title("three of them sit on one trade-off; the fourth does not",
+                 fontsize=11.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.grid(alpha=0.18)
+    fig.tight_layout()
+    fig.savefig("conv_off_tradeoff.svg", transparent=True)
+    plt.close(fig); print("wrote conv_off_tradeoff.svg")
+
+
+def fig_obedience_split():
+    """05_conv_cvae 3절 - 가르는 것은 구조가 아니라 잠재 차원이다.
+
+    수는 그 쪽의 네 줄짜리 표에서 그대로 옮긴 것이다. 막대 넷을 둘씩
+    묶어 두면, 묶음 안의 틈(1%p 남짓)과 묶음 사이의 틈(26%p)이 한눈에
+    견주어진다.
+    """
+    rows = [("latent 2",  99.66, 98.80), ("latent 64", 73.64, 72.38)]
+    fig, ax = plt.subplots(figsize=(7.4, 4.6))
+    W, gaps = 0.3, []
+    for i, (grp, fc, cv) in enumerate(rows):
+        for j, (v, c, lab) in enumerate(((fc, "#1d4ed8", "fully connected"),
+                                         (cv, "#b91c1c", "convolutional"))):
+            x = i + (j - 0.5) * W
+            ax.bar(x, v, W * 0.92, color=c,
+                   label=lab if i == 0 else None)
+            ax.text(x, v + 1.1, f"{v:.2f}%", ha="center", fontsize=10.5)
+        gaps.append(f"{grp}\nstructure moves it {abs(fc - cv):.2f} points")
+
+    lo, hi = rows[1][1], rows[0][1]                     # 묶음 사이의 틈
+    xb = 1.42
+    ax.annotate("", (xb, lo), (xb, hi),
+                arrowprops=dict(arrowstyle="<->", color="#15803d", lw=1.8))
+    ax.text(xb + 0.05, (lo + hi) / 2,
+            f"changing the latent\ndimension moves it\n{hi - lo:.2f} points",
+            fontsize=10.5, color="#15803d", va="center")
+
+    ax.set_xticks(range(2)); ax.set_xticklabels(gaps, fontsize=11)
+    ax.set_ylim(0, 112); ax.set_xlim(-0.55, 2.05)
+    ax.set_yticks(range(0, 101, 20))
+    ax.set_ylabel("asked for a digit, got that digit (%)", fontsize=11)
+    ax.set_title("what decides obedience is the width of the channel, "
+                 "not the layers", fontsize=11.5)
+    ax.legend(fontsize=10.5, frameon=False, loc="center left",
+              bbox_to_anchor=(0.70, 0.30))
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.tight_layout()
+    fig.savefig("obedience_split.svg", transparent=True)
+    plt.close(fig); print("wrote obedience_split.svg")
+
+
+@torch.no_grad()
+def fig_aggregate_posterior():
+    """VAE 가 요구한 대로 되었는가 — mu 만 보면 속는다.
+
+    01_vae 3절의 두 표를 한 그림에 담는다. 왼쪽은 좌표 64개의 퍼짐을
+    두 가지로 잰 것이고(mu 만 / q(z) 전체), 오른쪽은 그 둘의 차이가
+    어디서 오는지를 쌓은 막대로 보인다 — Var(mu) + E[sigma^2] = 1 이다.
+
+    요점은 **왼쪽에서 아래로 처진 선이 위로 올라붙는 것**이다. 정보를
+    싣지 않는 좌표일수록 sigma 가 1 에 가까워 그 자리를 메운다.
+    """
+    (_, _), (Xte, _) = load_flat()
+    vae = load(VAEModel, 64, "vae64_beta1.0")
+    h = vae.enc(Xte)
+    mu, sig2 = vae.mu(h), vae.logvar(h).exp()
+    sd_mu = mu.std(0)
+    e_s2 = sig2.mean(0)
+    sd_q = (mu.var(0) + e_s2).sqrt()
+    order = sd_mu.argsort()                      # mu 가 작은 좌표부터
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.2, 4.3))
+
+    x = range(64)
+    axL.plot(x, sd_q[order], "o-", color="#15803d", lw=2, ms=4,
+             label="q(z) as a whole")
+    axL.plot(x, sd_mu[order], "o-", color="#b91c1c", lw=2, ms=4,
+             label="only the means mu(x)")
+    axL.axhline(1.0, color="0.5", ls=":", lw=1.3)
+    axL.text(1, 1.045, "1.0 - what N(0,I) would give", fontsize=9.5,
+             color="0.45")
+    dead = int((sd_mu < 0.1).sum())
+    axL.axvspan(-0.5, dead - 0.5, color="#b91c1c", alpha=0.07)
+    axL.annotate(f"{dead} coordinates carry\nalmost nothing in mu",
+                 (dead / 2, 0.05), (2.0, 0.60), ha="left", fontsize=9.5,
+                 color="#b91c1c",
+                 arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.2))
+    axL.set_xlabel("the 64 coordinates, sorted by how much mu moves",
+                   fontsize=10)
+    axL.set_ylabel("standard deviation", fontsize=10.5)
+    axL.set_ylim(-0.05, 1.22); axL.set_xlim(-1, 64)
+    axL.legend(fontsize=9.5, frameon=False, loc="lower right")
+    axL.set_title("measured one way it looks collapsed, "
+                  "the other way it does not", fontsize=11)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    g = [("the %d quiet ones" % dead, sd_mu < 0.1),
+         ("the other %d" % (64 - dead), sd_mu >= 0.1)]
+    for i, (name, m) in enumerate(g):
+        a, b = float(mu.var(0)[m].mean()), float(e_s2[m].mean())
+        axR.bar(i, a, 0.72, color="#b91c1c", label="Var[mu]" if i == 0 else None)
+        axR.bar(i, b, 0.72, bottom=a, color="#1d4ed8",
+                label="E[sigma^2]" if i == 0 else None)
+        for v, bot in ((a, 0.0), (b, a)):          # 얇은 칸에는 안 적는다
+            if v > 0.10:
+                axR.text(i, bot + v / 2, f"{v:.2f}", ha="center",
+                         va="center", color="white", fontsize=11.5)
+        if a <= 0.10:                                # 칸이 얇아 밑에 적는다
+            axR.text(i, 0.05, f"Var[mu] = {a:.2f}", ha="center",
+                     fontsize=9.5, color="white")
+        axR.text(i, a + b + 0.03, f"total {a + b:.2f}", ha="center",
+                 fontsize=11)
+    axR.axhline(1.0, color="0.5", ls=":", lw=1.3)
+    axR.set_xticks(range(2)); axR.set_xticklabels([n for n, _ in g],
+                                                  fontsize=10.5)
+    axR.set_ylim(0, 1.32); axR.set_xlim(-0.6, 1.6)
+    axR.set_ylabel("variance of q(z), split in two", fontsize=10.5)
+    axR.set_title("both add up to 1 - the quiet ones do it with sigma",
+                  fontsize=11)
+    axR.legend(fontsize=9.5, frameon=False, loc="upper center", ncol=2,
+               bbox_to_anchor=(0.5, 1.0))
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.subplots_adjust(left=0.07, right=0.98, top=0.90, bottom=0.14,
+                        wspace=0.26)
+    fig.savefig("aggregate_posterior.svg", transparent=True)
+    plt.close(fig); print("wrote aggregate_posterior.svg")
+
+
 @torch.no_grad()
 def fig_ae_vs_vae_2d():
     """AE-2와 VAE-2의 잠재 공간을 나란히 둔다.
@@ -2990,6 +3155,9 @@ if __name__ == "__main__":
     fig_recon_ladder()
     fig_latent_2d()
     fig_no_noise()
+    fig_aggregate_posterior()
+    fig_conv_off_tradeoff()
+    fig_obedience_split()
     fig_conv_flip()
     fig_conv_obedience()
     fig_ae_vs_vae_2d()
