@@ -6,36 +6,36 @@
 
 ```python
 """
-길잡이 09: 다스린 글 만들어 내기 전략
+튜토리얼 09: 다스린 글 만들어 내기 전략
 ===================================================
 
 글 만들어 내기의 좋음을 다스리고 낫게 하는 앞선 재주.
 
 주제:
-1. 표집 전략(욕심쟁이, 빔 찾기, 알갱이, 상위 k)
+1. 샘플링 전략(그리디, 빔 서치, 뉴클리어스, 상위 k)
 2. 길이 고르게 맞추기
 3. 되풀이 벌주기
-4. 제약을 둔 풀기
+4. 제약 디코딩
 5. 다스릴 수 있는 만들어 내기(마음결, 결풍, 주제)
 
 만들어 내기 전략:
 ----------------------
 
-1. 욕심쟁이 풀기:
+1. 그리디 디코딩:
    w_t = argmax P(w | context)
    - 빠르고 늘 같다
    - 가장 좋지 않을 수 있고 되풀이되기 쉽다
 
-2. 빔 찾기:
+2. 빔 서치:
    - 상위 k개 가설 남기기
    - 점수 = log P / 길이 벌주기
-   - 욕심쟁이보다 좋다
+   - 그리디보다 좋다
    - 셈이 값비싸다
 
-3. 표집:
+3. 샘플링:
    - 마구잡이: P(w | 맥락)에서 뽑기
    - 상위 k: 가장 그럴듯한 k개에서 뽑기
-   - 알갱이(상위 p): 쌓인 확률이 p 이상인 가장 작은 모음에서 뽑기
+   - 뉴클리어스(상위 p): 쌓인 확률이 p 이상인 가장 작은 모음에서 뽑기
 
 4. 온도 맞추기:
    P'(w) ∝ exp(logit / T)
@@ -58,7 +58,7 @@ class GenerationStrategies:
     
     @staticmethod
     def greedy_search(model, input_ids, max_length=50, vocab=None):
-        """욕심쟁이 풀기 — 늘 가장 그럴듯한 낱말을 고른다."""
+        """그리디 디코딩 — 늘 가장 그럴듯한 낱말을 고른다."""
         model.eval()
         generated = input_ids.clone()
         
@@ -72,12 +72,12 @@ class GenerationStrategies:
                 # 마지막 자리의 로짓을 얻는다
                 next_token_logits = logits[:, -1, :]
                 
-                # 욕심쟁이: 가장 그럴듯한 것 고르기
+                # 그리디: 가장 그럴듯한 것 고르기
                 next_token = torch.argmax(next_token_logits, dim=-1)
                 
                 generated = torch.cat([generated, next_token.unsqueeze(-1)], dim=-1)
                 
-                # 끝 토막인지 살피기
+                # 끝 토큰인지 살피기
                 if vocab and next_token.item() == vocab.word_to_idx(vocab.END_TOKEN):
                     break
         
@@ -86,7 +86,7 @@ class GenerationStrategies:
     @staticmethod
     def top_k_sampling(model, input_ids, max_length=50, k=50, 
                       temperature=1.0, vocab=None):
-        """가장 그럴듯한 상위 k개 토막에서 뽑기."""
+        """가장 그럴듯한 상위 k개 토큰에서 뽑기."""
         model.eval()
         generated = input_ids.clone()
         
@@ -121,8 +121,8 @@ class GenerationStrategies:
     def nucleus_sampling(model, input_ids, max_length=50, p=0.95,
                         temperature=1.0, vocab=None):
         """
-        핵(상위 p) 표집.
-        쌓인 확률이 p 이상인 가장 작은 토막 모음에서 뽑기.
+        뉴클리어스(top-p) 샘플링.
+        쌓인 확률이 p 이상인 가장 작은 토큰 모음에서 뽑기.
         """
         model.eval()
         generated = input_ids.clone()
@@ -143,9 +143,9 @@ class GenerationStrategies:
                 # 쌓인 확률 셈하기
                 cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
                 
-                # 쌓인 확률이 임계값을 넘는 토막 없애기
+                # 쌓인 확률이 임계값을 넘는 토큰 없애기
                 sorted_indices_to_remove = cumulative_probs > p
-                # 적어도 토막 하나는 남기기
+                # 적어도 토큰 하나는 남기기
                 sorted_indices_to_remove[..., 0] = False
                 
                 # 가림막 만들기
@@ -171,7 +171,7 @@ class GenerationStrategies:
     def beam_search(model, input_ids, max_length=50, beam_width=5,
                    length_penalty=1.0, vocab=None):
         """
-        빔 찾기 풀기.
+        빔 서치 디코딩.
         스텝마다 beam_width개의 가설을 지닌다.
         """
         model.eval()
@@ -204,7 +204,7 @@ class GenerationStrategies:
                 # 상위 beam_width개 후보 얻기
                 top_scores, top_indices = torch.topk(next_scores, beam_width, dim=-1)
                 
-                # 어느 빔인지, 어느 토막인지 셈하기
+                # 어느 빔인지, 어느 토큰인지 셈하기
                 beam_indices = top_indices // vocab_size
                 token_indices = top_indices % vocab_size
                 
@@ -236,11 +236,11 @@ class RepetitionPenalty:
     @staticmethod
     def apply(logits, generated_tokens, penalty=1.2):
         """
-        되풀이된 토막의 로짓을 벌주기로 나누어 벌준다.
+        되풀이된 토큰의 로짓을 벌주기로 나누어 벌준다.
         
         인수:
             logits: (vocab_size,) 로짓
-            generated_tokens: 앞서 만든 토막 번호의 목록
+            generated_tokens: 앞서 만든 토큰 번호의 목록
             penalty: 벌주기 인자(> 1.0)
         """
         for token in set(generated_tokens):
@@ -258,31 +258,31 @@ def demonstrate_generation_strategies():
 전략의 성질:
 ------------------------
 
-1. 욕심쟁이 찾기:
+1. 그리디 찾기:
    - 늘 같다
    - 빠르다
-   - 되풀이 무늬에 갇힐 수 있다
+   - 되풀이 패턴에 갇힐 수 있다
    - 쓸 곳: 단순한 이어 쓰기, 사실을 담은 글
 
-2. 빔 찾기:
+2. 빔 서치:
    - 더 꼼꼼한 찾기
-   - 욕심쟁이보다 좋다
+   - 그리디보다 좋다
    - 그래도 되풀이될 수 있다
    - 쓸 곳: 옮김, 간추리기
 
-3. 상위 k 표집:
+3. top-k 샘플링:
    - 확률에 맡기며 여러 클래스이다
    - 확률 낮은 낱말을 거른다
    - k=50이 흔히 잘 된다
    - 쓸 곳: 창작 글쓰기, 채팅
 
-4. 알갱이(상위 p) 표집:
+4. 뉴클리어스(top-p) 샘플링:
    - 그때그때 바뀌는 낱말 곳간 크기
    - 확률 분포에 맞춰진다
    - p=0.9에서 0.95를 권한다
    - 쓸 곳: 두루 쓰기, 창의적인 일
 
-5. 온도 표집:
+5. 온도 샘플링:
    - 마구잡이 정도를 다스린다
    - T=0.7: 더 초점이 잡힘
    - T=1.0: 보통
@@ -290,7 +290,7 @@ def demonstrate_generation_strategies():
 
 전략 아우르기:
 --------------------
-가장 좋은 버릇: 알갱이 + 온도
+가장 좋은 버릇: 뉴클리어스 + 온도
 - 좋음을 위해 상위 p=0.95
 - 창의를 위해 온도=0.8
 - 고리를 피하려 되풀이 벌주기=1.2
@@ -301,14 +301,14 @@ if __name__ == "__main__":
     demonstrate_generation_strategies()
     
     print("""
-익힘 문제:
+학습 문제:
 1. 만들어 내기에 되풀이 벌주기 짜기
-2. 빔 너비를 달리해 빔 찾기 견주기
-3. 빔 찾기의 길이 고르게 맞추기 짜기
-4. 상위 k와 알갱이 표집을 아울러 보기
-5. 제약을 둔 풀기 짜기(특정 낱말을 강제하기)
-6. 앞가지 다듬기로 다스릴 수 있는 만들어 내기 만들기
-7. 여러 클래스 빔 찾기 짜기(여러 클래스의 내놓음)
+2. 빔 너비를 달리해 빔 서치 견주기
+3. 빔 서치의 길이 고르게 맞추기 짜기
+4. 상위 k와 뉴클리어스 샘플링을 아울러 보기
+5. 제약 디코딩 짜기(특정 낱말을 강제하기)
+6. 접두사 다듬기로 다스릴 수 있는 만들어 내기 만들기
+7. 여러 클래스 빔 서치 짜기(여러 클래스의 내놓음)
 8. 되풀이를 피하는 덮음 구조 더하기
     """)
 ```
@@ -322,31 +322,31 @@ Text Generation Strategies Comparison
 전략의 성질:
 ------------------------
 
-1. 욕심쟁이 찾기:
+1. 그리디 찾기:
    - 늘 같다
    - 빠르다
-   - 되풀이 무늬에 갇힐 수 있다
+   - 되풀이 패턴에 갇힐 수 있다
    - 쓸 곳: 단순한 이어 쓰기, 사실을 담은 글
 
-2. 빔 찾기:
+2. 빔 서치:
    - 더 꼼꼼한 찾기
-   - 욕심쟁이보다 좋다
+   - 그리디보다 좋다
    - 그래도 되풀이될 수 있다
    - 쓸 곳: 옮김, 간추리기
 
-3. 상위 k 표집:
+3. top-k 샘플링:
    - 확률에 맡기며 여러 클래스이다
    - 확률 낮은 낱말을 거른다
    - k=50이 흔히 잘 된다
    - 쓸 곳: 창작 글쓰기, 채팅
 
-4. 알갱이(상위 p) 표집:
+4. 뉴클리어스(top-p) 샘플링:
    - 그때그때 바뀌는 낱말 곳간 크기
    - 확률 분포에 맞춰진다
    - p=0.9에서 0.95를 권한다
    - 쓸 곳: 두루 쓰기, 창의적인 일
 
-5. 온도 표집:
+5. 온도 샘플링:
    - 마구잡이 정도를 다스린다
    - T=0.7: 더 초점이 잡힘
    - T=1.0: 보통
@@ -354,20 +354,20 @@ Text Generation Strategies Comparison
 
 전략 아우르기:
 --------------------
-가장 좋은 버릇: 알갱이 + 온도
+가장 좋은 버릇: 뉴클리어스 + 온도
 - 좋음을 위해 상위 p=0.95
 - 창의를 위해 온도=0.8
 - 고리를 피하려 되풀이 벌주기=1.2
     
 
-익힘 문제:
+학습 문제:
 1. 만들어 내기에 되풀이 벌주기 짜기
-2. 빔 너비를 달리해 빔 찾기 견주기
-3. 빔 찾기의 길이 고르게 맞추기 짜기
-4. 상위 k와 알갱이 표집을 아울러 보기
-5. 제약을 둔 풀기 짜기(특정 낱말을 강제하기)
-6. 앞가지 다듬기로 다스릴 수 있는 만들어 내기 만들기
-7. 여러 클래스 빔 찾기 짜기(여러 클래스의 내놓음)
+2. 빔 너비를 달리해 빔 서치 견주기
+3. 빔 서치의 길이 고르게 맞추기 짜기
+4. 상위 k와 뉴클리어스 샘플링을 아울러 보기
+5. 제약 디코딩 짜기(특정 낱말을 강제하기)
+6. 접두사 다듬기로 다스릴 수 있는 만들어 내기 만들기
+7. 여러 클래스 빔 서치 짜기(여러 클래스의 내놓음)
 8. 되풀이를 피하는 덮음 구조 더하기
     
 ```

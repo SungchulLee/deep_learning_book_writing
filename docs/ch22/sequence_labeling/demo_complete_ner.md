@@ -6,14 +6,14 @@
 
 ```python
 """
-두루 살피는 이름 알아보기 보임
+두루 살피는 개체명 인식 보임
 ================================
 
-이 각본은 이 단원에서 다룬 모든 이름 알아보기 방식을 보여 준다:
-1. 규칙 바탕 이름 알아보기
-2. 사전 바탕 이름 알아보기
-3. CRF 바탕 이름 알아보기
-4. 깊은 러닝 방식(두 방향 LSTM-CRF, 변환기)
+이 각본은 이 단원에서 다룬 모든 개체명 인식 방식을 보여 준다:
+1. 규칙 바탕 개체명 인식
+2. 사전 바탕 개체명 인식
+3. CRF 바탕 개체명 인식
+4. 깊은 러닝 방식(양방향 LSTM-CRF, 변환기)
 
 방식마다의 온전한 보기를 보려면 이 각본을 돌려라.
 
@@ -32,7 +32,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def demo_rule_based():
-    """규칙 바탕 이름 알아보기 보이기."""
+    """규칙 바탕 개체명 인식 보이기."""
     print("="*70)
     print("1. RULE-BASED NER DEMONSTRATION")
     print("="*70)
@@ -60,7 +60,7 @@ def demo_rule_based():
 
 
 def demo_dictionary_based():
-    """사전 바탕 이름 알아보기 보이기."""
+    """사전 바탕 개체명 인식 보이기."""
     print("\n\n" + "="*70)
     print("2. DICTIONARY-BASED NER DEMONSTRATION")
     print("="*70)
@@ -110,14 +110,14 @@ def demo_feature_extraction():
 
 
 def demo_evaluation():
-    """이름 알아보기 밸류 잣대 보이기."""
+    """개체명 인식 평가 지표 보이기."""
     print("\n\n" + "="*70)
     print("4. NER EVALUATION METRICS")
     print("="*70)
     
     from intermediate.evaluation_metrics_07_evaluation_metrics import NERMetrics
     
-    # 어림 보기
+    # 예측 보기
     y_true = [["B-PER", "I-PER", "O", "B-ORG", "I-ORG"]]
     y_pred = [["B-PER", "I-PER", "O", "B-ORG", "O"]]  # I-ORG를 놓침
     

@@ -6,15 +6,15 @@
 
 ```python
 """
-이름 알아보기 밸류 잣대
+개체명 인식 평가 지표
 ======================
 
-이름 알아보기 체계를 두루 살피는 밸류 잣대.
+개체명 인식 체계를 두루 살피는 평가 지표.
 
-잣대:
-- 정밀도, 재현율, F1(토막 수준과 것 수준)
+지표:
+- 정밀도, 재현율, F1(토큰 수준과 개체 수준)
 - 빡빡한 짝짓기와 느슨한 짝짓기
-- 것 클래스별 잣대
+- 개체 클래스별 지표
 
 지은이: 러닝 목적
 날짜: 2025
@@ -29,12 +29,12 @@ from collections import defaultdict
 
 
 class NERMetrics:
-    """이름 알아보기의 밸류 잣대."""
+    """개체명 인식의 평가 지표."""
     
     @staticmethod
     def compute_metrics(y_true: List[List[str]], y_pred: List[List[str]]) -> Dict:
         """
-        토막 수준의 정밀도, 재현율, F1 셈하기.
+        토큰 수준의 정밀도, 재현율, F1 셈하기.
         
         인수:
             y_true: 참 레이블
@@ -75,14 +75,14 @@ class NERMetrics:
     @staticmethod
     def entity_level_f1(true_entities: List[Tuple], pred_entities: List[Tuple]) -> Dict:
         """
-        것 수준 F1 점수 셈하기.
+        개체 수준 F1 점수 셈하기.
         
         인수:
             true_entities: (text, type, start, end) 튜플의 목록
             pred_entities: (text, type, start, end) 튜플의 목록
             
         반환값:
-            것 수준 잣대를 담은 사전
+            개체 수준 지표를 담은 사전
         """
         true_set = set((e[1], e[2], e[3]) for e in true_entities)  # (type, start, end)
         pred_set = set((e[1], e[2], e[3]) for e in pred_entities)

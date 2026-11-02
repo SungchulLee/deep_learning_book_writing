@@ -6,16 +6,16 @@
 
 ```python
 """
-길잡이 04: 피드포워드 뉴럴 말 모델
+튜토리얼 04: 피드포워드 뉴럴 언어 모델
 ===============================================
 
-뉴럴 말 모델 구조(Bengio 외, 2003):
+뉴럴 언어 모델 구조(Bengio 외, 2003):
 들임: 맥락 낱말 w_{t-n+1}, ..., w_{t-1}
 내놓음: 다음 낱말 w_t에 대한 확률 분포
 
 구조:
-1. 묻힘 레이어: R^d의 C(w)
-2. 숨은 레이어: h = tanh(W * concat(묻힘) + b)
+1. 임베딩 레이어: R^d의 C(w)
+2. 숨은 레이어: h = tanh(W * concat(임베딩) + b)
 3. 내놓는 레이어: P(w_t | 맥락) = softmax(U*h + c)
 
 로스: 음의 로그 가능도(엇갈린 엔트로피)
@@ -37,7 +37,7 @@ import random
 
 
 class Vocabulary:
-    """뉴럴 말 모델의 낱말 곳간 다스리기."""
+    """뉴럴 언어 모델의 낱말 곳간 다스리기."""
     
     def __init__(self):
         self.word2idx = {}
@@ -77,7 +77,7 @@ class Vocabulary:
 
 
 class FeedforwardLanguageModel(nn.Module):
-    """피드포워드 뉴럴 말 모델(Bengio 외, 2003)."""
+    """피드포워드 뉴럴 언어 모델(Bengio 외, 2003)."""
     
     def __init__(self, vocab_size: int, embedding_dim: int,
                  context_size: int, hidden_dim: int):

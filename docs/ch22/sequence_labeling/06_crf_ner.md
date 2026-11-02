@@ -6,16 +6,16 @@
 
 ```python
 """
-CRF 바탕 이름 알아보기
+CRF 바탕 개체명 인식
 ===================================
 
-피처 빚기를 곁들인 차례 이름표 붙이기를 위한 조건부 무작위 마당.
+피처 빚기를 곁들인 차례 레이블 붙이기를 위한 조건부 무작위 마당.
 
 여기 짠 것은 CRF 모델 익히기에 sklearn-crfsuite를 쓴다.
 
 핵심 개념:
-- 토막의 피처 뽑기
-- CRF로 하는 차례 이름표 붙이기
+- 토큰의 피처 뽑기
+- CRF로 하는 차례 레이블 붙이기
 - 학습과 평가
 
 지은이: 러닝 목적
@@ -32,7 +32,7 @@ from typing import List, Dict, Tuple
 
 
 class CRF_NER:
-    """피처 빚기를 곁들인 CRF 바탕 이름 알아보기."""
+    """피처 빚기를 곁들인 CRF 바탕 개체명 인식."""
     
     def __init__(self):
         """CRF 모델 첫자리매김."""
@@ -46,13 +46,13 @@ class CRF_NER:
     
     def word_features(self, sentence: List[str], i: int) -> Dict:
         """
-        자리 i의 토막에서 피처 뽑기.
+        자리 i의 토큰에서 피처 뽑기.
         
         피처:
         - 낱말 자체(소문자로)
-        - 낱말의 대문자 쓰기 무늬
+        - 낱말의 대문자 쓰기 패턴
         - 낱말 꼴
-        - 앞가지와 뒷가지
+        - 접두사와 뒷가지
         - 맥락 낱말
         """
         word = sentence[i]
@@ -91,7 +91,7 @@ class CRF_NER:
         return features
     
     def sentence_features(self, sentence: List[str]) -> List[Dict]:
-        """월의 모든 토막에서 피처 뽑기."""
+        """월의 모든 토큰에서 피처 뽑기."""
         return [self.word_features(sentence, i) for i in range(len(sentence))]
     
     def train(self, X_train: List[List[str]], y_train: List[List[str]]):
@@ -99,14 +99,14 @@ class CRF_NER:
         CRF 모델 익히기.
         
         인수:
-            X_train: 월의 목록(월마다 토막의 목록)
-            y_train: 이름표 차례의 목록(저마다 이름표의 목록)
+            X_train: 월의 목록(월마다 토큰의 목록)
+            y_train: 레이블 차례의 목록(저마다 레이블의 목록)
         """
         X_train_features = [self.sentence_features(s) for s in X_train]
         self.model.fit(X_train_features, y_train)
     
     def predict(self, X_test: List[List[str]]) -> List[List[str]]:
-        """시험 월의 이름표 어림하기."""
+        """시험 월의 레이블 예측하기."""
         X_test_features = [self.sentence_features(s) for s in X_test]
         return self.model.predict(X_test_features)
 

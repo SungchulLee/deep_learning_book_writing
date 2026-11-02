@@ -19,7 +19,7 @@ Word: "Apple"  "Inc"  "announced"  "profits"
       B-ORG    I-ORG      O           O
 ```
 
-방향별 은닉 크기가 d이면 두 방향을 연결한 표현은2d차원이다. LSTM은 은닉·셀 상태를 각각 갱신하므로 h_t=LSTM(x_t,h_{t−1}) 표기는 셀 상태를 생략한 약식이다. 연결 피처를 선형 변환해 K개 태그 로짓을 만든다. 양방향은 뒤 토큰도 사용해 전체 문장 NER에 적합할 수 있지만 미래 입력이 없는 온라인 과제에는 그대로 적용할 수 없다.
+방향별 은닉 크기가 d이면 양방향을 연결한 표현은2d차원이다. LSTM은 은닉·셀 상태를 각각 갱신하므로 h_t=LSTM(x_t,h_{t−1}) 표기는 셀 상태를 생략한 약식이다. 연결 피처를 선형 변환해 K개 태그 로짓을 만든다. 양방향은 뒤 토큰도 사용해 전체 문장 NER에 적합할 수 있지만 미래 입력이 없는 온라인 과제에는 그대로 적용할 수 없다.
 
 ## 2. 기본 BiLSTMNER
 
@@ -30,7 +30,7 @@ from typing import Optional
 
 class BiLSTMNER(nn.Module):
     """
-    이름 알아보기를 위한 두 방향 LSTM.
+    개체명 인식을 위한 양방향 LSTM.
     """
     
     def __init__(
@@ -51,7 +51,7 @@ class BiLSTMNER(nn.Module):
         
         self.lstm = nn.LSTM(
             input_size=embedding_dim,
-            hidden_size=hidden_dim // 2,  # 두 방향이면 이것이 두 배
+            hidden_size=hidden_dim // 2,  # 양방향이면 이것이 두 배
             num_layers=num_layers,
             batch_first=True,
             bidirectional=True,
@@ -73,7 +73,7 @@ class BiLSTMNER(nn.Module):
         embeds = self.embedding(input_ids)
         embeds = self.dropout(embeds)
         
-        # 두 방향 LSTM 부호화
+        # 양방향 LSTM 부호화
         if attention_mask is not None:
             lengths = attention_mask.sum(dim=1).cpu()
             packed = nn.utils.rnn.pack_padded_sequence(
@@ -91,7 +91,7 @@ class BiLSTMNER(nn.Module):
         # 분류
         logits = self.classifier(lstm_out)
         
-        # 이름표가 있으면 로스를 셈한다
+        # 레이블이 있으면 로스를 셈한다
         loss = None
         if labels is not None:
             loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
@@ -108,7 +108,7 @@ class BiLSTMNER(nn.Module):
             return torch.argmax(outputs['logits'], dim=-1)
 ```
 
-입력은 B×L 토큰 ID와 선택적 attention_mask·labels다. default hidden_dim256이면 방향별128, 연결256차원에서 B×L×K 로짓을 만든다. hidden_dim이 홀수이면 두 방향 합은2 floor(hidden_dim/2)라 선형 입력과 맞지 않는다. 단어 임베딩은 무작위 초기화이며 사전 학습 임베딩을 로드하는 코드가 없다.
+입력은 B×L 토큰 ID와 선택적 attention_mask·labels다. default hidden_dim256이면 방향별128, 연결256차원에서 B×L×K 로짓을 만든다. hidden_dim이 홀수이면 양방향 합은2 floor(hidden_dim/2)라 선형 입력과 맞지 않는다. 단어 임베딩은 무작위 초기화이며 사전 학습 임베딩을 로드하는 코드가 없다.
 
 mask가 있으면 유효 길이로 pack한다. 양의 길이·오른쪽 연속 패딩을 가정하며 unpack은 배치의 최대 유효 길이로 줄어들 수 있다. labels가 원래 고정 패딩 길이를 유지하면 펼친 logits와 원소 수가 달라 CE에서 실패할 수 있다. total_length 또는 목표·마스크 정렬 규칙이 필요하다.
 
@@ -161,7 +161,7 @@ class CharLSTM(nn.Module):
         return char_repr
 
 class BiLSTMCharNER(nn.Module):
-    """글자 수준 묻힘을 갖춘 두 방향 LSTM 이름 알아보기."""
+    """글자 수준 임베딩을 갖춘 양방향 LSTM 개체명 인식."""
     
     def __init__(
         self,
@@ -181,7 +181,7 @@ class BiLSTMCharNER(nn.Module):
             char_vocab_size, char_embedding_dim, char_hidden_dim
         )
         
-        # 낱말 묻힘과 글자 묻힘 이어 붙이기
+        # 낱말 임베딩과 글자 임베딩 이어 붙이기
         lstm_input_dim = word_embedding_dim + char_hidden_dim
         
         self.lstm = nn.LSTM(
@@ -202,17 +202,17 @@ class BiLSTMCharNER(nn.Module):
         attention_mask: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None
     ):
-        # 낱말 묻힘
+        # 낱말 임베딩
         word_embeds = self.word_embedding(word_ids)
         
-        # 글자 수준 나타냄
+        # 글자 수준 표현
         char_repr = self.char_encoder(char_ids)
         
         # 이어 붙인다
         combined = torch.cat([word_embeds, char_repr], dim=-1)
         combined = self.dropout(combined)
         
-        # 두 방향 LSTM
+        # 양방향 LSTM
         lstm_out, _ = self.lstm(combined)
         lstm_out = self.dropout(lstm_out)
         
@@ -237,7 +237,7 @@ BiLSTMCharNER는 attention_mask를 인수로 받지만 실제 단어 LSTM의 pac
 
 ```python
 class BiLSTMCRF(nn.Module):
-    """이름 알아보기를 위해 CRF 레이어를 얹은 두 방향 LSTM."""
+    """개체명 인식을 위해 CRF 레이어를 얹은 양방향 LSTM."""
     
     def __init__(
         self,
@@ -261,7 +261,7 @@ class BiLSTMCRF(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.hidden2tag = nn.Linear(hidden_dim, num_tags)
         
-        # CRF 레이어(넘어가기를 배운다)
+        # CRF 레이어(전이를 배운다)
         self.transitions = nn.Parameter(torch.randn(num_tags, num_tags))
         self.start_transitions = nn.Parameter(torch.randn(num_tags))
         self.end_transitions = nn.Parameter(torch.randn(num_tags))
@@ -320,7 +320,7 @@ class BiLSTMCRF(nn.Module):
             trans = self.transitions[tags[:, t], tags[:, t-1]]
             score += (emit + trans) * mask[:, t].float()
         
-        # 끝 넘어가기
+        # 끝 전이
         seq_lens = mask.sum(dim=1).long()
         last_tags = tags.gather(1, (seq_lens - 1).unsqueeze(1)).squeeze(1)
         score += self.end_transitions[last_tags]
@@ -328,12 +328,12 @@ class BiLSTMCRF(nn.Module):
         return score
     
     def decode(self, input_ids, attention_mask):
-        """비터비 풀기."""
+        """비터비 디코딩."""
         emissions = self._get_emissions(input_ids, attention_mask)
         return self._viterbi_decode(emissions, attention_mask)
     
     def _viterbi_decode(self, emissions, mask):
-        """가장 좋은 이름표 차례 찾기."""
+        """가장 좋은 레이블 차례 찾기."""
         batch_size, seq_len, num_tags = emissions.shape
         
         score = self.start_transitions + emissions[:, 0]

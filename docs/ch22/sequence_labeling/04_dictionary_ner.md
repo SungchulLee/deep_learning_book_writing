@@ -6,18 +6,18 @@
 
 ```python
 """
-사전 바탕 이름 알아보기
+사전 바탕 개체명 인식
 ==========================================
 
-이 단원은 것 사전과 찾기 표를 써서 사전/지명록 바탕 이름 알아보기를 짠다.
-이 방식은 단순하고 빠르며 또렷하게 정해진 것 클래스에 잘 듣는다.
+이 단원은 개체 사전과 찾기 표를 써서 사전/가제티어 바탕 개체명 인식을 짠다.
+이 방식은 단순하고 빠르며 또렷하게 정해진 개체 클래스에 잘 듣는다.
 것의 목록.
 
 학습 목표:
-- 것 사전(지명록)을 세우고 쓴다
+- 개체 사전(가제티어)을 세우고 쓴다
 - 효율적인 찾기 알고리즘 짜기
-- 낱말 여럿짜리 것 다루기
-- 어림 짝짓기와 아우르기
+- 낱말 여럿짜리 개체 다루기
+- 예측 짝짓기와 아우르기
 - 사전 고침 다스리기
 
 지은이: 러닝 목적
@@ -36,9 +36,9 @@ from difflib import SequenceMatcher
 
 class EntityDictionary:
     """
-    알려진 것을 찾아보는 것 사전(지명록).
+    알려진 것을 찾아보는 개체 사전(가제티어).
     
-    지명록은 특정 클래스의 알려진 것의 목록이다.
+    가제티어은 특정 클래스의 알려진 것의 목록이다.
     보기로:
     - 사람 이름: ["Barack Obama", "Steve Jobs", ...]
     - 회사: ["Apple Inc.", "Microsoft", ...]
@@ -47,7 +47,7 @@ class EntityDictionary:
     
     def __init__(self, entity_type: str):
         """
-        것 사전 첫자리매김.
+        개체 사전 첫자리매김.
         
         인수:
             entity_type: 이 사전에 담긴 것의 클래스(PER, ORG, LOC 등)
@@ -62,7 +62,7 @@ class EntityDictionary:
         self.entities.add(entity)
         self.entities_lower[entity.lower()] = entity
         
-        # 다듬기를 위해 낱말 여럿짜리 것을 따로 좇기
+        # 다듬기를 위해 낱말 여럿짜리 개체를 따로 좇기
         if len(entity.split()) > 1:
             self.multi_word_entities.add(entity)
     
@@ -85,19 +85,19 @@ class EntityDictionary:
 
 class DictionaryNER:
     """
-    사전 바탕 이름 알아보기 체계.
+    사전 바탕 개체명 인식 체계.
     
-    것 사전(지명록)을 찾아 것을 가려낸다.
+    개체 사전(가제티어)을 찾아 것을 가려낸다.
     
     과정:
-    1. 글을 토막낸다
+    1. 글을 토큰낸다
     2. 구간마다 사전과 맞춰 본다
     3. 맞은 것을 것으로 돌려준다
     
     이점:
     - 아주 빠르다(O(1) 찾기)
     - 사전에 있는 것에는 정밀도가 완벽하다
-    - 새 것을 넣어 고치기 쉽다
+    - 새 개체를 넣어 고치기 쉽다
     - 익힐 필요가 없다
     
     나쁜 점:
@@ -108,7 +108,7 @@ class DictionaryNER:
     """
     
     def __init__(self):
-        """사전 바탕 이름 알아보기 첫자리매김."""
+        """사전 바탕 개체명 인식 첫자리매김."""
         self.dictionaries: Dict[str, EntityDictionary] = {}
         self._initialize_default_dictionaries()
     
@@ -145,21 +145,21 @@ class DictionaryNER:
         self.dictionaries["LOC"] = loc_dict
     
     def add_dictionary(self, entity_type: str, entities: List[str]):
-        """것 클래스의 사전을 더하거나 고치기."""
+        """개체 클래스의 사전을 더하거나 고치기."""
         if entity_type not in self.dictionaries:
             self.dictionaries[entity_type] = EntityDictionary(entity_type)
         self.dictionaries[entity_type].add_entities(entities)
     
     def extract_entities(self, text: str, case_sensitive: bool = False) -> List[Dict]:
         """
-        사전 찾기로 것 뽑기.
+        사전 찾기로 개체 뽑기.
         
         인수:
             text: 입력 텍스트
             case_sensitive: 대소문자를 가려 짝지을지 여부
             
         반환값:
-            것 사전의 목록
+            개체 사전의 목록
         """
         entities = []
         words = text.split()
@@ -212,7 +212,7 @@ class DictionaryNER:
 
 
 def demonstrate_dictionary_ner():
-    """사전 바탕 이름 알아보기 보이기."""
+    """사전 바탕 개체명 인식 보이기."""
     print("="*70)
     print("Dictionary-Based NER Demonstration")
     print("="*70)

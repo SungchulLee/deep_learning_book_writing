@@ -12,17 +12,17 @@
     #               과 숨은 뜻 살피기 — 순수 파이썬 + PyTorch 짜기"
     # ---
     #
-    # 주제 나타내기는 이름표 붙인 자료 없이 글월 모음에서 숨은 주제를
+    # 주제 나타내기는 레이블 붙인 자료 없이 텍스트 모음에서 숨은 주제를
     # 찾아낸다. 바탕이 되는 방식 둘:
     #
-    #   - LSA(숨은 뜻 살피기): 낱말-글월 행렬의 특잇값 쪼개기
+    #   - LSA(숨은 뜻 살피기): 낱말-텍스트 행렬의 특잇값 쪼개기
     #   - LDA(숨은 디리클레 나눔): 베이즈 지어내기 모델
     #
     #   1부 – 잘라 낸 특잇값 쪼개기로 하는 LSA(numpy/sklearn)
     #   2부 – gensim으로 하는 LDA
-    #   3부 – 맨바닥부터 짠 LDA(접힌 기브스 표집)
+    #   3부 – 맨바닥부터 짠 LDA(접힌 기브스 샘플링)
     #   4부 – 뉴럴 주제 모델(PyTorch 변분 오토인코더 바탕)
-    #   5부 – 금융 글월의 주제 나타내기
+    #   5부 – 금융 텍스트의 주제 나타내기
     #
     # 바탕: O'Reilly "Practical NLP" 7장
 
@@ -44,17 +44,17 @@
     print("Part 1: Latent Semantic Analysis (LSA)")
     print("=" * 60)
 
-    # LSA = 낱말-글월 행렬에 특잇값 쪼개기를 쓴다.
+    # LSA = 낱말-텍스트 행렬에 특잇값 쪼개기를 쓴다.
     # 잘라 낸 특잇값 쪼개기는 가장 중요한 숨은 차원을 담아내며,
     # 이는 추상적인 "주제"에 맞대응된다.
     #
     # 수식:  X ≈ U_k Σ_k V_k^T
-    #   X:     낱말-글월 행렬 (V × D)
+    #   X:     낱말-텍스트 행렬 (V × D)
     #   U_k:   낱말-주제 행렬 (V × k)
     #   Σ_k:   주제의 세기 (k × k 대각)
-    #   V_k^T: 주제-글월 행렬 (k × D)
+    #   V_k^T: 주제-텍스트 행렬 (k × D)
 
-    # 보기 글월
+    # 보기 텍스트
     documents = [
         "The Federal Reserve raised interest rates by 25 basis points",
         "GDP growth slowed to 2.1 percent in the third quarter",
@@ -70,12 +70,12 @@
         "Oil prices surged after OPEC announced production cuts",
     ]
 
-    # 낱말-글월 행렬 세우기(단순 낱말 자루)
+    # 낱말-텍스트 행렬 세우기(단순 낱말 자루)
     stopwords = {"the", "a", "an", "to", "of", "in", "by", "and", "for", "is", "was", "this"}
 
 
     def build_bow(docs: List[str], stopwords: set) -> Tuple[np.ndarray, List[str]]:
-        """낱말 자루 방식의 낱말-글월 행렬 세우기."""
+        """낱말 자루 방식의 낱말-텍스트 행렬 세우기."""
         # 어휘 만들기
         vocab = {}
         for doc in docs:
@@ -119,7 +119,7 @@
         word_str = ", ".join(f"{w}({v:.3f})" for w, v in words)
         print(f"    Topic {topic_idx}: {word_str}")
 
-    # 글월-주제 매김
+    # 텍스트-주제 매김
     doc_topics = Vt_k.T  # (D × k)
     print(f"\n  Document-topic matrix shape: {doc_topics.shape}")
     for i, doc in enumerate(documents[:4]):
@@ -145,7 +145,7 @@
       nltk.download('stopwords')
       stops = set(stopwords.words('english'))
 
-      # 앞손질: 토막내기, 소문자로, 불용어 없애기
+      # 전처리: 토큰내기, 소문자로, 불용어 없애기
       def preprocess(text):
           tokens = word_tokenize(text.lower())
           return [t for t in tokens if t.isalpha() and t not in stops]
@@ -164,7 +164,7 @@
           num_topics=5,
           iterations=400,
           passes=10,
-          alpha='auto',         # 글월-주제 앞확률 배우기
+          alpha='auto',         # 텍스트-주제 앞확률 배우기
           eta='auto',           # 주제-낱말 앞확률 배우기
           random_state=42,
       )
@@ -173,7 +173,7 @@
       for idx in range(5):
           print(f"Topic {idx}: {lda.print_topic(idx, num_words=8)}")
 
-      # 새 글월의 주제 분포 얻기
+      # 새 텍스트의 주제 분포 얻기
       new_doc = preprocess("The central bank cut interest rates")
       bow = dictionary.doc2bow(new_doc)
       topic_dist = lda[bow]
@@ -182,31 +182,31 @@
 
 
     # =====================================================================
-    # 3부 – 맨바닥부터 짠 LDA(접힌 기브스 표집)
+    # 3부 – 맨바닥부터 짠 LDA(접힌 기브스 샘플링)
     # =====================================================================
     print("=" * 60)
     print("Part 3: LDA From Scratch (Gibbs Sampling)")
     print("=" * 60)
 
     # LDA의 지어내는 과정:
-    #   글월 d마다:
+    #   텍스트 d마다:
     #     주제 분포 θ_d ~ Dirichlet(α)을 뽑는다
     #     d의 낱말 자리 i마다:
     #       주제 z_{d,i} ~ Categorical(θ_d)을 뽑는다
     #       낱말 w_{d,i} ~ Categorical(φ_{z_{d,i}})을 뽑는다
     #
-    # 접힌 기브스 표집으로 미룸:
+    # 접힌 기브스 샘플링으로 미룸:
     #   P(z_i = k | z_{-i}, w) ∝ (n_{d,k} + α) × (n_{k,w} + β) / (n_{k,·} + Vβ)
 
 
     class LDAGibbs:
-        """접힌 기브스 표집으로 하는 LDA.
+        """접힌 기브스 샘플링으로 하는 LDA.
 
         인수:
             n_topics: 주제의 개수
-            alpha:    글월-주제 분포의 디리클레 앞확률
+            alpha:    텍스트-주제 분포의 디리클레 앞확률
             beta:     주제-낱말 분포의 디리클레 앞확률
-            n_iter:   기브스 표집 바퀴 수
+            n_iter:   기브스 샘플링 바퀴 수
         """
 
         def __init__(self, n_topics: int = 5, alpha: float = 0.1,
@@ -217,10 +217,10 @@
             self.n_iter = n_iter
 
         def fit(self, documents: List[List[int]], vocab_size: int):
-            """기브스 표집으로 LDA 모델 맞추기.
+            """기브스 샘플링으로 LDA 모델 맞추기.
 
             인수:
-                documents: 글월의 목록. 글월마다 낱말 번호의 목록
+                documents: 텍스트의 목록. 텍스트마다 낱말 번호의 목록
                 vocab_size: 낱말 곳간의 크기
             """
             self.V = vocab_size
@@ -228,7 +228,7 @@
             K = self.K
 
             # 셈 행렬
-            self.n_dk = np.zeros((D, K))       # 글월-주제 셈
+            self.n_dk = np.zeros((D, K))       # 텍스트-주제 셈
             self.n_kv = np.zeros((K, self.V))  # 주제-낱말 셈
             self.n_k = np.zeros(K)             # 주제 합계
 
@@ -244,7 +244,7 @@
                     self.n_k[k] += 1
                 self.z.append(doc_z)
 
-            # 기브스 표집 바퀴
+            # 기브스 샘플링 바퀴
             for iteration in range(self.n_iter):
                 for d, doc in enumerate(documents):
                     for i, w in enumerate(doc):
@@ -418,7 +418,7 @@
 
 
     # =====================================================================
-    # 5부 – 금융 글월의 주제 나타내기
+    # 5부 – 금융 텍스트의 주제 나타내기
     # =====================================================================
     print("=" * 60)
     print("Part 5: Financial Document Topic Analysis")
@@ -449,7 +449,7 @@
 
       보기: 주제 바탕 거래 신호
       ─────────────────────────────────────
-      때 t의 글월 d마다:
+      때 t의 텍스트 d마다:
         1. 주제 분포 θ_d = LDA(d)을 셈한다
         2. 주제 k마다 주제 마음결 s_k을 셈한다
         3. 신호 = Σ_k θ_dk × s_k  (무게를 준 마음결)
@@ -501,7 +501,7 @@
       nltk.download('stopwords')
       stops = set(stopwords.words('english'))
 
-      # 앞손질: 토막내기, 소문자로, 불용어 없애기
+      # 전처리: 토큰내기, 소문자로, 불용어 없애기
       def preprocess(text):
           tokens = word_tokenize(text.lower())
           return [t for t in tokens if t.isalpha() and t not in stops]
@@ -520,7 +520,7 @@
           num_topics=5,
           iterations=400,
           passes=10,
-          alpha='auto',         # 글월-주제 앞확률 배우기
+          alpha='auto',         # 텍스트-주제 앞확률 배우기
           eta='auto',           # 주제-낱말 앞확률 배우기
           random_state=42,
       )
@@ -529,7 +529,7 @@
       for idx in range(5):
           print(f"Topic {idx}: {lda.print_topic(idx, num_words=8)}")
 
-      # 새 글월의 주제 분포 얻기
+      # 새 텍스트의 주제 분포 얻기
       new_doc = preprocess("The central bank cut interest rates")
       bow = dictionary.doc2bow(new_doc)
       topic_dist = lda[bow]
@@ -585,7 +585,7 @@
 
       보기: 주제 바탕 거래 신호
       ─────────────────────────────────────
-      때 t의 글월 d마다:
+      때 t의 텍스트 d마다:
         1. 주제 분포 θ_d = LDA(d)을 셈한다
         2. 주제 k마다 주제 마음결 s_k을 셈한다
         3. 신호 = Σ_k θ_dk × s_k  (무게를 준 마음결)

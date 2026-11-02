@@ -6,17 +6,17 @@
 
 ```python
 """
-길잡이 01: n-그램 말 모델 — 기초
+튜토리얼 01: n-그램 언어 모델 — 기초
 ==============================================
 
-이 길잡이는 n-그램 말 모델의 근본 개념을 소개한다.
+이 튜토리얼은 n-그램 언어 모델의 근본 개념을 소개한다.
 말 나타내기에서 가장 단순하고 읽어 내기 쉬운 방식이다.
 
 학습 목표:
 --------------------
 1. n-그램이 무엇이고 왜 쓸모 있는지 이해한다
 2. 유니그램, 바이그램, 트라이그램 모델 세우기
-3. 최대 가능도 어림으로 확률 셈하기
+3. 최대 가능도 추정으로 확률 셈하기
 4. n-그램 모델의 한계를 이해한다
 
 수학적 바탕:
@@ -50,7 +50,7 @@ import math
 
 
 class UnigramModel:
-    """낱말끼리 안 얽힌다고 가정하는 유니그램 말 모델."""
+    """낱말끼리 안 얽힌다고 가정하는 유니그램 언어 모델."""
     
     def __init__(self):
         self.word_counts = Counter()
@@ -89,7 +89,7 @@ class UnigramModel:
 
 
 class BigramModel:
-    """낱말마다 앞 낱말에 조건을 거는 바이그램 말 모델."""
+    """낱말마다 앞 낱말에 조건을 거는 바이그램 언어 모델."""
     
     def __init__(self):
         self.bigram_counts = defaultdict(Counter)
@@ -138,7 +138,7 @@ class BigramModel:
 
 
 class TrigramModel:
-    """낱말마다 앞선 낱말 둘에 조건을 거는 트라이그램 말 모델."""
+    """낱말마다 앞선 낱말 둘에 조건을 거는 트라이그램 언어 모델."""
     
     def __init__(self):
         self.trigram_counts = defaultdict(lambda: defaultdict(Counter))

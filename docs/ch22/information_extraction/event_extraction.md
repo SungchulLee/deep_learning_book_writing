@@ -37,10 +37,10 @@ class EventExtractor(nn.Module):
     def forward(self, input_ids, attention_mask, trigger_idx=None):
         h = self.encoder(input_ids, attention_mask=attention_mask).last_hidden_state
 
-        # 방아쇠 찾기: 토막마다 클래스 매기기
+        # 트리거 찾기: 토큰마다 클래스 매기기
         trigger_logits = self.trigger_classifier(h)  # (B, L, num_event_types)
 
-        # 딸린 것 뽑기: 방아쇠 자리에 조건을 건다
+        # 딸린 개체 뽑기: 트리거 자리에 조건을 건다
         if trigger_idx is not None:
             trigger_h = h[torch.arange(h.size(0)), trigger_idx]  # (B, H)
             trigger_expanded = trigger_h.unsqueeze(1).expand_as(h)

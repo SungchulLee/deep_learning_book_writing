@@ -6,17 +6,17 @@
 
 ```python
 """
-예로부터의 이름 알아보기를 위한 피처 뽑기
+예로부터의 개체명 인식을 위한 피처 뽑기
 =======================================
 
-예로부터의 기계 러닝 바탕 이름 알아보기(CRF, MaxEnt 등)를 위한 피처 빚기.
+예로부터의 기계 러닝 바탕 개체명 인식(CRF, MaxEnt 등)를 위한 피처 빚기.
 
 뽑은 피처:
 - 낱말 수준 피처
 - 글자 수준 피처
 - 철자 피처
 - 맥락 피처
-- 지명록 피처
+- 가제티어 피처
 
 지은이: 러닝 목적
 날짜: 2025
@@ -31,7 +31,7 @@ import re
 
 
 class FeatureExtractor:
-    """예로부터의 기계 러닝 바탕 이름 알아보기를 위한 피처 뽑기."""
+    """예로부터의 기계 러닝 바탕 개체명 인식을 위한 피처 뽑기."""
     
     def __init__(self):
         """피처 뽑개 첫자리매김."""
@@ -40,11 +40,11 @@ class FeatureExtractor:
     def extract_token_features(self, tokens: List[str], index: int, 
                               window_size: int = 2) -> Dict:
         """
-        토막의 피처를 두루 뽑기.
+        토큰의 피처를 두루 뽑기.
         
         인수:
-            tokens: 월 속 토막의 목록
-            index: 지금 토막의 번호
+            tokens: 월 속 토큰의 목록
+            index: 지금 토큰의 번호
             window_size: 맥락 창의 크기
             
         반환값:
@@ -70,7 +70,7 @@ class FeatureExtractor:
         features['word_shape'] = self.get_word_shape(token)
         features['short_word_shape'] = self.get_word_shape(token, short=True)
         
-        # 앞가지와 뒷가지 피처
+        # 접두사와 뒷가지 피처
         for n in range(1, min(5, len(token) + 1)):
             features[f'prefix_{n}'] = token[:n].lower()
             features[f'suffix_{n}'] = token[-n:].lower()
@@ -80,14 +80,14 @@ class FeatureExtractor:
         features['contains_digit'] = any(c.isdigit() for c in token)
         features['contains_upper'] = any(c.isupper() for c in token)
         
-        # 맥락 피처(앞 토막들)
+        # 맥락 피처(앞 토큰들)
         for i in range(1, window_size + 1):
             if index - i >= 0:
                 prev_token = tokens[index - i]
                 features[f'prev_{i}_word'] = prev_token.lower()
                 features[f'prev_{i}_is_cap'] = prev_token[0].isupper() if prev_token else False
         
-        # 맥락 피처(다음 토막들)
+        # 맥락 피처(다음 토큰들)
         for i in range(1, window_size + 1):
             if index + i < len(tokens):
                 next_token = tokens[index + i]
@@ -103,7 +103,7 @@ class FeatureExtractor:
     @staticmethod
     def get_word_shape(word: str, short: bool = False) -> str:
         """
-        낱말 꼴 나타냄 얻기.
+        낱말 꼴 표현 얻기.
         
         글자를 꼴 부호에 대응시킨다:
         - 대문자: 'X'

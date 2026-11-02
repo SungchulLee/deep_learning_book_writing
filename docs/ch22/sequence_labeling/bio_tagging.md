@@ -38,20 +38,20 @@ from enum import Enum
 from dataclasses import dataclass
 
 class TagScheme(Enum):
-    """받치는 이름표 방식."""
+    """받치는 레이블 방식."""
     IOB = "IOB"
     IOB2 = "IOB2"
     BIOES = "BIOES"
 
 @dataclass
 class TagInfo:
-    """이름표에서 뜯어 읽은 앎."""
+    """레이블에서 뜯어 읽은 앎."""
     prefix: str
     entity_type: Optional[str]
     
     @classmethod
     def parse(cls, tag: str) -> 'TagInfo':
-        """이름표 글자열을 앞가지와 것 클래스로 뜯어 읽기."""
+        """레이블 문자열을 접두사와 개체 클래스로 뜯어 읽기."""
         if tag == 'O':
             return cls(prefix='O', entity_type=None)
         
@@ -67,20 +67,20 @@ class TagInfo:
         return f"{self.prefix}-{self.entity_type}"
 
 class TagValidator:
-    """이름표 방식의 규칙에 따라 이름표 차례를 확인한다."""
+    """레이블 방식의 규칙에 따라 레이블 차례를 확인한다."""
     
     @staticmethod
     def validate_iob2(tags: List[str]) -> Tuple[bool, str]:
         """
-        IOB2 이름표 차례 확인하기.
+        IOB2 레이블 차례 확인하기.
         
         규칙:
         1. I-TYPE 앞에는 같은 클래스의 B-TYPE이나 I-TYPE이 와야 한다
-        2. B-TYPE은 아무 이름표 뒤에나 올 수 있다
-        3. O는 아무 이름표 뒤에나 올 수 있다
+        2. B-TYPE은 아무 레이블 뒤에나 올 수 있다
+        3. O는 아무 레이블 뒤에나 올 수 있다
         
         인수:
-            tags: IOB2 이름표의 목록
+            tags: IOB2 레이블의 목록
             
         반환값:
             (is_valid, error_message) 튜플
@@ -97,7 +97,7 @@ class TagValidator:
             if info.prefix not in ('B', 'I'):
                 return False, f"Position {i}: Invalid prefix '{info.prefix}' for IOB2"
             
-            # I- 이름표 앞에는 같은 클래스의 B-나 I-가 와야 한다
+            # I- 레이블 앞에는 같은 클래스의 B-나 I-가 와야 한다
             if info.prefix == 'I':
                 if i == 0:
                     return False, f"Position {i}: I-{info.entity_type} cannot start sequence"
@@ -116,16 +116,16 @@ class TagValidator:
     @staticmethod
     def validate_bioes(tags: List[str]) -> Tuple[bool, str]:
         """
-        BIOES 이름표 차례 확인하기.
+        BIOES 레이블 차례 확인하기.
         
         규칙:
         1. B- 뒤에는 같은 클래스의 I-나 E-가 와야 한다
         2. I- 앞에는 같은 클래스의 B-나 I-가, 뒤에는 I-나 E-가 와야 한다
         3. E- 앞에는 같은 클래스의 B-나 I-가 와야 한다
-        4. S-는 토막 하나로 온전한 것을 나타낸다
+        4. S-는 토큰 하나로 온전한 것을 나타낸다
         
         인수:
-            tags: BIOES 이름표의 목록
+            tags: BIOES 레이블의 목록
             
         반환값:
             (is_valid, error_message) 튜플
@@ -168,7 +168,7 @@ class TagValidator:
     
     @classmethod
     def validate(cls, tags: List[str], scheme: TagScheme) -> Tuple[bool, str]:
-        """정한 방식에 따라 이름표 확인하기."""
+        """정한 방식에 따라 레이블 확인하기."""
         if scheme == TagScheme.IOB2:
             return cls.validate_iob2(tags)
         elif scheme == TagScheme.BIOES:
@@ -183,24 +183,24 @@ TagValidator는 문자열 파싱과 연결 규칙의 일부를 검사한다. 그
 
 ```python
 class TagConverter:
-    """서로 다른 이름표 방식 사이를 바꾸기."""
+    """서로 다른 레이블 방식 사이를 바꾸기."""
     
     @staticmethod
     def iob2_to_bioes(tags: List[str]) -> List[str]:
         """
-        IOB2 이름표를 BIOES 이름표로 바꾸기.
+        IOB2 레이블을 BIOES 레이블로 바꾸기.
         
         바꾸기 규칙:
-        - 토막 하나짜리 것: B-TYPE → S-TYPE
-        - 토막 여럿의 시작: B-TYPE → B-TYPE(뒤에 I-가 올 때)
-        - 토막 여럿의 가운데: I-TYPE → I-TYPE(뒤에 I-가 올 때)
-        - 토막 여럿의 끝: I-TYPE → E-TYPE(뒤에 O나 B-가 오거나 끝일 때)
+        - 토큰 하나짜리 개체: B-TYPE → S-TYPE
+        - 토큰 여럿의 시작: B-TYPE → B-TYPE(뒤에 I-가 올 때)
+        - 토큰 여럿의 가운데: I-TYPE → I-TYPE(뒤에 I-가 올 때)
+        - 토큰 여럿의 끝: I-TYPE → E-TYPE(뒤에 O나 B-가 오거나 끝일 때)
         
         인수:
-            tags: IOB2 이름표의 목록
+            tags: IOB2 레이블의 목록
             
         반환값:
-            BIOES 이름표의 목록
+            BIOES 레이블의 목록
         """
         bioes_tags = []
         n = len(tags)
@@ -212,24 +212,24 @@ class TagConverter:
             
             info = TagInfo.parse(tag)
             
-            # 것의 마지막 토막인지 살피기
+            # 것의 마지막 토큰인지 살피기
             is_last = (i == n - 1) or \
                       (tags[i + 1] == 'O') or \
                       (TagInfo.parse(tags[i + 1]).prefix == 'B')
             
             if info.prefix == 'B':
                 if is_last:
-                    # 토막 하나짜리 것
+                    # 토큰 하나짜리 개체
                     bioes_tags.append(f'S-{info.entity_type}')
                 else:
-                    # 토막 여럿짜리 것의 시작
+                    # 토큰 여럿짜리 개체의 시작
                     bioes_tags.append(f'B-{info.entity_type}')
-            else:  # I- 앞가지
+            else:  # I- 접두사
                 if is_last:
-                    # 토막 여럿짜리 것의 끝
+                    # 토큰 여럿짜리 개체의 끝
                     bioes_tags.append(f'E-{info.entity_type}')
                 else:
-                    # 토막 여럿짜리 것의 가운데
+                    # 토큰 여럿짜리 개체의 가운데
                     bioes_tags.append(f'I-{info.entity_type}')
         
         return bioes_tags
@@ -237,7 +237,7 @@ class TagConverter:
     @staticmethod
     def bioes_to_iob2(tags: List[str]) -> List[str]:
         """
-        BIOES 이름표를 IOB2 이름표로 바꾸기.
+        BIOES 레이블을 IOB2 레이블로 바꾸기.
         
         바꾸기 규칙:
         - S-TYPE → B-TYPE
@@ -245,10 +245,10 @@ class TagConverter:
         - B-TYPE, I-TYPE, O는 그대로 둔다
         
         인수:
-            tags: BIOES 이름표의 목록
+            tags: BIOES 레이블의 목록
             
         반환값:
-            IOB2 이름표의 목록
+            IOB2 레이블의 목록
         """
         iob2_tags = []
         
@@ -275,12 +275,12 @@ class TagConverter:
         scheme: TagScheme = TagScheme.IOB2
     ) -> List[Tuple[str, str, int, int]]:
         """
-        이름표 붙인 차례에서 것 뽑기.
+        레이블 붙인 차례에서 개체 뽑기.
         
         인수:
-            tokens: 토막의 목록
-            tags: 그에 맞는 이름표의 목록
-            scheme: 쓴 이름표 방식
+            tokens: 토큰의 목록
+            tags: 그에 맞는 레이블의 목록
+            scheme: 쓴 레이블 방식
             
         반환값:
             (entity_text, entity_type, start_idx, end_idx) 튜플의 목록
@@ -296,7 +296,7 @@ class TagConverter:
         
         for i, (token, tag) in enumerate(zip(tokens, tags)):
             if tag == 'O':
-                # 있으면 지금 것을 닫기
+                # 있으면 현재 개체를 닫기
                 if current_entity is not None:
                     ent_type, start_idx, ent_tokens = current_entity
                     entities.append((
@@ -322,7 +322,7 @@ class TagConverter:
                 current_entity = (entity_type, i, [token])
             
             elif tag.startswith('I-'):
-                # 지금 것을 이어 가기
+                # 현재 개체를 이어 가기
                 if current_entity is not None:
                     current_entity[2].append(token)
         
@@ -353,24 +353,24 @@ def build_transition_mask(
     scheme: TagScheme = TagScheme.IOB2
 ) -> torch.Tensor:
     """
-    CRF 레이어의 넘어가기 마스크 세우기.
+    CRF 레이어의 전이 마스크 세우기.
     
-    마스크는 올바른 넘어가기에 0, 올바르지 않은 것에 -inf를 준다.
+    마스크는 올바른 전이에 0, 올바르지 않은 것에 -inf를 준다.
     
     인수:
-        label_to_idx: 이름표 글자열에서 번호로의 대응
-        scheme: 이름표 방식
+        label_to_idx: 레이블 문자열에서 번호로의 대응
+        scheme: 레이블 방식
         
     반환값:
-        넘어가기 점수를 담은, 꼴이 (num_labels, num_labels)인 텐서
+        전이 점수를 담은, 꼴이 (num_labels, num_labels)인 텐서
     """
     num_labels = len(label_to_idx)
     idx_to_label = {v: k for k, v in label_to_idx.items()}
     
-    # 모든 넘어가기를 올바른 것으로 두고 첫자리매김
+    # 모든 전이를 올바른 것으로 두고 첫자리매김
     mask = torch.zeros(num_labels, num_labels)
     
-    # 것 클래스 뽑기
+    # 개체 클래스 뽑기
     entity_types = set()
     for label in label_to_idx:
         if label != 'O':
@@ -447,15 +447,15 @@ def align_labels_to_subwords(
     label_first_subword_only: bool = True
 ) -> List[str]:
     """
-    낱말 수준 이름표를 아래낱말 토막에 맞추기.
+    낱말 수준 레이블을 아래낱말 토큰에 맞추기.
     
     인수:
-        word_labels: 낱말마다의 이름표
+        word_labels: 낱말마다의 레이블
         word_to_subword_map: 낱말마다의 아래낱말 번호 목록
-        label_first_subword_only: True이면 첫 아래낱말만 이름표를 받는다
+        label_first_subword_only: True이면 첫 아래낱말만 레이블을 받는다
         
     반환값:
-        아래낱말 토막마다의 이름표
+        아래낱말 토큰마다의 레이블
     """
     subword_labels = []
     
@@ -464,14 +464,14 @@ def align_labels_to_subwords(
         
         for i, subword_idx in enumerate(subword_indices):
             if i == 0:
-                # 첫 아래낱말이 본디 이름표를 받는다
+                # 첫 아래낱말이 본디 레이블을 받는다
                 subword_labels.append(label)
             else:
                 if label_first_subword_only:
-                    # 첫째가 아닌 아래낱말은 특별 이름표를 받는다(로스에서 무시)
+                    # 첫째가 아닌 아래낱말은 특별 레이블을 받는다(로스에서 무시)
                     subword_labels.append('[IGNORE]')
                 else:
-                    # 이어지는 아래낱말에 I- 이름표 퍼뜨리기
+                    # 이어지는 아래낱말에 I- 레이블 퍼뜨리기
                     if label.startswith('B-'):
                         subword_labels.append('I-' + label[2:])
                     else:
@@ -493,15 +493,15 @@ def visualize_tags(
     scheme: TagScheme = TagScheme.IOB2
 ) -> str:
     """
-    이름표 붙인 차례를 눈으로 볼 수 있게 나타내기.
+    레이블 붙인 차례를 눈으로 볼 수 있게 나타내기.
     
     인수:
-        tokens: 토막의 목록
-        tags: 이름표의 목록
-        scheme: 이름표 방식
+        tokens: 토큰의 목록
+        tags: 레이블의 목록
+        scheme: 레이블 방식
         
     반환값:
-        토막과 이름표를 줄맞춘 글자열
+        토큰과 레이블을 줄맞춘 문자열
     """
     # 줄맞춤을 위한 최대 너비 찾기
     max_token_len = max(len(t) for t in tokens)
@@ -511,7 +511,7 @@ def visualize_tags(
     lines.append("Tokens: " + " ".join(f"{t:<{max_token_len}}" for t in tokens))
     lines.append("Tags:   " + " ".join(f"{t:<{max_token_len}}" for t in tags))
     
-    # 것 뽑기 더하기
+    # 개체 뽑기 더하기
     entities = TagConverter.tags_to_entities(tokens, tags, scheme)
     if entities:
         lines.append("\nExtracted Entities:")

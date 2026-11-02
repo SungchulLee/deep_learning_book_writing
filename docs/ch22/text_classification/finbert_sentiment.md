@@ -19,12 +19,12 @@
 #   1부 – HuggingFace Hub에서 FinBERT 읽어 들이기
 #   2부 – 미리 익힌 마음결 머리로 영 발 미룸
 #   3부 – StockTwits 자료로 FinBERT 곱게 다듬기(PyTorch)
-#   4부 – 밸류와 종목별 살피기
+#   4부 – 평가와 종목별 살피기
 #   5부 – FinBERT, 일반 BERT, 낱말집 바탕 견주기
 #
 # 바탕: O'Reilly "Practical NLP" 10장
 
-import zlib          # 어디서 돌려도 같은 값을 주는 해시 (아래 토막내기에 쓴다)
+import zlib          # 어디서 돌려도 같은 값을 주는 해시 (아래 토큰내기에 쓴다)
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -42,7 +42,7 @@ print("=" * 60)
 # 요즘 방식: FinBERT는 HuggingFace Hub에 있다.
 # 널리 쓰이는 변종 둘:
 #   - ProsusAI/finbert         (마음결: 양성/음성/가운데)
-#   - yiyanghkust/finbert-tone (같은 일, 다른 미리 익힘 말뭉치)
+#   - yiyanghkust/finbert-tone (같은 일, 다른 미리 학습 말뭉치)
 
 print("""
   # 마음결 살피기를 위해 미리 익힌 FinBERT 읽어 들이기
@@ -82,11 +82,11 @@ print("""
       tokenizer="ProsusAI/finbert",
   )
 
-  # 어림 하나
+  # 예측 하나
   result = finbert("AAPL missed revenue estimates by 2%.")
   # → [{'label': 'negative', 'score': 0.87}]
 
-  # 배치 어림
+  # 배치 예측
   texts = [
       "Revenue grew 15% year-over-year, exceeding guidance.",
       "The company announced layoffs affecting 10% of staff.",
@@ -107,14 +107,14 @@ print("Part 3: Fine-Tuning FinBERT on StockTwits Data")
 print("=" * 60)
 
 # 본디 공책은 FB, AMZN, GOOGL의 StockTwits 자료로 곱게 다듬는다
-# 이름표: Bullish (1) / Bearish (0).
+# 레이블: Bullish (1) / Bearish (0).
 #
 # 핵심 단계:
-#   1. BERT 토막내개로 토막낸다(max_len=128)
+#   1. BERT 토큰내개로 토큰낸다(max_len=128)
 #   2. 어텐션 마스크를 만든다
-#   3. 익힘/검증으로 나눈다
+#   3. 학습/검증으로 나눈다
 #   4. AdamW와 한 줄 몸풀기로 곱게 다듬는다
-#   5. 세대마다 밸류한다
+#   5. 세대마다 평가한다
 
 print("  Creating synthetic StockTwits-like data for demonstration...")
 
@@ -151,7 +151,7 @@ labels = [labels[i] for i in indices]
 
 print(f"  Dataset: {len(texts)} examples ({sum(labels)} bullish, {len(labels)-sum(labels)} bearish)")
 
-# 토막내기(단순 부호화로 흉내냄)
+# 토큰내기(단순 부호화로 흉내냄)
 # 실전에서는 BertTokenizer.from_pretrained("ProsusAI/finbert")를 쓴다
 torch.manual_seed(42)
 
@@ -196,7 +196,7 @@ class SimpleFinancialClassifier(nn.Module):
             src_key_padding_mask = None
 
         x = self.encoder(x, src_key_padding_mask=src_key_padding_mask)
-        # 덧대지 않은 토막에 대한 평균 모으기
+        # 덧대지 않은 토큰에 대한 평균 모으기
         if attention_mask is not None:
             mask = attention_mask.unsqueeze(-1).float()
             x = (x * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1)
@@ -206,14 +206,14 @@ class SimpleFinancialClassifier(nn.Module):
         return self.classifier(x)
 
 
-# 단순 토막내기(실전에서는 BertTokenizer를 쓴다)
+# 단순 토큰내기(실전에서는 BertTokenizer를 쓴다)
 def simple_tokenize(texts, max_len=64, vocab_size=5000):
-    """보이기 위한 해시 바탕 토막내기."""
+    """보이기 위한 해시 바탕 토큰내기."""
     all_ids, all_masks = [], []
     for text in texts:
         tokens = text.lower().split()[:max_len]
-        # 붙박이 hash() 를 쓰면 안 된다. 파이썬은 글자열 해시에 프로세스마다
-        # 다른 소금을 섞으므로, 씨앗을 아무리 고정해도 토막마다 붙는 번호가
+        # 붙박이 hash() 를 쓰면 안 된다. 파이썬은 문자열 해시에 프로세스마다
+        # 다른 소금을 섞으므로, 씨앗을 아무리 고정해도 토큰마다 붙는 번호가
         # 돌릴 때마다 달라진다 — 여기 실린 로스값이 다시 나오지 않는 까닭이
         # 그것이었다. crc32 는 어디서 돌려도 같은 값을 준다
         ids = [(zlib.crc32(t.encode()) % (vocab_size - 1)) + 1 for t in tokens]
@@ -230,7 +230,7 @@ def simple_tokenize(texts, max_len=64, vocab_size=5000):
 input_ids, attention_masks = simple_tokenize(texts, MAX_LEN, VOCAB_SIZE)
 labels_tensor = torch.tensor(labels, dtype=torch.long)
 
-# 익힘/검증 나누기
+# 학습/검증 나누기
 from sklearn.model_selection import train_test_split
 
 train_idx, val_idx = train_test_split(
@@ -279,14 +279,14 @@ for epoch in range(8):
 
 
 # =====================================================================
-# 4부 – 밸류와 종목별 살피기
+# 4부 – 평가와 종목별 살피기
 # =====================================================================
 print("\n" + "=" * 60)
 print("Part 4: Evaluation & Per-Stock Breakdown")
 print("=" * 60)
 
 # 본디 공책에서 자료에는 FB, AMZN, GOOGL 트윗이 들어 있다
-# StockTwits API의 Bullish/Bearish 이름표와 함께
+# StockTwits API의 Bullish/Bearish 레이블과 함께
 print("""
   실제 자료를 쓴 온전한 곱게 다듬기 물길:
 
@@ -300,7 +300,7 @@ print("""
   # StockTwits 자료 읽어 들이기
   df = pd.read_csv("stocktwits_data.csv")
   # 칸: symbol, message, sentiment(Bullish/Bearish), message_id
-  # 이름표 부호화
+  # 레이블 부호화
   df["label"] = (df["sentiment"] == "Bullish").astype(int)
 
   tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
@@ -340,7 +340,7 @@ print("""
   )
   trainer.train()
 
-  # 종목별 밸류
+  # 종목별 평가
   for symbol in ["FB", "AMZN", "GOOGL"]:
       subset = df[df["symbol"] == symbol]
       preds = trainer.predict(Dataset.from_pandas(subset))
@@ -381,7 +381,7 @@ print("""
      금융 보고서의 말을 이해한다.
 
   4. 수의 맥락: "EPS of $2.50 vs $2.30 expected" — FinBERT는
-     어림을 웃도는 것이 양성임을 안다.
+     예측을 웃도는 것이 양성임을 안다.
 
   금융 자연어 다루기의 쓰임새:
   - 실적 발표 마음결 좇기
@@ -436,11 +436,11 @@ if __name__ == "__main__":
           tokenizer="ProsusAI/finbert",
       )
 
-      # 어림 하나
+      # 예측 하나
       result = finbert("AAPL missed revenue estimates by 2%.")
       # → [{'label': 'negative', 'score': 0.87}]
 
-      # 배치 어림
+      # 배치 예측
       texts = [
           "Revenue grew 15% year-over-year, exceeding guidance.",
           "The company announced layoffs affecting 10% of staff.",
@@ -479,7 +479,7 @@ if __name__ == "__main__":
       # StockTwits 자료 읽어 들이기
       df = pd.read_csv("stocktwits_data.csv")
       # 칸: symbol, message, sentiment(Bullish/Bearish), message_id
-      # 이름표 부호화
+      # 레이블 부호화
       df["label"] = (df["sentiment"] == "Bullish").astype(int)
 
       tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
@@ -519,7 +519,7 @@ if __name__ == "__main__":
       )
       trainer.train()
 
-      # 종목별 밸류
+      # 종목별 평가
       for symbol in ["FB", "AMZN", "GOOGL"]:
           subset = df[df["symbol"] == symbol]
           preds = trainer.predict(Dataset.from_pandas(subset))
@@ -554,7 +554,7 @@ if __name__ == "__main__":
          금융 보고서의 말을 이해한다.
 
       4. 수의 맥락: "EPS of $2.50 vs $2.30 expected" — FinBERT는
-         어림을 웃도는 것이 양성임을 안다.
+         예측을 웃도는 것이 양성임을 안다.
 
       금융 자연어 다루기의 쓰임새:
       - 실적 발표 마음결 좇기

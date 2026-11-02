@@ -6,14 +6,14 @@
 
 ```python
 """
-길잡이 07: 변환기 말 모델(GPT 방식)
+튜토리얼 07: 변환기 언어 모델(GPT 방식)
 ====================================================
 
 변환기는 회귀 대신 셀프 어텐션 구조를 써서
 나란히 익히기와 더 나은 먼 거리 나타내기를 가능하게 한다.
 
 구조:
-- 토막 묻힘 + 자리 묻힘
+- 토큰 임베딩 + 자리 임베딩
 - 여러 머리 셀프 어텐션
 - 피드포워드 넷트웍
 - 레이어 고르게 맞추기
@@ -60,7 +60,7 @@ class PositionalEncoding(nn.Module):
 
 
 class TransformerLanguageModel(nn.Module):
-    """GPT 방식 변환기 말 모델."""
+    """GPT 방식 변환기 언어 모델."""
     
     def __init__(self, vocab_size, d_model=512, nhead=8, 
                  num_layers=6, dim_feedforward=2048, dropout=0.1):
@@ -92,14 +92,14 @@ class TransformerLanguageModel(nn.Module):
         self.fc.weight.data.uniform_(-initrange, initrange)
     
     def generate_square_subsequent_mask(self, sz):
-        """앞으로 올 토막에 어텐션을 주지 못하게 하는 인과 마스크 만들기."""
+        """앞으로 올 토큰에 어텐션을 주지 못하게 하는 인과 마스크 만들기."""
         mask = torch.triu(torch.ones(sz, sz), diagonal=1).bool()
         return mask
     
     def forward(self, src):
         """
         인수:
-            src: (batch, seq_len) 들임 토막
+            src: (batch, seq_len) 들임 토큰
         반환값:
             (batch, seq_len, vocab_size) 로짓
         """
@@ -124,7 +124,7 @@ class TransformerLanguageModel(nn.Module):
 
 def train_transformer_lm(corpus, vocab, d_model=256, nhead=4, 
                         num_layers=4, epochs=10):
-    """변환기 말 모델 익히기."""
+    """변환기 언어 모델 익히기."""
     
 import numpy as np
 from typing import List, Tuple
@@ -133,7 +133,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 # --- tutorial_05_rnn_language_model ---
 """
-길잡이 05: 되돌이 그물 말 모델
+튜토리얼 05: 되돌이 그물 언어 모델
 
 수학적 바탕:
 h_t = tanh(W_hh * h_{t-1} + W_xh * x_t + b_h)
@@ -148,7 +148,7 @@ P(w_t | w_1,...,w_{t-1}) = softmax(y_t)
 
 
 class RNNLanguageModel(nn.Module):
-    """맥락 길이가 바뀌는 되돌이 그물 바탕 말 모델."""
+    """맥락 길이가 바뀌는 되돌이 그물 바탕 언어 모델."""
     
     def __init__(self, vocab_size: int, embedding_dim: int, 
                  hidden_dim: int, num_layers: int = 1, dropout: float = 0.2):
@@ -180,19 +180,19 @@ if __name__ == "__main__":
 
 
 class RNNDataset(Dataset):
-    """말 모델용 자료. 글월을 max_seq_len 길이의 토막으로 자른다.
+    """언어 모델용 자료. 텍스트를 max_seq_len 길이의 토큰으로 자른다.
 
-    말 모델이 배우는 것은 "다음 낱말 맞히기"이므로, 들임과 정답이 한 칸씩
-    어긋난 같은 토막이다.
+    언어 모델이 배우는 것은 "다음 낱말 맞히기"이므로, 들임과 정답이 한 칸씩
+    어긋난 같은 토큰이다.
 
-        토막      the  cat  sat  on   the  mat
+        토큰      the  cat  sat  on   the  mat
         들임 x    the  cat  sat  on   the
         정답 y         cat  sat  on   the  mat
 
     Args:
         corpus: 토큰의 열. 낱말 문자열이어도 되고 이미 번호로 바꾼 것이어도 된다.
         vocab:  낱말 -> 번호 사전. 문자열 corpus를 번호로 바꿀 때 쓴다.
-        max_seq_len: 토막 하나의 길이.
+        max_seq_len: 토큰 하나의 길이.
     """
 
     def __init__(self, corpus, vocab, max_seq_len: int = 50):
@@ -205,7 +205,7 @@ class RNNDataset(Dataset):
         else:
             ids = list(corpus)
 
-        # 정답이 한 칸 뒤이므로 토막마다 max_seq_len + 1개가 필요하다
+        # 정답이 한 칸 뒤이므로 토큰마다 max_seq_len + 1개가 필요하다
         step = max_seq_len
         self.chunks = [ids[i:i + max_seq_len + 1]
                        for i in range(0, max(len(ids) - max_seq_len, 0), step)]
@@ -222,7 +222,7 @@ class RNNDataset(Dataset):
 
 
 def collate_fn(batch, pad_value: int = 0):
-    """길이가 다른 토막들을 한 배치로 묶는다. 짧은 것은 뒤를 채운다."""
+    """길이가 다른 토큰들을 한 배치로 묶는다. 짧은 것은 뒤를 채운다."""
     xs, ys = zip(*batch)
     return (pad_sequence(xs, batch_first=True, padding_value=pad_value),
             pad_sequence(ys, batch_first=True, padding_value=pad_value))
@@ -282,18 +282,18 @@ def collate_fn(batch, pad_value: int = 0):
 
 if __name__ == "__main__":
     print("""
-변환기 말 모델
+변환기 언어 모델
 ===========================
 
 이점:
 1. 나란히 익히기(차례에 얽매이지 않음)
 2. 어텐션으로 먼 거리 얽힘이 더 낫다
 3. 자료와 셈이 늘어날수록 잘 된다
-4. 요즘 큰 말 모델(GPT, BERT 등)의 바탕
+4. 요즘 큰 언어 모델(GPT, BERT 등)의 바탕
 
 구조의 조각:
 - 셀프 어텐션: 모든 자리 사이의 관계를 나타낸다
-- 여러 머리: 서로 다른 어텐션 무늬
+- 여러 머리: 서로 다른 어텐션 패턴
 - 자리 부호: 자리 앎을 준다
 - 레이어 고르게 맞추기: 익히기를 든든하게 한다
 - 잔차 이음: 깊은 넷트웍을 가능하게 한다
@@ -303,12 +303,12 @@ if __name__ == "__main__":
 - 변환기: 나란히, 더 빠르고, 규모 키우기에 낫다
 - 맞바꿈: 기억 공간과 빠르기
 
-요즘 큰 말 모델(GPT-3, GPT-4)은 이 구조에 다음을 곁들여 쓴다:
+요즘 큰 언어 모델(GPT-3, GPT-4)은 이 구조에 다음을 곁들여 쓴다:
 - 수십억 개의 파라메터
-- 어마어마한 익힘 자료
+- 어마어마한 학습 자료
 - 앞선 가장 좋게 하기 재주
 
-익힘 문제:
+학습 문제:
 1. 어텐션 무게 그려 보기
 2. 머리 수를 달리해 실험하기
 3. 자리 부호를 달리해 보기(배운 것과 사인꼴)
@@ -322,18 +322,18 @@ if __name__ == "__main__":
 
 ```
 
-변환기 말 모델
+변환기 언어 모델
 ===========================
 
 이점:
 1. 나란히 익히기(차례에 얽매이지 않음)
 2. 어텐션으로 먼 거리 얽힘이 더 낫다
 3. 자료와 셈이 늘어날수록 잘 된다
-4. 요즘 큰 말 모델(GPT, BERT 등)의 바탕
+4. 요즘 큰 언어 모델(GPT, BERT 등)의 바탕
 
 구조의 조각:
 - 셀프 어텐션: 모든 자리 사이의 관계를 나타낸다
-- 여러 머리: 서로 다른 어텐션 무늬
+- 여러 머리: 서로 다른 어텐션 패턴
 - 자리 부호: 자리 앎을 준다
 - 레이어 고르게 맞추기: 익히기를 든든하게 한다
 - 잔차 이음: 깊은 넷트웍을 가능하게 한다
@@ -343,12 +343,12 @@ if __name__ == "__main__":
 - 변환기: 나란히, 더 빠르고, 규모 키우기에 낫다
 - 맞바꿈: 기억 공간과 빠르기
 
-요즘 큰 말 모델(GPT-3, GPT-4)은 이 구조에 다음을 곁들여 쓴다:
+요즘 큰 언어 모델(GPT-3, GPT-4)은 이 구조에 다음을 곁들여 쓴다:
 - 수십억 개의 파라메터
-- 어마어마한 익힘 자료
+- 어마어마한 학습 자료
 - 앞선 가장 좋게 하기 재주
 
-익힘 문제:
+학습 문제:
 1. 어텐션 무게 그려 보기
 2. 머리 수를 달리해 실험하기
 3. 자리 부호를 달리해 보기(배운 것과 사인꼴)

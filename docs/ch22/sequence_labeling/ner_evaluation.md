@@ -24,7 +24,7 @@ class Entity:
     end: int
 
 def extract_entities(tags: List[str]) -> Set[Entity]:
-    """IOB2 이름표에서 것 뽑기."""
+    """IOB2 레이블에서 개체 뽑기."""
     entities = set()
     current = None
     
@@ -53,7 +53,7 @@ def compute_ner_metrics(
     gold_tags: List[List[str]],
     average: str = 'micro'
 ) -> Dict[str, float]:
-    """이름 알아보기 F1 잣대 셈하기."""
+    """개체명 인식 F1 지표 셈하기."""
     tp_per_type = defaultdict(int)
     fp_per_type = defaultdict(int)
     fn_per_type = defaultdict(int)
@@ -108,7 +108,7 @@ micro는 모든 유형의TP·FP·FN을 합친 뒤P·R·F1을 계산하고 분모
 ```python
 from seqeval.metrics import classification_report, f1_score
 
-# 표준 밸류
+# 표준 평가
 y_true = [['B-PER', 'I-PER', 'O', 'B-LOC']]
 y_pred = [['B-PER', 'I-PER', 'O', 'B-LOC']]
 

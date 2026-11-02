@@ -6,13 +6,13 @@
 
 ```python
 """
-실전에 쓸 수 있는 이름 알아보기 물길
+실전에 쓸 수 있는 개체명 인식 물길
 ==============================
 
-실전에 펼칠 준비가 된 온전한 이름 알아보기 물길.
+실전에 펼칠 준비가 된 온전한 개체명 인식 물길.
 
 피처:
-- 앞손질
+- 전처리
 - 여러 모델 받치기
 - 뒷손질
 - 어긋남 다루기
@@ -32,7 +32,7 @@ import time
 
 
 class ProductionNERPipeline:
-    """실전에 쓸 수 있는 이름 알아보기 물길."""
+    """실전에 쓸 수 있는 개체명 인식 물길."""
     
     def __init__(self, model_name: str = 'transformer'):
         """
@@ -61,14 +61,14 @@ class ProductionNERPipeline:
         return logger
     
     def _initialize_model(self):
-        """이름 알아보기 모델 첫자리매김."""
+        """개체명 인식 모델 첫자리매김."""
         self.logger.info(f"Initializing {self.model_name} model...")
         # 여기에 모델 첫자리매김 코드
         self.logger.info("Model initialized successfully")
     
     def preprocess(self, text: str) -> str:
         """
-        이름 알아보기 앞에 글 앞손질하기.
+        개체명 인식 앞에 글 전처리하기.
         
         단계:
         - 남는 빈칸 없애기
@@ -103,7 +103,7 @@ class ProductionNERPipeline:
     def extract_entities(self, text: str, 
                         confidence_threshold: float = 0.5) -> Dict:
         """
-        글에서 것 뽑기.
+        글에서 개체 뽑기.
         
         인수:
             text: 입력 텍스트
@@ -115,10 +115,10 @@ class ProductionNERPipeline:
         start_time = time.time()
         
         try:
-            # 앞손질
+            # 전처리
             processed_text = self.preprocess(text)
             
-            # 것 뽑기(자리 채움)
+            # 개체 뽑기(자리 채움)
             entities = []  # 여기서 모델 미룸
             
             # 뒷손질

@@ -6,13 +6,13 @@ NERDatasetBuilder는 원문과 주석을 보관하고 공백 토큰의 IOB2 태�
 
 ```python
 """
-이름 알아보기 자료 뭉치 만들기와 꼴 갖추기
+개체명 인식 데이터셋 만들기와 꼴 갖추기
 ====================================
 
-이름 알아보기 자료 뭉치를 만들고 꼴을 갖추는 도구.
+개체명 인식 데이터셋을 만들고 꼴을 갖추는 도구.
 
 받치는 것:
-- IOB 이름표 붙이기
+- IOB 레이블 붙이기
 - 자료 나누기
 - 꼴 바꾸기
 
@@ -29,19 +29,19 @@ import random
 
 
 class NERDatasetBuilder:
-    """제대로 꼴을 갖춘 이름 알아보기 자료 뭉치 세우기."""
+    """제대로 꼴을 갖춘 개체명 인식 데이터셋 세우기."""
     
     def __init__(self):
-        """자료 뭉치 세우개 첫자리매김."""
+        """데이터셋 세우개 첫자리매김."""
         self.samples = []
     
     def add_sample(self, text: str, entities: List[Dict]):
         """
-        자료 뭉치에 표본 하나 더하기.
+        데이터셋에 표본 하나 더하기.
         
         인수:
-            text: 글월 문자열
-            entities: 'text', 'type', 'start', 'end'를 담은 것 사전의 목록
+            text: 텍스트 문자열
+            entities: 'text', 'type', 'start', 'end'를 담은 개체 사전의 목록
         """
         self.samples.append({
             'text': text,
@@ -50,10 +50,10 @@ class NERDatasetBuilder:
     
     def to_iob_format(self) -> List[Tuple[List[str], List[str]]]:
         """
-        자료 뭉치를 IOB 꼴로 바꾸기.
+        데이터셋을 IOB 꼴로 바꾸기.
         
         반환값:
-            (토막들, 이름표들) 튜플의 목록
+            (토큰들, 레이블들) 튜플의 목록
         """
         iob_data = []
         
@@ -61,14 +61,14 @@ class NERDatasetBuilder:
             text = sample['text']
             entities = sample['entities']
             
-            # 단순 토막내기
+            # 단순 토큰내기
             tokens = text.split()
             labels = ['O'] * len(tokens)
             
-            # 이름표 매기기(간추림 — 토막이 맞는다고 가정)
+            # 레이블 매기기(간추림 — 토큰이 맞는다고 가정)
             for entity in entities:
                 entity_tokens = entity['text'].split()
-                # 토막 목록에서 것의 자리 찾기
+                # 토큰 목록에서 것의 자리 찾기
                 for i in range(len(tokens) - len(entity_tokens) + 1):
                     if tokens[i:i+len(entity_tokens)] == entity_tokens:
                         labels[i] = f"B-{entity['type']}"
@@ -83,14 +83,14 @@ class NERDatasetBuilder:
     def train_test_split(self, test_size: float = 0.2, 
                         random_seed: int = 42) -> Tuple[List, List]:
         """
-        자료 뭉치를 익힘 뭉치와 시험 뭉치로 나누기.
+        데이터셋을 학습 뭉치와 시험 뭉치로 나누기.
         
         인수:
             test_size: 시험 뭉치로 쓸 자료의 몫
             random_seed: 같은 결과를 얻기 위한 마구잡이 씨앗
             
         반환값:
-            (익힘 표본, 시험 표본) 튜플
+            (학습 표본, 시험 표본) 튜플
         """
         random.seed(random_seed)
         samples_copy = self.samples.copy()

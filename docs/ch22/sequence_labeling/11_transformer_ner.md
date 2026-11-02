@@ -6,15 +6,15 @@
 
 ```python
 """
-미리 익힌 모델을 쓰는 변환기 바탕 이름 알아보기
+미리 익힌 모델을 쓰는 변환기 바탕 개체명 인식
 ===============================================
 
-이름 알아보기에 BERT/RoBERTa 쓰기.
+개체명 인식에 BERT/RoBERTa 쓰기.
 
 핵심 개념:
 - 미리 익힌 변환기 곱게 다듬기
-- 아래낱말 토막내기 다루기
-- 토막 클래스 매기기
+- 아래낱말 토큰내기 다루기
+- 토큰 클래스 매기기
 
 지은이: 러닝 목적
 날짜: 2025
@@ -32,19 +32,19 @@ from typing import List, Dict
 
 class TransformerNER(nn.Module):
     """
-    미리 익힌 모델을 쓰는 변환기 바탕 이름 알아보기.
+    미리 익힌 모델을 쓰는 변환기 바탕 개체명 인식.
     
     구조:
-    들임 → BERT/RoBERTa → 선형 → 소프트맥스 → 이름표
+    들임 → BERT/RoBERTa → 선형 → 소프트맥스 → 레이블
     """
     
     def __init__(self, model_name: str = 'bert-base-cased', num_labels: int = 9):
         """
-        변환기 이름 알아보기 첫자리매김.
+        변환기 개체명 인식 첫자리매김.
         
         인수:
             model_name: Hugging Face 모델 이름
-            num_labels: 것 이름표의 개수
+            num_labels: 개체명표의 개수
         """
         super(TransformerNER, self).__init__()
         
@@ -92,13 +92,13 @@ class TransformerNER(nn.Module):
     
     def predict(self, text: str) -> List[Tuple[str, str]]:
         """
-        글 속의 것 어림하기.
+        글 속의 것 예측하기.
         
         인수:
-            text: 들임 글월 문자열
+            text: 들임 텍스트 문자열
             
         반환값:
-            (토막, 이름표) 짝의 목록
+            (토큰, 레이블) 짝의 목록
         """
         # 토큰으로 나누기
         encoding = self.tokenizer(text, return_tensors='pt', 
@@ -112,7 +112,7 @@ class TransformerNER(nn.Module):
         # 예측을 얻는다
         predictions = torch.argmax(logits, dim=-1)[0]
         
-        # 토막으로 되돌려 대응시키기
+        # 토큰으로 되돌려 대응시키기
         tokens = self.tokenizer.convert_ids_to_tokens(encoding['input_ids'][0])
         
         return list(zip(tokens, predictions.tolist()))

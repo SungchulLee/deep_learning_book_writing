@@ -13,7 +13,7 @@
 # ---
 #
 # 금융 자연어 다루기에서 읽어 냄은 결정적이다. 규제 기관과 위험
-# 살림꾼은 모델이 왜 어떤 글월을 알맞다고 보거나 마음결을 약세로
+# 살림꾼은 모델이 왜 어떤 텍스트를 알맞다고 보거나 마음결을 약세로
 # 매기는지 이해해야 하기 때문이다.
 #
 #   1부 – 글 가르기를 위한 LIME(모델에 매이지 않음)
@@ -44,17 +44,17 @@ print("=" * 60)
 print("Part 1: LIME (Local Interpretable Model-Agnostic Explanations)")
 print("=" * 60)
 
-# LIME은 들임을 흔들어 보며 낱낱의 어림을 풀이한다
-# 어림이 어떻게 바뀌는지 살핀다.
+# LIME은 들임을 흔들어 보며 낱낱의 예측을 풀이한다
+# 예측이 어떻게 바뀌는지 살핀다.
 #
 # 글에서는 LIME이 낱말을 마구잡이로 없애 흔든 판을 여럿 만들고,
-# 그 모두의 어림을 얻은 뒤 그 보기 둘레에서 분류기의 몸짓을
-# 어림하는 자리에 매인 선형 모델을 맞춘다.
+# 그 모두의 예측을 얻은 뒤 그 보기 둘레에서 분류기의 몸짓을
+# 예측하는 자리에 매인 선형 모델을 맞춘다.
 #
 # 핵심 눈썰미: 선형 모델의 계수가 어떤 낱말이
-# 클래스마다 어림을 어느 쪽으로 미는지 보여 준다.
+# 클래스마다 예측을 어느 쪽으로 미는지 보여 준다.
 
-# 보기 자료 뭉치 만들기
+# 보기 데이터셋 만들기
 texts = [
     "Revenue grew 15% beating analyst expectations for the quarter",
     "The company reported strong earnings and raised full year guidance",
@@ -95,7 +95,7 @@ print("""
   class_names = ["negative", "positive"]
   explainer = LimeTextExplainer(class_names=class_names)
 
-  # 어림 하나 풀이하기
+  # 예측 하나 풀이하기
   text = "Revenue declined sharply missing consensus estimates"
   exp = explainer.explain_instance(
       text,
@@ -154,8 +154,8 @@ print("=" * 60)
 
 # SHAP(섀플리 더하기 풀이)은 협력 게임 이론의 섀플리 값을
 # 셈한다. 피처마다 공정한 몫을 받아
-# 어림을
-# 평균 어림에서 얼마나 밀어내는지를 나타낸다.
+# 예측을
+# 평균 예측에서 얼마나 밀어내는지를 나타낸다.
 #
 # LIME보다 나은 점:
 #   - 이론으로 뒷받침됨(섀플리 값은 하나뿐이다)
@@ -174,7 +174,7 @@ print("""
   )
   shap_values = explainer.shap_values(X_test_tfidf)
 
-  # 전체 간추림: 모든 어림에 걸쳐 어떤 피처가 가장 중요한가?
+  # 전체 간추림: 모든 예측에 걸쳐 어떤 피처가 가장 중요한가?
   shap.summary_plot(
       shap_values,
       X_test_tfidf.toarray(),
@@ -279,12 +279,12 @@ print("""
   # PyTorch LSTM에 SHAP DeepExplainer 쓰기:
   import shap
 
-  # 익힘 자료의 일부를 배경으로 쓰기
+  # 학습 자료의 일부를 배경으로 쓰기
   background = X_encoded[:20]
 
   explainer = shap.DeepExplainer(model, background)
 
-  # 시험 어림 풀이하기
+  # 시험 예측 풀이하기
   test_samples = X_encoded[180:185]
   shap_values = explainer.shap_values(test_samples)
 
@@ -320,10 +320,10 @@ print("""
   ┌─────────────────┬──────────────────────┬──────────────────────┐
   │ 클래스            │ LIME                 │ SHAP                 │
   ├─────────────────┼──────────────────────┼──────────────────────┤
-  │ 이론            │ 자리에 매인 선형 어림 │ 섀플리 값            │
+  │ 이론            │ 자리에 매인 선형 근사 │ 섀플리 값            │
   │ 범위            │ 자리만               │ 자리 + 전체          │
   │ 한결같음        │ 보장 없음            │ 수학으로 증명됨      │
-  │ 빠르기          │ 더 빠름(표집)        │ 더 느림(정확)        │
+  │ 빠르기          │ 더 빠름(샘플링)        │ 더 느림(정확)        │
   │ 모델 받치기     │ 아무 깜깜이 상자나   │ 다듬은 풀이개        │
   │ 든든함          │ 들쭉날쭉(마구잡이)   │ 늘 같음              │
   │ 더해짐          │ 아니다               │ 그렇다(값이 더해진다) │
@@ -348,7 +348,7 @@ print("=" * 60)
 print("""
   1. 규제 지킴:
      - 어떤 낱말이 "높은 위험" 클래스를 일으켰는지 보이기
-     - 자동 글월 가려내기의 감사 자취
+     - 자동 텍스트 가려내기의 감사 자취
 
   2. 마음결 바탕 거래:
      - 뉴스 글이 왜 약세로 클래스 매겨졌는지 이해하기
@@ -366,10 +366,10 @@ print("""
      - 헛된 얽힘 찾기(보기로 회사 이름 → 마음결)
      - 피처 중요도로 자료 새어 나감 알아채기
 
-  보기: FinBERT의 어림 풀이하기
+  보기: FinBERT의 예측 풀이하기
 
     text = "Tesla missed delivery targets amid supply chain disruptions"
-    # FinBERT의 어림: 음성 (0.89)
+    # FinBERT의 예측: 음성 (0.89)
     # LIME 풀이:
     #   "missed"       → -0.35 (센 음성 신호)
     #   "disruptions"  → -0.22 (음성 맥락)
@@ -404,7 +404,7 @@ if __name__ == "__main__":
       class_names = ["negative", "positive"]
       explainer = LimeTextExplainer(class_names=class_names)
 
-      # 어림 하나 풀이하기
+      # 예측 하나 풀이하기
       text = "Revenue declined sharply missing consensus estimates"
       exp = explainer.explain_instance(
           text,
@@ -451,7 +451,7 @@ if __name__ == "__main__":
       )
       shap_values = explainer.shap_values(X_test_tfidf)
 
-      # 전체 간추림: 모든 어림에 걸쳐 어떤 피처가 가장 중요한가?
+      # 전체 간추림: 모든 예측에 걸쳐 어떤 피처가 가장 중요한가?
       shap.summary_plot(
           shap_values,
           X_test_tfidf.toarray(),
@@ -491,12 +491,12 @@ if __name__ == "__main__":
       # PyTorch LSTM에 SHAP DeepExplainer 쓰기:
       import shap
 
-      # 익힘 자료의 일부를 배경으로 쓰기
+      # 학습 자료의 일부를 배경으로 쓰기
       background = X_encoded[:20]
 
       explainer = shap.DeepExplainer(model, background)
 
-      # 시험 어림 풀이하기
+      # 시험 예측 풀이하기
       test_samples = X_encoded[180:185]
       shap_values = explainer.shap_values(test_samples)
 
@@ -526,10 +526,10 @@ if __name__ == "__main__":
       ┌─────────────────┬──────────────────────┬──────────────────────┐
       │ 클래스            │ LIME                 │ SHAP                 │
       ├─────────────────┼──────────────────────┼──────────────────────┤
-      │ 이론            │ 자리에 매인 선형 어림 │ 섀플리 값            │
+      │ 이론            │ 자리에 매인 선형 근사 │ 섀플리 값            │
       │ 범위            │ 자리만               │ 자리 + 전체          │
       │ 한결같음        │ 보장 없음            │ 수학으로 증명됨      │
-      │ 빠르기          │ 더 빠름(표집)        │ 더 느림(정확)        │
+      │ 빠르기          │ 더 빠름(샘플링)        │ 더 느림(정확)        │
       │ 모델 받치기     │ 아무 깜깜이 상자나   │ 다듬은 풀이개        │
       │ 든든함          │ 들쭉날쭉(마구잡이)   │ 늘 같음              │
       │ 더해짐          │ 아니다               │ 그렇다(값이 더해진다) │
@@ -548,7 +548,7 @@ if __name__ == "__main__":
 
       1. 규제 지킴:
          - 어떤 낱말이 "높은 위험" 클래스를 일으켰는지 보이기
-         - 자동 글월 가려내기의 감사 자취
+         - 자동 텍스트 가려내기의 감사 자취
 
       2. 마음결 바탕 거래:
          - 뉴스 글이 왜 약세로 클래스 매겨졌는지 이해하기
@@ -566,10 +566,10 @@ if __name__ == "__main__":
          - 헛된 얽힘 찾기(보기로 회사 이름 → 마음결)
          - 피처 중요도로 자료 새어 나감 알아채기
 
-      보기: FinBERT의 어림 풀이하기
+      보기: FinBERT의 예측 풀이하기
 
         text = "Tesla missed delivery targets amid supply chain disruptions"
-        # FinBERT의 어림: 음성 (0.89)
+        # FinBERT의 예측: 음성 (0.89)
         # LIME 풀이:
         #   "missed"       → -0.35 (센 음성 신호)
         #   "disruptions"  → -0.22 (음성 맥락)

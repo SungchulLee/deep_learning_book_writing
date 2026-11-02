@@ -8,17 +8,17 @@
 
     ```python
     """
-    이름 알아보기 — 기초
+    개체명 인식 — 기초
     =================================
 
-    이 단원은 이름 알아보기(NER)의 근본 개념을 소개한다.
-    것이 무엇인지, 흔한 것 클래스, 이름 알아보기를 위한 기본 글 앞손질을 다룬다.
+    이 단원은 개체명 인식(NER)의 근본 개념을 소개한다.
+    것이 무엇인지, 흔한 개체 클래스, 개체명 인식을 위한 기본 글 전처리를 다룬다.
 
     학습 목표:
-    - 이름 있는 것이 무엇인지 이해한다
-    - 흔한 것 클래스와 이름표 방식을 배운다
-    - 이름 알아보기를 위한 기본 글 앞손질 살펴보기
-    - 이름 알아보기의 어려움을 이해한다
+    - 개체명이 무엇인지 이해한다
+    - 흔한 개체 클래스와 레이블 방식을 배운다
+    - 개체명 인식을 위한 기본 글 전처리 살펴보기
+    - 개체명 인식의 어려움을 이해한다
 
     지은이: 러닝 목적
     날짜: 2025
@@ -35,28 +35,28 @@
 
     class EntityType:
         """
-        이름 알아보기에 쓰는 흔한 것 클래스의 열거.
+        개체명 인식에 쓰는 흔한 개체 클래스의 열거.
 
-        표준 CoNLL 것 클래스:
+        표준 CoNLL 개체 클래스:
         - PER: 사람 이름
         - ORG: 조직 이름
         - LOC: 자리 이름
         - MISC: 그 밖의 것
 
-        넓힌 것 클래스:
+        넓힌 개체 클래스:
         - DATE: 날짜 표현
         - TIME: 때 표현
         - MONEY: 돈의 값
         - PERCENT: 백분율
         """
 
-        # 표준 것 클래스
+        # 표준 개체 클래스
         PERSON = "PER"
         ORGANIZATION = "ORG"
         LOCATION = "LOC"
         MISCELLANEOUS = "MISC"
 
-        # 넓힌 것 클래스
+        # 넓힌 개체 클래스
         DATE = "DATE"
         TIME = "TIME"
         MONEY = "MONEY"
@@ -66,7 +66,7 @@
 
         @staticmethod
         def all_types():
-            """정해 둔 것 클래스를 모두 돌려주기."""
+            """정해 둔 개체 클래스를 모두 돌려주기."""
             return [
                 EntityType.PERSON,
                 EntityType.ORGANIZATION,
@@ -83,7 +83,7 @@
 
     class Entity:
         """
-        글 속의 이름 있는 것을 나타낸다.
+        글 속의 개체명을 나타낸다.
 
         것은 다음으로 이루어진다:
         - text: 실제 글 구간
@@ -98,7 +98,7 @@
             Entity 첫자리매김.
 
             인수:
-                text: 개체가 걸친 글월 마디
+                text: 개체가 걸친 텍스트 마디
                 entity_type: 것의 클래스(PER, ORG, LOC 등)
                 start: 시작 글자 자리
                 end: 끝 글자 자리
@@ -111,7 +111,7 @@
             self.confidence = confidence
 
         def __repr__(self):
-            """것의 글자열 나타냄."""
+            """것의 문자열 표현."""
             return f"Entity(text='{self.text}', type='{self.entity_type}', span=({self.start}, {self.end}))"
 
         def __eq__(self, other):
@@ -127,7 +127,7 @@
 
         def overlaps(self, other: 'Entity') -> bool:
             """
-            이 것이 다른 것과 겹치는지 살피기.
+            이 개체가 다른 개체와 겹치는지 살피기.
 
             인수:
                 other: 다른 Entity 개체
@@ -150,12 +150,12 @@
 
     class Token:
         """
-        토막낸 글의 토막 하나를 나타낸다.
+        토큰낸 글의 토큰 하나를 나타낸다.
 
-        이름 알아보기에서는 토막의 글뿐 아니라 다음도 좇아야 한다:
+        개체명 인식에서는 토큰의 글뿐 아니라 다음도 좇아야 한다:
         - 본디 글에서의 자리
         - 그 피처(대문자 쓰기, 문장 부호 등)
-        - 그 것 이름표(익힘 자료용)
+        - 그 개체명표(학습 자료용)
         """
 
         def __init__(self, text: str, start: int, end: int):
@@ -163,30 +163,30 @@
             Token 첫자리매김.
 
             인수:
-                text: 토큰 글월
+                text: 토큰 텍스트
                 start: 본디 글에서의 시작 글자 자리
                 end: 본디 글에서의 끝 글자 자리
             """
             self.text = text
             self.start = start
             self.end = end
-            self.label = "O"  # 붙박이 이름표는 "O"(것 바깥)
+            self.label = "O"  # 붙박이 레이블은 "O"(것 바깥)
 
         def __repr__(self):
-            """토막의 글자열 나타냄."""
+            """토큰의 문자열 표현."""
             return f"Token('{self.text}', label='{self.label}')"
 
         def get_features(self) -> Dict[str, bool]:
             """
-            토막에서 말의 피처 뽑기.
+            토큰에서 말의 피처 뽑기.
 
-            이 피처는 예로부터의 기계 러닝 바탕 이름 알아보기에 쓸모 있다:
+            이 피처는 예로부터의 기계 러닝 바탕 개체명 인식에 쓸모 있다:
             - is_capitalized: 첫 글자가 대문자이다
             - is_all_caps: 글자가 모두 대문자이다
             - is_title: 첫 글자는 대문자, 나머지는 소문자
-            - contains_digit: 토막에 숫자가 들어 있다
-            - contains_punctuation: 토막에 문장 부호가 들어 있다
-            - is_alpha: 토막이 글자로만 이루어졌다
+            - contains_digit: 토큰에 숫자가 들어 있다
+            - contains_punctuation: 토큰에 문장 부호가 들어 있다
+            - is_alpha: 토큰이 글자로만 이루어졌다
 
             반환값:
                 불 피처의 사전
@@ -207,27 +207,27 @@
 
     class SimpleTokenizer:
         """
-        이름 알아보기를 위한 단순 빈칸·문장 부호 바탕 토막내개.
+        개체명 인식을 위한 단순 빈칸·문장 부호 바탕 토큰내개.
 
-        이 토막내개는:
+        이 토큰내개는:
         1. 빈칸에서 쪼갠다
         2. 문장 부호를 낱말에서 갈라낸다
         3. 글자 어긋남을 지킨다(것의 구간에 중요하다)
 
-        유의: 실전에서는 spaCy나 NLTK 토막내개를 헤아려 보라.
+        유의: 실전에서는 spaCy나 NLTK 토큰내개를 헤아려 보라.
         """
 
         def __init__(self):
-            """토막내개 첫자리매김."""
-            # 낱말 글자, 숫자, 낱낱의 문장 부호에 맞추는 무늬
+            """토큰내개 첫자리매김."""
+            # 낱말 글자, 숫자, 낱낱의 문장 부호에 맞추는 패턴
             self.pattern = re.compile(r'\w+|[^\w\s]')
 
         def tokenize(self, text: str) -> List[Token]:
             """
-            글을 Token 개체로 토막내기.
+            글을 Token 개체로 토큰내기.
 
             인수:
-                text: 들임 글월 문자열
+                text: 들임 텍스트 문자열
 
             반환값:
                 글과 글자 자리를 담은 Token 개체의 목록
@@ -260,17 +260,17 @@
 
         def tokenize_with_labels(self, text: str, entities: List[Entity]) -> List[Token]:
             """
-            글을 토막내고 토막에 것 이름표 매기기.
+            글을 토큰내고 토큰에 개체명표 매기기.
 
-            익힘 자료를 갖추는 데 결정적이다. 토막마다 그것이 것의 한 몫인지,
-            그리고 어떤 클래스인지 가리키는 이름표를 받는다.
+            학습 자료를 갖추는 데 결정적이다. 토큰마다 그것이 것의 한 몫인지,
+            그리고 어떤 클래스인지 가리키는 레이블을 받는다.
 
             인수:
-                text: 들임 글월 문자열
+                text: 들임 텍스트 문자열
                 entities: 글 속 Entity 개체의 목록
 
             반환값:
-                이름표를 매긴 Token 개체의 목록
+                레이블을 매긴 Token 개체의 목록
 
             보기:
                 >>> tokenizer = SimpleTokenizer()
@@ -281,10 +281,10 @@
                 ... ]
                 >>> tokens = tokenizer.tokenize_with_labels(text, entities)
             """
-            # 먼저 여느 때처럼 토막내기
+            # 먼저 여느 때처럼 토큰내기
             tokens = self.tokenize(text)
 
-            # 토막마다 것을 보고 이름표 정하기
+            # 토큰마다 것을 보고 레이블 정하기
             for token in tokens:
                 token.label = self._get_token_label(token, entities)
 
@@ -292,53 +292,53 @@
 
         def _get_token_label(self, token: Token, entities: List[Entity]) -> str:
             """
-            토막의 것 이름표 정하기.
+            토큰의 개체명표 정하기.
 
             인수:
-                token: 이름표를 붙일 토막
+                token: 레이블을 붙일 토큰
                 entities: 글 속 것의 목록
 
             반환값:
-                이름표 글자열(보기로 "B-PER", "I-ORG", "O")
+                레이블 문자열(보기로 "B-PER", "I-ORG", "O")
             """
-            # 토막이 어떤 것과 겹치는지 살피기
+            # 토큰이 어떤 것과 겹치는지 살피기
             for entity in entities:
-                # 토막이 것의 구간 안에 있다
+                # 토큰이 것의 구간 안에 있다
                 if token.start >= entity.start and token.end <= entity.end:
-                    # 것의 첫 토막인지 살피기
+                    # 것의 첫 토큰인지 살피기
                     is_first = token.start == entity.start
 
-                    # 알맞은 이름표 돌려주기(시작은 B-, 안쪽은 I-)
+                    # 알맞은 레이블 돌려주기(시작은 B-, 안쪽은 I-)
                     prefix = "B" if is_first else "I"
                     return f"{prefix}-{entity.entity_type}"
 
-            # 토막이 어느 것에도 들지 않는다
+            # 토큰이 어느 것에도 들지 않는다
             return "O"
 
 
     class NERDataset:
         """
-        글과 그 것 표시를 담는 이름 알아보기 자료 뭉치 그릇.
+        글과 그 것 표시를 담는 개체명 인식 데이터셋 그릇.
 
-        이 클래스는 익히기와 밸류를 위해 이름 알아보기 자료를 갈무리하고 다루도록 돕는다.
+        이 클래스는 익히기와 평가를 위해 개체명 인식 자료를 저장하고 다루도록 돕는다.
         """
 
         def __init__(self):
-            """빈 자료 뭉치 첫자리매김."""
+            """빈 데이터셋 첫자리매김."""
             self.samples = []  # (글, 것) 튜플의 목록
 
         def add_sample(self, text: str, entities: List[Entity]):
             """
-            자료 뭉치에 표본 하나 더하기.
+            데이터셋에 표본 하나 더하기.
 
             인수:
-                text: 글월 문자열
+                text: 텍스트 문자열
                 entities: 글 속 Entity 개체의 목록
             """
             self.samples.append((text, entities))
 
         def __len__(self):
-            """자료 뭉치의 표본 개수 돌려주기."""
+            """데이터셋의 표본 개수 돌려주기."""
             return len(self.samples)
 
         def __getitem__(self, idx: int) -> Tuple[str, List[Entity]]:
@@ -347,13 +347,13 @@
 
         def get_statistics(self) -> Dict:
             """
-            자료 뭉치 통계량 셈하기.
+            데이터셋 통계량 셈하기.
 
             반환값:
-                자료 뭉치 통계량을 담은 사전:
+                데이터셋 통계량을 담은 사전:
                 - num_samples: 표본의 전체 개수
                 - num_entities: 것의 전체 개수
-                - entity_type_counts: 것 클래스마다의 개수
+                - entity_type_counts: 개체 클래스마다의 개수
                 - avg_entities_per_sample: 글마다의 평균 것 개수
             """
             total_entities = 0
@@ -395,19 +395,19 @@
 
     def demonstrate_ner_basics():
         """
-        기본 이름 알아보기 개념 보이기.
+        기본 개체명 인식 개념 보이기.
 
         이 함수가 보여 주는 것:
-        1. 것 만들기
-        2. 글 토막내기
-        3. 토막에 이름표 붙이기
-        4. 단순한 자료 뭉치 세우기
+        1. 개체 만들기
+        2. 글 토큰내기
+        3. 토큰에 레이블 붙이기
+        4. 단순한 데이터셋 세우기
         """
         print("="*70)
         print("Named Entity Recognition - Basic Concepts Demonstration")
         print("="*70)
 
-        # 보기 1: 것 만들기
+        # 보기 1: 개체 만들기
         print("\n1. Creating Named Entities")
         print("-" * 70)
 
@@ -426,7 +426,7 @@
         for entity in entities1:
             print(f"  - {entity}")
 
-        # 보기 2: 토막내기
+        # 보기 2: 토큰내기
         print("\n\n2. Tokenization for NER")
         print("-" * 70)
 
@@ -434,13 +434,13 @@
         tokens = tokenizer.tokenize(text1)
 
         print(f"Tokens extracted: {len(tokens)}")
-        for i, token in enumerate(tokens[:10], 1):  # 처음 토막 10개 보이기
+        for i, token in enumerate(tokens[:10], 1):  # 처음 토큰 10개 보이기
             features = token.get_features()
             print(f"  {i}. '{token.text}' at ({token.start}:{token.end})")
             print(f"     Features: capitalized={features['is_capitalized']}, "
                   f"all_caps={features['is_all_caps']}")
 
-        # 보기 3: 토막에 이름표 붙이기
+        # 보기 3: 토큰에 레이블 붙이기
         print("\n\n3. Token Labeling (IOB Scheme)")
         print("-" * 70)
 
@@ -448,7 +448,7 @@
 
         print(f"{'Token':<15} {'Label':<10} {'Position'}")
         print("-" * 70)
-        for token in labeled_tokens[:20]:  # 처음 토막 20개 보이기
+        for token in labeled_tokens[:20]:  # 처음 토큰 20개 보이기
             print(f"{token.text:<15} {token.label:<10} ({token.start}:{token.end})")
 
         # 보기 4: 것끼리 겹침
@@ -462,7 +462,7 @@
         print(f"Entity B: {entity_b}")
         print(f"Do they overlap? {entity_a.overlaps(entity_b)}")
 
-        # 보기 5: 자료 뭉치 세우기
+        # 보기 5: 데이터셋 세우기
         print("\n\n5. Building a NER Dataset")
         print("-" * 70)
 
@@ -556,7 +556,7 @@
         for entity in custom_entities:
             print(f"  - {entity}")
 
-        # 토막내고 이름표 붙이기
+        # 토큰내고 레이블 붙이기
         tokenizer = SimpleTokenizer()
         labeled_tokens = tokenizer.tokenize_with_labels(custom_text, custom_entities)
 
@@ -718,7 +718,7 @@
 
 EntityType은 사람·조직·장소 등 문자열 상수를 모은 클래스다. CoNLL 네 유형과 날짜·금액·상품·행사 등을 함께 둔 예제의 목록이며 특정 벤치마크 표준 전체와 동일한 것은 아니다. Entity는 텍스트·유형·start·end·confidence를 보관하지만 원문과 범위·유형을 검사하지 않는다. confidence=1.0도 직접 대입한 값이지 모델의 보정된 확신이 아니다.
 
-start·end는 원문 문자열의 반열린 문자 구간 [start,end)다. 같은 text라도 원문의 서로 다른 위치에 있으면 다른 언급이다. 현재 __eq__는 범위와 유형만 비교하고 문서 ID·text·점수는 비교하지 않는다. 따라서 서로 다른 문서의 객체를 같은 좌표로 직접 비교할 때는 문서 구분이 필요하다. 이 클래스의 overlaps는 두 방향의 분리 조건을 검사하며 맞닿기만 한 구간은 겹치지 않는다.
+start·end는 원문 문자열의 반열린 문자 구간 [start,end)다. 같은 text라도 원문의 서로 다른 위치에 있으면 다른 언급이다. 현재 __eq__는 범위와 유형만 비교하고 문서 ID·text·점수는 비교하지 않는다. 따라서 서로 다른 문서의 객체를 같은 좌표로 직접 비교할 때는 문서 구분이 필요하다. 이 클래스의 overlaps는 양방향의 분리 조건을 검사하며 맞닿기만 한 구간은 겹치지 않는다.
 
 ## 3. 정규식 토큰화와 수동 offset의 한계
 

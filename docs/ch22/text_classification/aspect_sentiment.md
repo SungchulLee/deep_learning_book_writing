@@ -12,7 +12,7 @@
     #               PyTorch 어텐션 바탕 모델, 변환기 방식"
     # ---
     #
-    # 보통의 마음결 살피기는 글월마다 이름표 하나를 준다.
+    # 보통의 마음결 살피기는 텍스트마다 레이블 하나를 준다.
     # 클래스별 마음결 살피기(ABSA)는 글 속의 특정한
     # 클래스나 것에 대한 마음결을 뽑아낸다.
     #
@@ -121,7 +121,7 @@
         results = []
         for clause in clauses:
             score = vader_score_clause(clause)
-            # 클래스 후보 뽑기(단순 어림짐작: 이름씨나 것 찾기)
+            # 클래스 후보 뽑기(단순 예측짐작: 이름씨나 것 찾기)
             # 실전에서는 이름씨 마디 뽑기에 자연어 도구를 쓴다
             words = clause.split()
             aspect_candidates = []
@@ -190,7 +190,7 @@
     # 1. 달림 뜯어 읽기(nsubj, dobj 관계)
     # 2. 잦기 바탕(그 분야에서 가장 흔한 이름씨)
     # 3. 익힌 모델의 어텐션 무게
-    # 4. 차례 이름표 붙이기(클래스에 대한 BIO 이름표)
+    # 4. 차례 레이블 붙이기(클래스에 대한 BIO 레이블)
 
     print("""
       방식 1: spaCy 달림 뜯어 읽기
@@ -208,10 +208,10 @@
                 aspects.append(token.text)
         # → ["quality", "battery"]
 
-      방식 2: 차례 이름표 붙이기(BIO 이름표)
+      방식 2: 차례 레이블 붙이기(BIO 레이블)
       ─────────────────────────────────────────
-        # 표시한 클래스별 마음결 자료로 토막 클래스 매개 익히기
-        # 이름표: B-ASP, I-ASP, O
+        # 표시한 클래스별 마음결 자료로 토큰 클래스 매개 익히기
+        # 레이블: B-ASP, I-ASP, O
         # "The [camera quality]_ASP is excellent"
         # → O  B-ASP  I-ASP  O  O
 
@@ -233,18 +233,18 @@
     # 그 클래스와 맞닿는 낱말에 초점을 둔다.
     #
     # 구조:
-    #   [낱말 묻힘] → 두 방향 LSTM → 어텐션(aspect_emb) → 클래스 매기기
+    #   [낱말 임베딩] → 양방향 LSTM → 어텐션(aspect_emb) → 클래스 매기기
 
 
     class AspectAttentionClassifier(nn.Module):
         """어텐션 바탕 클래스별 마음결 모델.
 
-        클래스 묻힘을 물음으로 삼아 맥락 낱말에 어텐션을 준 뒤
-        어텐션을 준 나타냄에 클래스를 매긴다.
+        클래스 임베딩을 물음으로 삼아 맥락 낱말에 어텐션을 준 뒤
+        어텐션을 준 표현에 클래스를 매긴다.
 
         인수:
             vocab_size:  낱말 곳간 크기
-            embed_dim:   묻힘 차원
+            embed_dim:   임베딩 차원
             hidden_dim:  LSTM 숨은 차원
             num_classes: 마음결 클래스(양성/음성/가운데)
         """
@@ -260,8 +260,8 @@
         def forward(self, context_ids, aspect_ids, context_mask=None):
             """
             인수:
-                context_ids: 온 월의 토막 번호 [B, L]
-                aspect_ids:  클래스 낱말의 토막 번호 [B, A]
+                context_ids: 온 월의 토큰 번호 [B, L]
+                aspect_ids:  클래스 낱말의 토큰 번호 [B, A]
                 context_mask: 덧대기 마스크 [B, L]
 
             반환값:
@@ -271,7 +271,7 @@
             ctx_emb = self.embedding(context_ids)       # [B, L, E]
             ctx_out, _ = self.lstm(ctx_emb)             # [B, L, 2H]
 
-            # 클래스 부호화(묻힘의 평균)
+            # 클래스 부호화(임베딩의 평균)
             asp_emb = self.embedding(aspect_ids)         # [B, A, E]
             asp_repr = asp_emb.mean(dim=1, keepdim=True) # [B, 1, E]
 
@@ -279,7 +279,7 @@
             # 맥락을 내리쬐고 어텐션 점수 셈하기
             ctx_proj = self.attn_proj(ctx_out)           # [B, L, 2H]
             # 내리쬔 맥락과의 점곱으로 클래스를 물음으로 쓰기
-            # 묻힘으로 클래스를 숨은 차원까지 부풀린 뒤 그대로 쓰기
+            # 임베딩으로 클래스를 숨은 차원까지 부풀린 뒤 그대로 쓰기
             attn_scores = torch.bmm(ctx_proj, asp_repr.expand(-1, -1, ctx_proj.size(-1)).transpose(1, 2))
             attn_scores = attn_scores.squeeze(-1)        # [B, L]
 
@@ -342,7 +342,7 @@
 
       with torch.no_grad():
           logits = model(**inputs).logits
-          # 이름표: 0=음성, 1=가운데, 2=양성
+          # 레이블: 0=음성, 1=가운데, 2=양성
           pred = logits.argmax(-1).item()
           labels = ["negative", "neutral", "positive"]
           print(f"Aspect '{aspect}': {labels[pred]}")
@@ -393,7 +393,7 @@
 
       클래스별 마음결 살피기에서 얻는 거래 신호:
         실적 발표나 뉴스 글마다:
-        1. 클래스 낱말 뽑기(이름 알아보기 + 이름씨 마디)
+        1. 클래스 낱말 뽑기(개체명 인식 + 이름씨 마디)
         2. 클래스마다 마음결에 점수 매기기
         3. 그 종목에 대한 클래스의 중요도로 무게 주기
         4. 모으기: 신호 = Σ (클래스 무게 × 클래스 마음결)

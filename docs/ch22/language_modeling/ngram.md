@@ -21,7 +21,7 @@ import math
 
 class UnigramModel:
     """
-    낱말끼리 안 얽힌다고 가정하는 유니그램 말 모델.
+    낱말끼리 안 얽힌다고 가정하는 유니그램 언어 모델.
     
     P(w) = count(w) / total_words
     """
@@ -43,7 +43,7 @@ class UnigramModel:
         print(f"Total words: {self.total_words}")
     
     def probability(self, word: str) -> float:
-        """최대 가능도 어림으로 P(낱말) 셈하기."""
+        """최대 가능도 추정으로 P(낱말) 셈하기."""
         word = word.lower()
         if word not in self.vocab:
             return 0.0
@@ -97,9 +97,9 @@ import math
 
 class BigramModel:
     """
-    바이그램 말 모델: P(w_i | w_{i-1}).
+    바이그램 언어 모델: P(w_i | w_{i-1}).
     
-    월 경계 토막을 쓴 최대 가능도 어림을 짠다.
+    월 경계 토큰을 쓴 최대 가능도 추정을 짠다.
     """
     
     def __init__(self):
@@ -134,7 +134,7 @@ class BigramModel:
     
     def probability(self, word: str, context: str) -> float:
         """
-        최대 가능도 어림으로 P(낱말 | 맥락) 셈하기.
+        최대 가능도 추정으로 P(낱말 | 맥락) 셈하기.
         
         인수:
             word: 지금 낱말 w_i
@@ -205,7 +205,7 @@ P(played | dog) = 0.5000
 ```python
 class TrigramModel:
     """
-    트라이그램 말 모델: P(w_i | w_{i-2}, w_{i-1}).
+    트라이그램 언어 모델: P(w_i | w_{i-2}, w_{i-1}).
     """
     
     def __init__(self):
@@ -220,7 +220,7 @@ class TrigramModel:
         """트라이그램 모델 익히기."""
         for sentence in corpus:
             words = sentence.lower().split()
-            # 트라이그램 맥락을 위한 시작 토막 둘
+            # 트라이그램 맥락을 위한 시작 토큰 둘
             words = [self.START, self.START] + words + [self.END]
             
             for i in range(len(words) - 2):
@@ -352,7 +352,7 @@ class InterpolatedBigramModel:
         return (count + 1) / (self.total_words + len(self.vocab))
     
     def bigram_probability_ml(self, word: str, context: str) -> float:
-        """날 최대 가능도 어림 바이그램 확률."""
+        """날 최대 가능도 추정 바이그램 확률."""
         bigram_count = self.bigram_counts[context][word]
         context_count = sum(self.bigram_counts[context].values())
         return bigram_count / context_count if context_count > 0 else 0.0
@@ -381,7 +381,7 @@ Kneser–Ney는 높은 차수의 관측 빈도를 discount하고 낮은 차수�
 import random
 
 class TextGenerator:
-    """여러 표집 전략을 쓴 글 만들어 내기."""
+    """여러 샘플링 전략을 쓴 글 만들어 내기."""
     
     def __init__(self, bigram_model):
         self.model = bigram_model
@@ -396,7 +396,7 @@ class TextGenerator:
         return [(w, c/total) for w, c in counts.items()]
     
     def generate_greedy(self, max_length: int = 20) -> str:
-        """욕심쟁이 만들어 내기: 늘 가장 그럴듯한 것을 고른다."""
+        """그리디 만들어 내기: 늘 가장 그럴듯한 것을 고른다."""
         context = self.model.START
         generated = []
         
@@ -418,7 +418,7 @@ class TextGenerator:
     
     def generate_temperature(self, temperature: float = 1.0, 
                              max_length: int = 20) -> str:
-        """온도를 맞춘 표집."""
+        """온도를 맞춘 샘플링."""
         context = self.model.START
         generated = []
         
@@ -446,7 +446,7 @@ class TextGenerator:
         return ' '.join(generated)
     
     def generate_top_k(self, k: int = 5, max_length: int = 20) -> str:
-        """상위 k 표집."""
+        """top-k 샘플링."""
         context = self.model.START
         generated = []
         
@@ -491,7 +491,7 @@ $$\operatorname{PPL}=\exp\left[-\frac1M\sum_i\log p(w_i\mid h_i)\right].$$
 ```python
 def compute_perplexity(model, test_corpus: List[str]) -> float:
     """
-    시험 말뭉치에서 헷갈림도 셈하기.
+    시험 말뭉치에서 퍼플렉서티 셈하기.
     
     PPL = 2^(-평균 로그 확률)
     """

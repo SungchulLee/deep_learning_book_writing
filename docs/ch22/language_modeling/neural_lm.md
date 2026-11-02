@@ -32,7 +32,7 @@ from torch.utils.data import Dataset, DataLoader
 from typing import List, Tuple
 
 class Vocabulary:
-    """뉴럴 말 모델의 낱말 곳간 다스리기."""
+    """뉴럴 언어 모델의 낱말 곳간 다스리기."""
     
     def __init__(self):
         self.word2idx = {}
@@ -76,7 +76,7 @@ class Vocabulary:
         return len(self.word2idx)
 
 class FeedforwardLMDataset(Dataset):
-    """피드포워드 말 모델 익히기용 자료 뭉치."""
+    """피드포워드 언어 모델 익히기용 데이터셋."""
     
     def __init__(self, corpus: List[str], vocab: Vocabulary, context_size: int):
         self.vocab = vocab
@@ -85,7 +85,7 @@ class FeedforwardLMDataset(Dataset):
         
         for sentence in corpus:
             words = sentence.lower().split()
-            # 시작 토막으로 덧대기
+            # 시작 토큰으로 덧대기
             words = [vocab.START] * context_size + words + [vocab.END]
             indices = [vocab.encode(w) for w in words]
             
@@ -104,10 +104,10 @@ class FeedforwardLMDataset(Dataset):
 
 class FeedforwardLM(nn.Module):
     """
-    피드포워드 뉴럴 말 모델(Bengio 외, 2003).
+    피드포워드 뉴럴 언어 모델(Bengio 외, 2003).
     
     구조:
-        묻힘 → 이어 붙이기 → 숨은 레이어 → 내놓음 → 소프트맥스
+        임베딩 → 이어 붙이기 → 숨은 레이어 → 내놓음 → 소프트맥스
     
     인수:
         vocab_size: 낱말 곳간의 크기
@@ -143,7 +143,7 @@ class FeedforwardLM(nn.Module):
         반환값:
             (batch_size, vocab_size) 로짓
         """
-        # 묻힘: (batch, context_size) → (batch, context_size, embed_dim)
+        # 임베딩: (batch, context_size) → (batch, context_size, embed_dim)
         embeds = self.embedding(x)
         
         # 펴기: (batch, context_size * embed_dim)
@@ -170,7 +170,7 @@ def train_feedforward_lm(corpus: List[str], context_size: int = 3,
                          embedding_dim: int = 64, hidden_dim: int = 128,
                          epochs: int = 20, batch_size: int = 32,
                          learning_rate: float = 0.001):
-    """피드포워드 말 모델 익히기."""
+    """피드포워드 언어 모델 익히기."""
     
     # 어휘 만들기
     vocab = Vocabulary()
@@ -234,7 +234,7 @@ For each time step t:
 ```python
 class RNNLanguageModel(nn.Module):
     """
-    맥락 길이가 바뀌는 리커런트 넷트웍 말 모델.
+    맥락 길이가 바뀌는 리커런트 넷트웍 언어 모델.
     
     숨은 상태가 아무리 먼 지난 이야기의 앎도 나른다.
     
@@ -279,14 +279,14 @@ class RNNLanguageModel(nn.Module):
         리커런트 넷트웍을 지나는 피드포워드.
         
         인수:
-            x: (batch, seq_len) 들임 토막 번호
+            x: (batch, seq_len) 들임 토큰 번호
             hidden: 처음 숨은 상태(없어도 됨)
             
         반환값:
             logits: (batch, seq_len, vocab_size)
             hidden: 마지막 숨은 상태
         """
-        # 묻힘: (batch, seq_len, embed_dim)
+        # 임베딩: (batch, seq_len, embed_dim)
         embeds = self.dropout(self.embedding(x))
         
         # 리커런트 넷트웍: (batch, seq_len, hidden_dim)
@@ -303,7 +303,7 @@ class RNNLanguageModel(nn.Module):
         return torch.zeros(self.num_layers, batch_size, self.hidden_dim)
 
 class RNNLMDataset(Dataset):
-    """리커런트 넷트웍 말 모델용 자료 뭉치(차례에서 차례로)."""
+    """리커런트 넷트웍 언어 모델용 데이터셋(차례에서 차례로)."""
     
     def __init__(self, corpus: List[str], vocab: Vocabulary, max_len: int = 35):
         self.sequences = []
@@ -324,7 +324,7 @@ class RNNLMDataset(Dataset):
     
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         seq = self.sequences[idx]
-        # 들임: 마지막 토막을 뺀 전부, 목표: 첫 토막을 뺀 전부
+        # 들임: 마지막 토큰을 뺀 전부, 목표: 첫 토큰을 뺀 전부
         return torch.tensor(seq[:-1]), torch.tensor(seq[1:])
 
 def collate_sequences(batch):
@@ -385,7 +385,7 @@ LSTM은 망각·입력·출력 gate와 후보 셀을 사용해 셀 상태 c_t=f_
 ```python
 class LSTMLanguageModel(nn.Module):
     """
-    먼 거리 얽힘을 위해 문을 둔 LSTM 말 모델.
+    먼 거리 얽힘을 위해 문을 둔 LSTM 언어 모델.
     
     칸 상태가 그래디언트 흐름의 "고속도로"가 된다.
     
@@ -395,7 +395,7 @@ class LSTMLanguageModel(nn.Module):
         hidden_dim: LSTM 숨은 상태의 차원
         num_layers: 쌓은 LSTM 레이어의 개수
         dropout: 드롭아웃 확률
-        tie_weights: 묻힘 무게와 내놓는 무게를 묶을지 여부
+        tie_weights: 임베딩 무게와 내놓는 무게를 묶을지 여부
     """
     
     def __init__(self, vocab_size: int, embedding_dim: int, hidden_dim: int,
@@ -419,7 +419,7 @@ class LSTMLanguageModel(nn.Module):
         
         self.fc = nn.Linear(hidden_dim, vocab_size)
         
-        # 무게 묶기: 묻힘과 내놓음이 무게를 나눠 쓴다
+        # 무게 묶기: 임베딩과 내놓음이 무게를 나눠 쓴다
         if tie_weights and embedding_dim == hidden_dim:
             self.fc.weight = self.embedding.weight
         
@@ -437,7 +437,7 @@ class LSTMLanguageModel(nn.Module):
         LSTM을 지나는 피드포워드.
         
         인수:
-            x: (batch, seq_len) 들임 토막
+            x: (batch, seq_len) 들임 토큰
             hidden: 처음 상태 (h_0, c_0) 튜플
             
         반환값:
@@ -462,7 +462,7 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
                   hidden_dim: int = 512, num_layers: int = 2,
                   epochs: int = 30, batch_size: int = 32,
                   learning_rate: float = 0.001):
-    """LSTM 말 모델 익히기."""
+    """LSTM 언어 모델 익히기."""
     
     vocab = Vocabulary()
     vocab.build(corpus)
@@ -552,7 +552,7 @@ class PositionalEncoding(nn.Module):
 
 class TransformerLM(nn.Module):
     """
-    GPT 방식 변환기 말 모델.
+    GPT 방식 변환기 언어 모델.
     
     말 나타내기를 위해 인과(자기되돌리기) 가리기를 쓴다.
     
@@ -611,14 +611,14 @@ class TransformerLM(nn.Module):
         인과 가림을 쓰는 피드포워드.
         
         인수:
-            x: (batch, seq_len) 들임 토막
+            x: (batch, seq_len) 들임 토큰
             
         반환값:
             (batch, seq_len, vocab_size) 로짓
         """
         seq_len = x.size(1)
         
-        # 잣수를 맞춘 묻힘
+        # 잣수를 맞춘 임베딩
         x = self.embedding(x) * math.sqrt(self.d_model)
         x = self.pos_encoder(x)
         x = self.dropout(x)
@@ -637,7 +637,7 @@ class TransformerLM(nn.Module):
 def train_transformer_lm(corpus: List[str], d_model: int = 256,
                          nhead: int = 4, num_layers: int = 4,
                          epochs: int = 30, batch_size: int = 32):
-    """변환기 말 모델 익히기."""
+    """변환기 언어 모델 익히기."""
     
     vocab = Vocabulary()
     vocab.build(corpus)
@@ -695,19 +695,19 @@ def generate_text(model, vocab, max_length: int = 50,
                   temperature: float = 1.0, top_k: int = None,
                   top_p: float = None) -> str:
     """
-    익힌 말 모델로 글 만들어 내기.
+    익힌 언어 모델로 글 만들어 내기.
     
     인수:
-        model: 익힌 말 모델(LSTM 또는 변환기)
+        model: 익힌 언어 모델(LSTM 또는 변환기)
         vocab: 낱말 곳간 개체
-        max_length: 만들어 낼 최대 토막 수
-        temperature: 표집 온도
+        max_length: 만들어 낼 최대 토큰 수
+        temperature: 샘플링 온도
         top_k: 상위 k 거르기(없어도 됨)
-        top_p: 알갱이 표집 임계값(없어도 됨)
+        top_p: 뉴클리어스 샘플링 임계값(없어도 됨)
     """
     model.eval()
     
-    # START 토막으로 시작하기
+    # START 토큰으로 시작하기
     generated = [vocab.encode(vocab.START)]
     
     # LSTM 숨은 상태 다루기
@@ -718,7 +718,7 @@ def generate_text(model, vocab, max_length: int = 50,
     with torch.no_grad():
         for _ in range(max_length):
             # 들임 갖추기
-            x = torch.tensor([generated[-50:]])  # 마지막 토막 50개 쓰기
+            x = torch.tensor([generated[-50:]])  # 마지막 토큰 50개 쓰기
             
             # 순전파
             if hasattr(model, 'lstm'):
@@ -734,7 +734,7 @@ def generate_text(model, vocab, max_length: int = 50,
                 indices_to_remove = logits < torch.topk(logits, top_k)[0][-1]
                 logits[indices_to_remove] = float('-inf')
             
-            # 알갱이(상위 p) 거르기 쓰기
+            # 뉴클리어스(상위 p) 거르기 쓰기
             if top_p is not None:
                 sorted_logits, sorted_indices = torch.sort(logits, descending=True)
                 cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
@@ -752,13 +752,13 @@ def generate_text(model, vocab, max_length: int = 50,
             probs = F.softmax(logits, dim=-1)
             next_token = torch.multinomial(probs, 1).item()
             
-            # END 토막인지 살피기
+            # END 토큰인지 살피기
             if next_token == vocab.encode(vocab.END):
                 break
             
             generated.append(next_token)
     
-    # 토막 풀어내기
+    # 토큰 풀어내기
     words = [vocab.decode(idx) for idx in generated[1:]]  # START 건너뛰기
     return ' '.join(words)
 ```

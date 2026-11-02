@@ -28,7 +28,7 @@ from typing import Optional
 
 @dataclass
 class Entity:
-    """글자 수준 자리를 갖춘 이름 있는 것을 나타낸다."""
+    """글자 수준 자리를 갖춘 개체명을 나타낸다."""
     text: str           # 것의 겉모습
     entity_type: str    # 것의 클래스(PER, ORG, LOC 등)
     start: int          # 시작 글자 어긋남(포함)
@@ -36,16 +36,16 @@ class Entity:
     confidence: Optional[float] = None  # 모델의 믿음도 점수
     
     def __post_init__(self):
-        """것의 나타냄 확인하기."""
+        """것의 표현 확인하기."""
         assert self.end > self.start, "End must be greater than start"
         assert len(self.text) == self.end - self.start, "Text length must match span"
     
     def overlaps(self, other: 'Entity') -> bool:
-        """이 것이 다른 것과 겹치는지 살피기."""
+        """이 개체가 다른 개체와 겹치는지 살피기."""
         return not (self.end <= other.start or other.start >= self.end)
     
     def contains(self, other: 'Entity') -> bool:
-        """이 것이 다른 것을 온전히 담고 있는지 살피기."""
+        """이 개체가 다른 개체를 온전히 담고 있는지 살피기."""
         return self.start <= other.start and self.end >= other.end
 ```
 
@@ -62,15 +62,15 @@ def align_entities_to_tokens(
     token_spans: List[Tuple[int, int]]
 ) -> List[List[str]]:
     """
-    글자 수준의 것을 토막 수준의 이름표에 맞추기.
+    글자 수준의 것을 토큰 수준의 레이블에 맞추기.
     
     인수:
-        text: 본디 글월 문자열
+        text: 본디 텍스트 문자열
         entities: 글자 어긋남을 담은 Entity 개체의 목록
-        token_spans: 토막마다의 (start, end) 글자 자리 목록
+        token_spans: 토큰마다의 (start, end) 글자 자리 목록
         
     반환값:
-        토막마다의 것 이름표 목록(IOB2 꼴)
+        토큰마다의 개체명표 목록(IOB2 꼴)
     """
     labels = ['O'] * len(token_spans)
     
@@ -78,11 +78,11 @@ def align_entities_to_tokens(
         entity_tokens = []
         
         for idx, (tok_start, tok_end) in enumerate(token_spans):
-            # 토막이 것과 겹치는지 살피기
+            # 토큰이 것과 겹치는지 살피기
             if tok_start < entity.end and tok_end > entity.start:
                 entity_tokens.append(idx)
         
-        # IOB2 이름표 매기기
+        # IOB2 레이블 매기기
         for i, tok_idx in enumerate(entity_tokens):
             prefix = 'B' if i == 0 else 'I'
             labels[tok_idx] = f"{prefix}-{entity.entity_type}"
@@ -127,7 +127,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class NERExample:
-    """이름 알아보기의 익힘/미룸 보기 하나."""
+    """개체명 인식의 학습/미룸 보기 하나."""
     tokens: List[str]
     labels: Optional[List[str]] = None
     entities: List[Entity] = field(default_factory=list)
@@ -139,7 +139,7 @@ class NERExample:
         max_length: int = 512
     ) -> Dict[str, torch.Tensor]:
         """보기를 모델 들임용 텐서로 바꾸기."""
-        # 토막 덧대거나 잘라 내기
+        # 토큰 덧대거나 잘라 내기
         token_ids = [token_to_idx.get(t, token_to_idx['<UNK>']) 
                      for t in self.tokens[:max_length]]
         padding_length = max_length - len(token_ids)
@@ -154,7 +154,7 @@ class NERExample:
             'attention_mask': torch.tensor(attention_mask, dtype=torch.long),
         }
         
-        # 있으면 이름표 더하기(익히기 모드)
+        # 있으면 레이블 더하기(익히기 모드)
         if self.labels is not None:
             label_ids = [label_to_idx.get(l, label_to_idx['O']) 
                         for l in self.labels[:max_length]]
@@ -164,7 +164,7 @@ class NERExample:
         return result
 
 class NERDataset(torch.utils.data.Dataset):
-    """이름 알아보기용 PyTorch 자료 뭉치."""
+    """개체명 인식용 PyTorch 데이터셋."""
     
     def __init__(
         self,
@@ -192,7 +192,7 @@ class NERDataset(torch.utils.data.Dataset):
     def build_vocabularies(
         examples: List[NERExample]
     ) -> Tuple[Dict[str, int], Dict[str, int]]:
-        """보기에서 토막 곳간과 이름표 곳간 세우기."""
+        """보기에서 토큰 곳간과 레이블 곳간 세우기."""
         tokens = set(['<PAD>', '<UNK>'])
         labels = set(['O'])
         

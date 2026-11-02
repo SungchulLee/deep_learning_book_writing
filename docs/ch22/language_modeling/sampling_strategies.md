@@ -17,7 +17,7 @@ def greedy_decode(
     max_length: int = 50,
     eos_token_id: Optional[int] = None
 ) -> torch.Tensor:
-    """욕심쟁이 풀기: 늘 확률이 가장 높은 토막을 고른다."""
+    """그리디 디코딩: 늘 확률이 가장 높은 토큰을 고른다."""
     generated = input_ids.clone()
     
     for _ in range(max_length):
@@ -61,7 +61,7 @@ def temperature_sample(
         num_samples: 뽑을 표본의 개수
         
     반환값:
-        뽑은 토막 번호 [batch, num_samples]
+        뽑은 토큰 번호 [batch, num_samples]
     """
     if temperature <= 0:
         raise ValueError("Temperature must be positive")
@@ -89,16 +89,16 @@ def top_k_sample(
     filter_value: float = float('-inf')
 ) -> torch.Tensor:
     """
-    상위 k 표집: 가장 그럴듯한 토막 k개에서 뽑는다.
+    top-k 샘플링: 가장 그럴듯한 토큰 k개에서 뽑는다.
     
     인수:
         logits: 고르게 맞추지 않은 로그 확률 [batch, vocab]
-        k: 남길 상위 토막의 개수
+        k: 남길 상위 토큰의 개수
         temperature: 온도 맞추기(거르기 앞에 쓴다)
-        filter_value: 걸러진 토막에 매길 값
+        filter_value: 걸러진 토큰에 매길 값
         
     반환값:
-        뽑은 토막 번호 [batch, 1]
+        뽑은 토큰 번호 [batch, 1]
     """
     logits = logits / temperature
     
@@ -106,7 +106,7 @@ def top_k_sample(
     top_k_values, _ = torch.topk(logits, k, dim=-1)
     threshold = top_k_values[:, -1, None]  # [batch, 1]
     
-    # 임계값 아래 토막을 0으로 만들기
+    # 임계값 아래 토큰을 0으로 만들기
     logits = torch.where(logits >= threshold, logits, filter_value)
     
     probs = F.softmax(logits, dim=-1)
@@ -125,16 +125,16 @@ def nucleus_sample(
     min_tokens_to_keep: int = 1
 ) -> torch.Tensor:
     """
-    알갱이(상위 p) 표집: 쌓인 확률이 p 이상인 가장 작은 모음에서 뽑는다.
+    뉴클리어스(top-p) 샘플링: 쌓인 확률이 p 이상인 가장 작은 모음에서 뽑는다.
     
     인수:
         logits: 고르게 맞추지 않은 로그 확률 [batch, vocab]
         p: 쌓인 확률 임계값
         temperature: 온도 맞추기(거르기 앞에 쓴다)
-        min_tokens_to_keep: 늘 이만큼의 토막은 남긴다
+        min_tokens_to_keep: 늘 이만큼의 토큰은 남긴다
         
     반환값:
-        뽑은 토막 번호 [batch, 1]
+        뽑은 토큰 번호 [batch, 1]
     """
     logits = logits / temperature
     
@@ -144,7 +144,7 @@ def nucleus_sample(
     cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
     
     # 자름점 찾기: 쌓인 확률이 p을 넘는 첫 자리
-    # 임계값을 넘는 토막을 남기려 오른쪽으로 밀기
+    # 임계값을 넘는 토큰을 남기려 오른쪽으로 밀기
     sorted_indices_to_remove = cumulative_probs > p
     sorted_indices_to_remove[..., min_tokens_to_keep:] = sorted_indices_to_remove[..., :-min_tokens_to_keep].clone()
     sorted_indices_to_remove[..., :min_tokens_to_keep] = False
@@ -171,7 +171,7 @@ def combined_sample(
     temperature: float = 1.0
 ) -> torch.Tensor:
     """
-    상위 k와 상위 p를 아우른 표집.
+    상위 k와 상위 p를 아우른 샘플링.
     
     연산의 차례:
     1. 온도 맞추기
@@ -217,7 +217,7 @@ def min_p_sample(
     temperature: float = 1.0
 ) -> torch.Tensor:
     """
-    최소 p 표집: 확률이 p_min * max_prob 이상인 토막을 남긴다.
+    최소 p 샘플링: 확률이 p_min * max_prob 이상인 토큰을 남긴다.
     
     인수:
         logits: 고르게 맞추지 않은 로그 확률 [batch, vocab]
@@ -225,7 +225,7 @@ def min_p_sample(
         temperature: 온도 맞추기
         
     반환값:
-        뽑은 토막 번호 [batch, 1]
+        뽑은 토큰 번호 [batch, 1]
     """
     logits = logits / temperature
     probs = F.softmax(logits, dim=-1)
@@ -234,7 +234,7 @@ def min_p_sample(
     max_prob = probs.max(dim=-1, keepdim=True).values
     threshold = p_min * max_prob
     
-    # 임계값 아래 토막 가리기
+    # 임계값 아래 토큰 가리기
     mask = probs < threshold
     logits = logits.masked_fill(mask, float('-inf'))
     
@@ -255,7 +255,7 @@ def typical_sample(
     temperature: float = 1.0
 ) -> torch.Tensor:
     """
-    전형 표집: 앎의 양이 엔트로피에 가까운 토막을 고른다.
+    전형 샘플링: 앎의 양이 엔트로피에 가까운 토큰을 고른다.
     
     인수:
         logits: 고르게 맞추지 않은 로그 확률 [batch, vocab]
@@ -263,7 +263,7 @@ def typical_sample(
         temperature: 온도 맞추기
         
     반환값:
-        뽑은 토막 번호 [batch, 1]
+        뽑은 토큰 번호 [batch, 1]
     """
     logits = logits / temperature
     probs = F.softmax(logits, dim=-1)
@@ -273,7 +273,7 @@ def typical_sample(
     entropy = -(probs * log_probs).sum(dim=-1, keepdim=True)  # [batch, 1]
     information = -log_probs  # [batch, vocab]
     
-    # 엔트로피와의 거리(토막마다 얼마나 "전형에서 벗어났는지")
+    # 엔트로피와의 거리(토큰마다 얼마나 "전형에서 벗어났는지")
     deviation = torch.abs(information - entropy)
     
     # 전형다움으로 정렬(벗어남이 작은 것 먼저)
@@ -312,16 +312,16 @@ def eta_sample(
     temperature: float = 1.0
 ) -> torch.Tensor:
     """
-    에타 표집: 엔트로피에 바탕한 알맞게 맞추는 임계값.
+    에타 샘플링: 엔트로피에 바탕한 알맞게 맞추는 임계값.
     
     인수:
         logits: 고르게 맞추지 않은 로그 확률 [batch, vocab]
         epsilon: 바탕 임계값 파라메터
-        fallback_p: 에타 거르기가 토막을 모두 없앴을 때 쓸 상위 p 임계값
+        fallback_p: 에타 거르기가 토큰을 모두 없앴을 때 쓸 상위 p 임계값
         temperature: 온도 맞추기
         
     반환값:
-        뽑은 토막 번호 [batch, 1]
+        뽑은 토큰 번호 [batch, 1]
     """
     logits = logits / temperature
     probs = F.softmax(logits, dim=-1)
@@ -336,16 +336,16 @@ def eta_sample(
         torch.sqrt(torch.tensor(epsilon)) * torch.exp(-entropy)
     )
     
-    # 임계값 아래 토막 거르기
+    # 임계값 아래 토큰 거르기
     mask = probs < eta
     filtered_logits = logits.masked_fill(mask, float('-inf'))
     
-    # 남은 토막이 있는지 살피기
+    # 남은 토큰이 있는지 살피기
     valid_count = (~mask).sum(dim=-1)
     
     # 모두 걸러지면 상위 p로 물러나기
     if (valid_count == 0).any():
-        # 물러날 곳으로 알갱이 표집 쓰기
+        # 물러날 곳으로 뉴클리어스 샘플링 쓰기
         return nucleus_sample(logits * temperature, p=fallback_p, temperature=temperature)
     
     probs = F.softmax(filtered_logits, dim=-1)
@@ -363,19 +363,19 @@ def mirostat_v2_sample(
     logits: torch.Tensor,
     tau: float = 5.0,       # 목표 놀라움
     eta: float = 0.1,       # 러닝 비율
-    mu: float = None        # 지금의 놀라움 어림값(상태)
+    mu: float = None        # 지금의 놀라움 추정값(상태)
 ) -> tuple[torch.Tensor, float]:
     """
-    미로스탯-2 표집: 헷갈림도를 알맞게 좇기.
+    미로스탯-2 샘플링: 퍼플렉서티를 알맞게 좇기.
     
     인수:
         logits: 고르게 맞추지 않은 로그 확률 [batch, vocab]
-        tau: 목표 놀라움(목표 헷갈림도의 밑 2 로그)
+        tau: 목표 놀라움(목표 퍼플렉서티의 밑 2 로그)
         eta: 놀라움 좇기의 러닝 비율
-        mu: 지금의 놀라움 어림값(2*tau로 첫자리매김)
+        mu: 지금의 놀라움 추정값(2*tau로 첫자리매김)
         
     반환값:
-        (뽑은 토막 번호, 고친 mu) 튜플
+        (뽑은 토큰 번호, 고친 mu) 튜플
     """
     if mu is None:
         mu = 2 * tau  # 첫자리매김
@@ -393,13 +393,13 @@ def mirostat_v2_sample(
     cumsum_probs = torch.cumsum(sorted_probs, dim=-1)
     
     # 미로스탯-2: mu에서 이끌어 낸 확률 임계값에서 잘라 내기
-    # k = 남길 토막의 개수
+    # k = 남길 토큰의 개수
     prob_threshold = torch.exp2(torch.tensor(-mu))
     
-    # 확률이 임계값 이상인 토막 남기기
+    # 확률이 임계값 이상인 토큰 남기기
     mask = sorted_probs >= prob_threshold
     if mask.sum() == 0:
-        mask[..., 0] = True  # 적어도 상위 토막 하나는 남기기
+        mask[..., 0] = True  # 적어도 상위 토큰 하나는 남기기
     
     # 걸러진 것에서 뽑기
     filtered_probs = sorted_probs * mask.float()
@@ -421,8 +421,8 @@ log2를 쓰므로 τ는 **bit 단위**다. τ5는 PPL2^5=32에 대응하며 exp5
 
 ```python
 def generate_with_mirostat(model, input_ids, max_length, tau=5.0, eta=0.1):
-    """한결같은 헷갈림도를 위해 미로스탯-2로 만들어 내기."""
-    mu = 2 * tau  # 처음의 놀라움 어림값
+    """한결같은 퍼플렉서티를 위해 미로스탯-2로 만들어 내기."""
+    mu = 2 * tau  # 처음의 놀라움 추정값
     generated = input_ids.clone()
     
     for _ in range(max_length):
@@ -446,20 +446,20 @@ def apply_repetition_penalty(
     penalty: float = 1.2
 ) -> torch.Tensor:
     """
-    앞서 만든 토막에 되풀이 벌주기 쓰기.
+    앞서 만든 토큰에 되풀이 벌주기 쓰기.
     
     양수 로짓은 벌주기로 나눈다(확률이 줄어든다).
     음수 로짓은 벌주기를 곱한다(확률도 줄어든다).
     
     인수:
         logits: 지금 스텝의 로짓 [batch, vocab]
-        generated_ids: 앞서 만든 토막 번호 [batch, seq_len]
+        generated_ids: 앞서 만든 토큰 번호 [batch, seq_len]
         penalty: 벌주기 인자(> 1이면 말리고, < 1이면 북돋운다)
         
     반환값:
         고친 로짓
     """
-    # 만든 토막의 로짓 모으기
+    # 만든 토큰의 로짓 모으기
     generated_logits = torch.gather(logits, dim=-1, index=generated_ids)
     
     # 부호에 따라 벌주기
@@ -488,7 +488,7 @@ def apply_frequency_presence_penalty(
     
     인수:
         logits: 지금 스텝의 로짓 [batch, vocab]
-        generated_ids: 앞서 만든 토막 번호 [batch, seq_len]
+        generated_ids: 앞서 만든 토큰 번호 [batch, seq_len]
         frequency_penalty: 나올 때마다의 벌
         presence_penalty: 하나라도 있으면 주는 일정한 벌
         
@@ -497,7 +497,7 @@ def apply_frequency_presence_penalty(
     """
     batch_size, vocab_size = logits.shape
     
-    # 토막마다 나온 횟수 세기
+    # 토큰마다 나온 횟수 세기
     token_counts = torch.zeros(batch_size, vocab_size, device=logits.device)
     token_counts.scatter_add_(
         dim=-1, 
@@ -528,7 +528,7 @@ def apply_no_repeat_ngram(
     
     인수:
         logits: 지금 스텝의 로짓 [vocab]
-        generated_ids: 앞서 만든 토막 번호(목록)
+        generated_ids: 앞서 만든 토큰 번호(목록)
         n: 막을 n-그램의 크기
         
     반환값:
@@ -537,7 +537,7 @@ def apply_no_repeat_ngram(
     if len(generated_ids) < n - 1:
         return logits
     
-    # 마지막 (n-1)개 토막 얻기
+    # 마지막 (n-1)개 토큰 얻기
     prefix = tuple(generated_ids[-(n-1):])
     
     # 발자취의 모든 n-그램을 찾아 막을 이음 모으기
@@ -546,7 +546,7 @@ def apply_no_repeat_ngram(
         if tuple(generated_ids[i:i+n-1]) == prefix:
             banned_tokens.add(generated_ids[i + n - 1])
     
-    # 막은 토막의 로짓을 -inf로 두기
+    # 막은 토큰의 로짓을 -inf로 두기
     for token_id in banned_tokens:
         logits[token_id] = float('-inf')
     
@@ -570,15 +570,15 @@ def beam_search(
     early_stopping: bool = True
 ) -> list[tuple[float, list[int]]]:
     """
-    빔 찾기 풀기.
+    빔 서치 디코딩.
     
     인수:
-        model: .forward()가 로짓을 돌려주는 말 모델
-        input_ids: 처음 토막 번호 [1, seq_len]
+        model: .forward()가 로짓을 돌려주는 언어 모델
+        input_ids: 처음 토큰 번호 [1, seq_len]
         num_beams: 지닐 빔의 개수
-        max_length: 만들어 낼 최대 토막 수
+        max_length: 만들어 낼 최대 토큰 수
         length_penalty: 길이 고르게 맞추기의 지수(> 0)
-        eos_token_id: 차례 끝 토막의 번호
+        eos_token_id: 차례 끝 토큰의 번호
         early_stopping: 가설이 num_beams개 완성되면 멈춘다
         
     반환값:
@@ -587,7 +587,7 @@ def beam_search(
     device = input_ids.device
     initial_seq = input_ids[0].tolist()
     
-    # 빔마다: (쌓인 로그 확률, 토막 차례)
+    # 빔마다: (쌓인 로그 확률, 토큰 차례)
     beams = [(0.0, initial_seq)]
     complete_hypotheses = []
     
@@ -600,14 +600,14 @@ def beam_search(
                 complete_hypotheses.append((log_prob, seq))
                 continue
             
-            # 다음 토막의 분포 얻기
+            # 다음 토큰의 분포 얻기
             seq_tensor = torch.tensor([seq], device=device)
             with torch.no_grad():
                 outputs = model(seq_tensor)
                 logits = outputs.logits[0, -1, :]
                 log_probs = F.log_softmax(logits, dim=-1)
             
-            # 상위 토막으로 뻗기
+            # 상위 토큰으로 뻗기
             top_log_probs, top_indices = torch.topk(log_probs, num_beams * 2)
             
             for next_log_prob, token_id in zip(top_log_probs.tolist(), top_indices.tolist()):
@@ -655,14 +655,14 @@ def diverse_beam_search(
     max_length: int = 50
 ) -> list[list[tuple[float, list[int]]]]:
     """
-    여러 클래스 빔 찾기: 배치 찾기로 여러 클래스의 가설 만들기.
+    여러 클래스 빔 서치: 배치 찾기로 여러 클래스의 가설 만들기.
     
     인수:
-        model: 말 모델
-        input_ids: 처음 토막 번호
+        model: 언어 모델
+        input_ids: 처음 토큰 번호
         num_beams: 배치마다의 빔 수
         num_groups: 빔 배치의 개수
-        diversity_penalty: 앞 배치가 고른 토막에 주는 벌
+        diversity_penalty: 앞 배치가 고른 토큰에 주는 벌
         max_length: 만들어 낼 최대 길이
         
     반환값:
@@ -672,13 +672,13 @@ def diverse_beam_search(
     all_groups = []
     
     for group_idx in range(num_groups):
-        # 자리마다 앞 배치가 고른 토막 좇기
+        # 자리마다 앞 배치가 고른 토큰 좇기
         previous_group_tokens = []
         for prev_group in all_groups:
             for _, seq in prev_group:
                 previous_group_tokens.extend(seq[len(input_ids[0]):])
         
-        # 여러 클래스임 벌주기를 곁들인 빔 찾기 돌리기
+        # 여러 클래스임 벌주기를 곁들인 빔 서치 돌리기
         group_beams = beam_search_with_penalty(
             model, input_ids, num_beams, max_length,
             penalty_tokens=set(previous_group_tokens),
@@ -705,14 +705,14 @@ def contrastive_search(
     max_length: int = 50
 ) -> torch.Tensor:
     """
-    맞대어 찾기: 확률과 나타냄의 다름 사이 균형 잡기.
+    맞대어 찾기: 확률과 표현의 다름 사이 균형 잡기.
     
     인수:
         model: 로짓과 숨은 상태를 돌려주는 모델
-        input_ids: 처음 토막 번호 [1, seq_len]
-        k: 헤아릴 후보 토막의 개수
+        input_ids: 처음 토큰 번호 [1, seq_len]
+        k: 헤아릴 후보 토큰의 개수
         alpha: 균형 인자(0 = 가능도만, 1 = 다름만)
-        max_length: 만들어 낼 최대 토막 수
+        max_length: 만들어 낼 최대 토큰 수
         
     반환값:
         만든 차례
@@ -788,16 +788,16 @@ def speculative_decode(
     인수:
         draft_model: 밑그림을 그릴 작고 빠른 모델
         target_model: 확인할 크고 정확한 모델
-        input_ids: 처음 토막 번호 [1, seq_len]
-        gamma: 바퀴마다 밑그림 그릴 토막의 개수
-        temperature: 표집 온도
+        input_ids: 처음 토큰 번호 [1, seq_len]
+        gamma: 바퀴마다 밑그림 그릴 토큰의 개수
+        temperature: 샘플링 온도
         
     반환값:
-        (받아들인 토막 텐서, 받아들인 개수) 튜플
+        (받아들인 토큰 텐서, 받아들인 개수) 튜플
     """
     device = input_ids.device
     
-    # 1단계: 작은 모델로 감마 개의 토막 밑그림 그리기
+    # 1단계: 작은 모델로 감마 개의 토큰 밑그림 그리기
     draft_ids = []
     draft_probs = []
     current_ids = input_ids.clone()
@@ -815,12 +815,12 @@ def speculative_decode(
         
         current_ids = torch.cat([current_ids, token], dim=-1)
     
-    # 2단계: 목표 모델로 모든 토막을 한 번에 확인하기
+    # 2단계: 목표 모델로 모든 토큰을 한 번에 확인하기
     with torch.no_grad():
         target_output = target_model(current_ids)
         target_logits = target_output.logits / temperature
     
-    # 3단계: 물리치기 표집으로 받아들이거나 물리치기
+    # 3단계: 물리치기 샘플링으로 받아들이거나 물리치기
     accepted = []
     input_len = input_ids.size(1)
     
@@ -866,7 +866,7 @@ def classifier_free_guidance(
     로짓에 클래스 매개 없는 이끌기 쓰기.
     
     인수:
-        model: 말 모델
+        model: 언어 모델
         input_ids: 조건을 건 들임 번호 [1, seq_len]
         guidance_scale: 키움 인자(w > 1이면 조건 걸기가 세진다)
         uncond_input_ids: 조건 없는 들임(보기로 빈 시킴말)
@@ -896,7 +896,7 @@ def classifier_free_guidance(
 
 ```python
 class TextGenerator:
-    """여러 표집 전략을 갖춘 유연한 글 만들어 내기."""
+    """여러 샘플링 전략을 갖춘 유연한 글 만들어 내기."""
     
     def __init__(
         self,
@@ -925,24 +925,24 @@ class TextGenerator:
         **kwargs
     ) -> str:
         """
-        표집 전략을 정할 수 있는 글 만들어 내기.
+        샘플링 전략을 정할 수 있는 글 만들어 내기.
         
         인수:
             prompt: 입력 글
             max_new_tokens: 만들 토큰의 최대 개수
-            temperature: 표집 온도
+            temperature: 샘플링 온도
             top_k: 상위 k 거르기(0이면 끔)
-            top_p: 알갱이 표집 임계값(1.0이면 끔)
-            min_p: 최소 p 표집 임계값(0.0이면 끔)
-            typical_p: 전형 표집 임계값(1.0이면 끔)
-            repetition_penalty: 되풀이된 토막에 곱하는 벌
-            frequency_penalty: 토막이 나올 때마다 더하는 벌
-            presence_penalty: 토막이 있으면 더하는 벌
+            top_p: 뉴클리어스 샘플링 임계값(1.0이면 끔)
+            min_p: 최소 p 샘플링 임계값(0.0이면 끔)
+            typical_p: 전형 샘플링 임계값(1.0이면 끔)
+            repetition_penalty: 되풀이된 토큰에 곱하는 벌
+            frequency_penalty: 토큰이 나올 때마다 더하는 벌
+            presence_penalty: 토큰이 있으면 더하는 벌
             no_repeat_ngram_size: n-그램 되풀이 막기(0이면 끔)
-            eos_token_id: 이 토막에서 만들어 내기를 멈춘다
+            eos_token_id: 이 토큰에서 만들어 내기를 멈춘다
             
         반환값:
-            만든 글자열
+            만든 문자열
         """
         # 프롬프트를 인코딩한다
         input_ids = self.tokenizer.encode(prompt, return_tensors='pt').to(self.device)

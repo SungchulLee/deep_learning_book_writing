@@ -8,21 +8,21 @@
 
     ```python
     """
-    이름 알아보기의 IOB와 BIOES 이름표 방식
+    개체명 인식의 IOB와 BIOES 레이블 방식
     ======================================
 
-    이 단원은 이름 알아보기에 쓰는 여러 이름표 방식을 자세히 밝히고 짠다:
-    이름 알아보기에 쓰이는 방식:
+    이 단원은 개체명 인식에 쓰는 여러 레이블 방식을 자세히 밝히고 짠다:
+    개체명 인식에 쓰이는 방식:
     - IOB(안-바깥-시작)
     - IOB2(더 빡빡한 판)
     - BIOES(시작-안-바깥-끝-홑)
 
-    이 방식은 이름 알아보기의 차례 이름표 붙이기에 결정적이다.
+    이 방식은 개체명 인식의 차례 레이블 붙이기에 결정적이다.
 
     학습 목표:
-    - 여러 이름표 방식을 이해한다
-    - 이름표 방식 사이를 바꾼다
-    - 이름표 확인 짜기
+    - 여러 레이블 방식을 이해한다
+    - 레이블 방식 사이를 바꾼다
+    - 레이블 확인 짜기
     - 모서리 경우 다루기
 
     지은이: 러닝 목적
@@ -39,7 +39,7 @@
 
     class TagScheme(Enum):
         """
-        받치는 이름표 방식의 열거.
+        받치는 레이블 방식의 열거.
         """
         IOB = "IOB"      # 안-바깥-시작(처음의 IOB)
         IOB2 = "IOB2"    # IOB 두 번째 판(더 널리 쓰임)
@@ -48,26 +48,26 @@
 
     class TagValidator:
         """
-        여러 이름표 방식에 따라 이름표 차례를 확인한다.
+        여러 레이블 방식에 따라 레이블 차례를 확인한다.
 
-        이름표 방식마다 올바른 이름표 넘어가기에 대한 규칙이 있다.
-        이 클래스는 이름표 차례가 규칙을 따르는지 살핀다.
+        레이블 방식마다 올바른 레이블 전이에 대한 규칙이 있다.
+        이 클래스는 레이블 차례가 규칙을 따르는지 살핀다.
         """
 
         @staticmethod
         def validate_iob2(tags: List[str]) -> Tuple[bool, str]:
             """
-            IOB2 이름표 차례 확인하기.
+            IOB2 레이블 차례 확인하기.
 
             IOB2 규칙:
-            1. 것의 첫 이름표는 늘 B-TYPE이다
-            2. 이어짐 이름표는 I-TYPE이다
+            1. 것의 첫 레이블은 늘 B-TYPE이다
+            2. 이어짐 레이블은 I-TYPE이다
             3. B-TYPE 뒤에는 (같은 클래스의) I-TYPE이나 O나 B-*만 올 수 있다
             4. I-TYPE 뒤에는 (같은 클래스의) I-TYPE이나 O나 B-*만 올 수 있다
             5. 같은 클래스의 B-TYPE 없이 I-TYPE이 올 수 없다
 
             인수:
-                tags: 이름표의 목록(보기로 ["B-PER", "I-PER", "O", "B-LOC"])
+                tags: 레이블의 목록(보기로 ["B-PER", "I-PER", "O", "B-LOC"])
 
             반환값:
                 (is_valid, error_message) 튜플
@@ -81,17 +81,17 @@
             for i in range(len(tags)):
                 current_tag = tags[i]
 
-                # O 이름표 건너뛰기
+                # O 레이블 건너뛰기
                 if current_tag == "O":
                     continue
 
-                # 이름표 뜯어 읽기
+                # 레이블 뜯어 읽기
                 try:
                     prefix, entity_type = current_tag.split("-")
                 except ValueError:
                     return False, f"Invalid tag format at position {i}: {current_tag}"
 
-                # 올바른 앞가지인지 살피기
+                # 올바른 접두사인지 살피기
                 if prefix not in ["B", "I"]:
                     return False, f"Invalid prefix at position {i}: {prefix}"
 
@@ -117,17 +117,17 @@
         @staticmethod
         def validate_bioes(tags: List[str]) -> Tuple[bool, str]:
             """
-            BIOES 이름표 차례 확인하기.
+            BIOES 레이블 차례 확인하기.
 
             BIOES 규칙:
-            1. S-TYPE은 토막 하나짜리 것에 쓴다
-            2. B-TYPE이 토막 여럿짜리 것을 시작한다
+            1. S-TYPE은 토큰 하나짜리 개체에 쓴다
+            2. B-TYPE이 토큰 여럿짜리 개체를 시작한다
             3. I-TYPE이 것을 이어 간다(같은 클래스의 B나 I 뒤에 와야 한다)
             4. E-TYPE이 것을 끝낸다(같은 클래스의 B나 I 뒤에 와야 한다)
             5. O는 어느 것에도 들지 않는다
 
             인수:
-                tags: 이름표의 목록(보기로 ["B-PER", "I-PER", "E-PER", "O", "S-LOC"])
+                tags: 레이블의 목록(보기로 ["B-PER", "I-PER", "E-PER", "O", "S-LOC"])
 
             반환값:
                 (is_valid, error_message) 튜플
@@ -135,17 +135,17 @@
             for i in range(len(tags)):
                 current_tag = tags[i]
 
-                # O 이름표 건너뛰기
+                # O 레이블 건너뛰기
                 if current_tag == "O":
                     continue
 
-                # 이름표 뜯어 읽기
+                # 레이블 뜯어 읽기
                 try:
                     prefix, entity_type = current_tag.split("-")
                 except ValueError:
                     return False, f"Invalid tag format at position {i}: {current_tag}"
 
-                # 올바른 앞가지인지 살피기
+                # 올바른 접두사인지 살피기
                 if prefix not in ["B", "I", "E", "S"]:
                     return False, f"Invalid prefix at position {i}: {prefix}"
 
@@ -185,7 +185,7 @@
                         if next_tag not in ["O"] and not next_tag.startswith("I-") and not next_tag.startswith("E-"):
                             return False, f"{prefix}-{entity_type} at position {i} not followed by I or E"
                     else:
-                        # B나 I 상태의 마지막 이름표는 E여야 한다
+                        # B나 I 상태의 마지막 레이블은 E여야 한다
                         return False, f"{prefix}-{entity_type} at position {i} is last tag (should be E or S)"
 
             return True, "Valid BIOES sequence"
@@ -193,29 +193,29 @@
 
     class TagConverter:
         """
-        서로 다른 이름표 방식 사이를 바꾸기.
+        서로 다른 레이블 방식 사이를 바꾸기.
 
         다음과 같을 때 쓸모 있다:
-        1. 익힘 자료의 꼴과 모델이 바라는 꼴이 다르다
+        1. 학습 자료의 꼴과 모델이 바라는 꼴이 다르다
         2. 서로 다른 체계의 결과 견주기
-        3. 특정 모델에 맞춰 자료 앞손질하기
+        3. 특정 모델에 맞춰 자료 전처리하기
         """
 
         @staticmethod
         def iob2_to_bioes(tags: List[str]) -> List[str]:
             """
-            IOB2 이름표를 BIOES 이름표로 바꾸기.
+            IOB2 레이블을 BIOES 레이블로 바꾸기.
 
             바꾸기 규칙:
-            - 토막 하나짜리 것: B-TYPE → S-TYPE
-            - 토막 여럿짜리 것: B-TYPE → B-TYPE, I-TYPE → I-TYPE, 마지막 I-TYPE → E-TYPE
+            - 토큰 하나짜리 개체: B-TYPE → S-TYPE
+            - 토큰 여럿짜리 개체: B-TYPE → B-TYPE, I-TYPE → I-TYPE, 마지막 I-TYPE → E-TYPE
             - O는 O로 둔다
 
             인수:
-                tags: IOB2 이름표의 목록
+                tags: IOB2 레이블의 목록
 
             반환값:
-                BIOES 이름표의 목록
+                BIOES 레이블의 목록
 
             보기:
                 >>> converter = TagConverter()
@@ -229,15 +229,15 @@
             for i in range(len(tags)):
                 current_tag = tags[i]
 
-                # O 이름표는 그대로 둔다
+                # O 레이블은 그대로 둔다
                 if current_tag == "O":
                     bioes_tags.append("O")
                     continue
 
-                # 지금 이름표 뜯어 읽기
+                # 지금 레이블 뜯어 읽기
                 prefix, entity_type = current_tag.split("-")
 
-                # 다음 이름표를 미리 보기
+                # 다음 레이블을 미리 보기
                 is_last = (i == len(tags) - 1)
                 if not is_last:
                     next_tag = tags[i+1]
@@ -247,13 +247,13 @@
                 else:
                     next_continues = False
 
-                # BIOES 이름표 정하기
+                # BIOES 레이블 정하기
                 if prefix == "B":
                     if next_continues:
-                        # 토막 여럿짜리 것의 시작
+                        # 토큰 여럿짜리 개체의 시작
                         bioes_tags.append(f"B-{entity_type}")
                     else:
-                        # 토막 하나짜리 것
+                        # 토큰 하나짜리 개체
                         bioes_tags.append(f"S-{entity_type}")
 
                 elif prefix == "I":
@@ -269,7 +269,7 @@
         @staticmethod
         def bioes_to_iob2(tags: List[str]) -> List[str]:
             """
-            BIOES 이름표를 IOB2 이름표로 바꾸기.
+            BIOES 레이블을 IOB2 레이블로 바꾸기.
 
             바꾸기 규칙:
             - S-TYPE → B-TYPE
@@ -279,10 +279,10 @@
             - O → O
 
             인수:
-                tags: BIOES 이름표의 목록
+                tags: BIOES 레이블의 목록
 
             반환값:
-                IOB2 이름표의 목록
+                IOB2 레이블의 목록
             """
             iob2_tags = []
 
@@ -305,14 +305,14 @@
         def tags_to_entities(tokens: List[str], tags: List[str], 
                             scheme: TagScheme = TagScheme.IOB2) -> List[Tuple[str, str, int, int]]:
             """
-            토막-이름표 짝을 것의 구간으로 바꾸기.
+            토큰-레이블 짝을 것의 구간으로 바꾸기.
 
-            이름표 붙인 차례에서 실제 것을 뽑아낸다.
+            레이블 붙인 차례에서 실제 것을 뽑아낸다.
 
             인수:
-                tokens: 토막 글자열의 목록
-                tags: 그에 맞는 이름표의 목록
-                scheme: 쓴 이름표 방식(IOB2 또는 BIOES)
+                tokens: 토큰 문자열의 목록
+                tags: 그에 맞는 레이블의 목록
+                scheme: 쓴 레이블 방식(IOB2 또는 BIOES)
 
             반환값:
                 튜플의 목록: (entity_text, entity_type, start_idx, end_idx)
@@ -331,7 +331,7 @@
 
             for i, (token, tag) in enumerate(zip(tokens, tags)):
                 if tag == "O":
-                    # 있으면 지금 것을 끝내기
+                    # 있으면 현재 개체를 끝내기
                     if current_entity:
                         entity_text = " ".join(current_tokens)
                         entities.append((entity_text, current_entity, current_start, i))
@@ -344,23 +344,23 @@
 
                     if scheme == TagScheme.IOB2:
                         if prefix == "B":
-                            # 있으면 앞 것 갈무리
+                            # 있으면 앞 것 저장
                             if current_entity:
                                 entity_text = " ".join(current_tokens)
                                 entities.append((entity_text, current_entity, current_start, i))
 
-                            # 새 것 시작하기
+                            # 새 개체 시작하기
                             current_entity = entity_type
                             current_tokens = [token]
                             current_start = i
 
                         elif prefix == "I":
                             if current_entity == entity_type:
-                                # 지금 것을 이어 가기
+                                # 현재 개체를 이어 가기
                                 current_tokens.append(token)
                             else:
                                 # 올바른 IOB2에서는 일어나지 않아야 한다
-                                # 그래도 새 것을 시작해 다룬다
+                                # 그래도 새 개체를 시작해 다룬다
                                 if current_entity:
                                     entity_text = " ".join(current_tokens)
                                     entities.append((entity_text, current_entity, current_start, i))
@@ -371,7 +371,7 @@
 
                     elif scheme == TagScheme.BIOES:
                         if prefix == "S":
-                            # 토막 하나짜리 것
+                            # 토큰 하나짜리 개체
                             if current_entity:
                                 entity_text = " ".join(current_tokens)
                                 entities.append((entity_text, current_entity, current_start, i))
@@ -382,7 +382,7 @@
                             current_start = None
 
                         elif prefix == "B":
-                            # 새 것 시작하기
+                            # 새 개체 시작하기
                             if current_entity:
                                 entity_text = " ".join(current_tokens)
                                 entities.append((entity_text, current_entity, current_start, i))
@@ -395,7 +395,7 @@
                             if current_entity == entity_type:
                                 current_tokens.append(token)
 
-                                # E 이름표면 것을 끝내기
+                                # E 레이블면 것을 끝내기
                                 if prefix == "E":
                                     entity_text = " ".join(current_tokens)
                                     entities.append((entity_text, current_entity, current_start, i+1))
@@ -413,13 +413,13 @@
 
     def demonstrate_tagging_schemes():
         """
-        여러 이름표 방식을 두루 보이기.
+        여러 레이블 방식을 두루 보이기.
         """
         print("="*70)
         print("IOB and BIOES Tagging Schemes Demonstration")
         print("="*70)
 
-        # 보기 1: IOB2 이름표 붙이기
+        # 보기 1: IOB2 레이블 붙이기
         print("\n1. IOB2 Tagging Scheme")
         print("-" * 70)
 
@@ -438,7 +438,7 @@
         is_valid, message = TagValidator.validate_iob2(iob2_tags)
         print(f"\nValidation: {message}")
 
-        # 보기 2: BIOES 이름표 붙이기
+        # 보기 2: BIOES 레이블 붙이기
         print("\n\n2. BIOES Tagging Scheme")
         print("-" * 70)
 
@@ -454,7 +454,7 @@
         is_valid, message = TagValidator.validate_bioes(bioes_tags)
         print(f"\nValidation: {message}")
 
-        # 보기 3: 이름표 방식 견줌
+        # 보기 3: 레이블 방식 견줌
         print("\n\n3. Comparing IOB2 and BIOES")
         print("-" * 70)
 
@@ -490,7 +490,7 @@
                 print(f"{token:<20} {iob2:<10} {bioes:<10}")
             print(f"Note: {example['note']}")
 
-        # 보기 4: 이름표에서 것 뽑기
+        # 보기 4: 레이블에서 개체 뽑기
         print("\n\n4. Extracting Entities from Tags")
         print("-" * 70)
 
@@ -506,7 +506,7 @@
         for entity_text, entity_type, start, end in entities:
             print(f"  - '{entity_text}' ({entity_type}) at tokens [{start}:{end}]")
 
-        # 보기 5: 올바르지 않은 이름표 차례
+        # 보기 5: 올바르지 않은 레이블 차례
         print("\n\n5. Detecting Invalid Tag Sequences")
         print("-" * 70)
 
@@ -577,7 +577,7 @@
         for token, tag in zip(tokens_ex, bioes_ex):
             print(f"  {token:<15} {tag}")
 
-        # 것 뽑기
+        # 개체 뽑기
         entities_iob2 = TagConverter.tags_to_entities(tokens_ex, iob2_ex, TagScheme.IOB2)
         entities_bioes = TagConverter.tags_to_entities(tokens_ex, bioes_ex, TagScheme.BIOES)
 
@@ -588,7 +588,7 @@
 
     def interactive_tag_converter():
         """
-        이름표 바꾸기를 익히는 주고받는 도구.
+        레이블 바꾸기를 익히는 주고받는 도구.
         """
         print("\n\n" + "="*70)
         print("Interactive Tag Converter")
@@ -616,7 +616,7 @@
         print(f"  IOB2: {msg_iob2}")
         print(f"  BIOES: {msg_bioes}")
 
-        # 것 뽑기
+        # 개체 뽑기
         entities = TagConverter.tags_to_entities(tokens, iob2_tags)
         print("\nExtracted entities:")
         for text, etype, start, end in entities:

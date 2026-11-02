@@ -6,7 +6,7 @@
 
 ```python
 """
-길잡이 08: 미리 익힌 말 모델 곱게 다듬기
+튜토리얼 08: 미리 익힌 언어 모델 곱게 다듬기
 ====================================================
 
 GPT-2 같은 미리 익힌 모델을 뒤따르는 일에 써먹는 법을 배운다.
@@ -36,7 +36,7 @@ from torch.utils.data import Dataset
 
 
 class TextDataset(Dataset):
-    """미리 익힌 모델을 곱게 다듬기 위한 자료 뭉치."""
+    """미리 익힌 모델을 곱게 다듬기 위한 데이터셋."""
     
     def __init__(self, texts, tokenizer, max_length=512):
         self.tokenizer = tokenizer
@@ -68,20 +68,20 @@ def finetune_gpt2(train_texts, model_name='gpt2', epochs=3):
     맞춤 글 자료로 GPT-2 곱게 다듬기.
     
     인수:
-        train_texts: 익힘 글의 목록
+        train_texts: 학습 글의 목록
         model_name: 미리 익힌 모델 이름('gpt2', 'gpt2-medium' 등)
         epochs: 학습 에포크 수
     """
     print(f"Fine-tuning {model_name}")
     print("=" * 60)
     
-    # 미리 익힌 모델과 토막내개 읽어 들이기
+    # 미리 익힌 모델과 토큰내개 읽어 들이기
     tokenizer = GPT2Tokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
     
     model = GPT2LMHeadModel.from_pretrained(model_name)
     
-    # 자료 뭉치 갖추기
+    # 데이터셋 갖추기
     train_dataset = TextDataset(train_texts, tokenizer)
     
     # 익히기 인자
@@ -116,12 +116,12 @@ def generate_from_pretrained(model, tokenizer, prompt, max_length=50,
     
     인수:
         model: 곱게 다듬은 모델
-        tokenizer: 토막내개
+        tokenizer: 토큰내개
         prompt: 시작 글
         max_length: 만들어 낼 최대 길이
-        temperature: 표집 온도
-        top_k: 상위 k 표집 파라메터
-        top_p: 알갱이 표집 파라메터
+        temperature: 샘플링 온도
+        top_k: top-k 샘플링 파라메터
+        top_p: 뉴클리어스 샘플링 파라메터
     """
     model.eval()
     
@@ -165,7 +165,7 @@ def demonstrate_pretrained():
 
 if __name__ == "__main__":
     print("""
-미리 익힌 말 모델
+미리 익힌 언어 모델
 ==========================
 
 널리 쓰이는 모델:
@@ -173,7 +173,7 @@ if __name__ == "__main__":
    - 자기되돌리기, 왼쪽에서 오른쪽
    - 만들어 내기 일에 좋다
    
-2. BERT(두 방향 인코더)
+2. BERT(양방향 인코더)
    - 가린 말 나타내기
    - 이해하는 일에 좋다
 
@@ -189,17 +189,17 @@ if __name__ == "__main__":
 
 좋은 버릇:
 - 미리 익힐 때보다 작은 러닝 비율 쓰기
-- 자료 뭉치가 작으면 앞쪽 레이어 얼리기
+- 데이터셋이 작으면 앞쪽 레이어 얼리기
 - 큰 모델을 위한 그래디언트 쌓기 짜기
 - 섞인 정밀도 익히기 쓰기
 - 큰 잊음 지켜보기
 
-익힘 문제:
+학습 문제:
 1. 분야별 글로 GPT-2 곱게 다듬기
 2. 모델 크기 견주기(기본, 중형, 대형)
 3. 어댑터 바탕 곱게 다듬기 짜기
 4. 시킴말 바탕 몇 개만으로 배우기 해 보기
-5. 헷갈림도와 만든 글의 좋음으로 밸류하기
+5. 퍼플렉서티와 만든 글의 좋음으로 평가하기
 6. 큰 모델에서 작은 모델로 앎 내리기 짜기
     """)
     

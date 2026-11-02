@@ -8,21 +8,21 @@
 
     ```python
     """
-    규칙 바탕 이름 알아보기
+    규칙 바탕 개체명 인식
     ====================================
 
-    이 단원은 무늬 짝짓기와 말 규칙을 써서 규칙 바탕 이름 알아보기를 짠다.
-    규칙 바탕 체계는 빠르고 읽어 내기 쉬우며 무늬가 또렷한 분야에서 잘 된다.
+    이 단원은 패턴 짝짓기와 말 규칙을 써서 규칙 바탕 개체명 인식을 짠다.
+    규칙 바탕 체계는 빠르고 읽어 내기 쉬우며 패턴이 또렷한 분야에서 잘 된다.
 
     학습 목표:
-    - 무늬 바탕 것 뽑기 짜기
-    - 이름 알아보기에 정규식 쓰기
+    - 패턴 바탕 개체 뽑기 짜기
+    - 개체명 인식에 정규식 쓰기
     - 규칙 바탕 체계의 센 점과 한계를 이해한다
     - 여러 규칙 클래스 아우르기
 
     핵심 개념:
-    - 정규식으로 무늬 짝짓기
-    - 대문자 쓰기 무늬
+    - 정규식으로 패턴 짝짓기
+    - 대문자 쓰기 패턴
     - 맥락 바탕 규칙
     - 규칙 우선순위 매기기
 
@@ -46,7 +46,7 @@
 
         속성:
             name: 규칙의 이름
-            pattern: 짝지을 정규식 무늬
+            pattern: 짝지을 정규식 패턴
             entity_type: 이 규칙이 뽑는 것의 클래스
             priority: 규칙의 우선순위(높을수록 먼저 쓴다)
             context_required: 반드시 있어야 하는 맥락 낱말(없어도 됨)
@@ -58,45 +58,45 @@
         context_required: List[str] = None
 
         def __post_init__(self):
-            """첫자리매김 뒤에 정규식 무늬 컴파일하기."""
+            """첫자리매김 뒤에 정규식 패턴 컴파일하기."""
             self.compiled_pattern = re.compile(self.pattern, re.IGNORECASE)
 
 
     class RuleBasedNER:
         """
-        규칙 바탕 이름 알아보기 체계.
+        규칙 바탕 개체명 인식 체계.
 
         이 체계는 다음을 비롯한 손수 만든 규칙을 쓴다:
-        1. 정규식 무늬
-        2. 대문자 쓰기 무늬
+        1. 정규식 패턴
+        2. 대문자 쓰기 패턴
         3. 맥락 바탕 규칙
         4. 사전 찾기(규칙 짝짓기와 함께)
 
         이점:
         - 빠르고 효율적이다
-        - 익힘 자료가 필요 없다
+        - 학습 자료가 필요 없다
         - 아주 읽어 내기 쉽다
         - 분야별 규칙을 쓸 수 있다
-        - 또렷한 무늬에는 정밀도가 높다
+        - 또렷한 패턴에는 정밀도가 높다
 
         나쁜 점:
         - 재현율이 낮다(달라진 꼴을 놓친다)
         - 규칙을 손수 만들어야 한다
         - 규칙이 많으면 건사하기 어렵다
-        - 본 적 없는 무늬에 두루 통하지 못한다
+        - 본 적 없는 패턴에 두루 통하지 못한다
         """
 
         def __init__(self):
-            """규칙 바탕 이름 알아보기 체계 첫자리매김."""
+            """규칙 바탕 개체명 인식 체계 첫자리매김."""
             self.rules: List[Rule] = []
             self._initialize_default_rules()
 
         def _initialize_default_rules(self):
             """
-            흔한 것 클래스의 붙박이 규칙 모음 첫자리매김.
+            흔한 개체 클래스의 붙박이 규칙 모음 첫자리매김.
 
             이 규칙이 다루는 것:
-            - 사람 이름(대문자 쓰기 무늬)
+            - 사람 이름(대문자 쓰기 패턴)
             - 조직(회사 뒷가지)
             - 자리(자리를 가리키는 말)
             - 날짜와 때
@@ -104,8 +104,8 @@
             - 전자우편과 URL
             """
 
-            # 사람 이름 무늬
-            # 무늬: 대문자 낱말 뒤에 대문자 낱말
+            # 사람 이름 패턴
+            # 패턴: 대문자 낱말 뒤에 대문자 낱말
             # 보기: "John Smith", "Mary Johnson"
             self.add_rule(Rule(
                 name="person_full_name",
@@ -114,8 +114,8 @@
                 priority=3
             ))
 
-            # 조직 무늬
-            # 무늬: 회사 뒷가지가 붙은 대문자 낱말
+            # 조직 패턴
+            # 패턴: 회사 뒷가지가 붙은 대문자 낱말
             # 보기: "Apple Inc.", "Microsoft Corporation", "Google LLC"
             self.add_rule(Rule(
                 name="organization_suffix",
@@ -124,7 +124,7 @@
                 priority=5
             ))
 
-            # 무늬: "The" 뒤에 대문자로 시작하는 낱말
+            # 패턴: "The" 뒤에 대문자로 시작하는 낱말
             # 보기: "The New York Times", "The Washington Post"
             self.add_rule(Rule(
                 name="organization_the",
@@ -133,8 +133,8 @@
                 priority=4
             ))
 
-            # 자리 무늬
-            # 무늬: 자리를 가리키는 핵심 낱말
+            # 자리 패턴
+            # 패턴: 자리를 가리키는 핵심 낱말
             # 보기: "New York City", "San Francisco", "Mount Everest"
             self.add_rule(Rule(
                 name="location_indicators",
@@ -145,8 +145,8 @@
                 priority=4
             ))
 
-            # 무늬: 주와 나라
-            # 간추린 목록 — 실전에서는 두루 갖춘 지명록을 쓴다
+            # 패턴: 주와 나라
+            # 간추린 목록 — 실전에서는 두루 갖춘 가제티어을 쓴다
             self.add_rule(Rule(
                 name="location_places",
                 pattern=r'\b(California|Texas|New\s+York|Florida|Illinois|'
@@ -156,8 +156,8 @@
                 priority=3
             ))
 
-            # 날짜 무늬
-            # 무늬: 여러 날짜 꼴
+            # 날짜 패턴
+            # 패턴: 여러 날짜 꼴
             # 보기: "January 1, 2020", "01/01/2020", "2020-01-01"
             self.add_rule(Rule(
                 name="date_full",
@@ -169,7 +169,7 @@
                 priority=5
             ))
 
-            # 때 무늬
+            # 때 패턴
             # 보기: "3:30 PM", "14:00", "noon"
             self.add_rule(Rule(
                 name="time",
@@ -178,7 +178,7 @@
                 priority=5
             ))
 
-            # 돈 무늬
+            # 돈 패턴
             # 보기: "$100", "$1,000.00", "€50"
             self.add_rule(Rule(
                 name="money",
@@ -188,7 +188,7 @@
                 priority=5
             ))
 
-            # 백분율 무늬
+            # 백분율 패턴
             # 보기: "25%", "3.14%"
             self.add_rule(Rule(
                 name="percentage",
@@ -198,7 +198,7 @@
                 priority=5
             ))
 
-            # 전자우편 무늬
+            # 전자우편 패턴
             # 보기: "user@example.com"
             self.add_rule(Rule(
                 name="email",
@@ -207,7 +207,7 @@
                 priority=6
             ))
 
-            # URL 무늬
+            # URL 패턴
             # 보기: "https://www.example.com", "www.example.com"
             self.add_rule(Rule(
                 name="url",
@@ -232,7 +232,7 @@
 
         def extract_entities(self, text: str) -> List[Dict]:
             """
-            모든 규칙을 써서 글에서 것 뽑기.
+            모든 규칙을 써서 글에서 개체 뽑기.
 
             과정:
             1. 우선순위 차례로 규칙을 쓴다
@@ -241,10 +241,10 @@
             4. 정렬한 것의 목록을 돌려준다
 
             인수:
-                text: 들임 글월 문자열
+                text: 들임 텍스트 문자열
 
             반환값:
-                다음 항목을 담은 것 사전의 목록:
+                다음 항목을 담은 개체 사전의 목록:
                 - text: 것의 글
                 - type: 것의 클래스
                 - start: 시작 자리
@@ -290,7 +290,7 @@
                         if not any(word.lower() in context for word in rule.context_required):
                             continue
 
-                    # 것 만들기
+                    # 개체 만들기
                     entity = {
                         'text': matched_text,
                         'type': rule.entity_type,
@@ -312,13 +312,13 @@
 
         def extract_by_pattern(self, text: str, pattern: str, entity_type: str) -> List[Dict]:
             """
-            맞춤 무늬로 것 뽑기.
+            맞춤 패턴로 개체 뽑기.
 
-            덕분에 규칙을 아예 더하지 않고도 무늬를 빠르게 시험할 수 있다.
+            덕분에 규칙을 아예 더하지 않고도 패턴을 빠르게 시험할 수 있다.
 
             인수:
                 text: 입력 텍스트
-                pattern: 정규식 무늬 글자열
+                pattern: 정규식 패턴 문자열
                 entity_type: 매길 것의 클래스
 
             반환값:
@@ -352,19 +352,19 @@
             것 둘레의 맥락 낱말 얻기.
 
             맥락은 다음에 쓸모 있다:
-            - 것 클래스 확인하기
-            - 아리송함 풀기
+            - 개체 클래스 확인하기
+            - 중의성 해소
             - 기계 러닝 모델을 위한 피처 뽑기
 
             인수:
-                text: 본디 글월
-                entity: 것 사전
+                text: 본디 텍스트
+                entity: 개체 사전
                 window_size: 양쪽에 넣을 낱말의 개수
 
             반환값:
                 left_context, entity_text, right_context를 담은 사전
             """
-            # 단순 낱말 바탕 토막내기
+            # 단순 낱말 바탕 토큰내기
             words = text.split()
             entity_text = entity['text']
 
@@ -400,8 +400,8 @@
             글 속의 것을 눈으로 볼 수 있게 나타낸다.
 
             인수:
-                text: 본디 글월
-                entities: 것 사전의 목록
+                text: 본디 텍스트
+                entities: 개체 사전의 목록
             """
             # 표시한 판 만들기
             result = []
@@ -424,16 +424,16 @@
 
     def demonstrate_rule_based_ner():
         """
-        규칙 바탕 이름 알아보기를 두루 보이기.
+        규칙 바탕 개체명 인식을 두루 보이기.
         """
         print("="*70)
         print("Rule-Based Named Entity Recognition Demonstration")
         print("="*70)
 
-        # 이름 알아보기 체계 첫자리매김
+        # 개체명 인식 체계 첫자리매김
         ner = RuleBasedNER()
 
-        # 보기 1: 기본 것 뽑기
+        # 보기 1: 기본 개체 뽑기
         print("\n1. Basic Entity Extraction")
         print("-" * 70)
 
@@ -455,7 +455,7 @@
         print("\nVisualized:")
         ner.visualize_entities(text1, entities1)
 
-        # 보기 2: 서로 다른 것 클래스
+        # 보기 2: 서로 다른 개체 클래스
         print("\n\n2. Various Entity Types")
         print("-" * 70)
 
@@ -480,7 +480,7 @@
             for text in texts:
                 print(f"  - {text}")
 
-        # 보기 3: 맞춤 무늬
+        # 보기 3: 맞춤 패턴
         print("\n\n3. Custom Pattern Matching")
         print("-" * 70)
 
@@ -488,7 +488,7 @@
 
         print(f"Text: {text3}\n")
 
-        # 맞춤 무늬로 전화번호 뽑기
+        # 맞춤 패턴로 전화번호 뽑기
         phone_pattern = r'\d{3}-\d{4}'
         phone_entities = ner.extract_by_pattern(text3, phone_pattern, 'PHONE')
 

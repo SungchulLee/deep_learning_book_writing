@@ -39,13 +39,13 @@ from typing import List, Tuple, Optional
 
 class CRF(nn.Module):
     """
-    차례 이름표 붙이기를 위한 조건부 무작위 마당 레이어.
+    차례 레이블 붙이기를 위한 조건부 무작위 마당 레이어.
     
     여기 짠 것이 받치는 것:
     - 덧대기를 곁들인 배치 셈하기
     - 수치를 든든하게 하는 로그 자리 피드포워드 알고리즘
-    - 미룸을 위한 비터비 풀기
-    - 가리기로 거는 넘어가기 제약
+    - 미룸을 위한 비터비 디코딩
+    - 가리기로 거는 전이 제약
     """
     
     def __init__(
@@ -58,9 +58,9 @@ class CRF(nn.Module):
         CRF 레이어 첫자리매김.
         
         인수:
-            num_tags: 이름표의 개수(START와 END를 쓰면 함께)
+            num_tags: 레이블의 개수(START와 END를 쓰면 함께)
             batch_first: True이면 들임이 (batch, seq, features)이다
-            pad_tag_id: 덧대기용 이름표 번호(로스에서 뺀다)
+            pad_tag_id: 덧대기용 레이블 번호(로스에서 뺀다)
         """
         super().__init__()
         
@@ -68,11 +68,11 @@ class CRF(nn.Module):
         self.batch_first = batch_first
         self.pad_tag_id = pad_tag_id
         
-        # 넘어가기 행렬: transitions[i, j] = j -> i의 점수
+        # 전이 행렬: transitions[i, j] = j -> i의 점수
         # 효율적인 셈을 위한 (next_tag, current_tag) 번호 매김
         self.transitions = nn.Parameter(torch.randn(num_tags, num_tags))
         
-        # 시작과 끝 넘어가기 점수
+        # 시작과 끝 전이 점수
         self.start_transitions = nn.Parameter(torch.randn(num_tags))
         self.end_transitions = nn.Parameter(torch.randn(num_tags))
         
@@ -96,7 +96,7 @@ class CRF(nn.Module):
         
         인수:
             emissions: 내보냄 점수 (batch, seq_len, num_tags)
-            tags: 참값 이름표 (batch, seq_len)
+            tags: 참값 레이블 (batch, seq_len)
             mask: 불 마스크 (batch, seq_len). 쓸 수 있는 자리는 True
             reduction: 'none', 'mean', 또는 'sum'
             
@@ -137,7 +137,7 @@ class CRF(nn.Module):
         mask: torch.Tensor
     ) -> torch.Tensor:
         """
-        참값 이름표 차례의 점수 셈하기.
+        참값 레이블 차례의 점수 셈하기.
         
         인수:
             emissions: (batch, seq_len, num_tags)
@@ -149,14 +149,14 @@ class CRF(nn.Module):
         """
         batch_size, seq_len, _ = emissions.shape
         
-        # 시작 넘어가기 점수
+        # 시작 전이 점수
         score = self.start_transitions[tags[:, 0]]
         
         # 첫 자리의 내보냄 점수
         score += emissions[:, 0].gather(1, tags[:, 0:1]).squeeze(1)
         
         for i in range(1, seq_len):
-            # 넘어가기 점수: tags[i-1] -> tags[i]
+            # 전이 점수: tags[i-1] -> tags[i]
             # 쓸 수 있는 자리에만 더하기
             trans_score = self.transitions[tags[:, i], tags[:, i-1]]
             
@@ -166,7 +166,7 @@ class CRF(nn.Module):
             # 가리기: 쓸 수 있는 자리만 고치기
             score += (trans_score + emit_score) * mask[:, i].float()
         
-        # 끝 넘어가기 점수
+        # 끝 전이 점수
         # 차례마다 마지막으로 쓸 수 있는 자리 찾기
         seq_lengths = mask.sum(dim=1).long()
         last_tags = tags.gather(1, (seq_lengths - 1).unsqueeze(1)).squeeze(1)
@@ -191,12 +191,12 @@ class CRF(nn.Module):
         """
         batch_size, seq_len, num_tags = emissions.shape
         
-        # 시작 넘어가기와 첫 내보냄으로 첫자리매김
+        # 시작 전이와 첫 내보냄으로 첫자리매김
         # alpha: (batch, num_tags)
         alpha = self.start_transitions + emissions[:, 0]
         
         for i in range(1, seq_len):
-            # 가능한 모든 넘어가기에 퍼뜨리기
+            # 가능한 모든 전이에 퍼뜨리기
             # alpha_expand: (batch, num_tags, 1)
             # transitions: (num_tags, num_tags) -> (batch, num_tags, num_tags)로 퍼뜨림
             # emissions_expand: (batch, 1, num_tags)
@@ -204,18 +204,18 @@ class CRF(nn.Module):
             alpha_expand = alpha.unsqueeze(2)  # (batch, num_tags, 1)
             emit_scores = emissions[:, i].unsqueeze(1)  # (batch, 1, num_tags)
             
-            # 아무 이름표에서 아무 이름표로 넘어가는 점수
+            # 아무 레이블에서 아무 레이블로 넘어가는 점수
             # (batch, num_tags, num_tags)
             scores = alpha_expand + self.transitions + emit_scores
             
-            # 앞 이름표에 대한 로그-합-지수
+            # 앞 레이블에 대한 로그-합-지수
             new_alpha = torch.logsumexp(scores, dim=1)  # (batch, num_tags)
             
             # 가리기: 덧댄 자리는 옛 alpha 유지
             mask_i = mask[:, i].unsqueeze(1)  # (batch, 1)
             alpha = torch.where(mask_i, new_alpha, alpha)
         
-        # 끝 넘어가기를 더하고 마지막 로그-합-지수를 셈하기
+        # 끝 전이를 더하고 마지막 로그-합-지수를 셈하기
         alpha = alpha + self.end_transitions
         return torch.logsumexp(alpha, dim=1)
     
@@ -225,14 +225,14 @@ class CRF(nn.Module):
         mask: Optional[torch.Tensor] = None
     ) -> List[List[int]]:
         """
-        비터비 알고리즘으로 가장 그럴듯한 이름표 차례 찾기.
+        비터비 알고리즘으로 가장 그럴듯한 레이블 차례 찾기.
         
         인수:
             emissions: (batch, seq_len, num_tags)
             mask: (batch, seq_len)
             
         반환값:
-            배치 항목마다의 이름표 차례 목록
+            배치 항목마다의 레이블 차례 목록
         """
         if not self.batch_first:
             emissions = emissions.transpose(0, 1)
@@ -251,26 +251,26 @@ class CRF(nn.Module):
         mask: torch.Tensor
     ) -> List[List[int]]:
         """
-        비터비 풀기 짜기.
+        비터비 디코딩 짜기.
         
         인수:
             emissions: (batch, seq_len, num_tags)
             mask: (batch, seq_len)
             
         반환값:
-            가장 좋은 이름표 차례의 목록
+            가장 좋은 레이블 차례의 목록
         """
         batch_size, seq_len, num_tags = emissions.shape
         
-        # 시작 넘어가기로 첫자리매김
+        # 시작 전이로 첫자리매김
         # score: (batch, num_tags)
         score = self.start_transitions + emissions[:, 0]
         
-        # 뒤 가리개 갈무리
+        # 뒤 가리개 저장
         history = []
         
         for i in range(1, seq_len):
-            # 모든 넘어가기에 퍼뜨리기
+            # 모든 전이에 퍼뜨리기
             # score: (batch, num_tags, 1)
             # transitions: (num_tags, num_tags)
             broadcast_score = score.unsqueeze(2)
@@ -280,28 +280,28 @@ class CRF(nn.Module):
             # (batch, num_tags, num_tags)
             next_score = broadcast_score + self.transitions + broadcast_emission
             
-            # 지금 이름표마다 가장 좋은 앞 이름표
+            # 지금 레이블마다 가장 좋은 앞 레이블
             # (batch, num_tags)
             next_score, indices = next_score.max(dim=1)
             
-            # 뒤 가리개 갈무리
+            # 뒤 가리개 저장
             history.append(indices)
             
             # 가리기: 덧댄 자리는 옛 점수 유지
             mask_i = mask[:, i].unsqueeze(1)
             score = torch.where(mask_i, next_score, score)
         
-        # 끝 넘어가기 더하기
+        # 끝 전이 더하기
         score = score + self.end_transitions
         
-        # 가장 좋은 마지막 이름표 얻기
+        # 가장 좋은 마지막 레이블 얻기
         seq_lengths = mask.sum(dim=1).long()
         
         # 되짚기
         best_tags_list = []
         
         for idx in range(batch_size):
-            # 마지막 자리의 가장 좋은 이름표
+            # 마지막 자리의 가장 좋은 레이블
             _, best_last_tag = score[idx].max(dim=0)
             best_tags = [best_last_tag.item()]
             
@@ -328,10 +328,10 @@ class CRF(nn.Module):
 ```python
 class BiLSTMCRF(nn.Module):
     """
-    차례 이름표 붙이기를 위한 두 방향 LSTM-CRF 모델.
+    차례 레이블 붙이기를 위한 양방향 LSTM-CRF 모델.
     
     구조:
-        묻힘 → 양방향 LSTM → 선형 → CRF
+        임베딩 → 양방향 LSTM → 선형 → CRF
     """
     
     def __init__(
@@ -353,7 +353,7 @@ class BiLSTMCRF(nn.Module):
         
         self.lstm = nn.LSTM(
             embedding_dim,
-            hidden_dim // 2,  # 두 방향이면 숨은 크기가 두 배
+            hidden_dim // 2,  # 양방향이면 숨은 크기가 두 배
             num_layers=num_layers,
             batch_first=True,
             bidirectional=True,
@@ -362,7 +362,7 @@ class BiLSTMCRF(nn.Module):
         
         self.dropout = nn.Dropout(dropout)
         
-        # LSTM의 내놓음을 이름표 공간으로 내리쬐기
+        # LSTM의 내놓음을 레이블 공간으로 내리쬐기
         self.hidden2tag = nn.Linear(hidden_dim, num_tags)
         
         # CRF 레이어
@@ -374,7 +374,7 @@ class BiLSTMCRF(nn.Module):
         attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        두 방향 LSTM에서 내보냄 점수 얻기.
+        양방향 LSTM에서 내보냄 점수 얻기.
         
         인수:
             input_ids: (batch, seq_len)
@@ -434,14 +434,14 @@ class BiLSTMCRF(nn.Module):
         attention_mask: Optional[torch.Tensor] = None
     ) -> List[List[int]]:
         """
-        비터비 풀기로 이름표 차례 어림하기.
+        비터비 디코딩로 레이블 차례 예측하기.
         
         인수:
             input_ids: (batch, seq_len)
             attention_mask: (batch, seq_len)
             
         반환값:
-            어림한 이름표 차례의 목록
+            예측한 레이블 차례의 목록
         """
         emissions = self._get_emissions(input_ids, attention_mask)
         
@@ -458,7 +458,7 @@ from transformers import AutoModel
 
 class TransformerCRF(nn.Module):
     """
-    이름 알아보기를 위해 CRF 레이어를 얹은 변환기(BERT/RoBERTa).
+    개체명 인식을 위해 CRF 레이어를 얹은 변환기(BERT/RoBERTa).
     """
     
     def __init__(
@@ -515,7 +515,7 @@ class TransformerCRF(nn.Module):
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor
     ) -> List[List[int]]:
-        """비터비 풀기로 어림하기."""
+        """비터비 디코딩로 예측하기."""
         emissions = self._get_emissions(input_ids, attention_mask)
         return self.crf.decode(emissions, mask=attention_mask.bool())
 ```
@@ -533,14 +533,14 @@ def apply_iob2_constraints(
     penalty: float = -10000.0
 ):
     """
-    CRF 넘어가기에 IOB2 넘어가기 제약 걸기.
+    CRF 전이에 IOB2 전이 제약 걸기.
     
-    올바르지 않은 넘어가기는 큰 음수 점수를 받는다.
+    올바르지 않은 전이는 큰 음수 점수를 받는다.
     
     인수:
         crf: 고칠 CRF 레이어
-        tag_to_idx: 이름표 이름에서 번호로의 대응
-        penalty: 올바르지 않은 넘어가기의 점수
+        tag_to_idx: 레이블 이름에서 번호로의 대응
+        penalty: 올바르지 않은 전이의 점수
     """
     idx_to_tag = {v: k for k, v in tag_to_idx.items()}
     num_tags = len(tag_to_idx)
@@ -559,7 +559,7 @@ def apply_iob2_constraints(
                     if from_tag not in valid_prev:
                         crf.transitions.data[i, j] = penalty
         
-        # 시작 넘어가기 제약: I-로 시작할 수 없다
+        # 시작 전이 제약: I-로 시작할 수 없다
         for i in range(num_tags):
             tag = idx_to_tag[i]
             if tag.startswith('I-'):
@@ -583,7 +583,7 @@ def train_ner_model(
     scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None
 ):
     """
-    CRF를 갖춘 이름 알아보기 모델의 익히기 되풀이.
+    CRF를 갖춘 개체명 인식 모델의 익히기 되풀이.
     """
     best_f1 = 0.0
     
@@ -627,7 +627,7 @@ def train_ner_model(
                 
                 predictions = model.predict(input_ids, attention_mask)
                 
-                # 어림과 이름표 모으기
+                # 예측과 레이블 모으기
                 for pred, label, mask in zip(
                     predictions,
                     labels.cpu().numpy(),

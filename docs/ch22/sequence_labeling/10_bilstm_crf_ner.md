@@ -6,15 +6,15 @@ BiLSTM-CRF는 문맥 인코더의 태그 점수와 시퀀스 전이 모델을 �
 
 ```python
 """
-이름 알아보기를 위한 두 방향 LSTM-CRF
+개체명 인식을 위한 양방향 LSTM-CRF
 ========================================
 
-가장 앞선 차례 이름표 붙이기를 위해 CRF 레이어를 얹은 두 방향 LSTM.
+가장 앞선 차례 레이블 붙이기를 위해 CRF 레이어를 얹은 양방향 LSTM.
 
 구조:
-- 묻힘 레이어
-- 두 방향 LSTM
-- 짜임 있는 어림을 위한 CRF 레이어
+- 임베딩 레이어
+- 양방향 LSTM
+- 짜임 있는 예측을 위한 CRF 레이어
 
 지은이: 러닝 목적
 날짜: 2025
@@ -31,20 +31,20 @@ from typing import List, Tuple
 
 class BiLSTM_CRF(nn.Module):
     """
-    이름 알아보기를 위한 두 방향 LSTM-CRF 모델.
+    개체명 인식을 위한 양방향 LSTM-CRF 모델.
     
     구조:
-    들임 → 묻힘 → 두 방향 LSTM → 선형 → CRF → 내놓음
+    들임 → 임베딩 → 양방향 LSTM → 선형 → CRF → 내놓음
     """
     
     def __init__(self, vocab_size: int, tag_size: int, 
                  embedding_dim: int = 100, hidden_dim: int = 200):
         """
-        두 방향 LSTM-CRF 첫자리매김.
+        양방향 LSTM-CRF 첫자리매김.
         
         인수:
             vocab_size: 낱말 곳간의 크기
-            tag_size: 것 이름표의 개수
+            tag_size: 개체명표의 개수
             embedding_dim: 낱말 임베딩의 차원
             hidden_dim: LSTM의 숨은 차원
         """
@@ -58,25 +58,25 @@ class BiLSTM_CRF(nn.Module):
         # 임베딩 레이어
         self.word_embeds = nn.Embedding(vocab_size, embedding_dim)
         
-        # 두 방향 LSTM 레이어
+        # 양방향 LSTM 레이어
         self.lstm = nn.LSTM(embedding_dim, hidden_dim // 2,
                            num_layers=1, bidirectional=True, batch_first=True)
         
-        # 이름표 공간으로 내리쬐는 선형 레이어
+        # 레이블 공간으로 내리쬐는 선형 레이어
         self.hidden2tag = nn.Linear(hidden_dim, tag_size)
         
-        # CRF 넘어가기 파라메터
-        # transitions[i, j] = 이름표 j에서 이름표 i로 넘어가는 점수
+        # CRF 전이 파라메터
+        # transitions[i, j] = 레이블 j에서 레이블 i로 넘어가는 점수
         self.transitions = nn.Parameter(torch.randn(tag_size, tag_size))
         
-        # START 이름표로는 결코 넘어가지 않는다
+        # START 레이블로는 결코 넘어가지 않는다
         self.transitions.data[:, tag_size - 2] = -10000
-        # END 이름표에서는 결코 넘어가지 않는다
+        # END 레이블에서는 결코 넘어가지 않는다
         self.transitions.data[tag_size - 1, :] = -10000
     
     def forward(self, sentence: torch.Tensor) -> torch.Tensor:
         """
-        두 방향 LSTM에서 내보냄 점수 얻기.
+        양방향 LSTM에서 내보냄 점수 얻기.
         
         인수:
             sentence: 낱말 번호를 담은 [batch_size, seq_len] 텐서
@@ -84,13 +84,13 @@ class BiLSTM_CRF(nn.Module):
         반환값:
             emission_scores: [batch_size, seq_len, tag_size]
         """
-        # 묻힘을 얻는다
+        # 임베딩을 얻는다
         embeds = self.word_embeds(sentence)  # [batch, seq_len, embedding_dim]
         
-        # 두 방향 LSTM에 통과시키기
+        # 양방향 LSTM에 통과시키기
         lstm_out, _ = self.lstm(embeds)  # [batch, seq_len, hidden_dim]
         
-        # 이름표 공간으로 내리쬐기
+        # 레이블 공간으로 내리쬐기
         emissions = self.hidden2tag(lstm_out)  # [batch, seq_len, tag_size]
         
         return emissions

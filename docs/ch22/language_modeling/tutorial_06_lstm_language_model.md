@@ -6,7 +6,7 @@ LSTM은 셀 상태와 게이트로 정보를 유지·갱신하는 순환 뉴럴 
 
 ```python
 """
-길잡이 06: LSTM 말 모델
+튜토리얼 06: LSTM 언어 모델
 
 LSTM 식:
 f_t = sigma(W_f . [h_{t-1}, x_t] + b_f)  # 망각 문
@@ -26,7 +26,7 @@ import numpy as np
 
 
 class LSTMLanguageModel(nn.Module):
-    """LSTM 바탕 말 모델."""
+    """LSTM 바탕 언어 모델."""
     
     def __init__(self, vocab_size, embedding_dim, hidden_dim, 
                  num_layers=2, dropout=0.2):
