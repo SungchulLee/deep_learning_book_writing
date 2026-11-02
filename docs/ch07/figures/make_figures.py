@@ -141,6 +141,305 @@ def fig_poly_bias_variance():
         print(f"   {d:>4}{c:>7}{a:>12.5f}{b:>12.5f}")
 
 
+def fig_ridge_path():
+    """릿지 쪽 5.3절의 데이터와 6.1·6.2절의 코드를 그대로 돌린다.
+
+    왼쪽은 6.2절이 코드로 적어 두고 그림은 보이지 않은 정규화 경로다.
+    오른쪽은 6.1절의 교차 검증 곡선이며, 그 절의 출력 (Best alpha = 0.3728,
+    CV MSE = 0.2753) 과 5.5절의 RidgeCV 출력 (0.1) 을 다시 계산한다.
+    """
+    import torch
+    from sklearn.linear_model import Ridge
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.pipeline import Pipeline
+    from sklearn.model_selection import cross_val_score
+
+    torch.manual_seed(0)                       # 쪽 5.3절
+    n, p = 200, 20
+    X = torch.randn(n, p).numpy()
+    true_theta = torch.randn(p, 1)
+    y = (torch.from_numpy(X).float() @ true_theta
+         + 0.5 * torch.randn(n, 1)).numpy().ravel()
+
+    Xs = StandardScaler().fit_transform(X)
+
+    # --- 왼쪽: 6.2절의 경로 ---------------------------------------------
+    alphas = np.logspace(-2, 4, 100)
+    coefs = np.array([Ridge(alpha=a, fit_intercept=True).fit(Xs, y).coef_
+                      for a in alphas])
+
+    # --- 오른쪽: 6.1절의 교차 검증 --------------------------------------
+    a_cv = np.logspace(-3, 3, 50)
+    cv = []
+    for a in a_cv:
+        pipe = Pipeline([("scaler", StandardScaler()), ("ridge", Ridge(alpha=a))])
+        cv.append(-cross_val_score(pipe, X, y, cv=5,
+                                   scoring="neg_mean_squared_error").mean())
+    cv = np.array(cv)
+    best = int(np.argmin(cv))
+    norms = np.array([np.linalg.norm(Ridge(alpha=a).fit(Xs, y).coef_)
+                      for a in a_cv])
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.4, 4.5))
+
+    for j in range(p):
+        axL.plot(alphas, coefs[:, j], lw=1.5, alpha=0.85)
+    axL.axhline(0, color="0.3", lw=1.0)
+    axL.axvline(a_cv[best], color="#15803d", ls="--", lw=1.6)
+    axL.annotate(f"cross-validation picks alpha = {a_cv[best]:.4f},\n"
+                 "where nothing has shrunk yet",
+                 (a_cv[best], -1.70), (120, -16),
+                 textcoords="offset points", fontsize=10, color="#15803d",
+                 arrowprops=dict(arrowstyle="->", color="#15803d", lw=1.2))
+    axL.set_xscale("log")
+    axL.set_xlabel("alpha  (ridge penalty)", fontsize=11)
+    axL.set_ylabel("coefficient value", fontsize=11)
+    axL.set_title("all 20 coefficients slide to zero together, "
+                  "none arrives early", fontsize=11)
+    axL.grid(alpha=0.2)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    axR.plot(a_cv, cv, color="#b91c1c", lw=2.4, label="5-fold CV mean squared error")
+    axR.plot(a_cv[best], cv[best], "o", ms=10, color="#b91c1c")
+    axR.annotate(f"minimum {cv[best]:.4f}\nat alpha = {a_cv[best]:.4f}",
+                 (a_cv[best], cv[best]), (8, 62), textcoords="offset points",
+                 fontsize=10, color="#b91c1c",
+                 arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.2))
+    axR.set_xscale("log")
+    axR.set_yscale("log")
+    axR.set_xlabel("alpha  (ridge penalty)", fontsize=11)
+    axR.set_ylabel("CV mean squared error (log scale)", fontsize=11,
+                   color="#b91c1c")
+    axR.tick_params(axis="y", labelcolor="#b91c1c")
+    axR.grid(alpha=0.2)
+    axR.spines[["top"]].set_visible(False)
+
+    ax2 = axR.twinx()
+    ax2.plot(a_cv, norms, color="#1d4ed8", lw=2.2, ls="--",
+             label="length of the coefficient vector")
+    ax2.set_ylabel("L2 norm of the coefficients", fontsize=11, color="#1d4ed8")
+    ax2.tick_params(axis="y", labelcolor="#1d4ed8")
+    ax2.spines[["top"]].set_visible(False)
+    axR.set_title("the penalty that costs least is almost no penalty",
+                  fontsize=11)
+
+    fig.tight_layout()
+    fig.savefig("ridge_path.svg", transparent=True)
+    plt.close(fig)
+    print("wrote ridge_path.svg")
+    print(f"   best alpha {a_cv[best]:.4f}  CV MSE {cv[best]:.4f}")
+    print(f"   coefficient norm: alpha=0.001 -> {norms[0]:.3f}, "
+          f"alpha={a_cv[best]:.4f} -> {norms[best]:.3f}, "
+          f"alpha=1000 -> {norms[-1]:.3f}")
+    sv = np.linalg.svd(Xs, compute_uv=False)
+    print(f"   singular values of the scaled design: {sv.min():.2f} .. "
+          f"{sv.max():.2f}  (condition number {sv.max() / sv.min():.2f})")
+
+
+def fig_lasso_path():
+    """라쏘 쪽 5.0절의 데이터와 8절의 코드를 그대로 돌린다.
+
+    왼쪽은 8절이 코드로만 적어 둔 라쏘 경로다. 참으로 쓰인 다섯 열
+    (make_regression 이 돌려주는 coef 로 확인했다) 을 색으로, 나머지
+    열다섯을 회색으로 그린다. 오른쪽은 같은 데이터에서 0 이 아닌 계수의
+    수를 세어 릿지와 견준다. 5.1절의 출력 (alpha=0.1 에서 18/20,
+    LassoCV 가 고른 alpha=0.7615) 을 다시 계산한다.
+
+    8절의 코드는 alpha 를 10까지만 훑는데, 이 데이터에서 계수가 실제로
+    죽는 자리는 그보다 뒤다. 그래서 축을 200까지 늘렸다.
+    """
+    from sklearn.datasets import make_regression
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.linear_model import lasso_path, Lasso, LassoCV, Ridge
+    from sklearn.pipeline import Pipeline
+
+    X, y, coef_true = make_regression(n_samples=200, n_features=20,
+                                      n_informative=5, noise=10.0,
+                                      random_state=0, coef=True)
+    Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.3, random_state=0)
+    Xs = StandardScaler().fit_transform(Xtr)
+    used = np.nonzero(coef_true)[0]
+
+    alphas = np.logspace(-3, 2.3, 160)
+    a_path, coefs, _ = lasso_path(Xs, ytr, alphas=alphas)
+
+    pcv = Pipeline([("scaler", StandardScaler()),
+                    ("lasso", LassoCV(cv=5, random_state=42))]).fit(Xtr, ytr)
+    a_star = pcv.named_steps["lasso"].alpha_
+
+    grid = np.logspace(-3, 2.3, 140)
+    sel = [set(np.nonzero(np.abs(Lasso(alpha=a, max_iter=200000)
+                                 .fit(Xs, ytr).coef_) > 1e-8)[0].tolist())
+           for a in grid]
+    nz_l = [len(s) for s in sel]
+    nz_r = [int(np.sum(np.abs(Ridge(alpha=a).fit(Xs, ytr).coef_) > 1e-8))
+            for a in grid]
+    exact = [a for a, s in zip(grid, sel) if s == set(used.tolist())]
+    lo, hi = min(exact), max(exact)
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.7))
+
+    for ax in (axL, axR):
+        ax.axvspan(lo, hi, color="#15803d", alpha=0.10, zorder=0)
+        ax.axvline(0.1, color="#b45309", ls="--", lw=1.5)
+        ax.axvline(a_star, color="#1d4ed8", ls="--", lw=1.5)
+        ax.set_xscale("log")
+        ax.grid(alpha=0.2)
+        ax.spines[["top", "right"]].set_visible(False)
+
+    for j in range(coefs.shape[0]):
+        if j in used:
+            axL.plot(a_path, coefs[j], lw=2.4, zorder=3,
+                     label=f"column {j}  (truly used)")
+        else:
+            axL.plot(a_path, coefs[j], lw=1.1, color="0.6", alpha=0.8,
+                     zorder=2)
+    axL.axhline(0, color="0.3", lw=1.0)
+    axL.set_xlabel("alpha  (lasso penalty)", fontsize=11)
+    axL.set_ylabel("coefficient value", fontsize=11)
+    axL.set_title("the fifteen grey columns die first, the five coloured "
+                  "ones last", fontsize=11)
+    axL.legend(fontsize=9, frameon=False, loc="upper right")
+
+    axR.step(grid, nz_l, where="post", color="#b91c1c", lw=2.6, label="lasso")
+    axR.step(grid, nz_r, where="post", color="#1d4ed8", lw=2.4, ls=":",
+             label="ridge, same data")
+    axR.axhline(5, color="0.4", ls=":", lw=1.4)
+    axR.annotate("alpha = 0.1\n18 of 20 left", (0.1, 18), (-104, -26),
+                 textcoords="offset points", fontsize=10, color="#b45309",
+                 arrowprops=dict(arrowstyle="->", color="#b45309", lw=1.1))
+    axR.annotate(f"cross-validation picks\nalpha = {a_star:.4f}\n"
+                 "9 of 20 left", (a_star, 9), (-54, -104),
+                 textcoords="offset points", fontsize=10, color="#1d4ed8",
+                 arrowprops=dict(arrowstyle="->", color="#1d4ed8", lw=1.1))
+    axR.annotate(f"exactly the 5 real columns\nfor alpha in "
+                 f"[{lo:.2f}, {hi:.1f}]", (hi, 5), (-32, 52),
+                 textcoords="offset points", fontsize=10, color="#15803d",
+                 ha="center",
+                 arrowprops=dict(arrowstyle="->", color="#15803d", lw=1.1))
+    axR.set_xlabel("alpha  (penalty strength)", fontsize=11)
+    axR.set_ylabel("number of nonzero coefficients", fontsize=11)
+    axR.set_ylim(-0.8, 23)
+    axR.set_title("ridge never reaches zero; lasso does, but not where "
+                  "it was asked to", fontsize=11)
+    axR.legend(fontsize=10, frameon=False, loc="lower left")
+
+    fig.tight_layout()
+    fig.savefig("lasso_path.svg", transparent=True)
+    plt.close(fig)
+    print("wrote lasso_path.svg")
+    print(f"   columns truly used: {used.tolist()}")
+    c01 = Lasso(alpha=0.1).fit(Xs, ytr).coef_
+    ccv = Lasso(alpha=a_star).fit(Xs, ytr).coef_
+    print(f"   alpha=0.1   nonzero {int(np.sum(np.abs(c01) > 1e-8))}/20")
+    print(f"   alpha={a_star:.4f} nonzero {int(np.sum(np.abs(ccv) > 1e-8))}/20")
+    print(f"   at the cross-validated alpha: {np.round(ccv, 2).tolist()}")
+    print(f"   exactly the five real columns for alpha in "
+          f"[{lo:.4f}, {hi:.4f}]")
+
+
+def fig_gd_lr_bound():
+    """경사 하강법 쪽 4절 1단계의 데이터를 그대로 쓴다.
+
+    쪽 2.3절은 안정 조건을 eta < 1 / lambda_max(X^T X / n) 으로 적고,
+    같은 절의 compute_max_learning_rate 는 2 / lambda_max 를 돌려준다.
+    어느 쪽이 맞는지 이 쪽의 데이터에서 재어 본다. 바이어스도 함께
+    맞추므로 1 열을 붙인 설계 행렬의 최대 고윳값을 쓴다.
+    """
+    import torch
+
+    torch.manual_seed(42)                      # 쪽 4절 1단계
+    n, p = 500, 3
+    X = torch.randn(n, p)
+    w_true = torch.tensor([2.0, -1.5, 0.5])
+    y = X @ w_true + 3.0 + 0.3 * torch.randn(n)
+
+    n_train = int(0.8 * n)
+    Xt, yt = X[:n_train], y[:n_train].unsqueeze(1)
+    Xa = torch.cat([Xt, torch.ones(n_train, 1)], dim=1)
+    lam = torch.linalg.eigvalsh(Xa.T @ Xa / n_train).max().item()
+    bound = 1.0 / lam
+
+    def batch_gd(lr, iters=60):
+        w, b, hist = torch.zeros(p, 1), torch.zeros(1), []
+        for _ in range(iters):
+            yp = Xt @ w + b
+            hist.append(torch.mean((yt - yp) ** 2).item())
+            e = yp - yt
+            w = w - lr * (2.0 / n_train) * (Xt.T @ e)
+            b = b - lr * (2.0 / n_train) * e.sum()
+        return hist
+
+    runs = {0.1: ("#93c5fd", "0.1 x bound  (slow)"),
+            0.5: ("#15803d", "0.5 x bound  (fastest here)"),
+            0.9: ("#1d4ed8", "0.9 x bound"),
+            1.0: ("#b45309", "1.0 x bound  (stalls)"),
+            1.2: ("#dc2626", "1.2 x bound  (diverges)"),
+            2.0: ("#7f1d1d", "2.0 x bound = the helper's answer")}
+    hist = {m: batch_gd(m * bound) for m in runs}
+    tail = {m: h[-1] for m, h in hist.items()}
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.8))
+
+    for m in (0.1, 0.5, 0.9, 1.0):
+        col, lab = runs[m]
+        axL.plot(hist[m], color=col, lw=2.3, label=f"{lab}  "
+                 f"-  eta = {m * bound:.3f}")
+    axL.set_yscale("log")
+    axL.set_ylim(0.05, 30)
+    axL.axhline(tail[0.5], color="0.6", ls=":", lw=1.2)
+    axL.text(59, tail[0.5] * 1.12, f"best loss reached: {tail[0.5]:.4f}",
+             ha="right", va="bottom", fontsize=10, color="0.35")
+    axL.annotate(f"at the bound exactly the loss\nsticks at {tail[1.0]:.4f}",
+                 (42, tail[1.0]), (-24, 56), textcoords="offset points",
+                 fontsize=10, color="#b45309",
+                 arrowprops=dict(arrowstyle="->", color="#b45309", lw=1.2))
+    axL.set_xlabel("batch gradient descent iteration", fontsize=11)
+    axL.set_ylabel("mean squared error (log scale)", fontsize=11)
+    axL.set_title("up to the bound: it converges", fontsize=11.5)
+    axL.legend(fontsize=9.5, frameon=False, loc="upper right")
+    axL.grid(alpha=0.2)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    for m in (1.0, 1.2, 2.0):
+        col, _ = runs[m]
+        h = [v if np.isfinite(v) and v > 0 else np.nan for v in hist[m]]
+        axR.plot(h, color=col, lw=2.3)
+    axR.set_yscale("log")
+    axR.set_ylim(1e-2, 1e21)
+    axR.text(30, 2.2, f"1.0 x bound  -  eta = {bound:.3f}", fontsize=10,
+             color="#b45309")
+    axR.text(36, 1.5e6, f"1.2 x bound\neta = {1.2 * bound:.3f}", fontsize=10,
+             color="#dc2626")
+    axR.annotate("2.0 x bound = what the helper returns:\n"
+                 f"eta = {2 * bound:.3f} overflows to infinity by step 25",
+                 (15, 8e13), (34, 26), textcoords="offset points",
+                 fontsize=10, color="#7f1d1d",
+                 arrowprops=dict(arrowstyle="->", color="#7f1d1d", lw=1.2))
+    axR.set_xlabel("batch gradient descent iteration", fontsize=11)
+    axR.set_ylabel("mean squared error (log scale)", fontsize=11)
+    axR.set_title("past the bound: it leaves", fontsize=11.5)
+    axR.grid(alpha=0.2)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.suptitle(f"the stable step size on this page's data is "
+                 f"{bound:.4f}; the helper returns {2 * bound:.4f}",
+                 fontsize=12)
+    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    fig.savefig("gd_lr_bound.svg", transparent=True)
+    plt.close(fig)
+    print("wrote gd_lr_bound.svg")
+    print(f"   lambda_max(X^T X / n) = {lam:.5f}")
+    print(f"   1 / lambda_max = {bound:.5f}   2 / lambda_max = {2 * bound:.5f}")
+    for m, (_, lab) in runs.items():
+        print(f"   {lab:36s} eta={m * bound:.4f}  "
+              f"loss after 60 steps = {tail[m]:.6g}")
+
+
 if __name__ == "__main__":
     fig_sigmoid_steepness()
     fig_poly_bias_variance()
+    fig_ridge_path()
+    fig_lasso_path()
+    fig_gd_lr_bound()
