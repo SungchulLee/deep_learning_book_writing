@@ -288,12 +288,14 @@ nav:
         - "Skip-gram 과 네거티브 샘플링": embeddings/02_context.md
       - 6.3 세어서 만드는 길:
         - "동시 출현 · PPMI · SVD": embeddings/03_counting.md
-      - 6.4 담은 것과 못 담은 것:
-        - "유추 · 반대말 · 한 낱말에 벡터 하나": embeddings/04_what_it_holds.md
-      - 6.5 가져다 쓰는 임베딩:
-        - GloVe 임베딩: embeddings/glove_embedding.md
-      - "6.6 그림으로 보면":
-        - "2차원으로 줄여 보기 · 그림이 잃는 것": embeddings/06_picture.md
+      - "6.4 GloVe":
+        - "세는 길과 배우는 길이 만나는 자리": embeddings/04_glove.md
+      - 6.5 담은 것과 못 담은 것:
+        - "유추 · 반대말 · 한 낱말에 벡터 하나": embeddings/05_what_it_holds.md
+      - 6.6 가져다 쓰는 임베딩:
+        - "GloVe 60억 낱말판을 열어 본다": embeddings/06_pretrained.md
+      - "6.7 그림으로 보면":
+        - "2차원으로 줄여 보기 · 그림이 잃는 것": embeddings/07_picture.md
     - "7 IMDB로 보는 텍스트 분류":
       - 장 개요: imdb/index.md
       - "7.1 단어 빈도 기반 분류":

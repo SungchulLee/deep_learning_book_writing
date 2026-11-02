@@ -165,6 +165,61 @@ def fig_keep_rate(ks, keeps, evs):
     plt.close(fig); print("wrote keep_rate.svg")
 
 
+# =============================================================================
+# 6.4 GloVe - 얼음과 김 (「그림으로 보는 AI」)
+# =============================================================================
+def fig_ice_steam():
+    """GloVe 가 태어난 자리 - Pennington 외 (2014) Table 1 을 그린다.
+
+    수는 지어낸 것이 아니라 논문 Table 1 에 실린 그대로다 (60억 낱말
+    말뭉치에서 잰 것). 요점은 「확률 두 개를 따로 보면 안 보이는 것이
+    둘을 나누면 보인다」는 것이다.
+    """
+    ks = ["solid", "gas", "water", "fashion"]
+    ice = [1.9e-4, 6.6e-5, 3.0e-3, 1.7e-5]
+    steam = [2.2e-5, 7.8e-4, 2.2e-3, 1.8e-5]
+    ratio = [8.9, 8.5e-2, 1.36, 0.96]
+
+    fig, (axT, axB) = plt.subplots(
+        2, 1, figsize=(7.6, 5.6), sharex=True,
+        gridspec_kw={"height_ratios": [1.5, 1], "hspace": 0.42})
+
+    x = range(4)
+    W = 0.36
+    for j, (v, c, lab) in enumerate(((ice, "#1d4ed8", "next to  ice"),
+                                     (steam, "#b91c1c", "next to  steam"))):
+        axT.bar([i + (j - 0.5) * W for i in x], v, W * 0.9, color=c, label=lab)
+    axT.set_yscale("log")
+    axT.set_ylim(5e-6, 2e-2)
+    axT.set_ylabel("how often the word shows up\n(log scale)", fontsize=10.5)
+    axT.legend(fontsize=11, frameon=False, loc="upper left")
+    axT.set_title("Two words, four neighbours - the counts alone do not sort them",
+                  fontsize=11.5)
+    axT.spines[["top", "right"]].set_visible(False)
+
+    for i, r in enumerate(ratio):
+        far = r > 3 or r < 1 / 3
+        axB.bar(i, r, 0.5, color="#15803d" if far else "#9ca3af")
+        axB.text(i, r * (1.35 if r > 1 else 1.35), f"{r:g}", ha="center",
+                 fontsize=12, color="#15803d" if far else "#4b5563")
+    axB.axhline(1.0, color="0.4", ls=":", lw=1.3)
+    axB.text(3.52, 1.0, "1.0 - equally likely\n       next to both",
+             fontsize=9.5, color="0.4", va="center")
+    axB.set_yscale("log")
+    axB.set_ylim(4e-2, 40)
+    axB.set_ylabel("one divided\nby the other", fontsize=10.5)
+    axB.set_xticks(list(x)); axB.set_xticklabels(ks, fontsize=12.5)
+    axB.set_xlim(-0.6, 4.9)
+    axB.set_title("but dividing them does: green is a word that "
+                  "belongs to one side", fontsize=11.5, pad=9)
+    axB.spines[["top", "right"]].set_visible(False)
+
+    fig.subplots_adjust(left=0.14, right=0.99, top=0.92, bottom=0.09)
+    fig.savefig("ice_steam.svg", transparent=True)
+    plt.close(fig)
+    print("wrote ice_steam.svg")
+
+
 if __name__ == "__main__":
     toks = load_tokens()
     counts = Counter(toks)
@@ -184,3 +239,5 @@ if __name__ == "__main__":
 
     fig_pca_2d(P2, ev2, stoi)
     fig_keep_rate(ks, keeps, evs)
+
+    fig_ice_steam()
