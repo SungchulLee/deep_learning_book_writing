@@ -1513,6 +1513,135 @@ def fig_leverage_vs_influence():
           f"{int(flag[top10].sum())} are flagged")
 
 
+def fig_loglik_baselines():
+    """이진 분류 쪽 9절의 4부를 그대로 다시 돌린다.
+
+    쪽의 스크립트는 2부에서 nn.Linear(1, 1) 을 한 번 만든다. 그 초기화가
+    난수를 쓰므로, 그 줄까지 재현해야 3부의 데이터가 쪽의 출력과 같아진다
+    (양성 63 / 음성 37, 에폭 40 에서 로그우도 -47.354, 80 부터 -47.341,
+    정확도 0.6375).
+
+    8절의 표는 「무작위로 찍는 것」의 기준으로 -n log 2 하나만 든다.
+    이 데이터는 한쪽이 많으므로 절편만 둔 모델도 함께 그려 견준다.
+    """
+    import torch
+    import torch.nn as nn
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    torch.manual_seed(42)
+    np.random.seed(42)
+
+    glm = nn.Linear(1, 1)                 # 쪽 2부 - 난수를 쓴다
+    glm.weight.data = torch.tensor([[2.0]])
+    glm.bias.data = torch.tensor([-1.0])
+
+    n_samples = 100
+    X = torch.randn(n_samples, 2)
+    true_beta = torch.tensor([0.5, 1.0, -0.5])
+    X_with_bias = torch.cat([torch.ones(n_samples, 1), X], dim=1)
+    y = torch.bernoulli(torch.sigmoid(X_with_bias @ true_beta))
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X.numpy(), y.numpy(), test_size=0.2, random_state=42)
+    scaler = StandardScaler()
+    Xtr_raw = X_train
+    Xtr = torch.FloatTensor(scaler.fit_transform(X_train))
+    ytr = torch.FloatTensor(y_train).reshape(-1, 1)
+    n = len(ytr)
+    base = float(ytr.mean())
+
+    class LogisticRegressionML(nn.Module):
+        def __init__(self, n_features):
+            super().__init__()
+            self.linear = nn.Linear(n_features, 1)
+
+        def forward(self, x):
+            return torch.sigmoid(self.linear(x))
+
+        def log_likelihood(self, x, yy):
+            z = self.linear(x)
+            return (yy * -torch.log1p(torch.exp(-z))
+                    + (1 - yy) * -torch.log1p(torch.exp(z))).sum()
+
+    model = LogisticRegressionML(2)
+    criterion = nn.BCELoss()
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.5)
+    ll_hist, acc_hist = [], []
+    for _ in range(200):
+        pred = model(Xtr)
+        loss = criterion(pred, ytr)
+        with torch.no_grad():
+            ll_hist.append(model.log_likelihood(Xtr, ytr).item())
+            acc_hist.append(float(((pred >= 0.5).float() == ytr)
+                                  .float().mean()))
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+    ll_chance = -n * np.log(2)
+    ll_base = n * (base * np.log(base) + (1 - base) * np.log(1 - base))
+    Xraw = torch.cat([torch.ones(n, 1), torch.FloatTensor(Xtr_raw)], dim=1)
+    z = Xraw @ true_beta
+    yv = ytr.squeeze()
+    ll_true = float((yv * -torch.log1p(torch.exp(-z))
+                     + (1 - yv) * -torch.log1p(torch.exp(z))).sum())
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.7))
+
+    axL.plot(ll_hist, color="#1d4ed8", lw=2.6, label="the model being trained")
+    for val, col, lab in (
+            (ll_chance, "0.45", f"beta = 0, which is -n log 2 = {ll_chance:.2f}"),
+            (ll_base, "#b45309", f"intercept only = {ll_base:.2f}"),
+            (ll_true, "#15803d", f"the beta that made the data = {ll_true:.2f}")):
+        axL.axhline(val, color=col, ls="--", lw=1.7, label=lab)
+    axL.annotate(f"settles at {ll_hist[-1]:.2f}", (199, ll_hist[-1]),
+                 (-12, -36), ha="right", textcoords="offset points",
+                 fontsize=10, color="#1d4ed8",
+                 arrowprops=dict(arrowstyle="->", color="#1d4ed8", lw=1.2))
+    axL.set_xlabel("epoch", fontsize=11)
+    axL.set_ylabel("log-likelihood on the 80 training rows", fontsize=11)
+    axL.set_title("three lines worth measuring against", fontsize=11.5)
+    axL.legend(fontsize=9.5, frameon=False, loc="lower right")
+    axL.grid(alpha=0.2)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    axR.plot(acc_hist, color="#1d4ed8", lw=2.6, label="the model")
+    axR.axhline(max(base, 1 - base), color="#b45309", ls="--", lw=1.7,
+                label=f"always answer the commoner class "
+                      f"({max(base, 1 - base):.4f})")
+    const = len(acc_hist)
+    while const > 0 and abs(acc_hist[const - 1] - acc_hist[-1]) < 1e-9:
+        const -= 1
+    axR.annotate(f"frozen from epoch {const + 1} at {acc_hist[-1]:.4f},\n"
+                 "while the log-likelihood is still climbing",
+                 (120, acc_hist[-1]), (-10, -72), ha="center",
+                 textcoords="offset points", fontsize=10, color="#1d4ed8",
+                 arrowprops=dict(arrowstyle="->", color="#1d4ed8", lw=1.2))
+    axR.set_ylim(0.4, 0.78)
+    axR.set_xlabel("epoch", fontsize=11)
+    axR.set_ylabel("training accuracy", fontsize=11)
+    axR.set_title("accuracy is the coarser instrument", fontsize=11.5)
+    axR.legend(fontsize=10, frameon=False, loc="lower right")
+    axR.grid(alpha=0.2)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.tight_layout()
+    fig.savefig("loglik_baselines.svg", transparent=True)
+    plt.close(fig)
+    print("wrote loglik_baselines.svg")
+    print(f"   class distribution: {int(y.sum())} positive, "
+          f"{int((1 - y).sum())} negative")
+    print(f"   train n = {n}, positives = {int(ytr.sum())}, "
+          f"base rate = {base:.4f}")
+    print(f"   LL at beta = 0        : {ll_chance:.3f}")
+    print(f"   LL intercept only     : {ll_base:.3f}")
+    print(f"   LL at the true beta   : {ll_true:.3f}")
+    print(f"   LL fitted             : {ll_hist[-1]:.3f}")
+    print(f"   accuracy fitted {acc_hist[-1]:.4f} vs majority "
+          f"{max(base, 1 - base):.4f}; constant from epoch {const + 1}")
+
+
 if __name__ == "__main__":
     fig_sigmoid_steepness()
     fig_poly_bias_variance()
@@ -1529,3 +1658,4 @@ if __name__ == "__main__":
     fig_least_squares_projection()
     fig_kl_both_directions()
     fig_leverage_vs_influence()
+    fig_loglik_baselines()
