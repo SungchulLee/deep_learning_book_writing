@@ -1095,7 +1095,7 @@ def fig_mae_vs_mse():
     axL.set_xlabel("x", fontsize=11)
     axL.set_ylabel("y", fontsize=11)
     axL.set_title("the slope survives; the intercept does not", fontsize=11.5)
-    axL.legend(fontsize=9.5, frameon=False, loc="upper left")
+    axR.legend(fontsize=9.5, frameon=False, loc="upper left")
     axL.grid(alpha=0.2)
     axL.spines[["top", "right"]].set_visible(False)
 
@@ -1422,6 +1422,97 @@ def fig_kl_both_directions():
         print(f"   var(g) = {v:<4} D(f||g) = {a:.4f}   D(g||f) = {b:.4f}")
 
 
+def fig_leverage_vs_influence():
+    """해석적 해 쪽 4.5절의 지렛값을 5.4절 데이터에서 재어 본다.
+
+    5.4절의 make_regression(n_samples=200, n_features=3, noise=10,
+    random_state=42) 과 같은 분할(test_size=0.2, random_state=42)을 쓰므로
+    학습 표본은 160개, 바이어스를 포함한 열은 4개다.
+
+    4.5절은 「지렛값이 큰 점은 적합에 불균형하게 큰 영향을 준다」고 적는다.
+    점을 하나씩 빼고 다시 풀어 theta 가 얼마나 움직이는지 재면 그 상관이
+    0.11 밖에 되지 않는다. 잔차와의 상관은 0.87 이다.
+    """
+    import numpy.linalg as la
+    from sklearn.datasets import make_regression
+    from sklearn.model_selection import train_test_split
+
+    x, y = make_regression(n_samples=200, n_features=3, noise=10,
+                           random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.2, random_state=42)
+    X = np.hstack([np.ones((len(x_train), 1)), x_train])
+    n, d = X.shape
+
+    A = la.inv(X.T @ X)
+    h = np.einsum("ij,jk,ik->i", X, A, X)
+    theta = A @ X.T @ y_train
+    res = y_train - X @ theta
+
+    shift = np.empty(n)
+    for i in range(n):
+        m = np.arange(n) != i
+        shift[i] = la.norm(la.solve(X[m].T @ X[m], X[m].T @ y_train[m])
+                           - theta)
+
+    thr = 2 * d / n
+    flag = h > thr
+    r_lev = np.corrcoef(shift, h)[0, 1]
+    r_res = np.corrcoef(shift, np.abs(res))[0, 1]
+    hi, big = int(np.argmax(h)), int(np.argmax(shift))
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.7))
+
+    for ax, xs, lab, rr in ((axL, h, "leverage h_ii", r_lev),
+                            (axR, np.abs(res), "size of the residual",
+                             r_res)):
+        ax.scatter(xs[~flag], shift[~flag], s=26, c="#9ca3af", alpha=0.75,
+                   edgecolors="none", label="not flagged")
+        ax.scatter(xs[flag], shift[flag], s=40, c="#b45309", alpha=0.9,
+                   edgecolors="none",
+                   label=f"flagged by h > 2(p+1)/n = {thr:.3f}  "
+                         f"({int(flag.sum())} points)")
+        ax.plot(xs[big], shift[big], "o", ms=20, mfc="none", mec="#b91c1c",
+                mew=2.4)
+        ax.set_xlabel(lab, fontsize=11)
+        ax.set_ylabel("how far theta moves when the point is dropped",
+                      fontsize=10.5)
+        ax.set_title(f"correlation with influence: {rr:.2f}", fontsize=11.5)
+        ax.grid(alpha=0.2)
+        ax.spines[["top", "right"]].set_visible(False)
+
+    axL.axvline(thr, color="#b45309", ls="--", lw=1.4)
+    axL.annotate(f"the most influential point\nhas middling leverage "
+                 f"{h[big]:.3f}\nand a residual of {res[big]:.1f}",
+                 (h[big], shift[big]), (40, -16), textcoords="offset points",
+                 fontsize=10, color="#b91c1c",
+                 arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.2))
+    axL.annotate(f"the highest leverage of all, {h[hi]:.3f},\nmoves theta "
+                 f"by {shift[hi]:.3f} - below average",
+                 (h[hi], shift[hi]), (-16, 56), ha="right",
+                 textcoords="offset points", fontsize=10, color="0.25",
+                 arrowprops=dict(arrowstyle="->", color="0.4", lw=1.1))
+    axR.legend(fontsize=9.5, frameon=False, loc="upper left")
+
+    fig.tight_layout()
+    fig.savefig("leverage_vs_influence.svg", transparent=True)
+    plt.close(fig)
+    print("wrote leverage_vs_influence.svg")
+    print(f"   n = {n}, columns = {d}, sum of h = {h.sum():.6f}")
+    print(f"   h ranges {h.min():.5f} .. {h.max():.5f}  (1/n = {1 / n:.5f})")
+    print(f"   rule of thumb {thr:.3f} flags {int(flag.sum())} points")
+    print(f"   corr(shift, leverage)  = {r_lev:.4f}")
+    print(f"   corr(shift, |residual|) = {r_res:.4f}")
+    print(f"   highest leverage  h={h[hi]:.4f} r={res[hi]:+.3f} "
+          f"shift={shift[hi]:.4f}")
+    print(f"   most influential  h={h[big]:.4f} r={res[big]:+.3f} "
+          f"shift={shift[big]:.4f}")
+    print(f"   mean shift = {shift.mean():.4f}")
+    top10 = np.argsort(shift)[-10:]
+    print(f"   of the 10 most influential points, "
+          f"{int(flag[top10].sum())} are flagged")
+
+
 if __name__ == "__main__":
     fig_sigmoid_steepness()
     fig_poly_bias_variance()
@@ -1437,3 +1528,4 @@ if __name__ == "__main__":
     fig_softmax_limits()
     fig_least_squares_projection()
     fig_kl_both_directions()
+    fig_leverage_vs_influence()
