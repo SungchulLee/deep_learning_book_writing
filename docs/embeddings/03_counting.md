@@ -165,6 +165,18 @@ if __name__ == "__main__":
     row = M[stoi["the"]].clone(); row[stoi["the"]] = -1
     print("    " + ", ".join(words[i] for i in row.topk(6).indices.tolist()))
 
+    # PMI 를 동시 출현 확률로 무게를 주어 더하면 상호정보량이 된다.
+    # PPMI 표의 칸 하나하나가 그 합의 낱낱 항이다
+    total = C.sum()
+    pab = C / total
+    pmi_full = (pab / ((C.sum(1, keepdim=True) / total)
+                       * (C.sum(0, keepdim=True) / total) + 1e-12) + 1e-12).log()
+    mi = float((pab * pmi_full).sum())
+    print(f"\n  상호정보량 I = sum_ab P(a,b) PMI(a,b) = {mi:.4f} nat")
+    print(f"    (PPMI 는 그 합의 낱낱 항 가운데 양수만 남긴 것이다)")
+    print(f"    견줄 자리: 낱말 하나의 엔트로피 H = "
+          f"{float(-(lambda q: (q * (q + 1e-12).log()).sum())(C.sum(1) / total)):.4f} nat")
+
     t = time.perf_counter()
     W_learn = train_skipgram()
     t_learn = time.perf_counter() - t
@@ -196,6 +208,10 @@ if __name__ == "__main__":
   the 와 가장 많이 같이 나온 낱말 (PPMI 로 고친 뒤):
     ocean, omen, rest, workings, iceberg, denominator
 
+  상호정보량 I = sum_ab P(a,b) PMI(a,b) = 0.6449 nat
+    (PPMI 는 그 합의 낱낱 항 가운데 양수만 남긴 것이다)
+    견줄 자리: 낱말 하나의 엔트로피 H = 6.5549 nat
+
   낱말        세어서 만든 것                                      배워서 만든 것
   good      great, also, really, but, very, well          decent, great, solid, fine, nice, classical
   terrible  awful, acting, inept, bad, horrible, laughableawful, bad, horrible, pitiful, chuckle, laughable
@@ -212,8 +228,8 @@ if __name__ == "__main__":
     평균 2.2/6 — 우연이라면 0.0045/6 이다
 
   드는 시간
-    세기      0.5초   (한 번 세고 한 번 쪼갠다)
-    배우기    14.3초   (6,000스텝)
+    세기      0.7초   (한 번 세고 한 번 쪼갠다)
+    배우기    14.6초   (6,000스텝)
 ```
 
 ---
@@ -247,6 +263,19 @@ ocean, omen, rest, workings, iceberg, denominator
 ```
 
 **완전히 달라졌다.** `the ocean`, `the rest`, `the iceberg` — **거의 언제나 `the`를 달고 나오는 낱말들**이다. `of`는 흔해서 높았을 뿐이고, `iceberg`는 드문데도 나올 때마다 `the`와 함께 나온다.
+
+!!! note "PMI 는 상호정보량의 낱낱 항이다"
+    PPMI 의 **P** 를 떼고 보면 PMI 이고, 그것을 동시 출현 확률로 무게를 주어 모두 더하면 **상호정보량**이 된다.
+
+    $$
+    I(A; B) \;=\; \sum_{a, b} P(a, b)\, \underbrace{\log \frac{P(a,b)}{P(a)P(b)}}_{\mathrm{PMI}(a,b)}
+    $$
+
+    곧 **PPMI 표의 칸 하나하나가 그 합의 항**이고, 우리는 그 가운데 양수만 남겨 표로 쓰는 것이다. 재어 보면 이 말뭉치에서 $I = 0.6449$ nat 이다. 낱말 하나의 엔트로피가 6.5549 nat 이니, **둘레 낱말 하나를 알면 가운데 낱말의 불확실함이 10% 남짓 줄어든다**는 뜻이다.
+
+    적어 보이지만 그 10%가 이 장이 가진 전부다. 임베딩이 담는 것은 **낱말 사이에 흐르는 그 정보**이고, 그래서 이 쪽과 [앞 쪽](02_context.md)이 같은 것을 다른 길로 길어 올린다.
+
+    같은 양이 [5.2절](../ch05/latent_generative/index.md)에도 나온다. 거기서 VAE 의 KL 항을 쪼개면 $I_q(X; Z)$ 가 나오는데, **잠재 표현이 입력 정보를 얼마나 싣는지**를 재는 바로 이 상호정보량이다. 여기서는 그것을 **재료로 쓰고**, 거기서는 **값으로 치른다.**
 
 ### 그다음은 5.1절과 같은 수법이다
 
