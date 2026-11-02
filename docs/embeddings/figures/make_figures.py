@@ -32,6 +32,7 @@ import matplotlib
 matplotlib.use("Agg")
 matplotlib.rcParams["svg.fonttype"] = "path"
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -166,6 +167,243 @@ def fig_keep_rate(ks, keeps, evs):
 
 
 # =============================================================================
+# 6.1 조회는 행렬 곱이다 / 원핫을 실제로 만들면 드는 값
+# =============================================================================
+def fig_lookup_is_matmul():
+    """6.1 2절 - 표에서 꺼내는 것과 원핫을 곱하는 것이 왜 같은가.
+
+    식만으로는 안 보이는 것을 그린다. 원핫을 세로로 세워 행렬의 줄과
+    나란히 두면, 1 인 칸 하나가 어느 줄을 살리는지가 바로 보인다.
+
+    번호 47 은 쪽의 출력에 있는 good 의 번호 그대로다.
+    """
+    N, HOT = 9, 4
+    CH, ROW_W, VEC_W = 3.4, 30.0, 5.0
+    top, left = 45.0, 6.0
+    ybot = lambda r: top - (r + 1) * CH
+
+    fig, ax = plt.subplots(figsize=(10.0, 4.4))
+    ax.set_xlim(0, 100); ax.set_ylim(0, 52); ax.axis("off")
+
+    # --- 원핫 (세로로 세운다) ---
+    for r in range(N):
+        on = r == HOT
+        ax.add_patch(Rectangle((left, ybot(r)), VEC_W, CH,
+                               facecolor="#b91c1c" if on else "white",
+                               edgecolor="#374151", lw=1))
+        ax.text(left + VEC_W / 2, ybot(r) + CH / 2, "1" if on else "0",
+                ha="center", va="center", fontsize=11,
+                color="white" if on else "#9ca3af")
+    ax.text(left + VEC_W / 2, top + 1.6, "one-hot", ha="center", fontsize=11)
+    ax.text(left + VEC_W / 2, ybot(N - 1) - 2.4,
+            "20,000 slots\nonly slot 47 is 1", ha="center", va="top",
+            fontsize=9.5, color="0.45")
+
+    ax.text(left + VEC_W + 3.0, top - N * CH / 2, "x", fontsize=16,
+            va="center", ha="center")
+
+    # --- 표 W (줄을 나란히) ---
+    mx = left + VEC_W + 6.0
+    for r in range(N):
+        on = r == HOT
+        ax.add_patch(Rectangle((mx, ybot(r)), ROW_W, CH,
+                               facecolor="#fca5a5" if on else "white",
+                               edgecolor="#374151", lw=1.4 if on else 1))
+    ax.text(mx + ROW_W / 2, top + 1.6, "the table W   (20,000 x 64)",
+            ha="center", fontsize=11)
+    ax.text(mx + ROW_W / 2, ybot(HOT) + CH / 2, "row 47", ha="center",
+            va="center", fontsize=10.5, color="#7f1d1d")
+    ax.text(mx + ROW_W / 2, ybot(N - 1) - 2.4,
+            "one row per word", ha="center", va="top",
+            fontsize=9.5, color="0.45")
+
+    ax.text(mx + ROW_W + 3.2, top - N * CH / 2, "=", fontsize=16,
+            va="center", ha="center")
+
+    # --- 나온 것: 줄 하나 ---
+    rx = mx + ROW_W + 6.4
+    ax.add_patch(Rectangle((rx, ybot(HOT)), ROW_W, CH, facecolor="#fca5a5",
+                           edgecolor="#374151", lw=1.4))
+    ax.text(rx + ROW_W / 2, ybot(HOT) + CH / 2, "row 47 of W", ha="center",
+            va="center", fontsize=11)
+    ax.text(rx + ROW_W / 2, top + 1.6, '64 numbers for "good"',
+            ha="center", fontsize=11)
+
+    ax.text(50, 1.2, "the single 1 keeps one row and zeroes every other - "
+            "so multiplying IS looking up",
+            ha="center", fontsize=11.5, color="#b91c1c")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.97, bottom=0.03)
+    fig.savefig("lookup_is_matmul.svg", transparent=True)
+    plt.close(fig); print("wrote lookup_is_matmul.svg")
+
+
+def fig_cost_of_onehot():
+    """6.1 3절 - 같은 식인데 실제로 만들면 값이 다르다.
+
+    수는 쪽의 출력 그대로다. 시간은 이 글을 쓴 기계에서 잰 것이고,
+    메모리는 102,400 x 20,000 x 4 바이트라 기계와 무관하다.
+    """
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(10.4, 4.0))
+    pairs = [(axL, "time to turn 102,400 words into vectors",
+              [("lookup", 1.61, "#15803d"), ("one-hot matmul", 1914.39,
+                                             "#b91c1c")],
+              "milliseconds (log scale)", "1,193x", "{:,.2f} ms"),
+             (axR, "memory just to hold the thing",
+              [("the table W", 4.9, "#15803d"), ("one-hot matrix", 7812.0,
+                                                 "#b91c1c")],
+              "megabytes (log scale)", "1,594x", "{:,.1f} MB")]
+    for ax, title, bars, ylab, ratio, fmt in pairs:
+        for i, (name, v, c) in enumerate(bars):
+            ax.bar(i, v, 0.52, color=c)
+            ax.text(i, v * 1.25, fmt.format(v), ha="center", fontsize=12)
+        ax.set_yscale("log")
+        ax.set_ylim(1, bars[1][1] * 12)
+        ax.set_xticks([0, 1]); ax.set_xticklabels([b[0] for b in bars],
+                                                  fontsize=11.5)
+        ax.set_xlim(-0.6, 1.9)
+        ax.set_ylabel(ylab, fontsize=10.5)
+        ax.set_title(title, fontsize=11.5)
+        ax.annotate("", (1.55, bars[0][1]), (1.55, bars[1][1]),
+                    arrowprops=dict(arrowstyle="<->", color="0.35", lw=1.6))
+        ax.text(1.62, (bars[0][1] * bars[1][1]) ** 0.5, ratio, fontsize=13,
+                va="center", color="0.2")
+        ax.grid(axis="y", alpha=0.2)
+        ax.spines[["top", "right"]].set_visible(False)
+    fig.tight_layout()
+    fig.savefig("cost_of_onehot.svg", transparent=True)
+    plt.close(fig); print("wrote cost_of_onehot.svg")
+
+
+# =============================================================================
+# 6.2 Skip-gram 이 푸는 문제 / 네거티브 샘플링이 버는 자리 / 0.75 제곱
+# =============================================================================
+def fig_skipgram_task():
+    """6.2 2절 - 기계가 실제로 푸는 문제가 무엇인지 그린다.
+
+    글로만 적으면 「가운데 낱말로 둘레를 맞힌다」가 추상적으로 들린다.
+    글월 하나를 늘어놓고 창을 씌우면 짝이 어떻게 생기는지 바로 보인다.
+    글월은 IMDB 영화평에 흔한 꼴로 골랐고 지어낸 수는 없다.
+    """
+    sent = ["this", "was", "a", "really", "terrible", "movie", "with", "bad",
+            "acting"]
+    centre = 4
+    fig, ax = plt.subplots(figsize=(10.2, 3.9))
+    ax.set_xlim(-0.5, len(sent) - 0.5); ax.set_ylim(-2.3, 2.0); ax.axis("off")
+
+    for i, w in enumerate(sent):
+        inwin = abs(i - centre) <= 4 and i != centre
+        is_c = i == centre
+        ax.text(i, 0, w, ha="center", va="center", fontsize=12.5,
+                color="white" if is_c else ("#111827" if inwin else "#9ca3af"),
+                bbox=dict(boxstyle="round,pad=0.34",
+                          facecolor="#b91c1c" if is_c else
+                          ("#fee2e2" if inwin else "#f3f4f6"),
+                          edgecolor="#b91c1c" if is_c else "none"))
+        if inwin:
+            ax.annotate("", (i, -0.42), (centre, -0.42),
+                        arrowprops=dict(arrowstyle="->", color="#b91c1c",
+                                        lw=1.1, alpha=0.65,
+                                        connectionstyle="arc3,rad=0.42"))
+
+    ax.text(centre, 1.25, "centre word", ha="center", fontsize=11,
+            color="#b91c1c")
+    ax.text(centre, -1.65,
+            "window of 4 on each side - every arrow is one training pair",
+            ha="center", fontsize=11, color="#374151")
+    ax.text(centre, -2.15,
+            '"given terrible, was bad nearby?"   yes.   '
+            '"given terrible, was kitchen nearby?"   no.',
+            ha="center", fontsize=10.5, color="0.4")
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.98, bottom=0.02)
+    fig.savefig("skipgram_task.svg", transparent=True)
+    plt.close(fig); print("wrote skipgram_task.svg")
+
+
+def fig_negative_sampling_scaling():
+    """6.2 4절 - 네거티브 샘플링의 값어치는 어휘를 키워야 보인다.
+
+    수는 쪽의 출력 그대로다 (점수 매기는 비용만, 뽑는 일은 뺐다).
+    """
+    v = [8_000, 32_000, 128_000, 512_000]
+    neg = [2.79, 2.37, 5.11, 14.58]
+    full = [6.86, 23.90, 121.27, 507.30]
+
+    fig, ax = plt.subplots(figsize=(7.8, 4.6))
+    ax.plot(v, full, "s-", color="#b91c1c", lw=2.2, ms=9,
+            label="score the whole vocabulary")
+    ax.plot(v, neg, "o-", color="#15803d", lw=2.2, ms=9,
+            label="negative sampling (6 pairs)")
+    for x, a, b in zip(v, neg, full):
+        ax.annotate(f"{b:.0f}", (x, b), (0, 11), textcoords="offset points",
+                    ha="center", fontsize=10, color="#b91c1c")
+        ax.annotate(f"{a:.1f}", (x, a), (0, -17), textcoords="offset points",
+                    ha="center", fontsize=10, color="#15803d")
+        ax.annotate("", (x, a), (x, b),
+                    arrowprops=dict(arrowstyle="-", color="0.75", lw=1))
+    ax.text(512_000, (neg[-1] * full[-1]) ** 0.5, "  35x", fontsize=13,
+            va="center", color="0.2")
+    ax.set_xscale("log"); ax.set_yscale("log")
+    ax.set_xticks(v); ax.set_xticklabels([f"{x // 1000}k" for x in v],
+                                         fontsize=11.5)
+    ax.set_xlim(6_000, 1_150_000); ax.set_ylim(1.4, 1300)
+    ax.set_xlabel("vocabulary size", fontsize=11)
+    ax.set_ylabel("milliseconds per step   (log scale)", fontsize=11)
+    ax.set_title("the green line is nearly flat - that is the whole point",
+                 fontsize=11.5)
+    ax.legend(fontsize=10.5, frameon=False, loc="upper left")
+    ax.grid(alpha=0.2)
+    fig.tight_layout()
+    fig.savefig("negative_sampling_scaling.svg", transparent=True)
+    plt.close(fig); print("wrote negative_sampling_scaling.svg")
+
+
+def fig_three_quarter_power(counts, words):
+    """6.2 4절 - 0.75 제곱이 어느 사이를 노린 값인가.
+
+    세 분포를 같은 축에 둔다. 빈도 그대로 뽑으면 the 가 거의 다 먹고,
+    고르게 뽑으면 아무도 안 쓰는 낱말만 나온다. 0.75 제곱이 그 사이다.
+    수는 이 장이 쓰는 말뭉치(영화평 6,000편, 어휘 8,000)에서 센 것이다.
+    """
+    f = torch.tensor([counts[w] for w in words], dtype=torch.double)
+    dists = [("p ~ frequency", f / f.sum(), "#b91c1c"),
+             ("p ~ frequency^0.75", f ** 0.75 / (f ** 0.75).sum(), "#15803d"),
+             ("p ~ uniform", torch.ones_like(f) / len(f), "#1d4ed8")]
+    rank = torch.arange(1, len(f) + 1)
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.0, 4.3),
+                                   gridspec_kw={"width_ratios": [1.3, 1]})
+    for name, p, c in dists:
+        axL.plot(rank, p, color=c, lw=2, label=name)
+    axL.set_xscale("log"); axL.set_yscale("log")
+    axL.set_xlabel("word, most frequent first (log scale)", fontsize=10.5)
+    axL.set_ylabel("chance of being drawn as a negative", fontsize=10.5)
+    axL.set_title("damping the common words without erasing them",
+                  fontsize=11.5)
+    axL.legend(fontsize=10.5, frameon=False)
+    axL.grid(alpha=0.2)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    top = 100
+    for i, (name, p, c) in enumerate(dists):
+        share = 100 * float(p[:top].sum())
+        axR.bar(i, share, 0.5, color=c)
+        axR.text(i, share + 1.6, f"{share:.1f}%", ha="center", fontsize=12)
+    axR.set_xticks(range(3))
+    axR.set_xticklabels(["frequency", "^0.75", "uniform"], fontsize=11)
+    axR.set_ylim(0, 100)
+    axR.set_ylabel(f"share taken by the top {top} words (%)", fontsize=10.5)
+    axR.set_title("how much the commonest words take", fontsize=11.5)
+    axR.spines[["top", "right"]].set_visible(False)
+    fig.tight_layout()
+    fig.savefig("three_quarter_power.svg", transparent=True)
+    plt.close(fig)
+    print("wrote three_quarter_power.svg")
+    for name, p, _ in dists:
+        print(f"   {name:<22} top-{top} share {100 * float(p[:top].sum()):.1f}%"
+              f"   'the' {100 * float(p[0]):.2f}%")
+
+
+# =============================================================================
 # 6.4 GloVe - 얼음과 김 (「그림으로 보는 AI」)
 # =============================================================================
 def fig_ice_steam():
@@ -240,4 +478,6 @@ if __name__ == "__main__":
     fig_pca_2d(P2, ev2, stoi)
     fig_keep_rate(ks, keeps, evs)
 
+    fig_lookup_is_matmul()
+    fig_cost_of_onehot()
     fig_ice_steam()
