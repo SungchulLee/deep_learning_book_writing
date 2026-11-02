@@ -1144,6 +1144,284 @@ def fig_mae_vs_mse():
           f"median(y - 2x) = {b_median:.4f}")
 
 
+def fig_softmax_limits():
+    """소프트맥스 회귀의 한계 쪽 3절의 코드를 그대로 돌리고 그 결정
+    영역을 그린다.
+
+    make_data 와 train 을 쪽에 적힌 그대로 옮겼으므로 정확도도 쪽의
+    출력과 같다 (blobs 88.83/87.50, moons 86.50/97.00,
+    circles 52.17/99.00).
+
+    2절이 「결정 영역은 볼록하다」고 증명한 것을 눈으로 보이는 그림이다.
+    """
+    import torch
+    import torch.nn as nn
+    from sklearn.datasets import make_blobs, make_moons, make_circles
+    from sklearn.model_selection import train_test_split
+
+    def make_data(name, n=2000, seed=0):
+        if name == "blobs":
+            X, y = make_blobs(n_samples=n, centers=3, n_features=2,
+                              cluster_std=1.2, random_state=seed)
+        elif name == "moons":
+            X, y = make_moons(n_samples=n, noise=0.20, random_state=seed)
+        else:
+            X, y = make_circles(n_samples=n, noise=0.10, factor=0.5,
+                                random_state=seed)
+        X = (X - X.mean(0)) / X.std(0)
+        return train_test_split(X.astype(np.float32), y.astype(np.int64),
+                                test_size=0.3, random_state=seed)
+
+    def train(model, Xtr, ytr, Xte, yte, epochs=400):
+        opt = torch.optim.Adam(model.parameters(), lr=0.05)
+        criterion = nn.CrossEntropyLoss()
+        Xtr, ytr = torch.from_numpy(Xtr), torch.from_numpy(ytr)
+        Xte, yte = torch.from_numpy(Xte), torch.from_numpy(yte)
+        for _ in range(epochs):
+            opt.zero_grad()
+            criterion(model(Xtr), ytr).backward()
+            opt.step()
+        with torch.no_grad():
+            return 100 * (model(Xte).argmax(1) == yte).float().mean().item()
+
+    names = ("blobs", "moons", "circles")
+    fig, axes = plt.subplots(2, 3, figsize=(13.0, 8.0))
+    face = ("#dbeafe", "#fee2e2", "#dcfce7")
+    edge = ("#1d4ed8", "#b91c1c", "#15803d")
+    accs = {}
+
+    for col, name in enumerate(names):
+        Xtr, Xte, ytr, yte = make_data(name)
+        k = len(np.unique(ytr))
+
+        torch.manual_seed(0)
+        linear = nn.Linear(2, k)
+        accs[(name, "linear")] = train(linear, Xtr, ytr, Xte, yte)
+
+        torch.manual_seed(0)
+        mlp = nn.Sequential(nn.Linear(2, 32), nn.ReLU(),
+                            nn.Linear(32, 32), nn.ReLU(),
+                            nn.Linear(32, k))
+        accs[(name, "mlp")] = train(mlp, Xtr, ytr, Xte, yte)
+
+        lo = Xte.min(0) - 0.45
+        hi = Xte.max(0) + 0.45
+        gx, gy = np.meshgrid(np.linspace(lo[0], hi[0], 320),
+                             np.linspace(lo[1], hi[1], 320))
+        grid = torch.from_numpy(np.c_[gx.ravel(), gy.ravel()]
+                                .astype(np.float32))
+
+        for row, (model, tag) in enumerate(((linear, "linear"), (mlp, "mlp"))):
+            ax = axes[row, col]
+            with torch.no_grad():
+                Z = model(grid).argmax(1).numpy().reshape(gx.shape)
+            ax.contourf(gx, gy, Z, levels=np.arange(-0.5, k, 1.0),
+                        colors=face[:k], alpha=0.95)
+            ax.contour(gx, gy, Z, levels=np.arange(0.5, k - 0.5 + 1e-9, 1.0),
+                       colors="0.25", linewidths=1.6)
+            for c in range(k):
+                m = yte == c
+                ax.scatter(Xte[m, 0], Xte[m, 1], s=9, c=edge[c], alpha=0.62,
+                           edgecolors="none")
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_title(f"{accs[(name, tag)]:.2f}%", fontsize=13,
+                         color="#b91c1c" if accs[(name, tag)] < 60 else "0.15")
+            if col == 0:
+                ax.set_ylabel("softmax regression\n(one linear map)"
+                              if row == 0 else
+                              "MLP\n(two hidden layers, ReLU)", fontsize=11.5)
+
+    for col, name in enumerate(names):
+        axes[0, col].text(0.5, 1.20, name, transform=axes[0, col].transAxes,
+                          ha="center", fontsize=14)
+
+    axes[1, 2].annotate("only a curved region can hold a ring",
+                        (0.5, 0.06), xycoords="axes fraction", ha="center",
+                        fontsize=11, color="#15803d")
+    axes[0, 2].annotate("a straight cut through a ring is a coin flip",
+                        (0.40, 0.05), xycoords="axes fraction", ha="center",
+                        fontsize=11, color="#b91c1c")
+
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    fig.savefig("softmax_limits.svg", transparent=True)
+    plt.close(fig)
+    print("wrote softmax_limits.svg")
+    for name in names:
+        print(f"   {name:<8} linear {accs[(name, 'linear')]:.2f}%   "
+              f"mlp {accs[(name, 'mlp')]:.2f}%")
+
+
+def fig_least_squares_projection():
+    """L2 로스 쪽 5절의 ASCII 그림을 실제 수로 다시 그린다.
+
+    7절의 「닫힌 해와 경사 하강법이 같은 곳에 이르는지 보기」 데이터
+    (torch seed 0, N=100, y = 2x + 1 + 0.1 잡음)를 그대로 쓴다.
+    정규 방정식의 해는 그 절의 출력과 같은 [1.9881, 1.016] 이고
+    X^T r 도 같은 -6.65e-05, -1.34e-05 가 나온다.
+
+    왼쪽 그림의 **각도만** 과장했다 - 실제로 잰 각은 2.57도라서 그대로
+    그리면 삼각형이 보이지 않는다. 그 사실을 그림 안에 적어 둔다.
+    길이와 R^2 는 모두 잰 값이다.
+    """
+    import torch
+    from matplotlib.patches import Polygon
+
+    torch.manual_seed(0)
+    N = 100
+    x = torch.randn(N, 1)
+    X = torch.cat([x, torch.ones(N, 1)], dim=1)
+    theta_true = torch.tensor([[2.0], [1.0]])
+    y = X @ theta_true + 0.1 * torch.randn(N, 1)
+
+    theta = torch.linalg.solve(X.T @ X, X.T @ y)
+    y_hat = X @ theta
+    r = y - y_hat
+    xtr = (X.T @ r).numpy().ravel()
+
+    ybar = float(y.mean())
+    sst = float(((y - ybar) ** 2).sum())
+    ssr = float(((y_hat - ybar) ** 2).sum())
+    sse = float((r ** 2).sum())
+    r2 = ssr / sst
+    ang = np.degrees(np.arccos(np.sqrt(r2)))
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.9))
+
+    # --- 왼쪽: 사영 그림 (각도만 과장) -----------------------------------
+    draw = np.radians(25.0)
+    L = 5.6
+    foot = np.array([L * np.cos(draw), 0.0])
+    tip = np.array([L * np.cos(draw), L * np.sin(draw)])
+
+    axL.add_patch(Polygon([(-1.5, -0.95), (6.6, -0.95), (7.8, 0.75),
+                           (-0.3, 0.75)], closed=True, facecolor="#dbeafe",
+                          edgecolor="#1d4ed8", lw=1.6, alpha=0.7))
+    axL.text(8.0, -1.45, "the shaded plane is the column space of X - "
+             "every prediction the model can make", fontsize=10,
+             color="#1d4ed8", ha="right", va="bottom")
+
+    axL.annotate("", tip, (0, 0), arrowprops=dict(arrowstyle="-|>", lw=2.6,
+                                                  color="#b91c1c"))
+    axL.annotate("", foot, (0, 0), arrowprops=dict(arrowstyle="-|>", lw=2.6,
+                                                   color="#15803d"))
+    axL.annotate("", tip, foot, arrowprops=dict(arrowstyle="-|>", lw=2.6,
+                                                color="#b45309"))
+    axL.plot([foot[0] - 0.34, foot[0] - 0.34, foot[0]],
+             [0.0, 0.34, 0.34], color="0.3", lw=1.4)
+
+    axL.text(tip[0] * 0.46, tip[1] * 0.56 + 0.22,
+             f"y, centred\nlength {np.sqrt(sst):.4f}", fontsize=10.5,
+             color="#b91c1c", ha="center")
+    axL.text(foot[0] * 0.40, -0.70,
+             f"y-hat = X theta*\nlength {np.sqrt(ssr):.4f}", fontsize=10.5,
+             color="#15803d", ha="center")
+    axL.text(tip[0] + 0.18, tip[1] * 0.5,
+             f"residual r\nlength {np.sqrt(sse):.4f}", fontsize=10.5,
+             color="#b45309")
+    axL.annotate(f"the angle is drawn at 25 degrees so the triangle is "
+                 f"visible.\nmeasured on this data it is {ang:.2f} degrees, "
+                 f"and R-squared = cos-squared = {r2:.6f}",
+                 (0.5, -0.17), xycoords="axes fraction", ha="center",
+                 fontsize=10, color="0.3")
+    axL.set_xlim(-1.9, 8.6)
+    axL.set_ylim(-1.55, 2.55)
+    axL.set_aspect("equal")
+    axL.axis("off")
+    axL.set_title("least squares is a shadow cast straight down",
+                  fontsize=11.5)
+
+    # --- 오른쪽: 직교를 데이터로 ----------------------------------------
+    xn = x.numpy().ravel()
+    rn = r.numpy().ravel()
+    axR.axhline(0, color="0.4", lw=1.2)
+    axR.scatter(xn, rn, s=20, c="#b45309", alpha=0.7, edgecolors="none")
+    axR.annotate(f"sum of residuals  =  {xtr[1]:.2e}\n"
+                 f"sum of x times residual  =  {xtr[0]:.2e}\n"
+                 "both columns of X are orthogonal to r",
+                 (0.03, 0.04), xycoords="axes fraction", fontsize=10.5,
+                 color="0.2")
+    axR.set_xlabel("x", fontsize=11)
+    axR.set_ylabel("residual", fontsize=11)
+    axR.set_title("no tilt and no offset left over", fontsize=11.5)
+    axR.grid(alpha=0.2)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.tight_layout()
+    fig.savefig("least_squares_projection.svg", transparent=True)
+    plt.close(fig)
+    print("wrote least_squares_projection.svg")
+    print(f"   theta* = {[round(v, 4) for v in theta.flatten().tolist()]}")
+    print(f"   X^T r = {xtr.tolist()}")
+    print(f"   SST = {sst:.4f}  SSR = {ssr:.4f}  SSE = {sse:.4f}  "
+          f"SSR+SSE = {ssr + sse:.4f}")
+    print(f"   R^2 = {r2:.6f}  angle = {ang:.4f} degrees")
+
+
+def fig_kl_both_directions():
+    """KL 발산 쪽 3절의 손셈을 축 위에 올린다.
+
+    f = N(1, 1) 을 고정하고 g = N(0, s) 의 분산 s 를 움직이며 8절의
+    단변량 공식으로 두 방향을 모두 계산한다. 3절이 손으로 구한 네 수
+    (s=1 에서 양쪽 0.5, s=2 에서 0.3466 과 0.6534) 가 그대로 나온다.
+
+    잰 것이 아니라 공식을 그린 것이므로 데이터는 없다.
+    """
+    s = np.linspace(0.18, 5.0, 600)          # g 의 분산
+    sig = np.sqrt(s)
+    d_fg = np.log(sig) + 1.0 / s - 0.5        # D(f || g)
+    d_gf = -np.log(sig) + s / 2.0             # D(g || f)
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.6))
+
+    xx = np.linspace(-5, 6, 600)
+    norm = lambda x, m, v: np.exp(-(x - m) ** 2 / (2 * v)) / np.sqrt(2 * np.pi * v)
+    axL.plot(xx, norm(xx, 1, 1), color="#b91c1c", lw=2.6,
+             label="f = N(1, 1), fixed")
+    for v, st, lab in ((1.0, "--", "g = N(0, 1):  both directions 0.5000"),
+                       (2.0, "-", "g = N(0, 2):  0.3466 and 0.6534")):
+        axL.plot(xx, norm(xx, 0, v), color="#1d4ed8", lw=2.2, ls=st,
+                 alpha=0.95 if v == 2 else 0.55, label=lab)
+    axL.set_ylim(0, 0.52)
+    axL.set_xlabel("x", fontsize=11)
+    axL.set_ylabel("density", fontsize=11)
+    axL.set_title("same width, or not", fontsize=11.5)
+    axL.legend(fontsize=9.5, frameon=False, loc="upper right")
+    axL.grid(alpha=0.2)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    axR.plot(s, d_fg, color="#b91c1c", lw=2.6, label="D(f || g)")
+    axR.plot(s, d_gf, color="#1d4ed8", lw=2.6, label="D(g || f)")
+    axR.plot(1.0, 0.5, "o", ms=11, color="#15803d", zorder=5)
+    axR.annotate("the one place they agree:\nvariance 1, both 0.5000",
+                 (1.0, 0.5), (34, 54), textcoords="offset points",
+                 fontsize=10, color="#15803d",
+                 arrowprops=dict(arrowstyle="->", color="#15803d", lw=1.2))
+    axR.axvline(2.0, color="0.55", ls=":", lw=1.4)
+    axR.plot([2.0, 2.0], [np.log(np.sqrt(2)) + 0.5 - 0.5, 1 - np.log(np.sqrt(2))],
+             "o", ms=8, color="0.35")
+    axR.annotate("variance 2:\n0.3466 and 0.6534",
+                 (2.0, np.log(np.sqrt(2))), (26, -36),
+                 textcoords="offset points", fontsize=10, color="0.25",
+                 arrowprops=dict(arrowstyle="->", color="0.35", lw=1.1))
+    axR.set_xlabel("the variance of g  (f stays N(1, 1))", fontsize=11)
+    axR.set_ylabel("KL divergence, in nats", fontsize=11)
+    axR.set_ylim(0, 2.6)
+    axR.set_title("the two directions cross exactly once", fontsize=11.5)
+    axR.legend(fontsize=11, frameon=False, loc="upper left")
+    axR.grid(alpha=0.2)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.tight_layout()
+    fig.savefig("kl_both_directions.svg", transparent=True)
+    plt.close(fig)
+    print("wrote kl_both_directions.svg")
+    for v in (0.5, 1.0, 2.0, 4.0):
+        a = np.log(np.sqrt(v)) + 1.0 / v - 0.5
+        b = -np.log(np.sqrt(v)) + v / 2.0
+        print(f"   var(g) = {v:<4} D(f||g) = {a:.4f}   D(g||f) = {b:.4f}")
+
+
 if __name__ == "__main__":
     fig_sigmoid_steepness()
     fig_poly_bias_variance()
@@ -1156,3 +1434,6 @@ if __name__ == "__main__":
     fig_capture_recapture_spread()
     fig_likelihood_sharpens()
     fig_mae_vs_mse()
+    fig_softmax_limits()
+    fig_least_squares_projection()
+    fig_kl_both_directions()
