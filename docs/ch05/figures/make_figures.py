@@ -410,6 +410,55 @@ class VAEModel(nn.Module):
 
 
 # === 컨볼루션 두 쪽이 본문에서 쓰는 그림 ===================================
+def fig_two_steps_mirror():
+    """05_conv_cvae 5절 - 두 걸음이 서로 거울상이다.
+
+    컨볼루션으로 바꾸는 걸음과 조건을 다는 걸음을 잠재 64 와 2 에서
+    모두 재면 2 x 2 가 둘 생긴다. 여덟 칸이 이미 다섯 쪽에 흩어져
+    있어 새로 잰 것은 없다 - 01, 03, 04, 05 쪽의 출력에서 옮겼다.
+
+    선 둘이 서로 겹치면 그 걸음은 아무것도 바꾸지 않은 것이고,
+    벌어지면 바꾼 것이다. 왼쪽에서는 가로로 떨어지고 세로로 겹치며,
+    오른쪽에서는 그 반대다.
+    """
+    #                        fully conn,  convolutional
+    data = {
+        64: {"plain": (0.07499, 0.04228), "cond": (0.07618, 0.04215)},
+        2:  {"plain": (0.42744, 0.46375), "cond": (0.34787, 0.35275)},
+    }
+    fig, axes = plt.subplots(1, 2, figsize=(11.2, 4.5))
+    for ax, k in zip(axes, (64, 2)):
+        for key, c, lab, mk in (("plain", "#1d4ed8", "no condition", "o"),
+                                ("cond", "#b91c1c", "told the label", "s")):
+            y = data[k][key]
+            ax.plot([0, 1], y, mk + "-", color=c, lw=2.2, ms=10, label=lab)
+            for x, v in zip((0, 1), y):
+                dy = 13 if key == "cond" else -22   # 겹치지 않게 위아래로
+                ax.annotate(f"{v:.5f}", (x, v), (0, dy),
+                            textcoords="offset points", ha="center",
+                            fontsize=10, color=c)
+        ax.set_xticks([0, 1])
+        ax.set_xticklabels(["fully connected", "convolutional"], fontsize=11)
+        ax.set_xlim(-0.35, 1.35)
+        ax.set_ylabel("reconstruction MSE   (lower is better)", fontsize=10.5)
+        ax.set_title(f"latent {k}", fontsize=12.5)
+        ax.spines[["top", "right"]].set_visible(False)
+        ax.grid(axis="y", alpha=0.18)
+    axes[0].set_ylim(0.030, 0.094)
+    axes[1].set_ylim(0.315, 0.510)
+    axes[0].text(0.5, 0.0905, "the convolution step does the work;\n"
+                 "the two lines lie on top of each other",
+                 ha="center", va="top", fontsize=10, color="0.25")
+    axes[1].text(0.5, 0.504, "the condition does the work;\n"
+                 "the convolution step slightly hurts",
+                 ha="center", va="top", fontsize=10, color="0.25")
+    axes[0].legend(fontsize=10.5, frameon=False, loc="lower left")
+    fig.subplots_adjust(left=0.08, right=0.98, top=0.86, bottom=0.14,
+                        wspace=0.26)
+    fig.savefig("two_steps_mirror.svg", transparent=True)
+    plt.close(fig); print("wrote two_steps_mirror.svg")
+
+
 def fig_spread_vs_gap():
     """index 4절 - 주장한 틈이 흔들림보다 큰가.
 
@@ -3259,6 +3308,7 @@ if __name__ == "__main__":
     fig_obedience_split()
     fig_spread_vs_gap()
     fig_beta_exchange_rate()
+    fig_two_steps_mirror()
     fig_conv_flip()
     fig_conv_obedience()
     fig_ae_vs_vae_2d()
