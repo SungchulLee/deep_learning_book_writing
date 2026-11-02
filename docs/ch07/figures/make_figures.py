@@ -878,6 +878,272 @@ def fig_newton_irls():
     print(f"   beta_irls   = {beta_irls.numpy().ravel().round(3).tolist()}")
 
 
+def fig_capture_recapture_spread():
+    """표지-재포획 쪽 2절의 설정(N=150, C=30, R=40)에서 추정값의 분포.
+
+    쪽의 코드는 1000번 모의실험을 돌려 표본 변동을 본다(씨앗 0 으로
+    고정되어 있다). 여기서는 모의실험 대신 초기하분포의 확률질량을
+    그대로 계산했으므로 난수가 아예 들어가지 않는다 - 표본 오차 없이
+    정확한 분포다. T ~ Hypergeometric(N=150, K=30, n=40) 이고
+    링컨-피터슨 추정값은 N_hat = C*R/T = 1200/T 다.
+
+    쪽이 관측한 T=8 은 이 분포의 최빈값이자 기댓값이다. 그래서 0.7%
+    오차가 나왔다.
+    """
+    from math import comb
+
+    N_true, C, R = 150, 30, 40
+    ts = [t for t in range(0, min(C, R) + 1) if 0 <= R - t <= N_true - C]
+    pmf = np.array([comb(C, t) * comb(N_true - C, R - t) / comb(N_true, R)
+                    for t in ts])
+    ts = np.array(ts)
+
+    pos = ts > 0
+    nhat = C * R / np.where(pos, ts, 1)
+    p_pos, n_pos = pmf[pos], nhat[pos]
+    within10 = p_pos[np.abs(n_pos - N_true) <= 0.1 * N_true].sum()
+    over200 = p_pos[n_pos >= 200].sum()
+    order = np.argsort(n_pos)
+    cum = np.cumsum(p_pos[order]) / p_pos.sum()
+    q05 = n_pos[order][int(np.searchsorted(cum, 0.05))]
+    q95 = n_pos[order][int(np.searchsorted(cum, 0.95))]
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.6))
+
+    cols = ["#b91c1c" if t == 8 else "#1d4ed8" for t in ts]
+    axL.bar(ts, pmf, color=cols, width=0.72)
+    axL.annotate(f"the survey saw T = 8\nwith probability {pmf[ts == 8][0]:.3f}"
+                 f"\n- the most likely result there is",
+                 (8, pmf[ts == 8][0]), (46, -34), textcoords="offset points",
+                 fontsize=10, color="#b91c1c",
+                 arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.2))
+    axL.set_xlim(-0.6, 18)
+    axL.set_xticks(range(0, 18, 2))
+    axL.set_xlabel("T, the number of marked deer among the 40 recaptured",
+                   fontsize=10.5)
+    axL.set_ylabel("probability", fontsize=11)
+    axL.set_title("what the survey can see is well behaved", fontsize=11.5)
+    axL.grid(alpha=0.2, axis="y")
+    axL.spines[["top", "right"]].set_visible(False)
+
+    axR.axvspan(0.9 * N_true, 1.1 * N_true, color="#15803d", alpha=0.13,
+                zorder=0)
+    for n_, p_, t_ in zip(n_pos, p_pos, ts[pos]):
+        c_ = "#b91c1c" if t_ == 8 else "#1d4ed8"
+        axR.plot([n_, n_], [0, p_], color=c_, lw=3.0, solid_capstyle="butt",
+                 zorder=4 if t_ == 8 else 2)
+        axR.plot(n_, p_, "o", ms=6, color=c_, zorder=5)
+    axR.axvline(N_true, color="#15803d", ls="--", lw=1.6, zorder=1)
+    axR.annotate(f"only {within10:.1%} of surveys land\nwithin 10% of the "
+                 f"true 150", (N_true, 0.150), (46, 20),
+                 textcoords="offset points", fontsize=10, color="#15803d",
+                 arrowprops=dict(arrowstyle="->", color="#15803d", lw=1.2))
+    axR.annotate(f"{over200:.1%} of surveys answer\n200 or more",
+                 (200, 0.126), (44, -54), textcoords="offset points",
+                 fontsize=10, color="#1d4ed8",
+                 arrowprops=dict(arrowstyle="->", color="#1d4ed8", lw=1.1))
+    axR.set_xscale("log")
+    axR.set_xticks([75, 100, 150, 200, 300, 600, 1200])
+    axR.set_xticklabels(["75", "100", "150", "200", "300", "600", "1200"])
+    axR.set_xlim(60, 1600)
+    axR.set_xlabel("the estimate 1200 / T  (log scale)", fontsize=11)
+    axR.set_ylabel("probability", fontsize=11)
+    axR.set_title(f"what it reports is not: 5% to 95% runs "
+                  f"{q05:.0f} to {q95:.0f}", fontsize=11.5)
+    axR.grid(alpha=0.2, axis="y")
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.tight_layout()
+    fig.savefig("capture_recapture_spread.svg", transparent=True)
+    plt.close(fig)
+    print("wrote capture_recapture_spread.svg")
+    print(f"   P(T=8) = {pmf[ts == 8][0]:.4f}, E[T] = {(ts * pmf).sum():.3f}")
+    print(f"   P(|Nhat - 150| <= 15) = {within10:.4f}")
+    print(f"   P(Nhat >= 200) = {over200:.4f}")
+    print(f"   5% to 95% of Nhat: {q05:.1f} to {q95:.1f}")
+    print(f"   P(T = 0), where the estimate does not exist: {pmf[0]:.2e}")
+
+
+def fig_likelihood_sharpens():
+    """최대가능도 추정 쪽 8절의 generate_coin_flips 를 그대로 쓴다.
+
+    같은 함수, 같은 씨앗 42 로 n = 10, 100, 1000 을 뽑는다.
+    n = 100 은 쪽이 출력에 찍은 바로 그 자료(앞면 67번, MLE 0.6700)다.
+
+    왼쪽은 5절의 「피셔 정보가 크면 로그우도가 날카로운 봉우리를 이룬다」
+    를 그대로 그린 것이고, 오른쪽은 6절의 「오차를 절반으로 줄이려면
+    데이터가 4배 필요하다」를 로그-로그 자 위에 올린 것이다.
+    """
+    import torch
+
+    def generate_coin_flips(n_flips, true_p, seed=42):
+        torch.manual_seed(seed)
+        return (torch.rand(n_flips) < true_p).float()
+
+    TRUE_P = 0.7
+    sizes = (10, 100, 1000)
+    cols = ("#93c5fd", "#1d4ed8", "#b91c1c")
+    p = np.linspace(0.005, 0.995, 1200)
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.6))
+
+    mles = []
+    for n, col in zip(sizes, cols):
+        data = generate_coin_flips(n, TRUE_P)
+        k = int(data.sum().item())
+        mle = k / n
+        mles.append(mle)
+        ll = k * np.log(p) + (n - k) * np.log(1 - p)
+        axL.plot(p, np.exp(ll - ll.max()), color=col, lw=2.4,
+                 label=f"n = {n}:  {k} heads,  MLE = {mle:.3f}")
+        axL.plot(mle, 1.0, "o", ms=8, color=col)
+
+    axL.axvline(TRUE_P, color="#15803d", ls="--", lw=1.8)
+    axL.annotate("the p that generated the data: 0.7", (TRUE_P, 0.62),
+                 (-212, 10), textcoords="offset points", fontsize=10,
+                 color="#15803d",
+                 arrowprops=dict(arrowstyle="->", color="#15803d", lw=1.1))
+    axL.set_xlim(0.1, 1.0)
+    axL.set_xlabel("p", fontsize=11)
+    axL.set_ylabel("likelihood, rescaled so the peak is 1", fontsize=11)
+    axL.set_title("more data is a narrower peak, not a better guess",
+                  fontsize=11.5)
+    axL.legend(fontsize=10, frameon=False, loc="upper left")
+    axL.grid(alpha=0.2)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    ns = np.logspace(0.7, 3.6, 200)
+    half = 1.96 * np.sqrt(TRUE_P * (1 - TRUE_P) / ns)
+    axR.loglog(ns, half, color="#15803d", lw=2.4,
+               label="95% half-width from the Fisher information")
+    offs = ((16, 16, "left"), (-14, -30, "right"), (-14, -30, "right"))
+    for n, m, col, (dx, dy, ha) in zip(sizes, mles, cols, offs):
+        axR.plot(n, abs(m - TRUE_P), "o", ms=11, color=col)
+        axR.annotate(f"n = {n}: off by {abs(m - TRUE_P):.3f}",
+                     (n, abs(m - TRUE_P)), (dx, dy), ha=ha,
+                     textcoords="offset points", fontsize=10, color=col)
+    axR.set_xlabel("number of flips (log scale)", fontsize=11)
+    axR.set_ylabel("distance from 0.7 (log scale)", fontsize=11)
+    axR.set_title("the line has slope -1/2: four times the data, "
+                  "half the error", fontsize=11.5)
+    axR.legend(fontsize=10, frameon=False, loc="upper right")
+    axR.grid(alpha=0.2, which="both")
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.tight_layout()
+    fig.savefig("likelihood_sharpens.svg", transparent=True)
+    plt.close(fig)
+    print("wrote likelihood_sharpens.svg")
+    for n, m in zip(sizes, mles):
+        print(f"   n={n:>5}  MLE={m:.4f}  |MLE-0.7|={abs(m - TRUE_P):.4f}  "
+              f"95% half-width={1.96 * np.sqrt(0.21 / n):.4f}")
+
+
+def fig_mae_vs_mse():
+    """회귀 MLE 쪽 4절의 mae_vs_mse_robustness() 를 그대로 돌린다.
+
+    쪽은 이 함수를 정의만 하고 부르지 않아 출력이 없다. 같은 씨앗(42),
+    같은 데이터(x 를 0~10 에 100개, y = 2x + 1 + 0.5 잡음, 10/30/50/70/90
+    번째에 +15), 같은 학습(Adam lr=0.1, 1000스텝)으로 돌린 결과다.
+
+    2절 표의 「MSE 민감함 / MAE 강건함」이 여기서는 기울기가 아니라
+    절편에 나타난다. 이상치가 x 전체에 고르게 퍼져 있기 때문이다.
+    """
+    import torch
+    import torch.nn as nn
+
+    torch.manual_seed(42)
+    n = 100
+    x = torch.linspace(0, 10, n).reshape(-1, 1)
+    y_clean = 2 * x + 1 + torch.randn(n, 1) * 0.5
+    y = y_clean.clone()
+    outlier_idx = [10, 30, 50, 70, 90]
+    y[outlier_idx] += 15
+
+    def fit(loss_fn):
+        torch.manual_seed(42)
+        model = nn.Linear(1, 1)
+        opt = torch.optim.Adam(model.parameters(), lr=0.1)
+        for _ in range(1000):
+            loss = loss_fn(model(x), y)
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+        return model.weight.item(), model.bias.item()
+
+    w_mse, b_mse = fit(nn.MSELoss())
+    w_mae, b_mae = fit(nn.L1Loss())
+
+    xn = x.numpy().ravel()
+    yn = y.numpy().ravel()
+    keep = np.ones(n, dtype=bool)
+    keep[outlier_idx] = False
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.7))
+
+    axL.scatter(xn[keep], yn[keep], s=22, c="0.55", alpha=0.75,
+                edgecolors="none", label="95 ordinary points")
+    axL.scatter(xn[~keep], yn[~keep], s=90, marker="X", c="#b45309",
+                label="5 outliers, each +15")
+    grid = np.array([0.0, 10.0])
+    axL.plot(grid, 2 * grid + 1, color="#15803d", lw=2.2, ls="--",
+             label="the line the data came from:  2.00 x + 1.00")
+    axL.plot(grid, w_mse * grid + b_mse, color="#b91c1c", lw=2.4,
+             label=f"MSE fit:  {w_mse:.2f} x + {b_mse:.2f}")
+    axL.plot(grid, w_mae * grid + b_mae, color="#1d4ed8", lw=2.4,
+             label=f"MAE fit:  {w_mae:.2f} x + {b_mae:.2f}")
+    axL.set_xlabel("x", fontsize=11)
+    axL.set_ylabel("y", fontsize=11)
+    axL.set_title("the slope survives; the intercept does not", fontsize=11.5)
+    axL.legend(fontsize=9.5, frameon=False, loc="upper left")
+    axL.grid(alpha=0.2)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    bs = np.linspace(0.3, 2.6, 400)
+    resid = yn[None, :] - (2.0 * xn[None, :] + bs[:, None])
+    mse_b = (resid ** 2).mean(axis=1)
+    mae_b = np.abs(resid).mean(axis=1)
+    axR.plot(bs, mse_b / mse_b.min(), color="#b91c1c", lw=2.4,
+             label="mean squared error (Gaussian NLL)")
+    axR.plot(bs, mae_b / mae_b.min(), color="#1d4ed8", lw=2.4,
+             label="mean absolute error (Laplace NLL)")
+    txt_mean = "the mean of y - 2x"
+    base = yn - 2.0 * xn
+    b_mean, b_median = float(base.mean()), float(np.median(base))
+    for val, col, txt in ((b_mean, "#b91c1c", "the mean of y - 2x"),
+                          (b_median, "#1d4ed8", "the median of y - 2x")):
+        axR.axvline(val, color=col, ls=":", lw=1.4)
+    axR.annotate(f"MSE settles on {b_mean:.2f},\n{txt_mean}",
+                 (b_mean, 1.0), (14, 62), textcoords="offset points",
+                 fontsize=10, color="#b91c1c",
+                 arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.1))
+    axR.annotate(f"MAE settles on {b_median:.2f},\nthe median of y - 2x",
+                 (b_median, 1.0), (-14, 96), ha="right",
+                 textcoords="offset points", fontsize=10, color="#1d4ed8",
+                 arrowprops=dict(arrowstyle="->", color="#1d4ed8", lw=1.1))
+    axR.axvline(1.0, color="#15803d", ls="--", lw=1.6)
+    axR.text(1.06, 1.58, "true b = 1", fontsize=10, color="#15803d")
+    axR.set_xlabel("intercept b, with the slope held at 2.0", fontsize=11)
+    axR.set_ylabel("loss, divided by its own minimum", fontsize=11)
+    axR.set_title("the two likelihoods disagree about where the line sits",
+                  fontsize=11.5)
+    axR.legend(fontsize=10, frameon=False, loc="upper left")
+    axR.grid(alpha=0.2)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.tight_layout()
+    fig.savefig("mae_vs_mse.svg", transparent=True)
+    plt.close(fig)
+    print("wrote mae_vs_mse.svg")
+    print(f"   true   w = 2.0000  b = 1.0000")
+    print(f"   MSE    w = {w_mse:.4f}  b = {b_mse:.4f}")
+    print(f"   MAE    w = {w_mae:.4f}  b = {b_mae:.4f}")
+    print(f"   5 outliers of +15 over 100 points lift the mean of y by "
+          f"{5 * 15 / 100:.2f}")
+    print(f"   with the slope held at 2.0: mean(y - 2x) = {b_mean:.4f}, "
+          f"median(y - 2x) = {b_median:.4f}")
+
+
 if __name__ == "__main__":
     fig_sigmoid_steepness()
     fig_poly_bias_variance()
@@ -887,3 +1153,6 @@ if __name__ == "__main__":
     fig_decision_boundary()
     fig_regularization_strength()
     fig_newton_irls()
+    fig_capture_recapture_spread()
+    fig_likelihood_sharpens()
+    fig_mae_vs_mse()
