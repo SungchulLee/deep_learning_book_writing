@@ -1966,7 +1966,7 @@ $\tanh(x) = 2\sigma(2x) - 1$임을 보여라. 안쪽의 2를 빠뜨려 $2\sigma(
 </div>
 
 ??? success "풀이"
-    **유한 차분.** 파라메터 하나 $\theta_i$의 편미분을 어림하려면
+    **유한 차분.** 파라메터 하나 $\theta_i$의 편미분을 근사하려면
 
     $$\frac{\partial \,\text{loss}}{\partial \theta_i} \approx
       \frac{\text{loss}(\theta + \varepsilon e_i) - \text{loss}(\theta)}{\varepsilon}$$

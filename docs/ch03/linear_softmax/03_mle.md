@@ -297,7 +297,7 @@ best = max(range(7, 2000), key=likelihood)
 tied = [N for N in range(7, 2000) if abs(likelihood(N) - likelihood(best)) < 1e-12]
 print(f"\n  7부터 1999까지 훑어 가장 큰 N: {tied}   (둘이 비긴다)")
 
-# 링컨-피터슨 어림값 mn/k 와 견준다
+# 링컨-피터슨 추정값 mn/k 와 견준다
 print(f"  링컨-피터슨 mn/k = {M}x{N_CATCH}/{K} = {M*N_CATCH//K}")
 print(f"    정수이므로 {M*N_CATCH//K - 1}과 {M*N_CATCH//K}가 비긴다 — 본문과 같다.")
 
@@ -350,7 +350,7 @@ def peak_and_width(m, n, k):
 # 호수를 크게 잡고(N = 1000) 그 안에서 표본만 키운다.
 #
 # 참 N이 1000이면 표지 m, 재포획 n에서 기대되는 표지 수는 k = m*n/1000 이다.
-# 그래야 링컨-피터슨 어림 mn/k 가 1000에 머문 채 표본만 커진다.
+# 그래야 링컨-피터슨 추정값 mn/k 가 1000에 머문 채 표본만 커진다.
 TRUE_N = 1000
 print(f"  참 마릿수를 {TRUE_N}로 두고, 어림이 {TRUE_N}에 머물도록 표본만 키운다\n")
 print(f"  {'표지':>5} {'재포획':>6} {'표지된 것':>8} | {'mn/k':>6} | {'봉우리':>6} | "

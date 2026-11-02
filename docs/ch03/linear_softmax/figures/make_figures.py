@@ -100,6 +100,75 @@ def draw_mark_i():
     return fig
 
 
+def draw_softmax_temperature():
+    """3.2 5절 - 온도가 분포를 어떻게 바꾸는가.
+
+    로짓 하나를 고정해 두고 T 만 바꾼다. T 가 작으면 argmax 로 몰리고
+    크면 1/10 로 평평해진다. 엔트로피를 함께 적어 「딱딱해진다·
+    부드러워진다」가 수로 무엇인지 보이게 했다.
+    """
+    y = np.array([3.2, 1.1, 0.4, 2.7, -0.3, 0.9, 1.8, -1.2, 0.2, 1.5])
+    Ts = [0.25, 1.0, 4.0]
+    fig, axes = plt.subplots(1, 3, figsize=(11.8, 3.9), sharey=True)
+    for ax, T in zip(axes, Ts):
+        e = np.exp((y - y.max()) / T); pr = e / e.sum()
+        H = -(pr * np.log(pr)).sum(); top = int(pr.argmax())
+        ax.bar(range(10), pr, 0.62,
+               color=["#b91c1c" if i == top else "#9ca3af" for i in range(10)])
+        ax.axhline(0.1, color="#1d4ed8", ls=":", lw=1.3)
+        ax.set_xticks(range(10)); ax.set_xticklabels(range(10), fontsize=9)
+        ax.set_ylim(0, 1.05)
+        ax.set_title(f"T = {T}", fontsize=12.5)
+        ax.text(4.5, 0.92, f"largest prob {pr.max():.3f}\nentropy {H:.3f} nat",
+                ha="center", fontsize=10.5)
+        ax.spines[["top", "right"]].set_visible(False)
+    axes[0].set_ylabel("probability", fontsize=11)
+    axes[0].text(9.4, 0.12, "1/10", fontsize=9.5, color="#1d4ed8", ha="right")
+    axes[1].set_xlabel("class", fontsize=11)
+    fig.suptitle("same logits  y = (3.2, 1.1, 0.4, 2.7, -0.3, 0.9, 1.8, "
+                 "-1.2, 0.2, 1.5)   -   only T changes", fontsize=11.5)
+    fig.subplots_adjust(left=0.07, right=0.99, top=0.76, bottom=0.14,
+                        wspace=0.08)
+    for T in Ts:
+        e = np.exp((y - y.max()) / T); pr = e / e.sum()
+        print(f"     T={T:<5} max {pr.max():.4f}  H {-(pr*np.log(pr)).sum():.4f}")
+    return fig
+
+
+def draw_neg_log_curve():
+    """3.2 4절 - 교차 엔트로피가 왜 틀린 확신을 크게 벌하는가.
+
+    로스는 정답 클래스에 준 확률 하나의 -log 다. p=1 이면 0 이고
+    p 가 0 으로 갈수록 끝없이 커진다. log 10 = 2.3026 이 「열 클래스에
+    고르게 1/10 씩 주었을 때」의 값이라 가로선으로 함께 긋는다.
+    """
+    pr = np.linspace(0.005, 1.0, 600)
+    fig, ax = plt.subplots(figsize=(8.0, 4.8))
+    ax.plot(pr, -np.log(pr), color="#b91c1c", lw=2.4)
+    for q, lab, c in ((1.0, "p = 1\nloss 0", "#15803d"),
+                      (0.1, "p = 1/10\nloss 2.3026", "#1d4ed8"),
+                      (0.01, "p = 1/100\nloss 4.6052", "#b91c1c")):
+        ax.plot(q, -np.log(q), "o", ms=10, color=c, zorder=3)
+        dx = (-14, 6) if q == 1.0 else (14, 6)
+        ha = "right" if q == 1.0 else "left"
+        ax.annotate(lab, (q, -np.log(q)), dx, textcoords="offset points",
+                    fontsize=10.5, color=c, ha=ha)
+    ax.axhline(np.log(10), color="#1d4ed8", ls=":", lw=1.3)
+    ax.text(1.04, np.log(10) + 0.14, "log 10 = 2.3026, the loss before "
+            "training starts", ha="right", fontsize=10, color="#1d4ed8")
+    ax.set_xlim(0, 1.08); ax.set_ylim(0, 5.3)
+    ax.set_xlabel("probability the model gave the correct class", fontsize=11)
+    ax.set_ylabel("loss  =  -log p", fontsize=11)
+    ax.set_title("being wrong is cheap; being confidently wrong is not",
+                 fontsize=11.5)
+    ax.grid(alpha=0.2)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.tight_layout()
+    return fig
+
+
 # ===========================================================================
 if __name__ == "__main__":
     save(draw_mark_i(), "mark_i_perceptron.svg")
+    save(draw_softmax_temperature(), "softmax_temperature.svg")
+    save(draw_neg_log_curve(), "neg_log_curve.svg")

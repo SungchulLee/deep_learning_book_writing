@@ -159,6 +159,67 @@ def fig_pca_reconstructions():
     print("wrote pca_reconstructions.svg")
 
 
+def fig_budget_flips():
+    """4장 개요 - 예산을 함께 재지 않으면 부호가 뒤집힌다.
+
+    왼쪽은 세 기법의 5 에포크 값과 30 에포크 값이다. 셋 다 0 을 가로질러
+    부호가 바뀐다. 오른쪽은 4.4 절이 5 에포크마다 이어 잰 것으로, 두 점만
+    보면 「예산을 늘려 좋아졌다」로 읽히지만 사이에 봉우리가 있다.
+
+    수는 개요의 표와 4.4 절의 표 그대로다.
+    """
+    import matplotlib.pyplot as plt
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.6))
+
+    rows = [("knowledge distillation (4.3)", -1.66, 2.68, "#b91c1c"),
+            ("augmentation (4.5)", -2.52, 5.96, "#15803d")]
+    for i, (name, a, b, c) in enumerate(rows):
+        axL.plot([0, 1], [a, b], "o-", color=c, lw=2.4, ms=10, label=name)
+        axL.annotate(f"{a:+.2f}", (0, a), (-10, 0), ha="right", va="center",
+                     textcoords="offset points", fontsize=11, color=c)
+        axL.annotate(f"{b:+.2f}", (1, b), (10, 0), ha="left", va="center",
+                     textcoords="offset points", fontsize=11, color=c)
+    axL.axhline(0, color="0.3", lw=1.4)
+    axL.text(0.5, 0.62, "zero - the sign changes here", ha="center",
+             fontsize=10, color="0.35")
+    axL.set_xticks([0, 1]); axL.set_xticklabels(["5 epochs", "30 epochs"],
+                                                fontsize=12)
+    axL.set_xlim(-0.45, 1.45); axL.set_ylim(-4.2, 7.6)
+    axL.set_ylabel("change in accuracy (%p)", fontsize=11)
+    axL.set_title("stop at 5 epochs and you write the opposite conclusion",
+                  fontsize=11.5)
+    axL.legend(fontsize=10.5, frameon=False, loc="lower right")
+    axL.spines[["top", "right"]].set_visible(False)
+    axL.grid(axis="y", alpha=0.2)
+
+    ep = [5, 10, 30, 100]
+    curves = [("2 conv layers", [71.33, 72.76, 71.70, 70.95], "#9ca3af"),
+              ("4 conv layers", [74.69, 76.74, 76.25, 75.99], "#1d4ed8"),
+              ("6 conv layers", [72.84, 75.74, 75.64, 75.48], "#b45309")]
+    for name, v, c in curves:
+        axR.plot(ep, v, "o-", color=c, lw=2.2, ms=8, label=name)
+        axR.plot(10, v[1], "o", ms=13, mfc="none", mec=c, mew=2)
+    axR.plot([5, 30], [74.69, 76.25], ls="--", lw=2.4, color="#b91c1c",
+             alpha=0.55, zorder=1)
+    axR.annotate("two points say\n\"it got better\"", (13.5, 73.5),
+                 fontsize=10.5, color="#b91c1c")
+    axR.text(10, 77.5, "every curve peaks at 10", ha="center", fontsize=10.5,
+             color="0.25")
+    axR.set_xscale("log"); axR.set_xticks(ep)
+    axR.set_xticklabels([str(e) for e in ep], fontsize=11)
+    axR.set_xlabel("epochs (log scale)", fontsize=11)
+    axR.set_ylabel("accuracy (%)", fontsize=11)
+    axR.set_ylim(70, 78.2)
+    axR.set_title("and two points are still not a curve", fontsize=11.5)
+    axR.legend(fontsize=10, frameon=False, loc="lower left")
+    axR.spines[["top", "right"]].set_visible(False)
+    axR.grid(alpha=0.2)
+
+    fig.tight_layout()
+    fig.savefig("budget_flips.svg", transparent=True)
+    plt.close(fig); print("wrote budget_flips.svg")
+
+
 def fig_depth_curves():
     """깊이별 학습 곡선. 씨 다섯 개의 최소~최대를 띠로 두른다.
 
@@ -403,5 +464,6 @@ if __name__ == "__main__":
     fig_vgg16_conv1()
     fig_pca_reconstructions()
     fig_depth_curves()
+    fig_budget_flips()
     fig_vgg16_layers()
     fig_transfer_learning()
