@@ -273,7 +273,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff medium" title="중간"></span> 3절은 자료를 고정한 채 모델만 키웠다. **자료를 함께 키우면** 간격이 어떻게 될지 예상하고, 그것을 확인하는 실험을 설계하라.
+**연습문제 2.** <span class="diff med" title="중간"></span> 3절은 자료를 고정한 채 모델만 키웠다. **자료를 함께 키우면** 간격이 어떻게 될지 예상하고, 그것을 확인하는 실험을 설계하라.
 
 </div>
 

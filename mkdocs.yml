@@ -217,7 +217,7 @@ nav:
         - 교차 엔트로피 로스: ch07/loss/cross_entropy.md
         - "쿨백–라이블러 발산": ch07/loss/kl_divergence.md
         - L2 로스 (평균 제곱 오차): ch07/loss/l2_loss.md
-        - "N-그램으로 보는 NLL 로스": embeddings/04_ngram_nll_loss.md
+        - "N-그램으로 보는 NLL 로스": ch07/loss/ngram_nll_loss.md
     - 3 MNIST로 보는 분류:
       - 장 개요: ch03/index.md
       - 3.1 템플릿 학습:

@@ -379,7 +379,7 @@ _확인한 곳 — T. Mikolov, I. Sutskever, K. Chen, G. Corrado, J. Dean, "Dist
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff medium" title="중간"></span> 창 크기를 4에서 1이나 10으로 바꾸면 이웃 목록이 어떻게 달라질지 예상하고, 확인하는 실험을 설계하라.
+**연습문제 2.** <span class="diff med" title="중간"></span> 창 크기를 4에서 1이나 10으로 바꾸면 이웃 목록이 어떻게 달라질지 예상하고, 확인하는 실험을 설계하라.
 
 </div>
 

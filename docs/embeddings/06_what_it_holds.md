@@ -336,7 +336,7 @@ $$
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff medium" title="중간"></span> 4절은 `bank`가 `money`(0.443)보다 `river`(0.533)에 가깝다는 뜻밖의 결과를 얻고 「까닭을 모른다」고 적었다. 그 까닭을 가리는 실험을 설계하라.
+**연습문제 2.** <span class="diff med" title="중간"></span> 4절은 `bank`가 `money`(0.443)보다 `river`(0.533)에 가깝다는 뜻밖의 결과를 얻고 「까닭을 모른다」고 적었다. 그 까닭을 가리는 실험을 설계하라.
 
 </div>
 

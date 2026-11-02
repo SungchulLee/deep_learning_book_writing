@@ -364,7 +364,7 @@ PPMI 표는 여전히 $8{,}000 \times 8{,}000$이다. 낱말 하나에 수 8,000
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff medium" title="중간"></span> 2절은 `the`의 이웃이 PPMI 뒤에 `ocean, omen, iceberg`로 바뀌는 것을 보였다. 이 목록이 **좋은 결과인지** 따지라.
+**연습문제 2.** <span class="diff med" title="중간"></span> 2절은 `the`의 이웃이 PPMI 뒤에 `ocean, omen, iceberg`로 바뀌는 것을 보였다. 이 목록이 **좋은 결과인지** 따지라.
 
 </div>
 

@@ -366,7 +366,7 @@ GloVe는 단어 동시 출현 횟수의 로그를 내적과 바이어스로 설�
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff medium" title="중간"></span> 5절은 GloVe에서 `good`–`bad`가 0.796으로 `good`–`great`의 0.798과 사실상 같다고 했다. 이것이 **GloVe의 흠인지 분포 가설의 성질인지** 가리는 실험을 설계하라.
+**연습문제 2.** <span class="diff med" title="중간"></span> 5절은 GloVe에서 `good`–`bad`가 0.796으로 `good`–`great`의 0.798과 사실상 같다고 했다. 이것이 **GloVe의 흠인지 분포 가설의 성질인지** 가리는 실험을 설계하라.
 
 </div>
 

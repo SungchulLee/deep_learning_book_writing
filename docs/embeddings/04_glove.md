@@ -559,7 +559,7 @@ $f$ 를 떼고 모든 칸을 똑같이 두면 어떻게 되는가.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff medium" title="중간"></span> 식 (8)에서 바이어스를 $b_i$ 하나만 두고 $\tilde b_j$ 를 없애면 무엇이 깨지는가. 논문이 $\tilde b_j$ 를 붙인 까닭을 식 (7)을 보고 말하라.
+**연습문제 2.** <span class="diff med" title="중간"></span> 식 (8)에서 바이어스를 $b_i$ 하나만 두고 $\tilde b_j$ 를 없애면 무엇이 깨지는가. 논문이 $\tilde b_j$ 를 붙인 까닭을 식 (7)을 보고 말하라.
 
 </div>
 

@@ -310,7 +310,7 @@ hishe hishichehihhihim misheh he hhe hii hi hohhis ishii hahis ishichhhihohis
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff medium" title="중간"></span> 3절은 가리개 없는 모델이 「완전히 베끼지는 못했다」고 했다. 정말 베낄 수 **있는지**를 가리는 실험을 설계하라.
+**연습문제 2.** <span class="diff med" title="중간"></span> 3절은 가리개 없는 모델이 「완전히 베끼지는 못했다」고 했다. 정말 베낄 수 **있는지**를 가리는 실험을 설계하라.
 
 </div>
 

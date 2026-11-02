@@ -297,7 +297,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff medium" title="중간"></span> 3절은 확신도와 균형도의 변화를 **VAE-64에서 잰 샘플링 스프레드**로 판정했다. 이 판정이 약한 까닭 둘을 적고, 무엇을 더 재면 되는지 쓰라.
+**연습문제 2.** <span class="diff med" title="중간"></span> 3절은 확신도와 균형도의 변화를 **VAE-64에서 잰 샘플링 스프레드**로 판정했다. 이 판정이 약한 까닭 둘을 적고, 무엇을 더 재면 되는지 쓰라.
 
 </div>
 

@@ -340,7 +340,7 @@ roles she paneten. End to get augh it didelogues as then begament of the
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff medium" title="중간"></span> 2절은 제 로스가 동어반복이라 했다. 그렇다면 **쓸 수 있는** 자동 채점 자는 무엇인가. 하나를 제안하고 그 자의 약점도 적으라.
+**연습문제 2.** <span class="diff med" title="중간"></span> 2절은 제 로스가 동어반복이라 했다. 그렇다면 **쓸 수 있는** 자동 채점 자는 무엇인가. 하나를 제안하고 그 자의 약점도 적으라.
 
 </div>
 

@@ -263,7 +263,7 @@ if __name__ == "__main__":
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff medium" title="중간"></span> 이 쪽은 PCA 로만 줄였다. t-SNE 나 UMAP 처럼 **가까움을 지키려고 만든** 방법을 쓰면 이웃 유지율이 올라갈 것이다. 그렇다면 3절의 경고가 사라지는가?
+**연습문제 2.** <span class="diff med" title="중간"></span> 이 쪽은 PCA 로만 줄였다. t-SNE 나 UMAP 처럼 **가까움을 지키려고 만든** 방법을 쓰면 이웃 유지율이 올라갈 것이다. 그렇다면 3절의 경고가 사라지는가?
 
 </div>
 

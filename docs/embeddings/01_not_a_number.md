@@ -265,7 +265,7 @@ $d$를 몇으로 둘지는 이 쪽이 정하지 않는다. [7.3절](../imdb/03_e
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff medium" title="중간"></span> 들머리는 `good`(47번)과 `bad`(73번)를 더해 `off`(120번)가 나오는 것을 보였다. 번호에 뜻이 없다는 것을 보이는 **다른 방법**을 하나 더 설계하라.
+**연습문제 2.** <span class="diff med" title="중간"></span> 들머리는 `good`(47번)과 `bad`(73번)를 더해 `off`(120번)가 나오는 것을 보였다. 번호에 뜻이 없다는 것을 보이는 **다른 방법**을 하나 더 설계하라.
 
 </div>
 
