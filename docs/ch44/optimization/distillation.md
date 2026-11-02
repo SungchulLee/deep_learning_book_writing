@@ -156,7 +156,7 @@ T=10.0: [0.32  0.25  0.17  0.13  0.13 ]  (엔트로피: 1.531)
 
 $$\mathcal{L}_{\text{total}} = \alpha \cdot \mathcal{L}_{\text{hard}} + (1 - \alpha) \cdot \mathcal{L}_{\text{soft}}$$
 
-**굳은 로스(참 레이블와의 여느 엇갈린 엔트로피):**
+**굳은 로스(참 레이블과의 여느 엇갈린 엔트로피):**
 
 $$\mathcal{L}_{\text{hard}} = -\sum_i y_i \log(p_i^{\text{student}})$$
 
