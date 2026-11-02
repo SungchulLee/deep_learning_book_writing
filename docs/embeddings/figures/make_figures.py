@@ -404,6 +404,87 @@ def fig_three_quarter_power(counts, words):
 
 
 # =============================================================================
+# 6.3 세는 길 - 횟수와 PPMI 는 서로 다른 줄을 세운다 / 세 걸음
+# =============================================================================
+def fig_count_vs_ppmi(C, M, words, stoi, probe="the"):
+    """6.3 2절 - 같은 낱말에 두 가지 자를 대면 줄이 달라진다.
+
+    가로는 probe 와 같이 나온 횟수, 세로는 PPMI 다. 오른쪽 아래에 몰린
+    것이 「흔해서 많이 나온」 기능어이고, 왼쪽 위가 「드문데도 probe 를
+    달고 나오는」 낱말이다. 두 자가 서로 다른 것을 재고 있음을 보인다.
+
+    수는 이 장의 말뭉치에서 직접 센 것이고 쪽의 출력과 같은 표에서 온다.
+    """
+    i = stoi[probe]
+    cnt, ppmi = C[i].clone(), M[i].clone()
+    cnt[i] = 0
+    keep = cnt > 0
+    idx = torch.nonzero(keep).squeeze(1)
+
+    by_cnt = idx[cnt[idx].argsort(descending=True)][:6].tolist()
+    by_pmi = idx[ppmi[idx].argsort(descending=True)][:6].tolist()
+
+    fig, ax = plt.subplots(figsize=(8.6, 5.0))
+    ax.scatter(cnt[idx], ppmi[idx], s=7, color="#9ca3af", alpha=0.35,
+               edgecolors="none")
+    for group, c, lab in ((by_cnt, "#b91c1c", "top 6 by raw count"),
+                          (by_pmi, "#15803d", "top 6 by PPMI")):
+        ax.scatter(cnt[group], ppmi[group], s=70, color=c, zorder=3,
+                   label=lab)
+        for k, j in enumerate(group):          # 라벨이 겹치지 않게 번갈아
+            ax.annotate(words[j], (cnt[j], ppmi[j]),
+                        (7, 6) if k % 2 == 0 else (7, -13),
+                        textcoords="offset points", fontsize=11, color=c)
+    ax.set_xscale("log")
+    ax.set_xlabel(f'how often it appeared next to "{probe}"  (log scale)',
+                  fontsize=11)
+    ax.set_ylabel("PPMI with the same word", fontsize=11)
+    ax.set_title("two rulers, two different rankings - "
+                 "the red words are merely common", fontsize=11.5)
+    ax.legend(fontsize=10.5, frameon=False, loc="upper right")
+    ax.grid(alpha=0.2)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.tight_layout()
+    fig.savefig("count_vs_ppmi.svg", transparent=True)
+    plt.close(fig); print("wrote count_vs_ppmi.svg")
+
+
+def fig_counting_pipeline():
+    """6.3 - 세는 길의 세 걸음을 크기와 함께 그린다.
+
+    세고 -> 고치고 -> 줄인다. 어느 걸음에서 표가 어떻게 바뀌는지를
+    네모의 크기와 글자로 보인다. 지어낸 수는 없다 - 8,000 과 64 는
+    이 장이 쓰는 값이고 3.5% 는 쪽의 출력이다.
+    """
+    fig, ax = plt.subplots(figsize=(10.4, 3.9))
+    ax.set_xlim(0, 100); ax.set_ylim(-9, 34); ax.axis("off")
+    steps = [(6, 22, 22, "co-occurrence\ncounts",
+              "8,000 x 8,000\n3.5% non-zero", "#9ca3af"),
+             (39, 22, 22, "PPMI", "same shape,\ncommonness divided out",
+              "#1d4ed8"),
+             (72, 22, 7, "word vectors", "8,000 x 64\nby SVD, as in 5.1", "#15803d")]
+    for x, w, h, title, sub, c in steps:
+        ax.add_patch(Rectangle((x, 18 - h / 2), w, h, facecolor=c, alpha=0.16,
+                               edgecolor=c, lw=1.6))
+        ax.text(x + w / 2, 18, title, ha="center", va="center", fontsize=12.5,
+                color=c)
+        ax.text(x + w / 2, 18 - h / 2 - 2.0, sub, ha="center", va="top",
+                fontsize=9.5, color="0.4")
+    for x in (29.5, 62.5):
+        ax.annotate("", (x + 7.5, 18), (x, 18),
+                    arrowprops=dict(arrowstyle="-|>", color="#374151", lw=1.8))
+    ax.text(33.2, 21.0, "divide out\ncommonness", ha="center",
+            fontsize=10, color="#374151")
+    ax.text(66.2, 20.2, "shrink", ha="center", fontsize=10, color="#374151")
+    ax.text(50, -7.6, "no gradient descent anywhere - "
+            "count once, divide once, factorize once",
+            ha="center", fontsize=11, color="#15803d")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.98, bottom=0.02)
+    fig.savefig("counting_pipeline.svg", transparent=True)
+    plt.close(fig); print("wrote counting_pipeline.svg")
+
+
+# =============================================================================
 # 6.4 GloVe - 얼음과 김 (「그림으로 보는 AI」)
 # =============================================================================
 def fig_ice_steam():
