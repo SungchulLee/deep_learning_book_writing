@@ -166,7 +166,7 @@ plt.tight_layout()
 
 print(f"그림 배치 모양: {images.shape}   <- (장수, 높이, 너비)")
 print(f"값의 범위: [{images.min():.3f}, {images.max():.3f}]")
-print(f"이름표: {labels}")
+print(f"레이블: {labels}")
 ```
 
 **출력:**
@@ -174,7 +174,7 @@ print(f"이름표: {labels}")
 ```
 그림 배치 모양: (6, 8, 8)   <- (장수, 높이, 너비)
 값의 범위: [0.000, 0.997]
-이름표: [4 8 0 8 7 3]
+레이블: [4 8 0 8 7 3]
 ```
 
 !!! tip "모양을 늘 확인하라"

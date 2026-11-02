@@ -56,7 +56,7 @@
           - num:         홑값
           - grad:        쌓인 그래디언트(.backward()이 채운다)
           - depends_on:  어버이 NumberWithGrad 객체의 목록
-          - creation_op: 이 절를 만든 셈을 가리키는 글자열 표
+          - creation_op: 이 절를 만든 셈을 가리키는 문자열 표
         """
 
         def __init__(

@@ -12,7 +12,7 @@ nn.Linear으로 하는 선형 회귀 — 텐서에서 만든 데이터셋
 nn.Linear, F.mse_loss, optim.SGD, DataLoader, 기기 다루기,
 state_dict 저장와 불러오기를 쓰는 PyTorch다운 선형 회귀.
 
-이것이 뒤의 모든 장으로 이어지는 표준 무늬다.
+이것이 뒤의 모든 장으로 이어지는 표준 패턴다.
 
 Demonstrates:
 - nn.Module 아래 클래스

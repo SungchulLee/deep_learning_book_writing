@@ -963,7 +963,7 @@ $$
 M_{ij} = \begin{cases} 0 & \text{if } j \leq i \\ -\infty & \text{if } j > i \end{cases}
 $$
 
-이는 아래 삼각 꼴의 어텐션 패턴를 만든다.
+이는 아래 삼각 꼴의 어텐션 패턴을 만든다.
 
 $$
 \text{MaskedAttn}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + M\right)V
