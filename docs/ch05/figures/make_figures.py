@@ -410,6 +410,105 @@ class VAEModel(nn.Module):
 
 
 # === 컨볼루션 두 쪽이 본문에서 쓰는 그림 ===================================
+def fig_spread_vs_gap():
+    """index 4절 - 주장한 틈이 흔들림보다 큰가.
+
+    왼쪽은 5.3절의 「잘린 규약」에서 잰 두 범위다. 이 절의 표와 규약이
+    다르므로 섞지 않고 그 규약 안에서만 그린다. 오른쪽은 같은 자를 두
+    가지 흔들림으로 잰 것 - 다시 뽑기와 다시 학습하기다.
+
+    수는 index 4절의 두 표에서 그대로 옮겼다.
+    """
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.2, 4.1),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+
+    # --- 왼쪽: 두 범위가 겹치는가 ---
+    bands = [("AE_MLP-64", 0.567, 0.637, "#b91c1c"),
+             ("VAE-64", 0.884, 0.899, "#15803d")]
+    for i, (name, lo, hi, c) in enumerate(bands):
+        axL.barh(i, hi - lo, 0.34, left=lo, color=c, alpha=0.85)
+        axL.text(hi + 0.012, i, f"{lo:.3f} - {hi:.3f}", va="center",
+                 fontsize=10.5, color=c)
+    axL.annotate("", (0.637, 0.5), (0.884, 0.5),
+                 arrowprops=dict(arrowstyle="<->", color="0.3", lw=1.6))
+    axL.text(0.760, 0.60, "0.247 apart,\nand they do not overlap",
+             ha="center", fontsize=10.5, color="0.2")
+    axL.set_yticks(range(2)); axL.set_yticklabels([b[0] for b in bands],
+                                                  fontsize=11.5)
+    axL.set_ylim(-0.6, 1.6); axL.set_xlim(0.52, 1.00)
+    axL.set_xlabel("balance of the samples, over five training seeds",
+                   fontsize=10.5)
+    axL.set_title("the claim this section rests on", fontsize=11.5)
+    axL.spines[["top", "right", "left"]].set_visible(False)
+    axL.tick_params(left=False)
+    axL.text(0.52, -0.52, "measured under 5.3's clipped protocol",
+             fontsize=9, color="0.45")
+
+    # --- 오른쪽: 다시 뽑기 대 다시 학습하기 ---
+    rows = [("VAE-64\nconfidence", 0.010, 0.010),
+            ("VAE-64\nbalance", 0.013, 0.015),
+            ("AE_MLP-64\nconfidence", 0.005, 0.029),
+            ("AE_MLP-64\nbalance", 0.022, 0.070)]
+    W = 0.34
+    for i, (name, samp, trn) in enumerate(rows):
+        axR.bar(i - W / 2, samp, W * 0.92, color="#1d4ed8",
+                label="resample z" if i == 0 else None)
+        axR.bar(i + W / 2, trn, W * 0.92, color="#ea580c",
+                label="retrain the model" if i == 0 else None)
+        axR.text(i + W / 2, trn + 0.0022, f"{trn / samp:.0f}x",
+                 ha="center", fontsize=10.5, color="#ea580c")
+    axR.axvline(1.5, color="0.75", ls="--", lw=1.1)
+    axR.set_xticks(range(4)); axR.set_xticklabels([r[0] for r in rows],
+                                                  fontsize=9.5)
+    axR.set_ylim(0, 0.085)
+    axR.set_ylabel("spread of the ruler", fontsize=10.5)
+    axR.set_title("the KL term also buys repeatability", fontsize=11.5)
+    axR.legend(fontsize=10, frameon=False, loc="upper left")
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.subplots_adjust(left=0.11, right=0.985, top=0.89, bottom=0.21,
+                        wspace=0.30)
+    fig.savefig("spread_vs_gap.svg", transparent=True)
+    plt.close(fig); print("wrote spread_vs_gap.svg")
+
+
+def fig_beta_exchange_rate():
+    """02_beta_vae 2절 - 같은 것을 사는 값이 걸음마다 달라진다.
+
+    쪽의 표에 있는 두 열을 나눈 것이다 (오른 고름 / 내준 복원 %).
+    나눈 수이므로 쪽에서도 그렇게 밝힌다. 값이 47배 떨어지므로
+    세로를 로그로 둔다.
+    """
+    steps = [("b=0 -> 0.5", 0.243, 5.7), ("b=0.5 -> 1.0", 0.093, 30.0),
+             ("b=1.0 -> 4.0", 0.073, 80.0)]
+    rate = [g / c for _, g, c in steps]
+
+    fig, ax = plt.subplots(figsize=(7.8, 4.4))
+    cols, labs = ["#15803d", "#ca8a04", "#b91c1c"], []
+    for i, ((name, g, c), r) in enumerate(zip(steps, rate)):
+        ax.bar(i, r, 0.52, color=cols[i])
+        ax.text(i, r * 1.15, f"{r:.4f}", ha="center", fontsize=12)
+        labs.append(f"{name}\n+{g:.3f} balance\nfor +{c:g}% recon")
+    ax.set_yscale("log")
+    ax.set_ylim(5e-4, 0.12)
+    ax.set_xticks(range(3)); ax.set_xticklabels(labs, fontsize=10.5)
+    ax.set_ylabel("balance bought per 1% of recon given up\n(log scale)",
+                  fontsize=10.5)
+    ax.set_title("the first step buys 47 times more than the last",
+                 fontsize=11.5)
+    ax.annotate("", (2.42, rate[0]), (2.42, rate[2]),
+                arrowprops=dict(arrowstyle="<->", color="0.35", lw=1.6))
+    ax.text(2.48, (rate[0] * rate[2]) ** 0.5,
+            f"{rate[0] / rate[2]:.0f}x", fontsize=12, va="center",
+            color="0.2")
+    ax.set_xlim(-0.6, 2.95)
+    ax.grid(axis="y", alpha=0.2)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.tight_layout()
+    fig.savefig("beta_exchange_rate.svg", transparent=True)
+    plt.close(fig); print("wrote beta_exchange_rate.svg")
+
+
 def fig_conv_off_tradeoff():
     """04_conv_vae 5절 - 세 줄은 맞바꿈 위에 있고 한 줄은 바깥에 있다.
 
@@ -3158,6 +3257,8 @@ if __name__ == "__main__":
     fig_aggregate_posterior()
     fig_conv_off_tradeoff()
     fig_obedience_split()
+    fig_spread_vs_gap()
+    fig_beta_exchange_rate()
     fig_conv_flip()
     fig_conv_obedience()
     fig_ae_vs_vae_2d()
