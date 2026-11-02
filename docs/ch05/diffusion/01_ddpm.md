@@ -80,7 +80,7 @@ $$
 ```python
 """5.4: DDPM. 잡음에서 조금씩 되돌려 그림을 만든다.
 
-5.3과 같은 자를 쓴다 — 심판 CNN, 확신도, 고름, 클래스 안 다양함. 세 수를 어떻게 세는지는 [절 개요](index.md)가 한 줄씩 적어 두었고 식은 [장 개요](../index.md)에 있다.
+5.3과 같은 자를 쓴다 — 평가 분류기, 확신도, 균형도, 클래스 안 다양함. 세 수를 어떻게 세는지는 [절 개요](index.md)가 한 줄씩 적어 두었고 식은 [장 개요](../index.md)에 있다.
 GAN과 달리 규약을 깨지 않는다: Adam 1e-3, 배치 100.
 """
 import json, time
@@ -136,7 +136,7 @@ def evaluate(s, tag):
     wv = within_var((s+1)/2, pred)
     r = dict(confidence=round(conf.mean().item(),4), balance=round(bal,4),
              biggest=round(sh.max().item(),4), within=round(wv/REAL,4))
-    print(f"  {tag:18s} 확신도 {r['confidence']:.3f}  고름 {r['balance']:.3f}  "
+    print(f"  {tag:18s} 확신도 {r['confidence']:.3f}  균형도 {r['balance']:.3f}  "
           f"최대몫 {r['biggest']:.3f}  클래스안 다양함 {r['within']:.3f}", flush=True)
     return r
 
@@ -248,7 +248,7 @@ if __name__ == "__main__":
     에포크 30/30  로스 0.0224  (3475s)
 
 === 뽑기 ===
-  DDPM 1000스텝      확신도 0.940  고름 0.986  최대몫 0.175  클래스안 다양함 1.047
+  DDPM 1000스텝      확신도 0.940  균형도 0.986  최대몫 0.175  클래스안 다양함 1.047
       (2495s)
 ```
 
