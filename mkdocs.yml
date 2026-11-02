@@ -284,16 +284,16 @@ nav:
       - 장 개요: embeddings/index.md
       - 6.1 단어는 수가 아니다:
         - "조회가 곧 행렬 곱이다": embeddings/01_not_a_number.md
-      - 6.2 둘레가 뜻을 만든다:
+      - 6.2 주위 단어가 단어의 뜻을 명확히 한다:
         - "Skip-gram 과 네거티브 샘플링": embeddings/02_context.md
-      - 6.3 세어서 만드는 길:
+      - 6.3 같이 나온 횟수가 뜻을 명확히 한다:
         - "동시 출현 · PPMI · SVD": embeddings/03_counting.md
-      - "6.4 GloVe":
+      - "6.4 GloVe — 트레인 방법":
         - "세는 길과 배우는 길이 만나는 자리": embeddings/04_glove.md
-      - 6.5 담은 것과 못 담은 것:
-        - "유추 · 반대말 · 한 낱말에 벡터 하나": embeddings/05_what_it_holds.md
-      - 6.6 가져다 쓰는 임베딩:
-        - "GloVe 60억 낱말판을 열어 본다": embeddings/06_pretrained.md
+      - "6.5 GloVe — 사용법":
+        - "내려받아 열어 보는 60억 낱말 벡터": embeddings/05_pretrained.md
+      - 6.6 단어 벡터의 장점과 단점:
+        - "유추 · 반대말 · 한 낱말에 벡터 하나": embeddings/06_what_it_holds.md
       - "6.7 그림으로 보면":
         - "2차원으로 줄여 보기 · 그림이 잃는 것": embeddings/07_picture.md
     - "7 IMDB로 보는 텍스트 분류":
