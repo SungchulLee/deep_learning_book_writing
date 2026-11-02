@@ -27,6 +27,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 import numpy as np
 import torch
 import torchvision
@@ -643,6 +644,108 @@ def fig_obedience_split():
     fig.tight_layout()
     fig.savefig("obedience_split.svg", transparent=True)
     plt.close(fig); print("wrote obedience_split.svg")
+
+
+# =============================================================================
+# 장 개요 - 두 사다리 / 5.3 개요 - 시드 다섯 벌의 범위
+# =============================================================================
+def fig_two_ladders():
+    """장 개요 - 이 장이 두 번 오른다는 것을 그림으로.
+
+    표로 적으면 네 줄이지만, 「인코더가 있느냐」로 갈리는 구조가 안 보인다.
+    왼쪽과 오른쪽으로 갈라 두면 5.1 만 따로 서 있는 까닭이 드러난다.
+    지어낸 수는 없다 - 절 번호와 모델 이름뿐이다.
+    """
+    fig, ax = plt.subplots(figsize=(10.6, 5.4))
+    ax.set_xlim(0, 100); ax.set_ylim(0, 62); ax.axis("off")
+
+    cols = [(4, "#1d4ed8", "5.1  reconstruction",
+             "has an encoder", ["PCA", "linear AE", "AE_MLP", "AE_CNN"],
+             "squeeze it, then put it back"),
+            (28, "#15803d", "5.2  latent generative", "has an encoder",
+             ["VAE", "beta-VAE", "cVAE", "conv VAE", "conv cVAE"],
+             "draw new ones from N(0, I)"),
+            (54, "#b45309", "5.3  adversarial", "no encoder",
+             ["GAN", "DCGAN"], "draw sharper ones"),
+            (77, "#b91c1c", "5.4  diffusion", "no encoder",
+             ["DDPM", "DDIM"], "draw better ones, pay in time")]
+    for x, c, title, kind, steps, gain in cols:
+        w = 19
+        ax.text(x + w / 2, 58, title, ha="center", fontsize=12, color=c)
+        ax.text(x + w / 2, 54.4, kind, ha="center", fontsize=9.5,
+                color="0.45")
+        for i, st in enumerate(steps):
+            y = 48 - i * 6.4
+            ax.add_patch(Rectangle((x, y - 2.5), w, 5, facecolor=c,
+                                   alpha=0.14, edgecolor=c, lw=1.2))
+            ax.text(x + w / 2, y, st, ha="center", va="center", fontsize=11)
+            if i:
+                ax.annotate("", (x + w / 2, y + 2.7), (x + w / 2, y + 3.9),
+                            arrowprops=dict(arrowstyle="-|>", color=c, lw=1.4))
+        ax.text(x + w / 2, 48 - len(steps) * 6.4 - 0.4, gain, ha="center",
+                va="top", fontsize=9.5, color=c, style="italic")
+
+    ax.plot([49, 49], [4, 56], ls=":", color="0.6", lw=1.4)
+    ax.text(26.5, 1.0, "an encoder exists - you can ask what a real\n"
+            "image turns into", ha="center", fontsize=10, color="0.35")
+    ax.text(74.0, 1.0, "no encoder - you can only look at what\n"
+            "comes out", ha="center", fontsize=10, color="0.35")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.02)
+    fig.savefig("two_ladders.svg", transparent=True)
+    plt.close(fig); print("wrote two_ladders.svg")
+
+
+def fig_gen_seed_spread():
+    """5.3 개요 5절 - 시드 다섯 벌의 범위와, 시드 42 가 어디 떨어지는가.
+
+    수는 그 절의 두 표 그대로다. 막대가 다섯 벌의 범위이고 점이 시드 42 다.
+    점이 막대 밖으로 나가면 그 수는 한 번 뽑은 운이었다는 뜻이다.
+    """
+    rulers = ["confidence", "class balance", "largest class",
+              "within-class variety"]
+    models = ["AE_MLP-64", "VAE-64", "GAN (MLP)", "DCGAN"]
+    rng = {  # (low, high) x 4 rulers
+        "AE_MLP-64": [(.720, .749), (.567, .637), (.564, .632), (.635, .648)],
+        "VAE-64":    [(.752, .762), (.884, .899), (.324, .349), (.621, .630)],
+        "GAN (MLP)": [(.903, .911), (.913, .937), (.194, .210), (.831, .905)],
+        "DCGAN":     [(.899, .906), (.966, .978), (.147, .163), (1.055, 1.121)],
+    }
+    s42 = {"AE_MLP-64": [.737, .580, .619, .640],
+           "VAE-64":    [.758, .887, .343, .628],
+           "GAN (MLP)": [.908, .945, .214, .953],
+           "DCGAN":     [.909, .970, .162, 1.085]}
+    cols = ["#6b7280", "#1d4ed8", "#b45309", "#b91c1c"]
+
+    fig, axes = plt.subplots(1, 4, figsize=(12.6, 4.3))
+    for a, (ax, ruler) in enumerate(zip(axes, rulers)):
+        for i, m in enumerate(models):
+            lo, hi = rng[m][a]
+            y = len(models) - 1 - i
+            ax.barh(y, hi - lo, 0.42, left=lo, color=cols[i], alpha=0.55)
+            v = s42[m][a]
+            out = not (lo <= v <= hi)
+            ax.plot(v, y, "o", ms=9, color="black" if not out else "white",
+                    markeredgecolor="black", markeredgewidth=1.6, zorder=3)
+            if out:
+                ax.annotate("", (v, y + 0.38), (v, y + 0.72),
+                            arrowprops=dict(arrowstyle="-|>", color="black",
+                                            lw=1.3))
+        ax.set_yticks(range(len(models)))
+        ax.set_yticklabels(models[::-1] if a == 0 else [""] * len(models),
+                           fontsize=10.5)
+        ax.set_title(ruler, fontsize=11)
+        ax.grid(axis="x", alpha=0.2)
+        ax.spines[["top", "right", "left"]].set_visible(False)
+        ax.tick_params(left=False)
+        if ruler == "within-class variety":
+            ax.axvline(1.0, color="0.3", ls=":", lw=1.3)
+            ax.text(1.0, -0.62, " real = 1.0", fontsize=9.5, color="0.3")
+    fig.suptitle("bars = range over five training seeds,  dot = seed 42   "
+                 "(hollow dot = seed 42 fell outside)", fontsize=11.5)
+    fig.subplots_adjust(left=0.085, right=0.99, top=0.80, bottom=0.07,
+                        wspace=0.12)
+    fig.savefig("gen_seed_spread.svg", transparent=True)
+    plt.close(fig); print("wrote gen_seed_spread.svg")
 
 
 @torch.no_grad()
