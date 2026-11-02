@@ -101,7 +101,7 @@ def to_counts(docs):
 Xtr, Xte = to_counts(train_docs), to_counts(test_docs)
 
 # 평마다 길이가 다르므로 길이로 나눈다. 안 그러면 '긴 평'이 무조건 멀어진다.
-# 3장에서는 그림 크기가 모두 같아 이 손질이 필요 없었다 — 글월의 첫 번째 차이다
+# 3장에서는 그림 크기가 모두 같아 이 손질이 필요 없었다 — 텍스트의 첫 번째 차이다
 def normalize(X):
     n = X.sum(1, keepdims=True)
     return X / np.maximum(n, 1)

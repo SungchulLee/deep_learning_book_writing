@@ -236,6 +236,169 @@ def fig_stars_crossover():
 #  그림 안에는 설명 문장을 적지 않는다. 축 이름과 수까지다.
 # =========================================================================
 
+def fig_frozen_ladder():
+    """7.3 5~6절 - 사다리가 어디서 뒤집히는지.
+
+    표 둘을 선 셋으로 겹쳐 둔다. 수는 그 쪽의 6절 표 그대로다.
+    임베딩을 배우면 스텝3 이 꼭대기이고 뒤가 모두 그 아래인데,
+    얼리면 올라간다. 가르는 것이 벡터의 좋고 나쁨이 아니라
+    「얼렸는가」라는 것이 가운데 회색 선으로 드러난다.
+    """
+    import matplotlib.pyplot as plt
+    steps = ["3\naverage", "4\nLSTM", "5\nattention", "6\ntransformer"]
+    series = [("learned, not frozen", [86.83, 81.58, 86.00, 85.95],
+               "#b91c1c", "o-"),
+              ("learned, then frozen", [86.91, 80.99, 87.54, 87.40],
+               "#6b7280", "s--"),
+              ("borrowed GloVe, frozen", [70.72, 68.26, 82.94, 83.86],
+               "#15803d", "^-")]
+    fig, ax = plt.subplots(figsize=(8.4, 5.0))
+    x = range(4)
+    for name, v, c, mk in series:
+        ax.plot(x, v, mk, color=c, lw=2.3, ms=9, label=name)
+        for i, y in enumerate(v):
+            dy = 11 if name.startswith("learned, then") else -17
+            ax.annotate(f"{y:.2f}", (i, y), (0, dy),
+                        textcoords="offset points", ha="center",
+                        fontsize=9.5, color=c)
+    ax.set_xticks(list(x)); ax.set_xticklabels(steps, fontsize=11)
+    ax.set_xlim(-0.4, 3.6); ax.set_ylim(64, 92)
+    ax.set_ylabel("accuracy (%), mean of five seeds", fontsize=11)
+    ax.set_title("the ladder points down when the embedding learns, "
+                 "up when it is frozen", fontsize=11.5)
+    ax.legend(fontsize=10.5, frameon=False, loc="lower right")
+    ax.grid(alpha=0.2)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.tight_layout()
+    fig.savefig("frozen_ladder.svg", transparent=True)
+    plt.close(fig); print("wrote frozen_ladder.svg")
+
+
+def fig_lstm_unstable():
+    """7.3 8절 - LSTM 은 평균이 낮은 것이 아니라 값이 잡히지 않는다.
+
+    네 설정의 시드 다섯 범위를 그린다. 수는 그 쪽 8절 표 그대로다.
+    빌려 온 줄의 아래끝 51.93 은 두 클래스가 반반인 자료에서
+    동전 던지기와 같다 - 그래서 50% 선을 함께 긋는다.
+    """
+    import matplotlib.pyplot as plt
+    rows = [("learned, 64 dim", 78.76, 83.51, 81.51, 4.74, "#6b7280"),
+            ("learned, 50 dim", 77.56, 84.72, 81.58, 7.16, "#6b7280"),
+            ("learned 50, frozen", 69.48, 85.18, 80.99, 15.70, "#1d4ed8"),
+            ("borrowed GloVe, frozen", 51.93, 80.13, 68.26, 28.20, "#b91c1c")]
+    fig, ax = plt.subplots(figsize=(9.0, 4.2))
+    for i, (name, lo, hi, mean, sp, c) in enumerate(rows):
+        y = len(rows) - 1 - i
+        ax.barh(y, hi - lo, 0.46, left=lo, color=c, alpha=0.38)
+        ax.plot(mean, y, "o", ms=10, color=c, zorder=3)
+        ax.text(hi + 0.9, y, f"spread {sp:.2f}", va="center", fontsize=10.5,
+                color=c)
+        ax.text(lo - 0.9, y, f"{lo:.2f}", va="center", ha="right",
+                fontsize=10, color=c)
+    ax.axvline(50, color="#b91c1c", ls=":", lw=1.6)
+    ax.text(50.6, -0.62, "50% = coin flip", fontsize=10.5, color="#b91c1c")
+    ax.set_ylim(-0.95, len(rows) - 0.35)
+    ax.set_yticks(range(len(rows)))
+    ax.set_yticklabels([r[0] for r in rows][::-1], fontsize=11)
+    ax.set_xlim(44, 100)
+    ax.set_xlabel("accuracy (%) - bar is the range over five seeds, "
+                  "dot is the mean", fontsize=10.5)
+    ax.set_title("the LSTM row is not low, it is unrepeatable",
+                 fontsize=11.5)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(left=False)
+    ax.grid(axis="x", alpha=0.2)
+    fig.tight_layout()
+    fig.savefig("lstm_unstable.svg", transparent=True)
+    plt.close(fig); print("wrote lstm_unstable.svg")
+
+
+def fig_path_length():
+    """7.5 5절 - 세 스텝을 가르는 것은 단어에서 출력까지의 거리다.
+
+    표로는 「1 / 400 / 1」이라는 수일 뿐이다. 그려 두면 왜 스텝4 만
+    흔들리는지가 보인다 - 첫 단어가 출력에 닿으려면 상태를 400번
+    거쳐야 하고, 그래디언트는 그 길을 거꾸로 흐른다.
+
+    400 과 스프레드 수는 이 쪽의 표 그대로다.
+    """
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle, FancyArrowPatch
+
+    fig, axes = plt.subplots(1, 3, figsize=(12.4, 4.0))
+    panels = [
+        ("step 3  average", "distance 1", "spread 0.34", "#15803d", "direct"),
+        ("step 4  LSTM", "distance up to 400", "spread 4.74", "#b91c1c",
+         "chain"),
+        ("step 5  attention", "distance 1", "spread 0.33", "#15803d",
+         "weighted"),
+    ]
+    NW = 5
+    for ax, (title, dist, spread, c, kind) in zip(axes, panels):
+        ax.set_xlim(0, 10); ax.set_ylim(0, 10); ax.axis("off")
+        ax.set_title(title, fontsize=12)
+        xs = [1.0 + i * 1.8 for i in range(NW)]
+        for i, x in enumerate(xs):                       # 단어 상자
+            ax.add_patch(Rectangle((x - 0.62, 1.2), 1.24, 1.0,
+                                   facecolor="#e5e7eb", edgecolor="0.5",
+                                   lw=0.9))
+            ax.text(x, 1.7, f"w{i + 1}", ha="center", va="center",
+                    fontsize=9.5)
+        ox = sum(xs) / NW
+        ax.add_patch(Rectangle((ox - 0.95, 7.6), 1.9, 1.1, facecolor=c,
+                               alpha=0.2, edgecolor=c, lw=1.4))
+        ax.text(ox, 8.15, "output", ha="center", va="center", fontsize=10.5,
+                color=c)
+
+        if kind in ("direct", "weighted"):
+            for x in xs:
+                ax.add_patch(FancyArrowPatch((x, 2.3), (ox, 7.5),
+                             arrowstyle="-|>", color=c, lw=1.3, alpha=0.75,
+                             mutation_scale=11,
+                             connectionstyle="arc3,rad=0.05"))
+            if kind == "weighted":
+                for x, w in zip(xs, [".05", ".41", ".09", ".38", ".07"]):
+                    ax.text(x + 0.18, 3.1, w, fontsize=9, color=c)
+                ax.text(ox, 4.9, "a weighted average -\nstill one hop",
+                        ha="center", fontsize=10, color=c)
+            else:
+                ax.text(ox, 4.9, "a plain average", ha="center", fontsize=10,
+                        color=c)
+        else:                                            # LSTM 사슬
+            for i, x in enumerate(xs):
+                ax.add_patch(Rectangle((x - 0.52, 4.0), 1.04, 0.9,
+                                       facecolor=c, alpha=0.16,
+                                       edgecolor=c, lw=1))
+                ax.text(x, 4.45, f"s{i + 1}", ha="center", va="center",
+                        fontsize=9, color=c)
+                ax.annotate("", (x, 3.95), (x, 2.35),
+                            arrowprops=dict(arrowstyle="-|>", color="0.6",
+                                            lw=1))
+                if i:
+                    ax.annotate("", (x - 0.56, 4.45), (xs[i - 1] + 0.56, 4.45),
+                                arrowprops=dict(arrowstyle="-|>", color=c,
+                                                lw=1.5))
+            ax.text(xs[-1] + 0.9, 4.45, "...", fontsize=14, color=c,
+                    va="center")
+            ax.add_patch(FancyArrowPatch((xs[-1] + 0.55, 4.9), (ox, 7.5),
+                         arrowstyle="-|>", color=c, lw=1.6,
+                         mutation_scale=12))
+            ax.annotate("", (xs[0], 5.9), (xs[-1] + 0.5, 5.9),
+                        arrowprops=dict(arrowstyle="<-", color=c, lw=1.2,
+                                        ls=":"))
+            ax.text(ox, 6.25, "w1 must pass through every state",
+                    ha="center", fontsize=9.5, color=c)
+
+        ax.text(ox, 0.15, f"{dist}        {spread}", ha="center",
+                fontsize=11, color=c)
+    fig.suptitle("what separates the three steps is how far a word is "
+                 "from the output", fontsize=12.5)
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.82, bottom=0.03,
+                        wspace=0.06)
+    fig.savefig("path_length.svg", transparent=True)
+    plt.close(fig); print("wrote path_length.svg")
+
+
 def fig_lead_two_ladders():
     """한 사다리는 끝까지 오르고, 한 사다리는 가운데서 꺾인다.
 

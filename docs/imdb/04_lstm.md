@@ -322,7 +322,7 @@ print(f"\n스텝4 LSTM  평균 {sum(accs) / len(accs):.2f}%  "
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-`pack_padded_sequence`를 빼고 그대로 400칸을 읽게 하면 정확도가 어떻게 될지 어림하고, 까닭을 적어라.
+`pack_padded_sequence`를 빼고 그대로 400칸을 읽게 하면 정확도가 어떻게 될지 예상하고, 까닭을 적어라.
 
 </div>
 
@@ -365,7 +365,7 @@ print(f"\n스텝4 LSTM  평균 {sum(accs) / len(accs):.2f}%  "
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-이 절의 LSTM은 마지막 은닉 상태 하나만 쓴다. 400칸을 읽는 동안 나온 상태를 **모두** 평균내어 쓰면 어떻게 될지 어림하라. 그리고 그 모델이 [스텝3](03_embedding.md)과 무엇이 같고 무엇이 다른지 적어라.
+이 절의 LSTM은 마지막 은닉 상태 하나만 쓴다. 400칸을 읽는 동안 나온 상태를 **모두** 평균내어 쓰면 어떻게 될지 예상하라. 그리고 그 모델이 [스텝3](03_embedding.md)과 무엇이 같고 무엇이 다른지 적어라.
 
 </div>
 
