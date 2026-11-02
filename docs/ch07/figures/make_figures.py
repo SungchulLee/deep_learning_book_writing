@@ -1642,6 +1642,178 @@ def fig_loglik_baselines():
           f"{max(base, 1 - base):.4f}; constant from epoch {const + 1}")
 
 
+def fig_em_local_maxima():
+    """가우시안 혼합 EM 쪽 1절의 코드를 그대로 옮겨 여러 번 돌린다.
+
+    generate_gmm_data 와 GaussianMixture 를 쪽에 적힌 그대로 썼으므로
+    쪽의 출력(로그우도 -1134.17, 웨이트 0.3090/0.3910/0.3000, ARI 0.881)이
+    그대로 나온다.
+
+    2절은 「초기화가 다른 해를 만들 수 있으며 전역 최댓값을 보장하지
+    않는다」고 적는다. 쪽은 한 번만 돌린다. 초기화 씨앗 0~29 로 서른 번
+    돌려 보면 여덟 번이 다른 곳에 멈춘다. 그 서른 번을 다 돌리므로 이
+    함수는 1분 가까이 걸린다.
+    """
+    import torch
+    from matplotlib.patches import Ellipse
+    from sklearn.metrics import adjusted_rand_score
+
+    def generate_gmm_data(n_samples=300, n_components=3, seed=42):
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        true_means = [torch.tensor([-3., -3.]), torch.tensor([3., 3.]),
+                      torch.tensor([0., 5.])]
+        true_covs = [torch.tensor([[1., .5], [.5, 1.]]),
+                     torch.tensor([[1.5, -.3], [-.3, 1.5]]),
+                     torch.tensor([[.8, 0.], [0., .8]])]
+        true_weights = torch.tensor([0.3, 0.4, 0.3])
+        Xs, ls = [], []
+        for k in range(n_components):
+            n_k = int(n_samples * true_weights[k])
+            Xk = np.random.multivariate_normal(true_means[k].numpy(),
+                                               true_covs[k].numpy(), n_k)
+            Xs.append(torch.tensor(Xk, dtype=torch.float32))
+            ls.append(torch.full((n_k,), k, dtype=torch.long))
+        X, labels = torch.cat(Xs, 0), torch.cat(ls, 0)
+        perm = torch.randperm(len(X))
+        return X[perm], labels[perm], true_means, true_covs, true_weights
+
+    class GaussianMixture:
+        def __init__(self, n_components=3, n_iterations=50):
+            self.n_components = n_components
+            self.n_iterations = n_iterations
+            self.history = []
+
+        def initialize_parameters(self, X):
+            n, f = X.shape
+            self.means = X[torch.randperm(n)[:self.n_components]].clone()
+            self.covs = [torch.eye(f) for _ in range(self.n_components)]
+            self.weights = torch.ones(self.n_components) / self.n_components
+
+        def gaussian_pdf(self, X, mean, cov):
+            f = X.shape[1]
+            cov = cov + torch.eye(f) * 1e-6
+            diff = X - mean
+            e = -0.5 * torch.sum(diff @ torch.inverse(cov) * diff, dim=1)
+            nz = 1.0 / torch.sqrt((2 * np.pi) ** f * torch.det(cov))
+            return nz * torch.exp(e)
+
+        def e_step(self, X):
+            r = torch.zeros(X.shape[0], self.n_components)
+            for k in range(self.n_components):
+                r[:, k] = self.weights[k] * self.gaussian_pdf(
+                    X, self.means[k], self.covs[k])
+            return r / (r.sum(dim=1, keepdim=True) + 1e-10)
+
+        def m_step(self, X, r):
+            n, f = X.shape
+            Nk = r.sum(dim=0)
+            self.weights = Nk / n
+            for k in range(self.n_components):
+                self.means[k] = (r[:, k:k + 1] * X).sum(dim=0) / Nk[k]
+            for k in range(self.n_components):
+                d = X - self.means[k]
+                self.covs[k] = ((r[:, k:k + 1] * d).T @ d) / Nk[k] \
+                    + torch.eye(f) * 1e-6
+
+        def compute_log_likelihood(self, X):
+            tot = 0.0
+            for i in range(X.shape[0]):
+                ps = 0.0
+                for k in range(self.n_components):
+                    ps = ps + self.weights[k] * self.gaussian_pdf(
+                        X[i:i + 1], self.means[k], self.covs[k])
+                tot = tot + torch.log(ps + 1e-10)
+            return tot.item()
+
+        def fit(self, X):
+            self.initialize_parameters(X)
+            for _ in range(self.n_iterations):
+                self.m_step(X, self.e_step(X))
+                self.history.append(self.compute_log_likelihood(X))
+            return self
+
+        def predict(self, X):
+            return self.e_step(X).argmax(dim=1)
+
+    X, labels, true_means, _, _ = generate_gmm_data()
+    Xn, ln = X.numpy(), labels.numpy()
+
+    good = GaussianMixture().fit(X)              # 쪽이 찍은 그 결과
+    torch.manual_seed(0)
+    stuck = GaussianMixture().fit(X)             # 멈춰 버린 보기
+
+    finals = []
+    for sd in range(30):
+        torch.manual_seed(sd)
+        g = GaussianMixture().fit(X)
+        finals.append((g.history[-1],
+                       adjusted_rand_score(ln, g.predict(X).numpy())))
+    best = max(f for f, _ in finals)
+    n_bad = sum(1 for f, _ in finals if f < best - 0.01)
+
+    cols = ("#1d4ed8", "#b91c1c", "#15803d")
+    fig, axes = plt.subplots(1, 2, figsize=(11.8, 5.1))
+
+    for ax, gmm, head in ((axes[0], good, "what the page prints"),
+                          (axes[1], stuck, "a different starting point")):
+        ari = adjusted_rand_score(ln, gmm.predict(X).numpy())
+        ax.scatter(Xn[:, 0], Xn[:, 1], s=14, c="0.62", alpha=0.6,
+                   edgecolors="none")
+        for k in range(3):
+            cov = gmm.covs[k].numpy()
+            vals, vecs = np.linalg.eigh(cov)
+            order = vals.argsort()[::-1]
+            vals, vecs = vals[order], vecs[:, order]
+            theta = np.degrees(np.arctan2(vecs[1, 0], vecs[0, 0]))
+            for nsd in (1, 2):
+                ax.add_patch(Ellipse(gmm.means[k].numpy(),
+                                     2 * nsd * np.sqrt(vals[0]),
+                                     2 * nsd * np.sqrt(vals[1]), angle=theta,
+                                     fill=False, edgecolor=cols[k], lw=2.0,
+                                     alpha=0.9 if nsd == 1 else 0.45))
+            ax.plot(*gmm.means[k].numpy(), "o", ms=9, color=cols[k])
+            ax.annotate(f"weight {gmm.weights[k]:.3f}",
+                        gmm.means[k].numpy(), (11, 11 if k != 2 else -19),
+                        textcoords="offset points", fontsize=10,
+                        color=cols[k])
+        for m in true_means:
+            ax.plot(*m.numpy(), "x", ms=11, mew=2.4, color="0.25")
+        ax.set_xlim(-7.0, 7.4)
+        ax.set_ylim(-7.0, 9.2)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_title(f"{head}\nlog-likelihood {gmm.history[-1]:.2f},  "
+                     f"ARI {ari:.3f}", fontsize=11.5)
+        ax.spines[["top", "right"]].set_visible(False)
+
+    axes[0].annotate("grey crosses are the three\ncentres the data came from",
+                     (0.03, 0.03), xycoords="axes fraction", fontsize=10,
+                     color="0.3")
+    axes[1].annotate(f"two of the three starts landed in the same blob,\n"
+                     f"so one component holds 0.3 + 0.4 of the data\n\n"
+                     f"{n_bad} of 30 starting points end here",
+                     (0.03, 0.80), xycoords="axes fraction", fontsize=10,
+                     color="#b91c1c")
+
+    fig.tight_layout()
+    fig.savefig("em_local_maxima.svg", transparent=True)
+    plt.close(fig)
+    print("wrote em_local_maxima.svg")
+    print(f"   page's run: LL {good.history[-1]:.2f}, weights "
+          f"{good.weights.numpy().round(4).tolist()}, "
+          f"ARI {adjusted_rand_score(ln, good.predict(X).numpy()):.3f}")
+    print(f"   seed 0    : LL {stuck.history[-1]:.2f}, weights "
+          f"{stuck.weights.numpy().round(3).tolist()}, "
+          f"ARI {adjusted_rand_score(ln, stuck.predict(X).numpy()):.3f}")
+    print(f"   over 30 starting points: {30 - n_bad} reach {best:.2f}, "
+          f"{n_bad} stop lower")
+    worst = min(f for f, _ in finals)
+    aris = [a for _, a in finals]
+    print(f"   final log-likelihood {worst:.2f} .. {best:.2f}; "
+          f"ARI {min(aris):.3f} .. {max(aris):.3f}")
+
+
 if __name__ == "__main__":
     fig_sigmoid_steepness()
     fig_poly_bias_variance()
@@ -1659,3 +1831,4 @@ if __name__ == "__main__":
     fig_kl_both_directions()
     fig_leverage_vs_influence()
     fig_loglik_baselines()
+    fig_em_local_maxima()
