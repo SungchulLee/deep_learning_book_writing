@@ -437,9 +437,453 @@ def fig_gd_lr_bound():
               f"loss after 60 steps = {tail[m]:.6g}")
 
 
+def fig_decision_boundary():
+    """결정 경계 쪽 5절 3부의 모델을 그대로 다시 학습시킨다.
+
+    같은 씨앗(42), 같은 데이터(make_classification 500개), 같은 최적화
+    (Adam lr=0.1, 500에폭)이므로 쪽의 출력에 찍힌 계수가 그대로 나온다.
+    beta0 = -0.324, beta1 = 0.456, beta2 = 3.412.
+
+    왼쪽은 그 경계와 평행한 확률 등고선이고, 오른쪽은 경계에 수직인
+    방향으로 점들을 사영해 2절의 「전이 폭」을 실제 거리로 보인 것이다.
+    """
+    import torch
+    import torch.nn as nn
+    from sklearn.datasets import make_classification
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    torch.manual_seed(42)
+    np.random.seed(42)
+    X, y = make_classification(n_samples=500, n_features=2, n_redundant=0,
+                               n_informative=2, random_state=42,
+                               n_clusters_per_class=1)
+    Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.2,
+                                          random_state=42)
+    scaler = StandardScaler()
+    Xtr = torch.FloatTensor(scaler.fit_transform(Xtr))
+    ytr_t = torch.FloatTensor(ytr).reshape(-1, 1)
+
+    class LogisticRegression(nn.Module):
+        def __init__(self, n_features):
+            super().__init__()
+            self.linear = nn.Linear(n_features, 1)
+
+        def forward(self, x):
+            return torch.sigmoid(self.linear(x))
+
+    model = LogisticRegression(2)
+    criterion = nn.BCELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
+    for _ in range(500):
+        loss = criterion(model(Xtr), ytr_t)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+    w = model.linear.weight.data.numpy().flatten()
+    b = float(model.linear.bias.data.numpy()[0])
+    nrm = float(np.linalg.norm(w))
+    unit = w / nrm
+    gap90 = np.log(9) / nrm                    # 0.5 등고선에서 0.9 등고선까지
+
+    P = Xtr.numpy()
+    t = P @ unit + b / nrm                     # 경계로부터의 부호 있는 거리
+    cls0, cls1 = ytr == 0, ytr == 1
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.0, 4.9))
+
+    # --- 왼쪽: 경계와 평행한 등고선 -------------------------------------
+    xs = np.linspace(P[:, 0].min() - 0.4, P[:, 0].max() + 0.4, 200)
+    for p_star, style, col in ((0.1, ":", "#1d4ed8"),
+                               (0.5, "-", "black"),
+                               (0.9, ":", "#b91c1c")):
+        c = np.log(p_star / (1 - p_star))
+        axL.plot(xs, (c - b - w[0] * xs) / w[1], style, color=col,
+                 lw=2.4 if p_star == 0.5 else 1.8)
+    axL.scatter(P[cls0, 0], P[cls0, 1], s=18, c="#1d4ed8", alpha=0.45,
+                edgecolors="none", label="class 0")
+    axL.scatter(P[cls1, 0], P[cls1, 1], s=18, c="#b91c1c", alpha=0.45,
+                edgecolors="none", label="class 1")
+
+    foot = -(b / nrm) * unit                   # 원점에서 경계에 내린 발
+    axL.annotate("", foot + unit * gap90, foot,
+                 arrowprops=dict(arrowstyle="-|>", color="#15803d", lw=2.4))
+    axL.annotate(f"from p = 0.5 to p = 0.9 is\n{gap90:.3f} along beta,\n"
+                 f"which is log 9 / {nrm:.3f}",
+                 foot + unit * gap90 * 0.5, (64, -136),
+                 textcoords="offset points", fontsize=10, color="#15803d",
+                 arrowprops=dict(arrowstyle="->", color="#15803d", lw=1.1))
+    axL.text(xs[4], (np.log(1 / 9) - b - w[0] * xs[4]) / w[1] - 0.30,
+             "p = 0.1", fontsize=10, color="#1d4ed8")
+    axL.text(xs[4], (-b - w[0] * xs[4]) / w[1] - 0.30,
+             "p = 0.5  (the decision boundary)", fontsize=10, color="black")
+    axL.text(xs[4], (np.log(9) - b - w[0] * xs[4]) / w[1] + 0.14,
+             "p = 0.9", fontsize=10, color="#b91c1c")
+    axL.set_xlabel("feature 1 (standardized)", fontsize=11)
+    axL.set_ylabel("feature 2 (standardized)", fontsize=11)
+    axL.set_title("the contours are parallel; beta is the normal",
+                  fontsize=11.5)
+    axL.set_ylim(P[:, 1].min() - 0.5, P[:, 1].max() + 0.5)
+    axL.legend(fontsize=10, frameon=False, loc="lower right")
+    axL.grid(alpha=0.2)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    # --- 오른쪽: 법선 방향으로 사영 -------------------------------------
+    tt = np.linspace(t.min() - 0.2, t.max() + 0.2, 400)
+    axR.plot(tt, 1 / (1 + np.exp(-nrm * tt)), color="black", lw=2.4)
+    axR.axvspan(-gap90, gap90, color="#fde68a", alpha=0.45, zorder=0)
+    axR.scatter(t[cls0], np.full(cls0.sum(), -0.055), s=14, c="#1d4ed8",
+                alpha=0.4, edgecolors="none")
+    axR.scatter(t[cls1], np.full(cls1.sum(), 1.055), s=14, c="#b91c1c",
+                alpha=0.4, edgecolors="none")
+    axR.axhline(0.5, color="0.7", ls=":", lw=1.1)
+    axR.axvline(0, color="0.7", ls=":", lw=1.1)
+    inside = int(np.sum(np.abs(t) < gap90))
+    axR.annotate(f"{inside} of {len(t)} training points\nlie in the band "
+                 f"where the model\nis less than 90% sure",
+                 (0, 0.30), (58, -14), textcoords="offset points",
+                 fontsize=10, color="#92400e",
+                 arrowprops=dict(arrowstyle="->", color="#92400e", lw=1.1))
+    axR.set_xlabel("signed distance from the boundary, along beta",
+                   fontsize=11)
+    axR.set_ylabel("predicted P(Y = 1 | x)", fontsize=11)
+    axR.set_title(f"the transition is {2 * gap90:.2f} wide because "
+                  f"||beta|| = {nrm:.2f}", fontsize=11.5)
+    axR.set_ylim(-0.12, 1.12)
+    axR.grid(alpha=0.2)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.tight_layout()
+    fig.savefig("decision_boundary.svg", transparent=True)
+    plt.close(fig)
+    print("wrote decision_boundary.svg")
+    print(f"   beta0 = {b:.3f}  beta1 = {w[0]:.3f}  beta2 = {w[1]:.3f}")
+    print(f"   boundary: x2 = {-b / w[1]:.3f} + {-w[0] / w[1]:.3f} x1")
+    print(f"   ||beta_1:d|| = {nrm:.4f}")
+    print(f"   origin to boundary = |beta0|/||beta|| = {abs(b) / nrm:.4f}")
+    print(f"   0.5 -> 0.9 contour distance = {gap90:.4f}")
+    print(f"   training points inside the |p-0.5| < 0.4 band: "
+          f"{inside} / {len(t)}")
+
+
+def _breast_cancer_loaders(batch_size=32):
+    """정규화된 로지스틱 회귀 쪽 6절 1부의 prepare_data 와 같은 분할."""
+    import torch
+    from torch.utils.data import TensorDataset, DataLoader
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    data = load_breast_cancer()
+    X, y = data.data, data.target
+    X_temp, X_test, y_temp, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y)
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_temp, y_temp, test_size=0.25, random_state=42, stratify=y_temp)
+
+    scaler = StandardScaler().fit(X_train)
+
+    def to_ds(a, b):
+        return TensorDataset(torch.FloatTensor(scaler.transform(a)),
+                             torch.FloatTensor(b).reshape(-1, 1))
+
+    return (DataLoader(to_ds(X_train, y_train), batch_size=batch_size,
+                       shuffle=True),
+            DataLoader(to_ds(X_val, y_val), batch_size=batch_size),
+            DataLoader(to_ds(X_test, y_test), batch_size=batch_size),
+            X.shape[1])
+
+
+def fig_regularization_strength():
+    """정규화된 로지스틱 회귀 쪽 6절 6부의 lambda 조율을 다시 돌린다.
+
+    씨앗 42 한 번만 돌린 쪽의 출력(λ=0 에서 AUC 0.9934·||β||=4.1285,
+    λ=0.01 에서 0.9960·2.2926, λ=1 에서 0.9934·0.4598)을 재현하고,
+    그 위에 씨앗 0~4 와 42 를 합한 여섯 번의 폭을 얹는다.
+    「한 번 돌린 것은 잰 것이 아니다」(CLAUDE.md) 를 이 쪽의 수에
+    적용한 것이다.
+    """
+    import torch
+    import torch.nn as nn
+    from sklearn.metrics import roc_auc_score
+
+    train_loader, val_loader, test_loader, n_features = \
+        _breast_cancer_loaders()
+
+    class LogisticRegression(nn.Module):
+        def __init__(self, n):
+            super().__init__()
+            self.linear = nn.Linear(n, 1)
+            nn.init.xavier_uniform_(self.linear.weight)
+            nn.init.zeros_(self.linear.bias)
+
+        def logits(self, x):
+            return self.linear(x)
+
+    def fit(l2, seed, num_epochs=200, lr=0.01, patience=15):
+        torch.manual_seed(seed)
+        model = LogisticRegression(n_features)
+        crit = nn.BCEWithLogitsLoss()
+        opt = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=l2)
+        best, best_state, wait = float("inf"), None, 0
+        for _ in range(num_epochs):
+            model.train()
+            for bx, by in train_loader:
+                loss = crit(model.logits(bx), by)
+                opt.zero_grad()
+                loss.backward()
+                opt.step()
+            model.eval()
+            tot, n = 0.0, 0
+            with torch.no_grad():
+                for bx, by in val_loader:
+                    tot += crit(model.logits(bx), by).item() * len(bx)
+                    n += len(bx)
+            v = tot / n
+            if v < best:
+                best, wait = v, 0
+                best_state = {k: t.clone() for k, t in model.state_dict().items()}
+            else:
+                wait += 1
+                if wait >= patience:
+                    break
+        model.load_state_dict(best_state)
+        model.eval()
+        probs, targets = [], []
+        with torch.no_grad():
+            for bx, by in test_loader:
+                probs += torch.sigmoid(model.logits(bx)).numpy().ravel().tolist()
+                targets += by.numpy().ravel().tolist()
+        w = model.linear.weight.data.numpy().ravel()
+        return roc_auc_score(targets, probs), float(np.linalg.norm(w))
+
+    lambdas = [0.0, 0.0001, 0.001, 0.01, 0.1, 1.0]
+    x = [1e-5 if lam == 0 else lam for lam in lambdas]
+    page = [fit(lam, 42) for lam in lambdas]          # 쪽이 찍은 수
+    seeds = (0, 1, 2, 3, 4, 42)      # 쪽이 쓴 42 도 폭 안에 넣는다
+    sweep = [[fit(lam, s) if s != 42 else page[i]
+              for s in seeds] for i, lam in enumerate(lambdas)]
+
+    auc42 = [a for a, _ in page]
+    nrm42 = [n for _, n in page]
+    auc_lo = [min(a for a, _ in row) for row in sweep]
+    auc_hi = [max(a for a, _ in row) for row in sweep]
+    nrm_lo = [min(n for _, n in row) for row in sweep]
+    nrm_hi = [max(n for _, n in row) for row in sweep]
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.6))
+
+    axL.fill_between(x, auc_lo, auc_hi, color="#b91c1c", alpha=0.18,
+                     label="spread over 6 seeds")
+    axL.plot(x, auc42, "o-", color="#b91c1c", lw=2.4, ms=8,
+             label="the run this page prints (seed 42)")
+    axL.annotate(f"no penalty: {auc42[0]:.4f}\n"
+                 f"best: {max(auc42):.4f} at lambda = 0.01\n"
+                 f"the two seed bands do not overlap",
+                 (0.01, max(auc42)), (24, -122), textcoords="offset points",
+                 fontsize=10, color="#b91c1c",
+                 arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.2))
+    axL.set_xscale("log")
+    axL.set_xticks(x)
+    axL.set_xticklabels(["0", "1e-4", "1e-3", "0.01", "0.1", "1"])
+    axL.set_xlabel("lambda  (L2 weight decay)", fontsize=11)
+    axL.set_ylabel("test AUC", fontsize=11)
+    axL.set_title(f"the penalty buys {max(auc42) - auc42[0]:.4f} of AUC",
+                  fontsize=11.5)
+    axL.legend(fontsize=10, frameon=False, loc="lower left")
+    axL.grid(alpha=0.2)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    axR.fill_between(x, nrm_lo, nrm_hi, color="#1d4ed8", alpha=0.18,
+                     label="spread over 6 seeds")
+    axR.plot(x, nrm42, "o-", color="#1d4ed8", lw=2.4, ms=8,
+             label="the run this page prints (seed 42)")
+    axR.annotate(f"seed to seed the length varies by {nrm_hi[0] - nrm_lo[0]:.2f}",
+                 (x[0], nrm_hi[0]), (66, -28), textcoords="offset points",
+                 fontsize=10, color="#1d4ed8",
+                 arrowprops=dict(arrowstyle="->", color="#1d4ed8", lw=1.1))
+    axR.annotate(f"here by {nrm_hi[-1] - nrm_lo[-1]:.3f}",
+                 (x[-1], nrm_hi[-1]), (-26, 52), textcoords="offset points",
+                 fontsize=10, color="#1d4ed8", ha="right",
+                 arrowprops=dict(arrowstyle="->", color="#1d4ed8", lw=1.1))
+    axR.set_xscale("log")
+    axR.set_xticks(x)
+    axR.set_xticklabels(["0", "1e-4", "1e-3", "0.01", "0.1", "1"])
+    axR.set_xlabel("lambda  (L2 weight decay)", fontsize=11)
+    axR.set_ylabel("length of the weight vector", fontsize=11)
+    axR.set_title("what the penalty really moves: the length, and how much\n"
+                  "it wanders from run to run", fontsize=11.5)
+    axR.legend(fontsize=10, frameon=False, loc="lower left")
+    axR.grid(alpha=0.2)
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.tight_layout()
+    fig.savefig("regularization_strength.svg", transparent=True)
+    plt.close(fig)
+    print("wrote regularization_strength.svg")
+    print(f"   {'lambda':>8}{'AUC(42)':>10}{'AUC lo':>9}{'AUC hi':>9}"
+          f"{'|b|(42)':>10}{'|b| lo':>9}{'|b| hi':>9}")
+    for i, lam in enumerate(lambdas):
+        print(f"   {lam:>8.4f}{auc42[i]:>10.4f}{auc_lo[i]:>9.4f}"
+              f"{auc_hi[i]:>9.4f}{nrm42[i]:>10.4f}{nrm_lo[i]:>9.4f}"
+              f"{nrm_hi[i]:>9.4f}")
+
+
+def fig_newton_irls():
+    """경사 계산 쪽 10절을 통째로 다시 돌린다.
+
+    그 쪽의 출력은 세 방법이 같은 로스 0.488636 에 이르렀다고 찍고도
+    「Newton ~ IRLS: False, Max difference: 1.27e+01」 이라고 적는다.
+    까닭은 같은 출력의 윗줄에 이미 있다 - 헤세 행렬의 가장 작은 고윳값이
+    정확히 0 이다. make_classification 의 n_redundant=1 이 다른 열들의
+    선형 결합인 열을 하나 만들어 X 의 랭크가 6 이 아니라 5 다.
+
+    왼쪽은 수렴, 오른쪽은 그 고윳값들이다. 쪽의 2부가 난수를 먼저 쓰므로
+    그 부분까지 그대로 재현해야 같은 수가 나온다.
+    """
+    import torch
+    from sklearn.datasets import make_classification
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    torch.manual_seed(42)
+    np.random.seed(42)
+
+    def sigmoid(z):
+        return 1.0 / (1.0 + torch.exp(-z))
+
+    def compute_loss(X, y, beta):
+        p = sigmoid(X @ beta)
+        eps = 1e-12
+        return -(y * torch.log(p + eps) + (1 - y) * torch.log(1 - p + eps)).mean()
+
+    def compute_gradient(X, y, beta):
+        p = sigmoid(X @ beta)
+        return (1.0 / len(y)) * X.T @ (p - y)
+
+    def compute_hessian(X, beta):
+        p = sigmoid(X @ beta)
+        b = p * (1 - p)
+        return (1.0 / len(p)) * (X * b).T @ X
+
+    # 쪽 2부 - 여기서 난수를 쓰므로 건너뛰면 뒤의 수가 달라진다
+    X0 = torch.randn(100, 5)
+    y0 = torch.randint(0, 2, (100, 1)).float()
+    beta0 = torch.randn(5, 1, requires_grad=True)
+    compute_loss(X0, y0, beta0).backward()
+
+    X_raw, y_raw = make_classification(n_samples=200, n_features=5,
+                                       n_informative=4, n_redundant=1,
+                                       random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_raw, y_raw, test_size=0.2, random_state=42)
+    scaler = StandardScaler()
+    X_train = torch.FloatTensor(scaler.fit_transform(X_train))
+    y_train = torch.FloatTensor(y_train).reshape(-1, 1)
+    X_train = torch.cat([torch.ones(len(X_train), 1), X_train], dim=1)
+    n, d = X_train.shape
+
+    beta_gd, gd_losses = torch.zeros(d, 1), []
+    for _ in range(50):
+        gd_losses.append(compute_loss(X_train, y_train, beta_gd).item())
+        beta_gd = beta_gd - 1.0 * compute_gradient(X_train, y_train, beta_gd)
+
+    beta_newton, newton_losses = torch.zeros(d, 1), []
+    for _ in range(10):
+        newton_losses.append(compute_loss(X_train, y_train, beta_newton).item())
+        beta_newton = beta_newton - torch.linalg.solve(
+            compute_hessian(X_train, beta_newton),
+            compute_gradient(X_train, y_train, beta_newton))
+
+    beta_irls, irls_losses = torch.zeros(d, 1), []
+    for _ in range(10):
+        irls_losses.append(compute_loss(X_train, y_train, beta_irls).item())
+        p = sigmoid(X_train @ beta_irls)
+        B = p * (1 - p)
+        z = X_train @ beta_irls - (p - y_train) / B
+        beta_irls = torch.linalg.solve((X_train * B).T @ X_train,
+                                       (X_train * B).T @ z)
+
+    star = min(newton_losses[-1], irls_losses[-1])
+    eig = torch.linalg.eigvalsh(compute_hessian(X_train,
+                                                torch.zeros(d, 1))).numpy()
+    rank = int(torch.linalg.matrix_rank(X_train).item())
+    bdiff = float((beta_newton - beta_irls).abs().max())
+    pred = float((X_train @ (beta_newton - beta_irls)).norm())
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.7))
+
+    axL.plot(gd_losses, "-o", ms=3.5, color="#1d4ed8", lw=2.0,
+             label="gradient descent, 50 steps")
+    axL.plot(newton_losses, "-s", ms=9, color="#b91c1c", lw=2.4,
+             label="Newton, 10 steps")
+    axL.plot(irls_losses, "--^", ms=7, color="#15803d", lw=2.0,
+             label="IRLS, 10 steps  (under the red line)")
+    axL.axhline(star, color="0.6", ls=":", lw=1.2)
+    axL.annotate(f"both are at {star:.6f}\nby step 3",
+                 (3, newton_losses[3]), (34, 44),
+                 textcoords="offset points", fontsize=10, color="#b91c1c",
+                 arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.2))
+    axL.annotate(f"after 50 steps: {gd_losses[-1]:.6f}",
+                 (49, gd_losses[-1]), (-16, 46),
+                 textcoords="offset points", fontsize=10, color="#1d4ed8",
+                 ha="right",
+                 arrowprops=dict(arrowstyle="->", color="#1d4ed8", lw=1.2))
+    axL.set_xlabel("iteration", fontsize=11)
+    axL.set_ylabel("binary cross-entropy loss", fontsize=11)
+    axL.set_title("Newton and IRLS are the same algorithm here",
+                  fontsize=11.5)
+    axL.legend(fontsize=10, frameon=False, loc="upper right")
+    axL.grid(alpha=0.2)
+    axL.spines[["top", "right"]].set_visible(False)
+
+    tol = eig.max() * 1e-5            # float32 에서 0 은 2.9e-08 로 나온다
+    cols = ["#b91c1c" if v < tol else "#1d4ed8" for v in eig]
+    axR.bar(range(1, d + 1), eig, color=cols, width=0.62)
+    axR.plot([1], [0], "x", ms=16, mew=3.4, color="#b91c1c", zorder=5,
+             clip_on=False)
+    for i, v in enumerate(eig):
+        if v >= tol:           # 0 인 막대는 빨간 x 와 설명으로 대신한다
+            axR.text(i + 1, v + 0.018, f"{v:.3f}", ha="center",
+                     fontsize=9.5, color="0.25")
+    axR.annotate(f"2.9e-08, which is 0 in float32:\n"
+                 f"the design has {d} columns\n"
+                 f"but rank {rank}, so the minimiser\n"
+                 "is a line, not a point",
+                 (1, 0.012), (24, 92), textcoords="offset points",
+                 fontsize=10, color="#b91c1c",
+                 arrowprops=dict(arrowstyle="->", color="#b91c1c", lw=1.2))
+    axR.set_xticks(range(1, d + 1))
+    axR.set_xlabel("eigenvalue of the Hessian at beta = 0, sorted",
+                   fontsize=11)
+    axR.set_ylabel("eigenvalue", fontsize=11)
+    axR.set_ylim(0, 0.78)
+    axR.set_title(f"which is why the two answers differ by {bdiff:.2f}",
+                  fontsize=11.5)
+    axR.grid(alpha=0.2, axis="y")
+    axR.spines[["top", "right"]].set_visible(False)
+
+    fig.tight_layout()
+    fig.savefig("newton_irls.svg", transparent=True)
+    plt.close(fig)
+    print("wrote newton_irls.svg")
+    print(f"   n = {n}, d = {d}, rank(X) = {rank}")
+    print(f"   Hessian eigenvalues: {np.round(eig, 6).tolist()}")
+    print(f"   GD final {gd_losses[-1]:.6f}  Newton {newton_losses[-1]:.6f}"
+          f"  IRLS {irls_losses[-1]:.6f}")
+    print(f"   max |beta_newton - beta_irls| = {bdiff:.4f}")
+    print(f"   || X (beta_newton - beta_irls) || = {pred:.3e}")
+    print(f"   beta_newton = {beta_newton.numpy().ravel().round(3).tolist()}")
+    print(f"   beta_irls   = {beta_irls.numpy().ravel().round(3).tolist()}")
+
+
 if __name__ == "__main__":
     fig_sigmoid_steepness()
     fig_poly_bias_variance()
     fig_ridge_path()
     fig_lasso_path()
     fig_gd_lr_bound()
+    fig_decision_boundary()
+    fig_regularization_strength()
+    fig_newton_irls()
