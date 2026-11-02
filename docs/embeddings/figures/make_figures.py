@@ -485,6 +485,90 @@ def fig_counting_pipeline():
 
 
 # =============================================================================
+# 6.4 / 6.5 / 6.6 - 각 쪽의 결론을 그림 하나로
+# =============================================================================
+def fig_bias_split():
+    """6.4 5절 - 로스는 합만 묶고 쪼개는 방식은 정해 주지 않는다.
+
+    수는 그 쪽의 출력 그대로다. 왼쪽 막대(식을 얼마나 잘 맞추나)는
+    셋이 거의 같은데 오른쪽 막대(내적이 PMI 를 따라가나)만 크게 흔들린다.
+    그것이 「로스가 셋을 구별하지 못한다」는 말의 그림이다.
+    """
+    rows = [("biases learned\n(as in the paper)", 0.837, -0.248),
+            ("biases pinned\nto log X_i", 0.777, 0.783),
+            ("no biases", 0.833, -0.333)]
+    fig, ax = plt.subplots(figsize=(8.6, 4.6))
+    W = 0.34
+    for i, (name, fit, pmi) in enumerate(rows):
+        ax.bar(i - W / 2, fit, W * 0.92, color="#6b7280",
+               label="fits the objective" if i == 0 else None)
+        ax.bar(i + W / 2, pmi, W * 0.92,
+               color="#15803d" if pmi > 0 else "#b91c1c",
+               label="inner product vs PMI  (green +, red -)" if i == 0 else None)
+        ax.text(i - W / 2, fit + 0.03, f"{fit:+.3f}", ha="center", fontsize=11)
+        ax.text(i + W / 2, pmi + (0.03 if pmi > 0 else -0.09),
+                f"{pmi:+.3f}", ha="center", fontsize=11)
+    ax.axhline(0, color="0.3", lw=1)
+    ax.set_xticks(range(3)); ax.set_xticklabels([r[0] for r in rows],
+                                                fontsize=11)
+    ax.set_ylim(-0.55, 1.08)
+    ax.set_ylabel("correlation", fontsize=11)
+    ax.set_title("all three fit the loss equally well - "
+                 "only the interpretation moves", fontsize=11.5)
+    ax.legend(fontsize=10.5, frameon=False, loc="upper center", ncol=2)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.tight_layout()
+    fig.savefig("bias_split.svg", transparent=True)
+    plt.close(fig); print("wrote bias_split.svg")
+
+
+def fig_antonyms_stay_close():
+    """6.5 6절 / 6.6 5절 - 자료를 천 배 늘려도 반대말은 안 갈린다.
+
+    수는 두 쪽의 출력 그대로다. 왼쪽이 영화평 6,000편으로 만든 것,
+    오른쪽이 GloVe 60억 낱말판이다. 같은 자(코사인 닮음)로 쟀다.
+    """
+    pairs = [("movie - film", 0.801, 0.931, "same thing"),
+             ("good - great", 0.748, 0.798, "synonym"),
+             ("good - bad", 0.594, 0.796, "OPPOSITE"),
+             ("good - terrible", 0.578, 0.595, "OPPOSITE"),
+             ("movie - kitchen", 0.348, 0.363, "unrelated")]
+    fig, ax = plt.subplots(figsize=(9.0, 4.8))
+    y = list(range(len(pairs)))[::-1]
+    for (name, ours, glove, kind), yy in zip(pairs, y):
+        opp = kind == "OPPOSITE"
+        ax.plot([ours, glove], [yy, yy], "-", lw=2,
+                color="#b91c1c" if opp else "#9ca3af", zorder=1)
+        ax.scatter([ours], [yy], s=70, color="#9ca3af", zorder=3)
+        ax.scatter([glove], [yy], s=95,
+                   color="#b91c1c" if opp else "#374151", zorder=3)
+        ax.text(0.265, yy, name, ha="right", va="center", fontsize=11.5,
+                color="#b91c1c" if opp else "#111827")
+        ax.annotate(f"{glove:.3f}", (glove, yy), (8, 0),
+                    textcoords="offset points", va="center", fontsize=10.5,
+                    color="#b91c1c" if opp else "#374151")
+        ax.annotate(f"{ours:.3f}", (ours, yy), (-8, 0), ha="right",
+                    textcoords="offset points", va="center", fontsize=10,
+                    color="#9ca3af")
+    ax.axvspan(0.78, 0.82, color="#b91c1c", alpha=0.07)
+    ax.text(0.80, len(pairs) - 0.45, "three of these land\nin the same band",
+            ha="center", fontsize=10, color="#b91c1c")
+    ax.scatter([], [], s=70, color="#9ca3af", label="our 6,000 reviews")
+    ax.scatter([], [], s=95, color="#374151", label="GloVe, 6 billion words")
+    ax.set_xlim(0.20, 1.02); ax.set_ylim(-0.7, len(pairs) - 0.1)
+    ax.set_yticks([])
+    ax.set_xlabel("cosine similarity", fontsize=11)
+    ax.set_title("a thousand times more text does not separate "
+                 "good from bad", fontsize=11.5)
+    ax.legend(fontsize=10.5, frameon=False, loc="lower right")
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.grid(axis="x", alpha=0.2)
+    fig.tight_layout()
+    fig.savefig("antonyms_stay_close.svg", transparent=True)
+    plt.close(fig); print("wrote antonyms_stay_close.svg")
+
+
+# =============================================================================
 # 6.4 GloVe - 얼음과 김 (「그림으로 보는 AI」)
 # =============================================================================
 def fig_ice_steam():
