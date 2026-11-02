@@ -1,121 +1,282 @@
-# GloVe 임베딩
+# 6.5 가져다 쓰는 임베딩
 
-사전 학습한 GloVe 벡터를 불러와 단어 유사도, 최근접 이웃과 벡터 유추를 계산한다. 이 예제는 GloVe를 새로 학습하지 않으며 순환 뉴럴 넷트웍도 사용하지 않는다. 단어 사전과 벡터의 대응, 검색 후보와 어휘 밖 단어의 처리를 중심으로 살펴본다.
+<div class="leadbox" markdown>
+
+**들어가는 이야기** — 천 배 많이 읽어도 고쳐지지 않는 것
+
+앞의 세 쪽은 영화평 **6,000편**으로 벡터를 손수 만들었다. 이 쪽은 남이 **60억 낱말**로 만들어 둔 것을 가져와 같은 자로 잰다. 천 배쯤 되는 자료다.
+
+많이 읽은 값이 분명히 있다. 우리 벡터로는 물어볼 엄두도 못 냈던 것이 된다.
+
+```
+man : king  = woman : queen, throne, prince
+paris : france = tokyo : japan, korea, japanese
+walk : walked = go : got, went, put
+```
+
+**널리 알려진 그 유추가 1등으로 나온다.** 그리고 [6.4절](04_what_it_holds.md)에서 어중간했던 `bank`가 여기서는 또렷하다 — `banks, securities, banking, investment`. 우리 것은 영화평만 읽어 강둑 쪽으로 기울었는데, 위키백과와 뉴스를 읽은 쪽은 은행으로 간다.
+
+**그런데 고쳐지지 않은 것이 하나 있다.**
+
+| | 닮음 |
+|---|---|
+| good — great | +0.798 |
+| good — **bad** | **+0.796** |
+| hot — **cold** | **+0.801** |
+
+**`good`과 `bad`가 `good`과 `great`만큼 가깝다.** 소수 셋째 자리에서 0.002 차이다. 우리 벡터에서는 0.748 대 0.594로 그래도 벌어져 있었는데, **천 배 많이 읽은 쪽이 오히려 더 붙어 버렸다.**
+
+자료를 더 넣어서 될 일이 아니라는 뜻이다. **분포 가설이 재는 것이 애초에 그것**이기 때문이다.
+
+</div>
+
+---
 
 ## 1. 코드
 
 ```python
+"""6.5 가져다 쓰는 임베딩 — 남이 배운 것을 열어 본다.
+
+앞의 세 쪽은 영화평 6,000편으로 벡터를 손수 만들었다. 이 쪽은 남이
+**60억 낱말**로 만들어 둔 것을 가져와 같은 자로 재어 본다.
+
+쓰는 것은 GloVe 50차원이다. 위키백과와 뉴스 말뭉치에서 동시 출현을 세어
+만들었으니 [6.3절](03_counting.md)이 걸은 길의 큰 판이다.
+
+재는 것 넷.
+  (가) 어휘가 얼마나 넓은가 — 우리 어휘를 얼마나 덮는가
+  (나) 이웃이 우리 것과 어떻게 다른가
+  (다) 유추가 더 잘 되는가 — king - man + woman 을 드디어 물어본다
+  (라) 그리고 「더 큰 것이 늘 나은 것은 아니다」 — good 과 bad 를 본다
+
+내려받을 것: data/glove-wiki-gigaword-50.gz (66MB). gensim-data 가 올려 둔
+것을 그대로 쓴다. 7.3절이 쓰는 그 파일이다.
+  https://github.com/piskvorky/gensim-data/releases/download/
+      glove-wiki-gigaword-50/glove-wiki-gigaword-50.gz
+
+실행: 이 쪽의 코드를 파일로 갈무리해 저장소 뿌리에서 돌린다.
 """
-GloVe 임베딩 — 사전 학습 벡터 불러오기와 질의하기
-==========================================================
-
-다음을 보인다:
-    1. torchtext로 사전 학습 GloVe 임베딩 불러오기
-    2. 낱말 벡터 꺼내기
-    3. 낱말 사이의 코사인 유사도 계산하기
-    4. 가장 가까운 이웃 찾기
-    5. 낱말 유추 과제 풀기 (king - man + woman ≈ queen)
-
-필요한 것:
-    pip install torchtext torch
-
-Note:
-    처음 돌리면 GloVe 벡터를 내려받는다 (6B/100d는 약 862MB).
-"""
+import gzip
+import re
+from collections import Counter
+from pathlib import Path
 
 import torch
-import torchtext.vocab as vocab
+import torch.nn.functional as F
 
-# ========================================================================
-# 메인
-# ========================================================================
-
-
-def load_glove(name: str = "6B", dim: int = 100) -> vocab.GloVe:
-    """사전 학습 GloVe 벡터를 불러온다."""
-    print(f"Loading GloVe (name={name}, dim={dim})...")
-    glove = vocab.GloVe(name=name, dim=dim)
-    print(f"  Loaded {len(glove.itos)} word vectors of dimension {dim}.")
-    return glove
+VOCAB, DIM = 8000, 50
+ROOT = Path("./data/aclImdb")
+GLOVE = Path("./data/glove-wiki-gigaword-50.gz")
+TOKEN = re.compile(r"[a-z']+")
+torch.set_num_threads(4)
 
 
-def find_closest_words(
-    word_vector: torch.Tensor, glove: vocab.GloVe, top_k: int = 5
-) -> list[tuple[str, float]]:
-    """코사인 유사도로 가장 가까운 낱말 k개를 돌려준다."""
-    sims = torch.nn.functional.cosine_similarity(
-        word_vector.unsqueeze(0), glove.vectors, dim=1
-    )
-    values, indices = torch.topk(sims, k=top_k)
-    return [(glove.itos[idx], val.item()) for idx, val in zip(indices, values)]
+# === 우리 어휘 (앞의 세 쪽과 같다) ==========================================
+def load_tokens(n_docs=6000):
+    out = []
+    for name in ("pos", "neg"):
+        for f in sorted((ROOT / "train" / name).glob("*.txt"))[: n_docs // 2]:
+            out += TOKEN.findall(f.read_text(encoding="utf-8")
+                                 .replace("<br />", " ").lower())
+    return out
 
 
-def analogy(
-    a: str, b: str, c: str, glove: vocab.GloVe, top_k: int = 5
-) -> list[tuple[str, float]]:
-    """
-    푼다: a와 b의 관계는 c와 무엇의 관계와 같은가?
-    벡터 산술: 결과 ≈ b - a + c
-
-    예: analogy("man", "king", "woman") ≈ "queen"
-    """
-    vec = glove[b] - glove[a] + glove[c]
-    # 결과에서 입력 낱말 빼기
-    exclude = {a, b, c}
-    results = find_closest_words(vec, glove, top_k=top_k + len(exclude))
-    return [(w, s) for w, s in results if w not in exclude][:top_k]
+counts = Counter(load_tokens())
+mine = [w for w, _ in counts.most_common(VOCAB)]
+mine_set = set(mine)
 
 
-def main():
-    glove = load_glove(name="6B", dim=100)
+# === GloVe 를 읽는다 =======================================================
+def load_glove():
+    """한 줄에 「낱말 수 수 … 수」가 들어 있는 글월 파일이다."""
+    words, vecs = [], []
+    with gzip.open(GLOVE, "rt", encoding="utf-8") as f:
+        for line in f:
+            p = line.rstrip().split(" ")
+            if len(p) != DIM + 1:
+                continue
+            words.append(p[0])
+            vecs.append([float(x) for x in p[1:]])
+    return words, F.normalize(torch.tensor(vecs), dim=1)
 
-    # --- 낱말 벡터 ---
-    print("\n--- Word vector for 'hello' ---")
-    hello_vec = glove["hello"]
-    print(f"  Shape: {hello_vec.shape}")
-    print(f"  First 5 dims: {hello_vec[:5].tolist()}")
 
-    # --- 가장 가까운 이웃 ---
-    print("\n--- Words most similar to 'hello' ---")
-    for word, sim in find_closest_words(glove["hello"], glove, top_k=5):
-        print(f"  {word:15s}  cosine={sim:.4f}")
+gw, GV = load_glove()
+gi = {w: i for i, w in enumerate(gw)}
 
-    # --- 쌍마다의 유사도 ---
-    print("\n--- Pairwise cosine similarities ---")
-    pairs = [("king", "queen"), ("king", "apple"), ("cat", "dog"), ("good", "bad")]
-    for w1, w2 in pairs:
-        sim = torch.nn.functional.cosine_similarity(
-            glove[w1].unsqueeze(0), glove[w2].unsqueeze(0)
-        ).item()
-        print(f"  sim({w1}, {w2}) = {sim:.4f}")
 
-    # --- 유추 ---
-    print("\n--- Analogy: man → king, woman → ? ---")
-    for word, sim in analogy("man", "king", "woman", glove, top_k=5):
-        print(f"  {word:15s}  cosine={sim:.4f}")
+def near(vec, drop, k=6):
+    s = GV @ F.normalize(vec, dim=0)
+    for w in drop:
+        if w in gi:
+            s[gi[w]] = -2
+    return [gw[i] for i in s.topk(k).indices.tolist()]
 
-    print("\n--- Analogy: paris → france, tokyo → ? ---")
-    for word, sim in analogy("paris", "france", "tokyo", glove, top_k=5):
-        print(f"  {word:15s}  cosine={sim:.4f}")
+
+sim = lambda a, b: float(GV[gi[a]] @ GV[gi[b]])
 
 
 if __name__ == "__main__":
-    main()
+    # === (가) 얼마나 넓은가 ==============================================
+    hit = sum(w in gi for w in mine)
+    used = sum(counts[w] for w in mine if w in gi)
+    tot = sum(counts[w] for w in mine)
+    print(f"  GloVe 낱말 {len(gw):,}개, 차원 {DIM}")
+    print(f"  우리 어휘 {VOCAB:,}개 가운데 {hit:,}개를 덮는다 "
+          f"({100 * hit / VOCAB:.1f}%)")
+    print(f"  쓰임으로 세면 {100 * used / tot:.1f}%")
+    print("  덮지 못한 낱말 열 개:")
+    miss = [w for w in mine if w not in gi]
+    print("    " + ", ".join(miss[:10]))
+
+    # === (나) 이웃 ======================================================
+    print("\n  이웃 여섯 — 60억 낱말로 배운 것")
+    for w in ("good", "terrible", "movie", "she", "funny", "bank", "star"):
+        if w in gi:
+            print(f"    {w:<10s} {', '.join(near(GV[gi[w]], (w,)))}")
+
+    # === (다) 유추 ======================================================
+    print("\n  유추 — 드디어 물어볼 수 있다")
+    tri = [("man", "king", "woman"), ("man", "woman", "he"),
+           ("good", "better", "bad"), ("paris", "france", "tokyo"),
+           ("walk", "walked", "go")]
+    for a, b, c in tri:
+        if all(x in gi for x in (a, b, c)):
+            v = GV[gi[b]] - GV[gi[a]] + GV[gi[c]]
+            print(f"    {a:7s}: {b:9s} = {c:7s}: "
+                  f"{', '.join(near(v, (a, b, c), 3))}")
+
+    # === (라) 그래도 반대말은 가깝다 ======================================
+    print("\n  닮음 — 60억 낱말을 보고도")
+    for a, b in [("good", "great"), ("good", "bad"), ("good", "terrible"),
+                 ("hot", "cold"), ("movie", "film"), ("movie", "kitchen")]:
+        if a in gi and b in gi:
+            print(f"    {a:8s} {b:10s} {sim(a, b):+.3f}")
 ```
 
-## 2. 논의
+**출력:**
 
-`load_glove`는 TorchText의 GloVe 로더로 벡터를 가져온다. 처음 사용할 때는 데이터 다운로드가 필요할 수 있으며, 캐시와 네트워크 환경에 따라 동작이 달라진다. [TorchText 0.18 릴리스 안내](https://github.com/pytorch/text/releases/tag/v0.18.0)는 개발 중단을 명시하므로, 현재 PyTorch 환경과의 호환성을 확인해야 한다.
+```
+  GloVe 낱말 400,000개, 차원 50
+  우리 어휘 8,000개 가운데 7,837개를 덮는다 (98.0%)
+  쓰임으로 세면 98.3%
+  덮지 못한 낱말 열 개:
+    it's, don't, i'm, doesn't, didn't, that's, can't, i've, he's, isn't
 
-`find_closest_words`는 입력 벡터와 모든 단어 벡터의 코사인 유사도를 계산한 뒤 상위 $k$개를 반환한다. 같은 단어의 벡터를 질의하면 그 단어 자신도 후보에 포함된다. 따라서 main의 hello 검색은 자기 자신을 제외한 이웃 다섯 개가 아니다. 유사도 값은 정답 확률도, 의미가 같은 정도의 직접적인 척도도 아니다.
+  이웃 여섯 — 60억 낱말로 배운 것
+    good       better, really, always, sure, something, think
+    terrible   horrible, awful, tragic, dreadful, tragedy, horrific
+    movie      movies, film, films, comedy, hollywood, drama
+    she        her, herself, he, him, mother, his
+    funny      hilarious, amusing, silly, joke, fun, weird
+    bank       banks, securities, banking, investment, exchange, financial
+    star       stars, superstar, player, plays, legend, actor
 
-`analogy`는 $v_b-v_a+v_c$와 가까운 후보를 찾고 입력 단어 세 개를 제외한다. 이는 유추를 평가하는 한 방식이지 정확한 의미 등식이 아니다. 결과는 학습 데이터와 벡터 파일, 평가 방식에 따라 달라지므로 특정 정답이 반드시 1위라고 단정할 수 없다.
+  유추 — 드디어 물어볼 수 있다
+    man    : king      = woman  : queen, throne, prince
+    man    : woman     = he     : she, her, his
+    good   : better    = bad    : worse, too, unfortunately
+    paris  : france    = tokyo  : japan, korea, japanese
+    walk   : walked    = go     : got, went, put
 
-기본 로더에서 어휘 밖 단어가 영벡터로 처리될 수 있으므로 조회 전에 사전 포함 여부를 확인해야 한다. 영벡터의 코사인 점수는 의미 있는 관계가 아니며 임의의 동점 후보가 나올 수 있다. 이 코드는 입력 차원, 유한한 값과 top_k 범위를 검증하지 않는다. 벡터가 $(V,d)$라면 질의는 길이 $d$의 벡터여야 하고 검색 후보 수는 $V$를 넘지 않아야 한다.
+  닮음 — 60억 낱말을 보고도
+    good     great      +0.798
+    good     bad        +0.796
+    good     terrible   +0.595
+    hot      cold       +0.801
+    movie    film       +0.931
+    movie    kitchen    +0.363
+```
 
-## 3. 가져다 쓸 때 걸리는 것
+---
 
-위 코드는 GloVe를 **읽어 보기만** 한다. 실제로 모델에 얹으려면 더 따질 것이 있다.
+## 2. 덮지 못하는 낱말은 전부 줄임말이다
+
+| | |
+|---|---|
+| GloVe 낱말 | 400,000개 |
+| 우리 어휘 8,000개 가운데 덮는 것 | **7,837개 (98.0%)** |
+| 쓰임으로 세면 | 98.3% |
+
+```
+덮지 못한 낱말 열 개:
+  it's, don't, i'm, doesn't, didn't, that's, can't, i've, he's, isn't
+```
+
+**열 개가 모두 줄임말이다.** 뜻이 어려운 낱말이라서가 아니라 **낱말을 쪼개는 방식이 달라서** 생긴 일이다. 우리는 `[a-z']+`로 잘라 `it's`를 한 낱말로 두는데, GloVe를 만든 쪽은 `it`과 `'s`로 나누었다.
+
+이것이 가져다 쓸 때 가장 흔히 걸리는 자리다. **벡터가 없는 것이 아니라 이름이 안 맞는 것**이고, 쪼개는 방식을 맞추면 거의 다 찾아진다. 2%가 작아 보이지만 `it's`·`don't`는 아주 흔한 낱말이라 그냥 두면 그때마다 벡터가 없다.
+
+---
+
+## 3. 말뭉치가 뜻을 정한다
+
+[6.4절](04_what_it_holds.md)이 `bank`에서 멈춘 자리를 여기서 다시 본다.
+
+| | `bank`의 이웃 |
+|---|---|
+| 영화평 6,000편 (우리 것) | sent, robbers, responsibility, fighters, jail, government |
+| 위키백과·뉴스 60억 낱말 (GloVe) | **banks, securities, banking, investment, exchange, financial** |
+
+**같은 낱말인데 다른 것이 되었다.** 우리 쪽은 「은행 강도 영화」의 `bank`였고, GloVe 쪽은 금융기관이다.
+
+`star`도 갈린다. 우리 것은 `classic, romero, superhero`로 연예인 쪽만 보았는데, GloVe는 `stars, superstar, player, plays, legend, actor`로 — 역시 연예인 쪽이되 **운동선수까지** 끌어온다. 뉴스에서 `star player`가 흔하기 때문이다.
+
+**어느 쪽이 맞는가. 둘 다 맞고, 둘 다 반쪽이다.** 벡터 하나에 뜻 하나이므로 말뭉치에서 흔한 쪽이 이기고, 흔한 쪽은 말뭉치가 정한다. 6.4절이 「타고난 한계」라 적은 것이 이 비교에서 눈에 보인다.
+
+---
+
+## 4. 유추는 확실히 좋아진다
+
+| 물음 | 답 |
+|---|---|
+| man : king = woman : ? | **queen**, throne, prince |
+| man : woman = he : ? | **she**, her, his |
+| good : better = bad : ? | **worse**, too, unfortunately |
+| paris : france = tokyo : ? | **japan**, korea, japanese |
+| walk : walked = go : ? | got, **went**, put |
+
+**다섯 가운데 넷이 1등으로 맞는다.** [6.4절](04_what_it_holds.md)의 우리 벡터는 다섯 가운데 셋이었고, `king`–`queen` 같은 것은 어휘에 없어 물어보지도 못했다.
+
+눈여겨볼 것은 **종류가 다양해졌다**는 점이다. 성별 바꾸기뿐 아니라 **나라 수도**(paris→france), **동사 시제**(walk→walked)까지 같은 벡터 셈으로 된다. 60억 낱말에서는 그런 바꿈들이 저마다 일정한 방향으로 자리 잡을 만큼 자료가 많다.
+
+!!! warning "그래도 과하게 읽지 말 것"
+    `walk : walked = go :` 에서 1등이 **`got`**이고 `went`는 2등이다. 그리고 `good : better = bad :` 의 2·3등은 `too`와 `unfortunately`로 유추와 상관없다.
+
+    벡터를 더하고 빼는 것이 **뜻의 셈이라는 보장은 여기서도 없다.** 되는 쌍이 눈에 띌 뿐이다. [GloVe 프로젝트](https://nlp.stanford.edu/projects/glove/)의 원문도 유추를 **평가 과제의 하나**로 둘 뿐 의미 등식이라 주장하지 않는다.
+
+---
+
+## 5. 고쳐지지 않는 것
+
+| | 우리 벡터 (영화평 6천 편) | GloVe (60억 낱말) |
+|---|---|---|
+| good — great | +0.748 | +0.798 |
+| good — **bad** | +0.594 | **+0.796** |
+| good — terrible | +0.578 | +0.595 |
+| hot — **cold** | — | **+0.801** |
+| movie — film | +0.801 | +0.931 |
+| movie — kitchen | +0.348 | +0.363 |
+
+**둘째 줄을 보라.** 우리 벡터에서는 `good`–`bad`(0.594)가 `good`–`great`(0.748)보다 0.154 낮았다. GloVe에서는 **0.796 대 0.798로 0.002 차이**다. 사실상 같다.
+
+`hot`–`cold`가 0.801인 것도 같은 이야기다. 서로 반대인 두 낱말이 `movie`–`film`(0.931) 다음으로 가깝다.
+
+**자료를 천 배 넣어서 좋아진 것과 좋아지지 않은 것이 갈린다.**
+
+| 좋아진 것 | 좋아지지 않은 것 |
+|---|---|
+| 어휘 넓이 (8천 → 40만) | 반대말이 가까운 것 |
+| 유추 (셋 → 넷, 종류도 늘었다) | 한 낱말에 벡터 하나 |
+
+오른쪽 둘은 **자료의 문제가 아니라 방식의 문제**다. 「둘레가 같으면 가깝다」로 배우는 한, 같은 자리에 들어가는 `good`과 `bad`는 가까울 수밖에 없다. 그리고 벡터가 낱말마다 하나인 한, 문장을 보지 않는다.
+
+이것이 [7.3절](../imdb/03_frozen.md)이 측정으로 확인하는 바이기도 하다. 거기서 IMDB 감정 분류에 GloVe를 얹으면 **IMDB에서 손수 배운 임베딩에 진다.** 60억 낱말이 2만 5천 편에 지는 것이고, 까닭이 바로 이 표의 둘째 줄이다 — 그 과제가 필요로 하는 것이 정확히 `good`과 `bad`를 **가르는** 일이기 때문이다.
+
+---
+
+## 6. 실제로 얹으려면
+
+위 코드는 GloVe를 **읽어 보기만** 한다. 모델에 얹으려면 더 따질 것이 있다.
 
 사전 학습 벡터를 사용할 때는 현재 어휘의 각 인덱스에 맞춰 행을 복사해야 한다. 벡터 파일의 행 순서와 현재 어휘의 인덱스가 같다고 가정하면 잘못된 단어에 벡터가 연결된다. 임베딩 차원, 토큰화와 대소문자 처리도 맞춰야 한다.
 
@@ -127,71 +288,52 @@ GloVe는 단어 동시 출현 횟수의 로그를 내적과 바이어스로 설�
 
 실제로 얹어서 **재어 보는 것**은 [7.3절 「빌려 온 벡터」](../imdb/03_frozen.md)가 한다. 거기서는 IMDB 사다리 전체를 GloVe로 다시 오르며 얼린 것과 미세 조정한 것을 견주는데, **부호가 뒤집히는 자리**가 나온다.
 
+---
+
 ## 연습문제
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
-find_closest_words와 analogy의 검색 후보가 어떻게 다른지 설명하라.
+**연습문제 1.** <span class="diff easy" title="쉬움"></span> 2절은 덮지 못한 낱말이 전부 줄임말이라고 했다. 그 2%를 되찾는 가장 싼 방법을 적으라.
 
 </div>
 
 ??? success "풀이"
-    일반 이웃 검색은 어휘 전체를 후보로 하므로 질의 단어 자신도 포함될 수 있다. 유추 함수는 상위 후보를 더 많이 가져온 뒤 입력 단어 a, b, c를 제외한다. 두 함수의 결과 개수를 비교할 때 제외 규칙을 구분해야 한다.
 
----
+    **쪼개는 방식을 GloVe에 맞추면 된다.** `it's`를 만나면 `it`과 `'s`로 나누어 각각의 벡터를 찾고, 둘을 더하거나 평균 낸다. GloVe에 `'s`도 들어 있다.
+
+    더 싼 길도 있다. 어차피 어포스트로피 뒤가 짧으므로 **앞부분만 쓰는 것**이다 — `don't` → `do`. 뜻이 조금 상하지만(부정이 사라진다) 벡터가 아예 없는 것보다는 낫다. **감정 분류에서는 그 「조금」이 치명적**일 수 있으니 과제를 보고 정해야 한다.
+
+    가장 바른 길은 **처음부터 같은 쪼개기를 쓰는 것**이다. 빌려 올 벡터가 정해져 있다면 그 쪽의 쪼개기에 맞추어 어휘를 만든다.
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff med" title="중간"></span>
-질의 벡터, 단어 입력과 top_k에 필요한 검사를 설명하라.
+**연습문제 2.** <span class="diff medium" title="중간"></span> 5절은 GloVe에서 `good`–`bad`가 0.796으로 `good`–`great`의 0.798과 사실상 같다고 했다. 이것이 **GloVe의 흠인지 분포 가설의 성질인지** 가리는 실험을 설계하라.
 
 </div>
 
 ??? success "풀이"
-    질의 벡터는 임베딩 차원 $d$와 같은 길이의 유한한 실수 벡터여야 한다. 영벡터는 별도로 처리한다. 단어는 사전에 있는지 확인한다. top_k는 유효한 정수여야 하고 실제 topk 호출의 후보 수가 어휘 크기를 넘지 않아야 한다. 유추 함수는 제외 단어 수만큼 더 요청하므로 이 조건도 반영한다.
 
----
+    **흠이라면 다른 방식에서는 덜해야 한다.** 그러니 같은 말뭉치를 다른 방식으로 배운 벡터와 견주면 된다.
+
+    같은 위키백과·뉴스 자료로 만든 word2vec 벡터(공개되어 있다)를 받아 같은 쌍들의 닮음을 잰다. 거기서도 `good`–`bad`가 `good`–`great`에 맞먹으면 **방식이 아니라 분포 가설 자체의 성질**이다.
+
+    이 쪽이 이미 반쯤 답을 갖고 있다. [6.2절](02_context.md)의 Skip-gram(배우는 길)과 [6.3절](03_counting.md)의 PPMI+SVD(세는 길)는 **서로 다른 방식**인데 둘 다 `good`과 `bad`를 가깝게 둔다. GloVe는 세 번째 방식이고 역시 같다. **세 방식이 같은 성질을 보이면 방식 탓이 아니다.**
+
+    결정적으로 가리려면 **분포 가설을 쓰지 않는** 벡터와 견주어야 한다 — 예를 들어 사전의 뜻풀이나 WordNet 같은 사람이 만든 관계망에서 만든 벡터다. 거기서 `good`과 `bad`가 멀면 답이 분명해진다.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.** <span class="diff med" title="중간"></span>
-good과 bad의 코사인 유사도가 높으면 임베딩 학습이 잘못된 것인가?
+**연습문제 3.** <span class="diff hard" title="어려움"></span> 3절은 같은 `bank`가 말뭉치에 따라 다른 것이 된다고 했다. 두 말뭉치의 벡터를 **합쳐서** 두 뜻을 모두 담을 수 있는가. 설계하고, 왜 어려운지 적으라.
 
 </div>
 
 ??? success "풀이"
-    반대 의미의 단어도 비슷한 문맥에 쓰이므로 가까운 벡터를 가질 수 있다. 코사인 유사도는 감성의 동일성을 뜻하지 않는다. 과제에 필요한 구별은 해당 과제의 검증 지표로 평가하고, 예시 몇 쌍으로 전체 품질을 판정하지 않는다.
 
----
+    **곧바로 더할 수 없다.** 두 벡터 공간은 서로 다른 학습에서 나왔으므로 축이 전혀 다르다. 우리 벡터의 3번 축과 GloVe의 3번 축 사이에 아무 관계가 없다. 더하면 뜻 없는 수가 나온다.
 
-<div class="drillbox" markdown>
+    **맞춰 붙이는 길은 있다.** 두 공간에 **함께 있는 낱말**(여기서는 7,837개)을 짝지어, 한쪽을 다른 쪽에 가장 잘 포개는 회전·크기 변환을 찾는다. 두 점구름을 겹치는 고전적인 문제이고 닫힌 식으로 풀린다. 그러고 나서 이어 붙이거나 평균 내면 된다.
 
-**연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 모양 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
+    **그래도 두 뜻이 담기지는 않는다.** 맞춰 붙여 놓으면 우리 쪽 `bank`(강둑 기운)와 GloVe 쪽 `bank`(은행)가 **한 자리에 포개지고**, 평균을 내면 둘 사이 어딘가의 한 점이 될 뿐이다. 줄이 여전히 하나이기 때문이다.
 
-</div>
-
-??? success "풀이"
-    아래 조각은 실제 실행 가능한 테스트가 아니다. 함수 이름과 모델 이름부터 이 예제에 맞게 작성해야 한다.
-    ```python
-    def test_glove embedding():
-        model = Glove Embedding(...)
-        # 보통의 입력
-        assert model(normal_input).shape == expected_shape
-        # 원소가 하나인 배치
-        assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
-        out = model(torch.ones(...) * 1000)
-        assert torch.isfinite(out).all()
-        # 경사의 흐름
-        out = model(normal_input)
-        out.sum().backward()
-        for p in model.parameters():
-            assert p.grad is not None
-    ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
-
-## 정리하며
-
-GloVe 벡터의 이웃 검색과 유추는 학습된 관계를 탐색하는 도구다. 자기 자신과 입력 단어의 제외 규칙, OOV 처리와 검색 범위를 명확히 하고 결과를 확률이나 보편적인 의미 등식으로 해석하지 않는다.
+    **뜻을 나누려면 줄을 나누어야 하는데**, 그러면 [6.4절 연습문제 3](04_what_it_holds.md)의 문제들이 그대로 돌아온다 — 몇 개로 나눌지, 쓸 때 어느 것을 고를지. [8장](../transformer/index.md)이 그 물음을 없애는 길이다.
