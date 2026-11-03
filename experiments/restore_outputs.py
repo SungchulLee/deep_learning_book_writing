@@ -163,7 +163,39 @@ def run(code, timeout=1200, page_dir=None):
 FOLD_HEAD = re.compile(r'\?\?\? note "전체 출력[^"]*"\n')
 
 
-PLAIN_OUT = re.compile(r"\*\*출력[:：]?\*\*\s*\n+```[a-z]*\n(.*?)```", re.S)
+#: `verify_outputs.py` 와 같은 꼴을 본다. 책에 네 가지 머리가 쓰이고
+#: (`**출력:**`, `**기존 출력:**`, `**기존 출력 기록:**`, 콜론 없는 것)
+#: 울타리가 들여써 있을 수 있다. 여기서는 **되써 넣기** 때문에 머리와
+#: 들여쓰기를 함께 잡아 두었다가 쓸 때 그대로 되살린다 - 안 그러면
+#: `**기존 출력:**` 이 `**출력:**` 으로 조용히 바뀌고, admonition 안의
+#: 블록은 들여쓰기를 잃어 상자 밖으로 튀어나온다.
+PLAIN_OUT = re.compile(
+    r"(?P<head>\*\*(?:기존 )?출력(?: 기록)?[:：]?\*\*[^\n]*)\n"
+    r"(?P<gap>(?:[ \t]*\n)*)"
+    r"(?P<pad>[ \t]*)```(?P<lang>[a-z]*)\n(?P<body>.*?)^(?P=pad)```",
+    re.S | re.M)
+
+
+def _dedent(text, pad):
+    if not pad:
+        return text
+    n = len(pad)
+    return "\n".join(l[n:] if l[:n] == pad else l for l in text.split("\n"))
+
+
+def _indent(text, pad):
+    """새 출력을 원래 들여쓰기로 되돌린다.
+
+    **첫 줄은 건드리지 않는다.** 정규식이 `**출력:**` 의 별표에서부터
+    맞추므로 그 앞의 공백은 이미 바꾸지 않는 부분에 남아 있다. 첫 줄까지
+    들여쓰면 네 칸이 여덟 칸이 되어 상자가 한 겹 더 깊어진다.
+    """
+    if not pad:
+        return text
+    head, *rest = text.split("\n")
+    # 빈 줄이 아니면 공백만 있는 줄도 똑같이 들여쓴다. `l.strip()` 으로
+    # 가르면 _dedent 와 정확한 역함수가 되지 않아 왕복이 어긋난다.
+    return "\n".join([head] + [pad + l if l else l for l in rest])
 
 
 def find_output(md, start=0):
@@ -177,9 +209,12 @@ def find_output(md, start=0):
     plain = PLAIN_OUT.search(md, start)
     fold = FOLD_HEAD.search(md, start)
     if plain and (not fold or plain.start() < fold.start()):
-        return plain.start(), plain.end(), plain.group(1)
+        return (plain.start(), plain.end(),
+                _dedent(plain.group("body"), plain.group("pad")),
+                plain.group("head"), plain.group("pad"),
+                plain.group("gap"), plain.group("lang"))
     if not fold:
-        return None, None, None
+        return None, None, None, None, None, None, None
     body, end = [], fold.end()
     for line in md[fold.end():].split("\n"):
         if line.strip() == "" or line.startswith("    "):
@@ -187,13 +222,13 @@ def find_output(md, start=0):
             end += len(line) + 1
         else:
             break
-    return fold.start(), end, "\n".join(body)
+    return fold.start(), end, "\n".join(body), None, "", "\n", ""
 
 
 def fix(rel, timeout=1200):
     p = ROOT / "docs" / rel
     md = p.read_text()
-    o_start, o_end, o_text = find_output(md)
+    o_start, o_end, o_text, o_head, o_pad, o_gap, o_lang = find_output(md)
     if o_start is None:
         return f"{rel}: 출력 블록이 없다"
     cm = list(re.finditer(r"(```python\n)(.*?)(```)", md[:o_start], re.S))
@@ -245,7 +280,12 @@ def fix(rel, timeout=1200):
         indented = "\n".join("    " + l if l else "" for l in r.stdout.split("\n"))
         new_out = f'??? note "전체 출력 ({n_out}줄)"\n\n    ```\n{indented}    ```\n'
     else:
-        new_out = "**출력:**\n\n```\n" + r.stdout + "```"
+        # 머리 줄과 울타리의 언어 표시를 **원래 그대로** 되쓴다. 머리 뒤에
+        # 설명이 붙은 쪽이 있고(`**출력** (python frozen_ladder.py frozen):`),
+        # 울타리에 text 를 적어 둔 쪽도 있다. 새로 지어 쓰면 그것이 사라진다.
+        new_out = (f"{o_head}\n{o_gap}```{o_lang}\n" + r.stdout + "```"
+                   if o_head else "**출력:**\n\n```\n" + r.stdout + "```")
+    new_out = _indent(new_out, o_pad)      # 상자 안에 있었으면 그대로 되넣는다
 
     p.write_text(md[:block.start()] + block.group(1) + seeded_out + block.group(3)
                  + md[block.end():o_start] + new_out + md[o_end:])

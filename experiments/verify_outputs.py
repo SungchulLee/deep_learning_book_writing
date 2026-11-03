@@ -16,10 +16,10 @@
 저장 파일을 현재 자리에 쏟아 놓으므로 저장소 뿌리에서 돌리면 뿌리가 덮인다.
 자료(`data/`)와 뿌리의 `.pt` 파일만 심볼릭 링크로 빌려 준다.
 
-세 가지 함정
+네 가지 함정
 -----------
-이 스크립트를 처음 쓸 때 셋 다 걸렸고, 셋 다 쪽의 잘못이 아니라
-스크립트의 잘못이었다. 고쳐 두었으나 까닭은 적어 둔다.
+넷 다 걸렸고, 넷 다 쪽의 잘못이 아니라 스크립트의 잘못이었다.
+고쳐 두었으나 까닭은 적어 둔다.
 
 1. **블록을 이어 붙이면 안 된다.** 한 쪽에 여러 블록이 있을 때 뒤의 것은
    대개 연습문제 풀이라, 이어 붙이면 그 쪽 출력에 없는 것이 섞인다.
@@ -31,6 +31,16 @@
 
 3. **들여쓴 블록은 벗겨야 한다.** admonition(`!!! note`) 안의 코드는 네 칸
    들여써져 있어 그대로 돌리면 IndentationError가 난다.
+
+4. **출력 블록의 머리가 네 가지다.** 오래 `**출력:**` 만 찾았는데, 책에는
+   `**기존 출력:**` 60곳과 `**기존 출력 기록:**` 15곳이 따로 있고, 머리 뒤에
+   설명이 붙은 쪽도 있다(`**출력** (python frozen_ladder.py frozen):`).
+   울타리가 들여써 있기도 하다. 그 셋 가운데 하나만 걸려도 쪽 전체가
+   「출력 블록이 없다」로 건너뛰어졌고, **ch22 44쪽 전부가 그렇게 빠져
+   있었다.** 고친 뒤 63쪽이 새로 검사 대상이 되었다(출력 블록 68개).
+
+   건너뛴 쪽은 조용하다 — 실패로 뜨지 않으므로, 「통과했다」와
+   「보지 않았다」가 로그에서 같아 보인다. 그래서 이 함정이 오래 남았다.
 
 맞을 수 없는 줄
 --------------
@@ -100,7 +110,26 @@ def code_blocks(md_text):
 FOLD_HEAD = re.compile(r'\?\?\? note "전체 출력[^"]*"\n')
 
 
-PLAIN_OUT = re.compile(r"\*\*출력[:：]?\*\*\s*\n+```[a-z]*\n(.*?)```", re.S)
+#: 출력 블록의 머리. 책에 네 가지 꼴이 쓰인다 — `**출력:**` 734곳,
+#: `**기존 출력:**` 60곳, `**기존 출력 기록:**` 15곳, 콜론 없는 `**출력**` 4곳.
+#: 「출력 모양」처럼 뒤에 다른 말이 붙은 것은 출력 블록이 아니므로 안 잡는다.
+#:
+#: 울타리는 들여써 있을 수 있다 (`??? note` 안에 넣은 쪽). 그 들여쓰기를
+#: `pad` 로 잡아 두었다가 본문에서 벗긴다 — 안 벗기면 출력 줄마다 공백
+#: 네 칸이 앞에 붙어 돌린 결과와 어긋난다.
+PLAIN_OUT = re.compile(
+    r"\*\*(?:기존 )?출력(?: 기록)?[:：]?\*\*[^\n]*\n"
+    r"(?:[ \t]*\n)*"
+    r"(?P<pad>[ \t]*)```[a-z]*\n(?P<body>.*?)^(?P=pad)```",
+    re.S | re.M)
+
+
+def _dedent(text, pad):
+    """울타리의 들여쓰기만큼 본문을 왼쪽으로 민다."""
+    if not pad:
+        return text
+    n = len(pad)
+    return "\n".join(l[n:] if l[:n] == pad else l for l in text.split("\n"))
 
 
 def find_output(md_text, start=0):
@@ -116,7 +145,8 @@ def find_output(md_text, start=0):
     plain = PLAIN_OUT.search(md_text, start)
     fold = FOLD_HEAD.search(md_text, start)
     if plain and (not fold or plain.start() < fold.start()):
-        return plain.start(), plain.end(), plain.group(1)
+        return (plain.start(), plain.end(),
+                _dedent(plain.group("body"), plain.group("pad")))
     if not fold:
         return None, None, None
 
