@@ -3064,38 +3064,55 @@ def fig_lead_cliff():
 
 
 def fig_lead_kl_buys():
-    """KL 항이 사는 것은 숫자다움이 아니라 고름이다. 5.2 개요 표의 수."""
-    models = ["autoencoder", "VAE", "beta-VAE"]
-    conf = [0.777, 0.769, 0.794]
-    bal = [0.541, 0.877, 0.950]
-    fig, ax = plt.subplots(figsize=(8.4, 4.2))
-    x = [0, 1, 2]
-    ax.plot(x, conf, "o-", color="0.6", lw=2.4, ms=9)
-    ax.plot(x, bal, "o-", color="tab:green", lw=2.4, ms=9)
-    for xi, (c, b) in zip(x, zip(conf, bal)):
-        ax.text(xi, c - 0.045, f"{c:.3f}", ha="center", fontsize=10, color="0.4")
-        ax.text(xi, b + 0.028, f"{b:.3f}", ha="center", fontsize=10,
-                color="tab:green")
-    ax.text(2.12, conf[2], "does it look\nlike a digit?", va="center",
-            fontsize=10, color="0.45")
-    ax.text(2.12, bal[2], "are all ten made\nequally often?", va="center",
-            fontsize=10, color="tab:green")
-    ax.set_xticks(x); ax.set_xticklabels(models, fontsize=11)
-    # 두 자를 한 축에 겹쳐 그리므로 눈금의 뜻을 밝혀 둔다. 둘 다 0~1 이고
-    # 1 이 가장 좋은데 1 의 뜻이 서로 다르다 - 그것은 글이 적는다
+    """5.2 개요 - 자 셋으로 네 모델을 본다.
+
+    앞서는 모델 셋에 자 둘만 그렸다. 두 가지가 빠져 있었다.
+      - 컨볼루션 VAE 는 조건부가 아닌데도 빠져 있었다 (cVAE 를 뺀 까닭이
+        이 모델에는 걸리지 않는다)
+      - 장 개요가 자를 넷 세워 두었는데 둘만 보였다
+
+    넷째 자 「값」은 선으로 그리지 않는다. 5.2 의 모델은 모두 디코더를
+    한 번 지나므로 여기서는 갈리지 않고, 1,000회까지 벌어지는 것은
+    5.4 뿐이다. 그 사실은 그림 아래에 글로 적는다.
+
+    수의 출처: 확신도·균형도는 5.2 개요 표. 다양함은 오토인코더 0.642 와
+    VAE·beta-VAE 가 02_beta_vae 3절, 컨볼루션 VAE 0.833 은 같은 규약
+    (씨앗 42, 100 에포크)으로 따로 재어 확신도 0.807·균형도 0.927 이
+    표와 맞는 것을 확인했다.
+    """
+    models = ["autoencoder", "VAE", "beta-VAE", "conv VAE"]
+    # 오른쪽 끝에서 세 자가 0.807·0.927·0.833 으로 붙어 있어 데이터 자리에
+    # 이름을 적으면 겹친다. 이름의 세로 자리와 값 라벨의 방향을 따로 준다.
+    NL = chr(10)
+    rulers = [("does it look" + NL + " like a digit?",
+               [0.777, 0.769, 0.794, 0.807], "0.6", 0.742, -0.047),
+              ("are all ten made" + NL + " equally often?",
+               [0.541, 0.877, 0.950, 0.927], "tab:green", 0.955, 0.030),
+              ("as varied as" + NL + " real handwriting?",
+               [0.642, 0.631, 0.575, 0.833], "#1d4ed8", 0.866, -0.047)]
+    fig, ax = plt.subplots(figsize=(9.8, 4.9))
+    x = list(range(4))
+    for name, v, c, lab_y, dy in rulers:
+        ax.plot(x, v, "o-", color=c, lw=2.4, ms=9)
+        for xi, y in zip(x, v):
+            ax.text(xi, y + dy, f"{y:.3f}", ha="center", fontsize=10, color=c)
+        ax.text(3.16, lab_y, name, va="center", fontsize=10, color=c)
+
     ax.axhline(1.0, color="0.65", ls=":", lw=1.2)
-    ax.text(-0.3, 1.012, "1.00  the most either ruler can give", fontsize=9.5,
+    ax.text(-0.33, 1.015, "1.00  the target for all three", fontsize=9.5,
             color="0.5")
-    # 바닥이 서로 다르다 - 확신도는 0.10(열 칸 균등), 고름은 0(한 숫자만).
-    # 그러니 「0 = worst」라고 적으면 안 된다
-    ax.set_ylabel("score   1 = best for both", fontsize=10.5)
-    ax.set_xlim(-0.35, 3.25); ax.set_ylim(0.46, 1.09)
-    ax.set_yticks([])
-    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.set_xticks(x); ax.set_xticklabels(models, fontsize=11)
+    ax.set_ylabel("score   1 = best for all three", fontsize=10.5)
+    ax.set_xlim(-0.38, 4.55); ax.set_ylim(0.46, 1.10)
     ax.set_yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-    ax.set_title("adding the new term: one ruler barely moves, "
-                 "the other leaps", fontsize=11.5)
-    fig.subplots_adjust(left=0.115, right=0.98, top=0.88, bottom=0.13)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.set_title("three rulers, four models - the last one is not on the "
+                 "same trade-off", fontsize=11.5)
+    fig.text(0.5, 0.015,
+             "the chapter's fourth ruler, cost, is one decoder pass for every "
+             "model here - it only separates 5.4",
+             ha="center", fontsize=9.5, color="0.45")
+    fig.subplots_adjust(left=0.10, right=0.995, top=0.90, bottom=0.17)
     fig.savefig("lead_kl_buys.svg", transparent=True)
     plt.close(fig); print("wrote lead_kl_buys.svg")
 
