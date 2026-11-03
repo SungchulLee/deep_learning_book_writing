@@ -29,6 +29,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
+import matplotlib.patheffects as pe
 import numpy as np
 import torch
 import torchvision
@@ -845,7 +846,15 @@ def fig_ae_vs_vae_2d():
     ae_z = ae.enc(Xte)
     vae_z = vae.mu(vae.enc(Xte))
 
-    fig, axes = plt.subplots(2, 2, figsize=(9.5, 9.0))
+    # 칸마다 자동으로 눈금을 맞추면 둘이 똑같이 퍼져 보인다. 눈금 수를 읽어야만
+    # 차이를 아는 그림은 그림이 할 일을 글자에 떠넘긴 것이다. 같은 자리에 묶는다.
+    # 가장 바깥 점에 맞추면 몇 개 때문에 축이 늘어나 VAE 쪽이 점으로 뭉친다.
+    # 가운데 96% 상자를 기준으로 잡고 조금 넓힌다 (바깥 점 일부는 잘린다).
+    lim = 1.18 * max(float(z.quantile(q, dim=0).abs().max())
+                     for z in (ae_z, vae_z) for q in (0.02, 0.98))
+    cm = plt.get_cmap("tab10")
+
+    fig, axes = plt.subplots(2, 2, figsize=(9.5, 9.4))
     for col, (z, dec, title) in enumerate([
             (ae_z, ae.dec, "AE_MLP-2"),
             (vae_z, vae.dec, "VAE-2  (beta=1)")]):
@@ -863,6 +872,14 @@ def fig_ae_vs_vae_2d():
                      f"{hi[0]:+.1f}   y {lo[1]:+.1f} to {hi[1]:+.1f}",
                      fontsize=10)
         ax.set_aspect("equal")
+        ax.set_xlim(-lim, lim); ax.set_ylim(-lim, lim)      # 두 칸이 같은 자
+        for d in range(10):                 # 범례를 찾아가지 않게 무리 위에 바로
+            g = z[yte == d]
+            ax.text(float(g[:, 0].median()), float(g[:, 1].median()), str(d),
+                    fontsize=12, fontweight="bold", ha="center", va="center",
+                    color=cm(d), zorder=5,
+                    path_effects=[pe.withStroke(linewidth=2.6,
+                                                foreground="white")])
         ax.tick_params(labelsize=9)
         ax.grid(alpha=0.18, lw=0.6)
         ax.axhline(0, color="0.4", lw=0.8); ax.axvline(0, color="0.4", lw=0.8)
@@ -878,12 +895,11 @@ def fig_ae_vs_vae_2d():
                             vmin=0, vmax=1,
                             extent=(float(lo[0] - hw), float(hi[0] + hw),
                                     float(lo[1] - hh), float(hi[1] + hh)))
-        axes[1, col].set_title(f"{title} decoded over the same range",
+        axes[1, col].set_title(f"{title} decoded over its own middle 96%",
                                fontsize=10)
         axes[1, col].set_aspect("auto")
         axes[1, col].tick_params(labelsize=9)
 
-    cm = plt.get_cmap("tab10")
     fig.legend(handles=[Line2D([], [], marker="o", ls="", ms=7, color=cm(d),
                                label=str(d)) for d in range(10)],
                loc="lower center", ncol=10, frameon=False, fontsize=10,
