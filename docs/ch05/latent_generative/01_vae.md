@@ -38,21 +38,43 @@ $$
 
 위 문단은 "뽑기를 그대로 두면 길이 아예 막힌다"로 읽히기 쉽다. 그런데 그 글은 **다른 길을 알고 있었고, 적어 두었다.**
 
-우리가 알고 싶은 것은 $z$를 뽑아 잰 값의 평균 $\mathbb{E}[f(z)]$을 인코더의 파라메터 $\phi$로 미분한 **그래디언트** — 파라메터를 어느 쪽으로 얼마나 움직여야 로스가 줄어드는지 알려 주는 수 — 다. 거기에 이르는 길이 둘이다.
+기호를 먼저 정해 두자. 인코더가 내놓는 분포를 $q_\phi(z) = N(\mu_\phi,\ \sigma_\phi^2)$라 하고($\phi$가 인코더의 파라메터다), 뽑은 $z$로 재는 값을 $f(z)$라 하자. 우리가 알고 싶은 것은 그 **평균을 $\phi$로 미분한 그래디언트** — 파라메터를 어느 쪽으로 얼마나 움직여야 로스가 줄어드는지 알려 주는 수 — 다.
 
-**리파라메리제이션은 뽑는 자리를 옮겨 적고 $f$를 직접 미분한다.**
+!!! note "$\mathbb{E}$ 아래에 적는 것은 **무엇으로 평균 내는가**다"
+    $\mathbb{E}_{\varepsilon \sim N(0, I)}[\,\cdot\,]$는 「$\varepsilon$이 주어졌을 때」라는 **조건이 아니다.** $\varepsilon$을 $N(0, I)$에서 수없이 뽑아 **그것들에 걸쳐 평균 낸다**는 뜻이고, 평균을 내고 나면 $\varepsilon$은 식에서 사라진다. 아래 첨자는 **평균 내는 대상**을 적는 자리다.
 
-$$
-\nabla_\phi\, \mathbb{E}[f(z)] \;=\; \mathbb{E}_{\varepsilon}\!\left[\nabla_\phi\, f(\mu_\phi + \sigma_\phi \varepsilon)\right]
-$$
-
-**다른 하나는 $f$를 한 번도 미분하지 않는다.** 뽑아 보고 **얼마나 좋았는지 점수 하나만** 받아서, 좋았던 쪽이 더 자주 나오도록 분포를 민다.
+**걸림돌이 무엇인지부터 보자.** 평균을 적분으로 적으면
 
 $$
-\nabla_\phi\, \mathbb{E}[f(z)] \;=\; \mathbb{E}\!\left[f(z)\, \nabla_\phi \log q_\phi(z)\right]
+\mathbb{E}_{z \sim q_\phi}\!\left[f(z)\right] \;=\; \int f(z)\, q_\phi(z)\, dz
 $$
 
-$\nabla_\phi \log q_\phi(z)$를 **점수함수**(score function)라 하므로 이것이 **점수함수 추정량**이고, 강화학습에서는 REINFORCE라 부른다.
+인데 $\phi$가 **적분 안의 분포 $q_\phi$에 들어 있다.** 그래서 $\nabla_\phi$를 평균 기호 안으로 그냥 밀어 넣을 수 없다. 두 추정량은 이 걸림돌을 **서로 다르게 피한다.**
+
+**첫째 길 — 분포에서 $\phi$를 빼낸다(리파라메리제이션).** $z = \mu_\phi + \sigma_\phi \varepsilon$으로 고쳐 적으면 뽑는 것은 $\phi$와 아무 상관 없는 $\varepsilon$뿐이고, $\phi$는 **$f$ 안으로 옮겨 간다.**
+
+$$
+\mathbb{E}_{z \sim q_\phi}\!\left[f(z)\right] \;=\; \mathbb{E}_{\varepsilon \sim N(0, I)}\!\left[f(\mu_\phi + \sigma_\phi \varepsilon)\right]
+$$
+
+이제 **평균 내는 분포가 $\phi$를 모르므로** 미분을 안으로 넣어도 된다.
+
+$$
+\nabla_\phi\, \mathbb{E}_{z \sim q_\phi}\!\left[f(z)\right] \;=\; \mathbb{E}_{\varepsilon \sim N(0, I)}\!\left[\nabla_\phi\, f(\mu_\phi + \sigma_\phi \varepsilon)\right]
+$$
+
+**둘째 길 — 분포를 그대로 두고 미분한다(점수함수 추정량).** 적분 안에서 $q_\phi$를 미분한 다음, 로그 미분 한 줄로 다시 평균 꼴로 되돌린다.
+
+$$
+\begin{aligned}
+\nabla_\phi \int f(z)\, q_\phi(z)\, dz
+&= \int f(z)\; \nabla_\phi q_\phi(z)\; dz \\[2pt]
+&= \int f(z)\; q_\phi(z)\, \nabla_\phi \log q_\phi(z)\; dz \\[2pt]
+&= \mathbb{E}_{z \sim q_\phi}\!\left[f(z)\, \nabla_\phi \log q_\phi(z)\right]
+\end{aligned}
+$$
+
+**둘째 줄이 전부다.** $\log$를 미분하면 $\nabla_\phi \log q_\phi = \nabla_\phi q_\phi / q_\phi$이니 양변에 $q_\phi$를 곱하면 $\nabla_\phi q_\phi = q_\phi\, \nabla_\phi \log q_\phi$다. 적분 안에 $q_\phi$가 **도로 생겼으므로** 셋째 줄에서 평균으로 적을 수 있다. $\nabla_\phi \log q_\phi(z)$를 **점수함수**(score function)라 해서 이것을 **점수함수 추정량**이라 부르고, 강화학습에서는 REINFORCE라 한다.
 
 **두 식의 차이가 그대로 분산의 차이다.** 앞의 것은 $f$의 기울기를 쓰니 「어느 쪽으로 가야 좋아지는지」를 바로 안다. 뒤의 것은 $f$의 **값 하나**만 쓴다 — 눈을 감고 한 발 딛어 보고 좋았으면 그쪽을 더 자주 딛는 식이다. 잠재 차원이 64면 딛을 방향이 64가지인데 돌아오는 소식은 여전히 수 하나뿐이니, 차원이 늘수록 짐작이 흐려진다. **아래 그림의 오른쪽 칸이 올라가는 까닭이 이것이다.**
 
