@@ -3064,16 +3064,12 @@ def fig_lead_cliff():
 
 
 def fig_lead_kl_buys():
-    """5.2 개요 - 자 셋으로 네 모델을 본다.
+    """5.2 개요 - 장 개요의 자 넷으로 네 모델을 본다.
 
-    앞서는 모델 셋에 자 둘만 그렸다. 두 가지가 빠져 있었다.
-      - 컨볼루션 VAE 는 조건부가 아닌데도 빠져 있었다 (cVAE 를 뺀 까닭이
-        이 모델에는 걸리지 않는다)
-      - 장 개요가 자를 넷 세워 두었는데 둘만 보였다
-
-    넷째 자 「값」은 선으로 그리지 않는다. 5.2 의 모델은 모두 디코더를
-    한 번 지나므로 여기서는 갈리지 않고, 1,000회까지 벌어지는 것은
-    5.4 뿐이다. 그 사실은 그림 아래에 글로 적는다.
+    넷째 자 「값」(그림 한 장에 디코더를 몇 번 지나는가) 도 선으로 그린다.
+    넷 다 한 번이라 1.0 에 평평하게 눕고, 목표선과 겹쳐 앉는다. 갈리지
+    않는다는 것을 글로 적어 두는 것보다 평평한 선 하나가 바로 보인다.
+    1,000 회까지 벌어지는 것은 5.4 뿐이고 그 사실만 아래에 적는다.
 
     수의 출처: 확신도·균형도는 5.2 개요 표. 다양함은 오토인코더 0.642 와
     VAE·beta-VAE 가 02_beta_vae 3절, 컨볼루션 VAE 0.833 은 같은 규약
@@ -3085,32 +3081,37 @@ def fig_lead_kl_buys():
     # 이름을 적으면 겹친다. 이름의 세로 자리와 값 라벨의 방향을 따로 준다.
     NL = chr(10)
     rulers = [("does it look" + NL + " like a digit?",
-               [0.777, 0.769, 0.794, 0.807], "0.6", 0.742, -0.047),
+               [0.777, 0.769, 0.794, 0.807], "0.6", 0.742, -0.058),
               ("are all ten made" + NL + " equally often?",
-               [0.541, 0.877, 0.950, 0.927], "tab:green", 0.955, 0.030),
+               [0.541, 0.877, 0.950, 0.927], "tab:green", 0.955, -0.042),
               ("as varied as" + NL + " real handwriting?",
-               [0.642, 0.631, 0.575, 0.833], "#1d4ed8", 0.866, -0.047)]
-    fig, ax = plt.subplots(figsize=(9.8, 4.9))
+               [0.642, 0.631, 0.575, 0.833], "#1d4ed8", 0.866, -0.047),
+              # 넷째 자 - 넷 다 디코더를 한 번 지나므로 1.0 에 평평하다
+              ("one decoder pass" + NL + " for every model",
+               [1.0, 1.0, 1.0, 1.0], "#b45309", 1.063, 0.021)]
+    fig, ax = plt.subplots(figsize=(9.8, 5.1))
     x = list(range(4))
+    ax.axhline(1.0, color="0.65", ls=":", lw=1.2)
     for name, v, c, lab_y, dy in rulers:
+        flat = len(set(v)) == 1
         ax.plot(x, v, "o-", color=c, lw=2.4, ms=9)
         for xi, y in zip(x, v):
-            ax.text(xi, y + dy, f"{y:.3f}", ha="center", fontsize=10, color=c)
+            ax.text(xi, y + dy, "1" if flat else f"{y:.3f}", ha="center",
+                    fontsize=10, color=c)
         ax.text(3.16, lab_y, name, va="center", fontsize=10, color=c)
 
-    ax.axhline(1.0, color="0.65", ls=":", lw=1.2)
-    ax.text(-0.33, 1.015, "1.00  the target for all three", fontsize=9.5,
+    ax.text(-0.33, 1.093, "1.00  the target for all four", fontsize=9.5,
             color="0.5")
     ax.set_xticks(x); ax.set_xticklabels(models, fontsize=11)
-    ax.set_ylabel("score   1 = best for all three", fontsize=10.5)
-    ax.set_xlim(-0.38, 4.55); ax.set_ylim(0.46, 1.10)
+    ax.set_ylabel("score   1 = best for all four", fontsize=10.5)
+    ax.set_xlim(-0.38, 4.55); ax.set_ylim(0.46, 1.13)
     ax.set_yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     ax.spines[["top", "right", "left"]].set_visible(False)
-    ax.set_title("three rulers, four models - the last one is not on the "
+    ax.set_title("four rulers, four models - the last model is not on the "
                  "same trade-off", fontsize=11.5)
     fig.text(0.5, 0.015,
-             "the chapter's fourth ruler, cost, is one decoder pass for every "
-             "model here - it only separates 5.4",
+             "the amber ruler is flat because every model here decodes once - "
+             "it only separates 5.4, where DDPM takes 1,000 passes and DDIM 10",
              ha="center", fontsize=9.5, color="0.45")
     fig.subplots_adjust(left=0.10, right=0.995, top=0.90, bottom=0.17)
     fig.savefig("lead_kl_buys.svg", transparent=True)
