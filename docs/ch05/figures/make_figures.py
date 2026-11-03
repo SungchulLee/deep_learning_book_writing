@@ -562,44 +562,52 @@ def fig_beta_exchange_rate():
 
 
 def fig_conv_off_tradeoff():
-    """04_conv_vae 5절 - 세 줄은 맞바꿈 위에 있고 한 줄은 바깥에 있다.
+    """04_conv_vae 7절 - 맞바꿈 선이 하나가 아니라 둘이다.
+
+    앞서는 컨볼루션 점이 하나뿐이라 "선 바깥의 점" 으로 보였다. 6절이
+    같은 기계에 beta 손잡이를 걸어 둘째 점을 얻으니, 그 둘이 완전 연결
+    셋과 나란한 **또 하나의 선**을 그린다. 구조는 선을 옮기고 beta 는
+    선 위에서 움직인다.
 
     수는 모두 이 절 다섯 쪽의 출력에서 그대로 옮긴 것이다 (잠재 64).
-    가로는 복원 오차라 왼쪽이 좋고, 세로는 뽑은 그림의 고름이라 위가 좋다.
-    그러니 왼쪽 위가 둘 다 좋은 자리다.
+    가로는 복원 오차라 왼쪽이 좋고, 세로는 뽑은 그림의 균형도라 위가 좋다.
     """
-    pts = [("autoencoder",   0.0546, 0.541, "#6b7280"),
-           ("VAE",           0.0750, 0.877, "#6b7280"),
-           ("beta-VAE (b=4)", 0.1351, 0.950, "#6b7280"),
-           ("conv VAE",      0.0423, 0.927, "#b91c1c")]
+    GR, RD = "#6b7280", "#b91c1c"
+    # 라벨 자리를 점마다 따로 준다 - 가운데 아래로 통일하면 VAE 라벨이
+    # 가파르게 오르는 선에 그대로 겹친다.
+    mlp = [("autoencoder", 0.0546, 0.541, (0, -34)),
+           ("VAE", 0.0750, 0.877, (-30, -40)),
+           ("beta-VAE (b=4)", 0.1351, 0.950, (0, -34))]
+    conv = [("conv VAE", 0.0423, 0.927, (0, -34)),
+            ("conv beta-VAE (b=4)", 0.0905, 0.965, (16, -36))]
 
-    fig, ax = plt.subplots(figsize=(7.4, 4.8))
+    fig, ax = plt.subplots(figsize=(7.8, 5.0))
     ax.axhspan(0.90, 1.02, 0.0, 0.30, color="#15803d", alpha=0.07)
     ax.text(0.0305, 1.012, "good at both", fontsize=10.5, color="#15803d",
             ha="left", va="top")
 
-    tl = [p for p in pts if p[3] == "#6b7280"]          # 맞바꿈 위의 세 점
-    tl.sort(key=lambda p: p[1])
-    ax.plot([p[1] for p in tl], [p[2] for p in tl], "-", color="#6b7280",
-            lw=1.6, zorder=1)
-    ax.text(0.106, 0.820, "along this line, balance is\npaid for with recon",
-            fontsize=10, color="#6b7280", ha="center", va="top")
+    for pts, c, lw in [(mlp, GR, 1.6), (conv, RD, 2.2)]:
+        s = sorted(pts, key=lambda q: q[1])
+        ax.plot([q[1] for q in s], [q[2] for q in s], "-", color=c, lw=lw,
+                zorder=1)
+    ax.text(0.112, 0.830, "fully connected:\nbalance is paid for with recon",
+            fontsize=10, color=GR, ha="center", va="top")
+    ax.text(0.078, 1.013, "convolution: the same trade,\non a better line",
+            fontsize=10, color=RD, ha="center", va="top")
 
-    for name, x, y, c in pts:
-        big = c != "#6b7280"
-        ax.plot(x, y, "o", ms=13 if big else 9, color=c, zorder=3)
-        ax.annotate(f"{name}\n{x:.4f} / {y:.3f}", (x, y),
-                    (16, -10) if big else (0, -34),
-                    textcoords="offset points",
-                    ha="left" if big else "center",
-                    fontsize=10.5 if big else 9.5, color=c,
-                    fontweight="bold" if big else "normal")
+    for pts, c, big in [(mlp, GR, False), (conv, RD, True)]:
+        for name, x, y, off in pts:
+            ax.plot(x, y, "o", ms=13 if big else 9, color=c, zorder=3)
+            ax.annotate(f"{name}\n{x:.4f} / {y:.3f}", (x, y), off,
+                        textcoords="offset points", ha="center",
+                        fontsize=10.5 if big else 9.5, color=c,
+                        fontweight="bold" if big else "normal")
 
     ax.set_xlabel("reconstruction MSE   (left is better)", fontsize=11)
     ax.set_ylabel("balance of the samples   (up is better)", fontsize=11)
-    ax.set_xlim(0.028, 0.152); ax.set_ylim(0.47, 1.04)
-    ax.set_title("three of them sit on one trade-off; the fourth does not",
-                 fontsize=11.5)
+    ax.set_xlim(0.028, 0.160); ax.set_ylim(0.47, 1.04)
+    ax.set_title("two trade-off lines - structure moves the line, "
+                 "beta moves along it", fontsize=11.5)
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(alpha=0.18)
     fig.tight_layout()
@@ -3105,7 +3113,7 @@ def fig_lead_cliff():
 
 
 def fig_lead_kl_buys():
-    """5.2 개요 - 장 개요의 자 넷으로 네 모델을 본다.
+    """5.2 개요 - 장 개요의 자 넷으로 모델 다섯을 본다.
 
     넷째 자 「값」(그림 한 장에 디코더를 몇 번 지나는가) 도 선으로 그린다.
     넷 다 한 번이라 1.0 에 평평하게 눕고, 목표선과 겹쳐 앉는다. 갈리지
@@ -3117,21 +3125,21 @@ def fig_lead_kl_buys():
     (씨앗 42, 100 에포크)으로 따로 재어 확신도 0.807·균형도 0.927 이
     표와 맞는 것을 확인했다.
     """
-    models = ["autoencoder", "VAE", "beta-VAE", "conv VAE"]
+    models = ["autoencoder", "VAE", "beta-VAE", "conv VAE", "conv beta-VAE"]
     # 오른쪽 끝에서 세 자가 0.807·0.927·0.833 으로 붙어 있어 데이터 자리에
     # 이름을 적으면 겹친다. 이름의 세로 자리와 값 라벨의 방향을 따로 준다.
     NL = chr(10)
     rulers = [("does it look" + NL + " like a digit?",
-               [0.777, 0.769, 0.794, 0.807], "0.6", 0.742, -0.058),
+               [0.777, 0.769, 0.794, 0.807, 0.828], "0.6", 0.742, -0.058),
               ("are all ten made" + NL + " equally often?",
-               [0.541, 0.877, 0.950, 0.927], "tab:green", 0.955, -0.042),
+               [0.541, 0.877, 0.950, 0.927, 0.965], "tab:green", 0.955, -0.042),
               ("as varied as" + NL + " real handwriting?",
-               [0.642, 0.631, 0.575, 0.833], "#1d4ed8", 0.866, -0.047),
+               [0.642, 0.631, 0.575, 0.833, 0.716], "#1d4ed8", 0.866, -0.047),
               # 넷째 자 - 넷 다 디코더를 한 번 지나므로 1.0 에 평평하다
               ("one decoder pass" + NL + " for every model",
-               [1.0, 1.0, 1.0, 1.0], "#b45309", 1.063, 0.021)]
-    fig, ax = plt.subplots(figsize=(9.8, 5.1))
-    x = list(range(4))
+               [1.0] * 5, "#b45309", 1.063, 0.021)]
+    fig, ax = plt.subplots(figsize=(11.0, 5.1))
+    x = list(range(5))
     ax.axhline(1.0, color="0.65", ls=":", lw=1.2)
     for name, v, c, lab_y, dy in rulers:
         flat = len(set(v)) == 1
@@ -3139,20 +3147,20 @@ def fig_lead_kl_buys():
         for xi, y in zip(x, v):
             ax.text(xi, y + dy, "1" if flat else f"{y:.3f}", ha="center",
                     fontsize=10, color=c)
-        ax.text(3.16, lab_y, name, va="center", fontsize=10, color=c)
+        ax.text(4.16, lab_y, name, va="center", fontsize=10, color=c)
 
     ax.text(-0.33, 1.093, "1.00  the target for all four", fontsize=9.5,
             color="0.5")
     ax.set_xticks(x); ax.set_xticklabels(models, fontsize=11)
     ax.set_ylabel("score   1 = best for all four", fontsize=10.5)
-    ax.set_xlim(-0.38, 4.55); ax.set_ylim(0.46, 1.13)
+    ax.set_xlim(-0.38, 5.75); ax.set_ylim(0.46, 1.13)
     ax.set_yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     ax.spines[["top", "right", "left"]].set_visible(False)
-    ax.set_title("four rulers, four models - the last model is not on the "
-                 "same trade-off", fontsize=11.5)
+    ax.set_title("four rulers, five models - the last two are the same knob "
+                 "on a different machine", fontsize=11.5)
     fig.text(0.5, 0.015,
-             "the amber ruler is flat because every model here decodes once - "
-             "it only separates 5.4, where DDPM takes 1,000 passes and DDIM 10",
+             "pairs 2-3 and 4-5 are the same beta step on two machines - "
+             "conv keeps more variety at either setting, and loses more to the step",
              ha="center", fontsize=9.5, color="0.45")
     fig.subplots_adjust(left=0.10, right=0.995, top=0.90, bottom=0.17)
     fig.savefig("lead_kl_buys.svg", transparent=True)
