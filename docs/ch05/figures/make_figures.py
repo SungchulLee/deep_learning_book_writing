@@ -28,6 +28,7 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+from matplotlib.lines import Line2D
 import numpy as np
 import torch
 import torchvision
@@ -848,24 +849,48 @@ def fig_ae_vs_vae_2d():
     for col, (z, dec, title) in enumerate([
             (ae_z, ae.dec, "AE_MLP-2"),
             (vae_z, vae.dec, "VAE-2  (beta=1)")]):
-        ax = axes[0, col]
-        ax.scatter(z[:, 0], z[:, 1], c=yte, cmap="tab10", s=1.2,
-                   alpha=0.55, linewidths=0, rasterized=True)
-        ax.set_title(f"{title} latent", fontsize=11)
-        ax.set_xticks([]); ax.set_yticks([])
-
         lo, hi = z.quantile(0.02, dim=0), z.quantile(0.98, dim=0)
+
+        # 눈금을 지우면 두 잠재 공간의 크기가 전혀 다르다는 것이 보이지 않는다.
+        # AE 는 제 마음대로 퍼지고 VAE 는 N(0, I) 쪽으로 밀려 있으므로, 축의
+        # 수가 곧 "KL 항이 한 일"이다. 두 칸의 자리를 억지로 맞추지 않는다.
+        ax = axes[0, col]
+        # vmin/vmax 를 반 칸씩 넓혀 라벨 d 가 tab10 의 d 번 색과 정확히 맞게 한다
+        ax.scatter(z[:, 0], z[:, 1], c=yte, cmap="tab10", vmin=-0.5, vmax=9.5,
+                   s=1.2, alpha=0.55, linewidths=0, rasterized=True)
+        # 범위를 제목 한 줄에 넣으면 오른쪽 칸에서 잘린다. 두 줄로 나눈다.
+        ax.set_title(f"{title} latent\nmiddle 96%:  x {lo[0]:+.1f} to "
+                     f"{hi[0]:+.1f}   y {lo[1]:+.1f} to {hi[1]:+.1f}",
+                     fontsize=10)
+        ax.set_aspect("equal")
+        ax.tick_params(labelsize=9)
+        ax.grid(alpha=0.18, lw=0.6)
+        ax.axhline(0, color="0.4", lw=0.8); ax.axvline(0, color="0.4", lw=0.8)
+
         n = 16
         gx = torch.linspace(lo[0], hi[0], n); gy = torch.linspace(lo[1], hi[1], n)
         grid = torch.stack([torch.stack([x, y]) for y in gy.flip(0) for x in gx])
         d = dec(grid).reshape(n, n, 28, 28)
         canvas = torch.cat([torch.cat([d[i, j] for j in range(n)], 1) for i in range(n)], 0)
-        axes[1, col].imshow((canvas * STD + MEAN).clamp(0, 1), cmap="gray", vmin=0, vmax=1)
-        axes[1, col].set_title(f"{title} decoded over a grid", fontsize=11)
-        axes[1, col].axis("off")
+        # 칸의 가운데가 격자점이므로 바깥으로 반 칸씩 넓혀야 축의 수가 맞는다
+        hw, hh = (hi[0] - lo[0]) / (2 * (n - 1)), (hi[1] - lo[1]) / (2 * (n - 1))
+        axes[1, col].imshow((canvas * STD + MEAN).clamp(0, 1), cmap="gray",
+                            vmin=0, vmax=1,
+                            extent=(float(lo[0] - hw), float(hi[0] + hw),
+                                    float(lo[1] - hh), float(hi[1] + hh)))
+        axes[1, col].set_title(f"{title} decoded over the same range",
+                               fontsize=10)
+        axes[1, col].set_aspect("auto")
+        axes[1, col].tick_params(labelsize=9)
 
-    fig.subplots_adjust(left=0.01, right=0.99, top=0.96, bottom=0.01,
-                        wspace=0.06, hspace=0.10)
+    cm = plt.get_cmap("tab10")
+    fig.legend(handles=[Line2D([], [], marker="o", ls="", ms=7, color=cm(d),
+                               label=str(d)) for d in range(10)],
+               loc="lower center", ncol=10, frameon=False, fontsize=10,
+               handletextpad=0.15, columnspacing=1.1,
+               title="which digit the point came from", title_fontsize=10)
+    fig.subplots_adjust(left=0.07, right=0.99, top=0.95, bottom=0.115,
+                        wspace=0.14, hspace=0.16)
     fig.savefig("ae_vs_vae_2d.svg", transparent=True)
     plt.close(fig)
     print("wrote ae_vs_vae_2d.svg")
