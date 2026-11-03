@@ -268,7 +268,6 @@ nav:
       - 5.2 잠재공간 생성모델:
         - "개요": ch05/latent_generative/index.md
         - VAE: ch05/latent_generative/01_vae.md
-        - β-VAE: ch05/latent_generative/02_beta_vae.md
         - cVAE: ch05/latent_generative/03_cvae.md
         - 컨볼루션 VAE: ch05/latent_generative/04_conv_vae.md
         - 컨볼루션 cVAE: ch05/latent_generative/05_conv_cvae.md
