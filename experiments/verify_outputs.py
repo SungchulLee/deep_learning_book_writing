@@ -163,6 +163,35 @@ def find_output(md_text, start=0):
     return fold.start(), end, text
 
 
+#: 출력 머리 줄 하나. 인수를 캐낼 때 **이 줄 안에서만** 본다.
+OUT_HEAD_LINE = re.compile(
+    r"^[ \t]*\*\*(?:기존 )?출력(?: 기록)?[:：]?\*\*[^\n]*$", re.M)
+
+#: 그 줄에 적힌 실행법. 역따옴표 안을 보되 **줄을 넘지 않는다** —
+#: `[^`]+` 로 두면 코드 블록 안의 역따옴표까지 이어 붙어 docstring 을
+#: 통째로 인수로 읽는다(처음에 그렇게 짰다가 3,000낱말짜리 argv 가 나왔다).
+ARGV_IN_HEAD = re.compile(r"`python[^`\n]*?\.py\s+([^`\n]+)`")
+
+
+def argv_variants(md_text):
+    """쪽이 출력 머리에 적어 둔 실행 인수를 모은다.
+
+    `sys.argv` 를 보는 쪽이 있다. 인수 없이 한 번만 돌리면 그런 쪽의
+    출력은 영영 맞출 수 없다 — imdb/03_frozen 은 frozen·learned 를 따로
+    돌린 출력을 싣고, imdb/06_transformer 는 레이어 수를 인수로 받는다.
+    쪽이 실행법을 머리에 적어 두었으므로 그것을 읽어 그대로 돌린다.
+
+    돌려주는 것: 인수 목록들. 언제나 빈 것(인수 없음)을 먼저 넣는다.
+    """
+    out = [[]]
+    for line in OUT_HEAD_LINE.findall(md_text):
+        for m in ARGV_IN_HEAD.finditer(line):
+            a = m.group(1).split()
+            if a and a not in out:
+                out.append(a)
+    return out
+
+
 def all_outputs(md_text):
     """쪽에 있는 출력 블록을 앞에서부터 모두 찾는다.
 
@@ -244,8 +273,12 @@ def check(md_path, timeout=1800):
     env.setdefault("MPLBACKEND", "Agg")
     env["PYTHONPATH"] = str(md_path.parent) + os.pathsep + env.get("PYTHONPATH", "")
 
+    # 쪽이 머리말에 적어 둔 인수마다 한 번씩 돌려 출력을 합친다.
+    variants = argv_variants(md)
+
     r = None
     timed_out = False
+    extra_out = []
     with ExitStack() as stack:
         cwd = sandbox_cwd(stack)
         for code in candidates:
@@ -255,6 +288,15 @@ def check(md_path, timeout=1800):
             try:
                 r = subprocess.run([sys.executable, tmp], capture_output=True,
                                    text=True, timeout=timeout, cwd=cwd, env=env)
+                for a in variants[1:]:          # 인수 없는 것은 위에서 돌렸다
+                    try:
+                        rr = subprocess.run([sys.executable, tmp, *a],
+                                            capture_output=True, text=True,
+                                            timeout=timeout, cwd=cwd, env=env)
+                        if rr.returncode == 0:
+                            extra_out.append(rr.stdout)
+                    except subprocess.TimeoutExpired:
+                        timed_out = True
             except subprocess.TimeoutExpired:
                 # 이어 붙인 것이 오래 걸리면 가장 긴 블록만으로 한 번 더 해 본다.
                 # 이어 붙이면 연습문제 풀이까지 함께 돌아 훨씬 오래 걸리는데,
@@ -286,11 +328,13 @@ def check(md_path, timeout=1800):
     def blur(s):
         return re.sub(r"\s+", " ", ADDRESS.sub(" ", TIMING.sub(" ", s))).strip()
 
-    out_blurred = "\n".join(blur(l) for l in r.stdout.splitlines())
+    # 인수를 바꿔 돌린 것들을 합쳐 하나의 건초더미로 둔다.
+    got = "\n".join([r.stdout] + extra_out)
+    out_blurred = "\n".join(blur(l) for l in got.splitlines())
 
     missing, soft = [], 0
     for l in wanted:
-        if l in r.stdout:
+        if l in got:
             continue
         b = blur(l)
         if b and b in out_blurred:
