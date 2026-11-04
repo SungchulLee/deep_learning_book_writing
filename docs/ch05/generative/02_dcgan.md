@@ -181,6 +181,8 @@ if __name__ == "__main__":
 
   G = train_gan(GConv, DConv, "dcgan")
   evaluate(sample(G), "dcgan")
+  # 아래 블록이 읽어, 네 자가 못 보는 것을 따로 잰다
+  torch.save(G.state_dict(), "mnist_dcgan_g.pt")
 ```
 
 **출력:**
@@ -282,7 +284,148 @@ MLP 쪽은 균형점($D \approx 1.386$)으로 되돌아갔다. DCGAN은 처음�
 
 ---
 
-## 4. 사다리의 끝
+## 4. 자 넷이 함께 못 보는 것
+
+[장 개요](../index.md)가 세운 자는 넷인데, **넷이 한 목소리로 못 보는 것이 하나 있다.** 학습 그림을 외워 두었다가 그대로 뱉는 기계는 숫자다움도 균형도도 다양함도 만점이고 값도 1이다 — **이 장에서 가장 좋은 기계로 나온다.** 네 자가 모두 **나온 그림만** 보기 때문이고, 베껴 온 그림은 나온 꼴로는 진짜와 구별할 길이 없다.
+
+DCGAN 논문도 같은 자리에서 멈췄고, 그래서 **자가 아닌 검사를 둘** 두었다. 점수를 매기지 않고 「베낀 것이 아니다」만 보이는 검사다. 코드는 **위 블록에 이어 붙인다** — 위에서 학습해 저장한 것을 읽으므로 새로 학습하지 않는다.
+
+```python
+"""네 자가 못 보는 것 — 베껴 온 것인가 — 를 잰다. 위 블록에 이어 붙인다.
+
+이 장의 자 넷은 **학습 그림을 통째로 외워 그대로 뱉는 모델을 잡지 못한다.**
+그런 모델은 숫자다움도 균형도도 다양함도 만점이고 값도 1 이다. 넷이 한
+목소리로 못 보는 자리이므로 자를 하나 더 들이대야 한다.
+
+DCGAN 논문이 쓴 검사가 둘인데 **둘 다 점수를 매기는 자가 아니다.**
+
+  (가) 베낀 것이 아님을 보인다. 여기서는 뽑은 그림마다 **가장 가까운 학습
+      그림까지의 화소 거리**를 재고, 학습 그림끼리의 거리와 견준다. 베낀
+      것이라면 0 에 가까워야 한다.
+  (나) 잠재 공간을 걸으면 매끄럽다. z 둘을 잇는 직선 위를 걸으며 디코딩해
+      이웃한 칸끼리 얼마나 달라지는지를 잰다. 외운 조각을 이어 붙인 것이면
+      어느 자리에서 툭 끊긴다.
+
+읽는 것: 위 블록이 남긴 mnist_dcgan_g.pt.
+실행: 이 쪽의 코드를 파일로 갈무리해 저장소 뿌리에서 돌린다.
+"""
+
+N_WALK, N_STEP = 12, 16          # 걷는 길 수, 길 하나의 칸 수
+
+
+@torch.no_grad()
+def nearest_train(imgs, chunk=200):
+    """그림마다 가장 가까운 학습 그림까지의 화소 거리."""
+    ref = Xtr.reshape(len(Xtr), -1).to(device)
+    out = []
+    for i in range(0, len(imgs), chunk):
+        q = imgs[i:i + chunk].reshape(-1, ref.shape[1]).to(device)
+        out.append(torch.cdist(q, ref).min(1).values.cpu())
+    return torch.cat(out)
+
+
+@torch.no_grad()
+def check_memory(G):
+    g = torch.Generator().manual_seed(SEED)
+    fake = G(torch.randn(2000, ZDIM, generator=g).to(device)).cpu()
+
+    # 학습 그림끼리의 간격 — 견줄 자리. 자기 자신은 뺀다.
+    sub = Xtr[:2000].reshape(2000, -1).to(device)
+    d = torch.cdist(sub, sub); d.fill_diagonal_(float("inf"))
+    real_nn = d.min(1).values.cpu()
+
+    fake_nn = nearest_train(fake)
+    print(f"  (가) 가장 가까운 학습 그림까지의 화소 거리 (중앙값)")
+    print(f"       학습 그림끼리         {real_nn.median():.3f}")
+    print(f"       뽑은 그림에서         {fake_nn.median():.3f}"
+          f"   ({fake_nn.median() / real_nn.median():.2f}배)")
+    print(f"       그 간격 안에 든 가짜   {int((fake_nn <= real_nn.median()).sum())}장 / 2,000")
+
+
+@torch.no_grad()
+def walk(G):
+    g = torch.Generator().manual_seed(SEED)
+    a = torch.randn(N_WALK, ZDIM, generator=g)
+    b = torch.randn(N_WALK, ZDIM, generator=g)
+    w = torch.linspace(0, 1, N_STEP)[:, None, None]      # (step, 1, 1)
+    z = (1 - w) * a[None] + w * b[None]                  # (step, walk, ZDIM)
+    im = G(z.reshape(-1, ZDIM).to(device)).cpu().reshape(N_STEP, N_WALK, -1)
+
+    step = (im[1:] - im[:-1]).pow(2).sum(-1).sqrt()      # 이웃 칸 사이의 거리
+
+    # 견줄 자리: 서로 상관없는 두 그림 사이의 거리. 한 걸음이 이만큼이면
+    # 걷는 것이 아니라 매번 딴 그림으로 건너뛰는 것이다.
+    far = G(torch.randn(400, ZDIM,
+                        generator=torch.Generator().manual_seed(SEED + 1)
+                        ).to(device)).cpu().reshape(400, -1)
+    indep = (far[:200] - far[200:]).pow(2).sum(-1).sqrt().median()
+
+    print(f"\n  (나) 잠재 공간을 {N_WALK}번 걸으며 칸마다 얼마나 달라지는가")
+    print(f"       한 걸음의 평균       {step.mean():.3f}")
+    print(f"       한 걸음의 최대       {step.max():.3f}"
+          f"   (평균의 {step.max() / step.mean():.2f}배)")
+    print(f"       상관없는 두 그림 사이 {indep:.3f}"
+          f"   (한 걸음의 {indep / step.mean():.1f}배)")
+    print(f"       가장 큰 걸음이 길 전체에서 차지하는 몫 "
+          f"{100 * (step.max(0).values / step.sum(0)).max():.1f}%"
+          f"   (고르면 {100 / (N_STEP - 1):.1f}%)")
+
+
+if __name__ == "__main__":
+    Gm = GConv().to(device)
+    Gm.load_state_dict(torch.load("mnist_dcgan_g.pt", map_location="cpu",
+                                  weights_only=True))
+    Gm.eval()
+    check_memory(Gm)
+    walk(Gm)
+```
+
+**출력:**
+
+```
+  (가) 가장 가까운 학습 그림까지의 화소 거리 (중앙값)
+       학습 그림끼리         10.182
+       뽑은 그림에서         10.798   (1.06배)
+       그 간격 안에 든 가짜   791장 / 2,000
+
+  (나) 잠재 공간을 12번 걸으며 칸마다 얼마나 달라지는가
+       한 걸음의 평균       3.514
+       한 걸음의 최대       7.379   (평균의 2.10배)
+       상관없는 두 그림 사이 20.793   (한 걸음의 5.9배)
+       가장 큰 걸음이 길 전체에서 차지하는 몫 11.8%   (고르면 6.7%)
+```
+
+### (가) 베낀 것이라면 거리가 0이어야 한다
+
+| 가장 가까운 학습 그림까지 (화소 거리, 중앙값) | |
+|---|---|
+| 학습 그림끼리 | **10.182** |
+| 뽑은 그림에서 | **10.798** |
+
+**1.06배다.** 뽑은 그림은 학습 그림끼리 떨어진 만큼 학습 그림에서 떨어져 있다 — 베껴 온 것이라면 0 언저리여야 한다. 2,000장 가운데 791장이 그 중앙 간격 안에 드는데, 두 분포가 겹친다면 절반쯤이 들 자리이니 **조금 바깥에 놓인 셈**이다.
+
+### (나) 걷는 것인가, 건너뛰는 것인가
+
+$z$ 둘을 잇는 직선 위를 16칸으로 걸으며 칸마다 그림이 얼마나 달라지는지를 쟀다. 외운 조각을 이어 붙인 것이라면 **어느 자리에서 툭 끊겨야** 한다.
+
+| | |
+|---|---|
+| 한 걸음 | 3.514 |
+| 가장 큰 걸음 | 7.379 (평균의 2.10배) |
+| **상관없는 두 그림 사이** | **20.793** (한 걸음의 5.9배) |
+
+**마지막 줄이 견줄 자리다.** 끊긴다는 것은 한 걸음이 「상관없는 두 그림」만큼 벌어진다는 뜻인데, 가장 큰 걸음조차 그 **3분의 1**이다. 길 전체에서 그 걸음이 차지하는 몫도 11.8%로, 고를 때의 6.7%보다 크긴 하지만 한 칸이 길을 삼키지는 않는다.
+
+!!! warning "이 둘이 보이지 않는 것"
+    **(가)는 화소 거리로만 본 것이다.** 학습 그림을 한 칸 밀거나 획을 조금 굵게 한 것도 화소로는 멀어진다. 「거의 베낀 것」은 이 자로 잡히지 않는다.
+
+    **(나)는 매끄러움이 좋다는 뜻이 아니다.** 진짜 그림 둘을 화소에서 그냥 섞어도 걸음은 완벽하게 고르다 — 가운데가 둘이 겹친 유령 그림일 뿐이다. 매끄러움은 **끊김이 없다는 것만** 말하고, 지나가는 자리가 숫자다운지는 말해 주지 않는다. 그것을 보는 자가 위의 숫자다움이다.
+
+    그리고 **두 검사 모두 이 쪽에서만 돌렸다.** 이 장의 다른 기계들이 베끼지 않았다고 믿을 근거는 학습 방식뿐이고, 그것은 측정이 아니다.
+
+---
+
+## 5. 사다리의 끝
 
 [5.1절](../dimreduction/index.md)부터 아홉 모델을 걸어 왔다.
 
