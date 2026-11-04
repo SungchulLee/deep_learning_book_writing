@@ -224,7 +224,7 @@ if __name__ == "__main__":
 
       got = judge_probs(s).argmax(1)
       cond_acc = 100.0 * (got == want).float().mean()
-      # 클래스 안 다양함 — 3절이 "확인해야 한다"고 적어 둔 자다
+      # 클래스 안 다양함 — 3절이 "말 잘 듣는 쪽이 치르는 값"을 읽을 때 쓰는 자다
       div = within_class_var(to01(s), got) / REAL_VAR
       # 정체와 균형도도 함께 찍는다. 5절이 이 두 수를 읽지 말라고 말하기 위해서다
       ident = 100.0 * (judge_probs(rec).argmax(1) == yte).float().mean()
