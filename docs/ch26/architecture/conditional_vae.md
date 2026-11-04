@@ -74,7 +74,7 @@ Reconstruction shape: torch.Size([32, 784])
 
 $$\mathcal L(x,y)=\mathbb E_{q_\phi(z|x,y)}\log p_\theta(x|z,y)-D_{KL}(q_\phi(z|x,y)\|p(z)).$$
 
-일반적으로 p(z|y)를 사용할 수도 있으며 이때 KL과 생성 시의 사전 샘플링을 함께 바꾼다. 조건부 잠재 모형의 접근은 [Sohn 등의 논문](https://proceedings.neurips.cc/paper/2015/file/8d55a249e6baa5c06772297520da2051-Paper.pdf)에서도 다룬다.
+일반적으로 p(z|y)를 사용할 수도 있으며 이때 KL과 생성 시의 사전 샘플링을 함께 바꾼다. 조건과 무관한 사전을 쓰면 KL 항에 y가 들어오지 않아 목적함수가 조건 준수를 직접 요구하지 않는데, [5.2절의 cVAE 쪽](../../ch05/latent_generative/03_cvae.md)이 그 결과를 MNIST에서 잰다 — 잠재 2에서 조건 정확도 99.66%, 잠재 64에서 73.64%다. 조건부 잠재 모형의 접근은 [Sohn 등의 논문](https://proceedings.neurips.cc/paper/2015/file/8d55a249e6baa5c06772297520da2051-Paper.pdf)에서도 다룬다.
 
 생성에는 x나 인코더가 필요하지 않다. sample은 지정 클래스와 사전 표본을 디코더에 전달하고 픽셀별 확률을 반환한다. 모델의 장치·자료형을 맞추고 필요에 따라 eval·no_grad를 적용해야 한다. 리파라메리제이션은 평가에서도 계속 표본을 뽑는다.
 
