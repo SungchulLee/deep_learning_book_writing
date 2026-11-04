@@ -3471,6 +3471,94 @@ def fig_lead_96x():
     plt.close(fig); print("wrote lead_96x.svg")
 
 
+def fig_linear_ae_plane():
+    """선형 오토인코더가 찾는 것은 초평면 하나다.
+
+    로스가 "되살린 것과의 어긋남" 이므로, 활성화 없는 두 레이어가 하는 일은
+    점을 k 차원 아핀 부분공간에 **수직으로 내리는 것** 이다. 그 부분공간을
+    정하는 것이 (A, b, A', b') 넷이고, 학습은 빨간 선이 가장 짧아지도록 그
+    판을 돌리고 옮기는 일이다.
+
+    보여야 할 것은 x, x', x'' 가 서로 다르다는 점이다.
+      x   원래 점. 784 개의 수.
+      x'  판 위의 어디인가. 64 개의 수. 인코더가 내놓는다.
+      x'' 그 자리의 점. 다시 784 개지만 판 위에 있으므로 자유로운 것은 64 개.
+          디코더가 내놓는다.
+
+    수는 없다 - 얼개만 보이는 그림이라 그림 안에 그렇게 적는다.
+    그림 규칙(CLAUDE.md): SVG, svg.fonttype='path', transparent=True, ASCII.
+    """
+    rng = np.random.default_rng(3)
+    base = np.array([1.0, 0.34]); base /= np.hypot(*base)   # 판의 방향
+    perp = np.array([-base[1], base[0]])
+    org = np.array([-1.2, 0.30])                            # 판 위의 한 점 = b
+
+    n = 62
+    s = rng.normal(0, 1.45, n)
+    off = rng.normal(0, 0.34, n)
+    pts = org + s[:, None] * base + off[:, None] * perp
+
+    fig, ax = plt.subplots(figsize=(9.2, 4.4))
+    L = np.array([-3.5, 4.0])
+    line = org + L[:, None] * base
+    ax.plot(line[:, 0], line[:, 1], "-", color="#1d4ed8", lw=2.4, zorder=2)
+
+    for p, si in zip(pts, s):                      # 모든 점에서 내린 수선
+        f = org + si * base
+        ax.plot([p[0], f[0]], [p[1], f[1]], "-", color="#b91c1c", lw=0.7,
+                alpha=0.45, zorder=1)
+    ax.plot(pts[:, 0], pts[:, 1], "o", ms=3.4, color="0.45", zorder=3)
+
+    # 가운데쯤에서 수선이 긴 점 하나를 골라 크게 그린다
+    # b 에서 충분히 떨어진 점을 골라야 x' 화살표가 길이를 갖는다
+    ok = np.where((s > 1.3) & (s < 2.3) & (off > 0.35))[0]
+    i = ok[np.argmax(off[ok])]
+    p, si = pts[i], s[i]
+    foot = org + si * base
+    ax.plot([p[0], foot[0]], [p[1], foot[1]], "--", color="#b91c1c", lw=2.2,
+            zorder=4)
+    ax.plot(*p, "o", ms=11, color="#111111", zorder=5)
+    ax.plot(*foot, "o", ms=11, color="#15803d", zorder=5)
+    ax.plot(*org, "o", ms=7, color="#1d4ed8", zorder=5)
+
+    ax.annotate("x   784 numbers", p, (0, 16), textcoords="offset points",
+                ha="center", fontsize=11, color="#111111", fontweight="bold")
+    ax.annotate("this is what the loss adds up", ((p + foot) / 2),
+                (14, 2), textcoords="offset points", ha="left", fontsize=10.5,
+                color="#b91c1c")
+    ax.annotate("x''   back in 784,\nbut pinned to the plane", foot,
+                (14, -16), textcoords="offset points", ha="left",
+                fontsize=10.5, color="#15803d", fontweight="bold")
+    ax.annotate("b", org, (-16, 10), textcoords="offset points", ha="center",
+                fontsize=11, color="#1d4ed8")
+
+    # x' = 판 위의 좌표. 선 아래로 떨어뜨려 겹치지 않게 그린다
+    d = -0.62 * perp
+    ax.annotate("", org + d, foot + d, arrowprops=dict(
+        arrowstyle="<|-|>", color="#15803d", lw=1.8))
+    for q in (org, foot):
+        ax.plot([q[0], (q + d)[0]], [q[1], (q + d)[1]], ":", color="#15803d",
+                lw=1.0, zorder=1)
+    ax.text(*((org + foot) / 2 + 1.55 * d),
+            "x'   how far along the plane   64 numbers",
+            color="#15803d", fontsize=10.5, ha="center", va="center")
+
+    ax.text(line[1, 0] + 0.15, line[1, 1] - 0.05,
+            "the plane the two\nlayers define\n(A, b, A', b')",
+            color="#1d4ed8", fontsize=10.5, ha="left", va="center")
+    ax.set_title("the linear autoencoder is not learning a curve - "
+                 "it is placing one flat plane", fontsize=11.5)
+    ax.text(0.5, -0.07,
+            "schematic - the plane is 64-dimensional and the points live in "
+            "784; no numbers are plotted",
+            transform=ax.transAxes, ha="center", fontsize=9.5, color="0.45")
+    ax.set_xlim(-4.6, 5.2); ax.set_ylim(-2.0, 2.5)
+    ax.set_aspect("equal"); ax.axis("off")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.90, bottom=0.09)
+    fig.savefig("linear_ae_plane.svg", transparent=True)
+    plt.close(fig); print("wrote linear_ae_plane.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -3487,6 +3575,7 @@ if __name__ == "__main__":
     fig_ae_vs_vae_2d()
     fig_class_share()
     fig_ae_linear_descent()
+    fig_linear_ae_plane()
     fig_cvae_label_sweep()
     fig_two_rulers()
     fig_forward_diffusion()
