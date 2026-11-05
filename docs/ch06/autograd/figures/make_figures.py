@@ -1733,6 +1733,66 @@ def fig_unfreeze_optimizer():
 
 
 # ============================================================================
+# 17_pitfalls_and_sanity_checks — 같은 증상, 다른 줄에서 걸린다
+# ============================================================================
+
+def fig_checklist_matrix():
+    """망가뜨린 다섯이 점검표의 서로 다른 줄에서 걸린다 — 2절.
+
+    셋째 줄에서 둘이 겹치는 것까지 그려 둔다. 점검표가 **가르지 못하는
+    자리**를 숨기면 점검표를 믿을 수 없게 된다.
+    """
+    fig, ax = plt.subplots(figsize=(7.8, 3.4))
+
+    checks = ["1   loss is on the graph",
+              "2   parameters are leaves",
+              "3   a gradient arrived",
+              "4   the gradient is nonzero",
+              "5   the optimizer holds it"]
+    cases = [("no_grad", 0), ("detach", 2), ("frozen", 2),
+             ("dead relu", 3), ("no opt", 4)]
+
+    xs = [0.0 + 1.75 * i for i in range(len(cases))]
+    ys = [0.0 - 0.62 * i for i in range(len(checks))]
+
+    for y, c in zip(ys, checks):
+        ax.text(-1.2, y, c, ha="right", va="center", fontsize=8.8,
+                family=MONO, color=INK)
+    for x, (name, _) in zip(xs, cases):
+        ax.text(x, 0.72, name, ha="center", va="center", fontsize=8.8,
+                family=MONO, color=INK)
+
+    for x, (_, fail) in zip(xs, cases):
+        for i, y in enumerate(ys):
+            if i < fail:
+                ax.plot([x], [y], marker="o", ms=4, color=GRAY, zorder=3)
+            elif i == fail:
+                node(ax, x, y, "stops here", "ok", w=1.55, h=0.4,
+                     fontsize=8.0)
+            else:
+                ax.plot([x], [y], marker="o", ms=3, color="#d8dcdf",
+                        zorder=3)
+
+    # 셋째 줄에서 겹치는 두 열을 묶어 둔다.
+    ax.add_patch(FancyBboxPatch((xs[1] - 0.95, ys[2] - 0.32), 3.65, 0.64,
+                                boxstyle="round,pad=0.02", fc="none",
+                                ec=ACCENT, lw=1.0, linestyle=(0, (4, 3)),
+                                zorder=1))
+    note(ax, xs[1] + 0.88, ys[2] + 0.46,
+         "same row, same parameter list", ACCENT, 8.2)
+
+    note(ax, 3.5, -3.42,
+         "one symptom - the loss will not fall - and five different rows",
+         INK, 8.8)
+    note(ax, 3.5, -3.78,
+         "the two that tie on row 3 are told apart by requires_grad",
+         ACCENT, 8.8)
+
+    frame(ax, (-6.2, 8.3), (-4.1, 1.15))
+    save(fig, "checklist_matrix")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -1787,6 +1847,8 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 17_pitfalls_and_sanity_checks
+    "checklist_matrix": fig_checklist_matrix,
     # 16_freeze_and_unfreeze_parameters
     "freeze_spectrum": fig_freeze_spectrum,
     "unfreeze_optimizer": fig_unfreeze_optimizer,
