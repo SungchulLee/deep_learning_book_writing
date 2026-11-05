@@ -2114,6 +2114,158 @@ def fig_silent_broadcast():
 
 
 # ============================================================================
+# 25_vector_backward_nonlinear_full_jacobian — 자리마다 달라진다
+# ============================================================================
+
+def fig_jacobian_varies():
+    """선형에서는 A 하나였는데 여기서는 x 를 넣어야 정해진다 — 1·3절."""
+    fig, ax = plt.subplots(figsize=(7.6, 2.9))
+
+    mats = [("x = [1, 2]", [["4.0", "1.0"], ["0.540302", "12.0"]], 0.0),
+            ("x = [2, 1]", [["4.0", "4.0"], ["-0.416147", "3.0"]], 5.4)]
+    for title, m, x0 in mats:
+        note(ax, x0 + 1.1, 1.3, title, INK, 9.2)
+        for r in range(2):
+            for c in range(2):
+                node(ax, x0 + 2.2 * c, 0.55 - 0.6 * r, m[r][c], "ok",
+                     w=1.9, h=0.5, fontsize=8.6)
+
+    note(ax, 3.95, 0.25, "vs", GRAY, 9.5)
+
+    for i, (lab, v, k) in enumerate([
+        ("collected from VJPs", "same", "ok"),
+        ("torch.func.jacrev", "same", "ok"),
+        ("finite differences", "1.00e-08 apart", "tensor"),
+    ]):
+        y = -1.25 - 0.44 * i
+        ax.text(1.5, y, lab, ha="right", va="center", fontsize=8.6,
+                family=MONO, color=INK)
+        node(ax, 3.0, y, v, k, w=2.6, h=0.36, fontsize=8.2)
+
+    note(ax, 7.2, -1.47, "three routes, one answer", ACCENT, 8.6, ha="left")
+    note(ax, 7.2, -1.8, "- the numeric one is for", GRAY, 8.4, ha="left")
+    note(ax, 7.2, -2.13, "  checking, not for speed", GRAY, 8.4, ha="left")
+
+    note(ax, 3.4, -2.75,
+         "in the linear case the Jacobian was A and that was the whole "
+         "story; here it is a function of x",
+         ACCENT, 8.8)
+
+    frame(ax, (-1.4, 13.6), (-3.05, 1.75))
+    save(fig, "jacobian_varies")
+
+
+# ============================================================================
+# 26_pitfalls_of_vector_backward — 터지는 둘, 조용한 셋
+# ============================================================================
+
+def fig_loud_and_silent():
+    """다섯 가지 어긋남 가운데 둘만 터진다 — 쪽 전체."""
+    fig, ax = plt.subplots(figsize=(7.8, 3.3))
+
+    rows = [
+        ("no v at all", True, "grad can be implicitly created\nonly for "
+         "scalar outputs"),
+        ("v has the wrong shape", True,
+         "Mismatch in shape: grad_output[0]"),
+        ("called again without clearing", False,
+         "row 1 is right, row 2 is A[0] + A[1]"),
+        ("requires_grad set on v", False, "ignored - v.grad stays None"),
+        ("v has another dtype", False,
+         "cast without a word - an int v truncates"),
+    ]
+    for i, (what, loud, says) in enumerate(rows):
+        y = 1.1 - 0.72 * i
+        ax.text(-0.4, y, what, ha="right", va="center", fontsize=8.8,
+                family=MONO, color=INK)
+        node(ax, 1.5, y, "raises" if loud else "silent",
+             "ok" if loud else "off", w=1.8, h=0.44, fontsize=8.8)
+        note(ax, 2.8, y, says, ACCENT if loud else GRAY, 8.2, ha="left")
+
+    note(ax, 1.5, 1.74, "how it shows up", INK, 9.0)
+
+    note(ax, 3.4, -2.42,
+         "the third one is the worst: the shape is right and the first row "
+         "is right,",
+         ACCENT, 8.8)
+    note(ax, 3.4, -2.76,
+         "so a check that looks at either of those passes", INK, 8.6)
+
+    frame(ax, (-6.8, 11.6), (-3.1, 2.1))
+    save(fig, "loud_and_silent")
+
+
+# ============================================================================
+# 27_batch_vjp — 더해진 뒤에는 못 되돌린다
+# ============================================================================
+
+def fig_per_sample_hidden():
+    """합에서는 안 보인다 — 1·3절."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.8, 3.0),
+                                   gridspec_kw=dict(width_ratios=[1.35, 1]))
+
+    per = [("0", "-5.87015", True), ("1", "2.27928", False),
+           ("2", "-0.43605", False), ("3", "-0.57782", False)]
+    for i, (idx, v, big) in enumerate(per):
+        y = 0.9 - 0.6 * i
+        ax1.text(-0.5, y, f"sample {idx}", ha="right", va="center",
+                 fontsize=8.6, family=MONO, color=INK)
+        node(ax1, 1.1, y, v, "ok" if big else "tensor", w=2.2, h=0.44,
+             fontsize=8.8)
+    s = node(ax1, 5.2, -0.0, "-4.60474", "tensor", w=2.2, h=0.44,
+             fontsize=8.8)
+    for i in range(4):
+        _arrow(ax1, (2.25, 0.9 - 0.6 * i), (4.05, 0.0), GRAY, "solid", 1.0)
+    note(ax1, 5.2, 0.48, "the batch gradient", INK, 8.6)
+    note(ax1, 1.1, -1.42, "one sample is pushing -5.87", ACCENT, 8.6)
+    note(ax1, 1.1, -1.75, "and the sum does not show it", ACCENT, 8.6)
+    frame(ax1, (-3.4, 7.2), (-2.1, 1.5))
+
+    for i, (lab, v, k) in enumerate([("batch, sum only", 0.05, "ok"),
+                                     ("vmap, per sample", 0.84, "tensor"),
+                                     ("a loop, per sample", 8.89, "off")]):
+        y = 0.7 - 0.72 * i
+        ax2.text(-0.3, y, lab, ha="right", va="center", fontsize=8.6,
+                 family=MONO, color=INK)
+        node(ax2, 1.5, y, f"{v:.2f} ms", k, w=2.2, h=0.42, fontsize=8.8)
+    note(ax2, 1.5, -1.62, "per-sample costs 17x the batch,", GRAY, 8.4)
+    note(ax2, 1.5, -1.95, "but a loop costs 178x", GRAY, 8.4)
+    frame(ax2, (-5.2, 4.4), (-2.3, 1.5))
+
+    save(fig, "per_sample_hidden")
+
+
+def fig_per_sample_clipping():
+    """표본마다 자르려면 더해지기 전에 잡아야 한다 — 5절."""
+    fig, ax = plt.subplots(figsize=(7.2, 2.5))
+
+    for yc, lab, lo, hi, tot, k in [
+        (0.6, "before clipping", "0.0360", "22.0155", "51.302", "off"),
+        (-0.8, "after clipping at C = 1.0", "0.0360", "1.0000", "5.5121",
+         "ok"),
+    ]:
+        ax.text(-0.4, yc, lab, ha="right", va="center", fontsize=8.8,
+                family=MONO, color=INK)
+        node(ax, 1.3, yc, lo, "tensor", w=1.7, h=0.42, fontsize=8.6)
+        node(ax, 3.3, yc, hi, k, w=1.7, h=0.42, fontsize=8.6)
+        node(ax, 6.0, yc, tot, k, w=1.7, h=0.42, fontsize=8.6)
+    note(ax, 1.3, 1.2, "smallest norm", INK, 8.4)
+    note(ax, 3.3, 1.2, "largest norm", INK, 8.4)
+    note(ax, 6.0, 1.2, "norm of the sum", INK, 8.4)
+
+    note(ax, 3.0, -1.72,
+         "the largest norm, 22.0, is brought down to 1.0 - and the sum "
+         "falls from 51.3 to 5.5",
+         ACCENT, 8.8)
+    note(ax, 3.0, -2.06,
+         "and none of this is possible once the gradients have been added",
+         INK, 8.6)
+
+    frame(ax, (-5.0, 7.6), (-2.4, 1.5))
+    save(fig, "per_sample_clipping")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -2168,6 +2320,13 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 25_vector_backward_nonlinear_full_jacobian
+    "jacobian_varies": fig_jacobian_varies,
+    # 26_pitfalls_of_vector_backward
+    "loud_and_silent": fig_loud_and_silent,
+    # 27_batch_vjp
+    "per_sample_hidden": fig_per_sample_hidden,
+    "per_sample_clipping": fig_per_sample_clipping,
     # 22_vector_backward_with_v
     "vjp_not_jacobian": fig_vjp_not_jacobian,
     # 23_vector_backward_linear_case_1
