@@ -169,6 +169,28 @@ def badge(ax, n, text, got, dy=-0.52, fontsize=8.5):
             family=MONO, color=ACCENT if got else GRAY, zorder=4)
 
 
+def region(ax, nodes, label, pad=0.26, color=None, below=False, size=8.4):
+    """칸 몇을 한 테두리로 묶는다.
+
+    `with torch.no_grad():` 블록, 얼린 층 묶음, 「그래프와 저장된 중간값」처럼
+    **범위가 있는 것**을 그릴 때 쓴다. 범위를 말로만 적으면 어디까지인지가
+    그림에 안 나온다.
+    """
+    c = color or INK
+    x0 = min(n.x - n.w / 2 for n in nodes) - pad
+    x1 = max(n.x + n.w / 2 for n in nodes) + pad
+    y0 = min(n.y - n.h / 2 for n in nodes) - pad
+    y1 = max(n.y + n.h / 2 for n in nodes) + pad
+    ax.add_patch(FancyBboxPatch((x0, y0), x1 - x0, y1 - y0,
+                                boxstyle="round,pad=0.02", fc="none", ec=c,
+                                lw=1.0, linestyle=(0, (4, 3)), zorder=1))
+    if label:
+        ax.text((x0 + x1) / 2, y0 - 0.12 if below else y1 + 0.12, label,
+                ha="center", va="top" if below else "bottom", fontsize=size,
+                color=c)
+    return Node((x0 + x1) / 2, (y0 + y1) / 2, x1 - x0, y1 - y0)
+
+
 def note(ax, x, y, text, color=None, size=8.6, ha="center", va="center",
          italic=False):
     ax.text(x, y, text, ha=ha, va=va, fontsize=size, color=color or INK,
@@ -439,6 +461,109 @@ def fig_mean_sum_grid():
 
 
 # ============================================================================
+# 03_retain_graph — 해제되는 것은 그래프가 아니라 저장해 둔 값이다
+# ============================================================================
+
+def fig_saved_buffers():
+    """두 번째 backward() 가 터지는 쪽과 안 터지는 쪽 — 2절.
+
+    가르는 것은 식의 복잡함이 아니라 **역전파가 저장해 두어야 하는 값이
+    있는가**다. 그래서 가운데 칸이 이 그림의 주인공이다.
+    """
+    fig, ax = plt.subplots(figsize=(7.8, 3.0))
+
+    cols = [0.0, 3.3, 5.7, 8.3]
+    for x, lab in zip(cols[1:], ["saved for backward", "after the 1st sweep",
+                                 "2nd backward()"]):
+        note(ax, x, 1.05, lab, INK, 8.6)
+
+    rows = [
+        ("x.sum()", "nothing", "off", "nothing", "off", "ok", "ok", False),
+        ("(x**2).sum()", "x", "ok", "freed", "off", "RuntimeError", "off",
+         True),
+        ("x.exp().sum()", "exp(x)", "ok", "freed", "off", "RuntimeError",
+         "off", True),
+    ]
+    for i, (expr, s, sk, a, ak, v, vk, cut) in enumerate(rows):
+        y = 0.4 - 0.72 * i
+        ax.text(cols[0], y, expr, ha="left", va="center", fontsize=9.2,
+                family=MONO, color=INK)
+        n1 = node(ax, cols[1], y, s, sk, w=1.5, h=0.42, fontsize=9.0)
+        n2 = node(ax, cols[2], y, a, ak, w=1.5, h=0.42, fontsize=9.0)
+        node(ax, cols[3], y, v, vk, w=2.4, h=0.42, fontsize=9.0)
+        if cut:
+            dead(ax, n1, n2)
+        else:
+            _arrow(ax, n1.right, n2.left, GRAY, (0, (3, 2)), 1.0)
+
+    note(ax, 4.3, -1.85,
+         "what the first sweep releases is the saved value, not the graph",
+         ACCENT, 8.8)
+    note(ax, 4.3, -2.22,
+         "sum stores nothing to differentiate, so it survives a second sweep",
+         INK, 8.6)
+
+    frame(ax, (-0.5, 9.9), (-2.5, 1.35))
+    save(fig, "saved_buffers")
+
+
+def fig_retain_graph_vs_zero_grad():
+    """둘은 다른 것을 맡는다 — 4절에서 가장 자주 섞이는 자리."""
+    fig, ax = plt.subplots(figsize=(7.4, 2.9))
+
+    x = node(ax, 0.0, 0.0, "x", "leaf")
+    p = node(ax, 1.9, 0.0, "pow", "op")
+    L = node(ax, 3.9, 0.0, "loss", "tensor")
+    fwd(ax, x, p)
+    fwd(ax, p, L)
+    badge(ax, x, "x.grad", True, dy=-0.95)
+
+    region(ax, [p, L],
+           "retain_graph=True keeps this - the path and its saved values",
+           color=ACCENT, size=8.8)
+    region(ax, [Node(x.x, x.y - 0.95, 1.1, 0.34)],
+           "zero_grad() clears this - the gradient on the leaf",
+           color=INK, below=True, size=8.8)
+
+    note(ax, 1.95, -2.1,
+         "two different things, one name each - neither touches the other",
+         ACCENT, 8.8)
+
+    frame(ax, (-1.6, 5.9), (-2.4, 1.15))
+    save(fig, "retain_graph_vs_zero_grad")
+
+
+def fig_retain_graph_chain():
+    """여러 번 걸 때는 마지막 호출에만 빼 준다 — 3절."""
+    fig, ax = plt.subplots(figsize=(7.8, 2.2))
+
+    steps = [
+        ("backward(retain_graph=True)", "op", "x.grad = 2x", "ok"),
+        ("backward()", "op", "x.grad = 4x", "ok"),
+        ("backward()", "off", "RuntimeError", "off"),
+    ]
+    xs = [1.5, 5.3, 8.6]
+    prev = None
+    for (lab, k, res, rk), cx in zip(steps, xs):
+        n = node(ax, cx, 0.3, lab, k, fontsize=8.8)
+        r = node(ax, cx, -0.55, res, rk, w=2.1, h=0.4, fontsize=8.8)
+        _arrow(ax, n.bottom, r.top, ACCENT if rk == "ok" else GRAY,
+               "solid" if rk == "ok" else (0, (3, 2)), 1.1)
+        if prev:
+            _arrow(ax, prev.right, n.left, INK, "solid", 1.1)
+        prev = n
+
+    note(ax, 7.4, 1.34, "the 2nd call did not ask to keep them,", GRAY, 8.4)
+    note(ax, 7.4, 1.06, "so the buffers were released here", GRAY, 8.4)
+    note(ax, 4.3, -1.22,
+         "2x accumulates to 4x - keeping the graph and clearing the gradient "
+         "are separate chores", ACCENT, 8.8)
+
+    frame(ax, (-0.95, 10.6), (-1.55, 1.58))
+    save(fig, "retain_graph_chain")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -490,6 +615,10 @@ FIGURES = {
     "four_attributes": fig_four_attributes,
     "leaf_vs_nonleaf": fig_leaf_vs_nonleaf,
     "retain_grad_timing": fig_retain_grad_timing,
+    # 03_retain_graph
+    "saved_buffers": fig_saved_buffers,
+    "retain_graph_vs_zero_grad": fig_retain_graph_vs_zero_grad,
+    "retain_graph_chain": fig_retain_graph_chain,
     # 02_gradient_accumulation
     "grad_is_a_bucket": fig_grad_is_a_bucket,
     "micro_batching": fig_micro_batching,
