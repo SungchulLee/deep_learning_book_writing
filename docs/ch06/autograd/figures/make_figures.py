@@ -1131,6 +1131,70 @@ def fig_three_tools_on_a_net():
 
 
 # ============================================================================
+# 09_detach_vs_detach_ — 새 손잡이냐 제자리냐
+# ============================================================================
+
+def _pair(ax, x, yc, y_kind, saved_kind, gap=0.72):
+    """`y` 와 역전파가 저장해 둔 칸을 「같은 객체」로 묶어 그린다.
+
+    이 쪽의 함정이 성립하는 까닭이 바로 둘이 같은 객체라는 데 있다.
+    """
+    a = node(ax, x, yc + gap / 2, "y", y_kind, w=1.1, h=0.4, fontsize=9.0)
+    b = node(ax, x, yc - gap / 2, "saved", saved_kind, w=1.5, h=0.4,
+             fontsize=8.6)
+    ax.plot([x, x], [a.y - 0.2, b.y + 0.2],
+            color=GRAY, lw=1.0, linestyle=(0, (2, 2)), zorder=1)
+    return a, b
+
+
+def fig_detach_trap():
+    """detach_ 는 저장된 그 객체를 끊는다 — 3절.
+
+    detach() 는 새 객체를 만들 뿐이라 저장된 칸이 멀쩡하다. 한 글자 차이가
+    여기서 갈린다.
+    """
+    fig, ax = plt.subplots(figsize=(7.8, 3.4))
+
+    BEFORE, AFTER, NEW, VERDICT = 0.0, 3.4, 5.7, 8.7
+    for yc, call, after_y, after_s, extra, verdict, vk in [
+        (1.0, "y.detach_()", "off", "off", False, "RuntimeError", "off"),
+        (-1.4, "y.detach()", "tensor", "ok", True, "ok   dloss/dx = 8x",
+         "ok"),
+    ]:
+        _pair(ax, BEFORE, yc, "tensor", "ok")
+        _pair(ax, AFTER, yc, after_y, after_s)
+        _arrow(ax, (0.9, yc), (2.5, yc), INK, "solid", 1.2)
+        note(ax, 1.7, yc + 0.18, call, INK, 9.0)
+        if extra:
+            d = node(ax, NEW, yc + 0.36, "d", "off", w=0.9, h=0.4,
+                     fontsize=9.0)
+            _arrow(ax, (3.98, yc + 0.36), (5.2, yc + 0.36), GRAY, "solid",
+                   1.0)
+            note(ax, NEW, yc + 0.78, "a new object", GRAY, 7.8)
+        node(ax, VERDICT, yc, verdict, vk, w=3.1, h=0.44, fontsize=8.6)
+        _arrow(ax, (4.2, yc - 0.36), (7.1, yc), ACCENT if vk == "ok"
+               else GRAY, "solid" if vk == "ok" else (0, (3, 2)), 1.2)
+        note(ax, VERDICT, yc + 0.46, "backward()", INK, 8.0)
+
+    note(ax, BEFORE, 1.86, "before", INK, 8.6)
+    note(ax, AFTER, 1.86, "after", INK, 8.6)
+    note(ax, -1.0, 1.0, "the same", GRAY, 8.0, ha="right")
+    note(ax, -1.0, 0.72, "object", GRAY, 8.0, ha="right")
+
+    note(ax, 3.6, -2.46,
+         "'saved' is the tensor the backward sweep is holding - and y is "
+         "that same object",
+         INK, 8.6)
+    note(ax, 3.6, -2.8,
+         "detach_ reaches into it; detach makes a second one and leaves it "
+         "alone",
+         ACCENT, 8.8)
+
+    frame(ax, (-2.6, 10.6), (-3.1, 2.15))
+    save(fig, "detach_trap")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -1185,6 +1249,8 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 09_detach_vs_detach_
+    "detach_trap": fig_detach_trap,
     # 08_turn_off_gradient_tracking
     "frozen_passes_through": fig_frozen_passes_through,
     "three_tools_on_a_net": fig_three_tools_on_a_net,
