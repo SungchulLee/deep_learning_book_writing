@@ -2266,6 +2266,84 @@ def fig_per_sample_clipping():
 
 
 # ============================================================================
+# gradient_computation — 전진은 열로, 후진은 줄로
+# ============================================================================
+
+def fig_forward_vs_reverse():
+    """같은 야코비를 전진은 열 단위로, 후진은 줄 단위로 모은다 — 5·7절."""
+    fig, ax = plt.subplots(figsize=(7.4, 3.1))
+
+    J = [["2.0", "0.0"], ["2.0", "1.0"], ["0.0", "4.0"]]
+    for x0, mode, hot in [(0.0, "forward  (JVP)", ("col", 0)),
+                          (6.2, "reverse  (VJP)", ("row", 0))]:
+        for r in range(3):
+            for c in range(2):
+                on = (hot[0] == "col" and c == hot[1]) or \
+                     (hot[0] == "row" and r == hot[1])
+                node(ax, x0 + 1.75 * c, 0.6 - 0.58 * r, J[r][c],
+                     "ok" if on else "off", w=1.5, h=0.46, fontsize=8.6)
+        note(ax, x0 + 0.88, 1.38, mode, ACCENT, 9.4)
+
+    note(ax, 0.88, -1.42, "one pass per input", INK, 8.6)
+    note(ax, 0.88, -1.75, "gives a column", GRAY, 8.4)
+    note(ax, 7.08, -1.42, "one pass per output", INK, 8.6)
+    note(ax, 7.08, -1.75, "gives a row", GRAY, 8.4)
+
+    note(ax, 3.98, 0.0, "the same", GRAY, 8.6)
+    note(ax, 3.98, -0.32, "matrix", GRAY, 8.6)
+
+    note(ax, 3.98, -2.42,
+         "two inputs and three outputs here, so forward needs one pass "
+         "fewer - and a neural network",
+         INK, 8.6)
+    note(ax, 3.98, -2.76,
+         "is the opposite shape: hundreds of thousands of inputs, one "
+         "output",
+         ACCENT, 8.8)
+
+    frame(ax, (-1.2, 9.2), (-3.05, 1.85))
+    save(fig, "forward_vs_reverse")
+
+
+def fig_which_mode_wins():
+    """모양이 뒤집히면 승부도 뒤집힌다 — 6절."""
+    fig, ax = plt.subplots(figsize=(7.6, 2.9))
+
+    # 배수는 쪽이 찍은 값을 그대로 쓴다. 반올림된 ms 로 다시 나누면
+    # 61 과 49 가 나와 본문과 한 자리씩 어긋난다.
+    for yc, shape, rev, fwd, win, ratio in [
+        (0.7, "4,225 inputs  ->  1 output", 0.24, 14.62, "reverse", 60),
+        (-0.8, "1 input  ->  2,048 outputs", 5.42, 0.11, "forward", 48),
+    ]:
+        ax.text(-0.4, yc, shape, ha="right", va="center", fontsize=8.8,
+                family=MONO, color=INK)
+        node(ax, 1.5, yc, f"{rev:5.2f} ms", "ok" if win == "reverse"
+             else "off", w=2.0, h=0.44, fontsize=8.8)
+        node(ax, 4.0, yc, f"{fwd:5.2f} ms", "ok" if win == "forward"
+             else "off", w=2.0, h=0.44, fontsize=8.8)
+        note(ax, 5.4, yc, f"{win} wins by {ratio}x", ACCENT, 8.6,
+             ha="left")
+
+    note(ax, 1.5, 1.42, "reverse", INK, 9.0)
+    note(ax, 4.0, 1.42, "forward", INK, 9.0)
+
+    note(ax, 3.0, -1.84,
+         "the first row's counting argument says 4,225x and the clock says "
+         "60x -",
+         GRAY, 8.6)
+    note(ax, 3.0, -2.18,
+         "forward mode batches directions, so passes do not multiply "
+         "one for one",
+         GRAY, 8.6)
+    note(ax, 3.0, -2.66,
+         "what decides is the shape of the function, not the library",
+         ACCENT, 8.8)
+
+    frame(ax, (-5.6, 11.6), (-3.0, 1.85))
+    save(fig, "which_mode_wins")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -2320,6 +2398,9 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # gradient_computation
+    "forward_vs_reverse": fig_forward_vs_reverse,
+    "which_mode_wins": fig_which_mode_wins,
     # 25_vector_backward_nonlinear_full_jacobian
     "jacobian_varies": fig_jacobian_varies,
     # 26_pitfalls_of_vector_backward
