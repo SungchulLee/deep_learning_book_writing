@@ -2344,6 +2344,51 @@ def fig_which_mode_wins():
 
 
 # ============================================================================
+# autograd_from_scratch — 공유 노드에서 두 번 세어진다
+# ============================================================================
+
+def fig_shared_node_double_count():
+    """재귀로 넘기면 공유된 중간 노드의 몫이 두 번 세어진다 — 3절."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.8, 3.4))
+
+    for ax, title, passes, total, k in [
+        (ax1, "recursive  (the page's code)", ["3 x 1", "3 x 2"], "9", "off"),
+        (ax2, "topological  (what torch does)", ["3 x 2"], "6", "ok"),
+    ]:
+        L = node(ax, 1.0, 1.25, "L = b + b", "tensor", w=2.3, h=0.44,
+                 fontsize=8.8)
+        b = node(ax, 1.0, 0.1, "b = 3a", "tensor", w=2.3, h=0.44,
+                 fontsize=8.8)
+        a = node(ax, 1.0, -1.35, "a", "leaf", w=1.0, h=0.44, fontsize=9.0)
+        for dx in (-0.55, 0.55):
+            _arrow(ax, (L.x + dx, 1.03), (b.x + dx, 0.32), ACCENT,
+                   (0, (4, 2)), 1.1)
+        note(ax, 2.35, 0.68, "two edges into b", GRAY, 8.0, ha="left")
+
+        for i, p in enumerate(passes):
+            dx = 0.0 if len(passes) == 1 else (-0.5 + 1.0 * i)
+            _arrow(ax, (b.x + dx, -0.12), (a.x + dx, -1.13), ACCENT,
+                   (0, (4, 2)), 1.1)
+            ax.text(b.x + dx + 0.12, -0.64, p, ha="left", va="center",
+                    fontsize=8.2, family=MONO, color=ACCENT)
+
+        badge(ax, a, f"a.grad = {total}", k == "ok", dy=-0.62, fontsize=8.4)
+        note(ax, 1.0, 1.88, title, INK, 9.0)
+        note(ax, 1.0, -2.45, "b.grad is 1, then 2 - and the whole of it"
+             if k == "off" else "b.grad reaches 2 before anything",
+             GRAY, 8.2)
+        note(ax, 1.0, -2.78, "is handed down a second time"
+             if k == "off" else "is handed down, so it travels once",
+             GRAY, 8.2)
+        frame(ax, (-1.8, 5.1), (-3.1, 2.25))
+
+    save(fig, "shared_node_double_count",
+         foot="true answer 6 - and with one more level of sharing the "
+              "recursive version gives 39 where 12 is right",
+         foot_color=ACCENT, foot_size=8.4, rect=0.065)
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -2398,6 +2443,8 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # autograd_from_scratch
+    "shared_node_double_count": fig_shared_node_double_count,
     # gradient_computation
     "forward_vs_reverse": fig_forward_vs_reverse,
     "which_mode_wins": fig_which_mode_wins,
