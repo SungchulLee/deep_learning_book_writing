@@ -1654,6 +1654,85 @@ def fig_two_heads():
 
 
 # ============================================================================
+# 16_freeze_and_unfreeze_parameters — 얼리기는 러닝레이트 0 이다
+# ============================================================================
+
+def fig_freeze_spectrum():
+    """셋을 나란히 — 얼리기와 전부 학습 사이가 넓다 (5절).
+
+    뒤쪽 층이 셋 다 **똑같다**는 것이 이 그림의 둘째 줄거리다. 앞쪽을
+    어떻게 하든 뒤쪽은 제 갈 길을 간다.
+    """
+    fig, ax = plt.subplots(figsize=(7.8, 3.0))
+
+    rows = [
+        ("frozen        lr = 0", "0.000000", "0.000000", "off"),
+        ("a small lr    lr = 0.001", "0.000104", "0.000076", "tensor"),
+        ("all trained   lr = 0.1", "0.010357", "0.007619", "ok"),
+    ]
+    for i, (lab, w0, b0, k) in enumerate(rows):
+        y = 0.8 - 0.85 * i
+        ax.text(-0.4, y, lab, ha="right", va="center", fontsize=8.8,
+                family=MONO, color=INK)
+        node(ax, 1.3, y, w0, k, w=2.0, h=0.44, fontsize=8.8)
+        node(ax, 3.5, y, b0, k, w=2.0, h=0.44, fontsize=8.8)
+        node(ax, 6.3, y, "0.012712", "ok", w=2.0, h=0.44, fontsize=8.8)
+        node(ax, 8.5, y, "0.034970", "ok", w=2.0, h=0.44, fontsize=8.8)
+
+    note(ax, 2.4, 1.5, "the front layer moved", INK, 9.0)
+    note(ax, 7.4, 1.5, "the rear layer moved", ACCENT, 9.0)
+
+    note(ax, 7.4, -1.52, "the same in all three rows", ACCENT, 8.6)
+    note(ax, 2.4, -1.52, "zero, then a hundredth of it, then all of it",
+         INK, 8.6)
+    note(ax, 4.9, -2.0,
+         "freezing is one end of a dial, not a separate thing - and the "
+         "middle of the dial is wide",
+         ACCENT, 8.8)
+
+    frame(ax, (-3.4, 10.0), (-2.3, 1.85))
+    save(fig, "freeze_spectrum")
+
+
+def fig_unfreeze_optimizer():
+    """녹여도 안 움직이는 까닭과 고치는 두 길 — 2·3절."""
+    fig, ax = plt.subplots(figsize=(7.8, 3.6))
+
+    for yc, how, res, k, why in [
+        (1.1, "SGD(filter(requires_grad, params))", "0.000000", "off",
+         "the optimizer never held those tensors"),
+        (0.1, "SGD(model.parameters())", "0.010357", "ok",
+         "they were in the list all along"),
+    ]:
+        a = node(ax, 0.0, yc, how, "op", w=6.6, h=0.44, fontsize=8.6)
+        r = node(ax, 5.1, yc, res, k, w=2.0, h=0.44, fontsize=8.8)
+        _arrow(ax, a.right, r.left, ACCENT if k == "ok" else GRAY,
+               "solid" if k == "ok" else (0, (3, 2)), 1.2)
+        note(ax, 8.9, yc, why, ACCENT if k == "ok" else GRAY, 8.4, ha="left")
+    note(ax, 1.65, 1.78, "unfreeze later, then measure the front layer",
+         INK, 8.8)
+
+    for i, (name, a, b) in enumerate([
+        ("(a)  rebuild the optimizer", "momentum buffers  2 -> 0",
+         "the accumulated momentum is gone"),
+        ("(b)  add_param_group", "momentum buffers  2 -> 2",
+         "and the new group can carry its own lr"),
+    ]):
+        y = -1.2 - 0.85 * i
+        ax.text(-3.3, y, name, ha="left", va="center", fontsize=8.8,
+                family=MONO, color=INK)
+        node(ax, 4.2, y, a, "off" if i == 0 else "ok", w=4.4, h=0.44,
+             fontsize=8.6)
+        note(ax, 6.8, y, b, GRAY if i == 0 else ACCENT, 8.4, ha="left")
+
+    note(ax, 2.5, -3.0, "two ways to fix it, and one of them costs state",
+         ACCENT, 8.8)
+
+    frame(ax, (-3.5, 13.4), (-3.35, 2.1))
+    save(fig, "unfreeze_optimizer")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -1708,6 +1787,9 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 16_freeze_and_unfreeze_parameters
+    "freeze_spectrum": fig_freeze_spectrum,
+    "unfreeze_optimizer": fig_unfreeze_optimizer,
     # 15_layer_naming_with_custom_module
     "skip_connection": fig_skip_connection,
     "two_heads": fig_two_heads,
