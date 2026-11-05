@@ -1359,6 +1359,93 @@ def fig_new_tensor_breaks_the_leaf():
 
 
 # ============================================================================
+# 12_converting_to_numpy — 터져 주는 둘과 조용한 하나
+# ============================================================================
+
+def fig_numpy_three_questions():
+    """`.numpy()` 가 묻는 셋 가운데 둘은 거절하고 하나는 말이 없다 — 2절."""
+    fig, ax = plt.subplots(figsize=(7.8, 3.0))
+
+    gates = [
+        ("requires_grad?", "Can't call numpy() on\nTensor that requires grad",
+         True),
+        ("on the cpu?", "can't convert mps:0\ndevice type tensor", True),
+        ("share the memory?", "(no message at all)", False),
+    ]
+    xs = [0.6, 4.0, 7.4]
+    for x, (q, msg, loud) in zip(xs, gates):
+        g = node(ax, x, 0.8, q, "op" if loud else "off", w=2.7, h=0.44,
+                 fontsize=8.8)
+        m = node(ax, x, -0.5, msg, "tensor" if loud else "off", w=2.9,
+                 h=0.72, fontsize=8.0)
+        _arrow(ax, g.bottom, m.top, ACCENT if loud else GRAY,
+               "solid" if loud else (0, (3, 2)), 1.1)
+        note(ax, x, -1.1, "refuses" if loud else "just does it",
+             ACCENT if loud else GRAY, 8.4)
+
+    node(ax, 2.3, -1.95, "x.detach().cpu().numpy()", "ok", w=5.0, h=0.44,
+         fontsize=9.0)
+    note(ax, 2.3, -2.42, "the idiom answers the first two", ACCENT, 8.6)
+    note(ax, 7.4, -1.95, "nothing in the idiom", GRAY, 8.6)
+    note(ax, 7.4, -2.28, "answers the third", GRAY, 8.6)
+
+    note(ax, 4.0, 1.6, "what .numpy() asks", INK, 9.2)
+
+    frame(ax, (-1.2, 9.4), (-2.8, 2.0))
+    save(fig, "numpy_three_questions")
+
+
+def fig_shared_storage_bite():
+    """공유가 물어뜯는 자리 — 4절. 역전파가 넘파이가 써 놓은 수를 읽는다."""
+    fig, ax = plt.subplots(figsize=(7.8, 3.2))
+
+    for yc, mode, shared, g0, gk, extra in [
+        (0.9, ".numpy()", True, "594.0", "off", "numpy wrote into it"),
+        (-1.4, ".numpy().copy()", False, "18.0", "ok",
+         "the array got its own"),
+    ]:
+        t = node(ax, 0.0, yc + 0.45, "w   (tensor)", "leaf", w=2.3, h=0.4,
+                 fontsize=8.6)
+        a = node(ax, 0.0, yc - 0.45, "a   (ndarray)", "tensor", w=2.3, h=0.4,
+                 fontsize=8.6)
+        note(ax, 1.75, yc + 0.84, mode, INK, 8.8)
+
+        if shared:
+            # 한 칸으로 화살표 둘이 모인다 — 그것이 공유다.
+            s = node(ax, 3.9, yc, "one storage", "off", w=2.3, h=0.42,
+                     fontsize=8.6)
+            _arrow(ax, t.right, s.left, GRAY, "solid", 1.0)
+            _arrow(ax, a.right, s.left, GRAY, "solid", 1.0)
+            reader = s
+        else:
+            # 칸이 둘로 갈린다. 화살표도 따로 간다.
+            s = node(ax, 3.9, yc + 0.45, "storage", "ok", w=2.3, h=0.4,
+                     fontsize=8.6)
+            s2 = node(ax, 3.9, yc - 0.45, "a copy", "tensor", w=2.3, h=0.4,
+                      fontsize=8.6)
+            _arrow(ax, t.right, s.left, GRAY, "solid", 1.0)
+            _arrow(ax, a.right, s2.left, GRAY, "solid", 1.0)
+            reader = s
+        note(ax, 3.9, yc - 1.0 if shared else yc - 0.9, extra, GRAY, 8.0)
+
+        r = node(ax, 8.2, reader.y, f"w.grad = [{g0}, 36.0]", gk, w=3.6,
+                 h=0.44, fontsize=8.8)
+        _arrow(ax, reader.right, r.left, ACCENT, (0, (4, 2)), 1.2)
+        note(ax, 6.65, reader.y + 0.44, "backward reads it", ACCENT, 8.2)
+
+    note(ax, 4.2, -2.72,
+         "the true value is 18w = [18.0, 36.0] - the first entry is wrong "
+         "because the backward sweep",
+         INK, 8.6)
+    note(ax, 4.2, -3.07,
+         "read the number numpy had written over it, and nothing raised",
+         ACCENT, 8.8)
+
+    frame(ax, (-1.4, 10.6), (-3.4, 1.95))
+    save(fig, "shared_storage_bite")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -1413,6 +1500,9 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 12_converting_to_numpy
+    "numpy_three_questions": fig_numpy_three_questions,
+    "shared_storage_bite": fig_shared_storage_bite,
     # 11_optimizer_like_updates
     "three_optimizers": fig_three_optimizers,
     "new_tensor_breaks_the_leaf": fig_new_tensor_breaks_the_leaf,
