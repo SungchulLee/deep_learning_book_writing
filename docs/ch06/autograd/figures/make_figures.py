@@ -1047,6 +1047,90 @@ def fig_graph_or_not():
 
 
 # ============================================================================
+# 08_turn_off_gradient_tracking — 얼린 층은 길을 막지 않는다
+# ============================================================================
+
+def fig_frozen_passes_through():
+    """얼린 층을 경사가 통과해 앞쪽까지 간다 — 3절.
+
+    「얼린다」를 「막는다」로 읽으면 전이학습 코드가 왜 도는지 설명이 안 된다.
+    막는 것이 아니라 **제 몫을 안 쌓는** 것이다.
+    """
+    fig, ax = plt.subplots(figsize=(7.6, 2.8))
+
+    a = node(ax, 0.0, 0.0, "layer 0", "leaf", w=1.7)
+    b = node(ax, 2.6, 0.0, "layer 1", "off", w=1.7)
+    c = node(ax, 5.2, 0.0, "loss", "tensor", w=1.4)
+    fwd(ax, a, b)
+    fwd(ax, b, c)
+    flag(ax, a, True, dy=0.46)
+    flag(ax, b, False, dy=0.46)
+
+    bwd(ax, c, b, drop=0.72)
+    bwd(ax, b, a, drop=0.72)
+    note(ax, 3.9, -0.94, "passes straight through", ACCENT, 8.4)
+
+    badge(ax, a, "grad", True, dy=-1.42)
+    badge(ax, b, "None", False, dy=-1.42)
+
+    note(ax, 7.0, -0.1, "the path is intact", INK, 8.6, ha="left")
+    note(ax, 7.0, -0.46, "only the middle box", GRAY, 8.6, ha="left")
+    note(ax, 7.0, -0.78, "keeps nothing", GRAY, 8.6, ha="left")
+
+    note(ax, 2.0, -2.0,
+         "frozen means 'does not accumulate', not 'blocks the way'",
+         ACCENT, 8.8)
+
+    frame(ax, (-1.2, 10.6), (-2.3, 1.0))
+    save(fig, "frozen_passes_through")
+
+
+def fig_three_tools_on_a_net():
+    """가운데 층에 세 가지를 걸면 **앞쪽 층의 운명이 갈린다** — 4절."""
+    fig, ax = plt.subplots(figsize=(7.8, 4.0))
+
+    # 가운데 칸을 점선으로 그리는 것은 「따라가지 않는다」는 뜻이다.
+    # (b) 는 가운데 층의 깃발이 그대로 서 있고 받을 것이 없을 뿐이라 실선이다.
+    rows = [
+        ("(a)  net[1].requires_grad_(False)", False, "off",
+         [True, False, True], "layer 0 still gets its gradient"),
+        ("(b)  detach the output of net[1]", True, "tensor",
+         [False, False, True], "the path is cut - layer 0 gets nothing"),
+        ("(c)  wrap net[1] in no_grad", True, "off",
+         [False, False, True], "the path is cut - layer 0 gets nothing"),
+    ]
+    for i, (title, cut, mid, grads, verdict) in enumerate(rows):
+        y = 1.1 - 1.55 * i
+        ns = [node(ax, 0.0, y, "layer 0", "tensor", w=1.5, h=0.42,
+                   fontsize=8.6),
+              node(ax, 2.3, y, "layer 1", mid, w=1.5, h=0.42, fontsize=8.6),
+              node(ax, 4.6, y, "layer 2", "tensor", w=1.5, h=0.42,
+                   fontsize=8.6),
+              node(ax, 6.7, y, "loss", "tensor", w=1.2, h=0.42,
+                   fontsize=8.6)]
+        fwd(ax, ns[0], ns[1], lw=1.1)
+        if cut:
+            dead(ax, ns[1], ns[2])
+        else:
+            fwd(ax, ns[1], ns[2], lw=1.1)
+        fwd(ax, ns[2], ns[3], lw=1.1)
+        note(ax, -0.8, y + 0.52, title, INK, 8.8, ha="left")
+        for n, g in zip(ns[:3], grads):
+            badge(ax, n, "grad" if g else "None", g, dy=-0.46,
+                  fontsize=8.0)
+        note(ax, 8.0, y - 0.22, verdict, ACCENT if grads[0] else GRAY, 8.4,
+             ha="left")
+
+    note(ax, 4.0, -3.5,
+         "all three stop layer 1 from learning; only (a) leaves the way open "
+         "to what sits before it",
+         ACCENT, 8.8)
+
+    frame(ax, (-1.0, 14.6), (-3.75, 1.9))
+    save(fig, "three_tools_on_a_net")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -1101,6 +1185,9 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 08_turn_off_gradient_tracking
+    "frozen_passes_through": fig_frozen_passes_through,
+    "three_tools_on_a_net": fig_three_tools_on_a_net,
     # 07_when_to_stop_tracking_grads
     "four_ways_to_stop": fig_four_ways_to_stop,
     "graph_or_not": fig_graph_or_not,
