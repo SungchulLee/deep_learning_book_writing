@@ -1850,6 +1850,137 @@ def fig_zero_grad_scope():
 
 
 # ============================================================================
+# 19_gradient_accumulation_for_large_batches — 메모리와 시간의 맞바꿈
+# ============================================================================
+
+def fig_accumulation_tradeoff():
+    """쪼갤수록 메모리는 꼬박꼬박 반이 되고 시간은 들쭉날쭉 는다 — 1~3절."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.8, 2.9))
+
+    chunks = [1, 2, 4, 8, 16, 32]
+    ms = [0.91, 1.13, 1.60, 2.01, 4.58, 8.53]
+    ax1.plot(chunks, ms, marker="o", ms=5, color=ACCENT, lw=1.4,
+             label="measured")
+    ax1.plot(chunks, [0.907 * k for k in chunks], ls=(0, (4, 3)), lw=1.2,
+             color=GRAY, label="if it were proportional")
+    ax1.set_xscale("log", base=2)
+    ax1.set_yscale("log")
+    ax1.set_xticks(chunks)
+    ax1.set_xticklabels([str(c) for c in chunks])
+    axes_style(ax1, "chunks", "total time (ms)")
+    ax1.legend(fontsize=7.8, frameon=False, loc="upper left")
+
+    mem_c = [1, 4, 16, 32]
+    mem = [2.097, 0.524, 0.131, 0.066]
+    ax2.plot(mem_c, mem, marker="s", ms=5, color=ACCENT, lw=1.4)
+    for c, m in zip(mem_c, mem):
+        ax2.annotate(f"{m:.3f}", (c, m), textcoords="offset points",
+                     xytext=(0, 9), ha="center", fontsize=7.6, family=MONO,
+                     color=INK)
+    ax2.set_xscale("log", base=2)
+    ax2.set_yscale("log")
+    ax2.set_xticks(mem_c)
+    ax2.set_xticklabels([str(c) for c in mem_c])
+    axes_style(ax2, "chunks", "activation memory (MB)")
+
+    save(fig, "accumulation_tradeoff",
+         foot="halving the chunk always halves the activations; the time "
+              "cost is uneven and jumps past 8 chunks",
+         foot_color=ACCENT, foot_size=8.4, rect=0.08)
+
+
+# ============================================================================
+# 20_why_gradient_scaling_matters — 배치를 키우면 러닝레이트는
+# ============================================================================
+
+def fig_lr_rules():
+    """잡음은 1/sqrt(배치) 로 줄고, 그래서 sqrt 규칙이 이 문제에서 이겼다."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.8, 3.0))
+
+    # --- 왼쪽: 흔들림이 1/sqrt(배치) 로 준다 ---
+    bs = [8, 32, 128, 512]
+    ratio = [0.347, 0.186, 0.091, 0.042]
+    ax1.plot(bs, ratio, marker="o", ms=5, color=ACCENT, lw=1.4,
+             label="measured")
+    ax1.plot(bs, [0.347 * (8 / b) ** 0.5 for b in bs], ls=(0, (4, 3)),
+             lw=1.2, color=GRAY, label="1 / sqrt(batch)")
+    ax1.set_xscale("log", base=2)
+    ax1.set_yscale("log")
+    ax1.set_xticks(bs)
+    ax1.set_xticklabels([str(b) for b in bs])
+    axes_style(ax1, "batch size", "scatter / size of the gradient")
+    ax1.legend(fontsize=7.8, frameon=False, loc="lower left")
+
+    # --- 오른쪽: 세 규칙이 닿은 자리 ---
+    b2 = [32, 64, 128, 256, 512]
+    series = [
+        ("leave lr alone", [0.009760, 0.009688, 0.009786, 0.066415, 1.321642],
+         GRAY, (0, (4, 3)), "s"),
+        ("lr x k", [0.009760, 0.009775, 0.009794, 0.009827, 0.018453],
+         INK, (0, (2, 2)), "^"),
+        ("lr x sqrt(k)", [0.009760, 0.009714, 0.009689, 0.009678, 0.009684],
+         ACCENT, "solid", "o"),
+    ]
+    for lab, ys, c, ls, mk in series:
+        ax2.plot(b2, ys, marker=mk, ms=5, color=c, lw=1.4, ls=ls, label=lab)
+    ax2.set_xscale("log", base=2)
+    ax2.set_yscale("log")
+    ax2.set_xticks(b2)
+    ax2.set_xticklabels([str(b) for b in b2])
+    axes_style(ax2, "batch size", "loss reached in 4 epochs")
+    ax2.legend(fontsize=7.8, frameon=False, loc="upper left")
+
+    save(fig, "lr_rules",
+         foot="on this convex, low-noise problem sqrt won - the linear rule "
+              "is the one that holds up on large models",
+         foot_color=ACCENT, foot_size=8.4, rect=0.075)
+
+
+# ============================================================================
+# 21_training_loop_with_grad_accumulation — 나머지가 생길 때
+# ============================================================================
+
+def fig_remainder_microbatches():
+    """나머지 한 조각을 어떻게 하는가 — 2·3·4절."""
+    fig, ax = plt.subplots(figsize=(7.8, 3.6))
+
+    sizes = [3, 3, 3, 3, 2]
+    xs = [0.0 + 1.25 * i for i in range(5)]
+
+    for yc, title, used, weight, res, rk, why in [
+        (1.5, "drop the leftover", 4, None, "2 steps", "off",
+         "those samples never reach the model"),
+        (0.0, "step anyway, weight 1/k", 5, "1/5", "3 steps", "off",
+         "differs from the full batch by 0.167252"),
+        (-1.5, "step anyway, weight len(xb)/N", 5, "len/N", "3 steps", "ok",
+         "matches the full batch exactly"),
+    ]:
+        for i, (x, s) in enumerate(zip(xs, sizes)):
+            k = "ok" if i < used else "off"
+            node(ax, x, yc, str(s), k, w=0.95, h=0.4, fontsize=8.8)
+        ax.text(-1.1, yc, title, ha="right", va="center", fontsize=8.6,
+                family=MONO, color=INK)
+        node(ax, 7.3, yc, res, rk, w=1.5, h=0.4, fontsize=8.6)
+        note(ax, 8.6, yc, why, ACCENT if rk == "ok" else GRAY, 8.4,
+             ha="left")
+        if weight:
+            note(ax, 2.5, yc - 0.42, f"each scaled by {weight}",
+                 ACCENT if rk == "ok" else GRAY, 8.0)
+
+    note(ax, 2.5, 2.1, "micro-batch sizes for N = 14, batch 3", INK, 8.8)
+    note(ax, 2.5, -2.5,
+         "the last chunk is short, so an equal 1/k does not reproduce the "
+         "full batch",
+         ACCENT, 8.8)
+    note(ax, 2.5, -2.86,
+         "weighting by how many samples the chunk actually held does",
+         INK, 8.6)
+
+    frame(ax, (-5.2, 16.4), (-3.2, 2.45))
+    save(fig, "remainder_microbatches")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -1904,6 +2035,12 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 19_gradient_accumulation_for_large_batches
+    "accumulation_tradeoff": fig_accumulation_tradeoff,
+    # 20_why_gradient_scaling_matters
+    "lr_rules": fig_lr_rules,
+    # 21_training_loop_with_grad_accumulation
+    "remainder_microbatches": fig_remainder_microbatches,
     # 18_three_ways_to_zero_gradients
     "zero_grad_scope": fig_zero_grad_scope,
     # 17_pitfalls_and_sanity_checks
