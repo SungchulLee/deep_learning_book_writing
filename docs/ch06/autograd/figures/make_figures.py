@@ -1446,6 +1446,68 @@ def fig_shared_storage_bite():
 
 
 # ============================================================================
+# 13_print_layers — 세어지는 것과 저장되는 것이 다르다
+# ============================================================================
+
+def fig_params_vs_buffers():
+    """학습되는 것은 저장되는 것의 **부분집합**이다 — 3절.
+
+    파라미터 수를 세면 버퍼가 빠지는데 저장 파일에는 들어간다. 두 테두리를
+    겹쳐 그리면 그 어긋남이 한눈에 보인다.
+    """
+    fig, ax = plt.subplots(figsize=(7.4, 2.9))
+
+    p = node(ax, 1.9, 0.0, "8 tensors   202 numbers", "ok", w=4.0, h=0.5,
+             fontsize=8.8)
+    region(ax, [p], "parameters - what the optimizer moves", color=ACCENT,
+           pad=0.34, size=8.6)
+
+    b = node(ax, 7.0, 0.0, "1 buffer:  steps", "tensor", w=2.8, h=0.5,
+             fontsize=8.8)
+    region(ax, [p, b], "state_dict - what gets written to the file",
+           color=INK, pad=0.78, below=True, size=8.8)
+
+    note(ax, 7.0, 0.84, "counted by nobody,", GRAY, 8.2)
+    note(ax, 7.0, 0.58, "saved all the same", GRAY, 8.2)
+
+    note(ax, 4.2, -1.9,
+         "count the parameters and the buffer is missing; load the file and "
+         "it is there",
+         ACCENT, 8.8)
+
+    frame(ax, (-0.9, 9.4), (-2.2, 1.45))
+    save(fig, "params_vs_buffers")
+
+
+def fig_batchnorm_buffers():
+    """버퍼가 실제로 쓰이는 자리 — 4절. 순전파가 고치고 역전파는 안 준다."""
+    fig, ax = plt.subplots(figsize=(7.4, 2.9))
+
+    ps = ["weight", "bias"]
+    bs = ["running_mean", "running_var", "num_batches_tracked"]
+    for i, n in enumerate(ps):
+        node(ax, 1.3, 0.55 - 0.62 * i, n, "ok", w=2.4, h=0.44, fontsize=8.8)
+    for i, n in enumerate(bs):
+        node(ax, 5.6, 0.86 - 0.62 * i, n, "tensor", w=3.4, h=0.44,
+             fontsize=8.8)
+
+    note(ax, 1.3, 1.34, "parameters", ACCENT, 9.2)
+    note(ax, 5.6, 1.62, "buffers", INK, 9.2)
+
+    note(ax, 3.4, -1.28, "forward changes them after one pass:  True",
+         ACCENT, 8.8)
+    note(ax, 3.4, -1.62, "backward gives them nothing:  grad is None",
+         GRAY, 8.8)
+    note(ax, 3.4, -2.08,
+         "changed by the model, not by the optimizer - that is what a buffer "
+         "is",
+         INK, 8.8)
+
+    frame(ax, (-0.9, 8.0), (-2.3, 1.95))
+    save(fig, "batchnorm_buffers")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -1500,6 +1562,9 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 13_print_layers
+    "params_vs_buffers": fig_params_vs_buffers,
+    "batchnorm_buffers": fig_batchnorm_buffers,
     # 12_converting_to_numpy
     "numpy_three_questions": fig_numpy_three_questions,
     "shared_storage_bite": fig_shared_storage_bite,
