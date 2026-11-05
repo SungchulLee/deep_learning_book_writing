@@ -215,17 +215,37 @@ def note(ax, x, y, text, color=None, size=8.6, ha="center", va="center",
             style="italic" if italic else "normal")
 
 
+def axes_style(ax, xlabel=None, ylabel=None):
+    """재어서 그린 그래프의 축 — 도형 그림과 달리 눈금이 있어야 한다.
+
+    위·오른쪽 테두리를 없애고 색과 글자 크기를 이 절의 것으로 맞춘다.
+    """
+    for s in ("top", "right"):
+        ax.spines[s].set_visible(False)
+    for s in ("left", "bottom"):
+        ax.spines[s].set_color(INK)
+        ax.spines[s].set_linewidth(0.9)
+    ax.tick_params(colors=INK, labelsize=8.2, width=0.9)
+    if xlabel:
+        ax.set_xlabel(xlabel, fontsize=8.8, color=INK)
+    if ylabel:
+        ax.set_ylabel(ylabel, fontsize=8.8, color=INK)
+    ax.grid(True, lw=0.5, color=GRAY, alpha=0.35)
+    ax.set_axisbelow(True)
+
+
 def frame(ax, xlim, ylim):
     ax.set_xlim(*xlim)
     ax.set_ylim(*ylim)
     ax.set_axis_off()
 
 
-def save(fig, name, foot=None):
+def save(fig, name, foot=None, foot_color=None, foot_size=8.0, rect=0.045):
     if foot:
-        fig.text(0.5, 0.005, foot, ha="center", fontsize=8, style="italic",
-                 color=INK)
-        fig.tight_layout(rect=(0, 0.045, 1, 1))
+        fig.text(0.5, 0.005, foot, ha="center", fontsize=foot_size,
+                 style="italic" if foot_color is None else "normal",
+                 color=foot_color or INK)
+        fig.tight_layout(rect=(0, rect, 1, 1))
     else:
         fig.tight_layout()
     fig.savefig(HERE / f"{name}.svg", transparent=True, bbox_inches="tight")
@@ -699,6 +719,128 @@ def fig_three_steps():
 
 
 # ============================================================================
+# 05_complete_linear_regression — 셋은 어디에 있고, 무엇이 거리를 정하는가
+# ============================================================================
+
+def fig_three_numbers():
+    """참값 · 최소제곱해 · 경사 하강이 놓인 자리 — 3절.
+
+    경사 하강이 닿은 곳은 참값이 아니라 해석해다. 두 거리의 자릿수가
+    네 자리 차이라는 것을 보이려면 로그 축이 있어야 한다.
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.8, 2.9),
+                                   gridspec_kw=dict(width_ratios=[1, 1.15]))
+
+    # --- 왼쪽: (w, b) 평면 위의 두 자리 ---
+    truth = (2.0, 1.0)
+    land = (2.002363, 1.007134)       # 경사 하강 = 해석해 (이 눈금에서는 한 점)
+    ax1.plot(*truth, marker="o", ms=7, color=INK, zorder=4)
+    ax1.plot(*land, marker="s", ms=7, color=ACCENT, zorder=4)
+    ax1.annotate("", xy=land, xytext=truth,
+                 arrowprops=dict(arrowstyle="-|>", color=GRAY, lw=1.1,
+                                 shrinkA=7, shrinkB=7))
+    ax1.text(truth[0] - 0.0004, truth[1] - 0.0012, "truth\n(2, 1)",
+             ha="right", va="top", fontsize=8.4, color=INK)
+    ax1.text(land[0] + 0.0003, land[1] + 0.0008,
+             "least squares\nand gradient descent\n(one dot here)",
+             ha="left", va="bottom", fontsize=8.4, color=ACCENT)
+    ax1.set_xlim(1.9985, 2.0048)
+    ax1.set_ylim(0.9955, 1.0118)
+    axes_style(ax1, "w", "b")
+
+    # --- 오른쪽: 두 거리를 로그 축에 ---
+    # 이름표는 축 **바깥** 눈금으로 뺀다. 안에 두면 점을 가린다.
+    pairs = [("to the least squares\nsolution", 7.15e-07, 4.77e-07, ACCENT),
+             ("to the true\nparameters", 2.363e-03, 7.134e-03, INK)]
+    for i, (_, dw, db, c) in enumerate(pairs):
+        y = 1 - i
+        ax2.plot([dw], [y + 0.14], marker="o", ms=6, color=c)
+        ax2.plot([db], [y - 0.14], marker="D", ms=5, color=c)
+        ax2.text(dw * 1.7, y + 0.14, "w", ha="left", va="center",
+                 fontsize=8.2, family=MONO, color=c)
+        ax2.text(db * 1.7, y - 0.14, "b", ha="left", va="center",
+                 fontsize=8.2, family=MONO, color=c)
+    ax2.set_xscale("log")
+    ax2.set_xlim(2.2e-07, 4e-02)
+    ax2.set_ylim(-0.6, 1.6)
+    ax2.set_yticks([1, 0])
+    ax2.set_yticklabels([p[0] for p in pairs], fontsize=8.4)
+    axes_style(ax2, "distance from where gradient descent landed")
+    ax2.spines["left"].set_visible(False)
+    ax2.tick_params(axis="y", length=0)
+    # axes_style 이 눈금 색을 INK 로 덮으므로 **그 뒤에** 칠한다.
+    for lab, (_, _, _, c) in zip(ax2.get_yticklabels(), pairs):
+        lab.set_color(c)
+
+    save(fig, "three_numbers",
+         foot="three to four orders of magnitude apart - the leftover gap "
+              "is the noise in the data, not the optimiser",
+         foot_color=ACCENT, foot_size=8.4, rect=0.06)
+
+
+def fig_noise_to_solution():
+    """잡음을 줄이면 해석해가 참값으로 간다 — 4절."""
+    fig, ax = plt.subplots(figsize=(6.4, 2.7))
+
+    noise = [0.40, 0.20, 0.05, 0.00]
+    err = [0.004724, 0.002362, 0.000591, 0.000000]
+
+    ax.plot(noise, err, marker="o", ms=6, color=ACCENT, lw=1.4, zorder=4)
+    for n, e in zip(noise, err):
+        ax.annotate(f"{e:.6f}", (n, e), textcoords="offset points",
+                    xytext=(0, 9), ha="center", fontsize=7.8, family=MONO,
+                    color=INK)
+
+    ax.set_xlim(-0.03, 0.45)
+    ax.set_ylim(-0.0004, 0.0059)
+    axes_style(ax, "noise standard deviation", "|w of least squares  -  2|")
+
+    ax.text(0.205, 0.0012,
+            "one seed: the same noise pattern, only rescaled,\n"
+            "so the error tracks it exactly - other seeds would scatter",
+            fontsize=8.2, color=GRAY, ha="left", va="center")
+
+    save(fig, "noise_to_solution",
+         foot="at zero noise the least squares solution is the true one - "
+              "'not trained enough' and 'the data looks like that' are "
+              "different questions",
+         foot_color=ACCENT, rect=0.075)
+
+
+def fig_learning_rate_window():
+    """너무 작으면 못 닿고 너무 크면 튄다 — 5절. 가운데가 넓다."""
+    fig, ax = plt.subplots(figsize=(6.6, 2.9))
+
+    lrs = [0.001, 0.01, 0.1, 0.5]
+    dist = [9.65e-01, 2.10e-02, 1.19e-06, 3.58e-07]
+
+    ax.plot(lrs, dist, marker="o", ms=6, color=ACCENT, lw=1.4, zorder=4)
+    for lr, d in zip(lrs, dist):
+        ax.annotate(f"{d:.2e}", (lr, d), textcoords="offset points",
+                    xytext=(0, 10), ha="center", fontsize=7.8, family=MONO,
+                    color=INK)
+
+    ax.axvline(1.1, color=GRAY, lw=1.2, ls=(0, (4, 3)))
+    ax.text(1.02, 2e-04, "lr = 1.1\ndiverges", fontsize=8.4, color=GRAY,
+            ha="right", va="center")
+
+    ax.axvspan(0.1, 0.5, color=ACCENT, alpha=0.08, zorder=0)
+    ax.text(0.22, 2e-05, "the floor is wide", fontsize=8.4, color=ACCENT,
+            ha="center")
+
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlim(6e-04, 2.4)
+    ax.set_ylim(8e-08, 1.1e01)
+    axes_style(ax, "learning rate", "distance to least squares")
+
+    save(fig, "learning_rate_window",
+         foot="200 steps at each rate - between 0.1 and 0.5 the answer is "
+              "the same to six decimals",
+         foot_color=INK, foot_size=8.2, rect=0.065)
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -750,6 +892,10 @@ FIGURES = {
     "four_attributes": fig_four_attributes,
     "leaf_vs_nonleaf": fig_leaf_vs_nonleaf,
     "retain_grad_timing": fig_retain_grad_timing,
+    # 05_complete_linear_regression
+    "three_numbers": fig_three_numbers,
+    "noise_to_solution": fig_noise_to_solution,
+    "learning_rate_window": fig_learning_rate_window,
     # 04_mini_training_step
     "training_loop_order": fig_training_loop_order,
     "no_grad_update": fig_no_grad_update,
