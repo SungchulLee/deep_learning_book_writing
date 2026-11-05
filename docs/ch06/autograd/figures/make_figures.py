@@ -176,7 +176,8 @@ def loopback(ax, a, b, drop=0.42, color=None, label=None):
 
 def badge(ax, n, text, got, dy=-0.52, fontsize=8.5):
     """그 텐서가 .grad 를 받았는가. 받으면 채운 칸, 못 받으면 파선 칸."""
-    w = max(0.8, 0.118 * len(text) + 0.3)
+    # 너비는 node() 와 같은 셈을 쓴다. 전에는 더 빡빡해서 긴 이름이 넘쳤다.
+    w = max(0.8, 0.135 * len(text) + 0.3)
     y = n.y + dy
     ax.add_patch(FancyBboxPatch((n.x - w / 2, y - 0.17), w, 0.34,
                                 boxstyle="round,pad=0.03",
@@ -1546,6 +1547,113 @@ def fig_numbers_shift():
 
 
 # ============================================================================
+# 15_layer_naming_with_custom_module — Sequential 로는 못 적는 것들
+# ============================================================================
+
+def fig_skip_connection():
+    """지름길 하나가 첫 블록의 경사를 살린다 — 2절.
+
+    왼쪽은 Sequential 로 못 적는 까닭(입력을 한 번 더 쓴다), 오른쪽은 그것이
+    스무 블록 뒤에 무엇을 바꾸는가.
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.8, 3.0),
+                                   gridspec_kw=dict(width_ratios=[1, 1.1]))
+
+    # --- 왼쪽: 두 구조 ---
+    for yc, has, title in [(0.8, True, "with the skip"),
+                           (-1.0, False, "plain")]:
+        x = node(ax1, 0.0, yc, "x", "leaf", w=0.8, h=0.4, fontsize=9.0)
+        bl = node(ax1, 2.0, yc, "block", "op", w=1.5, h=0.4, fontsize=8.8)
+        fwd(ax1, x, bl, lw=1.1)
+        if has:
+            pl = node(ax1, 4.0, yc, "+", "op", w=0.6, h=0.4, fontsize=10)
+            out = node(ax1, 5.6, yc, "out", "tensor", w=1.1, h=0.4,
+                       fontsize=8.8)
+            fwd(ax1, bl, pl, lw=1.1)
+            fwd(ax1, pl, out, lw=1.1)
+            # x 를 한 번 더 쓰는 길 — 이것이 Sequential 로 안 적히는 자리다.
+            ax1.plot([0.0, 0.0, 4.0], [yc + 0.2, yc + 0.72, yc + 0.72],
+                     color=INK, lw=1.1)
+            _arrow(ax1, (4.0, yc + 0.72), (4.0, yc + 0.22), INK, "solid", 1.1)
+            note(ax1, 2.0, yc + 0.86, "x used a second time", INK, 8.2)
+        else:
+            out = node(ax1, 4.0, yc, "out", "tensor", w=1.1, h=0.4,
+                       fontsize=8.8)
+            fwd(ax1, bl, out, lw=1.1)
+        note(ax1, -0.75, yc, title, INK, 8.6, ha="right")
+    note(ax1, 2.6, -1.9, "only the upper one needs a custom Module",
+         ACCENT, 8.6)
+    frame(ax1, (-3.0, 6.4), (-2.3, 2.0))
+
+    # --- 오른쪽: 스무 블록 뒤 첫 블록의 경사 ---
+    pos = [0, 1]
+    ax2.plot(pos, [1.177e-01, 5.382e-02], marker="o", ms=6, color=ACCENT,
+             lw=1.4, label="with the skip")
+    ax2.plot(pos, [2.311e-15, 9.248e-04], marker="s", ms=6, color=GRAY,
+             lw=1.4, ls=(0, (4, 3)), label="plain")
+    # 회색 쪽 이름표는 아래로 뺀다. 위로 두면 마지막 블록에서 두 이름표가
+    # 겹친다 (5.382e-02 와 9.248e-04 가 로그 축에서 가깝다).
+    for p, v, c, dy in ((0, 1.177e-01, ACCENT, 10), (1, 5.382e-02, ACCENT, 10),
+                        (0, 2.311e-15, GRAY, -16), (1, 9.248e-04, GRAY, -16)):
+        ax2.annotate(f"{v:.3e}", (p, v), textcoords="offset points",
+                     xytext=(0, dy), ha="center", fontsize=7.4, family=MONO,
+                     color=c)
+    ax2.set_xticks(pos)
+    ax2.set_xticklabels(["first block", "last block"])
+    ax2.set_xlim(-0.45, 1.45)
+    ax2.set_yscale("log")
+    ax2.set_ylim(1e-17, 1e02)
+    axes_style(ax2, None, "gradient norm after 20 blocks")
+    ax2.legend(fontsize=8.0, frameon=False, loc="lower right")
+
+    save(fig, "skip_connection",
+         foot="without the skip the first block sits almost twelve orders "
+              "below the last (2.50e-12); with it, within a factor of 2.19",
+         foot_color=ACCENT, foot_size=8.4, rect=0.075)
+
+
+def fig_two_heads():
+    """출력이 둘이면 Sequential 로는 못 적는다 — 3절."""
+    fig, ax = plt.subplots(figsize=(7.2, 2.6))
+
+    x = node(ax, 0.0, 0.0, "x", "leaf", w=0.8)
+    tr = node(ax, 2.0, 0.0, "trunk", "op", w=1.5)
+    fwd(ax, x, tr)
+    h1 = node(ax, 5.0, 0.72, "classifier   (2, 3)", "tensor", w=3.0, h=0.42,
+              fontsize=8.6)
+    h2 = node(ax, 5.0, -0.72, "regressor    (2, 1)", "tensor", w=3.0, h=0.42,
+              fontsize=8.6)
+    _arrow(ax, tr.right, h1.left, INK, "solid", 1.2)
+    _arrow(ax, tr.right, h2.left, INK, "solid", 1.2)
+
+    L = node(ax, 8.6, 0.0, "l1 + l2", "tensor", w=1.6, h=0.42, fontsize=8.8)
+    _arrow(ax, h1.right, L.left, INK, "solid", 1.1)
+    _arrow(ax, h2.right, L.left, INK, "solid", 1.1)
+
+    # 되짚는 길은 하나다 — 로스를 더해 한 번만 부르기 때문이다.
+    yb = -1.65
+    ax.plot([L.x, L.x], [L.y - 0.21, yb], color=ACCENT, lw=0.9,
+            linestyle=(0, (2, 2)))
+    _arrow(ax, (L.x, yb), (tr.x, yb), ACCENT, (0, (4, 2)), 1.3)
+    ax.plot([tr.x, tr.x], [yb, tr.y - 0.23], color=ACCENT, lw=0.9,
+            linestyle=(0, (2, 2)))
+    note(ax, 5.3, yb - 0.26, "one backward", ACCENT, 8.4)
+
+    badge(ax, tr, "trunk.weight.grad", True, dy=-2.55, fontsize=8.2)
+
+    note(ax, 10.6, 0.72, "two outputs", INK, 8.6, ha="left")
+    note(ax, 10.6, -0.72, "two losses", INK, 8.6, ha="left")
+    note(ax, 10.6, yb, "the trunk collects", ACCENT, 8.6, ha="left")
+    note(ax, 10.6, yb - 0.33, "from both", ACCENT, 8.6, ha="left")
+
+    note(ax, 3.4, -3.2, "a Sequential can only hand back one tensor",
+         ACCENT, 8.8)
+
+    frame(ax, (-1.0, 14.4), (-3.5, 1.25))
+    save(fig, "two_heads")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -1600,6 +1708,9 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 15_layer_naming_with_custom_module
+    "skip_connection": fig_skip_connection,
+    "two_heads": fig_two_heads,
     # 14_layer_naming_with_ordereddict
     "numbers_shift": fig_numbers_shift,
     # 13_print_layers

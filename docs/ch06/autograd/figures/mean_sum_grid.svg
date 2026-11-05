@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-11-05T17:20:25.224455</dc:date>
+    <dc:date>2026-11-05T18:46:22.493186</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -42,7 +42,7 @@ L 164.896036 73.532903
 Q 164.896036 75.483871 167.090613 75.483871 
 L 167.090613 75.483871 
 z
-" clip-path="url(#p978df94a73)" style="fill: none; stroke-dasharray: 3,2; stroke-dashoffset: 0; stroke: #9aa3a9; stroke-linejoin: miter"/>
+" clip-path="url(#p1c262a66df)" style="fill: none; stroke-dasharray: 3,2; stroke-dashoffset: 0; stroke: #9aa3a9; stroke-linejoin: miter"/>
    </g>
    <g id="patch_3">
     <path d="M 295.630125 75.483871 
@@ -55,7 +55,7 @@ Q 293.435548 39.251613 293.435548 41.202581
 L 293.435548 73.532903 
 Q 293.435548 75.483871 295.630125 75.483871 
 z
-" clip-path="url(#p978df94a73)" style="fill: #f3e7de; stroke: #8a4b2a; stroke-width: 1.2; stroke-linejoin: miter"/>
+" clip-path="url(#p1c262a66df)" style="fill: #f3e7de; stroke: #8a4b2a; stroke-width: 1.2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_4">
     <path d="M 167.090613 125.651613 
@@ -68,7 +68,7 @@ Q 164.896036 89.419355 164.896036 91.370323
 L 164.896036 123.700645 
 Q 164.896036 125.651613 167.090613 125.651613 
 z
-" clip-path="url(#p978df94a73)" style="fill: #f3e7de; stroke: #8a4b2a; stroke-width: 1.2; stroke-linejoin: miter"/>
+" clip-path="url(#p1c262a66df)" style="fill: #f3e7de; stroke: #8a4b2a; stroke-width: 1.2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_5">
     <path d="M 295.630125 125.651613 
@@ -82,7 +82,7 @@ L 293.435548 123.700645
 Q 293.435548 125.651613 295.630125 125.651613 
 L 295.630125 125.651613 
 z
-" clip-path="url(#p978df94a73)" style="fill: none; stroke-dasharray: 3,2; stroke-dashoffset: 0; stroke: #9aa3a9; stroke-linejoin: miter"/>
+" clip-path="url(#p1c262a66df)" style="fill: none; stroke-dasharray: 3,2; stroke-dashoffset: 0; stroke: #9aa3a9; stroke-linejoin: miter"/>
    </g>
    <g id="text_1">
     <!-- no divider -->
@@ -1273,7 +1273,7 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="p978df94a73">
+  <clipPath id="p1c262a66df">
    <rect x="7.2" y="7.2" width="407.564308" height="172.8"/>
   </clipPath>
  </defs>

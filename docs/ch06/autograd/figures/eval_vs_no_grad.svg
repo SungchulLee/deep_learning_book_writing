@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-11-05T18:31:03.038117</dc:date>
+    <dc:date>2026-11-05T18:46:21.224154</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -695,7 +695,7 @@ L 166.914333 67.797095
 Q 166.914333 69.201663 168.209815 69.201663 
 L 168.209815 69.201663 
 z
-" clip-path="url(#p7cbba69992)" style="fill: none; stroke-dasharray: 3,2; stroke-dashoffset: 0; stroke: #9aa3a9; stroke-linejoin: miter"/>
+" clip-path="url(#pa3f80f6052)" style="fill: none; stroke-dasharray: 3,2; stroke-dashoffset: 0; stroke: #9aa3a9; stroke-linejoin: miter"/>
    </g>
    <g id="text_3">
     <!-- eval()  + no_grad -->
@@ -783,7 +783,7 @@ Q 166.914333 89.668232 166.914333 91.0728
 L 166.914333 107.927621 
 Q 166.914333 109.332189 168.209815 109.332189 
 z
-" clip-path="url(#p7cbba69992)" style="fill: #f3e7de; stroke: #8a4b2a; stroke-width: 1.2; stroke-linejoin: miter"/>
+" clip-path="url(#pa3f80f6052)" style="fill: #f3e7de; stroke: #8a4b2a; stroke-width: 1.2; stroke-linejoin: miter"/>
    </g>
    <g id="text_4">
     <!-- two runs give the same numbers? -->
@@ -1172,7 +1172,7 @@ L 423.192014 67.797095
 Q 423.192014 69.201663 424.299991 69.201663 
 L 424.299991 69.201663 
 z
-" clip-path="url(#pe274abd4c7)" style="fill: none; stroke-dasharray: 3,2; stroke-dashoffset: 0; stroke: #9aa3a9; stroke-linejoin: miter"/>
+" clip-path="url(#pad09665580)" style="fill: none; stroke-dasharray: 3,2; stroke-dashoffset: 0; stroke: #9aa3a9; stroke-linejoin: miter"/>
    </g>
    <g id="text_10">
     <!-- eval()  alone -->
@@ -1204,7 +1204,7 @@ L 423.192014 107.927621
 Q 423.192014 109.332189 424.299991 109.332189 
 L 424.299991 109.332189 
 z
-" clip-path="url(#pe274abd4c7)" style="fill: none; stroke: #2f3337; stroke-linejoin: miter"/>
+" clip-path="url(#pad09665580)" style="fill: none; stroke: #2f3337; stroke-linejoin: miter"/>
    </g>
    <g id="text_11">
     <!-- grad_fn on the output -->
@@ -1607,10 +1607,10 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="p7cbba69992">
+  <clipPath id="pa3f80f6052">
    <rect x="7.2" y="7.2" width="240.589378" height="152.496"/>
   </clipPath>
-  <clipPath id="pe274abd4c7">
+  <clipPath id="pad09665580">
    <rect x="291.342703" y="7.2" width="240.589378" height="152.496"/>
   </clipPath>
  </defs>
