@@ -853,6 +853,85 @@ def fig_learning_rate_window():
 
 
 # ============================================================================
+# 06_linear_regression_with_module — 같은 알고리즘의 다른 표기
+# ============================================================================
+
+def fig_hand_vs_module():
+    """손으로 짠 셋과 라이브러리 셋이 서로 맞바꿔지고, 결과가 비트까지 같다."""
+    fig, ax = plt.subplots(figsize=(7.8, 3.5))
+
+    pairs = [
+        ("w, b  made by hand", "nn.Linear(1, 1)"),
+        ("((pred - y)**2).mean()", "nn.MSELoss()"),
+        ("no_grad(): w -= lr * w.grad", "torch.optim.SGD"),
+    ]
+    LX, RX = 0.0, 6.3
+    for i, (l, r) in enumerate(pairs):
+        y = 1.0 - 0.78 * i
+        a = node(ax, LX, y, l, "tensor", w=4.6, h=0.5, fontsize=8.8)
+        b = node(ax, RX, y, r, "op", w=3.2, h=0.5, fontsize=8.8)
+        _arrow(ax, a.right, b.left, INK, "solid", 1.1)
+
+    note(ax, LX, 1.72, "by hand", INK, 9.4)
+    note(ax, RX, 1.72, "with the library", ACCENT, 9.4)
+
+    # 한 줄에 다 적으면 칸을 넘는다. 세 줄로 접는다.
+    res = "w    2.00236273\nb    1.00713444\nloss 0.03121442"
+    node(ax, LX, -1.7, res, "ok", w=2.9, h=1.0, fontsize=8.4)
+    node(ax, RX, -1.7, res, "ok", w=2.9, h=1.0, fontsize=8.4)
+    note(ax, 3.15, -1.56, "difference", ACCENT, 8.8)
+    note(ax, 3.15, -1.88, "0.00e+00", ACCENT, 9.4)
+
+    note(ax, 3.15, -2.72,
+         "200 steps from the same starting values - identical to the last bit",
+         ACCENT, 8.8)
+    note(ax, 3.15, -3.06,
+         "not a different algorithm, the same one written differently",
+         INK, 8.6)
+
+    frame(ax, (-2.8, 9.3), (-3.35, 2.05))
+    save(fig, "hand_vs_module")
+
+
+def fig_what_step_hides():
+    """`opt.step()` 안에는 뺄셈 한 줄이 있고, reduction 은 경사를 N 배 한다."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.8, 2.7),
+                                   gridspec_kw=dict(width_ratios=[1.15, 1]))
+
+    # --- 왼쪽: step() 한 걸음 ---
+    a = node(ax1, 0.0, 0.8, "w = -0.775056", "tensor", w=3.0, h=0.44,
+             fontsize=8.8)
+    s = node(ax1, 0.0, 0.0, "opt.step()", "op", w=2.0, h=0.44, fontsize=8.8)
+    h = node(ax1, 0.0, -0.8, "w - lr * w.grad", "op", w=3.0, h=0.44,
+             fontsize=8.8)
+    r = node(ax1, 3.9, -0.4, "-0.215242", "ok", w=2.0, h=0.44, fontsize=8.8)
+    _arrow(ax1, a.bottom, s.top, INK, "solid", 1.1)
+    _arrow(ax1, s.right, r.left, ACCENT, "solid", 1.2)
+    _arrow(ax1, h.right, r.left, ACCENT, "solid", 1.2)
+    note(ax1, 1.95, 1.3, "one step() is one subtraction", ACCENT, 8.8)
+    note(ax1, 0.0, -1.35, "done by hand", INK, 8.4)
+    frame(ax1, (-1.9, 5.3), (-1.7, 1.6))
+
+    # --- 오른쪽: reduction 이 바꾸는 것 ---
+    for i, (lab, g, k) in enumerate([('reduction="mean"', "-4.4662", "ok"),
+                                     ('reduction="sum"', "-446.6163",
+                                      "tensor")]):
+        y = 0.5 - 1.0 * i
+        ax2.text(-0.3, y, lab, ha="right", va="center", fontsize=8.8,
+                 family=MONO, color=INK)
+        node(ax2, 1.5, y, g, k, w=2.2, h=0.44, fontsize=9.0)
+    note(ax2, 3.5, 0.0, "x 100", ACCENT, 9.5, ha="left")
+    note(ax2, 3.5, -0.34, "= the sample count", ACCENT, 8.4, ha="left")
+    note(ax2, 1.2, -1.35, "weight.grad after one backward", INK, 8.6)
+    frame(ax2, (-3.3, 6.2), (-1.7, 1.6))
+
+    save(fig, "what_step_hides",
+         foot="the abstraction is thin - the parts it hides are a subtraction "
+              "and a choice of divider",
+         foot_color=ACCENT, foot_size=8.6, rect=0.07)
+
+
+# ============================================================================
 # 07_when_to_stop_tracking_grads — 넷이 건드리는 것이 서로 다르다
 # ============================================================================
 
@@ -1019,6 +1098,9 @@ FIGURES = {
     "four_attributes": fig_four_attributes,
     "leaf_vs_nonleaf": fig_leaf_vs_nonleaf,
     "retain_grad_timing": fig_retain_grad_timing,
+    # 06_linear_regression_with_module
+    "hand_vs_module": fig_hand_vs_module,
+    "what_step_hides": fig_what_step_hides,
     # 07_when_to_stop_tracking_grads
     "four_ways_to_stop": fig_four_ways_to_stop,
     "graph_or_not": fig_graph_or_not,
