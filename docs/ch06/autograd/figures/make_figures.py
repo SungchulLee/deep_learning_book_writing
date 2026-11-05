@@ -86,7 +86,9 @@ def node(ax, x, y, label, kind="tensor", w=None, h=0.46, fontsize=9.5):
     """칸 하나를 그리고 Node 를 돌려준다. w 를 안 주면 글자 길이로 잡는다."""
     st = KINDS[kind]
     if w is None:
-        w = max(0.62, 0.135 * len(label) + 0.34)
+        # 여러 줄이면 가장 긴 줄로 잰다. len() 을 그대로 쓰면 줄바꿈까지
+        # 세어 칸이 쓸데없이 넓어진다.
+        w = max(0.62, 0.135 * max(len(s) for s in label.split("\n")) + 0.34)
     ax.add_patch(FancyBboxPatch((x - w / 2, y - h / 2), w, h,
                                 boxstyle="round,pad=0.035",
                                 fc=st["fc"], ec=st["ec"], lw=st["lw"],
@@ -185,6 +187,16 @@ def badge(ax, n, text, got, dy=-0.52, fontsize=8.5):
                                 zorder=3))
     ax.text(n.x, y, text, ha="center", va="center", fontsize=fontsize,
             family=MONO, color=ACCENT if got else GRAY, zorder=4)
+
+
+def flag(ax, n, value, dy=-0.4, name="requires_grad", size=7.8):
+    """칸 아래에 깃발 값을 적는다 — 켜져 있으면 강조색, 꺼져 있으면 회색.
+
+    `.grad` 를 받았는가를 말하는 badge 와는 다른 것이다. 이쪽은 **따라갈
+    것인가**이고, 그래서 아래 칸이 아니라 글자 한 줄로 둔다.
+    """
+    ax.text(n.x, n.y + dy, f"{name}={value}", ha="center", va="center",
+            fontsize=size, family=MONO, color=ACCENT if value else GRAY)
 
 
 def region(ax, nodes, label, pad=0.26, color=None, below=False, size=8.4):
@@ -841,6 +853,121 @@ def fig_learning_rate_window():
 
 
 # ============================================================================
+# 07_when_to_stop_tracking_grads — 넷이 건드리는 것이 서로 다르다
+# ============================================================================
+
+def fig_four_ways_to_stop():
+    """추적을 끄는 네 길이 **무엇을** 건드리는지 — 2절.
+
+    넷을 섞는 까닭은 결과가 비슷해서다 (requires_grad 가 False 가 된다).
+    다른 것은 결과가 아니라 **무엇이 바뀌는가**이므로, 원본이 그대로인지를
+    칸마다 보여야 한다.
+    """
+    fig, axs = plt.subplots(2, 2, figsize=(7.8, 4.6))
+
+    # --- (가) 깃발을 내린다 — 원본이 바뀐다 ---
+    ax = axs[0][0]
+    a = node(ax, 0.0, 0.0, "w", "leaf")
+    b = node(ax, 2.4, 0.0, "w", "off")
+    flag(ax, a, True)
+    flag(ax, b, False)
+    _arrow(ax, a.right, b.left, INK, "solid", 1.2)
+    note(ax, 1.2, 0.34, "the same tensor", INK, 8.2)
+    note(ax, 1.2, 0.92, "w.requires_grad_(False)", INK, 9.2)
+    note(ax, 1.2, -1.08, "the only one that changes the original",
+         ACCENT, 8.2)
+    note(ax, 1.2, -1.38, "reversible", GRAY, 8.0)
+    frame(ax, (-0.9, 3.3), (-1.62, 1.2))
+
+    # --- (나) 블록 안에서는 기록하지 않는다 — 원본은 그대로 ---
+    ax = axs[0][1]
+    a = node(ax, 0.0, 0.0, "w", "leaf")
+    op = node(ax, 1.9, 0.0, "matmul", "op", w=1.5)
+    y = node(ax, 3.6, 0.0, "y", "off")
+    fwd(ax, a, op)
+    fwd(ax, op, y)
+    region(ax, [op, y], "", color=ACCENT, pad=0.2)
+    # 깃발은 테두리 **밖**에 적는다. 안에 두면 점선에 걸린다.
+    flag(ax, a, True, dy=-0.66)
+    flag(ax, y, False, dy=-0.66)
+    note(ax, 2.75, 0.92, "with torch.no_grad():", ACCENT, 9.2)
+    note(ax, 1.8, -1.08, "only what is made inside is unflagged", ACCENT, 8.2)
+    note(ax, 1.8, -1.38, "w itself is untouched", GRAY, 8.0)
+    frame(ax, (-0.9, 4.5), (-1.62, 1.2))
+
+    # --- (다) 새 손잡이를 내준다 — 같은 데이터 ---
+    ax = axs[1][0]
+    a = node(ax, 0.0, 0.0, "w", "leaf")
+    d = node(ax, 2.4, 0.0, "w.detach()", "off", w=1.9)
+    flag(ax, a, True)
+    flag(ax, d, False)
+    _arrow(ax, a.right, d.left, INK, "solid", 1.2)
+    note(ax, 1.3, 0.34, "a new handle", INK, 8.2)
+    note(ax, 1.2, 0.92, "w.detach()", INK, 9.2)
+    note(ax, 1.3, -1.08, "same storage - writing to one writes both",
+         ACCENT, 8.2)
+    note(ax, 1.3, -1.38, "detach().clone() if you mean to edit it",
+         GRAY, 8.0)
+    frame(ax, (-0.9, 3.7), (-1.62, 1.2))
+
+    # --- (라) 표가 박힌다 — 학습으로 되돌아갈 수 없다 ---
+    ax = axs[1][1]
+    a = node(ax, 0.0, 0.0, "w", "leaf")
+    op = node(ax, 1.9, 0.0, "matmul", "op", w=1.5)
+    y = node(ax, 3.6, 0.0, "y", "off")
+    back = node(ax, 6.0, 0.0, "training", "tensor", w=1.7)
+    fwd(ax, a, op)
+    fwd(ax, op, y)
+    dead(ax, y, back)
+    region(ax, [op, y], "", color=ACCENT, pad=0.2)
+    flag(ax, a, True, dy=-0.66)
+    flag(ax, y, False, dy=-0.66)
+    note(ax, 2.75, 0.92, "with torch.inference_mode():", ACCENT, 9.2)
+    note(ax, 2.9, -1.08, "y is stamped and cannot re-enter a graph",
+         ACCENT, 8.2)
+    note(ax, 2.9, -1.38, "saves more; not reversible", GRAY, 8.0)
+    frame(ax, (-0.9, 7.0), (-1.62, 1.2))
+
+    save(fig, "four_ways_to_stop",
+         foot="all four end with requires_grad=False - they differ in what "
+              "they changed to get there",
+         foot_color=ACCENT, foot_size=8.6, rect=0.055)
+
+
+def fig_graph_or_not():
+    """그래프를 안 세우면 저장해 둘 중간값도 없다 — 3절.
+
+    아끼는 메모리의 정체가 바로 그 중간값이다. 03 쪽의 saved_buffers 와
+    같은 칸을 쓴다.
+    """
+    fig, ax = plt.subplots(figsize=(7.6, 2.9))
+
+    for yy, title, fn, saved in [
+        (0.55, "default", "grad_fn = AddmmBackward0", True),
+        (-1.05, "no_grad / inference_mode", "grad_fn = None", False),
+    ]:
+        ns = row(ax, 0.0, yy, [("x", "tensor"), ("linear", "op"),
+                               ("relu", "op"), ("linear", "op"),
+                               ("out", "tensor" if saved else "off")],
+                 gap=0.44, h=0.42, fontsize=8.8)
+        for a, b in zip(ns, ns[1:]):
+            fwd(ax, a, b, lw=1.1)
+        note(ax, -0.55, yy, title, INK, 8.6, ha="right")
+        for n in ns[1:4]:
+            node(ax, n.x, yy - 0.62, "saved" if saved else "nothing",
+                 "ok" if saved else "off", w=1.15, h=0.3, fontsize=7.8)
+        note(ax, ns[-1].right[0] + 0.5, yy, fn,
+             ACCENT if saved else GRAY, 8.4, ha="left")
+
+    note(ax, 3.2, -0.44, "kept for the backward sweep", ACCENT, 8.4)
+    note(ax, 3.2, -2.04, "nothing to keep - this is the memory that is saved",
+         GRAY, 8.4)
+
+    frame(ax, (-3.4, 11.4), (-2.35, 1.1))
+    save(fig, "graph_or_not")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -892,6 +1019,9 @@ FIGURES = {
     "four_attributes": fig_four_attributes,
     "leaf_vs_nonleaf": fig_leaf_vs_nonleaf,
     "retain_grad_timing": fig_retain_grad_timing,
+    # 07_when_to_stop_tracking_grads
+    "four_ways_to_stop": fig_four_ways_to_stop,
+    "graph_or_not": fig_graph_or_not,
     # 05_complete_linear_regression
     "three_numbers": fig_three_numbers,
     "noise_to_solution": fig_noise_to_solution,
