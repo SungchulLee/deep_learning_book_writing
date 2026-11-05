@@ -1288,6 +1288,77 @@ def fig_eval_vs_no_grad():
 
 
 # ============================================================================
+# 11_optimizer_like_updates — step() 이 숨기고 있는 세 줄
+# ============================================================================
+
+def fig_three_optimizers():
+    """셋을 손으로 적어도 파이토치와 같은 수가 나온다 — 2~4절."""
+    fig, ax = plt.subplots(figsize=(7.8, 2.9))
+
+    rows = [
+        ("SGD", "w -= lr * g", "exact", "ok"),
+        ("momentum", "b = mu * b + g ;  w -= lr * b", "1.79e-07", "ok"),
+        ("Adam", "m, v, bias correction ;  w -= lr * mhat / sqrt(vhat)",
+         "0.00e+00", "ok"),
+    ]
+    for i, (name, rule, diff, k) in enumerate(rows):
+        y = 0.9 - 0.85 * i
+        ax.text(-0.3, y, name, ha="right", va="center", fontsize=9.2,
+                family=MONO, color=INK)
+        node(ax, 3.9, y, rule, "op", w=7.8, h=0.46, fontsize=8.6)
+        node(ax, 9.3, y, diff, k, w=2.0, h=0.46, fontsize=8.8)
+
+    note(ax, 3.9, 1.52, "written by hand", INK, 8.8)
+    note(ax, 9.3, 1.52, "largest gap from torch", ACCENT, 8.8)
+
+    note(ax, 4.4, -1.5,
+         "momentum differs in the last two digits because torch seeds the "
+         "buffer with g",
+         GRAY, 8.4)
+    note(ax, 4.4, -1.86,
+         "on the first step rather than with zero - a convention, not a "
+         "different method",
+         GRAY, 8.4)
+
+    frame(ax, (-2.6, 10.6), (-2.15, 1.9))
+    save(fig, "three_optimizers")
+
+
+def fig_new_tensor_breaks_the_leaf():
+    """제자리를 피하려고 새 텐서를 만들면 다음 걸음이 사라진다 — 4절."""
+    fig, ax = plt.subplots(figsize=(7.8, 3.0))
+
+    w = node(ax, 0.0, 0.85, "w", "leaf")
+    bad = node(ax, 4.0, 0.85, "RuntimeError", "off", w=2.8, h=0.44,
+               fontsize=8.8)
+    dead(ax, w, bad)
+    note(ax, 2.1, 1.22, "w -= lr * g   without no_grad", INK, 8.6)
+
+    w2 = node(ax, 0.0, -0.75, "w", "leaf")
+    w3 = node(ax, 3.5, -0.75, "w3", "tensor", w=0.9)
+    nxt = node(ax, 6.6, -0.75, "w3.grad = None", "off", w=3.0, h=0.44,
+               fontsize=8.8)
+    fwd(ax, w2, w3)
+    note(ax, 1.75, -0.38, "w = w - lr * g   a new tensor", INK, 8.6)
+    flag(ax, w3, False, dy=-0.42, name="is_leaf")
+    flag(ax, w3, True, dy=-0.72, name="requires_grad")
+    dead(ax, w3, nxt)
+    note(ax, 5.1, -0.38, "second backward", ACCENT, 8.4)
+
+    note(ax, 3.2, -1.96,
+         "it passes, and then there is no second step - a leaf is the only "
+         "thing that collects a gradient",
+         ACCENT, 8.8)
+    note(ax, 3.2, -2.32,
+         "which is why the update has to be in place, and in place needs "
+         "no_grad",
+         INK, 8.6)
+
+    frame(ax, (-1.2, 9.4), (-2.6, 1.6))
+    save(fig, "new_tensor_breaks_the_leaf")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -1342,6 +1413,9 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 11_optimizer_like_updates
+    "three_optimizers": fig_three_optimizers,
+    "new_tensor_breaks_the_leaf": fig_new_tensor_breaks_the_leaf,
     # 10_with_torch_no_grad
     "no_grad_scope": fig_no_grad_scope,
     "what_is_blocked": fig_what_is_blocked,
