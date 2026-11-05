@@ -154,6 +154,24 @@ def bwd(ax, a, b, label=None, drop=0.56, lw=1.3):
                 fontsize=8.2, family=MONO, color=ACCENT)
 
 
+def loopback(ax, a, b, drop=0.42, color=None, label=None):
+    """a 의 아래로 내려가 b 의 아래로 돌아오는 화살표 — 「한 바퀴」를 보인다.
+
+    곡선 화살표로 바로 이으면 사이에 놓인 칸들을 가로지른다. 줄 아래로
+    빼내어 ㄷ 자로 돌린다.
+    """
+    c = color or INK
+    y = min(a.y - a.h / 2, b.y - b.h / 2) - drop
+    ax.plot([a.x, a.x], [a.y - a.h / 2, y], color=c, lw=1.0,
+            linestyle=(0, (3, 2)), zorder=1)
+    ax.plot([a.x, b.x], [y, y], color=c, lw=1.0, linestyle=(0, (3, 2)),
+            zorder=1)
+    _arrow(ax, (b.x, y), (b.x, b.y - b.h / 2), c, (0, (3, 2)), 1.0)
+    if label:
+        ax.text((a.x + b.x) / 2, y - 0.1, label, ha="center", va="top",
+                fontsize=8.2, color=c)
+
+
 def badge(ax, n, text, got, dy=-0.52, fontsize=8.5):
     """그 텐서가 .grad 를 받았는가. 받으면 채운 칸, 못 받으면 파선 칸."""
     w = max(0.8, 0.118 * len(text) + 0.3)
@@ -564,6 +582,123 @@ def fig_retain_graph_chain():
 
 
 # ============================================================================
+# 04_mini_training_step — 다섯 걸음의 차례
+# ============================================================================
+
+def fig_training_loop_order():
+    """지우기가 역전파 **앞**에 와야 하는 까닭 — 3절.
+
+    뒤에 두면 오류도 안 나고 로스도 계산된다. 모델만 안 움직인다.
+    """
+    fig, ax = plt.subplots(figsize=(7.8, 3.4))
+
+    for yy, steps, tail, tk, cut_at in [
+        (0.6, ["forward", "loss", "zero_grad()", "backward()", "update"],
+         "w = +0.654094", "ok", None),
+        (-1.3, ["forward", "loss", "backward()", "zero_grad()", "update"],
+         "w = +1.540996", "off", 3),
+    ]:
+        ns = row(ax, 0.0, yy, [(s, "op" if "(" in s else "tensor")
+                               for s in steps], gap=0.46, h=0.44,
+                 fontsize=8.8)
+        for i, (a, b) in enumerate(zip(ns, ns[1:])):
+            if cut_at is not None and i == cut_at:
+                dead(ax, a, b)
+            else:
+                fwd(ax, a, b, lw=1.1)
+        t = node(ax, ns[-1].right[0] + 2.0, yy, tail, tk, w=2.6, h=0.44,
+                 fontsize=8.8)
+        _arrow(ax, ns[-1].right, t.left, ACCENT if tk == "ok" else GRAY,
+               "solid" if tk == "ok" else (0, (3, 2)), 1.2)
+
+        loopback(ax, ns[-1], ns[0], drop=0.34, label="next step")
+
+    note(ax, 4.6, 1.3, "zero before the sweep - the usual order", ACCENT, 8.8)
+    note(ax, 4.6, -0.72, "zero after the sweep - nothing is wrong at runtime",
+         GRAY, 8.8)
+    note(ax, 4.6, -2.72,
+         "the second loop raises nothing and prints a loss every step; "
+         "w simply never leaves its starting value", ACCENT, 8.8)
+
+    frame(ax, (-0.6, 13.0), (-3.0, 1.6))
+    save(fig, "training_loop_order")
+
+
+def fig_no_grad_update():
+    """갱신은 학습 바깥의 일이라 그래프에 적지 않는다 — 4절."""
+    fig, ax = plt.subplots(figsize=(7.6, 3.2))
+
+    w = node(ax, 0.0, 0.75, "w", "leaf")
+    f = node(ax, 1.9, 0.75, "forward", "op", w=1.6)
+    L = node(ax, 4.0, 0.75, "loss", "tensor")
+    fwd(ax, w, f)
+    fwd(ax, f, L)
+    region(ax, [w, f, L], "recorded on the graph", color=INK)
+
+    # 갱신 칸을 w 바로 아래에 두어, 되돌려 쓰는 화살표가 곧게 서게 한다.
+    u = node(ax, 0.0, -1.15, "w -= lr * w.grad", "op", w=3.0, h=0.42,
+             fontsize=9.0)
+    g = node(ax, 4.0, -1.15, "w.grad", "ok", w=1.5, h=0.42, fontsize=9.0)
+    _arrow(ax, g.left, u.right, ACCENT, "solid", 1.2)
+    region(ax, [u, g], "with torch.no_grad():  -  deliberately not recorded",
+           color=ACCENT, below=True, size=8.6)
+
+    _arrow(ax, L.bottom, g.top, ACCENT, (0, (4, 2)), 1.2)
+    note(ax, 4.75, -0.2, "backward", ACCENT, 8.4, ha="left")
+
+    _arrow(ax, u.top, w.bottom, INK, "solid", 1.2)
+    note(ax, 0.18, -0.2, "writes into w", INK, 8.4, ha="left")
+
+    note(ax, 6.3, 0.75, "the model's own computation", INK, 8.6, ha="left")
+    note(ax, 6.3, -1.15, "what we do about it", ACCENT, 8.6, ha="left")
+
+    note(ax, 2.0, -2.35,
+         "drop the no_grad and torch refuses: a leaf Variable that requires "
+         "grad", INK, 8.6)
+    note(ax, 2.0, -2.68,
+         "is being used in an in-place operation", INK, 8.6)
+
+    frame(ax, (-2.0, 10.4), (-3.0, 1.6))
+    save(fig, "no_grad_update")
+
+
+def fig_three_steps():
+    """세 걸음이 간 거리 — 2절. 줄어들기는 하지만 아직 멀다."""
+    fig, ax = plt.subplots(figsize=(7.4, 2.1))
+
+    ws = [1.540996, 1.202197, 0.908600, 0.654094]
+    target = -1.0
+
+    ax.annotate("", xy=(1.95, 0), xytext=(-1.35, 0),
+                arrowprops=dict(arrowstyle="-", color=INK, lw=1.0))
+    for v in (-1, 0, 1):
+        ax.plot([v, v], [-0.06, 0.06], color=INK, lw=1.0)
+        ax.text(v, -0.1, f"{v}", ha="center", va="top", fontsize=8.0,
+                family=MONO, color=GRAY)
+
+    ax.plot([target], [0], marker="o", ms=8, color=ACCENT, zorder=5)
+    ax.text(target, 0.26, "target  w = -1", ha="center", va="bottom",
+            fontsize=8.8, color=ACCENT)
+
+    for i, v in enumerate(ws):
+        ax.plot([v], [0], marker="|", ms=14, color=INK, lw=1.6, zorder=4)
+        ax.text(v, -0.54 if i % 2 else -0.84, f"{v:.4f}", ha="center",
+                va="center", fontsize=8.0, family=MONO, color=INK)
+        ax.text(v, 0.12, f"{i}", ha="center", va="bottom", fontsize=8.0,
+                color=GRAY)
+    for a, b in zip(ws, ws[1:]):
+        _arrow(ax, (a, 0.52), (b, 0.52), ACCENT, "solid", 1.2)
+
+    moved, need = ws[0] - ws[-1], ws[0] - target
+    note(ax, 0.3, 1.0,
+         f"three steps moved {moved:.4f} of the {need:.4f} it has to cover "
+         f"- {100 * moved / need:.0f}%", ACCENT, 8.8)
+
+    frame(ax, (-1.6, 2.2), (-1.12, 1.3))
+    save(fig, "three_steps")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -615,6 +750,10 @@ FIGURES = {
     "four_attributes": fig_four_attributes,
     "leaf_vs_nonleaf": fig_leaf_vs_nonleaf,
     "retain_grad_timing": fig_retain_grad_timing,
+    # 04_mini_training_step
+    "training_loop_order": fig_training_loop_order,
+    "no_grad_update": fig_no_grad_update,
+    "three_steps": fig_three_steps,
     # 03_retain_graph
     "saved_buffers": fig_saved_buffers,
     "retain_graph_vs_zero_grad": fig_retain_graph_vs_zero_grad,
