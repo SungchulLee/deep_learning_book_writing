@@ -1508,6 +1508,44 @@ def fig_batchnorm_buffers():
 
 
 # ============================================================================
+# 14_layer_naming_with_ordereddict — 번호는 밀리고 이름은 안 밀린다
+# ============================================================================
+
+def fig_numbers_shift():
+    """층 하나를 끼우면 번호 키가 전부 밀린다 — 2절."""
+    fig, ax = plt.subplots(figsize=(7.8, 3.2))
+
+    for yc, title, before, after, ak, verdict, vk in [
+        (0.9, "numbered", "0.weight\n2.weight", "0.weight\n3.weight", "off",
+         "Missing  3.weight\nUnexpected  2.weight", "off"),
+        (-1.3, "named", "encoder.weight\nhead.weight",
+         "encoder.weight\nhead.weight", "ok", "loads", "ok"),
+    ]:
+        ax.text(-1.5, yc, title, ha="right", va="center", fontsize=9.4,
+                family=MONO, color=INK)
+        b = node(ax, 0.0, yc, before, "tensor", w=2.9, h=0.78, fontsize=8.6)
+        a = node(ax, 4.0, yc, after, ak, w=2.9, h=0.78, fontsize=8.6)
+        _arrow(ax, b.right, a.left, INK, "solid", 1.2)
+        v = node(ax, 8.6, yc, verdict, vk, w=4.0, h=0.78, fontsize=8.6)
+        _arrow(ax, a.right, v.left, ACCENT if vk == "ok" else GRAY,
+               "solid" if vk == "ok" else (0, (3, 2)), 1.2)
+
+    note(ax, 2.0, 1.72, "a layer is inserted in the middle", INK, 8.8)
+    note(ax, 8.6, 1.72, "loading the old checkpoint", INK, 8.8)
+
+    note(ax, 3.6, -2.28,
+         "the numbers are positions, so inserting anything renames every key "
+         "after it",
+         ACCENT, 8.8)
+    note(ax, 3.6, -2.62,
+         "the names are names - they do not move",
+         INK, 8.6)
+
+    frame(ax, (-3.8, 11.0), (-2.9, 2.05))
+    save(fig, "numbers_shift")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -1562,6 +1600,8 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 14_layer_naming_with_ordereddict
+    "numbers_shift": fig_numbers_shift,
     # 13_print_layers
     "params_vs_buffers": fig_params_vs_buffers,
     "batchnorm_buffers": fig_batchnorm_buffers,
