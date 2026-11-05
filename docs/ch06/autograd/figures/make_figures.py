@@ -77,6 +77,8 @@ KINDS = {
     "op": dict(fc="none", ec=ACCENT, lw=1.0, ls="solid", tc=ACCENT),
     # 따라가지 않는 것 — requires_grad=False, no_grad, detach 뒤.
     "off": dict(fc="none", ec=GRAY, lw=1.0, ls=(0, (3, 2)), tc=GRAY),
+    # 바라던 것 — badge 의 받은 꼴과 같은 칠이다.
+    "ok": dict(fc=GOT_FILL, ec=ACCENT, lw=1.2, ls="solid", tc=ACCENT),
 }
 
 
@@ -127,7 +129,9 @@ def fwd(ax, a, b, label=None, lw=1.3):
 def dead(ax, a, b):
     """끊긴 자리 — 파선 화살표에 x 표를 얹는다."""
     _arrow(ax, a.right, b.left, GRAY, (0, (3, 2)), 1.1)
-    mx, my = (a.x + b.x) / 2, a.y
+    # 칸 중심이 아니라 **변**의 중점에 찍는다. 너비가 다른 두 칸 사이에서
+    # 중심의 중점을 쓰면 x 표가 화살표 가운데를 벗어난다.
+    mx, my = (a.right[0] + b.left[0]) / 2, a.y
     for dx, dy in ((-1, -1), (-1, 1)):
         ax.plot([mx - 0.07 * dx, mx + 0.07 * dx],
                 [my - 0.07 * dy, my + 0.07 * dy],
@@ -300,6 +304,141 @@ def fig_retain_grad_timing():
 
 
 # ============================================================================
+# 02_gradient_accumulation — 그릇, 쪼개기, 지우는 두 길, 그리고 반대인 격자
+# ============================================================================
+
+def fig_grad_is_a_bucket():
+    """`.grad` 는 덮어쓰는 칸이 아니라 더해 담는 그릇이다 — 2절."""
+    fig, ax = plt.subplots(figsize=(7.8, 2.0))
+
+    b0 = node(ax, 0.6, 0.0, "None", "off", w=1.1)
+    b1 = node(ax, 3.5, 0.0, "4.0", "ok", w=1.1)
+    b2 = node(ax, 6.4, 0.0, "7.0", "ok", w=1.1)
+    for a, b, call, add in ((b0, b1, "loss1.backward()", "+ 2x = 4"),
+                            (b1, b2, "loss2.backward()", "+ 3")):
+        _arrow(ax, a.right, b.left, ACCENT, "solid", 1.3)
+        note(ax, (a.x + b.x) / 2, 0.26, call, INK, 8.4)
+        note(ax, (a.x + b.x) / 2, -0.28, add, ACCENT, 8.4)
+
+    note(ax, -0.35, 0.0, "x.grad", INK, 9.0, ha="right")
+    note(ax, 3.5, -0.72,
+         "the second sweep does not erase the first - it adds to it",
+         ACCENT, 8.8)
+
+    frame(ax, (-1.6, 7.3), (-0.95, 0.5))
+    save(fig, "grad_is_a_bucket")
+
+
+def fig_micro_batching():
+    """40개 한 번과 10개씩 네 번이 같아지는 조건 — 4절.
+
+    mean 로스에서 /k 를 빼면 정확히 k 배가 된다. 그 빠진 칸을 그림에 둔다.
+    """
+    fig, ax = plt.subplots(figsize=(7.8, 3.8))
+
+    g = "[0.582795, 0.494237, -1.425693]"
+    XB, XG, YB = 5.0, 8.6, -0.275          # backward 칸, grad 칸, 아래 묶음의 가운데
+
+    one = node(ax, 1.2, 1.2, "40 samples", "tensor", w=1.9)
+    bw1 = node(ax, XB, 1.2, "backward()", "op", w=1.7)
+    gr1 = node(ax, XG, 1.2, g, "ok", w=4.2, fontsize=8.4)
+    fwd(ax, one, bw1)
+    _arrow(ax, bw1.right, gr1.left, ACCENT, "solid", 1.3)
+    note(ax, 0.1, 1.2, "one batch", INK, 8.8, ha="right")
+
+    bw2 = node(ax, XB, YB, "backward()", "op", w=1.7)
+    for yy in (0.25, -0.1, -0.45, -0.8):
+        m = node(ax, 1.2, yy, "10", "tensor", w=0.8, h=0.27, fontsize=8.2)
+        k = node(ax, 2.9, yy, "/ 4", "ok", w=0.7, h=0.27, fontsize=8.2)
+        _arrow(ax, m.right, k.left, INK, "solid", 1.0)
+        _arrow(ax, k.right, bw2.left, ACCENT, "solid", 1.0)
+    gr2 = node(ax, XG, YB, g, "ok", w=4.2, fontsize=8.4)
+    _arrow(ax, bw2.right, gr2.left, ACCENT, "solid", 1.3)
+    note(ax, 0.1, YB, "four batches", INK, 8.8, ha="right")
+
+    note(ax, 11.05, 0.46, "same", ACCENT, 9.5)
+    for yy in (0.68, 0.24):
+        ax.plot([10.8, 11.3], [yy, yy], color=ACCENT, lw=1.1)
+
+    node(ax, 2.9, -1.52, "/ 4", "off", w=0.7, h=0.27, fontsize=8.2)
+    note(ax, 2.35, -1.52, "drop it", GRAY, 8.6, ha="right")
+    note(ax, 6.8, -1.52, "and the gradient comes out k = 4 times too large",
+         GRAY, 8.6)
+
+    note(ax, 5.1, -2.08,
+         "sum loss needs no divider; mean loss does - this is the trap",
+         ACCENT, 8.8)
+
+    frame(ax, (-1.7, 12.0), (-2.4, 1.6))
+    save(fig, "micro_batching")
+
+
+def fig_zero_vs_none():
+    """지우는 두 길이 걸음을 다르게 만든다 — 3절."""
+    fig, ax = plt.subplots(figsize=(7.8, 2.4))
+
+    # 회색은 이 절 내내 "아무것도 흐르지 않는다"는 뜻이다. 여기서 아무것도
+    # 흐르지 않는 쪽은 None 이고, 그것이 파이토치 2.0 의 기본값이다.
+    for yy, start, cut, verdict, tail in [
+        (0.0, "p.grad = None", True, "step() is handed nothing and skips it",
+         "-0.021486, +0.282214, -0.422172"),
+        (-1.2, "p.grad = 0", False,
+         "step() reads 'move by 0' - momentum keeps pushing",
+         "-0.036934, +0.257463, -0.374460"),
+    ]:
+        a = node(ax, 1.15, yy, start, "off" if cut else "tensor", w=2.3)
+        b = node(ax, 4.2, yy, "step()", "op", w=1.3)
+        c = node(ax, 7.4, yy, tail, "tensor", w=4.4, fontsize=8.2)
+        if cut:
+            dead(ax, a, b)
+        else:
+            fwd(ax, a, b)
+        _arrow(ax, b.right, c.left, ACCENT, "solid", 1.2)
+        note(ax, 4.2, yy + 0.42, verdict, GRAY if cut else ACCENT, 8.4)
+
+    note(ax, 5.0, -1.82,
+         "one empty step apart, with momentum on: the two differ by 0.047712",
+         INK, 8.8)
+    note(ax, 5.0, -2.18,
+         "pytorch 2.0 made the upper row the default - an erased gradient "
+         "should mean 'nothing to say'", ACCENT, 8.6)
+
+    frame(ax, (-0.3, 9.9), (-2.45, 0.68))
+    save(fig, "zero_vs_none")
+
+
+def fig_mean_sum_grid():
+    """나누어야 하는가 — mean 과 sum 이 정확히 반대다 (연습문제 2)."""
+    fig, ax = plt.subplots(figsize=(6.4, 2.7))
+
+    cells = [  # (행, 열, 배수, 맞는가)
+        (0, 0, "x 4.0", False), (0, 1, "x 1.0", True),
+        (1, 0, "x 1.0", True), (1, 1, "x 0.25", False),
+    ]
+    cx = [1.55, 3.6]
+    cy = [0.55, -0.35]
+    for r, c, txt, ok in cells:
+        node(ax, cx[c], cy[r], txt, "ok" if ok else "off", w=1.6, h=0.58,
+             fontsize=10)
+
+    for c, lab in enumerate(["no divider", "divide by k"]):
+        note(ax, cx[c], 1.18, lab, INK, 9.0)
+    for r, lab in enumerate(['reduction="mean"', 'reduction="sum"']):
+        ax.text(0.55, cy[r], lab, ha="right", va="center", fontsize=9.0,
+                family=MONO, color=INK)
+
+    note(ax, 2.55, -1.02,
+         "mean needs the divider and sum must not have it - exact opposites",
+         ACCENT, 8.8)
+    note(ax, 2.55, -1.42,
+         "pytorch defaults to mean, so in practice you almost always divide",
+         INK, 8.6)
+
+    frame(ax, (-1.8, 4.7), (-1.65, 1.45))
+    save(fig, "mean_sum_grid")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -347,9 +486,16 @@ def make_linnainmaa():
 # ============================================================================
 
 FIGURES = {
+    # 01_basic_scalar_backward
     "four_attributes": fig_four_attributes,
     "leaf_vs_nonleaf": fig_leaf_vs_nonleaf,
     "retain_grad_timing": fig_retain_grad_timing,
+    # 02_gradient_accumulation
+    "grad_is_a_bucket": fig_grad_is_a_bucket,
+    "micro_batching": fig_micro_batching,
+    "zero_vs_none": fig_zero_vs_none,
+    "mean_sum_grid": fig_mean_sum_grid,
+    # 그림으로 보는 AI 6
     "linnainmaa_1970": make_linnainmaa,
 }
 
