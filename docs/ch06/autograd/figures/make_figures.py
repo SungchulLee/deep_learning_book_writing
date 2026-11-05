@@ -1195,6 +1195,99 @@ def fig_detach_trap():
 
 
 # ============================================================================
+# 10_with_torch_no_grad — 끄는 것은 역전파가 아니라 기록이다
+# ============================================================================
+
+def fig_no_grad_scope():
+    """범위는 텐서가 아니라 코드 블록이다 — 2절."""
+    fig, ax = plt.subplots(figsize=(7.6, 2.6))
+
+    a = node(ax, 0.9, 0.55, "a = x * 2", "tensor", w=2.1, h=0.44,
+             fontsize=8.8)
+    b = node(ax, 4.4, 0.55, "b = x * 2", "off", w=2.1, h=0.44, fontsize=8.8)
+    c = node(ax, 7.9, 0.55, "c = x * 2", "tensor", w=2.1, h=0.44,
+             fontsize=8.8)
+    for n, v in ((a, True), (b, False), (c, True)):
+        flag(ax, n, v, dy=-0.4)
+
+    region(ax, [b], "with torch.no_grad():", color=ACCENT, pad=0.72,
+           size=9.0)
+
+    # 깃발은 블록을 가로질러 그대로다 — 그래서 선을 블록 너머까지 긋는다.
+    ax.plot([-0.5, 9.3], [-1.35, -1.35], color=ACCENT, lw=1.4)
+    for x in (-0.5, 9.3):
+        ax.plot([x, x], [-1.45, -1.25], color=ACCENT, lw=1.4)
+    note(ax, 4.4, -1.62, "w.requires_grad = True, the whole way across",
+         ACCENT, 8.8)
+
+    note(ax, 4.4, 2.08, "the block governs what is made, not what exists",
+         INK, 8.8)
+
+    frame(ax, (-1.3, 10.1), (-2.0, 2.4))
+    save(fig, "no_grad_scope")
+
+
+def fig_what_is_blocked():
+    """막히는 것은 그래프 **세우기**지 걷기가 아니다 — 3절."""
+    fig, ax = plt.subplots(figsize=(7.6, 2.9))
+
+    for yc, where, kind, call, res, rk in [
+        (0.7, "graph built outside", "tensor",
+         "backward() called inside", "[2.0, 2.0]", "ok"),
+        (-1.2, "graph built inside", "off",
+         "backward() on it", "does not require grad", "off"),
+    ]:
+        g = node(ax, 0.0, yc, where, kind, w=3.4, h=0.44, fontsize=8.8)
+        r = node(ax, 5.6, yc, res, rk, w=3.4, h=0.44, fontsize=8.8)
+        if rk == "ok":
+            _arrow(ax, g.right, r.left, ACCENT, "solid", 1.2)
+        else:
+            dead(ax, g, r)
+        note(ax, 2.8, yc + 0.32, call, INK, 8.4)
+
+    note(ax, 2.8, -2.1,
+         "what no_grad stops is the building; walking a graph that already "
+         "exists is fine",
+         ACCENT, 8.8)
+
+    frame(ax, (-2.0, 7.6), (-2.45, 1.45))
+    save(fig, "what_is_blocked")
+
+
+def fig_eval_vs_no_grad():
+    """eval() 은 무엇을 셈할지, no_grad 는 기록할지 — 5절. 서로 다른 손잡이다."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.8, 2.6))
+
+    note(ax1, 1.4, 1.5, "eval() decides what is computed", INK, 9.0)
+    for i, (lab, res, k) in enumerate([("train() + no_grad", "False", "off"),
+                                       ("eval()  + no_grad", "True", "ok")]):
+        y = 0.55 - 1.0 * i
+        ax1.text(-0.35, y, lab, ha="right", va="center", fontsize=8.8,
+                 family=MONO, color=INK)
+        node(ax1, 1.6, y, res, k, w=1.3, h=0.42, fontsize=9.0)
+    note(ax1, 1.4, -1.25, "two runs give the same numbers?", INK, 8.4)
+    note(ax1, 1.4, -1.6, "dropout is still on in train()", GRAY, 8.2)
+    frame(ax1, (-3.4, 3.1), (-1.95, 1.85))
+
+    note(ax2, 1.4, 1.5, "no_grad decides whether it is recorded", ACCENT, 9.0)
+    for i, (lab, res, k) in enumerate([("eval()  + no_grad", "None", "off"),
+                                       ("eval()  alone",
+                                        "AddmmBackward0", "tensor")]):
+        y = 0.55 - 1.0 * i
+        ax2.text(-0.35, y, lab, ha="right", va="center", fontsize=8.8,
+                 family=MONO, color=INK)
+        node(ax2, 2.1, y, res, k, w=2.6, h=0.42, fontsize=8.6)
+    note(ax2, 1.6, -1.25, "grad_fn on the output", INK, 8.4)
+    note(ax2, 1.6, -1.6, "eval() alone still holds a graph", GRAY, 8.2)
+    frame(ax2, (-3.4, 4.2), (-1.95, 1.85))
+
+    save(fig, "eval_vs_no_grad",
+         foot="two switches, two different jobs - an evaluation loop wants "
+              "both",
+         foot_color=ACCENT, foot_size=8.6, rect=0.07)
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -1249,6 +1342,10 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 10_with_torch_no_grad
+    "no_grad_scope": fig_no_grad_scope,
+    "what_is_blocked": fig_what_is_blocked,
+    "eval_vs_no_grad": fig_eval_vs_no_grad,
     # 09_detach_vs_detach_
     "detach_trap": fig_detach_trap,
     # 08_turn_off_gradient_tracking
