@@ -1793,6 +1793,63 @@ def fig_checklist_matrix():
 
 
 # ============================================================================
+# 18_three_ways_to_zero_gradients — 지우는 **범위**가 다르다
+# ============================================================================
+
+def fig_zero_grad_scope():
+    """`opt.zero_grad()` 는 옵티마이저가 든 것만 지운다 — 1·2절.
+
+    None 과 0 의 차이는 「경사 누적」 쪽의 zero_vs_none 그림이 같은 실험으로
+    이미 그렸다. 여기서는 겹쳐 그리지 않고 **범위**만 본다.
+    """
+    fig, ax = plt.subplots(figsize=(7.8, 3.3))
+
+    names = ["0.weight", "0.bias", "2.weight", "2.bias"]
+    xs = [0.0 + 2.1 * i for i in range(4)]
+    for x, n in zip(xs, names):
+        ax.text(x, 1.5, n, ha="center", va="center", fontsize=8.8,
+                family=MONO, color=INK)
+    note(ax, 3.15, 2.0, "the optimizer was given only the last two",
+         ACCENT, 8.8)
+
+    rows = [
+        ("after backward", [True, True, True, True]),
+        ("opt.zero_grad()", [True, True, False, False]),
+        ("model.zero_grad()", [False, False, False, False]),
+    ]
+    for i, (lab, has) in enumerate(rows):
+        y = 0.85 - 0.8 * i
+        ax.text(-1.4, y, lab, ha="right", va="center", fontsize=8.8,
+                family=MONO, color=INK)
+        for x, h in zip(xs, has):
+            node(ax, x, y, "grad" if h else "None", "ok" if h else "off",
+                 w=1.4, h=0.42, fontsize=8.4)
+
+    # 안 지워진 둘이 걸음마다 쌓인다.
+    ax.add_patch(FancyBboxPatch((xs[0] - 1.0, 0.05 - 0.3), 3.3, 0.6,
+                                boxstyle="round,pad=0.02", fc="none",
+                                ec=ACCENT, lw=1.0, linestyle=(0, (4, 3)),
+                                zorder=1))
+    # 안 지워진 쌍이 걸음마다 자란다. 윗칸과 아랫줄을 화살표로 잇는다.
+    for i, v in enumerate(["0.218426", "0.436852", "0.655278"]):
+        node(ax, 0.0 + 2.1 * i, -1.75, v, "tensor", w=1.7, h=0.4,
+             fontsize=8.4)
+        note(ax, 0.0 + 2.1 * i, -2.17, f"step {i + 1}", GRAY, 8.0)
+    note(ax, -1.4, -1.75, "the left-behind pair,", INK, 8.8, ha="right")
+    note(ax, -1.4, -2.05, "how big it gets", INK, 8.8, ha="right")
+    _arrow(ax, (-0.6, -0.3), (-0.6, -1.5), ACCENT, (0, (3, 2)), 1.0)
+
+    note(ax, 2.1, -2.55, "1x, 2x, 3x - it keeps adding up", ACCENT, 8.8)
+    note(ax, 3.0, -3.0,
+         "to clear the whole model, ask the model - the optimizer only knows "
+         "what it was handed",
+         ACCENT, 8.8)
+
+    frame(ax, (-5.2, 11.4), (-3.35, 2.35))
+    save(fig, "zero_grad_scope")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -1847,6 +1904,8 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 18_three_ways_to_zero_gradients
+    "zero_grad_scope": fig_zero_grad_scope,
     # 17_pitfalls_and_sanity_checks
     "checklist_matrix": fig_checklist_matrix,
     # 16_freeze_and_unfreeze_parameters
