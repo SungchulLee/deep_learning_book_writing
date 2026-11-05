@@ -1981,6 +1981,139 @@ def fig_remainder_microbatches():
 
 
 # ============================================================================
+# 22_vector_backward_with_v — 야코비를 만들지 않는다
+# ============================================================================
+
+def fig_vjp_not_jacobian():
+    """`backward(v)` 는 v^T J 하나만 낸다 — 야코비는 세워지지 않는다."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.8, 2.9),
+                                   gridspec_kw=dict(width_ratios=[1.3, 1]))
+
+    # --- 왼쪽: 모양으로 본 VJP ---
+    ax1.add_patch(FancyBboxPatch((1.0, -1.6), 2.6, 2.0,
+                                 boxstyle="round,pad=0.02", fc="none",
+                                 ec=GRAY, lw=1.0, linestyle=(0, (4, 3))))
+    ax1.text(2.3, -0.6, "J\nm x n", ha="center", va="center", fontsize=10,
+             family=MONO, color=GRAY)
+    ax1.text(2.3, -1.95, "never built", ha="center", va="center",
+             fontsize=8.4, color=GRAY)
+
+    node(ax1, 2.3, 0.95, "v        1 x m", "ok", w=2.6, h=0.42,
+         fontsize=8.6)
+    node(ax1, 2.3, -2.72, "v J      1 x n", "ok", w=2.6, h=0.42,
+         fontsize=8.6)
+    _arrow(ax1, (0.25, 0.95), (0.25, -2.72), ACCENT, "solid", 1.3)
+    ax1.text(0.05, -0.9, "one sweep", ha="right", va="center", fontsize=8.6,
+             color=ACCENT, rotation=90)
+
+    note(ax1, 2.3, 1.65, "what the engine computes", ACCENT, 9.0)
+    frame(ax1, (-1.6, 4.4), (-3.3, 2.1))
+
+    # --- 오른쪽: 값 ---
+    for i, (lab, v, k) in enumerate([("one VJP", 0.03, "ok"),
+                                     ("the whole Jacobian", 6.32,
+                                      "tensor")]):
+        y = 0.5 - 1.0 * i
+        ax2.text(-0.3, y, lab, ha="right", va="center", fontsize=8.8,
+                 family=MONO, color=INK)
+        node(ax2, 1.9, y, f"{v:.2f} ms", k, w=2.8, h=0.42, fontsize=8.8)
+    note(ax2, 4.0, 0.0, "210x", ACCENT, 10, ha="left")
+    note(ax2, 4.0, -0.4, "for m = 512 outputs", ACCENT, 8.4, ha="left")
+    note(ax2, 1.9, -1.4, "m calls cost less than m times,", GRAY, 8.4)
+    note(ax2, 1.9, -1.73, "but the order of magnitude is the same", GRAY, 8.4)
+    frame(ax2, (-5.6, 9.0), (-2.15, 1.3))
+
+    save(fig, "vjp_not_jacobian",
+         foot="this is why a loss is made scalar - one number out means one "
+              "sweep, and the gradient has the shape of the parameter",
+         foot_color=ACCENT, foot_size=8.4, rect=0.08)
+
+
+# ============================================================================
+# 23_vector_backward_linear_case_1 — 모양이 전치를 강요한다
+# ============================================================================
+
+def fig_transpose_from_shapes():
+    """A 가 아니라 A^T 인 까닭을 모양만으로 — 2절."""
+    fig, ax = plt.subplots(figsize=(7.4, 2.8))
+
+    note(ax, 2.6, 1.72, "A is (4, 3),  v is (4,),  and x.grad must be (3,)",
+         INK, 9.2)
+
+    for i, (expr, shape, k) in enumerate([
+        ("A @ v", "size mismatch", "off"),
+        ("A.t() @ v", "(3,)", "ok"),
+        ("v @ A", "(3,)", "ok"),
+    ]):
+        y = 0.75 - 0.78 * i
+        node(ax, 0.8, y, expr, "op", w=2.3, h=0.44, fontsize=9.0)
+        r = node(ax, 4.4, y, shape, k, w=2.8, h=0.44, fontsize=8.8)
+        if k == "ok":
+            _arrow(ax, (2.0, y), (3.0, y), ACCENT, "solid", 1.2)
+        else:
+            _arrow(ax, (2.0, y), (3.0, y), GRAY, (0, (3, 2)), 1.1)
+
+    note(ax, 7.0, 0.75, "the only shape that", GRAY, 8.4, ha="left")
+    note(ax, 7.0, 0.42, "does not fit", GRAY, 8.4, ha="left")
+    note(ax, 7.0, -0.4, "both work, and they", ACCENT, 8.4, ha="left")
+    note(ax, 7.0, -0.73, "give the same numbers", ACCENT, 8.4, ha="left")
+
+    note(ax, 3.4, -1.75,
+         "the gradient has to come back shaped like x, and only one "
+         "arrangement of A does that",
+         ACCENT, 8.8)
+
+    frame(ax, (-0.8, 12.6), (-2.1, 2.1))
+    save(fig, "transpose_from_shapes")
+
+
+# ============================================================================
+# 24_vector_backward_linear_case_2 — 조용히 무는 자리
+# ============================================================================
+
+def fig_silent_broadcast():
+    """(8,1) 과 (8,) 을 견주면 (8,8) 이 된다 — 5절. 경고만 뜬다."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.8, 3.1),
+                                   gridspec_kw=dict(width_ratios=[1, 1.15]))
+
+    # --- 왼쪽: 8x8 로 퍼진다 ---
+    for r in range(8):
+        for c in range(8):
+            on = r == c
+            ax1.add_patch(FancyBboxPatch((c * 0.42, -r * 0.42), 0.36, 0.36,
+                                         boxstyle="round,pad=0.01",
+                                         fc=GOT_FILL if on else "none",
+                                         ec=ACCENT if on else "#d8dcdf",
+                                         lw=1.1 if on else 0.8))
+    note(ax1, 1.58, 0.72, "pred (8, 1)  vs  target (8,)", INK, 8.8)
+    note(ax1, 1.58, -3.42, "8 pairs you meant", ACCENT, 8.6)
+    note(ax1, 1.58, -3.75, "56 you did not", GRAY, 8.6)
+    frame(ax1, (-0.6, 3.8), (-4.1, 1.1))
+
+    # --- 오른쪽: 그래서 수가 달라진다 ---
+    for i, (lab, loss, g, k) in enumerate([
+        ("(8,1) vs (8,1)", "2.094649", "[ 0.56506,  0.02748, -0.39554]",
+         "ok"),
+        ("(8,1) vs (8,)", "1.850731", "[ 0.45530, -0.00330, -0.47464]",
+         "off"),
+    ]):
+        y = 0.6 - 1.25 * i
+        ax2.text(-0.3, y + 0.3, lab, ha="left", va="center", fontsize=8.8,
+                 family=MONO, color=INK)
+        node(ax2, 1.3, y - 0.18, loss, k, w=2.2, h=0.4, fontsize=8.6)
+        node(ax2, 5.4, y - 0.18, g, k, w=5.4, h=0.4, fontsize=8.2)
+    note(ax2, 1.3, 1.22, "loss", INK, 8.6)
+    note(ax2, 5.4, 1.22, "gradient", INK, 8.6)
+    note(ax2, 3.6, -1.8, "a warning is printed, and nothing is raised",
+         ACCENT, 8.8)
+    note(ax2, 3.6, -2.14, "silence the warning and there is no sign at all",
+         GRAY, 8.6)
+    frame(ax2, (-0.6, 8.4), (-2.45, 1.6))
+
+    save(fig, "silent_broadcast")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -2035,6 +2168,12 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # 22_vector_backward_with_v
+    "vjp_not_jacobian": fig_vjp_not_jacobian,
+    # 23_vector_backward_linear_case_1
+    "transpose_from_shapes": fig_transpose_from_shapes,
+    # 24_vector_backward_linear_case_2
+    "silent_broadcast": fig_silent_broadcast,
     # 19_gradient_accumulation_for_large_batches
     "accumulation_tradeoff": fig_accumulation_tradeoff,
     # 20_why_gradient_scaling_matters
