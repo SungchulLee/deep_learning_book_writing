@@ -81,6 +81,111 @@ $$
 
     $L-1$개까지 성립한다고 하면 $g = f_{L-1}\circ\cdots\circ f_1$에 대해 $J_g = J_{L-1}\cdots J_1$이고, 위의 두 겹 결과를 $f_L$과 $g$에 쓰면 $J = J_L J_g = J_L J_{L-1} \cdots J_1$이다. $\square$
 
+<div class="exbox" markdown>
+
+**보기 1.** <span class="diff easy" title="쉬움"></span> 두 겹을 손으로 끝까지 따라간다
+
+$f_\theta(x) = \theta x + 1$과 $f_\varphi(h) = \varphi h + 1$을 이어 붙인다. 지금 $\theta = 2$, $\varphi = 6$이고 입력은 $x = 3$, 맞혀야 할 값은 $40$이다. 로스는 제곱오차, 러닝레이트는 $0.001$로 둔다.
+
+$\partial \ell / \partial \theta$와 $\partial \ell / \partial \varphi$를 연쇄 법칙으로 구하고, 한 걸음 걸은 뒤 로스가 얼마가 되는지까지 적어라.
+
+</div>
+
+??? success "풀이"
+    **순전파.** 두 층을 차례로 지난다.
+
+    $$
+    h = 2 \cdot 3 + 1 = 7, \qquad x_2 = 6 \cdot 7 + 1 = 43, \qquad
+    \ell = (43 - 40)^2 = 9
+    $$
+
+    **역전파.** 끝에서 시작해 거꾸로 곱해 온다. 각 칸은 **그 자리의 값**으로 잰다.
+
+    | 어디까지 왔는가 | 무엇을 곱하는가 | 쌓인 값 |
+    |---|---|---|
+    | $\partial \ell / \partial x_2$ | $2(x_2 - 40)$ | $6$ |
+    | $\partial \ell / \partial \varphi$ | $\times\, h = 7$ | $\mathbf{42}$ |
+    | $\partial \ell / \partial h$ | $\times\, \varphi = 6$ | $36$ |
+    | $\partial \ell / \partial \theta$ | $\times\, x = 3$ | $\mathbf{108}$ |
+
+    둘째 줄과 넷째 줄이 갈라지는 자리를 보라. $\varphi$로 가는 길은 **거기서 끝나고**, $\theta$로 가는 길은 $h$를 한 번 더 지난다. 정리 1이 말하는 곱의 사슬이 이 표다.
+
+    곱하는 값이 모두 **순전파 때 지나간 수**라는 점도 눈여겨볼 만하다. $h = 7$도 $\varphi = 6$도 $x = 3$도 앞으로 갈 때 이미 손에 있던 것이고, 그래서 역전파가 그 값들을 들고 있어야 한다. 「계산 그래프 재사용」이 말한 **저장된 중간값**이 이것이다.
+
+    **한 걸음.** $\lambda = 0.001$로 빼면
+
+    $$
+    \theta \leftarrow 2 - 0.001 \times 108 = 1.892, \qquad
+    \varphi \leftarrow 6 - 0.001 \times 42 = 5.958
+    $$
+
+    **다시 통과시키면** $h = 1.892 \cdot 3 + 1 = 6.676$이고 $x_2 = 5.958 \cdot 6.676 + 1 = 40.775608$이므로 $\ell = 0.601568$이다. 9에서 0.6으로 내려갔다.
+
+손으로 센 것을 파이토치에게 물어본다. 함수값만 두 번 재는 **유한차분**으로도 한 번 더 받는다.
+
+```python
+import torch
+
+# 손으로 센 보기를 그대로 — f_t(x) = t*x + 1, f_p(h) = p*h + 1
+t = torch.tensor(2.0, requires_grad=True)
+p = torch.tensor(6.0, requires_grad=True)
+x, target, lr = 3.0, 40.0, 1e-3
+
+h = t * x + 1
+x2 = p * h + 1
+loss = (x2 - target) ** 2
+loss.backward()
+
+print(f"  순전파   h = {h.item():.3f}   x2 = {x2.item():.3f}   loss = {loss.item():.3f}")
+print(f"  autograd dl/dt = {t.grad.item():.3f}   dl/dp = {p.grad.item():.3f}")
+print(f"  손으로   dl/dt = {2*(43-40)*6*3:.3f}   dl/dp = {2*(43-40)*7:.3f}")
+
+# 유한차분으로 한 번 더 — 미는 폭을 바꿔 가며
+def loss_at(tv, pv):
+    return ((pv * (tv * x + 1) + 1) - target) ** 2
+
+print("  유한차분 [l(t+e) - l(t-e)] / 2e")
+for e in (1e-1, 1e-3, 1e-5):
+    g = (loss_at(2.0 + e, 6.0) - loss_at(2.0 - e, 6.0)) / (2 * e)
+    print(f"    e = {e:<7} dl/dt = {g:11.6f}   어긋남 {abs(g - 108):.2e}")
+
+with torch.no_grad():
+    t -= lr * t.grad
+    p -= lr * p.grad
+print(f"  한 걸음  t = {t.item():.3f}   p = {p.item():.3f}")
+
+with torch.no_grad():
+    h2 = t * x + 1
+    new = (p * h2 + 1 - target) ** 2
+print(f"  다시     h = {h2.item():.3f}   x2 = {(p*h2+1).item():.6f}   "
+      f"loss = {new.item():.6f}")
+print(f"  로스가 {loss.item():.3f} 에서 {new.item():.6f} 으로 내려갔다")
+```
+
+**출력:**
+
+```
+  순전파   h = 7.000   x2 = 43.000   loss = 9.000
+  autograd dl/dt = 108.000   dl/dp = 42.000
+  손으로   dl/dt = 108.000   dl/dp = 42.000
+  유한차분 [l(t+e) - l(t-e)] / 2e
+    e = 0.1     dl/dt =  108.000000   어긋남 2.56e-13
+    e = 0.001   dl/dt =  108.000000   어긋남 4.09e-12
+    e = 1e-05   dl/dt =  108.000000   어긋남 1.75e-10
+  한 걸음  t = 1.892   p = 5.958
+  다시     h = 6.676   x2 = 40.775608   loss = 0.601568
+  로스가 9.000 에서 0.601568 으로 내려갔다
+```
+
+**세 길이 같은 수를 준다.** 연쇄 법칙으로 손계산한 108과 42, `backward()`가 채운 `.grad`, 그리고 미분을 모르고 함수값만 두 번 재어 나눈 값이 모두 맞는다.
+
+!!! warning "유한차분이 여기서 유난히 잘 맞는 까닭"
+    미는 폭을 $0.1$로 크게 두었는데도 어긋남이 $10^{-13}$이다. 보통은 이렇지 않다 — [비선형 함수의 전체 야코비안](25_vector_backward_nonlinear_full_jacobian.md)에서는 `float64`를 써야 $10^{-8}$까지 간다.
+
+    까닭은 **이 로스가 파라미터 하나하나에 대해 이차식**이기 때문이다. $\ell$을 $\theta$의 함수로만 보면 (일차식)$^2$이고, 중심차분은 이차식에서 **정확하다** — 틀리게 만드는 삼차 이상 항이 아예 없다. 게다가 위의 유한차분은 파이썬 실수, 곧 배정밀도로 셈했다.
+
+    곧 이 줄은 「유한차분은 정확하다」가 아니라 **「이 보기에서는 셋이 맞는다」**까지만 말한다.
+
 **곱하는 차례가 자동 미분의 모드를 가른다.** 행렬 곱은 결합법칙이 성립하므로 $J_L(J_{L-1}(\cdots J_1))$로 묶든 $((J_L J_{L-1})\cdots)J_1$로 묶든 **결과는 같다.** 그러나 드는 비용이 다르다. 오른쪽부터 묶는 것이 전진 모드, 왼쪽부터 묶는 것이 후진 모드이며, 로스처럼 출력이 스칼라 하나인 경우($m = 1$) 후진 모드가 훨씬 싸다. 딥러닝이 역전파를 쓰는 까닭이 이것이다.
 
 ---
