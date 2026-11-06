@@ -59,27 +59,27 @@ $$
 
 ### 정리 1. 연쇄 법칙 — 합성의 야코비안은 야코비안의 곱이다 { .thm }
 
-$y = f_L \circ f_{L-1} \circ \cdots \circ f_1(x)$이고 각 $f_\ell$이 미분 가능하면
+$f = f_L \circ f_{L-1} \circ \cdots \circ f_1$이고 각 $f_\ell$이 미분 가능하면
 
 $$
-J = J_L \, J_{L-1} \cdots J_1
+J_f(x) = J_L \, J_{L-1} \cdots J_1
 $$
 
-이다. 여기서 $J_\ell$은 $f_\ell$을 그 자리의 입력 $z_{\ell-1}$에서 잰 야코비안이다.
+이다. 여기서 $z_0 = x$, $z_\ell = f_\ell(z_{\ell-1})$로 두고 $J_\ell = J_{f_\ell}(z_{\ell-1})$, 곧 $f_\ell$을 **그 자리의 입력**에서 잰 야코비안이다.
 
 </div>
 
 ??? proof "증명"
 
-    $L = 2$에서 보이면 나머지는 귀납이다. $z = f_1(x)$, $y = f_2(z)$라 하고 성분으로 적는다. 다변수 연쇄 법칙에서
+    $L = 2$에서 보이면 나머지는 귀납이다. $f = f_2 \circ f_1$이라 두고, 값에 이름을 붙여 $z = f_1(x)$, $y = f_2(z)$라 하고 성분으로 적는다. 다변수 연쇄 법칙에서
 
     $$
     \frac{\partial y_i}{\partial x_j} = \sum_{k} \frac{\partial y_i}{\partial z_k}\,\frac{\partial z_k}{\partial x_j}
     $$
 
-    이다. 오른쪽은 $(i,k)$칸이 $\partial y_i / \partial z_k$인 행렬과 $(k,j)$칸이 $\partial z_k / \partial x_j$인 행렬의 **곱의 $(i,j)$칸**과 정확히 같은 꼴이다. 곧 $J = J_2 J_1$이다.
+    이다. 오른쪽은 $(i,k)$칸이 $\partial y_i / \partial z_k$인 행렬과 $(k,j)$칸이 $\partial z_k / \partial x_j$인 행렬의 **곱의 $(i,j)$칸**과 정확히 같은 꼴이다. 곧 $J_f = J_2 J_1$이다.
 
-    $L-1$개까지 성립한다고 하면 $g = f_{L-1}\circ\cdots\circ f_1$에 대해 $J_g = J_{L-1}\cdots J_1$이고, 위의 두 겹 결과를 $f_L$과 $g$에 쓰면 $J = J_L J_g = J_L J_{L-1} \cdots J_1$이다. $\square$
+    $L-1$개까지 성립한다고 하면 $g = f_{L-1}\circ\cdots\circ f_1$에 대해 $J_g = J_{L-1}\cdots J_1$이고, 위의 두 겹 결과를 $f_L$과 $g$에 쓰면 $J_f = J_L J_g = J_L J_{L-1} \cdots J_1$이다. $\square$
 
 <div class="exbox" markdown>
 
@@ -423,7 +423,7 @@ Match: True
 
 ## 5. 전진 모드와 후진 모드 자동 미분
 
-야코비안의 곱 $J = J_L \cdot J_{L-1} \cdot \ldots \cdot J_1$은 두 가지 순서로 계산할 수 있으며, 각각이 자동 미분의 한 모드를 정의한다.
+야코비안의 곱 $J_f = J_L \cdot J_{L-1} \cdot \ldots \cdot J_1$은 두 가지 순서로 계산할 수 있으며, 각각이 자동 미분의 한 모드를 정의한다.
 
 ![같은 3행 2열 야코비를 두 번 그린 그림. 왼쪽 것은 첫 열이 채워져 전진 모드가 입력마다 한 번씩 지나며 열을 얻는다는 것을, 오른쪽 것은 첫 줄이 채워져 후진 모드가 출력마다 한 번씩 지나며 줄을 얻는다는 것을 보인다.](figures/forward_vs_reverse.svg)
 
