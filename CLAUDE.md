@@ -293,6 +293,28 @@ Paths are relative to `docs/`. Both run the page's code in a throwaway directory
 `data/` linked in — examples write `.png` and `.pth` next to themselves, and running them
 from the repo root litters it.
 
+**검증기는 쪽의 `python` 블록을 전부 이어 붙여 한 번 돌린다** — 마지막 출력 블록 앞까지다.
+한 쪽이 여러 블록으로 이어진 하나의 프로그램인 경우가 많기 때문이다. 그런데 **이어 붙인
+것이 터지면 말없이 「가장 긴 블록 하나」로 물러난다.** 그러면 나머지 블록의 출력은 아무도
+안 재는데 화면에는 그대로 `일치`라고 뜬다.
+
+그래서 **설명하려고 끼워 넣는 조각 블록이 쪽 전체의 검증을 끌 수 있다.** 본문에 네 줄짜리
+클래스를 ` ```python ` 으로 넣었더니 그 조각이 `nn` 을 임포트하지 않아 이어 붙인 것이
+`NameError` 로 터졌고, 쪽이 통째로 폴백으로 내려갔다. 고치는 길은 둘이다.
+
+- **조각이 이어 붙여도 돌아가게 적는다** — 본 블록의 임포트를 조각이 쓰는 이름에 맞춘다
+  (`import torch` 만 있는 블록에 `nn.Module` 조각을 붙이지 말고 본 블록을
+  `import torch.nn as nn` 로 바꾼다). 그러면 조각이 **베껴 적은 것이 아니라 그 프로그램의
+  그 줄**이 되기도 한다.
+- 또는 조각을 ` ```python ` 이 아닌 보통 블록으로 둔다.
+
+조각을 넣은 뒤에는 **`python` 블록을 손으로 이어 붙여 돌려 보고** 검증 점수가 줄지 않았는지
+확인한다. 점수가 갑자기 작아졌으면 폴백으로 내려간 것이다.
+
+> `??? success "풀이"` 안의 코드는 네 칸 들여써 있어 이어 붙이면 `IndentationError` 가
+> 난다. 다만 그런 블록은 대개 **마지막 출력 블록보다 뒤**에 있어 이어 붙이는 대상이
+> 아니다. 연습문제 풀이를 출력 블록 앞으로 옮기면 그 쪽의 검증이 폴백으로 내려간다.
+
 ## Figures
 
 Figures live in `docs/<chapter>/<section>/figures/` and are embedded with plain
