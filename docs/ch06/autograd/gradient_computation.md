@@ -199,6 +199,7 @@ print(f"  로스가 {loss.item():.3f} 에서 {new.item():.6f} 으로 내려갔�
 
 ```python
 import torch
+import torch.nn as nn
 
 torch.manual_seed(0)
 
@@ -206,7 +207,7 @@ torch.manual_seed(0)
 made = torch.randn(3)
 at_birth = torch.randn(3, requires_grad=True)
 turned_on = torch.randn(3); turned_on.requires_grad_(True)
-as_param = torch.nn.Parameter(torch.randn(3))
+as_param = nn.Parameter(torch.randn(3))
 
 print("  1. 깃발의 기본값과 켜는 길")
 for name, obj in [("torch.randn(3)", made),
@@ -216,10 +217,44 @@ for name, obj in [("torch.randn(3)", made),
     print(f"     {name:36s} requires_grad={obj.requires_grad}")
 
 print("     내장 층이 속에 두는 것도 그 셋째 길이다")
-lin = torch.nn.Linear(3, 2)
+lin = nn.Linear(3, 2)
 for name, w in lin.named_parameters():
     print(f"       nn.Linear 의 {name:8s} {type(w).__name__:10s} "
           f"requires_grad={w.requires_grad}")
+
+# --- 내가 만든 텐서를 넘겨 보면 ---------------------------------------
+plain = torch.randn(3)
+handed = nn.Parameter(plain)
+print("     맨 텐서를 넘기면")
+print(f"       넘기기 전 plain  requires_grad={plain.requires_grad}")
+print(f"       넘긴 뒤   handed requires_grad={handed.requires_grad}"
+      f"  is_leaf={handed.is_leaf}")
+print(f"       plain 은 그대로 꺼져 있다: {plain.requires_grad}"
+      f"   그런데 저장소는 같다: {plain.data_ptr() == handed.data_ptr()}")
+plain[0] = 99.0
+print(f"       plain 을 고치면 handed 도 바뀐다: {handed[0].item()}"
+      f"   <- 베낀 것이 아니다")
+
+
+class Scale(nn.Module):
+    """같은 모양의 텐서 둘 — 하나만 nn.Parameter 로 감쌌다."""
+
+    def __init__(self, d):
+        super().__init__()
+        self.gain = nn.Parameter(torch.ones(d))   # 감쌌다
+        self.shift = torch.zeros(d)                     # 안 감쌌다
+
+    def forward(self, x):
+        return x * self.gain + self.shift
+
+
+scaler = Scale(3)
+print("     내 모듈에 둘을 나란히 두면")
+print("       parameters():", [n for n, _ in scaler.named_parameters()])
+print("       state_dict ():", list(scaler.state_dict()))
+scaler(torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])).sum().backward()
+print("       gain.grad :", scaler.gain.grad.tolist())
+print("       shift.grad:", scaler.shift.grad, "  <- 학습에서 조용히 빠진다")
 
 # === 2. 깃발은 연산을 타고 앞으로 번진다 ====================================
 print("\n  2. 입력 가운데 하나라도 켜져 있으면 출력이 켜진다")
@@ -307,6 +342,16 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
      내장 층이 속에 두는 것도 그 셋째 길이다
        nn.Linear 의 weight   Parameter  requires_grad=True
        nn.Linear 의 bias     Parameter  requires_grad=True
+     맨 텐서를 넘기면
+       넘기기 전 plain  requires_grad=False
+       넘긴 뒤   handed requires_grad=True  is_leaf=True
+       plain 은 그대로 꺼져 있다: False   그런데 저장소는 같다: True
+       plain 을 고치면 handed 도 바뀐다: 99.0   <- 베낀 것이 아니다
+     내 모듈에 둘을 나란히 두면
+       parameters(): ['gain']
+       state_dict (): ['gain']
+       gain.grad : [5.0, 7.0, 9.0]
+       shift.grad: None   <- 학습에서 조용히 빠진다
 
   2. 입력 가운데 하나라도 켜져 있으면 출력이 켜진다
          왼쪽     오른쪽       출력   grad_fn
@@ -333,7 +378,7 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
   5. .grad 가 사는 자리
      warm_w 모양      : (4, 3)
      warm_w.grad 모양  : (4, 3)   같은가 True
-     한 번 더 역전파하면 -0.2916 가 -0.5831 로 — 덮어쓰지 않고 더한다
+     한 번 더 역전파하면 0.0169 가 0.0338 로 — 덮어쓰지 않고 더한다
 
   6. 같은 로스, 깃발만 옮기면
      깃발이 W 에  dL/dW = [2.0, 2.0, 10.0, 10.0]
@@ -364,6 +409,61 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
 `nn.Parameter`는 기본으로 깃발을 켠다. 그래서 **모델을 만드는 것만으로 학습
 대상이 정해진다** — 어디에도 `requires_grad=True`를 적은 적이 없는데 옵티마이저에
 `model.parameters()`를 넘기면 그대로 학습이 된다.
+
+**내가 만든 텐서도 넘기면 된다.** 셋째 길은 내장 층만의 것이 아니다. 맨 텐서를
+하나 만들어 `nn.Parameter`에 넘기면 그 자리에서 학습 대상이 된다.
+
+```
+맨 텐서를 넘기면
+  넘기기 전 plain  requires_grad=False
+  넘긴 뒤   handed requires_grad=True  is_leaf=True
+  plain 은 그대로 꺼져 있다: False   그런데 저장소는 같다: True
+  plain 을 고치면 handed 도 바뀐다: 99.0   <- 베낀 것이 아니다
+```
+
+두 가지가 같이 나온다. **깃발은 베껴지지 않고 새로 선다** — 넘긴 쪽
+(`plain`)은 여전히 꺼져 있고, 깃발이 켜진 것은 새로 생긴 `handed`다. 그런데
+**숫자는 베껴지지 않는다** — 저장소를 같이 쓴다. 그래서 넘긴 뒤에 원래
+텐서를 고치면 파라미터가 따라 바뀐다. 초기값을 손으로 지어 넣을 때 걸리는
+자리다. 떼어 두려면 `nn.Parameter(plain.clone())`이라고 적는다.
+
+**감싸는 것이 곧 등록이다.** 같은 모양의 텐서 둘을 내 모듈 안에 나란히 두되
+하나만 감싸 보면, 둘이 어디서 갈리는지가 한눈에 보인다.
+
+```python
+class Scale(nn.Module):
+    def __init__(self, d):
+        super().__init__()
+        self.gain = nn.Parameter(torch.ones(d))   # 감쌌다
+        self.shift = torch.zeros(d)               # 안 감쌌다
+
+    def forward(self, x):
+        return x * self.gain + self.shift
+```
+
+```
+내 모듈에 둘을 나란히 두면
+  parameters(): ['gain']
+  state_dict (): ['gain']
+  gain.grad : [5.0, 7.0, 9.0]
+  shift.grad: None   <- 학습에서 조용히 빠진다
+```
+
+`forward`는 둘을 똑같이 쓴다. 그런데 `shift`는 **세 군데에서 한꺼번에 빠진다** —
+`parameters()`에 안 들고, `state_dict()`에 안 들고, `.grad`를 못 받는다.
+옵티마이저에 `model.parameters()`를 넘기는 한 `shift`는 **영원히 `0`이다.**
+
+!!! warning "이 실수는 에러를 내지 않는다"
+    `self.shift = torch.zeros(d)`는 잘 돌아간다. 순전파도 되고 역전파도 되고
+    로스도 내려간다. 다만 그 수 하나가 학습되지 않을 뿐이고, **그걸 알려 주는
+    것이 아무것도 없다.** 저장했다 되살려도 조용히 초기값으로 돌아온다.
+
+    그래서 커스텀 모듈을 쓸 때는 `print(list(m.named_parameters()))` 한 줄로
+    **내가 둔 것이 거기 있는지** 확인하고 넘어가는 편이 낫다.
+    [레이어 출력하기](13_print_layers.md)가 세는 법을 모아 둔다.
+
+    학습은 안 되는데 **저장은 되어야 하는** 수라면 맨 텐서로 두지 말고
+    `register_buffer`로 등록한다. 그것이 버퍼라는 갈래다.
 
 거꾸로 **입력 데이터는 꺼져 있다.** 그냥 `torch.randn`이나 `ToTensor()`로 온
 텐서이기 때문이고, 그것이 맞는 기본값이다. 왜 맞는지는 아래 「깃발을 어디에
