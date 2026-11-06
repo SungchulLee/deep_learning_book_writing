@@ -96,7 +96,7 @@ nav:
         - 행렬 연산: ch06/tensor_attrs/14_matrix_operations.md
         - 비교, 범위 제한, 정렬: ch06/tensor_attrs/15_comparison_clamping_sorting.md
       - 1.6 자동 미분:
-        - 바탕:
+        - 엔진의 규칙:
           - 경사 계산: ch06/autograd/gradient_computation.md
           - 스칼라에 대한 기본 역전파: ch06/autograd/01_basic_scalar_backward.md
           - 경사 누적: ch06/autograd/02_gradient_accumulation.md
