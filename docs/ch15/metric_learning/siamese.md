@@ -454,7 +454,7 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
         predictions = []
 
         with torch.no_grad():
-            # 받침 집합을 한 번만 부호로 바꾼다
+            # 서포트 집합을 한 번만 부호로 바꾼다
             support_embeddings = model.forward_one(support_set)
 
             for i in range(n_query):

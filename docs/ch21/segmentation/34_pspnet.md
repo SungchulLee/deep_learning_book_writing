@@ -9,7 +9,7 @@ PSPNet은 여러 격자 크기의 평균 풀링으로 장면 문맥을 모으고
 '''
 PSPNet — 피라미드 장면 뜯어 읽기 네트워크
 논문: "Pyramid Scene Parsing Network" (2017)
-핵심: 여러 잣수 맥락을 모으는 피라미드 모으기 단원
+핵심: 여러 스케일 맥락을 모으는 피라미드 모으기 단원
 '''
 import torch
 import torch.nn as nn

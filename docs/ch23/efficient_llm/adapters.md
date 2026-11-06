@@ -19,7 +19,7 @@ class Adapter(nn.Module):
         input_dim: 들임/내놓기 차원(모델의 숨은 크기)
         bottleneck_dim: 병목 차원(보통 64~256)
         activation: 엑티베이션 함수
-        init_scale: 내놓기 쏘기 첫자리매김의 잣수
+        init_scale: 내놓기 쏘기 첫자리매김의 스케일
     """
     
     def __init__(
@@ -77,7 +77,7 @@ class Adapter(nn.Module):
         return sum(p.numel() for p in self.parameters())
 
 class ScaledAdapter(Adapter):
-    """배울 수 있는 잣수를 곁들인 맞춤개."""
+    """배울 수 있는 스케일을 곁들인 맞춤개."""
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

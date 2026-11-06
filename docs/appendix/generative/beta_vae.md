@@ -1,6 +1,6 @@
 # Beta-VAE
 
-Beta-VAE은 2017년 글 "β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework"에서 나왔다. - KL 마디에 β 값을 더한다 - β이 클수록 풀어 헤치기는 세지고 되살리기는 나빠진다.
+Beta-VAE은 2017년 글 "β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework"에서 나왔다. - KL 마디에 β 값을 더한다 - β이 클수록 풀어 헤치기는 세지고 복원은 나빠진다.
 
 여기 구현은 Beta-VAE을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -13,7 +13,7 @@ Beta-VAE - 풀어 헤치기를 다스리는 변이 제 인코더
 글: "β-VAE: 옭아맨 변이 틀로 밑바탕 보기 깨침 배우기" (2017)
 핵심 깨침:
   - KL 마디에 β 값을 더한다
-  - β이 클수록 풀어 헤치기는 세지고 되살리기는 나빠진다
+  - β이 클수록 풀어 헤치기는 세지고 복원은 나빠진다
 
 두루마리: appendix/generative/beta_vae.py
 """

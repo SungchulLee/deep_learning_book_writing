@@ -11,7 +11,7 @@
 '''
 YOLOv3 — 한 번만 본다 v3
 논문: "YOLOv3: An Incremental Improvement" (2018)
-핵심: 한 방 물체 알아내기로 3가지 잣수에서 어림한다
+핵심: 한 방 물체 알아내기로 3가지 스케일에서 어림한다
 '''
 import torch
 import torch.nn as nn
@@ -53,8 +53,8 @@ class YOLOv3(nn.Module):
         self.conv4 = ConvBlock(128, 256, 3, stride=2)
         self.res3 = nn.Sequential(*[ResidualBlock(256) for _ in range(8)])
         
-        # 잣수마다의 알아내기 머리
-        self.detect1 = nn.Conv2d(256, (5 + num_classes) * 3, 1)  # 잣수마다 닻 3개
+        # 스케일마다의 알아내기 머리
+        self.detect1 = nn.Conv2d(256, (5 + num_classes) * 3, 1)  # 스케일마다 앵커 3개
     
     def forward(self, x):
         x = self.conv1(x)

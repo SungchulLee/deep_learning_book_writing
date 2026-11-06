@@ -72,7 +72,7 @@ class FCOSHead(nn.Module):
         self.bbox_pred = nn.Conv2d(in_channels, 4, 3, padding=1)
         self.centerness = nn.Conv2d(in_channels, 1, 3, padding=1)
         
-        # FPN 켜마다 배울 수 있는 잣수
+        # FPN 켜마다 배울 수 있는 스케일
         self.scales = nn.ModuleList([nn.Conv2d(1, 1, 1) for _ in range(5)])
         
         # 초점 로스를 위한 치우침 첫자리매김

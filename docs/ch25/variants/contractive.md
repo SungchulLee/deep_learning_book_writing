@@ -164,7 +164,7 @@ def train_contractive_autoencoder(
             # 순전파
             recon, z = model(images)
             
-            # 되살림 로스
+            # 복원 로스
             recon_loss = recon_criterion(recon, images)
             
             # 오그림 벌주기

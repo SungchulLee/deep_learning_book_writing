@@ -34,8 +34,8 @@ class FasterRCNN(nn.Module):
             nn.ReLU(inplace=True)
         )
         
-        self.rpn_cls = nn.Conv2d(512, 2 * 9, 1)  # 클래스 2개 * 닻 9개
-        self.rpn_reg = nn.Conv2d(512, 4 * 9, 1)  # 자리표 4개 * 닻 9개
+        self.rpn_cls = nn.Conv2d(512, 2 * 9, 1)  # 클래스 2개 * 앵커 9개
+        self.rpn_reg = nn.Conv2d(512, 4 * 9, 1)  # 자리표 4개 * 앵커 9개
         
         # 관심 자리 모으기와 클래스 매기기
         self.roi_pool = nn.AdaptiveMaxPool2d((7, 7))

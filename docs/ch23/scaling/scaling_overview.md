@@ -61,7 +61,7 @@ def chinchilla_optimal_config(
     """
     셈에 가장 알맞은 모델 크기와 자료 크기를 셈한다.
     
-    친칠라 잣수 맞추기에 따라, 가장 좋게 나누면 N ≈ D이다.
+    친칠라 스케일 맞추기에 따라, 가장 좋게 나누면 N ≈ D이다.
     
     인수:
         compute_budget_flops: 쓸 수 있는 셈의 FLOPs
@@ -73,7 +73,7 @@ def chinchilla_optimal_config(
     # 따라서 C = 6 * N^2이므로 N = sqrt(C/6)
     
     optimal_n = (compute_budget_flops / flops_per_token_per_param) ** 0.5
-    optimal_d = optimal_n  # 고르게 잣수 맞추기
+    optimal_d = optimal_n  # 고르게 스케일 맞추기
     
     return {
         'optimal_parameters': int(optimal_n),
@@ -113,7 +113,7 @@ def predict_loss_chinchilla(
     beta: float = 0.28
 ) -> float:
     """
-    친칠라 잣수 맞추기 법칙으로 익히기 로스를 어림한다.
+    친칠라 스케일 맞추기 법칙으로 익히기 로스를 어림한다.
     
     L(N, D) = E + A/N^α + B/D^β
     """
@@ -173,7 +173,7 @@ def scaling_uncertainty(
     uncertainty_per_order: float = 0.05
 ) -> tuple:
     """
-    잣수 맞추기 법칙을 밖으로 늘여 잡을 때의 불확실함을 어림한다.
+    스케일 맞추기 법칙을 밖으로 늘여 잡을 때의 불확실함을 어림한다.
     
     밖으로 늘여 잡는 거리가 멀수록 불확실함이 커진다.
     """

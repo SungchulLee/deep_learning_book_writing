@@ -286,7 +286,7 @@ class FinancialARModel(nn.Module):
         
         self.lstm = nn.LSTM(input_dim, hidden_dim, batch_first=True)
         
-        # 스튜던트 t 파라메터: 자리, 잣수, 자유도
+        # 스튜던트 t 파라메터: 자리, 스케일, 자유도
         self.loc_proj = nn.Linear(hidden_dim, 1)
         self.scale_proj = nn.Linear(hidden_dim, 1)
         self.df_proj = nn.Linear(hidden_dim, 1)

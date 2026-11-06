@@ -516,7 +516,7 @@ class PerplexityCalculator:
                     index=shift_labels.unsqueeze(-1)
                 ).squeeze(-1)
                 
-                # 가림막을 쓰고 쌓는다
+                # 마스크를 쓰고 쌓는다
                 masked_log_probs = gathered * shift_mask
                 total_log_prob += masked_log_probs.sum().item()
                 total_tokens += shift_mask.sum().item()

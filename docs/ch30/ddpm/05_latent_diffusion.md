@@ -344,7 +344,7 @@
 
                 recon, mu, logvar = vae(x)
 
-                # 되살림 로스
+                # 복원 로스
                 recon_loss = F.mse_loss(recon, x, reduction='sum') / x.shape[0]
 
                 # KL 벌어짐

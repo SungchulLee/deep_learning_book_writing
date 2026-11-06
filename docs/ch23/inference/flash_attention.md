@@ -98,7 +98,7 @@ def flash_attention_forward_reference(
         K: 열쇠 [배치, 머리, 차례 길이, 머리 차원]
         V: 값 [배치, 머리, 차례 길이, 머리 차원]
         block_size: 덩이로 나눌 때의 타일 크기
-        causal: 인과 가림막을 쓸지 여부
+        causal: 인과 마스크를 쓸지 여부
         
     반환값:
         내놓기 [배치, 머리, 차례 길이, 머리 차원]
@@ -135,7 +135,7 @@ def flash_attention_forward_reference(
             
             # 필요하면 인과 가림을 적용한다
             if causal:
-                # 이 덩이의 가림막을 만든다
+                # 이 덩이의 마스크를 만든다
                 q_positions = torch.arange(q_start, q_end, device=Q.device)
                 kv_positions = torch.arange(kv_start, kv_end, device=Q.device)
                 mask = q_positions.unsqueeze(1) < kv_positions.unsqueeze(0)
@@ -475,7 +475,7 @@ memory_standard는 T²×4만 세어 배치·head 수를 빠뜨린다. 실제 시
 # PyTorch 2.0 이상은 가능하면 플래시 어텐션을 저절로 쓴다
 output = F.scaled_dot_product_attention(
     query, key, value,
-    is_causal=True  # 녹여 붙인 인과 가림막을 쓸 수 있게 한다
+    is_causal=True  # 녹여 붙인 인과 마스크를 쓸 수 있게 한다
 )
 
 # 어느 뒷단을 쓰는지 살핀다

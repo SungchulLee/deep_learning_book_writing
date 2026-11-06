@@ -113,7 +113,7 @@ class QuantizedLinear(nn.Module):
             torch.zeros(out_features, in_features, dtype=torch.int8)
         )
         
-        # 배치마다의 잣수
+        # 배치마다의 스케일
         self.register_buffer(
             'scale',
             torch.ones(out_features, self.num_groups)
@@ -279,12 +279,12 @@ class GPTQ:
                 # 이 세로줄의 배치를 정한다
                 group_idx = (i1 + i) // self.group_size
                 
-                # 배치의 잣수를 셈한다
+                # 배치의 스케일을 셈한다
                 group_start = (group_idx * self.group_size) - i1
                 group_end = min(group_start + self.group_size, i2 - i1)
                 
                 if i == max(0, group_start):
-                    # 배치가 시작할 때 잣수를 셈한다
+                    # 배치가 시작할 때 스케일을 셈한다
                     group_weights = W_block[:, max(0, group_start):group_end]
                     scale, zp = compute_scale_zero(group_weights, self.bits)
                 
@@ -316,9 +316,9 @@ def compute_awq_scales(
     bits: int = 4
 ) -> torch.Tensor:
     """
-    AWQ 잣수를 셈한다.
+    AWQ 스케일을 셈한다.
     
-    잣수 = 활성화 크기^alpha. 여기서 alpha가 무게 양자화 어긋남과
+    스케일 = 활성화 크기^alpha. 여기서 alpha가 무게 양자화 어긋남과
     활성화 양자화 어긋남을 저울질한다.
     """
     # 활성화의 크기를 셈한다
@@ -327,12 +327,12 @@ def compute_awq_scales(
     # 무게의 크기를 셈한다
     weight_scales = weight.abs().mean(dim=0)
     
-    # 가장 좋은 잣수(무게 어긋남과 활성화 어긋남을 저울질한다)
+    # 가장 좋은 스케일(무게 어긋남과 활성화 어긋남을 저울질한다)
     # 활성화가 클수록 더 지킨다
     alpha = 0.5  # 다듬을 수 있는 웃파라메터
     scales = act_scales.pow(alpha) / weight_scales.pow(1 - alpha)
     
-    # 잣수를 잘라 낸다
+    # 스케일을 잘라 낸다
     scales = torch.clamp(scales, min=1e-5, max=1e5)
     
     return scales
@@ -401,7 +401,7 @@ class CalibrationCollector:
             self.histograms.append(hist)
     
     def compute_scale(self, bits: int = 8) -> Tuple[float, float]:
-        """마지막 잣수와 영점을 셈한다."""
+        """마지막 스케일과 영점을 셈한다."""
         if self.method == 'minmax':
             min_val = min(self.min_vals)
             max_val = max(self.max_vals)
@@ -464,8 +464,8 @@ class QuantizedKVCache:
     
     def get_keys_values(self) -> Tuple[torch.Tensor, torch.Tensor]:
         """양자화를 되돌린 열쇠와 값을 가져온다."""
-        # 간단히 하려고 가장 최근 잣수를 쓴다
-        # 실전에서는 토막마다나 배치마다의 잣수를 쓴다
+        # 간단히 하려고 가장 최근 스케일을 쓴다
+        # 실전에서는 토막마다나 배치마다의 스케일을 쓴다
         k_scale, k_zp = self.key_scales[-1]
         v_scale, v_zp = self.value_scales[-1]
         
@@ -560,7 +560,7 @@ class QATLinear(nn.Module):
         self.weight = nn.Parameter(torch.randn(out_features, in_features) * 0.01)
         self.bias = nn.Parameter(torch.zeros(out_features))
         
-        # 배울 수 있는 잣수
+        # 배울 수 있는 스케일
         self.weight_scale = nn.Parameter(torch.ones(1))
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:

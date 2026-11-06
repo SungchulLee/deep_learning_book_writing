@@ -5,10 +5,10 @@
 ## 1. 코드와 기존 출력
 
 ```python
-"""FinBERT 마음결."""
+"""FinBERT 감성."""
 # ---
-# title: "FinBERT: 금융 마음결 살피기"
-# description: "주식 마음결 클래스 매기기를 위해 FinBERT를 곱게 다듬기,
+# title: "FinBERT: 금융 감성 살피기"
+# description: "주식 감성 클래스 매기기를 위해 FinBERT를 곱게 다듬기,
 #               StockTwits 자료 — 금융 자연어 다루기에 맞춘 BERT"
 # ---
 #
@@ -17,7 +17,7 @@
 # 분야 말("bullish", "bearish", "overbought", "short squeeze")을 담아낸다.
 #
 #   1부 – HuggingFace Hub에서 FinBERT 읽어 들이기
-#   2부 – 미리 익힌 마음결 머리로 영 발 미룸
+#   2부 – 미리 익힌 감성 머리로 영 발 미룸
 #   3부 – StockTwits 자료로 FinBERT 곱게 다듬기(PyTorch)
 #   4부 – 평가와 종목별 살피기
 #   5부 – FinBERT, 일반 BERT, 낱말집 바탕 견주기
@@ -41,11 +41,11 @@ print("=" * 60)
 
 # 요즘 방식: FinBERT는 HuggingFace Hub에 있다.
 # 널리 쓰이는 변종 둘:
-#   - ProsusAI/finbert         (마음결: 양성/음성/가운데)
+#   - ProsusAI/finbert         (감성: 양성/음성/가운데)
 #   - yiyanghkust/finbert-tone (같은 일, 다른 미리 학습 말뭉치)
 
 print("""
-  # 마음결 살피기를 위해 미리 익힌 FinBERT 읽어 들이기
+  # 감성 살피기를 위해 미리 익힌 FinBERT 읽어 들이기
   from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
   model_name = "ProsusAI/finbert"
@@ -62,7 +62,7 @@ print("""
       labels = ["positive", "negative", "neutral"]
       pred = labels[probs.argmax()]
       print(f"Sentiment: {pred} ({probs.max():.3f})")
-  # → 마음결: 양성 (0.92)
+  # → 감성: 양성 (0.92)
 """)
 
 
@@ -357,7 +357,7 @@ print("Part 5: FinBERT vs Generic BERT vs Lexicon-Based")
 print("=" * 60)
 
 print("""
-  금융 마음결 일에서의 견줌:
+  금융 감성 일에서의 견줌:
 
   ┌─────────────────────┬───────────┬──────────┬─────────────┐
   │ 방법                │ 정확도    │ F1 점수  │ 분야 맞음   │
@@ -374,7 +374,7 @@ print("""
   1. 분야 낱말: "bullish", "bearish", "overbought" 등
      일반 BERT가 담아내지 못하는 금융 특유의 뜻을 지닌다.
 
-  2. 마음결의 방향: "Short position"은 일반 글에서는 가운데이지만
+  2. 감성의 방향: "Short position"은 일반 글에서는 가운데이지만
      금융 맥락에서는 흔히 약세이다.
 
   3. 부정 다루기: "Revenue did not meet expectations"는
@@ -384,9 +384,9 @@ print("""
      예측을 웃도는 것이 양성임을 안다.
 
   금융 자연어 다루기의 쓰임새:
-  - 실적 발표 마음결 좇기
-  - 초과 수익을 위한 뉴스 마음결
-  - 사회 네트워크(StockTwits/Reddit) 마음결 점수 매기기
+  - 실적 발표 감성 좇기
+  - 초과 수익을 위한 뉴스 감성
+  - 사회 네트워크(StockTwits/Reddit) 감성 점수 매기기
   - SEC 보고서의 어조 살피기
   - 분석 보고서 클래스 매기기
 """)
@@ -405,7 +405,7 @@ if __name__ == "__main__":
     Part 1: Loading FinBERT
     ============================================================
 
-      # 마음결 살피기를 위해 미리 익힌 FinBERT 읽어 들이기
+      # 감성 살피기를 위해 미리 익힌 FinBERT 읽어 들이기
       from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
       model_name = "ProsusAI/finbert"
@@ -422,7 +422,7 @@ if __name__ == "__main__":
           labels = ["positive", "negative", "neutral"]
           pred = labels[probs.argmax()]
           print(f"Sentiment: {pred} ({probs.max():.3f})")
-      # → 마음결: 양성 (0.92)
+      # → 감성: 양성 (0.92)
 
     ============================================================
     Part 2: Zero-Shot Inference via HuggingFace Pipeline
@@ -530,7 +530,7 @@ if __name__ == "__main__":
     Part 5: FinBERT vs Generic BERT vs Lexicon-Based
     ============================================================
 
-      금융 마음결 일에서의 견줌:
+      금융 감성 일에서의 견줌:
 
       ┌─────────────────────┬───────────┬──────────┬─────────────┐
       │ 방법                │ 정확도    │ F1 점수  │ 분야 맞음   │
@@ -547,7 +547,7 @@ if __name__ == "__main__":
       1. 분야 낱말: "bullish", "bearish", "overbought" 등
          일반 BERT가 담아내지 못하는 금융 특유의 뜻을 지닌다.
 
-      2. 마음결의 방향: "Short position"은 일반 글에서는 가운데이지만
+      2. 감성의 방향: "Short position"은 일반 글에서는 가운데이지만
          금융 맥락에서는 흔히 약세이다.
 
       3. 부정 다루기: "Revenue did not meet expectations"는
@@ -557,9 +557,9 @@ if __name__ == "__main__":
          예측을 웃도는 것이 양성임을 안다.
 
       금융 자연어 다루기의 쓰임새:
-      - 실적 발표 마음결 좇기
-      - 초과 수익을 위한 뉴스 마음결
-      - 사회 네트워크(StockTwits/Reddit) 마음결 점수 매기기
+      - 실적 발표 감성 좇기
+      - 초과 수익을 위한 뉴스 감성
+      - 사회 네트워크(StockTwits/Reddit) 감성 점수 매기기
       - SEC 보고서의 어조 살피기
       - 분석 보고서 클래스 매기기
 

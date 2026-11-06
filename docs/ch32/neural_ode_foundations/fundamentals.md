@@ -814,7 +814,7 @@ def init_neural_ode_weights(module):
 ```python
 class MultiScaleNeuralODE(nn.Module):
     """
-    때 잣수가 여럿인 뉴럴 상미분 방정식.
+    때 스케일이 여럿인 뉴럴 상미분 방정식.
     빠른 액션과 느린 액션이 함께 있는 문제에 쓸모 있다.
     """
     

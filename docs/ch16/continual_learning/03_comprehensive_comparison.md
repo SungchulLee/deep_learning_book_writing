@@ -16,17 +16,17 @@
     도움이 된다.
 
     학습 목표:
-    1. 벌주기, 되살리기, 섞은 접근법을 견준다
+    1. 벌주기, 리플레이, 섞은 접근법을 견준다
     2. 셈과 기억의 맞바꿈을 이해한다
     3. 여러 지표에 걸쳐 성능을 뜯어본다
     4. 이어 배우기 실험의 좋은 버릇을 배운다
 
     견주는 방법:
     1. 소박한 차례 학습(밑금)
-    2. 경험 되살리기(ER)
+    2. 경험 리플레이(ER)
     3. 탄성 웨이트 다지기(EWC)
     4. 잊지 않고 배우기(LWF)
-    5. 섞음: EWC + 경험 되살리기
+    5. 섞음: EWC + 경험 리플레이
 
     평가 지표:
     - 평균 정확도(AA)
@@ -129,7 +129,7 @@
 
 
     class ExperienceReplayLearner:
-        """기억 버퍼를 쓰는 경험 되살리기."""
+        """기억 버퍼를 쓰는 경험 리플레이."""
 
         def __init__(self, model, device, memory_size=1000, examples_per_task=200, lr=0.001):
             self.model = model
@@ -186,7 +186,7 @@
                         output = self.model(data)
                         current_loss = self.criterion(output, target)
 
-                        # 되살리기 로스
+                        # 리플레이 로스
                         replay_loss = torch.tensor(0.0).to(self.device)
                         replay_data, replay_labels = self.sample_memory(data.size(0))
                         if replay_data is not None:
@@ -660,7 +660,7 @@
         results.append(result)
         print(f"  Avg Acc: {result.average_accuracy:.2f}%, BWT: {result.backward_transfer:.2f}%")
 
-        # 2. 경험 되살리기
+        # 2. 경험 리플레이
         print("\n[2/4] Experience Replay...")
         model = create_model().to(device)
         result = run_experiment(ExperienceReplayLearner, model, device, train_loaders, test_loaders,

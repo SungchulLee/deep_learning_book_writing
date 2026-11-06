@@ -67,7 +67,7 @@ class MAE(nn.Module):
         # 디코더 차수로 되비춘다
         dec_input = self.enc_to_dec(enc)
 
-        # 되살리기를 위해 가림 낱말을 덧붙인다
+        # 복원을 위해 가림 낱말을 덧붙인다
         num_masked = mask.sum(dim=1).max()
         mask_tokens = self.mask_token.expand(x.size(0), num_masked, -1)
 

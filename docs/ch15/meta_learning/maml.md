@@ -240,7 +240,7 @@ class MAML:
         params: Dict[str, torch.Tensor]
     ) -> Dict[str, torch.Tensor]:
         """
-        받침 집합에 대해 안쪽 회귀 맞춤을 한다.
+        서포트 집합에 대해 안쪽 회귀 맞춤을 한다.
         
         인수:
             support_x: 받침 입력
@@ -336,7 +336,7 @@ class MAML:
         새 과제에 맞추고 평가한다.
         
         인수:
-            support_x, support_y: 맞춤에 쓸 받침 집합
+            support_x, support_y: 맞춤에 쓸 서포트 집합
             query_x, query_y: 평가에 쓸 물음 집합
             inner_steps: 맞춤 스텝 수를 갈아 끼운다
         
@@ -425,7 +425,7 @@ class Reptile:
         support_y: torch.Tensor
     ) -> Dict[str, torch.Tensor]:
         """
-        받침 집합에서 모델 파라메터를 맞춘다.
+        서포트 집합에서 모델 파라메터를 맞춘다.
         계산 그래프 없이 맞춘 파라메터를 되돌린다.
         """
         # 과제별 학습을 위해 모델을 복제한다
@@ -680,7 +680,7 @@ class TaskAdaptiveMAML(MAML):
         )
     
     def compute_task_embedding(self, support_x, support_y):
-        """받침 집합에서 과제 표현을 셈한다."""
+        """서포트 집합에서 과제 표현을 셈한다."""
         with torch.no_grad():
             features = self.model.encoder(support_x)
             task_embedding = features.mean(dim=0)

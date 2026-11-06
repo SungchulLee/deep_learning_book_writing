@@ -26,7 +26,7 @@ class LoRALayer(nn.Module):
     인수:
         original_layer: 맞출 선형 레이어
         rank: 낮은 계수 쪼개기의 계수
-        alpha: 잣수(보통 alpha = 2*rank)
+        alpha: 스케일(보통 alpha = 2*rank)
         dropout: LoRA 길에서의 떨구기 확률
     """
     
@@ -88,7 +88,7 @@ class LoRALayer(nn.Module):
         # 본디 길(얼림)
         original_output = self.original(x)
         
-        # LoRA 길: x @ A @ B * 잣수
+        # LoRA 길: x @ A @ B * 스케일
         lora_output = self.dropout(x) @ self.lora_A @ self.lora_B * self.scaling
         
         return original_output + lora_output
@@ -402,11 +402,11 @@ LoRA+ 예는 A·B를 다른 러닝레이트 그룹으로 나눈다. lr_ratio=16�
 
 ```python
 class rsLoRALayer(LoRALayer):
-    """제곱근 잣수를 쓴 계수 안정 LoRA."""
+    """제곱근 스케일을 쓴 계수 안정 LoRA."""
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # 잣수에 r 대신 sqrt(r)을 쓴다
+        # 스케일에 r 대신 sqrt(r)을 쓴다
         self.scaling = self.alpha / math.sqrt(self.rank)
 ```
 

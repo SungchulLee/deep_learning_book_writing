@@ -589,14 +589,14 @@ class AffineTransform(Flow):
     ============================================================================
     아핀 바꿈은 있을 수 있는 가장 단순한 흐름이다:
     
-        y = 잣수 × x + 옮김
+        y = 스케일 × x + 옮김
     
     이는 다음과 같다:
-    - 차원마다 늘이거나 줄이기(잣수)
+    - 차원마다 늘이거나 줄이기(스케일)
     - 가운데 옮기기(옮김)
     
     1차원 보기:
-        잣수=2이고 옮김=3이면:
+        스케일=2이고 옮김=3이면:
         들임: [0, 1, 2] → 내놓기: [3, 5, 7]
     
     ============================================================================
@@ -606,8 +606,8 @@ class AffineTransform(Flow):
         y = exp(log_scale) × x + 옮김
         
     왜 exp(log_scale)인가?
-        - 잣수 대신 log_scale을 배운다
-        - 그러면 잣수가 늘 양수이다
+        - 스케일 대신 log_scale을 배운다
+        - 그러면 스케일이 늘 양수이다
         - 가장 좋게 하기에 수치가 더 안정되다
     
     야코비:
@@ -621,7 +621,7 @@ class AffineTransform(Flow):
     ============================================================================
     쓰임새
     ============================================================================
-    1. 자료 고르게 하기: 들임 자료의 가운데와 잣수 맞추기
+    1. 자료 고르게 하기: 들임 자료의 가운데와 스케일 맞추기
     2. 단순한 바탕: 더 복잡한 흐름을 이것과 견준다
     3. 첫 층: 이따금 첫 바꿈으로 쓴다
     4. 벌레 잡기: 옳음을 확인하기 쉽다
@@ -641,14 +641,14 @@ class AffineTransform(Flow):
             - shift: 차원마다 옮김을 다스린다
         
         첫자리매김:
-            - log_scale은 0에서 시작한다(잣수 = 1, 바뀜 없음)
+            - log_scale은 0에서 시작한다(스케일 = 1, 바뀜 없음)
             - shift은 0에서 시작한다(옮김 없음)
         """
         super().__init__()
         
         # 학습 가능한 매개변수
         # 수치 안정을 위해 log(scale)을 배운다
-        # 첫 잣수 = exp(0) = 1(바뀜 없음)
+        # 첫 스케일 = exp(0) = 1(바뀜 없음)
         self.log_scale = nn.Parameter(torch.zeros(dim))
         
         # 첫 옮김 = 0(옮김 없음)
@@ -656,7 +656,7 @@ class AffineTransform(Flow):
     
     def forward(self, z: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        앞 바꿈: y = 잣수 * z + 옮김
+        앞 바꿈: y = 스케일 * z + 옮김
         
         인수:
             z (torch.Tensor): 들임 표본, 꼴 (batch_size, dim)
@@ -671,11 +671,11 @@ class AffineTransform(Flow):
             >>> z = torch.tensor([[0., 0.], [1., 1.]])
             >>> x, log_det = transform.forward(z)
         """
-        # log_scale을 실제 잣수로 바꾼다(늘 양수)
+        # log_scale을 실제 스케일로 바꾼다(늘 양수)
         scale = torch.exp(self.log_scale)
         
         # 아핀 바꿈을 쓴다
-        # 퍼뜨리기: 잣수와 옮김을 원소마다 적용한다
+        # 퍼뜨리기: 스케일과 옮김을 원소마다 적용한다
         x = scale * z + self.shift
         
         # 로그 행렬식을 셈한다
@@ -687,7 +687,7 @@ class AffineTransform(Flow):
     
     def inverse(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        역 바꿈: z = (x - 옮김) / 잣수
+        역 바꿈: z = (x - 옮김) / 스케일
         
         인수:
             x (torch.Tensor): 바꾼 표본, 꼴 (batch_size, dim)
@@ -697,7 +697,7 @@ class AffineTransform(Flow):
                 z (torch.Tensor): 본디 표본
                 log_det (torch.Tensor): 로그 행렬식(앞 방향의 음수)
         """
-        # log_scale을 실제 잣수로 바꾼다
+        # log_scale을 실제 스케일로 바꾼다
         scale = torch.exp(self.log_scale)
         
         # 역 아핀 바꿈을 쓴다
@@ -805,7 +805,7 @@ class PlanarFlow(Flow):
         과정:
             1. 선형 쏘기를 셈한다: w^T z + b
             2. tanh 비선형을 쓴다
-            3. u으로 잣수를 맞추어 z에 더한다
+            3. u으로 스케일을 맞추어 z에 더한다
             4. 야코비 행렬식을 셈한다
         
         인수:
@@ -1074,7 +1074,7 @@ def visualize_2d_density(flow_model: nn.Module, xlim: tuple = (-3, 3),
     # levels=50이 잔 눈금을 준다
     plt.contourf(X, Y, prob, levels=50, cmap='viridis')
     
-    # 확률 잣수를 보이려 색 막대를 더한다
+    # 확률 스케일을 보이려 색 막대를 더한다
     plt.colorbar(label='Probability Density')
     
     plt.title('Learned Probability Density p(x)')
@@ -1385,7 +1385,7 @@ class MNISTFlow:
         flows = []
         
         for i in range(n_layers):
-            # 가림막을 번갈아 쓴다
+            # 마스크를 번갈아 쓴다
             mask = torch.zeros(dim)
             if i % 2 == 0:
                 mask[dim // 2:] = 1

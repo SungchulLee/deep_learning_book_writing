@@ -391,7 +391,7 @@ class AttentionDecoder(nn.Module):
             hidden: 앞 시각의 숨은 상태
             encoder_outputs: 인코더의 모든 출력 (배치 크기, src_len, encoder_hidden_size)
             cell: 앞 시각의 세포 상태 (LSTM에만 있다)
-            mask: 덧댐을 가리는 가림막 (배치 크기, src_len)
+            mask: 덧댐을 가리는 마스크 (배치 크기, src_len)
             
         반환값:
             output: 출력 예측 (배치 크기, output_size)
@@ -454,7 +454,7 @@ class BahdanauAttention(nn.Module):
         인수:
             query: 디코더의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
             keys: 인코더의 출력 (배치 크기, src_len, encoder_hidden_size)
-            mask: 덧댐 가림막 (배치 크기, src_len)
+            mask: 덧댐 마스크 (배치 크기, src_len)
             
         반환값:
             context: 문맥 벡터 (배치 크기, 1, encoder_hidden_size)
@@ -471,7 +471,7 @@ class BahdanauAttention(nn.Module):
         scores = self.V(torch.tanh(query_transformed + keys_transformed))  # (배치, src_len, 1)
         scores = scores.squeeze(2)  # (배치, src_len)
         
-        # 가림막이 있으면 씌우기
+        # 마스크가 있으면 씌우기
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
@@ -512,7 +512,7 @@ class LuongAttention(nn.Module):
         인수:
             query: 디코더의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
             keys: 인코더의 출력 (배치 크기, src_len, encoder_hidden_size)
-            mask: 덧댐 가림막 (배치 크기, src_len)
+            mask: 덧댐 마스크 (배치 크기, src_len)
             
         반환값:
             context: 문맥 벡터 (배치 크기, 1, encoder_hidden_size)
@@ -535,7 +535,7 @@ class LuongAttention(nn.Module):
         
         scores = scores.squeeze(1)  # (배치, src_len)
         
-        # 가림막이 있으면 씌우기
+        # 마스크가 있으면 씌우기
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
@@ -733,7 +733,7 @@ class Seq2SeqAttention(nn.Module):
         self.pad_idx = pad_idx
         
     def create_mask(self, src):
-        """덧댐 토큰의 가림막을 만든다"""
+        """덧댐 토큰의 마스크를 만든다"""
         mask = (src != self.pad_idx)
         return mask
     
@@ -759,7 +759,7 @@ class Seq2SeqAttention(nn.Module):
         outputs = torch.zeros(batch_size, trg_len, trg_vocab_size).to(self.device)
         attentions = torch.zeros(batch_size, trg_len, src.shape[1]).to(self.device)
         
-        # 원본 순차열의 가림막 만들기
+        # 원본 순차열의 마스크 만들기
         mask = self.create_mask(src)
         
         # 원본 순차열 부호화
@@ -810,7 +810,7 @@ class Seq2SeqAttention(nn.Module):
         with torch.no_grad():
             batch_size = src.shape[0]
             
-            # 가림막 만들기
+            # 마스크 만들기
             mask = self.create_mask(src)
             
             # 원본 부호화

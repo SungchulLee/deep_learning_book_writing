@@ -51,7 +51,7 @@ from typing import List, Tuple, Optional
 
 class ReservoirBuffer:
     """
-    경험 되살리기를 위한 저수지 뽑기 버퍼.
+    경험 리플레이를 위한 저수지 뽑기 버퍼.
     
     도착한 차례와 상관없이 지금까지 본 보기 전체에 대한
     고른 표본을 지닌다.
@@ -174,7 +174,7 @@ from typing import List, Dict
 
 class ExperienceReplayLearner:
     """
-    경험 되살리기를 쓰는 이어 배우는 학습기.
+    경험 리플레이를 쓰는 이어 배우는 학습기.
     
     전략:
     1. 앞선 보기를 담은 기억 버퍼를 지닌다
@@ -190,7 +190,7 @@ class ExperienceReplayLearner:
                  replay_batch_ratio: float = 0.5,
                  learning_rate: float = 0.001):
         """
-        되살리기 학습기를 초기화한다.
+        리플레이 학습기를 초기화한다.
         
         인수:
             model: 뉴럴 네트워크 모델
@@ -266,7 +266,7 @@ class ExperienceReplayLearner:
                       epochs: int = 5,
                       verbose: bool = True) -> Dict:
         """
-        경험 되살리기를 곁들여 과제로 익힌다.
+        경험 리플레이를 곁들여 과제로 익힌다.
         
         인수:
             train_loader: 학습 데이터 로더
@@ -295,7 +295,7 @@ class ExperienceReplayLearner:
                 output = self.model(data)
                 current_loss = self.criterion(output, target)
                 
-                # 되살리기 로스
+                # 리플레이 로스
                 replay_loss = torch.tensor(0.0, device=self.device)
                 replay_size = int(batch_size * self.replay_batch_ratio)
                 
@@ -352,7 +352,7 @@ class ExperienceReplayLearner:
                         test_loaders: List[DataLoader],
                         epochs_per_task: int = 5) -> Dict:
         """
-        되살리기로 이어 배우기를 온전히 한다.
+        리플레이로 이어 배우기를 온전히 한다.
         
         인수:
             train_loaders: 학습 DataLoader 목록

@@ -319,7 +319,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
         else:
             print(f"  {key}: {checkpoint[key]}")
 
-    # 불러오기: 학습 상태 되살리기
+    # 불러오기: 학습 상태 복원
     print(f"\n📂 Loading checkpoint from '{FILE}'...")
 
     # 1단계: 모델과 최적화기 다시 만들기
@@ -329,13 +329,13 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     # 2단계: 검사점 불러오기
     checkpoint = torch.load(FILE)
 
-    # 3단계: 모델의 상태 되살리기
+    # 3단계: 모델의 상태 복원
     model.load_state_dict(checkpoint['model_state'])
 
-    # 4단계: 최적화기의 상태 되살리기
+    # 4단계: 최적화기의 상태 복원
     optimizer.load_state_dict(checkpoint['optim_state'])
 
-    # 5단계: 그 밖의 학습 파라메터 되살리기
+    # 5단계: 그 밖의 학습 파라메터 복원
     epoch = checkpoint['epoch']
     loss = checkpoint.get('loss', None)  # 선택적인 키에는 .get()을 쓴다
     accuracy = checkpoint.get('accuracy', None)

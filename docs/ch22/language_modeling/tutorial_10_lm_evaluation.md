@@ -187,7 +187,7 @@ from typing import List, Optional
 2. 길이 고르게 맞추기
 3. 되풀이 벌주기
 4. 제약 디코딩
-5. 다스릴 수 있는 만들어 내기(마음결, 결풍, 주제)
+5. 다스릴 수 있는 만들어 내기(감성, 결풍, 주제)
 
 만들어 내기 전략:
 ----------------------
@@ -315,7 +315,7 @@ class GenerationStrategies:
                 # 적어도 토큰 하나는 남기기
                 sorted_indices_to_remove[..., 0] = False
                 
-                # 가림막 만들기
+                # 마스크 만들기
                 indices_to_remove = sorted_indices_to_remove.scatter(
                     -1, sorted_indices, sorted_indices_to_remove
                 )

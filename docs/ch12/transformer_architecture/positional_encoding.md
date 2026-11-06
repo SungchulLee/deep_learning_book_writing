@@ -723,7 +723,7 @@ class ALiBiAttention(nn.Module):
         alibi_bias = self.alibi(seq_len).unsqueeze(0)
         scores = scores + alibi_bias
         
-        # 가림막이 있으면 씌우기
+        # 마스크가 있으면 씌우기
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         

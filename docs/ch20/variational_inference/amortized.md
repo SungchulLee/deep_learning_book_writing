@@ -115,7 +115,7 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
     """
-    VAE 디코더: 숨은 z을 되살림 파라메터로 잇는다.
+    VAE 디코더: 숨은 z을 복원 파라메터로 잇는다.
     
     구조: z -> [숨은 레이어] -> x_recon
     """
@@ -140,7 +140,7 @@ class Decoder(nn.Module):
     
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         """
-        z을 풀어 되살리기.
+        z을 풀어 복원.
         """
         return self.decoder(z)
 
@@ -164,7 +164,7 @@ class VAE(nn.Module):
         return self.encoder(x)
     
     def decode(self, z: torch.Tensor) -> torch.Tensor:
-        """숨은 값을 풀어 되살리기."""
+        """숨은 값을 풀어 복원."""
         return self.decoder(z)
     
     def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
@@ -193,7 +193,7 @@ class VAE(nn.Module):
              mu: torch.Tensor, logvar: torch.Tensor,
              beta: float = 1.0) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        VAE 로스 = -ELBO = 되살림 로스 + β * KL 벌어짐 셈하기
+        VAE 로스 = -ELBO = 복원 로스 + β * KL 벌어짐 셈하기
         
         인수:
             x: 들임 자료
@@ -204,10 +204,10 @@ class VAE(nn.Module):
         
         반환값:
             loss: 전체 로스
-            recon_loss: 되살림 항
+            recon_loss: 복원 항
             kl_loss: KL 벌어짐 항
         """
-        # 되살림 로스(음의 로그 가능도)
+        # 복원 로스(음의 로그 가능도)
         # 이어진 자료에는 평균 제곱 오차를 쓴다(가우스 가능도)
         recon_loss = F.mse_loss(x_recon, x, reduction='sum') / x.size(0)
         
@@ -232,7 +232,7 @@ class VAE(nn.Module):
         return samples
     
     def reconstruct(self, x: torch.Tensor) -> torch.Tensor:
-        """인코더와 디코더를 거쳐 들임 되살리기."""
+        """인코더와 디코더를 거쳐 들임 복원."""
         mu, _ = self.encode(x)  # 평균 쓰기(표집 없음)
         return self.decode(mu)
 

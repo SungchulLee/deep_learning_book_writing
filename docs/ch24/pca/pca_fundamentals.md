@@ -32,7 +32,7 @@ $$\Sigma=V\Lambda V^T,\qquad V^TV=I,\qquad
 
 ```python
 def preprocess(X):
-    """주성분 분석을 위해 자료의 가운데를 맞추고 잣수를 맞춘다."""
+    """주성분 분석을 위해 자료의 가운데를 맞추고 스케일을 맞춘다."""
     mu = X.mean(axis=0)
     X_centered = X - mu
 
@@ -54,7 +54,7 @@ def preprocess(X):
 
 ```python
 def correlation_loadings(loadings, eigenvalues):
-    """주성분과의 상관을 나타내도록 실림의 잣수를 맞춘다."""
+    """주성분과의 상관을 나타내도록 실림의 스케일을 맞춘다."""
     return loadings * np.sqrt(eigenvalues)[:, np.newaxis]
 ```
 

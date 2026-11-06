@@ -258,7 +258,7 @@ class SelfAttention(nn.Module):
         """
         인수:
             x: 입력 순차열 (배치 크기, seq_len, d_model)
-            mask: 선택적인 어텐션 가림막 (배치 크기, seq_len, seq_len)
+            mask: 선택적인 어텐션 마스크 (배치 크기, seq_len, seq_len)
                   0은 가릴 자리를 뜻한다
             
         반환값:
@@ -273,7 +273,7 @@ class SelfAttention(nn.Module):
         # 배율 조정 내적 어텐션 점수 계산
         scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale
         
-        # 가림막이 있으면 씌우기
+        # 마스크가 있으면 씌우기
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
@@ -314,7 +314,7 @@ def demonstrate_self_attention():
 ```python
 class CausalSelfAttention(nn.Module):
     """
-    다중 머리를 지원하는 인과(가림막) 자기 어텐션
+    다중 머리를 지원하는 인과(마스크) 자기 어텐션
     
     자리마다 뒤의 자리에 주목하지 못하게 막는다.
     자기회귀 생성을 하는 GPT 같은 디코더 전용 모델에서 쓴다.
@@ -340,7 +340,7 @@ class CausalSelfAttention(nn.Module):
         self.out_proj = nn.Linear(embed_dim, embed_dim)
         self.dropout = nn.Dropout(dropout)
         
-        # 인과 가림막을 버퍼로 등록 (파라메터는 아니지만 모델과 함께 움직인다)
+        # 인과 마스크를 버퍼로 등록 (파라메터는 아니지만 모델과 함께 움직인다)
         causal_mask = torch.tril(torch.ones(max_seq_len, max_seq_len))
         self.register_buffer('causal_mask', causal_mask.view(1, 1, max_seq_len, max_seq_len))
         
@@ -369,7 +369,7 @@ class CausalSelfAttention(nn.Module):
         # 어텐션 점수 계산: (배치, heads, seq, seq)
         scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale
         
-        # 인과 가림막 씌우기 (자리마다 과거와 현재에만 주목할 수 있다)
+        # 인과 마스크 씌우기 (자리마다 과거와 현재에만 주목할 수 있다)
         mask = self.causal_mask[:, :, :seq_len, :seq_len]
         scores = scores.masked_fill(mask == 0, float('-inf'))
         
@@ -390,7 +390,7 @@ class CausalSelfAttention(nn.Module):
         return output, None
 
 def demonstrate_causal_attention():
-    """인과 가림막의 무늬를 보인다."""
+    """인과 마스크의 무늬를 보인다."""
     batch_size, seq_len, embed_dim, num_heads = 1, 5, 64, 4
     
     x = torch.randn(batch_size, seq_len, embed_dim)
@@ -507,8 +507,8 @@ class TransformerEncoderBlock(nn.Module):
         """
         인수:
             x: 입력 (배치, seq_len, embed_dim)
-            src_mask: 어텐션 가림막 (seq_len, seq_len)
-            src_key_padding_mask: 덧댐 가림막 (배치, seq_len)
+            src_mask: 어텐션 마스크 (seq_len, seq_len)
+            src_key_padding_mask: 덧댐 마스크 (배치, seq_len)
         """
         # 잔차 연결이 있는 자기 어텐션 (사전 레이어 정규화 판본)
         attn_out, _ = self.self_attn(
@@ -648,7 +648,7 @@ $O(n^2)$의 복잡도 때문에 효율적인 대안이 많이 나왔다.
     def causal_self_attention(X, WQ, WK, WV, d_k):
         Q, K, V = X @ WQ, X @ WK, X @ WV
         scores = Q @ K.T / d_k**0.5
-        # 인과 가림막: 미래 자리에 -inf
+        # 인과 마스크: 미래 자리에 -inf
         mask = torch.triu(torch.ones(n, n), diagonal=1).bool()
         scores.masked_fill_(mask, float('-inf'))
         return torch.softmax(scores, dim=-1) @ V

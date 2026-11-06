@@ -271,7 +271,7 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
 
         def forward_loss(self, imgs, pred, mask):
             """
-            되살리기 로스를 셈한다
+            복원 로스를 셈한다
 
             인수:
                 imgs: [N, 3, H, W]

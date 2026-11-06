@@ -73,7 +73,7 @@ class MBConvBlock(nn.Module):
 
 
 class EfficientNet(nn.Module):
-    """겹친 잣수 맞추기를 쓴 EfficientNet 구조."""
+    """겹친 스케일 맞추기를 쓴 EfficientNet 구조."""
     def __init__(self, width_mult=1.0, depth_mult=1.0, num_classes=10,
                  dropout=0.2):
         super().__init__()

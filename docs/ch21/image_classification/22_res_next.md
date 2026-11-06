@@ -9,7 +9,7 @@ ResNeXt는 같은 형태의 여러 변환을 집계하는 잔차 구조다. 변�
 '''
 ResNeXt — 모아 붙인 잔차 변환
 논문: "Aggregated Residual Transformations for Deep Neural Networks" (2017)
-핵심: 깊이·너비를 넘어 잣수(길의 수)가 중요한 차원이다
+핵심: 깊이·너비를 넘어 스케일(길의 수)가 중요한 차원이다
 '''
 import torch
 import torch.nn as nn

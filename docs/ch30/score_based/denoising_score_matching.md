@@ -141,7 +141,7 @@ def multi_scale_dsm_loss(
     score_net: nn.Module, x: torch.Tensor,
     sigmas: list[float], weights: list[float] | None = None
 ) -> torch.Tensor:
-    """기본으로 σ² 무게를 준 여러 잣수의 잡음 없애는 점수 맞추기 로스.
+    """기본으로 σ² 무게를 준 여러 스케일의 잡음 없애는 점수 맞추기 로스.
 
     인수:
         score_net: 잡음 조건을 갖춘 뉴럴 네트워크 s(x, sigma).
@@ -150,7 +150,7 @@ def multi_scale_dsm_loss(
         weights: 수준마다 무게(기본: σ²으로 고르게 맞춘 것).
 
     반환값:
-        잣수에 걸친 무게 있는 잡음 없애는 점수 맞추기 로스.
+        스케일에 걸친 무게 있는 잡음 없애는 점수 맞추기 로스.
     """
     if weights is None:
         raw = [s**2 for s in sigmas]

@@ -57,7 +57,7 @@ def temperature_sample(
     
     인수:
         logits: 고르게 맞추지 않은 로그 확률 [batch, vocab]
-        temperature: 잣수 인자(0 < T). 낮을수록 더 정해진 대로.
+        temperature: 스케일 인자(0 < T). 낮을수록 더 정해진 대로.
         num_samples: 뽑을 표본의 개수
         
     반환값:

@@ -9,12 +9,12 @@ DINO은 2022년 글 "DINO: DETR with Improved Denoising Anchor Boxes for End-to-
 ```python
 #!/usr/bin/env python3
 """
-DINO - 잡소리 없애는 닻 상자를 나아지게 한 DETR
-글: "DINO: 끝에서 끝까지 물체 알아내기를 위해 잡소리 없애는 닻 상자를 나아지게 한 DETR" (2022)
+DINO - 잡소리 없애는 앵커 박스를 나아지게 한 DETR
+글: "DINO: 끝에서 끝까지 물체 알아내기를 위해 잡소리 없애는 앵커 박스를 나아지게 한 DETR" (2022)
 지은이: IDEA Research (펑 리 외)
 핵심 깨침(크게 보아):
   1) 잡소리 없애며 익히기(DN): 노이지 참값 물음을 더해 익힘을 든든하게 한다.
-  2) 더 나은 물음 첫자리 잡기(흔히 닻이나 기준 점 꼴).
+  2) 더 나은 물음 첫자리 잡기(흔히 앵커나 기준 점 꼴).
   3) 여러 잣대의 결(참으로는 흔히 일그러뜨리는 어텐션 클래스를 쓴다).
 
 두루마리: appendix/detection/dino.py
@@ -96,7 +96,7 @@ class DINO(nn.Module):
         # 배울 수 있는 물음(속내 담음)
         self.query_embed = nn.Embedding(num_queries, d_model)
 
-        # 기준 점(잣대 맞춘 자리 값에서 닻처럼 첫자리를 잡는다)
+        # 기준 점(잣대 맞춘 자리 값에서 앵커처럼 첫자리를 잡는다)
         # 참 DINO에서는 디코더 켜마다 이를 미루어 보거나 고칠 수 있다.
         self.refpoint_embed = nn.Embedding(num_queries, 4)
 

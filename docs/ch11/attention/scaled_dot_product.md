@@ -175,7 +175,7 @@ class ScaledDotProductAttention(nn.Module):
     
     계산: Attention(Q, K, V) = softmax(QK^T / sqrt(d_k)) * V
     
-    배치 계산과 다중 머리 어텐션, 선택적인 가림막,
+    배치 계산과 다중 머리 어텐션, 선택적인 마스크,
     어텐션 웨이트의 드롭아웃을 지원한다.
     """
     
@@ -335,16 +335,16 @@ Empirical verification of dot-product variance:
 
 ```python
 def create_attention_masks(batch_size: int, seq_q: int, seq_k: int):
-    """여러 가림막 전략을 시연한다."""
+    """여러 마스크 전략을 시연한다."""
     
-    # 덧댐 가림막: (배치, 1, 1, seq_k)
+    # 덧댐 마스크: (배치, 1, 1, seq_k)
     pad_mask = torch.ones(batch_size, 1, 1, seq_k)
     pad_mask[:, :, :, -2:] = 0  # 마지막 두 자리는 덧댐이다
     
-    # 인과 가림막: (1, 1, seq_q, seq_k)
+    # 인과 마스크: (1, 1, seq_q, seq_k)
     causal_mask = torch.tril(torch.ones(1, 1, seq_q, seq_k))
     
-    # 합친 가림막
+    # 합친 마스크
     combined_mask = pad_mask * causal_mask
     
     return pad_mask, causal_mask, combined_mask

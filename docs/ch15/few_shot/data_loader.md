@@ -9,7 +9,7 @@
 소수 예시 학습을 위한 에피소드 데이터 로더
 
 소수 예시 학습의 학습과 평가에 쓸 에피소드(과제)를 만든다.
-에피소드마다 부류 N개에서 뽑은 받침 집합과 물음 집합으로 이루어진다.
+에피소드마다 부류 N개에서 뽑은 서포트 집합과 물음 집합으로 이루어진다.
 """
 
 import torch
@@ -26,7 +26,7 @@ class EpisodicDataset(Dataset):
     """
     소수 예시 학습용 에피소드를 만들어 내는 데이터셋.
     
-    에피소드마다 받침 집합과 물음 집합을 갖춘 N-클래스 K-예시 과제이다.
+    에피소드마다 서포트 집합과 물음 집합을 갖춘 N-클래스 K-예시 과제이다.
     """
     def __init__(self, data, labels, n_way, k_shot, n_query, n_episodes):
         """
@@ -87,7 +87,7 @@ class EpisodicDataset(Dataset):
             support_indices = selected_indices[:self.k_shot]
             query_indices = selected_indices[self.k_shot:]
             
-            # 받침 집합에 더한다
+            # 서포트 집합에 더한다
             support_data.append(self.data[support_indices])
             support_labels.extend([class_idx] * self.k_shot)
             

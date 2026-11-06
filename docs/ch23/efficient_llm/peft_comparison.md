@@ -57,7 +57,7 @@ class LoRALayer(nn.Module):
         original_out = self.original(x)
         
         # LoRA 피드포워드
-        # x @ A @ B * 잣수
+        # x @ A @ B * 스케일
         lora_out = self.dropout(x) @ self.lora_A @ self.lora_B * self.scaling
         
         return original_out + lora_out
@@ -201,7 +201,7 @@ class NF4Linear(nn.Module):
         self.register_buffer('scales', self._compute_scales(weight))
     
     def _compute_scales(self, weight: torch.Tensor) -> torch.Tensor:
-        """덩이마다의 잣수를 셈한다."""
+        """덩이마다의 스케일을 셈한다."""
         # 덩이 꼴로 바꾼다
         weight_flat = weight.reshape(-1)
         num_blocks = (weight_flat.numel() + self.block_size - 1) // self.block_size
@@ -213,7 +213,7 @@ class NF4Linear(nn.Module):
         
         weight_blocks = weight_flat.reshape(num_blocks, self.block_size)
         
-        # 잣수 = 덩이마다의 최대 절댓값
+        # 스케일 = 덩이마다의 최대 절댓값
         scales = weight_blocks.abs().max(dim=1).values
         return scales
     
@@ -223,7 +223,7 @@ class NF4Linear(nn.Module):
         # 실제 짜기라면 바이트마다 값 둘을 담을 것이다
         weight_flat = weight.reshape(-1)
         
-        # 덩이 잣수로 고르게 한다
+        # 덩이 스케일로 고르게 한다
         scales = self._compute_scales(weight)
         num_blocks = scales.numel()
         
@@ -246,7 +246,7 @@ class NF4Linear(nn.Module):
         # 번호로 NF4 값을 얻는다
         weight_nf4 = self.NF4_LEVELS.to(self.weight_quantized.device)[self.weight_quantized.long()]
         
-        # 잣수를 되돌린다
+        # 스케일을 되돌린다
         weight_scaled = weight_nf4 * self.scales.unsqueeze(1)
         
         # 본디 꼴로 되돌린다
@@ -317,7 +317,7 @@ forward마다 전체 웨이트를 복원하며 double quantization·paged optimi
 ```python
 class PrefixTuning(nn.Module):
     """
-    앞가지 다듬기: 들임 앞에 붙는 이어진 시킴말을 배운다.
+    프리픽스 다듬기: 들임 앞에 붙는 이어진 시킴말을 배운다.
     
     따로 떨어진 시킴말 토막 대신, 어텐션 레이어마다 열쇠-값 짝 앞에 붙는
     이어진 임베딩을 배운다.
@@ -339,10 +339,10 @@ class PrefixTuning(nn.Module):
         # 전체 크기: 레이어 수 * 2(열쇠 + 값) * 머리 수 * 머리 차원
         prefix_size = num_layers * 2 * num_heads * head_dim
         
-        # 배울 수 있는 앞가지 임베딩
+        # 배울 수 있는 프리픽스 임베딩
         self.prefix_embedding = nn.Embedding(prefix_length, hidden_dim)
         
-        # 온전한 앞가지 크기로 쏘는 여러 레이어 인식개(안정을 위해)
+        # 온전한 프리픽스 크기로 쏘는 여러 레이어 인식개(안정을 위해)
         self.prefix_mlp = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
             nn.Tanh(),
@@ -354,21 +354,21 @@ class PrefixTuning(nn.Module):
     
     def forward(self, batch_size: int) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        앞가지 열쇠-값 짝을 만든다.
+        프리픽스 열쇠-값 짝을 만든다.
         
         반환값:
-            (앞가지 열쇠, 앞가지 값)의 짝. 저마다 꼴은
-            [배치, 레이어 수, 머리 수, 앞가지 길이, 머리 차원]
+            (프리픽스 열쇠, 프리픽스 값)의 짝. 저마다 꼴은
+            [배치, 레이어 수, 머리 수, 프리픽스 길이, 머리 차원]
         """
-        # 앞가지 번호를 얻는다
+        # 프리픽스 번호를 얻는다
         prefix_ids = torch.arange(self.prefix_length, device=self.prefix_embedding.weight.device)
         prefix_ids = prefix_ids.unsqueeze(0).expand(batch_size, -1)
         
         # 묻고 쏜다
-        prefix = self.prefix_embedding(prefix_ids)  # [배치, 앞가지 길이, 숨은]
-        prefix = self.prefix_mlp(prefix)  # [배치, 앞가지 길이, 앞가지 크기]
+        prefix = self.prefix_embedding(prefix_ids)  # [배치, 프리픽스 길이, 숨은]
+        prefix = self.prefix_mlp(prefix)  # [배치, 프리픽스 길이, 프리픽스 크기]
         
-        # [배치, 앞가지 길이, 레이어 수, 2, 머리 수, 머리 차원] 꼴로 바꾼다
+        # [배치, 프리픽스 길이, 레이어 수, 2, 머리 수, 머리 차원] 꼴로 바꾼다
         prefix = prefix.view(
             batch_size,
             self.prefix_length,
@@ -378,17 +378,17 @@ class PrefixTuning(nn.Module):
             self.head_dim
         )
         
-        # [배치, 레이어 수, 머리 수, 앞가지 길이, 머리 차원] 꼴로 다시 늘어놓는다
+        # [배치, 레이어 수, 머리 수, 프리픽스 길이, 머리 차원] 꼴로 다시 늘어놓는다
         prefix = prefix.permute(0, 2, 4, 1, 5, 3)  # 레이어와 머리 차원을 옮긴다
         
-        prefix_keys = prefix[..., 0]    # [배치, 레이어, 머리, 앞가지 길이, 머리 차원]
-        prefix_values = prefix[..., 1]  # [배치, 레이어, 머리, 앞가지 길이, 머리 차원]
+        prefix_keys = prefix[..., 0]    # [배치, 레이어, 머리, 프리픽스 길이, 머리 차원]
+        prefix_values = prefix[..., 1]  # [배치, 레이어, 머리, 프리픽스 길이, 머리 차원]
         
         return prefix_keys, prefix_values
 
 class PrefixAttention(nn.Module):
     """
-    앞가지 다듬기를 쓰도록 고친 어텐션 레이어.
+    프리픽스 다듬기를 쓰도록 고친 어텐션 레이어.
     """
     
     def __init__(self, original_attention: nn.Module, prefix_length: int):
@@ -408,16 +408,16 @@ class PrefixAttention(nn.Module):
         attention_mask: torch.Tensor = None
     ):
         """
-        열쇠와 값 앞에 앞가지를 붙여 피드포워드한다.
+        열쇠와 값 앞에 프리픽스를 붙여 피드포워드한다.
         """
         # 숨은 상태에서 Q, K, V를 셈한다
         # (짜기는 어텐션 구조에 따라 다르다)
         
-        # K와 V 앞에 앞가지를 붙인다
-        # K = [앞가지 열쇠; K]
-        # V = [앞가지 값; V]
+        # K와 V 앞에 프리픽스를 붙인다
+        # K = [프리픽스 열쇠; K]
+        # V = [프리픽스 값; V]
         
-        # 앞가지에 맞춰 어텐션 가림막을 넓힌다(앞가지는 늘 본다)
+        # 프리픽스에 맞춰 어텐션 마스크를 넓힌다(프리픽스는 늘 본다)
         if attention_mask is not None:
             prefix_mask = torch.ones(
                 attention_mask.shape[0], self.prefix_length,
@@ -584,7 +584,7 @@ Quality
 ```python
 # 기억 공간 효율을 가장 크게 하려는 QLoRA + 그래디언트 되짚기
 # 어텐션에는 LoRA + 여러 레이어 인식개에는 맞춤개
-# 더 큰 담이를 위한 앞가지 다듬기 + LoRA
+# 더 큰 담이를 위한 프리픽스 다듬기 + LoRA
 ```
 
 위 블록은 조합 아이디어를 주석으로 나열한 것이며 실제 통합 코드가 아니다. 함께 쓴다고 효과가 단순히 합산되거나 메모리가 항상 최소화되지는 않는다. 동결·모드·체크포인트·경사·dtype과 각 방법의 독립적인 효과를 검증해야 한다. 이 편집에서는 학습·양자화·벤치마크를 실행하지 않았다.

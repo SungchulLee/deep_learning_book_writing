@@ -302,12 +302,12 @@ $$\rho = \frac{mn}{k(m + n)}$$
         # 특잇값을 U에 녹여 넣는다
         U_scaled = U_r * S_r.unsqueeze(0)
 
-        # 되살림: weight ≈ U_scaled @ V_r
+        # 복원: weight ≈ U_scaled @ V_r
         return U_scaled, V_r.T
 
     def compute_reconstruction_error(original: torch.Tensor, 
                                      reconstructed: torch.Tensor) -> float:
-        """견준 되살림 어긋남을 셈한다."""
+        """견준 복원 어긋남을 셈한다."""
         error = torch.norm(original - reconstructed) / torch.norm(original)
         return error.item()
 

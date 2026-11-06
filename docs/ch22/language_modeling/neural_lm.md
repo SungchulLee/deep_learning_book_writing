@@ -618,7 +618,7 @@ class TransformerLM(nn.Module):
         """
         seq_len = x.size(1)
         
-        # 잣수를 맞춘 임베딩
+        # 스케일을 맞춘 임베딩
         x = self.embedding(x) * math.sqrt(self.d_model)
         x = self.pos_encoder(x)
         x = self.dropout(x)

@@ -128,7 +128,7 @@ class GaussianELBO:
         """
         n = len(data)
 
-        # 되살림: E_q[log p(D|theta)]
+        # 복원: E_q[log p(D|theta)]
         reconstruction = (
             -0.5 * n * torch.log(torch.tensor(2 * torch.pi * self.sigma**2))
             - 0.5 / self.sigma**2 * (torch.sum((data - m)**2) + n * s**2)

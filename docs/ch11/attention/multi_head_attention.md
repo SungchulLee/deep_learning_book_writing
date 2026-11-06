@@ -296,7 +296,7 @@ class MultiHeadAttention(nn.Module):
             Q: 질의의 출처 (배치, seq_q, d_model)
             K: 열쇠의 출처 (배치, seq_k, d_model)
             V: 값의 출처 (배치, seq_v, d_model), 대체로 seq_k == seq_v
-            mask: 선택적인 어텐션 가림막
+            mask: 선택적인 어텐션 마스크
         """
         batch_size = Q.size(0)
         seq_q, seq_k = Q.size(1), K.size(1)

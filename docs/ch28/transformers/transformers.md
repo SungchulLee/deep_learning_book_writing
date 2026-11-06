@@ -65,7 +65,7 @@ class CausalSelfAttention(nn.Module):
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
-            attention_mask: 덧붙일 수 있는 가림막 [배치 크기, 차례 길이]
+            attention_mask: 덧붙일 수 있는 마스크 [배치 크기, 차례 길이]
             
         반환값:
             출력 텐서 [batch_size, seq_len, d_model]
@@ -91,7 +91,7 @@ class CausalSelfAttention(nn.Module):
         causal_mask = self.causal_mask[:seq_len, :seq_len]
         scores = scores.masked_fill(causal_mask, float('-inf'))
         
-        # 있으면 어텐션 가림막을 쓴다(예컨대 채우기)
+        # 있으면 어텐션 마스크를 쓴다(예컨대 채우기)
         if attention_mask is not None:
             # attention_mask: [배치, 차례 길이] -> [배치, 1, 1, 차례 길이]
             attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
@@ -171,7 +171,7 @@ class TransformerBlock(nn.Module):
         
         인수:
             x: 들임 [배치 크기, 차례 길이, d_model]
-            attention_mask: 쓸 수도 있는 가림막 [배치 크기, 차례 길이]
+            attention_mask: 쓸 수도 있는 마스크 [배치 크기, 차례 길이]
             
         반환값:
             내놓기 [배치 크기, 차례 길이, d_model]
@@ -271,7 +271,7 @@ class GPT(nn.Module):
         
         인수:
             input_ids: 토큰 어깨수 [배치 크기, 차례 길이]
-            attention_mask: 쓸 수도 있는 가림막 [배치 크기, 차례 길이]
+            attention_mask: 쓸 수도 있는 마스크 [배치 크기, 차례 길이]
             
         반환값:
             로짓 [배치 크기, 차례 길이, 낱말 수]
@@ -625,7 +625,7 @@ class CausalSelfAttentionWithCache(nn.Module):
         total_len = K.size(2)
         scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
         
-        # 새 자리가 옛 자리를 볼 때만 인과 가림막을 쓴다
+        # 새 자리가 옛 자리를 볼 때만 인과 마스크를 쓴다
         # 지난 자리는 모두 쓸 수 있다
         if seq_len > 1:
             mask = torch.triu(torch.ones(seq_len, total_len, device=x.device), diagonal=total_len - seq_len + 1).bool()

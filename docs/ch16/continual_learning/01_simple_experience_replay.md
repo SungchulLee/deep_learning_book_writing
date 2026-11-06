@@ -9,14 +9,14 @@
     ```python
     """
     57모듈: 이어 배우기 - 초급
-    파일 3: 단순 경험 되살리기
+    파일 3: 단순 경험 리플레이
 
-    이 스크립트는 가장 단순한 이어 배우기 기법인 경험 되살리기를 구현한다.
+    이 스크립트는 가장 단순한 이어 배우기 기법인 경험 리플레이를 구현한다.
     앞선 보기를 담은 작은 버퍼를 두고, 새 과제를 익히는 동안 그것을 되살려
     잊음을 막자는 생각이다.
 
     학습 목표:
-    1. 경험 되살리기의 개념을 이해한다
+    1. 경험 리플레이의 개념을 이해한다
     2. 무작위 뽑기를 갖춘 기억 버퍼를 구현한다
     3. 소박한 밑금보다 얼마나 나아졌는지 잰다
     4. 기억과 효율의 맞바꿈을 배운다
@@ -57,7 +57,7 @@
 
         다음을 갖춘 기본 에피소드 기억을 구현한다.
         1. (입력, 이름표, 과제 번호) 짝을 담는다
-        2. 되살리기를 위한 무작위 뽑기를 받쳐 준다
+        2. 리플레이를 위한 무작위 뽑기를 받쳐 준다
         3. 최대 용량이 붙박여 있다
 
         버퍼가 차면 새 보기가 옛 보기를 아무렇게나 갈아 끼운다
@@ -156,7 +156,7 @@
 
     class ExperienceReplayLearner:
         """
-        경험 되살리기를 쓰는 이어 배우는 학습기.
+        경험 리플레이를 쓰는 이어 배우는 학습기.
 
         학습 절차:
         1. 지금 과제 데이터의 배치마다 다음을 한다.
@@ -175,7 +175,7 @@
                      examples_per_task: int = 200,
                      learning_rate: float = 0.001):
             """
-            경험 되살리기 학습기를 초기화한다.
+            경험 리플레이 학습기를 초기화한다.
 
             인수:
                 model: 뉴럴 네트워크 모델
@@ -249,7 +249,7 @@
                       task_id: int,
                       epochs: int = 5) -> List[float]:
             """
-            경험 되살리기를 곁들여 과제 하나로 익힌다.
+            경험 리플레이를 곁들여 과제 하나로 익힌다.
 
             소박한 학습과의 핵심 차이:
             - 배치마다 되살릴 보기도 뽑아 함께 익힌다
@@ -289,7 +289,7 @@
                     output = self.model(data)
                     current_loss = self.criterion(output, target)
 
-                    # ===== 되살리기 로스 =====
+                    # ===== 리플레이 로스 =====
                     replay_loss = torch.tensor(0.0).to(self.device)
 
                     if len(self.memory) > 0:
@@ -302,7 +302,7 @@
                             replay_data = replay_data.to(self.device)
                             replay_labels = replay_labels.to(self.device)
 
-                            # 되살리기 로스를 셈한다
+                            # 리플레이 로스를 셈한다
                             replay_output = self.model(replay_data)
                             replay_loss = self.criterion(replay_output, replay_labels)
 
@@ -370,10 +370,10 @@
                            test_loaders: List[DataLoader],
                            epochs_per_task: int = 5):
             """
-            경험 되살리기를 쓰는 이어 배우기의 주 회귀.
+            경험 리플레이를 쓰는 이어 배우기의 주 회귀.
 
             과제마다의 절차:
-            1. 되살리기를 곁들여 익힌다
+            1. 리플레이를 곁들여 익힌다
             2. 이 과제의 보기로 기억 버퍼를 채운다
             3. 모든 과제에서 평가한다
             """
@@ -517,10 +517,10 @@
                             baseline_metrics: dict,
                             num_tasks: int):
         """
-        경험 되살리기를 밑금과 견준다.
+        경험 리플레이를 밑금과 견준다.
 
         인수:
-            replay_metrics: 경험 되살리기의 지표
+            replay_metrics: 경험 리플레이의 지표
             baseline_metrics: 소박한 밑금의 지표
             num_tasks: 과제 개수
         """
@@ -621,7 +621,7 @@
 
 
     def main():
-        """경험 되살리기를 보여 주는 주 함수."""
+        """경험 리플레이를 보여 주는 주 함수."""
         print("=" * 70)
         print("EXPERIENCE REPLAY FOR CONTINUAL LEARNING")
         print("=" * 70)
@@ -692,7 +692,7 @@
 
         print(f"\nModel: {sum(p.numel() for p in model.parameters()):,} parameters")
 
-        # 경험 되살리기 학습기를 만든다
+        # 경험 리플레이 학습기를 만든다
         learner = ExperienceReplayLearner(
             model=model,
             device=device,
@@ -701,7 +701,7 @@
             learning_rate=learning_rate
         )
 
-        # 경험 되살리기로 이어 배우기를 돌린다
+        # 경험 리플레이로 이어 배우기를 돌린다
         start_time = time.time()
         replay_metrics = learner.train_continual(
             train_loaders=train_loaders,

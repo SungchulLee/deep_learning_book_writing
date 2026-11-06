@@ -190,7 +190,7 @@ def get_diffusion_parameters(betas: torch.Tensor) -> dict:
     sqrt_alphas_cumprod = torch.sqrt(alphas_cumprod)
     sqrt_one_minus_alphas_cumprod = torch.sqrt(1.0 - alphas_cumprod)
     
-    # 뒤 확산 잣수 맞추기: μ = 1/√α_t·(...)
+    # 뒤 확산 스케일 맞추기: μ = 1/√α_t·(...)
     sqrt_recip_alphas = torch.sqrt(1.0 / alphas)
     
     # 사후 흩어짐: 뒤로 갈 때 잡음을 얼마나 더할지
@@ -562,7 +562,7 @@ class SinusoidalPositionEmbedding(nn.Module):
         device = time.device
         half_dim = self.dim // 2
         
-        # 잦기 잣수를 셈한다(등비 수열)
+        # 잦기 스케일을 셈한다(등비 수열)
         embeddings = np.log(10000) / (half_dim - 1)
         embeddings = torch.exp(torch.arange(half_dim, device=device) * -embeddings)
         

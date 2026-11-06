@@ -262,12 +262,12 @@ class SimpleCharTransformer(nn.Module):
         # 토큰 임베딩과 자리 임베딩을 아우른다
         x = token_emb + pos_emb
         
-        # 인과 가림막을 만든다: 자리마다 앞 자리만 볼 수 있다
+        # 인과 마스크를 만든다: 자리마다 앞 자리만 볼 수 있다
         # 이는 자기 되돌이로 나타내는 데 결정적이다!
         mask = torch.triu(torch.ones(seq_length, seq_length, device=x.device), diagonal=1)
         mask = mask.bool()
         
-        # 인과 가림막과 함께 트랜스포머를 쓴다
+        # 인과 마스크와 함께 트랜스포머를 쓴다
         x = self.transformer(x, mask=mask)
         
         # 헤아리기에 마지막 자리를 쓴다

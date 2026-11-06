@@ -32,8 +32,8 @@ class MaskRCNN(nn.Module):
         
         # RPN(자리 제안 네트워크)
         self.rpn_conv = nn.Conv2d(64, 512, 3, 1, 1)
-        self.rpn_cls = nn.Conv2d(512, 2 * 9, 1)  # 닻 9개, 클래스 2개(물체/아님)
-        self.rpn_reg = nn.Conv2d(512, 4 * 9, 1)  # 닻 9개, 자리표 4개
+        self.rpn_cls = nn.Conv2d(512, 2 * 9, 1)  # 앵커 9개, 클래스 2개(물체/아님)
+        self.rpn_reg = nn.Conv2d(512, 4 * 9, 1)  # 앵커 9개, 자리표 4개
         
         # 관심 자리 머리
         self.roi_head = nn.Sequential(

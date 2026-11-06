@@ -128,7 +128,7 @@ $$r(\pi) = \lim_{T \to \infty} \frac{1}{T} \sum_{t=1}^{T} \mathbb{E}_\pi[R_t]$$
 
 - **러닝레이트**: $\gamma$이 크면 안정을 위해 러닝레이트를 낮춰야 할 수 있다
 - **판 길이**: 에이전트가 판의 끝을 "볼" 수 있을 만큼 $\gamma$이 커야 한다
-- **리워드 잣수**: 실제 값 범위는 $\left[-\frac{R_{\max}}{1-\gamma}, \frac{R_{\max}}{1-\gamma}\right]$이다
+- **리워드 스케일**: 실제 값 범위는 $\left[-\frac{R_{\max}}{1-\gamma}, \frac{R_{\max}}{1-\gamma}\right]$이다
 
 ---
 

@@ -31,7 +31,7 @@ class MaskedConv2d(nn.Conv2d):
     PixelCNN의 핵심 새로움: 화소마다 앞선 화소(위쪽과 왼쪽)에만
     매이도록 겹말기를 가린다.
     
-    가림막 클래스:
+    마스크 클래스:
     - A 클래스: 첫 레이어용이며 지금 화소를 뺀다
     - B 클래스: 뒤 레이어용이며 지금 화소를 넣는다
     """
@@ -49,33 +49,33 @@ class MaskedConv2d(nn.Conv2d):
         assert mask_type in ['A', 'B'], "mask_type must be 'A' or 'B'"
         self.mask_type = mask_type
         
-        # 가림막을 버퍼로 등록한다(익히는 동안 고쳐지지 않는다)
+        # 마스크를 버퍼로 등록한다(익히는 동안 고쳐지지 않는다)
         self.register_buffer('mask', torch.zeros_like(self.weight))
         self.create_mask()
     
     def create_mask(self):
         """
-        자기 회귀 가림막을 만든다.
+        자기 회귀 마스크를 만든다.
         
-        가림막은 다음을 보장한다.
+        마스크는 다음을 보장한다.
         - 위쪽 화소는 볼 수 있다
         - 왼쪽 화소는 볼 수 있다
-        - 지금 화소: B 가림막에서만 보인다
+        - 지금 화소: B 마스크에서만 보인다
         - 아래쪽과 오른쪽 화소는 볼 수 없다
         """
         # 차원을 얻는다
         # 무게 꼴: [내놓기 채널, 들임 채널, 커널 높이, 커널 너비]
         k_h, k_w = self.weight.shape[2:]
         
-        # 가림막을 모두 1로 첫자리매김한다
+        # 마스크를 모두 1로 첫자리매김한다
         self.mask.fill_(1)
         
         # 아래 반을 0으로 만든다
         self.mask[:, :, k_h // 2 + 1:, :] = 0
         
         # 가운데 줄의 오른쪽을 0으로 만든다
-        # A 가림막: 가운데 화소를 뺀다
-        # B 가림막: 가운데 화소를 넣는다
+        # A 마스크: 가운데 화소를 뺀다
+        # B 마스크: 가운데 화소를 넣는다
         if self.mask_type == 'A':
             self.mask[:, :, k_h // 2, k_w // 2:] = 0
         else:  # mask_type == 'B'
@@ -91,7 +91,7 @@ class MaskedConv2d(nn.Conv2d):
         반환값:
             가린 겹말기의 내놓기
         """
-        # 겹말기 앞에 무게에 가림막을 곱한다
+        # 겹말기 앞에 무게에 마스크를 곱한다
         # 그러면 허락된 화소만 쓰인다
         self.weight.data *= self.mask
         return super(MaskedConv2d, self).forward(x)
@@ -156,7 +156,7 @@ class PixelCNN(nn.Module):
         """
         super(PixelCNN, self).__init__()
         
-        # 첫 레이어는 A 클래스 가림막을 쓴다(지금 화소를 뺀다)
+        # 첫 레이어는 A 클래스 마스크를 쓴다(지금 화소를 뺀다)
         self.input_conv = MaskedConv2d('A', 1, n_channels,
                                        kernel_size=7, padding=3)
         

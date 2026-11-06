@@ -10,7 +10,7 @@
 
 참고: Vinyals 외, "Matching Networks for One Shot Learning" (2016)
 
-핵심 생각: 주의 장치로 물음 보기를 받침 집합과 견주어,
+핵심 생각: 주의 장치로 물음 보기를 서포트 집합과 견주어,
 받침 보기마다 예측에 이바지하는 무게를 매긴다.
 """
 
@@ -72,7 +72,7 @@ class MatchingNetwork(nn.Module):
     """
     코사인 닮음 주의를 쓰는 맞춤 망.
     
-    모델은 받침 집합 위의 주의 무게를 셈하여 물음을 가려내며,
+    모델은 서포트 집합 위의 주의 무게를 셈하여 물음을 가려내며,
     주의는 임베딩 사이의 코사인 닮음을 바탕으로 한다.
     """
     def __init__(self, encoder, use_full_context_embeddings=False):
@@ -83,7 +83,7 @@ class MatchingNetwork(nn.Module):
     def forward(self, support, support_labels, query):
         """
         인수:
-            support: (n_support, *input_shape) - 받침 집합
+            support: (n_support, *input_shape) - 서포트 집합
             support_labels: (n_support,) - 원핫 또는 이름표 첨자
             query: (n_query, *input_shape) - 물음 집합
         

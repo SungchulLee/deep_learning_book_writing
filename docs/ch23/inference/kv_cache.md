@@ -90,7 +90,7 @@ class AttentionWithKVCache(nn.Module):
         # 어텐션
         attn_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
-        # 인과 가림막(토막이 여럿일 때만)
+        # 인과 마스크(토막이 여럿일 때만)
         if seq_len > 1:
             total_len = k.size(2)
             mask = torch.triu(torch.ones(seq_len, total_len, device=x.device), 

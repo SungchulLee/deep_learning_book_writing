@@ -14,7 +14,7 @@ from typing import List, Tuple
 
 class SSDExtraLayers(nn.Module):
     """
-    여러 잣수 알아내기를 위해 VGG 바탕 뒤에 붙인 덧컨볼루션 레이어.
+    여러 스케일 알아내기를 위해 VGG 바탕 뒤에 붙인 덧컨볼루션 레이어.
     """
     def __init__(self, in_channels: int = 1024):
         super().__init__()
@@ -87,7 +87,7 @@ class DefaultBoxGenerator:
         else:
             self.aspect_ratios = aspect_ratios
         
-        # 잣수 셈하기
+        # 스케일 셈하기
         m = len(feature_maps)
         self.scales = [0.2 + (0.9 - 0.2) * k / (m - 1) for k in range(m)]
         self.scales.append(1.0)

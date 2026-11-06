@@ -460,7 +460,7 @@ def train_feature_vae(vae, train_loader, class_embeddings, epochs=100):
             
             recon, mu, logvar = vae(batch_v, batch_s)
             
-            # 되살림 로스
+            # 복원 로스
             recon_loss = F.mse_loss(recon, batch_v)
             
             # KL 벌어짐

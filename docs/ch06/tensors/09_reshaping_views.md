@@ -15,7 +15,7 @@
 핵심 개념:
 - reshape(), view(), contiguous() 견주기
 - 차원 더하기와 없애기(unsqueeze/squeeze)
-- 차원 자리바꿈(transpose/permute)
+- 차원 순열(transpose/permute)
 - 텐서 펼치기
 - 기억 자리 구조와 이어짐
 """

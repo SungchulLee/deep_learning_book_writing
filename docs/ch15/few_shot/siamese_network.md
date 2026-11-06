@@ -129,7 +129,7 @@ class ContrastiveLoss(nn.Module):
 
 class TripletLoss(nn.Module):
     """
-    세쌍 로스: 닻을 양의 보기 쪽으로 끌고 음의 보기에서 밀어낸다.
+    세쌍 로스: 앵커를 양의 보기 쪽으로 끌고 음의 보기에서 밀어낸다.
     
     로스 = max(d(anchor, positive) - d(anchor, negative) + margin, 0)
     """
@@ -140,8 +140,8 @@ class TripletLoss(nn.Module):
     def forward(self, anchor, positive, negative):
         """
         인수:
-            anchor: 닻 임베딩 (batch_size, embedding_dim)
-            positive: 양의 임베딩(닻과 같은 부류)
+            anchor: 앵커 임베딩 (batch_size, embedding_dim)
+            positive: 양의 임베딩(앵커와 같은 부류)
             negative: 음의 임베딩(다른 부류)
         """
         pos_distance = F.pairwise_distance(anchor, positive, p=2)
@@ -195,7 +195,7 @@ def one_shot_classification(model, support_set, support_labels, query):
     n_query = query.shape[0]
     
     with torch.no_grad():
-        # 받침 집합의 임베딩을 얻는다
+        # 서포트 집합의 임베딩을 얻는다
         support_embeddings = model.encoder(support_set)
         
         predictions = []

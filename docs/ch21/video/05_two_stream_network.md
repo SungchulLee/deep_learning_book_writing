@@ -360,7 +360,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                 prev_gray,
                 next_gray,
                 None,
-                pyr_scale=0.5,  # 피라미드 잣수
+                pyr_scale=0.5,  # 피라미드 스케일
                 levels=3,        # 피라미드 레이어 수
                 winsize=15,      # 창 크기
                 iterations=3,    # 피라미드 켜마다의 되풀이 횟수

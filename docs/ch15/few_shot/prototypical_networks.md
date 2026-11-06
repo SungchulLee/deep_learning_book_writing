@@ -66,8 +66,8 @@ class PrototypicalNetwork(nn.Module):
     def forward(self, support, support_labels, query):
         """
         인수:
-            support: (n_support, *input_shape) - 받침 집합 보기
-            support_labels: (n_support,) - 받침 집합의 이름표
+            support: (n_support, *input_shape) - 서포트 집합 보기
+            support_labels: (n_support,) - 서포트 집합의 이름표
             query: (n_query, *input_shape) - 가려낼 물음 보기
         
         반환값:

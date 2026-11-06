@@ -157,7 +157,7 @@ def metric_mds_torch(D, n_components=2, n_iter=300, lr=0.01, seed=42):
     n = D.shape[0]
     D_tensor = torch.tensor(D, dtype=torch.float32)
     
-    # 위쪽 세모 가림막
+    # 위쪽 세모 마스크
     mask = torch.triu(torch.ones(n, n, dtype=torch.bool), diagonal=1)
     
     # 고전 MDS 결과로 첫자리매김한다

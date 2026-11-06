@@ -159,7 +159,7 @@ use_low_rank=True 경로는 비선형 MLP와 정규화를 포함하므로 수식
 ```python
 class BilinearCompatibility(nn.Module):
     """
-    ZSL을 위한 겹선형 어울림 모델.
+    ZSL을 위한 쌍선형 어울림 모델.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
@@ -187,7 +187,7 @@ class BilinearCompatibility(nn.Module):
             self.visual_bn = nn.BatchNorm1d(visual_dim)
     
     def forward(self, visual, semantic):
-        """겹선형 어울림 점수를 셈한다."""
+        """쌍선형 어울림 점수를 셈한다."""
         if self.use_low_rank:
             v_proj = F.normalize(self.visual_proj(visual), dim=1)
             s_proj = F.normalize(self.semantic_proj(semantic), dim=-1)

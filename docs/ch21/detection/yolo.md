@@ -148,7 +148,7 @@ class DarknetBlock(nn.Module):
 
 class YOLOv3Head(nn.Module):
     """
-    잣수 하나를 위한 YOLOv3 알아내기 머리.
+    스케일 하나를 위한 YOLOv3 알아내기 머리.
     """
     def __init__(
         self,
@@ -158,7 +158,7 @@ class YOLOv3Head(nn.Module):
     ):
         super().__init__()
         
-        # 닻마다 어림: 자리표 4 + 물체다움 1 + 클래스 수
+        # 앵커마다 어림: 자리표 4 + 물체다움 1 + 클래스 수
         out_channels = num_anchors * (5 + num_classes)
         
         self.conv = nn.Sequential(
@@ -253,7 +253,7 @@ YOLOv8의 구체적인 레이어는 [공식 모델 설정](https://raw.githubuse
 ```python
 class PANNeck(nn.Module):
     """
-    여러 잣수 피처를 녹여 붙이는 경로 모으기 네트워크 목.
+    여러 스케일 피처를 녹여 붙이는 경로 모으기 네트워크 목.
     """
     def __init__(self, in_channels_list, out_channels):
         super().__init__()
@@ -282,7 +282,7 @@ class PANNeck(nn.Module):
             features: 피처 지도의 목록 [P3, P4, P5]
             
         반환값:
-            잣수마다 녹여 붙인 피처의 목록
+            스케일마다 녹여 붙인 피처의 목록
         """
         # 옆 이음
         laterals = [conv(f) for conv, f in zip(self.lateral_convs, features)]
@@ -309,7 +309,7 @@ class PANNeck(nn.Module):
 ```python
 class YOLOv8Head(nn.Module):
     """
-    클래스 매기기와 되돌리기를 떼어 놓은 닻 없는 알아내기 머리.
+    클래스 매기기와 되돌리기를 떼어 놓은 앵커 없는 알아내기 머리.
     """
     def __init__(
         self,
@@ -429,7 +429,7 @@ def yolo_loss(
             # xy 로스
             coord_loss += F.mse_loss(pred[:, :2], target[:, :2], reduction='sum')
             
-            # 너비·높이 로스(잣수에 안 바뀌도록 제곱근)
+            # 너비·높이 로스(스케일에 안 바뀌도록 제곱근)
             coord_loss += F.mse_loss(
                 torch.sqrt(pred[:, 2:4].abs() + 1e-6),
                 torch.sqrt(target[:, 2:4].abs() + 1e-6),

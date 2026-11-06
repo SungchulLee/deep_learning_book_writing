@@ -187,7 +187,7 @@ class PrototypicalNetwork(nn.Module):
         물음 보기의 가려내기 로짓을 셈한다.
         
         인수:
-            support: 받침 집합 그림 (n_support, *input_shape)
+            support: 서포트 집합 그림 (n_support, *input_shape)
             support_labels: 받침 이름표 (n_support,)
             query: 물음 그림 (n_query, *input_shape)
         

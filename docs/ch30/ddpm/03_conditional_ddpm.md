@@ -101,7 +101,7 @@
 
             self.time_mlp = nn.Sequential(
                 nn.SiLU(),
-                nn.Linear(time_emb_dim, out_ch * 2)  # 잣수와 옮김
+                nn.Linear(time_emb_dim, out_ch * 2)  # 스케일과 옮김
             )
 
             self.norm2 = nn.GroupNorm(groups, out_ch)

@@ -145,7 +145,7 @@ class TemporalStream(nn.Module):
             # RGB 채널로 고루내고 흐름 채널만큼 되풀이
             mean_weight = pretrained_weight.mean(dim=1, keepdim=True)
             self.conv1.weight.data = mean_weight.repeat(1, input_channels, 1, 1)
-            self.conv1.weight.data /= input_channels  # 알맞게 잣수 맞추기
+            self.conv1.weight.data /= input_channels  # 알맞게 스케일 맞추기
         
         # 남은 레이어 베끼기
         self.bn1 = resnet.bn1
@@ -225,7 +225,7 @@ def compute_optical_flow(frame1: np.ndarray,
         # 이웃을 어림하려 다항식 펼침을 쓴다
         flow = cv2.calcOpticalFlowFarneback(
             gray1, gray2, None,
-            pyr_scale=0.5,    # 피라미드 잣수(0.5 = 고전 피라미드)
+            pyr_scale=0.5,    # 피라미드 스케일(0.5 = 고전 피라미드)
             levels=3,          # 피라미드 레이어 수
             winsize=15,        # 고루내기 창 크기
             iterations=3,      # 피라미드 켜마다의 되풀이 횟수

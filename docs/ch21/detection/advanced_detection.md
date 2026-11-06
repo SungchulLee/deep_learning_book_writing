@@ -34,7 +34,7 @@ print("="*70)
 # 모델을 불러온다
 model = YOLO('yolov8n.pt')
 
-# 재주 1: 여러 잣수 미룸
+# 재주 1: 여러 스케일 미룸
 print("\n1. Multi-Scale Inference")
 print("-"*70)
 print("Testing at multiple scales improves accuracy")

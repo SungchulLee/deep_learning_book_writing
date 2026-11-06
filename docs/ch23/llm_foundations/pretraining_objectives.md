@@ -23,7 +23,7 @@ def create_causal_mask(seq_len: int) -> torch.Tensor:
     자리 i는 i 이하 자리만 볼 수 있다.
     
     반환값:
-        아래 세모 가림막 (차례 길이, 차례 길이)
+        아래 세모 마스크 (차례 길이, 차례 길이)
     """
     mask = torch.tril(torch.ones(seq_len, seq_len))
     return mask  # 1 = 본다, 0 = 가린다
@@ -322,35 +322,35 @@ Generation (causal):    " Le chat est sur le tapis"
 ```python
 def prefix_lm_mask(seq_len: int, prefix_len: int) -> torch.Tensor:
     """
-    앞가지 말 모델의 어텐션 가림막.
+    프리픽스 말 모델의 어텐션 마스크.
     
-    - 앞가지 토막: 양쪽 어텐션(앞가지 토막을 모두 본다)
-    - 만들어 내기 토막: 인과 어텐션(앞가지 + 앞서 만든 것을 본다)
+    - 프리픽스 토막: 양쪽 어텐션(프리픽스 토막을 모두 본다)
+    - 만들어 내기 토막: 인과 어텐션(프리픽스 + 앞서 만든 것을 본다)
     
     인수:
         seq_len: 전체 차례 길이
-        prefix_len: 앞가지 몫의 길이
+        prefix_len: 프리픽스 몫의 길이
         
     반환값:
-        어텐션 가림막 (차례 길이, 차례 길이)
+        어텐션 마스크 (차례 길이, 차례 길이)
     """
     mask = torch.zeros(seq_len, seq_len)
     
-    # 앞가지: 앞가지 안에서는 어텐션이 온전하다
+    # 프리픽스: 프리픽스 안에서는 어텐션이 온전하다
     mask[:prefix_len, :prefix_len] = 1
     
-    # 만들어 내기: 앞가지 전부 + 만들어 내기 안에서는 인과로 본다
+    # 만들어 내기: 프리픽스 전부 + 만들어 내기 안에서는 인과로 본다
     for i in range(prefix_len, seq_len):
-        mask[i, :prefix_len] = 1  # 앞가지를 모두 본다
+        mask[i, :prefix_len] = 1  # 프리픽스를 모두 본다
         mask[i, prefix_len:i+1] = 1  # 만들어 내기 안에서는 인과로
     
     return mask
 
 # 보기: seq_len=6, prefix_len=3
-# [[1, 1, 1, 0, 0, 0],   <- 앞가지 토막 0
-#  [1, 1, 1, 0, 0, 0],   <- 앞가지 토막 1
-#  [1, 1, 1, 0, 0, 0],   <- 앞가지 토막 2
-#  [1, 1, 1, 1, 0, 0],   <- 만든 토막 0(앞가지 + 자신을 본다)
+# [[1, 1, 1, 0, 0, 0],   <- 프리픽스 토막 0
+#  [1, 1, 1, 0, 0, 0],   <- 프리픽스 토막 1
+#  [1, 1, 1, 0, 0, 0],   <- 프리픽스 토막 2
+#  [1, 1, 1, 1, 0, 0],   <- 만든 토막 0(프리픽스 + 자신을 본다)
 #  [1, 1, 1, 1, 1, 0],   <- 만든 토막 1
 #  [1, 1, 1, 1, 1, 1]]   <- 만든 토막 2
 ```
@@ -392,7 +392,7 @@ class ELECTRA(nn.Module):
         """
         인수:
             input_ids: [MASK] 토막이 든 들임
-            masked_indices: 망가뜨린 자리의 참거짓 가림막
+            masked_indices: 망가뜨린 자리의 참거짓 마스크
             labels: 가린 자리의 본디 토막 번호
         """
         # 생성기가 가린 토막을 어림한다(가린 말 모델)
@@ -456,7 +456,7 @@ class UL2Config:
 
 UL2_OBJECTIVES = [
     UL2Config('R', mean_span_length=3.0, corruption_rate=0.15, prefix='[R]'),   # 보통
-    UL2Config('S', mean_span_length=None, corruption_rate=None, prefix='[S]'),  # 차례차례(앞가지 말 모델)
+    UL2Config('S', mean_span_length=None, corruption_rate=None, prefix='[S]'),  # 차례차례(프리픽스 말 모델)
     UL2Config('X', mean_span_length=32.0, corruption_rate=0.50, prefix='[X]'),  # 극단
 ]
 
@@ -482,7 +482,7 @@ def ul2_transform(
     config = sample_ul2_objective()
     
     if config.name == 'S':
-        # 차례차례(앞가지 말 모델): 앞가지와 목표로 쪼갠다
+        # 차례차례(프리픽스 말 모델): 프리픽스와 목표로 쪼갠다
         split_point = random.randint(len(tokens) // 4, 3 * len(tokens) // 4)
         input_tokens = [mode_token_ids['S']] + tokens[:split_point]
         target_tokens = tokens[split_point:]
@@ -582,7 +582,7 @@ def effective_tokens_per_example(
     
     elif objective == 'prefix_lm':
         # 만들어 내는 몫만 신호를 준다
-        # 앞가지가 50%쯤이라 치고
+        # 프리픽스가 50%쯤이라 치고
         return seq_len * 0.5
     
     elif objective == 'ELECTRA':

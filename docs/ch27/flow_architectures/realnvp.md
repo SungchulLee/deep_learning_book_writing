@@ -52,7 +52,7 @@ class AffineCouplingLayer(nn.Module):
     def _st(self, x_cond):
         params = self.net(x_cond)
         s, t = params.chunk(2, dim=-1)
-        s = torch.tanh(s) * 2          # 안정을 위해 로그 잣수를 가둔다
+        s = torch.tanh(s) * 2          # 안정을 위해 로그 스케일을 가둔다
         return s, t
 
     def forward(self, x):
@@ -77,7 +77,7 @@ forward는 `(변환값,표본별 로그 절댓값 행렬식)`을 반환한다. i
 본문은 로그 스케일에 2 tanh를 적용해 단일 레이어의 배율을 exp(−2)~exp(2)로 제한한다. 이는 모든 깊이의 누적 스케일이나 이동값까지 제한하는 것은 아니다.
 
 ```python
-# 가둔 로그 잣수
+# 가둔 로그 스케일
 s = torch.tanh(s_raw) * scale_bound      # 예컨대 scale_bound = 2
 
 # 다른 길: 매끄럽게 양수로 만드는 부드러운 정류 선형

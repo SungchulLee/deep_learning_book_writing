@@ -40,7 +40,7 @@ class NoiseConditionalScoreNetwork(nn.Module):
     잡음 수준을 조건으로 삼는 점수 뉴럴 네트워크.
     
     구조: s_θ(x, σ)이 분포 p_σ(x)의 점수를 내놓는다.
-    이는 여러 잣수의 점수 나타내기에 결정적이다.
+    이는 여러 스케일의 점수 나타내기에 결정적이다.
     """
     
     def __init__(self, data_dim=2, hidden_dims=[128, 128, 128],

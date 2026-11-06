@@ -14,7 +14,7 @@
     이 각본은 뜻 나누기의 가장 앞선 재주를 보여 준다:
     - 어텐션 구조(CBAM)
     - 앞선 로스 함수(초점 + 다이스 + 테두리)
-    - 여러 잣수 익히기
+    - 여러 스케일 익히기
     - 시험 때 불리기
     - 뒷손질
     - 섞인 정밀도 익히기
@@ -342,11 +342,11 @@
     print("Loss: Combined (Focal + Dice + Boundary)")
 
     # ============================================================================
-    # 4단계: 여러 잣수를 갖춘 인공 자료 뭉치
+    # 4단계: 여러 스케일을 갖춘 인공 자료 뭉치
     # ============================================================================
 
     class MultiScaleDataset(Dataset):
-        """여러 잣수의 그림을 돌려주는 자료 뭉치."""
+        """여러 스케일의 그림을 돌려주는 자료 뭉치."""
         def __init__(self, num_samples=800, scales=[256, 384] if USE_MULTI_SCALE else [256]):
             self.num_samples = num_samples
             self.scales = scales
@@ -354,7 +354,7 @@
 
             print(f"Generating {num_samples} samples at scales {scales}...")
             for i in range(num_samples):
-                # 가장 큰 잣수에서 만들기
+                # 가장 큰 스케일에서 만들기
                 img, mask = self._generate_sample(max(scales))
                 self.samples.append((img, mask))
 
@@ -395,9 +395,9 @@
         def __getitem__(self, idx):
             img, mask = self.samples[idx]
 
-            # 잣수는 보기마다가 아니라 배치마다 골라야 한다. 보기마다 고르면
+            # 스케일은 보기마다가 아니라 배치마다 골라야 한다. 보기마다 고르면
             # 한 배치에 크기가 다른 텐서가 섞여 stack이 되지 않는다.
-            # 여기서는 가장 큰 잣수로 내놓고, 줄이는 일은 collate가 맡는다.
+            # 여기서는 가장 큰 스케일로 내놓고, 줄이는 일은 collate가 맡는다.
             scale = max(self.scales)
             img = img.resize((scale, scale), Image.BILINEAR)
             mask = mask.resize((scale, scale), Image.NEAREST)
@@ -414,12 +414,12 @@
 
     # 데이터셋들을 만든다
     train_dataset = MultiScaleDataset(num_samples=800)
-    val_dataset = MultiScaleDataset(num_samples=100, scales=[256])  # 검증용 붙박이 잣수
+    val_dataset = MultiScaleDataset(num_samples=100, scales=[256])  # 검증용 붙박이 스케일
     test_dataset = MultiScaleDataset(num_samples=100, scales=[256])
 
-    BATCH_SIZE = 4  # 여러 잣수와 어텐션 때문에 더 작다
+    BATCH_SIZE = 4  # 여러 스케일과 어텐션 때문에 더 작다
     def multiscale_collate(batch):
-        """배치마다 잣수 하나를 골라 그 배치 전체를 같은 크기로 맞춘다."""
+        """배치마다 스케일 하나를 골라 그 배치 전체를 같은 크기로 맞춘다."""
         scale = int(np.random.choice(train_dataset.scales))
         imgs, masks = zip(*batch)
         imgs = F.interpolate(torch.stack(imgs), size=(scale, scale),
@@ -463,7 +463,7 @@
             if USE_MIXED_PRECISION:
                 with autocast():
                     outputs = model(images)
-                    # 마스크 크기에 맞게 내놓음 크기 바꾸기(여러 잣수용)
+                    # 마스크 크기에 맞게 내놓음 크기 바꾸기(여러 스케일용)
                     if outputs.shape[-2:] != masks.shape[-2:]:
                         outputs = F.interpolate(outputs, size=masks.shape[-2:], 
                                               mode='bilinear', align_corners=False)

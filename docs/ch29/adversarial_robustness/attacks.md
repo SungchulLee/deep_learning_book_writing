@@ -38,7 +38,7 @@ class AdversarialGenerator(nn.Module):
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.ConvTranspose2d(64, input_channels, 4, 2, 1),
-            nn.Tanh()  # [-1, 1]으로 내놓고 엡실론으로 잣수를 맞춘다
+            nn.Tanh()  # [-1, 1]으로 내놓고 엡실론으로 스케일을 맞춘다
         )
     
     def forward(self, x):
@@ -46,7 +46,7 @@ class AdversarialGenerator(nn.Module):
         features = self.encoder(x)
         perturbation = self.decoder(features)
         
-        # 흔들림을 엡실론 공에 맞춰 잣수 조정한다
+        # 흔들림을 엡실론 공에 맞춰 스케일 조정한다
         perturbation = self.epsilon * perturbation
         
         # 맞겨루기 보기를 만든다
@@ -951,7 +951,7 @@ def cw_targeted_attack(model, images, target_labels, c=1.0, kappa=0,
     images = images.to(device)
     target_labels = target_labels.to(device)
     
-    # 흔들림을 tanh으로 잣수 맞춘 변수로 첫자리매김한다
+    # 흔들림을 tanh으로 스케일 맞춘 변수로 첫자리매김한다
     # tanh을 쓰면 내놓기가 가둬진다
     w = torch.zeros_like(images, requires_grad=True, device=device)
     

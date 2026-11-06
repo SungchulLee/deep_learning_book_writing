@@ -153,7 +153,7 @@
         """
         때 임베딩으로 조건을 준 남은 덩이.
         GroupNorm, SiLU 깨움, 그리고 쓸 수 있는 떨구기를 쓴다.
-        때 임베딩이 잣수와 옮김(FiLM)으로 피처를 조절한다.
+        때 임베딩이 스케일과 옮김(FiLM)으로 피처를 조절한다.
         """
         def __init__(self, in_ch, out_ch, time_emb_dim, dropout=0.1, groups=8):
             super().__init__()
@@ -162,7 +162,7 @@
             self.act1 = nn.SiLU()
             self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
 
-            # 때 임베딩 쏘기(잣수와 옮김)
+            # 때 임베딩 쏘기(스케일과 옮김)
             self.time_mlp = nn.Sequential(
                 nn.SiLU(),
                 nn.Linear(time_emb_dim, out_ch * 2)
@@ -210,7 +210,7 @@
             self.v = nn.Conv2d(channels, channels, 1)
             self.proj = nn.Conv2d(channels, channels, 1)
 
-            # 어텐션의 잣수 갑절
+            # 어텐션의 스케일 갑절
             self.scale = self.head_dim ** -0.5
 
         def forward(self, x):
@@ -487,7 +487,7 @@
             if (t == 0).all():
                 return model_mean
 
-            # 사후 흩어짐으로 잣수를 맞춘 잡음을 더한다
+            # 사후 흩어짐으로 스케일을 맞춘 잡음을 더한다
             posterior_var_t = extract(self.posterior_variance, t, x_t.shape)
             noise = torch.randn_like(x_t)
             return model_mean + torch.sqrt(posterior_var_t) * noise

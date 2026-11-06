@@ -584,8 +584,8 @@ class AttentionGate(nn.Module):
     def forward(self, gate: torch.Tensor, skip: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            gate: 디코더에서 온 문 신호(더 거친 잣수)
-            skip: 인코더에서 온 건너뛰는 이음(더 고운 잣수)
+            gate: 디코더에서 온 문 신호(더 거친 스케일)
+            skip: 인코더에서 온 건너뛰는 이음(더 고운 스케일)
         """
         # skip의 자리 차원에 맞게 문을 키우기
         gate_up = F.interpolate(self.W_g(gate), size=skip.shape[2:], 

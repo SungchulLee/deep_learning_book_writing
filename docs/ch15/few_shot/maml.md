@@ -80,7 +80,7 @@ class MAML:
         # 과제별 맞춤을 위해 모델 파라메터를 복사한다
         params = OrderedDict(self.model.named_parameters())
         
-        # 안쪽 회귀: 받침 집합에 맞춘다
+        # 안쪽 회귀: 서포트 집합에 맞춘다
         for step in range(self.num_inner_steps):
             # 지금 파라메터로 피드포워드한다
             support_logits = self.model(support_x, params)
@@ -158,7 +158,7 @@ class MAML:
     
     def adapt(self, support_x, support_y, num_steps=None):
         """
-        받침 집합이 주어졌을 때 모델을 새 과제에 맞춘다.
+        서포트 집합이 주어졌을 때 모델을 새 과제에 맞춘다.
         
         반환값:
             adapted_params: 과제에 맞춘 파라메터
@@ -183,7 +183,7 @@ class MAML:
     
     def predict(self, support_x, support_y, query_x):
         """
-        받침 집합에 맞춘 뒤 물음 집합에서 맞힌다.
+        서포트 집합에 맞춘 뒤 물음 집합에서 맞힌다.
         """
         self.model.eval()
         # 맞추는 일은 그래디언트를 쓰므로 no_grad 밖에서 한다

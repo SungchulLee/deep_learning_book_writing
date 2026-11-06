@@ -31,7 +31,7 @@ def vae_loss_free_bits(recon_x, x, mu, logvar, free_bits=0.5):
     반환값:
         total_loss, recon_loss, kl_loss
     """
-    # 되살림 로스
+    # 복원 로스
     recon_loss = F.binary_cross_entropy(recon_x, x, reduction='sum')
     
     # 차원마다의 KL: [배치 크기, 숨은 차원]
@@ -40,7 +40,7 @@ def vae_loss_free_bits(recon_x, x, mu, logvar, free_bits=0.5):
     # 배치에 걸쳐 먼저 평균 낸 뒤 공짜 비트를 적용한다
     kl_mean_per_dim = kl_per_dim.mean(dim=0)  # [숨은 차원]
     kl_free = torch.clamp(kl_mean_per_dim, min=free_bits)
-    kl_loss = kl_free.sum() * x.size(0)  # 배치 잣수로 되돌린다
+    kl_loss = kl_free.sum() * x.size(0)  # 배치 스케일로 되돌린다
     
     total_loss = recon_loss + kl_loss
     return total_loss, recon_loss, kl_loss

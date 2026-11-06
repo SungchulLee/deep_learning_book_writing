@@ -111,7 +111,7 @@ def demo_mnist():
     # MNIST 불러오기
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,))  # [-1, 1]으로 잣수를 맞춘다
+        transforms.Normalize((0.5,), (0.5,))  # [-1, 1]으로 스케일을 맞춘다
     ])
     
     dataset = torchvision.datasets.MNIST(

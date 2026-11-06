@@ -112,7 +112,7 @@ class RotaryEmbedding(nn.Module):
 
 ```python
 def ntk_scaled_rope(dim: int, max_seq_len: int, base: int = 10000, scale: float = 2.0):
-    """맥락을 넓히기 위한 NTK를 헤아린 돌림 자리 임베딩 잣수 맞추기."""
+    """맥락을 넓히기 위한 NTK를 헤아린 돌림 자리 임베딩 스케일 맞추기."""
     # 더 긴 차례를 위해 밑을 늘린다
     scaled_base = base * (scale ** (dim / (dim - 2)))
     inv_freq = 1.0 / (scaled_base ** (torch.arange(0, dim, 2).float() / dim))
@@ -240,11 +240,11 @@ class SlidingWindowAttention(nn.Module):
         qkv = self.qkv(x).reshape(B, L, 3, self.num_heads, self.head_dim)
         q, k, v = qkv.unbind(2)
         
-        # 미끄러지는 창 가림막을 만든다
+        # 미끄러지는 창 마스크를 만든다
         mask = sliding_window_mask(L, self.window_size).to(x.device)
         mask = mask.masked_fill(mask == 0, float('-inf'))
         
-        # 가림막을 쓴 어텐션
+        # 마스크를 쓴 어텐션
         scores = torch.einsum('bnhd,bmhd->bhnm', q, k) / (self.head_dim ** 0.5)
         scores = scores + mask
         attn = torch.softmax(scores, dim=-1)

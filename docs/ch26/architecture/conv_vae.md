@@ -163,7 +163,7 @@ class ConvVAE(nn.Module):
             bce: 다시 세우기 로스
             kld: KL 벌어짐
         """
-        # 되살림 로스
+        # 복원 로스
         BCE = F.binary_cross_entropy(reconstruction, x, reduction='sum')
         
         # KL 발산

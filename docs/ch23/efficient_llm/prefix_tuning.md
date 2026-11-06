@@ -31,9 +31,9 @@ from typing import Tuple, Optional, List
 
 class PrefixEncoder(nn.Module):
     """
-    모든 레이어의 앞가지를 부호로 만든다.
+    모든 레이어의 프리픽스를 부호로 만든다.
     
-    작은 여러 레이어 인식개로 배울 수 있는 들임 임베딩에서 앞가지 임베딩을
+    작은 여러 레이어 인식개로 배울 수 있는 들임 임베딩에서 프리픽스 임베딩을
     만든다. 이렇게 다시 파라메터화하면 익히기가 더 안정된다.
     """
     
@@ -56,7 +56,7 @@ class PrefixEncoder(nn.Module):
         # 전체 차원: 레이어 수 * 2(K와 V) * 머리 수 * 머리 차원
         self.total_dim = num_layers * 2 * num_heads * head_dim
         
-        # 배울 수 있는 앞가지 임베딩
+        # 배울 수 있는 프리픽스 임베딩
         self.prefix_tokens = nn.Embedding(prefix_length, hidden_dim)
         
         # 다시 파라메터화하는 여러 레이어 인식개(익히기가 나아진다)
@@ -70,24 +70,24 @@ class PrefixEncoder(nn.Module):
     
     def forward(self, batch_size: int) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        모든 레이어의 앞가지 열쇠-값 짝을 만든다.
+        모든 레이어의 프리픽스 열쇠-값 짝을 만든다.
         
         반환값:
-            prefix_keys: [배치, 레이어 수, 머리 수, 앞가지 길이, 머리 차원]
-            prefix_values: [배치, 레이어 수, 머리 수, 앞가지 길이, 머리 차원]
+            prefix_keys: [배치, 레이어 수, 머리 수, 프리픽스 길이, 머리 차원]
+            prefix_values: [배치, 레이어 수, 머리 수, 프리픽스 길이, 머리 차원]
         """
         device = self.prefix_tokens.weight.device
         
-        # 앞가지 토막 번호를 얻는다
+        # 프리픽스 토막 번호를 얻는다
         prefix_ids = torch.arange(self.prefix_length, device=device)
         prefix_ids = prefix_ids.unsqueeze(0).expand(batch_size, -1)
         
         # 묻고 바꾼다
-        prefix_emb = self.prefix_tokens(prefix_ids)  # [배치, 앞가지 길이, 숨은]
-        prefix = self.mlp(prefix_emb)  # [배치, 앞가지 길이, 전체 차원]
+        prefix_emb = self.prefix_tokens(prefix_ids)  # [배치, 프리픽스 길이, 숨은]
+        prefix = self.mlp(prefix_emb)  # [배치, 프리픽스 길이, 전체 차원]
         prefix = self.dropout(prefix)
         
-        # 꼴 바꾸기: [배치, 앞가지 길이, 레이어, 2, 머리, 머리 차원]
+        # 꼴 바꾸기: [배치, 프리픽스 길이, 레이어, 2, 머리, 머리 차원]
         prefix = prefix.view(
             batch_size,
             self.prefix_length,
@@ -97,7 +97,7 @@ class PrefixEncoder(nn.Module):
             self.head_dim
         )
         
-        # [배치, 레이어, 머리, 앞가지 길이, 머리 차원, 2]로 자리를 바꾼다
+        # [배치, 레이어, 머리, 프리픽스 길이, 머리 차원, 2]로 자리를 바꾼다
         prefix = prefix.permute(0, 2, 4, 1, 5, 3)
         
         # 열쇠와 값으로 쪼갠다
@@ -108,9 +108,9 @@ class PrefixEncoder(nn.Module):
 
 class PrefixTuningModel(nn.Module):
     """
-    미리 익힌 모델에 앞가지 다듬기를 더하는 감개.
+    미리 익힌 모델에 프리픽스 다듬기를 더하는 감개.
     
-    바탕 모델을 얼리고 앞가지 파라메터만 익힌다.
+    바탕 모델을 얼리고 프리픽스 파라메터만 익힌다.
     """
     
     def __init__(
@@ -131,7 +131,7 @@ class PrefixTuningModel(nn.Module):
         for param in base_model.parameters():
             param.requires_grad = False
         
-        # 앞가지 인코더를 만든다
+        # 프리픽스 인코더를 만든다
         self.prefix_encoder = PrefixEncoder(
             num_layers=num_layers,
             num_heads=num_heads,
@@ -141,16 +141,16 @@ class PrefixTuningModel(nn.Module):
         )
     
     def get_prefix(self, batch_size: int):
-        """앞가지 열쇠-값 짝을 얻는다."""
+        """프리픽스 열쇠-값 짝을 얻는다."""
         return self.prefix_encoder(batch_size)
     
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor = None, **kwargs):
         batch_size = input_ids.size(0)
         
-        # 앞가지를 만든다
+        # 프리픽스를 만든다
         prefix_keys, prefix_values = self.get_prefix(batch_size)
         
-        # 앞가지에 맞춰 어텐션 가림막을 넓힌다
+        # 프리픽스에 맞춰 어텐션 마스크를 넓힌다
         if attention_mask is not None:
             prefix_mask = torch.ones(
                 batch_size, self.prefix_length,
@@ -159,7 +159,7 @@ class PrefixTuningModel(nn.Module):
             )
             attention_mask = torch.cat([prefix_mask, attention_mask], dim=1)
         
-        # 앞가지를 곁들여 피드포워드한다(짜기는 바탕 모델에 따라 다르다)
+        # 프리픽스를 곁들여 피드포워드한다(짜기는 바탕 모델에 따라 다르다)
         # 이는 간추린 겉면이며, 실제 짜기는
         # 어텐션 레이어마다 prefix_keys, prefix_values를 넣어야 한다
         return self.base_model(
@@ -170,11 +170,11 @@ class PrefixTuningModel(nn.Module):
         )
     
     def _format_prefix(self, prefix_keys, prefix_values):
-        """허깅페이스 꼴 past_key_values에 맞게 앞가지를 꾸민다."""
+        """허깅페이스 꼴 past_key_values에 맞게 프리픽스를 꾸민다."""
         # 레이어마다 하나씩 (열쇠, 값) 짝의 목록을 돌려준다
         past_key_values = []
         for layer_idx in range(prefix_keys.size(1)):
-            layer_key = prefix_keys[:, layer_idx]  # [배치, 머리, 앞가지 길이, 머리 차원]
+            layer_key = prefix_keys[:, layer_idx]  # [배치, 머리, 프리픽스 길이, 머리 차원]
             layer_value = prefix_values[:, layer_idx]
             past_key_values.append((layer_key, layer_value))
         return tuple(past_key_values)
@@ -191,9 +191,9 @@ PrefixTuningModel은 기반을 동결하고 과거 KV tuple로 prefix를 전달�
 ```python
 class PrefixAttention(nn.Module):
     """
-    앞가지를 받치는 여러 머리 어텐션.
+    프리픽스를 받치는 여러 머리 어텐션.
     
-    어텐션을 셈하기 앞서 열쇠와 값 앞에 앞가지를 붙인다.
+    어텐션을 셈하기 앞서 열쇠와 값 앞에 프리픽스를 붙인다.
     """
     
     def __init__(
@@ -224,13 +224,13 @@ class PrefixAttention(nn.Module):
         prefix_value: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        앞가지를 곁들일 수도 있는 피드포워드.
+        프리픽스를 곁들일 수도 있는 피드포워드.
         
         인수:
             hidden_states: [배치, 차례 길이, d_model]
             attention_mask: [배치, 차례 길이] 또는 [배치, 1, 차례 길이, 전체 길이]
-            prefix_key: [배치, 머리 수, 앞가지 길이, 머리 차원]
-            prefix_value: [배치, 머리 수, 앞가지 길이, 머리 차원]
+            prefix_key: [배치, 머리 수, 프리픽스 길이, 머리 차원]
+            prefix_value: [배치, 머리 수, 프리픽스 길이, 머리 차원]
         """
         batch_size, seq_len, _ = hidden_states.shape
         
@@ -244,9 +244,9 @@ class PrefixAttention(nn.Module):
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         
-        # K와 V 앞에 앞가지를 붙인다
+        # K와 V 앞에 프리픽스를 붙인다
         if prefix_key is not None and prefix_value is not None:
-            k = torch.cat([prefix_key, k], dim=2)  # [배치, 머리, 앞가지+차례, 머리 차원]
+            k = torch.cat([prefix_key, k], dim=2)  # [배치, 머리, 프리픽스+차례, 머리 차원]
             v = torch.cat([prefix_value, v], dim=2)
         
         # 어텐션 계산
@@ -254,11 +254,11 @@ class PrefixAttention(nn.Module):
         
         # 주의 가림을 적용한다
         if attention_mask is not None:
-            # 앞가지에 맞춰 가림막을 넓힌다(앞가지는 늘 본다)
+            # 프리픽스에 맞춰 마스크를 넓힌다(프리픽스는 늘 본다)
             if prefix_key is not None:
                 prefix_len = prefix_key.size(2)
                 if attention_mask.dim() == 2:
-                    # [배치, 차례] -> [배치, 1, 1, 앞가지+차례]
+                    # [배치, 차례] -> [배치, 1, 1, 프리픽스+차례]
                     prefix_mask = torch.ones(batch_size, prefix_len, device=attention_mask.device)
                     attention_mask = torch.cat([prefix_mask, attention_mask], dim=1)
                     attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
@@ -288,7 +288,7 @@ PrefixAttention은 새 Q·K·V·출력 사영을 만드는 독립 부품이며 �
 ```python
 class DirectPrefixEncoder(nn.Module):
     """
-    곧바른 앞가지 파라메터화(여러 레이어 인식개 없이).
+    곧바른 프리픽스 파라메터화(여러 레이어 인식개 없이).
     
     더 단순하나 익히는 동안 덜 안정될 수 있다.
     """
@@ -308,7 +308,7 @@ class DirectPrefixEncoder(nn.Module):
         self.prefix_length = prefix_length
         
         # 곧바로 배우는 파라메터
-        # 꼴: [앞가지 길이, 레이어, 2, 머리, 머리 차원]
+        # 꼴: [프리픽스 길이, 레이어, 2, 머리, 머리 차원]
         self.prefix = nn.Parameter(
             torch.randn(prefix_length, num_layers, 2, num_heads, head_dim) * 0.01
         )
@@ -317,7 +317,7 @@ class DirectPrefixEncoder(nn.Module):
         # 배치에 맞춰 넓힌다
         prefix = self.prefix.unsqueeze(0).expand(batch_size, -1, -1, -1, -1, -1)
         
-        # [배치, 레이어, 머리, 앞가지 길이, 머리 차원, 2]로 자리를 바꾼다
+        # [배치, 레이어, 머리, 프리픽스 길이, 머리 차원, 2]로 자리를 바꾼다
         prefix = prefix.permute(0, 2, 4, 1, 5, 3)
         
         return prefix[..., 0].contiguous(), prefix[..., 1].contiguous()
@@ -330,7 +330,7 @@ class PromptTuning(nn.Module):
     """
     시킴말 다듬기: 들임 앞에만 붙는 배울 수 있는 임베딩.
     
-    앞가지 다듬기보다 단순하나 나타내는 힘이 약하다.
+    프리픽스 다듬기보다 단순하나 나타내는 힘이 약하다.
     """
     
     def __init__(
@@ -380,7 +380,7 @@ class PromptTuning(nn.Module):
         # 시킴말을 들임에 잇는다
         inputs_embeds = torch.cat([prompt_embeds, input_embeds], dim=1)
         
-        # 어텐션 가림막을 넓힌다
+        # 어텐션 마스크를 넓힌다
         if attention_mask is not None:
             prompt_mask = torch.ones(batch_size, self.num_virtual_tokens, device=device)
             attention_mask = torch.cat([prompt_mask, attention_mask], dim=1)
@@ -412,9 +412,9 @@ def train_prefix_tuning(
     learning_rate: float = 3e-3,
     device: str = 'cuda'
 ):
-    """앞가지 다듬기로 모델을 익힌다."""
+    """프리픽스 다듬기로 모델을 익힌다."""
     
-    # 앞가지를 다듬은 모델을 만든다
+    # 프리픽스를 다듬은 모델을 만든다
     model = PrefixTuningModel(
         base_model=base_model,
         num_layers=num_layers,
@@ -423,12 +423,12 @@ def train_prefix_tuning(
         prefix_length=prefix_length
     ).to(device)
     
-    # 앞가지 파라메터만 익힐 수 있다
+    # 프리픽스 파라메터만 익힐 수 있다
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Trainable: {trainable_params:,} / {total_params:,} ({100*trainable_params/total_params:.2f}%)")
     
-    # 가장 좋게 하개(앞가지 파라메터만)
+    # 가장 좋게 하개(프리픽스 파라메터만)
     optimizer = torch.optim.AdamW(
         model.prefix_encoder.parameters(),
         lr=learning_rate,

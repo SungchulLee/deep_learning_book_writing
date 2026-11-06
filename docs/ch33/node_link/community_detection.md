@@ -64,7 +64,7 @@ def demo():
         z = model(x, ei).numpy()
     km = KMeans(n_clusters=3, random_state=42, n_init=10).fit(z)
     pred = km.labels_
-    # NMI 비슷한 맞음(가장 좋은 자리바꿈)
+    # NMI 비슷한 맞음(가장 좋은 순열)
     from itertools import permutations
     best_acc = 0
     for perm in permutations(range(3)):

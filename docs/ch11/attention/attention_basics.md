@@ -47,7 +47,7 @@ class BasicAttention(nn.Module):
             query: (배치 크기, query_dim)
             keys: (배치 크기, seq_len, key_dim)
             values: (배치 크기, seq_len, value_dim)
-            mask: (배치 크기, seq_len) — 덧댐을 가리는 선택적 가림막
+            mask: (배치 크기, seq_len) — 덧댐을 가리는 선택적 마스크
             
         반환값:
             context: (배치 크기, value_dim)
@@ -69,7 +69,7 @@ class BasicAttention(nn.Module):
         # (배치 크기, seq_len)
         scores = self.score_projection(alignment).squeeze(-1)
         
-        # 가림막이 있으면 씌우기
+        # 마스크가 있으면 씌우기
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
@@ -112,7 +112,7 @@ class ScaledDotProductAttention(nn.Module):
         # 어텐션 점수 계산: Q * K^T / sqrt(d_k)
         scores = torch.matmul(query, key.transpose(-2, -1)) / np.sqrt(d_k)
         
-        # 가림막이 있으면 씌우기
+        # 마스크가 있으면 씌우기
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
