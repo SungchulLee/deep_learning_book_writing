@@ -1,6 +1,6 @@
 # Integrated Gradients
 
-**Integrated Gradients(IG)**는 맨 그래디언트 기반 길이 지닌 기초 걸림돌을 다루는, 이치에 닿는 기여도 분석 방법이다. 그 자리의 예민함만 주는 단순한 그래디언트와 달리, Integrated Gradients는 **밑금에서 입력으로 가는 길을 따라 그래디언트를 쌓아** 몫을 계산한다.
+**Integrated Gradients(IG)**는 맨 그래디언트 기반 길이 지닌 기초 걸림돌을 다루는, 이치에 닿는 기여도 분석 방법이다. 그 자리의 예민함만 주는 단순한 그래디언트와 달리, Integrated Gradients는 **베이스라인에서 입력으로 가는 길을 따라 그래디언트를 쌓아** 몫을 계산한다.
 
 순다라라잔, 탈리, 얀(2017)이 **예민함**과 **짜기에 흔들리지 않음**을 채우는 기여도 분석 방법을 만들겠다는 또렷한 뜻으로 들여왔다. 이 둘은 맨 그래디언트가 채우지 못하는 성능이다. 바라는 이론 공리 여럿을 한꺼번에 채우는, 널리 쓰이는 하나뿐인 방법으로 이름이 높다.
 
@@ -17,7 +17,7 @@
 
 이제 기여도 분석 물음을 던지자. **"왜 $f(2) = 1$인가?"**
 
-맨 기울기는 $x$의 중요함이 1이라 한다. 그런데 밑금을 $x' = 0$으로 잡으면 어떨까?
+맨 기울기는 $x$의 중요함이 1이라 한다. 그런데 베이스라인을 $x' = 0$으로 잡으면 어떨까?
 
 차이 $f(2) - f(0) = 1 - 0 = 1$은 온전히 입력에 돌려야 하는데, 그래디언트만으로는 온 이바지를 담지 못한다. 그래디언트는 그 입력 자리에서의 **그 자리 예민함**만 잴 뿐이다.
 
@@ -32,7 +32,7 @@ ReLU, 시그모이드, tanh 활성화를 쓰는 뉴럴 네트워크에는 기울
 
 ### 길 따라 쌓아 푸는 길
 
-Integrated Gradients는 밑금에서 입력까지의 **온 길**을 따라 그래디언트를 적분해 이를 푼다.
+Integrated Gradients는 베이스라인에서 입력까지의 **온 길**을 따라 그래디언트를 적분해 이를 푼다.
 
 $$
 \text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{\alpha=0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
@@ -46,7 +46,7 @@ $$
 
 ### 길 적분 세움새
 
-입력 $\mathbf{x} \in \mathbb{R}^n$, 밑금 $\mathbf{x}' \in \mathbb{R}^n$, 모델 $f: \mathbb{R}^n \rightarrow \mathbb{R}$에 대해 피처 $i$의 Integrated Gradients 몫은 이렇다.
+입력 $\mathbf{x} \in \mathbb{R}^n$, 베이스라인 $\mathbf{x}' \in \mathbb{R}^n$, 모델 $f: \mathbb{R}^n \rightarrow \mathbb{R}$에 대해 피처 $i$의 Integrated Gradients 몫은 이렇다.
 
 $$
 \text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{\alpha=0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
@@ -54,23 +54,23 @@ $$
 
 여기서
 
-- $\mathbf{x}'$은 밑금(비교 자리, 흔히 0이나 흐린 그림)
+- $\mathbf{x}'$은 베이스라인(비교 자리, 흔히 0이나 흐린 그림)
 - $\alpha \in [0, 1]$은 $\mathbf{x}'$에서 $\mathbf{x}$으로 가는 곧은 길을 매긴다
 - $\frac{\partial f}{\partial x_i}$은 $i$번째 입력 피처에 대한 그래디언트
 - $(x_i - x'_i)$은 피처 $i$이 얼마나 멀리 갔는지로 Integrated Gradients의 잣대를 잡는다
 
 ### 길 매기기
 
-밑금에서 입력으로 가는 길은 이렇다.
+베이스라인에서 입력으로 가는 길은 이렇다.
 
 $$
 \gamma(\alpha) = \mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'), \quad \alpha \in [0, 1]
 $$
 
-- $\alpha = 0$이면 $\gamma(0) = \mathbf{x}'$(밑금)
+- $\alpha = 0$이면 $\gamma(0) = \mathbf{x}'$(베이스라인)
 - $\alpha = 1$이면 $\gamma(1) = \mathbf{x}$(입력)
 
-이 길 위의 자리마다 그래디언트를 계산한다. 적분이 이 그래디언트들을 쌓되, 피처마다 밑금에서 입력까지 간 만큼으로 웨이트를 싣는다.
+이 길 위의 자리마다 그래디언트를 계산한다. 적분이 이 그래디언트들을 쌓되, 피처마다 베이스라인에서 입력까지 간 만큼으로 웨이트를 싣는다.
 
 ### 리만 합 어림
 
@@ -90,7 +90,7 @@ Integrated Gradients는 순다라라잔 외가 어떤 기여도 분석 방법이
 
 ### 공리 1: 예민함
 
-**말하면**: 입력과 밑금이 피처 하나에서만 다르고 모델의 내놓기가 다르면, 그 피처는 0이 아닌 몫을 받아야 한다.
+**말하면**: 입력과 베이스라인이 피처 하나에서만 다르고 모델의 내놓기가 다르면, 그 피처는 0이 아닌 몫을 받아야 한다.
 
 **엄밀히**: $f(\mathbf{x}) \neq f(\mathbf{x}')$이고 $x_i \neq x'_i$이며 $j \neq i$마다 $x_j = x'_j$이면 $\text{IG}_i(\mathbf{x}) \neq 0$이다.
 
@@ -116,7 +116,7 @@ $$
 \sum_{i=1}^{n} \text{IG}_i(\mathbf{x}) = f(\mathbf{x}) - f(\mathbf{x}')
 $$
 
-몫이 입력에서의 모델 배포와 밑금에서의 내놓기의 차이를 **꼭 맞게 갈라 담는다**. 중요함이 "새거나" 없던 것이 생기지 않는다.
+몫이 입력에서의 모델 배포와 베이스라인에서의 내놓기의 차이를 **꼭 맞게 갈라 담는다**. 중요함이 "새거나" 없던 것이 생기지 않는다.
 
 **증명:**
 
@@ -156,7 +156,7 @@ def compute_integrated_gradients(
         image_tensor: 들임 그림 [1, C, H, W]
         target_class: 겨눈 클래스 번호
         device: 셈하는 장치
-        baseline_type: 밑금의 클래스('zeros', 'blur', 'random', 'mean')
+        baseline_type: 베이스라인의 클래스('zeros', 'blur', 'random', 'mean')
         steps: 사이를 잡는 스텝 수(많을수록 더 맞다)
 
     Returns:
@@ -165,10 +165,10 @@ def compute_integrated_gradients(
     model.eval()
     image_tensor = image_tensor.to(device)
 
-    # 밑금을 만든다
+    # 베이스라인을 만든다
     baseline = create_baseline(image_tensor, baseline_type, device)
 
-    # 들임과 밑금의 차이
+    # 들임과 베이스라인의 차이
     delta = image_tensor - baseline  # (x - x')
 
     # 길을 따라 그래디언트를 쌓는다
@@ -211,7 +211,7 @@ def create_baseline(
     device: torch.device
 ) -> torch.Tensor:
     """
-    쌓은 그래디언트에 쓸 밑금을 만든다.
+    쌓은 그래디언트에 쓸 베이스라인을 만든다.
 
     Args:
         image_tensor: 들임 그림
@@ -219,7 +219,7 @@ def create_baseline(
         device: 셈하는 장치
 
     Returns:
-        들임과 꼴이 같은 밑금 텐서
+        들임과 꼴이 같은 베이스라인 텐서
     """
     if baseline_type == 'zeros':
         # 검은 그림(그림에 가장 흔히 고른다)
@@ -241,11 +241,11 @@ def create_baseline(
         baseline = mean
 
     elif baseline_type == 'max_entropy':
-        # 엔트로피가 가장 큰 밑금(그림이면 잿빛)
+        # 엔트로피가 가장 큰 베이스라인(그림이면 잿빛)
         baseline = torch.ones_like(image_tensor) * 0.5
 
     else:
-        raise ValueError(f"모르는 밑금 클래스: {baseline_type}")
+        raise ValueError(f"모르는 베이스라인 클래스: {baseline_type}")
 
     return baseline.to(device)
 ```
@@ -281,7 +281,7 @@ class IntegratedGradients:
 
         Args:
             input_tensor: (1, *들임 차원) 꼴 들임 텐서
-            baseline: 꼴이 같은 밑금 텐서. None이면 0을 쓴다.
+            baseline: 꼴이 같은 베이스라인 텐서. None이면 0을 쓴다.
             target_class: 몫을 매길 겨눈 클래스. None이면 argmax을 쓴다.
             n_steps: 적분 스텝 수(많을수록 더 맞다)
             return_convergence_delta: True이면 어림 어긋남도 내놓는다
@@ -292,7 +292,7 @@ class IntegratedGradients:
         self.model.eval()
         device = input_tensor.device
 
-        # 맡긴 밑금: 0(그림이면 검은 그림)
+        # 맡긴 베이스라인: 0(그림이면 검은 그림)
         if baseline is None:
             baseline = torch.zeros_like(input_tensor)
 
@@ -334,7 +334,7 @@ class IntegratedGradients:
         # 스텝에 걸쳐 그래디언트를 고르게 한다
         avg_grads = grads.mean(dim=0, keepdim=True)
 
-        # 쌓은 그래디언트 = (들임 - 밑금) * 고른 그래디언트
+        # 쌓은 그래디언트 = (들임 - 베이스라인) * 고른 그래디언트
         attributions = diff * avg_grads
 
         if return_convergence_delta:
@@ -361,7 +361,7 @@ class IntegratedGradients:
         """
         잡음에 든든한 쌓은 그래디언트(기댓값 그래디언트)를 셈한다.
 
-        잡음 섞은 밑금 여럿에 걸쳐 IG를 고르게 해 더 든든한 몫을 낸다.
+        잡음 섞은 베이스라인 여럿에 걸쳐 IG를 고르게 해 더 든든한 몫을 낸다.
         이는 SHAP의 기댓값 그래디언트 세움새와 이어진다.
         """
         attributions = torch.zeros_like(input_tensor)
@@ -449,13 +449,13 @@ def compute_integrated_gradients_batched(
 
 ---
 
-## 5. 밑금 고르기
+## 5. 베이스라인 고르기
 
-밑금을 어떻게 고르느냐가 몫을 크게 가른다. 밑금은 "치우친 데 없는" 또는 "소식이 없는" 입력을 나타낸다.
+베이스라인을 어떻게 고르느냐가 몫을 크게 가른다. 베이스라인은 "치우친 데 없는" 또는 "소식이 없는" 입력을 나타낸다.
 
-### 흔히 고르는 밑금
+### 흔히 고르는 베이스라인
 
-| 밑금 | 밝힘 | 알맞은 자리 |
+| 베이스라인 | 밝힘 | 알맞은 자리 |
 |----------|-------------|----------|
 | **0(검정)** | 온통 0인 텐서 | 그림(가장 흔하다) |
 | **흐림** | 세게 흐리게 한 입력 | 구조를 남길 때 |
@@ -463,7 +463,7 @@ def compute_integrated_gradients_batched(
 | **평균** | 데이터의 평균값 | 고르게 한 입력 |
 | **엔트로피 가장 큼** | 0.5(그림이면 잿빛) | 불확실성이 가장 클 때 |
 
-### 밑금 비교
+### 베이스라인 비교
 
 ```python
 def compare_baselines(
@@ -473,7 +473,7 @@ def compare_baselines(
     device: torch.device,
     baselines: list = ['zeros', 'blur', 'random', 'mean']
 ):
-    """밑금을 달리한 쌓은 그래디언트를 견준다."""
+    """베이스라인을 달리한 쌓은 그래디언트를 견준다."""
     import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(2, len(baselines) + 1, figsize=(4 * (len(baselines) + 1), 8))
@@ -493,11 +493,11 @@ def compare_baselines(
         )
         attr_np = attr.squeeze().cpu().numpy()
 
-        # 밑금을 보인다
+        # 베이스라인을 보인다
         baseline = create_baseline(image_tensor, baseline_type, device)
         baseline_np = denormalize_image(baseline)
         axes[0, idx + 1].imshow(baseline_np)
-        axes[0, idx + 1].set_title(f'{baseline_type.capitalize()} 밑금')
+        axes[0, idx + 1].set_title(f'{baseline_type.capitalize()} 베이스라인')
         axes[0, idx + 1].axis('off')
 
         # 몫을 보인다
@@ -509,14 +509,14 @@ def compare_baselines(
     return fig
 ```
 
-### 밭마다의 밑금 길잡이
+### 밭마다의 베이스라인 길잡이
 
-| 밭 | 권하는 밑금 | 까닭 |
+| 밭 | 권하는 베이스라인 | 까닭 |
 |--------|---------------------|-----------|
 | 그림(RGB) | 0(검정) | 눈에 보이는 소식이 없음 |
 | 글(쏘아 넣기) | 채움 단어의 쏘아 넣기 | 치우친 데 없는 단어 |
 | 표 데이터 | 학습 데이터의 평균 | 고른 피처 값 |
-| 때 열 | 0이나 지난날의 평균 | 밑금 액션 레이어 |
+| 때 열 | 0이나 지난날의 평균 | 베이스라인 액션 레이어 |
 | 소리 | 고요(0) | 소리가 없음 |
 
 ---
@@ -711,7 +711,7 @@ def ig_for_tabular(
 
     ig = IntegratedGradients(model)
 
-    # 밑금
+    # 베이스라인
     if baseline_type == 'zero':
         baseline = torch.zeros_like(features)
     else:
@@ -761,7 +761,7 @@ def ig_for_time_series(
     Args:
         model: 열 모형(LSTM, 트랜스포머 등)
         sequence: 들임 열 (배치, 열 길이, 결)이나 (배치, 열 길이)
-        baseline: 밑금 열(맡긴 값: 0)
+        baseline: 베이스라인 열(맡긴 값: 0)
         target_class: 가름 모형의 겨눈 클래스
 
     Returns:
@@ -771,7 +771,7 @@ def ig_for_time_series(
 
     ig = IntegratedGradients(model)
 
-    # 맡긴 밑금: 0
+    # 맡긴 베이스라인: 0
     if baseline is None:
         baseline = torch.zeros_like(sequence)
 
@@ -823,7 +823,7 @@ def ig_for_time_series(
 | 온전함 | ❌ 보장 없음 | ✅ 꼭 맞음(어림 안에서) |
 | 잦아듦 다루기 | ❌ 나쁨 | ✅ 좋음 |
 | 읽는 법 | 그 자리 예민함 | 길 따라 쌓은 이바지 |
-| 밑금이 있어야 함 | 아니오 | 예 |
+| 베이스라인이 있어야 함 | 아니오 | 예 |
 
 ### 다른 방법과 아우르기
 
@@ -839,15 +839,15 @@ smooth_ig = ig.attribute_with_noise(input_tensor, n_samples=10, noise_level=0.1)
 
 ## 11. 한계
 
-### 1. 밑금에 매임
+### 1. 베이스라인에 매임
 
-몫이 밑금을 어떻게 고르느냐에 달렸다. 같은 입력-내놓기 짝이라도 밑금이 다르면 뜻있게 다른 몫이 나올 수 있다.
+몫이 베이스라인을 어떻게 고르느냐에 달렸다. 같은 입력-내놓기 짝이라도 베이스라인이 다르면 뜻있게 다른 몫이 나올 수 있다.
 
 **눅이는 길:**
 
-- 밑금을 여럿 써서 고르게 한다(기댓값 그래디언트 / SHAP)
-- 그 밭에 알맞은 밑금을 쓴다
-- 논문에 고른 밑금을 적는다
+- 베이스라인을 여럿 써서 고르게 한다(기댓값 그래디언트 / SHAP)
+- 그 밭에 알맞은 베이스라인을 쓴다
+- 논문에 고른 베이스라인을 적는다
 
 ### 2. 계산 비용
 
@@ -877,7 +877,7 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 
 ## 12. 참으로 쓸 때 이르는 말
 
-1. 그림에는 **0 밑금에서 시작한다**. 단순하고 대개 잘 듣는다
+1. 그림에는 **0 베이스라인에서 시작한다**. 단순하고 대개 잘 듣는다
 
 2. 여느 살핌에는 **스텝 50**을 쓰고, 엄밀한 일에는 100 넘게 올린다
 
@@ -887,9 +887,9 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 
 5. 그림이 크거나 풀이를 많이 해야 하면 **배치 계산을 헤아린다**
 
-6. 밑금이 아리송하면 **밑금에 걸쳐 고르게 한다**(기댓값 그래디언트)
+6. 베이스라인이 아리송하면 **베이스라인에 걸쳐 고르게 한다**(기댓값 그래디언트)
 
-7. 다시 해 볼 수 있도록 **밑금과 스텝 수를 적는다**
+7. 다시 해 볼 수 있도록 **베이스라인과 스텝 수를 적는다**
 
 ---
 
@@ -910,12 +910,12 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-이 절의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 밑금 $x_0$에 대해 모든 피처 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
+이 절의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 베이스라인 $x_0$에 대해 모든 피처 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
 
 </div>
 
 ??? success "풀이"
-    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 밑금에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 그래디언트 방법은 온전함을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
+    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 베이스라인에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 그래디언트 방법은 온전함을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
@@ -927,7 +927,7 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 그림마다 피처 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 피처를 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 밑금에서 시작해 몫이 큰 차례로 피처를 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(밑금)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 그림마다 피처 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 피처를 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 베이스라인에서 시작해 몫이 큰 차례로 피처를 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(베이스라인)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -943,7 +943,7 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 
 ## 정리하며
 
-Integrated Gradients는 밑금에서 입력으로 가는 길을 따라 그래디언트를 적분해 **이치에 닿고 공리에 뿌리내린 기여도 분석**을 준다.
+Integrated Gradients는 베이스라인에서 입력으로 가는 길을 따라 그래디언트를 적분해 **이치에 닿고 공리에 뿌리내린 기여도 분석**을 준다.
 
 ### 핵심 식
 

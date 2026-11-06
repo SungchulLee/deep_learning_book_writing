@@ -8,10 +8,10 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
 
     ```python
     """
-    57모듈: 이어 배우기 - 중급
+    57모듈: 연속 학습 - 중급
     파일 1: 탄성 웨이트 다지기(EWC)
 
-    이 스크립트는 가장 큰 영향을 끼친 이어 배우기 방법에 드는
+    이 스크립트는 가장 큰 영향을 끼친 연속 학습 방법에 드는
     탄성 웨이트 다지기를 구현한다. EWC는 중요한 파라메터가 크게 바뀌지 않도록 지켜
     파국적 잊음을 막는다.
 
@@ -406,7 +406,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
                            test_loaders: List[DataLoader],
                            epochs_per_task: int = 5):
             """
-            EWC를 쓰는 이어 배우기의 주 회귀.
+            EWC를 쓰는 연속 학습의 주 회귀.
 
             과제마다의 절차:
             1. EWC 벌주기를 곁들여 익힌다
@@ -461,7 +461,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
             return self.calculate_metrics()
 
         def calculate_metrics(self):
-            """이어 배우기 지표를 셈한다."""
+            """연속 학습 지표를 셈한다."""
             num_tasks = self.accuracy_matrix.shape[0]
 
             average_accuracy = np.mean(self.accuracy_matrix[:, -1])
@@ -661,7 +661,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
             learning_rate=learning_rate
         )
 
-        # 이어 배우기를 돌린다
+        # 연속 학습을 돌린다
         import time
         start_time = time.time()
         metrics = learner.train_continual(train_loaders, test_loaders, epochs_per_task)

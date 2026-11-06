@@ -238,7 +238,7 @@
                      use_pooling: bool = True,
                      pool_temporal: bool = True):
             """
-            3차원 컨볼루션 덩이를 첫자리매김한다.
+            3차원 컨볼루션 덩이를 초기화한다.
 
             인수:
                 in_channels: 들임 채널 차원
@@ -337,7 +337,7 @@
 
         def __init__(self, num_classes: int = 400, dropout: float = 0.5):
             """
-            C3D 네트워크를 첫자리매김한다.
+            C3D 네트워크를 초기화한다.
 
             인수:
                 num_classes: 몸짓 클래스의 개수

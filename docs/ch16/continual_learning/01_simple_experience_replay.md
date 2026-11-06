@@ -8,17 +8,17 @@
 
     ```python
     """
-    57모듈: 이어 배우기 - 초급
+    57모듈: 연속 학습 - 초급
     파일 3: 단순 경험 리플레이
 
-    이 스크립트는 가장 단순한 이어 배우기 기법인 경험 리플레이를 구현한다.
+    이 스크립트는 가장 단순한 연속 학습 기법인 경험 리플레이를 구현한다.
     앞선 보기를 담은 작은 버퍼를 두고, 새 과제를 익히는 동안 그것을 되살려
     잊음을 막자는 생각이다.
 
     학습 목표:
     1. 경험 리플레이의 개념을 이해한다
     2. 무작위 뽑기를 갖춘 기억 버퍼를 구현한다
-    3. 소박한 밑금보다 얼마나 나아졌는지 잰다
+    3. 소박한 베이스라인보다 얼마나 나아졌는지 잰다
     4. 기억과 효율의 맞바꿈을 배운다
 
     수식:
@@ -370,7 +370,7 @@
                            test_loaders: List[DataLoader],
                            epochs_per_task: int = 5):
             """
-            경험 리플레이를 쓰는 이어 배우기의 주 회귀.
+            경험 리플레이를 쓰는 연속 학습의 주 회귀.
 
             과제마다의 절차:
             1. 리플레이를 곁들여 익힌다
@@ -428,7 +428,7 @@
             return self.calculate_metrics()
 
         def calculate_metrics(self):
-            """이어 배우기 지표를 셈한다."""
+            """연속 학습 지표를 셈한다."""
             num_tasks = self.accuracy_matrix.shape[0]
 
             # 평균 정확도
@@ -517,11 +517,11 @@
                             baseline_metrics: dict,
                             num_tasks: int):
         """
-        경험 리플레이를 밑금과 견준다.
+        경험 리플레이를 베이스라인과 견준다.
 
         인수:
             replay_metrics: 경험 리플레이의 지표
-            baseline_metrics: 소박한 밑금의 지표
+            baseline_metrics: 소박한 베이스라인의 지표
             num_tasks: 과제 개수
         """
         fig, axes = plt.subplots(1, 3, figsize=(18, 5))
@@ -701,7 +701,7 @@
             learning_rate=learning_rate
         )
 
-        # 경험 리플레이로 이어 배우기를 돌린다
+        # 경험 리플레이로 연속 학습을 돌린다
         start_time = time.time()
         replay_metrics = learner.train_continual(
             train_loaders=train_loaders,
@@ -720,11 +720,11 @@
         print(f"   Backward Transfer:    {replay_metrics['backward_transfer']:.2f}%")
         print(f"\n⏱️  Training Time: {total_time:.2f} seconds")
 
-        # 견주기 위해 밑금을 만든다(흉내 낸 것)
-        # 실제로는 소박한 밑금을 따로 돌릴 것이다
-        # 여기서는 그림을 위해 어림한 밑금 지표를 만든다
+        # 견주기 위해 베이스라인을 만든다(흉내 낸 것)
+        # 실제로는 소박한 베이스라인을 따로 돌릴 것이다
+        # 여기서는 그림을 위해 어림한 베이스라인 지표를 만든다
         baseline_metrics = {
-            'average_accuracy': 50.0,  # 흔한 밑금
+            'average_accuracy': 50.0,  # 흔한 베이스라인
             'backward_transfer': -40.0,  # 많이 잊음
             'learning_accuracy': 95.0,  # 처음에는 잘 러닝
             'forgetting_per_task': [-35, -40, -45, -38],

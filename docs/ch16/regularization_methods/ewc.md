@@ -72,7 +72,7 @@ import copy
 
 class EWCLearner:
     """
-    이어 배우기를 위한 탄성 웨이트 다지기.
+    연속 학습을 위한 탄성 웨이트 다지기.
     
     EWC는 다음으로 파국적 잊음을 막는다.
     1. 과제를 마칠 때마다 피셔 정보를 셈한다(파라메터 중요도)
@@ -340,7 +340,7 @@ class EWCLearner:
                         test_loaders: List,
                         epochs_per_task: int = 5) -> Dict:
         """
-        온전한 이어 배우기 파이프라인.
+        온전한 연속 학습 파이프라인.
         
         인수:
             train_loaders: 학습 DataLoader 목록
@@ -423,7 +423,7 @@ ewc_learner = EWCLearner(
 # 데이터를 불러와 과제 로더를 만든다(앞 절에서 보인 대로)
 # train_loaders, test_loaders = create_split_mnist_tasks(...)
 
-# 이어 배우기를 돌린다
+# 연속 학습을 돌린다
 results = ewc_learner.train_continual(
     train_loaders, 
     test_loaders,

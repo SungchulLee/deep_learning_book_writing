@@ -367,7 +367,7 @@ def build_transition_mask(
     num_labels = len(label_to_idx)
     idx_to_label = {v: k for k, v in label_to_idx.items()}
     
-    # 모든 전이를 올바른 것으로 두고 첫자리매김
+    # 모든 전이를 올바른 것으로 두고 초기화
     mask = torch.zeros(num_labels, num_labels)
     
     # 개체 클래스 뽑기

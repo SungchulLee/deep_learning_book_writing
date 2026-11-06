@@ -102,7 +102,7 @@ def train_score_model(data, sigma=0.5, epochs=5000, lr=1e-3):
 
 def sample_langevin(model, n_samples=100, n_steps=1000, step_size=0.01, noise_scale=1.0):
     """배운 점수로 랑주뱅 액션을 써서 표본을 만든다."""
-    # 사전 분포에서 첫자리매김한다
+    # 사전 분포에서 초기화한다
     x = torch.randn(n_samples, 2) * noise_scale
     
     samples = []

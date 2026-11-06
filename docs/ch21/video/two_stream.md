@@ -137,9 +137,9 @@ class TemporalStream(nn.Module):
             kernel_size=7, stride=2, padding=3, bias=False
         )
         
-        # 미리 익힌 RGB 무게의 평균으로 첫자리매김
+        # 미리 익힌 RGB 무게의 평균으로 초기화
         # 이러면 자리 짜임에 대한 앎이 얼마간 옮겨진다
-        if True:  # 있어도 되는 무게 첫자리매김
+        if True:  # 있어도 되는 무게 초기화
             pretrained = models.resnet50(pretrained=True)
             pretrained_weight = pretrained.conv1.weight.data
             # RGB 채널로 고루내고 흐름 채널만큼 되풀이

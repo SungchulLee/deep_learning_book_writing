@@ -32,7 +32,7 @@ class NERDatasetBuilder:
     """제대로 꼴을 갖춘 개체명 인식 데이터셋 세우기."""
     
     def __init__(self):
-        """데이터셋 세우개 첫자리매김."""
+        """데이터셋 세우개 초기화."""
         self.samples = []
     
     def add_sample(self, text: str, entities: List[Dict]):

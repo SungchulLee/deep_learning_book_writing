@@ -143,7 +143,7 @@ def euler_integrate(f, y0: torch.Tensor, t_span: tuple, dt: float):
     t_values = torch.arange(t_start, t_end + dt, dt)
     n_steps = len(t_values)
     
-    # 자취 담을 곳을 첫자리매김한다
+    # 자취 담을 곳을 초기화한다
     y_values = torch.zeros(n_steps, *y0.shape)
     y_values[0] = y0
     
@@ -779,7 +779,7 @@ class RegularizedNeuralODE(nn.Module):
             
             return torch.cat([dhdt, kinetic], dim=-1)
         
-        # 운동 에너지를 0으로 첫자리매김한다
+        # 운동 에너지를 0으로 초기화한다
         h0_aug = torch.cat([h0, torch.zeros(h0.shape[0], 1, device=h0.device)], dim=-1)
         
         trajectory = odeint(augmented_func, h0_aug, self.t)
@@ -798,7 +798,7 @@ RegularizedNeuralODE는 상태에 누적 변수 하나를 추가해 ∫||f||²dt
 ```python
 def init_neural_ode_weights(module):
     """
-    안정된 익히기를 위해 뉴럴 상미분 방정식의 무게를 첫자리매김한다.
+    안정된 익히기를 위해 뉴럴 상미분 방정식의 무게를 초기화한다.
     거의 항등인 바꿈으로 시작하도록 작은 무게를 쓴다.
     """
     if isinstance(module, nn.Linear):
@@ -957,7 +957,7 @@ class LearnableODE(nn.Module):
             nn.Linear(hidden_dim, dim)
         )
         
-        # 안정을 위해 작은 무게로 첫자리매김한다
+        # 안정을 위해 작은 무게로 초기화한다
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight, gain=0.1)

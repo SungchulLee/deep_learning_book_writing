@@ -40,7 +40,7 @@ class TransformerNER(nn.Module):
     
     def __init__(self, model_name: str = 'bert-base-cased', num_labels: int = 9):
         """
-        트랜스포머 개체명 인식 첫자리매김.
+        트랜스포머 개체명 인식 초기화.
         
         인수:
             model_name: Hugging Face 모델 이름

@@ -151,12 +151,12 @@ class SimpleGaussianModel:
     
     def __init__(self, dim: int = 1):
         """
-        여러 변수 정규 분포 모델을 첫자리매김한다.
+        여러 변수 정규 분포 모델을 초기화한다.
         
         인수:
             dim: 자료의 차원
         """
-        # 평균과 로그 표준 편차를 첫자리매김한다
+        # 평균과 로그 표준 편차를 초기화한다
         # 수치의 안정과 양수임을 보장하려 로그 표준 편차를 쓴다
         self.mu = nn.Parameter(torch.randn(dim))
         self.log_std = nn.Parameter(torch.zeros(dim))

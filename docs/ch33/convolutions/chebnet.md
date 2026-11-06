@@ -139,7 +139,7 @@ def demo_chebnet_node_classification():
 
 
 def demo_filter_localization():
-    """K이 거르개가 한곳에 모이는 정도를 어떻게 다스리는지 보인다."""
+    """K이 필터가 한곳에 모이는 정도를 어떻게 다스리는지 보인다."""
     print("\n" + "=" * 60)
     print("Filter Localization (K-hop)")
     print("=" * 60)

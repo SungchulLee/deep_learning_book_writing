@@ -50,7 +50,7 @@ class PrecisionRecallCalculator:
                  row_batch_size: int = 10000,
                  col_batch_size: int = 10000):
         """
-        셈개를 첫자리매김한다.
+        셈개를 초기화한다.
         
         인수:
             k: k번째 가장 가까운 이웃의 이웃 수
@@ -188,7 +188,7 @@ class ImprovedPrecisionRecall:
                  row_batch_size: int = 10000,
                  col_batch_size: int = 10000):
         """
-        나아진 정밀도와 재현율 셈개를 첫자리매김한다.
+        나아진 정밀도와 재현율 셈개를 초기화한다.
         
         인수:
             k: 다양체 어림의 이웃 수

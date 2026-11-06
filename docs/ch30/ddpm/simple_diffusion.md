@@ -698,7 +698,7 @@
             diffusion_params[key] = diffusion_params[key].to(device)
         data = data.to(device)
 
-        # 모델과 가장 좋게 하개를 첫자리매김한다
+        # 모델과 가장 좋게 하개를 초기화한다
         model = Simple2DModel().to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
         losses = []

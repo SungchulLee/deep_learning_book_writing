@@ -9,7 +9,7 @@ SSD는 여러 해상도의 피처 맵에서 기본 상자(default box)별 클래
 '''
 SSD — 한 방 여러 상자 알아내개
 논문: "SSD: Single Shot MultiBox Detector" (2016)
-핵심: 알아내기에 여러 스케일 피처 지도를 쓰며 피드포워드 한 번
+핵심: 탐지에 여러 스케일 피처 지도를 쓰며 피드포워드 한 번
 '''
 import torch
 import torch.nn as nn
@@ -36,7 +36,7 @@ class SSD(nn.Module):
             nn.MaxPool2d(2, 2),
         )
         
-        # 여러 스케일 알아내기를 위한 덧레이어
+        # 여러 스케일 탐지를 위한 덧레이어
         self.extras = nn.Sequential(
             nn.Conv2d(128, 256, 3, padding=1),
             nn.ReLU(inplace=True),
@@ -44,7 +44,7 @@ class SSD(nn.Module):
             nn.ReLU(inplace=True),
         )
         
-        # 알아내기 머리
+        # 탐지 머리
         self.loc = nn.Conv2d(256, 4 * 4, 3, padding=1)  # 붙박이 상자 4개 * 자리표 4개
         self.conf = nn.Conv2d(256, 4 * num_classes, 3, padding=1)  # 상자 4개 * 클래스 수
     

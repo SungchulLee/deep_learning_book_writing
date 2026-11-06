@@ -225,7 +225,7 @@ def annealed_importance_sampling(energy_fn, dim, n_chains=100,
     # 역온도를 0(고른 분포)에서 1(목표)까지
     betas = torch.linspace(0, 1, n_intermediate + 1)
     
-    # 바탕 분포(표준 정규)에서 첫자리매김한다
+    # 바탕 분포(표준 정규)에서 초기화한다
     x = torch.randn(n_chains, dim)
     
     # 로그 중요도 무게

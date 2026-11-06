@@ -75,7 +75,7 @@ class MAML:
         과제 하나에 대해 안쪽 회귀 맞춤을 한다.
         
         반환값:
-            query_loss: 맞춘 뒤 물음 집합에서의 로스
+            query_loss: 맞춘 뒤 쿼리 집합에서의 로스
         """
         # 과제별 맞춤을 위해 모델 파라메터를 복사한다
         params = OrderedDict(self.model.named_parameters())
@@ -99,7 +99,7 @@ class MAML:
                 for ((name, param), grad) in zip(params.items(), grads)
             )
         
-        # 맞춘 파라메터로 물음 집합에서 평가한다
+        # 맞춘 파라메터로 쿼리 집합에서 평가한다
         query_logits = self.model(query_x, params)
         query_loss = F.cross_entropy(query_logits, query_y)
         
@@ -114,7 +114,7 @@ class MAML:
         
         반환값:
             meta_loss: 과제에 걸친 평균 물음 로스
-            meta_accuracy: 물음 집합에서의 평균 정확도
+            meta_accuracy: 쿼리 집합에서의 평균 정확도
         """
         self.meta_optimizer.zero_grad()
         
@@ -183,7 +183,7 @@ class MAML:
     
     def predict(self, support_x, support_y, query_x):
         """
-        서포트 집합에 맞춘 뒤 물음 집합에서 맞힌다.
+        서포트 집합에 맞춘 뒤 쿼리 집합에서 맞힌다.
         """
         self.model.eval()
         # 맞추는 일은 그래디언트를 쓰므로 no_grad 밖에서 한다

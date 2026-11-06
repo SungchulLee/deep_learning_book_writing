@@ -91,7 +91,7 @@ print("""
   # 물길 만들기(벡터로 생성기 + 클래스 매개)
   pipe = make_pipeline(vectorizer, clf)
 
-  # LIME 풀이개 첫자리매김
+  # LIME 풀이개 초기화
   class_names = ["negative", "positive"]
   explainer = LimeTextExplainer(class_names=class_names)
 
@@ -400,7 +400,7 @@ if __name__ == "__main__":
       # 물길 만들기(벡터로 생성기 + 클래스 매개)
       pipe = make_pipeline(vectorizer, clf)
 
-      # LIME 풀이개 첫자리매김
+      # LIME 풀이개 초기화
       class_names = ["negative", "positive"]
       explainer = LimeTextExplainer(class_names=class_names)
 

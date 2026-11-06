@@ -109,7 +109,7 @@ def flash_attention_forward_reference(
     # 덩이 수
     num_blocks = (seq_len + block_size - 1) // block_size
     
-    # 내놓기와 통계를 첫자리매김한다
+    # 내놓기와 통계를 초기화한다
     O = torch.zeros_like(Q)
     L = torch.zeros(batch_size, num_heads, seq_len, 1, device=Q.device)
     M = torch.full((batch_size, num_heads, seq_len, 1), float('-inf'), device=Q.device)

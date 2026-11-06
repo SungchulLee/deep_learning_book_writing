@@ -207,7 +207,7 @@ class EpisodeSampler:
     소수 예시 학습의 학습과 평가에 쓸 에피소드를 뽑는다.
     
     에피소드마다 아무렇게나 고른 부류 N개에서 뽑은
-    서포트 집합과 물음 집합을 담는다.
+    서포트 집합과 쿼리 집합을 담는다.
     """
     
     def __init__(self, labels, n_way, k_shot, n_query, n_episodes):
@@ -247,7 +247,7 @@ class EpisodeSampler:
         
         반환값:
             support_indices: 서포트 집합의 첨자
-            query_indices: 물음 집합의 첨자
+            query_indices: 쿼리 집합의 첨자
             class_mapping: 본디 이름표를 0...N-1로 옮기는 사전
         """
         # 이 에피소드에 쓸 부류 N개를 뽑는다

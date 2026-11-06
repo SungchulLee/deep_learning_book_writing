@@ -418,7 +418,7 @@ ignore_ce = nn.CrossEntropyLoss(ignore_index=-100)
 # 초점 로스 (직접 구현)
 def focal_loss(logits, targets, alpha=1.0, gamma=2.0):
     """
-    촘촘한 물체 알아내기를 위한 초점 로스.
+    촘촘한 물체 탐지를 위한 초점 로스.
 
     Args:
         logits: 모델의 날것 출력

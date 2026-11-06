@@ -327,7 +327,7 @@ Empirical verification of dot-product variance:
 
 ### 마스크의 종류
 
-1. **패딩 마스크**: 길이가 다른 시퀀스에서 덧댐 토큰을 무시한다
+1. **패딩 마스크**: 길이가 다른 시퀀스에서 패딩 토큰을 무시한다
 2. **인과 마스크**: 미래 토큰에 주목하지 못하게 한다 (자기회귀 모델)
 3. **맞춤 마스크**: 성긴 어텐션 방식을 구현한다
 
@@ -337,9 +337,9 @@ Empirical verification of dot-product variance:
 def create_attention_masks(batch_size: int, seq_q: int, seq_k: int):
     """여러 마스크 전략을 시연한다."""
     
-    # 덧댐 마스크: (배치, 1, 1, seq_k)
+    # 패딩 마스크: (배치, 1, 1, seq_k)
     pad_mask = torch.ones(batch_size, 1, 1, seq_k)
-    pad_mask[:, :, :, -2:] = 0  # 마지막 두 자리는 덧댐이다
+    pad_mask[:, :, :, -2:] = 0  # 마지막 두 자리는 패딩이다
     
     # 인과 마스크: (1, 1, seq_q, seq_k)
     causal_mask = torch.tril(torch.ones(1, 1, seq_q, seq_k))

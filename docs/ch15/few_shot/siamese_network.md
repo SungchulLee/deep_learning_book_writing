@@ -129,7 +129,7 @@ class ContrastiveLoss(nn.Module):
 
 class TripletLoss(nn.Module):
     """
-    세쌍 로스: 앵커를 양의 보기 쪽으로 끌고 음의 보기에서 밀어낸다.
+    트리플렛 로스: 앵커를 양의 보기 쪽으로 끌고 음의 보기에서 밀어낸다.
     
     로스 = max(d(anchor, positive) - d(anchor, negative) + margin, 0)
     """
@@ -251,7 +251,7 @@ if __name__ == "__main__":
     predictions = one_shot_classification(model, support_set, support_labels, query)
     print(f"Predictions: {predictions}")
     
-    # 대안: 세쌍 로스로 익히기
+    # 대안: 트리플렛 로스로 익히기
     triplet_criterion = TripletLoss(margin=1.0)
     anchor = torch.randn(batch_size, 1, 105, 105)
     positive = torch.randn(batch_size, 1, 105, 105)

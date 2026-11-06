@@ -43,7 +43,7 @@ class CharRNN(nn.Module):
                  hidden_dim: int = 128,
                  n_layers: int = 2):
         """
-        글자 회귀 뉴럴 네트워크를 첫자리매김한다.
+        글자 회귀 뉴럴 네트워크를 초기화한다.
         
         인수:
             vocab_size: 낱말 속 서로 다른 글자의 수
@@ -101,7 +101,7 @@ class CharRNN(nn.Module):
         embedded = self.embedding(x)
         
         # 2. 긴 짧은 기억으로 다룬다
-        # 숨은 상태를 주지 않으면 긴 짧은 기억이 0으로 첫자리매김한다
+        # 숨은 상태를 주지 않으면 긴 짧은 기억이 0으로 초기화한다
         # lstm_out: [배치, 차례 길이, 숨은 차원]
         # hidden: (h_n, c_n) - 마지막 숨은 상태와 칸 상태
         lstm_out, hidden = self.lstm(embedded, hidden)
@@ -187,7 +187,7 @@ class SimpleCharTransformer(nn.Module):
                  n_layers: int = 2,
                  max_seq_length: int = 100):
         """
-        트랜스포머 모델을 첫자리매김한다.
+        트랜스포머 모델을 초기화한다.
         
         인수:
             vocab_size: 서로 다른 글자의 수
@@ -299,7 +299,7 @@ if __name__ == "__main__":
     print("Testing SimpleCharTransformer")
     print("=" * 60)
     
-    # 트랜스포머를 첫자리매김한다
+    # 트랜스포머를 초기화한다
     transformer_model = SimpleCharTransformer(
         vocab_size, 
         embedding_dim=64,  # n_heads으로 나누어떨어져야 한다

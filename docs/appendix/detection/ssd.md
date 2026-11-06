@@ -11,7 +11,7 @@ SSD은 2016년 글 "SSD: Single Shot MultiBox Detector"에서 나왔다. 여러 
 '''
 SSD - 한 방에 끝내는 여러 상자 알아내개
 논문: "SSD: Single Shot MultiBox Detector" (2016)
-핵심: 알아내기를 위한 여러 자의 피처 지도와 한 번의 앞으로 스텝
+핵심: 탐지를 위한 여러 자의 피처 지도와 한 번의 앞으로 스텝
 '''
 import torch
 import torch.nn as nn
@@ -46,7 +46,7 @@ class SSD(nn.Module):
             nn.ReLU(inplace=True),
         )
         
-        # 알아내기 머리
+        # 탐지 머리
         self.loc = nn.Conv2d(256, 4 * 4, 3, padding=1)  # 4 default boxes * 4 coords
         self.conf = nn.Conv2d(256, 4 * num_classes, 3, padding=1)  # 4 boxes * num_classes
     
@@ -110,7 +110,7 @@ Parameters: 1,375,908
 </div>
 
 ??? success "풀이"
-    여느 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별로 가른 컨볼루션은 이를 (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 클래스마다 거르개 하나)와 (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터의 비교는 어림잡아 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$이 모두 클 때 가장 크게 아낀다.
+    여느 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별로 가른 컨볼루션은 이를 (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 클래스마다 필터 하나)와 (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터의 비교는 어림잡아 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$이 모두 클 때 가장 크게 아낀다.
 
 ---
 

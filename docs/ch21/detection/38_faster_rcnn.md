@@ -7,7 +7,7 @@ Faster R-CNN은 backbone 피처를 공유하는 RPN으로 후보 영역을 만�
 ```python
 #!/usr/bin/env python3
 '''
-더 빠른 R-CNN — 자리 제안 네트워크로 실시간 물체 알아내기에 다가가기
+더 빠른 R-CNN — 자리 제안 네트워크로 실시간 물체 탐지에 다가가기
 논문: "Faster R-CNN: Towards Real-Time Object Detection" (2015)
 핵심: 자리 제안에 RPN을 쓰며 끝에서 끝까지 익힐 수 있다
 '''

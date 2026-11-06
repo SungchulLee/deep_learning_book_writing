@@ -391,7 +391,7 @@ class AttentionDecoder(nn.Module):
             hidden: 앞 시각의 숨은 상태
             encoder_outputs: 인코더의 모든 출력 (배치 크기, src_len, encoder_hidden_size)
             cell: 앞 시각의 세포 상태 (LSTM에만 있다)
-            mask: 덧댐을 가리는 마스크 (배치 크기, src_len)
+            mask: 패딩을 가리는 마스크 (배치 크기, src_len)
             
         반환값:
             output: 출력 예측 (배치 크기, output_size)
@@ -454,7 +454,7 @@ class BahdanauAttention(nn.Module):
         인수:
             query: 디코더의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
             keys: 인코더의 출력 (배치 크기, src_len, encoder_hidden_size)
-            mask: 덧댐 마스크 (배치 크기, src_len)
+            mask: 패딩 마스크 (배치 크기, src_len)
             
         반환값:
             context: 문맥 벡터 (배치 크기, 1, encoder_hidden_size)
@@ -512,7 +512,7 @@ class LuongAttention(nn.Module):
         인수:
             query: 디코더의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
             keys: 인코더의 출력 (배치 크기, src_len, encoder_hidden_size)
-            mask: 덧댐 마스크 (배치 크기, src_len)
+            mask: 패딩 마스크 (배치 크기, src_len)
             
         반환값:
             context: 문맥 벡터 (배치 크기, 1, encoder_hidden_size)
@@ -721,7 +721,7 @@ class Seq2SeqAttention(nn.Module):
         encoder: 인코더 모듈
         decoder: 어텐션이 있는 디코더 모듈
         device: 돌릴 장치
-        pad_idx: 덧댐 토큰의 색인
+        pad_idx: 패딩 토큰의 색인
     """
     
     def __init__(self, encoder, decoder, device, pad_idx=0):
@@ -733,7 +733,7 @@ class Seq2SeqAttention(nn.Module):
         self.pad_idx = pad_idx
         
     def create_mask(self, src):
-        """덧댐 토큰의 마스크를 만든다"""
+        """패딩 토큰의 마스크를 만든다"""
         mask = (src != self.pad_idx)
         return mask
     
@@ -1019,7 +1019,7 @@ def collate_fn(batch, pad_idx=0):
     
     인수:
         batch: (src, trg) 쌍의 목록
-        pad_idx: 덧댐 토큰의 색인
+        pad_idx: 패딩 토큰의 색인
         
     반환값:
         src_batch: 덧댄 원본 순차열
@@ -1049,7 +1049,7 @@ class Seq2SeqTrainer:
         optimizer: 최적화기
         criterion: 로스 함수
         device: 학습에 쓸 장치
-        pad_idx: 덧댐 토큰의 색인
+        pad_idx: 패딩 토큰의 색인
         clip: 그래디언트를 자를 값
     """
     

@@ -33,7 +33,7 @@ class CharacterDataset:
     
     def __init__(self, text: str, sequence_length: int = 50):
         """
-        글자 자료 묶음을 첫자리매김한다.
+        글자 자료 묶음을 초기화한다.
         
         인수:
             text: 배울 들임 글자열

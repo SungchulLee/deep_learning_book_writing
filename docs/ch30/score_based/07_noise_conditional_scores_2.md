@@ -147,7 +147,7 @@ def anneal_langevin_sampling(model, sigmas, n_samples=100, n_steps_per_sigma=100
         samples: 마지막 표본, 꼴 (n_samples, dim)
         trajectory: 뽑기 자취
     """
-    # 큰 잡음에서 첫자리매김한다
+    # 큰 잡음에서 초기화한다
     dim = 2  # 그려 보려 2차원이라 본다
     x = torch.randn(n_samples, dim) * sigmas[0]
     

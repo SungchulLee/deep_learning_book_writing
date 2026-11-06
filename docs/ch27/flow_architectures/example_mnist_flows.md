@@ -95,7 +95,7 @@ class BaseDistribution:
     
     def __init__(self, dim: int):
         """
-        바탕 분포를 첫자리매김한다.
+        바탕 분포를 초기화한다.
         
         인수:
             dim (int): 분포의 차원
@@ -362,7 +362,7 @@ class FlowSequence(nn.Module):
     
     def __init__(self, flows: list, base_dist: BaseDistribution):
         """
-        흐름 바꿈의 차례를 첫자리매김한다.
+        흐름 바꿈의 차례를 초기화한다.
         
         인수:
             flows (list): 아우를 Flow 객체의 목록
@@ -419,7 +419,7 @@ class FlowSequence(nn.Module):
             >>> x, log_det = model.forward(z)
             >>> # 이제 x에 만든 표본 100개가 들어 있다
         """
-        # 로그 행렬식 쌓개를 첫자리매김한다
+        # 로그 행렬식 쌓개를 초기화한다
         # 배치의 표본마다 0으로 시작한다
         log_det_sum = torch.zeros(z.shape[0], device=z.device)
         
@@ -469,7 +469,7 @@ class FlowSequence(nn.Module):
             >>> z, log_det = model.inverse(x)
             >>> # 이제 z이 정규 표본처럼 보여야 한다
         """
-        # 로그 행렬식 쌓개를 첫자리매김한다
+        # 로그 행렬식 쌓개를 초기화한다
         log_det_sum = torch.zeros(x.shape[0], device=x.device)
         
         # x에서 시작해 차츰 거꾸로 z으로 바꾼다
@@ -631,7 +631,7 @@ class AffineTransform(Flow):
     
     def __init__(self, dim: int):
         """
-        아핀 바꿈을 첫자리매김한다.
+        아핀 바꿈을 초기화한다.
         
         인수:
             dim (int): 자료의 차원
@@ -640,7 +640,7 @@ class AffineTransform(Flow):
             - log_scale: 차원마다 늘이기와 누르기를 다스린다
             - shift: 차원마다 옮김을 다스린다
         
-        첫자리매김:
+        초기화:
             - log_scale은 0에서 시작한다(스케일 = 1, 바뀜 없음)
             - shift은 0에서 시작한다(옮김 없음)
         """
@@ -771,7 +771,7 @@ class PlanarFlow(Flow):
     
     def __init__(self, dim: int):
         """
-        평면 흐름 바꿈을 첫자리매김한다.
+        평면 흐름 바꿈을 초기화한다.
         
         인수:
             dim (int): 공간의 차원
@@ -781,7 +781,7 @@ class PlanarFlow(Flow):
             - bias (b): 평면을 옮긴다, 꼴 (1,)
             - u: 바꿈의 방향, 꼴 (dim,)
         
-        첫자리매김:
+        초기화:
             - weight: 아무 정규 분포(여러 첫 평면을 만든다)
             - bias: 0(평면이 원점을 지난다)
             - u: 아무 정규 분포(아무 바꿈 방향)
@@ -909,7 +909,7 @@ def visualize_2d_transformation(flow_model: nn.Module, n_points: int = 1000,
     ============================================================================
     익히기 앞:
         - 왼쪽: 말끔한 정규 분포 방울
-        - 오른쪽: 조금 휜 정규 분포(아무 첫자리매김)
+        - 오른쪽: 조금 휜 정규 분포(아무 초기화)
     
     익히는 동안:
         - 오른쪽이 차츰 자료 분포에 맞게 바뀐다
@@ -1276,7 +1276,7 @@ def plot_training_loss(losses: list, filename: str = 'training_loss.png'):
         - 평평한 선 → 모델이 배우지 않는다(배움 빠르기와 모델 담이를 살펴라)
         - 늘어남 → 벌어진다(배움 빠르기를 줄여라)
         - 흔들림 → 불안정하다(배움 빠르기나 배치 크기를 줄여라)
-        - 뚝 떨어진 뒤 평평 → 바퀴를 더 돌거나 더 나은 첫자리매김이 필요하다
+        - 뚝 떨어진 뒤 평평 → 바퀴를 더 돌거나 더 나은 초기화가 필요하다
     
     ============================================================================
     

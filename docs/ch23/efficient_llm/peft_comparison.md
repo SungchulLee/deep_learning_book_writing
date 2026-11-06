@@ -43,7 +43,7 @@ class LoRALayer(nn.Module):
             param.requires_grad = False
         
         # 낮은 계수 행렬
-        # A는 카이밍/허 첫자리매김으로 시작한다
+        # A는 카이밍/허 초기화로 시작한다
         self.lora_A = nn.Parameter(torch.empty(in_features, rank))
         nn.init.kaiming_uniform_(self.lora_A, a=math.sqrt(5))
         
@@ -249,7 +249,7 @@ class NF4Linear(nn.Module):
         # 스케일을 되돌린다
         weight_scaled = weight_nf4 * self.scales.unsqueeze(1)
         
-        # 본디 꼴로 되돌린다
+        # 원래 형태로 되돌린다
         weight = weight_scaled.reshape(-1)[:self.out_features * self.in_features]
         return weight.reshape(self.out_features, self.in_features)
     
@@ -463,7 +463,7 @@ class Adapter(nn.Module):
         else:
             self.act = nn.Tanh()
         
-        # 안정된 시작을 위해 up_proj를 거의 0으로 첫자리매김한다
+        # 안정된 시작을 위해 up_proj를 거의 0으로 초기화한다
         nn.init.zeros_(self.up_proj.weight)
         nn.init.zeros_(self.up_proj.bias)
     

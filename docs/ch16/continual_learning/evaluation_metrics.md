@@ -34,7 +34,7 @@ np와 torch 임포트, 모델·입력의 장치 설정을 별도로 준비한다
 def evaluate_continual_learning(model, test_loaders, train_loaders, 
                                 train_fn, epochs_per_task, device):
     """
-    이어 배우기의 표준 평가 절차.
+    연속 학습의 표준 평가 절차.
     
     인수:
         model: 뉴럴 네트워크 모델
@@ -304,7 +304,7 @@ def memory_stability(accuracy_matrix):
 ```python
 class ContinualLearningMetrics:
     """
-    이어 배우기의 지표를 두루 셈하기.
+    연속 학습의 지표를 두루 셈하기.
     
     이 클래스는 정확도 행렬에서 표준 지표를 모두 셈해 담아 둔다.
     """
@@ -315,7 +315,7 @@ class ContinualLearningMetrics:
         
         인수:
             accuracy_matrix: T x T 정확도 넘파이 배열
-            random_init_accuracies: 선택할 수 있는 밑금 정확도
+            random_init_accuracies: 선택할 수 있는 베이스라인 정확도
         """
         self.accuracy_matrix = accuracy_matrix
         self.T = accuracy_matrix.shape[0]
@@ -338,7 +338,7 @@ class ContinualLearningMetrics:
         else:
             self.backward_transfer = 0.0
         
-        # 앞으로의 옮김(밑금이 주어지면)
+        # 앞으로의 옮김(베이스라인이 주어지면)
         if self.random_init is not None and self.T > 1:
             fwt = sum(self.accuracy_matrix[i, i] - self.random_init[i] 
                      for i in range(1, self.T))
@@ -571,9 +571,9 @@ def evaluate_with_confidence(run_experiment_fn, num_runs=5):
 def joint_training_baseline(model, all_loaders, test_loaders, 
                             epochs, device):
     """
-    모든 과제를 함께 익힌다(위 한계 밑금).
+    모든 과제를 함께 익힌다(위 한계 베이스라인).
     
-    이는 이어 배우기의 제약 없이 다다를 수 있는
+    이는 연속 학습의 제약 없이 다다를 수 있는
     가장 좋은 성능을 나타낸다.
     """
     from torch.utils.data import ConcatDataset

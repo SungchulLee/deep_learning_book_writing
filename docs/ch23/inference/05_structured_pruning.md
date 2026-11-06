@@ -8,20 +8,20 @@
 """
 가운데 수준: 짜임 있는 가지치기
 
-이 각본은 낱낱의 무게가 아니라 짜임 전체(거르개, 채널, 뉴런)를 없애는
+이 각본은 낱낱의 무게가 아니라 짜임 전체(필터, 채널, 뉴런)를 없애는
 짜임 있는 가지치기를 보인다. 이러면 여느 하드웨어에서도
 실제로 빨라진다.
 
 다루는 주제:
-- 컨볼루션 레이어의 거르개 가지치기
+- 컨볼루션 레이어의 필터 가지치기
 - 채널 가지치기
 - 온전히 이어진 레이어의 뉴런 가지치기
 - L1 노름 바탕 중요도 순위
-- 정확도를 되찾기 위한 거르개 다시 세우기
+- 정확도를 되찾기 위한 필터 다시 세우기
 
 수학적 바탕:
-- 거르개 중요도: I(F_j) = ||F_j||_1 = Σ|w_ijk|
-- L1 노름이 가장 작은 거르개를 없앤다
+- 필터 중요도: I(F_j) = ||F_j||_1 = Σ|w_ijk|
+- L1 노름이 가장 작은 필터를 없앤다
 - 피처 지도가 작아지고 파라메터가 줄어든다
 
 짜임 없는 가지치기에 견준 이점:
@@ -84,16 +84,16 @@ class SimpleCNN(nn.Module):
 
 def compute_filter_importance(layer):
     """
-    거르개마다 L1 노름 중요도를 셈한다.
+    필터마다 L1 노름 중요도를 셈한다.
     
     꼴이 (내놓기 채널, 들임 채널, kh, kw)인 컨볼루션 레이어에서:
-    거르개 j의 중요도 = ||F_j||_1 = Σ|w_ijk|
+    필터 j의 중요도 = ||F_j||_1 = Σ|w_ijk|
     
     인수:
         layer: 컨볼루션 레이어
         
     반환값:
-        거르개마다의 중요도 점수를 담은 1차원 텐서
+        필터마다의 중요도 점수를 담은 1차원 텐서
     """
     weight = layer.weight.data.abs()
     # 내놓기 채널만 빼고 모든 차원에 걸쳐 더한다
@@ -103,34 +103,34 @@ def compute_filter_importance(layer):
 
 def prune_filters(model, prune_ratio=0.5):
     """
-    L1 노름을 바탕으로 컨볼루션 레이어에서 거르개를 쳐 낸다.
+    L1 노름을 바탕으로 컨볼루션 레이어에서 필터를 쳐 낸다.
     
     과정:
-    1. 거르개마다 중요도를 셈한다
-    2. 쳐 낼 거르개를 가려낸다
+    1. 필터마다 중요도를 셈한다
+    2. 쳐 낼 필터를 가려낸다
     3. 더 작은 새 레이어를 만든다
-    4. 살아남은 거르개를 베낀다
+    4. 살아남은 필터를 베낀다
     
     인수:
         model: CNN 모델
-        prune_ratio: 레이어마다 쳐 낼 거르개의 비율
+        prune_ratio: 레이어마다 쳐 낼 필터의 비율
         
     반환값:
         레이어가 작아진, 가지친 모델
     """
     print(f"\nPruning {prune_ratio*100:.0f}% of filters per layer...")
     
-    # 레이어마다 어느 거르개를 남길지 좇는다
+    # 레이어마다 어느 필터를 남길지 좇는다
     cfg = []
     
-    # 1차: 어느 거르개를 남길지 정한다
+    # 1차: 어느 필터를 남길지 정한다
     for name, module in model.named_modules():
         if isinstance(module, nn.Conv2d):
             importance = compute_filter_importance(module)
             num_filters = len(importance)
             num_keep = int(num_filters * (1 - prune_ratio))
             
-            # 남길 거르개의 번호를 얻는다
+            # 남길 필터의 번호를 얻는다
             _, indices = torch.sort(importance, descending=True)
             keep_indices = indices[:num_keep]
             
@@ -140,11 +140,11 @@ def prune_filters(model, prune_ratio=0.5):
     # 2차: 가지친 레이어로 새 모델을 만든다
     # (실전에서는 꼼꼼히 다시 세워야 한다)
     # 이 시범에서는 본디 모델을 그대로 돌려주되
-    # 가려낸 거르개를 0으로 만든다
+    # 가려낸 필터를 0으로 만든다
     
     for (name, keep_indices), (module_name, module) in zip(cfg, model.named_modules()):
         if isinstance(module, nn.Conv2d):
-            # 가지친 거르개를 0으로 만든다
+            # 가지친 필터를 0으로 만든다
             mask = torch.zeros(module.weight.size(0))
             mask[keep_indices] = 1.0
             mask = mask.view(-1, 1, 1, 1).to(module.weight.device)
@@ -177,7 +177,7 @@ def main():
     model = SimpleCNN()
     print(f"\nOriginal model parameters: {count_parameters(model):,}")
     
-    # 거르개를 쳐 낸다
+    # 필터를 쳐 낸다
     pruned_model = prune_filters(model, prune_ratio=0.5)
     
     print("\nStructured pruning achieves:")

@@ -271,7 +271,7 @@ class HiddenMarkovModel:
 ```python
 def demonstrate_hmm_regime_detection():
     """
-    관측한 값 액션으로 강세장과 약세장 국면 알아내기.
+    관측한 값 액션으로 강세장과 약세장 국면 탐지.
     """
     print("HMM: Market Regime Detection")
     print("=" * 70)

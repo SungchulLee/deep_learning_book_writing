@@ -69,7 +69,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                      pretrained: bool = True,
                      dropout: float = 0.5):
             """
-            자리 클래스를 첫자리매김한다.
+            자리 클래스를 초기화한다.
 
             인수:
                 num_classes: 몸짓 클래스의 개수
@@ -148,7 +148,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                      flow_length: int = 10,
                      dropout: float = 0.5):
             """
-            때 클래스를 첫자리매김한다.
+            때 클래스를 초기화한다.
 
             인수:
                 num_classes: 몸짓 클래스의 개수
@@ -245,7 +245,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                      flow_length: int = 10,
                      fusion_type: str = 'average'):
             """
-            두 클래스 네트워크를 첫자리매김한다.
+            두 클래스 네트워크를 초기화한다.
 
             인수:
                 num_classes: 몸짓 클래스의 개수

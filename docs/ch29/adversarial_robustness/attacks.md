@@ -799,7 +799,7 @@ def targeted_bim(model, images, target_labels, epsilon, alpha, num_iter):
 def targeted_pgd(model, images, target_labels, epsilon, alpha, num_iter, 
                  random_start=True):
     """
-    아무 첫자리매김을 갖춘 목표 있는 PGD 공격.
+    아무 초기화를 갖춘 목표 있는 PGD 공격.
     
     인수:
         model: 겨눌 분류기
@@ -815,7 +815,7 @@ def targeted_pgd(model, images, target_labels, epsilon, alpha, num_iter,
     """
     criterion = nn.CrossEntropyLoss()
     
-    # 엡실론 공 안의 아무 첫자리매김
+    # 엡실론 공 안의 아무 초기화
     if random_start:
         adv_images = images + torch.empty_like(images).uniform_(-epsilon, epsilon)
         adv_images = torch.clamp(adv_images, 0, 1).detach()
@@ -951,7 +951,7 @@ def cw_targeted_attack(model, images, target_labels, c=1.0, kappa=0,
     images = images.to(device)
     target_labels = target_labels.to(device)
     
-    # 흔들림을 tanh으로 스케일 맞춘 변수로 첫자리매김한다
+    # 흔들림을 tanh으로 스케일 맞춘 변수로 초기화한다
     # tanh을 쓰면 내놓기가 가둬진다
     w = torch.zeros_like(images, requires_grad=True, device=device)
     

@@ -47,7 +47,7 @@ class EntityDictionary:
     
     def __init__(self, entity_type: str):
         """
-        개체 사전 첫자리매김.
+        개체 사전 초기화.
         
         인수:
             entity_type: 이 사전에 담긴 것의 클래스(PER, ORG, LOC 등)
@@ -108,12 +108,12 @@ class DictionaryNER:
     """
     
     def __init__(self):
-        """사전 바탕 개체명 인식 첫자리매김."""
+        """사전 바탕 개체명 인식 초기화."""
         self.dictionaries: Dict[str, EntityDictionary] = {}
         self._initialize_default_dictionaries()
     
     def _initialize_default_dictionaries(self):
-        """보기 사전으로 첫자리매김."""
+        """보기 사전으로 초기화."""
         
         # 사람 이름 사전
         person_dict = EntityDictionary("PER")

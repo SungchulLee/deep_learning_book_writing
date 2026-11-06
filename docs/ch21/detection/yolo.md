@@ -148,7 +148,7 @@ class DarknetBlock(nn.Module):
 
 class YOLOv3Head(nn.Module):
     """
-    스케일 하나를 위한 YOLOv3 알아내기 머리.
+    스케일 하나를 위한 YOLOv3 탐지 머리.
     """
     def __init__(
         self,
@@ -309,7 +309,7 @@ class PANNeck(nn.Module):
 ```python
 class YOLOv8Head(nn.Module):
     """
-    클래스 매기기와 되돌리기를 떼어 놓은 앵커 없는 알아내기 머리.
+    클래스 매기기와 되돌리기를 떼어 놓은 앵커 없는 탐지 머리.
     """
     def __init__(
         self,

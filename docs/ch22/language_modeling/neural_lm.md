@@ -127,7 +127,7 @@ class FeedforwardLM(nn.Module):
         self._init_weights()
     
     def _init_weights(self):
-        """익히기를 낫게 하는 자비에 첫자리매김."""
+        """익히기를 낫게 하는 자비에 초기화."""
         nn.init.xavier_uniform_(self.embedding.weight)
         nn.init.xavier_uniform_(self.fc1.weight)
         nn.init.xavier_uniform_(self.fc2.weight)
@@ -299,7 +299,7 @@ class RNNLanguageModel(nn.Module):
         return logits, hidden
     
     def init_hidden(self, batch_size: int) -> torch.Tensor:
-        """숨은 상태를 0으로 첫자리매김."""
+        """숨은 상태를 0으로 초기화."""
         return torch.zeros(self.num_layers, batch_size, self.hidden_dim)
 
 class RNNLMDataset(Dataset):
@@ -452,7 +452,7 @@ class LSTMLanguageModel(nn.Module):
         return logits, hidden
     
     def init_hidden(self, batch_size: int):
-        """숨은 상태와 칸 상태 첫자리매김."""
+        """숨은 상태와 칸 상태 초기화."""
         device = next(self.parameters()).device
         h = torch.zeros(self.num_layers, batch_size, self.hidden_dim, device=device)
         c = torch.zeros(self.num_layers, batch_size, self.hidden_dim, device=device)

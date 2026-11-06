@@ -19,7 +19,7 @@ class Adapter(nn.Module):
         input_dim: 들임/내놓기 차원(모델의 숨은 크기)
         bottleneck_dim: 병목 차원(보통 64~256)
         activation: 엑티베이션 함수
-        init_scale: 내놓기 쏘기 첫자리매김의 스케일
+        init_scale: 내놓기 쏘기 초기화의 스케일
     """
     
     def __init__(
@@ -54,11 +54,11 @@ class Adapter(nn.Module):
         # 드롭아웃
         self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
         
-        # 남는 이음이 안정되도록 첫자리매김한다
+        # 남는 이음이 안정되도록 초기화한다
         self._init_weights(init_scale)
     
     def _init_weights(self, scale: float):
-        """남는 이음이 안정되도록 무게를 첫자리매김한다."""
+        """남는 이음이 안정되도록 무게를 초기화한다."""
         nn.init.normal_(self.down_proj.weight, std=0.02)
         nn.init.zeros_(self.down_proj.bias)
         nn.init.normal_(self.up_proj.weight, std=scale)

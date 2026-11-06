@@ -302,7 +302,7 @@ class MAML:
             # 안쪽 회귀: 과제에 맞춘다
             adapted_params = self.inner_loop(support_x, support_y, init_params)
             
-            # 물음 집합에서 평가한다
+            # 쿼리 집합에서 평가한다
             query_logits = self.model(query_x, adapted_params)
             task_loss = F.cross_entropy(query_logits, query_y)
             
@@ -337,11 +337,11 @@ class MAML:
         
         인수:
             support_x, support_y: 맞춤에 쓸 서포트 집합
-            query_x, query_y: 평가에 쓸 물음 집합
+            query_x, query_y: 평가에 쓸 쿼리 집합
             inner_steps: 맞춤 스텝 수를 갈아 끼운다
         
         반환값:
-            물음 집합에서의 로스와 정확도
+            쿼리 집합에서의 로스와 정확도
         """
         if inner_steps is not None:
             original_steps = self.inner_steps

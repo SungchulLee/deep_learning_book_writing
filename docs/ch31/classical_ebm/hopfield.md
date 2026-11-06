@@ -608,7 +608,7 @@ _확인한 곳 — J. J. Hopfield, "Neural networks and physical systems with em
                              stored_patterns: torch.Tensor,
                              n_random_starts: int = 100) -> List[torch.Tensor]:
         """
-        아무 첫자리매김과 모임으로 헛된 상태를 찾는다.
+        아무 초기화와 모임으로 헛된 상태를 찾는다.
         """
         spurious = []
 

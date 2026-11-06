@@ -8,10 +8,10 @@
 
     ```python
     """
-    57모듈: 이어 배우기 - 고급
+    57모듈: 연속 학습 - 고급
     파일: 방법의 두루 견줌
 
-    이 스크립트는 까다로운 잣대에서 여러 이어 배우기 방법을 두루 견준다.
+    이 스크립트는 까다로운 잣대에서 여러 연속 학습 방법을 두루 견준다.
     맞바꿈을 이해하고 상황마다 알맞은 방법을 고르는 데
     도움이 된다.
 
@@ -19,10 +19,10 @@
     1. 벌주기, 리플레이, 섞은 접근법을 견준다
     2. 셈과 기억의 맞바꿈을 이해한다
     3. 여러 지표에 걸쳐 성능을 뜯어본다
-    4. 이어 배우기 실험의 좋은 버릇을 배운다
+    4. 연속 학습 실험의 좋은 버릇을 배운다
 
     견주는 방법:
-    1. 소박한 차례 학습(밑금)
+    1. 소박한 차례 학습(베이스라인)
     2. 경험 리플레이(ER)
     3. 탄성 웨이트 다지기(EWC)
     4. 잊지 않고 배우기(LWF)
@@ -59,7 +59,7 @@
 
     @dataclass
     class ExperimentResult:
-        """이어 배우기 방법의 결과를 두루 담아 둔다."""
+        """연속 학습 방법의 결과를 두루 담아 둔다."""
         method_name: str
         accuracy_matrix: np.ndarray
         average_accuracy: float
@@ -82,7 +82,7 @@
 
 
     class NaiveLearner:
-        """밑금: 소박한 차례 학습."""
+        """베이스라인: 소박한 차례 학습."""
 
         def __init__(self, model, device, lr=0.001):
             self.model = model
@@ -396,7 +396,7 @@
 
 
     def calculate_metrics(accuracy_matrix):
-        """표준 이어 배우기 지표를 셈한다."""
+        """표준 연속 학습 지표를 셈한다."""
         num_tasks = accuracy_matrix.shape[0]
 
         avg_accuracy = np.mean(accuracy_matrix[:, -1])

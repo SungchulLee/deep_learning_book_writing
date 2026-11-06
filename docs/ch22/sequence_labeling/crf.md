@@ -55,7 +55,7 @@ class CRF(nn.Module):
         pad_tag_id: Optional[int] = None
     ):
         """
-        CRF 레이어 첫자리매김.
+        CRF 레이어 초기화.
         
         인수:
             num_tags: 레이블의 개수(START와 END를 쓰면 함께)
@@ -79,7 +79,7 @@ class CRF(nn.Module):
         self._reset_parameters()
     
     def _reset_parameters(self):
-        """파라메터를 고른 분포로 첫자리매김."""
+        """파라메터를 고른 분포로 초기화."""
         nn.init.uniform_(self.transitions, -0.1, 0.1)
         nn.init.uniform_(self.start_transitions, -0.1, 0.1)
         nn.init.uniform_(self.end_transitions, -0.1, 0.1)
@@ -191,7 +191,7 @@ class CRF(nn.Module):
         """
         batch_size, seq_len, num_tags = emissions.shape
         
-        # 시작 전이와 첫 내보냄으로 첫자리매김
+        # 시작 전이와 첫 내보냄으로 초기화
         # alpha: (batch, num_tags)
         alpha = self.start_transitions + emissions[:, 0]
         
@@ -262,7 +262,7 @@ class CRF(nn.Module):
         """
         batch_size, seq_len, num_tags = emissions.shape
         
-        # 시작 전이로 첫자리매김
+        # 시작 전이로 초기화
         # score: (batch, num_tags)
         score = self.start_transitions + emissions[:, 0]
         

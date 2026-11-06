@@ -14,7 +14,7 @@
 어려움: 가운데
 
 밝힘:
-쌓은 그래디언트는 밑금에서 들임으로 가는 길을 따라 그래디언트를 쌓는다.
+쌓은 그래디언트는 베이스라인에서 들임으로 가는 길을 따라 그래디언트를 쌓는다.
 이로써 몫 매기기의 중요한 공리인 예민함과 짜기에 흔들리지 않음을
 채운다.
 
@@ -23,7 +23,7 @@
 
 여기서:
 - x: 들임 그림
-- x': 밑금(흔히 0이나 흐린 그림)
+- x': 베이스라인(흔히 0이나 흐린 그림)
 - α ∈ [0,1]: 사이 잡는 계수
 - 적분은 리만 합으로 어림한다
 
@@ -57,7 +57,7 @@ def compute_integrated_gradients(
     쌓은 그래디언트를 셈한다.
 
     알고리즘:
-    1. 밑금 x'을 고른다
+    1. 베이스라인 x'을 고른다
     2. 사이 들임을 만든다: i=0..m에 대해 x^(i) = x' + (i/m)(x - x')
     3. 자리마다 그래디언트를 셈한다: gᵢ = ∂f(x^(i))/∂x
     4. 그래디언트를 고르게 한다: ḡ = (1/m) Σᵢ gᵢ
@@ -70,11 +70,11 @@ def compute_integrated_gradients(
     model.eval()
     image_tensor = image_tensor.to(device)
 
-    # 밑금을 만든다
+    # 베이스라인을 만든다
     if baseline == 'zeros':
         baseline_tensor = torch.zeros_like(image_tensor)
     elif baseline == 'blur':
-        # 그림을 흐리게 해서 밑금으로 삼는다
+        # 그림을 흐리게 해서 베이스라인으로 삼는다
         from torchvision.transforms.functional import gaussian_blur
         baseline_tensor = gaussian_blur(image_tensor, kernel_size=51, sigma=20)
     elif baseline == 'random':
@@ -136,9 +136,9 @@ def verify_completeness(model, image_tensor, target_class, device, saliency):
 
 
 def example_1_baseline_comparison():
-    """밑금을 달리 고른 것들을 견준다."""
+    """베이스라인을 달리 고른 것들을 견준다."""
     print("\n" + "="*60)
-    print("보기 1: 밑금 견주기")
+    print("보기 1: 베이스라인 견주기")
     print("="*60)
 
     device = get_device()
@@ -156,23 +156,23 @@ def example_1_baseline_comparison():
     saliencies = {}
 
     for baseline in baselines:
-        print(f"{baseline} 밑금으로 셈하는 중...")
+        print(f"{baseline} 베이스라인으로 셈하는 중...")
         sal = compute_integrated_gradients(
             model, image_tensor, target_class, device,
             baseline=baseline, steps=30
         )
-        saliencies[f'{baseline}\n밑금'] = sal
+        saliencies[f'{baseline}\n베이스라인'] = sal
 
     visualize_multiple_saliencies(
         image_tensor, saliencies,
         save_path='outputs/04_baseline_comparison.png'
     )
 
-    print("\n밑금 고르기:")
+    print("\n베이스라인 고르기:")
     print("- 0: 단순하고 빠르며 웬만한 자리에서 잘 듣는다")
     print("- 흐림: 자연 그림에 좋다")
     print("- 아무렇게나: 쓸 일이 드물다")
-    print("\n✓ 0 밑금이 가장 흔하다!")
+    print("\n✓ 0 베이스라인이 가장 흔하다!")
 
 
 def main():
@@ -186,7 +186,7 @@ def main():
         print("\n" + "="*70)
         print("핵심:")
         print("1. IG는 예민함과 짜기에 흔들리지 않음을 채운다")
-        print("2. 밑금을 어떻게 고르느냐가 중요하다(대개 0이 좋다)")
+        print("2. 베이스라인을 어떻게 고르느냐가 중요하다(대개 0이 좋다)")
         print("3. 스텝이 많을수록 더 맞다(흔히 30~50)")
         print("4. 셈이 비싸지만 이론이 든든하다")
         print("\n다음: 꾸러미 05 - Grad-CAM")
@@ -206,7 +206,7 @@ if __name__ == "__main__":
 ======================================================================
 
 ============================================================
-보기 1: 밑금 견주기
+보기 1: 베이스라인 견주기
 ============================================================
 어긋남: name 'get_device' is not defined
 ```

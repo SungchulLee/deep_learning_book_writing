@@ -38,7 +38,7 @@ FCOS는 피처 맵의 각 위치에서 클래스와 경계 상자의 네 변까�
 ```python
 class FCOSHead(nn.Module):
     """
-    가운데다움 어림을 갖춘 FCOS 알아내기 머리.
+    가운데다움 어림을 갖춘 FCOS 탐지 머리.
     """
     def __init__(
         self,
@@ -75,7 +75,7 @@ class FCOSHead(nn.Module):
         # FPN 켜마다 배울 수 있는 스케일
         self.scales = nn.ModuleList([nn.Conv2d(1, 1, 1) for _ in range(5)])
         
-        # 초점 로스를 위한 치우침 첫자리매김
+        # 초점 로스를 위한 치우침 초기화
         bias_value = -math.log((1 - prior_prob) / prior_prob)
         nn.init.constant_(self.cls_logits.bias, bias_value)
     

@@ -8,15 +8,15 @@
 
     ```python
     """
-    57모듈: 이어 배우기 - 중급
+    57모듈: 연속 학습 - 중급
     파일 2: 잊지 않고 배우기(LWF)
 
     이 스크립트는 보기를 하나도 담아 두지 않고 앎 증류로 앞선 과제의 앎을 지키는
-    이어 배우기 방법인 잊지 않고 배우기를
+    연속 학습 방법인 잊지 않고 배우기를
     구현한다.
 
     학습 목표:
-    1. 이어 배우기를 위한 앎 증류를 이해한다
+    1. 연속 학습을 위한 앎 증류를 이해한다
     2. 부드러운 목표를 쓰는 LWF 로스를 구현한다
     3. 새 과제 배우기와 옛 앎 지키기의 균형을 잡는다
     4. 부드러운 목표를 위한 온도 눈금을 배운다
@@ -338,7 +338,7 @@
                            test_loaders: List[DataLoader],
                            epochs_per_task: int = 5):
             """
-            LWF을 쓰는 이어 배우기의 주 회귀.
+            LWF을 쓰는 연속 학습의 주 회귀.
 
             과제마다의 절차:
             1. 증류 로스를 곁들여 익힌다(첫 과제가 아니면)
@@ -391,7 +391,7 @@
             return self.calculate_metrics()
 
         def calculate_metrics(self):
-            """이어 배우기 지표를 셈한다."""
+            """연속 학습 지표를 셈한다."""
             num_tasks = self.accuracy_matrix.shape[0]
 
             average_accuracy = np.mean(self.accuracy_matrix[:, -1])
@@ -592,7 +592,7 @@
             learning_rate=learning_rate
         )
 
-        # 이어 배우기를 돌린다
+        # 연속 학습을 돌린다
         import time
         start_time = time.time()
         metrics = learner.train_continual(train_loaders, test_loaders, epochs_per_task)

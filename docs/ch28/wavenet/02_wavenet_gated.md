@@ -20,7 +20,7 @@
 #
 #       z = tanh(W_f * x) ⊙ σ(W_g * x)
 #
-# 여기서 W_f과 W_g은 따로 있는 거르개와 문 겹말기 무게이다.
+# 여기서 W_f과 W_g은 따로 있는 필터와 문 겹말기 무게이다.
 #
 # 바탕: O'Reilly Hands-On ML 15장(TF → PyTorch)
 

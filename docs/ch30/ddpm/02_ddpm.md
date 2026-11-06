@@ -725,7 +725,7 @@
             total_steps=total_steps,
         )
 
-        # 지수 이동 평균(익히기 스텝을 얼마간 지난 뒤 첫자리매김)
+        # 지수 이동 평균(익히기 스텝을 얼마간 지난 뒤 초기화)
         ema = None
         global_step = 0
 
@@ -754,7 +754,7 @@
                 # 러닝 빠르기 차례표 스텝
                 scheduler.step()
 
-                # 지수 이동 평균을 첫자리매김하거나 고친다
+                # 지수 이동 평균을 초기화하거나 고친다
                 global_step += 1
                 if global_step == config.EMA_START:
                     print(f"  -> Initializing EMA at step {global_step}")

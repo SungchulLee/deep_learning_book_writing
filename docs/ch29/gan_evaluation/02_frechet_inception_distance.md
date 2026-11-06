@@ -241,7 +241,7 @@ class SimpleInceptionV3Wrapper:
     
     def __init__(self, feature_dim: int = 2048):
         """
-        흉내 피처 뽑개로 첫자리매김한다.
+        흉내 피처 뽑개로 초기화한다.
         
         인수:
             feature_dim: 피처 벡터의 차원(InceptionV3이면 2048)

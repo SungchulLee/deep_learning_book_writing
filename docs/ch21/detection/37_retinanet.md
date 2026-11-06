@@ -7,7 +7,7 @@ RetinaNet은 피처 피라미드(FPN)와 focal loss를 결합한 단일 단계 �
 ```python
 #!/usr/bin/env python3
 '''
-레티나넷 — 촘촘한 물체 알아내기를 위한 초점 로스
+레티나넷 — 촘촘한 물체 탐지를 위한 초점 로스
 논문: "Focal Loss for Dense Object Detection" (2017)
 핵심: 클래스 치우침을 다루는 초점 로스, 피처 피라미드 네트워크(FPN)
 '''

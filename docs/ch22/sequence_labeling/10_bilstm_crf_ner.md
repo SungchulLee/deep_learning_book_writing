@@ -40,7 +40,7 @@ class BiLSTM_CRF(nn.Module):
     def __init__(self, vocab_size: int, tag_size: int, 
                  embedding_dim: int = 100, hidden_dim: int = 200):
         """
-        양방향 LSTM-CRF 첫자리매김.
+        양방향 LSTM-CRF 초기화.
         
         인수:
             vocab_size: 낱말 곳간의 크기

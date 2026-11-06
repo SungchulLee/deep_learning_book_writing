@@ -54,7 +54,7 @@ class GradientAttentionAnalyzer:
 
         여기서:
         - x은 들임
-        - x'은 밑금
+        - x'은 베이스라인
         - α은 사이 잡는 계수
         - 적분은 리만 합으로 어림한다
 
@@ -65,7 +65,7 @@ class GradientAttentionAnalyzer:
         input_ids : torch.Tensor
             들임 낱말 번호
         baseline_ids : torch.Tensor, 없어도 됨
-            밑금 들임(맡긴 값: 0)
+            베이스라인 들임(맡긴 값: 0)
         target_idx : int, 없어도 됨
             겨눈 내놓기 자리
 

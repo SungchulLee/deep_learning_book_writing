@@ -36,7 +36,7 @@ class ProductionNERPipeline:
     
     def __init__(self, model_name: str = 'transformer'):
         """
-        물길 첫자리매김.
+        물길 초기화.
         
         인수:
             model_name: 쓸 모델 클래스(transformer, bilstm, crf, rule-based)
@@ -45,7 +45,7 @@ class ProductionNERPipeline:
         self.logger = self._setup_logger()
         self.model = None
         
-        # 클래스에 따라 모델 첫자리매김
+        # 클래스에 따라 모델 초기화
         self._initialize_model()
     
     def _setup_logger(self) -> logging.Logger:
@@ -61,9 +61,9 @@ class ProductionNERPipeline:
         return logger
     
     def _initialize_model(self):
-        """개체명 인식 모델 첫자리매김."""
+        """개체명 인식 모델 초기화."""
         self.logger.info(f"Initializing {self.model_name} model...")
-        # 여기에 모델 첫자리매김 코드
+        # 여기에 모델 초기화 코드
         self.logger.info("Model initialized successfully")
     
     def preprocess(self, text: str) -> str:

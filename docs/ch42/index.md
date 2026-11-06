@@ -75,9 +75,9 @@
 
 맞서는 입력이 분류기에 닿기 앞서 짚어내기.
 
-- [자로 알아내기](detection/statistical.md) -- 마할라노비스 거리와 활성화 분포 살피기로 적대적 샘플 짚어내기
+- [자로 탐지](detection/statistical.md) -- 마할라노비스 거리와 활성화 분포 살피기로 적대적 샘플 짚어내기
 - [Feature Squeezing](detection/feature_squeezing.md) -- 본디 입력과 얽힘을 줄인 입력의 추론을 비교하여 적대적 섭동에 표시하기
-- [입력 변환 기반 방어](detection/input_transform.md) -- JPEG 눌러 담기, 아무렇게나 크기 바꾸기, 잡음 지우기로 입력 맑히기
+- [입력 변환 기반 방어](detection/input_transform.md) -- JPEG 눌러 담기, 아무렇게나 크기 바꾸기, 디노이징으로 입력 맑히기
 
 ---
 

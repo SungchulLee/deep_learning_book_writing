@@ -59,7 +59,7 @@ class ARModel(nn.Module):
     
     def __init__(self, order: int):
         """
-        자기 되돌이 모델을 첫자리매김한다.
+        자기 되돌이 모델을 초기화한다.
         
         인수:
             order: 자기 되돌이 모델의 차수 p(지난 값을 몇 개 쓸지)
@@ -162,7 +162,7 @@ class NeuralARModel(nn.Module):
                  order: int, 
                  hidden_size: int = 64):
         """
-        신경 자기 되돌이 모델을 첫자리매김한다.
+        신경 자기 되돌이 모델을 초기화한다.
         
         인수:
             order: 들임으로 쓸 지난 값의 수
@@ -242,7 +242,7 @@ if __name__ == "__main__":
     print("Testing Linear AR Model")
     print("=" * 60)
     
-    # 선형 자기 되돌이 모델을 첫자리매김한다
+    # 선형 자기 되돌이 모델을 초기화한다
     model = ARModel(order=order)
     
     # 순전파
@@ -264,7 +264,7 @@ if __name__ == "__main__":
     print("Testing Neural AR Model")
     print("=" * 60)
     
-    # 신경 자기 되돌이 모델을 첫자리매김한다
+    # 신경 자기 되돌이 모델을 초기화한다
     neural_model = NeuralARModel(order=order, hidden_size=32)
     
     # 순전파

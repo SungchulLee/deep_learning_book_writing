@@ -73,7 +73,7 @@ class FIDCalculator:
     def __init__(self, 
                  device: str = 'cuda' if torch.cuda.is_available() else 'cpu'):
         """
-        FID 셈개를 첫자리매김한다.
+        FID 셈개를 초기화한다.
         
         인수:
             device: 셈할 장치('cuda' 또는 'cpu')

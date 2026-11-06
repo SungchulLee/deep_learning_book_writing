@@ -64,7 +64,7 @@ import copy
 
 class LwFLearner:
     """
-    이어 배우기를 위한 잊지 않고 배우기.
+    연속 학습을 위한 잊지 않고 배우기.
     
     LwF은 다음으로 잊음을 막는다.
     1. 새 과제를 익히기 전에 모델의 출력을 적어 둔다
@@ -243,7 +243,7 @@ class LwFLearner:
                         test_loaders: List[DataLoader],
                         epochs_per_task: int = 5) -> Dict:
         """
-        LwF으로 이어 배우기를 온전히 한다.
+        LwF으로 연속 학습을 온전히 한다.
         
         인수:
             train_loaders: 학습 DataLoader 목록

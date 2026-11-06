@@ -84,7 +84,7 @@ def generate_ar_process(n_samples: int = 1000,
     p = len(coefficients)  # 자기 회귀 과정의 차수
     series = np.zeros(n_samples)
     
-    # 처음 p개 값을 작은 아무 수로 첫자리매김한다
+    # 처음 p개 값을 작은 아무 수로 초기화한다
     series[:p] = np.random.normal(0, 0.1, p)
     
     # 자기 회귀 식으로 나머지 차례를 만든다

@@ -47,7 +47,7 @@ class BasicAttention(nn.Module):
             query: (배치 크기, query_dim)
             keys: (배치 크기, seq_len, key_dim)
             values: (배치 크기, seq_len, value_dim)
-            mask: (배치 크기, seq_len) — 덧댐을 가리는 선택적 마스크
+            mask: (배치 크기, seq_len) — 패딩을 가리는 선택적 마스크
             
         반환값:
             context: (배치 크기, value_dim)

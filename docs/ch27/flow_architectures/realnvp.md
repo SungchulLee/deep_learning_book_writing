@@ -45,7 +45,7 @@ class AffineCouplingLayer(nn.Module):
             prev = h
         layers.append(nn.Linear(prev, d_trans * 2))
         self.net = nn.Sequential(*layers)
-        # 거의 항등인 첫자리매김
+        # 거의 항등인 초기화
         nn.init.zeros_(self.net[-1].weight)
         nn.init.zeros_(self.net[-1].bias)
 

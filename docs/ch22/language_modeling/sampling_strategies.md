@@ -372,13 +372,13 @@ def mirostat_v2_sample(
         logits: 고르게 맞추지 않은 로그 확률 [batch, vocab]
         tau: 목표 놀라움(목표 퍼플렉서티의 밑 2 로그)
         eta: 놀라움 좇기의 러닝 비율
-        mu: 지금의 놀라움 추정값(2*tau로 첫자리매김)
+        mu: 지금의 놀라움 추정값(2*tau로 초기화)
         
     반환값:
         (뽑은 토큰 번호, 고친 mu) 튜플
     """
     if mu is None:
-        mu = 2 * tau  # 첫자리매김
+        mu = 2 * tau  # 초기화
     
     probs = F.softmax(logits, dim=-1)
     log_probs = torch.log2(probs + 1e-10)  # 비트를 얻으려 밑이 2인 로그 쓰기

@@ -8,18 +8,18 @@
 
     ```python
     """
-    57모듈: 이어 배우기 - 초급
-    파일 2: 소박한 차례 학습(밑금)
+    57모듈: 연속 학습 - 초급
+    파일 2: 소박한 차례 학습(베이스라인)
 
-    이 스크립트는 이어 배우기 실험의 밑금이 되는
+    이 스크립트는 연속 학습 실험의 베이스라인이 되는
     소박한 차례 학습 방법을 구현한다. 잊음을 수로 나타내는
     제대로 된 평가 지표도 함께 구현한다.
 
     학습 목표:
-    1. 제대로 된 이어 배우기 평가 규약을 구현한다
-    2. 표준 이어 배우기 지표를 셈한다
-    3. 방법을 견줄 밑금을 이해한다
-    4. 이어 배우기 실험을 어떻게 짜는지 배운다
+    1. 제대로 된 연속 학습 평가 규약을 구현한다
+    2. 표준 연속 학습 지표를 셈한다
+    3. 방법을 견줄 베이스라인을 이해한다
+    4. 연속 학습 실험을 어떻게 짜는지 배운다
 
     수학적 지표:
     1. 평균 정확도(AA): (1/T) Σ Acc_{i,T}
@@ -51,7 +51,7 @@
     @dataclass
     class ContinualLearningMetrics:
         """
-        이어 배우기 지표를 모두 담는 데이터 클래스.
+        연속 학습 지표를 모두 담는 데이터 클래스.
 
         속성:
             average_accuracy: 마지막에 모든 과제에 걸친 평균 정확도
@@ -71,7 +71,7 @@
 
     class ContinualLearner:
         """
-        이어 배우기 실험의 바탕 클래스.
+        연속 학습 실험의 바탕 클래스.
 
         이 클래스는 다음을 준다.
         - 표준 평가 규약
@@ -80,7 +80,7 @@
         - 시각화 도구
 
         하위 클래스가 특정 메서드를 갈아 끼워 서로 다른
-        이어 배우기 전략을 구현할 수 있다.
+        연속 학습 전략을 구현할 수 있다.
         """
 
         def __init__(self, 
@@ -213,14 +213,14 @@
                            test_loaders: List[DataLoader],
                            epochs_per_task: int = 5) -> ContinualLearningMetrics:
             """
-            이어 배우기의 주 회귀.
+            연속 학습의 주 회귀.
 
             과정:
             1. 과제마다 차례로 다음을 한다.
                a. 과제 데이터로 익힌다
                b. 모든 과제(앞선 것까지)에서 평가한다
                c. 정확도를 적는다
-            2. 이어 배우기 지표를 셈한다
+            2. 연속 학습 지표를 셈한다
             3. 두루 갖춘 결과를 되돌린다
 
             인수:
@@ -285,7 +285,7 @@
 
         def calculate_metrics(self) -> ContinualLearningMetrics:
             """
-            정확도 행렬에서 이어 배우기 지표를 모두 셈한다.
+            정확도 행렬에서 연속 학습 지표를 모두 셈한다.
 
             지표 풀이:
 
@@ -301,7 +301,7 @@
             3. 앞으로의 옮김(FWT):
                지난 앎을 새 과제에 쓰는 힘을 잰다
                과제 i을 익히기 전 그 과제의 정확도를 잰다
-               FWT = (1/(T-1)) Σ_{i=2}^T (Acc_{i,i-1} - 밑금)
+               FWT = (1/(T-1)) Σ_{i=2}^T (Acc_{i,i-1} - 베이스라인)
 
             4. 러닝 정확도(LA):
                과제를 막 배운 직후의 평균 정확도
@@ -334,7 +334,7 @@
             # 3. 앞으로의 옮김(소박한 학습에는 해당 없음)
             # 소박한 학습에는 앞으로 옮길 장치가 없다
             # 그러려면 과제 i을 익히기 전에 그 과제에서 평가해야 한다
-            forward_transfer = 0.0  # 소박한 밑금을 위한 자리 채우개
+            forward_transfer = 0.0  # 소박한 베이스라인을 위한 자리 채우개
 
             # 4. 러닝 정확도(행렬의 대각선)
             learning_accuracy = np.mean(np.diag(self.accuracy_matrix))
@@ -414,7 +414,7 @@
 
     def print_metrics_summary(metrics: ContinualLearningMetrics, num_tasks: int):
         """
-        이어 배우기 지표를 두루 간추려 찍는다.
+        연속 학습 지표를 두루 간추려 찍는다.
 
         인수:
             metrics: ContinualLearningMetrics 객체
@@ -461,7 +461,7 @@
 
     def visualize_metrics(metrics: ContinualLearningMetrics, num_tasks: int):
         """
-        이어 배우기 결과를 두루 그려 본다.
+        연속 학습 결과를 두루 그려 본다.
 
         인수:
             metrics: ContinualLearningMetrics 객체
@@ -544,10 +544,10 @@
 
     def main():
         """
-        소박한 차례 학습 밑금을 돌리는 주 함수.
+        소박한 차례 학습 베이스라인을 돌리는 주 함수.
 
-        이는 뒤이은 스크립트에서 이어 배우기 방법을 견줄
-        밑금 성능을 세운다.
+        이는 뒤이은 스크립트에서 연속 학습 방법을 견줄
+        베이스라인 성능을 세운다.
         """
         print("=" * 70)
         print("NAIVE SEQUENTIAL LEARNING BASELINE")
@@ -621,7 +621,7 @@
             learning_rate=learning_rate
         )
 
-        # 이어 배우기를 돌린다
+        # 연속 학습을 돌린다
         start_time = time.time()
         metrics = learner.train_continual(
             train_loaders=train_loaders,

@@ -201,7 +201,7 @@ def sample(model, start_token, max_length, temperature=1.0):
     """
     model.eval()
     
-    # 시작 토큰으로 첫자리매김한다
+    # 시작 토큰으로 초기화한다
     generated = [start_token]
     hidden = None
     

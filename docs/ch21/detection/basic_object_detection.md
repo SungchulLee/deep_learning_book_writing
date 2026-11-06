@@ -8,10 +8,10 @@
 
     ```python
     """
-    보기 1: 기본 물체 알아내기 개념
+    보기 1: 기본 물체 탐지 개념
     ===========================================
 
-    이 각본은 물체 알아내기의 근본 개념을 맨바닥부터 짠다:
+    이 각본은 물체 탐지의 근본 개념을 맨바닥부터 짠다:
     - 두름 상자 나타내기
     - 겹침 비(IoU)
     - 최대가 아닌 것 누르기(NMS)
@@ -343,7 +343,7 @@
     print(f"\nFiltered out {len(all_detections) - len(filtered_boxes)} low-confidence detections\n")
 
     # ============================================================================
-    # 5단계: 온전한 알아내기 물길
+    # 5단계: 온전한 탐지 물길
     # ============================================================================
     """
     모두 모아 보면:
@@ -355,7 +355,7 @@
 
     def detection_pipeline(boxes, scores, classes, conf_threshold=0.5, nms_threshold=0.5):
         """
-        온전한 물체 알아내기 뒷손질 물길.
+        온전한 물체 탐지 뒷손질 물길.
 
         인수:
             boxes: 두름 상자의 목록
@@ -540,7 +540,7 @@
     scores = [det[1] for det in detections]
     classes = [det[2] for det in detections]
 
-    # 알아내기 물길 돌리기
+    # 탐지 물길 돌리기
     final_boxes, final_scores, final_classes = detection_pipeline(
         boxes, scores, classes,
         conf_threshold=0.5,

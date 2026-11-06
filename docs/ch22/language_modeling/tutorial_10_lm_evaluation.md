@@ -345,7 +345,7 @@ class GenerationStrategies:
         batch_size = input_ids.size(0)
         vocab_size = model.fc.out_features
         
-        # 빔 첫자리매김: (batch_size * beam_width, seq_len)
+        # 빔 초기화: (batch_size * beam_width, seq_len)
         beams = input_ids.unsqueeze(1).repeat(1, beam_width, 1)
         beams = beams.view(batch_size * beam_width, -1)
         

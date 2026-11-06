@@ -160,7 +160,7 @@ def metric_mds_torch(D, n_components=2, n_iter=300, lr=0.01, seed=42):
     # 위쪽 세모 마스크
     mask = torch.triu(torch.ones(n, n, dtype=torch.bool), diagonal=1)
     
-    # 고전 MDS 결과로 첫자리매김한다
+    # 고전 MDS 결과로 초기화한다
     Y_init, _ = classical_mds(D, n_components)
     Y = torch.tensor(Y_init, dtype=torch.float32, requires_grad=True)
     

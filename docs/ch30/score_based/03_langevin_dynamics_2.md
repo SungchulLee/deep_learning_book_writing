@@ -110,7 +110,7 @@ if __name__ == "__main__":
     def gaussian_score(x):
         return -x  # N(0, I)의 점수
     
-    # 표본을 첫자리매김한다
+    # 표본을 초기화한다
     x_init = torch.randn(100, 2) * 3  # 넓은 분포에서 시작
     
     # 랑주뱅 뽑기를 돌린다

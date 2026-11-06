@@ -257,7 +257,7 @@ print(f"Best params: {search.best_params_}")
 ```python
 def approximate_preimage(kpca, z, X_train, gamma, n_iter=100, lr=0.1):
     """그래디언트 내려가기로 앞그림을 어림한다(방사 바탕 함수 커널)."""
-    # 익히기 점의 무게 붙은 평균으로 첫자리매김한다
+    # 익히기 점의 무게 붙은 평균으로 초기화한다
     K_weights = np.exp(-0.5 * np.sum(z ** 2))
     x = X_train.mean(axis=0).copy()
 

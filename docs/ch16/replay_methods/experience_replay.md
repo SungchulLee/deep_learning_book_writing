@@ -352,7 +352,7 @@ class ExperienceReplayLearner:
                         test_loaders: List[DataLoader],
                         epochs_per_task: int = 5) -> Dict:
         """
-        리플레이로 이어 배우기를 온전히 한다.
+        리플레이로 연속 학습을 온전히 한다.
         
         인수:
             train_loaders: 학습 DataLoader 목록

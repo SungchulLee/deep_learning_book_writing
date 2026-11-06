@@ -138,7 +138,7 @@ $$L_Q^*(x)-L(\theta,q_\phi(\cdot|x);x)\ge0.$$
 ## 6. 초기화·구조·평가
 
 ```python
-# 첫 흩어짐이 웬만하도록 로그 흩어짐 머리의 치우침을 첫자리매김한다
+# 첫 흩어짐이 웬만하도록 로그 흩어짐 머리의 치우침을 초기화한다
 nn.init.constant_(encoder.fc_logvar.bias, -1.0)
 ```
 

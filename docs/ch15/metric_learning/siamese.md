@@ -73,12 +73,12 @@ $$s(x_1, x_2) = g(|z_1 - z_2|)$$
             인수:
                 input_channels: 입력 채널 수(흑백이면 1)
                 input_size: 입력 그림 크기(정사각 그림으로 놓는다)
-                hidden_dim: 컨볼루션 거르개의 바탕 개수
+                hidden_dim: 컨볼루션 필터의 바탕 개수
                 embedding_dim: 마지막 임베딩 차원
             """
             super().__init__()
 
-            # 거르개 크기가 커지는 컨볼루션 레이어
+            # 필터 크기가 커지는 컨볼루션 레이어
             self.conv1 = nn.Conv2d(input_channels, hidden_dim, kernel_size=10)
             self.conv2 = nn.Conv2d(hidden_dim, hidden_dim * 2, kernel_size=7)
             self.conv3 = nn.Conv2d(hidden_dim * 2, hidden_dim * 2, kernel_size=4)
@@ -814,7 +814,7 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
     ```python
     class TripletSiameseNetwork(nn.Module):
         """
-        세쌍 로스로 익힌 샴 망.
+        트리플렛 로스로 익힌 샴 망.
         """
 
         def __init__(self, encoder: nn.Module):
@@ -828,7 +828,7 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
             negative: torch.Tensor
         ):
             """
-            세쌍의 임베딩을 셈한다.
+            트리플렛의 임베딩을 셈한다.
             """
             z_a = self.encoder(anchor)
             z_p = self.encoder(positive)
@@ -843,7 +843,7 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
             negative: torch.Tensor,
             margin: float = 0.2
         ):
-            """세쌍 로스를 셈한다."""
+            """트리플렛 로스를 셈한다."""
             z_a, z_p, z_n = self.forward(anchor, positive, negative)
 
             d_ap = F.pairwise_distance(z_a, z_p)

@@ -539,7 +539,7 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
 
 ---
 
-## 3. 분포 외 알아내기
+## 3. 분포 외 탐지
 
 학습 분포와 다른 입력을 짚어내는 데 불확실성을 쓴다.
 
@@ -549,14 +549,14 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
     def evaluate_ood_detection(in_dist_uncertainty: np.ndarray,
                                ood_uncertainty: np.ndarray) -> dict:
         """
-        아리송함 점수로 밖 분포 알아내기를 따진다.
+        아리송함 점수로 밖 분포 탐지를 따진다.
 
         Args:
             in_dist_uncertainty: 분포 안 자료의 아리송함
             ood_uncertainty: 밖 분포 자료의 아리송함
 
         Returns:
-            자: AUROC, FPR@95TPR, 알아내기 맞음
+            자: AUROC, FPR@95TPR, 탐지 맞음
         """
         from sklearn.metrics import roc_auc_score, roc_curve
 
@@ -575,7 +575,7 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
         idx_95 = np.argmin(np.abs(tpr - 0.95))
         fpr_at_95_tpr = fpr[idx_95]
 
-        # 가장 좋은 임계에서의 알아내기 맞음
+        # 가장 좋은 임계에서의 탐지 맞음
         optimal_idx = np.argmax(tpr - fpr)
         optimal_threshold = thresholds[optimal_idx]
         predictions = (all_uncertainty > optimal_threshold).astype(int)
@@ -592,7 +592,7 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
 
     def ood_detection_example():
         """
-        밖 분포 알아내기 보기: MNIST으로 익히고 Fashion-MNIST을 짚어낸다.
+        밖 분포 탐지 보기: MNIST으로 익히고 Fashion-MNIST을 짚어낸다.
         """
         import torchvision
         import torchvision.transforms as transforms
@@ -638,11 +638,11 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
         # 따진다
         metrics = evaluate_ood_detection(mnist_unc, fmnist_unc)
 
-        print("밖 분포 알아내기 결과")
+        print("밖 분포 탐지 결과")
         print("=" * 40)
         print(f"AUROC: {metrics['auroc']:.4f}")
         print(f"TPR 95%에서의 FPR: {metrics['fpr_at_95_tpr']:.4f}")
-        print(f"알아내기 맞음: {metrics['detection_accuracy']:.4f}")
+        print(f"탐지 맞음: {metrics['detection_accuracy']:.4f}")
 
         return metrics
     ```
@@ -656,7 +656,7 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
 
     1. **살아 있는 학습**: 불확실성으로 가장 알려 주는 바가 큰 보기를 고른다(레이블 값 50~70% 아낌)
     2. **골라 추론**: 아리송한 추론은 물려 사람이 살피게 한다
-    3. **분포 외 알아내기**: 불확실성이 크면 분포 외 입력임을 뜻한다
+    3. **분포 외 탐지**: 불확실성이 크면 분포 외 입력임을 뜻한다
     4. **트레이드오프**: 덮음 대 맞음, 계산 비용 대 불확실성 성능
 
 ---
@@ -667,7 +667,7 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
 |-------------|----------------|
 | 살아 있는 학습 | 성능은 BALD, 단순함은 엔트로피 |
 | 골라 추론 | 따짐 꾸러미로 임계를 맞추고 덮음을 지켜본다 |
-| 분포 외 알아내기 | 불확실성을 다른 신호(복원 어긋남 따위)와 함께 쓴다 |
+| 분포 외 탐지 | 불확실성을 다른 신호(복원 어긋남 따위)와 함께 쓴다 |
 | 서비스 | 불확실성 분포를 적어 두고 옮겨감이 보이면 알린다 |
 
 ---
@@ -678,11 +678,11 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
 
 2. **골라 추론**: MNIST에서 맞음 99%을 이루는 임계를 찾아라. 덮음은 얼마인가?
 
-3. **분포 외 알아내기**: CIFAR-10으로 익히고 SVHN으로 시험하여라. 불확실성이 둘을 얼마나 잘 갈라내는가?
+3. **분포 외 탐지**: CIFAR-10으로 익히고 SVHN으로 시험하여라. 불확실성이 둘을 얼마나 잘 갈라내는가?
 
 ## 정리하며
 
-이 절에서는 불확실성을 쓰는 살아 있는 학습, 골라 추론(물릴 수 있는 길), 분포 외 알아내기, 핵심으로 챙길 것을 살펴보았다.
+이 절에서는 불확실성을 쓰는 살아 있는 학습, 골라 추론(물릴 수 있는 길), 분포 외 탐지, 핵심으로 챙길 것을 살펴보았다.
 
 **살펴볼 거리**
 

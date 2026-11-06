@@ -149,11 +149,11 @@ def pg_with_baseline(
     gamma: float = 0.99,
 ) -> torch.Tensor:
     """
-    상수 밑금을 빼는 REINFORCE.
+    상수 베이스라인을 빼는 REINFORCE.
     
     그래디언트: sum_t [log pi(a_t|s_t) * (G_t - b)]
     
-    밑금 b는 기댓값을 바꾸지 않지만(치우치지 않음) b ≈ E[G_t]일 때
+    베이스라인 b는 기댓값을 바꾸지 않지만(치우치지 않음) b ≈ E[G_t]일 때
     흩어짐을 줄인다.
     """
     returns = compute_returns(rewards, gamma)

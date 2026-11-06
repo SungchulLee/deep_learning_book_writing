@@ -10,7 +10,7 @@ DINO은 2022년 글 "DINO: DETR with Improved Denoising Anchor Boxes for End-to-
 #!/usr/bin/env python3
 """
 DINO - 잡소리 없애는 앵커 박스를 나아지게 한 DETR
-글: "DINO: 끝에서 끝까지 물체 알아내기를 위해 잡소리 없애는 앵커 박스를 나아지게 한 DETR" (2022)
+글: "DINO: 끝에서 끝까지 물체 탐지를 위해 잡소리 없애는 앵커 박스를 나아지게 한 DETR" (2022)
 지은이: IDEA Research (펑 리 외)
 핵심 깨침(크게 보아):
   1) 잡소리 없애며 익히기(DN): 노이지 참값 물음을 더해 익힘을 든든하게 한다.

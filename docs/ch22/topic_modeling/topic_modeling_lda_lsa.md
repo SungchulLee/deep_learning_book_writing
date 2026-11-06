@@ -232,7 +232,7 @@
             self.n_kv = np.zeros((K, self.V))  # 주제-낱말 셈
             self.n_k = np.zeros(K)             # 주제 합계
 
-            # 첫자리매김: 낱말마다 마구잡이 주제 매김
+            # 초기화: 낱말마다 마구잡이 주제 매김
             self.z = []  # 주제 매김
             for d, doc in enumerate(documents):
                 doc_z = []

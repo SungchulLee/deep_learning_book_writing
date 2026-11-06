@@ -34,7 +34,7 @@ class FeatureExtractor:
     """예로부터의 기계 러닝 바탕 개체명 인식을 위한 피처 뽑기."""
     
     def __init__(self):
-        """피처 뽑개 첫자리매김."""
+        """피처 뽑개 초기화."""
         self.gazetteers = {}
     
     def extract_token_features(self, tokens: List[str], index: int, 

@@ -38,7 +38,7 @@ class MaskedConv2d(nn.Conv2d):
     
     def __init__(self, mask_type: str, *args, **kwargs):
         """
-        가린 겹말기를 첫자리매김한다.
+        가린 겹말기를 초기화한다.
         
         인수:
             mask_type: 'A'나 'B'
@@ -67,7 +67,7 @@ class MaskedConv2d(nn.Conv2d):
         # 무게 꼴: [내놓기 채널, 들임 채널, 커널 높이, 커널 너비]
         k_h, k_w = self.weight.shape[2:]
         
-        # 마스크를 모두 1로 첫자리매김한다
+        # 마스크를 모두 1로 초기화한다
         self.mask.fill_(1)
         
         # 아래 반을 0으로 만든다
@@ -107,7 +107,7 @@ class ResidualBlock(nn.Module):
     
     def __init__(self, channels: int):
         """
-        남은 덩이를 첫자리매김한다.
+        남은 덩이를 초기화한다.
         
         인수:
             channels: 채널의 수
@@ -148,7 +148,7 @@ class PixelCNN(nn.Module):
                  n_channels: int = 64,
                  n_residual_blocks: int = 5):
         """
-        PixelCNN을 첫자리매김한다.
+        PixelCNN을 초기화한다.
         
         인수:
             n_channels: 피처 채널의 수

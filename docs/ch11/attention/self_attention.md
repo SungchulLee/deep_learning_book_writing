@@ -161,7 +161,7 @@ $$\text{head}_h = \text{softmax}\left(\frac{\mathbf{Q}_h \mathbf{K}_h^T}{\sqrt{d
 | 디코더 셀프 어텐션 | 인과 마스크 | 자기회귀 성질을 지킨다 |
 | 디코더 크로스 어텐션 | 없음 (인코더에 대해) | 원본의 모든 자리에 닿을 수 있다 |
 
-디코더는 덧댐 토큰을 무시하려고 셀프 어텐션과 크로스 어텐션 모두에 **덧댐 마스크**도 쓴다.
+디코더는 패딩 토큰을 무시하려고 셀프 어텐션과 크로스 어텐션 모두에 **패딩 마스크**도 쓴다.
 
 ---
 
@@ -508,7 +508,7 @@ class TransformerEncoderBlock(nn.Module):
         인수:
             x: 입력 (배치, seq_len, embed_dim)
             src_mask: 어텐션 마스크 (seq_len, seq_len)
-            src_key_padding_mask: 덧댐 마스크 (배치, seq_len)
+            src_key_padding_mask: 패딩 마스크 (배치, seq_len)
         """
         # 잔차 연결이 있는 자기 어텐션 (사전 레이어 정규화 판본)
         attn_out, _ = self.self_attn(

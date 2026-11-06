@@ -14,7 +14,7 @@
   - 엇결 엔트로피(가름)
   - MSE(회귀)
   - BCEWithLogits(둘 가름)
-  - 초점 잃음(촘촘한 알아내기)
+  - 초점 잃음(촘촘한 탐지)
   - KL 갈림 도우미(VAE 꼴)
 
 두루마리: appendix/utils/losses.py

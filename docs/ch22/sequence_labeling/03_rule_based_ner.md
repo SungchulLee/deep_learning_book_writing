@@ -58,7 +58,7 @@
         context_required: List[str] = None
 
         def __post_init__(self):
-            """첫자리매김 뒤에 정규식 패턴 컴파일하기."""
+            """초기화 뒤에 정규식 패턴 컴파일하기."""
             self.compiled_pattern = re.compile(self.pattern, re.IGNORECASE)
 
 
@@ -87,13 +87,13 @@
         """
 
         def __init__(self):
-            """규칙 바탕 개체명 인식 체계 첫자리매김."""
+            """규칙 바탕 개체명 인식 체계 초기화."""
             self.rules: List[Rule] = []
             self._initialize_default_rules()
 
         def _initialize_default_rules(self):
             """
-            흔한 개체 클래스의 붙박이 규칙 모음 첫자리매김.
+            흔한 개체 클래스의 붙박이 규칙 모음 초기화.
 
             이 규칙이 다루는 것:
             - 사람 이름(대문자 쓰기 패턴)
@@ -430,7 +430,7 @@
         print("Rule-Based Named Entity Recognition Demonstration")
         print("="*70)
 
-        # 개체명 인식 체계 첫자리매김
+        # 개체명 인식 체계 초기화
         ner = RuleBasedNER()
 
         # 보기 1: 기본 개체 뽑기

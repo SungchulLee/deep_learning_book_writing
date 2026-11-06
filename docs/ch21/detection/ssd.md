@@ -14,7 +14,7 @@ from typing import List, Tuple
 
 class SSDExtraLayers(nn.Module):
     """
-    여러 스케일 알아내기를 위해 VGG 바탕 뒤에 붙인 덧컨볼루션 레이어.
+    여러 스케일 탐지를 위해 VGG 바탕 뒤에 붙인 덧컨볼루션 레이어.
     """
     def __init__(self, in_channels: int = 1024):
         super().__init__()
@@ -126,7 +126,7 @@ class DefaultBoxGenerator:
 
 ```python
 class SSDHead(nn.Module):
-    """피처 지도 하나를 위한 SSD 알아내기 머리."""
+    """피처 지도 하나를 위한 SSD 탐지 머리."""
     def __init__(self, in_channels: int, num_boxes: int, num_classes: int):
         super().__init__()
         

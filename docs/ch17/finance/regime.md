@@ -79,7 +79,7 @@ class BayesianRegimeDetector:
         return self.filtered_prob.clone()
     
     def run_filter(self, returns: torch.Tensor) -> torch.Tensor:
-        """수익률 계열 전체에 거르개를 돌린다."""
+        """수익률 계열 전체에 필터를 돌린다."""
         T = len(returns)
         probs = torch.zeros(T, 2)
         

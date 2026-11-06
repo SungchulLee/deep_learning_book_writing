@@ -353,12 +353,12 @@ class PromptTuning(nn.Module):
         # 배울 수 있는 시킴말 임베딩
         self.prompt_embeddings = nn.Embedding(num_virtual_tokens, embedding_dim)
         
-        # 고를 수 있음: 낱말 곳간에서 첫자리매김한다
+        # 고를 수 있음: 낱말 곳간에서 초기화한다
         if init_from_vocab and init_text is not None:
             self._init_from_text(init_text)
     
     def _init_from_text(self, text: str):
-        """글 토막으로 시킴말을 첫자리매김한다(토막내개가 필요하다)."""
+        """글 토막으로 시킴말을 초기화한다(토막내개가 필요하다)."""
         # 짜기에서는 글을 토막내고 임베딩을 베낄 것이다
         pass
     

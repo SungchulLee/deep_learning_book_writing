@@ -216,7 +216,7 @@ $$\alpha_{ij} = 0 \quad \text{for } j > i$$
 
 ### 패딩 마스크
 
-길이가 다른 시퀀스를 묶을 때 덧댐 토큰에 주목하지 않게 막는다.
+길이가 다른 시퀀스를 묶을 때 패딩 토큰에 주목하지 않게 막는다.
 
 ```python
 def padding_mask(seq, pad_idx=0):

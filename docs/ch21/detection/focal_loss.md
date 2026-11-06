@@ -55,7 +55,7 @@ class FocalLoss(nn.Module):
         return (alpha_weight * focal_weight * bce).mean()
 
 class MultiClassFocalLoss(nn.Module):
-    """나누기와 알아내기를 위한 여러 클래스 초점 로스."""
+    """나누기와 탐지를 위한 여러 클래스 초점 로스."""
     
     def __init__(self, gamma: float = 2.0, alpha: torch.Tensor = None,
                  ignore_index: int = -1):

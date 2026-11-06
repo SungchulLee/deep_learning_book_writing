@@ -57,7 +57,7 @@ class BasicAttention(nn.Module):
             query: (배치 크기, query_dim)
             keys: (배치 크기, seq_len, key_dim)
             values: (배치 크기, seq_len, value_dim)
-            mask: (배치 크기, seq_len) — 덧댐을 가리는 선택적 마스크
+            mask: (배치 크기, seq_len) — 패딩을 가리는 선택적 마스크
             
         반환값:
             context: (배치 크기, value_dim)
@@ -674,7 +674,7 @@ class TransformerEncoderBlock(nn.Module):
         인수:
             x: 입력 (배치, seq_len, embed_dim)
             src_mask: 어텐션 마스크 (seq_len, seq_len)
-            src_key_padding_mask: 덧댐 마스크 (배치, seq_len)
+            src_key_padding_mask: 패딩 마스크 (배치, seq_len)
         """
         # 잔차 연결이 있는 자기 어텐션 (사전 층 정규화 판본)
         attn_out, _ = self.self_attn(

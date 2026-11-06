@@ -35,7 +35,7 @@ class CRF_NER:
     """피처 빚기를 곁들인 CRF 바탕 개체명 인식."""
     
     def __init__(self):
-        """CRF 모델 첫자리매김."""
+        """CRF 모델 초기화."""
         self.model = sklearn_crfsuite.CRF(
             algorithm='lbfgs',
             c1=0.1,

@@ -40,7 +40,7 @@ VGG 피처는 전이학습과 지각 로스·스타일 전이에 활용된다. G
 import torchvision.models as models
 
 model = models.vgg16(weights='DEFAULT')
-# 알아내기의 등뼈로 아주 흔히 쓰인다(더 빠른 R-CNN)
+# 탐지의 등뼈로 아주 흔히 쓰인다(더 빠른 R-CNN)
 # 그리고 옮겨 배우기로 나누기(FCN)
 ```
 

@@ -1253,7 +1253,7 @@ def main():
     print("MNIST Diffusion Model Training")
     print("=" * 50)
     
-    # 확산 모델을 첫자리매김한다
+    # 확산 모델을 초기화한다
     mnist_diffusion = MNISTDiffusion(
         timesteps=1000,
         batch_size=128,

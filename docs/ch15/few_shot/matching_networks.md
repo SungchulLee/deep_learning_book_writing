@@ -85,7 +85,7 @@ class MatchingNetwork(nn.Module):
         인수:
             support: (n_support, *input_shape) - 서포트 집합
             support_labels: (n_support,) - 원핫 또는 이름표 첨자
-            query: (n_query, *input_shape) - 물음 집합
+            query: (n_query, *input_shape) - 쿼리 집합
         
         반환값:
             predictions: (n_query, n_classes) - 예측 확률

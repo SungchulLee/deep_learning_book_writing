@@ -53,7 +53,7 @@ class BoltzmannMachine(nn.Module):
         self.n_total = n_visible + n_hidden
         self.temperature = temperature
         
-        # 무게를 첫자리매김한다(맞섬, 스스로 이음 없음)
+        # 무게를 초기화한다(맞섬, 스스로 이음 없음)
         W = torch.randn(self.n_total, self.n_total) * 0.01
         W = (W + W.T) / 2  # Symmetrize
         W.fill_diagonal_(0)  # No self-connections

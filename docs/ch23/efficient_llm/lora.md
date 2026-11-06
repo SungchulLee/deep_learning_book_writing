@@ -69,7 +69,7 @@ class LoRALayer(nn.Module):
     
     def _init_weights(self):
         """
-        LoRA 무게를 첫자리매김한다.
+        LoRA 무게를 초기화한다.
         
         A: 카이밍 고른 분포(nn.Linear 붙박이와 같다)
         B: 0(그래서 처음 ΔW = BA = 0)

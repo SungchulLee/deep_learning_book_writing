@@ -127,7 +127,7 @@ class OrderExecutionEnv:
 
 
 # ---------------------------------------------------------------------------
-# TWAP과 VWAP 밑금
+# TWAP과 VWAP 베이스라인
 # ---------------------------------------------------------------------------
 
 def twap_policy(env: OrderExecutionEnv) -> List[Dict]:
@@ -225,7 +225,7 @@ def demo_order_execution():
     print(f"\nProblem: Liquidate {env.Q} shares over {env.T} periods")
     print(f"State dim: {env.state_dim}, Actions: {env.action_dim}")
 
-    # TWAP 밑금
+    # TWAP 베이스라인
     print("\n--- TWAP Baseline (10 trials) ---")
     twap_rewards = []
     for _ in range(10):

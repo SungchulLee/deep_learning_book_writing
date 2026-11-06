@@ -11,7 +11,7 @@ YOLOv3은 2018년 글 "YOLOv3: An Incremental Improvement"에서 나왔다. 한 
 '''
 YOLOv3 - 한 번만 본다 v3
 논문: "YOLOv3: An Incremental Improvement" (2018)
-핵심: 한 방에 끝내는 물체 알아내기로 세 가지 자에서 예측한다
+핵심: 한 방에 끝내는 물체 탐지로 세 가지 자에서 예측한다
 '''
 import torch
 import torch.nn as nn
@@ -53,7 +53,7 @@ class YOLOv3(nn.Module):
         self.conv4 = ConvBlock(128, 256, 3, stride=2)
         self.res3 = nn.Sequential(*[ResidualBlock(256) for _ in range(8)])
         
-        # 서로 다른 잣대의 알아내기 머리
+        # 서로 다른 잣대의 탐지 머리
         self.detect1 = nn.Conv2d(256, (5 + num_classes) * 3, 1)  # 3 anchors per scale
     
     def forward(self, x):
@@ -119,7 +119,7 @@ Parameters: 3,267,295
 </div>
 
 ??? success "풀이"
-    여느 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별로 가른 컨볼루션은 이를 (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 클래스마다 거르개 하나)와 (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터의 비교는 어림잡아 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$이 모두 클 때 가장 크게 아낀다.
+    여느 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별로 가른 컨볼루션은 이를 (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 클래스마다 필터 하나)와 (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터의 비교는 어림잡아 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$이 모두 클 때 가장 크게 아낀다.
 
 ---
 

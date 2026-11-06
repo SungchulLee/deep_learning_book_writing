@@ -599,7 +599,7 @@ def detection_postprocess(
     max_detections: int = 100
 ) -> dict:
     """
-    물체 알아내기의 온전한 뒷손질 물길.
+    물체 탐지의 온전한 뒷손질 물길.
     
     인수:
         predictions: 'boxes', 'scores', 'labels' 텐서를 담은 사전

@@ -123,7 +123,7 @@ L_soft = KL_divergence(p_teacher ‖ p_student) × T²   (앞자리가 교사다
 ├── 03_knowledge_distillation.py       # 첫스텝: 기본 앎 내리기
 │
 ├── 04_quantization_aware_training.py  # 가운데: 양자화를 헤아린 익히기
-├── 05_structured_pruning.py           # 가운데: 거르개/채널 가지치기
+├── 05_structured_pruning.py           # 가운데: 필터/채널 가지치기
 ├── 06_iterative_pruning.py            # 가운데: 되풀이 크기 가지치기 알고리즘
 │
 ├── 07_mixed_precision_quantization.py # 앞선: 레이어마다의 자릿수

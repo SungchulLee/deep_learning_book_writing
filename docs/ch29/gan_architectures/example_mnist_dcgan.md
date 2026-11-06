@@ -106,7 +106,7 @@ class DCGANDiscriminator(nn.Module):
 
 
 def weights_init(m: nn.Module) -> None:
-    """DCGAN 논문이 정한 첫자리매김: 평균 0, 표준편차 0.02의 정규분포."""
+    """DCGAN 논문이 정한 초기화: 평균 0, 표준편차 0.02의 정규분포."""
     name = m.__class__.__name__
     if "Conv" in name:
         nn.init.normal_(m.weight.data, 0.0, 0.02)
@@ -130,7 +130,7 @@ def weights_init(m: nn.Module) -> None:
 
 def weights_init(m):
     """
-    DCGAN 논문의 권고를 따라 신경망 무게를 첫자리매김한다.
+    DCGAN 논문의 권고를 따라 신경망 무게를 초기화한다.
     
     Conv와 ConvTranspose 층: 평균=0, 표준편차=0.02
     배치 정규화 층: 무게=1, 치우침=0
@@ -548,7 +548,7 @@ class DCGAN_MNIST:
                  batch_size: int = 128, lr: float = 0.0002, beta1: float = 0.5,
                  device: str = None):
         """
-        MNIST용 DCGAN을 첫자리매김한다.
+        MNIST용 DCGAN을 초기화한다.
         
         인수:
             latent_dim: 숨은 벡터의 차원
@@ -570,7 +570,7 @@ class DCGAN_MNIST:
         
         print(f"Using device: {self.device}")
         
-        # 뉴럴 네트워크를 첫자리매김한다
+        # 뉴럴 네트워크를 초기화한다
         self.generator = DCGANGenerator(
             latent_dim=latent_dim,
             image_channels=1,
@@ -845,7 +845,7 @@ def main():
         print(f"{key:20s}: {value}")
     print("-" * 60)
     
-    # DCGAN을 첫자리매김한다
+    # DCGAN을 초기화한다
     dcgan = DCGAN_MNIST(
         latent_dim=config['latent_dim'],
         feature_maps=config['feature_maps'],

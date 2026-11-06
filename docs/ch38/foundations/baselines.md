@@ -8,9 +8,9 @@
 
     ```python
     """
-    34.1.4장: 밑금 방법
+    34.1.4장: 베이스라인 방법
     =================================
-    폴리시 그래디언트 알고리즘에서 흩어짐을 줄이는 여러 밑금 방법의 구현.
+    폴리시 그래디언트 알고리즘에서 흩어짐을 줄이는 여러 베이스라인 방법의 구현.
     """
 
     import torch
@@ -32,7 +32,7 @@
     # ---------------------------------------------------------------------------
 
     class ValueNetwork(nn.Module):
-        """밑금으로 쓰는 상태 값 함수 V(s)."""
+        """베이스라인으로 쓰는 상태 값 함수 V(s)."""
 
         def __init__(self, obs_dim: int, hidden_dim: int = 128):
             super().__init__()
@@ -62,11 +62,11 @@
 
 
     # ---------------------------------------------------------------------------
-    # 밑금 꾀
+    # 베이스라인 꾀
     # ---------------------------------------------------------------------------
 
     class ConstantBaseline:
-        """돌아옴의 흐르는 평균을 상수 밑금으로 쓴다."""
+        """돌아옴의 흐르는 평균을 상수 베이스라인으로 쓴다."""
 
         def __init__(self, decay: float = 0.99):
             self.value = 0.0
@@ -86,7 +86,7 @@
 
 
     class LearnedBaseline:
-        """배운, 상태에 딸린 값 함수 밑금 V_phi(s)."""
+        """배운, 상태에 딸린 값 함수 베이스라인 V_phi(s)."""
 
         def __init__(self, obs_dim: int, hidden_dim: int = 128, lr: float = 1e-3, n_epochs: int = 5):
             self.value_net = ValueNetwork(obs_dim, hidden_dim)
@@ -108,12 +108,12 @@
 
 
     # ---------------------------------------------------------------------------
-    # 밑금을 쓰는 REINFORCE 에이전트
+    # 베이스라인을 쓰는 REINFORCE 에이전트
     # ---------------------------------------------------------------------------
 
     class REINFORCEWithBaseline:
         """
-        밑금 방법을 골라 쓸 수 있는 REINFORCE 에이전트.
+        베이스라인 방법을 골라 쓸 수 있는 REINFORCE 에이전트.
 
         파라메터
         ----------
@@ -316,11 +316,11 @@
 
 
     # ---------------------------------------------------------------------------
-    # CartPole에서 밑금 견주기
+    # CartPole에서 베이스라인 견주기
     # ---------------------------------------------------------------------------
 
     def compare_baselines():
-        """CartPole에서 여러 밑금을 견준다."""
+        """CartPole에서 여러 베이스라인을 견준다."""
         print("\n" + "=" * 60)
         print("Baseline Comparison on CartPole-v1")
         print("=" * 60)
@@ -367,7 +367,7 @@
     # ---------------------------------------------------------------------------
 
     def analyze_gradient_variance():
-        """밑금에 따라 그래디언트 흩어짐을 잰다."""
+        """베이스라인에 따라 그래디언트 흩어짐을 잰다."""
         print("\n" + "=" * 60)
         print("Gradient Variance Analysis")
         print("=" * 60)
@@ -399,7 +399,7 @@
                 done = terminated or truncated
             all_episodes.append(episode)
 
-        # 에피소드마다 밑금을 달리하여 그래디언트를 셈한다
+        # 에피소드마다 베이스라인을 달리하여 그래디언트를 셈한다
         baselines_to_test = {
             "No baseline": lambda returns, states: torch.zeros_like(returns),
             "Mean return": lambda returns, states: torch.full_like(returns, returns.mean()),

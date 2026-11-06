@@ -135,7 +135,7 @@ def annealed_langevin_sampling(model, sigmas, n_samples=500, n_steps_per_sigma=1
     
     큰 잡음에서 시작해 차츰 줄인다
     """
-    x = torch.randn(n_samples, 2) * sigmas[0]  # 사전 분포에서 첫자리매김
+    x = torch.randn(n_samples, 2) * sigmas[0]  # 사전 분포에서 초기화
     
     trajectory = []
     

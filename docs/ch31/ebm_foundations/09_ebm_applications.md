@@ -223,7 +223,7 @@ $$p_{\mathrm{comb}}(x)\propto e^{-E_1(x)-E_2(x)}
         """
         mask: 알려진 화소는 1, 빠진 화소는 0
         """
-        # 빠진 화소를 잡음으로 첫자리매김한다
+        # 빠진 화소를 잡음으로 초기화한다
         x = corrupted_image.clone()
         x = x + (1 - mask) * torch.randn_like(x) * 0.5
         x = x.requires_grad_(True)

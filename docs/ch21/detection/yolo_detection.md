@@ -8,10 +8,10 @@
 
     ```python
     """
-    보기 2: YOLO 물체 알아내기
+    보기 2: YOLO 물체 탐지
     =================================
 
-    이 각본은 미리 익힌 YOLOv8을 물체 알아내기에 쓰는 법을 보여 준다.
+    이 각본은 미리 익힌 YOLOv8을 물체 탐지에 쓰는 법을 보여 준다.
     YOLO(한 번만 본다)는 빠르고 정확한 한 단계 알아내개이며
     실시간 쓰임새에 안성맞춤이다.
 
@@ -183,7 +183,7 @@
     print("Step 3: Running Detection and Understanding Output")
     print("-" * 70)
 
-    # 첫 시험 그림에 알아내기 돌리기
+    # 첫 시험 그림에 탐지 돌리기
     test_img = test_images[0][0]
 
     print("Running inference...")
@@ -246,10 +246,10 @@
     print()
 
     # ============================================================================
-    # 5단계: 믿음도 임계값을 둔 알아내기
+    # 5단계: 믿음도 임계값을 둔 탐지
     # ============================================================================
     """
-    파라메터로 알아내기의 몸짓을 다스릴 수 있다:
+    파라메터로 탐지의 몸짓을 다스릴 수 있다:
     - conf: 믿음도 임계값(붙박이 0.25)
     - iou: NMS의 겹침 비 임계값(붙박이 0.45)
     - classes: 알아낼 특정 클래스
@@ -278,7 +278,7 @@
 
     def visualize_yolo_results(image, result, title="YOLO Detections", save_path=None):
         """
-        YOLO의 알아내기 결과를 그려 본다.
+        YOLO의 탐지 결과를 그려 본다.
 
         인수:
             image: PIL 그림 또는 numpy 배열
@@ -448,7 +448,7 @@
     print("Step 9: Advanced YOLO Features")
     print("-" * 70)
 
-    # 기능 1: 특정 클래스만 알아내기
+    # 기능 1: 특정 클래스만 탐지
     print("Feature 1: Detect specific classes only")
     print("  Detecting only persons, cars, and dogs (classes 0, 2, 15)...")
     results = model(test_img, classes=[0, 2, 15], verbose=False)

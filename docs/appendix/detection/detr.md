@@ -1,6 +1,6 @@
 # DETR
 
-DETR은 2020년 글 "End-to-End Object Detection with Transformers"에서 나왔다. CNN 등뼈 + 트랜스포머 인코더/디코더 + 붙박인 물체 물음 배치. 상자와 클래스를 곧바로 한 벌로 예측한이다(본디 꼴에는 앵커도 NMS도 없다).
+DETR은 2020년 글 "End-to-End Object Detection with Transformers"에서 나왔다. CNN 등뼈 + 트랜스포머 인코더/디코더 + 붙박인 물체 물음 배치. 상자와 클래스를 곧바로 한 벌로 예측한이다(원래 형태에는 앵커도 NMS도 없다).
 
 여기 구현은 DETR을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -9,11 +9,11 @@ DETR은 2020년 글 "End-to-End Object Detection with Transformers"에서 나왔
 ```python
 #!/usr/bin/env python3
 """
-DETR - 트랜스포머로 끝에서 끝까지 물체 알아내기
-글: "트랜스포머로 끝에서 끝까지 물체 알아내기" (2020)
+DETR - 트랜스포머로 끝에서 끝까지 물체 탐지
+글: "트랜스포머로 끝에서 끝까지 물체 탐지" (2020)
 지은이: 니콜라 카리옹 외
 핵심: CNN 등뼈 + 트랜스포머 인코더/디코더 + 붙박인 물체 물음 배치.
-     상자와 클래스를 곧바로 한 벌로 미루어 본다(본디 꼴에는 앵커도 NMS도 없다).
+     상자와 클래스를 곧바로 한 벌로 미루어 본다(원래 형태에는 앵커도 NMS도 없다).
 
 두루마리: appendix/detection/detr.py
 눈여겨볼 것: 모형의 앞으로 스텝에 마음을 둔, 배우기 위한 단순한 구현이다.
@@ -224,7 +224,7 @@ pred_boxes : torch.Size([2, 100, 4])
 </div>
 
 ??? success "풀이"
-    여느 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별로 가른 컨볼루션은 이를 (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 클래스마다 거르개 하나)와 (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터의 비교는 어림잡아 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$이 모두 클 때 가장 크게 아낀다.
+    여느 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별로 가른 컨볼루션은 이를 (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 클래스마다 필터 하나)와 (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터의 비교는 어림잡아 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$이 모두 클 때 가장 크게 아낀다.
 
 ---
 

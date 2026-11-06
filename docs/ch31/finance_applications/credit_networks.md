@@ -130,7 +130,7 @@ class CreditNetworkEBM(nn.Module):
         if initial_state is not None:
             s = initial_state.clone()
         else:
-            # 서로 얽매이지 않은 부도로 첫자리매김한다
+            # 서로 얽매이지 않은 부도로 초기화한다
             probs = torch.sigmoid(self.theta)
             s = torch.bernoulli(probs.unsqueeze(0).expand(n_samples, -1))
         

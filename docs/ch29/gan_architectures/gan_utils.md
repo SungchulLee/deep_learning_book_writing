@@ -25,7 +25,7 @@ from typing import Tuple, List
 
 def weights_init(m):
     """
-    DCGAN 논문의 권고를 따라 뉴럴 네트워크 무게를 첫자리매김한다.
+    DCGAN 논문의 권고를 따라 뉴럴 네트워크 무게를 초기화한다.
     
     Conv와 ConvTranspose 레이어: 평균=0, 표준편차=0.02
     배치 정규화 레이어: 무게=1, 치우침=0

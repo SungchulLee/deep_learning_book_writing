@@ -37,7 +37,7 @@ class MockGenerativeModel:
     
     def __init__(self, quality_level: str = "good"):
         """
-        품질 수준이 다른 흉내 모델을 첫자리매김한다.
+        품질 수준이 다른 흉내 모델을 초기화한다.
         
         인수:
             quality_level: "poor", "moderate", "good" 가운데 하나

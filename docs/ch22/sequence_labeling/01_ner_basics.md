@@ -95,7 +95,7 @@
 
         def __init__(self, text: str, entity_type: str, start: int, end: int, confidence: float = 1.0):
             """
-            Entity 첫자리매김.
+            Entity 초기화.
 
             인수:
                 text: 개체가 걸친 텍스트 마디
@@ -160,7 +160,7 @@
 
         def __init__(self, text: str, start: int, end: int):
             """
-            Token 첫자리매김.
+            Token 초기화.
 
             인수:
                 text: 토큰 텍스트
@@ -218,7 +218,7 @@
         """
 
         def __init__(self):
-            """토큰내개 첫자리매김."""
+            """토큰내개 초기화."""
             # 낱말 글자, 숫자, 낱낱의 문장 부호에 맞추는 패턴
             self.pattern = re.compile(r'\w+|[^\w\s]')
 
@@ -324,7 +324,7 @@
         """
 
         def __init__(self):
-            """빈 데이터셋 첫자리매김."""
+            """빈 데이터셋 초기화."""
             self.samples = []  # (글, 것) 튜플의 목록
 
         def add_sample(self, text: str, entities: List[Entity]):
