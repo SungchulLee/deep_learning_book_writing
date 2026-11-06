@@ -26,7 +26,7 @@ from collections import OrderedDict
 
 class SimpleClassifier(nn.Module):
     """
-    MAML을 위한 단순한 뉴럴 넷트웍.
+    MAML을 위한 단순한 뉴럴 네트워크.
     """
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(SimpleClassifier, self).__init__()
@@ -58,7 +58,7 @@ class MAML:
     모델 가리지 않는 메타 학습 알고리즘.
     
     인수:
-        model: 뉴럴 넷트웍 모델
+        model: 뉴럴 네트워크 모델
         inner_lr: 안쪽 회귀(과제 맞춤)의 러닝레이트
         meta_lr: 바깥 회귀(메타 갱신)의 러닝레이트
         num_inner_steps: 안쪽 회귀의 그래디언트 스텝 수

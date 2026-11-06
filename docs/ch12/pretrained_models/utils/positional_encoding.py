@@ -24,7 +24,7 @@ class PositionalEncoding(nn.Module):
     """사인과 코사인으로 만든 자리 매김을 입력에 더한다.
 
     인수:
-        d_model: 묻힘 차원
+        d_model: 임베딩 차원
         max_len: 미리 만들어 둘 가장 긴 차례
         dropout: 더한 뒤 걸 드롭아웃 비율
     """

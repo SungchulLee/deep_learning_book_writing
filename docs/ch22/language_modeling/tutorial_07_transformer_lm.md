@@ -6,16 +6,16 @@
 
 ```python
 """
-튜토리얼 07: 변환기 언어 모델(GPT 방식)
+튜토리얼 07: 트랜스포머 언어 모델(GPT 방식)
 ====================================================
 
-변환기는 회귀 대신 셀프 어텐션 구조를 써서
+트랜스포머는 회귀 대신 셀프 어텐션 구조를 써서
 나란히 익히기와 더 나은 먼 거리 나타내기를 가능하게 한다.
 
 구조:
 - 토큰 임베딩 + 자리 임베딩
 - 여러 머리 셀프 어텐션
-- 피드포워드 넷트웍
+- 피드포워드 네트워크
 - 레이어 고르게 맞추기
 - 잔차 이음
 
@@ -60,7 +60,7 @@ class PositionalEncoding(nn.Module):
 
 
 class TransformerLanguageModel(nn.Module):
-    """GPT 방식 변환기 언어 모델."""
+    """GPT 방식 트랜스포머 언어 모델."""
     
     def __init__(self, vocab_size, d_model=512, nhead=8, 
                  num_layers=6, dim_feedforward=2048, dropout=0.1):
@@ -70,7 +70,7 @@ class TransformerLanguageModel(nn.Module):
         self.embedding = nn.Embedding(vocab_size, d_model)
         self.pos_encoder = PositionalEncoding(d_model)
         
-        # 변환기 디코더 레이어(인과)
+        # 트랜스포머 디코더 레이어(인과)
         decoder_layer = nn.TransformerDecoderLayer(
             d_model=d_model,
             nhead=nhead,
@@ -113,7 +113,7 @@ class TransformerLanguageModel(nn.Module):
         # 인과 가림
         mask = self.generate_square_subsequent_mask(seq_len).to(src.device)
         
-        # 변환기(셀프 어텐션을 쓰는 디코더로 사용)
+        # 트랜스포머(셀프 어텐션을 쓰는 디코더로 사용)
         # 유의: nn.TransformerDecoder에 허수아비 기억을 쓴다
         output = self.transformer(src, src, tgt_mask=mask)
         
@@ -124,7 +124,7 @@ class TransformerLanguageModel(nn.Module):
 
 def train_transformer_lm(corpus, vocab, d_model=256, nhead=4, 
                         num_layers=4, epochs=10):
-    """변환기 언어 모델 익히기."""
+    """트랜스포머 언어 모델 익히기."""
     
 import numpy as np
 from typing import List, Tuple
@@ -282,7 +282,7 @@ def collate_fn(batch, pad_value: int = 0):
 
 if __name__ == "__main__":
     print("""
-변환기 언어 모델
+트랜스포머 언어 모델
 ===========================
 
 이점:
@@ -296,11 +296,11 @@ if __name__ == "__main__":
 - 여러 머리: 서로 다른 어텐션 패턴
 - 자리 부호: 자리 앎을 준다
 - 레이어 고르게 맞추기: 익히기를 든든하게 한다
-- 잔차 이음: 깊은 넷트웍을 가능하게 한다
+- 잔차 이음: 깊은 네트워크를 가능하게 한다
 
 견줌:
-- 리커런트 넷트웍/LSTM: 차례차례, 익히기가 느리다
-- 변환기: 나란히, 더 빠르고, 규모 키우기에 낫다
+- 리커런트 네트워크/LSTM: 차례차례, 익히기가 느리다
+- 트랜스포머: 나란히, 더 빠르고, 규모 키우기에 낫다
 - 맞바꿈: 기억 공간과 빠르기
 
 요즘 큰 언어 모델(GPT-3, GPT-4)은 이 구조에 다음을 곁들여 쓴다:
@@ -322,7 +322,7 @@ if __name__ == "__main__":
 
 ```
 
-변환기 언어 모델
+트랜스포머 언어 모델
 ===========================
 
 이점:
@@ -336,11 +336,11 @@ if __name__ == "__main__":
 - 여러 머리: 서로 다른 어텐션 패턴
 - 자리 부호: 자리 앎을 준다
 - 레이어 고르게 맞추기: 익히기를 든든하게 한다
-- 잔차 이음: 깊은 넷트웍을 가능하게 한다
+- 잔차 이음: 깊은 네트워크를 가능하게 한다
 
 견줌:
-- 리커런트 넷트웍/LSTM: 차례차례, 익히기가 느리다
-- 변환기: 나란히, 더 빠르고, 규모 키우기에 낫다
+- 리커런트 네트워크/LSTM: 차례차례, 익히기가 느리다
+- 트랜스포머: 나란히, 더 빠르고, 규모 키우기에 낫다
 - 맞바꿈: 기억 공간과 빠르기
 
 요즘 큰 언어 모델(GPT-3, GPT-4)은 이 구조에 다음을 곁들여 쓴다:

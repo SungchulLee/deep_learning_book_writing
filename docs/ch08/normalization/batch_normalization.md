@@ -86,7 +86,7 @@ class BatchNorm1dNumPy:
 
 class SimpleNetworkWithBatchNorm(nn.Module):
     """
-    PyTorch의 BatchNorm 레이어를 쓰는 뉴럴 넷트웍 예제.
+    PyTorch의 BatchNorm 레이어를 쓰는 뉴럴 네트워크 예제.
     """
     
     def __init__(self, input_size=784, hidden_size=256, num_classes=10):
@@ -120,7 +120,7 @@ class SimpleNetworkWithBatchNorm(nn.Module):
 
 class ConvNetWithBatchNorm(nn.Module):
     """
-    배치 정규화를 갖춘 컨볼루션 뉴럴 넷트웍.
+    배치 정규화를 갖춘 컨볼루션 뉴럴 네트워크.
     컨볼루션 레이어에 BatchNorm2d를 쓴다.
     """
     
@@ -224,7 +224,7 @@ def compare_with_without_batchnorm():
     # 임시 데이터 만들기
     x = torch.randn(64, 784)
     
-    # 배치 정규화가 없는 뉴럴 넷트웍
+    # 배치 정규화가 없는 뉴럴 네트워크
     net_without = nn.Sequential(
         nn.Linear(784, 256),
         nn.ReLU(),
@@ -233,7 +233,7 @@ def compare_with_without_batchnorm():
         nn.Linear(256, 10)
     )
     
-    # 배치 정규화가 있는 뉴럴 넷트웍
+    # 배치 정규화가 있는 뉴럴 네트워크
     net_with = nn.Sequential(
         nn.Linear(784, 256),
         nn.BatchNorm1d(256),

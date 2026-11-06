@@ -9,7 +9,7 @@ Swin Transformer은 2021년 글 "Swin Transformer: Hierarchical Vision Transform
 ```python
 #!/usr/bin/env python3
 '''
-Swin Transformer - 옮긴 창을 쓰는 레이어 이룬 보기 변환기
+Swin Transformer - 옮긴 창을 쓰는 레이어 이룬 보기 트랜스포머
 논문: "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows" (2021)
 핵심: 잘 들도록 옮긴 창 어텐션과 레이어를 이룬 피처 지도
 '''

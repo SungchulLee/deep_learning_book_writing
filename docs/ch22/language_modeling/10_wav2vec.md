@@ -9,7 +9,7 @@
 '''
 Wav2Vec 2.0 — 말소리 알아듣기를 위한 스스로 살피는 러닝
 논문: "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations" (2020)
-핵심: 말소리를 위한 맞대어 배우기, 양자화, 변환기 인코더
+핵심: 말소리를 위한 맞대어 배우기, 양자화, 트랜스포머 인코더
 '''
 import torch
 import torch.nn as nn

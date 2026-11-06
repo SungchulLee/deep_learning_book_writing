@@ -50,7 +50,7 @@ $\alpha, \beta, \gamma$를 어떻게 찾고 왜 $\alpha \beta^2 \gamma^2 \approx
 
 ### 식구 여덟은 한 구조를 일곱 번 키운 것이다
 
-B0은 [뉴럴 넷트웍 아키텍처 탐색](../ch44/optimization/nas.md)로 찾아낸 **밑 모델**이고, B1부터 B7까지는 그 밑 모델에 위의 규칙을 $\phi$만 올려 가며 씌운 것이다. 곧 여덟은 여덟 가지 구조가 아니라 **한 구조의 일곱 가지 크기**다. torchvision이 들고 있는 값만 읽어도 세 축이 함께 움직이는 것이 보인다.
+B0은 [뉴럴 네트워크 아키텍처 탐색](../ch44/optimization/nas.md)로 찾아낸 **밑 모델**이고, B1부터 B7까지는 그 밑 모델에 위의 규칙을 $\phi$만 올려 가며 씌운 것이다. 곧 여덟은 여덟 가지 구조가 아니라 **한 구조의 일곱 가지 크기**다. torchvision이 들고 있는 값만 읽어도 세 축이 함께 움직이는 것이 보인다.
 
 ```python
 """EfficientNet 식구 여덟은 한 구조를 일곱 번 키운 것이다.
@@ -223,7 +223,7 @@ V1의 블록은 [11.1절 깊이별 분리 컨볼루션](../ch10/cnn/depthwise_se
 + net = efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1).to(device).eval()
 + # classifier 는 Sequential(Dropout(0.2), Linear(1280, 1000)) 둘뿐이다.
 + # [1] 만 갈면 **마지막에 남는 것이 Dropout** 이다 — 4.6절 VGG16에서 [:-1] 이
-+ # 남긴 것과 같은 자리다. 이 넷트웍의 nn.Dropout 은 그 하나뿐이고, 켜진 채로
++ # 남긴 것과 같은 자리다. 이 네트워크의 nn.Dropout 은 그 하나뿐이고, 켜진 채로
 + # 두면 뽑아 둔 1,280개 가운데 20%가 0이 되고 같은 그림에서 매번 다른 피처가
 + # 나온다. 위 .eval() 이 그것을 끈다 (더불어 StochasticDepth 열여섯 개도)
 + net.classifier[1] = nn.Identity()

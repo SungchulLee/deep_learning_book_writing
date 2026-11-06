@@ -5,7 +5,7 @@
 ## 1. 코드와 출력
 
 ```python
-"""29.7.4: 그래프 뉴럴 넷트웍 바탕 추천 시스템(LightGCN 방식)."""
+"""29.7.4: 그래프 뉴럴 네트워크 바탕 추천 시스템(LightGCN 방식)."""
 import torch, torch.nn as nn, torch.nn.functional as F
 import numpy as np
 

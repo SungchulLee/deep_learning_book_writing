@@ -24,7 +24,7 @@ X_recon = pca.inverse_transform(scores_1d)
 
 reconstruction_error = np.mean((X - X_recon) ** 2)
 
-# === 변환기가 들고 있는 것 =================================================
+# === 트랜스포머가 들고 있는 것 =================================================
 print(f"mean_                   {pca.mean_}")
 print(f"components_ shape       {pca.components_.shape}   (성분 x 피처)")
 print(f"components_[0]          {pca.components_[0]}")
@@ -84,7 +84,7 @@ whiten=True  점수의 공분산
 
 ## 4. 성분 수와 whitening
 
-0과 1 사이의 실수 `n_components`는 지원되는 분해 설정에서 목표 누적 분산을 넘는 성분 수를 선택한다. 필요한 수는 학습 데이터와 전처리에 따라 달라지므로 적합된 변환기와 실제 `n_components_`를 함께 관리한다.
+0과 1 사이의 실수 `n_components`는 지원되는 분해 설정에서 목표 누적 분산을 넘는 성분 수를 선택한다. 필요한 수는 학습 데이터와 전처리에 따라 달라지므로 적합된 트랜스포머와 실제 `n_components_`를 함께 관리한다.
 
 ![세 판으로 나뉜 그림. 왼쪽은 원래 자료로 점들이 기울어진 타원을 이룬다. 가운데는 whiten 없이 주성분 좌표로 옮긴 것으로 타원이 가로축에 나란해졌지만 여전히 납작하다. 오른쪽은 whiten 을 켠 것으로 점들이 둥글게 퍼져 있다. 판마다 표본 공분산이 함께 적혀 있다.](figures/whitening.svg)
 

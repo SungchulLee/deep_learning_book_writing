@@ -107,7 +107,7 @@ class PolynomialModel(nn.Module):
         return self.linear(features)
 
 class DeepNetwork(nn.Module):
-    """과적합을 보이기 위한 과파라메터화된 깊은 뉴럴 넷트웍."""
+    """과적합을 보이기 위한 과파라메터화된 깊은 뉴럴 네트워크."""
 
     def __init__(self, hidden_dim=256, n_layers=4):
         super().__init__()
@@ -135,7 +135,7 @@ underfit_history = compute_learning_curves(underfit_model, train_loader, val_loa
 goodfit_model = PolynomialModel(degree=3)
 goodfit_history = compute_learning_curves(goodfit_model, train_loader, val_loader)
 
-# 경우 3: 과적합 — 작은 데이터셋에 깊은 뉴럴 넷트웍
+# 경우 3: 과적합 — 작은 데이터셋에 깊은 뉴럴 네트워크
 overfit_model = DeepNetwork(hidden_dim=256, n_layers=4)
 overfit_history = compute_learning_curves(overfit_model, train_loader, val_loader, epochs=500)
 ```
@@ -343,7 +343,7 @@ $$
 
 ### 제약의 기하
 
-볼록 문제에서는 적절한 정규성 조건 아래 패널티 형태와 노름 제약 형태를 대응시킬 수 있다. L2 제약은 구, L1 제약은 좌표축에 꼭짓점이 있는 다이아몬드 모양이다. 이 기하는 L1이 희소해를 선호하는 이유를 보여 주지만 모든 해가 반드시 희소한 것은 아니다. 비볼록 뉴럴 넷트웍에서 패널티를 더했다고 전역 최솟값을 찾는 것도 아니다.
+볼록 문제에서는 적절한 정규성 조건 아래 패널티 형태와 노름 제약 형태를 대응시킬 수 있다. L2 제약은 구, L1 제약은 좌표축에 꼭짓점이 있는 다이아몬드 모양이다. 이 기하는 L1이 희소해를 선호하는 이유를 보여 주지만 모든 해가 반드시 희소한 것은 아니다. 비볼록 뉴럴 네트워크에서 패널티를 더했다고 전역 최솟값을 찾는 것도 아니다.
 
 ### 실효 자유도
 
@@ -369,7 +369,7 @@ $$
 
 ### 2. 구조적 제약
 
-이 방법들은 실효 용량을 제한하려고 뉴럴 넷트웍의 구조나 순전파를 고친다.
+이 방법들은 실효 용량을 제한하려고 뉴럴 네트워크의 구조나 순전파를 고친다.
 
 **드롭아웃**은 학습 중에 뉴런을 무작위로 끈다.
 
@@ -377,7 +377,7 @@ $$
 \tilde{h} = \frac{m \odot h}{1-p}, \quad m_i \sim \text{Bernoulli}(1-p)
 $$
 
-이는 공적응을 막고, 단위가 $d$개인 레이어에 대해 $2^d$개 부분 뉴럴 넷트웍의 암묵적인 앙상블을 만든다.
+이는 공적응을 막고, 단위가 $d$개인 레이어에 대해 $2^d$개 부분 뉴럴 네트워크의 암묵적인 앙상블을 만든다.
 
 **드롭커넥트**는 활성화 전체가 아니라 개별 *웨이트*를 무작위로 0으로 만들어 드롭아웃을 일반화하며, 더 세밀한 확률적 정규화를 제공한다.
 

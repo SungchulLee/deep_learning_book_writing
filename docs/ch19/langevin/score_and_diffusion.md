@@ -24,7 +24,7 @@
 def score_matching_loss(score_network, x):
     """
     x: 자료 표본 배치, 꼴 (batch, dim)
-    score_network: 점수 s_θ(x)을 내놓는 뉴럴 넷트웍
+    score_network: 점수 s_θ(x)을 내놓는 뉴럴 네트워크
     """
     # 점수 셈하기
     s = score_network(x)  # 꼴: (batch, dim)

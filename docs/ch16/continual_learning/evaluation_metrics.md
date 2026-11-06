@@ -37,7 +37,7 @@ def evaluate_continual_learning(model, test_loaders, train_loaders,
     이어 배우기의 표준 평가 절차.
     
     인수:
-        model: 뉴럴 넷트웍 모델
+        model: 뉴럴 네트워크 모델
         test_loaders: 과제마다의 시험 DataLoader 목록
         train_loaders: 과제마다의 학습 DataLoader 목록
         train_fn: 과제 하나로 익히는 함수

@@ -309,7 +309,7 @@ class DiGressTransformerLayer(nn.Module):
         return h, e
 
 class DiGressDenoiser(nn.Module):
-    """온전한 DiGress 잡소리 없애기 넷트웍."""
+    """온전한 DiGress 잡소리 없애기 네트워크."""
 
     def __init__(
         self,

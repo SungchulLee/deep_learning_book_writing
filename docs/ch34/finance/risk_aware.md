@@ -332,7 +332,7 @@ $$\text{Recovery Time} = \text{time until portfolio returns to pre-shock level}$
 
 ### 위험 헤아리기를 위한 머신러닝
 
-추천 뒤 꾸러미 위험을 헤아리는 데 뉴럴 넷트웍을 쓴다:
+추천 뒤 꾸러미 위험을 헤아리는 데 뉴럴 네트워크를 쓴다:
 
 $$\sigma_{\text{pred}}^{\text{post}} = \text{NN}(\text{current portfolio}, \text{recommendation})$$
 

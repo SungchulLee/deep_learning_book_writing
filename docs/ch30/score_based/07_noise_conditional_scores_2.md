@@ -12,7 +12,7 @@ FILE: 07_noise_conditional_scores.py
 미리 알 것: 04-06, 여러 잣수 나타내기 이해
 
 학습 목표:
-    1. 잡음 조건 점수 넷트웍(NCSN)을 짠다
+    1. 잡음 조건 점수 네트워크(NCSN)을 짠다
     2. 식힘 랑주뱅 액션을 이해한다
     3. 여러 잡음 잣수에서 모델을 익힌다
     4. 복잡한 분포에서 품질 높은 표본을 만든다
@@ -49,7 +49,7 @@ import matplotlib.pyplot as plt
 
 
 class NCSN(nn.Module):
-    """잡음 조건 점수 뉴럴 넷트웍."""
+    """잡음 조건 점수 뉴럴 네트워크."""
     
     def __init__(self, data_dim=2, hidden_dim=128, n_layers=4):
         super().__init__()
@@ -61,7 +61,7 @@ class NCSN(nn.Module):
             nn.Linear(hidden_dim, hidden_dim)
         )
         
-        # 점수 뉴럴 넷트웍
+        # 점수 뉴럴 네트워크
         layers = []
         input_dim = data_dim + hidden_dim
         
@@ -93,10 +93,10 @@ class NCSN(nn.Module):
 
 def ncsn_loss(model, x, sigmas):
     """
-    여러 잡음 수준으로 잡음 조건 점수 뉴럴 넷트웍 로스를 셈한다.
+    여러 잡음 수준으로 잡음 조건 점수 뉴럴 네트워크 로스를 셈한다.
     
     인수:
-        model: 잡음 조건 점수 뉴럴 넷트웍 모델
+        model: 잡음 조건 점수 뉴럴 네트워크 모델
         x: 자료 표본, 꼴 (N, D)
         sigmas: 잡음 수준의 목록
     
@@ -137,7 +137,7 @@ def anneal_langevin_sampling(model, sigmas, n_samples=100, n_steps_per_sigma=100
     이는 잡음이 클 때 공간을 살피고 잡음이 작을 때 다듬는 데 도움이 된다.
     
     인수:
-        model: 익힌 잡음 조건 점수 뉴럴 넷트웍 모델
+        model: 익힌 잡음 조건 점수 뉴럴 네트워크 모델
         sigmas: 잡음 짜임(줄어드는 차례), 보기: [10, 1, 0.1, 0.01]
         n_samples: 만들 표본의 개수
         n_steps_per_sigma: 잡음 수준마다 랑주뱅 스텝 수
@@ -171,7 +171,7 @@ def anneal_langevin_sampling(model, sigmas, n_samples=100, n_steps_per_sigma=100
 
 
 def train_ncsn(data, sigmas, epochs=5000, lr=1e-3):
-    """2차원 자료로 잡음 조건 점수 뉴럴 넷트웍을 익힌다."""
+    """2차원 자료로 잡음 조건 점수 뉴럴 네트워크를 익힌다."""
     model = NCSN(data_dim=2, hidden_dim=128, n_layers=3)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     

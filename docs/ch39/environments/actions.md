@@ -91,7 +91,7 @@ $$w_i = \frac{\tanh(a_i)}{\sum_j |\tanh(a_j)|} \cdot L_{\max}$$
 
 ```python
 def transform_action(self, raw_action):
-    """넷트웍이 내놓은 날값을 옳은 밑천 무게로 옮긴다."""
+    """네트워크가 내놓은 날값을 옳은 밑천 무게로 옮긴다."""
 
     # 스텝1: 엑티베이션 함수 매기기
     if self.long_only:

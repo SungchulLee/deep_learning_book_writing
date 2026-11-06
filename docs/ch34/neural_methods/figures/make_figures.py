@@ -1,4 +1,4 @@
-"""35.2 뉴럴 넷트웍 방법 쪽들의 그림.
+"""35.2 뉴럴 네트워크 방법 쪽들의 그림.
 
 규칙은 CLAUDE.md 의 Figures 항에 적어 둔 대로다.
 - SVG, fonttype='path', transparent

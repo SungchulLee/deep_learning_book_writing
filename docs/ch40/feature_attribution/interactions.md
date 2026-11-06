@@ -219,7 +219,7 @@ def detect_risk_concentrations(
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 넷트웍에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
+이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 네트워크에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
 
 </div>
 

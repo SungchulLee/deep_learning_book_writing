@@ -274,7 +274,7 @@ class ActivationNoise(nn.Module):
         return x
 
 class NetworkWithActivationNoise(nn.Module):
-    """활성화 잡음을 쓰는 뉴럴 넷트웍 예제."""
+    """활성화 잡음을 쓰는 뉴럴 네트워크 예제."""
     
     def __init__(self, input_dim, hidden_dims, output_dim, noise_std=0.1):
         super().__init__()
@@ -360,7 +360,7 @@ class VariationalLayer(nn.Module):
         super().__init__()
         # 앞의 NoisyLinear가 잡음 크기를 사람이 정해 주었다면, 여기서는
         # 그 크기까지 학습한다. 웨이트 하나하나를 값이 아니라 "분포"로
-        # 들고 있는 셈이며, 이것이 베이즈 뉴럴 넷트웍의 가장 단순한 꼴이다.
+        # 들고 있는 셈이며, 이것이 베이즈 뉴럴 네트워크의 가장 단순한 꼴이다.
 
         # 분산이 아니라 로그 분산을 파라메터로 둔다. 분산은 반드시
         # 양수여야 하는데, 로그로 두면 어떤 실수를 넣어도 exp가 양수를
@@ -506,7 +506,7 @@ def train_with_noise_injection(
 
 1. **입력 잡음**: 시험 데이터에 자연스러운 변이가 있을 수 있을 때
 2. **웨이트 잡음**: 불확실성 정량화가 필요할 때
-3. **그래디언트 잡음**: 아주 깊은 뉴럴 넷트웍이나 어려운 최적화일 때
+3. **그래디언트 잡음**: 아주 깊은 뉴럴 네트워크나 어려운 최적화일 때
 4. **활성화 잡음**: 범용 정규화
 
 ### 잡음 크기의 선택

@@ -53,7 +53,7 @@ $$\boxed{\sigma^2 = \frac{2}{n_{\text{in}}}}$$
 
 $$\sigma^2 = \frac{2}{n_{\text{out}}}$$
 
-역전파 경사의 안정성이 더 중요할 때(예: 건너뛰기 연결이 없는 아주 깊은 뉴럴 넷트웍) 팬아웃 방식을 쓰기도 한다.
+역전파 경사의 안정성이 더 중요할 때(예: 건너뛰기 연결이 없는 아주 깊은 뉴럴 네트워크) 팬아웃 방식을 쓰기도 한다.
 
 ### Xavier와의 비교
 
@@ -102,7 +102,7 @@ init.kaiming_normal_(linear.weight, mode='fan_in', nonlinearity='relu')
 init.kaiming_normal_(linear.weight, mode='fan_out', nonlinearity='relu')
 ```
 
-팬인이 기본값이며 대부분의 구조에 알맞다. 뉴럴 넷트웍이 넓다가 좁아지는 모양일 때(예: 압축 병목) 팬아웃이 나을 수 있다.
+팬인이 기본값이며 대부분의 구조에 알맞다. 뉴럴 네트워크가 넓다가 좁아지는 모양일 때(예: 압축 병목) 팬아웃이 나을 수 있다.
 
 ---
 
@@ -255,7 +255,7 @@ compare_gradient_flow()
 
 ## 5. 특수한 경우와 확장
 
-### 잔차 뉴럴 넷트웍
+### 잔차 뉴럴 네트워크
 
 잔차 블록 $h+F(h)$의 분산에는 두 분기의 공분산도 포함된다. 두 분기의 분산이 같고 공분산이 0이라는 근사 아래에서만 합의 분산이 두 배가 된다. 실제 구조의 정규화 레이어와 분기 스케일에 맞춰 초기화를 선택한다.
 
@@ -392,7 +392,7 @@ import torch.nn as nn
 import torch.nn.init as init
 
 class DeepHedgingNetwork(nn.Module):
-    """알맞은 초기화로 헤지 전략을 배우는 뉴럴 넷트웍."""
+    """알맞은 초기화로 헤지 전략을 배우는 뉴럴 네트워크."""
 
     def __init__(self, n_features, n_instruments, hidden_dim=128, n_layers=6):
         super().__init__()
@@ -448,7 +448,7 @@ class DeepHedgingNetwork(nn.Module):
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff easy" title="쉬움"></span>
-너비가 같은 깊은 ReLU 뉴럴 넷트웍에서 gain=1인 Xavier 초기화와 He 초기화의 신호 크기 예측은 어떻게 다른가?
+너비가 같은 깊은 ReLU 뉴럴 네트워크에서 gain=1인 Xavier 초기화와 He 초기화의 신호 크기 예측은 어떻게 다른가?
 
 </div>
 
@@ -494,7 +494,7 @@ class DeepHedgingNetwork(nn.Module):
 | **알맞은 대상** | ReLU 및 음수 그래디언트를 반영한 Leaky ReLU·PReLU |
 | **Leaky ReLU로의 확장** | $\sigma^2 = \frac{2}{(1+a^2)\,n_{\text{in}}}$ |
 | **PyTorch** | `init.kaiming_normal_`, `init.kaiming_uniform_` |
-| **잔차 뉴럴 넷트웍** | 0 초기화나 $1/\sqrt{2L}$ 배율 조정과 함께 쓴다 |
+| **잔차 뉴럴 네트워크** | 0 초기화나 $1/\sqrt{2L}$ 배율 조정과 함께 쓴다 |
 | **다른 이름** | Kaiming 초기화, MSRA 초기화 |
 
 **참고 문헌**

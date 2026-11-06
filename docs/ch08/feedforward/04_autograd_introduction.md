@@ -28,7 +28,7 @@ z = 3 * a**2 + 2 * b
 z.backward()
 print(f"dz/da = {a.grad.item()}, dz/db = {b.grad.item()}")
 
-# 자동 미분을 쓰는 뉴럴 넷트웍
+# 자동 미분을 쓰는 뉴럴 네트워크
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 n_samples = 200
 

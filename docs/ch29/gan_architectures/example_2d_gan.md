@@ -146,7 +146,7 @@ def train_gan_2d(data, latent_dim=2, n_epochs=1000, batch_size=256,
                 lr=0.0002, device='cpu'):
     """2차원 자료에서 단순한 맞겨루기 생성기를 익힌다."""
     
-    # 뉴럴 넷트웍을 첫자리매김한다
+    # 뉴럴 네트워크를 첫자리매김한다
     generator = SimpleGenerator(latent_dim=latent_dim).to(device)
     discriminator = SimpleDiscriminator().to(device)
     

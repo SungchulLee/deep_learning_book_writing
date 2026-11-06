@@ -23,7 +23,7 @@ import torch.nn as nn
 class SSD(nn.Module):
     def __init__(self, num_classes=21):
         super().__init__()
-        # 밑 넷트웍(VGG 꼴)
+        # 밑 네트워크(VGG 꼴)
         self.base = nn.Sequential(
             nn.Conv2d(3, 64, 3, padding=1),
             nn.ReLU(inplace=True),

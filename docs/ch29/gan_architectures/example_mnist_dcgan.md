@@ -570,7 +570,7 @@ class DCGAN_MNIST:
         
         print(f"Using device: {self.device}")
         
-        # 뉴럴 넷트웍을 첫자리매김한다
+        # 뉴럴 네트워크를 첫자리매김한다
         self.generator = DCGANGenerator(
             latent_dim=latent_dim,
             image_channels=1,

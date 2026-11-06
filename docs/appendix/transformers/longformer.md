@@ -9,8 +9,8 @@ Longformer는 2020년 글 "Longformer: The Long-Document Transformer"에서 나�
 ```python
 #!/usr/bin/env python3
 """
-Longformer - 긴 글월 변환기
-글: "Longformer: 긴 글월 변환기" (2020)
+Longformer - 긴 글월 트랜스포머
+글: "Longformer: 긴 글월 트랜스포머" (2020)
 지은이: 이즈 벨타기, 매슈 피터스, 아르만 코한
 핵심 깨침:
   - 온전한 O(S^2) 어텐션을 다음으로 갈음한다:
@@ -76,7 +76,7 @@ class WindowSelfAttention(nn.Module):
 
 
 class LongformerBlock(nn.Module):
-    """창 어텐션 + 피드포워드 넷트웍을 쓰는 변환기 꼴 덩이 하나."""
+    """창 어텐션 + 피드포워드 네트워크를 쓰는 트랜스포머 꼴 덩이 하나."""
     def __init__(self, d_model=256, window=4, ff_dim=1024):
         super().__init__()
         self.attn = WindowSelfAttention(d_model, window)

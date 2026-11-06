@@ -16,7 +16,7 @@ import torch.nn as nn
 
 class SlowFast(nn.Module):
     """
-    영상 알아보기를 위한 느림빠름 넷트웍
+    영상 알아보기를 위한 느림빠름 네트워크
     (Feichtenhofer et al., 2019)
     
     두 클래스 길 구조:

@@ -9,7 +9,7 @@ Faster R-CNN은 2015년 글 "Faster R-CNN: Towards Real-Time Object Detection"�
 ```python
 #!/usr/bin/env python3
 '''
-Faster R-CNN - 자리 제안 넷트웍으로 하는 실시간 물체 알아내기
+Faster R-CNN - 자리 제안 네트워크로 하는 실시간 물체 알아내기
 논문: "Faster R-CNN: Towards Real-Time Object Detection" (2015)
 핵심: 자리를 제안하는 RPN과 끝에서 끝까지 익힐 수 있는 구조
 '''

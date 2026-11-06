@@ -7,7 +7,7 @@ ResNeSt(가른 어텐션 네트워크)은 2020년에 나왔으며, 나머지 덩
 ```python
 #!/usr/bin/env python3
 '''
-ResNeSt - 나눔 어텐션 넷트웍
+ResNeSt - 나눔 어텐션 네트워크
 논문: "ResNeSt: Split-Attention Networks" (2020)
 핵심: 피처 무리를 가로질러 채널마다 어텐션을 두는 나눔 어텐션 덩이
 '''
@@ -113,7 +113,7 @@ Parameters: 424,936
 
 ## 2. 논의
 
-이 구현은 클래스 3개(`SplitAttention`, `ResNeStBlock`, `ResNeSt`)를 매기고, 이들이 어울려 온전한 컨볼루션 뉴럴 넷트웍 구조를 이룬다. 클래스마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 계산 그림을 매긴다.
+이 구현은 클래스 3개(`SplitAttention`, `ResNeStBlock`, `ResNeSt`)를 매기고, 이들이 어울려 온전한 컨볼루션 뉴럴 네트워크 구조를 이룬다. 클래스마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 계산 그림을 매긴다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -175,6 +175,6 @@ Parameters: 424,936
 
 **다룬 것** — ResNeSt
 
-이 구현은 클래스 3개(`SplitAttention`, `ResNeStBlock`, `ResNeSt`)를 매기고, 이들이 어울려 온전한 컨볼루션 뉴럴 넷트웍 구조를 이룬다.
+이 구현은 클래스 3개(`SplitAttention`, `ResNeStBlock`, `ResNeSt`)를 매기고, 이들이 어울려 온전한 컨볼루션 뉴럴 네트워크 구조를 이룬다.
 
 핵심 클래스는 `SplitAttention`, `ResNeStBlock`, `ResNeSt`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

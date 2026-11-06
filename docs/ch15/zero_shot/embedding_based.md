@@ -68,10 +68,10 @@ $$\mathbf{v}_{word} = \sum_{g \in \text{ngrams}(word)} \mathbf{v}_g$$
 ```python
 import gensim.downloader as api
 
-# 미리 학습된 묻힘을 불러온다
+# 미리 학습된 임베딩을 불러온다
 word_vectors = api.load("glove-wiki-gigaword-300")
 
-# 부류 묻힘을 얻는다
+# 부류 임베딩을 얻는다
 zebra_embedding = word_vectors["zebra"]  # 꼴: (300,)
 ```
 
@@ -82,7 +82,7 @@ zebra_embedding = word_vectors["zebra"]  # 꼴: (300,)
 ```python
 def get_class_embedding(class_name, word_vectors):
     """
-    여러 낱말로 될 수 있는 부류 이름의 묻힘을 얻는다.
+    여러 낱말로 될 수 있는 부류 이름의 임베딩을 얻는다.
     """
     words = class_name.lower().split()
     embeddings = []
@@ -94,7 +94,7 @@ def get_class_embedding(class_name, word_vectors):
     if not embeddings:
         raise ValueError(f"No words in '{class_name}' found in vocabulary")
     
-    # 낱말 묻힘을 평균 낸다
+    # 낱말 임베딩을 평균 낸다
     return np.mean(embeddings, axis=0)
 ```
 
@@ -105,12 +105,12 @@ def get_class_embedding(class_name, word_vectors):
 ```python
 def visualize_semantic_structure(class_names, word_vectors):
     """
-    t-SNE로 부류 묻힘을 그려 본다.
+    t-SNE로 부류 임베딩을 그려 본다.
     """
     from sklearn.manifold import TSNE
     import matplotlib.pyplot as plt
     
-    # 묻힘을 얻는다
+    # 임베딩을 얻는다
     embeddings = np.array([get_class_embedding(c, word_vectors) 
                           for c in class_names])
     
@@ -178,9 +178,9 @@ import torch.nn.functional as F
 
 class VisualSemanticEmbedding(nn.Module):
     """
-    ZSL을 위한 시각-뜻 묻힘 모델.
+    ZSL을 위한 시각-의미 임베딩 모델.
     
-    시각 피처를 뜻 묻힘 공간으로 쏘아 넣는다.
+    시각 피처를 의미 임베딩 공간으로 쏘아 넣는다.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
@@ -204,7 +204,7 @@ class VisualSemanticEmbedding(nn.Module):
         return F.normalize(self.visual_encoder(v), dim=1)
     
     def encode_semantic(self, s):
-        """뜻 묻힘을 부호로 바꾼다."""
+        """의미 임베딩을 부호로 바꾼다."""
         return F.normalize(self.semantic_encoder(s), dim=1)
     
     def compatibility(self, v, s):
@@ -221,8 +221,8 @@ class VisualSemanticEmbedding(nn.Module):
         
         인수:
             v: 시각 피처 (batch_size, visual_dim)
-            s_positive: 맞는 부류의 묻힘 (batch_size, semantic_dim)
-            s_negative: 틀린 부류의 묻힘 (batch_size, semantic_dim)
+            s_positive: 맞는 부류의 임베딩 (batch_size, semantic_dim)
+            s_negative: 틀린 부류의 임베딩 (batch_size, semantic_dim)
         
         반환값:
             양과 음의 어울림 점수
@@ -257,12 +257,12 @@ class RankingLoss(nn.Module):
 def train_vse_model(model, dataloader, class_embeddings, seen_classes, 
                     epochs=50, lr=0.001, margin=0.2):
     """
-    시각-뜻 묻힘 모델을 익힌다.
+    시각-의미 임베딩 모델을 익힌다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = RankingLoss(margin=margin)
     
-    # 부류 묻힘 텐서를 미리 셈해 둔다
+    # 부류 임베딩 텐서를 미리 셈해 둔다
     class_emb_tensor = torch.stack([
         torch.tensor(class_embeddings[c], dtype=torch.float32)
         for c in seen_classes
@@ -273,13 +273,13 @@ def train_vse_model(model, dataloader, class_embeddings, seen_classes,
         total_loss = 0
         
         for batch_v, batch_y in dataloader:
-            # 양의 묻힘을 얻는다
+            # 양의 임베딩을 얻는다
             s_positive = torch.stack([
                 torch.tensor(class_embeddings[y], dtype=torch.float32)
                 for y in batch_y
             ])
             
-            # 음의 묻힘을 뽑는다(어려운 음의 보기 캐기)
+            # 음의 임베딩을 뽑는다(어려운 음의 보기 캐기)
             batch_size = len(batch_y)
             neg_indices = torch.randint(0, len(seen_classes), (batch_size,))
             # 음의 보기가 양의 보기와 다르게 한다
@@ -345,7 +345,7 @@ predict_unseen은 unseen_classes 목록의 인덱스를 반환한다. 의미 벡
 ```python
 class ConSE(nn.Module):
     """
-    뜻 묻힘의 볼록 결합(ConSE).
+    의미 임베딩의 볼록 결합(ConSE).
     
     본 부류의 확률로 뜻 공간에 쏘아 넣는다.
     """
@@ -378,7 +378,7 @@ class ConSE(nn.Module):
             x: 시각 피처 (batch_size, visual_dim)
             seen_classes: 본 부류 이름 목록
             unseen_classes: 못 본 부류 이름 목록
-            class_embeddings: 부류 이름을 묻힘으로 옮기는 사전
+            class_embeddings: 부류 이름을 임베딩으로 옮기는 사전
             top_t: 쓸 위 부류의 개수(None이면 모두)
         
         반환값:
@@ -391,7 +391,7 @@ class ConSE(nn.Module):
             logits = self.forward(x)
             probs = F.softmax(logits, dim=1)  # (batch, n_seen)
             
-            # 본 부류의 묻힘을 얻는다
+            # 본 부류의 임베딩을 얻는다
             seen_embs = torch.stack([
                 torch.tensor(class_embeddings[c], dtype=torch.float32)
                 for c in seen_classes
@@ -403,7 +403,7 @@ class ConSE(nn.Module):
                 # 다시 고른다
                 top_probs = top_probs / top_probs.sum(dim=1, keepdim=True)
                 
-                # 무게 준 묻힘을 셈한다
+                # 무게 준 임베딩을 셈한다
                 projected = torch.zeros(x.size(0), seen_embs.size(1))
                 for i in range(x.size(0)):
                     for j in range(top_t):
@@ -412,7 +412,7 @@ class ConSE(nn.Module):
                 # 모든 부류를 쓴다
                 projected = probs @ seen_embs  # (배치, emb_dim)
             
-            # 못 본 부류의 묻힘을 얻는다
+            # 못 본 부류의 임베딩을 얻는다
             unseen_embs = torch.stack([
                 torch.tensor(class_embeddings[c], dtype=torch.float32)
                 for c in unseen_classes
@@ -567,16 +567,16 @@ import torch
 
 def get_bert_embedding(class_name, tokenizer, model):
     """
-    부류 이름의 BERT 묻힘을 얻는다.
+    부류 이름의 BERT 임베딩을 얻는다.
     """
     # 토큰으로 나누기
     inputs = tokenizer(class_name, return_tensors='pt', 
                        padding=True, truncation=True)
     
-    # 묻힘을 얻는다
+    # 임베딩을 얻는다
     with torch.no_grad():
         outputs = model(**inputs)
-        # [CLS] 토큰 묻힘을 쓴다
+        # [CLS] 토큰 임베딩을 쓴다
         embedding = outputs.last_hidden_state[:, 0, :].squeeze()
     
     return embedding.numpy()

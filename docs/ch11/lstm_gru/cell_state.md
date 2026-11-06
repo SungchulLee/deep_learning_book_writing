@@ -145,7 +145,7 @@ def visualize_forget_gate_gradient_decay():
 
 $$\frac{\partial c_t}{\partial \tilde{c}_t} = \operatorname{diag}(i_t)$$
 
-$i_t \approx 0$이면 뉴럴 넷트웍이 새 정보를 무시하고 그래디언트가 후보 계산으로 흐르지 않는다. 뉴럴 넷트웍이 늘 입력을 무시하는 법을 배우면 문제가 될 수 있다.
+$i_t \approx 0$이면 뉴럴 네트워크가 새 정보를 무시하고 그래디언트가 후보 계산으로 흐르지 않는다. 뉴럴 네트워크가 늘 입력을 무시하는 법을 배우면 문제가 될 수 있다.
 
 ### 출력 게이트: 보임을 다스리는 문
 
@@ -355,7 +355,7 @@ $$\frac{\partial h_t}{\partial c_t} = o_t \odot \tanh'(c_t) \approx 0$$
 ```python
 class LSTMGradientDiagnostics:
     """
-    LSTM 뉴럴 넷트웍의 그래디언트 흐름을 두루 진단한다.
+    LSTM 뉴럴 네트워크의 그래디언트 흐름을 두루 진단한다.
     
     그래디언트의 건강을 살피고 있을 법한 문제를 짚어 낸다.
     - 그래디언트 소실 (세포의 그래디언트가 너무 작다)

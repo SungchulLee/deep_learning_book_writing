@@ -91,7 +91,7 @@ $$
 | 마스크의 대상 | 활성화 $h$ | 웨이트 $W$ |
 | 마스크의 모양 | 레이어당 $(d,)$ | 레이어당 $(d_{\text{out}}, d_{\text{in}})$ |
 | 세밀함 | 뉴런 전체를 떨어뜨린다 | 개별 연결을 떨어뜨린다 |
-| 가능한 부분 뉴럴 넷트웍 | 레이어당 $2^d$개 | 레이어당 $2^{d_{\text{out}} \times d_{\text{in}}}$개 |
+| 가능한 부분 뉴럴 네트워크 | 레이어당 $2^d$개 | 레이어당 $2^{d_{\text{out}} \times d_{\text{in}}}$개 |
 | 희소성의 형태 | 구조적 (행/열 단위) | 비구조적 (임의의 항목) |
 
 ### 특수한 경우로서의 드롭아웃
@@ -112,8 +112,8 @@ $$
 
 입력이 $d_{\text{in}}$개, 출력이 $d_{\text{out}}$개인 레이어 하나에 대해 다음과 같다.
 
-- **드롭아웃**은 $2^{d_{\text{in}}}$개의 부분 뉴럴 넷트웍을 암묵적으로 평균한다
-- **드롭커넥트**는 $2^{d_{\text{in}} \times d_{\text{out}}}$개의 부분 뉴럴 넷트웍을 암묵적으로 평균한다
+- **드롭아웃**은 $2^{d_{\text{in}}}$개의 부분 뉴럴 네트워크를 암묵적으로 평균한다
+- **드롭커넥트**는 $2^{d_{\text{in}} \times d_{\text{out}}}$개의 부분 뉴럴 네트워크를 암묵적으로 평균한다
 
 가능한 마스크 수가 많다고 더 강한 정규화나 더 좋은 불확실성 보정을 보장하지 않는다. 마스크의 공유 방식과 확률, 데이터와 최적화가 실제 효과를 결정한다.
 
@@ -210,7 +210,7 @@ def apply_dropconnect(model: nn.Module, p: float = 0.5) -> nn.Module:
     모델 안의 모든 nn.Linear 레이어를 드롭커넥트로 감싼 판본으로 바꾼다.
     
     인수:
-        model: 뉴럴 넷트웍
+        model: 뉴럴 네트워크
         p: 떨어뜨릴 확률
         
     반환값:
@@ -233,11 +233,11 @@ def apply_dropconnect(model: nn.Module, p: float = 0.5) -> nn.Module:
     return model
 ```
 
-### 드롭커넥트를 쓰는 뉴럴 넷트웍
+### 드롭커넥트를 쓰는 뉴럴 네트워크
 
 ```python
 class NetworkWithDropConnect(nn.Module):
-    """드롭커넥트 레이어를 쓰는 순방향 뉴럴 넷트웍."""
+    """드롭커넥트 레이어를 쓰는 순방향 뉴럴 네트워크."""
     
     def __init__(self, input_dim, hidden_dims, output_dim, drop_prob=0.5):
         super().__init__()

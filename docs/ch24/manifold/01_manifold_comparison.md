@@ -173,7 +173,7 @@ t-SNE의 국소 폭은 점별로 적응하며 KL 목적은 이웃 관계를 강�
 
 PCA 전처리는 입력 차원을 줄여 이후 계산을 가볍게 할 수 있지만 이웃과 거리도 바꾸므로 품질 영향과 적합 비용을 포함해 비교한다. 표본을 줄일 때는 희귀 집단과 대표성 로스를 확인한다. 많은 점을 그리기 어렵다는 이유만으로 일부 표본의 그림이 전체와 같다고 가정하지 않는다.
 
-이 예제의 MDS와 scikit-learn t-SNE는 저장된 일반 `transform`을 제공하지 않는다. Isomap·LLE·PCA와 일반 UMAP에는 새 표본 변환 경로가 있다. UMAP의 `transform`은 뉴럴 넷트웍을 사용하는 Parametric UMAP만의 기능이 아니다. [UMAP의 새 데이터 변환 문서](https://umap-learn.readthedocs.io/en/latest/transform.html)를 참고한다. 각 방법의 표본 외 확장 조건과 새 데이터 분포 변화를 따로 평가한다.
+이 예제의 MDS와 scikit-learn t-SNE는 저장된 일반 `transform`을 제공하지 않는다. Isomap·LLE·PCA와 일반 UMAP에는 새 표본 변환 경로가 있다. UMAP의 `transform`은 뉴럴 네트워크를 사용하는 Parametric UMAP만의 기능이 아니다. [UMAP의 새 데이터 변환 문서](https://umap-learn.readthedocs.io/en/latest/transform.html)를 참고한다. 각 방법의 표본 외 확장 조건과 새 데이터 분포 변화를 따로 평가한다.
 
 ## 연습문제
 

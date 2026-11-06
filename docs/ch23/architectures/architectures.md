@@ -37,7 +37,7 @@ class RMSNorm(nn.Module):
 
 ```python
 class SwiGLU(nn.Module):
-    """피드포워드 넷트웍을 위한 SwiGLU 활성화."""
+    """피드포워드 네트워크를 위한 SwiGLU 활성화."""
     
     def __init__(self, dim: int, hidden_dim: int = None, bias: bool = False):
         super().__init__()
@@ -80,7 +80,7 @@ class RotaryEmbedding(nn.Module):
     
     def forward(self, q: torch.Tensor, k: torch.Tensor, positions: torch.Tensor):
         """
-        물음과 열쇠에 돌림 묻힘을 적용한다.
+        물음과 열쇠에 돌림 임베딩을 적용한다.
         
         인수:
             q, k: (배치, 머리, 차례 길이, 머리 차원)
@@ -112,7 +112,7 @@ class RotaryEmbedding(nn.Module):
 
 ```python
 def ntk_scaled_rope(dim: int, max_seq_len: int, base: int = 10000, scale: float = 2.0):
-    """맥락을 넓히기 위한 NTK를 헤아린 돌림 자리 묻힘 잣수 맞추기."""
+    """맥락을 넓히기 위한 NTK를 헤아린 돌림 자리 임베딩 잣수 맞추기."""
     # 더 긴 차례를 위해 밑을 늘린다
     scaled_base = base * (scale ** (dim / (dim - 2)))
     inv_freq = 1.0 / (scaled_base ** (torch.arange(0, dim, 2).float() / dim))
@@ -261,7 +261,7 @@ class SlidingWindowAttention(nn.Module):
 
 ```python
 class LLaMABlock(nn.Module):
-    """요즘 새것을 담은 LLaMA 꼴 변환기 덩이."""
+    """요즘 새것을 담은 LLaMA 꼴 트랜스포머 덩이."""
     
     def __init__(
         self,
@@ -280,10 +280,10 @@ class LLaMABlock(nn.Module):
         # 무리 지은 물음 어텐션
         self.attention = GroupedQueryAttention(dim, num_heads, num_kv_heads)
         
-        # SwiGLU 피드포워드 넷트웍
+        # SwiGLU 피드포워드 네트워크
         self.ffn = SwiGLU(dim, int(dim * ffn_dim_multiplier))
         
-        # 돌림 자리 묻힘
+        # 돌림 자리 임베딩
         self.rope = RotaryEmbedding(dim // num_heads)
     
     def forward(

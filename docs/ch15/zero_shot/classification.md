@@ -54,9 +54,9 @@ import torch.nn.functional as F
 
 class DeViSE(nn.Module):
     """
-    깊은 시각-뜻 묻힘 모델(DeViSE).
+    깊은 시각-의미 임베딩 모델(DeViSE).
     
-    CNN 피처를 낱말 묻힘 공간으로 쏘아 넣는다.
+    CNN 피처를 낱말 임베딩 공간으로 쏘아 넣는다.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
@@ -85,12 +85,12 @@ class DeViSE(nn.Module):
         self.temperature = nn.Parameter(torch.ones(1))
     
     def project_visual(self, visual_features):
-        """시각 피처를 묻힘 공간으로 쏘아 넣는다."""
+        """시각 피처를 임베딩 공간으로 쏘아 넣는다."""
         projected = self.visual_projection(visual_features)
         return F.normalize(projected, p=2, dim=1)
     
     def project_semantic(self, semantic_embeddings):
-        """뜻 묻힘을 묻힘 공간으로 쏘아 넣는다."""
+        """의미 임베딩을 임베딩 공간으로 쏘아 넣는다."""
         projected = self.semantic_projection(semantic_embeddings)
         return F.normalize(projected, p=2, dim=1)
     

@@ -1,6 +1,6 @@
-# 홉필드 뉴럴 넷트웍과 연상 기억
+# 홉필드 뉴럴 네트워크와 연상 기억
 
-연상 기억은 손상된 입력에서 저장한 패턴을 되찾는 문제다. 고전 홉필드 뉴럴 넷트웍은 패턴 주변에 낮은 에너지 상태를 만들고 단위를 하나씩 갱신해 안정 상태를 찾는다. 저장한 패턴이 반드시 모두 안정하거나 모든 손상을 복구할 수 있는 것은 아니므로 수렴과 올바른 검색을 구분해야 한다.
+연상 기억은 손상된 입력에서 저장한 패턴을 되찾는 문제다. 고전 홉필드 뉴럴 네트워크는 패턴 주변에 낮은 에너지 상태를 만들고 단위를 하나씩 갱신해 안정 상태를 찾는다. 저장한 패턴이 반드시 모두 안정하거나 모든 손상을 복구할 수 있는 것은 아니므로 수렴과 올바른 검색을 구분해야 한다.
 
 ## 1. 구조와 에너지
 
@@ -30,7 +30,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
     class HopfieldNetwork(nn.Module):
         """
-        제각기 고침을 쓰는 이진 홉필드 뉴럴 넷트웍.
+        제각기 고침을 쓰는 이진 홉필드 뉴럴 네트워크.
 
         에너지 가장 작게 하기로 이어 떠올림 기억을 짠다.
         무늬는 에너지 함수의 그 자리 최솟값으로 담긴다.
@@ -38,7 +38,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
         파라메터
         ----------
         n_neurons : int
-            뉴럴 넷트웍의 뉴런 개수
+            뉴럴 네트워크의 뉴런 개수
         """
 
         def __init__(self, n_neurons: int):
@@ -87,7 +87,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
         def energy(self, state: torch.Tensor) -> torch.Tensor:
             """
-            뉴럴 넷트웍 상태의 에너지를 셈한다.
+            뉴럴 네트워크 상태의 에너지를 셈한다.
 
             E(s) = -½ sᵀWs - θᵀs
 
@@ -203,7 +203,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
     def demonstrate_hopfield_retrieval():
         """
-        홉필드 뉴럴 넷트웍으로 무늬 담기와 되찾기를 보여 준다.
+        홉필드 뉴럴 네트워크로 무늬 담기와 되찾기를 보여 준다.
         """
         # 단순한 5x5 무늬를 만든다(뉴런 25개로 편다)
         pattern_A = torch.tensor([
@@ -224,7 +224,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
         patterns = torch.stack([pattern_A, pattern_B])
 
-        # 뉴럴 넷트웍을 만들어 익힌다
+        # 뉴럴 네트워크를 만들어 익힌다
         network = HopfieldNetwork(n_neurons=25)
         network.train_hebbian(patterns)
 
@@ -325,7 +325,7 @@ Overlap with pattern B: 0.520
         파라메터
         ----------
         n_neurons : int
-            뉴럴 넷트웍 크기
+            뉴럴 네트워크 크기
         max_patterns : int
             시험할 최대 무늬 개수
         n_trials : int
@@ -345,7 +345,7 @@ Overlap with pattern B: 0.520
                 # 아무 무늬를 만든다
                 patterns = torch.sign(torch.randn(n_patterns, n_neurons))
 
-                # 뉴럴 넷트웍을 익힌다
+                # 뉴럴 네트워크를 익힌다
                 network = HopfieldNetwork(n_neurons)
                 network.train_hebbian(patterns)
 
@@ -585,7 +585,7 @@ Overlap with pattern B: 0.520
 
 ![왼쪽과 오른쪽 두 판으로 나뉜 그림이다. 가로축은 알파로 저장 무늬 수를 뉴런 수로 나눈 값이고 0.138 자리에 세로 점선이 있다. 왼쪽은 수렴한 상태가 저장 무늬와 겹치는 정도로, N이 100일 때와 400일 때 모두 점선 왼쪽에서는 1에 거의 붙어 있다가 오른쪽에서 떨어지며 N이 클수록 더 가파르게 떨어진다. 오른쪽은 저장 무늬가 한 비트도 틀리지 않고 고정점인 비율로, 점선보다 한참 왼쪽에서 이미 내려가기 시작해 N이 400일 때 점선 자리에서 0.31밖에 되지 않는다.](figures/capacity_two_questions.svg)
 
-같은 뉴럴 넷트웍을 같은 실험에서 **두 기준으로** 재어 보면 두 수가 왜 다른지가 그대로 보인다.
+같은 뉴럴 네트워크를 같은 실험에서 **두 기준으로** 재어 보면 두 수가 왜 다른지가 그대로 보인다.
 
 왼쪽은 "되찾은 상태가 대체로 맞는가"를 묻는다. 중첩도 m은 0.138 왼쪽에서 1에 거의 붙어 있다가 그 뒤로 떨어지고, N이 400이면 100일 때보다 더 가파르다. **문턱은 실재한다** — 다만 N이 커질수록 또렷해지는 극한의 성질로서 그렇다.
 
@@ -650,7 +650,7 @@ find_spurious_states는 절댓값 중첩도 0.95를 임계값으로 사용한다
     ```python
     def visualize_energy_landscape():
         """
-        작은 홉필드 뉴럴 넷트웍의 에너지 풍경을 그려 본다.
+        작은 홉필드 뉴럴 네트워크의 에너지 풍경을 그려 본다.
         """
         n_neurons = 6
 
@@ -659,7 +659,7 @@ find_spurious_states는 절댓값 중첩도 0.95를 임계값으로 사용한다
         p2 = torch.tensor([-1, -1, 1, 1, 1, -1], dtype=torch.float32)
         patterns = torch.stack([p1, p2])
 
-        # 뉴럴 넷트웍을 익힌다
+        # 뉴럴 네트워크를 익힌다
         network = HopfieldNetwork(n_neurons)
         network.train_hebbian(patterns)
 
@@ -770,7 +770,7 @@ $$q'=M^T\operatorname{softmax}(\beta Mq)$$
     ```python
     class ModernHopfield(nn.Module):
         """
-        이어진 상태와 지수 담이를 가진 요즘 홉필드 뉴럴 넷트웍.
+        이어진 상태와 지수 담이를 가진 요즘 홉필드 뉴럴 네트워크.
 
         Ramsauer 외, "Hopfield Networks is All You Need"(2021)를 바탕으로 한다
         """
@@ -843,7 +843,7 @@ N=100에서 overlap>0.9를 만족하는 최대 해밍 오차는 몇 개인가?
 
 ## 정리하며
 
-홉필드 뉴럴 넷트웍의 비동기 갱신은 대칭 에너지의 감소로 설명할 수 있다. 고정점 수렴과 기억 복구를 구분하고 중첩도·용량·허위 기억의 판정 조건을 명시한다. 연속 softmax 검색과의 연결도 구현 범위와 연구 가정을 함께 읽는다.
+홉필드 뉴럴 네트워크의 비동기 갱신은 대칭 에너지의 감소로 설명할 수 있다. 고정점 수렴과 기억 복구를 구분하고 중첩도·용량·허위 기억의 판정 조건을 명시한다. 연속 softmax 검색과의 연결도 구현 범위와 연구 가정을 함께 읽는다.
 
 **참고 문헌**
 

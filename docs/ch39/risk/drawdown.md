@@ -123,7 +123,7 @@ class CircuitBreaker:
 
 
 class DrawdownConstrainedPolicy(nn.Module):
-    """내림폭 상태를 덧붙인 폴리시 넷트웍."""
+    """내림폭 상태를 덧붙인 폴리시 네트워크."""
 
     def __init__(self, base_state_dim: int, num_assets: int, hidden_dim: int = 128):
         super().__init__()
@@ -229,7 +229,7 @@ def demo_drawdown_control():
         scale = scaler.compute_scale(dd)
         print(f"  DD={dd*100:5.1f}% -> scale={scale:.3f}")
 
-    # 폴리시 넷트웍
+    # 폴리시 네트워크
     print("\n--- Drawdown-Constrained Policy ---")
     policy = DrawdownConstrainedPolicy(base_state_dim=20, num_assets=5)
     params = sum(p.numel() for p in policy.parameters())

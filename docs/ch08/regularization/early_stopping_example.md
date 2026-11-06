@@ -29,7 +29,7 @@ from sklearn.metrics import roc_auc_score
 
 
 def create_model(input_dim):
-    """뉴럴 넷트웍 모델을 만든다."""
+    """뉴럴 네트워크 모델을 만든다."""
     # 마지막에 시그모이드를 붙이지 않는다. 아래에서 쓰는
     # BCEWithLogitsLoss가 시그모이드를 안에 품고 있기 때문이다
     return nn.Sequential(

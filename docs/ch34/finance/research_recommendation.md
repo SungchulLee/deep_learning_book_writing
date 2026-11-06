@@ -69,7 +69,7 @@ _확인한 곳 — K. Spärck Jones, "A statistical interpretation of term speci
 
 $$x_{\text{embed}} \in \mathbb{R}^{128}$$
 
-뉴럴 넷트웍이 글을 빽빽한 벡터로 누른다. 추천 로스로 끝에서 끝까지 배운다.
+뉴럴 네트워크가 글을 빽빽한 벡터로 누른다. 추천 로스로 끝에서 끝까지 배운다.
 
 ### 쓰는 이와 글의 알맞음 점수 매기기
 

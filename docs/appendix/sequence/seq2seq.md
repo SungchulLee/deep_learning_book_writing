@@ -9,7 +9,7 @@ Seq2Seq은 2014년 글 "Sequence to Sequence Learning with Neural Networks"에�
 ```python
 #!/usr/bin/env python3
 '''
-Seq2Seq - 뉴럴 넷트웍으로 하는 이음에서 이음으로 배우기
+Seq2Seq - 뉴럴 네트워크로 하는 이음에서 이음으로 배우기
 논문: "Sequence to Sequence Learning with Neural Networks" (2014)
 핵심: 이음을 옮기기 위한 인코더-디코더 구조
 '''

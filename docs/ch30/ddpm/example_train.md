@@ -532,7 +532,7 @@ class SinusoidalPositionEmbedding(nn.Module):
     - 매끄럽다: 작은 Δt → 작은 Δ임베딩
     - 되풀이된다: 사인과 코사인으로 풍부한 나타냄
     
-    식(변환기에서 가져옴):
+    식(트랜스포머에서 가져옴):
     ----------------------------
     PE(t, 2i) = sin(t/10000^(2i/d))      짝수 번호
     PE(t, 2i+1) = cos(t/10000^(2i/d))    홀수 번호
@@ -543,7 +543,7 @@ class SinusoidalPositionEmbedding(nn.Module):
     def __init__(self, dim: int):
         """
         인수:
-            dim: 묻힘 차원(짝수여야 한다)
+            dim: 임베딩 차원(짝수여야 한다)
                 흔히: 64, 128, 256
         """
         super().__init__()
@@ -557,7 +557,7 @@ class SinusoidalPositionEmbedding(nn.Module):
             time: 때 걸음, 꼴 (batch_size,)
         
         반환값:
-            묻힘, 꼴 (batch_size, dim)
+            임베딩, 꼴 (batch_size, dim)
         """
         device = time.device
         half_dim = self.dim // 2
@@ -663,7 +663,7 @@ class ResidualBlock(nn.Module):
         """
         인수:
             x: 들임 텐서, 꼴 (batch, in_channels, height, width)
-            time_emb: 때 묻힘, 꼴 (batch, time_emb_dim)
+            time_emb: 시간 임베딩, 꼴 (batch, time_emb_dim)
         
         반환값:
             내놓음 텐서, 꼴 (batch, out_channels, height, width)

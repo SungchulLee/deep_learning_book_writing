@@ -6,10 +6,10 @@
 
 ```python
 """
-35.1.3 타깃 넷트웍
+35.1.3 타깃 네트워크
 ======================
 
-딱딱한 타깃 넷트웍 고치기와 부드러운 고치기, 그리고 그것이
+딱딱한 타깃 네트워크 고치기와 부드러운 고치기, 그리고 그것이
 익히기의 안정에 미치는 영향을 보인다.
 """
 
@@ -31,7 +31,7 @@ Transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state'
 
 
 # ---------------------------------------------------------------------------
-# Q 넷트웍
+# Q 네트워크
 # ---------------------------------------------------------------------------
 
 class QNetwork(nn.Module):
@@ -73,7 +73,7 @@ class ReplayBuffer:
 
 
 # ---------------------------------------------------------------------------
-# 타깃 넷트웍 고치기 함수
+# 타깃 네트워크 고치기 함수
 # ---------------------------------------------------------------------------
 
 def hard_update(target_net: nn.Module, online_net: nn.Module):
@@ -88,7 +88,7 @@ def soft_update(target_net: nn.Module, online_net: nn.Module, tau: float = 0.005
 
 
 def compute_parameter_distance(net1: nn.Module, net2: nn.Module) -> float:
-    """두 넷트웍의 파라메터 사이 L2 거리."""
+    """두 네트워크의 파라메터 사이 L2 거리."""
     dist = 0.0
     for p1, p2 in zip(net1.parameters(), net2.parameters()):
         dist += (p1 - p2).pow(2).sum().item()
@@ -118,11 +118,11 @@ class DQNAgent:
         self.hard_update_freq = hard_update_freq
         self.tau = tau
 
-        # 넷트웍
+        # 네트워크
         self.online_net = QNetwork(state_dim, action_dim)
         self.target_net = QNetwork(state_dim, action_dim)
         hard_update(self.target_net, self.online_net)
-        self.target_net.eval()  # 타깃 넷트웍은 익히지 않음
+        self.target_net.eval()  # 타깃 네트워크는 익히지 않음
 
         self.optimizer = optim.Adam(self.online_net.parameters(), lr=lr)
         self.buffer = ReplayBuffer(buffer_capacity)
@@ -167,7 +167,7 @@ class DQNAgent:
         # 타깃 Q 값
         with torch.no_grad():
             if self.update_mode == 'none':
-                # 타깃 넷트웍 없음 — 타깃에 온라인 넷트웍을 씀
+                # 타깃 네트워크 없음 — 타깃에 온라인 네트워크를 씀
                 next_q = self.online_net(next_states).max(dim=1)[0]
             else:
                 next_q = self.target_net(next_states).max(dim=1)[0]
@@ -185,7 +185,7 @@ class DQNAgent:
         loss_val = loss.item()
         self.losses.append(loss_val)
 
-        # 타깃 넷트웍 고치기
+        # 타깃 네트워크 고치기
         if self.update_mode == 'hard' and self.update_count % self.hard_update_freq == 0:
             hard_update(self.target_net, self.online_net)
         elif self.update_mode == 'soft':
@@ -234,7 +234,7 @@ def train_agent(agent: DQNAgent, env_name: str = 'CartPole-v1',
 # ---------------------------------------------------------------------------
 
 def demo_target_networks():
-    """서로 다른 타깃 넷트웍 셈속으로 익히기를 견준다."""
+    """서로 다른 타깃 네트워크 셈속으로 익히기를 견준다."""
     print("=" * 60)
     print("Target Networks Demo")
     print("=" * 60)

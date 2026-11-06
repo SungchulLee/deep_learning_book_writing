@@ -44,7 +44,7 @@ def sliced_score_matching_loss(model, x, n_projections=1):
     v^T∇s_θ(x)v는 야코비-벡터 곱으로 효율 좋게 셈할 수 있다.
     
     인수:
-        model: 점수 뉴럴 넷트웍
+        model: 점수 뉴럴 네트워크
         x: 자료 표본, 꼴 (N, D)
         n_projections: 표본마다 아무 쏘기 횟수
     

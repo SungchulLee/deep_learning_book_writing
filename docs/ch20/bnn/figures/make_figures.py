@@ -1,4 +1,4 @@
-"""21장 베이즈 뉴럴 넷트웍 절의 그림.
+"""21장 베이즈 뉴럴 네트워크 절의 그림.
 
 규칙은 CLAUDE.md 의 Figures 항에 적어 둔 대로다.
 - SVG, fonttype='path', transparent

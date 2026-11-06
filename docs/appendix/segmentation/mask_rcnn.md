@@ -30,7 +30,7 @@ class MaskRCNN(nn.Module):
             nn.MaxPool2d(3, 2, 1)
         )
         
-        # RPN(자리 제안 넷트웍)
+        # RPN(자리 제안 네트워크)
         self.rpn_conv = nn.Conv2d(64, 512, 3, 1, 1)
         self.rpn_cls = nn.Conv2d(512, 2 * 9, 1)  # 9 anchors, 2 classes (obj/not)
         self.rpn_reg = nn.Conv2d(512, 4 * 9, 1)  # 9 anchors, 4 coords

@@ -48,7 +48,7 @@ class ReplayBuffer:
 # ---------------------------------------------------------------------------
 
 class C51Network(nn.Module):
-    """C51 넷트웍: 돌아옴 알갱이 위의 확률 분포를 내놓는다."""
+    """C51 네트워크: 돌아옴 알갱이 위의 확률 분포를 내놓는다."""
 
     def __init__(self, state_dim: int, action_dim: int, n_atoms: int = 51,
                  v_min: float = -10.0, v_max: float = 10.0, hidden_dim: int = 128):

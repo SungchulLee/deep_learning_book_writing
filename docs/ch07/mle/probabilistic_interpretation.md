@@ -364,7 +364,7 @@ def loss_function_comparison():
     -\log p(\theta|\mu,\kappa) = -\kappa\cos(\theta - \mu) + \log(2\pi I_0(\kappa))
     $$
 
-    뉴럴 넷트웍은 $\mu$(평균 방향)과 $\kappa > 0$(집중도)을 예측한다. 양수를 보장하려면 $\kappa = \text{softplus}(\hat{\kappa})$을 쓴다.
+    뉴럴 네트워크는 $\mu$(평균 방향)과 $\kappa > 0$(집중도)을 예측한다. 양수를 보장하려면 $\kappa = \text{softplus}(\hat{\kappa})$을 쓴다.
 
     ```python
     def von_mises_nll(pred_mu, pred_kappa, target_angle):

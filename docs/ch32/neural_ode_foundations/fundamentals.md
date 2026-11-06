@@ -1,6 +1,6 @@
 # 상미분방정식과 뉴럴 ODE의 기초
 
-뉴럴 ODE는 은닉상태를 바꾸는 뉴럴 넷트웍을 “다음 레이어”이 아니라 시간 미분으로 정의한다. 그 미분을 수치 적분한 결과가 모델의 출력이다. 따라서 벡터장의 성질, 적분 구간·솔버와 미분 방식이 함께 모델의 동작을 결정한다. 먼저 고전 초기값 문제를 익힌 뒤 코드의 수치 근사와 학습 구조를 연결해 보자.
+뉴럴 ODE는 은닉상태를 바꾸는 뉴럴 네트워크를 “다음 레이어”이 아니라 시간 미분으로 정의한다. 그 미분을 수치 적분한 결과가 모델의 출력이다. 따라서 벡터장의 성질, 적분 구간·솔버와 미분 방식이 함께 모델의 동작을 결정한다. 먼저 고전 초기값 문제를 익힌 뒤 코드의 수치 근사와 학습 구조를 연결해 보자.
 
 ## 1. 초기값 문제와 해의 조건
 
@@ -342,7 +342,7 @@ def plot_trajectories(f, initial_conditions, t_span, dt=0.01, ax=None):
     return ax
 ```
 
-plot 함수는 f(y,t)와 CPU 텐서를 가정한다. 뉴럴 넷트웍처럼 gradient를 추적하는 출력에 바로 numpy를 호출하면 변환할 수 없으며 no_grad 또는 detach 처리가 필요하다. 위상도는 수치 궤적과 함께 읽되 그림만으로 전역 안정성을 증명하지 않는다.
+plot 함수는 f(y,t)와 CPU 텐서를 가정한다. 뉴럴 네트워크처럼 gradient를 추적하는 출력에 바로 numpy를 호출하면 변환할 수 없으며 no_grad 또는 detach 처리가 필요하다. 위상도는 수치 궤적과 함께 읽되 그림만으로 전역 안정성을 증명하지 않는다.
 
 ```python
 def analyze_fixed_point(f, y_star, epsilon=1e-5):
@@ -549,9 +549,9 @@ TimeVariantODEFunc는 배치마다 같은 스칼라 t를 확장해 상태와 연
 ```python
 class HypernetODEFunc(nn.Module):
     """
-    윗뉴럴 넷트웍 때 조건 주기를 쓴 액션.
+    윗뉴럴 네트워크 때 조건 주기를 쓴 액션.
     
-    작은 넷트웍이 때의 함수로 레이어의 무게를 만들어 낸다.
+    작은 네트워크가 때의 함수로 레이어의 무게를 만들어 낸다.
     드러난 이어 붙임 없이 때에 따라 매끄럽게 바뀌는 액션을 가능하게 한다.
     """
     
@@ -561,7 +561,7 @@ class HypernetODEFunc(nn.Module):
         self.dim = dim
         self.hidden_dim = hidden_dim
         
-        # 윗뉴럴 넷트웍이 때에서 무게를 만든다
+        # 윗뉴럴 네트워크가 때에서 무게를 만든다
         self.hypernet = nn.Sequential(
             nn.Linear(1, hyper_dim),
             nn.Tanh(),

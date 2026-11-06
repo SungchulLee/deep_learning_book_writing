@@ -10,7 +10,7 @@ CycleGAN은 2017년 글 "Unpaired Image-to-Image Translation using Cycle-Consist
 #!/usr/bin/env python3
 """
 CycleGAN - 짝짓지 않은 그림에서 그림으로 옮기기
-글: "돌이 한결같은 맞겨루기 넷트웍으로 짝짓지 않은 그림에서 그림으로 옮기기" (2017)
+글: "돌이 한결같은 맞겨루기 네트워크로 짝짓지 않은 그림에서 그림으로 옮기기" (2017)
 핵심 깨침:
   - 생성기 둘(A→B, B→A)
   - 돌이 한결같음 잃음이 되돌릴 수 있음을 다그친다

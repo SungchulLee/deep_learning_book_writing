@@ -140,11 +140,11 @@ net = mobilenet_v3_large(weights=None)          # 세기만 하므로 웨이트�
 convs = [m for m in net.modules() if isinstance(m, nn.Conv2d)]
 dw = [m for m in convs if m.groups > 1]         # groups > 1 이면 깊이별이다
 # 엄밀히 말하면 groups > 1 은 "묶음 컨볼루션"이라는 뜻이고, 깊이별은 그 가운데
-# groups == in_channels == out_channels 인 끝 경우다. 이 넷트웍에서는 묶음 컨볼루션
+# groups == in_channels == out_channels 인 끝 경우다. 이 네트워크에서는 묶음 컨볼루션
 # 열다섯 개가 모두 그 끝 경우라 둘을 구별할 필요가 없다.
 
-# bias 를 세지 않는 까닭: 이 넷트웍의 컨볼루션은 뒤에 배치 정규화가 붙어 있어
-# 모두 bias=None 이다. 치우침이 있는 넷트웍이라면 한 항을 더해야 한다
+# bias 를 세지 않는 까닭: 이 네트워크의 컨볼루션은 뒤에 배치 정규화가 붙어 있어
+# 모두 bias=None 이다. 치우침이 있는 네트워크라면 한 항을 더해야 한다
 w_all = sum(m.weight.numel() for m in convs)
 w_dw = sum(m.weight.numel() for m in dw)
 # 같은 모양을 표준 컨볼루션으로 두었다면 얼마였겠는가
@@ -343,7 +343,7 @@ def macs(model):
         elif isinstance(m, nn.Linear):
             # 선형 레이어는 한 번 걸린다고 본다. VGG16과 MobileNet 의 분류기는
             # 실제로 벡터 하나에 한 번씩만 걸리므로 맞다. 다만 1x1 컨볼루션을
-            # nn.Linear 로 적어 자리마다 거는 넷트웍(ConvNeXt)에서는 이 줄이
+            # nn.Linear 로 적어 자리마다 거는 네트워크(ConvNeXt)에서는 이 줄이
             # 크게 낮춰 세므로, 그 쪽에서는 자리 수를 곱해 고쳐야 한다
             total += m.in_features * m.out_features
 

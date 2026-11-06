@@ -71,7 +71,7 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
 
 
     class MLP(nn.Module):
-        """순전파 뉴럴 넷트웍"""
+        """순전파 뉴럴 네트워크"""
         def __init__(self, in_features, hidden_features=None, out_features=None, drop=0.):
             super().__init__()
             out_features = out_features or in_features

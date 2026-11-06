@@ -1,6 +1,6 @@
 # nn.Module과 옵티마이저
 
-`nn.Module` 기반 클래스는 PyTorch의 모든 뉴럴 넷트웍 모델의 토대이다. 자동 파라메터 관리, 모델 직렬화, 깔끔한 코드 구성을 제공한다. 여기에 `torch.optim`의 내장 옵티마이저를 결합하면, 손수 하던 경사 초기화와 파라메터 갱신을 `optimizer.zero_grad()`와 `optimizer.step()`으로 대체하는 실무급 학습 루프가 된다.
+`nn.Module` 기반 클래스는 PyTorch의 모든 뉴럴 네트워크 모델의 토대이다. 자동 파라메터 관리, 모델 직렬화, 깔끔한 코드 구성을 제공한다. 여기에 `torch.optim`의 내장 옵티마이저를 결합하면, 손수 하던 경사 초기화와 파라메터 갱신을 `optimizer.zero_grad()`와 `optimizer.step()`으로 대체하는 실무급 학습 루프가 된다.
 
 ## 1. 코드
 
@@ -62,7 +62,7 @@ X, y = X.to(device), y.to(device)
 model = SimpleNet(2, 16, 1).to(device)
 criterion = nn.BCELoss()
 # model.parameters()는 등록된 파라미터를 훑는 생성자다. 최적화기는 이
-# 목록만 알면 되고, 뉴럴 넷트웍의 모양은 알 필요가 없다
+# 목록만 알면 되고, 뉴럴 네트워크의 모양은 알 필요가 없다
 optimizer = optim.Adam(model.parameters(), lr=0.01)
 
 for epoch in range(1000):
@@ -76,7 +76,7 @@ for epoch in range(1000):
     loss.backward()
     optimizer.step()
 
-# 이 뉴럴 넷트웍에는 드롭아웃도 배치 정규화도 없어 eval()이 실제로 바꾸는 것은
+# 이 뉴럴 네트워크에는 드롭아웃도 배치 정규화도 없어 eval()이 실제로 바꾸는 것은
 # 없다. no_grad는 다르다. 계산 그래프를 만들지 않아 메모리와 시간을 아낀다
 model.eval()
 with torch.no_grad():
@@ -161,7 +161,7 @@ Adam을 SGD(러닝레이트 0.1, 운동량 0.9)로 바꿔라. 1000 에포크에 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-모델의 전체 파라메터 개수와 각 파라메터 텐서의 모양을 출력하라. 입력 2, 은닉 16, 출력 1인 뉴럴 넷트웍의 파라메터 개수가 왜 그 값이 되는지 손으로 계산하라.
+모델의 전체 파라메터 개수와 각 파라메터 텐서의 모양을 출력하라. 입력 2, 은닉 16, 출력 1인 뉴럴 네트워크의 파라메터 개수가 왜 그 값이 되는지 손으로 계산하라.
 
 </div>
 

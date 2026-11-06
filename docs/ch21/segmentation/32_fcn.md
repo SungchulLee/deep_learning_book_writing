@@ -7,9 +7,9 @@ FCN은 이미지 수준 분류기의 피처와 분류 연산을 공간적으로 
 ```python
 #!/usr/bin/env python3
 '''
-FCN — 뜻 나누기를 위한 온통 컨볼루션 넷트웍
+FCN — 뜻 나누기를 위한 온통 컨볼루션 네트워크
 논문: "Fully Convolutional Networks for Semantic Segmentation" (2015)
-핵심: 뜻 나누기를 끝에서 끝까지 하는 첫 컨볼루션 뉴럴 넷트웍으로 온전히 이은 레이어를 컨볼루션 레이어로 바꾼다
+핵심: 뜻 나누기를 끝에서 끝까지 하는 첫 컨볼루션 뉴럴 네트워크로 온전히 이은 레이어를 컨볼루션 레이어로 바꾼다
 '''
 import torch
 import torch.nn as nn

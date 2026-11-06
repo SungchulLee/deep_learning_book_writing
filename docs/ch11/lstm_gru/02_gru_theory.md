@@ -121,7 +121,7 @@ class GRU:
     
     def __init__(self, input_size, hidden_size, output_size):
         """
-        GRU 뉴럴 넷트웍을 초기화한다.
+        GRU 뉴럴 네트워크를 초기화한다.
         
         인수:
             input_size: 입력 피처의 차원

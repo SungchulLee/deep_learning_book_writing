@@ -21,7 +21,7 @@
 - 모델 해석 살펴보기 -- Grad-CAM과 어텐션 그림 그리기를 아우르는 연장 두루 살피기
 - Saliency Map 살펴보기 -- 그래디언트 기반 Saliency Map 재주 모듈 살펴보기
 - 빨리 시작하기 -- 5분 만에 Saliency Map 구현 시작하기
-- [Saliency Map과 기본 그래디언트](gradient_methods/saliency_maps.md) -- 뉴럴 넷트웍 추론에 대한 그래디언트 기반 현저성의 수학 기초
+- [Saliency Map과 기본 그래디언트](gradient_methods/saliency_maps.md) -- 뉴럴 네트워크 추론에 대한 그래디언트 기반 현저성의 수학 기초
 - [Integrated Gradients](gradient_methods/integrated_gradients.md) -- 예민함과 짜기에 흔들리지 않음이라는 공리를 채우는 길 따라 쌓은 기여도 분석
 - [Grad-CAM](gradient_methods/gradcam.md) -- CNN 시각적 해석을 위한 그래디언트 가중 클래스 활성화 맵
 - [Grad-CAM++](gradient_methods/gradcam_plusplus.md) -- 여러 물체와 작은 자리를 더 잘 짚어내는 나아진 것
@@ -50,7 +50,7 @@
 - SHAP: 더해지는 섀플리 풀이 -- 함께 하는 놀이 이론의 섀플리 값에 기초를 둔 하나로 아우른 피처 기여도 분석
 - LIME: 그 자리에서 풀이되는 모델 가리지 않는 풀이 -- 어떤 블랙박스 모델이든 낱낱의 추론을 풀이하는 그 자리 대리 모델
 - [Kernel SHAP](feature_attribution/kernel_shap.md) -- 웨이트 실은 선형 회귀로 SHAP 값에 다가가기
-- [Deep SHAP](feature_attribution/deep_shap.md) -- DeepLIFT 되짚기와 SHAP을 아울러 뉴럴 넷트웍의 몫을 잘 매기기
+- [Deep SHAP](feature_attribution/deep_shap.md) -- DeepLIFT 되짚기와 SHAP을 아울러 뉴럴 네트워크의 몫을 잘 매기기
 - [Tree SHAP](feature_attribution/tree_shap.md) -- 나무 기초 모델을 위한 다항식 때의 정확한 섀플리 값
 - [피처 간 상호작용](feature_attribution/interactions.md) -- 선형이 아닌 피처 사이 얽힘을 알아내는 SHAP 서로 미침 값
 
@@ -60,7 +60,7 @@
 
 날 피처 기여도 분석을 넘어 사람이 알아들을 수 있는 개념 레이어의 풀이.
 
-- [개념 활성화 벡터(CAV)](concept_methods/cav.md) -- 뉴럴 넷트웍이 사람이 알아들을 수 있는 개념을 배웠는지 따지기
+- [개념 활성화 벡터(CAV)](concept_methods/cav.md) -- 뉴럴 네트워크가 사람이 알아들을 수 있는 개념을 배웠는지 따지기
 - [TCAV: 개념 활성화 벡터를 이용한 평가](concept_methods/tcav.md) -- 모델의 추론에서 개념이 얼마나 중요한지 재는 통계 검정
 - [개념 병목 모델](concept_methods/concept_bottleneck.md) -- 개념을 또렷이 예측하는 레이어를 둔, 그 자체로 풀이되는 구조
 - [프로토타입 네트워크](concept_methods/prototypes.md) -- 배운 프로토타입 자리로 하는 보기 기초 풀이
@@ -69,10 +69,10 @@
 
 ## 6. 모델에 맞춘 방법
 
-특정 뉴럴 넷트웍 구조에 맞춘 풀이 재주.
+특정 뉴럴 네트워크 구조에 맞춘 풀이 재주.
 
 - [CNN 그림 그리기와 쪼개기](model_specific/cnn_visualization.md) -- 겹친 네트워크를 위한 레이어마다의 쓸모 퍼뜨리기와 DeepLIFT
-- [GNN 해석 방법](model_specific/gnn_explanation.md) -- 그래프 뉴럴 넷트웍을 위한 GNNExplainer, PGExplainer, SubgraphX
+- [GNN 해석 방법](model_specific/gnn_explanation.md) -- 그래프 뉴럴 네트워크를 위한 GNNExplainer, PGExplainer, SubgraphX
 - [트랜스포머 프로빙](model_specific/transformer_probing.md) -- 트랜스포머의 잠재 표현을 살피는 더듬는 분류기와 BertViz
 - [피처 역변환(Feature Inversion)](model_specific/feature_inversion.md) -- 가운데 나타냄에서 입력을 되세워 모델이 무엇을 보는지 드러내기
 

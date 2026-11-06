@@ -119,7 +119,7 @@ ZEROS:
   바이어스에는 괜찮다
 
 RECOMMENDATIONS:
-  ReLU 뉴럴 넷트웍 → He 초기화(PyTorch의 기본값)
+  ReLU 뉴럴 네트워크 → He 초기화(PyTorch의 기본값)
   시그모이드나 tanh → 자비에르 초기화
   바이어스 → 0이나 작은 상수
   
@@ -211,7 +211,7 @@ ZEROS:
   바이어스에는 괜찮다
 
 RECOMMENDATIONS:
-  ReLU 뉴럴 넷트웍 → He 초기화(PyTorch의 기본값)
+  ReLU 뉴럴 네트워크 → He 초기화(PyTorch의 기본값)
   시그모이드나 tanh → 자비에르 초기화
   바이어스 → 0이나 작은 상수
   

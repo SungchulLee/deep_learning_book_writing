@@ -553,7 +553,7 @@ def add_masking_noise(images: torch.Tensor,
                       mask_prob: float = 0.3) -> torch.Tensor:
     """
     화소를 아무렇게나 0으로 두어 가리기 잡음을 더한다.
-    요즘 보기 변환기의 가린 오토인코더(MAE)와 맞닿는다.
+    요즘 보기 트랜스포머의 가린 오토인코더(MAE)와 맞닿는다.
     """
     mask = (torch.rand_like(images) > mask_prob).float()
     return images * mask

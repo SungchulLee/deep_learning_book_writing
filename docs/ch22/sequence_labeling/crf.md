@@ -458,7 +458,7 @@ from transformers import AutoModel
 
 class TransformerCRF(nn.Module):
     """
-    개체명 인식을 위해 CRF 레이어를 얹은 변환기(BERT/RoBERTa).
+    개체명 인식을 위해 CRF 레이어를 얹은 트랜스포머(BERT/RoBERTa).
     """
     
     def __init__(
@@ -487,7 +487,7 @@ class TransformerCRF(nn.Module):
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor
     ) -> torch.Tensor:
-        """변환기에서 내보냄 점수 얻기."""
+        """트랜스포머에서 내보냄 점수 얻기."""
         outputs = self.transformer(
             input_ids=input_ids,
             attention_mask=attention_mask

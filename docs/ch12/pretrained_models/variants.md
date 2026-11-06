@@ -2,7 +2,7 @@
 
 RNN·CNN·트랜스포머의 연결 구조를 비교하고 희소 어텐션, 혼합 모델과 분산 학습을 살펴본다. 길이에 대한 복잡도와 실제 속도·메모리, 구조의 가능성과 예제의 구현 범위를 구분한다.
 
-## 1. 순환 뉴럴 넷트웍/LSTM
+## 1. 순환 뉴럴 네트워크/LSTM
 
 아래 LSTMModel은 (B,L,V)의 위치별 로짓을 반환한다. 스트리밍 상태를 받거나 다음 호출에 돌려주는 인터페이스는 없으므로, 현재 코드가 자동으로 호출 사이의 문맥을 유지하는 것은 아니다.
 
@@ -46,7 +46,7 @@ class LSTMModel(nn.Module):
 
 ---
 
-## 2. 시퀀스을 위한 컨볼루션 뉴럴 넷트웍
+## 2. 시퀀스을 위한 컨볼루션 뉴럴 네트워크
 
 CNNModel은 전역 최대 풀링으로 (B,V)의 표본별 로짓을 반환해 위 LSTM의 위치별 출력과 과제가 다르다. 이 코드 블록에는 torch.nn.functional을 F로 가져오는 import가 빠져 있다. 양쪽 패딩 컨볼루션은 미래 토큰도 읽으므로 자기 회귀 모델로 사용하려면 별도 인과 구성이 필요하다.
 
@@ -194,7 +194,7 @@ ConvTransformer는 국소 컨볼루션과 전역 어텐션을 더하는 블록�
 
 TransformerWithRecurrence는 memory_size를 사용하지 않고 과거 출력 전체를 self.memory에 저장한다. 호출할수록 길이가 증가하며 마지막 슬라이스도 이미 늘어난 x의 길이를 사용해 현재 입력 부분만 반환하지 않는다. detach·상태 초기화·표본 대응·장치 이동 처리도 없어 제한된 고정 크기 메모리나 안전한 스트리밍 모델로 해석해서는 안 된다.
 
-### 트랜스포머와 컨볼루션 뉴럴 넷트웍
+### 트랜스포머와 컨볼루션 뉴럴 네트워크
 
 ```python
 class ConvTransformer(nn.Module):
@@ -212,7 +212,7 @@ class ConvTransformer(nn.Module):
         return local + global_out
 ```
 
-### 트랜스포머와 순환 뉴럴 넷트웍
+### 트랜스포머와 순환 뉴럴 네트워크
 
 ```python
 class TransformerWithRecurrence(nn.Module):
@@ -1147,7 +1147,7 @@ $$
 \text{MoE}(x) = \sum_{i \in \text{TopK}} G(x)_i \cdot E_i(x)
 $$
 
-여기서 $E_i$은 $i$번째 전문가(대개 순전파 뉴럴 넷트웍)이고 $G(x)_i$은 게이트 웨이트이다.
+여기서 $E_i$은 $i$번째 전문가(대개 순전파 뉴럴 네트워크)이고 $G(x)_i$은 게이트 웨이트이다.
 
 ```python
 import torch
@@ -1155,7 +1155,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Expert(nn.Module):
-    """전문가 하나: 표준 자리별 순전파 뉴럴 넷트웍."""
+    """전문가 하나: 표준 자리별 순전파 뉴럴 네트워크."""
     
     def __init__(self, d_model: int, d_ff: int, dropout: float = 0.1):
         super().__init__()
@@ -1173,7 +1173,7 @@ class TopKGatingMoE(nn.Module):
     """
     상위 K 문을 갖춘 전문가 섞기 레이어.
     
-    트랜스포머 블록의 표준 순전파 뉴럴 넷트웍을 대신한다.
+    트랜스포머 블록의 표준 순전파 뉴럴 네트워크를 대신한다.
     토큰마다 학습되는 문 함수에 따라 상위 k명의 전문가에게
     보내진다.
     """
@@ -1190,10 +1190,10 @@ class TopKGatingMoE(nn.Module):
         self.num_experts = num_experts
         self.top_k = top_k
         
-        # 문 뉴럴 넷트웍: 입력을 전문가 점수로 사영한다
+        # 문 뉴럴 네트워크: 입력을 전문가 점수로 사영한다
         self.gate = nn.Linear(d_model, num_experts, bias=False)
         
-        # 전문가 뉴럴 넷트웍
+        # 전문가 뉴럴 네트워크
         self.experts = nn.ModuleList([
             Expert(d_model, d_ff, dropout)
             for _ in range(num_experts)

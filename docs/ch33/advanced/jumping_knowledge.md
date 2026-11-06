@@ -6,7 +6,7 @@ L레이어 메시지 패싱의 최종 표현은 최대 L홉 안의 정보를 사
 
 ```python
 """
-29.4.3: 뛰어넘는 앎 뉴럴 넷트웍
+29.4.3: 뛰어넘는 앎 뉴럴 네트워크
 """
 import torch, torch.nn as nn, torch.nn.functional as F
 import networkx as nx
@@ -16,7 +16,7 @@ import networkx as nx
 # ========================================================================
 
 class JKNet(nn.Module):
-    """모으기를 고를 수 있는 뛰어넘는 앎 뉴럴 넷트웍."""
+    """모으기를 고를 수 있는 뛰어넘는 앎 뉴럴 네트워크."""
     def __init__(self, in_ch, hidden_ch, out_ch, num_layers=4, jk_mode='cat'):
         super().__init__()
         self.jk_mode = jk_mode

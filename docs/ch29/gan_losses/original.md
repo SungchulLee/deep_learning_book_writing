@@ -309,7 +309,7 @@ $$\max_DV(D,G)=-\log4+2\operatorname{JS}(p_{data}\|p_G).$$
 
 ??? success "풀이"
 
-    m=(p_data+p_G)/2라 두면 D*를 대입한 V는 E_data log(p_data/m)+E_G log(p_G/m)−2log2다. 앞 두 항은 KL(p_data||m)+KL(p_G||m)=2JS이므로 −log4+2JS다. 공통 지배 측도와 적절한 0 항 관례로 해석하며 D를 제한 없이 최적화한 분포 목적의 결과다. 현재 뉴럴 넷트웍 D의 미니배치 로스가 이 값과 항상 같지는 않다.
+    m=(p_data+p_G)/2라 두면 D*를 대입한 V는 E_data log(p_data/m)+E_G log(p_G/m)−2log2다. 앞 두 항은 KL(p_data||m)+KL(p_G||m)=2JS이므로 −log4+2JS다. 공통 지배 측도와 적절한 0 항 관례로 해석하며 D를 제한 없이 최적화한 분포 목적의 결과다. 현재 뉴럴 네트워크 D의 미니배치 로스가 이 값과 항상 같지는 않다.
 
 
 

@@ -329,7 +329,7 @@ def visualize_flow(flow: np.ndarray) -> np.ndarray:
 ```python
 class TwoStreamNetwork(nn.Module):
     """
-    녹여 붙이기를 갖춘 온전한 두 클래스 넷트웍.
+    녹여 붙이기를 갖춘 온전한 두 클래스 네트워크.
     
     녹여 붙이기 고름:
     1. 고루내기: 소프트맥스 점수의 단순 평균
@@ -434,7 +434,7 @@ FeatureFusionTwoStream은 선언된 TemporalStream에 없는 `.features`를 호�
 ```python
 def train_two_stream_separate():
     """
-    두 클래스 넷트웍의 익히기 절차.
+    두 클래스 네트워크의 익히기 절차.
     
     1. RGB 틀로 자리 클래스 익히기(ImageNet에서 미리 익힌 것을 쓸 수 있다)
     2. 빛 흐름 쌓기로 때 클래스 익히기
@@ -482,7 +482,7 @@ def train_two_stream_separate():
 
 ```python
 def train_two_stream_e2e(model, train_loader, optimizer, epochs):
-    """녹여 붙인 두 클래스 넷트웍을 끝에서 끝까지 익히기."""
+    """녹여 붙인 두 클래스 네트워크를 끝에서 끝까지 익히기."""
     
     for epoch in range(epochs):
         for rgb, flow, labels in train_loader:

@@ -126,7 +126,7 @@ W는 시각 차원과 의미 차원의 상호작용을 학습한다. 앞의 식�
 
 ### 뉴럴 호환성
 
-비선형 호환성에 뉴럴 넷트웍을 쓴다.
+비선형 호환성에 뉴럴 네트워크를 쓴다.
 
 $$F(\mathbf{v}, \mathbf{s}) = g_\theta(\mathbf{v}, \mathbf{s})$$
 
@@ -260,7 +260,7 @@ def predict_zsl(visual_features, class_embeddings, class_names,
     
     인수:
         visual_features: (n_samples, d_v) 시각 피처 행렬
-        class_embeddings: (n_classes, d_s) 뜻 묻힘 행렬
+        class_embeddings: (n_classes, d_s) 의미 임베딩 행렬
         class_names: 부류 이름 목록
         compatibility_fn: 'cosine', 'dot' 또는 'euclidean'
     

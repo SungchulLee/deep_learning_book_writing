@@ -131,7 +131,7 @@ def compute_receptive_field(layers):
     
     return rf, jump
 
-# 예: VGG 방식 뉴럴 넷트웍
+# 예: VGG 방식 뉴럴 네트워크
 vgg_layers = [
     {'kernel': 3, 'stride': 1},  # 3×3 컨볼루션
     {'kernel': 3, 'stride': 1},  # 3×3 컨볼루션
@@ -588,7 +588,7 @@ Dilated (5 layers)              63        5         45
 
 ---
 
-## 7. 예제: 리셉티브 필드를 고려한 뉴럴 넷트웍 설계
+## 7. 예제: 리셉티브 필드를 고려한 뉴럴 네트워크 설계
 
 코드의 128×128은 컨볼루션·풀링 경로에서 마지막 피처 한 위치의 이론적 범위이다. 그 뒤 AdaptiveAvgPool2d가 모든 공간 위치를 결합하므로 최종 분류 로짓의 참조 범위와는 다르다. 학습 모드의 BatchNorm에 의한 통계 공유도 이 계산에 포함되지 않는다.
 
@@ -598,7 +598,7 @@ import torch.nn as nn
 
 class RFAwareNetwork(nn.Module):
     """
-    리셉티브 필드 목표를 정해 놓고 설계한 뉴럴 넷트웍.
+    리셉티브 필드 목표를 정해 놓고 설계한 뉴럴 네트워크.
     
     목표: 화소 100×100까지의 물체를 알아보기 위한 약 128×128의 리셉티브 필드.
     
@@ -665,7 +665,7 @@ class RFAwareNetwork(nn.Module):
         return x
 
 def verify_network_design():
-    """리셉티브 필드 계산을 확인하고 뉴럴 넷트웍을 시험한다."""
+    """리셉티브 필드 계산을 확인하고 뉴럴 네트워크를 시험한다."""
     
     layers = [
         {'kernel': 3, 'stride': 1},  # Conv1
@@ -688,7 +688,7 @@ def verify_network_design():
     print(f"\nFinal receptive field: {rf}×{rf} (target: ~128×128) ✓")
     print(f"Output stride: {jump}")
     
-    # 뉴럴 넷트웍 시험
+    # 뉴럴 네트워크 시험
     model = RFAwareNetwork(num_classes=10)
     x = torch.randn(2, 3, 224, 224)
     y = model(x)

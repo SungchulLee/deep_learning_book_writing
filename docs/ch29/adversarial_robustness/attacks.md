@@ -218,7 +218,7 @@ def visualize_adversarial_example(x_clean, x_adv, y_true, y_pred_clean, y_pred_a
 
 ```python
 class SimpleCNN(nn.Module):
-    """공격 표적으로 쓰는 MNIST 가르기용 단순한 겹말기 뉴럴 넷트웍."""
+    """공격 표적으로 쓰는 MNIST 가르기용 단순한 겹말기 뉴럴 네트워크."""
     
     def __init__(self):
         super().__init__()
@@ -548,7 +548,7 @@ import torchvision
 from torchvision import transforms
 import matplotlib.pyplot as plt
 
-# 단순한 겹말기 뉴럴 넷트웍을 뜻매김한다
+# 단순한 겹말기 뉴럴 네트워크를 뜻매김한다
 class SimpleCNN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -1053,7 +1053,7 @@ import torchvision
 from torchvision import transforms
 import matplotlib.pyplot as plt
 
-# 겹말기 뉴럴 넷트웍 뜻매김(앞과 같다)
+# 겹말기 뉴럴 네트워크 뜻매김(앞과 같다)
 class SimpleCNN(nn.Module):
     def __init__(self):
         super().__init__()

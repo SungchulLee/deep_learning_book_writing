@@ -253,7 +253,7 @@ YOLOv8의 구체적인 레이어는 [공식 모델 설정](https://raw.githubuse
 ```python
 class PANNeck(nn.Module):
     """
-    여러 잣수 피처를 녹여 붙이는 경로 모으기 넷트웍 목.
+    여러 잣수 피처를 녹여 붙이는 경로 모으기 네트워크 목.
     """
     def __init__(self, in_channels_list, out_channels):
         super().__init__()

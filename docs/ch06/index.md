@@ -2,7 +2,7 @@
 
 [3장](../ch03/index.md)은 MNIST 하나로 네 모델을 짓고 견주었다. 그 코드가 쓰던 도구 — 텐서, 자동 미분, 경사 하강법 — 를 이 장이 체계적으로 다룬다.
 
-3장을 먼저 두고 이 장을 뒤에 둔 데에는 뜻이 있다. `loss.backward()`가 무엇을 하는지 모르는 채로도 뉴럴 넷트웍 하나를 끝까지 학습시켜 보는 편이, 미분 규칙을 먼저 외우는 것보다 배우기 쉽다고 보기 때문이다. 이 장은 그렇게 직접 써 본 도구를 다시 열어 안을 들여다보는 자리다.
+3장을 먼저 두고 이 장을 뒤에 둔 데에는 뜻이 있다. `loss.backward()`가 무엇을 하는지 모르는 채로도 뉴럴 네트워크 하나를 끝까지 학습시켜 보는 편이, 미분 규칙을 먼저 외우는 것보다 배우기 쉽다고 보기 때문이다. 이 장은 그렇게 직접 써 본 도구를 다시 열어 안을 들여다보는 자리다.
 
 처음부터 끝까지 읽어도 되고, 앞 장의 예제를 읽다가 막히는 대목이 나올 때 찾아보아도 된다.
 
@@ -29,7 +29,7 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 **학습에 쓰기**
 
 - [야코비안과 고차 미분](tensors/19_gradient_computation.md) · [사용자 정의 함수](tensors/20_custom_functions.md)
-- [간단한 뉴럴 넷트웍](tensors/21_simple_neural_network.md) · [최적화 기초](tensors/22_optimization_basics.md)
+- [간단한 뉴럴 네트워크](tensors/21_simple_neural_network.md) · [최적화 기초](tensors/22_optimization_basics.md)
 
 **실무**
 
@@ -100,7 +100,7 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 
 ## 7.4 경사 하강법
 
-뉴럴 넷트웍 학습의 한가운데에 있는 최적화 알고리즘.
+뉴럴 네트워크 학습의 한가운데에 있는 최적화 알고리즘.
 
 **원리**
 
@@ -117,7 +117,7 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 4. [경사 하강법 시각화](gradient_descent/04_visualizing_gradient_descent.md) — 무엇을 어떤 축에 그릴 것인가
 5. [배치와 미니배치 SGD](gradient_descent/01_batch_vs_minibatch_sgd.md) — 공정하게 견주는 법
 6. [Adam 최적화기](gradient_descent/01_adam_optimizer.md) — 손으로 짜서 `torch.optim.Adam` 과 맞춰 보기
-7. [MNIST 뉴럴 넷트웍](gradient_descent/01_neural_network_mnist.md) — 전체 파이프라인과 거기서만 생기는 실수들
+7. [MNIST 뉴럴 네트워크](gradient_descent/01_neural_network_mnist.md) — 전체 파이프라인과 거기서만 생기는 실수들
 
 ---
 

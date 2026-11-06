@@ -7,7 +7,7 @@ ConvNeXt V2은 2023년 글 "ConvNeXt V2: 가린 오토인코더와 함께 컨볼
 ```python
 #!/usr/bin/env python3
 '''
-ConvNeXt V2 - 설계를 다듬은 요즘 컨볼루션 넷트웍
+ConvNeXt V2 - 설계를 다듬은 요즘 컨볼루션 네트워크
 논문: "ConvNeXt V2: Co-designing and Scaling ConvNets with Masked Autoencoders" (2023)
 핵심: 두루 반응 고르기(GRN)와 다듬은 익히기 방책
 '''

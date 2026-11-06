@@ -44,7 +44,7 @@
     #   3부 – 뺄셈, 나눗셈, 거듭제곱으로 확장
     #   4부 – TensorWithGrad: numpy를 이용한 벡터화된 자동 미분
     #   5부 – PyTorch autograd와 대조 검증
-    #   6부 – 우리 엔진으로 작은 뉴럴 넷트웍 만들기
+    #   6부 – 우리 엔진으로 작은 뉴럴 네트워크 만들기
     #
     # 출처 각색: O'Reilly "Deep Learning from Scratch" 6장
 
@@ -494,7 +494,7 @@
 
 
     # =====================================================================
-    # 6부 – 우리 autograd 엔진으로 만드는 작은 뉴럴 넷트웍
+    # 6부 – 우리 autograd 엔진으로 만드는 작은 뉴럴 네트워크
     # =====================================================================
     print("=" * 60)
     print("Part 6: Training a tiny NN with our autograd")
@@ -506,7 +506,7 @@
     X_data = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float64)
     y_data = np.array([[0], [1], [1], [0]], dtype=np.float64)
 
-    # 웨이트 초기화(2레이어 뉴럴 넷트웍: 2 → 4 → 1)
+    # 웨이트 초기화(2레이어 뉴럴 네트워크: 2 → 4 → 1)
     W1_data = np.random.randn(2, 4) * 0.5
     b1_data = np.zeros((1, 4))
     W2_data = np.random.randn(4, 1) * 0.5

@@ -7,7 +7,7 @@
 ```python
 #!/usr/bin/env python3
 '''
-U-넷 — 생의학 그림 나누기를 위한 컨볼루션 넷트웍
+U-넷 — 생의학 그림 나누기를 위한 컨볼루션 네트워크
 논문: "U-Net: Convolutional Networks for Biomedical Image Segmentation" (2015)
 핵심: 인코더와 디코더 사이의 건너뛰는 이음, 나누기에 널리 쓰인다
 '''

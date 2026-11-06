@@ -6,10 +6,10 @@ Noisy Networks은 DQN 좋게 하기의 중요한 개념이다. 배우는 살펴�
 
 ```python
 """
-35.2.4 노이지 넷트웍
+35.2.4 노이지 네트워크
 ======================
 
-익힌 살펴보기를 위한 NoisyLinear 켜와 노이지 넷트웍 Q 넷트웍.
+익힌 살펴보기를 위한 NoisyLinear 켜와 노이지 네트워크 Q 네트워크.
 """
 
 import torch
@@ -31,7 +31,7 @@ import math
 # ---------------------------------------------------------------------------
 
 class NoisyLinear(nn.Module):
-    """인수분해 가우스 노이지 넷트웍 선형 켜.
+    """인수분해 가우스 노이지 네트워크 선형 켜.
     
     y = (mu_w + sigma_w * eps_w) @ x + (mu_b + sigma_b * eps_b)
     여기서 eps는 eps_ij = f(eps_i) * f(eps_j), f(x) = sign(x)*sqrt(|x|)로 인수분해된다
@@ -136,11 +136,11 @@ class IndependentNoisyLinear(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# 노이지 넷트웍 Q 넷트웍
+# 노이지 네트워크 Q 네트워크
 # ---------------------------------------------------------------------------
 
 class NoisyQNetwork(nn.Module):
-    """살펴보기를 위해 NoisyLinear 켜를 쓴 Q 넷트웍."""
+    """살펴보기를 위해 NoisyLinear 켜를 쓴 Q 네트워크."""
 
     def __init__(self, state_dim: int, action_dim: int, hidden_dim: int = 128,
                  sigma_init: float = 0.5):
@@ -213,7 +213,7 @@ def demo_noisy_networks():
     print(f"  Output variance across noise samples: {outputs.var(dim=0).mean():.4f}")
     print(f"  Sigma magnitude: {noisy.noise_magnitude:.4f}")
 
-    # --- 노이지 넷트웍으로 익히기(엡실론 욕심쟁이 없음) ---
+    # --- 노이지 네트워크로 익히기(엡실론 욕심쟁이 없음) ---
     print("\n--- NoisyNet DQN Training ---")
     random.seed(42); np.random.seed(42); torch.manual_seed(42)
 

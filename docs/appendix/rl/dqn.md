@@ -1,6 +1,6 @@
 # DQN
 
-DQN은 2015년 글 "Human-level control through deep reinforcement learning"에서 나왔다. - 뉴럴 넷트웍으로 Q(s,a)을 어림한다 - *타깃 네트워크*을 쓰는 TD 타깃으로 학습된이다 - 겪음 되짚기로 얽힘을 끊는다.
+DQN은 2015년 글 "Human-level control through deep reinforcement learning"에서 나왔다. - 뉴럴 네트워크로 Q(s,a)을 어림한다 - *타깃 네트워크*을 쓰는 TD 타깃으로 학습된이다 - 겪음 되짚기로 얽힘을 끊는다.
 
 여기 구현은 DQN을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -9,12 +9,12 @@ DQN은 2015년 글 "Human-level control through deep reinforcement learning"에�
 ```python
 #!/usr/bin/env python3
 """
-DQN - 깊은 Q 넷트웍
+DQN - 깊은 Q 네트워크
 글: "깊은 북돋움 러닝으로 사람 수준 다루기" (2015)
 지은이: 볼로디미르 므니 외
 핵심 깨침:
-  - 뉴럴 넷트웍으로 Q(s,a)을 어림한다
-  - *타깃 넷트웍*을 쓰는 TD 타깃으로 익힌다
+  - 뉴럴 네트워크로 Q(s,a)을 어림한다
+  - *타깃 네트워크*을 쓰는 TD 타깃으로 익힌다
   - 겪음 되짚기로 얽힘을 끊는다
 
 두루마리: appendix/rl/dqn.py
@@ -104,7 +104,7 @@ def dqn_td_loss(q_net: nn.Module, target_net: nn.Module, batch, gamma: float = 0
     # dim=1에서 gather 하려면 a의 꼴이 (B,1)이어야 한다
     q_sa = q_values.gather(1, a.long().unsqueeze(1)).squeeze(1)  # (B,)
 
-    # 타깃 넷트웍으로 타깃을 셈한다(그래디언트 없이)
+    # 타깃 네트워크로 타깃을 셈한다(그래디언트 없이)
     with torch.no_grad():
         q_next = target_net(s2)                   # (B, A)
         max_q_next = q_next.max(dim=1).values     # (B,)

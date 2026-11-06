@@ -6,7 +6,7 @@
 
 ```python
 """
-순환 뉴럴 넷트웍을 위한 주의 구조
+순환 뉴럴 네트워크를 위한 주의 구조
 """
 import torch
 import torch.nn as nn

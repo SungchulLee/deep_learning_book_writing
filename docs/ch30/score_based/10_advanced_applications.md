@@ -43,7 +43,7 @@ import numpy as np
 
 
 class ConditionalScoreNetwork(nn.Module):
-    """클래스 이름표를 조건으로 삼는 점수 뉴럴 넷트웍."""
+    """클래스 이름표를 조건으로 삼는 점수 뉴럴 네트워크."""
     
     def __init__(self, data_dim=2, n_classes=10, hidden_dim=128):
         super().__init__()
@@ -51,7 +51,7 @@ class ConditionalScoreNetwork(nn.Module):
         # 클래스 임베딩
         self.class_embed = nn.Embedding(n_classes, hidden_dim)
         
-        # 점수 뉴럴 넷트웍
+        # 점수 뉴럴 네트워크
         self.net = nn.Sequential(
             nn.Linear(data_dim + hidden_dim, hidden_dim),
             nn.SiLU(),

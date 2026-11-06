@@ -56,7 +56,7 @@ doc_embeddings = model.encode(documents, normalize_embeddings=True)
 query = "Which company beat revenue estimates?"
 query_embedding = model.encode([query], normalize_embeddings=True)
 
-# 코사인 닮음(묻힘은 고르게 되어 있다)
+# 코사인 닮음(임베딩은 고르게 되어 있다)
 scores = query_embedding @ doc_embeddings.T
 top_idx = scores[0].argsort()[::-1]
 print(f"Most relevant: {documents[top_idx[0]]}")

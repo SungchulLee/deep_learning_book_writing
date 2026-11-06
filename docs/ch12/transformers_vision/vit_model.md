@@ -7,7 +7,7 @@
 ```python
 """
 비전 트랜스포머(ViT) 구현
-이미지 분류에서 컨볼루션 뉴럴 넷트웍과 트랜스포머를 잇는다
+이미지 분류에서 컨볼루션 뉴럴 네트워크와 트랜스포머를 잇는다
 """
 
 import torch
@@ -23,7 +23,7 @@ from typing import Tuple
 class PatchEmbedding(nn.Module):
     """
     그림을 조각으로 바꾸고 임베딩으로 사영한다.
-    컨볼루션 뉴럴 넷트웍 방식의 입력과 트랜스포머 처리를 잇는 다리이다.
+    컨볼루션 뉴럴 네트워크 방식의 입력과 트랜스포머 처리를 잇는 다리이다.
     """
     def __init__(self, img_size: int = 224, patch_size: int = 16, 
                  in_channels: int = 3, embed_dim: int = 768):
@@ -32,7 +32,7 @@ class PatchEmbedding(nn.Module):
         self.patch_size = patch_size
         self.n_patches = (img_size // patch_size) ** 2
         
-        # 편 조각의 선형 사영 (컨볼루션 뉴럴 넷트웍의 컨볼루션과 비슷하다)
+        # 편 조각의 선형 사영 (컨볼루션 뉴럴 네트워크의 컨볼루션과 비슷하다)
         self.proj = nn.Conv2d(in_channels, embed_dim, 
                              kernel_size=patch_size, stride=patch_size)
         
@@ -96,7 +96,7 @@ class MultiHeadAttention(nn.Module):
 
 class MLP(nn.Module):
     """
-    트랜스포머 블록에서 쓰는 순전파 뉴럴 넷트웍.
+    트랜스포머 블록에서 쓰는 순전파 뉴럴 네트워크.
     비선형성과 피처 변환을 준다.
     """
     def __init__(self, embed_dim: int = 768, mlp_ratio: int = 4, dropout: float = 0.1):
@@ -143,7 +143,7 @@ class VisionTransformer(nn.Module):
     핵심 혁신:
     1. 그림을 조각의 수열로 다룬다
     2. (본디 자연어 처리에서 온) 트랜스포머 인코더를 이미지 분류에 쓴다
-    3. 컨볼루션 뉴럴 넷트웍 방식의 입력 처리와 트랜스포머 구조를 잇는다
+    3. 컨볼루션 뉴럴 네트워크 방식의 입력 처리와 트랜스포머 구조를 잇는다
     """
     def __init__(self, 
                  img_size: int = 224,

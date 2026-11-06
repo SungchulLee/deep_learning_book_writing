@@ -17,7 +17,7 @@ DSM 학습에 미니배치, LayerNorm, AdamW, 그래디언트 클리핑과 러�
 - 실제로 쓸 만한 잡음 없애는 점수 맞추기 익히기를 짠다
 - 여러 잡음 차례표를 다룬다
 - 흔한 익히기 문제를 잡는다
-- 점수 뉴럴 넷트웍의 품질을 따진다
+- 점수 뉴럴 네트워크의 품질을 따진다
 
 핵심 식:
 L_DSM(θ) = 𝔼_x 𝔼_ε ||s_θ(x + σε) + ε/σ||²
@@ -38,7 +38,7 @@ print("MODULE 04: Practical DSM Implementation")
 print("="*80)
 
 class MLPScore(nn.Module):
-    """건너뛰기 이음을 갖춘 여러 레이어 뉴럴 넷트웍 점수 뉴럴 넷트웍"""
+    """건너뛰기 이음을 갖춘 여러 레이어 뉴럴 네트워크 점수 뉴럴 네트워크"""
     def __init__(self, input_dim=2, hidden_dims=[128, 128]):
         super().__init__()
         layers = []

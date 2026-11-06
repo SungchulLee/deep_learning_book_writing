@@ -29,7 +29,7 @@
 
 
     # ---------------------------------------------------------------------------
-    # 액터-크리틱 넷트웍
+    # 액터-크리틱 네트워크
     # ---------------------------------------------------------------------------
 
     def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
@@ -39,7 +39,7 @@
 
 
     class A2CNetwork(nn.Module):
-        """A2C를 위한, 함께 쓰는 액터-크리틱 넷트웍."""
+        """A2C를 위한, 함께 쓰는 액터-크리틱 네트워크."""
 
         def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 64):
             super().__init__()
@@ -184,7 +184,7 @@
             obs_dim = self.envs.observation_space.shape[0]
             act_dim = self.envs.action_space.n
 
-            # 넷트웍 갖추기
+            # 네트워크 갖추기
             self.network = A2CNetwork(obs_dim, act_dim, hidden_dim)
             self.optimizer = optim.Adam(self.network.parameters(), lr=lr, eps=1e-5)
 

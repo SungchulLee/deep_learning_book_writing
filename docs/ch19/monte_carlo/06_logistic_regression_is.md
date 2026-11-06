@@ -730,7 +730,7 @@ log_weights에서 최대값을 빼는 것은 유한 로그값의 정규화에 �
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-아래 뉴럴 넷트웍 시험 대신 어떤 수학적 기준으로 확인할 수 있는가?
+아래 뉴럴 네트워크 시험 대신 어떤 수학적 기준으로 확인할 수 있는가?
 
 </div>
 

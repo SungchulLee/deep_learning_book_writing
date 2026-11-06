@@ -7,9 +7,9 @@ ConvNeXt은 2022년 글 "2020년대를 위한 컨볼루션 네트워크"에서 �
 ```python
 #!/usr/bin/env python3
 '''
-ConvNeXt - 2020년대를 위한 컨볼루션 넷트웍
+ConvNeXt - 2020년대를 위한 컨볼루션 네트워크
 논문: "A ConvNet for the 2020s" (2022)
-핵심: 보기 변환기의 설계를 들여와 요즘에 맞게 고친 ResNet
+핵심: 보기 트랜스포머의 설계를 들여와 요즘에 맞게 고친 ResNet
 '''
 import torch
 import torch.nn as nn

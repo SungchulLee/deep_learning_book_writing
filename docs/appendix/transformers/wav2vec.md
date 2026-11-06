@@ -11,7 +11,7 @@ WAV2VEC은 2020년 글 "wav2vec 2.0: A Framework for Self-Supervised Learning of
 '''
 Wav2Vec 2.0 - 말 알아듣기를 위한 스스로 이끄는 러닝
 논문: "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations" (2020)
-핵심: 말을 위한 견줌 러닝, 수 줄이기, 변환기 인코더
+핵심: 말을 위한 견줌 러닝, 수 줄이기, 트랜스포머 인코더
 '''
 import torch
 import torch.nn as nn

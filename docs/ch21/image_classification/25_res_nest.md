@@ -7,7 +7,7 @@ ResNeSt는 여러 분기의 피처를 채널별 어텐션으로 결합하는 spl
 ```python
 #!/usr/bin/env python3
 '''
-ResNeSt — 쪼갠 어텐션 넷트웍
+ResNeSt — 쪼갠 어텐션 네트워크
 논문: "ResNeSt: Split-Attention Networks" (2020)
 핵심: 피처 배치에 걸쳐 채널마다 어텐션을 주는 쪼갠 어텐션 덩이
 '''

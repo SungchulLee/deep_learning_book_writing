@@ -27,7 +27,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 def create_model_without_dropout(input_dim):
-    """드롭아웃이 없는 뉴럴 넷트웍을 만든다."""
+    """드롭아웃이 없는 뉴럴 네트워크를 만든다."""
     # 마지막 레이어에 시그모이드를 붙이지 않는다. 아래에서 쓰는
     # BCEWithLogitsLoss가 시그모이드를 안에 품고 있어, 여기서 또 걸면
     # 두 번 적용될뿐더러 수치적으로도 불안정해진다
@@ -43,7 +43,7 @@ def create_model_without_dropout(input_dim):
 
 
 def create_model_with_dropout(input_dim, dropout_rate=0.5):
-    """드롭아웃 레이어가 있는 뉴럴 넷트웍을 만든다."""
+    """드롭아웃 레이어가 있는 뉴럴 네트워크를 만든다."""
     return nn.Sequential(
         # 선형 → 활성화 → 드롭아웃 차례다. 활성화 뒤에 두어야
         # 엑티베이션을 끄는 것이 된다

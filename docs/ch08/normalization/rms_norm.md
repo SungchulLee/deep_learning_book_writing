@@ -164,7 +164,7 @@ class LayerNormBaseline(nn.Module):
 
 $$\text{RMSNorm}(a \cdot \mathbf{x}) = \text{sign}(a) \cdot \text{RMSNorm}(\mathbf{x})$$
 
-이 성질은 입력 스케일에 덜 민감한 변환을 설명하지만, 전체 뉴럴 넷트웍의 경사나 학습 안정성을 단독으로 보장하지는 않는다.
+이 성질은 입력 스케일에 덜 민감한 변환을 설명하지만, 전체 뉴럴 네트워크의 경사나 학습 안정성을 단독으로 보장하지는 않는다.
 
 ### 실험적 증거
 
@@ -363,7 +363,7 @@ class LLaMABlock(nn.Module):
         # 어텐션 (그룹 질의 어텐션)
         self.attention = GroupedQueryAttention(dim, n_heads, n_kv_heads)
         
-        # 순방향 뉴럴 넷트웍 (SwiGLU)
+        # 순방향 뉴럴 네트워크 (SwiGLU)
         self.feed_forward = SwiGLU(dim, ffn_dim)
     
     def forward(self, x, freqs_cis=None, mask=None):
@@ -387,12 +387,12 @@ class LLaMABlock(nn.Module):
         return out
 
 class SwiGLU(nn.Module):
-    """LLaMA에서 쓰는 SwiGLU 순방향 뉴럴 넷트웍."""
+    """LLaMA에서 쓰는 SwiGLU 순방향 뉴럴 네트워크."""
     
     def __init__(self, dim, hidden_dim):
         super().__init__()
         
-        # 보통의 순방향 뉴럴 넷트웍은 행렬이 둘인데 여기는 셋이다. w1과 w3가
+        # 보통의 순방향 뉴럴 네트워크는 행렬이 둘인데 여기는 셋이다. w1과 w3가
         # 같은 입력을 나란히 받아 하나는 활성화를 거치고 하나는 문
         # 노릇을 한다. 그래서 같은 파라메터 수를 맞추려면 hidden_dim을
         # 3분의 2쯤으로 잡는다.
@@ -404,7 +404,7 @@ class SwiGLU(nn.Module):
     
     def forward(self, x):
         # silu(w1(x))가 문이고 w3(x)가 통과시킬 값이다. 원소별로 곱하므로
-        # 어느 성분을 얼마나 흘려보낼지를 뉴럴 넷트웍이 스스로 정한다.
+        # 어느 성분을 얼마나 흘려보낼지를 뉴럴 네트워크가 스스로 정한다.
         # ReLU 하나를 쓰는 것보다 표현력이 좋다는 것이 SwiGLU의 요지다
         return self.w2(nn.functional.silu(self.w1(x)) * self.w3(x))
 
@@ -593,7 +593,7 @@ Parameter count:
 
 ✅ **대형 언어 모델** (LLaMA, Mistral, Gemma)  
 ✅ **계산 효율이 중요할 때**  
-✅ **아주 깊은 뉴럴 넷트웍** (정규화 레이어가 많을 때)  
+✅ **아주 깊은 뉴럴 네트워크** (정규화 레이어가 많을 때)  
 ✅ **선정규화 구조**  
 ✅ **평균 중심화가 결정적이지 않을 때**
 

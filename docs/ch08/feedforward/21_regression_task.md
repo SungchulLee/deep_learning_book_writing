@@ -79,7 +79,7 @@ print("Regression Model")
 print("="*80)
 
 class RegressionNet(nn.Module):
-    """회귀를 위한 뉴럴 넷트웍."""
+    """회귀를 위한 뉴럴 네트워크."""
     
     def __init__(self, input_size):
         super().__init__()

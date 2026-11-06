@@ -1,6 +1,6 @@
 # DQN의 기초
 
-DQN은 Q 학습과 뉴럴 넷트웍 함수 어림을 아울러 차원이 높은 상태 자리를 다룬다. 핵심 조각은 벡터와 픽셀 관찰을 위한 Q 네트워크 구조, 식혀 가는 일정을 쓰는 엡실론 욕심쟁이 살펴보기, 때 차이 학습하기의 고침 규칙이다. 이 짜기는 여러 레이어 뉴럴 넷트웍과 컨볼루션 Q 네트워크, 엡실론 욕심쟁이 액션 고르기 셈속, 그리고 모든 DQN 변형이 딛고 선 근본 벽돌을 보여 주는 기본 학습 고리를 다룬다.
+DQN은 Q 학습과 뉴럴 네트워크 함수 어림을 아울러 차원이 높은 상태 자리를 다룬다. 핵심 조각은 벡터와 픽셀 관찰을 위한 Q 네트워크 구조, 식혀 가는 일정을 쓰는 엡실론 욕심쟁이 살펴보기, 때 차이 학습하기의 고침 규칙이다. 이 짜기는 여러 레이어 뉴럴 네트워크와 컨볼루션 Q 네트워크, 엡실론 욕심쟁이 액션 고르기 셈속, 그리고 모든 DQN 변형이 딛고 선 근본 벽돌을 보여 주는 기본 학습 고리를 다룬다.
 
 ## 1. 코드
 
@@ -9,7 +9,7 @@ DQN은 Q 학습과 뉴럴 넷트웍 함수 어림을 아울러 차원이 높은 
 35.1.1 DQN의 바탕
 ========================
 
-DQN의 핵심 조각: Q 넷트웍 구조, 액션 고르기,
+DQN의 핵심 조각: Q 네트워크 구조, 액션 고르기,
 그리고 기본 DQN 익히기 회귀.
 """
 
@@ -34,11 +34,11 @@ Transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state'
 
 
 # ---------------------------------------------------------------------------
-# Q 넷트웍 구조
+# Q 네트워크 구조
 # ---------------------------------------------------------------------------
 
 class MLPQNetwork(nn.Module):
-    """벡터 살핌 자리를 위한 여러 켜 퍼셉트론 Q 넷트웍."""
+    """벡터 살핌 자리를 위한 여러 켜 퍼셉트론 Q 네트워크."""
 
     def __init__(self, state_dim: int, action_dim: int, hidden_dims: Tuple[int, ...] = (128, 128)):
         super().__init__()
@@ -56,7 +56,7 @@ class MLPQNetwork(nn.Module):
 
 
 class ConvQNetwork(nn.Module):
-    """아타리 클래스 그림점 살핌을 위한 감음 Q 넷트웍.
+    """아타리 클래스 픽셀 살핌을 위한 감음 Q 네트워크.
     
     들임: (batch, 4, 84, 84) — 잿빛 틀 4개를 쌓음.
     내놓기: (batch, action_dim) — 액션마다의 Q 값.
@@ -80,7 +80,7 @@ class ConvQNetwork(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # 그림점 값을 [0, 1]로 고름
+        # 픽셀 값을 [0, 1]로 고름
         x = x.float() / 255.0
         features = self.conv(x).view(x.size(0), -1)
         return self.fc(features)
@@ -127,9 +127,9 @@ class EpsilonGreedy:
 # ---------------------------------------------------------------------------
 
 class BasicDQNAgent:
-    """뉴럴 넷트웍으로 핵심 Q 러닝을 보이는 가장 작은 DQN 에이전트.
+    """뉴럴 네트워크로 핵심 Q 러닝을 보이는 가장 작은 DQN 에이전트.
     
-    적바림: 일부러 간단히 했다. 겪음 되돌려 보기와 타깃 넷트웍을 갖춘
+    적바림: 일부러 간단히 했다. 겪음 되돌려 보기와 타깃 네트워크를 갖춘
     온전한 DQN은 implementation.py에 있다.
     """
 
@@ -184,8 +184,8 @@ def compute_td_error(q_network: nn.Module, target_network: nn.Module,
     """옮김 배치의 때 차이 어긋남을 셈한다.
     
     인수:
-        q_network: 온라인 Q 넷트웍
-        target_network: 타깃 Q 넷트웍
+        q_network: 온라인 Q 네트워크
+        target_network: 타깃 Q 네트워크
         states: (batch, state_dim)
         actions: (batch,)
         rewards: (batch,)
@@ -224,7 +224,7 @@ def demo_fundamentals():
     print(f"\nEnvironment: CartPole-v1")
     print(f"State dim: {state_dim}, Action dim: {action_dim}")
 
-    # --- Q 넷트웍 보이기 ---
+    # --- Q 네트워크 보이기 ---
     print("\n--- MLP Q-Network ---")
     q_net = MLPQNetwork(state_dim, action_dim)
     print(f"Architecture:\n{q_net}")
@@ -282,7 +282,7 @@ def demo_fundamentals():
     print(f"TD errors (batch of 8): {td_errors.detach().numpy().round(4)}")
     print(f"Mean absolute TD error: {td_errors.abs().mean().item():.4f}")
 
-    # --- 감음 Q 넷트웍 꼴 살피기 ---
+    # --- 감음 Q 네트워크 꼴 살피기 ---
     print("\n--- Conv Q-Network (Atari-style) ---")
     conv_net = ConvQNetwork(action_dim=4)
     dummy_frames = torch.randint(0, 256, (2, 4, 84, 84), dtype=torch.uint8)

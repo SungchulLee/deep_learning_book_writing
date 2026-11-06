@@ -13,11 +13,11 @@ DistilBERT - 앎을 옮겨 담은 BERT
 글: "DistilBERT, 앎을 옮겨 담은 BERT: 더 작고 빠르고 값싸고 가볍다" (2019)
 지은이: 빅토르 상 외
 핵심 깨침:
-  - 앎 옮기기: 더 큰 스승에 맞추도록 더 작은 제자 변환기를 익힌다
+  - 앎 옮기기: 더 큰 스승에 맞추도록 더 작은 제자 트랜스포머를 익힌다
   - 흔히 켜는 적고 숨은 크기는 비슷하다
 
 두루마리: appendix/transformers/distilbert.py
-눈여겨볼 것: 인코더만 있는 더 작은 변환기를 배우기 위해 짜 본 것이다.
+눈여겨볼 것: 인코더만 있는 더 작은 트랜스포머를 배우기 위해 짜 본 것이다.
 """
 
 import torch
@@ -30,7 +30,7 @@ import torch.nn as nn
 
 class DistilBERT(nn.Module):
     """
-    인코더만 있는 DistilBERT 꼴 변환기.
+    인코더만 있는 DistilBERT 꼴 트랜스포머.
 
     BERT나 RoBERTa와 비슷하되 인코더 켜가 더 적다.
     앎 옮기기는 익히는 동안 일어난다(여기서는 보이지 않는다).

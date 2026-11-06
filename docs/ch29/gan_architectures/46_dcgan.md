@@ -9,7 +9,7 @@ DCGAN은 컨볼루션 구조와 GAN 학습 지침을 결합한 접근이다. [�
 '''
 DCGAN - 깊은 겹말기 맞겨루기 생성기
 논문: "Unsupervised Representation Learning with Deep Convolutional GANs" (2015)
-핵심: 여러 레이어 뉴럴 넷트웍을 겹말기 레이어로 바꾼 맞겨루기 생성기의 구조 지침
+핵심: 여러 레이어 뉴럴 네트워크를 겹말기 레이어로 바꾼 맞겨루기 생성기의 구조 지침
 '''
 import torch
 import torch.nn as nn

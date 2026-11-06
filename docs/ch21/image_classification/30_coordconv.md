@@ -7,7 +7,7 @@ CoordConv는 피처에 좌표 채널을 추가한 뒤 컨볼루션을 적용한�
 ```python
 #!/usr/bin/env python3
 '''
-CoordConv — 컨볼루션 뉴럴 넷트웍에 자리표 더하기
+CoordConv — 컨볼루션 뉴럴 네트워크에 자리표 더하기
 논문: "An Intriguing Failing of Convolutional Neural Networks" (2018)
 핵심: 자리표 채널을 더해 자리에 대한 따짐을 돕는다
 '''

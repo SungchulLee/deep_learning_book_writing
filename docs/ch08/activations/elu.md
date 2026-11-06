@@ -174,7 +174,7 @@ plt.tight_layout()
 
 ---
 
-## 8. 뉴럴 넷트웍 예제
+## 8. 뉴럴 네트워크 예제
 
 ```python
 import torch.nn as nn

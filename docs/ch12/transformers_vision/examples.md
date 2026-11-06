@@ -736,7 +736,7 @@ def example_1_basic_inference():
 
 def example_2_compare_models():
     """
-    보기 2: 컨볼루션 뉴럴 넷트웍과 비전 트랜스포머와 섞은 모형 견주기
+    보기 2: 컨볼루션 뉴럴 네트워크와 비전 트랜스포머와 섞은 모형 견주기
     """
     print("\n" + "="*60)
     print("Example 2: Comparing Different Architectures")
@@ -901,7 +901,7 @@ def example_6_model_variants():
 
 def example_7_hybrid_architecture():
     """
-    보기 7: 컨볼루션 뉴럴 넷트웍과 트랜스포머를 섞은 모형
+    보기 7: 컨볼루션 뉴럴 네트워크와 트랜스포머를 섞은 모형
     """
     print("\n" + "="*60)
     print("Example 7: Hybrid CNN-Transformer Architecture")
@@ -936,7 +936,7 @@ def example_7_hybrid_architecture():
 
 def example_8_key_differences():
     """
-    보기 8: 컨볼루션 뉴럴 넷트웍과 비전 트랜스포머의 핵심 차이
+    보기 8: 컨볼루션 뉴럴 네트워크와 비전 트랜스포머의 핵심 차이
     """
     print("\n" + "="*60)
     print("Example 8: CNN vs ViT - Key Differences")

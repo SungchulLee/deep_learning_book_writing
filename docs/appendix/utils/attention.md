@@ -30,7 +30,7 @@ import torch.nn.functional as F
 
 def scaled_dot_product_attention(Q, K, V, mask=None):
     """
-    잣대 맞춘 점곱 어텐션(변환기 어텐션의 핵심).
+    잣대 맞춘 점곱 어텐션(트랜스포머 어텐션의 핵심).
 
     들임:
       Q: 물음   (B, H, Tq, Dh)

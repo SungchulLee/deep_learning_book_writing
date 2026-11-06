@@ -9,10 +9,10 @@ DETR은 2020년 글 "End-to-End Object Detection with Transformers"에서 나왔
 ```python
 #!/usr/bin/env python3
 """
-DETR - 변환기로 끝에서 끝까지 물체 알아내기
-글: "변환기로 끝에서 끝까지 물체 알아내기" (2020)
+DETR - 트랜스포머로 끝에서 끝까지 물체 알아내기
+글: "트랜스포머로 끝에서 끝까지 물체 알아내기" (2020)
 지은이: 니콜라 카리옹 외
-핵심: CNN 등뼈 + 변환기 인코더/디코더 + 붙박인 물체 물음 배치.
+핵심: CNN 등뼈 + 트랜스포머 인코더/디코더 + 붙박인 물체 물음 배치.
      상자와 클래스를 곧바로 한 벌로 미루어 본다(본디 꼴에는 닻도 NMS도 없다).
 
 두루마리: appendix/detection/detr.py
@@ -94,7 +94,7 @@ class DETR(nn.Module):
     단순하게 만든 DETR:
     - 등뼈 -> 결 그림
     - 자리 담기를 더한다
-    - 변환기 인코더/디코더
+    - 트랜스포머 인코더/디코더
     - 물체 물음 -> 디코더 날임
     - 머리: 클래스 로짓 + 상자 자리 값
 
@@ -111,7 +111,7 @@ class DETR(nn.Module):
         self.backbone = TinyBackbone(d_model=d_model)
         self.pos_enc = PositionalEncoding2D(d_model=d_model)
 
-        # PyTorch 변환기는 이음을 앞에 둔다: (S, B, E)
+        # PyTorch 트랜스포머는 이음을 앞에 둔다: (S, B, E)
         self.transformer = nn.Transformer(
             d_model=d_model,
             nhead=nhead,
@@ -157,7 +157,7 @@ class DETR(nn.Module):
         # 물체 물음을 첫 타깃 낱말로 쓴다 (T, B, C)
         query = self.query_embed.weight.unsqueeze(1).repeat(1, B, 1)
 
-        # 변환기: 인코더가 src을 다루고, 디코더가 src에 어텐션을 주며 물음을 다룬다
+        # 트랜스포머: 인코더가 src을 다루고, 디코더가 src에 어텐션을 주며 물음을 다룬다
         hs = self.transformer(src=src, tgt=query)  # (T, B, C)
 
         # 배치를 앞에 두도록 바꾼다: (B, T, C)

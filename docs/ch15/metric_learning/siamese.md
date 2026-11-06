@@ -74,7 +74,7 @@ $$s(x_1, x_2) = g(|z_1 - z_2|)$$
                 input_channels: 입력 채널 수(흑백이면 1)
                 input_size: 입력 그림 크기(정사각 그림으로 놓는다)
                 hidden_dim: 컨볼루션 거르개의 바탕 개수
-                embedding_dim: 마지막 묻힘 차원
+                embedding_dim: 마지막 임베딩 차원
             """
             super().__init__()
 
@@ -89,7 +89,7 @@ $$s(x_1, x_2) = g(|z_1 - z_2|)$$
                 input_channels, input_size
             )
 
-            # 묻힘으로 가는 온연결 레이어
+            # 임베딩으로 가는 온연결 레이어
             self.fc = nn.Linear(self._conv_output_size, embedding_dim)
 
         def _get_conv_output_size(self, channels: int, size: int) -> int:
@@ -116,7 +116,7 @@ $$s(x_1, x_2) = g(|z_1 - z_2|)$$
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
             """
-            입력의 묻힘을 셈한다.
+            입력의 임베딩을 셈한다.
 
             인수:
                 x: 입력 그림 (batch, channels, height, width)
@@ -159,7 +159,7 @@ ResNet 인코더는 기본 RGB 입력과 사전 학습 웨이트에 맞는 전�
             # 마지막 가려내기 레이어를 없앤다
             self.backbone = nn.Sequential(*list(resnet.children())[:-1])
 
-            # 묻힘 공간으로 쏘아 넣는 머리
+            # 임베딩 공간으로 쏘아 넣는 머리
             self.projection = nn.Sequential(
                 nn.Linear(512, embedding_dim),
                 nn.BatchNorm1d(embedding_dim),
@@ -170,12 +170,12 @@ ResNet 인코더는 기본 RGB 입력과 사전 학습 웨이트에 맞는 전�
             self.embedding_dim = embedding_dim
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
-            """묻힘을 셈한다."""
+            """임베딩을 셈한다."""
             features = self.backbone(x)
             features = features.view(features.size(0), -1)
             embeddings = self.projection(features)
 
-            # 묻힘을 L2로 고른다
+            # 임베딩을 L2로 고른다
             embeddings = F.normalize(embeddings, p=2, dim=1)
 
             return embeddings
@@ -197,7 +197,7 @@ use_distance=True이면 유클리드 거리를 반환하고 False이면 절댓�
         """
         닮음 학습을 위한 온전한 샴 망.
 
-        배운 묻힘을 견주어 두 입력이
+        배운 임베딩을 견주어 두 입력이
         같은 부류에 드는지를 셈한다.
         """
 
@@ -322,8 +322,8 @@ $$\mathcal{L}(z_1, z_2, y) = (1-y) \cdot \frac{1}{2} d^2 + y \cdot \frac{1}{2} \
             대조 로스를 셈한다.
 
             인수:
-                z1: 첫 묻힘 (batch, embed_dim)
-                z2: 둘째 묻힘 (batch, embed_dim)
+                z1: 첫 임베딩 (batch, embed_dim)
+                z2: 둘째 임베딩 (batch, embed_dim)
                 y: 이름표 - 닮으면 0, 닮지 않으면 1
 
             반환값:
@@ -828,7 +828,7 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
             negative: torch.Tensor
         ):
             """
-            세쌍의 묻힘을 셈한다.
+            세쌍의 임베딩을 셈한다.
             """
             z_a = self.encoder(anchor)
             z_p = self.encoder(positive)

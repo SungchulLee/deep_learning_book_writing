@@ -770,7 +770,7 @@ update와 credible_interval의 입력 조건은 무엇인가?
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-아래 뉴럴 넷트웍 시험 대신 순차 샘플러의 검증 기준을 제시하라.
+아래 뉴럴 네트워크 시험 대신 순차 샘플러의 검증 기준을 제시하라.
 
 </div>
 

@@ -89,7 +89,7 @@ class DDPMSampler:
         파라메터
         ----------
         model : nn.Module
-            익힌 잡음 헤아리기 뉴럴 넷트웍 ε_θ(x_t, t) 또는
+            익힌 잡음 헤아리기 뉴럴 네트워크 ε_θ(x_t, t) 또는
             조건 있는 모델의 ε_θ(x_t, t, c).
         n_timesteps : int
             확산 스텝 수 T.

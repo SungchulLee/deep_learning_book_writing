@@ -25,7 +25,7 @@ from typing import Tuple, List
 
 def weights_init(m):
     """
-    DCGAN 논문의 권고를 따라 뉴럴 넷트웍 무게를 첫자리매김한다.
+    DCGAN 논문의 권고를 따라 뉴럴 네트워크 무게를 첫자리매김한다.
     
     Conv와 ConvTranspose 레이어: 평균=0, 표준편차=0.02
     배치 정규화 레이어: 무게=1, 치우침=0
@@ -44,7 +44,7 @@ def save_samples(generator: nn.Module, epoch: int, device: str,
     생성기에서 보기 그림을 만들어 갈무리한다.
     
     인수:
-        generator: 생성기 뉴럴 넷트웍
+        generator: 생성기 뉴럴 네트워크
         epoch: 현재 에포크 번호
         device: 돌릴 장치
         fixed_noise: 한결같은 그림을 위한 붙박이 잡음
@@ -108,9 +108,9 @@ def plot_discriminator_outputs(discriminator: nn.Module, real_data: torch.Tensor
     실제 자료와 가짜 자료에 대한 판별기 내놓기의 히스토그램을 그린다.
     
     인수:
-        discriminator: 판별기 뉴럴 넷트웍
+        discriminator: 판별기 뉴럴 네트워크
         real_data: 실제 자료 표본
-        generator: 생성기 뉴럴 넷트웍
+        generator: 생성기 뉴럴 네트워크
         noise: 가짜 표본을 만들 잡음
         device: 돌릴 장치
         filename: 내놓을 파일 이름
@@ -152,7 +152,7 @@ def interpolate_latent(generator: nn.Module, z1: torch.Tensor, z2: torch.Tensor,
     숨은 벡터 둘 사이를 메워 만든다.
     
     인수:
-        generator: 생성기 뉴럴 넷트웍
+        generator: 생성기 뉴럴 네트워크
         z1: 첫째 숨은 벡터
         z2: 둘째 숨은 벡터
         steps: 사이 메우기 스텝 수
@@ -198,7 +198,7 @@ def generate_latent_grid(generator: nn.Module, latent_dim: int = 100,
     숨은 차원 둘을 바꾸어 표본 격자를 만든다.
     
     인수:
-        generator: 생성기 뉴럴 넷트웍
+        generator: 생성기 뉴럴 네트워크
         latent_dim: 숨은 공간의 차원
         grid_size: 격자의 크기(grid_size x grid_size)
         device: 돌릴 장치
@@ -344,7 +344,7 @@ def calculate_gradient_penalty(discriminator: nn.Module, real_data: torch.Tensor
     WGAN-GP의 그래디언트 벌점을 셈한다.
     
     인수:
-        discriminator: 판별기 뉴럴 넷트웍
+        discriminator: 판별기 뉴럴 네트워크
         real_data: 실제 자료 표본
         fake_data: 만든 가짜 표본
         device: 돌릴 장치
@@ -390,8 +390,8 @@ def save_checkpoint(generator: nn.Module, discriminator: nn.Module,
     모델 되짚기 지점을 갈무리한다.
     
     인수:
-        generator: 생성기 뉴럴 넷트웍
-        discriminator: 판별기 뉴럴 넷트웍
+        generator: 생성기 뉴럴 네트워크
+        discriminator: 판별기 뉴럴 네트워크
         g_optimizer: 생성기 가장 좋게 하개
         d_optimizer: 판별기 가장 좋게 하개
         epoch: 현재 에포크
@@ -413,8 +413,8 @@ def load_checkpoint(generator: nn.Module, discriminator: nn.Module,
     모델 되짚기 지점을 불러온다.
     
     인수:
-        generator: 생성기 뉴럴 넷트웍
-        discriminator: 판별기 뉴럴 넷트웍
+        generator: 생성기 뉴럴 네트워크
+        discriminator: 판별기 뉴럴 네트워크
         g_optimizer: 생성기 가장 좋게 하개
         d_optimizer: 판별기 가장 좋게 하개
         filename: 되짚을 자리 파일 이름

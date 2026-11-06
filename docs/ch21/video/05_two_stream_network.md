@@ -9,13 +9,13 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
     ```python
     """
     영상 이해 — 가운데 수준
-    파일 05: 두 클래스 넷트웍 — 자리 클래스와 때 클래스 녹여 붙이기
+    파일 05: 두 클래스 네트워크 — 자리 클래스와 때 클래스 녹여 붙이기
 
     이 파일은 몸짓 알아보기를 위한 두 클래스 구조를 다룬다:
     - 겉모습 앎을 위한 자리 클래스(RGB 틀)
     - 액션 앎을 위한 때 클래스(빛 흐름)
     - 늦은 녹여 붙이기 전략
-    - 처음의 두 클래스 컨볼루션 뉴럴 넷트웍 짜기
+    - 처음의 두 클래스 컨볼루션 뉴럴 네트워크 짜기
 
     수학적 바탕:
     두 클래스 구조:
@@ -54,14 +54,14 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
     class SpatialStream(nn.Module):
         """
-        겉모습 앎을 위한 자리 클래스 컨볼루션 뉴럴 넷트웍.
+        겉모습 앎을 위한 자리 클래스 컨볼루션 뉴럴 네트워크.
 
         RGB 틀 하나를 다뤄 다음을 담아낸다:
         - 물체가 무엇인지
         - 장면의 앎
         - 자세와 겉모습
 
-        보통의 2차원 컨볼루션 뉴럴 넷트웍(보기로 ResNet, VGG)을 쓴다
+        보통의 2차원 컨볼루션 뉴럴 네트워크(보기로 ResNet, VGG)을 쓴다
         """
 
         def __init__(self, 
@@ -133,7 +133,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
     class TemporalStream(nn.Module):
         """
-        액션 앎을 위한 때 클래스 컨볼루션 뉴럴 넷트웍.
+        액션 앎을 위한 때 클래스 컨볼루션 뉴럴 네트워크.
 
         빛 흐름을 다뤄 다음을 담아낸다:
         - 액션 무늬
@@ -204,7 +204,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
             반환값:
                 클래스 점수 (B, num_classes)
             """
-            # 넷트웍에 통과시키기
+            # 네트워크에 통과시키기
             x = self.conv1(flow)
             x = self.bn1(x)
             x = self.relu(x)
@@ -230,7 +230,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
     class TwoStreamNetwork(nn.Module):
         """
-        녹여 붙이기를 갖춘 온전한 두 클래스 넷트웍.
+        녹여 붙이기를 갖춘 온전한 두 클래스 네트워크.
 
         몸짓 알아보기를 위해 자리 클래스와 때 클래스를 아우른다.
 
@@ -245,7 +245,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                      flow_length: int = 10,
                      fusion_type: str = 'average'):
             """
-            두 클래스 넷트웍을 첫자리매김한다.
+            두 클래스 네트워크를 첫자리매김한다.
 
             인수:
                 num_classes: 몸짓 클래스의 개수
@@ -267,7 +267,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
             if fusion_type == 'weighted':
                 self.fusion_weight = nn.Parameter(torch.tensor(0.5))
 
-            # 배운 녹여 붙이기 넷트웍
+            # 배운 녹여 붙이기 네트워크
             elif fusion_type == 'learned':
                 self.fusion_net = nn.Sequential(
                     nn.Linear(num_classes * 2, 512),
@@ -281,7 +281,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                     flow: torch.Tensor,
                     return_separate: bool = False) -> torch.Tensor:
             """
-            두 클래스 넷트웍을 지나는 피드포워드.
+            두 클래스 네트워크를 지나는 피드포워드.
 
             인수:
                 rgb: RGB 틀 (B, 3, H, W) 또는 (B, T, 3, H, W)
@@ -427,7 +427,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
     def demonstrate_two_stream():
         """
-        두 클래스 넷트웍 구조와 녹여 붙이기를 보여 준다.
+        두 클래스 네트워크 구조와 녹여 붙이기를 보여 준다.
         """
         print("\n" + "="*80)
         print("TWO-STREAM NETWORK DEMONSTRATION")
@@ -521,19 +521,19 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
         4. 성능에서 얻은 눈썰미:
            - 두 클래스 >> RGB 한 클래스(지난 결과들)
            - 몸짓 알아보기에서 정확도 약 10~15% 나아짐
-           - 때 클래스는 컨볼루션 뉴럴 넷트웍이 틀 하나에서 얻지 못하는 것을 담아낸다
+           - 때 클래스는 컨볼루션 뉴럴 네트워크가 틀 하나에서 얻지 못하는 것을 담아낸다
 
         5. 실전에서 헤아릴 점:
            - 빛 흐름은 셈하기에 값이 비싸다
            - 흐름을 미리 셈해 두어야 한다
            - 모델 둘 → 파라메터와 셈이 2배
-           - 요즘의 대안: 3차원 컨볼루션 뉴럴 넷트웍, 영상 변환기
+           - 요즘의 대안: 3차원 컨볼루션 뉴럴 네트워크, 영상 트랜스포머
         """)
 
 
     def main():
         """
-        두 클래스 넷트웍의 주된 보임.
+        두 클래스 네트워크의 주된 보임.
         """
         print(__doc__)
 

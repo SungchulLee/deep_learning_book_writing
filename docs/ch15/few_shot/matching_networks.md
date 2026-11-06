@@ -73,7 +73,7 @@ class MatchingNetwork(nn.Module):
     코사인 닮음 주의를 쓰는 맞춤 망.
     
     모델은 받침 집합 위의 주의 무게를 셈하여 물음을 가려내며,
-    주의는 묻힘 사이의 코사인 닮음을 바탕으로 한다.
+    주의는 임베딩 사이의 코사인 닮음을 바탕으로 한다.
     """
     def __init__(self, encoder, use_full_context_embeddings=False):
         super(MatchingNetwork, self).__init__()
@@ -94,7 +94,7 @@ class MatchingNetwork(nn.Module):
         support_embeddings = self.encoder(support)
         query_embeddings = self.encoder(query)
         
-        # 코사인 닮음을 위해 묻힘을 고른다
+        # 코사인 닮음을 위해 임베딩을 고른다
         support_embeddings = F.normalize(support_embeddings, p=2, dim=1)
         query_embeddings = F.normalize(query_embeddings, p=2, dim=1)
         
@@ -126,7 +126,7 @@ class MatchingNetwork(nn.Module):
 
 def cosine_distance(x, y):
     """
-    두 묻힘 집합 사이의 코사인 거리를 셈한다.
+    두 임베딩 집합 사이의 코사인 거리를 셈한다.
     """
     # 정규화
     x = F.normalize(x, p=2, dim=1)

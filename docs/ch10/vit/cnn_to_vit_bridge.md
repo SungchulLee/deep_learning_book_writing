@@ -28,7 +28,7 @@ $$\mathbf{y}_{i,j}^{(l)} = \alpha_{i,j}^{(l)} \odot f\left(\sum_{c}\sum_{p,q} W_
 
 배율은 채널 또는 공간 위치에 따라 입력에서 계산한다. SE처럼 전역 평균을 이용하면 배율 경로는 전체 피처 맵에 의존한다. 따라서 최종 출력까지 순수하게 국소적인 연산이라고 할 수 없으며, 국소 피처 계산과 전역 배율 계산을 구분해야 한다.
 
-### 3단계: 비국소 뉴럴 넷트웍
+### 3단계: 비국소 뉴럴 네트워크
 
 [비국소 연산](non_local.md)은 공간 전체에 걸친 의존 관계를 붙잡는다.
 
@@ -326,7 +326,7 @@ if __name__ == "__main__":
 
 - [리셉티브 필드](../cnn/receptive_field.md) — 이 절 3절과 6절이 쓰는 점화식의 출처
 - [Squeeze-and-Excitation](squeeze_excitation.md) — 2단계의 채널 어텐션
-- [비국소 뉴럴 넷트웍](non_local.md) — 3단계의 공간 어텐션
+- [비국소 뉴럴 네트워크](non_local.md) — 3단계의 공간 어텐션
 - [항등 사상](../residual/identity_mapping.md) — 5단계 ViT 블록의 잔차 구조와 같은 꼴
 - [ViT](../../appendix/vit/vision_transformer_vit.md) — 5단계의 온전한 구현
 - [Swin Transformer](../../appendix/vit/swin_transformer.md) — 피라미드 구조

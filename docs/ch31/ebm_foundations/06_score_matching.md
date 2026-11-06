@@ -78,7 +78,7 @@ torch.manual_seed(42)
 
 
 class EnergyNetwork(nn.Module):
-    """점수 맞추기를 위해 에너지를 내놓는 뉴럴 넷트웍."""
+    """점수 맞추기를 위해 에너지를 내놓는 뉴럴 네트워크."""
     
     def __init__(self, input_dim=2, hidden_dim=128):
         super().__init__()
@@ -181,7 +181,7 @@ def train_score_matching_2d():
     data = torch.stack(samples)
     print(f"Generated {n_samples} samples from 3-component mixture")
     
-    # 에너지 뉴럴 넷트웍을 만든다
+    # 에너지 뉴럴 네트워크를 만든다
     energy_net = EnergyNetwork(input_dim=2, hidden_dim=64)
     optimizer = torch.optim.Adam(energy_net.parameters(), lr=0.001)
     

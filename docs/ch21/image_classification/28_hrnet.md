@@ -7,9 +7,9 @@ HRNet은 비교적 높은 해상도의 피처 경로를 유지하면서 여러 �
 ```python
 #!/usr/bin/env python3
 '''
-HRNet — 높은 해상도 넷트웍
+HRNet — 높은 해상도 네트워크
 논문: "Deep High-Resolution Representation Learning" (2019)
-핵심: 넷트웍 전체에서 높은 해상도 나타냄을 지킨다
+핵심: 네트워크 전체에서 높은 해상도 나타냄을 지킨다
 '''
 import torch
 import torch.nn as nn

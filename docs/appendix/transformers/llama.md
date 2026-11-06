@@ -13,7 +13,7 @@ LLaMA - 메타 AI의 큰 말 모형
 글: "LLaMA: 열려 있고 잘 드는 밑바탕 말 모형" (2023)
 지은이: 메타 AI
 핵심 깨침(크게 보아):
-  - 디코더만 있는 변환기(GPT 결)
+  - 디코더만 있는 트랜스포머(GPT 결)
   - 켜 잣대 잡기 대신 RMSNorm
   - SwiGLU 피드포워드
   - 배운 붙박이 자리 대신 도는 자리 담기(RoPE)
@@ -111,7 +111,7 @@ class CausalSelfAttention(nn.Module):
 
 class LLaMABlock(nn.Module):
     """
-    LLaMA 결의 변환기 덩이 하나(단순하게 만듦):
+    LLaMA 결의 트랜스포머 덩이 하나(단순하게 만듦):
       - RMSNorm
       - 앞만 보는 셀프 어텐션
       - RMSNorm

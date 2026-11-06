@@ -54,7 +54,7 @@ class ReplayBuffer:
 
 
 # ---------------------------------------------------------------------------
-# 넷트웍
+# 네트워크
 # ---------------------------------------------------------------------------
 
 class SquashedGaussianActor(nn.Module):
@@ -102,7 +102,7 @@ class SquashedGaussianActor(nn.Module):
 
 
 class TwinQCritic(nn.Module):
-    """SAC를 위한 쌍둥이 Q 넷트웍."""
+    """SAC를 위한 쌍둥이 Q 네트워크."""
     
     def __init__(self, obs_dim, act_dim, hidden=256):
         super().__init__()
@@ -135,7 +135,7 @@ class SAC:
     env : gym.Env
         이어진 액션 둘레.
     lr : float
-        온 넷트웍의 러닝레이트.
+        온 네트워크의 러닝레이트.
     gamma : float
         깎기 인자.
     tau : float

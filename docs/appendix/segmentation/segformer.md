@@ -10,9 +10,9 @@ SegFormer은 2021년 글 "SegFormer: Simple and Efficient Design for Semantic Se
 #!/usr/bin/env python3
 """
 SegFormer - 뜻 나누기를 위한 단순하고 잘 드는 꾸밈
-글: "SegFormer: 변환기로 뜻 나누기를 하는 단순하고 잘 드는 꾸밈" (2021)
+글: "SegFormer: 트랜스포머로 뜻 나누기를 하는 단순하고 잘 드는 꾸밈" (2021)
 지은이: 언쩌 셰 외
-핵심: 변환기 바탕 인코더에 가벼운 MLP 디코더를 붙였고,
+핵심: 트랜스포머 바탕 인코더에 가벼운 MLP 디코더를 붙였고,
 디코더에는 자리 담기도 컨볼루션도 없다.
 """
 
@@ -39,7 +39,7 @@ class SegFormer(nn.Module):
     """
     단순하게 만든 SegFormer 결의 모형(배우기 위한 클래스)
 
-    - 변환기 꼴 인코더를 컨볼루션 켜로 흉내 낸다
+    - 트랜스포머 꼴 인코더를 컨볼루션 켜로 흉내 낸다
     - 가벼운 MLP 디코더
     - 부록이나 깨침을 잡는 데 알맞다
     """

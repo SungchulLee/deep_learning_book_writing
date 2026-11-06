@@ -176,7 +176,7 @@
             super().__init__()
             self.in_conv = nn.Conv2d(in_ch, base_ch, 3, padding=1)
 
-            # 때 임베딩 여러 레이어 뉴럴 넷트웍
+            # 때 임베딩 여러 레이어 뉴럴 네트워크
             self.time_sinus = SinusoidalPosEmb(time_emb_dim)
             self.time_mlp = nn.Sequential(
                 nn.Linear(time_emb_dim, time_emb_dim * 4),

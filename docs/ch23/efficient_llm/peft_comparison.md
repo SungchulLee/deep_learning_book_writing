@@ -320,7 +320,7 @@ class PrefixTuning(nn.Module):
     앞가지 다듬기: 들임 앞에 붙는 이어진 시킴말을 배운다.
     
     따로 떨어진 시킴말 토막 대신, 어텐션 레이어마다 열쇠-값 짝 앞에 붙는
-    이어진 묻힘을 배운다.
+    이어진 임베딩을 배운다.
     """
     
     def __init__(
@@ -339,7 +339,7 @@ class PrefixTuning(nn.Module):
         # 전체 크기: 레이어 수 * 2(열쇠 + 값) * 머리 수 * 머리 차원
         prefix_size = num_layers * 2 * num_heads * head_dim
         
-        # 배울 수 있는 앞가지 묻힘
+        # 배울 수 있는 앞가지 임베딩
         self.prefix_embedding = nn.Embedding(prefix_length, hidden_dim)
         
         # 온전한 앞가지 크기로 쏘는 여러 레이어 인식개(안정을 위해)
@@ -442,7 +442,7 @@ class Adapter(nn.Module):
     """
     맞춤개 모듈: 내림 쏘기 → 비선형 → 올림 쏘기 + 남는 이음.
     
-    어텐션이나 피드포워드 넷트웍 밑레이어 뒤에 끼운다.
+    어텐션이나 피드포워드 네트워크 밑레이어 뒤에 끼운다.
     """
     
     def __init__(
@@ -473,10 +473,10 @@ class Adapter(nn.Module):
 
 class AdapterTransformerBlock(nn.Module):
     """
-    맞춤개를 끼운 변환기 덩이.
+    맞춤개를 끼운 트랜스포머 덩이.
     
     구조:
-        x → 어텐션 → 맞춤개 → 레이어 고르게 맞추기 → 피드포워드 넷트웍 → 맞춤개 → 레이어 고르게 맞추기 → 내놓기
+        x → 어텐션 → 맞춤개 → 레이어 고르게 맞추기 → 피드포워드 네트워크 → 맞춤개 → 레이어 고르게 맞추기 → 내놓기
     """
     
     def __init__(
@@ -495,7 +495,7 @@ class AdapterTransformerBlock(nn.Module):
         # 덩이에서 숨은 크기를 알아낸다
         hidden_size = self._get_hidden_size(original_block)
         
-        # 어텐션과 피드포워드 넷트웍 뒤에 맞춤개를 더한다
+        # 어텐션과 피드포워드 네트워크 뒤에 맞춤개를 더한다
         self.adapter_attn = Adapter(hidden_size, bottleneck_size)
         self.adapter_ffn = Adapter(hidden_size, bottleneck_size)
     
@@ -508,7 +508,7 @@ class AdapterTransformerBlock(nn.Module):
     
     def forward(self, hidden_states: torch.Tensor, **kwargs):
         # 이는 간추린 판이며, 실제 짜기는
-        # 쓰는 변환기 구조에 따라 다르다
+        # 쓰는 트랜스포머 구조에 따라 다르다
         
         # 어텐션
         attn_output = self.original.attention(hidden_states, **kwargs)
@@ -519,7 +519,7 @@ class AdapterTransformerBlock(nn.Module):
         hidden_states = hidden_states + attn_output
         hidden_states = self.original.ln_1(hidden_states)
         
-        # 순전파 뉴럴 넷트웍
+        # 순전파 뉴럴 네트워크
         ffn_output = self.original.mlp(hidden_states)
         ffn_output = self.adapter_ffn(ffn_output)  # 맞춤개를 적용한다
         
@@ -529,7 +529,7 @@ class AdapterTransformerBlock(nn.Module):
         return hidden_states
 
 def add_adapters(model: nn.Module, bottleneck_size: int = 64) -> nn.Module:
-    """모든 변환기 덩이에 맞춤개를 더한다."""
+    """모든 트랜스포머 덩이에 맞춤개를 더한다."""
     # 짜기는 모델 구조에 따라 다르다
     # 이는 두루 쓰는 방식의 본이다
     pass

@@ -7,7 +7,7 @@ Squeeze-and-Excitation(SE)는 공간 피처를 채널별 통계로 요약하고 
 ```python
 #!/usr/bin/env python3
 '''
-SENet — 쥐어짜기-북돋우기 넷트웍
+SENet — 쥐어짜기-북돋우기 네트워크
 논문: "Squeeze-and-Excitation Networks" (2018)
 ILSVRC 2017에서 우승
 핵심: 채널 어텐션 구조로 채널마다의 피처를 다시 매긴다

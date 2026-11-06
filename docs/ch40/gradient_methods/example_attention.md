@@ -2,15 +2,15 @@
 
 쓰는 보기: 트랜스포머의 어텐션 그림 그리기. 이 글은 트랜스포머 모델의 어텐션 피처를 그리는 법을 보인다.
 
-뉴럴 넷트웍이 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 재주를 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
+뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 재주를 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
 
 ## 1. 코드
 
 ```python
 """
-쓰는 보기: 변환기의 어텐션 그림 그리기
+쓰는 보기: 트랜스포머의 어텐션 그림 그리기
 
-이 글은 변환기 모형의 어텐션 결을 그리는 법을 보인다.
+이 글은 트랜스포머 모형의 어텐션 결을 그리는 법을 보인다.
 """
 
 import torch
@@ -23,8 +23,8 @@ import warnings
 
 # --- attention_visualization ---
 """
-변환기 모형을 위한 어텐션 그림 그리기
-변환기 얼개의 제 어텐션 결을 그린다
+트랜스포머 모형을 위한 어텐션 그림 그리기
+트랜스포머 얼개의 제 어텐션 결을 그린다
 """
 
 
@@ -35,7 +35,7 @@ import warnings
 
 class AttentionVisualizer:
     """
-    변환기 모형의 어텐션 짐을 그린다.
+    트랜스포머 모형의 어텐션 짐을 그린다.
     """
 
     def __init__(self, model: nn.Module):
@@ -43,7 +43,7 @@ class AttentionVisualizer:
         어텐션 그리개의 첫자리를 잡는다.
 
         Args:
-            model: 변환기 모형(보기로 BERT, GPT, ViT)
+            model: 트랜스포머 모형(보기로 BERT, GPT, ViT)
         """
         self.model = model
         self.attention_maps = {}
@@ -668,7 +668,7 @@ if __name__ == "__main__":
         example_bert_attention()
         example_gpt2_attention()
     except Exception as e:
-        print(f"\n변환기 보기를 건너뛴다: {e}")
+        print(f"\n트랜스포머 보기를 건너뛴다: {e}")
         print("transformers을 이렇게 깐다: pip install transformers")
 
     print("\n" + "=" * 60)

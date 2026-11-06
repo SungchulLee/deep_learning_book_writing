@@ -1,4 +1,4 @@
-# 비국소 뉴럴 넷트웍
+# 비국소 뉴럴 네트워크
 
 비국소(Non-local) 연산은 위치별 피처를 모든 위치의 피처와 비교해 가중 결합한다. 이 페이지는 embedded Gaussian 형태의 비국소 블록을 셀프 어텐션과 연결하고, 전체 위치 쌍의 계산·메모리 비용을 분석한다.
 
@@ -56,7 +56,7 @@ $f$과 $C(\mathbf{x})$은 짝으로 고른다. Wang 등(2018)이 견준 네 가�
 
 ### 블록의 구조
 
-비국소 **연산**을 기존 뉴럴 넷트웍에 끼워 넣을 수 있는 **블록**으로 만드는 것은 마지막의 잔차 연결이다.
+비국소 **연산**을 기존 뉴럴 네트워크에 끼워 넣을 수 있는 **블록**으로 만드는 것은 마지막의 잔차 연결이다.
 
 $$\mathbf{z}_i = W_z \mathbf{y}_i + \mathbf{x}_i$$
 
@@ -386,7 +386,7 @@ $1 \times 1$ 컨볼루션 항 $4NCd$은 풀링이 컨볼루션 **뒤**에 오므
 ## 8. 관련 주제
 
 - [Squeeze-and-Excitation](squeeze_excitation.md) — 같은 절의 짝. 채널에 문을 달아 $N$에 이차인 값을 치르지 않는 쪽
-- [컨볼루션 뉴럴 넷트웍에서 트랜스포머로](cnn_to_vit_bridge.md) — 비국소 블록이 순수 CNN과 ViT 사이의 어느 단계인지
+- [컨볼루션 뉴럴 네트워크에서 트랜스포머로](cnn_to_vit_bridge.md) — 비국소 블록이 순수 CNN과 ViT 사이의 어느 단계인지
 - [셀프 어텐션](../../ch11/attention/self_attention.md) — embedded Gaussian 형태의 비국소 연산이 곧 이것이다
 - [스케일 내적 어텐션](../../ch12/transformer_architecture/scaled_dot_product.md) — 2절의 경고가 가리키는 차이
 - [ViT 개요](../../ch12/transformers_vision/vit.md) — 컨볼루션을 다 걷어 내고 어텐션만 남기면 어디에 닿는지

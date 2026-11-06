@@ -24,7 +24,7 @@ import math
 
 class PositionalEncoding(nn.Module):
     """
-    묻힘에 자리 정보를 더한다.
+    임베딩에 자리 정보를 더한다.
     """
     def __init__(self, d_model, max_len=100):
         super(PositionalEncoding, self).__init__()
@@ -55,7 +55,7 @@ class TransformerFewShotClassifier(nn.Module):
     def __init__(self, input_dim, d_model=128, nhead=4, num_layers=2, dim_feedforward=512):
         super(TransformerFewShotClassifier, self).__init__()
         
-        # 입력 묻힘
+        # 입력 임베딩
         self.input_projection = nn.Linear(input_dim, d_model)
         
         # 위치 인코딩
@@ -150,7 +150,7 @@ class SetTransformer(nn.Module):
             x: (batch_size, set_size, input_dim)
         
         반환값:
-            output: (batch_size, d_model) - 집합 묻힘
+            output: (batch_size, d_model) - 집합 임베딩
         """
         # 입력을 쏘아 넣는다
         x = self.input_proj(x)  # (batch_size, set_size, d_model)
@@ -193,7 +193,7 @@ class MultiheadAttentionBlock(nn.Module):
         attn_out, _ = self.attention(query, key_value, key_value)
         query = self.layer_norm(query + attn_out)
         
-        # 순전파 뉴럴 넷트웍
+        # 순전파 뉴럴 네트워크
         ffn_out = self.ffn(query)
         query = self.layer_norm2(query + ffn_out)
         

@@ -17,13 +17,13 @@
 ### 31.2 자기회귀 방법
 
 - [차례로 하는 그래프 생성](autoregressive/sequential.md) -- 표준 차례와 확률의 사슬 규칙으로 그래프 분포를 자기회귀로 인수 분해하기
-- [GraphRNN](autoregressive/graphrnn.md) -- 노드와 엣지를 차례로 만드는 그래프 켜와 엣지 켜의 회귀를 가진 켜진 순환 뉴럴 넷트웍 구조
-- [GRAN](autoregressive/gran.md) -- 커질 수 있는 자기회귀 만들기를 위해 그래프 뉴럴 넷트웍 기초 어텐션을 쓰는 덩이 단위 그래프 생성
+- [GraphRNN](autoregressive/graphrnn.md) -- 노드와 엣지를 차례로 만드는 그래프 켜와 엣지 켜의 회귀를 가진 켜진 순환 뉴럴 네트워크 구조
+- [GRAN](autoregressive/gran.md) -- 커질 수 있는 자기회귀 만들기를 위해 그래프 뉴럴 네트워크 기초 어텐션을 쓰는 덩이 단위 그래프 생성
 
 ### 31.3 한 번에 만들기 방법
 
 - [한 번에 인접 행렬 만들기](one_shot/adjacency.md) -- 이어진 값으로 느슨히 하기와 자리바꿈에 안 바뀜으로 한 번의 앞으로 가기에 인접 행렬 전체를 내놓기
-- [GraphVAE](one_shot/graphvae.md) -- 그래프 뉴럴 넷트웍 인코더, 확률 디코더, 그래프 짝짓기 로스를 가진 그래프용 변분 오토인코더
+- [GraphVAE](one_shot/graphvae.md) -- 그래프 뉴럴 네트워크 인코더, 확률 디코더, 그래프 짝짓기 로스를 가진 그래프용 변분 오토인코더
 - [GraphGAN](one_shot/graphgan.md) -- 숨은 밀도 나타내기와 띄엄띄엄하게 하기 셈속을 쓰는 적대적 그래프 생성
 
 ### 31.4 확산 기반 방법

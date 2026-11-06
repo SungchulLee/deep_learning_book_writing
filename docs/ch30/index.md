@@ -15,7 +15,7 @@
 | 랑주뱅 동역학 | [기본 예제](score_based/03_langevin_dynamics.md), [간단한 구현](score_based/03_langevin_dynamics_2.md) |
 | DSM | [고정 노이즈 학습](score_based/04_denoising_score_matching.md), [배치 학습](score_based/04_implementing_dsm_practical.md) |
 | SSM | [방향 미분 예제](score_based/05_sliced_score_matching.md), [분산과 구현](score_based/05_sliced_score_matching_2.md) |
-| 조건부 뉴럴 넷트웍 | [시간·노이즈 임베딩](score_based/06_score_network_architectures.md), [잔차 구조](score_based/06_score_networks.md) |
+| 조건부 뉴럴 네트워크 | [시간·노이즈 임베딩](score_based/06_score_network_architectures.md), [잔차 구조](score_based/06_score_networks.md) |
 | 여러 노이즈 수준 | [NCSN 예제](score_based/07_noise_conditional_scores.md), [다중 수준 구현](score_based/07_noise_conditional_scores_2.md) |
 | 연속시간 | [스코어 SDE](score_based/08_score_sde.md), [SDE 프레임워크](score_based/08_score_sde_framework.md) |
 | 이미지 예제 | [노이즈 예측 CNN](score_based/09_image_generation.md), [U-Net 골격](score_based/09_image_generation_unet.md) |

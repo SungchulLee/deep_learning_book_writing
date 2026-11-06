@@ -7,7 +7,7 @@
 ```python
 #!/usr/bin/env python3
 '''
-CapsNet - 꼬투리 넷트웍
+CapsNet - 꼬투리 네트워크
 논문: "Dynamic Routing Between Capsules" (2017)
 핵심: 벡터를 내놓는 꼬투리와 움직이는 길 잡기
 '''

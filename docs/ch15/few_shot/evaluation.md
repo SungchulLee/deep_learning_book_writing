@@ -422,7 +422,7 @@ if __name__ == "__main__":
 
 참고: Snell 외, "Prototypical Networks for Few-shot Learning" (2017)
 
-핵심 생각: 받침 보기의 묻힘을 평균 내어 부류마다 원형 표현을 셈한 다음,
+핵심 생각: 받침 보기의 임베딩을 평균 내어 부류마다 원형 표현을 셈한 다음,
 그 원형까지의 거리를 바탕으로
 물음을 가려낸다.
 """
@@ -505,7 +505,7 @@ class PrototypicalNetwork(nn.Module):
     
     def _compute_prototypes(self, embeddings, labels, n_classes):
         """
-        받침 묻힘의 평균으로 부류마다 원형을 셈한다.
+        받침 임베딩의 평균으로 부류마다 원형을 셈한다.
         """
         prototypes = []
         for c in range(n_classes):

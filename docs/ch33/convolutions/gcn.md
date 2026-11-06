@@ -1,4 +1,4 @@
-# 그래프 컨볼루션 뉴럴 넷트웍(GCN)
+# 그래프 컨볼루션 뉴럴 네트워크(GCN)
 
 [GCN](https://arxiv.org/abs/1609.02907)은 자기 피처와 이웃 피처를 차수로 정규화해 결합한다. 이 코드는 노드별 선형 투영, 엣지별 가중 메시지와 수신 노드 합산을 직접 구현한다. 수식의 대칭 무방향 그래프 가정과 실제 edge_index의 방향·중복 처리를 맞추어 읽어야 한다.
 
@@ -6,7 +6,7 @@
 
 ```python
 """
-29.3.4: 그림 컨볼루션 넷트웍(GCN)
+29.3.4: 그림 컨볼루션 네트워크(GCN)
 Kipf & Welling(2017)을 맨바닥부터 짜기.
 """
 
@@ -171,7 +171,7 @@ def demo_gcn_normalization_effect():
 
 
 def demo_gcn_financial():
-    """업종을 헤아리는 금융 넷트웍 위의 GCN."""
+    """업종을 헤아리는 금융 네트워크 위의 GCN."""
     print("\n" + "=" * 60)
     print("GCN: Financial Sector Prediction")
     print("=" * 60)

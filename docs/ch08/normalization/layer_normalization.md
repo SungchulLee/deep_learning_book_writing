@@ -74,7 +74,7 @@ class LayerNormNumPy:
         
         # 배율 조정과 이동.
         # 정규화가 평균 0, 분산 1을 강요하는데 그것이 늘 좋은 것은
-        # 아니므로, 뉴럴 넷트웍이 그 제약을 되돌릴 수 있게 손잡이를 준다.
+        # 아니므로, 뉴럴 네트워크가 그 제약을 되돌릴 수 있게 손잡이를 준다.
         # gamma=1, beta=0에서 시작해 필요한 만큼만 배우며,
         # 극단적으로는 원래 분포를 그대로 되살릴 수도 있다.
         # RMSNorm에 beta가 없는 것은 애초에 평균을 빼지 않아
@@ -100,7 +100,7 @@ class RNNWithLayerNorm(nn.Module):
         self.W_hh = nn.Linear(hidden_size, hidden_size, bias=False)
         
         # 레이어 정규화.
-        # 순환 뉴럴 넷트웍이 레이어 정규화가 태어난 자리다. 배치 정규화를 여기
+        # 순환 뉴럴 네트워크가 레이어 정규화가 태어난 자리다. 배치 정규화를 여기
         # 쓰려면 시각마다 따로 통계를 두어야 하는데, 길이가 다른 계열이
         # 섞이면 감당이 되지 않는다. 레이어 정규화는 시각마다 그 표본
         # 하나만 보므로 그런 문제가 없다.
@@ -134,7 +134,7 @@ class RNNWithLayerNorm(nn.Module):
             hidden = self.W_ih(x_t) + self.W_hh(hidden)
             
             # 레이어 정규화 적용.
-            # 활성화 앞이라는 자리가 중요하다. 순환 뉴럴 넷트웍은 같은
+            # 활성화 앞이라는 자리가 중요하다. 순환 뉴럴 네트워크는 같은
             # 웨이트를 시각마다 되풀이해 곱하므로 은닉 상태의 크기가
             # 계열이 길어질수록 부풀거나 사그라들기 쉬운데, 매 시각
             # 크기를 다시 맞추어 주면 그 폭주를 막을 수 있다
@@ -162,7 +162,7 @@ class TransformerBlockWithLayerNorm(nn.Module):
         # 다중 머리 어텐션
         self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
         
-        # 순방향 뉴럴 넷트웍
+        # 순방향 뉴럴 네트워크
         self.linear1 = nn.Linear(d_model, dim_feedforward)
         self.dropout = nn.Dropout(dropout)
         self.linear2 = nn.Linear(dim_feedforward, d_model)
@@ -188,7 +188,7 @@ class TransformerBlockWithLayerNorm(nn.Module):
         x = x + self.dropout1(x2)
         x = self.norm1(x)
         
-        # 잔차 연결과 레이어 정규화를 갖춘 순방향 뉴럴 넷트웍
+        # 잔차 연결과 레이어 정규화를 갖춘 순방향 뉴럴 네트워크
         x2 = self.linear2(self.dropout(F.relu(self.linear1(x))))
         x = x + self.dropout2(x2)
         x = self.norm2(x)
@@ -198,7 +198,7 @@ class TransformerBlockWithLayerNorm(nn.Module):
 
 class SimpleNetworkWithLayerNorm(nn.Module):
     """
-    레이어 정규화를 갖춘 간단한 순방향 뉴럴 넷트웍.
+    레이어 정규화를 갖춘 간단한 순방향 뉴럴 네트워크.
     """
     
     def __init__(self, input_size=784, hidden_size=256, num_classes=10):

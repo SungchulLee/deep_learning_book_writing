@@ -113,7 +113,7 @@ $$
    g³ = g ⊙ g ⊙ g (원소마다의 세제곱)
 5. 결 그림 k마다:
    a. 자리 합을 셈한다: sum_A = Σ_{a,b} A^k_{ab}
-   b. 그림점마다의 짐을 셈한다:
+   b. 픽셀마다의 짐을 셈한다:
       α_{ij}^{kc} = g²_{ij} / (2·g²_{ij} + sum_A · g³_{ij} + ε)
    c. 통로 짐을 셈한다:
       w_k^c = Σ_{i,j} α_{ij}^{kc} · ReLU(g_{ij}^{kc})
@@ -222,7 +222,7 @@ class GradCAMPlusPlus:
         # 곧: Σ_{a,b} A^k_{ab} · (g^k_{ab})³
         sum_Ag3 = (A * g_cubed).sum(dim=(2, 3), keepdim=True)  # [1, K, 1, 1]
 
-        # 그림점마다의 알파 짐을 셈한다
+        # 픽셀마다의 알파 짐을 셈한다
         # α_{ij}^{kc} = g² / (2·g² + Σ(A·g³) + ε)
         denominator = 2 * g_squared + sum_Ag3 + 1e-8
 
@@ -659,7 +659,7 @@ $\alpha_{ij}^{kc}$을 셈할 때의 나눗셈이 흔들릴 수 있다.
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 넷트웍에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
+이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 네트워크에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
 
 </div>
 

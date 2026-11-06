@@ -17,7 +17,7 @@ ALBERT - 가벼운 BERT
        낱말 담음 차수(E)를 숨은 차수(H)보다 작게 둔다
        담기: 낱말 -> E, 그다음 E -> H으로 되비춘다
   2) 켜를 넘나드는 파라메터 나눠 쓰기:
-       같은 변환기 켜의 짐을 모든 켜에서 되쓴다
+       같은 트랜스포머 켜의 짐을 모든 켜에서 되쓴다
   3) 월 차례 미루어 보기(SOP)(흔히 NSP과 견주어 이야기된다)
 
 두루마리: appendix/transformers/albert.py
@@ -33,7 +33,7 @@ import torch.nn as nn
 
 
 class SharedTransformerBlock(nn.Module):
-    """여러 번 되쓰려고 만든 변환기 인코더 켜 하나."""
+    """여러 번 되쓰려고 만든 트랜스포머 인코더 켜 하나."""
     def __init__(self, d_model=768, nhead=12):
         super().__init__()
         self.layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
@@ -46,7 +46,7 @@ class ALBERT(nn.Module):
     """
     다음을 갖춘 인코더만 있는 ALBERT 모형:
       - 나눈 담음
-      - 나누어 쓰는 변환기 덩이를 num_layers 번 되풀이
+      - 나누어 쓰는 트랜스포머 덩이를 num_layers 번 되풀이
     """
     def __init__(self, vocab_size=30000, embed_dim=128, hidden_dim=768, nhead=12, num_layers=12):
         super().__init__()

@@ -7,7 +7,7 @@
 ```python
 """
 비전 트랜스포머를 위한 시각화 도구
-비전 트랜스포머가 컨볼루션 뉴럴 넷트웍과 어떻게 다르게 그림을 처리하는지 이해하도록 돕는다
+비전 트랜스포머가 컨볼루션 뉴럴 네트워크와 어떻게 다르게 그림을 처리하는지 이해하도록 돕는다
 """
 
 import torch
@@ -187,11 +187,11 @@ def visualize_patch_embedding(image: torch.Tensor,
 
 def compare_receptive_fields():
     """
-    컨볼루션 뉴럴 넷트웍과 비전 트랜스포머가 받는 영역의 차이를 그려 본다.
+    컨볼루션 뉴럴 네트워크와 비전 트랜스포머가 받는 영역의 차이를 그려 본다.
     """
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     
-    # 컨볼루션 뉴럴 넷트웍이 받는 영역
+    # 컨볼루션 뉴럴 네트워크가 받는 영역
     axes[0].set_xlim(0, 10)
     axes[0].set_ylim(0, 10)
     
@@ -279,7 +279,7 @@ def visualize_positional_encoding(n_patches: int = 196, embed_dim: int = 768):
 
 def plot_training_comparison(cnn_history: dict, vit_history: dict):
     """
-    컨볼루션 뉴럴 넷트웍과 비전 트랜스포머를 견주는 학습 곡선을 그린다.
+    컨볼루션 뉴럴 네트워크와 비전 트랜스포머를 견주는 학습 곡선을 그린다.
     """
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     

@@ -56,7 +56,7 @@ class DiscreteBCQAgent:
         self.action_dim = action_dim
         self.target_freq = target_freq
 
-        # Q 넷트웍
+        # Q 네트워크
         self.online = QNetwork(state_dim, action_dim)
         self.target = QNetwork(state_dim, action_dim)
         self.target.load_state_dict(self.online.state_dict())
@@ -191,7 +191,7 @@ def demo_bcq():
         bc_losses = agent.train_behavior_model(data['states'], data['actions'], n_steps=2000)
         print(f"\n  τ={tau}: BC loss = {np.mean(bc_losses[-100:]):.4f}")
 
-        # Q 넷트웍 익히기
+        # Q 네트워크 익히기
         for step in range(5000):
             agent.train_q_step(data['states'], data['actions'], data['rewards'],
                                data['next_states'], data['dones'])

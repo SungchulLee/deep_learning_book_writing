@@ -680,7 +680,7 @@ $$\operatorname{Var}(T)=(2N-I)t-t\odot t$$
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-아래 뉴럴 넷트웍 형태 시험 조각을 흡수 사슬 분석에 적용할 수 있는가?
+아래 뉴럴 네트워크 형태 시험 조각을 흡수 사슬 분석에 적용할 수 있는가?
 
 </div>
 

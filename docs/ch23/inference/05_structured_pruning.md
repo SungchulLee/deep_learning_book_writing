@@ -31,7 +31,7 @@
 
 먼저 알아야 할 것:
 - 가지치기 기본
-- 컨볼루션 뉴럴 넷트웍에 대한 이해
+- 컨볼루션 뉴럴 네트워크에 대한 이해
 - 피처 지도에 익숙함
 """
 
@@ -54,7 +54,7 @@ from utils import (
 
 
 class SimpleCNN(nn.Module):
-    """짜임 있는 가지치기 시범을 위한 단순한 컨볼루션 뉴럴 넷트웍."""
+    """짜임 있는 가지치기 시범을 위한 단순한 컨볼루션 뉴럴 네트워크."""
     def __init__(self, num_classes=10):
         super(SimpleCNN, self).__init__()
         

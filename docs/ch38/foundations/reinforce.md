@@ -32,11 +32,11 @@ REINFORCE는 어림 쌓인 리워드를 곧바로 가장 좋게 하여 파라메
 
 
     # ---------------------------------------------------------------------------
-    # 폴리시 넷트웍
+    # 폴리시 네트워크
     # ---------------------------------------------------------------------------
 
     class DiscretePolicyNetwork(nn.Module):
-        """따로 떨어진 액션을 위한 폴리시 넷트웍."""
+        """따로 떨어진 액션을 위한 폴리시 네트워크."""
 
         def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 128):
             super().__init__()
@@ -54,7 +54,7 @@ REINFORCE는 어림 쌓인 리워드를 곧바로 가장 좋게 하여 파라메
 
 
     class ContinuousPolicyNetwork(nn.Module):
-        """이어진 액션을 위한 폴리시 넷트웍."""
+        """이어진 액션을 위한 폴리시 네트워크."""
 
         def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 128):
             super().__init__()

@@ -42,7 +42,7 @@ def collect_dataset(env_name: str = 'CartPole-v1', n_transitions: int = 10000,
     sd = env.observation_space.shape[0]
     ad = env.action_space.n
 
-    # 정한 질까지 Q 넷트웍 익히기
+    # 정한 질까지 Q 네트워크 익히기
     q_net = nn.Sequential(nn.Linear(sd, 64), nn.ReLU(),
                           nn.Linear(64, 64), nn.ReLU(), nn.Linear(64, ad))
 

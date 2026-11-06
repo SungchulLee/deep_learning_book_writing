@@ -12,7 +12,7 @@ StyleGAN은 2019년 글 "A Style-Based Generator Architecture for GANs"에서 �
 StyleGAN - 결 바탕 생성기 구조
 글: "맞겨루기 생성기를 위한 결 바탕 생성기 구조" (2019)
 핵심 깨침:
-  - 따로 둔 숨은 옮김 넷트웍
+  - 따로 둔 숨은 옮김 네트워크
   - 켜마다 결을 다스린다
 
 두루마리: appendix/generative/stylegan.py

@@ -17,7 +17,7 @@ np.random.seed(42)
 
 class MulticlassClassifier(nn.Module):
     """
-    다중 클래스 분류 뉴럴 넷트웍.
+    다중 클래스 분류 뉴럴 네트워크.
     출력: num_classes개의 로짓 (소프트맥스 없음)
     CrossEntropyLoss와 함께 쓴다
     """

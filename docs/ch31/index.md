@@ -1,6 +1,6 @@
 # 32장: 에너지 기반 모델
 
-에너지 기반 모델(EBM)은 스칼라 함수 E(x)와 정규화 상수를 이용해 p(x)∝exp(−E(x))를 정의한다. 낮은 에너지에 높은 밀도를 주는 유연한 표현이지만, 정규화 가능성·모델 기댓값 계산과 샘플링의 혼합이 핵심 과제다. 이 장에서는 분포의 정의에서 고전 이진 모델, 뉴럴 넷트웍 학습과 생성·응용으로 이어 간다.
+에너지 기반 모델(EBM)은 스칼라 함수 E(x)와 정규화 상수를 이용해 p(x)∝exp(−E(x))를 정의한다. 낮은 에너지에 높은 밀도를 주는 유연한 표현이지만, 정규화 가능성·모델 기댓값 계산과 샘플링의 혼합이 핵심 과제다. 이 장에서는 분포의 정의에서 고전 이진 모델, 뉴럴 네트워크 학습과 생성·응용으로 이어 간다.
 
 <div class="storybox" markdown>
 
@@ -32,22 +32,22 @@ _확인한 곳 — 연표의 일곱 해는 모두 이 장의 해당 쪽에서 �
 
 | 모델 | 읽을 내용 |
 |---|---|
-| [홉필드 뉴럴 넷트웍](classical_ebm/hopfield.md) | 비동기 에너지 감소, 기억 검색과 저장 용량·허위 기억 |
+| [홉필드 뉴럴 네트워크](classical_ebm/hopfield.md) | 비동기 에너지 감소, 기억 검색과 저장 용량·허위 기억 |
 | [볼츠만 기계](classical_ebm/boltzmann_machines.md) | 확률적 단위 갱신, 변수 부호와 온도·조건부 확률의 대응 |
 | [제한 볼츠만 기계](classical_ebm/rbm.md) | 이분 그래프, 조건부 독립과 가시 자유 에너지 |
 | [MNIST RBM 학습](ebm_foundations/04_restricted_boltzmann_machines.md) | 이진화, CD-1 통계 업데이트와 persistent chain |
 
 0·1 변수와 −1·+1 스핀은 에너지·시그모이드 계수가 다르다. 조건부를 쉽게 계산하는 RBM에서도 전체 분배 함수는 어려울 수 있다. 재구성, 고정점 검색과 평형 생성도 서로 다른 작업이다.
 
-## 3. 뉴럴 넷트웍 모델의 학습
+## 3. 뉴럴 네트워크 모델의 학습
 
 [Contrastive Divergence](ebm_foundations/05_contrastive_divergence.md)는 데이터에서 시작한 짧은 사슬과 모델 기댓값의 차이를 설명한다. PCD는 사슬을 이어 가지만 혼합과 학습 중 파라미터 변화의 문제가 자동으로 사라지는 것은 아니다.
 
-[스코어 매칭](ebm_foundations/06_score_matching.md)은 입력 그래디언트 학습을 다룬다. 에너지의 부호, trace 계수와 활성화의 정규성 조건이 중요하다. [뉴럴 넷트웍 EBM](ebm_foundations/07_neural_ebms.md)에서는 CNN 에너지와 짧은 랑주뱅 사슬을 연결하고 실제 업데이트 예산·온도 계수와 평가 범위를 확인한다.
+[스코어 매칭](ebm_foundations/06_score_matching.md)은 입력 그래디언트 학습을 다룬다. 에너지의 부호, trace 계수와 활성화의 정규성 조건이 중요하다. [뉴럴 네트워크 EBM](ebm_foundations/07_neural_ebms.md)에서는 CNN 에너지와 짧은 랑주뱅 사슬을 연결하고 실제 업데이트 예산·온도 계수와 평가 범위를 확인한다.
 
 ## 4. 생성기와의 결합 및 생성 방법
 
-[협력 업데이트 예제](ebm_foundations/08_cooperative_training.md)는 생성기 초기화, 에너지 기반 수정과 수정 결과 모방을 연결한다. [다른 뉴럴 넷트웍과의 결합](modern_ebm/cooperative.md)은 오토인코더·VAE·분류기와 결합할 때의 분포·로스·그래디언트 조건을 다룬다.
+[협력 업데이트 예제](ebm_foundations/08_cooperative_training.md)는 생성기 초기화, 에너지 기반 수정과 수정 결과 모방을 연결한다. [다른 뉴럴 네트워크와의 결합](modern_ebm/cooperative.md)은 오토인코더·VAE·분류기와 결합할 때의 분포·로스·그래디언트 조건을 다룬다.
 
 [에너지 기반 생성](modern_ebm/generation.md)은 ULA·MALA·HMC·병렬 템퍼링과 조건부·제약 생성을 비교한다. 초기값의 범위, 유한 벌점과 정확한 지지집합을 구분하며 스텝 바이어스·혼합·실효 표본 수를 함께 살핀다.
 

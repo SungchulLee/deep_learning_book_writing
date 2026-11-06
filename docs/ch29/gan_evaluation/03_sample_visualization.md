@@ -4,7 +4,7 @@
 
 ## 1. 시각화와 재구성 계산 예제
 
-아래 예제의 이미지는 학습된 GAN의 출력이 아니라 난수에 시그모이드를 적용한 패턴이다. 보간 예제의 `SimpleDecoder`도 학습하지 않은 뉴럴 넷트웍이다. 따라서 출력의 거리와 재구성 수치는 계산 방법을 보여 줄 뿐, 생성 모델의 학습 성능을 나타내지 않는다.
+아래 예제의 이미지는 학습된 GAN의 출력이 아니라 난수에 시그모이드를 적용한 패턴이다. 보간 예제의 `SimpleDecoder`도 학습하지 않은 뉴럴 네트워크다. 따라서 출력의 거리와 재구성 수치는 계산 방법을 보여 줄 뿐, 생성 모델의 학습 성능을 나타내지 않는다.
 
 ```python
 """
@@ -271,7 +271,7 @@ class LatentSpaceInterpolation:
         잠재 표현 둘 사이의 사이 메우기를 그려 본다.
         
         인수:
-            decoder: 디코더 뉴럴 넷트웍
+            decoder: 디코더 뉴럴 네트워크
             z1: 시작 잠재 표현
             z2: 끝 잠재 표현
             num_steps: 사이 끼움 스텝 수
@@ -472,7 +472,7 @@ def demonstrate_latent_interpolation():
     print("Latent Space Interpolation Demonstration")
     print("=" * 70)
     
-    # 단순한 디코더 뉴럴 넷트웍(보여 주기용)
+    # 단순한 디코더 뉴럴 네트워크(보여 주기용)
     class SimpleDecoder(nn.Module):
         def __init__(self, latent_dim=10):
             super().__init__()

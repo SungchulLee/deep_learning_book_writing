@@ -67,7 +67,7 @@
 - [아무렇게나 매끄럽게 하기](certified/randomized_smoothing.md) -- 가우스 잡음을 고르게 하여 어떤 분류기든 강건성 인증을 지니게 하기
 - [구간 경계 전파(IBP)](certified/ibp.md) -- 네트워크 켜를 지나며 사이 테두리를 퍼뜨려 L-무한 강건성 밝히기
 - [CROWN](certified/crown.md) -- 선형으로 눅여 IBP보다 촘촘한 테두리를 주는 볼록 완화 기초의 밝히기
-- [립시츠 제약 뉴럴 넷트웍](certified/lipschitz.md) -- 네트워크가 얼마나 예민한지를 립시츠 값으로 옭아매어 강건성 밝히기
+- [립시츠 제약 뉴럴 네트워크](certified/lipschitz.md) -- 네트워크가 얼마나 예민한지를 립시츠 값으로 옭아매어 강건성 밝히기
 
 ---
 

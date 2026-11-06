@@ -61,7 +61,7 @@ def ssm_loss(
     L_SSM = E_x,v [(v·s(x))²/2 + v·∇_x(v·s(x))]
     
     인수:
-        score_model: 점수 뉴럴 넷트웍 s_θ: R^D → R^D
+        score_model: 점수 뉴럴 네트워크 s_θ: R^D → R^D
         samples: 자료 표본, 꼴 (N, D)
         n_projections: 아무 쏘기 횟수 M
         projection_type: 'rademacher'(권함) 또는 'gaussian'
@@ -268,7 +268,7 @@ def sample_mog(n, n_components=4):
     samples = centers[idx] + 0.3 * np.random.randn(n, 2)
     return torch.tensor(samples, dtype=torch.float32)
 
-# 단순한 점수 뉴럴 넷트웍
+# 단순한 점수 뉴럴 네트워크
 class ScoreNet(nn.Module):
     def __init__(self, dim=2, hidden=128):
         super().__init__()

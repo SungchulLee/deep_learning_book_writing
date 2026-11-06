@@ -155,7 +155,7 @@ def test_financial_concepts(model, layer, device):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 넷트웍에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
+이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 네트워크에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
 
 </div>
 
@@ -200,7 +200,7 @@ def test_financial_concepts(model, layer, device):
 
 ## 정리하며
 
-TCAV은 뉴럴 넷트웍에서 개념의 중요함을 따지는 엄밀하고 수로 재는 틀을 준다. 통계로 따지므로 참으로 뜻있는 개념만 가려내며, 풀이의 성능을 따져야 하는 규정된 자리에 알맞다.
+TCAV은 뉴럴 네트워크에서 개념의 중요함을 따지는 엄밀하고 수로 재는 틀을 준다. 통계로 따지므로 참으로 뜻있는 개념만 가려내며, 풀이의 성능을 따져야 하는 규정된 자리에 알맞다.
 
 **살펴볼 거리**
 

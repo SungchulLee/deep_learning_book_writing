@@ -26,11 +26,11 @@ import random
 
 
 # ---------------------------------------------------------------------------
-# Q 넷트웍(상태-액션 들임)
+# Q 네트워크(상태-액션 들임)
 # ---------------------------------------------------------------------------
 
 class ContinuousQNetwork(nn.Module):
-    """(상태, 액션)을 들임으로 받는 Q 넷트웍 → 스칼라 Q 값."""
+    """(상태, 액션)을 들임으로 받는 Q 네트워크 → 스칼라 Q 값."""
 
     def __init__(self, state_dim: int, action_dim: int, hidden_dim: int = 256):
         super().__init__()
@@ -64,7 +64,7 @@ class CEM:
         """어긋 엔트로피 방법으로 Q(state, action)을 가장 크게 하는 액션을 찾는다.
         
         인수:
-            q_network: Q 넷트웍
+            q_network: Q 네트워크
             state: 상태 텐서 하나, 꼴 (state_dim,) 또는 (1, state_dim)
             
         반환값:

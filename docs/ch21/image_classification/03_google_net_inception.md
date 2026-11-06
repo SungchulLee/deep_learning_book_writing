@@ -64,7 +64,7 @@ class InceptionModule(nn.Module):
 
 
 class InceptionAux(nn.Module):
-    """깊은 넷트웍의 그래디언트 사라짐을 이겨내는 곁딸린 클래스 매개."""
+    """깊은 네트워크의 그래디언트 사라짐을 이겨내는 곁딸린 클래스 매개."""
     def __init__(self, in_channels, num_classes):
         super(InceptionAux, self).__init__()
         self.avgpool = nn.AdaptiveAvgPool2d((4, 4))

@@ -246,7 +246,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class GPTBlock(nn.Module):
-    """여느 GPT 변환기 덩이."""
+    """여느 GPT 트랜스포머 덩이."""
     
     def __init__(self, config):
         super().__init__()

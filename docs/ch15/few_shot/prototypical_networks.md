@@ -10,7 +10,7 @@
 
 참고: Snell 외, "Prototypical Networks for Few-shot Learning" (2017)
 
-핵심 생각: 받침 보기의 묻힘을 평균 내어 부류마다 원형 표현을 셈한 다음,
+핵심 생각: 받침 보기의 임베딩을 평균 내어 부류마다 원형 표현을 셈한 다음,
 그 원형까지의 거리를 바탕으로
 물음을 가려낸다.
 """
@@ -57,7 +57,7 @@ class PrototypicalNetwork(nn.Module):
     N-클래스 K-예시 분류를 위한 원형 망.
     
     인수:
-        encoder: 입력을 피처 공간에 묻는 뉴럴 넷트웍
+        encoder: 입력을 피처 공간에 묻는 뉴럴 네트워크
     """
     def __init__(self, encoder):
         super(PrototypicalNetwork, self).__init__()
@@ -96,7 +96,7 @@ class PrototypicalNetwork(nn.Module):
     
     def _compute_prototypes(self, embeddings, labels, n_classes):
         """
-        받침 묻힘의 평균으로 부류마다 원형을 셈한다.
+        받침 임베딩의 평균으로 부류마다 원형을 셈한다.
         """
         prototypes = []
         for c in range(n_classes):

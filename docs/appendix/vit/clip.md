@@ -40,7 +40,7 @@ class ImageEncoder(nn.Module):
 
 
 class TextEncoder(nn.Module):
-    """단순한 변환기 바탕 글월 인코더."""
+    """단순한 트랜스포머 바탕 글월 인코더."""
     def __init__(self, vocab_size=50000, embed_dim=512):
         super().__init__()
         self.emb = nn.Embedding(vocab_size, embed_dim)

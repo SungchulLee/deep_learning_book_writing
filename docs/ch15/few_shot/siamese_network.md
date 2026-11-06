@@ -10,7 +10,7 @@
 
 샴 망은 보기 쌍 사이의 닮음 재기를 배운다.
 웨이트를 나누어 쓰는 쌍둥이 망으로 입력을 묻은 다음
-묻힘 사이의 닮음을 셈한다.
+임베딩 사이의 닮음을 셈한다.
 """
 
 import torch
@@ -56,7 +56,7 @@ class SiameseEncoder(nn.Module):
             nn.AdaptiveAvgPool2d(1),
             nn.Flatten(),
             nn.Linear(hidden_dim * 4, embedding_dim),
-            nn.Sigmoid()  # 묻힘을 [0, 1]로 묶는다
+            nn.Sigmoid()  # 임베딩을 [0, 1]로 묶는다
         )
     
     def forward(self, x):
@@ -75,16 +75,16 @@ class SiameseNetwork(nn.Module):
     
     def forward(self, x1, x2):
         """
-        입력 쌍의 묻힘과 거리를 셈한다.
+        입력 쌍의 임베딩과 거리를 셈한다.
         
         인수:
             x1: 첫 입력 (batch_size, channels, height, width)
             x2: 둘째 입력 (batch_size, channels, height, width)
         
         반환값:
-            distance: 묻힘 사이의 L1 거리
+            distance: 임베딩 사이의 L1 거리
         """
-        # 묻힘을 얻는다
+        # 임베딩을 얻는다
         embedding1 = self.encoder(x1)
         embedding2 = self.encoder(x2)
         
@@ -110,7 +110,7 @@ class ContrastiveLoss(nn.Module):
     로스 = (1-Y) * 0.5 * D^2 + Y * 0.5 * max(margin - D, 0)^2
     
     여기서 닮은 쌍이면 Y=0, 닮지 않은 쌍이면 Y=1이고,
-    D은 묻힘 사이의 유클리드 거리이다.
+    D은 임베딩 사이의 유클리드 거리이다.
     """
     def __init__(self, margin=1.0):
         super(ContrastiveLoss, self).__init__()
@@ -119,7 +119,7 @@ class ContrastiveLoss(nn.Module):
     def forward(self, distance, label):
         """
         인수:
-            distance: 묻힘 사이의 유클리드 거리
+            distance: 임베딩 사이의 유클리드 거리
             label: 닮은 쌍이면 0, 닮지 않은 쌍이면 1
         """
         loss = (1 - label) * torch.pow(distance, 2) + \
@@ -140,9 +140,9 @@ class TripletLoss(nn.Module):
     def forward(self, anchor, positive, negative):
         """
         인수:
-            anchor: 닻 묻힘 (batch_size, embedding_dim)
-            positive: 양의 묻힘(닻과 같은 부류)
-            negative: 음의 묻힘(다른 부류)
+            anchor: 닻 임베딩 (batch_size, embedding_dim)
+            positive: 양의 임베딩(닻과 같은 부류)
+            negative: 음의 임베딩(다른 부류)
         """
         pos_distance = F.pairwise_distance(anchor, positive, p=2)
         neg_distance = F.pairwise_distance(anchor, negative, p=2)
@@ -162,7 +162,7 @@ def train_siamese(model, x1, x2, labels, optimizer, criterion):
     model.train()
     optimizer.zero_grad()
     
-    # 묻힘을 얻는다
+    # 임베딩을 얻는다
     emb1 = model.encoder(x1)
     emb2 = model.encoder(x2)
     
@@ -195,12 +195,12 @@ def one_shot_classification(model, support_set, support_labels, query):
     n_query = query.shape[0]
     
     with torch.no_grad():
-        # 받침 집합의 묻힘을 얻는다
+        # 받침 집합의 임베딩을 얻는다
         support_embeddings = model.encoder(support_set)
         
         predictions = []
         for i in range(n_query):
-            # 이 물음의 묻힘을 얻는다
+            # 이 물음의 임베딩을 얻는다
             query_embedding = model.encoder(query[i:i+1])
             
             # 모든 받침 보기까지의 거리를 셈한다
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     
     # 학습 배치 보기
     batch_size = 32
-    # Koch의 샴 넷트웍은 105x105 Omniglot 그림을 바탕으로 한다
+    # Koch의 샴 네트워크는 105x105 Omniglot 그림을 바탕으로 한다
     x1 = torch.randn(batch_size, 1, 105, 105)
     x2 = torch.randn(batch_size, 1, 105, 105)
     labels = torch.randint(0, 2, (batch_size,)).float()  # 0=닮음, 1=닮지 않음

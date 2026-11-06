@@ -156,7 +156,7 @@ print(f"  Dataset: {len(texts)} examples ({sum(labels)} bullish, {len(labels)-su
 torch.manual_seed(42)
 
 # 보이려고 단순한 낱말 곳간 바탕 부호화를 쓴다
-# 그리고 작은 변환기 비슷한 클래스 매개를 익힌다
+# 그리고 작은 트랜스포머 비슷한 클래스 매개를 익힌다
 MAX_LEN = 64
 VOCAB_SIZE = 5000
 EMBED_DIM = 128
@@ -166,7 +166,7 @@ NUM_CLASSES = 2
 
 
 class SimpleFinancialClassifier(nn.Module):
-    """글 가르기를 위한 작은 변환기 인코더.
+    """글 가르기를 위한 작은 트랜스포머 인코더.
 
     실전에서는 이를 다음으로 갈음한다:
         BertForSequenceClassification.from_pretrained("ProsusAI/finbert", num_labels=2)
@@ -386,7 +386,7 @@ print("""
   금융 자연어 다루기의 쓰임새:
   - 실적 발표 마음결 좇기
   - 초과 수익을 위한 뉴스 마음결
-  - 사회 넷트웍(StockTwits/Reddit) 마음결 점수 매기기
+  - 사회 네트워크(StockTwits/Reddit) 마음결 점수 매기기
   - SEC 보고서의 어조 살피기
   - 분석 보고서 클래스 매기기
 """)
@@ -559,7 +559,7 @@ if __name__ == "__main__":
       금융 자연어 다루기의 쓰임새:
       - 실적 발표 마음결 좇기
       - 초과 수익을 위한 뉴스 마음결
-      - 사회 넷트웍(StockTwits/Reddit) 마음결 점수 매기기
+      - 사회 네트워크(StockTwits/Reddit) 마음결 점수 매기기
       - SEC 보고서의 어조 살피기
       - 분석 보고서 클래스 매기기
 

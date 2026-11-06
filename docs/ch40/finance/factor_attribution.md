@@ -18,7 +18,7 @@ $$
 
 ### 선형이 아닌 인자 모델
 
-돌아옴을 예측하는 데 뉴럴 넷트웍이나 나무 기초 모델을 쓰면 인자의 이바지가 더는 단순한 계수가 아니다. SHAP 값이 알맞은 쪼갬을 준다.
+돌아옴을 예측하는 데 뉴럴 네트워크나 나무 기초 모델을 쓰면 인자의 이바지가 더는 단순한 계수가 아니다. SHAP 값이 알맞은 쪼갬을 준다.
 
 $$
 \hat{r}_p = \phi_0 + \sum_{k=1}^{K} \phi_k
@@ -151,7 +151,7 @@ def rolling_factor_attribution(model, factor_data, factor_names, window=60):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 넷트웍에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
+이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 네트워크에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
 
 </div>
 

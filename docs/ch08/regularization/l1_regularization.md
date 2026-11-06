@@ -133,7 +133,7 @@ def l1_regularization(model: nn.Module, lambda_l1: float) -> torch.Tensor:
     모델의 모든 파라메터에 대한 L1 정칙화 벌점을 계산한다.
     
     인수:
-        model: 뉴럴 넷트웍 모델
+        model: 뉴럴 네트워크 모델
         lambda_l1: 정칙화의 강도
         
     반환값:
@@ -217,7 +217,7 @@ def add_l1_regularization_to_loss(model, base_loss, lambda_l1):
     return base_loss + lambda_l1 * l1_norm
 ```
 
-### L1 정규화를 쓰는 뉴럴 넷트웍
+### L1 정규화를 쓰는 뉴럴 네트워크
 
 ```python
 import torch
@@ -227,7 +227,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 
 class SparseNN(nn.Module):
-    """희소 피처 학습을 위해 설계한 뉴럴 넷트웍."""
+    """희소 피처 학습을 위해 설계한 뉴럴 네트워크."""
     
     def __init__(self, input_dim, hidden_dims, output_dim):
         super().__init__()
@@ -279,7 +279,7 @@ def train_with_l1(model, train_loader, val_loader,
     L1 정칙화로 모델을 학습시킨다.
     
     인수:
-        model: 뉴럴 넷트웍
+        model: 뉴럴 네트워크
         train_loader: 학습 데이터 로더
         val_loader: 검증 데이터 로더
         lambda_l1: L1 정칙화의 강도
@@ -609,7 +609,7 @@ $$
 \text{BIC} = k\ln(n) - 2\ln(\hat{L})
 $$
 
-AIC·BIC의 $k$는 해당 통계 모형의 자유도이고 $\hat L$은 그 모형의 최대우도이다. 라쏘의 비영 계수 수를 자유도의 추정값으로 쓰는 데에는 가정이 필요하며, 분산·절편의 추정도 고려한다. 비볼록 뉴럴 넷트웍의 임의 L1 학습 결과에 이 식을 그대로 적용하지 않는다.
+AIC·BIC의 $k$는 해당 통계 모형의 자유도이고 $\hat L$은 그 모형의 최대우도이다. 라쏘의 비영 계수 수를 자유도의 추정값으로 쓰는 데에는 가정이 필요하며, 분산·절편의 추정도 고려한다. 비볼록 뉴럴 네트워크의 임의 L1 학습 결과에 이 식을 그대로 적용하지 않는다.
 
 ---
 
@@ -621,7 +621,7 @@ AIC·BIC의 $k$는 해당 통계 모형의 자유도이고 $\hat L$은 그 모�
 
 ```python
 class SparseInputNetwork(nn.Module):
-    """피처 선택을 위해 입력 레이어에 L1 정칙화를 건 뉴럴 넷트웍."""
+    """피처 선택을 위해 입력 레이어에 L1 정칙화를 건 뉴럴 네트워크."""
     
     def __init__(self, input_dim, hidden_dims, output_dim, input_l1=0.01):
         super().__init__()
@@ -630,7 +630,7 @@ class SparseInputNetwork(nn.Module):
         # 첫 레이어 (강하게 정칙화).
         # 이 레이어만 따로 떼어 둔 까닭은 여기에만 벌점을 걸기 위해서다.
         # 입력 피처 하나에 해당하는 것은 weight의 한 "열"이라, 그 열이
-        # 통째로 0이 되면 그 피처는 뉴럴 넷트웍에 아예 들어오지 못한다.
+        # 통째로 0이 되면 그 피처는 뉴럴 네트워크에 아예 들어오지 못한다.
         # 곧 피처 선택이다. 은닉 레이어까지 눌러 버리면 표현력만 잃고
         # 어느 피처가 쓸모없는지는 알 수 없다
         self.input_layer = nn.Linear(input_dim, hidden_dims[0])
@@ -742,7 +742,7 @@ L1 정규화 학습을 위한 근접 경사 하강법을 구현하라.
 
 ## 정리하며
 
-L1은 절댓값 패널티로 희소해를 선호한다. 최적 조건과 실제 알고리즘의 갱신을 구분하며, 정확한 0이 필요하면 근접법 등을 사용한다. 피처 스케일, 상관관계와 패널티 대상에 따라 선택 결과가 달라지며, 뉴럴 넷트웍의 연결 희소성이 곧 입력 피처 제거를 뜻하지는 않는다.
+L1은 절댓값 패널티로 희소해를 선호한다. 최적 조건과 실제 알고리즘의 갱신을 구분하며, 정확한 0이 필요하면 근접법 등을 사용한다. 피처 스케일, 상관관계와 패널티 대상에 따라 선택 결과가 달라지며, 뉴럴 네트워크의 연결 희소성이 곧 입력 피처 제거를 뜻하지는 않는다.
 
 **참고 문헌**
 

@@ -134,7 +134,7 @@ MNIST 분류의 데이터 로딩, 컨볼루션 모델, 학습·평가, 체크포
 
     class ConvNet(nn.Module):
         """
-        MNIST를 위한 컨볼루션 뉴럴 넷트웍
+        MNIST를 위한 컨볼루션 뉴럴 네트워크
 
         구조:
         - 컨볼루션 레이어 1: 채널 1 → 32, 3x3 커널
@@ -230,7 +230,7 @@ MNIST 분류의 데이터 로딩, 컨볼루션 모델, 학습·평가, 체크포
         모델을 한 에포크 동안 학습시킨다
 
         인수:
-            model: 뉴럴 넷트웍 모델
+            model: 뉴럴 네트워크 모델
             device: 학습에 쓸 장치 (CPU/GPU)
             train_loader: 학습 데이터의 DataLoader
             optimizer: 파라메터 갱신에 쓸 최적화기
@@ -297,7 +297,7 @@ MNIST 분류의 데이터 로딩, 컨볼루션 모델, 학습·평가, 체크포
         시험 데이터에서 모델을 평가한다
 
         인수:
-            model: 뉴럴 넷트웍 모델
+            model: 뉴럴 네트워크 모델
             device: 시험에 쓸 장치 (CPU/GPU)
             test_loader: 시험 데이터의 DataLoader
             criterion: 로스 함수

@@ -481,7 +481,7 @@ class QuantizedKVCache:
 
 ```python
 MIXED_PRECISION_CONFIG = {
-    'embedding': 8,      # 묻힘: 8비트
+    'embedding': 8,      # 임베딩: 8비트
     'attention.qkv': 4,  # QKV 쏘기: 4비트
     'attention.out': 4,  # 내놓기 쏘기: 4비트
     'mlp.gate': 4,       # 여러 레이어 인식개 레이어: 4비트

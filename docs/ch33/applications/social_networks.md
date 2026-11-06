@@ -5,7 +5,7 @@
 ## 1. 코드와 출력
 
 ```python
-"""29.7.3: 그래프 뉴럴 넷트웍으로 하는 사회 넷트웍 살피기."""
+"""29.7.3: 그래프 뉴럴 네트워크로 하는 사회 네트워크 살피기."""
 import torch, torch.nn as nn, torch.nn.functional as F
 import numpy as np, networkx as nx
 
@@ -16,7 +16,7 @@ import numpy as np, networkx as nx
 def demo():
     print("=" * 60); print("Social Network: Bot Detection"); print("=" * 60)
     torch.manual_seed(42); np.random.seed(42)
-    # 사회 넷트웍 흉내: 실제 쓰는 이 80명 + 로봇 계정 20개
+    # 사회 네트워크 흉내: 실제 쓰는 이 80명 + 로봇 계정 20개
     G = nx.stochastic_block_model([80, 20], [[0.05, 0.01],[0.01, 0.15]], seed=42)
     n = G.number_of_nodes()
     # 피처: [활동, 따르는 이 비, 올리는 잦음, 계정 나이]

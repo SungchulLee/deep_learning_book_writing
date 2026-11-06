@@ -1,13 +1,13 @@
 # Faster R-CNN의 영역 제안
 
-Faster R-CNN은 backbone 피처를 공유하는 RPN으로 후보 영역을 만들고, 영역별 분류와 상자 회귀를 수행하는 두 단계 탐지기다. [원 논문](https://arxiv.org/abs/1506.01497)의 핵심은 외부 영역 제안 대신 학습 가능한 RPN을 사용하는 데 있다. ‘두 단계’는 이미지마다 서로 다른 뉴럴 넷트웍을 처음부터 별도로 실행한다는 뜻이 아니다.
+Faster R-CNN은 backbone 피처를 공유하는 RPN으로 후보 영역을 만들고, 영역별 분류와 상자 회귀를 수행하는 두 단계 탐지기다. [원 논문](https://arxiv.org/abs/1506.01497)의 핵심은 외부 영역 제안 대신 학습 가능한 RPN을 사용하는 데 있다. ‘두 단계’는 이미지마다 서로 다른 뉴럴 네트워크를 처음부터 별도로 실행한다는 뜻이 아니다.
 
 ## 1. 축약 코드의 범위
 
 ```python
 #!/usr/bin/env python3
 '''
-더 빠른 R-CNN — 자리 제안 넷트웍으로 실시간 물체 알아내기에 다가가기
+더 빠른 R-CNN — 자리 제안 네트워크로 실시간 물체 알아내기에 다가가기
 논문: "Faster R-CNN: Towards Real-Time Object Detection" (2015)
 핵심: 자리 제안에 RPN을 쓰며 끝에서 끝까지 익힐 수 있다
 '''
@@ -28,7 +28,7 @@ class FasterRCNN(nn.Module):
             nn.MaxPool2d(2, 2)
         )
         
-        # 자리 제안 넷트웍
+        # 자리 제안 네트워크
         self.rpn = nn.Sequential(
             nn.Conv2d(64, 512, 3, 1, 1),
             nn.ReLU(inplace=True)
@@ -54,7 +54,7 @@ class FasterRCNN(nn.Module):
     def forward(self, x):
         feat = self.features(x)
         
-        # 자리 제안 넷트웍
+        # 자리 제안 네트워크
         rpn_feat = self.rpn(feat)
         rpn_cls = self.rpn_cls(rpn_feat)
         rpn_reg = self.rpn_reg(rpn_feat)

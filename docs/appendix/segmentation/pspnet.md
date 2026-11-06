@@ -9,7 +9,7 @@ PSPNet은 2017년 글 "Pyramid Scene Parsing Network"에서 나왔다. 여러 �
 ```python
 #!/usr/bin/env python3
 '''
-PSPNet - 피라미드 장면 뜯어보기 넷트웍
+PSPNet - 피라미드 장면 뜯어보기 네트워크
 논문: "Pyramid Scene Parsing Network" (2017)
 핵심: 여러 자의 앞뒤 흐름을 모으는 피라미드 모으기 배치
 '''

@@ -34,7 +34,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 
 class TransformerProbe:
-    """변환기 나타냄을 더듬는 분류기."""
+    """트랜스포머 나타냄을 더듬는 분류기."""
 
     def __init__(self, model, tokenizer, device):
         self.model = model
@@ -140,7 +140,7 @@ def probe_financial_model(model, tokenizer, device):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 넷트웍에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
+이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 네트워크에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
 
 </div>
 

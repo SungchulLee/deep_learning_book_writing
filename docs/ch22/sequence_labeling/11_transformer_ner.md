@@ -6,13 +6,13 @@
 
 ```python
 """
-미리 익힌 모델을 쓰는 변환기 바탕 개체명 인식
+미리 익힌 모델을 쓰는 트랜스포머 바탕 개체명 인식
 ===============================================
 
 개체명 인식에 BERT/RoBERTa 쓰기.
 
 핵심 개념:
-- 미리 익힌 변환기 곱게 다듬기
+- 미리 익힌 트랜스포머 곱게 다듬기
 - 아래낱말 토큰내기 다루기
 - 토큰 클래스 매기기
 
@@ -32,7 +32,7 @@ from typing import List, Dict
 
 class TransformerNER(nn.Module):
     """
-    미리 익힌 모델을 쓰는 변환기 바탕 개체명 인식.
+    미리 익힌 모델을 쓰는 트랜스포머 바탕 개체명 인식.
     
     구조:
     들임 → BERT/RoBERTa → 선형 → 소프트맥스 → 레이블
@@ -40,7 +40,7 @@ class TransformerNER(nn.Module):
     
     def __init__(self, model_name: str = 'bert-base-cased', num_labels: int = 9):
         """
-        변환기 개체명 인식 첫자리매김.
+        트랜스포머 개체명 인식 첫자리매김.
         
         인수:
             model_name: Hugging Face 모델 이름
@@ -51,7 +51,7 @@ class TransformerNER(nn.Module):
         self.num_labels = num_labels
         self.model_name = model_name
         
-        # 미리 익힌 변환기 읽어 들이기
+        # 미리 익힌 트랜스포머 읽어 들이기
         self.transformer = AutoModel.from_pretrained(model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         
@@ -73,7 +73,7 @@ class TransformerNER(nn.Module):
         반환값:
             logits: [batch_size, seq_len, num_labels]
         """
-        # 변환기의 내놓음 얻기
+        # 트랜스포머의 내놓음 얻기
         outputs = self.transformer(
             input_ids=input_ids,
             attention_mask=attention_mask
@@ -161,7 +161,7 @@ predict는 no_grad를 쓰지만 eval로 전환하지 않는다. 모델이 train 
 
 ??? success "풀이"
 
-    웨이트768×9와 bias9를 합해6921개다. 전체 모델 수는 사전 학습 인코더의 파라메터를 추가해야 한다. 모델 이름·설정에 따라 달라지며 tokenizer는 뉴럴 넷트웍 파라메터가 아니다.
+    웨이트768×9와 bias9를 합해6921개다. 전체 모델 수는 사전 학습 인코더의 파라메터를 추가해야 한다. 모델 이름·설정에 따라 달라지며 tokenizer는 뉴럴 네트워크 파라메터가 아니다.
 
 
 

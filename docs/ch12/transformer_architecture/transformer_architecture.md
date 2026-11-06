@@ -8,7 +8,7 @@
 
 ### 차례차례 처리해야 하는 병목
 
-순환 뉴럴 넷트웍은 한 번에 토큰 하나씩 시퀀스을 처리하며 은닉 상태 $h_t$마다 앞선 상태 $h_{t-1}$에 매인다.
+순환 뉴럴 네트워크는 한 번에 토큰 하나씩 시퀀스을 처리하며 은닉 상태 $h_t$마다 앞선 상태 $h_{t-1}$에 매인다.
 
 $$
 h_t = f(h_{t-1}, x_t)
@@ -20,7 +20,7 @@ $$
 
 ### 먼 거리 의존 문제
 
-순환 뉴럴 넷트웍은 다음 까닭으로 먼 거리에 걸쳐 정보를 지키기 어려워한다.
+순환 뉴럴 네트워크는 다음 까닭으로 먼 거리에 걸쳐 정보를 지키기 어려워한다.
 
 1. **그래디언트 소실·폭발**: 여러 시점의 야코비안 곱이 학습을 어렵게 할 수 있다. 게이트와 초기화는 이를 완화하지만 모든 길이에서 해결하지는 않는다.
 2. **상태 용량**: 단일 최종 상태로 전체 입력을 전달하는 구성에는 압축 병목이 있다. 어텐션으로 전체 인코더 출력을 읽는 Seq2Seq는 이 병목을 완화한다.
@@ -142,9 +142,9 @@ $$
 \end{aligned}
 $$
 
-### 5. 피드포워드 뉴럴 넷트웍
+### 5. 피드포워드 뉴럴 네트워크
 
-위치별 피드포워드 뉴럴 넷트웍은 다음과 같다.
+위치별 피드포워드 뉴럴 네트워크는 다음과 같다.
 
 $$
 \text{FFN}(\mathbf{x}) = \max(0, \mathbf{x}\mathbf{W}_1 + \mathbf{b}_1)\mathbf{W}_2 + \mathbf{b}_2
@@ -220,7 +220,7 @@ class TransformerBlock(nn.Module):
             batch_first=True
         )
         
-        # 순방향 뉴럴 넷트웍
+        # 순방향 뉴럴 네트워크
         self.feed_forward = nn.Sequential(
             nn.Linear(d_model, d_ff),
             nn.ReLU(),
@@ -255,7 +255,7 @@ class TransformerBlock(nn.Module):
         )
         x = self.norm1(x + self.dropout(attn_output))
         
-        # 잔차 연결이 있는 순방향 뉴럴 넷트웍
+        # 잔차 연결이 있는 순방향 뉴럴 네트워크
         ff_output = self.feed_forward(x)
         x = self.norm2(x + self.dropout(ff_output))
         
@@ -454,7 +454,7 @@ $$
 \text{Time: } O(n \cdot d \cdot d_{ff}) \qquad \text{Space: } O(n \cdot d_{ff})
 $$
 
-### 순환 뉴럴 넷트웍과 비교
+### 순환 뉴럴 네트워크와 비교
 
 | 비교 기준 | 전역 셀프 어텐션 | 기본 RNN |
 |---|---|---|
@@ -469,7 +469,7 @@ $$
 
 ### 1. 잔차 연결
 
-잔차 연결은 깊은 뉴럴 넷트웍에서 그래디언트가 흐르게 한다.
+잔차 연결은 깊은 뉴럴 네트워크에서 그래디언트가 흐르게 한다.
 
 $$
 \mathbf{x}^{(l+1)} = \mathbf{x}^{(l)} + \text{SubLayer}(\text{LayerNorm}(\mathbf{x}^{(l)}))

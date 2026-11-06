@@ -10,7 +10,7 @@ Dueling DQN은 2016년 글 "Dueling Network Architectures for Deep Reinforcement
 #!/usr/bin/env python3
 """
 Dueling DQN - 값 흐름과 이득 흐름을 따로 두기
-글: "깊은 북돋움 러닝을 위한 겨루는 넷트웍 구조" (2016)
+글: "깊은 북돋움 러닝을 위한 겨루는 네트워크 구조" (2016)
 지은이: 쯔위 왕 외
 핵심 깨침:
   - V(s)과 A(s,a)을 따로 배운 뒤 Q(s,a)으로 아우른다
@@ -32,7 +32,7 @@ import torch.nn as nn
 
 class DuelingQNetwork(nn.Module):
     """
-    겨루는 넷트웍:
+    겨루는 네트워크:
       나누어 쓰는 몸통 -> 값 머리 + 이득 머리
     """
     def __init__(self, obs_dim: int, num_actions: int, hidden: int = 128):

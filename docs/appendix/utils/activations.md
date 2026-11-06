@@ -15,7 +15,7 @@
   - LeakyReLU
   - GELU
   - SiLU (Swish)
-  - GLU / SwiGLU(변환기와 큰 말 모형에서 쓰는 문 달린 살림)
+  - GLU / SwiGLU(트랜스포머와 큰 말 모형에서 쓰는 문 달린 살림)
 
 두루마리: appendix/utils/activations.py
 눈여겨볼 것: 배우기 위한 본 구현과 쓰는 법 적바림이다.

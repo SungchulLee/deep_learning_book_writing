@@ -89,15 +89,15 @@ $$\underbrace{h \cdot 3 \cdot d_{\text{model}} \cdot d_k}_{\text{QKV projections
 
 ### 왜 필요한가
 
-출력 투영 $\mathbf{W}_O$은 **잔차 연결** 때문에 순방향 뉴럴 넷트웍에 흡수될 수 없다.
+출력 투영 $\mathbf{W}_O$은 **잔차 연결** 때문에 순방향 뉴럴 네트워크에 흡수될 수 없다.
 
 $$\mathbf{X}' = \text{LayerNorm}(\mathbf{X} + \text{Concat}(\ldots)\mathbf{W}_O)$$
 
-어텐션의 출력은 순방향 뉴럴 넷트웍에 앞서 **$\mathbf{X}$에 더해진다**. $\mathbf{W}_O$이 없으면 다음과 같다.
+어텐션의 출력은 순방향 뉴럴 네트워크에 앞서 **$\mathbf{X}$에 더해진다**. $\mathbf{W}_O$이 없으면 다음과 같다.
 
 $$\mathbf{X}' = \text{LayerNorm}(\mathbf{X} + \text{Concat}(\ldots))$$
 
-순방향 뉴럴 넷트웍의 $\mathbf{W}_1$은 이미 잔차를 품은 $\mathbf{X}'$에 작용한다. 계산 그래프가 $\mathbf{W}_O$과 $\mathbf{W}_1$을 갈라놓는다.
+순방향 뉴럴 네트워크의 $\mathbf{W}_1$은 이미 잔차를 품은 $\mathbf{X}'$에 작용한다. 계산 그래프가 $\mathbf{W}_O$과 $\mathbf{W}_1$을 갈라놓는다.
 
 ### 헤드 사이의 소통
 

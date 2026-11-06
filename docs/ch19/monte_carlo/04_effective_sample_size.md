@@ -724,7 +724,7 @@ ESS/n이 같으면 두 제안의 모든 함수 추정 오차도 같은가?
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-아래 뉴럴 넷트웍 시험 대신 ESS의 어떤 성질을 확인해야 하는가?
+아래 뉴럴 네트워크 시험 대신 ESS의 어떤 성질을 확인해야 하는가?
 
 </div>
 

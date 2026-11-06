@@ -9,7 +9,7 @@ LSTM은 1997년 글 "Long Short-Term Memory"에서 나왔다. 이음 속 멀리 
 ```python
 #!/usr/bin/env python3
 '''
-LSTM - 긴 짧은 기억 넷트웍
+LSTM - 긴 짧은 기억 네트워크
 논문: "Long Short-Term Memory" (1997)
 핵심: 이음에서 멀리 걸친 기댐을 담아내는 문 구조
 '''

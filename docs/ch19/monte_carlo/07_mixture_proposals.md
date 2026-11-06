@@ -771,7 +771,7 @@ q_def=αq_target+(1−α)q_safe에서는 q_def≥(1−α)q_safe다. 따라서 �
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-아래 뉴럴 넷트웍 시험 대신 혼합 구현을 확인할 기준을 제시하라.
+아래 뉴럴 네트워크 시험 대신 혼합 구현을 확인할 기준을 제시하라.
 
 </div>
 

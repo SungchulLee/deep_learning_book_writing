@@ -330,7 +330,7 @@
         print("DEMONSTRATION: Simple Inference Queries")
         print("="*70)
 
-        # 뉴럴 넷트웍 만들기
+        # 뉴럴 네트워크 만들기
         bn = build_weather_network()
         inference = InferenceByEnumeration(bn)
 

@@ -229,7 +229,7 @@
 
         @staticmethod
         def _simple_model(input_shape, num_classes, dropout=0.2):
-            """단순한 2레이어 완전 연결 뉴럴 넷트웍."""
+            """단순한 2레이어 완전 연결 뉴럴 네트워크."""
             input_size = int(np.prod(input_shape))
 
             class SimpleModel(nn.Module):
@@ -253,7 +253,7 @@
 
         @staticmethod
         def _medium_model(input_shape, num_classes, dropout=0.3):
-            """배치 정규화를 넣은 중간 크기의 3레이어 완전 연결 뉴럴 넷트웍."""
+            """배치 정규화를 넣은 중간 크기의 3레이어 완전 연결 뉴럴 네트워크."""
             input_size = int(np.prod(input_shape))
 
             class MediumModel(nn.Module):
@@ -291,7 +291,7 @@
 
         @staticmethod
         def _deep_model(input_shape, num_classes, dropout=0.4):
-            """깊은 4레이어 완전 연결 뉴럴 넷트웍."""
+            """깊은 4레이어 완전 연결 뉴럴 네트워크."""
             input_size = int(np.prod(input_shape))
 
             class DeepModel(nn.Module):

@@ -1,14 +1,14 @@
 # GraphRNN
 
-GraphRNN(You et al., 2018)은 그래프 생성의 기초가 되는 자기회귀 모델이다. 그래프 생성을 두 켜로 쪼개는 켜진 순환 뉴럴 넷트웍 구조를 내놓는다. 온 자리 만들기 상태를 지니며 스텝마다 노드 하나를 만드는 **그래프 켜 순환 뉴럴 넷트웍**과, 새 노드를 기존 노드에 잇는 엣지를 만드는 **엣지 켜 순환 뉴럴 넷트웍**이다. 이 두 켜 쪼개기에 그래프의 가까움을 살리는 너비 우선 차례를 더해 GraphRNN은 나타냄 힘도 세고 계산도 다룰 만하다.
+GraphRNN(You et al., 2018)은 그래프 생성의 기초가 되는 자기회귀 모델이다. 그래프 생성을 두 켜로 쪼개는 켜진 순환 뉴럴 네트워크 구조를 내놓는다. 온 자리 만들기 상태를 지니며 스텝마다 노드 하나를 만드는 **그래프 켜 순환 뉴럴 네트워크**과, 새 노드를 기존 노드에 잇는 엣지를 만드는 **엣지 켜 순환 뉴럴 네트워크**이다. 이 두 켜 쪼개기에 그래프의 가까움을 살리는 너비 우선 차례를 더해 GraphRNN은 나타냄 힘도 세고 계산도 다룰 만하다.
 
 ---
 
 ## 1. 구조
 
-GraphRNN은 순환 뉴럴 넷트웍 둘을 켜지게 늘어놓아 쓴다:
+GraphRNN은 순환 뉴럴 네트워크 둘을 켜지게 늘어놓아 쓴다:
 
-**그래프 켜 순환 뉴럴 넷트웍($f_{\text{graph}}$).** 스텝 $t$까지 지은 그래프를 간추린 은닉 상태 $\mathbf{h}_t^G$을 지닌다. 스텝마다 앞 스텝의 엣지 벡터를 받아 엣지 켜 순환 뉴럴 넷트웍의 첫 은닉 상태를 내놓는다:
+**그래프 켜 순환 뉴럴 네트워크($f_{\text{graph}}$).** 스텝 $t$까지 지은 그래프를 간추린 은닉 상태 $\mathbf{h}_t^G$을 지닌다. 스텝마다 앞 스텝의 엣지 벡터를 받아 엣지 켜 순환 뉴럴 네트워크의 첫 은닉 상태를 내놓는다:
 
 $$
 \mathbf{h}_t^G = f_{\text{graph}}(\mathbf{h}_{t-1}^G, \mathbf{a}_{t-1})
@@ -16,7 +16,7 @@ $$
 
 여기서 $\mathbf{a}_{t-1} \in \{0,1\}^{M}$은 스텝 $t-1$의 (잘렸을 수도 있는) 엣지 벡터이고 $M$은 너비 우선 띠너비다.
 
-**엣지 켜 순환 뉴럴 넷트웍($f_{\text{edge}}$).** $\mathbf{h}_t^G$에서 얻은 상태로 시작해 벡터 $\mathbf{a}_t$의 엣지를 차례로 헤아린다:
+**엣지 켜 순환 뉴럴 네트워크($f_{\text{edge}}$).** $\mathbf{h}_t^G$에서 얻은 상태로 시작해 벡터 $\mathbf{a}_t$의 엣지를 차례로 헤아린다:
 
 $$
 \mathbf{h}_{t,s}^E = f_{\text{edge}}(\mathbf{h}_{t,s-1}^E, a_{t,s-1})
@@ -52,7 +52,7 @@ $$
 \mathcal{L} = -\sum_{t=2}^{n} \sum_{s=1}^{\min(t-1, M)} \left[ a_{t,s}^* \log p_\theta(a_{t,s} = 1 \mid \mathbf{h}_{t,s-1}^E) + (1 - a_{t,s}^*) \log p_\theta(a_{t,s} = 0 \mid \mathbf{h}_{t,s-1}^E) \right]
 $$
 
-익히는 동안 참 엣지 값 $a_{t,s}^*$을 엣지 켜 순환 뉴럴 넷트웍의 입력으로 넣는다(Teacher Forcing). 엣지 켜 순환 뉴럴 넷트웍은 스텝 $t$마다 그래프 켜 상태를 배운 바꿈으로 옮겨 첫 값을 잡는다:
+익히는 동안 참 엣지 값 $a_{t,s}^*$을 엣지 켜 순환 뉴럴 네트워크의 입력으로 넣는다(Teacher Forcing). 엣지 켜 순환 뉴럴 네트워크는 스텝 $t$마다 그래프 켜 상태를 배운 바꿈으로 옮겨 첫 값을 잡는다:
 
 $$
 \mathbf{h}_{t,0}^E = \text{MLP}_{\text{init}}(\mathbf{h}_t^G)
@@ -62,7 +62,7 @@ $$
 
 ## 4. 간단히 한 변형: GraphRNN-S
 
-계산 효율을 위해 GraphRNN-S은 엣지 켜 순환 뉴럴 넷트웍을 엣지 벡터 전체를 한꺼번에 헤아리는 여러 레이어 뉴럴 넷트웍 하나로 바꾼다:
+계산 효율을 위해 GraphRNN-S은 엣지 켜 순환 뉴럴 네트워크를 엣지 벡터 전체를 한꺼번에 헤아리는 여러 레이어 뉴럴 네트워크 하나로 바꾼다:
 
 $$
 \hat{\mathbf{a}}_t = \sigma(\text{MLP}(\mathbf{h}_t^G)) \in [0,1]^{M}
@@ -95,7 +95,7 @@ $$
 
 **차례 민감도.** 같은 그래프를 너비 우선으로 다르게 밟으면 학습 차례가 달라진다. 여러 차례로 데이터를 늘리면 도움이 되지만 모델은 여전히 차례에 매인 분포를 숨은 채로 배운다. $p_\theta(\mathcal{G} \mid \pi)$과 참 $p(\mathcal{G})$의 틈은 고른 차례 클래스가 구조의 규칙성을 얼마나 잘 담느냐에 매인다.
 
-**멀리 떨어진 매임.** 그래프 켜 순환 뉴럴 넷트웍은 스텝이 많을 수 있는데도 앎을 죽 퍼뜨려야 한다. 큰 그래프에서는 뒤의 만들기 공정성에 영향을 주는 이른 구조 결정을 은닉 상태가 담지 못할 수 있다.
+**멀리 떨어진 매임.** 그래프 켜 순환 뉴럴 네트워크는 스텝이 많을 수 있는데도 앎을 죽 퍼뜨려야 한다. 큰 그래프에서는 뒤의 만들기 공정성에 영향을 주는 이른 구조 결정을 은닉 상태가 담지 못할 수 있다.
 
 **커지기.** 학습과 만들기가 노드를 가로질러 본디 차례여서 나란함이 가둬진다. 노드가 수백 개인 그래프에서는 너비 우선 잘라내기를 해도 학습이 느릴 수 있다.
 
@@ -111,7 +111,7 @@ GraphRNN은 차례로 짓는 방식이 때에 따른 네트워크 생김을 그�
 
 ```python
 """
-GraphRNN: 너비 우선 잘라내기를 쓰는 그래프 만들기의 켜진 회귀 뉴럴 넷트웍.
+GraphRNN: 너비 우선 잘라내기를 쓰는 그래프 만들기의 켜진 회귀 뉴럴 네트워크.
 """
 import torch
 import torch.nn as nn
@@ -120,7 +120,7 @@ from collections import deque
 from typing import Optional
 
 class EdgeRNN(nn.Module):
-    """변 켜 회귀 뉴럴 넷트웍: 변 벡터를 차례로 만든다."""
+    """변 켜 회귀 뉴럴 네트워크: 변 벡터를 차례로 만든다."""
 
     def __init__(self, hidden_dim: int, edge_dim: int = 1):
         super().__init__()
@@ -146,7 +146,7 @@ class EdgeRNN(nn.Module):
         스승 밀어 넣기 앞으로 가기.
         
         인수:
-            h_init: (B, hidden_dim) 그래프 회귀 뉴럴 넷트웍에서 온 첫 숨은 상태
+            h_init: (B, hidden_dim) 그래프 회귀 뉴럴 네트워크에서 온 첫 숨은 상태
             edge_targets: (B, M) 참 변 벡터
             lengths: (B,) 표본마다 올바른 길이
             
@@ -161,7 +161,7 @@ class EdgeRNN(nn.Module):
         inputs = edge_targets[:, :-1].unsqueeze(-1)  # (B, M-1, 1)
         inputs = torch.cat([sos, inputs], dim=1)  # (B, M, 1)
 
-        # 변 회귀 뉴럴 넷트웍을 돌린다
+        # 변 회귀 뉴럴 네트워크를 돌린다
         h = h_init.unsqueeze(0)  # (1, B, hidden_dim)
         output, _ = self.rnn(inputs, h)  # (B, M, hidden_dim)
         logits = self.output(output).squeeze(-1)  # (B, M)
@@ -203,9 +203,9 @@ class EdgeRNN(nn.Module):
 
 class GraphRNN(nn.Module):
     """
-    GraphRNN: 그래프 만들기의 두 켜 켜진 회귀 뉴럴 넷트웍.
+    GraphRNN: 그래프 만들기의 두 켜 켜진 회귀 뉴럴 네트워크.
     
-    그래프 레이어 되도는 넷트웍이 온 상태를 좇고, 변 레이어 되도는 넷트웍이
+    그래프 레이어 되도는 네트워크가 온 상태를 좇고, 변 레이어 되도는 네트워크가
     새 마디마다의 이음.
     """
 
@@ -223,7 +223,7 @@ class GraphRNN(nn.Module):
         self.graph_hidden_dim = graph_hidden_dim
         self.use_edge_rnn = use_edge_rnn
 
-        # 그래프 켜 회귀 뉴럴 넷트웍
+        # 그래프 켜 회귀 뉴럴 네트워크
         self.graph_rnn = nn.GRU(
             input_size=bfs_bandwidth,
             hidden_size=graph_hidden_dim,
@@ -232,11 +232,11 @@ class GraphRNN(nn.Module):
         self.h0 = nn.Parameter(torch.zeros(1, 1, graph_hidden_dim))
 
         if use_edge_rnn:
-            # 변 켜 회귀 뉴럴 넷트웍을 갖춘 온전한 GraphRNN
+            # 변 켜 회귀 뉴럴 네트워크를 갖춘 온전한 GraphRNN
             self.edge_rnn = EdgeRNN(edge_hidden_dim)
             self.edge_init = nn.Linear(graph_hidden_dim, edge_hidden_dim)
         else:
-            # GraphRNN-S: 변 벡터 전체를 위한 여러 레이어 뉴럴 넷트웍
+            # GraphRNN-S: 변 벡터 전체를 위한 여러 레이어 뉴럴 네트워크
             self.edge_mlp = nn.Sequential(
                 nn.Linear(graph_hidden_dim, graph_hidden_dim),
                 nn.ReLU(),
@@ -266,7 +266,7 @@ class GraphRNN(nn.Module):
         num_preds = 0
 
         for t in range(1, T):
-            # 그래프 회귀 뉴럴 넷트웍 들임: 앞 스텝의 변 벡터
+            # 그래프 회귀 뉴럴 네트워크 들임: 앞 스텝의 변 벡터
             if t == 1:
                 x_t = torch.zeros(B, 1, M, device=device)
             else:

@@ -124,10 +124,10 @@ class CausalSelfAttention(nn.Module):
 ```python
 class TransformerBlock(nn.Module):
     """
-    변환기 디코더 덩이 하나.
+    트랜스포머 디코더 덩이 하나.
     
     짜임:
-        x -> 레이어 고르게 맞추기 -> 인과 어텐션 -> + -> 레이어 고르게 맞추기 -> 피드포워드 뉴럴 넷트웍 -> +
+        x -> 레이어 고르게 맞추기 -> 인과 어텐션 -> + -> 레이어 고르게 맞추기 -> 피드포워드 뉴럴 네트워크 -> +
              |__________________________|      |___________________|
     """
     
@@ -141,7 +141,7 @@ class TransformerBlock(nn.Module):
     ):
         super().__init__()
         
-        d_ff = d_ff or 4 * d_model  # 여느 방식: 피드포워드 뉴럴 넷트웍은 모델 차원의 4배
+        d_ff = d_ff or 4 * d_model  # 여느 방식: 피드포워드 뉴럴 네트워크는 모델 차원의 4배
         
         # 레이어 고르게 맞추기(앞 레이어 고르게 맞추기 구조)
         self.ln1 = nn.LayerNorm(d_model)
@@ -152,7 +152,7 @@ class TransformerBlock(nn.Module):
             d_model, n_heads, max_seq_len, dropout
         )
         
-        # 순방향 뉴럴 넷트웍
+        # 순방향 뉴럴 네트워크
         self.ffn = nn.Sequential(
             nn.Linear(d_model, d_ff),
             nn.GELU(),
@@ -167,7 +167,7 @@ class TransformerBlock(nn.Module):
         attention_mask: torch.Tensor = None
     ) -> torch.Tensor:
         """
-        변환기 덩이를 지나는 피드포워드.
+        트랜스포머 덩이를 지나는 피드포워드.
         
         인수:
             x: 들임 [배치 크기, 차례 길이, d_model]
@@ -205,11 +205,11 @@ x -> LayerNorm -> Attention -> + -> LayerNorm -> FFN -> +
 ```python
 class GPT(nn.Module):
     """
-    GPT 꼴 자기 회귀 변환기.
+    GPT 꼴 자기 회귀 트랜스포머.
     
     구조:
         - 토큰 임베딩 + 자리 임베딩
-        - 변환기 디코더 덩이 쌓기
+        - 트랜스포머 디코더 덩이 쌓기
         - 낱말로의 내놓기 쏘기
     """
     
@@ -280,7 +280,7 @@ class GPT(nn.Module):
         
         assert seq_len <= self.max_seq_len, f"Sequence length {seq_len} exceeds maximum {self.max_seq_len}"
         
-        # 묻힘을 얻는다
+        # 임베딩을 얻는다
         positions = torch.arange(seq_len, device=input_ids.device).unsqueeze(0)
         
         tok_emb = self.token_embedding(input_ids)
@@ -288,7 +288,7 @@ class GPT(nn.Module):
         
         x = self.dropout(tok_emb + pos_emb)
         
-        # 변환기 덩이를 지난다
+        # 트랜스포머 덩이를 지난다
         for block in self.blocks:
             x = block(x, attention_mask)
         
@@ -845,7 +845,7 @@ FinancialGPT는 entity_embedding을 추가하지만 상속한 forward에서 사�
 ```python
 class TimeSeriesTransformer(nn.Module):
     """
-    돈살림 시계열 내다보기를 위한 변환기.
+    돈살림 시계열 내다보기를 위한 트랜스포머.
     
     값의 지난 일을 이어진 값의 "문장"으로 본다.
     """

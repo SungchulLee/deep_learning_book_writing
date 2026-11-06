@@ -266,7 +266,7 @@ def kl_divergence(mu: torch.Tensor, logvar: torch.Tensor,
 ```
 
 !!! tip "왜 로그 분산인가?"
-    인코더가 $\sigma^2$ 대신 $\log\sigma^2$을 내는 것은 수치적 안정성 때문이다. `logvar`는 어떤 실수든 될 수 있고(뉴럴 넷트웍의 출력으로 알맞다), `exp(logvar)`는 언제나 양수이며(분산으로 알맞다), `log(sigma^2) = logvar`는 작은 수의 로그를 취하는 일을 피하게 해 준다.
+    인코더가 $\sigma^2$ 대신 $\log\sigma^2$을 내는 것은 수치적 안정성 때문이다. `logvar`는 어떤 실수든 될 수 있고(뉴럴 네트워크의 출력으로 알맞다), `exp(logvar)`는 언제나 양수이며(분산으로 알맞다), `log(sigma^2) = logvar`는 작은 수의 로그를 취하는 일을 피하게 해 준다.
 
 ### 전체 VAE 로스
 

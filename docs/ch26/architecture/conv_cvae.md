@@ -38,7 +38,7 @@ class ConvConditionalVAE(nn.Module):
         self.img_channels = img_channels
         self.img_size = img_size
         
-        # 공간 조건 짓기를 위한 이름표 묻힘
+        # 공간 조건 짓기를 위한 이름표 임베딩
         self.label_embedding = nn.Embedding(num_classes, img_size * img_size)
         
         # 인코더 - 그림 + 묻은 이름표를 채널 하나로 더 받는다

@@ -6,7 +6,7 @@
 
 ```python
 """
-점수 뉴럴 넷트웍 구조
+점수 뉴럴 네트워크 구조
 =====================================
 
 어려움: 중간
@@ -14,7 +14,7 @@
 미리 알 것: 단원 01-05
 
 학습 목표:
-- 자료 클래스마다 잘 듣는 점수 뉴럴 넷트웍을 짠다
+- 자료 클래스마다 잘 듣는 점수 뉴럴 네트워크를 짠다
 - 잡음과 때 조건 주기를 이해한다
 - 요즘 구조를 짠다
 
@@ -34,7 +34,7 @@ print("="*80)
 
 class TimeConditionalScoreNetwork(nn.Module):
     """
-    때와 잡음 조건을 갖춘 점수 뉴럴 넷트웍
+    때와 잡음 조건을 갖춘 점수 뉴럴 네트워크
     
     확산 모델에서 점수는 잡음 레이어 t에 달렸다.
     s_θ(x, t) = ∇_x log p_t(x)
@@ -42,17 +42,17 @@ class TimeConditionalScoreNetwork(nn.Module):
     def __init__(self, data_dim=2, hidden_dim=128, time_embed_dim=32):
         super().__init__()
         
-        # 때 임베딩(변환기처럼 사인 꼴)
+        # 때 임베딩(트랜스포머처럼 사인 꼴)
         self.time_embed_dim = time_embed_dim
         
-        # 때 임베딩을 위한 여러 레이어 뉴럴 넷트웍
+        # 때 임베딩을 위한 여러 레이어 뉴럴 네트워크
         self.time_mlp = nn.Sequential(
             nn.Linear(time_embed_dim, hidden_dim),
             nn.SiLU(),
             nn.Linear(hidden_dim, hidden_dim)
         )
         
-        # 으뜸 뉴럴 넷트웍
+        # 으뜸 뉴럴 네트워크
         self.net = nn.Sequential(
             nn.Linear(data_dim + hidden_dim, hidden_dim),
             nn.LayerNorm(hidden_dim),
@@ -64,7 +64,7 @@ class TimeConditionalScoreNetwork(nn.Module):
         )
     
     def get_timestep_embedding(self, timesteps, max_period=10000):
-        """사인 꼴 때 묻힘(변환기에서 가져옴)"""
+        """사인 꼴 시간 임베딩(트랜스포머에서 가져옴)"""
         half_dim = self.time_embed_dim // 2
         freqs = torch.exp(
             -np.log(max_period) * torch.arange(half_dim, dtype=torch.float32) / half_dim
@@ -133,11 +133,11 @@ print("""
 
 1. 때 조건 주기:
    - 확산 모델에 꼭 필요하다
-   - 사인 꼴 묻힘(변환기 방식)
+   - 사인 꼴 임베딩(트랜스포머 방식)
    - 또는 배울 수 있는 임베딩
 
 2. 2차원과 표 자료에서:
-   - 레이어 고르게 맞추기를 갖춘 여러 레이어 뉴럴 넷트웍
+   - 레이어 고르게 맞추기를 갖춘 여러 레이어 뉴럴 네트워크
    - SiLU와 GELU 깨움
    - 남은 이음이 도움이 된다
 
@@ -147,7 +147,7 @@ print("""
    - 무리 고르게 맞추기
 
 4. 이음 자료에서:
-   - 변환기 덩이
+   - 트랜스포머 덩이
    - 필요하면 인과 가림막
 
 설계 원칙:
@@ -178,11 +178,11 @@ Epoch 800: Loss = 2.645384, σ = 0.500
 
 1. 때 조건 주기:
    - 확산 모델에 꼭 필요하다
-   - 사인 꼴 묻힘(변환기 방식)
+   - 사인 꼴 임베딩(트랜스포머 방식)
    - 또는 배울 수 있는 임베딩
 
 2. 2차원과 표 자료에서:
-   - 레이어 고르게 맞추기를 갖춘 여러 레이어 뉴럴 넷트웍
+   - 레이어 고르게 맞추기를 갖춘 여러 레이어 뉴럴 네트워크
    - SiLU와 GELU 깨움
    - 남은 이음이 도움이 된다
 
@@ -192,7 +192,7 @@ Epoch 800: Loss = 2.645384, σ = 0.500
    - 무리 고르게 맞추기
 
 4. 이음 자료에서:
-   - 변환기 덩이
+   - 트랜스포머 덩이
    - 필요하면 인과 가림막
 
 설계 원칙:

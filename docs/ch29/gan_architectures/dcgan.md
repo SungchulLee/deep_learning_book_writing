@@ -30,7 +30,7 @@ import torch.nn as nn
 
 class DCGANGenerator(nn.Module):
     """
-    DCGAN 생성기 뉴럴 넷트웍.
+    DCGAN 생성기 뉴럴 네트워크.
     
     자리 바꾼 겹말기로 숨은 벡터 z을 그림으로 옮긴다.
     """
@@ -106,7 +106,7 @@ class DCGANGenerator(nn.Module):
 
 class DCGANDiscriminator(nn.Module):
     """
-    DCGAN 판별기 뉴럴 넷트웍.
+    DCGAN 판별기 뉴럴 네트워크.
     
     성큼 겹말기로 그림을 실제인지 가짜인지 가른다.
     """

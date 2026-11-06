@@ -66,7 +66,7 @@ $$
 
 ## 4. 점수 네트워크의 구조
 
-점수 네트워크는 노드 피처와 이웃 관계를 함께 다루는 그래프 뉴럴 넷트웍으로 차원이 맞는 점수 어림을 낸다. 이 구조는 때 스텝 $t$의 잡소리 섞인 그래프를 다루어 노드 $\mathbf{s}_\theta^X \in \mathbb{R}^{n \times d}$과 엣지 $\mathbf{s}_\theta^A \in \mathbb{R}^{n \times n}$의 점수 어림을 따로 내놓는다.
+점수 네트워크는 노드 피처와 이웃 관계를 함께 다루는 그래프 뉴럴 네트워크로 차원이 맞는 점수 어림을 낸다. 이 구조는 때 스텝 $t$의 잡소리 섞인 그래프를 다루어 노드 $\mathbf{s}_\theta^X \in \mathbb{R}^{n \times d}$과 엣지 $\mathbf{s}_\theta^A \in \mathbb{R}^{n \times n}$의 점수 어림을 따로 내놓는다.
 
 ---
 
@@ -132,7 +132,7 @@ class VPSDE:
 
 class ScoreNetworkGNN(nn.Module):
     """
-    마디와 변의 점수를 함께 어림하는 그래프 뉴럴 넷트웍 바탕 점수 넷트웍.
+    마디와 변의 점수를 함께 어림하는 그래프 뉴럴 네트워크 바탕 점수 네트워크.
     """
 
     def __init__(
@@ -158,7 +158,7 @@ class ScoreNetworkGNN(nn.Module):
         # 이웃 행렬 쏘기(줄을 피처로 본다)
         self.adj_proj = nn.Linear(max_nodes, hidden_dim)
 
-        # 그래프 뉴럴 넷트웍 레이어
+        # 그래프 뉴럴 네트워크 레이어
         self.gnn_layers = nn.ModuleList()
         for _ in range(num_layers):
             self.gnn_layers.append(nn.ModuleDict({

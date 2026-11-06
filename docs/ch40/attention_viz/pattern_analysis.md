@@ -207,7 +207,7 @@ def compare_layers(
     layers_to_compare: list = None
 ) -> plt.Figure:
     """
-    변환기 켜를 가로질러 어텐션 결을 견준다.
+    트랜스포머 켜를 가로질러 어텐션 결을 견준다.
 
     Args:
         attention_weights_by_layer: 켜마다의 [배치, 머리, 열, 열] 목록
@@ -625,7 +625,7 @@ def comprehensive_attention_analysis(
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 넷트웍에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
+이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 네트워크에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
 
 </div>
 

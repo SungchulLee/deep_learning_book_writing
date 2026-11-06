@@ -10,7 +10,7 @@ Pix2Pix은 2017년 글 "Image-to-Image Translation with Conditional Adversarial 
 #!/usr/bin/env python3
 """
 Pix2Pix - 짝지은 그림에서 그림으로 옮기기
-글: "조건 붙은 맞겨루기 넷트웍으로 그림에서 그림으로 옮기기" (2017)
+글: "조건 붙은 맞겨루기 네트워크로 그림에서 그림으로 옮기기" (2017)
 핵심 깨침:
   - 조건 붙은 맞겨루기 생성기
   - 짝지은 (x, y) 익힘 자료가 든다

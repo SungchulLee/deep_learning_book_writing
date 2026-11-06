@@ -160,7 +160,7 @@ def train_step_with_clipping(model, optimizer, criterion, src, tgt, max_norm=1.0
 1. **위치 인코딩을 더한 뒤**: 합쳐진 임베딩의 성분을 무작위로 떨어뜨린다
 2. **어텐션 웨이트 뒤**(멀티헤드 어텐션 안에서): 어텐션 연결을 무작위로 떨어뜨린다
 3. **아래 레이어마다 그 뒤**(잔차를 더하기 전에): 아래 레이어의 출력을 떨어뜨린다
-4. **순전파 뉴럴 넷트웍 안에서**: 중간 활성을 떨어뜨린다
+4. **순전파 뉴럴 네트워크 안에서**: 중간 활성을 떨어뜨린다
 
 드롭아웃 확률은 데이터·모델·학습 예산에 따라 선택한다. 큰 모델 0.1, 작은 모델 0.3 같은 고정 규칙은 없다. 평가에서는 끄며, 어텐션 드롭아웃 뒤 웨이트 행 합이 매번 1인 것도 아니다.
 
@@ -178,7 +178,7 @@ class TransformerBlockWithDropout(nn.Module):
         self.ffn = nn.Sequential(
             nn.Linear(d_model, d_ff),
             nn.ReLU(),
-            nn.Dropout(dropout),       # 순전파 뉴럴 넷트웍 안의 드롭아웃
+            nn.Dropout(dropout),       # 순전파 뉴럴 네트워크 안의 드롭아웃
             nn.Linear(d_ff, d_model),
         )
         self.norm1 = nn.LayerNorm(d_model)

@@ -12,13 +12,13 @@ FILE: 06_score_networks.py
 미리 알 것: 04_denoising_score_matching.py
 
 학습 목표:
-    1. 잘 듣는 점수 뉴럴 넷트웍 구조를 짠다
-    2. 잡음 조건 점수 뉴럴 넷트웍을 짠다
+    1. 잘 듣는 점수 뉴럴 네트워크 구조를 짠다
+    2. 잡음 조건 점수 뉴럴 네트워크를 짠다
     3. 고르게 맞추기와 깨움 고르기를 이해한다
     4. 점수 나타내기의 가장 좋은 방식을 배운다
 
 수학 바탕:
-    점수 뉴럴 넷트웍은 ∇log p(x)을 나타내는 벡터 마당을 내놓아야 한다.
+    점수 뉴럴 네트워크는 ∇log p(x)을 나타내는 벡터 마당을 내놓아야 한다.
     
     설계에서 살필 핵심:
     1. 마지막 활성화가 없다(내놓음이 어떤 실수든 될 수 있다)
@@ -37,7 +37,7 @@ import torch.nn as nn
 
 class NoiseConditionalScoreNetwork(nn.Module):
     """
-    잡음 수준을 조건으로 삼는 점수 뉴럴 넷트웍.
+    잡음 수준을 조건으로 삼는 점수 뉴럴 네트워크.
     
     구조: s_θ(x, σ)이 분포 p_σ(x)의 점수를 내놓는다.
     이는 여러 잣수의 점수 나타내기에 결정적이다.
@@ -50,7 +50,7 @@ class NoiseConditionalScoreNetwork(nn.Module):
         # 잡음 수준 부호화(사인 꼴 자리 부호화)
         self.sigma_encoding_dim = sigma_encoding_dim
         
-        # 으뜸 뉴럴 넷트웍
+        # 으뜸 뉴럴 네트워크
         layers = []
         input_dim = data_dim + sigma_encoding_dim
         
@@ -69,7 +69,7 @@ class NoiseConditionalScoreNetwork(nn.Module):
         """
         잡음 수준의 사인 꼴 임베딩.
         
-        변환기의 자리 부호화와 비슷하다.
+        트랜스포머의 자리 부호화와 비슷하다.
         """
         half_dim = self.sigma_encoding_dim // 2
         emb = torch.log(torch.tensor(10000.0)) / (half_dim - 1)
@@ -100,12 +100,12 @@ class NoiseConditionalScoreNetwork(nn.Module):
         # 자료와 이어 붙인다
         x_cond = torch.cat([x, sigma_emb], dim=-1)
         
-        # 넷트웍에 통과시키기
+        # 네트워크에 통과시키기
         return self.network(x_cond)
 
 
 class ResidualBlock(nn.Module):
-    """더 깊은 점수 뉴럴 넷트웍을 위한 남은 덩이."""
+    """더 깊은 점수 뉴럴 네트워크를 위한 남은 덩이."""
     
     def __init__(self, dim, dropout=0.1):
         super().__init__()
@@ -124,7 +124,7 @@ class ResidualBlock(nn.Module):
 
 
 class DeepScoreNetwork(nn.Module):
-    """남은 이음을 갖춘 깊은 점수 뉴럴 넷트웍."""
+    """남은 이음을 갖춘 깊은 점수 뉴럴 네트워크."""
     
     def __init__(self, data_dim=2, hidden_dim=128, n_blocks=4):
         super().__init__()
@@ -143,23 +143,23 @@ class DeepScoreNetwork(nn.Module):
 
 
 def demo_architectures():
-    """여러 점수 뉴럴 넷트웍 구조를 견준다."""
+    """여러 점수 뉴럴 네트워크 구조를 견준다."""
     print("Score Network Architectures Demo")
     print("=" * 80)
     
     x = torch.randn(32, 2)
     
-    # 기본 뉴럴 넷트웍을 시험한다
+    # 기본 뉴럴 네트워크를 시험한다
     basic_net = nn.Sequential(
         nn.Linear(2, 64), nn.ReLU(),
         nn.Linear(64, 64), nn.ReLU(),
         nn.Linear(64, 2)
     )
     
-    # 잡음 조건 뉴럴 넷트웍을 시험한다
+    # 잡음 조건 뉴럴 네트워크를 시험한다
     cond_net = NoiseConditionalScoreNetwork(data_dim=2)
     
-    # 깊은 뉴럴 넷트웍을 시험한다
+    # 깊은 뉴럴 네트워크를 시험한다
     deep_net = DeepScoreNetwork(data_dim=2, hidden_dim=64, n_blocks=3)
     
     print("\nArchitecture comparison:")

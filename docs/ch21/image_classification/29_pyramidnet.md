@@ -7,7 +7,7 @@ PyramidNet은 잔차 블록을 지날 때마다 채널 폭을 점진적으로 �
 ```python
 #!/usr/bin/env python3
 '''
-PyramidNet — 깊은 피라미드 잔차 넷트웍
+PyramidNet — 깊은 피라미드 잔차 네트워크
 논문: "Deep Pyramidal Residual Networks" (2017)
 핵심: 피처 지도 차원을 차츰 늘린다
 '''

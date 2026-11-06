@@ -148,7 +148,7 @@ def elastic_net_penalty(model: nn.Module, lambda_reg: float,
     엘라스틱 넷 정칙화의 벌점을 계산한다.
     
     인수:
-        model: 뉴럴 넷트웍 모델
+        model: 뉴럴 네트워크 모델
         lambda_reg: 전체 정칙화의 강도
         alpha: 혼합 파라메터 (0이면 능선, 1이면 라쏘)
         
@@ -177,7 +177,7 @@ def elastic_net_penalty(model: nn.Module, lambda_reg: float,
     return lambda_reg * (alpha * l1_penalty + (1 - alpha) / 2 * l2_penalty)
 
 class ElasticNetRegularizedModel(nn.Module):
-    """엘라스틱 넷 정칙화를 쓰는 뉴럴 넷트웍."""
+    """엘라스틱 넷 정칙화를 쓰는 뉴럴 네트워크."""
     
     def __init__(self, input_dim, hidden_dims, output_dim, 
                  lambda_reg=0.01, alpha=0.5):
@@ -185,7 +185,7 @@ class ElasticNetRegularizedModel(nn.Module):
         self.lambda_reg = lambda_reg
         self.alpha = alpha
         
-        # 뉴럴 넷트웍 만들기
+        # 뉴럴 네트워크 만들기
         layers = []
         # prev_dim이 레이어와 레이어를 잇는 고리다. 한 레이어의 출력 크기가 다음 레이어의
         # 입력 크기가 되므로, 매번 갱신해 주어야 모양이 맞아떨어진다

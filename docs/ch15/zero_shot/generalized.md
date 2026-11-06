@@ -331,7 +331,7 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     
-    # 묻힘을 마련한다
+    # 임베딩을 마련한다
     seen_embs = torch.stack([
         torch.tensor(class_embeddings[c], dtype=torch.float32)
         for c in seen_classes
@@ -393,7 +393,7 @@ FeatureVAE는 시각 피처와 의미 벡터에서 잠재 분포를 추정하고
 ```python
 class FeatureVAE(nn.Module):
     """
-    뜻 묻힘에서 시각 피처를 지어내는 VAE.
+    의미 임베딩에서 시각 피처를 지어내는 VAE.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, latent_dim: int = 64):
@@ -439,7 +439,7 @@ class FeatureVAE(nn.Module):
         return recon, mu, logvar
     
     def generate(self, semantic, n_samples=1):
-        """주어진 뜻 묻힘의 시각 피처를 지어낸다."""
+        """주어진 의미 임베딩의 시각 피처를 지어낸다."""
         z = torch.randn(n_samples, self.fc_mu.out_features)
         semantic_expanded = semantic.unsqueeze(0).expand(n_samples, -1)
         return self.decode(z, semantic_expanded)

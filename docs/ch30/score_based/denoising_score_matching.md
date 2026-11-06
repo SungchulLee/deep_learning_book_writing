@@ -89,7 +89,7 @@ def dsm_loss(score_net: nn.Module, x: torch.Tensor,
     """잡음 수준 하나의 잡음 없애는 점수 맞추기 로스.
 
     인수:
-        score_net: [batch, dim]을 [batch, dim]으로 보내는 넷트웍 s(x).
+        score_net: [batch, dim]을 [batch, dim]으로 보내는 네트워크 s(x).
         x: 깨끗한 자료 [batch, dim].
         sigma: 잡음의 표준 편차.
 
@@ -113,7 +113,7 @@ def dsm_loss_energy(energy_net: nn.Module, x: torch.Tensor,
     점수는 자동 미분으로 ∇_x E_θ(x)으로 셈한다.
 
     인수:
-        energy_net: 낱값 에너지 뉴럴 넷트웍 E(x).
+        energy_net: 낱값 에너지 뉴럴 네트워크 E(x).
         x: 깨끗한 자료 [batch, dim].
         sigma: 잡음의 표준 편차.
 
@@ -144,7 +144,7 @@ def multi_scale_dsm_loss(
     """기본으로 σ² 무게를 준 여러 잣수의 잡음 없애는 점수 맞추기 로스.
 
     인수:
-        score_net: 잡음 조건을 갖춘 뉴럴 넷트웍 s(x, sigma).
+        score_net: 잡음 조건을 갖춘 뉴럴 네트워크 s(x, sigma).
         x: 깨끗한 자료 [batch, dim].
         sigmas: 잡음 수준.
         weights: 수준마다 무게(기본: σ²으로 고르게 맞춘 것).
@@ -200,7 +200,7 @@ def dsm_loss_random_sigma(
 
 ```python
 class ScoreNet(nn.Module):
-    """잡음 수준을 조건으로 삼는 여러 레이어 뉴럴 넷트웍 점수 뉴럴 넷트웍."""
+    """잡음 수준을 조건으로 삼는 여러 레이어 뉴럴 네트워크 점수 뉴럴 네트워크."""
 
     def __init__(self, data_dim: int = 2, hidden_dim: int = 128):
         super().__init__()
@@ -224,7 +224,7 @@ import numpy as np
 
 def train_dsm(data: torch.Tensor, n_epochs: int = 5000,
               batch_size: int = 256, lr: float = 1e-3):
-    """아무 시그마 잡음 없애는 점수 맞추기로 점수 뉴럴 넷트웍을 익힌다."""
+    """아무 시그마 잡음 없애는 점수 맞추기로 점수 뉴럴 네트워크를 익힌다."""
     model = ScoreNet(data_dim=data.shape[1])
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 

@@ -7,7 +7,7 @@
 ```python
 #!/usr/bin/env python3
 '''
-Seq2Seq — 뉴럴 넷트웍으로 하는 순차열 대 순차열 학습
+Seq2Seq — 뉴럴 네트워크로 하는 순차열 대 순차열 학습
 논문: "Sequence to Sequence Learning with Neural Networks" (2014)
 핵심: 순차열 변환을 위한 인코더-디코더 구조
 '''

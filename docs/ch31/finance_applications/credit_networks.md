@@ -175,7 +175,7 @@ class CreditNetworkEBM(nn.Module):
 
 def credit_network_demo():
     """
-    에너지 바탕 모델로 신용 넷트웍 나타내기를 보여 준다.
+    에너지 바탕 모델로 신용 네트워크 나타내기를 보여 준다.
     """
     # 작은 신용 꾸러미를 만든다
     n_firms = 20
@@ -353,7 +353,7 @@ def systemic_risk_monitor(model, current_state, historical_states):
     파라메터
     ----------
     model : CreditNetworkEBM
-        익힌 신용 넷트웍
+        익힌 신용 네트워크
     current_state : torch.Tensor
         지금의 부도와 버팀 지표
     historical_states : torch.Tensor
@@ -423,12 +423,12 @@ analyze_contagion은 한 번 생성한 상태에서 특정 기업을 1로 만든
 ```python
 def train_credit_network(model, default_history, n_epochs=100, lr=0.01):
     """
-    지난 부도 자료로 신용 넷트웍을 익힌다.
+    지난 부도 자료로 신용 네트워크를 익힌다.
     
     파라메터
     ----------
     model : CreditNetworkEBM
-        신용 넷트웍 모델
+        신용 네트워크 모델
     default_history : torch.Tensor
         본 부도의 이진 행렬 (n_periods, n_firms)
     """

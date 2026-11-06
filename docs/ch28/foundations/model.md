@@ -26,11 +26,11 @@ from typing import Optional, Tuple
 
 class CharRNN(nn.Module):
     """
-    글 만들어 내기를 위한 글자 수준 회귀 뉴럴 넷트웍.
+    글 만들어 내기를 위한 글자 수준 회귀 뉴럴 네트워크.
     
     이는 다음과 같은 자기 회귀 모델이다.
     1. 글자의 차례를 들임으로 받는다
-    2. 회귀 뉴럴 넷트웍(긴 짧은 기억)으로 다룬다
+    2. 회귀 뉴럴 네트워크(긴 짧은 기억)으로 다룬다
     3. 다음 글자를 헤아린다
     
     구조:
@@ -43,7 +43,7 @@ class CharRNN(nn.Module):
                  hidden_dim: int = 128,
                  n_layers: int = 2):
         """
-        글자 회귀 뉴럴 넷트웍을 첫자리매김한다.
+        글자 회귀 뉴럴 네트워크를 첫자리매김한다.
         
         인수:
             vocab_size: 낱말 속 서로 다른 글자의 수
@@ -173,10 +173,10 @@ class CharRNN(nn.Module):
 
 class SimpleCharTransformer(nn.Module):
     """
-    글자 수준 말 나타내기를 위한 단순한 변환기.
+    글자 수준 말 나타내기를 위한 단순한 트랜스포머.
     
-    이는 회귀 대신 셀프 어텐션을 쓰는 더 요즘다운 회귀 뉴럴 넷트웍의 대안이다.
-    변환기는 GPT 같은 모델의 바탕 구조이다.
+    이는 회귀 대신 셀프 어텐션을 쓰는 더 요즘다운 회귀 뉴럴 네트워크의 대안이다.
+    트랜스포머는 GPT 같은 모델의 바탕 구조이다.
     GPT 같은 모델.
     """
     
@@ -187,13 +187,13 @@ class SimpleCharTransformer(nn.Module):
                  n_layers: int = 2,
                  max_seq_length: int = 100):
         """
-        변환기 모델을 첫자리매김한다.
+        트랜스포머 모델을 첫자리매김한다.
         
         인수:
             vocab_size: 서로 다른 글자의 수
             embedding_dim: 임베딩의 차원(n_heads으로 나누어떨어져야 한다)
             n_heads: 어텐션 머리의 수
-            n_layers: 변환기 레이어의 수
+            n_layers: 트랜스포머 레이어의 수
             max_seq_length: 최대 차례 길이(자리 부호화용)
         """
         super(SimpleCharTransformer, self).__init__()
@@ -205,10 +205,10 @@ class SimpleCharTransformer(nn.Module):
         self.token_embedding = nn.Embedding(vocab_size, embedding_dim)
         
         # 자리 임베딩: 자리 앎을 더한다
-        # 변환기에는 본디 차례가 없으므로 자리 앎을 더한다
+        # 트랜스포머에는 본디 차례가 없으므로 자리 앎을 더한다
         self.position_embedding = nn.Embedding(max_seq_length, embedding_dim)
         
-        # 변환기 인코더 레이어
+        # 트랜스포머 인코더 레이어
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=embedding_dim,
             nhead=n_heads,
@@ -223,7 +223,7 @@ class SimpleCharTransformer(nn.Module):
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        변환기를 지나는 피드포워드.
+        트랜스포머를 지나는 피드포워드.
         
         인수:
             x: 들임 텐서 [배치 크기, 차례 길이]
@@ -248,7 +248,7 @@ class SimpleCharTransformer(nn.Module):
         mask = torch.triu(torch.ones(seq_length, seq_length, device=x.device), diagonal=1)
         mask = mask.bool()
         
-        # 인과 가림막과 함께 변환기를 쓴다
+        # 인과 가림막과 함께 트랜스포머를 쓴다
         x = self.transformer(x, mask=mask)
         
         # 헤아리기에 마지막 자리를 쓴다
@@ -299,7 +299,7 @@ if __name__ == "__main__":
     print("Testing SimpleCharTransformer")
     print("=" * 60)
     
-    # 변환기를 첫자리매김한다
+    # 트랜스포머를 첫자리매김한다
     transformer_model = SimpleCharTransformer(
         vocab_size, 
         embedding_dim=64,  # n_heads으로 나누어떨어져야 한다

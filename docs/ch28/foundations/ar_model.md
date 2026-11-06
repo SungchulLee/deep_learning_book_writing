@@ -29,7 +29,7 @@ class ARModel(nn.Module):
     이는 다음을 헤아리는 단순한 선형 자기 회귀 모델이다.
     X_t = c + φ₁*X_{t-1} + φ₂*X_{t-2} + ... + φₚ*X_{t-p}
     
-    뉴럴 넷트웍 말로 하면 이는 깨움 함수가 없는 선형 레이어일 뿐이다.
+    뉴럴 네트워크 말로 하면 이는 깨움 함수가 없는 선형 레이어일 뿐이다.
     
     구조:
         들임: [배치 크기, 차례 길이] - 지난 p개 값
@@ -130,7 +130,7 @@ class NeuralARModel(nn.Module):
     """
     뉴럴 자기 회귀 모델 - AR(p)의 비선형 넓힘.
     
-    단순한 선형 모델 대신 작은 뉴럴 넷트웍을 써서
+    단순한 선형 모델 대신 작은 뉴럴 네트워크를 써서
     시계열의 비선형 관계를 담는다.
     
     구조:
@@ -151,7 +151,7 @@ class NeuralARModel(nn.Module):
         
         self.order = order
         
-        # 여러 레이어 뉴럴 넷트웍
+        # 여러 레이어 뉴럴 네트워크
         self.network = nn.Sequential(
             # 첫 번째 은닉 레이어
             nn.Linear(order, hidden_size),
@@ -167,7 +167,7 @@ class NeuralARModel(nn.Module):
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        뉴럴 넷트웍을 지나는 피드포워드.
+        뉴럴 네트워크를 지나는 피드포워드.
         
         인수:
             x: 꼴 [배치 크기, order]인 들임 텐서
@@ -183,7 +183,7 @@ class NeuralARModel(nn.Module):
         """
         앞날 헤아림을 자기 회귀로 만든다.
         
-        ARModel.predict_sequence()과 같되 뉴럴 넷트웍을 쓴다.
+        ARModel.predict_sequence()과 같되 뉴럴 네트워크를 쓴다.
         
         인수:
             initial_sequence: 출발 값
@@ -367,4 +367,4 @@ forward와 predict_sequence의 서로 다른 입력 계약을 설명하라.
 
 ## 정리하며
 
-선형 AR과 뉴럴 넷트웍 AR은 최근 관측 창을 받는 대안적인 점 예측기다. 계수 순서·입력 모양과 재귀 롤아웃의 의미를 확인하고 확률 표본·불확실성 예측과 구분한다. 한 스텝 오차와 장기 안정성도 별도로 평가해야 한다.
+선형 AR과 뉴럴 네트워크 AR은 최근 관측 창을 받는 대안적인 점 예측기다. 계수 순서·입력 모양과 재귀 롤아웃의 의미를 확인하고 확률 표본·불확실성 예측과 구분한다. 한 스텝 오차와 장기 안정성도 별도로 평가해야 한다.

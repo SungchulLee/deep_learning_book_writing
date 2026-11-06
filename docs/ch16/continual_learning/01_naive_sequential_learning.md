@@ -91,7 +91,7 @@
             이어 배우는 학습기를 초기화한다.
 
             인수:
-                model: 뉴럴 넷트웍 모델
+                model: 뉴럴 네트워크 모델
                 device: 익힐 장치(CPU나 GPU)
                 learning_rate: 최적화기의 러닝레이트
             """

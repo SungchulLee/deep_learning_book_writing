@@ -6,7 +6,7 @@ RNN 언어 모델은 단어를 순서대로 읽고 은닉 상태에 이전 문�
 
 ```python
 """
-튜토리얼 05: 리커런트 넷트웍 언어 모델
+튜토리얼 05: 리커런트 네트워크 언어 모델
 
 수학적 바탕:
 h_t = tanh(W_hh * h_{t-1} + W_xh * x_t + b_h)
@@ -25,7 +25,7 @@ from typing import List, Tuple
 
 
 class RNNLanguageModel(nn.Module):
-    """맥락 길이가 바뀌는 리커런트 넷트웍 바탕 언어 모델."""
+    """맥락 길이가 바뀌는 리커런트 네트워크 바탕 언어 모델."""
     
     def __init__(self, vocab_size: int, embedding_dim: int, 
                  hidden_dim: int, num_layers: int = 1, dropout: float = 0.2):

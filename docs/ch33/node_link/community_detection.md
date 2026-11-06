@@ -5,7 +5,7 @@
 ## 1. 코드와 출력
 
 ```python
-"""29.6.4: 그래프 뉴럴 넷트웍으로 하는 무리 찾기."""
+"""29.6.4: 그래프 뉴럴 네트워크로 하는 무리 찾기."""
 import torch, torch.nn as nn, torch.nn.functional as F
 import numpy as np, networkx as nx
 from sklearn.cluster import KMeans
@@ -15,7 +15,7 @@ from sklearn.cluster import KMeans
 # ========================================================================
 
 class GNNCommunity(nn.Module):
-    """무리 찾기를 위한 그래프 뉴럴 넷트웍 인코더."""
+    """무리 찾기를 위한 그래프 뉴럴 네트워크 인코더."""
     def __init__(self, in_ch, hidden_ch, embed_ch):
         super().__init__()
         self.lin1 = nn.Linear(in_ch, hidden_ch)

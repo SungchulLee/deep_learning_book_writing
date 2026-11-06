@@ -47,7 +47,7 @@ def classical_mds(D, n_components=2):
     
     인수:
         D: 거리 행렬 [n, n](대칭, 대각이 0)
-        n_components: 묻힘 차원
+        n_components: 임베딩 차원
     
     반환값:
         Y: 묻힌 좌표 [n, n_components]
@@ -145,7 +145,7 @@ def metric_mds_torch(D, n_components=2, n_iter=300, lr=0.01, seed=42):
     
     인수:
         D: 거리 행렬 [n, n](numpy 배열)
-        n_components: 묻힘 차원
+        n_components: 임베딩 차원
         n_iter: 가장 좋게 하기 되풀이 수
         lr: 러닝레이트
     
@@ -170,7 +170,7 @@ def metric_mds_torch(D, n_components=2, n_iter=300, lr=0.01, seed=42):
     for _ in range(n_iter):
         optimizer.zero_grad()
         
-        # 묻힘에서 둘씩의 거리
+        # 임베딩에서 둘씩의 거리
         diff = Y.unsqueeze(0) - Y.unsqueeze(1)       # [n, n, k]
         dist_embed = torch.sqrt((diff ** 2).sum(-1) + 1e-12)
         

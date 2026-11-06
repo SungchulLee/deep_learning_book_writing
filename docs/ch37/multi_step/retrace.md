@@ -84,8 +84,8 @@ def compute_retrace_batch(
     """자취 배치의 리트레이스 타깃을 셈한다.
     
     인수:
-        q_online: 온라인 Q 넷트웍
-        q_target: 타깃 Q 넷트웍
+        q_online: 온라인 Q 네트워크
+        q_target: 타깃 Q 네트워크
         trajectories: states, actions, rewards, next_states, dones,
                       behavior_probs 열쇠를 지닌 사전의 목록
         gamma: 깎기
@@ -109,7 +109,7 @@ def compute_retrace_batch(
             q_vals = q_target(states).gather(1, actions.unsqueeze(1)).squeeze(1)
             next_q_max = q_target(next_states).max(dim=1)[0]
             
-            # 타깃 폴리시: 온라인 넷트웍에 대해 욕심쟁이
+            # 타깃 폴리시: 온라인 네트워크에 대해 욕심쟁이
             online_actions = q_online(states).argmax(dim=1)
             target_probs = (online_actions == actions).float()
         

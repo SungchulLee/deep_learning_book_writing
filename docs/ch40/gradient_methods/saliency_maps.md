@@ -1,6 +1,6 @@
 # Saliency Map과 기본 그래디언트
 
-**Saliency Map**은 뉴럴 넷트웍의 추론에 입력의 어느 데가 가장 중요한지 드러내는 그림 그리기 재주다. 뿌리를 보면 현저성 방법은 기초가 되는 물음에 답한다. *"모델은 이 판단을 내리는 데 어떤 입력 피처에 기대는가?"*
+**Saliency Map**은 뉴럴 네트워크의 추론에 입력의 어느 데가 가장 중요한지 드러내는 그림 그리기 재주다. 뿌리를 보면 현저성 방법은 기초가 되는 물음에 답한다. *"모델은 이 판단을 내리는 데 어떤 입력 피처에 기대는가?"*
 
 가장 단순하고 가장 기초가 되는 길은 **맨 그래디언트**를 쓰는 것이다. 곧 모델의 내놓기를 입력으로 미분한다. 기초 생각은 곧다. **어떤 픽셀 값을 바꾸었을 때 추론이 크게 달라지면 그 픽셀이 중요하다.**
 
@@ -83,7 +83,7 @@ def compute_saliency_map(
     맨 그래디언트 두드러짐 그림을 셈한다.
 
     Args:
-        model: 따지는 결로 놓인 뉴럴 넷트웍 모형
+        model: 따지는 결로 놓인 뉴럴 네트워크 모형
         input_tensor: (1, C, H, W) 꼴 들임 텐서
         target_class: 겨눈 클래스 번호(None이면 미루어 본 클래스를 쓴다)
         device: 셈하는 장치
@@ -128,7 +128,7 @@ def compute_vanilla_gradient_saliency(
     맨 그래디언트 두드러짐 그림을 셈한다(텐서를 내놓는다).
 
     Args:
-        model: 따지는 결로 놓인 미리 익힌 뉴럴 넷트웍
+        model: 따지는 결로 놓인 미리 익힌 뉴럴 네트워크
         image_tensor: 들임 그림 [1, 3, H, W]
         target_class: 두드러짐을 셈할 클래스 번호
         device: 셈하는 장치(CPU/GPU)
@@ -528,7 +528,7 @@ def analyze_saliency_statistics(saliency: np.ndarray) -> dict:
 
 맨 그래디언트 Saliency Map은 **잡음이 많기로** 이름났다. 까닭은 이렇다.
 
-1. **높은 잦기에 예민함**: 뉴럴 넷트웍은 립시츠 상수가 커서 입력이 조금만 달라져도 그래디언트가 흔들린다
+1. **높은 잦기에 예민함**: 뉴럴 네트워크는 립시츠 상수가 커서 입력이 조금만 달라져도 그래디언트가 흔들린다
 2. **잦아듦**: ReLU 활성화가 그래디언트 터에 끊긴 데를 만든다
 3. **매끄럽지 않음**: 그래디언트는 그 자리의 예민함을 담을 뿐 온 세상 중요함을 담지 않는다
 
@@ -544,7 +544,7 @@ def demonstrate_noise():
     saliency = compute_saliency_map(model, input_tensor)
 
     # 아무 들임에도 두드러짐이 흩어져 보이는 일이 잦다
-    print(f"0이 아닌 그림점: {(saliency > 0.01 * saliency.max()).sum()}")
+    print(f"0이 아닌 픽셀: {(saliency > 0.01 * saliency.max()).sum()}")
     print(f"이는 그래디언트 바탕 두드러짐에 잡음이 있음을 알린다")
 ```
 
@@ -628,7 +628,7 @@ def smoothgrad(
     SmoothGrad 두드러짐 그림을 셈한다.
 
     Args:
-        model: 뉴럴 넷트웍
+        model: 뉴럴 네트워크
         input_tensor: 들임 텐서
         target_class: 겨눈 클래스
         n_samples: 잡음 표본의 수
@@ -696,7 +696,7 @@ def time_series_saliency(
     지난 어느 때 자리가 미루어 봄에 가장 크게 미치는지 보인다.
 
     Args:
-        model: 열 모형(LSTM, 변환기 등)
+        model: 열 모형(LSTM, 트랜스포머 등)
         sequence: 들임 열 [1, 열 길이, 결]이나 [1, 열 길이]
         target_class: 가름 모형의 겨눈 클래스
 
@@ -837,7 +837,7 @@ def tabular_saliency(
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 넷트웍에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
+이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 네트워크에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
 
 </div>
 

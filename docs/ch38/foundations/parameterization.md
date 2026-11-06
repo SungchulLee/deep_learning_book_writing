@@ -45,7 +45,7 @@
         """
         따로 떨어진 액션 공간을 위한 클래스 폴리시.
 
-        넷트웍이 로짓을 내놓고 소프트맥스로 클래스 분포로 바꾼다. 셈이
+        네트워크가 로짓을 내놓고 소프트맥스로 클래스 분포로 바꾼다. 셈이
         든든하도록 로그 소프트맥스를 쓴다.
 
         파라메터
@@ -103,7 +103,7 @@
 
         클래스 둘:
         - 상태와 매이지 않은 log_std: 배우는 파라메터(기본값, PPO에서 씀)
-        - 상태에 딸린 log_std: 넷트웍이 내놓음
+        - 상태에 딸린 log_std: 네트워크가 내놓음
 
         파라메터
         ----------
@@ -114,7 +114,7 @@
         hidden_dim : int
             숨은 켜의 크기.
         state_dependent_std : bool
-            True이면 표준편차가 넷트웍을 거쳐 상태에 딸린다.
+            True이면 표준편차가 네트워크를 거쳐 상태에 딸린다.
         log_std_init : float
             로그 표준편차의 첫 값.
         """
@@ -143,7 +143,7 @@
             self.mean_head = layer_init(nn.Linear(hidden_dim, act_dim), std=0.01)
 
             if state_dependent_std:
-                # 상태에 딸림: 넷트웍이 log_std를 내놓는다
+                # 상태에 딸림: 네트워크가 log_std를 내놓는다
                 self.log_std_head = layer_init(nn.Linear(hidden_dim, act_dim), std=0.01)
             else:
                 # 상태와 매이지 않음: 배우는 파라메터
@@ -341,7 +341,7 @@
 
     class ActorCriticShared(nn.Module):
         """
-        등뼈를 함께 쓰는 액터-크리틱 넷트웍.
+        등뼈를 함께 쓰는 액터-크리틱 네트워크.
 
         함께 쓰는 피처 뽑개에 폴리시 머리와 값 머리를 따로 둔다.
         따로 떨어진 액션 공간과 이어진 액션 공간을 모두 받쳐 준다.
@@ -402,14 +402,14 @@
 
 
     # ---------------------------------------------------------------------------
-    # 따로 둔 액터-크리틱 넷트웍
+    # 따로 둔 액터-크리틱 네트워크
     # ---------------------------------------------------------------------------
 
     class ActorCriticSeparate(nn.Module):
         """
-        넷트웍을 따로 두는 액터-크리틱.
+        네트워크를 따로 두는 액터-크리틱.
 
-        폴리시와 값에 서로 매이지 않은 넷트웍을 써서 두 목표 사이에서
+        폴리시와 값에 서로 매이지 않은 네트워크를 써서 두 목표 사이에서
         그래디언트가 서로를 방해하지 않게 한다.
         """
 
@@ -423,13 +423,13 @@
             super().__init__()
             self.continuous = continuous
 
-            # 액터 넷트웍
+            # 액터 네트워크
             if continuous:
                 self.actor = GaussianPolicy(obs_dim, act_dim, hidden_dim)
             else:
                 self.actor = DiscretePolicy(obs_dim, act_dim, hidden_dim)
 
-            # 크리틱 넷트웍
+            # 크리틱 네트워크
             self.critic = nn.Sequential(
                 layer_init(nn.Linear(obs_dim, hidden_dim)),
                 nn.Tanh(),
@@ -579,7 +579,7 @@
         print(f"  Values shape: {value.shape}")
         print(f"  Params: {sum(p.numel() for p in shared.parameters()):,}")
 
-        # 넷트웍을 따로 둠
+        # 네트워크를 따로 둠
         separate = ActorCriticSeparate(obs_dim, act_dim, continuous=False)
         action, log_prob, entropy, value = separate.get_action_and_value(obs)
         print(f"\nSeparate Actor-Critic:")

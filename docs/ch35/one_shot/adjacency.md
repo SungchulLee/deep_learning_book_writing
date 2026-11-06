@@ -42,7 +42,7 @@ $$
 
 ## 3. 디코더 구조
 
-### 여러 레이어 뉴럴 넷트웍 디코더
+### 여러 레이어 뉴럴 네트워크 디코더
 
 가장 단순한 길은 숨은 벡터를 납작하게 편 위쪽 삼각 이웃 벡터로 옮긴다:
 
@@ -68,7 +68,7 @@ $$
 
 ### 그래프에 매인 디코더
 
-숨은 노드 나타냄에 그래프 뉴럴 넷트웍을 써서 엣지 헤아림을 되풀이해 다듬는다:
+숨은 노드 나타냄에 그래프 뉴럴 네트워크를 써서 엣지 헤아림을 되풀이해 다듬는다:
 
 $$
 \mathbf{Z}^{(\ell+1)} = \text{GNN}^{(\ell)}(\mathbf{Z}^{(\ell)}, \hat{\mathbf{A}}^{(\ell)})
@@ -160,8 +160,8 @@ class MLPDecoder(nn.Module):
 
 class FactoredDecoder(nn.Module):
     """
-    인수로 나눈 푸는개: 숨은 값 -> 마디 묻힘 -> 겹선형 변 예측.
-    여러 레이어 뉴럴 넷트웍 디코더보다 잡을 아낀다.
+    인수로 나눈 푸는개: 숨은 값 -> 마디 임베딩 -> 겹선형 변 예측.
+    여러 레이어 뉴럴 네트워크 디코더보다 잡을 아낀다.
     """
 
     def __init__(
@@ -314,7 +314,7 @@ if __name__ == "__main__":
     train_adjs = torch.stack(train_adjs)
     print(f"Training data: {train_adjs.shape}")
 
-    # 여러 레이어 뉴럴 넷트웍 디코더 시험
+    # 여러 레이어 뉴럴 네트워크 디코더 시험
     print("\n--- MLP Decoder ---")
     mlp_dec = MLPDecoder(latent_dim, max_n, hidden_dim=128)
     z = torch.randn(5, latent_dim)

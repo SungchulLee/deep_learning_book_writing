@@ -7,9 +7,9 @@ HRNet(높은 결 네트워크)은 2019년 글 "보고 알아보기를 위한 깊
 ```python
 #!/usr/bin/env python3
 '''
-HRNet - 높은 해상도 넷트웍
+HRNet - 높은 해상도 네트워크
 논문: "Deep High-Resolution Representation Learning" (2019)
-핵심: 넷트웍을 지나는 동안 높은 해상도 리프리젠테이션을 지킨다
+핵심: 네트워크를 지나는 동안 높은 해상도 리프리젠테이션을 지킨다
 '''
 import torch
 import torch.nn as nn

@@ -5,7 +5,7 @@
 ## 1. 코드와 출력
 
 ```python
-"""29.7.1: 그래프 뉴럴 넷트웍으로 하는 분자 성질 헤아리기."""
+"""29.7.1: 그래프 뉴럴 네트워크로 하는 분자 성질 헤아리기."""
 import torch, torch.nn as nn, torch.nn.functional as F
 import numpy as np
 

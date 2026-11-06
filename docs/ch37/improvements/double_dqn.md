@@ -81,9 +81,9 @@ def double_dqn_target(online_net: nn.Module, target_net: nn.Module,
                       dones: torch.Tensor, gamma: float) -> torch.Tensor:
     """이중 DQN 타깃: y = r + γ Q_target(s', argmax_a' Q_online(s', a'))"""
     with torch.no_grad():
-        # 온라인 넷트웍이 액션을 고름
+        # 온라인 네트워크가 액션을 고름
         best_actions = online_net(next_states).argmax(dim=1)
-        # 타깃 넷트웍이 값을 매김
+        # 타깃 네트워크가 값을 매김
         next_q = target_net(next_states).gather(1, best_actions.unsqueeze(1)).squeeze(1)
         return rewards + (1 - dones) * gamma * next_q
 

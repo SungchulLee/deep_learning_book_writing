@@ -8,7 +8,7 @@
 
 ### 선형 짐작
 
-FGSM은 뉴럴 넷트웍이 고차원 공간에서 거의 선형으로 움직인다는 살핌에서 비롯한다. 선형 모델을 보자.
+FGSM은 뉴럴 네트워크가 고차원 공간에서 거의 선형으로 움직인다는 살핌에서 비롯한다. 선형 모델을 보자.
 
 $$
 f(\mathbf{x}) = \mathbf{w}^\top \mathbf{x}
@@ -34,9 +34,9 @@ $$
 
 차원이 높으면 작은 $\varepsilon$으로도 $\varepsilon \|\mathbf{w}\|_1$이 꽤 커진다.
 
-### 뉴럴 넷트웍으로 넓히기
+### 뉴럴 네트워크로 넓히기
 
-로스 함수 $\mathcal{L}$을 지닌 뉴럴 넷트웍 $f_\theta$에서 일차 테일러 전개로 곧게 편다.
+로스 함수 $\mathcal{L}$을 지닌 뉴럴 네트워크 $f_\theta$에서 일차 테일러 전개로 곧게 편다.
 
 $$
 \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y) \approx \mathcal{L}(f_\theta(\mathbf{x}), y) + \boldsymbol{\delta}^\top \nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y)
@@ -135,7 +135,7 @@ class FGSM:
     Parameters
     ----------
     model : nn.Module
-        칠 뉴럴 넷트웍
+        칠 뉴럴 네트워크
     epsilon : float
         가장 큰 L∞ 흔듦(기본값: 그림에서 8/255)
     loss_fn : nn.Module, 골라 씀
@@ -642,12 +642,12 @@ FGSM 적대적 샘플로 익히면 기초 강건성을 얻는다. 다만 PGD에 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-선형 분류기 $f(x) = w^T x + b$에서 예측한 클래스를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 섭동을 계산하여라. 이것이 뉴럴 넷트웍의 강건성과 어떻게 이어지는지 밝혀라.
+선형 분류기 $f(x) = w^T x + b$에서 예측한 클래스를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 섭동을 계산하여라. 이것이 뉴럴 네트워크의 강건성과 어떻게 이어지는지 밝혀라.
 
 </div>
 
 ??? success "풀이"
-    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 넷트웍에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차원이 높은 모델이 무른 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
+    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차원이 높은 모델이 무른 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
 
 ---
 

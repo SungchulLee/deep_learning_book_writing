@@ -78,7 +78,7 @@ $$
 p(c \mid z) = \operatorname{softmax}_c\left(-\frac{\lVert z - p_c \rVert^2}{2\sigma^2}\right)
 $$
 
-이는 임베딩 공간의 확률 모형이다. 일반적인 뉴럴 넷트웍 $f$의 출력에 가우시안 밀도를 적용하는 것만으로 원래 입력 $x$의 정규화된 밀도 $p(x \mid c)$가 정의되는 것은 아니다.
+이는 임베딩 공간의 확률 모형이다. 일반적인 뉴럴 네트워크 $f$의 출력에 가우시안 밀도를 적용하는 것만으로 원래 입력 $x$의 정규화된 밀도 $p(x \mid c)$가 정의되는 것은 아니다.
 
 ## 3. PyTorch 구현
 
@@ -108,7 +108,7 @@ class PrototypicalNetwork(nn.Module):
     ):
         """
         인수:
-            encoder: 묻힘 망 f_θ
+            encoder: 임베딩 망 f_θ
             distance: 'euclidean' 또는 'cosine'
             temperature: 로짓의 눈금 인자
         """
@@ -123,7 +123,7 @@ class PrototypicalNetwork(nn.Module):
         support_labels: torch.Tensor
     ) -> torch.Tensor:
         """
-        받침 묻힘에서 부류 원형을 셈한다.
+        받침 임베딩에서 부류 원형을 셈한다.
         
         인수:
             support_embeddings: (n_support, embed_dim)
@@ -634,7 +634,7 @@ train_transform = transforms.Compose([
 </div>
 
 ??? success "풀이"
-    프로토타입 네트워크는 클래스 평균과 거리를 사용한다. 매칭 네트워크는 개별 서포트의 유사도 웨이트로 라벨을 합산한다. 관계 네트워크는 피처 쌍의 관계 점수를 뉴럴 넷트웍으로 학습한다. 각 방법의 정확도와 비용은 인코더·에피소드 구성·비교 함수에 따라 달라진다.
+    프로토타입 네트워크는 클래스 평균과 거리를 사용한다. 매칭 네트워크는 개별 서포트의 유사도 웨이트로 라벨을 합산한다. 관계 네트워크는 피처 쌍의 관계 점수를 뉴럴 네트워크로 학습한다. 각 방법의 정확도와 비용은 인코더·에피소드 구성·비교 함수에 따라 달라진다.
 
 ## 정리하며
 

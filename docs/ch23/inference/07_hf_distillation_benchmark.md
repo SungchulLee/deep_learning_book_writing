@@ -1,6 +1,6 @@
 # Hugging Face 지식 증류와 성능 벤치마크
 
-이 절은 분류 모델의 증류 로스를 Hugging Face `Trainer`에 연결하는 방법과 정확도·저장 크기·지연 시간의 측정을 살펴본다. 코드 앞부분은 클래스 정의와 사용 예시 문자열이며, 마지막 부분에는 합성 데이터로 작은 뉴럴 넷트웍을 학습하는 독립 데모가 있다. 출력문에 미리 적힌 BERT 성능 표와 실제 데모에서 계산하는 값은 구분해야 한다.
+이 절은 분류 모델의 증류 로스를 Hugging Face `Trainer`에 연결하는 방법과 정확도·저장 크기·지연 시간의 측정을 살펴본다. 코드 앞부분은 클래스 정의와 사용 예시 문자열이며, 마지막 부분에는 합성 데이터로 작은 뉴럴 네트워크를 학습하는 독립 데모가 있다. 출력문에 미리 적힌 BERT 성능 표와 실제 데모에서 계산하는 값은 구분해야 한다.
 
 ## 1. 예제 코드
 
@@ -298,7 +298,7 @@
     print("Part 3: ONNX Runtime Export & OnnxPipeline")
     print("=" * 60)
 
-    # ONNX 런타임은 변환기 모델에 가장 좋게 다듬은 미룸을 준다.
+    # ONNX 런타임은 트랜스포머 모델에 가장 좋게 다듬은 미룸을 준다.
     # ONNX로 내보내 ORT를 쓰면 CPU에서 늦음을 2~3배 줄일 수 있다.
     #
     # 물길:
@@ -507,12 +507,12 @@
     print("Standalone Demo: DistillationTrainer Logic in Raw PyTorch")
     print("=" * 60)
 
-    # transformers가 없는 환경을 위해, 만든 자료에 단순한 피드포워드 넷트웍을 써서
+    # transformers가 없는 환경을 위해, 만든 자료에 단순한 피드포워드 네트워크를 써서
     # 앎 내리기의 핵심 논리를 보인다.
 
     torch.manual_seed(42)
 
-    # 스승 넷트웍과 제자 넷트웍을 만든다
+    # 스승 네트워크와 제자 네트워크를 만든다
     class SimpleTeacher(nn.Module):
         def __init__(self, in_dim=20, hidden=128, out_dim=5):
             super().__init__()
@@ -699,7 +699,7 @@
 
 ## 3. 벤치마크 클래스가 측정하는 범위
 
-`PerformanceBenchmark`는 뉴럴 넷트웍이 아니라 파이프라인과 데이터셋을 보관하는 측정용 클래스다. 자체 학습 파라미터가 없다.
+`PerformanceBenchmark`는 뉴럴 네트워크가 아니라 파이프라인과 데이터셋을 보관하는 측정용 클래스다. 자체 학습 파라미터가 없다.
 
 정확도는 문자열 레이블을 직접 비교하거나 `label2id`로 변환해 계산한다. 데이터셋의 레이블 의미와 모델의 매핑이 다르면 숫자 범위가 같아도 틀린 비교가 된다. 빈 데이터셋, 여러 레이블 반환 형태와 예측 개수의 일치도 별도로 처리해야 한다. F1을 계산하는 코드는 없다.
 
@@ -730,7 +730,7 @@ ONNX 변환은 항상 동일한 정확도나 일정 배수의 가속을 보장�
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-PerformanceBenchmark와 SimpleTeacher·SimpleStudent의 역할을 구분하고 두 뉴럴 넷트웍의 파라미터 수를 구하라.
+PerformanceBenchmark와 SimpleTeacher·SimpleStudent의 역할을 구분하고 두 뉴럴 네트워크의 파라미터 수를 구하라.
 
 </div>
 
@@ -781,7 +781,7 @@ OnnxPipeline을 PerformanceBenchmark에 그대로 넣을 때 발생할 호환성
 
 ??? success "풀이"
 
-    아래 ModuleList는 뉴럴 넷트웍 모듈을 등록하는 골격이며 YourBlock이 정의되지 않았다. PerformanceBenchmark 자체에는 깊이가 없다. 깊이가 다른 학생 nn.Module을 별도로 만들고 같은 초기값 조건의 비증류·증류 쌍을 비교한다. 학습·검증·테스트 데이터를 나누고 여러 시드, 학습 예산, 동일 전처리와 장치 조건에서 품질·실제 파일 크기·지연 시간을 보고한다.
+    아래 ModuleList는 뉴럴 네트워크 모듈을 등록하는 골격이며 YourBlock이 정의되지 않았다. PerformanceBenchmark 자체에는 깊이가 없다. 깊이가 다른 학생 nn.Module을 별도로 만들고 같은 초기값 조건의 비증류·증류 쌍을 비교한다. 학습·검증·테스트 데이터를 나누고 여러 시드, 학습 예산, 동일 전처리와 장치 조건에서 품질·실제 파일 크기·지연 시간을 보고한다.
 
     ```python
     self.layers = nn.ModuleList()

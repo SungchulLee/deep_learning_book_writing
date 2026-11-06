@@ -80,13 +80,13 @@ $$
 
 여기서 $\mathbf{e}_t$은 스텝 $t$에서 한 액션(노드 피처와 엣지 결정)을 담는다. 은닉 상태가 만들기의 온 지난 일을 숨은 채로 간추린다.
 
-**그래프 뉴럴 넷트웍 담기.** 스텝마다 $\mathcal{G}_{<t}$에 그래프 뉴럴 넷트웍을 써서 노드 임베딩을 낸 뒤 그래프 켜의 나타냄으로 모은다:
+**그래프 뉴럴 네트워크 담기.** 스텝마다 $\mathcal{G}_{<t}$에 그래프 뉴럴 네트워크를 써서 노드 임베딩을 낸 뒤 그래프 켜의 나타냄으로 모은다:
 
 $$
 \mathbf{h}_t = \text{READOUT}(\text{GNN}(\mathcal{G}_{<t}))
 $$
 
-커지는 그래프에 스텝마다 그래프 뉴럴 넷트웍을 다시 써야 하므로 나타냄 힘은 세지만 더 비싸다.
+커지는 그래프에 스텝마다 그래프 뉴럴 네트워크를 다시 써야 하므로 나타냄 힘은 세지만 더 비싸다.
 
 ---
 
@@ -149,8 +149,8 @@ class SequentialGraphGenerator(nn.Module):
     마디 하나씩 만드는 자기 회귀 그래프 생성기.
     
     At each step t:
-    1. 그래프 레이어 되도는 넷트웍의 상태가 G_{<t}를 간추린다
-    2. 변 여러 레이어 뉴럴 넷트웍이 앞선 마디와의 이음을 헤아린다
+    1. 그래프 레이어 되도는 네트워크의 상태가 G_{<t}를 간추린다
+    2. 변 여러 레이어 뉴럴 네트워크가 앞선 마디와의 이음을 헤아린다
     3. 멈춤 헤아리개가 마디를 더 더할지 정한다
     """
 
@@ -166,7 +166,7 @@ class SequentialGraphGenerator(nn.Module):
         self.hidden_dim = hidden_dim
         self.node_feature_dim = node_feature_dim
 
-        # 그래프 켜 회귀 뉴럴 넷트웍: 만들기의 지난 일을 간추린다
+        # 그래프 켜 회귀 뉴럴 네트워크: 만들기의 지난 일을 간추린다
         rnn_input_dim = max_nodes  # max_nodes까지 채운 변 벡터
         if rnn_type == "gru":
             self.graph_rnn = nn.GRU(
@@ -235,7 +235,7 @@ class SequentialGraphGenerator(nn.Module):
             else:
                 x_t = adj_sequences[:, t - 1, :].unsqueeze(1)  # (B, 1, max_nodes)
 
-            # 회귀 뉴럴 넷트웍 스텝
+            # 회귀 뉴럴 네트워크 스텝
             out, h = self.graph_rnn(x_t, h)
             graph_state = out.squeeze(1)  # (B, hidden_dim)
 

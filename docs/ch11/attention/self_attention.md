@@ -467,7 +467,7 @@ class TransformerEncoderBlock(nn.Module):
     """
     양방향 자기 어텐션이 있는 트랜스포머 인코더 블록 하나.
     
-    구조: 자기 어텐션 → 더하기와 정규화 → 순방향 뉴럴 넷트웍 → 더하기와 정규화
+    구조: 자기 어텐션 → 더하기와 정규화 → 순방향 뉴럴 네트워크 → 더하기와 정규화
     """
     
     def __init__(
@@ -487,7 +487,7 @@ class TransformerEncoderBlock(nn.Module):
         )
         self.norm1 = nn.LayerNorm(embed_dim)
         
-        # 자리별 순방향 뉴럴 넷트웍
+        # 자리별 순방향 뉴럴 네트워크
         self.ffn = nn.Sequential(
             nn.Linear(embed_dim, ff_dim),
             nn.GELU(),
@@ -518,7 +518,7 @@ class TransformerEncoderBlock(nn.Module):
         )
         x = self.norm1(x + self.dropout(attn_out))
         
-        # 잔차 연결이 있는 순방향 뉴럴 넷트웍
+        # 잔차 연결이 있는 순방향 뉴럴 네트워크
         ffn_out = self.ffn(x)
         x = self.norm2(x + ffn_out)
         

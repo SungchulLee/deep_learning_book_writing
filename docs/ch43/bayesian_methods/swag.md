@@ -1,5 +1,5 @@
 # SWAG: Stochastic Weight Averaging Gaussian
-**SWAG(확률 웨이트 고르기 가우시안)**은 SGD 회귀의 자취에 가우시안 분포를 맞추어 뉴럴 넷트웍에서 베이즈 추론을 단순하고 크게 늘릴 수 있게 이룬다. 이 일 끝난 뒤 방법은 여느 학습 동안 모은 자만으로 웨이트 사후분포의 평균과 공분산을 함께 담는다.
+**SWAG(확률 웨이트 고르기 가우시안)**은 SGD 회귀의 자취에 가우시안 분포를 맞추어 뉴럴 네트워크에서 베이즈 추론을 단순하고 크게 늘릴 수 있게 이룬다. 이 일 끝난 뒤 방법은 여느 학습 동안 모은 자만으로 웨이트 사후분포의 평균과 공분산을 함께 담는다.
 
 ---
 
@@ -7,7 +7,7 @@
 
 ### 학습과 베이즈 추론 사이의 틈
 
-여느 뉴럴 넷트웍 학습은 점 근사 $\hat{\theta}$을 낸다.
+여느 뉴럴 네트워크 학습은 점 근사 $\hat{\theta}$을 낸다.
 
 $$
 \hat{\theta} = \arg\min_\theta \mathcal{L}(\theta; \mathcal{D})
@@ -112,7 +112,7 @@ $\frac{1}{\sqrt{2}}$ 값은 대각 몫과 낮은 자리 몫을 모을 때 잣대
 ```
 알고리즘: SWAG 익힘
 ────────────────────────
-들임: 미리 익힌 넷트웍 θ₀, 러닝 비율 짜임, 
+들임: 미리 익힌 네트워크 θ₀, 러닝 비율 짜임, 
        모으는 잦기 c, 자리 K
 날임: SWAG 파라메터 (θ̄, Σ_diag, D)
 
@@ -440,7 +440,7 @@ class SWAGTrainer:
         Parameters
         ----------
         model : object
-            get_params()과 set_params() 방법을 지닌 뉴럴 넷트웍
+            get_params()과 set_params() 방법을 지닌 뉴럴 네트워크
         swag : SWAG
             자를 모을 SWAG 물체
         lr_init : float
@@ -527,7 +527,7 @@ def swag_predict(
     Parameters
     ----------
     model : object
-        set_params()과 predict() 방법을 지닌 뉴럴 넷트웍
+        set_params()과 predict() 방법을 지닌 뉴럴 네트워크
     swag : SWAG
         맞춰 놓은 SWAG 물체
     X : ndarray
@@ -779,7 +779,7 @@ SWAG 자를 모으는 중...
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 넷트웍에서, 이 절에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
+ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 네트워크에서, 이 절에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
 
 </div>
 
@@ -803,7 +803,7 @@ ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 �
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-베이즈 뉴럴 넷트웍의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
+베이즈 뉴럴 네트워크의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
 </div>
 

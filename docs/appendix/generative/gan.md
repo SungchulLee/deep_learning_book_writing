@@ -9,9 +9,9 @@ GAN은 2014년 글 "Generative Adversarial Networks"에서 나왔다. 네트워�
 ```python
 #!/usr/bin/env python3
 '''
-GAN - 맞겨루기 생성기 넷트웍
+GAN - 맞겨루기 생성기 네트워크
 논문: "Generative Adversarial Networks" (2014)
-핵심: 맞겨루며 익히는 두 넷트웍(생성기와 판별기)
+핵심: 맞겨루며 익히는 두 네트워크(생성기와 판별기)
 '''
 import torch
 import torch.nn as nn

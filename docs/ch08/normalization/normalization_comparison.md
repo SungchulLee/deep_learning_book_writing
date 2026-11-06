@@ -204,7 +204,7 @@
 
     def create_comparison_network():
         """
-        비교를 위해 정규화 레이어가 서로 다른 뉴럴 넷트웍을 만든다.
+        비교를 위해 정규화 레이어가 서로 다른 뉴럴 네트워크를 만든다.
         """
         print("\n" + "=" * 70)
         print("Example Networks with Different Normalizations")
@@ -255,7 +255,7 @@
                 x = self.relu(x)
                 return x
 
-        # 정규화 방식이 다른 뉴럴 넷트웍 만들기
+        # 정규화 방식이 다른 뉴럴 네트워크 만들기
         networks = {
             'BatchNorm': nn.Sequential(
                 ConvBlock(3, 64, 'batch'),

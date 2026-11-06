@@ -13,8 +13,8 @@ Double DQN - Q 러닝에서 지나치게 높이 어림하는 치우침 줄이기
 글: "겹 Q 러닝을 쓰는 깊은 북돋움 러닝" (2016)
 지은이: 하도 판 하셀트, 아르투어 게즈, 데이비드 실버
 핵심 깨침:
-  - 이어진 넷트웍으로 액션을 *고른다*
-  - 타깃 넷트웍으로 그 액션을 *따진다*
+  - 이어진 네트워크로 액션을 *고른다*
+  - 타깃 네트워크로 그 액션을 *따진다*
 
 타깃:
   a* = argmax_a Q_online(s', a)
@@ -38,7 +38,7 @@ def double_dqn_td_loss(q_online: nn.Module, q_target: nn.Module, batch, gamma: f
 
     DQN과의 다름:
       - DQN은 max_a Q_target(s', a)을 쓴다
-      - Double DQN은 argmax은 이어진 넷트웍에서, 값은 타깃 넷트웍에서 얻는다
+      - Double DQN은 argmax은 이어진 네트워크에서, 값은 타깃 네트워크에서 얻는다
     """
     s, a, r, s2, done = batch
 
@@ -47,10 +47,10 @@ def double_dqn_td_loss(q_online: nn.Module, q_target: nn.Module, batch, gamma: f
     q_sa = q_values.gather(1, a.long().unsqueeze(1)).squeeze(1)
 
     with torch.no_grad():
-        # 이어진 넷트웍이 액션을 고른다
+        # 이어진 네트워크가 액션을 고른다
         a_star = q_online(s2).argmax(dim=1)  # (B,)
 
-        # 타깃 넷트웍이 액션을 따진다
+        # 타깃 네트워크가 액션을 따진다
         q_next_target = q_target(s2)  # (B, A)
         q_s2_astar = q_next_target.gather(1, a_star.unsqueeze(1)).squeeze(1)
 

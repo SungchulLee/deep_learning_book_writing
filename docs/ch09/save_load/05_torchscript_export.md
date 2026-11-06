@@ -34,7 +34,7 @@ print("=" * 70)
 
 # 모델 정의
 class SimpleModel(nn.Module):
-    """간단한 순방향 뉴럴 넷트웍"""
+    """간단한 순방향 뉴럴 네트워크"""
     def __init__(self):
         super().__init__()
         self.fc1 = nn.Linear(10, 20)

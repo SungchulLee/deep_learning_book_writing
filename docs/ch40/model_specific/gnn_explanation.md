@@ -1,6 +1,6 @@
 # GNN 해석 방법
 
-**그래프 뉴럴 넷트웍(GNN)**은 마디의 피처와 그래프 구조가 함께 추론을 가르는 그래프 꼴 데이터를 다룬다. GNN의 추론을 풀이하려면 입력 피처뿐 아니라 **변**과 **밑그래프 구조**에도 중요함을 돌려야 한다. 이 절는 GNNExplainer, PGExplainer, SubgraphX을 다룬다.
+**그래프 뉴럴 네트워크(GNN)**은 마디의 피처와 그래프 구조가 함께 추론을 가르는 그래프 꼴 데이터를 다룬다. GNN의 추론을 풀이하려면 입력 피처뿐 아니라 **변**과 **밑그래프 구조**에도 중요함을 돌려야 한다. 이 절는 GNNExplainer, PGExplainer, SubgraphX을 다룬다.
 
 ---
 
@@ -92,7 +92,7 @@ GNN 풀이는 금융 네트워크에 잘 맞는다.
 
 ```python
 def explain_financial_network(model, node_idx, x, edge_index):
-    """금융 넷트웍의 미루어 봄을 풀이한다."""
+    """금융 네트워크의 미루어 봄을 풀이한다."""
     explainer = GNNExplainer(model)
     edge_importance = explainer.explain_node(node_idx, x, edge_index)
 
@@ -113,7 +113,7 @@ def explain_financial_network(model, node_idx, x, edge_index):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 넷트웍에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
+이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 네트워크에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
 
 </div>
 

@@ -4,7 +4,7 @@
 
 ## 1. 지난 이야기
 
-McCloskey와 Cohen(1989)은 연결주의 뉴럴 넷트웍에서 새로운 산술 문제의 학습이 이전 학습을 방해하는 현상을 분석했다. 이후 순차적으로 바뀌는 데이터에서 이전 성능을 유지하는 문제가 지속 학습의 주요 연구 주제가 되었다. 사람과 뉴럴 넷트웍의 기억을 비교할 수는 있지만 사람에게 간섭이나 망각이 없다고 가정하지 않는다.
+McCloskey와 Cohen(1989)은 연결주의 뉴럴 네트워크에서 새로운 산술 문제의 학습이 이전 학습을 방해하는 현상을 분석했다. 이후 순차적으로 바뀌는 데이터에서 이전 성능을 유지하는 문제가 지속 학습의 주요 연구 주제가 되었다. 사람과 뉴럴 네트워크의 기억을 비교할 수는 있지만 사람에게 간섭이나 망각이 없다고 가정하지 않는다.
 
 <div class="storybox" markdown>
 
@@ -30,7 +30,7 @@ _확인한 곳 — M. McCloskey, N. J. Cohen, "Catastrophic interference in conn
 
 ### 순차 학습 설정
 
-뉴럴 넷트웍 $f_\theta: \mathcal{X} \rightarrow \mathcal{Y}$을 다음과 같은 잇단 과제로 익힌다고 하자.
+뉴럴 네트워크 $f_\theta: \mathcal{X} \rightarrow \mathcal{Y}$을 다음과 같은 잇단 과제로 익힌다고 하자.
 
 $$
 \mathcal{T}_1 \rightarrow \mathcal{T}_2 \rightarrow \cdots \rightarrow \mathcal{T}_T

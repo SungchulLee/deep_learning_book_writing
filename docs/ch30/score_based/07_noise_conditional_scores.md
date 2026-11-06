@@ -6,7 +6,7 @@
 
 ```python
 """
-7단원: 잡음 조건 점수 넷트웍(NCSN)
+7단원: 잡음 조건 점수 네트워크(NCSN)
 =================================================
 
 어려움: 나아간 단계
@@ -63,12 +63,12 @@ print("""
 """)
 
 class NCSN(nn.Module):
-    """잡음 조건 점수 뉴럴 넷트웍"""
+    """잡음 조건 점수 뉴럴 네트워크"""
     def __init__(self, data_dim=2, noise_levels=10):
         super().__init__()
         self.noise_levels = noise_levels
         
-        # 잡음 조건을 갖춘 함께 쓰는 뉴럴 넷트웍
+        # 잡음 조건을 갖춘 함께 쓰는 뉴럴 네트워크
         self.net = nn.Sequential(
             nn.Linear(data_dim + 1, 128),  # 잡음 수준을 위해 +1
             nn.SiLU(),
@@ -89,7 +89,7 @@ class NCSN(nn.Module):
         return self.net(x_with_sigma)
 
 def train_ncsn(data, n_epochs=2000):
-    """자료로 잡음 조건 점수 뉴럴 넷트웍을 익힌다"""
+    """자료로 잡음 조건 점수 뉴럴 네트워크를 익힌다"""
     # 등비 잡음 차례표
     sigma_min, sigma_max = 0.01, 1.0
     n_sigmas = 10

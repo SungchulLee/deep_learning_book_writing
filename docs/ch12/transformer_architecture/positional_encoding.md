@@ -1662,7 +1662,7 @@ class ALiBiTransformerBlock(nn.Module):
         attn_out, present = self.attention(x, past_key_value=past_key_value, use_cache=use_cache)
         x = residual + self.dropout(attn_out)
         
-        # 순전파 뉴럴 넷트웍
+        # 순전파 뉴럴 네트워크
         residual = x
         x = self.norm2(x)
         x = residual + self.feed_forward(x)

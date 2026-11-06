@@ -51,7 +51,7 @@ AP는 단순한 사다리꼴 PR 곡선 면적과 다를 수 있다. [scikit-lear
 
 ```python
 """
-그래프 뉴럴 넷트웍 임베딩과 안쪽 곱 점수로 하는 이음 헤아리기.
+그래프 뉴럴 네트워크 임베딩과 안쪽 곱 점수로 하는 이음 헤아리기.
 
 음의 뽑기와 두 값 교차 엔트로피 로스로 익히기를 보여 준다.
 """
@@ -60,7 +60,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# === 단순 그래프 뉴럴 넷트웍 인코더 ===
+# === 단순 그래프 뉴럴 네트워크 인코더 ===
 class GCNEncoder(nn.Module):
     """마디 임베딩을 내놓는 두 레이어 GCN."""
 

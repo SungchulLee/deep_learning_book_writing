@@ -1,6 +1,6 @@
 # BEiT
 
-BEiT은 2021년 글 "BEiT: BERT Pre-Training of Image Transformers"에서 나왔다. - 스스로 이끌며 사전 학습된이다 - 낱그림점 대신 *따로 떨어진 보기 단어*을 예측한이다 - BERT의 가린 말 모델에서 실마리를 얻었다.
+BEiT은 2021년 글 "BEiT: BERT Pre-Training of Image Transformers"에서 나왔다. - 스스로 이끌며 사전 학습된이다 - 픽셀 대신 *따로 떨어진 보기 단어*을 예측한이다 - BERT의 가린 말 모델에서 실마리를 얻었다.
 
 여기 구현은 BEiT을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -9,12 +9,12 @@ BEiT은 2021년 글 "BEiT: BERT Pre-Training of Image Transformers"에서 나왔
 ```python
 #!/usr/bin/env python3
 """
-BEiT - 그림 변환기를 BERT처럼 미리 익히기
-글: "BEiT: 그림 변환기를 BERT처럼 미리 익히기" (2021)
+BEiT - 그림 트랜스포머를 BERT처럼 미리 익히기
+글: "BEiT: 그림 트랜스포머를 BERT처럼 미리 익히기" (2021)
 지은이: 항보 바오 외
 핵심 깨침:
   - 스스로 이끌며 미리 익힌다
-  - 낱그림점 대신 *따로 떨어진 보기 낱말*을 미루어 본다
+  - 픽셀 대신 *따로 떨어진 보기 낱말*을 미루어 본다
   - BERT의 가린 말 모형에서 실마리를 얻었다
 
 두루마리: appendix/vit/beit.py

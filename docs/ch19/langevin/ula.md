@@ -90,7 +90,7 @@ class SGLD:
 def sgld_sample(model, dataloader, n_samples=100, burnin=1000,
                 thin=10, lr=1e-4):
     """
-    SGLD로 뉴럴 넷트웍의 뒤확률 표본 모으기.
+    SGLD로 뉴럴 네트워크의 뒤확률 표본 모으기.
     """
     optimizer = SGLD(model.parameters(), lr=lr, lr_decay=1e-5)
     

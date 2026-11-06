@@ -1,6 +1,6 @@
 # Deep SHAP
 
-**깊은 SHAP**은 DeepLIFT의 잘 드는 되짚기 기초 기여도 분석과 SHAP의 놀이 이론 틀을 아울러, 뉴럴 넷트웍의 섀플리 값을 어림해 계산한다. 기초 분포에서 뽑은 여러 비교 자리에 걸쳐 DeepLIFT 몫을 고르게 하므로, 계산이 잘 들면서도 섀플리 값의 이론 보장을 물려받는다.
+**깊은 SHAP**은 DeepLIFT의 잘 드는 되짚기 기초 기여도 분석과 SHAP의 놀이 이론 틀을 아울러, 뉴럴 네트워크의 섀플리 값을 어림해 계산한다. 기초 분포에서 뽑은 여러 비교 자리에 걸쳐 DeepLIFT 몫을 고르게 하므로, 계산이 잘 들면서도 섀플리 값의 이론 보장을 물려받는다.
 
 ---
 
@@ -8,7 +8,7 @@
 
 ### 벽돌이 되는 DeepLIFT
 
-DeepLIFT(슈리쿠마르 외, 2017)은 뉴런의 활성화를 그 "비교" 활성화와 맞대어 뉴럴 넷트웍의 추론을 풀이한다. 입력 $\mathbf{x}$과 비교 $\mathbf{x}^0$에 대해
+DeepLIFT(슈리쿠마르 외, 2017)은 뉴런의 활성화를 그 "비교" 활성화와 맞대어 뉴럴 네트워크의 추론을 풀이한다. 입력 $\mathbf{x}$과 비교 $\mathbf{x}^0$에 대해
 
 $$
 \Delta y = f(\mathbf{x}) - f(\mathbf{x}^0)
@@ -67,7 +67,7 @@ class DeepSHAP:
     def __init__(self, model: nn.Module, background: torch.Tensor):
         """
         Args:
-            model: PyTorch 뉴럴 넷트웍
+            model: PyTorch 뉴럴 네트워크
             background: 견줌 분포로 쓸 바탕 표본 [N, 결]
         """
         self.model = model
@@ -181,7 +181,7 @@ def deep_shap_with_library(model, background, test_samples):
 
 def gradient_shap_alternative(model, test_samples, baselines):
     """
-    Captum의 GradientSHAP - 뉴럴 넷트웍 SHAP의 또 다른 길.
+    Captum의 GradientSHAP - 뉴럴 네트워크 SHAP의 또 다른 길.
     """
     from captum.attr import GradientShap
 
@@ -217,7 +217,7 @@ $x = -10$, $x^0 = 0$인 ReLU에서는
 
 ---
 
-## 4. 다른 뉴럴 넷트웍 기여도 분석 방법과 비교
+## 4. 다른 뉴럴 네트워크 기여도 분석 방법과 비교
 
 | 방법 | 온전함 | 잦아듦 다루기 | 빠르기 | 밑금 여럿 |
 |--------|-------------|-------------------|-------|-------------------|
@@ -259,7 +259,7 @@ def explain_neural_risk_model(
     feature_names: list
 ):
     """
-    깊은 SHAP으로 뉴럴 넷트웍 무릅씀 미루어 봄을 풀이한다.
+    깊은 SHAP으로 뉴럴 네트워크 무릅씀 미루어 봄을 풀이한다.
     """
     explainer = DeepSHAP(risk_model, background)
 
@@ -289,7 +289,7 @@ def explain_neural_risk_model(
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 넷트웍에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
+이 절에서 밝힌 풀이 방법을, XOR 입력을 가르는 ReLU 활성화의 두 레이어 뉴럴 네트워크에 걸어라. 입력 $x = [1, 1]$에 대한 풀이를 계산하여라.
 
 </div>
 
@@ -334,7 +334,7 @@ def explain_neural_risk_model(
 
 ## 정리하며
 
-깊은 SHAP은 DeepLIFT의 잘 드는 되짚기와 SHAP의 섀플리 값 틀을 아울러 이론에 뿌리내린 뉴럴 넷트웍 기여도 분석을 준다. 여러 기초 비교에 걸쳐 고르게 함으로써 참 섀플리 값에 다가가면서, 맨 그래디언트 방법을 무너뜨리는 활성화 잦아듦도 다룬다.
+깊은 SHAP은 DeepLIFT의 잘 드는 되짚기와 SHAP의 섀플리 값 틀을 아울러 이론에 뿌리내린 뉴럴 네트워크 기여도 분석을 준다. 여러 기초 비교에 걸쳐 고르게 함으로써 참 섀플리 값에 다가가면서, 맨 그래디언트 방법을 무너뜨리는 활성화 잦아듦도 다룬다.
 
 **핵심 식:**
 

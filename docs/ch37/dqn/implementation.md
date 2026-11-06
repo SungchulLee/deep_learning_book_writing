@@ -73,7 +73,7 @@
 
 
     # ---------------------------------------------------------------------------
-    # Q 넷트웍
+    # Q 네트워크
     # ---------------------------------------------------------------------------
 
     class QNetwork(nn.Module):
@@ -103,10 +103,10 @@
     # ---------------------------------------------------------------------------
 
     class DQNAgent:
-        """겪음 되돌려 보기, 타깃 넷트웍, 기록을 갖춘 온전한 DQN 에이전트."""
+        """겪음 되돌려 보기, 타깃 네트워크, 기록을 갖춘 온전한 DQN 에이전트."""
 
         def __init__(self, state_dim: int, action_dim: int,
-                     # 넷트웍
+                     # 네트워크
                      hidden_dims: Tuple[int, ...] = (128, 128),
                      # 학습
                      lr: float = 1e-3,
@@ -115,7 +115,7 @@
                      # 되돌려 보기 버퍼
                      buffer_capacity: int = 50000,
                      min_buffer_size: int = 1000,
-                     # 타깃 넷트웍
+                     # 타깃 네트워크
                      target_update_freq: int = 200,
                      # 살펴보기
                      eps_start: float = 1.0,
@@ -140,7 +140,7 @@
             self.eps_end = eps_end
             self.eps_decay_steps = eps_decay_steps
 
-            # 넷트웍
+            # 네트워크
             self.online_net = QNetwork(state_dim, action_dim, hidden_dims).to(device)
             self.target_net = QNetwork(state_dim, action_dim, hidden_dims).to(device)
             self.target_net.load_state_dict(self.online_net.state_dict())
@@ -217,7 +217,7 @@
             self.optimizer.step()
             self.update_count += 1
 
-            # 타깃 넷트웍 고치기
+            # 타깃 네트워크 고치기
             if self.update_count % self.target_update_freq == 0:
                 self.target_net.load_state_dict(self.online_net.state_dict())
 

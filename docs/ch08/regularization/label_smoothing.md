@@ -223,7 +223,7 @@ def train_with_label_smoothing(
     레이블 평활화로 모델을 학습시킨다.
     
     인수:
-        model: 분류 뉴럴 넷트웍
+        model: 분류 뉴럴 네트워크
         train_loader: 학습 데이터
         val_loader: 검증 데이터
         epsilon: 레이블 평활화 파라메터

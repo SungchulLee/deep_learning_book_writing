@@ -1,6 +1,6 @@
-# 뉴럴 넷트웍 언어 모델의 문맥·학습·생성
+# 뉴럴 네트워크 언어 모델의 문맥·학습·생성
 
-뉴럴 넷트웍 언어 모델은 embedding과 공유된 함수로 다음 토큰의 로짓을 계산한다. 빈도표의 각 문맥을 독립적으로 저장하는 방식과 달리 여러 단어·문맥 사이에서 파라메터를 공유할 수 있다. 하지만 학습한 표현이 항상 의미적 유사성을 정확히 반영하거나 미관측 자료에서 일반화를 보장하는 것은 아니다. 문맥 길이·어휘·시간 상태·인과성은 구조와 구현에서 각각 확인해야 한다.
+뉴럴 네트워크 언어 모델은 embedding과 공유된 함수로 다음 토큰의 로짓을 계산한다. 빈도표의 각 문맥을 독립적으로 저장하는 방식과 달리 여러 단어·문맥 사이에서 파라메터를 공유할 수 있다. 하지만 학습한 표현이 항상 의미적 유사성을 정확히 반영하거나 미관측 자료에서 일반화를 보장하는 것은 아니다. 문맥 길이·어휘·시간 상태·인과성은 구조와 구현에서 각각 확인해야 한다.
 
 ## 1. 고정 문맥의 순방향 모델
 
@@ -234,15 +234,15 @@ For each time step t:
 ```python
 class RNNLanguageModel(nn.Module):
     """
-    맥락 길이가 바뀌는 리커런트 넷트웍 언어 모델.
+    맥락 길이가 바뀌는 리커런트 네트워크 언어 모델.
     
     숨은 상태가 아무리 먼 지난 이야기의 앎도 나른다.
     
     인수:
         vocab_size: 낱말 곳간의 크기
         embedding_dim: 낱말 임베딩의 차원
-        hidden_dim: 리커런트 넷트웍 숨은 상태의 차원
-        num_layers: 쌓은 리커런트 넷트웍 레이어의 개수
+        hidden_dim: 리커런트 네트워크 숨은 상태의 차원
+        num_layers: 쌓은 리커런트 네트워크 레이어의 개수
         dropout: 드롭아웃 확률
     """
     
@@ -276,7 +276,7 @@ class RNNLanguageModel(nn.Module):
     
     def forward(self, x: torch.Tensor, hidden: torch.Tensor = None):
         """
-        리커런트 넷트웍을 지나는 피드포워드.
+        리커런트 네트워크를 지나는 피드포워드.
         
         인수:
             x: (batch, seq_len) 들임 토큰 번호
@@ -289,7 +289,7 @@ class RNNLanguageModel(nn.Module):
         # 임베딩: (batch, seq_len, embed_dim)
         embeds = self.dropout(self.embedding(x))
         
-        # 리커런트 넷트웍: (batch, seq_len, hidden_dim)
+        # 리커런트 네트워크: (batch, seq_len, hidden_dim)
         output, hidden = self.rnn(embeds, hidden)
         output = self.dropout(output)
         
@@ -303,7 +303,7 @@ class RNNLanguageModel(nn.Module):
         return torch.zeros(self.num_layers, batch_size, self.hidden_dim)
 
 class RNNLMDataset(Dataset):
-    """리커런트 넷트웍 언어 모델용 데이터셋(차례에서 차례로)."""
+    """리커런트 네트워크 언어 모델용 데이터셋(차례에서 차례로)."""
     
     def __init__(self, corpus: List[str], vocab: Vocabulary, max_len: int = 35):
         self.sequences = []
@@ -552,7 +552,7 @@ class PositionalEncoding(nn.Module):
 
 class TransformerLM(nn.Module):
     """
-    GPT 방식 변환기 언어 모델.
+    GPT 방식 트랜스포머 언어 모델.
     
     말 나타내기를 위해 인과(자기되돌리기) 가리기를 쓴다.
     
@@ -560,8 +560,8 @@ class TransformerLM(nn.Module):
         vocab_size: 낱말 곳간의 크기
         d_model: 모형 차원
         nhead: 어텐션 머리의 개수
-        num_layers: 변환기 레이어의 개수
-        dim_feedforward: 피드포워드 넷트웍의 안쪽 차원
+        num_layers: 트랜스포머 레이어의 개수
+        dim_feedforward: 피드포워드 네트워크의 안쪽 차원
         dropout: 드롭아웃 확률
         max_len: 순차열의 최대 길이
     """
@@ -579,7 +579,7 @@ class TransformerLM(nn.Module):
         # 위치 인코딩
         self.pos_encoder = PositionalEncoding(d_model, max_len)
         
-        # 변환기 디코더 레이어
+        # 트랜스포머 디코더 레이어
         decoder_layer = nn.TransformerDecoderLayer(
             d_model=d_model,
             nhead=nhead,
@@ -626,7 +626,7 @@ class TransformerLM(nn.Module):
         # 인과 가림
         mask = self.generate_causal_mask(seq_len).to(x.device)
         
-        # 변환기 피드포워드(셀프 어텐션만)
+        # 트랜스포머 피드포워드(셀프 어텐션만)
         output = self.transformer(x, x, tgt_mask=mask)
         
         # 어휘로 사영한다
@@ -637,7 +637,7 @@ class TransformerLM(nn.Module):
 def train_transformer_lm(corpus: List[str], d_model: int = 256,
                          nhead: int = 4, num_layers: int = 4,
                          epochs: int = 30, batch_size: int = 32):
-    """변환기 언어 모델 익히기."""
+    """트랜스포머 언어 모델 익히기."""
     
     vocab = Vocabulary()
     vocab.build(corpus)
@@ -698,7 +698,7 @@ def generate_text(model, vocab, max_length: int = 50,
     익힌 언어 모델로 글 만들어 내기.
     
     인수:
-        model: 익힌 언어 모델(LSTM 또는 변환기)
+        model: 익힌 언어 모델(LSTM 또는 트랜스포머)
         vocab: 낱말 곳간 개체
         max_length: 만들어 낼 최대 토큰 수
         temperature: 샘플링 온도

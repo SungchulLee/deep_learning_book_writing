@@ -587,7 +587,7 @@ class ConcreteDropoutLinear(nn.Module):
 
 class ConcreteDropoutNetwork(nn.Module):
     """
-    콘크리트 드롭아웃으로 드롭아웃 비율을 배우는 넷트웍.
+    콘크리트 드롭아웃으로 드롭아웃 비율을 배우는 네트워크.
     """
     
     def __init__(
@@ -680,7 +680,7 @@ def train_concrete_dropout(
 1. 구조마다의 기본값에서 비롯한다
    - MLP: 숨은 켜에 0.5
    - CNN: 컨볼루션 0.25, 온통 이은 켜 0.5
-   - 변환기: 0.1
+   - 트랜스포머: 0.1
 
 2. 자료 꾸러미 크기에 맞춘다
    - 자료가 적으면(1만 미만): 0.1~0.2 올린다
@@ -718,7 +718,7 @@ def train_concrete_dropout(
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 넷트웍에서, 이 절에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
+ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 네트워크에서, 이 절에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
 
 </div>
 
@@ -742,7 +742,7 @@ ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 �
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-베이즈 뉴럴 넷트웍의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
+베이즈 뉴럴 네트워크의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
 </div>
 

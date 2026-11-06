@@ -33,7 +33,7 @@ class PrefixEncoder(nn.Module):
     """
     모든 레이어의 앞가지를 부호로 만든다.
     
-    작은 여러 레이어 인식개로 배울 수 있는 들임 묻힘에서 앞가지 묻힘을
+    작은 여러 레이어 인식개로 배울 수 있는 들임 임베딩에서 앞가지 임베딩을
     만든다. 이렇게 다시 파라메터화하면 익히기가 더 안정된다.
     """
     
@@ -56,7 +56,7 @@ class PrefixEncoder(nn.Module):
         # 전체 차원: 레이어 수 * 2(K와 V) * 머리 수 * 머리 차원
         self.total_dim = num_layers * 2 * num_heads * head_dim
         
-        # 배울 수 있는 앞가지 묻힘
+        # 배울 수 있는 앞가지 임베딩
         self.prefix_tokens = nn.Embedding(prefix_length, hidden_dim)
         
         # 다시 파라메터화하는 여러 레이어 인식개(익히기가 나아진다)
@@ -328,7 +328,7 @@ DirectPrefixEncoder는 KV 값을 직접 학습한다. 비교 시 같은 길이�
 ```python
 class PromptTuning(nn.Module):
     """
-    시킴말 다듬기: 들임 앞에만 붙는 배울 수 있는 묻힘.
+    시킴말 다듬기: 들임 앞에만 붙는 배울 수 있는 임베딩.
     
     앞가지 다듬기보다 단순하나 나타내는 힘이 약하다.
     """
@@ -350,7 +350,7 @@ class PromptTuning(nn.Module):
         for param in base_model.parameters():
             param.requires_grad = False
         
-        # 배울 수 있는 시킴말 묻힘
+        # 배울 수 있는 시킴말 임베딩
         self.prompt_embeddings = nn.Embedding(num_virtual_tokens, embedding_dim)
         
         # 고를 수 있음: 낱말 곳간에서 첫자리매김한다
@@ -359,20 +359,20 @@ class PromptTuning(nn.Module):
     
     def _init_from_text(self, text: str):
         """글 토막으로 시킴말을 첫자리매김한다(토막내개가 필요하다)."""
-        # 짜기에서는 글을 토막내고 묻힘을 베낄 것이다
+        # 짜기에서는 글을 토막내고 임베딩을 베낄 것이다
         pass
     
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor = None, **kwargs):
         batch_size = input_ids.size(0)
         device = input_ids.device
         
-        # 바탕 모델에서 들임 묻힘을 얻는다
+        # 바탕 모델에서 들임 임베딩을 얻는다
         if hasattr(self.base_model, 'get_input_embeddings'):
             input_embeds = self.base_model.get_input_embeddings()(input_ids)
         else:
             input_embeds = self.base_model.embed_tokens(input_ids)
         
-        # 시킴말 묻힘을 얻는다
+        # 시킴말 임베딩을 얻는다
         prompt_ids = torch.arange(self.num_virtual_tokens, device=device)
         prompt_embeds = self.prompt_embeddings(prompt_ids)
         prompt_embeds = prompt_embeds.unsqueeze(0).expand(batch_size, -1, -1)

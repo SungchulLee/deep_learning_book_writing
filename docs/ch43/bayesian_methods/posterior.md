@@ -1,5 +1,5 @@
-# 베이즈 뉴럴 넷트웍 사후분포 추론
-**사후분포 추론**은 베이즈 뉴럴 넷트웍에서 계산으로 부딪히는 가장 큰 어려움이다. 사전분포 $p(\theta)$과 우도 $p(\mathcal{D} \mid \theta)$이 주어지면 사후분포 $p(\theta \mid \mathcal{D})$을 찾는다. 뉴럴 넷트웍에서는 이 사후분포를 다룰 수 없으므로, 샘플링(MCMC)에서 최적화(변분 추론), 넌지시 하는 근사(드롭아웃, 앙상블)에 이르는 근사 방법이 있어야 한다.
+# 베이즈 뉴럴 네트워크 사후분포 추론
+**사후분포 추론**은 베이즈 뉴럴 네트워크에서 계산으로 부딪히는 가장 큰 어려움이다. 사전분포 $p(\theta)$과 우도 $p(\mathcal{D} \mid \theta)$이 주어지면 사후분포 $p(\theta \mid \mathcal{D})$을 찾는다. 뉴럴 네트워크에서는 이 사후분포를 다룰 수 없으므로, 샘플링(MCMC)에서 최적화(변분 추론), 넌지시 하는 근사(드롭아웃, 앙상블)에 이르는 근사 방법이 있어야 한다.
 
 ---
 
@@ -23,7 +23,7 @@ $$
 
 **1. 고차원**: 요즘 네트워크의 파라메터는 $d = 10^6$에서 $10^9$이다
 
-**2. 짝이 맞지 않음**: 뉴럴 넷트웍의 우도는 여느 사전분포와 짝이 맞지 않는다.
+**2. 짝이 맞지 않음**: 뉴럴 네트워크의 우도는 여느 사전분포와 짝이 맞지 않는다.
 
 $$
 p(y \mid x, \theta) = \mathcal{N}(y \mid f_\theta(x), \sigma^2)
@@ -129,7 +129,7 @@ $$
 
 3. 확률 $\alpha$으로 받는다: $\theta^{(t+1)} = \theta'$ 또는 $\theta^{(t+1)} = \theta^{(t)}$
 
-**뉴럴 넷트웍에서는**: 아무렇게나 걷는 내놓기($q(\theta' \mid \theta) = \mathcal{N}(\theta, \epsilon^2 I)$)는 차수가 높으면 잘 듣지 않는다.
+**뉴럴 네트워크에서는**: 아무렇게나 걷는 내놓기($q(\theta' \mid \theta) = \mathcal{N}(\theta, \epsilon^2 I)$)는 차수가 높으면 잘 듣지 않는다.
 
 ### 해밀토니안 몬테카를로(HMC)
 
@@ -169,7 +169,7 @@ $$
 
 **나은 점**: 사후분포를 잘 둘러보고 표본끼리 덜 얽힌다.
 
-**뉴럴 넷트웍에서의 어려움**: 온전한 그래디언트 계산이 있어야 한다(큰 데이터 꾸러미에서는 비싸다).
+**뉴럴 네트워크에서의 어려움**: 온전한 그래디언트 계산이 있어야 한다(큰 데이터 꾸러미에서는 비싸다).
 
 ---
 
@@ -607,7 +607,7 @@ $$
 
 ```python
 """
-베이즈 뉴럴 넷트웍의 뒷분포 미루어 봄
+베이즈 뉴럴 네트워크의 뒷분포 미루어 봄
 
 이 배치는 여러 뒷분포 미루어 봄 방법을 짜 놓았다:
 - 확률 그래디언트 랑주뱅 액션(SGLD)
@@ -656,11 +656,11 @@ class BayesianInference(ABC):
         pass
 
 # =============================================================================
-# 단순 뉴럴 넷트웍
+# 단순 뉴럴 네트워크
 # =============================================================================
 
 class SimpleNN:
-    """보여 주기용 단순 뉴럴 넷트웍."""
+    """보여 주기용 단순 뉴럴 네트워크."""
     
     def __init__(
         self,
@@ -760,7 +760,7 @@ class SGLD(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            뉴럴 넷트웍 구조
+            뉴럴 네트워크 구조
         prior_std : float
             짐의 앞선 분포 표준편차
         noise_std : float
@@ -929,7 +929,7 @@ class LaplaceApproximation(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            뉴럴 넷트웍 구조
+            뉴럴 네트워크 구조
         prior_std : float
             앞선 분포의 표준편차
         noise_std : float
@@ -1075,7 +1075,7 @@ class LaplaceApproximation(BayesianInference):
 
 class MeanFieldVI(BayesianInference):
     """
-    베이즈 뉴럴 넷트웍을 위한 평균 마당 변이 미루어 봄.
+    베이즈 뉴럴 네트워크를 위한 평균 마당 변이 미루어 봄.
     
     뒷분포를 곱으로 가른 가우스로 어림한다:
     q(θ) = ∏_i N(θ_i | μ_i, σ_i²)
@@ -1095,7 +1095,7 @@ class MeanFieldVI(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            뉴럴 넷트웍 구조
+            뉴럴 네트워크 구조
         prior_std : float
             앞선 분포의 표준편차
         noise_std : float
@@ -1268,7 +1268,7 @@ class DeepEnsemble(BayesianInference):
     """
     아리송함을 어림하는 깊은 모둠.
     
-    첫값을 달리해 넷트웍 M개를 서로 남남으로 익힌다.
+    첫값을 달리해 네트워크 M개를 서로 남남으로 익힌다.
     """
     
     def __init__(
@@ -1283,7 +1283,7 @@ class DeepEnsemble(BayesianInference):
         Parameters
         ----------
         network : SimpleNN
-            뉴럴 넷트웍 구조
+            뉴럴 네트워크 구조
         n_members : int
             모둠 클래스의 수
         noise_std : float
@@ -1476,9 +1476,9 @@ def demo_inference_methods():
     print(f"\n익힘 자료: {N}점")
     print(f"참 함수: sin(x)")
     
-    # 넷트웍을 만든다
+    # 네트워크를 만든다
     network = SimpleNN([1, 20, 1], activation='tanh')
-    print(f"넷트웍: {network.layer_sizes}, 파라메터 {network.n_params()}개")
+    print(f"네트워크: {network.layer_sizes}, 파라메터 {network.n_params()}개")
     
     # 여러 방법을 익힌다
     methods = {}
@@ -1568,7 +1568,7 @@ def demo_variational_inference():
     X_train = np.random.uniform(-3, 3, N).reshape(-1, 1)
     y_train = np.sin(X_train) + np.random.normal(0, 0.2, (N, 1))
     
-    # VI을 빠르게 하려고 작은 넷트웍
+    # VI을 빠르게 하려고 작은 네트워크
     network = SimpleNN([1, 10, 1], activation='tanh')
     
     print(f"\n파라메터 {network.n_params()}개로 VI을 돌리는 중...")
@@ -1609,7 +1609,7 @@ if __name__ == "__main__":
 
 익힘 자료: 20점
 참 함수: sin(x)
-넷트웍: [1, 20, 1], 파라메터 61개
+네트워크: [1, 20, 1], 파라메터 61개
 
 --- 라플라스 어림 ---
 라플라스: MAP을 찾고 뒷분포 흩어짐을 셈했다
@@ -1654,7 +1654,7 @@ VI: 가장 좋게 하기를 마쳤다, 마지막 ELBO = nan
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 넷트웍에서, 이 절에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
+ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 네트워크에서, 이 절에서 밝힌 방법에 따른 근사 사후분포의 꼴을 이끌어 내어라.
 
 </div>
 
@@ -1678,7 +1678,7 @@ ReLU 활성화와 가우시안 웨이트 사전분포를 지닌 두 켜 뉴럴 �
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-베이즈 뉴럴 넷트웍의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
+베이즈 뉴럴 네트워크의 추론 분산이 인식적 불확실성과 우연적 불확실성으로 쪼개짐을 증명하여라. 학습 데이터 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
 </div>
 
@@ -1763,7 +1763,7 @@ $$
 | 사전분포 정하기 | 43장: 웨이트의 사전분포 | 사후분포의 입력 |
 | 불확실성 | 43장: 불확실성 | 사후분포가 쪼갬을 이룬다 |
 | MC 드롭아웃 | 43장: MC 드롭아웃 | 넌지시 하는 변분 추론 |
-| 변분 베이즈 뉴럴 넷트웍 | 43장: 변분 베이즈 뉴럴 넷트웍 | VI을 자세히 다룸 |
+| 변분 베이즈 뉴럴 네트워크 | 43장: 변분 베이즈 뉴럴 네트워크 | VI을 자세히 다룸 |
 | 모델 비교 | 43장: 소식 잣대 | 주변 우도 |
 
 ### 핵심 살펴볼 거리

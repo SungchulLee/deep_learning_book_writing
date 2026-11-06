@@ -193,7 +193,7 @@ class ExperienceReplayLearner:
         되살리기 학습기를 초기화한다.
         
         인수:
-            model: 뉴럴 넷트웍 모델
+            model: 뉴럴 네트워크 모델
             device: 셈할 장치
             memory_size: 기억 버퍼의 전체 용량
             examples_per_task: 과제마다 담아 둘 보기 수

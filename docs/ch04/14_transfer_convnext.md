@@ -190,9 +190,9 @@ print(m.classifier)
 convs = [x for x in m.modules() if isinstance(x, nn.Conv2d)]
 dw = [x for x in convs if x.groups > 1]        # groups > 1 이면 깊이별이다
 # 깊이별 열여덟 개가 모두 groups == in_channels == out_channels 인 끝 경우다.
-# MobileNet 쪽과 달리 이 넷트웍의 깊이별에는 치우침이 있으므로 bias 도 센다
+# MobileNet 쪽과 달리 이 네트워크의 깊이별에는 치우침이 있으므로 bias 도 센다
 w_dw = sum(x.weight.numel() + x.bias.numel() for x in dw)
-# 같은 자리를 표준 컨볼루션으로 두었다면. 49 = 7x7 을 박아 둔 것은 이 넷트웍의
+# 같은 자리를 표준 컨볼루션으로 두었다면. 49 = 7x7 을 박아 둔 것은 이 네트워크의
 # 깊이별 커널이 모두 7x7 이기 때문이고, 아래 "깊이별 커널 크기" 줄이 그것을 찍는다
 w_dense = sum(x.in_channels * x.out_channels * 49 + x.out_channels for x in dw)
 

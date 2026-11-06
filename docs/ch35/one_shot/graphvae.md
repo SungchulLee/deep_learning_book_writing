@@ -1,6 +1,6 @@
 # GraphVAE
 
-GraphVAE(Simonovsky & Komodakis, 2018)은 변분 오토인코더 틀을 한 번에 만드는 그래프 생성에 쓴다. 인코더는 그래프 뉴럴 넷트웍으로 그래프를 숨은 분포로 옮기고, 디코더는 뽑은 숨은 벡터에서 인접 행렬 전체와 노드 피처를 되짓는다. 핵심 새로움은 (1) 표준 차례 없이 자리바꿈에 안 바뀜을 다루는 그래프 짝짓기 로스와 (2) 그래프 위상과 노드·엣지 속성을 한꺼번에 만드는 확률 디코더다.
+GraphVAE(Simonovsky & Komodakis, 2018)은 변분 오토인코더 틀을 한 번에 만드는 그래프 생성에 쓴다. 인코더는 그래프 뉴럴 네트워크로 그래프를 숨은 분포로 옮기고, 디코더는 뽑은 숨은 벡터에서 인접 행렬 전체와 노드 피처를 되짓는다. 핵심 새로움은 (1) 표준 차례 없이 자리바꿈에 안 바뀜을 다루는 그래프 짝짓기 로스와 (2) 그래프 위상과 노드·엣지 속성을 한꺼번에 만드는 확률 디코더다.
 
 ---
 
@@ -8,7 +8,7 @@ GraphVAE(Simonovsky & Komodakis, 2018)은 변분 오토인코더 틀을 한 번�
 
 ### 인코더
 
-인코더는 입력 그래프 $\mathcal{G} = (\mathbf{A}, \mathbf{X})$을 잠재공간의 가우스 사후 분포로 옮긴다. 그래프 뉴럴 넷트웍이 노드 임베딩을 계산하고 이를 그래프 켜의 나타냄으로 모은다:
+인코더는 입력 그래프 $\mathcal{G} = (\mathbf{A}, \mathbf{X})$을 잠재공간의 가우스 사후 분포로 옮긴다. 그래프 뉴럴 네트워크가 노드 임베딩을 계산하고 이를 그래프 켜의 나타냄으로 모은다:
 
 $$
 \mathbf{H} = \text{GNN}_{\text{enc}}(\mathbf{A}, \mathbf{X}) \in \mathbb{R}^{n \times d_h}
@@ -119,7 +119,7 @@ from scipy.optimize import linear_sum_assignment
 import numpy as np
 
 class GraphEncoder(nn.Module):
-    """GraphVAE의 그래프 뉴럴 넷트웍 바탕 그래프 인코더."""
+    """GraphVAE의 그래프 뉴럴 네트워크 바탕 그래프 인코더."""
 
     def __init__(
         self,

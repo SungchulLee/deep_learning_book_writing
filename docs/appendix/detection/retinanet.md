@@ -11,7 +11,7 @@ RetinaNet은 2017년 글 "Focal Loss for Dense Object Detection"에서 나왔다
 '''
 RetinaNet - 촘촘한 물체 알아내기를 위한 초점 로스
 논문: "Focal Loss for Dense Object Detection" (2017)
-핵심: 클래스가 치우친 것을 다루는 초점 로스와 피처 피라미드 넷트웍(FPN)
+핵심: 클래스가 치우친 것을 다루는 초점 로스와 피처 피라미드 네트워크(FPN)
 '''
 import torch
 import torch.nn as nn
@@ -52,7 +52,7 @@ class RetinaNet(nn.Module):
         super().__init__()
         self.fpn = FPN()
         
-        # 가름 잔넷트웍
+        # 가름 잔네트워크
         self.cls_subnet = nn.Sequential(
             nn.Conv2d(256, 256, 3, 1, 1),
             nn.ReLU(inplace=True),
@@ -61,7 +61,7 @@ class RetinaNet(nn.Module):
             nn.Conv2d(256, num_anchors * num_classes, 3, 1, 1)
         )
         
-        # 상자 회귀 잔넷트웍
+        # 상자 회귀 잔네트워크
         self.box_subnet = nn.Sequential(
             nn.Conv2d(256, 256, 3, 1, 1),
             nn.ReLU(inplace=True),

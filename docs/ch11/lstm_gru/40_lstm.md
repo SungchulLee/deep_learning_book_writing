@@ -7,7 +7,7 @@ LSTM 순환 레이어 두 개와 선형 분류 레이어로 연속 피처 시퀀
 ```python
 #!/usr/bin/env python3
 '''
-LSTM — 장단기 기억 뉴럴 넷트웍
+LSTM — 장단기 기억 뉴럴 네트워크
 논문: "Long Short-Term Memory" (1997)
 핵심: 순차열의 장기 의존을 붙잡는 문 장치
 '''

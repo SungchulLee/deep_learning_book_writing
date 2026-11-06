@@ -100,10 +100,10 @@ d=768, r=64이면 한 모듈 99,136개, L=12에 두 개씩이면 2,379,264개다
 ```python
 class SerialAdapterTransformerLayer(nn.Module):
     """
-    밑레이어마다 뒤에 맞춤개를 잇달아 둔 변환기 레이어.
+    밑레이어마다 뒤에 맞춤개를 잇달아 둔 트랜스포머 레이어.
     
     구조:
-        x → 어텐션 → 맞춤개 → 더하고 고르게 → 피드포워드 넷트웍 → 맞춤개 → 더하고 고르게
+        x → 어텐션 → 맞춤개 → 더하고 고르게 → 피드포워드 네트워크 → 맞춤개 → 더하고 고르게
     """
     
     def __init__(
@@ -145,7 +145,7 @@ class SerialAdapterTransformerLayer(nn.Module):
         attn_out = self.adapter_attn(attn_out)
         x = self.norm1(x + self.dropout(attn_out))
         
-        # 피드포워드 넷트웍 + 맞춤개
+        # 피드포워드 네트워크 + 맞춤개
         ffn_out = self.ffn(x)
         ffn_out = self.adapter_ffn(ffn_out)
         x = self.norm2(x + ffn_out)
@@ -162,7 +162,7 @@ attention_mask는 nn.MultiheadAttention의 key_padding_mask로 전달하므로 b
 ```python
 class ParallelAdapterTransformerLayer(nn.Module):
     """
-    나란한 맞춤개를 둔 변환기 레이어.
+    나란한 맞춤개를 둔 트랜스포머 레이어.
     
     맞춤개가 밑레이어 뒤가 아니라 밑레이어와 나란히 돈다.
     """
@@ -207,7 +207,7 @@ class ParallelAdapterTransformerLayer(nn.Module):
         adapter_out = self.adapter_attn(x) - x  # 남는 이음을 뺀다
         x = self.norm1(x + self.dropout(attn_out) + self.adapter_scale * adapter_out)
         
-        # 나란히: 맞춤개와 피드포워드 넷트웍이 모두 x를 받는다
+        # 나란히: 맞춤개와 피드포워드 네트워크가 모두 x를 받는다
         ffn_out = self.ffn(x)
         adapter_out = self.adapter_ffn(x) - x
         x = self.norm2(x + ffn_out + self.adapter_scale * adapter_out)

@@ -9,8 +9,8 @@ DeiT은 2021년 글 "Training data-efficient image transformers & distillation t
 ```python
 #!/usr/bin/env python3
 """
-DeiT - 자료를 아끼는 그림 변환기
-글: "자료를 아끼는 그림 변환기 익히기와 어텐션을 거친 앎 옮기기" (2021)
+DeiT - 자료를 아끼는 그림 트랜스포머
+글: "자료를 아끼는 그림 트랜스포머 익히기와 어텐션을 거친 앎 옮기기" (2021)
 지은이: 위고 투브롱 외
 핵심 깨침:
   - 앎 옮기기로 더 적은 자료로 ViT을 익힌다
@@ -61,7 +61,7 @@ class DeiT(nn.Module):
         # 자리 담기에 두 낱말이 모두 들어간다
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 2, embed_dim))
 
-        # 변환기 인코더(단순하게 만듦)
+        # 트랜스포머 인코더(단순하게 만듦)
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=embed_dim, nhead=12, batch_first=True
         )
@@ -84,7 +84,7 @@ class DeiT(nn.Module):
         x = torch.cat([cls, dist, x], dim=1)
         x = x + self.pos_embed
 
-        # 변환기 부호로 바꾸기
+        # 트랜스포머 부호로 바꾸기
         x = self.encoder(x)
 
         # 날임을 갈라 낸다
