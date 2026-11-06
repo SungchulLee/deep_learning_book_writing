@@ -227,8 +227,28 @@ for left_on in (False, True):
         print(f"     {str(left_on):>6}{str(right_on):>8}   "
               f"{str(out.requires_grad):>6}   {fn}")
 
-# === 3. 깃발이 하나도 없으면 그래프가 아예 안 세워진다 ======================
-print("\n  3. 아무도 안 켜져 있으면")
+# === 3. 거는 것과 갖는 것과 받는 것은 서로 다르다 ==========================
+print("\n  3. 잎만인 것과 아닌 것")
+leaf = torch.randn(3, requires_grad=True)
+grown = leaf * 2                      # 계산으로 생긴 것
+print(f"     leaf   is_leaf={leaf.is_leaf}   requires_grad={leaf.requires_grad}")
+print(f"     grown  is_leaf={grown.is_leaf}  requires_grad={grown.requires_grad}"
+      f"   <- 잎이 아닌데 켜져 있다")
+
+print("     requires_grad_() 로 바꿔 보면")
+for tag, make, val in [("잎에 켜기  ", lambda: torch.randn(3), True),
+                       ("잎에 끄기  ", lambda: torch.randn(3, requires_grad=True), False),
+                       ("잎 아닌 것에 켜기", lambda: torch.randn(3, requires_grad=True) * 2, True),
+                       ("잎 아닌 것에 끄기", lambda: torch.randn(3, requires_grad=True) * 2, False)]:
+    try:
+        print(f"       {tag:18s} 된다 -> {make().requires_grad_(val).requires_grad}")
+    except RuntimeError as err:
+        print(f"       {tag:18s} {str(err).splitlines()[0][:44]}")
+print("     requires_grad=False 인 텐서는 언제나 잎이다 — 그래서 '잎이 아니다'")
+print("     는 곧 '켜져 있다' 이고, 끄라는 요청만 거절당한다")
+
+# === 4. 깃발이 하나도 없으면 그래프가 아예 안 세워진다 ======================
+print("\n  4. 아무도 안 켜져 있으면")
 cold_w = torch.randn(4, 3)
 cold_x = torch.randn(3)
 cold_out = (cold_w @ cold_x).sum()
@@ -238,8 +258,8 @@ try:
 except RuntimeError as err:
     print(f"     backward()       : {str(err).splitlines()[0][:58]}")
 
-# === 4. 경사는 어디에 어떤 모양으로 쌓이는가 ================================
-print("\n  4. .grad 가 사는 자리")
+# === 5. 경사는 어디에 어떤 모양으로 쌓이는가 ================================
+print("\n  5. .grad 가 사는 자리")
 warm_w = torch.randn(4, 3, requires_grad=True)
 warm_x = torch.randn(3)
 mid = warm_w @ warm_x
@@ -254,8 +274,8 @@ mid = warm_w @ warm_x
 print(f"     한 번 더 역전파하면 {first:.4f} 가 {warm_w.grad[0, 0].item():.4f} 로"
       f" — 덮어쓰지 않고 더한다")
 
-# === 5. 깃발을 입력에 걸면 다른 것을 얻는다 =================================
-print("\n  5. 같은 로스, 깃발만 옮기면")
+# === 6. 깃발을 입력에 걸면 다른 것을 얻는다 =================================
+print("\n  6. 같은 로스, 깃발만 옮기면")
 fixed_w = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
 fixed_x = torch.tensor([1.0, 1.0])
 target = torch.tensor([2.0, 2.0])
@@ -273,7 +293,7 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
 **출력:**
 
 ```
-  1. 깃발의 기본값과 켜는 길
+1. 깃발의 기본값과 켜는 길
      torch.randn(3)                       requires_grad=False
      torch.randn(3, requires_grad=True)   requires_grad=True
      .requires_grad_(True) 로 켠 것          requires_grad=True
@@ -286,16 +306,27 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
        True   False     True   MulBackward0
        True    True     True   MulBackward0
 
-  3. 아무도 안 켜져 있으면
+  3. 잎만인 것과 아닌 것
+     leaf   is_leaf=True   requires_grad=True
+     grown  is_leaf=False  requires_grad=True   <- 잎이 아닌데 켜져 있다
+     requires_grad_() 로 바꿔 보면
+       잎에 켜기              된다 -> True
+       잎에 끄기              된다 -> False
+       잎 아닌 것에 켜기         된다 -> True
+       잎 아닌 것에 끄기         you can only change requires_grad flags of l
+     requires_grad=False 인 텐서는 언제나 잎이다 — 그래서 '잎이 아니다'
+     는 곧 '켜져 있다' 이고, 끄라는 요청만 거절당한다
+
+  4. 아무도 안 켜져 있으면
      grad_fn          : None
      backward()       : element 0 of tensors does not require grad and does not ha
 
-  4. .grad 가 사는 자리
+  5. .grad 가 사는 자리
      warm_w 모양      : (4, 3)
      warm_w.grad 모양  : (4, 3)   같은가 True
-     한 번 더 역전파하면 -23.7315 가 -47.4629 로 — 덮어쓰지 않고 더한다
+     한 번 더 역전파하면 -1.2900 가 -2.5800 로 — 덮어쓰지 않고 더한다
 
-  5. 같은 로스, 깃발만 옮기면
+  6. 같은 로스, 깃발만 옮기면
      깃발이 W 에  dL/dW = [2.0, 2.0, 10.0, 10.0]
      깃발이 x 에  dL/dx = [32.0, 44.0]
      앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고친다
@@ -340,6 +371,41 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
 
 그래서 **$x$ 하나만 켜도 그 뒤의 모든 것이 따라 켜진다.** 로스까지 가는 길에
 놓인 연산이 전부 기록되고, 그 기록을 거꾸로 걸어 내려오는 것이 `backward()`다.
+
+**거는 것과 갖는 것과 받는 것이 서로 다르다.** 셋을 한자리에 놓으면 이렇다.
+
+```
+leaf   is_leaf=True   requires_grad=True
+grown  is_leaf=False  requires_grad=True   <- 잎이 아닌데 켜져 있다
+
+  잎에 켜기              된다 -> True
+  잎에 끄기              된다 -> False
+  잎 아닌 것에 켜기         된다 -> True
+  잎 아닌 것에 끄기         you can only change requires_grad flags of l
+```
+
+| | 잎만인가 |
+|---|---|
+| 만들 때 주는 **인자** `requires_grad=` | **그렇다** — 텐서를 만드는 함수에만 달려 있고, 만든 것은 다 잎이다 |
+| 나중에 부르는 **메서드** `requires_grad_()` | **끄는 것만** 그렇다 |
+| 깃발을 **갖는** 것 | **아니다** — 잎이 아니면 반드시 켜져 있다 |
+| `.grad`를 **받는** 것 | **그렇다** |
+
+둘째 줄과 셋째 줄은 같은 사실의 앞뒤다. **`requires_grad=False`인 텐서는 언제나
+잎이므로**, 「잎이 아니다」는 곧 「켜져 있다」이다. 그래서 잎이 아닌 것에 켜라는
+요청은 이미 켜져 있어 그냥 지나가고, **끄라는 요청만 거절당한다.**
+
+그리고 기본값이 셋으로 갈린다.
+
+| | 기본 깃발 |
+|---|---|
+| 그냥 만든 텐서, 입력 데이터 | **꺼짐** |
+| `nn.Parameter` — 내장 층의 가중치 | **켜짐** |
+| 버퍼 — 배치 정규화의 `running_mean` 같은 것 | 꺼짐 |
+
+가운뎃줄이 **모델을 만드는 것만으로 학습 대상이 정해지는** 까닭이고, 윗줄이
+**입력에 대한 경사는 따로 청하지 않으면 안 나오는** 까닭이다. 아랫줄은
+[레이어 출력하기](13_print_layers.md)가 따로 다룬다.
 
 **아무도 안 켜져 있으면 적히지 않는다.**
 

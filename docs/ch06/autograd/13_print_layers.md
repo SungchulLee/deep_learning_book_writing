@@ -143,6 +143,20 @@ def real_buffer():
     print("  경사는 없다:", bn.running_mean.grad_fn, bn.running_mean.requires_grad)
     print("  학습되지 않는데 순전파가 고친다 — 그래서 버퍼다")
 
+    # 쌓는 것과 쓰는 것이 두 모드로 갈린다
+    torch.manual_seed(0)
+    bn2 = nn.BatchNorm1d(3)
+    x = torch.randn(8, 3) * 5 + 10          # 평균이 10 언저리인 입력
+    for mode in ("train", "eval"):
+        getattr(bn2, mode)()
+        was = bn2.running_mean.clone()
+        out = bn2(x)
+        print(f"  {mode+'()':8s} running_mean 바뀌나 "
+              f"{not torch.equal(was, bn2.running_mean)!s:5s}"
+              f"  출력 평균 {[round(v, 3) for v in out.mean(0).tolist()]}")
+    print("  train 은 쌓기만 하고 안 쓰며, eval 은 쓰기만 하고 안 쌓는다")
+    print("  뒤집는 것은 train/eval 뿐이다 — no_grad 로 감싸도 안 바뀐다")
+
 
 # ========================================================================
 # 5. 쓸모 있는 요약 한 줄
@@ -243,6 +257,10 @@ Net(
   순전파 한 번 뒤 running_mean 이 바뀌었나: True
   경사는 없다: None False
   학습되지 않는데 순전파가 고친다 — 그래서 버퍼다
+  train()  running_mean 바뀌나 True   출력 평균 [-0.0, -0.0, 0.0]
+  eval()   running_mean 바뀌나 False  출력 평균 [5.097, 4.115, 4.784]
+  train 은 쌓기만 하고 안 쓰며, eval 은 쓰기만 하고 안 쌓는다
+  뒤집는 것은 train/eval 뿐이다 — no_grad 로 감싸도 안 바뀐다
 
 === 5. 층마다 수를 세어 본다 ===
   이름                       종류                 파라미터
@@ -315,6 +333,34 @@ named_modules  (전부 10개):
 - `requires_grad=False`이고 `grad_fn`도 없다 — **학습되지 않는다**
 - 그런데 **순전파가 고친다** — 배치 통계를 이동평균으로 쌓는다
 - `state_dict`에 들어간다 — **저장된다**
+
+**쌓는 것과 쓰는 것이 두 모드로 갈린다.**
+
+```
+train()  running_mean 바뀌나 True   출력 평균 [-0.0, -0.0, 0.0]
+eval()   running_mean 바뀌나 False  출력 평균 [5.097, 4.115, 4.784]
+```
+
+평균이 10 언저리인 입력을 같은 층에 두 번 넣었는데 나온 것이 다르다.
+
+**`train()`은 쌓기만 하고 쓰지 않는다.** 정규화는 **그 배치의 통계**로 하므로
+출력 평균이 0이 되고, `running_mean`은 그동안 조용히 갱신된다.
+
+**`eval()`은 쓰기만 하고 쌓지 않는다.** 정규화를 **저장해 둔 통계**로 하므로
+출력 평균이 0이 아니고, 버퍼는 그대로다.
+
+여기서 버퍼라는 갈래가 왜 있는지가 닫힌다. **학습이 적어 두고 평가가 읽는
+쪽지**이기 때문에, 학습되지 않으면서도 저장되어야 한다. 체크포인트에서 이것이
+빠지면 구조와 가중치가 같아도 **평가가 다른 답을 낸다.**
+
+!!! warning "뒤집는 것은 `train()`·`eval()`뿐이다"
+    때가 평가 때라서 바뀌는 것이 아니라 **그 메서드를 불러서** 바뀐다. 안
+    부르면 평가 루프 한가운데서도 배치 통계로 정규화하고 버퍼를 계속 갱신한다.
+
+    `torch.no_grad()`로 감싸도 이 동작은 **하나도 안 바뀐다.**
+    [`torch.no_grad`](10_with_torch_no_grad.md)가 재어 둔 대로 둘은 다른
+    손잡이이고, 빼먹었을 때의 결과도 다르다 — `no_grad`를 빼면 느려지고,
+    `eval()`을 빼면 **답이 틀린다.**
 
 세 성질이 다 필요해서 버퍼라는 갈래가 따로 있다. 파라미터로 두면 옵티마이저가
 건드리려 들고, 그냥 속성으로 두면 저장도 장치 이동도 안 된다.
