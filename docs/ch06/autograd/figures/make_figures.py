@@ -343,6 +343,51 @@ def fig_leaf_vs_nonleaf():
     save(fig, "leaf_vs_nonleaf")
 
 
+def fig_two_leaves():
+    """잎이 둘이면 되짚는 길이 갈라지고, 둘 다 제 몫을 받는다 — 5절.
+
+    갈라지는 자리는 `y` 가 아니라 **입력을 둘 받은 연산**이다. 그래서 되짚는
+    화살표를 순전파 화살표 바로 밑에 겹쳐 그린다 — 길이 같고 방향만 반대다.
+    """
+    fig, ax = plt.subplots(figsize=(7.8, 3.2))
+
+    x = node(ax, 0.0, 0.80, "x", "leaf", w=0.9)
+    w = node(ax, 0.0, -0.80, "w", "leaf", w=0.9)
+    m = node(ax, 2.5, 0.0, "mul", "op", w=1.2)
+    y = node(ax, 4.6, 0.0, "y", "tensor", w=0.9)
+    o = node(ax, 6.8, 0.0, "pow, sum", "op", w=2.0)
+    z = node(ax, 9.2, 0.0, "z", "tensor", w=0.9)
+    for a, b in ((x, m), (w, m), (m, y), (y, o), (o, z)):
+        fwd(ax, a, b, lw=1.1)
+
+    # 되짚기 — 순전파 화살표 바로 아래에 반대 방향으로
+    _arrow(ax, (z.x - 0.6, -0.38), (o.x + 1.1, -0.38), ACCENT, (0, (4, 2)), 1.2)
+    _arrow(ax, (o.x - 1.1, -0.38), (y.x + 0.5, -0.38), ACCENT, (0, (4, 2)), 1.2)
+    note(ax, 7.0, -0.62, "dz/dy = 2y", ACCENT, 8.2)
+    _arrow(ax, (y.x - 0.5, -0.38), (m.x + 0.65, -0.38), ACCENT, (0, (4, 2)), 1.2)
+
+    # 갈래 — 연산이 입력을 둘 받았으니 여기서 둘로 나뉜다
+    _arrow(ax, (m.x - 0.75, 0.22), (x.x + 0.55, 0.66), ACCENT, (0, (4, 2)), 1.3)
+    _arrow(ax, (m.x - 0.75, -0.22), (w.x + 0.55, -0.66), ACCENT, (0, (4, 2)), 1.3)
+    # 곱셈 기호를 x 로 쓰면 변수 x 와 헷갈린다
+    note(ax, 1.55, 0.78, "then * w", ACCENT, 8.2)
+    note(ax, 1.55, -0.78, "then * x", ACCENT, 8.2)
+
+    badge(ax, x, "x.grad = [32, 100, 216]", True, dy=0.52, fontsize=8.0)
+    badge(ax, w, "w.grad = [8, 40, 108]", True, dy=-0.52, fontsize=8.0)
+    badge(ax, y, "y.grad = None", False, dy=0.5, fontsize=8.0)
+
+    note(ax, 4.4, 1.86,
+         "the split happens at the op that took two inputs, not at y",
+         ACCENT, 8.8)
+    note(ax, 4.4, -1.88,
+         "each leaf is multiplied by the other one's value - that is the "
+         "whole difference", INK, 8.6)
+
+    frame(ax, (-1.9, 11.0), (-2.25, 2.2))
+    save(fig, "two_leaves")
+
+
 def fig_retain_grad_timing():
     """retain_grad() 는 역전파 전에 불러야 한다 — 6절."""
     fig, ax = plt.subplots(figsize=(7.8, 2.6))
@@ -2485,6 +2530,7 @@ FIGURES = {
     # 01_basic_scalar_backward
     "four_attributes": fig_four_attributes,
     "leaf_vs_nonleaf": fig_leaf_vs_nonleaf,
+    "two_leaves": fig_two_leaves,
     "retain_grad_timing": fig_retain_grad_timing,
     # 05 (옛 06)
     "hand_vs_module": fig_hand_vs_module,
