@@ -192,6 +192,208 @@ print(f"  로스가 {loss.item():.3f} 에서 {new.item():.6f} 으로 내려갔�
 
 ## 3. PyTorch에서 경사 계산하기
 
+### `requires_grad` — 그래프를 세울지 정하는 깃발
+
+아래 코드들이 `requires_grad=True`로 시작한다. 그 한 마디가 무엇을 하는지부터
+적어 둔다. **자동 미분에서 이것 하나만 알아야 한다면 이것이다.**
+
+```python
+import torch
+
+torch.manual_seed(0)
+
+# === 1. 기본은 꺼져 있고, 켜는 길이 셋이다 ==================================
+made = torch.randn(3)
+at_birth = torch.randn(3, requires_grad=True)
+turned_on = torch.randn(3); turned_on.requires_grad_(True)
+as_param = torch.nn.Parameter(torch.randn(3))
+
+print("  1. 깃발의 기본값과 켜는 길")
+for name, obj in [("torch.randn(3)", made),
+                  ("torch.randn(3, requires_grad=True)", at_birth),
+                  (".requires_grad_(True) 로 켠 것", turned_on),
+                  ("nn.Parameter(...)", as_param)]:
+    print(f"     {name:36s} requires_grad={obj.requires_grad}")
+
+# === 2. 깃발은 연산을 타고 앞으로 번진다 ====================================
+print("\n  2. 입력 가운데 하나라도 켜져 있으면 출력이 켜진다")
+print(f"     {'왼쪽':>6}{'오른쪽':>8}   {'출력':>6}   grad_fn")
+for left_on in (False, True):
+    for right_on in (False, True):
+        u = torch.randn(3, requires_grad=left_on)
+        v = torch.randn(3, requires_grad=right_on)
+        out = u * v
+        fn = type(out.grad_fn).__name__ if out.grad_fn is not None else "None"
+        print(f"     {str(left_on):>6}{str(right_on):>8}   "
+              f"{str(out.requires_grad):>6}   {fn}")
+
+# === 3. 깃발이 하나도 없으면 그래프가 아예 안 세워진다 ======================
+print("\n  3. 아무도 안 켜져 있으면")
+cold_w = torch.randn(4, 3)
+cold_x = torch.randn(3)
+cold_out = (cold_w @ cold_x).sum()
+print(f"     grad_fn          : {cold_out.grad_fn}")
+try:
+    cold_out.backward()
+except RuntimeError as err:
+    print(f"     backward()       : {str(err).splitlines()[0][:58]}")
+
+# === 4. 경사는 어디에 어떤 모양으로 쌓이는가 ================================
+print("\n  4. .grad 가 사는 자리")
+warm_w = torch.randn(4, 3, requires_grad=True)
+warm_x = torch.randn(3)
+mid = warm_w @ warm_x
+total = (mid ** 2).sum()
+total.backward()
+print(f"     warm_w 모양      : {tuple(warm_w.shape)}")
+print(f"     warm_w.grad 모양  : {tuple(warm_w.grad.shape)}   같은가 "
+      f"{warm_w.shape == warm_w.grad.shape}")
+first = warm_w.grad[0, 0].item()
+mid = warm_w @ warm_x
+(mid ** 2).sum().backward()
+print(f"     한 번 더 역전파하면 {first:.4f} 가 {warm_w.grad[0, 0].item():.4f} 로"
+      f" — 덮어쓰지 않고 더한다")
+
+# === 5. 깃발을 입력에 걸면 다른 것을 얻는다 =================================
+print("\n  5. 같은 로스, 깃발만 옮기면")
+fixed_w = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+fixed_x = torch.tensor([1.0, 1.0])
+target = torch.tensor([2.0, 2.0])
+
+w_on = fixed_w.clone().requires_grad_(True)
+((w_on @ fixed_x - target) ** 2).sum().backward()
+print(f"     깃발이 W 에  dL/dW = {w_on.grad.flatten().tolist()}")
+
+x_on = fixed_x.clone().requires_grad_(True)
+((fixed_w @ x_on - target) ** 2).sum().backward()
+print(f"     깃발이 x 에  dL/dx = {x_on.grad.tolist()}")
+print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고친다")
+```
+
+**출력:**
+
+```
+  1. 깃발의 기본값과 켜는 길
+     torch.randn(3)                       requires_grad=False
+     torch.randn(3, requires_grad=True)   requires_grad=True
+     .requires_grad_(True) 로 켠 것          requires_grad=True
+     nn.Parameter(...)                    requires_grad=True
+
+  2. 입력 가운데 하나라도 켜져 있으면 출력이 켜진다
+         왼쪽     오른쪽       출력   grad_fn
+      False   False    False   None
+      False    True     True   MulBackward0
+       True   False     True   MulBackward0
+       True    True     True   MulBackward0
+
+  3. 아무도 안 켜져 있으면
+     grad_fn          : None
+     backward()       : element 0 of tensors does not require grad and does not ha
+
+  4. .grad 가 사는 자리
+     warm_w 모양      : (4, 3)
+     warm_w.grad 모양  : (4, 3)   같은가 True
+     한 번 더 역전파하면 -23.7315 가 -47.4629 로 — 덮어쓰지 않고 더한다
+
+  5. 같은 로스, 깃발만 옮기면
+     깃발이 W 에  dL/dW = [2.0, 2.0, 10.0, 10.0]
+     깃발이 x 에  dL/dx = [32.0, 44.0]
+     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고친다
+```
+
+**기본은 꺼져 있고, 켜는 길이 셋이다.** `torch.randn(3)`으로 만든 텐서는 깃발이
+**내려가 있다.** 켜는 길이 셋인데, 셋째가
+평소에 가장 많이 쓰인다.
+
+| | 어떻게 |
+|---|---|
+| 만들 때 | `torch.randn(3, requires_grad=True)` |
+| 만든 뒤에 | `t.requires_grad_(True)` |
+| **`nn.Parameter`로 두면** | **저절로 켜진다** |
+
+마지막 줄이 모델의 가중치가 **전부 켜져 있는** 까닭이다. `nn.Linear`가 속에
+두는 `weight`와 `bias`는 `nn.Parameter`이고, `nn.Parameter`는 기본으로 깃발을
+켠다. 그래서 모델을 만드는 것만으로 학습 대상이 정해진다.
+
+거꾸로 **입력 데이터는 꺼져 있다.** 그냥 `torch.randn`이나 `ToTensor()`로 온
+텐서이기 때문이고, 그것이 맞는 기본값이다. 왜 맞는지는 아래 「깃발을 어디에
+거느냐」에서 본다.
+
+**깃발은 연산을 타고 앞으로 번진다.**
+
+```
+   왼쪽     오른쪽       출력   grad_fn
+  False   False    False   None
+  False    True     True   MulBackward0
+   True   False     True   MulBackward0
+   True    True     True   MulBackward0
+```
+
+**입력 가운데 하나라도 켜져 있으면 출력이 켜지고 `grad_fn`을 받는다.** 켜진 것이
+하나도 없으면 출력도 꺼지고 `grad_fn`이 `None`이다.
+
+![두 줄 그림. 윗줄은 입력 둘 가운데 하나만 깃발이 켜져 있는데도 곱셈을 지난 출력에 깃발이 켜지고 grad_fn 이 붙는다. 아랫줄은 입력 둘 다 꺼져 있어 연산도 출력도 점선으로 흐리게 그려지고 grad_fn 이 비어 있다.](figures/flag_spreads.svg)
+
+이 한 줄이 **그래프가 세워지는 기제 전부**다. 파이토치는 「이제부터 기록한다」는
+스위치를 따로 두지 않는다. 연산을 할 때마다 입력들의 깃발을 보고, 하나라도
+켜져 있으면 그 연산을 적어 둔다. 적어 둔 것들이 이어 붙어 그래프가 된다.
+
+그래서 **$x$ 하나만 켜도 그 뒤의 모든 것이 따라 켜진다.** 로스까지 가는 길에
+놓인 연산이 전부 기록되고, 그 기록을 거꾸로 걸어 내려오는 것이 `backward()`다.
+
+**아무도 안 켜져 있으면 적히지 않는다.**
+
+```
+grad_fn          : None
+backward()       : element 0 of tensors does not require grad and does not ha
+```
+
+곱셈과 덧셈은 **그대로 일어난다.** 값은 똑같이 나온다. 다른 것은 **적히지
+않는다**는 것뿐이고, 적힌 것이 없으니 되짚어 갈 길도 없다. 그래서
+`backward()`가 거절한다.
+
+이것이 추론이 학습보다 싼 까닭이다 — 「경사 추적을 멈추는 시점」이 재어 보인
+대로, 되짚지 않을 것이라면 **중간값을 들고 있을 까닭이 없다.**
+
+**경사는 그 텐서 옆에, 같은 모양으로, 더해져 쌓인다.**
+
+```
+warm_w 모양      : (4, 3)
+warm_w.grad 모양  : (4, 3)   같은가 True
+한 번 더 역전파하면 -23.7315 가 -47.4629 로 — 덮어쓰지 않고 더한다
+```
+
+경사가 사는 자리는 **그 텐서의 `.grad` 속성**이고, 모양이 **텐서와 같다.**
+$\partial L / \partial w_{ij}$가 $w_{ij}$가 있던 자리에 그대로 들어앉는다고
+보면 된다. 그래서 갱신이 `w -= lr * w.grad` 한 줄로 적힌다.
+
+그리고 **덮어쓰지 않고 더한다.** 두 번 역전파하면 두 배가 된다. 이 성질이
+[경사 누적](02_gradient_accumulation.md)의 바탕이고, 학습 루프마다 지우는 줄이
+있어야 하는 까닭이다.
+
+다만 `.grad`가 **아무 텐서에나 쌓이지는 않는다.** 깃발이 켜져 있어도 계산으로
+생긴 중간 텐서는 받지 않고, 내가 만든 **잎**만 받는다. 그 구별은
+[스칼라 로스의 역전파](01_basic_scalar_backward.md)가 그림과 함께 다룬다.
+
+**깃발을 어디에 거느냐가 무엇을 얻느냐를 정한다.**
+
+```
+깃발이 W 에  dL/dW = [2.0, 2.0, 10.0, 10.0]
+깃발이 x 에  dL/dx = [32.0, 44.0]
+```
+
+**로스도 같고 수도 같은데 깃발만 옮겼더니 전혀 다른 것이 나온다.** 앞엣것은
+가중치를 어느 쪽으로 고쳐야 로스가 주는지이고, 뒤엣것은 **입력을** 어느 쪽으로
+고쳐야 로스가 주는지다.
+
+학습에 필요한 것은 앞엣것이다. 그래서 입력 데이터의 깃발이 꺼져 있는 것이 맞고,
+켜 두면 쓰지도 않을 경사를 셈하느라 값만 치른다.
+
+뒤엣것이 쓸모없는 것은 아니다. **그 방향으로 입력을 밀면 로스가 커진다** — 모델이
+틀리도록 그림을 고치는 것이고, 적대적 예제가 만들어지는 자리가 이 한 줄이다.
+[`torch.no_grad`](10_with_torch_no_grad.md)가 그 경사를 평가 루프 한가운데서
+어떻게 얻는지, 그리고 예측이 실제로 뒤집히는지를 재어 둔다.
+
 ### 스칼라 로스: `.backward()` 메서드
 
 스칼라 로스 $L: \mathbb{R}^n \rightarrow \mathbb{R}$에 대해 `L.backward()`를 호출하면 `requires_grad=True`인 모든 잎 텐서 $x$에 대한 경사 $\nabla_x L$이 계산된다.

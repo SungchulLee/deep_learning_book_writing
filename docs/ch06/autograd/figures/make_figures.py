@@ -2389,6 +2389,52 @@ def fig_shared_node_double_count():
 
 
 # ============================================================================
+# gradient_computation 3절 — 깃발이 앞으로 번진다
+# ============================================================================
+
+def fig_flag_spreads():
+    """입력 가운데 하나라도 켜져 있으면 출력이 켜지고 grad_fn 을 받는다.
+
+    그래프가 세워지는가 마는가가 이 한 줄에 달려 있다. 아무도 안 켜져
+    있으면 연산은 그냥 일어나고 **적히지 않는다** — 그래서 되짚을 것도,
+    들고 있을 것도 없다.
+    """
+    fig, ax = plt.subplots(figsize=(7.8, 3.4))
+
+    for yc, left, right, on, fn, tail in [
+        (1.3, False, True, True, "MulBackward0", "there is a way back"),
+        (-1.6, False, False, False, "None",
+         "nothing is written down, so nothing is kept"),
+    ]:
+        u = node(ax, 0.0, yc + 0.62, "u", "tensor" if left else "off",
+                 w=0.9, h=0.4)
+        v = node(ax, 0.0, yc - 0.62, "v", "tensor" if right else "off",
+                 w=0.9, h=0.4)
+        flag(ax, u, left, dy=0.42, size=7.6)
+        flag(ax, v, right, dy=-0.42, size=7.6)
+
+        op = node(ax, 3.2, yc, "mul", "op" if on else "off", w=1.2, h=0.44)
+        out = node(ax, 6.2, yc, "out", "tensor" if on else "off",
+                   w=1.1, h=0.44)
+        for a in (u, v):
+            _arrow(ax, a.right, op.left, INK if on else GRAY,
+                   "solid" if on else (0, (3, 2)), 1.1)
+        _arrow(ax, op.right, out.left, INK if on else GRAY,
+               "solid" if on else (0, (3, 2)), 1.1)
+        flag(ax, out, on, dy=-0.5, size=7.6)
+        note(ax, 7.6, yc + 0.11, f"grad_fn = {fn}",
+             ACCENT if on else GRAY, 8.4, ha="left")
+        note(ax, 7.6, yc - 0.23, tail, ACCENT if on else GRAY, 8.4,
+             ha="left")
+
+    note(ax, 3.1, 2.38, "one of them is on", INK, 9.0)
+    note(ax, 3.1, -2.98, "both are off", INK, 9.0)
+
+    frame(ax, (-1.2, 14.2), (-3.4, 2.7))
+    save(fig, "flag_spreads")
+
+
+# ============================================================================
 # 「그림으로 보는 AI 6」 — 리나인마 1970
 # ============================================================================
 
@@ -2443,6 +2489,8 @@ FIGURES = {
     # 06_linear_regression_with_module
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
+    # gradient_computation 3절
+    "flag_spreads": fig_flag_spreads,
     # autograd_from_scratch
     "shared_node_double_count": fig_shared_node_double_count,
     # gradient_computation
