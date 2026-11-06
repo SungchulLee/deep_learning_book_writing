@@ -854,7 +854,7 @@ def fig_learning_rate_window():
 
 
 # ============================================================================
-# 06_linear_regression_with_module — 같은 알고리즘의 다른 표기
+# 05 (옛 06) — 같은 알고리즘의 다른 표기
 # ============================================================================
 
 def fig_hand_vs_module():
@@ -2068,7 +2068,7 @@ def fig_transpose_from_shapes():
 
 
 # ============================================================================
-# 24_vector_backward_linear_case_2 — 조용히 무는 자리
+# 23 (옛 24) — 조용히 무는 자리
 # ============================================================================
 
 def fig_silent_broadcast():
@@ -2486,7 +2486,7 @@ FIGURES = {
     "four_attributes": fig_four_attributes,
     "leaf_vs_nonleaf": fig_leaf_vs_nonleaf,
     "retain_grad_timing": fig_retain_grad_timing,
-    # 06_linear_regression_with_module
+    # 05 (옛 06)
     "hand_vs_module": fig_hand_vs_module,
     "what_step_hides": fig_what_step_hides,
     # gradient_computation 3절
@@ -2507,7 +2507,7 @@ FIGURES = {
     "vjp_not_jacobian": fig_vjp_not_jacobian,
     # 23_vector_backward_linear_case_1
     "transpose_from_shapes": fig_transpose_from_shapes,
-    # 24_vector_backward_linear_case_2
+    # 23 (옛 24)
     "silent_broadcast": fig_silent_broadcast,
     # 19_gradient_accumulation_for_large_batches
     "accumulation_tradeoff": fig_accumulation_tradeoff,

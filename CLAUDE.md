@@ -106,6 +106,11 @@ git commit -m "update: <name>"
 
 Nav hierarchy: **Parts → Chapters → Sections → Pages**. Nav entries point to `.md` files.
 
+A section with many pages may add **one grouping level** between Section and
+Page. Only `1.6 자동 미분` does (27 pages in 7 groups); every other section is
+flat. Add a level only when the flat list is long enough to be unreadable —
+the median section has 3 pages.
+
 > **Nothing but `.md` goes in nav.** The `figures/make_figures.py` scripts are build tooling,
 > not pages; mkdocs copies them into `site/` and that is fine, but they are never navigated.
 
@@ -116,6 +121,9 @@ nav:
       - Chapter Overview: ch01/index.md
       - 1.1 Section Title:
         - Topic Title: ch01/section_title/topic_title.md
+      - 1.6 Long Section:          # grouped — see above
+        - Group Title:
+          - Topic Title: ch01/section_title/topic_title.md
 ```
 
 YAML quoting: quote any title containing `:`, `#`, `*`, `&`.

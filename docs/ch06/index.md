@@ -86,14 +86,14 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 **학습 루프 세우기**
 
 - [작은 학습 단계](autograd/04_mini_training_step.md) · [최적화기 방식의 갱신](autograd/11_optimizer_like_updates.md)
-- [완전한 선형 회귀](autograd/05_complete_linear_regression.md) · [Module을 이용한 선형 회귀](autograd/06_linear_regression_with_module.md)
+- [선형 회귀](autograd/05_complete_linear_regression.md)
 - [레이어 출력하기](autograd/13_print_layers.md) · [OrderedDict를 이용한 레이어 이름 짓기](autograd/14_layer_naming_with_ordereddict.md) · [사용자 정의 Module을 이용한 레이어 이름 짓기](autograd/15_layer_naming_with_custom_module.md)
 - [함정과 점검 사항](autograd/17_pitfalls_and_sanity_checks.md)
 
 **벡터 역전파**
 
 - [v를 이용한 벡터 역전파](autograd/22_vector_backward_with_v.md) — `backward()` 에 주는 그 인수가 무엇인가
-- [선형 사례 1](autograd/23_vector_backward_linear_case_1.md) · [선형 사례 2](autograd/24_vector_backward_linear_case_2.md) · [비선형 전체 야코비안](autograd/25_vector_backward_nonlinear_full_jacobian.md)
+- [선형 사상의 VJP](autograd/23_vector_backward_linear_case_1.md) · [비선형 전체 야코비안](autograd/25_vector_backward_nonlinear_full_jacobian.md)
 - [벡터 역전파의 함정](autograd/26_pitfalls_of_vector_backward.md) · [배치 VJP](autograd/27_batch_vjp.md)
 
 ---
