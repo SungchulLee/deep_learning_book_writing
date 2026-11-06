@@ -9,7 +9,7 @@
 - 가우시안 잡음 가정 아래 최대가능도 추정에서 L2 로스 유도하기
 - 제곱합 오차, 평균 제곱 오차, 평균제곱근오차의 관계 정리하기
 - L2 로스의 경사가 왜 예측에서 목표를 뺀 것에 비례하는지 보이기
-- 교차 엔트로피의 경사 $\hat{\boldsymbol{\pi}} - \mathbf{y}$와 같은 꼴이 나오는 까닭 설명하기
+- 교차 엔트로피의 경사 $\hat{\boldsymbol{\pi}} - \mathbf{y}$와 같은 형태가 나오는 까닭 설명하기
 - 선형 최소제곱의 예측값을 직교 사영으로 해석하기
 - **로스**로서의 L2와 **정규화 항**으로서의 L2를 구분하기
 - `nn.MSELoss`의 세 가지 `reduction`을 손으로 만든 구현과 맞추어 확인하기
@@ -111,7 +111,7 @@ $$\frac{\partial \mathcal{L}}{\partial \hat{y}^{(i)}} = \frac{2}{N}\bigl(\hat{y}
 
 $$\nabla_{\hat{\mathbf{y}}} \mathcal{L} = \frac{2}{N}\bigl(\hat{\mathbf{y}} - \mathbf{y}\bigr)$$
 
-### 교차 엔트로피와 같은 꼴인 까닭
+### 교차 엔트로피와 같은 형태인 까닭
 
 앞 절에서 소프트맥스 회귀의 경사가 $\nabla_{\mathbf{z}}\mathcal{L} = \hat{\boldsymbol{\pi}} - \mathbf{y}$이었다. 여기서도 상수배를 빼면 **예측 빼기 목표**이다. 우연이 아니다.
 
@@ -192,7 +192,7 @@ residual = y_pred - y_true
 mse_manual = (residual ** 2).mean()
 mse_torch = nn.MSELoss()(y_pred, y_true)
 
-# reduction='sum': 제곱합 오차 = SSE. 유도할 때 쓰는 꼴이다
+# reduction='sum': 제곱합 오차 = SSE. 유도할 때 쓰는 형태
 sse_manual = (residual ** 2).sum()
 sse_torch = nn.MSELoss(reduction='sum')(y_pred, y_true)
 

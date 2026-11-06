@@ -8,7 +8,7 @@
 
 ## 1. 수학 기초
 
-### SmoothGrad 꼴
+### SmoothGrad 형태
 
 입력 $\mathbf{x}$, 모델 $f$, 겨눈 클래스 $c$이 주어지면 SmoothGrad 현저성은 이렇다.
 

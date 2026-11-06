@@ -39,7 +39,7 @@ from tqdm import tqdm
 ---------------
 1. 잡음 일정: 때 걸음마다 잡음을 얼마나 더할지 매긴다(β_t)
 2. 확산 매개변수: 효율을 위해 미리 셈한 수학 상수
-3. 앞 확산: 닫힌 꼴 공식으로 잡음 더하기
+3. 앞 확산: 닫힌 형태 공식으로 잡음 더하기
    x_t = √ᾱ_t · x_0 + √(1-ᾱ_t) · ε
 4. 뒤 확산: 잡음을 거듭 걷어 낸다(만들기)
 5. 익히기 도구: 배우기 위한 손실 셈하기
@@ -50,7 +50,7 @@ from tqdm import tqdm
 앞 과정(자료 → 잡음):
     q(x_t | x_{t-1}) = N(x_t; √(1-β_t)·x_{t-1}, β_t·I)
 
-닫힌 꼴 풀이:
+닫힌 형태 풀이:
     q(x_t | x_0) = N(x_t; √ᾱ_t·x_0, (1-ᾱ_t)·I)
     여기서 ᾱ_t = ∏_{i=1}^t (1-β_i)
 
@@ -237,7 +237,7 @@ def extract(tensor: torch.Tensor, t: torch.Tensor, x_shape: tuple) -> torch.Tens
     인수:
         tensor: 밑 값, 형태 (T,)
         t: 때 걸음 번호, 형태 (batch_size,)
-        x_shape: 퍼뜨리기의 목표 자료 꼴
+        x_shape: 퍼뜨리기의 목표 자료 형태
     
     반환값:
         뽑아서 형태를 바꾼 값, 형태 (batch_size, 1, 1, ...)
@@ -280,7 +280,7 @@ def forward_diffusion(x_0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor,
     인수:
         x_0: 깨끗한 자료, 형태 (batch_size, *data_dims)
         t: 때 걸음, 형태 (batch_size,)
-        noise: 정규 잡음 ε ~ N(0,I)이며 x_0과 같은 꼴
+        noise: 정규 잡음 ε ~ N(0,I)이며 x_0과 같은 형태
         sqrt_alphas_cumprod: 미리 셈한 √ᾱ_t, 형태 (T,)
         sqrt_one_minus_alphas_cumprod: 미리 셈한 √(1-ᾱ_t), 형태 (T,)
     
@@ -522,9 +522,9 @@ def visualize_samples(samples: torch.Tensor, nrow: int = 8,
 
 class SinusoidalPositionEmbedding(nn.Module):
     """
-    때 걸음 조건 주기를 위한 사인 꼴 때 임베딩.
+    때 걸음 조건 주기를 위한 사인 형태 때 임베딩.
     
-    왜 사인 꼴인가?
+    왜 사인 형태인가?
     ---------------
     홑값 t보다 나은 점:
     - 이어져 있다: 가까운 때 걸음은 임베딩이 비슷하다
@@ -551,7 +551,7 @@ class SinusoidalPositionEmbedding(nn.Module):
     
     def forward(self, time: torch.Tensor) -> torch.Tensor:
         """
-        때 걸음을 사인 꼴 임베딩으로 바꾼다.
+        때 걸음을 사인 형태 임베딩으로 바꾼다.
         
         인수:
             time: 때 걸음, 형태 (batch_size,)

@@ -59,7 +59,7 @@ MNIST를 위한 단출한 U-Net:
 """)
 
 class TimeEmbedding(nn.Module):
-    """사인 꼴 때 임베딩"""
+    """사인 형태 때 임베딩"""
     def __init__(self, dim):
         super().__init__()
         self.dim = dim

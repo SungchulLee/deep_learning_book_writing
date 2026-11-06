@@ -283,7 +283,7 @@ hishishine sho h hisis hish ihihe hi Th hi his he hish. hise hohal his ey he
 hishe hishichehihhihim misheh he hhe hii hi hohhis ishii hahis ishichhhihohis
 ```
 
-**아래쪽은 같은 조각을 되풀이한다.** `his`, `hish`, `hihi`가 끝없이 돈다. 글자 단위 모델이 무너질 때 전형적으로 보이는 꼴이다.
+**아래쪽은 같은 조각을 되풀이한다.** `his`, `hish`, `hihi`가 끝없이 돈다. 글자 단위 모델이 무너질 때 전형적으로 보이는 형태.
 
 위쪽은 영어가 아니지만 **영어처럼 생겼다.** 띄어쓰기가 낱말 길이에 맞고, 마침표 뒤에 대문자가 오고, `It is`, `like it`, `other on the`처럼 실제 낱말 묶음이 나온다. `Wattch`, `beest`, `neanliatingly`는 없는 낱말이지만 **영어 글자가 이어지는 규칙**은 따르고 있다.
 
@@ -306,7 +306,7 @@ hishe hishichehihhihim misheh he hhe hii hi hohhis ishii hahis ishichhhihohis
 
     `triu(M, 1)`은 **주대각선 위쪽**만 남기고, `triu(M, 0)`은 **주대각선까지** 포함한다. $-\infty$로 채우는 자리가 늘어나는 것이므로, `0`으로 두면 자리 $t$가 **자기 자신도 보지 못한다.**
 
-    그러면 자리 $t$의 출력은 $x_1, \dots, x_{t-1}$만으로 만들어지고, 그것으로 $x_{t+1}$을 맞혀야 한다. 한 글자 건너뛴 예측이 되어 훨씬 어려워진다. 첫 자리는 볼 것이 하나도 없어 소프트맥스가 전부 $-\infty$를 받고 **NaN**이 난다 — [7.5절](../imdb/05_attention.md)이 적어 둔 그 사고와 같은 꼴이다.
+    그러면 자리 $t$의 출력은 $x_1, \dots, x_{t-1}$만으로 만들어지고, 그것으로 $x_{t+1}$을 맞혀야 한다. 한 글자 건너뛴 예측이 되어 훨씬 어려워진다. 첫 자리는 볼 것이 하나도 없어 소프트맥스가 전부 $-\infty$를 받고 **NaN**이 난다 — [7.5절](../imdb/05_attention.md)이 적어 둔 그 사고와 같은 형태.
 
 <div class="drillbox" markdown>
 

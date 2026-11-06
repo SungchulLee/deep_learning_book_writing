@@ -222,7 +222,7 @@ class MCDropoutModel(nn.Module):
                 pred = self(x)   # 매번 다른 마스크가 뽑혀 답이 조금씩 다르다
                 predictions.append(pred)
 
-        # (n_samples, 배치, 출력) 꼴로 쌓은 뒤 표본 축으로 통계를 낸다
+        # (n_samples, 배치, 출력) 형태로 쌓은 뒤 표본 축으로 통계를 낸다
         predictions = torch.stack(predictions)
         mean = predictions.mean(dim=0)
         # 이 표준편차는 "모델이 몰라서 생기는" 인식적 불확실성이다.

@@ -605,7 +605,7 @@ $f(x) = x^3 - 2x^2 + x$에 대해 autograd로 $f'(3)$을 구하고, 손으로 �
             w.grad = None
             ((w * X - Y) ** 2).mean().backward()
             with torch.no_grad():
-                v = mom * v + w.grad          # PyTorch 의 꼴
+                v = mom * v + w.grad          # PyTorch 의 형태
                 w -= lr * v
         return w.item()
 

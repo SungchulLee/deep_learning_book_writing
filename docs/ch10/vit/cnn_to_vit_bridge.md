@@ -327,7 +327,7 @@ if __name__ == "__main__":
 - [리셉티브 필드](../cnn/receptive_field.md) — 이 절 3절과 6절이 쓰는 점화식의 출처
 - [Squeeze-and-Excitation](squeeze_excitation.md) — 2단계의 채널 어텐션
 - [비국소 뉴럴 네트워크](non_local.md) — 3단계의 공간 어텐션
-- [항등 사상](../residual/identity_mapping.md) — 5단계 ViT 블록의 잔차 구조와 같은 꼴
+- [항등 사상](../residual/identity_mapping.md) — 5단계 ViT 블록의 잔차 구조와 같은 형태
 - [ViT](../../appendix/vit/vision_transformer_vit.md) — 5단계의 온전한 구현
 - [Swin Transformer](../../appendix/vit/swin_transformer.md) — 피라미드 구조
 

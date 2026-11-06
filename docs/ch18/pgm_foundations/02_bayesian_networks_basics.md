@@ -98,7 +98,7 @@
             self.parents = parents
             self.cardinalities = cardinalities
 
-            # CPT의 꼴 정하기
+            # CPT의 형태 정하기
             # 형태: (card(어버이1), card(어버이2), ..., card(변수))
             parent_cards = [cardinalities[p] for p in parents]
             var_card = cardinalities[variable]
@@ -109,7 +109,7 @@
                 self.table = np.ones(shape) / var_card
             else:
                 self.table = np.array(table)
-                # 꼴 확인하기
+                # 형태 확인하기
                 assert self.table.shape == shape, \
                     f"Table shape {self.table.shape} doesn't match expected {shape}"
                 # 조건부 분포마다 합이 1인지 확인하기
@@ -119,7 +119,7 @@
             """
             조건부 확률의 합이 1인지 확인한다.
 
-            어버이 값의 꼴마다 변수 값에 걸친 확률의
+            어버이 값의 형태마다 변수 값에 걸친 확률의
             합이 1이어야 한다.
             """
             # 마지막 축(변수 자신)에 걸쳐 합하기
@@ -607,7 +607,7 @@
 
         # P(WetGrass) 살피기
         empirical_wet = df['WetGrass'].mean()
-        # 모든 꼴에 걸쳐 합해 참 확률 셈하기
+        # 모든 형태에 걸쳐 합해 참 확률 셈하기
         true_wet = 0.0
         for assignment in [dict(zip(['Cloudy', 'Sprinkler', 'Rain', 'WetGrass'], combo))
                           for combo in product([0,1], repeat=4)

@@ -96,7 +96,7 @@ BCE가 모든 [0,1] 데이터에서 MSE보다 우수하거나 항상 선명한 �
 
 **다만 이 쪽에 그대로 옮기지 않도록 선을 그어 둔다.** 논문이 성능 저하를 측정한 대상은 **VAE**이고, 거기서는 재구성 항이 ELBO 안의 로그우도라 정규화가 곧 목적함수의 값을 바꾼다. 이 쪽은 일반 오토인코더이고 BCE를 **우도가 아니라 그냥 로스로** 쓰고 있어, 위 문단이 적어 둔 대로 "구분한다"가 맞는 처방이다. 확률 모형으로 읽기 시작하는 순간 — 곧 [27장 VAE](../../ch26/index.md)에서 — 이 상수가 문제가 된다.
 
-_확인한 곳 — G. Loaiza-Ganem, J. P. Cunningham, "The continuous Bernoulli: fixing a pervasive error in variational autoencoders", *NeurIPS 2019*. 그림의 적분값은 닫힌 꼴 $(1-2\lambda)/\log\frac{1-\lambda}{\lambda}$ 로 그렸고, 수치 적분과 소수점 여덟 자리까지 맞는 것을 확인했다._
+_확인한 곳 — G. Loaiza-Ganem, J. P. Cunningham, "The continuous Bernoulli: fixing a pervasive error in variational autoencoders", *NeurIPS 2019*. 그림의 적분값은 닫힌 형태 $(1-2\lambda)/\log\frac{1-\lambda}{\lambda}$ 로 그렸고, 수치 적분과 소수점 여덟 자리까지 맞는 것을 확인했다._
 
 </div>
 

@@ -112,7 +112,7 @@ def bert_masking(
     mask_prob: float = 0.15
 ) -> Tuple[list, list]:
     """
-    BERT 꼴 가리기: 토막의 15%를 고친다.
+    BERT 형태 가리기: 토막의 15%를 고친다.
     
     가린 토막 가운데:
     - 80%는 [MASK]으로 바꾼다
@@ -212,7 +212,7 @@ def span_corruption(
     corruption_rate: float = 0.15
 ) -> Tuple[List[int], List[int]]:
     """
-    T5 꼴 구간 망가뜨리기.
+    T5 형태 구간 망가뜨리기.
     
     인수:
         tokens: 들임 토막 번호
@@ -515,14 +515,14 @@ def fill_in_middle_transform(
     """
     가운데 채우기 익히기를 위해 부호를 바꾼다.
     
-    두 가지 꼴:
+    두 가지 형태:
     - PSM(앞-뒤-가운데): <PRE>앞<SUF>뒤<MID>가운데
     - SPM(뒤-앞-가운데): <SUF>뒤<PRE>앞<MID>가운데
     
     인수:
         code: 본디 부호 글줄
         fim_rate: 가운데 채우기를 적용할 확률(여느 인과 말 모델 대비)
-        fim_spm_rate: 가운데 채우기를 쓸 때 SPM 꼴이 될 확률
+        fim_spm_rate: 가운데 채우기를 쓸 때 SPM 형태가 될 확률
     """
     if random.random() > fim_rate:
         return code  # 여느 인과 말 모델
@@ -540,12 +540,12 @@ def fill_in_middle_transform(
     middle = code[split:end]
     suffix = code[end:]
     
-    # 꼴을 고른다
+    # 형태를 고른다
     if random.random() < fim_spm_rate:
-        # SPM 꼴
+        # SPM 형태
         return f"<SUF>{suffix}<PRE>{prefix}<MID>{middle}"
     else:
-        # PSM 꼴
+        # PSM 형태
         return f"<PRE>{prefix}<SUF>{suffix}<MID>{middle}"
 
 # 보기:

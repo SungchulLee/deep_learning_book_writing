@@ -316,7 +316,7 @@
                         counts = group.value_counts()
                         n_local = counts.sum()
 
-                        # 이 어버이 꼴의 로그 가능도
+                        # 이 어버이 형태의 로그 가능도
                         for count in counts:
                             if count > 0:
                                 p = count / n_local

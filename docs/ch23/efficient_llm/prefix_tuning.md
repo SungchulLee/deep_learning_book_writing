@@ -170,7 +170,7 @@ class PrefixTuningModel(nn.Module):
         )
     
     def _format_prefix(self, prefix_keys, prefix_values):
-        """허깅페이스 꼴 past_key_values에 맞게 프리픽스를 꾸민다."""
+        """허깅페이스 형태 past_key_values에 맞게 프리픽스를 꾸민다."""
         # 레이어마다 하나씩 (열쇠, 값) 짝의 목록을 돌려준다
         past_key_values = []
         for layer_idx in range(prefix_keys.size(1)):

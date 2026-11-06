@@ -70,7 +70,7 @@ def masked_softmax(X, valid_lens):
         valid_lens: 1차원 텐서 (batch_size,) 또는 2차원 텐서 (batch_size, num_queries)
             성분마다 그 질의에 유효한 열쇠가 몇 개인지 알려 준다.
     반환값:
-        X와 같은 꼴의 소프트맥스 출력이며 가린 자리는 0이다.
+        X와 같은 형태의 소프트맥스 출력이며 가린 자리는 0이다.
     """
     if valid_lens is None:
         return F.softmax(X, dim=-1)

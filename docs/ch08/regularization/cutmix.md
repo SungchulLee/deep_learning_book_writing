@@ -307,7 +307,7 @@ def class_aware_cutmix(x, y, alpha=1.0):
     
     # 되도록 다른 클래스가 되도록 시도한다.
     # 같은 클래스끼리 짝지어지면 섞어도 배울 것이 없다. 고양이에 고양이를
-    # 붙여 놓고 "고양이 반 고양이 반"이라 가르치는 꼴이기 때문이다.
+    # 붙여 놓고 "고양이 반 고양이 반"이라 가르치는 형태가기 때문이다.
     # 이중 반복문이라 배치 크기의 제곱에 비례해 느리고, 어디까지나
     # 최선을 다하는 발견법이라 모든 짝이 갈라진다는 보장은 없다
     for i in range(batch_size):
@@ -389,7 +389,7 @@ def multi_cutmix(x, y, n_patches=4, alpha=1.0):
 
             # 부드러운 레이블 누적.
             # scatter_(1, 자리, 1.0)이 원-핫을 만든다. y[index]를
-            # unsqueeze(1)로 (B,1) 꼴로 만들어야 열 방향 자리로 읽힌다
+            # unsqueeze(1)로 (B,1) 형태로 만들어야 열 방향 자리로 읽힌다
             patch_labels = torch.zeros(B, num_classes, device=x.device)
             patch_labels.scatter_(1, y[index].unsqueeze(1), 1.0)
             soft_labels += weight * patch_labels

@@ -397,7 +397,7 @@ def conv2d_via_im2col(x, weight, bias=None, stride=1, padding=0):
     # unfold는 한 차원을 따라 미끄러지는 창을 뽑는다
     cols = x.unfold(2, kH, stride).unfold(3, kW, stride)  # (N, C_in, H_out, W_out, kH, kW)
 
-    # 차원 차례를 먼저 바꾸어야 한다. 위의 꼴은 자리(H_out, W_out)가 커널 안쪽
+    # 차원 차례를 먼저 바꾸어야 한다. 위의 형태는 자리(H_out, W_out)가 커널 안쪽
     # (kH, kW)보다 **앞**에 있는데, 우리가 필요한 것은 커널 한 조각이 한 열에
     # 모인 (C_in*kH*kW, L) 이다. 차례를 바꾸지 않고 view 로 접으면 같은 메모리를
     # 다른 뜻으로 읽어 조각이 뒤섞인다 — 그래도 모양은 맞으므로 조용히 틀린다.

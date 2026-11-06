@@ -66,7 +66,7 @@ class FeatureExtractor:
         features['is_alpha'] = token.isalpha()
         features['is_digit'] = token.isdigit()
         
-        # 낱말 꼴 피처
+        # 낱말 형태 피처
         features['word_shape'] = self.get_word_shape(token)
         features['short_word_shape'] = self.get_word_shape(token, short=True)
         
@@ -103,9 +103,9 @@ class FeatureExtractor:
     @staticmethod
     def get_word_shape(word: str, short: bool = False) -> str:
         """
-        낱말 꼴 표현 얻기.
+        낱말 형태 표현 얻기.
         
-        글자를 꼴 부호에 대응시킨다:
+        글자를 형태 부호에 대응시킨다:
         - 대문자: 'X'
         - 소문자: 'x'
         - 숫자: 'd'
@@ -114,7 +114,7 @@ class FeatureExtractor:
         short=True이면 잇달아 같은 글자를 하나로 뭉갠다.
         
         보기:
-            "iPhone5" -> "xXxxxxd"(긴 꼴) 또는 "xXxd"(짧은 꼴)
+            "iPhone5" -> "xXxxxxd"(긴 형태) 또는 "xXxd"(짧은 형태)
         """
         shape = []
         for char in word:

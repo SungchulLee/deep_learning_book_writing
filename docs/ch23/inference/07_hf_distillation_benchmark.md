@@ -302,7 +302,7 @@
     # ONNX로 내보내 ORT를 쓰면 CPU에서 늦음을 2~3배 줄일 수 있다.
     #
     # 물길:
-    #   1. PyTorch 모델을 ONNX 꼴로 내보낸다
+    #   1. PyTorch 모델을 ONNX 형태로 내보낸다
     #   2. ONNX 런타임 InferenceSession으로 불러온다
     #   3. 허깅페이스와 어울리는 겉면을 위해 OnnxPipeline으로 감싼다
 
@@ -337,7 +337,7 @@
 
             반환값:
                 'label'과 'score' 열쇠를 갖춘 사전의 목록으로,
-                허깅페이스 물길 꼴과 맞다.
+                허깅페이스 물길 형태와 맞다.
             """
             if isinstance(texts, str):
                 texts = [texts]

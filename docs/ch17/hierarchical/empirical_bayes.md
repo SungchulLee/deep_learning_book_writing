@@ -18,9 +18,9 @@ $$\hat\eta=\arg\max_\eta\prod_i\int p(y_i\mid\theta_i)p(\theta_i\mid\eta)\,d\the
 
 <div class="storybox" markdown>
 
-**그림으로 보는 AI 1.** 로빈스는 사전분포의 꼴조차 적지 않았다
+**그림으로 보는 AI 1.** 로빈스는 사전분포의 형태조차 적지 않았다
 
-위 1절의 틀은 사전분포 족 $p(\theta\mid\eta)$ 를 먼저 **정해 놓고** 그 $\eta$ 만 자료로 맞춘다. 그런데 이 방법에 경험적 베이즈라는 이름을 붙인 허버트 로빈스(Herbert Robbins)가 1956년 제3회 버클리 심포지엄에서 보인 것은 그보다 한 걸음 더 나간 것이었다. **사전분포의 꼴을 아예 적지 않는다.**
+위 1절의 틀은 사전분포 족 $p(\theta\mid\eta)$ 를 먼저 **정해 놓고** 그 $\eta$ 만 자료로 맞춘다. 그런데 이 방법에 경험적 베이즈라는 이름을 붙인 허버트 로빈스(Herbert Robbins)가 1956년 제3회 버클리 심포지엄에서 보인 것은 그보다 한 걸음 더 나간 것이었다. **사전분포의 형태를 아예 적지 않는다.**
 
 관측이 푸아송이라고만 하자. $x_i \mid \theta_i \sim \text{Poisson}(\theta_i)$ 이고 $\theta_i$ 는 어떤 알 수 없는 분포에서 나온다. 로빈스는 사후평균이 이렇게 적힌다는 것을 보였다.
 
@@ -249,7 +249,7 @@ $$\hat{\boldsymbol\theta}^{\mathrm{JS}}=\boldsymbol a+\left(1-\frac{(p-2)\sigma^
     ```python
     import numpy as np
     # 구현은 주제에 따라 달라진다.
-    # 켤레 모형: 닫힌 꼴 뒤확률 새로 고치기.
+    # 켤레 모형: 닫힌 형태 뒤확률 새로 고치기.
     # 켤레가 아닌 모형: MCMC 또는 변분 추론.
     # 핵심 스텝: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
     ```

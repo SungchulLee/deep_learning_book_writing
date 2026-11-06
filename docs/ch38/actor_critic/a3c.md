@@ -78,7 +78,7 @@
         여러 프로세스를 위해 상태를 함께 쓰는 Adam.
 
         함께 쓰는 기억으로 가장 좋게 하는 개의 상태 텐서를 프로세스
-        사이에서 함께 써 Hogwild 꼴 고침을 이루게 한다.
+        사이에서 함께 써 Hogwild 형태 고침을 이루게 한다.
         """
 
         def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8):
@@ -234,7 +234,7 @@
                 else:
                     global_param.grad.copy_(local_param.grad)
 
-            # 온 세상 모형에 그래디언트를 매긴다(Hogwild 꼴)
+            # 온 세상 모형에 그래디언트를 매긴다(Hogwild 형태)
             optimizer.step()
 
         env.close()

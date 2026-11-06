@@ -204,7 +204,7 @@ def header(title):
 # ========================================================================
 
 def hand_adam_step(p, g, state, lr=1e-3, b1=0.9, b2=0.999, eps=1e-8):
-    """Adam 한 걸음. PyTorch 의 구현과 같은 꼴로 적는다."""
+    """Adam 한 걸음. PyTorch 의 구현과 같은 형태로 적는다."""
     state["t"] += 1
     t = state["t"]
     state["m"] = b1 * state["m"] + (1 - b1) * g

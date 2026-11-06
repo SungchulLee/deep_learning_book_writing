@@ -50,7 +50,7 @@ class DCGANGenerator(nn.Module):
         # 28x28 그림(MNIST)에서는 7x7에서 시작해 28x28으로 키워야 한다
         # 64x64 그림에서는 4x4에서 시작해 64x64으로 키운다
         
-        # 첫 쏘기와 꼴 다시 잡기
+        # 첫 쏘기와 형태 다시 잡기
         self.project = nn.Sequential(
             nn.Linear(latent_dim, feature_maps * 8 * 7 * 7),
             nn.BatchNorm1d(feature_maps * 8 * 7 * 7),

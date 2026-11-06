@@ -104,7 +104,7 @@ class LoRALayer(nn.Module):
         if self.merged:
             return
         
-        # ΔW = (α/r) * A @ B를 셈한 뒤 무게 꼴에 맞게 옮겨 놓는다
+        # ΔW = (α/r) * A @ B를 셈한 뒤 무게 형태에 맞게 옮겨 놓는다
         delta_w = (self.lora_A @ self.lora_B * self.scaling).T
         self.original.weight.data += delta_w
         self.merged = True

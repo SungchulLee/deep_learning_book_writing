@@ -49,7 +49,7 @@ from utils import (
 
 
 class SimpleResNet(nn.Module):
-    """CIFAR-10을 위한 ResNet 꼴 모델."""
+    """CIFAR-10을 위한 ResNet 형태 모델."""
     def __init__(self, num_classes=10):
         super(SimpleResNet, self).__init__()
         

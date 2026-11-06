@@ -135,7 +135,7 @@ class SimpleVI:
         ELBO = E_q[log p(D|θ)] + E_q[log p(θ)] - E_q[log q(θ)]
              = E_q[log p(D|θ)] - KL(q(θ) || p(θ))
         
-        q과 p이 가우스이면 닫힌 꼴 식이 있다.
+        q과 p이 가우스이면 닫힌 형태 식이 있다.
         """
         n = len(data)
         

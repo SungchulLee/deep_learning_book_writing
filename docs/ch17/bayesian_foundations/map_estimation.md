@@ -159,7 +159,7 @@ def map_vs_mle_beta_binomial(n_heads, n_tails, prior_alpha=1, prior_beta=1):
 
 <div class="thmbox" markdown>
 
-### 정리 3. 최대 사후확률의 최적화 꼴 — 로그우도와 로그 사전밀도의 합 { .thm }
+### 정리 3. 최대 사후확률의 최적화 형태 — 로그우도와 로그 사전밀도의 합 { .thm }
 
 증거 $p(D)$ 는 $\theta$ 에 달리지 않으므로 다음이 성립한다.
 
@@ -245,7 +245,7 @@ def map_normal_unknown_mean_variance(data, prior_mean_mu=0, prior_std_mu=10,
 
 ## 4. 최대사후확률 추정과 정규화
 
-정리 3의 최적화 꼴을 다시 보면 $-\log p(\theta)$ 가 벌 항의 자리에 그대로 앉아 있다. 이것이 정규화와 베이즈를 잇는 다리다.
+정리 3의 최적화 형태를 다시 보면 $-\log p(\theta)$ 가 벌 항의 자리에 그대로 앉아 있다. 이것이 정규화와 베이즈를 잇는 다리다.
 
 <div class="thmbox" markdown>
 
@@ -406,7 +406,7 @@ $\text{Beta}(3,7)$ 사후분포를 두고 보자. $\theta$ 좌표에서 밀도�
 
 **근사도 수치오차도 아니다.** 두 값 모두 정확한 닫힌 식이고, 되돌린 0.30 은 공교롭게도 이 사후분포의 **평균** $a/(a+b)$ 와 정확히 같다. 밀도의 최댓값은 분포의 성질이 아니라 **좌표의 성질**이기 때문이다. 좌표를 바꾸면 야코비안이 밀도를 늘렸다 줄였다 하고, 봉우리는 그에 따라 옮겨 간다. 위 표에서 사후평균에는 그런 단서가 붙지 않은 까닭이 그것이다.
 
-이 곤란은 베이즈 추론만큼 오래되었고, 정면으로 다룬 사람이 해럴드 제프리스(Harold Jeffreys)다. 1946년 《Proceedings of the Royal Society A》에 실은 「An invariant form for the prior probability in estimation problems」에서 그가 짚은 것이 바로 **균등함조차 좌표를 탄다**는 점이었다 — $x$ 에 균등한 밀도는 $y=x^3$ 에서 균등하지 않다. 그래서 그는 좌표를 바꿔도 같은 것을 뜻하는 사전분포를 지으려 했고, 피셔 정보 행렬식의 제곱근에 비례하는 꼴을 내놓았다. 오늘 제프리스 사전분포라 부르는 것이다.
+이 곤란은 베이즈 추론만큼 오래되었고, 정면으로 다룬 사람이 해럴드 제프리스(Harold Jeffreys)다. 1946년 《Proceedings of the Royal Society A》에 실은 「An invariant form for the prior probability in estimation problems」에서 그가 짚은 것이 바로 **균등함조차 좌표를 탄다**는 점이었다 — $x$ 에 균등한 밀도는 $y=x^3$ 에서 균등하지 않다. 그래서 그는 좌표를 바꿔도 같은 것을 뜻하는 사전분포를 지으려 했고, 피셔 정보 행렬식의 제곱근에 비례하는 형태를 내놓았다. 오늘 제프리스 사전분포라 부르는 것이다.
 
 **다만 제프리스의 처방은 사전분포를 고칠 뿐 MAP을 고치지 않는다.** 사전분포를 불변인 것으로 바꿔도 사후분포의 **최빈값**은 여전히 좌표를 탄다. 불변인 것은 분포 자체이고, 분포에서 숫자 하나를 꺼내는 순간 그 숫자가 어느 좌표에서 꺼낸 것인지가 따라붙는다. 그러므로 MAP을 보고할 때 좌표를 함께 적는 것은 꼼꼼함이 아니라 **값을 정의하는 일**이다. 위 3절이 $\tau=\exp(s)$ 를 두고 "단순한 최적화 좌표 변경"과 "밀도 자체의 MAP"을 애써 갈라 둔 까닭도 같다.
 
@@ -456,7 +456,7 @@ _확인한 곳 — H. Jeffreys, "An invariant form for the prior probability in 
 
 ??? success "풀이"
 
-    정리 3의 꼴에 따라
+    정리 3의 형태에 따라
 
     $$
     -\sum_i \left[ y_i \log \sigma(x_i^\top\beta) + (1-y_i)\log(1-\sigma(x_i^\top\beta)) \right] + \frac{\lambda}{2}\|\beta\|_2^2

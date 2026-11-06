@@ -36,7 +36,7 @@ class RMSNorm(nn.Module):
       - 평균을 빼지 않는다
       - RMS(sqrt(mean(x^2)))으로 나누기만 한다
 
-    LLaMA 꼴 모형에서 흔히 쓴다.
+    LLaMA 형태 모형에서 흔히 쓴다.
     """
     def __init__(self, dim: int, eps: float = 1e-6):
         super().__init__()

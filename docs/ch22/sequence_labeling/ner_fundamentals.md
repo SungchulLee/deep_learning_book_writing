@@ -70,7 +70,7 @@ def align_entities_to_tokens(
         token_spans: 토큰마다의 (start, end) 글자 자리 목록
         
     반환값:
-        토큰마다의 개체명표 목록(IOB2 꼴)
+        토큰마다의 개체명표 목록(IOB2 형태)
     """
     labels = ['O'] * len(token_spans)
     

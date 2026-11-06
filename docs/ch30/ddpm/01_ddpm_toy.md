@@ -28,7 +28,7 @@ class SimpleUNet(nn.Module):
         # 여기서는 단순한 겹말기 레이어 3개를 쌓는다.
         self.conv1 = nn.Conv2d(1, channels, 3, 1, 1)   # 들임 채널 = 1(MNIST용)
         self.conv2 = nn.Conv2d(channels, channels, 3, 1, 1)
-        self.conv3 = nn.Conv2d(channels, 1, 3, 1, 1)   # 채널 1개를 내놓는다(들임과 같은 꼴)
+        self.conv3 = nn.Conv2d(channels, 1, 3, 1, 1)   # 채널 1개를 내놓는다(들임과 같은 형태)
 
     def forward(self, x, t):
         # x: 때 t의 잡음 섞인 그림

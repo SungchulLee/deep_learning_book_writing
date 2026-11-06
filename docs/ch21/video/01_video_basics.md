@@ -21,7 +21,7 @@
     수학적 바탕:
     - 영상 V은 틀 T개의 차례이다: V = {I_1, I_2, ..., I_T}
     - 틀마다 I_t ∈ ℝ^(H×W×C), 여기서 H=높이, W=너비, C=채널
-    - 영상 텐서: PyTorch에서 V ∈ ℝ^(T×C×H×W)((T, C, H, W) 꼴)
+    - 영상 텐서: PyTorch에서 V ∈ ℝ^(T×C×H×W)((T, C, H, W) 형태)
     """
 
     import torch
@@ -79,7 +79,7 @@
                 V ∈ ℝ^(T×H×W×3), 여기서 T = 틀의 개수
             """
             # torchvision으로 영상 읽어 들이기
-            # 유의: torchvision은 (T, H, W, C) 꼴로 돌려준다
+            # 유의: torchvision은 (T, H, W, C) 형태로 돌려준다
             video, audio, info = read_video(
                 self.video_path,
                 pts_unit='sec'  # 때 도장에 초를 쓴다
@@ -99,7 +99,7 @@
                 frames: 형태가 (T, H, W, C)인 NumPy 배열
                 info: 영상 메타자료를 담은 사전
 
-            OpenCV는 효율적이고 여러 꼴을 받쳐 주어 실전에 좋다.
+            OpenCV는 효율적이고 여러 형태를 받쳐 주어 실전에 좋다.
             """
             # 영상 파일 열기
             cap = cv2.VideoCapture(self.video_path)
@@ -149,7 +149,7 @@
                 target_size: 틀을 (H, W)로 바꾼다
 
             반환값:
-                video_tensor: 형태 (T, C, H, W) — PyTorch 표준 꼴
+                video_tensor: 형태 (T, C, H, W) — PyTorch 표준 형태
 
             형태 바꾸기:
                 OpenCV: 값이 [0, 255]인 (T, H, W, C)
@@ -621,7 +621,7 @@
         print("KEY TAKEAWAYS")
         print("="*80)
         print("""
-        1. 영상 꼴: 영상은 틀의 차례 V = {I_1, I_2, ..., I_T}이다
+        1. 영상 형태: 영상은 틀의 차례 V = {I_1, I_2, ..., I_T}이다
            - PyTorch 형태: (T, C, H, W), 여기서 T=때, C=채널, H=높이, W=너비
 
         2. 읽어 들이는 방법:

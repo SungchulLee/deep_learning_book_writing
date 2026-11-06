@@ -73,7 +73,7 @@ def decode_yolo_boxes(
         image_size: 들임 그림 차원
         
     반환값:
-        boxes: xyxy 꼴의 (batch, S*S*B, 4)
+        boxes: xyxy 형태의 (batch, S*S*B, 4)
     """
     batch_size = predictions.shape[0]
     cell_size = image_size / grid_size

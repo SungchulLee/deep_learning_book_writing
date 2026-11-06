@@ -143,7 +143,7 @@ class BayesLinear(nn.Module):
         return F.linear(x, w, b)
     
     def _kl_divergence(self, mu_w, sigma_w, mu_b, sigma_b):
-        """가우스 분포의 닫힌 꼴 KL(q || 앞확률)."""
+        """가우스 분포의 닫힌 형태 KL(q || 앞확률)."""
         sp = self.prior_sigma
         
         kl_w = (torch.log(sp / sigma_w) + 

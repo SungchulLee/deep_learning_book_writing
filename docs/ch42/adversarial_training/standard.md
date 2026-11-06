@@ -62,7 +62,7 @@ $$
 
 여느 적대적 학습은 클린 정확도를 너무 많이 내준다. **TRADES**(장 등, 2019)은 클린 정확도와 강건 정확도의 트레이드오프를 드러내 놓고 저울질한다.
 
-### 꼴
+### 형태
 
 TRADES은 강건한 로스를 쪼갠다.
 
@@ -99,7 +99,7 @@ $$
 
 보기가 다 똑같이 종요롭지는 않다. **MART**(왕 등, 2020)은 잘못 가른 보기에 더 힘을 모은다.
 
-### 꼴
+### 형태
 
 $$
 \mathcal{L}_{\text{MART}} = \text{BCE}(f_\theta(\mathbf{x}_{\text{adv}}), y) + \lambda \cdot (1 - p_y(\mathbf{x})) \cdot \text{KL}(f_\theta(\mathbf{x}) \| f_\theta(\mathbf{x}_{\text{adv}}))

@@ -47,7 +47,7 @@ class NoiseConditionalScoreNetwork(nn.Module):
                  sigma_encoding_dim=32):
         super().__init__()
         
-        # 잡음 수준 부호화(사인 꼴 자리 부호화)
+        # 잡음 수준 부호화(사인 형태 자리 부호화)
         self.sigma_encoding_dim = sigma_encoding_dim
         
         # 으뜸 뉴럴 네트워크
@@ -67,7 +67,7 @@ class NoiseConditionalScoreNetwork(nn.Module):
     
     def sigma_embedding(self, sigma):
         """
-        잡음 수준의 사인 꼴 임베딩.
+        잡음 수준의 사인 형태 임베딩.
         
         트랜스포머의 자리 부호화와 비슷하다.
         """

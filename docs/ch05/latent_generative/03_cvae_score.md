@@ -42,4 +42,4 @@ Notes
   ASCII(숫자 라벨과 "cVAE-2"·"cVAE-64")이며 배경은 투명이다.
 - 남은 것: 그림을 만드는 코드는 쪽에 싣지 않았다. 쪽의 코드가 이미 길고, 그리는
   일은 재는 일과 따로이기 때문이다. 다시 그리려면 scratchpad 의 cvaefig.py 와 같은
-  꼴로 train_vae(k, 1.0, True) 를 쓰면 된다.
+  형태로 train_vae(k, 1.0, True) 를 쓰면 된다.

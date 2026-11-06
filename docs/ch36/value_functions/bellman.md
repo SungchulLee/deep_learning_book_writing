@@ -16,7 +16,7 @@ $$V_\pi(s) = \sum_a \pi(a|s) \left[R(s,a) + \gamma \sum_{s'} P(s'|s,a) V_\pi(s')
 4. 확률 $P(s'|s,a)$으로 상태 $s'$으로 옮겨 간다
 5. $s'$부터의 값은 $V_\pi(s')$이며 $\gamma$만큼 깎인다
 
-### 행렬 꼴
+### 행렬 형태
 
 $$\mathbf{v}_\pi = \mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v}_\pi$$
 
@@ -96,7 +96,7 @@ $$\|\mathcal{T}_\pi V_1 - \mathcal{T}_\pi V_2\|_\infty \leq \gamma \|V_1 - V_2\|
 
 > "An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision."
 
-가장 좋은 폴리시는, **첫 결정이 무엇이었든 그 뒤에 남은 결정들이 다시 가장 좋은 폴리시를 이루어야 한다**는 것이다. 이 한 문장을 식으로 옮기면 위의 되짚는 꼴이 나온다. 전체를 한꺼번에 풀지 않고 "지금 한 걸음 + 나머지 전부의 값"으로 쪼갤 수 있다는 허락이고, 쪼갤 수 있으니 되짚을 수 있다.
+가장 좋은 폴리시는, **첫 결정이 무엇이었든 그 뒤에 남은 결정들이 다시 가장 좋은 폴리시를 이루어야 한다**는 것이다. 이 한 문장을 식으로 옮기면 위의 되짚는 형태가 나온다. 전체를 한꺼번에 풀지 않고 "지금 한 걸음 + 나머지 전부의 값"으로 쪼갤 수 있다는 허락이고, 쪼갤 수 있으니 되짚을 수 있다.
 
 ![왼쪽은 아무 두 밸류 함수에 벨먼 연산자를 한 번 먹였을 때 간격이 얼마나 줄었는지를 400쌍에 대해 그린 막대그림이다. 대부분 0.1 언저리에 몰려 있고 가장 나쁜 것이 0.226이며, 보장값인 감마 0.9 자리에 세로선이 그어져 있다. 오른쪽은 되풀이 횟수에 따른 고정점까지의 최대 오차를 로그로 그린 것으로, 실제 곡선이 감마의 k 제곱 점선과 나란히 내려가고 나중 기울기가 0.900으로 자리잡는다.](figures/contraction.svg)
 

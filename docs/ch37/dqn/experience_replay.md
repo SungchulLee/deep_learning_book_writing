@@ -65,7 +65,7 @@ class BasicReplayBuffer:
 # ---------------------------------------------------------------------------
 
 class EfficientReplayBuffer:
-    """NumPy 배열 바탕 고리 꼴 되돌려 보기 버퍼.
+    """NumPy 배열 바탕 고리 형태 되돌려 보기 버퍼.
     
     빠르기를 위해 이어진 NumPy 배열로 기억을 미리 잡는다.
     파이썬 물체 덧짐을 피하고 빠른 배치 번호 매기기를 할 수 있다.
@@ -74,7 +74,7 @@ class EfficientReplayBuffer:
     def __init__(self, capacity: int, state_dim: int):
         self.capacity = capacity
         self.size = 0
-        self.ptr = 0  # 적기 가리개(고리 꼴)
+        self.ptr = 0  # 적기 가리개(고리 형태)
 
         # 배열을 미리 잡음
         self.states = np.zeros((capacity, state_dim), dtype=np.float32)

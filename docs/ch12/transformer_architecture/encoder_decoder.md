@@ -318,7 +318,7 @@ $$
 \text{MultiHead}(X) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h) W^O
 $$
 
-여기서 $W^O \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$이다(역시 표준 정식화에서 바이어스 항이 없다). 출력은 입력과 같은 꼴 $\mathbb{R}^{n \times d_{\text{model}}}$이다.
+여기서 $W^O \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$이다(역시 표준 정식화에서 바이어스 항이 없다). 출력은 입력과 같은 형태 $\mathbb{R}^{n \times d_{\text{model}}}$이다.
 
 !!! note "수식의 바이어스 생략과 실제 구현"
     설명 수식에서 Q·K·V와 출력 투영의 바이어스를 생략할 수 있다. 이것이 모든 구현에서 바이어스가 불필요하다는 증명은 아니다. 이 페이지의 사용자 정의 코드와 PyTorch nn.MultiheadAttention 기본값은 바이어스를 사용한다. bias=False는 투영 바이어스를 없애는 설정이며 그 자체로 원 논문의 모든 학습·구조 조건을 재현하지는 않는다.
@@ -963,7 +963,7 @@ $$
 M_{ij} = \begin{cases} 0 & \text{if } j \leq i \\ -\infty & \text{if } j > i \end{cases}
 $$
 
-이는 아래 삼각 꼴의 어텐션 패턴을 만든다.
+이는 아래 삼각 형태의 어텐션 패턴을 만든다.
 
 $$
 \text{MaskedAttn}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + M\right)V

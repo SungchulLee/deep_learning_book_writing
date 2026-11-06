@@ -181,7 +181,7 @@ VAE가 확률 분포를 정의하고 샘플링 절차를 제공한다는 사실�
     def loss_function(out, x, mu, logvar):
         # 다시 세우기: 화소에 대해 더하고 표본에 대해 평균
         rec = F.binary_cross_entropy(out, x, reduction='sum') / x.size(0)
-        # KL: 닫힌 꼴. 차원에 대해 더하고 표본에 대해 평균
+        # KL: 닫힌 형태. 차원에 대해 더하고 표본에 대해 평균
         kl = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp()).sum() / x.size(0)
         return rec + kl
     ```

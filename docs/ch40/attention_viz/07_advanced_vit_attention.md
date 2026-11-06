@@ -95,7 +95,7 @@ class ViTAttentionVisualizer:
             # 본디 그림을 보인다
             if isinstance(image, torch.Tensor):
                 img_np = image.cpu().numpy()
-                if img_np.shape[0] == 3:  # CHW 꼴
+                if img_np.shape[0] == 3:  # CHW 형태
                     img_np = np.transpose(img_np, (1, 2, 0))
                 img_np = (img_np - img_np.min()) / (img_np.max() - img_np.min())
             else:

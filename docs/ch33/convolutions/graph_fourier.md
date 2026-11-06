@@ -160,7 +160,7 @@ def demo_learnable_spectral_filter():
         if (epoch + 1) % 50 == 0:
             print(f"  Epoch {epoch+1}: Loss={loss:.4f}")
 
-    # 마지막 필터 꼴
+    # 마지막 필터 형태
     print(f"\nLearned filter (first 5): {np.round(theta[:5], 3)}")
     print(f"Ideal low-pass (first 5): {np.round(np.exp(-eigenvalues[:5]), 3)}")
 

@@ -51,7 +51,7 @@ class AttentionVisualizer:
         def hook_fn(name):
             def hook(module, input, output):
                 # 어텐션 짐을 갈무리한다
-                # 내놓기 꼴은 모형 구조마다 다르다
+                # 내놓기 형태는 모형 구조마다 다르다
                 if isinstance(output, tuple) and len(output) > 1:
                     # 흔히 (내놓기, 어텐션 짐)
                     self.attention_maps[name] = output[1].detach()

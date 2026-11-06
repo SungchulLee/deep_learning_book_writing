@@ -64,7 +64,7 @@ $$
 \hat{A}_{ij} = \sigma\left(\mathbf{z}_i^\top \mathbf{W} \mathbf{z}_j + b\right)
 $$
 
-여기서 $\mathbf{z}_i$은 $\mathbf{Z}_{\text{nodes}}$의 $i$번째 줄이다. 이 쌍선형 꼴은 잡이 $O(n_{\max} \cdot d_h + d_h^2)$개만 들며 $\mathbf{W}$이 맞섬이면 자연스럽게 맞섬 인접 행렬을 낸다.
+여기서 $\mathbf{z}_i$은 $\mathbf{Z}_{\text{nodes}}$의 $i$번째 줄이다. 이 쌍선형 형태는 잡이 $O(n_{\max} \cdot d_h + d_h^2)$개만 들며 $\mathbf{W}$이 맞섬이면 자연스럽게 맞섬 인접 행렬을 낸다.
 
 ### 그래프에 매인 디코더
 

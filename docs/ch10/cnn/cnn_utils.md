@@ -268,7 +268,7 @@ import torch
 # 1절: load_data 의 서명과 세 클래스
 # =============================================================================
 # 다섯 쪽이 저마다 이 함수를 싣고 있다. 서명을 여기에 찍어 두어
-# 쪽들이 같은 꼴을 쓰는지 한눈에 보이게 한다.
+# 쪽들이 같은 형태를 쓰는지 한눈에 보이게 한다.
 print("load_data", inspect.signature(load_data))
 
 train_kwargs = {'batch_size': 64, 'shuffle': True}

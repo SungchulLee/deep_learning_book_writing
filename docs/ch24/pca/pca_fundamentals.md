@@ -303,7 +303,7 @@ def verify_equivalence(X, k, epochs=5000, lr=0.01):
     """주성분 분석과 선형 오토인코더의 다시 세우기 어긋남을 견준다."""
     X_centered = X - X.mean(axis=0)
 
-    # 닫힌 꼴 주성분 분석
+    # 닫힌 형태 주성분 분석
     Sigma = X_centered.T @ X_centered / X.shape[0]
     eigvals = np.linalg.eigh(Sigma)[0]
     eigvals = np.sort(eigvals)[::-1]

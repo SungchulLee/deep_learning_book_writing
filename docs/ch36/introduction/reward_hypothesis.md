@@ -48,7 +48,7 @@ $$\pi^* = \arg\max_\pi \mathbb{E}_\pi[G_t]$$
 > "All of what we mean by goals and purposes can be well thought of as the maximization of the expected value of the cumulative sum of a received scalar signal (called reward)"
 > — Sutton &amp; Littman **~1990**; Sutton &amp; Barto 2018
 
-**물결표가 붙어 있다.** 만든 사람이 자기 가설의 연도를 어림으로 적는다는 것은, 이것이 논문 한 편으로 발표되어 자리를 잡은 명제가 아니라 **쓰이면서 굳어진 여김**이라는 뜻이다. 가설이라 부르는 것도 그래서다 — 증명된 적이 없고, 증명할 수 있는 꼴로 적혀 있지도 않다.
+**물결표가 붙어 있다.** 만든 사람이 자기 가설의 연도를 어림으로 적는다는 것은, 이것이 논문 한 편으로 발표되어 자리를 잡은 명제가 아니라 **쓰이면서 굳어진 여김**이라는 뜻이다. 가설이라 부르는 것도 그래서다 — 증명된 적이 없고, 증명할 수 있는 형태로 적혀 있지도 않다.
 
 위 목록의 셋째 줄에 **"흔히"** 라는 말이 들어간 자리를 재어 보면 그 성격이 드러난다.
 
@@ -68,7 +68,7 @@ _확인한 곳 — 가설의 문장과 "Sutton &amp; Littman ~1990; Sutton &amp;
 
 ## 4. 리턴
 
-리턴 $G_t$은 문제에 따라 여러 꼴을 띤다:
+리턴 $G_t$은 문제에 따라 여러 형태를 띤다:
 
 ### 지평이 유한한 깎지 않은 리턴
 
@@ -130,7 +130,7 @@ $$G_t = R_{t+1} + \gamma G_{t+1}$$
 
 $$F(s, a, s') = \gamma \Phi(s') - \Phi(s)$$
 
-여기서 $\Phi: \mathcal{S} \to \mathbb{R}$은 잠재 함수다. 이것이 가장 좋은 폴리시를 지킨다고 보장된 유일한 다듬기 꼴이다(Ng et al., 1999).
+여기서 $\Phi: \mathcal{S} \to \mathbb{R}$은 잠재 함수다. 이것이 가장 좋은 폴리시를 지킨다고 보장된 유일한 다듬기 형태(Ng et al., 1999).
 
 ---
 

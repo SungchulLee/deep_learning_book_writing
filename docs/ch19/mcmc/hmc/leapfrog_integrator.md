@@ -180,7 +180,7 @@ def leapfrog_with_diagnostics(x, v, epsilon, L, H, grad_U, M_inv=None):
 ```python
 def leapfrog_vectorized(x, v, epsilon, L, grad_U, M_inv=None):
     """
-    사슬 여럿을 위한 벡터 꼴 개구리뜀.
+    사슬 여럿을 위한 벡터 형태 개구리뜀.
     
     인수:
         x: 자리 (n_chains, d)

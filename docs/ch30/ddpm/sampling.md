@@ -212,7 +212,7 @@ class DDPMSampler:
 
         반환값
         -------
-        x_{t-1} : x_t와 꼴이 같은 텐서.
+        x_{t-1} : x_t와 형태가 같은 텐서.
         """
         batch_size = x_t.shape[0]
         t_tensor = torch.full((batch_size,), t, device=self.device, dtype=torch.long)
@@ -306,7 +306,7 @@ class DDPMSampler:
         파라메터
         ----------
         shape : tuple
-            만들 표본의 꼴.
+            만들 표본의 형태.
         classifier : nn.Module
             Noise-aware classifier p(y | x_t, t).
         class_label : int
@@ -374,7 +374,7 @@ class DDPMSampler:
         파라메터
         ----------
         shape : tuple
-            만들 표본의 꼴.
+            만들 표본의 형태.
         condition : Tensor
             조건 신호(클래스 이름표, 글 임베딩 등).
         guidance_scale : float

@@ -31,7 +31,7 @@ Answer: AAPL beat Q3 estimates by 1.5%...
 def react_loop(llm, question, tools, max_steps=10):
     prompt = f"""Answer the following question using the available tools.
 
-응답을 다음 꼴로 하라:
+응답을 다음 형태로 하라:
 생각: [너의 따져 봄]
 액션: [연장_이름(인자)]
 (살핌을 기다린다)

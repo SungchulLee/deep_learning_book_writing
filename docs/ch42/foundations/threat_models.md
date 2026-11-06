@@ -1,6 +1,6 @@
 # 위협 모델
 
-**위협 모델**은 겨루는 이가 무엇을 알고, 무엇을 할 수 있으며, 무엇을 이루려 하는지에 대한 가정을 꼴로 적는다. 알맞은 위협 모델을 고르는 일이 중요하다. 너무 여리면 따짐이 뜻이 없고, 너무 세면 방어가 쓸모없다. 위협 모델이 다르면 공격과 방어도 피처부터 달라진다.
+**위협 모델**은 겨루는 이가 무엇을 알고, 무엇을 할 수 있으며, 무엇을 이루려 하는지에 대한 가정을 형태로 적는다. 알맞은 위협 모델을 고르는 일이 중요하다. 너무 여리면 따짐이 뜻이 없고, 너무 세면 방어가 쓸모없다. 위협 모델이 다르면 공격과 방어도 피처부터 달라진다.
 
 ---
 
@@ -60,7 +60,7 @@ $$
 \text{Find } \boldsymbol{\delta} \text{ such that } f_\theta(\mathbf{x} + \boldsymbol{\delta}) \neq y, \quad \|\boldsymbol{\delta}\|_p \leq \varepsilon
 $$
 
-**최적화 꼴:**
+**최적화 형태:**
 
 $$
 \boldsymbol{\delta}^* = \arg\max_{\|\boldsymbol{\delta}\|_p \leq \varepsilon} \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y)
@@ -76,7 +76,7 @@ $$
 \text{Find } \boldsymbol{\delta} \text{ such that } f_\theta(\mathbf{x} + \boldsymbol{\delta}) = y_{\text{target}}, \quad \|\boldsymbol{\delta}\|_p \leq \varepsilon
 $$
 
-**최적화 꼴:**
+**최적화 형태:**
 
 $$
 \boldsymbol{\delta}^* = \arg\min_{\|\boldsymbol{\delta}\|_p \leq \varepsilon} \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y_{\text{target}})

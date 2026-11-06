@@ -230,7 +230,7 @@ n = 1000
 income = np.random.normal(60, 20, n).clip(10)        # 소득(단위: 천 달러)
 dti = np.random.normal(0.3, 0.15, n).clip(0.01, 1.0) # 소득 대비 부채비율
 
-# 로짓(로그 승산)을 선형으로 놓는다. 이것이 로지스틱 회귀가 가정하는 꼴이다
+# 로짓(로그 승산)을 선형으로 놓는다. 이것이 로지스틱 회귀가 가정하는 형태
 log_odds = -3 + 0.01 * (50 - income) + 5 * (dti - 0.3)
 # expit이 곧 시그모이드. 로짓을 확률로 되돌린 뒤 그 확률로 동전을 던진다
 default = np.random.binomial(1, expit(log_odds))

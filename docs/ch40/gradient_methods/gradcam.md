@@ -55,7 +55,7 @@ $$
 
 이렇게 그래디언트를 온 세상에 걸쳐 고르게 모으면 피처 그림 $k$과 클래스 $c$에 대한 **뉴런 중요함 웨이트** $\alpha^c_k$이 나온다.
 
-### 이 꼴의 속뜻
+### 이 형태의 속뜻
 
 **왜 그래디언트를 온 세상에 걸쳐 고르게 모으는가?**
 
@@ -75,7 +75,7 @@ $$
 
 ### 수학으로 유도
 
-Grad-CAM 꼴은 **일차 테일러 전개**에서 이끌어 낼 수 있다. 첫 이치에서 시작해 클래스 점수 $y^c$을 모든 피처 그림의 함수로 보자.
+Grad-CAM 형태는 **일차 테일러 전개**에서 이끌어 낼 수 있다. 첫 이치에서 시작해 클래스 점수 $y^c$을 모든 피처 그림의 함수로 보자.
 
 $$
 y^c = f(A^1, A^2, \ldots, A^K)
@@ -376,7 +376,7 @@ input_tensor = transform(image).unsqueeze(0).to(device)
 
 # 미루어 본 클래스에 대한 Grad-CAM을 만든다
 cam = grad_cam(input_tensor)
-print(f"CAM 꼴: {cam.shape}")  # torch.Size([224, 224])
+print(f"CAM 형태: {cam.shape}")  # torch.Size([224, 224])
 
 # 정한 클래스에 대한 Grad-CAM을 만든다(보기로 클래스 281 = 얼룩 고양이)
 cam_tabby = grad_cam(input_tensor, target_class=281)

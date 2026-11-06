@@ -55,7 +55,7 @@ class ObservationNormalizer:
     파라메터
     ----------
     shape : tuple
-        봄의 꼴.
+        봄의 형태.
     clip : float
         고르게 한 값을 [-clip, clip]으로 자른다.
     """

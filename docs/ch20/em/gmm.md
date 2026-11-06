@@ -200,7 +200,7 @@ class GaussianMixtureModel:
         # 파라메터(fit에서 첫값을 잡는다)
         self.weights_ = None      # (K,)
         self.means_ = None        # (K, d)
-        self.covariances_ = None  # 꼴은 covariance_type에 달렸다
+        self.covariances_ = None  # 형태는 covariance_type에 달렸다
         
         # 맞추기 정보
         self.converged_ = False

@@ -38,7 +38,7 @@ def exponential_ode(y: torch.Tensor, t: float, k: float = 1.0) -> torch.Tensor:
     """
     return k * y
 
-# 확인을 위한 닫힌 꼴 풀이
+# 확인을 위한 닫힌 형태 풀이
 def exponential_analytical(y0: torch.Tensor, t: torch.Tensor, k: float = 1.0) -> torch.Tensor:
     """해석 풀이: y(t) = y_0 * exp(k*t)"""
     return y0 * torch.exp(k * t)
@@ -262,7 +262,7 @@ class ODEFunc(nn.Module):
         )
     
     def forward(self, t, h):
-        # 알림: torchdiffeq은 (t, y) 꼴을 바란다
+        # 알림: torchdiffeq은 (t, y) 형태를 바란다
         return self.net(h)
 ```
 
@@ -408,7 +408,7 @@ class ODEFunc(nn.Module):
     """
     액션 dh/dt = f(h, t)를 뜻매김한다.
     
-    중요: torchdiffeq은 f(y, t)이 아니라 f(t, y) 꼴을 바란다!
+    중요: torchdiffeq은 f(y, t)이 아니라 f(t, y) 형태를 바란다!
     """
     
     def __init__(self, dim: int, hidden_dim: int = 64):

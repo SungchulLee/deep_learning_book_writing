@@ -32,7 +32,7 @@ class AttentionFlowAnalyzer:
     어텐션 짐만으로는 어느 이음이 중요한지 알 수 없다.
     어텐션과 그래디언트를 아우르면 종요로운 길을 짚어낼 수 있다.
 
-    꼴:
+    형태:
     -------
     흐름 = 어텐션 × |그래디언트|
 
@@ -53,7 +53,7 @@ class AttentionFlowAnalyzer:
         attention : torch.Tensor
             어텐션 짐, 형태: (열 길이, 열 길이)
         gradients : torch.Tensor
-            어텐션에 대한 내놓기의 그래디언트, 꼴이 같다
+            어텐션에 대한 내놓기의 그래디언트, 형태가 같다
 
         Returns:
         -------

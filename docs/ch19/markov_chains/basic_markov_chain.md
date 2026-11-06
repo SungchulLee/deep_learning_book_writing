@@ -266,7 +266,7 @@ def example_three_state_chain():
     print("\nSimulating 30 days starting from Sunny...")
     sequence = mc.simulate(n_steps=30, initial_state='Sunny')
     
-    # 읽기 좋은 꼴로 찍기(줄마다 10일)
+    # 읽기 좋은 형태로 찍기(줄마다 10일)
     for i in range(0, len(sequence), 10):
         day_sequence = sequence[i:i+10]
         print(f"Days {i:2d}-{min(i+9, len(sequence)-1):2d}: {day_sequence}")

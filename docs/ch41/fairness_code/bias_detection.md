@@ -235,7 +235,7 @@ class BiasDetector:
             sensitive_attrs_dict: 됨됨이 이름을 값에 이어 주는 사전
 
         Returns:
-            꼴 갖춘 알림 글자열
+            형태 갖춘 알림 글자열
         """
         report = "=" * 60 + "\n"
         report += "치우침과 공정성 알림\n"

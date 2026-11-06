@@ -81,7 +81,7 @@
             self.variables = variables
             self.cardinalities = cardinalities
 
-            # 분포 배열의 꼴 셈하기
+            # 분포 배열의 형태 셈하기
             shape = tuple(cardinalities[var] for var in variables)
 
             if values is None:
@@ -93,7 +93,7 @@
                 # 분포가 고르게 되었는지 보장하기
                 self.values = self.values / np.sum(self.values)
 
-            # 꼴이 맞는지 확인하기
+            # 형태가 맞는지 확인하기
             assert self.values.shape == shape, \
                 f"Values shape {self.values.shape} doesn't match expected {shape}"
 

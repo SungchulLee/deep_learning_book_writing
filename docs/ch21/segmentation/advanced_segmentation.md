@@ -367,7 +367,7 @@
             draw_img = ImageDraw.Draw(img)
             draw_mask = ImageDraw.Draw(mask)
 
-            # 여러 꼴
+            # 여러 형태
             for _ in range(np.random.randint(1, 4)):
                 shape_type = np.random.choice(['circle', 'rectangle'])
                 center_x = np.random.randint(size//4, 3*size//4)

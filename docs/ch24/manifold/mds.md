@@ -20,7 +20,7 @@
 
 **다만 이 고리는 빛에 대해서는 아무것도 말해 주지 않는다.** 434nm와 674nm는 여전히 파장으로 가장 먼 둘이고, 물리에는 되돌아오는 고리가 없다. 고리는 **대답에 들어 있던 것**이지 MDS가 찾아 준 것이 아니다. MDS는 넣어 준 표의 지도를 그릴 뿐이라, 평점을 넣으면 평점의 지도가 나온다. 아래 8절의 셰퍼드 다이어그램이 필요한 까닭도 같다 — 그림이 그럴듯하다는 것과 입력을 잘 담았다는 것은 따로 확인해야 한다.
 
-_확인한 곳 — W. S. Torgerson, "Multidimensional scaling: I. Theory and method", *Psychometrika* **17**, 401–419 (1952). G. Ekman, "Dimensions of color vision", *Journal of Psychology* **38**, 467–474 (1954) — 색 14가지, 434–674nm, 31명, 0–4의 다섯 눈금. 그림의 고리는 꼴만 옮긴 것이고 원 논문의 평점 행렬로 셈하지 않았다._
+_확인한 곳 — W. S. Torgerson, "Multidimensional scaling: I. Theory and method", *Psychometrika* **17**, 401–419 (1952). G. Ekman, "Dimensions of color vision", *Journal of Psychology* **38**, 467–474 (1954) — 색 14가지, 434–674nm, 31명, 0–4의 다섯 눈금. 그림의 고리는 형태만 옮긴 것이고 원 논문의 평점 행렬로 셈하지 않았다._
 
 </div>
 

@@ -102,7 +102,7 @@ PPO에서는 잘라 낸 폴리시 목표와 리턴 타깃 둘 다에 GAE 어드�
 </div>
 
 ??? success "풀이"
-    폴리시 경사는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 어드밴티지 어림이다. 로그 확률 그래디언트 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 어드밴티지 $\hat{A}_t$은 뽑은 추적에서 어림해야 하므로 분산이 들어온다. 기댓값은 추적 배치에 걸쳐 고르게 하여 어림한다. 베이스라인으로 분산을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
+    폴리시 경사는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 형태이 여기서 $\hat{A}_t$은 어드밴티지 어림이다. 로그 확률 그래디언트 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 어드밴티지 $\hat{A}_t$은 뽑은 추적에서 어림해야 하므로 분산이 들어온다. 기댓값은 추적 배치에 걸쳐 고르게 하여 어림한다. 베이스라인으로 분산을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 

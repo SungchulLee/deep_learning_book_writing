@@ -195,7 +195,7 @@ class PositionalEncoding(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            x: 꼴이 [batch_size, seq_len, d_model]인 텐서
+            x: 형태가 [batch_size, seq_len, d_model]인 텐서
         """
         x = x + self.pe[:, :x.size(1), :]
         return self.dropout(x)

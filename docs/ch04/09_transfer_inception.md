@@ -22,7 +22,7 @@ VGG16은 작은 3×3 필터를 여러 레이어 쌓는다. [4.4절](02_depth.md)
 
 Inception의 답도 고르지 않는 것인데, 방향이 반대다. **한 블록 안에서 여러 크기를 나란히 다 돌리고 나온 채널을 이어 붙인다.** 어느 길을 얼마나 쓸지는 설계자가 아니라 웨이트가 정한다.
 
-torchvision Inception v3의 첫 Inception 블록 `Mixed_5b`가 그 꼴이다. 192채널을 받아 네 가지로 갈라진다.
+torchvision Inception v3의 첫 Inception 블록 `Mixed_5b`가 그 형태. 192채널을 받아 네 가지로 갈라진다.
 
 | 가지 | 하는 일 | 나오는 채널 |
 |---|---|---|
@@ -74,7 +74,7 @@ v3의 나머지 새로움은 [부록의 Inception v3](../appendix/cnn/inception_
 - net = vgg16(weights=VGG16_Weights.IMAGENET1K_V1).to(device).eval()
 - net.classifier = nn.Sequential(*list(net.classifier.children())[:-1])
 + net = inception_v3(weights=Inception_V3_Weights.IMAGENET1K_V1).to(device).eval()
-+ # ResNet18과 같은 꼴이다 — 머리가 Linear(2048, 1000) 하나뿐이라 그 자리만 간다
++ # ResNet18과 같은 형태 — 머리가 Linear(2048, 1000) 하나뿐이라 그 자리만 간다
 + net.fc = nn.Identity()
 - head = nn.Linear(4096, 10).to(device)
 + head = nn.Linear(2048, 10).to(device)   # extract()가 (50000, 2048)을 돌려준다

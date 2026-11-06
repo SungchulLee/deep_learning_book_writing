@@ -35,7 +35,7 @@ print("="*70)
 
 # 합성 데이터셋 만들기
 def create_custom_dataset(root='custom_dataset', num_images=100):
-    """YOLO 꼴의 인공 자료 뭉치를 만든다."""
+    """YOLO 형태의 인공 자료 뭉치를 만든다."""
     
     # 디렉터리를 만든다
     for split in ['train', 'val']:
@@ -65,7 +65,7 @@ def create_custom_dataset(root='custom_dataset', num_images=100):
                 else:  # 세모
                     draw.polygon([(x, y-s), (x-s, y+s), (x+s, y+s)], fill=(100,100,255))
                 
-                # YOLO 꼴: 클래스 x_가운데 y_가운데 너비 높이(고르게 맞춘 값)
+                # YOLO 형태: 클래스 x_가운데 y_가운데 너비 높이(고르게 맞춘 값)
                 x_center, y_center = x/640, y/640
                 width, height = (2*s)/640, (2*s)/640
                 labels.append(f"{cls} {x_center:.6f} {y_center:.6f} {width:.6f} {height:.6f}")

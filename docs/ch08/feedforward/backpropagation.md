@@ -368,7 +368,7 @@ def numerical_gradient(model, X, y, criterion, param, eps=1e-5):
         flat[i] = orig   # 되돌린다. 빠뜨리면 모델이 조금씩 망가진다
 
         # 중심차분. 한쪽만 쓰는 (f(x+h)-f(x))/h 는 오차가 h 차수인데
-        # 이 꼴은 h^2 차수라 훨씬 정확하다.
+        # 이 형태는 h^2 차수라 훨씬 정확하다.
         # eps가 너무 작으면 부동소수점 반올림에 묻히고 너무 크면
         # 근사 오차가 커진다. 1e-5 언저리가 float32에서 무난하다
         grad.view(-1)[i] = (loss_plus.item() - loss_minus.item()) / (2 * eps)

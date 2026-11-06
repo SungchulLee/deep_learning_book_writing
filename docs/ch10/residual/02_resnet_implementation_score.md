@@ -11,7 +11,7 @@ Math fixes: 7 (🔴 3, 🟡 3, 🟢 1)
 Writing fixes: 7 (🔴 3, 🟡 3, 🟢 1)
 Skipped: `out += identity`의 제자리 더하기를 `out = out + identity`로 바꾸지 않았다.
 BatchNorm의 역전파는 제 출력을 쓰지 않으므로 오류가 없고, 앞 쪽
-`01_basic_residual_block.md` 82번째 줄의 `out += self.shortcut(x)`와 같은 꼴이라
+`01_basic_residual_block.md` 82번째 줄의 `out += self.shortcut(x)`와 같은 형태
 여기만 바꾸면 절 안에서 이 쪽이 튄다(앞 쪽의 v2도 같은 까닭으로 건드리지 않았다).
 
 Notes

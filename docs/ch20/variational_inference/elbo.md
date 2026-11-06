@@ -49,7 +49,7 @@ E 단계 뒤마다 간격이 **정확히 0**이다 — 여덟 번 모두에서 �
 
 **그러니 하한이 꽉 끼었다는 말은 언제나 "지금 이 $\theta$ 에서"라는 단서를 달고 다닌다.** 방금 E 단계를 마친 자리에서는 $\mathcal L$ 이 $\log p(X|\theta)$ 와 같은 값이지만, M 단계가 한 걸음만 움직여도 그 등호가 깨진다. 위 문단이 덧붙인 조심스러운 말 — 증거를 모르면 차이의 수치값도 모른다 — 이 실전에서 더 무겁다. 그림에서는 $\log p(X|\theta)$ 를 셈할 수 있어서 간격을 그릴 수 있었지만, 그것을 셈할 수 있는 모델이라면 애초에 하한이 필요 없었을 것이다.
 
-_확인한 곳 — R. M. Neal, G. E. Hinton, "A View of the EM Algorithm that Justifies Incremental, Sparse, and Other Variants", in *Learning in Graphical Models*, Kluwer (1998), 355–368. E 단계가 $q$ 에 대해, M 단계가 $\theta$ 에 대해 같은 함수를 최대화한다는 것이 그 글의 요지다. A. P. Dempster, N. M. Laird, D. B. Rubin (1977) 이 두 단계로 적은 원래 꼴은 [EM의 기초](../em/foundations.md)에서 다룬다. 그림의 수는 그림을 그리는 코드가 직접 돌려 얻으며, E 단계 뒤 간격이 0이 아니면 코드가 멈춘다._
+_확인한 곳 — R. M. Neal, G. E. Hinton, "A View of the EM Algorithm that Justifies Incremental, Sparse, and Other Variants", in *Learning in Graphical Models*, Kluwer (1998), 355–368. E 단계가 $q$ 에 대해, M 단계가 $\theta$ 에 대해 같은 함수를 최대화한다는 것이 그 글의 요지다. A. P. Dempster, N. M. Laird, D. B. Rubin (1977) 이 두 단계로 적은 원래 형태는 [EM의 기초](../em/foundations.md)에서 다룬다. 그림의 수는 그림을 그리는 코드가 직접 돌려 얻으며, E 단계 뒤 간격이 0이 아니면 코드가 멈춘다._
 
 </div>
 

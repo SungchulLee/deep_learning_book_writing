@@ -62,7 +62,7 @@ $\mathrm{KL}$은 두 자리를 바꿀 수 없다. $\mathrm{KL}(t \,\|\, q) = \su
 
     그래도 남는 것이 둘 있다. **언제나 0 이상이고, 0이 되는 것은 두 분포가 같을 때뿐이다.** 최소화할 대상으로는 그 둘이면 넉넉하므로, 이 절의 로스는 멀쩡히 성립한다. 거리라고 부르지만 않으면 된다.
 
-    연속인 경우도 꼴이 같다. $\mathrm{KL}(p \,\|\, q) = \int p(x) \log \dfrac{p(x)}{q(x)}\, dx$이며 위의 합은 그 이산판이다. 공리를 하나씩 짚는 것은 [2.8절 KL 발산](../ch07/loss/kl_divergence.md)이 한다.
+    연속인 경우도 형태가 같다. $\mathrm{KL}(p \,\|\, q) = \int p(x) \log \dfrac{p(x)}{q(x)}\, dx$이며 위의 합은 그 이산판이다. 공리를 하나씩 짚는 것은 [2.8절 KL 발산](../ch07/loss/kl_divergence.md)이 한다.
 
 !!! warning "$T^2$을 빼먹으면 실험이 조용히 망가진다"
     충분히 높은 온도에서, 교사와 학생의 로짓 크기에 비해 $T$가 크면 소프트 라벨 항의 그래디언트는 대략 $1/T^2$로 감소한다. 하드 라벨 항에는 온도가 적용되지 않는다.
@@ -100,7 +100,7 @@ $\mathrm{KL}$은 두 자리를 바꿀 수 없다. $\mathrm{KL}(t \,\|\, q) = \su
     q_i = \frac{e^{z_i/T}}{\sum_k e^{z_k/T}} \approx \frac{1 + z_i/T}{C\left(1 + \bar z/T\right)} \approx \frac{1}{C}\left(1 + \frac{z_i - \bar z}{T}\right)
     $$
 
-    교사도 같은 꼴이다. 빼면 **공통된 상수항 $1/C$가 상쇄되고** $1/T$만 남는다.
+    교사도 같은 형태. 빼면 **공통된 상수항 $1/C$가 상쇄되고** $1/T$만 남는다.
 
     $$
     q_i - t_i \approx \frac{1}{CT}\Big[(z_i - \bar z) - (v_i - \bar v)\Big]

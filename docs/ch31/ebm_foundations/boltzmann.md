@@ -237,7 +237,7 @@ def compute_score(energy_net, x, create_graph=True):
     반환값
     -------
     torch.Tensor
-        점수 값, x과 같은 꼴
+        점수 값, x과 같은 형태
     """
     x = x.requires_grad_(True)
     energy = energy_net(x).sum()

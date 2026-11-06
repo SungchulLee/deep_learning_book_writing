@@ -261,7 +261,7 @@ class SlidingWindowAttention(nn.Module):
 
 ```python
 class LLaMABlock(nn.Module):
-    """요즘 새것을 담은 LLaMA 꼴 트랜스포머 덩이."""
+    """요즘 새것을 담은 LLaMA 형태 트랜스포머 덩이."""
     
     def __init__(
         self,

@@ -77,7 +77,7 @@ $$
     \frac{\partial y_i}{\partial x_j} = \sum_{k} \frac{\partial y_i}{\partial z_k}\,\frac{\partial z_k}{\partial x_j}
     $$
 
-    이다. 오른쪽은 $(i,k)$칸이 $\partial y_i / \partial z_k$인 행렬과 $(k,j)$칸이 $\partial z_k / \partial x_j$인 행렬의 **곱의 $(i,j)$칸**과 정확히 같은 꼴이다. 곧 $J_f = J_2 J_1$이다.
+    이다. 오른쪽은 $(i,k)$칸이 $\partial y_i / \partial z_k$인 행렬과 $(k,j)$칸이 $\partial z_k / \partial x_j$인 행렬의 **곱의 $(i,j)$칸**과 정확히 같은 형태. 곧 $J_f = J_2 J_1$이다.
 
     $L-1$개까지 성립한다고 하면 $g = f_{L-1}\circ\cdots\circ f_1$에 대해 $J_g = J_{L-1}\cdots J_1$이고, 위의 두 겹 결과를 $f_L$과 $g$에 쓰면 $J_f = J_L J_g = J_L J_{L-1} \cdots J_1$이다. $\square$
 
@@ -1121,7 +1121,7 @@ def timeit(fn, rep=3):
 
 
 # ========================================================================
-# 1. 딥러닝의 꼴 — 입력 많고 출력 하나
+# 1. 딥러닝의 형태 — 입력 많고 출력 하나
 # ========================================================================
 
 def deep_learning_shape():

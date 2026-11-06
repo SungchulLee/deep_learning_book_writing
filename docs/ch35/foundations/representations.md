@@ -38,7 +38,7 @@ $$
 
 ## 3. 엣지 목록 나타내기
 
-엣지 목록 $\mathcal{E} = \{(i_1, j_1), \ldots, (i_m, j_m)\}$은 있는 엣지만 담는다. 희소 그래프($m \ll n^2$)에서 기억을 아끼며 PyTorch Geometric의 `edge_index` 꼴과 자연스럽게 맞물린다:
+엣지 목록 $\mathcal{E} = \{(i_1, j_1), \ldots, (i_m, j_m)\}$은 있는 엣지만 담는다. 희소 그래프($m \ll n^2$)에서 기억을 아끼며 PyTorch Geometric의 `edge_index` 형태와 자연스럽게 맞물린다:
 
 $$
 \texttt{edge\_index} = \begin{bmatrix} i_1 & i_2 & \cdots & i_m \\ j_1 & j_2 & \cdots & j_m \end{bmatrix} \in \mathbb{N}^{2 \times m}

@@ -102,7 +102,7 @@ def tree(net):
         depth = name.count(".") + (0 if name == "" else 1)
         print(f"    {'  ' * depth}{name or '(root)':20s} {type(m).__name__}")
     print("  modules() 는 자기 자신도 센다 — 그래서 하나 더 많다")
-    print("  이름이 점으로 이어진 꼴이 그대로 state_dict 의 키가 된다")
+    print("  이름이 점으로 이어진 형태가 그대로 state_dict 의 키가 된다")
 
 
 # ========================================================================
@@ -225,7 +225,7 @@ Net(
           blocks.1.act         ReLU
       head                 Linear
   modules() 는 자기 자신도 센다 — 그래서 하나 더 많다
-  이름이 점으로 이어진 꼴이 그대로 state_dict 의 키가 된다
+  이름이 점으로 이어진 형태가 그대로 state_dict 의 키가 된다
 
 === 3. 파라미터와 버퍼 ===
   param  stem.weight            (8, 4)     requires_grad=True
@@ -310,7 +310,7 @@ named_modules  (전부 10개):
 `children()`은 **한 겹만**, `modules()`는 **나무 전체**를 준다. 그리고
 `modules()`는 **자기 자신도 센다** — 그래서 10개 중 하나가 루트다.
 
-이름이 점으로 이어진 꼴에 주목하자. `blocks.0.fc`가 그대로 `state_dict`의 키
+이름이 점으로 이어진 형태에 주목하자. `blocks.0.fc`가 그대로 `state_dict`의 키
 앞부분이 된다. 그래서 **모델의 속성 이름을 바꾸면 옛 체크포인트를 못 읽는다.**
 「모델 체크포인트」에서 구조가 안 저장된다고 한 것의 다른 얼굴이다.
 

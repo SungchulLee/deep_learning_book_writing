@@ -444,7 +444,7 @@ REINFORCE는 어림 쌓인 리워드를 곧바로 가장 좋게 하여 파라메
 
 **그림으로 보는 AI 1.** 정리가 약속한 것은 "그래디언트"가 아니었다
 
-REINFORCE는 알고리즘 이름이기 전에 **머리글자**다. 로널드 윌리엄스(Ronald Williams)가 1992년 논문에서 이 꼴의 고침을 쓰는 알고리즘 **갈래 전체**에 붙인 이름이고, 풀면 이렇다 — "REward Increment = Nonnegative Factor × Offset Reinforcement × Characteristic Eligibility". 고침 식의 네 조각을 그대로 읽은 것이다.
+REINFORCE는 알고리즘 이름이기 전에 **머리글자**다. 로널드 윌리엄스(Ronald Williams)가 1992년 논문에서 이 형태의 고침을 쓰는 알고리즘 **갈래 전체**에 붙인 이름이고, 풀면 이렇다 — "REward Increment = Nonnegative Factor × Offset Reinforcement × Characteristic Eligibility". 고침 식의 네 조각을 그대로 읽은 것이다.
 
 $$
 \underbrace{\Delta w_{ij}}_{\text{REward Increment}} \;=\;

@@ -65,7 +65,7 @@ $$
 \{\,\theta : p(\theta \mid D) \geq k\,\}
 $$
 
-꼴인 집합이며, $k$ 는 그 집합이 담는 사후확률이 $1-\alpha$ 가 되도록 고른다.
+형태인 집합이며, $k$ 는 그 집합이 담는 사후확률이 $1-\alpha$ 가 되도록 고른다.
 
 <div class="thmbox" markdown>
 
@@ -204,7 +204,7 @@ def compute_hpd_interval(samples, alpha=0.05):
 
     대칭과 단봉이므로 밀도는 $c$ 에서 멀어질수록 줄어든다. 곧 $|\theta_1 - c| < |\theta_2 - c|$ 이면 $p(\theta_1 \mid D) > p(\theta_2 \mid D)$ 이다.
 
-    따라서 집합 $\{p \geq k\}$ 는 $c$ 를 중심으로 하는 구간 $[c-d, c+d]$ 꼴이고, 이 구간이 담는 확률이 $1-\alpha$ 가 되도록 $d$ 를 잡은 것이 HPD이다.
+    따라서 집합 $\{p \geq k\}$ 는 $c$ 를 중심으로 하는 구간 $[c-d, c+d]$ 형태이, 이 구간이 담는 확률이 $1-\alpha$ 가 되도록 $d$ 를 잡은 것이 HPD이다.
 
     한편 대칭성에서 $P(\theta < c-d \mid D) = P(\theta > c+d \mid D)$ 이고 둘의 합이 $\alpha$ 이므로 각각 $\alpha/2$ 이다. 이는 곧 $[c-d, c+d]$ 가 동일꼬리 구간이라는 뜻이다.
 

@@ -100,7 +100,7 @@ Notes
 - 🟡 앞뒤 쪽으로 가는 길이 하나도 없었다. `01_basic_residual_block.md`,
   `identity_mapping.md`, `02_resnet_implementation.md` 로 잇는 고리를
   본문과 연습문제 풀이에 달았다.
-- 🟢 `super(PlainNet, self).__init__()` (파이썬 2 꼴), 쓰지 않는
+- 🟢 `super(PlainNet, self).__init__()` (파이썬 2 형태), 쓰지 않는
   `import numpy as np`, 쓰지 않는 반복 변수 `i`, 줄 끝 공백을 함께 치웠다.
 - 실험의 크기에 대하여: 깊이 8 블록(합성곱 17개), 채널 16개, CIFAR-10
   1,280/512장, 다섯 세대다. 씨앗 **셋**을 돌릴 수 있게 잡은 크기이고,

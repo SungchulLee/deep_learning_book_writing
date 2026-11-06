@@ -105,7 +105,7 @@ CoordConv의 덤은 아주 적다. 컨볼루션 켜마다 입력 클래스 2개(
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-형태가 $(2, 3, 8, 8)$인 입력에서 `with_r=True`인 `AddCoords`의 출력 꼴은 무엇인가? x 자리 값 클래스의 $(0, 0)$과 $(7, 7)$ 자리의 값은 얼마인가?
+형태가 $(2, 3, 8, 8)$인 입력에서 `with_r=True`인 `AddCoords`의 출력 형태는 무엇인가? x 자리 값 클래스의 $(0, 0)$과 $(7, 7)$ 자리의 값은 얼마인가?
 
 </div>
 

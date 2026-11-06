@@ -219,7 +219,7 @@ def create_baseline(
         device: 셈하는 장치
 
     Returns:
-        들임과 꼴이 같은 베이스라인 텐서
+        들임과 형태가 같은 베이스라인 텐서
     """
     if baseline_type == 'zeros':
         # 검은 그림(그림에 가장 흔히 고른다)
@@ -280,14 +280,14 @@ class IntegratedGradients:
         쌓은 그래디언트 몫을 셈한다.
 
         Args:
-            input_tensor: (1, *들임 차원) 꼴 들임 텐서
-            baseline: 꼴이 같은 베이스라인 텐서. None이면 0을 쓴다.
+            input_tensor: (1, *들임 차원) 형태 들임 텐서
+            baseline: 형태가 같은 베이스라인 텐서. None이면 0을 쓴다.
             target_class: 몫을 매길 겨눈 클래스. None이면 argmax을 쓴다.
             n_steps: 적분 스텝 수(많을수록 더 맞다)
             return_convergence_delta: True이면 어림 어긋남도 내놓는다
 
         Returns:
-            들임과 꼴이 같은 몫 텐서
+            들임과 형태가 같은 몫 텐서
         """
         self.model.eval()
         device = input_tensor.device

@@ -12,7 +12,7 @@ Writing fixes: 7 (🔴 3, 🟡 3, 🟢 1)
 Skipped: 🟢 `out += self.shortcut(x)`의 제자리 더하기를 `out = out + ...`으로
 바꾸지 않았다. BatchNorm의 역전파는 제 출력을 쓰지 않으므로 오류가 없고,
 다음 쪽 `02_resnet_implementation.md` 60번째 줄의 `out += identity`와 같은
-꼴이라 여기만 바꾸면 절 안에서 이 쪽이 튄다.
+형태 여기만 바꾸면 절 안에서 이 쪽이 튄다.
 
 Notes
 - 🔴 실린 기울기 노름 두 줄(220.2348, 94.7495)이 재현되지 않았다. 씨앗이

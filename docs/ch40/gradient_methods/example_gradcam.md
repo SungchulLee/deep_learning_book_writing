@@ -330,7 +330,7 @@ class GradCAMPlusPlus(GradCAM):
         w_k   = Σ_ij α^kij · relu(∂y/∂A^k_ij)
 
     점수에 지수를 씌운 경우 ∂ⁿy/∂Aⁿ가 (∂y/∂A)ⁿ이 되므로, 기울기 하나로
-    위 식을 그대로 셈할 수 있다. 아래가 그 꼴이다.
+    위 식을 그대로 셈할 수 있다. 아래가 그 형태.
     """
 
     def __call__(
@@ -433,7 +433,7 @@ def example_resnet_gradcam():
     print("Grad-CAM 열 그림을 만드는 중...")
     cam = gradcam.generate_cam(input_tensor, target_class=None)
 
-    print(f"CAM 꼴: {cam.shape}")
+    print(f"CAM 형태: {cam.shape}")
     print(f"CAM 가장 작음/큼: {cam.min():.4f} / {cam.max():.4f}")
 
     # 그림으로 보인다

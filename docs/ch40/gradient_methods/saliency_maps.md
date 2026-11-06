@@ -54,7 +54,7 @@ $$
 
 흔히 쓰는 모으기 꾀는 이렇다.
 
-| 방법 | 꼴 | 피처 |
+| 방법 | 형태 | 피처 |
 |--------|---------|-----------------|
 | **가장 큼** | $S_{i,j} = \max_{k \in \{R,G,B\}} \|G_{k,i,j}\|$ | 어느 통로에서든 중요한 픽셀을 짚는다 |
 | **평균** | $S_{i,j} = \frac{1}{3} \sum_{k} \|G_{k,i,j}\|$ | 통로에 걸쳐 중요함을 고르게 한다 |
@@ -84,12 +84,12 @@ def compute_saliency_map(
 
     Args:
         model: 따지는 결로 놓인 뉴럴 네트워크 모형
-        input_tensor: (1, C, H, W) 꼴 들임 텐서
+        input_tensor: (1, C, H, W) 형태 들임 텐서
         target_class: 겨눈 클래스 번호(None이면 미루어 본 클래스를 쓴다)
         device: 셈하는 장치
 
     Returns:
-        (H, W) 꼴 numpy 배열 두드러짐 그림
+        (H, W) 형태 numpy 배열 두드러짐 그림
     """
     if device is None:
         device = next(model.parameters()).device
@@ -320,7 +320,7 @@ grad_input = gradient_times_input(model, image_tensor, pred_class)
 # 그리려고 본디 그림을 채비한다
 original = np.array(image.resize((224, 224))) / 255.0
 
-print(f"두드러짐 꼴: {saliency.shape}")
+print(f"두드러짐 형태: {saliency.shape}")
 print(f"값 너비: [{saliency.min():.6f}, {saliency.max():.6f}]")
 ```
 

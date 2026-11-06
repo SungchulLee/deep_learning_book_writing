@@ -58,7 +58,7 @@ Q 학습과 DQN이 널리 쓰이는 까닭이 이것이다. $Q^*$을 곧바로 �
 
 $$Q_\pi(s, a) = R(s, a) + \gamma \sum_{s'} P(s'|s,a) V_\pi(s')$$
 
-### 곧바른 행렬 꼴
+### 곧바른 행렬 형태
 
 유한 마르코프 결정 과정에서 Q 함수를 행렬 $\mathbf{Q} \in \mathbb{R}^{|\mathcal{S}| \times |\mathcal{A}|}$으로 나타낼 수 있다:
 

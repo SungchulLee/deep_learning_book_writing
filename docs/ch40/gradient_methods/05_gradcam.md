@@ -166,7 +166,7 @@ def example_1_basic_gradcam():
     print("\nGrad-CAM을 셈하는 중...")
     heatmap = gradcam(image_tensor, target_class, device)
 
-    print(f"열 그림 꼴: {heatmap.shape}")
+    print(f"열 그림 형태: {heatmap.shape}")
     print(f"값 너비: [{heatmap.min():.3f}, {heatmap.max():.3f}]")
 
     # 그림으로 보인다

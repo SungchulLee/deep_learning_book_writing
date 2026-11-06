@@ -62,11 +62,11 @@ $$\pi^*(a|s) = \frac{\exp(Q_\text{부드러운}^*(s,a) / \alpha)}{Z(s)}$$
 
 ### 저절로 벼리기
 
-매인 꼴이 $\alpha^*$을 찾는다.
+매인 형태가 $\alpha^*$을 찾는다.
 
 $$\alpha^* = \arg\min_{\alpha > 0} \mathbb{E}_\pi\left[-\alpha \log \pi(a|s)\right] \text{ 단 } \mathcal{H}(\pi) \geq \bar{\mathcal{H}}$$
 
-이 쌍대 꼴은 겨눈 엔트로피 $\bar{\mathcal{H}}$을 지키도록 $\alpha$을 저절로 맞춘다.
+이 쌍대 형태는 겨눈 엔트로피 $\bar{\mathcal{H}}$을 지키도록 $\alpha$을 저절로 맞춘다.
 
 ---
 
@@ -102,7 +102,7 @@ $$\alpha^* = \arg\min_{\alpha > 0} \mathbb{E}_\pi\left[-\alpha \log \pi(a|s)\rig
 </div>
 
 ??? success "풀이"
-    폴리시 경사는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 어드밴티지 어림이다. 로그 확률 그래디언트 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 어드밴티지 $\hat{A}_t$은 뽑은 추적에서 어림해야 하므로 분산이 들어온다. 기댓값은 추적 배치에 걸쳐 고르게 하여 어림한다. 베이스라인으로 분산을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
+    폴리시 경사는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 형태이 여기서 $\hat{A}_t$은 어드밴티지 어림이다. 로그 확률 그래디언트 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 어드밴티지 $\hat{A}_t$은 뽑은 추적에서 어림해야 하므로 분산이 들어온다. 기댓값은 추적 배치에 걸쳐 고르게 하여 어림한다. 베이스라인으로 분산을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 

@@ -105,7 +105,7 @@ class CausalSelfAttention(nn.Module):
         # [배치, 머리 수, 차례 길이, d_k]
         context = torch.matmul(attention_weights, V)
         
-        # 다시 꼴 되돌리기
+        # 다시 형태 되돌리기
         # [배치, 차례 길이, d_model]
         context = context.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         
@@ -205,7 +205,7 @@ x -> LayerNorm -> Attention -> + -> LayerNorm -> FFN -> +
 ```python
 class GPT(nn.Module):
     """
-    GPT 꼴 자기 회귀 트랜스포머.
+    GPT 형태 자기 회귀 트랜스포머.
     
     구조:
         - 토큰 임베딩 + 자리 임베딩
@@ -385,7 +385,7 @@ PE_{pos,2i+1}=\cos(pos/10000^{2i/d}).$$
 
 ```python
 class SinusoidalPositionalEncoding(nn.Module):
-    """붙박인 사인 꼴 자리 부호화."""
+    """붙박인 사인 형태 자리 부호화."""
     
     def __init__(self, d_model: int, max_seq_len: int = 5000):
         super().__init__()

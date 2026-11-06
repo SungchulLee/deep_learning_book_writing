@@ -9,9 +9,9 @@
 적대적 강건성의 핵심 이론, 위협 모델, 수학 틀.
 
 - [적대적 강건성 입문](foundations/introduction.md) -- 적대적 샘플을 찾아낸 이야기, 그것이 있는 까닭에 대한 여러 짐작, 딥러닝에 걸리는 바
-- [위협 모델](foundations/threat_models.md) -- 화이트박스, 블랙박스, 참 세상에 걸쳐 겨루는 이의 앎, 힘, 목표를 꼴로 적기
+- [위협 모델](foundations/threat_models.md) -- 화이트박스, 블랙박스, 참 세상에 걸쳐 겨루는 이의 앎, 힘, 목표를 형태로 적기
 - [강건성 정의](foundations/definitions.md) -- 점마다의 강건성, 가장 작은 적대적 섭동, 다시 쓸 수 있는 PyTorch 공격 밑 클래스
-- [섭동 유형](foundations/perturbations.md) -- L-무한, L-2, L-1 노름의 제약과 그 꼴, 그리고 되비추는 계산
+- [섭동 유형](foundations/perturbations.md) -- L-무한, L-2, L-1 노름의 제약과 그 형태, 그리고 되비추는 계산
 
 ---
 
@@ -21,7 +21,7 @@
 
 - [FGSM](white_box/fgsm.md) -- 선형 짐작에서 비롯한, 한 스텝짜리 기초 그래디언트 공격
 - [되비춘 그래디언트 내림(PGD)](white_box/pgd.md) -- 강건성을 따지는 사실상의 잣대가 된 여러 스텝 회귀 공격
-- [DeepFool](white_box/deepfool.md) -- 가장 가까운 결정 경계를 넘는 가장 작은 섭동을 찾는 꼴 기초의 공격
+- [DeepFool](white_box/deepfool.md) -- 가장 가까운 결정 경계를 넘는 가장 작은 섭동을 찾는 형태 기초의 공격
 - [Carlini-Wagner(C&W) 공격](white_box/cw_attack.md) -- 적대적 샘플 만들기를 제약 없는 최소화로 다시 쓴 공격
 - [AutoAttack](white_box/autoattack.md) -- 하이퍼파라미터를 맞추지 않고도 강건성을 미덥게 따지는 파라메터 없는 앙상블 공격
 
@@ -43,7 +43,7 @@
 참 자리에 내놓아도 살아남는 적대적 섭동.
 
 - [적대적 패치](physical/patches.md) -- 참 세상에서 분류기를 속이는, 그 자리에 몰린 찍어 낼 수 있는 섭동
-- [3차원 적대적 공격](physical/3d_attacks.md) -- 보는 자리를 바꿔도 맞서는, 물체의 꼴·피처·빛에 준 섭동
+- [3차원 적대적 공격](physical/3d_attacks.md) -- 보는 자리를 바꿔도 맞서는, 물체의 형태·피처·빛에 준 섭동
 - [실제 환경에서의 강건성](physical/real_world.md) -- 바뀜에 걸친 바람(EOT)으로 셈틀과 참 세상의 틈 메우기
 
 ---

@@ -59,7 +59,7 @@ class AttentionVisualizer:
         def hook_fn(name):
             def hook(module, input, output):
                 # 어텐션 짐을 갈무리한다
-                # 내놓기 꼴은 모형 얼개마다 다르다
+                # 내놓기 형태는 모형 얼개마다 다르다
                 if isinstance(output, tuple) and len(output) > 1:
                     # 흔히 (내놓기, 어텐션 짐)
                     self.attention_maps[name] = output[1].detach()
@@ -434,7 +434,7 @@ def example_bert_attention():
     attentions = outputs.attentions
 
     print(f"\n켜의 수: {len(attentions)}")
-    print(f"켜마다의 어텐션 꼴: {attentions[0].shape}")
+    print(f"켜마다의 어텐션 형태: {attentions[0].shape}")
 
     # 마지막 켜를 그린다
     print("\n마지막 켜의 어텐션을 그리는 중...")
@@ -497,7 +497,7 @@ def example_gpt2_attention():
     attentions = outputs.attentions
 
     print(f"\n켜의 수: {len(attentions)}")
-    print(f"켜마다의 어텐션 꼴: {attentions[0].shape}")
+    print(f"켜마다의 어텐션 형태: {attentions[0].shape}")
 
     # 인과 어텐션 결을 그린다(GPT-2은 인과 가리개를 쓴다)
     print("\n인과 어텐션 결을 그리는 중...")

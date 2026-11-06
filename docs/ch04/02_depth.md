@@ -85,7 +85,7 @@ transform = transforms.Compose([
 ])
 
 # 아래 두 줄은 변환을 **하지 않는다.** 어떻게 변환할지를 적어 둘 뿐이다.
-# 생성자가 끝난 시점에 데이터셋이 들고 있는 것은 여전히 (50000, 32, 32, 3) 꼴의
+# 생성자가 끝난 시점에 데이터셋이 들고 있는 것은 여전히 (50000, 32, 32, 3) 형태의
 # uint8 numpy 배열이고, 변환은 한 장을 꺼낼 때마다 __getitem__ 안에서 일어난다.
 train_dataset = datasets.CIFAR10("./data", train=True,  download=True, transform=transform)
 test_dataset  = datasets.CIFAR10("./data", train=False, download=True, transform=transform)

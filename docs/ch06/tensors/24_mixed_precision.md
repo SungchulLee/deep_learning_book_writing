@@ -90,7 +90,7 @@ def main():
     header("5. 오늘의 API")
     print(f"고른 장치: {DEV}")
     print("torch.amp.autocast(device_type, dtype=...) 와 torch.amp.GradScaler(device_type)")
-    print("가 지금 쓰는 꼴이다. torch.cuda.amp.* 는 예전 이름이다.")
+    print("가 지금 쓰는 형태. torch.cuda.amp.* 는 예전 이름이다.")
     scaler = torch.amp.GradScaler(DEV)
     print(f"GradScaler 가 켜졌는가: {scaler.is_enabled()}")
     print("장치 이름을 넘기면 그 장치에 맞게 켜지고 꺼진다 — 직접 끌 일은 거의 없다.")
@@ -159,7 +159,7 @@ float32 로 둔다. .half() 는 그런 구별 없이 모두 내린다.
 ======================================================================
 고른 장치: mps
 torch.amp.autocast(device_type, dtype=...) 와 torch.amp.GradScaler(device_type)
-가 지금 쓰는 꼴이다. torch.cuda.amp.* 는 예전 이름이다.
+가 지금 쓰는 형태. torch.cuda.amp.* 는 예전 이름이다.
 GradScaler 가 켜졌는가: True
 장치 이름을 넘기면 그 장치에 맞게 켜지고 꺼진다 — 직접 끌 일은 거의 없다.
 ```

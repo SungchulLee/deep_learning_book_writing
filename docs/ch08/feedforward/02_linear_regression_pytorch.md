@@ -24,7 +24,7 @@ y = true_w * X + true_b + noise
 # ── 2. 파라메터를 손으로 만든다 ─────────────────────────────────────
 # requires_grad를 켜지 않는다. 이 예제의 요점이 autograd 없이
 # 그래디언트를 손으로 셈해 보는 것이기 때문이다
-w = torch.randn(1, 1, device=device)   # (1,1): X @ w 가 되도록 행렬 꼴
+w = torch.randn(1, 1, device=device)   # (1,1): X @ w 가 되도록 행렬 형태
 b = torch.zeros(1, 1, device=device)
 
 def forward(X, w, b):

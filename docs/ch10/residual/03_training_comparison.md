@@ -75,7 +75,7 @@ class ConvStack(nn.Module):
         super().__init__()
         self.residual = residual
         # stride 2 컨볼루션과 최대 풀링으로 32x32 를 8x8 로 줄인다. ResNet 의
-        # 머리처럼 블록에 닿기 전에 두 번 반으로 줄이는 꼴이고, 블록들이
+        # 머리처럼 블록에 닿기 전에 두 번 반으로 줄이는 형태이, 블록들이
         # 8x8 에서 돌아 씨앗 셋을 돌릴 만큼 싸진다.
         self.stem = nn.Conv2d(3, width, kernel_size=3, stride=2, padding=1,
                               bias=False)

@@ -58,7 +58,7 @@ webtext_filter는 수집 아이디어를 요약한 의사코드다. reddit_karma
 ```python
 def gpt2_zero_shot_translation():
     """
-    GPT-2는 자료를 시킴말 꼴로 꾸미면 맨몸으로도 일을 할 수 있음을 알아냈다.
+    GPT-2는 자료를 시킴말 형태로 꾸미면 맨몸으로도 일을 할 수 있음을 알아냈다.
     """
     prompt = """
     영어: Hello, how are you?

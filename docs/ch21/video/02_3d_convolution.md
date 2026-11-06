@@ -102,7 +102,7 @@
             # 2차원 컨볼루션 쓰기
             out = self.conv(x)  # (B*T, out_C, H, W)
 
-            # 다시 꼴 되돌리기
+            # 다시 형태 되돌리기
             if batch_mode:
                 out = out.view(B, T, -1, H, W)
             else:
@@ -145,12 +145,12 @@
             3차원 컨볼루션을 쓴 피드포워드.
 
             인수:
-                x: 들임 영상 (B, C, T, H, W) — 유의: PyTorch 3차원 컨볼루션 꼴!
+                x: 들임 영상 (B, C, T, H, W) — 유의: PyTorch 3차원 컨볼루션 형태!
 
             반환값:
                 내놓는 피처 (B, out_C, T, H, W)
 
-            중요: PyTorch Conv3d는 (B, C, T, H, W) 꼴을 바란다
+            중요: PyTorch Conv3d는 (B, C, T, H, W) 형태를 바란다
             """
             # 들임 형태 살피기
             if x.dim() == 4:
@@ -602,7 +602,7 @@
         with torch.no_grad():
             _ = model(video)
 
-        # 활성화 꼴 찍기
+        # 활성화 형태 찍기
         print(f"\nFeature map shapes:")
         for name in layer_names[:5]:  # 처음 5개 레이어 보이기
             if name in activations:

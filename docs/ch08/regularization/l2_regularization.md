@@ -395,7 +395,7 @@ def create_param_groups_with_l2(model, base_lr=0.001,
             continue
         
         # 레이어에 맞는 감쇠율 찾기.
-        # name은 'network.0.weight' 같은 꼴이라, 사전의 열쇠가 그 안에
+        # name은 'network.0.weight' 같은 형태, 사전의 열쇠가 그 안에
         # 들어 있기만 하면 걸린다. 부분 문자열로 맞추는 방식이라
         # 'fc1'이 'fc10'에도 걸린다는 점을 조심하라.
         # break가 있어 먼저 걸리는 것 하나만 쓰는데, 사전의 차례가

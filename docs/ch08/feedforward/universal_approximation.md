@@ -360,7 +360,7 @@ wide_losses = train_model(wide_model, x, y)
 deep_losses = train_model(deep_model, x, y)
 
 # 파라메터가 비슷한데도 깊은 쪽의 MSE가 작으면, 그 이득은 크기가 아니라
-# 깊이에서 온 것이다. 다만 이 결과는 목표 함수가 합성 꼴이라는 데
+# 깊이에서 온 것이다. 다만 이 결과는 목표 함수가 합성 형태는 데
 # 기대고 있으므로, 모든 문제에서 깊이가 이긴다는 뜻은 아니다
 print(f"Wide-shallow final MSE: {wide_losses[-1]:.6f}")
 print(f"Deep-narrow  final MSE: {deep_losses[-1]:.6f}")

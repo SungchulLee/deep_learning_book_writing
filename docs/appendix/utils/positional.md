@@ -59,7 +59,7 @@ class SinusoidalPositionalEncoding(nn.Module):
 
 
 class LearnablePositionalEmbedding(nn.Module):
-    """BERT이나 ViT 꼴 모형에서 쓰는, 배울 수 있는 자리 담기."""
+    """BERT이나 ViT 형태 모형에서 쓰는, 배울 수 있는 자리 담기."""
     def __init__(self, max_len: int, d_model: int):
         super().__init__()
         self.pos = nn.Embedding(max_len, d_model)
@@ -83,10 +83,10 @@ def rope_rotate_half(x):
 def apply_rope(q, k, cos, sin):
     """
     q과 k에 도는 자리 담기를 건다.
-    LLaMA 꼴 모형에서 쓰는, 깨침을 잡기 위한 도우미다.
+    LLaMA 형태 모형에서 쓰는, 깨침을 잡기 위한 도우미다.
 
     q, k: (..., D), D은 짝수다
-    cos, sin: (..., D) 또는 q/k으로 펴 맞출 수 있는 꼴
+    cos, sin: (..., D) 또는 q/k으로 펴 맞출 수 있는 형태
     """
     q_rot = (q * cos) + (rope_rotate_half(q) * sin)
     k_rot = (k * cos) + (rope_rotate_half(k) * sin)

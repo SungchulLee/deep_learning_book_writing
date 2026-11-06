@@ -534,7 +534,7 @@ class ModelComparison:
     n_obs: int
     
     def summary(self) -> str:
-        """꼴을 갖춘 견줌 표를 되돌린다."""
+        """형태를 갖춘 견줌 표를 되돌린다."""
         lines = []
         lines.append("Model Comparison Summary")
         lines.append("=" * 70)
@@ -1487,7 +1487,7 @@ elpd_LOO=−100과 WAIC=210을 같은 방향으로 비교할 수 있는가?
     ```python
     import numpy as np
     # 구현은 주제에 따라 달라진다.
-    # 켤레 모형: 닫힌 꼴 뒤확률 새로 고치기.
+    # 켤레 모형: 닫힌 형태 뒤확률 새로 고치기.
     # 켤레가 아닌 모형: MCMC 또는 변분 추론.
     # 핵심 스텝: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
     ```

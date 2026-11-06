@@ -97,7 +97,7 @@ class RNN(nn.Module):
 
 
 if __name__ == "__main__":
-    # 얼른 해 보는 맛보기 살핌: 앞으로 스텝을 돌리고 꼴을 찍는다
+    # 얼른 해 보는 맛보기 살핌: 앞으로 스텝을 돌리고 형태를 찍는다
     model = RNN(input_size=8, hidden_size=16)
     x = torch.randn(2, 5, 8)     # (B=2, T=5, input=8)
     y, hT = model(x)

@@ -15,7 +15,7 @@ MART은 방어의 힘을 가장 있어야 할 어려운 보기에 모은다.
 
 ---
 
-## 2. 수학 꼴
+## 2. 수학 형태
 
 ### MART 로스
 
@@ -128,7 +128,7 @@ class MARTTrainer:
         """
         # 맞서는 보기의 북돋운 엇갈린 엔트로피
         adv_probs = F.softmax(logits_adv, dim=1)
-        # BCE 꼴: 잣대 잡은 -log(p_y(x_adv))
+        # BCE 형태: 잣대 잡은 -log(p_y(x_adv))
         tmp = torch.argsort(adv_probs, dim=1)[:, -2:]
         new_y = torch.where(
             tmp[:, -1] == y, tmp[:, -2], tmp[:, -1]

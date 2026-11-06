@@ -157,7 +157,7 @@ def load_and_run_maskrcnn(image: torch.Tensor, threshold: float = 0.5):
     keep = predictions['scores'] > threshold
     
     return {
-        'boxes': predictions['boxes'][keep],       # (N, 4) xyxy 꼴
+        'boxes': predictions['boxes'][keep],       # (N, 4) xyxy 형태
         'labels': predictions['labels'][keep],     # (N,) 클래스 번호
         'scores': predictions['scores'][keep],     # (N,) 믿음도
         'masks': predictions['masks'][keep] > 0.5  # (N, 1, H, W) 두 클래스 마스크

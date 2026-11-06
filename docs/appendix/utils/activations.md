@@ -47,7 +47,7 @@ class GLU(nn.Module):
 
 class SwiGLU(nn.Module):
     """
-    SwiGLU(LLaMA이나 PaLM 꼴 피드포워드에서 쓴다):
+    SwiGLU(LLaMA이나 PaLM 형태 피드포워드에서 쓴다):
       SwiGLU(x) = (SiLU(xW1) * (xW3)) W2
     """
     def __init__(self, dim: int, hidden_dim: int):

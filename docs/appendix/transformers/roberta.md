@@ -18,7 +18,7 @@ BERT과의 핵심 다름(크게 보아):
   - 움직이는 가림을 쓴다
 
 두루마리: appendix/transformers/roberta.py
-눈여겨볼 것: 인코더만 있는 BERT 꼴 트랜스포머를 배우기 위해 짜 본 것이다.
+눈여겨볼 것: 인코더만 있는 BERT 형태 트랜스포머를 배우기 위해 짜 본 것이다.
 """
 
 import torch

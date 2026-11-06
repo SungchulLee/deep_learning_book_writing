@@ -56,7 +56,7 @@ def compute_shap_interactions(model, X, feature_names, n_samples=100):
     """
     나무 모형의 SHAP 서로 미침 값을 셈한다.
 
-    꼴이 [표본 수, 결 수, 결 수]인 interaction_values을 내놓는다.
+    형태가 [표본 수, 결 수, 결 수]인 interaction_values을 내놓는다.
     """
     explainer = shap.TreeExplainer(model)
     interaction_values = explainer.shap_interaction_values(X[:n_samples])

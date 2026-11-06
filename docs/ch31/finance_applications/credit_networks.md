@@ -100,7 +100,7 @@ class CreditNetworkEBM(nn.Module):
         W_sym.fill_diagonal_(0)
         E_vis -= 0.5 * torch.einsum('bi,ij,bj->b', s, W_sym, s)
         
-        # 숨은 항(닫힌 꼴로 가장자리로 몰아냈다)
+        # 숨은 항(닫힌 형태로 가장자리로 몰아냈다)
         activation = s @ self.W_sector + self.b_sector
         E_hid = -torch.log(1 + torch.exp(activation)).sum(dim=1)
         

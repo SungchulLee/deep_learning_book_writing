@@ -68,7 +68,7 @@ class WalkForwardAnalyzer:
         앞으로 걸어가며 살피기를 돌린다.
 
         Args:
-            returns: (T, N)이나 (T,) 꼴 돌아옴 열
+            returns: (T, N)이나 (T,) 형태 돌아옴 열
             train_fn: function(train_returns) -> 모형/몫
             eval_fn: function(model, test_returns) -> 꾀의 돌아옴
         """

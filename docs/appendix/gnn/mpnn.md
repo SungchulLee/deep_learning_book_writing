@@ -56,7 +56,7 @@ class MessageFn(nn.Module):
 class UpdateFn(nn.Module):
     """
     고침 함수 U(h_i, m_i).
-    여기서는 GRUCell 꼴 고침을 쓴다(단순하고 흔하다).
+    여기서는 GRUCell 형태 고침을 쓴다(단순하고 흔하다).
     """
     def __init__(self, node_dim: int, msg_dim: int):
         super().__init__()

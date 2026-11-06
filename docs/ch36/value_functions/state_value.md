@@ -47,7 +47,7 @@ _확인한 곳 — M. Minsky, "Steps Toward Artificial Intelligence", *Proceedin
 
 ## 3. 유한 마르코프 결정 과정에서 V_pi 계산
 
-### 곧바른 계산(행렬 꼴)
+### 곧바른 계산(행렬 형태)
 
 유한 마르코프 결정 과정에서 $V_\pi$은 선형 방정식 체계를 풀어 셈할 수 있다:
 

@@ -42,7 +42,7 @@ class TimeConditionalScoreNetwork(nn.Module):
     def __init__(self, data_dim=2, hidden_dim=128, time_embed_dim=32):
         super().__init__()
         
-        # 때 임베딩(트랜스포머처럼 사인 꼴)
+        # 때 임베딩(트랜스포머처럼 사인 형태)
         self.time_embed_dim = time_embed_dim
         
         # 때 임베딩을 위한 여러 레이어 뉴럴 네트워크
@@ -64,7 +64,7 @@ class TimeConditionalScoreNetwork(nn.Module):
         )
     
     def get_timestep_embedding(self, timesteps, max_period=10000):
-        """사인 꼴 시간 임베딩(트랜스포머에서 가져옴)"""
+        """사인 형태 시간 임베딩(트랜스포머에서 가져옴)"""
         half_dim = self.time_embed_dim // 2
         freqs = torch.exp(
             -np.log(max_period) * torch.arange(half_dim, dtype=torch.float32) / half_dim
@@ -133,7 +133,7 @@ print("""
 
 1. 때 조건 주기:
    - 확산 모델에 꼭 필요하다
-   - 사인 꼴 임베딩(트랜스포머 방식)
+   - 사인 형태 임베딩(트랜스포머 방식)
    - 또는 배울 수 있는 임베딩
 
 2. 2차원과 표 자료에서:
@@ -178,7 +178,7 @@ Epoch 800: Loss = 2.645384, σ = 0.500
 
 1. 때 조건 주기:
    - 확산 모델에 꼭 필요하다
-   - 사인 꼴 임베딩(트랜스포머 방식)
+   - 사인 형태 임베딩(트랜스포머 방식)
    - 또는 배울 수 있는 임베딩
 
 2. 2차원과 표 자료에서:

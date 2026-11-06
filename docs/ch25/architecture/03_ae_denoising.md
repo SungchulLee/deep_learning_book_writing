@@ -108,7 +108,7 @@ salt-and-pepper 분기는 확률 `noise_factor/2`로 1, 같은 확률로 0을 �
 
 **다만 논문이 내놓은 증거는 이 쪽이 재는 것과 다르다.** 초록이 말하는 성과는 "the surprising advantage of corrupting the input of autoencoders on a **pattern classification benchmark** suite" — 복원 그림의 품질이 아니라 **뒤따르는 분류 성능**이었다. 디노이징은 표현을 얻기 위한 수단이었지 목적이 아니었다. 바로 아래 4절이 적어 둔 대로 이 쪽 코드는 PSNR도 분류 정확도도 재지 않으므로, 여기서 나온 복원 그림으로 "DAE가 더 좋은 표현을 준다"는 원 논문의 주장을 확인한 것은 아니다.
 
-_확인한 곳 — P. Vincent, H. Larochelle, Y. Bengio, P.-A. Manzagol, "Extracting and Composing Robust Features with Denoising Autoencoders", *Proc. ICML '08*, 1096–1103. 인용한 세 구절은 초록과 1절, 2.3절에서 가져왔다. 그림의 숫자는 꼴만 그린 것이고 MNIST 표본이 아니다._
+_확인한 곳 — P. Vincent, H. Larochelle, Y. Bengio, P.-A. Manzagol, "Extracting and Composing Robust Features with Denoising Autoencoders", *Proc. ICML '08*, 1096–1103. 인용한 세 구절은 초록과 1절, 2.3절에서 가져왔다. 그림의 숫자는 형태만 그린 것이고 MNIST 표본이 아니다._
 
 </div>
 

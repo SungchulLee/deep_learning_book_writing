@@ -322,7 +322,7 @@
             sensitive_attrs: 예민한 됨됨이의 사전
 
         Returns:
-            꼴 갖춘 따짐 알림
+            형태 갖춘 따짐 알림
         """
         metrics = FairnessMetrics()
         report = []

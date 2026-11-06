@@ -15,7 +15,7 @@
   - MSE(회귀)
   - BCEWithLogits(둘 가름)
   - 초점 잃음(촘촘한 탐지)
-  - KL 갈림 도우미(VAE 꼴)
+  - KL 갈림 도우미(VAE 형태)
 
 두루마리: appendix/utils/losses.py
 눈여겨볼 것: 알아보기 쉽도록 배우기 위해 짜 본 것이다.

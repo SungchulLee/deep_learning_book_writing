@@ -299,7 +299,7 @@ $k = 16$에서 뒤집힌다. 47.47%에 퍼짐이 38.70~59.80으로 20%p가 넘�
 
 ## 6. 적응적 러닝레이트
 
-**Adam**, **RMSprop**, **AdaGrad** 는 경사의 통계를 써서 파라메터 성분별로 걸음을 다르게 준다. 대략의 꼴은 이렇다.
+**Adam**, **RMSprop**, **AdaGrad** 는 경사의 통계를 써서 파라메터 성분별로 걸음을 다르게 준다. 대략의 형태는 이렇다.
 
 $$\theta_{j,t+1} = \theta_{j,t} - \frac{\eta}{\sqrt{v_{j,t}} + \epsilon} \cdot m_{j,t}$$
 
@@ -913,7 +913,7 @@ PyTorch의 `CosineAnnealingLR`이 내놓는 값이 $\eta_t = \frac{\eta_0}{2}\le
 
     $\eta > 0$에서 $1 - \eta\mu$는 $\eta$에 대해 감소하는 일차함수이고 $1-\eta L$은 더 가파르게 감소한다. $\mu \leq L$이므로 항상 $1 - \eta L \leq 1 - \eta\mu$다.
 
-    $\eta$가 작을 때는 둘 다 양수이고 $|1-\eta\mu| = 1-\eta\mu$가 더 크다. $\eta$가 클 때는 $1-\eta L$이 음수로 깊이 내려가 $|1-\eta L| = \eta L - 1$이 더 크다. 앞의 것은 $\eta$에 대해 감소하고 뒤의 것은 증가하므로, 두 조각의 최댓값인 $g$는 **아래로 볼록한 V자** 꼴이고 최소는 두 조각이 만나는 곳에 있다.
+    $\eta$가 작을 때는 둘 다 양수이고 $|1-\eta\mu| = 1-\eta\mu$가 더 크다. $\eta$가 클 때는 $1-\eta L$이 음수로 깊이 내려가 $|1-\eta L| = \eta L - 1$이 더 크다. 앞의 것은 $\eta$에 대해 감소하고 뒤의 것은 증가하므로, 두 조각의 최댓값인 $g$는 **아래로 볼록한 V자** 형태이 최소는 두 조각이 만나는 곳에 있다.
 
     $$1 - \eta\mu = \eta L - 1 \quad\Longrightarrow\quad 2 = \eta(L + \mu) \quad\Longrightarrow\quad \eta^* = \frac{2}{L+\mu}$$
 

@@ -39,8 +39,8 @@ def box_iou(
     여기 짠 것은 효율을 위해 배치 셈을 받쳐 준다.
     
     인수:
-        boxes1: xyxy 꼴의, 형태가 (N, 4)인 텐서
-        boxes2: xyxy 꼴의, 형태가 (M, 4)인 텐서
+        boxes1: xyxy 형태의, 형태가 (N, 4)인 텐서
+        boxes2: xyxy 형태의, 형태가 (M, 4)인 텐서
         eps: 0으로 나누지 않도록 하는 작은 엡실론
         
     반환값:
@@ -88,8 +88,8 @@ def box_iou_single(box1: torch.Tensor, box2: torch.Tensor) -> float:
     낱낱의 두 상자 사이 겹침 비를 셈한다.
     
     인수:
-        box1: xyxy 꼴의, 형태가 (4,)인 텐서
-        box2: xyxy 꼴의, 형태가 (4,)인 텐서
+        box1: xyxy 형태의, 형태가 (4,)인 텐서
+        box2: xyxy 형태의, 형태가 (4,)인 텐서
         
     반환값:
         실수로 된 겹침 비 값
@@ -110,8 +110,8 @@ def batch_iou(
     어림이 이미 목표에 짝지어진 익히기 동안 쓸모 있다.
     
     인수:
-        pred_boxes: xyxy 꼴의 (N, 4) 어림 상자
-        target_boxes: xyxy 꼴의 (N, 4) 목표 상자
+        pred_boxes: xyxy 형태의 (N, 4) 어림 상자
+        target_boxes: xyxy 형태의 (N, 4) 목표 상자
         
     반환값:
         (N,) 어림-목표 짝마다의 겹침 비 값
@@ -157,8 +157,8 @@ def generalized_box_iou(
     GIoU = 겹침 비 - (감싸는 상자의 넓이 - 합집합) / 감싸는 상자의 넓이
     
     인수:
-        boxes1: xyxy 꼴의 (N, 4) 상자
-        boxes2: xyxy 꼴의 (N, 4) 상자
+        boxes1: xyxy 형태의 (N, 4) 상자
+        boxes2: xyxy 형태의 (N, 4) 상자
         
     반환값:
         (N,) GIoU 값
@@ -219,8 +219,8 @@ def complete_box_iou(
     CIoU는 겹침, 가운데점 거리, 가로세로비를 헤아린다.
     
     인수:
-        boxes1: xyxy 꼴의 (N, 4) 어림 상자
-        boxes2: xyxy 꼴의 (N, 4) 목표 상자
+        boxes1: xyxy 형태의 (N, 4) 어림 상자
+        boxes2: xyxy 형태의 (N, 4) 목표 상자
         
     반환값:
         (N,) CIoU 값
@@ -325,7 +325,7 @@ def nms(
     실전에서는 C++로 다듬은 torchvision.ops.nms를 쓴다.
     
     인수:
-        boxes: xyxy 꼴의 (N, 4) 두름 상자
+        boxes: xyxy 형태의 (N, 4) 두름 상자
         scores: (N,) 믿음도 점수
         iou_threshold: 누르기용 겹침 비 임계값
         
@@ -440,7 +440,7 @@ def soft_nms(
     물체가 겹치는 붐비는 장면에 더 낫다.
     
     인수:
-        boxes: xyxy 꼴의 (N, 4) 두름 상자
+        boxes: xyxy 형태의 (N, 4) 두름 상자
         scores: (N,) 믿음도 점수
         iou_threshold: 선형 방식의 겹침 비 임계값
         score_threshold: 남길 최소 점수
@@ -515,7 +515,7 @@ def diou_nms(
     겹치는 물체를 더 잘 다루려 겹침 비 대신 DIoU를 쓴다.
     
     인수:
-        boxes: xyxy 꼴의 (N, 4) 두름 상자
+        boxes: xyxy 형태의 (N, 4) 두름 상자
         scores: (N,) 믿음도 점수
         iou_threshold: 누르기용 DIoU 임계값
         beta: DIoU의 지수(가운데점 거리 무게를 다스린다)

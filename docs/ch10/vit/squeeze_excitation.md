@@ -31,7 +31,7 @@ $$\text{SE}(\mathbf{X}) = \mathbf{X} \odot \sigma\left(W_2\,\delta(W_1 \mathbf{z
 - $\sigma$은 시그모이드 게이트이다
 - $\odot$은 채널별 곱을 뜻한다
 
-마지막 기호는 주의해서 읽어야 한다. 오른쪽 인수는 길이 $C$인 벡터이고 왼쪽은 $C \times H \times W$짜리 텐서이므로, $\odot$은 같은 꼴 두 개를 성분별로 곱하는 보통의 아다마르 곱이 아니라 **채널 배율 $s_c$를 그 채널의 $H \times W$ 칸 전체에 퍼뜨려 곱하는 것**이다.
+마지막 기호는 주의해서 읽어야 한다. 오른쪽 인수는 길이 $C$인 벡터이고 왼쪽은 $C \times H \times W$짜리 텐서이므로, $\odot$은 같은 형태 두 개를 성분별로 곱하는 보통의 아다마르 곱이 아니라 **채널 배율 $s_c$를 그 채널의 $H \times W$ 칸 전체에 퍼뜨려 곱하는 것**이다.
 
 $$Y_{c,i,j} = s_c \cdot X_{c,i,j}$$
 
@@ -182,11 +182,11 @@ def check_squeeze():
     se = SEBlock(256)
     z_manual = x.mean(dim=(2, 3))
     z_pool = nn.AdaptiveAvgPool2d(1)(x).flatten(1)
-    print("압축 출력 꼴:", tuple(z_manual.shape), "(배치와 채널은 남는다)")
+    print("압축 출력 형태:", tuple(z_manual.shape), "(배치와 채널은 남는다)")
     print("AdaptiveAvgPool2d(1)와 같은가:", torch.allclose(z_manual, z_pool, atol=1e-6))
     y = se(x)
     s = se.gate(x)
-    print("여기 출력 꼴:", tuple(s.shape))
+    print("여기 출력 형태:", tuple(s.shape))
     print("출력 = 입력 * s 인가(채널별 곱):", torch.allclose(y, x * s[:, :, None, None]))
     # 한 채널만 골라 확인한다 -- 곱이면 비가 일정하고, 더하기면 차가 일정하다.
     ratio = (y[0, 3] / x[0, 3])

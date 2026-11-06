@@ -76,7 +76,7 @@ class WindowSelfAttention(nn.Module):
 
 
 class LongformerBlock(nn.Module):
-    """창 어텐션 + 피드포워드 네트워크를 쓰는 트랜스포머 꼴 덩이 하나."""
+    """창 어텐션 + 피드포워드 네트워크를 쓰는 트랜스포머 형태 덩이 하나."""
     def __init__(self, d_model=256, window=4, ff_dim=1024):
         super().__init__()
         self.attn = WindowSelfAttention(d_model, window)
@@ -100,7 +100,7 @@ class LongformerBlock(nn.Module):
 
 class Longformer(nn.Module):
     """
-    창 어텐션 덩이를 쓰는 Longformer 꼴 인코더.
+    창 어텐션 덩이를 쓰는 Longformer 형태 인코더.
     """
     def __init__(self, vocab_size=30522, d_model=256, window=4, num_layers=4):
         super().__init__()

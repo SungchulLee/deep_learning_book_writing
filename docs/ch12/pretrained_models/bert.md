@@ -53,7 +53,7 @@ $$
 - `[MASK]`: 가린 토큰의 표식
 - `[PAD]`: 패딩 토큰
 
-**입력 꼴:**
+**입력 형태:**
 
 ```
 [CLS] Token1 Token2 ... [SEP] Token1 Token2 ... [SEP]

@@ -30,7 +30,7 @@ import torch.nn as nn
 
 class DistilBERT(nn.Module):
     """
-    인코더만 있는 DistilBERT 꼴 트랜스포머.
+    인코더만 있는 DistilBERT 형태 트랜스포머.
 
     BERT나 RoBERTa와 비슷하되 인코더 켜가 더 적다.
     앎 옮기기는 익히는 동안 일어난다(여기서는 보이지 않는다).

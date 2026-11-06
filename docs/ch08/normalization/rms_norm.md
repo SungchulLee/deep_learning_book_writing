@@ -380,7 +380,7 @@ class LLaMABlock(nn.Module):
             freqs_cis=freqs_cis,
             mask=mask
         )
-        # 두 부분 레이어가 같은 꼴을 되풀이한다. 정규화 → 부분 레이어 → 잔차 덧셈.
+        # 두 부분 레이어가 같은 형태를 되풀이한다. 정규화 → 부분 레이어 → 잔차 덧셈.
         # ffn_norm이 x가 아니라 h를 받는다는 점에 주의하라. 앞선
         # 어텐션의 결과 위에서 이어 간다
         out = h + self.feed_forward(self.ffn_norm(h))
@@ -474,7 +474,7 @@ class LLaMA(nn.Module):
         # 토큰 번호를 dim차원 벡터로 바꾼다. 이것이 모델의 입구다
         self.tok_embeddings = nn.Embedding(vocab_size, dim)
 
-        # 같은 꼴의 블록을 n_layers번 쌓는다. 파이썬 리스트가 아니라
+        # 같은 형태의 블록을 n_layers번 쌓는다. 파이썬 리스트가 아니라
         # ModuleList를 써야 안에 든 파라메터가 model.parameters()에 잡힌다
         self.layers = nn.ModuleList([
             LLaMABlock(dim, n_heads, n_kv_heads, ffn_dim, norm_eps)
