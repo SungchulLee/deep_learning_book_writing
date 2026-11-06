@@ -215,6 +215,12 @@ for name, obj in [("torch.randn(3)", made),
                   ("nn.Parameter(...)", as_param)]:
     print(f"     {name:36s} requires_grad={obj.requires_grad}")
 
+print("     내장 층이 속에 두는 것도 그 셋째 길이다")
+lin = torch.nn.Linear(3, 2)
+for name, w in lin.named_parameters():
+    print(f"       nn.Linear 의 {name:8s} {type(w).__name__:10s} "
+          f"requires_grad={w.requires_grad}")
+
 # === 2. 깃발은 연산을 타고 앞으로 번진다 ====================================
 print("\n  2. 입력 가운데 하나라도 켜져 있으면 출력이 켜진다")
 print(f"     {'왼쪽':>6}{'오른쪽':>8}   {'출력':>6}   grad_fn")
@@ -298,6 +304,9 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
      torch.randn(3, requires_grad=True)   requires_grad=True
      .requires_grad_(True) 로 켠 것          requires_grad=True
      nn.Parameter(...)                    requires_grad=True
+     내장 층이 속에 두는 것도 그 셋째 길이다
+       nn.Linear 의 weight   Parameter  requires_grad=True
+       nn.Linear 의 bias     Parameter  requires_grad=True
 
   2. 입력 가운데 하나라도 켜져 있으면 출력이 켜진다
          왼쪽     오른쪽       출력   grad_fn
@@ -324,7 +333,7 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
   5. .grad 가 사는 자리
      warm_w 모양      : (4, 3)
      warm_w.grad 모양  : (4, 3)   같은가 True
-     한 번 더 역전파하면 -1.2900 가 -2.5800 로 — 덮어쓰지 않고 더한다
+     한 번 더 역전파하면 -0.2916 가 -0.5831 로 — 덮어쓰지 않고 더한다
 
   6. 같은 로스, 깃발만 옮기면
      깃발이 W 에  dL/dW = [2.0, 2.0, 10.0, 10.0]
@@ -340,11 +349,21 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
 |---|---|
 | 만들 때 | `torch.randn(3, requires_grad=True)` |
 | 만든 뒤에 | `t.requires_grad_(True)` |
-| **`nn.Parameter`로 두면** | **저절로 켜진다** |
+| **`nn.Parameter`로 두면** | **`nn.Parameter(torch.randn(3))` — 저절로 켜진다** |
 
-마지막 줄이 모델의 가중치가 **전부 켜져 있는** 까닭이다. `nn.Linear`가 속에
-두는 `weight`와 `bias`는 `nn.Parameter`이고, `nn.Parameter`는 기본으로 깃발을
-켠다. 그래서 모델을 만드는 것만으로 학습 대상이 정해진다.
+마지막 줄이 모델의 가중치가 **전부 켜져 있는** 까닭이다. 층 하나를 열어 보면
+그렇게 되어 있다.
+
+```
+내장 층이 속에 두는 것도 그 셋째 길이다
+  nn.Linear 의 weight   Parameter  requires_grad=True
+  nn.Linear 의 bias     Parameter  requires_grad=True
+```
+
+`nn.Linear`가 속에 두는 `weight`와 `bias`는 맨 텐서가 아니라 `nn.Parameter`이고,
+`nn.Parameter`는 기본으로 깃발을 켠다. 그래서 **모델을 만드는 것만으로 학습
+대상이 정해진다** — 어디에도 `requires_grad=True`를 적은 적이 없는데 옵티마이저에
+`model.parameters()`를 넘기면 그대로 학습이 된다.
 
 거꾸로 **입력 데이터는 꺼져 있다.** 그냥 `torch.randn`이나 `ToTensor()`로 온
 텐서이기 때문이고, 그것이 맞는 기본값이다. 왜 맞는지는 아래 「깃발을 어디에
