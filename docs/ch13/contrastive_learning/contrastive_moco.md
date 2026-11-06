@@ -406,7 +406,7 @@ EMA 계수 m과 큐 피처의 시간적 일관성 사이의 절충을 설명하�
     ```python
     @torch.no_grad()
     def compute_alignment_uniformity(self, im_q, im_k):
-        """정렬(양성 비슷함)과 고름(음성 비슷함)을 셈한다."""
+        """정렬(양성 비슷함)과 균일성(음성 비슷함)을 셈한다."""
         q = F.normalize(self.encoder_q(im_q), dim=1)
 
         im_k_shuffled, idx_unshuffle = self._batch_shuffle_ddp(im_k)
@@ -416,7 +416,7 @@ EMA 계수 m과 큐 피처의 시간적 일관성 사이의 절충을 설명하�
         # 정렬: 양성 쌍의 평균 코사인 비슷함
         alignment = (q * k).sum(dim=1).mean().item()
 
-        # 고름: 큐의 음성과의 평균 코사인 비슷함
+        # 균일성: 큐의 음성과의 평균 코사인 비슷함
         neg_sim = torch.mm(q, self.queue.clone().detach())
         uniformity = neg_sim.mean().item()
 

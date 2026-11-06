@@ -217,7 +217,7 @@ print("=" * 60)
 print("Part 3: SHAP DeepExplainer for PyTorch Models")
 print("=" * 60)
 
-# 깊은 러닝 모델에는 SHAP이 (DeepLIFT에 바탕한) DeepExplainer를 쓴다
+# 딥러닝 모델에는 SHAP이 (DeepLIFT에 바탕한) DeepExplainer를 쓴다
 # 또는 (쌓은 그래디언트에 바탕한) GradientExplainer를 쓴다.
 
 

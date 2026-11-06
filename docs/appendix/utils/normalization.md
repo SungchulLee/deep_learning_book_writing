@@ -9,7 +9,7 @@
 ```python
 #!/usr/bin/env python3
 """
-잣대 잡기 켜 - 깊은 러닝에 쓰이는 흔한 클래스
+잣대 잡기 켜 - 딥러닝에 쓰이는 흔한 클래스
 담긴 것:
   - BatchNorm1d/2d(PyTorch 붙박이를 감싼 것)
   - LayerNorm(PyTorch 붙박이를 감싼 것)

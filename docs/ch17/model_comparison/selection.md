@@ -696,7 +696,7 @@ def compute_model_probabilities(
     log_evidences : list
         모형마다의 로그 증거
     prior_probs : list, 있어도 되고 없어도 됨
-        모형마다의 앞확률(None이면 고름)
+        모형마다의 앞확률(None이면 균등)
     
     반환값
     -------

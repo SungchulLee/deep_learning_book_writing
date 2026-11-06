@@ -294,7 +294,7 @@ def posterior_probs_from_log_evidences(
     log_evidences : array-like
         모형마다의 로그 모형 증거
     prior_probs : array-like, 있어도 되고 없어도 됨
-        앞확률(따로 정하지 않으면 고름)
+        앞확률(따로 정하지 않으면 균등)
     
     반환값
     -------
@@ -305,7 +305,7 @@ def posterior_probs_from_log_evidences(
     K = len(log_evidences)
     
     if prior_probs is None:
-        log_priors = np.zeros(K) - np.log(K)  # 고름
+        log_priors = np.zeros(K) - np.log(K)  # 균등
     else:
         log_priors = np.log(np.asarray(prior_probs))
     
@@ -1100,7 +1100,7 @@ def demo_sequential_evidence():
     print(f"\nTrue θ = {true_theta}")
     print(f"Comparing: M1 (uniform) vs M2 (fair coin, α=β=20)")
     
-    model1 = BetaBernoulliModel(1, 1)        # 고름
+    model1 = BetaBernoulliModel(1, 1)        # 균등
     model2 = BetaBernoulliModel(20, 20)      # 공평한 동전이라는 믿음
     
     # 핵심 점에서 증거 좇기

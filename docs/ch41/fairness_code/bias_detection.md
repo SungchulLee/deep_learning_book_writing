@@ -8,7 +8,7 @@
 
 ```python
 """
-깊은 러닝에서의 치우침 탐지와 재기
+딥러닝에서의 치우침 탐지와 재기
 이 꾸러미는 기계 러닝 모형의 치우침을 알아내고 재는 연장을 준다.
 """
 
@@ -40,9 +40,9 @@ class BiasDetector:
         sensitive_attr: np.ndarray
     ) -> float:
         """
-        통계 고름 차이를 셈한다.
+        통계적 패리티 차이를 셈한다.
 
-        통계 고름: 모든 무리 a, b에 대해 P(Y=1|A=a) = P(Y=1|A=b)
+        통계적 패리티: 모든 무리 a, b에 대해 P(Y=1|A=a) = P(Y=1|A=b)
 
         Args:
             y_pred: 두 값 미루어 봄
@@ -238,7 +238,7 @@ class BiasDetector:
             꼴 갖춘 알림 글자열
         """
         report = "=" * 60 + "\n"
-        report += "치우침과 고름 알림\n"
+        report += "치우침과 공정성 알림\n"
         report += "=" * 60 + "\n\n"
 
         for attr_name, attr_values in sensitive_attrs_dict.items():
@@ -255,11 +255,11 @@ class BiasDetector:
 
             spd = metrics[f'{attr_name}_statistical_parity_diff']
             if spd < 0.1:
-                report += "✓ 통계 고름: 치우침 적음\n"
+                report += "✓ 통계적 패리티: 치우침 적음\n"
             elif spd < 0.2:
-                report += "⚠ 통계 고름: 치우침 가운데\n"
+                report += "⚠ 통계적 패리티: 치우침 가운데\n"
             else:
-                report += "✗ 통계 고름: 치우침 큼\n"
+                report += "✗ 통계적 패리티: 치우침 큼\n"
 
             di = metrics[f'{attr_name}_disparate_impact_ratio']
             if di >= 0.8:
@@ -307,7 +307,7 @@ if __name__ == "__main__":
 
 ```
 ============================================================
-치우침과 고름 알림
+치우침과 공정성 알림
 ============================================================
 
 
@@ -320,7 +320,7 @@ gender_equalized_odds_tpr_diff: 0.2722
 gender_equalized_odds_fpr_diff: 0.2563
 
 읽는 법:
-✗ 통계 고름: 치우침 큼
+✗ 통계적 패리티: 치우침 큼
 ✗ 달리 미침: 탈이 있음 (< 0.8)
 ```
 

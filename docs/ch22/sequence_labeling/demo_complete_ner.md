@@ -13,7 +13,7 @@
 1. 규칙 바탕 개체명 인식
 2. 사전 바탕 개체명 인식
 3. CRF 바탕 개체명 인식
-4. 깊은 러닝 방식(양방향 LSTM-CRF, 트랜스포머)
+4. 딥러닝 방식(양방향 LSTM-CRF, 트랜스포머)
 
 방식마다의 온전한 보기를 보려면 이 각본을 돌려라.
 
@@ -136,7 +136,7 @@ def demo_evaluation():
 
 
 def demo_architectures():
-    """깊은 러닝 구조 보이기."""
+    """딥러닝 구조 보이기."""
     print("\n\n" + "="*70)
     print("5. DEEP LEARNING ARCHITECTURES")
     print("="*70)

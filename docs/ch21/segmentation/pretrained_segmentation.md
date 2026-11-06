@@ -183,14 +183,14 @@
     segmentation_models_pytorch(smp)는 미리 익힌 인코더를 갖춘 여러 구조를 준다
     인코더를 쓴다. 여기서는 ResNet-50 인코더를 쓴 DeepLabV3+를 쓴다.
 
-    구조 고름:
+    구조 선택:
     - Unet: 건너뛰는 이음을 갖춘 고전 U-넷
     - UnetPlusPlus: 겹겹이 든 건너뛰는 이음을 갖춘 나아진 U-넷
     - DeepLabV3+: 구멍 뚫린 컨볼루션과 ASPP를 쓴 가장 앞선 것
     - FPN: 피처 피라미드 네트워크
     - PSPNet: 피라미드 장면 뜯어 읽기 네트워크
 
-    인코더 고름:
+    인코더 선택:
     - resnet18, resnet34, resnet50, resnet101
     - efficientnet-b0 to b7
     - mobilenet_v2

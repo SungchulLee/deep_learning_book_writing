@@ -10,8 +10,8 @@
 
     ```python
     """
-    고름 자와 따지기
-    기계 러닝 모형의 고름을 따지는 두루 갖춘 고름 자.
+    공정성 지표와 따지기
+    기계 러닝 모형의 공정성을 따지는 두루 갖춘 공정성 지표.
     """
 
     import numpy as np
@@ -24,7 +24,7 @@
 
 
     class FairnessMetrics:
-        """기계 러닝 모형을 위한 두루 갖춘 고름 자."""
+        """기계 러닝 모형을 위한 두루 갖춘 공정성 지표."""
 
         @staticmethod
         def demographic_parity(
@@ -32,9 +32,9 @@
             sensitive_attr: np.ndarray
         ) -> Dict[str, float]:
             """
-            인구 고름 자를 셈한다.
+            인구 공정성 지표를 셈한다.
 
-            인구 고름(통계 고름):
+            인구 공정성(통계적 패리티):
             P(Y_pred=1|A=0) = P(Y_pred=1|A=1)
 
             Args:
@@ -42,7 +42,7 @@
                 sensitive_attr: 예민한 됨됨이(두 값)
 
             Returns:
-                인구 고름 자를 담은 사전
+                인구 공정성 지표를 담은 사전
             """
             groups = np.unique(sensitive_attr)
             positive_rates = {}
@@ -159,9 +159,9 @@
             sensitive_attr: np.ndarray
         ) -> Dict[str, float]:
             """
-            미루어 봄 고름 자를 셈한다.
+            미루어 봄 공정성 지표를 셈한다.
 
-            미루어 봄 고름(결과 따지기):
+            미루어 봄 공정성(결과 따지기):
             PPV(맞힘)가 무리 사이에 같아야 한다
             PPV = P(Y_true=1|Y_pred=1, A=a)
 
@@ -171,7 +171,7 @@
                 sensitive_attr: 예민한 됨됨이
 
             Returns:
-                미루어 봄 고름 자를 담은 사전
+                미루어 봄 공정성 지표를 담은 사전
             """
             groups = np.unique(sensitive_attr)
             ppv_dict = {}
@@ -265,9 +265,9 @@
             weights: Optional[Dict[str, float]] = None
         ) -> float:
             """
-            아우른 무리 고름 점수를 셈한다.
+            아우른 무리 공정성 점수를 셈한다.
 
-            고름 자 여럿을 점수 하나로 아우른다.
+            공정성 지표 여럿을 점수 하나로 아우른다.
             점수가 낮을수록 더 고르다.
 
             Args:
@@ -277,7 +277,7 @@
                 weights: 자마다의 짐(없어도 된다)
 
             Returns:
-                아우른 고름 점수
+                아우른 공정성 점수
             """
             if weights is None:
                 weights = {
@@ -313,7 +313,7 @@
         sensitive_attrs: Dict[str, np.ndarray]
     ) -> str:
         """
-        두루 갖춘 고름 따지기를 한다.
+        두루 갖춘 공정성 따지기를 한다.
 
         Args:
             y_true: 참 이름표
@@ -328,7 +328,7 @@
         report = []
 
         report.append("=" * 80)
-        report.append("두루 갖춘 고름 따지기")
+        report.append("두루 갖춘 공정성 따지기")
         report.append("=" * 80)
 
         for attr_name, attr_values in sensitive_attrs.items():
@@ -336,8 +336,8 @@
             report.append(f"예민한 됨됨이: {attr_name.upper()}")
             report.append(f"{'=' * 80}\n")
 
-            # 인구 고름
-            report.append("1. 인구 고름")
+            # 인구 공정성
+            report.append("1. 인구 공정성")
             report.append("-" * 40)
             dp = metrics.demographic_parity(y_pred, attr_values)
             for key, value in dp.items():
@@ -360,8 +360,8 @@
                 report.append(f"   {key}: {value}")
             report.append("")
 
-            # 미루어 봄 고름
-            report.append("4. 미루어 봄 고름")
+            # 미루어 봄 공정성
+            report.append("4. 미루어 봄 공정성")
             report.append("-" * 40)
             pp = metrics.predictive_parity(y_true, y_pred, attr_values)
             for key, value in pp.items():
@@ -378,7 +378,7 @@
                 report.append("")
 
             # 아우른 점수
-            report.append("6. 아우른 고름 점수")
+            report.append("6. 아우른 공정성 점수")
             report.append("-" * 40)
             score = metrics.group_fairness_score(y_true, y_pred, attr_values)
             report.append(f"   점수: {score:.4f} (낮을수록 좋다)")
@@ -417,14 +417,14 @@
 
 ```
 ================================================================================
-두루 갖춘 고름 따지기
+두루 갖춘 공정성 따지기
 ================================================================================
 
 ================================================================================
 예민한 됨됨이: GENDER
 ================================================================================
 
-1. 인구 고름
+1. 인구 공정성
 ----------------------------------------
    positive_rates: {'group_0': 0.6795918367346939, 'group_1': 0.41568627450980394}
    demographic_parity_difference: 0.26390556222489
@@ -443,7 +443,7 @@
    fpr_difference: 0.256315705753908
    average_odds_difference: 0.2642809890000901
 
-4. 미루어 봄 고름
+4. 미루어 봄 공정성
 ----------------------------------------
    positive_predictive_values: {'ppv_group_0': 0.47147147147147145, 'ppv_group_1': 0.4669811320754717}
    predictive_parity_difference: 0.004490339395999743
@@ -453,7 +453,7 @@
    group_0: ECE = 0.2341
    group_1: ECE = 0.2404
 
-6. 아우른 고름 점수
+6. 아우른 공정성 점수
 ----------------------------------------
    점수: 0.2012 (낮을수록 좋다)
 ```

@@ -10,7 +10,7 @@
 
     ```python
     """
-    깊은 러닝의 치우침 눅이기 재주
+    딥러닝의 치우침 눅이기 재주
     기계 러닝 모형의 치우침을 줄이는 여러 길.
     """
 
@@ -31,7 +31,7 @@
         미리 다듬어 눅이기: 익힘 표본에 짐을 다시 매긴다.
 
         지켜야 할 됨됨이와 이름표에 따라 익힘 표본마다 다른 짐을 매겨
-        고름을 이룬다.
+        공정성을 이룬다.
         """
 
         def __init__(self):
@@ -271,7 +271,7 @@
         """
         뒤에 다듬어 눅이기: 판단 임계를 가장 좋게 한다.
 
-        무리마다 다른 가름 임계를 써서 고름 매임을 채운다.
+        무리마다 다른 가름 임계를 써서 공정성 제약을 채운다.
         """
 
         def __init__(self, fairness_constraint: str = 'demographic_parity'):
@@ -279,7 +279,7 @@
             임계 다듬개의 첫자리를 잡는다.
 
             Args:
-                fairness_constraint: 고름 매임의 클래스
+                fairness_constraint: 공정성 제약의 클래스
                     ('demographic_parity', 'equal_opportunity', 'equalized_odds')
             """
             self.fairness_constraint = fairness_constraint
@@ -321,7 +321,7 @@
                         mask = sensitive_attr == group
                         y_pred[mask] = (y_pred_proba[mask] >= threshold).astype(int)
 
-                    # 고름 자를 셈한다
+                    # 공정성 지표를 셈한다
                     fairness_score = self._calculate_fairness(
                         y_true, y_pred, sensitive_attr
                     )
@@ -339,7 +339,7 @@
             y_pred: np.ndarray,
             sensitive_attr: np.ndarray
         ) -> float:
-            """매임에 따라 고름 자를 셈한다."""
+            """매임에 따라 공정성 지표를 셈한다."""
             groups = np.unique(sensitive_attr)
 
             if self.fairness_constraint == 'demographic_parity':
