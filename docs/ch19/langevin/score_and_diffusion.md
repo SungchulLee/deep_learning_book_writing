@@ -23,11 +23,11 @@
 ```python
 def score_matching_loss(score_network, x):
     """
-    x: 자료 표본 배치, 꼴 (batch, dim)
+    x: 자료 표본 배치, 형태 (batch, dim)
     score_network: 점수 s_θ(x)을 내놓는 뉴럴 네트워크
     """
     # 점수 셈하기
-    s = score_network(x)  # 꼴: (batch, dim)
+    s = score_network(x)  # 형태: (batch, dim)
     
     # 발산 셈하기: tr(∇s_θ)
     # 이는 야코비 행렬을 셈해야 한다

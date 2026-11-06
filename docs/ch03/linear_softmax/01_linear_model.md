@@ -353,7 +353,7 @@ print("  784개 숫자 꾸러미로 본다. 이웃 관계는 쓰지 않는다.")
 
 ??? success "풀이"
     ```python
-    W = model[1].weight.detach()          # 꼴 (10, 784)
+    W = model[1].weight.detach()          # 형태 (10, 784)
     print(torch.linalg.matrix_rank(W))   # 10
     ```
 

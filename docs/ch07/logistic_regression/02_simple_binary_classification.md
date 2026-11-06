@@ -188,8 +188,8 @@
                             값은 (0, 1) 범위에 있다
             """
             # 1단계: 선형 변환
-            # x 꼴: (batch_size, n_features)
-            # 출력 꼴: (batch_size, 1)
+            # x 형태: (batch_size, n_features)
+            # 출력 형태: (batch_size, 1)
             z = self.linear(x)  # z = w*x + b
 
             # 2단계: 시그모이드 활성화 적용
@@ -295,8 +295,8 @@
         # ====================
 
         # 1. 순전파: 예측을 계산한다
-        # X_train 꼴: (160, 2)
-        # predictions 꼴: (160, 1)
+        # X_train 형태: (160, 2)
+        # predictions 형태: (160, 1)
         predictions = model(X_train)  # Get model's predicted probabilities
 
         # 2. 로스 계산

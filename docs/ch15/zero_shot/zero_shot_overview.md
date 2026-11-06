@@ -224,7 +224,7 @@ def extract_features(image):
     with torch.no_grad():
         x = preprocess(image).unsqueeze(0)
         features = feature_extractor(x)
-        return features.squeeze()  # 꼴: (2048,)
+        return features.squeeze()  # 형태: (2048,)
 ```
 
 ---

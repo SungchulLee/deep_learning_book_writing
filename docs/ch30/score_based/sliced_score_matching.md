@@ -62,7 +62,7 @@ def ssm_loss(
     
     인수:
         score_model: 점수 뉴럴 네트워크 s_θ: R^D → R^D
-        samples: 자료 표본, 꼴 (N, D)
+        samples: 자료 표본, 형태 (N, D)
         n_projections: 아무 쏘기 횟수 M
         projection_type: 'rademacher'(권함) 또는 'gaussian'
     

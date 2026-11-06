@@ -22,7 +22,7 @@ def teacher_forced_loss(model, x, vocab_size):
 
     인수:
         model: (배치, 차례 길이) -> (배치, 차례 길이, 낱말 수)으로 옮기는 자기 회귀 모델
-        x: 참값 토큰 아이디, 꼴 (배치, 차례 길이)
+        x: 참값 토큰 아이디, 형태 (배치, 차례 길이)
         vocab_size: 낱말의 크기
 
     반환값:

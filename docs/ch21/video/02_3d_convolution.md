@@ -88,7 +88,7 @@
 
             유의: T 차원은 지켜지지만 틀마다 따로 다룬다
             """
-            # 모든 틀을 함께 다루려 꼴 바꾸기
+            # 모든 틀을 함께 다루려 형태 바꾸기
             # (B, T, C, H, W) → (B*T, C, H, W)
             if x.dim() == 5:
                 B, T, C, H, W = x.shape
@@ -152,7 +152,7 @@
 
             중요: PyTorch Conv3d는 (B, C, T, H, W) 꼴을 바란다
             """
-            # 들임 꼴 살피기
+            # 들임 형태 살피기
             if x.dim() == 4:
                 # 필요하면 배치 차원을 더한다
                 x = x.unsqueeze(0)  # (C, T, H, W) → (1, C, T, H, W)
@@ -251,7 +251,7 @@
             super().__init__()
 
             # 3차원 컨볼루션
-            # 무게 꼴: (out_channels, in_channels, t, h, w)
+            # 무게 형태: (out_channels, in_channels, t, h, w)
             self.conv = nn.Conv3d(
                 in_channels,
                 out_channels,

@@ -99,7 +99,7 @@ class ConvConditionalVAE(nn.Module):
         """
         batch_size = x.size(0)
         
-        # 이름표를 묻고 공간 꼴로 바꾼다
+        # 이름표를 묻고 공간 형태로 바꾼다
         c_embedded = self.label_embedding(labels)
         c_embedded = c_embedded.view(batch_size, 1, self.img_size, self.img_size)
         

@@ -92,9 +92,9 @@ class MultilevelModel:
         
         파라메터
         ----------
-        x : 꼴 (N,)의 텐서
-        y : 꼴 (N,)의 텐서
-        group_ids : 꼴 (N,)의 텐서, 정수 무리 이름표
+        x : 형태 (N,)의 텐서
+        y : 형태 (N,)의 텐서
+        group_ids : 형태 (N,)의 텐서, 정수 무리 이름표
         """
         N = len(y)
         

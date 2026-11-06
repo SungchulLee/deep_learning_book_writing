@@ -100,7 +100,7 @@ def effective_sample_size(samples: torch.Tensor, max_lag: int = None) -> float:
     
     파라메터
     ----------
-    samples : 꼴 (N,)의 텐서 — 사슬 하나, 파라메터 하나
+    samples : 형태 (N,)의 텐서 — 사슬 하나, 파라메터 하나
     """
     N = len(samples)
     if max_lag is None:

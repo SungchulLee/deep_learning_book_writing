@@ -26,7 +26,7 @@ class VideoLoader:
         OpenCV 뒷단으로 영상을 읽어 들인다.
         
         반환값:
-            frames: 꼴이 (T, H, W, C)인 NumPy 배열
+            frames: 형태가 (T, H, W, C)인 NumPy 배열
             info: 영상 메타자료를 담은 사전
         """
         cap = cv2.VideoCapture(self.video_path)
@@ -48,7 +48,7 @@ class VideoLoader:
         
         cap.release()
         
-        frames = np.array(frames)  # 꼴: (T, H, W, 3)
+        frames = np.array(frames)  # 형태: (T, H, W, 3)
         
         info = {
             'fps': fps,
@@ -71,7 +71,7 @@ def load_video_torchvision(video_path: str):
     torchvision 뒷단으로 영상을 읽어 들인다.
     
     반환값:
-        video: 값이 [0, 255]이고 꼴이 (T, H, W, C)인 텐서
+        video: 값이 [0, 255]이고 형태가 (T, H, W, C)인 텐서
         audio: 있으면 소리 텐서
         info: 영상 메타자료를 담은 사전
     """
@@ -88,7 +88,7 @@ def load_video_torchvision(video_path: str):
 ```python
 def convert_to_pytorch_format(frames: np.ndarray) -> torch.Tensor:
     """
-    NumPy 영상을 PyTorch 텐서 꼴로 바꾼다.
+    NumPy 영상을 PyTorch 텐서 형태로 바꾼다.
     
     인수:
         frames: 값이 [0, 255]인 NumPy 배열 (T, H, W, C)
@@ -229,7 +229,7 @@ class VideoPreprocessor:
         반환값:
             평균 0, 흩어짐 1로 고르게 맞춘 텐서
         """
-        # 퍼뜨리기를 위해 꼴 바꾸기: (1, C, 1, 1)
+        # 퍼뜨리기를 위해 형태 바꾸기: (1, C, 1, 1)
         mean = self.MEAN.view(1, -1, 1, 1)
         std = self.STD.view(1, -1, 1, 1)
         
@@ -295,7 +295,7 @@ def resize_video(video: torch.Tensor,
     T, C, H, W = video.shape
     target_h, target_w = target_size
     
-    # 배치 처리를 위해 꼴 바꾸기
+    # 배치 처리를 위해 형태 바꾸기
     video_flat = video.view(T, C, H, W)
     
     # 두 줄 사이 끼움 쓰기

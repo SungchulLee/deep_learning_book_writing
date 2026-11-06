@@ -115,10 +115,10 @@ class GaussianMixtureEM:
         E 스텝: 맡음 몫 셈하기.
         
         인수:
-            X: 꼴이 (N, d)인 자료 텐서
+            X: 형태가 (N, d)인 자료 텐서
             
         반환값:
-            gamma: 꼴이 (N, K)인 맡음 몫
+            gamma: 형태가 (N, K)인 맡음 몫
         """
         N = X.shape[0]
         log_resp = torch.zeros(N, self.K)
@@ -139,8 +139,8 @@ class GaussianMixtureEM:
         M 스텝: 파라메터 새로 고치기.
         
         인수:
-            X: 꼴이 (N, d)인 자료 텐서
-            gamma: 꼴이 (N, K)인 맡음 몫
+            X: 형태가 (N, d)인 자료 텐서
+            gamma: 형태가 (N, K)인 맡음 몫
         """
         N = X.shape[0]
         
@@ -179,7 +179,7 @@ class GaussianMixtureEM:
         EM 알고리즘으로 가우스 섞음 모형 맞추기.
         
         인수:
-            X: 꼴이 (N, d)인 자료 텐서
+            X: 형태가 (N, d)인 자료 텐서
             max_iters: 최대 되풀이 횟수
             tol: 모임 너그러움
             verbose: 진행 상황 출력 여부

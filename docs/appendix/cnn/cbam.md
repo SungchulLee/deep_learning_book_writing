@@ -100,7 +100,7 @@ CBAM은 잇따른 두 작은 배치로 이루어진다. 클래스 어텐션 묶�
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-꼴이 $(B, 64, H, W)$인 입력 결 그림과 줄임 비교 16이 주어졌을 때 `ChannelAttention` 배치의 파라메터 수를 계산하여라.
+형태가 $(B, 64, H, W)$인 입력 결 그림과 줄임 비교 16이 주어졌을 때 `ChannelAttention` 배치의 파라메터 수를 계산하여라.
 
 </div>
 

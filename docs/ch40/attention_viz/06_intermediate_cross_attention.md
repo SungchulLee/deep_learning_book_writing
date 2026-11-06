@@ -42,7 +42,7 @@ class CrossAttentionVisualizer:
         파라메터:
         ----------
         cross_attention : torch.Tensor
-            엇갈린 어텐션 짐, 꼴: (받는 열 길이, 보내는 열 길이)
+            엇갈린 어텐션 짐, 형태: (받는 열 길이, 보내는 열 길이)
         source_tokens : list
             보내는 열의 낱말
         target_tokens : list

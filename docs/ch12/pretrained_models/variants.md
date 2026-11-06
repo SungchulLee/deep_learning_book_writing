@@ -525,7 +525,7 @@ class LocalAttention(nn.Module):
         k = self.k_proj(x)
         v = self.v_proj(x)
         
-        # 다중 머리에 맞게 꼴을 바꾼다
+        # 다중 머리에 맞게 형태를 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -550,7 +550,7 @@ class LocalAttention(nn.Module):
         
         output = torch.matmul(attn_weights, v)
         
-        # 꼴을 바꾸고 사영한다
+        # 형태를 바꾸고 사영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         return self.o_proj(output)
 
@@ -652,7 +652,7 @@ class LongformerAttention(nn.Module):
         # 출력을 셈한다
         output = torch.matmul(attn_weights, v_local)
         
-        # 꼴을 바꾸고 사영한다
+        # 형태를 바꾸고 사영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         return self.o_proj(output)
 
@@ -755,7 +755,7 @@ class BigBirdAttention(nn.Module):
         k = self.k_proj(x)
         v = self.v_proj(x)
         
-        # 꼴을 바꾼다
+        # 형태를 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -773,7 +773,7 @@ class BigBirdAttention(nn.Module):
         
         output = torch.matmul(attn_weights, v)
         
-        # 꼴을 바꾸고 사영한다
+        # 형태를 바꾸고 사영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         return self.o_proj(output)
 

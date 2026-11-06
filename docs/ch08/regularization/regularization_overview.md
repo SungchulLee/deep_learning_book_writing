@@ -40,7 +40,7 @@ def generate_polynomial_data(n_samples=500, noise_std=0.3, seed=42):
     # 그것을 알 수 없으므로 이렇게 만들어 쓴다.
     torch.manual_seed(seed)
     # unsqueeze(1)로 (n,) 을 (n,1) 로 만든다. nn.Linear가
-    # (배치, 특성) 꼴을 받기 때문이다
+    # (배치, 특성) 형태를 받기 때문이다
     x = torch.linspace(-3, 3, n_samples).unsqueeze(1)
     y_true = 0.5 * x**3 - 2 * x**2 + x + 1
     # 잡음의 표준편차가 곧 "줄일 수 없는 오차"다. 어떤 모델도

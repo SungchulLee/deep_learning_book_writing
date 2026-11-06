@@ -89,7 +89,7 @@ class CausalSelfAttention(nn.Module):
         qkv = self.qkv(x)                 # (B, S, 3D)
         q, k, v = qkv.chunk(3, dim=-1)    # each: (B, S, D)
 
-        # 머리 꼴로 바꾼다: (B, nhead, S, head_dim)
+        # 머리 형태로 바꾼다: (B, nhead, S, head_dim)
         q = q.view(B, S, self.nhead, self.head_dim).transpose(1, 2)
         k = k.view(B, S, self.nhead, self.head_dim).transpose(1, 2)
         v = v.view(B, S, self.nhead, self.head_dim).transpose(1, 2)

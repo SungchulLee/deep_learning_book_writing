@@ -214,12 +214,12 @@ class GradCAM:
         target_score.backward()
 
         # 그래디언트와 살아남을 집는다
-        gradients = self.gradients[0]    # 꼴: [K, H', W']
-        activations = self.activations[0] # 꼴: [K, H', W']
+        gradients = self.gradients[0]    # 형태: [K, H', W']
+        activations = self.activations[0] # 형태: [K, H', W']
 
         # 중요함 짐을 셈한다: α_k = 온세상고르게모으기(그래디언트)
         # α_k^c = (1/Z) Σ_i Σ_j (∂y^c / ∂A^k_ij)
-        weights = gradients.mean(dim=(1, 2))  # 꼴: [K]
+        weights = gradients.mean(dim=(1, 2))  # 형태: [K]
 
         # 짐 실은 아우름: L = Σ_k α_k^c * A^k
         cam = torch.zeros(activations.shape[1:], dtype=torch.float32, device=device)

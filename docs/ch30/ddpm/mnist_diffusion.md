@@ -88,7 +88,7 @@ def linear_beta_schedule(timesteps: int, beta_start: float = 0.0001,
         beta_end: 마지막 잡음 크기(≈0.02)
     
     반환값:
-        betas: 꼴이 (timesteps,)인 텐서
+        betas: 형태가 (timesteps,)인 텐서
     """
     return torch.linspace(beta_start, beta_end, timesteps)
 
@@ -127,7 +127,7 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008) -> torch.Tensor:
         s: 작은 치우침(기본값 0.008. 처음에 β_t ≈ 0이 되는 것을 막는다)
     
     반환값:
-        betas: 꼴 (timesteps,)인 텐서이며 매끄럽게 늘어난다
+        betas: 형태 (timesteps,)인 텐서이며 매끄럽게 늘어난다
     """
     # 때 어깨수를 만든다(차이를 셈하려면 T+1개 점이 필요하다)
     steps = timesteps + 1
@@ -168,7 +168,7 @@ def get_diffusion_parameters(betas: torch.Tensor) -> dict:
     σ_t² = β_t(1-ᾱ_{t-1})/(1-ᾱ_t)  (사후 흩어짐)
     
     인수:
-        betas: β 일정, 꼴 (T,)
+        betas: β 일정, 형태 (T,)
     
     반환값:
         미리 셈한 매개변수를 모두 담은 사전:
@@ -218,7 +218,7 @@ def get_diffusion_parameters(betas: torch.Tensor) -> dict:
 
 def extract(tensor: torch.Tensor, t: torch.Tensor, x_shape: tuple) -> torch.Tensor:
     """
-    1차원 텐서의 어깨수 t에서 값을 뽑고 퍼뜨리기에 맞게 꼴을 바꾼다.
+    1차원 텐서의 어깨수 t에서 값을 뽑고 퍼뜨리기에 맞게 형태를 바꾼다.
     
     문제:
     ------------
@@ -228,29 +228,29 @@ def extract(tensor: torch.Tensor, t: torch.Tensor, x_shape: tuple) -> torch.Tens
     풀이:
     ---------
     1. 자리 잡기: tensor[t] → 표본마다 값을 얻는다
-    2. 꼴 바꾸기: 퍼뜨리기를 위해 (배치,) → (배치, 1, 1, ...)
+    2. 형태 바꾸기: 퍼뜨리기를 위해 (배치,) → (배치, 1, 1, ...)
     
     펴 맞추기 보기:
     ---------------------
-    x 꼴: (3, 2)          2차원 점 셋
-    values: (3, 1)           꼴을 바꾼 뒤
+    x 형태: (3, 2)          2차원 점 셋
+    values: (3, 1)           형태를 바꾼 뒤
     
     [[x1, y1],     [[v1, 1],      [[v1·x1, v1·y1],
      [x2, y2],  *   [v2, 1],  =    [v2·x2, v2·y2],
      [x3, y3]]      [v3, 1]]       [v3·x3, v3·y3]]
     
     인수:
-        tensor: 밑 값, 꼴 (T,)
-        t: 때 걸음 번호, 꼴 (batch_size,)
+        tensor: 밑 값, 형태 (T,)
+        t: 때 걸음 번호, 형태 (batch_size,)
         x_shape: 퍼뜨리기의 목표 자료 꼴
     
     반환값:
-        뽑아서 꼴을 바꾼 값, 꼴 (batch_size, 1, 1, ...)
+        뽑아서 형태를 바꾼 값, 형태 (batch_size, 1, 1, ...)
     """
     batch_size = t.shape[0]
     out = tensor.gather(-1, t)  # 어깨수에서 뽑는다
     
-    # 퍼뜨리기에 맞게 꼴을 바꾼다: (배치,) → (배치, 1, 1, ...)
+    # 퍼뜨리기에 맞게 형태를 바꾼다: (배치,) → (배치, 1, 1, ...)
     num_extra_dims = len(x_shape) - 1
     trailing_dims = (1,) * num_extra_dims
     return out.reshape(batch_size, *trailing_dims)
@@ -283,16 +283,16 @@ def forward_diffusion(x_0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor,
     x_t의 흩어짐이 x_0과 같게 한다!
     
     인수:
-        x_0: 깨끗한 자료, 꼴 (batch_size, *data_dims)
-        t: 때 걸음, 꼴 (batch_size,)
+        x_0: 깨끗한 자료, 형태 (batch_size, *data_dims)
+        t: 때 걸음, 형태 (batch_size,)
         noise: 정규 잡음 ε ~ N(0,I)이며 x_0과 같은 꼴
-        sqrt_alphas_cumprod: 미리 셈한 √ᾱ_t, 꼴 (T,)
-        sqrt_one_minus_alphas_cumprod: 미리 셈한 √(1-ᾱ_t), 꼴 (T,)
+        sqrt_alphas_cumprod: 미리 셈한 √ᾱ_t, 형태 (T,)
+        sqrt_one_minus_alphas_cumprod: 미리 셈한 √(1-ᾱ_t), 형태 (T,)
     
     반환값:
         x_t: 때 걸음 t의 잡음 섞인 자료
     """
-    # 표본마다 때 걸음의 계수를 뽑고 퍼뜨리기에 맞게 꼴을 바꾼다
+    # 표본마다 때 걸음의 계수를 뽑고 퍼뜨리기에 맞게 형태를 바꾼다
     sqrt_alpha_t = extract(sqrt_alphas_cumprod, t, x_0.shape)
     sqrt_one_minus_alpha_t = extract(sqrt_one_minus_alphas_cumprod, t, x_0.shape)
     
@@ -331,7 +331,7 @@ def p_sample(model: nn.Module, x_t: torch.Tensor, t: int, t_tensor: torch.Tensor
         model: 익힌 잡음 없애기 모델
         x_t: 때 걸음 t의 잡음 섞인 자료
         t: 이제 때 걸음(정수)
-        t_tensor: 텐서로 나타낸 때 걸음, 꼴 (batch_size,)
+        t_tensor: 텐서로 나타낸 때 걸음, 형태 (batch_size,)
         diffusion_params: 미리 셈한 상수
         device: 'cpu' 또는 'cuda'
     
@@ -385,13 +385,13 @@ def sample(model: nn.Module, shape: tuple, timesteps: int,
     
     인수:
         model: 익힌 잡음 걷개 모형(따짐 모드)
-        shape: 표본의 꼴. 보기로 (32, 2)이나 (16, 3, 256, 256)
+        shape: 표본의 형태. 보기로 (32, 2)이나 (16, 3, 256, 256)
         timesteps: 잡음을 걷는 걸음 수(익힘과 맞아야 한다!)
         diffusion_params: 미리 셈한 상수
         device: 'cpu' 또는 'cuda'
     
     반환값:
-        꼴에 맞는 만든 표본
+        형태에 맞는 만든 표본
     """
     model.eval()
     
@@ -435,8 +435,8 @@ def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
     
     인수:
         model: 익힐 잡음 없애기 모델
-        x_0: 깨끗한 자료의 배치, 꼴 (batch_size, *data_dims)
-        t: 마구잡이 때 걸음, 꼴 (batch_size,)
+        x_0: 깨끗한 자료의 배치, 형태 (batch_size, *data_dims)
+        t: 마구잡이 때 걸음, 형태 (batch_size,)
         diffusion_params: 미리 셈한 상수
         noise: 미리 만든 잡음(골라 쓴다. None이면 여기서 만든다)
     
@@ -559,10 +559,10 @@ class SinusoidalPositionEmbedding(nn.Module):
         때 걸음을 사인 꼴 임베딩으로 바꾼다.
         
         인수:
-            time: 때 걸음, 꼴 (batch_size,)
+            time: 때 걸음, 형태 (batch_size,)
         
         반환값:
-            임베딩, 꼴 (batch_size, dim)
+            임베딩, 형태 (batch_size, dim)
         """
         device = time.device
         half_dim = self.dim // 2
@@ -667,11 +667,11 @@ class ResidualBlock(nn.Module):
     def forward(self, x: torch.Tensor, time_emb: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            x: 들임 텐서, 꼴 (batch, in_channels, height, width)
-            time_emb: 시간 임베딩, 꼴 (batch, time_emb_dim)
+            x: 들임 텐서, 형태 (batch, in_channels, height, width)
+            time_emb: 시간 임베딩, 형태 (batch, time_emb_dim)
         
         반환값:
-            내놓음 텐서, 꼴 (batch, out_channels, height, width)
+            내놓음 텐서, 형태 (batch, out_channels, height, width)
         """
         residual = self.residual_conv(x)
         
@@ -711,10 +711,10 @@ class AttentionBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            x: 들임 텐서, 꼴 (batch, channels, height, width)
+            x: 들임 텐서, 형태 (batch, channels, height, width)
         
         반환값:
-            들임과 같은 꼴의 내놓기 텐서
+            들임과 같은 형태의 내놓기 텐서
         """
         batch, channels, height, width = x.shape
         residual = x
@@ -722,7 +722,7 @@ class AttentionBlock(nn.Module):
         x = self.norm(x)
         qkv = self.qkv(x)
         
-        # 다중 머리 주의에 맞게 꼴을 바꾼다
+        # 다중 머리 주의에 맞게 형태를 바꾼다
         qkv = qkv.reshape(batch, 3, self.num_heads, channels // self.num_heads, height * width)
         qkv = qkv.permute(1, 0, 2, 4, 3)  # (3, 배치, 머리, hw, 차원)
         q, k, v = qkv[0], qkv[1], qkv[2]
@@ -868,11 +868,11 @@ class UNet(nn.Module):
         U-Net을 지나는 앞먹임.
         
         인수:
-            x: 잡음 섞인 들임, 꼴 (batch, in_channels, height, width)
-            time: 때 걸음, 꼴 (batch,)
+            x: 잡음 섞인 들임, 형태 (batch, in_channels, height, width)
+            time: 때 걸음, 형태 (batch,)
         
         반환값:
-            예측한 잡음, 꼴 (batch, out_channels, height, width)
+            예측한 잡음, 형태 (batch, out_channels, height, width)
         """
         # 때 임베딩
         time_emb = self.time_embedding(time)

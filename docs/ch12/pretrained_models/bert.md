@@ -216,7 +216,7 @@ class BertSelfAttention(nn.Module):
         self.dropout = nn.Dropout(dropout)
     
     def transpose_for_scores(self, x: torch.Tensor) -> torch.Tensor:
-        """다중 머리 주의에 맞게 꼴을 바꾼다."""
+        """다중 머리 주의에 맞게 형태를 바꾼다."""
         batch_size, seq_len, _ = x.shape
         x = x.view(batch_size, seq_len, self.num_attention_heads, self.attention_head_size)
         return x.permute(0, 2, 1, 3)

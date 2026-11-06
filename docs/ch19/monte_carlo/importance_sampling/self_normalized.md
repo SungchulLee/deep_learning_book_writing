@@ -191,7 +191,7 @@ def unnormalized_log_posterior(theta):
     if theta.dim() == 0:
         theta = theta.unsqueeze(0)
     
-    # 꼴: (n_samples,) 또는 (n_samples, 1)
+    # 형태: (n_samples,) 또는 (n_samples, 1)
     theta_expanded = theta.unsqueeze(-1) if theta.dim() == 1 else theta
     data_expanded = data.unsqueeze(0)
     

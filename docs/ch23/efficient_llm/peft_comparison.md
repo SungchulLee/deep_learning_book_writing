@@ -202,7 +202,7 @@ class NF4Linear(nn.Module):
     
     def _compute_scales(self, weight: torch.Tensor) -> torch.Tensor:
         """덩이마다의 스케일을 셈한다."""
-        # 덩이 꼴로 바꾼다
+        # 덩이 형태로 바꾼다
         weight_flat = weight.reshape(-1)
         num_blocks = (weight_flat.numel() + self.block_size - 1) // self.block_size
         
@@ -227,7 +227,7 @@ class NF4Linear(nn.Module):
         scales = self._compute_scales(weight)
         num_blocks = scales.numel()
         
-        # 꼴을 바꾸고 고르게 한다
+        # 형태를 바꾸고 고르게 한다
         padded_size = num_blocks * self.block_size
         if weight_flat.numel() < padded_size:
             weight_flat = F.pad(weight_flat, (0, padded_size - weight_flat.numel()))
@@ -368,7 +368,7 @@ class PrefixTuning(nn.Module):
         prefix = self.prefix_embedding(prefix_ids)  # [배치, 프리픽스 길이, 숨은]
         prefix = self.prefix_mlp(prefix)  # [배치, 프리픽스 길이, 프리픽스 크기]
         
-        # [배치, 프리픽스 길이, 레이어 수, 2, 머리 수, 머리 차원] 꼴로 바꾼다
+        # [배치, 프리픽스 길이, 레이어 수, 2, 머리 수, 머리 차원] 형태로 바꾼다
         prefix = prefix.view(
             batch_size,
             self.prefix_length,

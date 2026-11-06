@@ -85,8 +85,8 @@ class NTXentLoss(nn.Module):
     def forward(self, z_i, z_j):
         """
         인수:
-            z_i: 불린 시야 1의 사영, 꼴은 (batch_size, projection_dim)
-            z_j: 불린 시야 2의 사영, 꼴은 (batch_size, projection_dim)
+            z_i: 불린 시야 1의 사영, 형태는 (batch_size, projection_dim)
+            z_j: 불린 시야 2의 사영, 형태는 (batch_size, projection_dim)
         """
         batch_size = z_i.shape[0]
 

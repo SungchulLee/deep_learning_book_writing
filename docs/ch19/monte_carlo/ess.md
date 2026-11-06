@@ -30,7 +30,7 @@ def importance_sampling_ess(log_weights: torch.Tensor) -> float:
     고르게 하지 않은 로그 무게로 ESS 셈하기.
     
     인수:
-        log_weights: log w_i을 담은 꼴 (N,)의 텐서
+        log_weights: log w_i을 담은 형태 (N,)의 텐서
     
     반환값:
         실수로 나타낸 ESS

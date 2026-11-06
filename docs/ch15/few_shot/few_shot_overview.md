@@ -294,8 +294,8 @@ class FewShotDataset(torch.utils.data.Dataset):
     def __init__(self, data, labels, n_way, k_shot, n_query, n_episodes):
         """
         인수:
-            data: 꼴이 (N, *input_shape)인 텐서
-            labels: 꼴이 (N,)인 텐서
+            data: 형태가 (N, *input_shape)인 텐서
+            labels: 형태가 (N,)인 텐서
             n_way: 에피소드마다의 부류 개수
             k_shot: 부류마다의 받침 보기
             n_query: 부류마다의 물음 보기

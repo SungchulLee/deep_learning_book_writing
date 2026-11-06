@@ -203,7 +203,7 @@ class AttentionVisualizer:
         # CLS 토큰에서 모든 조각으로 가는 주의를 얻는다
         attn = attn[0, 0, 1:]  # (n_patches,)
         
-        # 공간 격자로 꼴을 바꾼다
+        # 공간 격자로 형태를 바꾼다
         n_patches = int(np.sqrt(len(attn)))
         attn = attn.reshape(n_patches, n_patches).numpy()
         

@@ -226,7 +226,7 @@ class FlashAttention(nn.Module):
         k = self.k_proj(x)
         v = self.v_proj(x)
         
-        # 다중 머리 주의에 맞게 꼴을 바꾼다
+        # 다중 머리 주의에 맞게 형태를 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -240,7 +240,7 @@ class FlashAttention(nn.Module):
             is_causal=self.causal
         )
         
-        # 꼴을 바꾸고 출력을 사영한다
+        # 형태를 바꾸고 출력을 사영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         output = self.o_proj(output)
         
@@ -287,7 +287,7 @@ class FlashAttentionWithKVCache(nn.Module):
         k = self.k_proj(x)
         v = self.v_proj(x)
         
-        # 꼴을 바꾼다
+        # 형태를 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -309,7 +309,7 @@ class FlashAttentionWithKVCache(nn.Module):
             is_causal=is_causal
         )
         
-        # 꼴을 바꾸고 사영한다
+        # 형태를 바꾸고 사영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         output = self.o_proj(output)
         

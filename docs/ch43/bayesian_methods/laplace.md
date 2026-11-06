@@ -352,14 +352,14 @@ class LaplaceMLP:
         
         Parameters
         ----------
-        X : (N, input_dim) 꼴의 ndarray
+        X : (N, input_dim) 형태의 ndarray
             들임 자료
         params : ndarray, 골라 씀
             쓸 파라메터(기본값: self.params)
         
         Returns
         -------
-        (N, output_dim) 꼴의 ndarray
+        (N, output_dim) 형태의 ndarray
             네트워크 날임
         """
         if params is None:
@@ -401,7 +401,7 @@ class LaplaceMLP:
         
         Returns
         -------
-        (N * output_dim, n_params) 꼴의 ndarray
+        (N * output_dim, n_params) 형태의 ndarray
         """
         N = len(X)
         n_params = len(self.params)

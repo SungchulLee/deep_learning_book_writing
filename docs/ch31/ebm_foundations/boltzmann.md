@@ -230,7 +230,7 @@ def compute_score(energy_net, x, create_graph=True):
     energy_net : nn.Module
         뉴럴 네트워크 에너지 함수
     x : torch.Tensor
-        들임 점, 꼴 (batch, dim)
+        들임 점, 형태 (batch, dim)
     create_graph : bool
         더 높은 차수의 그래디언트를 위해 그래프를 만들지 여부
     

@@ -51,7 +51,7 @@ class AttentionFlowAnalyzer:
         파라메터:
         ----------
         attention : torch.Tensor
-            어텐션 짐, 꼴: (열 길이, 열 길이)
+            어텐션 짐, 형태: (열 길이, 열 길이)
         gradients : torch.Tensor
             어텐션에 대한 내놓기의 그래디언트, 꼴이 같다
 

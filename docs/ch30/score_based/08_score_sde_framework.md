@@ -39,7 +39,7 @@ print("MODULE 08: Score-Based SDE Framework")
 print("="*80)
 
 print("""
-이어진 때의 꼴:
+이어진 때의 형태:
 --------------------------
 띄엄띄엄한 스텝 t=0,1,2,...,T 대신
 이어진 때 t ∈ [0, T]를 쓴다
@@ -103,8 +103,8 @@ class VESDE:
         
         diffusion = sigma * np.sqrt(2 * np.log(self.sigma_max / self.sigma_min))
         
-        # 고침: 퍼뜨리기에 맞게 확산의 꼴을 바꾼다
-        # 확산의 꼴은 (배치,)이지만 점수의 꼴은 (배치, 차원)이다
+        # 고침: 퍼뜨리기에 맞게 확산의 형태를 바꾼다
+        # 확산의 형태는 (배치,)이지만 점수의 형태는 (배치, 차원)이다
         # 퍼뜨리기를 위해 확산의 꼴을 (배치, 1)으로 만들어야 한다
         if isinstance(diffusion, torch.Tensor) and diffusion.dim() > 0:
             diffusion_sq = (diffusion ** 2).unsqueeze(-1)

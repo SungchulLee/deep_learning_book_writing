@@ -87,7 +87,7 @@ class PrefixEncoder(nn.Module):
         prefix = self.mlp(prefix_emb)  # [배치, 프리픽스 길이, 전체 차원]
         prefix = self.dropout(prefix)
         
-        # 꼴 바꾸기: [배치, 프리픽스 길이, 레이어, 2, 머리, 머리 차원]
+        # 형태 바꾸기: [배치, 프리픽스 길이, 레이어, 2, 머리, 머리 차원]
         prefix = prefix.view(
             batch_size,
             self.prefix_length,
@@ -239,7 +239,7 @@ class PrefixAttention(nn.Module):
         k = self.k_proj(hidden_states)
         v = self.v_proj(hidden_states)
         
-        # [배치, 머리, 차례 길이, 머리 차원] 꼴로 바꾼다
+        # [배치, 머리, 차례 길이, 머리 차원] 형태로 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -271,7 +271,7 @@ class PrefixAttention(nn.Module):
         # 값에 어텐션 적용
         attn_output = torch.matmul(attn_weights, v)
         
-        # 꼴을 바꾸고 사영한다
+        # 형태를 바꾸고 사영한다
         attn_output = attn_output.transpose(1, 2).contiguous()
         attn_output = attn_output.view(batch_size, seq_len, self.d_model)
         attn_output = self.o_proj(attn_output)
@@ -308,7 +308,7 @@ class DirectPrefixEncoder(nn.Module):
         self.prefix_length = prefix_length
         
         # 곧바로 배우는 파라메터
-        # 꼴: [프리픽스 길이, 레이어, 2, 머리, 머리 차원]
+        # 형태: [프리픽스 길이, 레이어, 2, 머리, 머리 차원]
         self.prefix = nn.Parameter(
             torch.randn(prefix_length, num_layers, 2, num_heads, head_dim) * 0.01
         )

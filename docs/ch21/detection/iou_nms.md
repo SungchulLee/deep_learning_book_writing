@@ -39,12 +39,12 @@ def box_iou(
     여기 짠 것은 효율을 위해 배치 셈을 받쳐 준다.
     
     인수:
-        boxes1: xyxy 꼴의, 꼴이 (N, 4)인 텐서
-        boxes2: xyxy 꼴의, 꼴이 (M, 4)인 텐서
+        boxes1: xyxy 꼴의, 형태가 (N, 4)인 텐서
+        boxes2: xyxy 꼴의, 형태가 (M, 4)인 텐서
         eps: 0으로 나누지 않도록 하는 작은 엡실론
         
     반환값:
-        짝짓기 겹침 비 값을 담은, 꼴이 (N, M)인 텐서
+        짝짓기 겹침 비 값을 담은, 형태가 (N, M)인 텐서
         
     보기:
         >>> boxes1 = torch.tensor([[0, 0, 10, 10], [5, 5, 15, 15]], dtype=torch.float32)
@@ -88,8 +88,8 @@ def box_iou_single(box1: torch.Tensor, box2: torch.Tensor) -> float:
     낱낱의 두 상자 사이 겹침 비를 셈한다.
     
     인수:
-        box1: xyxy 꼴의, 꼴이 (4,)인 텐서
-        box2: xyxy 꼴의, 꼴이 (4,)인 텐서
+        box1: xyxy 꼴의, 형태가 (4,)인 텐서
+        box2: xyxy 꼴의, 형태가 (4,)인 텐서
         
     반환값:
         실수로 된 겹침 비 값

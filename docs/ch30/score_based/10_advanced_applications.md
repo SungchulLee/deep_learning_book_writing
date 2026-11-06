@@ -65,8 +65,8 @@ class ConditionalScoreNetwork(nn.Module):
         조건 있는 점수 s(x|y)을 셈한다.
         
         인수:
-            x: 자료 점, 꼴 (N, D)
-            y: 클래스 이름표, 꼴 (N,)
+            x: 자료 점, 형태 (N, D)
+            y: 클래스 이름표, 형태 (N,)
         """
         y_emb = self.class_embed(y)
         inp = torch.cat([x, y_emb], dim=-1)
@@ -83,8 +83,8 @@ def inpaint_with_scores(model, x_obs, mask, n_steps=1000, step_size=0.01):
     
     인수:
         model: 점수 모델
-        x_obs: 본 화소, 꼴 (H, W, C)
-        mask: 두 값 덮개, 1이면 본 것, 0이면 모르는 것, 꼴 (H, W, C)
+        x_obs: 본 화소, 형태 (H, W, C)
+        mask: 두 값 덮개, 1이면 본 것, 0이면 모르는 것, 형태 (H, W, C)
         n_steps: 뽑기 스텝 수
         step_size: 랑주뱅 스텝 크기
     

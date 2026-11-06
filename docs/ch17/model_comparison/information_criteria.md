@@ -340,7 +340,7 @@ def waic(
     
     파라메터
     ----------
-    log_lik_matrix : 꼴 (n_samples, n_observations)의 ndarray
+    log_lik_matrix : 형태 (n_samples, n_observations)의 ndarray
         뒤확률 표본과 관측마다의 로그 가능도
         항목 [s, i] = log p(y_i | theta^(s))
     
@@ -376,7 +376,7 @@ def waic_pointwise(
     
     파라메터
     ----------
-    log_lik_matrix : 꼴 (n_samples, n_observations)의 ndarray
+    log_lik_matrix : 형태 (n_samples, n_observations)의 ndarray
         뒤확률 표본과 관측마다의 로그 가능도
     
     반환값
@@ -418,7 +418,7 @@ def psis_loo(
     
     파라메터
     ----------
-    log_lik_matrix : 꼴 (n_samples, n_observations)의 ndarray
+    log_lik_matrix : 형태 (n_samples, n_observations)의 ndarray
         뒤확률 표본과 관측마다의 로그 가능도
     return_diagnostics : bool
         파레토 k 진단을 되돌릴지 여부
@@ -654,9 +654,9 @@ class LinearRegressionIC:
         
         파라메터
         ----------
-        X : 꼴 (n, p)의 ndarray
+        X : 형태 (n, p)의 ndarray
             설계 행렬
-        y : 꼴 (n,)의 ndarray
+        y : 형태 (n,)의 ndarray
             반응
         """
         self.n = len(y)
@@ -757,8 +757,8 @@ class BayesianLinearRegression:
         
         반환값
         -------
-        beta_samples : 꼴 (n_samples, p)의 ndarray
-        sigma2_samples : 꼴 (n_samples,)의 ndarray
+        beta_samples : 형태 (n_samples, p)의 ndarray
+        sigma2_samples : 형태 (n_samples,)의 ndarray
         """
         p = len(self.beta_mean)
         

@@ -71,7 +71,7 @@
             torchvision 뒷단으로 영상을 읽어 들인다.
 
             반환값:
-                video: 값이 [0, 255]이고 꼴이 (T, H, W, C)인 영상 텐서
+                video: 값이 [0, 255]이고 형태가 (T, H, W, C)인 영상 텐서
                 audio: 있으면 소리 텐서
                 info: 영상 메타자료(초당 틀 수, 길이 등)를 담은 사전
 
@@ -96,7 +96,7 @@
             OpenCV 뒷단으로 영상을 읽어 들인다(더 유연하고 널리 받쳐 준다).
 
             반환값:
-                frames: 꼴이 (T, H, W, C)인 NumPy 배열
+                frames: 형태가 (T, H, W, C)인 NumPy 배열
                 info: 영상 메타자료를 담은 사전
 
             OpenCV는 효율적이고 여러 꼴을 받쳐 주어 실전에 좋다.
@@ -123,7 +123,7 @@
             cap.release()
 
             # numpy 배열로 바꾸기
-            frames = np.array(frames)  # 꼴: (T, H, W, 3)
+            frames = np.array(frames)  # 형태: (T, H, W, 3)
 
             info = {
                 'fps': fps,
@@ -142,16 +142,16 @@
                                 num_frames: Optional[int] = None,
                                 target_size: Tuple[int, int] = (224, 224)) -> torch.Tensor:
             """
-            영상을 읽어 들여 PyTorch 텐서 꼴로 바꾼다.
+            영상을 읽어 들여 PyTorch 텐서 형태로 바꾼다.
 
             인수:
                 num_frames: 뽑을 틀의 개수(None이면 모든 틀)
                 target_size: 틀을 (H, W)로 바꾼다
 
             반환값:
-                video_tensor: 꼴 (T, C, H, W) — PyTorch 표준 꼴
+                video_tensor: 형태 (T, C, H, W) — PyTorch 표준 꼴
 
-            꼴 바꾸기:
+            형태 바꾸기:
                 OpenCV: 값이 [0, 255]인 (T, H, W, C)
                 → PyTorch: 값이 [0, 1]인 (T, C, H, W)
             """
@@ -288,7 +288,7 @@
                 num_clips: 뽑을 토막의 개수
 
             반환값:
-                영상 토막의 목록. 저마다 꼴이 (clip_length, C, H, W)
+                영상 토막의 목록. 저마다 형태가 (clip_length, C, H, W)
 
             TSN(때 토막 네트워크)과 비슷한 구조에 쓰인다
             영상을 토막으로 나누고 토막마다 뽑는다
@@ -472,7 +472,7 @@
             axes = [axes]
 
         for i, ax in enumerate(axes):
-            # 보여 줄 수 있는 꼴로 바꾸기
+            # 보여 줄 수 있는 형태로 바꾸기
             frame = frames_to_show[i].permute(1, 2, 0)  # (C, H, W) → (H, W, C)
             frame = torch.clamp(frame, 0, 1)  # [0, 1] 범위 보장
 
@@ -536,7 +536,7 @@
 
         # 보여 주려고 인공 영상 만들기
         print("\n1. Creating synthetic video...")
-        # 꼴: (T, C, H, W) = (30, 3, 128, 128)
+        # 형태: (T, C, H, W) = (30, 3, 128, 128)
         # 128x128 RGB 영상 30틀
         T, C, H, W = 30, 3, 128, 128
 
@@ -622,7 +622,7 @@
         print("="*80)
         print("""
         1. 영상 꼴: 영상은 틀의 차례 V = {I_1, I_2, ..., I_T}이다
-           - PyTorch 꼴: (T, C, H, W), 여기서 T=때, C=채널, H=높이, W=너비
+           - PyTorch 형태: (T, C, H, W), 여기서 T=때, C=채널, H=높이, W=너비
 
         2. 읽어 들이는 방법:
            - torchvision: PyTorch에 곧바로 붙고 쓰기 쉽다

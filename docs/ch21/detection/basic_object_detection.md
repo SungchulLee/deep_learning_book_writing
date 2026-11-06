@@ -57,7 +57,7 @@
 
     def convert_bbox_format(bbox, from_format='xyxy', to_format='xywh'):
         """
-        두름 상자를 다른 꼴로 바꾼다.
+        두름 상자를 다른 형태로 바꾼다.
 
         꼴:
         - 'xyxy': [x_최소, y_최소, x_최대, y_최대]
@@ -84,7 +84,7 @@
             x2 = cx + w/2
             y2 = cy + h/2
 
-        # 목표 꼴로 바꾸기
+        # 목표 형태로 바꾸기
         if to_format == 'xyxy':
             return [x1, y1, x2, y2]
         elif to_format == 'xywh':

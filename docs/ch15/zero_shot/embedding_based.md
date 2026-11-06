@@ -72,7 +72,7 @@ import gensim.downloader as api
 word_vectors = api.load("glove-wiki-gigaword-300")
 
 # 부류 임베딩을 얻는다
-zebra_embedding = word_vectors["zebra"]  # 꼴: (300,)
+zebra_embedding = word_vectors["zebra"]  # 형태: (300,)
 ```
 
 ### 여러 단어로 된 클래스 이름

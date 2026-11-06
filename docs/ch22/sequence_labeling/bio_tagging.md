@@ -362,7 +362,7 @@ def build_transition_mask(
         scheme: 레이블 방식
         
     반환값:
-        전이 점수를 담은, 꼴이 (num_labels, num_labels)인 텐서
+        전이 점수를 담은, 형태가 (num_labels, num_labels)인 텐서
     """
     num_labels = len(label_to_idx)
     idx_to_label = {v: k for k, v in label_to_idx.items()}

@@ -505,7 +505,7 @@ _확인한 곳 — K. He, X. Chen, S. Xie, Y. Li, P. Dollár, R. Girshick, "Mask
             x = blk(x)
         x = self.encoder_norm(x)
 
-        return x  # 꼴: [N, num_patches + 1, embed_dim]
+        return x  # 형태: [N, num_patches + 1, embed_dim]
     ```
 
     encode_full은 전체 패치와 CLS를 원래 순서로 인코딩해 (B,197,E) 피처를 반환하며 복원 로스를 계산하지 않는다. 반면 일반 forward(mask_ratio=0)은 무작위 순서를 사용하고 가린 위치 수가 0이라 로스 분모도 0이 된다. CLS·패치 피처는 새 과제의 헤드와 평가가 필요하며 전체 입력을 본다고 더 좋은 예측이 자동 보장되지는 않는다. 이 함수 조각은 MAE 메서드로 연결해야 한다.

@@ -379,7 +379,7 @@ class TransitionMatrixAnalyzer:
         π^{(k)} = π^{(0)} P^k일 때 π^{(0)}, π^{(1)}, ..., π^{(n)} 셈하기.
 
         반환값:
-            꼴이 (n_steps+1, n_states)인 텐서
+            형태가 (n_steps+1, n_states)인 텐서
         """
         distributions = torch.zeros(n_steps + 1, self.n_states)
         distributions[0] = initial_dist

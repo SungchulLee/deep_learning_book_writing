@@ -92,7 +92,7 @@ def dqn_td_loss(q_net: nn.Module, target_net: nn.Module, batch, gamma: float = 0
       loss = MSE( Q(s,a), target )
 
     눈여겨볼 것:
-      - a은 따로 떨어진 액션의 번호다(꼴: (B,))
+      - a은 따로 떨어진 액션의 번호다(형태: (B,))
       - done은 끝이면 1, 아니면 0이다
     """
     s, a, r, s2, done = batch
@@ -101,7 +101,7 @@ def dqn_td_loss(q_net: nn.Module, target_net: nn.Module, batch, gamma: float = 0
     q_values = q_net(s)
 
     # gather으로 Q(s,a)을 고른다:
-    # dim=1에서 gather 하려면 a의 꼴이 (B,1)이어야 한다
+    # dim=1에서 gather 하려면 a의 형태가 (B,1)이어야 한다
     q_sa = q_values.gather(1, a.long().unsqueeze(1)).squeeze(1)  # (B,)
 
     # 타깃 네트워크로 타깃을 셈한다(그래디언트 없이)
@@ -161,12 +161,12 @@ loss: 1.1922111511230469
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력의 꼴과 데이터 클래스가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
+입력의 형태와 데이터 클래스가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
 
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 꼴을 살피려면 중요한 차수를 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차수를 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
 
 ---
 

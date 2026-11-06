@@ -52,7 +52,7 @@ $$A(s, a) = -\frac{1}{2}(a - \mu(s))^T P(s) (a - \mu(s))$$
       V(s):  Linear → scalar
       μ(s):  Linear → action_dim (optimal action)
       L(s):  Linear → action_dim * (action_dim + 1) / 2
-             → 아래 세모꼴로 꼴 바꾸기
+             → 아래 세모꼴로 형태 바꾸기
              → 양의 정부호를 다지려 exp(대각선)
   → P = L @ L^T
   → A(s,a) = -0.5 * (a-μ)^T P (a-μ)

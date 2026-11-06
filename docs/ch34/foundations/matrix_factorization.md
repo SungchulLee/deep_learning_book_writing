@@ -98,12 +98,12 @@ $$\frac{\partial \mathcal{L}_{\text{reg}}}{\partial \mathbf{q}_i} = -2\, e_{ui}\
 PyTorch에서 `nn.Embedding(num_users, d)`이 바로 이 표를 담는다. 쓰는 이 $u$과 물건 $i$의 앞으로 가기는:
 
 ```python
-p_u = self.user_emb(u)   # 꼴: (batch, d) — P에서 줄 u을 찾는다
-q_i = self.item_emb(i)   # 꼴: (batch, d) — Q에서 줄 i을 찾는다
+p_u = self.user_emb(u)   # 형태: (batch, d) — P에서 줄 u을 찾는다
+q_i = self.item_emb(i)   # 형태: (batch, d) — Q에서 줄 i을 찾는다
 rating = (p_u * q_i).sum(1)  # 원소마다 곱한 뒤 더한다 → 안쪽 곱
 ```
 
-**왜 `torch.dot` 대신 원소마다 곱한 뒤 더하는가?** 입력이 묶여 있다. `p_u`과 `q_i`의 꼴은 `(batch_size, d)`이다. 원소마다 곱한 뒤 `sum(1)`을 하면 배치의 **표본마다 따로** 내적을 셈해 꼴이 `(batch_size,)`인 텐서가 나온다.
+**왜 `torch.dot` 대신 원소마다 곱한 뒤 더하는가?** 입력이 묶여 있다. `p_u`과 `q_i`의 형태는 `(batch_size, d)`이다. 원소마다 곱한 뒤 `sum(1)`을 하면 배치의 **표본마다 따로** 내적을 셈해 형태가 `(batch_size,)`인 텐서가 나온다.
 
 !!! warning "임베딩의 첫 값이 중요하다"
     이 짜기는 임베딩의 첫 값을 `uniform_(0, 0.05)`으로 둔다. 작고 양인 첫 값을 보장한다. 흔한 다른 공정성으로는 자비에르 첫 값 두기나 $\mathcal{N}(0, 0.01)$에서 샘플링이 있다. 첫 값이 나쁘면(보기로 큰 값) 최적화가 발산할 수 있다.
@@ -136,7 +136,7 @@ class MF(nn.Module):
 
 ### 하나씩 짚기
 
-1. **`__init__`**: 꼴이 `(num_users, emb_size)`과 `(num_items, emb_size)`인 임베딩 표 둘을 만든다.
+1. **`__init__`**: 형태가 `(num_users, emb_size)`과 `(num_items, emb_size)`인 임베딩 표 둘을 만든다.
 2. **`forward(u, v)`**: 정수 텐서 `u`(쓰는 이 번호)과 `v`(물건 번호)를 받아 임베딩을 찾고 내적을 헤아린 매김으로 돌려준다.
 3. **잡 개수**: $(m + n) \times d$. $m = 610$, $n = 9{,}724$, $d = 100$이면 잡이 약 103만 개이다.
 

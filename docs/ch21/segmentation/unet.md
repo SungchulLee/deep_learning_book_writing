@@ -246,10 +246,10 @@ class UNet(nn.Module):
         U-넷을 지나는 피드포워드.
         
         인수:
-            x: 꼴이 (B, C, H, W)인 들임 텐서
+            x: 형태가 (B, C, H, W)인 들임 텐서
         
         반환값:
-            꼴이 (B, num_classes, H, W)인 내놓는 텐서
+            형태가 (B, num_classes, H, W)인 내놓는 텐서
         """
         # 인코더 길(건너뛰는 이음에 쓸 피처 갈무리)
         x1 = self.inc(x)      # (B, 64, H, W)

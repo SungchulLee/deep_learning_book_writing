@@ -305,8 +305,8 @@
         여러 분류의 평균 겹침 비를 셈한다.
 
         인수:
-            pred: 꼴이 (batch, num_classes, H, W)인 어림
-            target: 꼴이 (batch, H, W)인 참값
+            pred: 형태가 (batch, num_classes, H, W)인 어림
+            target: 형태가 (batch, H, W)인 참값
             num_classes: 클래스의 개수
             ignore_index: 무시할 번호(테두리)
 

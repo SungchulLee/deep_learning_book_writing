@@ -109,7 +109,7 @@ class EpsilonGreedy:
         """엡실론 욕심쟁이 폴리시로 액션을 고른다.
         
         인수:
-            q_values: 이제 상태의 Q 값, 꼴 (1, action_dim)
+            q_values: 이제 상태의 Q 값, 형태 (1, action_dim)
             training: 거짓이면 늘 욕심쟁이 액션을 고른다
             
         반환값:
@@ -194,7 +194,7 @@ def compute_td_error(q_network: nn.Module, target_network: nn.Module,
         gamma: 깎기 인수
         
     반환값:
-        꼴이 (batch,)인 시간차 어긋남
+        형태가 (batch,)인 시간차 어긋남
     """
     # 고른 액션의 Q(s, a)
     q_values = q_network(states).gather(1, actions.unsqueeze(1)).squeeze(1)
@@ -282,7 +282,7 @@ def demo_fundamentals():
     print(f"TD errors (batch of 8): {td_errors.detach().numpy().round(4)}")
     print(f"Mean absolute TD error: {td_errors.abs().mean().item():.4f}")
 
-    # --- 감음 Q 네트워크 꼴 살피기 ---
+    # --- 감음 Q 네트워크 형태 살피기 ---
     print("\n--- Conv Q-Network (Atari-style) ---")
     conv_net = ConvQNetwork(action_dim=4)
     dummy_frames = torch.randint(0, 256, (2, 4, 84, 84), dtype=torch.uint8)

@@ -57,7 +57,7 @@
             s: 작은 치우침(기본값 0.008. 처음에 β_t ≈ 0이 되는 것을 막는다)
 
         반환값:
-            betas: 꼴 (timesteps,)인 텐서이며 매끄럽게 늘어난다
+            betas: 형태 (timesteps,)인 텐서이며 매끄럽게 늘어난다
         """
         # 때 어깨수를 만든다(차이를 셈하려면 T+1개 점이 필요하다)
         steps = timesteps + 1
@@ -95,7 +95,7 @@
         σ_t² = β_t(1-ᾱ_{t-1})/(1-ᾱ_t)  (사후 흩어짐)
 
         인수:
-            betas: β 일정, 꼴 (T,)
+            betas: β 일정, 형태 (T,)
 
         반환값:
             미리 셈한 매개변수를 모두 담은 사전:
@@ -164,16 +164,16 @@
         x_t의 흩어짐이 x_0과 같게 한다!
 
         인수:
-            x_0: 깨끗한 자료, 꼴 (batch_size, *data_dims)
-            t: 때 걸음, 꼴 (batch_size,)
+            x_0: 깨끗한 자료, 형태 (batch_size, *data_dims)
+            t: 때 걸음, 형태 (batch_size,)
             noise: 정규 잡음 ε ~ N(0,I)이며 x_0과 같은 꼴
-            sqrt_alphas_cumprod: 미리 셈한 √ᾱ_t, 꼴 (T,)
-            sqrt_one_minus_alphas_cumprod: 미리 셈한 √(1-ᾱ_t), 꼴 (T,)
+            sqrt_alphas_cumprod: 미리 셈한 √ᾱ_t, 형태 (T,)
+            sqrt_one_minus_alphas_cumprod: 미리 셈한 √(1-ᾱ_t), 형태 (T,)
 
         반환값:
             x_t: 때 걸음 t의 잡음 섞인 자료
         """
-        # 표본마다 때 걸음의 계수를 뽑고 퍼뜨리기에 맞게 꼴을 바꾼다
+        # 표본마다 때 걸음의 계수를 뽑고 퍼뜨리기에 맞게 형태를 바꾼다
         sqrt_alpha_t = extract(sqrt_alphas_cumprod, t, x_0.shape)
         sqrt_one_minus_alpha_t = extract(sqrt_one_minus_alphas_cumprod, t, x_0.shape)
 
@@ -207,8 +207,8 @@
 
         인수:
             model: 익힐 잡음 없애기 모델
-            x_0: 깨끗한 자료의 배치, 꼴 (batch_size, *data_dims)
-            t: 마구잡이 때 걸음, 꼴 (batch_size,)
+            x_0: 깨끗한 자료의 배치, 형태 (batch_size, *data_dims)
+            t: 마구잡이 때 걸음, 형태 (batch_size,)
             diffusion_params: 미리 셈한 상수
             noise: 미리 만든 잡음(골라 쓴다. None이면 여기서 만든다)
 
@@ -580,11 +580,11 @@
             주어진 때 스텝에서 자료의 잡음을 헤아린다.
 
             인수:
-                x: 잡음 섞인 2차원 점, 꼴 (batch_size, 2)
-                t: 때 스텝 번호, 꼴 (batch_size,)
+                x: 잡음 섞인 2차원 점, 형태 (batch_size, 2)
+                t: 때 스텝 번호, 형태 (batch_size,)
 
             반환값:
-                예측한 잡음: 꼴 (batch_size, 2)
+                예측한 잡음: 형태 (batch_size, 2)
             """
             # 더 잘 배우도록 때 스텝을 [0, 1] 범위로 고르게 맞춘다
             t_normalized = t.float().unsqueeze(-1) / 1000.0

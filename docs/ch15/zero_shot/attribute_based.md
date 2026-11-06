@@ -112,10 +112,10 @@ class DirectAttributePrediction(nn.Module):
         속성 확률을 맞힌다.
         
         인수:
-            x: 꼴이 (batch_size, visual_dim)인 시각 피처
+            x: 형태가 (batch_size, visual_dim)인 시각 피처
         
         반환값:
-            꼴이 (batch_size, n_attributes)인 속성 확률
+            형태가 (batch_size, n_attributes)인 속성 확률
         """
         features = self.feature_extractor(x)
         

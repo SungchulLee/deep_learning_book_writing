@@ -65,7 +65,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
             파라메터
             ----------
             patterns : torch.Tensor
-                꼴 (n_patterns, n_neurons), 값은 {-1, +1}
+                형태 (n_patterns, n_neurons), 값은 {-1, +1}
             """
             n_patterns = patterns.shape[0]
 
@@ -94,7 +94,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
             파라메터
             ----------
             state : torch.Tensor
-                꼴 (n_neurons,) 또는 (batch, n_neurons)
+                형태 (n_neurons,) 또는 (batch, n_neurons)
 
             반환값
             -------

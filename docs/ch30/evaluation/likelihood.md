@@ -147,7 +147,7 @@ class GaussianModel(nn.Module):
             np.log(2 * np.pi)
         )
         
-        # 차원에 걸쳐 더한다, 꼴: [배치 크기]
+        # 차원에 걸쳐 더한다, 형태: [배치 크기]
         return log_prob.sum(dim=-1)
 
 def demonstrate_nll():

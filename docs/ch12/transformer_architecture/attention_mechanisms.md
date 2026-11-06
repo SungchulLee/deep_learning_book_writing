@@ -66,7 +66,7 @@ def masked_softmax(X, valid_lens):
     """유효 길이를 넘는 자리를 가리고 소프트맥스를 한다.
 
     인수:
-        X: 꼴이 (batch_size, num_queries, num_keys)인 3차원 텐서
+        X: 형태가 (batch_size, num_queries, num_keys)인 3차원 텐서
         valid_lens: 1차원 텐서 (batch_size,) 또는 2차원 텐서 (batch_size, num_queries)
             성분마다 그 질의에 유효한 열쇠가 몇 개인지 알려 준다.
     반환값:

@@ -97,7 +97,7 @@ def compute_posterior_params(
     coef_x0 = torch.sqrt(alpha_bar_prev) * beta_t / (1 - alpha_bar_t)
     coef_xt = torch.sqrt(alpha_t) * (1 - alpha_bar_prev) / (1 - alpha_bar_t)
 
-    # 퍼뜨리기에 맞게 꼴을 바꾼다
+    # 퍼뜨리기에 맞게 형태를 바꾼다
     for _ in range(len(x_0.shape) - 1):
         coef_x0 = coef_x0.unsqueeze(-1)
         coef_xt = coef_xt.unsqueeze(-1)

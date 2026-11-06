@@ -100,7 +100,7 @@ class MultiHeadAttention(nn.Module):
         K = self.k_proj(context)  # (B, Tk, D)
         V = self.v_proj(context)  # (B, Tk, D)
 
-        # 머리 꼴로 바꾼다: (B, H, T, Dh)
+        # 머리 형태로 바꾼다: (B, H, T, Dh)
         Q = Q.view(B, Tq, self.nhead, self.dh).transpose(1, 2)
         K = K.view(B, Tk, self.nhead, self.dh).transpose(1, 2)
         V = V.view(B, Tk, self.nhead, self.dh).transpose(1, 2)

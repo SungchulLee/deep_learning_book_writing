@@ -23,12 +23,12 @@ from typing import List, Tuple
 
 
 def compute_retrace_targets(
-    q_values: torch.Tensor,        # 자취의 t마다 Q(s_t, a_t), 꼴 (T,)
-    next_q_max: torch.Tensor,      # t마다 max_a Q(s_{t+1}, a), 꼴 (T,)
-    rewards: torch.Tensor,         # r_t, 꼴 (T,)
-    dones: torch.Tensor,           # done_t, 꼴 (T,)
-    target_policy_probs: torch.Tensor,  # π(a_t|s_t), 꼴 (T,)
-    behavior_policy_probs: torch.Tensor,  # μ(a_t|s_t), 꼴 (T,)
+    q_values: torch.Tensor,        # 자취의 t마다 Q(s_t, a_t), 형태 (T,)
+    next_q_max: torch.Tensor,      # t마다 max_a Q(s_{t+1}, a), 형태 (T,)
+    rewards: torch.Tensor,         # r_t, 형태 (T,)
+    dones: torch.Tensor,           # done_t, 형태 (T,)
+    target_policy_probs: torch.Tensor,  # π(a_t|s_t), 형태 (T,)
+    behavior_policy_probs: torch.Tensor,  # μ(a_t|s_t), 형태 (T,)
     gamma: float = 0.99,
     lambda_: float = 0.95,
 ) -> torch.Tensor:
@@ -45,7 +45,7 @@ def compute_retrace_targets(
         lambda_: 리트레이스 람다 값
         
     반환값:
-        리트레이스 타깃, 꼴 (T,)
+        리트레이스 타깃, 형태 (T,)
     """
     T = len(rewards)
     

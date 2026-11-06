@@ -157,7 +157,7 @@
         이 클래스는 어떤 분류기에도 증명할 수 있는 L2 든든함 다짐을 주는
         아무렇게나 매끄럽게 하기를 짜 놓았다.
 
-        수학 꼴:
+        수학 형태:
         -------------------------
         밑 분류기 f으로 매끄럽게 한 분류기를 짓는다:
 
@@ -243,7 +243,7 @@
             --------
             counts : torch.Tensor
                 클래스마다의 미루어 봄 셈
-                꼴: (num_classes,)
+                형태: (num_classes,)
             """
             with torch.no_grad():
                 # 앞으로 스텝으로 클래스의 수를 얻는다
@@ -296,7 +296,7 @@
             파라메터:
             -----------
             x : torch.Tensor
-                들임 그림(그림 하나, 꼴: (C, H, W))
+                들임 그림(그림 하나, 형태: (C, H, W))
             n : int, 기본값=1000
                 밝히는 데 쓸 표본 수
                 표본이 많을수록 믿음 구간이 촘촘하다
@@ -617,12 +617,12 @@
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력의 꼴과 데이터 클래스가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
+입력의 형태와 데이터 클래스가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
 
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 꼴을 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
 
 ---
 

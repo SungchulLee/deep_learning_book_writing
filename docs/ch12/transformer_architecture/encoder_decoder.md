@@ -467,7 +467,7 @@ class MultiHeadSelfAttention(nn.Module):
         # [batch, heads, seq, head_dim]
         context = torch.matmul(attn_weights, v)
         
-        # 꼴을 바꾸고 사영한다
+        # 형태를 바꾸고 사영한다
         context = context.transpose(1, 2).contiguous()
         context = context.view(batch_size, seq_len, self.d_model)
         output = self.out_proj(context)
@@ -1081,7 +1081,7 @@ class CausalSelfAttention(nn.Module):
         # 값에 어텐션 적용
         context = torch.matmul(attn_weights, v)
         
-        # 꼴을 바꾸고 사영한다
+        # 형태를 바꾸고 사영한다
         context = context.transpose(1, 2).contiguous()
         context = context.view(batch_size, seq_len, self.d_model)
         output = self.out_proj(context)

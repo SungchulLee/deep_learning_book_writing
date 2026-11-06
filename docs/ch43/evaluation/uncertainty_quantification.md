@@ -505,21 +505,21 @@ def predictive_uncertainty_regression(
     
     Parameters
     ----------
-    predictions : (n_samples, n_points) 꼴의 ndarray
+    predictions : (n_samples, n_points) 형태의 ndarray
         뒷분포 표본마다의 평균 미루어 봄
-    variances : (n_samples, n_points) 꼴의 ndarray, 골라 씀
+    variances : (n_samples, n_points) 형태의 ndarray, 골라 씀
         표본마다 미루어 본 흩어짐(타고난 것).
         None이면 흩어짐 0의 고른 흩어짐으로 본다.
     
     Returns
     -------
-    mean : (n_points,) 꼴의 ndarray
+    mean : (n_points,) 형태의 ndarray
         미루어 본 평균
-    total_var : (n_points,) 꼴의 ndarray
+    total_var : (n_points,) 형태의 ndarray
         온 미루어 봄 흩어짐
-    aleatoric : (n_points,) 꼴의 ndarray
+    aleatoric : (n_points,) 형태의 ndarray
         타고난(자료의) 아리송함
-    epistemic : (n_points,) 꼴의 ndarray
+    epistemic : (n_points,) 형태의 ndarray
         앎의(모형의) 아리송함
     """
     n_samples, n_points = predictions.shape
@@ -549,18 +549,18 @@ def predictive_uncertainty_classification(
     
     Parameters
     ----------
-    logits : (n_samples, n_points, n_classes) 꼴의 ndarray
+    logits : (n_samples, n_points, n_classes) 형태의 ndarray
         뒷분포 표본마다의 로짓
     
     Returns
     -------
-    mean_probs : (n_points, n_classes) 꼴의 ndarray
+    mean_probs : (n_points, n_classes) 형태의 ndarray
         평균 미루어 본 확률
-    total_entropy : (n_points,) 꼴의 ndarray
+    total_entropy : (n_points,) 형태의 ndarray
         온 미루어 봄 엔트로피
-    aleatoric : (n_points,) 꼴의 ndarray
+    aleatoric : (n_points,) 형태의 ndarray
         타고난 아리송함(바라는 엔트로피)
-    epistemic : (n_points,) 꼴의 ndarray
+    epistemic : (n_points,) 형태의 ndarray
         앎의 아리송함(서로 나눈 소식)
     """
     n_samples, n_points, n_classes = logits.shape
@@ -593,11 +593,11 @@ def mutual_information(logits: np.ndarray) -> np.ndarray:
     
     Parameters
     ----------
-    logits : (n_samples, n_points, n_classes) 꼴의 ndarray
+    logits : (n_samples, n_points, n_classes) 형태의 ndarray
     
     Returns
     -------
-    mi : (n_points,) 꼴의 ndarray
+    mi : (n_points,) 형태의 ndarray
         점마다의 서로 나눈 소식
     """
     _, _, _, mi = predictive_uncertainty_classification(logits)
@@ -617,9 +617,9 @@ def reliability_diagram_data(
     
     Parameters
     ----------
-    y_true : (n_samples,) 꼴의 ndarray
+    y_true : (n_samples,) 형태의 ndarray
         참 이름표(둘 가름이면 0이나 1, 여러 클래스면 클래스 손가락질)
-    y_prob : (n_samples,) 또는 (n_samples, n_classes) 꼴의 ndarray
+    y_prob : (n_samples,) 또는 (n_samples, n_classes) 형태의 ndarray
         미루어 본 확률
     n_bins : int
         통의 수
@@ -798,7 +798,7 @@ def predictive_entropy_score(logits: np.ndarray) -> np.ndarray:
     """
     밖 분포 알아내개: 미루어 본 엔트로피.
     
-    모둠/베이즈에서: 로짓의 꼴은 (n_samples, n_points, n_classes)
+    모둠/베이즈에서: 로짓의 형태는 (n_samples, n_points, n_classes)
     """
     if logits.ndim == 3:
         # 베이즈: 확률을 고르게 한 뒤 엔트로피를 셈한다
@@ -1220,7 +1220,7 @@ def demo_classification_uncertainty():
     print("-" * 55)
     
     for name, logits in scenarios.items():
-        # 함수에 맞게 꼴을 바꾼다
+        # 함수에 맞게 형태를 바꾼다
         logits_shaped = logits.reshape(n_samples, 1, n_classes)
         
         mean_probs, total, aleatoric, epistemic = predictive_uncertainty_classification(

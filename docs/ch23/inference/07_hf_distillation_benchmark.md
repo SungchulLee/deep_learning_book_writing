@@ -358,7 +358,7 @@
             }
             logits = self.session.run(None, ort_inputs)[0]
 
-            # 허깅페이스 물길 꼴로 바꾼다
+            # 허깅페이스 물길 형태로 바꾼다
             results = []
             for logit_row in logits:
                 probs = self._softmax(logit_row)

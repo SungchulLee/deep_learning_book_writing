@@ -317,7 +317,7 @@ class SWAG:
         
         Parameters
         ----------
-        params : (n_params,) 꼴의 ndarray
+        params : (n_params,) 형태의 ndarray
             이제의 모형 파라메터
         """
         params = np.asarray(params).flatten()
@@ -361,7 +361,7 @@ class SWAG:
         
         Returns
         -------
-        (n_params,) 꼴의 ndarray
+        (n_params,) 형태의 ndarray
             뽑은 파라메터
         """
         # 대각 몫에서 뽑는다
@@ -401,7 +401,7 @@ class SWAG:
         
         Returns
         -------
-        (n_samples, n_params) 꼴의 ndarray
+        (n_samples, n_params) 형태의 ndarray
             뽑은 파라메터
         """
         return np.array([self.sample(scale) for _ in range(n_samples)])

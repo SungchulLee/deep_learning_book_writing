@@ -567,7 +567,7 @@ $k \times k$ 컨볼루션을 $1 \times k$과 $k \times 1$ 컨볼루션으로 쪼
         """
         W = conv.weight.data  # (C_out, C_in, k_h, k_w)
 
-        # (C_out, C_in * k_h * k_w) 꼴로 바꾼다
+        # (C_out, C_in * k_h * k_w) 형태로 바꾼다
         W_mat = W.view(conv.out_channels, -1)
 
         # SVD를 건다

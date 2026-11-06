@@ -165,9 +165,9 @@ class AdversarialAttack(ABC):
         Parameters
         ----------
         x : torch.Tensor
-            맑은 들임, 꼴 (N, C, H, W) 또는 (N, D)
+            맑은 들임, 형태 (N, C, H, W) 또는 (N, D)
         y : torch.Tensor
-            참 이름표, 꼴 (N,)
+            참 이름표, 형태 (N,)
         targeted : bool
             타깃 있는 치기를 할지
         target_labels : torch.Tensor, 골라 씀

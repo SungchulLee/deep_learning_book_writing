@@ -24,10 +24,10 @@ from typing import Tuple
 
 def compute_vtrace(
     values: torch.Tensor,          # V(s_t), 꼴 (T+1,) — 부트스트랩을 넣음
-    rewards: torch.Tensor,         # r_t, 꼴 (T,)
-    dones: torch.Tensor,           # done_t, 꼴 (T,)
-    target_log_probs: torch.Tensor,   # log π(a_t|s_t), 꼴 (T,)
-    behavior_log_probs: torch.Tensor, # log μ(a_t|s_t), 꼴 (T,)
+    rewards: torch.Tensor,         # r_t, 형태 (T,)
+    dones: torch.Tensor,           # done_t, 형태 (T,)
+    target_log_probs: torch.Tensor,   # log π(a_t|s_t), 형태 (T,)
+    behavior_log_probs: torch.Tensor, # log μ(a_t|s_t), 형태 (T,)
     gamma: float = 0.99,
     rho_bar: float = 1.0,
     c_bar: float = 1.0,

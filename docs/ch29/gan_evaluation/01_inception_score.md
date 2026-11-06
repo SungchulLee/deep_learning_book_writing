@@ -136,7 +136,7 @@ class InceptionScore:
             
             # 1. 가장자리 분포 p(y)을 셈한다
             # 조건 분포의 평균
-            # 꼴: [n_classes]
+            # 형태: [n_classes]
             p_y = np.mean(part, axis=0)
             
             # 2. 표본마다 KL 갈림을 셈한다
@@ -148,7 +148,7 @@ class InceptionScore:
             part = part + eps
             
             # KL 갈림을 셈한다
-            # 꼴: [split_size, n_classes]
+            # 형태: [split_size, n_classes]
             kl_div = part * (np.log(part) - np.log(p_y))
             
             # 갈래에 대해 더하고 표본에 대해 평균 낸다

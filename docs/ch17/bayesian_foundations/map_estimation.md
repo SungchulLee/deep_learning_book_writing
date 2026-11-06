@@ -80,7 +80,7 @@ $$
 
 ??? proof "증명"
 
-    사후확률의 꼴은
+    사후확률의 형태는
 
     $$
     p(\theta \mid D) \propto \theta^{k}(1-\theta)^{n-k} \cdot \theta^{\alpha-1}(1-\theta)^{\beta-1}

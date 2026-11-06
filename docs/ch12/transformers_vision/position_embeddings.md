@@ -208,7 +208,7 @@ def interpolate_pos_embed(model, new_size: int, old_size: int = 224):
     cls_pos = pos_embed[:, :1]
     patch_pos = pos_embed[:, 1:]
     
-    # 2차원 격자로 꼴을 바꾼다
+    # 2차원 격자로 형태를 바꾼다
     dim = patch_pos.shape[-1]
     h_old = w_old = int(n_patches_old ** 0.5)
     h_new = w_new = int(n_patches_new ** 0.5)

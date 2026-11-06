@@ -88,12 +88,12 @@ GRN은 보기 트랜스포머에는 잘 듣는 가린 오토인코더 사전 학
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-GRN 켜에 꼴이 $(B, H, W, D)$인 입력 텐서가 들어올 때 스텝마다 $G_x$과 $N_x$의 꼴을 밝혀라.
+GRN 켜에 형태가 $(B, H, W, D)$인 입력 텐서가 들어올 때 스텝마다 $G_x$과 $N_x$의 꼴을 밝혀라.
 
 </div>
 
 ??? success "풀이"
-    꼴이 $(B, H, W, D)$인 입력 $x$에서 비롯한다. (1) 차수 $(1, 2)$(높이와 너비)에 걸쳐 keepdim으로 셈한 $G_x = \|x\|_2$의 꼴은 $(B, 1, 1, D)$이다. 이는 클래스마다 자리 되받음의 $L^2$ 노름이다. (2) $G_x.\text{mean}(\text{dim}=-1, \text{keepdim}=\text{True})$은 $D$ 차수에 걸쳐 고르게 하여 꼴이 $(B, 1, 1, 1)$이다. (3) $N_x = G_x / (\text{mean} + \epsilon)$의 꼴은 $(B, 1, 1, D)$이며, 클래스마다의 되받음을 클래스 평균에 견준 값이다. 마지막 출력 $\gamma \cdot (x \cdot N_x) + \beta + x$의 꼴은 $(B, H, W, D)$이다.
+    형태가 $(B, H, W, D)$인 입력 $x$에서 비롯한다. (1) 차수 $(1, 2)$(높이와 너비)에 걸쳐 keepdim으로 셈한 $G_x = \|x\|_2$의 형태는 $(B, 1, 1, D)$이다. 이는 클래스마다 자리 되받음의 $L^2$ 노름이다. (2) $G_x.\text{mean}(\text{dim}=-1, \text{keepdim}=\text{True})$은 $D$ 차수에 걸쳐 고르게 하여 형태가 $(B, 1, 1, 1)$이다. (3) $N_x = G_x / (\text{mean} + \epsilon)$의 형태는 $(B, 1, 1, D)$이며, 클래스마다의 되받음을 클래스 평균에 견준 값이다. 마지막 출력 $\gamma \cdot (x \cdot N_x) + \beta + x$의 형태는 $(B, H, W, D)$이다.
 
 ---
 

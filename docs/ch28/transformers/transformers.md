@@ -77,7 +77,7 @@ class CausalSelfAttention(nn.Module):
         K = self.W_k(x)
         V = self.W_v(x)
         
-        # 다중 머리 주의에 맞게 꼴을 바꾼다
+        # 다중 머리 주의에 맞게 형태를 바꾼다
         # [배치, 차례 길이, 머리 수, d_k] -> [배치, 머리 수, 차례 길이, d_k]
         Q = Q.view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         K = K.view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)

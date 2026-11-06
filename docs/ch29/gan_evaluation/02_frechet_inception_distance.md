@@ -125,7 +125,7 @@ class FIDCalculator:
         # 이것이 셈이 가장 비싼 스텝이다
         
         # 행렬 곱: Σ₁ @ Σ₂
-        # 꼴: [d, d] @ [d, d] = [d, d]
+        # 형태: [d, d] @ [d, d] = [d, d]
         covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
         
         # 행렬 제곱근의 수치 어긋남을 다룬다
@@ -171,11 +171,11 @@ class FIDCalculator:
         열마다 하나의 변수로 보려고 rowvar=False을 쓴다
         """
         # 평균을 셈한다: 표본에 걸쳐 평균 낸다
-        # 꼴: [피처 차원]
+        # 형태: [피처 차원]
         mu = np.mean(features, axis=0)
         
         # 함께 흩어짐 행렬을 셈한다
-        # 꼴: [피처 차원, 피처 차원]
+        # 형태: [피처 차원, 피처 차원]
         # rowvar=False: 세로줄마다 변수, 가로줄마다 관측이다
         sigma = np.cov(features, rowvar=False)
         

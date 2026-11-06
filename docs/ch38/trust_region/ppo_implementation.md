@@ -61,7 +61,7 @@ $$L_V = \max\left[(V_\theta - V_\text{타깃})^2, (V_\text{자름} - V_\text{타
     advantages, returns = compute_gae(rewards, values, dones, last_value)
 
     # 배치 납작하게 펴기
-    batch = flatten(rollout)  # 꼴: (n_envs × n_steps, ...)
+    batch = flatten(rollout)  # 형태: (n_envs × n_steps, ...)
 
     # 가장 좋게 하기 마디
     for epoch = 1, ..., n_epochs:

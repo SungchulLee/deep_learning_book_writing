@@ -330,7 +330,7 @@
             돌려주는 것:
             --------
             f_value : torch.Tensor
-                목표 값(꼴: (batch_size,))
+                목표 값(형태: (batch_size,))
             """
             batch_size = outputs.size(0)
             num_classes = outputs.size(1)

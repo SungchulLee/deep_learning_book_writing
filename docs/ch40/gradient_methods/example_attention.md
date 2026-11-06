@@ -98,7 +98,7 @@ class AttentionVisualizer:
         정한 머리의 어텐션 짐을 그린다.
 
         Args:
-            attention_weights: (배치, 머리, 열 길이, 열 길이) 꼴 어텐션 텐서
+            attention_weights: (배치, 머리, 열 길이, 열 길이) 형태 어텐션 텐서
             tokens: 이름표로 쓸 낱말 목록
             head_idx: 그릴 어텐션 머리의 번호
             figsize: 그림 크기
@@ -141,7 +141,7 @@ class AttentionVisualizer:
         어텐션 머리 여럿을 격자로 그린다.
 
         Args:
-            attention_weights: (배치, 머리, 열 길이, 열 길이) 꼴 어텐션 텐서
+            attention_weights: (배치, 머리, 열 길이, 열 길이) 형태 어텐션 텐서
             tokens: 낱말 목록
             max_heads: 보일 머리의 가장 큰 수
             figsize: 그림 크기
@@ -358,7 +358,7 @@ def example_simple_attention():
     print("=" * 60)
 
     # 지어낸 어텐션 짐을 만든다
-    # 꼴: (배치=1, 머리=8, 열 길이=10, 열 길이=10)
+    # 형태: (배치=1, 머리=8, 열 길이=10, 열 길이=10)
     seq_len = 10
     num_heads = 8
 
@@ -430,7 +430,7 @@ def example_bert_attention():
 
     # 어텐션 짐을 뽑아낸다
     # outputs.attentions은 켜 수만큼의 텐서 튜플이다
-    # 텐서마다 꼴이 (배치, 머리, 열 길이, 열 길이)다
+    # 텐서마다 형태가 (배치, 머리, 열 길이, 열 길이)다
     attentions = outputs.attentions
 
     print(f"\n켜의 수: {len(attentions)}")

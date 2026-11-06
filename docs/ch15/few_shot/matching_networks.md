@@ -99,7 +99,7 @@ class MatchingNetwork(nn.Module):
         query_embeddings = F.normalize(query_embeddings, p=2, dim=1)
         
         # 코사인 닮음으로 주의 무게를 셈한다
-        # 꼴: (n_query, n_support)
+        # 형태: (n_query, n_support)
         attention = torch.mm(query_embeddings, support_embeddings.t())
         attention = F.softmax(attention, dim=1)
         
@@ -111,7 +111,7 @@ class MatchingNetwork(nn.Module):
             support_labels_one_hot = support_labels.float()
         
         # 주의를 바탕으로 받침 이름표를 무게 두어 더한다
-        # 꼴: (n_query, n_classes)
+        # 형태: (n_query, n_classes)
         predictions = torch.mm(attention, support_labels_one_hot)
         
         return predictions

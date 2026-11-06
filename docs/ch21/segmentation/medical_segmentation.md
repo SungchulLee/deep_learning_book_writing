@@ -325,8 +325,8 @@
         def forward(self, predictions, targets):
             """
             인수:
-                predictions: 꼴이 (batch, 1, H, W)인 로짓
-                targets: 값이 [0, 1]이고 꼴이 (batch, 1, H, W)인 참값
+                predictions: 형태가 (batch, 1, H, W)인 로짓
+                targets: 값이 [0, 1]이고 형태가 (batch, 1, H, W)인 참값
 
             반환값:
                 dice_loss: 홑값 로스

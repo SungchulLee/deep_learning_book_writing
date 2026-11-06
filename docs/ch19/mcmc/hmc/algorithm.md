@@ -176,7 +176,7 @@ class HMC:
             n_warmup: 달굼 되풀이 횟수(버린다)
         
         반환값:
-            samples: 꼴이 (n_samples, dim)인 배열
+            samples: 형태가 (n_samples, dim)인 배열
             accept_rate: 받아들임 비율
         """
         x = x0.copy()

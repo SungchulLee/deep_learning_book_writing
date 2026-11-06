@@ -203,7 +203,7 @@
 
             반환값:
             --------
-            samples : 꼴이 (n_iterations * n_samples, dim)인 배열
+            samples : 형태가 (n_iterations * n_samples, dim)인 배열
             weights : 고르게 한 무게의 배열
             """
             self.initialize_proposal(initial_mean)

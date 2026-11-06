@@ -527,7 +527,7 @@ class RotaryPositionalEncoding(nn.Module):
         cos = self.cos_cached[:seq_len]
         sin = self.sin_cached[:seq_len]
         
-        # 퍼뜨리기 좋게 꼴을 바꾼다 [1, 1, seq_len, d_model]
+        # 퍼뜨리기 좋게 형태를 바꾼다 [1, 1, seq_len, d_model]
         cos = cos.unsqueeze(0).unsqueeze(0)
         sin = sin.unsqueeze(0).unsqueeze(0)
         
@@ -734,7 +734,7 @@ class ALiBiAttention(nn.Module):
         # 값에 어텐션 적용
         output = torch.matmul(attn_weights, v)
         
-        # 꼴을 바꾸고 사영한다
+        # 형태를 바꾸고 사영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         output = self.out_proj(output)
         
@@ -1030,7 +1030,7 @@ class RoPEAttention(nn.Module):
         k = self.k_proj(x)
         v = self.v_proj(x)
         
-        # 다중 머리 주의에 맞게 꼴을 바꾼다
+        # 다중 머리 주의에 맞게 형태를 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -1067,7 +1067,7 @@ class RoPEAttention(nn.Module):
         
         output = torch.matmul(attn_weights, v)
         
-        # 꼴을 바꾸고 출력을 사영한다
+        # 형태를 바꾸고 출력을 사영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         output = self.o_proj(output)
         
@@ -1571,7 +1571,7 @@ class ALiBiAttention(nn.Module):
         k = self.k_proj(x)
         v = self.v_proj(x)
         
-        # 다중 머리 주의에 맞게 꼴을 바꾼다
+        # 다중 머리 주의에 맞게 형태를 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -1612,7 +1612,7 @@ class ALiBiAttention(nn.Module):
         # 값에 적용한다
         output = torch.matmul(attn_weights, v)
         
-        # 꼴을 바꾸고 사영한다
+        # 형태를 바꾸고 사영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         output = self.o_proj(output)
         

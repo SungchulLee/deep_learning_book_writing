@@ -45,7 +45,7 @@ def sliced_score_matching_loss(model, x, n_projections=1):
     
     인수:
         model: 점수 뉴럴 네트워크
-        x: 자료 표본, 꼴 (N, D)
+        x: 자료 표본, 형태 (N, D)
         n_projections: 표본마다 아무 쏘기 횟수
     
     반환값:

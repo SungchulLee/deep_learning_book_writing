@@ -491,7 +491,7 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
             
             logits, _ = model(inputs, hidden)
             
-            # 로스를 위해 꼴 바꾸기: (batch * seq_len, vocab_size)
+            # 로스를 위해 형태 바꾸기: (batch * seq_len, vocab_size)
             logits = logits.view(-1, logits.size(-1))
             targets = targets.view(-1)
             

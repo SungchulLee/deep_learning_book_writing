@@ -103,7 +103,7 @@ def decode_yolo_boxes(
         w_abs = w * image_size
         h_abs = h * image_size
         
-        # xyxy 꼴로 바꾸기
+        # xyxy 형태로 바꾸기
         x1 = x_abs - w_abs / 2
         y1 = y_abs - h_abs / 2
         x2 = x_abs + w_abs / 2

@@ -83,11 +83,11 @@ class NoiseConditionalScoreNetwork(nn.Module):
         잡음 수준을 조건으로 삼은 피드포워드.
         
         인수:
-            x: 자료 점, 꼴 (N, D)
-            sigma: 잡음 수준, 꼴 (N,)이거나 낱값
+            x: 자료 점, 형태 (N, D)
+            sigma: 잡음 수준, 형태 (N,)이거나 낱값
         
         반환값:
-            score: 점수 벡터, 꼴 (N, D)
+            score: 점수 벡터, 형태 (N, D)
         """
         if not isinstance(sigma, torch.Tensor):
             sigma = torch.tensor([sigma] * len(x), device=x.device)

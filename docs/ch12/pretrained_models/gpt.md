@@ -139,7 +139,7 @@ class CausalSelfAttention(nn.Module):
         qkv = self.c_attn(x)
         q, k, v = qkv.split(self.n_embd, dim=-1)
         
-        # 다중 머리 주의에 맞게 꼴을 바꾼다
+        # 다중 머리 주의에 맞게 형태를 바꾼다
         q = q.view(batch_size, seq_len, self.n_head, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.n_head, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.n_head, self.head_dim).transpose(1, 2)

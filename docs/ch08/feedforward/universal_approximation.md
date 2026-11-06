@@ -332,7 +332,7 @@ class DeepNarrowNet(nn.Module):
 def nested_target(x):
     return torch.sin(torch.sin(torch.sin(x * 3) * 2) * 4)
 
-x = torch.linspace(-2, 2, 1000).reshape(-1, 1)   # (1000, 1) 꼴로 만든다
+x = torch.linspace(-2, 2, 1000).reshape(-1, 1)   # (1000, 1) 형태로 만든다
 y = nested_target(x)
 
 def train_model(model, x, y, epochs=5000, lr=1e-3):

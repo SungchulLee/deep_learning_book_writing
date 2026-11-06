@@ -58,11 +58,11 @@ class ARModel(nn.Module):
         피드포워드: 지난 값으로 다음 값을 헤아린다.
         
         인수:
-            x: 꼴 [배치 크기, order]인 들임 텐서
+            x: 형태 [배치 크기, order]인 들임 텐서
                표본마다 지난 'order'개 값을 담는다
                
         반환값:
-            헤아린 다음 값, 꼴 [배치 크기, 1]
+            헤아린 다음 값, 형태 [배치 크기, 1]
         """
         # 단순한 선형 바꿈
         # 내놓기 = w₁*x₁ + w₂*x₂ + ... + wₚ*xₚ + b
@@ -99,7 +99,7 @@ class ARModel(nn.Module):
         4. 스텝 2-3을 되풀이한다
         
         인수:
-            initial_sequence: 출발 값을 담은 꼴 [order]인 텐서
+            initial_sequence: 출발 값을 담은 형태 [order]인 텐서
             n_steps: 앞날로 헤아릴 스텝의 수
             
         반환값:
@@ -170,10 +170,10 @@ class NeuralARModel(nn.Module):
         뉴럴 네트워크를 지나는 피드포워드.
         
         인수:
-            x: 꼴 [배치 크기, order]인 들임 텐서
+            x: 형태 [배치 크기, order]인 들임 텐서
             
         반환값:
-            헤아린 다음 값, 꼴 [배치 크기, 1]
+            헤아린 다음 값, 형태 [배치 크기, 1]
         """
         return self.network(x)
     

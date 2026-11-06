@@ -105,7 +105,7 @@
 
     def extract(a, t, x_shape):
         """
-        텐서 'a'의 어깨수 't'에서 값을 뽑고 퍼뜨리기에 맞게 꼴을 바꾼다.
+        텐서 'a'의 어깨수 't'에서 값을 뽑고 퍼뜨리기에 맞게 형태를 바꾼다.
         a: [T] tensor of values
         t: [B] tensor of indices
         x_shape: 퍼뜨리기의 목표 꼴

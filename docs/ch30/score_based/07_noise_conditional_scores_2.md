@@ -97,7 +97,7 @@ def ncsn_loss(model, x, sigmas):
     
     인수:
         model: 잡음 조건 점수 뉴럴 네트워크 모델
-        x: 자료 표본, 꼴 (N, D)
+        x: 자료 표본, 형태 (N, D)
         sigmas: 잡음 수준의 목록
     
     반환값:
@@ -144,7 +144,7 @@ def anneal_langevin_sampling(model, sigmas, n_samples=100, n_steps_per_sigma=100
         step_size_ratio: σ²에 대한 스텝 크기의 몫
     
     반환값:
-        samples: 마지막 표본, 꼴 (n_samples, dim)
+        samples: 마지막 표본, 형태 (n_samples, dim)
         trajectory: 뽑기 자취
     """
     # 큰 잡음에서 초기화한다

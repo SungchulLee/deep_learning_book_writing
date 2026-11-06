@@ -189,8 +189,8 @@
 
         # 배치들을 순회한다
         for batch_idx, (batch_X, batch_y) in enumerate(dataloader):
-            # batch_X 꼴: (batch_size, n_features)
-            # batch_y 꼴: (batch_size, 1)
+            # batch_X 형태: (batch_size, n_features)
+            # batch_y 형태: (batch_size, 1)
 
             # 순전파
             predictions = model(batch_X)

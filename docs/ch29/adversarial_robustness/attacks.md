@@ -166,7 +166,7 @@ def visualize_adversarial_example(x_clean, x_adv, y_true, y_pred_clean, y_pred_a
     # 흔들림을 셈한다
     delta = x_adv - x_clean
     
-    # 보여 줄 수 있는 꼴로 바꾸기
+    # 보여 줄 수 있는 형태로 바꾸기
     clean_img = x_clean.cpu().numpy().transpose(1, 2, 0)
     adv_img = x_adv.cpu().numpy().transpose(1, 2, 0)
     

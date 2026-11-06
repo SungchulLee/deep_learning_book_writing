@@ -198,7 +198,7 @@ class PerturbationProjector:
         Parameters
         ----------
         delta : torch.Tensor
-            흔듦 텐서, 꼴 (N, ...)
+            흔듦 텐서, 형태 (N, ...)
         x : torch.Tensor
             본디 들임(옳은 자리로 잘라 내는 데 쓴다)
             

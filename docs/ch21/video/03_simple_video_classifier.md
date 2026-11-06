@@ -247,8 +247,8 @@
             온전한 자료 뭉치를 만든다.
 
             반환값:
-                videos: 꼴이 (N, T, H, W, 3)인 텐서
-                labels: 꼴이 (N,)인 텐서
+                videos: 형태가 (N, T, H, W, 3)인 텐서
+                labels: 형태가 (N,)인 텐서
             """
             videos = []
             labels = []

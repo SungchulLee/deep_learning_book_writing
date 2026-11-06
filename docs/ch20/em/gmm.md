@@ -388,7 +388,7 @@ class GaussianMixtureModel:
         EM 알고리즘으로 가우스 섞음 모형 맞추기.
         
         인수:
-            X: 꼴이 (N, d)인 자료 텐서
+            X: 형태가 (N, d)인 자료 텐서
             verbose: 진행 상황 출력 여부
             
         반환값:

@@ -1100,7 +1100,7 @@ def prior_predictive_check(
     
     Returns
     -------
-    (n_samples, n_test_points, output_dim) 꼴의 ndarray
+    (n_samples, n_test_points, output_dim) 형태의 ndarray
         뽑은 함수
     """
     shapes = model.get_weight_shapes()
@@ -1191,7 +1191,7 @@ def plot_prior_predictive(
     
     Parameters
     ----------
-    predictions : (n_samples, n_points) 꼴의 ndarray
+    predictions : (n_samples, n_points) 형태의 ndarray
         뽑은 함수
     x_test : ndarray
         시험 들임(1차)

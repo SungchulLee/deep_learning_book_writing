@@ -218,7 +218,7 @@ class DeepFool:
         Parameters
         ----------
         x : torch.Tensor
-            맑은 들임, 꼴 (N, C, H, W)
+            맑은 들임, 형태 (N, C, H, W)
         y : torch.Tensor
             참 이름표(따질 때만 쓴다)
             
@@ -293,7 +293,7 @@ class DeepFool:
 | $\varepsilon$ 붙박인 따짐 | 아니다 | 그렇다 | 아니다 |
 | 빠르기 | 느림 | 가운데 | 아주 느림 |
 | 으뜸 노름 | $\ell_2$ | $\ell_\infty$ 또는 $\ell_2$ | $\ell_2$ |
-| 쓸 자리 | 꼴 살피기 | 강건성 따지기 | 방어 깨기 |
+| 쓸 자리 | 형태 살피기 | 강건성 따지기 | 방어 깨기 |
 
 ---
 

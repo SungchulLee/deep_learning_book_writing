@@ -64,10 +64,10 @@ class ViTAttentionVisualizer:
         파라메터:
         ----------
         attention : torch.Tensor
-            어텐션 행렬, 꼴: (조각 수+1, 조각 수+1)
+            어텐션 행렬, 형태: (조각 수+1, 조각 수+1)
             (+1은 CLS 낱말)
         image : torch.Tensor, 없어도 됨
-            본디 그림 텐서, 꼴: (3, H, W)
+            본디 그림 텐서, 형태: (3, H, W)
         focus_patch : int
             눈여겨볼 조각(0이면 CLS 낱말)
         """
@@ -77,7 +77,7 @@ class ViTAttentionVisualizer:
         # 눈여겨보는 조각에서 뻗는 어텐션을 뽑는다
         patch_attention = attention[focus_patch, :]
 
-        # 2차원 격자로 꼴을 바꾼다(CLS 낱말은 뺀다)
+        # 2차원 격자로 형태를 바꾼다(CLS 낱말은 뺀다)
         grid_size = int(np.sqrt(self.num_patches))
 
         if focus_patch == 0:  # CLS 낱말

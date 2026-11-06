@@ -419,7 +419,7 @@ def compute_integrated_gradients_batched(
         current_batch_size = len(batch_alphas)
 
         # 사이 들임의 배치를 만든다
-        # 꼴: [batch_size, C, H, W]
+        # 형태: [batch_size, C, H, W]
         batch_alphas = batch_alphas.view(-1, 1, 1, 1)
         interpolated_batch = baseline + batch_alphas * delta
         interpolated_batch.requires_grad_(True)

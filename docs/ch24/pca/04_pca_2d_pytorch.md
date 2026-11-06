@@ -211,7 +211,7 @@ B×N×D 입력에서 독립적인 배치 PCA를 수행할 때 중심화 축과 �
     mu_batch = X_batch.mean(dim=1, keepdim=True)
     Xc_batch = X_batch - mu_batch
     U_b, S_b, Vh_b = torch.linalg.svd(Xc_batch, full_matrices=False)
-    # Vh_b 꼴: (배치, D, D), 자료 묶음마다의 첫 주성분:
+    # Vh_b 형태: (배치, D, D), 자료 묶음마다의 첫 주성분:
     pc1_batch = Vh_b[:, 0, :]  # (배치, D)
     print(f"Batch PCs shape: {pc1_batch.shape}")
     ```

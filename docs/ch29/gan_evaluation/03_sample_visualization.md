@@ -189,7 +189,7 @@ class LatentSpaceInterpolation:
         where t = [0, 1/(n-1), 2/(n-1), ..., 1]
         """
         # 사이 메우기 무게를 만든다
-        # 꼴: [스텝 수]
+        # 형태: [스텝 수]
         t = torch.linspace(0, 1, num_steps)
         
         # 퍼뜨리기를 위해 차원을 늘린다
@@ -200,7 +200,7 @@ class LatentSpaceInterpolation:
         z2 = z2.unsqueeze(0)
         
         # 메운다: z(t) = (1-t) * z1 + t * z2
-        # 꼴: [스텝 수, 숨은 차원]
+        # 형태: [스텝 수, 숨은 차원]
         z_interp = (1 - t) * z1 + t * z2
         
         return z_interp

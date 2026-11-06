@@ -477,7 +477,7 @@ def compare_regularization_strengths(X, y, alphas):
             'n_nonzero': n_nonzero,
             # .copy()가 반드시 필요하다. lasso.coef_는 다음 회귀에서
             # 새 Lasso 객체가 만들어지므로 지금은 괜찮아 보이지만,
-            # 같은 객체를 다시 fit하는 꼴로 바꾸면 모든 항목이 마지막
+            # 같은 객체를 다시 fit하는 형태로 바꾸면 모든 항목이 마지막
             # 계수를 함께 가리키게 된다. 사본을 뜨는 버릇이 안전하다
             'coefficients': lasso.coef_.copy()
         })

@@ -79,7 +79,7 @@ class EvaluationParadigms:
             평균 로그 가능도
         """
         # 시험 표본마다 로그 확률을 셈한다
-        # 꼴: [배치 크기]
+        # 형태: [배치 크기]
         log_probs = model.log_prob(test_data)
         
         # 평균 로그 가능도를 돌려준다
@@ -180,7 +180,7 @@ class SimpleGaussianModel:
         std = torch.exp(self.log_std)
         
         # 마할라노비스 거리의 제곱을 셈한다: [(x-μ)/σ]²
-        # 꼴: [배치 크기, 차원]
+        # 형태: [배치 크기, 차원]
         normalized_diff = (x - self.mu) / std
         squared_distance = normalized_diff ** 2
         
@@ -217,7 +217,7 @@ class SimpleGaussianModel:
         std = torch.exp(self.log_std)
         
         # 표준 정규 분포에서 뽑는다
-        # 꼴: [표본 수, 차원]
+        # 형태: [표본 수, 차원]
         epsilon = torch.randn(n_samples, len(self.mu))
         
         # 목표 분포로 바꾼다

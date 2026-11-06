@@ -668,14 +668,14 @@ class VariationalLinear(VariationalLayer):
         
         Parameters
         ----------
-        x : (batch_size, in_features) 꼴의 ndarray
+        x : (batch_size, in_features) 형태의 ndarray
             들임
         sample : bool
             True이면 짐을 뽑고, False이면 평균을 쓴다
         
         Returns
         -------
-        (batch_size, out_features) 꼴의 ndarray
+        (batch_size, out_features) 형태의 ndarray
             날임
         """
         if not sample:

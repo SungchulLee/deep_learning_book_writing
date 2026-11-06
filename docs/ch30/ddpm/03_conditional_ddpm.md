@@ -60,7 +60,7 @@
         return torch.clip(betas, 1e-8, 0.999)
 
     def extract(a, t, x_shape):
-        """a[t]을 모아 x_shape에 퍼뜨릴 수 있게 꼴을 바꾼다."""
+        """a[t]을 모아 x_shape에 퍼뜨릴 수 있게 형태를 바꾼다."""
         out = a.gather(-1, t).float()
         while out.ndim < len(x_shape):
             out = out[..., None]
@@ -352,7 +352,7 @@
         @torch.no_grad()
         def sample(self, n, y=None, cfg_scale=1.0, img_channels=IN_CHANNELS, img_size=IMG_SIZE):
             """
-            이름표 y(꼴 [n])를 조건으로 표본 'n'개를 만든다.
+            이름표 y(형태 [n])를 조건으로 표본 'n'개를 만든다.
             y이 None이면 아무 이름표를 뽑는다. 분류기 없는 이끌기를 쓰면 빈 이름표도 만든다.
             """
             self.model.eval()

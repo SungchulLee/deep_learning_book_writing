@@ -131,7 +131,7 @@ class RandomizedSmoothing:
         Parameters
         ----------
         x : torch.Tensor
-            들임 그림 하나, 꼴 (C, H, W)
+            들임 그림 하나, 형태 (C, H, W)
         num_samples : int
             잡음 섞인 표본의 수
         batch_size : int
@@ -218,7 +218,7 @@ class RandomizedSmoothing:
         Parameters
         ----------
         x : torch.Tensor
-            들임 그림, 꼴 (C, H, W)
+            들임 그림, 형태 (C, H, W)
         n0 : int
             고르는 도막의 표본 수
         n : int

@@ -69,7 +69,7 @@ EfficientNetV2은 어디에나 SiLU(Swish) 활성화를 쓰는데, 여러 자리
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-입력 꼴이 $(1, 32, 56, 56)$, 넓힘 비교 4, 출력 클래스 32일 때 여느 MBConv 덩이와 녹여 붙인 MBConv 덩이의 계산 비용(뜨는 계산 횟수)을 비교하여라.
+입력 형태가 $(1, 32, 56, 56)$, 넓힘 비교 4, 출력 클래스 32일 때 여느 MBConv 덩이와 녹여 붙인 MBConv 덩이의 계산 비용(뜨는 계산 횟수)을 비교하여라.
 
 </div>
 

@@ -90,7 +90,7 @@ class AttentionVisualizer:
         정한 머리의 어텐션 짐을 그린다.
 
         Args:
-            attention_weights: (배치, 머리, 열 길이, 열 길이) 꼴 어텐션 텐서
+            attention_weights: (배치, 머리, 열 길이, 열 길이) 형태 어텐션 텐서
             tokens: 이름표로 쓸 낱말 목록
             head_idx: 그릴 어텐션 머리의 번호
             figsize: 그림 크기
@@ -133,7 +133,7 @@ class AttentionVisualizer:
         어텐션 머리 여럿을 격자로 그린다.
 
         Args:
-            attention_weights: (배치, 머리, 열 길이, 열 길이) 꼴 어텐션 텐서
+            attention_weights: (배치, 머리, 열 길이, 열 길이) 형태 어텐션 텐서
             tokens: 낱말 목록
             max_heads: 보일 머리의 가장 큰 수
             figsize: 그림 크기

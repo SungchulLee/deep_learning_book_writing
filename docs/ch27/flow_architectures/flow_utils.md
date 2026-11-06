@@ -107,7 +107,7 @@
                 device (str): 'cpu'나 'cuda' - 텐서를 만들 곳
 
             반환값:
-                torch.Tensor: 아무 표본, 꼴 (n_samples, dim)
+                torch.Tensor: 아무 표본, 형태 (n_samples, dim)
                              가로줄마다 정규 분포에서 뽑은 표본 하나이다
 
             수학의 세부:
@@ -136,10 +136,10 @@
             - 로그는 한쪽으로만 간다. 곧 로그 확률이 클수록 확률도 크다
 
             인수:
-                z (torch.Tensor): 따질 표본, 꼴 (batch_size, dim)
+                z (torch.Tensor): 따질 표본, 형태 (batch_size, dim)
 
             반환값:
-                torch.Tensor: 로그 확률, 꼴 (batch_size,)
+                torch.Tensor: 로그 확률, 형태 (batch_size,)
                              표본마다 로그 확률 값 하나
 
             수학의 이끌어 내기:
@@ -165,7 +165,7 @@
             log_prob = -0.5 * (z ** 2 + np.log(2 * np.pi))
 
             # 표본마다 전체 로그 확률을 얻으려 차원에 걸쳐 더한다
-            # 꼴: (배치 크기, 차원) → (배치 크기,)
+            # 형태: (배치 크기, 차원) → (배치 크기,)
             return log_prob.sum(dim=-1)
 
 
@@ -232,15 +232,15 @@
             이것이 만들어 내는 방향이며 뽑기에 쓴다.
 
             인수:
-                z (torch.Tensor): 숨은 공간의 표본, 꼴 (batch_size, dim)
+                z (torch.Tensor): 숨은 공간의 표본, 형태 (batch_size, dim)
                                  단순한 바탕 분포에서 온다
 
             반환값:
                 다음을 담은 짝:
-                    x (torch.Tensor): 자료 공간으로 바꾼 표본, 꼴 (batch_size, dim)
+                    x (torch.Tensor): 자료 공간으로 바꾼 표본, 형태 (batch_size, dim)
                                      실제 자료처럼 보여야 한다
 
-                    log_det (torch.Tensor): 야코비 행렬식 절댓값의 로그, 꼴 (batch_size,)
+                    log_det (torch.Tensor): 야코비 행렬식 절댓값의 로그, 형태 (batch_size,)
                                            부피가 어떻게 바뀌는지 좇는다
 
             개념의 흐름:
@@ -264,15 +264,15 @@
             이것이 추론 방향이며 확률을 셈하는 데 쓴다.
 
             인수:
-                x (torch.Tensor): 자료 공간의 표본, 꼴 (batch_size, dim)
+                x (torch.Tensor): 자료 공간의 표본, 형태 (batch_size, dim)
                                  흔히 익히기 자료이다
 
             반환값:
                 다음을 담은 짝:
-                    z (torch.Tensor): 숨은 공간으로 바꾼 표본, 꼴 (batch_size, dim)
+                    z (torch.Tensor): 숨은 공간으로 바꾼 표본, 형태 (batch_size, dim)
                                      바탕 분포를 따라야 한다
 
-                    log_det (torch.Tensor): 야코비 행렬식 절댓값의 로그, 꼴 (batch_size,)
+                    log_det (torch.Tensor): 야코비 행렬식 절댓값의 로그, 형태 (batch_size,)
                                            역에서는 앞 방향과 부호가 반대이다
 
             개념의 흐름:
@@ -388,12 +388,12 @@
                 5. 마지막 내놓기: x, total_log_det
 
             인수:
-                z (torch.Tensor): 바탕 분포의 숨은 표본, 꼴 (batch_size, dim)
+                z (torch.Tensor): 바탕 분포의 숨은 표본, 형태 (batch_size, dim)
 
             반환값:
                 다음을 담은 짝:
-                    x (torch.Tensor): 마지막으로 바꾼 표본, 꼴 (batch_size, dim)
-                    log_det_sum (torch.Tensor): 로그 행렬식의 합, 꼴 (batch_size,)
+                    x (torch.Tensor): 마지막으로 바꾼 표본, 형태 (batch_size, dim)
+                    log_det_sum (torch.Tensor): 로그 행렬식의 합, 형태 (batch_size,)
 
             수학의 세부:
                 log|det(∂x/∂z)| = Σᵢ log|det(∂fᵢ/∂fᵢ₋₁)|
@@ -437,12 +437,12 @@
                 5. 마지막 내놓기: z, total_log_det
 
             인수:
-                x (torch.Tensor): 바꿀 자료 표본, 꼴 (batch_size, dim)
+                x (torch.Tensor): 바꿀 자료 표본, 형태 (batch_size, dim)
 
             반환값:
                 다음을 담은 짝:
-                    z (torch.Tensor): 숨은 표본, 꼴 (batch_size, dim)
-                    log_det_sum (torch.Tensor): 로그 행렬식의 합, 꼴 (batch_size,)
+                    z (torch.Tensor): 숨은 표본, 형태 (batch_size, dim)
+                    log_det_sum (torch.Tensor): 로그 행렬식의 합, 형태 (batch_size,)
 
             결정적인 참고:
                 역은 거꾸로 된 차례로 쓴다!
@@ -493,10 +493,10 @@
                 4. 결과: 배운 분포에서 x의 가능도
 
             인수:
-                x (torch.Tensor): 따질 자료 표본, 꼴 (batch_size, dim)
+                x (torch.Tensor): 따질 자료 표본, 형태 (batch_size, dim)
 
             반환값:
-                torch.Tensor: 로그 확률, 꼴 (batch_size,)
+                torch.Tensor: 로그 확률, 형태 (batch_size,)
                              값이 클수록 배운 분포에서 더 그럴듯하다
 
             익히기에서 쓰기:
@@ -539,7 +539,7 @@
                 device (str): 만들 기기('cpu'나 'cuda')
 
             반환값:
-                torch.Tensor: 만든 표본, 꼴 (n_samples, dim)
+                torch.Tensor: 만든 표본, 형태 (n_samples, dim)
 
             익힌 뒤의 보기:
                 >>> # 그림으로 모델을 익힌다
@@ -645,7 +645,7 @@
             앞 바꿈: y = 스케일 * z + 옮김
 
             인수:
-                z (torch.Tensor): 들임 표본, 꼴 (batch_size, dim)
+                z (torch.Tensor): 들임 표본, 형태 (batch_size, dim)
 
             반환값:
                 다음을 담은 짝:
@@ -676,7 +676,7 @@
             역 바꿈: z = (x - 옮김) / 스케일
 
             인수:
-                x (torch.Tensor): 바꾼 표본, 꼴 (batch_size, dim)
+                x (torch.Tensor): 바꾼 표본, 형태 (batch_size, dim)
 
             반환값:
                 다음을 담은 짝:
@@ -763,9 +763,9 @@
                 dim (int): 공간의 차원
 
             배우는 파라메터:
-                - weight (w): "평면"의 방향을 정한다, 꼴 (dim,)
-                - bias (b): 평면을 옮긴다, 꼴 (1,)
-                - u: 바꿈의 방향, 꼴 (dim,)
+                - weight (w): "평면"의 방향을 정한다, 형태 (dim,)
+                - bias (b): 평면을 옮긴다, 형태 (1,)
+                - u: 바꿈의 방향, 형태 (dim,)
 
             초기화:
                 - weight: 아무 정규 분포(여러 첫 평면을 만든다)
@@ -795,7 +795,7 @@
                 4. 야코비 행렬식을 셈한다
 
             인수:
-                z (torch.Tensor): 들임 표본, 꼴 (batch_size, dim)
+                z (torch.Tensor): 들임 표본, 형태 (batch_size, dim)
 
             반환값:
                 다음을 담은 짝:
@@ -808,7 +808,7 @@
             """
             # 스텝 1: 선형 쏘기 w^T z + b을 셈한다
             # 표본마다: 무게 벡터와의 점곱에 치우침을 더한다
-            # 꼴: (배치 크기, 차원) × (차원,) → (배치 크기, 1)
+            # 형태: (배치 크기, 차원) × (차원,) → (배치 크기, 1)
             linear = torch.sum(self.weight * z, dim=-1, keepdim=True) + self.bias
 
             # 스텝 2: 바꿈을 쓴다
@@ -1036,7 +1036,7 @@
         X, Y = np.meshgrid(x, y)  # 2차원 격자를 만든다
 
         # 스텝 2: 격자를 (x, y) 점 목록으로 펼친다
-        # 꼴: (n_grid*n_grid, 2)
+        # 형태: (n_grid*n_grid, 2)
         points = torch.tensor(
             np.stack([X.flatten(), Y.flatten()], axis=1), 
             dtype=torch.float32
@@ -1050,7 +1050,7 @@
             # prob = exp(log_prob)
             prob = torch.exp(log_prob).cpu().numpy()
 
-        # 스텝 4: 그리려 격자 꼴로 되돌린다
+        # 스텝 4: 그리려 격자 형태로 되돌린다
         prob = prob.reshape(n_grid, n_grid)
 
         # 스텝 5: 채운 등고선 그림을 만든다

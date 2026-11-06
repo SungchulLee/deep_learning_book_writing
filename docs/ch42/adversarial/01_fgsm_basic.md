@@ -171,10 +171,10 @@
             파라메터:
             -----------
             images : torch.Tensor
-                꼴이 (batch_size, channels, height, width)인 맑은 그림
+                형태가 (batch_size, channels, height, width)인 맑은 그림
                 [clip_min, clip_max] 자리에 있어야 한다
             labels : torch.Tensor
-                꼴이 (batch_size,)인 참 이름표
+                형태가 (batch_size,)인 참 이름표
             targeted : bool, 기본값=False
                 True이면 target_labels으로 갈리는 보기를 만든다
                 False이면 틀리게 갈리는 보기를 만든다(아무 틀린 클래스)
@@ -230,7 +230,7 @@
             loss.backward()
 
             # 그래디언트를 뽑아낸다
-            # images_adv.grad의 꼴은 (batch_size, channels, height, width)이다
+            # images_adv.grad의 형태는 (batch_size, channels, height, width)이다
             grad = images_adv.grad.data
 
             # 그래디언트의 부호로 흔듦을 만든다
@@ -493,7 +493,7 @@
         파라메터:
         -----------
         clean_images : torch.Tensor
-            꼴이 (batch_size, C, H, W)인 본디 그림
+            형태가 (batch_size, C, H, W)인 본디 그림
         adv_images : torch.Tensor
             맞서는 그림
         labels : torch.Tensor
@@ -633,12 +633,12 @@ FGSM 치기 보여 주기
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력의 꼴과 데이터 클래스가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
+입력의 형태와 데이터 클래스가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
 
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 꼴을 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
 
 ---
 

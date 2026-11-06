@@ -43,13 +43,13 @@ def langevin_sampling(score_fn, x_init, n_steps=1000, step_size=0.01):
     
     인수:
         score_fn: ∇log p(x)를 셈하는 함수
-        x_init: 첫 자리, 꼴 (n_samples, dim)
+        x_init: 첫 자리, 형태 (n_samples, dim)
         n_steps: 랑주뱅 스텝 수
         step_size: 스텝 크기 ε
     
     반환값:
-        samples: 마지막 표본, 꼴 (n_samples, dim)
-        trajectory: 중간 자리 모두, 꼴 (n_steps, n_samples, dim)
+        samples: 마지막 표본, 형태 (n_samples, dim)
+        trajectory: 중간 자리 모두, 형태 (n_steps, n_samples, dim)
     """
     x = x_init.clone()
     trajectory = [x.clone()]

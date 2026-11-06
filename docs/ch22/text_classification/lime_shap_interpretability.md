@@ -290,7 +290,7 @@ print("""
 
   # shap_values는 목록이다(클래스마다 하나)
   # shap_values[1] = 양성 클래스 쪽 몫
-  # 꼴: (num_samples, seq_len)
+  # 형태: (num_samples, seq_len)
 
   # 그려 보려고 낱말로 되돌려 대응시키기
   idx2word = {v: k for k, v in word2idx.items()}
@@ -502,7 +502,7 @@ if __name__ == "__main__":
 
       # shap_values는 목록이다(클래스마다 하나)
       # shap_values[1] = 양성 클래스 쪽 몫
-      # 꼴: (num_samples, seq_len)
+      # 형태: (num_samples, seq_len)
 
       # 그려 보려고 낱말로 되돌려 대응시키기
       idx2word = {v: k for k, v in word2idx.items()}

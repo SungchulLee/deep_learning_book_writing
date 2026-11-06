@@ -138,7 +138,7 @@
             return not (self.end <= other.start or other.end <= self.start)
 
         def to_dict(self) -> Dict:
-            """것을 사전 꼴로 바꾸기."""
+            """것을 사전 형태로 바꾸기."""
             return {
                 'text': self.text,
                 'type': self.entity_type,

@@ -14,7 +14,7 @@ NERDatasetBuilder는 원문과 주석을 보관하고 공백 토큰의 IOB2 태�
 받치는 것:
 - IOB 레이블 붙이기
 - 자료 나누기
-- 꼴 바꾸기
+- 형태 바꾸기
 
 지은이: 러닝 목적
 날짜: 2025
@@ -50,7 +50,7 @@ class NERDatasetBuilder:
     
     def to_iob_format(self) -> List[Tuple[List[str], List[str]]]:
         """
-        데이터셋을 IOB 꼴로 바꾸기.
+        데이터셋을 IOB 형태로 바꾸기.
         
         반환값:
             (토큰들, 레이블들) 튜플의 목록

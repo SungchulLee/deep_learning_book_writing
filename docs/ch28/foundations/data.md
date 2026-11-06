@@ -38,7 +38,7 @@ def generate_sine_wave(n_samples: int = 1000,
         seed: 되풀이할 수 있게 하는 아무 씨앗
         
     반환값:
-        시계열을 담은 꼴 (n_samples,)인 넘파이 배열
+        시계열을 담은 형태 (n_samples,)인 넘파이 배열
     """
     np.random.seed(seed)
     
@@ -73,7 +73,7 @@ def generate_ar_process(n_samples: int = 1000,
         seed: 되풀이할 수 있게 하는 아무 씨앗
         
     반환값:
-        시계열을 담은 꼴 (n_samples,)인 넘파이 배열
+        시계열을 담은 형태 (n_samples,)인 넘파이 배열
         
     보기:
         # AR(2) 과정을 만든다: X_t = 0.6*X_{t-1} - 0.3*X_{t-2} + ε_t
@@ -115,8 +115,8 @@ def create_sequences(data: np.ndarray,
         
     반환값:
         (X, y) 짝이며 여기서:
-            X: 꼴 (n_sequences, sequence_length)인 텐서 - 들임 차례
-            y: 꼴 (n_sequences, 1)인 텐서 - 목표 값
+            X: 형태 (n_sequences, sequence_length)인 텐서 - 들임 차례
+            y: 형태 (n_sequences, 1)인 텐서 - 목표 값
             
     보기:
         data = [1, 2, 3, 4, 5]이고 sequence_length = 2이면:

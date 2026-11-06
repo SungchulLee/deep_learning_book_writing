@@ -271,7 +271,7 @@ class ImprovedPrecisionRecall:
         
         # 정밀도: 만든 표본마다 어떤 실제 표본이
         # 그것을 제 다양체 안에 담는지 살핀다(곧 거리 <= 실제 반지름)
-        # 꼴: [N_g, N_r] - real_radii [N_r]
+        # 형태: [N_g, N_r] - real_radii [N_r]
         in_real_manifold = dist_gen_to_real <= real_radii[np.newaxis, :]
         precision = np.mean(np.any(in_real_manifold, axis=1))
         

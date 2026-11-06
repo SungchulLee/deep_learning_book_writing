@@ -65,10 +65,10 @@ class CEM:
         
         인수:
             q_network: Q 네트워크
-            state: 상태 텐서 하나, 꼴 (state_dim,) 또는 (1, state_dim)
+            state: 상태 텐서 하나, 형태 (state_dim,) 또는 (1, state_dim)
             
         반환값:
-            찾아낸 가장 좋은 액션, 꼴 (action_dim,)
+            찾아낸 가장 좋은 액션, 형태 (action_dim,)
         """
         if state.dim() == 1:
             state = state.unsqueeze(0)

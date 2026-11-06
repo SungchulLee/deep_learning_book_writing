@@ -80,7 +80,7 @@ def abc_mcmc(theta_init, prior_logpdf, simulator, summary_fn, y_obs,
         n_iter: 되풀이 횟수
     
     반환값:
-        chain: 꼴이 (n_iter, dim)인 배열
+        chain: 형태가 (n_iter, dim)인 배열
         acceptance_rate: 전체 받아들임 비율
     """
     s_obs = summary_fn(y_obs)

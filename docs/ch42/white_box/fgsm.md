@@ -189,9 +189,9 @@ class FGSM:
         Parameters
         ----------
         x : torch.Tensor
-            맑은 그림, 꼴 (N, C, H, W)
+            맑은 그림, 형태 (N, C, H, W)
         y : torch.Tensor
-            참 이름표, 꼴 (N,)
+            참 이름표, 형태 (N,)
         targeted : bool
             True이면 타깃 있는 치기를 한다
         target_labels : torch.Tensor, 골라 씀
@@ -200,7 +200,7 @@ class FGSM:
         Returns
         -------
         x_adv : torch.Tensor
-            맞서는 보기, 꼴 (N, C, H, W)
+            맞서는 보기, 형태 (N, C, H, W)
         """
         # 들임을 장치로 옮긴다
         x = x.to(self.device)

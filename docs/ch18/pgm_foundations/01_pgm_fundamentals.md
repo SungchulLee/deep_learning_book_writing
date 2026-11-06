@@ -232,7 +232,7 @@
             idx1 = p_joint.variables.index(var1)
             idx2 = p_joint.variables.index(var2)
 
-            # 퍼뜨리기를 위해 배열 꼴 바꾸기
+            # 퍼뜨리기를 위해 배열 형태 바꾸기
             shape1 = [1] * len(p_joint.variables)
             shape1[idx1] = self.cardinalities[var1]
 

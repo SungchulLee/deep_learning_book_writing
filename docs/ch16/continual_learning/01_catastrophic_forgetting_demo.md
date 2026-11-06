@@ -81,10 +81,10 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
             뉴럴 네트워크를 통과하는 순전파.
 
             인수:
-                x: 꼴이 (batch_size, 784)인 입력 텐서
+                x: 형태가 (batch_size, 784)인 입력 텐서
 
             반환값:
-                꼴이 (batch_size, num_classes)인 출력 로짓
+                형태가 (batch_size, num_classes)인 출력 로짓
             """
             # 필요하면 입력을 편다([batch, 1, 28, 28]에서 [batch, 784]로)
             x = x.view(x.size(0), -1)

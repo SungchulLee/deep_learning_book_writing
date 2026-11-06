@@ -46,7 +46,7 @@ $$
 
 ### 여러 통로 모으기
 
-꼴이 $(3, H, W)$인 RGB 그림이면 모든 통로에 대해 그래디언트를 계산하고 모은다.
+형태가 $(3, H, W)$인 RGB 그림이면 모든 통로에 대해 그래디언트를 계산하고 모은다.
 
 $$
 \mathbf{G} = \frac{\partial y_c}{\partial \mathbf{x}} \in \mathbb{R}^{3 \times H \times W}

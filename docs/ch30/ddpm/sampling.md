@@ -127,7 +127,7 @@ class DDPMSampler:
         alphas_cumprod = torch.cumprod(alphas, dim=0)
         alphas_cumprod_prev = torch.cat([torch.tensor([1.0]), alphas_cumprod[:-1]])
 
-        # --- 계수 미리 셈하기(모두 꼴 [T]) ---
+        # --- 계수 미리 셈하기(모두 형태 [T]) ---
         self.betas = betas.to(device)
         self.alphas = alphas.to(device)
         self.alphas_cumprod = alphas_cumprod.to(device)
@@ -253,7 +253,7 @@ class DDPMSampler:
         파라메터
         ----------
         shape : tuple
-            만들 표본의 꼴. 예컨대 (B, C, H, W).
+            만들 표본의 형태. 예컨대 (B, C, H, W).
         condition : Tensor, optional
             조건 앎.
         return_trajectory : bool
@@ -265,7 +265,7 @@ class DDPMSampler:
 
         반환값
         -------
-        samples : 꼴이 `shape`인 텐서.
+        samples : 형태가 `shape`인 텐서.
         trajectory : 텐서의 목록(있으면).
         """
         self.model.eval()
@@ -318,7 +318,7 @@ class DDPMSampler:
 
         반환값
         -------
-        samples : 꼴이 `shape`인 텐서.
+        samples : 형태가 `shape`인 텐서.
         """
         self.model.eval()
         classifier.eval()
@@ -384,7 +384,7 @@ class DDPMSampler:
 
         반환값
         -------
-        samples : 꼴이 `shape`인 텐서.
+        samples : 형태가 `shape`인 텐서.
         """
         self.model.eval()
 
@@ -454,7 +454,7 @@ def visualize_trajectory(
     ----------
     sampler : DDPMSampler
     shape : tuple
-        표본 꼴. 예컨대 (4, 3, 64, 64).
+        표본 형태. 예컨대 (4, 3, 64, 64).
     save_steps : 정수의 목록
         갈무리할 때 스텝. 기본은 고르게 벌린 것이다.
 

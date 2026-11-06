@@ -154,7 +154,7 @@ class GraphGenerator(ABC, nn.Module):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
 def adjacency_to_edge_index(adj: torch.Tensor) -> torch.Tensor:
-    """이웃 행렬을 PyG의 edge_index 꼴로 바꾼다."""
+    """이웃 행렬을 PyG의 edge_index 형태로 바꾼다."""
     row, col = torch.where(adj > 0)
     return torch.stack([row, col], dim=0)
 

@@ -142,8 +142,8 @@
             자료 뭉치에서 표본 하나를 얻는다.
 
             반환값:
-                image: 꼴이 (3, H, W)이고 [0, 1]로 고르게 맞춘 텐서
-                mask: 꼴이 (1, H, W)이고 값이 {0, 1}인 텐서
+                image: 형태가 (3, H, W)이고 [0, 1]로 고르게 맞춘 텐서
+                mask: 형태가 (1, H, W)이고 값이 {0, 1}인 텐서
             """
             img, mask = self.samples[idx]
 
@@ -273,10 +273,10 @@
             U-넷을 지나는 피드포워드.
 
             인수:
-                x: 꼴이 (batch_size, 3, H, W)인 들임 텐서
+                x: 형태가 (batch_size, 3, H, W)인 들임 텐서
 
             반환값:
-                꼴이 (batch_size, num_classes, H, W)인 내놓는 텐서
+                형태가 (batch_size, num_classes, H, W)인 내놓는 텐서
             """
             # 건너뛰는 이음을 갈무리한 인코더
             enc1 = self.enc1(x)           # 64채널
@@ -375,8 +375,8 @@
         두 분류의 겹침 비(IoU)를 셈한다.
 
         인수:
-            pred: 꼴이 (batch, 2, H, W)인 어림 로짓
-            target: 값이 {0, 1}이고 꼴이 (batch, 1, H, W)인 참값 마스크
+            pred: 형태가 (batch, 2, H, W)인 어림 로짓
+            target: 값이 {0, 1}이고 형태가 (batch, 1, H, W)인 참값 마스크
             threshold: 확률을 두 클래스 어림으로 바꾸는 임계값
 
         반환값:
@@ -384,8 +384,8 @@
         """
         with torch.no_grad():
             # 어림한 클래스 얻기(0 또는 1)
-            pred_class = torch.argmax(pred, dim=1)  # 꼴: (배치, H, W)
-            target_class = target.squeeze(1).long()  # 꼴: (배치, H, W)
+            pred_class = torch.argmax(pred, dim=1)  # 형태: (배치, H, W)
+            target_class = target.squeeze(1).long()  # 형태: (배치, H, W)
 
             # 앞바탕 클래스(클래스 1)의 교집합과 합집합 셈하기
             pred_fg = (pred_class == 1)

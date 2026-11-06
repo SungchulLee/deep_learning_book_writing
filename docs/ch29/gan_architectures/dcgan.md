@@ -87,10 +87,10 @@ class DCGANGenerator(nn.Module):
         숨은 벡터에서 그림을 만든다.
         
         인수:
-            z: 숨은 벡터, 꼴 (batch_size, latent_dim) 또는 (batch_size, latent_dim, 1, 1)
+            z: 숨은 벡터, 형태 (batch_size, latent_dim) 또는 (batch_size, latent_dim, 1, 1)
         
         반환값:
-            만들어 낸 그림, 꼴 (batch_size, channels, height, width)
+            만들어 낸 그림, 형태 (batch_size, channels, height, width)
         """
         # 필요하면 펼치기
         if z.dim() == 4:
@@ -154,10 +154,10 @@ class DCGANDiscriminator(nn.Module):
         그림을 실제인지 가짜인지 가른다.
         
         인수:
-            img: 들임 그림, 꼴 (batch_size, channels, height, width)
+            img: 들임 그림, 형태 (batch_size, channels, height, width)
         
         반환값:
-            참일 확률, 꼴 (batch_size, 1)
+            참일 확률, 형태 (batch_size, 1)
         """
         output = self.main(img)
         return output.view(-1, 1)

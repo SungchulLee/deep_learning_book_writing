@@ -623,7 +623,7 @@ def importance_sampling_evidence(
     data : array
         관측 자료
     proposal_samples : array
-        제안 분포에서 뽑은 표본, 꼴 (n_samples, d)
+        제안 분포에서 뽑은 표본, 형태 (n_samples, d)
     proposal_log_pdf : callable
         제안의 로그 밀도를 셈하는 함수
     

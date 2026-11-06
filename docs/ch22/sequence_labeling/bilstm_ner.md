@@ -148,7 +148,7 @@ class CharLSTM(nn.Module):
         """
         batch_size, max_words, max_chars = char_ids.shape
         
-        # 다루기 위해 꼴 바꾸기
+        # 다루기 위해 형태 바꾸기
         char_ids = char_ids.view(-1, max_chars)
         
         char_embeds = self.char_embedding(char_ids)

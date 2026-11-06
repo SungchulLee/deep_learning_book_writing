@@ -255,7 +255,7 @@ def demo_dueling_dqn():
         print(f"  V/|A| ratio — early: {v_early/(a_early+1e-8):.2f}, "
               f"late: {v_late/(a_late+1e-8):.2f}")
 
-    # --- 감음 겨루기 구조 꼴 살피기 ---
+    # --- 감음 겨루기 구조 형태 살피기 ---
     print("\n--- Conv Dueling Architecture ---")
     conv_duel = DuelingConvQNetwork(action_dim=4)
     dummy = torch.randint(0, 256, (2, 4, 84, 84), dtype=torch.uint8)

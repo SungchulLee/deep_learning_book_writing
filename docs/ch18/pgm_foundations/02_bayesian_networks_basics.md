@@ -79,7 +79,7 @@
                 variable: 변수의 이름(이를테면 'Rain')
                 parents: 어버이 변수 이름의 목록(이를테면 ['Cloudy'])
                 cardinalities: 모든 변수의 가짓수 사전
-                table: 있어도 되고 없어도 되는 CPT 값. 꼴은
+                table: 있어도 되고 없어도 되는 CPT 값. 형태는
                        (*어버이_가짓수, 변수_가짓수)이어야 한다
                        None이면 고른 분포로 첫스텝을 잡는다
 
@@ -99,7 +99,7 @@
             self.cardinalities = cardinalities
 
             # CPT의 꼴 정하기
-            # 꼴: (card(어버이1), card(어버이2), ..., card(변수))
+            # 형태: (card(어버이1), card(어버이2), ..., card(변수))
             parent_cards = [cardinalities[p] for p in parents]
             var_card = cardinalities[variable]
             shape = tuple(parent_cards + [var_card])
@@ -307,7 +307,7 @@
             인수:
                 variable: 변수의 이름
                 table: 조건부 확률을 담은 NumPy 배열
-                       꼴은 (card(어버이1), ..., card(어버이N), card(변수))과 맞아야 한다
+                       형태는 (card(어버이1), ..., card(어버이N), card(변수))과 맞아야 한다
 
             보기:
                 # 이진 Cloudy을 어버이로 갖는 이진 Rain의 경우

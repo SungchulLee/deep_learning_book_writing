@@ -92,7 +92,7 @@
 
        이것이 확산에서 때 차원이 된다!
 
-    6. 이어진 꼴(8단원):
+    6. 이어진 형태(8단원):
        ------------------------------------
        SDE는 모든 것을 이어지게 만든다.
        - Forward: dx = f(x,t)dt + g(t)dw
@@ -175,7 +175,7 @@
             sqrt_alpha_bar = self.sqrt_alphas_cumprod[t]
             sqrt_one_minus_alpha_bar = self.sqrt_one_minus_alphas_cumprod[t]
 
-            # 퍼뜨리기에 맞게 꼴을 바꾼다
+            # 퍼뜨리기에 맞게 형태를 바꾼다
             while len(sqrt_alpha_bar.shape) < len(x_0.shape):
                 sqrt_alpha_bar = sqrt_alpha_bar.unsqueeze(-1)
                 sqrt_one_minus_alpha_bar = sqrt_one_minus_alpha_bar.unsqueeze(-1)
@@ -235,7 +235,7 @@
             alpha_bar_t = self.alphas_cumprod[t]
             beta_t = self.betas[t]
 
-            # 퍼뜨리기에 맞게 꼴을 바꾼다
+            # 퍼뜨리기에 맞게 형태를 바꾼다
             while len(alpha_t.shape) < len(x_t.shape):
                 alpha_t = alpha_t.unsqueeze(-1)
                 alpha_bar_t = alpha_bar_t.unsqueeze(-1)
@@ -409,7 +409,7 @@
     print("=" * 80)
 
     print("""
-    서로 같은 세 가지 꼴:
+    서로 같은 세 가지 형태:
     ------------------------------
 
     1. SCORE-BASED:
@@ -546,7 +546,7 @@
        
        이것이 확산에서 때 차원이 된다!
 
-    6. 이어진 꼴(8단원):
+    6. 이어진 형태(8단원):
        ------------------------------------
        SDE는 모든 것을 이어지게 만든다.
        - Forward: dx = f(x,t)dt + g(t)dw
@@ -724,7 +724,7 @@
     FINAL SUMMARY: THE COMPLETE UNIFIED VIEW
     ================================================================================
 
-    서로 같은 세 가지 꼴:
+    서로 같은 세 가지 형태:
     ------------------------------
 
     1. SCORE-BASED:
