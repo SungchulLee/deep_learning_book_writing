@@ -249,6 +249,28 @@ class Scale(nn.Module):
 
 
 scaler = Scale(3)
+print("     저장소 공유는 nn.Parameter 만의 일이 아니다")
+base = torch.randn(3, 4)
+for tag, made in [("base.view(4, 3)", base.view(4, 3)),
+                  ("base[0]", base[0]),
+                  ("base.t()", base.t()),
+                  ("base.detach()", base.detach()),
+                  ("nn.Parameter(base)", nn.Parameter(base)),
+                  ("base.clone()", base.clone())]:
+    print(f"       {tag:20s} 저장소 공유 {base.data_ptr() == made.data_ptr()}")
+
+print("     저장해 둔 값을 제자리에서 고치면")
+for tag, fn in [("x ** 2  (입력을 저장)", lambda u: u ** 2),
+                ("x.exp() (출력을 저장)", torch.exp)]:
+    x = torch.tensor([2.0], requires_grad=True)
+    y = fn(x)
+    y.detach()[0] = 99.0          # 같은 저장소를 그래프 밖에서 덮어쓴다
+    try:
+        y.sum().backward()
+        print(f"       {tag:22s} x.grad = {x.grad.item():.1f}  <- 아무 말이 없다")
+    except RuntimeError as err:
+        print(f"       {tag:22s} {str(err).splitlines()[0][:46]}")
+
 print("     내 모듈에 둘을 나란히 두면")
 print("       parameters():", [n for n, _ in scaler.named_parameters()])
 print("       state_dict ():", list(scaler.state_dict()))
@@ -347,6 +369,16 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
        넘긴 뒤   handed requires_grad=True  is_leaf=True
        plain 은 그대로 꺼져 있다: False   그런데 저장소는 같다: True
        plain 을 고치면 handed 도 바뀐다: 99.0   <- 베낀 것이 아니다
+     저장소 공유는 nn.Parameter 만의 일이 아니다
+       base.view(4, 3)      저장소 공유 True
+       base[0]              저장소 공유 True
+       base.t()             저장소 공유 True
+       base.detach()        저장소 공유 True
+       nn.Parameter(base)   저장소 공유 True
+       base.clone()         저장소 공유 False
+     저장해 둔 값을 제자리에서 고치면
+       x ** 2  (입력을 저장)       x.grad = 4.0  <- 아무 말이 없다
+       x.exp() (출력을 저장)       one of the variables needed for gradient compu
      내 모듈에 둘을 나란히 두면
        parameters(): ['gain']
        state_dict (): ['gain']
@@ -378,7 +410,7 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
   5. .grad 가 사는 자리
      warm_w 모양      : (4, 3)
      warm_w.grad 모양  : (4, 3)   같은가 True
-     한 번 더 역전파하면 0.0169 가 0.0338 로 — 덮어쓰지 않고 더한다
+     한 번 더 역전파하면 1.9227 가 3.8454 로 — 덮어쓰지 않고 더한다
 
   6. 같은 로스, 깃발만 옮기면
      깃발이 W 에  dL/dW = [2.0, 2.0, 10.0, 10.0]
@@ -421,11 +453,71 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
   plain 을 고치면 handed 도 바뀐다: 99.0   <- 베낀 것이 아니다
 ```
 
-두 가지가 같이 나온다. **깃발은 베껴지지 않고 새로 선다** — 넘긴 쪽
-(`plain`)은 여전히 꺼져 있고, 깃발이 켜진 것은 새로 생긴 `handed`다. 그런데
-**숫자는 베껴지지 않는다** — 저장소를 같이 쓴다. 그래서 넘긴 뒤에 원래
-텐서를 고치면 파라미터가 따라 바뀐다. 초기값을 손으로 지어 넣을 때 걸리는
-자리다. 떼어 두려면 `nn.Parameter(plain.clone())`이라고 적는다.
+두 가지가 같이 나오고, 둘이 **서로 반대 방향**이다.
+
+**`requires_grad`는 복사되지 않는다.** `nn.Parameter`는 받은 텐서의 플래그를
+뒤집는 것이 아니라, **플래그가 켜진 새 텐서 객체**를 만들어 돌려준다. 넘긴
+쪽(`plain`)은 그대로 `False`다.
+
+**그런데 데이터는 복사된다고 볼 수 없다.** `plain`과 `handed`는 **같은
+저장소(storage)** 를 가리킨다. 그래서 넘긴 뒤에 `plain`을 고치면 파라미터가
+따라 바뀐다.
+
+이 둘이 어긋나는 까닭은 텐서가 **두 층**으로 되어 있기 때문이다.
+
+| | 무엇이 들어 있나 | `nn.Parameter`를 거치면 |
+|---|---|---|
+| **텐서 객체** (메타데이터) | 형태(shape) · 보폭(stride) · 오프셋 · `requires_grad` · `grad_fn` · `.grad` | **새로 하나 생긴다** |
+| **저장소** (storage) | 실제 수가 한 줄로 누워 있는 메모리 | **그대로 하나다** |
+
+`plain`과 `handed`는 **객체는 둘, 저장소는 하나**다. 그래서 플래그는 따로 서고
+숫자는 같이 움직인다. 이 모델을 세우는 쪽이
+[메모리 배치와 스트라이드](../tensor_attrs/memory_layout_strides.md)다.
+
+떼어 놓으려면 **저장소를 새로 잡아야** 한다 — `nn.Parameter(plain.clone())`.
+`clone()`을 빼면 같은 `init` 하나로 파라미터 둘을 만들었을 때 둘이 **같은
+메모리를 고친다.**
+
+**저장소 공유는 `nn.Parameter`만의 일이 아니다.** 텐서를 거의 어떻게 건드려도
+새 메타데이터만 생기고 저장소는 그대로다.
+
+```
+base.view(4, 3)      저장소 공유 True
+base[0]              저장소 공유 True
+base.t()             저장소 공유 True
+base.detach()        저장소 공유 True
+nn.Parameter(base)   저장소 공유 True
+base.clone()         저장소 공유 False
+```
+
+**복사하는 것은 `clone()` 하나뿐이다.** 뷰(view)·슬라이스·전치·`detach()`·
+`nn.Parameter`는 전부 공짜다 — 그러니까 역전파가 층마다 생기는 중간 텐서를
+감당할 수 있다. `detach()`가 그래프만 끊고 저장소는 안 끊는다는 것은
+[detach() 와 detach_()](09_detach_vs_detach_.md)가, numpy까지 같은 메모리를
+나눠 쓴다는 것은 [텐서를 NumPy로 넘기기](12_converting_to_numpy.md)가 잰다.
+
+!!! warning "공짜의 대가는 제자리 연산(in-place)이다"
+    저장소가 하나이므로 `a[0] = 99`나 `a.add_(1)` 처럼 **제자리에서 고치면**
+    그 저장소를 가리키는 모든 텐서에 보인다. 역전파가 저장해 둔 값이 거기
+    있었다면 결과가 틀어진다.
+
+    파이토치는 저장소마다 **버전 카운터**를 두어 이것을 잡는다. 다만 **늘
+    잡지는 않는다.**
+
+    ```
+    x ** 2  (입력을 저장)       x.grad = 4.0  <- 아무 말이 없다
+    x.exp() (출력을 저장)       one of the variables needed for gradient compu
+    ```
+
+    두 식 모두 출력 `y`를 제자리에서 덮어썼는데 한쪽만 막혔다. `x.exp()`는
+    역전파에 **출력** $e^x$ 가 필요해서 그것을 저장해 두므로 버전이 어긋난
+    것이 걸리고, `x ** 2`는 **입력** $x$ 만 저장하므로 `y`를 덮어쓴 것이
+    아무 데도 안 걸린다. 무엇이 저장되는지는
+    [retain_graph](03_retain_graph.md)가 재어 둔다.
+
+    즉 **에러가 안 났다고 안전한 것이 아니다.** 역전파에 쓰일 텐서를
+    제자리에서 고치지 않는 것이 규칙이고, 버전 카운터는 그물이지 보증이
+    아니다.
 
 **감싸는 것이 곧 등록이다.** 같은 모양의 텐서 둘을 내 모듈 안에 나란히 두되
 하나만 감싸 보면, 둘이 어디서 갈리는지가 한눈에 보인다.
