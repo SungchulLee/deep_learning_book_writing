@@ -634,8 +634,8 @@ def fig_chapter_map():
     GloVe 는 그 사이 아래. fastText 는 세로 점선 **바깥**에 두어 다른 축임을
     보인다 — 아래로 쌓으면 독자가 사다리로 읽는다.
     """
-    fig, ax = plt.subplots(figsize=(9.2, 4.4))
-    ax.set_xlim(0, 100); ax.set_ylim(0, 56); ax.axis("off")
+    fig, ax = plt.subplots(figsize=(9.2, 4.7))
+    ax.set_xlim(-3, 103); ax.set_ylim(-3, 59); ax.axis("off")
 
     INK, ACC, GRAY = "#1f2937", "#b91c1c", "#6b7280"
 
@@ -665,7 +665,7 @@ def fig_chapter_map():
                 arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.3))
 
     # --- 점선 바깥이 다른 축 ---
-    ax.plot([65, 65], [6, 52], color=GRAY, lw=1.1, ls=(0, (4, 3)), zorder=1)
+    ax.plot([65, 65], [11, 53.5], color=GRAY, lw=1.1, ls=(0, (4, 3)), zorder=1)
     box(70, 27, 29, 12, "fastText", "same objective, smaller unit   (6.3)",
         ec=GRAY, lw=1.3, ls=(0, (4, 2)))
     ax.text(84.5, 41.2, "different axis", ha="center", va="bottom",
@@ -673,13 +673,14 @@ def fig_chapter_map():
     ax.text(84.5, 23.6, "word  ->  character n-grams", ha="center", va="top",
             fontsize=8.6, color=GRAY)
 
-    # --- 장이 남기는 한계 ---
-    ax.plot([1, 60], [7.4, 7.4], color=GRAY, lw=0.9)
-    ax.text(1, 4.6, "6.4   one vector per word, blind to the sentence",
-            fontsize=9.3, color=INK, ha="left", va="center")
-    ax.annotate("", xy=(60, 4.6), xytext=(49, 4.6),
-                arrowprops=dict(arrowstyle="-|>", color=ACC, lw=1.3))
-    ax.text(61, 4.6, "ch.8", fontsize=9.6, color=ACC, ha="left", va="center")
+    # --- 넷 모두가 가진 한계 — 6.4 의 성질이 아니라 이 갈래 전체의 성질이다 ---
+    ax.add_patch(Rectangle((-1.5, 9.5), 103, 45.5, fill=False, ec=GRAY,
+                           lw=0.9, ls=(0, (2, 3)), zorder=0))
+    ax.annotate("", xy=(50, 4.2), xytext=(50, 9.0),
+                arrowprops=dict(arrowstyle="-|>", color=ACC, lw=1.5))
+    ax.text(48.5, 3.0, "all four:  one vector per word, fixed after training"
+                       "   ->   ch.8   (6.4)",
+            fontsize=9.3, color=ACC, ha="center", va="top")
 
     fig.tight_layout()
     fig.savefig("chapter_map.svg", transparent=True)
