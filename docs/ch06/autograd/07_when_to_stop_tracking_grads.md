@@ -22,10 +22,10 @@
 
 | 길 | 무엇을 건드리는가 | 되돌릴 수 있는가 |
 |---|---|---|
-| `t.requires_grad_(False)` | **그 텐서의 깃발** | 된다 |
-| `with torch.no_grad()` | 블록 안의 **기록** | 블록을 나가면 끝 |
+| `t.requires_grad_(False)` | 그 텐서의 **`requires_grad`** | 된다 |
+| `with torch.no_grad()` | 블록 안의 **그래프 기록** | 블록을 나가면 끝 |
 | `t.detach()` | **새 텐서**를 만든다 | 원본은 그대로 |
-| `with torch.inference_mode()` | 기록 + 버전 관리까지 | **못 되돌린다** |
+| `with torch.inference_mode()` | 그래프 기록 + **버전 카운터**까지 | **못 되돌린다** |
 
 고르는 기준은 "무엇을 끄고 싶은가"다. 표의 차례대로 넷이다. 텐서 하나를 영영
 학습에서 빼고 싶은가, 이 블록 동안만 기록을 멈추고 싶은가, 값만 꺼내 가고 싶은가,
@@ -41,10 +41,10 @@
 
 | 길 | 무엇을 건드리는가 | 되돌릴 수 있는가 |
 |---|---|---|
-| `requires_grad_(False)` | 그 텐서의 깃발 | 된다 |
-| `with torch.no_grad()`  | 블록 안의 **기록** | 블록을 나가면 끝 |
+| `requires_grad_(False)` | 그 텐서의 requires_grad | 된다 |
+| `with torch.no_grad()`  | 블록 안의 그래프 기록 | 블록을 나가면 끝 |
 | `t.detach()`            | 새 텐서를 만든다 | 원본은 그대로 |
-| `with torch.inference_mode()` | 기록 + 버전 관리까지 | **못 되돌린다** |
+| `with torch.inference_mode()` | 그래프 기록 + **버전 카운터**까지 | **못 되돌린다** |
 
 실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
