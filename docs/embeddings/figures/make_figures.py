@@ -623,6 +623,68 @@ def fig_ice_steam():
     print("wrote ice_steam.svg")
 
 
+
+# =============================================================================
+# 장 개요 — 네 길이 어떻게 놓이는가
+# =============================================================================
+def fig_chapter_map():
+    """사다리가 아니라는 것을 배치로 말한다.
+
+    위 두 상자는 **나란히** 두고 등호로 잇는다 (같은 행렬, 두 길).
+    GloVe 는 그 사이 아래. fastText 는 세로 점선 **바깥**에 두어 다른 축임을
+    보인다 — 아래로 쌓으면 독자가 사다리로 읽는다.
+    """
+    fig, ax = plt.subplots(figsize=(9.2, 4.4))
+    ax.set_xlim(0, 100); ax.set_ylim(0, 56); ax.axis("off")
+
+    INK, ACC, GRAY = "#1f2937", "#b91c1c", "#6b7280"
+
+    def box(x, y, w, h, title, sub, ec=INK, lw=1.6, ls="solid"):
+        ax.add_patch(Rectangle((x, y), w, h, fill=False, ec=ec, lw=lw,
+                               ls=ls, zorder=2))
+        ax.text(x + w / 2, y + h * 0.63, title, ha="center", va="center",
+                fontsize=10.5, color=ec, zorder=3, linespacing=1.35)
+        ax.text(x + w / 2, y + h * 0.25, sub, ha="center", va="center",
+                fontsize=8.6, color=GRAY, zorder=3)
+
+    # --- 같은 목표에 닿는 두 길 — 나란히 ---
+    box(1, 32, 25, 15, "Skip-gram +\nnegative sampling", "learn   (6.1)")
+    box(35, 32, 25, 15, "PPMI + SVD", "count   (6.1)")
+    for dy in (1.3, -1.3):
+        ax.plot([27.5, 33.5], [39.5 + dy, 39.5 + dy], color=ACC, lw=2.0, zorder=2)
+    ax.text(30.5, 49.6, "same matrix:  PMI - log k", ha="center", va="bottom",
+            fontsize=10, color=ACC)
+    ax.text(13.5, 30.6, "implicit", ha="center", va="top", fontsize=8.6, color=GRAY)
+    ax.text(47.5, 30.6, "explicit", ha="center", va="top", fontsize=8.6, color=GRAY)
+
+    # --- 그 사이 ---
+    box(16, 13, 29, 12, "GloVe", "count first, then fit   (6.2)")
+    ax.annotate("", xy=(25, 25.4), xytext=(13.5, 28.8),
+                arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.3))
+    ax.annotate("", xy=(36, 25.4), xytext=(47.5, 28.8),
+                arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.3))
+
+    # --- 점선 바깥이 다른 축 ---
+    ax.plot([65, 65], [6, 52], color=GRAY, lw=1.1, ls=(0, (4, 3)), zorder=1)
+    box(70, 27, 29, 12, "fastText", "same objective, smaller unit   (6.3)",
+        ec=GRAY, lw=1.3, ls=(0, (4, 2)))
+    ax.text(84.5, 41.2, "different axis", ha="center", va="bottom",
+            fontsize=9.5, color=GRAY)
+    ax.text(84.5, 23.6, "word  ->  character n-grams", ha="center", va="top",
+            fontsize=8.6, color=GRAY)
+
+    # --- 장이 남기는 한계 ---
+    ax.plot([1, 60], [7.4, 7.4], color=GRAY, lw=0.9)
+    ax.text(1, 4.6, "6.4   one vector per word, blind to the sentence",
+            fontsize=9.3, color=INK, ha="left", va="center")
+    ax.annotate("", xy=(60, 4.6), xytext=(49, 4.6),
+                arrowprops=dict(arrowstyle="-|>", color=ACC, lw=1.3))
+    ax.text(61, 4.6, "ch.8", fontsize=9.6, color=ACC, ha="left", va="center")
+
+    fig.tight_layout()
+    fig.savefig("chapter_map.svg", transparent=True)
+    plt.close(fig); print("wrote chapter_map.svg")
+
 if __name__ == "__main__":
     toks = load_tokens()
     counts = Counter(toks)
@@ -646,3 +708,5 @@ if __name__ == "__main__":
     fig_lookup_is_matmul()
     fig_cost_of_onehot()
     fig_ice_steam()
+
+    fig_chapter_map()
