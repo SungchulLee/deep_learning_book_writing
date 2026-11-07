@@ -125,38 +125,44 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 
 경사 기반 학습을 떠받치는 엔진. 이 장에서 가장 긴 절이고, 그만큼 걸려 넘어질 자리가 많다.
 
-**바탕**
+**엔진의 규칙**
 
 - [경사 계산](../ch06/autograd/gradient_computation.md) — 야코비안, 벡터-야코비안 곱, 전진 모드와 후진 모드
 - [스칼라에 대한 기본 역전파](../ch06/autograd/01_basic_scalar_backward.md) — 누가 `.grad` 를 받는가
-- [Autograd 바닥부터 만들기](../ch06/autograd/autograd_from_scratch.md) — 직접 짜 보면 위상 정렬이 왜 필요한지가 드러난다
-
-**경사를 쌓고 지우기**
-
 - [경사 누적](../ch06/autograd/02_gradient_accumulation.md) — 기본값이 더하기인 까닭
-- [경사를 0으로 만드는 세 가지 방법](../ch06/autograd/18_three_ways_to_zero_gradients.md)
-- [큰 배치를 위한 경사 누적](../ch06/autograd/19_gradient_accumulation_for_large_batches.md) · [경사 누적을 쓰는 학습 루프](../ch06/autograd/21_training_loop_with_grad_accumulation.md)
-- [경사 크기 조정이 중요한 이유](../ch06/autograd/20_why_gradient_scaling_matters.md)
 - [retain_graph](../ch06/autograd/03_retain_graph.md) — 그래프를 남기는 것과 경사를 남기는 것은 다른 일이다
 
-**추적을 멈추기**
+**학습 루프**
 
-- [경사 추적을 언제 멈출 것인가](../ch06/autograd/07_when_to_stop_tracking_grads.md) · [경사 추적 끄기](../ch06/autograd/08_turn_off_gradient_tracking.md)
-- [detach와 detach_](../ch06/autograd/09_detach_vs_detach_.md) · [with torch.no_grad()](../ch06/autograd/10_with_torch_no_grad.md)
-- [NumPy로 변환하기](../ch06/autograd/12_converting_to_numpy.md) · [파라메터 동결과 해제](../ch06/autograd/16_freeze_and_unfreeze_parameters.md)
-
-**학습 루프 세우기**
-
-- [작은 학습 단계](../ch06/autograd/04_mini_training_step.md) · [옵티마이저 방식의 갱신](../ch06/autograd/11_optimizer_like_updates.md)
-- [선형 회귀](../ch06/autograd/05_complete_linear_regression.md)
-- [레이어 출력하기](../ch06/autograd/13_print_layers.md) · [OrderedDict를 이용한 레이어 이름 짓기](../ch06/autograd/14_layer_naming_with_ordereddict.md) · [사용자 정의 Module을 이용한 레이어 이름 짓기](../ch06/autograd/15_layer_naming_with_custom_module.md)
+- [작은 학습 단계](../ch06/autograd/04_mini_training_step.md) · [선형 회귀](../ch06/autograd/05_complete_linear_regression.md)
+- [옵티마이저 방식의 갱신](../ch06/autograd/11_optimizer_like_updates.md)
 - [함정과 점검 사항](../ch06/autograd/17_pitfalls_and_sanity_checks.md)
+
+**추적을 끄는 길**
+
+- [경사 추적을 언제 멈출 것인가](../ch06/autograd/07_when_to_stop_tracking_grads.md) — 길이 넷인데 고르는 기준이 저마다 다르다
+- [경사 추적 끄기](../ch06/autograd/08_turn_off_gradient_tracking.md) · [detach와 detach_](../ch06/autograd/09_detach_vs_detach_.md) · [with torch.no_grad()](../ch06/autograd/10_with_torch_no_grad.md)
+
+**모델 들여다보기**
+
+- [레이어 출력하기](../ch06/autograd/13_print_layers.md) · [OrderedDict를 이용한 레이어 이름 짓기](../ch06/autograd/14_layer_naming_with_ordereddict.md) · [사용자 정의 Module을 이용한 레이어 이름 짓기](../ch06/autograd/15_layer_naming_with_custom_module.md)
+- [파라메터 동결과 해제](../ch06/autograd/16_freeze_and_unfreeze_parameters.md) · [NumPy로 변환하기](../ch06/autograd/12_converting_to_numpy.md)
+
+**경사 누적과 배치**
+
+- [경사를 0으로 만드는 세 가지 방법](../ch06/autograd/18_three_ways_to_zero_gradients.md)
+- [큰 배치를 위한 경사 누적](../ch06/autograd/19_gradient_accumulation_for_large_batches.md) · [경사 누적을 쓰는 학습 루프](../ch06/autograd/21_training_loop_with_grad_accumulation.md)
+- [경사 크기 조정이 중요한 이유](../ch06/autograd/20_why_gradient_scaling_matters.md) — 묶음을 키웠는데 더 나빠지는 자리
 
 **벡터 역전파**
 
 - [v를 이용한 벡터 역전파](../ch06/autograd/22_vector_backward_with_v.md) — `backward()` 에 주는 그 인수가 무엇인가
 - [선형 사상의 VJP](../ch06/autograd/23_vector_backward_linear_case_1.md) · [비선형 전체 야코비안](../ch06/autograd/25_vector_backward_nonlinear_full_jacobian.md)
 - [벡터 역전파의 함정](../ch06/autograd/26_pitfalls_of_vector_backward.md) · [배치 VJP](../ch06/autograd/27_batch_vjp.md)
+
+**바닥부터 만들기**
+
+- [Autograd 바닥부터 만들기](../ch06/autograd/autograd_from_scratch.md) — 직접 짜 보면 위상 정렬이 왜 필요한지가 드러난다
 
 ---
 
