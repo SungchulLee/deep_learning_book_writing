@@ -293,6 +293,23 @@ Paths are relative to `docs/`. Both run the page's code in a throwaway directory
 `data/` linked in — examples write `.png` and `.pth` next to themselves, and running them
 from the repo root litters it.
 
+**절 번호 참조는 링크 없는 것까지 훑는다.** 링크가 달린 `[6.1절의 …](02_context.md)`
+은 목표 파일과 대조할 수 있지만, 산문·독스트링·표 머리의 **맨 번호**는 아무것도
+붙들어 주지 않는다. 절을 다시 나누면 그쪽만 남는다 — `embeddings/04_glove.md` 가
+6.2=스킵그램 · 6.3=세기 · 6.4=GloVe 라는 **지금 없는 체계**로 열 자리를 적고
+있었고(「경사 하강법으로 맞춘다(6.2처럼)」이 자기 자신을 가리켰다), 링크 기반
+검사는 0건을 냈다.
+
+```python
+# 링크가 안 달린 N.N 참조만 뽑아 눈으로 읽는다
+for m in re.finditer(r"[^\n]{0,24}6\.\d[^\n]{0,30}", text):
+    if "](" not in m.group(0): print(m.group(0))
+```
+
+소수점이 든 수(6.93 ms, 6.5549 nat)가 같이 걸리므로 걸러 읽는다. 그리고 절을
+합쳤다면 **번호만으로는 못 가른다** — 옛 6.2 와 6.3 이 둘 다 6.1 이 되면
+「6.1 의 배우는 길」·「6.1 의 세는 길」처럼 **이름으로** 적어야 한다.
+
 **검증기는 산문을 안 본다.** `verify_outputs` 가 대조하는 것은 **출력 블록의 줄이
 stdout 에 나오는가** 하나뿐이고, **산문·표·절 제목이 그 출력과 맞는지는 보지 않는다.**
 게다가 시간이 든 줄은 「기계 탓」으로 봐 준다. 그래서 쪽이 **11/11 로 통과하면서**

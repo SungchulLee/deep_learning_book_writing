@@ -654,14 +654,22 @@ def fig_chapter_map():
         ax.plot([27.5, 33.5], [39.5 + dy, 39.5 + dy], color=ACC, lw=2.0, zorder=2)
     ax.text(30.5, 49.6, "same matrix:  PMI - log k", ha="center", va="bottom",
             fontsize=10, color=ACC)
-    ax.text(13.5, 30.6, "implicit", ha="center", va="top", fontsize=8.6, color=GRAY)
-    ax.text(47.5, 30.6, "explicit", ha="center", va="top", fontsize=8.6, color=GRAY)
+    ax.text(10.5, 30.6, "no table built", ha="center", va="top",
+            fontsize=8.6, color=GRAY)
+    ax.text(50.5, 30.6, "closed form", ha="center", va="top",
+            fontsize=8.6, color=GRAY)
+    # GloVe 가 양쪽에서 가져오는 것 — 암묵성이 아니라 옵티마이저와 표다
+    ax.text(22.0, 28.0, "takes the optimizer", ha="center", va="top",
+            fontsize=8.2, color=INK, style="italic")
+    ax.text(39.0, 28.0, "takes the table", ha="center", va="top",
+            fontsize=8.2, color=INK, style="italic")
 
     # --- 그 사이 ---
-    box(16, 13, 29, 12, "GloVe", "count first, then fit   (6.2)")
-    ax.annotate("", xy=(25, 25.4), xytext=(13.5, 28.8),
+    box(14, 12, 33, 12, "GloVe   (6.2)",
+        "explicit target, iterative fit")
+    ax.annotate("", xy=(24, 24.4), xytext=(12.0, 29.2),
                 arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.3))
-    ax.annotate("", xy=(36, 25.4), xytext=(47.5, 28.8),
+    ax.annotate("", xy=(37, 24.4), xytext=(49.0, 29.2),
                 arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.3))
 
     # --- 점선 바깥이 다른 축 ---
