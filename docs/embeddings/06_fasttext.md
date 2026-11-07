@@ -124,7 +124,7 @@ for i, p in enumerate(PIECES):
 
 
 class FastText(nn.Module):
-    """6.1 의 Skip-gram 에서 가운데 벡터를 만드는 법만 바꾼 것.
+    """6.1 의 Skip-gram 에서 가운데 단어의 벡터를 만드는 법만 바꾼 것.
 
     표가 VOCAB + BUCKETS 줄이다. 앞쪽 VOCAB 줄은 단어 제 몫이고
     뒤쪽 BUCKETS 줄은 조각들이 나눠 쓴다.
