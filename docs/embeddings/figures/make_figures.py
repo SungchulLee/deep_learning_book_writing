@@ -684,11 +684,13 @@ def fig_chapter_map():
     # --- 넷 모두가 가진 한계 — 6.4 의 성질이 아니라 이 갈래 전체의 성질이다 ---
     ax.add_patch(Rectangle((-1.5, 9.5), 103, 45.5, fill=False, ec=GRAY,
                            lw=0.9, ls=(0, (2, 3)), zorder=0))
-    ax.annotate("", xy=(50, 4.2), xytext=(50, 9.0),
+    ax.annotate("", xy=(50, 5.6), xytext=(50, 9.0),
                 arrowprops=dict(arrowstyle="-|>", color=ACC, lw=1.5))
-    ax.text(48.5, 3.0, "all four:  one vector per word, fixed after training"
-                       "   ->   ch.8   (6.4)",
-            fontsize=9.3, color=ACC, ha="center", va="top")
+    ax.text(50, 4.6, "all four:  one word -> one vector, whatever the sentence",
+            fontsize=9.6, color=ACC, ha="center", va="top")
+    ax.text(50, 0.9, "6.4 measures it        ch.8 makes the vector "
+                     "depend on the sentence",
+            fontsize=8.6, color=GRAY, ha="center", va="top")
 
     fig.tight_layout()
     fig.savefig("chapter_map.svg", transparent=True)
