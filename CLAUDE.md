@@ -293,6 +293,23 @@ Paths are relative to `docs/`. Both run the page's code in a throwaway directory
 `data/` linked in — examples write `.png` and `.pth` next to themselves, and running them
 from the repo root litters it.
 
+**검증기는 산문을 안 본다.** `verify_outputs` 가 대조하는 것은 **출력 블록의 줄이
+stdout 에 나오는가** 하나뿐이고, **산문·표·절 제목이 그 출력과 맞는지는 보지 않는다.**
+게다가 시간이 든 줄은 「기계 탓」으로 봐 준다. 그래서 쪽이 **11/11 로 통과하면서**
+들머리·표·제목 다섯 곳이 출력에 없는 수를 말할 수 있다 —
+`embeddings/03_counting.md` 가 「0.5초 · 14.3초 · 스물여덟 배」라고 적고 출력은
+「0.7초 · 14.6초」(21배)였다. 쪽을 고칠 때 **산문의 수를 출력 블록과 손으로 대조**한다.
+
+```python
+# 산문에만 있고 블록에 없는 수를 찾는다 — 절 번호·arXiv 는 걸러서 읽을 것
+nums = {x for x in re.findall(r"\d+\.\d+", prose_only)}
+print([n for n in sorted(nums) if n not in all_blocks])
+```
+
+**한 번 재어 소수점까지 적지 않는다.** `0.7초` 는 반올림 폭이 커서 참값의 비가
+19.4~22.5배 어디든 된다. 그런 자리에 「스물여덟 배」를 박아 두면 출력이 한 번만
+바뀌어도 쪽이 거짓말을 시작한다. **「스무 배 남짓」처럼 폭을 담은 말**로 적는다.
+
 **검증기는 쪽의 `python` 블록을 전부 이어 붙여 한 번 돌린다** — 마지막 출력 블록 앞까지다.
 한 쪽이 여러 블록으로 이어진 하나의 프로그램인 경우가 많기 때문이다. 그런데 **이어 붙인
 것이 터지면 말없이 「가장 긴 블록 하나」로 물러난다.** 그러면 나머지 블록의 출력은 아무도
