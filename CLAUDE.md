@@ -107,9 +107,19 @@ git commit -m "update: <name>"
 Nav hierarchy: **Parts → Chapters → Sections → Pages**. Nav entries point to `.md` files.
 
 A section with many pages may add **one grouping level** between Section and
-Page. Only `1.6 자동 미분` does (27 pages in 7 groups); every other section is
-flat. Add a level only when the flat list is long enough to be unreadable —
-the median section has 3 pages.
+Page. Four sections do, all in chapter 1 — `1.4 텐서` (24 pages, 4 groups),
+`1.5 텐서 속성` (14 in 3), `1.6 자동 미분` (27 in 7), `1.7 경사 하강법` (11 in 2).
+Every other section is flat. Add a level only when the flat list is long
+enough to be unreadable — the median section has 3 pages.
+
+> For a long time only 1.6 had groups, which made the threshold look like
+> "27 pages". It was not a threshold — 1.4 had 24 and was flat. 1.6 was simply
+> the longest and so got noticed first. When adding groups, take the names
+> from the chapter overview rather than inventing them: `ch01/index.md`
+> already grouped all four sections in prose, and three of those groupings
+> covered every page exactly, so the nav could be lifted from the page with
+> no new editorial choices. **Keep the two in step** — if the nav groups a
+> section, the overview should show the same groups under the same names.
 
 > **Nothing but `.md` goes in nav.** The `figures/make_figures.py` scripts are build tooling,
 > not pages; mkdocs copies them into `site/` and that is fine, but they are never navigated.

@@ -100,11 +100,16 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 
 텐서가 들고 있는 정보 — 모양, 자료형, 장치, 그리고 메모리 위의 배치.
 
-- [메모리 배치와 스트라이드](../ch06/tensor_attrs/memory_layout_strides.md) — 저장소·스트라이드 모델. 뷰가 왜 공짜인지가 여기서 나온다
-- [메모리와 저장소](../ch06/tensor_attrs/04_memory_and_storage.md) — `expand`, `repeat`, `channels_last`
+**모양·자료형·장치**
+
 - [형상, 자료형, 장치](../ch06/tensor_attrs/03_shape_dtype_device.md) · [생성 방법](../ch06/tensor_attrs/10_creation_methods.md)
 - [데이터 관련 속성](../ch06/tensor_attrs/02_data_related.md) · [Autograd 관련 속성](../ch06/tensor_attrs/01_autograd_related.md)
 - [Linear 웨이트 관례](../ch06/tensor_attrs/05_linear_weight_convention.md) — `nn.Linear` 의 웨이트가 왜 (출력, 입력) 인가
+
+**메모리 위의 배치**
+
+- [메모리 배치와 스트라이드](../ch06/tensor_attrs/memory_layout_strides.md) — 저장소·스트라이드 모델. 뷰가 왜 공짜인지가 여기서 나온다
+- [메모리와 저장소](../ch06/tensor_attrs/04_memory_and_storage.md) — `expand`, `repeat`, `channels_last`
 - [제자리 연산과 autograd 제약](../ch06/tensor_attrs/07_inplace_operations.md) — 언제 막히고 언제 조용히 틀리는가
 
 **모양 바꾸기와 고르기**
