@@ -10,7 +10,7 @@
     """자연어 데이터 어그멘테이션."""
     # ---
     # title: "NLP Data Augmentation"
-    # description: "문자 수준, 낱말 수준, 문장 수준의 텍스트 어그멘테이션
+    # description: "문자 수준, 단어 수준, 문장 수준의 텍스트 어그멘테이션
     #               기법. nlpaug와 직접 구현을 함께 쓴다"
     # ---
     #
@@ -19,7 +19,7 @@
     # 언어적 흔들기를 쓴다.
     #
     #   1부 – 문자 수준 어그멘테이션 (OCR 오류, 자판 오타)
-    #   2부 – 낱말 수준 어그멘테이션 (유의어, 임베딩 기반)
+    #   2부 – 단어 수준 어그멘테이션 (유의어, 임베딩 기반)
     #   3부 – 역번역 어그멘테이션
     #   4부 – 가려진 언어 모델을 쓰는 문맥 어그멘테이션
     #   5부 – 금융 텍스트를 위한 사용자 정의 어그멘테이션 파이프라인
@@ -136,13 +136,13 @@
 
 
     # =====================================================================
-    # 2부 – 낱말 수준 어그멘테이션
+    # 2부 – 단어 수준 어그멘테이션
     # =====================================================================
     print("=" * 60)
     print("Part 2: Word-Level Augmentation")
     print("=" * 60)
 
-    # 낱말 수준 어그멘테이션은 문법은 지키면서 어휘를 바꾼다:
+    # 단어 수준 어그멘테이션은 문법은 지키면서 어휘를 바꾼다:
     # - 유의어 치환 (WordNet)
     # - 임베딩 기반 치환 (Word2Vec, GloVe)
     # - 무작위 삽입 / 삭제 / 맞바꾸기
@@ -163,7 +163,7 @@
 
 
     def augment_synonym(text: str, prob: float = 0.2) -> str:
-        """분야 사전의 유의어로 낱말을 바꾼다."""
+        """분야 사전의 유의어로 단어를 바꾼다."""
         words = text.lower().split()
         result = []
         for word in words:
@@ -175,7 +175,7 @@
 
 
     def augment_random_swap(text: str, n_swaps: int = 1) -> str:
-        """이웃한 낱말을 무작위로 맞바꾼다."""
+        """이웃한 단어를 무작위로 맞바꾼다."""
         words = text.split()
         for _ in range(n_swaps):
             if len(words) > 2:
@@ -185,7 +185,7 @@
 
 
     def augment_random_delete(text: str, prob: float = 0.1) -> str:
-        """낱말을 무작위로 지운다 (적어도 절반은 남긴다)."""
+        """단어를 무작위로 지운다 (적어도 절반은 남긴다)."""
         words = text.split()
         if len(words) <= 2:
             return text
@@ -206,7 +206,7 @@
     print("""
         import nlpaug.augmenter.word as naw
 
-        # 뜻이 비슷한 낱말 넣기
+        # 뜻이 비슷한 단어 넣기
         aug = naw.WordEmbsAug(
             model_type='word2vec',
             model_path='GoogleNews-vectors-negative300.bin',
@@ -215,7 +215,7 @@
         augmented = aug.augment("Revenue grew 15% this quarter")
         # → "Revenue grew substantially 15% this profitable quarter"
 
-        # 비슷한 낱말로 바꾸기
+        # 비슷한 단어로 바꾸기
         aug = naw.WordEmbsAug(
             model_type='word2vec',
             model_path='GoogleNews-vectors-negative300.bin',
@@ -277,8 +277,8 @@
     print("Part 4: Contextual Augmentation with Masked LM")
     print("=" * 60)
 
-    # BERT의 가려진 언어 모델로 낱말을 문맥에 알맞은
-    # 다른 낱말로 바꾼다.
+    # BERT의 가려진 언어 모델로 단어를 문맥에 알맞은
+    # 다른 단어로 바꾼다.
 
     print("""
       from transformers import pipeline
@@ -317,10 +317,10 @@
 
 
         인수:
-            synonym_prob: 낱말마다 유의어로 바꿀 확률
-            typo_prob:    낱말마다 문자 수준 오타가 날 확률
-            delete_prob:  낱말을 무작위로 지울 확률
-            swap_prob:    이웃한 낱말을 맞바꿀 확률
+            synonym_prob: 단어마다 유의어로 바꿀 확률
+            typo_prob:    단어마다 문자 수준 오타가 날 확률
+            delete_prob:  단어를 무작위로 지울 확률
+            swap_prob:    이웃한 단어를 맞바꿀 확률
         """
 
         def __init__(
@@ -335,13 +335,13 @@
             self.delete_prob = delete_prob
             self.swap_prob = swap_prob
 
-            # 절대 바꾸면 안 되는 낱말 (종목 기호, 숫자, 핵심 용어)
+            # 절대 바꾸면 안 되는 단어 (종목 기호, 숫자, 핵심 용어)
             self.protected_pattern = re.compile(
                 r'^\$[A-Z]+$|^\d+\.?\d*%?$|^Q[1-4]$|^FY\d{2,4}$'
             )
 
         def _is_protected(self, word: str) -> bool:
-            """어그멘테이션하면 안 되는 낱말인지 확인한다 (종목 기호, 숫자 등)."""
+            """어그멘테이션하면 안 되는 단어인지 확인한다 (종목 기호, 숫자 등)."""
             return bool(self.protected_pattern.match(word))
 
         def augment(self, text: str, n: int = 1) -> List[str]:
@@ -483,7 +483,7 @@
 
         import nlpaug.augmenter.word as naw
 
-        # 뜻이 비슷한 낱말 넣기
+        # 뜻이 비슷한 단어 넣기
         aug = naw.WordEmbsAug(
             model_type='word2vec',
             model_path='GoogleNews-vectors-negative300.bin',
@@ -492,7 +492,7 @@
         augmented = aug.augment("Revenue grew 15% this quarter")
         # → "Revenue grew substantially 15% this profitable quarter"
 
-        # 비슷한 낱말로 바꾸기
+        # 비슷한 단어로 바꾸기
         aug = naw.WordEmbsAug(
             model_type='word2vec',
             model_path='GoogleNews-vectors-negative300.bin',

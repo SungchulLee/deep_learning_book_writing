@@ -14,7 +14,7 @@ DeiT - 자료를 아끼는 그림 트랜스포머
 지은이: 위고 투브롱 외
 핵심 깨침:
   - 앎 옮기기로 더 적은 자료로 ViT을 익힌다
-  - 클래스 낱말에 더해 *옮김 낱말*을 둔다
+  - 클래스 단어에 더해 *옮김 단어*을 둔다
 
 두루마리: appendix/vit/deit.py
 눈여겨볼 것: 배우기 위한 구현이다(앞으로 스텝만 담았다).
@@ -43,22 +43,22 @@ class PatchEmbedding(nn.Module):
 
 class DeiT(nn.Module):
     """
-    DeiT = ViT + 옮김 낱말.
+    DeiT = ViT + 옮김 단어.
 
-    낱말:
-      - [CLS] 낱말: 여느 가름 낱말
-      - [DIST] 낱말: 스승의 미루어 봄에서 배운다
+    단어:
+      - [CLS] 단어: 여느 가름 단어
+      - [DIST] 단어: 스승의 미루어 봄에서 배운다
     """
     def __init__(self, num_classes=1000, embed_dim=768, num_patches=196):
         super().__init__()
 
         self.patch_embed = PatchEmbedding(embed_dim=embed_dim)
 
-        # 배울 수 있는 낱말
+        # 배울 수 있는 단어
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         self.dist_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
 
-        # 자리 담기에 두 낱말이 모두 들어간다
+        # 자리 담기에 두 단어가 모두 들어간다
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 2, embed_dim))
 
         # 트랜스포머 인코더(단순하게 만듦)
@@ -76,11 +76,11 @@ class DeiT(nn.Module):
 
         x = self.patch_embed(x)  # (B, N, D)
 
-        # 낱말을 배치 크기로 넓힌다
+        # 단어를 배치 크기로 넓힌다
         cls = self.cls_token.expand(B, -1, -1)
         dist = self.dist_token.expand(B, -1, -1)
 
-        # 낱말과 조각 담음을 이어 붙인다
+        # 단어와 조각 담음을 이어 붙인다
         x = torch.cat([cls, dist, x], dim=1)
         x = x + self.pos_embed
 

@@ -16,7 +16,7 @@
 1. 그리디: w_next = argmax P(w | 맥락)
 2. 마구잡이: 온 분포에서 뽑기
 3. 온도: P'(w) = P(w)^(1/T) / Z
-4. 상위 k: 가장 그럴듯한 낱말 k개에서 뽑기
+4. 상위 k: 가장 그럴듯한 단어 k개에서 뽑기
 """
 
 import random
@@ -206,7 +206,7 @@ P=(0.5,0.3,0.1,0.1)에 대해 T=0.5와 T=2의 온도 분포를 계산하고 정�
 
     ```python
     def generate_beam_search(self, beam_width: int = 3, max_length: int = 20) -> str:
-        # 빔마다: (로그 확률, 낱말 목록, 마지막 낱말)
+        # 빔마다: (로그 확률, 단어 목록, 마지막 단어)
         beams = [(0.0, [], self.START_TOKEN)]
         complete = []
         

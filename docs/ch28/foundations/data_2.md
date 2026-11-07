@@ -42,7 +42,7 @@ class CharacterDataset:
         self.text = text
         self.sequence_length = sequence_length
         
-        # 서로 다른 글자(낱말)를 얻는다
+        # 서로 다른 글자(단어)를 얻는다
         self.chars = sorted(list(set(text)))
         self.vocab_size = len(self.chars)
         

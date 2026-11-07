@@ -14,7 +14,7 @@ BEiT - 그림 트랜스포머를 BERT처럼 미리 익히기
 지은이: 항보 바오 외
 핵심 깨침:
   - 스스로 이끌며 미리 익힌다
-  - 픽셀 대신 *따로 떨어진 보기 낱말*을 미루어 본다
+  - 픽셀 대신 *따로 떨어진 보기 단어*을 미루어 본다
   - BERT의 가린 말 모형에서 실마리를 얻었다
 
 두루마리: appendix/vit/beit.py
@@ -34,9 +34,9 @@ class BEiT(nn.Module):
     BEiT 미리 익히기 모형.
 
     스텝:
-      1) 그림을 조각으로 나누어 낱말처럼 만든다
+      1) 그림을 조각으로 나누어 단어처럼 만든다
       2) 조각 얼마를 가린다
-      3) 그 조각의 따로 떨어진 보기 낱말(부호책 번호)을 미루어 본다
+      3) 그 조각의 따로 떨어진 보기 단어(부호책 번호)을 미루어 본다
     """
     def __init__(self, vocab_size=8192, embed_dim=768, num_patches=196):
         super().__init__()
@@ -50,7 +50,7 @@ class BEiT(nn.Module):
         )
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=12)
 
-        # 따로 떨어진 낱말 번호를 미루어 본다
+        # 따로 떨어진 단어 번호를 미루어 본다
         self.head = nn.Linear(embed_dim, vocab_size)
 
     def forward(self, patch_feats, mask):
@@ -60,14 +60,14 @@ class BEiT(nn.Module):
         """
         x = self.patch_embed(patch_feats)
 
-        # 가린 조각을 가림 낱말로 갈음한다
+        # 가린 조각을 가림 단어로 갈음한다
         mask_token = self.mask_token.expand(x.size(0), x.size(1), -1)
         x = torch.where(mask.unsqueeze(-1), mask_token, x)
 
         x = x + self.pos_embed
         x = self.encoder(x)
 
-        # 보기 낱말을 미루어 본다
+        # 보기 단어를 미루어 본다
         logits = self.head(x)  # (B, N, vocab_size)
         return logits
 

@@ -283,7 +283,7 @@ This movie is the movie movie is a movie that really be show the film that
 the comedy of the story with the film love of the movie and a completer
 ```
 
-**temperature 1.0** — 낱말 묶음이 살아난다. 없는 낱말이 섞이지만 영어처럼 읽힌다.
+**temperature 1.0** — 단어 묶음이 살아난다. 없는 단어가 섞이지만 영어처럼 읽힌다.
 
 ```
 This movie Wattch modes movie. It is up like it both beest to speed.
@@ -365,6 +365,6 @@ roles she paneten. End to get augh it didelogues as then begament of the
 
     **미리 적는 판정 기준** — top-$p$가 낫다고 말하려면 **세 자가 동시에** 진짜에 더 가까워야 한다. 되풀이가 0.119에, 가짓수가 36.2에, 제 로스가 1.476에 각각 더 가까운 설정이 top-$k$·temperature 어느 것보다 나아야 한다.
 
-    **그러지 않을 가능성이 크다는 것도 미리 적어 둔다.** 이 모델은 글자 단위이고 어휘가 138가지뿐이라, top-$p$가 노리는 「자리마다 꼬리 길이가 다른」 상황이 낱말 단위만큼 뚜렷하지 않다. 그러면 결론은 「top-$p$가 나쁘다」가 아니라 **「이 설정에서는 가릴 수 없다」**가 되고, 그 또한 적을 값어치가 있는 결과다.
+    **그러지 않을 가능성이 크다는 것도 미리 적어 둔다.** 이 모델은 글자 단위이고 어휘가 138가지뿐이라, top-$p$가 노리는 「자리마다 꼬리 길이가 다른」 상황이 단어 단위만큼 뚜렷하지 않다. 그러면 결론은 「top-$p$가 나쁘다」가 아니라 **「이 설정에서는 가릴 수 없다」**가 되고, 그 또한 적을 값어치가 있는 결과다.
 
     그리고 씨앗 여덟 개는 적다. 표의 top-$k$ 20과 60이 되풀이 0.088과 0.093으로 거의 같은데, 그 차이가 참인지 가리려면 **같은 설정을 여러 번 돌린 스프레드**가 있어야 한다. [7장](../imdb/04_lstm.md)이 그것 하나로 쪽 하나를 썼다.

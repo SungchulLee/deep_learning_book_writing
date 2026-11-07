@@ -49,7 +49,7 @@
             pattern: 짝지을 정규식 패턴
             entity_type: 이 규칙이 뽑는 것의 클래스
             priority: 규칙의 우선순위(높을수록 먼저 쓴다)
-            context_required: 반드시 있어야 하는 맥락 낱말(없어도 됨)
+            context_required: 반드시 있어야 하는 맥락 단어(없어도 됨)
         """
         name: str
         pattern: str
@@ -105,7 +105,7 @@
             """
 
             # 사람 이름 패턴
-            # 패턴: 대문자 낱말 뒤에 대문자 낱말
+            # 패턴: 대문자 단어 뒤에 대문자 단어
             # 보기: "John Smith", "Mary Johnson"
             self.add_rule(Rule(
                 name="person_full_name",
@@ -115,7 +115,7 @@
             ))
 
             # 조직 패턴
-            # 패턴: 회사 뒷가지가 붙은 대문자 낱말
+            # 패턴: 회사 뒷가지가 붙은 대문자 단어
             # 보기: "Apple Inc.", "Microsoft Corporation", "Google LLC"
             self.add_rule(Rule(
                 name="organization_suffix",
@@ -124,7 +124,7 @@
                 priority=5
             ))
 
-            # 패턴: "The" 뒤에 대문자로 시작하는 낱말
+            # 패턴: "The" 뒤에 대문자로 시작하는 단어
             # 보기: "The New York Times", "The Washington Post"
             self.add_rule(Rule(
                 name="organization_the",
@@ -134,7 +134,7 @@
             ))
 
             # 자리 패턴
-            # 패턴: 자리를 가리키는 핵심 낱말
+            # 패턴: 자리를 가리키는 핵심 단어
             # 보기: "New York City", "San Francisco", "Mount Everest"
             self.add_rule(Rule(
                 name="location_indicators",
@@ -286,7 +286,7 @@
                         context_end = min(len(text), end + 50)
                         context = text[context_start:context_end].lower()
 
-                        # 필요한 맥락 낱말이 있는지 살피기
+                        # 필요한 맥락 단어가 있는지 살피기
                         if not any(word.lower() in context for word in rule.context_required):
                             continue
 
@@ -349,7 +349,7 @@
 
         def get_entity_context(self, text: str, entity: Dict, window_size: int = 5) -> Dict:
             """
-            것 둘레의 맥락 낱말 얻기.
+            것 둘레의 맥락 단어 얻기.
 
             맥락은 다음에 쓸모 있다:
             - 개체 클래스 확인하기
@@ -359,16 +359,16 @@
             인수:
                 text: 본디 텍스트
                 entity: 개체 사전
-                window_size: 양쪽에 넣을 낱말의 개수
+                window_size: 양쪽에 넣을 단어의 개수
 
             반환값:
                 left_context, entity_text, right_context를 담은 사전
             """
-            # 단순 낱말 바탕 토큰내기
+            # 단순 단어 바탕 토큰내기
             words = text.split()
             entity_text = entity['text']
 
-            # 낱말 목록에서 것 찾기
+            # 단어 목록에서 것 찾기
             entity_words = entity_text.split()
             entity_start_word = None
 

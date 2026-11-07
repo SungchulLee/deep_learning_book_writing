@@ -239,8 +239,8 @@ def speculative_sample(
     미리 짚어 뽑기의 핵심 연산.
     
     인수:
-        target_probs: [낱말 곳간 크기] 목표 모델의 확률
-        draft_probs: [낱말 곳간 크기] 밑그림 모델의 확률
+        target_probs: [단어 곳간 크기] 목표 모델의 확률
+        draft_probs: [단어 곳간 크기] 밑그림 모델의 확률
         draft_token: 밑그림 모델이 내놓은 토막
         
     반환값:

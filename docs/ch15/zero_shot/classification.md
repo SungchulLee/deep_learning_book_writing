@@ -56,7 +56,7 @@ class DeViSE(nn.Module):
     """
     깊은 시각-의미 임베딩 모델(DeViSE).
     
-    CNN 피처를 낱말 임베딩 공간으로 쏘아 넣는다.
+    CNN 피처를 단어 임베딩 공간으로 쏘아 넣는다.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, 

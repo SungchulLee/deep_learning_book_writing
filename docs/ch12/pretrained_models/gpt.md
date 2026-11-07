@@ -692,7 +692,7 @@ class StreamingGenerator:
 
 # 제약을 둔 생성
 class ConstrainedGenerator:
-    """제약을 두고 짓는다(이를테면 어떤 낱말을 꼭 넣어야 한다)."""
+    """제약을 두고 짓는다(이를테면 어떤 단어를 꼭 넣어야 한다)."""
     
     def __init__(self, model, tokenizer, device='cuda'):
         self.model = model.to(device)

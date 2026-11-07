@@ -15,7 +15,7 @@
     # 주제 나타내기는 레이블 붙인 자료 없이 텍스트 모음에서 숨은 주제를
     # 찾아낸다. 바탕이 되는 방식 둘:
     #
-    #   - LSA(숨은 뜻 살피기): 낱말-텍스트 행렬의 특잇값 쪼개기
+    #   - LSA(숨은 뜻 살피기): 단어-텍스트 행렬의 특잇값 쪼개기
     #   - LDA(숨은 디리클레 나눔): 베이즈 지어내기 모델
     #
     #   1부 – 잘라 낸 특잇값 쪼개기로 하는 LSA(numpy/sklearn)
@@ -44,13 +44,13 @@
     print("Part 1: Latent Semantic Analysis (LSA)")
     print("=" * 60)
 
-    # LSA = 낱말-텍스트 행렬에 특잇값 쪼개기를 쓴다.
+    # LSA = 단어-텍스트 행렬에 특잇값 쪼개기를 쓴다.
     # 잘라 낸 특잇값 쪼개기는 가장 중요한 숨은 차원을 담아내며,
     # 이는 추상적인 "주제"에 맞대응된다.
     #
     # 수식:  X ≈ U_k Σ_k V_k^T
-    #   X:     낱말-텍스트 행렬 (V × D)
-    #   U_k:   낱말-주제 행렬 (V × k)
+    #   X:     단어-텍스트 행렬 (V × D)
+    #   U_k:   단어-주제 행렬 (V × k)
     #   Σ_k:   주제의 세기 (k × k 대각)
     #   V_k^T: 주제-텍스트 행렬 (k × D)
 
@@ -70,12 +70,12 @@
         "Oil prices surged after OPEC announced production cuts",
     ]
 
-    # 낱말-텍스트 행렬 세우기(단순 낱말 자루)
+    # 단어-텍스트 행렬 세우기(단순 단어 자루)
     stopwords = {"the", "a", "an", "to", "of", "in", "by", "and", "for", "is", "was", "this"}
 
 
     def build_bow(docs: List[str], stopwords: set) -> Tuple[np.ndarray, List[str]]:
-        """낱말 자루 방식의 낱말-텍스트 행렬 세우기."""
+        """단어 자루 방식의 단어-텍스트 행렬 세우기."""
         # 어휘 만들기
         vocab = {}
         for doc in docs:
@@ -113,7 +113,7 @@
 
     print(f"\n  Top words per topic (LSA, {n_topics} topics):")
     for topic_idx in range(n_topics):
-        # 상위 낱말 = U_k[:, topic_idx]에서 절댓값이 가장 큰 것
+        # 상위 단어 = U_k[:, topic_idx]에서 절댓값이 가장 큰 것
         top_word_idx = np.argsort(np.abs(U_k[:, topic_idx]))[-5:][::-1]
         words = [(vocab_list[i], U_k[i, topic_idx]) for i in top_word_idx]
         word_str = ", ".join(f"{w}({v:.3f})" for w, v in words)
@@ -165,7 +165,7 @@
           iterations=400,
           passes=10,
           alpha='auto',         # 텍스트-주제 앞확률 배우기
-          eta='auto',           # 주제-낱말 앞확률 배우기
+          eta='auto',           # 주제-단어 앞확률 배우기
           random_state=42,
       )
 
@@ -191,9 +191,9 @@
     # LDA의 지어내는 과정:
     #   텍스트 d마다:
     #     주제 분포 θ_d ~ Dirichlet(α)을 뽑는다
-    #     d의 낱말 자리 i마다:
+    #     d의 단어 자리 i마다:
     #       주제 z_{d,i} ~ Categorical(θ_d)을 뽑는다
-    #       낱말 w_{d,i} ~ Categorical(φ_{z_{d,i}})을 뽑는다
+    #       단어 w_{d,i} ~ Categorical(φ_{z_{d,i}})을 뽑는다
     #
     # 접힌 기브스 샘플링으로 미룸:
     #   P(z_i = k | z_{-i}, w) ∝ (n_{d,k} + α) × (n_{k,w} + β) / (n_{k,·} + Vβ)
@@ -205,7 +205,7 @@
         인수:
             n_topics: 주제의 개수
             alpha:    텍스트-주제 분포의 디리클레 앞확률
-            beta:     주제-낱말 분포의 디리클레 앞확률
+            beta:     주제-단어 분포의 디리클레 앞확률
             n_iter:   기브스 샘플링 바퀴 수
         """
 
@@ -220,8 +220,8 @@
             """기브스 샘플링으로 LDA 모델 맞추기.
 
             인수:
-                documents: 텍스트의 목록. 텍스트마다 낱말 번호의 목록
-                vocab_size: 낱말 곳간의 크기
+                documents: 텍스트의 목록. 텍스트마다 단어 번호의 목록
+                vocab_size: 단어 곳간의 크기
             """
             self.V = vocab_size
             D = len(documents)
@@ -229,10 +229,10 @@
 
             # 셈 행렬
             self.n_dk = np.zeros((D, K))       # 텍스트-주제 셈
-            self.n_kv = np.zeros((K, self.V))  # 주제-낱말 셈
+            self.n_kv = np.zeros((K, self.V))  # 주제-단어 셈
             self.n_k = np.zeros(K)             # 주제 합계
 
-            # 초기화: 낱말마다 마구잡이 주제 매김
+            # 초기화: 단어마다 마구잡이 주제 매김
             self.z = []  # 주제 매김
             for d, doc in enumerate(documents):
                 doc_z = []
@@ -273,7 +273,7 @@
             return self
 
         def get_topic_words(self, n_words: int = 10) -> List[List[Tuple[int, float]]]:
-            """주제마다 상위 낱말 얻기."""
+            """주제마다 상위 단어 얻기."""
             topics = []
             for k in range(self.K):
                 phi_k = (self.n_kv[k] + self.beta) / (self.n_k[k] + self.V * self.beta)
@@ -317,8 +317,8 @@
     print("=" * 60)
 
     # 뉴럴 주제 모델은 다음과 같은 변분 오토인코더를 쓴다:
-    #   - 인코더: 낱말 자루 → 주제 분포로 대응시킨다(파라메터 바꾸기 재주로)
-    #   - 디코더: 주제 분포에서 낱말 자루를 되살린다
+    #   - 인코더: 단어 자루 → 주제 분포로 대응시킨다(파라메터 바꾸기 재주로)
+    #   - 디코더: 주제 분포에서 단어 자루를 되살린다
     #   - 로스 = 복원 + KL 벌어짐
     #
     # ProdLDA는 디리클레 대신 로지스틱 정규 분포를 쓴다
@@ -334,7 +334,7 @@
 
         def __init__(self, vocab_size: int, n_topics: int, hidden_dim: int = 64):
             super().__init__()
-            # 인코더: 낱말 자루 → 숨은 레이어 → (mu, logvar)
+            # 인코더: 단어 자루 → 숨은 레이어 → (mu, logvar)
             self.encoder = nn.Sequential(
                 nn.Linear(vocab_size, hidden_dim),
                 nn.ReLU(),
@@ -343,10 +343,10 @@
             self.mu_layer = nn.Linear(hidden_dim, n_topics)
             self.logvar_layer = nn.Linear(hidden_dim, n_topics)
 
-            # 디코더: 주제 비율 → 낱말 자루 복원
+            # 디코더: 주제 비율 → 단어 자루 복원
             self.decoder = nn.Linear(n_topics, vocab_size, bias=False)
             # decoder.weight: (vocab_size × n_topics)
-            # 칸마다 = 한 주제의 낱말 분포
+            # 칸마다 = 한 주제의 단어 분포
 
             self.bn = nn.BatchNorm1d(n_topics, affine=False)
 
@@ -398,7 +398,7 @@
         return model
 
 
-    # 뉴럴 모델을 위한 낱말 자루 행렬 세우기
+    # 뉴럴 모델을 위한 단어 자루 행렬 세우기
     bow_matrix = X.T  # (D × V)
 
     n_topics = 3
@@ -521,7 +521,7 @@
           iterations=400,
           passes=10,
           alpha='auto',         # 텍스트-주제 앞확률 배우기
-          eta='auto',           # 주제-낱말 앞확률 배우기
+          eta='auto',           # 주제-단어 앞확률 배우기
           random_state=42,
       )
 

@@ -181,7 +181,7 @@ class BiLSTMCharNER(nn.Module):
             char_vocab_size, char_embedding_dim, char_hidden_dim
         )
         
-        # 낱말 임베딩과 글자 임베딩 이어 붙이기
+        # 단어 임베딩과 글자 임베딩 이어 붙이기
         lstm_input_dim = word_embedding_dim + char_hidden_dim
         
         self.lstm = nn.LSTM(
@@ -202,7 +202,7 @@ class BiLSTMCharNER(nn.Module):
         attention_mask: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None
     ):
-        # 낱말 임베딩
+        # 단어 임베딩
         word_embeds = self.word_embedding(word_ids)
         
         # 글자 수준 표현

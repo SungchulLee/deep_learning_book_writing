@@ -32,7 +32,7 @@ from torch.utils.data import Dataset, DataLoader
 from typing import List, Tuple
 
 class Vocabulary:
-    """뉴럴 언어 모델의 낱말 곳간 다스리기."""
+    """뉴럴 언어 모델의 단어 곳간 다스리기."""
     
     def __init__(self):
         self.word2idx = {}
@@ -54,7 +54,7 @@ class Vocabulary:
         return self.word2idx[word]
     
     def build(self, corpus: List[str], min_freq: int = 1):
-        """말뭉치에서 낱말 곳간 세우기."""
+        """말뭉치에서 단어 곳간 세우기."""
         from collections import Counter
         counts = Counter()
         for sentence in corpus:
@@ -110,9 +110,9 @@ class FeedforwardLM(nn.Module):
         임베딩 → 이어 붙이기 → 숨은 레이어 → 내놓음 → 소프트맥스
     
     인수:
-        vocab_size: 낱말 곳간의 크기
-        embedding_dim: 낱말 임베딩의 차원
-        context_size: 맥락 낱말의 개수
+        vocab_size: 단어 곳간의 크기
+        embedding_dim: 단어 임베딩의 차원
+        context_size: 맥락 단어의 개수
         hidden_dim: 숨은 레이어의 차원
     """
     
@@ -138,7 +138,7 @@ class FeedforwardLM(nn.Module):
         피드포워드.
         
         인수:
-            x: (batch_size, context_size) 맥락 낱말 번호
+            x: (batch_size, context_size) 맥락 단어 번호
             
         반환값:
             (batch_size, vocab_size) 로짓
@@ -158,7 +158,7 @@ class FeedforwardLM(nn.Module):
         return logits
     
     def get_next_word_probs(self, context: List[int]) -> torch.Tensor:
-        """다음 낱말에 대한 확률 분포 얻기."""
+        """다음 단어에 대한 확률 분포 얻기."""
         self.eval()
         with torch.no_grad():
             x = torch.tensor([context])
@@ -239,8 +239,8 @@ class RNNLanguageModel(nn.Module):
     숨은 상태가 아무리 먼 지난 이야기의 앎도 나른다.
     
     인수:
-        vocab_size: 낱말 곳간의 크기
-        embedding_dim: 낱말 임베딩의 차원
+        vocab_size: 단어 곳간의 크기
+        embedding_dim: 단어 임베딩의 차원
         hidden_dim: 리커런트 네트워크 숨은 상태의 차원
         num_layers: 쌓은 리커런트 네트워크 레이어의 개수
         dropout: 드롭아웃 확률
@@ -390,8 +390,8 @@ class LSTMLanguageModel(nn.Module):
     칸 상태가 그래디언트 흐름의 "고속도로"가 된다.
     
     인수:
-        vocab_size: 낱말 곳간의 크기
-        embedding_dim: 낱말 임베딩의 차원
+        vocab_size: 단어 곳간의 크기
+        embedding_dim: 단어 임베딩의 차원
         hidden_dim: LSTM 숨은 상태의 차원
         num_layers: 쌓은 LSTM 레이어의 개수
         dropout: 드롭아웃 확률
@@ -557,7 +557,7 @@ class TransformerLM(nn.Module):
     말 나타내기를 위해 인과(자기되돌리기) 가리기를 쓴다.
     
     인수:
-        vocab_size: 낱말 곳간의 크기
+        vocab_size: 단어 곳간의 크기
         d_model: 모형 차원
         nhead: 어텐션 머리의 개수
         num_layers: 트랜스포머 레이어의 개수
@@ -699,7 +699,7 @@ def generate_text(model, vocab, max_length: int = 50,
     
     인수:
         model: 익힌 언어 모델(LSTM 또는 트랜스포머)
-        vocab: 낱말 곳간 개체
+        vocab: 단어 곳간 개체
         max_length: 만들어 낼 최대 토큰 수
         temperature: 샘플링 온도
         top_k: 상위 k 거르기(없어도 됨)

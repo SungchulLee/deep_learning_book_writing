@@ -46,7 +46,7 @@ class CharRNN(nn.Module):
         글자 회귀 뉴럴 네트워크를 초기화한다.
         
         인수:
-            vocab_size: 낱말 속 서로 다른 글자의 수
+            vocab_size: 단어 속 서로 다른 글자의 수
             embedding_dim: 글자 임베딩의 차원
             hidden_dim: 긴 짧은 기억의 숨은 낱개 수
             n_layers: 긴 짧은 기억 레이어의 수
@@ -71,7 +71,7 @@ class CharRNN(nn.Module):
             dropout=0.2 if n_layers > 1 else 0  # 긴 짧은 기억 레이어 사이의 떨구기
         )
         
-        # 내놓기 레이어: 긴 짧은 기억의 숨은 상태를 낱말 점수로 옮긴다
+        # 내놓기 레이어: 긴 짧은 기억의 숨은 상태를 단어 점수로 옮긴다
         self.fc = nn.Linear(hidden_dim, vocab_size)
         
     def forward(self, 
@@ -88,8 +88,8 @@ class CharRNN(nn.Module):
                     긴 짧은 기억을 위한 (h_0, c_0) 짝
                     
         반환값:
-            output: 형태 [배치 크기, 낱말 수]인 로짓
-                   낱말 속 글자마다의 점수
+            output: 형태 [배치 크기, 단어 수]인 로짓
+                   단어 속 글자마다의 점수
             hidden: 갱신된 숨은 상태
         """
         # 배치 크기(차례의 수)를 얻는다
@@ -111,8 +111,8 @@ class CharRNN(nn.Module):
         # 형태: [배치, 숨은 차원]
         last_output = lstm_out[:, -1, :]
         
-        # 4. 낱말 점수로 옮긴다
-        # 형태: [배치, 낱말 수]
+        # 4. 단어 점수로 옮긴다
+        # 형태: [배치, 단어 수]
         output = self.fc(last_output)
         
         return output, hidden
@@ -229,7 +229,7 @@ class SimpleCharTransformer(nn.Module):
             x: 들임 텐서 [배치 크기, 차례 길이]
             
         반환값:
-            내놓기 로짓 [배치 크기, 낱말 수]
+            내놓기 로짓 [배치 크기, 단어 수]
         """
         batch_size, seq_length = x.shape
         
@@ -254,7 +254,7 @@ class SimpleCharTransformer(nn.Module):
         # 헤아리기에 마지막 자리를 쓴다
         x = x[:, -1, :]
         
-        # 낱말로 옮긴다
+        # 단어로 옮긴다
         output = self.fc(x)
         
         return output
@@ -402,7 +402,7 @@ Transformer의 문맥 길이 한계와 attention 비용을 구분하라.
 
 ??? success "풀이"
 
-    본문에는 최대 길이 100의 위치 임베딩 표가 있어 T>100이면 계산비용 이전에 인덱스 범위 문제가 생긴다. 표를 늘리면 길이 범위를 확장할 수 있지만 학습·일반화는 별도다. Dense attention은 O(T²E), 선형 projection·feed-forward는 O(TE²)의 계산이 들며 단순 attention 웨이트 저장은 헤드별 T²에 비례한다. 일부 최적화 커널은 전체 행렬 저장을 피하지만 dense 곱셈의 의존 구조 자체를 희소 attention으로 바꾸는 것과는 다르다.
+    본문에는 최대 길이 100의 위치 단어 임베딩 표가 있어 T>100이면 계산비용 이전에 인덱스 범위 문제가 생긴다. 표를 늘리면 길이 범위를 확장할 수 있지만 학습·일반화는 별도다. Dense attention은 O(T²E), 선형 projection·feed-forward는 O(TE²)의 계산이 들며 단순 attention 웨이트 저장은 헤드별 T²에 비례한다. 일부 최적화 커널은 전체 행렬 저장을 피하지만 dense 곱셈의 의존 구조 자체를 희소 attention으로 바꾸는 것과는 다르다.
 
 
 

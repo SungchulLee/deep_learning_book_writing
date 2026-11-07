@@ -44,9 +44,9 @@ class CrossAttentionVisualizer:
         cross_attention : torch.Tensor
             엇갈린 어텐션 짐, 형태: (받는 열 길이, 보내는 열 길이)
         source_tokens : list
-            보내는 열의 낱말
+            보내는 열의 단어
         target_tokens : list
-            받는 열의 낱말
+            받는 열의 단어
         """
         if isinstance(cross_attention, torch.Tensor):
             cross_attention = cross_attention.cpu().numpy()
@@ -84,15 +84,15 @@ class CrossAttentionVisualizer:
         """
         기계 옮김에서 흔히 쓰는 맞춤 행렬 그림을 만든다.
 
-        보내는 쪽의 어느 낱말이 받는 쪽의 어느 낱말과 맞물리는지 보인다.
+        보내는 쪽의 어느 단어가 받는 쪽의 어느 단어와 맞물리는지 보인다.
         """
         if isinstance(cross_attention, torch.Tensor):
             cross_attention = cross_attention.cpu().numpy()
 
-        # 받는 낱말마다 어텐션이 가장 큰 곳을 찾는다
+        # 받는 단어마다 어텐션이 가장 큰 곳을 찾는다
         max_alignments = np.argmax(cross_attention, axis=1)
 
-        print("\n낱말 맞춤:")
+        print("\n단어 맞춤:")
         print("-" * 50)
         for target_idx, source_idx in enumerate(max_alignments):
             target_word = target_tokens[target_idx]
@@ -102,7 +102,7 @@ class CrossAttentionVisualizer:
 
         # 그림으로 보인다
         self.plot_cross_attention(cross_attention, source_tokens, target_tokens,
-                                 "낱말 맞춤 행렬")
+                                 "단어 맞춤 행렬")
 
 def example_translation_attention():
     """보기: 기계 옮김의 엇갈린 어텐션."""
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     print("\n핵심 깨침:")
     print("  - 엇갈린 어텐션은 보내는 쪽과 받는 쪽의 얽힘을 보인다")
     print("  - 옮김과 지어내기를 알아보는 데 쓸모 있다")
-    print("  - 낱말이 맞물리는 결을 드러낸다")
+    print("  - 단어가 맞물리는 결을 드러낸다")
 ```
 
 **출력:**
@@ -153,7 +153,7 @@ if __name__ == "__main__":
 엇갈린 어텐션 그리기 보기
 ======================================================================
 
-낱말 맞춤:
+단어 맞춤:
 --------------------------------------------------
 J'              <- I               (짐: 0.882)
 adore           <- love            (짐: 0.910)
@@ -164,7 +164,7 @@ automatique     <- learning        (짐: 0.894)
 핵심 깨침:
   - 엇갈린 어텐션은 보내는 쪽과 받는 쪽의 얽힘을 보인다
   - 옮김과 지어내기를 알아보는 데 쓸모 있다
-  - 낱말이 맞물리는 결을 드러낸다
+  - 단어가 맞물리는 결을 드러낸다
 ```
 
 ## 2. 논의

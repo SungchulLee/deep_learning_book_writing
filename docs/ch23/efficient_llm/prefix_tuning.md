@@ -353,7 +353,7 @@ class PromptTuning(nn.Module):
         # 배울 수 있는 시킴말 임베딩
         self.prompt_embeddings = nn.Embedding(num_virtual_tokens, embedding_dim)
         
-        # 고를 수 있음: 낱말 곳간에서 초기화한다
+        # 고를 수 있음: 단어 곳간에서 초기화한다
         if init_from_vocab and init_text is not None:
             self._init_from_text(init_text)
     

@@ -332,14 +332,14 @@ $$
                 nltk.download('wordnet')
 
         def synonym_replacement(self, text: str, n: int = 1) -> str:
-            """낱말 n개를 유의어로 바꾼다."""
+            """단어 n개를 유의어로 바꾼다."""
             words = text.split()
             new_words = words.copy()
 
-            # 유의어가 있는 낱말 얻기
-            # set으로 중복을 없애므로 같은 낱말이 두 번 뽑히지 않는다.
-            # 다만 아래 치환이 문장 전체에서 그 낱말을 모두 바꾸므로,
-            # 같은 낱말이 여러 번 나오면 한꺼번에 바뀐다.
+            # 유의어가 있는 단어 얻기
+            # set으로 중복을 없애므로 같은 단어가 두 번 뽑히지 않는다.
+            # 다만 아래 치환이 문장 전체에서 그 단어를 모두 바꾸므로,
+            # 같은 단어가 여러 번 나오면 한꺼번에 바뀐다.
             # 또 set은 순서를 보장하지 않아, 섞기 전부터 이미 실행마다
             # 차례가 달라질 수 있다
             random_word_list = list(set([w for w in words if self._get_synonyms(w)]))
@@ -373,7 +373,7 @@ $$
             return list(synonyms)
 
         def random_insertion(self, text: str, n: int = 1) -> str:
-            """무작위 낱말의 유의어 n개를 무작위 위치에 넣는다."""
+            """무작위 단어의 유의어 n개를 무작위 위치에 넣는다."""
             words = text.split()
             new_words = words.copy()
 
@@ -387,7 +387,7 @@ $$
             return ' '.join(new_words)
 
         def random_swap(self, text: str, n: int = 1) -> str:
-            """낱말 n쌍을 무작위로 맞바꾼다."""
+            """단어 n쌍을 무작위로 맞바꾼다."""
             words = text.split()
             new_words = words.copy()
 
@@ -399,7 +399,7 @@ $$
             return ' '.join(new_words)
 
         def random_deletion(self, text: str, p: float = 0.1) -> str:
-            """확률 p으로 낱말을 무작위로 지운다."""
+            """확률 p으로 단어를 무작위로 지운다."""
             words = text.split()
             if len(words) == 1:
                 return text

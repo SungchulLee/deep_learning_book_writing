@@ -41,13 +41,13 @@
 ## 2. 코드
 
 ```python
-"""스텝3: 낱말을 배운 벡터로 바꾸고 평균낸다.
+"""스텝3: 단어를 배운 벡터로 바꾸고 평균낸다.
 
-스텝2는 낱말마다 수 하나(웨이트)를 배웠다. 이 절은 낱말마다 **벡터**를 배운다.
+스텝2는 단어마다 수 하나(웨이트)를 배웠다. 이 절은 단어마다 **벡터**를 배운다.
 그 벡터들을 평균내어 평 하나를 나타내고, 그 위에 선형 레이어를 얹는다.
 
 차례는 여전히 버린다. 평균은 순서를 보지 않는다. 바뀌는 것은
-'낱말을 어떻게 나타내는가'뿐이다.
+'단어를 어떻게 나타내는가'뿐이다.
 """
 import re
 from collections import Counter
@@ -128,14 +128,14 @@ for s in range(5):
 print(f"\n스텝3 임베딩 + 평균  평균 {sum(accs)/len(accs):.2f}%  "
       f"스프레드 {max(accs)-min(accs):.2f} ({min(accs):.2f}~{max(accs):.2f})  파라메터 {npar:,}")
 
-# 배운 벡터가 뜻을 담았는가 — 가까운 낱말을 본다
+# 배운 벡터가 뜻을 담았는가 — 가까운 단어를 본다
 with torch.no_grad():
     E = m.emb.weight[1:]
     E = E/E.norm(dim=1, keepdim=True).clamp(min=1e-8)
     for w in ["great","bad","boring"]:
         i = index[w]-1
         sim = (E @ E[i]); sim[i] = -9
-        print(f"  '{w}'과 가까운 낱말:", ", ".join(vocab[1+j] for j in sim.topk(6).indices))
+        print(f"  '{w}'과 가까운 단어:", ", ".join(vocab[1+j] for j in sim.topk(6).indices))
 ```
 
 **출력:**
@@ -150,9 +150,9 @@ with torch.no_grad():
   씨앗 4  86.92%
 
 스텝3 임베딩 + 평균  평균 87.03%  스프레드 0.34 (86.92~87.26)  파라메터 1,280,130
-  'great'과 가까운 낱말: perfect, ages, best, enjoyed, rare, malone
-  'bad'과 가까운 낱말: money, dull, worst, below, stars', clone
-  'boring'과 가까운 낱말: effort, lacks, pills, clone, poor, annoying
+  'great'과 가까운 단어: perfect, ages, best, enjoyed, rare, malone
+  'bad'과 가까운 단어: money, dull, worst, below, stars', clone
+  'boring'과 가까운 단어: effort, lacks, pills, clone, poor, annoying
 ```
 
 ---
@@ -338,7 +338,7 @@ with torch.no_grad():
 
 ??? success "풀이"
     ```python
-    emb = 20000 * 64        # 임베딩 표
+    emb = 20000 * 64        # 단어 임베딩 표
     clf = 64 * 2 + 2        # 그 위의 선형 분류기
     print(f"임베딩 {emb:,}  분류기 {clf}  합 {emb + clf:,}")
     print(f"임베딩이 차지하는 몫 {100 * emb / (emb + clf):.2f}%")
@@ -351,7 +351,7 @@ with torch.no_grad():
     스텝2 분류기 40,002 -> 스텝3 분류기 130  = 308배 작아짐
     ```
 
-    **파라메터의 99.99%가 임베딩 표다.** 판정을 내리는 부분은 130개뿐이다.
+    **파라메터의 99.99%가 단어 임베딩 표다.** 판정을 내리는 부분은 130개뿐이다.
 
     더 눈여겨볼 것은 스텝2과의 비교다. 전체는 32배로 **커졌는데** 분류기는 308배 **작아졌다.**
 
@@ -364,5 +364,5 @@ with torch.no_grad():
 
     이것이 이 장이 "**표현도 학습한다**"고 적은 뜻이다. 그리고 [4장 6절](../ch04/03_vgg16_transfer.md)이 VGG16을 두고 한 말과 같은 모양이다 — 거기서도 차원을 3,072에서 4,096으로 늘렸지만 그 위에 올린 것은 선형 분류기 하나였다. **좋은 표현은 분류기를 작게 만든다.**
 
-    (연습문제 2가 묻는 "커진 몫"이 어디에 있는지도 이 쪽이 가리킨다. 커진 것은 임베딩 표이고, 분류기는 오히려 줄었다. 그러므로 "모델이 커져서 좋아졌다"를 재려면 **임베딩 표의 크기**를 움직여야 한다.)
+    (연습문제 2가 묻는 "커진 몫"이 어디에 있는지도 이 쪽이 가리킨다. 커진 것은 단어 임베딩 표이고, 분류기는 오히려 줄었다. 그러므로 "모델이 커져서 좋아졌다"를 재려면 **단어 임베딩 표의 크기**를 움직여야 한다.)
 

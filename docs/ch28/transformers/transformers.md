@@ -210,7 +210,7 @@ class GPT(nn.Module):
     구조:
         - 토큰 임베딩 + 자리 임베딩
         - 트랜스포머 디코더 덩이 쌓기
-        - 낱말로의 내놓기 쏘기
+        - 단어로의 내놓기 쏘기
     """
     
     def __init__(
@@ -274,7 +274,7 @@ class GPT(nn.Module):
             attention_mask: 쓸 수도 있는 마스크 [배치 크기, 차례 길이]
             
         반환값:
-            로짓 [배치 크기, 차례 길이, 낱말 수]
+            로짓 [배치 크기, 차례 길이, 단어 수]
         """
         batch_size, seq_len = input_ids.shape
         
@@ -522,7 +522,7 @@ def generate(
         
         # 다음 토큰의 로짓을 얻는다
         logits = model(context)
-        next_token_logits = logits[:, -1, :]  # [1, 낱말 수]
+        next_token_logits = logits[:, -1, :]  # [1, 단어 수]
         
         # 온도를 적용한다
         next_token_logits = next_token_logits / temperature

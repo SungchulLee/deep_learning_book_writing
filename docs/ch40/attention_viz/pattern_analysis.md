@@ -55,7 +55,7 @@ def visualize_all_heads(
 
     Args:
         attention_weights: [배치, 머리 수, 열 길이, 열 길이]
-        tokens: 낱말 목록
+        tokens: 단어 목록
         layer: 그릴 켜 번호
         figsize: 그림 크기
 
@@ -211,7 +211,7 @@ def compare_layers(
 
     Args:
         attention_weights_by_layer: 켜마다의 [배치, 머리, 열, 열] 목록
-        tokens: 낱말 목록
+        tokens: 단어 목록
         layers_to_compare: 보일 켜
     """
     if layers_to_compare is None:
@@ -296,8 +296,8 @@ def visualize_cross_attention(
 
     Args:
         cross_attention: [배치, 머리, 받는 열 길이, 보내는 열 길이]
-        source_tokens: 인코더 들임 낱말
-        target_tokens: 푸는 개 내놓기 낱말
+        source_tokens: 인코더 들임 단어
+        target_tokens: 푸는 개 내놓기 단어
         head: 정한 머리(None이면 모든 머리를 고르게 한다)
     """
     if head is not None:
@@ -340,7 +340,7 @@ def analyze_cross_attention_alignment(
     eps = 1e-10
     entropy = -(attn * torch.log(attn + eps)).sum(dim=-1).mean().item()
 
-    # 덮음: 임계를 넘게 어텐션을 받은 보내는 쪽 낱말의 몫
+    # 덮음: 임계를 넘게 어텐션을 받은 보내는 쪽 단어의 몫
     max_attn_per_source = attn.max(dim=0)[0]
     coverage = (max_attn_per_source > 0.1).float().mean().item()
 
@@ -446,7 +446,7 @@ def create_attention_flow_sankey(
     top_k: int = 5
 ):
     """
-    정한 낱말에서 어텐션이 어디로 흐르는지 보이는
+    정한 단어에서 어텐션이 어디로 흐르는지 보이는
     생키 결의 흐름 그림을 만든다.
     """
     attn = attention_weights[0].detach().cpu().numpy()
@@ -533,7 +533,7 @@ def compare_attention_and_attribution(
 
     gradient_attr = embeddings.grad.abs().sum(dim=-1)[0]
 
-    # [CLS] 낱말에서 뻗는 어텐션(흔히 고른다)
+    # [CLS] 단어에서 뻗는 어텐션(흔히 고른다)
     attn_scores = attention[0].detach().cpu().numpy()
     grad_scores = gradient_attr.detach().cpu().numpy()
 
@@ -577,7 +577,7 @@ def comprehensive_attention_analysis(
     """
     여러 재주를 아우른 두루 갖춘 어텐션 살피기.
     """
-    # 낱말로 쪼갠다
+    # 단어로 쪼갠다
     inputs = tokenizer(text, return_tensors='pt', padding=True)
     input_ids = inputs['input_ids'].to(device)
     tokens = tokenizer.convert_ids_to_tokens(input_ids[0])

@@ -47,11 +47,11 @@ print("=" * 60)
 # LIME은 들임을 흔들어 보며 낱낱의 예측을 풀이한다
 # 예측이 어떻게 바뀌는지 살핀다.
 #
-# 글에서는 LIME이 낱말을 마구잡이로 없애 흔든 판을 여럿 만들고,
+# 글에서는 LIME이 단어를 마구잡이로 없애 흔든 판을 여럿 만들고,
 # 그 모두의 예측을 얻은 뒤 그 보기 둘레에서 분류기의 몸짓을
 # 예측하는 자리에 매인 선형 모델을 맞춘다.
 #
-# 핵심 눈썰미: 선형 모델의 계수가 어떤 낱말이
+# 핵심 눈썰미: 선형 모델의 계수가 어떤 단어가
 # 클래스마다 예측을 어느 쪽으로 미는지 보여 준다.
 
 # 보기 데이터셋 만들기
@@ -100,7 +100,7 @@ print("""
   exp = explainer.explain_instance(
       text,
       pipe.predict_proba,
-      num_features=6,       # 가장 중요한 낱말 6개
+      num_features=6,       # 가장 중요한 단어 6개
       num_samples=1000,     # 흔든 횟수
   )
 
@@ -134,10 +134,10 @@ print(f"  Word importance (leave-one-out):")
 
 importances = []
 for i, word in enumerate(words):
-    # 낱말을 하나씩 없애기
+    # 단어를 하나씩 없애기
     perturbed = " ".join(w for j, w in enumerate(words) if j != i)
     perturbed_prob = pipe.predict_proba([perturbed])[0]
-    # 이 낱말을 없애면 양성 확률이 얼마나 바뀌는가?
+    # 이 단어를 없애면 양성 확률이 얼마나 바뀌는가?
     delta = base_prob[1] - perturbed_prob[1]
     importances.append((word, delta))
     print(f"    {word:>15}: {delta:+.4f} (removing it changes P(pos) by this much)")
@@ -236,7 +236,7 @@ class TextLSTM(nn.Module):
         return self.fc(h_n.squeeze(0))
 
 
-# 단순한 낱말 곳간을 만들고 글을 부호화하기
+# 단순한 단어 곳간을 만들고 글을 부호화하기
 all_words = set()
 for t in texts:
     all_words.update(t.lower().split())
@@ -292,7 +292,7 @@ print("""
   # shap_values[1] = 양성 클래스 쪽 몫
   # 형태: (num_samples, seq_len)
 
-  # 그려 보려고 낱말로 되돌려 대응시키기
+  # 그려 보려고 단어로 되돌려 대응시키기
   idx2word = {v: k for k, v in word2idx.items()}
   sample_words = [
       [idx2word.get(idx.item(), "PAD") for idx in sample]
@@ -347,12 +347,12 @@ print("=" * 60)
 
 print("""
   1. 규제 지킴:
-     - 어떤 낱말이 "높은 위험" 클래스를 일으켰는지 보이기
+     - 어떤 단어가 "높은 위험" 클래스를 일으켰는지 보이기
      - 자동 텍스트 가려내기의 감사 자취
 
   2. 감성 바탕 거래:
      - 뉴스 글이 왜 약세로 클래스 매겨졌는지 이해하기
-     - 참된 감성과 잡음 낱말 가리기
+     - 참된 감성과 잡음 단어 가리기
 
   3. 신용 위험 재기:
      - 연차 보고서의 어떤 마디가 경고 신호를 냈는가?
@@ -409,7 +409,7 @@ if __name__ == "__main__":
       exp = explainer.explain_instance(
           text,
           pipe.predict_proba,
-          num_features=6,       # 가장 중요한 낱말 6개
+          num_features=6,       # 가장 중요한 단어 6개
           num_samples=1000,     # 흔든 횟수
       )
 
@@ -504,7 +504,7 @@ if __name__ == "__main__":
       # shap_values[1] = 양성 클래스 쪽 몫
       # 형태: (num_samples, seq_len)
 
-      # 그려 보려고 낱말로 되돌려 대응시키기
+      # 그려 보려고 단어로 되돌려 대응시키기
       idx2word = {v: k for k, v in word2idx.items()}
       sample_words = [
           [idx2word.get(idx.item(), "PAD") for idx in sample]
@@ -547,12 +547,12 @@ if __name__ == "__main__":
     ============================================================
 
       1. 규제 지킴:
-         - 어떤 낱말이 "높은 위험" 클래스를 일으켰는지 보이기
+         - 어떤 단어가 "높은 위험" 클래스를 일으켰는지 보이기
          - 자동 텍스트 가려내기의 감사 자취
 
       2. 감성 바탕 거래:
          - 뉴스 글이 왜 약세로 클래스 매겨졌는지 이해하기
-         - 참된 감성과 잡음 낱말 가리기
+         - 참된 감성과 잡음 단어 가리기
 
       3. 신용 위험 재기:
          - 연차 보고서의 어떤 마디가 경고 신호를 냈는가?

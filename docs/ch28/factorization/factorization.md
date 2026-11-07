@@ -25,7 +25,7 @@ class DiscreteARModel(nn.Module):
     """
     띄엄띄엄한 차례용 자기 회귀 모델.
     
-    자리마다 낱말에 대한 범주형 분포를 헤아린다.
+    자리마다 단어에 대한 범주형 분포를 헤아린다.
     """
     
     def __init__(self, vocab_size: int, embedding_dim: int, hidden_dim: int):
@@ -42,7 +42,7 @@ class DiscreteARModel(nn.Module):
             batch_first=True
         )
         
-        # 내놓기 쏘기: 숨은 상태 -> 낱말 로짓
+        # 내놓기 쏘기: 숨은 상태 -> 단어 로짓
         self.output_proj = nn.Linear(hidden_dim, vocab_size)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -53,7 +53,7 @@ class DiscreteARModel(nn.Module):
             x: 들임 차례 [배치 크기, 차례 길이]
             
         반환값:
-            로짓 [배치 크기, 차례 길이, 낱말 수]
+            로짓 [배치 크기, 차례 길이, 단어 수]
         """
         # 들임 토큰을 박아 넣는다
         embedded = self.embedding(x)  # [배치, 차례 길이, 임베딩 차원]
@@ -62,7 +62,7 @@ class DiscreteARModel(nn.Module):
         hidden_states, _ = self.encoder(embedded)  # [배치, 차례 길이, 숨은 차원]
         
         # 어휘로 사영한다
-        logits = self.output_proj(hidden_states)  # [배치, 차례 길이, 낱말 수]
+        logits = self.output_proj(hidden_states)  # [배치, 차례 길이, 단어 수]
         
         return logits
     

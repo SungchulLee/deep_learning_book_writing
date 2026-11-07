@@ -46,7 +46,7 @@ Where all the treasure of thy lusty days;
 To say within thine own deep sunken eyes,
 Were an all-eating shame and thriftless praise.""".split()
 
-# (앞 낱말 context_size 개, 다음 낱말) 짝
+# (앞 단어 context_size 개, 다음 단어) 짝
 NGRAMS = [([TEST_SENTENCE[i - j - 1] for j in range(ARGS.context_size)],
            TEST_SENTENCE[i])
           for i in range(ARGS.context_size, len(TEST_SENTENCE))]
@@ -112,7 +112,7 @@ def train(model_cls, loss_fn, epochs=None):
 
 
 if __name__ == "__main__":
-    print(f"  낱말 {len(TEST_SENTENCE)}개, 어휘 {ARGS.vocab_size}개, "
+    print(f"  단어 {len(TEST_SENTENCE)}개, 어휘 {ARGS.vocab_size}개, "
           f"n-그램 {len(NGRAMS)}개, 문맥 {ARGS.context_size}")
 
     # === (가) 등식을 수로 확인한다 =======================================
@@ -180,7 +180,7 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-  낱말 63개, 어휘 57개, n-그램 61개, 문맥 2
+  단어 63개, 어휘 57개, n-그램 61개, 문맥 2
 
   (가) CrossEntropyLoss = LogSoftmax + NLLLoss
     로짓            [2.0, 5.0, 1.0]
@@ -291,9 +291,9 @@ $e^{-800}$은 배정밀도 실수로 표현할 수 있는 가장 작은 수보�
 
 ## 4. 이 실험이 말해 주지 않는 것
 
-**장기 의존성이나 언어 이해를 잰 것이 아니다.** 여기 있는 것은 앞 낱말 두 개를 보고 다음 낱말을 맞히는 **고정 길이 문맥의 순방향 모델**이다. 순환 상태도 어텐션도 없다.
+**장기 의존성이나 언어 이해를 잰 것이 아니다.** 여기 있는 것은 앞 단어 두 개를 보고 다음 단어를 맞히는 **고정 길이 문맥의 순방향 모델**이다. 순환 상태도 어텐션도 없다.
 
-**일반화를 잰 것도 아니다.** 소네트 한 토막 63낱말을 통째로 학습에 쓰고 그 위에서 로스를 쟀다. 처음 보는 텍스트에서 어떤지는 이 수로 알 수 없다. 재려면 따로 떼어 둔 텍스트에서 낱말당 음의 로그 가능도를 재야 한다.
+**일반화를 잰 것도 아니다.** 소네트 한 토막 63단어를 통째로 학습에 쓰고 그 위에서 로스를 쟀다. 처음 보는 텍스트에서 어떤지는 이 수로 알 수 없다. 재려면 따로 떼어 둔 텍스트에서 단어당 음의 로그 가능도를 재야 한다.
 
 이 쪽이 말해 주는 것은 좁다 — **세 API 가 같은 로스이고, 로그 확률은 `log_softmax`로 만들어야 한다.** 그 둘뿐이다.
 

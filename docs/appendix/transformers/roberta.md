@@ -35,22 +35,22 @@ class RoBERTa(nn.Module):
 
     들임:
       input_ids: (B, S)
-      attention_mask: (B, S) 낱말이면 1, 덧대기면 0
+      attention_mask: (B, S) 단어이면 1, 덧대기면 0
 
     날임:
-      logits: (B, S, vocab_size) MLM을 위한 낱말 수준의 낱말 로짓
+      logits: (B, S, vocab_size) MLM을 위한 단어 수준의 단어 로짓
     """
     def __init__(self, vocab_size=50265, d_model=768, nhead=12, num_layers=12):
         super().__init__()
 
-        # 낱말 담기(RoBERTa은 배운 자리 담기도 쓰지만 짧게 하려고 뺐다)
+        # 단어 담기(RoBERTa은 배운 자리 담기도 쓰지만 짧게 하려고 뺐다)
         self.embed = nn.Embedding(vocab_size, d_model)
 
         # 인코더 더미
         enc_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
         self.encoder = nn.TransformerEncoder(enc_layer, num_layers=num_layers)
 
-        # MLM 머리: 본디 낱말 번호를 미루어 본다
+        # MLM 머리: 본디 단어 번호를 미루어 본다
         self.lm_head = nn.Linear(d_model, vocab_size)
 
     def forward(self, input_ids, attention_mask=None):

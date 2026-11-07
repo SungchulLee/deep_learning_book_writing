@@ -97,7 +97,7 @@ class CausalSelfAttention(nn.Module):
         # 어텐션 점수: (B, nhead, S, S)
         scores = (q @ k.transpose(-2, -1)) / (self.head_dim ** 0.5)
 
-        # 앞만 보는 가림: 뒤에 올 낱말에 어텐션을 주지 못하게 한다
+        # 앞만 보는 가림: 뒤에 올 단어에 어텐션을 주지 못하게 한다
         mask = torch.triu(torch.ones(S, S, device=x.device), diagonal=1).bool()
         scores = scores.masked_fill(mask, float("-inf"))
 

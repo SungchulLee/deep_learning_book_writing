@@ -42,7 +42,7 @@ class BasicEncoder(nn.Module):
     
     인수:
         input_size: 입력 어휘의 크기
-        embedding_dim: 낱말 임베딩의 차원
+        embedding_dim: 단어 임베딩의 차원
         hidden_size: 숨은 상태의 크기
         num_layers: 순환 층의 수
         dropout: 드롭아웃 확률
@@ -246,7 +246,7 @@ class BasicDecoder(nn.Module):
     
     인수:
         output_size: 출력 어휘의 크기
-        embedding_dim: 낱말 임베딩의 차원
+        embedding_dim: 단어 임베딩의 차원
         hidden_size: 숨은 상태의 크기
         num_layers: 순환 층의 수
         dropout: 드롭아웃 확률
@@ -329,7 +329,7 @@ class AttentionDecoder(nn.Module):
     
     인수:
         output_size: 출력 어휘의 크기
-        embedding_dim: 낱말 임베딩의 차원
+        embedding_dim: 단어 임베딩의 차원
         hidden_size: 디코더 숨은 상태의 크기
         encoder_hidden_size: 인코더 숨은 상태의 크기
         num_layers: 순환 층의 수

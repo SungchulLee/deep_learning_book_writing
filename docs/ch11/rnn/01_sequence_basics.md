@@ -79,7 +79,7 @@ print(f"  Sequence: {number_seq}")
 print(f"  Pattern: Each number = previous + 1")
 print(f"  Next prediction: {number_seq[-1] + 1}")
 
-# 예 2: 텍스트 순차열 (낱말)
+# 예 2: 텍스트 순차열 (단어)
 text_seq = ["The", "cat", "sat", "on", "the", "mat"]
 print("\nExample 2: Text Sequence")
 print(f"  Sequence: {' '.join(text_seq)}")
@@ -153,9 +153,9 @@ print("\nProblem: Real sequences have different lengths!")
 
 # 길이가 서로 다른 예제 문장
 sentences = [
-    "I love AI",           # 낱말 3개
-    "Deep learning is amazing",  # 낱말 4개
-    "PyTorch makes it easy to build neural networks"  # 낱말 9개
+    "I love AI",           # 단어 3개
+    "Deep learning is amazing",  # 단어 4개
+    "PyTorch makes it easy to build neural networks"  # 단어 9개
 ]
 
 print("\nExample Sentences:")
@@ -197,17 +197,17 @@ print("""
 ----------------------
 문제: 원소마다 앞선 원소에 기댄다
 
-예: 다음 낱말 예측하기
+예: 다음 단어 예측하기
   "The cat sat on the ___"
   
 "mat"을 예측하려면 모델이 다음을 알아야 한다.
-  • 앞 낱말: "the"
+  • 앞 단어: "the"
   • 문맥: "cat sat on"
   • 문법: 명사가 와야 한다
   
 보통의 뉴럴 네트워크:
-  ✗ 낱말을 저마다 따로 처리한다
-  ✗ 앞선 낱말의 기억이 없다
+  ✗ 단어를 저마다 따로 처리한다
+  ✗ 앞선 단어의 기억이 없다
   ✗ 시간적인 무늬를 붙잡지 못한다
 
 RNN (순환 뉴럴 네트워크):
@@ -420,17 +420,17 @@ if __name__ == "__main__":
     ----------------------
     문제: 원소마다 앞선 원소에 기댄다
 
-    예: 다음 낱말 예측하기
+    예: 다음 단어 예측하기
       "The cat sat on the ___"
       
     "mat"을 예측하려면 모델이 다음을 알아야 한다.
-      • 앞 낱말: "the"
+      • 앞 단어: "the"
       • 문맥: "cat sat on"
       • 문법: 명사가 와야 한다
       
     보통의 뉴럴 네트워크:
-      ✗ 낱말을 저마다 따로 처리한다
-      ✗ 앞선 낱말의 기억이 없다
+      ✗ 단어를 저마다 따로 처리한다
+      ✗ 앞선 단어의 기억이 없다
       ✗ 시간적인 무늬를 붙잡지 못한다
 
     RNN (순환 뉴럴 네트워크):

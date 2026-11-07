@@ -14,8 +14,8 @@ ALBERT - 가벼운 BERT
 지은이: 전중 란 외
 핵심 깨침:
   1) 나눈 담음 매기기:
-       낱말 담음 차수(E)를 숨은 차수(H)보다 작게 둔다
-       담기: 낱말 -> E, 그다음 E -> H으로 되비춘다
+       단어 담음 차수(E)를 숨은 차수(H)보다 작게 둔다
+       담기: 단어 -> E, 그다음 E -> H으로 되비춘다
   2) 켜를 넘나드는 파라메터 나눠 쓰기:
        같은 트랜스포머 켜의 짐을 모든 켜에서 되쓴다
   3) 월 차례 미루어 보기(SOP)(흔히 NSP과 견주어 이야기된다)
@@ -59,7 +59,7 @@ class ALBERT(nn.Module):
         self.lm_head = nn.Linear(hidden_dim, vocab_size)
 
     def forward(self, input_ids, attention_mask=None):
-        # 낮은 차수 E에서의 낱말 담기
+        # 낮은 차수 E에서의 단어 담기
         x = self.token_embed(input_ids)     # (B, S, E)
 
         # 숨은 차수 H으로 되비춘다

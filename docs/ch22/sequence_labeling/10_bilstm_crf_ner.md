@@ -43,9 +43,9 @@ class BiLSTM_CRF(nn.Module):
         양방향 LSTM-CRF 초기화.
         
         인수:
-            vocab_size: 낱말 곳간의 크기
+            vocab_size: 단어 곳간의 크기
             tag_size: 개체명표의 개수
-            embedding_dim: 낱말 임베딩의 차원
+            embedding_dim: 단어 임베딩의 차원
             hidden_dim: LSTM의 숨은 차원
         """
         super(BiLSTM_CRF, self).__init__()
@@ -79,7 +79,7 @@ class BiLSTM_CRF(nn.Module):
         양방향 LSTM에서 내보냄 점수 얻기.
         
         인수:
-            sentence: 낱말 번호를 담은 [batch_size, seq_len] 텐서
+            sentence: 단어 번호를 담은 [batch_size, seq_len] 텐서
             
         반환값:
             emission_scores: [batch_size, seq_len, tag_size]

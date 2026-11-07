@@ -71,13 +71,13 @@
 빌려 온 벡터에 우리 단어가 다 들어 있지는 않다. 없는 단어는 무작위로 두고 그대로 얼린다. 그러므로 **덮은 몫을 먼저 밝혀야** 한다. 덮지 못한 몫이 크면 "얼렸다"는 말이 무색해진다.
 
 ```
-GloVe 덮은 몫  낱말 19,153/20,000 (95.8%)  쓰임 98.2%
+GloVe 덮은 몫  단어 19,153/20,000 (95.8%)  쓰임 98.2%
 ```
 
 단어 수로 95.8%, **실제 쓰임으로는 98.2%**다. 덮지 못한 847개는 대개 아주 드물게 나오는 것들이라 쓰임으로 세면 1.8%에 그친다. 빌려 온 벡터가 실제로 일을 하고 있다는 뜻이다.
 
 !!! note "847개를 무작위로 두지 않는 길도 있다"
-    [6.3절 fastText](../embeddings/06_fasttext.md)가 그 자리를 겨냥한다. 낱말을 글자 조각으로 쪼개 두면 표에 없는 낱말도 **조각을 모아** 벡터를 만들 수 있다 — 무작위 대신 `disappointingly`에서 `disappointing`을 끌어오는 식이다.
+    [6.3절 fastText](../embeddings/06_fasttext.md)가 그 자리를 겨냥한다. 단어를 글자 조각으로 쪼개 두면 표에 없는 단어도 **조각을 모아** 벡터를 만들 수 있다 — 무작위 대신 `disappointingly`에서 `disappointing`을 끌어오는 식이다.
 
     다만 이 과제에 **좋을 것이라고 단정할 수 없다.** 그 절이 함께 쟀듯 조각을 나눠 쓰면 `good`과 `bad`가 0.594에서 **0.696으로 더 붙는다.** 이 쪽이 하려는 일이 정확히 그 둘을 가르는 것이니, 어휘 1.8%를 되찾는 대신 가르는 힘을 내주는 맞바꿈이 된다. **재어 보지 않고는 모른다.**
 
@@ -158,9 +158,9 @@ Xte = to_ids(test_docs);  yte = torch.from_numpy(test_y).long()
 print(f"자료 학습 {len(train_docs):,}편  시험 {len(test_docs):,}편", flush=True)
 
 
-# === 빌려 온 벡터를 읽어 우리 낱말집에 맞춘다 ================================
+# === 빌려 온 벡터를 읽어 우리 단어집에 맞춘다 ================================
 def build_glove():
-    """GloVe를 읽어 (VOCAB_SIZE, EMB_DIM) 행렬을 만든다. 없는 낱말은 세어 둔다."""
+    """GloVe를 읽어 (VOCAB_SIZE, EMB_DIM) 행렬을 만든다. 없는 단어는 세어 둔다."""
     want = set(vocab)
     found = {}
     with gzip.open(GLOVE, "rt", encoding="utf-8") as f:
@@ -170,7 +170,7 @@ def build_glove():
             if w in want:
                 found[w] = np.fromstring(rest, sep=" ", dtype=np.float32)
 
-    g = torch.Generator().manual_seed(42)         # 없는 낱말의 초기값도 고정한다
+    g = torch.Generator().manual_seed(42)         # 없는 단어의 초기값도 고정한다
     W = torch.randn(VOCAB_SIZE, EMB_DIM, generator=g) * 0.1
     hit = 0
     for i, w in enumerate(vocab):
@@ -178,10 +178,10 @@ def build_glove():
         if v is not None:
             W[i] = torch.from_numpy(v); hit += 1
     W[PAD] = 0.0
-    # 덮은 몫을 빈도로도 잰다. 낱말 수보다 이쪽이 실제 영향을 말해 준다.
+    # 덮은 몫을 빈도로도 잰다. 단어 수보다 이쪽이 실제 영향을 말해 준다.
     tok_tot = sum(counts[w] for w in vocab[1:])
     tok_hit = sum(counts[w] for w in vocab[1:] if w in found)
-    print(f"GloVe 덮은 몫  낱말 {hit:,}/{VOCAB_SIZE:,} ({100*hit/VOCAB_SIZE:.1f}%)  "
+    print(f"GloVe 덮은 몫  단어 {hit:,}/{VOCAB_SIZE:,} ({100*hit/VOCAB_SIZE:.1f}%)  "
           f"쓰임 {100*tok_hit/tok_tot:.1f}%", flush=True)
     return W
 
@@ -334,7 +334,7 @@ if __name__ == "__main__":
 
 ```
 자료 학습 25,000편  시험 25,000편
-GloVe 덮은 몫  낱말 19,153/20,000 (95.8%)  쓰임 98.2%
+GloVe 덮은 몫  단어 19,153/20,000 (95.8%)  쓰임 98.2%
 
 ==============================================================
 === 빌려 온 벡터 (언 것) ===

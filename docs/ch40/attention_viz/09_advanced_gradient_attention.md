@@ -63,7 +63,7 @@ class GradientAttentionAnalyzer:
         model : callable
             어텐션 짐을 내놓는 모형
         input_ids : torch.Tensor
-            들임 낱말 번호
+            들임 단어 번호
         baseline_ids : torch.Tensor, 없어도 됨
             베이스라인 들임(맡긴 값: 0)
         target_idx : int, 없어도 됨
@@ -174,7 +174,7 @@ class GradientAttentionAnalyzer:
 
         bars = ax.bar(positions, np.abs(attribution), color=colors, alpha=0.7, edgecolor='black')
 
-        ax.set_xlabel('낱말', fontsize=12, fontweight='bold')
+        ax.set_xlabel('단어', fontsize=12, fontweight='bold')
         ax.set_ylabel('몫 점수(크기)', fontsize=12, fontweight='bold')
         ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
 
@@ -215,7 +215,7 @@ def example_gradient_attribution():
     analyzer.visualize_attribution(
         attribution,
         tokens,
-        title="낱말 몫 점수(지어낸 것)"
+        title="단어 몫 점수(지어낸 것)"
     )
 
     print("\n읽는 법:")
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     print("\n핵심 생각:")
     print("  - 쌓은 그래디언트: 든든한 몫 매기기 방법")
     print("  - 그래디언트 × 들임: 더 단순한 갈음")
-    print("  - 어느 낱말이 미루어 봄을 이끄는지 드러낸다")
+    print("  - 어느 단어가 미루어 봄을 이끄는지 드러낸다")
     print("  - 모형 풀이하기에 꼭 있어야 한다")
 ```
 
@@ -251,7 +251,7 @@ if __name__ == "__main__":
 핵심 생각:
   - 쌓은 그래디언트: 든든한 몫 매기기 방법
   - 그래디언트 × 들임: 더 단순한 갈음
-  - 어느 낱말이 미루어 봄을 이끄는지 드러낸다
+  - 어느 단어가 미루어 봄을 이끄는지 드러낸다
   - 모형 풀이하기에 꼭 있어야 한다
 ```
 

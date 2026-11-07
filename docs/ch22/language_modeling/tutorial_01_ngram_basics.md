@@ -21,19 +21,19 @@
 
 수학적 바탕:
 ------------------------
-n-그램은 글에서 잇닿은 낱말 n개의 차례이다.
+n-그램은 글에서 잇닿은 단어 n개의 차례이다.
 
 유니그램 모델(n=1):
 - P(w) = count(w) / total_words
-- 낱말끼리 안 얽힌다고 가정한다
+- 단어끼리 안 얽힌다고 가정한다
 
 바이그램 모델(n=2):
 - P(w_i | w_{i-1}) = count(w_{i-1}, w_i) / count(w_{i-1})
-- 맥락 낱말 하나를 쓴다
+- 맥락 단어 하나를 쓴다
 
 트라이그램 모델(n=3):
 - P(w_i | w_{i-2}, w_{i-1}) = count(w_{i-2}, w_{i-1}, w_i) / count(w_{i-2}, w_{i-1})
-- 맥락 낱말 둘을 쓴다
+- 맥락 단어 둘을 쓴다
 
 차례의 확률:
 - P(w_1, w_2, ..., w_n) = P(w_1) * P(w_2|w_1) * ... * P(w_n|w_{n-k},...,w_{n-1})
@@ -50,7 +50,7 @@ import math
 
 
 class UnigramModel:
-    """낱말끼리 안 얽힌다고 가정하는 유니그램 언어 모델."""
+    """단어끼리 안 얽힌다고 가정하는 유니그램 언어 모델."""
     
     def __init__(self):
         self.word_counts = Counter()
@@ -89,7 +89,7 @@ class UnigramModel:
 
 
 class BigramModel:
-    """낱말마다 앞 낱말에 조건을 거는 바이그램 언어 모델."""
+    """단어마다 앞 단어에 조건을 거는 바이그램 언어 모델."""
     
     def __init__(self):
         self.bigram_counts = defaultdict(Counter)
@@ -138,7 +138,7 @@ class BigramModel:
 
 
 class TrigramModel:
-    """낱말마다 앞선 낱말 둘에 조건을 거는 트라이그램 언어 모델."""
+    """단어마다 앞선 단어 둘에 조건을 거는 트라이그램 언어 모델."""
     
     def __init__(self):
         self.trigram_counts = defaultdict(lambda: defaultdict(Counter))
@@ -282,7 +282,7 @@ most_likely_next는 관측된 문맥의 최대 빈도 후보와 상대 빈도를
 
     ```python
     def most_likely_next(self, context: str) -> Tuple[str, float]:
-        """맥락이 주어질 때 가장 그럴듯한 다음 낱말 돌려주기."""
+        """맥락이 주어질 때 가장 그럴듯한 다음 단어 돌려주기."""
         context = context.lower()
         if context not in self.bigram_counts:
             return ("<unk>", 0.0)

@@ -36,7 +36,7 @@
 ## 1. 코드
 
 ```python
-"""스텝2: 같은 낱말 세기 벡터에 웨이트를 학습시킨다.
+"""스텝2: 같은 단어 세기 벡터에 웨이트를 학습시킨다.
 
 스텝1과 피처가 같고 파라메터 수도 사실상 같다(40,000 대 40,002 — 치우침 둘).
 다른 것은 그 수를 평균으로 못박느냐 자료에 맞추어 학습하느냐뿐이다.
@@ -56,16 +56,16 @@ ROOT = Path("./data/aclImdb")   # 내려받아 풀어 둔 자리
 VOCAB_SIZE = 20000
 
 # =============================================================================
-# 자료: 영화평을 읽어 낱말 목록으로 바꾼다
+# 자료: 영화평을 읽어 단어 목록으로 바꾼다
 # =============================================================================
-TOKEN = re.compile(r"[a-z']+")          # 소문자 낱말만. 숫자와 문장부호는 버린다
+TOKEN = re.compile(r"[a-z']+")          # 소문자 단어만. 숫자와 문장부호는 버린다
 
 def tokenize(text):
     # HTML 줄바꿈이 원문에 그대로 남아 있다
     return TOKEN.findall(text.replace("<br />", " ").lower())
 
 def load(split):
-    """(낱말 목록들, 정답)을 돌려준다. 1 = 좋게 봄, 0 = 나쁘게 봄."""
+    """(단어 목록들, 정답)을 돌려준다. 1 = 좋게 봄, 0 = 나쁘게 봄."""
     docs, labels = [], []
     for label, name in ((1, "pos"), (0, "neg")):
         for f in sorted((ROOT/split/name).glob("*.txt")):
@@ -76,20 +76,20 @@ def load(split):
 train_docs, train_y = load("train")
 test_docs,  test_y  = load("test")
 print(f"자료 학습 {len(train_docs):,}편  시험 {len(test_docs):,}편")
-print(f"평 하나의 낱말 수: 가운뎃값 {int(np.median([len(d) for d in train_docs]))}  "
+print(f"평 하나의 단어 수: 가운뎃값 {int(np.median([len(d) for d in train_docs]))}  "
       f"가장 짧은 것 {min(len(d) for d in train_docs)}  가장 긴 것 {max(len(d) for d in train_docs)}")
 
 # =============================================================================
-# 낱말 목록: 자주 나온 것 VOCAB_SIZE개만 남긴다
+# 단어 목록: 자주 나온 것 VOCAB_SIZE개만 남긴다
 # =============================================================================
 counts = Counter(w for d in train_docs for w in d)
 vocab = [w for w, _ in counts.most_common(VOCAB_SIZE)]
 index = {w: i for i, w in enumerate(vocab)}
-print(f"낱말 {len(counts):,}가지 가운데 {VOCAB_SIZE:,}개를 쓴다")
+print(f"단어 {len(counts):,}가지 가운데 {VOCAB_SIZE:,}개를 쓴다")
 
 
 def to_counts(docs):
-    """평 하나를 낱말 세기 벡터로. (문서 수, VOCAB_SIZE)"""
+    """평 하나를 단어 세기 벡터로. (문서 수, VOCAB_SIZE)"""
     X = np.zeros((len(docs), VOCAB_SIZE), dtype=np.float32)
     for r, d in enumerate(docs):
         for w in d:
@@ -146,19 +146,19 @@ for s in range(5):
 print(f"\n스텝2 선형 학습  평균 {sum(accs)/len(accs):.2f}%  스프레드 {max(accs)-min(accs):.2f} "
       f"({min(accs):.2f}~{max(accs):.2f})  파라메터 {n_par:,}")
 
-# 학습이 어떤 낱말을 골랐는가. 좋은 쪽 웨이트에서 나쁜 쪽을 뺀다
+# 학습이 어떤 단어를 골랐는가. 좋은 쪽 웨이트에서 나쁜 쪽을 뺀다
 W = model.weight.detach().numpy()
 score = W[1] - W[0]
-print("\n학습이 고른 좋은 쪽 낱말:", ", ".join(vocab[i] for i in np.argsort(score)[-12:][::-1]))
-print("학습이 고른 나쁜 쪽 낱말:", ", ".join(vocab[i] for i in np.argsort(score)[:12]))
+print("\n학습이 고른 좋은 쪽 단어:", ", ".join(vocab[i] for i in np.argsort(score)[-12:][::-1]))
+print("학습이 고른 나쁜 쪽 단어:", ", ".join(vocab[i] for i in np.argsort(score)[:12]))
 ```
 
 **출력:**
 
 ```
 자료 학습 25,000편  시험 25,000편
-평 하나의 낱말 수: 가운뎃값 173  가장 짧은 것 10  가장 긴 것 2462
-낱말 85,680가지 가운데 20,000개를 쓴다
+평 하나의 단어 수: 가운뎃값 173  가장 짧은 것 10  가장 긴 것 2462
+단어 85,680가지 가운데 20,000개를 쓴다
   씨앗 0  78.69%
   씨앗 1  78.85%
   씨앗 2  78.76%
@@ -167,8 +167,8 @@ print("학습이 고른 나쁜 쪽 낱말:", ", ".join(vocab[i] for i in np.args
 
 스텝2 선형 학습  평균 78.80%  스프레드 0.23 (78.69~78.92)  파라메터 40,002
 
-학습이 고른 좋은 쪽 낱말: great, excellent, wonderful, best, love, perfect, amazing, well, beautiful, loved, highly, favorite
-학습이 고른 나쁜 쪽 낱말: worst, bad, awful, waste, no, poor, worse, boring, nothing, terrible, even, money
+학습이 고른 좋은 쪽 단어: great, excellent, wonderful, best, love, perfect, amazing, well, beautiful, loved, highly, favorite
+학습이 고른 나쁜 쪽 단어: worst, bad, awful, waste, no, poor, worse, boring, nothing, terrible, even, money
 ```
 
 ---
@@ -284,7 +284,7 @@ print("학습이 고른 나쁜 쪽 낱말:", ", ".join(vocab[i] for i in np.args
 
     ```
     시험 평 25,000편
-      양쪽 낱말이 함께 있는 평 : 12,080   48.3%
+      양쪽 단어가 함께 있는 평 : 12,080   48.3%
       좋은 쪽만               :  5,286   21.1%
       나쁜 쪽만               :  5,692   22.8%
       어느 쪽도 없음          :  1,942    7.8%

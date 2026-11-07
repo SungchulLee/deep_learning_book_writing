@@ -20,7 +20,7 @@
 #   2부 – 미리 익힌 감성 머리로 영 발 미룸
 #   3부 – StockTwits 자료로 FinBERT 곱게 다듬기(PyTorch)
 #   4부 – 평가와 종목별 살피기
-#   5부 – FinBERT, 일반 BERT, 낱말집 바탕 견주기
+#   5부 – FinBERT, 일반 BERT, 단어집 바탕 견주기
 #
 # 바탕: O'Reilly "Practical NLP" 10장
 
@@ -155,7 +155,7 @@ print(f"  Dataset: {len(texts)} examples ({sum(labels)} bullish, {len(labels)-su
 # 실전에서는 BertTokenizer.from_pretrained("ProsusAI/finbert")를 쓴다
 torch.manual_seed(42)
 
-# 보이려고 단순한 낱말 곳간 바탕 부호화를 쓴다
+# 보이려고 단순한 단어 곳간 바탕 부호화를 쓴다
 # 그리고 작은 트랜스포머 비슷한 클래스 매개를 익힌다
 MAX_LEN = 64
 VOCAB_SIZE = 5000
@@ -350,7 +350,7 @@ print("""
 
 
 # =====================================================================
-# 5부 – 견줌: FinBERT, 일반 BERT, 낱말집
+# 5부 – 견줌: FinBERT, 일반 BERT, 단어집
 # =====================================================================
 print("=" * 60)
 print("Part 5: FinBERT vs Generic BERT vs Lexicon-Based")
@@ -362,7 +362,7 @@ print("""
   ┌─────────────────────┬───────────┬──────────┬─────────────┐
   │ 방법                │ 정확도    │ F1 점수  │ 분야 맞음   │
   ├─────────────────────┼───────────┼──────────┼─────────────┤
-  │ TextBlob(낱말집)    │   0.58    │   0.52   │ 나쁨        │
+  │ TextBlob(단어집)    │   0.58    │   0.52   │ 나쁨        │
   │ VADER               │   0.62    │   0.57   │ 보통        │
   │ BERT-base           │   0.71    │   0.68   │ 일반        │
   │ FinBERT(영 발)      │   0.76    │   0.73   │ 좋음        │
@@ -371,7 +371,7 @@ print("""
 
   FinBERT가 일반 모델을 앞서는 까닭:
 
-  1. 분야 낱말: "bullish", "bearish", "overbought" 등
+  1. 분야 단어: "bullish", "bearish", "overbought" 등
      일반 BERT가 담아내지 못하는 금융 특유의 뜻을 지닌다.
 
   2. 감성의 방향: "Short position"은 일반 글에서는 가운데이지만
@@ -535,7 +535,7 @@ if __name__ == "__main__":
       ┌─────────────────────┬───────────┬──────────┬─────────────┐
       │ 방법                │ 정확도    │ F1 점수  │ 분야 맞음   │
       ├─────────────────────┼───────────┼──────────┼─────────────┤
-      │ TextBlob(낱말집)    │   0.58    │   0.52   │ 나쁨        │
+      │ TextBlob(단어집)    │   0.58    │   0.52   │ 나쁨        │
       │ VADER               │   0.62    │   0.57   │ 보통        │
       │ BERT-base           │   0.71    │   0.68   │ 일반        │
       │ FinBERT(영 발)      │   0.76    │   0.73   │ 좋음        │
@@ -544,7 +544,7 @@ if __name__ == "__main__":
 
       FinBERT가 일반 모델을 앞서는 까닭:
 
-      1. 분야 낱말: "bullish", "bearish", "overbought" 등
+      1. 분야 단어: "bullish", "bearish", "overbought" 등
          일반 BERT가 담아내지 못하는 금융 특유의 뜻을 지닌다.
 
       2. 감성의 방향: "Short position"은 일반 글에서는 가운데이지만

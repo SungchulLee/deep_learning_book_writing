@@ -76,7 +76,7 @@ def causal_lm_loss(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     홀로 서는 인과 말 나타내기 로스.
     
     인수:
-        logits: [배치, 차례 길이, 낱말 곳간 크기]
+        logits: [배치, 차례 길이, 단어 곳간 크기]
         labels: [배치, 차례 길이]
     """
     # 다음 토큰 맞히기를 위해 민다
@@ -147,7 +147,7 @@ def create_mlm_batch(
     
     인수:
         input_ids: [배치, 차례 길이] 들임 토막 번호
-        vocab_size: 낱말 곳간의 크기
+        vocab_size: 단어 곳간의 크기
         mask_token_id: [MASK] 토막의 번호
         mask_prob: 토막마다 가릴 확률
         special_token_ids: 결코 가리지 않을 토막 번호의 모임(예: [CLS], [SEP], [PAD])

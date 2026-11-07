@@ -91,7 +91,7 @@ class AttentionVisualizer:
 
         Args:
             attention_weights: (배치, 머리, 열 길이, 열 길이) 형태 어텐션 텐서
-            tokens: 이름표로 쓸 낱말 목록
+            tokens: 이름표로 쓸 단어 목록
             head_idx: 그릴 어텐션 머리의 번호
             figsize: 그림 크기
 
@@ -113,7 +113,7 @@ class AttentionVisualizer:
         sns.heatmap(attn, annot=False, cmap='viridis', square=True,
                    cbar_kws={'label': '어텐션 짐'}, ax=ax)
 
-        # 낱말이 있으면 이름표를 붙인다
+        # 단어가 있으면 이름표를 붙인다
         if tokens:
             ax.set_xticklabels(tokens, rotation=90)
             ax.set_yticklabels(tokens, rotation=0)
@@ -134,7 +134,7 @@ class AttentionVisualizer:
 
         Args:
             attention_weights: (배치, 머리, 열 길이, 열 길이) 형태 어텐션 텐서
-            tokens: 낱말 목록
+            tokens: 단어 목록
             max_heads: 보일 머리의 가장 큰 수
             figsize: 그림 크기
 
@@ -183,7 +183,7 @@ class AttentionVisualizer:
 
         Args:
             layer_name: 켜 이름
-            tokens: 낱말 목록
+            tokens: 단어 목록
             average_heads: 머리를 가로질러 고르게 할지
             figsize: 그림 크기
 
@@ -226,12 +226,12 @@ class AttentionVisualizer:
                            query_idx: int,
                            figsize: Tuple[int, int] = (12, 6)) -> plt.Figure:
         """
-        정한 물음 낱말에서 뻗는 어텐션 흐름을 그린다.
+        정한 물음 단어에서 뻗는 어텐션 흐름을 그린다.
 
         Args:
             attention_weights: 어텐션 텐서
-            tokens: 낱말 목록
-            query_idx: 물음 낱말의 번호
+            tokens: 단어 목록
+            query_idx: 물음 단어의 번호
             figsize: 그림 크기
 
         Returns:
@@ -252,7 +252,7 @@ class AttentionVisualizer:
         ax.set_xticks(positions)
         ax.set_xticklabels(tokens, rotation=45, ha='right')
         ax.set_ylabel('어텐션 짐')
-        ax.set_title(f'"{tokens[query_idx]}"에서 다른 낱말로 가는 어텐션')
+        ax.set_title(f'"{tokens[query_idx]}"에서 다른 단어로 가는 어텐션')
         ax.grid(axis='y', alpha=0.3)
 
         plt.tight_layout()
@@ -287,11 +287,11 @@ def visualize_token_attention(attention_weights: torch.Tensor,
                               layer_idx: int = -1,
                               save_path: Optional[str] = None) -> plt.Figure:
     """
-    낱말에 대한 어텐션을 빠르게 그리는 도움 함수.
+    단어에 대한 어텐션을 빠르게 그리는 도움 함수.
 
     Args:
         attention_weights: 어텐션 텐서 (켜, 배치, 머리, 열, 열)
-        tokens: 낱말 목록
+        tokens: 단어 목록
         layer_idx: 그릴 켜 번호(-1이면 마지막 켜)
         save_path: 그림을 갈무리할 길
 

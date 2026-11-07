@@ -56,7 +56,7 @@ $$h_G=\operatorname{CONCAT}_{l=0}^{L}
 
 이 쪽은 GIN의 표현력을 1-WL에 붙여 재고 있다. 그 1-WL이 어디서 왔는가. 1968년 모스크바에서 나온 여섯 쪽짜리 글이다 — 보리스 바이스파일러(Boris Weisfeiler)와 안드레이 레만(Andrei Leman)의 「그래프를 표준형으로 줄이는 일과 그 과정에서 나타나는 대수」.
 
-**그 글은 동형 판정법을 내놓은 것이 아니었다.** 번역본에서 `test` 라는 낱말은 **한 번도 나오지 않고**, `canonical` 은 **스무 번** 나온다. 그들이 하려던 것은 그래프를 표준형으로 줄이는 일이었고, 줄이는 도중에 나타나는 **대수** $A(\Gamma)$ 가 새 불변량이라는 것이 요지였다. 그 1절에 적힌 절차가 이것이다.
+**그 글은 동형 판정법을 내놓은 것이 아니었다.** 번역본에서 `test` 라는 단어는 **한 번도 나오지 않고**, `canonical` 은 **스무 번** 나온다. 그들이 하려던 것은 그래프를 표준형으로 줄이는 일이었고, 줄이는 도중에 나타나는 **대수** $A(\Gamma)$ 가 새 불변량이라는 것이 요지였다. 그 1절에 적힌 절차가 이것이다.
 
 > "Associate with every vertex of the graph the characteristic vector which has one component equal to the number of neighbors of this vertex. Then divide vertices into classes… associate with every vertex the characteristic vector $v_i = (l, v_{i1}, v_{i2}, \dots)$, where $v_{ik}$ is the number of neighbors of vertex $i$ from class $k$… Now again divide vertices into classes according to new characteristic vectors…"
 
@@ -68,7 +68,7 @@ $$h_G=\operatorname{CONCAT}_{l=0}^{L}
 
 **그러니 "1-WL만큼 강하다"는 말은 칭찬인 동시에 한계의 이름이다.** 위 문단이 GIN을 모든 그래프 모델보다 강하다고 부르지 않는 까닭이고, 표현력과 일반화를 따로 두라는 까닭이기도 하다. 천장이 높아서 거기 닿은 것이 아니라, 1968년에 다른 목적으로 그어진 선이 마침 거기 있었던 것이다. 삼각형을 세야 하는 문제라면 더 강한 집계를 찾을 것이 아니라 **삼각형 수를 피처로 넣는 쪽**이 빠르다.
 
-_확인한 곳 — B. Yu. Weisfeiler, A. A. Leman, "A reduction of a graph to canonical form and an algebra arising during this reduction", *NTI* Ser. 2, No. 9, 12–16 (1968). 인용한 1절과 낱말 횟수는 [영역본](https://www.iti.zcu.cz/wl2018/pdf/wl_paper_translation.pdf) 을 내려받아 직접 세었다. K. Xu, W. Hu, J. Leskovec, S. Jegelka, "How Powerful are Graph Neural Networks?", ICLR 2019. 그림의 수는 그림을 그리는 코드가 직접 세며, 두 그래프가 동형이 아니고 1-WL이 색을 가르지 못한다는 것을 먼저 확인한 뒤에만 그린다._
+_확인한 곳 — B. Yu. Weisfeiler, A. A. Leman, "A reduction of a graph to canonical form and an algebra arising during this reduction", *NTI* Ser. 2, No. 9, 12–16 (1968). 인용한 1절과 단어 횟수는 [영역본](https://www.iti.zcu.cz/wl2018/pdf/wl_paper_translation.pdf) 을 내려받아 직접 세었다. K. Xu, W. Hu, J. Leskovec, S. Jegelka, "How Powerful are Graph Neural Networks?", ICLR 2019. 그림의 수는 그림을 그리는 코드가 직접 세며, 두 그래프가 동형이 아니고 1-WL이 색을 가르지 못한다는 것을 먼저 확인한 뒤에만 그린다._
 
 </div>
 

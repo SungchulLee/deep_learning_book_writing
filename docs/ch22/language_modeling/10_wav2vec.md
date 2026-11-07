@@ -170,7 +170,7 @@ greedy CTC는 위치별 argmax의 연속 반복을 합친 뒤 blank를 제거하
             self.wav2vec2 = Wav2Vec2(d_model, n_layers, n_heads)
             self.lm_head = nn.Linear(d_model, vocab_size)
             self.blank_id = vocab_size - 1  # CTC 빈 토큰
-            # 낱말 곳간: a-z (0-25), 사이 (26), ' (27), <unk> (28), <blank> (29)
+            # 단어 곳간: a-z (0-25), 사이 (26), ' (27), <unk> (28), <blank> (29)
             self.vocab = list("abcdefghijklmnopqrstuvwxyz '") + ["<unk>", "<blank>"]
         
         def forward(self, x):

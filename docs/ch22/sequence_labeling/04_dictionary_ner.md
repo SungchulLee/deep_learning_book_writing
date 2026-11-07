@@ -16,7 +16,7 @@
 학습 목표:
 - 개체 사전(가제티어)을 세우고 쓴다
 - 효율적인 찾기 알고리즘 짜기
-- 낱말 여럿짜리 개체 다루기
+- 단어 여럿짜리 개체 다루기
 - 예측 짝짓기와 아우르기
 - 사전 고침 다스리기
 
@@ -62,7 +62,7 @@ class EntityDictionary:
         self.entities.add(entity)
         self.entities_lower[entity.lower()] = entity
         
-        # 다듬기를 위해 낱말 여럿짜리 개체를 따로 좇기
+        # 다듬기를 위해 단어 여럿짜리 개체를 따로 좇기
         if len(entity.split()) > 1:
             self.multi_word_entities.add(entity)
     
@@ -164,7 +164,7 @@ class DictionaryNER:
         entities = []
         words = text.split()
         
-        # 가능한 모든 n-그램 살피기(낱말 5개까지)
+        # 가능한 모든 n-그램 살피기(단어 5개까지)
         for n in range(5, 0, -1):
             for i in range(len(words) - n + 1):
                 span = " ".join(words[i:i+n])

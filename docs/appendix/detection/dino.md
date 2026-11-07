@@ -137,7 +137,7 @@ class DINO(nn.Module):
         noisy_boxes = (boxes + noise).clamp(0.0, 1.0)
 
         # DN 속내 담음을 짓는다:
-        # 참 방법은 이름표와 가림을 담는다. 여기서는 배운 "dn 낱말"을 되풀이해 쓸 뿐이다.
+        # 참 방법은 이름표와 가림을 담는다. 여기서는 배운 "dn 단어"을 되풀이해 쓸 뿐이다.
         dn_token = torch.zeros(B, M_use, self.d_model, device=device)
         dn_token = dn_token.permute(1, 0, 2).contiguous()  # (Tdn=M_use, B, C)
 
@@ -165,7 +165,7 @@ class DINO(nn.Module):
             q_content = torch.cat([dn_content, q_content], dim=0)  # (Tdn+T, B, C)
             q_ref = torch.cat([dn_ref, q_ref], dim=0)              # (Tdn+T, B, 4)
 
-        # 디코더 날임 낱말
+        # 디코더 날임 단어
         hs = self.transformer(src=src, tgt=q_content)  # (Ttotal, B, C)
         hs = hs.permute(1, 0, 2)                       # (B, Ttotal, C)
 

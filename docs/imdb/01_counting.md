@@ -43,7 +43,7 @@
 ## 2. 코드
 
 ```python
-"""스텝1: 낱말을 세어 클래스마다 평균을 내고, 가까운 쪽으로 부른다.
+"""스텝1: 단어를 세어 클래스마다 평균을 내고, 가까운 쪽으로 부른다.
 
 3장 스텝1의 템플릿 학습을 텍스트에 그대로 옮긴 것이다. 거기서는 그림을
 클래스마다 평균 내어 템플릿 열 장을 만들었고, 여기서는 영화평을 클래스마다
@@ -60,16 +60,16 @@ ROOT = Path("./data/aclImdb")   # 내려받아 풀어 둔 자리
 VOCAB_SIZE = 20000
 
 # =============================================================================
-# 자료: 영화평을 읽어 낱말 목록으로 바꾼다
+# 자료: 영화평을 읽어 단어 목록으로 바꾼다
 # =============================================================================
-TOKEN = re.compile(r"[a-z']+")          # 소문자 낱말만. 숫자와 문장부호는 버린다
+TOKEN = re.compile(r"[a-z']+")          # 소문자 단어만. 숫자와 문장부호는 버린다
 
 def tokenize(text):
     # HTML 줄바꿈이 원문에 그대로 남아 있다
     return TOKEN.findall(text.replace("<br />", " ").lower())
 
 def load(split):
-    """(낱말 목록들, 정답)을 돌려준다. 1 = 좋게 봄, 0 = 나쁘게 봄."""
+    """(단어 목록들, 정답)을 돌려준다. 1 = 좋게 봄, 0 = 나쁘게 봄."""
     docs, labels = [], []
     for label, name in ((1, "pos"), (0, "neg")):
         for f in sorted((ROOT/split/name).glob("*.txt")):
@@ -81,20 +81,20 @@ t0 = time.time()
 train_docs, train_y = load("train")
 test_docs,  test_y  = load("test")
 print(f"자료 학습 {len(train_docs):,}편  시험 {len(test_docs):,}편  ({time.time()-t0:.0f}s)")
-print(f"평 하나의 낱말 수: 가운뎃값 {int(np.median([len(d) for d in train_docs]))}  "
+print(f"평 하나의 단어 수: 가운뎃값 {int(np.median([len(d) for d in train_docs]))}  "
       f"가장 짧은 것 {min(len(d) for d in train_docs)}  가장 긴 것 {max(len(d) for d in train_docs)}")
 
 # =============================================================================
-# 낱말 목록: 자주 나온 것 VOCAB_SIZE개만 남긴다
+# 단어 목록: 자주 나온 것 VOCAB_SIZE개만 남긴다
 # =============================================================================
 counts = Counter(w for d in train_docs for w in d)
 vocab = [w for w, _ in counts.most_common(VOCAB_SIZE)]
 index = {w: i for i, w in enumerate(vocab)}
-print(f"낱말 {len(counts):,}가지 가운데 {VOCAB_SIZE:,}개를 쓴다")
+print(f"단어 {len(counts):,}가지 가운데 {VOCAB_SIZE:,}개를 쓴다")
 
 
 def to_counts(docs):
-    """평 하나를 낱말 세기 벡터로. (문서 수, VOCAB_SIZE)"""
+    """평 하나를 단어 세기 벡터로. (문서 수, VOCAB_SIZE)"""
     X = np.zeros((len(docs), VOCAB_SIZE), dtype=np.float32)
     for r, d in enumerate(docs):
         for w in d:
@@ -129,26 +129,26 @@ acc = 100.0 * (classify(Xte_n) == test_y).mean()
 print(f"\n스텝1 최근접 중심  시험 정확도 {acc:.2f}%")
 print(f"파라메터 {2*VOCAB_SIZE:,} (학습하지 않고 평균으로 못박은 값)")
 
-# 어떤 낱말이 두 중심을 가장 크게 갈라놓는가
+# 어떤 단어가 두 중심을 가장 크게 갈라놓는가
 diff = centroid_pos - centroid_neg
 top_pos = np.argsort(diff)[-12:][::-1]
 top_neg = np.argsort(diff)[:12]
-print("\n좋은 쪽으로 미는 낱말:", ", ".join(vocab[i] for i in top_pos))
-print("나쁜 쪽으로 미는 낱말:", ", ".join(vocab[i] for i in top_neg))
+print("\n좋은 쪽으로 미는 단어:", ", ".join(vocab[i] for i in top_pos))
+print("나쁜 쪽으로 미는 단어:", ", ".join(vocab[i] for i in top_neg))
 ```
 
 **출력:**
 
 ```
 자료 학습 25,000편  시험 25,000편  (21s)
-평 하나의 낱말 수: 가운뎃값 173  가장 짧은 것 10  가장 긴 것 2462
-낱말 85,680가지 가운데 20,000개를 쓴다
+평 하나의 단어 수: 가운뎃값 173  가장 짧은 것 10  가장 긴 것 2462
+단어 85,680가지 가운데 20,000개를 쓴다
 
 스텝1 최근접 중심  시험 정확도 65.16%
 파라메터 40,000 (학습하지 않고 평균으로 못박은 값)
 
-좋은 쪽으로 미는 낱말: and, is, of, great, in, as, the, his, very, a, best, love
-나쁜 쪽으로 미는 낱말: bad, this, was, movie, to, no, just, even, not, i, worst, have
+좋은 쪽으로 미는 단어: and, is, of, great, in, as, the, his, very, a, best, love
+나쁜 쪽으로 미는 단어: bad, this, was, movie, to, no, just, even, not, i, worst, have
 ```
 
 ---
@@ -206,7 +206,7 @@ print("나쁜 쪽으로 미는 낱말:", ", ".join(vocab[i] for i in top_neg))
 ??? success "풀이"
     **문서 길이가 거리 계산에 섞인다.** 긴 문서의 세기 벡터는 대체로 노름이 커지지만, 실제 거리는 단어 구성과 중심 위치에도 달려 있다. 상대 빈도로 정규화하면 전체 길이의 직접적인 영향을 줄인다.
 
-    거리를 제곱 유클리드로 재므로, 모든 칸의 값이 커지면 거리도 커진다. 2,462 낱말짜리 평은 10 낱말짜리 평보다 원점에서 훨씬 먼 자리에 놓인다.
+    거리를 제곱 유클리드로 재므로, 모든 칸의 값이 커지면 거리도 커진다. 2,462 단어짜리 평은 10 단어짜리 평보다 원점에서 훨씬 먼 자리에 놓인다.
 
     중심은 클래스별 평균 벡터이며 문서 길이의 중앙값과 같은 개념이 아니다. 정규화 전후의 성능과 길이별 오류를 비교하면 길이 효과를 확인할 수 있다.
 
@@ -227,7 +227,7 @@ print("나쁜 쪽으로 미는 낱말:", ", ".join(vocab[i] for i in top_neg))
     어떤 단어가 **몇 편의 평에 나타나는지**를 세어, 많은 평에 나타날수록 무게를 낮춘다. `the`는 25,000편 모두에 나오므로 무게가 거의 0이 되고, `excellent`는 일부에만 나오므로 무게가 남는다.
 
     $$
-    w(\text{낱말}) = \log \frac{\text{전체 평 수}}{\text{그 낱말이 나온 평 수}}
+    w(\text{단어}) = \log \frac{\text{전체 평 수}}{\text{그 단어가 나온 평 수}}
     $$
 
     이것도 데이터에서 문서 빈도를 추정하는 과정이다. 다만 라벨을 이용한 경사 하강법은 아니다. 데이터를 한 번 세어 정하는 값이라 이 절의 규칙을 벗어나지 않는다. 실제 개선 폭은 같은 평가 조건으로 비교해야 한다.

@@ -435,7 +435,7 @@ class PerplexityCalculator:
     Perplexity = exp(NLL per token)
                = exp(-1/T Σ log p(w_t | w_{<t}))
     
-    직관: 자리마다 실제로 쓰이는 낱말 수.
+    직관: 자리마다 실제로 쓰이는 단어 수.
     퍼플렉서티가 낮을수록 예측이 더 자신 있다.
     """
     
@@ -500,7 +500,7 @@ class PerplexityCalculator:
                     batch_mask = torch.ones_like(batch_ids)
                 
                 # 순전파
-                logits = model(batch_ids)  # [배치, 차례 길이, 낱말 수]
+                logits = model(batch_ids)  # [배치, 차례 길이, 단어 수]
                 
                 # 인과 말 모델을 위해 옮긴다: 다음 토큰을 헤아린다
                 shift_logits = logits[:, :-1, :]
@@ -540,7 +540,7 @@ class PerplexityCalculator:
         
         인수:
             ppl: 퍼플렉서티 값
-            vocab_size: 견줄 낱말 수
+            vocab_size: 견줄 단어 수
         
         반환값:
             풀이 글자열

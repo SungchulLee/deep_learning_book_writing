@@ -65,11 +65,11 @@ class ViTAttentionVisualizer:
         ----------
         attention : torch.Tensor
             어텐션 행렬, 형태: (조각 수+1, 조각 수+1)
-            (+1은 CLS 낱말)
+            (+1은 CLS 단어)
         image : torch.Tensor, 없어도 됨
             본디 그림 텐서, 형태: (3, H, W)
         focus_patch : int
-            눈여겨볼 조각(0이면 CLS 낱말)
+            눈여겨볼 조각(0이면 CLS 단어)
         """
         if isinstance(attention, torch.Tensor):
             attention = attention.cpu().numpy()
@@ -77,13 +77,13 @@ class ViTAttentionVisualizer:
         # 눈여겨보는 조각에서 뻗는 어텐션을 뽑는다
         patch_attention = attention[focus_patch, :]
 
-        # 2차원 격자로 형태를 바꾼다(CLS 낱말은 뺀다)
+        # 2차원 격자로 형태를 바꾼다(CLS 단어는 뺀다)
         grid_size = int(np.sqrt(self.num_patches))
 
-        if focus_patch == 0:  # CLS 낱말
-            # 그릴 때 CLS 낱말은 건너뛴다
+        if focus_patch == 0:  # CLS 단어
+            # 그릴 때 CLS 단어는 건너뛴다
             spatial_attention = patch_attention[1:].reshape(grid_size, grid_size)
-            title = "CLS 낱말이 조각에 두는 어텐션"
+            title = "CLS 단어가 조각에 두는 어텐션"
         else:
             spatial_attention = patch_attention[1:].reshape(grid_size, grid_size)
             title = f"조각 {focus_patch-1}의 어텐션"
@@ -175,11 +175,11 @@ def example_vit_attention():
     patch_size = 16
     num_patches = (image_size // patch_size) ** 2
 
-    # 지어낸 어텐션을 만든다(CLS 낱말 몫으로 조각 수+1)
+    # 지어낸 어텐션을 만든다(CLS 단어 몫으로 조각 수+1)
     seq_len = num_patches + 1
     attention = torch.zeros(seq_len, seq_len)
 
-    # CLS 낱말은 모든 조각을 본다
+    # CLS 단어는 모든 조각을 본다
     attention[0, 1:] = torch.softmax(torch.randn(num_patches), dim=0)
     attention[0, 0] = 0.1
 
@@ -195,7 +195,7 @@ def example_vit_attention():
     # 그림으로 보인다
     viz = ViTAttentionVisualizer(image_size=image_size, patch_size=patch_size)
 
-    print("\nCLS 낱말의 어텐션을 그린다(모형이 어디에 어텐션을 두는가):")
+    print("\nCLS 단어의 어텐션을 그린다(모형이 어디에 어텐션을 두는가):")
     viz.visualize_patch_attention(attention, focus_patch=0)
 
     print("\n가운데 조각의 어텐션을 그린다:")
@@ -207,7 +207,7 @@ if __name__ == "__main__":
     example_vit_attention()
 
     print("\n핵심 깨침:")
-    print("  - CLS 낱말이 모든 조각의 소식을 한데 모은다")
+    print("  - CLS 단어가 모든 조각의 소식을 한데 모은다")
     print("  - 자리 어텐션이 그림의 어느 자리가 중요한지 드러낸다")
     print("  - 그 자리 조각은 흔히 가까운 자리를 본다")
     print("  - 어텐션 그림이 두드러진 물체를 짚어 줄 수 있다")
@@ -220,12 +220,12 @@ if __name__ == "__main__":
 눈 트랜스포머 어텐션 그리기
 ======================================================================
 
-CLS 낱말의 어텐션을 그린다(모형이 어디에 어텐션을 두는가):
+CLS 단어의 어텐션을 그린다(모형이 어디에 어텐션을 두는가):
 
 가운데 조각의 어텐션을 그린다:
 
 핵심 깨침:
-  - CLS 낱말이 모든 조각의 소식을 한데 모은다
+  - CLS 단어가 모든 조각의 소식을 한데 모은다
   - 자리 어텐션이 그림의 어느 자리가 중요한지 드러낸다
   - 그 자리 조각은 흔히 가까운 자리를 본다
   - 어텐션 그림이 두드러진 물체를 짚어 줄 수 있다

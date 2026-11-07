@@ -147,7 +147,7 @@ class AdditiveAttention(nn.Module):
         # 점수: (B, S, 1) -> (B, S)
         scores = self.v(torch.tanh(h_proj + q_proj)).squeeze(-1)
 
-        # 밑 낱말에 대한 어텐션 짐
+        # 밑 단어에 대한 어텐션 짐
         alpha = F.softmax(scores, dim=1)                # (B, S)
 
         # 인코더 날임의 짐 실은 합

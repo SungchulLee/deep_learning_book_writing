@@ -15,7 +15,7 @@ Longformer - 긴 글월 트랜스포머
 핵심 깨침:
   - 온전한 O(S^2) 어텐션을 다음으로 갈음한다:
       (a) 미닫이 창 그 자리 어텐션 (O(S * window))
-      (b) 골라 쓰는 두루 어텐션 낱말(예: [CLS], 물음 낱말)
+      (b) 골라 쓰는 두루 어텐션 단어(예: [CLS], 물음 단어)
 
 두루마리: appendix/transformers/longformer.py
 눈여겨볼 것: *그 자리 어텐션*(창을 쓰는 셀프 어텐션)을 배우기 위해 짜 본 것이다.
@@ -35,7 +35,7 @@ class WindowSelfAttention(nn.Module):
     """
     손쉽게 짠 창 셀프 어텐션(알아보기 쉽도록 머리 하나).
 
-    자리 i마다 [i-w, i+w] 안의 낱말에만 어텐션을 준다.
+    자리 i마다 [i-w, i+w] 안의 단어에만 어텐션을 준다.
     번거로움이 O(S^2)이 아니라 ~O(S * window)이 된다.
     """
     def __init__(self, d_model=256, window=4):
@@ -60,7 +60,7 @@ class WindowSelfAttention(nn.Module):
             left = max(0, i - self.window)
             right = min(S, i + self.window + 1)
 
-            # 낱말 i과 그 자리 창의 낱말 사이 어텐션을 셈한다
+            # 단어 i과 그 자리 창의 단어 사이 어텐션을 셈한다
             q_i = Q[:, i : i + 1, :]            # (B, 1, D)
             k_w = K[:, left:right, :]           # (B, W, D)
             v_w = V[:, left:right, :]           # (B, W, D)

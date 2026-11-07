@@ -122,7 +122,7 @@ Linear의 bias는 집계 전에 들어가므로 정규화 뒤 별도로 bias를 
 이 쪽의 목표 $y=0.1\sum X+0.05m+\epsilon$ 은 **그래프가 커지면 함께 커지는 양**이다.
 노드를 더하면 $\sum X$ 가 늘고 엣지를 더하면 $m$ 이 는다. 물리학은 이런 양에 이름을
 붙여 두었다 — 크기를 따라 늘어나는 **extensive** 와 크기로 나누어 크기와 무관한
-**intensive**. 두 낱말을 지금의 뜻으로 처음 쓴 사람은 Richard C. Tolman 으로, 1917년
+**intensive**. 두 단어를 지금의 뜻으로 처음 쓴 사람은 Richard C. Tolman 으로, 1917년
 Physical Review 에 실은 "The Measurable Quantities of Physics" 에서였다. 질량·부피는
 extensive 고 밀도·온도는 intensive 다. mean readout 은 노드 수로 나누므로 **구조적으로
 intensive 한 양만** 낼 수 있다. 이 구분은 학습을 시작하기 전에 이미 답을 알려 준다.

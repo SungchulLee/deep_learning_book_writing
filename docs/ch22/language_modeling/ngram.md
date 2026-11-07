@@ -21,7 +21,7 @@ import math
 
 class UnigramModel:
     """
-    낱말끼리 안 얽힌다고 가정하는 유니그램 언어 모델.
+    단어끼리 안 얽힌다고 가정하는 유니그램 언어 모델.
     
     P(w) = count(w) / total_words
     """
@@ -43,7 +43,7 @@ class UnigramModel:
         print(f"Total words: {self.total_words}")
     
     def probability(self, word: str) -> float:
-        """최대 가능도 추정으로 P(낱말) 셈하기."""
+        """최대 가능도 추정으로 P(단어) 셈하기."""
         word = word.lower()
         if word not in self.vocab:
             return 0.0
@@ -55,7 +55,7 @@ class UnigramModel:
         return math.log2(prob) if prob > 0 else float('-inf')
     
     def sentence_log_probability(self, sentence: str) -> float:
-        """log P(월) = log P(낱말)의 합 셈하기."""
+        """log P(월) = log P(단어)의 합 셈하기."""
         words = sentence.lower().split()
         return sum(self.log_probability(w) for w in words)
 
@@ -69,7 +69,7 @@ corpus = [
 model = UnigramModel()
 model.train(corpus)
 
-# 낱말 확률
+# 단어 확률
 for word in ["the", "cat", "elephant"]:
     print(f"P({word}) = {model.probability(word):.4f}")
 ```
@@ -134,11 +134,11 @@ class BigramModel:
     
     def probability(self, word: str, context: str) -> float:
         """
-        최대 가능도 추정으로 P(낱말 | 맥락) 셈하기.
+        최대 가능도 추정으로 P(단어 | 맥락) 셈하기.
         
         인수:
-            word: 지금 낱말 w_i
-            context: 앞 낱말 w_{i-1}
+            word: 지금 단어 w_i
+            context: 앞 단어 w_{i-1}
         """
         word = word.lower()
         context = context.lower()
@@ -234,12 +234,12 @@ class TrigramModel:
     
     def probability(self, word: str, context1: str, context2: str) -> float:
         """
-        P(낱말 | 맥락1, 맥락2) 셈하기.
+        P(단어 | 맥락1, 맥락2) 셈하기.
         
         인수:
-            word: 지금 낱말 w_i
-            context1: 자리 i-2의 낱말
-            context2: 자리 i-1의 낱말
+            word: 지금 단어 w_i
+            context1: 자리 i-2의 단어
+            context2: 자리 i-1의 단어
         """
         trigram_count = self.trigram_counts[context1][context2][word]
         bigram_count = self.bigram_counts[context1][context2]
@@ -273,18 +273,18 @@ class LaplaceBigramModel:
         self.END = "</s>"
     
     def train(self, corpus: List[str], min_freq: int = 1) -> None:
-        """낱말 곳간 임계값을 두고 익히기."""
-        # 1차: 낱말 세기
+        """단어 곳간 임계값을 두고 익히기."""
+        # 1차: 단어 세기
         word_counts = Counter()
         for sentence in corpus:
             word_counts.update(sentence.lower().split())
         
-        # 낱말 곳간 세우기(최소 잦기를 넘는 낱말)
+        # 단어 곳간 세우기(최소 잦기를 넘는 단어)
         self.vocab = {w for w, c in word_counts.items() if c >= min_freq}
         self.vocab.add(self.UNK)
         self.vocab_size = len(self.vocab)
         
-        # 2차: 곳간 밖 낱말을 다루며 바이그램 세기
+        # 2차: 곳간 밖 단어를 다루며 바이그램 세기
         for sentence in corpus:
             words = sentence.lower().split()
             words = [w if w in self.vocab else self.UNK for w in words]
@@ -304,7 +304,7 @@ class LaplaceBigramModel:
         word = word.lower()
         context = context.lower()
         
-        # 곳간 밖 낱말 다루기
+        # 곳간 밖 단어 다루기
         if word not in self.vocab:
             word = self.UNK
         if context not in self.vocab and context != self.START:
@@ -347,7 +347,7 @@ class InterpolatedBigramModel:
         pass
     
     def unigram_probability(self, word: str) -> float:
-        """하나 더하기 부드럽게 하기를 쓴 P(낱말)."""
+        """하나 더하기 부드럽게 하기를 쓴 P(단어)."""
         count = self.unigram_counts[word]
         return (count + 1) / (self.total_words + len(self.vocab))
     
@@ -387,7 +387,7 @@ class TextGenerator:
         self.model = bigram_model
     
     def get_distribution(self, context: str) -> List[Tuple[str, float]]:
-        """다음 낱말에 대한 확률 분포 얻기."""
+        """다음 단어에 대한 확률 분포 얻기."""
         counts = self.model.bigram_counts[context]
         if not counts:
             return [(w, 1/len(self.model.vocab)) for w in self.model.vocab]

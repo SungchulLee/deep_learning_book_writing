@@ -12,7 +12,7 @@
 예로부터의 기계 러닝 바탕 개체명 인식(CRF, MaxEnt 등)를 위한 피처 빚기.
 
 뽑은 피처:
-- 낱말 수준 피처
+- 단어 수준 피처
 - 글자 수준 피처
 - 철자 피처
 - 맥락 피처
@@ -53,7 +53,7 @@ class FeatureExtractor:
         token = tokens[index]
         features = {}
         
-        # 기본 낱말 피처
+        # 기본 단어 피처
         features['word'] = token.lower()
         features['word_length'] = len(token)
         
@@ -66,7 +66,7 @@ class FeatureExtractor:
         features['is_alpha'] = token.isalpha()
         features['is_digit'] = token.isdigit()
         
-        # 낱말 형태 피처
+        # 단어 형태 피처
         features['word_shape'] = self.get_word_shape(token)
         features['short_word_shape'] = self.get_word_shape(token, short=True)
         
@@ -103,7 +103,7 @@ class FeatureExtractor:
     @staticmethod
     def get_word_shape(word: str, short: bool = False) -> str:
         """
-        낱말 형태 표현 얻기.
+        단어 형태 표현 얻기.
         
         글자를 형태 부호에 대응시킨다:
         - 대문자: 'X'

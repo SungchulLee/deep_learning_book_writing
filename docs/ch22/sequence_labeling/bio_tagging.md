@@ -447,15 +447,15 @@ def align_labels_to_subwords(
     label_first_subword_only: bool = True
 ) -> List[str]:
     """
-    낱말 수준 레이블을 아래낱말 토큰에 맞추기.
+    단어 수준 레이블을 서브워드 토큰에 맞추기.
     
     인수:
-        word_labels: 낱말마다의 레이블
-        word_to_subword_map: 낱말마다의 아래낱말 번호 목록
-        label_first_subword_only: True이면 첫 아래낱말만 레이블을 받는다
+        word_labels: 단어마다의 레이블
+        word_to_subword_map: 단어마다의 서브워드 번호 목록
+        label_first_subword_only: True이면 첫 서브워드만 레이블을 받는다
         
     반환값:
-        아래낱말 토큰마다의 레이블
+        서브워드 토큰마다의 레이블
     """
     subword_labels = []
     
@@ -464,14 +464,14 @@ def align_labels_to_subwords(
         
         for i, subword_idx in enumerate(subword_indices):
             if i == 0:
-                # 첫 아래낱말이 본디 레이블을 받는다
+                # 첫 서브워드이 본디 레이블을 받는다
                 subword_labels.append(label)
             else:
                 if label_first_subword_only:
-                    # 첫째가 아닌 아래낱말은 특별 레이블을 받는다(로스에서 무시)
+                    # 첫째가 아닌 서브워드은 특별 레이블을 받는다(로스에서 무시)
                     subword_labels.append('[IGNORE]')
                 else:
-                    # 이어지는 아래낱말에 I- 레이블 퍼뜨리기
+                    # 이어지는 서브워드에 I- 레이블 퍼뜨리기
                     if label.startswith('B-'):
                         subword_labels.append('I-' + label[2:])
                     else:

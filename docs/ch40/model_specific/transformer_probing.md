@@ -56,7 +56,7 @@ class TransformerProbe:
                 outputs = self.model(**inputs, output_hidden_states=True)
 
             hidden = outputs.hidden_states[layer]
-            cls_rep = hidden[0, 0].cpu().numpy()  # [CLS] 낱말
+            cls_rep = hidden[0, 0].cpu().numpy()  # [CLS] 단어
             representations.append(cls_rep)
 
         return np.array(representations)

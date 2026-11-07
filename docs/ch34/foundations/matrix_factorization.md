@@ -93,7 +93,7 @@ $$\frac{\partial \mathcal{L}_{\text{reg}}}{\partial \mathbf{q}_i} = -2\, e_{ui}\
 
 ## 4. 임베딩으로 보는 풀이
 
-행렬 $P \in \mathbb{R}^{m \times d}$은 **임베딩 표**로 볼 수 있다. 줄 $u$은 쓰는 이 $u$의 $d$차원 나타냄이다. 마찬가지로 $Q \in \mathbb{R}^{n \times d}$은 물건 임베딩 표이다.
+행렬 $P \in \mathbb{R}^{m \times d}$은 **단어 임베딩 표**로 볼 수 있다. 줄 $u$은 쓰는 이 $u$의 $d$차원 나타냄이다. 마찬가지로 $Q \in \mathbb{R}^{n \times d}$은 물건 단어 임베딩 표이다.
 
 PyTorch에서 `nn.Embedding(num_users, d)`이 바로 이 표를 담는다. 쓰는 이 $u$과 물건 $i$의 앞으로 가기는:
 
@@ -136,7 +136,7 @@ class MF(nn.Module):
 
 ### 하나씩 짚기
 
-1. **`__init__`**: 형태가 `(num_users, emb_size)`과 `(num_items, emb_size)`인 임베딩 표 둘을 만든다.
+1. **`__init__`**: 형태가 `(num_users, emb_size)`과 `(num_items, emb_size)`인 단어 임베딩 표 둘을 만든다.
 2. **`forward(u, v)`**: 정수 텐서 `u`(쓰는 이 번호)과 `v`(물건 번호)를 받아 임베딩을 찾고 내적을 헤아린 매김으로 돌려준다.
 3. **잡 개수**: $(m + n) \times d$. $m = 610$, $n = 9{,}724$, $d = 100$이면 잡이 약 103만 개이다.
 

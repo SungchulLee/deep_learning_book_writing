@@ -82,7 +82,7 @@ zebra_embedding = word_vectors["zebra"]  # 형태: (300,)
 ```python
 def get_class_embedding(class_name, word_vectors):
     """
-    여러 낱말로 될 수 있는 부류 이름의 임베딩을 얻는다.
+    여러 단어로 될 수 있는 부류 이름의 임베딩을 얻는다.
     """
     words = class_name.lower().split()
     embeddings = []
@@ -94,7 +94,7 @@ def get_class_embedding(class_name, word_vectors):
     if not embeddings:
         raise ValueError(f"No words in '{class_name}' found in vocabulary")
     
-    # 낱말 임베딩을 평균 낸다
+    # 단어 임베딩을 평균 낸다
     return np.mean(embeddings, axis=0)
 ```
 

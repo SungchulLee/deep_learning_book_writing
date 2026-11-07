@@ -182,7 +182,7 @@ if __name__ == "__main__":
 class RNNDataset(Dataset):
     """언어 모델용 자료. 텍스트를 max_seq_len 길이의 토큰으로 자른다.
 
-    언어 모델이 배우는 것은 "다음 낱말 맞히기"이므로, 들임과 정답이 한 칸씩
+    언어 모델이 배우는 것은 "다음 단어 맞히기"이므로, 들임과 정답이 한 칸씩
     어긋난 같은 토큰이다.
 
         토큰      the  cat  sat  on   the  mat
@@ -190,8 +190,8 @@ class RNNDataset(Dataset):
         정답 y         cat  sat  on   the  mat
 
     Args:
-        corpus: 토큰의 열. 낱말 문자열이어도 되고 이미 번호로 바꾼 것이어도 된다.
-        vocab:  낱말 -> 번호 사전. 문자열 corpus를 번호로 바꿀 때 쓴다.
+        corpus: 토큰의 열. 단어 문자열이어도 되고 이미 번호로 바꾼 것이어도 된다.
+        vocab:  단어 -> 번호 사전. 문자열 corpus를 번호로 바꿀 때 쓴다.
         max_seq_len: 토큰 하나의 길이.
     """
 

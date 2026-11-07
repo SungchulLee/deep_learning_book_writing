@@ -65,7 +65,7 @@ aclImdb는 파일 이름에 별점을 적어 둔다. `200_8.txt`는 200번 평�
 
 7장의 사다리는 스텝3에서 멈춘다. 까닭 후보가 둘이었다.
   (a) 평 2만 5천 편에 견주어 128만 개짜리 임베딩이 너무 크다
-  (b) 좋다/나쁘다가 낱말 세기로 거의 풀려서 엮을 것이 없다
+  (b) 좋다/나쁘다가 단어 세기로 거의 풀려서 엮을 것이 없다
 
 자료 크기를 그대로 두고 일감만 어렵게 하면 (b)를 따로 잴 수 있다.
 규약은 7장 그대로이고 내놓는 클래스 수만 8이다.
@@ -127,7 +127,7 @@ print("  클래스별 시험 편수 " +
 
 
 def to_counts(docs):
-    """스텝1·2용. 낱말 세기를 줄 길이로 나눈다."""
+    """스텝1·2용. 단어 세기를 줄 길이로 나눈다."""
     X = np.zeros((len(docs), VOCAB_SIZE), dtype=np.float32)
     for r, d in enumerate(docs):
         for w in d:
@@ -138,7 +138,7 @@ def to_counts(docs):
 
 
 def to_ids(docs):
-    """스텝3~6용. 낱말 번호를 400칸에 담는다."""
+    """스텝3~6용. 단어 번호를 400칸에 담는다."""
     X = np.zeros((len(docs), MAX_LEN), dtype=np.int64)
     for r, d in enumerate(docs):
         ids = [index[w] for w in d if w in index][:MAX_LEN]
@@ -163,7 +163,7 @@ def rung1(Ctr, Cte):
     return 100.0 * (d.argmin(1) == yte_np).mean()
 
 
-# === 스텝2: 낱말 세기 위의 선형 학습 ========================================
+# === 스텝2: 단어 세기 위의 선형 학습 ========================================
 def rung2(Ctr, Cte, seed):
     torch.manual_seed(seed)
     m = nn.Linear(VOCAB_SIZE, N_CLASS)
@@ -196,7 +196,7 @@ def safe_mask(pad):
 
 
 class MeanEmbedding(nn.Module):
-    """스텝3. 낱말 벡터를 평균낸다 — 차례를 버린다."""
+    """스텝3. 단어 벡터를 평균낸다 — 차례를 버린다."""
 
     def __init__(self):
         super().__init__()
@@ -230,7 +230,7 @@ class LSTMClassifier(nn.Module):
 
 
 class AttentionClassifier(nn.Module):
-    """스텝5. 모든 낱말이 서로를 곧장 본다."""
+    """스텝5. 모든 단어가 서로를 곧장 본다."""
 
     def __init__(self):
         super().__init__()
@@ -301,8 +301,8 @@ def train_deep(Model, seed, Xtr, ytr, Xte):
 
 
 if __name__ == "__main__":
-    # --- 스텝1·2: 낱말 세기 ------------------------------------------------
-    print("\n=== 스텝1·2: 낱말 세기 ===", flush=True)
+    # --- 스텝1·2: 단어 세기 ------------------------------------------------
+    print("\n=== 스텝1·2: 단어 세기 ===", flush=True)
     Ctr, Cte = to_counts(train_docs), to_counts(test_docs)
     t0 = time.time()
     print(f"  1 최근접중심  {rung1(Ctr, Cte):.2f}%  ({time.time()-t0:.0f}초)", flush=True)
@@ -313,7 +313,7 @@ if __name__ == "__main__":
               f"({time.time()-t0:.0f}초)", flush=True)
     del Ctr, Cte                       # 2GB짜리 둘이라 바로 버린다
 
-    # --- 스텝3~6: 낱말 번호 ------------------------------------------------
+    # --- 스텝3~6: 단어 번호 ------------------------------------------------
     print("\n=== 스텝3~6 ===", flush=True)
     Xtr, Xte = to_ids(train_docs), to_ids(test_docs)
     ytr = torch.from_numpy(ytr_np).long()
@@ -336,7 +336,7 @@ if __name__ == "__main__":
   우연 12.50%   가장 많은 클래스 20.09%  <- 넘어야 할 바닥
   클래스별 시험 편수 1★:5,022  2★:2,302  3★:2,541  4★:2,635  7★:2,307  8★:2,850  9★:2,344  10★:4,999
 
-=== 스텝1·2: 낱말 세기 ===
+=== 스텝1·2: 단어 세기 ===
   1 최근접중심  24.75%  (1초)
   2 선형  씨앗 0  30.79%  MAE 2.88★  (3초)
   2 선형  씨앗 1  29.24%  MAE 3.13★  (2초)

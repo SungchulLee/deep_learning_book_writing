@@ -65,7 +65,7 @@ def to_bow(docs):
 
 Xtr = torch.from_numpy(to_bow(train_docs)); ytr = torch.from_numpy(train_y).view(-1, 1)
 Xte = torch.from_numpy(to_bow(test_docs));  yte = torch.from_numpy(test_y).view(-1, 1)
-print(f"자료 학습 {len(train_docs):,}편  시험 {len(test_docs):,}편  낱말 {VOCAB_SIZE:,}개")
+print(f"자료 학습 {len(train_docs):,}편  시험 {len(test_docs):,}편  단어 {VOCAB_SIZE:,}개")
 
 
 # ========================================================================
@@ -94,7 +94,7 @@ for s in SEEDS:
     a, m = run(s)
     accs.append(a); last = m
     print(f"  씨앗 {s}  {a:.2f}%", flush=True)
-print(f"\n로지스틱 회귀 (낱말 주머니)  평균 {sum(accs)/len(accs):.2f}%  "
+print(f"\n로지스틱 회귀 (단어 주머니)  평균 {sum(accs)/len(accs):.2f}%  "
       f"스프레드 {max(accs)-min(accs):.2f} ({min(accs):.2f}~{max(accs):.2f})  "
       f"파라메터 {VOCAB_SIZE+1:,}")
 
@@ -102,30 +102,30 @@ print(f"\n로지스틱 회귀 (낱말 주머니)  평균 {sum(accs)/len(accs):.2
 w = last.weight.detach()[0]
 top = torch.topk(w, 12).indices.tolist()
 bot = torch.topk(-w, 12).indices.tolist()
-print("\n좋은 평 쪽으로 가장 세게 미는 낱말")
+print("\n좋은 평 쪽으로 가장 세게 미는 단어")
 print("  " + ", ".join(f"{vocab[i]}({w[i]:+.1f})" for i in top))
-print("\n나쁜 평 쪽으로 가장 세게 미는 낱말")
+print("\n나쁜 평 쪽으로 가장 세게 미는 단어")
 print("  " + ", ".join(f"{vocab[i]}({w[i]:+.1f})" for i in bot))
 ```
 
 **출력:**
 
 ```
-자료 학습 25,000편  시험 25,000편  낱말 20,000개
+자료 학습 25,000편  시험 25,000편  단어 20,000개
   씨앗 0  85.90%
   씨앗 1  86.11%
   씨앗 2  85.70%
   씨앗 3  85.79%
   씨앗 4  86.14%
 
-로지스틱 회귀 (낱말 주머니)  평균 85.93%  스프레드 0.44 (85.70~86.14)  파라메터 20,001
+로지스틱 회귀 (단어 주머니)  평균 85.93%  스프레드 0.44 (85.70~86.14)  파라메터 20,001
 
-좋은 평 쪽으로 가장 세게 미는 낱말
+좋은 평 쪽으로 가장 세게 미는 단어
   refreshing(+275.5), flawless(+264.6), excellently(+243.2), caf(+242.1),
   vengeance(+238.8), kitty(+227.5), finely(+227.2), delightfully(+227.0),
   appreciated(+220.7), ankle(+220.1), nitpick(+217.9), moodiness(+217.0)
 
-나쁜 평 쪽으로 가장 세게 미는 낱말
+나쁜 평 쪽으로 가장 세게 미는 단어
   disappointment(-276.2), poorly(-253.4), believer(-251.4), obnoxious(-244.6),
   unwatchable(-240.8), worst(-240.5), waste(-239.3), lacks(-231.5),
   stinker(-229.8), programming(-228.5), slightest(-228.4), wayans(-227.3)
@@ -225,14 +225,14 @@ print("  " + ", ".join(f"{vocab[i]}({w[i]:+.1f})" for i in bot))
     **재는 법.** 단어가 나온 평의 수와 그 단어의 계수 크기를 짝지어 본다.
 
     ```python
-    df = np.zeros(VOCAB_SIZE)                 # 낱말이 나온 평의 수
+    df = np.zeros(VOCAB_SIZE)                 # 단어가 나온 평의 수
     for d in train_docs:
         for j in {index[w] for w in d if w in index}:
             df[j] += 1
     w = last.weight.detach()[0].numpy()
     for lo, hi in ((0, 50), (50, 500), (500, 5000), (5000, 30000)):
         sel = (df >= lo) & (df < hi)
-        print(f"{lo:5d}~{hi:<6d}편에 나온 낱말 {sel.sum():5d}개  "
+        print(f"{lo:5d}~{hi:<6d}편에 나온 단어 {sel.sum():5d}개  "
               f"계수 크기 평균 {np.abs(w[sel]).mean():.1f}")
     ```
 

@@ -154,7 +154,7 @@ class DETR(nn.Module):
         # src에 자리를 더한다(DETR에서 흔한 솜씨)
         src = src + pos
 
-        # 물체 물음을 첫 타깃 낱말로 쓴다 (T, B, C)
+        # 물체 물음을 첫 타깃 단어로 쓴다 (T, B, C)
         query = self.query_embed.weight.unsqueeze(1).repeat(1, B, 1)
 
         # 트랜스포머: 인코더가 src을 다루고, 디코더가 src에 어텐션을 주며 물음을 다룬다

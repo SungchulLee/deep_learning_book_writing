@@ -101,8 +101,8 @@ class AttentionFlowAnalyzer:
             vmax=1
         )
         axes[0].set_title('어텐션 짐', fontsize=13, fontweight='bold')
-        axes[0].set_xlabel('열쇠 낱말')
-        axes[0].set_ylabel('물음 낱말')
+        axes[0].set_xlabel('열쇠 단어')
+        axes[0].set_ylabel('물음 단어')
 
         # 흐름을 그린다
         sns.heatmap(
@@ -117,8 +117,8 @@ class AttentionFlowAnalyzer:
             vmax=flow.max()
         )
         axes[1].set_title('어텐션 흐름 (그래디언트를 곁들임)', fontsize=13, fontweight='bold')
-        axes[1].set_xlabel('열쇠 낱말')
-        axes[1].set_ylabel('물음 낱말')
+        axes[1].set_xlabel('열쇠 단어')
+        axes[1].set_ylabel('물음 단어')
 
         for ax in axes:
             ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
@@ -142,7 +142,7 @@ class AttentionFlowAnalyzer:
         Returns:
         -------
         튜플의 목록
-            (물음 낱말, 열쇠 낱말, 흐름 값)
+            (물음 단어, 열쇠 단어, 흐름 값)
         """
         if isinstance(flow, torch.Tensor):
             flow = flow.cpu().numpy()
