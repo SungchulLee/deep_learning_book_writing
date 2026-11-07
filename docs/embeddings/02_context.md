@@ -92,6 +92,8 @@ ids = torch.tensor([stoi[w] for w in toks if w in stoi], dtype=torch.long)
 freq = torch.tensor([counts[w] for w in words], dtype=torch.float)
 neg_p = (freq ** 0.75)
 neg_p /= neg_p.sum()
+# NCE 가 로짓에서 빼는 항. 네거티브 샘플링은 이것을 지운 것이다
+LOGKP = (math.log(NEG) + neg_p.log()).to(device)
 
 
 def pairs(g):
@@ -116,6 +118,16 @@ class SkipGram(nn.Module):
         """어휘 전부를 놓고 소프트맥스 — 바른 길이지만 비싸다."""
         return F.cross_entropy(self.mid(c) @ self.ctx.weight.T, o)
 
+    def nce_loss(self, c, o, g):
+        """NCE — 네거티브 샘플링과 로짓 하나만 다르다. log k·P_n(w) 를 뺀다."""
+        v = self.mid(c)
+        pos = (v * self.ctx(o)).sum(-1) - LOGKP[o]
+        ni = torch.multinomial(neg_p, c.size(0) * NEG, True,
+                               generator=g).to(device)
+        neg = torch.bmm(self.ctx(ni).view(c.size(0), NEG, -1),
+                        v.unsqueeze(-1)).squeeze(-1) - LOGKP[ni].view(-1, NEG)
+        return -(F.logsigmoid(pos).mean() + F.logsigmoid(-neg).sum(1).mean())
+
     def neg_loss(self, c, o, g):
         """맞는 짝 하나와 틀린 짝 NEG 개만 본다 — 네거티브 샘플링."""
         v = self.mid(c)                                   # (B, d)
@@ -135,7 +147,8 @@ def train(kind):
     sync(); t0 = time.perf_counter()
     for _ in range(STEPS):
         c, o = pairs(g)
-        loss = m.full_loss(c, o) if kind == "full" else m.neg_loss(c, o, g)
+        loss = (m.full_loss(c, o) if kind == "full" else
+                m.nce_loss(c, o, g) if kind == "nce" else m.neg_loss(c, o, g))
         opt.zero_grad(); loss.backward(); opt.step()
     sync()
     return m.eval(), (time.perf_counter() - t0) / STEPS * 1000
@@ -213,26 +226,37 @@ if __name__ == "__main__":
     print(f"    한 낱말의 참 이웃 가짓수 중앙값    : "
           f"{sorted(len(s) for s in nb)[VOCAB // 2]}")
 
-    # === 그 '틀림'이 무엇을 배우게 하는가 ================================
-    # 당기는 힘은 실제 동시출현, 미는 힘은 그 낱말이 그냥 흔한 정도다.
-    # 둘이 비기는 자리가 둘의 비(比), 곧 PMI 다.
-    D_tot, pair_tot = len(arr), sum(co.values())
-    mid_cnt = Counter(arr)
+    # === 지운 항 하나가 최적점을 어디로 옮기나 ===========================
+    # NCE 의 로짓은  u·v - log k·P_n(w)  다. 네거티브 샘플링은 뒤 항을 지운
+    # 것이고, 그래서 그 항만큼을 내적이 떠안는다 — 그 자리가 PMI 다.
+    ctx_tot = Counter()
+    for (w, _), n in co.items():
+        ctx_tot[w] += n
     sel = [q for q, n in co.items() if n >= 30][:4000]
-    with torch.no_grad():
-        x = torch.tensor([
-            math.log((co[q] / pair_tot)
-                     / ((mid_cnt[q[0]] / D_tot) * neg_p[q[1]].item()))
-            - math.log(NEG) for q in sel])
-        y = torch.tensor([(m_neg.mid.weight[q[0]].cpu()
-                           * m_neg.ctx.weight[q[1]].cpu()).sum().item()
+    log_p = torch.tensor([math.log(co[q] / ctx_tot[q[0]]) for q in sel])
+    pmi_k = torch.tensor([math.log(co[q] / ctx_tot[q[0]]
+                                   / neg_p[q[1]].item()) - math.log(NEG)
                           for q in sel])
-    xc, yc = x - x.mean(), y - y.mean()
-    r = (xc * yc).mean() / (x.std(unbiased=False) * y.std(unbiased=False))
-    slope = (xc * yc).sum() / (xc ** 2).sum()
-    print(f"\n  배운 내적과 'PMI - log {NEG}' 를 {len(sel):,}짝에서 견주면")
-    print(f"    상관계수 {r:.4f}   기울기 {slope:.3f}   (이론값 1)")
-    print(f"    내적 평균 {y.mean():.3f}   PMI - log {NEG} 평균 {x.mean():.3f}")
+
+    def fit(y, x):
+        xc, yc = x - x.mean(), y - y.mean()
+        r = (xc * yc).mean() / (x.std(unbiased=False) * y.std(unbiased=False))
+        return r.item(), ((xc * yc).sum() / (xc ** 2).sum()).item()
+
+    @torch.no_grad()
+    def dots(m):
+        return torch.tensor([(m.mid.weight[a].cpu() * m.ctx.weight[b].cpu())
+                             .sum().item() for a, b in sel])
+
+    m_nce, _ = train("nce")
+    print(f"\n  배운 내적이 무엇을 좇는가 ({len(sel):,}짝, k={NEG})")
+    print(f"    {'':28s}{'PMI - log k':>22s}{'log p(o|c)':>22s}")
+    for tag, mm in (("네거티브 샘플링 (항 지움)", m_neg), ("NCE (항 있음)", m_nce)):
+        d = dots(mm)
+        r1, s1 = fit(d, pmi_k); r2, s2 = fit(d, log_p)
+        print(f"    {tag:24s}  r={r1:+.4f} 기울기={s1:5.3f}"
+              f"   r={r2:+.4f} 기울기={s2:5.3f}")
+    print("    저마다 제 예측을 좇는다 — 기울기가 1에 가까운 칸이 그것이다")
 
     # === 어휘를 키우면 언제부터 벌어지는가 ================================
     # 학습은 하지 않고 로스 한 번의 앞·뒤 계산만 잰다.
@@ -312,9 +336,11 @@ if __name__ == "__main__":
     바로 그 자리의 창 안에 있던 것     : 30,048 (2.93%)
     한 낱말의 참 이웃 가짓수 중앙값    : 130
 
-  배운 내적과 'PMI - log 5' 를 4,000짝에서 견주면
-    상관계수 0.8983   기울기 0.811   (이론값 1)
-    내적 평균 -0.992   PMI - log 5 평균 -0.924
+  배운 내적이 무엇을 좇는가 (4,000짝, k=5)
+                                           PMI - log k            log p(o|c)
+    네거티브 샘플링 (항 지움)           r=+0.8983 기울기=0.811   r=+0.7710 기울기=0.280
+    NCE (항 있음)                r=+0.6195 기울기=1.558   r=+0.9752 기울기=0.986
+    저마다 제 예측을 좇는다 — 기울기가 1에 가까운 칸이 그것이다
 
   어휘를 키우면 (점수 매기는 비용만. 뽑는 일은 뺐다)
            어휘       네거티브        전부      몇 배
@@ -456,31 +482,78 @@ $$
 정도」**다. 그것이 PMI다. 그러니 `the`가 틀린 짝으로 자꾸 뽑히는 것은 흠이
 아니라, **`the`가 모두와 붙어 다닌다는 사실을 상쇄하는 장치**다.
 
-재어 보면 학습된 내적이 정말 거기에 앉는다.
+### 어디서 온 식인가 — NCE 와의 관계
+
+지금까지는 균형점을 힘으로 말했다. 식으로 적으면 **어디서 왔는지**와 **무엇을
+버렸는지**가 같이 보인다.
+
+바탕에 있는 것은 **NCE**(잡음 대조 추정)다. 「이 표본이 자료에서 왔는가 잡음에서
+왔는가」를 가르는 분류기이고, 그 사후 확률은 이렇게 적힌다.
+
+$$
+P(\text{자료} \mid w, c)
+= \frac{p(w \mid c)}{p(w \mid c) + k\,P_n(w)}
+= \sigma\!\Bigl(\log p(w \mid c) - \log k P_n(w)\Bigr)
+$$
+
+그러니 **NCE 의 로짓에는 $-\log k P_n(w)$ 가 들어 있어야 한다.** 네거티브
+샘플링은 그 항을 **지운 것**이고, 둘의 차이는 거기서 끝이다.
+
+| | 로짓 | 내적이 닿는 곳 |
+|---|---|---|
+| **NCE** | $\mathbf{u}^{\top}\mathbf{v} - \log k P_n(w)$ | $\log p(w \mid c)$ — **소프트맥스 그대로** |
+| **네거티브 샘플링** | $\mathbf{u}^{\top}\mathbf{v}$ | $\log \dfrac{p(w \mid c)}{P_n(w)} - \log k$ = **PMI** $- \log k$ |
+
+둘 다 **최적 로짓은 같다** — $\log p(w\mid c) - \log k P_n(w)$ 다. 다른 것은 그
+가운데 얼마를 $\mathbf{u}^{\top}\mathbf{v}$ 가 떠안느냐뿐이다. NCE 는 $\log k P_n$
+을 로짓이 직접 들고 있으니 내적에는 $\log p(w\mid c)$ 만 남고, 네거티브 샘플링은
+그 항을 지웠으니 **내적이 그것까지 떠안아** PMI $-\log k$ 가 된다.
+
+로짓 한 항만 바꾸어 둘을 다 학습해 보면 그대로 갈린다.
 
 ```
-배운 내적과 'PMI - log 5' 를 4,000짝에서 견주면
-  상관계수 0.8983   기울기 0.811   (이론값 1)
-  내적 평균 -0.992   PMI - log 5 평균 -0.924
+배운 내적이 무엇을 좇는가 (4,000짝, k=5)
+                                         PMI - log k            log p(o|c)
+  네거티브 샘플링 (항 지움)           r=+0.8983 기울기=0.811   r=+0.7710 기울기=0.280
+  NCE (항 있음)                r=+0.6195 기울기=1.558   r=+0.9752 기울기=0.986
+  저마다 제 예측을 좇는다 — 기울기가 1에 가까운 칸이 그것이다
 ```
 
-!!! note "네거티브 개수는 속도 손잡이가 아니다"
-    위 식에 $-\log k$가 있다. 네거티브를 몇 개 뽑느냐가 **최적점을 그만큼
-    통째로 내린다**는 뜻이고, 곧 $k$는 빠르기만 정하는 수가 아니라 **무엇을
-    배울지 정하는 수**다. 이 쪽의 $k = 5$에서는 $-\log 5 = -1.609$다.
+**저마다 제 예측을 좇는다.** 기울기가 1에 가까운 칸을 보라 — 네거티브 샘플링은
+PMI $-\log k$ 쪽에서 0.811이고 $\log p(o\mid c)$ 쪽에서는 0.280이다. NCE 는 거꾸로
+$\log p(o\mid c)$ 쪽에서 0.986이다.
 
-    이것이 Levy & Goldberg가 2014년에 보인 결과다 — 네거티브 샘플링으로 배운
-    벡터는 **PMI 행렬에서 $\log k$만큼 내린 것을 인수분해한 것**과 같다.
-    소프트맥스를 피하려고 고른 어림이 알고 보니 **셀 수 있는 양을 정확히
-    겨누고 있었던** 셈이다.
+이 관계 하나가 세 가지를 한꺼번에 설명한다.
 
-    _확인한 곳 — O. Levy, Y. Goldberg, "Neural Word Embedding as Implicit
-    Matrix Factorization", *NIPS 2014*_
+**왜 싼가.** 지운 항에 들어 있는 것이 $P_n(w)$ 의 **확률값**이다. 그래서 네거티브
+샘플링은 잡음 분포에서 **뽑기만** 하면 되고 확률을 셈할 일이 없다. NCE 는 표본과
+확률값을 둘 다 쓴다.
 
-그래서 **0.75 제곱도 다시 읽힌다.** 앞에서는 「흔한 낱말만 나오지 않게」로
-읽었는데, 미는 힘의 세기를 정하는 것이 그 분포이므로 그 지수는 곧 **무엇을
-「우연」으로 칠 것인가**를 정한다. 빈도 그대로면 완전한 PMI이고, 고르게 뽑으면
-우연 보정이 아예 없어진다. 0.75는 그 사이다.
+**왜 소프트맥스의 근사가 아닌가.** 지운 그 항이 **소프트맥스로 수렴하게 해 주던
+항**이다. 논문도 NCE 는 소프트맥스의 로그 확률을 근사하지만 네거티브 샘플링은
+그 성질을 버렸다고 적고, **벡터만 좋으면 되니 중요하지 않다**고 넘어간다. 그러니
+「네거티브를 늘리면 소프트맥스에 다가간다」는 생각은 NCE 에서는 맞고 여기서는
+**틀리다.** 이 쪽의 출력에서 두 길이 비슷하되 **같지 않은** 이웃을 내놓는 것도
+그 때문이다.
+
+**왜 $P_n$ 이 목적에 남는가.** 지운 항이 $\log P_n(w)$ 이므로 **$P_n$ 을 무엇으로
+두느냐가 최적점에 그대로 남는다.** 그래서 0.75 제곱은 취향이 아니라 **무엇을
+「우연」으로 칠 것인가**를 정한다. 지수 1이면 완전한 PMI, 0이면 우연 보정이 아예
+없다. 0.75는 그 사이의 한 점이다.
+
+!!! note "$k$ 와 0.75 는 유도된 수가 아니다"
+    둘 다 **해 보고 고른 수**다. 논문은 $k$ 를 작은 자료에 5~20, 큰 자료에 2~5가
+    쓸 만하다고 적고, 0.75 에 대해서는 여러 후보를 해 보니 빈도 그대로나 균등보다
+    눈에 띄게 나았다고만 적는다. 어느 쪽도 증명이 아니다.
+
+    그런데 위 표가 **그 탐색이 무엇을 뒤지고 있었는지**는 알려 준다. $k$ 는
+    최적점을 $-\log k$ 만큼 통째로 내리고, 지수는 무엇을 우연으로 칠지를 정한다.
+    그러니 둘은 **빠르기 손잡이가 아니라 목적 손잡이**이고, 경험으로 고른 값이라는
+    사실이 오히려 그 점을 분명히 한다 — 고를 수 있다는 것은 바뀐다는 뜻이다.
+
+    _확인한 곳 — T. Mikolov 외, *NIPS 2013* (arXiv:1310.4546) 4절·2.2절;
+    O. Levy, Y. Goldberg, "Neural Word Embedding as Implicit Matrix
+    Factorization", *NIPS 2014*_
 
 ### 그런데 어휘 8,000에서는 1.8배뿐이다
 
