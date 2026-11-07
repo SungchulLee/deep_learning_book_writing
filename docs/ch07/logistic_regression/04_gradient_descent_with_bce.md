@@ -26,6 +26,9 @@ from sklearn.model_selection import train_test_split
 #    팁: 완전한 재현성을 원하면 numpy/torch의 씨앗을 설정하고
 #         데이터 분할에 random_state=...를 넘긴다 (아래에 이미 되어 있다).
 # ---------------------------------------------------------------------------
+# 레이어 초기화도 난수다 — 씨앗이 없으면 아래 로스 자취가 돌릴 때마다 달라진다
+torch.manual_seed(1234)
+
 bc = datasets.load_breast_cancer()
 X, y = bc.data, bc.target
 # X: (569, 30) float64
@@ -176,17 +179,17 @@ if __name__ == "__main__":
 Number of Positive Cases in 569 Patients of Original Data :  357
 Number of Positive Cases in 455 Patients of Train Data :  288
 Number of Positive Cases in 114 Patients of Test Data :  69
-epoch: 10, loss = 0.2590
-epoch: 20, loss = 0.0510
-epoch: 30, loss = 0.0431
-epoch: 40, loss = 0.0389
-epoch: 50, loss = 0.0357
-epoch: 60, loss = 0.0330
-epoch: 70, loss = 0.0308
-epoch: 80, loss = 0.0289
-epoch: 90, loss = 0.0274
-epoch: 100, loss = 0.0260
-accuracy: 0.9561
+epoch: 10, loss = 0.2522
+epoch: 20, loss = 0.0454
+epoch: 30, loss = 0.0395
+epoch: 40, loss = 0.0359
+epoch: 50, loss = 0.0330
+epoch: 60, loss = 0.0307
+epoch: 70, loss = 0.0288
+epoch: 80, loss = 0.0272
+epoch: 90, loss = 0.0258
+epoch: 100, loss = 0.0245
+accuracy: 0.9649
 ```
 
 ## 2. 논의
