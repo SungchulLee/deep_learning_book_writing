@@ -158,7 +158,6 @@ nav:
         - DBSCAN과 병합 군집화: ch02/clustering/02_dbscan_agglomerative.md
         - "가우시안 혼합 모델": ch02/clustering/03_gmm.md
         - 군집화 평가 지표: ch02/metrics/clustering.md
-      - "통계적 학습 — 길잡이": ch07/index.md
       - 2.4 최대가능도 추정:
         - 최대가능도 추정: ch07/mle/mle.md
         - 회귀에서의 최대가능도: ch07/mle/mle_regression.md
