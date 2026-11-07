@@ -422,7 +422,7 @@
             pred = pred.view(-1)
             target = target.view(-1)
 
-            # 헷갈림 행렬 요소 셈하기
+            # 퍼플렉서티 행렬 요소 셈하기
             tp = ((pred == 1) & (target == 1)).float().sum()  # 참양성
             tn = ((pred == 0) & (target == 0)).float().sum()  # 참음성
             fp = ((pred == 1) & (target == 0)).float().sum()  # 헛양성

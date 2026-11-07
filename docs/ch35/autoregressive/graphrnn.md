@@ -291,7 +291,7 @@ class GraphRNN(nn.Module):
             else:
                 logits = self.edge_mlp(graph_state)
 
-            # 올바른 변 자리의 가리개
+            # 올바른 변 자리의 마스크
             mask = torch.zeros(B, M, device=device)
             mask[:, :valid_len] = 1.0
             mask = mask * active.unsqueeze(1)

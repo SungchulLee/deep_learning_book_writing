@@ -266,7 +266,7 @@ class CRF(nn.Module):
         # score: (batch, num_tags)
         score = self.start_transitions + emissions[:, 0]
         
-        # 뒤 가리개 저장
+        # 뒤 마스크 저장
         history = []
         
         for i in range(1, seq_len):
@@ -284,7 +284,7 @@ class CRF(nn.Module):
             # (batch, num_tags)
             next_score, indices = next_score.max(dim=1)
             
-            # 뒤 가리개 저장
+            # 뒤 마스크 저장
             history.append(indices)
             
             # 가리기: 덧댄 자리는 옛 점수 유지

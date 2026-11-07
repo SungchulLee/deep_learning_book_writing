@@ -137,7 +137,7 @@ class GRANAttentionLayer(nn.Module):
         인수:
             h: (n_total, hidden_dim) 마디 임베딩
             adj: (n_total, n_total) 이웃 행렬(이미 있는 것 + 후보)
-            candidate_mask: (n_total, n_total) 후보 변 가리개
+            candidate_mask: (n_total, n_total) 후보 변 마스크
         """
         n = h.size(0)
 
@@ -238,7 +238,7 @@ class GRAN(nn.Module):
         node_types[n_existing:] = 1
         h = self.node_embed(node_types)
 
-        # 후보 가리개: 새것에서 모두로, 모두에서 새것으로
+        # 후보 마스크: 새것에서 모두로, 모두에서 새것으로
         candidate_mask = torch.zeros(n_total, n_total, device=device)
         candidate_mask[n_existing:, :n_total] = 1.0
         candidate_mask[:n_total, n_existing:] = 1.0

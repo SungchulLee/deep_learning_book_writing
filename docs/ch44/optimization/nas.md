@@ -1355,7 +1355,7 @@ NAS은 다른 눌러 담기 재주와 하나의 흐름으로 아우를 때 가�
                 amount=amount
             )
 
-            # 가리개를 지키며 곱게 맞춘다
+            # 마스크를 지키며 곱게 맞춘다
             masks = {}
             for name, module in model.named_modules():
                 if isinstance(module, (nn.Conv2d, nn.Linear)):
@@ -1483,7 +1483,7 @@ NAS은 다른 눌러 담기 재주와 하나의 흐름으로 아우를 때 가�
                        test_loader: torch.utils.data.DataLoader,
                        epochs: int,
                        masks: Optional[Dict] = None) -> nn.Module:
-            """가리개를 지키며(골라 씀) 모형을 곱게 맞춘다."""
+            """마스크를 지키며(골라 씀) 모형을 곱게 맞춘다."""
             device = self.config.device
             model = model.to(device)
 
@@ -1502,7 +1502,7 @@ NAS은 다른 눌러 담기 재주와 하나의 흐름으로 아우를 때 가�
                     loss.backward()
                     optimizer.step()
 
-                    # 가리개가 주어지면 지킨다
+                    # 마스크가 주어지면 지킨다
                     if masks:
                         with torch.no_grad():
                             for name, module in model.named_modules():

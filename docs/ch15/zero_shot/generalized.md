@@ -56,7 +56,7 @@ def evaluate_gzsl(predictions, labels, seen_classes, unseen_classes):
     predictions = np.array(predictions)
     labels = np.array(labels)
     
-    # 본 부류와 못 본 부류 시험 표본의 가리개
+    # 본 부류와 못 본 부류 시험 표본의 마스크
     seen_mask = np.isin(labels, seen_classes)
     unseen_mask = np.isin(labels, unseen_classes)
     

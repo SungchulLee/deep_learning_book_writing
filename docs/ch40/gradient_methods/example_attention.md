@@ -499,7 +499,7 @@ def example_gpt2_attention():
     print(f"\n켜의 수: {len(attentions)}")
     print(f"켜마다의 어텐션 형태: {attentions[0].shape}")
 
-    # 인과 어텐션 결을 그린다(GPT-2은 인과 가리개를 쓴다)
+    # 인과 어텐션 결을 그린다(GPT-2은 인과 마스크를 쓴다)
     print("\n인과 어텐션 결을 그리는 중...")
     fig = visualize_token_attention(attentions, tokens, layer_idx=-1)
     plt.savefig('gpt2_attention_causal.png', dpi=150, bbox_inches='tight')

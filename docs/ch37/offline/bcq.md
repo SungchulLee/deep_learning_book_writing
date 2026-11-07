@@ -83,7 +83,7 @@ class DiscreteBCQAgent:
         return losses
 
     def _filter_actions(self, states: torch.Tensor) -> torch.Tensor:
-        """액션 본의 임계를 바탕으로 액션 가리개를 만든다."""
+        """액션 본의 임계를 바탕으로 액션 마스크를 만든다."""
         with torch.no_grad():
             probs = self.bc_model(states)  # (batch, action_dim)
             max_probs = probs.max(dim=1, keepdim=True)[0]

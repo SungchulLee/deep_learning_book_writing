@@ -142,7 +142,7 @@ def weight_diagnostics(weights, n_samples=None, name=""):
     n_for_50 = (cumsum < 0.5).sum().item() + 1
     n_for_90 = (cumsum < 0.9).sum().item() + 1
     
-    # 엔트로피와 헷갈림도
+    # 엔트로피와 퍼플렉서티
     entropy = -torch.sum(norm_weights * torch.log(norm_weights + 1e-10))
     max_entropy = torch.log(torch.tensor(float(n_samples)))
     perplexity = torch.exp(entropy)

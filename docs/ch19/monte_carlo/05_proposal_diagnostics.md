@@ -18,7 +18,7 @@
     핵심 진단 잣대:
     1. 실효 표본 크기(ESS)
     2. 무게의 흩어짐과 변이 계수
-    3. 엔트로피와 헷갈림도
+    3. 엔트로피와 퍼플렉서티
     4. 쿨백-라이블러 벌어짐 어림값
     5. 덮음 진단
     6. χ² 벌어짐 잣대
@@ -121,7 +121,7 @@
             # 상대 ESS
             rel_ess = ess / n
 
-            # 헷갈림도(엔트로피의 지수)
+            # 퍼플렉서티(엔트로피의 지수)
             entropy = -np.sum(weights * np.log(weights + 1e-300))
             perplexity = np.exp(entropy)
 
@@ -296,7 +296,7 @@
             ══════════════════════════════
             ESS: {diagnostics['ess']:.1f}
             상대 ESS: {diagnostics['relative_ess']:.1%}
-            헷갈림도: {diagnostics['perplexity']:.1f}
+            퍼플렉서티: {diagnostics['perplexity']:.1f}
 
             무게의 변이 계수: {diagnostics['cv_weights']:.3f}
             최대 무게: {diagnostics['max_weight']:.6f}

@@ -59,8 +59,8 @@ class GuidedReLU(Function):
     @staticmethod
     def backward(ctx, grad_output):
         input, = ctx.saved_tensors
-        # 앞으로 가리개: input > 0
-        # 되짚기 가리개: grad_output > 0
+        # 앞으로 마스크: input > 0
+        # 되짚기 마스크: grad_output > 0
         return grad_output * (input > 0).float() * (grad_output > 0).float()
 
 class GuidedBackpropagation:

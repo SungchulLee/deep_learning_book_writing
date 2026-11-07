@@ -150,7 +150,7 @@ class GraphEncoder(nn.Module):
         인수:
             adj: (B, n, n) 이웃 행렬
             x: (B, n, d) 마디 피처
-            node_mask: (B, n) 올바른 마디의 두 값 가리개
+            node_mask: (B, n) 올바른 마디의 두 값 마스크
         """
         h = self.input_proj(x)  # (B, n, hidden)
 
@@ -168,7 +168,7 @@ class GraphEncoder(nn.Module):
         return mu, logvar
 
 class GraphDecoder(nn.Module):
-    """이웃 행렬, 피처, 마디 가리개를 만드는 디코더."""
+    """이웃 행렬, 피처, 마디 마스크를 만드는 디코더."""
 
     def __init__(
         self,
@@ -219,7 +219,7 @@ class GraphDecoder(nn.Module):
         adj[:, idx[0], idx[1]] = torch.sigmoid(edge_logits)
         adj = adj + adj.transpose(1, 2)
 
-        # 마디 가리개
+        # 마디 마스크
         node_prob = torch.sigmoid(self.node_head(h))
 
         # 마디 피처

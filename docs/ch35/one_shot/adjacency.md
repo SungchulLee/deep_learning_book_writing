@@ -220,12 +220,12 @@ class FactoredDecoder(nn.Module):
         mask = 1 - torch.eye(n, device=z.device).unsqueeze(0)
         adj = adj * mask
 
-        # 마디가 있는지 나타내는 가리개
+        # 마디가 있는지 나타내는 마스크
         node_mask = torch.sigmoid(
             self.node_mask_predictor(node_embeds).squeeze(-1)
         )
 
-        # 이웃 행렬에 마디 가리개를 쓴다
+        # 이웃 행렬에 마디 마스크를 쓴다
         adj = adj * node_mask.unsqueeze(1) * node_mask.unsqueeze(2)
 
         return adj, node_mask

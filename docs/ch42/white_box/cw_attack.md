@@ -193,7 +193,7 @@ class CarliniWagnerL2:
             f = torch.clamp(true_logit - target_logit, min=-self.kappa)
         else:
             # 타깃 없음: 가장 큰 다른 로짓 > 참 로짓이 되게 한다
-            # 참 클래스의 가리개를 만든다
+            # 참 클래스의 마스크를 만든다
             mask = torch.ones_like(logits).scatter_(1, y.view(-1, 1), 0)
             other_logits = logits * mask - (1 - mask) * 1e9
             max_other_logit = other_logits.max(dim=1)[0]

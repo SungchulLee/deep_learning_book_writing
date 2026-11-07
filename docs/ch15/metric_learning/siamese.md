@@ -620,7 +620,7 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
             # 모든 쌍별 거리 계산
             distances = torch.cdist(embeddings, embeddings, p=2)
 
-            # 이름표 가리개를 만든다
+            # 이름표 마스크를 만든다
             labels_eq = labels.unsqueeze(0) == labels.unsqueeze(1)
 
             hard_pos_pairs = []

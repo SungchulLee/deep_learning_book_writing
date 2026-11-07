@@ -332,7 +332,7 @@ $$\text{Selective Risk} = \frac{\text{# wrong predictions}}{\text{# predictions 
 
             Returns:
                 predictions: 미루어 본 이름표
-                accept_mask: 참거짓 가리개(True = 미루어 봄을 받음)
+                accept_mask: 참거짓 마스크(True = 미루어 봄을 받음)
                 uncertainty: 아리송함 점수
             """
             if hasattr(self.model, 'mc_predict'):

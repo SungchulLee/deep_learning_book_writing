@@ -775,7 +775,7 @@ class MultiHeadSelfAttention(nn.Module):
 
         scores = (q @ k.transpose(-2, -1)) * self.scale   # (B, H, L, L)
         if mask is not None:
-            # (B, L) 짜리 채움 가리개든 (L, L) 짜리 인과 가리개든 받는다
+            # (B, L) 짜리 채움 마스크든 (L, L) 짜리 인과 마스크든 받는다
             if mask.dim() == 2 and mask.shape[0] == B:
                 mask = mask[:, None, None, :]
             scores = scores.masked_fill(mask == 0, float("-inf"))

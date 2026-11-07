@@ -115,7 +115,7 @@
         max_entropy = np.log(n)  # 고른 분포
         normalized_entropy = entropy / max_entropy
 
-        # 헷갈림도(ESS과 이어진 또 하나의 잣대)
+        # 퍼플렉서티(ESS과 이어진 또 하나의 잣대)
         perplexity = np.exp(entropy)
 
         # 위쪽 표본이 차지하는 무게의 백분율

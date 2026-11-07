@@ -331,7 +331,7 @@
                 batch_size = len(delta)
                 # 보기마다 L2 노름을 셈한다
                 delta_norm = delta.view(batch_size, -1).norm(p=2, dim=1)
-                # ε을 넘는 보기의 가리개를 만든다
+                # ε을 넘는 보기의 마스크를 만든다
                 exceed_mask = delta_norm > self.epsilon
                 # ε을 넘는 흔듦을 줄인다
                 if exceed_mask.any():

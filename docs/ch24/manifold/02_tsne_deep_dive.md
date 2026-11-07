@@ -13,7 +13,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
 
-# === 헷갈림도의 영향 ===================================================
+# === 퍼플렉서티의 영향 ===================================================
 print("Generating blobs to show perplexity effect...")
 X_blobs, y_blobs = make_blobs(
     n_samples=600, centers=4, cluster_std=[1.0, 2.5, 0.5, 1.5], random_state=42

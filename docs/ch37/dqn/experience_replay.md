@@ -74,7 +74,7 @@ class EfficientReplayBuffer:
     def __init__(self, capacity: int, state_dim: int):
         self.capacity = capacity
         self.size = 0
-        self.ptr = 0  # 적기 가리개(고리 형태)
+        self.ptr = 0  # 적기 마스크(고리 형태)
 
         # 배열을 미리 잡음
         self.states = np.zeros((capacity, state_dim), dtype=np.float32)

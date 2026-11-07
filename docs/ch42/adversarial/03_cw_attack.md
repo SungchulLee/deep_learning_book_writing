@@ -355,7 +355,7 @@
                 true_logits = outputs[torch.arange(batch_size), labels]
 
                 # 다른 클래스 모두의 로짓을 얻는다
-                # 가리개를 만든다: 참 클래스는 1, 나머지는 0
+                # 마스크를 만든다: 참 클래스는 1, 나머지는 0
                 one_hot = F.one_hot(labels, num_classes).bool()
 
                 # max에 뽑히지 않도록 참 클래스의 로짓을 -무한으로 둔다

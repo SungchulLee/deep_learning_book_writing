@@ -247,7 +247,7 @@ class SequentialGraphGenerator(nn.Module):
             # 그리고 마디가 적어도 t+1개인 그래프에서만
             active = (lengths > t).float()  # (B,)
             if active.sum() > 0:
-                # 가리개: 자리 0..t-1만 올바른 변 타깃이다
+                # 마스크: 자리 0..t-1만 올바른 변 타깃이다
                 mask = torch.zeros(batch_size, self.max_nodes, device=device)
                 mask[:, :t] = 1.0
                 mask = mask * active.unsqueeze(1)

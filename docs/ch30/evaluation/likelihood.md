@@ -430,27 +430,27 @@ $$\operatorname{PPL}=\exp\left(-\frac1T\sum_{t=1}^T
 ```python
 class PerplexityCalculator:
     """
-    말 모델의 헷갈림도 셈개.
+    말 모델의 퍼플렉서티 셈개.
     
     Perplexity = exp(NLL per token)
                = exp(-1/T Σ log p(w_t | w_{<t}))
     
     직관: 자리마다 실제로 쓰이는 낱말 수.
-    헷갈림도가 낮을수록 예측이 더 자신 있다.
+    퍼플렉서티가 낮을수록 예측이 더 자신 있다.
     """
     
     @staticmethod
     def compute_perplexity(log_probs: torch.Tensor,
                           lengths: Optional[torch.Tensor] = None) -> float:
         """
-        토큰 로그 확률에서 헷갈림도를 셈한다.
+        토큰 로그 확률에서 퍼플렉서티를 셈한다.
         
         인수:
             log_probs: 로그 확률 [batch, seq_len] 또는 [total_tokens]
             lengths: 길이가 다른 배치를 위한 차례 길이(있으면)
         
         반환값:
-            헷갈림도 값
+            퍼플렉서티 값
         """
         if lengths is not None:
             # 길이가 다른 차례
@@ -475,7 +475,7 @@ class PerplexityCalculator:
                                attention_mask: Optional[torch.Tensor] = None,
                                batch_size: int = 16) -> dict:
         """
-        헷갈림도로 말 모델을 따진다.
+        퍼플렉서티로 말 모델을 따진다.
         
         인수:
             model: forward()이 로짓을 돌려주는 말 모델
@@ -484,7 +484,7 @@ class PerplexityCalculator:
             batch_size: 배치 크기
         
         반환값:
-            헷갈림도와 통계를 담은 사전
+            퍼플렉서티와 통계를 담은 사전
         """
         model.eval()
         total_log_prob = 0.0
@@ -536,10 +536,10 @@ class PerplexityCalculator:
     @staticmethod
     def interpret_perplexity(ppl: float, vocab_size: int = 50000) -> str:
         """
-        헷갈림도 값을 풀이한다.
+        퍼플렉서티 값을 풀이한다.
         
         인수:
-            ppl: 헷갈림도 값
+            ppl: 퍼플렉서티 값
             vocab_size: 견줄 낱말 수
         
         반환값:
@@ -559,7 +559,7 @@ class PerplexityCalculator:
             return "Outstanding - highly confident predictions"
 
 def demonstrate_perplexity():
-    """헷갈림도 셈하기를 보여 준다."""
+    """퍼플렉서티 셈하기를 보여 준다."""
     print("=" * 70)
     print("Perplexity Demonstration")
     print("=" * 70)

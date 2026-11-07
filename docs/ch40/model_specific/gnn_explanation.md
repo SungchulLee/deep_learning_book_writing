@@ -69,7 +69,7 @@ class GNNExplainer:
             # 성기게 하는 정칙화
             size_loss = mask.sum() * 0.01
 
-            # 가리개를 또렷이 가르는 엔트로피
+            # 마스크를 또렷이 가르는 엔트로피
             entropy = -mask * torch.log(mask + 1e-10) - (1-mask) * torch.log(1-mask + 1e-10)
             entropy_loss = entropy.mean() * 0.1
 
