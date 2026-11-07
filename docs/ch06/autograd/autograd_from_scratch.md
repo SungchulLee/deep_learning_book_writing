@@ -1,4 +1,4 @@
-# Autograd 직접 구현하기
+# Autograd 바닥부터 만들기 — 엔진 속에 무엇이 들어 있는가
 
 <div class="leadbox" markdown>
 
@@ -24,6 +24,19 @@
 스칼라와 NumPy 배열을 감싸는 작은 클래스로 자동 미분의 원리를 살펴본다. 교육용 구현의 지원 범위와 한계도 함께 구분한다.
 
 ## 1. 코드
+
+길어서 접어 두었다. 열기 전에 **무엇이 들어 있는지**만 적어 둔다 — 같은 엔진을
+두 벌 짓는다.
+
+| | 무엇인가 | 들어 있는 것 |
+|---|---|---|
+| `NumberWithGrad` | **스칼라** 엔진 | `__add__` · `__mul__` · `__sub__` · `__truediv__` · `__pow__` · `__neg__` · `backward` |
+| `TensorWithGrad` | **텐서** 엔진 | `__add__` · `__mul__` · `matmul` · `sum` · `relu` · `sigmoid` · `backward` |
+| 도우미 | 모양을 맞춘다 | `ensure_number` · `ensure_tensor` · `unbroadcast` |
+
+연산마다 짝이 되는 되돌리기를 적어 두고, `backward`가 그것들을 거꾸로 밟는다.
+스칼라를 먼저 짓는 까닭은 **브로드캐스팅이 없어 사슬 규칙만 남기 때문**이고,
+텐서로 옮길 때 새로 생기는 일이 곧 `unbroadcast`다.
 
 ??? note "코드 (541줄)"
 
@@ -572,79 +585,78 @@
     ```
 
 
-**출력:**
+??? note "전체 출력 (68줄)"
 
-```
-============================================================
-Part 1: Scalar Automatic Differentiation
-============================================================
-  c = (a * 4) + 3,  a = 3
-  dc/da = 4.0   (expected 4)
-  dc/db = 1.0   (expected 1)
+    ```
+    ============================================================
+    Part 1: Scalar Automatic Differentiation
+    ============================================================
+      c = (a * 4) + 3,  a = 3
+      dc/da = 4.0   (expected 4)
+      dc/db = 1.0   (expected 1)
 
-============================================================
-Part 2: Multi-path computation graphs
-============================================================
-  e = ((a*4)+3) * (a+2),  a = 3
-  de/da = 35.0  (expected 35)
-  Manual check: 8*3 + 11 = 35
+    ============================================================
+    Part 2: Multi-path computation graphs
+    ============================================================
+      e = ((a*4)+3) * (a+2),  a = 3
+      de/da = 35.0  (expected 35)
+      Manual check: 8*3 + 11 = 35
 
-============================================================
-Part 3: Extended operations
-============================================================
-  f(x) = (x² - 1)/(x + 1) at x = 3
-  f(3) = 2.0000  (expected 2.0)
-  df/dx = 1.0000
-  Expected: 1.0
+    ============================================================
+    Part 3: Extended operations
+    ============================================================
+      f(x) = (x² - 1)/(x + 1) at x = 3
+      f(3) = 2.0000  (expected 2.0)
+      df/dx = 1.0000
+      Expected: 1.0
 
-============================================================
-Part 4: Tensor-level automatic differentiation
-============================================================
-  X shape: (4, 3), W shape: (3, 2)
-  y = X @ W + b, loss = sum(y)
-  loss = -15.6822
-  dL/dW shape: (3, 2)
-  dL/dW:
-[[ 4.14151687  4.14151687]
- [-0.06840064 -0.06840064]
- [-0.52165256 -0.52165256]]
-  dL/db: [[4. 4.]]
+    ============================================================
+    Part 4: Tensor-level automatic differentiation
+    ============================================================
+      X shape: (4, 3), W shape: (3, 2)
+      y = X @ W + b, loss = sum(y)
+      loss = -15.6822
+      dL/dW shape: (3, 2)
+      dL/dW:
+    [[ 4.14151687  4.14151687]
+     [-0.06840064 -0.06840064]
+     [-0.52165256 -0.52165256]]
+      dL/db: [[4. 4.]]
 
-============================================================
-Part 5: Validation against PyTorch autograd
-============================================================
-  Scalar test:  f(x) = (x²-1)/(x+1) at x=3
-    PyTorch grad:  1.000000
-    Our grad:      1.000000
-    Match: True
+    ============================================================
+    Part 5: Validation against PyTorch autograd
+    ============================================================
+      Scalar test:  f(x) = (x²-1)/(x+1) at x=3
+        PyTorch grad:  1.000000
+        Our grad:      1.000000
+        Match: True
 
-  Tensor test: y = X @ W + b, loss = sum(y)
-    dL/dW max |diff| = 0.00e+00
-    dL/db max |diff| = 0.00e+00
-    Match: True
+      Tensor test: y = X @ W + b, loss = sum(y)
+        dL/dW max |diff| = 0.00e+00
+        dL/db max |diff| = 0.00e+00
+        Match: True
 
-  ReLU test: h = relu(X @ W), loss = sum(h)
-    dL/dW max |diff| = 0.00e+00
-    Match: True
+      ReLU test: h = relu(X @ W), loss = sum(h)
+        dL/dW max |diff| = 0.00e+00
+        Match: True
 
-============================================================
-Part 6: Training a tiny NN with our autograd
-============================================================
-  Epoch    0: loss = 1.0227
-  Epoch  100: loss = 0.9977
-  Epoch  200: loss = 0.3222
-  Epoch  300: loss = 0.0221
-  Epoch  400: loss = 0.0094
+    ============================================================
+    Part 6: Training a tiny NN with our autograd
+    ============================================================
+      Epoch    0: loss = 1.0227
+      Epoch  100: loss = 0.9977
+      Epoch  200: loss = 0.3222
+      Epoch  300: loss = 0.0221
+      Epoch  400: loss = 0.0094
 
-  Final predictions (XOR):
-    [0. 0.] → 0.0433  (target: 0)
-    [0. 1.] → 0.9636  (target: 1)
-    [1. 0.] → 0.9637  (target: 1)
-    [1. 1.] → 0.0363  (target: 0)
+      Final predictions (XOR):
+        [0. 0.] → 0.0433  (target: 0)
+        [0. 1.] → 0.9636  (target: 1)
+        [1. 0.] → 0.9637  (target: 1)
+        [1. 1.] → 0.0363  (target: 0)
 
-Done.
-```
-
+    Done.
+    ```
 ## 2. 논의
 
 ### 값과 미분 경로를 함께 저장하기
