@@ -1790,7 +1790,7 @@ MNIST 예제는 Adam으로 10에포크 학습하고 이 예제는 모멘텀 SGD�
     import torch
     from torch.utils.data import random_split, DataLoader
 
-    # 아래는 모델과 최적화기를 갓 만든 자리에서 돌린다는 전제다. 위에서
+    # 아래는 모델과 옵티마이저를 갓 만든 자리에서 돌린다는 전제다. 위에서
     # 14세대를 이미 돌린 model 을 그대로 쓰면 학습 이력이 섞인다.
     model = CNN().to(cfg.device)
     optimizer = optim.SGD(model.parameters(), lr=cfg.lr, momentum=cfg.momentum)

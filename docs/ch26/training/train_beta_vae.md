@@ -155,7 +155,7 @@ def main(args):
     print(f"  β=1: Standard VAE")
     print(f"  β>1: More disentangled (β=4-10 typical)")
     
-    # 최적화기
+    # 옵티마이저
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     
     # 학습 루프

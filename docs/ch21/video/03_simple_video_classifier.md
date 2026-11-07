@@ -334,7 +334,7 @@
 
             인수:
                 train_loader: 학습 데이터 로더
-                optimizer: 최적화기
+                optimizer: 옵티마이저
                 criterion: 로스 함수
 
             반환값:

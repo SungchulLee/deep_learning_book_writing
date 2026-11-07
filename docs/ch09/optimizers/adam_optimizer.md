@@ -6,7 +6,7 @@ NumPy 배열의 사전을 사용해 Adam의 두 모멘트와 바이어스 보정
 
 ```python
 """
-Adam(적응형 모멘트 추정) 최적화기
+Adam(적응형 모멘트 추정) 옵티마이저
 ============================================
 
 Adam은 RMSprop과 모멘텀 기반 경사 하강법의 장점을 결합한다.
@@ -31,7 +31,7 @@ import numpy as np
 
 class Adam:
     """
-    Adam 최적화기의 구현.
+    Adam 옵티마이저의 구현.
     
     파라메터:
     -----------
@@ -101,7 +101,7 @@ class Adam:
 
 def demo_adam():
     """
-    간단한 이차 함수에서 Adam 최적화기 시연.
+    간단한 이차 함수에서 Adam 옵티마이저 시연.
     f(x, y) = x^2 + y^2 최소화
     """
     print("=" * 60)
@@ -113,7 +113,7 @@ def demo_adam():
     # 파라메터를 초기화한다
     params = {'x': np.array([10.0]), 'y': np.array([10.0])}
     
-    # 최적화기 초기화
+    # 옵티마이저 초기화
     optimizer = Adam(learning_rate=0.1)
     
     # 최적화 루프

@@ -92,7 +92,7 @@ $$
 
 ```python
 training_config = {
-    # 최적화기
+    # 옵티마이저
     'optimizer': 'AdamW',
     'base_lr': 1e-3,
     'weight_decay': 0.01,

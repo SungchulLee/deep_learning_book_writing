@@ -581,7 +581,7 @@ PyTorch 추상화의 네 단계로 경사 하강법을 구현하라. (1) 경사 
 ┌──────────────────────────────────────────────────────┐
 │  1. 모델 정의          model = nn.Linear(p, 1)       │
 │  2. 로스 정의          criterion = nn.MSELoss()      │
-│  3. 최적화기 정의      optim.SGD(model.parameters()) │
+│  3. 옵티마이저 정의      optim.SGD(model.parameters()) │
 │  4. 학습 루프:                                       │
 │       for batch in loader:                           │
 │           y_pred = model(x)                          │

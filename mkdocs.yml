@@ -104,7 +104,7 @@ nav:
         - 학습 루프:
           - 작은 학습 단계: ch06/autograd/04_mini_training_step.md
           - 선형 회귀: ch06/autograd/05_complete_linear_regression.md
-          - 최적화기 방식의 갱신: ch06/autograd/11_optimizer_like_updates.md
+          - 옵티마이저 방식의 갱신: ch06/autograd/11_optimizer_like_updates.md
           - 함정과 점검 사항: ch06/autograd/17_pitfalls_and_sanity_checks.md
         - 추적을 끄는 길:
           - 경사 추적을 언제 멈출 것인가: ch06/autograd/07_when_to_stop_tracking_grads.md
@@ -137,7 +137,7 @@ nav:
         - 배치, 미니배치, 확률적 경사 하강법: ch06/gradient_descent/batch_minibatch_sgd.md
         - NumPy로 직접 구현하는 경사 하강법: ch06/gradient_descent/01_manual_gradient_numpy.md
         - 배치와 미니배치 SGD: ch06/gradient_descent/01_batch_vs_minibatch_sgd.md
-        - Adam 최적화기: ch06/gradient_descent/01_adam_optimizer.md
+        - Adam 옵티마이저: ch06/gradient_descent/01_adam_optimizer.md
         - MNIST 뉴럴 네트워크: ch06/gradient_descent/01_neural_network_mnist.md
         - PyTorch Autograd 기초: ch06/gradient_descent/02_pytorch_autograd_basics.md
         - 간단한 선형 회귀: ch06/gradient_descent/03_simple_linear_regression.md
@@ -346,7 +346,7 @@ nav:
         - Autograd 소개: ch08/feedforward/04_autograd_introduction.md
         - 간단한 퍼셉트론: ch08/feedforward/05_simple_perceptron.md
         - 2레이어 뉴럴 네트워크: ch08/feedforward/06_two_layer_network.md
-        - nn 모듈과 최적화기: ch08/feedforward/07_nn_module_and_optimizers.md
+        - nn 모듈과 옵티마이저: ch08/feedforward/07_nn_module_and_optimizers.md
         - MNIST 분류 상세: ch08/feedforward/09_mnist_classification_detailed.md
         - Sequential 쓰기: ch08/feedforward/10_using_sequential.md
         - 사용자 정의 모듈: ch08/feedforward/11_custom_module.md
@@ -416,13 +416,13 @@ nav:
       - 10.5 고급 로스 함수:
         - 로스 함수 소개: ch09/loss/01_intro_to_loss_functions.md
         - 회귀 로스의 비교: ch09/loss/02_regression_losses_comparison.md
-        - 최적화기 소개: ch09/loss/03_intro_to_optimizers.md
+        - 옵티마이저 소개: ch09/loss/03_intro_to_optimizers.md
         - 분류 로스: ch09/loss/04_classification_losses.md
         - 후버 로스: ch09/loss/huber_loss.md
         - "Focal Loss": ch09/loss/focal_loss.md
         - 사용자 정의 로스 함수: ch09/loss/01_custom_loss_functions.md
         - 로스 함수의 선택: ch09/loss/loss_selection.md
-      - 10.6 최적화기:
+      - 10.6 옵티마이저:
         - 모멘텀을 쓰는 확률적 경사 하강법: ch09/optimizers/momentum.md
         - 네스테로프 모멘텀: ch09/optimizers/nesterov.md
         - Adagrad: ch09/optimizers/adagrad.md
@@ -431,12 +431,12 @@ nav:
         - Adam: ch09/optimizers/adam.md
         - AdamW: ch09/optimizers/adamw.md
         - LAMB: ch09/optimizers/lamb.md
-        - 뉴럴 네트워크 학습에서 최적화기 비교: ch09/optimizers/01_optimizer_comparison.md
+        - 뉴럴 네트워크 학습에서 옵티마이저 비교: ch09/optimizers/01_optimizer_comparison.md
         - 러닝레이트 스케줄러: ch09/optimizers/02_learning_rate_schedulers.md
         - 그래디언트 관리: ch09/optimizers/03_gradient_management.md
         - Adagrad 실습: ch09/optimizers/adagrad_optimizer.md
         - Adam 실습: ch09/optimizers/adam_optimizer.md
-        - 기준 함수에서 최적화기 비교: ch09/optimizers/optimizer_comparison.md
+        - 기준 함수에서 옵티마이저 비교: ch09/optimizers/optimizer_comparison.md
         - RMSprop 실습: ch09/optimizers/rmsprop_optimizer.md
       - 10.7 러닝레이트 스케줄러:
         - 순환 러닝레이트: ch09/schedulers/cyclical_lr.md

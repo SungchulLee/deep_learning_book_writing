@@ -292,7 +292,7 @@ def accuracy(m):
 def run(Model, frozen, seed):
     torch.manual_seed(seed)
     m = Model(frozen)
-    # 얼린 것은 최적화기에 넘기지 않는다. 넘겨도 그래디언트가 None이라 갱신되지
+    # 얼린 것은 옵티마이저에 넘기지 않는다. 넘겨도 그래디언트가 None이라 갱신되지
     # 않지만, 넘기지 않는 편이 뜻이 분명하다.
     opt = optim.Adam([p for p in m.parameters() if p.requires_grad], lr=LR)
     crit = nn.CrossEntropyLoss()

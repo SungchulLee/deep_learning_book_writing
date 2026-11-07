@@ -380,7 +380,7 @@ def proximal_l1(weights: torch.Tensor, lambda_l1: float,
     return torch.sign(weights) * torch.clamp(torch.abs(weights) - threshold, min=0)
 
 class ProximalL1Optimizer:
-    """L1을 위한 근접 경사 하강법을 구현한 최적화기."""
+    """L1을 위한 근접 경사 하강법을 구현한 옵티마이저."""
     
     def __init__(self, model, lr=0.01, lambda_l1=0.01):
         self.model = model
@@ -398,7 +398,7 @@ class ProximalL1Optimizer:
                     # |w|는 0에서 미분할 수 없으므로 벌점을 그래디언트에
                     # 섞지 않고 이렇게 떼어 놓는 것이다.
                     # 주의: param.grad에는 벌점이 들어 있으면 안 된다.
-                    # 로스에 L1을 더해 backward한 뒤 이 최적화기를 쓰면
+                    # 로스에 L1을 더해 backward한 뒤 이 옵티마이저를 쓰면
                     # 벌점이 두 번 걸린다
                     # 그래디언트 단계
                     param.data -= self.lr * param.grad

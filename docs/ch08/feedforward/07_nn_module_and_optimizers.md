@@ -56,12 +56,12 @@ def generate_circle_data(n_samples):
 X, y = generate_circle_data(n_samples)
 X, y = X.to(device), y.to(device)
 
-# .to(device)를 최적화기를 만들기 "전"에 부르는 순서가 중요하다.
-# 최적화기는 넘겨받은 텐서를 그대로 붙잡으므로, 나중에 옮기면
-# 최적화기가 옛 장치의 텐서를 계속 갱신하게 된다
+# .to(device)를 옵티마이저를 만들기 "전"에 부르는 순서가 중요하다.
+# 옵티마이저는 넘겨받은 텐서를 그대로 붙잡으므로, 나중에 옮기면
+# 옵티마이저가 옛 장치의 텐서를 계속 갱신하게 된다
 model = SimpleNet(2, 16, 1).to(device)
 criterion = nn.BCELoss()
-# model.parameters()는 등록된 파라미터를 훑는 생성자다. 최적화기는 이
+# model.parameters()는 등록된 파라미터를 훑는 생성자다. 옵티마이저는 이
 # 목록만 알면 되고, 뉴럴 네트워크의 모양은 알 필요가 없다
 optimizer = optim.Adam(model.parameters(), lr=0.01)
 
@@ -134,8 +134,8 @@ Adam을 SGD(러닝레이트 0.1, 운동량 0.9)로 바꿔라. 1000 에포크에 
     ```python
     for opt_name, opt_cls, kwargs in [('Adam', optim.Adam, {'lr': 0.01}),
                                        ('SGD', optim.SGD, {'lr': 0.1, 'momentum': 0.9})]:
-        # 최적화기마다 모델을 새로 만들어야 한다. 하나를 이어 쓰면
-        # 두 번째 최적화기가 이미 학습된 웨이트에서 출발해 견주는
+        # 옵티마이저마다 모델을 새로 만들어야 한다. 하나를 이어 쓰면
+        # 두 번째 옵티마이저가 이미 학습된 웨이트에서 출발해 견주는
         # 뜻이 없어진다. 다만 씨앗을 다시 심지 않았으므로 두 모델의
         # 초기 웨이트는 서로 다르다. 엄밀히 견주려면 이 줄 앞에
         # torch.manual_seed(42)를 넣어야 한다

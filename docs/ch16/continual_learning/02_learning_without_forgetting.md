@@ -109,7 +109,7 @@
                 temperature: 확률 분포를 부드럽게 하는 온도
                             온도가 높을수록 분포가 부드럽다
                             흔한 범위: [1.0, 4.0]
-                learning_rate: 최적화기의 러닝레이트
+                learning_rate: 옵티마이저의 러닝레이트
             """
             self.model = model
             self.device = device

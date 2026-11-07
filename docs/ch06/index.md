@@ -85,7 +85,7 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 
 **학습 루프 세우기**
 
-- [작은 학습 단계](autograd/04_mini_training_step.md) · [최적화기 방식의 갱신](autograd/11_optimizer_like_updates.md)
+- [작은 학습 단계](autograd/04_mini_training_step.md) · [옵티마이저 방식의 갱신](autograd/11_optimizer_like_updates.md)
 - [선형 회귀](autograd/05_complete_linear_regression.md)
 - [레이어 출력하기](autograd/13_print_layers.md) · [OrderedDict를 이용한 레이어 이름 짓기](autograd/14_layer_naming_with_ordereddict.md) · [사용자 정의 Module을 이용한 레이어 이름 짓기](autograd/15_layer_naming_with_custom_module.md)
 - [함정과 점검 사항](autograd/17_pitfalls_and_sanity_checks.md)
@@ -116,7 +116,7 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 3. [간단한 선형 회귀](gradient_descent/03_simple_linear_regression.md) — `nn.Linear` 와 옵티마이저, 그리고 지표 넷
 4. [경사 하강법 시각화](gradient_descent/04_visualizing_gradient_descent.md) — 무엇을 어떤 축에 그릴 것인가
 5. [배치와 미니배치 SGD](gradient_descent/01_batch_vs_minibatch_sgd.md) — 공정하게 견주는 법
-6. [Adam 최적화기](gradient_descent/01_adam_optimizer.md) — 손으로 짜서 `torch.optim.Adam` 과 맞춰 보기
+6. [Adam 옵티마이저](gradient_descent/01_adam_optimizer.md) — 손으로 짜서 `torch.optim.Adam` 과 맞춰 보기
 7. [MNIST 뉴럴 네트워크](gradient_descent/01_neural_network_mnist.md) — 전체 파이프라인과 거기서만 생기는 실수들
 
 ---

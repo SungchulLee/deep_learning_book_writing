@@ -344,7 +344,7 @@ def train_epoch(model: nn.Module,
     인수:
         model: PixelCNN 모델
         dataloader: 학습 데이터로더
-        optimizer: 최적화기
+        optimizer: 옵티마이저
         device: 학습에 쓸 장치
         
     반환값:
@@ -546,7 +546,7 @@ def main():
     print(f"\nModel initialized")
     print(f"  Parameters: {n_params:,}")
     
-    # 최적화기
+    # 옵티마이저
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
     # ==================== 익히기 ====================

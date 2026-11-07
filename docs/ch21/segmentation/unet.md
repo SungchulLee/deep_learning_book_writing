@@ -450,7 +450,7 @@ def train_unet(model, train_loader, val_loader, num_epochs=50,
     """
     model = model.to(device)
     
-    # 최적화기
+    # 옵티마이저
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
     
     # 러닝레이트 스케줄러

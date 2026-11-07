@@ -123,7 +123,7 @@ def train_logistic_regression(X, y, learning_rate=0.1, n_epochs=1000):
     # 로스 함수: 이진 교차 엔트로피 (음의 로그가능도와 같다)
     criterion = nn.BCELoss()
     
-    # 최적화기
+    # 옵티마이저
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     
     # 학습 기록

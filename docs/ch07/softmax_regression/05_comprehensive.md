@@ -361,7 +361,7 @@
                 model: PyTorch 모델
                 train_loader, val_loader, test_loader: 데이터 로더
                 criterion: 로스 함수
-                optimizer: 최적화기
+                optimizer: 옵티마이저
                 device: 익힐 장치
                 experiment_name: 결과를 저장할 이름
             """

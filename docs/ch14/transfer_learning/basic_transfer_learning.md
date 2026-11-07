@@ -122,7 +122,7 @@ print(f"Total parameters: {total_params:,}")
 print(f"Percentage trainable: {100 * trainable_params / total_params:.2f}%")
 
 # ============================================================================
-# 6단계: 로스 함수와 최적화기 정하기
+# 6단계: 로스 함수와 옵티마이저 정하기
 # ============================================================================
 
 criterion = nn.CrossEntropyLoss()

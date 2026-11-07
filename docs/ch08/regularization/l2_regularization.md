@@ -298,7 +298,7 @@ def train_with_l2_regularization(
     criterion = nn.MSELoss()
     
     if use_adamw:
-        # 최적화기에 내장된 웨이트 감쇠 쓰기.
+        # 옵티마이저에 내장된 웨이트 감쇠 쓰기.
         # 2를 곱하는 것은 오타가 아니다. 위의 l2_regularization은
         # lambda * sum(w^2)을 돌려주므로 기울기가 2*lambda*w인데,
         # weight_decay는 갱신에 wd*w를 곧바로 더한다. 그래서 눈금을
@@ -383,7 +383,7 @@ def create_param_groups_with_l2(model, base_lr=0.001,
         layer_decay_rates: 레이어 이름을 웨이트 감쇠 값에 대응시키는 사전
         
     반환값:
-        최적화기를 위한 파라메터 배치의 목록
+        옵티마이저를 위한 파라메터 배치의 목록
     """
     if layer_decay_rates is None:
         layer_decay_rates = {}
@@ -415,7 +415,7 @@ def create_param_groups_with_l2(model, base_lr=0.001,
         if 'bias' in name:
             weight_decay = 0.0
         
-        # 파라미터 하나에 배치 하나를 만든다. 최적화기는 배치마다 다른
+        # 파라미터 하나에 배치 하나를 만든다. 옵티마이저는 배치마다 다른
         # 설정을 지닐 수 있으므로, 이렇게 잘게 나누면 레이어는 물론 웨이트와
         # 바이어스까지 따로 다룰 수 있다. 배치 수가 늘어도 셈이 느려지지는
         # 않는다. 어차피 파라미터마다 갱신하기 때문이다.

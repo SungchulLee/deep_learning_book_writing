@@ -1025,7 +1025,7 @@ class MNISTDiffusion:
         인수:
             timesteps: 확산 때 걸음 수
             batch_size: 익히기 배치 크기
-            learning_rate: 최적화기의 학습률
+            learning_rate: 옵티마이저의 학습률
             device: 익힐 장치('cuda' 또는 'cpu')
         """
         self.timesteps = timesteps
@@ -1055,7 +1055,7 @@ class MNISTDiffusion:
             time_emb_dim=256
         ).to(self.device)
         
-        # 최적화기
+        # 옵티마이저
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
             lr=self.learning_rate

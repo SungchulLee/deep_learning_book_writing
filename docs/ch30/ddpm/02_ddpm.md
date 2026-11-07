@@ -715,7 +715,7 @@
         # DDPM 감싸개를 세운다
         ddpm = DDPM(unet, timesteps=config.T, device=config.DEVICE).to(config.DEVICE)
 
-        # 최적화기
+        # 옵티마이저
         optimizer = torch.optim.AdamW(ddpm.parameters(), lr=config.LR, weight_decay=0.01)
 
         # 러닝레이트 스케줄러

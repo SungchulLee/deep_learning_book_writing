@@ -82,7 +82,7 @@ def save_checkpoint(model, optimizer, epoch, loss, accuracy, filepath):
     
     Args:
         model: 저장할 모델
-        optimizer: 저장할 최적화기
+        optimizer: 저장할 옵티마이저
         epoch: 이제 판 번호
         loss: 이제 로스 값
         accuracy: 이제 정확도
@@ -106,7 +106,7 @@ def load_checkpoint(filepath, model, optimizer=None):
     Args:
         filepath: 되짚음 저장 두루마리의 길
         model: 웨이트를 불러 넣을 모델
-        optimizer: 상태를 되살릴 최적화기(골라 쓴다)
+        optimizer: 상태를 되살릴 옵티마이저(골라 쓴다)
         
     Returns:
         학습 정보를 담은 사전
@@ -218,7 +218,7 @@ print("\n" + "="*80)
 print("DEMONSTRATING RESUME FROM CHECKPOINT")
 print("="*80)
 
-# 새 모델과 최적화기를 만든다
+# 새 모델과 옵티마이저를 만든다
 new_model = LogisticRegression(X_train.shape[1])
 new_optimizer = torch.optim.Adam(new_model.parameters(), lr=0.001)
 
@@ -269,7 +269,7 @@ print("="*80)
 # 배포용으로 깨끗한 모델을 만든다
 deployment_model = LogisticRegression(X_train.shape[1])
 
-# 웨이트만 불러온다 (최적화기 상태는 제외)
+# 웨이트만 불러온다 (옵티마이저 상태는 제외)
 best_model_path = checkpoint_dir / "best_model.pt"
 deployment_model.load_state_dict(torch.load(best_model_path))
 deployment_model.eval()
@@ -332,13 +332,13 @@ print("KEY TAKEAWAYS")
 print("="*80)
 print("""
 1. 저장의 클래스
-   ✓ 온 되짚음 저장: 모델 + 최적화기 + 학습 상태
+   ✓ 온 되짚음 저장: 모델 + 옵티마이저 + 학습 상태
    ✓ 가장 좋은 모델: 모델 웨이트만(내놓기용)
    ✓ 때맞춰: N 에폭마다 저장
 
 2. 되짚음 저장에 담기는 것
    ✓ model_state_dict: 모델 웨이트
-   ✓ optimizer_state_dict: 최적화기 상태(여세 따위)
+   ✓ optimizer_state_dict: 옵티마이저 상태(여세 따위)
    ✓ epoch: 이제 판 번호
    ✓ loss/accuracy: 성능 자
    ✓ 덧붙임: 러닝레이트, 마구잡이 상태 따위
@@ -519,13 +519,13 @@ if __name__ == "__main__":
     ================================================================================
 
     1. 저장의 클래스
-       ✓ 온 되짚음 저장: 모델 + 최적화기 + 학습 상태
+       ✓ 온 되짚음 저장: 모델 + 옵티마이저 + 학습 상태
        ✓ 가장 좋은 모델: 모델 웨이트만(내놓기용)
        ✓ 때맞춰: N 에폭마다 저장
 
     2. 되짚음 저장에 담기는 것
        ✓ model_state_dict: 모델 웨이트
-       ✓ optimizer_state_dict: 최적화기 상태(여세 따위)
+       ✓ optimizer_state_dict: 옵티마이저 상태(여세 따위)
        ✓ epoch: 이제 판 번호
        ✓ loss/accuracy: 성능 자
        ✓ 덧붙임: 러닝레이트, 마구잡이 상태 따위

@@ -273,7 +273,7 @@ def train_elastic_net_model(
             # 역전파는 total_loss로, 기록은 mse_loss로 한다. 벌점을 뺀
             # 값이라야 lambda_reg가 다른 실험끼리 로스 곡선을 견줄 수 있다.
             # 주의: 이 방식은 Adam으로 벌점을 미분해 내려가는 것이라,
-            # 아래 근접 최적화기와 달리 웨이트가 정확히 0에 닿지 않는다.
+            # 아래 근접 옵티마이저와 달리 웨이트가 정확히 0에 닿지 않는다.
             # history의 sparsity가 임계값에 기대는 까닭이 여기 있다
             
             total_loss.backward()
@@ -342,7 +342,7 @@ def proximal_elastic_net(w: torch.Tensor, lambda_reg: float,
     return l2_scale * soft_thresh
 
 class ProximalElasticNetOptimizer:
-    """엘라스틱 넷을 위한 근접 경사 하강 최적화기."""
+    """엘라스틱 넷을 위한 근접 경사 하강 옵티마이저."""
     
     def __init__(self, model, lr=0.01, lambda_reg=0.01, alpha=0.5):
         self.model = model

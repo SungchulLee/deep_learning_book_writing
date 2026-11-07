@@ -49,12 +49,12 @@ $s_t$은 음이 아닌 항의 합이므로 단조 증가한다. 따라서 실효
 ## 4. PyTorch 예제
 
 ```python
-"""간단한 회귀 과제에서 Adagrad 최적화기 시연."""
+"""간단한 회귀 과제에서 Adagrad 옵티마이저 시연."""
 
 import torch
 import torch.nn as nn
 
-# === 모델과 최적화기 준비 ===
+# === 모델과 옵티마이저 준비 ===
 
 if __name__ == "__main__":
     model = nn.Linear(10, 1)

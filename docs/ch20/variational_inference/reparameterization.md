@@ -190,7 +190,7 @@ class ScoreFunctionVI:
             if use_baseline:
                 baseline = 0.9 * baseline + 0.1 * elbo
             
-            # 그래디언트 정하기(최적화기가 최소화하므로 음수)
+            # 그래디언트 정하기(옵티마이저가 최소화하므로 음수)
             self.mu.grad = -grad_mu
             self.log_sigma.grad = -grad_log_sigma
             

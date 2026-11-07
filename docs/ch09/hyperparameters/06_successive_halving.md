@@ -108,7 +108,7 @@ def train_config_for_budget(
     반환값:
         최종 검증 정확도
     """
-    # 모델과 최적화기 만들기
+    # 모델과 옵티마이저 만들기
     model = SimpleMLP(hidden_dim=config.hidden_dim).to(device)
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
     criterion = nn.CrossEntropyLoss()

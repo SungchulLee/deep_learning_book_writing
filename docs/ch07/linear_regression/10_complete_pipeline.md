@@ -516,7 +516,7 @@
 
     Configuration:
       - 모델: {'Linear' if not config.hidden_sizes else f'MLP {config.hidden_sizes}'}
-      - 최적화기: Adam (lr={config.learning_rate}, weight_decay={config.weight_decay})
+      - 옵티마이저: Adam (lr={config.learning_rate}, weight_decay={config.weight_decay})
       - 배치 크기: {config.batch_size}
       - 에폭 수: {len(history['train_loss'])}
       - 조기 종료 참을성: {config.patience}

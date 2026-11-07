@@ -1398,7 +1398,7 @@ class MNISTFlow:
         base_dist = BaseDistribution(dim)
         self.model = FlowSequence(flows, base_dist).to(self.device)
         
-        # 최적화기
+        # 옵티마이저
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         
         print(f"Model parameters: {sum(p.numel() for p in self.model.parameters()):,}")

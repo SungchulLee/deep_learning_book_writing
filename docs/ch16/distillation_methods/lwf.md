@@ -89,7 +89,7 @@ class LwFLearner:
             distill_lambda: 증류 로스의 무게
             temperature: 부드러운 목표의 온도
                         클수록 분포가 부드럽다
-            learning_rate: 최적화기의 러닝레이트
+            learning_rate: 옵티마이저의 러닝레이트
         """
         self.model = model
         self.device = device

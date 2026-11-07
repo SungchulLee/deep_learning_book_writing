@@ -98,7 +98,7 @@ class EWCLearner:
             ewc_lambda: 벌주기 세기(λ)
                        값이 클수록 옛 파라메터를 더 세게 지킨다
                        흔한 범위: [100, 10000]
-            learning_rate: 최적화기의 러닝레이트
+            learning_rate: 옵티마이저의 러닝레이트
             fisher_sample_size: 피셔를 셈하는 데 쓸 표본의 개수
                                (None이면 데이터셋 전체를 쓴다)
         """

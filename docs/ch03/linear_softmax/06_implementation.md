@@ -628,7 +628,7 @@ Final Test Accuracy: 92.35%
     |---|---|---|
     | 더 오래 돌리기 | 50 에포크에 92.16% (더 낮다) | [01 연습 11](01_linear_model.md) |
     | 러닝레이트 바꾸기 | $10^{-3}$이 이미 가장 좋다 | [05 연습 4](05_gradient_descent.md) |
-    | 최적화기 바꾸기 | Adam = 관성 SGD (볼록하다) | [05 연습 6](05_gradient_descent.md) |
+    | 옵티마이저 바꾸기 | Adam = 관성 SGD (볼록하다) | [05 연습 6](05_gradient_descent.md) |
     | 배치 크기 바꾸기 | 128 근처가 최선 | [05 연습 5](05_gradient_descent.md) |
     | 웨이트 감쇠 | 92.48% → 90.15% (나빠진다) | [01 연습 8](01_linear_model.md) |
     | 레이블 평탄화 | 92.42% → 90.71% (나빠진다) | [04 연습 7](04_cross_entropy.md) |

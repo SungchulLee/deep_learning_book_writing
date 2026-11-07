@@ -264,7 +264,7 @@ T5의 정규화는 이름이 LayerNorm으로 표시되더라도 일반 LayerNorm
 정규화의 배율·이동을 웨이트 감쇠에서 제외하는 설정이 흔하지만 필수 규칙은 아니다. 아래 조각은 외부의 model을 가정하며 이름에 norm 또는 bias가 들어가는지를 기준으로 분류한다. 실제 모듈 종류를 확인하지 않으므로 의도한 모든 정규화 계수를 정확히 분리한다고 보장할 수 없다.
 
 ```python
-# 최적화기를 위해 파라메터를 가른다
+# 옵티마이저를 위해 파라메터를 가른다
 decay_params = []
 no_decay_params = []
 for name, param in model.named_parameters():

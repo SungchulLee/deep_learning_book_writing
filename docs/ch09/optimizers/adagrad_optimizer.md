@@ -6,7 +6,7 @@ NumPy로 Adagrad의 상태 누적과 파라메터 갱신을 구현한다. 이차
 
 ```python
 """
-AdaGrad(적응형 그래디언트) 최적화기
+AdaGrad(적응형 그래디언트) 옵티마이저
 ======================================
 
 AdaGrad는 지난 그래디언트 제곱의 합에 따라 파라메터마다 러닝레이트를 맞춘다.
@@ -31,7 +31,7 @@ import numpy as np
 
 class AdaGrad:
     """
-    AdaGrad 최적화기의 구현.
+    AdaGrad 옵티마이저의 구현.
     
     파라메터:
     -----------
@@ -82,7 +82,7 @@ class AdaGrad:
 
 def demo_adagrad():
     """
-    간단한 이차 함수에서 AdaGrad 최적화기 시연.
+    간단한 이차 함수에서 AdaGrad 옵티마이저 시연.
     f(x, y) = x^2 + y^2 최소화
     """
     print("=" * 60)
@@ -94,7 +94,7 @@ def demo_adagrad():
     # 파라메터를 초기화한다
     params = {'x': np.array([10.0]), 'y': np.array([10.0])}
     
-    # 최적화기 초기화
+    # 옵티마이저 초기화
     optimizer = AdaGrad(learning_rate=1.0)  # AdaGrad는 처음 러닝레이트를 더 높게 쓸 수 있다
     
     # 최적화 루프
@@ -141,7 +141,7 @@ def demo_sparse_gradients():
         'z': np.array([5.0])  # 이것은 드물게 갱신된다
     }
     
-    # 최적화기 초기화
+    # 옵티마이저 초기화
     optimizer = AdaGrad(learning_rate=1.0)
     
     print(f"{'Iteration':<12} {'x':<12} {'y':<12} {'z':<12}")
@@ -319,7 +319,7 @@ This can cause AdaGrad to stop learning prematurely in some cases.
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-같은 최적화기 객체를 새 문제에 재사용하면 어떤 상태를 주의해야 하는가?
+같은 옵티마이저 객체를 새 문제에 재사용하면 어떤 상태를 주의해야 하는가?
 
 </div>
 

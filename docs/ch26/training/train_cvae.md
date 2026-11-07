@@ -155,7 +155,7 @@ def main(args):
     print(f"Number of classes: {args.num_classes}")
     print(f"Beta: {args.beta}")
     
-    # 최적화기
+    # 옵티마이저
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     
     # 학습 루프

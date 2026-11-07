@@ -350,7 +350,7 @@ def train_epoch(model: nn.Module,
         model: 말 모델
         dataloader: 익히기 자료용 DataLoader
         criterion: 로스 함수(CrossEntropyLoss)
-        optimizer: 최적화기
+        optimizer: 옵티마이저
         device: 익힐 기기('cpu'나 'cuda')
         
     반환값:
@@ -579,7 +579,7 @@ def main():
     print(f"\nModel: {model_name}")
     print(f"Parameters: {n_params:,}")
     
-    # 로스와 최적화기
+    # 로스와 옵티마이저
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     

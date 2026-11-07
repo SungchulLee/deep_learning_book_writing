@@ -182,7 +182,7 @@
                 device: 학습에 쓸 장치
                 memory_size: 기억 버퍼의 전체 크기
                 examples_per_task: 과제마다 담아 둘 보기의 개수
-                learning_rate: 최적화기의 러닝레이트
+                learning_rate: 옵티마이저의 러닝레이트
             """
             self.model = model
             self.device = device

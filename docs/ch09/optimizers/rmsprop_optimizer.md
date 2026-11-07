@@ -6,7 +6,7 @@ NumPy로 그래디언트 제곱의 지수 이동평균을 유지하는 기본 RM
 
 ```python
 """
-RMSprop(제곱평균제곱근 전파) 최적화기
+RMSprop(제곱평균제곱근 전파) 옵티마이저
 ================================================
 
 RMSprop은 지난 그래디언트 제곱을 모두 누적하는 대신 이동 평균을 써서 AdaGrad의
@@ -31,7 +31,7 @@ import numpy as np
 
 class RMSprop:
     """
-    RMSprop 최적화기의 구현.
+    RMSprop 옵티마이저의 구현.
     
     파라메터:
     -----------
@@ -85,7 +85,7 @@ class RMSprop:
 
 def demo_rmsprop():
     """
-    간단한 이차 함수에서 RMSprop 최적화기 시연.
+    간단한 이차 함수에서 RMSprop 옵티마이저 시연.
     f(x, y) = x^2 + y^2 최소화
     """
     print("=" * 60)
@@ -97,7 +97,7 @@ def demo_rmsprop():
     # 파라메터를 초기화한다
     params = {'x': np.array([10.0]), 'y': np.array([10.0])}
     
-    # 최적화기 초기화
+    # 옵티마이저 초기화
     optimizer = RMSprop(learning_rate=0.1)
     
     # 최적화 루프
@@ -141,7 +141,7 @@ def compare_with_without_rmsprop():
     params_rmsprop = {'x': np.array([10.0]), 'y': np.array([10.0])}
     params_sgd = {'x': np.array([10.0]), 'y': np.array([10.0])}
     
-    # 최적화기 초기화
+    # 옵티마이저 초기화
     optimizer_rmsprop = RMSprop(learning_rate=0.1)
     lr_sgd = 0.001  # 조건이 나쁜 문제에서 SGD는 훨씬 작은 러닝레이트가 필요하다
     

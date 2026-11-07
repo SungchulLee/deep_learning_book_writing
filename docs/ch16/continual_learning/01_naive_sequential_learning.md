@@ -93,7 +93,7 @@
             인수:
                 model: 뉴럴 네트워크 모델
                 device: 익힐 장치(CPU나 GPU)
-                learning_rate: 최적화기의 러닝레이트
+                learning_rate: 옵티마이저의 러닝레이트
             """
             self.model = model
             self.device = device
@@ -125,7 +125,7 @@
             반환값:
                 시대마다의 로스 목록
             """
-            # 이 과제에 쓸 새 최적화기를 만든다
+            # 이 과제에 쓸 새 옵티마이저를 만든다
             optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
             self.model.train()

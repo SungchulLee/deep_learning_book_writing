@@ -103,7 +103,7 @@ def train_step(model, optimizer, criterion, src, tgt, src_pad_idx=0, tgt_pad_idx
     
     인수:
         model: 트랜스포머 모형
-        optimizer: 최적화기 객체
+        optimizer: 옵티마이저 객체
         criterion: 로스 함수(CrossEntropyLoss)
         src: 원문 토큰 [batch_size, src_len]
         tgt: 목표 수열 전체 [batch_size, tgt_len]
@@ -158,7 +158,7 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
     인수:
         model: 트랜스포머 모형
         dataloader: (src, tgt) 배치를 내보내는 DataLoader
-        optimizer: 최적화기 객체
+        optimizer: 옵티마이저 객체
         criterion: 로스 함수
         device: torch.device
     

@@ -164,7 +164,7 @@ print("\n" + "="*80)
 print("STEP 3: Training Setup")
 print("="*80)
 
-# 로스와 최적화기
+# 로스와 옵티마이저
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)
 

@@ -210,7 +210,7 @@ model.fc = nn.Linear(num_features, len(classes))
 model = model.to(device)
 
 # ============================================================================
-# 9단계: 로스 함수와 최적화기
+# 9단계: 로스 함수와 옵티마이저
 # ============================================================================
 
 criterion = nn.CrossEntropyLoss(weight=class_weights)

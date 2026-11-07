@@ -230,7 +230,7 @@ class GradientNoiseCallback:
                 # 학습에 참여하지 않은 파라미터는 grad가 None이다.
                 # 걸러 내지 않으면 AttributeError가 난다
                 if param.grad is not None:
-                    # 여기서는 제자리 add_가 맞다. 최적화기가 읽는 것은
+                    # 여기서는 제자리 add_가 맞다. 옵티마이저가 읽는 것은
                     # param.grad 그 텐서이므로, 새 텐서를 만들면
                     # 잡음이 반영되지 않는다
                     noise = torch.randn_like(param.grad) * std

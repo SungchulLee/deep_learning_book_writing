@@ -164,7 +164,7 @@
         # DataLoader를 만든다
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-        # 모델과 최적화기
+        # 모델과 옵티마이저
         model = SimpleModel(n_features)
         criterion = nn.MSELoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.01)

@@ -20,7 +20,7 @@
     다루는 것:
         - 모델을 위한 nn.Module 클래스
         - nn.Linear 레이어
-        - 최적화기(torch.optim.SGD)
+        - 옵티마이저(torch.optim.SGD)
         - 더 깔끔하고 잘 늘어나는 코드
 
     PREREQUISITES:
@@ -29,7 +29,7 @@
     학습 목표:
         - nn.Module으로 맞춤 모델을 만든다
         - 붙박이 레이어(nn.Linear)을 쓴다
-        - 파라메터 고치기에 최적화기를 쓴다
+        - 파라메터 고치기에 옵티마이저를 쓴다
         - PyTorch의 좋은 버릇을 따른다
 
     걸리는 때: 20분쯤
@@ -118,7 +118,7 @@
         print(f"  {name}: shape={param.shape}, requires_grad={param.requires_grad}")
 
     # ============================================================================
-    # 3부: 로스와 최적화기 정의
+    # 3부: 로스와 옵티마이저 정의
     # ============================================================================
     print("\n" + "=" * 70)
     print("PART 3: DEFINE LOSS AND OPTIMIZER")
@@ -128,17 +128,17 @@
     criterion = nn.MSELoss()  # Mean Squared Error
     print(f"Loss function: {criterion}")
 
-    # 최적화기 - 파라메터 갱신을 자동으로 처리한다!
+    # 옵티마이저 - 파라메터 갱신을 자동으로 처리한다!
     learning_rate = 0.01
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
     print(f"Optimizer: {optimizer}")
     print(f"Learning rate: {learning_rate}")
 
     print("""
-    최적화기를 쓰는 핵심 이점:
+    옵티마이저를 쓰는 핵심 이점:
     1. 모델의 파라메터를 모두 절로 고친다
     2. 직접 파라메터를 고칠 일이 없다
-    3. 최적화기를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
+    3. 옵티마이저를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
     4. optimizer.zero_grad()으로 기울기 0으로 만들기를 다룬다
     """)
 
@@ -405,10 +405,10 @@
     )
     Learning rate: 0.01
 
-    최적화기를 쓰는 핵심 이점:
+    옵티마이저를 쓰는 핵심 이점:
     1. 모델의 파라메터를 모두 절로 고친다
     2. 직접 파라메터를 고칠 일이 없다
-    3. 최적화기를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
+    3. 옵티마이저를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
     4. optimizer.zero_grad()으로 기울기 0으로 만들기를 다룬다
 
 

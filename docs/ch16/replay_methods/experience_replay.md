@@ -198,7 +198,7 @@ class ExperienceReplayLearner:
             memory_size: 기억 버퍼의 전체 용량
             examples_per_task: 과제마다 담아 둘 보기 수
             replay_batch_ratio: 배치에서 되살린 것의 비율
-            learning_rate: 최적화기의 러닝레이트
+            learning_rate: 옵티마이저의 러닝레이트
         """
         self.model = model
         self.device = device

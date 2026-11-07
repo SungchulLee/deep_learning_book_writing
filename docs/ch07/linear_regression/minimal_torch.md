@@ -10,7 +10,7 @@
 ==============================================
 
 날 텐서에 requires_grad=True를 두고 loss.backward()으로 그래디언트를 절로
-계산한다.  nn.Module도 최적화기 객체도 쓰지 않는다.
+계산한다.  nn.Module도 옵티마이저 객체도 쓰지 않는다.
 
 Demonstrates:
 - requires_grad=True

@@ -6,10 +6,10 @@
 
 ```python
 """
-최적화기 비교: Adam, RMSprop, AdaGrad
+옵티마이저 비교: Adam, RMSprop, AdaGrad
 ================================================
 
-이 스크립트는 여러 최적화 문제에서 적응형 러닝레이트 최적화기 세 가지를 견주어
+이 스크립트는 여러 최적화 문제에서 적응형 러닝레이트 옵티마이저 세 가지를 견주어
 저마다의 강점과 차이를 보인다.
 """
 
@@ -17,12 +17,12 @@ import numpy as np
 
 
 # ========================================================================
-# 견줄 최적화기 셋 — 직접 구현한 것이다
+# 견줄 옵티마이저 셋 — 직접 구현한 것이다
 # ========================================================================
 
 class Adam:
     """
-    Adam 최적화기의 구현.
+    Adam 옵티마이저의 구현.
     
     매개변수:
     -----------
@@ -92,7 +92,7 @@ class Adam:
 
 class RMSprop:
     """
-    RMSprop 최적화기의 구현.
+    RMSprop 옵티마이저의 구현.
     
     매개변수:
     -----------
@@ -146,7 +146,7 @@ class RMSprop:
 
 class AdaGrad:
     """
-    AdaGrad 최적화기의 구현.
+    AdaGrad 옵티마이저의 구현.
     
     매개변수:
     -----------
@@ -202,7 +202,7 @@ class AdaGrad:
 
 def test_simple_quadratic():
     """
-    간단한 이차 함수에서 세 최적화기를 모두 시험한다.
+    간단한 이차 함수에서 세 옵티마이저를 모두 시험한다.
     f(x, y) = x^2 + y^2 최소화
     """
     print("=" * 80)
@@ -212,12 +212,12 @@ def test_simple_quadratic():
     print("Starting point: x=10, y=10")
     print()
     
-    # 최적화기마다 파라메터 초기화
+    # 옵티마이저마다 파라메터 초기화
     params_adam = {'x': np.array([10.0]), 'y': np.array([10.0])}
     params_rmsprop = {'x': np.array([10.0]), 'y': np.array([10.0])}
     params_adagrad = {'x': np.array([10.0]), 'y': np.array([10.0])}
     
-    # 최적화기 초기화
+    # 옵티마이저 초기화
     adam = Adam(learning_rate=0.1)
     rmsprop = RMSprop(learning_rate=0.1)
     adagrad = AdaGrad(learning_rate=1.0)
@@ -266,7 +266,7 @@ def test_ill_conditioned():
     params_rmsprop = {'x': np.array([10.0]), 'y': np.array([10.0])}
     params_adagrad = {'x': np.array([10.0]), 'y': np.array([10.0])}
     
-    # 최적화기 초기화
+    # 옵티마이저 초기화
     adam = Adam(learning_rate=0.1)
     rmsprop = RMSprop(learning_rate=0.1)
     adagrad = AdaGrad(learning_rate=1.0)
@@ -299,7 +299,7 @@ def test_ill_conditioned():
 
 def test_noisy_gradients():
     """
-    잡음이 섞인 그래디언트로 시험하여 최적화기마다 얼마나 견고한지 본다.
+    잡음이 섞인 그래디언트로 시험하여 옵티마이저마다 얼마나 견고한지 본다.
     그래디언트에 잡음을 더한 채로 f(x, y) = x^2 + y^2 최소화
     """
     print("=" * 80)
@@ -316,7 +316,7 @@ def test_noisy_gradients():
     params_rmsprop = {'x': np.array([10.0]), 'y': np.array([10.0])}
     params_adagrad = {'x': np.array([10.0]), 'y': np.array([10.0])}
     
-    # 최적화기 초기화
+    # 옵티마이저 초기화
     adam = Adam(learning_rate=0.1)
     rmsprop = RMSprop(learning_rate=0.1)
     adagrad = AdaGrad(learning_rate=1.0)
@@ -377,7 +377,7 @@ def test_rosenbrock():
     params_rmsprop = {'x': np.array([-1.0]), 'y': np.array([-1.0])}
     params_adagrad = {'x': np.array([-1.0]), 'y': np.array([-1.0])}
     
-    # 최적화기 초기화
+    # 옵티마이저 초기화
     adam = Adam(learning_rate=0.01)
     rmsprop = RMSprop(learning_rate=0.01)
     adagrad = AdaGrad(learning_rate=0.1)
@@ -429,7 +429,7 @@ def test_rosenbrock():
 
 def print_summary():
     """
-    최적화기의 특성 요약을 출력한다.
+    옵티마이저의 특성 요약을 출력한다.
     """
     print("=" * 80)
     print("OPTIMIZER SUMMARY")

@@ -58,9 +58,9 @@ $$
 ## 3. PyTorch 예제
 
 ```python
-"""대규모 배치 학습을 위한 LAMB 최적화기 사용 예."""
+"""대규모 배치 학습을 위한 LAMB 옵티마이저 사용 예."""
 
-# === LAMB 최적화기 준비 ===
+# === LAMB 옵티마이저 준비 ===
 
 # LAMB는 PyTorch 본체에 없다. 다음으로 설치한다:
 #   pip install torch-optimizer

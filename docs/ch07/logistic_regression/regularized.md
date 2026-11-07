@@ -329,7 +329,7 @@ def train_model(
     """
     L1/L2 정칙화를 골라 쓰며 로지스틱 회귀를 익힌다.
 
-    L2 정칙화는 최적화기의 weight_decay로 건다.
+    L2 정칙화는 옵티마이저의 weight_decay로 건다.
     L1 정칙화는 로스에 직접 벌 마디를 더해 건다.
     엘라스틱넷을 쓰려면 l1_lambda > 0과 l2_lambda > 0을 함께 둔다.
 

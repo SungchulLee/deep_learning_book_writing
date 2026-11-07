@@ -275,14 +275,14 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
 
     검사점에 흔히 담는 것:
     1. 모델의 상태 사전
-    2. 최적화기의 상태 사전
+    2. 옵티마이저의 상태 사전
     3. 현재 에포크 번호
     4. 학습 로스 이력
     5. 러닝레이트 일정의 상태
     6. 난수 생성기의 상태 (재현성을 위해)
     """
 
-    # 모델과 최적화기 만들기
+    # 모델과 옵티마이저 만들기
     model = Model(n_input_features=6)
     learning_rate = 0.01
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
@@ -292,7 +292,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     print(f"   Current epoch: 90")
     print(f"   Learning rate: {learning_rate}")
 
-    # 최적화기의 상태 보이기
+    # 옵티마이저의 상태 보이기
     print("\n📊 Optimizer State Before Saving:")
     print(f"   State dict keys: {list(optimizer.state_dict().keys())}")
 
@@ -300,7 +300,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     checkpoint = {
         "epoch": 90,                          # 현재 에포크 번호
         "model_state": model.state_dict(),     # 모델의 파라메터
-        "optim_state": optimizer.state_dict(), # 최적화기의 상태 (모멘텀 등)
+        "optim_state": optimizer.state_dict(), # 옵티마이저의 상태 (모멘텀 등)
         "loss": 0.123,                         # 선택: 현재 로스
         "accuracy": 0.95,                      # 선택: 현재 정확도
     }
@@ -322,7 +322,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     # 불러오기: 학습 상태 복원
     print(f"\n📂 Loading checkpoint from '{FILE}'...")
 
-    # 1단계: 모델과 최적화기 다시 만들기
+    # 1단계: 모델과 옵티마이저 다시 만들기
     model = Model(n_input_features=6)
     optimizer = torch.optim.SGD(model.parameters(), lr=0)  # 러닝레이트가 되살아난다
 
@@ -332,7 +332,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     # 3단계: 모델의 상태 복원
     model.load_state_dict(checkpoint['model_state'])
 
-    # 4단계: 최적화기의 상태 복원
+    # 4단계: 옵티마이저의 상태 복원
     optimizer.load_state_dict(checkpoint['optim_state'])
 
     # 5단계: 그 밖의 학습 파라메터 복원
@@ -498,7 +498,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
        → model.eval()을 부르지 않았다
 
     4. 학습을 제대로 이어 갈 수 없다
-       → 최적화기 상태를 저장하거나 불러오기를 잊었다
+       → 옵티마이저 상태를 저장하거나 불러오기를 잊었다
 
     5. DataParallel의 모듈 접두사가 맞지 않음
        → 키의 'module.' 접두사를 처리해야 한다
@@ -738,7 +738,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
        → model.eval()을 부르지 않았다
        
     4. 학습을 제대로 이어 갈 수 없다
-       → 최적화기 상태를 저장하거나 불러오기를 잊었다
+       → 옵티마이저 상태를 저장하거나 불러오기를 잊었다
        
     5. DataParallel의 모듈 접두사가 맞지 않음
        → 키의 'module.' 접두사를 처리해야 한다

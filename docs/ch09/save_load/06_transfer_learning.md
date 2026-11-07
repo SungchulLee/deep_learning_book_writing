@@ -99,7 +99,7 @@ print("\n" + "=" * 70)
 print("SAVING FINE-TUNED MODEL")
 print("=" * 70)
 
-# 학습 가능한 파라메터에만 최적화기 만들기
+# 학습 가능한 파라메터에만 옵티마이저 만들기
 optimizer = torch.optim.Adam(
     filter(lambda p: p.requires_grad, model.parameters()),
     lr=0.001
@@ -144,7 +144,7 @@ model.load_state_dict(checkpoint['model_state_dict'])
 print("\nModel state loaded")
 
 # 얼리기를 먼저 되살린다.
-# 저장할 때의 최적화기는 '학습할 파라메터'만 들고 있었으므로, 같은 배치로
+# 저장할 때의 옵티마이저는 '학습할 파라메터'만 들고 있었으므로, 같은 배치로
 # 다시 만들어야 상태를 받을 수 있다. 얼리기를 나중에 하면 배치 크기가 어긋나
 # ValueError: loaded state dict contains a parameter group that doesn't match
 # 가 난다.
@@ -155,7 +155,7 @@ if checkpoint.get('frozen_layers', False):
         param.requires_grad = True
     print("Layer freezing applied")
 
-# 최적화기 다시 만들기 — 저장할 때와 똑같이 학습할 파라메터만 준다
+# 옵티마이저 다시 만들기 — 저장할 때와 똑같이 학습할 파라메터만 준다
 optimizer = torch.optim.Adam(
     filter(lambda p: p.requires_grad, model.parameters())
 )

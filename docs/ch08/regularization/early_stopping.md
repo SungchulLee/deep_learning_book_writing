@@ -196,7 +196,7 @@ def train_with_early_stopping(
         train_loader: 학습 데이터 로더
         val_loader: 검증 데이터 로더
         criterion: 로스 함수
-        optimizer: 최적화기
+        optimizer: 옵티마이저
         max_epochs: 최대 학습 에포크 수
         patience: 조기 종료의 인내
         min_delta: 개선으로 볼 최소 임계값

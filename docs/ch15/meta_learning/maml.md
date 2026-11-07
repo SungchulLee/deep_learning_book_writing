@@ -574,7 +574,7 @@ class MetaSGD(MAML):
             for name, param in model.named_parameters()
         })
         
-        # 러닝레이트를 최적화기에 더한다
+        # 러닝레이트를 옵티마이저에 더한다
         self.meta_optimizer = torch.optim.Adam(
             list(model.parameters()) + list(self.inner_lrs.values()),
             lr=self.meta_lr
@@ -673,7 +673,7 @@ class TaskAdaptiveMAML(MAML):
             nn.Linear(64, len(list(model.parameters())))
         )
         
-        # 최적화기에 더한다
+        # 옵티마이저에 더한다
         self.meta_optimizer = torch.optim.Adam(
             list(model.parameters()) + list(self.task_encoder.parameters()),
             lr=self.meta_lr

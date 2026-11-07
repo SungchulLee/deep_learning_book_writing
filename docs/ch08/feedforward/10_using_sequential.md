@@ -162,7 +162,7 @@
     # 학습에는 간단한 모델을 쓴다
     model = simple_model.to(device)
 
-    # 로스와 최적화기
+    # 로스와 옵티마이저
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 

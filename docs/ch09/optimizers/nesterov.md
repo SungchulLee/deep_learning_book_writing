@@ -62,7 +62,7 @@ $$
 import torch
 import torch.nn as nn
 
-# === 모델과 최적화기 준비 ===
+# === 모델과 옵티마이저 준비 ===
 
 if __name__ == "__main__":
     model = nn.Linear(10, 1)

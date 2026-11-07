@@ -127,7 +127,7 @@ def train_step(model, optimizer, criterion, batch_views, device):
 
     인수:
         model: SimCLR 모형
-        optimizer: 최적화기
+        optimizer: 옵티마이저
         criterion: NTXentLoss
         batch_views: (view1, view2) 짝. 배치의 불린 시야 둘
         device: 토치 장치
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     # 모형을 시작한다
     model = SimCLR(base_model='resnet50', projection_dim=128).to(device)
 
-    # 로스와 최적화기를 시작한다
+    # 로스와 옵티마이저를 시작한다
     criterion = NTXentLoss(temperature=0.5)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 

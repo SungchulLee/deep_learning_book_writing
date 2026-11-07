@@ -177,7 +177,7 @@ def train_step_moco(model, optimizer, batch_views, device):
 
     인수:
         model: MoCo 모형
-        optimizer: 최적화기
+        optimizer: 옵티마이저
         batch_views: (view1, view2) 짝. 불린 시야 둘
         device: 토치 장치
     """

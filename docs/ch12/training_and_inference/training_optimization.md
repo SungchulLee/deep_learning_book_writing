@@ -385,7 +385,7 @@ def train_transformer(
     device = torch.device(device)
     model = model.to(device)
     
-    # 웨이트 감쇠를 갈라 둔 최적화기
+    # 웨이트 감쇠를 갈라 둔 옵티마이저
     optimizer = configure_optimizer(model, lr=1e-4, weight_decay=weight_decay)
     
     # 러닝레이트 스케줄러

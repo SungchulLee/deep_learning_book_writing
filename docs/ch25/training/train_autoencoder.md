@@ -96,7 +96,7 @@ def main(args):
     print(f"Latent dimension: {args.latent_dim}")
     print(f"Hidden dimension: {args.hidden_dim}")
     
-    # 최적화기
+    # 옵티마이저
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     
     # 학습 루프

@@ -298,7 +298,7 @@ def train_model(model: nn.Module,
         X_test: 시험 들임 차례
         y_test: 시험 목표 값
         n_epochs: 익히기 바퀴 수
-        learning_rate: 최적화기의 러닝레이트
+        learning_rate: 옵티마이저의 러닝레이트
         verbose: 나아감 막대를 보일지 여부
         
     반환값:

@@ -201,7 +201,7 @@ config = {
     'num_classes': 10,        # 숫자 0~9
     'num_epochs': 10,         # 데이터셋 전체를 몇 번 볼지
     'batch_size': 100,        # 학습 단계마다의 표본 수
-    'learning_rate': 0.001,   # 최적화기의 스텝 크기
+    'learning_rate': 0.001,   # 옵티마이저의 스텝 크기
 }
 
 print(f"\nHyperparameters:")
@@ -404,7 +404,7 @@ print(f"    Layer 1: {config['input_size']} × {config['hidden_size']} + {config
 print(f"    Layer 2: {config['hidden_size']} × {config['num_classes']} + {config['num_classes']} = {config['hidden_size'] * config['num_classes'] + config['num_classes']:,}")
 
 # ================================================================================
-# 5부: 로스와 최적화기 정의
+# 5부: 로스와 옵티마이저 정의
 # ================================================================================
 print("\n" + "=" * 80)
 print("STEP 5: Setting Up Training Components")
@@ -416,8 +416,8 @@ print("=" * 80)
 # 날것의 로짓을 받는다 (소프트맥스를 적용하지 않는다)
 criterion = nn.CrossEntropyLoss()
 
-# 최적화기: Adam
-# 적응형 러닝레이트 최적화기
+# 옵티마이저: Adam
+# 적응형 러닝레이트 옵티마이저
 # 대부분의 문제에서 별다른 손질 없이 잘 통한다
 optimizer = optim.Adam(model.parameters(), lr=config['learning_rate'])
 
@@ -750,11 +750,11 @@ print("=" * 80)
 print("""
 1. hidden_size를 256이나 512로 늘려 보라. 정확도가 나아지는가?
 2. 은닉 레이어를 하나 더 넣어 3레이어 뉴럴 네트워크를 만들어 보라
-3. SGD, RMSprop, AdaGrad 등 여러 최적화기를 써 보라
+3. SGD, RMSprop, AdaGrad 등 여러 옵티마이저를 써 보라
 4. 러닝레이트 0.0001, 0.01, 0.1로 실험해 보라
 5. 더 많은 에폭(10~20)으로 학습해 보라. 과적합을 살피라
 6. 검증 로스를 기준으로 조기 종료를 구현해 보라
-7. 최적화기의 state_dict도 체크포인트에 함께 담아, 멈춘 자리에서
+7. 옵티마이저의 state_dict도 체크포인트에 함께 담아, 멈춘 자리에서
    학습을 이어 갈 수 있게 해 보라
 8. 무작위 회전과 이동 같은 데이터 어그멘테이션을 더해 보라
 9. 첫 레이어의 웨이트를 그려 뉴럴 네트워크가 배운 것을 살펴보라
@@ -1049,11 +1049,11 @@ if __name__ == "__main__":
 
     1. hidden_size를 256이나 512로 늘려 보라. 정확도가 나아지는가?
     2. 은닉 레이어를 하나 더 넣어 3레이어 뉴럴 네트워크를 만들어 보라
-    3. SGD, RMSprop, AdaGrad 등 여러 최적화기를 써 보라
+    3. SGD, RMSprop, AdaGrad 등 여러 옵티마이저를 써 보라
     4. 러닝레이트 0.0001, 0.01, 0.1로 실험해 보라
     5. 더 많은 에폭(10~20)으로 학습해 보라. 과적합을 살피라
     6. 검증 로스를 기준으로 조기 종료를 구현해 보라
-    7. 최적화기의 state_dict도 체크포인트에 함께 담아, 멈춘 자리에서
+    7. 옵티마이저의 state_dict도 체크포인트에 함께 담아, 멈춘 자리에서
        학습을 이어 갈 수 있게 해 보라
     8. 무작위 회전과 이동 같은 데이터 어그멘테이션을 더해 보라
     9. 첫 레이어의 웨이트를 그려 뉴럴 네트워크가 배운 것을 살펴보라

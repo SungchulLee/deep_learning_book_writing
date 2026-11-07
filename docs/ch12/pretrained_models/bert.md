@@ -886,7 +886,7 @@ def train_classifier(
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
     
-    # 최적화기와 일정 조정기
+    # 옵티마이저와 일정 조정기
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0.01)
     total_steps = len(train_loader) * epochs
     scheduler = torch.optim.lr_scheduler.LinearLR(

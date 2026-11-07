@@ -21,7 +21,7 @@ MNIST 이미지를 펼쳐 다층 퍼셉트론으로 분류하는 전체 예제�
     - 모델 평가 지표
 
     선수 지식:
-    - 튜토리얼 05 (nn.Module과 최적화기)
+    - 튜토리얼 05 (nn.Module과 옵티마이저)
 
     핵심 개념:
     - torchvision.datasets
@@ -216,7 +216,7 @@ MNIST 이미지를 펼쳐 다층 퍼셉트론으로 분류하는 전체 예제�
     print(f"\nTotal parameters: {sum(p.numel() for p in model.parameters()):,}")
 
     # ==============================================================================
-    # 5단계: 로스와 최적화기 정의
+    # 5단계: 로스와 옵티마이저 정의
     # ==============================================================================
     print("\n" + "=" * 70)
     print("STEP 5: Loss Function and Optimizer")
@@ -230,7 +230,7 @@ MNIST 이미지를 펼쳐 다층 퍼셉트론으로 분류하는 전체 예제�
     print("  - Expects raw logits (no softmax needed in model)")
     print("  - Numerically stable")
 
-    # Adam 최적화기
+    # Adam 옵티마이저
     learning_rate = 0.001
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     print(f"\nOptimizer: Adam (lr={learning_rate})")

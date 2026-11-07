@@ -187,13 +187,13 @@ model = NeuralNet(input_size, hidden_size, num_classes).to(device)
 print(f'\nModel Architecture:\n{model}')
 
 # ============================================================================
-# 로스 함수와 최적화기
+# 로스 함수와 옵티마이저
 # ============================================================================
 # CrossEntropyLoss는 소프트맥스와 음의 로그가능도를 합친다
 # 다중 클래스 분류 문제에 안성맞춤이다
 criterion = nn.CrossEntropyLoss()
 
-# Adam 최적화기: 적응형 러닝레이트 최적화 알고리즘
+# Adam 옵티마이저: 적응형 러닝레이트 최적화 알고리즘
 # 초파라메터를 크게 조율하지 않아도 대체로 잘 통한다
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 

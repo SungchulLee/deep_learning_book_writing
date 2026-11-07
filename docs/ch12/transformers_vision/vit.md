@@ -254,7 +254,7 @@ $$\text{Image} \xrightarrow{\text{CNN}} \text{Feature Map} \xrightarrow{\text{Fl
 # 더 나은 일반화를 위한 이름표 매끄럽게 하기
 criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 
-# 웨이트 감쇠를 곁들인 AdamW 최적화기
+# 웨이트 감쇠를 곁들인 AdamW 옵티마이저
 optimizer = torch.optim.AdamW(
     model.parameters(),
     lr=3e-4,

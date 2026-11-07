@@ -214,7 +214,7 @@ def compare_pytorch_onnx_outputs(
 
 def optimize_onnx_model(input_path: str, output_path: str) -> None:
     """
-    ONNX 최적화기로 ONNX 모델을 최적화한다
+    ONNX 옵티마이저로 ONNX 모델을 최적화한다
     
     인수:
         input_path: 입력 ONNX 모델의 경로

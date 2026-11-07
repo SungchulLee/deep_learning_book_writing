@@ -188,7 +188,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
             a. 배치를 훑는다
             b. 로스를 셈한다(교차 엔트로피)
             c. 그래디언트를 거꾸로 퍼뜨린다
-            d. 최적화기로 웨이트를 고친다
+            d. 옵티마이저로 웨이트를 고친다
         3. 살펴보려고 학습 로스를 좇는다
 
         인수:
@@ -196,7 +196,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
             train_loader: 학습 데이터의 DataLoader
             device: 익힐 장치(CPU나 GPU)
             epochs: 학습 에포크 수
-            learning_rate: 최적화기의 러닝레이트
+            learning_rate: 옵티마이저의 러닝레이트
 
         반환값:
             시대마다의 평균 로스 목록
@@ -204,7 +204,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
         # 로스 함수를 정한다(분류에는 교차 엔트로피)
         criterion = nn.CrossEntropyLoss()
 
-        # 최적화기를 정한다(Adam이 튼튼하고 널리 쓰인다)
+        # 옵티마이저를 정한다(Adam이 튼튼하고 널리 쓰인다)
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
         # 학습 로스를 좇는다

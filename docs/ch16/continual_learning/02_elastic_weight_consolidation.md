@@ -89,7 +89,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
                 ewc_lambda: 벌주기 세기(λ)
                            값이 클수록 옛 파라메터를 더 세게 지킨다
                            흔한 범위: [100, 10000]
-                learning_rate: 최적화기의 러닝레이트
+                learning_rate: 옵티마이저의 러닝레이트
             """
             self.model = model
             self.device = device

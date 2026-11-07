@@ -1433,7 +1433,7 @@ class Seq2SeqTrainer:
     
     인수:
         model: Seq2Seq 모델
-        optimizer: 최적화기
+        optimizer: 옵티마이저
         criterion: 손실 함수
         device: 학습에 쓸 장치
         pad_idx: 패딩 토큰의 색인
@@ -1677,7 +1677,7 @@ if __name__ == "__main__":
     
     print(f'The model has {count_parameters(model):,} trainable parameters')
     
-    # 최적화기와 손실 함수 만들기
+    # 옵티마이저와 손실 함수 만들기
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
     
@@ -2305,7 +2305,7 @@ def main():
     N_EPOCHS = 20
     CLIP = 1.0
     
-    # 최적화기와 로스 함수 만들기
+    # 옵티마이저와 로스 함수 만들기
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
     

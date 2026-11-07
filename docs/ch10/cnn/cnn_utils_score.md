@@ -51,7 +51,7 @@ Notes
   complaint to where it belongs — three channels with different spreads
   (0.2470 / 0.2435 / 0.2616) sharing one constant. All statistics measured here:
   MNIST 0.1307 / 0.3081, Fashion-MNIST 0.2860 / 0.3530.
-- 🔴 연습문제 2 opened "`train` 함수는 매개변수를 통해 최적화기를 암묵적으로 새로
+- 🔴 연습문제 2 opened "`train` 함수는 매개변수를 통해 옵티마이저를 암묵적으로 새로
   만든다". `train(model, train_loader, loss_fn, optimizer, scheduler, device,
   epochs, ...)` creates neither — it receives both. The statement asserted the
   opposite of the code it was asking about. Restated as "스스로 만들지 않고 인자로
