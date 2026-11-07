@@ -26,7 +26,7 @@ _확인한 곳 — R. Bellman, *Dynamic Programming*, Princeton University Press
 - [커널 PCA](pca/kernel_pca.md): 피처 공간의 중심화, 고윳값 정규화와 프리이미지 문제
 - [NumPy 2차원 예제](pca/01_pca_2d_numpy.md): SVD로 방향을 구하고 투영·재구성하기
 - [scikit-learn 2차원 예제](pca/02_pca_2d_sklearn.md): 적합·변환과 분산 속성, whitening과 평가 누출
-- 텐서와 자동 미분 자체는 [1.4~1.7절 PyTorch 기초](../ch06/index.md)가 다룬다. 여기서는 그것을 PCA에 쓴다.
+- 텐서와 자동 미분 자체는 [1.4~1.7절 PyTorch 기초](../ch01/index.md)가 다룬다. 여기서는 그것을 PCA에 쓴다.
 - [PyTorch 2차원 예제](pca/04_pca_2d_pytorch.md): 배치 SVD와 고정·데이터 의존 기저의 미분
 - [MNIST PCA](pca/05_pca_mnist_pytorch.md): 784차원 이미지의 저차원 표현과 같은 데이터 재구성
 
