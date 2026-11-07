@@ -357,7 +357,7 @@ for n, p in model.named_parameters():
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-점검표에 **여섯 번째 줄**을 더한다면 무엇이 좋겠는가? 깊은 그물의 초기화를
+점검표에 **여섯 번째 줄**을 더한다면 무엇이 좋겠는가? 깊은 신경망의 초기화를
 바꿔 가며 경사의 **크기**를 재어라.
 
 </div>

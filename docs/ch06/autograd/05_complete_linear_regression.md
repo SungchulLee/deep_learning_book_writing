@@ -448,7 +448,7 @@ def why_bother():
     big = nn.Sequential(nn.Linear(784, 256), nn.ReLU(),
                         nn.Linear(256, 128), nn.ReLU(),
                         nn.Linear(128, 10))
-    for name, m in (("nn.Linear(1,1)", small), ("3층 그물", big)):
+    for name, m in (("nn.Linear(1,1)", small), ("3층 신경망", big)):
         n_t = sum(1 for _ in m.parameters())
         n_p = sum(p.numel() for p in m.parameters())
         print(f"  {name:16s} 텐서 {n_t}개   수 {n_p:,}개")
@@ -524,7 +524,7 @@ if __name__ == "__main__":
 
 === 3. 모델이 커지면 ===
   nn.Linear(1,1)   텐서 2개   수 2개
-  3층 그물            텐서 6개   수 235,146개
+  3층 신경망            텐서 6개   수 235,146개
   텐서 여섯 개를 손으로 zero_() 하고 갱신하는 코드는 쓸 수 없다
   opt.zero_grad() 와 opt.step() 이 그것을 한 줄로 만든다
   게다가 모멘텀은 상태를 들고 있어야 한다. 버퍼 6개
@@ -579,7 +579,7 @@ bias     모양 (1,)    requires_grad True
 
 ```
 nn.Linear(1,1)   텐서 2개   수 2개
-3층 그물          텐서 6개   수 235,146개
+3층 신경망          텐서 6개   수 235,146개
 게다가 모멘텀은 상태를 들고 있어야 한다. 버퍼 6개
 ```
 
@@ -811,7 +811,7 @@ reduction=sum   weight.grad    -446.6163
     터지거나 사라진다.
 
     그래서 **초기화는 모델 구조가 정한다.** 손으로 `torch.randn`으로 파라미터를
-    만들면 이 조정이 빠지고, 깊은 그물에서는 그것만으로 학습이 안 되기도 한다.
+    만들면 이 조정이 빠지고, 깊은 신경망에서는 그것만으로 학습이 안 되기도 한다.
 
 ---
 

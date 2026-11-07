@@ -345,7 +345,7 @@ opt = torch.optim.SGD([p for p in net.parameters() if p.requires_grad], lr=0.1)
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
 얼린 층은 경사를 안 받는다. 그렇다면 **역전파가 빨라지는가?** 앞쪽 절반을 얼린
-깊은 그물에서 재어라.
+깊은 신경망에서 재어라.
 
 </div>
 

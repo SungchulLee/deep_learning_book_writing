@@ -403,7 +403,7 @@ head                     Linear               18
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-`recurse=False`를 빼면 합이 얼마나 부풀어 오르는가? 세 층짜리 그물로 확인하라.
+`recurse=False`를 빼면 합이 얼마나 부풀어 오르는가? 세 층짜리 신경망으로 확인하라.
 
 </div>
 

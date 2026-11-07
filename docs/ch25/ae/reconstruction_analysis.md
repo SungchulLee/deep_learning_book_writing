@@ -55,7 +55,7 @@ $$\operatorname{AUC}=P(s_{anomaly}>s_{normal})+\tfrac12P(s_{anomaly}=s_{normal})
 
 <div class="storybox" markdown>
 
-**그림으로 보는 AI 1.** 복제하는 그물이라 불리던 때
+**그림으로 보는 AI 1.** 복제하는 신경망이라 불리던 때
 
 복원 오차를 이상 점수로 쓴다는 이 절의 생각은 오토인코더라는 이름을 달고 오지 않았다. 2002년에 사이먼 호킨스(Simon Hawkins)·허훙싱(Hongxing He)·그레이엄 윌리엄스(Graham Williams)·로한 백스터(Rohan Baxter)가 데이터 웨어하우징 학회에서 발표한 글의 제목은 「**복제자 신경망**을 이용한 이상치 탐지」다. 입력을 그대로 되뱉도록 학습시킨다 해서 replicator network라 불렀다. 구조는 이 장이 내내 다루는 것과 같고, 데이터 마이닝 쪽에서 따로 붙인 이름이었을 뿐이다.
 

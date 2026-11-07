@@ -363,7 +363,7 @@ opt = torch.optim.SGD([
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-`Linear(784,256) → Linear(256,128) → Linear(128,10)` 그물에서 앞 두 층을 얼리면
+`Linear(784,256) → Linear(256,128) → Linear(128,10)` 신경망에서 앞 두 층을 얼리면
 학습되는 파라미터가 몇 퍼센트 남는가?
 
 </div>
@@ -412,7 +412,7 @@ opt = torch.optim.SGD([
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-층이 셋인 그물에 층마다 다른 러닝레이트(0.001 / 0.01 / 0.1)를 주고, 움직인
+층이 셋인 신경망에 층마다 다른 러닝레이트(0.001 / 0.01 / 0.1)를 주고, 움직인
 거리가 그 비를 따르는지 확인하라. 그리고 **학습 도중에 전부 열 배로** 올려라.
 
 </div>
