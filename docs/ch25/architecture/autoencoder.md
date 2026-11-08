@@ -254,7 +254,7 @@ encode·decode·forward의 분리가 어떤 활용을 가능하게 하는가?
             rec = F.binary_cross_entropy(out, x, reduction='sum') / x.size(0)
             kl = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp()).sum() / x.size(0)
             return rec + kl                                           # 3. KL 항
-        ```
+    ```
 
 
 ---

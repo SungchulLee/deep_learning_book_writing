@@ -95,20 +95,20 @@ n×n을 1×n과 n×1로 나누고 입출력·중간 폭을 모두 C로 두면 n�
     입력·중간·출력 폭이 모두 C이면 49C² 대 14C²로 3.5배다. 코드의 일반 폭에서는 7C_inC_out+7C_out²이며 같은 비가 아니다. BN의 스케일·바이어스는 별도이고 중간 비선형이 추가된다. 홀수 n에서 공간 크기를 유지하는 패딩 조건도 확인한다.
 
     ```python
-class AsymmetricConv(nn.Module):
-    def __init__(self, in_ch, out_ch, n=7):
-        super().__init__()
-        self.conv = nn.Sequential(
-            nn.Conv2d(in_ch, out_ch, (1, n), padding=(0, n//2), bias=False),
-            nn.BatchNorm2d(out_ch),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_ch, out_ch, (n, 1), padding=(n//2, 0), bias=False),
-            nn.BatchNorm2d(out_ch),
-            nn.ReLU(inplace=True),
-        )
-    def forward(self, x):
-        return self.conv(x)
-```
+    class AsymmetricConv(nn.Module):
+        def __init__(self, in_ch, out_ch, n=7):
+            super().__init__()
+            self.conv = nn.Sequential(
+                nn.Conv2d(in_ch, out_ch, (1, n), padding=(0, n//2), bias=False),
+                nn.BatchNorm2d(out_ch),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_ch, out_ch, (n, 1), padding=(n//2, 0), bias=False),
+                nn.BatchNorm2d(out_ch),
+                nn.ReLU(inplace=True),
+            )
+        def forward(self, x):
+            return self.conv(x)
+    ```
 
 
 ## 정리하며

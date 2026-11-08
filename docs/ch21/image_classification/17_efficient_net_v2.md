@@ -111,17 +111,17 @@ Fused-MBConv의 연산 수가 더 커도 빠를 수 있는 이유와 한계를 �
     epoch/max_epochs를 사용하므로 0부터 max_epochs−1까지의 학습에서는 비율이 1에 도달하지 않는다. 32배수 내림까지 있어 끝점 차이가 더 생길 수 있다. 유효한 범위·분모·마지막 시점의 정의와 실제 데이터 변환에 적용하는 절차가 필요하다. 함수는 정규화 강도를 조절하거나 모델을 학습하지 않는다.
 
     ```python
-def get_image_size(epoch, max_epochs, min_size=128, max_size=384):
-    progress = epoch / max_epochs
-    size = int(min_size + (max_size - min_size) * progress)
-    return (size // 32) * 32  # 32의 배수로 반올림
+    def get_image_size(epoch, max_epochs, min_size=128, max_size=384):
+        progress = epoch / max_epochs
+        size = int(min_size + (max_size - min_size) * progress)
+        return (size // 32) * 32  # 32의 배수로 반올림
 
-# 쓰는 보기:
-for epoch in range(0, 100, 20):
-    size = get_image_size(epoch, 100)
-    print(f"Epoch {epoch}: image size = {size}x{size}")
-# 내놓음: 128, 176, 224, 288, 336
-```
+    # 쓰는 보기:
+    for epoch in range(0, 100, 20):
+        size = get_image_size(epoch, 100)
+        print(f"Epoch {epoch}: image size = {size}x{size}")
+    # 내놓음: 128, 176, 224, 288, 336
+    ```
 
 
 ## 정리하며

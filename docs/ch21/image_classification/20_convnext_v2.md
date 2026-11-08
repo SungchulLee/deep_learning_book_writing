@@ -133,24 +133,24 @@ GRN의 축과 초기값을 쓰고 항상 채널 증폭을 보장하는지 설명
     mask_ratio는 저장만 하고 입력을 가리지 않는다. 출력 재구성만 반환하며 마스크별 목표·로스·학습 루프도 없다. 48채널을 4×4 RGB 패치로 해석할 수 있어도 재배열과 가린 위치의 평가가 추가로 필요하다. 따라서 완성된 FCMAE 사전 학습 코드가 아니라 decoder 골격이다.
 
     ```python
-class MAEPretraining(nn.Module):
-    def __init__(self, encoder, decoder_dim=256, mask_ratio=0.6):
-        super().__init__()
-        self.encoder = encoder
-        self.mask_ratio = mask_ratio
-        self.decoder = nn.Sequential(
-            nn.Conv2d(96, decoder_dim, 1),
-            nn.GELU(),
-            nn.Conv2d(decoder_dim, 3 * 16, 1)  # 4x4 조각 어림
-        )
+    class MAEPretraining(nn.Module):
+        def __init__(self, encoder, decoder_dim=256, mask_ratio=0.6):
+            super().__init__()
+            self.encoder = encoder
+            self.mask_ratio = mask_ratio
+            self.decoder = nn.Sequential(
+                nn.Conv2d(96, decoder_dim, 1),
+                nn.GELU(),
+                nn.Conv2d(decoder_dim, 3 * 16, 1)  # 4x4 조각 어림
+            )
     
-    def forward(self, x):
-        # 조각에 마구잡이 가리기를 하게 된다
-        features = self.encoder.stem(x)
-        features = self.encoder.blocks(features)
-        reconstruction = self.decoder(features)
-        return reconstruction
-```
+        def forward(self, x):
+            # 조각에 마구잡이 가리기를 하게 된다
+            features = self.encoder.stem(x)
+            features = self.encoder.blocks(features)
+            reconstruction = self.decoder(features)
+            return reconstruction
+    ```
 
 
 ## 정리하며

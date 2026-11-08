@@ -198,20 +198,20 @@ A가 85/500, B가 110/500일 때 사후분포와 아래 코드의 상대 향상 
     독립 Beta(1,1) 사전이면 A는 Beta(86,416), B는 Beta(111,391)이다. 표본 비교 비율로 P(B>A|D)를 추정하고 B/A−1의 분위수로 상대 향상 신용구간을 만든다. E[B/A−1]은 일반적으로 E[B]/E[A]−1과 다르다. 코드는 난수 근사이며 정확값이나 고정 수치를 미리 보장하지 않는다.
 
     ```python
-import numpy as np
-from scipy import stats
+    import numpy as np
+    from scipy import stats
 
-np.random.seed(42)
-samples_a = stats.beta(1+85, 1+415).rvs(100000)
-samples_b = stats.beta(1+110, 1+390).rvs(100000)
+    np.random.seed(42)
+    samples_a = stats.beta(1+85, 1+415).rvs(100000)
+    samples_b = stats.beta(1+110, 1+390).rvs(100000)
 
-prob_b_better = np.mean(samples_b > samples_a)
-lift = samples_b / samples_a - 1
+    prob_b_better = np.mean(samples_b > samples_a)
+    lift = samples_b / samples_a - 1
 
-print(f'P(B > A) = {prob_b_better:.4f}')
-print(f'Expected lift: {np.mean(lift)*100:.2f}%')
-print(f'95% CI: [{np.percentile(lift,2.5)*100:.2f}%, {np.percentile(lift,97.5)*100:.2f}%]')
-```
+    print(f'P(B > A) = {prob_b_better:.4f}')
+    print(f'Expected lift: {np.mean(lift)*100:.2f}%')
+    print(f'95% CI: [{np.percentile(lift,2.5)*100:.2f}%, {np.percentile(lift,97.5)*100:.2f}%]')
+    ```
 
 
 ---
@@ -243,31 +243,31 @@ print(f'95% CI: [{np.percentile(lift,2.5)*100:.2f}%, {np.percentile(lift,97.5)*1
     successes와 failures는 Beta(1,1)에서 시작한 사후 모양 파라메터다. 매 시점 실험군별 전환율을 사후에서 하나씩 뽑고 가장 큰 군을 선택한 뒤 그 군의 성공·실패만 갱신한다. 고정되고 독립적인 리워드 모형을 가정하며 유한 실행에서 항상 최적 군을 알아내거나 고정 비율을 선택한다는 보장은 없다.
 
     ```python
-import numpy as np
+    import numpy as np
 
-np.random.seed(42)
-true_rates = [0.10, 0.12, 0.15]
-n_arms = 3
-successes = np.ones(n_arms)
-failures = np.ones(n_arms)
-n_rounds = 5000
+    np.random.seed(42)
+    true_rates = [0.10, 0.12, 0.15]
+    n_arms = 3
+    successes = np.ones(n_arms)
+    failures = np.ones(n_arms)
+    n_rounds = 5000
 
-choices = []
-for _ in range(n_rounds):
-    samples = [np.random.beta(successes[k], failures[k]) for k in range(n_arms)]
-    chosen = np.argmax(samples)
-    choices.append(chosen)
+    choices = []
+    for _ in range(n_rounds):
+        samples = [np.random.beta(successes[k], failures[k]) for k in range(n_arms)]
+        chosen = np.argmax(samples)
+        choices.append(chosen)
     
-    reward = np.random.binomial(1, true_rates[chosen])
-    successes[chosen] += reward
-    failures[chosen] += (1 - reward)
+        reward = np.random.binomial(1, true_rates[chosen])
+        successes[chosen] += reward
+        failures[chosen] += (1 - reward)
 
-for k in range(n_arms):
-    times_chosen = choices.count(k)
-    print(f'Arm {k} (rate={true_rates[k]}): chosen {times_chosen} times '
-          f'({times_chosen/n_rounds*100:.1f}%)')
-print(f'Best arm chosen: {choices.count(2)/n_rounds*100:.1f}% of the time')
-```
+    for k in range(n_arms):
+        times_chosen = choices.count(k)
+        print(f'Arm {k} (rate={true_rates[k]}): chosen {times_chosen} times '
+              f'({times_chosen/n_rounds*100:.1f}%)')
+    print(f'Best arm chosen: {choices.count(2)/n_rounds*100:.1f}% of the time')
+    ```
 
 
 ## 정리하며

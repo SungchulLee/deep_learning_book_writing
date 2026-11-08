@@ -4,172 +4,172 @@
 
 ## 1. 코드와 기존 출력
 
-    ```python
-    """
-    튜토리얼 10: 언어 모델 평가
-    =======================================
+```python
+"""
+튜토리얼 10: 언어 모델 평가
+=======================================
 
-    언어 모델을 두루 살피는 평가 지표와 방법.
+언어 모델을 두루 살피는 평가 지표와 방법.
 
-    평가의 클래스:
-    1. 내재 지표(퍼플렉서티, 글자당 비트)
-    2. 바깥 지표(뒤따르는 일의 성능)
-    3. 사람의 평가
-    4. 여러 클래스임과 좋음의 지표
+평가의 클래스:
+1. 내재 지표(퍼플렉서티, 글자당 비트)
+2. 바깥 지표(뒤따르는 일의 성능)
+3. 사람의 평가
+4. 여러 클래스임과 좋음의 지표
 
-    핵심 지표:
-    -----------
+핵심 지표:
+-----------
 
-    1. 퍼플렉서티(PPL):
-       PPL = exp(-1/N ∑ log P(w_i | context))
-       - 낮을수록 좋다
-       - 모델이 시험 자료에 얼마나 "놀라는지" 잰다
+1. 퍼플렉서티(PPL):
+   PPL = exp(-1/N ∑ log P(w_i | context))
+   - 낮을수록 좋다
+   - 모델이 시험 자료에 얼마나 "놀라는지" 잰다
 
-    2. 글자당 비트(BPC):
-       BPC = -1/(N*log(2)) ∑ log P(w_i | context)
-       - 낮을수록 좋다
-       - 글자 수로 고르게 맞춤
+2. 글자당 비트(BPC):
+   BPC = -1/(N*log(2)) ∑ log P(w_i | context)
+   - 낮을수록 좋다
+   - 글자 수로 고르게 맞춤
 
-    3. 엇갈린 엔트로피:
-       H = -1/N ∑ log P(w_i | context)
-       - 곧바른 로스 지표
-       - 퍼플렉서티 = exp(H)
-    """
+3. 엇갈린 엔트로피:
+   H = -1/N ∑ log P(w_i | context)
+   - 곧바른 로스 지표
+   - 퍼플렉서티 = exp(H)
+"""
 
-    import torch
-    import torch.nn as nn
-    import numpy as np
-    from collections import Counter
-    from typing import List, Dict
-    import math
+import torch
+import torch.nn as nn
+import numpy as np
+from collections import Counter
+from typing import List, Dict
+import math
 
-    # ========================================================================
-    # 메인
-    # ========================================================================
+# ========================================================================
+# 메인
+# ========================================================================
 
 
-    class LanguageModelEvaluator:
-        """언어 모델을 두루 살피는 평가 꾸러미."""
+class LanguageModelEvaluator:
+    """언어 모델을 두루 살피는 평가 꾸러미."""
 
-        def __init__(self, model, vocab, device='cpu'):
-            self.model = model
-            self.vocab = vocab
-            self.device = device
-            self.model.to(device)
+    def __init__(self, model, vocab, device='cpu'):
+        self.model = model
+        self.vocab = vocab
+        self.device = device
+        self.model.to(device)
 
-        def compute_perplexity(self, test_corpus: List[str]) -> float:
-            """
-            시험 말뭉치에서 퍼플렉서티 셈하기.
+    def compute_perplexity(self, test_corpus: List[str]) -> float:
+        """
+        시험 말뭉치에서 퍼플렉서티 셈하기.
 
-            퍼플렉서티 = exp(평균 음의 로그 가능도)
+        퍼플렉서티 = exp(평균 음의 로그 가능도)
 
-            인수:
-                test_corpus: 시험 월의 목록
+        인수:
+            test_corpus: 시험 월의 목록
 
-            반환값:
-                퍼플렉서티 점수(낮을수록 좋다)
-            """
-            self.model.eval()
-            total_loss = 0
-            total_words = 0
+        반환값:
+            퍼플렉서티 점수(낮을수록 좋다)
+        """
+        self.model.eval()
+        total_loss = 0
+        total_words = 0
 
-            criterion = nn.CrossEntropyLoss(reduction='sum', ignore_index=0)
+        criterion = nn.CrossEntropyLoss(reduction='sum', ignore_index=0)
 
-            with torch.no_grad():
-                for sentence in test_corpus:
-                    words = sentence.lower().split()
-                    words = [self.vocab.START_TOKEN] + words + [self.vocab.END_TOKEN]
-                    indices = [self.vocab.word_to_idx(w) for w in words]
+        with torch.no_grad():
+            for sentence in test_corpus:
+                words = sentence.lower().split()
+                words = [self.vocab.START_TOKEN] + words + [self.vocab.END_TOKEN]
+                indices = [self.vocab.word_to_idx(w) for w in words]
 
-                    if len(indices) < 2:
-                        continue
+                if len(indices) < 2:
+                    continue
 
-                    # 들임과 목표 만들기
-                    input_seq = torch.tensor([indices[:-1]], dtype=torch.long).to(self.device)
-                    target_seq = torch.tensor([indices[1:]], dtype=torch.long).to(self.device)
+                # 들임과 목표 만들기
+                input_seq = torch.tensor([indices[:-1]], dtype=torch.long).to(self.device)
+                target_seq = torch.tensor([indices[1:]], dtype=torch.long).to(self.device)
 
-                    # 순전파
-                    if hasattr(self.model, 'lstm') or hasattr(self.model, 'rnn'):
-                        logits, _ = self.model(input_seq)
-                    else:
-                        logits = self.model(input_seq)
+                # 순전파
+                if hasattr(self.model, 'lstm') or hasattr(self.model, 'rnn'):
+                    logits, _ = self.model(input_seq)
+                else:
+                    logits = self.model(input_seq)
 
-                    # 로스를 계산한다
-                    loss = criterion(logits.view(-1, logits.size(-1)), target_seq.view(-1))
+                # 로스를 계산한다
+                loss = criterion(logits.view(-1, logits.size(-1)), target_seq.view(-1))
 
-                    total_loss += loss.item()
-                    total_words += len(indices) - 1
+                total_loss += loss.item()
+                total_words += len(indices) - 1
 
-            # 퍼플렉서티 = exp(평균 로스)
-            avg_loss = total_loss / total_words
-            perplexity = math.exp(avg_loss)
+        # 퍼플렉서티 = exp(평균 로스)
+        avg_loss = total_loss / total_words
+        perplexity = math.exp(avg_loss)
 
-            return perplexity
+        return perplexity
 
-        def compute_bits_per_character(self, test_corpus: List[str]) -> float:
-            """
-            글자당 비트 지표 셈하기.
+    def compute_bits_per_character(self, test_corpus: List[str]) -> float:
+        """
+        글자당 비트 지표 셈하기.
 
-            인수:
-                test_corpus: 시험 월의 목록
+        인수:
+            test_corpus: 시험 월의 목록
 
-            반환값:
-                글자당 비트 점수(낮을수록 좋다)
-            """
-            total_log_prob = 0
-            total_chars = 0
+        반환값:
+            글자당 비트 점수(낮을수록 좋다)
+        """
+        total_log_prob = 0
+        total_chars = 0
 
-            self.model.eval()
+        self.model.eval()
 
-            with torch.no_grad():
-                for sentence in test_corpus:
-                    words = sentence.lower().split()
-                    words = [self.vocab.START_TOKEN] + words + [self.vocab.END_TOKEN]
-                    indices = [self.vocab.word_to_idx(w) for w in words]
+        with torch.no_grad():
+            for sentence in test_corpus:
+                words = sentence.lower().split()
+                words = [self.vocab.START_TOKEN] + words + [self.vocab.END_TOKEN]
+                indices = [self.vocab.word_to_idx(w) for w in words]
 
-                    if len(indices) < 2:
-                        continue
+                if len(indices) < 2:
+                    continue
 
-                    input_seq = torch.tensor([indices[:-1]], dtype=torch.long).to(self.device)
-                    target_seq = torch.tensor(indices[1:], dtype=torch.long).to(self.device)
+                input_seq = torch.tensor([indices[:-1]], dtype=torch.long).to(self.device)
+                target_seq = torch.tensor(indices[1:], dtype=torch.long).to(self.device)
 
-                    if hasattr(self.model, 'lstm') or hasattr(self.model, 'rnn'):
-                        logits, _ = self.model(input_seq)
-                    else:
-                        logits = self.model(input_seq)
+                if hasattr(self.model, 'lstm') or hasattr(self.model, 'rnn'):
+                    logits, _ = self.model(input_seq)
+                else:
+                    logits = self.model(input_seq)
 
-                    # 로그 확률 얻기
-                    log_probs = torch.log_softmax(logits[0], dim=-1)
+                # 로그 확률 얻기
+                log_probs = torch.log_softmax(logits[0], dim=-1)
 
-                    # 목표 단어의 로그 확률 더하기
-                    for i, target_word_idx in enumerate(target_seq):
-                        total_log_prob += log_probs[i, target_word_idx].item()
+                # 목표 단어의 로그 확률 더하기
+                for i, target_word_idx in enumerate(target_seq):
+                    total_log_prob += log_probs[i, target_word_idx].item()
 
-                    # 본디 월의 글자 세기
-                    total_chars += len(sentence)
+                # 본디 월의 글자 세기
+                total_chars += len(sentence)
 
-            # BPC = -log_prob / (chars * log(2))
-            bpc = -total_log_prob / (total_chars * math.log(2))
+        # BPC = -log_prob / (chars * log(2))
+        bpc = -total_log_prob / (total_chars * math.log(2))
 
-            return bpc
+        return bpc
 
-        def evaluate_generation_diversity(self, num_samples: int = 100,
-                                         max_length: int = 20) -> Dict:
-            """
-            만든 표본의 여러 클래스임 평가하기.
+    def evaluate_generation_diversity(self, num_samples: int = 100,
+                                     max_length: int = 20) -> Dict:
+        """
+        만든 표본의 여러 클래스임 평가하기.
 
-            지표:
-            - 겹치지 않는 n-그램
-            - 자기 BLEU(낮을수록 여러 클래스)
-            - 엔트로피
+        지표:
+        - 겹치지 않는 n-그램
+        - 자기 BLEU(낮을수록 여러 클래스)
+        - 엔트로피
 
-            인수:
-                num_samples: 만들 표본의 개수
-                max_length: 표본마다의 최대 길이
+        인수:
+            num_samples: 만들 표본의 개수
+            max_length: 표본마다의 최대 길이
 
-            반환값:
-                여러 클래스임 지표의 사전
-            """
+        반환값:
+            여러 클래스임 지표의 사전
+        """
 import torch
 import torch.nn.functional as F
 import numpy as np
@@ -222,68 +222,68 @@ from typing import List, Optional
 
 class GenerationStrategies:
     """글 만들어 내기 전략 모음."""
-    
+
     @staticmethod
     def greedy_search(model, input_ids, max_length=50, vocab=None):
         """그리디 디코딩 — 늘 가장 그럴듯한 단어를 고른다."""
         model.eval()
         generated = input_ids.clone()
-        
+    
         for _ in range(max_length):
             with torch.no_grad():
                 if hasattr(model, 'lstm') or hasattr(model, 'rnn'):
                     logits, _ = model(generated)
                 else:
                     logits = model(generated)
-                
+            
                 # 마지막 자리의 로짓을 얻는다
                 next_token_logits = logits[:, -1, :]
-                
+            
                 # 그리디: 가장 그럴듯한 것 고르기
                 next_token = torch.argmax(next_token_logits, dim=-1)
-                
+            
                 generated = torch.cat([generated, next_token.unsqueeze(-1)], dim=-1)
-                
+            
                 # 끝 토큰인지 살피기
                 if vocab and next_token.item() == vocab.word_to_idx(vocab.END_TOKEN):
                     break
-        
-        return generated
     
+        return generated
+
     @staticmethod
     def top_k_sampling(model, input_ids, max_length=50, k=50, 
                       temperature=1.0, vocab=None):
         """가장 그럴듯한 상위 k개 토큰에서 뽑기."""
         model.eval()
         generated = input_ids.clone()
-        
+    
         for _ in range(max_length):
             with torch.no_grad():
                 if hasattr(model, 'lstm') or hasattr(model, 'rnn'):
                     logits, _ = model(generated)
                 else:
                     logits = model(generated)
-                
+            
                 next_token_logits = logits[:, -1, :]
-                
+            
                 # 온도를 적용한다
                 next_token_logits = next_token_logits / temperature
-                
+            
                 # 상위 k 거르기
                 top_k_logits, top_k_indices = torch.topk(next_token_logits, k)
                 probs = F.softmax(top_k_logits, dim=-1)
-                
+            
                 # 상위 k에서 뽑기
                 next_token_idx = torch.multinomial(probs, 1)
                 next_token = top_k_indices.gather(-1, next_token_idx)
-                
+            
                 generated = torch.cat([generated, next_token], dim=-1)
-                
+            
                 if vocab and next_token.item() == vocab.word_to_idx(vocab.END_TOKEN):
                     break
-        
-        return generated
     
+        return generated
+
     @staticmethod
     def nucleus_sampling(model, input_ids, max_length=50, p=0.95,
                         temperature=1.0, vocab=None):
@@ -293,47 +293,47 @@ class GenerationStrategies:
         """
         model.eval()
         generated = input_ids.clone()
-        
+    
         for _ in range(max_length):
             with torch.no_grad():
                 if hasattr(model, 'lstm') or hasattr(model, 'rnn'):
                     logits, _ = model(generated)
                 else:
                     logits = model(generated)
-                
+            
                 next_token_logits = logits[:, -1, :] / temperature
                 probs = F.softmax(next_token_logits, dim=-1)
-                
+            
                 # 확률 정렬
                 sorted_probs, sorted_indices = torch.sort(probs, descending=True)
-                
+            
                 # 쌓인 확률 셈하기
                 cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
-                
+            
                 # 쌓인 확률이 문턱값을 넘는 토큰 없애기
                 sorted_indices_to_remove = cumulative_probs > p
                 # 적어도 토큰 하나는 남기기
                 sorted_indices_to_remove[..., 0] = False
-                
+            
                 # 마스크 만들기
                 indices_to_remove = sorted_indices_to_remove.scatter(
                     -1, sorted_indices, sorted_indices_to_remove
                 )
-                
+            
                 # 확률 거르기
                 filtered_probs = probs.clone()
                 filtered_probs[indices_to_remove] = 0
                 filtered_probs = filtered_probs / filtered_probs.sum()
-                
+            
                 # 뽑기
                 next_token = torch.multinomial(filtered_probs, 1)
                 generated = torch.cat([generated, next_token], dim=-1)
-                
+            
                 if vocab and next_token.item() == vocab.word_to_idx(vocab.END_TOKEN):
                     break
-        
-        return generated
     
+        return generated
+
     @staticmethod
     def beam_search(model, input_ids, max_length=50, beam_width=5,
                    length_penalty=1.0, vocab=None):
@@ -344,41 +344,41 @@ class GenerationStrategies:
         model.eval()
         batch_size = input_ids.size(0)
         vocab_size = model.fc.out_features
-        
+    
         # 빔 초기화: (batch_size * beam_width, seq_len)
         beams = input_ids.unsqueeze(1).repeat(1, beam_width, 1)
         beams = beams.view(batch_size * beam_width, -1)
-        
+    
         # 빔마다의 점수
         beam_scores = torch.zeros(batch_size, beam_width)
         beam_scores[:, 1:] = -float('inf')  # 처음에는 첫 빔만 살아 있다
         beam_scores = beam_scores.view(-1)
-        
+    
         for step in range(max_length):
             with torch.no_grad():
                 if hasattr(model, 'lstm') or hasattr(model, 'rnn'):
                     logits, _ = model(beams)
                 else:
                     logits = model(beams)
-                
+            
                 next_token_logits = logits[:, -1, :]
                 next_token_scores = F.log_softmax(next_token_logits, dim=-1)
-                
+            
                 # 빔 점수에 더하기
                 next_scores = beam_scores.unsqueeze(-1) + next_token_scores
                 next_scores = next_scores.view(batch_size, -1)
-                
+            
                 # 상위 beam_width개 후보 얻기
                 top_scores, top_indices = torch.topk(next_scores, beam_width, dim=-1)
-                
+            
                 # 어느 빔인지, 어느 토큰인지 셈하기
                 beam_indices = top_indices // vocab_size
                 token_indices = top_indices % vocab_size
-                
+            
                 # 빔 고치기
                 new_beams = []
                 new_scores = []
-                
+            
                 for i in range(batch_size):
                     for j in range(beam_width):
                         beam_idx = i * beam_width + beam_indices[i, j]
@@ -388,10 +388,10 @@ class GenerationStrategies:
                         ])
                         new_beams.append(new_beam)
                         new_scores.append(top_scores[i, j])
-                
+            
                 beams = torch.stack(new_beams)
                 beam_scores = torch.tensor(new_scores)
-        
+    
         # 가장 좋은 빔 돌려주기
         best_beam_idx = beam_scores[:beam_width].argmax()
         return beams[best_beam_idx].unsqueeze(0)
@@ -399,12 +399,12 @@ class GenerationStrategies:
 
 class RepetitionPenalty:
     """로짓에 되풀이 벌주기 쓰기."""
-    
+
     @staticmethod
     def apply(logits, generated_tokens, penalty=1.2):
         """
         되풀이된 토큰의 로짓을 벌주기로 나누어 벌준다.
-        
+    
         인수:
             logits: (vocab_size,) 로짓
             generated_tokens: 앞서 만든 토큰 번호의 목록
@@ -417,10 +417,10 @@ class RepetitionPenalty:
 
 def demonstrate_generation_strategies():
     """여러 만들어 내기 전략 견주기."""
-    
+
     print("Text Generation Strategies Comparison")
     print("=" * 70)
-    
+
     print("""
 전략의 성질:
 ------------------------
@@ -466,7 +466,7 @@ def demonstrate_generation_strategies():
 
 if __name__ == "__main__":
     demonstrate_generation_strategies()
-    
+
     print("""
 학습 문제:
 1. 만들어 내기에 되풀이 벌주기 짜기
@@ -706,114 +706,114 @@ if __name__ == "__main__":
     9. 맞서는 보기로 시험하기
     10. 만든 글의 공정함과 치우침 재기
         """)
-    ```
+```
 
 **기존 출력:**
 
-    ```
-    ======================================================================
-    Language Model Evaluation Metrics
-    ======================================================================
+```
+======================================================================
+Language Model Evaluation Metrics
+======================================================================
 
-    1. 퍼플렉서티
-    -------------
-    - 가장 흔한 내재 지표
-    - 모델이 시험 자료를 얼마나 잘 예측하는지 잰다
-    - 낮을수록 좋다
-    - 읽는 법: "평균적으로 모델이 단어 PPL개 가운데서 고르고 있다"
+1. 퍼플렉서티
+-------------
+- 가장 흔한 내재 지표
+- 모델이 시험 자료를 얼마나 잘 예측하는지 잰다
+- 낮을수록 좋다
+- 읽는 법: "평균적으로 모델이 단어 PPL개 가운데서 고르고 있다"
 
-    흔한 값:
-      n-그램 모델: 200~400 (PTB)
-      LSTM: 80~120 (PTB)
-      트랜스포머: 60~80 (PTB)
-      크게 미리 학습: 20~40 (PTB)
+흔한 값:
+  n-그램 모델: 200~400 (PTB)
+  LSTM: 80~120 (PTB)
+  트랜스포머: 60~80 (PTB)
+  크게 미리 학습: 20~40 (PTB)
 
-    한계:
-    - 만들어 낸 글의 좋음과 곧바로 이어지지는 않는다
-    - 단어 곳간이 다르면 견줄 수 없다
-    - 뜻의 조리는 재지 못한다
-
-
-    2. 글자당 비트
-    ---------------------
-    - 고르게 맞춘 지표
-    - 토큰내기가 달라도 견줄 수 있다
-    - 낮을수록 좋다
-    - 글자 수준 모델에 쓴다
+한계:
+- 만들어 낸 글의 좋음과 곧바로 이어지지는 않는다
+- 단어 곳간이 다르면 견줄 수 없다
+- 뜻의 조리는 재지 못한다
 
 
-    3. 여러 클래스임 지표
-    --------------------
-    - 다른 n-그램: 전체 n-그램에 대한 겹치지 않는 것의 비
-    - 자기 BLEU: 만든 표본끼리의 BLEU 점수(낮을수록 여러 클래스)
-    - 엔트로피: 단어 분포의 섀넌 엔트로피
-    - 되풀이 비율: 되풀이되는 차례의 잦기
+2. 글자당 비트
+---------------------
+- 고르게 맞춘 지표
+- 토큰내기가 달라도 견줄 수 있다
+- 낮을수록 좋다
+- 글자 수준 모델에 쓴다
 
 
-    4. 사람의 평가
-    -------------------
-    평가할 클래스:
-    - 매끄러움: 말법의 올바름
-    - 조리: 논리의 흐름
-    - 한결같음: 어긋남 없음
-    - 맞닿음: 주제에 맞음
-    - 사실다움: 참됨
-
-    매김 지표:
-    - 리커트 지표(1~5)
-    - 짝 견줌
-    - 가장 좋음-가장 나쁨 지표
+3. 여러 클래스임 지표
+--------------------
+- 다른 n-그램: 전체 n-그램에 대한 겹치지 않는 것의 비
+- 자기 BLEU: 만든 표본끼리의 BLEU 점수(낮을수록 여러 클래스)
+- 엔트로피: 단어 분포의 섀넌 엔트로피
+- 되풀이 비율: 되풀이되는 차례의 잦기
 
 
-    5. 뒤따르는 일
-    -------------------
-    구체적인 쓰임새에서 평가하기:
-    - 글 이어 쓰기
-    - 물음 답하기
-    - 간추리기
-    - 옮김
-    - 대화
+4. 사람의 평가
+-------------------
+평가할 클래스:
+- 매끄러움: 말법의 올바름
+- 조리: 논리의 흐름
+- 한결같음: 어긋남 없음
+- 맞닿음: 주제에 맞음
+- 사실다움: 참됨
+
+매김 지표:
+- 리커트 지표(1~5)
+- 짝 견줌
+- 가장 좋음-가장 나쁨 지표
 
 
-    평가의 좋은 버릇:
-    ---------------------------
-    1. 지표를 여럿 쓴다(내재 + 바깥)
-    2. 믿음 구간을 함께 알린다
-    3. 여러 분야에서 시험하기
-    4. 사람의 평가를 넣는다
-    5. 치우침 살피기
-    6. 효율 재기(빠르기, 기억 공간)
-    7. 어그러지는 방식 평가하기
-    8. 센 바탕 지표와 견주기
-        
-
-    ======================================================================
-    Model Comparison Framework
-    ======================================================================
-
-    Model Performance Comparison:
-    ----------------------------------------------------------------------
-    Model           Perplexity   Speed                Memory    
-    ----------------------------------------------------------------------
-    N-gram          350          Very Fast            Low       
-    LSTM            100          Medium               Medium    
-    Transformer     70           Slow (train), Fast (inference) High      
-    GPT-2           35           Medium               Very High 
+5. 뒤따르는 일
+-------------------
+구체적인 쓰임새에서 평가하기:
+- 글 이어 쓰기
+- 물음 답하기
+- 간추리기
+- 옮김
+- 대화
 
 
-    학습 문제:
-    1. 언어 모델의 BLEU 점수 짜기
-    2. 여러 클래스임을 재려 자기 BLEU 셈하기
-    3. A/B 시험 얼거리 짜기
-    4. 지표를 그려 보는 대시보드 만들기
-    5. 엇갈린 엔트로피 쪼갬 살피기 짜기
-    6. 사람의 평가 사이 만들기
-    7. 지표와 사람의 판단 사이 얽힘 재기
-    8. 모델 눈금 맞추기 평가하기(믿음도와 정확도)
-    9. 맞서는 보기로 시험하기
-    10. 만든 글의 공정함과 치우침 재기
-        
-    ```
+평가의 좋은 버릇:
+---------------------------
+1. 지표를 여럿 쓴다(내재 + 바깥)
+2. 믿음 구간을 함께 알린다
+3. 여러 분야에서 시험하기
+4. 사람의 평가를 넣는다
+5. 치우침 살피기
+6. 효율 재기(빠르기, 기억 공간)
+7. 어그러지는 방식 평가하기
+8. 센 바탕 지표와 견주기
+    
+
+======================================================================
+Model Comparison Framework
+======================================================================
+
+Model Performance Comparison:
+----------------------------------------------------------------------
+Model           Perplexity   Speed                Memory    
+----------------------------------------------------------------------
+N-gram          350          Very Fast            Low       
+LSTM            100          Medium               Medium    
+Transformer     70           Slow (train), Fast (inference) High      
+GPT-2           35           Medium               Very High 
+
+
+학습 문제:
+1. 언어 모델의 BLEU 점수 짜기
+2. 여러 클래스임을 재려 자기 BLEU 셈하기
+3. A/B 시험 얼거리 짜기
+4. 지표를 그려 보는 대시보드 만들기
+5. 엇갈린 엔트로피 쪼갬 살피기 짜기
+6. 사람의 평가 사이 만들기
+7. 지표와 사람의 판단 사이 얽힘 재기
+8. 모델 눈금 맞추기 평가하기(믿음도와 정확도)
+9. 맞서는 보기로 시험하기
+10. 만든 글의 공정함과 치우침 재기
+    
+```
 
 ## 2. 퍼플렉서티의 정의와 집계
 

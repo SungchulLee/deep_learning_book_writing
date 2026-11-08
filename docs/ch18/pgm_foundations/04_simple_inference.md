@@ -589,41 +589,41 @@ MPE는 증거 이외 모든 변수의 공동 상태를 최대화한다. 일부 �
     기각 방식은 실제 WetGrass를 생성해 1인 표본만 남긴다. 우도 가중 방식은 WetGrass=1을 고정하고 P(WetGrass=1|Sprinkler,Rain)으로 Rain 값을 가중한다. 모든 표본을 쓴다고 항상 효율적인 것은 아니며 웨이트 집중과 유효 표본 수를 비교해야 한다. 두 코드의 50,000회 결과는 난수에 따른 근사이며 시간·오차의 보편적 순서를 보장하지 않는다.
 
     ```python
-import numpy as np
+    import numpy as np
 
-np.random.seed(42)
-n_samples = 50000
+    np.random.seed(42)
+    n_samples = 50000
 
-# 물리치기 표집
-accepted_rain = []
-for _ in range(n_samples):
-    c = np.random.binomial(1, 0.5)
-    s = np.random.binomial(1, 0.1 if c else 0.5)
-    r = np.random.binomial(1, 0.8 if c else 0.2)
-    pw = [[0,0.9],[0.9,0.99]][s][r] if r or s else 0
-    w = np.random.binomial(1, [[0,0.9],[0.9,0.99]][s][r])
-    if w == 1:
-        accepted_rain.append(r)
+    # 물리치기 표집
+    accepted_rain = []
+    for _ in range(n_samples):
+        c = np.random.binomial(1, 0.5)
+        s = np.random.binomial(1, 0.1 if c else 0.5)
+        r = np.random.binomial(1, 0.8 if c else 0.2)
+        pw = [[0,0.9],[0.9,0.99]][s][r] if r or s else 0
+        w = np.random.binomial(1, [[0,0.9],[0.9,0.99]][s][r])
+        if w == 1:
+            accepted_rain.append(r)
 
-print(f'Rejection: P(R=1|W=1)={np.mean(accepted_rain):.4f}, '
-      f'accepted={len(accepted_rain)}/{n_samples}')
+    print(f'Rejection: P(R=1|W=1)={np.mean(accepted_rain):.4f}, '
+          f'accepted={len(accepted_rain)}/{n_samples}')
 
-# 가능도 무게 주기
-weighted_rain = []
-weights = []
-for _ in range(n_samples):
-    c = np.random.binomial(1, 0.5)
-    s = np.random.binomial(1, 0.1 if c else 0.5)
-    r = np.random.binomial(1, 0.8 if c else 0.2)
-    w_prob = [[0,0.9],[0.9,0.99]][s][r]
-    weighted_rain.append(r)
-    weights.append(w_prob)
+    # 가능도 무게 주기
+    weighted_rain = []
+    weights = []
+    for _ in range(n_samples):
+        c = np.random.binomial(1, 0.5)
+        s = np.random.binomial(1, 0.1 if c else 0.5)
+        r = np.random.binomial(1, 0.8 if c else 0.2)
+        w_prob = [[0,0.9],[0.9,0.99]][s][r]
+        weighted_rain.append(r)
+        weights.append(w_prob)
 
-weights = np.array(weights)
-weighted_rain = np.array(weighted_rain)
-result = np.sum(weights * weighted_rain) / np.sum(weights)
-print(f'Likelihood weighting: P(R=1|W=1)={result:.4f}, used all {n_samples} samples')
-```
+    weights = np.array(weights)
+    weighted_rain = np.array(weighted_rain)
+    result = np.sum(weights * weighted_rain) / np.sum(weights)
+    print(f'Likelihood weighting: P(R=1|W=1)={result:.4f}, used all {n_samples} samples')
+    ```
 
 
 ## 정리하며

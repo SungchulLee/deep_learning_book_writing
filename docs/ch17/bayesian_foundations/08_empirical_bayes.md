@@ -217,24 +217,24 @@ James–Stein의 결과는 알려진 공통 분산을 가진 독립 정규평균
     관측 y의 분산에서 알려진 잡음 분산 1을 빼 그룹 간 분산을 추정하고, 평균을 수축 중심으로 대입한다. 0.01은 음수·0 분산을 피하기 위한 임의 하한이며 정확한 주변최대우도 해가 아니다. 하이퍼파라미터 추정 오차는 별도로 반영하지 않는다.
 
     ```python
-import numpy as np
+    import numpy as np
 
-np.random.seed(42)
-true_mu, true_tau = 3.0, 2.0
-thetas = np.random.normal(true_mu, true_tau, 10)
-y = np.array([np.random.normal(t, 1.0) for t in thetas])
+    np.random.seed(42)
+    true_mu, true_tau = 3.0, 2.0
+    thetas = np.random.normal(true_mu, true_tau, 10)
+    y = np.array([np.random.normal(t, 1.0) for t in thetas])
 
-# 적률법 어림값
-mu_hat = np.mean(y)
-tau2_hat = max(np.var(y) - 1.0, 0.01)
+    # 적률법 어림값
+    mu_hat = np.mean(y)
+    tau2_hat = max(np.var(y) - 1.0, 0.01)
 
-# 오그라들기
-w = tau2_hat / (tau2_hat + 1.0)
-eb_est = w * y + (1 - w) * mu_hat
+    # 오그라들기
+    w = tau2_hat / (tau2_hat + 1.0)
+    eb_est = w * y + (1 - w) * mu_hat
 
-print(f'MSE (MLE): {np.mean((y - thetas)**2):.4f}')
-print(f'MSE (EB):  {np.mean((eb_est - thetas)**2):.4f}')
-```
+    print(f'MSE (MLE): {np.mean((y - thetas)**2):.4f}')
+    print(f'MSE (EB):  {np.mean((eb_est - thetas)**2):.4f}')
+    ```
 
 
 ---
@@ -266,37 +266,37 @@ print(f'MSE (EB):  {np.mean((eb_est - thetas)**2):.4f}')
     베타 적률 플러그인, 로짓 값의 휴리스틱 수축, 0.7·0.3의 고정 평균 수축을 비교한다. 커널 밀도 추정은 구현되어 있지 않고 로짓 관측 잡음도 정확한 이항 모형과 다르다. 시뮬레이션의 참 능력이 베타에서 나왔어도 유한 자료에서 특정 추정이 항상 MSE가 최소인 것은 아니다.
 
     ```python
-import numpy as np
-from scipy import stats
-from scipy.optimize import minimize
+    import numpy as np
+    from scipy import stats
+    from scipy.optimize import minimize
 
-np.random.seed(42)
-n_players = 20
-true_ab = np.random.beta(80, 220, n_players)
-at_bats = np.random.randint(20, 100, n_players)
-hits = np.array([np.random.binomial(ab, ta) for ab, ta in zip(at_bats, true_ab)])
-obs_avg = hits / at_bats
+    np.random.seed(42)
+    n_players = 20
+    true_ab = np.random.beta(80, 220, n_players)
+    at_bats = np.random.randint(20, 100, n_players)
+    hits = np.array([np.random.binomial(ab, ta) for ab, ta in zip(at_bats, true_ab)])
+    obs_avg = hits / at_bats
 
-# 1. 베타 앞확률(적률법)
-m, v = np.mean(obs_avg), np.var(obs_avg)
-a_b = m * (m*(1-m)/v - 1)
-b_b = (1-m) * (m*(1-m)/v - 1)
-eb_beta = (hits + a_b) / (at_bats + a_b + b_b)
+    # 1. 베타 앞확률(적률법)
+    m, v = np.mean(obs_avg), np.var(obs_avg)
+    a_b = m * (m*(1-m)/v - 1)
+    b_b = (1-m) * (m*(1-m)/v - 1)
+    eb_beta = (hits + a_b) / (at_bats + a_b + b_b)
 
-# 2. 단순 오그라들기(로짓 눈금에서 정규)
-logit_avg = np.log(obs_avg/(1-obs_avg+1e-10)+1e-10)
-mu_l = np.mean(logit_avg)
-sig_l = np.std(logit_avg)
-w = sig_l**2 / (sig_l**2 + 1.0/at_bats)
-eb_logit = 1/(1+np.exp(-(w*logit_avg + (1-w)*mu_l)))
+    # 2. 단순 오그라들기(로짓 눈금에서 정규)
+    logit_avg = np.log(obs_avg/(1-obs_avg+1e-10)+1e-10)
+    mu_l = np.mean(logit_avg)
+    sig_l = np.std(logit_avg)
+    w = sig_l**2 / (sig_l**2 + 1.0/at_bats)
+    eb_logit = 1/(1+np.exp(-(w*logit_avg + (1-w)*mu_l)))
 
-# 3. 큰 평균 오그라들기
-grand = np.mean(obs_avg)
-eb_simple = 0.7*obs_avg + 0.3*grand
+    # 3. 큰 평균 오그라들기
+    grand = np.mean(obs_avg)
+    eb_simple = 0.7*obs_avg + 0.3*grand
 
-for name, est in [('Beta', eb_beta), ('Logit', eb_logit), ('Simple', eb_simple), ('Raw', obs_avg)]:
-    print(f'{name:8s} MSE: {np.mean((est-true_ab)**2):.6f}')
-```
+    for name, est in [('Beta', eb_beta), ('Logit', eb_logit), ('Simple', eb_simple), ('Raw', obs_avg)]:
+        print(f'{name:8s} MSE: {np.mean((est-true_ab)**2):.6f}')
+    ```
 
 
 ## 정리하며

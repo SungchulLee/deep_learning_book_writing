@@ -217,30 +217,30 @@ _확인한 곳 — "Student" (W. S. Gosset), "The Probable Error of a Mean", *Bi
     pred_std는 sigma_sq를 포함하므로 새 관측의 예측구간이다. 잠재 함수 구간에는 계수 불확실성 x_*ᵀV_nx_*만 사용한다. 다항식은 계수에 선형이지만 sin(x)를 정확히 표현하지는 않으므로 모형 오차도 남는다.
 
     ```python
-import numpy as np
-import matplotlib.pyplot as plt
+    import numpy as np
+    import matplotlib.pyplot as plt
 
-np.random.seed(42)
-n = 40
-X_raw = np.sort(np.random.uniform(0, 2*np.pi, n))
-y = np.sin(X_raw) + np.random.normal(0, 0.3, n)
-X_design = np.column_stack([X_raw**k for k in range(4)])
+    np.random.seed(42)
+    n = 40
+    X_raw = np.sort(np.random.uniform(0, 2*np.pi, n))
+    y = np.sin(X_raw) + np.random.normal(0, 0.3, n)
+    X_design = np.column_stack([X_raw**k for k in range(4)])
 
-m0, V0 = np.zeros(4), np.eye(4) * 10
-sigma_sq = 0.09
-Vn = np.linalg.inv(np.linalg.inv(V0) + X_design.T @ X_design / sigma_sq)
-mn = Vn @ (X_design.T @ y / sigma_sq)
+    m0, V0 = np.zeros(4), np.eye(4) * 10
+    sigma_sq = 0.09
+    Vn = np.linalg.inv(np.linalg.inv(V0) + X_design.T @ X_design / sigma_sq)
+    mn = Vn @ (X_design.T @ y / sigma_sq)
 
-X_test = np.linspace(0, 2*np.pi, 200)
-X_td = np.column_stack([X_test**k for k in range(4)])
-y_pred = X_td @ mn
-pred_std = np.sqrt(sigma_sq + np.sum((X_td @ Vn) * X_td, axis=1))
+    X_test = np.linspace(0, 2*np.pi, 200)
+    X_td = np.column_stack([X_test**k for k in range(4)])
+    y_pred = X_td @ mn
+    pred_std = np.sqrt(sigma_sq + np.sum((X_td @ Vn) * X_td, axis=1))
 
-plt.scatter(X_raw, y, alpha=0.6)
-plt.plot(X_test, y_pred, 'r-', linewidth=2)
-plt.fill_between(X_test, y_pred-2*pred_std, y_pred+2*pred_std, alpha=0.3, color='red')
-plt.show()
-```
+    plt.scatter(X_raw, y, alpha=0.6)
+    plt.plot(X_test, y_pred, 'r-', linewidth=2)
+    plt.fill_between(X_test, y_pred-2*pred_std, y_pred+2*pred_std, alpha=0.3, color='red')
+    plt.show()
+    ```
 
 
 ---
@@ -272,34 +272,34 @@ plt.show()
     베이즈는 참 잡음 분산 4를 알고 정규 분위수를 쓰고 빈도주의는 잔차로 분산을 추정해 t 분위수를 쓴다. 이 차이 때문에 어느 구간이 더 넓은지에 보편적 순서를 정할 수 없다. 같은 알려진 분산·평탄 사전 조건 또는 같은 미지 분산 조건을 맞춰 비교한다.
 
     ```python
-import numpy as np
-from scipy import stats
+    import numpy as np
+    from scipy import stats
 
-np.random.seed(42)
-n = 30
-X = np.linspace(0, 10, n)
-y = 2 + 1.5*X + np.random.normal(0, 2, n)
-X_d = np.column_stack([np.ones(n), X])
+    np.random.seed(42)
+    n = 30
+    X = np.linspace(0, 10, n)
+    y = 2 + 1.5*X + np.random.normal(0, 2, n)
+    X_d = np.column_stack([np.ones(n), X])
 
-# 베이즈
-sig2 = 4.0
-V0 = np.eye(2)*100
-Vn = np.linalg.inv(np.linalg.inv(V0) + X_d.T@X_d/sig2)
-mn = Vn @ (X_d.T@y/sig2)
+    # 베이즈
+    sig2 = 4.0
+    V0 = np.eye(2)*100
+    Vn = np.linalg.inv(np.linalg.inv(V0) + X_d.T@X_d/sig2)
+    mn = Vn @ (X_d.T@y/sig2)
 
-X_test = np.linspace(-1, 11, 100)
-X_td = np.column_stack([np.ones(100), X_test])
-bayes_width = 2*1.96*np.sqrt(sig2 + np.sum((X_td@Vn)*X_td, axis=1))
+    X_test = np.linspace(-1, 11, 100)
+    X_td = np.column_stack([np.ones(100), X_test])
+    bayes_width = 2*1.96*np.sqrt(sig2 + np.sum((X_td@Vn)*X_td, axis=1))
 
-# 빈도주의
-beta_hat = np.linalg.lstsq(X_d, y, rcond=None)[0]
-resid = y - X_d@beta_hat
-s2 = np.sum(resid**2)/(n-2)
-freq_width = 2*stats.t.ppf(0.975, n-2)*np.sqrt(s2*(1+np.sum((X_td@np.linalg.inv(X_d.T@X_d))*X_td, axis=1)))
+    # 빈도주의
+    beta_hat = np.linalg.lstsq(X_d, y, rcond=None)[0]
+    resid = y - X_d@beta_hat
+    s2 = np.sum(resid**2)/(n-2)
+    freq_width = 2*stats.t.ppf(0.975, n-2)*np.sqrt(s2*(1+np.sum((X_td@np.linalg.inv(X_d.T@X_d))*X_td, axis=1)))
 
-print(f'Mean Bayesian width: {np.mean(bayes_width):.3f}')
-print(f'Mean Frequentist width: {np.mean(freq_width):.3f}')
-```
+    print(f'Mean Bayesian width: {np.mean(bayes_width):.3f}')
+    print(f'Mean Frequentist width: {np.mean(freq_width):.3f}')
+    ```
 
 
 ## 정리하며

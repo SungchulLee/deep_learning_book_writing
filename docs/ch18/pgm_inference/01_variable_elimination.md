@@ -629,33 +629,33 @@ Factor는 변수명을 정렬하므로 외부 values 배열도 그 축 순서로
     A=1에서 P(B|A=1)를 시작 인자로 사용한다. B를 합산해 C의 조건부분포를 얻고 C를 합산해 D의 분포를 얻는다. P(A=1)>0에서 공통 인자 P(A=1)는 정규화로 약분되므로 별도로 곱하지 않아도 된다. 이는 사슬 전용 배열 계산이며 위 범용 Factor 클래스의 스칼라·순서 처리를 검증하는 테스트는 아니다.
 
     ```python
-import numpy as np
+    import numpy as np
 
-# 사슬 A->B->C->D의 CPT
-P_A = np.array([0.6, 0.4])
-P_B_A = np.array([[0.7, 0.3], [0.3, 0.7]])
-P_C_B = np.array([[0.8, 0.2], [0.4, 0.6]])
-P_D_C = np.array([[0.9, 0.1], [0.2, 0.8]])
+    # 사슬 A->B->C->D의 CPT
+    P_A = np.array([0.6, 0.4])
+    P_B_A = np.array([[0.7, 0.3], [0.3, 0.7]])
+    P_C_B = np.array([[0.8, 0.2], [0.4, 0.6]])
+    P_D_C = np.array([[0.9, 0.1], [0.2, 0.8]])
 
-# 증거: A=1
-# B 없애기: f(B) = P(B|A=1), 그다음 f(C) = sum_B P(C|B)*P(B|A=1)
-f_B = P_B_A[1, :]  # [P(B=0|A=1), P(B=1|A=1)]
-f_C = np.zeros(2)
-for c in range(2):
-    for b in range(2):
-        f_C[c] += P_C_B[b, c] * f_B[b]
-
-# C 없애기: f(D) = sum_C P(D|C)*f(C)
-f_D = np.zeros(2)
-for d in range(2):
+    # 증거: A=1
+    # B 없애기: f(B) = P(B|A=1), 그다음 f(C) = sum_B P(C|B)*P(B|A=1)
+    f_B = P_B_A[1, :]  # [P(B=0|A=1), P(B=1|A=1)]
+    f_C = np.zeros(2)
     for c in range(2):
-        f_D[d] += P_D_C[c, d] * f_C[c]
+        for b in range(2):
+            f_C[c] += P_C_B[b, c] * f_B[b]
 
-# 정규화
-P_D_given_A1 = f_D / f_D.sum()
-print(f'P(D=0|A=1) = {P_D_given_A1[0]:.4f}')
-print(f'P(D=1|A=1) = {P_D_given_A1[1]:.4f}')
-```
+    # C 없애기: f(D) = sum_C P(D|C)*f(C)
+    f_D = np.zeros(2)
+    for d in range(2):
+        for c in range(2):
+            f_D[d] += P_D_C[c, d] * f_C[c]
+
+    # 정규화
+    P_D_given_A1 = f_D / f_D.sum()
+    print(f'P(D=0|A=1) = {P_D_given_A1[0]:.4f}')
+    print(f'P(D=1|A=1) = {P_D_given_A1[1]:.4f}')
+    ```
 
 
 ## 정리하며

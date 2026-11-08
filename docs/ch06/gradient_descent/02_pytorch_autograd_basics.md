@@ -53,7 +53,7 @@ autograd를 믿기 전에 한 번 견주어 본다.
 
 앞 쪽의 넘파이 루프와 autograd 루프를 나란히 둔다.
 
-```python
+```text
 # 넘파이                                  # autograd
 y_pred = w * X                           loss = ((w * X - Y) ** 2).mean()
 g = np.mean(2 * X * (y_pred - Y))        w.grad = None
@@ -156,7 +156,7 @@ w = w - 0.01 * g                         loss.backward()
 
 바뀌는 것은 코드의 모양뿐이다.
 
-```python
+```text
 w.grad = None                    opt.zero_grad()
 loss.backward()         →        loss.backward()
 with torch.no_grad():            opt.step()

@@ -687,36 +687,36 @@ A→B→C에서 생성한 500개 표본의 카이제곱 검정 결과는 독립�
     생성 모형에서는 A⊥C|B가 성립하지만 유한 표본 검정은 오류가 있다. p>0.05는 독립 귀무가설을 기각하지 못한 것이며 독립의 증명이 아니다. B별 p값의 최소값은 별도의 합동 조건부 독립 검정과 다르고 기대도수·다중검정도 점검해야 한다. 출력의 Yes·No를 구조의 확실한 정답으로 읽지 않는다.
 
     ```python
-import numpy as np
-import pandas as pd
-from scipy.stats import chi2_contingency
+    import numpy as np
+    import pandas as pd
+    from scipy.stats import chi2_contingency
 
-np.random.seed(42)
-n = 500
-A = np.random.binomial(1, 0.5, n)
-B = np.random.binomial(1, 0.3 + 0.4 * A)
-C = np.random.binomial(1, 0.2 + 0.5 * B)
-df = pd.DataFrame({'A': A, 'B': B, 'C': C})
+    np.random.seed(42)
+    n = 500
+    A = np.random.binomial(1, 0.5, n)
+    B = np.random.binomial(1, 0.3 + 0.4 * A)
+    C = np.random.binomial(1, 0.2 + 0.5 * B)
+    df = pd.DataFrame({'A': A, 'B': B, 'C': C})
 
-# A와 C의 독립 검정(주변)
-ct = pd.crosstab(df['A'], df['C'])
-_, p_marginal, _, _ = chi2_contingency(ct)
-print(f'A indep C (marginal): p={p_marginal:.4f} -> {"Yes" if p_marginal > 0.05 else "No"}')
+    # A와 C의 독립 검정(주변)
+    ct = pd.crosstab(df['A'], df['C'])
+    _, p_marginal, _, _ = chi2_contingency(ct)
+    print(f'A indep C (marginal): p={p_marginal:.4f} -> {"Yes" if p_marginal > 0.05 else "No"}')
 
-# A와 C의 독립 검정 | B=0
-df0 = df[df['B'] == 0]
-ct0 = pd.crosstab(df0['A'], df0['C'])
-_, p0, _, _ = chi2_contingency(ct0)
+    # A와 C의 독립 검정 | B=0
+    df0 = df[df['B'] == 0]
+    ct0 = pd.crosstab(df0['A'], df0['C'])
+    _, p0, _, _ = chi2_contingency(ct0)
 
-# A와 C의 독립 검정 | B=1
-df1 = df[df['B'] == 1]
-ct1 = pd.crosstab(df1['A'], df1['C'])
-_, p1, _, _ = chi2_contingency(ct1)
+    # A와 C의 독립 검정 | B=1
+    df1 = df[df['B'] == 1]
+    ct1 = pd.crosstab(df1['A'], df1['C'])
+    _, p1, _, _ = chi2_contingency(ct1)
 
-print(f'A indep C | B=0: p={p0:.4f}')
-print(f'A indep C | B=1: p={p1:.4f}')
-print(f'Conditionally independent? {min(p0, p1) > 0.05}')
-```
+    print(f'A indep C | B=0: p={p0:.4f}')
+    print(f'A indep C | B=1: p={p1:.4f}')
+    print(f'Conditionally independent? {min(p0, p1) > 0.05}')
+    ```
 
 
 ---
@@ -748,45 +748,45 @@ A→B→C와 A←B→C는 왜 동치이며 A→B←C는 왜 다른가?
     아니다. structures에 적힌 네 구조만 평가한다. 동치 DAG들은 같은 모형을 나타낼 수 있어 참방향의 유일한 최고점을 기대할 수 없고 유한 표본에서는 다른 구조의 점수가 높을 수도 있다. local_bic는 그룹 내 관측 상태 수로 파라메터를 세므로 빠진 범주가 있으면 차원을 잘못 셀 수 있다. 고정된 상태 공간과 전체 후보를 정의해 비교해야 한다.
 
     ```python
-import numpy as np
-import pandas as pd
-from itertools import product
+    import numpy as np
+    import pandas as pd
+    from itertools import product
 
-np.random.seed(42)
-n = 1000
-A = np.random.binomial(1, 0.5, n)
-B = np.random.binomial(1, 0.3 + 0.4*A)
-C = np.random.binomial(1, 0.2 + 0.5*A)
-df = pd.DataFrame({'A': A, 'B': B, 'C': C})
+    np.random.seed(42)
+    n = 1000
+    A = np.random.binomial(1, 0.5, n)
+    B = np.random.binomial(1, 0.3 + 0.4*A)
+    C = np.random.binomial(1, 0.2 + 0.5*A)
+    df = pd.DataFrame({'A': A, 'B': B, 'C': C})
 
-def local_bic(df, var, parents):
-    n = len(df)
-    if not parents:
-        counts = df[var].value_counts()
-        ll = sum(c * np.log(c/n) for c in counts)
-        return ll - 0.5 * np.log(n)
-    groups = df.groupby(parents)[var]
-    ll = 0
-    n_params = 0
-    for _, group in groups:
-        counts = group.value_counts()
-        total = counts.sum()
-        ll += sum(c * np.log(c/total) for c in counts)
-        n_params += len(counts) - 1
-    return ll - 0.5 * n_params * np.log(n)
+    def local_bic(df, var, parents):
+        n = len(df)
+        if not parents:
+            counts = df[var].value_counts()
+            ll = sum(c * np.log(c/n) for c in counts)
+            return ll - 0.5 * np.log(n)
+        groups = df.groupby(parents)[var]
+        ll = 0
+        n_params = 0
+        for _, group in groups:
+            counts = group.value_counts()
+            total = counts.sum()
+            ll += sum(c * np.log(c/total) for c in counts)
+            n_params += len(counts) - 1
+        return ll - 0.5 * n_params * np.log(n)
 
-# 핵심 짜임 검정하기
-structures = {
-    'A->B, A->C': {'A': [], 'B': ['A'], 'C': ['A']},
-    'B->A, C->A': {'A': ['B','C'], 'B': [], 'C': []},
-    'A->B->C': {'A': [], 'B': ['A'], 'C': ['B']},
-    'Empty': {'A': [], 'B': [], 'C': []},
-}
+    # 핵심 짜임 검정하기
+    structures = {
+        'A->B, A->C': {'A': [], 'B': ['A'], 'C': ['A']},
+        'B->A, C->A': {'A': ['B','C'], 'B': [], 'C': []},
+        'A->B->C': {'A': [], 'B': ['A'], 'C': ['B']},
+        'Empty': {'A': [], 'B': [], 'C': []},
+    }
 
-for name, struct in structures.items():
-    score = sum(local_bic(df, v, p) for v, p in struct.items())
-    print(f'{name:20s}: BIC = {score:.2f}')
-```
+    for name, struct in structures.items():
+        score = sum(local_bic(df, v, p) for v, p in struct.items())
+        print(f'{name:20s}: BIC = {score:.2f}')
+    ```
 
 
 ## 정리하며

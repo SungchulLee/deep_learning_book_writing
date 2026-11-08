@@ -4,412 +4,412 @@
 
 ## 1. 코드
 
-    ```python
-    """클래스별 감성."""
-    # ---
-    # title: "클래스별 감성 살피기"
-    # description: "VADER로 것/클래스 수준의 결이 고운 감성,
-    #               PyTorch 어텐션 바탕 모델, 트랜스포머 방식"
-    # ---
-    #
-    # 보통의 감성 살피기는 텍스트마다 레이블 하나를 준다.
-    # 클래스별 감성 살피기(ABSA)는 글 속의 특정한
-    # 클래스나 것에 대한 감성을 뽑아낸다.
-    #
-    # 보기: "The phone has an amazing camera but terrible battery life."
-    #   → 사진기: 양성
-    #   → 배터리 수명: 음성
-    #
-    #   1부 – VADER로 하는 규칙 바탕 클래스별 감성 살피기
-    #   2부 – 클래스 뽑기(이름씨 마디 덩이 짓기)
-    #   3부 – 어텐션 바탕 클래스별 감성 모델(PyTorch)
-    #   4부 – 곁딸린 월을 쓴 트랜스포머 클래스별 감성 살피기
-    #   5부 – 금융 클래스별 감성 살피기 쓰임새
-    #
-    # 바탕: O'Reilly "Practical NLP" 9장
+```python
+"""클래스별 감성."""
+# ---
+# title: "클래스별 감성 살피기"
+# description: "VADER로 것/클래스 수준의 결이 고운 감성,
+#               PyTorch 어텐션 바탕 모델, 트랜스포머 방식"
+# ---
+#
+# 보통의 감성 살피기는 텍스트마다 레이블 하나를 준다.
+# 클래스별 감성 살피기(ABSA)는 글 속의 특정한
+# 클래스나 것에 대한 감성을 뽑아낸다.
+#
+# 보기: "The phone has an amazing camera but terrible battery life."
+#   → 사진기: 양성
+#   → 배터리 수명: 음성
+#
+#   1부 – VADER로 하는 규칙 바탕 클래스별 감성 살피기
+#   2부 – 클래스 뽑기(이름씨 마디 덩이 짓기)
+#   3부 – 어텐션 바탕 클래스별 감성 모델(PyTorch)
+#   4부 – 곁딸린 월을 쓴 트랜스포머 클래스별 감성 살피기
+#   5부 – 금융 클래스별 감성 살피기 쓰임새
+#
+# 바탕: O'Reilly "Practical NLP" 9장
 
-    import torch
-    import torch.nn as nn
-    import torch.nn.functional as F
-    import numpy as np
-    from typing import List, Dict, Tuple
-    import re
-
-
-    # =====================================================================
-    # 1부 – VADER로 하는 규칙 바탕 클래스별 감성 살피기
-    # =====================================================================
-    print("=" * 60)
-    print("Part 1: Rule-Based ABSA with VADER")
-    print("=" * 60)
-
-    # VADER는 사회 네트워크 글에 맞춰 다듬은
-    # 단어집 바탕 감성 도구이다.
-    # 다루는 것: 대문자 쓰기, 문장 부호 강조, 정도 꾸밈말,
-    # 부정, 이음씨.
-    #
-    # 클래스별 감성 살피기에서는 다음을 한다:
-    #   1. 글을 마디로 쪼갠다(문장 부호나 이음씨 기준)
-    #   2. 마디마다 클래스 단어를 가려낸다
-    #   3. 마디마다 VADER로 점수를 매긴다
-    #   4. 마디의 감성을 그 클래스에 매긴다
-
-    # 간추린 VADER 비슷한 점수 매기기(실제 VADER는 단어집 항목 약 7500개를 쓴다)
-    SENTIMENT_LEXICON = {
-        # 양성 단어
-        "amazing": 3.0, "excellent": 3.0, "great": 2.5, "good": 2.0,
-        "strong": 2.0, "impressive": 2.5, "solid": 1.5, "beat": 2.0,
-        "exceeded": 2.5, "growth": 1.5, "profit": 1.5, "surged": 2.5,
-        "bullish": 2.0, "outperform": 2.0, "upgrade": 2.0, "record": 2.0,
-        # 음성 단어
-        "terrible": -3.0, "poor": -2.0, "bad": -2.0, "weak": -2.0,
-        "disappointing": -2.5, "declined": -2.0, "missed": -2.5,
-        "bearish": -2.0, "downgrade": -2.5, "loss": -2.0, "risk": -1.5,
-        "concern": -1.5, "slowed": -1.5, "underperform": -2.0, "cut": -1.5,
-        # 꾸밈말
-        "very": 1.5, "extremely": 2.0, "slightly": 0.5, "somewhat": 0.7,
-    }
-
-    NEGATION_WORDS = {"not", "no", "never", "neither", "nor", "hardly", "barely"}
-    CONJUNCTION_SPLIT = re.compile(r'\b(but|however|although|though|yet|while)\b', re.IGNORECASE)
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import numpy as np
+from typing import List, Dict, Tuple
+import re
 
 
-    def vader_score_clause(clause: str) -> float:
-        """간추린 VADER 방식으로 글 마디에 점수 매기기."""
-        words = clause.lower().split()
-        score = 0.0
-        negate = False
-        modifier = 1.0
+# =====================================================================
+# 1부 – VADER로 하는 규칙 바탕 클래스별 감성 살피기
+# =====================================================================
+print("=" * 60)
+print("Part 1: Rule-Based ABSA with VADER")
+print("=" * 60)
 
-        for word in words:
-            # 부정 살피기
-            if word in NEGATION_WORDS:
-                negate = True
-                continue
+# VADER는 사회 네트워크 글에 맞춰 다듬은
+# 단어집 바탕 감성 도구이다.
+# 다루는 것: 대문자 쓰기, 문장 부호 강조, 정도 꾸밈말,
+# 부정, 이음씨.
+#
+# 클래스별 감성 살피기에서는 다음을 한다:
+#   1. 글을 마디로 쪼갠다(문장 부호나 이음씨 기준)
+#   2. 마디마다 클래스 단어를 가려낸다
+#   3. 마디마다 VADER로 점수를 매긴다
+#   4. 마디의 감성을 그 클래스에 매긴다
 
-            # 정도 꾸밈말 살피기
-            if word in SENTIMENT_LEXICON and abs(SENTIMENT_LEXICON[word]) < 2.0 and word in {"very", "extremely", "slightly", "somewhat"}:
-                modifier = SENTIMENT_LEXICON[word]
-                continue
+# 간추린 VADER 비슷한 점수 매기기(실제 VADER는 단어집 항목 약 7500개를 쓴다)
+SENTIMENT_LEXICON = {
+    # 양성 단어
+    "amazing": 3.0, "excellent": 3.0, "great": 2.5, "good": 2.0,
+    "strong": 2.0, "impressive": 2.5, "solid": 1.5, "beat": 2.0,
+    "exceeded": 2.5, "growth": 1.5, "profit": 1.5, "surged": 2.5,
+    "bullish": 2.0, "outperform": 2.0, "upgrade": 2.0, "record": 2.0,
+    # 음성 단어
+    "terrible": -3.0, "poor": -2.0, "bad": -2.0, "weak": -2.0,
+    "disappointing": -2.5, "declined": -2.0, "missed": -2.5,
+    "bearish": -2.0, "downgrade": -2.5, "loss": -2.0, "risk": -1.5,
+    "concern": -1.5, "slowed": -1.5, "underperform": -2.0, "cut": -1.5,
+    # 꾸밈말
+    "very": 1.5, "extremely": 2.0, "slightly": 0.5, "somewhat": 0.7,
+}
 
-            # 감성 단어에 점수 매기기
-            if word in SENTIMENT_LEXICON:
-                word_score = SENTIMENT_LEXICON[word] * modifier
-                if negate:
-                    word_score *= -0.75  # 부정은 누그러뜨리되 완전히 뒤집지는 않는다
-                    negate = False
-                score += word_score
-                modifier = 1.0  # 쓴 뒤 꾸밈말 되돌리기
-
-        # [-1, 1]로 고르게 맞추기
-        return np.tanh(score / 3.0)
+NEGATION_WORDS = {"not", "no", "never", "neither", "nor", "hardly", "barely"}
+CONJUNCTION_SPLIT = re.compile(r'\b(but|however|although|though|yet|while)\b', re.IGNORECASE)
 
 
-    def extract_aspects_and_sentiment(text: str) -> List[Dict]:
-        """글에서 클래스와 그 감성 뽑기.
+def vader_score_clause(clause: str) -> float:
+    """간추린 VADER 방식으로 글 마디에 점수 매기기."""
+    words = clause.lower().split()
+    score = 0.0
+    negate = False
+    modifier = 1.0
 
-        전략:
-        1. 이음씨(but, however 등)에서 쪼갠다
-        2. 마디마다 대문자나 따옴표로 된 단어를 클래스로 찾는다
-        3. 마디마다 점수 매기기
+    for word in words:
+        # 부정 살피기
+        if word in NEGATION_WORDS:
+            negate = True
+            continue
+
+        # 정도 꾸밈말 살피기
+        if word in SENTIMENT_LEXICON and abs(SENTIMENT_LEXICON[word]) < 2.0 and word in {"very", "extremely", "slightly", "somewhat"}:
+            modifier = SENTIMENT_LEXICON[word]
+            continue
+
+        # 감성 단어에 점수 매기기
+        if word in SENTIMENT_LEXICON:
+            word_score = SENTIMENT_LEXICON[word] * modifier
+            if negate:
+                word_score *= -0.75  # 부정은 누그러뜨리되 완전히 뒤집지는 않는다
+                negate = False
+            score += word_score
+            modifier = 1.0  # 쓴 뒤 꾸밈말 되돌리기
+
+    # [-1, 1]로 고르게 맞추기
+    return np.tanh(score / 3.0)
+
+
+def extract_aspects_and_sentiment(text: str) -> List[Dict]:
+    """글에서 클래스와 그 감성 뽑기.
+
+    전략:
+    1. 이음씨(but, however 등)에서 쪼갠다
+    2. 마디마다 대문자나 따옴표로 된 단어를 클래스로 찾는다
+    3. 마디마다 점수 매기기
+    """
+    # 이음씨에서 쪼개기
+    clauses = CONJUNCTION_SPLIT.split(text)
+    clauses = [c.strip() for c in clauses if c.strip() and c.lower() not in
+               {"but", "however", "although", "though", "yet", "while"}]
+
+    results = []
+    for clause in clauses:
+        score = vader_score_clause(clause)
+        # 클래스 후보 뽑기(단순 예측짐작: 이름씨나 것 찾기)
+        # 실전에서는 이름씨 마디 뽑기에 자연어 도구를 쓴다
+        words = clause.split()
+        aspect_candidates = []
+        for w in words:
+            if w[0] == '$' or (w[0].isupper() and w.lower() not in SENTIMENT_LEXICON
+                               and w.lower() not in NEGATION_WORDS
+                               and len(w) > 2):
+                aspect_candidates.append(w)
+
+        label = "positive" if score > 0.1 else "negative" if score < -0.1 else "neutral"
+        results.append({
+            "clause": clause,
+            "aspects": aspect_candidates,
+            "score": score,
+            "label": label,
+        })
+
+    return results
+
+
+# 시연
+texts = [
+    "$AAPL reported amazing revenue growth but iPhone margins were disappointing",
+    "Tesla has impressive delivery numbers however valuation risk remains a concern",
+    "Strong cloud revenue from AWS but advertising growth slowed significantly",
+]
+
+for text in texts:
+    print(f"\n  Text: {text}")
+    aspects = extract_aspects_and_sentiment(text)
+    for a in aspects:
+        asp_str = ", ".join(a["aspects"]) if a["aspects"] else "(general)"
+        print(f"    {a['label']:>8} ({a['score']:+.2f}): [{asp_str}] — {a['clause'][:50]}")
+
+print()
+
+# VADER 온전히 쓰기
+print("  Using the vaderSentiment library:")
+print("""
+    from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+    analyzer = SentimentIntensityAnalyzer()
+
+    text = "The product is absolutely amazing but the price is too high"
+    scores = analyzer.polarity_scores(text)
+    # → {'neg': 0.15, 'neu': 0.52, 'pos': 0.33, 'compound': 0.34}
+
+    # 클래스별 살피기: "but"에서 쪼개어 부분마다 점수 매기기
+    parts = text.split(" but ")
+    for part in parts:
+        s = analyzer.polarity_scores(part)
+        print(f"  '{part}' → compound: {s['compound']:.3f}")
+    # → 'The product is absolutely amazing' → compound: 0.62
+    # → 'the price is too high' → compound: -0.19
+""")
+
+
+# =====================================================================
+# 2부 – 클래스 단어 뽑기
+# =====================================================================
+print("=" * 60)
+print("Part 2: Aspect Term Extraction")
+print("=" * 60)
+
+# 클래스 뽑기는 다음으로 할 수 있다:
+# 1. 달림 뜯어 읽기(nsubj, dobj 관계)
+# 2. 잦기 바탕(그 분야에서 가장 흔한 이름씨)
+# 3. 익힌 모델의 어텐션 무게
+# 4. 차례 레이블 붙이기(클래스에 대한 BIO 레이블)
+
+print("""
+  방식 1: spaCy 달림 뜯어 읽기
+  ─────────────────────────────────────
+    import spacy
+    nlp = spacy.load("en_core_web_sm")
+
+    text = "The camera quality is excellent but battery drains quickly"
+    doc = nlp(text)
+
+    aspects = []
+    for token in doc:
+        # 주어나 목적어인 이름씨 → 클래스일 가능성이 높다
+        if token.dep_ in ("nsubj", "dobj", "attr") and token.pos_ == "NOUN":
+            aspects.append(token.text)
+    # → ["quality", "battery"]
+
+  방식 2: 차례 레이블 붙이기(BIO 레이블)
+  ─────────────────────────────────────────
+    # 표시한 클래스별 감성 자료로 토큰 클래스 매개 익히기
+    # 레이블: B-ASP, I-ASP, O
+    # "The [camera quality]_ASP is excellent"
+    # → O  B-ASP  I-ASP  O  O
+
+    from transformers import AutoModelForTokenClassification
+    model = AutoModelForTokenClassification.from_pretrained(
+        "yangheng/deberta-v3-base-absa-v1.1"
+    )
+""")
+
+
+# =====================================================================
+# 3부 – 어텐션 바탕 클래스별 감성 살피기(PyTorch)
+# =====================================================================
+print("=" * 60)
+print("Part 3: Attention-Based ABSA Model (PyTorch)")
+print("=" * 60)
+
+# 핵심 생각: 월과 목표 클래스가 주어질 때 어텐션을 써서
+# 그 클래스와 맞닿는 단어에 초점을 둔다.
+#
+# 구조:
+#   [단어 임베딩] → 양방향 LSTM → 어텐션(aspect_emb) → 클래스 매기기
+
+
+class AspectAttentionClassifier(nn.Module):
+    """어텐션 바탕 클래스별 감성 모델.
+
+    클래스 임베딩을 물음으로 삼아 맥락 단어에 어텐션을 준 뒤
+    어텐션을 준 표현에 클래스를 매긴다.
+
+    인수:
+        vocab_size:  단어 곳간 크기
+        embed_dim:   임베딩 차원
+        hidden_dim:  LSTM 숨은 차원
+        num_classes: 감성 클래스(양성/음성/가운데)
+    """
+
+    def __init__(self, vocab_size, embed_dim, hidden_dim, num_classes=3):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+        self.lstm = nn.LSTM(embed_dim, hidden_dim, bidirectional=True, batch_first=True)
+        # 어텐션: 클래스와 맥락을 같은 공간으로 내리쬐기
+        self.attn_proj = nn.Linear(hidden_dim * 2, hidden_dim * 2)
+        self.classifier = nn.Linear(hidden_dim * 2, num_classes)
+
+    def forward(self, context_ids, aspect_ids, context_mask=None):
         """
-        # 이음씨에서 쪼개기
-        clauses = CONJUNCTION_SPLIT.split(text)
-        clauses = [c.strip() for c in clauses if c.strip() and c.lower() not in
-                   {"but", "however", "although", "though", "yet", "while"}]
-
-        results = []
-        for clause in clauses:
-            score = vader_score_clause(clause)
-            # 클래스 후보 뽑기(단순 예측짐작: 이름씨나 것 찾기)
-            # 실전에서는 이름씨 마디 뽑기에 자연어 도구를 쓴다
-            words = clause.split()
-            aspect_candidates = []
-            for w in words:
-                if w[0] == '$' or (w[0].isupper() and w.lower() not in SENTIMENT_LEXICON
-                                   and w.lower() not in NEGATION_WORDS
-                                   and len(w) > 2):
-                    aspect_candidates.append(w)
-
-            label = "positive" if score > 0.1 else "negative" if score < -0.1 else "neutral"
-            results.append({
-                "clause": clause,
-                "aspects": aspect_candidates,
-                "score": score,
-                "label": label,
-            })
-
-        return results
-
-
-    # 시연
-    texts = [
-        "$AAPL reported amazing revenue growth but iPhone margins were disappointing",
-        "Tesla has impressive delivery numbers however valuation risk remains a concern",
-        "Strong cloud revenue from AWS but advertising growth slowed significantly",
-    ]
-
-    for text in texts:
-        print(f"\n  Text: {text}")
-        aspects = extract_aspects_and_sentiment(text)
-        for a in aspects:
-            asp_str = ", ".join(a["aspects"]) if a["aspects"] else "(general)"
-            print(f"    {a['label']:>8} ({a['score']:+.2f}): [{asp_str}] — {a['clause'][:50]}")
-
-    print()
-
-    # VADER 온전히 쓰기
-    print("  Using the vaderSentiment library:")
-    print("""
-        from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-
-        analyzer = SentimentIntensityAnalyzer()
-
-        text = "The product is absolutely amazing but the price is too high"
-        scores = analyzer.polarity_scores(text)
-        # → {'neg': 0.15, 'neu': 0.52, 'pos': 0.33, 'compound': 0.34}
-
-        # 클래스별 살피기: "but"에서 쪼개어 부분마다 점수 매기기
-        parts = text.split(" but ")
-        for part in parts:
-            s = analyzer.polarity_scores(part)
-            print(f"  '{part}' → compound: {s['compound']:.3f}")
-        # → 'The product is absolutely amazing' → compound: 0.62
-        # → 'the price is too high' → compound: -0.19
-    """)
-
-
-    # =====================================================================
-    # 2부 – 클래스 단어 뽑기
-    # =====================================================================
-    print("=" * 60)
-    print("Part 2: Aspect Term Extraction")
-    print("=" * 60)
-
-    # 클래스 뽑기는 다음으로 할 수 있다:
-    # 1. 달림 뜯어 읽기(nsubj, dobj 관계)
-    # 2. 잦기 바탕(그 분야에서 가장 흔한 이름씨)
-    # 3. 익힌 모델의 어텐션 무게
-    # 4. 차례 레이블 붙이기(클래스에 대한 BIO 레이블)
-
-    print("""
-      방식 1: spaCy 달림 뜯어 읽기
-      ─────────────────────────────────────
-        import spacy
-        nlp = spacy.load("en_core_web_sm")
-
-        text = "The camera quality is excellent but battery drains quickly"
-        doc = nlp(text)
-
-        aspects = []
-        for token in doc:
-            # 주어나 목적어인 이름씨 → 클래스일 가능성이 높다
-            if token.dep_ in ("nsubj", "dobj", "attr") and token.pos_ == "NOUN":
-                aspects.append(token.text)
-        # → ["quality", "battery"]
-
-      방식 2: 차례 레이블 붙이기(BIO 레이블)
-      ─────────────────────────────────────────
-        # 표시한 클래스별 감성 자료로 토큰 클래스 매개 익히기
-        # 레이블: B-ASP, I-ASP, O
-        # "The [camera quality]_ASP is excellent"
-        # → O  B-ASP  I-ASP  O  O
-
-        from transformers import AutoModelForTokenClassification
-        model = AutoModelForTokenClassification.from_pretrained(
-            "yangheng/deberta-v3-base-absa-v1.1"
-        )
-    """)
-
-
-    # =====================================================================
-    # 3부 – 어텐션 바탕 클래스별 감성 살피기(PyTorch)
-    # =====================================================================
-    print("=" * 60)
-    print("Part 3: Attention-Based ABSA Model (PyTorch)")
-    print("=" * 60)
-
-    # 핵심 생각: 월과 목표 클래스가 주어질 때 어텐션을 써서
-    # 그 클래스와 맞닿는 단어에 초점을 둔다.
-    #
-    # 구조:
-    #   [단어 임베딩] → 양방향 LSTM → 어텐션(aspect_emb) → 클래스 매기기
-
-
-    class AspectAttentionClassifier(nn.Module):
-        """어텐션 바탕 클래스별 감성 모델.
-
-        클래스 임베딩을 물음으로 삼아 맥락 단어에 어텐션을 준 뒤
-        어텐션을 준 표현에 클래스를 매긴다.
-
         인수:
-            vocab_size:  단어 곳간 크기
-            embed_dim:   임베딩 차원
-            hidden_dim:  LSTM 숨은 차원
-            num_classes: 감성 클래스(양성/음성/가운데)
+            context_ids: 온 월의 토큰 번호 [B, L]
+            aspect_ids:  클래스 단어의 토큰 번호 [B, A]
+            context_mask: 덧대기 마스크 [B, L]
+
+        반환값:
+            logits: 감성 로짓 [B, num_classes]
         """
+        # 맥락 부호화
+        ctx_emb = self.embedding(context_ids)       # [B, L, E]
+        ctx_out, _ = self.lstm(ctx_emb)             # [B, L, 2H]
 
-        def __init__(self, vocab_size, embed_dim, hidden_dim, num_classes=3):
-            super().__init__()
-            self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
-            self.lstm = nn.LSTM(embed_dim, hidden_dim, bidirectional=True, batch_first=True)
-            # 어텐션: 클래스와 맥락을 같은 공간으로 내리쬐기
-            self.attn_proj = nn.Linear(hidden_dim * 2, hidden_dim * 2)
-            self.classifier = nn.Linear(hidden_dim * 2, num_classes)
+        # 클래스 부호화(임베딩의 평균)
+        asp_emb = self.embedding(aspect_ids)         # [B, A, E]
+        asp_repr = asp_emb.mean(dim=1, keepdim=True) # [B, 1, E]
 
-        def forward(self, context_ids, aspect_ids, context_mask=None):
-            """
-            인수:
-                context_ids: 온 월의 토큰 번호 [B, L]
-                aspect_ids:  클래스 단어의 토큰 번호 [B, A]
-                context_mask: 덧대기 마스크 [B, L]
+        # 클래스를 헤아리는 어텐션
+        # 맥락을 내리쬐고 어텐션 점수 셈하기
+        ctx_proj = self.attn_proj(ctx_out)           # [B, L, 2H]
+        # 내리쬔 맥락과의 점곱으로 클래스를 물음으로 쓰기
+        # 임베딩으로 클래스를 숨은 차원까지 부풀린 뒤 그대로 쓰기
+        attn_scores = torch.bmm(ctx_proj, asp_repr.expand(-1, -1, ctx_proj.size(-1)).transpose(1, 2))
+        attn_scores = attn_scores.squeeze(-1)        # [B, L]
 
-            반환값:
-                logits: 감성 로짓 [B, num_classes]
-            """
-            # 맥락 부호화
-            ctx_emb = self.embedding(context_ids)       # [B, L, E]
-            ctx_out, _ = self.lstm(ctx_emb)             # [B, L, 2H]
+        if context_mask is not None:
+            attn_scores = attn_scores.masked_fill(context_mask == 0, float('-inf'))
 
-            # 클래스 부호화(임베딩의 평균)
-            asp_emb = self.embedding(aspect_ids)         # [B, A, E]
-            asp_repr = asp_emb.mean(dim=1, keepdim=True) # [B, 1, E]
+        attn_weights = F.softmax(attn_scores, dim=-1)  # [B, L]
 
-            # 클래스를 헤아리는 어텐션
-            # 맥락을 내리쬐고 어텐션 점수 셈하기
-            ctx_proj = self.attn_proj(ctx_out)           # [B, L, 2H]
-            # 내리쬔 맥락과의 점곱으로 클래스를 물음으로 쓰기
-            # 임베딩으로 클래스를 숨은 차원까지 부풀린 뒤 그대로 쓰기
-            attn_scores = torch.bmm(ctx_proj, asp_repr.expand(-1, -1, ctx_proj.size(-1)).transpose(1, 2))
-            attn_scores = attn_scores.squeeze(-1)        # [B, L]
+        # 맥락의 무게 합
+        weighted = torch.bmm(attn_weights.unsqueeze(1), ctx_out).squeeze(1)  # [B, 2H]
 
-            if context_mask is not None:
-                attn_scores = attn_scores.masked_fill(context_mask == 0, float('-inf'))
-
-            attn_weights = F.softmax(attn_scores, dim=-1)  # [B, L]
-
-            # 맥락의 무게 합
-            weighted = torch.bmm(attn_weights.unsqueeze(1), ctx_out).squeeze(1)  # [B, 2H]
-
-            return self.classifier(weighted)
+        return self.classifier(weighted)
 
 
-    # 인공 자료로 보이기
-    torch.manual_seed(42)
-    VOCAB = 200
-    model = AspectAttentionClassifier(VOCAB, embed_dim=32, hidden_dim=32, num_classes=3)
+# 인공 자료로 보이기
+torch.manual_seed(42)
+VOCAB = 200
+model = AspectAttentionClassifier(VOCAB, embed_dim=32, hidden_dim=32, num_classes=3)
 
-    # 인공 들임
-    ctx = torch.randint(1, VOCAB, (4, 20))
-    asp = torch.randint(1, VOCAB, (4, 3))
-    mask = torch.ones(4, 20)
+# 인공 들임
+ctx = torch.randint(1, VOCAB, (4, 20))
+asp = torch.randint(1, VOCAB, (4, 3))
+mask = torch.ones(4, 20)
 
-    logits = model(ctx, asp, mask)
-    print(f"  Model output shape: {logits.shape}")
-    print(f"  Predictions: {F.softmax(logits, dim=-1).detach().numpy().round(3)}")
-    print(f"  Labels: negative=0, neutral=1, positive=2")
-    print()
-
-
-    # =====================================================================
-    # 4부 – 곁딸린 월을 쓴 트랜스포머 클래스별 감성 살피기
-    # =====================================================================
-    print("=" * 60)
-    print("Part 4: Transformer ABSA (Auxiliary Sentence Approach)")
-    print("=" * 60)
-
-    # 요즘 방식: 클래스별 감성 살피기를 월 짝 클래스 매기기로 바꾼다.
-    # 들임: "[CLS] 월 [SEP] 클래스 단어 [SEP]"
-    # 이러면 BERT가 엇갈린 어텐션으로 클래스에 어텐션을 줄 수 있다.
-
-    print("""
-      from transformers import AutoModelForSequenceClassification, AutoTokenizer
-
-      model_name = "yangheng/deberta-v3-base-absa-v1.1"
-      tokenizer = AutoTokenizer.from_pretrained(model_name)
-      model = AutoModelForSequenceClassification.from_pretrained(model_name)
-
-      # 들임을 월 짝으로 세우기
-      sentence = "The restaurant has great food but terrible service"
-      aspect = "food"
-
-      inputs = tokenizer(
-          sentence, aspect,        # 월 짝!
-          return_tensors="pt",
-          truncation=True,
-          max_length=128,
-      )
-
-      with torch.no_grad():
-          logits = model(**inputs).logits
-          # 레이블: 0=음성, 1=가운데, 2=양성
-          pred = logits.argmax(-1).item()
-          labels = ["negative", "neutral", "positive"]
-          print(f"Aspect '{aspect}': {labels[pred]}")
-      # → 클래스 'food': 양성
-
-      # 이제 "service" 살피기
-      inputs = tokenizer(sentence, "service", return_tensors="pt")
-      with torch.no_grad():
-          pred = model(**inputs).logits.argmax(-1).item()
-          print(f"Aspect 'service': {labels[pred]}")
-      # → 클래스 'service': 음성
-    """)
+logits = model(ctx, asp, mask)
+print(f"  Model output shape: {logits.shape}")
+print(f"  Predictions: {F.softmax(logits, dim=-1).detach().numpy().round(3)}")
+print(f"  Labels: negative=0, neutral=1, positive=2")
+print()
 
 
-    # =====================================================================
-    # 5부 – 금융 클래스별 감성 살피기 쓰임새
-    # =====================================================================
-    print("=" * 60)
-    print("Part 5: Financial ABSA Use Cases")
-    print("=" * 60)
+# =====================================================================
+# 4부 – 곁딸린 월을 쓴 트랜스포머 클래스별 감성 살피기
+# =====================================================================
+print("=" * 60)
+print("Part 4: Transformer ABSA (Auxiliary Sentence Approach)")
+print("=" * 60)
 
-    print("""
-      금융 글은 흔히 한 월에서 여러 클래스를 이야기한다:
+# 요즘 방식: 클래스별 감성 살피기를 월 짝 클래스 매기기로 바꾼다.
+# 들임: "[CLS] 월 [SEP] 클래스 단어 [SEP]"
+# 이러면 BERT가 엇갈린 어텐션으로 클래스에 어텐션을 줄 수 있다.
 
-      "Revenue grew 15% driven by cloud services,
-       but hardware margins compressed due to supply constraints."
-      → 클라우드 서비스: 양성
-      → 하드웨어 이익률: 음성
+print("""
+  from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-      "Management is bullish on AI initiatives but cautious about
-       the regulatory environment in Europe."
-      → 인공지능 계획: 양성
-      → 규제 환경: 음성
+  model_name = "yangheng/deberta-v3-base-absa-v1.1"
+  tokenizer = AutoTokenizer.from_pretrained(model_name)
+  model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
-      좇아야 할 핵심 금융 클래스:
-      ┌──────────────────┬────────────────────────────┐
-      │ 클래스 배치        │ 클래스 보기                  │
-      ├──────────────────┼────────────────────────────┤
-      │ 매출             │ 총매출, 판매, 수주         │
-      │ 수익성           │ 이익률, 주당순이익, EBITDA │
-      │ 성장             │ 전년 대비 성장, 전망, TAM  │
-      │ 재무 상태        │ 부채, 현금, 지렛대         │
-      │ 운영             │ 효율, 인원                 │
-      │ 시장 자리        │ 시장 점유율, 경쟁          │
-      │ 위험 요인        │ 규제, 소송                 │
-      │ 경영             │ 지도력, 전략               │
-      └──────────────────┴────────────────────────────┘
+  # 들임을 월 짝으로 세우기
+  sentence = "The restaurant has great food but terrible service"
+  aspect = "food"
 
-      클래스별 감성 살피기에서 얻는 거래 신호:
-        실적 발표나 뉴스 글마다:
-        1. 클래스 단어 뽑기(개체명 인식 + 이름씨 마디)
-        2. 클래스마다 감성에 점수 매기기
-        3. 그 종목에 대한 클래스의 중요도로 무게 주기
-        4. 모으기: 신호 = Σ (클래스 무게 × 클래스 감성)
+  inputs = tokenizer(
+      sentence, aspect,        # 월 짝!
+      return_tensors="pt",
+      truncation=True,
+      max_length=128,
+  )
 
-        클래스의 무게는 업종마다 다르다:
-        - 기술: 성장 (0.3), 이익률 (0.2), 클라우드 (0.2), 인공지능 (0.2)
-        - 은행: 순이자수익 (0.3), 신용 질 (0.3), 수수료 (0.2)
-        - 소매: 동일 점포 매출 (0.3), 이익률 (0.2), 재고 (0.2)
-    """)
+  with torch.no_grad():
+      logits = model(**inputs).logits
+      # 레이블: 0=음성, 1=가운데, 2=양성
+      pred = logits.argmax(-1).item()
+      labels = ["negative", "neutral", "positive"]
+      print(f"Aspect '{aspect}': {labels[pred]}")
+  # → 클래스 'food': 양성
 
-    print("Done.")
+  # 이제 "service" 살피기
+  inputs = tokenizer(sentence, "service", return_tensors="pt")
+  with torch.no_grad():
+      pred = model(**inputs).logits.argmax(-1).item()
+      print(f"Aspect 'service': {labels[pred]}")
+  # → 클래스 'service': 음성
+""")
 
 
-    if __name__ == "__main__":
-        pass
-    ```
+# =====================================================================
+# 5부 – 금융 클래스별 감성 살피기 쓰임새
+# =====================================================================
+print("=" * 60)
+print("Part 5: Financial ABSA Use Cases")
+print("=" * 60)
+
+print("""
+  금융 글은 흔히 한 월에서 여러 클래스를 이야기한다:
+
+  "Revenue grew 15% driven by cloud services,
+   but hardware margins compressed due to supply constraints."
+  → 클라우드 서비스: 양성
+  → 하드웨어 이익률: 음성
+
+  "Management is bullish on AI initiatives but cautious about
+   the regulatory environment in Europe."
+  → 인공지능 계획: 양성
+  → 규제 환경: 음성
+
+  좇아야 할 핵심 금융 클래스:
+  ┌──────────────────┬────────────────────────────┐
+  │ 클래스 배치        │ 클래스 보기                  │
+  ├──────────────────┼────────────────────────────┤
+  │ 매출             │ 총매출, 판매, 수주         │
+  │ 수익성           │ 이익률, 주당순이익, EBITDA │
+  │ 성장             │ 전년 대비 성장, 전망, TAM  │
+  │ 재무 상태        │ 부채, 현금, 지렛대         │
+  │ 운영             │ 효율, 인원                 │
+  │ 시장 자리        │ 시장 점유율, 경쟁          │
+  │ 위험 요인        │ 규제, 소송                 │
+  │ 경영             │ 지도력, 전략               │
+  └──────────────────┴────────────────────────────┘
+
+  클래스별 감성 살피기에서 얻는 거래 신호:
+    실적 발표나 뉴스 글마다:
+    1. 클래스 단어 뽑기(개체명 인식 + 이름씨 마디)
+    2. 클래스마다 감성에 점수 매기기
+    3. 그 종목에 대한 클래스의 중요도로 무게 주기
+    4. 모으기: 신호 = Σ (클래스 무게 × 클래스 감성)
+
+    클래스의 무게는 업종마다 다르다:
+    - 기술: 성장 (0.3), 이익률 (0.2), 클라우드 (0.2), 인공지능 (0.2)
+    - 은행: 순이자수익 (0.3), 신용 질 (0.3), 수수료 (0.2)
+    - 소매: 동일 점포 매출 (0.3), 이익률 (0.2), 재고 (0.2)
+""")
+
+print("Done.")
+
+
+if __name__ == "__main__":
+    pass
+```
 
 ## 2. 절 분리와 사전 점수의 범위
 

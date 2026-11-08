@@ -400,171 +400,171 @@ if __name__ == "__main__":
 
 **기존 출력:**
 
-    ```
-    ============================================================
-    Part 1: Loading FinBERT
-    ============================================================
+```
+============================================================
+Part 1: Loading FinBERT
+============================================================
 
-      # 감성 살피기를 위해 미리 익힌 FinBERT 읽어 들이기
-      from transformers import AutoModelForSequenceClassification, AutoTokenizer
+  # 감성 살피기를 위해 미리 익힌 FinBERT 읽어 들이기
+  from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-      model_name = "ProsusAI/finbert"
-      tokenizer = AutoTokenizer.from_pretrained(model_name)
-      model = AutoModelForSequenceClassification.from_pretrained(model_name)
-      model.eval()
+  model_name = "ProsusAI/finbert"
+  tokenizer = AutoTokenizer.from_pretrained(model_name)
+  model = AutoModelForSequenceClassification.from_pretrained(model_name)
+  model.eval()
 
-      # 빠른 미룸
-      text = "Tesla reported record deliveries, beating analyst expectations."
-      inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=128)
-      with torch.no_grad():
-          logits = model(**inputs).logits
-          probs = F.softmax(logits, dim=-1)
-          labels = ["positive", "negative", "neutral"]
-          pred = labels[probs.argmax()]
-          print(f"Sentiment: {pred} ({probs.max():.3f})")
-      # → 감성: 양성 (0.92)
+  # 빠른 미룸
+  text = "Tesla reported record deliveries, beating analyst expectations."
+  inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=128)
+  with torch.no_grad():
+      logits = model(**inputs).logits
+      probs = F.softmax(logits, dim=-1)
+      labels = ["positive", "negative", "neutral"]
+      pred = labels[probs.argmax()]
+      print(f"Sentiment: {pred} ({probs.max():.3f})")
+  # → 감성: 양성 (0.92)
 
-    ============================================================
-    Part 2: Zero-Shot Inference via HuggingFace Pipeline
-    ============================================================
+============================================================
+Part 2: Zero-Shot Inference via HuggingFace Pipeline
+============================================================
 
-      from transformers import pipeline
+  from transformers import pipeline
 
-      finbert = pipeline(
-          "sentiment-analysis",
-          model="ProsusAI/finbert",
-          tokenizer="ProsusAI/finbert",
+  finbert = pipeline(
+      "sentiment-analysis",
+      model="ProsusAI/finbert",
+      tokenizer="ProsusAI/finbert",
+  )
+
+  # 예측 하나
+  result = finbert("AAPL missed revenue estimates by 2%.")
+  # → [{'label': 'negative', 'score': 0.87}]
+
+  # 배치 예측
+  texts = [
+      "Revenue grew 15% year-over-year, exceeding guidance.",
+      "The company announced layoffs affecting 10% of staff.",
+      "Q3 earnings were in line with consensus expectations.",
+      "Short sellers are increasing their positions in the stock.",
+  ]
+  results = finbert(texts)
+  for text, res in zip(texts, results):
+      print(f"  {res['label']:>8} ({res['score']:.2f}): {text[:60]}")
+
+============================================================
+Part 3: Fine-Tuning FinBERT on StockTwits Data
+============================================================
+  Creating synthetic StockTwits-like data for demonstration...
+  Dataset: 240 examples (120 bullish, 120 bearish)
+
+  Training:
+    Epoch 2: loss=0.5276, val_acc=1.000
+    Epoch 4: loss=0.2557, val_acc=1.000
+    Epoch 6: loss=0.0389, val_acc=1.000
+    Epoch 8: loss=0.0058, val_acc=1.000
+
+============================================================
+Part 4: Evaluation & Per-Stock Breakdown
+============================================================
+
+  실제 자료를 쓴 온전한 곱게 다듬기 물길:
+
+  from transformers import (
+      AutoModelForSequenceClassification, AutoTokenizer,
+      Trainer, TrainingArguments,
+  )
+  from datasets import Dataset
+  import pandas as pd
+
+  # StockTwits 자료 읽어 들이기
+  df = pd.read_csv("stocktwits_data.csv")
+  # 칸: symbol, message, sentiment(Bullish/Bearish), message_id
+  # 레이블 부호화
+  df["label"] = (df["sentiment"] == "Bullish").astype(int)
+
+  tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
+  model = AutoModelForSequenceClassification.from_pretrained(
+      "ProsusAI/finbert", num_labels=2
+  )
+
+  def tokenize(batch):
+      return tokenizer(
+          batch["message"], padding="max_length",
+          truncation=True, max_length=128,
       )
 
-      # 예측 하나
-      result = finbert("AAPL missed revenue estimates by 2%.")
-      # → [{'label': 'negative', 'score': 0.87}]
+  ds = Dataset.from_pandas(df[["message", "label"]])
+  ds = ds.map(tokenize, batched=True)
+  ds = ds.train_test_split(test_size=0.1, seed=42)
 
-      # 배치 예측
-      texts = [
-          "Revenue grew 15% year-over-year, exceeding guidance.",
-          "The company announced layoffs affecting 10% of staff.",
-          "Q3 earnings were in line with consensus expectations.",
-          "Short sellers are increasing their positions in the stock.",
-      ]
-      results = finbert(texts)
-      for text, res in zip(texts, results):
-          print(f"  {res['label']:>8} ({res['score']:.2f}): {text[:60]}")
+  args = TrainingArguments(
+      output_dir="./finbert-stocktwits",
+      num_train_epochs=4,
+      per_device_train_batch_size=16,
+      per_device_eval_batch_size=64,
+      learning_rate=2e-5,
+      weight_decay=0.01,
+      warmup_ratio=0.1,
+      evaluation_strategy="epoch",
+      save_strategy="epoch",
+      load_best_model_at_end=True,
+      fp16=True,
+  )
 
-    ============================================================
-    Part 3: Fine-Tuning FinBERT on StockTwits Data
-    ============================================================
-      Creating synthetic StockTwits-like data for demonstration...
-      Dataset: 240 examples (120 bullish, 120 bearish)
+  trainer = Trainer(
+      model=model, args=args,
+      train_dataset=ds["train"],
+      eval_dataset=ds["test"],
+      tokenizer=tokenizer,
+  )
+  trainer.train()
 
-      Training:
-        Epoch 2: loss=0.5276, val_acc=1.000
-        Epoch 4: loss=0.2557, val_acc=1.000
-        Epoch 6: loss=0.0389, val_acc=1.000
-        Epoch 8: loss=0.0058, val_acc=1.000
+  # 종목별 평가
+  for symbol in ["FB", "AMZN", "GOOGL"]:
+      subset = df[df["symbol"] == symbol]
+      preds = trainer.predict(Dataset.from_pandas(subset))
+      acc = (preds.predictions.argmax(-1) == subset["label"].values).mean()
+      print(f"  {symbol}: {acc:.3f} accuracy ({len(subset)} samples)")
 
-    ============================================================
-    Part 4: Evaluation & Per-Stock Breakdown
-    ============================================================
+============================================================
+Part 5: FinBERT vs Generic BERT vs Lexicon-Based
+============================================================
 
-      실제 자료를 쓴 온전한 곱게 다듬기 물길:
+  금융 감성 일에서의 견줌:
 
-      from transformers import (
-          AutoModelForSequenceClassification, AutoTokenizer,
-          Trainer, TrainingArguments,
-      )
-      from datasets import Dataset
-      import pandas as pd
+  ┌─────────────────────┬───────────┬──────────┬─────────────┐
+  │ 방법                │ 정확도    │ F1 점수  │ 분야 맞음   │
+  ├─────────────────────┼───────────┼──────────┼─────────────┤
+  │ TextBlob(단어집)    │   0.58    │   0.52   │ 나쁨        │
+  │ VADER               │   0.62    │   0.57   │ 보통        │
+  │ BERT-base           │   0.71    │   0.68   │ 일반        │
+  │ FinBERT(영 발)      │   0.76    │   0.73   │ 좋음        │
+  │ FinBERT(곱게 다듬음)│   0.83    │   0.81   │ 아주 좋음   │
+  └─────────────────────┴───────────┴──────────┴─────────────┘
 
-      # StockTwits 자료 읽어 들이기
-      df = pd.read_csv("stocktwits_data.csv")
-      # 칸: symbol, message, sentiment(Bullish/Bearish), message_id
-      # 레이블 부호화
-      df["label"] = (df["sentiment"] == "Bullish").astype(int)
+  FinBERT가 일반 모델을 앞서는 까닭:
 
-      tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
-      model = AutoModelForSequenceClassification.from_pretrained(
-          "ProsusAI/finbert", num_labels=2
-      )
+  1. 분야 단어: "bullish", "bearish", "overbought" 등
+     일반 BERT가 담아내지 못하는 금융 특유의 뜻을 지닌다.
 
-      def tokenize(batch):
-          return tokenizer(
-              batch["message"], padding="max_length",
-              truncation=True, max_length=128,
-          )
+  2. 감성의 방향: "Short position"은 일반 글에서는 가운데이지만
+     금융 맥락에서는 흔히 약세이다.
 
-      ds = Dataset.from_pandas(df[["message", "label"]])
-      ds = ds.map(tokenize, batched=True)
-      ds = ds.train_test_split(test_size=0.1, seed=42)
+  3. 부정 다루기: "Revenue did not meet expectations"는
+     금융 보고서의 말을 이해한다.
 
-      args = TrainingArguments(
-          output_dir="./finbert-stocktwits",
-          num_train_epochs=4,
-          per_device_train_batch_size=16,
-          per_device_eval_batch_size=64,
-          learning_rate=2e-5,
-          weight_decay=0.01,
-          warmup_ratio=0.1,
-          evaluation_strategy="epoch",
-          save_strategy="epoch",
-          load_best_model_at_end=True,
-          fp16=True,
-      )
+  4. 수의 맥락: "EPS of $2.50 vs $2.30 expected" — FinBERT는
+     예측을 웃도는 것이 양성임을 안다.
 
-      trainer = Trainer(
-          model=model, args=args,
-          train_dataset=ds["train"],
-          eval_dataset=ds["test"],
-          tokenizer=tokenizer,
-      )
-      trainer.train()
+  금융 자연어 다루기의 쓰임새:
+  - 실적 발표 감성 좇기
+  - 초과 수익을 위한 뉴스 감성
+  - 사회 네트워크(StockTwits/Reddit) 감성 점수 매기기
+  - SEC 보고서의 어조 살피기
+  - 분석 보고서 클래스 매기기
 
-      # 종목별 평가
-      for symbol in ["FB", "AMZN", "GOOGL"]:
-          subset = df[df["symbol"] == symbol]
-          preds = trainer.predict(Dataset.from_pandas(subset))
-          acc = (preds.predictions.argmax(-1) == subset["label"].values).mean()
-          print(f"  {symbol}: {acc:.3f} accuracy ({len(subset)} samples)")
-
-    ============================================================
-    Part 5: FinBERT vs Generic BERT vs Lexicon-Based
-    ============================================================
-
-      금융 감성 일에서의 견줌:
-
-      ┌─────────────────────┬───────────┬──────────┬─────────────┐
-      │ 방법                │ 정확도    │ F1 점수  │ 분야 맞음   │
-      ├─────────────────────┼───────────┼──────────┼─────────────┤
-      │ TextBlob(단어집)    │   0.58    │   0.52   │ 나쁨        │
-      │ VADER               │   0.62    │   0.57   │ 보통        │
-      │ BERT-base           │   0.71    │   0.68   │ 일반        │
-      │ FinBERT(영 발)      │   0.76    │   0.73   │ 좋음        │
-      │ FinBERT(곱게 다듬음)│   0.83    │   0.81   │ 아주 좋음   │
-      └─────────────────────┴───────────┴──────────┴─────────────┘
-
-      FinBERT가 일반 모델을 앞서는 까닭:
-
-      1. 분야 단어: "bullish", "bearish", "overbought" 등
-         일반 BERT가 담아내지 못하는 금융 특유의 뜻을 지닌다.
-
-      2. 감성의 방향: "Short position"은 일반 글에서는 가운데이지만
-         금융 맥락에서는 흔히 약세이다.
-
-      3. 부정 다루기: "Revenue did not meet expectations"는
-         금융 보고서의 말을 이해한다.
-
-      4. 수의 맥락: "EPS of $2.50 vs $2.30 expected" — FinBERT는
-         예측을 웃도는 것이 양성임을 안다.
-
-      금융 자연어 다루기의 쓰임새:
-      - 실적 발표 감성 좇기
-      - 초과 수익을 위한 뉴스 감성
-      - 사회 네트워크(StockTwits/Reddit) 감성 점수 매기기
-      - SEC 보고서의 어조 살피기
-      - 분석 보고서 클래스 매기기
-
-    Done.
-    ```
+Done.
+```
 
 ## 2. 실제 FinBERT와 안내 문자열
 

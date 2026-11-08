@@ -1011,29 +1011,29 @@ _확인한 곳 — J. Pearl, "Bayesian Networks: A Model of Self-Activated Memor
     뿌리 변수 Flu·Allergy는 독립이고 두 관측 결과는 이 부모들을 조건으로 독립이라고 가정한다. 분자는 Flu=1에서 Allergy를 합산한 결합확률, 분모는 두 뿌리 변수의 모든 조합을 합산한 증거 확률이다. 분모가 양수일 때 비를 구한다. 주어진 숫자는 교육용 가정이며 실제 진단 성능을 뒷받침하지 않는다.
 
     ```python
-import numpy as np
-from itertools import product
+    import numpy as np
+    from itertools import product
 
-# CPT
-p_flu = {0: 0.95, 1: 0.05}
-p_allergy = {0: 0.7, 1: 0.3}
-p_sneeze = {(0,0): {0:0.95,1:0.05}, (0,1): {0:0.3,1:0.7},
-            (1,0): {0:0.2,1:0.8}, (1,1): {0:0.1,1:0.9}}
-p_cough = {(0,0): {0:0.95,1:0.05}, (0,1): {0:0.7,1:0.3},
-           (1,0): {0:0.2,1:0.8}, (1,1): {0:0.1,1:0.9}}
+    # CPT
+    p_flu = {0: 0.95, 1: 0.05}
+    p_allergy = {0: 0.7, 1: 0.3}
+    p_sneeze = {(0,0): {0:0.95,1:0.05}, (0,1): {0:0.3,1:0.7},
+                (1,0): {0:0.2,1:0.8}, (1,1): {0:0.1,1:0.9}}
+    p_cough = {(0,0): {0:0.95,1:0.05}, (0,1): {0:0.7,1:0.3},
+               (1,0): {0:0.2,1:0.8}, (1,1): {0:0.1,1:0.9}}
 
-# Allergy에 걸쳐 합한 P(Flu=1, Sneeze=1, Cough=1)
-numerator = 0
-for a in [0, 1]:
-    numerator += p_flu[1] * p_allergy[a] * p_sneeze[(1,a)][1] * p_cough[(1,a)][1]
-
-denominator = 0
-for f in [0, 1]:
+    # Allergy에 걸쳐 합한 P(Flu=1, Sneeze=1, Cough=1)
+    numerator = 0
     for a in [0, 1]:
-        denominator += p_flu[f] * p_allergy[a] * p_sneeze[(f,a)][1] * p_cough[(f,a)][1]
+        numerator += p_flu[1] * p_allergy[a] * p_sneeze[(1,a)][1] * p_cough[(1,a)][1]
 
-print(f'P(Flu=1 | Sneeze=1, Cough=1) = {numerator/denominator:.4f}')
-```
+    denominator = 0
+    for f in [0, 1]:
+        for a in [0, 1]:
+            denominator += p_flu[f] * p_allergy[a] * p_sneeze[(f,a)][1] * p_cough[(f,a)][1]
+
+    print(f'P(Flu=1 | Sneeze=1, Cough=1) = {numerator/denominator:.4f}')
+    ```
 
 
 ---
@@ -1065,44 +1065,44 @@ DAG를 유지하면서 간선을 추가하면 표현 가능한 분포와 CPT 크
     결합분포에서 표본을 생성하고 증거와 맞는 표본의 Rain 평균을 구하는 기각 샘플링이다. 풀이 코드는 문제의 10,000개 대신 100,000개를 생성한다. 정확 열거값과 같은 CPT·상태 의미를 사용해 비교해야 하며, 받아들인 표본 수가 정확도를 결정한다. 더 많은 표본이 개별 실행의 오차를 반드시 줄이지는 않는다.
 
     ```python
-import numpy as np
+    import numpy as np
 
-np.random.seed(42)
-n = 100000
-samples = []
+    np.random.seed(42)
+    n = 100000
+    samples = []
 
-for _ in range(n):
-    cloudy = np.random.binomial(1, 0.5)
-    sprinkler = np.random.binomial(1, 0.1 if cloudy else 0.5)
-    rain = np.random.binomial(1, 0.8 if cloudy else 0.2)
-    p_wet = [[1.0, 0.0], [0.1, 0.9], [0.1, 0.9], [0.01, 0.99]]
-    idx = sprinkler * 2 + rain
-    wet = np.random.binomial(1, p_wet[idx][1])
-    samples.append((cloudy, sprinkler, rain, wet))
+    for _ in range(n):
+        cloudy = np.random.binomial(1, 0.5)
+        sprinkler = np.random.binomial(1, 0.1 if cloudy else 0.5)
+        rain = np.random.binomial(1, 0.8 if cloudy else 0.2)
+        p_wet = [[1.0, 0.0], [0.1, 0.9], [0.1, 0.9], [0.01, 0.99]]
+        idx = sprinkler * 2 + rain
+        wet = np.random.binomial(1, p_wet[idx][1])
+        samples.append((cloudy, sprinkler, rain, wet))
 
-samples = np.array(samples)
-wet_mask = samples[:, 3] == 1
-rain_given_wet = samples[wet_mask, 2].mean()
-print(f'P(Rain=1|WetGrass=1) approx = {rain_given_wet:.4f}')
+    samples = np.array(samples)
+    wet_mask = samples[:, 3] == 1
+    rain_given_wet = samples[wet_mask, 2].mean()
+    print(f'P(Rain=1|WetGrass=1) approx = {rain_given_wet:.4f}')
 
-# 낱낱 세기로 정확히
-from itertools import product
-p_rain_wet = 0
-p_wet = 0
-for c, s, r, w in product([0,1], repeat=4):
-    pc = [0.5,0.5][c]
-    ps = [0.5,0.1][c] if s else [0.5,0.9][c]
-    pr = [0.2,0.8][c] if r else [0.8,0.2][c]
-    pw_table = [[1,0],[0.1,0.9],[0.1,0.9],[0.01,0.99]]
-    pw = pw_table[s*2+r][w]
-    joint = pc * ps * pr * pw
-    if w == 1:
-        p_wet += joint
-        if r == 1:
-            p_rain_wet += joint
+    # 낱낱 세기로 정확히
+    from itertools import product
+    p_rain_wet = 0
+    p_wet = 0
+    for c, s, r, w in product([0,1], repeat=4):
+        pc = [0.5,0.5][c]
+        ps = [0.5,0.1][c] if s else [0.5,0.9][c]
+        pr = [0.2,0.8][c] if r else [0.8,0.2][c]
+        pw_table = [[1,0],[0.1,0.9],[0.1,0.9],[0.01,0.99]]
+        pw = pw_table[s*2+r][w]
+        joint = pc * ps * pr * pw
+        if w == 1:
+            p_wet += joint
+            if r == 1:
+                p_rain_wet += joint
 
-print(f'P(Rain=1|WetGrass=1) exact = {p_rain_wet/p_wet:.4f}')
-```
+    print(f'P(Rain=1|WetGrass=1) exact = {p_rain_wet/p_wet:.4f}')
+    ```
 
 
 ## 정리하며

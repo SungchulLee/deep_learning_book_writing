@@ -990,36 +990,36 @@ d-분리는 그래프에 따라 인수분해되는 분포의 조건부 독립을
     아래 표는 P(D)P(S₁|D)P(S₂|D)로 생성되므로 D의 양쪽 값에서 조건부 독립이다. 서로 다른 D의 상태를 혼합하면 두 결과가 공통원인 정보를 공유해 주변적으로 종속일 수 있다. 코드는 D=0의 조건부 독립과 주변 종속을 수치 비교한다. 의료 이름은 가상 변수명이며 실제 진단 모형을 검증한 자료가 아니다.
 
     ```python
-import numpy as np
+    import numpy as np
 
-# P(D=1)=0.1
-# P(S1=1|D=0)=0.05, P(S1=1|D=1)=0.8
-# P(S2=1|D=0)=0.1, P(S2=1|D=1)=0.7
-values = np.zeros((2, 2, 2))  # D, S1, S2
-for d in range(2):
-    p_d = 0.1 if d == 1 else 0.9
-    for s1 in range(2):
-        p_s1 = (0.8 if s1 == 1 else 0.2) if d == 1 else (0.05 if s1 == 1 else 0.95)
-        for s2 in range(2):
-            p_s2 = (0.7 if s2 == 1 else 0.3) if d == 1 else (0.1 if s2 == 1 else 0.9)
-            values[d, s1, s2] = p_d * p_s1 * p_s2
+    # P(D=1)=0.1
+    # P(S1=1|D=0)=0.05, P(S1=1|D=1)=0.8
+    # P(S2=1|D=0)=0.1, P(S2=1|D=1)=0.7
+    values = np.zeros((2, 2, 2))  # D, S1, S2
+    for d in range(2):
+        p_d = 0.1 if d == 1 else 0.9
+        for s1 in range(2):
+            p_s1 = (0.8 if s1 == 1 else 0.2) if d == 1 else (0.05 if s1 == 1 else 0.95)
+            for s2 in range(2):
+                p_s2 = (0.7 if s2 == 1 else 0.3) if d == 1 else (0.1 if s2 == 1 else 0.9)
+                values[d, s1, s2] = p_d * p_s1 * p_s2
 
-# 주변 분포 P(S1, S2)
-p_s1_s2 = values.sum(axis=0)
-p_s1 = p_s1_s2.sum(axis=1)
-p_s2 = p_s1_s2.sum(axis=0)
+    # 주변 분포 P(S1, S2)
+    p_s1_s2 = values.sum(axis=0)
+    p_s1 = p_s1_s2.sum(axis=1)
+    p_s2 = p_s1_s2.sum(axis=0)
 
-# 주변 독립 살피기
-print('Marginal P(S1,S2):', p_s1_s2)
-print('P(S1)*P(S2):', np.outer(p_s1, p_s2))
-print('Marginally independent?', np.allclose(p_s1_s2, np.outer(p_s1, p_s2)))
+    # 주변 독립 살피기
+    print('Marginal P(S1,S2):', p_s1_s2)
+    print('P(S1)*P(S2):', np.outer(p_s1, p_s2))
+    print('Marginally independent?', np.allclose(p_s1_s2, np.outer(p_s1, p_s2)))
 
-# D=0을 조건으로 한 조건부 독립 살피기
-p_given_d0 = values[0] / values[0].sum()
-p_s1_d0 = p_given_d0.sum(axis=1)
-p_s2_d0 = p_given_d0.sum(axis=0)
-print('Cond. independent given D=0?', np.allclose(p_given_d0, np.outer(p_s1_d0, p_s2_d0)))
-```
+    # D=0을 조건으로 한 조건부 독립 살피기
+    p_given_d0 = values[0] / values[0].sum()
+    p_s1_d0 = p_given_d0.sum(axis=1)
+    p_s2_d0 = p_given_d0.sum(axis=0)
+    print('Cond. independent given D=0?', np.allclose(p_given_d0, np.outer(p_s1_d0, p_s2_d0)))
+    ```
 
 
 ---

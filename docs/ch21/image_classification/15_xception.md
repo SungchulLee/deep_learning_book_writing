@@ -109,19 +109,19 @@ Inception과 depthwise separable 연산이 다른 점을 설명하라.
     stride≠1이거나 입력·출력 채널이 다르면 1×1 투영과 BN을 사용한다. 기본 3×3 padding=1에서는 투영과 공간 크기를 맞출 수 있지만 다른 커널 설정에서는 다시 확인해야 한다. 주 분기는 SeparableConv2d 안에서 ReLU를 거친 뒤 지름길과 더해지며, 덧셈 뒤 ReLU는 없다. 원 Xception 블록 전체와 동일하다고 부르면 안 된다.
 
     ```python
-class SepConvWithResidual(nn.Module):
-    def __init__(self, in_ch, out_ch, stride=1):
-        super().__init__()
-        self.sep = SeparableConv2d(in_ch, out_ch, stride=stride)
-        self.shortcut = nn.Sequential()
-        if stride != 1 or in_ch != out_ch:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(in_ch, out_ch, 1, stride, bias=False),
-                nn.BatchNorm2d(out_ch)
-            )
-    def forward(self, x):
-        return self.sep(x) + self.shortcut(x)
-```
+    class SepConvWithResidual(nn.Module):
+        def __init__(self, in_ch, out_ch, stride=1):
+            super().__init__()
+            self.sep = SeparableConv2d(in_ch, out_ch, stride=stride)
+            self.shortcut = nn.Sequential()
+            if stride != 1 or in_ch != out_ch:
+                self.shortcut = nn.Sequential(
+                    nn.Conv2d(in_ch, out_ch, 1, stride, bias=False),
+                    nn.BatchNorm2d(out_ch)
+                )
+        def forward(self, x):
+            return self.sep(x) + self.shortcut(x)
+    ```
 
 
 ## 정리하며
