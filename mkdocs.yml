@@ -452,21 +452,27 @@ nav:
         - 사용자 정의 로스 함수: ch09/loss/01_custom_loss_functions.md
         - 로스 함수의 선택: ch09/loss/loss_selection.md
       - 10.6 옵티마이저:
-        - 모멘텀을 쓰는 확률적 경사 하강법: ch09/optimizers/momentum.md
-        - 네스테로프 모멘텀: ch09/optimizers/nesterov.md
-        - Adagrad: ch09/optimizers/adagrad.md
-        - Adadelta: ch09/optimizers/adadelta.md
-        - RMSprop: ch09/optimizers/rmsprop.md
-        - Adam: ch09/optimizers/adam.md
-        - AdamW: ch09/optimizers/adamw.md
-        - LAMB: ch09/optimizers/lamb.md
-        - 뉴럴 네트워크 학습에서 옵티마이저 비교: ch09/optimizers/01_optimizer_comparison.md
-        - 러닝레이트 스케줄러: ch09/optimizers/02_learning_rate_schedulers.md
-        - 그래디언트 관리: ch09/optimizers/03_gradient_management.md
-        - Adagrad 실습: ch09/optimizers/adagrad_optimizer.md
-        - Adam 실습: ch09/optimizers/adam_optimizer.md
-        - 기준 함수에서 옵티마이저 비교: ch09/optimizers/optimizer_comparison.md
-        - RMSprop 실습: ch09/optimizers/rmsprop_optimizer.md
+        - 모멘텀 계열:
+          - 모멘텀을 쓰는 확률적 경사 하강법: ch09/optimizers/momentum.md
+          - 네스테로프 모멘텀: ch09/optimizers/nesterov.md
+        - 좌표마다 보폭을 바꾸기:
+          - Adagrad: ch09/optimizers/adagrad.md
+          - Adadelta: ch09/optimizers/adadelta.md
+          - RMSprop: ch09/optimizers/rmsprop.md
+        - 둘을 합친 Adam 계열:
+          - Adam: ch09/optimizers/adam.md
+          - AdamW: ch09/optimizers/adamw.md
+          - LAMB: ch09/optimizers/lamb.md
+        - NumPy 로 직접 짜 보기:
+          - Adagrad 실습: ch09/optimizers/adagrad_optimizer.md
+          - RMSprop 실습: ch09/optimizers/rmsprop_optimizer.md
+          - Adam 실습: ch09/optimizers/adam_optimizer.md
+        - 견주기:
+          - 기준 함수에서 옵티마이저 비교: ch09/optimizers/optimizer_comparison.md
+          - 뉴럴 네트워크 학습에서 옵티마이저 비교: ch09/optimizers/01_optimizer_comparison.md
+        - 옵티마이저 둘레:
+          - 러닝레이트 스케줄러: ch09/optimizers/02_learning_rate_schedulers.md
+          - 그래디언트 관리: ch09/optimizers/03_gradient_management.md
       - 10.7 러닝레이트 스케줄러:
         - 순환 러닝레이트: ch09/schedulers/cyclical_lr.md
         - 러닝레이트 워밍업: ch09/schedulers/lr_warmup.md
@@ -970,35 +976,46 @@ nav:
     - "20 샘플링과 추론":
       - "장 개요": ch19/index.md
       - 20.1 마르코프 사슬:
-        - "마르코프 사슬의 기초": ch19/markov_chains/fundamentals.md
-        - "정상분포": ch19/markov_chains/stationary.md
-        - 에르고드성: ch19/markov_chains/ergodicity.md
-        - "은닉 마르코프 모델(HMM)": ch19/markov_chains/hmm.md
-        - 기본 마르코프 사슬: ch19/markov_chains/basic_markov_chain.md
-        - "랜덤 워크": ch19/markov_chains/random_walk.md
-        - "전이 행렬": ch19/markov_chains/transition_matrices.md
-        - 흡수 사슬: ch19/markov_chains/absorbing_chains.md
-        - "수렴 정리": ch19/markov_chains/convergence_theorems.md
-        - "정상분포": ch19/markov_chains/stationary_distribution.md
-        - "연속시간 마르코프 과정": ch19/markov_chains/continuous_time_markov.md
-        - 페이지랭크 알고리즘: ch19/markov_chains/pagerank_algorithm.md
-        - "텍스트 생성": ch19/markov_chains/text_generation.md
-        - "날씨 모델": ch19/markov_chains/weather_model.md
+        - 사슬이란 무엇인가:
+          - "마르코프 사슬의 기초": ch19/markov_chains/fundamentals.md
+          - 기본 마르코프 사슬: ch19/markov_chains/basic_markov_chain.md
+          - "랜덤 워크": ch19/markov_chains/random_walk.md
+        - 정상분포와 수렴:
+          - "정상분포": ch19/markov_chains/stationary.md
+          - "정상분포": ch19/markov_chains/stationary_distribution.md
+          - 에르고드성: ch19/markov_chains/ergodicity.md
+          - "수렴 정리": ch19/markov_chains/convergence_theorems.md
+        - 행렬로 셈하기:
+          - "전이 행렬": ch19/markov_chains/transition_matrices.md
+          - 흡수 사슬: ch19/markov_chains/absorbing_chains.md
+          - "연속시간 마르코프 과정": ch19/markov_chains/continuous_time_markov.md
+        - 얹은 모델:
+          - "은닉 마르코프 모델(HMM)": ch19/markov_chains/hmm.md
+        - 응용:
+          - 페이지랭크 알고리즘: ch19/markov_chains/pagerank_algorithm.md
+          - "날씨 모델": ch19/markov_chains/weather_model.md
+          - "텍스트 생성": ch19/markov_chains/text_generation.md
       - 20.2 몬테카를로 방법:
-        - 몬테카를로 적분: ch19/monte_carlo/integration.md
-        - "유효 표본 크기": ch19/monte_carlo/importance_sampling/ess.md
-        - "유효 표본 크기 개요": ch19/monte_carlo/ess.md
-        - "자기정규화 중요도 샘플링": ch19/monte_carlo/02_self_normalized_is.md
-        - "간단한 베이즈 예제": ch19/monte_carlo/03_bayesian_simple_examples.md
-        - "유효 표본 크기": ch19/monte_carlo/04_effective_sample_size.md
-        - "제안분포 진단": ch19/monte_carlo/05_proposal_diagnostics.md
-        - "로지스틱 회귀의 중요도 샘플링": ch19/monte_carlo/06_logistic_regression_is.md
-        - "혼합 제안분포": ch19/monte_carlo/07_mixture_proposals.md
-        - "적응적 중요도 샘플링": ch19/monte_carlo/08_adaptive_importance_sampling.md
-        - "순차 중요도 샘플링": ch19/monte_carlo/09_sequential_importance_sampling.md
-        - "방어적 중요도 샘플링": ch19/monte_carlo/10_defensive_importance_sampling.md
-        - "희귀 사건 시뮬레이션": ch19/monte_carlo/11_rare_event_simulation.md
-        - 연습 문제: ch19/monte_carlo/exercises.md
+        - 몬테카를로란:
+          - 몬테카를로 적분: ch19/monte_carlo/integration.md
+        - 웨이트가 얼마나 쏠렸나 — ESS:
+          - "유효 표본 크기 개요": ch19/monte_carlo/ess.md
+          - "유효 표본 크기": ch19/monte_carlo/importance_sampling/ess.md
+          - "유효 표본 크기": ch19/monte_carlo/04_effective_sample_size.md
+        - 사후분포를 근사하기:
+          - "자기정규화 중요도 샘플링": ch19/monte_carlo/02_self_normalized_is.md
+          - "간단한 베이즈 예제": ch19/monte_carlo/03_bayesian_simple_examples.md
+          - "로지스틱 회귀의 중요도 샘플링": ch19/monte_carlo/06_logistic_regression_is.md
+        - 제안분포를 고르고 진단하기:
+          - "제안분포 진단": ch19/monte_carlo/05_proposal_diagnostics.md
+          - "혼합 제안분포": ch19/monte_carlo/07_mixture_proposals.md
+          - "적응적 중요도 샘플링": ch19/monte_carlo/08_adaptive_importance_sampling.md
+          - "방어적 중요도 샘플링": ch19/monte_carlo/10_defensive_importance_sampling.md
+        - 순차와 희귀 사건:
+          - "순차 중요도 샘플링": ch19/monte_carlo/09_sequential_importance_sampling.md
+          - "희귀 사건 시뮬레이션": ch19/monte_carlo/11_rare_event_simulation.md
+        - 연습:
+          - 연습 문제: ch19/monte_carlo/exercises.md
       - "20.3 중요도 샘플링":
         - "중요도 샘플링 기초": ch19/monte_carlo/importance_sampling/fundamentals.md
         - "자기정규화 중요도 샘플링": ch19/monte_carlo/importance_sampling/self_normalized.md

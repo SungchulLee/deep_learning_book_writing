@@ -4,22 +4,70 @@
 
 ## 1. 마르코프 사슬
 
-- [기초](markov_chains/fundamentals.md): 전이 커널·여러 단계 분포와 시간 평균
-- [정상분포](markov_chains/stationary.md): 불변성·유일성과 수렴의 차이
-- [에르고드성](markov_chains/ergodicity.md): 접근성·재귀성·주기와 혼합 진단
-- [은닉 마르코프 모형](markov_chains/hmm.md): 필터링·스무딩·최적 상태 경로
+**사슬이란 무엇인가**
+
+- [마르코프 사슬의 기초](markov_chains/fundamentals.md) — 전이 커널·여러 단계 분포와 시간 평균
+- [기본 마르코프 사슬](markov_chains/basic_markov_chain.md) — 유한 상태, 시간에 따라 변하지 않는 전이
+- [랜덤 워크](markov_chains/random_walk.md) — 1차원의 평균·분산, 2차원의 격자 경로
+
+**정상분포와 수렴**
+
+- [정상분포](markov_chains/stationary.md) — 불변성과 **극한분포는 다른 말**이다
+- [정상분포 구하기](markov_chains/stationary_distribution.md) — 고유벡터·선형방정식·거듭제곱·점유율
+- [에르고드성](markov_chains/ergodicity.md) — 기약성·주기·재귀성 · [수렴 정리](markov_chains/convergence_theorems.md) — 총변동 거리와 혼합 시간
+
+**행렬로 셈하기**
+
+- [전이 행렬](markov_chains/transition_matrices.md) — 거듭제곱과 Chapman–Kolmogorov
+- [흡수 사슬](markov_chains/absorbing_chains.md) — 과도 상태의 방문 횟수와 흡수 확률
+- [연속시간 마르코프 과정](markov_chains/continuous_time_markov.md) — 생성행렬의 비대각은 확률이 아니라 **전이율**이다
+
+**얹은 모델**
+
+- [은닉 마르코프 모델(HMM)](markov_chains/hmm.md) — 필터링·스무딩·최적 상태 경로
+
+**응용**
+
+- [페이지랭크](markov_chains/pagerank_algorithm.md) — 랜덤 서퍼의 정상분포
+- [날씨 모델](markov_chains/weather_model.md) — 관측 도수로 1차 사슬을 추정한다
+- [텍스트 생성](markov_chains/text_generation.md) — 앞 $k$ 단어를 상태로. 뉴럴 네트워크가 **아니다**
 
 유한 상태의 정리를 일반 상태에 그대로 확장하지 않고, 정상분포의 존재와 초기분포에서의 수렴을 구분한다.
 
 ## 2. 몬테카를로 적분과 중요도 샘플링
 
-- [몬테카를로 적분](monte_carlo/integration.md): 적률 조건·표준오차·분산 감소
-- [ESS의 두 의미](monte_carlo/ess.md): 웨이트 집중도와 함수별 자기상관 진단
-- [중요도 샘플링 기초](monte_carlo/importance_sampling/fundamentals.md): 표준 IS와 지지집합·분산 조건
-- [자기정규화 IS](monte_carlo/importance_sampling/self_normalized.md): 미지 상수를 소거하는 비율 추정
-- [웨이트 ESS](monte_carlo/importance_sampling/ess.md): 집중도 지표와 함수별 오차의 한계
-- [제안분포 설계](monte_carlo/importance_sampling/proposal_design.md): 관심 적분·모드·꼬리와 적응
-- [연습 예제](monte_carlo/exercises.md): 추정량·사전 변경·희귀 사건 비교
+중요도 샘플링의 뼈대는 [20.3절](monte_carlo/importance_sampling/fundamentals.md)이 따로 다룬다 — [자기정규화 IS](monte_carlo/importance_sampling/self_normalized.md)와 [제안분포 설계](monte_carlo/importance_sampling/proposal_design.md)가 거기 있다. 이 절은 그것을 **쓰고 진단하는** 자리다.
+
+**몬테카를로란**
+
+- [몬테카를로 적분](monte_carlo/integration.md) — 표본평균으로 기댓값을. 유한 분산이 표준오차를 떠받친다
+
+**웨이트가 얼마나 쏠렸나 — ESS**
+
+- [ESS의 두 의미](monte_carlo/ess.md) — 웨이트 집중도와 자기상관 진단은 **다른 것**이다
+- [웨이트 ESS](monte_carlo/importance_sampling/ess.md) — 집중도 지표이지 독립 표본 수의 보장이 아니다
+- [유효 표본 크기 비교](monte_carlo/04_effective_sample_size.md) — ESS 와 실제 추정 오차의 관계를 반복 실험으로
+
+**사후분포를 근사하기**
+
+- [자기정규화 중요도 샘플링](monte_carlo/02_self_normalized_is.md) — 켤레 사후분포와 맞춰 본다
+- [간단한 베이즈 예제](monte_carlo/03_bayesian_simple_examples.md) — 베타-이항·정규-정규·감마-푸아송
+- [로지스틱 회귀 중요도 샘플링](monte_carlo/06_logistic_regression_is.md) — 사전 제안과 라플라스 제안
+
+**제안분포를 고르고 진단하기**
+
+- [제안분포 진단](monte_carlo/05_proposal_diagnostics.md) — 집중도·모멘트·꼬리와 다봉 방문
+- [혼합 제안분포](monte_carlo/07_mixture_proposals.md) · [방어적 중요도 샘플링](monte_carlo/10_defensive_importance_sampling.md) — 안전 성분을 섞는다
+- [적응적 중요도 샘플링](monte_carlo/08_adaptive_importance_sampling.md) — 앞 단계의 가중 표본으로 다음 제안을
+
+**순차와 희귀 사건**
+
+- [순차 중요도 샘플링](monte_carlo/09_sequential_importance_sampling.md) — 재표집은 집중을 줄이고 **다양성도 줄인다**
+- [희귀 사건 시뮬레이션](monte_carlo/11_rare_event_simulation.md) — 꼬리에 표본을 몰아준다
+
+**연습**
+
+- [연습 문제](monte_carlo/exercises.md) — 표준 IS 와 SNIS 의 차이를 순서대로
 
 표준 IS의 불편성과 SNIS의 일반적인 유한 표본 바이어스를 구분한다. 관측한 ESS가 높아도 미탐색 영역이나 특정 함수의 정확도가 보장되는 것은 아니다.
 

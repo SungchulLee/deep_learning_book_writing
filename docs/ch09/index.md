@@ -24,7 +24,37 @@
 
 출력 형식과 목표에 맞는 [로스 선택](loss/loss_selection.md)이 먼저이다. [후버 로스](loss/huber_loss.md), [Focal Loss](loss/focal_loss.md)와 [사용자 정의 로스](loss/01_custom_loss_functions.md)을 살펴보고 각 가정과 집계 방식을 비교한다.
 
-옵티마이저는 로스에서 계산한 경사를 사용해 갱신한다. [모멘텀](optimizers/momentum.md), [네스테로프](optimizers/nesterov.md), [Adagrad](optimizers/adagrad.md), [Adadelta](optimizers/adadelta.md), [RMSprop](optimizers/rmsprop.md), [Adam](optimizers/adam.md), [AdamW](optimizers/adamw.md), [LAMB](optimizers/lamb.md)의 상태와 갱신 차이를 이해한다. 어느 방법의 우열도 러닝레이트와 평가 조건에서 분리해 판단할 수는 없다.
+옵티마이저는 로스에서 계산한 경사를 사용해 갱신한다. **어느 방법의 우열도 러닝레이트와 평가 조건에서 떼어 판단할 수 없다.**
+
+**모멘텀 계열**
+
+- [모멘텀을 쓰는 SGD](optimizers/momentum.md) — 지난 경사의 지수 감쇠 평균을 쌓는다
+- [네스테로프 가속 경사](optimizers/nesterov.md) — 먼저 가 보고 그 자리에서 경사를 잰다
+
+**좌표마다 보폭을 바꾸기**
+
+- [Adagrad](optimizers/adagrad.md) — 경사 제곱을 **누적**한다. 그래서 보폭이 한없이 줄어든다
+- [Adadelta](optimizers/adadelta.md) · [RMSprop](optimizers/rmsprop.md) — 누적 대신 **지수 감쇠 평균**으로 그 문제를 푼다
+
+**둘을 합친 Adam 계열**
+
+- [Adam](optimizers/adam.md) — 경사와 경사 제곱의 지수 평균, 그리고 초기화 바이어스 보정
+- [AdamW](optimizers/adamw.md) — 웨이트 감쇠를 적응형 변환에서 **떼어낸다**
+- [LAMB](optimizers/lamb.md) — 텐서별 신뢰 비율. 원 논문의 큰 배치 결과는 **특정 하드웨어·설정**의 것이다
+
+**NumPy 로 직접 짜 보기**
+
+- [Adagrad 실습](optimizers/adagrad_optimizer.md) · [RMSprop 실습](optimizers/rmsprop_optimizer.md) · [Adam 실습](optimizers/adam_optimizer.md) — 자동 미분 없이 상태 갱신만 본다
+
+**견주기**
+
+- [기준 함수에서 옵티마이저 비교](optimizers/optimizer_comparison.md) — 2변수 목적함수 넷
+- [뉴럴 네트워크 학습에서 옵티마이저 비교](optimizers/01_optimizer_comparison.md) — 합성 회귀의 **학습 로스**를 본다
+
+**옵티마이저 둘레**
+
+- [러닝레이트 스케줄러](optimizers/02_learning_rate_schedulers.md) — 곡선 넷을 만들고 학습 루프에 거는 법
+- [그래디언트 관리](optimizers/03_gradient_management.md) — 클리핑과 누적의 **적용 순서**가 결과를 바꾼다
 
 ## 5. 러닝레이트와 과적합
 
