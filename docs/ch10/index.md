@@ -22,15 +22,20 @@
 - [깊이별 분리 컨볼루션(Depthwise Separable Convolution)](cnn/depthwise_separable.md) — MobileNet, EfficientNet, ShuffleNet이 쓰는 효율적인 컨볼루션 분해
 - [전치 컨볼루션](cnn/transposed_conv.md) — 인코더-디코더 구조, GAN, 초해상도를 위한 학습 가능한 업샘플링
 
-**데이터셋과 분류기**
+**자료부터 보기**
 
 - [MNIST 데이터셋](cnn/01_mnist_dataset.md) — 손글씨 숫자를 읽어 들이고 살펴보기
 - [Fashion-MNIST 데이터셋](cnn/02_fashion_mnist_dataset.md) — 같은 크기, 더 어려운 과제
-- [CIFAR-10 데이터셋](cnn/03_cifar10_dataset.md) — 색이 있는 자연 영상으로 옮겨 가기
-- [Fashion-MNIST 분류기](cnn/05_fashion_mnist_classifier.md) — 앞의 개념을 모아 첫 분류기를 세운다
-- [CIFAR-10 기본](cnn/06_cifar10_basic.md) — 자연 영상에서의 기초 성능
-- [CIFAR-10 심화](cnn/07_cifar10_advanced.md) — 여러 컨볼루션 레이어와 러닝레이트 일정으로 학습하기
-- [이진 분류](cnn/08_binary_classification.md) — 두 클래스만 가를 때 달라지는 것
+- [CIFAR-10 데이터셋](cnn/03_cifar10_dataset.md) — 채널이 1에서 **3으로** 늘어난다
+
+**분류기를 짓기**
+
+- [Fashion-MNIST 분류기](cnn/05_fashion_mnist_classifier.md) — 앞의 개념을 모아 첫 분류기를 세운다(85.84%)
+- [CIFAR-10 기본](cnn/06_cifar10_basic.md) — 파라메터 62,006개 · [CIFAR-10 심화](cnn/07_cifar10_advanced.md) — 2,168,362개
+- [이진 분류](cnn/08_binary_classification.md) — 숫자 두 개를 고르는 **45가지 조합**을 다 학습해 견준다
+
+**공통 도구**
+
 - [CNN 유틸리티](cnn/cnn_utils.md) — 이 절의 예제들이 함께 쓰는 도구
 
 ---

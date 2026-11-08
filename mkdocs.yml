@@ -503,22 +503,27 @@ nav:
     - 11 컨볼루션 뉴럴 네트워크:
       - 장 개요: ch10/index.md
       - 11.1 컨볼루션 뉴럴 네트워크:
-        - 컨볼루션 연산: ch10/cnn/convolution.md
-        - 피처 맵: ch10/cnn/feature_maps.md
-        - 리셉티브 필드: ch10/cnn/receptive_field.md
-        - 1차원 컨볼루션: ch10/cnn/conv1d.md
-        - 깊이별 분리 컨볼루션: ch10/cnn/depthwise_separable.md
-        - 팽창 컨볼루션: ch10/cnn/dilated_convolutions.md
-        - 전치 컨볼루션: ch10/cnn/transposed_conv.md
-        - MNIST 데이터셋: ch10/cnn/01_mnist_dataset.md
-        - Fashion-MNIST 데이터셋: ch10/cnn/02_fashion_mnist_dataset.md
-        - CIFAR-10 데이터셋: ch10/cnn/03_cifar10_dataset.md
-        - Fashion-MNIST 분류기: ch10/cnn/05_fashion_mnist_classifier.md
-        - CIFAR-10 기본: ch10/cnn/06_cifar10_basic.md
-        - CIFAR-10 심화: ch10/cnn/07_cifar10_advanced.md
-        - 이진 분류: ch10/cnn/08_binary_classification.md
-        - CNN 유틸리티: ch10/cnn/cnn_utils.md
-        - 밑바닥부터 만드는 컨볼루션: ch10/cnn/conv_from_scratch.md
+        - 개념:
+          - 컨볼루션 연산: ch10/cnn/convolution.md
+          - 피처 맵: ch10/cnn/feature_maps.md
+          - 리셉티브 필드: ch10/cnn/receptive_field.md
+          - 밑바닥부터 만드는 컨볼루션: ch10/cnn/conv_from_scratch.md
+        - 변형:
+          - 1차원 컨볼루션: ch10/cnn/conv1d.md
+          - 팽창 컨볼루션: ch10/cnn/dilated_convolutions.md
+          - 깊이별 분리 컨볼루션: ch10/cnn/depthwise_separable.md
+          - 전치 컨볼루션: ch10/cnn/transposed_conv.md
+        - 자료부터 보기:
+          - MNIST 데이터셋: ch10/cnn/01_mnist_dataset.md
+          - Fashion-MNIST 데이터셋: ch10/cnn/02_fashion_mnist_dataset.md
+          - CIFAR-10 데이터셋: ch10/cnn/03_cifar10_dataset.md
+        - 분류기를 짓기:
+          - Fashion-MNIST 분류기: ch10/cnn/05_fashion_mnist_classifier.md
+          - CIFAR-10 기본: ch10/cnn/06_cifar10_basic.md
+          - CIFAR-10 심화: ch10/cnn/07_cifar10_advanced.md
+          - 이진 분류: ch10/cnn/08_binary_classification.md
+        - 공통 도구:
+          - CNN 유틸리티: ch10/cnn/cnn_utils.md
       - 11.2 잔차 연결:
         - 기본 잔차 블록: ch10/residual/01_basic_residual_block.md
         - ResNet 구현: ch10/residual/02_resnet_implementation.md
@@ -532,34 +537,43 @@ nav:
     - "12 시퀀스 모델":
       - 장 개요: ch11/index.md
       - 12.1 순환 뉴럴 네트워크:
-        - 순환 뉴럴 네트워크의 기초: ch11/rnn/rnn_fundamentals.md
-        - 기본 RNN: ch11/rnn/vanilla_rnn.md
-        - "시간 역전파(BPTT)": ch11/rnn/bptt.md
-        - 그래디언트 소실: ch11/rnn/vanishing_gradients.md
-        - "언어 모델": ch11/rnn/language_models.md
-        - "시퀀스 기초": ch11/rnn/01_sequence_basics.md
-        - 텍스트 전처리: ch11/rnn/02_text_preprocessing.md
-        - 시계열의 기초: ch11/rnn/03_time_series_basics.md
-        - 간단한 RNN: ch11/rnn/04_simple_rnn.md
-        - LSTM 감성 분석: ch11/rnn/05_lstm_sentiment.md
-        - GRU 시계열: ch11/rnn/06_gru_time_series.md
-        - 양방향 RNN: ch11/rnn/07_bidirectional_rnn.md
-        - Seq2Seq 기본: ch11/rnn/08_seq2seq_basic.md
-        - "어텐션 메커니즘": ch11/rnn/09_attention_mechanism.md
-        - 텍스트 생성: ch11/rnn/10_text_generation.md
-        - RNN 유틸리티: ch11/rnn/rnn_utils.md
+        - 순환이란 무엇인가:
+          - 순환 뉴럴 네트워크의 기초: ch11/rnn/rnn_fundamentals.md
+          - 기본 RNN: ch11/rnn/vanilla_rnn.md
+          - "시간 역전파(BPTT)": ch11/rnn/bptt.md
+          - 그래디언트 소실: ch11/rnn/vanishing_gradients.md
+          - "언어 모델": ch11/rnn/language_models.md
+        - 입력을 준비하기:
+          - "시퀀스 기초": ch11/rnn/01_sequence_basics.md
+          - 텍스트 전처리: ch11/rnn/02_text_preprocessing.md
+          - 시계열의 기초: ch11/rnn/03_time_series_basics.md
+        - 모델 고르기:
+          - 간단한 RNN: ch11/rnn/04_simple_rnn.md
+          - 양방향 RNN: ch11/rnn/07_bidirectional_rnn.md
+          - LSTM 감성 분석: ch11/rnn/05_lstm_sentiment.md
+          - GRU 시계열: ch11/rnn/06_gru_time_series.md
+        - 길이가 다른 출력으로:
+          - Seq2Seq 기본: ch11/rnn/08_seq2seq_basic.md
+          - "어텐션 메커니즘": ch11/rnn/09_attention_mechanism.md
+          - 텍스트 생성: ch11/rnn/10_text_generation.md
+        - 공통 도구:
+          - RNN 유틸리티: ch11/rnn/rnn_utils.md
       - 12.2 LSTM과 GRU:
-        - LSTM 구조: ch11/lstm_gru/lstm_architecture.md
-        - "LSTM 셀 상태": ch11/lstm_gru/cell_state.md
-        - GRU 구조: ch11/lstm_gru/gru_architecture.md
-        - GRU와 LSTM의 비교: ch11/lstm_gru/gru_vs_lstm.md
-        - "Peephole 연결": ch11/lstm_gru/peephole.md
-        - LSTM 이론: ch11/lstm_gru/01_lstm_theory.md
-        - GRU 이론: ch11/lstm_gru/02_gru_theory.md
-        - LSTM: ch11/lstm_gru/40_lstm.md
-        - GRU: ch11/lstm_gru/41_gru.md
-        - Seq2Seq: ch11/lstm_gru/42_seq2seq.md
-        - 어텐션 Seq2Seq: ch11/lstm_gru/43_attention_seq2seq.md
+        - 게이트가 하는 일:
+          - LSTM 구조: ch11/lstm_gru/lstm_architecture.md
+          - "LSTM 셀 상태": ch11/lstm_gru/cell_state.md
+          - GRU 구조: ch11/lstm_gru/gru_architecture.md
+          - GRU와 LSTM의 비교: ch11/lstm_gru/gru_vs_lstm.md
+          - "Peephole 연결": ch11/lstm_gru/peephole.md
+        - NumPy 로 열어 보기:
+          - LSTM 이론: ch11/lstm_gru/01_lstm_theory.md
+          - GRU 이론: ch11/lstm_gru/02_gru_theory.md
+        - PyTorch 로 세워 보기:
+          - LSTM: ch11/lstm_gru/40_lstm.md
+          - GRU: ch11/lstm_gru/41_gru.md
+        - Seq2Seq 로 잇기:
+          - Seq2Seq: ch11/lstm_gru/42_seq2seq.md
+          - 어텐션 Seq2Seq: ch11/lstm_gru/43_attention_seq2seq.md
       - "12.3 Seq2Seq":
         - 길이 정규화: ch11/seq2seq/length_normalization.md
         - 프랑스어→영어 번역: ch11/seq2seq/seq2seq_code.md
