@@ -69,15 +69,46 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 
 ### 2.5 선형 회귀
 
-선형 회귀는 예측값이 파라미터에 대해 선형인 모델이다. 정규 방정식과 경사 하강법을 비교하고, 피처 변환과 정규화가 추정에 미치는 영향을 살펴본다.
+선형 회귀는 예측값이 파라메터에 대해 선형인 모델이다. 정규 방정식과 경사 하강법을 견주고, 피처 변환과 정칙화가 추정에 미치는 영향을 살펴본다.
 
 텐서와 자동 미분 자체는 [1.4~1.7절 PyTorch 기초](../ch01/index.md)가 다룬다. 여기서는 그것을 회귀에 쓴다.
 
-- [선형 회귀](../ch07/linear_regression/linear_regression.md): 모델, 로스와 확률적 해석
-- [해석적 해](../ch07/linear_regression/closed_form.md): 최소제곱 문제와 행렬 표현
-- [경사 하강법](../ch07/linear_regression/gd_solution.md): 반복 업데이트와 러닝레이트
-- [다항 피처](../ch07/linear_regression/polynomial_features.md): 비선형 피처와 모델 선택
-- [릿지 회귀](../ch07/linear_regression/ridge_regression.md), [라쏘 회귀](../ch07/linear_regression/lasso_regression.md): L2·L1 패널티와 해의 차이
+이 절이 Part I 에서 가장 길다 — **같은 모델을 여러 번 짓기 때문이다.** 23쪽 가운데 절반 가까이가 **같은 선형 회귀**를 도구만 바꿔 가며 다시 짓는다. 새 모델을 배우는 자리가 아니라 **도구를 배우는 자리**이므로, 아는 도구가 나오면 건너뛰어도 된다.
+
+**모델과 두 가지 해**
+
+- [선형 회귀](../ch07/linear_regression/linear_regression.md) — 모델, 로스와 확률적 해석
+- [해석적 해](../ch07/linear_regression/closed_form.md) — 한 번에 푸는 길 · [경사 하강법을 이용한 해](../ch07/linear_regression/gd_solution.md) — 반복해서 가는 길
+
+**손으로 풀어 보기**
+
+- [정규 방정식](../ch07/linear_regression/normal_equation.md) — 설계 행렬을 세우고 `solve` 와 `lstsq` 를 견준다
+- [NumPy로 만드는 경사 하강법](../ch07/linear_regression/gradient_descent_numpy.md) · [PyTorch로 만드는 경사 하강법](../ch07/linear_regression/gradient_descent_torch.md) — autograd 없이 경사 공식을 직접 적는다
+
+**도구를 바꿔 가며 다시 짓기** (아래 넷은 차례로 읽도록 되어 있다)
+
+1. [NumPy로 만드는 선형 회귀](../ch07/linear_regression/02_linear_regression_numpy.md) — 예측·로스·경사를 전부 손으로
+2. [PyTorch로 직접 계산하는 선형 회귀](../ch07/linear_regression/03_linear_regression_manual_pytorch.md) — 텐서는 쓰되 경사는 아직 손으로
+3. [Autograd로 만드는 선형 회귀](../ch07/linear_regression/04_linear_regression_autograd.md) — `backward()` 가 경사를 맡는다
+4. [nn 모듈로 만드는 선형 회귀](../ch07/linear_regression/05_linear_regression_nn_module.md) — `nn.Linear` 와 옵티마이저까지
+
+- 곁들여 — [최소한의 PyTorch](../ch07/linear_regression/minimal_torch.md) (가장 짧은 autograd 루프) · [텐서로 만드는 데이터셋](../ch07/linear_regression/dataset_from_tensor.md) (`TensorDataset` 을 쓰는 정석 꼴)
+
+**모델을 늘리기**
+
+- [여러 입력을 사용하는 선형 회귀](../ch07/linear_regression/06_multivariate_regression.md) — California Housing, 피처 표준화 · [다중 출력](../ch07/linear_regression/multiple_outputs.md) — `nn.Linear(p, q)`
+- [다항 회귀](../ch07/linear_regression/07_polynomial_regression.md) · [다항 피처](../ch07/linear_regression/polynomial_features.md) — **파라메터에 대해** 선형이면 되지 피처까지 선형일 필요는 없다
+
+**과적합을 막기**
+
+- [정칙화](../ch07/linear_regression/08_regularization.md) — 패널티 항이 무엇을 하는가
+- [릿지 회귀](../ch07/linear_regression/ridge_regression.md) · [라쏘 회귀](../ch07/linear_regression/lasso_regression.md) — L2·L1 패널티와 해의 차이
+
+**실전으로**
+
+- [미니배치 학습](../ch07/linear_regression/09_mini_batch_training.md) · [완전한 파이프라인](../ch07/linear_regression/10_complete_pipeline.md) — 시드·분할·조기 종료·체크포인트
+- [scikit-learn으로 하는 선형 회귀](../ch07/linear_regression/lr_sklearn.md) — 직접 짜지 않고 쓰는 길
+- [SPY에 대한 WMT 회귀](../ch07/linear_regression/wmt_on_spy.md) — 지어낸 자료가 아닌 실제 수익률로
 
 ### 2.6 로지스틱 회귀
 

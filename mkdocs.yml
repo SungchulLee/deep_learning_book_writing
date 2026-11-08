@@ -178,29 +178,35 @@ nav:
         - "가우시안 혼합 EM": ch07/mle/mixture_of_gaussians_em.md
         - 뉴럴 네트워크 MLE: ch07/mle/neural_network_mle.md
       - 2.5 선형 회귀:
-        - NumPy로 만드는 선형 회귀: ch07/linear_regression/02_linear_regression_numpy.md
-        - PyTorch로 직접 계산하는 선형 회귀: ch07/linear_regression/03_linear_regression_manual_pytorch.md
-        - Autograd로 만드는 선형 회귀: ch07/linear_regression/04_linear_regression_autograd.md
-        - nn 모듈로 만드는 선형 회귀: ch07/linear_regression/05_linear_regression_nn_module.md
-        - 다변량 회귀: ch07/linear_regression/06_multivariate_regression.md
-        - 다항 회귀: ch07/linear_regression/07_polynomial_regression.md
-        - 정칙화: ch07/linear_regression/08_regularization.md
-        - 미니배치 학습: ch07/linear_regression/09_mini_batch_training.md
-        - 완전한 파이프라인: ch07/linear_regression/10_complete_pipeline.md
-        - "해석적 해": ch07/linear_regression/closed_form.md
-        - 텐서로 만드는 데이터셋: ch07/linear_regression/dataset_from_tensor.md
-        - "경사 하강법을 이용한 해": ch07/linear_regression/gd_solution.md
-        - NumPy로 만드는 경사 하강법: ch07/linear_regression/gradient_descent_numpy.md
-        - PyTorch로 만드는 경사 하강법: ch07/linear_regression/gradient_descent_torch.md
-        - 라쏘 회귀: ch07/linear_regression/lasso_regression.md
-        - 선형 회귀: ch07/linear_regression/linear_regression.md
-        - scikit-learn으로 하는 선형 회귀: ch07/linear_regression/lr_sklearn.md
-        - 최소한의 PyTorch: ch07/linear_regression/minimal_torch.md
-        - 다중 출력: ch07/linear_regression/multiple_outputs.md
-        - 정규 방정식: ch07/linear_regression/normal_equation.md
-        - 다항 피처: ch07/linear_regression/polynomial_features.md
-        - 릿지 회귀: ch07/linear_regression/ridge_regression.md
-        - SPY에 대한 WMT 회귀: ch07/linear_regression/wmt_on_spy.md
+        - 모델과 두 가지 해:
+          - 선형 회귀: ch07/linear_regression/linear_regression.md
+          - "해석적 해": ch07/linear_regression/closed_form.md
+          - "경사 하강법을 이용한 해": ch07/linear_regression/gd_solution.md
+        - 손으로 풀어 보기:
+          - 정규 방정식: ch07/linear_regression/normal_equation.md
+          - NumPy로 만드는 경사 하강법: ch07/linear_regression/gradient_descent_numpy.md
+          - PyTorch로 만드는 경사 하강법: ch07/linear_regression/gradient_descent_torch.md
+        - 도구를 바꿔 가며 다시 짓기:
+          - NumPy로 만드는 선형 회귀: ch07/linear_regression/02_linear_regression_numpy.md
+          - PyTorch로 직접 계산하는 선형 회귀: ch07/linear_regression/03_linear_regression_manual_pytorch.md
+          - Autograd로 만드는 선형 회귀: ch07/linear_regression/04_linear_regression_autograd.md
+          - nn 모듈로 만드는 선형 회귀: ch07/linear_regression/05_linear_regression_nn_module.md
+          - 최소한의 PyTorch: ch07/linear_regression/minimal_torch.md
+          - 텐서로 만드는 데이터셋: ch07/linear_regression/dataset_from_tensor.md
+        - 모델을 늘리기:
+          - 다변량 회귀: ch07/linear_regression/06_multivariate_regression.md
+          - 다중 출력: ch07/linear_regression/multiple_outputs.md
+          - 다항 회귀: ch07/linear_regression/07_polynomial_regression.md
+          - 다항 피처: ch07/linear_regression/polynomial_features.md
+        - 과적합을 막기:
+          - 정칙화: ch07/linear_regression/08_regularization.md
+          - 릿지 회귀: ch07/linear_regression/ridge_regression.md
+          - 라쏘 회귀: ch07/linear_regression/lasso_regression.md
+        - 실전으로:
+          - 미니배치 학습: ch07/linear_regression/09_mini_batch_training.md
+          - 완전한 파이프라인: ch07/linear_regression/10_complete_pipeline.md
+          - scikit-learn으로 하는 선형 회귀: ch07/linear_regression/lr_sklearn.md
+          - SPY에 대한 WMT 회귀: ch07/linear_regression/wmt_on_spy.md
       - 2.6 로지스틱 회귀:
         - 이진 분류: ch07/logistic_regression/binary_classification.md
         - 시그모이드 함수: ch07/logistic_regression/sigmoid.md
