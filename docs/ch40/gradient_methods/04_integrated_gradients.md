@@ -1,8 +1,8 @@
 # 04: Integrated Gradients
 
-04: Integrated Gradients - 이치에 닿는 기여도 분석. 밝힘:
+04: Integrated Gradients - 이치에 닿는 기여도 분석. 설명:
 
-뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 재주를 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
+뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 기법을 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
 
 ## 1. 코드
 
@@ -13,7 +13,7 @@
 
 어려움: 가운데
 
-밝힘:
+설명:
 쌓은 그래디언트는 베이스라인에서 들임으로 가는 길을 따라 그래디언트를 쌓는다.
 이로써 몫 매기기의 중요한 공리인 예민함과 짜기에 흔들리지 않음을
 채운다.
@@ -61,7 +61,7 @@ def compute_integrated_gradients(
     2. 사이 들임을 만든다: i=0..m에 대해 x^(i) = x' + (i/m)(x - x')
     3. 자리마다 그래디언트를 셈한다: gᵢ = ∂f(x^(i))/∂x
     4. 그래디언트를 고르게 한다: ḡ = (1/m) Σᵢ gᵢ
-    5. 들임 차이로 잣대를 잡는다: IG = (x - x') ⊙ ḡ
+    5. 들임 차이로 스케일을 맞춘다: IG = (x - x') ⊙ ḡ
 
     Args:
         baseline: 'zeros', 'blur', 'random' 가운데 하나
@@ -99,7 +99,7 @@ def compute_integrated_gradients(
         output = model(interpolated)
         target_score = output[0, target_class]
 
-        # 되짚기 스텝
+        # 역전파 스텝
         model.zero_grad()
         target_score.backward()
 
@@ -109,7 +109,7 @@ def compute_integrated_gradients(
     # 그래디언트를 고르게 한다(적분의 리만 어림)
     avg_gradients = accumulated_gradients / steps
 
-    # 들임 차이로 잣대를 잡는다
+    # 들임 차이로 스케일을 맞춘다
     integrated_grads = (image_tensor - baseline_tensor) * avg_gradients
 
     # 모은다
@@ -188,7 +188,7 @@ def main():
         print("1. IG는 예민함과 짜기에 흔들리지 않음을 채운다")
         print("2. 베이스라인을 어떻게 고르느냐가 중요하다(대개 0이 좋다)")
         print("3. 스텝이 많을수록 더 맞다(흔히 30~50)")
-        print("4. 셈이 비싸지만 이론이 든든하다")
+        print("4. 셈이 비싸지만 이론이 강건하다")
         print("\n다음: 꾸러미 05 - Grad-CAM")
         print("="*70)
     except Exception as e:
@@ -227,7 +227,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 든든함 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -239,14 +239,14 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 강건하게 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 탐지하고 고칠지 밝혀라.
 
 </div>
 

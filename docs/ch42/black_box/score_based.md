@@ -59,7 +59,7 @@ $$
 - **그래디언트 어림이 없다**: 샘플링에 기댄 그래디언트 방법의 덤 값을 비껴간다
 - **물음이 아주 잘 든다**: 흔히 물음 1,000~5,000번이면 된다
 - **그 자리에 몰린 고침**: 그림의 자리 구조를 쓴다
-- **오토어택의 한 몫**: 블랙박스 몫을 맡는다
+- **AutoAttack의 한 몫**: 블랙박스 몫을 맡는다
 
 ```python
 import torch
@@ -70,7 +70,7 @@ class SimpleSquareAttack:
     """
     점수 바탕 검은 상자 자리를 위한 줄여 적은 네모 치기.
     
-    아무 네모 형태 흔듦을 쓰고 잃음이 나아지는지에 따라
+    아무 네모 형태 섭동을 쓰고 로스가 나아지는지에 따라
     받거나 물린다.
     
     Parameters
@@ -78,7 +78,7 @@ class SimpleSquareAttack:
     model : nn.Module
         타깃 모형
     epsilon : float
-        Linf 흔듦 예산
+        Linf 섭동 예산
     max_queries : int
         가장 많은 물음 수
     p_init : float
@@ -101,10 +101,10 @@ class SimpleSquareAttack:
         self.model.eval()
     
     def _get_loss(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-        """틈 잃음을 셈한다(옳은 클래스 로짓 틈의 음수)."""
+        """틈 로스를 셈한다(옳은 클래스 로짓 틈의 음수)."""
         with torch.no_grad():
             logits = self.model(x.to(self.device))
-            # 틈 잃음: 가장 큰 다른 로짓 - 참 로짓
+            # 틈 로스: 가장 큰 다른 로짓 - 참 로짓
             true_logit = logits.gather(1, y.view(-1, 1)).squeeze()
             mask = torch.ones_like(logits).scatter_(1, y.view(-1, 1), 0)
             max_other = (logits * mask - (1 - mask) * 1e9).max(dim=1)[0]
@@ -121,7 +121,7 @@ class SimpleSquareAttack:
         y = y.to(self.device)
         N, C, H, W = x.shape
         
-        # 아무 Linf 흔듦으로 첫자리를 잡는다
+        # 아무 Linf 섭동으로 첫자리를 잡는다
         x_adv = x + torch.empty_like(x).uniform_(-self.epsilon, self.epsilon)
         x_adv = torch.clamp(x_adv, 0, 1)
         
@@ -140,7 +140,7 @@ class SimpleSquareAttack:
             # 고침을 내놓는다: 네모 자리의 아무 값
             x_new = x_adv.clone()
             for b in range(N):
-                # 네모의 아무 흔듦
+                # 네모의 아무 섭동
                 patch = torch.empty(C, s, s, device=self.device).uniform_(
                     -self.epsilon, self.epsilon
                 )
@@ -152,7 +152,7 @@ class SimpleSquareAttack:
             delta = torch.clamp(x_new - x, -self.epsilon, self.epsilon)
             x_new = torch.clamp(x + delta, 0, 1)
             
-            # 잃음이 나아지면 받는다
+            # 로스가 나아지면 받는다
             new_loss = self._get_loss(x_new, y)
             improved = new_loss > best_loss
             x_adv[improved] = x_new[improved]
@@ -185,7 +185,7 @@ class SimpleSquareAttack:
 </div>
 
 ??? success "풀이"
-    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차원이 높은 모델이 무른 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
+    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차원이 높은 모델이 취약한 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
@@ -197,31 +197,31 @@ class SimpleSquareAttack:
 </div>
 
 ??? success "풀이"
-    여느 ResNet-18은 클린 정확도가 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 스텝 크기 $2/255$) 아래의 강건 정확도는 $\sim$0%이다. 이 절의 방법을 걸면 피처와는 재주에 따라 다르다. 적대적 학습은 클린 정확도 $\sim$83%에 강건 정확도 $\sim$50%이고, 인증 가능한 방어는 더 낮지만 증명할 수 있는 테두리를 준다. 정확도와 강건성의 트레이드오프는 기초부터 있는 것이라, 강건성을 높이면 클린 정확도가 흔히 5~15% 든다. 아무렇게나 하는 시드 3개의 평균과 표준편차로 알려라. $\square$
+    여느 ResNet-18은 클린 정확도가 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 스텝 크기 $2/255$) 아래의 강건 정확도는 $\sim$0%이다. 이 절의 방법을 걸면 피처와는 기법에 따라 다르다. 적대적 학습은 클린 정확도 $\sim$83%에 강건 정확도 $\sim$50%이고, 인증 가능한 방어는 더 낮지만 증명할 수 있는 테두리를 준다. 정확도와 강건성의 트레이드오프는 기초부터 있는 것이라, 강건성을 높이면 클린 정확도가 흔히 5~15% 든다. 아무렇게나 하는 시드 3개의 평균과 표준편차로 알려라. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-섭동 공 안에서 클래스별 데이터의 밑자리가 서로 겹친다고 볼 때, 모델이 담는 힘을 키우지 않고서는 어떤 방어도 맑은 데이터의 높은 정확도와 $\ell_\infty$ 섭동에 대한 높은 강건성을 함께 이룰 수 없음을 증명하여라.
+섭동 공 안에서 클래스별 데이터의 밑자리가 서로 겹친다고 볼 때, 모델이 용량을 키우지 않고서는 어떤 방어도 맑은 데이터의 높은 정확도와 $\ell_\infty$ 섭동에 대한 높은 강건성을 함께 이룰 수 없음을 증명하여라.
 
 </div>
 
 ??? success "풀이"
-    두 클래스의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 기초 트레이드오프다. 겹치는 밑자리의 몫이 피할 수 없는 정확도 로스를 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 정확도 떨어짐을 밝혀 준다. 모델이 담는 힘을 키우면(더 너른 네트워크) 얽힌 강건한 결정 경계를 더 잘 그려 트레이드오프를 얼마쯤 눅일 수 있다. $\square$
+    두 클래스의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 기초 트레이드오프다. 겹치는 밑자리의 몫이 피할 수 없는 정확도 로스를 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 정확도 떨어짐을 밝혀 준다. 모델이 용량을 키우면(더 너른 네트워크) 얽힌 강건한 결정 경계를 더 잘 그려 트레이드오프를 얼마쯤 완화할 수 있다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-금융 머신러닝 구조(속임수 탐지나 거래 신호 만들기 따위)에서 맞섬의 강건성이 어떻게 드러나는지 다루어라. 위협 모델이 보기 다룸과 어떻게 다른가?
+금융 머신러닝 구조(속임수 탐지나 거래 신호 만들기 따위)에서 적대적 강건성이 어떻게 드러나는지 다루어라. 위협 모델이 비전과 어떻게 다른가?
 
 </div>
 
 ??? success "풀이"
-    금융에서 겨루는 이는 알아내는 구조에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 핵심은 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 공격이 잇따르며 맞추어 간다(겨루는 이가 구조의 되받음을 보고 손본다). (3) 헛 정확도와 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 섭동 모델이 있어야 한다. 방어는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 탐지 기초의 길은 많이 걸러진다. $\square$
+    금융에서 적대자는 탐지하는 구조에 맞추어 스스로 움직이는 꾀 많은 무리(사기꾼, 저자 흔드는 이)다. 비전과 다른 핵심은 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 제약된다(사기꾼이 제 거래 이력을 통째로 바꿀 수는 없다). (2) 공격이 잇따르며 맞추어 간다(적대자가 구조의 되받음을 보고 손본다). (3) 헛 정확도와 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 섭동 모델이 있어야 한다. 방어는 맞추어 오는 적대자에게도 강건해야 하므로, 탐지하는 잣대가 알려지면 비껴갈 수 있는 탐지 기반의 길은 많이 걸러진다. $\square$
 
 ## 정리하며
 

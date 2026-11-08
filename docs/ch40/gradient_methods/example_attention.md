@@ -1,14 +1,14 @@
 # 어텐션 예제
 
-쓰는 보기: 트랜스포머의 어텐션 그림 그리기. 이 글은 트랜스포머 모델의 어텐션 피처를 그리는 법을 보인다.
+쓰는 보기: 트랜스포머의 어텐션 시각화. 이 글은 트랜스포머 모델의 어텐션 피처를 그리는 법을 보인다.
 
-뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 재주를 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
+뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 기법을 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
 
 ## 1. 코드
 
 ```python
 """
-쓰는 보기: 트랜스포머의 어텐션 그림 그리기
+쓰는 보기: 트랜스포머의 어텐션 시각화
 
 이 글은 트랜스포머 모형의 어텐션 결을 그리는 법을 보인다.
 """
@@ -23,7 +23,7 @@ import warnings
 
 # --- attention_visualization ---
 """
-트랜스포머 모형을 위한 어텐션 그림 그리기
+트랜스포머 모형을 위한 어텐션 시각화
 트랜스포머 얼개의 제 어텐션 결을 그린다
 """
 
@@ -354,7 +354,7 @@ def example_simple_attention():
     보기 1: 지어낸 어텐션 결 그리기
     """
     print("=" * 60)
-    print("보기 1: 단순한 어텐션 그림 그리기")
+    print("보기 1: 단순한 어텐션 시각화")
     print("=" * 60)
 
     # 지어낸 어텐션 짐을 만든다
@@ -400,7 +400,7 @@ def example_bert_attention():
     있어야 할 것: pip install transformers
     """
     print("\n" + "=" * 60)
-    print("보기 2: BERT 어텐션 그림 그리기")
+    print("보기 2: BERT 어텐션 시각화")
     print("=" * 60)
 
     try:
@@ -434,7 +434,7 @@ def example_bert_attention():
     attentions = outputs.attentions
 
     print(f"\n켜의 수: {len(attentions)}")
-    print(f"켜마다의 어텐션 형태: {attentions[0].shape}")
+    print(f"레이어마다의 어텐션 형태: {attentions[0].shape}")
 
     # 마지막 켜를 그린다
     print("\n마지막 켜의 어텐션을 그리는 중...")
@@ -466,7 +466,7 @@ def example_gpt2_attention():
     있어야 할 것: pip install transformers
     """
     print("\n" + "=" * 60)
-    print("보기 3: GPT-2 어텐션 그림 그리기")
+    print("보기 3: GPT-2 어텐션 시각화")
     print("=" * 60)
 
     try:
@@ -497,7 +497,7 @@ def example_gpt2_attention():
     attentions = outputs.attentions
 
     print(f"\n켜의 수: {len(attentions)}")
-    print(f"켜마다의 어텐션 형태: {attentions[0].shape}")
+    print(f"레이어마다의 어텐션 형태: {attentions[0].shape}")
 
     # 인과 어텐션 결을 그린다(GPT-2은 인과 마스크를 쓴다)
     print("\n인과 어텐션 결을 그리는 중...")
@@ -506,7 +506,7 @@ def example_gpt2_attention():
     print("'gpt2_attention_causal.png'에 갈무리했다")
     plt.close()
 
-    # 여러 켜를 그린다
+    # 여러 레이어를 그린다
     fig, axes = plt.subplots(2, 3, figsize=(18, 12))
     axes = axes.flatten()
 
@@ -597,7 +597,7 @@ def example_attention_statistics():
     print("보기 5: 어텐션 셈속")
     print("=" * 60)
 
-    # 지어낸 여러 켜 어텐션을 만든다
+    # 지어낸 여러 레이어 어텐션을 만든다
     num_layers = 12
     num_heads = 8
     seq_len = 16
@@ -636,13 +636,13 @@ def example_attention_statistics():
     axes[0].plot(range(num_layers), entropies, marker='o')
     axes[0].set_xlabel('켜')
     axes[0].set_ylabel('고른 엔트로피')
-    axes[0].set_title('켜마다의 어텐션 엔트로피')
+    axes[0].set_title('레이어마다의 어텐션 엔트로피')
     axes[0].grid(True, alpha=0.3)
 
     axes[1].plot(range(num_layers), distances, marker='o', color='coral')
     axes[1].set_xlabel('켜')
     axes[1].set_ylabel('고른 거리')
-    axes[1].set_title('켜마다의 어텐션 거리')
+    axes[1].set_title('레이어마다의 어텐션 거리')
     axes[1].grid(True, alpha=0.3)
 
     plt.tight_layout()
@@ -650,13 +650,13 @@ def example_attention_statistics():
     print("'attention_statistics.png'에 갈무리했다")
     plt.close()
 
-    print(f"\n켜마다의 셈속:")
+    print(f"\n레이어마다의 셈속:")
     for i in range(num_layers):
         print(f"  켜 {i}: 엔트로피={entropies[i]:.3f}, 거리={distances[i]:.3f}")
 
 
 if __name__ == "__main__":
-    print("어텐션 그림 그리기 보기\n")
+    print("어텐션 시각화 보기\n")
 
     # 보기를 돌린다
     example_simple_attention()
@@ -679,10 +679,10 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-어텐션 그림 그리기 보기
+어텐션 시각화 보기
 
 ============================================================
-보기 1: 단순한 어텐션 그림 그리기
+보기 1: 단순한 어텐션 시각화
 ============================================================
 그림을 만드는 중...
 'attention_simple.png'에 갈무리했다
@@ -700,7 +700,7 @@ if __name__ == "__main__":
 어텐션 셈속을 셈하는 중...
 'attention_statistics.png'에 갈무리했다
 
-켜마다의 셈속:
+레이어마다의 셈속:
   켜 0: 엔트로피=2.706, 거리=4.044
   켜 1: 엔트로피=2.711, 거리=4.075
   켜 2: 엔트로피=2.706, 거리=3.884
@@ -715,12 +715,12 @@ if __name__ == "__main__":
   켜 11: 엔트로피=2.705, 거리=4.132
 
 ============================================================
-보기 2: BERT 어텐션 그림 그리기
+보기 2: BERT 어텐션 시각화
 ============================================================
 transformers 곳집이 없다. 이렇게 깐다: pip install transformers
 
 ============================================================
-보기 3: GPT-2 어텐션 그림 그리기
+보기 3: GPT-2 어텐션 시각화
 ============================================================
 transformers 곳집이 없다. 이렇게 깐다: pip install transformers
 
@@ -731,7 +731,7 @@ transformers 곳집이 없다. 이렇게 깐다: pip install transformers
 
 ## 2. 논의
 
-그림으로 보이기는 모델의 액션을 알고 학습의 탈을 짚어내는 데 큰 몫을 한다. 그리는 코드는 배운 나타냄, 모여 가는 피처, 따짐 자를 들여다보게 해서 손에 잡히지 않던 계산을 눈에 보이게 한다.
+그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 몫을 한다. 그리는 코드는 배운 나타냄, 모여 가는 피처, 평가 자를 들여다보게 해서 손에 잡히지 않던 계산을 눈에 보이게 한다.
 
 여기서 보인 피처는 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 클래스, 여러 데이터를 바꿔 가며 해 보면 이해가 깊어지고 모델 해석에 대한 감이 몸에 붙는다.
 
@@ -745,7 +745,7 @@ transformers 곳집이 없다. 이렇게 깐다: pip install transformers
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 든든함 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -757,7 +757,7 @@ transformers 곳집이 없다. 이렇게 깐다: pip install transformers
 </div>
 
 ??? success "풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 익히는 동안 어텐션 웨이트 몇몇을 아무렇게나 0으로 만들어, 모델이 특정 단어끼리의 얽힘에 지나치게 기대는 것을 막는다. 그래서 모델이 어텐션을 더 고루 나누고 더 든든한 나타냄을 배우게 되는데, 여느 드롭아웃이 뉴런끼리 함께 굳는 것을 막는 것과 같은 피처가다.
+    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 익히는 동안 어텐션 웨이트 몇몇을 아무렇게나 0으로 만들어, 모델이 특정 단어끼리의 얽힘에 지나치게 기대는 것을 막는다. 그래서 모델이 어텐션을 더 고루 나누고 더 강건한 나타냄을 배우게 되는데, 여느 드롭아웃이 뉴런끼리 함께 굳는 것을 막는 것과 같은 피처가다.
 
 ---
 
@@ -769,7 +769,7 @@ transformers 곳집이 없다. 이렇게 깐다: pip install transformers
 </div>
 
 ??? success "풀이"
-    여느 제 어텐션은 $n \times n$ 어텐션 행렬을 셈하므로 때가 $O(n^2 d)$이고 어텐션 웨이트에 드는 기억이 $O(n^2)$이다. 열이 길면(보기로 $n = 4096$) 감당할 수 없다. Longformer는 그 자리 미끄럼 창 어텐션($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 단어에 대한 성긴 온 세상 어텐션을 아울러 쓴다. Linformer는 키와 값을 낮은 차원 $k \ll n$으로 쏘아 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 나타내는 힘을 얼마쯤 내주고 긴 입력에서의 쓸모를 얻는다.
+    여느 제 어텐션은 $n \times n$ 어텐션 행렬을 셈하므로 때가 $O(n^2 d)$이고 어텐션 웨이트에 드는 기억이 $O(n^2)$이다. 열이 길면(보기로 $n = 4096$) 감당할 수 없다. Longformer는 그 자리 슬라이딩 윈도 어텐션($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 단어에 대한 성긴 온 세상 어텐션을 아울러 쓴다. Linformer는 키와 값을 낮은 차원 $k \ll n$으로 쏘아 복잡도를 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 나타내는 힘을 얼마쯤 내주고 긴 입력에서의 쓸모를 얻는다.
 
 ---
 <div class="drillbox" markdown>
@@ -803,6 +803,6 @@ transformers 곳집이 없다. 이렇게 깐다: pip install transformers
 
 **다룬 것** — 쓰는 보기
 
-그림으로 보이기는 모델의 액션을 알고 학습의 탈을 짚어내는 데 큰 몫을 한다.
+그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 몫을 한다.
 
 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

@@ -1,8 +1,8 @@
 # 05: Grad-CAM
 
-05: Grad-CAM - 그래디언트 가중 클래스 활성화 맵. 밝힘:
+05: Grad-CAM - 그래디언트 가중 클래스 활성화 맵. 설명:
 
-뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 재주를 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
+뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 기법을 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
 
 ## 1. 코드
 
@@ -13,8 +13,8 @@
 
 어려움: 가운데
 
-밝힘:
-Grad-CAM은 마지막 겹치는 켜로 흘러드는 그래디언트를 써서 중요한 자리를
+설명:
+Grad-CAM은 마지막 겹치는 레이어로 흘러드는 그래디언트를 써서 중요한 자리를
 짚어 주는 성긴 자리 그림을 낸다. 픽셀 낱의 방법과 달리 Grad-CAM은
 어느 자리가 중요한지를 보여 준다.
 
@@ -23,7 +23,7 @@ Grad-CAM은 마지막 겹치는 켜로 흘러드는 그래디언트를 써서 �
     L_Grad-CAM = ReLU(Σ_k α_k A_k)         [짐 실은 합]
 
 여기서:
-- A_k: 마지막 겹치는 켜의 k번째 결 그림
+- A_k: 마지막 겹치는 레이어의 k번째 결 그림
 - α_k: 온 세상에 걸쳐 고르게 모은 그래디언트
 - ReLU: 이바지가 양수인 것만
 
@@ -52,7 +52,7 @@ class GradCAM:
         """
         Args:
             model: CNN 모형
-            target_layer: 마지막 겹치는 켜(보기로 model.layer4[-1])
+            target_layer: 마지막 겹치는 레이어(보기로 model.layer4[-1])
         """
         self.model = model
         self.target_layer = target_layer
@@ -68,7 +68,7 @@ class GradCAM:
         self.activations = output.detach()
 
     def save_gradient(self, module, grad_input, grad_output):
-        """되짚기 스텝의 그래디언트를 갈무리한다."""
+        """역전파 스텝의 그래디언트를 갈무리한다."""
         self.gradients = grad_output[0].detach()
 
     def __call__(self, image_tensor, target_class, device):
@@ -85,7 +85,7 @@ class GradCAM:
         output = self.model(image_tensor)
         target_score = output[0, target_class]
 
-        # 되짚기 스텝
+        # 역전파 스텝
         self.model.zero_grad()
         target_score.backward()
 
@@ -117,7 +117,7 @@ class GradCAM:
 
 
 def get_last_conv_layer(model, model_name='resnet50'):
-    """구조마다 마지막 겹치는 켜를 집어 준다."""
+    """구조마다 마지막 겹치는 레이어를 집어 준다."""
     if 'resnet' in model_name:
         return model.layer4[-1]
     elif 'vgg' in model_name:
@@ -141,7 +141,7 @@ def example_1_basic_gradcam():
     model_name = 'resnet50'
     model = load_pretrained_model(model_name, device)
 
-    # 마지막 겹치는 켜를 집는다
+    # 마지막 겹치는 레이어를 집는다
     target_layer = get_last_conv_layer(model, model_name)
     print(f"겨눈 켜: {target_layer.__class__.__name__}")
 
@@ -241,10 +241,10 @@ def main():
         print("\n" + "="*70)
         print("핵심:")
         print("1. Grad-CAM: 성기지만 클래스를 가려내는 자리 짚기")
-        print("2. 마지막 겹치는 켜의 살아남 + 그래디언트를 쓴다")
+        print("2. 마지막 겹치는 레이어의 살아남 + 그래디언트를 쓴다")
         print("3. 그림이 깨끗하고 풀이하기 쉽다")
         print("4. 자리 구조를 지닌 CNN에만 쓸 수 있다")
-        print("\n다음: 꾸러미 06 - 이끈 되짚기")
+        print("\n다음: 꾸러미 06 - Guided Backpropagation")
         print("="*70)
     except Exception as e:
         print(f"어긋남: {e}")
@@ -282,7 +282,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 든든함 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -294,14 +294,14 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 강건하게 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 탐지하고 고칠지 밝혀라.
 
 </div>
 

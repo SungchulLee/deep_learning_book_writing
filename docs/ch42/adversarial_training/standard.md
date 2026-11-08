@@ -1,6 +1,6 @@
 # 적대적 학습
 
-**적대적 학습**은 적대적 공격을 막는 가장 잘 듣는 길이다. 학습에 적대적 샘플을 섞어, 학습 점마다 $\varepsilon$ 공 안에서 든든하도록 모델을 가르친다. 이 절는 여느 적대적 학습(PGD-AT), TRADES, MART과 참으로 헤아릴 것을 다룬다.
+**적대적 학습**은 적대적 공격을 막는 가장 잘 듣는 길이다. 학습에 적대적 샘플을 섞어, 학습 점마다 $\varepsilon$ 공 안에서 강건하도록 모델을 가르친다. 이 절은 여느 적대적 학습(PGD-AT), TRADES, MART과 참으로 헤아릴 것을 다룬다.
 
 ---
 
@@ -16,7 +16,7 @@ $$
 
 이는 여느 자리의 성능을 다듬지만 적대적 섭동을 못 본 척한다.
 
-**든든하게 다듬기(적대적 학습):**
+**강건하게 다듬기(적대적 학습):**
 
 $$
 \min_\theta \mathbb{E}_{(\mathbf{x}, y) \sim \mathcal{D}} \left[ \max_{\|\boldsymbol{\delta}\|_p \leq \varepsilon} \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y) \right]
@@ -25,7 +25,7 @@ $$
 이는 **가장 작게-가장 크게** 문제다.
 
 - **안쪽 최대화**: 가장 나쁜 섭동을 찾는다(공격)
-- **바깥 최소화**: 그에 든든하도록 학습된이다
+- **바깥 최소화**: 그에 강건하도록 학습된이다
 
 ### 풀이
 
@@ -50,7 +50,7 @@ $$
 판마다:
     잔 배치 (x, y)마다:
         1. 맞서는 보기를 만든다: x_adv = PGD(x, y, ε, α, K)
-        2. 잃음을 셈한다: L = CrossEntropy(f_θ(x_adv), y)
+        2. 로스를 셈한다: L = CrossEntropy(f_θ(x_adv), y)
         3. 파라메터를 고친다: θ ← θ - η∇_θ L
 ```
 
@@ -73,20 +73,20 @@ $$
 여기서
 
 - 첫째 항: 여느 엇갈린 엔트로피(클린 정확도)
-- 둘째 항: 맑은 추론과 맞서는 추론 사이의 KL 갈림(그 자리의 매끄러움)
+- 둘째 항: 맑은 추론과 맞서는 추론 사이의 KL 발산(그 자리의 매끄러움)
 - $\beta$: 트레이드오프 파라메터(흔히 1~6)
 
 ### 느낌으로 알기
 
 - **맑은 로스**: 본디 데이터에서 추론이 맞도록 한다
 - **KL 항**: 맑은 입력과 흔든 입력에서 추론이 **한결같도록** 이끈다
-- 함께: 든든하면서도 맞는 추론
+- 함께: 강건하면서도 맞는 추론
 
 ### 여느 적대적 학습과 다른 핵심
 
 | 피처 | 여느 적대적 학습 | TRADES |
 |--------|-------------|--------|
-| 로스의 타깃 | 적대적 샘플만 | 맑음 + 한결같음 |
+| 로스의 타깃 | 적대적 샘플만 | 원본 + 한결같음 |
 | 트레이드오프 다루기 | 넌지시($\varepsilon$으로) | 드러내 놓고($\beta$으로) |
 | 클린 정확도 | 낮음 | 높음 |
 | 강건 정확도 | 높음 | 조금 낮음 |
@@ -142,7 +142,7 @@ class AdversarialTrainer:
     model : nn.Module
         익힐 모형
     epsilon : float
-        흔듦 예산(기본값: CIFAR-10에서 8/255)
+        섭동 예산(기본값: CIFAR-10에서 8/255)
     alpha : float
         PGD 스텝 크기
     num_iter : int
@@ -236,7 +236,7 @@ class AdversarialTrainer:
         test_loader: DataLoader,
         attack_iter: int = 20
     ) -> Dict[str, float]:
-        """맑은 맞음과 든든한 맞음을 따진다."""
+        """맑은 정확도와 강건한 정확도를 따진다."""
         self.model.eval()
         
         clean_correct = 0
@@ -250,12 +250,12 @@ class AdversarialTrainer:
         for x, y in tqdm(test_loader, desc='Evaluating'):
             x, y = x.to(self.device), y.to(self.device)
             
-            # 맑은 맞음
+            # 맑은 정확도
             with torch.no_grad():
                 clean_pred = self.model(x).argmax(1)
                 clean_correct += (clean_pred == y).sum().item()
             
-            # 든든한 맞음
+            # 강건한 정확도
             x_adv = self._pgd_attack(x, y)
             with torch.no_grad():
                 robust_pred = self.model(x_adv).argmax(1)
@@ -313,14 +313,14 @@ class AdversarialTrainer:
             history['clean_acc'].append(eval_metrics['clean_accuracy'])
             history['robust_acc'].append(eval_metrics['robust_accuracy'])
             
-            print(f"  맑음: {eval_metrics['clean_accuracy']:.2%}, "
-                  f"든든함: {eval_metrics['robust_accuracy']:.2%}")
+            print(f"  원본: {eval_metrics['clean_accuracy']:.2%}, "
+                  f"강건성: {eval_metrics['robust_accuracy']:.2%}")
             
             # 가장 좋은 것을 담는다
             if save_path and eval_metrics['robust_accuracy'] > best_robust:
                 best_robust = eval_metrics['robust_accuracy']
                 torch.save(self.model.state_dict(), save_path)
-                print(f"  가장 좋은 모형을 담았다(든든함: {best_robust:.2%})")
+                print(f"  가장 좋은 모형을 담았다(강건성: {best_robust:.2%})")
             
             scheduler.step()
         
@@ -330,7 +330,7 @@ class TRADESTrainer(AdversarialTrainer):
     """
     TRADES: 이론에 닿는 맞바꿈.
     
-    잃음: L_CE(f(x), y) + β · KL(f(x) || f(x_adv))
+    로스: L_CE(f(x), y) + β · KL(f(x) || f(x_adv))
     """
     
     def __init__(self, *args, beta: float = 6.0, **kwargs):
@@ -380,7 +380,7 @@ class TRADESTrainer(AdversarialTrainer):
                     delta = torch.clamp(x_adv - x, -self.epsilon, self.epsilon)
                     x_adv = torch.clamp(x + delta, 0, 1)
             
-            # TRADES 잃음
+            # TRADES 로스
             logits_adv = self.model(x_adv)
             loss_robust = F.kl_div(
                 F.log_softmax(logits_adv, dim=1),
@@ -445,7 +445,7 @@ history = trainer_trades.train(train_loader, test_loader, epochs=100)
 | $\varepsilon$ | 8/255 | 8/255 | 섭동 예산 |
 | $\alpha$ | 2/255 | 2/255 | 스텝 크기 |
 | $K$(학습) | 7~10 | 10 | PGD 회귀 |
-| $K$(따짐) | 20~100 | 20~100 | 따질 때는 더 세게 |
+| $K$(평가) | 20~100 | 20~100 | 따질 때는 더 세게 |
 | $\beta$ | 해당 없음 | 1~6 | TRADES 트레이드오프 |
 | 러닝레이트 | 0.1 | 0.1 | 줄여 가며 |
 | 판 수 | 100~200 | 100~200 | 여느 학습보다 많다 |
@@ -462,12 +462,12 @@ history = trainer_trades.train(train_loader, test_loader, epochs=100)
 1. **무너지듯 지나친 맞춤**: 강건 정확도가 갑자기 떨어진다
    - 풀이: 강건 정확도를 지켜보고 일찍 멈춘다
 
-2. **맑음-강건성 트레이드오프**: 강건한 모델은 클린 정확도가 낮다
+2. **원본-강건성 트레이드오프**: 강건한 모델은 클린 정확도가 낮다
    - 그럴 만하다: 클린 정확도가 약 5~15% 떨어진다
    - 트레이드오프를 다루려면 TRADES을 쓴다
 
-3. **학습 공격에 지나치게 맞춤**: PGD에는 든든하나 다른 공격에는 아니다
-   - 풀이: 공격 여럿으로 따진다(오토어택)
+3. **학습 공격에 지나치게 맞춤**: PGD에는 강건하나 다른 공격에는 아니다
+   - 풀이: 공격 여럿으로 따진다(AutoAttack)
 
 ### 그럴 법한 피처와(CIFAR-10)
 
@@ -490,7 +490,7 @@ history = trainer_trades.train(train_loader, test_loader, epochs=100)
 </div>
 
 ??? success "풀이"
-    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차원이 높은 모델이 무른 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
+    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차원이 높은 모델이 취약한 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
@@ -502,31 +502,31 @@ history = trainer_trades.train(train_loader, test_loader, epochs=100)
 </div>
 
 ??? success "풀이"
-    여느 ResNet-18은 클린 정확도가 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 스텝 크기 $2/255$) 아래의 강건 정확도는 $\sim$0%이다. 이 절의 방법을 걸면 피처와는 재주에 따라 다르다. 적대적 학습은 클린 정확도 $\sim$83%에 강건 정확도 $\sim$50%이고, 인증 가능한 방어는 더 낮지만 증명할 수 있는 테두리를 준다. 정확도와 강건성의 트레이드오프는 기초부터 있는 것이라, 강건성을 높이면 클린 정확도가 흔히 5~15% 든다. 아무렇게나 하는 시드 3개의 평균과 표준편차로 알려라. $\square$
+    여느 ResNet-18은 클린 정확도가 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 스텝 크기 $2/255$) 아래의 강건 정확도는 $\sim$0%이다. 이 절의 방법을 걸면 피처와는 기법에 따라 다르다. 적대적 학습은 클린 정확도 $\sim$83%에 강건 정확도 $\sim$50%이고, 인증 가능한 방어는 더 낮지만 증명할 수 있는 테두리를 준다. 정확도와 강건성의 트레이드오프는 기초부터 있는 것이라, 강건성을 높이면 클린 정확도가 흔히 5~15% 든다. 아무렇게나 하는 시드 3개의 평균과 표준편차로 알려라. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-섭동 공 안에서 클래스별 데이터의 밑자리가 서로 겹친다고 볼 때, 모델이 담는 힘을 키우지 않고서는 어떤 방어도 맑은 데이터의 높은 정확도와 $\ell_\infty$ 섭동에 대한 높은 강건성을 함께 이룰 수 없음을 증명하여라.
+섭동 공 안에서 클래스별 데이터의 밑자리가 서로 겹친다고 볼 때, 모델이 용량을 키우지 않고서는 어떤 방어도 맑은 데이터의 높은 정확도와 $\ell_\infty$ 섭동에 대한 높은 강건성을 함께 이룰 수 없음을 증명하여라.
 
 </div>
 
 ??? success "풀이"
-    두 클래스의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 기초 트레이드오프다. 겹치는 밑자리의 몫이 피할 수 없는 정확도 로스를 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 정확도 떨어짐을 밝혀 준다. 모델이 담는 힘을 키우면(더 너른 네트워크) 얽힌 강건한 결정 경계를 더 잘 그려 트레이드오프를 얼마쯤 눅일 수 있다. $\square$
+    두 클래스의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 기초 트레이드오프다. 겹치는 밑자리의 몫이 피할 수 없는 정확도 로스를 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 정확도 떨어짐을 밝혀 준다. 모델이 용량을 키우면(더 너른 네트워크) 얽힌 강건한 결정 경계를 더 잘 그려 트레이드오프를 얼마쯤 완화할 수 있다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-금융 머신러닝 구조(속임수 탐지나 거래 신호 만들기 따위)에서 맞섬의 강건성이 어떻게 드러나는지 다루어라. 위협 모델이 보기 다룸과 어떻게 다른가?
+금융 머신러닝 구조(속임수 탐지나 거래 신호 만들기 따위)에서 적대적 강건성이 어떻게 드러나는지 다루어라. 위협 모델이 비전과 어떻게 다른가?
 
 </div>
 
 ??? success "풀이"
-    금융에서 겨루는 이는 알아내는 구조에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 핵심은 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 공격이 잇따르며 맞추어 간다(겨루는 이가 구조의 되받음을 보고 손본다). (3) 헛 정확도와 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 섭동 모델이 있어야 한다. 방어는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 탐지 기초의 길은 많이 걸러진다. $\square$
+    금융에서 적대자는 탐지하는 구조에 맞추어 스스로 움직이는 꾀 많은 무리(사기꾼, 저자 흔드는 이)다. 비전과 다른 핵심은 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 제약된다(사기꾼이 제 거래 이력을 통째로 바꿀 수는 없다). (2) 공격이 잇따르며 맞추어 간다(적대자가 구조의 되받음을 보고 손본다). (3) 헛 정확도와 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 섭동 모델이 있어야 한다. 방어는 맞추어 오는 적대자에게도 강건해야 하므로, 탐지하는 잣대가 알려지면 비껴갈 수 있는 탐지 기반의 길은 많이 걸러진다. $\square$
 
 ## 정리하며
 

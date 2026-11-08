@@ -1,6 +1,6 @@
 # Saliency Map과 기본 그래디언트
 
-**Saliency Map**은 뉴럴 네트워크의 추론에 입력의 어느 데가 가장 중요한지 드러내는 그림 그리기 재주다. 뿌리를 보면 현저성 방법은 기초가 되는 물음에 답한다. *"모델은 이 판단을 내리는 데 어떤 입력 피처에 기대는가?"*
+**Saliency Map**은 뉴럴 네트워크의 추론에 입력의 어느 데가 가장 중요한지 드러내는 시각화 기법이다. 뿌리를 보면 현저성 방법은 기초가 되는 물음에 답한다. *"모델은 이 판단을 내리는 데 어떤 입력 피처에 기대는가?"*
 
 가장 단순하고 가장 기초가 되는 길은 **맨 그래디언트**를 쓰는 것이다. 곧 모델의 내놓기를 입력으로 미분한다. 기초 생각은 곧다. **어떤 픽셀 값을 바꾸었을 때 추론이 크게 달라지면 그 픽셀이 중요하다.**
 
@@ -83,7 +83,7 @@ def compute_saliency_map(
     맨 그래디언트 두드러짐 그림을 셈한다.
 
     Args:
-        model: 따지는 결로 놓인 뉴럴 네트워크 모형
+        model: 평가하는 결로 놓인 뉴럴 네트워크 모형
         input_tensor: (1, C, H, W) 형태 들임 텐서
         target_class: 겨눈 클래스 번호(None이면 미루어 본 클래스를 쓴다)
         device: 셈하는 장치
@@ -105,7 +105,7 @@ def compute_saliency_map(
     if target_class is None:
         target_class = output.argmax(dim=1).item()
 
-    # 되짚기 스텝: ∂y_c/∂x을 셈한다
+    # 역전파 스텝: ∂y_c/∂x을 셈한다
     model.zero_grad()
     output[0, target_class].backward()
 
@@ -128,7 +128,7 @@ def compute_vanilla_gradient_saliency(
     맨 그래디언트 두드러짐 그림을 셈한다(텐서를 내놓는다).
 
     Args:
-        model: 따지는 결로 놓인 미리 익힌 뉴럴 네트워크
+        model: 평가하는 결로 놓인 미리 익힌 뉴럴 네트워크
         image_tensor: 들임 그림 [1, 3, H, W]
         target_class: 두드러짐을 셈할 클래스 번호
         device: 셈하는 장치(CPU/GPU)
@@ -149,7 +149,7 @@ def compute_vanilla_gradient_saliency(
     # 겨눈 클래스 점수를 고른다
     target_score = output[0, target_class]
 
-    # 되짚기 스텝
+    # 역전파 스텝
     target_score.backward()
 
     # 그래디언트를 집고 절댓값을 잡는다
@@ -353,7 +353,7 @@ def normalize_saliency(saliency: np.ndarray) -> np.ndarray:
     return saliency
 ```
 
-### 여느 그림 그리기
+### 여느 시각화
 
 ```python
 def visualize_saliency(
@@ -465,7 +465,7 @@ def compare_class_saliencies(
     saliencies = {}
 
     for i, class_idx in enumerate(class_indices):
-        # 되짚기마다 새 텐서를 만든다
+        # 역전파마다 새 텐서를 만든다
         img_copy = image_tensor.clone().detach().requires_grad_(True)
 
         saliency = compute_saliency_map(model, img_copy, class_idx, device)
@@ -577,7 +577,7 @@ def class_discrimination_test(model, input_tensor, device):
             model, input_tensor, cls.item(), device
         )
 
-    # 앞선 켜의 그래디언트를 모든 클래스가 함께 쓰므로
+    # 앞선 레이어의 그래디언트를 모든 클래스가 함께 쓰므로
     # 클래스마다의 두드러짐이 꽤 비슷해 보일 때가 많다
     return saliencies
 ```
@@ -632,7 +632,7 @@ def smoothgrad(
         input_tensor: 들임 텐서
         target_class: 겨눈 클래스
         n_samples: 잡음 표본의 수
-        noise_level: 잡음의 잣대 벗어남(들임 너비에 대한 몫)
+        noise_level: 잡음의 표준편차(들임 너비에 대한 몫)
         device: 셈하는 장치
 
     Returns:
@@ -649,7 +649,7 @@ def smoothgrad(
             output = model(input_tensor)
             target_class = output.argmax(dim=1).item()
 
-    # 잡음 잣대를 잡으려고 들임 셈속을 셈한다
+    # 잡음 스케일을 맞추으려고 들임 셈속을 셈한다
     stdev = noise_level * (input_tensor.max() - input_tensor.min())
 
     accumulated_grad = torch.zeros_like(input_tensor)
@@ -659,7 +659,7 @@ def smoothgrad(
         noise = torch.randn_like(input_tensor) * stdev
         noisy_input = (input_tensor + noise).requires_grad_(True)
 
-        # 앞으로와 되짚기
+        # 앞으로와 역전파
         output = model(noisy_input)
         model.zero_grad()
         output[0, target_class].backward()
@@ -786,7 +786,7 @@ def tabular_saliency(
 | **그래디언트 × 입력** | 입력 값을 곱한다 | 피처를 또렷하게 한다 |
 | **SmoothGrad** | 잡음 표본에 걸쳐 고르게 한다 | 잡음을 줄인다 |
 | **Integrated Gradients** | 베이스라인에서 오는 길을 따라 적분한다 | 공리를 채운다 |
-| **이끈 되짚기** | ReLU 되짚기 스텝을 고친다 | 그림이 깨끗해진다 |
+| **Guided Backpropagation** | ReLU 역전파 스텝을 고친다 | 그림이 깨끗해진다 |
 | **Grad-CAM** | 피처 그림의 그래디언트를 쓴다 | 클래스를 가려낸다 |
 
 ### 비교 표
@@ -822,13 +822,13 @@ def tabular_saliency(
 
 ### 짜기 살핌 목록
 
-1. ✅ **모델을 따지는 피처로**: `model.eval()`으로 한결같이 돌게 한다
+1. ✅ **모델을 평가하는 피처로**: `model.eval()`으로 한결같이 돌게 한다
 2. ✅ **입력에 그래디언트를 켠다**: `image_tensor.requires_grad = True`
-3. ✅ **남은 그래디언트를 지운다**: 되짚기 앞에 `model.zero_grad()`
+3. ✅ **남은 그래디언트를 지운다**: 역전파 앞에 `model.zero_grad()`
 4. ✅ **알맞은 클래스를 쓴다**: 예측한 클래스나 눈여겨보는 클래스
 5. ✅ **소프트맥스가 아니라 로짓을 쓴다**: 그래디언트 잦아듦을 피한다
-6. ✅ **그리려고 고르게 한다**: $[0, 1]$으로 잣대를 잡는다
-7. ✅ **텐서를 베낀다**: 견줄 때는 되짚기마다 새 텐서를 쓴다
+6. ✅ **그리려고 고르게 한다**: $[0, 1]$으로 스케일을 맞춘다
+7. ✅ **텐서를 베낀다**: 견줄 때는 역전파마다 새 텐서를 쓴다
 
 ---
 
@@ -854,19 +854,19 @@ def tabular_saliency(
 </div>
 
 ??? success "풀이"
-    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 베이스라인에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 그래디언트 방법은 온전함을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
+    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 베이스라인에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 구성에 달렸다. 그래디언트 방법은 온전함을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 구성 자체로 온전함을 채운다(길을 따라 미적분의 기본정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 피처가 참으로 모델에 중요한지를 넣기와 빼기 곡선으로 재어라.
+이 방법이 내놓는 풀이가 얼마나 믿을 만한지 평가하는 시험을 꾸며라. 짚어 준 피처가 참으로 모델에 중요한지를 넣기와 빼기 곡선으로 재어라.
 
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 그림마다 피처 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 피처를 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 베이스라인에서 시작해 몫이 큰 차례로 피처를 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(베이스라인)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 그림마다 피처 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 피처를 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 믿을 만한 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 베이스라인에서 시작해 몫이 큰 차례로 피처를 하나씩 드러내며 자신함이 오르는 모습을 적는다. 믿을 만한 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -878,7 +878,7 @@ def tabular_saliency(
 </div>
 
 ??? success "풀이"
-    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 절의 풀이 방법으로 피처의 중요함을 짚을 수 있으나, 든든함(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 피처를 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
+    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 절의 풀이 방법으로 피처의 중요함을 짚을 수 있으나, 강건성(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 피처를 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
 
 ## 정리하며
 

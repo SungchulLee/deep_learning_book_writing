@@ -1,8 +1,8 @@
 # 03: SmoothGrad
 
-03: SmoothGrad - Saliency Map의 잡음 줄이기. 밝힘:
+03: SmoothGrad - Saliency Map의 잡음 줄이기. 설명:
 
-뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 재주를 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
+뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 기법을 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
 
 ## 1. 코드
 
@@ -13,7 +13,7 @@
 
 어려움: 낮음
 
-밝힘:
+설명:
 SmoothGrad은 들임에 잡음을 섞은 것들에서 셈한 그래디언트를 고르게 해
 두드러짐 그림의 눈에 띄는 잡음을 줄인다. 잡음을 더해 고르게 하면
 날카롭고 흔들리는 그래디언트가 서로 지워지고 뜻있는 신호만 남는다.
@@ -23,8 +23,8 @@ SmoothGrad은 들임에 잡음을 섞은 것들에서 셈한 그래디언트를 
 
 여기서:
 - n: 잡음 섞은 표본의 수
-- N(0, σ²): 잣대 벗어남이 σ인 가우스 잡음
-- 고르게 하기가 그래디언트 잡음을 눅인다
+- N(0, σ²): 표준편차이 σ인 가우스 잡음
+- 고르게 하기가 그래디언트 잡음을 완화한다
 
 으뜸 파라메터:
 - n (num_samples): 표본이 많을수록 매끄럽지만 느리다(흔히 20~50)
@@ -72,7 +72,7 @@ def compute_smoothgrad(
         target_class: 겨눈 클래스 번호
         device: 셈하는 장치
         num_samples: 잡음 섞은 표본의 수
-        noise_level: 가우스 잡음의 잣대 벗어남(들임 자에 대한 몫)
+        noise_level: 가우스 잡음의 표준편차(들임 자에 대한 몫)
 
     Returns:
         torch.Tensor: 매끄럽게 한 두드러짐 그림 [1, H, W]
@@ -83,7 +83,7 @@ def compute_smoothgrad(
     # 그래디언트를 쌓아 둘 곳
     accumulated_gradients = torch.zeros_like(image_tensor)
 
-    # 잡음의 잣대 벗어남을 셈한다
+    # 잡음의 표준편차을 셈한다
     # 흔한 들임 너비(고르게 한 뒤)에 맞추어 잡는다
     noise_std = noise_level
 
@@ -97,7 +97,7 @@ def compute_smoothgrad(
         output = model(noisy_image)
         target_score = output[0, target_class]
 
-        # 되짚기 스텝
+        # 역전파 스텝
         model.zero_grad()
         target_score.backward()
 
@@ -221,7 +221,7 @@ def main():
         print("1. SmoothGrad은 고르게 해서 눈에 띄는 잡음을 줄인다")
         print("2. 잡음을 더했는데 되레 잡음이 준다!")
         print("3. 파라메터: n=20~50, σ=0.10~0.20")
-        print("4. 셈이 비싸다(앞으로/되짚기를 n번 한다)")
+        print("4. 셈이 비싸다(앞으로/역전파를 n번 한다)")
         print("\n다음: 꾸러미 04 - 쌓은 그래디언트")
         print("="*70)
     except Exception as e:
@@ -260,7 +260,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 든든함 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -272,14 +272,14 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 강건하게 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 탐지하고 고칠지 밝혀라.
 
 </div>
 

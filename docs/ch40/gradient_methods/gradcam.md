@@ -1,6 +1,6 @@
 # Grad-CAM: 그래디언트 가중 클래스 활성화 맵
 
-**그래디언트 가중 클래스 활성화 맵(Grad-CAM)**은 CNN 기반 모델의 판단을 눈에 보이게 풀이하는 재주다. 정해진 구조를 바라던 앞선 클래스 활성화 맵(CAM) 방법과 달리, Grad-CAM은 구조를 고치거나 다시 익히지 않고도 어떤 CNN 구조에나 듣는다.
+**그래디언트 가중 클래스 활성화 맵(Grad-CAM)**은 CNN 기반 모델의 판단을 눈에 보이게 풀이하는 기법이다. 정해진 구조를 바라던 앞선 클래스 활성화 맵(CAM) 방법과 달리, Grad-CAM은 구조를 고치거나 다시 익히지 않고도 어떤 CNN 구조에나 듣는다.
 
 Grad-CAM은 기초가 되는 물음에 답한다. **입력 그림의 어느 자리가 어떤 클래스를 예측하는 데 가장 중요한가?**
 
@@ -23,7 +23,7 @@ Grad-CAM은 기초가 되는 물음에 답한다. **입력 그림의 어느 자�
 
 클래스 $c$을 예측하는 데 중요한 그림 자리를 짚어 주는 히트맵 $L^c_{\text{Grad-CAM}} \in \mathbb{R}^{u \times v}$을 찾는다.
 
-### 핵심 세움새
+### 핵심 구성
 
 Grad-CAM은 겹침 피처 그림에 남아 있는 공간 정보를 살려 쓴다. 핵심 깨침은 **뒤쪽 컨볼루션 레이어에 뜻이 담겨 있고** **그래디언트가 겨눈 클래스에 대한 중요함을 알린다**는 것이다.
 
@@ -124,7 +124,7 @@ $$
 
 1. 앞으로 스텝: 켜 l의 결 그림 A^k을 셈한다
 2. 앞으로 스텝: 클래스 점수 y^c을 셈한다
-3. 되짚기 스텝: 그래디언트 ∂y^c/∂A^k을 셈한다
+3. 역전파 스텝: 그래디언트 ∂y^c/∂A^k을 셈한다
 4. 결 그림 k마다:
    α_k^c = 온세상고르게모으기(∂y^c/∂A^k)
 5. 짐 실은 아우름을 셈한다:
@@ -151,7 +151,7 @@ class GradCAM:
 
     Args:
         model: PyTorch CNN 모형
-        target_layer: 그릴 겹치는 켜
+        target_layer: 그릴 겹치는 레이어
 
     쓰임:
         gradcam = GradCAM(model, model.layer4[-1])  # ResNet에 쓸 때
@@ -173,7 +173,7 @@ class GradCAM:
         self.activations = output.detach()
 
     def _save_gradient(self, module, grad_input, grad_output):
-        """되짚기 스텝의 그래디언트를 붙드는 갈고리."""
+        """역전파 스텝의 그래디언트를 붙드는 갈고리."""
         self.gradients = grad_output[0].detach()
 
     def __call__(
@@ -209,7 +209,7 @@ class GradCAM:
         # 겨눈 클래스의 점수를 집는다
         target_score = output[0, target_class]
 
-        # 되짚기 스텝 - 되짚기 갈고리를 당긴다
+        # 역전파 스텝 - 역전파 갈고리를 당긴다
         self.model.zero_grad()
         target_score.backward()
 
@@ -308,7 +308,7 @@ def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
         architecture: 모형 구조 이름
 
     Returns:
-        겨눈 겹치는 켜
+        겨눈 겹치는 레이어
     """
     architecture = architecture.lower()
 
@@ -317,7 +317,7 @@ def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
         return model.layer4[-1]
 
     elif 'vgg' in architecture:
-        # VGG: 분류기 앞의 마지막 겹치는 켜
+        # VGG: 분류기 앞의 마지막 겹치는 레이어
         return model.features[-1]
 
     elif 'densenet' in architecture:
@@ -325,11 +325,11 @@ def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
         return model.features.denseblock4
 
     elif 'efficientnet' in architecture:
-        # EfficientNet: 마지막 겹치는 켜
+        # EfficientNet: 마지막 겹치는 레이어
         return model.features[-1]
 
     elif 'mobilenet' in architecture:
-        # MobileNet: 마지막 겹치는 켜
+        # MobileNet: 마지막 겹치는 레이어
         return model.features[-1]
 
     elif 'inception' in architecture:
@@ -355,7 +355,7 @@ model.eval()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
 
-# 마지막 겹치는 켜를 겨눈다
+# 마지막 겹치는 레이어를 겨눈다
 target_layer = model.layer4[-1]
 
 # Grad-CAM의 첫자리를 잡는다
@@ -453,7 +453,7 @@ target_layers = {
 
 ```python
 def multi_layer_gradcam(model, image_tensor, layers, target_class=None, device=None):
-    """여러 켜에서 Grad-CAM을 만들어 아우른다."""
+    """여러 레이어에서 Grad-CAM을 만들어 아우른다."""
     import cv2
 
     cams = []
@@ -578,7 +578,7 @@ def negative_gradcam(gradcam, image_tensor, target_class, device):
 ```python
 def analyze_layer_gradcam(model, image_tensor, target_class, device):
     """
-    켜마다의 Grad-CAM을 견주어 결의 켜 구조를 알아본다.
+    레이어마다의 Grad-CAM을 견주어 결의 켜 구조를 알아본다.
     """
     # ResNet이면 layer2, layer3, layer4을 견준다
     layers = {
@@ -621,7 +621,7 @@ Grad-CAM은 저우 외(2016)의 **클래스 활성화 맵(CAM)**을 넓힌 것�
 | 겨눈 레이어 | 못 박힘(마지막 컨볼루션 레이어) | 아무 컨볼루션 레이어 |
 | 웨이트 계산 | FC 레이어의 웨이트 | 그래디언트 기반 |
 | 풀이 성능 | 높음 | 높음 |
-| 계산 비용 | 낮음 | 높음(되짚기) |
+| 계산 비용 | 낮음 | 높음(역전파) |
 
 **핵심 깨침**: GAP→FC 구조에서는 Grad-CAM과 CAM이 똑같은 열매를 낸다. Grad-CAM은 CAM을 아무 구조로나 넓힌 것이다.
 
@@ -757,7 +757,7 @@ cam = grad_cam(xray_image, target_class=class_map["pneumonia"])
 |--------|------------|---------------------|-------|-------------------|
 | 맨 그래디언트 | 높음 | 가운데 | 빠름 | 그 자리 예민함 |
 | Grad-CAM | 낮음 | 계산 | 빠름 | 피처 중요함 |
-| 이끈 되짚기 | 높음 | 약함 | 빠름 | 고친 그래디언트 |
+| Guided Backpropagation | 높음 | 약함 | 빠름 | 고친 그래디언트 |
 | Guided Grad-CAM | 높음 | 계산 | 가운데 | 아우름 |
 | Integrated Gradients | 높음 | 가운데 | 느림 | 길 적분 |
 | SHAP | 높음 | 계산 | 아주 느림 | 섀플리 값 |
@@ -786,19 +786,19 @@ cam = grad_cam(xray_image, target_class=class_map["pneumonia"])
 </div>
 
 ??? success "풀이"
-    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 베이스라인에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 그래디언트 방법은 온전함을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
+    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 베이스라인에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 구성에 달렸다. 그래디언트 방법은 온전함을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 구성 자체로 온전함을 채운다(길을 따라 미적분의 기본정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 피처가 참으로 모델에 중요한지를 넣기와 빼기 곡선으로 재어라.
+이 방법이 내놓는 풀이가 얼마나 믿을 만한지 평가하는 시험을 꾸며라. 짚어 준 피처가 참으로 모델에 중요한지를 넣기와 빼기 곡선으로 재어라.
 
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 그림마다 피처 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 피처를 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 베이스라인에서 시작해 몫이 큰 차례로 피처를 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(베이스라인)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 그림마다 피처 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 피처를 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 믿을 만한 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 베이스라인에서 시작해 몫이 큰 차례로 피처를 하나씩 드러내며 자신함이 오르는 모습을 적는다. 믿을 만한 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -810,7 +810,7 @@ cam = grad_cam(xray_image, target_class=class_map["pneumonia"])
 </div>
 
 ??? success "풀이"
-    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 절의 풀이 방법으로 피처의 중요함을 짚을 수 있으나, 든든함(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 피처를 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
+    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 절의 풀이 방법으로 피처의 중요함을 짚을 수 있으나, 강건성(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 피처를 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
 
 ## 정리하며
 
@@ -835,7 +835,7 @@ $$
 - **클래스를 가려낸다**: 클래스가 다르면 히트맵도 다르다
 - **구조를 가리지 않는다**: 어떤 CNN에도 듣는다
 - **성긴 자리 짚기**: "무엇"이 아니라 "어디"를 보인다
-- **빠르게 계산한다**: 앞으로-되짚기 한 번이면 된다
+- **빠르게 계산한다**: 앞으로-역전파 한 번이면 된다
 - **다시 익히지 않는다**: 사전 학습된 모델에 그대로 쓴다
 
 ### 잘 쓰는 길
@@ -854,13 +854,13 @@ $$
 - CNN의 판단을 자리 낱으로 알고 싶을 때
 - 잘못 가른 것을 벌레잡을 때
 - 모델이 알맞은 그림 자리를 쓰는지 살필 때
-- 빠르게 그려 볼 때(앞으로-되짚기 한 번)
+- 빠르게 그려 볼 때(앞으로-역전파 한 번)
 
 **다른 것을 헤아려 볼 때:**
 
 - 잔 낱까지 자리를 짚어야 할 때 → Guided Grad-CAM
 - 이론 보장이 있어야 할 때 → Integrated Gradients
-- CNN이 아닌 구조일 때 → 어텐션 그림 그리기, SHAP
+- CNN이 아닌 구조일 때 → 어텐션 시각화, SHAP
 
 **살펴볼 거리**
 

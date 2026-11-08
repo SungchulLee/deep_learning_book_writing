@@ -1,25 +1,25 @@
 # Guided Backpropagation
 
-06: 이끈 되짚기 밝힘:
+06: Guided Backpropagation 설명:
 
-뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 재주를 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
+뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 기법을 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
 
 ## 1. 코드
 
 ```python
 """
-06: 이끈 되짚기
+06: Guided Backpropagation
 ==========================
 
 어려움: 가운데
 
-밝힘:
-이끈 되짚기는 ReLU 켜를 지나는 되짚기 스텝을 고쳐 양수 그래디언트만
+설명:
+Guided Backpropagation는 ReLU 켜를 지나는 역전파 스텝을 고쳐 양수 그래디언트만
 퍼뜨린다. 음수 그래디언트를 눌러 더 또렷하고 깨끗한 그림을 낸다.
 
 고침:
-여느 ReLU 되짚기: ∂L/∂x = (∂L/∂y) · 1(x > 0)
-이끈 ReLU 되짚기: ∂L/∂x = (∂L/∂y) · 1(x > 0) · 1(∂L/∂y > 0)
+여느 ReLU 역전파: ∂L/∂x = (∂L/∂y) · 1(x > 0)
+이끈 ReLU 역전파: ∂L/∂x = (∂L/∂y) · 1(x > 0) · 1(∂L/∂y > 0)
 
 덧붙은 조건: 양수 그래디언트만 되짚는다
 
@@ -35,7 +35,7 @@ from utils import *
 # ========================================================================
 
 class GuidedBackpropReLU(nn.Module):
-    """이끈 되짚기를 위해 고친 ReLU."""
+    """Guided Backpropagation를 위해 고친 ReLU."""
 
     def forward(self, x):
         return F.relu(x)
@@ -55,7 +55,7 @@ def replace_relu_with_guided(model):
 
 
 def compute_guided_backprop(model, image_tensor, target_class, device):
-    """이끈 되짚기를 셈한다."""
+    """Guided Backpropagation를 셈한다."""
     model.eval()
     image_tensor = image_tensor.to(device)
     image_tensor.requires_grad = True
@@ -73,20 +73,20 @@ def compute_guided_backprop(model, image_tensor, target_class, device):
 
 
 def example_1_guided_vs_vanilla():
-    """이끈 되짚기와 맨 그래디언트를 견준다."""
+    """Guided Backpropagation와 맨 그래디언트를 견준다."""
     print("\n" + "="*60)
-    print("보기 1: 이끈 되짚기 대 맨 그래디언트")
+    print("보기 1: Guided Backpropagation 대 맨 그래디언트")
     print("="*60)
 
     device = get_device()
     create_output_dir('outputs')
 
-    # 모형 둘: 하나는 맨 그래디언트, 하나는 이끈 되짚기
+    # 모형 둘: 하나는 맨 그래디언트, 하나는 Guided Backpropagation
     model_vanilla = load_pretrained_model('resnet50', device)
     model_guided = load_pretrained_model('resnet50', device)
 
-    # 한 모형을 이끈 되짚기에 맞게 고친다
-    print("이끈 되짚기를 차린다...")
+    # 한 모형을 Guided Backpropagation에 맞게 고친다
+    print("Guided Backpropagation를 차린다...")
     # 짚을 것: 온전히 짜려면 손수 만든 갈고리가 있어야 한다
     # 여기서는 단순하게 줄인 것을 보인다
 
@@ -105,13 +105,13 @@ def example_1_guided_vs_vanilla():
     output[0, target_class].backward()
     vanilla = torch.max(torch.abs(image_vanilla.grad), dim=1)[0]
 
-    print("\n✓ 이끈 되짚기가 더 또렷한 그림을 낸다")
+    print("\n✓ Guided Backpropagation가 더 또렷한 그림을 낸다")
     print("(온전히 짜려면 손수 만든 autograd 함수가 있어야 한다)")
 
 
 def main():
     print("\n" + "="*70)
-    print(" "*15 + "이끈 되짚기 익히기")
+    print(" "*15 + "Guided Backpropagation 익히기")
     print("="*70)
 
     try:
@@ -119,7 +119,7 @@ def main():
 
         print("\n" + "="*70)
         print("핵심:")
-        print("1. ReLU 되짚기 스텝을 고친다")
+        print("1. ReLU 역전파 스텝을 고친다")
         print("2. 양수 그래디언트만 퍼뜨린다")
         print("3. 더 또렷하고 깨끗한 그림을 낸다")
         print("4. 짜려면 손수 만든 갈고리가 있어야 한다")
@@ -136,11 +136,11 @@ if __name__ == "__main__":
 
 ```
 ======================================================================
-               이끈 되짚기 익히기
+               Guided Backpropagation 익히기
 ======================================================================
 
 ============================================================
-보기 1: 이끈 되짚기 대 맨 그래디언트
+보기 1: Guided Backpropagation 대 맨 그래디언트
 ============================================================
 어긋남: name 'get_device' is not defined
 ```
@@ -161,7 +161,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 든든함 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -173,14 +173,14 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 강건하게 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 탐지하고 고칠지 밝혀라.
 
 </div>
 
@@ -207,7 +207,7 @@ if __name__ == "__main__":
 
 ## 정리하며
 
-**다룬 것** — 이끈 되짚기
+**다룬 것** — Guided Backpropagation
 
 `GuidedBackpropReLU` 클래스는 PyTorch의 `nn.Module` 사이틀로 모델 구조를 감싼다.
 

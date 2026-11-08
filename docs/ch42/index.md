@@ -1,6 +1,6 @@
 # 43장: 적대적 강건성
 
-이 장은 딥러닝에서 맞섬에 강건한 일을 두루 다룬다. 적대적 샘플을 찾아낸 이야기와 그 이론, 화이트박스에서 참 세상에 이르는 공격 방법, 적대적 학습과 강건성 인증을 아우른 방어, 그리고 제대로 따지는 좋은 버릇을 담는다. 맞섬의 위협이 시장 조작, 속임수 비껴가기, 모델 빼내기로 드러나는 금융 쓰임에 힘주어 살핀다.
+이 장은 딥러닝에서 적대적 강건한 일을 두루 다룬다. 적대적 샘플을 찾아낸 이야기와 그 이론, 화이트박스에서 참 세상에 이르는 공격 방법, 적대적 학습과 강건성 인증을 아우른 방어, 그리고 제대로 평가하는 좋은 버릇을 담는다. 적대적 위협이 시장 조작, 속임수 비껴가기, 모델 추출로 드러나는 금융 쓰임에 힘주어 살핀다.
 
 ---
 
@@ -9,7 +9,7 @@
 적대적 강건성의 핵심 이론, 위협 모델, 수학 틀.
 
 - [적대적 강건성 입문](foundations/introduction.md) -- 적대적 샘플을 찾아낸 이야기, 그것이 있는 까닭에 대한 여러 짐작, 딥러닝에 걸리는 바
-- [위협 모델](foundations/threat_models.md) -- 화이트박스, 블랙박스, 참 세상에 걸쳐 겨루는 이의 앎, 힘, 목표를 형태로 적기
+- [위협 모델](foundations/threat_models.md) -- 화이트박스, 블랙박스, 참 세상에 걸쳐 적대자의 앎, 힘, 목표를 형태로 적기
 - [강건성 정의](foundations/definitions.md) -- 점마다의 강건성, 가장 작은 적대적 섭동, 다시 쓸 수 있는 PyTorch 공격 밑 클래스
 - [섭동 유형](foundations/perturbations.md) -- L-무한, L-2, L-1 노름의 제약과 그 형태, 그리고 되비추는 계산
 
@@ -52,7 +52,7 @@
 모델 속을 곧바로 보지 못한 채 물음의 되받음이나 전이만으로 하는 공격.
 
 - [전이 기반 공격](black_box/transfer.md) -- 적대적 섭동이 모델을 넘나들며 전이되는 것을 쓰는 물음 없는 공격
-- [쿼리 기반 공격](black_box/query_based.md) -- 스코어 기반과 판단 기초의 클래스를 지닌, 모델에 물어 가며 회귀하는 공격
+- [쿼리 기반 공격](black_box/query_based.md) -- 스코어 기반과 판단 기반의 클래스를 지닌, 모델에 물어 가며 회귀하는 공격
 - [점수 기반 공격](black_box/score_based.md) -- 모델 속을 보지 않고 출력 확률 분포로 그래디언트를 어림하기
 - [결정 기반 공격](black_box/decision_based.md) -- 굳은 레이블만 얻는 가장 빡빡한 블랙박스 자리에서의 공격
 
@@ -72,8 +72,8 @@
 
 익힐 때 적대적 샘플을 학습에 섞는 방어.
 
-- [여느 적대적 학습](adversarial_training/standard.md) -- 적대적 공격에 가장 잘 듣는 방어인 PGD 기초의 든든하게 하기
-- [TRADES](adversarial_training/trades.md) -- 클린 정확도와 맞섬의 강건성 사이를 이론에 닿게 맞바꾸기
+- [여느 적대적 학습](adversarial_training/standard.md) -- 적대적 공격에 가장 잘 듣는 방어인 PGD 기반의 강건하게 하기
+- [TRADES](adversarial_training/trades.md) -- 클린 정확도와 적대적 강건성 사이를 이론에 닿게 맞바꾸기
 - [Free Adversarial Training](adversarial_training/free_at.md) -- 그래디언트를 되쓰며 여느 학습에 가까운 값으로 맞먹는 강건성 이루기
 - [Fast Adversarial Training](adversarial_training/fast_at.md) -- 아무렇게나 첫자리를 잡아 무너지듯 지나치게 맞추는 것을 막는 한 스텝 FGSM 학습
 - [MART](adversarial_training/mart.md) -- 잘못 가른 보기를 헤아려 어려운 보기에 방어의 힘을 모으는 학습
@@ -86,27 +86,27 @@
 
 - [아무렇게나 매끄럽게 하기](certified/randomized_smoothing.md) -- 가우스 잡음을 고르게 하여 어떤 분류기든 강건성 인증을 지니게 하기
 - [구간 경계 전파(IBP)](certified/ibp.md) -- 네트워크 켜를 지나며 사이 테두리를 퍼뜨려 L-무한 강건성 밝히기
-- [CROWN](certified/crown.md) -- 선형으로 눅여 IBP보다 촘촘한 테두리를 주는 볼록 완화 기초의 밝히기
+- [CROWN](certified/crown.md) -- 선형으로 완화해 IBP보다 촘촘한 테두리를 주는 볼록 완화 기반의 밝히기
 - [립시츠 제약 뉴럴 네트워크](certified/lipschitz.md) -- 네트워크가 얼마나 예민한지를 립시츠 값으로 옭아매어 강건성 밝히기
 
 ---
 
-## 7. 알아내는 방법
+## 7. 탐지하는 방법
 
-맞서는 입력이 분류기에 닿기 앞서 짚어내기.
+맞서는 입력이 분류기에 닿기 앞서 탐지.
 
-- [자로 탐지](detection/statistical.md) -- 마할라노비스 거리와 활성화 분포 살피기로 적대적 샘플 짚어내기
+- [자로 탐지](detection/statistical.md) -- 마할라노비스 거리와 활성화 분포 살피기로 적대적 샘플 탐지
 - [Feature Squeezing](detection/feature_squeezing.md) -- 본디 입력과 얽힘을 줄인 입력의 추론을 비교하여 적대적 섭동에 표시하기
 - [입력 변환 기반 방어](detection/input_transform.md) -- JPEG 눌러 담기, 아무렇게나 크기 바꾸기, 디노이징으로 입력 맑히기
 
 ---
 
-## 8. 따지기
+## 8. 평가
 
-맞섬의 강건성을 솔직히 따지는 좋은 버릇.
+적대적 강건성을 솔직히 평가하는 좋은 버릇.
 
-- [적응적 공격과 그래디언트 마스킹](evaluation/adaptive.md) -- 참 강건성 대신 그래디언트를 가리는 방어를 짚어내고 넘어서기
-- [평가와 벤치마크](evaluation/benchmarks.md) -- 오토어택과 RobustBench을 아우른 잣대 잡힌 따짐 절차
+- [적응적 공격과 그래디언트 마스킹](evaluation/adaptive.md) -- 참 강건성 대신 그래디언트를 가리는 방어를 탐지하고 넘어서기
+- [평가와 벤치마크](evaluation/benchmarks.md) -- AutoAttack과 RobustBench을 아우른 잣대 잡힌 평가 절차
 - [인증 정확도](evaluation/certified_accuracy.md) -- 공격의 세기와 상관없이 증명되는 강건성의 아래끝
 
 ---
@@ -115,9 +115,9 @@
 
 금융 머신러닝 구조에서의 적대적 강건성.
 
-- [시장 조작 탐지](finance/manipulation.md) -- 속임 주문, 짜고 하는 거래, 꾀 부린 신호 흔들기를 적대적 공격로 보고 짚어내기
-- [사기 탐지 모델의 강건성](finance/fraud.md) -- 비껴가는 꾀를 갈아 가며 맞추어 오는 겨루는 이에게도 버티는 속임수 알아내개 짓기
-- [금융 구조의 모델 보안](finance/security.md) -- 모델 빼내기, 데이터에 독 타기, 든든히 내놓기를 아우른 끝에서 끝까지의 지킴
+- [시장 조작 탐지](finance/manipulation.md) -- 속임 주문, 짜고 하는 거래, 꾀 부린 신호 흔들기를 적대적 공격으로 보고 탐지
+- [사기 탐지 모델의 강건성](finance/fraud.md) -- 비껴가는 꾀를 갈아 가며 맞추어 오는 적대자에게도 버티는 속임수 탐지기 짓기
+- [금융 구조의 모델 보안](finance/security.md) -- 모델 추출, 데이터 포이즈닝, 강건하게 내놓기를 아우른 끝에서 끝까지의 보안
 
 ---
 
@@ -125,8 +125,8 @@
 
 곁들일 거리와 코드 보기.
 
-- 적대적 강건성 두루 보기 -- 공격, 방어, 따지는 재주를 아우른 배치 두루 보기
-- [자연어 모델에 대한 적대적 공격](adversarial/nlp_adversarial.md) -- 텍스트 기초 금융 모델에 대한 글자, 단어, 월 켜의 공격
+- 적대적 강건성 두루 보기 -- 공격, 방어, 평가하는 기법을 아우른 배치 두루 보기
+- [자연어 모델에 대한 적대적 공격](adversarial/nlp_adversarial.md) -- 텍스트 기초 금융 모델에 대한 글자, 단어, 월 수준의 공격
 
 ---
 

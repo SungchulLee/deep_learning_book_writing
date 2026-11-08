@@ -1,8 +1,8 @@
 # PGD 공격
 
-62.2 배치: 되비춘 그래디언트 내림(PGD) 공격 - 가운데 스텝. 이 배치는 더 센 공격인 되비춘 그래디언트 내림(PGD)을 짜 놓았다
+62.2 배치: 투영 경사 하강법(PGD) 공격 - 가운데 스텝. 이 배치는 더 센 공격인 투영 경사 하강법(PGD)을 구현했다
 
-적대적 강건성은 안전이 걸린 자리에 뉴럴 네트워크를 내놓을 때 중요한 걱정거리다. 이 구현은 작은 섭동이 어떻게 모델을 속이는지, 방어는 어떻게 지을 수 있는지 보이며 적대적 강건성의 깨침을 드러낸다.
+적대적 강건성은 안전이 걸린 자리에 뉴럴 네트워크를 내놓을 때 중요한 문제다. 이 구현은 작은 섭동이 어떻게 모델을 속이는지, 방어는 어떻게 지을 수 있는지 보이며 적대적 강건성의 깨침을 드러낸다.
 
 ## 1. 코드
 
@@ -10,20 +10,20 @@
 
     ```python
     """
-    62.2 배치: 되비춘 그래디언트 내림(PGD) 치기 - 가운데 스텝
+    62.2 배치: 투영 경사 하강법(PGD) 치기 - 가운데 스텝
 
-    이 배치는 FGSM의 더 센 회귀 클래스인 되비춘 그래디언트 내림(PGD) 치기를
-    짜 놓았다. PGD은 가장 센 일차 맞서는 치기의 하나로 여겨지며
-    모형의 든든함을 따지는 데 흔히 쓰인다.
+    이 배치는 FGSM의 더 센 회귀 클래스인 투영 경사 하강법(PGD) 치기를
+    구현했다. PGD은 가장 센 일차 맞서는 치기의 하나로 여겨지며
+    모형의 강건성을 평가하는 데 흔히 쓰인다.
 
     수학 밑그림:
     =======================
 
-    PGD은 작은 그래디언트 스텝을 여러 번 밟고 스텝마다 받아 주는 흔듦 모임으로
+    PGD은 작은 그래디언트 스텝을 여러 번 밟고 스텝마다 받아 주는 섭동 모임으로
     되비추어 FGSM을 넓힌다. 그래서 한 스텝짜리 FGSM보다
     훨씬 세다.
 
-    파라메터가 θ인 모형 f, 들임 x, 이름표 y, 흔듦 예산 ε이 있을 때:
+    파라메터가 θ인 모형 f, 들임 x, 이름표 y, 섭동 예산 ε이 있을 때:
 
     PGD은 다음을 푼다:
         maximize_{||δ||_∞ ≤ ε} L(θ, x + δ, y)
@@ -38,7 +38,7 @@
     여기서:
     - Π_{x+S}은 ε 공으로의 되비춤: Π(z) = clip(z, x-ε, x+ε)
     - α은 스텝 크기(흔히 α = ε/num_iter 또는 α = 2.5·ε/num_iter)
-    - S = {δ : ||δ||_∞ ≤ ε}은 받아 주는 흔듦 모임
+    - S = {δ : ||δ||_∞ ≤ ε}은 받아 주는 섭동 모임
     - T은 회귀 횟수
 
     FGSM과 다른 핵심:
@@ -61,7 +61,7 @@
 
     되비추는 셈:
     ===================
-    되비춤 Π은 흔듦이 ε 공 안에 머물게 한다:
+    되비춤 Π은 섭동이 ε 공 안에 머물게 한다:
 
     L∞ 노름에서는:
         Π(z)_i = clip(z_i, x_i - ε, x_i + ε)
@@ -105,11 +105,11 @@
 
     class PGD:
         """
-        되비춘 그래디언트 내림(PGD) 치기
+        투영 경사 하강법(PGD) 치기
 
-        PGD은 그래디언트 스텝을 여러 번 밟고 받아 주는 흔듦 모임으로 되비추는
+        PGD은 그래디언트 스텝을 여러 번 밟고 받아 주는 섭동 모임으로 되비추는
         회귀 맞서는 치기다. FGSM보다 훨씬 세며
-        든든함을 따지는 사실상의 잣대다.
+        강건성을 평가하는 사실상의 잣대다.
 
         수학 형태:
         -------------------------
@@ -117,7 +117,7 @@
 
             maximize L(θ, x + δ, y)  subject to ||δ||_p ≤ ε
 
-        되비춘 그래디언트 내림을 써서:
+        투영 경사 하강법을 써서:
 
             x^(t+1) = Π_{x+S}(x^(t) + α · sign(∇_x L(θ, x^(t), y)))
 
@@ -128,7 +128,7 @@
         model : nn.Module
             칠 뉴럴 네트워크
         epsilon : float
-            가장 큰 흔듦의 크기
+            가장 큰 섭동의 크기
         alpha : float
             되돌 때마다의 스텝 크기
         num_iter : int
@@ -138,7 +138,7 @@
         random_init : bool
             아무 첫자리를 쓸지
         loss_fn : nn.Module
-            가장 크게 할 잃음 함수
+            가장 크게 할 로스 함수
         early_stop : bool
             치기가 먹히면 일찍 멈출지
         """
@@ -165,7 +165,7 @@
             model : nn.Module
                 칠 뉴럴 네트워크
             epsilon : float, 기본값=0.03
-                가장 큰 흔듦의 크기(L∞ 또는 L2 노름)
+                가장 큰 섭동의 크기(L∞ 또는 L2 노름)
                 CIFAR-10에서는 ε=8/255≈0.031이 여느 값이다
             alpha : float, 기본값=0.01
                 되돌 때마다의 스텝 크기
@@ -178,13 +178,13 @@
             norm : str, 기본값='linf'
                 쓸 노름: 'linf'(L∞) 또는 'l2'(L2)
                 L∞: 픽셀 모두가 ε으로 마디 지어진다
-                L2: 온 흔듦이 ε으로 마디 지어진다
+                L2: 온 섭동이 ε으로 마디 지어진다
             random_init : bool, 기본값=True
-                흔듦의 첫자리를 아무렇게나 잡을지
-                True: 더 든든한 치기(즐겨 씀)
+                섭동의 첫자리를 아무렇게나 잡을지
+                True: 더 강건한 치기(즐겨 씀)
                 False: 본디 그림에서 비롯한다(I-FGSM처럼)
             loss_fn : nn.Module, 골라 씀
-                쓸 잃음 함수
+                쓸 로스 함수
             device : torch.device, 골라 씀
                 셈할 장치
             clip_min : float, 기본값=0.0
@@ -206,7 +206,7 @@
             self.clip_max = clip_max
             self.early_stop = early_stop
 
-            # 모형을 따짐 모드로 둔다
+            # 모형을 평가 모드로 둔다
             self.model.eval()
             self.model = self.model.to(self.device)
 
@@ -228,13 +228,13 @@
             images: torch.Tensor
         ) -> torch.Tensor:
             """
-            흔듦의 첫자리를 잡는다.
+            섭동의 첫자리를 잡는다.
 
             두 가지 꾀가 있다:
             1. 아무 첫자리(즐겨 씀):
                - ε 공에서 고르게 뽑는다
                - 그 자리 봉우리를 벗어나게 돕는다
-               - 더 든든한 치기
+               - 더 강건한 치기
 
             2. 0에서 비롯하기:
                - 본디 그림에서 비롯한다
@@ -263,21 +263,21 @@
                     # 이는 L∞ 공 전체를 고르게 둘러본다
                     delta = torch.empty_like(images).uniform_(-self.epsilon, self.epsilon)
                 else:  # l2
-                    # 아무 방향을 잡고 반지름 ≤ ε으로 아무렇게나 잣대를 잡는다
+                    # 아무 방향을 잡고 반지름 ≤ ε으로 아무렇게나 스케일을 맞춘다
                     delta = torch.randn_like(images)
                     # 낱 공으로 잣대를 맞춘다
                     delta_norm = delta.view(len(delta), -1).norm(p=2, dim=1)
                     delta = delta / delta_norm.view(-1, 1, 1, 1)
-                    # [0, ε]의 아무 반지름으로 잣대를 잡는다
+                    # [0, ε]의 아무 반지름으로 스케일을 맞춘다
                     random_radius = torch.rand(len(delta), device=images.device)
                     random_radius = random_radius * self.epsilon
                     delta = delta * random_radius.view(-1, 1, 1, 1)
 
-                # 흔듦을 걸고 옳은 자리로 잘라 낸다
+                # 섭동을 걸고 옳은 자리로 잘라 낸다
                 perturbed_images = images + delta
                 perturbed_images = torch.clamp(perturbed_images, self.clip_min, self.clip_max)
             else:
-                # 맑은 그림에서 비롯한다(흔듦 없음)
+                # 맑은 그림에서 비롯한다(섭동 없음)
                 perturbed_images = images.clone()
 
             return perturbed_images
@@ -290,7 +290,7 @@
             """
             흔든 그림을 본디 그림 둘레 ε 공으로 되비춘다.
 
-            이것이 흔듦을 마디 안에 붙잡아 두는 핵심 셈이다.
+            이것이 섭동을 마디 안에 붙잡아 두는 핵심 셈이다.
             그래디언트 한 스텝을 밟으면 ||δ|| > ε이 될 수 있으므로
             될 수 있는 모임으로 되비춰야 한다.
 
@@ -320,25 +320,25 @@
             projected_images : torch.Tensor
                 ε 공으로 되비춘 그림
             """
-            # 이제의 흔듦을 셈한다
+            # 이제의 섭동을 셈한다
             delta = perturbed_images - original_images
 
             if self.norm == 'linf':
                 # L∞ 되비춤: 낱낱을 [-ε, +ε]으로 잘라 낸다
                 delta = torch.clamp(delta, -self.epsilon, self.epsilon)
             else:  # l2
-                # L2 되비춤: 노름 ≤ ε이 되도록 잣대를 잡는다
+                # L2 되비춤: 노름 ≤ ε이 되도록 스케일을 맞춘다
                 batch_size = len(delta)
                 # 보기마다 L2 노름을 셈한다
                 delta_norm = delta.view(batch_size, -1).norm(p=2, dim=1)
                 # ε을 넘는 보기의 마스크를 만든다
                 exceed_mask = delta_norm > self.epsilon
-                # ε을 넘는 흔듦을 줄인다
+                # ε을 넘는 섭동을 줄인다
                 if exceed_mask.any():
                     scale = self.epsilon / delta_norm[exceed_mask]
                     delta[exceed_mask] = delta[exceed_mask] * scale.view(-1, 1, 1, 1)
 
-            # 되비춘 흔듦을 건다
+            # 되비춘 섭동을 건다
             projected_images = original_images + delta
 
             # 옳은 픽셀 자리 [clip_min, clip_max]으로도 잘라 낸다
@@ -364,14 +364,14 @@
             ----------
             1. x^(0)의 첫자리를 잡는다(아무렇게나 또는 x에서)
             2. t = 0에서 T-1까지:
-                 a. 잃음 L(θ, x^(t), y)을 셈한다
+                 a. 로스 L(θ, x^(t), y)을 셈한다
                  b. 그래디언트 g = ∇_x L을 셈한다
                  c. 고친다: x^(t+1) = x^(t) + α · sign(g)  [L∞에서]
                  d. 되비춘다: x^(t+1) = Π(x^(t+1))
                  e. 옳은 자리로 잘라 낸다
             3. x^(T)을 돌려준다
 
-            되비추는 스텝 (d)이 종요롭다. 흔듦을 ε 공 안에 붙잡아 둔다.
+            되비추는 스텝 (d)이 종요롭다. 섭동을 ε 공 안에 붙잡아 둔다.
 
             파라메터:
             -----------
@@ -415,12 +415,12 @@
                 # 앞으로 스텝
                 outputs = self.model(adv_images)
 
-                # 잃음을 셈한다
+                # 로스를 셈한다
                 if targeted:
-                    # 타깃 있는 치기: 타깃에 대한 잃음을 가장 작게
+                    # 타깃 있는 치기: 타깃에 대한 로스를 가장 작게
                     loss = -self.loss_fn(outputs, target_labels)
                 else:
-                    # 타깃 없는 치기: 참 이름표에 대한 잃음을 가장 크게
+                    # 타깃 없는 치기: 참 이름표에 대한 로스를 가장 크게
                     loss = self.loss_fn(outputs, labels)
 
                 # 되돌아 스텝
@@ -490,9 +490,9 @@
             ----------
             r = 1에서 num_restarts까지:
                 아무 첫자리로 x_adv^(r) = PGD(x, y)
-            잃음이 가장 큰(가장 잘 속인) x_adv을 돌려준다
+            로스가 가장 큰(가장 잘 속인) x_adv을 돌려준다
 
-            이것이 PGD의 가장 센 클래스이며 든든함을 따질 때
+            이것이 PGD의 가장 센 클래스이며 강건성을 따질 때
             즐겨 쓴다.
 
             파라메터:
@@ -515,7 +515,7 @@
             돌려주는 것:
             --------
             best_adv_images : torch.Tensor
-                다시 비롯한 것 가운데 잃음이 가장 큰 맞서는 보기
+                다시 비롯한 것 가운데 로스가 가장 큰 맞서는 보기
             """
             # 아무 첫자리가 켜져 있는지 확인한다
             original_random_init = self.random_init
@@ -533,7 +533,7 @@
                     images, labels, targeted, target_labels, verbose=False
                 )
 
-                # 이 맞서는 보기의 잃음을 셈한다
+                # 이 맞서는 보기의 로스를 셈한다
                 with torch.no_grad():
                     outputs = self.model(adv_images)
                     if targeted:
@@ -541,13 +541,13 @@
                     else:
                         loss = self.loss_fn(outputs, labels).item()
 
-                # 가장 좋은 맞서는 보기를 남긴다(잃음이 가장 큰 것)
+                # 가장 좋은 맞서는 보기를 남긴다(로스가 가장 큰 것)
                 if best_loss is None or loss > best_loss:
                     best_loss = loss
                     best_adv_images = adv_images.clone()
 
                 if verbose:
-                    print(f"잃음: {loss:.4f} (가장 좋음: {best_loss:.4f})")
+                    print(f"로스: {loss:.4f} (가장 좋음: {best_loss:.4f})")
 
             # 본디 차림을 되돌린다
             self.random_init = original_random_init
@@ -565,10 +565,10 @@
             PGD 치기를 두루 따진다.
 
             치기가 잘 먹히는지 재는 여러 자를 셈한다:
-            - 맑은 맞음
-            - 맞섬 맞음
-            - 치기 먹힘 비율
-            - 흔듦의 자(L∞, L2, L1)
+            - 맑은 정확도
+            - 적대적 정확도
+            - 치기 공격 성공률
+            - 섭동의 자(L∞, L2, L1)
 
             파라메터:
             -----------
@@ -584,25 +584,25 @@
             돌려주는 것:
             --------
             metrics : Dict[str, float]
-                따지는 자를 담은 사전
+                평가하는 자를 담은 사전
             """
             with torch.no_grad():
-                # 맑은 맞음
+                # 맑은 정확도
                 clean_outputs = self.model(clean_images.to(self.device))
                 _, clean_pred = torch.max(clean_outputs, 1)
                 clean_correct = (clean_pred == labels.to(self.device)).sum().item()
                 clean_accuracy = clean_correct / len(labels)
 
-                # 맞섬 맞음
+                # 적대적 정확도
                 adv_outputs = self.model(adv_images.to(self.device))
                 _, adv_pred = torch.max(adv_outputs, 1)
                 adv_correct = (adv_pred == labels.to(self.device)).sum().item()
                 adv_accuracy = adv_correct / len(labels)
 
-                # 치기 먹힘 비율
+                # 치기 공격 성공률
                 success_rate = 1.0 - adv_accuracy
 
-                # 흔듦의 자
+                # 섭동의 자
                 perturbation = (adv_images - clean_images).cpu()
 
                 # L∞ 노름(가장 큰 바뀜의 크기)
@@ -627,7 +627,7 @@
 
             if verbose:
                 print("=" * 60)
-                print("PGD 치기 따짐 결과")
+                print("PGD 치기 평가 결과")
                 print("=" * 60)
                 print(f"차림:")
                 print(f"  엡실론: {self.epsilon}")
@@ -635,10 +635,10 @@
                 print(f"  회귀: {self.num_iter}")
                 print(f"  노름: L{self.norm}")
                 print(f"\n결과:")
-                print(f"  맑은 맞음: {clean_accuracy:.2%}")
-                print(f"  맞섬 맞음: {adv_accuracy:.2%}")
-                print(f"  치기 먹힘 비율: {success_rate:.2%}")
-                print(f"\n흔듦의 자:")
+                print(f"  맑은 정확도: {clean_accuracy:.2%}")
+                print(f"  적대적 정확도: {adv_accuracy:.2%}")
+                print(f"  치기 공격 성공률: {success_rate:.2%}")
+                print(f"\n섭동의 자:")
                 print(f"  가장 큰 L∞: {linf_norm:.6f}")
                 print(f"  평균 L2: {l2_norm:.6f}")
                 print(f"  평균 L1: {l1_norm:.6f}")
@@ -673,7 +673,7 @@
         labels : torch.Tensor
             참 이름표
         epsilon : float, 기본값=0.03
-            흔듦 예산
+            섭동 예산
         num_iter_list : List[int], 기본값=[1, 10, 40, 100]
             해 볼 회귀 횟수의 목록
         device : torch.device, 골라 씀
@@ -716,7 +716,7 @@
         print(f"\n{'='*60}")
         print("PGD 회귀 견주기")
         print(f"{'='*60}")
-        print(f"{'회귀':<12} {'먹힘 비율':<15} {'맞섬 맞음':<15}")
+        print(f"{'회귀':<12} {'공격 성공률':<15} {'적대적 정확도':<15}")
         print(f"{'-'*60}")
         for num_iter in num_iter_list:
             success = results[num_iter]['attack_success_rate']
@@ -740,7 +740,7 @@
         print("=" * 70)
         print("PGD 치기 보여 주기")
         print("=" * 70)
-        print("\n이 글은 센 회귀 맞서는 치기인 되비춘 그래디언트 내림(PGD)")
+        print("\n이 글은 센 회귀 맞서는 치기인 투영 경사 하강법(PGD)")
         print("치기를 보여 준다.")
         print("\n붙임말: 자료 얹기와 모형 잔손질에 utils.py이 있어야 한다.")
         print("=" * 70)
@@ -754,7 +754,7 @@
 PGD 치기 보여 주기
 ======================================================================
 
-이 글은 센 회귀 맞서는 치기인 되비춘 그래디언트 내림(PGD)
+이 글은 센 회귀 맞서는 치기인 투영 경사 하강법(PGD)
 치기를 보여 준다.
 
 붙임말: 자료 얹기와 모형 잔손질에 utils.py이 있어야 한다.
@@ -765,7 +765,7 @@ PGD 치기 보여 주기
 
 로스 계산은 모델의 출력을 다듬는 목표에 이어 준다. 알맞은 로스 함수를 고르는 일이 중요한 까닭은, 그것이 모델이 무엇을 다듬도록 배울지를 정하여 배운 리프리젠테이션과 결정 경계를 곧바로 빚기 때문이다.
 
-그려 보기는 모델의 피처를 알아보고 학습의 탈을 짚어내는 데 큰 몫을 한다. 그리는 코드는 배운 리프리젠테이션, 모여 가는 피처, 따지는 자를 들여다보게 하여 어림잡기 어려운 계산을 손에 잡히게 한다.
+그려 보기는 모델의 피처를 알아보고 학습의 탈을 탐지하는 데 큰 몫을 한다. 그리는 코드는 배운 리프리젠테이션, 모여 가는 피처, 평가하는 자를 들여다보게 하여 어림잡기 어려운 계산을 손에 잡히게 한다.
 
 여기서 보인 피처는 더 얽힌 자리로도 자연스레 넓어진다. 하이퍼파라미터, 구조의 클래스, 다른 데이터 꾸러미로 해 보면 앎이 깊어지고 모델 보안 일에 손에 잡히는 느낌이 붙는다.
 
@@ -779,7 +779,7 @@ PGD 치기 보여 주기
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -791,14 +791,14 @@ PGD 치기 보여 주기
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 강건하게 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 탐지하고 고칠지 밝혀라.
 
 </div>
 

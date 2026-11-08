@@ -1,6 +1,6 @@
 # Guided Backpropagation
 
-**이끈 되짚기**는 그래디언트가 ReLU 엑티베이션 함수를 거꾸로 지나는 길을 고쳐 피처가 곱고 또렷한 Saliency Map을 내는 그림 그리기 재주다. 여느 되짚기와 달리, 이끈 되짚기는 앞으로 스텝에서 깨어 있던 뉴런을 지나는 양수 그래디언트만 퍼뜨린다.
+**Guided Backpropagation**는 그래디언트가 ReLU 엑티베이션 함수를 거꾸로 지나는 길을 고쳐 피처가 곱고 또렷한 Saliency Map을 내는 시각화 기법이다. 여느 역전파와 달리, Guided Backpropagation는 앞으로 스텝에서 깨어 있던 뉴런을 지나는 양수 그래디언트만 퍼뜨린다.
 
 슈프링엔베르크 외(2015)가 들여온 이 방법은 추론에 걸린 잔 피처를 짚어 주는, 보기 좋고 촘촘한 그림을 낸다.
 
@@ -8,9 +8,9 @@
 
 ## 1. 수학 기초
 
-### 여느 ReLU 되짚기 스텝
+### 여느 ReLU 역전파 스텝
 
-ReLU 레이어를 지나는 여느 되짚기에서는
+ReLU 레이어를 지나는 여느 역전파에서는
 
 **앞으로 스텝:**
 
@@ -18,15 +18,15 @@ $$
 y = \text{ReLU}(x) = \max(0, x)
 $$
 
-**여느 되짚기 스텝:**
+**여느 역전파 스텝:**
 
 $$
 \frac{\partial L}{\partial x} = \frac{\partial L}{\partial y} \cdot \mathbf{1}[x > 0]
 $$
 
-### 이끈 되짚기의 고침
+### Guided Backpropagation의 고침
 
-이끈 되짚기는 조건을 하나 더 건다. 양수 그래디언트만 퍼뜨리는 것이다.
+Guided Backpropagation는 조건을 하나 더 건다. 양수 그래디언트만 퍼뜨리는 것이다.
 
 $$
 \frac{\partial L}{\partial x}\bigg|_{\text{이끈}} = \frac{\partial L}{\partial y} \cdot \mathbf{1}[x > 0] \cdot \mathbf{1}\left[\frac{\partial L}{\partial y} > 0\right]
@@ -35,13 +35,13 @@ $$
 이는 다음 둘을 아우른다.
 
 1. **앞으로 마스크**: 뉴런이 깨어 있던 자리만
-2. **되짚기 마스크**: 양수 그래디언트만
+2. **역전파 마스크**: 양수 그래디언트만
 
 ---
 
 ## 2. PyTorch 구현
 
-### 이끈 되짚기를 지닌 손수 만든 ReLU
+### Guided Backpropagation를 지닌 손수 만든 ReLU
 
 ```python
 import torch
@@ -49,7 +49,7 @@ import torch.nn as nn
 from torch.autograd import Function
 
 class GuidedReLU(Function):
-    """이끈 되짚기를 지닌 ReLU."""
+    """Guided Backpropagation를 지닌 ReLU."""
 
     @staticmethod
     def forward(ctx, input):
@@ -60,11 +60,11 @@ class GuidedReLU(Function):
     def backward(ctx, grad_output):
         input, = ctx.saved_tensors
         # 앞으로 마스크: input > 0
-        # 되짚기 마스크: grad_output > 0
+        # 역전파 마스크: grad_output > 0
         return grad_output * (input > 0).float() * (grad_output > 0).float()
 
 class GuidedBackpropagation:
-    """이끈 되짚기 구현."""
+    """Guided Backpropagation 구현."""
 
     def __init__(self, model):
         self.model = model
@@ -82,7 +82,7 @@ class GuidedBackpropagation:
                 self.hooks.append(hook)
 
     def __call__(self, image_tensor, target_class, device):
-        """이끈 되짚기 두드러짐을 셈한다."""
+        """Guided Backpropagation 두드러짐을 셈한다."""
         self.model.eval()
         image_tensor = image_tensor.to(device).requires_grad_(True)
 
@@ -107,7 +107,7 @@ class GuidedBackpropagation:
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = models.resnet50(pretrained=True).to(device).eval()
 
-# 이끈 되짚기 것을 만든다
+# Guided Backpropagation 것을 만든다
 guided_bp = GuidedBackpropagation(model)
 
 # 그림을 부르고 미리 다듬는다
@@ -117,7 +117,7 @@ image_tensor = preprocess_image('dog.jpg').unsqueeze(0)
 with torch.no_grad():
     pred_class = model(image_tensor.to(device)).argmax(dim=1).item()
 
-# 이끈 되짚기를 셈한다
+# Guided Backpropagation를 셈한다
 saliency = guided_bp(image_tensor, pred_class, device)
 
 # 치운다
@@ -128,13 +128,13 @@ guided_bp.remove_hooks()
 
 ## 3. Guided Grad-CAM
 
-이끈 되짚기와 Grad-CAM을 아우르면 두 세계의 좋은 점을 함께 얻는다.
+Guided Backpropagation와 Grad-CAM을 아우르면 두 세계의 좋은 점을 함께 얻는다.
 
 - **Grad-CAM**: 성기지만 클래스를 가려내는 자리 짚기
-- **이끈 되짚기**: 피처가 곱고 촘촘한 무늬
+- **Guided Backpropagation**: 피처가 곱고 촘촘한 무늬
 
 $$
-\text{이끈 Grad-CAM} = \text{이끈 되짚기} \odot \text{키운}(\text{Grad-CAM})
+\text{이끈 Grad-CAM} = \text{Guided Backpropagation} \odot \text{키운}(\text{Grad-CAM})
 $$
 
 ```python
@@ -153,7 +153,7 @@ def compute_guided_gradcam(
         mode='bilinear'
     ).squeeze()
 
-    # 이끈 되짚기
+    # Guided Backpropagation
     guided_bp = GuidedBackpropagation(model)
     guided = guided_bp(image_tensor, target_class, device)
     guided_bp.remove_hooks()
@@ -172,7 +172,7 @@ def compute_guided_gradcam(
 |--------|------------|---------------------|----------------|
 | 맨 그래디언트 | 높음 | 낮음 | 잡음 많음 |
 | Grad-CAM | 낮음 | 높음 | 매끄럽되 성김 |
-| 이끈 되짚기 | 높음 | 낮음 | 또렷하고 촘촘함 |
+| Guided Backpropagation | 높음 | 낮음 | 또렷하고 촘촘함 |
 | Guided Grad-CAM | 높음 | 높음 | 두루 보아 가장 좋음 |
 
 ---
@@ -207,19 +207,19 @@ def compute_guided_gradcam(
 </div>
 
 ??? success "풀이"
-    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 베이스라인에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 그래디언트 방법은 온전함을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
+    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 베이스라인에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 구성에 달렸다. 그래디언트 방법은 온전함을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 구성 자체로 온전함을 채운다(길을 따라 미적분의 기본정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 피처가 참으로 모델에 중요한지를 넣기와 빼기 곡선으로 재어라.
+이 방법이 내놓는 풀이가 얼마나 믿을 만한지 평가하는 시험을 꾸며라. 짚어 준 피처가 참으로 모델에 중요한지를 넣기와 빼기 곡선으로 재어라.
 
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 그림마다 피처 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 피처를 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 베이스라인에서 시작해 몫이 큰 차례로 피처를 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(베이스라인)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 그림마다 피처 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 피처를 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 믿을 만한 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 베이스라인에서 시작해 몫이 큰 차례로 피처를 하나씩 드러내며 자신함이 오르는 모습을 적는다. 믿을 만한 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -231,11 +231,11 @@ def compute_guided_gradcam(
 </div>
 
 ??? success "풀이"
-    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 절의 풀이 방법으로 피처의 중요함을 짚을 수 있으나, 든든함(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 피처를 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
+    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 절의 풀이 방법으로 피처의 중요함을 짚을 수 있으나, 강건성(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 피처를 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
 
 ## 정리하며
 
-이끈 되짚기는 되짚는 동안 음수 그래디언트를 가려 또렷하고 촘촘한 그림을 낸다. Grad-CAM과 아우르면 Guided Grad-CAM이 되어 피처 고움과 클래스 가려냄을 함께 준다.
+Guided Backpropagation는 되짚는 동안 음수 그래디언트를 가려 또렷하고 촘촘한 그림을 낸다. Grad-CAM과 아우르면 Guided Grad-CAM이 되어 피처 고움과 클래스 가려냄을 함께 준다.
 
 **핵심 식:**
 

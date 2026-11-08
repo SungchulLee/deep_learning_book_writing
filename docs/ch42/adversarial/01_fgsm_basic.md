@@ -1,8 +1,8 @@
 # FGSM 기초
 
-62.1 배치: 빠른 그래디언트 부호 방법(FGSM) - 첫스텝. 이 배치는 가장 단순한 공격 가운데 하나인 빠른 그래디언트 부호 방법(FGSM)을 짜 놓았다
+62.1 배치: 빠른 그래디언트 부호 방법(FGSM) - 첫스텝. 이 배치는 가장 단순한 공격 가운데 하나인 빠른 그래디언트 부호 방법(FGSM)을 구현했다
 
-적대적 강건성은 안전이 걸린 자리에 뉴럴 네트워크를 내놓을 때 중요한 걱정거리다. 이 구현은 작은 섭동이 어떻게 모델을 속이는지, 방어는 어떻게 지을 수 있는지 보이며 적대적 강건성의 깨침을 드러낸다.
+적대적 강건성은 안전이 걸린 자리에 뉴럴 네트워크를 내놓을 때 중요한 문제다. 이 구현은 작은 섭동이 어떻게 모델을 속이는지, 방어는 어떻게 지을 수 있는지 보이며 적대적 강건성의 깨침을 드러낸다.
 
 ## 1. 코드
 
@@ -13,19 +13,19 @@
     62.1 배치: 빠른 그래디언트 부호 방법(FGSM) - 첫스텝
 
     이 배치는 가장 단순하고 널리 힘을 미친 맞서는 치기 방법 가운데 하나인
-    빠른 그래디언트 부호 방법(FGSM)을 짜 놓았다. FGSM은 뉴럴 네트워크가 작고 공들여
-    지은 흔듦에 무르다는 것을 보여 준다.
+    빠른 그래디언트 부호 방법(FGSM)을 구현했다. FGSM은 뉴럴 네트워크가 작고 공들여
+    지은 섭동에 취약하다는 것을 보여 준다.
 
     수학 밑그림:
     =======================
 
-    FGSM 치기는 이제의 들임 언저리에서 잃음 함수를 곧게 편 데 기댄다.
+    FGSM 치기는 이제의 들임 언저리에서 로스 함수를 곧게 편 데 기댄다.
     파라메터가 θ인 뉴럴 네트워크 f, 들임 x, 참 이름표 y이 있을 때,
-    잃음을 가장 크게 하는 흔듦 δ을 찾으려 한다:
+    로스를 가장 크게 하는 섭동 δ을 찾으려 한다:
 
         maximize L(θ, x + δ, y)  subject to ||δ||_∞ ≤ ε
 
-    FGSM은 잃음의 일차 테일러 어림을 쓴다:
+    FGSM은 로스의 일차 테일러 어림을 쓴다:
 
         L(θ, x + δ, y) ≈ L(θ, x, y) + δ^T ∇_x L(θ, x, y)
 
@@ -39,9 +39,9 @@
 
     느낌으로 알기:
     ==========
-    - 그래디언트 ∇_x L은 잃음을 키우려면 x을 어떻게 바꿀지 알려 준다
+    - 그래디언트 ∇_x L은 로스를 키우려면 x을 어떻게 바꿀지 알려 준다
     - 부호를 취하면 방향(+ 또는 -)만 남는다
-    - ε을 곱하면 차수마다 받아 주는 가장 큰 흔듦이 된다
+    - ε을 곱하면 차수마다 받아 주는 가장 큰 섭동이 된다
     - 이는 "가장 가파른 오름" 방향으로 한 스텝 밟는 치기다
 
     핵심 결:
@@ -74,33 +74,33 @@
         """
         빠른 그래디언트 부호 방법(FGSM) 치기
 
-        이 클래스는 잃음을 가장 크게 하는 방향으로 그래디언트 한 스텝을 밟아
-        맞서는 보기를 만드는 FGSM 치기를 짜 놓았다.
+        이 클래스는 로스를 가장 크게 하는 방향으로 그래디언트 한 스텝을 밟아
+        맞서는 보기를 만드는 FGSM 치기를 구현했다.
 
         수학 형태:
         -------------------------
         주어진 것:
             - 파라메터가 θ인 모형 f(x; θ)
             - 참 이름표가 y인 들임 x
-            - 잃음 함수 L(θ, x, y)
-            - 흔듦 예산 ε
+            - 로스 함수 L(θ, x, y)
+            - 섭동 예산 ε
 
         FGSM 치기는 다음을 셈한다:
             x_adv = x + ε · sign(∇_x L(θ, x, y))
 
         여기서:
-            - ∇_x L은 들임에 대한 잃음의 그래디언트
+            - ∇_x L은 들임에 대한 로스의 그래디언트
             - sign(·)은 낱낱에 +1, 0, -1을 돌려준다
-            - ε은 흔듦의 크기를 다스린다
+            - ε은 섭동의 크기를 다스린다
 
         속성:
         -----------
         model : nn.Module
             칠 뉴럴 네트워크
         epsilon : float
-            가장 큰 흔듦의 크기(L∞ 노름)
+            가장 큰 섭동의 크기(L∞ 노름)
         loss_fn : nn.Module
-            가장 크게 할 잃음 함수(기본값: CrossEntropyLoss)
+            가장 크게 할 로스 함수(기본값: CrossEntropyLoss)
         device : torch.device
             셈할 장치(CPU 또는 GPU)
         clip_min : float
@@ -124,13 +124,13 @@
             파라메터:
             -----------
             model : nn.Module
-                칠 뉴럴 네트워크. 따짐 모드여야 한다.
+                칠 뉴럴 네트워크. 평가 모드여야 한다.
             epsilon : float, 기본값=0.3
-                가장 큰 L∞ 흔듦. [0,1]으로 잣대 맞춘 그림에서
+                가장 큰 L∞ 섭동. [0,1]으로 잣대 맞춘 그림에서
                 ε=0.3이면 픽셀마다 많아야 0.3만큼 바뀐다.
                 흔한 값: 0.03(은근함), 0.1(가운데), 0.3(셈)
             loss_fn : nn.Module, 골라 씀
-                쓸 잃음 함수. None이면 CrossEntropyLoss을 쓴다.
+                쓸 로스 함수. None이면 CrossEntropyLoss을 쓴다.
             device : torch.device, 골라 씀
                 셈할 장치. None이면 모형의 장치를 쓴다.
             clip_min : float, 기본값=0.0
@@ -145,7 +145,7 @@
             self.clip_min = clip_min
             self.clip_max = clip_max
 
-            # 모형을 따짐 모드로 둔다(배치 잣대 잡기와 드롭아웃에 종요롭다)
+            # 모형을 평가 모드로 둔다(배치 잣대 잡기와 드롭아웃에 종요롭다)
             self.model.eval()
 
             # 있어야 하면 모형을 장치로 옮긴다
@@ -161,10 +161,10 @@
             """
             FGSM으로 맞서는 보기를 만든다.
 
-            이 방법은 FGSM의 핵심 알고리즘을 짜 놓았다:
-            1. 본디 들임의 잃음을 셈한다
-            2. 들임에 대한 잃음의 그래디언트를 셈한다
-            3. 흔듦을 만든다: δ = ε · sign(∇_x L)
+            이 방법은 FGSM의 핵심 알고리즘을 구현했다:
+            1. 본디 들임의 로스를 셈한다
+            2. 들임에 대한 로스의 그래디언트를 셈한다
+            3. 섭동을 만든다: δ = ε · sign(∇_x L)
             4. 맞서는 보기를 만든다: x_adv = x + δ
             5. 옳은 자리 [clip_min, clip_max]으로 잘라 낸다
 
@@ -190,11 +190,11 @@
             수학의 자세한 것:
             ---------------------
             타깃 없는 치기(targeted=False)에서는
-                잃음을 가장 크게 한다: δ = ε · sign(∇_x L(f(x), y))
+                로스를 가장 크게 한다: δ = ε · sign(∇_x L(f(x), y))
                 이는 미루어 봄을 참 이름표에서 밀어낸다
 
             타깃 있는 치기(targeted=True)에서는
-                잃음을 가장 작게 한다: δ = -ε · sign(∇_x L(f(x), y_target))
+                로스를 가장 작게 한다: δ = -ε · sign(∇_x L(f(x), y_target))
                 이는 미루어 봄을 타깃 이름표 쪽으로 끌어당긴다
             """
             # 들임을 장치로 옮긴다
@@ -212,7 +212,7 @@
             # 앞으로 스텝: 모형의 미루어 봄을 셈한다
             outputs = self.model(images_adv)
 
-            # 잃음을 셈한다
+            # 로스를 셈한다
             # 타깃 있는 치기에는 target_labels을, 없는 치기에는 참 이름표를 쓴다
             if targeted:
                 if target_labels is None:
@@ -222,7 +222,7 @@
             else:
                 loss = self.loss_fn(outputs, labels)
 
-            # 되돌아 스텝: 들임 그림에 대한 잃음의 그래디언트를 셈한다
+            # 되돌아 스텝: 들임 그림에 대한 로스의 그래디언트를 셈한다
             # 이로써 ∇_x L(θ, x, y)을 얻는다
             self.model.zero_grad()  # Clear any existing gradients
             if images_adv.grad is not None:
@@ -233,9 +233,9 @@
             # images_adv.grad의 형태는 (batch_size, channels, height, width)이다
             grad = images_adv.grad.data
 
-            # 그래디언트의 부호로 흔듦을 만든다
+            # 그래디언트의 부호로 섭동을 만든다
             # 타깃 없는 치기: δ = ε · sign(∇_x L)
-            # 타깃 있는 치기: δ = -ε · sign(∇_x L)(타깃 쪽으로 잃음을 가장 작게)
+            # 타깃 있는 치기: δ = -ε · sign(∇_x L)(타깃 쪽으로 로스를 가장 작게)
             if targeted:
                 perturbation = -self.epsilon * torch.sign(grad)
             else:
@@ -262,10 +262,10 @@
             target_success_rate: float = 0.9
         ) -> Tuple[torch.Tensor, float]:
             """
-            타깃으로 삼은 먹힘 비율을 이루는 가장 작은 ε을 찾는다.
+            타깃으로 삼은 공격 성공률을 이루는 가장 작은 ε을 찾는다.
 
-            이 방법은 엡실론 값을 여럿 뒤져 바라는 먹힘 비율에 드는
-            가장 작은 흔듦을 찾는다.
+            이 방법은 엡실론 값을 여럿 뒤져 바라는 공격 성공률에 드는
+            가장 작은 섭동을 찾는다.
 
             알고리즘:
             ----------
@@ -274,8 +274,8 @@
             3. 치기가 먹힌 비율을 셈한다
             4. target_success_rate을 이루는 첫 엡실론을 돌려준다
 
-            모형이 얼마나 든든한지 알아보는 데 쓸모 있다. 엡실론이 작을수록
-            모형이 더 무르다는 뜻이다.
+            모형이 얼마나 강건한지 알아보는 데 쓸모 있다. 엡실론이 작을수록
+            모형이 더 취약하다는 뜻이다.
 
             파라메터:
             -----------
@@ -286,14 +286,14 @@
             epsilon_values : List[float]
                 해 볼 엡실론 값의 목록(작은 것부터 줄 세워야 한다)
             target_success_rate : float, 기본값=0.9
-                바라는 치기 먹힘 비율(0에서 1)
+                바라는 치기 공격 성공률(0에서 1)
 
             돌려주는 것:
             --------
             best_adv_images : torch.Tensor
                 먹힌 것 가운데 엡실론이 가장 작은 맞서는 그림
             best_epsilon : float
-                타깃 먹힘 비율을 이루는 가장 작은 엡실론
+                타깃 공격 성공률을 이루는 가장 작은 엡실론
             """
             best_epsilon = None
             best_adv_images = None
@@ -306,20 +306,20 @@
                 # 맞서는 보기를 만든다
                 adv_images = self.generate(images, labels)
 
-                # 먹힘 비율을 따진다
+                # 공격 성공률을 따진다
                 success_rate = self.compute_success_rate(images, labels, adv_images)
 
                 # 본디 엡실론을 되돌린다
                 self.epsilon = original_epsilon
 
-                # 타깃 먹힘 비율에 들었는지 살핀다
+                # 타깃 공격 성공률에 들었는지 살핀다
                 if success_rate >= target_success_rate:
                     best_epsilon = eps
                     best_adv_images = adv_images
                     break
 
             if best_epsilon is None:
-                print(f"알림: 먹힘 비율 {target_success_rate}에 이르지 못했다")
+                print(f"알림: 공격 성공률 {target_success_rate}에 이르지 못했다")
                 print(f"가장 큰 엡실론을 쓴다: {epsilon_values[-1]}")
                 self.epsilon = epsilon_values[-1]
                 best_adv_images = self.generate(images, labels)
@@ -337,13 +337,13 @@
             """
             치기가 먹힌 비율을 셈한다.
 
-            먹힘 비율은 맞서는 보기 가운데 틀리게 갈린(타깃 없는 치기) 또는
+            공격 성공률은 맞서는 보기 가운데 틀리게 갈린(타깃 없는 치기) 또는
             타깃으로 갈린(타깃 있는 치기) 것의
             몫이다.
 
             수학의 뜻매김:
             ------------------------
-            먹힘 비율 = (1/n) * Σ I[f(x_adv) ≠ y]
+            공격 성공률 = (1/n) * Σ I[f(x_adv) ≠ y]
 
             여기서:
             - n은 보기의 수
@@ -374,7 +374,7 @@
                 # 미루어 봄 != 참 이름표이면 먹힌 것이다
                 successful_attacks = (predicted != labels.to(self.device)).sum().item()
 
-                # 먹힘 비율을 셈한다
+                # 공격 성공률을 셈한다
                 success_rate = successful_attacks / len(labels)
 
             return success_rate
@@ -390,11 +390,11 @@
             치기가 잘 먹히는지 두루 따진다.
 
             이 방법은 치기를 재는 여러 자를 셈한다:
-            1. 맑은 맞음: 본디 그림의 맞음
-            2. 맞섬 맞음: 흔든 그림의 맞음
-            3. 치기 먹힘 비율: 먹힌 치기의 몫
-            4. 평균 L∞ 흔듦: 가장 큰 바뀜의 크기
-            5. 평균 L2 흔듦: 유클리드 거리
+            1. 맑은 정확도: 본디 그림의 정확도
+            2. 적대적 정확도: 흔든 그림의 정확도
+            3. 치기 공격 성공률: 먹힌 치기의 몫
+            4. 평균 L∞ 섭동: 가장 큰 바뀜의 크기
+            5. 평균 L2 섭동: 유클리드 거리
 
             파라메터:
             -----------
@@ -425,10 +425,10 @@
                 adv_correct = (adv_pred == labels.to(self.device)).sum().item()
                 adv_accuracy = adv_correct / len(labels)
 
-                # 치기 먹힘 비율을 셈한다
+                # 치기 공격 성공률을 셈한다
                 success_rate = 1.0 - adv_accuracy
 
-                # 흔듦의 자를 셈한다
+                # 섭동의 자를 셈한다
                 perturbation = (adv_images - clean_images).cpu()
 
                 # L∞ 노름: 픽셀 모두에 걸친 가장 큰 바뀜의 크기
@@ -456,15 +456,15 @@
 
             if verbose:
                 print("=" * 60)
-                print("FGSM 치기 따짐 결과")
+                print("FGSM 치기 평가 결과")
                 print("=" * 60)
                 print(f"엡실론 (ε): {self.epsilon}")
-                print(f"맑은 맞음: {clean_accuracy:.2%}")
-                print(f"맞섬 맞음: {adv_accuracy:.2%}")
-                print(f"치기 먹힘 비율: {success_rate:.2%}")
-                print(f"평균 L∞ 흔듦: {linf_norm:.6f}")
-                print(f"평균 L2 흔듦: {l2_norm:.6f}")
-                print(f"평균 L0 흔듦: 픽셀 {l0_norm:.2f}개")
+                print(f"맑은 정확도: {clean_accuracy:.2%}")
+                print(f"적대적 정확도: {adv_accuracy:.2%}")
+                print(f"치기 공격 성공률: {success_rate:.2%}")
+                print(f"평균 L∞ 섭동: {linf_norm:.6f}")
+                print(f"평균 L2 섭동: {l2_norm:.6f}")
+                print(f"평균 L0 섭동: 픽셀 {l0_norm:.2f}개")
                 print("=" * 60)
 
             return metrics
@@ -481,12 +481,12 @@
         save_path: Optional[str] = None
     ):
         """
-        맞서는 보기와 흔듦을 그린다.
+        맞서는 보기와 섭동을 그린다.
 
         이 함수는 다음을 보이는 그림을 만든다:
         - 참 이름표를 붙인 본디 맑은 그림
         - 미루어 본 이름표를 붙인 맞서는 그림
-        - 키운 흔듦(눈에 띄게 부풀림)
+        - 키운 섭동(눈에 띄게 부풀림)
 
         이 그림은 FGSM이 그림에 무엇을 하는지 알아보는 데 도움이 된다.
 
@@ -515,10 +515,10 @@
         labels_np = labels[:num_examples].cpu().numpy()
         pred_np = predictions[:num_examples].cpu().numpy()
 
-        # 흔듦을 셈한다
+        # 섭동을 셈한다
         perturbations = adv_np - clean_np
 
-        # 3줄짜리 그림을 만든다: 맑음, 맞섬, 흔듦(키움)
+        # 3줄짜리 그림을 만든다: 원본, 적대적 샘플, 섭동(키움)
         fig, axes = plt.subplots(3, num_examples, figsize=(3*num_examples, 9))
 
         if num_examples == 1:
@@ -552,8 +552,8 @@
                                 fontsize=10, color=color)
             axes[1, i].axis('off')
 
-            # 3줄: 흔듦(눈에 띄게 10배로 키움)
-            # 더 잘 보이도록 흔듦의 잣대를 맞춘다
+            # 3줄: 섭동(눈에 띄게 10배로 키움)
+            # 더 잘 보이도록 섭동의 잣대를 맞춘다
             pert_magnified = pert_img * 10
             pert_magnified = np.clip(pert_magnified + 0.5, 0, 1)  # Center around 0.5
 
@@ -581,7 +581,7 @@
         1. 미리 익힌 모형 얹기
         2. FGSM 치기 만들기
         3. 맞서는 보기 만들기
-        4. 치기가 잘 먹히는지 따지기
+        4. 치기가 잘 먹히는지 평가
         5. 결과 그리기
         """
         print("=" * 70)
@@ -612,7 +612,7 @@ FGSM 치기 보여 주기
 
 로스 계산은 모델의 출력을 다듬는 목표에 이어 준다. 알맞은 로스 함수를 고르는 일이 중요한 까닭은, 그것이 모델이 무엇을 다듬도록 배울지를 정하여 배운 리프리젠테이션과 결정 경계를 곧바로 빚기 때문이다.
 
-그려 보기는 모델의 피처를 알아보고 학습의 탈을 짚어내는 데 큰 몫을 한다. 그리는 코드는 배운 리프리젠테이션, 모여 가는 피처, 따지는 자를 들여다보게 하여 어림잡기 어려운 계산을 손에 잡히게 한다.
+그려 보기는 모델의 피처를 알아보고 학습의 탈을 탐지하는 데 큰 몫을 한다. 그리는 코드는 배운 리프리젠테이션, 모여 가는 피처, 평가하는 자를 들여다보게 하여 어림잡기 어려운 계산을 손에 잡히게 한다.
 
 여기서 보인 피처는 더 얽힌 자리로도 자연스레 넓어진다. 하이퍼파라미터, 구조의 클래스, 다른 데이터 꾸러미로 해 보면 앎이 깊어지고 모델 보안 일에 손에 잡히는 느낌이 붙는다.
 
@@ -626,7 +626,7 @@ FGSM 치기 보여 주기
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -638,14 +638,14 @@ FGSM 치기 보여 주기
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 강건하게 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 탐지하고 고칠지 밝혀라.
 
 </div>
 

@@ -1,8 +1,8 @@
 # 07: Guided Grad-CAM
 
-07: Guided Grad-CAM - 두 세계의 좋은 것을 아우르기. 밝힘:
+07: Guided Grad-CAM - 두 세계의 좋은 것을 아우르기. 설명:
 
-뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 재주를 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
+뉴럴 네트워크가 무엇을 배우는지 아는 일은 믿음을 쌓고 모델의 버그를 잡는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 다루고 어떻게 판단하는지 드러내는 그래디언트 기반 풀이 기법을 보이며, 네트워크의 액션을 눈으로 보고 수로 재게 해 준다.
 
 ## 1. 코드
 
@@ -13,15 +13,15 @@
 
 어려움: 높음
 
-밝힘:
-이끈 Grad-CAM은 Grad-CAM(클래스를 가려내되 성김)과 이끈 되짚기(결이
+설명:
+이끈 Grad-CAM은 Grad-CAM(클래스를 가려내되 성김)과 Guided Backpropagation(결이
 고움)를 아울러 둘의 좋은 점을 함께 얻는다.
 
 형태:
-    이끈 Grad-CAM = 이끈 되짚기 ⊙ 키운 Grad-CAM
+    이끈 Grad-CAM = Guided Backpropagation ⊙ 키운 Grad-CAM
 
 나은 점:
-- 결이 곱다(이끈 되짚기에서 옴)
+- 결이 곱다(Guided Backpropagation에서 옴)
 - 클래스를 가려낸다(Grad-CAM에서 옴)
 - 그림 됨됨이가 가장 좋다
 
@@ -39,11 +39,11 @@ from PIL import Image
 
 def compute_guided_gradcam(gradcam_map, guided_backprop_map):
     """
-    Grad-CAM과 이끈 되짚기를 아우른다.
+    Grad-CAM과 Guided Backpropagation를 아우른다.
 
     Args:
         gradcam_map: 성긴 Grad-CAM 열 그림 [H, W]
-        guided_backprop_map: 결이 고운 이끈 되짚기 [H, W]
+        guided_backprop_map: 결이 고운 Guided Backpropagation [H, W]
 
     Returns:
         아우른 그림 [H, W]
@@ -80,10 +80,10 @@ def example_1_complete_pipeline():
 
     print("\n이끈 Grad-CAM이 아우르는 것:")
     print("1. Grad-CAM → 클래스를 가려내는 자리 짚기")
-    print("2. 이끈 되짚기 → 결이 고운 잔 무늬")
+    print("2. Guided Backpropagation → 결이 고운 잔 무늬")
     print("3. 원소마다의 곱 → 둘의 좋은 점을 함께!")
 
-    print("\n✓ 이끈 Grad-CAM: 가장 앞선 그림 그리기")
+    print("\n✓ 이끈 Grad-CAM: 가장 앞선 시각화")
 
 
 def main():
@@ -96,7 +96,7 @@ def main():
 
         print("\n" + "="*70)
         print("핵심:")
-        print("1. Grad-CAM + 이끈 되짚기를 아우른다")
+        print("1. Grad-CAM + Guided Backpropagation를 아우른다")
         print("2. 클래스를 가려내면서 결도 곱다")
         print("3. 두루 보아 그림 됨됨이가 가장 좋다")
         print("4. 두 조각을 모두 짜야 한다")
@@ -138,7 +138,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 든든함 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -150,14 +150,14 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 강건하게 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현이 무너질 만한 피처 둘을 밝히고, 저마다 어떻게 탐지하고 고칠지 밝혀라.
 
 </div>
 

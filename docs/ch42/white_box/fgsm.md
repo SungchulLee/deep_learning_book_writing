@@ -57,12 +57,12 @@ $$
 **그림으로 보기:**
 
 ```
-맑은 들임 x ──────────────> 잃음 L(f(x), y)
+맑은 들임 x ──────────────> 로스 L(f(x), y)
                 그래디언트
                   ∇L
                    │
                    ▼
-흔든 x + ε·sign(∇L) ───> 잃음 L(f(x_adv), y) ≫ L(f(x), y)
+흔든 x + ε·sign(∇L) ───> 로스 L(f(x_adv), y) ≫ L(f(x), y)
 ```
 
 ---
@@ -100,7 +100,7 @@ $$
 \mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \frac{\nabla_\mathbf{x} \mathcal{L}}{\|\nabla_\mathbf{x} \mathcal{L}\|_2}
 $$
 
-그래디언트를 길이 1로 맞춘 뒤 $\varepsilon$으로 잣대를 잡는다.
+그래디언트를 길이 1로 맞춘 뒤 $\varepsilon$으로 스케일을 맞춘다.
 
 ---
 
@@ -120,7 +120,7 @@ class FGSM:
     """
     빠른 그래디언트 부호 방법(FGSM) 치기.
     
-    잃음을 가장 크게 하는 방향으로 그래디언트 한 스텝을 밟아
+    로스를 가장 크게 하는 방향으로 그래디언트 한 스텝을 밟아
     맞서는 보기를 만든다.
     
     수학 형태
@@ -128,8 +128,8 @@ class FGSM:
     x_adv = x + ε · sign(∇_x L(f(x), y))
     
     여기서:
-    - ∇_x L은 들임에 대한 잃음의 그래디언트
-    - ε은 흔듦 예산
+    - ∇_x L은 들임에 대한 로스의 그래디언트
+    - ε은 섭동 예산
     - sign(·)은 낱낱의 부호를 돌려준다
     
     Parameters
@@ -137,9 +137,9 @@ class FGSM:
     model : nn.Module
         칠 뉴럴 네트워크
     epsilon : float
-        가장 큰 L∞ 흔듦(기본값: 그림에서 8/255)
+        가장 큰 L∞ 섭동(기본값: 그림에서 8/255)
     loss_fn : nn.Module, 골라 씀
-        잃음 함수(기본값: CrossEntropyLoss)
+        로스 함수(기본값: CrossEntropyLoss)
     clip_min : float
         옳은 들임의 가장 작은 값(기본값: 0.0)
     clip_max : float
@@ -172,7 +172,7 @@ class FGSM:
         self.clip_max = clip_max
         self.device = device or next(model.parameters()).device
         
-        # 모형을 따짐 모드로 둔다
+        # 모형을 평가 모드로 둔다
         self.model.eval()
         self.model.to(self.device)
     
@@ -212,7 +212,7 @@ class FGSM:
         # 앞으로 스텝
         logits = self.model(x_adv)
         
-        # 잃음을 셈한다
+        # 로스를 셈한다
         if targeted:
             if target_labels is None:
                 raise ValueError("타깃 있는 치기에는 target_labels이 있어야 한다")
@@ -228,7 +228,7 @@ class FGSM:
         # 들임에 대한 그래디언트를 얻는다
         grad = x_adv.grad.data
         
-        # 흔듦을 셈한다
+        # 섭동을 셈한다
         if targeted:
             # 타깃 있는 치기에서는 내려간다
             perturbation = -self.epsilon * torch.sign(grad)
@@ -236,7 +236,7 @@ class FGSM:
             # 타깃 없는 치기에서는 올라간다
             perturbation = self.epsilon * torch.sign(grad)
         
-        # 흔듦을 걸고 잘라 낸다
+        # 섭동을 걸고 잘라 낸다
         x_adv = x + perturbation
         x_adv = torch.clamp(x_adv, self.clip_min, self.clip_max)
         
@@ -317,7 +317,7 @@ class FGSM:
         Returns
         -------
         metrics : dict
-            따지는 자
+            평가하는 자
         """
         with torch.no_grad():
             # 맑은 미루어 봄
@@ -330,7 +330,7 @@ class FGSM:
             adv_pred = adv_logits.argmax(dim=1)
             adv_correct = (adv_pred == y.to(self.device)).sum().item()
             
-            # 흔듦의 자
+            # 섭동의 자
             delta = (x_adv - x).view(len(x), -1)
             linf_norm = delta.abs().max(dim=1)[0].mean().item()
             l2_norm = torch.norm(delta, p=2, dim=1).mean().item()
@@ -349,11 +349,11 @@ class FGSM:
             print("FGSM 치기 결과")
             print("=" * 50)
             print(f"엡실론: {self.epsilon:.4f}")
-            print(f"맑은 맞음: {metrics['clean_accuracy']:.2%}")
-            print(f"든든한 맞음: {metrics['robust_accuracy']:.2%}")
+            print(f"맑은 정확도: {metrics['clean_accuracy']:.2%}")
+            print(f"강건한 정확도: {metrics['robust_accuracy']:.2%}")
             print(f"치기가 먹힌 비율: {metrics['attack_success_rate']:.2%}")
-            print(f"평균 L∞ 흔듦: {linf_norm:.6f}")
-            print(f"평균 L2 흔듦: {l2_norm:.4f}")
+            print(f"평균 L∞ 섭동: {linf_norm:.6f}")
+            print(f"평균 L2 섭동: {l2_norm:.4f}")
             print("=" * 50)
         
         return metrics
@@ -368,7 +368,7 @@ class FGSM:
         figsize: Tuple[int, int] = (15, 9)
     ) -> plt.Figure:
         """
-        맑은 그림, 맞서는 그림, 흔듦을 그린다.
+        맑은 그림, 맞서는 그림, 섭동을 그린다.
         
         Parameters
         ----------
@@ -423,21 +423,21 @@ class FGSM:
             axes[0, i].imshow(np.clip(clean_img, 0, 1), cmap=cmap)
             true_label = class_names[y_np[i]] if class_names else y_np[i]
             pred_label = class_names[clean_pred_np[i]] if class_names else clean_pred_np[i]
-            axes[0, i].set_title(f'맑음\n참: {true_label}', fontsize=9)
+            axes[0, i].set_title(f'원본\n참: {true_label}', fontsize=9)
             axes[0, i].axis('off')
             
             # 2줄: 맞서는 그림
             axes[1, i].imshow(np.clip(adv_img, 0, 1), cmap=cmap)
             pred_label = class_names[adv_pred_np[i]] if class_names else adv_pred_np[i]
             color = 'red' if adv_pred_np[i] != y_np[i] else 'green'
-            axes[1, i].set_title(f'맞섬\n미루어 봄: {pred_label}', 
+            axes[1, i].set_title(f'적대적\n미루어 봄: {pred_label}', 
                                 fontsize=9, color=color)
             axes[1, i].axis('off')
             
-            # 3줄: 흔듦(키워서)
+            # 3줄: 섭동(키워서)
             pert_magnified = pert_img * 10 + 0.5
             axes[2, i].imshow(np.clip(pert_magnified, 0, 1), cmap='RdBu_r')
-            axes[2, i].set_title('흔듦\n(10배 키움)', fontsize=9)
+            axes[2, i].set_title('섭동\n(10배 키움)', fontsize=9)
             axes[2, i].axis('off')
         
         plt.suptitle(f'FGSM 치기 (ε = {self.epsilon:.4f})', fontsize=12)
@@ -533,7 +533,7 @@ def epsilon_sensitivity_study(
 **센 데:**
 
 - 아주 빠르다(그래디언트 계산 한 번)
-- 강건성을 따지는 쓸 만한 베이스라인이다
+- 강건성을 평가하는 쓸 만한 베이스라인이다
 - 짜기도 알기도 쉽다
 - 방어 없는 모델에는 거의 다 먹힌다
 
@@ -550,7 +550,7 @@ def epsilon_sensitivity_study(
 
 ```python
 def compare_fgsm_to_random(model, x, y, epsilon):
-    """FGSM과 아무 흔듦을 견준다."""
+    """FGSM과 아무 섭동을 견준다."""
     device = next(model.parameters()).device
     
     # FGSM
@@ -611,7 +611,7 @@ $$
 
 ### 밀어 나감을 곁들인 FGSM
 
-그래디언트의 자취를 쌓는다(PGD 마디에서 다룰 MI-FGSM으로 이어진다).
+그래디언트의 이력을 쌓는다(PGD 마디에서 다룰 MI-FGSM으로 이어진다).
 
 $$
 \mathbf{g}_t = \mu \cdot \mathbf{g}_{t-1} + \frac{\nabla_\mathbf{x} \mathcal{L}}{\|\nabla_\mathbf{x} \mathcal{L}\|_1}
@@ -647,7 +647,7 @@ FGSM 적대적 샘플로 익히면 기초 강건성을 얻는다. 다만 PGD에 
 </div>
 
 ??? success "풀이"
-    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차원이 높은 모델이 무른 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
+    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차원이 높은 모델이 취약한 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
@@ -659,31 +659,31 @@ FGSM 적대적 샘플로 익히면 기초 강건성을 얻는다. 다만 PGD에 
 </div>
 
 ??? success "풀이"
-    여느 ResNet-18은 클린 정확도가 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 스텝 크기 $2/255$) 아래의 강건 정확도는 $\sim$0%이다. 이 절의 방법을 걸면 피처와는 재주에 따라 다르다. 적대적 학습은 클린 정확도 $\sim$83%에 강건 정확도 $\sim$50%이고, 인증 가능한 방어는 더 낮지만 증명할 수 있는 테두리를 준다. 정확도와 강건성의 트레이드오프는 기초부터 있는 것이라, 강건성을 높이면 클린 정확도가 흔히 5~15% 든다. 아무렇게나 하는 시드 3개의 평균과 표준편차로 알려라. $\square$
+    여느 ResNet-18은 클린 정확도가 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 스텝 크기 $2/255$) 아래의 강건 정확도는 $\sim$0%이다. 이 절의 방법을 걸면 피처와는 기법에 따라 다르다. 적대적 학습은 클린 정확도 $\sim$83%에 강건 정확도 $\sim$50%이고, 인증 가능한 방어는 더 낮지만 증명할 수 있는 테두리를 준다. 정확도와 강건성의 트레이드오프는 기초부터 있는 것이라, 강건성을 높이면 클린 정확도가 흔히 5~15% 든다. 아무렇게나 하는 시드 3개의 평균과 표준편차로 알려라. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-섭동 공 안에서 클래스별 데이터의 밑자리가 서로 겹친다고 볼 때, 모델이 담는 힘을 키우지 않고서는 어떤 방어도 맑은 데이터의 높은 정확도와 $\ell_\infty$ 섭동에 대한 높은 강건성을 함께 이룰 수 없음을 증명하여라.
+섭동 공 안에서 클래스별 데이터의 밑자리가 서로 겹친다고 볼 때, 모델이 용량을 키우지 않고서는 어떤 방어도 맑은 데이터의 높은 정확도와 $\ell_\infty$ 섭동에 대한 높은 강건성을 함께 이룰 수 없음을 증명하여라.
 
 </div>
 
 ??? success "풀이"
-    두 클래스의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 기초 트레이드오프다. 겹치는 밑자리의 몫이 피할 수 없는 정확도 로스를 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 정확도 떨어짐을 밝혀 준다. 모델이 담는 힘을 키우면(더 너른 네트워크) 얽힌 강건한 결정 경계를 더 잘 그려 트레이드오프를 얼마쯤 눅일 수 있다. $\square$
+    두 클래스의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 기초 트레이드오프다. 겹치는 밑자리의 몫이 피할 수 없는 정확도 로스를 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 정확도 떨어짐을 밝혀 준다. 모델이 용량을 키우면(더 너른 네트워크) 얽힌 강건한 결정 경계를 더 잘 그려 트레이드오프를 얼마쯤 완화할 수 있다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-금융 머신러닝 구조(속임수 탐지나 거래 신호 만들기 따위)에서 맞섬의 강건성이 어떻게 드러나는지 다루어라. 위협 모델이 보기 다룸과 어떻게 다른가?
+금융 머신러닝 구조(속임수 탐지나 거래 신호 만들기 따위)에서 적대적 강건성이 어떻게 드러나는지 다루어라. 위협 모델이 비전과 어떻게 다른가?
 
 </div>
 
 ??? success "풀이"
-    금융에서 겨루는 이는 알아내는 구조에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 핵심은 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 공격이 잇따르며 맞추어 간다(겨루는 이가 구조의 되받음을 보고 손본다). (3) 헛 정확도와 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 섭동 모델이 있어야 한다. 방어는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 탐지 기초의 길은 많이 걸러진다. $\square$
+    금융에서 적대자는 탐지하는 구조에 맞추어 스스로 움직이는 꾀 많은 무리(사기꾼, 저자 흔드는 이)다. 비전과 다른 핵심은 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 제약된다(사기꾼이 제 거래 이력을 통째로 바꿀 수는 없다). (2) 공격이 잇따르며 맞추어 간다(적대자가 구조의 되받음을 보고 손본다). (3) 헛 정확도와 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 섭동 모델이 있어야 한다. 방어는 맞추어 오는 적대자에게도 강건해야 하므로, 탐지하는 잣대가 알려지면 비껴갈 수 있는 탐지 기반의 길은 많이 걸러진다. $\square$
 
 ## 정리하며
 
@@ -695,7 +695,7 @@ FGSM 적대적 샘플로 익히면 기초 강건성을 얻는다. 다만 PGD에 
 | **여느 $\varepsilon$** | CIFAR-10에서 $8/255$ |
 | **핵심 한계** | 한 스텝이라 쉽게 막힌다 |
 
-FGSM은 적대적 공격을 알아보는 깨침의 기초를 준다. PGD과 C&W 같은 더 센 공격이 있지만, FGSM은 잘 드는 따짐과 적대적 학습에 여전히 값지다.
+FGSM은 적대적 공격을 알아보는 깨침의 기초를 준다. PGD과 C&W 같은 더 센 공격이 있지만, FGSM은 잘 드는 평가와 적대적 학습에 여전히 값지다.
 
 **살펴볼 거리**
 
