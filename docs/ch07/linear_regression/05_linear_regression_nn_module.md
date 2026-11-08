@@ -597,10 +597,10 @@
         loss = nn.MSELoss()(model(X), y)
         optimizer.zero_grad(); loss.backward(); optimizer.step()
     
-    torch.save(model.state_dict(), '/tmp/model.pth')
+    torch.save(model.state_dict(), 'model.pth')
     
     model2 = nn.Linear(1, 1)
-    model2.load_state_dict(torch.load('/tmp/model.pth'))
+    model2.load_state_dict(torch.load('model.pth'))
     model2.eval()
     
     with torch.no_grad():

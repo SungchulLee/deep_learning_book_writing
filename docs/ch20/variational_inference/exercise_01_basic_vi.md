@@ -281,7 +281,7 @@
     plt.grid(True, alpha=0.3)
 
     plt.tight_layout()
-    plt.savefig('/tmp/variational_inference/exercises/exercise_03_data.png', 
+    plt.savefig('exercise_03_data.png', 
                 dpi=300, bbox_inches='tight')
     plt.close()
 

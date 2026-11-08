@@ -115,7 +115,7 @@ def demo_mnist():
     ])
     
     dataset = torchvision.datasets.MNIST(
-        root='/tmp/mnist', train=True, download=True, transform=transform
+        root='./data', train=True, download=True, transform=transform
     )
     
     # 빠른 보여 주기를 위해 일부만 쓴다
