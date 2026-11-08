@@ -351,35 +351,42 @@ nav:
         - 엑티베이션 함수를 쓰는 회귀: ch08/activations/07_regression_with_activations.md
         - 엑티베이션 함수 비교: ch08/activations/09_activation_comparison.md
       - 9.2 순방향 뉴럴 네트워크:
-        - 다층 퍼셉트론의 구조: ch08/feedforward/mlp_architecture.md
-        - 보편 근사: ch08/feedforward/universal_approximation.md
-        - 깊이와 너비: ch08/feedforward/depth_vs_width.md
-        - 순전파: ch08/feedforward/forward_pass.md
-        - 역전파: ch08/feedforward/backpropagation.md
-        - 그래디언트 흐름: ch08/feedforward/gradient_flow.md
-        - NumPy로 만드는 선형 회귀: ch08/feedforward/01_linear_regression_numpy.md
-        - PyTorch로 만드는 선형 회귀: ch08/feedforward/02_linear_regression_pytorch.md
-        - 직접 계산하는 간단한 뉴럴 네트워크: ch08/feedforward/03_simple_nn_manual.md
-        - Autograd 소개: ch08/feedforward/04_autograd_introduction.md
-        - 간단한 퍼셉트론: ch08/feedforward/05_simple_perceptron.md
-        - 2레이어 뉴럴 네트워크: ch08/feedforward/06_two_layer_network.md
-        - nn 모듈과 옵티마이저: ch08/feedforward/07_nn_module_and_optimizers.md
-        - MNIST 분류 상세: ch08/feedforward/09_mnist_classification_detailed.md
-        - Sequential 쓰기: ch08/feedforward/10_using_sequential.md
-        - 사용자 정의 모듈: ch08/feedforward/11_custom_module.md
-        - 엑티베이션 함수: ch08/feedforward/12_activation_functions.md
-        - 로스 함수: ch08/feedforward/13_loss_functions.md
-        - 드롭아웃 정칙화: ch08/feedforward/14_dropout_regularization.md
-        - 정칙화 기법 상세: ch08/feedforward/15_regularization_techniques_detailed.md
-        - 배치 정규화: ch08/feedforward/16_batch_normalization.md
-        - 배치 정규화 상세: ch08/feedforward/17_batch_normalization_detailed.md
-        - 러닝레이트 스케줄링: ch08/feedforward/18_learning_rate_scheduling.md
-        - 웨이트 초기화: ch08/feedforward/19_weight_initialization.md
-        - CIFAR-10 분류기: ch08/feedforward/20_cifar10_classifier.md
-        - 회귀 과제: ch08/feedforward/21_regression_task.md
-        - 다중 출력 뉴럴 네트워크: ch08/feedforward/22_multi_output_network.md
-        - 깊은 뉴럴 네트워크: ch08/feedforward/23_deep_network.md
-        - 캡슐넷: ch08/feedforward/49_capsule_net.md
+        - 구조와 그 성질:
+          - 다층 퍼셉트론의 구조: ch08/feedforward/mlp_architecture.md
+          - 순전파: ch08/feedforward/forward_pass.md
+          - 역전파: ch08/feedforward/backpropagation.md
+          - 그래디언트 흐름: ch08/feedforward/gradient_flow.md
+          - 보편 근사: ch08/feedforward/universal_approximation.md
+          - 깊이와 너비: ch08/feedforward/depth_vs_width.md
+        - 바닥부터 올라가기:
+          - NumPy로 만드는 선형 회귀: ch08/feedforward/01_linear_regression_numpy.md
+          - PyTorch로 만드는 선형 회귀: ch08/feedforward/02_linear_regression_pytorch.md
+          - 직접 계산하는 간단한 뉴럴 네트워크: ch08/feedforward/03_simple_nn_manual.md
+          - Autograd 소개: ch08/feedforward/04_autograd_introduction.md
+          - 간단한 퍼셉트론: ch08/feedforward/05_simple_perceptron.md
+          - 2레이어 뉴럴 네트워크: ch08/feedforward/06_two_layer_network.md
+        - nn 모듈로 짓기:
+          - nn 모듈과 옵티마이저: ch08/feedforward/07_nn_module_and_optimizers.md
+          - Sequential 쓰기: ch08/feedforward/10_using_sequential.md
+          - 사용자 정의 모듈: ch08/feedforward/11_custom_module.md
+        - 부품 고르기:
+          - 엑티베이션 함수: ch08/feedforward/12_activation_functions.md
+          - 로스 함수: ch08/feedforward/13_loss_functions.md
+        - 학습을 다듬기:
+          - 웨이트 초기화: ch08/feedforward/19_weight_initialization.md
+          - 배치 정규화: ch08/feedforward/16_batch_normalization.md
+          - 배치 정규화 상세: ch08/feedforward/17_batch_normalization_detailed.md
+          - 드롭아웃 정칙화: ch08/feedforward/14_dropout_regularization.md
+          - 정칙화 기법 상세: ch08/feedforward/15_regularization_techniques_detailed.md
+          - 러닝레이트 스케줄링: ch08/feedforward/18_learning_rate_scheduling.md
+        - 과제에 올리기:
+          - MNIST 분류 상세: ch08/feedforward/09_mnist_classification_detailed.md
+          - CIFAR-10 분류기: ch08/feedforward/20_cifar10_classifier.md
+          - 회귀 과제: ch08/feedforward/21_regression_task.md
+          - 다중 출력 뉴럴 네트워크: ch08/feedforward/22_multi_output_network.md
+          - 깊은 뉴럴 네트워크: ch08/feedforward/23_deep_network.md
+        - 곁가지:
+          - 캡슐넷: ch08/feedforward/49_capsule_net.md
       - 9.3 웨이트 초기화:
         - 웨이트 초기화: ch08/weight_initialization/weight_initialization.md
         - He 초기화: ch08/weight_initialization/he_init.md
@@ -390,22 +397,27 @@ nav:
         - 레이어 정규화: ch08/normalization/layer_normalization.md
         - 정규화 비교: ch08/normalization/normalization_comparison.md
       - 9.5 정칙화:
-        - 정칙화 개요: ch08/regularization/regularization_overview.md
-        - L1 정칙화: ch08/regularization/l1_regularization.md
-        - L2 정칙화: ch08/regularization/l2_regularization.md
-        - 엘라스틱 넷: ch08/regularization/elastic_net.md
-        - 드롭아웃: ch08/regularization/dropout.md
-        - 드롭커넥트: ch08/regularization/dropconnect.md
-        - 데이터 어그멘테이션: ch08/regularization/data_augmentation.md
-        - 레이블 평활화: ch08/regularization/label_smoothing.md
-        - 믹스업: ch08/regularization/mixup.md
-        - 컷믹스: ch08/regularization/cutmix.md
-        - 컷아웃: ch08/regularization/cutout.md
-        - 조기 종료: ch08/regularization/early_stopping.md
-        - 잡음 주입: ch08/regularization/noise_injection.md
-        - 드롭아웃 예제: ch08/regularization/dropout_example.md
-        - 조기 종료 예제: ch08/regularization/early_stopping_example.md
-        - L1/L2 정칙화: ch08/regularization/l1_l2_regularization.md
+        - 무엇이며 언제 쓰나:
+          - 정칙화 개요: ch08/regularization/regularization_overview.md
+        - 패널티를 더하기:
+          - L1 정칙화: ch08/regularization/l1_regularization.md
+          - L2 정칙화: ch08/regularization/l2_regularization.md
+          - 엘라스틱 넷: ch08/regularization/elastic_net.md
+          - L1/L2 정칙화: ch08/regularization/l1_l2_regularization.md
+        - 뉴런과 연결을 끄기:
+          - 드롭아웃: ch08/regularization/dropout.md
+          - 드롭커넥트: ch08/regularization/dropconnect.md
+          - 드롭아웃 예제: ch08/regularization/dropout_example.md
+        - 데이터를 늘리고 섞기:
+          - 데이터 어그멘테이션: ch08/regularization/data_augmentation.md
+          - 믹스업: ch08/regularization/mixup.md
+          - 컷믹스: ch08/regularization/cutmix.md
+          - 컷아웃: ch08/regularization/cutout.md
+          - 레이블 평활화: ch08/regularization/label_smoothing.md
+        - 학습을 멈추거나 흔들기:
+          - 조기 종료: ch08/regularization/early_stopping.md
+          - 조기 종료 예제: ch08/regularization/early_stopping_example.md
+          - 잡음 주입: ch08/regularization/noise_injection.md
     - 10 학습 파이프라인:
       - 장 개요: ch09/index.md
       - "10.1 기초":
