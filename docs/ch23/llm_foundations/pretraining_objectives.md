@@ -16,6 +16,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+# 쪽 전체가 한 프로그램이다. 모듈 수준에서 한 번 박아 두어야
+# 아래 수를 다시 얻을 수 있다.
+torch.manual_seed(42)
+
 def create_causal_mask(seq_len: int) -> torch.Tensor:
     """
     인과 주의 가림을 만든다.
@@ -104,6 +108,7 @@ BERT 방식은 일반적으로 적격 토큰의 약 15%를 목표로 선택하�
 import torch
 import random
 from typing import Tuple
+random.seed(42)
 
 def bert_masking(
     tokens: list,
@@ -204,6 +209,7 @@ BART의 text infilling은 같은 MASK로 손상하고 원문 전체를 복원하
 ```python
 import numpy as np
 from typing import List, Tuple
+np.random.seed(42)
 
 def span_corruption(
     tokens: List[int],
@@ -302,8 +308,8 @@ if __name__ == "__main__":
 
 ```
 Original: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-Corrupted: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 100, 16, 17, 18, 19]
-Target: [100, 13, 14, 15, 101]
+Corrupted: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 100, 16, 17, 18, 19]
+Target: [100, 14, 15, 101]
 ```
 
 기존 출력은 특정 표본이며 코드가 난수 시드를 고정하지 않으므로 항상 같은 구간이 선택된다는 뜻은 아니다. 이 편집에서는 다시 실행하지 않았다.

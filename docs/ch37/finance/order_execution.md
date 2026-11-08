@@ -19,6 +19,11 @@ import numpy as np
 from collections import deque
 from typing import Dict, Tuple, List
 import random
+np.random.seed(42)
+
+# 쪽 전체가 한 프로그램이다. 모듈 수준에서 한 번 박아 두어야
+# 아래 수를 다시 얻을 수 있다.
+torch.manual_seed(42)
 
 # ========================================================================
 # 메인
@@ -284,7 +289,7 @@ Problem: Liquidate 10000 shares over 20 periods
 State dim: 5, Actions: 11
 
 --- TWAP Baseline (10 trials) ---
-  TWAP reward: -1114.21 ± 472.44
+  TWAP reward: -1026.02 ± 334.01
 
 --- DQN Training ---
   Episode 100: avg100=-582.75
@@ -295,8 +300,8 @@ State dim: 5, Actions: 11
 
 --- DQN Evaluation (50 trials) ---
   DQN reward: -1065.51 ± 268.03
-  TWAP reward: -1114.21 ± 472.44
-  Improvement over TWAP: +48.70
+  TWAP reward: -1026.02 ± 334.01
+  Improvement over TWAP: -39.49
 
 Order execution demo complete!
 ```

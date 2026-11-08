@@ -20,6 +20,10 @@ WeightedRandomSampler로 클래스 빈도의 역수에 비례하는 표본 웨�
 import torch
 from torch.utils.data import DataLoader, TensorDataset, WeightedRandomSampler
 
+# 쪽 전체가 한 프로그램이다. 모듈 수준에서 한 번 박아 두어야
+# 아래 수를 다시 얻을 수 있다.
+torch.manual_seed(42)
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -79,17 +83,17 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-Batch 1: Cats=54, Dogs=46
-Batch 2: Cats=51, Dogs=49
-Batch 3: Cats=42, Dogs=58
-Batch 4: Cats=51, Dogs=49
-Batch 5: Cats=44, Dogs=56
-Batch 6: Cats=52, Dogs=48
+Batch 1: Cats=49, Dogs=51
+Batch 2: Cats=50, Dogs=50
+Batch 3: Cats=40, Dogs=60
+Batch 4: Cats=50, Dogs=50
+Batch 5: Cats=47, Dogs=53
+Batch 6: Cats=49, Dogs=51
 Batch 7: Cats=49, Dogs=51
-Batch 8: Cats=50, Dogs=50
-Batch 9: Cats=56, Dogs=44
-Batch 10: Cats=49, Dogs=51
-Batch 11: Cats=43, Dogs=57
+Batch 8: Cats=45, Dogs=55
+Batch 9: Cats=49, Dogs=51
+Batch 10: Cats=55, Dogs=45
+Batch 11: Cats=53, Dogs=47
 ```
 
 ## 2. 논의

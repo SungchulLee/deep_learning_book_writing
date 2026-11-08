@@ -15,6 +15,11 @@
 import torch
 import numpy as np
 from typing import Optional
+np.random.seed(42)
+
+# 쪽 전체가 한 프로그램이다. 모듈 수준에서 한 번 박아 두어야
+# 아래 수를 다시 얻을 수 있다.
+torch.manual_seed(42)
 
 # ========================================================================
 # 메인
@@ -231,7 +236,7 @@ Reward Normalization:
 
 ----------------------------------------
 Advantage Normalization:
-  Raw:  mean=2.378, std=4.814
+  Raw:  mean=3.090, std=5.413
   Norm: mean=0.000000, std=1.000
 ```
 

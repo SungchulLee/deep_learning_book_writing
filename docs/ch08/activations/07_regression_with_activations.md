@@ -10,6 +10,10 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 
+# 쪽 전체가 한 프로그램이다. 모듈 수준에서 한 번 박아 두어야
+# 아래 수를 다시 얻을 수 있다.
+np.random.seed(42)
+
 torch.manual_seed(42)
 
 class RegressionNetwork(nn.Module):
@@ -70,7 +74,7 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-Final Loss: 0.070942
+Final Loss: 0.077150
 ```
 
 ## 2. 논의

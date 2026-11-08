@@ -27,6 +27,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
+np.random.seed(42)
+
+# 쪽 전체가 한 프로그램이다. 모듈 수준에서 한 번 박아 두어야
+# 아래 수를 다시 얻을 수 있다.
+torch.manual_seed(42)
 
 # ========================================================================
 # 메인
@@ -169,11 +174,11 @@ X_train shape: torch.Size([7000, 1, 50])  Y_train shape: torch.Size([7000, 1, 50
 Model parameters: 6,010
 Device: cpu
 
-Epoch   1  train_loss=0.1601  val_loss=0.1527
-Epoch   5  train_loss=0.0189  val_loss=0.0188
-Epoch  10  train_loss=0.0177  val_loss=0.0177
-Epoch  15  train_loss=0.0172  val_loss=0.0175
-Epoch  20  train_loss=0.0171  val_loss=0.0171
+Epoch   1  train_loss=0.1639  val_loss=0.1530
+Epoch   5  train_loss=0.0187  val_loss=0.0188
+Epoch  10  train_loss=0.0179  val_loss=0.0181
+Epoch  15  train_loss=0.0174  val_loss=0.0174
+Epoch  20  train_loss=0.0171  val_loss=0.0176
 Done.
 ```
 

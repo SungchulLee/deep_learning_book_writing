@@ -383,7 +383,9 @@
 
     logger.save()
     print(f"\nTraining completed!")
-    print(f"  Logs saved to: {logger.log_file}")
+    # 파일 이름에 시각이 들어간다. 그 값을 그대로 찍으면 이 쪽에 실린 출력을
+    # 아무도 다시 얻을 수 없으므로, 자리와 이름 꼴만 보인다.
+    print(f"  Logs saved to: {logger.log_dir}/training_<timestamp>.json")
 
     # 가장 좋은 모델을 불러온다
     best_checkpoint = torch.load(os.path.join(config.checkpoint_dir, 'best_model.pth'))
@@ -642,7 +644,7 @@
     Early stopping triggered at epoch 38
 
     Training completed!
-      Logs saved to: logs/training_20260927_232533.json
+      Logs saved to: logs/training_<timestamp>.json
       Best model loaded (val_loss=0.405490)
 
     ======================================================================
@@ -703,8 +705,6 @@
     이제 PyTorch 기계 학습 과제의 든든한 바탕을 갖췄다!
 
     ```
-
-
 ## 2. 논의
 
 재현성을 높이려면 Python·NumPy·PyTorch 등 사용한 난수원의 시드와 데이터 분할을 기록한다. GPU의 결정론 설정은 관련 연산에 적용되며, 시드를 맞춰도 하드웨어나 라이브러리 버전이 다른 실행의 완전한 일치가 보장되지는 않는다. 설정 객체에는 하이퍼파라미터와 전처리 방식, 체크포인트 경로를 함께 기록한다.

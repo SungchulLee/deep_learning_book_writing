@@ -59,6 +59,10 @@ $$
 import torch
 import torch.nn as nn
 
+# 쪽 전체가 한 프로그램이다. 모듈 수준에서 한 번 박아 두어야
+# 아래 수를 다시 얻을 수 있다.
+torch.manual_seed(42)
+
 # === 모델과 옵티마이저 준비 ===
 
 if __name__ == "__main__":
@@ -81,7 +85,7 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-Final loss: 1.2525
+Final loss: 0.8780
 ```
 
 !!! warning "PyTorch에서의 러닝레이트"

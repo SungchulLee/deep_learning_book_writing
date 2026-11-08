@@ -80,6 +80,10 @@ import torch.nn.functional as F
 import math
 from typing import Optional, Tuple
 
+# 쪽 전체가 한 프로그램이다. 모듈 수준에서 한 번 박아 두어야
+# 아래 수를 다시 얻을 수 있다.
+torch.manual_seed(42)
+
 def flash_attention_forward_reference(
     Q: torch.Tensor,
     K: torch.Tensor,
