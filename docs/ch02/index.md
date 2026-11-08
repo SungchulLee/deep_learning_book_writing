@@ -112,13 +112,36 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 
 ### 2.6 로지스틱 회귀
 
-로지스틱 회귀는 선형 점수를 시그모이드로 변환해 이진 클래스의 확률을 모델링한다. 확률 추정과 임곗값에 따른 분류 결정을 구분한다.
+로지스틱 회귀는 선형 점수를 시그모이드로 바꾸어 이진 클래스의 확률을 모델링한다. **확률을 추정하는 일**과 **임곗값을 걸어 분류를 결정하는 일**은 다른 일이고, 이 절은 그 둘을 갈라 둔다.
 
-- [시그모이드](../ch07/logistic_regression/sigmoid.md): 로짓, 오즈와 확률
-- [이진 분류](../ch07/logistic_regression/binary_classification.md): 베르누이 우도와 BCE
-- [결정 경계](../ch07/logistic_regression/decision_boundary.md): 파라미터와 경계의 기하
-- [경사 계산](../ch07/logistic_regression/gradient.md): 미분, 곡률과 최적화
-- [정규화](../ch07/logistic_regression/regularized.md): L1·L2 패널티와 일반화
+**모델과 그 성질**
+
+- [이진 분류](../ch07/logistic_regression/binary_classification.md) — 베르누이 우도와 BCE. GLM 의 연결 함수에서 유도한다
+- [시그모이드 함수](../ch07/logistic_regression/sigmoid.md) — 로짓·오즈·확률, 그리고 포화와 수치 안정성
+- [결정 경계](../ch07/logistic_regression/decision_boundary.md) — 경계의 기하와 로스가 재는 확신은 다르다
+- [경사 계산](../ch07/logistic_regression/gradient.md) — 경사와 헤세 행렬, 볼록성이 보장하는 것과 **보장하지 않는 것**
+- [정칙화된 로지스틱 회귀](../ch07/logistic_regression/regularized.md) — L1·L2 패널티, 그리고 가우스·라플라스 사전분포로 읽는 길
+
+**차례로 지어 보기** (로스를 바로잡아 가는 순서다)
+
+1. [소개](../ch07/logistic_regression/01_introduction.md) — 텐서와 autograd 복습. 예제가 분류기가 아니라 **이차 함수**이니 1.6절을 읽었다면 건너뛰어도 된다
+2. [간단한 이진 분류](../ch07/logistic_regression/02_simple_binary_classification.md) — `Linear` + 시그모이드 + BCE 를 합성 자료에
+3. [BCE를 쓰는 경사 하강법](../ch07/logistic_regression/04_gradient_descent_with_bce.md) — **확률**에 BCE 를 건다
+4. [BCEWithLogitsLoss를 쓰는 경사 하강법](../ch07/logistic_regression/05_gradient_descent_with_bcewithlogitsloss.md) — 시그모이드를 모델에서 떼고 **로짓**을 바로 넘긴다. 앞 쪽과 견줄 자리다
+5. [경사 하강법 심화](../ch07/logistic_regression/06_gradient_descent_advanced.md) — 러닝레이트와 반복 횟수를 돌려 본다
+6. [다중 클래스 분류](../ch07/logistic_regression/02_multiclass_classification.md) — 둘에서 여럿으로. 본격적인 것은 2.7절이다
+
+**데이터 적재와 체크포인트**
+
+- [사용자 정의 데이터셋](../ch07/logistic_regression/01_custom_dataset.md) — CSV·파일·텐서에서 읽는 `Dataset` 셋을 견준다
+- [DataLoader로 배치 처리하기](../ch07/logistic_regression/02_dataloader_batching.md) — 배치마다의 경사와 자료 전체의 지표를 가른다
+- [모델 체크포인트](../ch07/logistic_regression/03_model_checkpointing.md) — 추론만 할 때와 학습을 이어갈 때 저장할 것이 다르다
+
+**실제 자료로**
+
+- [scikit-learn 데이터로 실습하기](../ch07/logistic_regression/03_with_sklearn_data.md) — 유방암 자료. 정답 인코딩을 먼저 보아야 지표가 뜻을 갖는다
+- [IMDB 텍스트 분류](../ch07/logistic_regression/08_imdb_text_classification.md) — 리뷰 25,000편의 단어 빈도로 학습하고 **계수를 읽는다**
+- [scikit-learn과의 비교](../ch07/logistic_regression/07_sklearn_comparison.md) — 유전자 발현으로 여러 약물 반응을 가르는 scikit-learn 예제. 제목과 달리 **PyTorch 와 맞대어 학습하지는 않는다**
 
 ### 2.7 소프트맥스 회귀
 
