@@ -581,40 +581,51 @@ nav:
     - 13 트랜스포머:
       - 장 개요: ch12/index.md
       - 13.1 트랜스포머 구조:
-        - 트랜스포머 구조: ch12/transformer_architecture/transformer_architecture.md
-        - 위치 인코딩: ch12/transformer_architecture/positional_encoding.md
-        - "인코더-디코더 구조": ch12/transformer_architecture/encoder_decoder.md
-        - "마스킹 어텐션": ch12/transformer_architecture/masked_attention.md
-        - 트랜스포머의 레이어 정규화: ch12/transformer_architecture/layer_norm.md
-        - "어텐션 메커니즘": ch12/transformer_architecture/attention_mechanisms.md
-        - 어텐션을 쓰는 Seq2Seq: ch12/transformer_architecture/seq2seq_with_attention.md
-        - 번역 학습: ch12/transformer_architecture/train_translation.md
-        - 데모: ch12/transformer_architecture/demo.md
-        - "스케일 내적 어텐션": ch12/transformer_architecture/scaled_dot_product.md
-        - "셀프 어텐션": ch12/transformer_architecture/self_attention.md
-        - "멀티헤드 어텐션": ch12/transformer_architecture/multihead_attention.md
-        - 학습된 인코딩: ch12/transformer_architecture/learned_encoding.md
-        - 사인파 인코딩: ch12/transformer_architecture/sinusoidal_encoding.md
+        - 무엇으로 되어 있나:
+          - 트랜스포머 구조: ch12/transformer_architecture/transformer_architecture.md
+          - "인코더-디코더 구조": ch12/transformer_architecture/encoder_decoder.md
+        - 블록의 부품:
+          - "스케일 내적 어텐션": ch12/transformer_architecture/scaled_dot_product.md
+          - "셀프 어텐션": ch12/transformer_architecture/self_attention.md
+          - "멀티헤드 어텐션": ch12/transformer_architecture/multihead_attention.md
+          - "마스킹 어텐션": ch12/transformer_architecture/masked_attention.md
+          - 트랜스포머의 레이어 정규화: ch12/transformer_architecture/layer_norm.md
+        - 위치를 알려 주기:
+          - 위치 인코딩: ch12/transformer_architecture/positional_encoding.md
+          - 사인파 인코딩: ch12/transformer_architecture/sinusoidal_encoding.md
+          - 학습된 인코딩: ch12/transformer_architecture/learned_encoding.md
+        - 그 앞 세대 — RNN 어텐션:
+          - "어텐션 메커니즘": ch12/transformer_architecture/attention_mechanisms.md
+          - 어텐션을 쓰는 Seq2Seq: ch12/transformer_architecture/seq2seq_with_attention.md
+          - 번역 학습: ch12/transformer_architecture/train_translation.md
+        - 돌려 보기:
+          - 데모: ch12/transformer_architecture/demo.md
       - 13.2 사전 학습 모델:
-        - BERT: ch12/pretrained_models/bert.md
-        - GPT: ch12/pretrained_models/gpt.md
-        - T5: ch12/pretrained_models/t5.md
-        - 트랜스포머의 변형: ch12/pretrained_models/variants.md
-        - BERT: ch12/pretrained_models/08_bert.md
-        - GPT: ch12/pretrained_models/09_gpt.md
-        - 비전 트랜스포머 ViT: ch12/pretrained_models/18_vision_transformer_vit.md
-        - 스윈 트랜스포머: ch12/pretrained_models/19_swin_transformer.md
-        - 트랜스포머: ch12/pretrained_models/44_transformer.md
-        - BERT 모델: ch12/pretrained_models/bert_model.md
-        - 트랜스포머 인코더: ch12/pretrained_models/transformer_encoder.md
-        - GPT 모델: ch12/pretrained_models/gpt_model.md
-        - 트랜스포머 디코더: ch12/pretrained_models/transformer_decoder.md
-        - BERT 분류기: ch12/pretrained_models/bert_classifier.md
-        - 감성 분석 학습: ch12/pretrained_models/train_sentiment.md
-        - GPT 생성기: ch12/pretrained_models/gpt_generator.md
-        - "샘플링 방법": ch12/pretrained_models/sampling_strategies.md
-        - 허깅페이스 빠른 시작: ch12/pretrained_models/huggingface_quickstart.md
-        - "제로샷·퓨샷 텍스트 분류": ch12/pretrained_models/zero_shot_text_classification.md
+        - 무엇을 어떻게 사전 학습하나:
+          - BERT: ch12/pretrained_models/bert.md
+          - GPT: ch12/pretrained_models/gpt.md
+          - T5: ch12/pretrained_models/t5.md
+          - 트랜스포머의 변형: ch12/pretrained_models/variants.md
+        - 인코더 쪽을 손으로:
+          - 트랜스포머 인코더: ch12/pretrained_models/transformer_encoder.md
+          - BERT: ch12/pretrained_models/08_bert.md
+          - BERT 모델: ch12/pretrained_models/bert_model.md
+          - BERT 분류기: ch12/pretrained_models/bert_classifier.md
+          - 감성 분석 학습: ch12/pretrained_models/train_sentiment.md
+        - 디코더 쪽을 손으로:
+          - 트랜스포머 디코더: ch12/pretrained_models/transformer_decoder.md
+          - GPT: ch12/pretrained_models/09_gpt.md
+          - GPT 모델: ch12/pretrained_models/gpt_model.md
+          - GPT 생성기: ch12/pretrained_models/gpt_generator.md
+          - "샘플링 방법": ch12/pretrained_models/sampling_strategies.md
+        - 둘을 합친 블록:
+          - 트랜스포머: ch12/pretrained_models/44_transformer.md
+        - 비전 쪽:
+          - 비전 트랜스포머 ViT: ch12/pretrained_models/18_vision_transformer_vit.md
+          - 스윈 트랜스포머: ch12/pretrained_models/19_swin_transformer.md
+        - 사전 학습 웨이트를 실제로 쓰기:
+          - 허깅페이스 빠른 시작: ch12/pretrained_models/huggingface_quickstart.md
+          - "제로샷·퓨샷 텍스트 분류": ch12/pretrained_models/zero_shot_text_classification.md
       - 13.3 학습과 추론:
         - 속도 성능 시험: ch12/training_and_inference/benchmark_speed.md
         - 컨볼루션 뉴럴 네트워크 기준선: ch12/training_and_inference/cnn_baseline.md
@@ -623,18 +634,23 @@ nav:
         - 학습과 추론: ch12/training_and_inference/training_inference.md
         - 학습 최적화: ch12/training_and_inference/training_optimization.md
       - 13.4 비전 트랜스포머:
-        - "ViT 개요": ch12/transformers_vision/vit.md
-        - 이미지를 위한 위치 임베딩: ch12/transformers_vision/position_embeddings.md
-        - 스윈 트랜스포머: ch12/transformers_vision/swin.md
-        - 컨볼루션 뉴럴 네트워크와 ViT의 비교: ch12/transformers_vision/cnn_vs_vit.md
-        - 패치 임베딩: ch12/transformers_vision/patch_embedding.md
-        - 이미지 분류 학습: ch12/transformers_vision/train_image_classification.md
-        - 비전 트랜스포머: ch12/transformers_vision/vision_transformer.md
-        - 컨볼루션 뉴럴 네트워크와 ViT: ch12/transformers_vision/cnn_vs_vit.md
-        - 예제: ch12/transformers_vision/examples.md
-        - ViT 학습: ch12/transformers_vision/train_vit.md
-        - 시각화: ch12/transformers_vision/visualizations.md
-        - ViT 모델: ch12/transformers_vision/vit_model.md
+        - ViT 란 무엇인가:
+          - "ViT 개요": ch12/transformers_vision/vit.md
+          - 컨볼루션 뉴럴 네트워크와 ViT의 비교: ch12/transformers_vision/cnn_vs_vit.md
+        - 부품:
+          - 패치 임베딩: ch12/transformers_vision/patch_embedding.md
+          - 이미지를 위한 위치 임베딩: ch12/transformers_vision/position_embeddings.md
+        - 모델로 조립하기:
+          - 비전 트랜스포머: ch12/transformers_vision/vision_transformer.md
+          - ViT 모델: ch12/transformers_vision/vit_model.md
+        - 변형:
+          - 스윈 트랜스포머: ch12/transformers_vision/swin.md
+        - 학습시키기:
+          - 이미지 분류 학습: ch12/transformers_vision/train_image_classification.md
+          - ViT 학습: ch12/transformers_vision/train_vit.md
+        - 들여다보기:
+          - 예제: ch12/transformers_vision/examples.md
+          - 시각화: ch12/transformers_vision/visualizations.md
   - "III 생성 모델":
     - "25 차원 축소":
       - "장 개요": ch24/index.md
