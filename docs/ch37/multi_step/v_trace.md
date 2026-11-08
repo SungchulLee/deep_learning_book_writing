@@ -17,6 +17,11 @@ import torch.nn as nn
 import numpy as np
 from typing import Tuple
 
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+np.random.seed(0)
+
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -234,23 +239,23 @@ V-Trace Demo
 ============================================================
 
 --- V-Trace Target Computation ---
-  Values: [ 2.252  5.942  8.579  6.541 10.289]...
-  V-trace targets: [16.085 15.238 14.381 13.517 12.643]...
-  Advantages: [13.833  9.296  5.802  6.976  2.354]...
+  Values: [8.082 4.413 0.642 6.137 2.831]...
+  V-trace targets: [13.005 12.126 11.238 10.342  9.436]...
+  Advantages: [ 4.923  7.713 10.596  4.205  6.605]...
 
 --- Effect of Truncation Thresholds ---
-  ρ̄=  0.5, c̄=0.5: target mean=6.893, std=1.349
-  ρ̄=  0.5, c̄=1.0: target mean=8.979, std=1.872
-  ρ̄=  0.5, c̄=5.0: target mean=18.376, std=11.259
-  ρ̄=  1.0, c̄=0.5: target mean=7.995, std=1.244
-  ρ̄=  1.0, c̄=1.0: target mean=12.166, std=2.672
-  ρ̄=  1.0, c̄=5.0: target mean=30.961, std=22.628
-  ρ̄=  5.0, c̄=0.5: target mean=8.766, std=1.867
-  ρ̄=  5.0, c̄=1.0: target mean=14.396, std=3.624
-  ρ̄=  5.0, c̄=5.0: target mean=39.766, std=30.638
-  ρ̄=  inf, c̄=0.5: target mean=8.766, std=1.867
-  ρ̄=  inf, c̄=1.0: target mean=14.396, std=3.624
-  ρ̄=  inf, c̄=5.0: target mean=39.766, std=30.638
+  ρ̄=  0.5, c̄=0.5: target mean=5.110, std=1.043
+  ρ̄=  0.5, c̄=1.0: target mean=6.698, std=1.869
+  ρ̄=  0.5, c̄=5.0: target mean=11.188, std=7.243
+  ρ̄=  1.0, c̄=0.5: target mean=5.765, std=0.925
+  ρ̄=  1.0, c̄=1.0: target mean=8.942, std=2.771
+  ρ̄=  1.0, c̄=5.0: target mean=17.921, std=13.709
+  ρ̄=  5.0, c̄=0.5: target mean=6.224, std=1.714
+  ρ̄=  5.0, c̄=1.0: target mean=10.512, std=3.747
+  ρ̄=  5.0, c̄=5.0: target mean=22.632, std=18.307
+  ρ̄=  inf, c̄=0.5: target mean=6.224, std=1.714
+  ρ̄=  inf, c̄=1.0: target mean=10.512, std=3.747
+  ρ̄=  inf, c̄=5.0: target mean=22.632, std=18.307
 
 --- IS Ratio Analysis ---
   Small lag:
@@ -266,7 +271,7 @@ V-Trace Demo
 --- Batch V-Trace ---
   Input shapes: values=torch.Size([8, 21]), rewards=torch.Size([8, 20])
   Output shapes: targets=torch.Size([8, 20]), advantages=torch.Size([8, 20])
-  Target mean: -1.064
+  Target mean: 0.999
 
 --- V-trace vs Uncorrected N-step ---
   On-policy targets:  [18.294 17.469 16.636 15.793 14.943]

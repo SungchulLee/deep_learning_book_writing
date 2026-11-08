@@ -15,6 +15,11 @@ from sklearn import datasets
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+np.random.seed(0)
+
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -118,17 +123,17 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-epoch: 10, loss = 0.6835
-epoch: 20, loss = 0.5401
-epoch: 30, loss = 0.4533
-epoch: 40, loss = 0.3959
-epoch: 50, loss = 0.3551
-epoch: 60, loss = 0.3245
-epoch: 70, loss = 0.3006
-epoch: 80, loss = 0.2814
-epoch: 90, loss = 0.2654
-epoch: 100, loss = 0.2519
-accuracy: 0.9035
+epoch: 10, loss = 0.5531
+epoch: 20, loss = 0.4631
+epoch: 30, loss = 0.4033
+epoch: 40, loss = 0.3608
+epoch: 50, loss = 0.3288
+epoch: 60, loss = 0.3039
+epoch: 70, loss = 0.2838
+epoch: 80, loss = 0.2673
+epoch: 90, loss = 0.2534
+epoch: 100, loss = 0.2415
+accuracy: 0.8947
 ```
 
 ## 2. 논의

@@ -221,6 +221,9 @@ import torch.nn.functional as F
 import math
 from typing import Optional, Tuple
 
+# 돌릴 때마다 수가 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+
 class SelfAttention(nn.Module):
     """
     자기 어텐션 레이어
@@ -415,10 +418,10 @@ Each row shows what that position attends to.
 Position i can only attend to positions <= i (lower triangular).
 
 [[1.    0.    0.    0.    0.   ]
- [0.423 0.577 0.    0.    0.   ]
- [0.298 0.351 0.351 0.    0.   ]
- [0.221 0.264 0.258 0.257 0.   ]
- [0.178 0.213 0.207 0.201 0.201]]
+ [0.535 0.465 0.    0.    0.   ]
+ [0.34  0.322 0.338 0.    0.   ]
+ [0.261 0.274 0.231 0.234 0.   ]
+ [0.134 0.306 0.165 0.167 0.228]]
 
 Note: Upper triangle is 0 (future positions masked)
 ```

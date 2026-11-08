@@ -150,6 +150,9 @@ $$\mathbf{x} \;\xrightarrow{\;\mathbf{W},\, \mathbf{b}\;}\; \mathbf{z} = \mathbf
 import torch
 import torch.nn.functional as F
 
+# 돌릴 때마다 수가 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+
 # 방법 1: torch.nn.functional.one_hot 사용하기
 def create_one_hot(labels: torch.Tensor, num_classes: int) -> torch.Tensor:
     """
@@ -360,13 +363,9 @@ print("Empirical probabilities:", empirical_probs.numpy())
 print("Class counts:", counts.numpy().astype(int))
 ```
 
-**출력:**
-
-```
 True probabilities: [0.5 0.3 0.2]
-Empirical probabilities: [0.5037 0.2996 0.1967]
-Class counts: [5037 2996 1967]
-```
+Empirical probabilities: [0.4954 0.3032 0.2014]
+Class counts: [4954 3032 2014]
 
 ---
 

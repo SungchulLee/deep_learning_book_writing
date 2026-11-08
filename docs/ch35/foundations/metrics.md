@@ -120,6 +120,11 @@ from typing import Optional
 from scipy.stats import wasserstein_distance
 from collections import Counter
 
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+np.random.seed(0)
+
+
 def degree_distribution(adj: torch.Tensor) -> np.ndarray:
     """차수 분포를 고르게 맞춘 막대 그림으로 셈한다."""
     degrees = adj.sum(dim=1).long().cpu().numpy()
@@ -306,24 +311,24 @@ if __name__ == "__main__":
 
 ```
 === Good Generator (same distribution) ===
-  mmd_degree: 0.000971
-  mmd_clustering: 0.045264
-  mmd_spectral: 0.001205
+  mmd_degree: 0.001281
+  mmd_clustering: 0.042443
+  mmd_spectral: 0.001371
   ref_avg_nodes: 20.000000
   gen_avg_nodes: 20.000000
-  ref_avg_density: 0.151053
-  gen_avg_density: 0.150421
-  wasserstein_degree: 0.060000
+  ref_avg_density: 0.154105
+  gen_avg_density: 0.154632
+  wasserstein_degree: 0.080000
 
 === Bad Generator (different distribution) ===
-  mmd_degree: 0.264620
-  mmd_clustering: 0.053341
-  mmd_spectral: 0.025859
+  mmd_degree: 0.273467
+  mmd_clustering: 0.058539
+  mmd_spectral: 0.024259
   ref_avg_nodes: 20.000000
   gen_avg_nodes: 20.000000
-  ref_avg_density: 0.151053
-  gen_avg_density: 0.500316
-  wasserstein_degree: 6.636000
+  ref_avg_density: 0.154105
+  gen_avg_density: 0.508842
+  wasserstein_degree: 6.740000
 ```
 
 ---

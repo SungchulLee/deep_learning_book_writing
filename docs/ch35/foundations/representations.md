@@ -101,6 +101,11 @@ import numpy as np
 from collections import deque
 from typing import Optional
 
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+np.random.seed(0)
+
+
 def adjacency_to_upper_triangular(adj: torch.Tensor) -> torch.Tensor:
     """
     이웃 행렬의 위쪽 삼각을 벡터로 납작하게 편다.
@@ -260,21 +265,21 @@ if __name__ == "__main__":
 
 ```
 === Adjacency Matrix ===
-tensor([[0, 0, 1, 0, 0, 1, 0, 0],
-        [0, 0, 0, 0, 1, 0, 1, 1],
-        [1, 0, 0, 1, 0, 0, 0, 0],
-        [0, 0, 1, 0, 1, 0, 1, 1],
-        [0, 1, 0, 1, 0, 0, 1, 1],
-        [1, 0, 0, 0, 0, 0, 0, 1],
-        [0, 1, 0, 1, 1, 0, 0, 0],
-        [0, 1, 0, 1, 1, 1, 0, 0]], dtype=torch.int32)
+tensor([[0, 0, 1, 1, 1, 0, 0, 0],
+        [0, 0, 1, 0, 1, 1, 1, 0],
+        [1, 1, 0, 1, 0, 0, 1, 0],
+        [1, 0, 1, 0, 1, 1, 1, 0],
+        [1, 1, 0, 1, 0, 0, 0, 0],
+        [0, 1, 0, 1, 0, 0, 0, 0],
+        [0, 1, 1, 1, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0, 1, 0]], dtype=torch.int32)
 
-Upper-tri vector (28 entries): [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0]
+Upper-tri vector (28 entries): [0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1]
 
-BFS order: [3, 4, 7, 6, 2, 1, 5, 0]
-BFS bandwidth: 4
+BFS order: [3, 2, 6, 0, 4, 5, 1, 7]
+BFS bandwidth: 5
 
-Laplacian eigenvalues: [-0.     0.764  1.657  3.     3.529  4.     5.236  5.814]
+Laplacian eigenvalues: [0.    0.819 1.865 3.    3.405 4.755 5.46  6.696]
 Spectral reconstruction accuracy: 100.0%
 ```
 

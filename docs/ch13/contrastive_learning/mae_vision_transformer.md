@@ -17,6 +17,10 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
     import torch.nn.functional as F
     import numpy as np
 
+    # 돌릴 때마다 수가 달라지지 않게 씨앗을 박는다.
+    torch.manual_seed(0)
+    np.random.seed(0)
+
     # ========================================================================
     # 메인
     # ========================================================================
@@ -410,7 +414,7 @@ Encoder depth: 12 blocks
 Decoder depth: 8 blocks
 
 Test forward pass successful!
-Loss: 1.3435
+Loss: 1.3199
 Prediction shape: torch.Size([4, 196, 768])
 Mask shape: torch.Size([4, 196])
 Number of masked patches: 147 / 196

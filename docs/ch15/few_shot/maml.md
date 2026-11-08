@@ -19,6 +19,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
 
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -241,8 +245,8 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-Meta-Loss: 1.6146, Meta-Accuracy: 0.2000
-Predictions: tensor([1, 4, 2, 0, 2, 1, 0, 0, 4, 4, 0, 2, 4, 0, 4])
+Meta-Loss: 1.6140, Meta-Accuracy: 0.2167
+Predictions: tensor([0, 0, 3, 4, 0, 0, 0, 4, 0, 3, 3, 3, 3, 0, 0])
 ```
 
 ## 2. 논의

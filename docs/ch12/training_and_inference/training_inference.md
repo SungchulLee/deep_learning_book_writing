@@ -68,6 +68,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+# 돌릴 때마다 수가 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+
 def create_masks(src, tgt, src_pad_idx=0, tgt_pad_idx=0):
     """
     트랜스포머 학습을 위한 채움 가림과 인과 가림을 만든다.
@@ -498,26 +501,26 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-Epoch 1/20, Loss: 8.5710
-Epoch 2/20, Loss: 8.4871
-Epoch 3/20, Loss: 8.4326
-Epoch 4/20, Loss: 8.3878
-Epoch 5/20, Loss: 8.3326
-Epoch 6/20, Loss: 8.2584
-Epoch 7/20, Loss: 8.1662
-Epoch 8/20, Loss: 8.0654
-Epoch 9/20, Loss: 7.9797
-Epoch 10/20, Loss: 7.8929
-Epoch 11/20, Loss: 7.8092
-Epoch 12/20, Loss: 7.7274
-Epoch 13/20, Loss: 7.6537
-Epoch 14/20, Loss: 7.5746
-Epoch 15/20, Loss: 7.4908
-Epoch 16/20, Loss: 7.4138
-Epoch 17/20, Loss: 7.3334
-Epoch 18/20, Loss: 7.2542
-Epoch 19/20, Loss: 7.1734
-Epoch 20/20, Loss: 7.0938
+Epoch 1/20, Loss: 8.5708
+Epoch 2/20, Loss: 8.4855
+Epoch 3/20, Loss: 8.4323
+Epoch 4/20, Loss: 8.3893
+Epoch 5/20, Loss: 8.3332
+Epoch 6/20, Loss: 8.2579
+Epoch 7/20, Loss: 8.1632
+Epoch 8/20, Loss: 8.0646
+Epoch 9/20, Loss: 7.9777
+Epoch 10/20, Loss: 7.8931
+Epoch 11/20, Loss: 7.8101
+Epoch 12/20, Loss: 7.7321
+Epoch 13/20, Loss: 7.6502
+Epoch 14/20, Loss: 7.5698
+Epoch 15/20, Loss: 7.4909
+Epoch 16/20, Loss: 7.4101
+Epoch 17/20, Loss: 7.3305
+Epoch 18/20, Loss: 7.2489
+Epoch 19/20, Loss: 7.1715
+Epoch 20/20, Loss: 7.0911
 ```
 
 ---

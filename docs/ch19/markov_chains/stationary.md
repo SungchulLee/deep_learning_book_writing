@@ -120,6 +120,9 @@ import torch
 import torch.linalg as LA
 from typing import Dict, Tuple, Optional
 
+# 돌릴 때마다 수가 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+
 class StationaryDistributionAnalyzer:
     """
     여러 방법으로 멈춘 분포 셈하기.
@@ -296,9 +299,9 @@ demonstrate_stationary_distribution()
 Stationary Distribution: Method Comparison
 ======================================================================
 State       Eigenvector    Linear Sys     Power Iter     Simulation     
-Sunny       0.41860464     0.41860464     0.41860765     0.41903999     
-Cloudy      0.33720931     0.33720931     0.33721173     0.33811000     
-Rainy       0.24418606     0.24418604     0.24418780     0.24285001     
+Sunny       0.41860464     0.41860464     0.41860765     0.41582000     
+Cloudy      0.33720931     0.33720931     0.33721173     0.33923000     
+Rainy       0.24418606     0.24418604     0.24418780     0.24495000     
 
 Power iteration converged in 1000 iterations
 

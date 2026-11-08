@@ -18,6 +18,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -216,8 +220,8 @@ if __name__ == "__main__":
 
 ```
 Predictions shape: torch.Size([15, 5])
-Loss: 0.5001, Accuracy: 0.3333
-Predicted classes: tensor([4, 2, 2, 3, 2, 4, 1, 4, 2, 2, 4, 2, 2, 2, 1])
+Loss: 0.5007, Accuracy: 0.1333
+Predicted classes: tensor([4, 4, 4, 3, 3, 4, 4, 4, 4, 3, 3, 4, 3, 4, 3])
 ```
 
 ## 2. 논의

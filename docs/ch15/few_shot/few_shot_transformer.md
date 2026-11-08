@@ -17,6 +17,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -272,7 +276,7 @@ if __name__ == "__main__":
 
 ```
 Logits shape: torch.Size([15, 5])
-Loss: 1.6069, Accuracy: 0.2667
+Loss: 1.6065, Accuracy: 0.2000
 Set embedding shape: torch.Size([1, 128])
 ```
 

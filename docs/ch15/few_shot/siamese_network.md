@@ -17,6 +17,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -268,9 +272,9 @@ if __name__ == "__main__":
 **출력:**
 
 ```
-Training loss: 0.4928
-Predictions: tensor([1, 2, 0, 1, 1, 2, 0, 0, 0, 3])
-Triplet loss: 1.0038
+Training loss: 0.6164
+Predictions: tensor([0, 0, 0, 2, 2, 0, 1, 0, 3, 4])
+Triplet loss: 0.9965
 ```
 
 ## 2. 논의

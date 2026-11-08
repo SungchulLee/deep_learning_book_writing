@@ -16,6 +16,10 @@ import torch.nn.functional as F
 from torchvision import models
 import copy
 
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+
+
 # ========================================================================
 # 메인
 # ========================================================================
@@ -318,11 +322,11 @@ MoCo v2 initialized successfully!
 Queue size: 4096
 Momentum coefficient: 0.999
 Logits shape: torch.Size([32, 4097])
-Loss: 0.0082
+Loss: 0.0077
 
 Testing MoCo v3...
 MoCo v3 initialized successfully!
-Loss: 3.5362
+Loss: 3.5246
 ```
 
 ## 2. 논의

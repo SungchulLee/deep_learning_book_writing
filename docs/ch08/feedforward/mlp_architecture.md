@@ -243,6 +243,10 @@ $$
 import torch
 import torch.nn as nn
 
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+torch.manual_seed(0)
+
+
 class MLP(nn.Module):
     """
     구조를 설정할 수 있는 다층 퍼셉트론.
