@@ -1477,22 +1477,28 @@ nav:
         - "해석 방법 분류": ch40/foundations/taxonomy.md
         - "해석 방법 평가": ch40/foundations/evaluation.md
       - "41.2 그래디언트 기반 방법":
-        - "Saliency Map과 기본 그래디언트": ch40/gradient_methods/saliency_maps.md
-        - Grad-CAM: ch40/gradient_methods/gradcam.md
-        - Grad-CAM++: ch40/gradient_methods/gradcam_plusplus.md
-        - "Integrated Gradients": ch40/gradient_methods/integrated_gradients.md
-        - SmoothGrad: ch40/gradient_methods/smoothgrad.md
-        - "Guided Backpropagation": ch40/gradient_methods/guided_backprop.md
-        - "어텐션 시각화": ch40/gradient_methods/attention_visualization.md
-        - "어텐션 예제": ch40/gradient_methods/example_attention.md
-        - "Grad-CAM 예제": ch40/gradient_methods/example_gradcam.md
-        - SmoothGrad: ch40/gradient_methods/03_smoothgrad.md
-        - "Integrated Gradients": ch40/gradient_methods/04_integrated_gradients.md
-        - Grad-CAM: ch40/gradient_methods/05_gradcam.md
-        - "Guided Backpropagation": ch40/gradient_methods/06_guided_backpropagation.md
-        - "Guided Grad-CAM": ch40/gradient_methods/07_guided_gradcam.md
-        - "비교 분석": ch40/gradient_methods/08_comparative_analysis.md
-        - "고급 기법": ch40/gradient_methods/09_advanced_techniques.md
+        - 맨 그래디언트에서 시작:
+          - "Saliency Map과 기본 그래디언트": ch40/gradient_methods/saliency_maps.md
+        - 잡음을 줄이고 기준을 두기:
+          - SmoothGrad: ch40/gradient_methods/smoothgrad.md
+          - SmoothGrad: ch40/gradient_methods/03_smoothgrad.md
+          - "Integrated Gradients": ch40/gradient_methods/integrated_gradients.md
+          - "Integrated Gradients": ch40/gradient_methods/04_integrated_gradients.md
+        - 역전파를 고치기:
+          - "Guided Backpropagation": ch40/gradient_methods/guided_backprop.md
+          - "Guided Backpropagation": ch40/gradient_methods/06_guided_backpropagation.md
+        - CAM 계열:
+          - Grad-CAM: ch40/gradient_methods/gradcam.md
+          - Grad-CAM++: ch40/gradient_methods/gradcam_plusplus.md
+          - Grad-CAM: ch40/gradient_methods/05_gradcam.md
+          - "Grad-CAM 예제": ch40/gradient_methods/example_gradcam.md
+          - "Guided Grad-CAM": ch40/gradient_methods/07_guided_gradcam.md
+        - 어텐션 쪽:
+          - "어텐션 시각화": ch40/gradient_methods/attention_visualization.md
+          - "어텐션 예제": ch40/gradient_methods/example_attention.md
+        - 견주고 넓히기:
+          - "비교 분석": ch40/gradient_methods/08_comparative_analysis.md
+          - "고급 기법": ch40/gradient_methods/09_advanced_techniques.md
       - "41.3 어텐션 시각화":
         - "어텐션 패턴 분석": ch40/attention_viz/pattern_analysis.md
         - "중간레이어 크로스 어텐션": ch40/attention_viz/06_intermediate_cross_attention.md
@@ -1534,17 +1540,23 @@ nav:
         - "섭동 유형": ch42/foundations/perturbations.md
         - "강건성 정의": ch42/foundations/definitions.md
       - "43.2 화이트박스 공격":
-        - "FGSM 기초": ch42/adversarial/01_fgsm_basic.md
-        - "FGSM": ch42/white_box/fgsm.md
-        - "PGD 공격": ch42/white_box/pgd.md
-        - "Carlini-Wagner(C&W) 공격": ch42/white_box/cw_attack.md
-        - "DeepFool": ch42/white_box/deepfool.md
-        - "AutoAttack": ch42/white_box/autoattack.md
-        - "PGD 공격": ch42/adversarial/02_pgd_attack.md
-        - "C&W 공격": ch42/adversarial/03_cw_attack.md
-        - "적대적 학습": ch42/adversarial/04_adversarial_training.md
-        - "인증 가능한 방어": ch42/adversarial/05_certified_defenses.md
-        - "자연어 모델에 대한 적대적 공격": ch42/adversarial/nlp_adversarial.md
+        - 한 스텝 — FGSM:
+          - "FGSM": ch42/white_box/fgsm.md
+          - "FGSM 기초": ch42/adversarial/01_fgsm_basic.md
+        - 여러 스텝 — PGD:
+          - "PGD 공격": ch42/white_box/pgd.md
+          - "PGD 공격": ch42/adversarial/02_pgd_attack.md
+        - 최적화로 — C&W:
+          - "Carlini-Wagner(C&W) 공격": ch42/white_box/cw_attack.md
+          - "C&W 공격": ch42/adversarial/03_cw_attack.md
+        - 그 밖의 공격:
+          - "DeepFool": ch42/white_box/deepfool.md
+          - "AutoAttack": ch42/white_box/autoattack.md
+        - 막는 쪽:
+          - "적대적 학습": ch42/adversarial/04_adversarial_training.md
+          - "인증 가능한 방어": ch42/adversarial/05_certified_defenses.md
+        - 글에 거는 공격:
+          - "자연어 모델에 대한 적대적 공격": ch42/adversarial/nlp_adversarial.md
       - "43.3 블랙박스 공격":
         - "전이 기반 공격": ch42/black_box/transfer.md
         - "쿼리 기반 공격": ch42/black_box/query_based.md

@@ -107,19 +107,40 @@ git commit -m "update: <name>"
 Nav hierarchy: **Parts → Chapters → Sections → Pages**. Nav entries point to `.md` files.
 
 A section with many pages may add **one grouping level** between Section and
-Page. Four sections do, all in chapter 1 — `1.4 텐서` (24 pages, 4 groups),
-`1.5 텐서 속성` (14 in 3), `1.6 자동 미분` (27 in 7), `1.7 경사 하강법` (11 in 2).
-Every other section is flat. Add a level only when the flat list is long
-enough to be unreadable — the median section has 3 pages.
+Page. **26 sections do, covering 438 pages in 137 groups** — every section
+with 11 or more pages. The other 201 sections are flat; the median is 3
+pages. The 11-page line comes from `1.7 경사 하강법`, the smallest section
+that was already grouped when the sweep started.
 
-> For a long time only 1.6 had groups, which made the threshold look like
-> "27 pages". It was not a threshold — 1.4 had 24 and was flat. 1.6 was simply
-> the longest and so got noticed first. When adding groups, take the names
-> from the chapter overview rather than inventing them: `ch01/index.md`
-> already grouped all four sections in prose, and three of those groupings
-> covered every page exactly, so the nav could be lifted from the page with
-> no new editorial choices. **Keep the two in step** — if the nav groups a
-> section, the overview should show the same groups under the same names.
+`experiments/` has no checker for this, so the invariant is worth
+re-deriving when adding pages: parse the nav by indentation, count pages per
+section, and list any flat section at 11 or more.
+
+**Keep the nav and the chapter overview in step** — same groups, same names,
+same pages. That is the rule the grouping sweep established and verified for
+all 26 sections, both directions.
+
+Take group names from the chapter overview where it already has them
+(`ch10/index.md` had 개념 · 변형; `ch01/index.md` had all four sections).
+Where it does not, read what the pages actually do — the first prose line of
+each page is usually enough — and group by that, not by filename prefix.
+
+Three things the sweep kept running into:
+
+- **The overview usually listed only part of the section**, and the missing
+  part was systematic: theory pages shown, hands-on pages hidden. ch02's 2.5
+  showed 6 of 23, ch08's 9.2 showed 6 of 29. Fix the listing before grouping
+  it, or the groups will describe a section that isn't there.
+- **A prose line opening with `**` reads as a group header.** It broke the
+  nav-vs-overview check three times. Put the bold inside the sentence.
+- **Overview sections sometimes cross nav-section boundaries** (ch11's §3
+  reached into `rnn/`; ch19's §2 listed 20.3's pages). Realign the overview
+  to the book's own section boundaries and leave a pointer sentence.
+
+Pages carry their own caveats in that first line — "안내 메시지만 출력하는
+템플릿", "학습하지 않는다", "실제 환자 영상이 아니다". Those belong in the
+overview listing. A reader should not have to open four pages to learn that
+eight of the sixteen are stubs.
 
 > **Nothing but `.md` goes in nav.** The `figures/make_figures.py` scripts are build tooling,
 > not pages; mkdocs copies them into `site/` and that is fine, but they are never navigated.

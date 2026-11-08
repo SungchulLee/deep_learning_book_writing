@@ -17,13 +17,33 @@
 
 ## 2. 화이트박스 공격
 
-모델의 파라메터와 구조를 온전히 아는 채로 하는 그래디언트 기반의 공격.
+모델의 파라메터와 구조를 **온전히 아는 채로** 거는 그래디언트 기반 공격이다. 아래 네 묶음이 공격이고, 다섯째 묶음의 두 쪽은 방어라 5·6절과 겹친다.
 
-- [FGSM](white_box/fgsm.md) -- 선형 짐작에서 비롯한, 한 스텝짜리 기초 그래디언트 공격
-- [되비춘 그래디언트 내림(PGD)](white_box/pgd.md) -- 강건성을 따지는 사실상의 잣대가 된 여러 스텝 회귀 공격
-- [DeepFool](white_box/deepfool.md) -- 가장 가까운 결정 경계를 넘는 가장 작은 섭동을 찾는 형태 기초의 공격
-- [Carlini-Wagner(C&W) 공격](white_box/cw_attack.md) -- 적대적 샘플 만들기를 제약 없는 최소화로 다시 쓴 공격
-- [AutoAttack](white_box/autoattack.md) -- 하이퍼파라미터를 맞추지 않고도 강건성을 미덥게 따지는 파라메터 없는 앙상블 공격
+**한 스텝 — FGSM**
+
+- [FGSM](white_box/fgsm.md) — 선형 근사에서 나온 한 스텝 공격(Goodfellow 외, 2015). 그래디언트를 **한 번만** 셈한다 · [기초 실습](adversarial/01_fgsm_basic.md)
+
+**여러 스텝 — PGD**
+
+- [PGD 공격](white_box/pgd.md) — FGSM 을 여러 스텝으로 넓힌 것(Madry 외, 2018). 강건성을 재는 **사실상의 기준**이 되었다 · [실습](adversarial/02_pgd_attack.md)
+
+**최적화로 — C&W**
+
+- [Carlini-Wagner(C&W) 공격](white_box/cw_attack.md) — 적대적 샘플 만들기를 **제약 없는 최적화**로 다시 적는다(2017) · [실습](adversarial/03_cw_attack.md)
+
+**그 밖의 공격**
+
+- [DeepFool](white_box/deepfool.md) — 가장 가까운 결정 경계를 넘는 **최소 섭동**을 찾는다
+- [AutoAttack](white_box/autoattack.md) — 하이퍼파라메터를 맞추지 않는 앙상블. 강건성 보고의 기준으로 쓰인다
+
+**막는 쪽**
+
+- [적대적 학습](adversarial/04_adversarial_training.md) — 가장 잘 듣는 방어. 본격적인 것은 **5절**이다
+- [인증 가능한 방어](adversarial/05_certified_defenses.md) — 증명할 수 있는 보장. 본격적인 것은 **6절**이다
+
+**글에 거는 공격**
+
+- [자연어 모델에 대한 적대적 공격](adversarial/nlp_adversarial.md) — 이 갈래는 이미지에서 시작했고, 텍스트는 이산이라 조건이 다르다
 
 ---
 

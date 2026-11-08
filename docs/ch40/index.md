@@ -16,17 +16,33 @@
 
 ## 2. 그래디언트 방법
 
-입력의 어느 피처가 모델의 추론을 흔드는지 드러내는 그래디언트 기반 그림 그리기 재주.
+입력의 어느 피처가 모델의 예측을 흔드는지 그래디언트로 드러내는 방법들이다.
 
-- 모델 해석 살펴보기 -- Grad-CAM과 어텐션 그림 그리기를 아우르는 연장 두루 살피기
-- Saliency Map 살펴보기 -- 그래디언트 기반 Saliency Map 재주 모듈 살펴보기
-- 빨리 시작하기 -- 5분 만에 Saliency Map 구현 시작하기
-- [Saliency Map과 기본 그래디언트](gradient_methods/saliency_maps.md) -- 뉴럴 네트워크 추론에 대한 그래디언트 기반 현저성의 수학 기초
-- [Integrated Gradients](gradient_methods/integrated_gradients.md) -- 예민함과 짜기에 흔들리지 않음이라는 공리를 채우는 길 따라 쌓은 기여도 분석
-- [Grad-CAM](gradient_methods/gradcam.md) -- CNN 시각적 해석을 위한 그래디언트 가중 클래스 활성화 맵
-- [Grad-CAM++](gradient_methods/gradcam_plusplus.md) -- 여러 물체와 작은 자리를 더 잘 짚어내는 나아진 것
-- [Guided Backpropagation](gradient_methods/guided_backprop.md) -- ReLU 그래디언트 퍼뜨리기를 고쳐 얻는 높은 피처 Saliency Map
-- [SmoothGrad](gradient_methods/smoothgrad.md) -- 잡음을 써서 그래디언트를 고르게 해 더 또렷하고 깨끗한 Saliency Map 얻기
+**맨 그래디언트에서 시작**
+
+- [Saliency Map과 기본 그래디언트](gradient_methods/saliency_maps.md) — 그래디언트 기반 현저성의 수학적 기초. 뒤의 모든 방법이 **이것의 한계를 고치는** 것이다
+
+**잡음을 줄이고 기준을 두기**
+
+- [SmoothGrad](gradient_methods/smoothgrad.md) — 입력에 잡음을 **더해** 평균 내면 오히려 또렷해진다 · [실습](gradient_methods/03_smoothgrad.md)
+- [Integrated Gradients](gradient_methods/integrated_gradients.md) — 기준점에서 입력까지의 경로로 적분한다. 공리로 정당화되는 유일한 축이다 · [실습](gradient_methods/04_integrated_gradients.md)
+
+**역전파를 고치기**
+
+- [Guided Backpropagation](gradient_methods/guided_backprop.md) — ReLU 를 거꾸로 지나는 길을 바꾼다 · [실습](gradient_methods/06_guided_backpropagation.md)
+
+**CAM 계열**
+
+- [Grad-CAM](gradient_methods/gradcam.md) — 구조를 바꾸지 않고 CAM 을 쓴다 · [Grad-CAM++](gradient_methods/gradcam_plusplus.md) — 같은 클래스 물체가 **여럿일 때** 더 낫다
+- [실습](gradient_methods/05_gradcam.md) · [예제](gradient_methods/example_gradcam.md) · [Guided Grad-CAM](gradient_methods/07_guided_gradcam.md) — 앞 묶음과 합친 것
+
+**어텐션 쪽**
+
+- [어텐션 시각화](gradient_methods/attention_visualization.md) · [어텐션 예제](gradient_methods/example_attention.md) — 트랜스포머의 어텐션 웨이트를 그린다
+
+**견주고 넓히기**
+
+- [비교 분석](gradient_methods/08_comparative_analysis.md) — 방법들을 나란히 놓는다 · [고급 기법](gradient_methods/09_advanced_techniques.md)
 
 ---
 
