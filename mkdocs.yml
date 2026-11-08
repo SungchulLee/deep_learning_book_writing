@@ -1138,40 +1138,51 @@ nav:
     - "23 자연어 처리":
       - 장 개요: ch22/index.md
       - "23.1 언어 모델링":
-        - n-그램 모델: ch22/language_modeling/ngram.md
-        - "뉴럴 네트워크 언어 모델": ch22/language_modeling/neural_lm.md
-        - "샘플링 전략": ch22/language_modeling/sampling_strategies.md
-        - Wav2Vec: ch22/language_modeling/10_wav2vec.md
-        - "튜토리얼 01 n-그램 기초": ch22/language_modeling/tutorial_01_ngram_basics.md
-        - "튜토리얼 02 n-그램 평활화": ch22/language_modeling/tutorial_02_ngram_smoothing.md
-        - "튜토리얼 03 n-그램 텍스트 생성": ch22/language_modeling/tutorial_03_text_generation_ngrams.md
-        - "튜토리얼 04 순방향 뉴럴 네트워크 언어 모델": ch22/language_modeling/tutorial_04_feedforward_lm.md
-        - "튜토리얼 05 RNN 언어 모델": ch22/language_modeling/tutorial_05_rnn_language_model.md
-        - "튜토리얼 06 LSTM 언어 모델": ch22/language_modeling/tutorial_06_lstm_language_model.md
-        - "튜토리얼 07 트랜스포머 언어 모델": ch22/language_modeling/tutorial_07_transformer_lm.md
-        - "튜토리얼 08 사전 학습 언어 모델": ch22/language_modeling/tutorial_08_pretrained_lm.md
-        - "튜토리얼 09 조건부 생성": ch22/language_modeling/tutorial_09_conditional_generation.md
-        - "튜토리얼 10 언어 모델 평가": ch22/language_modeling/tutorial_10_lm_evaluation.md
-        - "GPT 사전 학습 직접 구현": ch22/language_modeling/pretrain_gpt_from_scratch.md
+        - 세 가지 틀:
+          - n-그램 모델: ch22/language_modeling/ngram.md
+          - "뉴럴 네트워크 언어 모델": ch22/language_modeling/neural_lm.md
+          - "샘플링 전략": ch22/language_modeling/sampling_strategies.md
+        - 빈도로 — n-그램:
+          - "튜토리얼 01 n-그램 기초": ch22/language_modeling/tutorial_01_ngram_basics.md
+          - "튜토리얼 02 n-그램 평활화": ch22/language_modeling/tutorial_02_ngram_smoothing.md
+          - "튜토리얼 03 n-그램 텍스트 생성": ch22/language_modeling/tutorial_03_text_generation_ngrams.md
+        - 배우는 모델로:
+          - "튜토리얼 04 순방향 뉴럴 네트워크 언어 모델": ch22/language_modeling/tutorial_04_feedforward_lm.md
+          - "튜토리얼 05 RNN 언어 모델": ch22/language_modeling/tutorial_05_rnn_language_model.md
+          - "튜토리얼 06 LSTM 언어 모델": ch22/language_modeling/tutorial_06_lstm_language_model.md
+          - "튜토리얼 07 트랜스포머 언어 모델": ch22/language_modeling/tutorial_07_transformer_lm.md
+        - 사전 학습·생성·평가:
+          - "튜토리얼 08 사전 학습 언어 모델": ch22/language_modeling/tutorial_08_pretrained_lm.md
+          - "튜토리얼 09 조건부 생성": ch22/language_modeling/tutorial_09_conditional_generation.md
+          - "튜토리얼 10 언어 모델 평가": ch22/language_modeling/tutorial_10_lm_evaluation.md
+          - "GPT 사전 학습 직접 구현": ch22/language_modeling/pretrain_gpt_from_scratch.md
+        - 곁가지 — 음성:
+          - Wav2Vec: ch22/language_modeling/10_wav2vec.md
       - "23.2 시퀀스 레이블링":
-        - "개체명 인식 기초": ch22/sequence_labeling/ner_fundamentals.md
-        - "개체 유형과 분류 체계": ch22/sequence_labeling/entity_types.md
-        - "BIO 태깅": ch22/sequence_labeling/bio_tagging.md
-        - "조건부 랜덤 필드(CRF)": ch22/sequence_labeling/crf.md
-        - "BiLSTM 개체명 인식": ch22/sequence_labeling/bilstm_ner.md
-        - "개체명 인식 평가": ch22/sequence_labeling/ner_evaluation.md
-        - "개체명 인식 기초": ch22/sequence_labeling/01_ner_basics.md
-        - "IOB 태깅": ch22/sequence_labeling/02_iob_tagging.md
-        - "규칙 기반 개체명 인식": ch22/sequence_labeling/03_rule_based_ner.md
-        - "사전 기반 개체명 인식": ch22/sequence_labeling/04_dictionary_ner.md
-        - "피처 추출": ch22/sequence_labeling/05_feature_extraction.md
-        - "CRF 개체명 인식": ch22/sequence_labeling/06_crf_ner.md
-        - "평가 지표": ch22/sequence_labeling/07_evaluation_metrics.md
-        - "개체명 인식 종합 데모": ch22/sequence_labeling/demo_complete_ner.md
-        - "데이터셋 구축": ch22/sequence_labeling/08_dataset_creation.md
-        - "BiLSTM-CRF 개체명 인식": ch22/sequence_labeling/10_bilstm_crf_ner.md
-        - "트랜스포머 개체명 인식": ch22/sequence_labeling/11_transformer_ner.md
-        - "실전 개체명 인식": ch22/sequence_labeling/15_production_ner.md
+        - 무엇을 푸는 과제인가:
+          - "개체명 인식 기초": ch22/sequence_labeling/ner_fundamentals.md
+          - "개체 유형과 분류 체계": ch22/sequence_labeling/entity_types.md
+          - "개체명 인식 평가": ch22/sequence_labeling/ner_evaluation.md
+        - 경계를 태그로 적기:
+          - "BIO 태깅": ch22/sequence_labeling/bio_tagging.md
+          - "개체명 인식 기초": ch22/sequence_labeling/01_ner_basics.md
+          - "IOB 태깅": ch22/sequence_labeling/02_iob_tagging.md
+        - 학습 없이 — 규칙과 사전:
+          - "규칙 기반 개체명 인식": ch22/sequence_labeling/03_rule_based_ner.md
+          - "사전 기반 개체명 인식": ch22/sequence_labeling/04_dictionary_ner.md
+        - 고전 — 피처와 CRF:
+          - "조건부 랜덤 필드(CRF)": ch22/sequence_labeling/crf.md
+          - "피처 추출": ch22/sequence_labeling/05_feature_extraction.md
+          - "CRF 개체명 인식": ch22/sequence_labeling/06_crf_ner.md
+        - 뉴럴로:
+          - "BiLSTM 개체명 인식": ch22/sequence_labeling/bilstm_ner.md
+          - "BiLSTM-CRF 개체명 인식": ch22/sequence_labeling/10_bilstm_crf_ner.md
+          - "트랜스포머 개체명 인식": ch22/sequence_labeling/11_transformer_ner.md
+        - 재고 묶어 내보내기:
+          - "평가 지표": ch22/sequence_labeling/07_evaluation_metrics.md
+          - "데이터셋 구축": ch22/sequence_labeling/08_dataset_creation.md
+          - "개체명 인식 종합 데모": ch22/sequence_labeling/demo_complete_ner.md
+          - "실전 개체명 인식": ch22/sequence_labeling/15_production_ner.md
       - "23.3 텍스트 분류":
         - "FinBERT 금융 감성 분석": ch22/text_classification/finbert_sentiment.md
         - "LIME과 SHAP를 이용한 모델 해석": ch22/text_classification/lime_shap_interpretability.md
