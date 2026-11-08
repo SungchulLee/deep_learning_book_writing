@@ -14,15 +14,15 @@ $$
 \mathbf{x} \in [\mathbf{x} - \varepsilon, \mathbf{x} + \varepsilon] = [\underline{\mathbf{x}}_0, \overline{\mathbf{x}}_0]
 $$
 
-IBP은 이 테두리를 네트워크의 켜마다 퍼뜨려 마지막 로짓의 테두리를 얻는다.
+IBP은 이 테두리를 네트워크의 레이어마다 퍼뜨려 마지막 로짓의 테두리를 얻는다.
 
 $$
 [\underline{\mathbf{z}}_L, \overline{\mathbf{z}}_L] = \text{IBP}(f_\theta, [\underline{\mathbf{x}}_0, \overline{\mathbf{x}}_0])
 $$
 
-### 선형 켜를 지나 전파
+### 선형 레이어를 지나 전파
 
-입력 테두리가 $[\underline{\mathbf{x}}, \overline{\mathbf{x}}]$인 선형 켜 $\mathbf{z} = \mathbf{W}\mathbf{x} + \mathbf{b}$에서
+입력 테두리가 $[\underline{\mathbf{x}}, \overline{\mathbf{x}}]$인 선형 레이어 $\mathbf{z} = \mathbf{W}\mathbf{x} + \mathbf{b}$에서
 
 $$
 \begin{aligned}
@@ -85,7 +85,7 @@ class IBPBounds:
         lb: torch.Tensor,
         ub: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """선형 켜를 지나 테두리를 퍼뜨린다."""
+        """선형 레이어를 지나 테두리를 퍼뜨린다."""
         W = layer.weight
         b = layer.bias if layer.bias is not None else 0
         
@@ -140,7 +140,7 @@ def certify_ibp(
     Parameters
     ----------
     model : nn.Sequential
-        선형/Conv2d 켜와 ReLU 켜가 번갈아 오는 네트워크
+        선형/Conv2d 레이어와 ReLU 레이어가 번갈아 오는 네트워크
     x : torch.Tensor
         들임 배치
     y : torch.Tensor
@@ -158,7 +158,7 @@ def certify_ibp(
     lb = torch.clamp(x - epsilon, 0, 1)
     ub = torch.clamp(x + epsilon, 0, 1)
     
-    # 켜를 지나 퍼뜨린다
+    # 레이어를 지나 퍼뜨린다
     for layer in model:
         if isinstance(layer, nn.Linear):
             lb, ub = ibp.propagate_linear(layer, lb, ub)
@@ -260,12 +260,12 @@ IBP 학습에는 조심스러운 구조가 있어야 한다. 여느 학습에서
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-섭동 공 안에서 클래스별 데이터의 밑자리가 서로 겹친다고 볼 때, 모델이 용량을 키우지 않고서는 어떤 방어도 맑은 데이터의 높은 정확도와 $\ell_\infty$ 섭동에 대한 높은 강건성을 함께 이룰 수 없음을 증명하여라.
+섭동 공 안에서 클래스별 데이터의 서포트가 서로 겹친다고 볼 때, 모델이 용량을 키우지 않고서는 어떤 방어도 맑은 데이터의 높은 정확도와 $\ell_\infty$ 섭동에 대한 높은 강건성을 함께 이룰 수 없음을 증명하여라.
 
 </div>
 
 ??? success "풀이"
-    두 클래스의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 기초 트레이드오프다. 겹치는 밑자리의 몫이 피할 수 없는 정확도 로스를 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 정확도 떨어짐을 밝혀 준다. 모델이 용량을 키우면(더 너른 네트워크) 얽힌 강건한 결정 경계를 더 잘 그려 트레이드오프를 얼마쯤 완화할 수 있다. $\square$
+    두 클래스의 서포트가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 기초 트레이드오프다. 겹치는 서포트의 기여도가 피할 수 없는 정확도 로스를 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 정확도 떨어짐을 밝혀 준다. 모델이 용량을 키우면(더 너른 네트워크) 얽힌 강건한 결정 경계를 더 잘 그려 트레이드오프를 얼마쯤 완화할 수 있다. $\square$
 
 ---
 
@@ -277,7 +277,7 @@ IBP 학습에는 조심스러운 구조가 있어야 한다. 여느 학습에서
 </div>
 
 ??? success "풀이"
-    금융에서 적대자는 탐지하는 구조에 맞추어 스스로 움직이는 꾀 많은 무리(사기꾼, 저자 흔드는 이)다. 비전과 다른 핵심은 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 제약된다(사기꾼이 제 거래 이력을 통째로 바꿀 수는 없다). (2) 공격이 잇따르며 맞추어 간다(적대자가 구조의 되받음을 보고 손본다). (3) 헛 정확도와 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 섭동 모델이 있어야 한다. 방어는 맞추어 오는 적대자에게도 강건해야 하므로, 탐지하는 잣대가 알려지면 비껴갈 수 있는 탐지 기반의 길은 많이 걸러진다. $\square$
+    금융에서 적대자는 탐지하는 구조에 맞추어 스스로 움직이는 교묘한 집단(사기꾼, 저자 흔드는 이)다. 비전과 다른 핵심은 이렇다. (1) 흔들 수 있는 분야가 돈으로 될 만한 것에 제약된다(사기꾼이 제 거래 이력을 통째로 바꿀 수는 없다). (2) 공격이 잇따르며 맞추어 간다(적대자가 구조의 응답을 보고 손본다). (3) 헛 정확도와 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 분야에 맞는 섭동 모델이 있어야 한다. 방어는 맞추어 오는 적대자에게도 강건해야 하므로, 탐지하는 기준이 알려지면 회피할 수 있는 탐지 기반의 길은 많이 걸러진다. $\square$
 
 ## 정리하며
 

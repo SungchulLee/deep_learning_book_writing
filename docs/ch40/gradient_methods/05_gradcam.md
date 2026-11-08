@@ -25,7 +25,7 @@ Grad-CAM은 마지막 겹치는 레이어로 흘러드는 그래디언트를 써
 여기서:
 - A_k: 마지막 겹치는 레이어의 k번째 결 그림
 - α_k: 온 세상에 걸쳐 고르게 모은 그래디언트
-- ReLU: 이바지가 양수인 것만
+- ReLU: 기여가 양수인 것만
 
 나은 점:
 - 클래스를 가려낸다(클래스가 다르면 다른 자리가 보인다)
@@ -33,7 +33,7 @@ Grad-CAM은 마지막 겹치는 레이어로 흘러드는 그래디언트를 써
 - 어떤 CNN 구조에도 듣는다
 - 눈으로 풀이할 수 있다
 
-지은이: 가르치기 몫
+지은이: 교육용 자료
 """
 
 import torch
@@ -99,7 +99,7 @@ class GradCAM:
         # 짐 실어 아우른다: Σ_k α_k A_k
         weighted_activations = (weights * activations).sum(dim=1, keepdim=True)  # [1, 1, H', W']
 
-        # ReLU을 건다: 이바지가 양수인 것만
+        # ReLU을 건다: 기여가 양수인 것만
         heatmap = F.relu(weighted_activations)  # [1, 1, H', W']
 
         # [0, 1]으로 고르게 한다
@@ -143,7 +143,7 @@ def example_1_basic_gradcam():
 
     # 마지막 겹치는 레이어를 집는다
     target_layer = get_last_conv_layer(model, model_name)
-    print(f"겨눈 켜: {target_layer.__class__.__name__}")
+    print(f"겨눈 레이어: {target_layer.__class__.__name__}")
 
     # Grad-CAM을 만든다
     gradcam = GradCAM(model, target_layer)
@@ -160,7 +160,7 @@ def example_1_basic_gradcam():
         confidence = F.softmax(output, dim=1)[0, target_class].item()
 
     print(f"\n미루어 본 클래스: {target_class}")
-    print(f"자신함: {confidence:.2%}")
+    print(f"확신도: {confidence:.2%}")
 
     # Grad-CAM을 셈한다
     print("\nGrad-CAM을 셈하는 중...")
@@ -282,7 +282,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 전략 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
 
 ---
 

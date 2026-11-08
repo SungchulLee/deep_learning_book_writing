@@ -46,14 +46,14 @@ class AttentionVisualizer:
         어텐션 짐을 붙들려고 앞으로 스텝 갈고리를 건다.
 
         Args:
-            layer_names: 갈고리를 걸 켜 이름 목록. None이면 모든 어텐션 켜에 건다.
+            layer_names: 갈고리를 걸 레이어 이름 목록. None이면 모든 어텐션 레이어에 건다.
         """
         def hook_fn(name):
             def hook(module, input, output):
                 # 어텐션 짐을 갈무리한다
-                # 내놓기 형태는 모형 구조마다 다르다
+                # 출력 형태는 모형 구조마다 다르다
                 if isinstance(output, tuple) and len(output) > 1:
-                    # 흔히 (내놓기, 어텐션 짐)
+                    # 흔히 (출력, 어텐션 짐)
                     self.attention_maps[name] = output[1].detach()
                 else:
                     self.attention_maps[name] = output.detach()
@@ -78,7 +78,7 @@ class AttentionVisualizer:
         붙든 어텐션 그림을 내놓는다.
 
         Returns:
-            켜 이름을 어텐션 텐서에 이어 주는 사전
+            레이어 이름을 어텐션 텐서에 이어 주는 사전
         """
         return self.attention_maps
 
@@ -119,7 +119,7 @@ class AttentionVisualizer:
             ax.set_yticklabels(tokens, rotation=0)
 
         ax.set_xlabel('열쇠 자리')
-        ax.set_ylabel('물음 자리')
+        ax.set_ylabel('질문 자리')
         ax.set_title(f'어텐션 머리 {head_idx}')
 
         plt.tight_layout()
@@ -179,10 +179,10 @@ class AttentionVisualizer:
                                   average_heads: bool = True,
                                   figsize: Tuple[int, int] = (10, 8)) -> plt.Figure:
         """
-        정한 켜의 어텐션을 그린다.
+        정한 레이어의 어텐션을 그린다.
 
         Args:
-            layer_name: 켜 이름
+            layer_name: 레이어 이름
             tokens: 단어 목록
             average_heads: 머리를 가로질러 고르게 할지
             figsize: 그림 크기
@@ -191,7 +191,7 @@ class AttentionVisualizer:
             Matplotlib 그림
         """
         if layer_name not in self.attention_maps:
-            raise ValueError(f"어텐션 그림에 켜 {layer_name}이 없다")
+            raise ValueError(f"어텐션 그림에 레이어 {layer_name}이 없다")
 
         attn = self.attention_maps[layer_name]
 
@@ -215,8 +215,8 @@ class AttentionVisualizer:
             ax.set_yticklabels(tokens, rotation=0)
 
         ax.set_xlabel('열쇠 자리')
-        ax.set_ylabel('물음 자리')
-        ax.set_title(f'켜: {layer_name} (고른 어텐션)')
+        ax.set_ylabel('질문 자리')
+        ax.set_title(f'레이어: {layer_name} (고른 어텐션)')
 
         plt.tight_layout()
         return fig
@@ -226,12 +226,12 @@ class AttentionVisualizer:
                            query_idx: int,
                            figsize: Tuple[int, int] = (12, 6)) -> plt.Figure:
         """
-        정한 물음 단어에서 뻗는 어텐션 흐름을 그린다.
+        정한 질문 단어에서 뻗는 어텐션 흐름을 그린다.
 
         Args:
             attention_weights: 어텐션 텐서
             tokens: 단어 목록
-            query_idx: 물음 단어의 번호
+            query_idx: 질문 단어의 번호
             figsize: 그림 크기
 
         Returns:
@@ -266,18 +266,18 @@ class BERTAttentionVisualizer(AttentionVisualizer):
 
     def extract_attention_from_output(self, outputs):
         """
-        BERT 모형의 내놓기에서 어텐션 짐을 뽑아낸다.
+        BERT 모형의 출력에서 어텐션 짐을 뽑아낸다.
 
         Args:
-            outputs: BERT(transformers 곳집) 모형의 내놓기
+            outputs: BERT(transformers 곳집) 모형의 출력
 
         Returns:
-            켜마다 하나씩인 어텐션 텐서 목록
+            레이어마다 하나씩인 어텐션 텐서 목록
         """
         if hasattr(outputs, 'attentions') and outputs.attentions is not None:
             return outputs.attentions
         else:
-            warnings.warn("모형 내놓기에 어텐션 짐이 없다. "
+            warnings.warn("모형 출력에 어텐션 짐이 없다. "
                         "모형을 output_attentions=True로 부르라")
             return []
 
@@ -290,15 +290,15 @@ def visualize_token_attention(attention_weights: torch.Tensor,
     단어에 대한 어텐션을 빠르게 그리는 도움 함수.
 
     Args:
-        attention_weights: 어텐션 텐서 (켜, 배치, 머리, 열, 열)
+        attention_weights: 어텐션 텐서 (레이어, 배치, 머리, 열, 열)
         tokens: 단어 목록
-        layer_idx: 그릴 켜 번호(-1이면 마지막 켜)
+        layer_idx: 그릴 레이어 번호(-1이면 마지막 레이어)
         save_path: 그림을 갈무리할 길
 
     Returns:
         Matplotlib 그림
     """
-    # 켜를 고른다
+    # 레이어를 고른다
     if isinstance(attention_weights, (list, tuple)):
         attn = attention_weights[layer_idx]
     else:
@@ -319,8 +319,8 @@ def visualize_token_attention(attention_weights: torch.Tensor,
                cbar_kws={'label': '어텐션 짐'})
 
     ax.set_xlabel('열쇠 자리')
-    ax.set_ylabel('물음 자리')
-    ax.set_title(f'어텐션 결 (켜 {layer_idx})')
+    ax.set_ylabel('질문 자리')
+    ax.set_title(f'어텐션 결 (레이어 {layer_idx})')
     plt.xticks(rotation=90)
     plt.yticks(rotation=0)
     plt.tight_layout()
@@ -337,7 +337,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 몫을 한다. 그리는 코드는 배운 나타냄, 모여 가는 피처, 평가 자를 들여다보게 해서 손에 잡히지 않던 계산을 눈에 보이게 한다.
+그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 기여도를 한다. 그리는 코드는 배운 나타냄, 모여 가는 피처, 평가 자를 들여다보게 해서 손에 잡히지 않던 계산을 눈에 보이게 한다.
 
 여기서 보인 피처는 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 클래스, 여러 데이터를 바꿔 가며 해 보면 이해가 깊어지고 모델 해석에 대한 감이 몸에 붙는다.
 
@@ -351,7 +351,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 전략 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -409,6 +409,6 @@ if __name__ == "__main__":
 
 **다룬 것** — 어텐션 시각화
 
-그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 몫을 한다.
+그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 기여도를 한다.
 
 핵심 클래스는 `AttentionVisualizer`, `BERTAttentionVisualizer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

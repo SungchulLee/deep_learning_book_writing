@@ -8,9 +8,9 @@
 
 ```python
 """
-앞선 레이어: 그래디언트 바탕 어텐션 몫 매기기
+앞선 레이어: 그래디언트 바탕 어텐션 기여도 매기기
 
-어텐션 몫 매기기와 모형 풀이하기를 위해 쌓은 그래디언트를 비롯한
+어텐션 기여도 매기기와 모형 풀이하기를 위해 쌓은 그래디언트를 비롯한
 그래디언트 바탕 방법을 짜 넣는다.
 """
 
@@ -25,10 +25,10 @@ from typing import List, Optional, Callable
 
 class GradientAttentionAnalyzer:
     """
-    그래디언트 바탕 어텐션 몫 매기기 방법.
+    그래디언트 바탕 어텐션 기여도 매기기 방법.
 
     이 방법들은 그래디언트를 써서 어느 어텐션 짐이 모형의 미루어 봄에
-    가장 크게 이바지하는지 가려낸다.
+    가장 크게 기여하는지 가려낸다.
     """
 
     def __init__(self, n_steps: int = 50):
@@ -67,12 +67,12 @@ class GradientAttentionAnalyzer:
         baseline_ids : torch.Tensor, 없어도 됨
             베이스라인 들임(맡긴 값: 0)
         target_idx : int, 없어도 됨
-            겨눈 내놓기 자리
+            겨눈 출력 자리
 
         Returns:
         -------
         torch.Tensor
-            어텐션에 대한 몫 점수
+            어텐션에 대한 기여도 점수
         """
         if baseline_ids is None:
             baseline_ids = torch.zeros_like(input_ids)
@@ -94,7 +94,7 @@ class GradientAttentionAnalyzer:
             outputs = model(interpolated, output_attentions=True)
 
             # 어텐션을 집고 그래디언트를 셈한다
-            attention = outputs.attentions[-1][0, 0]  # 마지막 켜, 첫 머리
+            attention = outputs.attentions[-1][0, 0]  # 마지막 레이어, 첫 머리
 
             if target_idx is not None:
                 # 정한 자리에 대한 그래디언트
@@ -127,9 +127,9 @@ class GradientAttentionAnalyzer:
                         input_ids: torch.Tensor,
                         target_idx: Optional[int] = None) -> torch.Tensor:
         """
-        단순한 그래디언트 × 들임 몫 매기기.
+        단순한 그래디언트 × 들임 기여도 매기기.
 
-        몫 = ∂내놓기/∂들임 × 들임
+        기여도 = ∂출력/∂들임 × 들임
 
         쌓은 그래디언트를 갈음하는 더 단순한 길이다.
         """
@@ -150,7 +150,7 @@ class GradientAttentionAnalyzer:
 
         target.backward()
 
-        # 몫
+        # 기여도
         attribution = input_ids.grad * input_ids.float()
 
         return attribution.detach()
@@ -158,9 +158,9 @@ class GradientAttentionAnalyzer:
     def visualize_attribution(self,
                              attribution: torch.Tensor,
                              tokens: List[str],
-                             title: str = "어텐션 몫 매기기",
+                             title: str = "어텐션 기여도 매기기",
                              save_path: Optional[str] = None):
-        """몫 점수를 그린다."""
+        """기여도 점수를 그린다."""
         if isinstance(attribution, torch.Tensor):
             attribution = attribution.cpu().numpy()
 
@@ -175,7 +175,7 @@ class GradientAttentionAnalyzer:
         bars = ax.bar(positions, np.abs(attribution), color=colors, alpha=0.7, edgecolor='black')
 
         ax.set_xlabel('단어', fontsize=12, fontweight='bold')
-        ax.set_ylabel('몫 점수(크기)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('기여도 점수(크기)', fontsize=12, fontweight='bold')
         ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
 
         ax.set_xticks(positions)
@@ -197,9 +197,9 @@ class GradientAttentionAnalyzer:
         plt.show()
 
 def example_gradient_attribution():
-    """보기: 그래디언트 바탕 몫 매기기(단순하게 줄임)."""
+    """보기: 그래디언트 바탕 기여도 매기기(단순하게 줄임)."""
     print("=" * 70)
-    print("그래디언트 바탕 어텐션 몫 매기기")
+    print("그래디언트 바탕 어텐션 기여도 매기기")
     print("=" * 70)
 
     print("\n짚을 것: 이 보기는 지어낸 자료를 쓴다.")
@@ -208,26 +208,26 @@ def example_gradient_attribution():
     tokens = ["The", "cat", "chased", "the", "mouse"]
     seq_len = len(tokens)
 
-    # 몫 점수를 흉내낸다
+    # 기여도 점수를 흉내낸다
     attribution = torch.tensor([0.2, 0.8, 0.6, 0.1, 0.9])
 
     analyzer = GradientAttentionAnalyzer()
     analyzer.visualize_attribution(
         attribution,
         tokens,
-        title="단어 몫 점수(지어낸 것)"
+        title="단어 기여도 점수(지어낸 것)"
     )
 
     print("\n읽는 법:")
     print("  - 점수가 클수록 미루어 봄에 더 중요하다")
-    print("  - 'cat'과 'mouse'의 몫이 크다")
-    print("  - 관사('the')의 몫은 작다")
+    print("  - 'cat'과 'mouse'의 기여도가 크다")
+    print("  - 관사('the')의 기여도는 작다")
 
 if __name__ == "__main__":
     example_gradient_attribution()
 
     print("\n핵심 생각:")
-    print("  - 쌓은 그래디언트: 강건한 몫 매기기 방법")
+    print("  - 쌓은 그래디언트: 강건한 기여도 매기기 방법")
     print("  - 그래디언트 × 들임: 더 단순한 갈음")
     print("  - 어느 단어가 미루어 봄을 이끄는지 드러낸다")
     print("  - 모형 풀이하기에 꼭 있어야 한다")
@@ -237,7 +237,7 @@ if __name__ == "__main__":
 
 ```
 ======================================================================
-그래디언트 바탕 어텐션 몫 매기기
+그래디언트 바탕 어텐션 기여도 매기기
 ======================================================================
 
 짚을 것: 이 보기는 지어낸 자료를 쓴다.
@@ -245,11 +245,11 @@ if __name__ == "__main__":
 
 읽는 법:
   - 점수가 클수록 미루어 봄에 더 중요하다
-  - 'cat'과 'mouse'의 몫이 크다
-  - 관사('the')의 몫은 작다
+  - 'cat'과 'mouse'의 기여도가 크다
+  - 관사('the')의 기여도는 작다
 
 핵심 생각:
-  - 쌓은 그래디언트: 강건한 몫 매기기 방법
+  - 쌓은 그래디언트: 강건한 기여도 매기기 방법
   - 그래디언트 × 들임: 더 단순한 갈음
   - 어느 단어가 미루어 봄을 이끄는지 드러낸다
   - 모형 풀이하기에 꼭 있어야 한다
@@ -257,7 +257,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 몫을 한다. 그리는 코드는 배운 나타냄, 모여 가는 피처, 평가 자를 들여다보게 해서 손에 잡히지 않던 계산을 눈에 보이게 한다.
+그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 기여도를 한다. 그리는 코드는 배운 나타냄, 모여 가는 피처, 평가 자를 들여다보게 해서 손에 잡히지 않던 계산을 눈에 보이게 한다.
 
 여기서 보인 피처는 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 클래스, 여러 데이터를 바꿔 가며 해 보면 이해가 깊어지고 모델 해석에 대한 감이 몸에 붙는다.
 
@@ -271,7 +271,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 전략 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -329,6 +329,6 @@ if __name__ == "__main__":
 
 **다룬 것** — 앞선 레이어
 
-그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 몫을 한다.
+그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 기여도를 한다.
 
 핵심 클래스는 `GradientAttentionAnalyzer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

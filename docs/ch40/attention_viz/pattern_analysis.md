@@ -20,7 +20,7 @@ $$
 \text{head}_h = \text{Attention}(Q W_h^Q, K W_h^K, V W_h^V)
 $$
 
-머리마다 $d_k = d_{\text{model}} / H$ 차원의 밑밭에서 돌며, 서로 다른 말결이나 구조 피처에 맡은 몫이 갈릴 수 있다.
+머리마다 $d_k = d_{\text{model}} / H$ 차원의 부분공간에서 돌며, 서로 다른 말결이나 구조 피처에 맡은 기여도가 갈릴 수 있다.
 
 ### 머리가 맡는 피처
 
@@ -51,12 +51,12 @@ def visualize_all_heads(
     figsize: tuple = (20, 16)
 ) -> plt.Figure:
     """
-    한 켜의 모든 머리의 어텐션 결을 그린다.
+    한 레이어의 모든 머리의 어텐션 결을 그린다.
 
     Args:
         attention_weights: [배치, 머리 수, 열 길이, 열 길이]
         tokens: 단어 목록
-        layer: 그릴 켜 번호
+        layer: 그릴 레이어 번호
         figsize: 그림 크기
 
     Returns:
@@ -88,7 +88,7 @@ def visualize_all_heads(
     for idx in range(num_heads, len(axes)):
         axes[idx].set_visible(False)
 
-    fig.suptitle(f'켜 {layer} - 모든 어텐션 머리', fontsize=14)
+    fig.suptitle(f'레이어 {layer} - 모든 어텐션 머리', fontsize=14)
     plt.tight_layout()
     return fig
 ```
@@ -141,7 +141,7 @@ def compute_head_diversity(
 
 ### 머리의 중요함과 쳐내기
 
-머리마다 이바지가 같지 않다. 머리를 하나씩 없애 보고 그 미침을 재어 중요함을 어림할 수 있다.
+머리마다 기여가 같지 않다. 머리를 하나씩 없애 보고 그 미침을 재어 중요함을 어림할 수 있다.
 
 ```python
 def compute_head_importance(
@@ -158,7 +158,7 @@ def compute_head_importance(
     중요함 = E[|grad(L) * 어텐션|]
 
     Returns:
-        importance_matrix: [켜 수, 머리 수]
+        importance_matrix: [레이어 수, 머리 수]
     """
     importance = torch.zeros(num_layers, num_heads).to(device)
 
@@ -207,12 +207,12 @@ def compare_layers(
     layers_to_compare: list = None
 ) -> plt.Figure:
     """
-    트랜스포머 켜를 가로질러 어텐션 결을 견준다.
+    트랜스포머 레이어를 가로질러 어텐션 결을 견준다.
 
     Args:
         attention_weights_by_layer: 레이어마다의 [배치, 머리, 열, 열] 목록
         tokens: 단어 목록
-        layers_to_compare: 보일 켜
+        layers_to_compare: 보일 레이어
     """
     if layers_to_compare is None:
         n_layers = len(attention_weights_by_layer)
@@ -232,7 +232,7 @@ def compare_layers(
             vmin=0,
             cbar=idx == len(layers_to_compare) - 1
         )
-        axes[idx].set_title(f'켜 {layer}')
+        axes[idx].set_title(f'레이어 {layer}')
 
     plt.tight_layout()
     return fig
@@ -241,7 +241,7 @@ def compute_locality_score(attention_weights: torch.Tensor, window: int = 3) -> 
     """
     어텐션이 그 자리에 머무는지 멀리 미치는지 잰다.
 
-    그 자리 셈 = 대각선에서 ±창 안에 든 어텐션 무게의 몫.
+    그 자리 셈 = 대각선에서 ±창 안에 든 어텐션 무게의 기여도.
     """
     attn = attention_weights[0].mean(dim=0).detach().cpu().numpy()
     seq_len = attn.shape[0]
@@ -274,7 +274,7 @@ def compute_locality_score(attention_weights: torch.Tensor, window: int = 3) -> 
 
 ### 수학 기초
 
-인코더의 나타냄 $K^e, V^e$과 디코더의 물음 $Q^d$이 주어지면
+인코더의 나타냄 $K^e, V^e$과 디코더의 질문 $Q^d$이 주어지면
 
 $$
 \text{CrossAttn}(Q^d, K^e, V^e) = \text{softmax}\left(\frac{Q^d (K^e)^\top}{\sqrt{d_k}}\right) V^e
@@ -297,7 +297,7 @@ def visualize_cross_attention(
     Args:
         cross_attention: [배치, 머리, 받는 열 길이, 보내는 열 길이]
         source_tokens: 인코더 들임 단어
-        target_tokens: 푸는 개 내놓기 단어
+        target_tokens: 푸는 개 출력 단어
         head: 정한 머리(None이면 모든 머리를 고르게 한다)
     """
     if head is not None:
@@ -340,7 +340,7 @@ def analyze_cross_attention_alignment(
     eps = 1e-10
     entropy = -(attn * torch.log(attn + eps)).sum(dim=-1).mean().item()
 
-    # 덮음: 임계를 넘게 어텐션을 받은 보내는 쪽 단어의 몫
+    # 덮음: 임계를 넘게 어텐션을 받은 보내는 쪽 단어의 기여도
     max_attn_per_source = attn.max(dim=0)[0]
     coverage = (max_attn_per_source > 0.1).float().mean().item()
 
@@ -368,7 +368,7 @@ BertViz(빅, 2019)은 그리는 피처 셋을 준다.
 |------|-------|----------|
 | **어텐션 머리 봄** | 머리 하나의 어텐션 피처 | 정한 머리의 액션 살피기 |
 | **모델 봄** | 모든 레이어의 모든 머리 | 어텐션 스프레드를 두루 보기 |
-| **뉴런 봄** | 물음-키 쪼갬 | 무엇이 어텐션을 이끄는지 알기 |
+| **뉴런 봄** | 질문-키 쪼갬 | 무엇이 어텐션을 이끄는지 알기 |
 
 ### BertViz 쓰기
 
@@ -403,7 +403,7 @@ def interactive_attention_visualization(
     # 머리 봄 - 머리 하나를 촘촘히 살핀다
     head_view(attention, tokens)
 
-    # 모형 봄 - 모든 머리, 모든 켜
+    # 모형 봄 - 모든 머리, 모든 레이어
     model_view(attention, tokens)
 ```
 
@@ -418,7 +418,7 @@ def create_attention_heatmap_grid(
     figsize: tuple = (24, 20)
 ) -> plt.Figure:
     """
-    켜 × 머리의 어텐션 격자를 두루 만든다.
+    레이어 × 머리의 어텐션 격자를 두루 만든다.
     """
     fig, axes = plt.subplots(num_layers, num_heads, figsize=figsize)
 
@@ -435,7 +435,7 @@ def create_attention_heatmap_grid(
             if head_idx == 0:
                 ax.set_ylabel(f'L{layer_idx}', fontsize=8)
 
-    fig.suptitle('어텐션 결: 켜(가로줄) × 머리(세로줄)', fontsize=14)
+    fig.suptitle('어텐션 결: 레이어(가로줄) × 머리(세로줄)', fontsize=14)
     plt.tight_layout()
     return fig
 
@@ -475,32 +475,32 @@ def create_attention_flow_sankey(
 
 ### 핵심 문제
 
-모델 해석에서 중요한 분류는 **어텐션 웨이트**와 **몫 점수**의 차이다.
+모델 해석에서 중요한 분류는 **어텐션 웨이트**와 **기여도 점수**의 차이다.
 
 - **어텐션**은 모델이 어디를 "보는지" 보인다. 곧 입력 단어에 걸친 웨이트의 스프레드다
-- **기여도 분석**은 무엇이 참으로 내놓기를 흔드는지, 곧 입력마다의 인과 이바지를 드러낸다
+- **기여도 분석**은 무엇이 참으로 출력을 흔드는지, 곧 입력마다의 인과 기여를 드러낸다
 
-이 둘은 **같은 것이 아니다**. 제인과 월리스(2019)는 어텐션 웨이트가 그래디언트 기반 몫과 얽히지 않을 때가 많으며, 어텐션 분포를 달리해도 똑같은 추론이 나올 수 있음을 밝혔다.
+이 둘은 **같은 것이 아니다**. 제인과 월리스(2019)는 어텐션 웨이트가 그래디언트 기반 기여도와 얽히지 않을 때가 많으며, 어텐션 분포를 달리해도 똑같은 추론이 나올 수 있음을 밝혔다.
 
 ### 어텐션 ≠ 풀이인 까닭
 
-어텐션을 풀이 방법으로 삼기 어렵게 하는 몫이 여럿 있다.
+어텐션을 풀이 방법으로 삼기 어렵게 하는 기여도가 여럿 있다.
 
-**값 바꿈**: 어텐션 웨이트는 어느 값 벡터를 아우를지 정하지만, 값 벡터 자체도 바뀐다. 어떤 단어에 어텐션이 크다고 그 단어의 소식이 내놓기를 판치는 것은 아니다.
+**값 바꿈**: 어텐션 웨이트는 어느 값 벡터를 아우를지 정하지만, 값 벡터 자체도 바뀐다. 어떤 단어에 어텐션이 크다고 그 단어의 소식이 출력을 판치는 것은 아니다.
 
 $$
 \text{output}_i = \sum_j \alpha_{ij} V_j W^V
 $$
 
-이바지는 $\alpha_{ij}$과 $V_j$의 속살에 함께 달렸다.
+기여는 $\alpha_{ij}$과 $V_j$의 속살에 함께 달렸다.
 
-**나머지 이음**: 소식이 건너뛰는 이음으로 어텐션을 지나친다. 내놓기 나타냄에는 어텐션이 모은 소식과 본디 입력이 함께 들어 있으므로 어텐션 웨이트만으로는 그림이 온전하지 않다.
+**나머지 이음**: 소식이 건너뛰는 이음으로 어텐션을 지나친다. 출력 나타냄에는 어텐션이 모은 소식과 본디 입력이 함께 들어 있으므로 어텐션 웨이트만으로는 그림이 온전하지 않다.
 
 $$
 \mathbf{h}_i^{(l+1)} = \mathbf{h}_i^{(l)} + \text{Attn}(\mathbf{h}^{(l)})
 $$
 
-**여러 레이어 겹침**: 여러 레이어 트랜스포머에서는 한 단어의 소식이 여러 어텐션 길을 거쳐 내놓기에 이를 수 있다. 레이어 하나의 어텐션으로는 이런 에두른 미침을 담을 수 없다.
+**여러 레이어 겹침**: 여러 레이어 트랜스포머에서는 한 단어의 소식이 여러 어텐션 길을 거쳐 출력에 이를 수 있다. 레이어 하나의 어텐션으로는 이런 에두른 미침을 담을 수 없다.
 
 ### 어텐션과 기여도 분석 비교
 
@@ -513,7 +513,7 @@ def compare_attention_and_attribution(
     device: torch.device = None
 ) -> dict:
     """
-    어텐션 짐과 그래디언트 바탕 몫을 견준다.
+    어텐션 짐과 그래디언트 바탕 기여도를 견준다.
     """
     model.eval()
     input_ids = input_ids.to(device)
@@ -523,7 +523,7 @@ def compare_attention_and_attribution(
         outputs = model(input_ids, output_attentions=True)
         attention = outputs.attentions[layer][0].mean(dim=0)
 
-    # 그래디언트 바탕 몫을 얻는다
+    # 그래디언트 바탕 기여도를 얻는다
     embeddings = model.get_input_embeddings()(input_ids)
     embeddings.requires_grad_(True)
 
@@ -557,7 +557,7 @@ def compare_attention_and_attribution(
 
 | 방법 | 알맞은 자리 | 한계 |
 |--------|----------|------------|
-| **어텐션 웨이트** | 모델의 액션 둘러보기, 구조 알기, 가설 세우기 | 믿을 만한 몫이 아니고 값 속살에 흔들린다 |
+| **어텐션 웨이트** | 모델의 액션 둘러보기, 구조 알기, 가설 세우기 | 믿을 만한 기여도가 아니고 값 속살에 흔들린다 |
 | **어텐션 굴리기** | 레이어를 가로지르는 소식 흐름 좇기 | 어텐션 ≈ 소식 흐름이라고 여긴다 |
 | **어텐션 흐름** | 여러 레이어에 걸쳐 더 믿을 만한 기여도 분석 | 계산이 비싸다 |
 | **그래디언트 기여도 분석** | 믿을 만한 중요함 재기 | 어텐션만의 깨침을 놓친다 |
@@ -597,7 +597,7 @@ def comprehensive_attention_analysis(
         'analyses': {}
     }
 
-    # 켜마다 살핀다
+    # 레이어마다 살핀다
     for layer_idx, attn in enumerate(attentions):
         diversity = compute_head_diversity(attn)
         locality = compute_locality_score(attn)
@@ -608,7 +608,7 @@ def comprehensive_attention_analysis(
             'locality_score': locality
         }
 
-    # 켜를 가로지르는 그 자리 머묾의 흐름
+    # 레이어를 가로지르는 그 자리 머묾의 흐름
     localities = [
         results['analyses'][f'layer_{i}']['locality_score']
         for i in range(len(attentions))
@@ -630,19 +630,19 @@ def comprehensive_attention_analysis(
 </div>
 
 ??? success "풀이"
-    웨이트가 $W_1, b_1, W_2, b_2$인 학습된 XOR 네트워크에서 내놓기는 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 입력 피처마다 몫을 내놓는다. $x = [1, 1]$(클래스 0)이면 두 피처 모두 음수 분류에 이바지한다. 몫 값은 방법마다 다르다. 그래디언트 기반 방법은 $\partial f / \partial x_i$을 계산하고, 흔들어 보는 방법은 피처를 가렸을 때 내놓기가 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
+    웨이트가 $W_1, b_1, W_2, b_2$인 학습된 XOR 네트워크에서 출력은 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 입력 피처마다 기여도를 내놓는다. $x = [1, 1]$(클래스 0)이면 두 피처 모두 음수 분류에 기여한다. 기여도 값은 방법마다 다르다. 그래디언트 기반 방법은 $\partial f / \partial x_i$을 계산하고, 흔들어 보는 방법은 피처를 가렸을 때 출력이 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-이 절의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 베이스라인 $x_0$에 대해 모든 피처 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
+이 절의 풀이 방법이 완전성 공리를 채우는지, 곧 어떤 베이스라인 $x_0$에 대해 모든 피처 기여도의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
 
 </div>
 
 ??? success "풀이"
-    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 베이스라인에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 구성에 달렸다. 그래디언트 방법은 온전함을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 구성 자체로 온전함을 채운다(길을 따라 미적분의 기본정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
+    완전성 공리(섀플리 값 이론에서는 효율이라고도 한다)는 기여도의 합이 입력에서의 모델 배포와 베이스라인에서의 출력의 차이와 같다는 것이다. 이 방법이 완전성을 채우는지는 그 구성에 달렸다. 그래디언트 방법은 완전성을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 구성 자체로 완전성을 채운다(길을 따라 미적분의 기본정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 완전성을 어기는 방법은 기여도를 너무 많거나 적게 매길 수 있어, 온 기여도를 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
@@ -654,7 +654,7 @@ def comprehensive_attention_analysis(
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 그림마다 피처 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 피처를 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 믿을 만한 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 베이스라인에서 시작해 몫이 큰 차례로 피처를 하나씩 드러내며 자신함이 오르는 모습을 적는다. 믿을 만한 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 그림마다 피처 기여도를 계산한다. (2) 빼기: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 적는다. 믿을 만한 풀이면 확신도가 빠르게 떨어진다. (3) 넣기: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 적는다. 믿을 만한 풀이면 확신도가 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -666,7 +666,7 @@ def comprehensive_attention_analysis(
 </div>
 
 ??? success "풀이"
-    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 절의 풀이 방법으로 피처의 중요함을 짚을 수 있으나, 강건성(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 피처를 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
+    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 기여한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 절의 풀이 방법으로 피처의 중요함을 짚을 수 있으나, 강건성(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 충실성(중요한 피처를 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
 
 ## 정리하며
 

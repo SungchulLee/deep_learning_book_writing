@@ -1,6 +1,6 @@
 # Integrated Gradients
 
-**Integrated Gradients(IG)**는 맨 그래디언트 기반 길이 지닌 기초 걸림돌을 다루는, 이치에 닿는 기여도 분석 방법이다. 그 자리의 예민함만 주는 단순한 그래디언트와 달리, Integrated Gradients는 **베이스라인에서 입력으로 가는 길을 따라 그래디언트를 쌓아** 몫을 계산한다.
+**Integrated Gradients(IG)**는 맨 그래디언트 기반 길이 지닌 기초 걸림돌을 다루는, 이치에 닿는 기여도 분석 방법이다. 그 자리의 예민함만 주는 단순한 그래디언트와 달리, Integrated Gradients는 **베이스라인에서 입력으로 가는 길을 따라 그래디언트를 쌓아** 기여도를 계산한다.
 
 순다라라잔, 탈리, 얀(2017)이 **예민함**과 **짜기에 흔들리지 않음**을 채우는 기여도 분석 방법을 만들겠다는 또렷한 뜻으로 들여왔다. 이 둘은 맨 그래디언트가 채우지 못하는 성능이다. 바라는 이론 공리 여럿을 한꺼번에 채우는, 널리 쓰이는 하나뿐인 방법으로 이름이 높다.
 
@@ -15,20 +15,20 @@
 - $x = 2$이면 $f(2) = 1$, $\nabla f(2) = 1$(그래디언트가 있다)
 - $x = 0$이면 $f(0) = 0$, $\nabla f(0) = 0$(기울기가 0이다)
 
-이제 기여도 분석 물음을 던지자. **"왜 $f(2) = 1$인가?"**
+이제 기여도 분석 질문을 던지자. **"왜 $f(2) = 1$인가?"**
 
 맨 기울기는 $x$의 중요함이 1이라 한다. 그런데 베이스라인을 $x' = 0$으로 잡으면 어떨까?
 
-차이 $f(2) - f(0) = 1 - 0 = 1$은 온전히 입력에 돌려야 하는데, 그래디언트만으로는 온 이바지를 담지 못한다. 그래디언트는 그 입력 자리에서의 **그 자리 예민함**만 잴 뿐이다.
+차이 $f(2) - f(0) = 1 - 0 = 1$은 온전히 입력에 돌려야 하는데, 그래디언트만으로는 온 기여를 담지 못한다. 그래디언트는 그 입력 자리에서의 **그 자리 예민함**만 잴 뿐이다.
 
-**더 중요하게는**: $x = 0.5$(임계 바로 아래)이면 $f(0.5) = 0$이고 $\nabla f(0.5) = 0$이다. 입력 값이 내놓기가 0인지 아닌지를 곧바로 가르는데도 그래디언트는 이 입력의 중요함이 0이라고 우긴다!
+**더 중요하게는**: $x = 0.5$(임계 바로 아래)이면 $f(0.5) = 0$이고 $\nabla f(0.5) = 0$이다. 입력 값이 출력이 0인지 아닌지를 곧바로 가르는데도 그래디언트는 이 입력의 중요함이 0이라고 우긴다!
 
 ### 잦아듦 문제
 
 ReLU, 시그모이드, tanh 활성화를 쓰는 뉴럴 네트워크에는 기울기가 0이거나 0에 가까운 자리(잦아듦)가 있다. 그런 자리에서는
 
 - 맨 그래디언트가 그 피처의 중요함이 0이라고 한다
-- 그런데도 그 피처가 내놓기를 또렷이 흔든다
+- 그런데도 그 피처가 출력을 또렷이 흔든다
 
 ### 길 따라 쌓아 푸는 길
 
@@ -38,7 +38,7 @@ $$
 \text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{\alpha=0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
 $$
 
-사이 잡는 길을 따라 그래디언트 소식을 모두 쌓으므로 잦아든 자리를 지나면서도 이바지를 담아낸다.
+사이 잡는 길을 따라 그래디언트 소식을 모두 쌓으므로 잦아든 자리를 지나면서도 기여를 담아낸다.
 
 ---
 
@@ -46,7 +46,7 @@ $$
 
 ### 길 적분 구성
 
-입력 $\mathbf{x} \in \mathbb{R}^n$, 베이스라인 $\mathbf{x}' \in \mathbb{R}^n$, 모델 $f: \mathbb{R}^n \rightarrow \mathbb{R}$에 대해 피처 $i$의 Integrated Gradients 몫은 이렇다.
+입력 $\mathbf{x} \in \mathbb{R}^n$, 베이스라인 $\mathbf{x}' \in \mathbb{R}^n$, 모델 $f: \mathbb{R}^n \rightarrow \mathbb{R}$에 대해 피처 $i$의 Integrated Gradients 기여도는 이렇다.
 
 $$
 \text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{\alpha=0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
@@ -90,33 +90,33 @@ Integrated Gradients는 순다라라잔 외가 어떤 기여도 분석 방법이
 
 ### 공리 1: 예민함
 
-**말하면**: 입력과 베이스라인이 피처 하나에서만 다르고 모델의 내놓기가 다르면, 그 피처는 0이 아닌 몫을 받아야 한다.
+**말하면**: 입력과 베이스라인이 피처 하나에서만 다르고 모델의 출력이 다르면, 그 피처는 0이 아닌 기여도를 받아야 한다.
 
 **엄밀히**: $f(\mathbf{x}) \neq f(\mathbf{x}')$이고 $x_i \neq x'_i$이며 $j \neq i$마다 $x_j = x'_j$이면 $\text{IG}_i(\mathbf{x}) \neq 0$이다.
 
-**맨 그래디언트가 왜 어기는가**: $x = 2$, $x' = 0$인 $f(x) = \text{ReLU}(x - 1)$을 보자. $x = 0.5$에서 평가하면 (임계 아래이므로) 기울기가 0이지만, $x$은 내놓기에 또렷이 걸린다.
+**맨 그래디언트가 왜 어기는가**: $x = 2$, $x' = 0$인 $f(x) = \text{ReLU}(x - 1)$을 보자. $x = 0.5$에서 평가하면 (임계 아래이므로) 기울기가 0이지만, $x$은 출력에 또렷이 걸린다.
 
 **IG는 왜 채우는가**: 길을 따라 적분하므로 끝점에서 0이더라도 기울기가 0이 *아닌* 자리를 담아낸다.
 
 ### 공리 2: 짜기에 흔들리지 않음
 
-**말하면**: 모든 입력에 같은 내놓기를 내는 두 네트워크는 안쪽 구조가 어떻든 같은 몫을 받아야 한다.
+**말하면**: 모든 입력에 같은 출력을 내는 두 네트워크는 안쪽 구조가 어떻든 같은 기여도를 받아야 한다.
 
 **엄밀히**: 모든 $\mathbf{x}$에 대해 $f(\mathbf{x}) = g(\mathbf{x})$이면 $\text{IG}^f_i(\mathbf{x}) = \text{IG}^g_i(\mathbf{x})$이다.
 
-**왜 중요한가**: 시그모이드를 $\sigma(x)$으로 짜든 $1 - \sigma(-x)$으로 짜든 함수가 수학으로 같으므로 몫이 달라져서는 안 된다.
+**왜 중요한가**: 시그모이드를 $\sigma(x)$으로 짜든 $1 - \sigma(-x)$으로 짜든 함수가 수학으로 같으므로 기여도가 달라져서는 안 된다.
 
-**DeepLIFT은 왜 어기는가**: DeepLIFT은 계산 그래프를 따라 이바지를 퍼뜨리므로, 함수가 같아도 그래프 구조가 다르면 다른 몫이 나올 수 있다.
+**DeepLIFT은 왜 어기는가**: DeepLIFT은 계산 그래프를 따라 기여를 퍼뜨리므로, 함수가 같아도 그래프 구조가 다르면 다른 기여도가 나올 수 있다.
 
-### 따라 나오는 성능: 온전함
+### 따라 나오는 성능: 완전성
 
-정의에서 따라 나오는 중요한 피처와가 **온전함**(또는 **효율**) 성능이다.
+정의에서 따라 나오는 중요한 피처와가 **완전성**(또는 **효율**) 성능이다.
 
 $$
 \sum_{i=1}^{n} \text{IG}_i(\mathbf{x}) = f(\mathbf{x}) - f(\mathbf{x}')
 $$
 
-몫이 입력에서의 모델 배포와 베이스라인에서의 내놓기의 차이를 **꼭 맞게 갈라 담는다**. 중요함이 "새거나" 없던 것이 생기지 않는다.
+기여도가 입력에서의 모델 배포와 베이스라인에서의 출력의 차이를 **꼭 맞게 갈라 담는다**. 중요함이 "새거나" 없던 것이 생기지 않는다.
 
 **증명:**
 
@@ -126,7 +126,7 @@ $$
 \sum_i \text{IG}_i = \sum_i (x_i - x'_i) \int_0^1 \frac{\partial f}{\partial x_i} d\alpha = \int_0^1 \nabla f \cdot (\mathbf{x} - \mathbf{x}') \, d\alpha = \int_0^1 \frac{d}{d\alpha} f(\gamma(\alpha)) \, d\alpha = f(\mathbf{x}) - f(\mathbf{x}')
 $$
 
-이 성능은 풀이하기에 아주 값지다. 몫이 **손에 잡히는 뜻**을 지닌다는 말이니, 추론의 차이를 나누어 담는 것이다.
+이 성능은 풀이하기에 아주 값지다. 기여도가 **손에 잡히는 뜻**을 지닌다는 말이니, 추론의 차이를 나누어 담는 것이다.
 
 ---
 
@@ -149,7 +149,7 @@ def compute_integrated_gradients(
     steps: int = 50
 ) -> torch.Tensor:
     """
-    쌓은 그래디언트 몫을 셈한다.
+    쌓은 그래디언트 기여도를 셈한다.
 
     Args:
         model: 평가하는 결로 놓인 뉴럴 네트워크
@@ -160,7 +160,7 @@ def compute_integrated_gradients(
         steps: 사이를 잡는 스텝 수(많을수록 더 맞다)
 
     Returns:
-        몫 그림 [1, H, W]
+        기여도 그림 [1, H, W]
     """
     model.eval()
     image_tensor = image_tensor.to(device)
@@ -255,7 +255,7 @@ def create_baseline(
 ```python
 class IntegratedGradients:
     """
-    쌓은 그래디언트 몫 매기기 방법.
+    쌓은 그래디언트 기여도 매기기 방법.
 
     살펴볼 거리: Sundararajan et al., "Axiomatic Attribution for 
     Deep Networks"(ICML 2017)
@@ -277,17 +277,17 @@ class IntegratedGradients:
         return_convergence_delta: bool = False
     ) -> torch.Tensor:
         """
-        쌓은 그래디언트 몫을 셈한다.
+        쌓은 그래디언트 기여도를 셈한다.
 
         Args:
             input_tensor: (1, *들임 차원) 형태 들임 텐서
             baseline: 형태가 같은 베이스라인 텐서. None이면 0을 쓴다.
-            target_class: 몫을 매길 겨눈 클래스. None이면 argmax을 쓴다.
+            target_class: 기여도를 매길 겨눈 클래스. None이면 argmax을 쓴다.
             n_steps: 적분 스텝 수(많을수록 더 맞다)
             return_convergence_delta: True이면 어림 어긋남도 내놓는다
 
         Returns:
-            들임과 형태가 같은 몫 텐서
+            들임과 형태가 같은 기여도 텐서
         """
         self.model.eval()
         device = input_tensor.device
@@ -338,7 +338,7 @@ class IntegratedGradients:
         attributions = diff * avg_grads
 
         if return_convergence_delta:
-            # 온전함을 살핀다: 몫의 합 ≈ f(x) - f(x')
+            # 완전성을 살핀다: 기여도의 합 ≈ f(x) - f(x')
             with torch.no_grad():
                 f_x = self.model(input_tensor)[0, target_class]
                 f_baseline = self.model(baseline)[0, target_class]
@@ -361,7 +361,7 @@ class IntegratedGradients:
         """
         잡음에 강건한 쌓은 그래디언트(기댓값 그래디언트)를 셈한다.
 
-        잡음 섞은 베이스라인 여럿에 걸쳐 IG를 고르게 해 더 강건한 몫을 낸다.
+        잡음 섞은 베이스라인 여럿에 걸쳐 IG를 고르게 해 더 강건한 기여도를 낸다.
         이는 SHAP의 기댓값 그래디언트 구성과 이어진다.
         """
         attributions = torch.zeros_like(input_tensor)
@@ -451,7 +451,7 @@ def compute_integrated_gradients_batched(
 
 ## 5. 베이스라인 고르기
 
-베이스라인을 어떻게 고르느냐가 몫을 크게 가른다. 베이스라인은 "치우친 데 없는" 또는 "소식이 없는" 입력을 나타낸다.
+베이스라인을 어떻게 고르느냐가 기여도를 크게 가른다. 베이스라인은 "치우친 데 없는" 또는 "소식이 없는" 입력을 나타낸다.
 
 ### 흔히 고르는 베이스라인
 
@@ -500,18 +500,18 @@ def compare_baselines(
         axes[0, idx + 1].set_title(f'{baseline_type.capitalize()} 베이스라인')
         axes[0, idx + 1].axis('off')
 
-        # 몫을 보인다
+        # 기여도를 보인다
         axes[1, idx + 1].imshow(attr_np, cmap='hot')
-        axes[1, idx + 1].set_title('몫')
+        axes[1, idx + 1].set_title('기여도')
         axes[1, idx + 1].axis('off')
 
     plt.tight_layout()
     return fig
 ```
 
-### 밭마다의 베이스라인 길잡이
+### 분야마다의 베이스라인 길잡이
 
-| 밭 | 권하는 베이스라인 | 까닭 |
+| 분야 | 권하는 베이스라인 | 까닭 |
 |--------|---------------------|-----------|
 | 그림(RGB) | 0(검정) | 눈에 보이는 소식이 없음 |
 | 글(쏘아 넣기) | 채움 단어의 쏘아 넣기 | 치우친 데 없는 단어 |
@@ -521,9 +521,9 @@ def compare_baselines(
 
 ---
 
-## 6. 온전함 살피기
+## 6. 완전성 살피기
 
-IG의 성능을 살피는 중요한 길은 온전함을 따져 보는 것이다.
+IG의 성능을 살피는 중요한 길은 완전성을 따져 보는 것이다.
 
 ```python
 def verify_completeness(
@@ -535,16 +535,16 @@ def verify_completeness(
     steps: int = 50
 ) -> dict:
     """
-    IG 몫의 합이 f(x) - f(x')이 되는지 살핀다.
+    IG 기여도의 합이 f(x) - f(x')이 되는지 살핀다.
 
     Returns:
-        온전함 살핌 열매를 담은 사전
+        완전성 살핌 열매를 담은 사전
     """
     model.eval()
     image_tensor = image_tensor.to(device)
     baseline = create_baseline(image_tensor, baseline_type, device)
 
-    # 모형 내놓기를 셈한다
+    # 모형 출력을 셈한다
     with torch.no_grad():
         output_input = model(image_tensor)[0, target_class].item()
         output_baseline = model(baseline)[0, target_class].item()
@@ -586,7 +586,7 @@ def analyze_steps_convergence(
     device: torch.device,
     step_counts: list = [5, 10, 20, 50, 100, 200, 500]
 ):
-    """스텝이 늘수록 몫이 어떻게 모이는지 살핀다."""
+    """스텝이 늘수록 기여도가 어떻게 모이는지 살핀다."""
     import matplotlib.pyplot as plt
 
     errors = []
@@ -602,7 +602,7 @@ def analyze_steps_convergence(
     plt.figure(figsize=(10, 6))
     plt.plot(step_counts, errors, 'bo-', linewidth=2, markersize=8)
     plt.xlabel('스텝 수', fontsize=12)
-    plt.ylabel('견준 온전함 어긋남', fontsize=12)
+    plt.ylabel('견준 완전성 어긋남', fontsize=12)
     plt.title('쌓은 그래디언트가 모여 가는 모습', fontsize=14)
     plt.yscale('log')
     plt.grid(True, alpha=0.3)
@@ -618,7 +618,7 @@ def analyze_steps_convergence(
 | 20~30 | 빠르게 둘러보기, 디버깅 | ~5~10% |
 | 50 | 여느 쓰임, 넉넉한 정확도 | ~1~5% |
 | 100~200 | 논문, 엄밀한 살핌 | 1% 아래 |
-| 300 넘음 | 온전함 어긋남이 클 때 | 0.5% 아래 |
+| 300 넘음 | 완전성 어긋남이 클 때 | 0.5% 아래 |
 
 ---
 
@@ -636,11 +636,11 @@ def visualize_integrated_gradients(
     title: str = "쌓은 그래디언트"
 ):
     """
-    쌓은 그래디언트 몫을 그린다.
+    쌓은 그래디언트 기여도를 그린다.
 
     Args:
         image: [0, 1] 너비의 본디 그림 [H, W, 3]
-        attribution: 몫 그림 [H, W]
+        attribution: 기여도 그림 [H, W]
         title: 그림 이름
     """
     fig, axes = plt.subplots(1, 4, figsize=(16, 4))
@@ -650,16 +650,16 @@ def visualize_integrated_gradients(
     axes[0].set_title('본디')
     axes[0].axis('off')
 
-    # 부호 있는 몫(갈라지는 빛깔 그림)
+    # 부호 있는 기여도(갈라지는 빛깔 그림)
     vmax = np.abs(attribution).max()
     im = axes[1].imshow(attribution, cmap='seismic', vmin=-vmax, vmax=vmax)
-    axes[1].set_title('부호 있는 몫')
+    axes[1].set_title('부호 있는 기여도')
     axes[1].axis('off')
     plt.colorbar(im, ax=axes[1], fraction=0.046)
 
-    # 절댓값 몫
+    # 절댓값 기여도
     axes[2].imshow(np.abs(attribution), cmap='hot')
-    axes[2].set_title('절댓값 몫')
+    axes[2].set_title('절댓값 기여도')
     axes[2].axis('off')
 
     # 겹쳐 보이기
@@ -704,7 +704,7 @@ def ig_for_tabular(
         baseline_type: 'zero'나 'mean'
 
     Returns:
-        결마다의 몫 값
+        결마다의 기여도 값
     """
     if device is None:
         device = features.device
@@ -718,16 +718,16 @@ def ig_for_tabular(
         # 익힘 자료의 평균을 쓴다(참으로는 넘겨받아야 한다)
         baseline = features.mean(dim=0, keepdim=True)
 
-    # 몫을 셈한다
+    # 기여도를 셈한다
     attributions = ig.attribute(features, baseline, target_class, n_steps=100)
 
     # 값을 뽑는다
     attr_values = attributions.squeeze().cpu().numpy()
 
-    # 몫의 절댓값으로 줄 세운다
+    # 기여도의 절댓값으로 줄 세운다
     sorted_idx = np.argsort(np.abs(attr_values))[::-1]
 
-    print("결 몫 매기기(|몫|으로 줄 세움):")
+    print("결 기여도 매기기(|기여도|으로 줄 세움):")
     print("-" * 50)
     for i in sorted_idx[:15]:
         print(f"{feature_names[i]:30s}: {attr_values[i]:+.4f}")
@@ -765,7 +765,7 @@ def ig_for_time_series(
         target_class: 가름 모형의 겨눈 클래스
 
     Returns:
-        어느 때 스텝이 중요한지 보이는 때 몫
+        어느 때 스텝이 중요한지 보이는 때 기여도
     """
     import matplotlib.pyplot as plt
 
@@ -775,7 +775,7 @@ def ig_for_time_series(
     if baseline is None:
         baseline = torch.zeros_like(sequence)
 
-    # 몫을 셈한다
+    # 기여도를 셈한다
     attributions = ig.attribute(sequence, baseline, target_class, n_steps=n_steps)
 
     # 때 스텝마다 결이 여럿이면 결 축으로 더한다
@@ -790,8 +790,8 @@ def ig_for_time_series(
     plt.figure(figsize=(14, 4))
     plt.bar(range(len(temporal_attr_np)), temporal_attr_np, color='steelblue')
     plt.xlabel('때 스텝 (가장 오래됨 → 가장 최근)', fontsize=12)
-    plt.ylabel('몫', fontsize=12)
-    plt.title('때 몫 매기기: 어느 때 스텝이 미루어 봄을 흔드는가?', fontsize=14)
+    plt.ylabel('기여도', fontsize=12)
+    plt.title('때 기여도 매기기: 어느 때 스텝이 미루어 봄을 흔드는가?', fontsize=14)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
@@ -805,7 +805,7 @@ def ig_for_time_series(
 
 ### 이론에서 비교
 
-| 방법 | 온전함 | 예민함 | 짜기에 흔들리지 않음 | 계산 |
+| 방법 | 완전성 | 예민함 | 짜기에 흔들리지 않음 | 계산 |
 |--------|:------------:|:-----------:|:----------------:|:-----------:|
 | 맨 그래디언트 | ✗ | ✗ | ✓ | 빠름 |
 | 그래디언트 × 입력 | ✗ | ✗ | ✓ | 빠름 |
@@ -820,9 +820,9 @@ def ig_for_time_series(
 |--------|-----------------|---------------------|
 | 계산 | 앞으로-역전파 한 번 | 여러 번(스텝 m번) |
 | 예민함 공리 | ❌ 어김 | ✅ 채움 |
-| 온전함 | ❌ 보장 없음 | ✅ 꼭 정확도(어림 안에서) |
+| 완전성 | ❌ 보장 없음 | ✅ 꼭 정확도(어림 안에서) |
 | 잦아듦 다루기 | ❌ 나쁨 | ✅ 좋음 |
-| 읽는 법 | 그 자리 예민함 | 길 따라 쌓은 이바지 |
+| 읽는 법 | 그 자리 예민함 | 길 따라 쌓은 기여 |
 | 베이스라인이 있어야 함 | 아니오 | 예 |
 
 ### 다른 방법과 아우르기
@@ -841,12 +841,12 @@ smooth_ig = ig.attribute_with_noise(input_tensor, n_samples=10, noise_level=0.1)
 
 ### 1. 베이스라인에 매임
 
-몫이 베이스라인을 어떻게 고르느냐에 달렸다. 같은 입력-내놓기 짝이라도 베이스라인이 다르면 뜻있게 다른 몫이 나올 수 있다.
+기여도가 베이스라인을 어떻게 고르느냐에 달렸다. 같은 입력-출력 짝이라도 베이스라인이 다르면 뜻있게 다른 기여도가 나올 수 있다.
 
 **완화하는 길:**
 
 - 베이스라인을 여럿 써서 고르게 한다(기댓값 그래디언트 / SHAP)
-- 그 밭에 알맞은 베이스라인을 쓴다
+- 그 분야에 알맞은 베이스라인을 쓴다
 - 논문에 고른 베이스라인을 적는다
 
 ### 2. 계산 비용
@@ -871,7 +871,7 @@ $$
 
 ### 4. 그 자리에서 선형이라는 여김
 
-IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 선형이 아닌 자리에서는 얄궂은 몫이 나올 수 있다.
+IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 선형이 아닌 자리에서는 얄궂은 기여도가 나올 수 있다.
 
 ---
 
@@ -881,7 +881,7 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 
 2. 여느 살핌에는 **스텝 50**을 쓰고, 엄밀한 일에는 100 넘게 올린다
 
-3. 계산이 맞는지 보려면 **온전함을 살핀다**(어긋남 5% 아래)
+3. 계산이 맞는지 보려면 **완전성을 살핀다**(어긋남 5% 아래)
 
 4. 서로 채워 주는 눈으로 **Grad-CAM과 견준다**(IG는 픽셀 낱, Grad-CAM은 자리 낱)
 
@@ -903,19 +903,19 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 </div>
 
 ??? success "풀이"
-    웨이트가 $W_1, b_1, W_2, b_2$인 학습된 XOR 네트워크에서 내놓기는 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 입력 피처마다 몫을 내놓는다. $x = [1, 1]$(클래스 0)이면 두 피처 모두 음수 분류에 이바지한다. 몫 값은 방법마다 다르다. 그래디언트 기반 방법은 $\partial f / \partial x_i$을 계산하고, 흔들어 보는 방법은 피처를 가렸을 때 내놓기가 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
+    웨이트가 $W_1, b_1, W_2, b_2$인 학습된 XOR 네트워크에서 출력은 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 입력 피처마다 기여도를 내놓는다. $x = [1, 1]$(클래스 0)이면 두 피처 모두 음수 분류에 기여한다. 기여도 값은 방법마다 다르다. 그래디언트 기반 방법은 $\partial f / \partial x_i$을 계산하고, 흔들어 보는 방법은 피처를 가렸을 때 출력이 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-이 절의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 베이스라인 $x_0$에 대해 모든 피처 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
+이 절의 풀이 방법이 완전성 공리를 채우는지, 곧 어떤 베이스라인 $x_0$에 대해 모든 피처 기여도의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
 
 </div>
 
 ??? success "풀이"
-    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 입력에서의 모델 배포와 베이스라인에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 구성에 달렸다. 그래디언트 방법은 온전함을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 구성 자체로 온전함을 채운다(길을 따라 미적분의 기본정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
+    완전성 공리(섀플리 값 이론에서는 효율이라고도 한다)는 기여도의 합이 입력에서의 모델 배포와 베이스라인에서의 출력의 차이와 같다는 것이다. 이 방법이 완전성을 채우는지는 그 구성에 달렸다. 그래디언트 방법은 완전성을 채우지 못한다(그래디언트는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). Integrated Gradients는 구성 자체로 완전성을 채운다(길을 따라 미적분의 기본정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 완전성을 어기는 방법은 기여도를 너무 많거나 적게 매길 수 있어, 온 기여도를 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
@@ -927,7 +927,7 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 그림마다 피처 몫을 계산한다. (2) 빼기: 몫이 큰 차례로 피처를 하나씩 가리며 모델의 자신함이 떨어지는 모습을 적는다. 믿을 만한 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 베이스라인에서 시작해 몫이 큰 차례로 피처를 하나씩 드러내며 자신함이 오르는 모습을 적는다. 믿을 만한 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 그림마다 피처 기여도를 계산한다. (2) 빼기: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 적는다. 믿을 만한 풀이면 확신도가 빠르게 떨어진다. (3) 넣기: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 적는다. 믿을 만한 풀이면 확신도가 빠르게 오른다. (4) 두 곡선의 아래 넓이를 계산한다. (5) 아무렇게나 매긴 차례(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -939,7 +939,7 @@ IG는 모델이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 </div>
 
 ??? success "풀이"
-    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 절의 풀이 방법으로 피처의 중요함을 짚을 수 있으나, 강건성(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 피처를 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
+    신용 모델에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 기여한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 절의 풀이 방법으로 피처의 중요함을 짚을 수 있으나, 강건성(입력이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 충실성(중요한 피처를 없애면 추론이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 성능은 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
 
 ## 정리하며
 
@@ -955,17 +955,17 @@ $$
 
 | 성능 | 설명 |
 |----------|-------------|
-| **예민함** | 내놓기를 흔드는 피처에 0이 아닌 몫을 준다 |
-| **짜기에 흔들리지 않음** | 함수가 같으면 몫도 같다 |
-| **온전함** | $\sum_i \text{IG}_i = f(\mathbf{x}) - f(\mathbf{x}')$ |
+| **예민함** | 출력을 흔드는 피처에 0이 아닌 기여도를 준다 |
+| **짜기에 흔들리지 않음** | 함수가 같으면 기여도도 같다 |
+| **완전성** | $\sum_i \text{IG}_i = f(\mathbf{x}) - f(\mathbf{x}')$ |
 
 ### 알맞은 자리
 
 - 엄밀하고 이론에 뿌리내린 기여도 분석
 - 맨 그래디언트가 무너지는 자리(잦아듦, ReLU 네트워크)
-- 온전함 성능이 중요할 때
+- 완전성 성능이 중요할 때
 - 이치에 닿는 풀이를 바라는 규정이나 감사 자리
-- 서로 다른 모델의 몫을 고르게 견줄 때
+- 서로 다른 모델의 기여도를 고르게 견줄 때
 
 **살펴볼 거리**
 

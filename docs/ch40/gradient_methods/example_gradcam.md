@@ -175,7 +175,7 @@ class GradCAM:
 
 def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
     """
-    Grad-CAM에 알맞은 겨눈 켜를 집는다.
+    Grad-CAM에 알맞은 겨눈 레이어를 집는다.
 
     Args:
         model: 미리 익힌 모형
@@ -207,7 +207,7 @@ def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
         return model.features[-1]
 
     elif 'inception' in architecture:
-        # Inception: Mixed 켜
+        # Inception: Mixed 레이어
         return model.Mixed_7c
 
     else:
@@ -293,13 +293,13 @@ def negative_gradcam(gradcam, image_tensor, target_class, device):
 
 def analyze_layer_gradcam(model, image_tensor, target_class, device):
     """
-    레이어마다의 Grad-CAM을 견주어 결의 켜 얼개를 알아본다.
+    레이어마다의 Grad-CAM을 견주어 결의 레이어 얼개를 알아본다.
     """
     # ResNet이면 layer2, layer3, layer4을 견준다
     layers = {
-        'layer2 (가운데 켜)': model.layer2[-1],
-        'layer3 (높은 켜)': model.layer3[-1],
-        'layer4 (뜻 켜)': model.layer4[-1]
+        'layer2 (가운데 레이어)': model.layer2[-1],
+        'layer3 (높은 레이어)': model.layer3[-1],
+        'layer4 (뜻 레이어)': model.layer4[-1]
     }
 
     results = {}
@@ -320,7 +320,7 @@ GradCAM.visualize_cam = GradCAM.generate_visualization
 class GradCAMPlusPlus(GradCAM):
     """Grad-CAM++ — 짐을 매기는 방법만 다르다.
 
-    Grad-CAM은 기울기를 그냥 평균내어 켜마다 짐 하나를 얻는다(α_k = mean(∂y/∂A^k)).
+    Grad-CAM은 기울기를 그냥 평균내어 레이어마다 짐 하나를 얻는다(α_k = mean(∂y/∂A^k)).
     그래서 같은 갈래의 물체가 그림에 여럿 있으면 가장 센 것 하나에 쏠린다.
 
     Grad-CAM++는 자리마다 짐을 따로 매긴다. 양의 기울기만 세되,
@@ -471,7 +471,7 @@ def example_with_real_image(image_path: str):
     print(f"{image_path}에서 그림을 부르는 중...")
     input_tensor, original_image = load_and_preprocess_image(image_path)
 
-    # 겨눈 켜를 집는다
+    # 겨눈 레이어를 집는다
     target_layer = model.layer4[-1]
 
     # Grad-CAM의 첫자리를 잡는다
@@ -483,7 +483,7 @@ def example_with_real_image(image_path: str):
         pred_class = output.argmax(dim=1).item()
         pred_prob = torch.softmax(output, dim=1)[0, pred_class].item()
 
-    print(f"미루어 본 클래스: {pred_class} (자신함: {pred_prob:.2%})")
+    print(f"미루어 본 클래스: {pred_class} (확신도: {pred_prob:.2%})")
 
     # Grad-CAM을 만든다
     print("Grad-CAM을 만드는 중...")
@@ -627,7 +627,7 @@ def example_different_architectures():
         print(f"\n{name}을 다루는 중...")
         model.eval()
 
-        # 겨눈 켜를 집는다
+        # 겨눈 레이어를 집는다
         if layer_name == 'features':
             target_layer = list(model.features.children())[-1]
         else:
@@ -666,7 +666,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 몫을 한다. 그리는 코드는 배운 나타냄, 모여 가는 피처, 평가 자를 들여다보게 해서 손에 잡히지 않던 계산을 눈에 보이게 한다.
+그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 기여도를 한다. 그리는 코드는 배운 나타냄, 모여 가는 피처, 평가 자를 들여다보게 해서 손에 잡히지 않던 계산을 눈에 보이게 한다.
 
 여기서 보인 피처는 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 구조의 클래스, 여러 데이터를 바꿔 가며 해 보면 이해가 깊어지고 모델 해석에 대한 감이 몸에 붙는다.
 
@@ -680,7 +680,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 꾀 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
+    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 고르게 하는 전략 -- 배치 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 강건하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 나타내는 힘, 계산 비용, 학습의 강건성 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -739,6 +739,6 @@ if __name__ == "__main__":
 
 **다룬 것** — 쓰는 보기
 
-그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 몫을 한다.
+그림으로 보이기는 모델의 액션을 알고 학습의 탈을 탐지하는 데 큰 기여도를 한다.
 
 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
