@@ -10,24 +10,72 @@
 
 ## 2. 스코어 기반 생성의 단계별 예제
 
-| 주제 | 페이지 |
-|---|---|
-| 랑주뱅 동역학 | [기본 예제](score_based/03_langevin_dynamics.md), [간단한 구현](score_based/03_langevin_dynamics_2.md) |
-| DSM | [고정 노이즈 학습](score_based/04_denoising_score_matching.md), [배치 학습](score_based/04_implementing_dsm_practical.md) |
-| SSM | [방향 미분 예제](score_based/05_sliced_score_matching.md), [분산과 구현](score_based/05_sliced_score_matching_2.md) |
-| 조건부 뉴럴 네트워크 | [시간·노이즈 임베딩](score_based/06_score_network_architectures.md), [잔차 구조](score_based/06_score_networks.md) |
-| 여러 노이즈 수준 | [NCSN 예제](score_based/07_noise_conditional_scores.md), [다중 수준 구현](score_based/07_noise_conditional_scores_2.md) |
-| 연속시간 | [스코어 SDE](score_based/08_score_sde.md), [SDE 프레임워크](score_based/08_score_sde_framework.md) |
-| 이미지 예제 | [노이즈 예측 CNN](score_based/09_image_generation.md), [U-Net 골격](score_based/09_image_generation_unet.md) |
-| 확장 | [조건부 응용](score_based/10_advanced_applications.md), [DDPM과의 연결](score_based/10_complete_diffusion_connection.md) |
+이 절은 **이론 쪽과 예제 쪽이 짝을 이룬다.** 주제마다 먼저 원리를 적고 뒤에 돌려 보는 꼴이므로, 둘을 나란히 두었다.
+
+**스코어란 무엇인가**
+
+- [스코어 함수 기초](score_based/01_score_functions_basics.md) — 로그 밀도의 입력 그래디언트. **정규화 상수를 몰라도** 된다는 것이 요점이다
+- [스코어 매칭 이론](score_based/02_score_matching_theory.md) — 부분적분으로 모르는 항을 지운다
+
+**스코어로 샘플링하기 — 랑주뱅**
+
+- [랑주뱅 동역학](score_based/03_langevin_dynamics.md) — 그래디언트 이동 + 가우시안 잡음. 보정 없는 이산화의 한계도 함께
+- [랑주뱅 샘플링의 최소 예제](score_based/03_langevin_dynamics_2.md) — 스코어를 $-x$ 로 **알고 있을 때**의 2차원 시연
+
+**스코어를 배우는 두 길**
+
+- [디노이징 스코어 매칭의 원리](score_based/denoising_score_matching.md) → [고정 노이즈로 학습](score_based/04_denoising_score_matching.md) → [미니배치 학습 구성](score_based/04_implementing_dsm_practical.md)
+- [슬라이스드 스코어 매칭의 원리](score_based/sliced_score_matching.md) → [방향 미분 예제](score_based/05_sliced_score_matching.md) → [가우시안 투영을 쓸 때](score_based/05_sliced_score_matching_2.md) — 단위 구면 방향과 **투영 공분산이 다르다**
+
+**네트워크에 노이즈 수준을 알려 주기**
+
+- [노이즈 조건 스코어 네트워크 구조](score_based/06_score_network_architectures.md) · [조건 입력과 잔차 구조](score_based/06_score_networks.md)
+- [노이즈 조건부 스코어와 어닐링된 샘플링](score_based/07_noise_conditional_scores.md) · [다중 노이즈의 목표와 브로드캐스팅](score_based/07_noise_conditional_scores_2.md) — **배율과 축**이 틀리기 쉬운 자리다
+
+**연속시간으로 — SDE**
+
+- [스코어 기반 확률미분방정식](score_based/08_score_sde.md) · [스코어 기반 SDE 프레임워크](score_based/08_score_sde_framework.md) — VE·VP 계수와 오일러 샘플러
+
+**이미지로, 그리고 DDPM 과 잇기**
+
+- [이미지 스코어 학습의 간단한 예제](score_based/09_image_generation.md) · [시간 조건 U-Net과 노이즈 예측](score_based/09_image_generation_unet.md) — 출력이 스코어인지 노이즈인지는 **구조가 아니라 학습 목표**가 정한다
+- [스코어 모델과 DDPM의 연결](score_based/10_complete_diffusion_connection.md) — 둘이 **알려진 배율**로 오간다
+- [클래스 조건 생성과 인페인팅의 기초](score_based/10_advanced_applications.md)
 
 여러 예제는 교육용 골격이며 목표 스케일, 브로드캐스팅이나 역시간 부호가 이론과 다른 부분도 있다. 각 페이지에서 설명하는 제한을 확인한다. 클래스 이름이나 출력 모양이 맞는다는 사실만으로 올바른 분포를 생성한다고 판단하지 않는다.
 
 ## 3. DDPM에서 잠재 확산까지
 
-[간단한 DDPM](ddpm/01_ddpm_toy.md)은 최소 CNN의 학습 흐름을, [확장된 DDPM](ddpm/02_ddpm.md)은 잔차 U-Net·EMA·체크포인트를 보여 준다. [클래스 조건 예제](ddpm/03_conditional_ddpm.md)와 [빠른 DDIM 예제](ddpm/04_ddim_fast_sampling.md)는 조건·시간 처리뿐 아니라 코드의 차원 및 끝점 문제도 설명한다. [잠재 확산](ddpm/05_latent_diffusion.md)은 압축된 표현에서 노이즈 예측을 학습하는 방법과 원본 픽셀 공간 확산의 차이를 다룬다.
+**정방향과 역방향의 규칙**
 
-모듈별로 읽으려면 [2차원 확산](ddpm/simple_diffusion.md), [공통 유틸리티](ddpm/diffusion_utils.md), [U-Net 구조](ddpm/unet_architecture.md)를 거쳐 [MNIST 파이프라인](ddpm/mnist_diffusion.md)으로 연결한다. 호출 진입점은 [학습 예제](ddpm/example_train.md)와 [샘플링 예제](ddpm/example_sample.md)에 있다. [방법 비교](ddpm/compare_methods.md)는 학습되지 않은 모델로 루프를 비교하므로 생성 품질 실험과 구분한다.
+- [노이즈 스케줄](ddpm/noise_schedule.md) — 같은 시간 인덱스라도 스케줄이 다르면 모델이 보는 신호·노이즈 비율이 다르다
+- [DDPM 샘플링](ddpm/sampling.md) — 노이즈 예측을 역전이 평균으로 바꾸는 식, 분산 선택, 마지막 단계 처리
+
+**공통 부품**
+
+- [확산 모델 유틸리티](ddpm/diffusion_utils.md) — $\beta$ 스케줄·누적곱·입력 축의 관례를 한 자리에 맞춘다
+- [확산 모델을 위한 U-Net 구조](ddpm/unet_architecture.md) — 관측과 시간을 받아 **같은 크기**를 낸다
+
+**작게 지어 보기**
+
+- [2차원 데이터로 이해하는 확산 모델](ddpm/simple_diffusion.md) — 산점도로 정방향과 생성을 **눈으로** 견준다
+- [MNIST로 살펴보는 간단한 DDPM](ddpm/01_ddpm_toy.md) — 작은 CNN 으로 학습과 역전이를 잇는다
+
+**MNIST 파이프라인**
+
+- [MNIST 확산 모델 학습 파이프라인](ddpm/mnist_diffusion.md) — U-Net 과 유틸리티를 연결하고 EMA 로 생성한다
+- [학습 실행 예제](ddpm/example_train.md) · [체크포인트를 이용한 샘플링](ddpm/example_sample.md) — 웨이트만이 아니라 **구조와 스케줄도** 학습 때와 맞아야 한다
+
+**키우고 조건 걸기**
+
+- [잔차 U-Net을 사용하는 DDPM](ddpm/02_ddpm.md) — 시간 조건 잔차 블록, 공간 어텐션, 코사인 스케줄, EMA
+- [클래스 조건 DDPM과 분류기 없는 가이던스](ddpm/03_conditional_ddpm.md) — CFG
+
+**빠르게, 그리고 잠재 공간에서**
+
+- [DDIM으로 생성 단계 줄이기](ddpm/04_ddim_fast_sampling.md) — **같은 학습**에 다른 전이. $\eta=0$ 이면 경로가 결정적이다
+- [DDPM과 DDIM의 샘플링 호출 비교](ddpm/compare_methods.md) — 호출 수와 확률성을 견준다. **학습되지 않은 모델**로 루프만 재므로 생성 품질 실험이 아니다
+- [잠재 공간에서 학습하는 확산 모델](ddpm/05_latent_diffusion.md) — 픽셀 대신 압축 표현에서
 
 ## 4. 평가에서 확인할 질문
 

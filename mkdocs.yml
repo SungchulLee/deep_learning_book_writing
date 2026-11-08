@@ -748,41 +748,53 @@ nav:
       - "31.1 기초":
         - "역방향 과정": ch30/foundations/reverse_process.md
       - "31.2 스코어 기반 모델":
-        - "스코어 함수 기초": ch30/score_based/01_score_functions_basics.md
-        - "Denoising Score Matching": ch30/score_based/denoising_score_matching.md
-        - "Sliced Score Matching": ch30/score_based/sliced_score_matching.md
-        - "스코어 매칭 이론": ch30/score_based/02_score_matching_theory.md
-        - "랑주뱅 동역학": ch30/score_based/03_langevin_dynamics.md
-        - 랑주뱅 액션 2: ch30/score_based/03_langevin_dynamics_2.md
-        - "Denoising Score Matching 구현": ch30/score_based/04_implementing_dsm_practical.md
-        - "Denoising Score Matching": ch30/score_based/04_denoising_score_matching.md
-        - "Sliced Score Matching": ch30/score_based/05_sliced_score_matching.md
-        - 저민 점수 맞추기 2: ch30/score_based/05_sliced_score_matching_2.md
-        - "스코어 네트워크 아키텍처": ch30/score_based/06_score_network_architectures.md
-        - "스코어 네트워크": ch30/score_based/06_score_networks.md
-        - "노이즈 조건부 스코어": ch30/score_based/07_noise_conditional_scores.md
-        - 잡음 조건 점수 2: ch30/score_based/07_noise_conditional_scores_2.md
-        - "스코어 기반 SDE 프레임워크": ch30/score_based/08_score_sde_framework.md
-        - "스코어 기반 SDE": ch30/score_based/08_score_sde.md
-        - "U-Net을 이용한 이미지 생성": ch30/score_based/09_image_generation_unet.md
-        - "이미지 생성": ch30/score_based/09_image_generation.md
-        - "스코어 모델과 확산 모델의 관계": ch30/score_based/10_complete_diffusion_connection.md
-        - "고급 응용": ch30/score_based/10_advanced_applications.md
+        - 스코어란 무엇인가:
+          - "스코어 함수 기초": ch30/score_based/01_score_functions_basics.md
+          - "스코어 매칭 이론": ch30/score_based/02_score_matching_theory.md
+        - 스코어로 샘플링하기 — 랑주뱅:
+          - "랑주뱅 동역학": ch30/score_based/03_langevin_dynamics.md
+          - 랑주뱅 액션 2: ch30/score_based/03_langevin_dynamics_2.md
+        - 스코어를 배우는 두 길:
+          - "Denoising Score Matching": ch30/score_based/denoising_score_matching.md
+          - "Denoising Score Matching": ch30/score_based/04_denoising_score_matching.md
+          - "Denoising Score Matching 구현": ch30/score_based/04_implementing_dsm_practical.md
+          - "Sliced Score Matching": ch30/score_based/sliced_score_matching.md
+          - "Sliced Score Matching": ch30/score_based/05_sliced_score_matching.md
+          - 저민 점수 맞추기 2: ch30/score_based/05_sliced_score_matching_2.md
+        - 네트워크에 노이즈 수준을 알려 주기:
+          - "스코어 네트워크 아키텍처": ch30/score_based/06_score_network_architectures.md
+          - "스코어 네트워크": ch30/score_based/06_score_networks.md
+          - "노이즈 조건부 스코어": ch30/score_based/07_noise_conditional_scores.md
+          - 잡음 조건 점수 2: ch30/score_based/07_noise_conditional_scores_2.md
+        - 연속시간으로 — SDE:
+          - "스코어 기반 SDE": ch30/score_based/08_score_sde.md
+          - "스코어 기반 SDE 프레임워크": ch30/score_based/08_score_sde_framework.md
+        - 이미지로, 그리고 DDPM 과 잇기:
+          - "이미지 생성": ch30/score_based/09_image_generation.md
+          - "U-Net을 이용한 이미지 생성": ch30/score_based/09_image_generation_unet.md
+          - "스코어 모델과 확산 모델의 관계": ch30/score_based/10_complete_diffusion_connection.md
+          - "고급 응용": ch30/score_based/10_advanced_applications.md
       - "31.3 DDPM":
-        - "노이즈 스케줄": ch30/ddpm/noise_schedule.md
-        - "샘플링": ch30/ddpm/sampling.md
-        - "DDPM 간단한 예제": ch30/ddpm/01_ddpm_toy.md
-        - DDPM: ch30/ddpm/02_ddpm.md
-        - "조건부 DDPM": ch30/ddpm/03_conditional_ddpm.md
-        - "DDIM 고속 샘플링": ch30/ddpm/04_ddim_fast_sampling.md
-        - "잠재 확산 모델": ch30/ddpm/05_latent_diffusion.md
-        - "방법 비교": ch30/ddpm/compare_methods.md
-        - "확산 모델 유틸리티": ch30/ddpm/diffusion_utils.md
-        - "샘플링 예제": ch30/ddpm/example_sample.md
-        - "학습 예제": ch30/ddpm/example_train.md
-        - MNIST 확산: ch30/ddpm/mnist_diffusion.md
-        - 단순한 확산: ch30/ddpm/simple_diffusion.md
-        - "U-Net 아키텍처": ch30/ddpm/unet_architecture.md
+        - 정방향과 역방향의 규칙:
+          - "노이즈 스케줄": ch30/ddpm/noise_schedule.md
+          - "샘플링": ch30/ddpm/sampling.md
+        - 공통 부품:
+          - "확산 모델 유틸리티": ch30/ddpm/diffusion_utils.md
+          - "U-Net 아키텍처": ch30/ddpm/unet_architecture.md
+        - 작게 지어 보기:
+          - 단순한 확산: ch30/ddpm/simple_diffusion.md
+          - "DDPM 간단한 예제": ch30/ddpm/01_ddpm_toy.md
+        - MNIST 파이프라인:
+          - MNIST 확산: ch30/ddpm/mnist_diffusion.md
+          - "학습 예제": ch30/ddpm/example_train.md
+          - "샘플링 예제": ch30/ddpm/example_sample.md
+        - 키우고 조건 걸기:
+          - DDPM: ch30/ddpm/02_ddpm.md
+          - "조건부 DDPM": ch30/ddpm/03_conditional_ddpm.md
+        - 빠르게, 그리고 잠재 공간에서:
+          - "DDIM 고속 샘플링": ch30/ddpm/04_ddim_fast_sampling.md
+          - "방법 비교": ch30/ddpm/compare_methods.md
+          - "잠재 확산 모델": ch30/ddpm/05_latent_diffusion.md
       - "31.4 DDIM":
         - "DDIM 기초": ch30/ddim/fundamentals.md
       - "31.5 조건부 생성":
