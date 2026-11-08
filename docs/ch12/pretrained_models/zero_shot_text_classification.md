@@ -76,7 +76,7 @@ try:
         return mean_pooling(outputs, inputs["attention_mask"]).cpu().numpy()
 
     few_shot_examples = [
-        ("Apple reported record quarterly earnings of \\$83B.", "finance"),
+        ("Apple reported record quarterly earnings of $83B.", "finance"),
         ("The Fed raised interest rates by 25 basis points.", "finance"),
         ("NVIDIA announced a new GPU architecture for AI.", "technology"),
         ("Python 3.12 brings significant performance improvements.", "technology"),

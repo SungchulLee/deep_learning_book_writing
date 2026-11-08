@@ -20,12 +20,12 @@ Open IE도 학습 자료와 모델·출력 형식의 제약을 가진다. 모든
 # 열린 앎 뽑기에 지어내는 모델 쓰기
 prompt = (
     "Extract all (subject, relation, object) triples from:\n"
-    "Apple acquired Beats for \$3B in 2014.\n"
+    "Apple acquired Beats for $3B in 2014.\n"
     "Triples:"
 )
 # 나올 내놓음:
 # (Apple, acquired, Beats)
-# (Apple, acquired Beats for, \$3B)
+# (Apple, acquired Beats for, $3B)
 # (acquisition, occurred in, 2014)
 ```
 

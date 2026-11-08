@@ -38,7 +38,7 @@ _확인한 곳 — R. Bellman, "On the Theory of Dynamic Programming", *Proceedi
 
 <div class="thmbox" markdown>
 
-### 정리 1. 할인 누적 리워드의 유한성 — $\gamma<1$ 이면 무한 합이 수렴한다 { .thm }
+### 정리 1. 할인 누적 리워드의 유한성 — 할인율이 1보다 작으면 무한 합이 수렴한다 { .thm }
 
 리워드가 $|r_t|\le R_{\max}$ 로 묶여 있고 $0\le\gamma<1$ 이면 모든 폴리시와 모든 상태에 대해
 

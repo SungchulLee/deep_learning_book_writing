@@ -46,7 +46,7 @@ model = SentenceTransformer("BAAI/bge-large-en-v1.5")
 
 # 문서를 부호화한다(한 번만 하고 목록에 담는다)
 documents = [
-    "AAPL reported Q3 revenue of $81.8B, beating estimates by \$1.2B",
+    "AAPL reported Q3 revenue of $81.8B, beating estimates by $1.2B",
     "The Federal Reserve held rates steady at 5.25-5.50%",
     "NVDA guidance implies 170% YoY data center revenue growth",
 ]

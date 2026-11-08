@@ -7,14 +7,14 @@ Chain-of-Thought(CoT) 프롬프팅은 중간 풀이 예시나 단계적 문제 �
 [Kojima 등(2022)](https://arxiv.org/abs/2205.11916)은 과제별 풀이 시범 없이 단계적 해결을 유도하는 지시를 평가했다. 이런 zero-shot CoT와 풀이·정답이 있는 시범을 제공하는 few-shot CoT는 다른 설정이다. 특정 문구가 모든 모델과 과제에서 성능을 개선하는 보편적 규칙은 아니다.
 
 ```
-Q: A company's stock price was \$150. It dropped 20% on Monday,
+Q: A company's stock price was $150. It dropped 20% on Monday,
    then rose 25% on Tuesday. What is the final price?
 
 A: Let's think step by step.
-   Step 1: Starting price = \$150
-   Step 2: After 20% drop: \$150 × 0.80 = \$120
-   Step 3: After 25% rise: \$120 × 1.25 = \$150
-   Final price: \$150
+   Step 1: Starting price = $150
+   Step 2: After 20% drop: $150 × 0.80 = $120
+   Step 3: After 25% rise: $120 × 1.25 = $150
+   Final price: $150
 ```
 
 이 블록은 문제와 풀이가 함께 작성된 개념 예이지 실제 모델에서 생성한 관측값이 아니다. 주어진 수치의 산술은 150×0.8×1.25=150이다. 하락률과 상승률의 기준값이 다르므로 −20%와 +25%를 단순 합산하지 않는다.
@@ -24,10 +24,10 @@ A: Let's think step by step.
 ```python
 cot_examples = [
     {
-        "question": "A bond has face value $1000, coupon 5%, trades at \$950. "
+        "question": "A bond has face value $1000, coupon 5%, trades at $950. "
                     "What is the current yield?",
-        "reasoning": "Annual coupon = \$1000 × 5% = \$50. "
-                     "Current yield = \$50 / \$950 = 5.26%.",
+        "reasoning": "Annual coupon = $1000 × 5% = $50. "
+                     "Current yield = $50 / $950 = 5.26%.",
         "answer": "5.26%"
     },
 ]

@@ -11,8 +11,8 @@
          Always cite specific metrics and provide confidence levels.
 
 [Context] Company: NVIDIA (NVDA)
-          Q3 FY2025 Revenue: \$35.1B (+94% YoY)
-          Data Center Revenue: \$30.8B (+112% YoY)
+          Q3 FY2025 Revenue: $35.1B (+94% YoY)
+          Data Center Revenue: $30.8B (+112% YoY)
 
 [Query] Provide a brief assessment of NVIDIA's growth trajectory.
 ```

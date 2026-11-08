@@ -45,8 +45,8 @@ def answer_question(question, context):
     return tokenizer.decode(answer_tokens, skip_special_tokens=True)
 
 # 예
-context = """Tesla reported Q3 2024 revenue of \$25.18 billion,
-up 8% year-over-year. Net income was \$2.17 billion."""
+context = """Tesla reported Q3 2024 revenue of $25.18 billion,
+up 8% year-over-year. Net income was $2.17 billion."""
 
 print(answer_question("What was Tesla's Q3 revenue?", context))
 # "25.18 billion"

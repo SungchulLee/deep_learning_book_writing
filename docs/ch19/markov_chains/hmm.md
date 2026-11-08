@@ -101,6 +101,11 @@ Baum–Welch는 T=1의 전이 분모나 기대 점유가 0인 상태를 처리�
 import torch
 from typing import Dict, List, Tuple, Optional
 
+# 이 쪽은 torch.multinomial 로 상태·관측을 뽑는다. 씨앗이 없으면 Viterbi
+# 정확도도 신용 VaR 도 돌릴 때마다 달라져, 아래에 실린 수를 아무도 다시
+# 얻을 수 없다. 쪽 전체가 한 프로그램이므로 맨 앞에서 한 번 박아 둔다.
+torch.manual_seed(19)
+
 class HiddenMarkovModel:
     """
     띄엄띄엄한 내보냄을 갖는 숨은 마르코프 모형.
@@ -321,8 +326,8 @@ demonstrate_hmm_regime_detection()
 ```
 HMM: Market Regime Detection
 ======================================================================
-Viterbi decoding accuracy: 85.5%
-Log-likelihood: -230.49
+Viterbi decoding accuracy: 89.0%
+Log-likelihood: -214.17
 
 Expected regime durations:
   Bull: 20.0 periods
@@ -563,10 +568,10 @@ Expected Years to Default (from transient states):
   CCC: 7.2 years
 
 Portfolio Credit VaR (1-year, LGD=60%):
-  Expected Loss: $91,200
-  VaR (95%):     $0
+  Expected Loss: $99,600
+  VaR (95%):     $1,200,000
   VaR (99%):     $1,200,000
-  CVaR (95%):    $91,200
+  CVaR (95%):    $1,889,943
 ```
 
 ### 도박 파산 예제
@@ -576,16 +581,16 @@ Portfolio Credit VaR (1-year, LGD=60%):
 ```python
 def demonstrate_gamblers_ruin():
     """흡수 마르코프 사슬로 본 노름꾼의 파산."""
-    print("\nGambler's Ruin (Target = \$4)")
+    print("\nGambler's Ruin (Target = $4)")
     print("=" * 70)
 
-    states = ['$0 (Broke)', '\$1', '\$2', '\$3', '\$4 (Win)']
+    states = ['$0 (Broke)', '$1', '$2', '$3', '$4 (Win)']
     P = torch.tensor([
-        [1.0, 0.0, 0.0, 0.0, 0.0],  # \$0: 흡수
-        [0.5, 0.0, 0.5, 0.0, 0.0],  # \$1
-        [0.0, 0.5, 0.0, 0.5, 0.0],  # \$2
-        [0.0, 0.0, 0.5, 0.0, 0.5],  # \$3
-        [0.0, 0.0, 0.0, 0.0, 1.0]   # \$4: 흡수
+        [1.0, 0.0, 0.0, 0.0, 0.0],  # $0: 흡수
+        [0.5, 0.0, 0.5, 0.0, 0.0],  # $1
+        [0.0, 0.5, 0.0, 0.5, 0.0],  # $2
+        [0.0, 0.0, 0.5, 0.0, 0.5],  # $3
+        [0.0, 0.0, 0.0, 0.0, 1.0]   # $4: 흡수
     ])
 
     chain = AbsorbingMarkovChain(P, state_names=states)
@@ -607,26 +612,26 @@ demonstrate_gamblers_ruin()
 **출력:**
 
 ```
-Gambler's Ruin (Target = \$4)
+Gambler's Ruin (Target = $4)
 ======================================================================
 
-Starting from \$1:
+Starting from $1:
   E[steps to end]: 3.00
   Std[steps]:      2.83
   P(end at $0 (Broke)): 0.7500
-  P(end at \$4 (Win)): 0.2500
+  P(end at $4 (Win)): 0.2500
 
-Starting from \$2:
+Starting from $2:
   E[steps to end]: 4.00
   Std[steps]:      2.83
   P(end at $0 (Broke)): 0.5000
-  P(end at \$4 (Win)): 0.5000
+  P(end at $4 (Win)): 0.5000
 
-Starting from \$3:
+Starting from $3:
   E[steps to end]: 3.00
   Std[steps]:      2.83
   P(end at $0 (Broke)): 0.2500
-  P(end at \$4 (Win)): 0.7500
+  P(end at $4 (Win)): 0.7500
 ```
 
 ---

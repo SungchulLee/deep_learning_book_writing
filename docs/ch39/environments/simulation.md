@@ -62,7 +62,7 @@ $$\text{TC}_t = \frac{1}{2} \sum_i |q_{t,i}| \cdot \text{사이}_{t,i}$$
 ```python
 def compute_commission(self, trade_value):
     if trade_value < 10_000:
-        return max(1.0, trade_value * 0.005)  # 가장 적게 \$1, 50 베이시스 포인트
+        return max(1.0, trade_value * 0.005)  # 가장 적게 $1, 50 베이시스 포인트
     elif trade_value < 100_000:
         return trade_value * 0.001              # 10 베이시스 포인트
     else:
