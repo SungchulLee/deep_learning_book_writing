@@ -42,9 +42,67 @@ import numpy as np
 from collections import Counter
 from typing import List, Dict
 import math
+import torch.nn.functional as F
+
+
+# 다양성 지표가 표본을 뽑을 때 쓰는 디코딩 하나만 여기 둔다.
+# greedy·top-k·빔 서치까지 넷을 모두 보는 것은 tutorial_09_conditional_generation.md 다.
+class GenerationStrategies:
+    """글 만들어 내기 전략 — 이 쪽이 쓰는 것은 뉴클리어스 샘플링 하나다."""
+
+    @staticmethod
+    def nucleus_sampling(model, input_ids, max_length=50, p=0.95,
+                        temperature=1.0, vocab=None):
+        """
+        뉴클리어스(top-p) 샘플링.
+        쌓인 확률이 p 이상인 가장 작은 토큰 모음에서 뽑기.
+        """
+        model.eval()
+        generated = input_ids.clone()
+    
+        for _ in range(max_length):
+            with torch.no_grad():
+                if hasattr(model, 'lstm') or hasattr(model, 'rnn'):
+                    logits, _ = model(generated)
+                else:
+                    logits = model(generated)
+            
+                next_token_logits = logits[:, -1, :] / temperature
+                probs = F.softmax(next_token_logits, dim=-1)
+            
+                # 확률 정렬
+                sorted_probs, sorted_indices = torch.sort(probs, descending=True)
+            
+                # 쌓인 확률 셈하기
+                cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
+            
+                # 쌓인 확률이 문턱값을 넘는 토큰 없애기
+                sorted_indices_to_remove = cumulative_probs > p
+                # 적어도 토큰 하나는 남기기
+                sorted_indices_to_remove[..., 0] = False
+            
+                # 마스크 만들기
+                indices_to_remove = sorted_indices_to_remove.scatter(
+                    -1, sorted_indices, sorted_indices_to_remove
+                )
+            
+                # 확률 거르기
+                filtered_probs = probs.clone()
+                filtered_probs[indices_to_remove] = 0
+                filtered_probs = filtered_probs / filtered_probs.sum()
+            
+                # 뽑기
+                next_token = torch.multinomial(filtered_probs, 1)
+                generated = torch.cat([generated, next_token], dim=-1)
+            
+                if vocab and next_token.item() == vocab.word_to_idx(vocab.END_TOKEN):
+                    break
+    
+        return generated
+
 
 # ========================================================================
-# 메인
+# 평가 꾸러미
 # ========================================================================
 
 
@@ -170,542 +228,233 @@ class LanguageModelEvaluator:
         반환값:
             여러 클래스임 지표의 사전
         """
-import torch
-import torch.nn.functional as F
-import numpy as np
-from typing import List, Optional
+        # 표본 만들기
+        samples = []
+        for _ in range(num_samples):
+            start_token = torch.tensor([[self.vocab.word_to_idx(self.vocab.START_TOKEN)]])
+            generated = GenerationStrategies.nucleus_sampling(
+                self.model, start_token, max_length=max_length,
+                vocab=self.vocab
+            )
 
-# --- tutorial_09_conditional_generation ---
-"""
-튜토리얼 09: 다스린 글 만들어 내기 전략
-===================================================
+            # 글로 바꾸기
+            tokens = generated[0].tolist()
+            words = [self.vocab.idx_to_word(idx) for idx in tokens
+                    if idx != self.vocab.word_to_idx(self.vocab.PAD_TOKEN)]
+            samples.append(' '.join(words))
 
-글 만들어 내기의 좋음을 다스리고 낫게 하는 앞선 재주.
+        # 지표를 계산한다
+        metrics = {}
 
-주제:
-1. 샘플링 전략(그리디, 빔 서치, 뉴클리어스, 상위 k)
-2. 길이 고르게 맞추기
-3. 되풀이 벌주기
-4. 제약 디코딩
-5. 다스릴 수 있는 만들어 내기(감성, 결풍, 주제)
+        # 1. 겹치지 않는 표본
+        unique_samples = len(set(samples))
+        metrics['unique_samples'] = unique_samples
+        metrics['repetition_rate'] = 1 - (unique_samples / num_samples)
 
-만들어 내기 전략:
-----------------------
+        # 2. 겹치지 않는 n-그램
+        for n in [2, 3, 4]:
+            all_ngrams = []
+            for sample in samples:
+                words = sample.split()
+                ngrams = [tuple(words[i:i+n]) for i in range(len(words)-n+1)]
+                all_ngrams.extend(ngrams)
 
-1. 그리디 디코딩:
-   w_t = argmax P(w | context)
-   - 빠르고 늘 같다
-   - 가장 좋지 않을 수 있고 되풀이되기 쉽다
+            if all_ngrams:
+                unique_ngrams = len(set(all_ngrams))
+                total_ngrams = len(all_ngrams)
+                metrics[f'unique_{n}grams'] = unique_ngrams / total_ngrams
 
-2. 빔 서치:
-   - 상위 k개 가설 남기기
-   - 점수 = log P / 길이 벌주기
-   - 그리디보다 좋다
-   - 셈이 값비싸다
+        # 3. 평균 길이
+        metrics['avg_length'] = np.mean([len(s.split()) for s in samples])
 
-3. 샘플링:
-   - 마구잡이: P(w | 맥락)에서 뽑기
-   - 상위 k: 가장 그럴듯한 k개에서 뽑기
-   - 뉴클리어스(상위 p): 쌓인 확률이 p 이상인 가장 작은 모음에서 뽑기
+        # 4. 단어 곳간 덮음
+        all_words = set()
+        for sample in samples:
+            all_words.update(sample.split())
+        metrics['vocab_coverage'] = len(all_words)
 
-4. 온도 맞추기:
-   P'(w) ∝ exp(logit / T)
-   - T < 1: 더 정해진 대로
-   - T > 1: 더 마구잡이로
-"""
-
-
-# ========================================================================
-# 메인
-# ========================================================================
+        return metrics
 
 
-class GenerationStrategies:
-    """글 만들어 내기 전략 모음."""
+class BenchmarkSuite:
+    """언어 모델의 표준 지표."""
 
     @staticmethod
-    def greedy_search(model, input_ids, max_length=50, vocab=None):
-        """그리디 디코딩 — 늘 가장 그럴듯한 단어를 고른다."""
-        model.eval()
-        generated = input_ids.clone()
-    
-        for _ in range(max_length):
-            with torch.no_grad():
-                if hasattr(model, 'lstm') or hasattr(model, 'rnn'):
-                    logits, _ = model(generated)
-                else:
-                    logits = model(generated)
-            
-                # 마지막 자리의 로짓을 얻는다
-                next_token_logits = logits[:, -1, :]
-            
-                # 그리디: 가장 그럴듯한 것 고르기
-                next_token = torch.argmax(next_token_logits, dim=-1)
-            
-                generated = torch.cat([generated, next_token.unsqueeze(-1)], dim=-1)
-            
-                # 끝 토큰인지 살피기
-                if vocab and next_token.item() == vocab.word_to_idx(vocab.END_TOKEN):
-                    break
-    
-        return generated
+    def penn_treebank_benchmark(model, vocab):
+        """Penn Treebank 지표로 평가하기."""
+        # 실제로는 PTB 자료를 읽어 들인다
+        # 자리 채움 짜기
+        print("Penn Treebank Benchmark")
+        print("-" * 50)
+        print("Vocabulary: ~10k words")
+        print("Training: ~1M words")
+        print("Validation: ~70k words")
+        print("Test: ~80k words")
+        print()
+        print("State-of-the-art perplexities:")
+        print("  LSTM (3-layer): ~60-80")
+        print("  Transformer (6-layer): ~50-70")
+        print("  AWD-LSTM: ~57")
+        print("  Transformer-XL: ~54")
 
     @staticmethod
-    def top_k_sampling(model, input_ids, max_length=50, k=50, 
-                      temperature=1.0, vocab=None):
-        """가장 그럴듯한 상위 k개 토큰에서 뽑기."""
-        model.eval()
-        generated = input_ids.clone()
-    
-        for _ in range(max_length):
-            with torch.no_grad():
-                if hasattr(model, 'lstm') or hasattr(model, 'rnn'):
-                    logits, _ = model(generated)
-                else:
-                    logits = model(generated)
-            
-                next_token_logits = logits[:, -1, :]
-            
-                # 온도를 적용한다
-                next_token_logits = next_token_logits / temperature
-            
-                # 상위 k 거르기
-                top_k_logits, top_k_indices = torch.topk(next_token_logits, k)
-                probs = F.softmax(top_k_logits, dim=-1)
-            
-                # 상위 k에서 뽑기
-                next_token_idx = torch.multinomial(probs, 1)
-                next_token = top_k_indices.gather(-1, next_token_idx)
-            
-                generated = torch.cat([generated, next_token], dim=-1)
-            
-                if vocab and next_token.item() == vocab.word_to_idx(vocab.END_TOKEN):
-                    break
-    
-        return generated
-
-    @staticmethod
-    def nucleus_sampling(model, input_ids, max_length=50, p=0.95,
-                        temperature=1.0, vocab=None):
-        """
-        뉴클리어스(top-p) 샘플링.
-        쌓인 확률이 p 이상인 가장 작은 토큰 모음에서 뽑기.
-        """
-        model.eval()
-        generated = input_ids.clone()
-    
-        for _ in range(max_length):
-            with torch.no_grad():
-                if hasattr(model, 'lstm') or hasattr(model, 'rnn'):
-                    logits, _ = model(generated)
-                else:
-                    logits = model(generated)
-            
-                next_token_logits = logits[:, -1, :] / temperature
-                probs = F.softmax(next_token_logits, dim=-1)
-            
-                # 확률 정렬
-                sorted_probs, sorted_indices = torch.sort(probs, descending=True)
-            
-                # 쌓인 확률 셈하기
-                cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
-            
-                # 쌓인 확률이 문턱값을 넘는 토큰 없애기
-                sorted_indices_to_remove = cumulative_probs > p
-                # 적어도 토큰 하나는 남기기
-                sorted_indices_to_remove[..., 0] = False
-            
-                # 마스크 만들기
-                indices_to_remove = sorted_indices_to_remove.scatter(
-                    -1, sorted_indices, sorted_indices_to_remove
-                )
-            
-                # 확률 거르기
-                filtered_probs = probs.clone()
-                filtered_probs[indices_to_remove] = 0
-                filtered_probs = filtered_probs / filtered_probs.sum()
-            
-                # 뽑기
-                next_token = torch.multinomial(filtered_probs, 1)
-                generated = torch.cat([generated, next_token], dim=-1)
-            
-                if vocab and next_token.item() == vocab.word_to_idx(vocab.END_TOKEN):
-                    break
-    
-        return generated
-
-    @staticmethod
-    def beam_search(model, input_ids, max_length=50, beam_width=5,
-                   length_penalty=1.0, vocab=None):
-        """
-        빔 서치 디코딩.
-        걸음마다 beam_width개의 가설을 지닌다.
-        """
-        model.eval()
-        batch_size = input_ids.size(0)
-        vocab_size = model.fc.out_features
-    
-        # 빔 초기화: (batch_size * beam_width, seq_len)
-        beams = input_ids.unsqueeze(1).repeat(1, beam_width, 1)
-        beams = beams.view(batch_size * beam_width, -1)
-    
-        # 빔마다의 점수
-        beam_scores = torch.zeros(batch_size, beam_width)
-        beam_scores[:, 1:] = -float('inf')  # 처음에는 첫 빔만 살아 있다
-        beam_scores = beam_scores.view(-1)
-    
-        for step in range(max_length):
-            with torch.no_grad():
-                if hasattr(model, 'lstm') or hasattr(model, 'rnn'):
-                    logits, _ = model(beams)
-                else:
-                    logits = model(beams)
-            
-                next_token_logits = logits[:, -1, :]
-                next_token_scores = F.log_softmax(next_token_logits, dim=-1)
-            
-                # 빔 점수에 더하기
-                next_scores = beam_scores.unsqueeze(-1) + next_token_scores
-                next_scores = next_scores.view(batch_size, -1)
-            
-                # 상위 beam_width개 후보 얻기
-                top_scores, top_indices = torch.topk(next_scores, beam_width, dim=-1)
-            
-                # 어느 빔인지, 어느 토큰인지 셈하기
-                beam_indices = top_indices // vocab_size
-                token_indices = top_indices % vocab_size
-            
-                # 빔 고치기
-                new_beams = []
-                new_scores = []
-            
-                for i in range(batch_size):
-                    for j in range(beam_width):
-                        beam_idx = i * beam_width + beam_indices[i, j]
-                        new_beam = torch.cat([
-                            beams[beam_idx],
-                            token_indices[i, j].unsqueeze(0)
-                        ])
-                        new_beams.append(new_beam)
-                        new_scores.append(top_scores[i, j])
-            
-                beams = torch.stack(new_beams)
-                beam_scores = torch.tensor(new_scores)
-    
-        # 가장 좋은 빔 돌려주기
-        best_beam_idx = beam_scores[:beam_width].argmax()
-        return beams[best_beam_idx].unsqueeze(0)
+    def wikitext_benchmark(model, vocab):
+        """WikiText-2 지표로 평가하기."""
+        print("WikiText-2 Benchmark")
+        print("-" * 50)
+        print("Vocabulary: ~33k words")
+        print("Training: ~2M words")
+        print("More challenging than PTB (longer context)")
+        print()
+        print("State-of-the-art perplexities:")
+        print("  LSTM (2-layer): ~100-120")
+        print("  Transformer (6-layer): ~80-100")
+        print("  GPT-2 (small): ~30-40")
 
 
-class RepetitionPenalty:
-    """로짓에 되풀이 벌주기 쓰기."""
+def demonstrate_evaluation():
+    """평가 지표 보이기."""
 
-    @staticmethod
-    def apply(logits, generated_tokens, penalty=1.2):
-        """
-        되풀이된 토큰의 로짓을 벌주기로 나누어 벌준다.
-    
-        인수:
-            logits: (vocab_size,) 로짓
-            generated_tokens: 앞서 만든 토큰 번호의 목록
-            penalty: 벌주기 인자(> 1.0)
-        """
-        for token in set(generated_tokens):
-            logits[token] /= penalty
-        return logits
-
-
-def demonstrate_generation_strategies():
-    """여러 만들어 내기 전략 견주기."""
-
-    print("Text Generation Strategies Comparison")
+    print("=" * 70)
+    print("Language Model Evaluation Metrics")
     print("=" * 70)
 
     print("""
-전략의 성질:
-------------------------
+1. 퍼플렉서티
+-------------
+- 가장 흔한 내재 지표
+- 모델이 시험 자료를 얼마나 잘 예측하는지 잰다
+- 낮을수록 좋다
+- 읽는 법: "평균적으로 모델이 단어 PPL개 가운데서 고르고 있다"
 
-1. 그리디 찾기:
-   - 늘 같다
-   - 빠르다
-   - 되풀이 패턴에 갇힐 수 있다
-   - 쓸 곳: 단순한 이어 쓰기, 사실을 담은 글
+흔한 값:
+  n-그램 모델: 200~400 (PTB)
+  LSTM: 80~120 (PTB)
+  트랜스포머: 60~80 (PTB)
+  크게 미리 학습: 20~40 (PTB)
 
-2. 빔 서치:
-   - 더 꼼꼼한 찾기
-   - 그리디보다 좋다
-   - 그래도 되풀이될 수 있다
-   - 쓸 곳: 옮김, 간추리기
+한계:
+- 만들어 낸 글의 좋음과 곧바로 이어지지는 않는다
+- 단어 곳간이 다르면 견줄 수 없다
+- 뜻의 조리는 재지 못한다
 
-3. top-k 샘플링:
-   - 확률에 맡기며 여러 갈래이다
-   - 확률 낮은 단어를 거른다
-   - k=50이 흔히 잘 된다
-   - 쓸 곳: 창작 글쓰기, 채팅
 
-4. 뉴클리어스(top-p) 샘플링:
-   - 그때그때 바뀌는 단어 곳간 크기
-   - 확률 분포에 맞춰진다
-   - p=0.9에서 0.95를 권한다
-   - 쓸 곳: 두루 쓰기, 창의적인 일
+2. 글자당 비트
+---------------------
+- 고르게 맞춘 지표
+- 토큰내기가 달라도 견줄 수 있다
+- 낮을수록 좋다
+- 글자 수준 모델에 쓴다
 
-5. 온도 샘플링:
-   - 마구잡이 정도를 다스린다
-   - T=0.7: 더 초점이 잡힘
-   - T=1.0: 보통
-   - T=1.5: 더 창의적
 
-전략 아우르기:
+3. 여러 클래스임 지표
 --------------------
-가장 좋은 버릇: 뉴클리어스 + 온도
-- 좋음을 위해 상위 p=0.95
-- 창의를 위해 온도=0.8
-- 고리를 피하려 되풀이 벌주기=1.2
+- 다른 n-그램: 전체 n-그램에 대한 겹치지 않는 것의 비
+- 자기 BLEU: 만든 표본끼리의 BLEU 점수(낮을수록 여러 클래스)
+- 엔트로피: 단어 분포의 섀넌 엔트로피
+- 되풀이 비율: 되풀이되는 차례의 잦기
+
+
+4. 사람의 평가
+-------------------
+평가할 클래스:
+- 매끄러움: 말법의 올바름
+- 조리: 논리의 흐름
+- 한결같음: 어긋남 없음
+- 맞닿음: 주제에 맞음
+- 사실다움: 참됨
+
+매김 지표:
+- 리커트 지표(1~5)
+- 짝 견줌
+- 가장 좋음-가장 나쁨 지표
+
+
+5. 뒤따르는 일
+-------------------
+구체적인 쓰임새에서 평가하기:
+- 글 이어 쓰기
+- 물음 답하기
+- 간추리기
+- 옮김
+- 대화
+
+
+평가의 좋은 버릇:
+---------------------------
+1. 지표를 여럿 쓴다(내재 + 바깥)
+2. 믿음 구간을 함께 알린다
+3. 여러 분야에서 시험하기
+4. 사람의 평가를 넣는다
+5. 치우침 살피기
+6. 효율 재기(빠르기, 기억 공간)
+7. 어그러지는 방식 평가하기
+8. 센 바탕 지표와 견주기
     """)
+
+
+def compare_models():
+    """여러 모델을 견주는 틀."""
+
+    print("\n" + "=" * 70)
+    print("Model Comparison Framework")
+    print("=" * 70)
+
+    results = {
+        'N-gram': {
+            'perplexity': 350,
+            'speed': 'Very Fast',
+            'memory': 'Low',
+            'diversity': 'Low'
+        },
+        'LSTM': {
+            'perplexity': 100,
+            'speed': 'Medium',
+            'memory': 'Medium',
+            'diversity': 'Medium'
+        },
+        'Transformer': {
+            'perplexity': 70,
+            'speed': 'Slow (train), Fast (inference)',
+            'memory': 'High',
+            'diversity': 'High'
+        },
+        'GPT-2': {
+            'perplexity': 35,
+            'speed': 'Medium',
+            'memory': 'Very High',
+            'diversity': 'Very High'
+        }
+    }
+
+    print("\nModel Performance Comparison:")
+    print("-" * 70)
+    print(f"{'Model':<15} {'Perplexity':<12} {'Speed':<20} {'Memory':<10}")
+    print("-" * 70)
+
+    for model, metrics in results.items():
+        print(f"{model:<15} {metrics['perplexity']:<12} "
+              f"{metrics['speed']:<20} {metrics['memory']:<10}")
 
 
 if __name__ == "__main__":
-    demonstrate_generation_strategies()
+    demonstrate_evaluation()
+    compare_models()
 
     print("""
+
 학습 문제:
-1. 만들어 내기에 되풀이 벌주기 짜기
-2. 빔 너비를 달리해 빔 서치 견주기
-3. 빔 서치의 길이 고르게 맞추기 짜기
-4. 상위 k와 뉴클리어스 샘플링을 아울러 보기
-5. 제약 디코딩 짜기(특정 단어를 강제하기)
-6. 접두사 다듬기로 다스릴 수 있는 만들어 내기 만들기
-7. 여러 갈래 빔 서치 짜기(여러 갈래의 내놓음)
-8. 되풀이를 피하는 덮음 얼개 더하기
+1. 언어 모델의 BLEU 점수 짜기
+2. 여러 클래스임을 재려 자기 BLEU 셈하기
+3. A/B 시험 얼거리 짜기
+4. 지표를 그려 보는 대시보드 만들기
+5. 엇갈린 엔트로피 쪼갬 살피기 짜기
+6. 사람의 평가 사이 만들기
+7. 지표와 사람의 판단 사이 얽힘 재기
+8. 모델 눈금 맞추기 평가하기(믿음도와 정확도)
+9. 맞서는 보기로 시험하기
+10. 만든 글의 공정함과 치우침 재기
     """)
-
-            # 표본 만들기
-            samples = []
-            for _ in range(num_samples):
-                start_token = torch.tensor([[self.vocab.word_to_idx(self.vocab.START_TOKEN)]])
-                generated = GenerationStrategies.nucleus_sampling(
-                    self.model, start_token, max_length=max_length,
-                    vocab=self.vocab
-                )
-
-                # 글로 바꾸기
-                tokens = generated[0].tolist()
-                words = [self.vocab.idx_to_word(idx) for idx in tokens
-                        if idx != self.vocab.word_to_idx(self.vocab.PAD_TOKEN)]
-                samples.append(' '.join(words))
-
-            # 지표를 계산한다
-            metrics = {}
-
-            # 1. 겹치지 않는 표본
-            unique_samples = len(set(samples))
-            metrics['unique_samples'] = unique_samples
-            metrics['repetition_rate'] = 1 - (unique_samples / num_samples)
-
-            # 2. 겹치지 않는 n-그램
-            for n in [2, 3, 4]:
-                all_ngrams = []
-                for sample in samples:
-                    words = sample.split()
-                    ngrams = [tuple(words[i:i+n]) for i in range(len(words)-n+1)]
-                    all_ngrams.extend(ngrams)
-
-                if all_ngrams:
-                    unique_ngrams = len(set(all_ngrams))
-                    total_ngrams = len(all_ngrams)
-                    metrics[f'unique_{n}grams'] = unique_ngrams / total_ngrams
-
-            # 3. 평균 길이
-            metrics['avg_length'] = np.mean([len(s.split()) for s in samples])
-
-            # 4. 단어 곳간 덮음
-            all_words = set()
-            for sample in samples:
-                all_words.update(sample.split())
-            metrics['vocab_coverage'] = len(all_words)
-
-            return metrics
-
-
-    class BenchmarkSuite:
-        """언어 모델의 표준 지표."""
-
-        @staticmethod
-        def penn_treebank_benchmark(model, vocab):
-            """Penn Treebank 지표로 평가하기."""
-            # 실제로는 PTB 자료를 읽어 들인다
-            # 자리 채움 짜기
-            print("Penn Treebank Benchmark")
-            print("-" * 50)
-            print("Vocabulary: ~10k words")
-            print("Training: ~1M words")
-            print("Validation: ~70k words")
-            print("Test: ~80k words")
-            print()
-            print("State-of-the-art perplexities:")
-            print("  LSTM (3-layer): ~60-80")
-            print("  Transformer (6-layer): ~50-70")
-            print("  AWD-LSTM: ~57")
-            print("  Transformer-XL: ~54")
-
-        @staticmethod
-        def wikitext_benchmark(model, vocab):
-            """WikiText-2 지표로 평가하기."""
-            print("WikiText-2 Benchmark")
-            print("-" * 50)
-            print("Vocabulary: ~33k words")
-            print("Training: ~2M words")
-            print("More challenging than PTB (longer context)")
-            print()
-            print("State-of-the-art perplexities:")
-            print("  LSTM (2-layer): ~100-120")
-            print("  Transformer (6-layer): ~80-100")
-            print("  GPT-2 (small): ~30-40")
-
-
-    def demonstrate_evaluation():
-        """평가 지표 보이기."""
-
-        print("=" * 70)
-        print("Language Model Evaluation Metrics")
-        print("=" * 70)
-
-        print("""
-    1. 퍼플렉서티
-    -------------
-    - 가장 흔한 내재 지표
-    - 모델이 시험 자료를 얼마나 잘 예측하는지 잰다
-    - 낮을수록 좋다
-    - 읽는 법: "평균적으로 모델이 단어 PPL개 가운데서 고르고 있다"
-
-    흔한 값:
-      n-그램 모델: 200~400 (PTB)
-      LSTM: 80~120 (PTB)
-      트랜스포머: 60~80 (PTB)
-      크게 미리 학습: 20~40 (PTB)
-
-    한계:
-    - 만들어 낸 글의 좋음과 곧바로 이어지지는 않는다
-    - 단어 곳간이 다르면 견줄 수 없다
-    - 뜻의 조리는 재지 못한다
-
-
-    2. 글자당 비트
-    ---------------------
-    - 고르게 맞춘 지표
-    - 토큰내기가 달라도 견줄 수 있다
-    - 낮을수록 좋다
-    - 글자 수준 모델에 쓴다
-
-
-    3. 여러 클래스임 지표
-    --------------------
-    - 다른 n-그램: 전체 n-그램에 대한 겹치지 않는 것의 비
-    - 자기 BLEU: 만든 표본끼리의 BLEU 점수(낮을수록 여러 클래스)
-    - 엔트로피: 단어 분포의 섀넌 엔트로피
-    - 되풀이 비율: 되풀이되는 차례의 잦기
-
-
-    4. 사람의 평가
-    -------------------
-    평가할 클래스:
-    - 매끄러움: 말법의 올바름
-    - 조리: 논리의 흐름
-    - 한결같음: 어긋남 없음
-    - 맞닿음: 주제에 맞음
-    - 사실다움: 참됨
-
-    매김 지표:
-    - 리커트 지표(1~5)
-    - 짝 견줌
-    - 가장 좋음-가장 나쁨 지표
-
-
-    5. 뒤따르는 일
-    -------------------
-    구체적인 쓰임새에서 평가하기:
-    - 글 이어 쓰기
-    - 물음 답하기
-    - 간추리기
-    - 옮김
-    - 대화
-
-
-    평가의 좋은 버릇:
-    ---------------------------
-    1. 지표를 여럿 쓴다(내재 + 바깥)
-    2. 믿음 구간을 함께 알린다
-    3. 여러 분야에서 시험하기
-    4. 사람의 평가를 넣는다
-    5. 치우침 살피기
-    6. 효율 재기(빠르기, 기억 공간)
-    7. 어그러지는 방식 평가하기
-    8. 센 바탕 지표와 견주기
-        """)
-
-
-    def compare_models():
-        """여러 모델을 견주는 틀."""
-
-        print("\n" + "=" * 70)
-        print("Model Comparison Framework")
-        print("=" * 70)
-
-        results = {
-            'N-gram': {
-                'perplexity': 350,
-                'speed': 'Very Fast',
-                'memory': 'Low',
-                'diversity': 'Low'
-            },
-            'LSTM': {
-                'perplexity': 100,
-                'speed': 'Medium',
-                'memory': 'Medium',
-                'diversity': 'Medium'
-            },
-            'Transformer': {
-                'perplexity': 70,
-                'speed': 'Slow (train), Fast (inference)',
-                'memory': 'High',
-                'diversity': 'High'
-            },
-            'GPT-2': {
-                'perplexity': 35,
-                'speed': 'Medium',
-                'memory': 'Very High',
-                'diversity': 'Very High'
-            }
-        }
-
-        print("\nModel Performance Comparison:")
-        print("-" * 70)
-        print(f"{'Model':<15} {'Perplexity':<12} {'Speed':<20} {'Memory':<10}")
-        print("-" * 70)
-
-        for model, metrics in results.items():
-            print(f"{model:<15} {metrics['perplexity']:<12} "
-                  f"{metrics['speed']:<20} {metrics['memory']:<10}")
-
-
-    if __name__ == "__main__":
-        demonstrate_evaluation()
-        compare_models()
-
-        print("""
-
-    학습 문제:
-    1. 언어 모델의 BLEU 점수 짜기
-    2. 여러 클래스임을 재려 자기 BLEU 셈하기
-    3. A/B 시험 얼거리 짜기
-    4. 지표를 그려 보는 대시보드 만들기
-    5. 엇갈린 엔트로피 쪼갬 살피기 짜기
-    6. 사람의 평가 사이 만들기
-    7. 지표와 사람의 판단 사이 얽힘 재기
-    8. 모델 눈금 맞추기 평가하기(믿음도와 정확도)
-    9. 맞서는 보기로 시험하기
-    10. 만든 글의 공정함과 치우침 재기
-        """)
 ```
 
 **기존 출력:**
