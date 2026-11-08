@@ -1019,45 +1019,55 @@ nav:
     - "22 컴퓨터 비전":
       - 장 개요: ch21/index.md
       - "22.1 이미지 분류":
-        - GoogLeNet 인셉션: ch21/image_classification/03_google_net_inception.md
-        - "심화 EfficientNet": ch21/image_classification/04_efficientnet_advanced.md
-        - ResNet: ch21/image_classification/04_resnet.md
-        - DenseNet: ch21/image_classification/05_densenet.md
-        - "심화 MobileNet": ch21/image_classification/05_mobilenet_advanced.md
-        - ConvNeXt: ch21/image_classification/06_convnext.md
-        - "심화 DenseNet": ch21/image_classification/06_densenet_advanced.md
-        - EfficientNet: ch21/image_classification/07_efficientnet.md
-        - MobileNet V2: ch21/image_classification/11_mobilenet_v2.md
-        - SqueezeNet: ch21/image_classification/12_squeeze_net.md
-        - ShuffleNet: ch21/image_classification/13_shuffle_net.md
-        - 인셉션 V3: ch21/image_classification/14_inception_v3.md
-        - Xception: ch21/image_classification/15_xception.md
-        - NASNet: ch21/image_classification/16_nas_net.md
-        - EfficientNet V2: ch21/image_classification/17_efficient_net_v2.md
-        - ConvNeXt V2: ch21/image_classification/20_convnext_v2.md
-        - RegNet: ch21/image_classification/21_regnet.md
-        - ResNeXt: ch21/image_classification/22_res_next.md
-        - SENet: ch21/image_classification/23_se_net.md
-        - CBAM: ch21/image_classification/24_cbam.md
-        - ResNeSt: ch21/image_classification/25_res_nest.md
-        - GhostNet: ch21/image_classification/26_ghost_net.md
-        - MixNet: ch21/image_classification/27_mixnet.md
-        - HRNet: ch21/image_classification/28_hrnet.md
-        - PyramidNet: ch21/image_classification/29_pyramidnet.md
-        - CoordConv: ch21/image_classification/30_coordconv.md
-        - VGGNet: ch21/image_classification/vgg.md
+        - 깊이와 잔차:
+          - VGGNet: ch21/image_classification/vgg.md
+          - GoogLeNet 인셉션: ch21/image_classification/03_google_net_inception.md
+          - 인셉션 V3: ch21/image_classification/14_inception_v3.md
+          - Xception: ch21/image_classification/15_xception.md
+          - ResNet: ch21/image_classification/04_resnet.md
+          - ResNeXt: ch21/image_classification/22_res_next.md
+          - DenseNet: ch21/image_classification/05_densenet.md
+          - "심화 DenseNet": ch21/image_classification/06_densenet_advanced.md
+          - PyramidNet: ch21/image_classification/29_pyramidnet.md
+        - 값싸게 만들기:
+          - SqueezeNet: ch21/image_classification/12_squeeze_net.md
+          - "심화 MobileNet": ch21/image_classification/05_mobilenet_advanced.md
+          - MobileNet V2: ch21/image_classification/11_mobilenet_v2.md
+          - ShuffleNet: ch21/image_classification/13_shuffle_net.md
+          - GhostNet: ch21/image_classification/26_ghost_net.md
+          - MixNet: ch21/image_classification/27_mixnet.md
+        - 크기를 설계하기:
+          - EfficientNet: ch21/image_classification/07_efficientnet.md
+          - "심화 EfficientNet": ch21/image_classification/04_efficientnet_advanced.md
+          - EfficientNet V2: ch21/image_classification/17_efficient_net_v2.md
+          - NASNet: ch21/image_classification/16_nas_net.md
+          - RegNet: ch21/image_classification/21_regnet.md
+        - 채널에 어텐션 걸기:
+          - SENet: ch21/image_classification/23_se_net.md
+          - CBAM: ch21/image_classification/24_cbam.md
+          - ResNeSt: ch21/image_classification/25_res_nest.md
+        - 해상도와 위치를 지키기:
+          - HRNet: ch21/image_classification/28_hrnet.md
+          - CoordConv: ch21/image_classification/30_coordconv.md
+        - CNN 을 현대화하기:
+          - ConvNeXt: ch21/image_classification/06_convnext.md
+          - ConvNeXt V2: ch21/image_classification/20_convnext_v2.md
       - "22.2 이미지 분할":
-        - "이미지 분할 개요": ch21/segmentation/segmentation_overview.md
-        - "U-Net": ch21/segmentation/unet.md
-        - "Mask R-CNN": ch21/segmentation/mask_rcnn.md
-        - "U-Net": ch21/segmentation/31_u_net.md
-        - FCN: ch21/segmentation/32_fcn.md
-        - DeepLabV3: ch21/segmentation/33_deeplabv3.md
-        - PSPNet: ch21/segmentation/34_pspnet.md
-        - "U-Net 이미지 분할 기초": ch21/segmentation/basic_unet_segmentation.md
-        - "사전 학습 모델을 이용한 이미지 분할": ch21/segmentation/pretrained_segmentation.md
-        - "의료 이미지 분할": ch21/segmentation/medical_segmentation.md
-        - "이미지 분할 심화": ch21/segmentation/advanced_segmentation.md
+        - 무엇을 푸는 문제인가:
+          - "이미지 분할 개요": ch21/segmentation/segmentation_overview.md
+        - 인코더–디코더와 U-Net:
+          - "U-Net": ch21/segmentation/unet.md
+          - "U-Net": ch21/segmentation/31_u_net.md
+          - "U-Net 이미지 분할 기초": ch21/segmentation/basic_unet_segmentation.md
+        - 다른 구조들:
+          - FCN: ch21/segmentation/32_fcn.md
+          - DeepLabV3: ch21/segmentation/33_deeplabv3.md
+          - PSPNet: ch21/segmentation/34_pspnet.md
+          - "Mask R-CNN": ch21/segmentation/mask_rcnn.md
+        - 실제로 돌려 보기:
+          - "사전 학습 모델을 이용한 이미지 분할": ch21/segmentation/pretrained_segmentation.md
+          - "의료 이미지 분할": ch21/segmentation/medical_segmentation.md
+          - "이미지 분할 심화": ch21/segmentation/advanced_segmentation.md
       - "22.3 객체 탐지":
         - "IoU와 비최대 억제(NMS)": ch21/detection/iou_nms.md
         - "Mask R-CNN": ch21/detection/35_mask_rcnn.md
@@ -1076,21 +1086,27 @@ nav:
       - "22.5 앵커 프리 객체 탐지":
         - FCOS: ch21/detection/fcos.md
       - 22.6 영상 이해:
-        - 영상 개요: ch21/video/video_overview.md
-        - "Two-Stream 네트워크": ch21/video/two_stream.md
-        - "SlowFast": ch21/video/slowfast.md
-        - 영상 기초: ch21/video/01_video_basics.md
-        - "3차원 컨볼루션": ch21/video/02_3d_convolution.md
-        - "간단한 비디오 분류기": ch21/video/03_simple_video_classifier.md
-        - "비디오 데이터 어그멘테이션": ch21/video/04_data_augmentation_video.md
-        - "Two-Stream 네트워크": ch21/video/05_two_stream_network.md
-        - "옵티컬 플로우": ch21/video/06_optical_flow.md
-        - 영상 CNN-LSTM: ch21/video/07_cnn_lstm_video.md
-        - "액션 인식": ch21/video/08_action_recognition.md
-        - "시간 어텐션": ch21/video/09_temporal_attention.md
-        - "SlowFast 네트워크": ch21/video/10_slowfast_network.md
-        - "비디오 트랜스포머": ch21/video/11_video_transformer.md
-        - "비디오 이해 프로젝트": ch21/video/12_video_understanding_project.md
+        - 비디오를 입력으로:
+          - 영상 개요: ch21/video/video_overview.md
+          - 영상 기초: ch21/video/01_video_basics.md
+          - "비디오 데이터 어그멘테이션": ch21/video/04_data_augmentation_video.md
+        - 시공간 컨볼루션:
+          - "3차원 컨볼루션": ch21/video/02_3d_convolution.md
+          - "간단한 비디오 분류기": ch21/video/03_simple_video_classifier.md
+        - 움직임을 따로 보기:
+          - "Two-Stream 네트워크": ch21/video/two_stream.md
+          - "Two-Stream 네트워크": ch21/video/05_two_stream_network.md
+          - "옵티컬 플로우": ch21/video/06_optical_flow.md
+        - 시간을 모델에 넣기:
+          - 영상 CNN-LSTM: ch21/video/07_cnn_lstm_video.md
+          - "시간 어텐션": ch21/video/09_temporal_attention.md
+        - 두 시간 해상도와 토큰:
+          - "SlowFast": ch21/video/slowfast.md
+          - "SlowFast 네트워크": ch21/video/10_slowfast_network.md
+          - "비디오 트랜스포머": ch21/video/11_video_transformer.md
+        - 과제로 묶기:
+          - "액션 인식": ch21/video/08_action_recognition.md
+          - "비디오 이해 프로젝트": ch21/video/12_video_understanding_project.md
     - "23 자연어 처리":
       - 장 개요: ch22/index.md
       - "23.1 언어 모델링":
