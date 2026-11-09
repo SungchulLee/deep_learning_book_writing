@@ -479,6 +479,23 @@ for m in re.finditer(r"[^\n]{0,24}6\.\d[^\n]{0,30}", text):
 | **이어 붙인 코드의 문법** | **2쪽**. 검증기가 조용히 폴백하던 자리 |
 | **시드 없이 소수를 싣는 쪽** | **22쪽**. 돌릴 때마다 수가 달라졌다 |
 
+**MPS 는 비트 단위로 결정적이지 않다.** `ch05/generative/01_gan.md` 은
+`torch.manual_seed` 도 박고 `Generator().manual_seed` 까지 쓰는데, 두 번 돌리면
+확신도가 0.908 과 0.909 로 갈린다. GAN 처럼 긴 학습이 MPS 에서 돌면 셋째 자리가
+움직인다. **시드로 못 고친다.** 쫓지 말 것.
+
+**torchvision 의 `Files already downloaded and verified` 는 캐시가 더울 때만
+찍힌다.** 그래서 실린 블록과 diff 를 뜨면 **없던 줄이 끼어든 것처럼** 보인다 —
+`ch04/04_augmentation.md` 의 차이 37줄 가운데 30줄이 그것이었고 값 줄은 하나도
+안 달랐다. diff 를 읽을 때 **삽입만 있고 `-`/`+` 짝이 없으면 값은 같은 것**이다.
+
+**1800초로도 못 끝내는 쪽이 여덟이다** — `ch04/02_depth.md` ·
+`ch04/07_distillation.md` · `ch05/diffusion/01_ddpm.md` ·
+`ch10/residual/06_practical_example.md` · `imdb/04_lstm.md` ·
+`imdb/05_attention.md` · `imdb/06_transformer.md` · `imdb/07_stars.md`.
+`embeddings/03_counting.md` 는 인수 변종마다 돌려 **3.8시간**이 걸렸다.
+확인하려면 그만큼을 따로 떼어 두어야 한다.
+
 **타임아웃이 모자라면 「시간초과」가 아니라 「어긋남」으로 뜬다.** 쪽이 제한
 시각에 걸려 죽으면 **중간까지 나온 출력**이 남고, 검증기는 그것을 보고 「실린 줄이
 안 나온다」고 적는다. `ch05/dimreduction/03_ae_mlp.md` 가 150초·420초에서 내리
