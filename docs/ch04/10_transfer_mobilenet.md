@@ -236,7 +236,7 @@ print(f"그러면 컨볼루션 웨이트 전체가 {w_all - w_dw + w_dense:,} "
 
     1280을 손으로 적는 것도 피할 수 있다. 갈아 끼우기 **전에** 읽어 두면 된다.
 
-    ```python
+    ```
     dim = net.classifier[3].in_features   # 1280
     net.classifier[3] = nn.Identity()
     head = nn.Linear(dim, 10).to(device)

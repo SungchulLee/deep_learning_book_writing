@@ -155,7 +155,7 @@ $32$ 열에서는 다섯 번 접히는 동안 $32 \to 16 \to 8 \to 4 \to 2 \to 1
 
     위 표를 맥에서 다시 재려면 그 한 연산만 CPU로 보내면 된다. 배치마다 몇 MB를 옮길 뿐이다.
 
-    ```python
+    ```
     f = net.features(x)                      # MPS
     a = net.avgpool(f.cpu()).to(x.device)    # 이 한 줄만 CPU
     y = net.classifier(a.flatten(1))         # MPS

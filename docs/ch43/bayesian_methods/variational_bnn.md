@@ -321,7 +321,7 @@ $$
 
 웨이트 행렬이 $W \in \mathbb{R}^{m \times n}$인 켜에서
 
-```python
+```
 # 여느 파라메터 다시 잡기
 W = mu_W + sigma_W * eps_W  # eps_W: (m, n)
 a = W @ x                    # a: (n,)

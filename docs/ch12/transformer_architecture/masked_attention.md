@@ -59,6 +59,9 @@ $$
 ### 아래 삼각 마스크
 
 ```python
+import torch
+
+
 def create_causal_mask(seq_len: int, device: torch.device = None) -> torch.Tensor:
     """
     인과 주의 가림을 만든다.
@@ -308,7 +311,13 @@ if __name__ == "__main__":
     )
     
     # 시험 입력
+    torch.manual_seed(0)
     x = torch.randn(batch_size, seq_len, d_model)
+    
+    # 드롭아웃을 끈다. 켜 두면 주의 웨이트에도 걸려서 줄의 합이 1이 아니게 된다
+    # — 살아남은 자리는 1/(1-p) 로 커지고 걸린 자리는 0이 되므로, 아래 「줄의
+    # 합이 1인가」 검사가 못 쓰게 된다. 인과성 검사는 둘 다에서 통과한다.
+    masked_attn.eval()
     
     # 순전파
     output, attn_weights = masked_attn(x, return_attention=True)
@@ -330,7 +339,10 @@ if __name__ == "__main__":
     # 첫 머리의 주의 무늬를 보인다
     print("\nAttention pattern (first batch, first head):")
     pattern = attn_weights[0, 0].detach()
-    print(f"Sum of each row (should be 1.0): {pattern.sum(dim=-1)[:5].tolist()}")
+    # 끝자리까지 찍으면 0.9999998807907104 처럼 쓰레드 갈림에 따라 흔들리는 수가
+    # 나온다. 재어야 하는 것은 「1인가」이지 열다섯째 자리가 아니므로 반올림한다.
+    sums = [round(v, 5) for v in pattern.sum(dim=-1)[:5].tolist()]
+    print(f"Sum of each row (should be 1.0): {sums}")
     
     # 시각화한다
     visualize_causal_attention(10)
@@ -347,7 +359,7 @@ Attention weights shape: torch.Size([4, 8, 20, 20])
 ✓ Causality verified: No attention to future positions
 
 Attention pattern (first batch, first head):
-Sum of each row (should be 1.0): [1.1111111640930176, 1.1111111640930176, 1.1111111640930176, 0.8720628023147583, 0.9415875673294067]
+Sum of each row (should be 1.0): [1.0, 1.0, 1.0, 1.0, 1.0]
 
 Visualization saved to 'causal_attention_pattern.png'
 ```

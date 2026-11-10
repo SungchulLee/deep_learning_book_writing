@@ -183,6 +183,8 @@ import torch
 import torch.distributions as dist
 import matplotlib.pyplot as plt
 
+torch.manual_seed(0)   # 아래 수는 전부 표본에서 나오므로 씨앗이 없으면 돌릴 때마다 달라진다
+
 def importance_sampling(h_function, target_log_pdf, proposal_dist, 
                         n_samples, return_diagnostics=False):
     """
@@ -363,13 +365,13 @@ plt.show()
 Importance Sampling: E_π[θ²] where π = N(3,1), q = N(0,2)
 ============================================================
 True value: 10.000000
-IS estimate: 9.982215
-Standard error: 0.299109
-Error: 0.017785
+IS estimate: 9.829012
+Standard error: 0.297210
+Error: 0.170988
 
 Weight Statistics:
-  Mean: 0.9874
-  Std: 2.1072
+  Mean: 0.9731
+  Std: 2.0853
   Max: 8.9634
   Min: 0.0000
 ```
@@ -443,10 +445,10 @@ Proposal Comparison:
 ----------------------------------------------------------------------
 Proposal                 Mean Est      Std Dev          ESS        ESS/n
 ----------------------------------------------------------------------
-Good: N(3, 1.2)            9.9992       0.0833       4761.7       95.23%
-Okay: N(2, 1.5)           10.0069       0.1702       3126.1       62.52%
-Poor: N(0, 2)              9.8984       0.4012        914.3       18.29%
-Bad: N(3, 0.5)            10.2465       4.9791        691.2       13.82%
+Good: N(3, 1.2)           10.0032       0.0717       4761.9       95.24%
+Okay: N(2, 1.5)            9.9723       0.1918       3125.4       62.51%
+Poor: N(0, 2)             10.0951       0.4920        918.2       18.36%
+Bad: N(3, 0.5)             9.9529       1.4401        626.5       12.53%
 ```
 
 ---
@@ -476,9 +478,16 @@ samples_naive = target.sample((n_samples,))
 naive_estimate = h_indicator(samples_naive).mean()
 naive_se = h_indicator(samples_naive).std() / (n_samples**0.5)
 
+# 어수룩한 쪽의 표준오차는 참값으로도 적는다. 지시 함수의 분산은 p(1-p)이므로
+# 표본을 안 봐도 알 수 있다. 표본에서 잰 SE 는 꼬리를 한 번도 못 맞히면 0이
+# 되어 버리는데 — 기댓값이 세 번뿐이라 그런 씨앗이 드물지 않다 — 그 0을 아래
+# 줄임 배수에 넣으면 배수가 0배로 뒤집힌다.
+naive_se_true = (true_prob * (1 - true_prob) / n_samples).sqrt()
+
 print(f"\nNaive MC (n={n_samples}):")
 print(f"  Estimate: {naive_estimate.item():.6f}")
-print(f"  SE: {naive_se.item():.6f}")
+print(f"  SE (표본에서): {naive_se.item():.6f}")
+print(f"  SE (참값에서): {naive_se_true.item():.6f}")
 
 # 옮긴 제안을 쓴 중요도 표집
 shifted_proposal = dist.Normal(4.0, 1.5)  # 꼬리에 가운데를 맞춤
@@ -495,8 +504,8 @@ print(f"\nImportance Sampling (n=10000):")
 print(f"  Estimate: {is_estimate.item():.6f}")
 print(f"  SE: {is_se.item():.6f}")
 
-# 흩어짐 줄임 배수
-variance_reduction = (naive_se / is_se)**2
+# 흩어짐 줄임 배수 — 어수룩한 쪽은 참 표준오차를 쓴다
+variance_reduction = (naive_se_true / is_se)**2
 print(f"\nVariance reduction factor: {variance_reduction.item():.1f}x")
 ```
 
@@ -506,15 +515,18 @@ print(f"\nVariance reduction factor: {variance_reduction.item():.1f}x")
 True P(X > 4): 3.17e-05
 
 Naive MC (n=100000):
-  Estimate: 0.000030
-  SE: 0.000017
+  Estimate: 0.000000
+  SE (표본에서): 0.000000
+  SE (참값에서): 0.000018
 
 Importance Sampling (n=10000):
-  Estimate: 0.000030
+  Estimate: 0.000032
   SE: 0.000001
 
-Variance reduction factor: 444.8x
+Variance reduction factor: 433.6x
 ```
+
+어수룩한 쪽은 표본 10만 개로 **한 번도 못 맞혔다.** 참 확률이 $3.17 \times 10^{-5}$이니 10만 번에 세 번쯤 걸릴 일이고, 세 번쯤 걸릴 일은 **영 번 걸리는 일도 흔하다** — 이 씨앗이 그랬다. 추정값이 0이 되면 표본에서 잰 표준오차도 0이 되어 흩어짐 줄임 배수가 0배로 뒤집히므로, 위 코드는 어수룩한 쪽의 표준오차를 $\sqrt{p(1-p)/n}$으로 따로 적는다. 중요도 샘플링 쪽은 표본을 10분의 1만 쓰고도 $3.2 \times 10^{-5}$을 내놓았다.
 
 ---
 

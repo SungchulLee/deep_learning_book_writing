@@ -170,7 +170,7 @@ x ──→ [z¹ = W¹x + b¹] ──→ [a¹ = ReLU(z¹)] ──→ [z² = W²a
     역전파에 필요한 중간 텐서를 저장한다. 어떤 값을 저장하는지는 연산에 따라 다르며, 모든 중간값을 보관해야 하는 것은 아니다. 활성화 체크포인팅은 일부 값을 다시 계산하여 저장 공간을 줄인다. 학습과 추론의 메모리 비율은 모델과 옵티마이저에 따라 크게 달라진다.
     
     **추론만 할 때**는 `no_grad()`나 `inference_mode()`로 경사 기록을 끌 수 있다. `model.eval()`은 드롭아웃과 배치 정규화 등의 동작을 바꾸며, 경사 기록을 끄는 기능과는 별개이다.
-    ```python
+    ```
     with torch.no_grad():      # 그래디언트 추적을 끈다
         output = model(input)   # 계산 그래프를 만들지 않는다
     ```
@@ -220,6 +220,9 @@ $$
 이는 (상수가 상쇄되므로) 수학적으로 동일하지만, 가장 큰 지수가 $e^0 = 1$이 되므로 수치적으로 안정하다.
 
 ```python
+import torch
+
+
 def stable_softmax(z: torch.Tensor) -> torch.Tensor:
     z_shifted = z - z.max(dim=-1, keepdim=True).values
     exp_z = torch.exp(z_shifted)
@@ -248,7 +251,7 @@ $$
 \text{BCE}(z, y) = \max(z, 0) - z \cdot y + \log(1 + e^{-|z|})
 $$
 
-```python
+```
 # ✗ 수치적으로 불안정하다
 loss = nn.BCELoss()(torch.sigmoid(logits), targets)
 

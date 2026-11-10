@@ -103,6 +103,10 @@ Pre-LN은 항등 잔차 경로가 정규화 바깥에 남는다. 깊은 모델�
 인코더만 쓰는 구조는 디코더를 아주 없앤다. 모델은 입력을 양방향 셀프 어텐션 레이어 스택로 처리하여 토큰마다 맥락이 담긴 표현을 낸다.
 
 ```python
+import torch
+import torch.nn as nn
+
+
 class EncoderOnly(nn.Module):
     def __init__(self, vocab_size, d_model, num_heads, num_layers):
         super().__init__()
@@ -1320,6 +1324,9 @@ class TransformerDecoder(nn.Module):
 
 # 사용 예
 if __name__ == "__main__":
+    # 웨이트 초깃값도 입력도 난수에서 나오므로 씨앗을 박는다
+    torch.manual_seed(0)
+    
     # GPT 방식 디코더 설정
     model = TransformerDecoder(
         vocab_size=50257,
@@ -1353,7 +1360,7 @@ if __name__ == "__main__":
 
 ```
 Logits shape: torch.Size([4, 128, 50257])
-Loss: 10.9665
+Loss: 10.9717
 Generated shape: torch.Size([1, 30])
 Total parameters: 124,439,808
 ```

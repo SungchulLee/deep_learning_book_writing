@@ -162,7 +162,7 @@ ConvNeXt가 하는 일은 이 둘을 갈라 놓는 것이다. **지역성은 지
 
     같은 함정을 이 절의 다른 백본들이 저마다 다른 자리에 두고 있다. `net.fc` 하나인 ResNet18과 `classifier`가 맨 `Linear` 하나인 DenseNet121은 **통째로 갈아 끼우는 것이 맞고**, `classifier`가 넷인 MobileNetV3-L은 `[3]`, 셋인 ConvNeXt는 `[2]`다. 번호를 외우지 말고 갈아 끼우기 **전에** 읽어 두는 편이 낫다.
 
-    ```python
+    ```
     dim = net.classifier[2].in_features   # 768
     net.classifier[2] = nn.Identity()
     head = nn.Linear(dim, 10).to(device)

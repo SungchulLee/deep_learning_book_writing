@@ -41,7 +41,7 @@ $$
 
 마스크는 그 상자를 지운다. 코드로는 한 줄이다.
 
-```python
+```
 m = torch.triu(torch.full((L, L), float("-inf")), 1)   # 위쪽 삼각을 -inf 로
 ```
 

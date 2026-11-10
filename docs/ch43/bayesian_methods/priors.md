@@ -589,7 +589,7 @@ $$
 
 뽑아 보고 이끌려 나온 함수를 살펴 **사전분포를 따진다**.
 
-```python
+```
 # 앞선 분포에서 짐을 뽑는다
 theta_prior = sample_from_prior()
 
