@@ -12,12 +12,17 @@
           **Linear 는 건드리지 않는다** — 논문의 구조에는 Linear 가 없어서
           규칙이 적혀 있지 않기 때문이다.
   all     거기에 Linear 까지 N(0, 0.02) 로. 이 쪽의 생성기는 파라메터
-          552,513개 가운데 401,408개가 첫 Linear 에 있으므로, conv 갈래만으로는
-          대부분을 손대지 않은 채 재게 된다.
+          552,513개 가운데 407,680개(73.8%)가 첫 Linear 에 있으므로, conv
+          갈래만으로는 대부분을 손대지 않은 채 재게 된다.
 
 실행: python experiments/ch05_dcgan_init.py        (저장소 뿌리에서)
-      3 갈래 x 5 시드 = 15 번 학습한다. 한 번에 15분 남짓 걸린다.
+      3 갈래 x 5 시드 = 15 번 학습한다. 한 번에 12분 남짓, 모두 3 시간이다.
+      이미 끝난 (갈래, 시드) 는 JSON 에서 읽어 건너뛰므로 이어서 돌릴 수 있다.
 결과: experiments/ch05_dcgan_init.json
+
+잰 것 — 클래스 균형도에서만 세 갈래의 다섯 벌 범위가 서로 겹치지 않는다
+(0.965~0.975 / 0.979~0.983 / 0.985~0.991). 확신도는 all 에서만 갈리고,
+클래스 안 다양함과 최대 클래스 몫은 셋이 모두 겹친다.
 """
 
 import json
@@ -119,19 +124,24 @@ class DConv(nn.Module):
 
 # === 초기화 세 갈래 ===========================================================
 def weights_init(m):
-    """논문·튜토리얼이 적어 둔 것 그대로. Conv* 와 BatchNorm* 만 건드린다."""
-    name = m.__class__.__name__
-    if name.find("Conv") != -1:
+    """논문·튜토리얼이 적어 둔 것 그대로. Conv* 와 BatchNorm* 만 건드린다.
+
+    튜토리얼은 `m.__class__.__name__.find("Conv")` 로 가리는데, 이 책의 모듈
+    이름이 GConv·DConv 라서 그대로 베끼면 **바깥 모듈 자신이 걸려** 터진다
+    (`'GConv' object has no attribute 'weight'`). 타입으로 가린다.
+    """
+    if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d)):
         nn.init.normal_(m.weight.data, 0.0, 0.02)
-    elif name.find("BatchNorm") != -1:
+        if m.bias is not None:
+            nn.init.constant_(m.bias.data, 0)
+    elif isinstance(m, (nn.BatchNorm1d, nn.BatchNorm2d)):
         nn.init.normal_(m.weight.data, 1.0, 0.02)
         nn.init.constant_(m.bias.data, 0)
 
 
 def weights_init_all(m):
     """위에 Linear 를 더한 것. 논문에는 없는 갈래다."""
-    name = m.__class__.__name__
-    if name.find("Linear") != -1:
+    if isinstance(m, nn.Linear):
         nn.init.normal_(m.weight.data, 0.0, 0.02)
         nn.init.constant_(m.bias.data, 0)
     else:
@@ -184,10 +194,14 @@ def rng(vals):
 
 
 if __name__ == "__main__":
-    res = {}
+    # 이미 끝난 (갈래, 시드) 는 건너뛴다 — 중간에 죽어도 이어서 돌릴 수 있게
+    res = json.loads(OUT.read_text()) if OUT.exists() else {}
     for arm, fn in ARMS.items():
-        res[arm] = []
+        res.setdefault(arm, [])
+        done = {r["seed"] for r in res[arm]}
         for sd in SEEDS:
+            if sd in done:
+                continue
             t0 = time.time()
             r = train_one(sd, fn)
             r["seed"] = sd; r["sec"] = round(time.time() - t0)
