@@ -9,6 +9,13 @@ make_figures.py - 5장의 그림을 만든다
     ae_linear_descent.svg     선형 AE가 100 에포크에 걸쳐 PCA의 바닥까지 내려가는
                               곡선과, 그 끝에서 나온 복원. 이 그림만 모델을 직접
                               학습하므로 혼자 5분쯤 걸린다
+    dcgan_walk.svg            잠재 공간의 직선 위를 16칸 걸으며 뽑은 그림과,
+                              칸 사이의 화소 거리
+    dcgan_nearest.svg         뽑은 것 가운데 학습 그림에 가장 가까운 여덟 짝
+    dcgan_thickness.svg       굵기 벡터를 더해 가며 — 굵어지는데 숫자가 바뀐다
+    dcgan_init_arms.svg       N(0, 0.02) 초기화를 넣고 뺀 세 갈래, 시드 다섯 벌
+                              (수는 experiments/ch05_dcgan_init.json 에서 읽는다)
+    dcgan_shapes.svg          널리 쓰이는 64x64 DCGAN 과 이 쪽의 28x28 을 나란히
 
 그림 규칙(CLAUDE.md):
     - SVG로 저장하고 svg.fonttype='path'로 글자를 외곽선으로 만든다
@@ -3599,6 +3606,11 @@ if __name__ == "__main__":
     fig_outside_measured()
     fig_nested_code()
     fig_shuffled_pixels()
+    fig_dcgan_walk()
+    fig_dcgan_nearest()
+    fig_dcgan_thickness()
+    fig_dcgan_init_arms()
+    fig_dcgan_shapes()
     fig_who_wins()
 
     # --- 들머리 그림 (쪽의 물음을 세우는 자리) ---------------------------
@@ -3621,3 +3633,343 @@ if __name__ == "__main__":
     fig_lead_price_in_time()
     fig_lead_never_a_digit()
     fig_lead_96x()
+
+
+# ============================================================================
+# 5.3절 DCGAN 쪽의 그림 넷 — 모두 `mnist_dcgan_g.pt` 하나에서 나온다
+# ============================================================================
+DC_SEED, DC_ZDIM, DC_NWALK, DC_NSTEP = 42, 64, 12, 16
+
+
+def _dc_generator():
+    """02_dcgan.md 의 GConv 를 그대로 세우고 저장해 둔 웨이트를 읽는다."""
+    import torch.nn as nn
+
+    class GConv(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.fc = nn.Sequential(nn.Linear(DC_ZDIM, 128 * 7 * 7),
+                                    nn.BatchNorm1d(128 * 7 * 7), nn.ReLU())
+            self.net = nn.Sequential(
+                nn.ConvTranspose2d(128, 64, 4, 2, 1),
+                nn.BatchNorm2d(64), nn.ReLU(),
+                nn.ConvTranspose2d(64, 1, 4, 2, 1), nn.Tanh())
+
+        def forward(self, z):
+            return self.net(self.fc(z).reshape(-1, 128, 7, 7))
+
+    G = GConv()
+    G.load_state_dict(torch.load(f"{MODELS}/mnist_dcgan_g.pt",
+                                 map_location="cpu", weights_only=True))
+    return G.eval()
+
+
+def _dc_pm1_train():
+    """DCGAN 쪽이 쓰는 [-1, 1] MNIST 학습 그림 (N, 784)."""
+    tf = transforms.Compose([transforms.ToTensor(),
+                             transforms.Normalize((0.5,), (0.5,))])
+    tr = torchvision.datasets.MNIST(DATA, train=True, download=True, transform=tf)
+    return torch.cat([x.flatten(1) for x, _ in
+                      torch.utils.data.DataLoader(tr, batch_size=2000)])
+
+
+@torch.no_grad()
+def fig_dcgan_walk():
+    """4절 (나) 를 눈으로 — z 둘을 잇는 직선 위를 열여섯 칸 걷는다.
+
+    쪽의 `walk()` 와 **같은 씨앗·같은 절차**로 길 12개를 만든 뒤, 한 걸음이
+    가장 크게 튄 길 하나를 골라 그린다. 끊긴다면 그 길에서 끊길 것이기
+    때문이다. 아래 막대가 칸 사이의 화소 거리이고, 두 가로선은 견줄 자리다
+    — 한 걸음의 평균과, 서로 상관없는 두 그림 사이의 거리.
+    """
+    G = _dc_generator()
+    g = torch.Generator().manual_seed(DC_SEED)
+    a = torch.randn(DC_NWALK, DC_ZDIM, generator=g)
+    b = torch.randn(DC_NWALK, DC_ZDIM, generator=g)
+    w = torch.linspace(0, 1, DC_NSTEP)[:, None, None]
+    z = (1 - w) * a[None] + w * b[None]
+    im = G(z.reshape(-1, DC_ZDIM)).reshape(DC_NSTEP, DC_NWALK, 1, 28, 28)
+    flat = im.reshape(DC_NSTEP, DC_NWALK, -1)
+    step = (flat[1:] - flat[:-1]).pow(2).sum(-1).sqrt()      # (step-1, walk)
+
+    far = G(torch.randn(400, DC_ZDIM,
+                        generator=torch.Generator().manual_seed(DC_SEED + 1)))
+    far = far.reshape(400, -1)
+    indep = (far[:200] - far[200:]).pow(2).sum(-1).sqrt().median().item()
+
+    k = int(step.max(0).values.argmax())                     # 가장 크게 튄 길
+    s = step[:, k]
+
+    fig, (axT, axB) = plt.subplots(
+        2, 1, figsize=(11.6, 3.5), gridspec_kw={"height_ratios": [1.5, 1.0]})
+
+    canvas = torch.cat([im[t, k, 0] for t in range(DC_NSTEP)], 1)
+    axT.imshow((canvas + 1) / 2, cmap="gray", vmin=0, vmax=1)
+    axT.set_xticks([]); axT.set_yticks([]); axT.set_anchor("S")
+    for sp in axT.spines.values():
+        sp.set_visible(False)
+    axT.set_title(f"one straight line in z space, {DC_NSTEP} stops "
+                  f"(walk {k + 1} of {DC_NWALK} - the one that jumps most)",
+                  fontsize=11, pad=5)
+
+    x = np.arange(DC_NSTEP - 1) + 0.5
+    axB.bar(x, s.numpy(), width=0.74, color="#2563eb", zorder=3)
+    axB.axhline(float(step.mean()), color="#15803d", lw=1.6, ls="--", zorder=4)
+    axB.axhline(indep, color="#b91c1c", lw=1.8, zorder=4)
+    axB.text(0.12, indep, f"two unrelated samples  {indep:.1f}",
+             color="#b91c1c", fontsize=9.5, va="bottom")
+    axB.text(0.12, float(step.mean()), f"mean step {step.mean():.2f}",
+             color="#15803d", fontsize=9.5, va="bottom")
+    axB.set_xlim(0, DC_NSTEP - 1); axB.set_ylim(0, indep * 1.22)
+    axB.set_xticks([]); axB.set_ylabel("pixel distance", fontsize=9.5)
+    axB.grid(axis="y", alpha=0.25, zorder=0)
+    for sp in ("top", "right", "bottom"):
+        axB.spines[sp].set_visible(False)
+
+    fig.subplots_adjust(left=0.058, right=0.995, top=0.90, bottom=0.055,
+                        hspace=-0.08)
+    fig.savefig("dcgan_walk.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote dcgan_walk.svg   (walk {k + 1}, max step {s.max():.3f}, "
+          f"mean {step.mean():.3f}, indep {indep:.3f})")
+
+
+@torch.no_grad()
+def fig_dcgan_nearest():
+    """4절 (가) 를 눈으로 — 베꼈다면 여기서 들통난다.
+
+    뽑은 2,000장 가운데 **학습 그림에 가장 가까운 여덟 장**을 골라, 그 짝이
+    되는 학습 그림을 바로 아래 둔다. 가장 의심스러운 여덟을 고른 것이므로,
+    여기서 베낀 것이 안 보이면 나머지에서도 안 보인다.
+    """
+    G = _dc_generator()
+    Xtr = _dc_pm1_train()
+    g = torch.Generator().manual_seed(DC_SEED)
+    fake = G(torch.randn(2000, DC_ZDIM, generator=g)).reshape(2000, -1)
+
+    d = torch.cdist(fake, Xtr)
+    dist, idx = d.min(1)
+    order = dist.argsort()[:8]
+
+    fig, axes = plt.subplots(2, 8, figsize=(11.2, 3.15))
+    for c, i in enumerate(order.tolist()):
+        axes[0, c].imshow((fake[i].reshape(28, 28) + 1) / 2, cmap="gray",
+                          vmin=0, vmax=1)
+        axes[1, c].imshow((Xtr[idx[i]].reshape(28, 28) + 1) / 2, cmap="gray",
+                          vmin=0, vmax=1)
+        axes[0, c].set_title(f"{dist[i]:.1f}", fontsize=10, pad=3)
+        for r in (0, 1):
+            axes[r, c].set_xticks([]); axes[r, c].set_yticks([])
+            for sp in axes[r, c].spines.values():
+                sp.set_visible(False)
+    axes[0, 0].set_ylabel("generated", fontsize=10)
+    axes[1, 0].set_ylabel("nearest in\ntraining set", fontsize=10)
+    fig.suptitle("the 8 closest generated-to-training pairs out of 2000\n"
+                 "number above = pixel distance   "
+                 "(median over all 2000 = 10.8;  training image to training "
+                 "image = 10.2)", fontsize=10.5, y=0.985)
+    fig.subplots_adjust(left=0.10, right=0.99, top=0.73, bottom=0.02,
+                        wspace=0.06, hspace=0.10)
+    fig.savefig("dcgan_nearest.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote dcgan_nearest.svg   (closest {dist.min():.3f}, "
+          f"median {dist.median():.3f})")
+
+
+def _dc_judge():
+    """5.1절이 학습해 둔 평가 분류기. [-1,1] 그림을 받아 (확신도, 숫자)."""
+    import torch.nn as nn
+
+    class JudgeCNN(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+            self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+            self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+            self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+        def forward(self, x):
+            x = self.pool(torch.relu(self.conv1(x)))
+            x = self.pool(torch.relu(self.conv2(x)))
+            return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+    J = JudgeCNN()
+    J.load_state_dict(torch.load(f"{MODELS}/mnist_judge.pt", map_location="cpu",
+                                 weights_only=True))
+    J.eval()
+    JM, JS = 0.1307, 0.3081
+
+    @torch.no_grad()
+    def read(x_pm1):
+        xj = (((x_pm1.reshape(-1, 1, 28, 28) + 1) / 2) - JM) / JS
+        p = torch.softmax(J(xj), 1)
+        return p.max(1)
+
+    return read
+
+
+@torch.no_grad()
+def fig_dcgan_thickness():
+    """논문의 「잠재 공간 벡터 산수」를 이 쪽의 생성기로 다시 해 본다.
+
+    논문은 「안경 쓴 남자」의 z 를 여럿 평균 내고 「안경 안 쓴 남자」의 평균을
+    빼서 **안경 벡터**를 만든 뒤, 다른 얼굴의 z 에 더해 안경을 씌웠다. 여기에는
+    안경이 없으니 **획의 굵기**로 한다.
+
+    뽑은 5,000장의 잉크 양(화소 평균)을 재어 위 10%의 z 평균에서 아래 10%의
+    z 평균을 뺀다. 그것을 **굵기 벡터** v 라 하고, 가운데쯤 굵기의 그림 여섯 개에
+    0.5v, 1.0v, 1.5v 를 더해 간다. 굵어지는가, 그리고 **숫자는 그대로인가.**
+    """
+    G = _dc_generator()
+    read = _dc_judge()
+    N, ALPHAS = 5000, (0.0, 0.5, 1.0, 1.5)
+
+    z = torch.randn(N, DC_ZDIM, generator=torch.Generator().manual_seed(DC_SEED))
+    img = torch.cat([G(z[i:i + 1000]) for i in range(0, N, 1000)])
+    ink = ((img + 1) / 2).flatten(1).mean(1)
+
+    k = N // 10
+    order = ink.argsort()
+    v = z[order[-k:]].mean(0) - z[order[:k]].mean(0)
+
+    conf0, cls0 = read(img)
+    rows = []
+    for a in ALPHAS:
+        im = torch.cat([G(z[i:i + 1000] + a * v) for i in range(0, N, 1000)])
+        c, lab = read(im)
+        rows.append({"a": a, "img": im,
+                     "ink": ((im + 1) / 2).flatten(1).mean(1),
+                     "same": (lab == cls0).float().mean().item(),
+                     "conf": c.mean().item()})
+
+    # 보일 여섯 장: 가운데쯤 굵기이면서 평가 분류기가 또렷이 읽는 것
+    mid = order[N // 2 - 400: N // 2 + 400]
+    pick = mid[conf0[mid].argsort(descending=True)[:6]]
+
+    fig, axes = plt.subplots(6, len(ALPHAS), figsize=(5.6, 6.6))
+    for r, i in enumerate(pick.tolist()):
+        for c, row in enumerate(rows):
+            ax = axes[r, c]
+            ax.imshow((row["img"][i, 0] + 1) / 2, cmap="gray", vmin=0, vmax=1)
+            ax.set_xticks([]); ax.set_yticks([])
+            for sp in ax.spines.values():
+                sp.set_visible(False)
+            if r == 0:
+                ax.set_title(["z", "z+0.5v", "z+1.0v", "z+1.5v"][c], fontsize=10,
+                             pad=4)
+    fig.suptitle("adding a thickness vector\n"
+                 "v = mean z of the inkiest 10%  -  mean z of the thinnest 10%",
+                 fontsize=10.5, y=0.99)
+    foot = ["over all 5000 samples:"]
+    for r in rows:
+        foot.append(f"{r['a']:.1f}v    ink {r['ink'].mean():.3f}    "
+                    f"same digit as at 0v  {100 * r['same']:.0f}%    "
+                    f"judge confidence {r['conf']:.3f}")
+    fig.text(0.5, 0.013, "\n".join(foot), ha="center", fontsize=8.4,
+             family="monospace")
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.875, bottom=0.145,
+                        wspace=0.06, hspace=0.06)
+    fig.savefig("dcgan_thickness.svg", transparent=True)
+    plt.close(fig)
+    for r in rows:
+        print(f"  a={r['a']:.1f}  ink {r['ink'].mean():.4f}  "
+              f"same digit {100 * r['same']:.1f}%  conf {r['conf']:.3f}")
+    # 굵기와 숫자가 얽혀 있다는 것을 양 끝의 숫자 구성으로 보인다
+    for name, sel in (("thinnest 10%", order[:k]), ("inkiest  10%", order[-k:])):
+        c = torch.bincount(cls0[sel], minlength=10).float() / k * 100
+        print(f"  {name}: " + "  ".join(f"{d}:{c[d]:.0f}%" for d in range(10)
+                                        if c[d] >= 3))
+    print("wrote dcgan_thickness.svg")
+
+
+def fig_dcgan_init_arms():
+    """논문의 N(0, 0.02) 초기화를 넣고 뺀 세 갈래, 자마다 시드 다섯 벌.
+
+    수는 `experiments/ch05_dcgan_init.py` 가 남긴 JSON 에서 읽는다. 세 갈래를
+    **같은 기계에서 한 번에** 돌렸으므로 갈래끼리는 견줄 수 있고, 다른 쪽의
+    다섯 벌 범위와는 견주지 않는다.
+    """
+    import json
+    path = os.path.join(MODELS, "experiments", "ch05_dcgan_init.json")
+    res = json.loads(open(path).read())
+
+    arms = ["none", "conv", "all"]
+    label = {"none": "no init\n(the page)", "conv": "paper's init\n(conv + BN)",
+             "all": "+ Linear too\n(not in the paper)"}
+    cols = {"none": "#64748b", "conv": "#2563eb", "all": "#b45309"}
+    panels = [("conf", "sample confidence"),
+              ("balance", "class balance"),
+              ("within", "within-class variety")]
+
+    fig, axes = plt.subplots(1, 3, figsize=(11.4, 2.9))
+    for ax, (key, title) in zip(axes, panels):
+        for i, arm in enumerate(arms):
+            v = np.array([r[key] for r in res[arm]])
+            y = 2 - i
+            ax.plot([v.min(), v.max()], [y, y], lw=7, solid_capstyle="round",
+                    color=cols[arm], alpha=0.32, zorder=2)
+            ax.plot(v, [y] * len(v), "o", ms=4.6, color=cols[arm], zorder=3)
+            ax.plot([v.mean()], [y], "|", ms=16, mew=2.1, color=cols[arm],
+                    zorder=4)
+        ax.set_yticks([2, 1, 0])
+        ax.set_yticklabels([label[a] for a in arms] if key == "conf" else [],
+                           fontsize=9)
+        ax.set_ylim(-0.6, 2.6)
+        ax.set_title(title, fontsize=11, pad=6)
+        ax.grid(axis="x", alpha=0.25)
+        ax.tick_params(axis="x", labelsize=9)
+        for sp in ("top", "right", "left"):
+            ax.spines[sp].set_visible(False)
+
+    axes[1].set_xlabel("the only ruler where the three ranges never touch",
+                       fontsize=9.5, labelpad=4)
+    fig.suptitle("five training seeds per arm, all measured on one machine "
+                 "(bar = range, dots = seeds, tick = mean)", fontsize=10.5,
+                 y=0.985)
+    fig.subplots_adjust(left=0.135, right=0.985, top=0.70, bottom=0.17,
+                        wspace=0.12)
+    fig.savefig("dcgan_init_arms.svg", transparent=True)
+    plt.close(fig)
+    print("wrote dcgan_init_arms.svg")
+
+
+def fig_dcgan_shapes():
+    """널리 쓰이는 64x64 DCGAN 생성기와 이 쪽의 28x28 생성기를 나란히.
+
+    칸의 넓이가 그 자리에서 들고 있는 수의 개수(채널 x 높이 x 너비)에 비례하게
+    그렸다. 두 기둥의 눈금이 같으므로 **이 쪽이 얼마나 작은지**가 바로 보인다.
+    """
+    left = [("z", 100, 1, 1), ("ConvT 4x4 s1", 1024, 4, 4),
+            ("ConvT 4x4 s2", 512, 8, 8), ("ConvT 4x4 s2", 256, 16, 16),
+            ("ConvT 4x4 s2", 128, 32, 32), ("ConvT 4x4 s2 + tanh", 3, 64, 64)]
+    right = [("z", 64, 1, 1), ("Linear + reshape", 128, 7, 7),
+             ("ConvT 4x4 s2", 64, 14, 14), ("ConvT 4x4 s2 + tanh", 1, 28, 28)]
+    titles = ["the usual 64x64 DCGAN", "this page  (28x28 MNIST)"]
+
+    big = max(c * h * w for _, c, h, w in left)
+    fig, axes = plt.subplots(1, 2, figsize=(10.4, 4.3))
+    for ax, rows, title in zip(axes, (left, right), titles):
+        for i, (name, c, h, w) in enumerate(rows):
+            n = c * h * w
+            frac = (n / big) ** 0.5
+            y = len(left) - 1 - i
+            ax.add_patch(Rectangle((0.5 - frac / 2, y - 0.3), frac, 0.6,
+                                   fc="#2563eb" if rows is left else "#b45309",
+                                   alpha=0.3, ec="none"))
+            ax.text(0.5, y, f"{c} x {h} x {w}", ha="center", va="center",
+                    fontsize=10.5)
+            ax.text(-0.02, y, name, ha="right", va="center", fontsize=9.5)
+            ax.text(1.02, y, f"{n:,}", ha="left", va="center", fontsize=9,
+                    color="#555")
+        ax.set_xlim(-0.52, 1.30); ax.set_ylim(-0.8, len(left) - 0.4)
+        ax.axis("off")
+        ax.set_title(title, fontsize=11.5, pad=8)
+        ax.text(0.5, -0.65, f"output = {rows[-1][1] * rows[-1][2] * rows[-1][3]:,}"
+                " numbers", ha="center", fontsize=9.5, color="#555")
+    fig.text(0.5, 0.025, "box width is proportional to sqrt(numbers held at "
+             "that point);  both columns use the same scale", ha="center",
+             fontsize=9, color="#555")
+    fig.subplots_adjust(left=0.10, right=0.97, top=0.88, bottom=0.10, wspace=0.42)
+    fig.savefig("dcgan_shapes.svg", transparent=True)
+    plt.close(fig)
+    print("wrote dcgan_shapes.svg")
