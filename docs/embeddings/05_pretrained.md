@@ -198,14 +198,22 @@ if __name__ == "__main__":
 
     # === (다) 유추 ======================================================
     print("\n  유추 — 드디어 물어볼 수 있다")
+    # 수도 쪽은 두 방향을 다 물어본다. 「도쿄에서 일본」은 나라를 맞히면 되지만
+    # 「한국에서 서울이니 일본에서는」은 수도를 하나 집어내야 하는 물음이다.
     tri = [("man", "king", "woman"), ("man", "woman", "he"),
            ("good", "better", "bad"), ("paris", "france", "tokyo"),
+           ("korea", "seoul", "japan"), ("japan", "tokyo", "korea"),
            ("walk", "walked", "go")]
     for a, b, c in tri:
         if all(x in gi for x in (a, b, c)):
             v = GV[gi[b]] - GV[gi[a]] + GV[gi[c]]
             print(f"    {a:7s}: {b:9s} = {c:7s}: "
                   f"{', '.join(near(v, (a, b, c), 3))}")
+    # GloVe 파일은 흔한 단어부터 적혀 있으므로 줄 번호가 곧 빈도 순위다.
+    # 나라와 수도 가운데 어느 쪽이 흔한지는 세지 않고 이 번호로 안다.
+    print("    (흔한 순서로 몇 번째인가 — "
+          + ", ".join(f"{w} {gi[w] + 1:,}" for w in
+                      ("japan", "tokyo", "korea", "seoul")) + ")")
 
     # === (라) 그래도 반대말은 가깝다 ======================================
     print("\n  닮음 — 60억 단어를 보고도")
@@ -238,7 +246,10 @@ if __name__ == "__main__":
     man    : woman     = he     : she, her, his
     good   : better    = bad    : worse, too, unfortunately
     paris  : france    = tokyo  : japan, korea, japanese
+    korea  : seoul     = japan  : tokyo, osaka, shanghai
+    japan  : tokyo     = korea  : seoul, pyongyang, tehran
     walk   : walked    = go     : got, went, put
+    (흔한 순서로 몇 번째인가 — japan 362, tokyo 1,364, korea 575, seoul 3,509)
 
   닮음 — 60억 단어를 보고도
     good     great      +0.798
@@ -295,11 +306,21 @@ if __name__ == "__main__":
 | man : woman = he : ? | **she**, her, his |
 | good : better = bad : ? | **worse**, too, unfortunately |
 | paris : france = tokyo : ? | **japan**, korea, japanese |
+| korea : seoul = japan : ? | **tokyo**, osaka, shanghai |
+| japan : tokyo = korea : ? | **seoul**, pyongyang, tehran |
 | walk : walked = go : ? | got, **went**, put |
 
-**다섯 가운데 넷이 1등으로 맞는다.** [다음 쪽](07_what_it_holds.md)이 우리 벡터에 같은 것을 물으면 다섯 가운데 셋이고, `king`–`queen` 같은 것은 어휘에 없어 물어보지도 못한다.
+**일곱 가운데 여섯이 1등으로 맞는다.** [다음 쪽](07_what_it_holds.md)이 우리 벡터에 같은 것을 물으면 다섯 가운데 셋이고, `king`–`queen` 같은 것은 어휘에 없어 물어보지도 못한다.
 
-눈여겨볼 것은 **종류가 다양해졌다**는 점이다. 성별 바꾸기뿐 아니라 **나라 수도**(paris→france), **동사 시제**(walk→walked)까지 같은 벡터 셈으로 된다. 60억 단어에서는 그런 바꿈들이 저마다 일정한 방향으로 자리 잡을 만큼 자료가 많다.
+눈여겨볼 것은 **종류가 다양해졌다**는 점이다. 성별 바꾸기뿐 아니라 **나라와 수도**, **동사 시제**(walk→walked)까지 같은 벡터 셈으로 된다. 60억 단어에서는 그런 바꿈들이 저마다 일정한 방향으로 자리 잡을 만큼 자료가 많다.
+
+**수도는 두 방향을 다 물었다.** `tokyo`에서 `japan`을 부르는 것은 쉬운 쪽이다 — 출력의 마지막 줄이 그 까닭을 적는다. GloVe 파일은 흔한 단어부터 적혀 있는데 `japan`이 362번째이고 `tokyo`는 1,364번째, `korea`가 575번째이고 `seoul`은 3,509번째다. **나라 이름이 수도 이름보다 서너 배 흔하다.** 흔한 단어 쪽으로 부르는 일은 가까운 자리에 큰 단어가 기다리고 있는 셈이다. 거꾸로 `korea : seoul = japan : ?`는 **수도 하나를 집어내야** 하는 물음인데 그것도 `tokyo`가 1등이다. 식으로 적으면
+
+$$
+\mathrm{japan} + \mathrm{seoul} - \mathrm{korea} \;\approx\; \mathrm{tokyo}
+$$
+
+이고, 2·3등이 `osaka`와 `shanghai`인 것도 읽을 만하다 — 틀리긴 했지만 **둘 다 동아시아의 큰 도시**다. 반대 방향의 2·3등도 `pyongyang`과 `tehran`으로 수도들이다. 1등이 맞은 것보다 **틀린 답이 같은 갈래에서 나온다**는 쪽이 벡터가 무엇을 쥐고 있는지 더 잘 말해 준다.
 
 !!! warning "그래도 과하게 읽지 말 것"
     `walk : walked = go :` 에서 1등이 **`got`**이고 `went`는 2등이다. 그리고 `good : better = bad :` 의 2·3등은 `too`와 `unfortunately`로 유추와 상관없다.
