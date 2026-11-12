@@ -3614,6 +3614,9 @@ if __name__ == "__main__":
     fig_judge_sees_three()
     fig_point_vs_blob()
     fig_dcgan_recipe_gains()
+    fig_lfw_samples()
+    fig_lfw_walk()
+    fig_lfw_vector()
     fig_who_wins()
 
     # --- 들머리 그림 (쪽의 물음을 세우는 자리) ---------------------------
@@ -4251,3 +4254,172 @@ def fig_dcgan_recipe_gains():
     fig.savefig("dcgan_recipe_gains.svg", transparent=True)
     plt.close(fig)
     print("wrote dcgan_recipe_gains.svg")
+
+
+# ============================================================================
+# 64x64 얼굴 DCGAN — experiments/ch05_dcgan_faces.py 가 남긴 lfw_dcgan_g.pt 를 읽는다.
+# 그 파일은 저장소에 담지 않으므로(뿌리의 *.pt 는 .gitignore 에 있다) 먼저
+# 그 스크립트를 돌려야 한다.
+# ============================================================================
+LFW_Z = 100
+
+
+def _lfw_generator():
+    import torch.nn as nn
+
+    def up(i, o):
+        return [nn.ConvTranspose2d(i, o, 4, 2, 1, bias=False),
+                nn.BatchNorm2d(o), nn.ReLU(True)]
+
+    net = nn.Sequential(
+        nn.ConvTranspose2d(LFW_Z, 512, 4, 1, 0, bias=False),
+        nn.BatchNorm2d(512), nn.ReLU(True),
+        *up(512, 256), *up(256, 128), *up(128, 64),
+        nn.ConvTranspose2d(64, 3, 4, 2, 1, bias=False), nn.Tanh())
+
+    class G64(nn.Module):
+        def __init__(self):
+            super().__init__(); self.net = net
+
+        def forward(self, z):
+            return self.net(z.reshape(-1, LFW_Z, 1, 1))
+
+    G = G64()
+    G.load_state_dict(torch.load(f"{MODELS}/lfw_dcgan_g.pt", map_location="cpu",
+                                 weights_only=True))
+    return G.eval()
+
+
+def _rgb(x):
+    """(N,3,64,64) in [-1,1] -> (N,64,64,3) in [0,1]."""
+    return ((x + 1) / 2).clamp(0, 1).permute(0, 2, 3, 1).numpy()
+
+
+@torch.no_grad()
+def fig_lfw_samples():
+    """얼굴 64장. 28x28 흑백에서만 되는 이야기가 아니라는 것을 보인다."""
+    G = _lfw_generator()
+    z = torch.randn(64, LFW_Z, generator=torch.Generator().manual_seed(7))
+    im = _rgb(torch.cat([G(z[i:i + 32]) for i in range(0, 64, 32)]))
+    fig, axes = plt.subplots(8, 8, figsize=(6.6, 6.9))
+    for i, ax in enumerate(axes.flat):
+        ax.imshow(im[i]); ax.set_xticks([]); ax.set_yticks([])
+        for sp in ax.spines.values():
+            sp.set_visible(False)
+    fig.suptitle("DCGAN on LFW faces, 64x64 colour\n"
+                 "same recipe, same loss, same optimiser as the MNIST page",
+                 fontsize=10.5, y=0.985)
+    fig.subplots_adjust(left=0.004, right=0.996, top=0.905, bottom=0.004,
+                        wspace=0.04, hspace=0.04)
+    fig.savefig("lfw_samples.svg", transparent=True)
+    plt.close(fig)
+    print("wrote lfw_samples.svg")
+
+
+@torch.no_grad()
+def fig_lfw_walk():
+    """잠재 공간의 직선 위를 걷는다 — 얼굴에서도 끊기지 않는가."""
+    G = _lfw_generator()
+    NW, NS = 4, 10
+    g = torch.Generator().manual_seed(3)
+    a = torch.randn(NW, LFW_Z, generator=g)
+    b = torch.randn(NW, LFW_Z, generator=g)
+    w = torch.linspace(0, 1, NS)[:, None, None]
+    z = ((1 - w) * a[None] + w * b[None]).reshape(-1, LFW_Z)
+    im = _rgb(torch.cat([G(z[i:i + 20]) for i in range(0, len(z), 20)]))
+    im = im.reshape(NS, NW, 64, 64, 3)
+
+    flat = torch.from_numpy(im).reshape(NS, NW, -1)
+    step = (flat[1:] - flat[:-1]).pow(2).sum(-1).sqrt()
+
+    fig, axes = plt.subplots(NW, NS, figsize=(10.4, 4.5))
+    for r in range(NW):
+        for c in range(NS):
+            axes[r, c].imshow(im[c, r])
+            axes[r, c].set_xticks([]); axes[r, c].set_yticks([])
+            for sp in axes[r, c].spines.values():
+                sp.set_visible(False)
+    fig.suptitle(f"four straight lines in z space, {NS} stops each   "
+                 f"(mean step {step.mean():.2f}, largest {step.max():.2f})",
+                 fontsize=10.5, y=0.975)
+    fig.subplots_adjust(left=0.004, right=0.996, top=0.90, bottom=0.004,
+                        wspace=0.04, hspace=0.04)
+    fig.savefig("lfw_walk.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote lfw_walk.svg   mean step {step.mean():.3f} "
+          f"max {step.max():.3f}")
+
+
+@torch.no_grad()
+def fig_lfw_vector():
+    """논문 6.3.2 의 벡터 산수를 얼굴에서. 라벨이 없으므로 **재어서** 고른다.
+
+    라벨 없이 잴 수 있는 성질 둘을 쓴다.
+      bright  그림 전체의 밝기
+      pose    오른쪽 절반의 분산 빼기 왼쪽 절반의 분산. 고개를 한쪽으로
+              돌리면 한쪽은 매끈한 볼이 되고 다른 쪽에 귀·머리가 들어오므로
+              **부호가 있는** 값이 된다. 논문 그림 8 의 「돌리기 벡터」와
+              같은 자리를 노린 것이다.
+
+    성질마다 위 10% 의 z 평균에서 아래 10% 의 z 평균을 빼 벡터를 만들고,
+    가운데쯤인 얼굴에 더해 가며 **그 성질만 움직이는지** 본다.
+    """
+    G = _lfw_generator()
+    N = 4000
+    z = torch.randn(N, LFW_Z, generator=torch.Generator().manual_seed(11))
+    im = torch.cat([G(z[i:i + 200]) for i in range(0, N, 200)])
+    lum = ((im + 1) / 2).mean(1)                       # (N, 64, 64)
+
+    attrs = {"brightness": lum.flatten(1).mean(1),
+             "pose": lum[:, :, 32:].flatten(1).var(1)
+                     - lum[:, :, :32].flatten(1).var(1)}
+
+    k = N // 10
+    ALPHAS = (-1.5, -0.75, 0.0, 0.75, 1.5)
+    fig = plt.figure(figsize=(6.2, 7.8))
+    gs = fig.add_gridspec(7, len(ALPHAS), height_ratios=[1, 1, 1, 0.34, 1, 1, 1])
+    axes = {}
+    for rr in (0, 1, 2, 4, 5, 6):
+        for cc in range(len(ALPHAS)):
+            axes[(rr, cc)] = fig.add_subplot(gs[rr, cc])
+    for ai, (name, s) in enumerate(attrs.items()):
+        order = s.argsort()
+        v = z[order[-k:]].mean(0) - z[order[:k]].mean(0)
+        mid = order[N // 2 - 300: N // 2 + 300]
+        pick = mid[torch.randperm(len(mid),
+                                  generator=torch.Generator().manual_seed(2))[:3]]
+        stats = []
+        for al in ALPHAS:
+            out = torch.cat([G(z[i:i + 200] + al * v) for i in range(0, N, 200)])
+            L = ((out + 1) / 2).mean(1)
+            val = (L.flatten(1).mean(1) if ai == 0 else
+                   L[:, :, 32:].flatten(1).var(1) - L[:, :, :32].flatten(1).var(1))
+            stats.append(float(val.mean()))
+        for r, i in enumerate(pick.tolist()):
+            row = ai * 4 + r
+            for c, al in enumerate(ALPHAS):
+                ax = axes[(row, c)]
+                ax.imshow(_rgb(G(z[i:i + 1] + al * v))[0])
+                ax.set_xticks([]); ax.set_yticks([])
+                for sp in ax.spines.values():
+                    sp.set_visible(False)
+                if r == 0:
+                    ax.set_title(f"{al:+.2f}v".replace("+0.00v", "z"),
+                                 fontsize=9, pad=3)
+            if r == 1:
+                axes[(row, 0)].set_ylabel(name, fontsize=10.5)
+        fig.text(0.5, (0.902, 0.433)[ai], f"{name}:   " +
+                 "   ".join(f"{a_:+.2f}v {s_:.3f}"
+                            for a_, s_ in zip(ALPHAS, stats)),
+                 ha="center", fontsize=8.1, family="monospace", color="#444")
+        print(f"  {name}: " + "  ".join(f"{a:+.2f}v {s_:.4f}"
+                                        for a, s_ in zip(ALPHAS, stats)))
+    fig.suptitle("vector arithmetic on faces   "
+                 "(v = mean z of the top 10% minus the bottom 10%, 4000 samples;\n"
+                 "pose = variance of the right half minus the left half)",
+                 fontsize=10, y=0.992)
+    fig.subplots_adjust(left=0.085, right=0.995, top=0.838, bottom=0.008,
+                        wspace=0.05, hspace=0.06)
+    fig.savefig("lfw_vector.svg", transparent=True)
+    plt.close(fig)
+    print("wrote lfw_vector.svg")
