@@ -3613,6 +3613,7 @@ if __name__ == "__main__":
     fig_dcgan_shapes()
     fig_judge_sees_three()
     fig_point_vs_blob()
+    fig_dcgan_recipe_gains()
     fig_who_wins()
 
     # --- 들머리 그림 (쪽의 물음을 세우는 자리) ---------------------------
@@ -4199,3 +4200,54 @@ def fig_point_vs_blob():
           f"{mu.std(0).mean():.2f} range [{mu.min():.1f}, {mu.max():.1f}] | "
           f"sigma mean {sd.mean():.3f} max {sd.max():.3f} "
           f"above 0.5: {100 * (sd > 0.5).float().mean():.1f}%")
+
+
+def fig_dcgan_recipe_gains():
+    """요령을 하나씩 더할 때 클래스 균형도가 어디까지 가는가.
+
+    두 기계의 수가 섞이지 않게 **출처를 칸 안에 적는다.** 가운데 두 줄이
+    같은 모델(DCGAN, 초기화 없음)을 서로 다른 기계에서 다섯 벌씩 잰 것인데
+    범위가 거의 겹치므로, 이 자에서는 기계를 건너 읽어도 된다는 뜻이다.
+    """
+    import json
+    res = json.loads(open(os.path.join(MODELS, "experiments",
+                                       "ch05_dcgan_init.json")).read())
+    mine = {k: np.array([r["balance"] for r in res[k]]) for k in res}
+
+    rows = [("GAN (MLP)", (0.913, 0.937), None, "5.3 page", "#94a3b8"),
+            ("DCGAN", (0.966, 0.978), None, "5.3 page", "#2563eb"),
+            ("DCGAN", (mine["none"].min(), mine["none"].max()), mine["none"],
+             "re-run here", "#2563eb"),
+            ("+ paper's init", (mine["conv"].min(), mine["conv"].max()),
+             mine["conv"], "re-run here", "#15803d"),
+            ("+ Linear too", (mine["all"].min(), mine["all"].max()),
+             mine["all"], "re-run here", "#b45309")]
+
+    fig, ax = plt.subplots(figsize=(10.6, 3.6))
+    for i, (name, (lo, hi), pts, src, col) in enumerate(rows):
+        y = len(rows) - 1 - i
+        ax.plot([lo, hi], [y, y], lw=9, solid_capstyle="round", color=col,
+                alpha=0.30, zorder=2)
+        if pts is not None:
+            ax.plot(pts, [y] * len(pts), "o", ms=4.4, color=col, zorder=3)
+        ax.plot([(lo + hi) / 2], [y], "|", ms=19, mew=2.2, color=col, zorder=4)
+        ax.text(0.9075, y, name, ha="left", va="center", fontsize=10.5)
+        ax.text(1.0045, y, src, ha="right", va="center", fontsize=8.6,
+                color="#666", style="italic")
+    ax.annotate("", xy=(0.9648, 2.3), xytext=(0.9648, 1.7),
+                arrowprops=dict(arrowstyle="<->", lw=1.1, color="#555"))
+    ax.text(0.9638, 2.0, "same model,\ntwo machines  ", ha="right",
+            va="center", fontsize=8.8, color="#555")
+    ax.set_xlim(0.9070, 1.0055); ax.set_ylim(-0.7, len(rows) - 0.3)
+    ax.set_yticks([])
+    ax.set_xlabel("class balance of 5000 samples   "
+                  "(bar = range over five training seeds)", fontsize=10)
+    ax.set_title("what each step of the recipe bought, measured",
+                 fontsize=12, pad=8)
+    ax.grid(axis="x", alpha=0.25)
+    for sp in ("top", "right", "left"):
+        ax.spines[sp].set_visible(False)
+    fig.subplots_adjust(left=0.025, right=0.985, top=0.855, bottom=0.165)
+    fig.savefig("dcgan_recipe_gains.svg", transparent=True)
+    plt.close(fig)
+    print("wrote dcgan_recipe_gains.svg")
