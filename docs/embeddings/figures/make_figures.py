@@ -33,6 +33,7 @@ matplotlib.use("Agg")
 matplotlib.rcParams["svg.fonttype"] = "path"
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -696,6 +697,73 @@ def fig_chapter_map():
     fig.savefig("chapter_map.svg", transparent=True)
     plt.close(fig); print("wrote chapter_map.svg")
 
+def fig_ascii_is_spelling():
+    """글자를 그대로 수로 읽으면 무엇이 재어지는가.
+
+    6.1 쪽 2 절과 같은 셈이다. 단어를 여덟 칸에 넣고(짧으면 0 으로 채운다)
+    칸마다 아스키 코드를 명암으로 그린 뒤, boy 에서의 거리를 오른쪽에 세운다.
+    수는 그 쪽의 출력 블록과 같다 — coy 1.0, toy 18.0, girl 108.5, boys 115.0.
+    """
+    words = ["boy", "coy", "toy", "girl", "boys"]
+    N = 8
+
+    def vec(w):
+        return np.array([ord(c) for c in w] + [0] * (N - len(w)), dtype=float)
+
+    V = {w: vec(w) for w in words}
+    d = {w: float(np.linalg.norm(V[w] - V["boy"])) for w in words}
+    note = {"coy": "nothing to do with boy", "toy": "nothing to do with boy",
+            "girl": "the nearest word in meaning",
+            "boys": "the SAME word, plural"}
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.2, 3.5),
+                                   gridspec_kw={"width_ratios": [1.0, 1.15]})
+
+    for r, w in enumerate(words):
+        y = len(words) - 1 - r
+        for c in range(N):
+            v = V[w][c]
+            axL.add_patch(Rectangle((c, y - 0.4), 0.92, 0.8, fc=str(v / 255.0),
+                                    ec="#94a3b8", lw=0.6))
+            if v:
+                axL.text(c + 0.46, y, f"{int(v)}", ha="center", va="center",
+                         fontsize=7.6, color="white" if v < 140 else "black")
+        axL.text(-0.3, y, w, ha="right", va="center", fontsize=11,
+                 family="monospace")
+    axL.set_xlim(-2.1, N + 0.1); axL.set_ylim(-0.8, len(words) - 0.3)
+    axL.axis("off")
+    axL.set_title("each letter is already a number (ASCII)\n"
+                  "so a word is a tiny grayscale image", fontsize=11, pad=6)
+    axL.text(N / 2, -0.75, "8 cells, padded with 0", ha="center", fontsize=9,
+             color="#555")
+
+    order = sorted((w for w in words if w != "boy"), key=lambda w: d[w])
+    axR.axvline(0, color="#111", lw=1.0)
+    axR.text(0, len(order) - 0.12, "boy", ha="center", fontsize=11,
+             family="monospace")
+    for i, w in enumerate(order):
+        y = len(order) - 1 - i
+        col = "#b91c1c" if w == "boys" else ("#2563eb" if w == "girl"
+                                             else "#94a3b8")
+        axR.plot([0, d[w]], [y, y], lw=2.0, color=col, zorder=2)
+        axR.plot([d[w]], [y], "o", ms=8, color=col, zorder=3)
+        axR.text(d[w] + 3, y, f"{w}   {d[w]:.1f}", va="center", fontsize=10.5,
+                 family="monospace", color=col)
+        axR.text(d[w] + 3, y - 0.34, note[w], va="center", fontsize=8.8,
+                 color="#555")
+    axR.set_xlim(-6, 175); axR.set_ylim(-0.75, len(order) + 0.12)
+    axR.set_yticks([]); axR.set_xlabel("ASCII distance from boy", fontsize=10)
+    axR.set_title("the ladder comes out backwards", fontsize=11, pad=6)
+    for sp in ("top", "right", "left"):
+        axR.spines[sp].set_visible(False)
+
+    fig.subplots_adjust(left=0.055, right=0.985, top=0.80, bottom=0.14,
+                        wspace=0.10)
+    fig.savefig("ascii_is_spelling.svg", transparent=True)
+    plt.close(fig)
+    print("wrote ascii_is_spelling.svg")
+
+
 if __name__ == "__main__":
     toks = load_tokens()
     counts = Counter(toks)
@@ -721,3 +789,4 @@ if __name__ == "__main__":
     fig_ice_steam()
 
     fig_chapter_map()
+    fig_ascii_is_spelling()

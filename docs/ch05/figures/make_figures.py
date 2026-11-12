@@ -3611,6 +3611,8 @@ if __name__ == "__main__":
     fig_dcgan_thickness()
     fig_dcgan_init_arms()
     fig_dcgan_shapes()
+    fig_judge_sees_three()
+    fig_point_vs_blob()
     fig_who_wins()
 
     # --- 들머리 그림 (쪽의 물음을 세우는 자리) ---------------------------
@@ -3973,3 +3975,227 @@ def fig_dcgan_shapes():
     fig.savefig("dcgan_shapes.svg", transparent=True)
     plt.close(fig)
     print("wrote dcgan_shapes.svg")
+
+
+def _judge_cpu():
+    """5.1절의 평가 분류기. [0,1] 그림을 받아 (확신도, 읽은 숫자)."""
+    import torch.nn as nn
+
+    class JudgeCNN(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+            self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+            self.pool = nn.MaxPool2d(2, 2); self.dropout = nn.Dropout(0.25)
+            self.fc1 = nn.Linear(64 * 7 * 7, 128); self.fc2 = nn.Linear(128, 10)
+
+        def forward(self, x):
+            x = self.pool(torch.relu(self.conv1(x)))
+            x = self.pool(torch.relu(self.conv2(x)))
+            return self.fc2(self.dropout(torch.relu(self.fc1(x.flatten(1)))))
+
+    J = JudgeCNN()
+    J.load_state_dict(torch.load(f"{MODELS}/mnist_judge.pt", map_location="cpu",
+                                 weights_only=True))
+    J.eval()
+
+    @torch.no_grad()
+    def read(x01):
+        p = torch.softmax(J((x01.reshape(-1, 1, 28, 28) - MEAN) / STD), 1)
+        return p.max(1)
+
+    return read
+
+
+@torch.no_grad()
+def fig_judge_sees_three():
+    """「왜 하필 3인가」 — 두 가설을 각각 잰다.
+
+    왼쪽: 오토인코더를 아예 빼고, **애매한 그림**을 평가 분류기에 직접 보인다.
+    잡음과 섞은 그림에서도 3이 1등이면 3은 모델이 만든 것이 아니라 자의 버릇이다.
+
+    오른쪽: 숫자마다 잠재 표현의 가운데가 구름 전체의 가운데에서 얼마나
+    떨어져 있는지. 3이 가장 가깝다면 「가운데에 있어서 많이 나온다」가 된다.
+    """
+    import torch.nn as nn
+    read = _judge_cpu()
+
+    tf01 = transforms.ToTensor()
+    tr01 = torchvision.datasets.MNIST(DATA, train=True, download=True,
+                                      transform=tf01)
+    X01 = torch.cat([x for x, _ in
+                     torch.utils.data.DataLoader(tr01, batch_size=2000)])
+    g = torch.Generator().manual_seed(0)
+    N = 5000
+
+    def perm():
+        return X01[torch.randperm(len(X01), generator=g)[:N]]
+
+    cases = [("gaussian noise", (torch.randn(N, 1, 28, 28, generator=g) * STD
+                                 + MEAN).clamp(0, 1)),
+             ("uniform noise", torch.rand(N, 1, 28, 28, generator=g)),
+             ("5 real digits\naveraged",
+              torch.stack([perm() for _ in range(5)]).mean(0)),
+             ("2 real digits\nblended", 0.5 * perm() + 0.5 * perm())]
+
+    # 견줄 자리: AE_MLP-64 가 맞춘 정규분포에서 뽑은 그림 (5.1절 마지막 쪽)
+    sd = torch.load(f"{MODELS}/mnist_ae_mlp64.pt", map_location="cpu",
+                    weights_only=True)
+    enc = nn.Sequential(nn.Linear(784, 256), nn.ReLU(), nn.Linear(256, 64))
+    dec = nn.Sequential(nn.Linear(64, 256), nn.ReLU(), nn.Linear(256, 784))
+    for m, k in ((enc[0], "enc.0"), (enc[2], "enc.2"),
+                 (dec[0], "dec.0"), (dec[2], "dec.2")):
+        m.weight.data = sd[f"{k}.weight"]; m.bias.data = sd[f"{k}.bias"]
+    (Xtr, _), (Xte, yte) = load_flat()
+    z = enc(Xte)
+    zs = torch.randn(N, 64, generator=torch.Generator().manual_seed(0))
+    zs = zs * z.std(0) + z.mean(0)
+    ae = (dec(zs) * STD + MEAN).clamp(0, 1)
+    cases.append(("AE-64 samples\n(5.1, for comparison)", ae))
+
+    shares, confs = [], []
+    for _, x in cases:
+        c, lab = read(x)
+        shares.append((torch.bincount(lab, minlength=10).float() / N * 100).numpy())
+        confs.append(float(c.mean()))
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.6, 3.9),
+                                   gridspec_kw={"width_ratios": [1.65, 1.0]})
+    wd = 0.16
+    xs = np.arange(10)
+    cols = ["#64748b", "#94a3b8", "#2563eb", "#60a5fa", "#b45309"]
+    for i, ((name, _), sh) in enumerate(zip(cases, shares)):
+        axL.bar(xs + (i - 2) * wd, sh, width=wd * 0.92, color=cols[i],
+                label=f"{name}  (conf {confs[i]:.2f})", zorder=3)
+    axL.axhline(10, color="#111", lw=1.0, ls=":", zorder=4)
+    axL.text(9.42, 11, "10% = even", fontsize=8.6, ha="right")
+    axL.add_patch(Rectangle((3 - 0.5, 0), 1.0, 70, fc="#fde68a", alpha=0.45,
+                            zorder=0))
+    axL.set_xticks(xs); axL.set_xlabel("digit the judge reads", fontsize=10)
+    axL.set_ylabel("% of 5000", fontsize=10)
+    axL.set_title("ask the judge about images no autoencoder made",
+                  fontsize=11.5, pad=6)
+    axL.legend(fontsize=8.4, frameon=False, ncol=1, loc="upper right")
+    axL.grid(axis="y", alpha=0.25, zorder=0)
+    for sp in ("top", "right"):
+        axL.spines[sp].set_visible(False)
+
+    c0 = z.mean(0)
+    dist = [( (z[yte == k].mean(0) - c0).norm().item(), k) for k in range(10)]
+    dist.sort()
+    axR.barh([str(k) for _, k in dist][::-1], [d for d, _ in dist][::-1],
+             color=["#b45309" if k == 3 else "#cbd5e1" for _, k in dist][::-1],
+             zorder=3)
+    axR.set_xlabel("distance from the centre of the latent cloud", fontsize=10)
+    axR.set_ylabel("digit", fontsize=10)
+    axR.set_title("AE-64: is 3 the one in the middle?  (no)", fontsize=11.5,
+                  pad=6)
+    axR.grid(axis="x", alpha=0.25, zorder=0)
+    for sp in ("top", "right"):
+        axR.spines[sp].set_visible(False)
+
+    fig.subplots_adjust(left=0.055, right=0.985, top=0.86, bottom=0.145,
+                        wspace=0.22)
+    fig.savefig("judge_sees_three.svg", transparent=True)
+    plt.close(fig)
+    for (name, _), sh, c in zip(cases, shares, confs):
+        print(f"  {name.replace(chr(10),' '):34s} top {int(sh.argmax())} "
+              f"({sh.max():.0f}%)  3 is {sh[3]:.0f}%  conf {c:.3f}")
+    print("  centre distance: " + "  ".join(f"{k}:{d:.2f}" for d, k in dist))
+    print("wrote judge_sees_three.svg")
+
+
+@torch.no_grad()
+def fig_point_vs_blob():
+    """강의 칠판의 두 원을 재어 본다 — 끌려간 것은 자리이지 크기가 아니다.
+
+    AE 는 잠재 표현을 점으로 내놓고 VAE 는 분포로 내놓으므로, 흔히 VAE 쪽을
+    「작은 원이 N(0, I) 라는 큰 원 위로 끌려오는 그림」으로 그린다. 잠재 차원
+    2 인 두 모델로 그 그림을 실제 수로 그려 보면 **왼쪽은 맞고 오른쪽은 다르다.**
+
+    왼쪽: 두 구름을 같은 눈금에 겹쳐 놓는다. KL 항이 구름을 사전분포 쪽으로
+    당긴 것이 보인다.
+    오른쪽: 그러면 그 「원」의 반지름은 얼마인가. 표본마다의 sigma 를 모두
+    모아 히스토그램으로 그린다. 1 이 아니라 0.03 언저리다.
+    """
+    import torch.nn as nn
+    from matplotlib.patches import Circle
+
+    (Xtr, ytr), (Xte, yte) = load_flat()
+
+    ae = torch.load(f"{MODELS}/mnist_ae_mlp2.pt", map_location="cpu",
+                    weights_only=True)
+    enc_ae = nn.Sequential(nn.Linear(784, 256), nn.ReLU(), nn.Linear(256, 2))
+    for m, k in ((enc_ae[0], "enc.0"), (enc_ae[2], "enc.2")):
+        m.weight.data = ae[f"{k}.weight"]; m.bias.data = ae[f"{k}.bias"]
+
+    va = torch.load(f"{MODELS}/mnist_vae2_beta1.0.pt", map_location="cpu",
+                    weights_only=True)
+    trunk = nn.Sequential(nn.Linear(784, 256), nn.ReLU())
+    trunk[0].weight.data = va["enc.0.weight"]
+    trunk[0].bias.data = va["enc.0.bias"]
+    mu_l, lv_l = nn.Linear(256, 2), nn.Linear(256, 2)
+    mu_l.weight.data = va["mu.weight"]; mu_l.bias.data = va["mu.bias"]
+    lv_l.weight.data = va["logvar.weight"]; lv_l.bias.data = va["logvar.bias"]
+
+    z_ae = enc_ae(Xte)
+    h = trunk(Xte)
+    mu, lv = mu_l(h), lv_l(h)
+    sd = (0.5 * lv).exp()
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.0, 4.6),
+                                   gridspec_kw={"width_ratios": [1.0, 1.05]})
+
+    lim = 16.0
+    axL.set_aspect("equal"); axL.set_xlim(-lim, lim); axL.set_ylim(-lim, lim)
+    # 점을 전부 그리면 SVG 가 3 MB 가 된다. 퍼짐은 아래 글자로 적으므로
+    # 보이는 데 필요한 만큼만 솎아 그린다.
+    sub = torch.randperm(len(z_ae),
+                         generator=torch.Generator().manual_seed(0))[:2500]
+    axL.plot(z_ae[sub, 0], z_ae[sub, 1], ".", ms=1.6, color="#f97316",
+             alpha=0.45, zorder=2,
+             label=f"AE-2      (coord std {z_ae.std(0).mean():.2f})")
+    axL.plot(mu[sub, 0], mu[sub, 1], ".", ms=1.6, color="#2563eb", alpha=0.5,
+             zorder=3, label=f"VAE-2 mu  (coord std {mu.std(0).mean():.2f})")
+    for r, a_ in ((1, 0.8), (2, 0.5)):
+        axL.add_patch(Circle((0, 0), r, fill=False, ls=":", lw=1.6, ec="#111",
+                             alpha=a_, zorder=5))
+    axL.annotate("N(0, I)\n1 and 2 sigma", (1.7, 1.7), xytext=(6.0, 9.0),
+                 fontsize=9.5, arrowprops=dict(arrowstyle="->", lw=1.0))
+    axL.legend(fontsize=9, frameon=False, loc="lower left", markerscale=7)
+    axL.set_title("the KL term pulls the cloud onto the prior", fontsize=11.5,
+                  pad=7)
+    axL.text(lim - 0.4, lim - 0.6, "2500 of the 10000\ntest images drawn",
+             ha="right", va="top", fontsize=8.6, color="#555")
+    axL.grid(alpha=0.2)
+    for sp in ("top", "right"):
+        axL.spines[sp].set_visible(False)
+
+    axR.hist(sd.flatten().numpy(), bins=80, color="#2563eb", alpha=0.75,
+             zorder=3)
+    top = axR.get_ylim()[1]
+    axR.axvline(1.0, color="#b91c1c", lw=1.8, zorder=4)
+    axR.text(0.98, top * 0.95, "sigma = 1, the size the\n"
+             "blackboard picture draws  ", color="#b91c1c", fontsize=9.5,
+             va="top", ha="right")
+    axR.axvline(float(sd.mean()), color="#15803d", lw=1.6, ls="--", zorder=4)
+    axR.text(float(sd.mean()) + 0.03, top * 0.55, f"mean {sd.mean():.3f}",
+             color="#15803d", fontsize=9.5)
+    axR.set_xlim(0, 1.25)
+    axR.set_xlabel("sigma of q(z|x), every test image and both coordinates",
+                   fontsize=10)
+    axR.set_ylabel("count", fontsize=10)
+    axR.set_title("but the blob itself is almost a point", fontsize=11.5, pad=7)
+    axR.grid(axis="y", alpha=0.25, zorder=0)
+    for sp in ("top", "right"):
+        axR.spines[sp].set_visible(False)
+
+    fig.subplots_adjust(left=0.06, right=0.985, top=0.87, bottom=0.125,
+                        wspace=0.22)
+    fig.savefig("point_vs_blob.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote point_vs_blob.svg   AE coord std {z_ae.std(0).mean():.2f} "
+          f"range [{z_ae.min():.1f}, {z_ae.max():.1f}] | VAE mu std "
+          f"{mu.std(0).mean():.2f} range [{mu.min():.1f}, {mu.max():.1f}] | "
+          f"sigma mean {sd.mean():.3f} max {sd.max():.3f} "
+          f"above 0.5: {100 * (sd > 0.5).float().mean():.1f}%")
