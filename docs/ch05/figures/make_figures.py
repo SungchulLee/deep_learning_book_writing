@@ -4520,6 +4520,288 @@ def fig_cvae_ten_planes():
           f"cVAE-2 {out[1]:.1f}%")
 
 
+# ============================================================================
+# 칠판 도식 셋 — 강의에서 그리는 흐름도를 이 책의 그림체로 다시 그린다.
+# 상자와 화살표는 도식이고, 양 끝의 그림과 잠재 공간의 점은 저장해 둔
+# 모델에서 실제로 계산한 것이다.
+# ============================================================================
+def _bd_box(ax, xy, w, h, text, fc="#eef2ff", ec="#4338ca", fs=11, **kw):
+    from matplotlib.patches import FancyBboxPatch
+    ax.add_patch(FancyBboxPatch(xy, w, h, boxstyle="round,pad=0.02,rounding_size=0.08",
+                                fc=fc, ec=ec, lw=1.4, zorder=3, **kw))
+    ax.text(xy[0] + w / 2, xy[1] + h / 2, text, ha="center", va="center",
+            fontsize=fs, zorder=4)
+
+
+def _bd_arrow(ax, a, b, color="#111", lw=1.6, ls="-", rad=0.0, z=2):
+    ax.annotate("", xy=b, xytext=a, zorder=z,
+                arrowprops=dict(arrowstyle="-|>", color=color, lw=lw, ls=ls,
+                                shrinkA=0, shrinkB=0,
+                                connectionstyle=f"arc3,rad={rad}"))
+
+
+def _bd_digit(fig, ax, cx, cy, flat, size=1.0, title=None, pm1=False):
+    """자료 좌표 (cx, cy) 를 가운데로 하는 작은 축에 28x28 그림을 넣는다."""
+    x0, y0 = ax.transData.transform((cx - size / 2, cy - size / 2))
+    x1, y1 = ax.transData.transform((cx + size / 2, cy + size / 2))
+    inv = fig.transFigure.inverted()
+    (fx0, fy0), (fx1, fy1) = inv.transform((x0, y0)), inv.transform((x1, y1))
+    a = fig.add_axes([fx0, fy0, fx1 - fx0, fy1 - fy0])
+    img = flat.reshape(28, 28)
+    img = (img + 1) / 2 if pm1 else (img * STD + MEAN)
+    a.imshow(img.clamp(0, 1), cmap="gray", vmin=0, vmax=1)
+    a.set_xticks([]); a.set_yticks([])
+    for sp in a.spines.values():
+        sp.set_edgecolor("#555")
+    if title:
+        a.set_title(title, fontsize=8.5, pad=2)
+    return a
+
+
+def _bd_plane(fig, ax, cx, cy, size, lim, pts=(), title=None):
+    """잠재 평면 하나를 작은 축으로 그린다. pts 는 (x, y, color, marker, ms)."""
+    from matplotlib.patches import Circle
+    x0, y0 = ax.transData.transform((cx - size / 2, cy - size / 2))
+    x1, y1 = ax.transData.transform((cx + size / 2, cy + size / 2))
+    inv = fig.transFigure.inverted()
+    (fx0, fy0), (fx1, fy1) = inv.transform((x0, y0)), inv.transform((x1, y1))
+    a = fig.add_axes([fx0, fy0, fx1 - fx0, fy1 - fy0])
+    a.set_xlim(-lim, lim); a.set_ylim(-lim, lim); a.set_aspect("equal")
+    a.axhline(0, color="#999", lw=0.8); a.axvline(0, color="#999", lw=0.8)
+    a.set_xticks([]); a.set_yticks([])
+    for sp in a.spines.values():
+        sp.set_edgecolor("#bbb")
+    for (x, y, c, mk, ms) in pts:
+        a.plot([x], [y], mk, color=c, ms=ms, zorder=5)
+    if title:
+        a.set_title(title, fontsize=8.5, pad=2)
+    return a
+
+
+@torch.no_grad()
+def fig_board_ae_vae():
+    """01_vae.md — 칠판의 AE 와 VAE 흐름도. 같은 시험 그림 7 한 장을 두 모델에 넣는다.
+
+    위: AE-2 는 인코더가 점 하나를 내놓고 디코더가 그 점을 그림으로 되돌린다.
+    아래: VAE-2 는 인코더가 mu 와 log sigma^2 을 내놓고, z = mu + sigma * eps 로
+    뽑은 점을 디코더에 넣는다. 평면 위의 점과 오른쪽 그림은 모두 저장해 둔
+    모델(mnist_ae_mlp2.pt, mnist_vae2_beta1.0.pt)이 실제로 낸 값이다.
+    """
+    from matplotlib.patches import Circle
+    (_, _), (Xte, yte) = load_flat()
+    x = Xte[int((yte == 7).nonzero()[0])][None]
+
+    ae = torch.load(f"{MODELS}/mnist_ae_mlp2.pt", map_location="cpu", weights_only=True)
+    lin = lambda sd, k, v: v @ sd[f"{k}.weight"].T + sd[f"{k}.bias"]
+    z_ae = lin(ae, "enc.2", torch.relu(lin(ae, "enc.0", x)))
+    x_ae = lin(ae, "dec.2", torch.relu(lin(ae, "dec.0", z_ae)))
+
+    va = torch.load(f"{MODELS}/mnist_vae2_beta1.0.pt", map_location="cpu", weights_only=True)
+    h = torch.relu(lin(va, "enc.0", x))
+    mu, sd = lin(va, "mu", h), (0.5 * lin(va, "logvar", h)).exp()
+    eps = torch.randn(1, 2, generator=torch.Generator().manual_seed(0))
+    z_va = mu + sd * eps
+    x_va = lin(va, "dec.2", torch.relu(lin(va, "dec.0", z_va)))
+
+    fig, ax = plt.subplots(figsize=(10.6, 5.6))
+    ax.set_xlim(0, 12); ax.set_ylim(0, 6.4); ax.axis("off")
+    fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    fig.canvas.draw()
+
+    for y0, name in ((4.75, "AE"), (1.75, "VAE")):
+        ax.text(0.25, y0, name, fontsize=17, fontweight="bold", va="center")
+        _bd_box(ax, (2.75, y0 - 0.4), 1.1, 0.8, "E\nencoder", fs=10)
+        _bd_box(ax, (8.55, y0 - 0.4), 1.1, 0.8, "D\ndecoder", fs=10,
+                fc="#ecfdf5", ec="#047857")
+        _bd_arrow(ax, (2.25, y0), (2.72, y0))
+        _bd_arrow(ax, (9.68, y0), (10.2, y0))
+        _bd_digit(fig, ax, 1.6, y0, x[0], 1.25, "input x")
+
+    # --- AE: 점 하나 --------------------------------------------------------
+    _bd_arrow(ax, (3.88, 4.75), (5.55, 4.75))
+    ax.text(4.7, 4.9, f"z = ({z_ae[0, 0]:.1f}, {z_ae[0, 1]:.1f})", ha="center",
+            fontsize=9.5)
+    _bd_plane(fig, ax, 6.5, 4.75, 1.8, 16, [(z_ae[0, 0], z_ae[0, 1], "#f97316", "o", 6)],
+              "latent space: one point")
+    _bd_arrow(ax, (7.45, 4.75), (8.52, 4.75))
+    _bd_digit(fig, ax, 10.9, 4.75, x_ae[0], 1.25, "output x'")
+    ax.text(6.5, 3.55, "loss = ||x - x'||^2", ha="center", fontsize=10.5,
+            family="monospace")
+
+    # --- VAE: 분포에서 뽑은 점 ----------------------------------------------
+    _bd_arrow(ax, (3.88, 1.75), (4.2, 1.75))
+    _bd_box(ax, (4.22, 1.2), 1.15, 1.1,
+            f"mu =\n({mu[0, 0]:.2f}, {mu[0, 1]:.2f})\nsigma =\n({sd[0, 0]:.3f}, {sd[0, 1]:.3f})",
+            fc="#fff7ed", ec="#c2410c", fs=8.3)
+    _bd_arrow(ax, (5.4, 1.75), (5.58, 1.75))
+    pl = _bd_plane(fig, ax, 6.5, 1.75, 1.8, 4,
+                   [(z_va[0, 0], z_va[0, 1], "#2563eb", "o", 6)],
+                   "latent space: a draw from N(mu, sigma^2)")
+    for r in (1, 2):
+        pl.add_patch(Circle((0, 0), r, fill=False, ls=":", lw=1.1, ec="#111", alpha=0.6))
+    pl.text(2.1, 2.3, "N(0, I)", fontsize=7.5)
+    _bd_arrow(ax, (7.45, 1.75), (8.52, 1.75))
+    _bd_digit(fig, ax, 10.9, 1.75, x_va[0], 1.25, "output x'")
+    ax.text(6.5, 0.55, "z = mu + sigma * eps,   eps ~ N(0, I)", ha="center",
+            fontsize=10.5, family="monospace")
+    ax.text(6.5, 0.2, "loss = ||x - x'||^2 + beta * KL( N(mu, sigma^2) || N(0, I) )",
+            ha="center", fontsize=10.5, family="monospace")
+    ax.plot([0.2, 11.8], [3.2, 3.2], color="#ccc", lw=1)
+    ax.text(11.8, 6.2, "boxes and arrows are a schematic; the points and the two outputs\n"
+            "are what the trained 2-d models return for this test image",
+            ha="right", va="top", fontsize=8.3, color="#555")
+    fig.savefig("board_ae_vae.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote board_ae_vae.svg   AE z ({z_ae[0,0]:.2f}, {z_ae[0,1]:.2f}) | "
+          f"VAE mu ({mu[0,0]:.2f}, {mu[0,1]:.2f}) sigma ({sd[0,0]:.3f}, {sd[0,1]:.3f})")
+
+
+@torch.no_grad()
+def fig_board_cvae():
+    """03_cvae.md — 칠판의 cVAE 그림: 라벨이 평면과 디코더를 고른다.
+
+    잠재 평면 열 장을 비스듬히 포개어 그리고 2 의 평면만 칠한다. 왼쪽 그림은
+    시험 집합의 2 한 장, 평면 위의 점은 cVAE-2 가 그 그림에 낸 mu, 오른쪽
+    위는 그 mu 를 라벨 2 와 함께 디코딩한 것이다. 오른쪽 아래 세 장은
+    N(0, I) 에서 뽑은 점 셋을 라벨 2 와 함께 디코딩한 것(SEED 0)이다.
+    """
+    import torch.nn.functional as F
+    from matplotlib.patches import Polygon
+    (_, _), (Xte, yte) = load_flat()
+    sd = torch.load(f"{MODELS}/mnist_cvae2.pt", map_location="cpu", weights_only=True)
+    lin = lambda k, v: v @ sd[f"{k}.weight"].T + sd[f"{k}.bias"]
+    c2 = F.one_hot(torch.tensor([2]), 10).float()
+    dec = lambda z: lin("dec.2", torch.relu(lin("dec.0", torch.cat([z, c2.expand(len(z), -1)], 1))))
+    x = Xte[int((yte == 2).nonzero()[0])][None]
+    mu = lin("mu", torch.relu(lin("enc.0", torch.cat([x, c2], 1))))
+    zs = torch.randn(3, 2, generator=torch.Generator().manual_seed(0))
+
+    fig, ax = plt.subplots(figsize=(10.6, 5.4))
+    ax.set_xlim(0, 12); ax.set_ylim(0, 6.2); ax.axis("off")
+    fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    fig.canvas.draw()
+
+    # 평면 열 장 — 아래에서 위로 0..9
+    px, w, hh, sk = 4.6, 2.5, 0.34, 0.55
+    ys = [0.55 + 0.5 * d for d in range(10)]
+    for d in range(10):
+        y = ys[d]
+        on = d == 2
+        ax.add_patch(Polygon([(px, y), (px + w, y), (px + w + sk, y + hh), (px + sk, y + hh)],
+                             closed=True, fc="#fde68a" if on else "#f3f4f6",
+                             ec="#b45309" if on else "#9ca3af", lw=1.6 if on else 0.9,
+                             zorder=3 + d))
+        ax.text(px + w + sk + 0.12, y + hh / 2, f"label {d}", fontsize=8.5, va="center",
+                color="#b45309" if on else "#6b7280",
+                fontweight="bold" if on else "normal")
+    y2 = ys[2] + hh / 2
+    # mu 를 2 의 평면 위에 찍는다 (평면 좌표 [-3, 3] 을 평행사변형에 옮긴다)
+    def on_plane(z, y):
+        u, v = (z[0] + 3) / 6, (z[1] + 3) / 6
+        return px + u * w + v * sk, y + v * hh
+    mx, my = on_plane(mu[0].tolist(), ys[2])
+    ax.plot([mx], [my], "o", color="#dc2626", ms=6, zorder=20)
+    for z in zs.tolist():
+        qx, qy = on_plane(z, ys[2])
+        ax.plot([qx], [qy], "x", color="#1d4ed8", ms=6, mew=1.8, zorder=20)
+
+    _bd_digit(fig, ax, 1.0, 3.9, x[0], 1.3, "input: a real 2")
+    _bd_box(ax, (2.3, 3.5), 1.25, 0.8, "E\n+ label 2", fs=9.5)
+    _bd_arrow(ax, (1.68, 3.9), (2.27, 3.9))
+    _bd_arrow(ax, (3.58, 3.9), (mx - 0.08, my + 0.06), color="#dc2626", rad=-0.15, z=25)
+    ax.text(3.3, 2.85, "E_2", fontsize=11, color="#dc2626", fontweight="bold")
+    for d, yy in ((9, 5.0), (0, 0.9)):
+        _bd_arrow(ax, (3.2, 4.33 if d == 9 else 3.47), (px + 0.2, ys[d] + hh / 2),
+                  color="#9ca3af", lw=1.0, ls="--", rad=0.0)
+        ax.text(3.55, yy, f"E_{d}", fontsize=9.5, color="#6b7280")
+
+    _bd_box(ax, (8.75, 3.5), 1.25, 0.8, "D\n+ label 2", fs=9.5, fc="#ecfdf5", ec="#047857")
+    _bd_arrow(ax, (mx + 0.1, my + 0.05), (8.72, 4.0), color="#dc2626", rad=-0.2, z=25)
+    _bd_arrow(ax, (10.03, 3.9), (10.45, 3.9))
+    _bd_digit(fig, ax, 11.15, 3.9, dec(mu)[0], 1.3, "D_2(mu): rebuilt")
+    ax.text(8.2, 2.95, "D_2", fontsize=11, color="#dc2626", fontweight="bold")
+
+    out = dec(zs)
+    for i in range(3):
+        _bd_digit(fig, ax, 8.95 + 1.1 * i, 1.35, out[i], 1.0)
+    ax.text(10.05, 2.0, "generate a 2: draw z ~ N(0, I) on plane 2\n(the crosses), decode with D_2",
+            ha="center", va="bottom", fontsize=8.6, color="#1d4ed8")
+    ax.text(6.1, 5.95, "one latent plane per label: the label picks the plane, z picks the handwriting",
+            ha="center", fontsize=11)
+    ax.text(0.15, 0.12, "schematic; the red dot (mu of the input), the rebuilt 2 and the three generated 2s "
+            "come from the trained cVAE-2", fontsize=8.3, color="#555")
+    fig.savefig("board_cvae.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote board_cvae.svg   mu ({mu[0,0]:.2f}, {mu[0,1]:.2f})")
+
+
+def fig_board_gan_steps():
+    """01_gan.md 0절 — 학습 루프의 두 스텝과, 그래디언트가 거슬러 가는 길.
+
+    위: 판별기 스텝. 진짜에 1, 가짜에 0 을 정답으로 주고 D 만 고친다.
+        fake.detach() 가 역전파를 D 앞에서 끊는다.
+    아래: 생성기 스텝. 가짜에 1 을 정답으로 주고 G 만 고친다. 역전파는 D 를
+        지나 G 까지 간다. D 의 웨이트는 oG 가 쥐고 있지 않으므로 움직이지 않는다.
+    수는 넣지 않았다 — 도식이다.
+    """
+    fig, ax = plt.subplots(figsize=(10.8, 6.0))
+    ax.set_xlim(0, 12); ax.set_ylim(0, 6.6); ax.axis("off")
+    fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    G = dict(fc="#ecfdf5", ec="#047857"); D = dict(fc="#eef2ff", ec="#4338ca")
+    GRAY = dict(fc="#f3f4f6", ec="#9ca3af")
+    red = "#dc2626"
+
+    # ---------------- step 1 ------------------------------------------------
+    ax.text(0.2, 6.25, "step 1   train D   (oD.step())", fontsize=12.5, fontweight="bold")
+    _bd_box(ax, (0.4, 5.05), 1.9, 0.6, "real images xb", fs=9.5, fc="#fff", ec="#555")
+    _bd_arrow(ax, (2.33, 5.35), (6.9, 5.0))
+    _bd_box(ax, (0.4, 3.85), 1.0, 0.6, "noise z", fs=9.5, fc="#fff", ec="#555")
+    _bd_arrow(ax, (1.43, 4.15), (1.95, 4.15))
+    _bd_box(ax, (1.98, 3.8), 1.0, 0.7, "G", fs=13, **GRAY)
+    _bd_arrow(ax, (3.01, 4.15), (3.55, 4.15))
+    _bd_box(ax, (3.58, 3.85), 2.05, 0.6, "fake.detach()", fs=9.5, fc="#fff", ec="#555")
+    _bd_arrow(ax, (5.66, 4.15), (6.9, 4.5))
+    _bd_box(ax, (6.93, 4.3), 1.0, 0.9, "D", fs=13, **D)
+    _bd_arrow(ax, (7.96, 4.95), (9.0, 5.3)); _bd_arrow(ax, (7.96, 4.55), (9.0, 4.2))
+    _bd_box(ax, (9.03, 5.05), 2.6, 0.55, "target 1  (ones)", fs=9.5, fc="#fff", ec="#555")
+    _bd_box(ax, (9.03, 3.9), 2.6, 0.55, "target 0  (zeros)", fs=9.5, fc="#fff", ec="#555")
+    # 그래디언트
+    _bd_arrow(ax, (9.0, 4.05), (7.99, 4.4), color=red, ls="--", lw=1.4)
+    _bd_arrow(ax, (6.88, 4.38), (5.7, 4.02), color=red, ls="--", lw=1.4)
+    ax.text(5.2, 3.62, "X", color=red, fontsize=15, fontweight="bold", ha="center", va="center")
+    ax.text(5.45, 3.45, "backprop stops here:\nnothing reaches G", color=red, fontsize=8.8,
+            va="top")
+    ax.text(7.43, 5.33, "updated", fontsize=8.8, ha="center", color="#4338ca")
+    ax.text(2.48, 3.6, "not updated", fontsize=8.8, ha="center", color="#6b7280")
+
+    ax.plot([0.2, 11.8], [3.0, 3.0], color="#ccc", lw=1)
+
+    # ---------------- step 2 ------------------------------------------------
+    ax.text(0.2, 2.65, "step 2   train G   (oG.step())", fontsize=12.5, fontweight="bold")
+    _bd_box(ax, (0.4, 1.3), 1.0, 0.6, "noise z", fs=9.5, fc="#fff", ec="#555")
+    _bd_arrow(ax, (1.43, 1.6), (1.95, 1.6))
+    _bd_box(ax, (1.98, 1.25), 1.0, 0.7, "G", fs=13, **G)
+    _bd_arrow(ax, (3.01, 1.6), (3.55, 1.6))
+    _bd_box(ax, (3.58, 1.3), 2.05, 0.6, "fake", fs=9.5, fc="#fff", ec="#555")
+    _bd_arrow(ax, (5.66, 1.6), (6.9, 1.6))
+    _bd_box(ax, (6.93, 1.15), 1.0, 0.9, "D", fs=13, **GRAY)
+    _bd_arrow(ax, (7.96, 1.6), (9.0, 1.6))
+    _bd_box(ax, (9.03, 1.32), 2.6, 0.55, "target 1  (ones)", fs=9.5, fc="#fff", ec="#555")
+    for a, b in (((9.0, 1.42), (7.99, 1.42)), ((6.88, 1.42), (5.7, 1.42)),
+                 ((3.52, 1.42), (3.04, 1.42))):
+        _bd_arrow(ax, a, b, color=red, ls="--", lw=1.4)
+    ax.text(2.48, 2.08, "updated", fontsize=8.8, ha="center", color="#047857")
+    ax.text(7.43, 2.18, "not updated\n(no line freezes it)", fontsize=8.8, ha="center",
+            color="#6b7280")
+    ax.text(5.9, 0.62, "backprop passes through D and into G; D's weights stay put\n"
+            "because oG holds only G's parameters", color=red, fontsize=8.8, ha="center")
+    ax.text(11.8, 0.1, "black: forward pass     red dashed: gradient     schematic, no measured values",
+            ha="right", fontsize=8.3, color="#555")
+    fig.savefig("board_gan_steps.svg", transparent=True)
+    plt.close(fig)
+    print("wrote board_gan_steps.svg")
+
+
 # 그림 함수가 모두 정의된 뒤에 부른다 — 이 블록이 파일 가운데 있으면
 # 그 아래에서 정의한 함수를 부르는 줄이 NameError 로 멈춘다.
 if __name__ == "__main__":
@@ -4600,3 +4882,6 @@ if __name__ == "__main__":
     fig_gan_code_lines()
     fig_dcgan_bn_modes()
     fig_cvae_ten_planes()
+    fig_board_ae_vae()
+    fig_board_cvae()
+    fig_board_gan_steps()
