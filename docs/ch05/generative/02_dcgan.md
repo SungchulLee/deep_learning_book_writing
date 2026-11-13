@@ -202,6 +202,178 @@ if __name__ == "__main__":
 
 ---
 
+## 0. 생성기 코드를 한 줄씩 읽는다
+
+판별기의 `LeakyReLU(0.2)`와 학습 루프의 `detach()`·`betas`는 [앞 쪽](01_gan.md) 0절이 읽은 그대로다. 이 쪽에서 새로 나온 것은 생성기의 두 가지, `ConvTranspose2d`와 `BatchNorm`이다. 아래 블록이 그 둘을 재어 본다. 코드는 **위 블록에 이어 붙인다** — 위에서 학습한 `G`를 그대로 쓴다.
+
+```python
+"""생성기 코드의 세 줄을 재어 본다 — 위 블록에 이어 붙인다.
+
+  (가) ConvTranspose2d(128, 64, 4, 2, 1) 이 7x7 을 14x14 로 키우는 셈
+  (나) 전치 컨볼루션은 컨볼루션의 「역」인가 — 형태만 되돌리는가, 값도 되돌리는가
+  (다) BatchNorm 은 학습 모드와 평가 모드에서 다른 계산을 한다.
+      위에서 학습한 G 를 두 모드로 돌려 같은 z 가 같은 그림이 되는지 본다.
+"""
+
+import copy
+
+if __name__ == "__main__":
+  torch.manual_seed(SEED)
+
+  # === (가) 형태를 따라간다 ==================================================
+  Gc = copy.deepcopy(G).cpu()                  # 위에서 학습한 것. 평가 모드다
+  with torch.no_grad():
+      h = Gc.fc(torch.randn(100, ZDIM)).reshape(-1, 128, 7, 7)
+      print(f"  fc 뒤 형태를 바꾸면            {tuple(h.shape[1:])}")
+      for layer in Gc.net:
+          h = layer(h)
+          if isinstance(layer, nn.ConvTranspose2d):
+              k, s, p = layer.kernel_size[0], layer.stride[0], layer.padding[0]
+              n_in = (h.shape[-1] + 2 * p - k) // s + 1
+              print(f"  ConvTranspose2d({layer.in_channels}, {layer.out_channels}, {k}, {s}, {p}) 뒤   "
+                    f"{tuple(h.shape[1:])}    ({n_in} - 1) * {s} - 2 * {p} + {k} = "
+                    f"{(n_in - 1) * s - 2 * p + k}")
+
+  # === (나) 같은 웨이트를 나눠 쥔 Conv2d 와 ConvTranspose2d ====================
+  conv = nn.Conv2d(64, 128, 4, 2, 1, bias=False)             # 14 -> 7
+  convT = nn.ConvTranspose2d(128, 64, 4, 2, 1, bias=False)   # 7 -> 14
+  with torch.no_grad():
+      convT.weight.copy_(conv.weight)          # 두 웨이트는 형태까지 같다
+      x, y = torch.randn(1, 64, 14, 14), torch.randn(1, 128, 7, 7)
+      lhs, rhs = (conv(x) * y).sum().item(), (x * convT(y)).sum().item()
+      back = convT(conv(x))
+      print(f"  웨이트 형태   Conv2d {tuple(conv.weight.shape)}   "
+            f"ConvTranspose2d {tuple(convT.weight.shape)}")
+      print(f"  <conv(x), y> = {lhs:.3f}   <x, convT(y)> = {rhs:.3f}")
+      print(f"  convT(conv(x)) 의 형태 {tuple(back.shape[1:])}   "
+            f"x 와의 상대 오차 {((back - x).norm() / x.norm()).item():.2f}")
+
+  # === (다) 배치 정규화의 두 모드 ============================================
+  gz = torch.Generator().manual_seed(SEED)
+  z0 = torch.randn(1, ZDIM, generator=gz)                    # 눈여겨볼 z 하나
+  mates = [torch.randn(99, ZDIM, generator=gz) for _ in range(2)]   # 함께 넣을 99개, 두 벌
+
+  def with_mates(net, i):
+      return net(torch.cat([z0, mates[i]]))[0]
+
+  with torch.no_grad():
+      Gc.eval()
+      alone = Gc(z0)[0]
+      print(f"  평가 모드   혼자 넣은 것과 묶음에 넣은 것의 픽셀 차이가 1e-4 미만인가   "
+            f"{(alone - with_mates(Gc, 0)).abs().max().item() < 1e-4}")
+
+      Gc.train()
+      a, b = with_mates(Gc, 0), with_mates(Gc, 1)
+      print(f"  학습 모드   함께 넣은 99개를 바꾸면 같은 z 의 그림이 달라지는 양   "
+            f"평균 {(a - b).abs().mean().item():.3f}   최대 {(a - b).abs().max().item():.3f}")
+      print(f"  같은 z 의 학습 모드 그림과 평가 모드 그림의 차이                 "
+            f"평균 {(a - alone).abs().mean().item():.3f}   최대 {(a - alone).abs().max().item():.3f}")
+      try:
+          Gc(z0)
+      except ValueError as e:
+          print(f"  학습 모드에 z 하나만 넣으면   ValueError: {e}")
+
+      # no_grad 안이어도 학습 모드의 순전파는 running 통계를 고쳐 쓴다
+      Gd = copy.deepcopy(G).cpu().train()
+      before = Gd.fc[1].running_mean.clone()
+      Gd(torch.cat([z0, mates[0]]))
+      print(f"  no_grad 안에서 학습 모드로 한 번 돌린 뒤 running_mean 이 움직인 양   "
+            f"{(Gd.fc[1].running_mean - before).abs().max().item():.2f}")
+
+  # 5,000장을 두 모드로 뽑아 같은 네 지표로 잰다. 첫 줄은 위 출력의 마지막 줄과 같아야 한다
+  evaluate(sample(G), "dcgan 평가모드")
+  evaluate(sample(copy.deepcopy(G).train()), "dcgan 학습모드")
+```
+
+**출력:**
+
+```
+  fc 뒤 형태를 바꾸면            (128, 7, 7)
+  ConvTranspose2d(128, 64, 4, 2, 1) 뒤   (64, 14, 14)    (7 - 1) * 2 - 2 * 1 + 4 = 14
+  ConvTranspose2d(64, 1, 4, 2, 1) 뒤   (1, 28, 28)    (14 - 1) * 2 - 2 * 1 + 4 = 28
+  웨이트 형태   Conv2d (128, 64, 4, 4)   ConvTranspose2d (128, 64, 4, 4)
+  <conv(x), y> = -18.812   <x, convT(y)> = -18.812
+  convT(conv(x)) 의 형태 (64, 14, 14)   x 와의 상대 오차 0.88
+  평가 모드   혼자 넣은 것과 묶음에 넣은 것의 픽셀 차이가 1e-4 미만인가   True
+  학습 모드   함께 넣은 99개를 바꾸면 같은 z 의 그림이 달라지는 양   평균 0.108   최대 1.834
+  같은 z 의 학습 모드 그림과 평가 모드 그림의 차이                 평균 0.082   최대 1.765
+  학습 모드에 z 하나만 넣으면   ValueError: Expected more than 1 value per channel when training, got input size torch.Size([1, 6272])
+  no_grad 안에서 학습 모드로 한 번 돌린 뒤 running_mean 이 움직인 양   0.03
+  dcgan 평가모드     확신도 0.909  균형도 0.970  최대몫 0.162  클래스내 다양성 1.085
+  dcgan 학습모드     확신도 0.911  균형도 0.974  최대몫 0.158  클래스내 다양성 1.076
+```
+
+### `ConvTranspose2d(128, 64, 4, 2, 1)` — 가로세로를 두 배로 키운다
+
+인수는 차례로 `in_channels`, `out_channels`, `kernel_size`, `stride`, `padding`이다. `Conv2d`와 순서가 같다. 그러니 이 줄은 **128채널을 받아 64채널을 내놓고, $4 \times 4$ 커널을 스트라이드 2, 패딩 1로 건다**는 뜻이다. 출력의 한 변은 이렇게 정해진다.
+
+$$
+H_{\text{out}} \;=\; (H_{\text{in}} - 1) \times \text{stride} \;-\; 2 \times \text{padding} \;+\; \text{kernel}
+$$
+
+$(7 - 1) \times 2 - 2 + 4 = 14$이고, 같은 줄을 한 번 더 지나면 $(14 - 1) \times 2 - 2 + 4 = 28$이다. 위 출력이 그 형태를 따라간 것이다.
+
+| 자리 | 형태 (채널, 세로, 가로) |
+|---|---|
+| `fc` 를 지나 형태를 바꾼 뒤 | (128, 7, 7) |
+| `ConvTranspose2d(128, 64, 4, 2, 1)` 뒤 | (64, 14, 14) |
+| `ConvTranspose2d(64, 1, 4, 2, 1)` 뒤 | (1, 28, 28) |
+
+판별기는 **같은 세 수 (4, 2, 1)** 을 `Conv2d`에 넣어 반대로 간다 — $28 \to 14 \to 7$. 커널 4, 스트라이드 2, 패딩 1은 `Conv2d`에서는 한 변을 꼭 절반으로, `ConvTranspose2d`에서는 꼭 두 배로 만드는 짝이다.
+
+### 컨볼루션의 「역」인가 — 형태는 되돌리고 값은 되돌리지 않는다
+
+전치 컨볼루션을 흔히 「컨볼루션의 역」이라 부른다. **형태로는 맞다.** `Conv2d(64, 128, 4, 2, 1)`이 (64, 14, 14)를 (128, 7, 7)로 줄이면, `ConvTranspose2d(128, 64, 4, 2, 1)`은 그것을 (64, 14, 14)로 되돌린다. 두 레이어는 웨이트의 형태까지 (128, 64, 4, 4)로 같다.
+
+**값으로는 아니다.** 두 레이어에 같은 웨이트를 넣고 $x$를 줄였다가 도로 키우면, 돌아온 것은 $x$와 상대 오차 **0.88**만큼 다르다. 거의 남남이다. 그럴 수밖에 없다 — 줄이는 쪽이 수 12,544개를 6,272개로 만들므로 절반은 이미 버려졌고, 버린 것을 되찾아 줄 연산은 없다.
+
+둘 사이의 정확한 관계는 이름에 적혀 있다. **전치**다. 컨볼루션은 입력을 길게 편 벡터에 어떤 행렬 $A$를 곱하는 일이고, 같은 웨이트의 전치 컨볼루션은 $A^{\top}$를 곱하는 일이다. 전치 행렬은 내적 안에서 자리를 옮겨도 값이 같으므로
+
+$$
+\langle A x,\; y \rangle \;=\; \langle x,\; A^{\top} y \rangle
+$$
+
+가 성립해야 하고, 위 출력에서 양쪽이 $-18.812$로 같다. $A^{\top}$가 $A^{-1}$과 같은 것은 $A$가 직교 행렬일 때뿐이고, 정사각도 아닌 이 $A$는 거기에 해당하지 않는다.
+
+그러니 생성기의 전치 컨볼루션은 **어떤 컨볼루션을 되돌리는 것이 아니다.** 형태를 두 배로 키우는, 제 웨이트를 따로 배우는 레이어다. DCGAN 논문은 이것을 fractionally-strided convolution이라 부른다.
+
+### `BatchNorm` — 학습 모드와 평가 모드가 서로 다른 계산을 한다
+
+배치 정규화는 레이어의 출력을 채널마다 평균 0, 분산 1로 맞춘 뒤 배운 스케일과 이동을 건다. 문제는 **무엇의** 평균과 분산인가인데, 모드에 따라 다르다.
+
+| 모드 | 부르는 줄 | 쓰는 통계 |
+|---|---|---|
+| 학습 모드 | `G.train()` | **지금 들어온 미니배치**의 평균과 분산 |
+| 평가 모드 | `G.eval()` | 학습하는 동안 이동평균으로 모아 둔 `running_mean`, `running_var` |
+
+위 코드의 `train_gan`은 에포크마다 `G.train()`을 부르고, 끝에서 `return G.eval()`로 평가 모드로 바꾸어 돌려준다. 그래서 `sample`이 뽑는 그림은 모두 평가 모드의 것이다. 그 한 줄이 없으면 무엇이 달라지는지를 위에서 학습한 생성기로 재었다.
+
+![여섯 줄 네 칸의 그림. 줄마다 z 하나를 세 번 그린 것으로, 첫 칸은 평가 모드, 둘째와 셋째 칸은 학습 모드에서 함께 넣은 아흔아홉 개만 바꾼 것이고, 넷째 칸은 둘째와 셋째의 차이다. 세 칸 모두 같은 숫자로 읽히지만 획의 굵기와 끝이 조금씩 다르고, 차이 칸에는 획의 가장자리를 따라 밝은 띠가 나타난다. 줄마다 적힌 평균 차이는 0.108, 0.094, 0.109, 0.032, 0.057, 0.051이다](../figures/dcgan_bn_modes.svg)
+
+**평가 모드에서는 $z$ 하나가 그림 하나로 정해진다.** 혼자 넣든 100개 사이에 끼워 넣든 같은 그림이 나온다.
+
+**학습 모드에서는 그렇지 않다.** 같은 $z$인데 함께 넣은 99개를 바꾸면 그림이 픽셀 평균 **0.108**, 가장 크게 바뀐 픽셀에서 **1.834**만큼 달라진다. 픽셀의 범위가 $-1$에서 $1$까지 폭 2이니, 어떤 픽셀은 거의 검정에서 흰색으로 뒤집힌 것이다. 그림을 보면 숫자가 바뀌는 것은 아니고 **획의 가장자리가 움직인다.** 내 그림이 이웃이 누구냐에 따라 달라지는 셈이고, 그 이웃은 내가 고른 것이 아니다.
+
+학습 모드에는 걸리는 것이 둘 더 있다.
+
+- **$z$ 하나만 넣으면 돌지 않는다.** 표본 하나로는 분산을 낼 수 없어 `ValueError`가 난다.
+- **`torch.no_grad()` 안에서도 모델이 바뀐다.** 학습 모드로 한 번 순전파했을 뿐인데 `running_mean`이 0.03 움직였다. `no_grad()`가 끄는 것은 그래디언트이지 모드가 아니다. 학습 모드인 채로 표본을 뽑으면 뽑을 때마다 저장될 통계가 조금씩 밀린다.
+
+그렇다고 **평가 모드의 그림이 더 좋은 것은 아니다.** 5,000장을 두 모드로 뽑아 같은 평가 분류기로 재면 이렇다.
+
+| 5,000장 | 확신도 | 클래스 균형도 | 클래스 내 다양성 |
+|---|---|---|---|
+| 평가 모드 (위 출력과 같은 줄) | 0.909 | 0.970 | 1.085 |
+| 학습 모드 | 0.911 | 0.974 | 1.076 |
+
+세 칸의 차이가 0.002, 0.004, 0.009인데 [절 소개](index.md) 5절이 잰 시드 다섯 벌의 범위는 폭이 0.007, 0.012, 0.066이다. **시드를 바꾸는 것보다 작은 차이**다. 평가 모드로 얻는 것은 품질이 아니라 **재현성**이다 — 같은 $z$가 언제나 같은 그림이 되어야 4절의 잠재 공간 걷기도, 이 장의 모든 지표도 다시 잴 수 있다.
+
+다만 이 표의 학습 모드 줄은 `sample`이 1,000개씩 넣어 잰 것이다. 미니배치가 클수록 그 통계가 `running` 통계에 가까워지므로, 훨씬 작은 미니배치로 뽑으면 차이가 더 벌어질 수 있고 그것은 여기서 재지 않았다.
+
+모드에 따라 계산이 달라지는 레이어는 배치 정규화 말고 드롭아웃이 있다. 위 코드가 평가 분류기를 읽자마자 `judge.eval()`을 부르는 것이 그 때문이다.
+
+---
+
 ## 1. 결과
 
 | | 확신도 | 클래스 균형도 | 클래스 내 다양성 | 학습 시간 |

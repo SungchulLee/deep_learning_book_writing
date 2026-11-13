@@ -16,6 +16,10 @@ make_figures.py - 5장의 그림을 만든다
     dcgan_init_arms.svg       N(0, 0.02) 초기화를 넣고 뺀 세 갈래, 시드 다섯 벌
                               (수는 experiments/ch05_dcgan_init.json 에서 읽는다)
     dcgan_shapes.svg          널리 쓰이는 64x64 DCGAN 과 이 쪽의 28x28 을 나란히
+    gan_code_lines.svg        ReLU 와 LeakyReLU, tanh 와 시그모이드, Adam 의 beta1
+    dcgan_bn_modes.svg        같은 z 를 배치 정규화의 평가 모드와 학습 모드로 그린 것
+    cvae_ten_planes.svg       VAE-2 와 cVAE-2 의 잠재 평면을 숫자별로 칠한 것
+                              (mnist_cvae2.pt 는 03_cvae.md 의 블록이 저장한다)
 
 그림 규칙(CLAUDE.md):
     - SVG로 저장하고 svg.fonttype='path'로 글자를 외곽선으로 만든다
@@ -3566,81 +3570,6 @@ def fig_linear_ae_plane():
     plt.close(fig); print("wrote linear_ae_plane.svg")
 
 
-if __name__ == "__main__":
-    fig_pca_reconstructions()
-    fig_recon_ladder()
-    fig_latent_2d()
-    fig_no_noise()
-    fig_aggregate_posterior()
-    fig_conv_off_tradeoff()
-    fig_obedience_split()
-    fig_spread_vs_gap()
-    fig_beta_exchange_rate()
-    fig_two_steps_mirror()
-    fig_conv_flip()
-    fig_conv_obedience()
-    fig_ae_vs_vae_2d()
-    fig_class_share()
-    fig_ae_linear_descent()
-    fig_linear_ae_plane()
-    fig_cvae_label_sweep()
-    fig_two_rulers()
-    fig_forward_diffusion()
-    fig_kl_tradeoff()
-    fig_quality_vs_cost()
-    fig_gan_samples()
-    fig_gan_vs_dcgan()
-    fig_ddim_steps()
-    fig_rulers_disagree()
-    fig_step2_two_ladders()
-    fig_pearson_two_lines()
-    fig_diffusion_attention()
-    fig_gan_saturation()
-    fig_dcgan_bundle()
-    fig_ddim_invertible()
-    fig_cvae_condition()
-    fig_variety_ruler()
-    fig_where_nonlinearity()
-    fig_cifar_provenance()
-    fig_eps_units()
-    fig_outside_measured()
-    fig_nested_code()
-    fig_shuffled_pixels()
-    fig_dcgan_walk()
-    fig_dcgan_nearest()
-    fig_dcgan_thickness()
-    fig_dcgan_init_arms()
-    fig_dcgan_shapes()
-    fig_judge_sees_three()
-    fig_point_vs_blob()
-    fig_dcgan_recipe_gains()
-    fig_lfw_samples()
-    fig_lfw_walk()
-    fig_lfw_vector()
-    fig_who_wins()
-
-    # --- 들머리 그림 (쪽의 물음을 세우는 자리) ---------------------------
-    fig_lead_howmany()
-    fig_lead_projections()
-    fig_pca_funnel()
-    fig_lead_tie()
-    fig_lead_curved()
-    fig_lead_same_trick()
-    fig_lead_flip()
-    fig_lead_worse_than_nothing()
-    fig_lead_cliff()
-    fig_lead_kl_buys()
-    fig_lead_price_tag()
-    fig_lead_dial()
-    fig_lead_who_disobeys()
-    fig_lead_average_blur()
-    fig_lead_loss_wanders()
-    fig_lead_scoreboard_lies()
-    fig_lead_price_in_time()
-    fig_lead_never_a_digit()
-    fig_lead_96x()
-
-
 # ============================================================================
 # 5.3절 DCGAN 쪽의 그림 넷 — 모두 `mnist_dcgan_g.pt` 하나에서 나온다
 # ============================================================================
@@ -4423,3 +4352,251 @@ def fig_lfw_vector():
     fig.savefig("lfw_vector.svg", transparent=True)
     plt.close(fig)
     print("wrote lfw_vector.svg")
+
+
+# ============================================================================
+# 11/11 강의 필기에 붙인 그림 셋 — 칠판에 그린 것을 재어서 다시 그린다
+# ============================================================================
+def fig_gan_code_lines():
+    """01_gan.md 「코드를 한 줄씩 읽는다」 — 활성화 함수 둘과 Adam 의 beta1.
+
+    왼쪽: ReLU 와 LeakyReLU(0.2). 음수 쪽에 기울기 0.2 가 남는다.
+    가운데: tanh 와 시그모이드. tanh(x) 는 2*sigmoid(2x)-1 이고,
+            2*sigmoid(x)-1 은 tanh(x/2) 라서 더 누운 곡선이다.
+    오른쪽: Adam 이 k 스텝 전 그래디언트에 주는 가중치 (1-b1)*b1^k.
+    """
+    x = np.linspace(-4, 4, 801)
+    sig = lambda v: 1 / (1 + np.exp(-v))
+    fig, (a1, a2, a3) = plt.subplots(1, 3, figsize=(12.6, 3.9))
+
+    a1.plot(x, np.maximum(x, 0), color="#111", lw=2.2, label="ReLU")
+    a1.plot(x, np.where(x > 0, x, 0.2 * x), color="#dc2626", lw=2.0, ls="--",
+            label="LeakyReLU(0.2)")
+    a1.annotate("slope 0.2", (-2.5, -0.5), xytext=(-3.7, 1.5), fontsize=10,
+                color="#dc2626", arrowprops=dict(arrowstyle="->", color="#dc2626"))
+    a1.annotate("slope 0:\nno gradient", (-2.0, 0.0), xytext=(-1.3, 2.6),
+                fontsize=10, arrowprops=dict(arrowstyle="->"))
+    a1.set_ylim(-1.2, 4.1)
+    a1.set_title("hidden layers: what a negative input gets", fontsize=11)
+    a1.legend(fontsize=9.5, frameon=False, loc="lower right")
+
+    a2.plot(x, sig(x), color="#6b7280", lw=1.8, label="sigmoid(x), in (0, 1)")
+    a2.plot(x, np.tanh(x), color="#2563eb", lw=4.5, alpha=0.35)
+    a2.plot(x, 2 * sig(2 * x) - 1, color="#2563eb", lw=1.6, ls="--",
+            label="tanh(x) = 2 sigmoid(2x) - 1")
+    a2.plot(x, 2 * sig(x) - 1, color="#f97316", lw=2.0,
+            label="2 sigmoid(x) - 1 = tanh(x/2)")
+    gap = np.abs(np.tanh(x) - (2 * sig(x) - 1)).max()
+    a2.set_title(f"output layer: tanh, in (-1, 1)   (max gap {gap:.3f})",
+                 fontsize=11)
+    a2.set_ylim(-1.12, 1.8)
+    a2.legend(fontsize=8.8, frameon=False, loc="upper left")
+    a2.axhline(1, color="#bbb", lw=0.8, ls=":"); a2.axhline(-1, color="#bbb", lw=0.8, ls=":")
+
+    ks = np.arange(0, 11)
+    for b1, col, off in ((0.9, "#6b7280", -0.2), (0.5, "#dc2626", 0.2)):
+        a3.bar(ks + off, (1 - b1) * b1 ** ks, width=0.38, color=col,
+               label=f"beta1 = {b1}   (10 or more steps ago: "
+                     f"{100 * b1 ** 10:.1f}%)")
+    a3.set_ylim(0, 0.64)
+    a3.set_xticks(ks)
+    a3.set_xlabel("k steps ago", fontsize=10)
+    a3.set_title("Adam: weight on the gradient from k steps ago", fontsize=11)
+    a3.legend(fontsize=8.8, frameon=False)
+
+    for ax in (a1, a2):
+        ax.axhline(0, color="#999", lw=0.8); ax.axvline(0, color="#999", lw=0.8)
+        ax.set_xlabel("x", fontsize=10)
+    for ax in (a1, a2, a3):
+        ax.grid(alpha=0.2)
+        for sp in ("top", "right"):
+            ax.spines[sp].set_visible(False)
+    fig.subplots_adjust(left=0.04, right=0.99, top=0.9, bottom=0.14, wspace=0.2)
+    fig.savefig("gan_code_lines.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote gan_code_lines.svg   max |tanh(x) - (2 sigmoid(x) - 1)| {gap:.3f}")
+
+
+@torch.no_grad()
+def fig_dcgan_bn_modes(n_rows=6):
+    """02_dcgan.md 「생성기 코드를 한 줄씩 읽는다」 (다) — 배치 정규화의 두 모드.
+
+    같은 z 를 평가 모드로 한 번, 학습 모드로 두 번(함께 넣는 99개만 바꾸어)
+    그린다. 평가 모드는 저장해 둔 running 통계를 쓰므로 z 하나가 그림 하나로
+    정해지고, 학습 모드는 그 미니배치의 통계를 쓰므로 이웃이 바뀌면 그림이 바뀐다.
+    첫 줄의 z 와 두 묶음은 쪽의 코드가 쓰는 것과 같다(SEED 42).
+    """
+    import copy
+    G = _dc_generator()
+    gz = torch.Generator().manual_seed(DC_SEED)
+    z0 = torch.randn(1, DC_ZDIM, generator=gz)
+    mates = [torch.randn(99, DC_ZDIM, generator=gz) for _ in range(2)]
+    zs = torch.cat([z0, torch.randn(n_rows - 1, DC_ZDIM, generator=gz)])
+
+    Gt = copy.deepcopy(G).train()
+    cols = ["eval mode\n(running statistics)", "train mode\nwith batch A",
+            "train mode\nwith batch B", "|A - B|"]
+    fig, axes = plt.subplots(n_rows, 4, figsize=(5.6, 1.3 * n_rows + 0.8))
+    diffs = []
+    for r in range(n_rows):
+        z = zs[r:r + 1]
+        ev = G(z)[0, 0]
+        a = Gt(torch.cat([z, mates[0]]))[0, 0]
+        b = Gt(torch.cat([z, mates[1]]))[0, 0]
+        diffs.append((a - b).abs().mean().item())
+        for c, img in enumerate((ev, a, b)):
+            axes[r, c].imshow(img, cmap="gray", vmin=-1, vmax=1)
+        axes[r, 3].imshow((a - b).abs(), cmap="magma", vmin=0, vmax=2)
+        axes[r, 3].text(1.06, 0.5, f"mean\n{diffs[-1]:.3f}", fontsize=8.5,
+                        transform=axes[r, 3].transAxes, va="center")
+        for c in range(4):
+            axes[r, c].set_xticks([]); axes[r, c].set_yticks([])
+            if r == 0:
+                axes[r, c].set_title(cols[c], fontsize=9, pad=5)
+        axes[r, 0].set_ylabel(f"z {r + 1}", fontsize=9)
+    fig.suptitle("one z, three pictures: BatchNorm reads the other 99 in the batch",
+                 fontsize=10.5, y=0.995)
+    fig.subplots_adjust(left=0.07, right=0.88, top=0.9, bottom=0.008,
+                        wspace=0.06, hspace=0.06)
+    fig.savefig("dcgan_bn_modes.svg", transparent=True)
+    plt.close(fig)
+    print("wrote dcgan_bn_modes.svg   mean |A - B| per row: "
+          + "  ".join(f"{d:.3f}" for d in diffs))
+
+
+@torch.no_grad()
+def fig_cvae_ten_planes():
+    """03_cvae.md 「칠판 그림」 — 숫자마다 잠재 평면이 한 장씩인가.
+
+    시험 그림 10,000장의 mu 를 숫자별로 칠한다. 왼쪽은 라벨 없는 VAE-2 로,
+    한 평면을 열 숫자가 나눠 쓴다. 오른쪽은 cVAE-2 로, 열 숫자가 모두 같은
+    자리(원점 둘레)에 겹쳐 쌓인다 — 칠판의 「평면 열 장」을 한 장에 포개어
+    그린 것이다. mnist_cvae2.pt 는 03_cvae.md 의 블록이 저장한다.
+    """
+    import torch.nn.functional as F
+    (_, _), (Xte, yte) = load_flat()
+
+    def mus(path, cond):
+        sd = torch.load(f"{MODELS}/{path}", map_location="cpu", weights_only=True)
+        x = torch.cat([Xte, F.one_hot(yte, 10).float()], 1) if cond else Xte
+        h = torch.relu(x @ sd["enc.0.weight"].T + sd["enc.0.bias"])
+        return h @ sd["mu.weight"].T + sd["mu.bias"]
+
+    panels = [("VAE-2: one plane, shared by ten digits",
+               mus("mnist_vae2_beta1.0.pt", False)),
+              ("cVAE-2: ten planes, stacked on the same spot",
+               mus("mnist_cvae2.pt", True))]
+    sub = torch.randperm(len(Xte), generator=torch.Generator().manual_seed(0))[:2500]
+    cmap = plt.get_cmap("tab10")
+    fig, axes = plt.subplots(1, 2, figsize=(10.6, 5.3))
+    out = []
+    for ax, (title, mu) in zip(axes, panels):
+        ax.set_aspect("equal"); ax.set_xlim(-4.2, 4.2); ax.set_ylim(-4.2, 4.2)
+        ax.scatter(mu[sub, 0], mu[sub, 1], s=3, c=[cmap(int(d)) for d in yte[sub]],
+                   alpha=0.55, linewidths=0, zorder=2)
+        cen = torch.stack([mu[yte == d].mean(0) for d in range(10)])
+        for d in range(10):
+            ax.text(cen[d, 0], cen[d, 1], str(d), fontsize=12, fontweight="bold",
+                    ha="center", va="center", color=cmap(d), zorder=5,
+                    path_effects=[pe.withStroke(linewidth=3, foreground="white")])
+        w = torch.bincount(yte, minlength=10).float() / len(yte)
+        share = 100 * ((w[:, None] * (cen - mu.mean(0)) ** 2).sum()
+                       / mu.var(0, unbiased=False).sum()).item()
+        out.append(share)
+        ax.set_title(title, fontsize=11.5, pad=7)
+        ax.text(0.5, -0.105, f"digit centres (the numerals) explain {share:.1f}% "
+                "of the variance of mu", transform=ax.transAxes, ha="center",
+                fontsize=9.5, color="#333")
+        ax.grid(alpha=0.2)
+        for sp in ("top", "right"):
+            ax.spines[sp].set_visible(False)
+    fig.text(0.5, 0.012, "mu of the 10000 test images (2500 drawn), coloured by "
+             "the true digit; cVAE-2 encodes each image together with its label",
+             ha="center", fontsize=8.8, color="#555")
+    fig.subplots_adjust(left=0.045, right=0.99, top=0.94, bottom=0.14, wspace=0.1)
+    fig.savefig("cvae_ten_planes.svg", transparent=True)
+    plt.close(fig)
+    print(f"wrote cvae_ten_planes.svg   centre share VAE-2 {out[0]:.1f}%  "
+          f"cVAE-2 {out[1]:.1f}%")
+
+
+# 그림 함수가 모두 정의된 뒤에 부른다 — 이 블록이 파일 가운데 있으면
+# 그 아래에서 정의한 함수를 부르는 줄이 NameError 로 멈춘다.
+if __name__ == "__main__":
+    fig_pca_reconstructions()
+    fig_recon_ladder()
+    fig_latent_2d()
+    fig_no_noise()
+    fig_aggregate_posterior()
+    fig_conv_off_tradeoff()
+    fig_obedience_split()
+    fig_spread_vs_gap()
+    fig_beta_exchange_rate()
+    fig_two_steps_mirror()
+    fig_conv_flip()
+    fig_conv_obedience()
+    fig_ae_vs_vae_2d()
+    fig_class_share()
+    fig_ae_linear_descent()
+    fig_linear_ae_plane()
+    fig_cvae_label_sweep()
+    fig_two_rulers()
+    fig_forward_diffusion()
+    fig_kl_tradeoff()
+    fig_quality_vs_cost()
+    fig_gan_samples()
+    fig_gan_vs_dcgan()
+    fig_ddim_steps()
+    fig_rulers_disagree()
+    fig_step2_two_ladders()
+    fig_pearson_two_lines()
+    fig_diffusion_attention()
+    fig_gan_saturation()
+    fig_dcgan_bundle()
+    fig_ddim_invertible()
+    fig_cvae_condition()
+    fig_variety_ruler()
+    fig_where_nonlinearity()
+    fig_cifar_provenance()
+    fig_eps_units()
+    fig_outside_measured()
+    fig_nested_code()
+    fig_shuffled_pixels()
+    fig_dcgan_walk()
+    fig_dcgan_nearest()
+    fig_dcgan_thickness()
+    fig_dcgan_init_arms()
+    fig_dcgan_shapes()
+    fig_judge_sees_three()
+    fig_point_vs_blob()
+    fig_dcgan_recipe_gains()
+    fig_lfw_samples()
+    fig_lfw_walk()
+    fig_lfw_vector()
+    fig_who_wins()
+
+    # --- 들머리 그림 (쪽의 물음을 세우는 자리) ---------------------------
+    fig_lead_howmany()
+    fig_lead_projections()
+    fig_pca_funnel()
+    fig_lead_tie()
+    fig_lead_curved()
+    fig_lead_same_trick()
+    fig_lead_flip()
+    fig_lead_worse_than_nothing()
+    fig_lead_cliff()
+    fig_lead_kl_buys()
+    fig_lead_price_tag()
+    fig_lead_dial()
+    fig_lead_who_disobeys()
+    fig_lead_average_blur()
+    fig_lead_loss_wanders()
+    fig_lead_scoreboard_lies()
+    fig_lead_price_in_time()
+    fig_lead_never_a_digit()
+    fig_lead_96x()
+
+    # --- 11/11 강의 필기에 붙인 그림 셋 ---------------------------------
+    fig_gan_code_lines()
+    fig_dcgan_bn_modes()
+    fig_cvae_ten_planes()
