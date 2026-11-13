@@ -43,7 +43,7 @@ for i in range(Y_data.shape[1]):
     # print(f"{X_data.shape = }")
     # print(f"{y_data.shape = }")
 
-    # 4. 학습/테스트 데이터 분할
+    # 4. 학습/시험 데이터 분할
     X_train, X_test, y_train, y_test = train_test_split(
         X_data, y_data, test_size=0.3, random_state=0
     )
@@ -117,7 +117,7 @@ records.min() = 0.55
 
 ### 프레임워크 비교를 하려면
 
-PyTorch 구현을 추가할 때는 같은 표본 분할, 피처 스케일, 절편, 클래스 인코딩, 로스의 합·평균과 정규화 강도를 맞춰야 한다. scikit-learn의 기본 L2 정규화와 PyTorch의 비정규화 BCE를 그대로 비교하면 목적부터 다르다. 같은 정확도만으로 두 최적화 해가 같다고 판단할 수 없다.
+PyTorch 구현을 추가할 때는 같은 표본 분할, 피처 스케일, 절편, 클래스 인코딩, 로스의 합·평균과 정칙화 강도를 맞춰야 한다. scikit-learn의 기본 L2 정칙화와 PyTorch의 정칙화하지 않은 BCE를 그대로 비교하면 목적부터 다르다. 같은 정확도만으로 두 최적화 해가 같다고 판단할 수 없다.
 
 ## 연습문제
 
@@ -167,22 +167,22 @@ scikit-learn과의 비교 구현을 검증하는 종합적인 시험 함수를 �
 ??? success "풀이"
     경계 조건을 두루 시험하는 함수를 만든다.
     ```python
-    def test_sklearn comparison():
-        model = Sklearn Comparison(...)
+    def test_sklearn_comparison():
+        model = SklearnComparison(...)
         # 보통의 입력
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    경사의 흐름을 시험하는 것은 그 구조가 처음부터 끝까지 이어지는 학습을 지원하는지 확인하는 데 특히 중요하다.
+    그래디언트의 흐름을 시험하는 것은 그 구조가 처음부터 끝까지 이어지는 학습을 지원하는지 확인하는 데 특히 중요하다.
 
 ## 정리하며
 

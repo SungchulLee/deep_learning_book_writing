@@ -71,10 +71,10 @@ KL(q||p) = 0.685929
 Difference: 0.320892
 ```
 
-### 가우스 둘로 손으로 셈해 보면
+### 정규분포 둘로 손으로 계산해 보면
 
 위의 세 수는 "다르다"만 보일 뿐 **언제 다른지**를 말해 주지 않는다. 정규분포 둘로
-직접 셈하면 그 자리가 드러난다. 이 책이 내내 쓰는 분포이기도 하다.
+직접 계산하면 그 자리가 드러난다. 이 책이 내내 쓰는 분포이기도 하다.
 
 $f = N(1, 1)$, $g = N(0, 1)$로 두면 로그 밀도비가 깔끔하게 떨어진다.
 
@@ -104,7 +104,7 @@ $f = N(1, 1)$을 고정하고 $g = N(0, s)$의 분산 $s$만 움직이며 8절�
 
 ![칸이 둘인 그림. 왼쪽은 밀도 곡선 셋으로, 빨간 것이 평균 1 분산 1인 f이고 파란 점선이 평균 0 분산 1인 g, 파란 실선이 평균 0 분산 2인 더 낮고 넓은 g이다. 오른쪽은 가로가 g의 분산이고 세로가 나트 단위 KL 발산인 곡선 둘로, D(f와 g)는 분산이 작을 때 치솟았다가 내려와 완만해지고 D(g와 f)는 계속 올라간다. 두 곡선은 분산이 1인 자리에서 딱 한 번 만나며 그때 값이 둘 다 0.5000이고, 분산이 2인 자리에서는 0.3466과 0.6534로 갈린다](../figures/kl_both_directions.svg)
 
-**두 곡선이 딱 한 번 만난다.** 그리고 손으로 처음 셈한 자리가 하필 그 교차점이었다.
+**두 곡선이 딱 한 번 만난다.** 그리고 손으로 처음 계산한 자리가 하필 그 교차점이었다.
 $D(f\|g) - D(g\|f) = \log s + 1/s - s/2 - 1/2$은 $s$에 대해 단조감소하므로 0이
 되는 곳이 $s = 1$ 하나뿐이다. 분산을 어느 쪽으로든 어긋내면 두 값은 곧바로 갈린다.
 
@@ -153,7 +153,7 @@ $$\min_q D_{\text{KL}}(p \| q) = \min_q \mathbb{E}_p[-\log q(x)] + \text{const}$
 
 표현력이 제한된 $q$로 여러 모드를 가진 $p$를 근사할 때, 순방향 KL은 $p$가 질량을 둔 영역을 빠뜨리는 데 큰 비용을 준다. 그래서 **모드 포괄(mode covering)** 경향이라고 부른다. 이는 특정 근사 분포족에서 나타나는 경향이며 항상 분산이 커진다는 정리는 아니다. 제한 없이 최적화할 수 있다면 최적해는 $q=p$이다.
 
-**대표적인 쓰임:** 최대가능도 추정. 실제 데이터 분포를 정확히 아는 대신, 관측 표본의 평균 음의 로그우도로 기대값을 근사한다.
+**대표적인 쓰임:** 최대가능도 추정. 실제 데이터 분포를 정확히 아는 대신, 관측 표본의 평균 음의 로그가능도(가능도는 likelihood로, 우도라고도 한다)로 기대값을 근사한다.
 
 ### 역방향 KL
 
@@ -179,7 +179,7 @@ $D_{\text{KL}}(f_{\theta_0} \| f_\theta)$을 $\theta = \theta_0$ 주변에서 �
 
 $$D_{\text{KL}}(f_{\theta_0} \| f_\theta) \approx \frac{1}{2}(\theta - \theta_0)^T\, \mathbf{I}(\theta_0)\, (\theta - \theta_0)$$
 
-모형이 충분히 매끄럽고 지지집합이 파라메터에 따라 바뀌지 않는 등의 정규성 조건 아래, $\mathbf{I}(\theta_0)$은 피셔 정보 행렬이다. 양의 정부호이면 이 이차형식이 국소 계량을 정의한다. 파라메터가 식별되지 않으면 행렬이 특이할 수 있으므로 역행렬을 바로 사용할 수 없다. 이 관점은 자연 경사와 KL 제약을 쓰는 최적화의 바탕이 된다.
+모델이 충분히 매끄럽고 지지집합이 파라메터에 따라 바뀌지 않는 등의 정규성 조건 아래, $\mathbf{I}(\theta_0)$은 피셔 정보 행렬이다. 양의 정부호이면 이 이차형식이 국소 계량을 정의한다. 파라메터가 식별되지 않으면 행렬이 특이할 수 있으므로 역행렬을 바로 사용할 수 없다. 이 관점은 자연 그래디언트(natural gradient)와 KL 제약을 쓰는 최적화의 바탕이 된다.
 
 ---
 
@@ -213,7 +213,7 @@ $$D_{\text{KL}}(q \| p) = -\frac{1}{2}\sum_{j=1}^{d}\!\left(1 + \log\sigma_j^2 -
 
 ## 9. VAE에서의 응용
 
-변분 오토인코더에서 로스는 복원 오차와 KL 정규화를 결합한다. ELBO 분해에서 출발한다.
+변분 오토인코더에서 로스는 복원 오차와 KL 정칙화 항을 결합한다. ELBO 분해에서 출발한다.
 
 $$\log p(x) = \underbrace{\mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - D_{\text{KL}}(q_\phi(z|x) \| p(z))}_{\mathcal{L}_{\text{ELBO}}} + D_{\text{KL}}(q_\phi(z|x) \| p_\theta(z|x))$$
 
@@ -221,7 +221,7 @@ ELBO를 최대화하는 것은 다음을 최소화하는 것과 같다.
 
 $$\mathcal{L}_{\text{VAE}} = \underbrace{\mathbb{E}_{z \sim q_\phi(z|x)}[-\log p_\theta(x|z)]}_{\text{reconstruction}} + \underbrace{D_{\text{KL}}(q_\phi(z|x) \| p(z))}_{\text{regularization}}$$
 
-### KL과 복원 사이의 절충
+### KL과 복원 사이의 트레이드오프
 
 $\beta$-VAE는 KL 항에 웨이트를 도입한다. $\mathcal{L} = \mathcal{L}_{\text{recon}} + \beta \cdot D_{\text{KL}}$이다.
 
@@ -249,12 +249,12 @@ def kl_divergence(mu: torch.Tensor, logvar: torch.Tensor,
     식: D_KL = -0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
 
     Args:
-        mu: q의 평균, 모양 (batch_size, latent_dim).
-        logvar: q의 로그 분산, 모양 (batch_size, latent_dim).
+        mu: q의 평균, 형태 (batch_size, latent_dim).
+        logvar: q의 로그 분산, 형태 (batch_size, latent_dim).
         reduction: 'sum', 'mean', 'none' 가운데 하나.
 
     Returns:
-        밝힌 줄이기 방식을 쓴 KL 갈림.
+        지정한 reduction 방식으로 집계한 KL 발산.
     """
     kl = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())
     if reduction == 'sum':
@@ -279,10 +279,10 @@ def vae_loss(recon_x: torch.Tensor, x: torch.Tensor,
     """완전한 VAE 로스: 복원 + beta * KL.
 
     Args:
-        recon_x: 되살린 데이터, 모양 (batch_size, data_dim).
-        x: 본디 데이터, 모양 (batch_size, data_dim).
-        mu: 인코더 평균, 모양 (batch_size, latent_dim).
-        logvar: 인코더 로그 분산, 모양 (batch_size, latent_dim).
+        recon_x: 복원한 데이터, 형태 (batch_size, data_dim).
+        x: 원본 데이터, 형태 (batch_size, data_dim).
+        mu: 인코더 평균, 형태 (batch_size, latent_dim).
+        logvar: 인코더 로그 분산, 형태 (batch_size, latent_dim).
         beta: KL 웨이트(베타 VAE).
 
     Returns:
@@ -310,7 +310,7 @@ def kl_free_bits(mu, logvar, free_bits=0.1):
 
 ```python
 def get_beta(epoch, warmup_epochs=10, max_beta=1.0):
-    """선형 KL 담금질."""
+    """선형 KL 어닐링."""
     if epoch < warmup_epochs:
         return max_beta * epoch / warmup_epochs
     return max_beta

@@ -1,25 +1,25 @@
 # SPY에 대한 WMT 회귀
 
-WMT와 SPY의 같은 날짜 일별 수익률을 맞춰 선형 시장모형을 적합한다. 세 가지 구현의 최소제곱 결과를 비교하고 이동 구간에서 추정한 그래디언트의 변화를 살펴본다. 무위험 수익률을 빼지 않은 이 코드는 CAPM 초과수익률 회귀와 구분한다.
+WMT와 SPY의 같은 날짜 일별 수익률을 맞춰 선형 시장모형을 적합한다. 세 가지 구현의 최소제곱 결과를 비교하고 이동 구간에서 추정한 기울기(베타)의 변화를 살펴본다. 무위험 수익률을 빼지 않은 이 코드는 CAPM 초과수익률 회귀와 구분한다.
 
 ## 1. 코드
 
 ```python
 """
-SPY에 대한 WMT — CAPM 베타 어림
+SPY에 대한 WMT — CAPM 베타 추정
 ====================================
 
-WMT의 날마다 수익률을 SPY의 날마다 수익률에 회귀시켜 월마트의 시장 베타를
-어림한다.  넘파이, 사이킷런, PyTorch 세 가지로 짠다.
+WMT의 일별 수익률을 SPY의 일별 수익률에 회귀시켜 월마트의 시장 베타를
+추정한다.  NumPy, scikit-learn, PyTorch 세 가지로 구현한다.
 
 Demonstrates:
 - 데이터 내려받기에 쓰는 yfinance
 - 수익률 계산(pct_change)
 - CAPM 회귀: R_WMT = α + β R_SPY + ε
-- 구르는 베타 어림
-- 최소제곱, 사이킷런, PyTorch 견주기
+- 이동(rolling) 베타 추정
+- 최소제곱, scikit-learn, PyTorch 견주기
 
-지은이: 깊은 학습 바탕 학습 차례
+지은이: 딥러닝 기초 과정
 
 Requirements:
     pip install yfinance
@@ -54,7 +54,7 @@ import pandas as pd
 
 
 def synthetic_returns(n=1000, beta=0.5, seed=0):
-    """내려받기가 안 될 때 쓸 흉내 낸 수익률. 참 베타는 0.5이다."""
+    """내려받기가 안 될 때 쓸 합성 수익률. 참 베타는 0.5이다."""
     rng = np.random.default_rng(seed)
     spy = rng.normal(0.0004, 0.012, n)
     wmt = 0.0001 + beta * spy + rng.normal(0, 0.008, n)
@@ -72,13 +72,13 @@ try:
         returns = data.pct_change().dropna()
         returns.columns = ["SPY", "WMT"]
 except ImportError:
-    print("yfinance가 없다 — 흉내 낸 자료를 쓴다.")
+    print("yfinance가 없다 — 합성 데이터를 쓴다.")
 
-# yfinance가 있어도 망 연결이 없으면 빈 표가 돌아온다. 그대로 두면
+# yfinance가 있어도 네트워크 연결이 없으면 빈 데이터프레임이 돌아온다. 그대로 두면
 # X^T X 가 특이 행렬이 되어 알아보기 어려운 LinAlgError로 터지므로,
-# 자료가 비었는지 여기서 확인하고 흉내 낸 자료로 갈아탄다.
+# 데이터가 비었는지 여기서 확인하고 합성 데이터로 갈아탄다.
 if returns is None or len(returns) < 30:
-    print("시장 자료를 받지 못했다 — 흉내 낸 자료를 쓴다(참 베타 = 0.5).")
+    print("시장 데이터를 받지 못했다 — 합성 데이터를 쓴다(참 베타 = 0.5).")
     returns = synthetic_returns()
 
 x = returns["SPY"].values
@@ -124,11 +124,16 @@ print(f"β = {model_sk.coef_[0]:.4f}")
 # ============================================================================
 
 print("\n--- PyTorch ---")
-X_t = torch.tensor(x, dtype=torch.float32).unsqueeze(1)
-y_t = torch.tensor(y, dtype=torch.float32)
+# 일별 수익률은 표준편차가 0.01 남짓이라 x의 분산이 1e-4 수준이다. 그대로 두면
+# 기울기 방향의 곡률이 너무 작아 경사 하강법이 500에포크로는 수렴하지 못한다.
+# 수익률을 퍼센트 단위(×100)로 바꿔 적합한 뒤 절편만 원래 단위로 되돌린다.
+# 기울기 β는 x와 y를 같은 배수로 늘려도 변하지 않는다.
+SCALE = 100.0
+X_t = torch.tensor(x * SCALE, dtype=torch.float32).unsqueeze(1)
+y_t = torch.tensor(y * SCALE, dtype=torch.float32)
 
 model_pt = nn.Linear(1, 1)
-optimizer = torch.optim.SGD(model_pt.parameters(), lr=1.0)
+optimizer = torch.optim.SGD(model_pt.parameters(), lr=0.1)
 criterion = nn.MSELoss()
 
 for epoch in range(ARGS.epochs):
@@ -139,7 +144,7 @@ for epoch in range(ARGS.epochs):
     optimizer.step()
 
 beta_pt = model_pt.weight.item()
-alpha_pt = model_pt.bias.item()
+alpha_pt = model_pt.bias.item() / SCALE
 print(f"α = {alpha_pt:.6f}")
 print(f"β = {beta_pt:.4f}")
 
@@ -222,7 +227,7 @@ if __name__ == "__main__":
 
 ```
 YF.download() has changed argument auto_adjust default to True
-시장 자료를 받지 못했다 — 흉내 낸 자료를 쓴다(참 베타 = 0.5).
+시장 데이터를 받지 못했다 — 합성 데이터를 쓴다(참 베타 = 0.5).
 Observations: 1000
 SPY  mean=-0.000176 std=0.0117
 WMT  mean=-0.000052 std=0.0103
@@ -238,8 +243,8 @@ R² = 0.3761
 β = 0.5410
 
 --- PyTorch ---
-α = 0.830067
-β = 0.7358
+α = 0.000043
+β = 0.5410
 
 --- Rolling Beta (window=60) ---
 Rolling β — mean: 0.5447, std: 0.0975
@@ -252,13 +257,13 @@ Saved: wmt_on_spy.png
 
 ### 베타와 총위험의 차이
 
-회귀 그래디언트 $\beta=\operatorname{Cov}(R_{\mathrm{SPY}},R_{\mathrm{WMT}})/\operatorname{Var}(R_{\mathrm{SPY}})$는 표본에서 시장 대용치와의 선형 민감도를 나타낸다. 종목 총변동성이나 인과효과와 같지 않다. 베타가 1보다 작더라도 잔차 위험이 크면 총변동성은 높을 수 있다.
+회귀 기울기 $\beta=\operatorname{Cov}(R_{\mathrm{SPY}},R_{\mathrm{WMT}})/\operatorname{Var}(R_{\mathrm{SPY}})$는 표본에서 시장 대용치와의 선형 민감도를 나타낸다. 종목 총변동성이나 인과효과와 같지 않다. 베타가 1보다 작더라도 잔차 위험이 크면 총변동성은 높을 수 있다.
 
 원수익률 회귀의 절편은 조건부 선형 관계의 상수 항이며, 무위험 수익률을 반영한 CAPM 알파와 같다고 부르면 안 된다. 추정값은 관측 기간, 빈도, 배당·분할을 반영하는 가격 조정과 날짜 정렬에 따라 달라진다. 제공된 출력의 특정 베타를 현재 종목의 고정 특성으로 해석하지 않는다.
 
 ### 방법과 이동 구간 비교
 
-같은 데이터와 절편 조건의 최소제곱 해를 비교한다. 반복적 PyTorch 결과는 반복 수와 러닝레이트에 따른 최적화 오차가 있으며 직접 해법에도 반올림 오차가 있다. 구현 간 일치는 동일 목적의 계산을 점검하는 근거이지 금융 모형 가정이 맞다는 증명은 아니다.
+같은 데이터와 절편 조건의 최소제곱 해를 비교한다. 반복적 PyTorch 결과는 반복 수와 러닝레이트에 따른 최적화 오차가 있으며 직접 해법에도 반올림 오차가 있다. 일별 수익률은 분산이 $10^{-4}$ 수준으로 작아 원래 단위로는 경사 하강법이 거의 움직이지 않으므로, 코드는 수익률을 퍼센트 단위로 바꿔 적합한다. 그 결과 세 방법의 $\alpha=0.000043$, $\beta=0.5410$이 출력 자릿수까지 일치한다. 구현 간 일치는 동일 목적의 계산을 점검하는 근거이지 금융 모형 가정이 맞다는 증명은 아니다.
 
 이동 베타의 변화에는 실제 관계 변화와 짧은 표본의 추정 변동이 함께 들어 있다. 이분산성과 자기상관이 있으면 기본 OLS 표준오차의 신뢰구간이 부정확할 수 있다. 구간 길이와 추정 불확실성을 함께 보고 지표만으로 투자 판단을 정당화하지 않는다.
 

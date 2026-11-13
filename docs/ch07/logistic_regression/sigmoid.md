@@ -53,7 +53,7 @@ $$
 | 치역 | $\sigma: \mathbb{R} \to (0, 1)$ | 임의의 실수를 유효한 확률로 보낸다 |
 | 대칭성 | $\sigma(-z) = 1 - \sigma(z)$ | 여확률이 대칭을 이룬다 |
 | 중심 | $\sigma(0) = 0.5$ | 로그 오즈가 0이면 확률이 같다 |
-| 도함수 | $\sigma'(z) = \sigma(z)(1-\sigma(z))$ | 역전파에 쓰기 좋은 우아한 경사 |
+| 도함수 | $\sigma'(z) = \sigma(z)(1-\sigma(z))$ | 역전파에 쓰기 좋은 우아한 그래디언트 |
 | 극한 | $\lim_{z\to\infty}\sigma(z) = 1$, $\lim_{z\to-\infty}\sigma(z) = 0$ | 양 끝에서 매끄럽게 포화한다 |
 | 역함수 | $\sigma^{-1}(p) = \log\frac{p}{1-p}$ | 로짓 함수가 로그 오즈를 되돌려 준다 |
 
@@ -95,15 +95,15 @@ $$
 \sigma(z)(1-\sigma(z)) = \frac{1}{1+e^{-z}} \cdot \frac{e^{-z}}{1+e^{-z}} = \frac{e^{-z}}{(1+e^{-z})^2} = \sigma'(z)
 $$
 
-이 성질은 역전파에 결정적으로 중요하다. 추가로 값을 저장하지 않고도 순전파의 출력만으로 경사를 곧바로 계산할 수 있기 때문이다.
+이 성질은 역전파에 결정적으로 중요하다. 추가로 값을 저장하지 않고도 순전파의 출력만으로 그래디언트를 곧바로 계산할 수 있기 때문이다.
 
 ---
 
 ## 3. 오즈와 오즈비
 
-### 오즈가란 무엇인가?
+### 오즈란 무엇인가?
 
-**오즈**(odds)은 사건이 일어날 확률과 일어나지 않을 확률의 비를 나타낸다.
+**오즈**(odds)는 사건이 일어날 확률과 일어나지 않을 확률의 비를 나타낸다.
 
 $$
 \text{Odds}(Y=1) = \frac{P(Y=1)}{P(Y=0)} = \frac{p}{1-p}
@@ -193,8 +193,8 @@ $$
 
 | 상황 | 문제 |
 |----------|---------|
-| $z \gg 0$ | 분자 형태에서 $e^z$이 넘친다 |
-| $z \ll 0$ | 분모 형태에서 $e^{-z}$이 넘친다 |
+| $z \gg 0$ | 분자 형태에서 $e^z$이 오버플로한다 — 부동소수점이 나타낼 수 있는 범위를 넘는다 |
+| $z \ll 0$ | 분모 형태에서 $e^{-z}$이 오버플로한다 |
 
 **수치적으로 안정한** 구현은 $z$의 부호에 따라 알맞은 형태를 쓴다.
 
@@ -220,7 +220,7 @@ from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-# 재현성을 위해 씨앗을 설정한다
+# 재현성을 위해 시드를 설정한다
 torch.manual_seed(42)
 np.random.seed(42)
 
@@ -270,7 +270,7 @@ s_test = sigmoid(z_test)
 for i, z in enumerate(z_test):
     analytical = sigmoid_derivative(z)
     s_test[i].backward(retain_graph=True)
-    numerical = z_test.grad[i]
+    numerical = z_test.grad[i].clone()  # 복사해 둔다 — 아래 zero_()가 뷰까지 0으로 만든다
     z_test.grad.zero_()
     print(
         f"z = {z.item():+.1f}: Analytical = {analytical.item():.6f}, "
@@ -278,7 +278,7 @@ for i, z in enumerate(z_test):
     )
 
 # ============================================================================
-# 2부: 승산과 로그 승산 시각화
+# 2부: 오즈와 로그 오즈 시각화
 # ============================================================================
 
 print("\n" + "=" * 70)
@@ -338,7 +338,7 @@ class LogisticRegression(nn.Module):
         return torch.sigmoid(self.linear(x))
 
     def log_odds(self, x):
-        """로그 승산(선형 예측자)을 반환한다."""
+        """로그 오즈(선형 예측자)를 반환한다."""
         return self.linear(x)
 
 model = LogisticRegression(2)
@@ -395,7 +395,7 @@ axes[0].legend(fontsize=10)
 axes[0].grid(True, alpha=0.3)
 axes[0].set_ylim([-0.05, 1.05])
 
-# 그림 2: 승산비 해석
+# 그림 2: 오즈비 해석
 features = ["Feature 1", "Feature 2"]
 odds_ratios = [np.exp(learned_weights[0]), np.exp(learned_weights[1])]
 colors = ["green" if or_val > 1 else "red" for or_val in odds_ratios]
@@ -489,9 +489,9 @@ Verifying symmetry σ(-z) = 1 - σ(z):
 
 Verifying derivative σ'(z) = σ(z)(1 - σ(z)):
 --------------------------------------------------
-z = +0.0: Analytical = 0.250000, Autograd = 0.000000
-z = +1.0: Analytical = 0.196612, Autograd = 0.000000
-z = -1.0: Analytical = 0.196612, Autograd = 0.000000
+z = +0.0: Analytical = 0.250000, Autograd = 0.250000
+z = +1.0: Analytical = 0.196612, Autograd = 0.196612
+z = -1.0: Analytical = 0.196612, Autograd = 0.196612
 
 ======================================================================
 ODDS AND LOG-ODDS RELATIONSHIPS
@@ -556,7 +556,7 @@ Comparing naive vs stable sigmoid for extreme values:
 
     산술-기하 평균 부등식에 의해 $p(1-p) \leq \left(\frac{p + (1-p)}{2}\right)^2 = \frac{1}{4}$이며, 등호는 $p = 1/2$일 때 성립한다.
 
-    $z = 0$일 때 $\sigma(z) = 1/2$이므로 $\max_z \sigma'(z) = 1/4$이다. 이는 시그모이드의 국소 도함수가 최대 $1/4$이라는 뜻이다. 실제 네트워크의 경사에는 웨이트 행렬의 곱도 포함되므로 전체 경사의 절대 상한이 $1/4$라는 뜻은 아니다. 포화는 경사 소실에 기여할 수 있다. $\square$
+    $z = 0$일 때 $\sigma(z) = 1/2$이므로 $\max_z \sigma'(z) = 1/4$이다. 이는 시그모이드의 국소 도함수가 최대 $1/4$이라는 뜻이다. 실제 네트워크의 그래디언트에는 웨이트 행렬의 곱도 포함되므로 전체 그래디언트의 절대 상한이 $1/4$라는 뜻은 아니다. 포화는 그래디언트 소실에 기여할 수 있다. $\square$
 
 ---
 
@@ -610,9 +610,9 @@ Comparing naive vs stable sigmoid for extreme values:
 
     z = torch.tensor([-1000.0, -1.0, 0.0, 1.0, 1000.0])
     print(stable_sigmoid(z))   # tensor([0., 0.2689, 0.5, 0.7311, 1.])
-    print(torch.sigmoid(z))    # 같은 값이며 NaN이나 넘침이 없다
+    print(torch.sigmoid(z))    # 같은 값이며 NaN이나 오버플로가 없다
     ```
-    두 클래스로 나눈 형태는 $|z|$이 클 때 $e^{|z|}$을 계산하지 않으므로 넘침을 막는다.
+    두 경우로 나눈 형태는 $|z|$이 클 때 $e^{|z|}$을 계산하지 않으므로 오버플로를 막는다.
 
 ## 정리하며
 
@@ -624,4 +624,4 @@ Comparing naive vs stable sigmoid for extreme values:
 | 오즈 | $\frac{p}{1-p}$ | 성공 대 실패의 비 |
 | 오즈비 | $e^{\beta_j}$ | 단위당 곱셈적 효과 |
 
-시그모이드는 로짓을 확률로 바꾸며 오즈비 해석을 가능하게 한다. 예측 확신과 보정, 국소 도함수와 전체 네트워크 경사를 구분하고 실제 계산에는 안정적인 구현을 사용한다.
+시그모이드는 로짓을 확률로 바꾸며 오즈비 해석을 가능하게 한다. 예측 확신과 보정, 국소 도함수와 전체 네트워크 그래디언트를 구분하고 실제 계산에는 안정적인 구현을 사용한다.

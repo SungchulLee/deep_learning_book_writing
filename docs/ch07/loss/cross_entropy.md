@@ -10,11 +10,11 @@
 - 교차 엔트로피의 정보 이론적 해석 이해하기
 - 다중 클래스 분류에서 NLL과 교차 엔트로피가 동등함을 증명하기
 - KL 발산을 교차 엔트로피 최적화와 연결하기
-- 모델 파라메터에 대한 교차 엔트로피 로스의 경사를 완전히 유도하기
-- 로짓에 대한 경사 공식 $\nabla_\mathbf{z}\mathcal{L} = \hat{\boldsymbol{\pi}} - \mathbf{y}$을 PyTorch로 확인하기
+- 모델 파라메터에 대한 교차 엔트로피 로스의 그래디언트를 완전히 유도하기
+- 로짓에 대한 그래디언트 공식 $\nabla_\mathbf{z}\mathcal{L} = \hat{\boldsymbol{\pi}} - \mathbf{y}$을 PyTorch로 확인하기
 
 !!! note "함께 볼 것"
-    교차 엔트로피는 **2.7절 소프트맥스 회귀**에도 등장한다. 거기서는 소프트맥스 분류기의 자연스러운 로스로 유도하고 PyTorch의 세 인터페이스(`nn.CrossEntropyLoss`, `F.cross_entropy`, `nn.NLLLoss`)를 쓴 N-그램 언어 모델로 보여준다. 이 절은 더 폭넓게 다룬다. 정보 이론적 토대, 행렬 형태를 포함한 전체 배치 경사 유도, NumPy로 바닥부터 만드는 구현, 그리고 Focal Loss과의 관계를 살펴본다.
+    교차 엔트로피는 **2.7절 소프트맥스 회귀**에도 등장한다. 거기서는 소프트맥스 분류기의 자연스러운 로스로 유도하고 PyTorch의 세 인터페이스(`nn.CrossEntropyLoss`, `F.cross_entropy`, `nn.NLLLoss`)를 쓴 N-그램 언어 모델로 보여준다. 이 절은 더 폭넓게 다룬다. 정보 이론적 토대, 행렬 형태를 포함한 전체 배치 그래디언트 유도, NumPy로 바닥부터 만드는 구현, 그리고 Focal Loss와의 관계를 살펴본다.
 
 ---
 
@@ -26,11 +26,11 @@
 
 - **데이터:** $y^{(i)} \in \{1, \ldots, K\}$인 $\mathcal{D} = \{(\mathbf{x}^{(i)}, y^{(i)})\}_{i=1}^{N}$
 - **모델:** 확률 $\hat{\pi}_k^{(i)} = P(Y = k \mid \mathbf{x}^{(i)};\, \boldsymbol{\theta})$을 예측한다
-- **목표:** 관측된 데이터의 우도를 최대로 만드는 파라메터 $\boldsymbol{\theta}$을 찾는다
+- **목표:** 관측된 데이터의 가능도(likelihood, 우도라고도 한다)를 최대로 만드는 파라메터 $\boldsymbol{\theta}$을 찾는다
 
-### 우도 함수
+### 가능도 함수
 
-표본들이 독립이라고 가정하면 우도는 다음과 같다.
+표본들이 독립이라고 가정하면 가능도는 다음과 같다.
 
 $$\mathcal{L}(\boldsymbol{\theta}) = \prod_{i=1}^{N} P\bigl(Y = y^{(i)} \mid \mathbf{x}^{(i)};\, \boldsymbol{\theta}\bigr) = \prod_{i=1}^{N} \hat{\pi}_{y^{(i)}}^{(i)}$$
 
@@ -38,15 +38,15 @@ $y_k^{(i)} = \mathbb{1}[y^{(i)} = k]$인 원핫 벡터 $\mathbf{y}^{(i)}$을 쓰
 
 $$\mathcal{L}(\boldsymbol{\theta}) = \prod_{i=1}^{N} \prod_{k=1}^{K} \bigl(\hat{\pi}_k^{(i)}\bigr)^{y_k^{(i)}}$$
 
-### 로그우도
+### 로그가능도
 
-로그를 취하면(로그는 단조이므로 로그우도를 최대화하는 것은 우도를 최대화하는 것과 같다) 다음과 같다.
+로그를 취하면(로그는 단조이므로 로그가능도를 최대화하는 것은 가능도를 최대화하는 것과 같다) 다음과 같다.
 
 $$\ell(\boldsymbol{\theta}) = \log \mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}^{N} \sum_{k=1}^{K} y_k^{(i)} \log \hat{\pi}_k^{(i)}$$
 
-### 음의 로그우도 (NLL)
+### 음의 로그가능도 (NLL)
 
-보통 로스 함수는 최소화하므로 **음의 로그우도**를 다음과 같이 정의한다.
+보통 로스 함수는 최소화하므로 **음의 로그가능도**를 다음과 같이 정의한다.
 
 $$\text{NLL}(\boldsymbol{\theta}) = -\ell(\boldsymbol{\theta}) = -\sum_{i=1}^{N} \sum_{k=1}^{K} y_k^{(i)} \log \hat{\pi}_k^{(i)}$$
 
@@ -72,7 +72,7 @@ $$H(\mathbf{p}, \mathbf{q}) = -\sum_{k=1}^{K} p_k \log q_k = \mathbb{E}_{X \sim 
 
 ### 분류에서의 교차 엔트로피
 
-참 레이블이 원핫 $\mathbf{y}$(참 클래스 $c$)이고 예측 확률이 $\hat{\boldsymbol{\pi}}$인 표본 하나에 대해 다음과 같다.
+참 라벨이 원핫 $\mathbf{y}$(참 클래스 $c$)이고 예측 확률이 $\hat{\boldsymbol{\pi}}$인 표본 하나에 대해 다음과 같다.
 
 $$H(\mathbf{y}, \hat{\boldsymbol{\pi}}) = -\sum_{k=1}^{K} y_k \log \hat{\pi}_k = -\log \hat{\pi}_c$$
 
@@ -117,13 +117,13 @@ $$\boxed{H(\mathbf{p}, \mathbf{q}) = H(\mathbf{p}) + D_{KL}(\mathbf{p} \| \mathb
 
 교차 엔트로피는 $\mathbf{p}$에 내재한 불확실성(엔트로피)에 $\mathbf{p}$ 대신 $\mathbf{q}$을 쓰는 "추가 비용"(KL 발산)을 더한 것과 같다.
 
-### 분류에서 (원핫 레이블)
+### 분류에서 (원핫 라벨)
 
-$\mathbf{y}$이 원핫이면 $H(\mathbf{y}) = 0$이다. 이는 관측된 레이블을 점질량으로 표현했다는 뜻이며, 실제 조건부 레이블 분포에 불확실성이 없다는 뜻은 아니다. 따라서 다음이 성립한다.
+$\mathbf{y}$이 원핫이면 $H(\mathbf{y}) = 0$이다. 이는 관측된 라벨을 점질량으로 표현했다는 뜻이며, 실제 조건부 라벨 분포에 불확실성이 없다는 뜻은 아니다. 따라서 다음이 성립한다.
 
 $$H(\mathbf{y}, \hat{\boldsymbol{\pi}}) = D_{KL}(\mathbf{y} \| \hat{\boldsymbol{\pi}})$$
 
-**교차 엔트로피 최소화 = 참 레이블로부터의 KL 발산 최소화.**
+**교차 엔트로피 최소화 = 참 라벨로부터의 KL 발산 최소화.**
 
 ---
 
@@ -164,7 +164,7 @@ Loss ↑
 
 ---
 
-## 7. 경사 유도: 단계별로
+## 7. 그래디언트 유도: 단계별로
 
 ### 소프트맥스 회귀 모델
 
@@ -184,7 +184,7 @@ $$\hat{\pi}_k = \sigma(\mathbf{z})_k = \frac{e^{z_k}}{\sum_{j=1}^{K} e^{z_j}}$$
 
 $$\mathcal{L} = -\log \hat{\pi}_c = -\sum_{k=1}^{K} y_k \log \hat{\pi}_k$$
 
-### 1단계: 로짓에 대한 경사
+### 1단계: 로짓에 대한 그래디언트
 
 연쇄 법칙으로 $\frac{\partial \mathcal{L}}{\partial z_j}$을 계산한다.
 
@@ -208,19 +208,19 @@ $\sum_k y_k = 1$(원핫)이고 $\sum_k y_k \delta_{kj} = y_j$이므로 다음이
 
 $$\frac{\partial \mathcal{L}}{\partial z_j} = -y_j + \hat{\pi}_j = \hat{\pi}_j - y_j$$
 
-### 로짓 경사의 최종 형태
+### 로짓 그래디언트의 최종 형태
 
 $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{z}} = \hat{\boldsymbol{\pi}} - \mathbf{y}}$$
 
-경사는 그저 **예측 확률과 참 레이블의 차이**이다.
+그래디언트는 그저 **예측 확률과 참 라벨의 차이**이다.
 
 **해석:**
 
-- $\hat{\pi}_c \approx 1$이면(맞는 예측) 경사가 $\approx 0$이다 (작은 갱신)
-- $\hat{\pi}_c \approx 0$이면(틀린 예측) 경사가 크다 (큰 갱신)
-- 경사가 예측을 참 레이블 쪽으로 "민다"
+- $\hat{\pi}_c \approx 1$이면(맞는 예측) 그래디언트가 $\approx 0$이다 (작은 갱신)
+- $\hat{\pi}_c \approx 0$이면(틀린 예측) 그래디언트가 크다 (큰 갱신)
+- 그래디언트가 예측을 참 라벨 쪽으로 "민다"
 
-### 2단계: 웨이트에 대한 경사
+### 2단계: 웨이트에 대한 그래디언트
 
 $z_k = \sum_d w_{kd} x_d + b_k$에 연쇄 법칙을 쓰면 다음과 같다.
 
@@ -232,7 +232,7 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{W}} = (\hat{\boldsymbol{\p
 
 여기서 $(\hat{\boldsymbol{\pi}} - \mathbf{y}) \in \mathbb{R}^K$이고 $\mathbf{x} \in \mathbb{R}^D$이므로 $\frac{\partial \mathcal{L}}{\partial \mathbf{W}} \in \mathbb{R}^{K \times D}$이다.
 
-### 3단계: 바이어스에 대한 경사
+### 3단계: 바이어스에 대한 그래디언트
 
 $$\frac{\partial \mathcal{L}}{\partial b_k} = \frac{\partial \mathcal{L}}{\partial z_k} \cdot \frac{\partial z_k}{\partial b_k} = (\hat{\pi}_k - y_k) \cdot 1$$
 
@@ -240,31 +240,31 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \hat{\boldsymbol{\pi
 
 ---
 
-## 8. 배치 경사 계산
+## 8. 배치 그래디언트 계산
 
 표본 $N$개의 배치 $\{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^{N}$이 주어졌을 때 전체 로스는 다음과 같다.
 
 $$\mathcal{L}_{\text{total}} = \frac{1}{N} \sum_{i=1}^{N} \mathcal{L}^{(i)}$$
 
-$\mathbf{X} \in \mathbb{R}^{N \times D}$(표본이 행), $\hat{\mathbf{P}} \in \mathbb{R}^{N \times K}$(예측 확률), $\mathbf{Y} \in \mathbb{R}^{N \times K}$(원핫 레이블)이라 하자.
+$\mathbf{X} \in \mathbb{R}^{N \times D}$(표본이 행), $\hat{\mathbf{P}} \in \mathbb{R}^{N \times K}$(예측 확률), $\mathbf{Y} \in \mathbb{R}^{N \times K}$(원핫 라벨)이라 하자.
 
 $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{W}} = \frac{1}{N} (\hat{\mathbf{P}} - \mathbf{Y})^T \mathbf{X}}$$
 
 $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \frac{1}{N} (\hat{\mathbf{P}} - \mathbf{Y})^T \mathbf{1}}$$
 
-### 경사의 성질과 직관
+### 그래디언트의 성질과 직관
 
-**경사의 크기**는 예측의 확신도에 따라 달라진다.
+**그래디언트의 크기**는 예측의 확신도에 따라 달라진다.
 
-| 참 클래스 확률 $\hat{\pi}_c$ | 참 클래스 로짓 경사의 절댓값 | 해석 |
+| 참 클래스 확률 $\hat{\pi}_c$ | 참 클래스 로짓 그래디언트의 절댓값 | 해석 |
 |-------------------------------|-------------------|----------------|
 | 0.99 | 작음 ($\approx 0.01$) | 확신하고 맞음 → 작은 갱신 |
 | 0.50 | 중간 ($\approx 0.50$) | 불확실성 → 적당한 갱신 |
 | 0.01 | 큼 ($\approx 0.99$) | 확신했는데 틀림 → 큰 갱신 |
 
-**경사의 방향:** 참 클래스의 경사는 음수여서 로짓을 올리고, 다른 클래스의 경사는 양수여서 로짓을 내린다. 그 결과 참 클래스와 나머지 사이의 간격이 벌어진다.
+**그래디언트의 방향:** 참 클래스의 그래디언트는 음수여서 로짓을 올리고, 다른 클래스의 그래디언트는 양수여서 로짓을 내린다. 그 결과 참 클래스와 나머지 사이의 간격이 벌어진다.
 
-**로짓 경사의 유계성:** 원핫 목표를 쓰는 표본 하나에 대해 $\|\nabla_\mathbf{z}\mathcal{L}\|_2\leq\sqrt{2}$이다. 웨이트 경사에는 입력 크기가, 깊은 뉴럴 네트워크의 경사에는 앞선 레이어의 야코비안이 곱해지므로 이 부등식만으로 전체 학습의 안정성을 보장할 수 없다.
+**로짓 그래디언트의 유계성:** 원핫 목표를 쓰는 표본 하나에 대해 $\|\nabla_\mathbf{z}\mathcal{L}\|_2\leq\sqrt{2}$이다. 웨이트 그래디언트에는 입력 크기가, 깊은 뉴럴 네트워크의 그래디언트에는 앞선 레이어의 야코비안이 곱해지므로 이 부등식만으로 전체 학습의 안정성을 보장할 수 없다.
 
 ---
 
@@ -282,9 +282,9 @@ $$\text{BCE} = -\frac{1}{N} \sum_{i=1}^{N} \left[ y^{(i)} \log \hat{p}^{(i)} + (
 
 $$\text{Weighted CE} = -\frac{1}{N} \sum_{i=1}^{N} w_{y^{(i)}} \log \hat{\pi}_{y^{(i)}}^{(i)}$$
 
-### 레이블 스무딩 교차 엔트로피
+### 라벨 스무딩 교차 엔트로피
 
-원핫 목표 대신 평활화된 목표를 쓴다.
+원핫 목표 대신 스무딩된(평활화된) 목표를 쓴다.
 
 $$\tilde{y}_k = \begin{cases}
 1 - \epsilon & \text{if } k = c \text{ (참 클래스)} \\
@@ -303,13 +303,13 @@ $$\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$$
 
 ---
 
-## 10. L2 정규화를 더하면
+## 10. L2 정칙화를 더하면
 
-### 정규화된 로스
+### 정칙화된 로스
 
 $$\mathcal{L}_{\text{reg}} = \mathcal{L}_{CE} + \frac{\lambda}{2} \|\mathbf{W}\|_F^2$$
 
-### 정규화된 경사
+### 정칙화된 그래디언트
 
 $$\frac{\partial \mathcal{L}_{\text{reg}}}{\partial \mathbf{W}} = \frac{\partial \mathcal{L}_{CE}}{\partial \mathbf{W}} + \lambda \mathbf{W}$$
 
@@ -324,14 +324,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# PyTorch의 CrossEntropyLoss은 다음을 합친 것이다:
+# PyTorch의 CrossEntropyLoss는 다음을 합친 것이다:
 # 1. 소프트맥스: 로짓 → 확률
 # 2. 로그: 확률 → 로그 확률
 # 3. NLL: 참 클래스의 로그 확률을 골라 부호를 바꾸고 평균한다
 
 criterion = nn.CrossEntropyLoss()
 
-# 입력: 확률이 아니라 로짓(날것의 점수)이다!
+# 입력: 확률이 아니라 로짓(정규화하지 않은 점수)이다!
 logits = torch.tensor([[2.0, 1.0, 0.5],   # Sample 1
                        [0.5, 2.5, 1.0]])  # Sample 2
 
@@ -409,19 +409,19 @@ Direct CE:  0.385362
 class_weights = torch.tensor([1.0, 2.0, 3.0])
 weighted_ce = nn.CrossEntropyLoss(weight=class_weights)
 
-# 레이블 평활화를 쓰는 경우
+# 라벨 스무딩을 쓰는 경우
 smooth_ce = nn.CrossEntropyLoss(label_smoothing=0.1)
 
-# 특정 레이블을 무시하는 경우 (예: 채움값)
+# 특정 라벨을 무시하는 경우 (예: 패딩)
 ignore_ce = nn.CrossEntropyLoss(ignore_index=-100)
 
-# 초점 로스 (직접 구현)
+# Focal Loss (직접 구현)
 def focal_loss(logits, targets, alpha=1.0, gamma=2.0):
     """
-    촘촘한 물체 탐지를 위한 초점 로스.
+    조밀한(dense) 물체 탐지를 위한 Focal Loss.
 
     Args:
-        logits: 모델의 날것 출력
+        logits: 모델의 원시 출력(로짓)
         targets: 참값 클래스 번호
         alpha: 웨이트 값
         gamma: 초점 파라메터
@@ -432,12 +432,12 @@ def focal_loss(logits, targets, alpha=1.0, gamma=2.0):
     return (focal_weight * ce_loss).mean()
 ```
 
-### 경사 유도 확인하기
+### 그래디언트 유도 확인하기
 
 ```python
 def verify_gradient_derivation():
     """
-    우리가 해석으로 얻은 그래디언트가 PyTorch 자동 미분과 맞는지 평가한다.
+    우리가 해석으로 얻은 그래디언트가 PyTorch 자동 미분과 맞는지 확인한다.
     """
     torch.manual_seed(42)
 
@@ -460,7 +460,7 @@ def verify_gradient_derivation():
     # Autograd의 역전파
     loss.backward()
 
-    # 우리가 해석적으로 구한 경사
+    # 우리가 해석적으로 구한 그래디언트
     y_onehot = F.one_hot(y, K).float()
     dz = probs.detach() - y_onehot  # (N, K)
 
@@ -487,7 +487,7 @@ db max error: 1.49e-08
 Gradients match: True
 ```
 
-### 경사의 흐름 시각화하기
+### 그래디언트의 흐름 시각화하기
 
 ```python
 def visualize_gradient_flow():
@@ -551,7 +551,7 @@ import numpy as np
 class SoftmaxRegressionNumPy:
     """
     밑바닥부터 짠 소프트맥스 회귀.
-    이끌어 낸 그래디언트를 코드로 보인다.
+    유도한 그래디언트를 코드로 보인다.
     """
 
     def __init__(self, input_dim: int, num_classes: int):
@@ -584,17 +584,17 @@ class SoftmaxRegressionNumPy:
         """
         N = len(y)
 
-        # y를 원-핫 부호로 바꾼다
+        # y를 원-핫 인코딩으로 바꾼다
         y_onehot = np.zeros_like(self.probs)
         y_onehot[np.arange(N), y] = 1
 
-        # 로짓에 대한 경사: dL/dz = π - y
+        # 로짓에 대한 그래디언트: dL/dz = π - y
         dz = self.probs - y_onehot  # (N, K)
 
-        # 웨이트에 대한 경사: dL/dW = (1/N) * dz^T @ X
+        # 웨이트에 대한 그래디언트: dL/dW = (1/N) * dz^T @ X
         dW = (1/N) * dz.T @ X  # (K, D)
 
-        # 바이어스에 대한 경사: dL/db = (1/N) * sum(dz)
+        # 바이어스에 대한 그래디언트: dL/db = (1/N) * sum(dz)
         db = (1/N) * np.sum(dz, axis=0)  # (K,)
 
         return dW, db
@@ -609,7 +609,7 @@ class SoftmaxRegressionNumPy:
         return loss
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """클래스 레이블을 예측한다."""
+        """클래스 라벨을 예측한다."""
         probs = self.forward(X)
         return np.argmax(probs, axis=1)
 
@@ -652,7 +652,7 @@ class SoftmaxRegressionNumPy:
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-$K$개 클래스 분류 문제에서 로짓(소프트맥스 이전의 값)에 대한 교차 엔트로피 로스의 경사를 유도하라.
+$K$개 클래스 분류 문제에서 로짓(소프트맥스 이전의 값)에 대한 교차 엔트로피 로스의 그래디언트를 유도하라.
 
 </div>
 
@@ -663,14 +663,14 @@ $K$개 클래스 분류 문제에서 로짓(소프트맥스 이전의 값)에 �
     \frac{\partial L}{\partial z_j} = p_j - y_j
     $$
 
-    이 결과는 소프트맥스의 야코비안 행렬 $\frac{\partial p_k}{\partial z_j} = p_k(\delta_{kj} - p_j)$에서 나온다. 경사는 그저 예측 확률과 참 확률의 차이이다.
+    이 결과는 소프트맥스의 야코비안 행렬 $\frac{\partial p_k}{\partial z_j} = p_k(\delta_{kj} - p_j)$에서 나온다. 그래디언트는 그저 예측 확률과 참 확률의 차이이다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-PyTorch에서 `nn.CrossEntropyLoss`과 `nn.LogSoftmax` + `nn.NLLLoss`이 동등함을 보여라.
+PyTorch에서 `nn.CrossEntropyLoss`와 `nn.LogSoftmax` + `nn.NLLLoss`가 동등함을 보여라.
 
 </div>
 
@@ -684,7 +684,7 @@ PyTorch에서 `nn.CrossEntropyLoss`과 `nn.LogSoftmax` + `nn.NLLLoss`이 동등�
     loss2 = nn.NLLLoss()(nn.LogSoftmax(dim=1)(logits), targets)
     assert torch.allclose(loss1, loss2)
     ```
-    `CrossEntropyLoss`은 수치적 안정성을 위해 내부에서 로그 소프트맥스와 NLL을 합쳐 계산한다.
+    `CrossEntropyLoss`는 수치적 안정성을 위해 내부에서 로그 소프트맥스와 NLL을 합쳐 계산한다.
 
 ---
 
@@ -696,7 +696,7 @@ $-\log(\text{softmax}(z)_k)$을 곧바로 계산할 때 생기는 수치적 안�
 </div>
 
 ??? success "풀이"
-    곧바로 계산하면 $\text{softmax}(z)_k = \frac{e^{z_k}}{\sum_j e^{z_j}}$은 $z_j$이 클 때 넘칠 수 있다. log-sum-exp 기법은 $m = \max_j z_j$을 빼 준다.
+    곧바로 계산하면 $\text{softmax}(z)_k = \frac{e^{z_k}}{\sum_j e^{z_j}}$은 $z_j$이 클 때 지수가 부동소수점 범위를 넘는 오버플로가 날 수 있다. log-sum-exp 기법은 $m = \max_j z_j$을 빼 준다.
 
     $$
     \log\sum_j e^{z_j} = m + \log\sum_j e^{z_j - m}
@@ -718,7 +718,7 @@ $$\text{Cross-Entropy} = \frac{1}{N} \text{NLL} = H(\mathbf{p}, \mathbf{q}) = H(
 
 위의 $H(\mathbf{p},\mathbf{q})$ 표기는 각 입력의 목표 분포와 예측 분포 사이 교차 엔트로피를 표본별로 평균낸다는 뜻이다. 임의의 단일 분포쌍의 교차 엔트로피가 모든 데이터셋의 평균 NLL과 같다는 뜻은 아니다.
 
-### 경사 요약
+### 그래디언트 요약
 
 | 양 | 표본 하나 | 배치 (표본 $N$개) |
 |----------|--------------|---------------------|
@@ -736,7 +736,7 @@ $$\boxed{\text{Gradient} = \text{Predicted} - \text{True}}$$
 
 !!! info "세 가지 관점"
 
-    1. **통계적:** 관측된 레이블의 우도를 최대화한다
+    1. **통계적:** 관측된 라벨의 가능도를 최대화한다
     2. **정보 이론적:** 부호화의 비효율을 최소화한다
     3. **기하학적:** KL 발산으로 목표 분포와 예측 분포의 차이를 잰다. KL 발산은 거리 공리를 만족하지 않는다
 

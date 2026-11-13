@@ -212,7 +212,7 @@ nav:
           - 이진 분류: ch07/logistic_regression/binary_classification.md
           - 시그모이드 함수: ch07/logistic_regression/sigmoid.md
           - 결정 경계: ch07/logistic_regression/decision_boundary.md
-          - 경사 계산: ch07/logistic_regression/gradient.md
+          - 그래디언트 계산: ch07/logistic_regression/gradient.md
           - 정칙화된 로지스틱 회귀: ch07/logistic_regression/regularized.md
         - 차례로 지어 보기:
           - 소개: ch07/logistic_regression/01_introduction.md

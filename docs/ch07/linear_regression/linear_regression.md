@@ -20,7 +20,7 @@ $$
 \hat{y} = wx + b
 $$
 
-여기서 $w$는 **웨이트**(그래디언트), $b$는 **바이어스**(절편)이다.
+여기서 $w$는 **웨이트**(기울기), $b$는 **바이어스**(절편)이다.
 
 ### 1.2 여러 입력 피처의 경우
 
@@ -85,7 +85,7 @@ $$
 
 ### 2.2 MLE에서 MSE로
 
-$n$개 관측에 대한 로그우도는 다음과 같다.
+$n$개 관측에 대한 로그가능도는 다음과 같다. **가능도**(likelihood, 우도라고도 한다)는 관측한 데이터가 나올 확률을 파라메터의 함수로 읽은 것이다.
 
 $$
 \ell(\mathbf{w}, b, \sigma^2)
@@ -103,7 +103,7 @@ $$
 $$
 
 !!! tip "핵심 통찰"
-    고정 양의 분산을 가진 독립 가우스 오차 모델에서는 MSE 최소화와 NLL 최소화가 같은 파라미터 해를 준다. MSE를 사용하는 데 가우스 가정이 필수는 아니며, 추정의 일치성·효율성에는 설계와 오차에 관한 별도 조건이 필요하다.
+    고정 양의 분산을 가진 독립 가우스 오차 모델에서는 MSE 최소화와 NLL 최소화가 같은 파라메터 해를 준다. MSE를 사용하는 데 가우스 가정이 필수는 아니며, 추정의 일치성·효율성에는 설계와 오차에 관한 별도 조건이 필요하다.
 
 ### 2.3 잡음 분산의 MLE
 
@@ -128,7 +128,7 @@ $$
 E[y \mid \mathbf{x}] = \mathbf{w}^\top \mathbf{x} + b
 $$
 
-*파라메터*에 대해 선형이기만 하면 모델에 (다항 항 같은) 비선형 *피처*이 들어가도 된다.
+*파라메터*에 대해 선형이기만 하면 모델에 (다항 항 같은) 비선형 *피처*가 들어가도 된다.
 
 ### 3.2 엄격한 외생성
 
@@ -136,7 +136,7 @@ $$
 E[\epsilon \mid \mathbf{X}] = \mathbf{0}
 $$
 
-피처가 오차항과 상관되지 않아야 한다. 누락 변수 바이어스도, 피처의 측정 오차도 없어야 한다.
+피처가 오차항과 상관되지 않아야 한다. 누락 변수 편향도, 피처의 측정 오차도 없어야 한다.
 
 ### 3.3 등분산성
 
@@ -206,7 +206,7 @@ $$
 w^* = \rho\,\frac{s_y}{s_x}
 $$
 
-즉 최적의 그래디언트는 상관계수에 표준편차의 비를 곱한 것이다. 새로운 점 $x_*$에 대한
+즉 최적의 기울기는 상관계수에 표준편차의 비를 곱한 것이다. 새로운 점 $x_*$에 대한
 예측은 다음과 같다.
 
 $$
@@ -323,7 +323,7 @@ $\mathbf{B}^*$의 각 열은 그 목표에 대한 단일 출력 해이다. 출�
 공유하므로 서로 **분리**되기 때문이다.
 
 !!! info "다중 출력이 도움이 될 때"
-    공유 제약 없이 출력별 제곱오차를 더하는 선형 모델은 목적이 열별로 분리되므로 출력의 통계적 독립성 없이도 따로 적합한 것과 같다. 다중 출력 뉴럴 네트워크의 공유 은닉 레이어처럼 파라미터 제약을 추가하면 학습 과제들이 서로 영향을 줄 수 있다.
+    공유 제약 없이 출력별 제곱오차를 더하는 선형 모델은 목적이 열별로 분리되므로 출력의 통계적 독립성 없이도 따로 적합한 것과 같다. 다중 출력 뉴럴 네트워크의 공유 은닉 레이어처럼 파라메터 제약을 추가하면 학습 과제들이 서로 영향을 줄 수 있다.
 
 ### PyTorch: `nn.Linear(p, q)`
 
@@ -358,8 +358,8 @@ for epoch in range(200):
 
 ### 7.1 피처 스케일링
 
-경사 기반 최적화를 쓸 때 선형 회귀는 피처의 규모에 민감하다. 표준화
-($z = (x - \mu) / \sigma$)를 하면 피처의 척도 차이에서 오는 최적화의 어려움을 줄일 수 있다. 상관과 조건수까지 모두 같아지거나 경사 기여가 동등해지는 것은 아니다.
+그래디언트 기반 최적화를 쓸 때 선형 회귀는 피처의 규모에 민감하다. 표준화
+($z = (x - \mu) / \sigma$)를 하면 피처의 척도 차이에서 오는 최적화의 어려움을 줄일 수 있다. 상관과 조건수까지 모두 같아지거나 그래디언트 기여가 동등해지는 것은 아니다.
 
 ```python
 from sklearn.preprocessing import StandardScaler
@@ -369,7 +369,7 @@ X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)  # 학습 데이터의 통계량을 쓴다!
 ```
 
-!!! warning "정규화된 모델"
+!!! warning "정칙화된 모델"
     릿지·라쏘·엘라스틱 넷은 계수의 크기에 패널티를 주므로 피처의 단위에 영향을 받는다. 효과가 비슷해도 척도가 큰 피처는 작은 계수로 표현되어 상대적으로 약한 패널티를 받을 수 있다. 비교 가능한 기준이 필요하면 학습 데이터에서 스케일을 정하되, 피처 단위를 의도적으로 유지하는 선택도 가능하다.
 
 ### 7.2 PyTorch에서의 텐서 모양
@@ -424,9 +424,9 @@ def plot_residual_diagnostics(y_true, y_pred):
 |------|---------|
 | [해석적 해](closed_form.md) | 벡터 미적분 예비 지식, 정규 방정식, 기하학적 해석, QR/SVD 해법 |
 | [경사 하강법을 이용한 해](gd_solution.md) | MSE–NLL 관계, 배치/미니배치/SGD, autograd, `nn.Linear` 파이프라인 |
-| [다항 피처](polynomial_features.md) | 비선형 피처 사상, 편향–분산 절충, 교차 검증 |
-| [릿지 회귀](ridge_regression.md) | $\ell_2$ 정규화, 베이즈적 해석, 축소의 기하 |
-| [라쏘 회귀](lasso_regression.md) | $\ell_1$ 정규화, 희소성, 엘라스틱 넷, 좌표 하강법 |
+| [다항 피처](polynomial_features.md) | 비선형 피처 사상, 편향–분산 트레이드오프, 교차 검증 |
+| [릿지 회귀](ridge_regression.md) | $\ell_2$ 정칙화, 베이즈적 해석, 축소의 기하 |
+| [라쏘 회귀](lasso_regression.md) | $\ell_1$ 정칙화, 희소성, 엘라스틱 넷, 좌표 하강법 |
 
 ---
 
@@ -443,7 +443,7 @@ $$R_{\mathrm{WMT}}-R_f=\alpha+\beta(R_{\mathrm{SPY}}-R_f)+\varepsilon$$
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-MSE 로스 $L(\mathbf{w}) = \frac{1}{2N}\|\mathbf{Xw} - \mathbf{y}\|^2$의 $\mathbf{w}$에 대한 경사를 유도하라.
+MSE 로스 $L(\mathbf{w}) = \frac{1}{2N}\|\mathbf{Xw} - \mathbf{y}\|^2$의 $\mathbf{w}$에 대한 그래디언트를 유도하라.
 
 </div>
 
@@ -464,7 +464,7 @@ $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \
 </div>
 
 ??? success "풀이"
-    가우스 잡음 아래에서 $p(y|\mathbf{x}, \mathbf{w}) = \mathcal{N}(\mathbf{w}^\top\mathbf{x}, \sigma^2)$이다. 음의 로그우도(NLL)는 $-\log p(\mathbf{y}|\mathbf{X},\mathbf{w}) = \frac{N}{2}\log(2\pi\sigma^2) + \frac{1}{2\sigma^2}\|\mathbf{Xw}-\mathbf{y}\|^2$이다. NLL을 최소화하는 것은 MSE를 최소화하는 것과 같으므로, MSE 로스는 가우스 잡음 아래의 MLE에 대응한다.
+    가우스 잡음 아래에서 $p(y|\mathbf{x}, \mathbf{w}) = \mathcal{N}(\mathbf{w}^\top\mathbf{x}, \sigma^2)$이다. 음의 로그가능도(NLL)는 $-\log p(\mathbf{y}|\mathbf{X},\mathbf{w}) = \frac{N}{2}\log(2\pi\sigma^2) + \frac{1}{2\sigma^2}\|\mathbf{Xw}-\mathbf{y}\|^2$이다. NLL을 최소화하는 것은 MSE를 최소화하는 것과 같으므로, MSE 로스는 가우스 잡음 아래의 MLE에 대응한다.
 
 ---
 
@@ -476,14 +476,14 @@ $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \
 </div>
 
 ??? success "풀이"
-    피처들이 완전히 상관되어 있으면 $\mathbf{X}^\top\mathbf{X}$이 특이(랭크 부족)해지고, 정규 방정식 $\mathbf{X}^\top\mathbf{X}\mathbf{w} = \mathbf{X}^\top\mathbf{y}$은 무한히 많은 해를 갖는다. $\mathbf{X}^\top\mathbf{X}$의 조건수가 무한대가 되어 수치적 해가 불안정해진다. 정규화(릿지/라쏘)가 이를 해결한다.
+    피처들이 완전히 상관되어 있으면 $\mathbf{X}^\top\mathbf{X}$이 특이(랭크 부족)해지고, 정규 방정식 $\mathbf{X}^\top\mathbf{X}\mathbf{w} = \mathbf{X}^\top\mathbf{y}$은 무한히 많은 해를 갖는다. $\mathbf{X}^\top\mathbf{X}$의 조건수가 무한대가 되어 수치적 해가 불안정해진다. 정칙화(릿지/라쏘)가 이를 해결한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-단변량 선형 회귀를 PyTorch로 바닥부터 구현하고 `sklearn.linear_model.LinearRegression`과 비교하라.
+단변량 선형 회귀를 PyTorch로 처음부터 구현하고 `sklearn.linear_model.LinearRegression`과 비교하라.
 
 </div>
 
@@ -504,7 +504,7 @@ $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \
 
 ## 정리하며
 
-선형 회귀는 파라미터에 대한 선형 모델이며 최소제곱과 가우스 우도 해석을 연결할 수 있다. 해의 유일성, 통계 추론의 가정과 새 데이터의 성능은 서로 다른 조건이므로 나누어 확인한다.
+선형 회귀는 파라메터에 대한 선형 모델이며 최소제곱과 가우스 가능도 해석을 연결할 수 있다. 해의 유일성, 통계 추론의 가정과 새 데이터의 성능은 서로 다른 조건이므로 나누어 확인한다.
 
 **참고 문헌**
 

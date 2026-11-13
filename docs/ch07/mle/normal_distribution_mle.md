@@ -1,6 +1,6 @@
 # 정규분포 MLE
 
-독립 정규표본의 평균과 표준편차를 해석적으로 추정하고 경사 기반 결과와 비교한다. 양수 파라미터의 표현과 분산 MLE의 바이어스를 구분한다.
+독립 정규표본의 평균과 표준편차를 해석적으로 추정하고 그래디언트 기반 결과와 비교한다. 양수 파라메터의 표현과 분산 MLE의 편향을 구분한다.
 
 ## 1. 코드
 
@@ -8,19 +8,19 @@
 #!/usr/bin/env python3
 """
 ================================================================================
-정규 분포 최대가능도 — 평균과 분산 어림
+정규 분포 최대가능도 — 평균과 분산 추정
 ================================================================================
 
-어려움: ⭐⭐ 보통(2단계)
+난이도: ⭐⭐ 보통(2단계)
 
 가우스 분포의 평균(μ)과 분산(σ²)을 최대가능도로 한꺼번에
-어림하는 법을 배운다.
+추정하는 법을 배운다.
 
-최대가능도 풀이:
+최대가능도 해:
 μ̂ = (1/N) Σ xᵢ  (표본 평균)
 σ̂² = (1/N) Σ (xᵢ - μ̂)²  (표본 분산)
 
-다변량 최대가능도를 이해하는 밑바탕 보기다!
+다변량 최대가능도를 이해하는 기본 예제다!
 ================================================================================
 """
 
@@ -64,16 +64,16 @@ def analytical_mle(data: torch.Tensor):
 
 def gradient_based_mle(data: torch.Tensor, n_iterations: int = 1000):
     """
-    로그 가능도에 경사 상승법을 써서 파라메터를 어림한다.
+    로그 가능도에 경사 상승법을 써서 파라메터를 추정한다.
     
-    시그마가 양수가 되도록 로그로 매긴다.
+    시그마가 양수가 되도록 로그로 매개변수화한다.
     σ = exp(log_sigma)
     """
     # 파라메터를 초기화한다
     mu = torch.tensor(0.0, requires_grad=True)
     log_sigma = torch.tensor(0.0, requires_grad=True)  # σ = exp(log_sigma) > 0
     
-    optimizer = torch.optim.Adam([mu, log_sigma], lr=0.01)
+    optimizer = torch.optim.Adam([mu, log_sigma], lr=0.1)
     history = []
     
     for i in range(n_iterations):
@@ -230,7 +230,7 @@ def main():
     print(f"   μ̂ = {analytical_mu:.4f}")
     print(f"   σ̂ = {analytical_sigma:.4f}")
     
-    # 경사 기반 MLE
+    # 그래디언트 기반 MLE
     print("\n🔄 Gradient-Based MLE:")
     gradient_mu, gradient_sigma, history = gradient_based_mle(data, n_iterations=1000)
     print(f"   Final μ̂ = {gradient_mu:.4f}")
@@ -267,13 +267,13 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
    σ̂ = 1.9441
 
 🔄 Gradient-Based MLE:
-   Iter 200: μ=1.1102, σ=2.6428, LL=-1647.75
-   Iter 400: μ=1.6513, σ=3.3708, LL=-1410.32
-   Iter 600: μ=2.1207, σ=3.5664, LL=-1342.78
-   Iter 800: μ=2.6074, σ=3.4296, LL=-1287.00
-   Iter 1000: μ=3.1469, σ=3.1036, LL=-1221.85
-   Final μ̂ = 3.1469
-   Final σ̂ = 3.1017
+   Iter 200: μ=4.9860, σ=1.9662, LL=-1042.71
+   Iter 400: μ=5.0872, σ=1.9441, LL=-1041.87
+   Iter 600: μ=5.0872, σ=1.9441, LL=-1041.87
+   Iter 800: μ=5.0872, σ=1.9441, LL=-1041.87
+   Iter 1000: μ=5.0872, σ=1.9441, LL=-1041.87
+   Final μ̂ = 5.0872
+   Final σ̂ = 1.9441
 
 📊 Creating visualizations...
 
@@ -291,9 +291,9 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
 
 ### 양수 조건과 최적화
 
-경사 기반 방식은 `log_sigma`를 학습하고 지수함수로 $\sigma$를 만든다. 이는 표준편차가 양수라는 조건을 만족시키지만 극단적인 값에서는 수치 문제가 생길 수 있다. 로그우도 계산의 하한 클램프는 수치적 장치이며 분포의 원래 정의와 구분한다.
+그래디언트 기반 방식은 `log_sigma`를 학습하고 지수함수로 $\sigma$를 만든다. 이는 표준편차가 양수라는 조건을 만족시키지만 극단적인 값에서는 수치 문제가 생길 수 있다. 로그가능도(log-likelihood; 가능도는 우도라고도 한다) 계산의 하한 클램프는 수치적 장치이며 분포의 원래 정의와 구분한다.
 
-유한한 반복의 결과가 해석적 값에 가까운지 확인하면 최적화 상태를 평가할 수 있다. 반면 생성 규칙의 참값과 추정값의 차이에는 표본 변동이 포함된다. 표본이 하나이거나 모든 관측값이 같으면 분산이 0으로 접근하면서 양의 분산 공간의 우도가 무한히 커질 수 있으므로 일반적인 내부해 유도가 적용되지 않는다.
+유한한 반복의 결과가 해석적 값에 가까운지 확인하면 최적화 상태를 평가할 수 있다. 위 실행에서는 400번째 반복에 이미 $\hat\mu=5.0872$, $\hat\sigma=1.9441$로 해석적 MLE와 소수 넷째 자리까지 일치하며, 그 뒤로 로그가능도도 $-1041.87$에서 변하지 않는다. 반면 생성 규칙의 참값과 추정값의 차이에는 표본 변동이 포함된다. 표본이 하나이거나 모든 관측값이 같으면 분산이 0으로 접근하면서 양의 분산 공간의 가능도가 무한히 커질 수 있으므로 일반적인 내부해 유도가 적용되지 않는다.
 
 ## 연습문제
 
@@ -324,7 +324,7 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-참 파라미터와 수치 추정값의 차이를 표본 변동과 최적화 오차로 나누어 설명하라.
+참 파라메터와 수치 추정값의 차이를 표본 변동과 최적화 오차로 나누어 설명하라.
 
 </div>
 
@@ -343,22 +343,22 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
 ??? success "풀이"
     경계 조건을 두루 시험하는 함수를 만든다.
     ```python
-    def test_normal distribution mle():
-        model = Normal Distribution MLE(...)
+    def test_normal_distribution_mle():
+        model = NormalDistributionMLE(...)
         # 보통의 입력
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    경사의 흐름을 시험하는 것은 그 구조가 처음부터 끝까지 이어지는 학습을 지원하는지 확인하는 데 특히 중요하다.
+    그래디언트의 흐름을 시험하는 것은 그 구조가 처음부터 끝까지 이어지는 학습을 지원하는지 확인하는 데 특히 중요하다.
 
 ## 정리하며
 

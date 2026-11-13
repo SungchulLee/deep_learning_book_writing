@@ -18,7 +18,7 @@ NumPy와 PyTorch에서의 효율적인 수치 구현을 차례로 다룬다.
 | $\boldsymbol{\theta} \in \mathbb{R}^{p+1}$ | 파라메터 벡터 |
 | $\|\mathbf{v}\|^2 = \mathbf{v}^\top\mathbf{v}$ | 유클리드 노름의 제곱 |
 
-### 1.2 선형형식의 경사
+### 1.2 선형형식의 그래디언트
 
 상수 벡터 $\mathbf{a}$에 대해 다음이 성립한다.
 
@@ -31,7 +31,7 @@ $$
 **증명.** $\mathbf{a}^\top\boldsymbol{\theta} = \sum_j a_j \theta_j$이다.
 $\theta_k$에 대해 미분하면 $a_k$를 얻는다. $\square$
 
-### 1.3 이차형식의 경사
+### 1.3 이차형식의 그래디언트
 
 **대칭** 행렬 $\mathbf{A}$에 대해 다음이 성립한다.
 
@@ -57,14 +57,14 @@ $$
 마지막 단계에서 $\mathbf{A} = \mathbf{A}^\top$을 사용했다. $\square$
 
 !!! warning "비대칭인 경우"
-    $\mathbf{A}$가 대칭이 아니면 경사는
+    $\mathbf{A}$가 대칭이 아니면 그래디언트는
     $(\mathbf{A} + \mathbf{A}^\top)\boldsymbol{\theta}$이 된다. 그람 행렬
     $\mathbf{X}^\top\mathbf{X}$은 언제나 대칭이므로 보통최소제곱에서는 이 구분이
     문제되지 않는다.
 
 ### 1.4 대각합 항등식
 
-MLE 유도와 정규화된 로스에서는 여러 대각합 항등식이 등장한다.
+MLE 유도와 정칙화된 로스에서는 여러 대각합 항등식이 등장한다.
 
 | 항등식 | 공식 |
 |----------|---------|
@@ -103,7 +103,7 @@ $$
 \bigr)
 $$
 
-### 2.2 경사 계산하기
+### 2.2 그래디언트 계산하기
 
 §1의 항등식을 적용하면 다음과 같다.
 
@@ -117,7 +117,7 @@ $$
   \bigl(\mathbf{X}\boldsymbol{\theta} - \mathbf{y}\bigr)
 $$
 
-### 2.3 경사를 0으로 두기
+### 2.3 그래디언트를 0으로 두기
 
 $$
 \boxed{
@@ -189,7 +189,7 @@ $$
 
 ### 4.2 사영 행렬 (햇 행렬)
 
-다음 식은 $\mathbf X$의 열들이 선형 독립일 때의 사영 행렬이다. 랭크가 부족하면 $\mathbf P=\mathbf X\mathbf X^+$를 사용한다. 예측의 사영은 유일하지만 이를 나타내는 파라미터는 여러 개일 수 있다.
+다음 식은 $\mathbf X$의 열들이 선형 독립일 때의 사영 행렬이다. 랭크가 부족하면 $\mathbf P=\mathbf X\mathbf X^+$를 사용한다. 예측의 사영은 유일하지만 이를 나타내는 파라메터는 여러 개일 수 있다.
 
 $$
 \mathbf{P}
@@ -217,7 +217,7 @@ $$
 \|\mathbf{y}\|^2 = \|\hat{\mathbf{y}}\|^2 + \|\mathbf{r}\|^2
 $$
 
-바이어스 열을 포함한 OLS 학습 표본에서는 잔차가 상수 벡터에도 직교하므로, 중심화한 총제곱합을 다음과 같이 분해할 수 있다. 임의 모델이나 테스트셋의 예측에는 이 직교 분해가 그대로 성립하지 않는다.
+바이어스 열을 포함한 OLS 학습 표본에서는 잔차가 상수 벡터에도 직교하므로, 중심화한 총제곱합을 다음과 같이 분해할 수 있다. 임의 모델이나 시험 데이터의 예측에는 이 직교 분해가 그대로 성립하지 않는다.
 
 $$
 \underbrace{\|\mathbf{y} - \bar{y}\mathbf{1}\|^2}_{\text{SS}_{\text{tot}}}
@@ -225,7 +225,7 @@ $$
 + \underbrace{\|\mathbf{r}\|^2}_{\text{SS}_{\text{res}}}
 $$
 
-이 조건에서 정답 분산이 0이 아니면 $R^2=\text{SS}_{\text{reg}}/\text{SS}_{\text{tot}}$로 해석한다. 일반적인 평가 정의는 $1-\text{SS}_{\text{res}}/\text{SS}_{\text{tot}}$이며 테스트셋에서는 음수도 가능하다.
+이 조건에서 정답 분산이 0이 아니면 $R^2=\text{SS}_{\text{reg}}/\text{SS}_{\text{tot}}$로 해석한다. 일반적인 평가 정의는 $1-\text{SS}_{\text{res}}/\text{SS}_{\text{tot}}$이며 시험 데이터에서는 음수도 가능하다.
 
 ### 4.4 기하학적 결정계수
 
@@ -233,7 +233,7 @@ $$
 R^2 = \cos^2\!\theta
 $$
 
-여기서 $\theta$는 바이어스를 포함한 OLS 학습 표본에서 중심화한 정답과 예측 사이의 각도다. 정답과 예측 벡터가 모두 0이 아닌 경우를 가정한다. 테스트셋의 일반적인 $R^2$를 항상 각도의 제곱으로 해석할 수는 없다.
+여기서 $\theta$는 바이어스를 포함한 OLS 학습 표본에서 중심화한 정답과 예측 사이의 각도다. 정답과 예측 벡터가 모두 0이 아닌 경우를 가정한다. 시험 데이터의 일반적인 $R^2$를 항상 각도의 제곱으로 해석할 수는 없다.
 
 ### 4.5 지렛값
 
@@ -402,7 +402,7 @@ def normal_equations_qr(X: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     return torch.linalg.solve_triangular(R, Q.T @ y, upper=True)
 
 def normal_equations_svd(X: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-    """SVD 기반 해법 (가장 견고하며 계수 부족도 처리한다)."""
+    """SVD 기반 해법 (가장 견고하며 랭크 부족도 처리한다)."""
     if y.dim() == 1:
         y = y.reshape(-1, 1)
     return torch.linalg.lstsq(X, y).solution
@@ -457,7 +457,7 @@ def anova_decomposition(X: torch.Tensor, y: torch.Tensor):
 
 ### 7.1 다중공선성에 가까울 때
 
-$\mathbf{X}^\top\mathbf{X}$이 거의 특이할 때는 작은 정규화 항을 더한다
+$\mathbf{X}^\top\mathbf{X}$이 거의 특이할 때는 작은 정칙화 항을 더한다
 (이는 $\lambda$가 아주 작은 릿지 회귀이다).
 
 $$
@@ -477,9 +477,9 @@ def fit_regularised(
     return torch.linalg.solve(X.T @ X + alpha * torch.eye(d), X.T @ y)
 ```
 
-### 7.2 관측보다 파라미터가 많은 경우
+### 7.2 관측보다 파라메터가 많은 경우
 
-관측보다 파라미터가 많으면 파라미터의 최소제곱 해가 유일하지 않다. 다음 역행렬 식은 $\mathbf X$가 행 전체 랭크일 때 성립한다. 일반적으로는 최소 노름 해 $\boldsymbol\theta^*=\mathbf X^+\mathbf y$를 사용한다.
+관측보다 파라메터가 많으면 파라메터의 최소제곱 해가 유일하지 않다. 다음 역행렬 식은 $\mathbf X$가 행 전체 랭크일 때 성립한다. 일반적으로는 최소 노름 해 $\boldsymbol\theta^*=\mathbf X^+\mathbf y$를 사용한다.
 
 $$
 \boldsymbol{\theta}^*
@@ -499,7 +499,7 @@ $$
 | 정규 방정식 | $O(np^2+p^3)$ | $O(p^2)$, 그람 행렬에서 조건수가 제곱된다 |
 | QR | $O(np^2)$ | 보통 $O(np)$, 원래 설계 행렬을 직접 분해한다 |
 | SVD | $O(np^2)$ | 보통 $O(np)$, 작은 특이값과 랭크를 다룰 수 있다 |
-| 전체 배치 GD | $O(knp)$ | 파라미터 외 잔차·작업 공간도 필요하며 $k$는 반복 수다 |
+| 전체 배치 GD | $O(knp)$ | 파라메터 외 잔차·작업 공간도 필요하며 $k$는 반복 수다 |
 
 방법 선택에는 데이터의 크기뿐 아니라 희소성, 조건수, 메모리와 필요한 정확도를 함께 고려한다. 피처 수 10,000 같은 고정 경계를 보편적인 기준으로 삼지 않는다. 최소제곱 솔버로 시작하고, 스트리밍이나 큰 희소 문제에서는 반복법을 검토한다.
 
@@ -551,7 +551,7 @@ def verify_against_nn_linear():
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-MSE의 경사를 0으로 두어 정규 방정식 $\mathbf{X}^\top\mathbf{X}\mathbf{w} = \mathbf{X}^\top\mathbf{y}$을 유도하라.
+MSE의 그래디언트를 0으로 두어 정규 방정식 $\mathbf{X}^\top\mathbf{X}\mathbf{w} = \mathbf{X}^\top\mathbf{y}$을 유도하라.
 
 </div>
 

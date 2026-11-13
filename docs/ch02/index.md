@@ -8,9 +8,9 @@
     로지스틱 회귀, 소프트맥스 회귀, 로스 함수. [3장](../ch03/index.md)이 같은 것들을 MNIST 위에서
     짧게 지나가므로, **거기서 더 알고 싶을 때 돌아오는 참고 묶음**으로 두어도 된다.
 
-딥러닝은 기계학습의 한 클래스이지 그 전부가 아니다. 이 장은 뉴럴 네트워크를 꺼내기 전에, 기계학습이 문제를 어떤 틀로 나누어 보는지와 뉴럴 네트워크 이전부터 쓰이던 모델들이 무엇을 어떻게 풀어 왔는지를 살핀다.
+딥러닝은 기계학습의 한 갈래이지 그 전부가 아니다. 이 장은 뉴럴 네트워크를 꺼내기 전에, 기계학습이 문제를 어떤 틀로 나누어 보는지와 뉴럴 네트워크 이전부터 쓰이던 모델들이 무엇을 어떻게 풀어 왔는지를 살핀다.
 
-먼저 **학습 패러다임**을 나눈다. 정답표가 있는가, 없는가, 아니면 액션한 뒤에야 리워드로 알게 되는가. 이 물음에 어떻게 답하느냐가 지도학습, 비지도학습, 강화학습을 가른다. 이 구분은 이 책 전체의 뼈대이기도 하다. 이 구분을 바탕으로 뒤에서 자기지도학습이나 여러 신호를 함께 사용하는 학습 방식도 살펴본다.
+먼저 **학습 패러다임**을 나눈다. 정답표가 있는가, 없는가, 아니면 행동한 뒤에야 리워드(보상)로 알게 되는가. 이 물음에 어떻게 답하느냐가 지도학습, 비지도학습, 강화학습을 가른다. 이 구분은 이 책 전체의 뼈대이기도 하다. 이 구분을 바탕으로 뒤에서 자기지도학습이나 여러 신호를 함께 사용하는 학습 방식도 살펴본다.
 
 <div class="storybox" markdown>
 
@@ -24,7 +24,7 @@
 
 이 프로그램을 위의 세 칸 가운데 어디에 넣어야 할까. 본 자리를 표로 간직해 두고 다시 꺼내 쓴 것은 지도학습 쪽의 손버릇이고, 베낄 정답표가 없었다는 점은 비지도학습 쪽이며, 승패라는 늦은 리워드로 배운 것은 강화학습이다. **한 칸에 넣을 수가 없다.**
 
-**그러니 이 세 칸은 자연의 법칙이 아니라 가르치기 위한 칸막이다.** 기계학습이라는 말을 낳은 바로 그 프로그램이 칸막이보다 먼저 있었고, 지금도 들어가지 않는다. 위 문단이 "자기지도학습이나 여러 신호를 함께 사용하는 학습 방식"을 뒤에서 따로 보겠다고 적은 것은 그래서 예외를 덧붙이는 말이 아니다 — 칸막이가 처음부터 자료를 다 담지 못했다는 뜻이다.
+**그러니 이 세 칸은 자연의 법칙이 아니라 가르치기 위한 칸막이다.** 기계학습이라는 말을 낳은 바로 그 프로그램이 칸막이보다 먼저 있었고, 지금도 들어가지 않는다. 위 문단이 "자기지도학습이나 여러 신호를 함께 사용하는 학습 방식"을 뒤에서 따로 보겠다고 적은 것은 그래서 예외를 덧붙이는 말이 아니다 — 칸막이가 처음부터 기계학습 방법을 다 담지 못했다는 뜻이다.
 
 칸막이가 쓸모없다는 말은 아니다. 2.2와 2.3이 이 칸을 따라 나뉘고, 그 덕에 "정답표가 있는가"라는 물음 하나로 쓸 수 있는 모델이 크게 갈린다. 다만 **어떤 방법이 어느 칸에 들어가는가**를 묻는 일과 **그 방법이 무엇을 쓰고 무엇을 내놓는가**를 묻는 일은 다르고, 뒤의 물음이 언제나 더 쓸모 있다.
 
@@ -34,15 +34,15 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 
 이어서 **고전적 모델**을 본다. 선형 모델, 트리, 서포트 벡터 머신, 최근접 이웃은 지금도 현장에서 쓰인다. 표 형태의 데이터에서는 이들이 뉴럴 네트워크를 이기는 일이 드물지 않고, 모델과 데이터에 따라 학습 비용이나 해석 가능성에서도 장점이 있다.
 
-그 뒤로는 클래스를 따라 나누어 본다. **2.2 지도학습**에서는 정답표가 있을 때 쓰는 고전적 모델들을, **2.3 비지도학습**에서는 정답표가 없을 때 데이터의 구조를 찾는 군집화와 그 결과를 정답 없이 재는 법을 다룬다.
+그 뒤로는 패러다임을 따라 나누어 본다. **2.2 지도학습**에서는 정답표가 있을 때 쓰는 고전적 모델들을, **2.3 비지도학습**에서는 정답표가 없을 때 데이터의 구조를 찾는 군집화와 그 결과를 정답 없이 재는 법을 다룬다.
 
 | 절 | 내용 | 정답표 |
 |---|---|---|
-| 2.1 | 인공지능 학습 패러다임 | 세 클래스를 가르는 기준 자체 |
+| 2.1 | 인공지능 학습 패러다임 | 세 패러다임을 가르는 기준 자체 |
 | 2.2 | 지도학습 — 선형 모델, 결정 트리, SVM, K-최근접 이웃 | 있음 |
 | 2.3 | 비지도학습 — K-평균, DBSCAN, 가우시안 혼합, 평가 지표 | 없음 |
 
-강화학습은 2.1에서 클래스로서 소개하지만 이 장에서 더 파고들지는 않는다. 고전적인 모델을 나란히 놓고 견줄 만한 자리가 아니기 때문이며, 제대로 다루는 것은 [37장](../ch36/index.md)부터이다.
+강화학습은 2.1에서 패러다임의 하나로 소개하지만 이 장에서 더 파고들지는 않는다. 고전적인 모델을 나란히 놓고 견줄 만한 자리가 아니기 때문이며, 제대로 다루는 것은 [37장](../ch36/index.md)부터이다.
 
 ## 2.4~2.8 통계적 학습 — 로스는 어디서 오는가
 
@@ -56,13 +56,13 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 | 2.7 소프트맥스 회귀 | 범주형 | 교차 엔트로피 |
 | 2.8 로스 함수 | — | 그 로스들을 다시 모아 본다 |
 
-**다만 모든 로스가 이렇게 유도되지는 않는다.** MSE와 교차 엔트로피는 적절한 분포 가정 아래에서 음의 로그우도로 유도할 수 있지만, 학습 목적이 전부 이런 해석을 갖는 것은 아니다.
+**다만 모든 로스가 이렇게 유도되지는 않는다.** MSE와 교차 엔트로피는 적절한 분포 가정 아래에서 음의 로그가능도로 유도할 수 있지만, 학습 목적이 전부 이런 해석을 갖는 것은 아니다.
 
 ### 2.4 최대가능도 추정
 
-관측 데이터를 잘 설명하는 파라미터를 찾는 방법이다. 우도는 데이터를 고정하고 파라미터를 바꾸어 비교한다. 추정량의 성질과 수치 최적화의 수렴은 서로 다른 문제이므로 구분해서 읽는다.
+관측 데이터를 잘 설명하는 파라메터를 찾는 방법이다. 가능도(likelihood, 우도라고도 한다)는 데이터를 고정하고 파라메터의 함수로 읽은 확률이며, 파라메터를 바꾸어 가며 그 값을 비교한다. 추정량의 성질과 수치 최적화의 수렴은 서로 다른 문제이므로 구분해서 읽는다.
 
-- [최대가능도 추정](../ch07/mle/mle.md): 우도, 로그우도, 피셔 정보와 점근적 성질
+- [최대가능도 추정](../ch07/mle/mle.md): 가능도, 로그가능도, 피셔 정보와 점근적 성질
 - [회귀에서의 MLE](../ch07/mle/mle_regression.md): 고정 분산 가우스 모델과 MSE, 라플라스 모델과 MAE
 - [분류에서의 MLE](../ch07/mle/mle_classification.md): 베르누이 모델과 BCE, 범주형 모델과 교차 엔트로피
 - [확률적 해석](../ch07/mle/probabilistic_interpretation.md): 로스와 분포 가정, 사전분포와 MAP 추정
@@ -83,16 +83,16 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 **손으로 풀어 보기**
 
 - [정규 방정식](../ch07/linear_regression/normal_equation.md) — 설계 행렬을 세우고 `solve` 와 `lstsq` 를 견준다
-- [NumPy로 만드는 경사 하강법](../ch07/linear_regression/gradient_descent_numpy.md) · [PyTorch로 만드는 경사 하강법](../ch07/linear_regression/gradient_descent_torch.md) — autograd 없이 경사 공식을 직접 적는다
+- [NumPy로 만드는 경사 하강법](../ch07/linear_regression/gradient_descent_numpy.md) · [PyTorch로 만드는 경사 하강법](../ch07/linear_regression/gradient_descent_torch.md) — autograd 없이 그래디언트 공식을 직접 적는다
 
 **도구를 바꿔 가며 다시 짓기** (아래 넷은 차례로 읽도록 되어 있다)
 
-1. [NumPy로 만드는 선형 회귀](../ch07/linear_regression/02_linear_regression_numpy.md) — 예측·로스·경사를 전부 손으로
-2. [PyTorch로 직접 계산하는 선형 회귀](../ch07/linear_regression/03_linear_regression_manual_pytorch.md) — 텐서는 쓰되 경사는 아직 손으로
-3. [Autograd로 만드는 선형 회귀](../ch07/linear_regression/04_linear_regression_autograd.md) — `backward()` 가 경사를 맡는다
+1. [NumPy로 만드는 선형 회귀](../ch07/linear_regression/02_linear_regression_numpy.md) — 예측·로스·그래디언트를 전부 손으로
+2. [PyTorch로 직접 계산하는 선형 회귀](../ch07/linear_regression/03_linear_regression_manual_pytorch.md) — 텐서는 쓰되 그래디언트는 아직 손으로
+3. [Autograd로 만드는 선형 회귀](../ch07/linear_regression/04_linear_regression_autograd.md) — `backward()` 가 그래디언트를 맡는다
 4. [nn 모듈로 만드는 선형 회귀](../ch07/linear_regression/05_linear_regression_nn_module.md) — `nn.Linear` 와 옵티마이저까지
 
-- 곁들여 — [최소한의 PyTorch](../ch07/linear_regression/minimal_torch.md) (가장 짧은 autograd 루프) · [텐서로 만드는 데이터셋](../ch07/linear_regression/dataset_from_tensor.md) (`TensorDataset` 을 쓰는 정석 꼴)
+- 곁들여 — [최소한의 PyTorch](../ch07/linear_regression/minimal_torch.md) (가장 짧은 autograd 루프) · [텐서로 만드는 데이터셋](../ch07/linear_regression/dataset_from_tensor.md) (`TensorDataset` 을 쓰는 정석 형태)
 
 **모델을 늘리기**
 
@@ -108,7 +108,7 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 
 - [미니배치 학습](../ch07/linear_regression/09_mini_batch_training.md) · [완전한 파이프라인](../ch07/linear_regression/10_complete_pipeline.md) — 시드·분할·조기 종료·체크포인트
 - [scikit-learn으로 하는 선형 회귀](../ch07/linear_regression/lr_sklearn.md) — 직접 짜지 않고 쓰는 길
-- [SPY에 대한 WMT 회귀](../ch07/linear_regression/wmt_on_spy.md) — 지어낸 자료가 아닌 실제 수익률로
+- [SPY에 대한 WMT 회귀](../ch07/linear_regression/wmt_on_spy.md) — 합성 데이터가 아닌 실제 수익률로
 
 ### 2.6 로지스틱 회귀
 
@@ -116,16 +116,16 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 
 **모델과 그 성질**
 
-- [이진 분류](../ch07/logistic_regression/binary_classification.md) — 베르누이 우도와 BCE. GLM 의 연결 함수에서 유도한다
+- [이진 분류](../ch07/logistic_regression/binary_classification.md) — 베르누이 가능도와 BCE. GLM 의 연결 함수에서 유도한다
 - [시그모이드 함수](../ch07/logistic_regression/sigmoid.md) — 로짓·오즈·확률, 그리고 포화와 수치 안정성
 - [결정 경계](../ch07/logistic_regression/decision_boundary.md) — 경계의 기하와 로스가 재는 확신은 다르다
-- [경사 계산](../ch07/logistic_regression/gradient.md) — 경사와 헤세 행렬, 볼록성이 보장하는 것과 **보장하지 않는 것**
+- [그래디언트 계산](../ch07/logistic_regression/gradient.md) — 그래디언트와 헤세 행렬, 볼록성이 보장하는 것과 **보장하지 않는 것**
 - [정칙화된 로지스틱 회귀](../ch07/logistic_regression/regularized.md) — L1·L2 패널티, 그리고 가우스·라플라스 사전분포로 읽는 길
 
 **차례로 지어 보기** (로스를 바로잡아 가는 순서다)
 
 1. [소개](../ch07/logistic_regression/01_introduction.md) — 텐서와 autograd 복습. 예제가 분류기가 아니라 **이차 함수**이니 1.6절을 읽었다면 건너뛰어도 된다
-2. [간단한 이진 분류](../ch07/logistic_regression/02_simple_binary_classification.md) — `Linear` + 시그모이드 + BCE 를 합성 자료에
+2. [간단한 이진 분류](../ch07/logistic_regression/02_simple_binary_classification.md) — `Linear` + 시그모이드 + BCE 를 합성 데이터에
 3. [BCE를 쓰는 경사 하강법](../ch07/logistic_regression/04_gradient_descent_with_bce.md) — **확률**에 BCE 를 건다
 4. [BCEWithLogitsLoss를 쓰는 경사 하강법](../ch07/logistic_regression/05_gradient_descent_with_bcewithlogitsloss.md) — 시그모이드를 모델에서 떼고 **로짓**을 바로 넘긴다. 앞 쪽과 견줄 자리다
 5. [경사 하강법 심화](../ch07/logistic_regression/06_gradient_descent_advanced.md) — 러닝레이트와 반복 횟수를 돌려 본다
@@ -134,12 +134,12 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 **데이터 적재와 체크포인트**
 
 - [사용자 정의 데이터셋](../ch07/logistic_regression/01_custom_dataset.md) — CSV·파일·텐서에서 읽는 `Dataset` 셋을 견준다
-- [DataLoader로 배치 처리하기](../ch07/logistic_regression/02_dataloader_batching.md) — 배치마다의 경사와 자료 전체의 지표를 가른다
+- [DataLoader로 배치 처리하기](../ch07/logistic_regression/02_dataloader_batching.md) — 배치마다의 그래디언트와 데이터 전체의 지표를 가른다
 - [모델 체크포인트](../ch07/logistic_regression/03_model_checkpointing.md) — 추론만 할 때와 학습을 이어갈 때 저장할 것이 다르다
 
-**실제 자료로**
+**실제 데이터로**
 
-- [scikit-learn 데이터로 실습하기](../ch07/logistic_regression/03_with_sklearn_data.md) — 유방암 자료. 정답 인코딩을 먼저 보아야 지표가 뜻을 갖는다
+- [scikit-learn 데이터로 실습하기](../ch07/logistic_regression/03_with_sklearn_data.md) — 유방암 데이터. 정답 인코딩을 먼저 보아야 지표가 뜻을 갖는다
 - [IMDB 텍스트 분류](../ch07/logistic_regression/08_imdb_text_classification.md) — 리뷰 25,000편의 단어 빈도로 학습하고 **계수를 읽는다**
 - [scikit-learn과의 비교](../ch07/logistic_regression/07_sklearn_comparison.md) — 유전자 발현으로 여러 약물 반응을 가르는 scikit-learn 예제. 제목과 달리 **PyTorch 와 맞대어 학습하지는 않는다**
 
@@ -153,7 +153,7 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 
 ### 2.8 로스 함수
 
-로스의 수학적 정의와 라이브러리 입력 조건을 함께 확인한다. 로스를 합할지 평균할지에 따라 경사의 스케일과 정규화 항의 상대적 비중도 달라진다.
+로스의 수학적 정의와 라이브러리 입력 조건을 함께 확인한다. 로스를 합할지 평균할지에 따라 그래디언트의 스케일과 정칙화 항의 상대적 비중도 달라진다.
 
 - [교차 엔트로피](../ch07/loss/cross_entropy.md): 분포 적합과 분류 로스
 - [KL 발산](../ch07/loss/kl_divergence.md): 두 분포의 차이와 계산 방향
@@ -163,7 +163,7 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 
 ## 이 장이 뒤에 이어지는 방식
 
-[3장](../ch03/index.md)은 MNIST 하나를 붙들고 템플릿 학습에서 컨볼루션 뉴럴 네트워크까지 네 스텝을 걷는다. 그 장의 첫스텝인 템플릿 학습은 사실 이 장에서 다루는 **최근접 이웃**의 사촌이다. 클래스마다 평균 이미지를 만들어 가장 가까운 것을 고르는 규칙이기 때문이다. 그 단순한 규칙이 82%를 맞히고, 나머지 세 스텝은 저마다 무엇을 더해 그 82%를 얼마나 끌어올리는지로 값어치가 매겨진다.
+[3장](../ch03/index.md)은 MNIST 하나를 붙들고 템플릿 학습에서 컨볼루션 뉴럴 네트워크까지 네 스텝을 걷는다. 그 장의 첫 스텝인 템플릿 학습은 사실 이 장에서 다루는 **최근접 이웃**의 사촌이다. 클래스마다 평균 이미지를 만들어 가장 가까운 것을 고르는 규칙이기 때문이다. 그 단순한 규칙이 82%를 맞히고, 나머지 세 스텝은 저마다 무엇을 더해 그 82%를 얼마나 끌어올리는지로 값어치가 매겨진다.
 
 딥러닝의 성과를 제대로 읽으려면 견줄 대상이 있어야 한다. 이 장이 그 대상을 마련한다. 어떤 문제에서 뉴럴 네트워크가 고전 모델을 크게 앞선다면 그 까닭을 물어야 하고, 별로 앞서지 못한다면 뉴럴 네트워크를 쓸 까닭이 없는 것이다.
 
@@ -180,6 +180,6 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 
 **한 번 측정한 차이가 시드에 따른 변동보다 작다면 우위를 단정하기 어렵다.** 이 표의 범위는 해당 실험의 변동을 보여 주며, 모든 CIFAR-10 모델에 적용되는 유의성 기준은 아니다. 비교할 모델들을 같은 조건과 여러 시드로 평가하고, 차이의 일관성과 크기를 함께 확인해야 한다.
 
-이 규율이 없으면 비교가 무너진다. [3.4절](../ch03/mnist/04_cnn.md)이 컨볼루션 뉴럴 네트워크의 손잡이를 여덟 가지로 돌려 보는데, **한 번씩만 재면 어느 쪽이 이겼다는 이야기든 지어낼 수 있다** — 시드를 골라 뽑으면 같은 두 모델에서 정반대의 결론이 나온다. 여러 시드로 비교하면 일부 설정의 차이가 실행 간 변동과 겹친다는 것을 확인할 수 있다. 이것이 두 모델의 성능이 정확히 같다는 증명은 아니다.
+이 규율이 없으면 비교가 무너진다. [3.4절](../ch03/mnist/04_cnn.md)이 컨볼루션 뉴럴 네트워크의 하이퍼파라메터를 여덟 가지로 바꿔 보는데, **한 번씩만 재면 어느 쪽이 이겼다는 이야기든 지어낼 수 있다** — 시드를 골라 뽑으면 같은 두 모델에서 정반대의 결론이 나온다. 여러 시드로 비교하면 일부 설정의 차이가 실행 간 변동과 겹친다는 것을 확인할 수 있다. 이것이 두 모델의 성능이 정확히 같다는 증명은 아니다.
 
 그러므로 이 장이 마련하는 것은 견줄 **대상**이고, 3장과 4장이 마련하는 것은 비교하는 **법**이다. 둘 다 있어야 "뉴럴 네트워크가 낫다"는 말에 뜻이 생긴다.

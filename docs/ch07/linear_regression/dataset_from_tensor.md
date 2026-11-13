@@ -6,23 +6,23 @@
 
 ```python
 """
-nn.Linear으로 하는 선형 회귀 — 텐서에서 만든 데이터셋
+nn.Linear로 하는 선형 회귀 — 텐서에서 만든 데이터셋
 ========================================================
 
-nn.Linear, F.mse_loss, optim.SGD, DataLoader, 기기 다루기,
-state_dict 저장와 불러오기를 쓰는 PyTorch다운 선형 회귀.
+nn.Linear, F.mse_loss, optim.SGD, DataLoader, 장치 처리,
+state_dict 저장과 불러오기를 쓰는 PyTorch 관용 방식의 선형 회귀.
 
-이것이 뒤의 모든 장으로 이어지는 표준 패턴다.
+이것이 뒤의 모든 장으로 이어지는 표준 패턴이다.
 
 Demonstrates:
-- nn.Module 아래 클래스
-- TensorDataset / DataLoader 흐름
-- 기기를 가리지 않는 학습(CPU / GPU)
+- nn.Module 하위 클래스
+- TensorDataset / DataLoader 파이프라인
+- 장치 독립적 학습(CPU / GPU)
 - optimizer.zero_grad() → loss.backward() → optimizer.step()
 - 추론을 위한 model.eval() + torch.no_grad()
-- 모델을 남기기 위한 torch.save / torch.load
+- 모델을 저장하기 위한 torch.save / torch.load
 
-지은이: 깊은 학습 바탕 학습 차례
+지은이: 딥러닝 기초 과정
 """
 
 import argparse
@@ -208,7 +208,7 @@ Saved: dataset_from_tensor.png
 
 학습 루프는 표준 패턴을 따른다. DataLoader의 배치를 순회하며 예측과 로스를 계산하고, `optimizer.zero_grad()`, `loss.backward()`, `optimizer.step()`을 차례로 호출한다. 에포크 평균을 올바르게 가중하기 위해 로스는 `loss.item() * len(y_batch)`로 배치에 걸쳐 누적한다. 마지막 배치의 표본 수가 배치 크기보다 적을 수 있으므로 이런 가중 평균이 중요하다.
 
-모델 평가에는 `@torch.no_grad()` 데코레이터(`with torch.no_grad():` 블록과 같다)를 써서 경사 추적을 꺼 추론 중 메모리와 계산을 아낀다. $R^2$ 점수는 잔차제곱합과 총제곱합으로부터 직접 계산한다. 평가 후에는 모델 웨이트를 참된 데이터 생성 파라메터와 비교하여 경사 하강법이 그것을 되찾았는지 확인한다. 마지막으로 `state_dict`와 함께 쓰는 `torch.save`와 `torch.load`가 표준 직렬화 방식을 보여준다.
+모델 평가에는 `@torch.no_grad()` 데코레이터(`with torch.no_grad():` 블록과 같다)를 써서 그래디언트 추적을 꺼 추론 중 메모리와 계산을 아낀다. $R^2$ 점수는 잔차제곱합과 총제곱합으로부터 직접 계산한다. 평가 후에는 모델 웨이트를 참된 데이터 생성 파라메터와 비교하여 경사 하강법이 그것을 복원했는지 확인한다. 마지막으로 `state_dict`와 함께 쓰는 `torch.save`와 `torch.load`가 표준 직렬화 방식을 보여준다.
 
 ## 연습문제
 
@@ -220,7 +220,7 @@ Saved: dataset_from_tensor.png
 </div>
 
 ??? success "풀이"
-    출력 1개인 크기 $B$ 배치에서는 합 경사가 평균 경사의 $B$배이므로, 모멘텀·감쇠 없는 SGD에서는 러닝레이트를 $B$로 나누면 같은 이동을 얻는다. 마지막 배치 크기가 다르면 그에 맞춰야 한다. 출력이 여러 개면 전체 원소 수가 분모이며 Adam 등에서도 같은 단순 대응이 항상 성립하는 것은 아니다. 보고용 로스의 집계 방식도 바꿔야 한다.
+    출력 1개인 크기 $B$ 배치에서는 합 그래디언트가 평균 그래디언트의 $B$배이므로, 모멘텀·감쇠 없는 SGD에서는 러닝레이트를 $B$로 나누면 같은 이동을 얻는다. 마지막 배치 크기가 다르면 그에 맞춰야 한다. 출력이 여러 개면 전체 원소 수가 분모이며 Adam 등에서도 같은 단순 대응이 항상 성립하는 것은 아니다. 보고용 로스의 집계 방식도 바꿔야 한다.
 
 ---
 

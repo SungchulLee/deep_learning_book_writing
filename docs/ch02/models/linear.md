@@ -1,6 +1,6 @@
 # 선형 모델
 
-선형 모델은 지도 학습의 기초이자 뉴럴 네트워크의 기본 구성 요소이다. 완전 연결 레이어는 입력의 선형 변환을 수행하며, 여러 레이어 사이에 비선형 엑티베이션 함수를 넣어 표현력을 높이므로, 선형 회귀와 로지스틱 회귀를 이해하는 것은 딥러닝을 이해하기 위한 선결 조건이다.
+선형 모델은 지도 학습의 기초이자 뉴럴 네트워크의 기본 구성 요소이다. 완전 연결 레이어는 입력의 선형 변환을 수행하며, 여러 레이어 사이에 비선형 활성화 함수를 넣어 표현력을 높이므로, 선형 회귀와 로지스틱 회귀를 이해하는 것은 딥러닝을 이해하기 위한 선결 조건이다.
 
 ---
 
@@ -22,7 +22,7 @@ $$
 
 **그림으로 보는 AI 1.** 이 식을 두고 수학사에서 가장 유명한 다툼이 있었다
 
-이 식을 처음 인쇄물로 내놓은 사람은 아드리앵마리 르장드르(Adrien-Marie Legendre)다. 1805년 책이고, 제목이 《혜성의 궤도를 정하는 새로운 방법》이다. **통계 책이 아니라 천문 책이다.** 최소제곱은 자료를 설명하려고 만든 것이 아니라 관측이 어긋나는 가운데 혜성이 어디로 갈지를 정하려고 만든 것이었다.
+이 식을 처음 인쇄물로 내놓은 사람은 아드리앵마리 르장드르(Adrien-Marie Legendre)다. 1805년 책이고, 제목이 《혜성의 궤도를 정하는 새로운 방법》이다. **통계 책이 아니라 천문 책이다.** 최소제곱은 데이터를 설명하려고 만든 것이 아니라 관측이 어긋나는 가운데 혜성이 어디로 갈지를 정하려고 만든 것이었다.
 
 네 해 뒤 카를 프리드리히 가우스(Carl Friedrich Gauss)가 《천체 운행론》을 내면서 르장드르의 글을 언급하고는, **자기는 1795년부터 이 방법을 써 왔다**고 적었다. 출판된 증거는 없었다. 르장드르는 1809년 5월 31일 편지에서 우선권은 출판으로 정해진다고 맞섰고, 1820년에는 1805년 책의 보유편에 가우스의 주장을 공개적으로 반박하는 글을 붙였다.
 
@@ -30,7 +30,7 @@ $$
 
 그 가정이 실제로 무엇을 사 주는지 재 보면 이렇다.
 
-![두 판으로 나뉜 상자그림. 왼쪽은 오차가 정확히 정규분포일 때로, 최소제곱의 기울기 오차 중앙값이 0.0513이고 최소절대편차가 0.0653이라 최소제곱이 62퍼센트의 경우에 이긴다. 오른쪽은 점의 5퍼센트가 이상치일 때로, 최소제곱의 중앙값이 0.2361로 크게 뛰고 상자도 넓어지는 반면 최소절대편차는 0.0684로 거의 그대로이며 최소제곱이 이기는 경우가 15퍼센트로 떨어진다.](figures/ls_assumption.svg)
+![두 칸으로 나뉜 상자그림. 왼쪽은 오차가 정확히 정규분포일 때로, 최소제곱의 기울기 오차 중앙값이 0.0513이고 최소절대편차가 0.0653이라 최소제곱이 62퍼센트의 경우에 이긴다. 오른쪽은 점의 5퍼센트가 이상치일 때로, 최소제곱의 중앙값이 0.2361로 크게 뛰고 상자도 넓어지는 반면 최소절대편차는 0.0684로 거의 그대로이며 최소제곱이 이기는 경우가 15퍼센트로 떨어진다.](figures/ls_assumption.svg)
 
 기울기가 2.0인 줄을 알고 있는 문제에서, 오차가 정말 정규분포이면 최소제곱이 최소절대편차보다 낫다(0.0513 대 0.0653). **그런데 점 예순 개 가운데 세 개만 이상치로 바꾸면 최소제곱의 오차가 0.2361로 네 배 넘게 뛴다.** 같은 조건에서 최소절대편차는 0.0684로 거의 움직이지 않는다. 이기던 비율도 62%에서 15%로 뒤집힌다.
 
@@ -78,12 +78,12 @@ import numpy as np
 
 # ── 1. 참 모델을 정해 두고 그 모델에서 데이터를 만든다 ────────────────
 # 참값을 알고 있어야 두 방법이 얼마나 잘 복원하는지 견줄 수 있다.
-np.random.seed(42)          # 씨앗을 고정해 실행할 때마다 같은 결과가 나오게 한다
-n, d = 200, 5               # 표본 200개, 특성 5개
+np.random.seed(42)          # 시드를 고정해 실행할 때마다 같은 결과가 나오게 한다
+n, d = 200, 5               # 표본 200개, 피처 5개
 
 X_np = np.random.randn(n, d)                    # 설계 행렬: 표준정규에서 뽑는다
 true_w = np.array([3.0, -1.5, 0.0, 0.0, 2.0])   # 참 계수. 3번째와 4번째는 0이므로
-                                                # 그 두 특성은 y와 아무 관계가 없다
+                                                # 그 두 피처는 y와 아무 관계가 없다
 y_np = X_np @ true_w + 0.5 * np.random.randn(n) # y = Xw + 잡음(표준편차 0.5)
 
 # ── 2. 방법 A: 정규방정식으로 한 번에 푼다 ──────────────────────────
@@ -137,12 +137,12 @@ Final MSE loss:   0.2655
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2$의 경사를 0으로 두어 정규방정식 $\hat{\boldsymbol{\beta}} = (\mathbf{X}^\top \mathbf{X})^{-1}\mathbf{X}^\top \mathbf{y}$을 유도하라.
+MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2$의 그래디언트를 0으로 두어 정규방정식 $\hat{\boldsymbol{\beta}} = (\mathbf{X}^\top \mathbf{X})^{-1}\mathbf{X}^\top \mathbf{y}$을 유도하라.
 
 </div>
 
 ??? success "풀이"
-    전개하면 $\ell = (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})^\top(\mathbf{y} - \mathbf{X}\boldsymbol{\beta}) = \mathbf{y}^\top\mathbf{y} - 2\boldsymbol{\beta}^\top\mathbf{X}^\top\mathbf{y} + \boldsymbol{\beta}^\top\mathbf{X}^\top\mathbf{X}\boldsymbol{\beta}$이다. 경사를 구하면 $\nabla_{\boldsymbol{\beta}}\ell = -2\mathbf{X}^\top\mathbf{y} + 2\mathbf{X}^\top\mathbf{X}\boldsymbol{\beta}$이다. 0으로 두면 $\mathbf{X}^\top\mathbf{X}\boldsymbol{\beta} = \mathbf{X}^\top\mathbf{y}$이다. $\mathbf{X}^\top\mathbf{X}$가 가역이면 $\hat{\boldsymbol{\beta}} = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$이다. $\square$
+    전개하면 $\ell = (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})^\top(\mathbf{y} - \mathbf{X}\boldsymbol{\beta}) = \mathbf{y}^\top\mathbf{y} - 2\boldsymbol{\beta}^\top\mathbf{X}^\top\mathbf{y} + \boldsymbol{\beta}^\top\mathbf{X}^\top\mathbf{X}\boldsymbol{\beta}$이다. 그래디언트를 구하면 $\nabla_{\boldsymbol{\beta}}\ell = -2\mathbf{X}^\top\mathbf{y} + 2\mathbf{X}^\top\mathbf{X}\boldsymbol{\beta}$이다. 0으로 두면 $\mathbf{X}^\top\mathbf{X}\boldsymbol{\beta} = \mathbf{X}^\top\mathbf{y}$이다. $\mathbf{X}^\top\mathbf{X}$가 가역이면 $\hat{\boldsymbol{\beta}} = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$이다. $\square$
 
 ---
 
@@ -161,12 +161,12 @@ MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-선형 회귀에서 L2 정칙화가 SGD의 `weight_decay`와 동등함을 보여라. 구체적으로 감쇠 계수 $\lambda$인 웨이트 감쇠의 경사 갱신이 $\alpha = \lambda$인 L2 정칙화 로스의 경사와 일치함을 보여라.
+선형 회귀에서 L2 정칙화가 SGD의 `weight_decay`와 동등함을 보여라. 구체적으로 감쇠 계수 $\lambda$인 웨이트 감쇠의 갱신이 $\alpha = \lambda$인 L2 정칙화 로스의 그래디언트로 한 갱신과 일치함을 보여라.
 
 </div>
 
 ??? success "풀이"
-    L2 정칙화 로스는 $\ell_{\text{reg}} = \ell(\boldsymbol{\beta}) + \frac{\alpha}{2}\|\boldsymbol{\beta}\|^2$이다. 그 경사는 $\nabla \ell_{\text{reg}} = \nabla \ell + \alpha \boldsymbol{\beta}$이다. SGD 갱신은 $\boldsymbol{\beta} \leftarrow \boldsymbol{\beta} - \eta(\nabla \ell + \alpha \boldsymbol{\beta}) = (1 - \eta\alpha)\boldsymbol{\beta} - \eta \nabla \ell$이다. 계수 $\lambda$인 웨이트 감쇠는 $\boldsymbol{\beta} \leftarrow (1 - \eta\lambda)\boldsymbol{\beta} - \eta \nabla \ell$을 준다. $\alpha = \lambda$일 때 둘은 동일하다. 참고: 이 동등성은 SGD에서는 정확히 성립하지만 Adam에서는 그렇지 않다. Adam에서는 분리된 웨이트 감쇠(AdamW)가 L2 정칙화와 다르다. $\square$
+    L2 정칙화 로스는 $\ell_{\text{reg}} = \ell(\boldsymbol{\beta}) + \frac{\alpha}{2}\|\boldsymbol{\beta}\|^2$이다. 그 그래디언트는 $\nabla \ell_{\text{reg}} = \nabla \ell + \alpha \boldsymbol{\beta}$이다. SGD 갱신은 $\boldsymbol{\beta} \leftarrow \boldsymbol{\beta} - \eta(\nabla \ell + \alpha \boldsymbol{\beta}) = (1 - \eta\alpha)\boldsymbol{\beta} - \eta \nabla \ell$이다. 계수 $\lambda$인 웨이트 감쇠는 $\boldsymbol{\beta} \leftarrow (1 - \eta\lambda)\boldsymbol{\beta} - \eta \nabla \ell$을 준다. $\alpha = \lambda$일 때 둘은 동일하다. 참고: 이 동등성은 SGD에서는 정확히 성립하지만 Adam에서는 그렇지 않다. Adam에서는 분리된 웨이트 감쇠(AdamW)가 L2 정칙화와 다르다. $\square$
 
 ---
 
@@ -190,17 +190,17 @@ MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 </div>
 
 ??? success "풀이"
-    단일 레이어: 웨이트 $784 \times 10 = 7{,}840$개, 바이어스 $10$개. 총 $7{,}850$개. 2레이어: 첫 레이어 $784 \times 128 + 128 = 100{,}480$개, 둘째 레이어 $128 \times 10 + 10 = 1{,}290$개. 총 $101{,}770$개. 2레이어 뉴럴 네트워크는 파라메터가 $\approx 13\times$ 많지만 (레이어 사이에 ReLU를 두면) 비선형 결정 경계를 학습할 수 있는 반면, 단일 레이어는 선형 경계로 제한된다. 대부분의 실제 문제에서는 이 추가 용량이 파라메터 비용을 치를 만한 밸류가 있다.
+    단일 레이어: 웨이트 $784 \times 10 = 7{,}840$개, 바이어스 $10$개. 총 $7{,}850$개. 2레이어: 첫 레이어 $784 \times 128 + 128 = 100{,}480$개, 둘째 레이어 $128 \times 10 + 10 = 1{,}290$개. 총 $101{,}770$개. 2레이어 뉴럴 네트워크는 파라메터가 $\approx 13\times$ 많지만 (레이어 사이에 ReLU를 두면) 비선형 결정 경계를 학습할 수 있는 반면, 단일 레이어는 선형 경계로 제한된다. 대부분의 실제 문제에서는 이 추가 용량이 파라메터 비용을 치를 만한 가치가 있다.
 
 ## 정리하며
 
 **다룬 것** — 선형 모델과 정칙화
 
-선형 모델은 출력을 입력의 선형 결합으로 예측한다. 최소제곱해는 정규방정식으로 **한 번에** 구할 수 있으며, 해석적 해는 추정의 원리를 이해하는 데 유용하다. 실제 계산에서는 역행렬을 직접 구하기보다 수치적으로 안정적인 선형대수 알고리즘을 사용한다. 뒤에 나오는 거의 모든 모델은 경사 하강법으로 더듬어 가야 한다.
+선형 모델은 출력을 입력의 선형 결합으로 예측한다. 최소제곱해는 정규방정식으로 **한 번에** 구할 수 있으며, 해석적 해는 추정의 원리를 이해하는 데 유용하다. 실제 계산에서는 역행렬을 직접 구하기보다 수치적으로 안정적인 선형대수 알고리즘을 사용한다. 뒤에 나오는 거의 모든 모델은 닫힌 형태 해가 없어 경사 하강법으로 반복해서 풀어야 한다.
 
 그런데도 이 절이 같은 문제를 경사 하강법으로 한 번 더 푸는 까닭이 있다. **그 절차가 뉴럴 네트워크로 그대로 이어지기 때문**이다. 순전파로 예측하고, 로스를 재고, 역전파로 그래디언트를 구하고, 한 스텝 옮긴다. 모델만 바꾸면 이 뼈대는 그대로다.
 
-정칙화는 큰 웨이트에 패널티를 걸어 과적합을 막는다. L2(릿지)는 계수를 0 쪽으로 줄이되 0으로 만들지 않고, L1(라쏘)은 일부를 정확히 0으로 만들어 피처를 고른다. **L2 패널티와 SGD의 `weight_decay`는 계수 정의를 맞추면 같은 갱신을 준다**이며(연습문제 3), 다만 Adam에서는 그 동등성이 깨져 AdamW가 따로 있다.
+정칙화는 큰 웨이트에 패널티를 걸어 과적합을 막는다. L2(릿지)는 계수를 0 쪽으로 줄이되 0으로 만들지 않고, L1(라쏘)은 일부를 정확히 0으로 만들어 피처를 고른다. **L2 패널티와 SGD의 `weight_decay`는 계수 정의를 맞추면 같은 갱신을 준다**(연습문제 3). 다만 Adam에서는 그 동등성이 깨져 AdamW가 따로 있다.
 
 `nn.Linear` 레이어 하나가 곧 이 모델이다. [3장](../../ch03/index.md)의 스텝2가 이것을 MNIST에 걸어 92%를 얻고, 나머지 두 스텝이 그 위에 비선형성과 이웃 관계를 얹는다.
 

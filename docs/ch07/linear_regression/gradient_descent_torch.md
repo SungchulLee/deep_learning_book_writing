@@ -1,6 +1,6 @@
 # PyTorch로 만드는 경사 하강법
 
-이 스크립트는 `nn.Module`도 autograd도 쓰지 않고 PyTorch 텐서로 경사를 직접 계산하며 미니배치 경사 하강법을 구현한다. 경사 공식 $g = \frac{2}{B} X^T(X w + b - y)$을 텐서 연산으로 곧바로 계산하고 배치에는 `TensorDataset` / `DataLoader`를 씀으로써, 순수 NumPy와 완전한 PyTorch 추상화 사이의 정확한 중간 지점을 보여준다.
+이 스크립트는 `nn.Module`도 autograd도 쓰지 않고 PyTorch 텐서로 그래디언트를 직접 계산하며 미니배치 경사 하강법을 구현한다. 그래디언트 공식 $g = \frac{2}{B} X^T(X w + b - y)$을 텐서 연산으로 곧바로 계산하고 배치에는 `TensorDataset` / `DataLoader`를 씀으로써, 순수 NumPy와 완전한 PyTorch 추상화 사이의 정확한 중간 지점을 보여준다.
 
 ## 1. 코드
 
@@ -9,16 +9,16 @@
 선형 회귀를 위한 경사 하강법 — PyTorch(손수)
 ==========================================================
 
-PyTorch 텐서와 DataLoader으로 직접 그래디언트를 계산한다.
-nn.Module도 autograd도 쓰지 않고 텐서 셈만 쓴다.
+PyTorch 텐서와 DataLoader로 직접 그래디언트를 계산한다.
+nn.Module도 autograd도 쓰지 않고 텐서 연산만 쓴다.
 
 Demonstrates:
-- 배치 만들기를 위한 TensorDataset / DataLoader
+- 배치 구성을 위한 TensorDataset / DataLoader
 - 직접 계산하는 그래디언트: g = (2/B) X^T (Xw + b - y)
-- 제자리에서 파라메터 고치기
-- 모여드는 모습 좇기
+- 제자리 파라메터 갱신
+- 수렴 추적
 
-지은이: 깊은 학습 바탕 학습 차례
+지은이: 딥러닝 기초 과정
 """
 
 import argparse
@@ -79,7 +79,7 @@ for epoch in range(ARGS.epochs):
         residual = y_pred - y_batch
         loss = (residual ** 2).mean()
 
-        # 직접 계산한 경사
+        # 직접 계산한 그래디언트
         B = len(y_batch)
         grad_w = (2.0 / B) * (X_batch.T @ residual)
         grad_b = (2.0 / B) * residual.sum()
@@ -156,18 +156,18 @@ Saved: gradient_descent_torch.png
 
 ## 2. 논의
 
-직접 계산하는 경사는 NumPy 버전과 같은 벡터화된 공식을 쓰되 PyTorch 텐서 연산으로 표현한다. `grad_w = (2.0 / B) * (X_batch.T @ residual)`과 `grad_b = (2.0 / B) * residual.sum()`이다. 입력과 파라미터를 같은 CUDA 장치로 옮기면 이 텐서 연산도 GPU에서 수행할 수 있다. 자료형과 계산 순서가 달라지면 NumPy 결과와 작은 수치 차이가 날 수 있다. autograd 그래프를 만들지 않으므로 파라메터 갱신 `w -= lr * grad_w`은 단순한 제자리 뺄셈이다.
+직접 계산하는 그래디언트는 NumPy 버전과 같은 벡터화된 공식을 쓰되 PyTorch 텐서 연산으로 표현한다. `grad_w = (2.0 / B) * (X_batch.T @ residual)`과 `grad_b = (2.0 / B) * residual.sum()`이다. 입력과 파라메터를 같은 CUDA 장치로 옮기면 이 텐서 연산도 GPU에서 수행할 수 있다. 자료형과 계산 순서가 달라지면 NumPy 결과와 작은 수치 차이가 날 수 있다. autograd 그래프를 만들지 않으므로 파라메터 갱신 `w -= lr * grad_w`는 단순한 제자리 뺄셈이다.
 
-`TensorDataset`과 `DataLoader`의 조합이 배치 묶기와 뒤섞기의 모든 장부 관리를 처리한다. `TensorDataset`은 피처 텐서와 목표 텐서를 감싸서 `dataset[i]`가 $i$번째 `(x, y)` 쌍을 반환하게 하고, `DataLoader`는 이들을 지정한 크기의 배치로 묶으며 `shuffle=True`인 경우 매 에포크마다 순서를 무작위로 뒤섞는다. 이 기반 구조는 경사를 직접 계산하든, autograd를 쓰든, 완전한 `nn.Module`을 쓰든 똑같다. 바뀌는 것은 안쪽 반복문의 본문뿐이다.
+`TensorDataset`과 `DataLoader`의 조합이 배치 구성과 셔플링에 따르는 부수 작업을 모두 처리한다. `TensorDataset`은 피처 텐서와 목표 텐서를 감싸서 `dataset[i]`가 $i$번째 `(x, y)` 쌍을 반환하게 하고, `DataLoader`는 이들을 지정한 크기의 배치로 묶으며 `shuffle=True`인 경우 매 에포크마다 순서를 무작위로 뒤섞는다. 이 기반 구조는 그래디언트를 직접 계산하든, autograd를 쓰든, 완전한 `nn.Module`을 쓰든 똑같다. 바뀌는 것은 안쪽 반복문의 본문뿐이다.
 
-학습된 파라메터를 참된 데이터 생성 웨이트와 비교하면 직접 계산한 경사가 옳은지 확인할 수 있다. 따로 떼어 둔 시험 데이터의 $R^2$ 점수가 추가 점검이 된다. 잡음이 없는 이 합성 데이터라면 $R^2$이 1.0에 매우 가까워야 한다. 경사가 틀렸다면 파라메터가 수렴하지 않고 $R^2$이 낮게 머무를 것이다. 이런 종류의 온전성 점검은 새로운 로스 함수에 대해 경사 계산을 직접 구현할 때 대단히 유용하다.
+학습된 파라메터를 참된 데이터 생성 웨이트와 비교하면 직접 계산한 그래디언트가 옳은지 확인할 수 있다. 따로 떼어 둔 시험 데이터의 $R^2$ 점수가 추가 점검이 된다. 이 합성 데이터는 표준편차 0.3의 잡음을 넣었으므로 $R^2$이 1.0에는 못 미치지만 높게 나와야 한다(위 출력에서는 0.847이다). 그래디언트가 틀렸다면 파라메터가 수렴하지 않고 $R^2$이 낮게 머무를 것이다. 이런 종류의 점검(sanity check)은 새로운 로스 함수에 대해 그래디언트 계산을 직접 구현할 때 대단히 유용하다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-`w`와 `b`에 `requires_grad=True`를 붙여 직접 계산하던 경사를 `loss.backward()`로 대체하라. 결과가 동일한지 확인하라.
+`w`와 `b`에 `requires_grad=True`를 붙여 직접 계산하던 그래디언트를 `loss.backward()`로 대체하라. 결과가 동일한지 확인하라.
 
 </div>
 
@@ -206,12 +206,12 @@ Saved: gradient_descent_torch.png
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 직접 경사 구현에 autograd와 같은 `.grad` 초기화가 필요한가?
+이 직접 그래디언트 구현에 autograd와 같은 `.grad` 초기화가 필요한가?
 
 </div>
 
 ??? success "풀이"
-    아니다. `grad_w`, `grad_b`를 매 반복 새 값으로 대입하므로 이전 경사가 자동 누적되지 않는다. autograd의 `.grad`는 기본적으로 누적되므로 별도 초기화가 필요하다. 초기화를 빠뜨리면 의도한 규칙이 달라지지만 경사가 항상 커지거나 반드시 발산한다고 말할 수는 없다.
+    아니다. `grad_w`, `grad_b`를 매 반복 새 값으로 대입하므로 이전 그래디언트가 자동 누적되지 않는다. autograd의 `.grad`는 기본적으로 누적되므로 별도 초기화가 필요하다. 초기화를 빠뜨리면 의도한 규칙이 달라지지만 그래디언트가 항상 커지거나 반드시 발산한다고 말할 수는 없다.
 
 ---
 
@@ -255,4 +255,4 @@ Saved: gradient_descent_torch.png
 
 ## 정리하며
 
-직접 경사는 매 반복의 지역 변수이며 autograd의 누적 `.grad`와 다르다. 장치와 자료형, 배치 크기를 맞추고 같은 파라미터에서 해석적 경사와 비교해 구현을 점검한다.
+직접 그래디언트는 매 반복의 지역 변수이며 autograd의 누적 `.grad`와 다르다. 장치와 자료형, 배치 크기를 맞추고 같은 파라메터에서 해석적 그래디언트와 비교해 구현을 점검한다.

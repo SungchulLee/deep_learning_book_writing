@@ -10,7 +10,7 @@
 
 - 베르누이 분포의 일반화로서 범주형 분포 이해하기
 - 다중 클래스 분류의 확률질량함수 유도하기
-- 원핫 부호화를 구현하고 그 수학적 성질 이해하기
+- 원핫 인코딩을 구현하고 그 수학적 성질 이해하기
 - 범주형 분포를 소프트맥스 회귀의 틀과 연결하기
 - 이 개념들을 PyTorch에서 다중 클래스 분류 과제에 적용하기
 
@@ -31,7 +31,7 @@ $$P(Y = y) = p^y (1-p)^{1-y}$$
 
 ### 여러 클래스로 일반화하기
 
-클래스가 $K$개인 다중 클래스 분류에는 **범주형 분포**(**멀티눌리** 또는 **일반화 베르누이** 분포라고도 한다)가 필요하다. $Y \in \{1, 2, \ldots, K\}$을 클래스 레이블이라 하고, $\boldsymbol{\pi} = (\pi_1, \pi_2, \ldots, \pi_K)$을 다음을 만족하는 확률 벡터라 하자.
+클래스가 $K$개인 다중 클래스 분류에는 **범주형 분포**(**멀티눌리** 또는 **일반화 베르누이** 분포라고도 한다)가 필요하다. $Y \in \{1, 2, \ldots, K\}$을 클래스 라벨이라 하고, $\boldsymbol{\pi} = (\pi_1, \pi_2, \ldots, \pi_K)$을 다음을 만족하는 확률 벡터라 하자.
 
 $$\pi_k = P(Y = k), \quad \sum_{k=1}^{K} \pi_k = 1, \quad \pi_k \geq 0$$
 
@@ -41,11 +41,11 @@ $$P(Y = k) = \pi_k$$
 
 ---
 
-## 3. 원핫 부호화: 수학적 토대
+## 3. 원핫 인코딩: 수학적 토대
 
 ### 정의와 동기
 
-**원핫 부호화**는 범주형 레이블 $y \in \{1, 2, \ldots, K\}$을, 정확히 한 원소만 1이고 나머지는 모두 0인 이진 벡터 $\mathbf{y} \in \{0, 1\}^K$으로 바꾼다.
+**원핫 인코딩**(one-hot encoding)은 범주형 라벨 $y \in \{1, 2, \ldots, K\}$을, 정확히 한 원소만 1이고 나머지는 모두 0인 이진 벡터 $\mathbf{y} \in \{0, 1\}^K$으로 바꾼다.
 
 $$\mathbf{y} = \mathbf{e}_k = (0, \ldots, 0, \underbrace{1}_{k\text{-th position}}, 0, \ldots, 0)^T$$
 
@@ -79,11 +79,11 @@ $$\mathbf{y}^T \boldsymbol{\pi} = \pi_k \quad \text{when } Y = k$$
 
 ---
 
-## 4. 원핫 부호화로 나타낸 범주형 분포
+## 4. 원핫 인코딩으로 나타낸 범주형 분포
 
 ### 간결한 PMF 표현
 
-원핫 부호화를 쓰면 범주형 PMF를 우아한 곱의 형태로 쓸 수 있다.
+원핫 인코딩을 쓰면 범주형 PMF를 우아한 곱의 형태로 쓸 수 있다.
 
 $$P(\mathbf{y} \mid \boldsymbol{\pi}) = \prod_{k=1}^{K} \pi_k^{y_k}$$
 
@@ -93,13 +93,13 @@ $$P(\mathbf{y} \mid \boldsymbol{\pi}) = \prod_{k=1}^{K} \pi_k^{y_k}$$
 
 $$P(\mathbf{y} \mid \boldsymbol{\pi}) = \pi_1^0 \cdot \pi_2^0 \cdots \pi_c^1 \cdots \pi_K^0 = \pi_c \checkmark$$
 
-### 로그우도
+### 로그가능도
 
-PMF에 로그를 취하면 다음과 같다.
+PMF를 파라메터의 함수로 읽은 것이 가능도(likelihood, 우도라고도 한다)이고, 거기에 로그를 취하면 다음과 같다.
 
 $$\log P(\mathbf{y} \mid \boldsymbol{\pi}) = \sum_{k=1}^{K} y_k \log \pi_k$$
 
-독립인 표본 $N$개로 이루어진 데이터셋 $\{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^{N}$에 대해 로그우도는 다음이 된다.
+독립인 표본 $N$개로 이루어진 데이터셋 $\{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^{N}$에 대해 로그가능도는 다음이 된다.
 
 $$\mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}^{N} \sum_{k=1}^{K} y_k^{(i)} \log \pi_k^{(i)}$$
 
@@ -117,14 +117,14 @@ $$\pi_k = P(Y = k \mid \mathbf{x}) = \frac{\exp(\mathbf{w}_k^T \mathbf{x} + b_k)
 
 이는 **로짓** $z_k = \mathbf{w}_k^T \mathbf{x} + b_k$에 적용한 **소프트맥스 함수**이다.
 
-### 왜 이런 매개화인가?
+### 왜 이런 파라메터화인가?
 
 소프트맥스 함수는 다음을 보장한다.
 
 1. **음이 아님:** 모든 $k$에 대해 $\pi_k > 0$이다 (지수함수는 언제나 양수이다)
 2. **정규화:** $\sum_{k=1}^{K} \pi_k = 1$이다 (구성상 그렇다)
 3. **단조성:** 로짓이 클수록 확률이 크다
-4. **미분 가능성:** 최적화에 쓸 매끄러운 경사를 준다
+4. **미분 가능성:** 최적화에 쓸 매끄러운 그래디언트를 준다
 
 ### 소프트맥스 회귀의 파이프라인
 
@@ -144,13 +144,13 @@ $$\mathbf{x} \;\xrightarrow{\;\mathbf{W},\, \mathbf{b}\;}\; \mathbf{z} = \mathbf
 
 ## 6. PyTorch 구현
 
-### 원핫 부호 만들기
+### 원핫 벡터 만들기
 
 ```python
 import torch
 import torch.nn.functional as F
 
-# 돌릴 때마다 수가 달라지지 않게 씨앗을 박는다.
+# 돌릴 때마다 수가 달라지지 않게 시드를 고정한다.
 torch.manual_seed(0)
 
 # 방법 1: torch.nn.functional.one_hot 사용하기
@@ -159,11 +159,11 @@ def create_one_hot(labels: torch.Tensor, num_classes: int) -> torch.Tensor:
     클래스 번호를 원핫 벡터로 바꾼다.
 
     Args:
-        labels: 클래스 번호 [0, num_classes-1]을 담은 모양 (batch_size,)인 텐서
+        labels: 클래스 번호 [0, num_classes-1]을 담은 형태 (batch_size,)인 텐서
         num_classes: 클래스의 전체 개수 K
 
     Returns:
-        모양이 (batch_size, num_classes)인 원핫 텐서
+        형태가 (batch_size, num_classes)인 원핫 텐서
     """
     return F.one_hot(labels, num_classes=num_classes).float()
 
@@ -191,9 +191,9 @@ tensor([[1., 0., 0.],
 ```python
 def one_hot_manual(labels: torch.Tensor, num_classes: int) -> torch.Tensor:
     """
-    이해를 돕고자 직접 구현한 원핫 매김.
+    이해를 돕고자 직접 구현한 원핫 인코딩.
 
-    영 텐서를 만들고 scatter_으로 알맞은 자리에 1을
+    0으로 채운 텐서를 만들고 scatter_로 알맞은 자리에 1을
     놓는다.
     """
     batch_size = labels.size(0)
@@ -201,7 +201,7 @@ def one_hot_manual(labels: torch.Tensor, num_classes: int) -> torch.Tensor:
 
     # scatter_(dim, index, src)은 src의 값을 index가 지정하는 위치에 넣는다.
     # 여기서는 labels가 주는 위치의 1번 차원을 따라
-    # 1을 흩뿌린다.
+    # 1을 써 넣는다.
     one_hot.scatter_(1, labels.unsqueeze(1), 1.0)
 
     return one_hot
@@ -229,11 +229,11 @@ def get_true_class_probs(probs: torch.Tensor, labels: torch.Tensor) -> torch.Ten
     다만 gather를 쓰면 더 효율적이다.
 
     Args:
-        probs: 모양이 (batch_size, num_classes)인 예측 확률
-        labels: 모양이 (batch_size,)인 참 클래스 번호
+        probs: 형태가 (batch_size, num_classes)인 예측 확률
+        labels: 형태가 (batch_size,)인 참 클래스 번호
 
     Returns:
-        모양이 (batch_size,)인 참 클래스의 확률
+        형태가 (batch_size,)인 참 클래스의 확률
     """
     # gather(dim, index)은 인덱스를 써서 dim을 따라 원소를 고른다
     return probs.gather(1, labels.unsqueeze(1)).squeeze(1)
@@ -280,9 +280,9 @@ labels_indices = torch.tensor([0, 1])
 loss_correct = criterion(logits, labels_indices)
 print(f"Loss with indices: {loss_correct.item():.4f}")
 
-# 틀린 방법: 표준 CrossEntropyLoss에 원-핫 부호를 쓴다
+# 주의: 실수형 원핫 벡터는 확률 목표 모드로 받아들여진다
 labels_onehot = F.one_hot(labels_indices, num_classes=3).float()
-# loss_wrong = criterion(logits, labels_onehot)  # 이러면 오류가 난다!
+# criterion(logits, labels_onehot)                 # 정수형 원핫 텐서를 그대로 넘기면 오류가 난다
 ```
 
 **출력:**
@@ -291,11 +291,11 @@ labels_onehot = F.one_hot(labels_indices, num_classes=3).float()
 Loss with indices: 0.3854
 ```
 
-### 원핫 부호화가 필요할 때
+### 원핫 인코딩이 필요할 때
 
-다음 경우에는 원핫 부호화를 명시적으로 쓴다.
+다음 경우에는 원핫 인코딩을 명시적으로 쓴다.
 
-1. **레이블 스무딩:** 딱딱한 목표 대신 부드러운 목표를 쓸 때
+1. **라벨 스무딩:** 하드 타깃 대신 소프트 타깃을 쓸 때
 2. **지식 증류:** 교사 모델의 확률 분포를 맞출 때
 3. **사용자 정의 로스 함수:** 명시적인 확률 목표가 필요할 때
 4. **시각화:** 모델의 예측을 살펴볼 때
@@ -303,8 +303,8 @@ Loss with indices: 0.3854
 ```python
 class LabelSmoothingLoss(nn.Module):
     """
-    레이블 스무딩을 곁들인 교차 엔트로피 로스.
-    속으로는 원핫으로 매긴 타깃이 있어야 한다.
+    라벨 스무딩을 적용한 교차 엔트로피 로스.
+    내부적으로 원핫으로 인코딩한 타깃이 필요하다.
     """
     def __init__(self, num_classes: int, smoothing: float = 0.1):
         super().__init__()
@@ -313,13 +313,13 @@ class LabelSmoothingLoss(nn.Module):
         self.confidence = 1.0 - smoothing
 
     def forward(self, logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
-        # 평활화된 원-핫 목표를 만든다
+        # 스무딩한 원핫 목표를 만든다
         with torch.no_grad():
             smooth_targets = torch.zeros_like(logits)
             smooth_targets.fill_(self.smoothing / (self.num_classes - 1))
             smooth_targets.scatter_(1, labels.unsqueeze(1), self.confidence)
 
-        # 부드러운 목표로 교차 엔트로피를 계산한다
+        # 소프트 타깃으로 교차 엔트로피를 계산한다
         log_probs = F.log_softmax(logits, dim=1)
         loss = -(smooth_targets * log_probs).sum(dim=1).mean()
 
@@ -335,10 +335,10 @@ import torch
 
 def sample_categorical(probs: torch.Tensor, num_samples: int = 1000) -> torch.Tensor:
     """
-    범주 분포에서 표본을 뽑는다.
+    범주형 분포에서 표본을 뽑는다.
 
     Args:
-        probs: 모양이 (num_classes,)인 확률 벡터
+        probs: 형태가 (num_classes,)인 확률 벡터
         num_samples: 뽑을 표본의 수
 
     Returns:
@@ -363,9 +363,13 @@ print("Empirical probabilities:", empirical_probs.numpy())
 print("Class counts:", counts.numpy().astype(int))
 ```
 
+**출력:**
+
+```
 True probabilities: [0.5 0.3 0.2]
 Empirical probabilities: [0.4954 0.3032 0.2014]
 Class counts: [4954 3032 2014]
+```
 
 ---
 
@@ -420,7 +424,7 @@ Class counts: [4954 3032 2014]
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-온도로 배율을 조절한 소프트맥스 $\text{softmax}(\mathbf{z}/T)$을 구현하고, $T \in \{0.1, 1.0, 5.0\}$에 대해 출력 분포에 미치는 효과를 보여라.
+온도 스케일링(temperature scaling)을 적용한 소프트맥스 $\text{softmax}(\mathbf{z}/T)$을 구현하고, $T \in \{0.1, 1.0, 5.0\}$에 대해 출력 분포에 미치는 효과를 보여라.
 
 </div>
 
@@ -431,7 +435,7 @@ Class counts: [4954 3032 2014]
     for T in [0.1, 1.0, 5.0]:
         p = torch.softmax(z / T, dim=0)
         print(f"T={T}: {p}")
-    # T=0.1: 거의 원-핫 [1.0, 0.0, 0.0]
+    # T=0.1: 거의 원핫 [1.0, 0.0, 0.0]
     # T=1.0: 표준 소프트맥스 [0.66, 0.24, 0.10]
     # T=5.0: 거의 균등 [0.38, 0.34, 0.28]
     ```
@@ -444,9 +448,9 @@ Class counts: [4954 3032 2014]
 | 개념 | 공식 / 설명 |
 |---------|----------------------|
 | 범주형 PMF | $P(Y=k) = \pi_k$ |
-| 원핫 부호화 | $y_k = \mathbb{1}[Y=k]$ |
+| 원핫 인코딩 | $y_k = \mathbb{1}[Y=k]$ |
 | 곱 형태의 PMF | $P(\mathbf{y}\mid\boldsymbol{\pi}) = \prod_k \pi_k^{y_k}$ |
-| 로그우도 | $\log P(\mathbf{y}\mid\boldsymbol{\pi}) = \sum_k y_k \log \pi_k$ |
+| 로그가능도 | $\log P(\mathbf{y}\mid\boldsymbol{\pi}) = \sum_k y_k \log \pi_k$ |
 | 확률 꺼내기 | $\mathbf{y}^T \boldsymbol{\pi} = \pi_{\text{true class}}$ |
 
 ### PyTorch 함수
@@ -462,7 +466,7 @@ Class counts: [4954 3032 2014]
 
 !!! warning "반드시 피해야 할 실수"
 
-    1. **목표 모드를 맞춘다** — 인덱스는 long 텐서, 확률·원핫 목표는 로짓과 같은 모양의 실수 텐서를 사용한다
+    1. **목표 모드를 맞춘다** — 인덱스는 long 텐서, 확률·원핫 목표는 로짓과 같은 형태의 실수 텐서를 사용한다
     2. **`nn.CrossEntropyLoss` 앞에서 소프트맥스를 적용하지 마라** — 내부에서 적용된다
     3. **차원의 순서에 유의하라** — PyTorch는 `(classes, batch)`가 아니라 `(batch, classes)`를 쓴다
 
