@@ -2953,7 +2953,7 @@ def fig_lead_same_trick():
     fig, ax = plt.subplots(figsize=(8.4, 4.0))
     sets = ["MNIST\n(handwritten digits)", "CIFAR-10\n(colour photographs)"]
     straight = [0.0953, 0.1337]
-    curved = [0.0546, 0.1341]
+    curved = [0.0546, 0.1343]
     x = np.arange(2)
     ax.bar(x - 0.19, straight, 0.37, color="0.72", label="straight path")
     ax.bar(x + 0.19, curved, 0.37, color="tab:green", label="curved path")
