@@ -143,7 +143,7 @@ print(f"Trainable parameters: {n_params:,}")   # 7,850
 # CrossEntropyLoss가 곧 로스 -l이다. 안에서 log_softmax와 NLLLoss를
 # 합쳐 계산하므로, 소프트맥스를 따로 적용하는 것보다 수치적으로 안정하다.
 # 로짓 (B, 10)과 정수 라벨 (B,)을 받아 스칼라 하나를 돌려준다.
-# 라벨이 원-핫 (B, 10)이 아니라 정수 (B,)라는 점을 눈여겨볼 것
+# 라벨이 원핫 (B, 10)이 아니라 정수 (B,)라는 점을 눈여겨볼 것
 criterion = nn.CrossEntropyLoss()
 # Adam이 theta <- theta - lambda * g 갱신을 파라메터마다 조절해 수행한다
 optimizer = optim.Adam(model.parameters(), lr=1e-3)

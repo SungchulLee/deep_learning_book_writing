@@ -138,7 +138,7 @@ class LabelSmoothingCrossEntropy(nn.Module):
         log_probs = torch.log_softmax(logits, dim=-1)
         
         # 딱딱한 목표 성분: -log p_k
-        # 원-핫 벡터를 만들어 곱하는 대신 gather로 정답 자리 하나만
+        # 원핫 벡터를 만들어 곱하는 대신 gather로 정답 자리 하나만
         # 뽑아 온다. 결과는 같으면서 (배치, 클래스) 크기의 임시 텐서를
         # 만들지 않는다. unsqueeze와 squeeze는 gather가 요구하는
         # 차원을 맞추었다가 되돌리는 손질이다
@@ -173,7 +173,7 @@ class SoftTargetCrossEntropy(nn.Module):
     """
     부드러운 목표 분포를 받는 교차 엔트로피 로스.
     
-    원-핫 목표와 부드러운 목표를 모두 지원한다. 필요하면 부드러운 목표 위에
+    원핫 목표와 부드러운 목표를 모두 지원한다. 필요하면 부드러운 목표 위에
     레이블 평활화를 더 얹을 수도 있다.
     """
     
@@ -197,7 +197,7 @@ class SoftTargetCrossEntropy(nn.Module):
         
         log_probs = torch.log_softmax(logits, dim=-1)
         # 앞 클래스와 달리 목표가 이미 분포로 주어지므로 교차 엔트로피의
-        # 정의를 그대로 쓴다. targets에 원-핫을 넣으면 앞 클래스와 같은
+        # 정의를 그대로 쓴다. targets에 원핫을 넣으면 앞 클래스와 같은
         # 값이 나온다. 이 형태라야 지식 증류나 믹스업처럼 목표가 애초에
         # 부드러운 경우까지 함께 다룰 수 있다
         loss = -(targets * log_probs).sum(dim=-1)
@@ -490,7 +490,7 @@ def combined_augmentation_training_step(
         
         # 믹스업으로 부드러운 목표 만들기
         # 여기서는 앞의 gather와 반대로, 0으로 채운 뒤 정답 자리에만
-        # 1을 꽂아 원-핫을 짓는다. 목표를 섞으려면 분포 전체가
+        # 1을 꽂아 원핫을 짓는다. 목표를 섞으려면 분포 전체가
         # 있어야 하므로 인덱스만으로는 안 되기 때문이다
         targets_a = torch.zeros(images.size(0), num_classes, device=images.device)
         targets_a.scatter_(1, labels.unsqueeze(1), 1.0)

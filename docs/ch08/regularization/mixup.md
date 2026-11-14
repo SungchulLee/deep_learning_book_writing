@@ -159,7 +159,7 @@ def mixup_criterion(criterion: nn.Module, pred: torch.Tensor,
     # 로스를 섞는 것이 레이블을 섞는 것과 같아지는 까닭.
     # 교차 엔트로피는 레이블에 대해 선형이므로
     #   CE(pred, lam*y_a + (1-lam)*y_b) = lam*CE(pred, y_a) + (1-lam)*CE(pred, y_b)
-    # 가 성립한다. 그래서 원-핫을 만들어 섞지 않고도 같은 결과를 얻는다.
+    # 가 성립한다. 그래서 원핫을 만들어 섞지 않고도 같은 결과를 얻는다.
     #
     # 주의: 이 등식은 교차 엔트로피처럼 레이블에 선형인 로스에서만
     # 성립한다. 초점 로스나 다른 비선형 로스에는 그대로 쓸 수 없다
@@ -448,7 +448,7 @@ def mixup_regression(x, y, alpha=0.2):
     mixed_x = lam * x + (1 - lam) * x[index]
     mixed_y = lam * y + (1 - lam) * y[index]
 
-    # 분류에서는 레이블이 원-핫이라 로스 쪽에서 lam으로 나누어 셈해야 하지만,
+    # 분류에서는 레이블이 원핫이라 로스 쪽에서 lam으로 나누어 셈해야 하지만,
     # 회귀는 목푯값이 이미 연속이므로 이렇게 곧바로 섞으면 끝난다
     return mixed_x, mixed_y
 ```

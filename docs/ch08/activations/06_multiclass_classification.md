@@ -44,7 +44,7 @@ def generate_multiclass_data(n_samples=600, n_classes=3):
         X, y, test_size=0.2, random_state=42
     )
     # 입력은 실수라 FloatTensor, 이름표는 클래스 번호라 LongTensor다.
-    # CrossEntropyLoss는 원-핫 벡터가 아니라 0, 1, 2 같은 정수 인덱스를
+    # CrossEntropyLoss는 원핫 벡터가 아니라 0, 1, 2 같은 정수 인덱스를
     # 요구하며, 이름표를 FloatTensor로 넘기면 형 오류가 난다
     X_train = torch.FloatTensor(X_train)
     y_train = torch.LongTensor(y_train)

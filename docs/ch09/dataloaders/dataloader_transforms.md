@@ -8,7 +8,7 @@
 """
 변환을 쓰는 DataLoader — FashionMNIST
 ==========================================
-``Lambda``를 쓰는 ``target_transform``으로 정수 레이블을 원-핫 텐서로 바꾸고,
+``Lambda``를 쓰는 ``target_transform``으로 정수 레이블을 원핫 텐서로 바꾸고,
 이미지에는 ``ToTensor``를 함께 쓰는 법을 보인다.
 
 사용법
@@ -70,7 +70,7 @@ def draw_batch(dataloader):
     fig, axes = plt.subplots(2, 10, figsize=(12, 3))
     for ax, img, label in zip(axes.reshape(-1), images, labels):
         ax.imshow(img.squeeze(), cmap="binary")
-        # 원-핫 벡터에서 클래스 인덱스 찾기
+        # 원핫 벡터에서 클래스 인덱스 찾기
         class_idx = label.argmax().item()
         ax.set_title(LABELS_MAP[class_idx])
         ax.axis("off")
@@ -81,7 +81,7 @@ def main():
     train_loader, _ = load_dataloader()
     draw_batch(train_loader)
 
-    # 첫 표본의 원-핫 레이블 보이기
+    # 첫 표본의 원핫 레이블 보이기
     images, labels = next(iter(train_loader))
     print(f"Image shape:  {images[0].shape}")
     print(f"Label (one-hot): {labels[0]}")

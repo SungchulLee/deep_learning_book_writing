@@ -663,7 +663,7 @@ class ResidualBlock(nn.Module):
         """
         인수:
             x: 들임 텐서, 형태 (batch, in_channels, height, width)
-            time_emb: 시간 임베딩, 형태 (batch, time_emb_dim)
+            time_emb: 타임스텝 임베딩, 형태 (batch, time_emb_dim)
         
         반환값:
             내놓음 텐서, 형태 (batch, out_channels, height, width)

@@ -167,7 +167,7 @@ loss = nn.CrossEntropyLoss()(logits, targets)
 ### 실수 2: 레이블의 형식이 틀림
 
 ```python
-# 틀림: CrossEntropyLoss에 원-핫 레이블
+# 틀림: CrossEntropyLoss에 원핫 레이블
 one_hot = F.one_hot(targets, num_classes=10).float()
 loss = nn.CrossEntropyLoss()(logits, one_hot)  # 정수 인덱스를 받는다!
 

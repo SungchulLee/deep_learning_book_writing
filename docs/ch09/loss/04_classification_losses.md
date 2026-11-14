@@ -15,7 +15,7 @@
 - 이진 분류를 위한 이진 교차 엔트로피 (BCE)
 - 다중 클래스 분류를 위한 교차 엔트로피 로스
 - 로짓과 확률 이해하기
-- 원-핫 부호화와 클래스 레이블
+- 원핫 부호화와 클래스 레이블
 
 선수 지식:
 - 앞선 입문 튜토리얼을 마친다
@@ -260,7 +260,7 @@ for i in range(len(true_classes)):
 print("\n→ Lower probability for true class = Higher loss")
 
 # ============================================================================
-# 8절: 원-핫 부호화와 클래스 인덱스
+# 8절: 원핫 부호화와 클래스 인덱스
 # ============================================================================
 print("\n" + "-" * 80)
 print("ONE-HOT ENCODING VS CLASS INDICES")
@@ -275,7 +275,7 @@ print("One-hot encoded:")
 print(one_hot)
 print("\nEach row has a 1 in the position of the true class, 0s elsewhere")
 
-# 원-핫 부호화된 레이블이 있다면 바꾼다:
+# 원핫 부호화된 레이블이 있다면 바꾼다:
 classes_from_one_hot = torch.argmax(one_hot, dim=1)
 print(f"\nConverting back: {classes_from_one_hot}")
 print(f"Same as original: {torch.equal(classes_from_one_hot, true_classes)}")
@@ -319,7 +319,7 @@ print("""
   • BCEWithLogitsLoss 앞에 시그모이드를 걸기(안에서 이미 한다!)
   • CrossEntropyLoss 앞에 소프트맥스를 걸기(안에서 이미 한다!)
   • 원본 로짓에 BCELoss 쓰기(대신 BCEWithLogitsLoss를 쓰라)
-  • CrossEntropyLoss에 원-핫 레이블 쓰기(클래스 인덱스를 쓰라)
+  • CrossEntropyLoss에 원핫 레이블 쓰기(클래스 인덱스를 쓰라)
 
 흔한 모델 구조:
   이진:       [...레이어...] → Linear(in_features, 1) → BCEWithLogitsLoss
@@ -567,7 +567,7 @@ if __name__ == "__main__":
       • BCEWithLogitsLoss 앞에 시그모이드를 걸기(안에서 이미 한다!)
       • CrossEntropyLoss 앞에 소프트맥스를 걸기(안에서 이미 한다!)
       • 원본 로짓에 BCELoss 쓰기(대신 BCEWithLogitsLoss를 쓰라)
-      • CrossEntropyLoss에 원-핫 레이블 쓰기(클래스 인덱스를 쓰라)
+      • CrossEntropyLoss에 원핫 레이블 쓰기(클래스 인덱스를 쓰라)
 
     흔한 모델 구조:
       이진:       [...레이어...] → Linear(in_features, 1) → BCEWithLogitsLoss

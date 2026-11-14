@@ -335,7 +335,7 @@ criterion = nn.CrossEntropyLoss()
 logits = torch.tensor([[2.0, 1.0, 0.5],   # Sample 1
                        [0.5, 2.5, 1.0]])  # Sample 2
 
-# 목표: 원-핫이 아니라 클래스 인덱스이다!
+# 목표: 원핫이 아니라 클래스 인덱스이다!
 targets = torch.tensor([0, 1])  # Sample 1: class 0, Sample 2: class 1
 
 loss = criterion(logits, targets)
@@ -584,7 +584,7 @@ class SoftmaxRegressionNumPy:
         """
         N = len(y)
 
-        # y를 원-핫 인코딩으로 바꾼다
+        # y를 원핫 인코딩으로 바꾼다
         y_onehot = np.zeros_like(self.probs)
         y_onehot[np.arange(N), y] = 1
 

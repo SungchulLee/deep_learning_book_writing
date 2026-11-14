@@ -113,7 +113,7 @@
     X_test = torch.FloatTensor(scaler.transform(X_test))
 
     # 중요: CrossEntropyLoss에서 목표는 클래스 인덱스(Long)여야 한다
-    # 원-핫 인코딩이 아니다!
+    # 원핫 인코딩이 아니다!
     y_train = torch.LongTensor(y_train)  # Shape: (N,) with values 0, 1, 2
     y_test = torch.LongTensor(y_test)
 

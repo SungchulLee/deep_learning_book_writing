@@ -649,7 +649,7 @@ class ResidualBlock(nn.Module):
         """
         인수:
             x: 들임 텐서, 형태 (batch, in_channels, height, width)
-            time_emb: 시간 임베딩, 형태 (batch, time_emb_dim)
+            time_emb: 타임스텝 임베딩, 형태 (batch, time_emb_dim)
         
         반환값:
             내놓음 텐서, 형태 (batch, out_channels, height, width)
@@ -984,7 +984,7 @@ if __name__ == "__main__":
 
 ## 2. 시간 조건 잔차 블록
 
-ResidualBlock은 GroupNorm→SiLU→3×3 컨볼루션 뒤에 시간 임베딩의 선형 투영을 더한다. 다시 정규화·활성화·컨볼루션을 적용하고 입력의 Identity 또는 1×1 투영을 더한다. 공간 크기는 유지하며 시간 조건은 출력 채널 수만큼 만든 뒤 높이·너비에 브로드캐스팅한다.
+ResidualBlock은 GroupNorm→SiLU→3×3 컨볼루션 뒤에 타임스텝 임베딩의 선형 투영을 더한다. 다시 정규화·활성화·컨볼루션을 적용하고 입력의 Identity 또는 1×1 투영을 더한다. 공간 크기는 유지하며 시간 조건은 출력 채널 수만큼 만든 뒤 높이·너비에 브로드캐스팅한다.
 
 이 시간 주입은 다른 페이지의 scale·shift 방식과 달리 **덧셈 방식**이다. GroupNorm의 입력·출력 채널은 그룹 수 8로 나누어져야 한다. 기본 채널 폭은 조건을 만족하지만 임의의 폭을 지원하는 것은 아니다.
 

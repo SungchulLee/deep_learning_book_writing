@@ -183,7 +183,7 @@ def cutmix_criterion(criterion: nn.Module, pred: torch.Tensor,
     """컷믹스 로스를 가중 결합으로 계산한다."""
     # 섞인 이름표를 만들어 넣는 대신, 딱딱한 이름표 둘로 로스를 두 번
     # 재어 가중 평균한다. 교차 엔트로피가 목표 분포에 대해 선형이라
-    # 두 방식의 값이 같기 때문이다. 이렇게 하면 원-핫 벡터를 만들지 않고
+    # 두 방식의 값이 같기 때문이다. 이렇게 하면 원핫 벡터를 만들지 않고
     # 클래스 인덱스를 그대로 쓸 수 있어 편하다.
     # 주의: lam은 스칼라여야 한다. 표본마다 다른 lam을 (B,) 텐서로 넘기면
     # 결과가 스칼라가 아니게 되어 backward()에서 오류가 난다
@@ -388,7 +388,7 @@ def multi_cutmix(x, y, n_patches=4, alpha=1.0):
             weight = patch_area / total_area
 
             # 부드러운 레이블 누적.
-            # scatter_(1, 자리, 1.0)이 원-핫을 만든다. y[index]를
+            # scatter_(1, 자리, 1.0)이 원핫을 만든다. y[index]를
             # unsqueeze(1)로 (B,1) 형태로 만들어야 열 방향 자리로 읽힌다
             patch_labels = torch.zeros(B, num_classes, device=x.device)
             patch_labels.scatter_(1, y[index].unsqueeze(1), 1.0)

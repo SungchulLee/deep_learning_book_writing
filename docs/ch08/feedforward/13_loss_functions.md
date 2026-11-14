@@ -94,7 +94,7 @@ print("""
 핵심:
 ✓ *WithLogits 판을 쓰라. 더 안정적이다
 ✓ 이 로스 앞에 활성화를 걸지 마라
-✓ CrossEntropyLoss는 원-핫이 아니라 클래스 인덱스를 받는다
+✓ CrossEntropyLoss는 원핫이 아니라 클래스 인덱스를 받는다
 ✓ MSE는 회귀에, 교차 엔트로피는 분류에 알맞다
 ✓ L1은 MSE보다 이상치에 강건하다
 
@@ -194,7 +194,7 @@ LOSS FUNCTION SELECTION GUIDE
 핵심:
 ✓ *WithLogits 판을 쓰라. 더 안정적이다
 ✓ 이 로스 앞에 활성화를 걸지 마라
-✓ CrossEntropyLoss는 원-핫이 아니라 클래스 인덱스를 받는다
+✓ CrossEntropyLoss는 원핫이 아니라 클래스 인덱스를 받는다
 ✓ MSE는 회귀에, 교차 엔트로피는 분류에 알맞다
 ✓ L1은 MSE보다 이상치에 강건하다
 
