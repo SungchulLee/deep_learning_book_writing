@@ -20,6 +20,18 @@ make_figures.py - 5장의 그림을 만든다
     dcgan_bn_modes.svg        같은 z 를 배치 정규화의 평가 모드와 학습 모드로 그린 것
     cvae_ten_planes.svg       VAE-2 와 cVAE-2 의 잠재 평면을 숫자별로 칠한 것
                               (mnist_cvae2.pt 는 03_cvae.md 의 블록이 저장한다)
+    four_architectures.svg    5.1절 네 스텝의 인코더·디코더를 다섯 칸에 맞춘 얼개
+                              (잰 수 없음 - 레이어 형태는 네 쪽의 코드에서 옮겼다)
+    pca_scree.svg             MNIST 공분산의 고윳값 스펙트럼과 누적 설명 분산 비율
+    gan_bloodflow.svg         detach() 와 얼리기를 혈액순환에 빗댄 사람 그림 (얼개)
+    optimal_d.svg             두 분포의 최적 디스크리미네이터 D* 와 L_D = log 4 - 2 JS
+    convT_1d.svg              전치 컨볼루션 (4, 2, 1) 이 길이를 두 배로 키우는 셈, 1차원
+    reparam_graph.svg         직접 샘플링과 재매개변수화 트릭의 계산 그래프 (얼개)
+    gaussian_kl.svg           좌표 하나의 KL(N(mu, sigma^2) || N(0, 1)) 닫힌 형태
+    conv_vae_shapes.svg       컨볼루션 VAE 의 텐서 형태 흐름 (얼개)
+    conv_cvae_label_path.svg  원핫 라벨이 인코더와 디코더에 들어가는 길 (얼개)
+    diffusion_chain.svg       정방향·역방향 마르코프 연쇄 (얼개)
+    ddim_timesteps.svg        DDIM 10스텝이 밟는 타임스텝과 그 자리의 신호 계수
 
 그림 규칙(CLAUDE.md):
     - SVG로 저장하고 svg.fonttype='path'로 글자를 외곽선으로 만든다
@@ -1333,10 +1345,40 @@ def _grid(ax, samples, n=8):
     ax.axis("off")
 
 
+def _gan_mlp_generator():
+    """01_gan.md 의 GMLP 를 그대로 세우고, 그 쪽의 블록이 저장한 웨이트를 읽는다."""
+    import torch.nn as nn
+
+    class GMLP(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.net = nn.Sequential(
+                nn.Linear(64, 256), nn.LeakyReLU(0.2),
+                nn.Linear(256, 512), nn.LeakyReLU(0.2),
+                nn.Linear(512, 784), nn.Tanh())
+
+        def forward(self, z):
+            return self.net(z).reshape(-1, 1, 28, 28)
+
+    G = GMLP()
+    G.load_state_dict(torch.load(f"{MODELS}/mnist_gan_g.pt",
+                                 map_location="cpu", weights_only=True))
+    return G.eval()
+
+
+def _gan_z64(seed=7):
+    """두 표본 그림이 함께 쓰는 z 64개.
+
+    격자점이 아니다 — 표준정규분포 N(0, I) 에서 무작위로 뽑은 64차원 벡터
+    64개이고, 그림의 8x8 은 뽑은 차례대로 늘어놓은 것일 뿐이다.
+    """
+    return torch.randn(64, 64, generator=torch.Generator().manual_seed(seed))
+
+
 def fig_gan_samples():
-    """5.3절이 만든 표본. 학습해 둔 제너레이터에서 뽑아 저장한 것을 읽어 쓴다."""
-    s = torch.load(f"{MODELS}/mnist_gan_samples.pt", map_location="cpu",
-                   weights_only=True)
+    """5.3절 GAN 이 만든 표본 64장. `mnist_gan_g.pt` 에 `_gan_z64()` 를 넣는다."""
+    with torch.no_grad():
+        s = _gan_mlp_generator()(_gan_z64())
     fig, ax = plt.subplots(figsize=(5.6, 5.6))
     _grid(ax, s)
     fig.subplots_adjust(left=0.005, right=0.995, top=0.995, bottom=0.005)
@@ -1348,14 +1390,15 @@ def fig_gan_samples():
 def fig_gan_vs_dcgan():
     """두 구조가 만든 표본을 나란히 둔다.
 
-    두 표본은 같은 씨앗(7)의 같은 z 64개를 넣어 얻은 것이다. 다만 **칸마다
-    짝이 맞지는 않는다** — 따로 학습한 두 제너레이터는 같은 z를 서로 다른 숫자로
-    보내므로, 견줄 것은 칸 대 칸이 아니라 획의 결이다.
+    두 제너레이터(`mnist_gan_g.pt`, `mnist_dcgan_g.pt`)에 **같은 z 64개**
+    (`_gan_z64()`, 시드 7)를 넣는다. 다만 **칸마다 짝이 맞지는 않는다** —
+    따로 학습한 두 제너레이터는 같은 z를 서로 다른 숫자로 보내므로, 견줄 것은
+    칸 대 칸이 아니라 획의 결이다.
     """
-    g = torch.load(f"{MODELS}/mnist_gan_samples.pt", map_location="cpu",
-                   weights_only=True)
-    d = torch.load(f"{MODELS}/mnist_dcgan_samples.pt", map_location="cpu",
-                   weights_only=True)
+    z = _gan_z64()
+    with torch.no_grad():
+        g = _gan_mlp_generator()(z)
+        d = _dc_generator()(z)
     fig, axes = plt.subplots(1, 2, figsize=(11.0, 5.75))
     for ax, s, title in ((axes[0], g, "GAN  (MLP generator)"),
                          (axes[1], d, "DCGAN  (conv generator)")):
@@ -4804,6 +4847,829 @@ def fig_board_gan_steps():
 
 # 그림 함수가 모두 정의된 뒤에 부른다 — 이 블록이 파일 가운데 있으면
 # 그 아래에서 정의한 함수를 부르는 줄이 NameError 로 멈춘다.
+# === 5.1절 개요: 네 스텝의 구조를 한 장에 ===================================
+def fig_four_architectures():
+    """네 스텝의 인코더·디코더를 같은 다섯 칸(입력 · 인코더 · 잠재 표현 ·
+    디코더 · 출력)에 맞추어 그린 얼개. 잰 수는 하나도 없고, 레이어의 형태는
+    네 쪽의 코드(`LinearAE` · `MLPAE` · `ConvAE` 와 PCA 블록)에서 그대로 옮겼다.
+    """
+    ENC, DEC, LAT, IO = "#dbeafe", "#ffedd5", "#ede9fe", "#f3f4f6"
+    rows = [
+        ("1  PCA", "closed form (eigh),\nno training",
+         "(x - mu) V_k", "z V_k^T + mu", "784"),
+        ("2  AE_Linear", "gradient descent,\nno activation",
+         "Linear 784 -> k", "Linear k -> 784", "784"),
+        ("3  AE_MLP", "adds a hidden layer\n+ ReLU on both sides",
+         "Linear 784 -> 256, ReLU\nLinear 256 -> k",
+         "Linear k -> 256, ReLU\nLinear 256 -> 784", "784"),
+        ("4  AE_CNN", "adds locality\n+ weight sharing",
+         "Conv 3x3 (16), ReLU, MaxPool -> 16x14x14\n"
+         "Conv 3x3 (32), ReLU, MaxPool -> 32x7x7\n"
+         "Flatten, Linear 1568 -> k",
+         "Linear k -> 1568, ReLU -> 32x7x7\n"
+         "ConvT 2x2 s2 (16), ReLU -> 16x14x14\n"
+         "ConvT 2x2 s2 (1) -> 1x28x28", "1x28x28"),
+    ]
+    fig, ax = plt.subplots(figsize=(11.5, 6.4))
+    ax.set_xlim(0, 15.75); ax.set_ylim(0, 9.4); ax.axis("off")
+
+    xs = dict(inp=(2.55, 1.15), enc=(4.25, 3.75), lat=(8.55, 1.0),
+              dec=(10.1, 3.75), out=(14.4, 1.15))          # (왼쪽 x, 너비)
+    for key, title in (("inp", "input x"), ("enc", "encoder"),
+                       ("lat", "latent z"), ("dec", "decoder"),
+                       ("out", "output x_hat")):
+        x0, w = xs[key]
+        ax.text(x0 + w / 2, 9.05, title, ha="center", va="center",
+                fontsize=10.5, fontweight="bold")
+
+    h, gap = 1.55, 0.55
+    for r, (name, note, enc, dec, shape) in enumerate(rows):
+        y = 8.6 - (r + 1) * (h + gap) + gap
+        cy = y + h / 2
+        ax.text(0.05, cy + 0.22, name, ha="left", va="center",
+                fontsize=10.5, fontweight="bold")
+        ax.text(0.05, cy - 0.32, note, ha="left", va="center",
+                fontsize=7.6, color="#444")
+        for key, text, fc, ec in (("inp", shape, IO, "#6b7280"),
+                                  ("enc", enc, ENC, "#1d4ed8"),
+                                  ("lat", "k", LAT, "#6d28d9"),
+                                  ("dec", dec, DEC, "#c2410c"),
+                                  ("out", shape, IO, "#6b7280")):
+            x0, w = xs[key]
+            bh = h if key in ("enc", "dec") else 0.8
+            _bd_box(ax, (x0, cy - bh / 2), w, bh, text, fc=fc, ec=ec, fs=8.4)
+        for a, b in (("inp", "enc"), ("enc", "lat"), ("lat", "dec"),
+                     ("dec", "out")):
+            xa = xs[a][0] + xs[a][1] + 0.05
+            xb = xs[b][0] - 0.05
+            _bd_arrow(ax, (xa, cy), (xb, cy), lw=1.2)
+
+    ax.text(7.9, 0.28,
+            "k = 64 or 2 in every row.  The loss is the same everywhere: "
+            "mean squared error between x and x_hat.  No labels are used.",
+            ha="center", va="center", fontsize=8.6, color="#333")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+    fig.savefig("four_architectures.svg", transparent=True)
+    plt.close(fig)
+    print("wrote four_architectures.svg")
+
+
+# === 5.1 PCA: 고윳값 스펙트럼과 누적 설명 분산 비율 ==========================
+def fig_pca_scree():
+    """MNIST 학습 집합 공분산의 고윳값(왼쪽)과 누적 설명 분산 비율(오른쪽).
+
+    오른쪽의 네 점은 `01_pca.md` 의 출력 블록이 찍는 설명분산과 같은 식
+    (evals[:k].sum() / evals.sum())으로 계산하므로 그 수와 일치해야 한다 —
+    16.8 · 59.4 · 74.4 · 86.2 %. 돌릴 때 찍히는 줄로 확인한다.
+    """
+    (Xtr, _), _ = load_flat()
+    _, _, evals = pca_basis(Xtr)
+    lam = evals.double().clamp(min=0).numpy()
+    cum = np.cumsum(lam) / lam.sum()
+    ks = [2, 16, 32, 64]
+    for k in ks:
+        print(f"  k={k:3d}  cumulative explained variance {100 * cum[k - 1]:.1f}%")
+    k90 = int(np.searchsorted(cum, 0.90) + 1)
+    k95 = int(np.searchsorted(cum, 0.95) + 1)
+    # 학습 집합 전체에서 값이 한 번도 안 바뀌는 픽셀 수 — 그만큼은 고윳값이 0 이다
+    dead = int(((Xtr.max(0).values - Xtr.min(0).values) == 0).sum())
+    npos = 784 - dead
+    print(f"  90% at k={k90}, 95% at k={k95}, constant pixels {dead} of 784")
+
+    fig, (a, b) = plt.subplots(1, 2, figsize=(11, 4.0))
+    i = np.arange(1, 785)
+    a.loglog(i[:npos], lam[:npos], color="#1d4ed8", lw=1.6)
+    for k in ks:
+        a.plot(k, lam[k - 1], "o", color="#c2410c", ms=5, zorder=3)
+        a.annotate(f"k={k}: {lam[k - 1]:.2f}", (k, lam[k - 1]),
+                   textcoords="offset points", xytext=(7, 4), fontsize=8.5)
+    a.set_xlim(1, 784); a.set_ylim(1e-6, 2e2)
+    a.set_xlabel("component index i  (log)")
+    a.set_ylabel("eigenvalue  lambda_i  (log)")
+    a.set_title("eigenvalue spectrum of the covariance", fontsize=10.5)
+    a.text(0.04, 0.07, f"{dead} of 784 pixels never change ->\n"
+           f"{dead} zero eigenvalues (not drawn)",
+           transform=a.transAxes, ha="left", va="bottom", fontsize=8.5,
+           color="#444")
+
+    b.plot(i, 100 * cum, color="#1d4ed8", lw=1.8)
+    for k in ks:
+        v = 100 * cum[k - 1]
+        b.plot(k, v, "o", color="#c2410c", ms=6, zorder=3)
+        b.annotate(f"k={k}: {v:.1f}%", (k, v), textcoords="offset points",
+                   xytext=(9, -11), fontsize=9)
+    for kk, lab in ((k90, "90%"), (k95, "95%")):
+        b.axvline(kk, color="#9ca3af", lw=0.9, ls="--")
+        b.text(kk + 5, 6, f"{lab} at k={kk}", rotation=90, fontsize=8.2,
+               color="#555", va="bottom")
+    b.set_xscale("log"); b.set_xlim(1, 784); b.set_ylim(0, 102)
+    b.set_xlabel("number of components k  (log)")
+    b.set_ylabel("cumulative explained variance (%)")
+    b.set_title("how much variance the top k components keep", fontsize=10.5)
+    for ax in (a, b):
+        ax.grid(alpha=0.25)
+        for s in ("top", "right"):
+            ax.spines[s].set_visible(False)
+    fig.tight_layout()
+    fig.savefig("pca_scree.svg", transparent=True)
+    plt.close(fig)
+    print("wrote pca_scree.svg")
+
+
+# === 5.3 GAN: detach 와 얼리기를 혈액순환에 빗댄 사람 그림 ===================
+def fig_gan_bloodflow():
+    """detach() 는 본류의 한 지점을 묶고, 얼리기는 D 안의 곁가지만 막는다.
+
+    얼개다. 네 수(0.7443 · 0.1199 · none 둘)는 `01_gan.md` (마) 블록의 출력에서
+    옮겼고 여기서 다시 재지 않았다. 몸은 설명을 얹을 자리일 뿐 해부도가 아니다.
+    """
+    from matplotlib.patches import Circle, Ellipse, FancyBboxPatch
+    RED, GRAY, SKIN, EDGE = "#dc2626", "#9ca3af", "#f1f5f9", "#94a3b8"
+
+    def body(ax):
+        for (x0, y0), (x1, y1) in (((3.3, 9.0), (1.9, 5.0)), ((6.7, 9.0), (8.1, 5.0)),
+                                   ((4.2, 3.2), (3.9, 0.3)), ((5.8, 3.2), (6.1, 0.3))):
+            ax.plot([x0, x1], [y0, y1], color=EDGE, lw=25, solid_capstyle="round", zorder=1)
+            ax.plot([x0, x1], [y0, y1], color=SKIN, lw=22, solid_capstyle="round", zorder=1.1)
+        ax.add_patch(FancyBboxPatch((3.2, 2.9), 3.6, 6.7, boxstyle="round,pad=0,rounding_size=0.9",
+                                    fc=SKIN, ec=EDGE, lw=1.5, zorder=1.2))
+        ax.add_patch(Circle((5, 10.75), 0.85, fc=SKIN, ec=EDGE, lw=1.5, zorder=1.2))
+
+    def seg(ax, y0, y1, on, arrow=True):
+        c = RED if on else GRAY
+        ax.plot([5, 5], [y0, y1], color=c, lw=5 if on else 3,
+                ls="-" if on else (0, (2, 2)), zorder=3, solid_capstyle="butt")
+        if on and arrow:
+            ym = (y0 + y1) / 2
+            ax.annotate("", xy=(5, ym + 0.28), xytext=(5, ym - 0.28), zorder=4,
+                        arrowprops=dict(arrowstyle="-|>", color="white", lw=1.4))
+
+    def leaves(ax, ys, on, blocked=False):
+        c = RED if on else GRAY
+        for y in ys:
+            ax.plot([5, 6.0], [y, y], color=c, lw=2.6 if on else 1.8,
+                    ls="-" if on else (0, (2, 2)), zorder=3)
+            ax.add_patch(Circle((6.05, y), 0.13, fc=c, ec="none", zorder=4))
+            if blocked:
+                ax.plot([5.32, 5.32], [y - 0.2, y + 0.2], color="#111", lw=3, zorder=5)
+
+    def panel(ax, title, tie, freeze, g_txt, d_txt):
+        ax.set_xlim(-0.3, 13.6); ax.set_ylim(-0.2, 12.6); ax.axis("off")
+        ax.set_aspect("equal")
+        body(ax)
+        ax.text(6.6, 12.25, title, ha="center", va="center", fontsize=11, fontweight="bold")
+        # 장기 둘과 로스
+        ax.add_patch(FancyBboxPatch((3.65, 7.55), 2.7, 1.6, boxstyle="round,pad=0,rounding_size=0.3",
+                                    fc="#dbeafe", ec="#1d4ed8", lw=1.4, zorder=2))
+        ax.add_patch(Ellipse((5, 5.2), 2.9, 2.3, fc="#ffedd5", ec="#c2410c", lw=1.4, zorder=2))
+        ax.add_patch(Circle((5, 3.45), 0.33, fc="#fff", ec="#111", lw=1.4, zorder=4))
+        ax.text(5, 3.45, "L", ha="center", va="center", fontsize=9, zorder=5)
+        ax.text(4.05, 8.35, "G", ha="center", va="center", fontsize=13, fontweight="bold", zorder=5)
+        ax.text(4.05, 5.2, "D", ha="center", va="center", fontsize=13, fontweight="bold", zorder=5)
+        # 본류: 로스 -> D -> (fake) -> G
+        seg(ax, 3.78, 4.3, True, arrow=False)
+        seg(ax, 4.3, 6.2, True)
+        seg(ax, 6.2, 6.85, True, arrow=False)
+        seg(ax, 6.85, 8.7, not tie)
+        leaves(ax, (4.65, 5.2, 5.75), on=not freeze, blocked=freeze)
+        leaves(ax, (8.0, 8.7), on=not tie)
+        if tie:
+            ax.plot([4.55, 5.45], [6.85, 6.85], color="#111", lw=4.5, zorder=6)
+            ax.plot([4.62, 5.38], [7.0, 6.7], color="#111", lw=1.6, zorder=6)
+            ax.plot([4.62, 5.38], [6.7, 7.0], color="#111", lw=1.6, zorder=6)
+        # 오른쪽 설명
+        kw = dict(ha="left", va="center", fontsize=9)
+        ax.annotate("", xy=(6.3, 8.35), xytext=(9.0, 8.35), arrowprops=dict(arrowstyle="-", color="#555", lw=0.8))
+        ax.text(9.1, 8.35, g_txt, color=GRAY if tie else RED, fontweight="bold", **kw)
+        ax.annotate("", xy=(6.3, 5.2), xytext=(9.0, 5.2), arrowprops=dict(arrowstyle="-", color="#555", lw=0.8))
+        ax.text(9.1, 5.2, d_txt, color=GRAY if freeze else RED, fontweight="bold", **kw)
+        ax.annotate("", xy=(5.4, 3.45), xytext=(9.0, 3.45), arrowprops=dict(arrowstyle="-", color="#555", lw=0.8))
+        ax.text(9.1, 3.45, "loss: backward()\nstarts here", color="#333", **kw)
+        if tie:
+            ax.annotate("", xy=(5.5, 6.85), xytext=(9.0, 6.85), arrowprops=dict(arrowstyle="-", color="#555", lw=0.8))
+            ax.text(9.1, 6.85, "fake.detach()\ntrunk tied HERE", color="#111", **kw)
+        else:
+            ax.annotate("", xy=(5.4, 5.75), xytext=(9.0, 6.75), arrowprops=dict(arrowstyle="-", color="#555", lw=0.8))
+            ax.text(9.1, 6.85, "D.requires_grad_(False)\nside branches closed,\ntrunk untouched", color="#111", **kw)
+
+    fig, (a, b) = plt.subplots(1, 2, figsize=(12.4, 5.9))
+    panel(a, "(1) D step:  fake.detach()", True, False,
+          "G weights (.grad):\nnone", "D weights (.grad):\n0.7443")
+    panel(b, "(2) G step:  D.requires_grad_(False)", False, True,
+          "G weights (.grad):\n0.1199", "D weights (.grad):\nnone")
+    fig.text(0.5, 0.035,
+             "red = backward flow (gradient), running against the forward path  z -> G -> fake -> D -> loss.   "
+             "dots = weights (leaf nodes).   gray dashed = nothing flows.",
+             ha="center", fontsize=8.8, color="#333")
+    fig.text(0.5, 0.005, "schematic - the four values are copied from this page's output, not re-measured; "
+             "the body is a carrier for the analogy, not anatomy", ha="center", fontsize=8, color="#666")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.07, wspace=0.02)
+    fig.savefig("gan_bloodflow.svg", transparent=True)
+    plt.close(fig)
+    print("wrote gan_bloodflow.svg")
+
+
+# === 5.3 GAN: 최적 디스크리미네이터와 L_D = log 4 - 2 JS =====================
+def fig_optimal_d():
+    """두 정규분포 p, q 에서 D* = p/(p+q) 와, 그때의 L_D 가 log 4 에서 0 으로
+    내려가는 곡선. 학습은 없고 수치 적분뿐이다 — 식을 그림으로 옮긴 것.
+    """
+    x = np.linspace(-12, 12, 48001)
+    dx = x[1] - x[0]
+
+    def pdf(m):
+        return np.exp(-0.5 * (x - m) ** 2) / np.sqrt(2 * np.pi)
+
+    def loss_d(d):
+        p, q = pdf(-d / 2), pdf(d / 2)
+        ds = np.clip(p / (p + q), 1e-300, 1 - 1e-16)
+        return float(-(p * np.log(ds)).sum() * dx - (q * np.log(1 - ds)).sum() * dx)
+
+    d0 = 2.0
+    p, q = pdf(-d0 / 2), pdf(d0 / 2)
+    ds = p / (p + q)
+    seps = np.linspace(0, 8, 161)
+    ld = np.array([loss_d(d) for d in seps])
+    for d in (0.0, 1.0, 2.0, 4.0, 8.0):
+        v = loss_d(d)
+        print(f"  d={d:.0f}  L_D*={v:.3f}  JS={(np.log(4) - v) / 2:.3f}")
+
+    fig, (a, b) = plt.subplots(1, 2, figsize=(11, 4.0))
+    a.fill_between(x, p, color="#1d4ed8", alpha=0.18)
+    a.fill_between(x, q, color="#c2410c", alpha=0.18)
+    a.plot(x, p, color="#1d4ed8", lw=1.6, label="p(x): real")
+    a.plot(x, q, color="#c2410c", lw=1.6, label="q(x): fake")
+    a.set_xlim(-5, 5); a.set_ylim(0, 0.62)
+    a.set_xlabel("x"); a.set_ylabel("density")
+    a2 = a.twinx()
+    a2.plot(x, ds, color="#111", lw=2.0, ls="--")
+    a2.axhline(0.5, color="#9ca3af", lw=0.8, ls=":")
+    a2.set_ylim(0, 1.24); a2.set_yticks([0, 0.5, 1.0])
+    a2.set_ylabel("D*(x) = p / (p + q)")
+    a.plot([], [], color="#111", lw=2.0, ls="--", label="optimal discriminator D*")
+    a.legend(loc="upper center", ncol=3, fontsize=8.2, frameon=False)
+    a.annotate("p = q here,\nso D* = 0.5", xy=(0, 0.242), xytext=(1.9, 0.43),
+               fontsize=8.5, arrowprops=dict(arrowstyle="-", color="#555", lw=0.8))
+    a.set_title("two distributions and the best possible D", fontsize=10.5)
+
+    b.plot(seps, ld, color="#111", lw=2.0)
+    b.axhline(np.log(4), color="#9ca3af", lw=0.9, ls="--")
+    b.text(7.9, np.log(4) + 0.03, "log 4 = 1.386  (p = q, JS = 0)", ha="right",
+           fontsize=8.6, color="#444")
+    b.text(7.9, 0.05, "0  (no overlap, JS = log 2)", ha="right", fontsize=8.6, color="#444")
+    v0 = loss_d(d0)
+    b.plot(d0, v0, "o", color="#c2410c", ms=6, zorder=3)
+    b.annotate(f"left panel:\nL_D = {v0:.3f}", (d0, v0), textcoords="offset points",
+               xytext=(10, 4), fontsize=8.6)
+    b.set_xlim(0, 8); b.set_ylim(0, 1.55)
+    b.set_xlabel("distance between the two means")
+    b.set_ylabel("L_D at the optimal D  =  log 4 - 2 JS(p, q)")
+    b.set_title("the D loss falls as the two distributions separate", fontsize=10.5)
+    for ax in (a, b):
+        ax.grid(alpha=0.25)
+        ax.spines["top"].set_visible(False)
+    b.spines["right"].set_visible(False)
+    fig.tight_layout()
+    fig.savefig("optimal_d.svg", transparent=True)
+    plt.close(fig)
+    print("wrote optimal_d.svg")
+
+
+# === 5.3 DCGAN: 전치 컨볼루션이 길이를 키우는 셈 (1차원) =====================
+def fig_convT_1d():
+    """ConvTranspose 의 (kernel 4, stride 2, padding 1) 을 1차원에서 손으로 따라간다.
+
+    입력 [1, 2, 3], 커널 [1, 2, 2, 1]. 입력 하나가 커널 한 벌을 찍고, 찍는 자리가
+    stride 만큼씩 밀리며, 겹친 자리는 더하고, 양 끝을 padding 만큼 잘라 낸다.
+    결과를 F.conv_transpose1d 와 맞대어 확인한다.
+    """
+    import torch.nn.functional as Fn
+    xin, w, s, p = [1, 2, 3], [1, 2, 2, 1], 2, 1
+    k, n = len(w), len(xin)
+    full = (n - 1) * s + k
+    rows = np.zeros((n, full))
+    for i, v in enumerate(xin):
+        rows[i, i * s:i * s + k] = v * np.array(w)
+    tot = rows.sum(0)
+    out = tot[p:full - p]
+    ref = Fn.conv_transpose1d(torch.tensor(xin, dtype=torch.float32).view(1, 1, -1),
+                              torch.tensor(w, dtype=torch.float32).view(1, 1, -1),
+                              stride=s, padding=p).flatten().numpy()
+    assert np.allclose(out, ref), (out, ref)
+    print(f"  full {tot.astype(int).tolist()}  cropped {out.astype(int).tolist()}  "
+          f"({n} - 1) * {s} - 2 * {p} + {k} = {len(out)}")
+
+    cols = ["#1d4ed8", "#c2410c", "#15803d"]
+    fig, ax = plt.subplots(figsize=(10.5, 4.9))
+    ax.set_xlim(-4.6, full + 0.4); ax.set_ylim(-0.3, 7.7); ax.axis("off")
+
+    def cell(xc, yc, text, fc="#fff", ec="#111", tc="#111", bold=False, alpha=1.0):
+        ax.add_patch(Rectangle((xc, yc), 0.92, 0.8, fc=fc, ec=ec, lw=1.2, alpha=alpha))
+        ax.text(xc + 0.46, yc + 0.4, text, ha="center", va="center", fontsize=11,
+                color=tc, fontweight="bold" if bold else "normal")
+
+    # 입력: 찍는 자리의 왼쪽 끝 위에 둔다
+    ax.text(-4.5, 7.1, "input  (length 3)", va="center", fontsize=10)
+    for i, v in enumerate(xin):
+        cell(i * s, 6.7, str(v), fc=cols[i], ec=cols[i], tc="#fff", bold=True)
+        ax.annotate("", xy=(i * s + 0.46, 5.75 - i * 0.95 + 0.82), xytext=(i * s + 0.46, 6.68),
+                    arrowprops=dict(arrowstyle="-|>", color=cols[i], lw=1.3))
+    ax.text(full + 0.3, 7.1, "kernel = [1, 2, 2, 1]", ha="right", va="center", fontsize=10)
+    # 찍은 것 세 줄
+    for i, v in enumerate(xin):
+        y = 4.95 - i * 0.95
+        ax.text(-4.5, y + 0.4, f"{v} x kernel, shifted {i * s}", va="center", fontsize=10,
+                color=cols[i])
+        for j in range(k):
+            cell(i * s + j, y, str(int(rows[i, i * s + j])), ec=cols[i], tc=cols[i])
+    ax.text(-4.5, 4.95 - 0.95 + 1.45 + 0.9, "", fontsize=1)
+    # 합
+    ys = 1.75
+    ax.plot([-0.1, full + 0.05], [ys + 1.0, ys + 1.0], color="#111", lw=1.0)
+    ax.text(-4.5, ys + 0.4, "sum where stamps overlap", va="center", fontsize=10)
+    for j in range(full):
+        edge = j < p or j >= full - p
+        cell(j, ys, str(int(tot[j])), fc="#e5e7eb" if edge else "#fff",
+             ec="#9ca3af" if edge else "#111", tc="#9ca3af" if edge else "#111")
+    # 잘라 낸 결과
+    yo = 0.35
+    ax.text(-4.5, yo + 0.4, "crop padding = 1 per side", va="center", fontsize=10)
+    for j in range(p, full - p):
+        cell(j, yo, str(int(tot[j])), fc="#fef3c7", ec="#b45309", bold=True)
+    ax.text(full + 0.3, yo - 0.35 + 0.02,
+            f"output length = (3 - 1) x 2 - 2 x 1 + 4 = {len(out)}   (twice the input)",
+            ha="right", va="top", fontsize=9.5, color="#333")
+    ax.annotate("", xy=(2.46, 6.45), xytext=(0.46, 6.45),
+                arrowprops=dict(arrowstyle="<->", color="#555", lw=1.0))
+    ax.text(1.46, 6.25, "stride = 2", ha="center", va="top", fontsize=8.8, color="#555")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+    fig.savefig("convT_1d.svg", transparent=True)
+    plt.close(fig)
+    print("wrote convT_1d.svg")
+
+
+
+# === 5.2 VAE: 재매개변수화 트릭의 계산 그래프, 가우시안 KL ====================
+import sys
+from matplotlib.patches import Circle, FancyBboxPatch, FancyArrowPatch
+
+PNG_DIR_sA = os.environ.get("FIGS_PNG_DIR")
+
+INK_sA = "#222222"
+GRAD_sA = "#c0392b"
+BLUE_sA = "#2c6fbb"
+GREY_sA = "#8a8a8a"
+
+
+def _save_sA(fig, name):
+    fig.savefig(f"{name}.svg", transparent=True)
+    if PNG_DIR_sA:
+        fig.savefig(os.path.join(PNG_DIR_sA, f"{name}.png"), dpi=110,
+                    facecolor="white")
+    plt.close(fig)
+
+
+# ==============================================================================
+# reparam_graph.svg
+# ==============================================================================
+def _box_sA(ax, x, y, text, w=1.25, h=0.62, fc="#f2f2f2", ec=INK_sA, fs=10):
+    ax.add_patch(FancyBboxPatch((x - w / 2, y - h / 2), w, h,
+                                boxstyle="round,pad=0.02,rounding_size=0.08",
+                                fc=fc, ec=ec, lw=1.2))
+    ax.text(x, y, text, ha="center", va="center", fontsize=fs, color=INK_sA)
+
+
+def _circle_sA(ax, x, y, text, r=0.5, fc="#fde9c9", fs=10):
+    ax.add_patch(Circle((x, y), r, fc=fc, ec=INK_sA, lw=1.2))
+    ax.text(x, y, text, ha="center", va="center", fontsize=fs, color=INK_sA)
+
+
+def _fwd_sA(ax, x0, x1, y):
+    ax.annotate("", xy=(x1, y), xytext=(x0, y),
+                arrowprops=dict(arrowstyle="-|>", color=INK_sA, lw=1.3))
+
+
+def _back_sA(ax, x0, x1, y):
+    ax.annotate("", xy=(x1, y), xytext=(x0, y),
+                arrowprops=dict(arrowstyle="-|>", color=GRAD_sA, lw=1.3,
+                                linestyle=(0, (4, 2))))
+
+
+def fig_reparam_graph():
+    fig, ax = plt.subplots(figsize=(10.6, 6.4))
+    ax.set_xlim(0, 12.2)
+    ax.set_ylim(-0.45, 7.3)
+    ax.axis("off")
+
+    X_IN, X_ENC, X_PAR, X_Z, X_DEC, X_LOSS = 0.7, 2.4, 4.5, 6.9, 9.3, 11.2
+    up, dn = 0.13, -0.13            # forward arrows above, gradient arrows below
+
+    for row, y in (("top", 5.5), ("bottom", 1.45)):
+        _box_sA(ax, X_IN, y, "x", w=0.7)
+        _box_sA(ax, X_ENC, y, "encoder")
+        _box_sA(ax, X_PAR, y, r"$\mu,\ \sigma$", w=1.2, fs=12)
+        _box_sA(ax, X_DEC, y, "decoder")
+        _box_sA(ax, X_LOSS, y, "loss", w=0.95)
+        _fwd_sA(ax, X_IN + 0.37, X_ENC - 0.66, y)
+        _fwd_sA(ax, X_ENC + 0.66, X_PAR - 0.63, y + up)
+        _fwd_sA(ax, X_DEC + 0.66, X_LOSS - 0.5, y + up)
+        _back_sA(ax, X_LOSS - 0.5, X_DEC + 0.66, y + dn)
+
+        if row == "top":
+            _circle_sA(ax, X_Z, y, r"$z \sim N(\mu, \sigma^2)$", r=0.86, fs=10.5)
+            _fwd_sA(ax, X_PAR + 0.63, X_Z - 0.88, y + up)
+            _fwd_sA(ax, X_Z + 0.88, X_DEC - 0.66, y + up)
+            _back_sA(ax, X_DEC - 0.66, X_Z + 0.88, y + dn)
+            # the gradient stops at the sampling node
+            xm = (X_PAR + 0.63 + X_Z - 0.88) / 2
+            ax.plot([xm - 0.14, xm + 0.14], [y + dn - 0.2, y + dn + 0.08],
+                    color=GRAD_sA, lw=2.4)
+            ax.plot([xm - 0.14, xm + 0.14], [y + dn + 0.08, y + dn - 0.2],
+                    color=GRAD_sA, lw=2.4)
+            ax.text(xm, y - 0.75, "gradient stops here:\nsampling is not a\n"
+                    "differentiable function", ha="center", va="top",
+                    fontsize=9, color=GRAD_sA)
+            ax.text(X_Z, y + 1.05, "random node", ha="center", va="bottom",
+                    fontsize=9, color=GREY_sA)
+        else:
+            _box_sA(ax, X_Z, y, r"$z = \mu + \sigma \cdot \varepsilon$",
+                 w=1.9, fc="#e3eefb", fs=11.5)
+            _fwd_sA(ax, X_PAR + 0.63, X_Z - 0.98, y + up)
+            _fwd_sA(ax, X_Z + 0.98, X_DEC - 0.66, y + up)
+            _back_sA(ax, X_DEC - 0.66, X_Z + 0.98, y + dn)
+            _back_sA(ax, X_Z - 0.98, X_PAR + 0.63, y + dn)
+            _back_sA(ax, X_PAR - 0.63, X_ENC + 0.66, y + dn)
+            _circle_sA(ax, X_Z, y + 1.45, r"$\varepsilon \sim N(0, I)$", r=0.62,
+                    fs=9.5)
+            ax.annotate("", xy=(X_Z, y + 0.33), xytext=(X_Z, y + 0.83),
+                        arrowprops=dict(arrowstyle="-|>", color=INK_sA, lw=1.3))
+            ax.text(X_Z + 0.75, y + 1.45, "random node, moved to the side\n"
+                    "(no parameters, needs no gradient)", ha="left",
+                    va="center", fontsize=9, color=GREY_sA)
+            ax.text(X_Z, y - 0.5, "plain + and x :\ndifferentiable",
+                    ha="center", va="top", fontsize=9, color=BLUE_sA)
+
+    ax.text(0.2, 7.05, "Sampling z directly", fontsize=12, color=INK_sA,
+            fontweight="bold", va="center")
+    ax.text(0.2, 3.3, "Reparameterization trick", fontsize=12, color=INK_sA,
+            fontweight="bold", va="center")
+
+    # legend
+    _fwd_sA(ax, 8.0, 8.8, 7.05)
+    ax.text(8.9, 7.05, "forward", fontsize=9.5, va="center", color=INK_sA)
+    _back_sA(ax, 10.9, 10.1, 7.05)
+    ax.text(11.0, 7.05, "gradient", fontsize=9.5, va="center", color=GRAD_sA)
+
+    ax.text(6.1, -0.3, "schematic - no measured numbers", ha="center",
+            va="center", fontsize=9, color=GREY_sA, style="italic")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+    _save_sA(fig, "reparam_graph")
+
+
+# ==============================================================================
+# gaussian_kl.svg
+# ==============================================================================
+def _kl_sA(mu, sigma):
+    return 0.5 * (mu ** 2 + sigma ** 2 - 1.0 - np.log(sigma ** 2))
+
+
+def fig_gaussian_kl():
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(10.6, 4.4))
+
+    # --- left: KL against sigma for three values of mu ------------------------
+    s = np.logspace(np.log10(0.02), np.log10(4.0), 400)
+    for mu, c in ((0.0, BLUE_sA), (1.0, "#e08a1e"), (2.0, GRAD_sA)):
+        axL.plot(s, _kl_sA(mu, s), color=c, lw=2, label=rf"$\mu = {mu:g}$")
+    axL.axvline(1.0, color=GREY_sA, lw=1, ls=":")
+    axL.plot([1.0], [0.0], "o", color=BLUE_sA, ms=7, zorder=5)
+    axL.annotate(r"zero only at $\mu = 0,\ \sigma = 1$", xy=(1.0, 0.0),
+                 xytext=(0.03, -0.85), fontsize=9.5, color=INK_sA, va="center",
+                 arrowprops=dict(arrowstyle="->", color=INK_sA, lw=0.9))
+    axL.text(0.13, 5.9, r"$\sigma \to 0$:  $-\log \sigma^2$ grows without bound",
+             fontsize=9.5, color=INK_sA, va="center")
+    axL.set_xscale("log")
+    axL.set_xticks([0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 4])
+    axL.set_xticklabels(["0.02", "0.05", "0.1", "0.2", "0.5", "1", "2", "4"])
+    axL.set_ylim(-1.3, 7.0)
+    axL.set_yticks(range(0, 8))
+    axL.set_xlabel(r"$\sigma$   (log scale)")
+    axL.set_ylabel("KL per coordinate  (nats)")
+    axL.set_title(r"$D_{KL}(N(\mu, \sigma^2)\ \|\ N(0, 1))$ against $\sigma$",
+                  fontsize=11)
+    axL.legend(frameon=False, fontsize=9.5, loc="upper left",
+               bbox_to_anchor=(0.0, 1.0), borderaxespad=0.2)
+    for sp in ("top", "right"):
+        axL.spines[sp].set_visible(False)
+
+    # --- right: contours over (mu, sigma) --------------------------------------
+    mu = np.linspace(-3, 3, 301)
+    sg = np.linspace(0.03, 3.0, 301)
+    M, S = np.meshgrid(mu, sg)
+    Z = _kl_sA(M, S)
+    levels = [0.1, 0.5, 1, 2, 3]
+    cf = axR.contourf(M, S, Z, levels=[0, 0.1, 0.5, 1, 2, 3, 4, 20],
+                      cmap="Blues", alpha=0.85)
+    cs = axR.contour(M, S, Z, levels=levels, colors=INK_sA, linewidths=0.7)
+    axR.clabel(cs, fmt="%g", fontsize=8)
+    axR.plot([0], [1], "o", color="white", mec=INK_sA, ms=8, zorder=5)
+    axR.set_xlabel(r"$\mu$")
+    axR.set_ylabel(r"$\sigma$")
+    axR.set_title("same quantity as contour lines (white dot: KL = 0)", fontsize=11)
+    for sp in ("top", "right"):
+        axR.spines[sp].set_visible(False)
+    del cf
+
+    fig.text(0.5, 0.012, "computed from the closed form  "
+             r"$\frac{1}{2}(\mu^2 + \sigma^2 - 1 - \log \sigma^2)$"
+             "  - no model, no data", ha="center", fontsize=9, color=GREY_sA,
+             style="italic")
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
+    _save_sA(fig, "gaussian_kl")
+
+
+# === 5.2 컨볼루션 VAE·cVAE: 텐서 형태 흐름, 라벨이 들어가는 길 ====================
+import sys
+from matplotlib.patches import Circle, FancyBboxPatch, FancyArrowPatch
+
+INK_sB = "#333333"
+ENC_sB = "#4c78a8"
+DEC_sB = "#e45756"
+LAT_sB = "#59a14f"
+COND_sB = "#f2a900"
+PALE_sB = {ENC_sB: "#dbe6f2", DEC_sB: "#fbdddd", LAT_sB: "#dcedd9", COND_sB: "#fdeec2"}
+
+
+def _sq_sB(ax, cx, cy, side, color, depth=1):
+    """A stack of `depth` offset squares centred near (cx, cy): a feature map."""
+    off = 0.045
+    for i in range(depth - 1, -1, -1):
+        ax.add_patch(Rectangle((cx - side / 2 + i * off, cy - side / 2 + i * off),
+                               side, side, fc=PALE_sB[color], ec=color, lw=1.0))
+
+
+def _bar_sB(ax, cx, cy, w, h, color):
+    ax.add_patch(Rectangle((cx - w / 2, cy - h / 2), w, h, fc=PALE_sB[color],
+                           ec=color, lw=1.0))
+
+
+def _arrow_sB(ax, x0, y0, x1, y1, label=None, color=INK_sB, dy=0.16, fs=7.5):
+    ax.add_patch(FancyArrowPatch((x0, y0), (x1, y1), arrowstyle="-|>",
+                                 mutation_scale=9, lw=1.0, color=color,
+                                 shrinkA=0, shrinkB=0))
+    if label:
+        ax.text((x0 + x1) / 2, max(y0, y1) + dy, label, ha="center", va="bottom",
+                fontsize=fs, color=INK_sB)
+
+
+def fig_conv_vae_shapes():
+    """Tensor-shape flow of ConvVAE (04_conv_vae.md). Shapes from the page's code."""
+    fig, ax = plt.subplots(figsize=(12.0, 5.0))
+    ax.set_xlim(0, 12.0); ax.set_ylim(0, 5.0); ax.axis("off")
+
+    S = {28: 1.00, 14: 0.62, 7: 0.36}
+    ye, yd = 3.75, 1.35
+
+    # ---- encoder row ------------------------------------------------------
+    xs = [0.75, 2.95, 4.95, 6.85, 8.6]
+    spec = [(28, 1, "(1, 28, 28)"), (28, 3, "(16, 28, 28)"), (14, 3, "(16, 14, 14)"),
+            (14, 5, "(32, 14, 14)"), (7, 5, "(32, 7, 7)")]
+    ops = ["Conv 3x3\npad 1, ReLU", "MaxPool 2", "Conv 3x3\npad 1, ReLU", "MaxPool 2"]
+    for x, (s, d, lab) in zip(xs, spec):
+        _sq_sB(ax, x, ye, S[s], ENC_sB, d)
+        ax.text(x, ye - 0.72, lab, ha="center", va="top", fontsize=8, color=INK_sB)
+    for i, op in enumerate(ops):
+        x0 = xs[i] + S[spec[i][0]] / 2 + 0.22
+        x1 = xs[i + 1] - S[spec[i + 1][0]] / 2 - 0.08
+        _arrow_sB(ax, x0, ye, x1, ye, op, dy=0.10)
+    # flatten
+    xf = 10.0
+    _bar_sB(ax, xf, ye, 0.16, 1.25, ENC_sB)
+    ax.text(xf, ye - 0.72, "1568", ha="center", va="top", fontsize=8, color=INK_sB)
+    _arrow_sB(ax, xs[-1] + 0.45, ye, xf - 0.16, ye, "Flatten", dy=0.10)
+    # two heads
+    xh = 11.1
+    for yy, lab in [(ye + 0.42, "mu  (k)"), (ye - 0.42, "logvar  (k)")]:
+        _bar_sB(ax, xh, yy, 0.16, 0.50, LAT_sB)
+        ax.text(xh + 0.16, yy, lab, ha="left", va="center", fontsize=8, color=INK_sB)
+        _arrow_sB(ax, xf + 0.12, ye, xh - 0.12, yy)
+    ax.text((xf + xh) / 2, ye + 0.78, "two Linear heads", ha="center", va="bottom",
+            fontsize=7.5, color=INK_sB)
+    ax.text(0.25, 4.72, "Encoder", fontsize=10, color=ENC_sB, weight="bold", va="center")
+
+    # ---- reparameterization (right side, going down) ----------------------
+    xz = 11.1
+    _bar_sB(ax, xz, yd, 0.16, 0.50, LAT_sB)
+    ax.text(xz, yd - 0.34, "z  (k)", ha="center", va="top", fontsize=8, color=INK_sB)
+    _arrow_sB(ax, xz, ye - 0.76, xz, yd + 0.30, color=LAT_sB)
+    ax.text(xz - 0.12, (ye + yd) / 2 - 0.10,
+            "z = mu + exp(logvar / 2) * eps\neps ~ N(0, I)",
+            ha="right", va="center", fontsize=8, color=INK_sB)
+
+    # ---- decoder row (right to left) --------------------------------------
+    xd = [10.0, 8.6, 6.4, 4.0]
+    _bar_sB(ax, xd[0], yd, 0.16, 1.25, DEC_sB)
+    ax.text(xd[0], yd - 0.72, "1568", ha="center", va="top", fontsize=8, color=INK_sB)
+    _arrow_sB(ax, xz - 0.12, yd, xd[0] + 0.14, yd, "Linear", dy=0.10)
+    dspec = [(7, 5, "(32, 7, 7)"), (14, 3, "(16, 14, 14)"), (28, 1, "(1, 28, 28)")]
+    dops = ["ReLU\nUnflatten", "ConvT 2x2\nstride 2, ReLU", "ConvT 2x2\nstride 2"]
+    prev_edge = xd[0] - 0.14
+    for x, (s, d, lab), op in zip(xd[1:], dspec, dops):
+        _sq_sB(ax, x, yd, S[s], DEC_sB, d)
+        ax.text(x, yd - 0.72, lab, ha="center", va="top", fontsize=8, color=INK_sB)
+        _arrow_sB(ax, prev_edge, yd, x + S[s] / 2 + 0.22, yd, op, dy=0.10)
+        prev_edge = x - S[s] / 2 - 0.08
+    ax.text(4.0, yd + 0.66, "x_hat", ha="center", va="bottom", fontsize=8, color=INK_sB)
+    ax.text(0.75, ye + 0.66, "x", ha="center", va="bottom", fontsize=8, color=INK_sB)
+    ax.text(0.25, 2.32, "Decoder", fontsize=10, color=DEC_sB, weight="bold", va="center")
+
+    ax.text(0.25, 0.12, "schematic - shapes copied from the ConvVAE class on this page; "
+            "k is the latent dimension (2 or 64)", fontsize=7.5, color="#666666")
+    fig.savefig("conv_vae_shapes.svg", transparent=True, bbox_inches="tight")
+    fig.savefig(sys.argv[1] + "/conv_vae_shapes.png", dpi=110, facecolor="white",
+                bbox_inches="tight") if len(sys.argv) > 1 else None
+    plt.close(fig)
+
+
+def fig_conv_cvae_label_path():
+    """Where the one-hot label enters the conv cVAE (05_conv_cvae.md)."""
+    fig, ax = plt.subplots(figsize=(10.0, 5.2))
+    ax.set_xlim(0, 10.0); ax.set_ylim(0, 5.2); ax.axis("off")
+    ye, yd = 3.55, 0.95
+
+    # ---- encoder side -----------------------------------------------------
+    ax.text(0.2, 4.95, "Encoder input", fontsize=10, color=ENC_sB, weight="bold", va="center")
+    _sq_sB(ax, 0.9, ye, 1.0, ENC_sB, 1)
+    ax.text(0.9, ye - 0.66, "image x\n(1, 28, 28)", ha="center", va="top", fontsize=8)
+    ax.text(1.75, ye, "+", ha="center", va="center", fontsize=14, color=INK_sB)
+    # ten label planes, plane y filled
+    x0, side, off = 2.3, 1.0, 0.075
+    for i in range(9, -1, -1):
+        hot = (i == 7)
+        ax.add_patch(Rectangle((x0 + i * off, ye - side / 2 + (i - 4.5) * off),
+                               side, side, fc=COND_sB if hot else "white",
+                               ec=COND_sB, lw=1.0, alpha=1.0))
+    ax.text(x0 + 0.5 + 0.38, ye - 0.95, "one-hot(y) spread to 10 planes\n(10, 28, 28)",
+            ha="center", va="top", fontsize=8)
+    ax.text(x0 + 0.5 + 0.38, ye + 0.95, "plane y: all 1     other nine: all 0",
+            ha="center", va="bottom", fontsize=7.5, color=INK_sB)
+    _arrow_sB(ax, 4.35, ye, 5.25, ye, "concat on\nchannel axis", dy=0.10)
+    # stacked result
+    _sq_sB(ax, 5.95, ye, 1.0, ENC_sB, 1)
+    for i in range(1, 4):
+        ax.add_patch(Rectangle((5.95 - 0.5 + i * 0.06, ye - 0.5 + i * 0.06), 1.0, 1.0,
+                               fc="none", ec=COND_sB, lw=1.0, zorder=0))
+    ax.text(6.05, ye - 0.66, "(11, 28, 28)", ha="center", va="top", fontsize=8)
+    _arrow_sB(ax, 6.85, ye, 7.75, ye, "Conv 3x3, pad 1", dy=0.10)
+    _sq_sB(ax, 8.4, ye, 1.0, ENC_sB, 3)
+    ax.text(8.45, ye - 0.66, "(16, 28, 28)", ha="center", va="top", fontsize=8)
+    ax.text(9.2, ye, "...", ha="left", va="center", fontsize=12, color=INK_sB)
+
+    # ---- decoder side -----------------------------------------------------
+    ax.text(0.2, 1.75, "Decoder input", fontsize=10, color=DEC_sB, weight="bold", va="center")
+    _bar_sB(ax, 0.9, yd, 1.0, 0.22, LAT_sB)
+    ax.text(0.9, yd - 0.24, "z  (k)", ha="center", va="top", fontsize=8)
+    ax.text(1.75, yd, "+", ha="center", va="center", fontsize=14, color=INK_sB)
+    cw = 0.17
+    for i in range(10):
+        ax.add_patch(Rectangle((2.3 + i * cw, yd - 0.11), cw, 0.22,
+                               fc=COND_sB if i == 7 else "white", ec=COND_sB, lw=1.0))
+    ax.text(2.3 + 5 * cw, yd - 0.24, "one-hot(y)  (10)", ha="center", va="top", fontsize=8)
+    _arrow_sB(ax, 4.35, yd, 5.25, yd, "concat", dy=0.10)
+    _bar_sB(ax, 5.75, yd, 0.7, 0.22, LAT_sB)
+    for i in range(4):
+        ax.add_patch(Rectangle((6.10 + i * 0.1, yd - 0.11), 0.1, 0.22,
+                               fc=COND_sB if i == 2 else "white", ec=COND_sB, lw=1.0))
+    ax.text(5.95, yd - 0.24, "(k + 10)", ha="center", va="top", fontsize=8)
+    _arrow_sB(ax, 6.85, yd, 7.75, yd, "Linear", dy=0.10)
+    _bar_sB(ax, 8.4, yd, 1.25, 0.22, DEC_sB)
+    ax.text(8.4, yd - 0.24, "1568  ->  (32, 7, 7)", ha="center", va="top", fontsize=8)
+    ax.text(9.2, yd, "...", ha="left", va="center", fontsize=12, color=INK_sB)
+
+    ax.text(0.2, 0.08, "schematic - shapes copied from the ConvVAE class on this page "
+            "(n_cond = 10); the label drawn is y = 7", fontsize=7.5, color="#666666")
+    fig.savefig("conv_cvae_label_path.svg", transparent=True, bbox_inches="tight")
+    fig.savefig(sys.argv[1] + "/conv_cvae_label_path.png", dpi=110, facecolor="white",
+                bbox_inches="tight") if len(sys.argv) > 1 else None
+    plt.close(fig)
+
+
+# === 5.4 확산: 마르코프 연쇄 얼개, DDIM 이 밟는 타임스텝 ====================
+import sys
+from matplotlib.patches import Circle, FancyBboxPatch, FancyArrowPatch
+
+def _save_sC(fig, name):
+    fig.savefig(f"{name}.svg", transparent=True)
+    if len(sys.argv) > 1:                       # optional PNG copy for eyeballing
+        fig.savefig(f"{sys.argv[1]}/{name}.png", dpi=110, facecolor="white")
+    plt.close(fig)
+    print(f"wrote {name}.svg")
+
+
+# =============================================================================
+# 1. The two Markov chains of DDPM (schematic)
+# =============================================================================
+def fig_diffusion_chain():
+    """Forward chain q (fixed) and reverse chain p_theta (learned). Schematic only."""
+    fig, ax = plt.subplots(figsize=(10.6, 4.3))
+    ax.set_xlim(0, 10.6); ax.set_ylim(0, 4.3); ax.axis("off")
+    y = 2.0
+    xs = [0.9, 2.5, 4.9, 6.9, 9.7]
+    labels = [r"$x_0$", r"$x_1$", r"$x_{t-1}$", r"$x_t$", r"$x_T$"]
+    fills = ["#ffffff", "#ececec", "#c8c8c8", "#b4b4b4", "#7d7d7d"]
+    r = 0.42
+    for x, lab, fc in zip(xs, labels, fills):
+        ax.add_patch(Circle((x, y), r, fc=fc, ec="0.2", lw=1.3, zorder=3))
+        ax.text(x, y, lab, ha="center", va="center", fontsize=13, zorder=4)
+    for x in (3.7, 8.3):                           # the steps not drawn
+        ax.text(x, y, r"$\cdots$", ha="center", va="center", fontsize=18)
+
+    blue, red, green = "tab:blue", "tab:red", "tab:green"
+
+    def arrow(x0, x1, yy, color, rad):
+        ax.add_patch(FancyArrowPatch((x0, yy), (x1, yy), arrowstyle="-|>",
+                                     mutation_scale=14, lw=1.6, color=color,
+                                     connectionstyle=f"arc3,rad={rad}", zorder=2))
+
+    # forward: left -> right, above the nodes
+    arrow(xs[0] + 0.30, xs[1] - 0.30, y + 0.34, blue, -0.35)
+    arrow(xs[2] + 0.30, xs[3] - 0.30, y + 0.34, blue, -0.35)
+    # reverse: right -> left, below the nodes
+    arrow(xs[1] - 0.30, xs[0] + 0.30, y - 0.34, red, -0.35)
+    arrow(xs[3] - 0.30, xs[2] + 0.30, y - 0.34, red, -0.35)
+
+    # closed-form jump x_0 -> x_t
+    ax.add_patch(FancyArrowPatch((xs[0] + 0.12, y + r + 0.05), (xs[3] - 0.12, y + r + 0.05),
+                                 arrowstyle="-|>", mutation_scale=14, lw=1.4,
+                                 color=green, ls=(0, (5, 3)),
+                                 connectionstyle="arc3,rad=-0.36", zorder=1))
+    ax.text(3.0, 3.98, r"one jump:  $q(x_t \mid x_0)$,   "
+            r"$x_t=\sqrt{\bar\alpha_t}\,x_0+\sqrt{1-\bar\alpha_t}\,\varepsilon$",
+            ha="center", va="center", fontsize=11, color=green)
+
+    ax.text(8.0, y + 0.95, "forward process  " + r"$q(x_t \mid x_{t-1})$" + "\nfixed, adds a little noise, no parameters;\nends near " + r"$N(0, I)$",
+            ha="center", va="bottom", fontsize=10, color=blue, linespacing=1.3)
+    ax.text(8.0, y - 1.0, "reverse process  " + r"$p_\theta(x_{t-1} \mid x_t)$" + "\nlearned: U-Net predicts\nthe noise, removes a little",
+            ha="center", va="top", fontsize=10, color=red, linespacing=1.3)
+
+    ax.text(xs[0], y - 0.62, "image", ha="center", va="top", fontsize=10, color="0.25")
+    ax.text(xs[-1], y - 0.62, "noise", ha="center", va="top",
+            fontsize=10, color="0.25")
+    ax.text(0.15, 0.18, "schematic - no measured numbers", fontsize=9,
+            color="0.45", style="italic")
+    _save_sC(fig, "diffusion_chain")
+
+
+# =============================================================================
+# 2. Which timesteps DDIM actually visits
+# =============================================================================
+def fig_ddim_timesteps(T=1000, steps=10):
+    """sqrt(abar_t) for the page's schedule, with the timesteps DDIM-10 visits."""
+    betas = np.linspace(1e-4, 0.02, T)             # same as torch.linspace(1e-4, 0.02, T)
+    abar = np.cumprod(1.0 - betas)
+    try:                                            # the page's own expression
+        import torch
+        ts = torch.linspace(T - 1, 0, steps).long().tolist()
+    except ImportError:
+        ts = [int(v) for v in np.linspace(T - 1, 0, steps)]
+    sig = np.sqrt(abar)
+    print("DDIM timesteps:", ts)
+    print("sqrt(abar) there:", [round(float(sig[t]), 4) for t in ts])
+    print("count with sqrt(abar) < 0.1:", sum(sig[t] < 0.1 for t in ts))
+
+    fig = plt.figure(figsize=(10.6, 4.9))
+    ax = fig.add_axes([0.14, 0.42, 0.84, 0.52])
+    tt = np.arange(T)
+    ax.plot(tt, sig, color="tab:blue", lw=1.8)
+    ax.plot(ts, sig[ts], "o", color="tab:red", ms=7, zorder=3)
+    for t in ts:
+        ax.plot([t, t], [0, sig[t]], color="tab:red", lw=0.8, alpha=0.5)
+        dy = 0.06
+        ax.text(t, sig[t] + dy, f"{sig[t]:.3f}" if sig[t] >= 0.001 else f"{sig[t]:.4f}",
+                ha="center", va="bottom", fontsize=8.5, color="tab:red")
+    ax.set_xlim(-25, T + 24); ax.set_ylim(0, 1.16)
+    ax.set_ylabel(r"signal coefficient  $\sqrt{\bar\alpha_t}$", fontsize=10)
+    ax.set_xticks([])
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.text(985, 0.62, "sampling runs right to left:\nstart at t = 999 (noise), end at t = 0 (image)",
+            ha="right", va="center", fontsize=9.5, color="0.3", linespacing=1.4)
+    ax.annotate("", xy=(560, 0.47), xytext=(985, 0.47),
+                arrowprops=dict(arrowstyle="-|>", color="0.4", lw=1.2))
+
+    ax2 = fig.add_axes([0.14, 0.12, 0.84, 0.24])
+    ax2.set_xlim(-25, T + 24); ax2.set_ylim(0, 2)
+    ax2.fill_between([0, T - 1], 1.15, 1.85, color="0.72", lw=0)
+    ax2.text((T - 1) / 2, 1.5, "every timestep, 999 down to 0", ha="center", va="center", fontsize=9, color="0.15")
+    ax2.vlines(ts, 0.15, 0.85, color="tab:red", lw=2.0)
+    ax2.set_yticks([0.5, 1.5])
+    ax2.set_yticklabels([f"DDIM: {steps} visits", f"DDPM: {T:,} visits"], fontsize=9.5)
+    ax2.set_xticks(ts)
+    ax2.set_xticklabels([str(t) for t in ts], fontsize=9)
+    ax2.set_xlabel("timestep t", fontsize=10)
+    ax2.tick_params(axis="y", length=0)
+    ax2.spines[["top", "right", "left"]].set_visible(False)
+    _save_sC(fig, "ddim_timesteps")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -4885,3 +5751,18 @@ if __name__ == "__main__":
     fig_board_ae_vae()
     fig_board_cvae()
     fig_board_gan_steps()
+
+    # --- 5.1절: 구조 얼개와 고윳값 스펙트럼 ------------------------------
+    fig_four_architectures()
+    fig_pca_scree()
+    fig_gan_bloodflow()
+    fig_optimal_d()
+    fig_convT_1d()
+
+    # --- 5.2 · 5.4 의 얼개와 식을 옮긴 그림 -------------------------------
+    fig_reparam_graph()
+    fig_gaussian_kl()
+    fig_conv_vae_shapes()
+    fig_conv_cvae_label_path()
+    fig_diffusion_chain()
+    fig_ddim_timesteps()
