@@ -649,20 +649,26 @@ def fig_chapter_map():
                 fontsize=8.6, color=GRAY, zorder=3)
 
     # --- 같은 목표에 닿는 두 길 — 나란히 ---
-    box(1, 32, 25, 15, "Skip-gram +\nnegative sampling", "learn   (6.1)")
-    box(35, 32, 25, 15, "PPMI + SVD", "count   (6.1)")
+    # 개념이 쉬운 세는 길이 왼쪽 — 6.1 이 두 쪽을 놓는 차례와 같다
+    box(1, 32, 25, 15, "PPMI + SVD", "count   (6.1)")
+    box(35, 32, 25, 15, "Skip-gram +\nnegative sampling", "learn   (6.1)")
     for dy in (1.3, -1.3):
         ax.plot([27.5, 33.5], [39.5 + dy, 39.5 + dy], color=ACC, lw=2.0, zorder=2)
-    ax.text(30.5, 49.6, "same matrix:  PMI - log k", ha="center", va="bottom",
+    ax.text(30.5, 51.4, "same matrix:  PMI - log k", ha="center", va="bottom",
             fontsize=10, color=ACC)
-    ax.text(10.5, 30.6, "no table built", ha="center", va="top",
+    # 문헌이 부르는 이름 — 왼쪽은 상표가 있고 오른쪽은 없다
+    ax.text(13.5, 47.9, "PPMI-SVD  (no brand name)", ha="center", va="bottom",
+            fontsize=8.8, color=INK, weight="bold")
+    ax.text(47.5, 47.9, "Word2Vec  (SGNS)",
+            ha="center", va="bottom", fontsize=8.8, color=INK, weight="bold")
+    ax.text(10.5, 30.6, "closed form", ha="center", va="top",
             fontsize=8.6, color=GRAY)
-    ax.text(50.5, 30.6, "closed form", ha="center", va="top",
+    ax.text(50.5, 30.6, "no table built", ha="center", va="top",
             fontsize=8.6, color=GRAY)
     # GloVe 가 양쪽에서 가져오는 것 — 암묵성이 아니라 옵티마이저와 표다
-    ax.text(22.0, 28.0, "takes the optimizer", ha="center", va="top",
+    ax.text(22.0, 28.0, "takes the table", ha="center", va="top",
             fontsize=8.2, color=INK, style="italic")
-    ax.text(39.0, 28.0, "takes the table", ha="center", va="top",
+    ax.text(39.0, 28.0, "takes the optimizer", ha="center", va="top",
             fontsize=8.2, color=INK, style="italic")
 
     # --- 그 사이 ---

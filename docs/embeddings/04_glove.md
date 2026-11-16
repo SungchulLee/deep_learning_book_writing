@@ -8,7 +8,7 @@
 
 이 쪽은 셋째 길인 **GloVe**를 깐다. 이 길은 앞의 둘을 한 자리에서 한다 — **먼저 세고, 그 단어 동시 출현 행렬을 맞춘다.**
 
-셋 다 같은 장부를 본다. 그러니 셋이 같은 데 닿아야 할 것 같다. 그런데 같은 말뭉치로 셋을 다 만들어 이웃 여섯을 뽑아 보면, **둘이 함께 고른 이웃이 여섯 가운데 둘 남짓**이다.
+셋 다 같은 장부를 본다. 그러니 셋이 같은 데 닿아야 할 것 같다. 그런데 같은 말뭉치로 셋을 다 만들어 이웃 여섯을 뽑아 보면, **둘이 함께 고른 이웃이 여섯 가운데 둘에서 셋**이다.
 
 그리고 셋째 길에는 더 이상한 일이 하나 있다. 종이에서 식을 따라가면 「이 수는 저 수가 되어야 한다」가 깔끔하게 나오는데, **정말로 만들어서 재어 보면 되지 않는다.** 그런데도 나온 물건은 멀쩡히 쓸 만하다.
 
@@ -16,7 +16,7 @@
 
 </div>
 
-[6.1절의 Skip-gram 쪽](02_context.md)은 짝 맞히기를 되풀이해 **배웠고**, [6.1절의 세는 길 쪽](03_counting.md)은 동시 출현을 **세었다**. 그 쪽은 두 길이 「뿌리가 같다 — 둘 다 같은 단어 동시 출현 행렬을 본다」고 적고 닫았다.
+[6.1절의 세는 길 쪽](02_counting.md)은 동시 출현을 **세었고**, [6.1절의 Skip-gram 쪽](03_context.md)은 짝 맞히기를 되풀이해 **배웠다**. 세는 길 쪽은 두 길이 「뿌리가 같다 — 둘 다 같은 단어 동시 출현 행렬을 본다」고 적고 닫았다.
 
 GloVe는 그 말을 끝까지 밀어붙인 방법이다. 먼저 표를 세고(6.1의 세는 길처럼), 그 표를 경사 하강법으로 맞춘다(6.1의 배우는 길처럼).
 
@@ -75,11 +75,11 @@ $$f(x) = \begin{cases} (x / x_{\max})^{\alpha} & x < x_{\max} \\ 1 & \text{그 �
 
 ## 2. 3/4 제곱이 이 장에 두 번째로 나온다
 
-$\alpha = 3/4$ 를 보고 [6.1절의 Skip-gram 쪽](02_context.md)을 떠올렸다면 맞다. 그 쪽의 네거티브 샘플링은 단어를 **빈도의 3/4 제곱**에 비례해 뽑았다.
+$\alpha = 3/4$ 를 보고 [6.1절의 Skip-gram 쪽](03_context.md)을 떠올렸다면 맞다. 그 쪽의 네거티브 샘플링은 단어를 **빈도의 3/4 제곱**에 비례해 뽑았다.
 
 | | 3/4 제곱이 쓰인 자리 |
 |---|---|
-| [6.1 Skip-gram](02_context.md) | 틀린 짝을 **뽑는 분포**를 $f^{3/4}$ 로 둔다 |
+| [6.1 Skip-gram](03_context.md) | 틀린 짝을 **뽑는 분포**를 $f^{3/4}$ 로 둔다 |
 | 6.2 GloVe | 로스에 주는 **무게**를 $(X_{ij}/x_{\max})^{3/4}$ 로 둔다 |
 
 자리는 다르다. 하나는 무엇을 보여 줄지 고르는 데 쓰고, 하나는 본 것을 얼마나 믿을지 정하는 데 쓴다. **하는 일은 같다 — 흔한 것의 힘을 눌러 준다.**
@@ -121,6 +121,9 @@ import time
 from collections import Counter
 from pathlib import Path
 
+import numpy as np
+import scipy.sparse as sp
+import scipy.sparse.linalg as sla
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -290,9 +293,13 @@ if __name__ == "__main__":
 
     C_flat = cooccurrence(decay=False)
     t = time.perf_counter()
-    torch.manual_seed(SEED)
-    U, S, _ = torch.svd_lowrank(ppmi(C_flat), q=DIM, niter=7)
-    W_count = U * S.sqrt()
+    # 6.1 세는 길 쪽과 같은 희소 Lanczos(svds)다. torch.svd_lowrank(q=DIM,
+    # niter=7) 은 이 행렬에서 수렴하지 않는다 — 64·65번째 특잇값이 0.2%
+    # 차이라서다. 다른 길과 그 값은 그 쪽 4절의 표가 견준다.
+    A = sp.csr_matrix(ppmi(C_flat).numpy().astype(np.float64))
+    U, S, _ = sla.svds(A, k=DIM, random_state=SEED)
+    order = np.argsort(-S)                       # svds 는 작은 것부터 돌려준다
+    W_count = torch.from_numpy(U[:, order] * np.sqrt(S[order])).float()
     t_svd = time.perf_counter() - t
 
     t = time.perf_counter()
@@ -384,29 +391,29 @@ if __name__ == "__main__":
 
   이웃 여섯
     good
-      세기 (PPMI+SVD)       great, also, really, but, very, well
+      세기 (PPMI+SVD)       great, also, very, pretty, really, but
       배우기 (Skip-gram)     decent, great, solid, fine, nice, classical
       GloVe               great, bad, some, nice, pretty, but
     terrible
-      세기 (PPMI+SVD)       awful, acting, inept, bad, horrible, laughable
+      세기 (PPMI+SVD)       awful, acting, horrible, bad, laughable, inept
       배우기 (Skip-gram)     awful, bad, horrible, pitiful, chuckle, laughable
       GloVe               horrible, acting, script, writing, dialogue, bad
     movie
-      세기 (PPMI+SVD)       this, it, really, thing, it's, film
+      세기 (PPMI+SVD)       this, it, thing, film, really, if
       배우기 (Skip-gram)     film, drivel, thing, btw, preposterous, stinker
       GloVe               this, film, it, but, i, just
     she
-      세기 (PPMI+SVD)       her, he, when, him, woman, his
+      세기 (PPMI+SVD)       her, he, when, him, she's, herself
       배우기 (Skip-gram)     her, she's, husband, he, phillip, marie
       GloVe               he, her, she's, when, does, him
     funny
-      세기 (PPMI+SVD)       hilarious, amusing, too, unintentionally, scary, comedy
+      세기 (PPMI+SVD)       hilarious, amusing, comedy, scary, entertaining, it's
       배우기 (Skip-gram)     kinda, scary, quite, amusing, damn, appealing
       GloVe               quite, very, it's, interesting, pretty, good
 
   이웃 여섯 가운데 두 길이 함께 고른 수
-    세기    - 배우기      good:1  terrible:4  movie:2  she:2  funny:2   평균 2.2/6
-    세기    - GloVe    good:2  terrible:3  movie:3  she:4  funny:0   평균 2.4/6
+    세기    - 배우기      good:1  terrible:4  movie:2  she:3  funny:2   평균 2.4/6
+    세기    - GloVe    good:3  terrible:3  movie:3  she:5  funny:1   평균 3.0/6
     배우기   - GloVe    good:2  terrible:2  movie:1  she:3  funny:1   평균 1.8/6
     우연이라면 0.0045/6 이다
 
@@ -427,19 +434,19 @@ if __name__ == "__main__":
       movie    f=1 일 때  this, film, fact, only, it, made
 
   세 길에서 흔한 20 단어가 먹은 이웃 자리 (단어 100개 x 이웃 6 = 600칸)
-    세기 (PPMI+SVD)           1.2%
+    세기 (PPMI+SVD)           0.8%
     배우기 (Skip-gram)         0.0%
     GloVe                   2.5%
 
   드는 시간
-    세기                 0.1초
-    PPMI + SVD           0.7초
-    Skip-gram           20.4초   (6,000스텝)
-    GloVe               31.7초   (50바퀴)
+    세기                 0.0초
+    PPMI + SVD           2.7초
+    Skip-gram           11.2초   (6,000스텝)
+    GloVe               21.1초   (50바퀴)
 ```
 
 !!! warning "이 쪽의 GloVe는 논문의 GloVe가 아니다"
-    맞춘 식은 같지만 규모가 전혀 다르다. 논문은 **60억 단어**에 어휘 40만, 창 10, 300차원으로 돌렸고, 이 쪽은 **영화평 6,000편**에 어휘 8,000, 창 4, 64차원이다. 창을 4로 둔 것은 좋아서가 아니라 [6.1절의 Skip-gram 쪽](02_context.md)·[6.1절의 세는 길 쪽](03_counting.md)과 맞대려고 맞춘 것이다.
+    맞춘 식은 같지만 규모가 전혀 다르다. 논문은 **60억 단어**에 어휘 40만, 창 10, 300차원으로 돌렸고, 이 쪽은 **영화평 6,000편**에 어휘 8,000, 창 4, 64차원이다. 창을 4로 둔 것은 좋아서가 아니라 [6.1절의 Skip-gram 쪽](03_context.md)·[6.1절의 세는 길 쪽](02_counting.md)과 맞대려고 맞춘 것이다.
 
     그러니 아래에서 이웃 목록이 신통치 않은 것을 **방법의 성적으로 읽으면 안 된다.** [바로 다음 쪽](05_pretrained.md)이 같은 방법을 1,000배 자료로 돌린 것을 가져와 연다.
 
@@ -449,15 +456,15 @@ if __name__ == "__main__":
 
 | 두 길이 함께 고른 이웃 | 평균 |
 |---|---|
-| 세기 — 배우기 | 2.2/6 |
-| 세기 — GloVe | 2.4/6 |
+| 세기 — 배우기 | 2.4/6 |
+| 세기 — GloVe | 3.0/6 |
 | 배우기 — GloVe | **1.8/6** |
 
-우연이라면 0.0045/6이니 **셋이 서로 아주 멀지는 않다.** 500배쯤 겹친다. 그런데 **여섯 가운데 넷은 서로 다르다.**
+우연이라면 0.0045/6이니 **셋이 서로 아주 멀지는 않다.** 400배에서 700배쯤 겹친다. 그런데 **여섯 가운데 절반 넘게 서로 다르다.**
 
-눈으로 봐도 갈린다. `terrible` 에서 세기와 배우기는 둘 다 `awful, bad, horrible` 로 **뜻이 비슷한 단어**을 모으는데, GloVe는 `horrible, acting, script, writing, dialogue` 로 **같은 문장에 함께 나오는 단어**을 모은다. 「끔찍한 연기」, 「끔찍한 각본」이 영화평에 자주 붙어 다니기 때문이다.
+눈으로 봐도 갈린다. `terrible` 에서 세기와 배우기는 둘 다 `awful, bad, horrible` 로 **뜻이 비슷한 단어**를 모으는데, GloVe는 `horrible, acting, script, writing, dialogue` 로 **같은 문장에 함께 나오는 단어**를 모은다. 「끔찍한 연기」, 「끔찍한 각본」이 영화평에 자주 붙어 다니기 때문이다.
 
-이것이 [6.1절의 세는 길 쪽](03_counting.md)이 열어 둔 물음에 붙는 답 하나다. 그 쪽은 두 길이 「같은 표를 본다」고 적었다. 맞다. **그런데 같은 표를 보는 것과 같은 답을 내는 것은 다르다.** 무엇을 맞출지, 어느 칸에 무게를 줄지, 거리를 어떻게 잴지가 모두 다르면 결과도 다르다.
+이것이 [6.1절의 세는 길 쪽](02_counting.md)이 열어 둔 물음에 붙는 답 하나다. 그 쪽은 두 길이 「같은 표를 본다」고 적었다. 맞다. **그런데 같은 표를 보는 것과 같은 답을 내는 것은 다르다.** 무엇을 맞출지, 어느 칸에 무게를 줄지, 거리를 어떻게 잴지가 모두 다르면 결과도 다르다.
 
 ---
 
@@ -469,7 +476,7 @@ if __name__ == "__main__":
 
 $$w_i^\top \tilde w_j \;\approx\; \log X_{ij} - \log X_i - \log X_j \;=\; \mathrm{PMI}(i, j) - \log\textstyle\sum X$$
 
-**곧 내적이 PMI가 되어야 한다** — [6.1절의 세는 길 쪽](03_counting.md)이 SVD로 분해한 바로 그 양이다. 세 길이 같은 표에 닿는다는 이야기가 여기서 닫히는 것처럼 보인다.
+**곧 내적이 PMI가 되어야 한다** — [6.1절의 세는 길 쪽](02_counting.md)이 SVD로 분해한 바로 그 양이다. 세 길이 같은 표에 닿는다는 이야기가 여기서 닫히는 것처럼 보인다.
 
 재어 보았다.
 
@@ -515,8 +522,8 @@ $f$ 를 떼고 모든 칸을 똑같이 두면 어떻게 되는가.
 
 | 흔한 20 단어가 먹은 이웃 자리 (600칸) | |
 |---|---|
-| [배우기 (Skip-gram)](02_context.md) | **0.0%** |
-| [세기 (PPMI+SVD)](03_counting.md) | 1.2% |
+| [배우기 (Skip-gram)](03_context.md) | **0.0%** |
+| [세기 (PPMI+SVD)](02_counting.md) | 0.8% |
 | GloVe | **2.5%** |
 
 6.1 의 네거티브 샘플링은 흔한 단어를 **뽑는 자리에서** 눌렀고, 같은 절의 PPMI는 **나누어서** 걷어 냈다. GloVe의 $f$ 는 그 둘보다 무른 손이다. 이 작은 말뭉치에서는 그 차이가 보인다.
@@ -532,11 +539,11 @@ $f$ 를 떼고 모든 칸을 똑같이 두면 어떻게 되는가.
 
 | | 무엇을 하나 | 흔한 단어를 어떻게 누르나 | 시간 |
 |---|---|---|---|
-| [6.1 Skip-gram](02_context.md) | 짝을 맞히기를 되풀이해 **배운다** | 뽑는 분포를 $f^{3/4}$ 로 | 20.4초 |
-| [6.1 세기](03_counting.md) | 표를 **세고 분해한다** | 주변 확률로 나눈다 (PMI) | 0.8초 |
-| 6.2 GloVe | **세고 나서 맞춘다** | 로스 무게를 $(X/100)^{3/4}$ 로 | 31.8초 |
+| [6.1 세기](02_counting.md) | 표를 **세고 분해한다** | 주변 확률로 나눈다 (PMI) | 2.7초 |
+| [6.1 Skip-gram](03_context.md) | 짝을 맞히기를 되풀이해 **배운다** | 뽑는 분포를 $f^{3/4}$ 로 | 11.2초 |
+| 6.2 GloVe | **세고 나서 맞춘다** | 로스 무게를 $(X/100)^{3/4}$ 로 | 21.1초 |
 
-셋 다 같은 단어 동시 출현 행렬을 읽는다. 그런데 **이웃 여섯 가운데 둘 남짓만 겹친다.** 같은 재료에서 같은 물건이 나오지 않는다.
+셋 다 같은 단어 동시 출현 행렬을 읽는다. 그런데 **이웃 여섯 가운데 둘에서 셋만 겹친다.** 같은 재료에서 같은 물건이 나오지 않는다.
 
 그리고 이 쪽이 하나 더 보탠다. **유도를 믿고 「내적은 PMI다」라고 적었다면 틀렸을 것이다.** 재어 보니 상관이 음수였고, 손으로 못 박아야 비로소 +0.783이 되었다. 식이 묶는 것은 합이지 쪼개는 방식이 아니다.
 
