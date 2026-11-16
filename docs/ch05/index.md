@@ -1,4 +1,4 @@
-# 5장: MNIST와 CIFAR-10으로 보는 차원축소와 생성
+# 5장: 차원축소와 생성
 
 <div class="leadbox" markdown>
 

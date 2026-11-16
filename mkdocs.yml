@@ -277,7 +277,7 @@ nav:
         - "EfficientNet — 깊이·너비·해상도의 복합 스케일링": ch04/11_transfer_efficientnet.md
         - "ConvNeXt — 트랜스포머 설계를 반영한 CNN": ch04/14_transfer_convnext.md
         - "ViT — 비전 트랜스포머": ch04/12_transfer_vit.md
-    - 5 MNIST와 CIFAR-10으로 보는 차원축소와 생성:
+    - 5 차원축소와 생성:
       - 장 개요: ch05/index.md
       - 5.1 차원축소:
         - "차원 축소 방법 개요": ch05/dimreduction/index.md
@@ -305,8 +305,8 @@ nav:
       - 장 개요: embeddings/index.md
       - 6.1 단어 임베딩:
         - "단어는 수가 아니다 — 조회가 곧 행렬 곱이다": embeddings/01_not_a_number.md
-        - "주위 단어가 뜻을 만든다 — Skip-gram 과 네거티브 샘플링": embeddings/02_context.md
-        - "같이 나온 횟수가 뜻을 만든다 — 동시 출현 · PPMI · SVD": embeddings/03_counting.md
+        - "같이 나온 횟수가 뜻을 만든다 — 동시 출현 · PPMI · SVD": embeddings/02_counting.md
+        - "주위 단어가 뜻을 만든다 — Skip-gram 과 네거티브 샘플링": embeddings/03_context.md
       - "6.2 GloVe":
         - "트레인 방법 — 세는 길과 배우는 길이 만나는 자리": embeddings/04_glove.md
         - "사용법 — 내려받아 열어 보는 60억 단어 벡터": embeddings/05_pretrained.md
