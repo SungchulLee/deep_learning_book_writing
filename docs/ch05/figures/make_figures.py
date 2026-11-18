@@ -25,6 +25,7 @@ make_figures.py - 5장의 그림을 만든다
     pca_scree.svg             MNIST 공분산의 고윳값 스펙트럼과 누적 설명 분산 비율
     gan_bloodflow.svg         detach() 와 얼리기를 혈액순환에 빗댄 사람 그림 (얼개)
     blur_boundary.svg         진짜·아홉 장 평균·VAE-64·GAN 의 획과 잉크 픽셀값 분포
+    eigen_axes.svg            2x2 행렬이 원을 타원으로, MNIST 의 방향별 분산
     optimal_d.svg             두 분포의 최적 디스크리미네이터 D* 와 L_D = log 4 - 2 JS
     convT_1d.svg              전치 컨볼루션 (4, 2, 1) 이 길이를 두 배로 키우는 셈, 1차원
     reparam_graph.svg         직접 샘플링과 재매개변수화 트릭의 계산 그래프 (얼개)
@@ -5671,6 +5672,76 @@ def fig_ddim_timesteps(T=1000, steps=10):
     _save_sC(fig, "ddim_timesteps")
 
 
+# === 5.1절 첫 쪽: 고윳값 분해 =============================================
+def fig_eigen_axes():
+    """00_eigen.md - 고유벡터는 행렬이 방향을 바꾸지 않는 축이다.
+
+    왼쪽: A = [[2, 1], [1, 2]] 가 단위원을 타원으로 보낸다. 고유벡터 둘은
+    제 방향 그대로 3 배와 1 배가 되고, (1, 0) 은 (2, 1) 로 돌아간다.
+    오른쪽: MNIST 공분산에서 잰 분산 - 무작위 방향 1000 개, 픽셀 784 개,
+    고유벡터 앞 64 개. 그 쪽의 프로그램과 같은 정규화·같은 씨앗(0)이다.
+    """
+    A = np.array([[2.0, 1.0], [1.0, 2.0]])
+    th = np.linspace(0, 2 * np.pi, 400)
+    circ = np.stack([np.cos(th), np.sin(th)])
+    ell = A @ circ
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.6, 4.6),
+                                   gridspec_kw={"width_ratios": [1, 1.35]})
+    axL.plot(*circ, color="#999999", lw=1, ls="--", label="unit circle")
+    axL.plot(*ell, color="#2f3337", lw=1.5, label="A applied to the circle")
+    s = 1 / np.sqrt(2)
+    arrows = (((s, s), (3 * s, 3 * s), "#2a6f8a", "q1  ->  A q1 = 3 q1"),
+              ((s, -s), (s, -s), "#6a8a2a", "q2  ->  A q2 = 1 q2"),
+              ((1, 0), (2, 1), "#8a4b2a", "(1, 0)  ->  (2, 1): turned"))
+    for (x0, y0), (x1, y1), col, lab in arrows:
+        axL.annotate("", xy=(x1, y1), xytext=(0, 0),
+                     arrowprops=dict(arrowstyle="-|>", color=col, lw=1.8, alpha=0.45))
+        axL.annotate("", xy=(x0, y0), xytext=(0, 0),
+                     arrowprops=dict(arrowstyle="-|>", color=col, lw=1.8))
+        axL.plot([], [], color=col, lw=2, label=lab)
+    axL.set_aspect("equal"); axL.set_xlim(-3.3, 3.3); axL.set_ylim(-3.3, 3.3)
+    axL.axhline(0, color="#dddddd", lw=0.6); axL.axvline(0, color="#dddddd", lw=0.6)
+    axL.legend(fontsize=8, frameon=False, loc="lower right")
+    axL.set_title("A = [[2, 1], [1, 2]]: dark = before, light = after", fontsize=10)
+    for sp in ("top", "right"):
+        axL.spines[sp].set_visible(False)
+
+    tf = transforms.Compose([transforms.ToTensor(),
+                             transforms.Normalize((MEAN,), (STD,))])
+    ds = torchvision.datasets.MNIST(DATA, train=True, download=True, transform=tf)
+    X = torch.cat([x.flatten(1) for x, _ in
+                   torch.utils.data.DataLoader(ds, batch_size=2000, shuffle=False)])
+    X = X.double().numpy()
+    Xc = X - X.mean(0)
+    C = Xc.T @ Xc / (len(X) - 1)
+    lam = np.linalg.eigh(C)[0][::-1]
+    rng = np.random.default_rng(0)
+    R = rng.standard_normal((784, 1000)); R /= np.linalg.norm(R, axis=0)
+    vr = ((Xc @ R) ** 2).sum(0) / (len(X) - 1)
+    pix = np.diag(C)
+    rows = (("1000 random directions", vr, "#8a4b2a"),
+            ("784 single pixels", pix[pix > 0], "#6a8a2a"),
+            ("eigenvectors 1-64", lam[:64], "#2a6f8a"))
+    for y, (lab, v, col) in enumerate(rows):
+        jit = np.random.default_rng(1).uniform(-0.18, 0.18, len(v))
+        axR.scatter(v, y + jit, s=7, color=col, alpha=0.55, lw=0)
+        axR.text(v.max() * 1.15, y, f"max {v.max():.2f}", va="center",
+                 fontsize=8, color=col)
+    axR.set_yticks(range(3)); axR.set_yticklabels([r[0] for r in rows], fontsize=9)
+    axR.set_xscale("log")
+    axR.set_xlim(1e-3, 300)
+    axR.set_xlabel("variance of MNIST projected on the direction (log scale)")
+    axR.set_title("no direction beats eigenvector 1", fontsize=10)
+    for sp in ("top", "right"):
+        axR.spines[sp].set_visible(False)
+    fig.tight_layout()
+    fig.savefig("eigen_axes.svg", transparent=True)
+    if len(sys.argv) > 1:
+        fig.savefig(f"{sys.argv[1]}/eigen_axes.png", dpi=110, facecolor="white")
+    plt.close(fig)
+    print("wrote eigen_axes.svg")
+
+
 # === 11/16 강의 필기: L2 로스는 획의 경계를 뭉갠다 ========================
 def fig_blur_boundary():
     """01_gan.md 2절 - 흐릿함은 획의 경계에서 난다.
@@ -5821,6 +5892,9 @@ if __name__ == "__main__":
 
     # --- 11/16 강의 필기 ------------------------------------------------
     fig_blur_boundary()
+
+    # --- 5.1절 첫 쪽 · 6.1절 특잇값 분해 쪽 ---------------------------
+    fig_eigen_axes()
 
     # --- 5.1절: 구조 얼개와 고윳값 스펙트럼 ------------------------------
     fig_four_architectures()

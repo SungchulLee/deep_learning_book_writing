@@ -281,6 +281,7 @@ nav:
       - 장 개요: ch05/index.md
       - 5.1 차원축소:
         - "차원 축소 방법 개요": ch05/dimreduction/index.md
+        - "고윳값 분해와 PCA": ch05/dimreduction/00_eigen.md
         - PCA: ch05/dimreduction/01_pca.md
         - AE_Linear: ch05/dimreduction/02_ae_linear.md
         - AE_MLP: ch05/dimreduction/03_ae_mlp.md
