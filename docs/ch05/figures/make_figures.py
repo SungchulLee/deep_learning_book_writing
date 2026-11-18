@@ -24,6 +24,7 @@ make_figures.py - 5장의 그림을 만든다
                               (잰 수 없음 - 레이어 형태는 네 쪽의 코드에서 옮겼다)
     pca_scree.svg             MNIST 공분산의 고윳값 스펙트럼과 누적 설명 분산 비율
     gan_bloodflow.svg         detach() 와 얼리기를 혈액순환에 빗댄 사람 그림 (얼개)
+    blur_boundary.svg         진짜·아홉 장 평균·VAE-64·GAN 의 획과 잉크 픽셀값 분포
     optimal_d.svg             두 분포의 최적 디스크리미네이터 D* 와 L_D = log 4 - 2 JS
     convT_1d.svg              전치 컨볼루션 (4, 2, 1) 이 길이를 두 배로 키우는 셈, 1차원
     reparam_graph.svg         직접 샘플링과 재매개변수화 트릭의 계산 그래프 (얼개)
@@ -5670,6 +5671,72 @@ def fig_ddim_timesteps(T=1000, steps=10):
     _save_sC(fig, "ddim_timesteps")
 
 
+# === 11/16 강의 필기: L2 로스는 획의 경계를 뭉갠다 ========================
+def fig_blur_boundary():
+    """01_gan.md 2절 - 흐릿함은 획의 경계에서 난다.
+
+    네 줄은 진짜 시험 그림, 한 픽셀 어긋난 아홉 장의 평균, VAE-64 표본,
+    GAN(MLP) 표본이다. 오른쪽은 잉크가 묻은 픽셀(x > 0.1)의 값 분포다.
+    VAE 는 5.2절이 저장한 mnist_vae64_beta1.0.pt, GAN 은 mnist_gan_g.pt 를 읽고,
+    표본 수와 씨앗은 그 쪽의 블록과 같다(5000장, 씨앗 42). 그림에 수는 적지 않는다 -
+    수는 그 쪽 블록의 출력에 있다.
+    """
+    import torch.nn.functional as F
+
+    te = torchvision.datasets.MNIST(DATA, train=False, download=True)
+    real = te.data[:5000].float() / 255.0
+    pad = F.pad(real, (1, 1, 1, 1))
+    mean9 = torch.stack([pad[:, 1 + dy:29 + dy, 1 + dx:29 + dx]
+                         for dy in (-1, 0, 1) for dx in (-1, 0, 1)]).mean(0)
+    vae = VAEModel(64)
+    vae.load_state_dict(torch.load(f"{MODELS}/mnist_vae64_beta1.0.pt",
+                                   map_location="cpu", weights_only=True))
+    vae.eval()
+    with torch.no_grad():
+        z = torch.randn(5000, 64, generator=torch.Generator().manual_seed(42))
+        vae01 = (vae.dec(z) * STD + MEAN).clamp(0, 1).reshape(-1, 28, 28)
+        z = torch.randn(5000, 64, generator=torch.Generator().manual_seed(42))
+        gan01 = ((_gan_mlp_generator()(z)[:, 0] + 1) / 2).clamp(0, 1)
+
+    rows = (("real test digits", real, "#2f3337"),
+            ("mean of 9 one-pixel shifts", mean9, "#8a4b2a"),
+            ("VAE-64 samples", vae01, "#2a6f8a"),
+            ("GAN (MLP) samples", gan01, "#6a8a2a"))
+    fig = plt.figure(figsize=(11.0, 4.6))
+    gs = fig.add_gridspec(4, 2, width_ratios=[1.45, 1.0], wspace=0.22, hspace=0.25)
+    for r, (name, x, col) in enumerate(rows):
+        ax = fig.add_subplot(gs[r, 0])
+        strip = torch.cat([x[i] for i in range(8)], 1)
+        ax.imshow(1 - strip, cmap="gray", vmin=0, vmax=1)
+        ax.set_xticks([]); ax.set_yticks([])
+        for sp in ax.spines.values():
+            sp.set_color(col); sp.set_linewidth(1.4)
+        ax.set_ylabel(name, rotation=0, ha="right", va="center", fontsize=9,
+                      color=col, labelpad=6)
+    axh = fig.add_subplot(gs[:, 1])
+    bins = np.linspace(0.1, 1.0, 19)
+    for name, x, col in rows:
+        v = x[x > 0.1].numpy()
+        w = np.ones_like(v) / len(v)
+        axh.hist(v, bins=bins, weights=w, histtype="step", lw=1.6, color=col,
+                 label=name)
+    axh.axvspan(0.1, 0.9, color="#dddddd", alpha=0.35, lw=0)
+    axh.text(0.5, 0.97, "gray: 0.1 < x < 0.9", transform=axh.transAxes,
+             ha="center", va="top", fontsize=8, color="#666666")
+    axh.set_xlabel("pixel value, inked pixels only (1 = full ink)")
+    axh.set_ylabel("share of inked pixels")
+    axh.legend(fontsize=8, frameon=False, loc="upper left",
+               bbox_to_anchor=(0.0, 0.92))
+    for sp in ("top", "right"):
+        axh.spines[sp].set_visible(False)
+    fig.savefig("blur_boundary.svg", transparent=True, bbox_inches="tight")
+    if len(sys.argv) > 1:
+        fig.savefig(f"{sys.argv[1]}/blur_boundary.png", dpi=110, facecolor="white",
+                    bbox_inches="tight")
+    plt.close(fig)
+    print("wrote blur_boundary.svg")
+
+
 if __name__ == "__main__":
     fig_pca_reconstructions()
     fig_recon_ladder()
@@ -5751,6 +5818,9 @@ if __name__ == "__main__":
     fig_board_ae_vae()
     fig_board_cvae()
     fig_board_gan_steps()
+
+    # --- 11/16 강의 필기 ------------------------------------------------
+    fig_blur_boundary()
 
     # --- 5.1절: 구조 얼개와 고윳값 스펙트럼 ------------------------------
     fig_four_architectures()

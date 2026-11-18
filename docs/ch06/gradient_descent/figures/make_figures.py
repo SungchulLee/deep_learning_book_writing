@@ -471,7 +471,69 @@ def make_convexity():
     print("wrote convexity.svg")
 
 
+def make_adam_snr():
+    """01_adam_optimizer.md 0절 - Adam 의 걸음폭은 신호 대 잡음 비를 따라간다.
+
+    참 그래디언트 mu = 1 에 표준편차 sigma 인 잡음을 얹어 5000 걸음을 돌리고,
+    1001 걸음부터 m_hat / sqrt(v_hat) 을 평균한다. 그 쪽의 블록과 같은 셈이며,
+    씨앗 0~4 다섯 벌의 평균과 범위를 그린다.
+    """
+    import torch
+
+    b1, b2, eps = 0.9, 0.999, 1e-8
+    sig = torch.tensor([0.1, 0.2, 0.3, 0.5, 1.0, 2.0, 3.0, 5.0, 10.0, 20.0, 30.0])
+    runs = []
+    for seed in range(5):
+        torch.manual_seed(seed)
+        mu = torch.ones_like(sig)
+        m = torch.zeros_like(sig)
+        v = torch.zeros_like(sig)
+        acc = torch.zeros_like(sig)
+        for t in range(1, 5001):
+            g = mu + sig * torch.randn_like(sig)
+            m = b1 * m + (1 - b1) * g
+            v = b2 * v + (1 - b2) * g * g
+            if t > 1000:
+                acc += (m / (1 - b1 ** t)) / ((v / (1 - b2 ** t)).sqrt() + eps)
+        runs.append((acc / 4000).numpy())
+    R = np.array(runs)
+    s = sig.numpy()
+    mean, lo, hi = R.mean(0), R.min(0), R.max(0)
+
+    xs = np.logspace(-1, np.log10(30), 200)
+    fig, ax = plt.subplots(figsize=(6.4, 3.6))
+    ax.plot(xs, 1 / np.sqrt(1 + xs ** 2), color=INK, lw=1.6,
+            label="mu / sqrt(mu^2 + sigma^2)   (what v really measures)")
+    ys = np.where(1 / xs <= 1.6, 1 / xs, np.nan)
+    ax.plot(xs, ys, color=ACCENT, lw=1.3, ls="--",
+            label="mu / sigma   (divide by the std instead)")
+    ax.annotate("grows without bound\nas sigma -> 0", xy=(0.66, 1.52), xytext=(0.13, 1.28),
+                fontsize=8, color=ACCENT,
+                arrowprops=dict(arrowstyle="->", color=ACCENT, lw=0.8))
+    ax.errorbar(s, mean, yerr=[mean - lo, hi - mean], fmt="o", ms=4.5,
+                color="#2a6f8a", ecolor="#2a6f8a", elinewidth=1, capsize=2.5,
+                label="Adam step / lr, measured (5 seeds: mean, min-max)")
+    ax.axhline(1.0, color="#999999", lw=0.7, ls=":")
+    ax.text(0.105, 1.03, "noise-free step = lr", fontsize=8, color="#666666")
+    ax.set_xscale("log")
+    ax.set_ylim(0, 1.6)
+    ax.set_xlim(0.09, 33)
+    ax.set_xlabel("noise sigma  (true gradient mu = 1)")
+    ax.set_ylabel("mean step size / lr")
+    ax.legend(fontsize=8, frameon=False, loc="upper right", bbox_to_anchor=(1.0, 0.93))
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    fig.tight_layout()
+    fig.savefig(HERE / "adam_snr.svg", transparent=True, bbox_inches="tight")
+    plt.close(fig)
+    print("wrote adam_snr.svg")
+    for x, a, b, c in zip(s, mean, lo, hi):
+        print(f"  sigma {x:5.1f}  mean {a:.4f}  range {b:.4f}~{c:.4f}  "
+              f"pred {1 / np.sqrt(1 + x * x):.4f}")
+
+
 def main():
+    make_adam_snr()
     make_cauchy()
     make_contours()
     make_lr()
