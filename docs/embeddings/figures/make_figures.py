@@ -8,6 +8,7 @@ make_figures.py - 6장의 그림을 만든다
                  색과 이름을 붙이고 나머지는 회색 점으로 둔다
     keep_rate.svg 남긴 차원에 따라 「원래 이웃 열 가운데 몇이 남는가」
     svd_lsa.svg  특잇값 분해의 행렬 크기(얼개)와, awful 로 찾은 글의 코사인 분포
+    why_embedding.svg  픽셀 평균과 코드 평균, 번호 그대로 대 임베딩의 정확도
 
 왜 이 둘인가:
     6.6 쪽의 요점은 **그림이 그럴듯해 보이는 것과 가까움이 지켜진 것은
@@ -856,6 +857,137 @@ def fig_svd_lsa():
     plt.close(fig); print("wrote svd_lsa.svg")
 
 
+def fig_why_embedding():
+    """00_why_embedding.md - 픽셀의 평균은 그림이고 코드의 평균은 아무것도 아니다.
+
+    왼쪽 위: MNIST 시험 그림에서 같은 숫자 두 장(3, 3)과 다른 숫자 두 장(3, 8)을
+    픽셀마다 평균한 것. 왼쪽 아래: cat 과 dog 의 아스키 코드를 글자마다 평균한 것.
+    오른쪽: 그 쪽 (마)의 정확도 - 같은 셈을 씨앗 0~2 로 다시 돌린다.
+    """
+    import torchvision
+    from matplotlib.gridspec import GridSpec
+
+    te = torchvision.datasets.MNIST("./data", train=False, download=True)
+    X, y = te.data.float() / 255.0, te.targets
+    threes = (y == 3).nonzero().flatten()[:2]
+    eight = (y == 8).nonzero().flatten()[0]
+    pairs = ((X[threes[0]], X[threes[1]]), (X[threes[0]], X[eight]))
+
+    # (마)와 같은 학습
+    def tok(t):
+        return TOKEN.findall(t.replace("<br />", " ").lower())
+
+    def load(split):
+        d, lab = [], []
+        for v, name in ((1, "pos"), (0, "neg")):
+            for f in sorted((ROOT / split / name).glob("*.txt")):
+                d.append(tok(f.read_text(encoding="utf-8"))); lab.append(v)
+        return d, torch.tensor(lab, dtype=torch.float)
+
+    V, L = 20000, 200
+    tr, ytr = load("train"); tst, yte = load("test")
+    cnt = Counter(w for d in tr for w in d)
+    stoi = {w: i for i, (w, _) in enumerate(cnt.most_common(V))}
+
+    def enc(docs):
+        Z = torch.zeros(len(docs), L, dtype=torch.long)
+        for i, d in enumerate(docs):
+            ids = [stoi[w] + 1 for w in d if w in stoi][:L]
+            Z[i, :len(ids)] = torch.tensor(ids)
+        return Z
+
+    Xtr, Xte = enc(tr), enc(tst)
+
+    class RawIds(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.net = nn.Sequential(nn.Linear(L, 64), nn.ReLU(), nn.Linear(64, 1))
+
+        def forward(self, Z):
+            return self.net(Z.float() / V).squeeze(1)
+
+    class Bag(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.emb = nn.Embedding(V + 1, 64, padding_idx=0); self.out = nn.Linear(64, 1)
+
+        def forward(self, Z):
+            m = (Z > 0).float().unsqueeze(-1)
+            return self.out((self.emb(Z) * m).sum(1) / m.sum(1).clamp(min=1)).squeeze(1)
+
+    def fit(model, A, B, seed):
+        opt = torch.optim.Adam(model.parameters(), lr=1e-3)
+        g = torch.Generator().manual_seed(seed)
+        for _ in range(5):
+            o = torch.randperm(len(A), generator=g)
+            for i in range(0, len(o), 128):
+                b = o[i:i + 128]
+                loss = F.binary_cross_entropy_with_logits(model(A[b]), ytr[b])
+                opt.zero_grad(); loss.backward(); opt.step()
+        with torch.no_grad():
+            return ((model(B) > 0).float() == yte).float().mean().item()
+
+    res = {k: [] for k in ("raw", "raw_p", "len", "bag", "bag_p")}
+    for seed in range(3):
+        perm = torch.cat([torch.zeros(1, dtype=torch.long),
+                          1 + torch.randperm(V, generator=torch.Generator().manual_seed(100 + seed))])
+        torch.manual_seed(seed); res["raw"].append(fit(RawIds(), Xtr, Xte, seed))
+        torch.manual_seed(seed); res["raw_p"].append(fit(RawIds(), perm[Xtr], perm[Xte], seed))
+        torch.manual_seed(seed)
+        res["len"].append(fit(RawIds(), (Xtr > 0).long() * V, (Xte > 0).long() * V, seed))
+        torch.manual_seed(seed); m1 = Bag()
+        W0 = m1.emb.weight.detach().clone(); o0 = {k: v.clone() for k, v in m1.out.state_dict().items()}
+        res["bag"].append(fit(m1, Xtr, Xte, seed))
+        m2 = Bag()
+        with torch.no_grad():
+            m2.emb.weight[perm] = W0; m2.out.load_state_dict(o0)
+        res["bag_p"].append(fit(m2, perm[Xtr], perm[Xte], seed))
+
+    fig = plt.figure(figsize=(12.4, 4.8))
+    gs = GridSpec(3, 2, figure=fig, width_ratios=[1.15, 1], height_ratios=[1, 1, 0.8],
+                  wspace=0.25, hspace=0.45)
+    for r, ((p, q), title) in enumerate(zip(pairs, ("3 and 3 -> still a 3",
+                                                    "3 and 8 -> in between"))):
+        ax = fig.add_subplot(gs[r, 0])
+        strip = torch.cat([p, torch.zeros(28, 4), q, torch.zeros(28, 4), (p + q) / 2], 1)
+        ax.imshow(1 - strip, cmap="gray", vmin=0, vmax=1)
+        ax.set_xticks([14, 46, 78]); ax.set_xticklabels(["image A", "image B", "pixel mean"], fontsize=8)
+        ax.set_yticks([]); ax.set_title(f"pixels: {title}", fontsize=9.5, loc="left")
+    axT = fig.add_subplot(gs[2, 0]); axT.axis("off")
+    cat, dog = [ord(c) for c in "cat"], [ord(c) for c in "dog"]
+    mean = [round((a + b) / 2) for a, b in zip(cat, dog)]
+    axT.text(0, 0.95, "codes: 'cat' and 'dog'  ->  nothing", fontsize=9.5, va="top")
+    axT.text(0, 0.55, f"cat  {cat}\ndog  {dog}\nmean {mean} = '{''.join(map(chr, mean))}'",
+             fontsize=9, va="top", family="monospace", color="#8a4b2a", linespacing=1.4)
+
+    axR = fig.add_subplot(gs[:, 1])
+    labels = ("ids as numbers", "ids shuffled", "length only", "embedding", "emb., ids shuffled")
+    keys = ("raw", "raw_p", "len", "bag", "bag_p")
+    cols = ("#8a4b2a", "#c49a7a", "#999999", "#2a6f8a", "#7fb0c4")
+    for i, (k, c) in enumerate(zip(keys, cols)):
+        v = np.array(res[k])
+        axR.barh(i, v.mean(), color=c, height=0.6)
+        axR.plot(v, [i] * 3, "k|", ms=10)
+        axR.text(v.max() + 0.01, i, f"{v.min():.3f}-{v.max():.3f}", va="center", fontsize=8)
+    axR.axvline(0.5, color="#666666", lw=0.8, ls=":")
+    axR.text(0.502, -0.55, "coin flip", fontsize=8, color="#666666")
+    axR.set_yticks(range(5)); axR.set_yticklabels(labels, fontsize=9)
+    axR.invert_yaxis(); axR.set_xlim(0.45, 0.95)
+    axR.set_xlabel("IMDB test accuracy (3 seeds, ticks = each seed)")
+    axR.set_title("same data, same budget: numbers vs learned table", fontsize=10)
+    for s in ("top", "right"):
+        axR.spines[s].set_visible(False)
+    fig.savefig(Path(__file__).parent / "why_embedding.svg", transparent=True,
+                bbox_inches="tight")
+    import sys
+    if len(sys.argv) > 1:
+        fig.savefig(f"{sys.argv[1]}/why_embedding.png", dpi=110, facecolor="white",
+                    bbox_inches="tight")
+    plt.close(fig); print("wrote why_embedding.svg")
+    for k in keys:
+        print(f"  {k:6s} {np.round(res[k], 4).tolist()}")
+
+
 if __name__ == "__main__":
     toks = load_tokens()
     counts = Counter(toks)
@@ -883,3 +1015,4 @@ if __name__ == "__main__":
     fig_chapter_map()
     fig_ascii_is_spelling()
     fig_svd_lsa()
+    fig_why_embedding()
