@@ -7,6 +7,7 @@ make_figures.py - 6장의 그림을 만든다
     pca_2d.svg   64차원 낱말 벡터를 2차원으로 사영한 흩뿌림. 네 묶음에만
                  색과 이름을 붙이고 나머지는 회색 점으로 둔다
     keep_rate.svg 남긴 차원에 따라 「원래 이웃 열 가운데 몇이 남는가」
+    svd_lsa.svg  특잇값 분해의 행렬 크기(얼개)와, awful 로 찾은 글의 코사인 분포
 
 왜 이 둘인가:
     6.6 쪽의 요점은 **그림이 그럴듯해 보이는 것과 가까움이 지켜진 것은
@@ -770,6 +771,91 @@ def fig_ascii_is_spelling():
     print("wrote ascii_is_spelling.svg")
 
 
+def fig_svd_lsa():
+    """02_svd_lsa.md - 특잇값 분해의 행렬 크기와, LSA 가 같은 뜻 다른 말을 잇는 것.
+
+    왼쪽은 얼개다(잰 수 없음 - 크기만 그 쪽의 행렬에서 옮겼다).
+    오른쪽은 그 쪽의 (마)와 같은 셈이다 - TF-IDF 단어 x 문서 행렬을 64 개로
+    줄이고, awful 한 단어를 질의로 접어 넣어 글마다 코사인을 잰다.
+    """
+    import scipy.sparse as sp
+    import scipy.sparse.linalg as sla
+
+    docs = []
+    for name in ("pos", "neg"):
+        for f in sorted((ROOT / "train" / name).glob("*.txt"))[:3000]:
+            docs.append(TOKEN.findall(f.read_text(encoding="utf-8")
+                                      .replace("<br />", " ").lower()))
+    counts = Counter(w for d in docs for w in d)
+    words = [w for w, _ in counts.most_common(VOCAB)]
+    stoi = {w: i for i, w in enumerate(words)}
+    rows, cols, vals = [], [], []
+    for j, d in enumerate(docs):
+        for i, n in Counter(stoi[w] for w in d if w in stoi).items():
+            rows.append(i); cols.append(j); vals.append(n)
+    TF = sp.csr_matrix((np.array(vals, float), (rows, cols)), shape=(VOCAB, len(docs)))
+    idf = np.log(len(docs) / np.asarray((TF > 0).sum(1)).ravel())
+    X = sp.diags(idf) @ TF.log1p()
+    U, S, Vt = sla.svds(X, k=64, random_state=SEED)
+    a, b = stoi["awful"], stoi["terrible"]
+    has_a = np.asarray((TF[a] > 0).todense()).ravel()
+    has_t = np.asarray((TF[b] > 0).todense()).ravel()
+    D = Vt.T * S
+    Dn = D / np.linalg.norm(D, axis=1, keepdims=True)
+    qh = U[a]
+    cos = Dn @ (qh / np.linalg.norm(qh))
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.8, 4.3),
+                                   gridspec_kw={"width_ratios": [1.15, 1]})
+    INK, GRAY = "#1f2937", "#6b7280"
+    axL.set_xlim(0, 100); axL.set_ylim(0, 60); axL.axis("off")
+
+    def blk(x, y, w, h, lab, sub, col=INK, fill="none"):
+        axL.add_patch(Rectangle((x, y), w, h, fc=fill, ec=col, lw=1.5))
+        axL.text(x + w / 2, y + h / 2, lab, ha="center", va="center",
+                 fontsize=11, color=col)
+        axL.text(x + w / 2, y - 2.2, sub, ha="center", va="top",
+                 fontsize=8, color=GRAY)
+
+    blk(2, 18, 24, 32, "X", "8000 words x 6000 reviews")
+    axL.text(29.5, 34, "=", fontsize=16, ha="center", va="center", color=INK)
+    blk(33, 18, 24, 32, "U", "8000 x 6000")
+    blk(33, 18, 4, 32, "", "", col="#2a6f8a", fill="#2a6f8a33")
+    blk(60, 26, 16, 16, "S", "diagonal")
+    blk(60, 26, 3, 16, "", "", col="#2a6f8a", fill="#2a6f8a33")
+    blk(79, 26, 19, 16, "V^T", "6000 x 6000")
+    blk(79, 39, 19, 3, "", "", col="#2a6f8a", fill="#2a6f8a33")
+    axL.text(50, 9, "keep the shaded 64:  U_64 (8000x64)  S_64  V_64^T (64x6000)",
+             ha="center", fontsize=9, color="#2a6f8a")
+    axL.text(50, 3.5, "word vectors = rows of U_64 S_64,   review vectors = rows of V_64 S_64",
+             ha="center", fontsize=8.6, color=GRAY)
+    axL.set_title("SVD works on a non-square matrix  (schematic)", fontsize=10)
+
+    bins = np.linspace(-0.2, 0.9, 45)
+    groups = (("reviews with 'awful'", has_a, "#b91c1c"),
+              ("'terrible' but no 'awful'", has_t & ~has_a, "#a16207"),
+              ("neither word", ~has_a & ~has_t, "#6b7280"))
+    for lab, m, col in groups:
+        w = np.ones(m.sum()) / m.sum()
+        axR.hist(cos[m], bins=bins, weights=w, histtype="step", lw=1.7,
+                 color=col, label=f"{lab}  (n={m.sum()})")
+    axR.axvline(0, color="#999999", lw=0.8, ls=":")
+    axR.text(0.98, 0.74, "plain word matching gives the\nlast two groups exactly 0", transform=axR.transAxes,
+             fontsize=8, color=GRAY, va="top", ha="right")
+    axR.set_xlabel("cosine to the query 'awful' in the 64-dim LSA space")
+    axR.set_ylabel("share of reviews")
+    axR.legend(fontsize=8, frameon=False, loc="upper right")
+    axR.set_title("LSA finds 'terrible' reviews from 'awful'", fontsize=10)
+    for sp_ in ("top", "right"):
+        axR.spines[sp_].set_visible(False)
+    fig.tight_layout()
+    fig.savefig(Path(__file__).parent / "svd_lsa.svg", transparent=True)
+    import sys
+    if len(sys.argv) > 1:
+        fig.savefig(f"{sys.argv[1]}/svd_lsa.png", dpi=110, facecolor="white")
+    plt.close(fig); print("wrote svd_lsa.svg")
+
+
 if __name__ == "__main__":
     toks = load_tokens()
     counts = Counter(toks)
@@ -796,3 +882,4 @@ if __name__ == "__main__":
 
     fig_chapter_map()
     fig_ascii_is_spelling()
+    fig_svd_lsa()

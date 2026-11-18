@@ -306,6 +306,7 @@ nav:
       - 장 개요: embeddings/index.md
       - 6.1 단어 임베딩:
         - "단어는 수가 아니다 — 조회가 곧 행렬 곱이다": embeddings/01_not_a_number.md
+        - "특잇값 분해 — 고윳값 분해를 넓힌다 · LSA": embeddings/02_svd_lsa.md
         - "같이 나온 횟수가 뜻을 만든다 — 동시 출현 · PPMI · SVD": embeddings/02_counting.md
         - "주위 단어가 뜻을 만든다 — Skip-gram 과 네거티브 샘플링": embeddings/03_context.md
       - "6.2 GloVe":
