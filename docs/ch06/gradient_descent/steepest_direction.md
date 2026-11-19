@@ -157,7 +157,7 @@ $\nabla f$가 최급상승을 가리키므로 $-\nabla f$는 최급강하를 가
 
 $$\mathbf{x}_{t+1} = \mathbf{x}_t - \eta \nabla f(\mathbf{x}_t)$$
 
-이것이 **경사 하강법의 갱신 규칙** 이다. 여기서 $\eta > 0$을 러닝레이트라 부른다.
+이것이 **경사 하강법의 갱신 규칙** 이다. 여기서 $\eta > 0$을 러닝레이트라 부른다 — 한 번에 얼마나 멀리 걸을지를 정하는 수다.
 
 <div class="storybox" markdown>
 

@@ -137,7 +137,7 @@ $$\mathbf{x} \;\xrightarrow{\;\mathbf{W},\, \mathbf{b}\;}\; \mathbf{z} = \mathbf
 - $\mathbf{W} \in \mathbb{R}^{K \times D}$은 웨이트 행렬이다
 - $\mathbf{b} \in \mathbb{R}^K$은 바이어스 벡터이다
 - $\mathbf{z} \in \mathbb{R}^K$은 로짓(확률 변환 전 점수)이다
-- $\hat{\boldsymbol{\pi}} \in \Delta^{K-1}$은 확률 단체 위의 예측 확률이다
+- $\hat{\boldsymbol{\pi}} \in \Delta^{K-1}$은 확률 단체(성분이 모두 음이 아니고 합이 1인 벡터의 집합) 위의 예측 확률이다
 - $\mathcal{L}$은 교차 엔트로피 로스다
 
 ---

@@ -566,7 +566,7 @@ def check_memory(G):
     g = torch.Generator().manual_seed(SEED)
     fake = G(torch.randn(2000, ZDIM, generator=g).to(device)).cpu()
 
-    # 학습 그림끼리의 간격 — 견줄 자리.
+    # 학습 그림끼리의 간격 — 비교 기준.
     real_nn = nn_within(Xtr[:2000].reshape(2000, -1).to(device))
 
     fake_nn = nearest_train(fake)
@@ -588,7 +588,7 @@ def walk(G):
 
     step = (im[1:] - im[:-1]).pow(2).sum(-1).sqrt()      # 이웃 칸 사이의 거리
 
-    # 견줄 자리: 서로 상관없는 두 그림 사이의 거리. 한 걸음이 이만큼이면
+    # 비교 기준: 서로 상관없는 두 그림 사이의 거리. 한 걸음이 이만큼이면
     # 걷는 것이 아니라 매번 딴 그림으로 건너뛰는 것이다.
     far = G(torch.randn(400, ZDIM,
                         generator=torch.Generator().manual_seed(SEED + 1)
@@ -710,7 +710,7 @@ $z$ 둘을 잇는 직선 위를 16칸으로 걸으며 칸마다 그림이 얼마
 
 DCGAN 논문도 같은 그림을 싣고 같은 식으로 읽었다. 침실 사진으로 학습한 모델에서 아홉 점 사이를 걸으며 「창문 없는 방이 큰 창문이 있는 방으로 천천히 바뀌고」, 「텔레비전처럼 보이던 것이 창문으로 바뀌어 가는」 줄을 짚는다. 숫자에서는 7이 3이 된다.
 
-**아래 막대의 마지막 줄이 견줄 자리다.** 끊긴다는 것은 한 걸음이 「상관없는 두 그림」만큼 벌어진다는 뜻인데, 가장 큰 걸음조차 그 **3분의 1**이다. 길 전체에서 그 걸음이 차지하는 몫도 11.8%로, 고를 때의 6.7%보다 크긴 하지만 한 칸이 길을 삼키지는 않는다.
+**아래 막대의 마지막 줄이 비교 기준이다.** 끊긴다는 것은 한 걸음이 「상관없는 두 그림」만큼 벌어진다는 뜻인데, 가장 큰 걸음조차 그 **3분의 1**이다. 길 전체에서 그 걸음이 차지하는 몫도 11.8%로, 고를 때의 6.7%보다 크긴 하지만 한 칸이 길을 삼키지는 않는다.
 
 ### (다) 몇 가지 형태로 뭉치지 않았는가
 
@@ -854,7 +854,7 @@ GAN은 2014년에 나왔는데 **학습이 자주 망가졌다.** 이 글이 내
 
 **둘 다 이 책이 재지 않은 수이고, 둘 다 이 쪽이 하는 이야기와 상관이 없다.** 그런데 사람들이 이 글을 기억하는 까닭은 저 표가 아니라 **목록과 그림** 쪽이다. 글이 내세운 것과 글이 쓰인 자리가 어긋난 보기이고, 그런 일이 드물지 않다.
 
-_위 두 수와 목록 제목은 arXiv:1511.06434 를 받아 대조한 것이다 — 3절 끝의 「Architecture guidelines for stable Deep Convolutional GANs」, 5.1절의 "This achieves 82.8% accuracy, out performing all K-means based approaches", 5.2절의 "achieves state of the art (for classification using 1000 labels) at 22.48% test error". 견줄 자리로 적은 82.0% 는 그 글이 인용한 Coates & Ng (2011) 의 수다. **그 글의 그림은 가져오지 않았다** — arXiv 의 기본 배포 허가는 arXiv 가 배포할 권리만 주고 제삼자의 재배포 권리를 주지 않으므로, 이 쪽의 그림은 모두 같은 실험을 이 책의 제너레이터로 다시 해서 그린 것이다._
+_위 두 수와 목록 제목은 arXiv:1511.06434 를 받아 대조한 것이다 — 3절 끝의 「Architecture guidelines for stable Deep Convolutional GANs」, 5.1절의 "This achieves 82.8% accuracy, out performing all K-means based approaches", 5.2절의 "achieves state of the art (for classification using 1000 labels) at 22.48% test error". 비교 기준으로 적은 82.0% 는 그 글이 인용한 Coates & Ng (2011) 의 수다. **그 글의 그림은 가져오지 않았다** — arXiv 의 기본 배포 허가는 arXiv 가 배포할 권리만 주고 제삼자의 재배포 권리를 주지 않으므로, 이 쪽의 그림은 모두 같은 실험을 이 책의 제너레이터로 다시 해서 그린 것이다._
 
 ### 그리고 우리가 따라 하지 못한 것 하나
 

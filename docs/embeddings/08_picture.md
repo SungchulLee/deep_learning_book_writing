@@ -132,7 +132,7 @@ if __name__ == "__main__":
     W = train()
     print(f"  단어 {VOCAB:,}개, 차원 {DIM}\n")
 
-    base, _ = pca(W, DIM)          # 차원을 줄이지 않은 것 — 견줄 자리
+    base, _ = pca(W, DIM)          # 차원을 줄이지 않은 것 — 비교 기준
     print(f"  {'남긴 차원':>10}{'설명 분산':>12}{'이웃 10 가운데 남는 수':>24}")
     for k in (2, 3, 8, 32, 64):
         P, ev = pca(W, k)
@@ -157,7 +157,7 @@ if __name__ == "__main__":
             d = float((cen[gs[i]] - cen[gs[j]]).norm())
             print(f"    {gs[i]:>9s} - {gs[j]:<9s} {d:.3f}")
     spread = float(P2.std(0).mean())
-    print(f"    견줄 자리: 2차원 전체의 퍼짐 {spread:.3f}")
+    print(f"    비교 기준: 2차원 전체의 퍼짐 {spread:.3f}")
 ```
 
 **출력:**
@@ -181,7 +181,7 @@ if __name__ == "__main__":
      negative - function  0.463
      negative - people    0.760
      function - people    0.297
-    견줄 자리: 2차원 전체의 퍼짐 0.228
+    비교 기준: 2차원 전체의 퍼짐 0.228
 ```
 
 ---
@@ -218,7 +218,7 @@ if __name__ == "__main__":
 | negative — function | 0.463 |
 | **positive — negative** | **0.451** |
 | function — people | **0.297** |
-| (견줄 자리) 2차원 전체의 퍼짐 | 0.228 |
+| (비교 기준) 2차원 전체의 퍼짐 | 0.228 |
 
 **가장 가까운 두 묶음이 `function`과 `people`**이다. 둘 다 기능어에 가까우니 그럴 만하다.
 

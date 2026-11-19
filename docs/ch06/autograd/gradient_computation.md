@@ -292,23 +292,23 @@ for left_on in (False, True):
               f"{str(out.requires_grad):>6}   {fn}")
 
 # === 3. 거는 것과 갖는 것과 받는 것은 서로 다르다 ==========================
-print("\n  3. 잎만인 것과 아닌 것")
+print("\n  3. 리프만인 것과 아닌 것")
 leaf = torch.randn(3, requires_grad=True)
 grown = leaf * 2                      # 계산으로 생긴 것
 print(f"     leaf   is_leaf={leaf.is_leaf}   requires_grad={leaf.requires_grad}")
 print(f"     grown  is_leaf={grown.is_leaf}  requires_grad={grown.requires_grad}"
-      f"   <- 잎이 아닌데 켜져 있다")
+      f"   <- 리프가 아닌데 켜져 있다")
 
 print("     requires_grad_() 로 바꿔 보면")
-for tag, make, val in [("잎에 켜기  ", lambda: torch.randn(3), True),
-                       ("잎에 끄기  ", lambda: torch.randn(3, requires_grad=True), False),
-                       ("잎 아닌 것에 켜기", lambda: torch.randn(3, requires_grad=True) * 2, True),
-                       ("잎 아닌 것에 끄기", lambda: torch.randn(3, requires_grad=True) * 2, False)]:
+for tag, make, val in [("리프에 켜기  ", lambda: torch.randn(3), True),
+                       ("리프에 끄기  ", lambda: torch.randn(3, requires_grad=True), False),
+                       ("리프 아닌 것에 켜기", lambda: torch.randn(3, requires_grad=True) * 2, True),
+                       ("리프 아닌 것에 끄기", lambda: torch.randn(3, requires_grad=True) * 2, False)]:
     try:
         print(f"       {tag:18s} 된다 -> {make().requires_grad_(val).requires_grad}")
     except RuntimeError as err:
         print(f"       {tag:18s} {str(err).splitlines()[0][:44]}")
-print("     requires_grad=False 인 텐서는 언제나 잎이다 — 그래서 '잎이 아니다'")
+print("     requires_grad=False 인 텐서는 언제나 리프다 — 그래서 '리프가 아니다'")
 print("     는 곧 '켜져 있다' 이고, 끄라는 요청만 거절당한다")
 
 # === 4. 플래그가 하나도 없으면 그래프가 아예 안 세워진다 ======================
@@ -393,15 +393,15 @@ print("     앞엣것으로 모델을 고치고, 뒤엣것으로 입력을 고�
        True   False     True   MulBackward0
        True    True     True   MulBackward0
 
-  3. 잎만인 것과 아닌 것
+  3. 리프만인 것과 아닌 것
      leaf   is_leaf=True   requires_grad=True
-     grown  is_leaf=False  requires_grad=True   <- 잎이 아닌데 켜져 있다
+     grown  is_leaf=False  requires_grad=True   <- 리프가 아닌데 켜져 있다
      requires_grad_() 로 바꿔 보면
-       잎에 켜기              된다 -> True
-       잎에 끄기              된다 -> False
-       잎 아닌 것에 켜기         된다 -> True
-       잎 아닌 것에 끄기         you can only change requires_grad flags of l
-     requires_grad=False 인 텐서는 언제나 잎이다 — 그래서 '잎이 아니다'
+       리프에 켜기              된다 -> True
+       리프에 끄기              된다 -> False
+       리프 아닌 것에 켜기         된다 -> True
+       리프 아닌 것에 끄기         you can only change requires_grad flags of l
+     requires_grad=False 인 텐서는 언제나 리프다 — 그래서 '리프가 아니다'
      는 곧 '켜져 있다' 이고, 끄라는 요청만 거절당한다
 
   4. 아무도 안 켜져 있으면
@@ -584,27 +584,27 @@ class Scale(nn.Module):
 그래서 **$x$ 하나만 켜도 그 뒤의 모든 것이 따라 켜진다.** 로스까지 가는 길에
 놓인 연산이 전부 기록되고, 그 기록을 거꾸로 걸어 내려오는 것이 `backward()`다.
 
-**거는 것과 갖는 것과 받는 것이 서로 다르다.** 셋을 한자리에 놓으면 이렇다. 여기서 **잎**은 리프 텐서(leaf tensor), 곧 연산의 결과가 아니라 직접 만든 텐서를 가리킨다.
+**거는 것과 갖는 것과 받는 것이 서로 다르다.** 셋을 한자리에 놓으면 이렇다. 여기서 **리프**은 리프 텐서(leaf tensor), 곧 연산의 결과가 아니라 직접 만든 텐서를 가리킨다.
 
 ```
 leaf   is_leaf=True   requires_grad=True
-grown  is_leaf=False  requires_grad=True   <- 잎이 아닌데 켜져 있다
+grown  is_leaf=False  requires_grad=True   <- 리프가 아닌데 켜져 있다
 
-  잎에 켜기              된다 -> True
-  잎에 끄기              된다 -> False
-  잎 아닌 것에 켜기         된다 -> True
-  잎 아닌 것에 끄기         you can only change requires_grad flags of l
+  리프에 켜기              된다 -> True
+  리프에 끄기              된다 -> False
+  리프 아닌 것에 켜기         된다 -> True
+  리프 아닌 것에 끄기         you can only change requires_grad flags of l
 ```
 
-| | 잎만인가 |
+| | 리프만인가 |
 |---|---|
-| 만들 때 주는 **인자** `requires_grad=` | **그렇다** — 텐서를 만드는 함수에만 달려 있고, 만든 것은 다 잎이다 |
+| 만들 때 주는 **인자** `requires_grad=` | **그렇다** — 텐서를 만드는 함수에만 달려 있고, 만든 것은 다 리프다 |
 | 나중에 부르는 **메서드** `requires_grad_()` | **끄는 것만** 그렇다 |
-| `requires_grad`를 **갖는** 것 | **아니다** — 잎이 아니면 반드시 켜져 있다 |
+| `requires_grad`를 **갖는** 것 | **아니다** — 리프가 아니면 반드시 켜져 있다 |
 | `.grad`를 **받는** 것 | **그렇다** |
 
 둘째 줄과 셋째 줄은 같은 사실의 앞뒤다. **`requires_grad=False`인 텐서는 언제나
-잎이므로**, 「잎이 아니다」는 곧 「켜져 있다」이다. 그래서 잎이 아닌 것에 켜라는
+리프이므로**, 「리프가 아니다」는 곧 「켜져 있다」이다. 그래서 리프가 아닌 것에 켜라는
 요청은 이미 켜져 있어 그냥 지나가고, **끄라는 요청만 거절당한다.**
 
 그리고 기본값이 셋으로 갈린다.
@@ -650,7 +650,7 @@ $\partial L / \partial w_{ij}$가 $w_{ij}$가 있던 자리에 그대로 들어�
 있어야 하는 까닭이다.
 
 다만 `.grad`가 **아무 텐서에나 쌓이지는 않는다.** 플래그가 켜져 있어도 계산으로
-생긴 중간 텐서는 받지 않고, 내가 만든 **잎**만 받는다. 그 구별은
+생긴 중간 텐서는 받지 않고, 내가 만든 **리프**만 받는다. 그 구별은
 [스칼라 로스의 역전파](01_basic_scalar_backward.md)가 그림과 함께 다룬다.
 
 **플래그를 어디에 거느냐가 무엇을 얻느냐를 정한다.**
@@ -674,7 +674,7 @@ $\partial L / \partial w_{ij}$가 $w_{ij}$가 있던 자리에 그대로 들어�
 
 ### 스칼라 로스: `.backward()` 메서드
 
-스칼라 로스 $L: \mathbb{R}^n \rightarrow \mathbb{R}$에 대해 `L.backward()`를 호출하면 `requires_grad=True`인 모든 잎 텐서 $x$에 대한 그래디언트 $\nabla_x L$이 계산된다.
+스칼라 로스 $L: \mathbb{R}^n \rightarrow \mathbb{R}$에 대해 `L.backward()`를 호출하면 `requires_grad=True`인 모든 리프 텐서 $x$에 대한 그래디언트 $\nabla_x L$이 계산된다.
 
 $$\nabla_x L = \left[\frac{\partial L}{\partial x_1}, \frac{\partial L}{\partial x_2}, \ldots, \frac{\partial L}{\partial x_n}\right]^T$$
 
@@ -707,9 +707,9 @@ Expected (2x): tensor([ 3.0820, -0.5869, -4.3576])
 Match: True
 ```
 
-### 그래디언트 저장: 잎 텐서와 비잎 텐서
+### 그래디언트 저장: 리프 텐서와 비잎 텐서
 
-기본적으로 그래디언트는 잎 텐서에 대해서**만** 저장된다.
+기본적으로 그래디언트는 리프 텐서에 대해서**만** 저장된다.
 
 ```python
 import torch
@@ -731,7 +731,7 @@ x.grad: tensor([ 8., 16., 24.])
 y.grad: None
 ```
 
-잎이 아닌 텐서의 그래디언트를 저장하려면 역전파 전에 `.retain_grad()`를 쓴다.
+리프가 아닌 텐서의 그래디언트를 저장하려면 역전파 전에 `.retain_grad()`를 쓴다.
 
 ```python
 import torch
@@ -780,7 +780,7 @@ print(f"dy/dx = 3x² = {grad_y}")  # tensor([12.])
 dy/dx = 3x² = tensor([12.])
 ```
 
-이는 고계 도함수(고계 그래디언트 참고)를 다룰 때, 그리고 `retain_grad()`를 호출하지 않고 잎이 아닌 텐서의 그래디언트가 필요할 때 특히 유용하다.
+이는 고계 도함수(고계 그래디언트 참고)를 다룰 때, 그리고 `retain_grad()`를 호출하지 않고 리프가 아닌 텐서의 그래디언트가 필요할 때 특히 유용하다.
 
 ---
 
@@ -1420,10 +1420,10 @@ tensor([[-0.8323, -0.4161],
 |--------------------|-------------|
 | `x.requires_grad` | `x`에 대한 연산이 미분을 위해 추적되는지 여부 |
 | `x.grad` | 누적된 그래디언트(`.backward()` 후에 채워진다) |
-| `x.grad_fn` | `x`를 만든 역전파 함수(잎 텐서에서는 `None`) |
-| `x.is_leaf` | `x`가 잎 텐서이면 `True` |
+| `x.grad_fn` | `x`를 만든 역전파 함수(리프 텐서에서는 `None`) |
+| `x.is_leaf` | `x`가 리프 텐서이면 `True` |
 | `x.backward(v)` | VJP를 계산하여 `.grad`에 누적한다 |
-| `x.retain_grad()` | 잎이 아닌 `x`의 그래디언트를 저장하도록 요청한다 |
+| `x.retain_grad()` | 리프가 아닌 `x`의 그래디언트를 저장하도록 요청한다 |
 | `x.detach()` | 데이터는 공유하되 그래프에서 분리된 텐서를 반환한다 |
 | `torch.autograd.grad(y, x)` | `.grad`를 채우지 않고 그래디언트를 계산한다 |
 
@@ -1587,7 +1587,7 @@ $\bar{y} = (1, 1)$에 대한 VJP를 **손으로 계산한 뒤** 확인하라.
 | **역방향 모드** | 스칼라 로스에 대해 역전파 한 번. 비용 $O(T)$ |
 | **순방향 모드** | 전체 야코비안에 방향별 $n$번 통과. 현재 값과 접선의 메모리는 필요 |
 | **전체 야코비안** | 역전파 $m$번(역방향) 또는 순전파 $n$번 |
-| **그래디언트 저장** | 기본적으로 잎 텐서만 `.grad`를 저장한다 |
+| **그래디언트 저장** | 기본적으로 리프 텐서만 `.grad`를 저장한다 |
 
 **참고 문헌**
 

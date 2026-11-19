@@ -173,7 +173,7 @@ def device_and_grad():
     print(f"  device='{dev}' 로 바로 만들기:", t.device)
     print("  만들고 나서 옮기면 한 번 더 베낀다 — 처음부터 거기서 만드는 편이 낫다")
     x = torch.randn(2, 2, requires_grad=True)
-    print("  requires_grad=True 로 만들기:", x.requires_grad, " 잎인가:", x.is_leaf)
+    print("  requires_grad=True 로 만들기:", x.requires_grad, " 리프인가:", x.is_leaf)
 
 
 def main():
@@ -251,7 +251,7 @@ if __name__ == "__main__":
 === 7. 만들 때 정하는 것 ===
   device='mps' 로 바로 만들기: mps:0
   만들고 나서 옮기면 한 번 더 베낀다 — 처음부터 거기서 만드는 편이 낫다
-  requires_grad=True 로 만들기: True  잎인가: True
+  requires_grad=True 로 만들기: True  리프인가: True
 ```
 
 ## 2. 베끼는가 나눠 쓰는가

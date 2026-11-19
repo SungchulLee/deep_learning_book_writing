@@ -82,7 +82,7 @@ Sigmoid 를 쓰는데, 그러면 이 장의 정규화와 MSE 규약이 함께 �
 실행: 이 쪽의 코드를 파일로 갈무리해 저장소 뿌리에서 돌린다.
 
 규약은 이 절 그대로 — 시드 42, Adam 1e-3, 배치 100, 100 에포크, 표본 5,000장.
-견줄 자리:  VAE-64  복원 0.07499  정체 98.06%  확신도 0.769  균형도 0.877
+비교 기준:  VAE-64  복원 0.07499  정체 98.06%  확신도 0.769  균형도 0.877
             VAE-2   복원 0.42744  정체 71.28%  확신도 0.793  균형도 0.950
 """
 import torch, torch.nn as nn, torch.nn.functional as F, torch.optim as optim
@@ -315,7 +315,7 @@ if __name__ == "__main__":
 
 
 class MLPAE(nn.Module):
-    """5.1 의 오토인코더. 견줄 자리로만 쓴다."""
+    """5.1 의 오토인코더. 비교 기준으로만 쓴다."""
 
     def __init__(self, k):
         super().__init__()
@@ -324,7 +324,7 @@ class MLPAE(nn.Module):
 
 
 class MLPVAE(nn.Module):
-    """5.2 의 완전 연결 VAE. 견줄 자리로만 쓴다."""
+    """5.2 의 완전 연결 VAE. 비교 기준으로만 쓴다."""
 
     def __init__(self, k):
         super().__init__()

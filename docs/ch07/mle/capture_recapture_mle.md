@@ -558,7 +558,7 @@ Lincoln–Petersen 값 $CR/T$는 표본 비율을 맞춘 추정값이다. 정수
 
 ### 0.7%는 얼마나 운이 좋았던 것인가
 
-2절의 출력은 「✅ 추정 오차 0.7%, 방법이 통한다!」로 끝난다. 그런데 그 조사는 **딱 한 번** 한 것이다. 같은 숲에 다시 가서 같은 절차를 밟으면 어떤 수가 나올까?
+2절의 출력은 「✅ 추정 오차 0.7%, 방법이 통한다!」로 끝난다. 그런데 그 조사는 **딱 한 번** 한 것이다. 같은 호수에 다시 가서 같은 절차를 밟으면 어떤 수가 나올까?
 
 모의실험을 돌릴 필요도 없다. 가정이 초기하분포이므로 **$T$의 분포를 그냥 계산하면 된다.** $N = 150$, $C = 30$, $R = 40$일 때 $T \sim \text{Hypergeometric}$이고 링컨–피터슨 추정값은 $\widehat N = CR/T = 1200/T$이다. 아래 그림에는 난수가 한 톨도 들어 있지 않다.
 
@@ -620,29 +620,40 @@ Lincoln–Petersen 값 $CR/T$는 표본 비율을 맞춘 추정값이다. 정수
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-표지-재포획 MLE 구현을 검증하는 종합적인 시험 함수를 작성하라. 빈 입력, 원소가 하나뿐인 입력, 아주 큰 입력, 그리고 극단적인 값(0, 아주 큰 수)을 가진 입력 등 경계 사례를 시험하라.
+이 쪽의 `lincoln_petersen_estimator` 와 `find_mle_exact` 를 검증하는 시험 함수를 작성하라. 보통의 경우와 함께 경계 사례 셋 — 재포획이 하나도 없는 경우($T=0$), 다시 잡은 것이 모두 표시된 경우($T=C=R$), 검색 상한 `max_N` 이 참 추정값보다 작은 경우 — 를 시험하라.
 
 </div>
 
 ??? success "풀이"
-    경계 조건을 두루 시험하는 함수를 만든다.
+    가능도의 모양을 알면 경계에서 무엇이 나와야 하는지가 정해진다.
+
+    - **보통의 경우.** 초기하분포의 MLE는 $CR/T$ 의 정수 부분이다. $CR/T$ 가 정수이면 $CR/T$ 와 $CR/T - 1$ 의 가능도가 같으므로 `argmax` 는 앞의 것을 고를 수 있다. 그러니 $CR/T$ 와 1 안으로 맞는지를 본다.
+    - **$T=0$.** $P(T=0 \mid N)$ 은 $N$ 이 클수록 커지므로 유한한 최대점이 없다. 링컨–피터슨은 무한대를 돌려주고, 격자 검색은 상한 바로 아래(`max_N - 1`)에 붙는다.
+    - **$T=C=R$.** 다시 잡은 것이 모두 표시돼 있으면 $N=C$ 일 때 확률이 1이다. 가장 작은 후보가 답이다.
+    - **상한이 작은 경우.** 가능도가 상한까지 계속 오르므로 격자 검색이 상한에 붙는다. 연습문제 3의 첫째 주의점이 이것이다.
+
     ```python
     def test_capture_recapture_mle():
-        model = CaptureRecaptureMLE(...)
-        # 보통의 입력
-        assert model(normal_input).shape == expected_shape
-        # 원소가 하나인 배치
-        assert model(single_input).shape == (1, ...)
-        # 큰 값 (오버플로를 확인한다)
-        out = model(torch.ones(...) * 1000)
-        assert torch.isfinite(out).all()
-        # 그래디언트의 흐름
-        out = model(normal_input)
-        out.sum().backward()
-        for p in model.parameters():
-            assert p.grad is not None
+        # 보통의 경우: C R / T = 200
+        N_mle, _ = find_mle_exact(C=50, R=40, T=10, max_N=2000)
+        assert abs(N_mle - 200) <= 1
+        assert lincoln_petersen_estimator(50, 40, 10) == 200
+
+        # T = 0: 유한한 MLE 가 없다
+        assert lincoln_petersen_estimator(50, 40, 0) == float("inf")
+        N_mle, _ = find_mle_exact(C=50, R=40, T=0, max_N=2000)
+        assert N_mle == 2000 - 1                  # 상한에 붙는다
+
+        # T = C = R: 모두 표시돼 있으면 N = C
+        N_mle, _ = find_mle_exact(C=30, R=30, T=30, max_N=2000)
+        assert N_mle == 30
+
+        # 상한이 참 추정값(C R / T = 10,000)보다 작다
+        N_mle, _ = find_mle_exact(C=100, R=100, T=1, max_N=5000)
+        assert N_mle == 5000 - 1
     ```
-    그래디언트의 흐름을 시험하는 것은 그 구조가 처음부터 끝까지 이어지는 학습을 지원하는지 확인하는 데 특히 중요하다.
+
+    상한에 붙은 답은 틀린 답이라기보다 **「상한을 넓혀 다시 보라」는 신호**다. 실제 코드에서는 답이 `max_N - 1` 이면 경고를 내는 편이 낫다.
 
 ## 정리하며
 

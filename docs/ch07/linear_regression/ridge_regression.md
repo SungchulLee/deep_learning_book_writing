@@ -60,7 +60,7 @@ OLS가 겪는 가역성 문제를 없애 준다.
 
 ### 2.1 고윳값 축소
 
-중심화한 설계 행렬의 SVD를 $\mathbf X=\mathbf U\boldsymbol\Sigma\mathbf V^\top$라 하자. 다음 합은 0이 아닌 특잇값에 대응하는 성분들에 대해 읽는다. 열 전체 랭크가 아니면 $p$ 대신 랭크 $r$개 성분을 사용하며 OLS 파라메터에는 의사역행렬을 쓴다.
+중심화한 설계 행렬의 SVD를 $\mathbf X=\mathbf U\boldsymbol\Sigma\mathbf V^\top$라 하자. 다음 합은 0이 아닌 특잇값에 대응하는 성분들에 대해 읽는다. 열 전체 랭크가 아니면 $p$ 대신 랭크 $r$개 성분을 사용하며 OLS 파라메터에는 유사역행렬을 쓴다.
 
 $$
 \hat{\mathbf{y}}_{\text{OLS}}

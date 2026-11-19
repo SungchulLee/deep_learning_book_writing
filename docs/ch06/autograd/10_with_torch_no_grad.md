@@ -320,16 +320,16 @@ eval() 만          : grad_fn = AddmmBackward0   <- 그래프를 들고 있다
     with torch.no_grad():
         w -= 0.1 * w.grad
     print("  no_grad 안에서:", [round(v, 4) for v in w.tolist()])
-    print("  깃발은 그대로 :", w.requires_grad, " 잎인가:", w.is_leaf)
+    print("  깃발은 그대로 :", w.requires_grad, " 리프인가:", w.is_leaf)
     ```
 
     ```
       그냥 고치면   : a leaf Variable that requires grad is being used in an in-
       no_grad 안에서: [0.8, 1.6]
-      깃발은 그대로 : True  잎인가: True
+      깃발은 그대로 : True  리프인가: True
     ```
 
-    `no_grad` 안에서는 리프 텐서(leaf tensor, 연산의 결과가 아니라 직접 만든 텐서 — 출력의 「잎」)에 대한 제자리 연산 검사를 넘긴다. 그러고도 `w`는
+    `no_grad` 안에서는 리프 텐서(leaf tensor, 연산의 결과가 아니라 직접 만든 텐서 — 출력의 「리프」)에 대한 제자리 연산 검사를 넘긴다. 그러고도 `w`는
     **여전히 리프 텐서이고 여전히 `requires_grad=True`**다.
 
     이것이 옵티마이저가 하는 일이다. 3절의 말로 하면, 갱신은 **기록할 일이 아닌**

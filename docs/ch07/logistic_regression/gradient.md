@@ -78,7 +78,7 @@ $$
 \boxed{\frac{\partial \ell_i}{\partial \boldsymbol{\beta}} = (p_i - y_i)\mathbf{x}_i = (\sigma(\mathbf{x}_i^\top \boldsymbol{\beta}) - y_i)\mathbf{x}_i}
 $$
 
-이 상쇄는 우연이 아니다. GLM의 틀에서 **정준 연결**을 쓴 결과이다. 베르누이 반응에 로짓 연결을 쓰면 그래디언트가 이 우아한 형태로 간단해진다.
+이 상쇄는 우연이 아니다. 일반화 선형 모델(GLM)의 틀에서 **정준 연결**(canonical link)을 쓴 결과이다. 정준 연결은 선형 예측자가 분포의 자연 파라메터와 곧바로 같아지도록 고른 연결 함수다. 베르누이 반응에 로짓 연결을 쓰면 그래디언트가 이 우아한 형태로 간단해진다.
 
 ---
 

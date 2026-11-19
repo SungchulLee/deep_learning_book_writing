@@ -6,7 +6,7 @@
 
     $$\text{Cross-Entropy Loss} = \text{Negative Log-Likelihood of Categorical Distribution}$$
     
-    교차 엔트로피 로스로 분류기를 학습시킬 때 당신은 범주형 가능도 아래에서 최대가능도 추정을 하고 있는 것이다.
+    교차 엔트로피 로스로 분류기를 학습시키는 것은 범주형 가능도 아래에서 최대가능도 추정을 하는 것이다.
 
 ---
 

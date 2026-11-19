@@ -64,11 +64,11 @@ def shapes():
           "= 3*5 + 3")
 
     print("  W[1] = 출력 뉴런 1 로 들어오는 웨이트 다섯 개")
-    print("    연속인가 :", W[1].is_contiguous(), " 보폭", W[1].stride())
+    print("    연속인가 :", W[1].is_contiguous(), " 스트라이드", W[1].stride())
     print("    메모리 간격(바이트):",
           [W[1][i].data_ptr() - W[1][0].data_ptr() for i in range(5)])
     print("  W[:,1] = 입력 1 이 나가는 웨이트 세 개")
-    print("    연속인가 :", W[:, 1].is_contiguous(), " 보폭", W[:, 1].stride())
+    print("    연속인가 :", W[:, 1].is_contiguous(), " 스트라이드", W[:, 1].stride())
     print("    메모리 간격(바이트):",
           [W[:, 1][i].data_ptr() - W[:, 1][0].data_ptr() for i in range(3)])
 
@@ -178,9 +178,9 @@ def transpose_is_free():
     header("6. W.t() 는 복사가 아니다")
     torch.manual_seed(0)
     W = nn.Linear(5, 3).weight
-    print("  W.is_contiguous()     :", W.is_contiguous(), " 보폭", W.stride())
+    print("  W.is_contiguous()     :", W.is_contiguous(), " 스트라이드", W.stride())
     print("  W.t().is_contiguous() :", W.t().is_contiguous(),
-          " 보폭", W.t().stride())
+          " 스트라이드", W.t().stride())
     print("  같은 저장소인가        :",
           W.untyped_storage().data_ptr() == W.t().untyped_storage().data_ptr())
     print("  그래서 x @ W.t() 는 전치하느라 메모리를 쓰지 않는다")
@@ -208,10 +208,10 @@ if __name__ == "__main__":
     bias.shape   : (3,) = (out,)
     파라메터 수   : 18 = 3*5 + 3
   W[1] = 출력 뉴런 1 로 들어오는 웨이트 다섯 개
-    연속인가 : True  보폭 (1,)
+    연속인가 : True  스트라이드 (1,)
     메모리 간격(바이트): [0, 4, 8, 12, 16]
   W[:,1] = 입력 1 이 나가는 웨이트 세 개
-    연속인가 : False  보폭 (5,)
+    연속인가 : False  스트라이드 (5,)
     메모리 간격(바이트): [0, 20, 40]
 
 === 2. 뒤집어 저장하면 느려지는가 ===
@@ -253,8 +253,8 @@ if __name__ == "__main__":
   마지막 축만 in_features 와 맞으면 된다
 
 === 6. W.t() 는 복사가 아니다 ===
-  W.is_contiguous()     : True  보폭 (5, 1)
-  W.t().is_contiguous() : False  보폭 (1, 5)
+  W.is_contiguous()     : True  스트라이드 (5, 1)
+  W.t().is_contiguous() : False  스트라이드 (1, 5)
   같은 저장소인가        : True
   그래서 x @ W.t() 는 전치하느라 메모리를 쓰지 않는다
 ```
@@ -303,12 +303,12 @@ x[0] @ W[1] + b[1]   = 0.587614
 까닭은 6절에 있다. `W.t()`는 **복사가 아니다.**
 
 ```
-W.is_contiguous()     : True   보폭 (5, 1)
-W.t().is_contiguous() : False  보폭 (1, 5)
+W.is_contiguous()     : True   스트라이드 (5, 1)
+W.t().is_contiguous() : False  스트라이드 (1, 5)
 같은 저장소인가        : True
 ```
 
-보폭(stride, 스트라이드)만 바꿔 쓴 뷰이고, 행렬곱 커널은 "두 번째 인자가 전치되어 있다"는 표시를
+스트라이드(stride, 스트라이드)만 바꿔 쓴 뷰이고, 행렬곱 커널은 "두 번째 인자가 전치되어 있다"는 표시를
 받아 그대로 처리한다. 전치 때문에 메모리를 옮기는 일은 아예 일어나지 않는다.
 그러니 전치는 비용이 아니고, 이 관례를 고른 까닭도 속도가 아니다. **한 행이
 무엇을 뜻하느냐가 까닭이다.**
@@ -360,7 +360,7 @@ $(3,5)$이고, $g^\top X$가 $(3,4) \times (4,5) = (3,5)$로 맞아떨어진다.
 어디에 붙일지 헷갈릴 때는 모양을 맞춰 보면 한 가지 답만 남는다.
 
 $b$의 그래디언트가 배치 **합**이라는 점은 따로 볼 가치가 있다. 바이어스 하나가 배치의 모든
-표본에 쓰였으니 — 「메모리와 저장소」의 보폭 0과 같은 이야기다 — 그래디언트가 모두
+표본에 쓰였으니 — 「메모리와 저장소」의 스트라이드 0과 같은 이야기다 — 그래디언트가 모두
 더해져 돌아온다. 연습문제 3에서 이것이 러닝레이트와 어떻게 맞물리는지 본다.
 
 ## 6. 앞쪽 축은 몇 개여도 된다

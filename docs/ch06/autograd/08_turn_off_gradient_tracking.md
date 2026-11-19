@@ -6,7 +6,7 @@
 
 남이 오래 학습시켜 둔 모델을 가져다 내 일에 맞게 조금만 고치는 것을
 **전이 학습**이라 한다. 그때 「앞쪽은 건드리지 말고 뒤쪽만 배우게 하자」는 말을
-하는데, 그 「건드리지 말자」를 **동결한다**(freeze)고 부른다. 흔히 「얼린다」고도 말한다.
+하는데, 그 「건드리지 말자」를 **동결한다**(freeze)고 부른다. 흔히 「동결한다」고도 말한다.
 
 코드로는 그 층의 파라메터에 `requires_grad_(False)`를 거는 일이다. 동결한다는
 말에서 떠오르는 그림은 아마 **벽**일 것이다. 거기서 막히고, 그 너머로는
@@ -70,7 +70,7 @@ def where_allowed():
     try:
         b.requires_grad_(False)
     except RuntimeError as e:
-        print("  잎이 아닌 것에:", str(e).splitlines()[0][:66])
+        print("  리프가 아닌 것에:", str(e).splitlines()[0][:66])
 
     c = torch.randint(0, 5, (3,))
     try:
@@ -185,7 +185,7 @@ if __name__ == "__main__":
 === 1. 플래그를 걸 수 있는 텐서 ===
   리프 텐서에 켜기: True
   만들 때 켜기: True
-  잎이 아닌 것에: you can only change requires_grad flags of leaf variables. If you 
+  리프가 아닌 것에: you can only change requires_grad flags of leaf variables. If you 
   정수 텐서에  : only Tensors of floating point dtype can require gradients
   미분은 실수에서만 뜻이 있으므로 정수에는 못 건다
 
@@ -216,11 +216,11 @@ if __name__ == "__main__":
 ## 2. 리프 텐서에만, 실수에만 걸 수 있다
 
 ```
-잎이 아닌 것에: you can only change requires_grad flags of leaf variables
+리프가 아닌 것에: you can only change requires_grad flags of leaf variables
 정수 텐서에  : only Tensors of floating point dtype can require gradients
 ```
 
-**리프 텐서**(leaf tensor)에만 걸 수 있다 — 연산의 결과가 아니라 사용자가 직접 만든 텐서로, 계산 그래프의 잎에 해당한다(출력의 「잎」이 이것이다). 계산으로 생긴 텐서의 플래그는 이미 그 위쪽에 의해 정해져
+**리프 텐서**(leaf tensor)에만 걸 수 있다 — 연산의 결과가 아니라 사용자가 직접 만든 텐서로, 계산 그래프의 리프에 해당한다(출력의 「리프」이 이것이다). 계산으로 생긴 텐서의 플래그는 이미 그 위쪽에 의해 정해져
 있으므로 손으로 바꿀 일이 아니다. 끊고 싶으면 `detach()`를 쓰라는 것이 오류
 메시지가 이어서 하는 말이다.
 
