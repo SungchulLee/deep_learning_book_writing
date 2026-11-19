@@ -9,6 +9,7 @@ make_figures.py - 6장의 그림을 만든다
     keep_rate.svg 남긴 차원에 따라 「원래 이웃 열 가운데 몇이 남는가」
     svd_lsa.svg  특잇값 분해의 행렬 크기(얼개)와, awful 로 찾은 글의 코사인 분포
     why_embedding.svg  픽셀 평균과 코드 평균, 번호 그대로 대 임베딩의 정확도
+    svd_hand.svg 3 x 2 행렬 하나를 특잇값 분해한 두 조각
 
 왜 이 둘인가:
     6.6 쪽의 요점은 **그림이 그럴듯해 보이는 것과 가까움이 지켜진 것은
@@ -988,6 +989,43 @@ def fig_why_embedding():
         print(f"  {k:6s} {np.round(res[k], 4).tolist()}")
 
 
+def fig_svd_hand():
+    """02_svd_lsa.md - 3 x 2 행렬 하나를 특잇값 분해한 두 조각.
+
+    쪽의 「손으로 한 번」 블록과 같은 행렬, 같은 부호 약속(v 의 첫 칸이 양수)이다.
+    """
+    M = np.array([[1., 4.], [2., 5.], [3., 6.]])
+    U, S, Vt = np.linalg.svd(M, full_matrices=False)
+    for i in range(2):
+        if Vt[i, 0] < 0:
+            U[:, i], Vt[i] = -U[:, i], -Vt[i]
+    P = [S[i] * np.outer(U[:, i], Vt[i]) for i in range(2)]
+    mats = [(M, "M"), (P[0], f"s1 u1 v1^T   (s1 = {S[0]:.4f})"),
+            (P[1], f"s2 u2 v2^T   (s2 = {S[1]:.4f})")]
+    fig, axes = plt.subplots(1, 3, figsize=(9.6, 3.6))
+    for k, (ax, (A, title)) in enumerate(zip(axes, mats)):
+        ax.imshow(A, cmap="RdBu_r", vmin=-6.5, vmax=6.5)
+        for r in range(3):
+            for c in range(2):
+                ax.text(c, r, f"{A[r, c]:.4f}" if k else f"{A[r, c]:.0f}",
+                        ha="center", va="center", fontsize=10,
+                        color="white" if abs(A[r, c]) > 4 else "#1f2937")
+        ax.set_xticks([]); ax.set_yticks([])
+        ax.set_title(title, fontsize=10)
+    fig.text(0.355, 0.5, "=", fontsize=20, ha="center", va="center")
+    fig.text(0.675, 0.5, "+", fontsize=20, ha="center", va="center")
+    share = S[0] ** 2 / (S ** 2).sum()
+    fig.text(0.5, 0.04, f"first piece alone keeps {share:.2%} of the squared sum;  "
+             f"what it leaves out has size s2 = {S[1]:.4f}",
+             ha="center", fontsize=9, color="#6b7280")
+    fig.tight_layout(rect=(0, 0.07, 1, 1))
+    fig.savefig(Path(__file__).parent / "svd_hand.svg", transparent=True)
+    import sys
+    if len(sys.argv) > 1:
+        fig.savefig(f"{sys.argv[1]}/svd_hand.png", dpi=110, facecolor="white")
+    plt.close(fig); print("wrote svd_hand.svg")
+
+
 if __name__ == "__main__":
     toks = load_tokens()
     counts = Counter(toks)
@@ -1016,3 +1054,4 @@ if __name__ == "__main__":
     fig_ascii_is_spelling()
     fig_svd_lsa()
     fig_why_embedding()
+    fig_svd_hand()
