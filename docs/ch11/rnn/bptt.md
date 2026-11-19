@@ -12,7 +12,7 @@ $$h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b)$$
 
 $$y_t = W_{hy} h_t$$
 
-펼치면 깊이가 시퀀스의 길이 $T$과 같고 모든 레이어가 웨이트를 나누어 쓰며 "레이어" 하나가 시각 하나에 대응하는 깊은 순방향 뉴럴 네트워크가 된다.
+펼치면 깊이가 시퀀스의 길이 $T$와 같고 모든 레이어가 웨이트를 나누어 쓰며 "레이어" 하나가 시각 하나에 대응하는 깊은 순방향 뉴럴 네트워크가 된다.
 
 ```
 Loss = L₁ + L₂ + L₃ + L₄
@@ -122,9 +122,9 @@ def bptt_manual(xs, hs, ys, targets, W_xh, W_hh, W_hy):
     
     인수:
         xs: 입력의 목록 [x_1, …, x_T]
-        hs: 숨은 상태의 목록 [h_0, h_1, …, h_T]
+        hs: 은닉 상태의 목록 [h_0, h_1, …, h_T]
         ys: 출력의 목록 [y_1, …, y_T]
-        targets: 표적의 목록
+        targets: 타깃의 목록
         W_xh, W_hh, W_hy: 웨이트 행렬
     
     반환값:
@@ -146,7 +146,7 @@ def bptt_manual(xs, hs, ys, targets, W_xh, W_hh, W_hy):
         # 출력 웨이트의 그래디언트
         dW_hy += torch.outer(dy, hs[t + 1])
         
-        # 숨은 상태로 흘러드는 그래디언트
+        # 은닉 상태로 흘러드는 그래디언트
         dh = W_hy.T @ dy + dh_next
         
         # tanh 비선형을 지나는 그래디언트
@@ -173,7 +173,7 @@ def bptt_manual(xs, hs, ys, targets, W_xh, W_hh, W_hy):
 ```python
 def truncated_bptt(model, sequence, chunk_size, optimizer, criterion):
     """
-    잘라 낸 BPTT: 순차열을 덩이로 나누어 처리하고 덩이 안에서만
+    절단 BPTT: 시퀀스를 청크로 나누어 처리하고 청크 안에서만
     역전파한다.
     """
     hidden = None
@@ -183,15 +183,15 @@ def truncated_bptt(model, sequence, chunk_size, optimizer, criterion):
         inputs = sequence[i:i + chunk_size]
         targets = sequence[i + 1:i + chunk_size + 1]
         
-        # 그래디언트의 흐름을 자르려고 숨은 상태를 떼어 냄
+        # 그래디언트의 흐름을 자르려고 은닉 상태를 분리함(detach)
         if hidden is not None:
             hidden = hidden.detach()
         
-        # 덩이를 지나는 순전파
+        # 청크를 지나는 순전파
         outputs, hidden = model(inputs.unsqueeze(0), hidden)
         loss = criterion(outputs.squeeze(0), targets)
         
-        # 역전파 (이 덩이 안에서만)
+        # 역전파 (이 청크 안에서만)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -215,7 +215,7 @@ def truncated_bptt(model, sequence, chunk_size, optimizer, criterion):
 |-----------|------|-------|
 | 순전파 | $O(T \cdot H^2)$ | $O(T \cdot H)$ |
 | 역전파 | $O(T \cdot H^2)$ | $O(T \cdot H)$ |
-| 절단 BPTT (덩이 $k$) | $O(T \cdot H^2)$ | $O(k \cdot H)$ |
+| 절단 BPTT (청크 $k$) | $O(T \cdot H^2)$ | $O(k \cdot H)$ |
 
 표는 배치와 입력·출력 차원을 생략하고 은닉 계산이 지배적이라고 가정한 근사다. 전체 메모리에는 파라메터와 그래디언트, 입력·출력과 연산 버퍼도 포함된다. 청크별 역전파 후 그래프를 해제하면 저장할 중간 상태의 길이 의존성을 T에서 k로 줄일 수 있다.
 
@@ -274,7 +274,7 @@ def visualize_gradient_flow(model, x):
 </div>
 
 ??? success "풀이"
-    $g_t=q_t+J_{t+1}^{\top}g_{t+1}$를 역순으로 계산하고 $\delta_t=g_t\odot(1-h_t^2)$를 구한다. 웨이트 기울기는 $\sum_t\delta_t h_{t-1}^{\top}$다. 여기서 각 항은 해당 시점에서 웨이트를 사용한 직접 기여이고, 미래 로스의 영향은 이미 $g_t$에 포함되어 있다. 상태의 전체 미분을 다시 합하면 중복 계산할 수 있다.
+    $g_t=q_t+J_{t+1}^{\top}g_{t+1}$를 역순으로 계산하고 $\delta_t=g_t\odot(1-h_t^2)$를 구한다. 웨이트의 그래디언트는 $\sum_t\delta_t h_{t-1}^{\top}$다. 여기서 각 항은 해당 시점에서 웨이트를 사용한 직접 기여이고, 미래 로스의 영향은 이미 $g_t$에 포함되어 있다. 상태의 전체 미분을 다시 합하면 중복 계산할 수 있다.
 
 ---
 
@@ -286,7 +286,7 @@ def visualize_gradient_flow(model, x):
 </div>
 
 ??? success "풀이"
-    배치 크기와 다른 차원을 고정하면 은닉 상태 저장량은 각각 $O(TH)$와 $O(kH)$다. 청크 처리도 전체 시퀀스 길이 T를 줄이는 것은 아니며 역전파를 연결하는 구간을 줄인다. 체크포인팅은 중간값을 다시 계산하여 다른 메모리·계산 절충을 만든다.
+    배치 크기와 다른 차원을 고정하면 은닉 상태 저장량은 각각 $O(TH)$와 $O(kH)$다. 청크 처리도 전체 시퀀스 길이 T를 줄이는 것은 아니며 역전파를 연결하는 구간을 줄인다. 체크포인팅은 중간값을 다시 계산하여 다른 메모리·계산 트레이드오프를 만든다.
 
 ---
 
@@ -303,7 +303,7 @@ def visualize_gradient_flow(model, x):
     rnn = nn.RNN(input_size, hidden_size, batch_first=True)
     loss = criterion(rnn(x)[0], targets)
     loss.backward()  # 모든 시각을 지나는 온전한 BPTT
-    # 잘라 낸 BPTT: k스텝마다 숨은 상태를 떼어 낸다
+    # 절단 BPTT: k스텝마다 은닉 상태를 분리한다(detach)
     ```
 
     아래 코드는 backward 호출만 보여 주며 수치 검증은 수행하지 않는다. 정의된 입력과 로스를 사용하고, 작은 배정밀도 텐서에서 자동 미분 결과를 중앙 유한 차분이나 gradcheck와 비교해야 한다. 각 사용 위치가 공유 파라메터 하나에 기여하도록 구성하고 로스의 합·평균 배율도 맞춘다.

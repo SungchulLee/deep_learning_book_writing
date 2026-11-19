@@ -1,12 +1,12 @@
-# L2 정규화 (릿지)
+# L2 정칙화 (릿지)
 
-L2 정규화는 웨이트 제곱 노름의 패널티를 로스에 더한다. 선형 최소제곱에서는 릿지 회귀가 되며, 적절한 조건에서 계수의 노름과 추정 변동을 줄일 수 있다. 웨이트 감쇠와의 관계는 옵티마이저와 패널티의 배율에 따라 달라진다.
+L2 정칙화는 웨이트 제곱 노름의 패널티를 로스에 더한다. 선형 최소제곱에서는 릿지 회귀가 되며, 적절한 조건에서 계수의 노름과 추정 변동을 줄일 수 있다. 웨이트 감쇠와의 관계는 옵티마이저와 패널티의 배율에 따라 달라진다.
 
 ## 1. 수학적 정식화
 
 ### L2 패널티를 더한 표준 로스
 
-파라메터가 $\theta = \{w_1, w_2, \ldots, w_n\}$인 로스 함수 $\mathcal{L}(\theta)$에 대해 L2 정규화는 목적 함수를 다음과 같이 바꾼다.
+파라메터가 $\theta = \{w_1, w_2, \ldots, w_n\}$인 로스 함수 $\mathcal{L}(\theta)$에 대해 L2 정칙화는 목적 함수를 다음과 같이 바꾼다.
 
 $$
 \mathcal{L}_{\text{L2}}(\theta) = \mathcal{L}(\theta) + \lambda \sum_{i=1}^{n} w_i^2
@@ -21,7 +21,7 @@ $$
 여기서 각 기호는 다음과 같다.
 
 - $\mathcal{L}(\theta)$은 원래의 로스 함수이다
-- $\lambda \geq 0$은 정규화의 강도이다
+- $\lambda \geq 0$은 정칙화의 강도이다
 - $\|w\|_2^2 = w^T w = \sum_{i=1}^{n} w_i^2$은 L2 노름의 제곱이다
 
 ### L2를 쓰는 선형 회귀 (릿지 회귀)
@@ -52,7 +52,7 @@ $$
 \nabla_w \left( \lambda \|w\|_2^2 \right) = 2\lambda w
 $$
 
-L2 정규화된 로스의 전체 그래디언트는 다음과 같다.
+L2 정칙화된 로스의 전체 그래디언트는 다음과 같다.
 
 $$
 \nabla_w \mathcal{L}_{\text{L2}} = \nabla_w \mathcal{L} + 2\lambda w
@@ -80,7 +80,7 @@ $$
 w^* = \left( X^T X + 2m\lambda I \right)^{-1} X^T y
 $$
 
-**핵심**: 모든 계수를 벌점에 포함하고 $\lambda>0$이면 항 $2m\lambda I$은 $X^T X$이 특이행렬일 때에도(예: $n > m$일 때) 행렬이 언제나 가역이 되도록 보장한다.
+**핵심**: 모든 계수를 패널티에 포함하고 $\lambda>0$이면 항 $2m\lambda I$은 $X^T X$이 특이행렬일 때에도(예: $n > m$일 때) 행렬이 언제나 가역이 되도록 보장한다.
 
 ---
 
@@ -110,13 +110,13 @@ $$
 
 ### 베이즈적 해석
 
-L2 정규화는 웨이트에 대한 **정규 사전분포**에 대응한다.
+L2 정칙화는 웨이트에 대한 **정규 사전분포**에 대응한다.
 
 $$
 p(w) = \mathcal{N}(0, \sigma^2 I)
 $$
 
-데이터 로스를 **합 NLL**로 정의하면 사전 분산과 아래 관계를 갖는다. 평균 NLL이라면 표본 수 $m$으로 나눈 $\lambda=1/(2m\sigma^2)$가 같은 사전에 대응한다. 앞의 제곱 오차를 정규 우도로 읽으려면 관측 잡음 분산과 로스 배율도 맞춰야 한다.
+데이터 로스를 **합 NLL**로 정의하면 사전 분산과 아래 관계를 갖는다. 평균 NLL이라면 표본 수 $m$으로 나눈 $\lambda=1/(2m\sigma^2)$가 같은 사전에 대응한다. 앞의 제곱 오차를 정규 가능도(likelihood, 우도라고도 한다)로 읽으려면 관측 잡음 분산과 로스 배율도 맞춰야 한다.
 
 $$
 \lambda = \frac{1}{2\sigma^2}
@@ -146,11 +146,11 @@ $$
 w_{t+1} = (1 - 2\eta\lambda) w_t - \eta \nabla_w \mathcal{L}
 $$
 
-인수 $(1 - 2\eta\lambda)$이 현재 웨이트에 곱해져 매 단계 웨이트를 영 쪽으로 **감쇠**시킨다. 이것이 L2 정규화를 흔히 **웨이트 감쇠**라 부르는 까닭이다.
+인수 $(1 - 2\eta\lambda)$이 현재 웨이트에 곱해져 매 단계 웨이트를 영 쪽으로 **감쇠**시킨다. 이것이 L2 정칙화를 흔히 **웨이트 감쇠**라 부르는 까닭이다.
 
 ### AdamW: 분리된 웨이트 감쇠
 
-L2 정규화를 쓰는 표준 Adam은 적응형 러닝레이트와 웨이트 감쇠를 완전히 분리하지 못한다. AdamW가 이를 바로잡는다.
+L2 정칙화를 쓰는 표준 Adam은 적응형 러닝레이트와 웨이트 감쇠를 완전히 분리하지 못한다. AdamW가 이를 바로잡는다.
 
 ```python
 # lambda는 파이썬의 예약어라 변수 이름으로 쓸 수 없다. lam으로 적는다.
@@ -168,7 +168,7 @@ w = w - lr * adam_step(grad) - lr * lam * w
 
 ## 4. PyTorch 구현
 
-### L2 정규화 직접 구현하기
+### L2 정칙화 직접 구현하기
 
 ```python
 import torch
@@ -177,17 +177,17 @@ import torch.optim as optim
 
 def l2_regularization(model: nn.Module, lambda_l2: float) -> torch.Tensor:
     """
-    L2 정칙화의 벌점을 계산한다.
+    L2 정칙화의 패널티를 계산한다.
     
     인수:
         model: 뉴럴 네트워크 모델
         lambda_l2: 정칙화의 강도
         
     반환값:
-        L2 벌점 항 (웨이트의 L2 노름의 제곱)
+        L2 패널티 항 (웨이트의 L2 노름의 제곱)
     """
     # next(model.parameters())로 첫 파라메터를 꺼내 그 device를 따라간다.
-    # 이렇게 해 두면 모델이 GPU에 있든 CPU에 있든 같은 곳에서 셈한다.
+    # 이렇게 해 두면 모델이 GPU에 있든 CPU에 있든 같은 곳에서 계산한다.
     # device를 맞추지 않으면 아래 덧셈에서 오류가 난다
     l2_penalty = torch.tensor(0., device=next(model.parameters()).device)
 
@@ -197,8 +197,8 @@ def l2_regularization(model: nn.Module, lambda_l2: float) -> torch.Tensor:
         l2_penalty = l2_penalty + torch.sum(param ** 2)
 
     # 주의: model.parameters()는 바이어스와 정규화 레이어의 감마·베타까지 모두 준다.
-    # 보통은 웨이트에만 벌을 주므로, 엄밀히 하려면 이름으로 걸러야 한다.
-    # 바이어스에 벌을 주면 모델이 출력을 원점 쪽으로 끌어당기게 되어
+    # 보통은 웨이트에만 패널티를 주므로, 엄밀히 하려면 이름으로 걸러야 한다.
+    # 바이어스에 패널티를 주면 모델이 출력을 원점 쪽으로 끌어당기게 되어
     # 목표의 평균이 0에서 멀 때 손해다
     return lambda_l2 * l2_penalty
 
@@ -224,7 +224,7 @@ class L2RegularizedModel(nn.Module):
         return self.network(x)
     
     def l2_penalty(self, lambda_l2=0.01):
-        """모든 파라메터에 대한 L2 벌점을 계산한다."""
+        """모든 파라메터에 대한 L2 패널티를 계산한다."""
         # 파이썬 정수 0에서 시작한다. 첫 덧셈에서 텐서가 되므로
         # device를 따로 맞출 필요가 없다는 것이 앞의 함수와 다른 점이다.
         # 다만 파라메터가 하나도 없는 모델이면 텐서가 아니라 0이 나온다
@@ -234,7 +234,7 @@ class L2RegularizedModel(nn.Module):
 
         # 쓸 때는 로스에 더한다: loss = criterion(pred, y) + model.l2_penalty()
         # 옵티마이저의 weight_decay로 거는 것과 수학적으로는 같지만,
-        # 이렇게 로스에 명시하면 벌점 값을 따로 찍어 볼 수 있어
+        # 이렇게 로스에 명시하면 패널티 값을 따로 찍어 볼 수 있어
         # lambda를 고르거나 문제를 찾을 때 편하다
         return lambda_l2 * penalty
 ```
@@ -254,7 +254,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
 optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 ```
 
-아래 식은 모멘텀 없는 일반 SGD에서의 감쇠를 나타낸다. 옵티마이저마다 weight_decay가 적응형 경사 안에 결합되는지, 별도로 적용되는지가 다르므로 이름만으로 같은 갱신이라고 가정하지 않는다.
+아래 식은 모멘텀 없는 일반 SGD에서의 감쇠를 나타낸다. 옵티마이저마다 weight_decay가 적응형 그래디언트 안에 결합되는지, 별도로 적용되는지가 다르므로 이름만으로 같은 갱신이라고 가정하지 않는다.
 
 $$
 w_{t+1} = w_t - \eta \nabla \mathcal{L} - \eta \cdot \text{weight\_decay} \cdot w_t
@@ -300,19 +300,19 @@ def train_with_l2_regularization(
     if use_adamw:
         # 옵티마이저에 내장된 웨이트 감쇠 쓰기.
         # 2를 곱하는 것은 오타가 아니다. 위의 l2_regularization은
-        # lambda * sum(w^2)을 돌려주므로 기울기가 2*lambda*w인데,
-        # weight_decay는 갱신에 wd*w를 곧바로 더한다. 그래서 눈금을
+        # lambda * sum(w^2)을 돌려주므로 그래디언트가 2*lambda*w인데,
+        # weight_decay는 갱신에 wd*w를 곧바로 더한다. 그래서 스케일을
         # 맞추려면 wd = 2*lambda여야 한다.
-        # 다만 상수를 맞추어도 두 클래스가 똑같아지지는 않는다. 로스에
-        # 더한 벌점은 Adam의 적응 눈금(sqrt(v)로 나누기)을 함께 거치지만
-        # AdamW의 감쇠는 그 눈금을 거치지 않고 웨이트에 직접 걸린다.
+        # 다만 상수를 맞추어도 두 방식이 똑같아지지는 않는다. 로스에
+        # 더한 패널티는 Adam의 적응 스케일(sqrt(v)로 나누기)을 함께 거치지만
+        # AdamW의 감쇠는 그 스케일을 거치지 않고 웨이트에 직접 걸린다.
         # AdamW가 따로 있는 이유가 바로 이 분리다
         optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=2*lambda_l2)
         manual_l2 = False
     else:
         # L2 정칙화 직접 구현.
         # weight_decay를 주지 않은 맨 Adam이어야 한다. 여기에 weight_decay를
-        # 또 주면 벌점이 두 번 걸린다
+        # 또 주면 패널티가 두 번 걸린다
         optimizer = optim.Adam(model.parameters(), lr=lr)
         manual_l2 = True
     
@@ -336,9 +336,9 @@ def train_with_l2_regularization(
             
             total_loss.backward()
             optimizer.step()
-            # 역전파는 total_loss로 하되 기록은 loss로 한다. 벌점을 뺀
+            # 역전파는 total_loss로 하되 기록은 loss로 한다. 패널티를 뺀
             # 값이라야 lambda_l2가 다른 실험끼리, 또 use_adamw의 두
-            # 클래스끼리 로스 곡선을 견줄 수 있다
+            # 방식끼리 로스 곡선을 견줄 수 있다
             train_loss += loss.item()
         
         # 검증 단계
@@ -352,7 +352,7 @@ def train_with_l2_regularization(
         # 웨이트 통계 계산
         # 레이어별 노름을 제곱해 더한 뒤 제곱근을 취해야 전체 노름이 된다.
         # 노름을 그냥 더하면 다른 값이 나온다.
-        # 이 값이 정칙화가 듣고 있는지 보는 눈금이다. lambda_l2를 키우면
+        # 이 값이 정칙화가 듣고 있는지 보는 지표다. lambda_l2를 키우면
         # 이 곡선이 더 낮은 자리에서 평평해져야 한다
         total_norm = sum(p.norm().item() ** 2 for p in model.parameters()) ** 0.5
         
@@ -367,15 +367,15 @@ def train_with_l2_regularization(
     return history
 ```
 
-### 선택적 L2 정규화
+### 선택적 L2 정칙화
 
-레이어마다 서로 다른 정규화 강도를 적용한다.
+레이어마다 서로 다른 정칙화 강도를 적용한다.
 
 ```python
 def create_param_groups_with_l2(model, base_lr=0.001, 
                                  layer_decay_rates=None):
     """
-    레이어마다 다른 L2 정칙화를 갖는 파라메터 배치를 만든다.
+    레이어마다 다른 L2 정칙화를 갖는 파라메터 그룹을 만든다.
     
     인수:
         model: 뉴럴 네트워크
@@ -383,7 +383,7 @@ def create_param_groups_with_l2(model, base_lr=0.001,
         layer_decay_rates: 레이어 이름을 웨이트 감쇠 값에 대응시키는 사전
         
     반환값:
-        옵티마이저를 위한 파라메터 배치의 목록
+        옵티마이저를 위한 파라메터 그룹의 목록
     """
     if layer_decay_rates is None:
         layer_decay_rates = {}
@@ -395,10 +395,10 @@ def create_param_groups_with_l2(model, base_lr=0.001,
             continue
         
         # 레이어에 맞는 감쇠율 찾기.
-        # name은 'network.0.weight' 같은 형태, 사전의 열쇠가 그 안에
+        # name은 'network.0.weight' 같은 형태이고, 사전의 키가 그 안에
         # 들어 있기만 하면 걸린다. 부분 문자열로 맞추는 방식이라
         # 'fc1'이 'fc10'에도 걸린다는 점을 조심하라.
-        # break가 있어 먼저 걸리는 것 하나만 쓰는데, 사전의 차례가
+        # break가 있어 먼저 걸리는 것 하나만 쓰는데, 사전의 순서가
         # 곧 우선순위가 되므로 좁은 이름을 앞에 두어야 한다
         weight_decay = 0.01  # 기본값
         for layer_name, decay in layer_decay_rates.items():
@@ -415,10 +415,10 @@ def create_param_groups_with_l2(model, base_lr=0.001,
         if 'bias' in name:
             weight_decay = 0.0
         
-        # 파라미터 하나에 배치 하나를 만든다. 옵티마이저는 배치마다 다른
+        # 파라메터 하나에 그룹 하나를 만든다. 옵티마이저는 그룹마다 다른
         # 설정을 지닐 수 있으므로, 이렇게 잘게 나누면 레이어는 물론 웨이트와
-        # 바이어스까지 따로 다룰 수 있다. 배치 수가 늘어도 셈이 느려지지는
-        # 않는다. 어차피 파라미터마다 갱신하기 때문이다.
+        # 바이어스까지 따로 다룰 수 있다. 그룹 수가 늘어도 계산이 느려지지는
+        # 않는다. 어차피 파라메터마다 갱신하기 때문이다.
         # 이 목록을 optim.AdamW(param_groups)처럼 넘겨 쓴다
         param_groups.append({
             'params': param,
@@ -453,7 +453,7 @@ import numpy as np
 
 def ridge_regression_analysis(X, y, alphas=None):
     """
-    정칙화의 강도를 달리하며 능선 회귀를 분석한다.
+    정칙화의 강도를 달리하며 릿지 회귀를 분석한다.
     
     인수:
         X: 피처 행렬
@@ -464,8 +464,8 @@ def ridge_regression_analysis(X, y, alphas=None):
         최적 모델과 분석 결과
     """
     # 피처를 표준화한다.
-    # 능선 회귀에서는 이것이 선택이 아니라 필수다. 벌점이 계수의
-    # 크기를 보고 매겨지는데, 눈금이 큰 피처일수록 계수가 작아지므로
+    # 릿지 회귀에서는 이것이 선택이 아니라 필수다. 패널티가 계수의
+    # 크기를 보고 매겨지는데, 스케일이 큰 피처일수록 계수가 작아지므로
     # 표준화하지 않으면 단위를 무엇으로 쟀느냐가 정칙화의 세기를
     # 좌우해 버린다
     scaler = StandardScaler()
@@ -475,7 +475,7 @@ def ridge_regression_analysis(X, y, alphas=None):
         alphas = np.logspace(-4, 4, 50)
     
     # 최적 alpha를 찾기 위한 교차 검증.
-    # RidgeCV는 alpha마다 따로 적합시키는 것이 아니라 능선 해의
+    # RidgeCV는 alpha마다 따로 적합시키는 것이 아니라 릿지 해의
     # 닫힌 형태를 이용해 한꺼번에 푼다. 그래서 GridSearchCV로 같은 일을
     # 하는 것보다 훨씬 빠르다
     ridge_cv = RidgeCV(alphas=alphas, cv=5, scoring='neg_mean_squared_error')
@@ -538,9 +538,9 @@ $$
 ```python
 def ridge_via_svd(X, y, lambda_reg):
     """
-    SVD로 능선 회귀의 해를 계산한다.
+    SVD로 릿지 회귀의 해를 계산한다.
     
-    이는 능선 회귀가 특잇값 방향마다 어떻게
+    이는 릿지 회귀가 특잇값 방향마다 어떻게
     수축시키는지 드러낸다.
     """
     U, s, Vt = np.linalg.svd(X, full_matrices=False)
@@ -549,7 +549,7 @@ def ridge_via_svd(X, y, lambda_reg):
     # 수축 인수
     d = s ** 2 / (s ** 2 + lambda_reg)
     
-    # 능선 회귀의 해
+    # 릿지 회귀의 해
     w_ridge = V @ np.diag(d / s) @ U.T @ y
     
     return w_ridge, d, s
@@ -565,7 +565,7 @@ $$
 \operatorname{df}=\sum_i\frac{\sigma_i^2}{\sigma_i^2+a}=\operatorname{tr}\!\left[X(X^\top X+aI)^{-1}X^\top\right],\qquad a=2m\lambda
 $$
 
-이 값은 전체 계수를 벌점에 포함한 선형 모형의 실효 자유도이다. $\lambda\to0^+$이면 $\operatorname{rank}(X)$로, $\lambda\to\infty$이면 0으로 수렴한다. 절편을 제외한 모형은 절편의 자유도를 별도로 처리한다.
+이 값은 전체 계수를 패널티에 포함한 선형 모형의 실효 자유도이다. $\lambda\to0^+$이면 $\operatorname{rank}(X)$로, $\lambda\to\infty$이면 0으로 수렴한다. 절편을 제외한 모형은 절편의 자유도를 별도로 처리한다.
 
 ---
 
@@ -583,7 +583,7 @@ $$
 
 ---
 
-## 9. L2 정규화를 쓸 때
+## 9. L2 정칙화를 쓸 때
 
 ### 알맞은 쓰임새
 
@@ -591,9 +591,9 @@ $$
 2. **상관된 피처**: L2는 다중공선성을 매끄럽게 다룬다
 3. **모든 피처가 유의미할 때**: 모든 피처가 기여한다고 믿을 때
 4. **수치적 안정성**: $\lambda I$을 더하면 가역성이 보장된다
-5. **딥러닝**: 뉴럴 네트워크의 표준 정규화 방법이다
+5. **딥러닝**: 뉴럴 네트워크의 표준 정칙화 방법이다
 
-### 하이퍼파라미터 선택
+### 하이퍼파라메터 선택
 
 ```python
 from sklearn.model_selection import GridSearchCV
@@ -607,7 +607,7 @@ def select_optimal_l2(model_class, X, y, param_grid, cv=5):
         X: 피처
         y: 목푯값
         param_grid: 파라메터 격자 (예: {'alpha': [0.01, 0.1, 1.0]})
-        cv: 교차 검증의 겹 수
+        cv: 교차 검증의 폴드 수
         
     반환값:
         가장 좋은 모델과 탐색 결과
@@ -618,14 +618,14 @@ def select_optimal_l2(model_class, X, y, param_grid, cv=5):
         cv=cv,
         # sklearn의 scoring은 "클수록 좋다"는 규약이므로 MSE에 음수를 붙인 이름을 쓴다
         scoring='neg_mean_squared_error',
-        # 훈련 점수도 함께 남긴다. 검증 점수만 보면 과적합인지 과소적합인지
-        # 가릴 수 없다. 훈련은 좋은데 검증이 나쁘면 alpha를 키워야 하고,
+        # 학습 점수도 함께 남긴다. 검증 점수만 보면 과적합인지 과소적합인지
+        # 가릴 수 없다. 학습은 좋은데 검증이 나쁘면 alpha를 키워야 하고,
         # 둘 다 나쁘면 alpha를 줄이거나 모델을 바꿔야 한다
         return_train_score=True
     )
 
-    # fit 안에서 격자의 값마다 cv겹 교차검증을 돌린 뒤,
-    # 가장 좋은 값으로 전체 자료에 다시 적합한다(refit이 기본값 True)
+    # fit 안에서 격자의 값마다 cv-폴드 교차 검증을 돌린 뒤,
+    # 가장 좋은 값으로 전체 데이터에 다시 적합한다(refit이 기본값 True)
     grid_search.fit(X, y)
 
     print(f"Best parameters: {grid_search.best_params_}")
@@ -641,13 +641,13 @@ def select_optimal_l2(model_class, X, y, param_grid, cv=5):
 
 ## 10. 실무 지침
 
-### 정규화 강도의 선택
+### 정칙화 강도의 선택
 
-- **너무 작으면($\lambda \to 0$)**: 정규화하지 않은 모델처럼 액션하여 과적합할 수 있다
+- **너무 작으면($\lambda \to 0$)**: 정칙화하지 않은 모델처럼 동작하여 과적합할 수 있다
 - **너무 크면($\lambda \to \infty$)**: 모든 웨이트가 영으로 수축하여 과소적합한다
-- **최적**: 편향-분산 절충의 균형을 맞춘다
+- **최적**: 편향-분산 트레이드오프의 균형을 맞춘다
 
-### 피처의 척도 조정
+### 피처의 스케일 조정
 
 같은 계수 크기에 같은 패널티를 주면 피처 단위가 다른 경우 효과도 달라진다. 표준화는 흔한 선택이지만, 단위에 맞는 사전 지식이나 피처별 패널티가 있다면 그 설계를 사용할 수 있다. 전처리 통계량은 학습 분할에서만 구한다.
 
@@ -656,21 +656,21 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import Ridge
 
-# 옳은 방법: 척도를 맞춘 뒤 정칙화한다.
+# 옳은 방법: 스케일을 맞춘 뒤 정칙화한다.
 #
 # 왜 순서가 중요한가.
-# L2 벌점은 모든 계수를 같은 세기로 누른다. 그런데 특성의 자가 제각각이면
-# 자가 큰 특성일수록 계수가 작아지므로 벌을 덜 받는다. 곧 정칙화의 세기가
-# 특성의 단위에 따라 달라져 버린다. 표준화를 먼저 해 두면 모든 계수가
-# 같은 자 위에 놓여 alpha 하나가 모두에 똑같이 걸린다.
+# L2 패널티는 모든 계수를 같은 세기로 누른다. 그런데 피처의 스케일이 제각각이면
+# 스케일이 큰 피처일수록 계수가 작아지므로 패널티를 덜 받는다. 곧 정칙화의 세기가
+# 피처의 단위에 따라 달라져 버린다. 표준화를 먼저 해 두면 모든 계수가
+# 같은 스케일 위에 놓여 alpha 하나가 모두에 똑같이 걸린다.
 #
 # Pipeline으로 묶는 까닭.
-# 교차 검증을 할 때 겹(fold)마다 훈련 자료로만 평균과 표준편차를 다시 잰다.
-# 손으로 먼저 표준화해 두면 검증 겹의 정보가 훈련에 새어 들어
+# 교차 검증을 할 때 폴드(fold)마다 학습 데이터로만 평균과 표준편차를 다시 잰다.
+# 손으로 먼저 표준화해 두면 검증 폴드의 정보가 학습에 새어 들어
 # 성능이 실제보다 좋게 나온다.
 pipeline = Pipeline([
-    ('scaler', StandardScaler()),   # 1단계: 각 특성을 평균 0, 표준편차 1로
-    ('ridge', Ridge(alpha=1.0))     # 2단계: 그 위에서 L2 벌점을 건다
+    ('scaler', StandardScaler()),   # 1단계: 각 피처를 평균 0, 표준편차 1로
+    ('ridge', Ridge(alpha=1.0))     # 2단계: 그 위에서 L2 패널티를 건다
 ])
 ```
 
@@ -681,7 +681,7 @@ pipeline = Pipeline([
 ```python
 # PyTorch에서는 웨이트와 바이어스를 나눈다
 def l2_regularization_weights_only(model, lambda_l2):
-    """바이어스는 빼고 웨이트에만 적용하는 L2 벌점."""
+    """바이어스는 빼고 웨이트에만 적용하는 L2 패널티."""
     penalty = 0
     for name, param in model.named_parameters():
         if 'weight' in name:  # 웨이트 행렬만
@@ -701,7 +701,7 @@ def l2_regularization_weights_only(model, lambda_l2):
 </div>
 
 ??? success "풀이"
-    일반 SGD는 $w^+=(1-2\eta\lambda)w-\eta\nabla L$이므로 감쇠 계수 $2\lambda$에 대응한다. Adam에 L2를 결합하면 패널티 경사도 적응형 적률 추정에 참여한다. AdamW는 감쇠를 그 변환과 분리하므로 같은 L2 목적의 Adam 갱신과 일반적으로 다르다.
+    일반 SGD는 $w^+=(1-2\eta\lambda)w-\eta\nabla L$이므로 감쇠 계수 $2\lambda$에 대응한다. Adam에 L2를 결합하면 패널티 그래디언트도 적응형 적률 추정에 참여한다. AdamW는 감쇠를 그 변환과 분리하므로 같은 L2 목적의 Adam 갱신과 일반적으로 다르다.
 
 ---
 
@@ -725,14 +725,14 @@ L2가 희소성을 직접 유도하지 않는 이유와 계수가 정확히 0일
 </div>
 
 ??? success "풀이"
-    L2는 0에서 매끄럽고 경사가 $2\lambda w$이므로 L1처럼 0을 선호하는 부분미분 구간이 없다. 그러나 단일 직교 피처가 목표와 직교하면 릿지 계수 $x^\top y/(x^\top x+a)$가 정확히 0이다. 따라서 결코 0이 되지 않는다는 주장은 틀리다.
+    L2는 0에서 매끄럽고 그래디언트가 $2\lambda w$이므로 L1처럼 0을 선호하는 부분미분 구간이 없다. 그러나 단일 직교 피처가 목표와 직교하면 릿지 계수 $x^\top y/(x^\top x+a)$가 정확히 0이다. 따라서 결코 0이 되지 않는다는 주장은 틀리다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-PyTorch에서 `weight_decay` 파라메터를 쓰는 방법과 패널티를 직접 더하는 방법 모두로 L2 정규화를 구현하라.
+PyTorch에서 `weight_decay` 파라메터를 쓰는 방법과 패널티를 직접 더하는 방법 모두로 L2 정칙화를 구현하라.
 
 </div>
 

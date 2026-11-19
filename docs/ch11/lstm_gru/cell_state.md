@@ -28,7 +28,7 @@ $$B_{t-1}=\operatorname{diag}(o_{t-1})\operatorname{diag}(1-\tanh^2(c_{t-1}))$$
 
 이 식은 peephole 없는 표준 LSTM에서 이전 시점의 다른 직접 입력을 고정한 경로별 설명이다. 전체 시간 미분은 은닉·셀 상태를 합친 상태의 블록 야코비안으로 계산하는 것이 명확하다. 망각 게이트가 1에 가깝다는 조건만으로 간접 항도 작다고 볼 수 없다.
 
-일정 오차 순환(CEC)은 원래 LSTM의 오차 전달 설계에서 나온 용어다. 망각 게이트가 있는 현대적 셀의 직접 경로에는 게이트의 곱이 생긴다. 이 곱이 1에 가까울 수 있다는 것과 전체 오차가 항상 일정하다는 것은 다르다.
+상수 오차 캐러셀(CEC, constant error carousel)은 원래 LSTM의 오차 전달 설계에서 나온 용어다. 망각 게이트가 있는 현대적 셀의 직접 경로에는 게이트의 곱이 생긴다. 이 곱이 1에 가까울 수 있다는 것과 전체 오차가 항상 일정하다는 것은 다르다.
 
 ## 3. 기본 RNN과의 대비
 
@@ -78,7 +78,7 @@ LEGEND:
 
 ---
 
-## 5. 그래디언트의 흐름에서 각 문의 구실
+## 5. 그래디언트의 흐름에서 각 게이트의 역할
 
 ### 망각 게이트: 고속도로의 관리자
 
@@ -92,7 +92,7 @@ import numpy as np
 
 def analyze_forget_gate_impact():
     """
-    망각 문의 값이 그래디언트 전파에 어떤 영향을 주는지 보인다.
+    망각 게이트의 값이 그래디언트 전파에 어떤 영향을 주는지 보인다.
     """
     scenarios = {
         'Always forget (f=0.0)': 0.0,
@@ -118,7 +118,7 @@ def analyze_forget_gate_impact():
 
 def visualize_forget_gate_gradient_decay():
     """
-    망각 문의 값에 따른 그래디언트의 감소를 그려 본다.
+    망각 게이트의 값에 따른 그래디언트의 감소를 그려 본다.
     """
     forget_values = [0.5, 0.8, 0.9, 0.95, 0.99, 1.0]
     max_length = 200
@@ -147,13 +147,13 @@ $$\frac{\partial c_t}{\partial \tilde{c}_t} = \operatorname{diag}(i_t)$$
 
 $i_t \approx 0$이면 뉴럴 네트워크가 새 정보를 무시하고 그래디언트가 후보 계산으로 흐르지 않는다. 뉴럴 네트워크가 늘 입력을 무시하는 법을 배우면 문제가 될 수 있다.
 
-### 출력 게이트: 보임을 다스리는 문
+### 출력 게이트: 노출을 조절하는 게이트
 
 출력 게이트 $o_t$은 $h_t$에서 $c_t$으로 그래디언트가 흐르는 방식에 영향을 준다.
 
 $$\frac{\partial h_t}{\partial c_t} = \operatorname{diag}(o_t)\operatorname{diag}(1-\tanh^2(c_t))$$
 
-$o_t \approx 0$이면 셀 상태가 출력에서 "가려져" 그 시각에 로스에서 오는 그래디언트가 셀 상태에 미치는 영향이 줄어든다.
+$o_t \approx 0$이면 셀 상태가 출력에서 "가려져" 그 시점에 로스에서 오는 그래디언트가 셀 상태에 미치는 영향이 줄어든다.
 
 ---
 
@@ -165,9 +165,9 @@ $o_t \approx 0$이면 셀 상태가 출력에서 "가려져" 그 시각에 로�
 def analyze_gradient_flow(model, seq_length=100, input_size=64, 
                           num_samples=50, model_type='lstm'):
     """
-    여러 RNN 판본의 그래디언트 흐름을 두루 분석한다.
+    여러 RNN 변형의 그래디언트 흐름을 종합적으로 분석한다.
     
-    시각마다 그래디언트의 노름을 돌려주어, 마지막 출력에서 시간을 거슬러
+    시점마다 그래디언트의 노름을 돌려주어, 마지막 출력에서 시간을 거슬러
     그래디언트가 얼마나 잘 전파되는지 잰다.
     """
     gradient_norms = torch.zeros(seq_length)
@@ -183,7 +183,7 @@ def analyze_gradient_flow(model, seq_length=100, input_size=64,
         loss = outputs[0, -1, :].sum()
         loss.backward()
         
-        # 시각마다 그래디언트 재기
+        # 시점마다 그래디언트 재기
         for t in range(seq_length):
             gradient_norms[t] += x.grad[0, t, :].norm().item()
         
@@ -216,7 +216,7 @@ def comprehensive_gradient_comparison():
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     timesteps = np.arange(seq_length)
     
-    # 선형 눈금
+    # 선형 스케일
     ax = axes[0]
     for name, grads in results.items():
         ax.plot(timesteps, grads.numpy(), label=name, linewidth=2)
@@ -226,7 +226,7 @@ def comprehensive_gradient_comparison():
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 로그 눈금
+    # 로그 스케일
     ax = axes[1]
     for name, grads in results.items():
         ax.semilogy(timesteps, grads.numpy(), label=name, linewidth=2)
@@ -288,14 +288,14 @@ $$f_t \approx 0 \implies \frac{\partial c_t}{\partial c_{t-1}} \approx 0$$
 ```python
 def initialize_forget_gate_bias(lstm, bias_value=1.0):
     """
-    기억하도록 이끌려고 망각 문의 바이어스를 초기화한다.
+    기억하도록 이끌려고 망각 게이트의 바이어스를 초기화한다.
     
-    PyTorch의 LSTM에서 바이어스의 순서는 [입력, 망각, 세포, 출력]이다.
+    PyTorch의 LSTM에서 바이어스의 순서는 [입력, 망각, 셀, 출력]이다.
     """
     for name, param in lstm.named_parameters():
         if 'bias_ih' in name or 'bias_hh' in name:
             n = param.size(0)
-            # 망각 문은 두 번째 사분면에 있다
+            # 망각 게이트는 두 번째 사분면에 있다
             start = n // 4
             end = n // 2
             param.data[start:end].fill_(bias_value)
@@ -317,9 +317,9 @@ $$0.99^{1000} \approx 0.00004$$
 
 ```python
 def demonstrate_long_sequence_decay():
-    """현실적인 망각 문 값에 대한 그래디언트의 감소를 보인다."""
+    """현실적인 망각 게이트 값에 대한 그래디언트의 감소를 보인다."""
     
-    # 학습된 모델에서 나온 현실적인 망각 문 값
+    # 학습된 모델에서 나온 현실적인 망각 게이트 값
     realistic_f_values = [0.9, 0.95, 0.99]
     lengths = [50, 100, 200, 500, 1000, 2000]
     
@@ -336,7 +336,7 @@ def demonstrate_long_sequence_decay():
 
 ### 조건 3: 간접 경로가 주도할 때
 
-어떤 과제에서는 중요한 그래디언트 신호가 곧바른 셀 상태 경로가 아니라 (문을 거치는) 간접 경로로 흐른다. 그 간접 경로가 사라지면 셀 상태의 그래디언트가 멀쩡해도 학습이 나빠진다.
+어떤 과제에서는 중요한 그래디언트 신호가 직접 셀 상태 경로가 아니라 (게이트를 거치는) 간접 경로로 흐른다. 그 간접 경로가 사라지면 셀 상태의 그래디언트가 멀쩡해도 학습이 나빠진다.
 
 ### 조건 4: 출력 게이트가 막을 때
 
@@ -350,18 +350,18 @@ $$\frac{\partial h_t}{\partial c_t} = o_t \odot \tanh'(c_t) \approx 0$$
 
 ### 종합 진단 도구
 
-아래 도구의 `gate_history`는 실제 게이트 값을 기록하지 않고 은닉 출력과 최종 셀 상태의 통계만 저장한다. 역전파 훅은 출력 그래디언트를 기록하므로 내부 셀 상태의 그래디언트나 시간별 전달량과 다르다. 고정 임계값에 따른 위험 표시는 로스 배율·모델 크기에도 영향을 받으며 확정 진단이 아니다. 실제 게이트 기록에는 셀 계산을 드러내는 별도 계측이 필요하다.
+아래 도구의 `gate_history`는 실제 게이트 값을 기록하지 않고 은닉 출력과 최종 셀 상태의 통계만 저장한다. 역전파 훅은 출력 그래디언트를 기록하므로 내부 셀 상태의 그래디언트나 시간별 전달량과 다르다. 고정 임계값에 따른 위험 표시는 로스 스케일·모델 크기에도 영향을 받으며 확정 진단이 아니다. 실제 게이트 기록에는 셀 계산을 드러내는 별도 계측이 필요하다.
 
 ```python
 class LSTMGradientDiagnostics:
     """
-    LSTM 뉴럴 네트워크의 그래디언트 흐름을 두루 진단한다.
+    LSTM 뉴럴 네트워크의 그래디언트 흐름을 종합적으로 진단한다.
     
-    그래디언트의 건강을 살피고 있을 법한 문제를 짚어 낸다.
-    - 그래디언트 소실 (세포의 그래디언트가 너무 작다)
-    - 그래디언트 폭발 (세포의 그래디언트가 너무 크다)
-    - 죽은 문 (망각 문이나 입력 문이 0이나 1에 붙박였다)
-    - 실효 기억 길이
+    그래디언트 상태를 점검하고 가능한 문제를 탐지한다.
+    - 그래디언트 소실 (셀의 그래디언트가 너무 작다)
+    - 그래디언트 폭발 (셀의 그래디언트가 너무 크다)
+    - 죽은 게이트 (망각 게이트이나 입력 게이트가 0이나 1에 포화했다)
+    - 유효 기억 길이
     """
     
     def __init__(self, model):
@@ -438,7 +438,7 @@ class LSTMGradientDiagnostics:
         self.hooks = []
 ```
 
-### 실효 기억 길이 재기
+### 유효 기억 길이 재기
 
 아래 함수가 반환하는 길이는 정규화한 입력 그래디언트가 임계값보다 큰 위치의 개수다. 출력에서 연속해서 도달하는 최대 거리나 실제 기억 과제의 성능은 아니다. “반감기”도 절반 이상인 위치 개수이며, 그래디언트가 모두 0이면 정규화가 유효하지 않다. CPU·실수 입력을 가정하고 호출 뒤 평가 모드를 유지하는 점도 고려한다.
 
@@ -448,18 +448,18 @@ def measure_effective_memory_length(model, input_size, max_length=500,
     """
     그래디언트가 실제로 얼마나 멀리 거슬러 전파되는지 잰다.
     
-    실효 기억 길이는 그래디언트의 크기가 최댓값의 `threshold` 아래로
+    유효 기억 길이는 그래디언트의 크기가 최댓값의 `threshold` 아래로
     떨어지는 지점이다.
     
     인수:
         model: LSTM 모델
         input_size: 입력 피처의 차원
-        max_length: 시험할 순차열의 최대 길이
+        max_length: 시험할 시퀀스의 최대 길이
         threshold: 그래디언트의 임계값 (최댓값에 대한 비율)
         num_trials: 평균을 낼 시행 횟수
     
     반환값:
-        effective_length: 어림한 실효 기억
+        effective_length: 추정한 유효 기억 길이
         gradient_profile: 그래디언트의 전체 프로파일
     """
     gradient_profile = torch.zeros(max_length)
@@ -471,7 +471,7 @@ def measure_effective_memory_length(model, input_size, max_length=500,
         
         outputs, _ = model(x)
         
-        # 마지막 시각에서 역전파
+        # 마지막 시점에서 역전파
         loss = outputs[0, -1, :].sum()
         loss.backward()
         
@@ -488,7 +488,7 @@ def measure_effective_memory_length(model, input_size, max_length=500,
     max_grad = gradient_profile.max()
     normalized = gradient_profile / max_grad
     
-    # 실효 길이 찾기
+    # 유효 길이 찾기
     effective_length = (normalized > threshold).sum().item()
     
     # 반감기도 계산

@@ -9,31 +9,31 @@
     ```python
     """
     57모듈: 연속 학습 - 고급
-    파일: 방법의 두루 견줌
+    파일: 방법의 종합 비교
 
-    이 스크립트는 까다로운 잣대에서 여러 연속 학습 방법을 두루 견준다.
-    맞바꿈을 이해하고 상황마다 알맞은 방법을 고르는 데
+    이 스크립트는 까다로운 벤치마크에서 여러 연속 학습 방법을 종합적으로 비교한다.
+    트레이드오프를 이해하고 상황마다 알맞은 방법을 고르는 데
     도움이 된다.
 
     학습 목표:
-    1. 벌주기, 리플레이, 섞은 접근법을 견준다
-    2. 셈과 기억의 맞바꿈을 이해한다
-    3. 여러 지표에 걸쳐 성능을 뜯어본다
-    4. 연속 학습 실험의 좋은 버릇을 배운다
+    1. 정칙화, 리플레이, 하이브리드 접근법을 비교한다
+    2. 계산과 메모리의 트레이드오프를 이해한다
+    3. 여러 지표에 걸쳐 성능을 분석한다
+    4. 연속 학습 실험의 모범 관행을 배운다
 
-    견주는 방법:
-    1. 소박한 차례 학습(베이스라인)
+    비교하는 방법:
+    1. 단순 순차 학습(베이스라인)
     2. 경험 리플레이(ER)
-    3. 탄성 웨이트 다지기(EWC)
-    4. 잊지 않고 배우기(LWF)
-    5. 섞음: EWC + 경험 리플레이
+    3. 탄성 웨이트 통합(EWC)
+    4. 망각 없는 학습(LWF)
+    5. 하이브리드: EWC + 경험 리플레이
 
     평가 지표:
     - 평균 정확도(AA)
-    - 뒤로의 옮김(BWT) - 잊음 재기
-    - 러닝 정확도(LA) - 배우는 힘
-    - 기억 안정성 - 옛 과제 성능의 흩어짐
-    - 셈 비용 - 학습 시간과 기억
+    - 후방 전이(BWT) - 망각 측정
+    - 학습 정확도(LA) - 학습 능력
+    - 기억 안정성 - 옛 과제 성능의 분산
+    - 계산 비용 - 학습 시간과 메모리
     """
 
     import torch
@@ -59,7 +59,7 @@
 
     @dataclass
     class ExperimentResult:
-        """연속 학습 방법의 결과를 두루 담아 둔다."""
+        """연속 학습 방법의 결과를 한데 모아 저장한다."""
         method_name: str
         accuracy_matrix: np.ndarray
         average_accuracy: float
@@ -70,7 +70,7 @@
         memory_usage_mb: float
 
         def summary_dict(self) -> Dict:
-            """간추림을 사전으로 되돌린다."""
+            """요약을 딕셔너리로 반환한다."""
             return {
                 'method': self.method_name,
                 'avg_accuracy': self.average_accuracy,
@@ -82,7 +82,7 @@
 
 
     class NaiveLearner:
-        """베이스라인: 소박한 차례 학습."""
+        """베이스라인: 단순 순차 학습."""
 
         def __init__(self, model, device, lr=0.001):
             self.model = model
@@ -129,7 +129,7 @@
 
 
     class ExperienceReplayLearner:
-        """기억 버퍼를 쓰는 경험 리플레이."""
+        """메모리 버퍼를 쓰는 경험 리플레이."""
 
         def __init__(self, model, device, memory_size=1000, examples_per_task=200, lr=0.001):
             self.model = model
@@ -199,7 +199,7 @@
                         total_loss.backward()
                         optimizer.step()
 
-                # 기억에 더한다
+                # 메모리에 더한다
                 self.add_to_memory(train_loaders[task_id])
 
                 # 평가한다
@@ -223,7 +223,7 @@
 
 
     class EWCLearner:
-        """탄성 웨이트 다지기."""
+        """탄성 웨이트 통합."""
 
         def __init__(self, model, device, ewc_lambda=5000, lr=0.001):
             self.model = model
@@ -297,7 +297,7 @@
                         total_loss.backward()
                         optimizer.step()
 
-                # 다진다
+                # 통합한다
                 fisher = self.compute_fisher(train_loaders[task_id])
                 self.fisher_dict[task_id] = fisher
                 self.optpar_dict[task_id] = {n: p.data.clone() for n, p in self.model.named_parameters() if p.requires_grad}
@@ -323,7 +323,7 @@
 
 
     class LWFLearner:
-        """잊지 않고 배우기."""
+        """망각 없는 학습."""
 
         def __init__(self, model, device, distill_lambda=1.0, temperature=2.0, lr=0.001):
             self.model = model
@@ -368,7 +368,7 @@
                         total_loss.backward()
                         optimizer.step()
 
-                # 옛 모델을 고친다
+                # 옛 모델을 갱신한다
                 self.old_model = copy.deepcopy(self.model)
                 self.old_model.to(self.device)
                 self.old_model.eval()
@@ -396,7 +396,7 @@
 
 
     def calculate_metrics(accuracy_matrix):
-        """표준 연속 학습 지표를 셈한다."""
+        """표준 연속 학습 지표를 계산한다."""
         num_tasks = accuracy_matrix.shape[0]
 
         avg_accuracy = np.mean(accuracy_matrix[:, -1])
@@ -418,7 +418,7 @@
 
 
     def get_memory_usage():
-        """지금 GPU 기억 씀씀이를 MB 단위로 얻는다."""
+        """지금 GPU 메모리 사용량을 MB 단위로 얻는다."""
         if torch.cuda.is_available():
             return torch.cuda.memory_allocated() / 1024 / 1024
         return 0
@@ -467,11 +467,11 @@
 
 
     def visualize_comparison(results: List[ExperimentResult], num_tasks: int):
-        """견줌을 두루 그려 본다."""
+        """비교 결과를 종합해 시각화한다."""
         fig = plt.figure(figsize=(20, 10))
         gs = fig.add_gridspec(2, 3, hspace=0.3, wspace=0.3)
 
-        # 그림 1: 마지막 정확도 견줌
+        # 그림 1: 최종 정확도 비교
         ax1 = fig.add_subplot(gs[0, 0])
         methods = [r.method_name for r in results]
         final_accs = [r.average_accuracy for r in results]
@@ -489,7 +489,7 @@
             ax1.text(bar.get_x() + bar.get_width()/2., bar.get_height() + 1,
                     f'{val:.1f}%', ha='center', fontsize=9)
 
-        # 그림 2: 뒤로의 옮김 견줌
+        # 그림 2: 후방 전이 비교
         ax2 = fig.add_subplot(gs[0, 1])
         bwts = [r.backward_transfer for r in results]
         bars = ax2.bar(range(len(methods)), bwts, color=colors, alpha=0.8)
@@ -505,7 +505,7 @@
                     f'{val:.1f}%', ha='center',
                     va='bottom' if val >= 0 else 'top', fontsize=9)
 
-        # 그림 3: 학습 시간 견줌
+        # 그림 3: 학습 시간 비교
         ax3 = fig.add_subplot(gs[0, 2])
         times = [r.training_time for r in results]
         bars = ax3.bar(range(len(methods)), times, color=colors, alpha=0.8)
@@ -519,7 +519,7 @@
             ax3.text(bar.get_x() + bar.get_width()/2., bar.get_height() + max(times)*0.02,
                     f'{val:.1f}s', ha='center', fontsize=9)
 
-        # 그림 4: 정확도 행렬 열 지도(여러 칸)
+        # 그림 4: 정확도 행렬 히트맵(여러 패널)
         for idx, result in enumerate(results):
             row = 1
             col = idx
@@ -548,12 +548,12 @@
 
 
     def print_comparison_table(results: List[ExperimentResult]):
-        """자세한 견줌 표를 찍는다."""
+        """자세한 비교 표를 출력한다."""
         print("\n" + "=" * 120)
         print("COMPREHENSIVE METHOD COMPARISON")
         print("=" * 120)
 
-        # 머리글
+        # 헤더
         print(f"\n{'Method':<20} {'Avg Acc':<12} {'BWT':<12} {'Learn Acc':<12} {'Time (s)':<12} {'Memory (MB)':<12}")
         print("-" * 120)
 
@@ -594,7 +594,7 @@
 
 
     def main():
-        """주 견줌 실험."""
+        """주 비교 실험."""
         print("=" * 70)
         print("COMPREHENSIVE CONTINUAL LEARNING METHOD COMPARISON")
         print("=" * 70)
@@ -607,7 +607,7 @@
 
         # 설정
         num_tasks = 5
-        epochs_per_task = 3  # 빠른 견줌을 위해 줄임
+        epochs_per_task = 3  # 빠른 비교를 위해 줄임
         batch_size = 128
         learning_rate = 0.001
 
@@ -652,7 +652,7 @@
         print("Running Experiments...")
         print("=" * 70)
 
-        # 1. 소박한 방법
+        # 1. 단순 방법
         print("\n[1/4] Naive Sequential Learning...")
         model = create_model().to(device)
         result = run_experiment(NaiveLearner, model, device, train_loaders, test_loaders,
@@ -684,7 +684,7 @@
         results.append(result)
         print(f"  Avg Acc: {result.average_accuracy:.2f}%, BWT: {result.backward_transfer:.2f}%")
 
-        # 견줌을 찍는다
+        # 비교 표를 출력한다
         print_comparison_table(results)
 
         # 시각화한다
@@ -808,7 +808,7 @@ KEY TAKEAWAYS
 
 리플레이는 과제마다 고른 표본을 리스트에 추가하고 용량 초과 시 앞부분을 제거한다. 텐서 뷰를 그대로 보관하므로 선택한 묶음의 저장 공간이 더 오래 남을 수 있다. EWC는 정답 기반 표본별 피셔와 과제별 기준점을 저장하고 LwF는 고정 교사 전체의 두 출력 분포를 맞춘다. 추가 과거 표본 학습과 피셔 추정 등 방법별 표본 노출·계산량도 다르다.
 
-memory_usage_mb는 CUDA의 종료 시점 할당량에서 시작 할당량을 뺀 값이다. 피크 메모리나 CPU 버퍼·전체 모델·데이터 메모리를 뜻하지 않으며 CPU·MPS에서는 0을 반환하므로 메모리 사용이 없다고 해석하면 안 된다. 시간 측정에는 명시적 CUDA 동기화가 없어 장치 비동기 실행을 정확히 분리한 벤치마크가 아니다. 그래프의 BWT는 음수가 하락이고 열 지도는 앞 세 방법만 표시한다. AA·LA·BWT는 같은 행렬 정의에서 계산하지만 전방 전이는 측정하지 않는다.
+memory_usage_mb는 CUDA의 종료 시점 할당량에서 시작 할당량을 뺀 값이다. 피크 메모리나 CPU 버퍼·전체 모델·데이터 메모리를 뜻하지 않으며 CPU·MPS에서는 0을 반환하므로 메모리 사용이 없다고 해석하면 안 된다. 시간 측정에는 명시적 CUDA 동기화가 없어 장치 비동기 실행을 정확히 분리한 벤치마크가 아니다. 그래프의 BWT는 음수가 하락이고 히트맵는 앞 세 방법만 표시한다. AA·LA·BWT는 같은 행렬 정의에서 계산하지만 전방 전이는 측정하지 않는다.
 
 ## 연습문제
 
@@ -856,7 +856,7 @@ CPU 실행에서 memory_usage_mb=0을 어떻게 해석해야 하는가?
 </div>
 
 ??? success "풀이"
-    아래는 검토용 조각이다. state_dict().copy()는 얕은 사전 복사여서 내부 텐서가 이후 갱신과 함께 바뀔 수 있다. 고정 체크포인트는 deepcopy하거나 각 텐서를 분리해 복사해야 한다.
+    아래는 검토용 조각이다. state_dict().copy()는 얕은 딕셔너리 복사여서 내부 텐서가 이후 갱신과 함께 바뀔 수 있다. 고정 체크포인트는 deepcopy하거나 각 텐서를 분리해 복사해야 한다.
     ```python
     best_loss = float('inf')
     patience_counter = 0
@@ -875,7 +875,7 @@ CPU 실행에서 memory_usage_mb=0을 어떻게 해석해야 하는가?
             model.load_state_dict(best_state)
             break
     ```
-    현재 과제만의 검증 로스로 조기 종료하면 과거 성능과의 균형을 놓칠 수 있다. 사용할 과제별 검증 지표와 집계 규칙을 정하고 테스트셋은 선택에 사용하지 않는다. 인내 횟수에 도달하지 않고 종료된 경우에도 선택한 최적 상태를 복원하는 경로가 필요하다.
+    현재 과제만의 검증 로스로 조기 종료하면 과거 성능과의 균형을 놓칠 수 있다. 사용할 과제별 검증 지표와 집계 규칙을 정하고 시험 집합은 선택에 사용하지 않는다. 인내 횟수에 도달하지 않고 종료된 경우에도 선택한 최적 상태를 복원하는 경로가 필요하다.
 
 ## 정리하며
 

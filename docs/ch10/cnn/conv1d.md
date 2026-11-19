@@ -12,7 +12,7 @@
 
 $$y[i] = \sum_{j=0}^{k-1} x[i + j] \cdot w[j]$$
 
-(패딩가 없을 때) 출력 크기는 $n - k + 1$이다.
+(패딩이 없을 때) 출력 크기는 $n - k + 1$이다.
 
 !!! warning "컨볼루션이라 부르지만 커널을 뒤집지 않는다"
     위 식은 엄밀히 말하면 컨볼루션이 아니라 **상호상관**이다. 참된 컨볼루션이라면
@@ -71,9 +71,9 @@ conv1d = nn.Conv1d(
     out_channels=32,      # 출력 채널(필터)의 수
     kernel_size=5,        # 컨볼루션 커널의 크기
     stride=1,             # 컨볼루션의 스트라이드
-    padding=2,            # 양쪽에 더하는 0 덧대기
+    padding=2,            # 양쪽에 더하는 0 패딩
     dilation=1,           # 커널 원소 사이의 간격
-    groups=1,             # 막힌 연결의 수
+    groups=1,             # 그룹의 수 (채널을 나누어 따로 잇는다)
     bias=True,            # 학습 가능한 바이어스 더하기
     padding_mode='zeros'  # 'zeros', 'reflect', 'replicate', 'circular'
 )
@@ -106,7 +106,7 @@ x = torch.tensor([[[1., 2., 3., 4., 5.]]])  # 모양: (1, 1, 5)
 # 1차원 컨볼루션 레이어 만들기: 입력 채널 1개, 출력 채널 1개, 커널 크기 3
 conv1d = nn.Conv1d(in_channels=1, out_channels=1, kernel_size=3, bias=False)
 
-# 웨이트를 [1, 0, -1]로 직접 지정 (모서리 검출 커널)
+# 웨이트를 [1, 0, -1]로 직접 지정 (에지 검출 커널)
 with torch.no_grad():
     conv1d.weight = nn.Parameter(torch.tensor([[[1., 0., -1.]]]))
 
@@ -176,7 +176,7 @@ $i$번째 행이 $i$번째 열부터 $k_0, k_1, k_2$를 늘어놓는다는 점�
 
 ### 전치 행렬로 본 전치 컨볼루션
 
-입력에 대한 컨볼루션의 기울기는 $\mathbf{T}^\top$을 곱하는 것에 해당하며, 이것이 **전치 컨볼루션**이다([전치 컨볼루션](transposed_conv.md) 참고).
+입력에 대한 컨볼루션의 그래디언트는 $\mathbf{T}^\top$을 곱하는 것에 해당하며, 이것이 **전치 컨볼루션**이다([전치 컨볼루션](transposed_conv.md) 참고).
 
 $$\mathbf{T}^\top = \begin{bmatrix}
 k_0 & 0 & 0 \\
@@ -233,7 +233,7 @@ $w$의 첨자가 $i - j$라는 점이 요점이다. 이는 출력 그래디언�
 
 $$\frac{\partial L}{\partial \mathbf{x}} = \frac{\partial L}{\partial \mathbf{y}} *_{\text{full}} \mathbf{w} = \text{pad}_{k-1}\!\left(\frac{\partial L}{\partial \mathbf{y}}\right) \star \text{flip}(\mathbf{w})$$
 
-여기서 $*_{\text{full}}$은 full 컨볼루션, $\star$은 상호상관이다. 뒤집기는 **식이 아니라 구현에서** 나온다 — 컨볼루션을 상호상관 고리로 계산하려면 커널을 뒤집어야 하므로, 아래 코드가 `w_flip`을 쓴다. 두 자리 모두에서 뒤집으면 부호가 어긋나고, 그 오차는 그래디언트 확인을 통과하지 못한다.
+여기서 $*_{\text{full}}$은 full 컨볼루션, $\star$은 상호상관이다. 뒤집기는 **식이 아니라 구현에서** 나온다 — 컨볼루션을 상호상관 반복문으로 계산하려면 커널을 뒤집어야 하므로, 아래 코드가 `w_flip`을 쓴다. 두 자리 모두에서 뒤집으면 부호가 어긋나고, 그 오차는 그래디언트 확인을 통과하지 못한다.
 
 ### 커널에 대한 그래디언트
 
@@ -266,15 +266,15 @@ def conv1d_backward(x, w, grad_output):
     n, k = len(x), len(w)
     out_len = len(grad_output)
 
-    # 입력에 대한 그래디언트: grad_output과 w의 온전한 컨볼루션.
-    # 상호상관 고리로 계산하므로 여기서 커널을 뒤집는다.
+    # 입력에 대한 그래디언트: grad_output과 w의 full 컨볼루션.
+    # 상호상관 반복문으로 계산하므로 여기서 커널을 뒤집는다.
     grad_x = np.zeros(n)
     w_flip = w[::-1]
     grad_padded = np.pad(grad_output, (k-1, k-1), mode='constant')
     for i in range(n):
         grad_x[i] = np.sum(grad_padded[i:i+k] * w_flip)
 
-    # 웨이트에 대한 그래디언트: 입력과 grad_output의 상관
+    # 웨이트에 대한 그래디언트: 입력과 grad_output의 상호상관
     grad_w = np.zeros(k)
     for j in range(k):
         grad_w[j] = np.sum(x[j:j+out_len] * grad_output)
@@ -332,7 +332,7 @@ grad_x == full conv(dL/dy, flip(w)): False
 
 ### 왼쪽에만 패딩
 
-커널 크기가 $k$, 팽창률이 $d$일 때 양쪽에 $p = d(k-1)$만큼 덧대면 출력 길이가 $L + d(k-1)$이 된다. 뒤쪽 $p$개를 잘라 내면 길이가 $L$로 돌아오고, 남은 각 출력은 자기 시각과 그 이전만 본다.
+커널 크기가 $k$, 팽창률이 $d$일 때 양쪽에 $p = d(k-1)$만큼 패딩하면 출력 길이가 $L + d(k-1)$이 된다. 뒤쪽 $p$개를 잘라 내면 길이가 $L$로 돌아오고, 남은 각 출력은 자기 시각과 그 이전만 본다.
 
 ```python
 import torch
@@ -343,7 +343,7 @@ class CausalConv1d(nn.Module):
     """
     인과적 1차원 컨볼루션: 시각 t의 출력은 시각이 t 이하인 입력에만 기댄다.
 
-    왼쪽에만 덧대고 뒤쪽 원소를 잘라 내어 이룬다.
+    왼쪽에만 패딩한 것과 같아지도록 뒤쪽 원소를 잘라 내어 구현한다.
     """
     def __init__(self, in_channels, out_channels, kernel_size, dilation=1):
         super().__init__()
@@ -355,7 +355,7 @@ class CausalConv1d(nn.Module):
 
     def forward(self, x):
         out = self.conv(x)
-        # 인과성을 지키려고 오른쪽 덧대기 제거
+        # 인과성을 지키려고 오른쪽 패딩 제거
         return out[:, :, :-self.padding] if self.padding > 0 else out
 
 torch.manual_seed(0)
@@ -390,7 +390,7 @@ First changed output index: 5
 
 ```python
 class DilatedCausalConv1d(nn.Module):
-    """순차열 모형을 위한 팽창 인과 컨볼루션."""
+    """시퀀스 모델링을 위한 팽창 인과 컨볼루션."""
     def __init__(self, in_channels, out_channels, kernel_size, dilation):
         super().__init__()
         self.padding = (kernel_size - 1) * dilation
@@ -451,7 +451,7 @@ class TCNBlock(nn.Module):
     - 팽창 인과 컨볼루션 **둘** (리셉티브 필드 계산에서 자주 놓치는 대목이다)
     - 웨이트 정규화
     - ReLU 활성화
-    - 규제를 위한 드롭아웃
+    - 정칙화를 위한 드롭아웃
     - 잔차 연결
     """
     def __init__(self, in_channels, out_channels, kernel_size, dilation, dropout=0.2):
@@ -507,7 +507,7 @@ class TCN(nn.Module):
         self.output_layer = nn.Linear(hidden_channels, output_size)
 
     def forward(self, x):
-        # x: (배치, 채널, 순차열 길이)
+        # x: (배치, 채널, 시퀀스 길이)
         out = self.network(x)
         # 분류/회귀를 위해 마지막 시각을 쓴다
         out = out[:, :, -1]
@@ -550,13 +550,13 @@ Receptive field (measured): 1021 time steps
 !!! warning "TCN 블록에는 컨볼루션이 두 개 있다"
     같은 팽창률의 컨볼루션이 블록마다 두 번 있으므로, 커널 3·블록 8개의 이론적 리셉티브 필드는 $1+2(3-1)\sum_{i=0}^{7}2^i=1021$이다. 블록당 하나만 세면 511로 잘못 계산한다.
 
-    기울기가 0이 아닌 위치를 조사하는 예제는 해당 초기 웨이트와 입력에서 실제로 영향을 준 위치를 확인한다. ReLU 비활성화, 상쇄와 수치적 언더플로 때문에 일반적으로 이론적 리셉티브 필드 전체가 검출된다고 보장할 수 없다. 입력 길이가 256이면 이론적 범위 중 존재하는 과거 입력은 최대 256개이고 나머지는 패딩이다. 추가 레이어는 존재하는 과거 범위를 더 넓힐 수 없지만 표현 자체는 바꿀 수 있다.
+    그래디언트가 0이 아닌 위치를 조사하는 예제는 해당 초기 웨이트와 입력에서 실제로 영향을 준 위치를 확인한다. ReLU 비활성화, 상쇄와 수치적 언더플로 때문에 일반적으로 이론적 리셉티브 필드 전체가 검출된다고 보장할 수 없다. 입력 길이가 256이면 이론적 범위 중 존재하는 과거 입력은 최대 256개이고 나머지는 패딩이다. 추가 레이어는 존재하는 과거 범위를 더 넓힐 수 없지만 표현 자체는 바꿀 수 있다.
 
 ---
 
 ## 7. 금융 시계열을 위한 1차원 컨볼루션
 
-### 가격 데이터에서 피처 샘플링
+### 가격 데이터에서 피처 추출
 
 ```python
 import torch
@@ -564,27 +564,27 @@ import torch.nn as nn
 
 class FinancialFeatureExtractor(nn.Module):
     """
-    금융 시계열에서 여러 시간 지평의 무늬를 뽑아내는
-    여러 규모의 1차원 컨볼루션.
+    금융 시계열에서 여러 시간 지평의 패턴을 추출하는
+    다중 스케일 1차원 컨볼루션.
     """
     def __init__(self, input_features, hidden_dim=64):
         super().__init__()
 
-        # 단기 무늬 (3일 창)
+        # 단기 패턴 (3일 창)
         self.short_conv = nn.Sequential(
             nn.Conv1d(input_features, hidden_dim, kernel_size=3, padding=1),
             nn.BatchNorm1d(hidden_dim),
             nn.ReLU()
         )
 
-        # 중기 무늬 (5일 / 주간)
+        # 중기 패턴 (5일 / 주간)
         self.medium_conv = nn.Sequential(
             nn.Conv1d(input_features, hidden_dim, kernel_size=5, padding=2),
             nn.BatchNorm1d(hidden_dim),
             nn.ReLU()
         )
 
-        # 장기 무늬 (21일 / 월간)
+        # 장기 패턴 (21일 / 월간)
         self.long_conv = nn.Sequential(
             nn.Conv1d(input_features, hidden_dim, kernel_size=21, padding=10),
             nn.BatchNorm1d(hidden_dim),
@@ -597,7 +597,7 @@ class FinancialFeatureExtractor(nn.Module):
             x: (배치, 피처, 시각)
                예: features = [시가, 고가, 저가, 종가, 거래량, 수익률, …]
         반환값:
-            여러 규모의 피처: (배치, 3*hidden_dim, 시각)
+            다중 스케일 피처: (배치, 3*hidden_dim, 시각)
         """
         short = self.short_conv(x)
         medium = self.medium_conv(x)
@@ -621,7 +621,7 @@ print(f"Multi-scale features: {features.shape}")  # [16, 96, 252]
 Multi-scale features: torch.Size([16, 96, 252])
 ```
 
-세 클래스는 홀수 커널 크기 k에 대해 양쪽 패딩을 $(k-1)/2$로 두어 길이 252를 유지한다. 따라서 채널 축으로 결합하면 $3\times32=96$채널이 된다. 각 시각의 출력은 같은 창 안의 이후 시각도 참조하므로 시각별 온라인 예측에는 인과적이지 않다. 다만 관측이 끝난 과거 창 전체를 사용해 창 이후를 예측하는 경우에는 대칭 컨볼루션 자체가 미래 데이터 누출을 뜻하지 않는다. 예측 시점에 무엇이 관측되었는지를 기준으로 판단한다.
+세 갈래는 홀수 커널 크기 k에 대해 양쪽 패딩을 $(k-1)/2$로 두어 길이 252를 유지한다. 따라서 채널 축으로 결합하면 $3\times32=96$채널이 된다. 각 시각의 출력은 같은 창 안의 이후 시각도 참조하므로 시각별 온라인 예측에는 인과적이지 않다. 다만 관측이 끝난 과거 창 전체를 사용해 창 이후를 예측하는 경우에는 대칭 컨볼루션 자체가 미래 데이터 누출을 뜻하지 않는다. 예측 시점에 무엇이 관측되었는지를 기준으로 판단한다.
 
 ---
 
@@ -644,7 +644,7 @@ Multi-scale features: torch.Size([16, 96, 252])
 2. **인과 컨볼루션**(왼쪽 패딩 뒤 잘라내기)은 출력이 과거와 현재의 입력에만 기대게 한다. 길이가 보존된다는 사실만으로는 인과성이 증명되지 않으니 미래를 흔들어 확인하라
 3. **팽창률을 지수적으로 늘려 인과 컨볼루션을 쌓으면** 이론적 리셉티브 필드가 지수적으로 넓어진다. 커널 크기 2인 팽창 컨볼루션 10레이어이면 리셉티브 필드가 1024가 된다
 4. **TCN**은 팽창 인과 컨볼루션과 잔차 연결을 결합한다. 블록당 두 컨볼루션의 기여를 각각 세면 커널 3·블록 8에서 리셉티브 필드는 1021이다.
-5. 커널 크기가 서로 다른 **여러 규모의 컨볼루션**은 서로 다른 시간 지평의 무늬를 붙잡는다
+5. 커널 크기가 서로 다른 **다중 스케일 컨볼루션**은 서로 다른 시간 지평의 패턴을 붙잡는다
 6. 1차원 컨볼루션의 **역전파**는 출력 그래디언트와 커널의 full 컨볼루션(= 전치 컨볼루션)이다. 커널을 뒤집는 것은 그 컨볼루션을 상호상관으로 **구현할 때**이지 식 자체가 아니다
 
 ---
@@ -666,7 +666,7 @@ Multi-scale features: torch.Size([16, 96, 252])
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff easy" title="쉬움"></span>
-입력 길이가 100, 커널 크기가 5, 스트라이드가 2, 패딩가 1인 1차원 컨볼루션의 출력 길이를 계산하라.
+입력 길이가 100, 커널 크기가 5, 스트라이드가 2, 패딩이 1인 1차원 컨볼루션의 출력 길이를 계산하라.
 
 </div>
 

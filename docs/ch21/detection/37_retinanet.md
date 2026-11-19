@@ -1,15 +1,15 @@
 # RetinaNet과 다중 해상도 탐지
 
-RetinaNet은 피처 피라미드(FPN)와 focal loss를 결합한 단일 단계 탐지기다. 촘촘한 앵커 예측에서 쉬운 배경 예제가 매우 많아지는 문제를 다룬다. 아래 코드는 단일 피처 맵과 두 예측 가지를 보여 주는 축약 구조이며 전체 FPN이나 focal loss를 구현하지 않는다.
+RetinaNet은 피처 피라미드(FPN)와 focal loss를 결합한 단일 단계 탐지기다. 위치마다 빠짐없이 앵커를 두는 밀집(dense) 예측에서 쉬운 배경 예제가 매우 많아지는 문제를 다룬다. 아래 코드는 단일 피처 맵과 두 예측 브랜치를 보여 주는 축약 구조이며 전체 FPN이나 focal loss를 구현하지 않는다.
 
 ## 1. 축약 모델 코드
 
 ```python
 #!/usr/bin/env python3
 '''
-레티나넷 — 촘촘한 물체 탐지를 위한 초점 로스
+RetinaNet — 밀집 객체 탐지를 위한 focal loss
 논문: "Focal Loss for Dense Object Detection" (2017)
-핵심: 클래스 치우침을 다루는 초점 로스, 피처 피라미드 네트워크(FPN)
+핵심: 클래스 불균형을 다루는 focal loss, 피처 피라미드 네트워크(FPN)
 '''
 import torch
 import torch.nn as nn
@@ -21,26 +21,26 @@ import torch.nn as nn
 class FPN(nn.Module):
     def __init__(self):
         super().__init__()
-        # 아래에서 위로 가는 길
+        # 상향(bottom-up) 경로
         self.conv1 = nn.Conv2d(3, 64, 7, 2, 3, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(3, 2, 1)
         
-        # 옆 이음
+        # 측면(lateral) 연결
         self.lateral3 = nn.Conv2d(64, 256, 1)
         
-        # 위에서 아래로 가는 길
+        # 하향(top-down) 경로
         self.smooth = nn.Conv2d(256, 256, 3, 1, 1)
     
     def forward(self, x):
         c1 = self.relu(self.bn1(self.conv1(x)))
         c1 = self.maxpool(c1)
         
-        # 옆 이음
+        # 측면(lateral) 연결
         p3 = self.lateral3(c1)
         
-        # 매끄럽게 하기
+        # 스무딩
         p3 = self.smooth(p3)
         
         return [p3]
@@ -50,7 +50,7 @@ class RetinaNet(nn.Module):
         super().__init__()
         self.fpn = FPN()
         
-        # 클래스 매기기 아래네트워크
+        # 분류 서브넷
         self.cls_subnet = nn.Sequential(
             nn.Conv2d(256, 256, 3, 1, 1),
             nn.ReLU(inplace=True),
@@ -59,7 +59,7 @@ class RetinaNet(nn.Module):
             nn.Conv2d(256, num_anchors * num_classes, 3, 1, 1)
         )
         
-        # 상자 되돌리기 아래네트워크
+        # 상자 회귀 서브넷
         self.box_subnet = nn.Sequential(
             nn.Conv2d(256, 256, 3, 1, 1),
             nn.ReLU(inplace=True),
@@ -95,7 +95,7 @@ Parameters: 4,719,156
 
 ## 2. 분류와 상자 회귀의 분리
 
-입력이 4×3×64×64이면 stride2 컨볼루션과 최대 풀링 뒤의 피처는 4×64×16×16이다. lateral·smooth 컨볼루션은 4×256×16×16을 만든다. 기본 앵커 수 9, 객체 클래스 수 80에서 분류 가지는 4×720×16×16, 회귀 가지는 4×36×16×16이다. 반환 사전의 각 값은 이 텐서를 하나 담은 목록이다.
+입력이 4×3×64×64이면 stride2 컨볼루션과 최대 풀링 뒤의 피처는 4×64×16×16이다. lateral·smooth 컨볼루션은 4×256×16×16을 만든다. 기본 앵커 수 9, 객체 클래스 수 80에서 분류 브랜치는 4×720×16×16, 회귀 브랜치는 4×36×16×16이다. 반환 딕셔너리의 각 값은 이 텐서를 하나 담은 목록이다.
 
 분류는 앵커마다 클래스별 로짓 80개를 출력하고, 배경 전용 softmax 채널을 추가하지 않는 sigmoid 방식으로 해석한다. 회귀는 앵커마다 네 오프셋이다. 앵커 정의·정답 매칭·로스·디코딩·NMS는 코드에 없으므로 raw 출력만으로 최종 객체를 얻지 못한다. 원 모델의 공유 subnet 아이디어와 달리 현재는 반복할 피처 맵 자체가 하나뿐이다.
 
@@ -105,20 +105,20 @@ Parameters: 4,719,156
 
 $$\operatorname{FL}(p_t)=-\alpha_t(1-p_t)^\gamma\log p_t.$$
 
-γ>0이면 잘 맞힌 예제의 로스를 상대적으로 줄이고 α_t로 클래스별 웨이트를 조절할 수 있다. γ=0이면 α 가중 교차 엔트로피가 된다. 쉬운 예제를 완전히 버리는 hard mining과는 다른 가중 방식이다. 전체 검출 로스에는 양성 앵커의 회귀 로스와 유효·무시 앵커의 규칙, 정규화 기준도 필요하다. 이 코드에는 로스 함수가 정의되어 있지 않으므로 focal loss로 학습했다고 설명하지 않는다. 세부 사항은 [원 논문](https://arxiv.org/abs/1708.02002)과 [focal loss 절](focal_loss.md)을 참고한다.
+γ>0이면 잘 맞힌 예제의 로스를 상대적으로 줄이고 α_t로 클래스별 웨이트를 조절할 수 있다. γ=0이면 α 가중 교차 엔트로피가 된다. 쉬운 예제를 완전히 버리는 hard mining과는 다른 가중 방식이다. 전체 탐지 로스에는 양성 앵커의 회귀 로스와 유효·무시 앵커의 규칙, 정규화 기준도 필요하다. 이 코드에는 로스 함수가 정의되어 있지 않으므로 focal loss로 학습했다고 설명하지 않는다. 세부 사항은 [원 논문](https://arxiv.org/abs/1708.02002)과 [focal loss 절](focal_loss.md)을 참고한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-기본 설정에서 4×3×64×64 입력의 피처·분류·회귀 모양과 반환 자료형을 설명하라.
+기본 설정에서 4×3×64×64 입력의 피처·분류·회귀 텐서의 형태와 반환 자료형을 설명하라.
 
 </div>
 
 ??? success "풀이"
 
-    피처는 4×256×16×16, 분류는 4×720×16×16, 회귀는 4×36×16×16이다. 반환값은 사전이고 classifications와 regressions는 각각 텐서 하나를 담은 목록이다. 공간 위치마다 9개 앵커를 가정한다.
+    피처는 4×256×16×16, 분류는 4×720×16×16, 회귀는 4×36×16×16이다. 반환값은 딕셔너리이고 classifications와 regressions는 각각 텐서 하나를 담은 목록이다. 공간 위치마다 9개 앵커를 가정한다.
 
 
 
@@ -174,4 +174,4 @@ $$\operatorname{FL}(p_t)=-\alpha_t(1-p_t)^\gamma\log p_t.$$
 
 ## 정리하며
 
-RetinaNet은 다중 해상도 피처와 focal loss로 촘촘한 탐지를 구성한다. 현재 예제는 단일 피처 맵의 분류·회귀 가지를 보여 주므로 전체 FPN·학습 로스·탐지 후처리와 구분해 읽는다.
+RetinaNet은 다중 해상도 피처와 focal loss로 밀집 탐지를 구성한다. 현재 예제는 단일 피처 맵의 분류·회귀 브랜치를 보여 주므로 전체 FPN·학습 로스·탐지 후처리와 구분해 읽는다.

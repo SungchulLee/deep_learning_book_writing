@@ -7,7 +7,7 @@ ViT의 순전파·패치·어텐션, 모델 크기와 전이 학습 설정을 �
 ```python
 """
 비전 트랜스포머의 예제와 데모
-흔한 쓰임새를 위한 빠른 시작 코드 조각
+흔한 용례를 위한 빠른 시작 코드 조각
 """
 
 import torch
@@ -21,7 +21,7 @@ from typing import Tuple
 
 # --- cnn_vs_vit ---
 class SimpleCNN(nn.Module):
-    """견주기 위한 전통적인 합성곱 신경망 구조."""
+    """견주기 위한 전통적인 컨볼루션 뉴럴 네트워크 구조."""
     def __init__(self, n_classes: int = 10):
         super().__init__()
         
@@ -66,15 +66,15 @@ class SimpleCNN(nn.Module):
 
 
 class HybridCNNViT(nn.Module):
-    """합성곱 밑동 + 트랜스포머 — 둘을 섞은 모형.
+    """컨볼루션 스템 + 트랜스포머 — 둘을 결합한 하이브리드 모델.
 
-    비전 트랜스포머는 그림을 16x16 조각으로 잘라 곧바로 선형 사영한다.
-    조각 안쪽을 볼 장치가 없으므로 가장자리나 결 같은 낮은 수준의 무늬를
-    처음부터 어텐션으로 배워야 하고, 그래서 자료가 많이 든다.
+    비전 트랜스포머는 이미지를 16x16 패치로 잘라 곧바로 선형 투영한다.
+    패치 안쪽을 볼 장치가 없으므로 에지나 텍스처 같은 저수준 패턴을
+    처음부터 어텐션으로 배워야 하고, 그래서 데이터가 많이 든다.
 
-    섞은 모형은 앞쪽 몇 겹을 합성곱으로 둔다. 합성곱이 낮은 수준의 무늬를
-    맡고, 그 위에서 어텐션이 먼 관계를 맡는다. 조각을 자르는 일도
-    합성곱의 stride가 대신하므로 따로 자를 필요가 없다.
+    하이브리드 모델은 앞쪽 몇 레이어를 컨볼루션으로 둔다. 컨볼루션이 저수준 패턴을
+    맡고, 그 위에서 어텐션이 장거리 관계를 맡는다. 패치를 자르는 일도
+    컨볼루션의 stride가 대신하므로 따로 자를 필요가 없다.
 
     224x224 -> (stride 4, 4번) -> 14x14 = 196 토큰, ViT-Base와 같은 수다.
     """
@@ -82,7 +82,7 @@ class HybridCNNViT(nn.Module):
     def __init__(self, n_classes: int = 10, embed_dim: int = 192,
                  depth: int = 4, num_heads: int = 3):
         super().__init__()
-        # 합성곱 밑동. 네 번 반으로 줄여 224 -> 14
+        # 컨볼루션 스템. 네 번 반으로 줄여 224 -> 14
         self.stem = nn.Sequential(
             nn.Conv2d(3, 32, 3, stride=2, padding=1), nn.BatchNorm2d(32), nn.ReLU(inplace=True),
             nn.Conv2d(32, 64, 3, stride=2, padding=1), nn.BatchNorm2d(64), nn.ReLU(inplace=True),
@@ -104,17 +104,17 @@ class HybridCNNViT(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B = x.shape[0]
         x = self.stem(x)                       # (B, embed_dim, 14, 14)
-        x = x.flatten(2).transpose(1, 2)       # (B, 196, embed_dim) — 조각 자르기를 대신한다
+        x = x.flatten(2).transpose(1, 2)       # (B, 196, embed_dim) — 패치 분할을 대신한다
         cls = self.cls_token.expand(B, -1, -1)
         x = torch.cat([cls, x], dim=1) + self.pos_embed[:, : x.shape[1] + 1]
         x = self.encoder(x)
-        return self.head(self.norm(x[:, 0]))   # 맨 앞 토큰 하나로 가른다
+        return self.head(self.norm(x[:, 0]))   # 맨 앞 토큰 하나로 분류한다
 
 
 # --- visualizations ---
 """
 비전 트랜스포머를 위한 시각화 도구
-비전 트랜스포머가 합성곱 신경망과 어떻게 다르게 그림을 처리하는지 이해하도록 돕는다
+비전 트랜스포머가 컨볼루션 뉴럴 네트워크와 어떻게 다르게 이미지를 처리하는지 이해하도록 돕는다
 """
 
 
@@ -125,8 +125,8 @@ class HybridCNNViT(nn.Module):
 
 class AttentionVisualizer:
     """
-    비전 트랜스포머의 주의 지도를 그려 본다.
-    모형이 그림의 어느 부분에 집중하는지 보인다.
+    비전 트랜스포머의 어텐션 맵을 그려 본다.
+    모델이 이미지의 어느 부분에 집중하는지 보인다.
     """
     
     def __init__(self, model: nn.Module, device: str = "cuda"):
@@ -134,14 +134,14 @@ class AttentionVisualizer:
         self.device = device
         self.attention_maps = []
         
-        # 주의를 붙잡으려고 후크를 등록한다
+        # 어텐션을 붙잡으려고 후크를 등록한다
         self._register_hooks()
     
     def _register_hooks(self):
-        """주의 가중치를 붙잡으려고 앞먹임 후크를 등록한다"""
+        """어텐션 웨이트를 붙잡으려고 순방향 후크를 등록한다"""
         
         def hook_fn(module, input, output):
-            # MultiHeadAttention에서 주의 가중치를 붙잡는다
+            # MultiHeadAttention에서 어텐션 웨이트를 붙잡는다
             if hasattr(module, 'attn'):
                 self.attention_maps.append(module.attn.detach().cpu())
         
@@ -155,12 +155,12 @@ class AttentionVisualizer:
     
     def get_attention_maps(self, image: torch.Tensor) -> List[torch.Tensor]:
         """
-        그림의 주의 지도를 뽑아낸다.
+        이미지의 어텐션 맵을 뽑아낸다.
         
         인수:
             image: (1, 3, H, W) 텐서
         반환값:
-            층마다의 주의 지도 목록
+            레이어마다의 어텐션 맵 목록
         """
         self.attention_maps = []
         self.model.eval()
@@ -176,42 +176,42 @@ class AttentionVisualizer:
                           head_idx: Optional[int] = None,
                           save_path: Optional[str] = None):
         """
-        그림 위에 겹친 주의 지도를 그려 본다.
+        이미지 위에 겹친 어텐션 맵을 그려 본다.
         
         인수:
-            image: 입력 그림 텐서 (1, 3, H, W)
-            layer_idx: 어느 트랜스포머 층을 그릴지
-            head_idx: 어느 주의 머리를 그릴지(None이면 모두 평균)
+            image: 입력 이미지 텐서 (1, 3, H, W)
+            layer_idx: 어느 트랜스포머 레이어를 그릴지
+            head_idx: 어느 어텐션 헤드를 그릴지(None이면 모두 평균)
             save_path: 그림을 저장할 경로
         """
-        # 주의 지도를 얻는다
+        # 어텐션 맵을 얻는다
         attn_maps = self.get_attention_maps(image)
         
         if len(attn_maps) == 0:
             print("No attention maps captured!")
             return
         
-        # 층을 고른다
+        # 레이어를 고른다
         attn = attn_maps[layer_idx]  # (batch, heads, seq_len, seq_len)
         
-        # 따로 정하지 않으면 머리에 걸쳐 평균 낸다
+        # 따로 정하지 않으면 헤드에 걸쳐 평균 낸다
         if head_idx is None:
             attn = attn.mean(dim=1)  # (batch, seq_len, seq_len)
         else:
             attn = attn[:, head_idx]  # (batch, seq_len, seq_len)
         
-        # CLS 토큰에서 모든 조각으로 가는 주의를 얻는다
+        # CLS 토큰에서 모든 패치로 가는 어텐션을 얻는다
         attn = attn[0, 0, 1:]  # (n_patches,)
         
         # 공간 격자로 형태를 바꾼다
         n_patches = int(np.sqrt(len(attn)))
         attn = attn.reshape(n_patches, n_patches).numpy()
         
-        # 그림을 마련한다
+        # 이미지를 준비한다
         img = image[0].permute(1, 2, 0).cpu().numpy()
         img = (img - img.min()) / (img.max() - img.min())
         
-        # 주의 지도를 그림 크기로 바꾼다
+        # 어텐션 맵을 이미지 크기로 바꾼다
         attn_resized = cv2.resize(attn, (img.shape[1], img.shape[0]))
         attn_resized = (attn_resized - attn_resized.min()) / (attn_resized.max() - attn_resized.min())
         
@@ -223,7 +223,7 @@ class AttentionVisualizer:
         axes[0].set_title("Original Image")
         axes[0].axis('off')
         
-        # 주의 지도
+        # 어텐션 맵
         axes[1].imshow(attn_resized, cmap='jet')
         axes[1].set_title(f"Attention Map (Layer {layer_idx})")
         axes[1].axis('off')
@@ -247,8 +247,8 @@ def visualize_patch_embedding(image: torch.Tensor,
                              patch_size: int = 16,
                              save_path: Optional[str] = None):
     """
-    그림이 조각으로 어떻게 나뉘는지 그려 본다.
-    이어진 그림에서 띄엄띄엄한 토큰으로 잇는 다리를 보인다.
+    이미지가 패치로 어떻게 나뉘는지 그려 본다.
+    연속적인 이미지에서 이산 토큰으로 넘어가는 과정을 보인다.
     """
     # 넘파이로 바꾼다
     img = image[0].permute(1, 2, 0).cpu().numpy()
@@ -265,7 +265,7 @@ def visualize_patch_embedding(image: torch.Tensor,
     axes[0].set_title("Original Image")
     axes[0].axis('off')
     
-    # 조각 격자를 얹은 그림
+    # 패치 격자를 얹은 이미지
     axes[1].imshow(img)
     
     # 격자를 그린다
@@ -288,15 +288,15 @@ def visualize_patch_embedding(image: torch.Tensor,
 
 def compare_receptive_fields():
     """
-    합성곱 신경망과 비전 트랜스포머가 받는 영역의 차이를 그려 본다.
+    컨볼루션 뉴럴 네트워크와 비전 트랜스포머의 리셉티브 필드 차이를 그려 본다.
     """
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     
-    # 합성곱 신경망이 받는 영역
+    # 컨볼루션 뉴럴 네트워크의 리셉티브 필드
     axes[0].set_xlim(0, 10)
     axes[0].set_ylim(0, 10)
     
-    # 위계를 이루는 수용 영역을 그린다
+    # 계층적 리셉티브 필드를 그린다
     colors = ['lightblue', 'lightgreen', 'lightyellow', 'lightcoral']
     sizes = [8, 6, 4, 2]
     
@@ -311,16 +311,16 @@ def compare_receptive_fields():
     axes[0].legend(loc='upper right')
     axes[0].grid(True, alpha=0.3)
     
-    # 비전 트랜스포머가 받는 영역
+    # 비전 트랜스포머의 리셉티브 필드
     axes[1].set_xlim(0, 10)
     axes[1].set_ylim(0, 10)
     
-    # 그림 전체에 대한 주의를 그린다
+    # 이미지 전체에 대한 어텐션을 그린다
     rect = plt.Rectangle((0, 0), 10, 10, color='lightblue', 
                          alpha=0.3, label='Global attention')
     axes[1].add_patch(rect)
     
-    # 조각 격자를 그린다
+    # 패치 격자를 그린다
     for i in range(4):
         for j in range(4):
             x, y = i * 2.5, j * 2.5
@@ -328,7 +328,7 @@ def compare_receptive_fields():
                                fill=False, edgecolor='red', linewidth=2)
             axes[1].add_patch(rect)
             
-            # 가운데 조각에서 나가는 주의 선을 그린다
+            # 가운데 패치에서 나가는 어텐션 선을 그린다
             if i == 1 and j == 1:
                 axes[1].plot(x+1.25, y+1.25, 'ro', markersize=10)
             else:
@@ -348,12 +348,12 @@ def compare_receptive_fields():
 def visualize_positional_encoding(n_patches: int = 196, embed_dim: int = 768):
     """
     비전 트랜스포머에서 쓰는 위치 인코딩을 그려 본다.
-    자리 정보가 어떻게 담기는지 보인다.
+    위치 정보가 어떻게 담기는지 보인다.
     """
     # 위치 임베딩을 만든다
     pos_embed = torch.randn(1, n_patches, embed_dim)
     
-    # 열지도로 그린다
+    # 히트맵으로 그린다
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
     # 위치 임베딩을 그린다
@@ -363,7 +363,7 @@ def visualize_positional_encoding(n_patches: int = 196, embed_dim: int = 768):
     axes[0].set_title('Learned Positional Embeddings')
     plt.colorbar(im1, ax=axes[0])
     
-    # 자리 사이의 비슷함을 셈한다
+    # 위치 사이의 유사도를 계산한다
     pos_embed_norm = pos_embed / pos_embed.norm(dim=-1, keepdim=True)
     similarity = (pos_embed_norm[0] @ pos_embed_norm[0].T).numpy()
     
@@ -380,14 +380,14 @@ def visualize_positional_encoding(n_patches: int = 196, embed_dim: int = 768):
 
 def plot_training_comparison(cnn_history: dict, vit_history: dict):
     """
-    합성곱 신경망과 비전 트랜스포머를 견주는 학습 곡선을 그린다.
+    컨볼루션 뉴럴 네트워크와 비전 트랜스포머를 견주는 학습 곡선을 그린다.
     """
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     
     epochs_cnn = range(1, len(cnn_history['train_loss']) + 1)
     epochs_vit = range(1, len(vit_history['train_loss']) + 1)
     
-    # 학습 손실
+    # 학습 로스
     axes[0, 0].plot(epochs_cnn, cnn_history['train_loss'], 'b-', label='CNN')
     axes[0, 0].plot(epochs_vit, vit_history['train_loss'], 'r-', label='ViT')
     axes[0, 0].set_xlabel('Epoch')
@@ -396,7 +396,7 @@ def plot_training_comparison(cnn_history: dict, vit_history: dict):
     axes[0, 0].legend()
     axes[0, 0].grid(True, alpha=0.3)
     
-    # 검증 손실
+    # 검증 로스
     axes[0, 1].plot(epochs_cnn, cnn_history['val_loss'], 'b-', label='CNN')
     axes[0, 1].plot(epochs_vit, vit_history['val_loss'], 'r-', label='ViT')
     axes[0, 1].set_xlabel('Epoch')
@@ -442,7 +442,7 @@ if __name__ == "__main__":
 # --- vit_model ---
 """
 비전 트랜스포머(ViT) 구현
-이미지 분류에서 합성곱 신경망과 트랜스포머를 잇는다
+이미지 분류에서 컨볼루션 뉴럴 네트워크와 트랜스포머를 잇는다
 """
 
 
@@ -453,8 +453,8 @@ if __name__ == "__main__":
 
 class PatchEmbedding(nn.Module):
     """
-    그림을 조각으로 바꾸고 임베딩으로 사영한다.
-    합성곱 신경망 방식의 입력과 트랜스포머 처리를 잇는 다리이다.
+    이미지를 패치로 바꾸고 임베딩으로 투영한다.
+    컨볼루션 뉴럴 네트워크 방식의 입력과 트랜스포머 처리를 잇는 다리이다.
     """
     def __init__(self, img_size: int = 224, patch_size: int = 16, 
                  in_channels: int = 3, embed_dim: int = 768):
@@ -463,7 +463,7 @@ class PatchEmbedding(nn.Module):
         self.patch_size = patch_size
         self.n_patches = (img_size // patch_size) ** 2
         
-        # 편 조각의 선형 사영 (합성곱 신경망의 합성곱과 비슷하다)
+        # 펼친 패치의 선형 투영 (컨볼루션 뉴럴 네트워크의 컨볼루션과 비슷하다)
         self.proj = nn.Conv2d(in_channels, embed_dim, 
                              kernel_size=patch_size, stride=patch_size)
         
@@ -482,8 +482,8 @@ class PatchEmbedding(nn.Module):
 
 class MultiHeadAttention(nn.Module):
     """
-    트랜스포머에서 온 다중 머리 자기 주의 얼개.
-    모형이 그림의 여러 부분에 한꺼번에 주의하게 해 준다.
+    트랜스포머에서 온 멀티헤드 셀프 어텐션 메커니즘.
+    모델이 이미지의 여러 부분에 한꺼번에 어텐션을 주게 해 준다.
     """
     def __init__(self, embed_dim: int = 768, n_heads: int = 12, dropout: float = 0.1):
         super().__init__()
@@ -512,7 +512,7 @@ class MultiHeadAttention(nn.Module):
         qkv = qkv.permute(2, 0, 3, 1, 4)  # (3, B, n_heads, N, head_dim)
         q, k, v = qkv[0], qkv[1], qkv[2]
         
-        # 주의 점수
+        # 어텐션 점수
         attn = (q @ k.transpose(-2, -1)) * self.scale
         attn = attn.softmax(dim=-1)
         attn = self.dropout(attn)
@@ -527,8 +527,8 @@ class MultiHeadAttention(nn.Module):
 
 class MLP(nn.Module):
     """
-    트랜스포머 블록에서 쓰는 순전파 신경망.
-    비선형성과 특징 변환을 준다.
+    트랜스포머 블록에서 쓰는 피드포워드 네트워크.
+    비선형성과 피처 변환을 준다.
     """
     def __init__(self, embed_dim: int = 768, mlp_ratio: int = 4, dropout: float = 0.1):
         super().__init__()
@@ -549,7 +549,7 @@ class MLP(nn.Module):
 
 class TransformerBlock(nn.Module):
     """
-    자기 주의와 다층 퍼셉트론을 갖춘 표준 트랜스포머 인코더 블록.
+    셀프 어텐션과 다층 퍼셉트론을 갖춘 표준 트랜스포머 인코더 블록.
     """
     def __init__(self, embed_dim: int = 768, n_heads: int = 12, 
                  mlp_ratio: int = 4, dropout: float = 0.1):
@@ -560,21 +560,21 @@ class TransformerBlock(nn.Module):
         self.mlp = MLP(embed_dim, mlp_ratio, dropout)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # 잔차 연결을 곁들인 주의
+        # 잔차 연결을 더한 어텐션
         x = x + self.attn(self.norm1(x))
-        # 잔차 연결을 곁들인 다층 퍼셉트론
+        # 잔차 연결을 더한 다층 퍼셉트론
         x = x + self.mlp(self.norm2(x))
         return x
 
 
 class VisionTransformer(nn.Module):
     """
-    비전 트랜스포머(ViT) 모형.
+    비전 트랜스포머(ViT) 모델.
     
     핵심 혁신:
-    1. 그림을 조각의 수열로 다룬다
-    2. (본디 자연어 처리에서 온) 트랜스포머 인코더를 이미지 분류에 쓴다
-    3. 합성곱 신경망 방식의 입력 처리와 트랜스포머 구조를 잇는다
+    1. 이미지를 패치의 시퀀스로 다룬다
+    2. (원래 자연어 처리에서 온) 트랜스포머 인코더를 이미지 분류에 쓴다
+    3. 컨볼루션 뉴럴 네트워크 방식의 입력 처리와 트랜스포머 구조를 잇는다
     """
     def __init__(self, 
                  img_size: int = 224,
@@ -588,11 +588,11 @@ class VisionTransformer(nn.Module):
                  dropout: float = 0.1):
         super().__init__()
         
-        # 조각 임베딩 층 (그림에서 토큰으로 잇는 다리)
+        # 패치 임베딩 레이어 (이미지에서 토큰으로 잇는 다리)
         self.patch_embed = PatchEmbedding(img_size, patch_size, in_channels, embed_dim)
         n_patches = self.patch_embed.n_patches
         
-        # 분류 토큰 (학습되며 수열 앞에 붙인다)
+        # 분류 토큰 (학습되며 시퀀스 앞에 붙인다)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         
         # 위치 임베딩 (학습되는 것)
@@ -605,11 +605,11 @@ class VisionTransformer(nn.Module):
             for _ in range(depth)
         ])
         
-        # 분류 머리
+        # 분류 헤드
         self.norm = nn.LayerNorm(embed_dim)
         self.head = nn.Linear(embed_dim, n_classes)
         
-        # 가중치 초기화
+        # 웨이트 초기화
         nn.init.trunc_normal_(self.cls_token, std=0.02)
         nn.init.trunc_normal_(self.pos_embed, std=0.02)
         self.apply(self._init_weights)
@@ -632,7 +632,7 @@ class VisionTransformer(nn.Module):
         """
         B = x.shape[0]
         
-        # 그림을 조각 임베딩으로 바꾼다
+        # 이미지를 패치 임베딩으로 바꾼다
         x = self.patch_embed(x)  # (B, n_patches, embed_dim)
         
         # 분류 토큰을 앞에 붙인다
@@ -656,7 +656,7 @@ class VisionTransformer(nn.Module):
 
 
 def create_vit_tiny(n_classes: int = 1000) -> VisionTransformer:
-    """ViT-Tiny: 매개변수 500만"""
+    """ViT-Tiny: 파라메터 500만"""
     return VisionTransformer(
         img_size=224, patch_size=16, embed_dim=192, 
         depth=12, n_heads=3, n_classes=n_classes
@@ -664,7 +664,7 @@ def create_vit_tiny(n_classes: int = 1000) -> VisionTransformer:
 
 
 def create_vit_small(n_classes: int = 1000) -> VisionTransformer:
-    """ViT-Small: 매개변수 2200만"""
+    """ViT-Small: 파라메터 2200만"""
     return VisionTransformer(
         img_size=224, patch_size=16, embed_dim=384,
         depth=12, n_heads=6, n_classes=n_classes
@@ -672,7 +672,7 @@ def create_vit_small(n_classes: int = 1000) -> VisionTransformer:
 
 
 def create_vit_base(n_classes: int = 1000) -> VisionTransformer:
-    """ViT-Base: 매개변수 8600만"""
+    """ViT-Base: 파라메터 8600만"""
     return VisionTransformer(
         img_size=224, patch_size=16, embed_dim=768,
         depth=12, n_heads=12, n_classes=n_classes
@@ -680,7 +680,7 @@ def create_vit_base(n_classes: int = 1000) -> VisionTransformer:
 
 
 def create_vit_large(n_classes: int = 1000) -> VisionTransformer:
-    """ViT-Large: 매개변수 3억 700만"""
+    """ViT-Large: 파라메터 3억 700만"""
     return VisionTransformer(
         img_size=224, patch_size=16, embed_dim=1024,
         depth=24, n_heads=16, n_classes=n_classes
@@ -703,7 +703,7 @@ if __name__ == "__main__":
 
 def example_1_basic_inference():
     """
-    보기 1: 비전 트랜스포머로 하는 기본 추론
+    예제 1: 비전 트랜스포머로 하는 기본 추론
     """
     print("\n" + "="*60)
     print("Example 1: Basic Inference with Vision Transformer")
@@ -729,14 +729,14 @@ def example_1_basic_inference():
     print(f"Predicted class: {predicted_class.item()}")
     print(f"Top probability: {probabilities.max().item():.4f}")
     
-    # 모형 정보
+    # 모델 정보
     n_params = sum(p.numel() for p in model.parameters())
     print(f"\nModel parameters: {n_params:,}")
 
 
 def example_2_compare_models():
     """
-    보기 2: 컨볼루션 뉴럴 네트워크와 비전 트랜스포머와 섞은 모형 견주기
+    예제 2: 컨볼루션 뉴럴 네트워크와 비전 트랜스포머와 하이브리드 모델 견주기
     """
     print("\n" + "="*60)
     print("Example 2: Comparing Different Architectures")
@@ -764,14 +764,14 @@ def example_2_compare_models():
 
 def example_3_patch_visualization():
     """
-    보기 3: 조각 임베딩 과정 그려 보기
+    예제 3: 패치 임베딩 과정 그려 보기
     """
     print("\n" + "="*60)
     print("Example 3: Visualizing Patch Embeddings")
     print("="*60 + "\n")
     
     
-    # 조각 임베딩 레이어를 만든다
+    # 패치 임베딩 레이어를 만든다
     patch_embed = PatchEmbedding(
         img_size=224,
         patch_size=16,
@@ -779,10 +779,10 @@ def example_3_patch_visualization():
         embed_dim=768
     )
     
-    # 무작위 그림
+    # 무작위 이미지
     image = torch.randn(1, 3, 224, 224)
     
-    # 조각으로 바꾼다
+    # 패치로 바꾼다
     patches = patch_embed(image)
     
     print(f"Original image shape: {image.shape}")
@@ -800,7 +800,7 @@ def example_3_patch_visualization():
 
 def example_4_attention_mechanism():
     """
-    보기 4: 자기 주의 이해하기
+    예제 4: 셀프 어텐션 이해하기
     """
     print("\n" + "="*60)
     print("Example 4: Self-Attention Mechanism")
@@ -810,11 +810,11 @@ def example_4_attention_mechanism():
     # 어텐션 모듈 만들기
     attention = MultiHeadAttention(embed_dim=384, n_heads=6)
     
-    # 무작위 수열 (batch=1, seq_len=197, embed_dim=384)
-    # 197 = 조각 196개 + CLS 토큰 1개
+    # 무작위 시퀀스 (batch=1, seq_len=197, embed_dim=384)
+    # 197 = 패치 196개 + CLS 토큰 1개
     x = torch.randn(1, 197, 384)
     
-    # 주의를 적용한다
+    # 어텐션을 적용한다
     output = attention(x)
     
     print(f"Input shape: {x.shape}")
@@ -830,26 +830,26 @@ def example_4_attention_mechanism():
 
 def example_5_transfer_learning():
     """
-    보기 5: 비전 트랜스포머로 하는 전이 학습
+    예제 5: 비전 트랜스포머로 하는 전이 학습
     """
     print("\n" + "="*60)
     print("Example 5: Transfer Learning Setup")
     print("="*60 + "\n")
     
-    # 사전 학습된 모형을 싣는다 (흉내)
-    model = create_vit_base(n_classes=1000)  # ImageNet 부류
+    # 사전 학습된 모델을 불러온다 (흉내만 낸다)
+    model = create_vit_base(n_classes=1000)  # ImageNet 클래스
     
     print("Step 1: Load pretrained model")
     print(f"  - Original classes: 1000 (ImageNet)")
     
-    # 새 과제를 위해 분류 머리를 바꾼다
+    # 새 과제를 위해 분류 헤드를 바꾼다
     n_new_classes = 10
     model.head = torch.nn.Linear(model.head.in_features, n_new_classes)
     
     print(f"\nStep 2: Replace classification head")
     print(f"  - New classes: {n_new_classes}")
     
-    # 등뼈를 얼린다 (선택)
+    # 백본을 동결한다 (선택)
     for param in model.patch_embed.parameters():
         param.requires_grad = False
     for block in model.blocks:
@@ -871,7 +871,7 @@ def example_5_transfer_learning():
 
 def example_6_model_variants():
     """
-    보기 6: 여러 크기의 비전 트랜스포머 모형
+    예제 6: 여러 크기의 비전 트랜스포머 모델
     """
     print("\n" + "="*60)
     print("Example 6: ViT Model Variants")
@@ -901,7 +901,7 @@ def example_6_model_variants():
 
 def example_7_hybrid_architecture():
     """
-    보기 7: 컨볼루션 뉴럴 네트워크와 트랜스포머를 섞은 모형
+    예제 7: 컨볼루션 뉴럴 네트워크와 트랜스포머를 결합한 하이브리드 모델
     """
     print("\n" + "="*60)
     print("Example 7: Hybrid CNN-Transformer Architecture")
@@ -936,7 +936,7 @@ def example_7_hybrid_architecture():
 
 def example_8_key_differences():
     """
-    보기 8: 컨볼루션 뉴럴 네트워크와 비전 트랜스포머의 핵심 차이
+    예제 8: 컨볼루션 뉴럴 네트워크와 비전 트랜스포머의 핵심 차이
     """
     print("\n" + "="*60)
     print("Example 8: CNN vs ViT - Key Differences")
@@ -968,7 +968,7 @@ def example_8_key_differences():
 
 
 def run_all_examples():
-    """모든 보기를 돌린다"""
+    """모든 예제를 실행한다"""
     example_1_basic_inference()
     example_2_compare_models()
     example_3_patch_visualization()
@@ -989,15 +989,15 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-예제 1은 무작위 Tiny 모델과 이미지에서 (1,10) 로짓을 계산한다. 소프트맥스 최댓값은 실제 클래스 정확도나 보정된 신뢰도를 뜻하지 않는다. 예제 2·6의 계수·출력 모양 비교에도 학습·정확도·속도 측정은 없다.
+예제 1은 무작위 Tiny 모델과 이미지에서 (1,10) 로짓을 계산한다. 소프트맥스 최댓값은 실제 클래스 정확도나 보정된 신뢰도를 뜻하지 않는다. 예제 2·6의 파라메터·출력 형태 비교에도 학습·정확도·속도 측정은 없다.
 
 예제 3의 패치 토큰은 정수의 이산 토큰 ID가 아니라 실수 피처 벡터다. 16×16 RGB 패치는 256개의 픽셀 위치, 768개의 채널 값을 갖는다. 패치 투영은 이를 피처 공간에 매핑한다. 예제 4는 어텐션 모듈이 학습 모드라 드롭아웃도 켜져 있고 의미 관계를 학습한 결과가 아니다.
 
 **전이 설정의 한계:** 예제 5는 create_vit_base로 새 모델을 생성하며 사전 학습 웨이트를 불러오지 않는다. patch_embed와 blocks만 동결해 cls_token·pos_embed·최종 norm은 계속 학습 가능하다. 따라서 “분류기만 학습”도 실제 동작과 다르다. 동결과 eval 전환은 별개의 설정이다.
 
-예제 7의 메시지는 HybridCNNViT의 실제 구조와 다르다. 현재 외부 클래스는 224→14 해상도, 기본 192채널, 패치 196개에 CLS 하나를 붙이며 CLS 출력으로 분류한다. 메시지의 28×28×384·784토큰·전역 평균은 이 구현에 해당하지 않는다. CNN 특성이면 데이터 효율이 더 좋다는 주장도 이 예제에서 평가하지 않는다.
+예제 7의 메시지는 HybridCNNViT의 실제 구조와 다르다. 현재 외부 클래스는 224→14 해상도, 기본 192채널, 패치 196개에 CLS 하나를 붙이며 CLS 출력으로 분류한다. 메시지의 28×28×384·784토큰·전역 평균은 이 구현에 해당하지 않는다. CNN 피처를 쓰면 데이터 효율이 더 좋다는 주장도 이 예제에서 평가하지 않는다.
 
-AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visualizations의 cv2 등 의존성이 필요하다. 같은 이름의 모델·외부 파일 규약과 설치 환경을 먼저 확인한다. 예제 8의 정성적 비교 메시지는 계수·투영·패딩·장치 등 조건을 생략한 설명이며 보편적 성능 순위가 아니다.
+AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visualizations의 cv2 등 의존성이 필요하다. 같은 이름의 모델·외부 파일 규약과 설치 환경을 먼저 확인한다. 예제 8의 정성적 비교 메시지는 파라메터·투영·패딩·장치 등 조건을 생략한 설명이며 보편적 성능 순위가 아니다.
 
 ## 연습문제
 
@@ -1009,7 +1009,7 @@ AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visu
 </div>
 
 ??? success "풀이"
-    팩터리는 무작위 모델을 만들고 head를 교체할 뿐 웨이트를 로드하지 않는다. 동결한 patch_embed·blocks 외에 CLS·위치 표·최종 norm도 requires_grad=True다. 실제 전이 학습에는 호환 체크포인트·전처리를 불러오고 갱신할 계수 목록을 확인해야 한다.
+    팩터리는 무작위 모델을 만들고 head를 교체할 뿐 웨이트를 로드하지 않는다. 동결한 patch_embed·blocks 외에 CLS·위치 표·최종 norm도 requires_grad=True다. 실제 전이 학습에는 호환 체크포인트·전처리를 불러오고 갱신할 파라메터 목록을 확인해야 한다.
 
 ---
 
@@ -1021,7 +1021,7 @@ AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visu
 </div>
 
 ??? success "풀이"
-    패치 벡터는 실수 피처가며 어휘의 정수 ID가 아니다. 무작위 모델·입력은 모양과 계산 규약을 보여 줄 뿐 의미를 학습한 결과가 아니다. 전역 연결 가능성과 실제로 유용한 전역 관계를 학습하는 것도 구분한다.
+    패치 벡터는 실수 피처이며 어휘의 정수 ID가 아니다. 무작위 모델·입력은 형태와 계산 규약을 보여 줄 뿐 의미를 학습한 결과가 아니다. 전역 연결 가능성과 실제로 유용한 전역 관계를 학습하는 것도 구분한다.
 
 ---
 
@@ -1040,7 +1040,7 @@ AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visu
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 모양 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
+아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 형태 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
 
 </div>
 
@@ -1053,17 +1053,17 @@ AttentionVisualizer를 가져오기 때문에 실제 사용하지 않아도 visu
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 형태, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 
-예제의 출력 메시지를 수행 사실로 그대로 읽지 않는다. 새 모델 생성과 사전 학습 로드, 일부 동결과 분류기 전용 학습, 가상의 구조 설명과 실제 외부 모듈을 구분한다. 이번 편집은 코드 실행·그림 생성 없이 설명만 검토했다.
+예제의 출력 메시지를 수행 사실로 그대로 읽지 않는다. 새 모델 생성과 사전 학습 로드, 일부 동결과 분류기 전용 학습, 가상의 구조 설명과 실제 외부 모듈을 구분한다.

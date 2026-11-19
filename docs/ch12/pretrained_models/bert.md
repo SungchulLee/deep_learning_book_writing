@@ -18,7 +18,7 @@ $$
 
 BERT는 앞선 전이 학습 연구를 이어, 사전 학습한 양방향 인코더를 여러 과제에 미세 조정하는 방식을 널리 보였다.
 
-1. **사전 학습**: 레이블 없는 큰 말뭉치에서 일반적인 언어 표현을 배운다
+1. **사전 학습**: 라벨 없는 큰 말뭉치에서 일반적인 언어 표현을 배운다
 2. **미세 조정**: 구조를 거의 바꾸지 않고 특정 과제에 맞춘다
 
 ---
@@ -77,7 +77,7 @@ $$
 
 **입력 손상 방식 (80-10-10 규칙):**
 
-- 80%: `[MASK]`으로 바꾼다
+- 80%: `[MASK]`로 바꾼다
 - 10%: 무작위 토큰으로 바꾼다
 - 10%: 그대로 둔다
 
@@ -111,9 +111,9 @@ $$
 
 ### 사전 학습 데이터와 계산
 
-원래 BERT는 BooksCorpus와 영어 위키백과를 이용해 사전 학습했다. 논문은 배치 256개로 100만 단계를 사용하고 처음 90% 단계는 길이 128, 나머지는 길이 512를 사용했다고 설명한다. 모든 배치가 항상 512토큰이었던 것은 아니다. 세부 설정은 [원 논문의 학습 절차](https://arxiv.org/html/1810.04805v2)를 참고한다.
+원래 BERT는 BooksCorpus와 영어 위키백과를 이용해 사전 학습했다. 논문은 배치 256개로 100만 스텝을 사용하고 처음 90% 스텝은 길이 128, 나머지는 길이 512를 사용했다고 설명한다. 모든 배치가 항상 512토큰이었던 것은 아니다. 세부 설정은 [원 논문의 학습 절차](https://arxiv.org/html/1810.04805v2)를 참고한다.
 
-- **배치와 길이**: 시퀀스 256개이며 학습 단계에 따라 최대 길이가 달랐다.
+- **배치와 길이**: 시퀀스 256개이며 학습 스텝에 따라 최대 길이가 달랐다.
 - **옵티마이저**: Adam과 워밍업·선형 러닝레이트 감쇠를 사용했다.
 - **어휘**: 체크포인트의 WordPiece 어휘와 대소문자 처리 규칙을 함께 확인한다.
 - **학습 비용**: 논문의 하드웨어·설정에 대한 보고이며 현재 구현의 실행 시간으로 일반화하지 않는다.
@@ -122,9 +122,9 @@ $$
 
 ## 4. PyTorch 구현
 
-다음 사용자 정의 BertModel은 무작위로 초기화된다. main의 입력·레이블도 무작위이므로 출력 모양과 계수 수는 구조 확인용이며 사전 학습·분류 품질의 결과가 아니다.
+다음 사용자 정의 BertModel은 무작위로 초기화된다. main의 입력·라벨도 무작위이므로 출력 형태와 파라메터 수는 구조 확인용이며 사전 학습·분류 품질의 결과가 아니다.
 
-attention_mask는 (B,L)에서 1이 유효, 0이 패딩이고 내부에서는 점수에 더하는 -10000 바이어스로 바꾼다. 유한한 바이어스는 모든 키가 패딩인 행을 안전하게 0으로 만드는 폴리시가 아니다. 반환 어텐션은 드롭아웃 이후라 학습 중 행 합이 항상 1인 것도 아니다.
+attention_mask는 (B,L)에서 1이 유효, 0이 패딩이고 내부에서는 점수에 더하는 -10000 바이어스로 바꾼다. 유한한 바이어스는 모든 키가 패딩인 행을 안전하게 0으로 만드는 방법이 아니다. 반환 어텐션은 드롭아웃 이후라 학습 중 행 합이 항상 1인 것도 아니다.
 
 BertForMaskedLM은 입력 임베딩과 어휘 투영 웨이트를 공유하지만 원래 MLM의 중간 dense·GELU·LayerNorm을 생략한다. labels는 선택한 예측 위치만 유효 ID로 두고 나머지는 -100으로 표시해야 한다. BertModel의 풀러는 MLM 로짓 계산에 사용하지 않으므로 MLM 로스만으로는 학습되지 않는다. 모든 labels가 제외되면 평균 로스의 유효 분모가 없다.
 
@@ -136,7 +136,7 @@ import math
 from typing import Optional, Tuple, Dict
 
 class BertEmbeddings(nn.Module):
-    """BERT 임베딩 레이어: 토큰 + 구간 + 자리"""
+    """BERT 임베딩 레이어: 토큰 + 구간 + 위치"""
     
     def __init__(
         self,
@@ -166,12 +166,12 @@ class BertEmbeddings(nn.Module):
         인수:
             input_ids: 토큰 번호 [batch_size, seq_len]
             token_type_ids: 구간 번호 [batch_size, seq_len]
-            position_ids: 자리 번호 [batch_size, seq_len]
+            position_ids: 위치 번호 [batch_size, seq_len]
         """
         batch_size, seq_len = input_ids.shape
         device = input_ids.device
         
-        # 기본 자리 번호
+        # 기본 위치 번호
         if position_ids is None:
             position_ids = torch.arange(seq_len, device=device).unsqueeze(0)
         
@@ -193,7 +193,7 @@ class BertEmbeddings(nn.Module):
         return embeddings
 
 class BertSelfAttention(nn.Module):
-    """BERT의 자기 주의(양방향)."""
+    """BERT의 셀프 어텐션(양방향)."""
     
     def __init__(
         self,
@@ -216,7 +216,7 @@ class BertSelfAttention(nn.Module):
         self.dropout = nn.Dropout(dropout)
     
     def transpose_for_scores(self, x: torch.Tensor) -> torch.Tensor:
-        """다중 머리 주의에 맞게 형태를 바꾼다."""
+        """멀티헤드 어텐션에 맞게 형태를 바꾼다."""
         batch_size, seq_len, _ = x.shape
         x = x.view(batch_size, seq_len, self.num_attention_heads, self.attention_head_size)
         return x.permute(0, 2, 1, 3)
@@ -236,11 +236,11 @@ class BertSelfAttention(nn.Module):
         key_layer = self.transpose_for_scores(self.key(hidden_states))
         value_layer = self.transpose_for_scores(self.value(hidden_states))
         
-        # 주의 점수
+        # 어텐션 점수
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
         
-        # 주의 가림을 적용한다
+        # 어텐션 마스크를 적용한다
         if attention_mask is not None:
             attention_scores = attention_scores + attention_mask
         
@@ -272,14 +272,14 @@ class BertLayer(nn.Module):
     ):
         super().__init__()
         
-        # 자기 주의
+        # 셀프 어텐션
         self.attention = BertSelfAttention(
             hidden_size, num_attention_heads, dropout
         )
         self.attention_output = nn.Linear(hidden_size, hidden_size)
         self.attention_norm = nn.LayerNorm(hidden_size, eps=layer_norm_eps)
         
-        # 순전파
+        # 피드포워드
         self.intermediate = nn.Linear(hidden_size, intermediate_size)
         self.output = nn.Linear(intermediate_size, hidden_size)
         self.output_norm = nn.LayerNorm(hidden_size, eps=layer_norm_eps)
@@ -292,9 +292,9 @@ class BertLayer(nn.Module):
         attention_mask: Optional[torch.Tensor] = None,
         output_attentions: bool = False
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
-        """BERT 레이어를 지나는 피드포워드."""
+        """BERT 레이어를 지나는 순전파."""
         
-        # 자기 주의
+        # 셀프 어텐션
         attn_output, attn_weights = self.attention(
             hidden_states, attention_mask, output_attentions
         )
@@ -302,7 +302,7 @@ class BertLayer(nn.Module):
         attn_output = self.dropout(attn_output)
         hidden_states = self.attention_norm(hidden_states + attn_output)
         
-        # 순전파
+        # 피드포워드
         intermediate_output = self.intermediate(hidden_states)
         intermediate_output = F.gelu(intermediate_output)
         layer_output = self.output(intermediate_output)
@@ -312,7 +312,7 @@ class BertLayer(nn.Module):
         return hidden_states, attn_weights
 
 class BertEncoder(nn.Module):
-    """BERT 인코더 더미."""
+    """BERT 인코더 스택."""
     
     def __init__(
         self,
@@ -341,7 +341,7 @@ class BertEncoder(nn.Module):
         output_attentions: bool = False,
         output_hidden_states: bool = False
     ) -> Dict[str, torch.Tensor]:
-        """모든 인코더 레이어를 지나는 피드포워드."""
+        """모든 인코더 레이어를 지나는 순전파."""
         
         all_hidden_states = [] if output_hidden_states else None
         all_attentions = [] if output_attentions else None
@@ -383,9 +383,9 @@ class BertPooler(nn.Module):
 
 class BertModel(nn.Module):
     """
-    온전한 BERT 모형.
+    완전한 BERT 모델.
     
-    아래쪽 과제의 바탕으로 쓸 수 있다.
+    다운스트림 과제의 백본으로 쓸 수 있다.
     """
     
     def __init__(
@@ -429,15 +429,15 @@ class BertModel(nn.Module):
         output_hidden_states: bool = False
     ) -> Dict[str, torch.Tensor]:
         """
-        피드포워드.
+        순전파.
         
         인수:
             input_ids: 토큰 번호 [batch_size, seq_len]
-            attention_mask: 실제 토큰은 1, 채움은 0 [batch_size, seq_len]
+            attention_mask: 실제 토큰은 1, 패딩은 0 [batch_size, seq_len]
             token_type_ids: 구간 번호 [batch_size, seq_len]
-            position_ids: 자리 번호 [batch_size, seq_len]
+            position_ids: 위치 번호 [batch_size, seq_len]
         """
-        # 주의 레이어를 위한 주의 가림을 만든다
+        # 어텐션 레이어에 쓸 어텐션 마스크를 만든다
         if attention_mask is not None:
             # [batch, seq]를 [batch, 1, 1, seq]로 바꾼다
             # 0은 -inf로, 1은 0으로
@@ -472,7 +472,7 @@ class BertModel(nn.Module):
         }
 
 class BertForMaskedLM(nn.Module):
-    """가린 언어 모형화 머리를 갖춘 BERT."""
+    """마스크 언어 모델링 헤드를 갖춘 BERT."""
     
     def __init__(self, config: dict):
         super().__init__()
@@ -480,7 +480,7 @@ class BertForMaskedLM(nn.Module):
         self.bert = BertModel(**config)
         self.cls = nn.Linear(config['hidden_size'], config['vocab_size'])
         
-        # 임베딩과 웨이트를 묶는다
+        # 임베딩과 웨이트를 공유한다
         self.cls.weight = self.bert.embeddings.token_embeddings.weight
     
     def forward(
@@ -490,7 +490,7 @@ class BertForMaskedLM(nn.Module):
         token_type_ids: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None
     ) -> Dict[str, torch.Tensor]:
-        """가린 언어 모형 로스를 셈하는 피드포워드."""
+        """마스크 언어 모델 로스를 계산하는 순전파."""
         
         outputs = self.bert(
             input_ids=input_ids,
@@ -498,16 +498,16 @@ class BertForMaskedLM(nn.Module):
             token_type_ids=token_type_ids
         )
         
-        # 가린 언어 모형 예측
+        # 마스크 언어 모델 예측
         prediction_scores = self.cls(outputs['last_hidden_state'])
         
-        # 이름표가 있으면 로스를 셈한다
+        # 라벨이 있으면 로스를 계산한다
         loss = None
         if labels is not None:
             loss = F.cross_entropy(
                 prediction_scores.view(-1, prediction_scores.size(-1)),
                 labels.view(-1),
-                ignore_index=-100  # 가리지 않은 토큰은 무시한다
+                ignore_index=-100  # 마스크하지 않은 토큰은 무시한다
             )
         
         return {
@@ -517,7 +517,7 @@ class BertForMaskedLM(nn.Module):
         }
 
 class BertForSequenceClassification(nn.Module):
-    """수열 분류(이를테면 감성 분석)를 위한 BERT."""
+    """시퀀스 분류(이를테면 감성 분석)를 위한 BERT."""
     
     def __init__(self, config: dict, num_labels: int):
         super().__init__()
@@ -534,7 +534,7 @@ class BertForSequenceClassification(nn.Module):
         token_type_ids: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None
     ) -> Dict[str, torch.Tensor]:
-        """분류 로스를 셈하는 피드포워드."""
+        """분류 로스를 계산하는 순전파."""
         
         outputs = self.bert(
             input_ids=input_ids,
@@ -586,7 +586,7 @@ if __name__ == "__main__":
     
     input_ids = torch.randint(0, config['vocab_size'], (batch_size, seq_len))
     attention_mask = torch.ones(batch_size, seq_len)
-    attention_mask[:, -10:] = 0  # 채움을 흉내 낸다
+    attention_mask[:, -10:] = 0  # 패딩을 흉내 낸다
     token_type_ids = torch.zeros(batch_size, seq_len, dtype=torch.long)
     token_type_ids[:, 64:] = 1  # 둘째 구간
     
@@ -605,7 +605,7 @@ if __name__ == "__main__":
     total_params = sum(p.numel() for p in model.parameters())
     print(f"\nTotal parameters: {total_params:,}")
     
-    # 분류 모형을 시험한다
+    # 분류 모델을 시험한다
     print("\n--- Testing Classification Model ---")
     classifier = BertForSequenceClassification(config, num_labels=2)
     
@@ -639,7 +639,7 @@ Classification loss: 0.5852
 ### 텍스트 분류
 
 ```python
-# [CLS] 토큰에 분류 머리를 얹는다
+# [CLS] 토큰에 분류 헤드를 얹는다
 class BertClassifier(nn.Module):
     def __init__(self, bert_model, num_classes):
         super().__init__()
@@ -655,7 +655,7 @@ class BertClassifier(nn.Module):
 ### 토큰 분류 (개체명 인식)
 
 ```python
-# 토큰마다 분류 머리를 얹는다
+# 토큰마다 분류 헤드를 얹는다
 class BertNER(nn.Module):
     def __init__(self, bert_model, num_labels):
         super().__init__()
@@ -671,7 +671,7 @@ class BertNER(nn.Module):
 ### 질문 답변
 
 ```python
-# 시작 자리와 끝 자리를 맞힌다
+# 시작 위치와 끝 위치를 예측한다
 class BertQA(nn.Module):
     def __init__(self, bert_model):
         super().__init__()
@@ -692,9 +692,9 @@ class BertQA(nn.Module):
 | 모델 | 대표 변화 | 비교 시 확인할 점 |
 |---|---|---|
 | RoBERTa | NSP 제외, 동적 마스킹·학습 조건 변경 | 목표 외의 데이터·계산도 달라짐 |
-| ALBERT | 임베딩 분해·레이어 간 공유·문장 순서 예측 | 설정별 계수 수와 실제 연산량은 별개 |
+| ALBERT | 임베딩 분해·레이어 간 공유·문장 순서 예측 | 설정별 파라메터 수와 실제 연산량은 별개 |
 | DistilBERT | 지식 증류와 축소된 인코더 | 품질·속도 비율은 과제와 장치별로 비교 |
-| ELECTRA | 교체 토큰 판별 | 생성기·판별기의 학습 비용을 함께 고려 |
+| ELECTRA | 교체 토큰 판별 | 제너레이터·디스크리미네이터의 학습 비용을 함께 고려 |
 | DeBERTa | 내용·위치를 분리한 어텐션 | 모델 버전과 학습 목표를 구분 |
 | SpanBERT | 구간 마스킹·경계 기반 예측 | 구간 중심 과제에서 조건을 맞춰 비교 |
 
@@ -710,7 +710,7 @@ class BertQA(nn.Module):
 
 train_classifier는 워밍업 없이 처음 러닝레이트부터 선형 감쇠한다. 로스는 배치 평균들의 단순 평균이며, 반환값은 마지막 모델로서 저장한 최고 검증 F1 모델을 다시 불러오지 않는다. 검증 F1이 초기 best_f1=0을 넘지 않으면 체크포인트가 저장되지 않을 수도 있다.
 
-freeze_bert는 경사 갱신만 막는다. model.train()을 호출하면 인코더의 드롭아웃도 켜져 고정 피처를 매번 동일하게 만드는 설정은 아니다. predict의 기본 device는 CPU인데 학습은 CUDA를 선택할 수 있어 모델과 입력 장치를 맞춰야 한다. 추론 토큰화의 길이도 학습 max_length=128과 일관되게 지정한다.
+freeze_bert는 그래디언트 갱신만 막는다. model.train()을 호출하면 인코더의 드롭아웃도 켜져 고정 피처를 매번 동일하게 만드는 설정은 아니다. predict의 기본 device는 CPU인데 학습은 CUDA를 선택할 수 있어 모델과 입력 장치를 맞춰야 한다. 추론 토큰화의 길이도 학습 max_length=128과 일관되게 지정한다.
 
 BertClassifierWithPooling의 cls는 원시 첫 위치 출력으로 pooler_output과 다르다. concat은 마지막 네 레이어가 있어야 선언한 4배 폭과 맞고, max는 은닉 텐서를 제자리 변경한다. 지원하지 않는 pooling 이름이나 전부 PAD인 입력은 별도 검증이 필요하다. train_multilabel은 로스와 예측을 계산할 뿐 optimizer 갱신을 수행하지 않는다.
 
@@ -740,7 +740,7 @@ from sklearn.metrics import accuracy_score, f1_score
 import numpy as np
 
 class BertClassifier(nn.Module):
-    """BERT 기반 글 분류기."""
+    """BERT 기반 텍스트 분류기."""
     
     def __init__(
         self,
@@ -761,7 +761,7 @@ class BertClassifier(nn.Module):
     
     def forward(self, input_ids, attention_mask, token_type_ids=None):
         """
-        피드포워드.
+        순전파.
         
         인수:
             input_ids: [batch, seq_len]
@@ -784,7 +784,7 @@ class BertClassifier(nn.Module):
         return self.classifier(pooled_output)
 
 class TextClassificationDataset(Dataset):
-    """글 분류를 위한 데이터셋."""
+    """텍스트 분류를 위한 데이터셋."""
     
     def __init__(self, texts, labels, tokenizer, max_length=128):
         self.texts = texts
@@ -811,7 +811,7 @@ class TextClassificationDataset(Dataset):
         }
 
 def train_epoch(model, dataloader, optimizer, scheduler, device):
-    """한 에폭을 학습한다."""
+    """한 에포크를 학습한다."""
     model.train()
     total_loss = 0
     predictions, true_labels = [], []
@@ -840,7 +840,7 @@ def train_epoch(model, dataloader, optimizer, scheduler, device):
 
 @torch.no_grad()
 def evaluate(model, dataloader, device):
-    """모형을 평가한다."""
+    """모델을 평가한다."""
     model.eval()
     total_loss = 0
     predictions, true_labels = [], []
@@ -872,10 +872,10 @@ def train_classifier(
     learning_rate=2e-5,
     max_length=128
 ):
-    """온전한 학습 파이프라인."""
+    """전체 학습 파이프라인."""
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    # 토큰 나누개와 모형
+    # 토크나이저와 모델
     tokenizer = BertTokenizer.from_pretrained(model_name)
     model = BertClassifier(model_name, num_labels).to(device)
     
@@ -886,7 +886,7 @@ def train_classifier(
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
     
-    # 옵티마이저와 일정 조정기
+    # 옵티마이저와 스케줄러
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0.01)
     total_steps = len(train_loader) * epochs
     scheduler = torch.optim.lr_scheduler.LinearLR(
@@ -959,9 +959,9 @@ class BertClassifierWithPooling(nn.Module):
         
         return self.classifier(pooled)
 
-# 여러 이름표 분류
+# 다중 라벨 분류
 class BertMultiLabelClassifier(nn.Module):
-    """여러 이름표 분류를 위한 BERT."""
+    """다중 라벨 분류를 위한 BERT."""
     
     def __init__(self, model_name, num_labels):
         super().__init__()
@@ -974,7 +974,7 @@ class BertMultiLabelClassifier(nn.Module):
         return logits  # 소프트맥스 없음. BCEWithLogitsLoss를 쓴다
 
 def train_multilabel(model, batch, device, threshold=0.5):
-    """여러 이름표 분류를 위한 학습 단계."""
+    """다중 라벨 분류를 위한 학습 스텝."""
     input_ids = batch['input_ids'].to(device)
     attention_mask = batch['attention_mask'].to(device)
     labels = batch['labels'].to(device).float()
@@ -1026,7 +1026,7 @@ if __name__ == "__main__":
 
 ### 좋은 방법
 
-러닝레이트·배치 크기·길이·에포크·워밍업·웨이트 감쇠는 데이터와 모델에 따라 검증셋에서 선택한다. 코드의 소규모 4개 학습·2개 검증 문장으로 일반적인 성능을 판단할 수 없고, 최종 평가는 별도 테스트셋에서 수행한다. 특정 범위를 모든 과제의 충분조건으로 제시하지 않는다.
+러닝레이트·배치 크기·길이·에포크·워밍업·웨이트 감쇠는 데이터와 모델에 따라 검증 집합에서 선택한다. 코드의 소규모 4개 학습·2개 검증 문장으로 일반적인 성능을 판단할 수 없고, 최종 평가는 별도 시험 집합에서 수행한다. 특정 범위를 모든 과제의 충분조건으로 제시하지 않는다.
 
 ### 핵심 내용
 
@@ -1094,7 +1094,7 @@ BERT와 인과 언어 모델이 볼 수 있는 문맥과 학습 목표를 비교
 
 ## 정리하며
 
-BERT의 양방향 MLM, 구간·위치 표현과 과제별 머리를 연결해 이해한다. 사용자 정의 구조와 체크포인트를 읽는 예제를 구분하고, 마스크·라벨 정렬·풀러의 학습 여부와 모델 선택·추론 장치를 확인한다.
+BERT의 양방향 MLM, 구간·위치 표현과 과제별 헤드를 연결해 이해한다. 사용자 정의 구조와 체크포인트를 읽는 예제를 구분하고, 마스크·라벨 정렬·풀러의 학습 여부와 모델 선택·추론 장치를 확인한다.
 
 **참고 문헌**
 

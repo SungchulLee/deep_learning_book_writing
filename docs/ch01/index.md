@@ -27,7 +27,7 @@
 | 1.4 | 텐서 | 만들고, 다루고, 장치에 올리고, 저장한다 |
 | 1.5 | 텐서 속성 | 모양·자료형·장치, 그리고 메모리 위의 배치 |
 | 1.6 | 자동 미분 | `loss.backward()` 가 무엇을 하는가 |
-| 1.7 | 경사 하강법 | 그 경사로 웨이트를 어떻게 움직이는가 |
+| 1.7 | 경사 하강법 | 그 그래디언트로 웨이트를 어떻게 움직이는가 |
 
 ## 1.1 컴퓨터 구조
 
@@ -123,14 +123,14 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 
 ## 1.6 자동 미분
 
-경사 기반 학습을 떠받치는 엔진. 이 장에서 가장 긴 절이고, 그만큼 걸려 넘어질 자리가 많다.
+그래디언트 기반 학습을 떠받치는 엔진. 이 장에서 가장 긴 절이고, 그만큼 걸려 넘어질 자리가 많다.
 
 **엔진의 규칙**
 
-- [경사 계산](../ch06/autograd/gradient_computation.md) — 야코비안, 벡터-야코비안 곱, 전진 모드와 후진 모드
+- [경사 계산](../ch06/autograd/gradient_computation.md) — 야코비안, 벡터-야코비안 곱, 순방향 모드와 역방향 모드
 - [스칼라에 대한 기본 역전파](../ch06/autograd/01_basic_scalar_backward.md) — 누가 `.grad` 를 받는가
 - [경사 누적](../ch06/autograd/02_gradient_accumulation.md) — 기본값이 더하기인 까닭
-- [retain_graph](../ch06/autograd/03_retain_graph.md) — 그래프를 남기는 것과 경사를 남기는 것은 다른 일이다
+- [retain_graph](../ch06/autograd/03_retain_graph.md) — 그래프를 남기는 것과 그래디언트를 남기는 것은 다른 일이다
 
 **학습 루프**
 
@@ -152,7 +152,7 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 
 - [경사를 0으로 만드는 세 가지 방법](../ch06/autograd/18_three_ways_to_zero_gradients.md)
 - [큰 배치를 위한 경사 누적](../ch06/autograd/19_gradient_accumulation_for_large_batches.md) · [경사 누적을 쓰는 학습 루프](../ch06/autograd/21_training_loop_with_grad_accumulation.md)
-- [경사 크기 조정이 중요한 이유](../ch06/autograd/20_why_gradient_scaling_matters.md) — 묶음을 키웠는데 더 나빠지는 자리
+- [경사 크기 조정이 중요한 이유](../ch06/autograd/20_why_gradient_scaling_matters.md) — 배치를 키웠는데 더 나빠지는 자리
 
 **벡터 역전파**
 

@@ -7,9 +7,9 @@ SSD는 여러 해상도의 피처 맵에서 기본 상자(default box)별 클래
 ```python
 #!/usr/bin/env python3
 '''
-SSD — 한 방 여러 상자 알아내개
+SSD — Single Shot MultiBox Detector
 논문: "SSD: Single Shot MultiBox Detector" (2016)
-핵심: 탐지에 여러 스케일 피처 지도를 쓰며 피드포워드 한 번
+핵심: 탐지에 여러 스케일의 피처 맵을 쓰며 순전파는 한 번
 '''
 import torch
 import torch.nn as nn
@@ -21,7 +21,7 @@ import torch.nn as nn
 class SSD(nn.Module):
     def __init__(self, num_classes=21):
         super().__init__()
-        # 바탕 네트워크(VGG 비슷한 것)
+        # 기반 네트워크(VGG와 비슷한 구조)
         self.base = nn.Sequential(
             nn.Conv2d(3, 64, 3, padding=1),
             nn.ReLU(inplace=True),
@@ -36,7 +36,7 @@ class SSD(nn.Module):
             nn.MaxPool2d(2, 2),
         )
         
-        # 여러 스케일 탐지를 위한 덧레이어
+        # 다중 스케일 탐지를 위한 추가 레이어
         self.extras = nn.Sequential(
             nn.Conv2d(128, 256, 3, padding=1),
             nn.ReLU(inplace=True),
@@ -44,8 +44,8 @@ class SSD(nn.Module):
             nn.ReLU(inplace=True),
         )
         
-        # 탐지 머리
-        self.loc = nn.Conv2d(256, 4 * 4, 3, padding=1)  # 붙박이 상자 4개 * 자리표 4개
+        # 탐지 헤드
+        self.loc = nn.Conv2d(256, 4 * 4, 3, padding=1)  # 기본 상자 4개 * 좌표 4개
         self.conf = nn.Conv2d(256, 4 * num_classes, 3, padding=1)  # 상자 4개 * 클래스 수
     
     def forward(self, x):
@@ -72,7 +72,7 @@ Parameters: 1,375,908
 
 ## 2. 위치와 클래스 출력
 
-입력 4×3×64×64는 첫 두 컨볼루션 뒤에 4×64×64×64, 첫 풀링 뒤에 4×64×32×32가 된다. 다음 두 컨볼루션과 풀링 뒤에는 4×128×16×16, extras 뒤에는 4×256×16×16이다. 기본 클래스 수 21에서 반환 사전의 loc는 4×16×16×16, conf는 4×84×16×16이다. loc의 첫 16은 채널 수이고 마지막 두 16은 공간 크기다.
+입력 4×3×64×64는 첫 두 컨볼루션 뒤에 4×64×64×64, 첫 풀링 뒤에 4×64×32×32가 된다. 다음 두 컨볼루션과 풀링 뒤에는 4×128×16×16, extras 뒤에는 4×256×16×16이다. 기본 클래스 수 21에서 반환 딕셔너리의 loc는 4×16×16×16, conf는 4×84×16×16이다. loc의 첫 16은 채널 수이고 마지막 두 16은 공간 크기다.
 
 위치마다 기본 상자 4개를 가정하므로 loc 채널은 4×4, conf 채널은 4×21이다. 이미지당 후보는 4×16×16=1024개이며 실제 객체 수가 아니다. 원래 SSD의 클래스 softmax는 배경 클래스를 포함하므로 21은 배경 1개와 객체 클래스 20개로 해석한다. raw conf에 softmax를 적용하거나 loc를 이미지 좌표로 변환하는 과정은 현재 코드에 없다.
 
@@ -87,7 +87,7 @@ Parameters: 1,375,908
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-4×3×64×64 입력에서 extras·loc·conf의 모양과 후보 수를 계산하라.
+4×3×64×64 입력에서 extras·loc·conf의 형태와 후보 수를 계산하라.
 
 </div>
 
@@ -123,7 +123,7 @@ Parameters: 1,375,908
 
 ??? success "풀이"
 
-    기본 상자 수 4를 유지하면 loc는 16채널이고 num_classes=11로 두어 conf는 44채널이다. 클래스 수를 바꿔도 좌표 오프셋 개수는 변하지 않으며 목표 레이블과 분류 로스의 클래스 차원도 함께 맞춘다.
+    기본 상자 수 4를 유지하면 loc는 16채널이고 num_classes=11로 두어 conf는 44채널이다. 클래스 수를 바꿔도 좌표 오프셋 개수는 변하지 않으며 목표 라벨과 분류 로스의 클래스 차원도 함께 맞춘다.
 
 
 

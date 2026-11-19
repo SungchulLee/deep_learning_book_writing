@@ -1,6 +1,6 @@
 # 고급 기법
 
-혼합 정밀도, 경사 누적, 러닝레이트 스케줄과 단계적 동결 해제·추론 어그멘테이션을 결합한 전이 학습 예제다. 여러 기법을 켠다고 최고 성능이나 망각 방지가 보장되지는 않는다. 실제 코드에서 갱신·검증·스케줄이 어떻게 연결되는지 확인한다.
+혼합 정밀도, 그래디언트 누적, 러닝레이트 스케줄과 단계적 동결 해제·추론 어그멘테이션을 결합한 전이 학습 예제다. 여러 기법을 켠다고 최고 성능이나 망각 방지가 보장되지는 않는다. 실제 코드에서 갱신·검증·스케줄이 어떻게 연결되는지 확인한다.
 
 ## 1. 코드
 
@@ -12,10 +12,10 @@
     =================================================
 
     이 스크립트는 최신 전이 학습 기법을 보여 준다.
-    - 섞인 정밀도 학습 (FP16)
-    - 그래디언트 모으기
-    - 고급 러닝레이트 일정
-    - 레이어를 차츰 녹이기
+    - 혼합 정밀도 학습 (FP16)
+    - 그래디언트 누적
+    - 고급 러닝레이트 스케줄
+    - 레이어의 단계적 동결 해제
     - 모델 앙상블
     - 여러 구조
 
@@ -39,7 +39,7 @@
     import copy
     import numpy as np
 
-    # 난수 씨앗 고정
+    # 난수 시드 고정
     torch.manual_seed(42)
     np.random.seed(42)
 
@@ -47,7 +47,7 @@
     # 설정
     # ============================================================================
     """
-    이 깃발을 켜고 끄며 여러 고급 기법을 쓰거나 끈다.
+    이 플래그를 켜고 끄며 여러 고급 기법을 쓰거나 끈다.
     여러 조합을 시험해 보라!
     """
 
@@ -56,11 +56,11 @@
     NUM_EPOCHS = 20
     BASE_LR = 0.001
 
-    # 고급 기법 깃발
+    # 고급 기법 플래그
     USE_MIXED_PRECISION = True        # FP16 학습을 켠다 (GPU가 필요하다)
-    GRADIENT_ACCUMULATION_STEPS = 2   # 실효 배치 크기 = BATCH_SIZE × 이 값
-    USE_COSINE_SCHEDULE = True        # 코사인 담금질을 쓸지 정체 감지를 쓸지
-    GRADUAL_UNFREEZING = True         # 학습 중에 레이어를 차츰 녹인다
+    GRADIENT_ACCUMULATION_STEPS = 2   # 유효 배치 크기 = BATCH_SIZE × 이 값
+    USE_COSINE_SCHEDULE = True        # 코사인 어닐링을 쓸지 ReduceLROnPlateau를 쓸지
+    GRADUAL_UNFREEZING = True         # 학습 중에 레이어를 단계적으로 동결 해제한다
     USE_ENSEMBLE = False              # 앙상블을 위해 모델을 여럿 학습한다 (느리다)
 
     print("Advanced Transfer Learning Configuration:")
@@ -82,7 +82,7 @@
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    # 섞인 정밀도를 쓸 수 있는지 살핀다
+    # 혼합 정밀도를 쓸 수 있는지 확인한다
     if USE_MIXED_PRECISION and not torch.cuda.is_available():
         print("Warning: Mixed precision requires CUDA. Disabling mixed precision.")
         USE_MIXED_PRECISION = False
@@ -91,13 +91,13 @@
         print("Mixed precision (FP16) training enabled")
 
     # ============================================================================
-    # 2단계: 고급 데이터 불리기
+    # 2단계: 고급 데이터 어그멘테이션
     # ============================================================================
 
     IMAGENET_MEAN = [0.485, 0.456, 0.406]
     IMAGENET_STD = [0.229, 0.224, 0.225]
 
-    # 학습 불리기 파이프라인
+    # 학습 어그멘테이션 파이프라인
     train_transform = transforms.Compose([
         transforms.Resize(256),
         transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
@@ -117,7 +117,7 @@
         transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
     ])
 
-    # 시험 때 불리기 변환
+    # 테스트 타임 어그멘테이션(TTA) 변환
     tta_transform = transforms.Compose([
         transforms.Resize(256),
         transforms.FiveCrop(224),
@@ -138,7 +138,7 @@
         root='./data', train=False, download=True, transform=val_transform
     )
 
-    # 학습 자료를 학습과 검증으로 나눈다
+    # 학습 데이터를 학습과 검증으로 나눈다
     from torch.utils.data import random_split
     train_size = int(0.9 * len(train_dataset))
     val_size = len(train_dataset) - train_size
@@ -188,7 +188,7 @@
         else:
             raise ValueError(f"Unknown architecture: {architecture}")
 
-        # 처음에는 모든 레이어를 얼린다
+        # 처음에는 모든 레이어를 동결한다
         for param in model.parameters():
             param.requires_grad = False
 
@@ -208,12 +208,12 @@
     model = model.to(device)
 
     # ============================================================================
-    # 4단계: 차츰 녹이기 도우미
+    # 4단계: 단계적 동결 해제 도우미
     # ============================================================================
 
     def unfreeze_layers(model, epoch, total_epochs):
         """
-        학습이 나아가는 정도에 따라 레이어를 차츰 녹인다.
+        학습 진행도에 따라 레이어를 단계적으로 동결 해제한다.
         """
         if not GRADUAL_UNFREEZING:
             for name, param in model.named_parameters():
@@ -239,7 +239,7 @@
                     param.requires_grad = True
 
     # ============================================================================
-    # 5단계: 옵티마이저와 일정 조정기 설정
+    # 5단계: 옵티마이저와 스케줄러 설정
     # ============================================================================
 
     criterion = nn.CrossEntropyLoss()
@@ -262,7 +262,7 @@
         print("\nUsing ReduceLROnPlateau scheduler")
 
     # ============================================================================
-    # 6단계: 섞인 정밀도 설정
+    # 6단계: 혼합 정밀도 설정
     # ============================================================================
 
     if USE_MIXED_PRECISION:
@@ -274,7 +274,7 @@
     # ============================================================================
 
     def train_one_epoch(model, loader, criterion, optimizer, scaler, device, epoch):
-        """섞인 정밀도와 그래디언트 모으기로 한 세대를 학습한다."""
+        """혼합 정밀도와 그래디언트 누적으로 한 에포크를 학습한다."""
         model.train()
         running_loss = 0.0
         correct = 0
@@ -358,7 +358,7 @@
         return avg_loss, accuracy
 
     # ============================================================================
-    # 8단계: 주 학습 고리
+    # 8단계: 주 학습 루프
     # ============================================================================
 
     print(f"\n{'='*70}")
@@ -431,14 +431,14 @@
     print(f"Single Model Test Accuracy: {test_acc:.2f}%")
 
     # ============================================================================
-    # 10단계: 시험 때 불리기 (TTA)
+    # 10단계: 테스트 타임 어그멘테이션 (TTA)
     # ============================================================================
 
     print("\nTest-Time Augmentation Evaluation:")
     print("-" * 70)
 
     def evaluate_with_tta(model, loader, device):
-        """시험 때 불리기로 평가한다."""
+        """테스트 타임 어그멘테이션으로 평가한다."""
         model.eval()
         correct = 0
         total = 0
@@ -493,15 +493,15 @@
 
 ## 2. 논의
 
-**검증 전처리:** random_split이 같은 train_dataset을 참조하는 Subset 두 개를 만든다. 따라서 val_dataset도 무작위 자르기·색 변화·지우기 등 train_transform을 사용한다. 검증셋에서 고정 val_transform을 사용하려면 별도 데이터셋 객체에 같은 인덱스를 적용하는 등 전처리를 분리해야 한다. 공식 테스트 분할 자체는 따로 있다.
+**검증 전처리:** random_split이 같은 train_dataset을 참조하는 Subset 두 개를 만든다. 따라서 val_dataset도 무작위 크롭·색 변화·지우기 등 train_transform을 사용한다. 검증셋에서 고정 val_transform을 사용하려면 별도 데이터셋 객체에 같은 인덱스를 적용하는 등 전처리를 분리해야 한다. 공식 시험 분할 자체는 따로 있다.
 
-**동결 해제·스케줄:** 학습 가능한 계수가 늘 때마다 AdamW를 새로 만들어 기존 계수의 적률 상태를 잃는다. scheduler는 처음 옵티마이저를 계속 참조해 이후 현재 옵티마이저의 러닝레이트를 조절하지 않는다. 새 계수를 param_group에 추가하거나 스케줄·상태를 함께 재구성하는 폴리시가 필요하다. 이 구현은 레이어별 서로 다른 러닝레이트도 실제로 설정하지 않는다. model.train은 동결 부분의 BatchNorm 버퍼를 계속 갱신한다.
+**동결 해제·스케줄:** 학습 가능한 파라메터가 늘 때마다 AdamW를 새로 만들어 기존 파라메터의 모멘트 상태를 잃는다. scheduler는 처음 옵티마이저를 계속 참조해 이후 현재 옵티마이저의 러닝레이트를 조절하지 않는다. 새 파라메터를 param_group에 추가하거나 스케줄·상태를 함께 재구성하는 정책이 필요하다. 이 구현은 레이어별 서로 다른 러닝레이트도 실제로 설정하지 않는다. model.train은 동결 부분의 BatchNorm 버퍼를 계속 갱신한다.
 
-**경사 누적:** 같은 크기 마이크로배치 A개에 로스를 1/A로 나누고 한 번 갱신하는 것이 기본이다. 현재 코드는 마지막 배치 수가 A로 나누어떨어지지 않으면 남은 경사를 갱신하지 않고 다음 에포크에서 버린다. 크기가 다른 마지막 배치도 정확한 표본 가중 평균과 다를 수 있다. BatchNorm·드롭아웃 때문에 하나의 큰 배치와 완전히 동일하지 않다.
+**그래디언트 누적:** 같은 크기 마이크로배치 A개에 로스를 1/A로 나누고 한 번 갱신하는 것이 기본이다. 현재 코드는 마지막 배치 수가 A로 나누어떨어지지 않으면 남은 그래디언트를 갱신하지 않고 다음 에포크에서 버린다. 크기가 다른 마지막 배치도 정확한 표본 가중 평균과 다를 수 있다. BatchNorm·드롭아웃 때문에 하나의 큰 배치와 완전히 동일하지 않다.
 
-**AMP:** CUDA가 없으면 이 예제는 혼합 정밀도를 끈다. FP16의 작은 경사에 GradScaler를 사용하지만 모든 웨이트·Adam 상태가 절반 크기가 되거나 속도가 2~3배인 것은 아니다. 코드의 torch.cuda.amp 표기는 버전별 API도 확인한다. 스케일러가 갱신을 건너뛰는 경우도 실제 갱신 횟수와 구분한다.
+**AMP:** CUDA가 없으면 이 예제는 혼합 정밀도를 끈다. FP16의 작은 그래디언트에 GradScaler를 사용하지만 모든 웨이트·Adam 상태가 절반 크기가 되거나 속도가 2~3배인 것은 아니다. 코드의 torch.cuda.amp 표기는 버전별 API도 확인한다. 스케일러가 갱신을 건너뛰는 경우도 실제 갱신 횟수와 구분한다.
 
-**TTA·앙상블:** FiveCrop tta_transform을 정의하지만 사용하지 않는다. 실제 TTA는 중앙 크롭과 그 좌우 반전 두 로짓을 평균하며, 소프트맥스 확률 평균과 다르다. USE_ENSEMBLE도 설정·출력만 하고 모델 학습·평균에 연결하지 않는다. ensemble_evaluate는 별도 조각이며 각 모델·장치·클래스 순서를 호출자가 맞춰야 한다. 어떤 방법도 테스트 개선을 보장하지 않는다.
+**TTA·앙상블:** FiveCrop tta_transform을 정의하지만 사용하지 않는다. 실제 TTA는 중앙 크롭과 그 좌우 반전 두 로짓을 평균하며, 소프트맥스 확률 평균과 다르다. USE_ENSEMBLE도 설정·출력만 하고 모델 학습·평균에 연결하지 않는다. ensemble_evaluate는 별도 조각이며 각 모델·장치·클래스 순서를 호출자가 맞춰야 한다. 어떤 방법도 시험 성능 개선을 보장하지 않는다.
 
 웨이트는 검증 정확도 최고 시점을 깊게 복사해 복원한다. 마지막 저장 파일에는 모델 state_dict만 있어 옵티마이저·스케줄러·스케일러·분할·전처리 설정을 포함한 완전한 재시작 파일은 아니다. 상단의 데이터 생성·학습과 num_workers=2는 적절한 main 보호 없이 실행되어 프로세스 생성 환경에도 주의해야 한다.
 
@@ -510,7 +510,7 @@
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-마이크로배치 32, 누적 4단계의 실효 배치와 큰 단일 배치와의 차이를 설명하라.
+마이크로배치 32, 누적 4단계의 유효 배치와 큰 단일 배치와의 차이를 설명하라.
 
 </div>
 
@@ -570,7 +570,7 @@ CosineAnnealingWarmRestarts와 ReduceLROnPlateau의 진행 기준을 비교하�
 
         return 100. * correct / total
 
-    # 쓰는 법:
+    # 사용법:
     # model_r18 = create_model('resnet18', num_classes=10).to(device)
     # model_r50 = create_model('resnet50', num_classes=10).to(device)
     # ... 두 모델을 학습시킨다 ...

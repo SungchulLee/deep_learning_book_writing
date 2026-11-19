@@ -1,6 +1,6 @@
 # 로스 함수 소개
 
-MSE를 텐서 연산, 함수형 API와 로스 모듈로 계산해 비교한다. 같은 식과 집계 조건이면 값과 경사가 일치해야 한다.
+MSE를 텐서 연산, 함수형 API와 로스 모듈로 계산해 비교한다. 같은 식과 집계 조건이면 값과 그래디언트가 일치해야 한다.
 
 ## 1. 코드
 
@@ -81,7 +81,7 @@ print("We'll compute Mean Squared Error (MSE) step by step")
 errors = actual_prices - predicted_prices
 print(f"\nStep 1 - Errors: {errors}")
 
-# 2단계: 오차를 제곱한다 (모든 오차가 양수가 되고 큰 오차에 더 큰 벌점이 간다)
+# 2단계: 오차를 제곱한다 (모든 오차가 양수가 되고 큰 오차에 더 큰 패널티가 간다)
 squared_errors = errors ** 2
 print(f"Step 2 - Squared errors: {squared_errors}")
 
@@ -129,7 +129,7 @@ print("- Cleaner code in training loops")
 print("- Can easily swap different loss functions")
 
 # ============================================================================
-# 6절: 여러 줄이기 방식 이해하기
+# 6절: 여러 집계(reduction) 방식 이해하기
 # ============================================================================
 print("\n" + "-" * 80)
 print("BONUS: Understanding 'reduction' Parameter")
@@ -308,7 +308,7 @@ MSE의 reduction=none은 입력과 목표의 브로드캐스팅 결과에 따른
 </div>
 
 ??? success "풀이"
-    평균 오차는 0이고 MSE는 4이다. 바이어스의 상쇄와 예측 오차의 크기는 다른 양이다.
+    평균 오차는 0이고 MSE는 4이다. 편향(오차의 평균)의 상쇄와 예측 오차의 크기는 다른 양이다.
 
 ---
 
@@ -334,8 +334,8 @@ MSE의 reduction=none은 입력과 목표의 브로드캐스팅 결과에 따른
 </div>
 
 ??? success "풀이"
-    일반적으로 스칼라로 집계하거나 출력과 같은 모양의 외부 경사 벡터를 전달해야 한다. 원하는 mean과 sum에 따라 배율을 명시한다.
+    일반적으로 스칼라로 집계하거나 출력과 같은 형태의 외부 그래디언트 벡터를 전달해야 한다. 원하는 mean과 sum에 따라 배율을 명시한다.
 
 ## 정리하며
 
-MSE 계산 방식은 같아도 집계 축과 입력 모양이 다르면 의미가 달라진다. 원소별·표본별 집계와 경사 스케일을 구분한다.
+MSE 계산 방식은 같아도 집계 축과 입력 형태가 다르면 의미가 달라진다. 원소별·표본별 집계와 그래디언트 스케일을 구분한다.

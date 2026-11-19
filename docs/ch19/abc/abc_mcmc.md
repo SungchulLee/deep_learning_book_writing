@@ -14,27 +14,27 @@ ABC 거절은 고정 목표의 독립 채택값을 주고 ABC-MCMC는 일반적�
 
 $$\alpha=\min\left\{1,\frac{p(\theta')q(\theta|\theta')}{p(\theta)q(\theta'|\theta)}\right\}.$$
 
-거절도 체인에 기록한다. simulator는 요약 생성에 사용되고 관측 우도는 직접 평가하지 않는다. 고정 ε를 중간에 바꾸면 같은 정상 목표의 체인이 아니므로 별도 적응·단계 설계가 필요하다.
+거절도 체인에 기록한다. simulator는 요약 생성에 사용되고 관측 가능도(likelihood, 우도라고도 한다)는 직접 평가하지 않는다. 고정 ε를 중간에 바꾸면 같은 정상 목표의 체인이 아니므로 별도 적응·단계 설계가 필요하다.
 
 ```
 Simulate x₀ ~ p(x | θ₀)
 Compute s₀ = S(x₀)
 
 for t = 1 to T:
-    # 내놓기
+    # 제안
     θ' ~ q(θ' | θₜ₋₁)
     
-    # 흉내내기
+    # 시뮬레이션
     x' ~ p(x | θ')
     s' = S(x')
     
-    # ABC-MH 받아들임 확률
+    # ABC-MH 채택 확률
     if ρ(s', S(y)) < ε:
         α = min(1, [p(θ') q(θₜ₋₁ | θ')] / [p(θₜ₋₁) q(θ' | θₜ₋₁)])
     else:
         α = 0
     
-    # 받아들이거나 물리치기
+    # 채택 또는 거절
     if U(0,1) < α:
         θₜ = θ'
         sₜ = s'
@@ -68,20 +68,20 @@ def abc_mcmc(theta_init, prior_logpdf, simulator, summary_fn, y_obs,
     ABC-MCMC 알고리즘.
     
     인수:
-        theta_init: 첫 파라메터 값
+        theta_init: 초기 파라메터 값
         prior_logpdf: 함수 theta -> log p(theta)
         simulator: 함수 theta -> x
-        summary_fn: 함수 x -> 간추린 통계량
-        y_obs: 관측한 자료
+        summary_fn: 함수 x -> 요약통계량
+        y_obs: 관측한 데이터
         distance_fn: 함수 (s1, s2) -> 거리
-        epsilon: ABC 너그러움
-        proposal_fn: 함수 theta -> theta'(제안에서 표집)
+        epsilon: ABC 허용오차
+        proposal_fn: 함수 theta -> theta'(제안에서 샘플링)
         proposal_logpdf: 함수 (theta', theta) -> log q(theta' | theta)
-        n_iter: 되풀이 횟수
+        n_iter: 반복 횟수
     
     반환값:
         chain: 형태가 (n_iter, dim)인 배열
-        acceptance_rate: 전체 받아들임 비율
+        acceptance_rate: 전체 채택률
     """
     s_obs = summary_fn(y_obs)
     dim = len(theta_init)
@@ -91,7 +91,7 @@ def abc_mcmc(theta_init, prior_logpdf, simulator, summary_fn, y_obs,
     x = simulator(theta)
     s = summary_fn(x)
     
-    # 첫 점이 쓸 만한지 살피기
+    # 초기점이 유효한지 확인하기
     if distance_fn(s, s_obs) >= epsilon:
         raise ValueError("Initial point does not satisfy ABC criterion")
     
@@ -99,16 +99,16 @@ def abc_mcmc(theta_init, prior_logpdf, simulator, summary_fn, y_obs,
     n_accepted = 0
     
     for t in range(n_iter):
-        # 내놓기
+        # 제안
         theta_prop = proposal_fn(theta)
         
-        # 흉내내기
+        # 시뮬레이션
         x_prop = simulator(theta_prop)
         s_prop = summary_fn(x_prop)
         
-        # ABC-MH 받아들임
+        # ABC-MH 채택
         if distance_fn(s_prop, s_obs) < epsilon:
-            # MH 비 셈하기
+            # MH 비 계산하기
             log_alpha = (prior_logpdf(theta_prop) - prior_logpdf(theta) +
                         proposal_logpdf(theta, theta_prop) - 
                         proposal_logpdf(theta_prop, theta))
@@ -125,7 +125,7 @@ def abc_mcmc(theta_init, prior_logpdf, simulator, summary_fn, y_obs,
 ```python
 def find_initial_point(prior_sampler, simulator, summary_fn, y_obs,
                        distance_fn, epsilon, max_attempts=100000):
-    """ABC-MCMC의 쓸 만한 시작점 찾기."""
+    """ABC-MCMC의 유효한 시작점 찾기."""
     s_obs = summary_fn(y_obs)
     
     for _ in range(max_attempts):
@@ -154,10 +154,10 @@ class AdaptiveABCMCMC:
         )
     
     def adapt(self, theta, accepted):
-        """사슬의 지난 내력에 따라 제안 새로 고치기."""
+        """사슬의 과거 이력에 따라 제안 갱신."""
         self.n += 1
         
-        # 달리는 평균과 공분산 새로 고치기
+        # 이동 평균과 공분산 갱신
         delta = theta - self.mean
         self.mean += delta / self.n
         
@@ -165,7 +165,7 @@ class AdaptiveABCMCMC:
             self.cov = ((self.n - 2) / (self.n - 1) * self.cov + 
                        delta.reshape(-1, 1) @ delta.reshape(1, -1) / self.n)
         
-        # 받아들임에 따라 규모 맞추기
+        # 채택 여부에 따라 스케일 조정하기
         if self.n > 100:
             if accepted:
                 self.scale *= 1.01
@@ -190,7 +190,7 @@ MCMC는 prior 제안보다 좁은 유효 영역에 집중할 수 있지만 자�
 ```python
 def tune_proposal_scale(abc_mcmc_fn, theta_init, target_rate=0.2, 
                         n_tune=1000, n_test=500):
-    """목표 받아들임 비율에 맞게 제안의 규모 맞추기."""
+    """목표 채택률에 맞게 제안의 스케일 조정하기."""
     scale = 1.0
     
     for _ in range(n_tune):
@@ -207,14 +207,14 @@ def tune_proposal_scale(abc_mcmc_fn, theta_init, target_rate=0.2,
 ```
 ```python
 def abc_mcmc_diagnostics(chain):
-    """ABC-MCMC 사슬의 진단 셈하기."""
+    """ABC-MCMC 사슬의 진단 계산하기."""
     from statsmodels.tsa.stattools import acf
     
     n_samples, dim = chain.shape
     
     diagnostics = {}
     
-    # 실효 표본 크기(차원마다)
+    # 유효 표본 크기(차원마다)
     ess = []
     for d in range(dim):
         autocorr = acf(chain[:, d], nlags=100, fft=True)
@@ -222,7 +222,7 @@ def abc_mcmc_diagnostics(chain):
         ess.append(n_samples / tau)
     diagnostics['ess'] = np.array(ess)
     
-    # 자취 그림은 눈으로 살펴야 한다
+    # 트레이스 그림은 눈으로 확인해야 한다
     diagnostics['mean'] = np.mean(chain, axis=0)
     diagnostics['std'] = np.std(chain, axis=0)
     
@@ -240,7 +240,7 @@ def abc_mcmc_diagnostics(chain):
 ```python
 def abc_mcmc_multiple_sims(theta, simulator, summary_fn, s_obs, 
                            distance_fn, epsilon, n_sims=10):
-    """흉내내기를 여러 번 해서 정하는 ABC 받아들임."""
+    """시뮬레이션을 여러 번 해서 정하는 ABC 채택."""
     n_close = 0
     for _ in range(n_sims):
         x = simulator(theta)
@@ -248,23 +248,23 @@ def abc_mcmc_multiple_sims(theta, simulator, summary_fn, s_obs,
         if distance_fn(s, s_obs) < epsilon:
             n_close += 1
     
-    return n_close / n_sims  # 어림한 받아들임 확률
+    return n_close / n_sims  # 추정한 채택 확률
 ```
 ```python
 def gibbs_abc(theta, blocks, simulators, summary_fns, s_obs, 
               distance_fns, epsilons, proposals):
-    """파라메터 덩어리를 새로 고치는 깁스 방식 ABC-MCMC."""
+    """파라메터 블록을 갱신하는 깁스 방식 ABC-MCMC."""
     for i, block in enumerate(blocks):
-        # 덩어리 i의 새 값 내놓기
+        # 블록 i의 새 값 제안
         theta_prop = theta.copy()
         theta_prop[block] = proposals[i](theta[block])
         
-        # 흉내내고 ABC 잣대 살피기
+        # 시뮬레이션하고 ABC 기준 확인하기
         x_prop = simulators[i](theta_prop)
         s_prop = summary_fns[i](x_prop)
         
         if distance_fns[i](s_prop, s_obs[i]) < epsilons[i]:
-            # 이 덩어리의 MH 받아들임
+            # 이 블록의 MH 채택
             # ...
             theta = theta_prop
     
@@ -275,7 +275,7 @@ def gibbs_abc(theta, blocks, simulators, summary_fns, s_obs,
 
 예제는 잠재 log variance의 정상 AR(1)과 y_t=exp(h_t/2)η_t를 시뮬레이션한다. 초기식에는 |φ|<1, σ>0가 필요하다. prior는 μ∈(−2,2), φ∈(0.8,0.999), σ∈(0.01,0.5)의 균등 범위다.
 
-log(y²+10⁻⁸)의 평균·분산과 여러 자기상관·절대수익 요약은 편리한 피처가지만 일반적으로 충분 통계량은 아니다. 작은 상수는 log 0을 피하면서 관측 변환도 바꾼다. 이 조각은 관측·요약 생성까지만 있고 실제 proposal·ε·abc_mcmc 실행은 연결하지 않는다. 실제 금융 자료의 성능을 검증한 예제도 아니다.
+log(y²+10⁻⁸)의 평균·분산과 여러 자기상관·절대수익 요약은 편리한 요약이지만 일반적으로 충분 통계량은 아니다. 작은 상수는 log 0을 피하면서 관측 변환도 바꾼다. 이 조각은 관측·요약 생성까지만 있고 실제 proposal·ε·abc_mcmc 실행은 연결하지 않는다. 실제 금융 데이터의 성능을 검증한 예제도 아니다.
 
 ```python
 import numpy as np
@@ -285,24 +285,24 @@ import numpy as np
 # h_t = mu + phi*(h_{t-1} - mu) + sigma*eta_t,  eta_t ~ N(0,1)
 
 def sv_simulator(theta, T=500):
-    """확률 변동성 모형 흉내내기."""
+    """확률 변동성 모형 시뮬레이션."""
     mu, phi, sigma = theta
     
     # 초기화한다
     h = np.zeros(T)
     h[0] = mu + sigma * np.random.randn() / np.sqrt(1 - phi**2)
     
-    # 로그 변동성 흉내내기
+    # 로그 변동성 시뮬레이션
     for t in range(1, T):
         h[t] = mu + phi * (h[t-1] - mu) + sigma * np.random.randn()
     
-    # 수익 흉내내기
+    # 수익률 시뮬레이션
     y = np.exp(h / 2) * np.random.randn(T)
     
     return y
 
 def sv_summaries(y):
-    """확률 변동성 모형의 간추린 통계량."""
+    """확률 변동성 모형의 요약통계량."""
     log_y2 = np.log(y**2 + 1e-8)
     
     return np.array([
@@ -314,7 +314,7 @@ def sv_summaries(y):
         np.std(np.abs(y)),
     ])
 
-# 앞확률
+# 사전분포
 def sv_prior_sample():
     mu = np.random.uniform(-2, 2)
     phi = np.random.uniform(0.8, 0.999)
@@ -325,13 +325,13 @@ def sv_prior_logpdf(theta):
     mu, phi, sigma = theta
     if not (-2 < mu < 2 and 0.8 < phi < 0.999 and 0.01 < sigma < 0.5):
         return -np.inf
-    return 0  # 고른 앞확률
+    return 0  # 균등 사전분포
 
 # ABC-MCMC 돌리기
 y_obs = sv_simulator([0.0, 0.95, 0.2])  # 참 파라메터
 s_obs = sv_summaries(y_obs)
 
-# 첫 점을 찾고 사슬 돌리기...
+# 초기점을 찾고 사슬 돌리기...
 ```
 
 ## 연습문제

@@ -1,6 +1,6 @@
 # 은닉 마르코프 모델(HMM)
 
-은닉 마르코프 모델(HMM)은 관측되지 않는 상태의 마르코프 전이와 상태별 관측분포를 결합한다. 유한한 이산 상태에서는 동적 계획법으로 우도·상태 사후확률·최적 경로를 계산할 수 있다. 상태 추론과 파라메터 학습, 필터링과 스무딩의 차이를 먼저 구분한다.
+은닉 마르코프 모델(HMM)은 관측되지 않는 상태의 마르코프 전이와 상태별 관측분포를 결합한다. 유한한 이산 상태에서는 동적 계획법으로 가능도(likelihood, 우도라고도 한다)·상태 사후확률·최적 경로를 계산할 수 있다. 상태 추론과 파라메터 학습, 필터링과 스무딩의 차이를 먼저 구분한다.
 
 ## 1. 수학적 틀
 
@@ -16,10 +16,10 @@ $$p(z_{1:T},x_{1:T})=\pi_{z_1}B_{z_1}(x_1)\prod_{t=2}^TA_{z_{t-1},z_t}B_{z_t}(x_
 
 | 관심량 | 의미 | 방법 |
 |---|---|---|
-| p(x₁:T|θ) | 모든 상태열을 합한 관측 우도 | Forward |
+| p(x₁:T|θ) | 모든 상태열을 합한 관측 가능도 | Forward |
 | p(Z_t|x₁:T,θ) | 전체 관측을 사용한 상태 스무딩 | Forward–backward |
 | argmax_z p(z|x,θ) | 가장 확률이 높은 전체 상태 경로 | Viterbi |
-| 최대 우도 파라메터 θ | 관측 우도의 점 최적화 | Baum–Welch EM |
+| 최대 가능도 파라메터 θ | 관측 가능도의 점 최적화 | Baum–Welch EM |
 
 θ=(π,A,B)를 고정한 상태 사후분포와 θ 자체의 베이즈 사후분포는 다르다.
 
@@ -31,7 +31,7 @@ Forward 값 $\alpha_t(j)=p(x_{1:t},Z_t=j)$는 다음으로 갱신한다.
 
 $$\alpha_1(j)=\pi_jB_j(x_1),\qquad\alpha_t(j)=B_j(x_t)\sum_i\alpha_{t-1}(i)A_{ij}$$
 
-우도는 p(x₁:T)=∑_jα_T(j)다. 이를 현재시점에서 정규화하면 p(Z_t|x₁:t)인 필터 확률을 얻는다. 조밀한 K상태 전이에서는 비용이 O(TK²)로 K^T 경로 전수 열거보다 작다.
+가능도는 p(x₁:T)=∑_jα_T(j)다. 이를 현재시점에서 정규화하면 p(Z_t|x₁:t)인 필터 확률을 얻는다. 조밀한 K상태 전이에서는 비용이 O(TK²)로 K^T 경로 전수 열거보다 작다.
 
 Backward 값 $\beta_t(i)=p(x_{t+1:T}\mid Z_t=i)$는 다음과 같다.
 
@@ -39,7 +39,7 @@ $$\beta_T(i)=1,\qquad\beta_t(i)=\sum_jA_{ij}B_j(x_{t+1})\beta_{t+1}(j)$$
 
 ### 상태 스무딩
 
-양의 관측 우도에서 전체 관측을 사용한 상태·전이 확률은 다음과 같다.
+양의 관측 가능도에서 전체 관측을 사용한 상태·전이 확률은 다음과 같다.
 
 $$\gamma_t(j)=\frac{\alpha_t(j)\beta_t(j)}{p(x_{1:T})}$$
 
@@ -55,13 +55,13 @@ $$\delta_1(j)=\pi_jB_j(x_1),\qquad\delta_t(j)=B_j(x_t)\max_i[\delta_{t-1}(i)A_{i
 
 마지막 최댓값 상태에서 저장한 역추적 포인터를 따라가면 전체 최적 경로를 얻는다. 실제 구현은 로그 공간의 덧셈·최댓값으로 안정화할 수 있다.
 
-전체 경로를 최대화하는 결과와 각 시점 γ_t의 최빈 상태를 연결한 결과는 일반적으로 다르다. 전자는 유효한 공동 경로 점수를 최대화하고 후자는 시점별 오분류 로스와 연결된다. Viterbi의 최댓값은 p(z*,x)의 **결합확률**이며 관측 우도 p(x)=∑_z p(z,x)와 다르다. 조건부 경로 확률이 필요하면 p(x)로 나눈다.
+전체 경로를 최대화하는 결과와 각 시점 γ_t의 최빈 상태를 연결한 결과는 일반적으로 다르다. 전자는 유효한 공동 경로 점수를 최대화하고 후자는 시점별 오분류 로스와 연결된다. Viterbi의 최댓값은 p(z*,x)의 **결합확률**이며 관측 가능도 p(x)=∑_z p(z,x)와 다르다. 조건부 경로 확률이 필요하면 p(x)로 나눈다.
 
 <div class="storybox" markdown>
 
 **그림으로 보는 AI 1.** 이 알고리즘은 말소리가 아니라 잡음 섞인 전파를 두고 나왔다
 
-비터비 알고리즘은 음성 인식이나 생물정보학에서 만들어진 것이 아니다. 1967년 4월 《IEEE Transactions on Information Theory》에 실린 앤드루 비터비(Andrew J. Viterbi)의 글 제목이 「Error Bounds for Convolutional Codes and an Asymptotically Optimum Decoding Algorithm」이고, 다루는 문제는 **잡음 섞인 통신로로 들어온 컨볼루션 부호를 복호하는 일**이었다. 알고리즘 자체도 오류 확률의 상계를 증명하려다 나온 부산물에 가까웠다. HMM 은 한참 뒤에 같은 구조를 빌려 쓴 쪽이다.
+비터비 알고리즘은 음성 인식이나 생물정보학에서 만들어진 것이 아니다. 1967년 4월 《IEEE Transactions on Information Theory》에 실린 앤드루 비터비(Andrew J. Viterbi)의 논문 제목이 「Error Bounds for Convolutional Codes and an Asymptotically Optimum Decoding Algorithm」이고, 다루는 문제는 **잡음 섞인 통신로로 들어온 컨볼루션 부호(convolutional code)를 디코딩하는 일**이었다. 알고리즘 자체도 오류 확률의 상계를 증명하려다 나온 부산물에 가까웠다. HMM 은 한참 뒤에 같은 구조를 빌려 쓴 쪽이다.
 
 그 내력이 위 문단의 경고와 이어진다. 비터비가 풀려던 것은 **보내진 부호열이 무엇이었나**, 곧 **하나로 이어진 열**을 고르는 문제였다. 시점마다 따로 가장 그럴듯한 기호를 고르는 문제가 아니었다.
 
@@ -73,7 +73,7 @@ $$\delta_1(j)=\pi_jB_j(x_1),\qquad\delta_t(j)=B_j(x_t)\max_i[\delta_{t-1}(i)A_{i
 
 **시점별 최빈이 틀린 답이라는 뜻은 아니다.** 위 문단이 적은 대로 그것은 **시점별 오분류**를 줄이는 답이고, 그 기준에서는 비터비보다 낫다. 두 가지가 서로 다른 물음에 답할 뿐이다. 다만 그 결과를 **경로라고 부르는 순간** 문제가 생긴다 — 이어 붙인 것이 모델 안에서 지나갈 수 없는 길일 수 있기 때문이다. 어느 쪽이 필요한지는 "상태를 맞히려는가, 열을 맞히려는가"로 갈리고, 비터비가 풀던 문제는 뒤쪽이었다.
 
-_확인한 곳 — A. J. Viterbi, "Error Bounds for Convolutional Codes and an Asymptotically Optimum Decoding Algorithm", *IEEE Transactions on Information Theory* **IT-13**(2), 260쪽 (1967년 4월). 컨볼루션 부호의 복호를 다루며 알고리즘이 오류 확률 상계를 보이는 과정에서 제시되었다는 것을 2차 문헌으로 확인했다. 그림의 수는 그림을 그리는 코드가 씨앗을 박고 무작위 HMM 을 만들어 전수 열거로 직접 세며, 두 경로가 실제로 자주 갈리는지와 확률 0 인 보기가 나오는지를 먼저 확인한 뒤에만 그린다._
+_확인한 곳 — A. J. Viterbi, "Error Bounds for Convolutional Codes and an Asymptotically Optimum Decoding Algorithm", *IEEE Transactions on Information Theory* **IT-13**(2), 260쪽 (1967년 4월). 컨볼루션 부호의 디코딩을 다루며 알고리즘이 오류 확률 상계를 보이는 과정에서 제시되었다는 것을 2차 문헌으로 확인했다. 그림의 수는 그림을 그리는 코드가 시드를 고정하고 무작위 HMM 을 만들어 전수 열거로 직접 세며, 두 경로가 실제로 자주 갈리는지와 확률 0 인 보기가 나오는지를 먼저 확인한 뒤에만 그린다._
 
 </div>
 
@@ -87,7 +87,7 @@ $$B_j^{new}(v)=\frac{\sum_{t:x_t=v}\gamma_t(j)}{\sum_{t=1}^T\gamma_t(j)}$$
 
 분모가 0인 상태·전이는 식별되지 않으므로 별도 처리해야 한다. 여러 독립 시퀀스에서는 초기 상태·기대 도수를 시퀀스별로 계산해 합하며 서로 다른 시퀀스 경계를 전이로 세지 않는다. 연속 방출에는 가중 모멘트 등 해당 분포의 갱신을 사용한다.
 
-정확한 E단계와 적절한 M단계에서는 관측 우도가 감소하지 않지만 전역 최적값을 보장하지 않는다. 초기화·동일한 상태의 이름 교환·경계 파라메터·수치 오차를 검토한다. 별도 사전분포 없이 EM으로 구한 값은 파라메터의 완전한 베이즈 추론 결과가 아니다.
+정확한 E단계와 적절한 M단계에서는 관측 가능도가 감소하지 않지만 전역 최적값을 보장하지 않는다. 초기화·동일한 상태의 이름 교환·경계 파라메터·수치 오차를 검토한다. 별도 사전분포 없이 EM으로 구한 값은 파라메터의 완전한 베이즈 추론 결과가 아니다.
 
 ## 5. PyTorch 구현
 
@@ -95,25 +95,25 @@ A는 K×K, B는 K×V의 행 확률행렬이고 π는 길이 K의 확률벡터다
 
 Forward·backward는 확률을 직접 곱하므로 긴 열에서 언더플로가 발생할 수 있고 posterior_states는 전체 관측의 스무딩을 반환한다. Viterbi의 작은 양수 덧셈은 원래 확률 0인 경로에도 양의 값을 주므로 엄밀한 불가능 전이를 보존하지 않는다. 반환 log_prob와 시연의 Log-likelihood라는 출력 이름은 다르며 실제 값은 최적 경로의 로그 결합확률이다.
 
-Baum–Welch는 T=1의 전이 분모나 기대 점유가 0인 상태를 처리하지 않는다. 최대 반복 종료에서는 기록한 마지막 우도가 마지막 M단계 직전 값일 수 있으므로 반환 파라메터의 최종 우도와 기록을 구분한다.
+Baum–Welch는 T=1의 전이 분모나 기대 점유가 0인 상태를 처리하지 않는다. 최대 반복 종료에서는 기록한 마지막 가능도가 마지막 M단계 직전 값일 수 있으므로 반환 파라메터의 최종 가능도와 기록을 구분한다.
 
 ```python
 import torch
 from typing import Dict, List, Tuple, Optional
 
-# 이 쪽은 torch.multinomial 로 상태·관측을 뽑는다. 씨앗이 없으면 Viterbi
+# 이 쪽은 torch.multinomial 로 상태·관측을 뽑는다. 시드가 없으면 Viterbi
 # 정확도도 신용 VaR 도 돌릴 때마다 달라져, 아래에 실린 수를 아무도 다시
-# 얻을 수 없다. 쪽 전체가 한 프로그램이므로 맨 앞에서 한 번 박아 둔다.
+# 얻을 수 없다. 쪽 전체가 한 프로그램이므로 맨 앞에서 한 번 고정한다.
 torch.manual_seed(19)
 
 class HiddenMarkovModel:
     """
-    띄엄띄엄한 내보냄을 갖는 숨은 마르코프 모형.
+    이산 방출을 갖는 은닉 마르코프 모델.
 
     성분:
-    - A: 숨은 상태의 K×K 옮김 행렬
-    - B: K×V 내보냄 행렬(B[k,v] = P(obs=v | state=k))
-    - pi: K차원 첫 상태 분포
+    - A: 은닉 상태의 K×K 전이 행렬
+    - B: K×V 방출 행렬(B[k,v] = P(obs=v | state=k))
+    - pi: K차원 초기 상태 분포
     """
 
     def __init__(
@@ -136,10 +136,10 @@ class HiddenMarkovModel:
         self, observations: torch.Tensor
     ) -> Tuple[torch.Tensor, float]:
         """
-        앞쪽 변수 α_t(j)과 log P(x) 셈하기.
+        전향(forward) 변수 α_t(j)와 log P(x) 계산하기.
 
         반환값:
-            (alpha, log_likelihood), 여기서 alpha은 (T, K)
+            (alpha, log_likelihood), 여기서 alpha는 (T, K)
         """
         T = len(observations)
         alpha = torch.zeros(T, self.K, dtype=torch.float64)
@@ -154,7 +154,7 @@ class HiddenMarkovModel:
     def backward_algorithm(
         self, observations: torch.Tensor
     ) -> torch.Tensor:
-        """뒤쪽 변수 β_t(i) 셈하기. (T, K) 텐서를 돌려준다."""
+        """후향(backward) 변수 β_t(i) 계산하기. (T, K) 텐서를 반환한다."""
         T = len(observations)
         beta = torch.zeros(T, self.K, dtype=torch.float64)
         beta[-1] = 1.0
@@ -167,7 +167,7 @@ class HiddenMarkovModel:
     def posterior_states(
         self, observations: torch.Tensor
     ) -> torch.Tensor:
-        """γ_t(j) = P(Z_t = j | x) 셈하기. (T, K) 텐서를 돌려준다."""
+        """γ_t(j) = P(Z_t = j | x) 계산하기. (T, K) 텐서를 반환한다."""
         alpha, _ = self.forward_algorithm(observations)
         beta = self.backward_algorithm(observations)
         gamma = alpha * beta
@@ -177,7 +177,7 @@ class HiddenMarkovModel:
         self, observations: torch.Tensor
     ) -> Tuple[List[int], float]:
         """
-        가장 그럴듯한 숨은 상태 늘어놓음 찾기(로그 공간).
+        가장 확률이 높은 은닉 상태열 찾기(로그 공간).
 
         반환값:
             (best_path, log_probability)
@@ -213,7 +213,7 @@ class HiddenMarkovModel:
         max_iter: int = 100,
         tol: float = 1e-6
     ) -> Dict:
-        """파라메터 어림을 위한 바움-웰치(EM)."""
+        """파라메터 추정을 위한 바움-웰치(EM)."""
         T = len(observations)
         log_likelihoods = []
 
@@ -254,7 +254,7 @@ class HiddenMarkovModel:
         }
 
     def simulate(self, n_steps: int) -> Tuple[List[int], List[int]]:
-        """숨은 상태와 관측 흉내내기."""
+        """은닉 상태와 관측 시뮬레이션하기."""
         states, observations = [], []
         state = torch.multinomial(self.pi.float(), 1).item()
 
@@ -271,12 +271,12 @@ class HiddenMarkovModel:
 
 ## 6. 가상 시장 국면 예제
 
-관측과 상태를 알려진 HMM에서 생성하고 같은 파라메터로 복원한다. 출력 정확도는 실제 시장 자료의 외부 검증 성능이나 추정한 파라메터의 정확도가 아니다. 별도로 학습한 모형과 참 상태를 비교한다면 상태 이름의 교환도 정렬해야 한다. A_kk<1일 때 한 번 진입한 상태의 기대 지속기간은 1/(1−A_kk)이며 이는 관측 구간 안의 검열된 지속기간 평균과 다르다.
+관측과 상태를 알려진 HMM에서 생성하고 같은 파라메터로 복원한다. 출력 정확도는 실제 시장 데이터의 외부 검증 성능이나 추정한 파라메터의 정확도가 아니다. 별도로 학습한 모델과 참 상태를 비교한다면 상태 이름의 교환도 정렬해야 한다. A_kk<1일 때 한 번 진입한 상태의 기대 지속기간은 1/(1−A_kk)이며 이는 관측 구간 안의 검열된 지속기간 평균과 다르다.
 
 ```python
 def demonstrate_hmm_regime_detection():
     """
-    관측한 값 액션으로 강세장과 약세장 국면 탐지.
+    관측한 가격 움직임으로 강세장과 약세장 국면 탐지.
     """
     print("HMM: Market Regime Detection")
     print("=" * 70)
@@ -285,8 +285,8 @@ def demonstrate_hmm_regime_detection():
     obs_names = ['Up', 'Flat', 'Down']
 
     A = torch.tensor([
-        [0.95, 0.05],   # 강세장: 95% 이어짐
-        [0.10, 0.90]    # 약세장: 90% 이어짐
+        [0.95, 0.05],   # 강세장: 95% 지속
+        [0.10, 0.90]    # 약세장: 90% 지속
     ])
 
     B = torch.tensor([
@@ -297,7 +297,7 @@ def demonstrate_hmm_regime_detection():
     pi = torch.tensor([0.7, 0.3])
     hmm = HiddenMarkovModel(A, B, pi, state_names, obs_names)
 
-    # 흉내내고 풀어내기
+    # 시뮬레이션하고 디코딩하기
     true_states, observations = hmm.simulate(200)
     obs_tensor = torch.tensor(observations)
 
@@ -308,10 +308,10 @@ def demonstrate_hmm_regime_detection():
     print(f"Viterbi decoding accuracy: {accuracy:.1%}")
     print(f"Log-likelihood: {log_prob:.2f}")
 
-    # 뒤확률 상태 확률
+    # 상태 사후확률
     gamma = hmm.posterior_states(obs_tensor)
 
-    # 국면이 이어지는 기댓값 길이
+    # 국면의 기대 지속기간
     bull_duration = 1.0 / (1.0 - A[0, 0].item())
     bear_duration = 1.0 / (1.0 - A[1, 1].item())
     print(f"\nExpected regime durations:")
@@ -338,7 +338,7 @@ Expected regime durations:
 
 ## 7. 흡수 HMM과 신용 위험
 
-흡수 상태를 가진 은닉 사슬도 정의할 수 있지만 흡수 상태가 존재한다는 사실만으로 모든 초기 상태에서 결국 흡수되지는 않는다. 아래 클래스와 신용등급 예제는 방출 모형 없는 **직접 관측 상태의 흡수 마르코프 사슬**이며 HMM의 은닉 등급 추론을 구현하지 않는다. 기본행렬 공식을 쓰려면 나머지 모든 상태가 과도여야 한다.
+흡수 상태를 가진 은닉 사슬도 정의할 수 있지만 흡수 상태가 존재한다는 사실만으로 모든 초기 상태에서 결국 흡수되지는 않는다. 아래 클래스와 신용등급 예제는 방출 모델 없는 **직접 관측 상태의 흡수 마르코프 사슬**이며 HMM의 은닉 등급 추론을 구현하지 않는다. 기본행렬 공식을 쓰려면 나머지 모든 상태가 과도여야 한다.
 
 ### 흡수 사슬 분석
 
@@ -347,12 +347,12 @@ Expected regime durations:
 ```python
 class AbsorbingMarkovChain:
     """
-    흡수 마르코프 사슬 살피기.
+    흡수 마르코프 사슬 분석.
 
     정준 형태: P = [[Q, R], [0, I]]
     핵심 결과:
-    - 바탕 행렬: N = (I - Q)^{-1}
-    - 흡수까지의 기댓값 시간: t = N·1
+    - 기본 행렬: N = (I - Q)^{-1}
+    - 흡수까지의 기대 시간: t = N·1
     - 흡수 확률: B = N·R
     """
 
@@ -370,7 +370,7 @@ class AbsorbingMarkovChain:
         self._build_canonical_form()
 
     def _classify_states(self):
-        """흡수 상태(P[i,i]=1)와 지나가는 상태 가려내기."""
+        """흡수 상태(P[i,i]=1)와 과도 상태 분류하기."""
         self.absorbing_indices = []
         self.transient_indices = []
         for i in range(self.n_states):
@@ -391,7 +391,7 @@ class AbsorbingMarkovChain:
                                 for i in self.absorbing_indices]
 
     def _build_canonical_form(self):
-        """Q과 R 부분 행렬 뽑아내기."""
+        """Q와 R 부분 행렬 추출하기."""
         reordered = self.transient_indices + self.absorbing_indices
         P_c = self.P[torch.tensor(reordered)][:, torch.tensor(reordered)]
         t = self.n_transient
@@ -438,14 +438,14 @@ class AbsorbingMarkovChain:
 
 ### 신용등급 전이 예제
 
-전이행렬의 마지막 D 상태를 흡수 상태로 가정할 때 P^t의 D 성분을 누적 부도확률로 해석할 수 있다. 숫자는 가상 모형이며 실제 신용위험 추정이 아니다. credit_var는 등급별 노출 총액을 각기 하나의 독립 경로로 움직이므로 한 등급의 여러 차주를 독립적으로 모델링하거나 공통 경기요인의 의존성을 표현하지 않는다.
+전이행렬의 마지막 D 상태를 흡수 상태로 가정할 때 P^t의 D 성분을 누적 부도확률로 해석할 수 있다. 숫자는 가상 모델이며 실제 신용위험 추정이 아니다. credit_var는 등급별 노출 총액을 각기 하나의 독립 경로로 움직이므로 한 등급의 여러 차주를 독립적으로 모델링하거나 공통 경기요인의 의존성을 표현하지 않는다.
 
-cvar_95는 VaR 이상 로스의 단순 조건부 평균이다. 이산 로스에서는 VaR 지점에 확률질량이 있으므로 일반적인 상위 5% Expected Shortfall과 다를 수 있다. 로스·등급·기간·LGD 가정과 사후 추정 불확실성을 별도로 정의해야 한다.
+cvar_95는 VaR 이상 손실의 단순 조건부 평균이다. 이산 손실에서는 VaR 지점에 확률질량이 있으므로 일반적인 상위 5% Expected Shortfall과 다를 수 있다. 손실·등급·기간·LGD 가정과 사후 추정 불확실성을 별도로 정의해야 한다.
 
 ```python
 class CreditRatingModel:
     """
-    흡수 마르코프 사슬로 본 신용 등급 옮김.
+    흡수 마르코프 사슬로 본 신용 등급 전이.
     부도(D)가 흡수 상태이다.
     """
 
@@ -470,7 +470,7 @@ class CreditRatingModel:
         self, portfolio: Dict[str, float], horizon: int,
         lgd: float = 0.6, n_simulations: int = 10000
     ) -> Dict:
-        """몬테카를로로 구하는 신용 위험 밸류."""
+        """몬테카를로로 구하는 신용 VaR(Value at Risk)."""
         losses = []
         for _ in range(n_simulations):
             total_loss = 0
@@ -494,7 +494,7 @@ class CreditRatingModel:
         }
 
 def demonstrate_credit_transitions():
-    """부도 확률과 VaR을 갖는 신용 등급 모형."""
+    """부도 확률과 VaR을 갖는 신용 등급 모델."""
     print("\nCredit Rating Transition Model")
     print("=" * 70)
 
@@ -512,7 +512,7 @@ def demonstrate_credit_transitions():
 
     model = CreditRatingModel(P, ratings)
 
-    # 쌓인 부도 확률
+    # 누적 부도 확률
     print("\nCumulative Default Probabilities:")
     print("-" * 50)
     header = "Rating  " + "  ".join(f"Year {t}" for t in range(1, 6))
@@ -522,7 +522,7 @@ def demonstrate_credit_transitions():
         row = f"{rating:6}  " + "  ".join(f"{pd:6.2%}" for pd in cum_pds)
         print(row)
 
-    # 흡수 사슬 살피기
+    # 흡수 사슬 분석
     chain = AbsorbingMarkovChain(P, state_names=ratings)
     times = chain.expected_absorption_time()
     print("\nExpected Years to Default (from transient states):")
@@ -580,7 +580,7 @@ Portfolio Credit VaR (1-year, LGD=60%):
 
 ```python
 def demonstrate_gamblers_ruin():
-    """흡수 마르코프 사슬로 본 노름꾼의 파산."""
+    """흡수 마르코프 사슬로 본 도박사의 파산."""
     print("\nGambler's Ruin (Target = $4)")
     print("=" * 70)
 
@@ -638,7 +638,7 @@ Starting from $3:
 
 ## 8. 국면 전환 수익률 모델
 
-연속 관측의 상태별 정규 방출을 사용한 국면 전환 **생성** 모형이다. 아래 RegimeSwitchingModel은 파라메터를 주어진 값으로 사용하며 관측 수익률에서 국면을 필터링하거나 학습하지 않는다.
+연속 관측의 상태별 정규 방출을 사용한 국면 전환 **생성** 모델이다. 아래 RegimeSwitchingModel은 파라메터를 주어진 값으로 사용하며 관측 수익률에서 국면을 필터링하거나 학습하지 않는다.
 
 unconditional_moments는 정상분포로 혼합한 한 기간의 평균·분산을 계산한다. 상태별 평균이 다르고 상태가 지속되면 수익률에 자기상관이 생길 수 있다. n기간 합산 분산은 n Var(r)+2∑_(k=1)^(n−1)(n−k)Cov(r_t,r_(t+k))이므로 표준편차에 √252를 곱한 출력은 일반적인 연 변동성을 정확히 계산하지 않는다. 평균의 252배도 복리 누적 수익률과는 다른 산술 합산이다.
 
@@ -647,8 +647,8 @@ import numpy as np
 
 class RegimeSwitchingModel:
     """
-    국면 바뀜 모형: 숨은 마르코프 사슬이
-    국면마다 다른 수익 분포를 이끈다.
+    국면 전환 모델: 은닉 마르코프 사슬이
+    국면마다 다른 수익률 분포를 결정한다.
 
     r_t | S_t = k ~ N(μ_k, σ_k²)
     """
@@ -678,7 +678,7 @@ class RegimeSwitchingModel:
     def simulate(
         self, n_periods: int, initial_regime: int = None
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """수익과 국면 이름표 흉내내기."""
+        """수익률과 국면 라벨 시뮬레이션하기."""
         if initial_regime is None:
             initial_regime = torch.multinomial(
                 self.stationary.float(), 1
@@ -706,17 +706,17 @@ class RegimeSwitchingModel:
         return {'mean': mean.item(), 'std': var.sqrt().item()}
 
     def regime_duration(self) -> Dict[str, float]:
-        """E[이어지는 길이] = 1/(1 - P[k,k])."""
+        """E[지속기간] = 1/(1 - P[k,k])."""
         return {self.regime_names[k]: 1 / (1 - self.P[k, k].item())
                 for k in range(self.n_regimes)}
 
 def demonstrate_regime_switching():
-    """날마다의 수익을 다루는 두 국면 강세장/약세장 모형."""
+    """일별 수익률을 다루는 두 국면 강세장/약세장 모델."""
     print("\nRegime-Switching Return Model")
     print("=" * 70)
 
     P = torch.tensor([[0.95, 0.05], [0.10, 0.90]])
-    means = torch.tensor([0.0005, -0.0003])    # 날마다
+    means = torch.tensor([0.0005, -0.0003])    # 일별
     stds = torch.tensor([0.01, 0.025])
 
     model = RegimeSwitchingModel(P, means, stds, ['Bull', 'Bear'])
@@ -748,23 +748,23 @@ Unconditional: E[r]=5.88% ann, σ=26.3% ann
 
 ---
 
-## 9. MCMC과의 이음
+## 9. MCMC와의 연결
 
 유한 이산 상태 HMM은 파라메터가 주어졌을 때 forward–backward와 Viterbi로 정확한 합산·최대화를 수행할 수 있다. 파라메터까지 베이즈 추론하려면 사전분포와 추가 계산이 필요하다. 상태 경로를 조건부로 샘플링하는 방법과 파라메터 갱신을 결합할 수 있다.
 
-연속 잠재변수가 있다고 정확한 추론이 모두 불가능한 것은 아니다. 선형 가우시안 상태공간 모형에는 칼만 필터·스무딩이 있다. 비선형·고차원 모형에서는 입자 방법·변분 추론·MCMC 등의 대안을 검토하며 어느 하나가 항상 효율적으로 확장된다고 보장할 수 없다.
+연속 잠재변수가 있다고 정확한 추론이 모두 불가능한 것은 아니다. 선형 가우시안 상태공간 모델에는 칼만 필터·스무딩이 있다. 비선형·고차원 모델에서는 입자 방법·변분 추론·MCMC 등의 대안을 검토하며 어느 하나가 항상 효율적으로 확장된다고 보장할 수 없다.
 
 ## 연습문제
 
-1. 두 은닉 상태·세 관측 범주의 HMM을 정의하고 결합분포의 인수분해와 관측 우도의 합산을 적어라. 상태별 최빈값과 최적 공동 경로가 다를 수 있는 이유를 설명하라.
-2. 정확한 Baum–Welch에서 관측 우도가 감소하지 않는 이유와 영 기대 도수·수치 언더플로가 이 계산을 방해하는 경우를 설명하라. 여러 초기값의 비교가 전역 최적점의 증명은 아닌 이유도 논하라.
+1. 두 은닉 상태·세 관측 범주의 HMM을 정의하고 결합분포의 인수분해와 관측 가능도의 합산을 적어라. 상태별 최빈값과 최적 공동 경로가 다를 수 있는 이유를 설명하라.
+2. 정확한 Baum–Welch에서 관측 가능도가 감소하지 않는 이유와 영 기대 도수·수치 언더플로가 이 계산을 방해하는 경우를 설명하라. 여러 초기값의 비교가 전역 최적점의 증명은 아닌 이유도 논하라.
 3. 신용등급이 은닉이고 관측 신호가 범주형 재무 지표인 HMM을 구성하려면 기존 직접 관측 등급 사슬에 무엇을 추가해야 하는지 설명하라. 방출분포와 은닉 상태 추론을 명시하라.
-4. 가상 장비 상태가 정상·경미 고장·심각 고장·수리 완료·폐기인 유한 흡수 모형을 정의하라. 뒤 두 상태의 흡수 도달 가능성을 확인한 뒤 기대 종료 시간과 각 종료 확률의 방정식을 적어라.
-5. 수익률의 두 국면 모형을 평가할 때 필터링·스무딩·Viterbi와 실제 예측을 구분하라. 시간 순서를 지킨 평가에서 상태 라벨의 임의성과 전이 추정 불확실성, 연율화의 자기상관을 어떻게 다룰지 설명하라.
+4. 가상 장비 상태가 정상·경미 고장·심각 고장·수리 완료·폐기인 유한 흡수 모델을 정의하라. 뒤 두 상태의 흡수 도달 가능성을 확인한 뒤 기대 종료 시간과 각 종료 확률의 방정식을 적어라.
+5. 수익률의 두 국면 모델을 평가할 때 필터링·스무딩·Viterbi와 실제 예측을 구분하라. 시간 순서를 지킨 평가에서 상태 라벨의 임의성과 전이 추정 불확실성, 연율화의 자기상관을 어떻게 다룰지 설명하라.
 
 ## 정리하며
 
-HMM은 은닉 상태 전이와 관측 방출을 결합한다. 우도는 경로를 합산하고 Viterbi는 경로를 최대화하며, forward–backward의 스무딩은 미래 관측도 사용한다. EM의 점 학습과 베이즈 파라메터 추론, 직접 관측 흡수 사슬과 HMM, 가상 국면 생성과 실제 자료 추론을 구분한다.
+HMM은 은닉 상태 전이와 관측 방출을 결합한다. 가능도는 경로를 합산하고 Viterbi는 경로를 최대화하며, forward–backward의 스무딩은 미래 관측도 사용한다. EM의 점 학습과 베이즈 파라메터 추론, 직접 관측 흡수 사슬과 HMM, 가상 국면 생성과 실제 데이터 추론을 구분한다.
 
 **참고 문헌**
 

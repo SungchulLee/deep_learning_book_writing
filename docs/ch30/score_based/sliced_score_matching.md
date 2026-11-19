@@ -1,6 +1,6 @@
 # 슬라이스드 스코어 매칭의 원리
 
-스코어 매칭의 입력 야코비안 trace는 차원이 크면 계산 부담이 될 수 있다. 슬라이스드 스코어 매칭(SSM)은 임의 방향의 미분을 이용해 전체 야코비안을 명시적으로 만들지 않고 목적을 추정한다. 비바이어스라는 말은 특정 목적의 랜덤 투영 추정에 관한 것이며, 유한 데이터로 학습한 스코어가 정확하다는 보장은 아니다.
+스코어 매칭의 입력 야코비안 trace는 차원이 크면 계산 부담이 될 수 있다. 슬라이스드 스코어 매칭(SSM)은 임의 방향의 미분을 이용해 전체 야코비안을 명시적으로 만들지 않고 목적을 추정한다. 비편향(unbiased)이라는 말은 특정 목적의 랜덤 투영 추정에 관한 것이며, 유한 데이터로 학습한 스코어가 정확하다는 보장은 아니다.
 
 ## 1. trace와 허친슨 추정
 
@@ -36,7 +36,7 @@ v를 입력과 독립적으로 고정하면 $\nabla_x(v^Ts_\theta)=J_xs_\theta^T
 
 $$v^T\nabla_x(v^Ts_\theta)=v^T(J_xs_\theta)^Tv=v^T(J_xs_\theta)v$$
 
-아래 `autograd.grad`는 역방향 벡터–야코비안 곱(VJP)을 계산한다. 방향당 입력 미분에 더해 목적을 파라미터로 미분하는 역전파도 필요하므로 총 비용을 '역전파 한 번'이라고만 세면 불완전하다. 실제 시간·메모리는 네트워크·차원·방향 수와 그래프 유지 방식에 달려 있다.
+아래 `autograd.grad`는 역방향 벡터–야코비안 곱(VJP)을 계산한다. 방향당 입력 미분에 더해 목적을 파라메터로 미분하는 역전파도 필요하므로 총 비용을 '역전파 한 번'이라고만 세면 불완전하다. 실제 시간·메모리는 네트워크·차원·방향 수와 그래프 유지 방식에 달려 있다.
 
 ## 4. 기본 로스 함수
 
@@ -46,7 +46,7 @@ import torch.nn as nn
 from typing import Literal
 
 def sample_rademacher(shape: tuple, device: torch.device) -> torch.Tensor:
-    """라데마허 아무 벡터를 뽑는다(+1이나 -1이 같은 확률)."""
+    """라데마허 무작위 벡터를 뽑는다(+1이나 -1이 같은 확률)."""
     return torch.randint(0, 2, shape, device=device).float() * 2 - 1
 
 def ssm_loss(
@@ -56,30 +56,30 @@ def ssm_loss(
     projection_type: Literal['rademacher', 'gaussian'] = 'rademacher'
 ) -> torch.Tensor:
     """
-    저민 점수 맞추기 로스.
+    슬라이스드 스코어 매칭 로스.
     
     L_SSM = E_x,v [(v·s(x))²/2 + v·∇_x(v·s(x))]
     
     인수:
-        score_model: 점수 뉴럴 네트워크 s_θ: R^D → R^D
-        samples: 자료 표본, 형태 (N, D)
-        n_projections: 아무 쏘기 횟수 M
-        projection_type: 'rademacher'(권함) 또는 'gaussian'
+        score_model: 스코어 네트워크 s_θ: R^D → R^D
+        samples: 데이터 표본, 형태 (N, D)
+        n_projections: 무작위 투영 횟수 M
+        projection_type: 'rademacher'(권장) 또는 'gaussian'
     
     반환값:
-        낱값 로스
+        스칼라 로스
     """
     samples = samples.requires_grad_(True)
     N, D = samples.shape
     device = samples.device
     
-    # 점수를 한 번 셈한다
+    # 스코어를 한 번 계산한다
     scores = score_model(samples)  # (N, D)
     
     total_loss = 0.0
     
     for _ in range(n_projections):
-        # 아무 쏘기 벡터를 뽑는다
+        # 무작위 투영 벡터를 뽑는다
         if projection_type == 'rademacher':
             v = sample_rademacher((N, D), device)
         else:
@@ -89,8 +89,8 @@ def ssm_loss(
         score_proj = torch.sum(v * scores, dim=1)  # (N,)
         squared_term = 0.5 * score_proj ** 2
         
-        # 항 2: 벡터-야코비 곱으로 구한 v·∇_x(v·s(x))
-        # 낱값 (v·s)의 x에 대한 그래디언트가 v·∇s을 준다
+        # 항 2: 벡터-야코비안 곱(VJP)으로 구한 v·∇_x(v·s(x))
+        # 스칼라 (v·s)의 x에 대한 그래디언트가 v·∇s을 준다
         vjp = torch.autograd.grad(
             outputs=score_proj.sum(),
             inputs=samples,
@@ -106,7 +106,7 @@ def ssm_loss(
     return total_loss / n_projections
 ```
 
-입력·스코어·방향은 N×d이며 표본별 독립 함수라는 전제를 갖는다. 다른 표본에 의존하는 계층에서는 score_proj.sum의 미분에 교차 표본 항이 섞일 수 있다. samples는 입력 미분이 가능한 텐서여야 하며 requires_grad_는 입력 객체 자체의 설정을 바꾼다.
+입력·스코어·방향은 N×d이며 표본별 독립 함수라는 전제를 갖는다. 다른 표본에 의존하는 레이어에서는 score_proj.sum의 미분에 교차 표본 항이 섞일 수 있다. samples는 입력 미분이 가능한 텐서여야 하며 requires_grad_는 입력 객체 자체의 설정을 바꾼다.
 
 n_projections는 양수여야 한다. projection_type을 엄밀히 검사하지 않고 rademacher가 아닌 모든 문자열을 가우시안 분기로 처리하므로 오타도 조용히 다른 동작을 만든다. 라데마허·가우시안 방향을 기본 float32로 생성해 모델·입력 dtype에 대한 완전한 일반화도 아니다.
 
@@ -119,8 +119,8 @@ def ssm_loss_memory_efficient(
     n_projections: int = 1
 ) -> torch.Tensor:
     """
-    쏘기마다 점수를 다시 셈해 기억을 아끼는 저민 점수 맞추기.
-    GPU 기억이 모자랄 때 쓴다.
+    투영마다 스코어를 다시 계산해 메모리를 아끼는 슬라이스드 스코어 매칭.
+    GPU 메모리가 모자랄 때 쓴다.
     """
     samples = samples.requires_grad_(True)
     N, D = samples.shape
@@ -129,16 +129,16 @@ def ssm_loss_memory_efficient(
     total_loss = 0.0
     
     for _ in range(n_projections):
-        # 점수를 다시 셈한다(기억 대신 셈을 쓴다)
+        # 스코어를 다시 계산한다(메모리 대신 계산을 쓴다)
         scores = score_model(samples)
         
-        # 라데마허 쏘기
+        # 라데마허 투영
         v = sample_rademacher((N, D), device)
         
-        # 쏜 점수
+        # 투영한 스코어
         score_proj = torch.sum(v * scores, dim=1)
         
-        # 저민 점수 맞추기 항
+        # 슬라이스드 스코어 매칭 항
         squared_term = 0.5 * score_proj ** 2
         
         vjp = torch.autograd.grad(
@@ -155,11 +155,11 @@ def ssm_loss_memory_efficient(
     return total_loss / n_projections
 ```
 
-`ssm_loss_memory_efficient`는 방향마다 순방향을 다시 계산한다. 그러나 각 방향의 미분 그래프가 total_loss에 연결되어 있어 **del로 이름을 지운다고 그 그래프가 바로 해제되는 것은 아니다**. 전체 평균을 한 번 backward하는 동안 필요한 그래프는 유지된다. 이름만으로 메모리 절감을 보장하는 구현이라고 설명할 수 없다. 확률적인 계층이 있으면 방향마다 모델 출력 자체도 달라질 수 있다.
+`ssm_loss_memory_efficient`는 방향마다 순방향을 다시 계산한다. 그러나 각 방향의 미분 그래프가 total_loss에 연결되어 있어 **del로 이름을 지운다고 그 그래프가 바로 해제되는 것은 아니다**. 전체 평균을 한 번 backward하는 동안 필요한 그래프는 유지된다. 이름만으로 메모리 절감을 보장하는 구현이라고 설명할 수 없다. 확률적인 레이어가 있으면 방향마다 모델 출력 자체도 달라질 수 있다.
 
 ```python
 class SlicedScoreMatchingTrainer:
-    """저민 점수 맞추기의 온전한 익히개."""
+    """슬라이스드 스코어 매칭의 전체 학습기."""
     
     def __init__(
         self,
@@ -174,7 +174,7 @@ class SlicedScoreMatchingTrainer:
         self.projection_type = projection_type
         
     def train_step(self, x: torch.Tensor) -> dict:
-        """익히기 스텝 하나."""
+        """학습 스텝 하나."""
         self.score_net.train()
         self.optimizer.zero_grad()
         
@@ -194,7 +194,7 @@ class SlicedScoreMatchingTrainer:
         n_epochs: int = 1000,
         batch_size: int = 256
     ) -> list:
-        """온전한 익히기 되풀이."""
+        """전체 학습 루프."""
         losses = []
         N = len(data)
         
@@ -221,7 +221,7 @@ $$\ell(x,-v)=\frac12((-v)^Ts)^2+(-v)^TJ(-v)=\ell(x,v)$$
 
 ```python
 def ssm_loss_antithetic(score_model, samples, n_projections=1):
-    """흩어짐을 줄이려 맞짝 뽑기를 쓴 저민 점수 맞추기."""
+    """분산을 줄이려 대조 변량(antithetic) 표본추출을 쓴 슬라이스드 스코어 매칭."""
     samples = samples.requires_grad_(True)
     scores = score_model(samples)
     
@@ -230,19 +230,19 @@ def ssm_loss_antithetic(score_model, samples, n_projections=1):
     for _ in range(n_projections):
         v = sample_rademacher(samples.shape, samples.device)
         
-        # 앞 쏘기
+        # 정방향 투영(+v)
         score_proj_pos = torch.sum(v * scores, dim=1)
         vjp_pos = torch.autograd.grad(score_proj_pos.sum(), samples, 
                                        create_graph=True, retain_graph=True)[0]
         loss_pos = 0.5 * score_proj_pos**2 + torch.sum(vjp_pos * v, dim=1)
         
-        # 맞짝 쏘기(-v)
+        # 대조 투영(-v)
         score_proj_neg = torch.sum(-v * scores, dim=1)
         vjp_neg = torch.autograd.grad(score_proj_neg.sum(), samples,
                                        create_graph=True, retain_graph=True)[0]
         loss_neg = 0.5 * score_proj_neg**2 + torch.sum(vjp_neg * (-v), dim=1)
         
-        # 평균이 흩어짐을 줄인다
+        # 평균이 분산을 줄인다
         total_loss += torch.mean((loss_pos + loss_neg) / 2)
     
     return total_loss / n_projections
@@ -258,9 +258,9 @@ def ssm_loss_antithetic(score_model, samples, n_projections=1):
 import matplotlib.pyplot as plt
 import numpy as np
 
-# 정규 분포 섞기를 만든다
+# 혼합 가우시안을 만든다
 def sample_mog(n, n_components=4):
-    """정규 분포 섞기에서 뽑는다."""
+    """혼합 가우시안에서 표본을 뽑는다."""
     angles = np.linspace(0, 2*np.pi, n_components, endpoint=False)
     centers = 2.0 * np.stack([np.cos(angles), np.sin(angles)], axis=1)
     
@@ -268,7 +268,7 @@ def sample_mog(n, n_components=4):
     samples = centers[idx] + 0.3 * np.random.randn(n, 2)
     return torch.tensor(samples, dtype=torch.float32)
 
-# 단순한 점수 뉴럴 네트워크
+# 단순한 스코어 네트워크
 class ScoreNet(nn.Module):
     def __init__(self, dim=2, hidden=128):
         super().__init__()
@@ -283,13 +283,13 @@ class ScoreNet(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-# 저민 점수 맞추기로 익힌다
+# 슬라이스드 스코어 매칭으로 학습한다
 data = sample_mog(5000)
 model = ScoreNet()
 trainer = SlicedScoreMatchingTrainer(model, lr=1e-3, n_projections=4)
 losses = trainer.train(data, n_epochs=2000, batch_size=256)
 
-# 배운 점수 마당을 그려 본다
+# 학습한 스코어 벡터장을 그려 본다
 def plot_scores(model, data, title="Learned Score Field"):
     x = torch.linspace(-4, 4, 20)
     y = torch.linspace(-4, 4, 20)
@@ -384,7 +384,7 @@ SSM에서 (v,−v) 짝을 평균 내면 분산이 줄어드는가?
 
 ## 정리하며
 
-SSM은 적절한 방향 공분산 아래 trace 스코어 매칭 목적을 비바이어스 투영으로 추정한다. 방향 배율과 VJP 비용, 유지되는 그래프를 확인한다. (v,−v) 짝은 같은 목적값을 주므로 분산 감소가 없으며, 목표 분포와 정칙 조건을 맞춰 DSM과 비교한다.
+SSM은 적절한 방향 공분산 아래 trace 스코어 매칭 목적을 비편향 투영으로 추정한다. 방향 배율과 VJP 비용, 유지되는 그래프를 확인한다. (v,−v) 짝은 같은 목적값을 주므로 분산 감소가 없으며, 목표 분포와 정칙 조건을 맞춰 DSM과 비교한다.
 
 **참고 문헌**
 

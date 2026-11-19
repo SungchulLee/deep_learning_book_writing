@@ -6,7 +6,7 @@
 
 ```python
 """
-자기 주의 구현
+셀프 어텐션 구현
 """
 import torch
 import torch.nn as nn
@@ -17,7 +17,7 @@ import math
 # ========================================================================
 
 class SelfAttention(nn.Module):
-    """자기 주의 구조의 커널"""
+    """셀프 어텐션 구조의 핵심"""
     def __init__(self, embed_size, heads=1):
         super().__init__()
         self.embed_size = embed_size
@@ -38,7 +38,7 @@ class SelfAttention(nn.Module):
         K = self.key(x)
         V = self.value(x)
         
-        # 스케일 조정 내적 주의
+        # 스케일 내적 어텐션
         scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.head_dim)
         
         if mask is not None:

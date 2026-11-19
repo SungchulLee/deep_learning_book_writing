@@ -8,7 +8,7 @@
 """
 text_generation.py (단원 09)
 
-마르코프 사슬로 글 만들기
+마르코프 사슬 텍스트 생성
 ====================================
 
 Location: 06_markov_chain/03_applications/
@@ -16,15 +16,15 @@ Location: 06_markov_chain/03_applications/
 예상 시간: 2시간
 
 학습 목표:
-- 글 자료로 마르코프 모형 세우기
-- n-그램 모형으로 새 글 만들기
+- 텍스트 데이터로 마르코프 모형 구축하기
+- n-그램 모형으로 새 텍스트 생성하기
 - k차 마르코프 사슬 이해하기
-- 글 분석 쓰임새 구현하기
+- 텍스트 분석 응용 구현하기
 
-수학적 바탕:
-글을 위한 k차 마르코프 사슬:
-- 상태 = 단어 k개의 늘어놓음(k-그램)
-- 옮김 = 다음 단어의 확률
+수학적 배경:
+텍스트를 위한 k차 마르코프 사슬:
+- 상태 = 단어 k개의 시퀀스(k-그램)
+- 전이 = 다음 단어의 확률
 - P(w_{n+1} | w_n, w_{n-1}, ..., w_1) = P(w_{n+1} | w_n, ..., w_{n-k+1})
 """
 
@@ -38,21 +38,21 @@ import random
 
 
 class MarkovTextGenerator:
-    """마르코프 사슬로 글 만들기."""
+    """마르코프 사슬 텍스트 생성기."""
     
     def __init__(self, order=1):
         """
-        글 생성기 첫값 잡기.
+        텍스트 생성기 초기화.
         
         파라메터:
-            order (int): 마르코프 사슬의 차수(살필 앞선 단어의 수)
+            order (int): 마르코프 사슬의 차수(참조할 이전 단어의 수)
         """
         self.order = order
         self.model = defaultdict(Counter)
         self.start_states = []
     
     def train(self, text):
-        """글로 모형 익히기."""
+        """텍스트로 모형 학습하기."""
         words = text.split()
         
         # 시작할 수 있는 상태 저장
@@ -61,12 +61,12 @@ class MarkovTextGenerator:
             if i == 0 or words[i-1] in '.!?':
                 self.start_states.append(state)
             
-            # 옮김 세기
+            # 전이 횟수 세기
             next_word = words[i+self.order]
             self.model[state][next_word] += 1
     
     def generate(self, length=50, seed=None):
-        """주어진 길이의 글 만들기."""
+        """주어진 길이의 텍스트 생성하기."""
         if seed:
             random.seed(seed)
         
@@ -82,7 +82,7 @@ class MarkovTextGenerator:
             next_words = self.model[current_state]
             total = sum(next_words.values())
             
-            # 다음 단어 표집
+            # 다음 단어 샘플링
             choices = list(next_words.keys())
             weights = [next_words[w]/total for w in choices]
             next_word = random.choices(choices, weights=weights)[0]
@@ -141,7 +141,7 @@ k가 커지면 긴 국소 문맥을 유지하지만 관측 가능한 상태가 �
 
 **그림으로 보는 AI 1.** 사다리를 끝까지 오르면 원문이 나온다
 
-위 코드가 하는 일을 **손으로 한 사람**이 있다. 1948년 클로드 섀넌(Claude Shannon)이 「통신의 수학적 이론」에서 영어를 흉내 내는 사다리를 한 칸씩 올라갔다. 맨 아래는 글자를 고르게 뽑는 0차였고, 그가 적어 둔 결과는 이렇다 — `XFOML RXKHRJFFJUJ ZLPWCFWKCYJ`. 다음 칸은 글자마다 영어에서의 빈도를 주었고, 그다음은 앞 글자를 보는 2연(digram), 그리고 글자 대신 **단어**을 단위로 같은 일을 되풀이했다. 이 쪽의 `order` 가 바로 그 칸 번호다.
+위 코드가 하는 일을 **손으로 한 사람**이 있다. 1948년 클로드 섀넌(Claude Shannon)이 「통신의 수학적 이론」에서 영어를 흉내 내는 사다리를 한 칸씩 올라갔다. 맨 아래는 글자를 균등하게 뽑는 0차였고, 그가 적어 둔 결과는 이렇다 — `XFOML RXKHRJFFJUJ ZLPWCFWKCYJ`. 다음 칸은 글자마다 영어에서의 빈도를 주었고, 그다음은 앞 글자를 보는 2연(digram), 그리고 글자 대신 **단어**를 단위로 같은 일을 되풀이했다. 이 쪽의 `order` 가 바로 그 칸 번호다.
 
 섀넌이 남긴 관찰은 한 줄이다 — *"the resemblance to ordinary English text increases quite noticeably at each step."* 한 칸 오를 때마다 눈에 띄게 영어다워진다.
 
@@ -165,7 +165,7 @@ text.split()은 공백으로만 단어를 나누므로 문장부호가 단어에
 
 order는 양의 정수이고 학습 글에는 적어도 order+1개 단어가 필요하다. 학습된 상태가 없으면 시작 상태 선택이 실패한다. 요청 length보다 문맥이 길면 초기 문맥 자체가 반환되어 요청 길이를 넘을 수 있고, 전이가 없는 문맥을 만나면 조기 종료한다. 즉 length는 항상 보장되는 정확한 출력 길이가 아니다.
 
-generate의 if seed 조건은 0을 거짓으로 처리하므로 seed=0은 난수 시드를 설정하지 않는다. 이 코드는 Python random을 사용하므로 NumPy의 시드만 바꾸는 것으로 생성 재현성이 정해지지 않는다. 전처리·차수·학습 자료와 난수 규약을 함께 명시한다.
+generate의 if seed 조건은 0을 거짓으로 처리하므로 seed=0은 난수 시드를 설정하지 않는다. 이 코드는 Python random을 사용하므로 NumPy의 시드만 바꾸는 것으로 생성 재현성이 정해지지 않는다. 전처리·차수·학습 데이터와 난수 규약을 함께 명시한다.
 
 ## 연습문제
 
@@ -232,10 +232,10 @@ generate의 if seed 조건은 0을 거짓으로 처리하므로 seed=0은 난수
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

@@ -1,20 +1,20 @@
 # Peephole 연결
 
-표준 LSTM의 문은 이전 은닉 상태 $h_{t-1}$과 지금 입력 $x_t$으로 엑티베이션을 계산한다. 그런데 그러면 문이 정작 자기가 다스려야 할 기억인 셀 상태 $c_{t-1}$을 곧바로 볼 수 없다. Gers와 Schmidhuber(2000)가 내놓은 **Peephole 연결**은 문이 셀 상태에 곧바로 닿게 하여 이 한계를 푼다.
+표준 LSTM의 게이트는 이전 은닉 상태 $h_{t-1}$과 지금 입력 $x_t$으로 활성화 값을 계산한다. 그런데 그러면 게이트가 정작 자기가 다스려야 할 기억인 셀 상태 $c_{t-1}$을 곧바로 볼 수 없다. Gers와 Schmidhuber(2000)가 내놓은 **Peephole 연결**은 게이트가 셀 상태에 곧바로 닿게 하여 이 한계를 푼다.
 
 ---
 
 ## 1. 왜 필요한가
 
-표준 LSTM에서 문은 셀 상태를 실제로 보지 않고 그에 대한 결정을 내린다.
+표준 LSTM에서 게이트는 셀 상태를 실제로 보지 않고 그에 대한 결정을 내린다.
 
 $$f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f)$$
 
-은닉 상태 $h_t = o_t \odot \tanh(c_t)$은 $c_t$을 걸러 변형한 모습이다. 출력 게이트가 닫힌 채로($o_t \approx 0$) 셀 상태에 정보가 담길 수 있는데, 그러면 다음 시각의 문이 $h_{t-1}$을 통해서는 그것을 볼 수 없다.
+은닉 상태 $h_t = o_t \odot \tanh(c_t)$은 $c_t$을 걸러 변형한 모습이다. 출력 게이트가 닫힌 채로($o_t \approx 0$) 셀 상태에 정보가 담길 수 있는데, 그러면 다음 시각의 게이트가 $h_{t-1}$을 통해서는 그것을 볼 수 없다.
 
-**문제:** $t-1$번째 스텝의 출력 게이트가 어떤 세포 차원을 눌러 버리면, $t$번째 스텝의 망각 게이트와 입력 게이트는 무엇을 지키고 더할지 정할 때 그 담긴 값을 볼 수 없다.
+**문제:** $t-1$번째 스텝의 출력 게이트가 어떤 셀 차원을 눌러 버리면, $t$번째 스텝의 망각 게이트와 입력 게이트는 무엇을 지키고 더할지 정할 때 그 담긴 값을 볼 수 없다.
 
-**Peephole 연결은** 셀 상태에서 각 문으로 가는 곧바른 성분별 연결을 더하여 이를 푼다.
+**Peephole 연결은** 셀 상태에서 각 게이트로 가는 직접적인 성분별 연결을 더하여 이를 푼다.
 
 ---
 
@@ -36,7 +36,7 @@ $$h_t = o_t \odot \tanh(c_t)$$
 
 ### peephole LSTM
 
-망각 게이트와 입력 게이트는 **이전** 셀 상태 $c_{t-1}$에서 Peephole 연결을 받고, 출력 게이트는 (세포 갱신 뒤에 계산되므로) **지금** 셀 상태 $c_t$에서 Peephole 연결을 받는다.
+망각 게이트와 입력 게이트는 **이전** 셀 상태 $c_{t-1}$에서 Peephole 연결을 받고, 출력 게이트는 (셀 갱신 뒤에 계산되므로) **지금** 셀 상태 $c_t$에서 Peephole 연결을 받는다.
 
 $$f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + \mathbf{w_f \odot c_{t-1}} + b_f)$$
 
@@ -53,7 +53,7 @@ $$h_t = o_t \odot \tanh(c_t)$$
 여기서 $w_f, w_i, w_o \in \mathbb{R}^n$은 (온전한 행렬이 아니라) **대각** peephole 웨이트 벡터이다.
 
 !!! note "왜 대각 웨이트인가"
-    Peephole 연결은 온전한 행렬 곱($W \cdot c$)이 아니라 성분별 곱($w \odot c$)을 쓴다. 곧 문의 차원마다 그에 대응하는 세포 차원만 본다. 이 대각 제약 덕분에 늘어나는 파라메터가 $3n$개로 적게 유지되면서도 문이 "제" 셀 상태 값을 살필 수 있다.
+    Peephole 연결은 온전한 행렬 곱($W \cdot c$)이 아니라 성분별 곱($w \odot c$)을 쓴다. 곧 게이트의 차원마다 그에 대응하는 셀 차원만 본다. 이 대각 제약 덕분에 늘어나는 파라메터가 $3n$개로 적게 유지되면서도 게이트가 "제" 셀 상태 값을 살필 수 있다.
 
 ---
 
@@ -77,7 +77,7 @@ import torch
 import torch.nn as nn
 
 class PeepholeLSTMCell(nn.Module):
-    """엿보기 연결이 있는 LSTM 세포."""
+    """peephole 연결이 있는 LSTM 셀."""
     
     def __init__(self, input_size: int, hidden_size: int):
         super().__init__()
@@ -90,7 +90,7 @@ class PeepholeLSTMCell(nn.Module):
         self.W_c = nn.Linear(combined_size, hidden_size)
         self.W_o = nn.Linear(combined_size, hidden_size)
         
-        # 엿보기 웨이트 (대각이라 그냥 벡터이다)
+        # peephole 웨이트 (대각이라 그냥 벡터이다)
         self.p_f = nn.Parameter(torch.randn(hidden_size) * 0.1)
         self.p_i = nn.Parameter(torch.randn(hidden_size) * 0.1)
         self.p_o = nn.Parameter(torch.randn(hidden_size) * 0.1)
@@ -109,7 +109,7 @@ class PeepholeLSTMCell(nn.Module):
             states: (h_prev, c_prev)의 쌍
         
         반환값:
-            h: 새 숨은 상태
+            h: 새 은닉 상태
             (h, c): 새 상태의 쌍
         """
         batch_size = x.size(0)
@@ -122,23 +122,23 @@ class PeepholeLSTMCell(nn.Module):
         
         combined = torch.cat([x, h_prev], dim=-1)
         
-        # 세포 상태로 엿보기 연결이 있는 문들
-        # 망각 문과 입력 문은 이전 세포 상태를 엿본다
+        # 셀 상태에서 오는 peephole 연결이 있는 게이트들
+        # 망각 게이트와 입력 게이트는 이전 셀 상태를 참조한다
         f = torch.sigmoid(self.W_f(combined) + self.p_f * c_prev)
         i = torch.sigmoid(self.W_i(combined) + self.p_i * c_prev)
         c_tilde = torch.tanh(self.W_c(combined))
         
-        # 세포 상태 갱신 (표준 LSTM과 같다)
+        # 셀 상태 갱신 (표준 LSTM과 같다)
         c = f * c_prev + i * c_tilde
         
-        # 출력 문의 엿보기는 새 세포 상태를 쓴다
+        # 출력 게이트의 peephole은 새 셀 상태를 쓴다
         o = torch.sigmoid(self.W_o(combined) + self.p_o * c)
         h = o * torch.tanh(c)
         
         return h, (h, c)
 
 class PeepholeLSTM(nn.Module):
-    """순차열을 처리하는 온전한 엿보기 LSTM 레이어."""
+    """시퀀스를 처리하는 온전한 peephole LSTM 레이어."""
     
     def __init__(self, input_size: int, hidden_size: int, 
                  num_layers: int = 1, dropout: float = 0.0):
@@ -158,11 +158,11 @@ class PeepholeLSTM(nn.Module):
     def forward(self, x, states=None):
         """
         인수:
-            x: 입력 순차열 (배치 크기, seq_len, input_size)
+            x: 입력 시퀀스 (배치 크기, seq_len, input_size)
             states: 모든 레이어의 처음 (h_0, c_0)
         
         반환값:
-            output: 맨 위 레이어의 숨은 상태 (배치 크기, seq_len, hidden_size)
+            output: 맨 위 레이어의 은닉 상태 (배치 크기, seq_len, hidden_size)
             (h_n, c_n): 모든 레이어의 마지막 상태
         """
         batch_size, seq_len, _ = x.size()
@@ -212,7 +212,7 @@ Peephole 연결은 셀 상태를 지나는 그래디언트 경로를 더한다.
 
 $$\left.\frac{\partial f_t}{\partial c_{t-1}}\right|_{h_{t-1}\ \mathrm{fixed}} = \operatorname{diag}(f_t\odot(1-f_t))\operatorname{diag}(w_f)$$
 
-이는 곧바른 피드백 고리를 만든다. 셀 상태가 망각 게이트에 영향을 주고, 그것이 다음 셀 상태에 영향을 준다. 타이밍에 민감한 과제에서는 학습이 나아질 수 있지만 최적화가 더 까다로워질 수도 있다.
+이는 직접적인 피드백 루프를 만든다. 셀 상태가 망각 게이트에 영향을 주고, 그것이 다음 셀 상태에 영향을 준다. 타이밍에 민감한 과제에서는 학습이 나아질 수 있지만 최적화가 더 까다로워질 수도 있다.
 
 ---
 
@@ -257,7 +257,7 @@ Peephole 연결이 유용할 수 있는 이유와 검증할 항목을 설명하�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-Peephole 연결이 있는 LSTM 세포를 PyTorch로 구현하라.
+Peephole 연결이 있는 LSTM 셀을 PyTorch로 구현하라.
 
 </div>
 

@@ -1,6 +1,6 @@
 # Snorkel을 쓰는 약지도 학습
 
-약지도 학습은 휴리스틱 레이블링 함수의 불완전한 신호를 결합해 학습 목표를 만드는 방법이다. 이 페이지는 규칙, 다수결과 분석 지표를 구현하고 Snorkel 사용법을 예시 문자열로 소개한다.
+약지도 학습(weak supervision)은 휴리스틱(경험 규칙) 라벨링 함수의 불완전한 신호를 결합해 학습 목표를 만드는 방법이다. 이 페이지는 규칙, 다수결과 분석 지표를 구현하고 Snorkel 사용법을 예시 문자열로 소개한다.
 
 ## 1. 코드
 
@@ -10,20 +10,20 @@
     """Snorkel을 쓰는 약지도 학습."""
     # ---
     # title: "Snorkel을 쓰는 약지도 학습"
-    # description: "레이블링 함수, 레이블 집계, 잡음을 고려한 학습으로 하는
-    #               프로그램적 데이터 레이블링 — 수작업 주석이 필요 없다"
+    # description: "라벨링 함수, 라벨 집계, 잡음을 고려한 학습으로 하는
+    #               프로그램적 데이터 라벨링 — 수작업 주석이 필요 없다"
     # ---
     #
-    # 수작업 주석은 비싸다. 약지도 학습은 이를 어림 규칙, 패턴, 분야 지식을
-    # 담은 프로그램적 레이블링 함수(LF)로 대신한다. Snorkel은 이 잡음 섞인
-    # 레이블을 모아 확률적 학습 레이블로 만든다.
+    # 수작업 주석은 비싸다. 약지도 학습은 이를 휴리스틱, 패턴, 분야 지식을
+    # 담은 프로그램적 라벨링 함수(LF)로 대신한다. Snorkel은 이 잡음 섞인
+    # 라벨을 모아 확률적 학습 라벨로 만든다.
     #
     #
-    #   1부 – 레이블링 함수라는 추상
-    #   2부 – 레이블링 함수의 종류 (핵심어, 정규식, 자연어 처리, 모델 기반)
-    #   3부 – 레이블 집계: 다수결과 레이블 모델
-    #   4부 – 레이블링 함수 분석: 적용률, 겹침, 충돌
-    #   5부 – 처음부터 끝까지의 파이프라인: 레이블링 함수 → 레이블 모델 → 분류기
+    #   1부 – 라벨링 함수라는 추상
+    #   2부 – 라벨링 함수의 종류 (키워드, 정규식, 자연어 처리, 모델 기반)
+    #   3부 – 라벨 집계: 다수결과 라벨 모델
+    #   4부 – 라벨링 함수 분석: 적용률, 겹침, 충돌
+    #   5부 – 처음부터 끝까지의 파이프라인: 라벨링 함수 → 라벨 모델 → 분류기
     #   6부 – 금융에서의 약지도 학습 사례
     #
     # 출처: O'Reilly "Practical NLP" 2장에서 고쳐 씀
@@ -35,20 +35,20 @@
 
 
     # =====================================================================
-    # 1부 – 레이블링 함수라는 추상
+    # 1부 – 라벨링 함수라는 추상
     # =====================================================================
     print("=" * 60)
     print("Part 1: Labeling Functions — The Core Abstraction")
     print("=" * 60)
 
-    # 레이블링 함수(LF)는 다음과 같은 파이썬 함수이다:
+    # 라벨링 함수(LF)는 다음과 같은 파이썬 함수이다:
     #   - 데이터 점 하나를 입력으로 받는다
-    #   - 레이블 또는 ABSTAIN(-1)을 돌려준다
+    #   - 라벨 또는 ABSTAIN(-1)을 돌려준다
     #
-    # 핵심: 각 레이블링 함수가 완벽하거나 모든 데이터를 다룰 필요는 없다.
-    # 불완전한 레이블링 함수를 여럿 모아 품질 좋은 레이블을 만든다.
+    # 핵심: 각 라벨링 함수가 완벽하거나 모든 데이터를 다룰 필요는 없다.
+    # 불완전한 라벨링 함수를 여럿 모아 품질 좋은 라벨을 만든다.
     #
-    # ABSTAIN = -1  (레이블링 함수가 모른다는 뜻)
+    # ABSTAIN = -1  (라벨링 함수가 모른다는 뜻)
     # NEGATIVE = 0
     # POSITIVE = 1
 
@@ -57,7 +57,7 @@
     POSITIVE = 1
 
     # 예: 유튜브 스팸 탐지
-    # 댓글 2000개에 손으로 레이블을 붙이는 대신 어림 규칙 10개를 쓴다.
+    # 댓글 2000개에 손으로 라벨을 붙이는 대신 휴리스틱 10개를 쓴다.
 
     print("""
       # Snorkel API:
@@ -86,7 +86,7 @@
                 setattr(self, k, v)
 
 
-    # 레이블링 함수를 보통의 파이썬 함수로 정의한다
+    # 라벨링 함수를 보통의 파이썬 함수로 정의한다
     def lf_contains_link(x: DataPoint) -> int:
         """스팸 댓글에는 링크가 들어 있는 일이 많다."""
         return POSITIVE if "http" in x.text.lower() else ABSTAIN
@@ -164,39 +164,39 @@
 
 
     # =====================================================================
-    # 2부 – 레이블링 함수의 종류
+    # 2부 – 라벨링 함수의 종류
     # =====================================================================
     print("=" * 60)
     print("Part 2: Types of Labeling Functions")
     print("=" * 60)
 
-    # 1. 핵심어 기반: 특정 단어가 있는지 본다
+    # 1. 키워드 기반: 특정 단어가 있는지 본다
     # 2. 패턴 기반: 정규식으로 맞춘다
-    # 3. 어림 규칙: 길이, 구조, 메타데이터
+    # 3. 휴리스틱: 길이, 구조, 메타데이터
     # 4. 자연어 처리 기반: 개체명 인식, 품사 태그, 감성
     # 5. 외부 모델: 이미 있는 (약한) 분류기를 쓴다
     # 6. 지식 베이스: 사전이나 온톨로지에서 찾는다
 
     print("""
-      1형: 키워드 레이블링 함수(가장 단순)
+      1형: 키워드 라벨링 함수(가장 단순)
       ──────────────────────────────
         @labeling_function()
         def lf_keyword(x):
             return SPAM if "subscribe" in x.text.lower() else ABSTAIN
 
-      2형: 패턴 레이블링 함수(정규식)
+      2형: 패턴 라벨링 함수(정규식)
       ──────────────────────────────
         @labeling_function()
         def lf_regex(x):
             return SPAM if re.search(r"check.*out", x.text, re.I) else ABSTAIN
 
-      3형: 어림 규칙 레이블링 함수(메타데이터 / 구조)
+      3형: 휴리스틱 라벨링 함수(메타데이터 / 구조)
       ──────────────────────────────────────────────
         @labeling_function()
         def lf_short(x):
             return HAM if len(x.text.split()) < 5 else ABSTAIN
 
-      4형: 자연어 처리 기반 레이블링 함수(전처리가 필요하다)
+      4형: 자연어 처리 기반 라벨링 함수(전처리가 필요하다)
       ────────────────────────────────────────────────
         from snorkel.preprocess.nlp import SpacyPreprocessor
         spacy = SpacyPreprocessor(text_field="text", doc_field="doc")
@@ -207,7 +207,7 @@
                 return HAM
             return ABSTAIN
 
-      5형: 외부 모델 레이블링 함수
+      5형: 외부 모델 라벨링 함수
       ──────────────────────────────
         from textblob import TextBlob
 
@@ -216,7 +216,7 @@
             polarity = TextBlob(x.text).sentiment.polarity
             return HAM if polarity > 0.9 else ABSTAIN
 
-      6형: 프로그램으로 만드는 레이블링 함수 공장(규모 확장용)
+      6형: 프로그램으로 만드는 라벨링 함수 공장(규모 확장용)
       ─────────────────────────────────────────────────
         def make_keyword_lf(keywords, label):
             def lf(x):
@@ -231,9 +231,9 @@
     """)
 
 
-    # 레이블링 함수를 찍어 내는 공장 구현
+    # 라벨링 함수를 찍어 내는 공장 구현
     def make_keyword_lf(keywords: List[str], label: int) -> Callable:
-        """핵심어 목록으로 레이블링 함수를 만든다."""
+        """키워드 목록으로 라벨링 함수를 만든다."""
         def lf(x):
             text_lower = x.text.lower()
             if any(kw in text_lower for kw in keywords):
@@ -244,23 +244,23 @@
 
 
     # =====================================================================
-    # 3부 – 레이블 집계
+    # 3부 – 라벨 집계
     # =====================================================================
     print("=" * 60)
     print("Part 3: Label Aggregation — Majority Vote vs Label Model")
     print("=" * 60)
 
-    # 레이블 행렬 L(n_samples × n_lfs)이 주어지면, 잡음 섞이고 겹치며
-    # 서로 어긋날 수도 있는 레이블을 표본마다 하나의 확률적 레이블로
+    # 라벨 행렬 L(n_samples × n_lfs)이 주어지면, 잡음 섞이고 겹치며
+    # 서로 어긋날 수도 있는 라벨을 표본마다 하나의 확률적 라벨로
     # 모아야 한다.
 
 
     def apply_lfs(data_points: List[DataPoint], lfs: List[Callable]) -> np.ndarray:
-        """모든 데이터 점에 모든 레이블링 함수를 적용한다.
+        """모든 데이터 점에 모든 라벨링 함수를 적용한다.
 
         반환값:
-            모양이 (n_samples, n_lfs)인 레이블 행렬 L.
-            L[i,j]은 표본 i에 대해 레이블링 함수 j가 준 레이블이다.
+            형태가 (n_samples, n_lfs)인 라벨 행렬 L.
+            L[i,j]은 표본 i에 대해 라벨링 함수 j가 준 라벨이다.
         """
         n = len(data_points)
         m = len(lfs)
@@ -272,9 +272,9 @@
 
 
     def majority_vote(L: np.ndarray, tie_break: int = ABSTAIN) -> np.ndarray:
-        """다수결로 레이블을 모은다.
+        """다수결로 라벨을 모은다.
 
-        표본마다 (ABSTAIN을 뺀) 표를 세어 가장 많은 레이블을 고른다.
+        표본마다 (ABSTAIN을 뺀) 표를 세어 가장 많은 라벨을 고른다.
         동점이면 tie_break을 쓴다.
         """
         n = L.shape[0]
@@ -290,23 +290,23 @@
         return preds
 
 
-    # Snorkel의 레이블 모델 (확률적)
+    # Snorkel의 라벨 모델 (확률적)
     print("""
-      다수결: 단순하지만 레이블링 함수마다 정확도가 다르다는 점을 무시한다.
+      다수결: 단순하지만 라벨링 함수마다 정확도가 다르다는 점을 무시한다.
 
-      레이블 모델(Snorkel): 레이블링 함수마다 정확도와 상관을 학습하여
-      확률적 레이블을 만들어 낸다.
+      라벨 모델(Snorkel): 라벨링 함수마다 정확도와 상관을 학습하여
+      확률적 라벨을 만들어 낸다.
 
         from snorkel.labeling.model import LabelModel
 
         label_model = LabelModel(cardinality=2, verbose=True)
         label_model.fit(L_train=L_train, n_epochs=500, seed=42)
 
-        # 확률적 레이블 얻기
+        # 확률적 라벨 얻기
         probs = label_model.predict_proba(L=L_train)
         # → shape: (n_samples, n_classes) with values in [0, 1]
 
-        # 딱딱한 레이블 얻기
+        # 하드 라벨 얻기
         preds = label_model.predict(L=L_train)
     """)
 
@@ -323,7 +323,7 @@
 
 
     # =====================================================================
-    # 4부 – 레이블링 함수 분석: 적용률, 겹침, 충돌
+    # 4부 – 라벨링 함수 분석: 적용률, 겹침, 충돌
     # =====================================================================
     print("=" * 60)
     print("Part 4: LF Analysis Metrics")
@@ -331,11 +331,11 @@
 
 
     def analyze_lfs(L: np.ndarray, lf_names: List[str]) -> None:
-        """레이블링 함수의 품질 지표를 계산하여 보인다.
+        """라벨링 함수의 품질 지표를 계산하여 보인다.
 
-        적용률:  레이블링 함수가 기권하지 않은 표본의 비율
-        겹침:   다른 레이블링 함수 하나 이상과 일치하는 표본의 비율
-        충돌:  다른 레이블링 함수와 어긋나는 표본의 비율
+        적용률:  라벨링 함수가 기권하지 않은 표본의 비율
+        겹침:   다른 라벨링 함수 하나 이상과 일치하는 표본의 비율
+        충돌:  다른 라벨링 함수와 어긋나는 표본의 비율
         """
         n, m = L.shape
 
@@ -347,7 +347,7 @@
             labeled = L[:, j] != ABSTAIN
             coverage = labeled.mean()
 
-            # 겹침: 이 레이블링 함수와 다른 하나 이상이 같은 표본에 레이블을 붙인 경우
+            # 겹침: 이 라벨링 함수와 다른 하나 이상이 같은 표본에 라벨을 붙인 경우
             overlaps = 0
             conflicts = 0
             for i in range(n):
@@ -394,43 +394,43 @@
     print("=" * 60)
 
     # 전체 파이프라인:
-    #   1. 레이블링 함수를 쓴다 (어림 규칙, 패턴, 모델)
-    #   2. 레이블 없는 데이터에 레이블링 함수를 적용한다 → 레이블 행렬 L
-    #   3. 레이블링 함수를 분석한다 (적용률, 충돌, 개발 집합에서의 정확도)
-    #   4. 집계를 위해 레이블 모델을 학습시킨다 → 확률적 레이블
+    #   1. 라벨링 함수를 쓴다 (휴리스틱, 패턴, 모델)
+    #   2. 라벨 없는 데이터에 라벨링 함수를 적용한다 → 라벨 행렬 L
+    #   3. 라벨링 함수를 분석한다 (적용률, 충돌, 개발 집합에서의 정확도)
+    #   4. 집계를 위해 라벨 모델을 학습시킨다 → 확률적 라벨
     #   5. 확신이 낮은 표본을 걸러 낸다
-    #   6. 확률적 레이블로 최종 모델(예: BERT)을 학습시킨다
+    #   6. 확률적 라벨로 최종 모델(예: BERT)을 학습시킨다
 
     print("""
       Snorkel 전체 파이프라인:
 
-      # 1단계: 레이블링 함수 정의
+      # 1단계: 라벨링 함수 정의
       lfs = [lf_contains_link, lf_subscribe, lf_check_out,
              lf_my_channel, lf_please, lf_short_comment,
              lf_song_mention, lf_textblob_positive, lf_has_person]
 
-      # 2단계: 레이블 없는 데이터에 적용
+      # 2단계: 라벨 없는 데이터에 적용
       from snorkel.labeling import PandasLFApplier
       applier = PandasLFApplier(lfs=lfs)
-      L_train = applier.apply(df=df_train)  # 모양: (n_train, n_lfs)
+      L_train = applier.apply(df=df_train)  # 형태: (n_train, n_lfs)
       L_test = applier.apply(df=df_test)
 
       # 3단계: 분석
       from snorkel.labeling import LFAnalysis
       LFAnalysis(L=L_train, lfs=lfs).lf_summary()
 
-      # 4단계: 레이블 모델 학습
+      # 4단계: 라벨 모델 학습
       from snorkel.labeling.model import LabelModel
       label_model = LabelModel(cardinality=2, verbose=True)
       label_model.fit(L_train=L_train, n_epochs=500, seed=42)
 
-      # 레이블 모델 평가
+      # 라벨 모델 평가
       label_model_acc = label_model.score(
           L=L_test, Y=Y_test, tie_break_policy="random"
       )["accuracy"]
       print(f"Label Model Accuracy: {label_model_acc:.1%}")
 
-      # 5단계: 확률적 레이블을 얻어 거르기
+      # 5단계: 확률적 라벨을 얻어 거르기
       from snorkel.labeling import filter_unlabeled_dataframe
       from snorkel.utils import probs_to_preds
 
@@ -454,9 +454,9 @@
 
       # 원래 노트북의 결과 (유튜브 스팸):
       #   다수결:           89.6%
-      #   레이블 모델:      92.4%
+      #   라벨 모델:      92.4%
       #   최종 모델 (LR):   93.5%
-      # 손으로 레이블을 붙인 학습 예가 하나도 없이!
+      # 손으로 라벨을 붙인 학습 예가 하나도 없이!
     """)
 
 
@@ -464,7 +464,7 @@
     print("  Simplified demo with synthetic data:")
     np.random.seed(42)
 
-    # 합성 레이블 데이터 생성 (이 레이블을 모른다고 치자)
+    # 합성 라벨 데이터 생성 (이 라벨을 모른다고 치자)
     n_samples = 500
     true_labels = np.random.randint(0, 2, n_samples)
     texts = []
@@ -487,7 +487,7 @@
 
     data = [DataPoint(text=t) for t in texts]
 
-    # 레이블링 함수 적용
+    # 라벨링 함수 적용
     L_demo = apply_lfs(data, lfs)
 
     # 적용률 통계
@@ -515,9 +515,9 @@
 
     print("""
       약지도 학습은 다음과 같은 금융 분야에서 특히 값어치가 있다.
-      - 레이블 데이터가 드물다(독점적이고 주석 비용이 크다)
-      - 분야 전문가는 어림 규칙은 말할 수 있으나 1만 개를 일일이 레이블할 수는 없다
-      - 패턴이 시간에 따라 바뀐다(빠른 재레이블링이 필요하다)
+      - 라벨 데이터가 드물다(독점적이고 주석 비용이 크다)
+      - 분야 전문가는 휴리스틱은 말할 수 있으나 1만 개를 일일이 라벨링할 수는 없다
+      - 패턴이 시간에 따라 바뀐다(빠른 재라벨링이 필요하다)
 
       예: 실적 감성 분류
       ───────────────────────────────────────────
@@ -550,7 +550,7 @@
 
       @labeling_function()
       def lf_finbert_positive(x):
-          # 미리 학습된 FinBERT를 약한 레이블러로 쓰기
+          # 미리 학습된 FinBERT를 약한 라벨러로 쓰기
           score = finbert_pipeline(x.text)[0]
           if score["label"] == "positive" and score["score"] > 0.8:
               return BULLISH
@@ -559,29 +559,29 @@
       그 밖의 금융 응용:
       ─────────────────────────────
       1. SEC 공시 위험 분류
-         레이블링 함수: 위험 범주별 키워드 목록, 규제 인용을 잡는 정규식,
+         라벨링 함수: 위험 범주별 키워드 목록, 규제 인용을 잡는 정규식,
          기관 언급을 잡는 개체명 인식
 
       2. 뉴스 사건 탐지
-         레이블링 함수: 동사 패턴("acquired", "merged"), 개체 동시 출현,
+         라벨링 함수: 동사 패턴("acquired", "merged"), 개체 동시 출현,
          날짜 근접성, 출처 신뢰도
 
       3. 신용 위험 평가
-         레이블링 함수: 재무 비율 임계값, 업종 기준치,
+         라벨링 함수: 재무 비율 임계값, 업종 기준치,
          경영진 교체 신호, 부채 약정 키워드
 
       4. ESG 분류
-         레이블링 함수: 환경 키워드, 지배구조 패턴,
+         라벨링 함수: 환경 키워드, 지배구조 패턴,
          규제 준수 언급, 지속가능성 지표
 
-      수작업 레이블링에 견준 이점:
+      수작업 라벨링에 견준 이점:
       ┌──────────────────────┬─────────────┬───────────────────┐
       │ 지표                 │ 수작업      │ 약지도            │
       ├──────────────────────┼─────────────┼───────────────────┤
-      │ 레이블링 시간        │ 며칠~몇 주  │ 몇 시간           │
-      │ 레이블 하나당 비용   │ $0.50~$5.00│ 거의 $0(코드뿐)  │
+      │ 라벨링 시간          │ 며칠~몇 주  │ 몇 시간           │
+      │ 라벨 하나당 비용     │ $0.50~$5.00│ 거의 $0(코드뿐)  │
       │ 확장성               │ 선형        │ 한 번 짜면 O(1)   │
-      │ 적응성               │ 재레이블링  │ 함수 갱신         │
+      │ 적응성               │ 재라벨링    │ 함수 갱신         │
       │ 일관성               │ 들쭉날쭉    │ 결정적            │
       │ 분야 지식            │ 사라짐      │ 코드에 담김       │
       └──────────────────────┴─────────────┴───────────────────┘
@@ -631,25 +631,25 @@
     Part 2: Types of Labeling Functions
     ============================================================
 
-      1형: 키워드 레이블링 함수(가장 단순)
+      1형: 키워드 라벨링 함수(가장 단순)
       ──────────────────────────────
         @labeling_function()
         def lf_keyword(x):
             return SPAM if "subscribe" in x.text.lower() else ABSTAIN
 
-      2형: 패턴 레이블링 함수(정규식)
+      2형: 패턴 라벨링 함수(정규식)
       ──────────────────────────────
         @labeling_function()
         def lf_regex(x):
             return SPAM if re.search(r"check.*out", x.text, re.I) else ABSTAIN
 
-      3형: 어림 규칙 레이블링 함수(메타데이터 / 구조)
+      3형: 휴리스틱 라벨링 함수(메타데이터 / 구조)
       ──────────────────────────────────────────────
         @labeling_function()
         def lf_short(x):
             return HAM if len(x.text.split()) < 5 else ABSTAIN
 
-      4형: 자연어 처리 기반 레이블링 함수(전처리가 필요하다)
+      4형: 자연어 처리 기반 라벨링 함수(전처리가 필요하다)
       ────────────────────────────────────────────────
         from snorkel.preprocess.nlp import SpacyPreprocessor
         spacy = SpacyPreprocessor(text_field="text", doc_field="doc")
@@ -660,7 +660,7 @@
                 return HAM
             return ABSTAIN
 
-      5형: 외부 모델 레이블링 함수
+      5형: 외부 모델 라벨링 함수
       ──────────────────────────────
         from textblob import TextBlob
 
@@ -669,7 +669,7 @@
             polarity = TextBlob(x.text).sentiment.polarity
             return HAM if polarity > 0.9 else ABSTAIN
 
-      6형: 프로그램으로 만드는 레이블링 함수 공장(규모 확장용)
+      6형: 프로그램으로 만드는 라벨링 함수 공장(규모 확장용)
       ─────────────────────────────────────────────────
         def make_keyword_lf(keywords, label):
             def lf(x):
@@ -686,21 +686,21 @@
     Part 3: Label Aggregation — Majority Vote vs Label Model
     ============================================================
 
-      다수결: 단순하지만 레이블링 함수마다 정확도가 다르다는 점을 무시한다.
+      다수결: 단순하지만 라벨링 함수마다 정확도가 다르다는 점을 무시한다.
 
-      레이블 모델(Snorkel): 레이블링 함수마다 정확도와 상관을 학습하여
-      확률적 레이블을 만들어 낸다.
+      라벨 모델(Snorkel): 라벨링 함수마다 정확도와 상관을 학습하여
+      확률적 라벨을 만들어 낸다.
 
         from snorkel.labeling.model import LabelModel
 
         label_model = LabelModel(cardinality=2, verbose=True)
         label_model.fit(L_train=L_train, n_epochs=500, seed=42)
 
-        # 확률적 레이블 얻기
+        # 확률적 라벨 얻기
         probs = label_model.predict_proba(L=L_train)
         # → shape: (n_samples, n_classes) with values in [0, 1]
 
-        # 딱딱한 레이블 얻기
+        # 하드 라벨 얻기
         preds = label_model.predict(L=L_train)
 
       Majority vote predictions:
@@ -742,33 +742,33 @@
 
       Snorkel 전체 파이프라인:
 
-      # 1단계: 레이블링 함수 정의
+      # 1단계: 라벨링 함수 정의
       lfs = [lf_contains_link, lf_subscribe, lf_check_out,
              lf_my_channel, lf_please, lf_short_comment,
              lf_song_mention, lf_textblob_positive, lf_has_person]
 
-      # 2단계: 레이블 없는 데이터에 적용
+      # 2단계: 라벨 없는 데이터에 적용
       from snorkel.labeling import PandasLFApplier
       applier = PandasLFApplier(lfs=lfs)
-      L_train = applier.apply(df=df_train)  # 모양: (n_train, n_lfs)
+      L_train = applier.apply(df=df_train)  # 형태: (n_train, n_lfs)
       L_test = applier.apply(df=df_test)
 
       # 3단계: 분석
       from snorkel.labeling import LFAnalysis
       LFAnalysis(L=L_train, lfs=lfs).lf_summary()
 
-      # 4단계: 레이블 모델 학습
+      # 4단계: 라벨 모델 학습
       from snorkel.labeling.model import LabelModel
       label_model = LabelModel(cardinality=2, verbose=True)
       label_model.fit(L_train=L_train, n_epochs=500, seed=42)
 
-      # 레이블 모델 평가
+      # 라벨 모델 평가
       label_model_acc = label_model.score(
           L=L_test, Y=Y_test, tie_break_policy="random"
       )["accuracy"]
       print(f"Label Model Accuracy: {label_model_acc:.1%}")
 
-      # 5단계: 확률적 레이블을 얻어 거르기
+      # 5단계: 확률적 라벨을 얻어 거르기
       from snorkel.labeling import filter_unlabeled_dataframe
       from snorkel.utils import probs_to_preds
 
@@ -792,9 +792,9 @@
 
       # 원래 노트북의 결과 (유튜브 스팸):
       #   다수결:           89.6%
-      #   레이블 모델:      92.4%
+      #   라벨 모델:      92.4%
       #   최종 모델 (LR):   93.5%
-      # 손으로 레이블을 붙인 학습 예가 하나도 없이!
+      # 손으로 라벨을 붙인 학습 예가 하나도 없이!
 
       Simplified demo with synthetic data:
       Coverage: 87.4% of samples have ≥1 label
@@ -807,9 +807,9 @@
     ============================================================
 
       약지도 학습은 다음과 같은 금융 분야에서 특히 값어치가 있다.
-      - 레이블 데이터가 드물다(독점적이고 주석 비용이 크다)
-      - 분야 전문가는 어림 규칙은 말할 수 있으나 1만 개를 일일이 레이블할 수는 없다
-      - 패턴이 시간에 따라 바뀐다(빠른 재레이블링이 필요하다)
+      - 라벨 데이터가 드물다(독점적이고 주석 비용이 크다)
+      - 분야 전문가는 휴리스틱은 말할 수 있으나 1만 개를 일일이 라벨링할 수는 없다
+      - 패턴이 시간에 따라 바뀐다(빠른 재라벨링이 필요하다)
 
       예: 실적 감성 분류
       ───────────────────────────────────────────
@@ -842,7 +842,7 @@
 
       @labeling_function()
       def lf_finbert_positive(x):
-          # 미리 학습된 FinBERT를 약한 레이블러로 쓰기
+          # 미리 학습된 FinBERT를 약한 라벨러로 쓰기
           score = finbert_pipeline(x.text)[0]
           if score["label"] == "positive" and score["score"] > 0.8:
               return BULLISH
@@ -851,42 +851,43 @@
       그 밖의 금융 응용:
       ─────────────────────────────
       1. SEC 공시 위험 분류
-         레이블링 함수: 위험 범주별 키워드 목록, 규제 인용을 잡는 정규식,
+         라벨링 함수: 위험 범주별 키워드 목록, 규제 인용을 잡는 정규식,
          기관 언급을 잡는 개체명 인식
 
       2. 뉴스 사건 탐지
-         레이블링 함수: 동사 패턴("acquired", "merged"), 개체 동시 출현,
+         라벨링 함수: 동사 패턴("acquired", "merged"), 개체 동시 출현,
          날짜 근접성, 출처 신뢰도
 
       3. 신용 위험 평가
-         레이블링 함수: 재무 비율 임계값, 업종 기준치,
+         라벨링 함수: 재무 비율 임계값, 업종 기준치,
          경영진 교체 신호, 부채 약정 키워드
 
       4. ESG 분류
-         레이블링 함수: 환경 키워드, 지배구조 패턴,
+         라벨링 함수: 환경 키워드, 지배구조 패턴,
          규제 준수 언급, 지속가능성 지표
 
-      수작업 레이블링에 견준 이점:
+      수작업 라벨링에 견준 이점:
       ┌──────────────────────┬─────────────┬───────────────────┐
       │ 지표                 │ 수작업      │ 약지도            │
       ├──────────────────────┼─────────────┼───────────────────┤
-      │ 레이블링 시간        │ 며칠~몇 주  │ 몇 시간           │
-      │ 레이블 하나당 비용   │ $0.50~$5.00│ 거의 $0(코드뿐)  │
+      │ 라벨링 시간          │ 며칠~몇 주  │ 몇 시간           │
+      │ 라벨 하나당 비용     │ $0.50~$5.00│ 거의 $0(코드뿐)  │
       │ 확장성               │ 선형        │ 한 번 짜면 O(1)   │
-      │ 적응성               │ 재레이블링  │ 함수 갱신         │
+      │ 적응성               │ 재라벨링    │ 함수 갱신         │
       │ 일관성               │ 들쭉날쭉    │ 결정적            │
       │ 분야 지식            │ 사라짐      │ 코드에 담김       │
       └──────────────────────┴─────────────┴───────────────────┘
 
     Done.
     ```
+
 ## 2. 논의
 
-레이블링 함수는 클래스나 ABSTAIN을 반환한다. 다수결은 관측된 투표를 결합하지만 규칙의 오류가 상관되어 있거나 같은 바이어스를 공유하면 잘못된 결과를 낼 수 있다. 레이블 모델도 식별성과 의존 구조에 관한 가정이 필요하며 품질을 자동 보장하지 않는다.
+라벨링 함수는 클래스나 ABSTAIN을 반환한다. 다수결은 관측된 투표를 결합하지만 규칙의 오류가 상관되어 있거나 같은 편향을 공유하면 잘못된 결과를 낼 수 있다. 라벨 모델도 식별성과 의존 구조에 관한 가정이 필요하며 품질을 자동 보장하지 않는다.
 
-겹침(overlap)은 여러 함수가 동시에 기권하지 않은 표본의 비율로, 서로 일치한 비율과 다르다. 충돌(conflict)은 그중 서로 다른 레이블을 준 경우를 다룬다. 적용률과 충돌만으로 개별 규칙의 정확도를 알 수는 없다.
+겹침(overlap)은 여러 함수가 동시에 기권하지 않은 표본의 비율로, 서로 일치한 비율과 다르다. 충돌(conflict)은 그중 서로 다른 라벨을 준 경우를 다룬다. 적용률과 충돌만으로 개별 규칙의 정확도를 알 수는 없다.
 
-본문은 Snorkel LabelModel을 실제로 학습시키는 완전한 실행 파이프라인이 아니다. 별도 구현이 필요하며, 최종 성능을 평가하려면 수작업으로 검수한 독립 레이블 데이터가 유용하다. 학습용 약한 레이블과 평가용 기준 레이블을 구분한다.
+본문은 Snorkel LabelModel을 실제로 학습시키는 완전한 실행 파이프라인이 아니다. 별도 구현이 필요하며, 최종 성능을 평가하려면 수작업으로 검수한 독립 라벨 데이터가 유용하다. 학습용 약한 라벨과 평가용 기준 라벨을 구분한다.
 
 ## 연습문제
 
@@ -919,12 +920,12 @@
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-여러 규칙이 모두 같은 오답을 내면 다수결이나 레이블 모델이 자동 해결하는가?
+여러 규칙이 모두 같은 오답을 내면 다수결이나 라벨 모델이 자동 해결하는가?
 
 </div>
 
 ??? success "풀이"
-    아니다. 공유 바이어스나 강한 의존성이 있으면 결합해도 오류가 남는다. 규칙 설계와 모델 가정을 확인하고 독립적인 기준 레이블로 품질을 평가한다.
+    아니다. 공유된 편향이나 강한 의존성이 있으면 결합해도 오류가 남는다. 규칙 설계와 모델 가정을 확인하고 독립적인 기준 라벨로 품질을 평가한다.
 
 ## 정리하며
 

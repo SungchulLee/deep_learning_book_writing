@@ -7,7 +7,7 @@
 ```python
 """
 컨볼루션 조건부 변분 오토인코더(ConvCVAE)
-컨볼루션 구조와 조건부 만들어 내기를 아우른다
+컨볼루션 구조와 조건부 생성을 결합한다
 """
 
 import torch
@@ -21,13 +21,13 @@ import torch.nn.functional as F
 
 class ConvConditionalVAE(nn.Module):
     """
-    조건부 그림 만들어 내기를 위한 컨볼루션 조건부 변분 오토인코더.
+    조건부 이미지 생성을 위한 컨볼루션 조건부 변분 오토인코더.
     
     인수:
-        latent_dim (int): 숨은 공간 차원
-        num_classes (int): 조건 지을 클래스의 수
-        img_channels (int): 들임 그림 채널 수
-        img_size (int): 들임 그림 크기(네모 그림이라 여긴다)
+        latent_dim (int): 잠재 공간 차원
+        num_classes (int): 조건으로 줄 클래스의 수
+        img_channels (int): 입력 이미지 채널 수
+        img_size (int): 입력 이미지 크기(정사각형 이미지로 가정한다)
     """
     
     def __init__(self, latent_dim=128, num_classes=10, img_channels=1, img_size=28):
@@ -38,12 +38,12 @@ class ConvConditionalVAE(nn.Module):
         self.img_channels = img_channels
         self.img_size = img_size
         
-        # 공간 조건 짓기를 위한 이름표 임베딩
+        # 공간 조건화를 위한 라벨 임베딩
         self.label_embedding = nn.Embedding(num_classes, img_size * img_size)
         
-        # 인코더 - 그림 + 묻은 이름표를 채널 하나로 더 받는다
+        # 인코더 - 이미지 + 임베딩한 라벨을 채널 하나로 더 받는다
         self.encoder = nn.Sequential(
-            # 들임: img_channels + 1(묻은 이름표용)
+            # 입력: img_channels + 1(임베딩한 라벨용)
             nn.Conv2d(img_channels + 1, 32, kernel_size=4, stride=2, padding=1),
             nn.BatchNorm2d(32),
             nn.LeakyReLU(0.2),
@@ -59,14 +59,14 @@ class ConvConditionalVAE(nn.Module):
             nn.Flatten()
         )
         
-        # 펼친 크기를 셈한다
+        # 펼친 크기를 계산한다
         self.flatten_size = 128 * 4 * 4
         
-        # 숨은 분포 파라메터
+        # 잠재 분포 파라메터
         self.fc_mu = nn.Linear(self.flatten_size, latent_dim)
         self.fc_logvar = nn.Linear(self.flatten_size, latent_dim)
         
-        # 디코더 들임: 숨은 것 + 하나만 뜨거운 클래스
+        # 디코더 입력: 잠재 표현 + 원핫 클래스
         self.decoder_input = nn.Linear(latent_dim + num_classes, self.flatten_size)
         
         # 디코더
@@ -87,26 +87,26 @@ class ConvConditionalVAE(nn.Module):
     
     def encode(self, x, labels):
         """
-        클래스 이름표에 조건 지어 들임 그림을 부호화한다.
+        클래스 라벨을 조건으로 입력 이미지를 인코딩한다.
         
         인수:
-            x: 들임 그림 텐서 [배치 크기, 채널, 높이, 너비]
-            labels: 클래스 이름표 [배치 크기]
+            x: 입력 이미지 텐서 [배치 크기, 채널, 높이, 너비]
+            labels: 클래스 라벨 [배치 크기]
             
         반환값:
-            mu: 숨은 분포의 평균
-            logvar: 숨은 분포의 로그 흩어짐
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
         """
         batch_size = x.size(0)
         
-        # 이름표를 묻고 공간 형태로 바꾼다
+        # 라벨을 임베딩하고 공간 형태로 바꾼다
         c_embedded = self.label_embedding(labels)
         c_embedded = c_embedded.view(batch_size, 1, self.img_size, self.img_size)
         
-        # 그림과 묻은 이름표를 잇는다
+        # 이미지와 임베딩한 라벨을 연결한다
         x_combined = torch.cat([x, c_embedded], dim=1)
         
-        # 부호화
+        # 인코딩
         h = self.encoder(x_combined)
         mu = self.fc_mu(h)
         logvar = self.fc_logvar(h)
@@ -114,14 +114,14 @@ class ConvConditionalVAE(nn.Module):
     
     def reparameterize(self, mu, logvar):
         """
-        다시 파라메터화 재주.
+        리파라메리제이션 기법.
         
         인수:
-            mu: 숨은 분포의 평균
-            logvar: 숨은 분포의 로그 흩어짐
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
             
         반환값:
-            z: 뽑은 숨은 벡터
+            z: 샘플링한 잠재 벡터
         """
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
@@ -129,19 +129,19 @@ class ConvConditionalVAE(nn.Module):
     
     def decode(self, z, labels):
         """
-        클래스 이름표에 조건 지어 숨은 나타냄을 푼다.
+        클래스 라벨을 조건으로 잠재 표현을 디코딩한다.
         
         인수:
-            z: 숨은 벡터 [배치 크기, 숨은 차원]
-            labels: 클래스 이름표 [배치 크기]
+            z: 잠재 벡터 [배치 크기, 잠재 차원]
+            labels: 클래스 라벨 [배치 크기]
             
         반환값:
-            reconstruction: 다시 세운 그림
+            reconstruction: 복원한 이미지
         """
-        # 이름표를 하나만 뜨겁게 부호화한다
+        # 라벨을 원핫 인코딩한다
         c_onehot = F.one_hot(labels, num_classes=self.num_classes).float()
         
-        # 잠재 표현과 조건을 잇는다
+        # 잠재 표현과 조건을 연결한다
         z_combined = torch.cat([z, c_onehot], dim=1)
         
         # 디코딩
@@ -151,16 +151,16 @@ class ConvConditionalVAE(nn.Module):
     
     def forward(self, x, labels):
         """
-        조건을 곁들인 온전한 피드포워드.
+        조건을 포함한 전체 순전파.
         
         인수:
-            x: 들임 그림 텐서
-            labels: 클래스 이름표
+            x: 입력 이미지 텐서
+            labels: 클래스 라벨
             
         반환값:
-            reconstruction: 다시 세운 그림
-            mu: 숨은 분포의 평균
-            logvar: 숨은 분포의 로그 흩어짐
+            reconstruction: 복원한 이미지
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
         """
         mu, logvar = self.encode(x, labels)
         z = self.reparameterize(mu, logvar)
@@ -172,16 +172,16 @@ class ConvConditionalVAE(nn.Module):
         변분 오토인코더 로스 함수.
         
         인수:
-            reconstruction: 다시 세운 내놓기
-            x: 본디 들임
-            mu: 숨은 분포의 평균
-            logvar: 숨은 분포의 로그 흩어짐
-            beta: KL 벌어짐 항의 무게
+            reconstruction: 복원한 출력
+            x: 원래 입력
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+            beta: KL 발산 항의 웨이트
             
         반환값:
             loss: 전체 변분 오토인코더 로스
-            bce: 다시 세우기 로스
-            kld: KL 벌어짐
+            bce: 복원 로스
+            kld: KL 발산
         """
         BCE = F.binary_cross_entropy(reconstruction, x, reduction='sum')
         KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
@@ -189,15 +189,15 @@ class ConvConditionalVAE(nn.Module):
     
     def sample(self, class_label, num_samples, device='cpu'):
         """
-        특정 클래스에 조건 지어 표본을 만든다.
+        특정 클래스를 조건으로 표본을 생성한다.
         
         인수:
-            class_label: 만들 클래스(int)
-            num_samples: 만들 표본의 개수
-            device: 표본을 만들 기기
+            class_label: 생성할 클래스(int)
+            num_samples: 생성할 표본의 개수
+            device: 표본을 생성할 장치
             
         반환값:
-            samples: 만든 그림 표본
+            samples: 생성한 이미지 표본
         """
         z = torch.randn(num_samples, self.latent_dim).to(device)
         labels = torch.tensor([class_label] * num_samples).to(device)
@@ -206,16 +206,16 @@ class ConvConditionalVAE(nn.Module):
     
     def interpolate_classes(self, z, class1, class2, num_steps=10):
         """
-        잠재 표현을 고정한 채 두 클래스 사이를 사이 끼움한다.
+        잠재 표현을 고정한 채 두 클래스 사이를 보간한다.
         
         인수:
-            z: 고정한 잠재 표현 [1, 숨은 차원]
+            z: 고정한 잠재 표현 [1, 잠재 차원]
             class1: 시작 클래스
             class2: 끝 클래스
-            num_steps: 사이 끼움 스텝 수
+            num_steps: 보간 스텝 수
             
         반환값:
-            interpolations: 사이 끼움한 표본
+            interpolations: 보간한 표본
         """
         device = z.device
         interpolations = []
@@ -223,7 +223,7 @@ class ConvConditionalVAE(nn.Module):
         for i in range(num_steps):
             alpha = i / (num_steps - 1)
             
-            # 사이 끼움을 위한 부드러운 이름표를 만든다
+            # 보간을 위한 소프트 라벨을 만든다
             c1_onehot = F.one_hot(torch.tensor([class1]), num_classes=self.num_classes).float().to(device)
             c2_onehot = F.one_hot(torch.tensor([class2]), num_classes=self.num_classes).float().to(device)
             c_interpolated = (1 - alpha) * c1_onehot + alpha * c2_onehot
@@ -254,16 +254,16 @@ if __name__ == '__main__':
     print(f"Reconstruction Loss: {bce.item():.4f}")
     print(f"KL Divergence: {kld.item():.4f}")
     
-    # 조건부 뽑기를 시험한다
+    # 조건부 샘플링을 시험한다
     samples = model.sample(class_label=7, num_samples=10)
     print(f"Generated samples (class 7) shape: {samples.shape}")
 ```
 
-기본 이미지 입력은 `(B,1,28,28)`, 레이블은 0~9 정수 인덱스 `(B,)`다. 인코더의 단어 임베딩 표는 클래스마다 학습 가능한 784개 값을 저장한다. 이를 `(B,1,28,28)`로 바꿔 이미지에 연결하므로 첫 컨볼루션은 2채널을 받는다. 이 조건 지도는 원핫을 공간에 반복한 10개 채널과 다르며 위치마다 값이 같을 필요도 없다.
+기본 이미지 입력은 `(B,1,28,28)`, 라벨은 0~9 정수 인덱스 `(B,)`다. 인코더의 클래스 임베딩 표는 클래스마다 학습 가능한 784개 값을 저장한다. 이를 `(B,1,28,28)`로 바꿔 이미지에 연결하므로 첫 컨볼루션은 2채널을 받는다. 이 조건 지도는 원핫을 공간에 반복한 10개 채널과 다르며 위치마다 값이 같을 필요도 없다.
 
 인코더는 28→14→7→4로 줄이고 2,048개 피처에서 평균·로그분산을 예측한다. 디코더는 `(z,one_hot(y))`를 선형 변환해 `(B,128,4,4)`로 만든 뒤 4→7→14→28로 확대한다. 표준정규 사전을 쓰므로 KL 식은 [조건부 VAE](conditional_vae.md)와 같다.
 
-**기존 출력 기록:**
+**출력:**
 
 ```
 Input shape: torch.Size([32, 1, 28, 28])
@@ -279,7 +279,7 @@ Generated samples (class 7) shape: torch.Size([10, 1, 28, 28])
 
 ## 2. 사용 조건과 구조의 한계
 
-img_size는 임베딩 지도의 크기에는 반영되지만 인코더의 펼친 크기와 디코더 시작 지도는 128×4×4로 고정되어 있다. 다른 해상도를 지원하려면 이 선형 레이어들과 업샘플링 구조까지 함께 바꿔야 한다. 기본 설정의 학습 파라미터는 1,032,545개다. 무조건 ConvVAE보다 임베딩 7,840개, 첫 컨볼루션 512개, 디코더 조건 연결 20,480개가 더해진 값이다.
+img_size는 임베딩 지도의 크기에는 반영되지만 인코더의 펼친 크기와 디코더 시작 지도는 128×4×4로 고정되어 있다. 다른 해상도를 지원하려면 이 선형 레이어들과 업샘플링 구조까지 함께 바꿔야 한다. 기본 설정의 학습 파라메터는 1,032,545개다. 무조건 ConvVAE보다 임베딩 7,840개, 첫 컨볼루션 512개, 디코더 조건 연결 20,480개가 더해진 값이다.
 
 BCE와 KL은 배치 전체 합이며 반환값은 `(전체 로스,BCE,KL)`이다. BCE 타깃의 범위·모양과 모델의 장치·자료형을 맞춘다. BatchNorm은 학습·평가 모드에 따라 동작이 달라지지만 잠재 표본은 평가에서도 다시 뽑는다. sample은 eval·no_grad를 적용하지 않고 기본 CPU 잠재 표현을 생성하므로 호출부에서 평가 조건을 정해야 한다.
 
@@ -300,7 +300,7 @@ interpolate_classes는 하나의 잠재 표현 `(1,latent_dim)`를 고정하고 
 
 ??? success "풀이"
 
-    레이블 `(4,)`→임베딩 `(4,784)`→조건 지도 `(4,1,28,28)`이며 연결 입력은 `(4,2,28,28)`이다. 컨볼루션 피처는 `(4,32,14,14)`→`(4,64,7,7)`→`(4,128,4,4)`, 펼친 값은 `(4,2048)`이다. 평균·로그분산·잠재 표본은 `(4,128)`이다. 디코더에서는 원핫 `(4,10)`과 연결해 `(4,138)`→`(4,2048)`→`(4,128,4,4)`로 바꾼다. 전치 컨볼루션은 `(4,64,7,7)`→`(4,32,14,14)`→`(4,1,28,28)`을 만든다.
+    라벨 `(4,)`→임베딩 `(4,784)`→조건 지도 `(4,1,28,28)`이며 연결 입력은 `(4,2,28,28)`이다. 컨볼루션 피처는 `(4,32,14,14)`→`(4,64,7,7)`→`(4,128,4,4)`, 펼친 값은 `(4,2048)`이다. 평균·로그분산·잠재 표본은 `(4,128)`이다. 디코더에서는 원핫 `(4,10)`과 연결해 `(4,138)`→`(4,2048)`→`(4,128,4,4)`로 바꾼다. 전치 컨볼루션은 `(4,64,7,7)`→`(4,32,14,14)`→`(4,1,28,28)`을 만든다.
 
 
 
@@ -315,7 +315,7 @@ interpolate_classes는 하나의 잠재 표현 `(1,latent_dim)`를 고정하고 
 
 ??? success "풀이"
 
-    img_channels=3,img_size=64로 조건 지도를 만들면 연결 입력은 4채널이다. 기존 인코더 스트라이드를 유지하면 마지막 지도는 128×8×8이다. 두 헤드와 디코더 입력 레이어를 이 크기로 맞추고 Unflatten도 바꾼다. 디코더의 세 레이어를 커널 4·스트라이드 2·패딩 1로 구성하면 8→16→32→64가 가능하다. 마지막 출력은 3채널이어야 한다. forward에는 이미지와 레이블이 모두 필요하고 반환은 튜플이므로 기존 풀이처럼 model(x).shape만 확인하는 방식은 맞지 않는다.
+    img_channels=3,img_size=64로 조건 지도를 만들면 연결 입력은 4채널이다. 기존 인코더 스트라이드를 유지하면 마지막 지도는 128×8×8이다. 두 헤드와 디코더 입력 레이어를 이 크기로 맞추고 Unflatten도 바꾼다. 디코더의 세 레이어를 커널 4·스트라이드 2·패딩 1로 구성하면 8→16→32→64가 가능하다. 마지막 출력은 3채널이어야 한다. forward에는 이미지와 라벨이 모두 필요하고 반환은 튜플이므로 model(x).shape만 확인하는 방식은 맞지 않는다.
 
 
 
@@ -407,11 +407,11 @@ interpolate_classes는 하나의 잠재 표현 `(1,latent_dim)`를 고정하고 
 
 ??? success "풀이"
 
-    별도 검증 자료에서 잠재 표현만으로 클래스 예측이 가능한지 검사하고 빈도 기준선과 비교한다. 낮은 분류 성능만으로 독립성이 입증되지는 않는다. 동일 z에서 조건을 바꾸거나 조건을 제거·섞어 출력 변화를 보는 개입도 보완 자료다. 아래 코드의 model.enc는 본문의 model.encoder와 속성명이 달라 그대로 동작하지 않는다. 이름을 맞추어 웨이트 크기를 살펴도 임베딩 스케일·후속 레이어·디코더 조건 경로가 있으므로 작은 첫 레이어 웨이트만으로 조건 무시를 결론 낼 수 없다.
+    별도 검증 데이터에서 잠재 표현만으로 클래스 예측이 가능한지 검사하고 빈도 기준선과 비교한다. 낮은 분류 성능만으로 독립성이 입증되지는 않는다. 동일 z에서 조건을 바꾸거나 조건을 제거·섞어 출력 변화를 보는 개입도 보완 자료다. 아래 코드의 model.enc는 본문의 model.encoder와 속성명이 달라 그대로 동작하지 않는다. 이름을 맞추어 웨이트 크기를 살펴도 임베딩 스케일·후속 레이어·디코더 조건 경로가 있으므로 작은 첫 레이어 웨이트만으로 조건 무시를 결론 낼 수 없다.
 
     ```python
     w = model.enc[0].weight            # (32, 11, 3, 3)
-    print("그림 채널:", w[:, :1].abs().mean().item())
+    print("이미지 채널:", w[:, :1].abs().mean().item())
     print("조건 채널:", w[:, 1:].abs().mean().item())
     ```
 
@@ -427,7 +427,7 @@ interpolate_classes는 하나의 잠재 표현 `(1,latent_dim)`를 고정하고 
 
 ??? success "풀이"
 
-    두 선택은 상호작용할 수 있어 이득이 가산적이라고 보장할 수 없다. 완전 연결·컨볼루션 각각에서 조건 유무를 비교하는 네 조합 실험이 필요하다. 재구성 변화가 생성 품질 개선을 뜻하지 않으며 조건 추가가 사전 불일치를 자동으로 해결하지도 않는다. 본문에는 학습 비교가 없어 기존 다른 설정의 수치로 빈 조합의 성능을 추정할 수 없다.
+    두 선택은 상호작용할 수 있어 이득이 가산적이라고 보장할 수 없다. 완전 연결·컨볼루션 각각에서 조건 유무를 비교하는 네 조합 실험이 필요하다. 복원 변화가 생성 품질 개선을 뜻하지 않으며 조건 추가가 사전 불일치를 자동으로 해결하지도 않는다. 본문에는 학습 비교가 없어 다른 설정의 수치로 빈 조합의 성능을 추정할 수 없다.
 
 
 
@@ -442,7 +442,7 @@ interpolate_classes는 하나의 잠재 표현 `(1,latent_dim)`를 고정하고 
 
 ??? success "풀이"
 
-    데이터 분할·전처리·관측 모형·잠재 차원·로스 합산 기준을 맞추고 파라미터 수·시간·메모리 차이를 보고한다. 동일 하이퍼파라미터 비교와 동일 튜닝 예산 비교는 서로 다른 질문에 답하므로 구분한다. 여러 초기화에서 재구성·표준 ELBO·차원별 KL·품질·다양성을 측정한다. 조건부 모델에는 지정 클래스 일치율도 추가한다. 무조건부 비교용 조건 분포 p(y)도 명시한다. 분류기 확신도 임계는 보조 지표로 표시하며 “숫자로 보이는 진짜 비율”로 해석하지 않는다.
+    데이터 분할·전처리·관측 모형·잠재 차원·로스 합산 기준을 맞추고 파라메터 수·시간·메모리 차이를 보고한다. 동일 하이퍼파라메터 비교와 동일 튜닝 예산 비교는 서로 다른 질문에 답하므로 구분한다. 여러 초기화에서 복원·표준 ELBO·차원별 KL·품질·다양성을 측정한다. 조건부 모델에는 지정 클래스 일치율도 추가한다. 무조건부 비교용 조건 분포 p(y)도 명시한다. 분류기 확신도 임계는 보조 지표로 표시하며 “숫자로 보이는 진짜 비율”로 해석하지 않는다.
 
 
 
@@ -457,10 +457,10 @@ interpolate_classes는 하나의 잠재 표현 `(1,latent_dim)`를 고정하고 
 
 ??? success "풀이"
 
-    아래 코드는 잠재 16차원과 원핫을 직접 받는 decode를 가정한다. 본문 기본 잠재는 128이고 decode는 원핫이 아닌 정수 레이블을 받아 내부에서 one_hot을 만들므로 그대로 호환되지 않는다. 실제 잠재 차원에 맞춘 동일 z의 10행과 정수 레이블 0~9를 전달해야 한다. 이런 비교는 클래스 제어와 스타일 변화를 살피는 도구다. 스타일 변화가 곧 특정 정보 혼합 원인을 증명하거나 잘못된 클래스가 반드시 조건 전달 버그를 뜻하는 것은 아니며 학습 부족·모형 한계도 점검한다.
+    아래 코드는 잠재 16차원과 원핫을 직접 받는 decode를 가정한다. 본문 기본 잠재는 128이고 decode는 원핫이 아닌 정수 라벨을 받아 내부에서 one_hot을 만들므로 그대로 호환되지 않는다. 실제 잠재 차원에 맞춘 동일 z의 10행과 정수 라벨 0~9를 전달해야 한다. 이런 비교는 클래스 제어와 스타일 변화를 살피는 도구다. 스타일 변화가 곧 특정 정보 혼합 원인을 증명하거나 잘못된 클래스가 반드시 조건 전달 버그를 뜻하는 것은 아니며 학습 부족·모형 한계도 점검한다.
 
     ```python
-    z = torch.randn(1, 16).repeat(10, 1)              # 같은 잠재 표현 열 벌
+    z = torch.randn(1, 16).repeat(10, 1)              # 같은 잠재 표현 열 개
     y = F.one_hot(torch.arange(10), 10).float()       # 0..9
     imgs = model.decode(z, y)                         # (10, 1, 28, 28)
     ```
@@ -468,4 +468,4 @@ interpolate_classes는 하나의 잠재 표현 `(1,latent_dim)`를 고정하고 
 
 ## 정리하며
 
-이 모델은 공간 임베딩 채널과 디코더 원핫 연결로 조건을 전달한다. 고정 해상도와 정수 레이블 계약을 지키고, 보간·표현 분리·조건 일치율은 각각의 실험으로 평가한다. 조건 경로의 형태와 비용을 구분하면 다른 구현의 예시를 그대로 적용하는 오류를 줄일 수 있다.
+이 모델은 공간 임베딩 채널과 디코더 원핫 연결로 조건을 전달한다. 고정 해상도와 정수 라벨 계약을 지키고, 보간·표현 분리·조건 일치율은 각각의 실험으로 평가한다. 조건 경로의 형태와 비용을 구분하면 다른 구현의 예시를 그대로 적용하는 오류를 줄일 수 있다.

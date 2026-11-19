@@ -1,6 +1,6 @@
 # 사전 학습된 YOLO의 추론 결과 읽기
 
-사전 학습된 YOLOv8n을 불러 합성 이미지에서 추론하고 상자·점수·클래스를 읽는 예제다. 모델 내부를 새로 구현하거나 학습하지 않는다. 합성 도형의 레이블은 COCO 객체 클래스와 다르므로 이 자료만으로 일반 객체 탐지 정확도를 평가할 수 없다.
+사전 학습된 YOLOv8n을 불러 합성 이미지에서 추론하고 상자·점수·클래스를 읽는 예제다. 모델 내부를 새로 구현하거나 학습하지 않는다. 합성 도형의 라벨은 COCO 객체 클래스와 다르므로 이 데이터만으로 일반 객체 탐지 정확도를 평가할 수 없다.
 
 ## 1. 추론·시각화 코드와 기존 출력
 
@@ -8,19 +8,19 @@
 
     ```python
     """
-    보기 2: YOLO 물체 탐지
+    예제 2: YOLO 객체 탐지
     =================================
 
-    이 각본은 미리 익힌 YOLOv8을 물체 탐지에 쓰는 법을 보여 준다.
-    YOLO(한 번만 본다)는 빠르고 정확한 한 단계 알아내개이며
-    실시간 쓰임새에 안성맞춤이다.
+    이 스크립트는 사전 학습된 YOLOv8을 객체 탐지에 쓰는 법을 보여 준다.
+    YOLO(You Only Look Once)는 빠르고 정확한 단일 단계 탐지기이며
+    실시간 응용에 알맞다.
 
     핵심 개념:
-    - 미리 익힌 YOLO 모델 읽어 들이기
-    - 그림에 미룸 돌리기
-    - YOLO의 어림 이해하기
-    - 그려 보기와 읽어 내기
-    - 모델 견줌(크기별)
+    - 사전 학습된 YOLO 모델 불러오기
+    - 이미지에 추론 실행하기
+    - YOLO의 예측 이해하기
+    - 시각화와 해석
+    - 모델 비교(크기별)
 
     지은이: PyTorch Object Detection Tutorial
     날짜: 2025
@@ -34,7 +34,7 @@
     import time
     import os
 
-    # ultralytics(YOLOv8) 들여오기 시도
+    # ultralytics(YOLOv8) 임포트 시도
     try:
         from ultralytics import YOLO
         YOLO_AVAILABLE = True
@@ -43,7 +43,7 @@
         print("Run: pip install ultralytics")
         YOLO_AVAILABLE = False
 
-    # 난수 씨앗 고정
+    # 난수 시드 고정
     np.random.seed(42)
     torch.manual_seed(42)
 
@@ -57,7 +57,7 @@
     print("4. Comparing different model sizes")
     print("5. Real-time performance analysis\n")
 
-    # 기기 살피기
+    # 장치 확인
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"Using device: {device}")
     if device == 'cpu':
@@ -66,19 +66,19 @@
         print(f"✓ GPU available: {torch.cuda.get_device_name(0)}\n")
 
     # ============================================================================
-    # 1단계: 인공 시험 그림 만들기
+    # 1단계: 합성 시험 이미지 만들기
     # ============================================================================
     """
-    보여 주려고 단순한 물체가 있는 인공 그림을 만든다.
-    실전에서는 실제 그림을 쓴다.
+    시연을 위해 단순한 객체가 있는 합성 이미지를 만든다.
+    실전에서는 실제 이미지를 쓴다.
     """
 
     def create_test_image(size=(640, 640), num_objects=3):
-        """시험용 인공 그림을 만든다."""
+        """시험용 합성 이미지를 만든다."""
         img = Image.new('RGB', size, color=(240, 240, 240))
         draw = ImageDraw.Draw(img)
 
-        # 미리 정해 둔 물체 클래스
+        # 미리 정해 둔 객체 클래스
         object_types = [
             {'shape': 'rectangle', 'color': (255, 100, 100), 'label': 'red_box'},
             {'shape': 'ellipse', 'color': (100, 100, 255), 'label': 'blue_circle'},
@@ -90,7 +90,7 @@
         for i in range(min(num_objects, len(object_types))):
             obj_type = object_types[i]
 
-            # 마구잡이 자리와 크기
+            # 무작위 위치와 크기
             x = np.random.randint(50, size[0] - 150)
             y = np.random.randint(50, size[1] - 150)
             w = np.random.randint(80, 150)
@@ -115,7 +115,7 @@
     print("Step 1: Creating Test Images")
     print("-" * 70)
 
-    # 시험 그림 여럿 만들기
+    # 시험 이미지 여럿 만들기
     test_images = []
     for i in range(3):
         img, objects = create_test_image()
@@ -125,7 +125,7 @@
     print()
 
     # ============================================================================
-    # 2단계: 미리 익힌 YOLO 모델 읽어 들이기
+    # 2단계: 사전 학습된 YOLO 모델 불러오기
     # ============================================================================
     """
     YOLOv8에는 여러 크기가 있다:
@@ -135,7 +135,7 @@
     - yolov8l(대형): 더 나은 정확도(파라메터 4370만)
     - yolov8x(초대형): 가장 좋은 정확도(파라메터 6820만)
 
-    빠르기를 위해 yolov8n으로 시작한다.
+    속도를 위해 yolov8n으로 시작한다.
     """
 
     if not YOLO_AVAILABLE:
@@ -146,11 +146,11 @@
     print("Step 2: Loading Pre-trained YOLOv8 Model")
     print("-" * 70)
 
-    # YOLOv8 나노 모델 읽어 들이기(처음 돌릴 때 내려받는다)
+    # YOLOv8 나노 모델 불러오기(처음 실행할 때 내려받는다)
     print("Loading YOLOv8n (nano) model...")
     print("(First run will download ~6MB model weights)")
 
-    model = YOLO('yolov8n.pt')  # 없으면 저절로 내려받는다
+    model = YOLO('yolov8n.pt')  # 없으면 자동으로 내려받는다
 
     print(f"✓ Model loaded successfully")
     print(f"Model type: {type(model)}")
@@ -164,26 +164,26 @@
         print()
 
     # ============================================================================
-    # 3단계: YOLO의 어림 이해하기
+    # 3단계: YOLO의 예측 이해하기
     # ============================================================================
     """
-    YOLO는 알아냄마다 다음을 내놓는다:
-    - 두름 상자: [x_최소, y_최소, x_최대, y_최대]
-    - 믿음도: 0과 1 사이의 실수
+    YOLO는 탐지마다 다음을 출력한다:
+    - 경계 상자: [x_최소, y_최소, x_최대, y_최대]
+    - 신뢰도: 0과 1 사이의 실수
     - 클래스: 정수 클래스 번호
-    - 클래스 이름: 글자 이름표
+    - 클래스 이름: 문자열 라벨
 
-    결과 개체에는 다음이 들어 있다:
-    - boxes: 모든 두름 상자
-    - names: 클래스 이름 대응(사전)
-    - conf: 믿음도 점수
+    결과 객체에는 다음이 들어 있다:
+    - boxes: 모든 경계 상자
+    - names: 클래스 이름 매핑(딕셔너리)
+    - conf: 신뢰도 점수
     - cls: 클래스 번호
     """
 
     print("Step 3: Running Detection and Understanding Output")
     print("-" * 70)
 
-    # 첫 시험 그림에 탐지 돌리기
+    # 첫 시험 이미지에 탐지 실행
     test_img = test_images[0][0]
 
     print("Running inference...")
@@ -195,7 +195,7 @@
     print(f"\nResults type: {type(results)}")
     print(f"Number of result objects: {len(results)}")
 
-    # 첫 결과 뽑아내기
+    # 첫 결과 꺼내기
     result = results[0]
 
     print(f"\nDetections found: {len(result.boxes)}")
@@ -205,7 +205,7 @@
         print(f"  result.boxes.data: Shape {result.boxes.data.shape}")
         print(f"  Each detection: [x1, y1, x2, y2, confidence, class_id]")
 
-        # 첫 알아냄의 세부 보이기
+        # 첫 탐지의 세부 출력
         if len(result.boxes) > 0:
             first_det = result.boxes[0]
             print(f"\nFirst detection:")
@@ -220,8 +220,8 @@
     # 4단계: COCO 클래스 훑어보기
     # ============================================================================
     """
-    YOLOv8은 클래스 80개의 COCO 자료 뭉치로 미리 익혀져 있다.
-    어떤 클래스를 알아낼 수 있는지 보자.
+    YOLOv8은 클래스 80개의 COCO 데이터셋으로 사전 학습되어 있다.
+    어떤 클래스를 탐지할 수 있는지 보자.
     """
 
     print("Step 4: COCO Dataset Classes")
@@ -238,7 +238,7 @@
         print(f"  ID {class_id:2d}: {class_names[class_id]}")
 
     print(f"\nFull class list:")
-    # 모든 클래스를 칸으로 찍기
+    # 모든 클래스를 여러 열로 출력
     class_list = [f"{i:2d}:{name}" for i, name in class_names.items()]
     for i in range(0, len(class_list), 4):
         print("  " + "  ".join(class_list[i:i+4]))
@@ -246,19 +246,19 @@
     print()
 
     # ============================================================================
-    # 5단계: 믿음도 임계값을 둔 탐지
+    # 5단계: 신뢰도 임계값을 둔 탐지
     # ============================================================================
     """
-    파라메터로 탐지의 몸짓을 다스릴 수 있다:
-    - conf: 믿음도 임계값(붙박이 0.25)
-    - iou: NMS의 겹침 비 임계값(붙박이 0.45)
-    - classes: 알아낼 특정 클래스
+    파라메터로 탐지 동작을 조절할 수 있다:
+    - conf: 신뢰도 임계값(기본값 0.25)
+    - iou: NMS의 IoU 임계값(기본값 0.45)
+    - classes: 탐지할 특정 클래스
     """
 
     print("Step 5: Detection with Different Thresholds")
     print("-" * 70)
 
-    # 믿음도 임계값을 달리해 시험
+    # 신뢰도 임계값을 달리해 시험
     thresholds = [0.25, 0.5, 0.7]
 
     for conf_thresh in thresholds:
@@ -269,43 +269,43 @@
     print()
 
     # ============================================================================
-    # 6단계: 알아냄 그려 보기
+    # 6단계: 탐지 결과 시각화
     # ============================================================================
     """
-    YOLO는 그려 보기를 갖추고 있지만 여기서는 맞춤
-    그려 보기를 만들어 결과를 더 잘 이해한다.
+    YOLO는 시각화 기능을 갖추고 있지만 여기서는 직접
+    시각화 함수를 만들어 결과를 더 잘 이해한다.
     """
 
     def visualize_yolo_results(image, result, title="YOLO Detections", save_path=None):
         """
-        YOLO의 탐지 결과를 그려 본다.
+        YOLO의 탐지 결과를 시각화한다.
 
         인수:
-            image: PIL 그림 또는 numpy 배열
-            result: YOLO 결과 개체
+            image: PIL 이미지 또는 numpy 배열
+            result: YOLO 결과 객체
             title: 그림의 제목
             save_path: 그림을 저장할 경로
         """
         fig, ax = plt.subplots(1, figsize=(12, 12))
         ax.imshow(image)
 
-        # 알아냄 얻기
+        # 탐지 결과 얻기
         boxes = result.boxes
 
-        # 클래스마다 빛깔 정하기
+        # 클래스마다 색 정하기
         colors = plt.cm.tab20(np.linspace(0, 1, len(result.names)))
 
         for box in boxes:
-            # 상자 자리표 뽑아내기
+            # 상자 좌표 꺼내기
             x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
             conf = box.conf[0].cpu().numpy()
             cls = int(box.cls[0].cpu().numpy())
             class_name = result.names[cls]
 
-            # 이 클래스의 빛깔 얻기
+            # 이 클래스의 색 얻기
             color = colors[cls % len(colors)]
 
-            # 네모 그리기
+            # 사각형 그리기
             width = x2 - x1
             height = y2 - y1
             rect = patches.Rectangle(
@@ -314,7 +314,7 @@
             )
             ax.add_patch(rect)
 
-            # 이름표 더하기
+            # 라벨 추가
             label_text = f'{class_name}: {conf:.2f}'
             ax.text(
                 x1, y1 - 5,
@@ -338,7 +338,7 @@
     print("Step 6: Creating Visualizations")
     print("-" * 70)
 
-    # 알아내고 그려 보기
+    # 탐지하고 시각화
     results = model(test_img, conf=0.25, verbose=False)
     visualize_yolo_results(
         test_img,
@@ -350,12 +350,12 @@
     print()
 
     # ============================================================================
-    # 7단계: 모델 크기 견주기
+    # 7단계: 모델 크기 비교
     # ============================================================================
     """
-    YOLOv8 모델 크기를 견준다:
-    - 빠르기(미룸 시간)
-    - 정확도(알아낸 물체)
+    YOLOv8 모델 크기를 비교한다:
+    - 속도(추론 시간)
+    - 정확도(탐지한 객체)
     - 모델 크기(파라메터)
     """
 
@@ -363,8 +363,8 @@
     print("-" * 70)
 
     # 쓸 수 있는 모델(빠르게 하려면 주석 처리)
-    model_sizes = ['yolov8n.pt']  # 보임용으로 나노만
-    # 여럿을 견주려면 주석 해제:
+    model_sizes = ['yolov8n.pt']  # 시연용으로 나노만
+    # 여럿을 비교하려면 주석 해제:
     # model_sizes = ['yolov8n.pt', 'yolov8s.pt', 'yolov8m.pt']
 
     comparison_results = []
@@ -377,10 +377,10 @@
         if device == 'cuda':
             test_model.to(device)
 
-        # 몸풀기 돌리기
+        # 워밍업 실행
         _ = test_model(test_img, verbose=False)
 
-        # 시간을 잰 돌리기
+        # 시간 측정 실행
         times = []
         for _ in range(5):
             start = time.time()
@@ -409,16 +409,16 @@
     print()
 
     # ============================================================================
-    # 8단계: 배치 단위 다루기
+    # 8단계: 배치 단위 처리
     # ============================================================================
     """
-    YOLO는 그림 여럿을 배치로 효율적으로 다룰 수 있다.
+    YOLO는 이미지 여럿을 배치로 효율적으로 처리할 수 있다.
     """
 
     print("Step 8: Batch Processing Multiple Images")
     print("-" * 70)
 
-    # 시험 그림 모두 다루기
+    # 시험 이미지 모두 처리
     batch_images = [img for img, _ in test_images]
 
     print(f"Processing {len(batch_images)} images in batch...")
@@ -435,14 +435,14 @@
     print()
 
     # ============================================================================
-    # 9단계: 앞선 기능
+    # 9단계: 고급 기능
     # ============================================================================
     """
-    YOLOv8은 여러 앞선 기능을 받쳐 준다:
-    - 클래스 거르기
-    - 관심 자리(ROI)
-    - 맞춤 믿음도/겹침 비 임계값
-    - 미룸 동안의 그림 불리기
+    YOLOv8은 여러 고급 기능을 지원한다:
+    - 클래스 필터링
+    - 관심 영역(ROI)
+    - 사용자 지정 신뢰도/IoU 임계값
+    - 추론 시 이미지 어그멘테이션(TTA)
     """
 
     print("Step 9: Advanced YOLO Features")
@@ -454,12 +454,12 @@
     results = model(test_img, classes=[0, 2, 15], verbose=False)
     print(f"  Detections: {len(results[0].boxes)}")
 
-    # 기능 2: 맞춤 임계값
+    # 기능 2: 사용자 지정 임계값
     print("\nFeature 2: Custom confidence and IoU thresholds")
     results_strict = model(test_img, conf=0.7, iou=0.3, verbose=False)
     print(f"  High confidence (0.7): {len(results_strict[0].boxes)} detections")
 
-    # 기능 3: 어림의 세부 얻기
+    # 기능 3: 예측의 세부 얻기
     print("\nFeature 3: Accessing detailed predictions")
     results = model(test_img, verbose=False)
     if len(results[0].boxes) > 0:
@@ -473,16 +473,16 @@
     print()
 
     # ============================================================================
-    # 10단계: 성능 살피기
+    # 10단계: 성능 분석
     # ============================================================================
     """
-    YOLO의 성능 성질을 살핀다.
+    YOLO의 성능 특성을 분석한다.
     """
 
     print("Step 10: Performance Analysis")
     print("-" * 70)
 
-    # 초당 틀 수 재기
+    # 초당 프레임 수(FPS) 측정
     num_runs = 10
     times = []
 
@@ -608,7 +608,7 @@ conf는 낮은 점수 후보를 거르는 기준이고 iou는 NMS에서 겹친 �
 
 ## 6. 예제 파일의 실행 범위
 
-설치되지 않았을 때 ‘Installing’ 메시지를 내지만 실제 설치 명령은 실행하지 않는다. 웨이트 로드에는 다운로드가 필요할 수 있다. 예제 호출과 그림 저장은 최상위에 있어 import만 해도 수행되고, 마지막 main 조건문의 pass가 이를 막지 않는다. 읽기·검토 작업에서는 기존 출력과 코드를 설명하면 충분하며 재실행할 필요는 없다.
+설치되지 않았을 때 ‘Installing’ 메시지를 내지만 실제 설치 명령은 실행하지 않는다. 웨이트 로드에는 다운로드가 필요할 수 있다. 예제 호출과 그림 저장은 최상위에 있어 import만 해도 수행되고, 마지막 main 조건문의 pass가 이를 막지 않는다. 실린 출력은 ultralytics가 설치되지 않은 환경에서 나온 것이라 시험 이미지를 만든 직후에 끝난다.
 
 ## 연습문제
 
@@ -660,13 +660,13 @@ boxes.xywh의 앞 두 값과 클래스 [0,2,15]의 의미를 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 기존 시험 조각이 이 추론 API에 적절한지 검토하라.
+아래 시험 조각이 이 추론 API에 적절한지 검토하라.
 
 </div>
 
 ??? success "풀이"
 
-    공백 식별자·미정의 Example 2 때문에 실행 가능한 시험이 아니다. YOLO의 고수준 추론 결과는 고정 모양의 학습 텐서가 아니며 여기에 out.sum().backward()를 바로 적용할 수 없다. 빈 탐지 결과·좌표 형식·클래스 매핑·입력 수와 Results 수·여러 이미지의 대응을 확인하는 명세가 적절하다. 아래 조각은 자리 표시자로 읽는다.
+    공백 식별자·미정의 Example 2 때문에 실행 가능한 시험이 아니다. YOLO의 고수준 추론 결과는 고정 형태의 학습 텐서가 아니며 여기에 out.sum().backward()를 바로 적용할 수 없다. 빈 탐지 결과·좌표 형식·클래스 매핑·입력 수와 Results 수·여러 이미지의 대응을 확인하는 명세가 적절하다. 아래 조각은 자리 표시자로 읽는다.
 
     ```python
     def test_example 2():
@@ -675,10 +675,10 @@ boxes.xywh의 앞 두 값과 클래스 [0,2,15]의 의미를 설명하라.
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

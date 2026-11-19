@@ -6,9 +6,9 @@
 
 ```python
 """
-어텐션 장치 종합 예제
+어텐션 메커니즘 종합 예제
 ============================================
-이 모듈은 여러 어텐션 장치의 실제 쓰임을 보인다.
+이 모듈은 여러 어텐션 메커니즘의 실제 쓰임을 보인다.
 """
 
 import torch
@@ -20,9 +20,9 @@ from typing import Optional, Tuple
 
 # --- attention_basics ---
 """
-기본 어텐션 장치 구현
+기본 어텐션 메커니즘 구현
 =========================================
-이 모듈은 어텐션 장치의 바탕이 되는 개념을 구현한다.
+이 모듈은 어텐션 메커니즘의 바탕이 되는 개념을 구현한다.
 """
 
 
@@ -33,18 +33,18 @@ from typing import Optional, Tuple
 
 class BasicAttention(nn.Module):
     """
-    기본 어텐션 장치 (덧셈형·바다나우 어텐션)
+    기본 어텐션 메커니즘 (가산형(바다나우) 어텐션)
     
-    학습된 정렬 모형으로 어텐션 가중치를 계산한다.
+    학습된 정렬 모델로 어텐션 웨이트를 계산한다.
     Score(query, key) = v^T * tanh(W_q * query + W_k * key)
     """
     
     def __init__(self, query_dim, key_dim, hidden_dim):
         """
         인수:
-            query_dim: 질의 벡터의 차원
-            key_dim: 열쇠 벡터의 차원
-            hidden_dim: 정렬 모형의 숨은 차원
+            query_dim: 쿼리 벡터의 차원
+            key_dim: 키 벡터의 차원
+            hidden_dim: 정렬 모델의 은닉 차원
         """
         super().__init__()
         self.query_projection = nn.Linear(query_dim, hidden_dim)
@@ -65,7 +65,7 @@ class BasicAttention(nn.Module):
         """
         batch_size, seq_len, _ = keys.shape
         
-        # 질의와 열쇠 사영
+        # 쿼리와 키 투영
         # query: (배치 크기, 1, hidden_dim)
         query_proj = self.query_projection(query).unsqueeze(1)
         
@@ -83,7 +83,7 @@ class BasicAttention(nn.Module):
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
-        # 어텐션 가중치 계산
+        # 어텐션 웨이트 계산
         attention_weights = F.softmax(scores, dim=-1)
         
         # 값의 가중합으로 문맥 벡터 계산
@@ -95,7 +95,7 @@ class BasicAttention(nn.Module):
 
 class ScaledDotProductAttention(nn.Module):
     """
-    배율 조정 내적 어텐션
+    스케일 내적 어텐션
     
     트랜스포머 어텐션의 근본 구성 블록이다.
     Attention(Q, K, V) = softmax(Q*K^T / sqrt(d_k)) * V
@@ -126,18 +126,18 @@ class ScaledDotProductAttention(nn.Module):
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
-        # 소프트맥스로 어텐션 가중치 얻기
+        # 소프트맥스로 어텐션 웨이트 얻기
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         
-        # 값에 어텐션 가중치 적용
+        # 값에 어텐션 웨이트 적용
         output = torch.matmul(attention_weights, value)
         
         return output, attention_weights
 
 
 def demonstrate_basic_attention():
-    """기본 어텐션 장치 시연"""
+    """기본 어텐션 메커니즘 시연"""
     print("=" * 60)
     print("Basic Attention Mechanism Demo")
     print("=" * 60)
@@ -173,7 +173,7 @@ def demonstrate_basic_attention():
 
 
 def demonstrate_scaled_dot_product():
-    """배율 조정 내적 어텐션 시연"""
+    """스케일 내적 어텐션 시연"""
     print("\n" + "=" * 60)
     print("Scaled Dot-Product Attention Demo")
     print("=" * 60)
@@ -214,9 +214,9 @@ if __name__ == "__main__":
 
 # --- cross_attention ---
 """
-교차 어텐션 장치 구현
+크로스 어텐션 메커니즘 구현
 =========================================
-이 모듈은 인코더-디코더 구조에서 쓰는 교차 어텐션 장치를 구현한다.
+이 모듈은 인코더-디코더 구조에서 쓰는 크로스 어텐션 메커니즘을 구현한다.
 """
 
 
@@ -227,11 +227,11 @@ if __name__ == "__main__":
 
 class CrossAttention(nn.Module):
     """
-    교차 어텐션 층
+    크로스 어텐션 레이어
     
-    질의는 한 순차열(디코더 따위)에서, 열쇠와 값은 다른 순차열(인코더 따위)에서
+    쿼리는 한 시퀀스(디코더 따위)에서, 키와 값은 다른 시퀀스(인코더 따위)에서
     오는 어텐션을 계산한다.
-    트랜스포머 디코더 층에서 인코더의 출력에 주목할 때 쓴다.
+    트랜스포머 디코더 레이어에서 인코더의 출력에 주목할 때 쓴다.
     """
     
     def __init__(self, query_dim, key_dim, embed_dim, dropout=0.1):
@@ -268,9 +268,9 @@ class CrossAttention(nn.Module):
 
 class MultiHeadCrossAttention(nn.Module):
     """
-    다중 머리 교차 어텐션
+    멀티헤드 크로스 어텐션
     
-    머리를 여럿 두어 교차 어텐션의 표현을 풍부하게 한다.
+    헤드를 여럿 두어 크로스 어텐션의 표현을 풍부하게 한다.
     """
     
     def __init__(self, query_dim, key_dim, embed_dim, num_heads, dropout=0.1):
@@ -320,7 +320,7 @@ class EncoderDecoderAttention(nn.Module):
     """
     완전한 인코더-디코더 어텐션 블록
     
-    (디코더의) 자기 어텐션과 (인코더-디코더의) 교차 어텐션을 모두 담고 있다.
+    (디코더의) 셀프 어텐션과 (인코더-디코더의) 크로스 어텐션을 모두 담고 있다.
     트랜스포머 디코더의 전형적인 블록이다.
     """
     
@@ -366,7 +366,7 @@ class EncoderDecoderAttention(nn.Module):
 
 
 def demonstrate_cross_attention():
-    """기본 교차 어텐션 시연"""
+    """기본 크로스 어텐션 시연"""
     print("=" * 60)
     print("Cross-Attention Demo")
     print("=" * 60)
@@ -391,7 +391,7 @@ def demonstrate_cross_attention():
 
 
 def demonstrate_multi_head_cross_attention():
-    """다중 머리 교차 어텐션 시연"""
+    """멀티헤드 크로스 어텐션 시연"""
     print("\n" + "=" * 60)
     print("Multi-Head Cross-Attention Demo")
     print("=" * 60)
@@ -451,10 +451,10 @@ if __name__ == "__main__":
 # --- self_attention ---
 class SelfAttention(nn.Module):
     """
-    자기 어텐션 층
+    셀프 어텐션 레이어
     
-    질의와 열쇠와 값이 모두 같은 입력에서 나오는 어텐션을 계산한다.
-    트랜스포머 인코더 층에서 쓴다.
+    쿼리와 키와 값이 모두 같은 입력에서 나오는 어텐션을 계산한다.
+    트랜스포머 인코더 레이어에서 쓴다.
     """
     
     def __init__(
@@ -469,12 +469,12 @@ class SelfAttention(nn.Module):
         self.d_v = d_v or d_model
         self.scale = self.d_k ** -0.5
         
-        # Q, K, V의 선형 사영
+        # Q, K, V의 선형 투영
         self.W_q = nn.Linear(d_model, self.d_k)
         self.W_k = nn.Linear(d_model, self.d_k)
         self.W_v = nn.Linear(d_model, self.d_v)
         
-        # 출력 사영
+        # 출력 투영
         self.out_proj = nn.Linear(self.d_v, d_model)
         self.dropout = nn.Dropout(dropout)
         
@@ -485,40 +485,40 @@ class SelfAttention(nn.Module):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         인수:
-            x: 입력 순차열 (배치 크기, seq_len, d_model)
+            x: 입력 시퀀스 (배치 크기, seq_len, d_model)
             mask: 선택적인 어텐션 마스크 (배치 크기, seq_len, seq_len)
                   0은 가릴 자리를 뜻한다
             
         반환값:
-            output: 자기 어텐션을 거친 출력 (배치 크기, seq_len, d_model)
+            output: 셀프 어텐션을 거친 출력 (배치 크기, seq_len, d_model)
             attention_weights: 어텐션 행렬 (배치 크기, seq_len, seq_len)
         """
-        # Q, K, V로 사영 (모두 같은 입력 x에서 나온다)
+        # Q, K, V로 투영 (모두 같은 입력 x에서 나온다)
         Q = self.W_q(x)  # (배치, seq_len, d_k)
         K = self.W_k(x)  # (배치, seq_len, d_k)
         V = self.W_v(x)  # (배치, seq_len, d_v)
         
-        # 배율 조정 내적 어텐션 점수 계산
+        # 스케일 내적 어텐션 점수 계산
         scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale
         
         # 마스크가 있으면 씌우기
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
-        # 열쇠(마지막 차원)에 대해 소프트맥스
+        # 키(마지막 차원)에 대해 소프트맥스
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         
         # 값의 가중합
         attended = torch.matmul(attention_weights, V)
         
-        # 출력 사영
+        # 출력 투영
         output = self.out_proj(attended)
         
         return output, attention_weights
 
 def demonstrate_self_attention():
-    """기본 자기 어텐션 시연."""
+    """기본 셀프 어텐션 시연."""
     d_model = 512
     seq_len = 10
     batch_size = 2
@@ -536,7 +536,7 @@ def demonstrate_self_attention():
 
 class CausalSelfAttention(nn.Module):
     """
-    다중 머리를 지원하는 인과(마스크) 자기 어텐션
+    멀티헤드를 지원하는 인과(마스크) 셀프 어텐션
     
     자리마다 뒤의 자리에 주목하지 못하게 막는다.
     자기회귀 생성을 하는 GPT 같은 디코더 전용 모델에서 쓴다.
@@ -557,12 +557,12 @@ class CausalSelfAttention(nn.Module):
         self.head_dim = embed_dim // num_heads
         self.scale = self.head_dim ** -0.5
         
-        # 효율을 위해 QKV 사영을 합침 (행렬 곱 세 번 대신 한 번)
+        # 효율을 위해 QKV 투영을 합침 (행렬 곱 세 번 대신 한 번)
         self.qkv_proj = nn.Linear(embed_dim, 3 * embed_dim)
         self.out_proj = nn.Linear(embed_dim, embed_dim)
         self.dropout = nn.Dropout(dropout)
         
-        # 인과 마스크를 버퍼로 등록 (매개변수는 아니지만 모델과 함께 움직인다)
+        # 인과 마스크를 버퍼로 등록 (파라메터는 아니지만 모델과 함께 움직인다)
         causal_mask = torch.tril(torch.ones(max_seq_len, max_seq_len))
         self.register_buffer('causal_mask', causal_mask.view(1, 1, max_seq_len, max_seq_len))
         
@@ -573,8 +573,8 @@ class CausalSelfAttention(nn.Module):
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
         인수:
-            x: 입력 순차열 (배치 크기, seq_len, embed_dim)
-            return_attention: 어텐션 가중치를 돌려줄지 여부
+            x: 입력 시퀀스 (배치 크기, seq_len, embed_dim)
+            return_attention: 어텐션 웨이트를 돌려줄지 여부
             
         반환값:
             output: 어텐션을 거친 출력 (배치 크기, seq_len, embed_dim)
@@ -582,7 +582,7 @@ class CausalSelfAttention(nn.Module):
         """
         batch_size, seq_len, _ = x.shape
         
-        # 효율적인 연산 한 번으로 Q, K, V 사영
+        # 효율적인 연산 한 번으로 Q, K, V 투영
         qkv = self.qkv_proj(x)
         qkv = qkv.view(batch_size, seq_len, 3, self.num_heads, self.head_dim)
         qkv = qkv.permute(2, 0, 3, 1, 4)  # (3, 배치, heads, seq, head_dim)
@@ -602,7 +602,7 @@ class CausalSelfAttention(nn.Module):
         # 값에 어텐션 적용
         attended = torch.matmul(attention_weights, V)
         
-        # 머리를 이어 붙이고 되사영
+        # 헤드를 이어 붙이고 다시 투영
         attended = attended.transpose(1, 2).contiguous()
         attended = attended.view(batch_size, seq_len, self.embed_dim)
         output = self.out_proj(attended)
@@ -612,7 +612,7 @@ class CausalSelfAttention(nn.Module):
         return output, None
 
 def demonstrate_causal_attention():
-    """인과 마스크의 무늬를 보인다."""
+    """인과 마스크의 패턴을 보인다."""
     batch_size, seq_len, embed_dim, num_heads = 1, 5, 64, 4
     
     x = torch.randn(batch_size, seq_len, embed_dim)
@@ -631,9 +631,9 @@ if __name__ == "__main__":
 
 class TransformerEncoderBlock(nn.Module):
     """
-    양방향 자기 어텐션이 있는 트랜스포머 인코더 블록 하나.
+    양방향 셀프 어텐션이 있는 트랜스포머 인코더 블록 하나.
     
-    구조: 자기 어텐션 → 더하기와 정규화 → 순방향 신경망 → 더하기와 정규화
+    구조: 셀프 어텐션 → 더하기와 정규화 → 피드포워드 네트워크 → 더하기와 정규화
     """
     
     def __init__(
@@ -645,7 +645,7 @@ class TransformerEncoderBlock(nn.Module):
     ):
         super().__init__()
         
-        # 다중 머리 자기 어텐션 (양방향)
+        # 멀티헤드 셀프 어텐션 (양방향)
         self.self_attn = nn.MultiheadAttention(
             embed_dim, num_heads, 
             dropout=dropout, 
@@ -653,7 +653,7 @@ class TransformerEncoderBlock(nn.Module):
         )
         self.norm1 = nn.LayerNorm(embed_dim)
         
-        # 자리별 순방향 신경망
+        # 자리별 피드포워드 네트워크
         self.ffn = nn.Sequential(
             nn.Linear(embed_dim, ff_dim),
             nn.GELU(),
@@ -676,7 +676,7 @@ class TransformerEncoderBlock(nn.Module):
             src_mask: 어텐션 마스크 (seq_len, seq_len)
             src_key_padding_mask: 패딩 마스크 (배치, seq_len)
         """
-        # 잔차 연결이 있는 자기 어텐션 (사전 층 정규화 판본)
+        # 잔차 연결이 있는 셀프 어텐션 (사후 레이어 정규화(post-LN) 방식)
         attn_out, _ = self.self_attn(
             x, x, x, 
             attn_mask=src_mask,
@@ -684,7 +684,7 @@ class TransformerEncoderBlock(nn.Module):
         )
         x = self.norm1(x + self.dropout(attn_out))
         
-        # 잔차 연결이 있는 순방향 신경망
+        # 잔차 연결이 있는 피드포워드 네트워크
         ffn_out = self.ffn(x)
         x = self.norm2(x + ffn_out)
         
@@ -692,10 +692,10 @@ class TransformerEncoderBlock(nn.Module):
 
 class VisionSelfAttention(nn.Module):
     """
-    이미지 조각을 위한 자기 어텐션 (비전 트랜스포머 방식).
+    이미지 패치를 위한 셀프 어텐션 (비전 트랜스포머 방식).
     
-    이미지를 조각으로 나누어 펼친 뒤 순차열로 다룬다.
-    조각마다 다른 모든 조각에 전역적으로 주목할 수 있다.
+    이미지를 패치로 나누어 펼친 뒤 시퀀스로 다룬다.
+    패치마다 다른 모든 패치에 전역적으로 주목할 수 있다.
     """
     
     def __init__(
@@ -715,14 +715,14 @@ class VisionSelfAttention(nn.Module):
     def forward(self, patches: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         인수:
-            patches: 펼친 이미지 조각 (배치, num_patches, embed_dim)
+            patches: 펼친 이미지 패치 (배치, num_patches, embed_dim)
                      대체로 첫 자리에 [CLS] 토큰이 있다
         
         반환값:
-            output: 자기 어텐션을 거친 조각 (배치, num_patches, embed_dim)
-            weights: 어텐션 가중치 (배치, num_patches, num_patches)
+            output: 셀프 어텐션을 거친 패치 (배치, num_patches, embed_dim)
+            weights: 어텐션 웨이트 (배치, num_patches, num_patches)
         """
-        # 조각마다 (CLS 토큰을 포함한) 다른 모든 조각에 주목한다
+        # 패치마다 (CLS 토큰을 포함한) 다른 모든 패치에 주목한다
         attended, weights = self.attention(patches, patches, patches)
         
         # 잔차 연결
@@ -732,13 +732,13 @@ class VisionSelfAttention(nn.Module):
 
 
 class MultiHeadSelfAttention(nn.Module):
-    """머리 여럿을 둔 자기 어텐션.
+    """헤드 여럿을 둔 셀프 어텐션.
 
-    위의 SelfAttention은 머리가 하나다. 머리를 여럿 두면 같은 자리에서
+    위의 SelfAttention은 헤드가 하나다. 헤드를 여럿 두면 같은 자리에서
     서로 다른 관계를 따로 볼 수 있다. d_model을 num_heads로 나누어
-    머리마다 좁은 공간을 주므로, 머리를 늘려도 매개변수는 늘지 않는다.
+    헤드마다 좁은 공간을 주므로, 헤드를 늘려도 파라메터는 늘지 않는다.
 
-    입력과 출력 모양은 모두 (batch, seq_len, embed_dim)이다.
+    입력과 출력 형태는 모두 (batch, seq_len, embed_dim)이다.
     """
 
     def __init__(self, embed_dim: int, num_heads: int, dropout: float = 0.0):
@@ -751,7 +751,7 @@ class MultiHeadSelfAttention(nn.Module):
         self.head_dim = embed_dim // num_heads
         self.scale = self.head_dim ** -0.5
 
-        # 머리 전체를 한 번에 사영한 뒤 쪼갠다
+        # 헤드 전체를 한 번에 투영한 뒤 쪼갠다
         self.W_q = nn.Linear(embed_dim, embed_dim)
         self.W_k = nn.Linear(embed_dim, embed_dim)
         self.W_v = nn.Linear(embed_dim, embed_dim)
@@ -775,7 +775,7 @@ class MultiHeadSelfAttention(nn.Module):
 
         scores = (q @ k.transpose(-2, -1)) * self.scale   # (B, H, L, L)
         if mask is not None:
-            # (B, L) 짜리 채움 마스크든 (L, L) 짜리 인과 마스크든 받는다
+            # (B, L) 짜리 패딩 마스크든 (L, L) 짜리 인과 마스크든 받는다
             if mask.dim() == 2 and mask.shape[0] == B:
                 mask = mask[:, None, None, :]
             scores = scores.masked_fill(mask == 0, float("-inf"))
@@ -791,7 +791,7 @@ class MultiHeadSelfAttention(nn.Module):
 
 
 class SimpleEncoder(nn.Module):
-    """자기 어텐션을 쓰는 간단한 트랜스포머 인코더"""
+    """셀프 어텐션을 쓰는 간단한 트랜스포머 인코더"""
     
     def __init__(self, vocab_size, embed_dim, num_heads, num_layers, max_seq_len=512, dropout=0.1):
         super().__init__()
@@ -833,7 +833,7 @@ class EncoderLayer(nn.Module):
 
 
 class SimpleDecoder(nn.Module):
-    """자기 어텐션과 교차 어텐션을 함께 쓰는 간단한 트랜스포머 디코더"""
+    """셀프 어텐션과 크로스 어텐션을 함께 쓰는 간단한 트랜스포머 디코더"""
     
     def __init__(self, vocab_size, embed_dim, num_heads, num_layers, max_seq_len=512, dropout=0.1):
         super().__init__()
@@ -884,7 +884,7 @@ class DecoderLayer(nn.Module):
 
 
 class SimpleSeq2Seq(nn.Module):
-    """어텐션을 갖춘 완전한 순차열 대 순차열 모델"""
+    """어텐션을 갖춘 완전한 시퀀스-투-시퀀스 모델"""
     
     def __init__(self, src_vocab_size, tgt_vocab_size, embed_dim=256,
                  num_heads=8, num_layers=6, dropout=0.1):
@@ -920,18 +920,18 @@ if __name__ == "__main__":
 
 SimpleEncoder는 토큰 임베딩에 학습 가능한 위치 파라메터를 더하고 레이어를 반복한다. SimpleDecoder는 인과 셀프 어텐션, 크로스 어텐션과 FFN을 거쳐 어휘 로짓을 반환한다. SimpleSeq2Seq는 마스크를 전달할 뿐 타깃을 한 칸 이동시키거나 인과 마스크를 자동 생성하지 않는다.
 
-코드는 MultiHeadSelfAttention을 self_attention에서 가져오지만 그 모듈에는 해당 이름의 클래스가 정의되어 있지 않다. 이 장의 해당 클래스는 multi_head_attention 페이지에 정의되어 있다. 따라서 본문은 현재 가져오기 경로를 그대로 둔 상태에서 완성된 실행 예제로 해석할 수 없다.
+MultiHeadSelfAttention은 이 쪽의 코드 안에 직접 정의되어 있고 EncoderLayer와 DecoderLayer가 그것을 쓴다. 다만 이 쪽에는 출력 블록이 없으므로 실행 결과는 싣지 않는다.
 
 마스크는 사용자 정의 어텐션의 0 제외 규칙에 맞춰야 한다. 원문 PAD 마스크를 인코더와 크로스 어텐션에 공유하고, 타깃에는 인과·PAD 조건을 함께 반영한다. 실행 예제의 causal mask는 CPU에서 생성되므로 GPU 입력에서는 장치를 맞춰야 한다. 학습 위치 파라메터 길이 512를 넘는 입력도 별도 처리가 필요하다.
 
-로짓 출력은 다음 토큰 로스와 연결할 수 있지만 학습 루프와 자유 생성은 구현되어 있지 않다. 사인·코사인 위치 예제도 학습하지 않은 별도 모델의 첫 레이어 출력을 계산할 뿐 어텐션 무늬를 시각화하거나 정량 비교하지 않는다.
+로짓 출력은 다음 토큰 로스와 연결할 수 있지만 학습 루프와 자유 생성은 구현되어 있지 않다. 사인·코사인 위치 예제도 학습하지 않은 별도 모델의 첫 레이어 출력을 계산할 뿐 어텐션 패턴을 시각화하거나 정량 비교하지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`src_vocab_size=10000`, `tgt_vocab_size=10000`, `embed_dim=256`, `num_heads=8`, `num_layers=6`인 `SimpleSeq2Seq` 모델의 파라메터 총수를 계산하라. 인코더, 디코더, 출력 사영으로 나누어 세어라.
+`src_vocab_size=10000`, `tgt_vocab_size=10000`, `embed_dim=256`, `num_heads=8`, `num_layers=6`인 `SimpleSeq2Seq` 모델의 파라메터 총수를 계산하라. 인코더, 디코더, 출력 투영으로 나누어 세어라.
 
 </div>
 
@@ -939,15 +939,15 @@ SimpleEncoder는 토큰 임베딩에 학습 가능한 위치 파라메터를 더
     인코더 레이어마다(embed_dim=256) 다음과 같다.
 
     - 셀프 어텐션: $4 \times (256 \times 256 + 256) = 263{,}168$
-    - 순방향 뉴럴 네트워크: $(256 \times 1024 + 1024) + (1024 \times 256 + 256) = 263{,}168 + 262{,}400 = 525{,}568$
+    - 피드포워드 네트워크: $(256 \times 1024 + 1024) + (1024 \times 256 + 256) = 263{,}168 + 262{,}400 = 525{,}568$
     - 레이어 정규화 (2개): $2 \times 2 \times 256 = 1{,}024$
     - 레이어당 약 $789{,}760$개, 6레이어이면 약 $4{,}738{,}560$개
 
-    인코더 임베딩: $10{,}000 \times 256 = 2{,}560{,}000$, 위치 부호화: $512 \times 256 = 131{,}072$
+    인코더 임베딩: $10{,}000 \times 256 = 2{,}560{,}000$, 위치 인코딩: $512 \times 256 = 131{,}072$
 
-    디코더 레이어마다 교차 어텐션($263{,}168$)과 레이어 정규화 하나($512$)가 더해져 레이어당 약 $1{,}053{,}440$개가 되고, 6레이어이면 약 $6{,}320{,}640$개이다.
+    디코더 레이어마다 크로스 어텐션($263{,}168$)과 레이어 정규화 하나($512$)가 더해져 레이어당 약 $1{,}053{,}440$개가 되고, 6레이어이면 약 $6{,}320{,}640$개이다.
 
-    디코더 임베딩: $10{,}000 \times 256 = 2{,}560{,}000$, 위치 부호화: $131{,}072$, 출력 사영: $256 \times 10{,}000 + 10{,}000 = 2{,}570{,}000$.
+    디코더 임베딩: $10{,}000 \times 256 = 2{,}560{,}000$, 위치 인코딩: $131{,}072$, 출력 투영: $256 \times 10{,}000 + 10{,}000 = 2{,}570{,}000$.
 
     모두 합하면 파라메터가 정확히 $19{,}011{,}344$개이다. 정확한 수는 `sum(p.numel() for p in model.parameters())`으로 확인할 수 있다.
 
@@ -968,7 +968,7 @@ SimpleEncoder는 토큰 임베딩에 학습 가능한 위치 파라메터를 더
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-`SimpleEncoder`이 학습 가능한 위치 파라메터 대신 사인·코사인 위치 부호화를 쓰도록 고쳐라. 표준 식 $PE_{(pos, 2i)} = \sin(pos / 10000^{2i/d})$과 $PE_{(pos, 2i+1)} = \cos(pos / 10000^{2i/d})$을 구현하라. 길이 20의 무작위 입력 시퀀스에서 두 방법의 어텐션 웨이트 무늬를 비교하여라.
+`SimpleEncoder`이 학습 가능한 위치 파라메터 대신 사인·코사인 위치 인코딩을 쓰도록 고쳐라. 표준 식 $PE_{(pos, 2i)} = \sin(pos / 10000^{2i/d})$과 $PE_{(pos, 2i+1)} = \cos(pos / 10000^{2i/d})$을 구현하라. 길이 20의 무작위 입력 시퀀스에서 두 방법의 어텐션 웨이트 패턴을 비교하여라.
 
 </div>
 
@@ -1015,7 +1015,7 @@ SimpleEncoder는 토큰 임베딩에 학습 가능한 위치 파라메터를 더
         out_sin, _ = enc_sin.layers[0](enc_sin.embedding(x) + enc_sin.pos_encoding[:, :20, :])
     ```
     
-    사인·코사인 위치 값은 학습 파라메터가 아니지만, 현재 버퍼도 max_seq_len까지로 고정된다. 더 긴 위치를 계산할 수 있다는 사실이 그 길이에 대한 좋은 일반화를 보장하지는 않는다. 함수의 짝수·홀수 슬라이스도 현재 구현에서는 짝수 embed_dim을 가정한다. 두 모델은 초기 웨이트가 다르고 드롭아웃이 켜져 있으며 반환 어텐션 웨이트를 저장하지 않으므로, 이 조각만으로 두 위치 방식의 학습 후 무늬를 비교할 수 없다.
+    사인·코사인 위치 값은 학습 파라메터가 아니지만, 현재 버퍼도 max_seq_len까지로 고정된다. 더 긴 위치를 계산할 수 있다는 사실이 그 길이에 대한 좋은 일반화를 보장하지는 않는다. 함수의 짝수·홀수 슬라이스도 현재 구현에서는 짝수 embed_dim을 가정한다. 두 모델은 초기 웨이트가 다르고 드롭아웃이 켜져 있으며 반환 어텐션 웨이트를 저장하지 않으므로, 이 조각만으로 두 위치 방식의 학습 후 패턴을 비교할 수 없다.
 
 ## 정리하며
 

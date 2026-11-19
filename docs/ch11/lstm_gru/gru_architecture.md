@@ -4,13 +4,13 @@ GRU는 리셋·업데이트 게이트로 은닉 상태를 조절하는 순환 �
 
 적은 파라메터는 모델 크기를 줄이지만 실제 속도, 과적합과 정확도의 우열을 보장하지 않는다. 이 페이지에서는 수식과 직접 구현의 차이까지 살펴본다.
 
-**핵심 착상:** LSTM이 "무엇을 기억할지"(셀 상태)와 "무엇을 내보낼지"(은닉 상태)에 서로 다른 통로를 쓰는 데 반해, GRU는 이를 하나의 은닉 상태로 합치고 문 두 개로 정보의 흐름을 다스린다.
+**핵심 아이디어:** LSTM이 "무엇을 기억할지"(셀 상태)와 "무엇을 내보낼지"(은닉 상태)에 서로 다른 통로를 쓰는 데 반해, GRU는 이를 하나의 은닉 상태로 합치고 게이트 두 개로 정보의 흐름을 조절한다.
 
 ---
 
 ## 1. 수학적 정식화
 
-시각 $t$에서 입력 $x_t \in \mathbb{R}^d$과 이전 은닉 상태 $h_{t-1} \in \mathbb{R}^n$이 주어졌을 때 다음과 같다.
+시점 $t$에서 입력 $x_t \in \mathbb{R}^d$과 이전 은닉 상태 $h_{t-1} \in \mathbb{R}^n$이 주어졌을 때 다음과 같다.
 
 ### 리셋 게이트
 
@@ -18,7 +18,7 @@ GRU는 리셋·업데이트 게이트로 은닉 상태를 조절하는 순환 �
 
 $$r_t = \sigma(W_r \cdot [h_{t-1}, x_t] + b_r)$$
 
-- $r_t \approx 0$이면 이전 상태가 "되돌려진다"(후보 계산에서 무시된다)
+- $r_t \approx 0$이면 이전 상태가 "리셋된다"(후보 계산에서 무시된다)
 - $r_t \approx 1$이면 이전 상태가 후보에 온전히 영향을 준다
 
 ### 업데이트 게이트
@@ -54,7 +54,7 @@ $$h_t = (1 - z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t$$
 
 ---
 
-## 2. 문 이해하기
+## 2. 게이트 이해하기
 
 ### 망각과 입력을 합친 업데이트 게이트
 
@@ -74,13 +74,13 @@ $$h_t = \underbrace{(1 - z_t) \odot h_{t-1}}_{\text{retained information}} + \un
 
 ### 리셋 게이트: 급격한 전환을 가능하게 하다
 
-리셋 게이트는 LSTM의 어느 문과도 다른 구실을 한다. $r_t \approx 0$이면 다음과 같다.
+리셋 게이트는 LSTM의 어느 게이트와도 다른 역할을 한다. $r_t \approx 0$이면 다음과 같다.
 
 $$\tilde{h}_t \approx \tanh(W_h \cdot [\mathbf{0}, x_t] + b_h)$$
 
-이전 상태가 없는 것처럼 후보를 계산한다. 오로지 지금 입력만으로 "새로 시작"하는 계산이다. 문장 경계나 화제 전환, 이상 탐지에 매우 중요하다.
+이전 상태가 없는 것처럼 후보를 계산한다. 오로지 지금 입력만으로 "새로 시작"하는 셈이다. 문장 경계나 화제 전환, 이상 탐지에 매우 중요하다.
 
-**문 사이의 상호작용:** 리셋 게이트는 *어떤 후보를 내놓을지*에 영향을 주고, 업데이트 게이트는 *그 후보를 얼마나 쓸지*를 정한다.
+**게이트 사이의 상호작용:** 리셋 게이트는 *어떤 후보를 내놓을지*에 영향을 주고, 업데이트 게이트는 *그 후보를 얼마나 쓸지*를 정한다.
 
 1. 리셋 게이트: "새 후보가 이력을 고려해야 하는가?"
 2. 업데이트 게이트: "이 새 후보를 쓰기는 해야 하는가?"
@@ -97,7 +97,7 @@ $$\frac{\partial h_t}{\partial h_{t-1}}=\operatorname{diag}(1-z_t)+\operatorname
 
 ## 4. PyTorch로 밑바닥부터 구현하기
 
-### GRU 셀 (학습을 위한 판본)
+### GRU 셀 (학습용 버전)
 
 ```python
 import torch
@@ -106,7 +106,7 @@ import numpy as np
 
 class GRUCell(nn.Module):
     """
-    러닝을 위해 손수 만든 GRU 세포 구현.
+    학습용으로 직접 만든 GRU 셀 구현.
     
     알아보기 쉽도록 웨이트 행렬을 따로 두고 표준 GRU 식을 구현한다.
     실전 구현은 효율을 위해 행렬을 합친다.
@@ -117,13 +117,13 @@ class GRUCell(nn.Module):
         self.input_size = input_size
         self.hidden_size = hidden_size
         
-        # 재설정 문의 파라메터
+        # 리셋 게이트의 파라메터
         self.W_r = nn.Parameter(
             torch.randn(hidden_size, input_size + hidden_size) / np.sqrt(input_size + hidden_size)
         )
         self.b_r = nn.Parameter(torch.zeros(hidden_size))
         
-        # 갱신 문의 파라메터
+        # 업데이트 게이트의 파라메터
         self.W_z = nn.Parameter(
             torch.randn(hidden_size, input_size + hidden_size) / np.sqrt(input_size + hidden_size)
         )
@@ -141,49 +141,49 @@ class GRUCell(nn.Module):
         h_prev: torch.Tensor | None = None
     ) -> torch.Tensor:
         """
-        한 시각의 순전파.
+        한 시점의 순전파.
         
         인수:
             x: 입력 텐서 (배치 크기, input_size)
-            h_prev: 이전 숨은 상태 (배치 크기, hidden_size)
+            h_prev: 이전 은닉 상태 (배치 크기, hidden_size)
         
         반환값:
-            h: 새 숨은 상태 (배치 크기, hidden_size)
+            h: 새 은닉 상태 (배치 크기, hidden_size)
         """
         batch_size = x.size(0)
         
         if h_prev is None:
             h_prev = torch.zeros(batch_size, self.hidden_size, device=x.device)
         
-        # 문 계산을 위해 이어 붙이기
+        # 게이트 계산을 위해 이어 붙이기
         combined = torch.cat([h_prev, x], dim=1)
         
-        # 재설정 문
+        # 리셋 게이트
         r = torch.sigmoid(combined @ self.W_r.t() + self.b_r)
         
-        # 갱신 문
+        # 업데이트 게이트
         z = torch.sigmoid(combined @ self.W_z.t() + self.b_z)
         
-        # 재설정 조절을 받은 후보 숨은 상태
+        # 리셋 게이트의 조절을 받은 후보 은닉 상태
         combined_reset = torch.cat([r * h_prev, x], dim=1)
         h_tilde = torch.tanh(combined_reset @ self.W_h.t() + self.b_h)
         
-        # 마지막 숨은 상태: 보간
+        # 마지막 은닉 상태: 보간
         h = (1 - z) * h_prev + z * h_tilde
         
         return h
 ```
 
-### GRU 셀 (효율적인 판본)
+### GRU 셀 (효율적인 버전)
 
 이 코드는 위 셀과 단순한 최적화 관계가 아니다. 위 셀은 리셋을 이전 상태에 먼저 곱하고, 아래 셀은 순환 선형 변환 결과에 곱하므로 일반적으로 계산이 다르다. 아래 셀도 이전 상태의 계수로 `1-z`를 쓰며, PyTorch 내장 GRU는 그 계수로 `z`를 쓴다. [내장 GRU의 공식 식](https://docs.pytorch.org/docs/stable/generated/torch.nn.GRU.html)과 비교할 때 리셋 위치, 업데이트 규약과 두 바이어스를 모두 맞춰야 한다.
 
 ```python
 class GRUCellEfficient(nn.Module):
     """
-    웨이트 행렬을 합친 효율적인 GRU 세포.
+    웨이트 행렬을 합친 효율적인 GRU 셀.
     
-    모든 문의 계산을 하나의 행렬 곱으로 합쳐 GPU를 더 잘 쓴다.
+    모든 게이트의 계산을 하나의 행렬 곱으로 합쳐 GPU를 더 잘 쓴다.
     
     """
     
@@ -216,7 +216,7 @@ class GRUCellEfficient(nn.Module):
         r = torch.sigmoid(r_i + r_h)
         z = torch.sigmoid(z_i + z_h)
         
-        # 후보: 숨은 상태의 몫에만 재설정 문 적용
+        # 후보: 은닉 상태 항에만 리셋 게이트 적용
         h_tilde = torch.tanh(n_i + r * n_h)
         
         h = (1 - z) * h_prev + z * h_tilde
@@ -231,7 +231,7 @@ class GRUCellEfficient(nn.Module):
 ```python
 class GRU(nn.Module):
     """
-    순차열을 처리하는 온전한 GRU 레이어.
+    시퀀스을 처리하는 온전한 GRU 레이어.
     
     여러 레이어를 쌓는 것과 레이어 사이의 드롭아웃을 지원한다.
     """
@@ -261,15 +261,15 @@ class GRU(nn.Module):
         h_0: torch.Tensor | None = None
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        순차열 전체를 GRU로 처리한다.
+        시퀀스 전체를 GRU로 처리한다.
         
         인수:
-            x: 입력 순차열 (배치 크기, seq_len, input_size)
-            h_0: 처음 숨은 상태 (num_layers, 배치 크기, hidden_size)
+            x: 입력 시퀀스 (배치 크기, seq_len, input_size)
+            h_0: 초기 은닉 상태 (num_layers, 배치 크기, hidden_size)
         
         반환값:
-            output: 맨 위 레이어의 모든 숨은 상태 (배치 크기, seq_len, hidden_size)
-            h_n: 모든 레이어의 마지막 숨은 상태 (num_layers, 배치 크기, hidden_size)
+            output: 맨 위 레이어의 모든 은닉 상태 (배치 크기, seq_len, hidden_size)
+            h_n: 모든 레이어의 마지막 은닉 상태 (num_layers, 배치 크기, hidden_size)
         """
         batch_size, seq_len, _ = x.size()
         
@@ -309,9 +309,9 @@ import torch.nn as nn
 # GRU 레이어 만들기
 gru = nn.GRU(
     input_size=100,      # 입력 피처의 차원
-    hidden_size=256,     # 숨은 상태의 차원
+    hidden_size=256,     # 은닉 상태의 차원
     num_layers=2,        # 쌓은 GRU 레이어의 수
-    batch_first=True,    # 입력의 모양: (배치, seq, 피처)
+    batch_first=True,    # 입력의 형태: (배치, seq, 피처)
     dropout=0.3,         # 레이어 사이의 드롭아웃 (num_layers > 1일 때만)
     bidirectional=False  # 기본은 단방향
 )
@@ -325,7 +325,7 @@ output, h_n = gru(x)
 print(f"Output shape: {output.shape}")     # (32, 50, 256)
 print(f"Final hidden: {h_n.shape}")        # (2, 32, 256) — 레이어마다 하나
 
-# LSTM과의 핵심 차이: 세포 상태가 없다!
+# LSTM과의 핵심 차이: 셀 상태가 없다!
 # LSTM이 돌려주는 것: output, (h_n, c_n)
 # GRU가 돌려주는 것:  output, h_n
 ```
@@ -345,7 +345,7 @@ Final hidden: torch.Size([2, 32, 256])
 
 ```python
 class GRUClassifier(nn.Module):
-    """순차열 분류를 위한 GRU."""
+    """시퀀스 분류를 위한 GRU."""
     
     def __init__(self, vocab_size, embed_dim, hidden_size, num_classes,
                  num_layers=2, dropout=0.5, padding_idx=0):
@@ -383,7 +383,7 @@ class GRUForecaster(nn.Module):
         predictions = self.fc(h_n[-1])
         return predictions.view(-1, self.horizon, self.output_size)
 
-# 예: 지난 20스텝으로 피처 3개의 다음 스텝5 예측
+# 예: 지난 20스텝으로 피처 3개의 다음 5스텝 예측
 model = GRUForecaster(input_size=3, hidden_size=128, num_layers=2,
                       output_size=3, horizon=5)
 
@@ -396,9 +396,9 @@ predictions = model(x)  # (32, 5, 3)
 ```python
 class BiGRUEncoder(nn.Module):
     """
-    순차열 부호화를 위한 양방향 GRU.
+    시퀀스 인코딩을 위한 양방향 GRU.
     
-    순차열을 양쪽 방향으로 처리하여 자리마다 과거와 미래의 문맥을
+    시퀀스을 양쪽 방향으로 처리하여 자리마다 과거와 미래의 문맥을
     모두 붙잡는다.
     """
     
@@ -431,9 +431,9 @@ def init_gru_weights(gru: nn.GRU):
     """
     안정된 학습을 위해 GRU의 웨이트를 초기화한다.
     
-    - 입력에서 숨은 상태로 가는 웨이트: 자비에르 균등
-    - 숨은 상태끼리의 웨이트: 직교 (그래디언트의 노름을 지킨다)
-    - 바이어스: 0 (또는 선택적으로 재설정 문의 바이어스를 1 쪽으로)
+    - 입력에서 은닉 상태로 가는 웨이트: Xavier 균등
+    - 은닉 상태끼리의 웨이트: 직교 (그래디언트의 노름을 지킨다)
+    - 바이어스: 0 (또는 선택적으로 리셋 게이트의 바이어스를 1 쪽으로)
     """
     for name, param in gru.named_parameters():
         if 'weight_ih' in name:
@@ -442,7 +442,7 @@ def init_gru_weights(gru: nn.GRU):
             nn.init.orthogonal_(param)
         elif 'bias' in name:
             nn.init.zeros_(param)
-            # 선택: 재설정 문을 "기억" 쪽으로 치우치게 하기
+            # 선택: 리셋 게이트를 "기억" 쪽으로 치우치게 하기
             # n = param.size(0) // 3
             # param.data[:n].fill_(1.0)  # Reset gate bias
 ```
@@ -455,7 +455,7 @@ def init_gru_weights(gru: nn.GRU):
 
 ### 최소 GRU
 
-문 하나만 쓰는 판본으로 파라메터를 더 줄인다.
+게이트 하나만 쓰는 변형으로 파라메터를 더 줄인다.
 
 $$f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f)$$
 
@@ -463,11 +463,11 @@ $$\tilde{h}_t = \tanh(W_h \cdot [h_{t-1}, x_t] + b_h)$$
 
 $$h_t = f_t \odot h_{t-1} + (1 - f_t) \odot \tilde{h}_t$$
 
-리셋 게이트를 아예 없애고 갱신·망각 게이트 하나만 쓴다. 더 간단하지만 표현력은 떨어진다.
+리셋 게이트를 아예 없애고 업데이트·망각 게이트 하나만 쓴다. 더 간단하지만 표현력은 떨어진다.
 
 ```python
 class MinimalGRUCell(nn.Module):
-    """문 하나짜리 최소 GRU."""
+    """게이트 하나짜리 최소 GRU."""
     
     def __init__(self, input_size: int, hidden_size: int):
         super().__init__()
@@ -482,13 +482,13 @@ class MinimalGRUCell(nn.Module):
         return f * h + (1 - f) * h_tilde
 ```
 
-### 문을 묶은 GRU
+### 게이트를 묶은 GRU
 
 리셋 게이트와 업데이트 게이트를 묶어 더 간소화한 것이다.
 
 $$r_t = 1 - z_t$$
 
-이렇게 하면 많이 갱신할 때($z_t$이 클 때) 더 많이 되돌리게 되고($r_t$이 작아지고) 그 반대도 마찬가지가 된다.
+이렇게 하면 많이 갱신할 때($z_t$이 클 때) 더 많이 리셋하게 되고($r_t$이 작아지고) 그 반대도 마찬가지가 된다.
 
 ---
 
@@ -522,7 +522,7 @@ GRU의 식을 적고 LSTM과 비교하여라.
 </div>
 
 ??? success "풀이"
-    재설정: $r_t = \sigma(W_r[h_{t-1}, x_t])$. 갱신: $z_t = \sigma(W_z[h_{t-1}, x_t])$. 후보: $\tilde{h}_t = \tanh(W[r_t \odot h_{t-1}, x_t])$. 출력: $h_t = (1-z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t$.
+    리셋: $r_t = \sigma(W_r[h_{t-1}, x_t])$. 업데이트: $z_t = \sigma(W_z[h_{t-1}, x_t])$. 후보: $\tilde{h}_t = \tanh(W[r_t \odot h_{t-1}, x_t])$. 출력: $h_t = (1-z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t$.
     GRU는 망각 게이트와 입력 게이트를 업데이트 게이트 $z_t$ 하나로 합치고 셀 상태를 따로 두지 않아 LSTM보다 간단하다.
 
 ---
@@ -547,14 +547,14 @@ LSTM과 GRU를 선택하는 비교 실험의 조건을 설명하라.
 </div>
 
 ??? success "풀이"
-    같은 분할, 전처리와 평가 기준을 사용하고 각 모델의 러닝레이트와 은닉 크기를 검증셋에서 조정한다. 같은 은닉 크기 비교와 같은 파라메터·시간 예산 비교는 질문이 다르므로 구분한다. 여러 초기값의 변동과 실제 장치에서의 지연·메모리를 함께 확인한다.
+    같은 분할, 전처리와 평가 기준을 사용하고 각 모델의 러닝레이트와 은닉 크기를 검증 집합에서 조정한다. 같은 은닉 크기 비교와 같은 파라메터·시간 예산 비교는 질문이 다르므로 구분한다. 여러 초기값의 변동과 실제 장치에서의 지연·메모리를 함께 확인한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-GRU 셀를 PyTorch로 밑바닥부터 구현하라.
+GRU 셀을 PyTorch로 밑바닥부터 구현하라.
 
 </div>
 

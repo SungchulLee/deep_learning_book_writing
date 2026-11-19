@@ -46,10 +46,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f'Using device: {device}')
 
 # ============================================================================
-# 초파라메터
+# 하이퍼파라메터
 # ============================================================================
 # 이 값들이 모델의 구조와 학습 과정을 좌우한다
-input_size = 784        # 28x28 화소를 1차원 벡터로 펼친 것
+input_size = 784        # 28x28 픽셀을 1차원 벡터로 펼친 것
 hidden_size = 500       # 은닉 레이어의 뉴런 수
 num_classes = 10        # MNIST에는 클래스가 10개 있다 (숫자 0~9)
 num_epochs = 1          # 학습 데이터셋 전체를 훑는 횟수
@@ -60,7 +60,7 @@ learning_rate = 0.001   # 경사 하강 최적화의 스텝 크기
 # 데이터셋 적재
 # ============================================================================
 # MNIST 데이터셋에는 학습 이미지 60,000장과 시험 이미지 10,000장이 있다
-# 손글씨 숫자(0~9)이며 이미지마다 28x28 화소이다
+# 손글씨 숫자(0~9)이며 이미지마다 28x28 픽셀이다
 
 # 학습 데이터셋 불러오기
 train_dataset = torchvision.datasets.MNIST(
@@ -107,7 +107,7 @@ example_data, example_targets = next(examples)
 for i in range(6):
     plt.subplot(2, 3, i+1)                  # 2x3 격자에 부분 그림 만들기
     plt.imshow(example_data[i][0], cmap='gray')  # 회색조 이미지 보이기
-    plt.title(f'Label: {example_targets[i]}')    # 참 레이블 보이기
+    plt.title(f'Label: {example_targets[i]}')    # 참 라벨 보이기
     plt.axis('off')                         # 깔끔하게 보이려고 축 감추기
 # plt.show()  # 그림을 보려면 주석을 풀어라
 
@@ -150,8 +150,8 @@ class NeuralNet(nn.Module):
         # 첫 선형 레이어: input_size -> hidden_size
         self.l1 = nn.Linear(input_size, hidden_size)
         
-        # ReLU 엑티베이션 함수: max(0, x)
-        # 복잡한 양상을 배우도록 비선형성을 넣는다
+        # ReLU 활성화 함수: max(0, x)
+        # 복잡한 패턴을 학습하도록 비선형성을 넣는다
         self.relu = nn.ReLU()
         
         # 둘째 선형 레이어: hidden_size -> num_classes
@@ -162,10 +162,10 @@ class NeuralNet(nn.Module):
         뉴럴 네트워크를 통과하는 순전파.
         
         인수:
-            x (torch.Tensor): 모양이 (batch_size, input_size)인 입력 텐서
+            x (torch.Tensor): 형태가 (batch_size, input_size)인 입력 텐서
         
         반환값:
-            torch.Tensor: 모양이 (batch_size, num_classes)인 날 출력 점수(로짓)
+            torch.Tensor: 형태가 (batch_size, num_classes)인 원시 출력 점수(로짓)
         """
         # 첫 선형 레이어 통과
         out = self.l1(x)
@@ -194,7 +194,7 @@ print(f'\nModel Architecture:\n{model}')
 criterion = nn.CrossEntropyLoss()
 
 # Adam 옵티마이저: 적응형 러닝레이트 최적화 알고리즘
-# 초파라메터를 크게 조율하지 않아도 대체로 잘 통한다
+# 하이퍼파라메터를 크게 조율하지 않아도 대체로 잘 통한다
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 # ============================================================================
@@ -228,8 +228,8 @@ for epoch in range(num_epochs):
         # ====================================================================
         # 데이터 준비
         # ====================================================================
-        # 원래 모양: [batch_size, 1, 28, 28] (배치, 채널, 높이, 너비)
-        # 바꾼 모양: [batch_size, 784] (이미지를 펼친다)
+        # 원래 형태: [batch_size, 1, 28, 28] (배치, 채널, 높이, 너비)
+        # 바꾼 형태: [batch_size, 784] (이미지를 펼친다)
         images = images.reshape(-1, 28*28).to(device)
         labels = labels.to(device)
         
@@ -239,7 +239,7 @@ for epoch in range(num_epochs):
         # 모델의 예측 계산
         outputs = model(images)
         
-        # 예측과 참 레이블 사이의 로스 계산
+        # 예측과 참 라벨 사이의 로스 계산
         loss = criterion(outputs, labels)
         
         # ====================================================================
@@ -309,7 +309,7 @@ print('='*60)
 print('EVALUATING MODEL ON TEST SET')
 print('='*60)
 
-# 모든 배치의 예측과 레이블을 담을 목록
+# 모든 배치의 예측과 라벨을 담을 목록
 class_labels = []
 class_preds = []
 
@@ -342,22 +342,22 @@ with torch.no_grad():
         # 배치의 표본마다 이렇게 한다
         class_probs_batch = [F.softmax(output, dim=0) for output in outputs]
         
-        # 이 배치의 예측과 레이블 저장
+        # 이 배치의 예측과 라벨 저장
         class_preds.append(class_probs_batch)
         class_labels.append(labels)
     
     # ========================================================================
-    # 예측과 레이블 합치기
+    # 예측과 라벨 합치기
     # ========================================================================
     # stack: 새 차원을 만들어 텐서를 잇는다
     # cat: 이미 있는 차원을 따라 텐서를 잇는다
     
     # 목록의 목록을 텐서 하나로 바꾸기
-    # 최종 모양: [10000, 10] (모든 표본, 모든 클래스의 확률)
+    # 최종 형태: [10000, 10] (모든 표본, 모든 클래스의 확률)
     class_preds = torch.cat([torch.stack(batch) for batch in class_preds])
     
-    # 모든 레이블 배치 잇기
-    # 최종 모양: [10000] (모든 레이블)
+    # 모든 라벨 배치 잇기
+    # 최종 형태: [10000] (모든 라벨)
     class_labels = torch.cat(class_labels)
     
     # ========================================================================
@@ -369,13 +369,13 @@ with torch.no_grad():
     # ========================================================================
     # TensorBoard: 정밀도-재현율 곡선 기록
     # ========================================================================
-    # 정밀도-재현율 곡선은 정밀도와 재현율의 절충을 보여 준다
+    # 정밀도-재현율 곡선은 정밀도와 재현율의 트레이드오프를 보여 준다
     # 임계값을 달리할 때의 모델 성능을 이해하는 데 쓸모 있다
     # 숫자 클래스(0~9)마다 곡선을 따로 그린다
     
     classes = range(10)
     for i in classes:
-        # 이진 레이블 만들기: 표본이 클래스 i이면 True, 아니면 False
+        # 이진 라벨 만들기: 표본이 클래스 i이면 True, 아니면 False
         labels_i = class_labels == i
         
         # 클래스 i에 대한 예측 확률 얻기
@@ -436,7 +436,7 @@ NeuralNet의 학습 파라메터 수를 계산하라.
 </div>
 
 ??? success "풀이"
-    목표는 원래 레이블이 3인지 나타내는 이진 값이고 점수는 각 표본에 대한 클래스 3의 소프트맥스 확률이다. 이 점수에 대한 임계값을 바꾸며 one-vs-rest 정밀도와 재현율을 계산한다.
+    목표는 원래 라벨이 3인지 나타내는 이진 값이고 점수는 각 표본에 대한 클래스 3의 소프트맥스 확률이다. 이 점수에 대한 임계값을 바꾸며 one-vs-rest 정밀도와 재현율을 계산한다.
 
 ---
 
@@ -449,7 +449,7 @@ NeuralNet의 학습 파라메터 수를 계산하라.
 </div>
 
 ??? success "풀이"
-    모델 구조, 시드, 데이터 분할, 러닝레이트·배치 크기 등 설정과 소프트웨어 버전을 실행별로 남긴다. 전역 단계의 의미를 같게 하고 같은 테스트셋을 반복 모델 선택에 사용하지 않았는지도 구분한다.
+    모델 구조, 시드, 데이터 분할, 러닝레이트·배치 크기 등 설정과 소프트웨어 버전을 실행별로 남긴다. 전역 단계의 의미를 같게 하고 같은 시험셋을 반복 모델 선택에 사용하지 않았는지도 구분한다.
 
 ## 정리하며
 

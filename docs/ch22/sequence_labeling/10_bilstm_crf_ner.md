@@ -9,14 +9,14 @@ BiLSTM-CRF는 문맥 인코더의 태그 점수와 시퀀스 전이 모델을 �
 개체명 인식을 위한 양방향 LSTM-CRF
 ========================================
 
-가장 앞선 차례 레이블 붙이기를 위해 CRF 레이어를 얹은 양방향 LSTM.
+최신 시퀀스 라벨링을 위해 CRF 레이어를 얹은 양방향 LSTM.
 
 구조:
 - 임베딩 레이어
 - 양방향 LSTM
-- 짜임 있는 예측을 위한 CRF 레이어
+- 구조적 예측을 위한 CRF 레이어
 
-지은이: 러닝 목적
+지은이: 교육 목적
 날짜: 2025
 """
 
@@ -34,7 +34,7 @@ class BiLSTM_CRF(nn.Module):
     개체명 인식을 위한 양방향 LSTM-CRF 모델.
     
     구조:
-    들임 → 임베딩 → 양방향 LSTM → 선형 → CRF → 내놓음
+    입력 → 임베딩 → 양방향 LSTM → 선형 → CRF → 출력
     """
     
     def __init__(self, vocab_size: int, tag_size: int, 
@@ -43,10 +43,10 @@ class BiLSTM_CRF(nn.Module):
         양방향 LSTM-CRF 초기화.
         
         인수:
-            vocab_size: 단어 곳간의 크기
-            tag_size: 개체명표의 개수
+            vocab_size: 어휘의 크기
+            tag_size: 개체명 태그의 개수
             embedding_dim: 단어 임베딩의 차원
-            hidden_dim: LSTM의 숨은 차원
+            hidden_dim: LSTM의 은닉 차원
         """
         super(BiLSTM_CRF, self).__init__()
         
@@ -62,24 +62,24 @@ class BiLSTM_CRF(nn.Module):
         self.lstm = nn.LSTM(embedding_dim, hidden_dim // 2,
                            num_layers=1, bidirectional=True, batch_first=True)
         
-        # 레이블 공간으로 내리쬐는 선형 레이어
+        # 라벨 공간으로 사영하는 선형 레이어
         self.hidden2tag = nn.Linear(hidden_dim, tag_size)
         
         # CRF 전이 파라메터
-        # transitions[i, j] = 레이블 j에서 레이블 i로 넘어가는 점수
+        # transitions[i, j] = 라벨 j에서 라벨 i로 넘어가는 점수
         self.transitions = nn.Parameter(torch.randn(tag_size, tag_size))
         
-        # START 레이블로는 결코 넘어가지 않는다
+        # START 라벨로는 결코 넘어가지 않는다
         self.transitions.data[:, tag_size - 2] = -10000
-        # END 레이블에서는 결코 넘어가지 않는다
+        # END 라벨에서는 결코 넘어가지 않는다
         self.transitions.data[tag_size - 1, :] = -10000
     
     def forward(self, sentence: torch.Tensor) -> torch.Tensor:
         """
-        양방향 LSTM에서 내보냄 점수 얻기.
+        양방향 LSTM에서 방출(emission) 점수 얻기.
         
         인수:
-            sentence: 단어 번호를 담은 [batch_size, seq_len] 텐서
+            sentence: 단어 인덱스를 담은 [batch_size, seq_len] 텐서
             
         반환값:
             emission_scores: [batch_size, seq_len, tag_size]
@@ -90,7 +90,7 @@ class BiLSTM_CRF(nn.Module):
         # 양방향 LSTM에 통과시키기
         lstm_out, _ = self.lstm(embeds)  # [batch, seq_len, hidden_dim]
         
-        # 레이블 공간으로 내리쬐기
+        # 라벨 공간으로 사영하기
         emissions = self.hidden2tag(lstm_out)  # [batch, seq_len, tag_size]
         
         return emissions
@@ -124,7 +124,7 @@ BiLSTM-CRF model created successfully!
 
 hidden_dim은 방향별 바닥 나눗셈과 선형 입력을 맞추려면 짝수여야 한다. 패딩 ID·길이 packing·mask가 없으므로 길이가 다른 문장의 패딩도 BiLSTM 문맥에 참여할 수 있다. 임의로 생성한 토큰 ID의 모양 확인은 NER 학습·정확도를 검증하지 않는다.
 
-transitions는 K×K 학습 가능한 파라메터로 등록하지만 forward에서 사용하지 않는다. 따라서 이 출력으로 로스를 계산해도 현재 경로에서는 전이 파라메터에 경사가 생기지 않는다. 마지막 두 태그를 특별한 시작·종료로 간주한−10000 대입도 실제 CRF 계산에 적용되지 않는다. 태그 매핑·전이 방향·시작/종료 모델을 먼저 정의해야 한다.
+transitions는 K×K 학습 가능한 파라메터로 등록하지만 forward에서 사용하지 않는다. 따라서 이 출력으로 로스를 계산해도 현재 경로에서는 전이 파라메터에 그래디언트가 생기지 않는다. 마지막 두 태그를 특별한 시작·종료로 간주한−10000 대입도 실제 CRF 계산에 적용되지 않는다. 태그 매핑·전이 방향·시작/종료 모델을 먼저 정의해야 한다.
 
 ## 3. CRF와 학습을 연결하려면
 

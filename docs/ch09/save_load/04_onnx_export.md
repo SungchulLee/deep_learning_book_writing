@@ -11,14 +11,14 @@ ONNX는 모델의 계산 그래프와 파라메터를 표현하는 교환 형식
 PyTorch 모델을 ONNX 형식으로 내보내기
 ============================================================
 
-ONNX(Open Neural Network Exchange)는 딥러닝 모델을 나타내는 열린 형식이다.
+ONNX(Open Neural Network Exchange)는 딥러닝 모델을 나타내는 개방형 표준 형식이다.
 여러 프레임워크와 배포 플랫폼 사이에서 모델을 옮겨 쓸 수 있게 해 준다.
 
 
 주제:
 - 왜 ONNX로 내보내는가
 - 기본적인 ONNX 내보내기
-- 동적 입력 모양
+- 동적 입력 형태
 - 모델 최적화
 - 확인과 검증
 """
@@ -99,11 +99,11 @@ torch.onnx.export(
     dummy_input,                    # 예시 입력 텐서
     onnx_path,                      # 출력 파일 경로
     export_params=True,             # 학습된 파라메터 저장
-    opset_version=11,               # ONNX 판본
+    opset_version=11,               # ONNX opset 버전
     do_constant_folding=True,       # 상수 접기 최적화
     input_names=['input'],          # 입력 텐서의 이름
     output_names=['output'],        # 출력 텐서의 이름
-    dynamic_axes={                  # 동적 입력/출력 모양
+    dynamic_axes={                  # 동적 입력/출력 형태
         'input': {0: 'batch_size'},
         'output': {0: 'batch_size'}
     }

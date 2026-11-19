@@ -1,15 +1,15 @@
 # PyramidNet
 
-PyramidNet은 2017년 글 "그림 알아보기를 위한 깊은 두겁 나머지 학습하기"에서 나왔으며, 성기게 하는 도막에서 계단처럼 늘리던 여느 길 대신 나머지 덩이를 지나며 결 그림의 차수를 차츰 늘린다. 이렇게 매끄럽게 두겁처럼 넓히면 리프리젠테이션의 짐이 켜에 더 고루 퍼져, 넘어가는 자리에서 소식을 덜 잃고 익히는 동안 그래디언트가 더 잘 흐른다.
+PyramidNet은 2017년 논문 "Deep Pyramidal Residual Networks"에서 나왔으며, 다운샘플링 스테이지에서 계단처럼 늘리던 기존 방식 대신 잔차 블록을 지날 때마다 피처 맵의 차원(채널 수)을 차츰 늘린다. 이렇게 매끄럽게 피라미드처럼 넓히면 표현의 부담이 레이어에 더 고르게 분산되어, 전환 지점에서 정보 손실이 줄고 학습하는 동안 그래디언트가 더 잘 흐른다.
 
 ## 1. 코드
 
 ```python
 #!/usr/bin/env python3
 '''
-PyramidNet - 깊은 피라미드 나머지 네트워크
+PyramidNet - 깊은 피라미드 잔차 네트워크
 논문: "Deep Pyramidal Residual Networks" (2017)
-핵심: 피처 지도의 차원을 차츰 늘린다
+핵심: 피처 맵의 차원을 차츰 늘린다
 '''
 import torch
 import torch.nn as nn
@@ -38,7 +38,7 @@ class PyramidBasicBlock(nn.Module):
         out = self.conv2(torch.nn.functional.relu(self.bn2(out)))
         out = self.bn3(out)
         
-        # 차수를 맞추려는 0 덧대기
+        # 차원을 맞추기 위한 0 패딩
         shortcut = self.shortcut(x)
         if shortcut.size(1) != out.size(1):
             pad_size = out.size(1) - shortcut.size(1)
@@ -89,7 +89,7 @@ Parameters: 1,837,024
 
 ## 2. 논의
 
-이 구현은 클래스 2개(`PyramidBasicBlock`, `PyramidNet`)를 매기고, 이들이 어울려 온전한 컨볼루션 뉴럴 네트워크 구조를 이룬다. 클래스마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 계산 그림을 매긴다.
+이 구현은 클래스 2개(`PyramidBasicBlock`, `PyramidNet`)를 정의하며, 이들이 함께 하나의 컨볼루션 뉴럴 네트워크 구조를 이룬다. 클래스마다 역할이 나뉘어 있어 코드가 모듈화되고 확장하기 쉽다. `forward` 메서드는 PyTorch가 자동 미분에 쓰는 계산 그래프를 정의한다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -98,59 +98,59 @@ Parameters: 1,837,024
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`PyramidBasicBlock`의 앞으로 스텝을 따라 텐서의 형태를 좇아라. 기본 파라메터로 입력 보기 4개를 묶어 넣었을 때, 큰 계산(컨볼루션, 모으기, 선형 켜)마다 형태가 어떻게 되는지 적어라.
+`PyramidBasicBlock`의 순전파를 따라 텐서의 형태를 추적하여라. 기본 파라메터로 샘플 4개짜리 배치를 넣었을 때, 주요 연산(컨볼루션, 풀링, 선형 레이어)마다 형태가 어떻게 되는지 적어라.
 
 </div>
 
 ??? success "풀이"
-    입력의 형태에서 비롯해 켜를 차례로 건다. `Conv2d(in_c, out_c, k)`마다 자리 차수는 $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌고(덧대기 없이) `padding=k//2`이면 그대로다. 알갱이 2로 모으면 자리 차수가 반이 된다. 선형 켜는 마지막 차수를 바꾼다. 배치 차수는 내내 그대로임을 좇아라. 컨볼루션 켜에서는 $(B, C, H, W)$, 편 뒤에는 $(B, F)$으로 가운데 형태를 적어라.
+    입력의 형태에서 출발해 레이어를 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌고(패딩이 없을 때) `padding=k//2`이면 그대로다. 커널 크기 2로 풀링하면 공간 차원이 반이 된다. 선형 레이어는 마지막 차원을 바꾼다. 배치 차원은 끝까지 그대로임을 확인하여라. 컨볼루션 레이어에서는 $(B, C, H, W)$, 평탄화한 뒤에는 $(B, F)$로 중간 형태를 적어라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-구조를 크기 $64 \times 64$의 RGB 그림(입력 형태: $3 \times 64 \times 64$)을 받도록 고쳐라. 켜의 차수를 모두 그에 맞게 손보고 모델이 어긋남 없이 도는지 따져라.
+구조를 크기 $64 \times 64$의 RGB 이미지(입력 형태: $3 \times 64 \times 64$)를 받도록 고쳐라. 레이어의 차원을 모두 그에 맞게 조정하고 모델이 오류 없이 실행되는지 확인하여라.
 
 </div>
 
 ??? success "풀이"
-    첫 컨볼루션 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 컨볼루션과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 계산한다. 첫 선형 켜의 `in_features`을 마지막 컨볼루션/모으기 켜의 편 출력에 맞춘다. `model = PyramidBasicBlock(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
+    첫 컨볼루션 레이어의 `in_channels`를 현재 값에서 3으로 바꾼다. 컨볼루션과 풀링 레이어마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 공간 차원을 다시 계산한다. 첫 선형 레이어의 `in_features`를 마지막 컨볼루션/풀링 레이어의 평탄화된 출력에 맞춘다. `model = PyramidBasicBlock(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 확인한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-입력과 출력의 차수가 같을 때 여느 컨볼루션과 깊이별로 가른 컨볼루션의 파라메터 수와 뜨는 계산 횟수를 비교하여라. 계산을 가장 크게 아끼는 때는 언제인가?
+입력과 출력의 차원이 같을 때 표준 컨볼루션과 깊이별 분리 컨볼루션(depthwise separable convolution)의 파라메터 수와 FLOPs(부동소수점 연산 횟수)를 비교하여라. 계산을 가장 크게 절약하는 때는 언제인가?
 
 </div>
 
 ??? success "풀이"
-    여느 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별로 가른 컨볼루션은 이를 (1) 깊이별: $C_{{\text{{in}}}} \times k^2$개(입력 클래스마다 필터 하나)와 (2) 점별: $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터의 비교는 어림잡아 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$이 모두 클 때 가장 크게 아낀다.
+    표준 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별 분리 컨볼루션은 이를 (1) 깊이별(depthwise): $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나)와 (2) 점별(pointwise): $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터 수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$이 모두 클 때 가장 크게 절약한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`PyramidBasicBlock`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 파라메터를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+`PyramidBasicBlock`을 레이어나 블록의 수를 설정할 수 있게 확장하여라. `__init__`에 `num_layers` 인자를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 구현하여라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
 ??? success "풀이"
-    박아 넣은 켜를 다음으로 갈음한다.
+    하드코딩된 레이어를 다음으로 대체한다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 파라메터를 모두 다듬기에 올린다. `for n in [2, 4, 8]: model = PyramidBasicBlock(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 그 안의 파라메터를 모두 모듈에 등록하여 옵티마이저가 갱신할 수 있다. `for n in [2, 4, 8]: model = PyramidBasicBlock(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
 
 ## 정리하며
 
 **다룬 것** — PyramidNet
 
-이 구현은 클래스 2개(`PyramidBasicBlock`, `PyramidNet`)를 매기고, 이들이 어울려 온전한 컨볼루션 뉴럴 네트워크 구조를 이룬다.
+이 구현은 클래스 2개(`PyramidBasicBlock`, `PyramidNet`)를 정의하며, 이들이 함께 하나의 컨볼루션 뉴럴 네트워크 구조를 이룬다.
 
-핵심 클래스는 `PyramidBasicBlock`, `PyramidNet`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `PyramidBasicBlock`, `PyramidNet`이며 앞의 연습문제 4개로 스스로 확인해 볼 수 있다.

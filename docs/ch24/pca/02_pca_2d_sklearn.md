@@ -9,7 +9,7 @@
 import numpy as np
 from sklearn.decomposition import PCA
 
-# === 만든 2차원 자료 묶음 만들기 ==========================================
+# === 합성 2차원 데이터셋 만들기 ==========================================
 rng = np.random.default_rng(42)
 n = 150
 mean_true = np.array([2.0, -1.0])
@@ -17,14 +17,14 @@ cov_true = np.array([[3.0, 2.2],
                      [2.2, 2.0]])
 X = rng.multivariate_normal(mean_true, cov_true, size=n)
 
-# === scikit-learn으로 주성분 분석 맞추기 ===================================
+# === scikit-learn으로 주성분 분석 적합하기 ===================================
 pca = PCA(n_components=1)
 scores_1d = pca.fit_transform(X)
 X_recon = pca.inverse_transform(scores_1d)
 
 reconstruction_error = np.mean((X - X_recon) ** 2)
 
-# === 트랜스포머가 들고 있는 것 =================================================
+# === 적합된 PCA 객체가 들고 있는 것 =================================================
 print(f"mean_                   {pca.mean_}")
 print(f"components_ shape       {pca.components_.shape}   (성분 x 피처)")
 print(f"components_[0]          {pca.components_[0]}")
@@ -66,7 +66,7 @@ whiten=True  점수의 공분산
  [-0.  1.]]
 ```
 
-재구성 MSE 0.095863은 [NumPy 쪽](01_pca_2d_numpy.md)의 값과 **자릿수까지 같다.** 같은 씨앗, 같은 자료, 같은 계산이기 때문이다. 다른 것은 그 계산을 누가 들고 있느냐뿐이다 — 여기서는 `pca` 객체가 평균과 방향을 기억한다.
+재구성 MSE 0.095863은 [NumPy 쪽](01_pca_2d_numpy.md)의 값과 **자릿수까지 같다.** 같은 시드, 같은 데이터, 같은 계산이기 때문이다. 다른 것은 그 계산을 누가 들고 있느냐뿐이다 — 여기서는 `pca` 객체가 평균과 방향을 기억한다.
 
 `components_[0]`이 음수인 것은 부호 자유다. 방향을 뒤집어도 점수가 함께 뒤집혀 재구성은 같다.
 
@@ -74,7 +74,7 @@ whiten=True  점수의 공분산
 
 `fit_transform(X)`는 평균과 방향을 적합하고 학습 점수 150×1을 반환한다. 평균은 `mean_`, 방향은 `components_`에 저장된다. `components_`는 성분×피처 배열이므로 여기서는 1×2다. 입력을 중심화하지만 피처별 단위 분산 표준화는 자동으로 하지 않는다.
 
-`inverse_transform`은 점수에 방향을 곱하고 평균을 더한다. 차원을 줄인 경우 버린 방향은 되살릴 수 없으며 주부분공간으로 투영된 점을 반환한다. 기본값처럼 whitening을 사용하지 않을 때 행벡터 식은 z=(x−μ)Wᵀ, x̂=zW+μ다.
+`inverse_transform`은 점수에 방향을 곱하고 평균을 더한다. 차원을 줄인 경우 버린 방향은 복원할 수 없으며 주부분공간으로 투영된 점을 반환한다. 기본값처럼 whitening을 사용하지 않을 때 행벡터 식은 z=(x−μ)Wᵀ, x̂=zW+μ다.
 
 ## 3. 분산 속성과 MSE
 
@@ -84,9 +84,9 @@ whiten=True  점수의 공분산
 
 ## 4. 성분 수와 whitening
 
-0과 1 사이의 실수 `n_components`는 지원되는 분해 설정에서 목표 누적 분산을 넘는 성분 수를 선택한다. 필요한 수는 학습 데이터와 전처리에 따라 달라지므로 적합된 트랜스포머와 실제 `n_components_`를 함께 관리한다.
+0과 1 사이의 실수 `n_components`는 지원되는 분해 설정에서 목표 누적 분산을 넘는 성분 수를 선택한다. 필요한 수는 학습 데이터와 전처리에 따라 달라지므로 적합된 PCA 객체와 실제 `n_components_`를 함께 관리한다.
 
-![세 판으로 나뉜 그림. 왼쪽은 원래 자료로 점들이 기울어진 타원을 이룬다. 가운데는 whiten 없이 주성분 좌표로 옮긴 것으로 타원이 가로축에 나란해졌지만 여전히 납작하다. 오른쪽은 whiten 을 켠 것으로 점들이 둥글게 퍼져 있다. 판마다 표본 공분산이 함께 적혀 있다.](figures/whitening.svg)
+![세 판으로 나뉜 그림. 왼쪽은 원래 데이터로 점들이 기울어진 타원을 이룬다. 가운데는 whiten 없이 주성분 좌표로 옮긴 것으로 타원이 가로축에 나란해졌지만 여전히 납작하다. 오른쪽은 whiten 을 켠 것으로 점들이 둥글게 퍼져 있다. 판마다 표본 공분산이 함께 적혀 있다.](figures/whitening.svg)
 
 그림의 세 판이 출력의 세 공분산이다. 가운데에서 **돌리고**(비대각 원소가 0이 된다), 오른쪽에서 **축마다 나눈다**(대각 원소가 1이 된다). `whiten=True`는 남긴 점수를 고윳값 제곱근으로 나누어 학습 표본 공분산이 단위 행렬이 되도록 한다. 양의 분산 성분이 전제이며 작은 고윳값의 잡음을 증폭할 수 있다. 원래 방향별 분산 차이를 없애는 것이므로 후속 작업에서 유용한지는 검증한다. `inverse_transform`은 적용한 스케일도 되돌린다.
 
@@ -94,7 +94,7 @@ whiten=True  점수의 공분산
 
 전체 SVD, 절단·무작위 방법과 공분산 고유분해는 데이터 크기와 목표 성분 수, 지원 버전에 따라 선택할 수 있다. 근사 방법의 오차와 무작위성, 공분산 방식의 수치 안정성을 고려한다. 정확한 옵션·제약은 [PCA 공식 문서](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html)를 참고한다.
 
-예측 평가에서는 학습 데이터에만 적합한 PCA로 검증·테스트 데이터를 변환한다. 교차 검증은 전처리와 분류기를 Pipeline으로 묶어 폴드 안에서 적합한다. 전체 데이터에 PCA를 먼저 적합하면 레이블을 사용하지 않아도 평가 데이터의 구조가 학습에 들어간다.
+예측 평가에서는 학습 데이터에만 적합한 PCA로 검증·시험 데이터를 변환한다. 교차 검증은 전처리와 분류기를 Pipeline으로 묶어 폴드 안에서 적합한다. 전체 데이터에 PCA를 먼저 적합하면 라벨을 사용하지 않아도 평가 데이터의 구조가 학습에 들어간다.
 
 <div class="storybox" markdown>
 
@@ -106,7 +106,7 @@ whiten=True  점수의 공분산
 
 첫 공개 배포는 2010년 2월 1일, 프랑스 INRIA의 파비안 페드레고사(Fabian Pedregosa)·가엘 바로코(Gaël Varoquaux)·알렉상드르 그람포르(Alexandre Gramfort)·뱅상 미셸(Vincent Michel)이 프로젝트를 이어받은 뒤였다. 이름에서 `s` 하나가 빠져 지금의 `scikit-learn`이 되었다.
 
-**그런데 짧다는 것이 공짜는 아니다.** 바로 위 문단이 경고한 그 누출을 보자. 전체 자료에 먼저 적합하는 잘못된 길은 `fit_transform(X)` **한 번**이고, 폴드 안에서 적합하는 옳은 길은 `Pipeline`으로 묶어 `cross_val_score`에 넘기는 **여러 줄**이다. 쓰기 쉬운 쪽이 틀린 쪽이다. 잘 만든 API는 할 수 있는 일을 늘려 주지만 **무엇이 기본값인지까지 정해 주지는 않으며**, 어느 쪽이 짧은가가 사람들이 실제로 하는 일을 적잖이 정한다. 이 쪽의 `fit_transform(X)` 한 줄이 괜찮은 것은 여기서 예측 성능을 재지 않기 때문이고, 재는 순간 그 한 줄은 더 이상 쓸 수 없다.
+**그런데 짧다는 것이 공짜는 아니다.** 바로 위 문단이 경고한 그 누출을 보자. 전체 데이터에 먼저 적합하는 잘못된 길은 `fit_transform(X)` **한 번**이고, 폴드 안에서 적합하는 옳은 길은 `Pipeline`으로 묶어 `cross_val_score`에 넘기는 **여러 줄**이다. 쓰기 쉬운 쪽이 틀린 쪽이다. 잘 만든 API는 할 수 있는 일을 늘려 주지만 **무엇이 기본값인지까지 정해 주지는 않으며**, 어느 쪽이 짧은가가 사람들이 실제로 하는 일을 적잖이 정한다. 이 쪽의 `fit_transform(X)` 한 줄이 괜찮은 것은 여기서 예측 성능을 재지 않기 때문이고, 재는 순간 그 한 줄은 더 이상 쓸 수 없다.
 
 _확인한 곳 — scikit-learn 공식 문서의 [About us](https://scikit-learn.org/stable/about.html) 에 적힌 내력. 2007년 David Cournapeau 의 Google Summer of Code 과제로 시작했고, 2010년 2월 1일 INRIA 의 네 사람이 첫 공개 배포를 했다._
 
@@ -187,12 +187,12 @@ fit과 transform의 역할을 구분하고 아래 코드에 필요한 전제를 
 
 ??? success "풀이"
 
-    fit은 학습 평균과 방향을 추정하고 transform은 저장한 변환을 적용한다. fit_transform은 학습 데이터에서 두 작업을 수행한다. 아래 X_train과 X_test는 미리 정의해야 하며 같은 피처 순서를 사용한다. 테스트에는 다시 적합하지 않는다.
+    fit은 학습 평균과 방향을 추정하고 transform은 저장한 변환을 적용한다. fit_transform은 학습 데이터에서 두 작업을 수행한다. 아래 X_train과 X_test는 미리 정의해야 하며 같은 피처 순서를 사용한다. 시험 데이터에는 다시 적합하지 않는다.
 
     ```python
     pca = PCA(n_components=1)
-    Z_train = pca.fit_transform(X_train)   # 배우고 옮긴다
-    Z_test  = pca.transform(X_test)        # 배운 것을 쓴다
+    Z_train = pca.fit_transform(X_train)   # 적합하고 변환한다
+    Z_test  = pca.transform(X_test)        # 적합한 것으로 변환한다
     ```
 
 
@@ -210,7 +210,7 @@ fit과 transform의 역할을 구분하고 아래 코드에 필요한 전제를 
     각 비율의 분모가 전체 분산이기 때문이다. 합은 남긴 성분이 설명하는 비율이다. 선택 고윳값만 합해 다시 정규화하면 라이브러리의 전체 분산 비율과 다른 양이 된다. 전체 분산이 0인 데이터에는 이 비율이 정의되지 않는다.
 
     ```python
-    pca.explained_variance_        # 고윳값. 단위가 자료의 단위^2
+    pca.explained_variance_        # 고윳값. 단위가 데이터의 단위^2
     pca.explained_variance_ratio_  # 합이 1이 되도록 나눈 것
     ```
 
@@ -282,7 +282,7 @@ inverse_transform이 정확한 원본을 반환하는 경우와 반환하지 않
     설정한 분산 임계값뿐 아니라 적합된 평균·방향과 실제 n_components_를 저장한다. 학습 데이터를 바꾸면 선택 차원이 달라질 수 있으므로 뒤 모델도 같은 적합된 변환과 함께 관리한다. 차원을 정수로 고정하는 것만으로 평균이나 기저 불일치가 해결되지는 않는다.
 
     ```python
-    PCA(n_components=0.95)    # 흩어짐 95%를 남기는 가장 작은 k
+    PCA(n_components=0.95)    # 분산 95%를 남기는 가장 작은 k
     ```
 
 
@@ -300,12 +300,12 @@ inverse_transform이 정확한 원본을 반환하는 경우와 반환하지 않
     첫 방식은 각 검증 폴드의 분포가 전처리에 들어간다. 두 번째 방식은 각 학습 폴드에서 표준화와 PCA, 분류기를 적합해 누출을 피한다. 표준화 전 PCA와 PCA 점수의 스케일링은 서로 다른 목적이며 적용 순서는 의도에 따라 정한다. 코드에 쓰인 cross_val_score, make_pipeline과 분류기 등은 별도 정의·import가 필요하다.
 
     ```python
-    Z = PCA(n_components=50).fit_transform(X)      # 전체 자료로 fit
+    Z = PCA(n_components=50).fit_transform(X)      # 전체 데이터로 fit
     scores = cross_val_score(clf, Z, y, cv=5)      # 그 뒤에 교차 검증
     ```
     ```python
     pipe = make_pipeline(StandardScaler(), PCA(n_components=50), LogisticRegression())
-    scores = cross_val_score(pipe, X, y, cv=5)     # 접기마다 fit 이 다시 된다
+    scores = cross_val_score(pipe, X, y, cv=5)     # 폴드마다 fit 이 다시 된다
     ```
 
 

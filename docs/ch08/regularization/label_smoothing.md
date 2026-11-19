@@ -1,6 +1,6 @@
-# 레이블 스무딩
+# 라벨 스무딩
 
-레이블 스무딩은 원핫 목표를 다른 분포와 섞어 분류 목표를 부드럽게 만드는 기법이다. 큰 로짓 차이를 억제할 수 있지만 정확도와 확률 보정의 개선을 항상 보장하지는 않는다. 이 절에서는 PyTorch와 같은 균등분포 혼합 관례를 사용한다.
+라벨 스무딩은 원핫 목표를 다른 분포와 섞어 분류 목표를 부드럽게 만드는 기법이다. 큰 로짓 차이를 억제할 수 있지만 정확도와 확률 보정의 개선을 항상 보장하지는 않는다. 이 절에서는 PyTorch와 같은 균등분포 혼합 관례를 사용한다.
 
 ## 1. 수학적 정식화
 
@@ -12,7 +12,7 @@ $$
 y_i^{\text{hard}} = \begin{cases} 1 & \text{if } i = k \\ 0 & \text{if } i \neq k \end{cases}
 $$
 
-레이블 스무딩은 이를 부드러운 목표로 바꾼다.
+라벨 스무딩은 이를 부드러운 목표(soft target)로 바꾼다 — 정답 클래스에 확률을 전부 몰아주지 않고 나머지 클래스에도 조금씩 나누어 준 목표 분포다.
 
 $$
 y_i^{\text{smooth}} = \begin{cases} 1-\varepsilon+\varepsilon/K & \text{if } i=k \\ \varepsilon/K & \text{if } i\neq k \end{cases}
@@ -26,7 +26,7 @@ $$
 
 여기서는 모든 $K$개 클래스의 균등분포와 섞는다. 정답에 $1-\varepsilon$, 오답에 $\varepsilon/(K-1)$을 주는 다른 관례도 있지만 같은 $\varepsilon$에서 수치가 다르다. 구현 간 비교에서는 어느 정의인지 맞춰야 한다.
 
-### 레이블 스무딩을 쓰는 교차 엔트로피
+### 라벨 스무딩을 쓰는 교차 엔트로피
 
 원핫 목표를 쓰는 표준 교차 엔트로피 로스는 다음과 같다.
 
@@ -34,7 +34,7 @@ $$
 \mathcal{L}_{\text{CE}} = -\sum_{i=1}^{K} y_i^{\text{hard}} \log p_i = -\log p_k
 $$
 
-레이블 스무딩을 쓰면 다음과 같다.
+라벨 스무딩을 쓰면 다음과 같다.
 
 $$
 \mathcal{L}_{\text{LS}} = -\sum_{i=1}^{K} y_i^{\text{smooth}} \log p_i =-(1-\varepsilon)\log p_k-\frac{\varepsilon}{K}\sum_i\log p_i
@@ -50,17 +50,17 @@ $$
 
 ### KL 발산으로서의 해석
 
-레이블 스무딩 로스는 다음과 동등하다.
+라벨 스무딩 로스는 다음과 동등하다.
 
 $$
 \mathcal{L}_{\text{LS}} = (1 - \varepsilon) \, H(y^{\text{hard}}, p) + \varepsilon \, H(u, p)
 $$
 
-여기서 $H(\cdot, \cdot)$은 교차 엔트로피를, $u = \frac{1}{K} \mathbf{1}$은 균등분포를 뜻한다. $H(u, p) = \log K + D_{\text{KL}}(u \| p)$이므로 레이블 스무딩 로스를 최소화하면 모델 출력과 균등분포 사이의 KL 발산에 패널티를 주게 되고, 이는 로짓이 한없이 커지는 것을 막는다.
+여기서 $H(\cdot, \cdot)$은 교차 엔트로피를, $u = \frac{1}{K} \mathbf{1}$은 균등분포를 뜻한다. $H(u, p) = \log K + D_{\text{KL}}(u \| p)$이므로 라벨 스무딩 로스를 최소화하면 모델 출력과 균등분포 사이의 KL 발산에 패널티를 주게 되고, 이는 로짓이 한없이 커지는 것을 막는다.
 
 ### 로짓에 미치는 영향
 
-레이블 스무딩이 없으면 교차 엔트로피 로스는 옳은 클래스의 로짓 $z_k$을 다른 로짓에 비교하여 $\infty$으로 몰아간다. 레이블 스무딩을 쓰면 최적의 로짓 배치는 다음을 만족한다.
+라벨 스무딩이 없으면 교차 엔트로피 로스는 옳은 클래스의 로짓 $z_k$을 다른 로짓에 비교하여 $\infty$으로 몰아간다. 라벨 스무딩을 쓰면 최적의 로짓 배치는 다음을 만족한다.
 
 $$
 z_k - z_j = \log\frac{1-\varepsilon+\varepsilon/K}{\varepsilon/K} \quad \text{for all } j \neq k
@@ -70,19 +70,19 @@ $$
 
 ---
 
-## 2. 레이블 스무딩이 통하는 이유
+## 2. 라벨 스무딩이 통하는 이유
 
 ### 지나친 확신 막기
 
-원핫 목표는 모델이 옳은 클래스에 대해 $p_k = 1$을 내놓도록 이끄는데, 이는 로짓이 한없이 커져야 함을 뜻한다. 그 결과 지나치게 확신하며 일반화가 나쁜 예측을 하게 되고, 학습 데이터에 레이블 잡음이나 모호한 예가 있을 때 특히 그렇다.
+원핫 목표는 모델이 옳은 클래스에 대해 $p_k = 1$을 내놓도록 이끄는데, 이는 로짓이 한없이 커져야 함을 뜻한다. 그 결과 지나치게 확신하며 일반화가 나쁜 예측을 하게 되고, 학습 데이터에 라벨 잡음이나 모호한 예가 있을 때 특히 그렇다.
 
 ### 개선된 보정
 
 확률 보정은 같은 확신도 구간의 예측이 실제 빈도와 얼마나 맞는지를 다룬다. 스무딩이 과신을 줄여 보정을 개선하는 경우도 있지만, 과도한 스무딩은 과소확신을 만들 수 있다. 독립 검증 데이터에서 ECE와 로그로스 등을 함께 살펴 판단한다.
 
-### 로짓 크기의 암묵적 정규화
+### 로짓 크기의 암묵적 정칙화
 
-균등분포와의 교차 엔트로피 항은 극단적인 확률 분포에 비용을 준다. 출력 레이어의 웨이트 노름을 직접 벌점으로 주는 L2와 같지는 않으며, 로짓의 공통 이동에는 영향을 주지 않는다.
+균등분포와의 교차 엔트로피 항은 극단적인 확률 분포에 비용을 준다. 출력 레이어의 웨이트 노름을 직접 패널티로 주는 L2와 같지는 않으며, 로짓의 공통 이동에는 영향을 주지 않는다.
 
 ### 표현에 대한 군집 효과
 
@@ -94,13 +94,13 @@ Müller 등(2019)은 스무딩이 같은 클래스의 표현을 모으는 현상
 
 ### 내장 교차 엔트로피 쓰기
 
-PyTorch의 `CrossEntropyLoss`는 레이블 스무딩을 바로 지원한다.
+PyTorch의 `CrossEntropyLoss`는 라벨 스무딩을 바로 지원한다.
 
 ```python
 import torch
 import torch.nn as nn
 
-# 내장 레이블 평활화 (PyTorch >= 1.10)
+# 내장 라벨 스무딩 (PyTorch >= 1.10)
 criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 
 # 사용법
@@ -113,10 +113,10 @@ loss = criterion(logits, targets)  # 목푯값은 클래스 인덱스이다 (Lon
 ```python
 class LabelSmoothingCrossEntropy(nn.Module):
     """
-    레이블 평활화를 쓰는 교차 엔트로피 로스.
+    라벨 스무딩을 쓰는 교차 엔트로피 로스.
     
     인수:
-        epsilon: [0, 1) 안의 평활화 파라메터. 기본값: 0.1.
+        epsilon: [0, 1) 안의 스무딩 파라메터. 기본값: 0.1.
         reduction: 'mean', 'sum', 또는 'none'.
     """
     
@@ -128,11 +128,11 @@ class LabelSmoothingCrossEntropy(nn.Module):
     def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            logits: 모델의 날 출력, 모양 (batch_size, num_classes)
-            targets: 클래스 인덱스, 모양 (batch_size,)
+            logits: 모델의 원시 출력(로짓), 형태 (batch_size, num_classes)
+            targets: 클래스 인덱스, 형태 (batch_size,)
             
         반환값:
-            레이블 평활화된 교차 엔트로피 로스
+            라벨 스무딩된 교차 엔트로피 로스
         """
         num_classes = logits.size(-1)
         log_probs = torch.log_softmax(logits, dim=-1)
@@ -164,7 +164,7 @@ class LabelSmoothingCrossEntropy(nn.Module):
         return loss
 ```
 
-### 부드러운 목표를 쓰는 레이블 스무딩
+### 부드러운 목표를 쓰는 라벨 스무딩
 
 목표가 이미 확률일 때(예: 지식 증류나 믹스업에서 온 경우) 다음과 같이 한다.
 
@@ -174,7 +174,7 @@ class SoftTargetCrossEntropy(nn.Module):
     부드러운 목표 분포를 받는 교차 엔트로피 로스.
     
     원핫 목표와 부드러운 목표를 모두 지원한다. 필요하면 부드러운 목표 위에
-    레이블 평활화를 더 얹을 수도 있다.
+    라벨 스무딩을 더 얹을 수도 있다.
     """
     
     def __init__(self, epsilon: float = 0.0):
@@ -184,12 +184,12 @@ class SoftTargetCrossEntropy(nn.Module):
     def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            logits: 모양 (batch_size, num_classes)
-            targets: 모양 (batch_size, num_classes) — 부드러운 확률 목표
+            logits: 형태 (batch_size, num_classes)
+            targets: 형태 (batch_size, num_classes) — 부드러운 확률 목표
         """
         num_classes = logits.size(-1)
         
-        # 요청되면 추가 평활화 적용
+        # 요청되면 추가 스무딩 적용
         if self.epsilon > 0:
             # 목표를 균등분포 쪽으로 eps만큼 당긴다. 합이 1인 분포를
             # 넣으면 나온 것도 합이 1이다. (1-eps) + eps = 1이기 때문이다
@@ -220,23 +220,23 @@ def train_with_label_smoothing(
     lr: float = 0.001
 ) -> dict:
     """
-    레이블 평활화로 모델을 학습시킨다.
+    라벨 스무딩으로 모델을 학습시킨다.
     
     인수:
         model: 분류 뉴럴 네트워크
         train_loader: 학습 데이터
         val_loader: 검증 데이터
-        epsilon: 레이블 평활화 파라메터
+        epsilon: 라벨 스무딩 파라메터
         epochs: 학습 에포크 수
         lr: 러닝레이트
         
     반환값:
         학습 이력
     """
-    # PyTorch가 평활화를 인자 하나로 지원한다. 앞 절에서 손으로 만든
+    # PyTorch가 스무딩을 인자 하나로 지원한다. 앞 절에서 손으로 만든
     # 클래스와 하는 일이 같으므로, 실무에서는 이쪽을 쓰면 된다
     criterion = nn.CrossEntropyLoss(label_smoothing=epsilon)
-    # 주의: AdamW의 weight_decay가 또 하나의 정칙화다. 평활화만의 효과를
+    # 주의: AdamW의 weight_decay가 또 하나의 정칙화다. 스무딩만의 효과를
     # 보려면 이 값을 0으로 두고 견주어야 한다. 그대로 두면 두 기법이
     # 섞여 어느 쪽이 일했는지 갈라낼 수 없다
     optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2)
@@ -272,7 +272,7 @@ def train_with_label_smoothing(
         with torch.no_grad():
             for X_batch, y_batch in val_loader:
                 outputs = model(X_batch)
-                # 평활화 없는 교차 엔트로피를 쓴다. 평활화된 로스는
+                # 스무딩 없는 교차 엔트로피를 쓴다. 스무딩된 로스는
                 # 정답을 완벽히 맞혀도 0으로 내려가지 않고 하한이 epsilon에
                 # 따라 달라지므로, epsilon이 다른 실험끼리 견줄 수 없다.
                 # 그래서 학습 로스와 검증 로스도 서로 다른 함수의 값이며
@@ -280,7 +280,7 @@ def train_with_label_smoothing(
                 loss = nn.CrossEntropyLoss()(outputs, y_batch)  # 공정한 비교를 위한 딱딱한 교차 엔트로피
                 
                 # 이 페이지의 핵심 관찰이 여기서 나온다. 소프트맥스의
-                # 최댓값이 모델의 확신도인데, 평활화를 걸면 정확도는
+                # 최댓값이 모델의 확신도인데, 스무딩을 걸면 정확도는
                 # 거의 그대로면서 이 값이 내려간다. 맞히는 능력은
                 # 지키면서 지나친 자신감만 깎는 것이다
                 probs = torch.softmax(outputs, dim=-1)
@@ -293,7 +293,7 @@ def train_with_label_smoothing(
         
         # 배치마다 모아 둔 확신도를 한 텐서로 이어 붙여 평균 낸다.
         # 배치별 평균을 다시 평균 내지 않는 덕에, 마지막 배치가 짧아도
-        # 표본 하나하나가 같은 무게를 갖는다
+        # 표본 하나하나가 같은 비중을 갖는다
         avg_confidence = torch.cat(all_confidences).mean().item()
         
         history['train_loss'].append(train_loss / train_total)
@@ -325,8 +325,8 @@ def expected_calibration_error(
     기대 보정 오차를 계산한다.
     
     인수:
-        probs: 양성/선택된 클래스에 대한 예측 확률, 모양 (n,)
-        labels: 맞았는지를 나타내는 이진 지시자, 모양 (n,)
+        probs: 양성/선택된 클래스에 대한 예측 확률, 형태 (n,)
+        labels: 맞았는지를 나타내는 이진 지시자, 형태 (n,)
         n_bins: 보정에 쓸 구간의 개수
         
     반환값:
@@ -347,8 +347,8 @@ def expected_calibration_error(
         if n_in_bin > 0:   # 빈 구간은 건너뛴다
             avg_confidence = probs[in_bin].mean()    # 모델이 말한 확률
             avg_accuracy = labels[in_bin].mean()     # 실제로 맞은 비율
-            # 둘의 차이를 구간에 든 표본 수로 무게를 주어 더한다.
-            # 무게를 주는 까닭은 표본이 몇 개뿐인 구간이 결과를
+            # 둘의 차이를 구간에 든 표본 수로 가중하여 더한다.
+            # 가중하는 까닭은 표본이 몇 개뿐인 구간이 결과를
             # 좌우하지 않게 하기 위해서다
             ece += (n_in_bin / len(probs)) * abs(avg_accuracy - avg_confidence)
 
@@ -385,7 +385,7 @@ def evaluate_calibration(model, data_loader, device='cpu'):
     print(f"ECE: {ece:.4f}")
     # 정확도와 평균 확신도를 나란히 찍는 것이 요점이다.
     # 확신도가 정확도보다 높으면 과신(딥러닝에서 흔하다),
-    # 낮으면 과소 확신이다. 레이블 평활화는 이 간격을 줄이려는 장치다
+    # 낮으면 과소 확신이다. 라벨 스무딩은 이 간격을 줄이려는 장치다
     print(f"Accuracy: {correct.mean():.4f}")
     print(f"Mean confidence: {probs.mean():.4f}")
 
@@ -394,15 +394,15 @@ def evaluate_calibration(model, data_loader, device='cpu'):
 
 ---
 
-## 5. 특정 구조에서의 레이블 스무딩
+## 5. 특정 구조에서의 라벨 스무딩
 
 ### 트랜스포머
 
-레이블 스무딩은 트랜스포머 학습의 표준 구성 요소이다. 원 논문 "Attention Is All You Need"는 $\varepsilon = 0.1$을 쓴다.
+라벨 스무딩은 트랜스포머 학습의 표준 구성 요소이다. 원 논문 "Attention Is All You Need"는 $\varepsilon = 0.1$을 쓴다.
 
 ```python
 class TransformerClassifier(nn.Module):
-    """레이블 평활화를 쓰는 트랜스포머 기반 분류기."""
+    """라벨 스무딩을 쓰는 트랜스포머 기반 분류기."""
     
     def __init__(self, vocab_size, d_model, n_heads, n_layers, 
                  num_classes, dropout=0.1):
@@ -415,8 +415,8 @@ class TransformerClassifier(nn.Module):
             d_model=d_model, nhead=n_heads, 
             dim_feedforward=4*d_model, dropout=dropout,
             # batch_first=True: 입력을 (배치, 길이, 차원)으로 받는다.
-            # 이 인자가 없으면 (길이, 배치, 차원)이라는 옛 차례를 쓰므로
-            # 모양이 조용히 어긋나기 쉽다
+            # 이 인자가 없으면 (길이, 배치, 차원)이라는 옛 순서를 쓰므로
+            # 형태가 조용히 어긋나기 쉽다
             batch_first=True
         )
         self.encoder = nn.TransformerEncoder(encoder_layer, n_layers)
@@ -424,7 +424,7 @@ class TransformerClassifier(nn.Module):
 
     def forward(self, x):
         x = self.embedding(x)   # (배치, 길이) -> (배치, 길이, d_model)
-        x = self.encoder(x)     # 모양은 그대로, 내용만 다듬어진다
+        x = self.encoder(x)     # 형태는 그대로, 내용만 다듬어진다
 
         # 길이 축을 평균 내어 문장 하나를 벡터 하나로 줄인다.
         # BERT처럼 [CLS] 자리를 쓰는 방법도 있으나, 그러려면 그 자리가
@@ -441,7 +441,7 @@ model = TransformerClassifier(
 # label_smoothing=0.1: 정답에 1.0 대신 0.9를 주고 나머지 0.1을
 # 다른 클래스에 고루 나눈다. 모델이 어떤 클래스에 확률 1을 주려면 로짓이
 # 무한대로 뻗어야 하는데, 그 지나친 자신감을 막는 장치다.
-# 클래스가 1000개처럼 많고 레이블에 잡음이 섞였을 때 특히 값이 있다
+# 클래스가 1000개처럼 많고 라벨에 잡음이 섞였을 때 특히 효과가 있다
 criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 
 # 트랜스포머에는 Adam이 아니라 AdamW를 쓴다. 웨이트 감쇠가
@@ -451,7 +451,7 @@ optimizer = optim.AdamW(model.parameters(), lr=3e-4, weight_decay=0.01)
 
 ### 지식 증류와의 관계
 
-레이블 스무딩은 자기 증류와 관련이 있다. 레이블 스무딩이 만드는 부드러운 목표는 지식 증류에서 교사 모델이 내놓는 부드러운 목표와 닮았다. 다만 교사가 배운 분포 대신 목표가 아닌 클래스에 균등분포를 쓴다는 점이 다르다.
+라벨 스무딩은 자기 증류와 관련이 있다. 라벨 스무딩이 만드는 부드러운 목표는 지식 증류에서 교사 모델이 내놓는 부드러운 목표와 닮았다. 다만 교사가 배운 분포 대신 목표가 아닌 클래스에 균등분포를 쓴다는 점이 다르다.
 
 $$
 y^{\text{distill}}_i = \begin{cases}
@@ -460,13 +460,13 @@ y^{\text{distill}}_i = \begin{cases}
 \end{cases}
 $$
 
-레이블 스무딩은 $p^{\text{teacher}}$이 균등한 특수한 경우이다.
+라벨 스무딩은 $p^{\text{teacher}}$이 균등한 특수한 경우이다.
 
 ---
 
-## 6. 다른 정규화와 결합하기
+## 6. 다른 정칙화와 결합하기
 
-레이블 스무딩은 학습 목표를 바꾸는 다른 기법들과 상호작용한다.
+라벨 스무딩은 학습 목표를 바꾸는 다른 기법들과 상호작용한다.
 
 ```python
 def combined_augmentation_training_step(
@@ -475,15 +475,15 @@ def combined_augmentation_training_step(
     label_smoothing=0.1
 ):
     """
-    레이블 평활화와 믹스업을 결합한 학습 단계.
+    라벨 스무딩과 믹스업을 결합한 학습 단계.
     
     믹스업은 이미 부드러운 목표를 만들므로 함께 쓸 때에는
-    레이블 평활화를 줄인다.
+    라벨 스무딩을 줄인다.
     """
     num_classes = 10  # 예
     
     if use_mixup:
-        # 믹스업이 부드러운 목표를 만든다 — 평활화를 줄여 쓴다
+        # 믹스업이 부드러운 목표를 만든다 — 스무딩을 줄여 쓴다
         lam = np.random.beta(mixup_alpha, mixup_alpha)
         index = torch.randperm(images.size(0), device=images.device)
         mixed_images = lam * images + (1 - lam) * images[index]
@@ -500,12 +500,12 @@ def combined_augmentation_training_step(
         # 앞의 믹스업 페이지는 로스 두 개를 가중합했지만, 여기서는
         # 목표 분포 자체를 섞는다. 교차 엔트로피가 목표에 대해
         # 선형이라 두 방식의 값은 같다. 목표를 만들어 두면 그 위에
-        # 평활화를 한 번 더 얹을 수 있어 이쪽을 골랐다.
-        # 이미 부드러워진 목표라, 위 docstring 말대로 평활화는
+        # 스무딩을 한 번 더 얹을 수 있어 이쪽을 골랐다.
+        # 이미 부드러워진 목표라, 위 docstring 말대로 스무딩은
         # 평소보다 약하게 걸어야 목표가 지나치게 뭉개지지 않는다
         soft_targets = lam * targets_a + (1 - lam) * targets_b
         
-        # 가벼운 추가 평활화 적용
+        # 가벼운 추가 스무딩 적용
         reduced_epsilon = label_smoothing * 0.5
         soft_targets = (1 - reduced_epsilon) * soft_targets + reduced_epsilon / num_classes
         
@@ -528,24 +528,24 @@ def combined_augmentation_training_step(
 | 상황 | 권장 $\varepsilon$ |
 |----------|--------------------------|
 | 표준 분류 | 0.1 |
-| 잡음이 있는 레이블 | 0.1 – 0.3 |
+| 잡음이 있는 라벨 | 0.1 – 0.3 |
 | 클래스가 적을 때 ($K < 10$) | 0.05 – 0.1 |
 | 클래스가 많을 때 ($K > 100$) | 0.1 – 0.2 |
 | 믹스업/컷믹스와 함께 | 0.05 (줄임) |
 | 지식 증류 | 0.0 – 0.05 (교사가 부드러운 목표를 준다) |
 
-### 레이블 스무딩을 쓸 때
+### 라벨 스무딩을 쓸 때
 
 1. **분류 과제**: 스무딩이 없는 기준 모델과 검증 성능을 비교한다
 2. **지나치게 확신하는 모델**: 예측 확률의 보정이 나쁠 때
-3. **잡음이 있는 레이블**: 잘못 붙은 레이블의 영향을 누그러뜨린다
+3. **잡음이 있는 라벨**: 잘못 붙은 라벨의 영향을 누그러뜨린다
 4. **대규모 학습**: ImageNet과 언어 모델 학습의 표준 관행이다
 
-### 레이블 스무딩을 쓰지 말아야 할 때
+### 라벨 스무딩을 쓰지 말아야 할 때
 
 1. **회귀 과제**: 해당되지 않는다(목표가 연속이다)
 2. **클래스 불균형이 극심한 이진 과제**: 드문 클래스의 학습을 방해할 수 있다
-3. **정확한 확신도가 필요할 때**: 레이블 스무딩은 확신도를 조직적으로 낮춘다
+3. **정확한 확신도가 필요할 때**: 라벨 스무딩은 확신도를 조직적으로 낮춘다
 4. **뒤이은 증류**: 암묵적 지식의 전달을 해칠 수 있다(Müller 등, 2019)
 
 ---
@@ -555,7 +555,7 @@ def combined_augmentation_training_step(
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-레이블 스무딩의 목표 분포와 그것이 교차 엔트로피 로스에 미치는 영향을 유도하라.
+라벨 스무딩의 목표 분포와 그것이 교차 엔트로피 로스에 미치는 영향을 유도하라.
 
 </div>
 
@@ -579,7 +579,7 @@ def combined_augmentation_training_step(
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-내장 `label_smoothing` 파라메터를 쓰지 않고 PyTorch에서 레이블 스무딩을 구현하라.
+내장 `label_smoothing` 파라메터를 쓰지 않고 PyTorch에서 라벨 스무딩을 구현하라.
 
 </div>
 

@@ -16,7 +16,7 @@ RNN은 이전 시점의 은닉 상태와 현재 입력을 결합해 다음 은�
 
 **순환이란 무엇인가**
 
-- [RNN의 기초](rnn/rnn_fundamentals.md) · [기본 RNN](rnn/vanilla_rnn.md) — 엘만 꼴 $h_t=\tanh(W_xx_t+W_hh_{t-1}+b)$
+- [RNN의 기초](rnn/rnn_fundamentals.md) · [기본 RNN](rnn/vanilla_rnn.md) — 엘만 형태 $h_t=\tanh(W_xx_t+W_hh_{t-1}+b)$
 - [시간 역전파(BPTT)](rnn/bptt.md) · [그래디언트 소실](rnn/vanishing_gradients.md) — 긴 시퀀스 학습이 어려운 까닭
 - [언어 모델과 시퀀스 모델](rnn/language_models.md) — 시퀀스에 확률을 매긴다
 
@@ -59,7 +59,7 @@ LSTM과 GRU는 게이트로 정보의 유지와 갱신을 조절한다. 기본 R
 
 **PyTorch 로 세워 보기**
 
-- [LSTM](lstm_gru/40_lstm.md) · [GRU](lstm_gru/41_gru.md) — 모양과 파라메터 수만 본다. **학습하지 않는다**
+- [LSTM](lstm_gru/40_lstm.md) · [GRU](lstm_gru/41_gru.md) — 형태와 파라메터 수만 본다. **학습하지 않는다**
 
 **Seq2Seq 로 잇기**
 

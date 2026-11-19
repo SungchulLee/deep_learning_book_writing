@@ -8,25 +8,25 @@
 
     ```python
     """
-    규칙 바탕 개체명 인식
+    규칙 기반 개체명 인식
     ====================================
 
-    이 단원은 패턴 짝짓기와 말 규칙을 써서 규칙 바탕 개체명 인식을 짠다.
-    규칙 바탕 체계는 빠르고 읽어 내기 쉬우며 패턴이 또렷한 분야에서 잘 된다.
+    이 단원은 패턴 매칭과 언어 규칙을 써서 규칙 기반 개체명 인식을 구현한다.
+    규칙 기반 시스템은 빠르고 해석하기 쉬우며 패턴이 뚜렷한 도메인에서 잘 동작한다.
 
     학습 목표:
-    - 패턴 바탕 개체 뽑기 짜기
+    - 패턴 기반 개체 추출 구현하기
     - 개체명 인식에 정규식 쓰기
-    - 규칙 바탕 체계의 센 점과 한계를 이해한다
-    - 여러 규칙 클래스 아우르기
+    - 규칙 기반 시스템의 강점과 한계를 이해한다
+    - 여러 규칙 유형 결합하기
 
     핵심 개념:
-    - 정규식으로 패턴 짝짓기
+    - 정규식으로 패턴 매칭
     - 대문자 쓰기 패턴
-    - 맥락 바탕 규칙
+    - 맥락 기반 규칙
     - 규칙 우선순위 매기기
 
-    지은이: 러닝 목적
+    지은이: 교육 목적
     날짜: 2025
     """
 
@@ -42,12 +42,12 @@
     @dataclass
     class Rule:
         """
-        뽑기 규칙 하나를 나타낸다.
+        추출 규칙 하나를 나타낸다.
 
         속성:
             name: 규칙의 이름
-            pattern: 짝지을 정규식 패턴
-            entity_type: 이 규칙이 뽑는 것의 클래스
+            pattern: 매칭할 정규식 패턴
+            entity_type: 이 규칙이 추출하는 개체의 유형
             priority: 규칙의 우선순위(높을수록 먼저 쓴다)
             context_required: 반드시 있어야 하는 맥락 단어(없어도 됨)
         """
@@ -64,42 +64,42 @@
 
     class RuleBasedNER:
         """
-        규칙 바탕 개체명 인식 체계.
+        규칙 기반 개체명 인식 시스템.
 
-        이 체계는 다음을 비롯한 손수 만든 규칙을 쓴다:
+        이 시스템은 다음을 비롯한 수작업 규칙을 쓴다:
         1. 정규식 패턴
         2. 대문자 쓰기 패턴
-        3. 맥락 바탕 규칙
-        4. 사전 찾기(규칙 짝짓기와 함께)
+        3. 맥락 기반 규칙
+        4. 사전 조회(규칙 매칭과 함께)
 
-        이점:
+        장점:
         - 빠르고 효율적이다
-        - 학습 자료가 필요 없다
-        - 아주 읽어 내기 쉽다
+        - 학습 데이터가 필요 없다
+        - 해석하기 아주 쉽다
         - 분야별 규칙을 쓸 수 있다
-        - 또렷한 패턴에는 정밀도가 높다
+        - 뚜렷한 패턴에는 정밀도가 높다
 
-        나쁜 점:
-        - 재현율이 낮다(달라진 형태를 놓친다)
+        단점:
+        - 재현율이 낮다(변형을 놓친다)
         - 규칙을 손수 만들어야 한다
-        - 규칙이 많으면 건사하기 어렵다
-        - 본 적 없는 패턴에 두루 통하지 못한다
+        - 규칙이 많으면 유지보수하기 어렵다
+        - 본 적 없는 패턴으로 일반화하지 못한다
         """
 
         def __init__(self):
-            """규칙 바탕 개체명 인식 체계 초기화."""
+            """규칙 기반 개체명 인식 시스템 초기화."""
             self.rules: List[Rule] = []
             self._initialize_default_rules()
 
         def _initialize_default_rules(self):
             """
-            흔한 개체 클래스의 붙박이 규칙 모음 초기화.
+            흔한 개체 유형의 기본 규칙 모음 초기화.
 
             이 규칙이 다루는 것:
             - 사람 이름(대문자 쓰기 패턴)
-            - 조직(회사 뒷가지)
-            - 자리(자리를 가리키는 말)
-            - 날짜와 때
+            - 조직(회사 접미사)
+            - 장소(장소를 가리키는 말)
+            - 날짜와 시간
             - 돈과 백분율
             - 전자우편과 URL
             """
@@ -115,7 +115,7 @@
             ))
 
             # 조직 패턴
-            # 패턴: 회사 뒷가지가 붙은 대문자 단어
+            # 패턴: 회사 접미사가 붙은 대문자 단어
             # 보기: "Apple Inc.", "Microsoft Corporation", "Google LLC"
             self.add_rule(Rule(
                 name="organization_suffix",
@@ -133,8 +133,8 @@
                 priority=4
             ))
 
-            # 자리 패턴
-            # 패턴: 자리를 가리키는 핵심 단어
+            # 장소 패턴
+            # 패턴: 장소를 가리키는 핵심 단어
             # 보기: "New York City", "San Francisco", "Mount Everest"
             self.add_rule(Rule(
                 name="location_indicators",
@@ -146,7 +146,7 @@
             ))
 
             # 패턴: 주와 나라
-            # 간추린 목록 — 실전에서는 두루 갖춘 가제티어을 쓴다
+            # 간추린 목록 — 실전에서는 포괄적인 가제티어를 쓴다
             self.add_rule(Rule(
                 name="location_places",
                 pattern=r'\b(California|Texas|New\s+York|Florida|Illinois|'
@@ -157,7 +157,7 @@
             ))
 
             # 날짜 패턴
-            # 패턴: 여러 날짜 형태
+            # 패턴: 여러 날짜 형식
             # 보기: "January 1, 2020", "01/01/2020", "2020-01-01"
             self.add_rule(Rule(
                 name="date_full",
@@ -169,7 +169,7 @@
                 priority=5
             ))
 
-            # 때 패턴
+            # 시간 패턴
             # 보기: "3:30 PM", "14:00", "noon"
             self.add_rule(Rule(
                 name="time",
@@ -218,13 +218,13 @@
 
         def add_rule(self, rule: Rule):
             """
-            체계에 새 규칙 더하기.
+            시스템에 새 규칙 더하기.
 
             더 좁은 규칙이 넓은 규칙보다 먼저 쓰이도록
             규칙을 우선순위로 정렬한다(높은 것 먼저).
 
             인수:
-                rule: 더할 Rule 개체
+                rule: 더할 Rule 객체
             """
             self.rules.append(rule)
             # 규칙을 우선순위로 정렬(높은 것 먼저)
@@ -232,25 +232,25 @@
 
         def extract_entities(self, text: str) -> List[Dict]:
             """
-            모든 규칙을 써서 글에서 개체 뽑기.
+            모든 규칙을 써서 텍스트에서 개체 추출하기.
 
             과정:
             1. 우선순위 차례로 규칙을 쓴다
-            2. 규칙에 맞을 때마다 것을 만든다
-            3. 겹치는 것 다루기(우선순위 높은 쪽을 남긴다)
-            4. 정렬한 것의 목록을 돌려준다
+            2. 규칙에 맞을 때마다 개체를 만든다
+            3. 겹치는 개체 다루기(우선순위 높은 쪽을 남긴다)
+            4. 정렬한 개체의 목록을 반환한다
 
             인수:
-                text: 들임 텍스트 문자열
+                text: 입력 텍스트 문자열
 
             반환값:
                 다음 항목을 담은 개체 사전의 목록:
-                - text: 것의 글
-                - type: 것의 클래스
+                - text: 개체의 텍스트
+                - type: 개체의 유형
                 - start: 시작 자리
                 - end: 끝 자리
                 - rule: 맞은 규칙의 이름
-                - confidence: 믿음도 점수
+                - confidence: 신뢰도 점수
 
             보기:
                 >>> ner = RuleBasedNER()
@@ -262,31 +262,31 @@
                 Steve Jobs: PER
             """
             entities = []
-            used_spans = set()  # 겹침을 다루려 쓴 글자 구간 좇기
+            used_spans = set()  # 겹침 처리를 위해 사용한 문자 구간 추적
 
             # 우선순위 차례로 규칙 쓰기
             for rule in self.rules:
                 # 이 규칙에 맞는 곳 모두 찾기
                 for match in rule.compiled_pattern.finditer(text):
-                    # 맞은 글과 자리 얻기
+                    # 매칭된 텍스트와 자리 얻기
                     matched_text = match.group(0)
                     start = match.start()
                     end = match.end()
 
-                    # 이 구간이 이미 뽑은 것과 겹치는지 살피기
+                    # 이 구간이 이미 추출한 개체와 겹치는지 확인하기
                     span_range = range(start, end)
                     if any(pos in used_spans for pos in span_range):
-                        # 겹치는 것 건너뛰기(우선순위가 낮은 규칙)
+                        # 겹치는 개체 건너뛰기(우선순위가 낮은 규칙)
                         continue
 
-                    # 정해졌으면 맥락 요건 살피기
+                    # 지정되어 있으면 맥락 요건 확인하기
                     if rule.context_required:
-                        # 맞은 곳 둘레의 맥락 창 뽑기
+                        # 매칭된 곳 둘레의 맥락 창 추출
                         context_start = max(0, start - 50)
                         context_end = min(len(text), end + 50)
                         context = text[context_start:context_end].lower()
 
-                        # 필요한 맥락 단어가 있는지 살피기
+                        # 필요한 맥락 단어가 있는지 확인하기
                         if not any(word.lower() in context for word in rule.context_required):
                             continue
 
@@ -297,7 +297,7 @@
                         'start': start,
                         'end': end,
                         'rule': rule.name,
-                        'confidence': 1.0 / (10 - rule.priority)  # 우선순위가 높을수록 믿음도가 높다
+                        'confidence': 1.0 / (10 - rule.priority)  # 우선순위가 높을수록 신뢰도가 높다
                     }
 
                     entities.append(entity)
@@ -305,24 +305,24 @@
                     # 구간을 썼다고 표시하기
                     used_spans.update(span_range)
 
-            # 것을 자리로 정렬
+            # 개체를 자리로 정렬
             entities.sort(key=lambda e: e['start'])
 
             return entities
 
         def extract_by_pattern(self, text: str, pattern: str, entity_type: str) -> List[Dict]:
             """
-            맞춤 패턴로 개체 뽑기.
+            맞춤 패턴으로 개체 추출하기.
 
             덕분에 규칙을 아예 더하지 않고도 패턴을 빠르게 시험할 수 있다.
 
             인수:
                 text: 입력 텍스트
                 pattern: 정규식 패턴 문자열
-                entity_type: 매길 것의 클래스
+                entity_type: 부여할 개체의 유형
 
             반환값:
-                뽑은 것의 목록
+                추출한 개체의 목록
 
             보기:
                 >>> ner = RuleBasedNER()
@@ -349,26 +349,26 @@
 
         def get_entity_context(self, text: str, entity: Dict, window_size: int = 5) -> Dict:
             """
-            것 둘레의 맥락 단어 얻기.
+            개체 둘레의 맥락 단어 얻기.
 
             맥락은 다음에 쓸모 있다:
-            - 개체 클래스 확인하기
+            - 개체 유형 확인하기
             - 중의성 해소
-            - 기계 러닝 모델을 위한 피처 뽑기
+            - 기계 학습 모델을 위한 피처 추출
 
             인수:
-                text: 본디 텍스트
+                text: 원본 텍스트
                 entity: 개체 사전
                 window_size: 양쪽에 넣을 단어의 개수
 
             반환값:
                 left_context, entity_text, right_context를 담은 사전
             """
-            # 단순 단어 바탕 토큰내기
+            # 단순 단어 기반 토큰화
             words = text.split()
             entity_text = entity['text']
 
-            # 단어 목록에서 것 찾기
+            # 단어 목록에서 개체 찾기
             entity_words = entity_text.split()
             entity_start_word = None
 
@@ -380,7 +380,7 @@
             if entity_start_word is None:
                 return {'left_context': [], 'entity': entity_text, 'right_context': []}
 
-            # 맥락 뽑기
+            # 맥락 추출
             left_start = max(0, entity_start_word - window_size)
             left_context = words[left_start:entity_start_word]
 
@@ -395,28 +395,28 @@
 
         def visualize_entities(self, text: str, entities: List[Dict]):
             """
-            것 표시를 곁들여 글 찍기.
+            개체 표시를 곁들여 텍스트 출력하기.
 
-            글 속의 것을 눈으로 볼 수 있게 나타낸다.
+            텍스트 속의 개체를 눈으로 볼 수 있게 나타낸다.
 
             인수:
-                text: 본디 텍스트
+                text: 원본 텍스트
                 entities: 개체 사전의 목록
             """
-            # 표시한 판 만들기
+            # 표시한 버전 만들기
             result = []
             last_pos = 0
 
             for entity in sorted(entities, key=lambda e: e['start']):
-                # 것 앞의 글 더하기
+                # 개체 앞의 텍스트 더하기
                 result.append(text[last_pos:entity['start']])
 
-                # 표시한 것 더하기
+                # 표시한 개체 더하기
                 result.append(f"[{entity['text']}]_{entity['type']}")
 
                 last_pos = entity['end']
 
-            # 남은 글 더하기
+            # 남은 텍스트 더하기
             result.append(text[last_pos:])
 
             print(''.join(result))
@@ -424,16 +424,16 @@
 
     def demonstrate_rule_based_ner():
         """
-        규칙 바탕 개체명 인식을 두루 보이기.
+        규칙 기반 개체명 인식 종합 시연.
         """
         print("="*70)
         print("Rule-Based Named Entity Recognition Demonstration")
         print("="*70)
 
-        # 개체명 인식 체계 초기화
+        # 개체명 인식 시스템 초기화
         ner = RuleBasedNER()
 
-        # 보기 1: 기본 개체 뽑기
+        # 보기 1: 기본 개체 추출
         print("\n1. Basic Entity Extraction")
         print("-" * 70)
 
@@ -455,7 +455,7 @@
         print("\nVisualized:")
         ner.visualize_entities(text1, entities1)
 
-        # 보기 2: 서로 다른 개체 클래스
+        # 보기 2: 서로 다른 개체 유형
         print("\n\n2. Various Entity Types")
         print("-" * 70)
 
@@ -467,7 +467,7 @@
 
         entities2 = ner.extract_entities(text2)
 
-        # 클래스별로 묶기
+        # 유형별로 묶기
         by_type = {}
         for entity in entities2:
             if entity['type'] not in by_type:
@@ -488,7 +488,7 @@
 
         print(f"Text: {text3}\n")
 
-        # 맞춤 패턴로 전화번호 뽑기
+        # 맞춤 패턴으로 전화번호 추출하기
         phone_pattern = r'\d{3}-\d{4}'
         phone_entities = ner.extract_by_pattern(text3, phone_pattern, 'PHONE')
 
@@ -496,7 +496,7 @@
         for entity in phone_entities:
             print(f"  - {entity['text']}")
 
-        # 보기 4: 맥락 뽑기
+        # 보기 4: 맥락 추출
         print("\n\n4. Entity Context")
         print("-" * 70)
 
@@ -536,13 +536,13 @@
         for entity in products:
             print(f"  - {entity['text']}")
 
-        # 보기 6: 아리송함 다루기
+        # 보기 6: 중의성 다루기
         print("\n\n6. Handling Ambiguous Cases")
         print("-" * 70)
 
         ambiguous_texts = [
-            "Washington visited Washington.",  # 사람과 자리
-            "I love Python programming.",     # 프로그래밍 말과 뱀
+            "Washington visited Washington.",  # 사람과 장소
+            "I love Python programming.",     # 프로그래밍 언어와 뱀
             "Apple released new Apple products."  # 회사와 과일
         ]
 
@@ -586,7 +586,7 @@
 
 
     if __name__ == "__main__":
-        # 보여 주기를 돌린다
+        # 시연을 실행한다
         demonstrate_rule_based_ner()
 
         print("\n" + "="*70)
@@ -774,9 +774,9 @@ get_entity_context는 entity.start를 사용하지 않고 공백 분리한 단�
 
 ## 5. 평가와 확장
 
-규칙은 학습 데이터 없이 만들 수 있지만 설계·유지·검증 자료는 필요하다. 같은 문자열에서도 규칙을 바꾸면 출력이 달라지며 많은 정규식·긴 텍스트·겹침 검사 비용 때문에 항상 빠르다고 보장할 수 없다. 규칙별 FP·FN·경계 오류를 별도 주석 자료에서 평가하고 수정에 사용한 자료와 최종 시험을 구분한다.
+규칙은 학습 데이터 없이 만들 수 있지만 설계·유지·검증 데이터는 필요하다. 같은 문자열에서도 규칙을 바꾸면 출력이 달라지며 많은 정규식·긴 텍스트·겹침 검사 비용 때문에 항상 빠르다고 보장할 수 없다. 규칙별 FP·FN·경계 오류를 별도 주석 데이터에서 평가하고 수정에 사용한 데이터와 최종 시험을 구분한다.
 
-이 파일에는 자동미분·생성·모델 최적화가 없다. 규칙과 사전·학습 모델을 결합할 때도 offset·유형·중첩 폴리시와 점수의 의미를 맞춰야 한다. 코드·출력은 현재 규칙의 작동을 읽는 자료이며 다시 실행할 필요는 없다.
+이 파일에는 자동미분·생성·모델 최적화가 없다. 규칙과 사전·학습 모델을 결합할 때도 offset·유형·중첩 정책과 점수의 의미를 맞춰야 한다. 코드·출력은 현재 규칙의 작동을 읽는 자료이며 다시 실행할 필요는 없다.
 
 ## 연습문제
 
@@ -843,10 +843,10 @@ get_entity_context는 entity.start를 사용하지 않고 공백 분리한 단�
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

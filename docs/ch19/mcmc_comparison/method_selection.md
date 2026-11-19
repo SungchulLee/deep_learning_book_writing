@@ -4,9 +4,9 @@
 
 ## 1. 판단의 틀
 
-목표의 적절성·지지집합·이산/연속 변수와 미분 가능한 부분, 정확 조건부 생성 여부를 확인한다. 다음으로 자료 수와 한 번의 밀도·경사·조건부 비용, 메모리·병렬 자원, 관심 평균·분위수의 허용오차를 정한다.
+목표의 적절성·지지집합·이산/연속 변수와 미분 가능한 부분, 정확 조건부 생성 여부를 확인한다. 다음으로 데이터 수와 한 번의 밀도·그래디언트·조건부 비용, 메모리·병렬 자원, 관심 평균·분위수의 허용오차를 정한다.
 
-아래 결정 도식의 d>20 같은 경계와 어느 방법이나 가능하다는 문구는 설명용 출발점이지 사용 한계나 정확성 보증이 아니다. 낮은 차원도 다봉성에서 어렵고 큰 차원의 독립 구조는 쉬울 수 있다. 비싼 경사를 MALA가 사용하지 않는 것은 아니며 확률 경사로 대체하면 목표 보정·근사 조건이 달라진다.
+아래 결정 도식의 d>20 같은 경계와 어느 방법이나 가능하다는 문구는 설명용 출발점이지 사용 한계나 정확성 보증이 아니다. 낮은 차원도 다봉성에서 어렵고 큰 차원의 독립 구조는 쉬울 수 있다. 비싼 그래디언트를 MALA가 사용하지 않는 것은 아니며 확률적 그래디언트로 대체하면 목표 보정·근사 조건이 달라진다.
 
 ```
 Start
@@ -32,29 +32,29 @@ Start
 
 ## 2. 방법마다의 성능
 
-RWM은 유효한 제안·밀도비만으로 시작하기 쉽지만 제안 스케일·공분산·블록이 중요하다. 깁스는 조건부 생성이 편리할 때 후보이며 스캔·블록·주변화와 강한 상관의 비용이 남는다. MALA는 정역 경사 기반 제안을, HMC는 여러 적분 단계와 질량을 조정한다.
+RWM은 유효한 제안·밀도비만으로 시작하기 쉽지만 제안 스케일·공분산·블록이 중요하다. 깁스는 조건부 생성이 편리할 때 후보이며 스캔·블록·주변화와 강한 상관의 비용이 남는다. MALA는 정역 그래디언트 기반 제안을, HMC는 여러 적분 단계와 질량을 조정한다.
 
 아래 MALA 초기 ε∝d⁻¹/⁶는 표준편차 관례에서의 점근 참고값이다. 제안 분산 ε를 쓰는 MALA 클래스에 같은 수치를 넣으면 스텝 단위가 다르다. HMC 예제의 L=ceil(√d)는 보편적 최적 길이가 아니며 εL의 실제 시간과 주파수를 확인해야 한다.
 
-수락률 0.234·0.574·0.65 또는 ESS/추출 0.01은 문제 조사에 참고할 수 있지만 필수 성능 경계는 아니다. MALA가 RWM보다 느리다는 사실만으로 경사 버그를 단정할 수 없고, NUTS 깊이 한계·발산·낮은 E-BFMI도 서로 다른 진단이다.
+수락률 0.234·0.574·0.65 또는 ESS/추출 0.01은 문제 조사에 참고할 수 있지만 필수 성능 경계는 아니다. MALA가 RWM보다 느리다는 사실만으로 그래디언트 버그를 단정할 수 없고, NUTS 깊이 한계·발산·낮은 E-BFMI도 서로 다른 진단이다.
 
 ```python
-# 이것으로 시작해 받아들임에 따라 다듬기
+# 이 값으로 시작해 수락률에 따라 조정
 sigma = 2.4 * np.std(initial_samples, axis=0) / np.sqrt(d)
-# 목표: 차원이 높으면 받아들임 20-25%, 낮으면 50%까지
+# 목표: 차원이 높으면 수락률 20-25%, 낮으면 50%까지
 ```
 ```python
-# 무작위 훑기는 상관이 있을 때 도움이 된다
-scan_order = np.random.permutation(d)  # 되풀이마다
+# 무작위 스캔은 상관이 있을 때 도움이 된다
+scan_order = np.random.permutation(d)  # 반복마다
 
-# 서로 얽힌 배치에 쓰는 덩어리 깁스
-blocks = [[0, 1, 2], [3, 4, 5], ...]  # 서로 얽힌 변수 묶기
+# 상관된 변수 그룹에 쓰는 블록 깁스
+blocks = [[0, 1, 2], [3, 4, 5], ...]  # 상관된 변수 묶기
 ```
 ```python
-# 첫 스텝 크기
+# 초기 스텝 크기
 epsilon = 1.0 / d**(1/6)
 
-# 받아들임 57%쯤을 목표로 맞추기
+# 수락률 57%쯤을 목표로 조정
 def adapt_epsilon(epsilon, accept_rate, target=0.574):
     if accept_rate > target + 0.05:
         return epsilon * 1.1
@@ -64,11 +64,11 @@ def adapt_epsilon(epsilon, accept_rate, target=0.574):
 ```
 ```python
 # L을 맞추지 않으려고 NUTS 쓰기
-# 손수 하는 HMC에서는:
+# 수동 HMC에서는:
 epsilon = 0.1 / d**(1/4)
 L = int(np.ceil(np.sqrt(d)))
 
-# 질량 행렬: 대각으로 시작하고 상관이 있으면 빽빽한 행렬 생각해 보기
+# 질량 행렬: 대각으로 시작하고 상관이 있으면 밀집 행렬 고려
 M = np.diag(1.0 / np.var(warmup_samples, axis=0))
 ```
 
@@ -76,11 +76,11 @@ M = np.diag(1.0 / np.var(warmup_samples, axis=0))
 
 ### 선형 회귀
 
-가우스 우도·β~N(0,v₀I)에서 β|σ²는 가우스다. 아래 σ² 갱신의 shape n/2, scale RSS/2는 p(σ²)∝1/σ²라는 부적절 사전을 암묵적으로 사용한다. 제대로 정의된 사후인지 별도로 확인해야 하고 RSS=0이면 식이 실패할 수 있다. σ²에 독립인 β 사전과 σ²로 스케일한 켤레 사전의 식은 다르다.
+가우스 가능도(likelihood, 우도라고도 한다)·β~N(0,v₀I)에서 β|σ²는 가우스다. 아래 σ² 갱신의 shape n/2, scale RSS/2는 p(σ²)∝1/σ²라는 부적절 사전을 암묵적으로 사용한다. 제대로 정의된 사후인지 별도로 확인해야 하고 RSS=0이면 식이 실패할 수 있다. σ²에 독립인 β 사전과 σ²로 스케일한 켤레 사전의 식은 다르다.
 
 ### 로지스틱 회귀
 
-매끄러운 적절한 사후에 HMC·MALA를 검토할 수 있고 Pólya–Gamma 보조변수 깁스도 가능하다. 아래 log(1+exp(logits))·직접 sigmoid는 큰 값에서 넘칠 수 있고 nuts_sample은 외부 정의다. 비켤레라는 이유만으로 깁스가 원리적으로 불가능하다고 하지 않는다.
+매끄러운 적절한 사후에 HMC·MALA를 검토할 수 있고 Pólya–Gamma 보조변수 깁스도 가능하다. 아래 log(1+exp(logits))·직접 sigmoid는 큰 값에서 오버플로할 수 있고 nuts_sample은 외부 정의다. 비켤레라는 이유만으로 깁스가 원리적으로 불가능하다고 하지 않는다.
 
 ### 가우스 혼합
 
@@ -104,12 +104,12 @@ def gibbs_linear_regression(y, X, n_samples, prior_var=100):
     
     samples = []
     for _ in range(n_samples):
-        # beta | y, sigma2 표집
+        # beta | y, sigma2 샘플링
         V_post = np.linalg.inv(XtX / sigma2 + np.eye(p) / prior_var)
         m_post = V_post @ (Xty / sigma2)
         beta = np.random.multivariate_normal(m_post, V_post)
         
-        # sigma2 | y, beta 표집
+        # sigma2 | y, beta 샘플링
         resid = y - X @ beta
         a_post = n / 2
         b_post = np.sum(resid**2) / 2
@@ -126,7 +126,7 @@ def logistic_regression_nuts(y, X, n_samples):
     def log_prob(beta):
         logits = X @ beta
         ll = np.sum(y * logits - np.log(1 + np.exp(logits)))
-        prior = -0.5 * np.sum(beta**2) / 100  # 앞확률 흩어짐 100
+        prior = -0.5 * np.sum(beta**2) / 100  # 사전분포 분산 100
         return ll + prior
     
     def grad_log_prob(beta):
@@ -149,15 +149,15 @@ def gmm_gibbs(X, K, n_samples):
         # 배정 세기
         N_k = np.bincount(z, minlength=K)
         
-        # pi | z 표집
+        # pi | z 샘플링
         pi = np.random.dirichlet(1 + N_k)
         
-        # mu_k, Sigma_k | z, X 표집
+        # mu_k, Sigma_k | z, X 샘플링
         mu, Sigma = [], []
         for k in range(K):
             X_k = X[z == k]
             if len(X_k) > d:
-                mu_k = X_k.mean(axis=0)  # 간추림, 제대로 된 뒤확률을 쓸 것
+                mu_k = X_k.mean(axis=0)  # 단순화한 것. 제대로 하려면 조건부 사후분포에서 샘플링할 것
                 Sigma_k = np.cov(X_k.T)
             else:
                 mu_k = np.zeros(d)
@@ -165,7 +165,7 @@ def gmm_gibbs(X, K, n_samples):
             mu.append(mu_k)
             Sigma.append(Sigma_k)
         
-        # z | pi, mu, Sigma, X 표집
+        # z | pi, mu, Sigma, X 샘플링
         for i in range(n):
             log_probs = np.log(pi) + np.array([
                 multivariate_normal.logpdf(X[i], mu[k], Sigma[k]) 
@@ -179,17 +179,17 @@ def gmm_gibbs(X, K, n_samples):
     return samples
 ```
 ```python
-# 가운데 맞춤(말썽 있음)
+# 중심 매개변수화(문제 있음)
 # alpha_j ~ N(0, tau^2)
 # y_ij ~ N(mu + alpha_j, sigma^2)
 
-# 가운데 벗김(더 나음)
+# 비중심 매개변수화(더 나음)
 # eta_j ~ N(0, 1)
 # alpha_j = tau * eta_j
 # y_ij ~ N(mu + tau * eta_j, sigma^2)
 
 def hierarchical_hmc_noncentered(y, groups, n_samples):
-    """레이어 모형을 위한, 가운데를 벗긴 파라메터화."""
+    """계층 모형을 위한 비중심 매개변수화."""
     J = len(np.unique(groups))
     
     def log_prob(params):
@@ -201,10 +201,10 @@ def hierarchical_hmc_noncentered(y, groups, n_samples):
         means = mu + alpha[groups]
         ll = norm.logpdf(y, means, sigma).sum()
         
-        # 앞확률
+        # 사전분포
         lp = norm.logpdf(eta, 0, 1).sum()  # eta에 표준 정규
         lp += norm.logpdf(mu, 0, 10)
-        lp += norm.logpdf(log_sigma, 0, 1)  # 로그 정규 앞확률
+        lp += norm.logpdf(log_sigma, 0, 1)  # 로그정규 사전분포
         lp += norm.logpdf(log_tau, 0, 1)
         
         return ll + lp
@@ -212,9 +212,9 @@ def hierarchical_hmc_noncentered(y, groups, n_samples):
     return hmc_sample(log_prob, grad_log_prob, init_params, n_samples)
 ```
 
-## 4. 섞음 전략과 알아서 맞추는 전략
+## 4. 혼합 전략과 적응 전략
 
-Metropolis-within-Gibbs는 각 블록의 완전조건부를 불변으로 보존하는 커널을 순차 합성한다. current 사전을 제자리 갱신하므로 순서와 최신 값의 의미를 확인한다. 조건부 함수·mh_step은 외부 정의다.
+Metropolis-within-Gibbs는 각 블록의 완전조건부를 불변으로 보존하는 커널을 순차 합성한다. current 딕셔너리를 제자리 갱신하므로 순서와 최신 값의 의미를 확인한다. 조건부 함수·mh_step은 외부 정의다.
 
 identify_blocks는 상관 임계값의 그래프 연결성분을 만든다. 한 블록 안의 모든 쌍이 그 임계값보다 크다는 뜻은 아니고 0.5는 선택한 휴리스틱이다. 비용·국소 기하와 상관 추정의 품질을 함께 평가한다.
 
@@ -223,8 +223,8 @@ AdaptiveMCMC는 adapt_schedule 인수를 저장·사용하지 않고 adapt=True�
 ```python
 def metropolis_within_gibbs(current, conditionals, mh_params):
     """
-    conditionals: 파라메터 이름을 표집 함수로 잇는 사전
-    mh_params: 파라메터 이름을 MH 제안 파라메터로 잇는 사전
+    conditionals: 파라메터 이름을 샘플링 함수로 대응시키는 딕셔너리
+    mh_params: 파라메터 이름을 MH 제안 파라메터로 대응시키는 딕셔너리
     """
     for param in current.keys():
         if param in conditionals:
@@ -238,7 +238,7 @@ def metropolis_within_gibbs(current, conditionals, mh_params):
 ```
 ```python
 def identify_blocks(correlation_matrix, threshold=0.5):
-    """서로 얽힌 파라메터의 덩어리 가려내기."""
+    """상관된 파라메터의 블록 식별."""
     import networkx as nx
     
     G = nx.Graph()
@@ -262,15 +262,15 @@ class AdaptiveMCMC:
         self.n_adapt = 0
         
     def step(self, x, adapt=True):
-        # 맞춰 간 분포에서 내놓기
+        # 적응된 분포에서 제안
         x_prop = np.random.multivariate_normal(x, 2.4**2 / self.d * self.Sigma)
         
-        # 받아들이거나 물리치기
+        # 수락 또는 거절
         log_alpha = self.log_prob(x_prop) - self.log_prob(x)
         if np.log(np.random.rand()) < log_alpha:
             x = x_prop
         
-        # 맞춰 가기
+        # 적응
         if adapt:
             self.n_adapt += 1
             self.update_moments(x)
@@ -278,7 +278,7 @@ class AdaptiveMCMC:
         return x
     
     def update_moments(self, x):
-        """평균과 공분산의 흐름 속 새로 고치기."""
+        """평균과 공분산의 온라인 갱신."""
         n = self.n_adapt
         delta = x - self.mu
         self.mu += delta / n
@@ -286,7 +286,7 @@ class AdaptiveMCMC:
             self.Sigma = (n-2)/(n-1) * self.Sigma + delta.reshape(-1,1) @ delta.reshape(1,-1) / n
 ```
 
-## 5. 진단에 기댄 고르기
+## 5. 진단 기반 선택
 
 진단은 원인을 좁히는 데 사용한다. 작은 함수별 ESS·큰 MCSE에는 실행 길이·상관·탐색·목표 기하를 확인하고, 높은 R-hat에는 체인 차이·모드·비정상성을 조사한다. 발산과 최대 깊이 도달은 같은 오류가 아니다.
 
@@ -294,21 +294,21 @@ class AdaptiveMCMC:
 
 ```python
 def diagnose_chain(samples, target='hmc'):
-    """사슬을 두루 진단하기."""
+    """체인 종합 진단."""
     diagnostics = {}
     
     # 기본 통계량
     diagnostics['mean'] = np.mean(samples, axis=0)
     diagnostics['std'] = np.std(samples, axis=0)
     
-    # 실효 표본 크기
+    # 유효 표본 크기
     diagnostics['ess'] = compute_ess(samples)
     diagnostics['ess_per_sample'] = diagnostics['ess'] / len(samples)
     
-    # R-hat(사슬이 여럿이면)
+    # R-hat(체인이 여럿이면)
     # diagnostics['rhat'] = compute_rhat(chains)
     
-    # 방법마다 다름
+    # 방법별 진단
     if target == 'hmc':
         diagnostics['target_accept'] = 0.65
     elif target == 'mala':
@@ -316,7 +316,7 @@ def diagnose_chain(samples, target='hmc'):
     elif target == 'rwm':
         diagnostics['target_accept'] = 0.234
     
-    # 권하는 바
+    # 권장 사항
     if diagnostics['ess_per_sample'] < 0.01:
         diagnostics['recommendation'] = 'Consider switching to HMC/NUTS'
     elif diagnostics['ess_per_sample'] > 0.5:
@@ -329,7 +329,7 @@ def diagnose_chain(samples, target='hmc'):
 
 ## 6. 빠른 참고 길잡이
 
-직접 해석·생성이 어렵고 저렴한 정확 조건부가 있으면 깁스·블록 방법, 연속 매끄러운 목표와 경사가 있으면 MALA·HMC/NUTS, 이산·비미분 부분에는 적합한 MH·조건부·주변화를 후보로 삼는다. 모드 장벽에는 템퍼링·모드 제안 등 별도 탐색 전략을 검토한다.
+직접 해석·생성이 어렵고 저렴한 정확 조건부가 있으면 깁스·블록 방법, 연속 매끄러운 목표와 그래디언트가 있으면 MALA·HMC/NUTS, 이산·비미분 부분에는 적합한 MH·조건부·주변화를 후보로 삼는다. 모드 장벽에는 템퍼링·모드 제안 등 별도 탐색 전략을 검토한다.
 
 EM+부트스트랩은 모형에 따른 점추정·빈도적 재표본 절차로 베이즈 사후 MCMC의 단순 대체품이 아니다. 실시간 요구가 짧은 체인의 정확성을 보증하지 않고 단일 체인·thinning은 저장을 줄이면서 진단 정보를 잃을 수 있다.
 

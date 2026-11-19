@@ -1,6 +1,6 @@
 # 변분 추론의 기본 구조
 
-변분 추론(variational inference, VI)은 사후분포를 제한된 분포족의 최적화 문제로 근사한다. 주변우도를 직접 계산하지 않고도 목적함수를 구성할 수 있지만, 그 목적함수의 기댓값 계산과 최적화까지 항상 쉬워지는 것은 아니다. 이 절에서는 사후 근사, KL 방향과 증거 하한의 관계를 정리한다.
+변분 추론(variational inference, VI)은 사후분포를 제한된 분포족의 최적화 문제로 근사한다. 주변가능도(marginal likelihood, 주변우도라고도 한다)를 직접 계산하지 않고도 목적함수를 구성할 수 있지만, 그 목적함수의 기댓값 계산과 최적화까지 항상 쉬워지는 것은 아니다. 이 절에서는 사후 근사, KL 방향과 증거 하한의 관계를 정리한다.
 
 ## 1. 베이즈 추론의 계산 문제
 
@@ -8,11 +8,11 @@
 
 $$p(\theta|D)=\frac{p(D|\theta)p(\theta)}{p(D)},\qquad p(D)=\int p(D|\theta)p(\theta)\,d\theta.$$
 
-연속 관측의 우도는 관측값에서 평가한 밀도이며 관측점 자체의 확률과 다르다. 사후가 정의되려면 0<p(D)<∞여야 한다. 고차원, 비선형 우도, 복잡한 의존성과 다봉성은 적분이나 사후 기댓값 계산을 어렵게 할 수 있다. 비켤레라는 이유만으로 수치 계산까지 불가능하다고 결론 내릴 수는 없다.
+연속 관측의 가능도는 관측값에서 평가한 밀도이며 관측점 자체의 확률과 다르다. 사후가 정의되려면 0<p(D)<∞여야 한다. 고차원, 비선형 가능도, 복잡한 의존성과 다봉성은 적분이나 사후 기댓값 계산을 어렵게 할 수 있다. 비켤레라는 이유만으로 수치 계산까지 불가능하다고 결론 내릴 수는 없다.
 
 GMM에서는 고정 파라메터 아래의 라벨 사후는 책임도로 계산할 수 있지만, 비중·평균·공분산과 라벨의 결합 베이즈 사후는 일반적으로 단일한 간단한 분포가 아니다. 어떤 변수를 추론하는지에 따라 계산 문제가 달라진다.
 
-사후에 정규화 상수가 있다고 모든 추론 방법이 그 상수를 먼저 계산해야 하는 것도 아니다. MCMC는 미정규화 밀도의 비를 이용할 수 있고, VI는 주변우도를 최적화에서 상수로 제거한다.
+사후에 정규화 상수가 있다고 모든 추론 방법이 그 상수를 먼저 계산해야 하는 것도 아니다. MCMC는 미정규화 밀도의 비를 이용할 수 있고, VI는 주변가능도를 최적화에서 상수로 제거한다.
 
 <div class="storybox" markdown>
 
@@ -26,9 +26,9 @@ $$\log x \;\le\; \lambda x - \log\lambda - 1 \qquad \text{모든 } \lambda>0$$
 
 ![가로축이 x이고 세로축이 값인 그림. 가운데에 로그 곡선이 있고 기울기가 서로 다른 점선 넷이 각각 곡선에 한 점에서만 닿으며 나머지 구간에서는 곡선 위에 있다. 닿는 자리마다 점이 찍혀 있고 람다 값 0.25, 0.5, 1, 2가 적혀 있다.](figures/convex_duality.svg)
 
-요점은 부등식이 하나가 아니라 **가족**이라는 것이다. $\lambda$ 마다 다른 직선이 나오고 저마다 참인 경계이며, 그중 하나만이 주어진 $x$ 에서 꽉 낀다 — 그림의 점들이 $\lambda=1/x$ 인 자리다. 그러니 어려운 양을 다루는 방법이 생긴다. 다루기 힘든 함수를 **다루기 쉬운 경계들의 가족**으로 바꾸고, 가족 안에서 가장 좋은 것을 고르는 최적화로 바꾸면 된다. 고르는 그 $\lambda$ 가 변분 파라메터다. 아래 절들의 $q$ 가 하는 일이 정확히 이것이고, ELBO가 $q$ 마다 하나씩 있는 하한인 것도 같은 까닭이다.
+요점은 부등식이 하나가 아니라 **가족**(family, 수학에서는 족이라 부른다)이라는 것이다. $\lambda$ 마다 다른 직선이 나오고 저마다 참인 경계이며, 그중 하나만이 주어진 $x$ 에서 꽉 낀다 — 그림의 점들이 $\lambda=1/x$ 인 자리다. 그러니 어려운 양을 다루는 방법이 생긴다. 다루기 힘든 함수를 **다루기 쉬운 경계들의 가족**으로 바꾸고, 가족 안에서 가장 좋은 것을 고르는 최적화로 바꾸면 된다. 고르는 그 $\lambda$ 가 변분 파라메터다. 아래 절들의 $q$ 가 하는 일이 정확히 이것이고, ELBO가 $q$ 마다 하나씩 있는 하한인 것도 같은 까닭이다.
 
-**다만 경계를 얻는 것과 쓸 만한 경계를 얻는 것은 다르다.** 가족이 참이라는 것은 $\lambda$ 를 아무렇게나 골라도 부등식이 깨지지 않는다는 뜻일 뿐이다. 그림에서 $\lambda=2$ 인 직선은 $x=4$ 근처에서 참값보다 한참 위에 있다. 실제 추론에서는 사정이 더 나쁜데, 꽉 끼는 그 한 줄이 **우리가 고른 가족 안에 아예 없을 수도 있기** 때문이다. 평균장처럼 $q$ 를 제한하면 등호를 주는 $q=p(\theta|D)$ 가 가족 밖에 있고, 그때 남는 간격이 5절에서 KL 방향과 함께 따지는 근사 오차다. 이 쪽 머리글이 적어 둔 대로, 목적함수를 세울 수 있다는 것이 그 기댓값을 셈하고 최적화하는 일까지 쉬워진다는 뜻은 아니다.
+**다만 경계를 얻는 것과 쓸 만한 경계를 얻는 것은 다르다.** 가족이 참이라는 것은 $\lambda$ 를 아무렇게나 골라도 부등식이 깨지지 않는다는 뜻일 뿐이다. 그림에서 $\lambda=2$ 인 직선은 $x=4$ 근처에서 참값보다 한참 위에 있다. 실제 추론에서는 사정이 더 나쁜데, 꽉 끼는 그 한 줄이 **우리가 고른 가족 안에 아예 없을 수도 있기** 때문이다. 평균장처럼 $q$ 를 제한하면 등호를 주는 $q=p(\theta|D)$ 가 가족 밖에 있고, 그때 남는 간격이 5절에서 KL 방향과 함께 따지는 근사 오차다. 이 쪽 머리글이 적어 둔 대로, 목적함수를 세울 수 있다는 것이 그 기댓값을 계산하고 최적화하는 일까지 쉬워진다는 뜻은 아니다.
 
 _확인한 곳 — M. I. Jordan, Z. Ghahramani, T. S. Jaakkola, L. K. Saul, "An Introduction to Variational Methods for Graphical Models", *Machine Learning* **37**, 183–233 (1999). 볼록 쌍대성으로 변분 변환을 만든다는 틀이 그 논문의 것이다. 그림의 접선들이 저마다 한 점에서 등호가 되는 것은 그림을 그리는 코드가 확인하고 어긋나면 멈춘다._
 
@@ -36,7 +36,7 @@ _확인한 곳 — M. I. Jordan, Z. Ghahramani, T. S. Jaakkola, L. K. Saul, "An 
 
 ## 2. 변분분포족
 
-계산하고 표본화할 수 있는 분포족 Q={q_λ(θ)}를 정한 뒤 사후에 가까운 q를 찾는다. 분포족은 근사할 수 있는 의존성·꼬리·모드 수를 제한한다.
+계산하고 샘플링할 수 있는 분포족 Q={q_λ(θ)}를 정한 뒤 사후에 가까운 q를 찾는다. 분포족은 근사할 수 있는 의존성·꼬리·모드 수를 제한한다.
 
 | 구조 | 표현하는 것 | 주요 제한 |
 |---|---|---|
@@ -55,7 +55,7 @@ $$D_{\mathrm{KL}}(q\Vert p_{post})=E_q\left[\log\frac{q(\theta)}{p(\theta|D)}\ri
 
 KL은 음이 아니고, 두 분포가 거의 어디서나 같을 때에만 0이다. 대칭성이나 삼각부등식을 일반적으로 만족하지 않아 거리 함수와는 다르다. q가 양의 질량을 두는 영역에서 사후가 0이면 KL(q∥p)는 무한대일 수 있다. 유한 최적해가 존재하는지와 최적화를 실제로 달성하는지도 별도 문제다.
 
-## 4. ELBO와 주변우도의 소거
+## 4. ELBO와 주변가능도의 소거
 
 사후의 로그를 결합분포로 쓰면 다음 항등식을 얻는다. 필요한 기댓값이 유한하다고 가정한다.
 
@@ -63,17 +63,17 @@ $$D_{\mathrm{KL}}(q\Vert p_{post})=E_q[\log q]-E_q[\log p(D,\theta)]+\log p(D).$
 
 $$\mathcal L(q)=E_q[\log p(D,\theta)]-E_q[\log q]=E_q[\log p(D|\theta)]-D_{\mathrm{KL}}(q\Vert p(\theta)).$$
 
-따라서 log p(D)=L(q)+KL(q∥p_post)≥L(q)이고, 모델을 고정하면 ELBO 최대화와 해당 KL 최소화가 같다. 주변우도는 q에 대한 상수이므로 최적화에 필요 없다. 그러나 E_q[log p(D,θ)] 자체는 계산하기 어려울 수 있어 해석적 적분·몬테카를로·추가 근사 등을 사용한다. 한 번의 몬테카를로 ELBO 추정값이 항상 log p(D) 아래에 있는 것은 아니다. 하한은 정확한 기대 목적함수에 대한 성질이다.
+따라서 log p(D)=L(q)+KL(q∥p_post)≥L(q)이고, 모델을 고정하면 ELBO 최대화와 해당 KL 최소화가 같다. 주변가능도는 q에 대한 상수이므로 최적화에 필요 없다. 그러나 E_q[log p(D,θ)] 자체는 계산하기 어려울 수 있어 해석적 적분·몬테카를로·추가 근사 등을 사용한다. 한 번의 몬테카를로 ELBO 추정값이 항상 log p(D) 아래에 있는 것은 아니다. 하한은 정확한 기대 목적함수에 대한 성질이다.
 
 ## 5. 두 KL 방향을 구분하기
 
 ‘정방향·역방향’은 목표분포를 어느 자리에 놓는지 먼저 정의해야 한다. 여기서는 **KL(p∥q)를 정방향, KL(q∥p)를 역방향**이라고 부른다. 표준 VI는 역방향을 쓴다.
 
-KL(q∥p)는 q 아래에서 평균하므로 q가 p의 작은 밀도 영역에 확률을 두는 것을 강하게 벌한다. 제한된 단봉 분포족에서는 여러 모드 사이의 저밀도 영역을 피하려 한 모드를 선택하고 분산을 작게 추정할 수 있다. p>0인 모든 영역을 q가 덮어야 한다는 조건은 없다.
+KL(q∥p)는 q 아래에서 평균하므로 q가 p의 작은 밀도 영역에 확률을 두는 것에 큰 패널티를 준다. 제한된 단봉 분포족에서는 여러 모드 사이의 저밀도 영역을 피하려 한 모드를 선택하고 분산을 작게 추정할 수 있다. p>0인 모든 영역을 q가 덮어야 한다는 조건은 없다.
 
 반대로 KL(p∥q)는 p 아래에서 평균하므로 p의 중요한 영역에서 q가 0이면 무한대가 된다. 하나의 가우스로 여러 모드를 근사하면 모드를 넓게 덮는 결과가 생길 수 있다. 이는 흔한 경향이며 모든 분포족·목표에서 각각 한 모드 선택과 과대 분산을 보장하는 정리는 아니다.
 
-아래 기존 도식은 모드 포괄과 모드 선택의 직관을 보여 준다. 표기의 해석은 위에서 명시한 KL(p∥q), KL(q∥p)의 순서를 따른다.
+아래 도식은 모드 포괄과 모드 선택의 직관을 보여 준다. 표기의 해석은 위에서 명시한 KL(p∥q), KL(q∥p)의 순서를 따른다.
 
 ```
 True Posterior (Bimodal):           Forward KL Result:        Reverse KL Result:
@@ -91,7 +91,7 @@ True Posterior (Bimodal):           Forward KL Result:        Reverse KL Result:
 
 $$v_n=(\sigma_0^{-2}+n\sigma^{-2})^{-1},\qquad m_n=v_n\left(\mu_0\sigma_0^{-2}+\sigma^{-2}\sum_i x_i\right).$$
 
-q=N(m,s²)는 정확한 사후를 포함하므로 이 모델에서는 최적 근사 오차가 0이다. 복잡한 모델의 필요성보다는 목적함수와 최적화를 확인하는 기준 예제다. 코드의 ELBO는 가우스 기대 로그 우도에서 사전과의 KL을 뺀다.
+q=N(m,s²)는 정확한 사후를 포함하므로 이 모델에서는 최적 근사 오차가 0이다. 복잡한 모델의 필요성보다는 목적함수와 최적화를 확인하는 기준 예제다. 코드의 ELBO는 가우스 기대 로그가능도에서 사전과의 KL을 뺀다.
 
 ```python
 import math
@@ -102,15 +102,14 @@ import matplotlib.pyplot as plt
 
 class SimpleVI:
     """
-    흩어짐을 아는 가우스의 평균을 어림하는 변분 추론.
-    흩어짐을 알 때.
+    분산을 아는 가우스의 평균을 추정하는 변분 추론.
     
-    모형:
-        앞확률: θ ~ N(μ₀, σ₀²)
+    모델:
+        사전분포: θ ~ N(μ₀, σ₀²)
         가능도: x_i | θ ~ N(θ, σ²)
         
-    변분 집안:
-        q(θ) = N(m, s²)  여기서 m, s은 변분 파라메터이다
+    변분분포족:
+        q(θ) = N(m, s²)  여기서 m, s는 변분 파라메터이다
     """
     
     def __init__(self, prior_mean: float = 0.0, prior_std: float = 1.0,
@@ -125,22 +124,22 @@ class SimpleVI:
     
     @property
     def s(self):
-        """표준편차가 양수임을 보장하기."""
+        """표준편차가 양수임을 보장한다."""
         return torch.exp(self.log_s)
     
     def compute_elbo(self, data: torch.Tensor) -> torch.Tensor:
         """
-        증거 아래 경계 셈하기.
+        증거 하한(ELBO)을 계산한다.
         
         ELBO = E_q[log p(D|θ)] + E_q[log p(θ)] - E_q[log q(θ)]
              = E_q[log p(D|θ)] - KL(q(θ) || p(θ))
         
-        q과 p이 가우스이면 닫힌 형태 식이 있다.
+        q와 p가 가우스이면 닫힌 형태 식이 있다.
         """
         n = len(data)
         
-        # E_q[log p(D|θ)] - 기댓값 로그 가능도
-        # 흩어짐을 아는 가우스 가능도에서:
+        # E_q[log p(D|θ)] - 기대 로그가능도
+        # 분산을 아는 가우스 가능도에서:
         # E_q[log p(x|θ)] = -n/2 log(2πσ²) - 1/(2σ²) Σᵢ E_q[(xᵢ - θ)²]
         #                 = -n/2 log(2πσ²) - 1/(2σ²) [Σᵢ(xᵢ - m)² + n·s²]
         
@@ -151,7 +150,7 @@ class SimpleVI:
             )
         )
         
-        # KL(q(θ) || p(θ)) - 앞확률에서 벌어진 정도
+        # KL(q(θ) || p(θ)) - 사전분포와의 KL 발산
         # 가우스에서: KL(N(m,s²) || N(μ₀,σ₀²))
         #              = log(σ₀/s) + (s² + (m-μ₀)²)/(2σ₀²) - 1/2
         
@@ -167,7 +166,7 @@ class SimpleVI:
     def fit(self, data: torch.Tensor, n_iterations: int = 1000,
             learning_rate: float = 0.01, verbose: bool = True):
         """
-        ELBO에 대한 그래디언트 오르기로 변분 파라메터 최적화하기.
+        ELBO에 대한 경사 상승법으로 변분 파라메터를 최적화한다.
         """
         optimizer = torch.optim.Adam([self.m, self.log_s], lr=learning_rate)
         
@@ -177,7 +176,7 @@ class SimpleVI:
             optimizer.zero_grad()
             
             elbo = self.compute_elbo(data)
-            loss = -elbo  # ELBO의 음수를 가장 작게 = ELBO를 가장 크게
+            loss = -elbo  # ELBO의 음수를 최소화 = ELBO를 최대화
             
             loss.backward()
             optimizer.step()
@@ -194,14 +193,14 @@ class SimpleVI:
         return history
     
     def get_posterior(self):
-        """어림 뒤확률 분포를 돌려준다."""
+        """근사 사후분포를 반환한다."""
         return dist.Normal(self.m.detach(), self.s.detach())
     
     def exact_posterior(self, data: torch.Tensor):
         """
-        정확한 뒤확률 셈하기(이 켤레 모형에는 있다).
+        정확한 사후분포를 계산한다(이 켤레 모델에서는 닫힌 형태로 구해진다).
         
-        뒤확률: θ | D ~ N(μₙ, σₙ²)
+        사후분포: θ | D ~ N(μₙ, σₙ²)
         여기서 각 기호는 다음과 같다.
             precision_n = 1/σ₀² + n/σ²
             μₙ = (μ₀/σ₀² + Σxᵢ/σ²) / precision_n
@@ -233,11 +232,11 @@ if __name__ == "__main__":
     print(f"Sample mean: {data.mean().item():.4f}")
     print(f"Sample size: {n_samples}")
     
-    # 변분 추론 모형 맞추기
+    # 변분 추론 모델 적합
     vi = SimpleVI(prior_mean=0.0, prior_std=2.0, likelihood_std=1.0)
     history = vi.fit(data, n_iterations=1000)
     
-    # 정확한 뒤확률과 견주기
+    # 정확한 사후분포와 비교
     exact = vi.exact_posterior(data)
     approx = vi.get_posterior()
     
@@ -247,7 +246,7 @@ if __name__ == "__main__":
     print(f"Difference in std:  {abs(exact.stddev.item() - approx.stddev.item()):.6f}")
 ```
 
-다음은 기존 출력이며 재실행한 결과가 아니다. Adam의 유한 반복이 정확한 최적점을 달성하거나 매번 ELBO를 높인다는 보장은 없다. 기록되는 ELBO는 갱신 전, `m`과 `s`는 갱신 후 값이므로 같은 기록 인덱스를 완전히 같은 시점으로 해석하지 않는다.
+다음은 위 코드의 출력이다. Adam의 유한 반복이 정확한 최적점을 달성하거나 매번 ELBO를 높인다는 보장은 없다. 기록되는 ELBO는 갱신 전, `m`과 `s`는 갱신 후 값이므로 같은 기록 인덱스를 완전히 같은 시점으로 해석하지 않는다.
 
 ```
 ============================================================
@@ -270,15 +269,15 @@ Difference in mean: 0.000071
 Difference in std:  0.011653
 ```
 
-아래 시각화 함수는 기록과 두 분포를 비교하는 용도다. 이번 편집에서 실행하거나 그림을 다시 만들지 않았다.
+아래 시각화 함수는 기록과 두 분포를 비교하는 용도다. 이 함수가 저장하는 그림은 이 쪽에 싣지 않는다.
 
 ```python
 def visualize_vi_results(vi, data, history):
-    """변분 추론의 최적화와 결과 그려 보기."""
+    """변분 추론의 최적화와 결과를 시각화한다."""
     
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     
-    # 그림 1: ELBO의 모임
+    # 그림 1: ELBO의 수렴
     ax = axes[0, 0]
     ax.plot(history['elbo'], 'b-', linewidth=2)
     ax.set_xlabel('Iteration', fontsize=11)
@@ -286,7 +285,7 @@ def visualize_vi_results(vi, data, history):
     ax.set_title('(a) ELBO Convergence', fontsize=12, fontweight='bold')
     ax.grid(True, alpha=0.3)
     
-    # 그림 2: 파라메터의 자취
+    # 그림 2: 파라메터의 궤적
     ax = axes[0, 1]
     ax.plot(history['m'], history['s'], 'b-', alpha=0.5, linewidth=1)
     ax.plot(history['m'][0], history['s'][0], 'go', markersize=10, label='Start')
@@ -302,7 +301,7 @@ def visualize_vi_results(vi, data, history):
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 3: 뒤확률 견주기
+    # 그림 3: 사후분포 비교
     ax = axes[1, 0]
     theta_range = torch.linspace(-1, 5, 500)
     
@@ -323,7 +322,7 @@ def visualize_vi_results(vi, data, history):
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 4: 자료의 막대그림
+    # 그림 4: 데이터의 히스토그램
     ax = axes[1, 1]
     ax.hist(data.numpy(), bins=15, density=True, alpha=0.6, 
             color='gray', edgecolor='black', label='Data')
@@ -368,7 +367,7 @@ Jensen 부등식 또는 log u≤u−1을 이용해 KL(q∥p)≥0을 증명하고
 
 ## 정리하며
 
-VI는 제한된 분포족에서 KL(q∥p_post)를 줄이며, 고정 모델에서 이는 ELBO 최대화와 같다. 주변우도의 직접 계산을 피할 수 있지만 기댓값 계산·근사 바이어스·최적화 오차는 남는다. KL의 두 방향과 하한의 의미를 식으로 구분한다.
+VI는 제한된 분포족에서 KL(q∥p_post)를 줄이며, 고정 모델에서 이는 ELBO 최대화와 같다. 주변가능도의 직접 계산을 피할 수 있지만 기댓값 계산·근사 편향·최적화 오차는 남는다. KL의 두 방향과 하한의 의미를 식으로 구분한다.
 
 **참고 문헌**
 

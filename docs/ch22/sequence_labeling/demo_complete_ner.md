@@ -2,22 +2,22 @@
 
 이 데모는 다른 모듈의 규칙·사전 기반 추출, 수작업 피처와 토큰 지표를 호출하고 뉴럴 네트워크 구조의 개념을 출력한다. 모든 NER 방식을 학습·평가하거나 하나의 운영 파이프라인으로 결합하는 코드는 아니다. 방법별 장단점 표도 통제 실험 결과가 아니라 고정된 설명 문구다.
 
-## 1. 코드와 기존 출력
+## 1. 코드와 출력
 
 ```python
 """
-두루 살피는 개체명 인식 보임
+개체명 인식 종합 데모
 ================================
 
-이 각본은 이 단원에서 다룬 모든 개체명 인식 방식을 보여 준다:
-1. 규칙 바탕 개체명 인식
-2. 사전 바탕 개체명 인식
-3. CRF 바탕 개체명 인식
+이 스크립트는 이 단원에서 다룬 모든 개체명 인식 방식을 보여 준다:
+1. 규칙 기반 개체명 인식
+2. 사전 기반 개체명 인식
+3. CRF 기반 개체명 인식
 4. 딥러닝 방식(양방향 LSTM-CRF, 트랜스포머)
 
-방식마다의 온전한 보기를 보려면 이 각본을 돌려라.
+방식마다의 전체 예제를 보려면 이 스크립트를 실행하라.
 
-지은이: 러닝 목적
+지은이: 교육 목적
 날짜: 2025
 """
 
@@ -28,11 +28,11 @@ import os
 # 메인
 # ========================================================================
 
-# 들여오기를 위해 부모 디렉터리를 경로에 더하기
+# import를 위해 부모 디렉터리를 경로에 더하기
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def demo_rule_based():
-    """규칙 바탕 개체명 인식 보이기."""
+    """규칙 기반 개체명 인식 시연."""
     print("="*70)
     print("1. RULE-BASED NER DEMONSTRATION")
     print("="*70)
@@ -60,7 +60,7 @@ def demo_rule_based():
 
 
 def demo_dictionary_based():
-    """사전 바탕 개체명 인식 보이기."""
+    """사전 기반 개체명 인식 시연."""
     print("\n\n" + "="*70)
     print("2. DICTIONARY-BASED NER DEMONSTRATION")
     print("="*70)
@@ -84,7 +84,7 @@ def demo_dictionary_based():
 
 
 def demo_feature_extraction():
-    """예로부터의 기계 러닝을 위한 피처 뽑기 보이기."""
+    """전통적인 머신러닝을 위한 피처 추출 시연."""
     print("\n\n" + "="*70)
     print("3. FEATURE EXTRACTION FOR TRADITIONAL ML")
     print("="*70)
@@ -110,14 +110,14 @@ def demo_feature_extraction():
 
 
 def demo_evaluation():
-    """개체명 인식 평가 지표 보이기."""
+    """개체명 인식 평가 지표 시연."""
     print("\n\n" + "="*70)
     print("4. NER EVALUATION METRICS")
     print("="*70)
     
     from intermediate.evaluation_metrics_07_evaluation_metrics import NERMetrics
     
-    # 예측 보기
+    # 예측 예시
     y_true = [["B-PER", "I-PER", "O", "B-ORG", "I-ORG"]]
     y_pred = [["B-PER", "I-PER", "O", "B-ORG", "O"]]  # I-ORG를 놓침
     
@@ -136,7 +136,7 @@ def demo_evaluation():
 
 
 def demo_architectures():
-    """딥러닝 구조 보이기."""
+    """딥러닝 구조 시연."""
     print("\n\n" + "="*70)
     print("5. DEEP LEARNING ARCHITECTURES")
     print("="*70)
@@ -158,7 +158,7 @@ def demo_architectures():
 
 
 def print_summary():
-    """간추림과 다음 스텝 찍기."""
+    """요약과 다음 단계 출력하기."""
     print("\n\n" + "="*70)
     print("SUMMARY: NER APPROACH COMPARISON")
     print("="*70)
@@ -207,7 +207,7 @@ def print_summary():
 
 
 def main():
-    """모든 보임 돌리기."""
+    """모든 데모 실행하기."""
     print("\n" + "="*70)
     print("COMPREHENSIVE NER DEMONSTRATION")
     print("Module 38: Named Entity Recognition")
@@ -251,7 +251,7 @@ if __name__ == "__main__":
     main()
 ```
 
-??? note "기존 전체 출력"
+??? note "전체 출력"
 
     ```
 
@@ -365,7 +365,7 @@ if __name__ == "__main__":
 
 beginner·intermediate 패키지에서 규칙·사전·피처·지표를 가져온다. 코드를 어느 파일 위치와 import 경로에서 사용하는지에 따라 이 패키지를 찾을 수 있어야 한다. sys.path에 상위 경로를 추가하는 것만으로 모든 실행 위치에서 import가 해결되는 것은 아니다. 예제 Markdown의 코드와 실제 별도 Python 모듈의 계약도 확인한다.
 
-각 데모의 예외를 출력하고 다음으로 넘어가므로 마지막 완료 메시지가 앞의 모든 데모가 정상 실행되었다는 증거는 아니다. 어떤 단계가 실패했는지와 실제 결과를 구분해야 한다. 이 문서 편집에서는 모듈을 import하거나 예제를 실행하지 않고 정적으로 제공된 코드를 검토한다.
+각 데모의 예외를 출력하고 다음으로 넘어가므로 마지막 완료 메시지가 앞의 모든 데모가 정상 실행되었다는 증거는 아니다. 어떤 단계가 실패했는지와 실제 결과를 구분해야 한다. 이 절은 모듈을 import하거나 예제를 실행하지 않고 실린 코드를 정적으로 검토한다.
 
 ## 3. 규칙·사전 결과와 의미적 정확도
 
@@ -379,15 +379,15 @@ beginner·intermediate 패키지에서 규칙·사전·피처·지표를 가져�
 
 평가 예는 정답 B-PER I-PER O B-ORG I-ORG에 대해 마지막 I-ORG를 O로 바꾼 예측을 사용한다. 호출하는 compute_metrics는 비O **토큰 태그**를 세므로TP3·FP0·FN1, P1·R0.75·F1약0.857이다. 이는 개체 수준의 정확 일치 F1이 아니다.
 
-정확 span으로 보면 사람은 맞지만 조직은 짧게 예측되어TP1·FP1·FN1, P·R·F1은각각0.5다. 태그의 일부를 맞힌 것과 전체 언급의 경계·유형을 맞힌 것을 구분한다. 입력 목록 길이·문장 경계·패딩·무효 태그의 폴리시도 실제 평가에 명시해야 한다.
+정확 span으로 보면 사람은 맞지만 조직은 짧게 예측되어TP1·FP1·FN1, P·R·F1은각각0.5다. 태그의 일부를 맞힌 것과 전체 언급의 경계·유형을 맞힌 것을 구분한다. 입력 목록 길이·문장 경계·패딩·무효 태그의 정책도 실제 평가에 명시해야 한다.
 
 ## 5. 구조 설명·비교표의 한계
 
 demo_architectures는 BiLSTM-CRF·트랜스포머 구조를 **출력할 뿐 생성·학습·비교하지 않는다**. CRF가 항상 올바른 태그를 강제하는 것도 아니다. 명시적인 시작·종료·금지 전이 제약과 같은 점수의 정규화·디코딩이 필요하다. 관련 코드의 전이 방향·패딩·head 학습 한계는 개별 절의 설명을 참고한다.
 
-정밀도·재현율·속도·필요 자료를 High·Low 등으로 적은 표는 데이터·분할·구조·사전 학습·장치 조건이 없는 질적 개요다. 실제 측정치나 모든 과제의 고정 순위로 인용하지 않는다. 앙상블 역시 운영에 항상 필요한 단계이거나 자동으로 더 정확한 해결책은 아니다.
+정밀도·재현율·속도·필요 데이터를 High·Low 등으로 적은 표는 데이터·분할·구조·사전 학습·장치 조건이 없는 질적 개요다. 실제 측정치나 모든 과제의 고정 순위로 인용하지 않는다. 앙상블 역시 운영에 항상 필요한 단계이거나 자동으로 더 정확한 해결책은 아니다.
 
-실제 모델 선택에는 같은 주석 체계·관찰 자료·독립 분할·span 지표와 전체 처리 비용을 사용한다. 이 데모는 방법을 연결해 읽는 안내이며 최신 성능이나 배포 준비 상태를 검증한 실험 보고가 아니다.
+실제 모델 선택에는 같은 주석 체계·관찰 데이터·독립 분할·span 지표와 전체 처리 비용을 사용한다. 이 데모는 방법을 연결해 읽는 안내이며 최신 성능이나 배포 준비 상태를 검증한 실험 보고가 아니다.
 
 ## 연습문제
 
@@ -439,13 +439,13 @@ demo_architectures는 BiLSTM-CRF·트랜스포머 구조를 **출력할 뿐 생�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 기존 시험 조각이 이 종합 호출 예제에 맞는가?
+아래 테스트 조각이 이 종합 호출 예제에 맞는가?
 
 </div>
 
 ??? success "풀이"
 
-    공백이 있는 식별자와 정의되지 않은 Demo Complete NER·입력 때문에 실행 가능한 시험이 아니다. 이 파일 자체는 뉴럴 네트워크가 아니므로 backward·parameters 검사가 맞지 않는다. import 실패·단계별 결과·원문 offset·태그 길이·정확한 지표와 예외 후 완료 메시지를 명세로 확인해야 한다.
+    공백이 있는 식별자와 정의되지 않은 Demo Complete NER·입력 때문에 실행 가능한 테스트가 아니다. 이 파일 자체는 뉴럴 네트워크가 아니므로 backward·parameters 검사가 맞지 않는다. import 실패·단계별 결과·원문 offset·태그 길이·정확한 지표와 예외 후 완료 메시지를 명세로 확인해야 한다.
 
     ```python
     def test_demo complete ner():
@@ -454,10 +454,10 @@ demo_architectures는 BiLSTM-CRF·트랜스포머 구조를 **출력할 뿐 생�
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

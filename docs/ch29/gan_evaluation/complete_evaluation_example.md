@@ -8,11 +8,11 @@
 
 ```python
 """
-온전한 따지기 보기
+종합 평가 보기
 ===========================
 
-이 보기는 만들어 내는 모델의 온전한 따지기 흐름을 보이며
-두루 따지려 잣대를 여럿 아우른다.
+이 보기는 생성 모델의 종합 평가 흐름을 보이며
+두루 평가하려 지표를 여럿 아우른다.
 
 지은이: 가르치기 인공 지능 모둠
 날짜: 2025
@@ -27,17 +27,17 @@ from typing import Dict, List
 # 메인
 # ========================================================================
 
-# 씨앗을 둔다
+# 시드를 고정한다
 torch.manual_seed(42)
 np.random.seed(42)
 
 
 class MockGenerativeModel:
-    """보여 주기를 위한 흉내 만들어 내는 모델."""
+    """보여 주기를 위한 모의 생성 모델."""
     
     def __init__(self, quality_level: str = "good"):
         """
-        품질 수준이 다른 흉내 모델을 초기화한다.
+        품질 수준이 다른 모의 모델을 초기화한다.
         
         인수:
             quality_level: "poor", "moderate", "good" 가운데 하나
@@ -53,24 +53,24 @@ class MockGenerativeModel:
             n_samples: 만들 표본의 개수
         
         반환값:
-            만들어 낸 그림 [n_samples, 1, 28, 28]
+            생성한 그림 [n_samples, 1, 28, 28]
         """
         if self.quality_level == "poor":
-            # 높은 잡음, 낮은 짜임
+            # 높은 잡음, 약한 구조
             samples = torch.randn(n_samples, 1, 28, 28) * 0.5
         elif self.quality_level == "moderate":
-            # 보통 잡음, 얼마간의 짜임
+            # 보통 잡음, 얼마간의 구조
             samples = torch.randn(n_samples, 1, 28, 28) * 0.3
-            # 짜임을 조금 더한다
+            # 구조를 조금 더한다
             samples[:, :, 10:18, 10:18] += 0.5
         else:  # 좋음
-            # 낮은 잡음, 또렷한 짜임
+            # 낮은 잡음, 또렷한 구조
             samples = torch.randn(n_samples, 1, 28, 28) * 0.2
-            # 또렷한 짜임(십자 결)을 더한다
+            # 또렷한 구조(십자 패턴)를 더한다
             samples[:, :, 13:15, :] += 0.8
             samples[:, :, :, 13:15] += 0.8
         
-        # [0, 1]로 고르게 맞추기
+        # [0, 1] 범위로 맞추기
         samples = torch.sigmoid(samples)
         return samples
 
@@ -79,15 +79,15 @@ def evaluate_generative_model(model: MockGenerativeModel,
                               real_data: torch.Tensor,
                               n_generated: int = 1000) -> Dict:
     """
-    만들어 내는 모델을 두루 따진다.
+    생성 모델을 종합 평가한다.
     
     인수:
-        model: 따질 만들어 내는 모델
-        real_data: 실제 자료 표본
+        model: 평가할 생성 모델
+        real_data: 실제 데이터 표본
         n_generated: 만들 표본의 수
     
     반환값:
-        따지기 잣대 사전
+        평가 지표 사전
     """
     print("=" * 70)
     print(f"Evaluating {model.quality_level.upper()} quality model")
@@ -122,24 +122,24 @@ def evaluate_generative_model(model: MockGenerativeModel,
     metrics['mean_error'] = abs(real_mean - gen_mean).item()
     metrics['std_error'] = abs(real_std - gen_std).item()
     
-    # 4. 흉내 FID(인셉션 피처 대신 단순한 통계를 쓴다)
+    # 4. 모의 FID(인셉션 피처 대신 단순한 통계를 쓴다)
     print("\n4. Computing Mock FID:")
     # 그림을 펼친다
     real_flat = real_data.reshape(len(real_data), -1)
     gen_flat = generated_data.reshape(len(generated_data), -1)
     
-    # 평균과 함께 흩어짐을 셈한다
+    # 평균과 공분산을 계산한다
     mu_real = real_flat.mean(dim=0).numpy()
     mu_gen = gen_flat.mean(dim=0).numpy()
     
-    # 단순한 FID 어림: ||μ_real - μ_gen||²
+    # 단순한 FID 근사: ||μ_real - μ_gen||²
     mock_fid = np.sum((mu_real - mu_gen) ** 2)
     print(f"   Mock FID: {mock_fid:.4f} (lower is better)")
     metrics['mock_fid'] = float(mock_fid)
     
-    # 5. 다양함 따지기
+    # 5. 다양성 평가
     print("\n5. Diversity Assessment:")
-    # 짝마다 거리를 셈한다
+    # 쌍마다 거리를 계산한다
     gen_flat = generated_data.reshape(n_generated, -1)
     distances = torch.cdist(gen_flat, gen_flat, p=2)
     upper_tri = distances[torch.triu(torch.ones_like(distances), diagonal=1) == 1]
@@ -153,13 +153,13 @@ def evaluate_generative_model(model: MockGenerativeModel,
     metrics['avg_diversity'] = avg_distance
     metrics['min_diversity'] = min_distance
     
-    # 6. 되짓기 품질(해당되면)
+    # 6. 복원 품질(해당되면)
     print("\n6. Sample Quality Metrics:")
     # 견주려 일부만 쓴다
     n_compare = min(100, len(real_data), len(generated_data))
     
-    # 화소마다 평균 제곱 어긋남을 셈한다
-    # 참고: 이는 되짓기가 아니라 분포를 견주는 것일 뿐이다
+    # 픽셀마다 평균 제곱 오차를 계산한다
+    # 참고: 이는 복원이 아니라 분포를 견주는 것일 뿐이다
     real_subset = real_data[:n_compare]
     gen_subset = generated_data[:n_compare]
     
@@ -172,16 +172,16 @@ def evaluate_generative_model(model: MockGenerativeModel,
 
 def compare_models():
     """
-    만들어 내는 모델 여럿을 견준다.
+    생성 모델 여럿을 견준다.
     """
     print("\n" + "=" * 70)
     print("COMPARATIVE EVALUATION")
     print("=" * 70)
     
-    # 인공 실제 자료를 만든다
+    # 인공 실제 데이터를 만든다
     n_real = 1000
     real_data = torch.randn(n_real, 1, 28, 28) * 0.25
-    real_data[:, :, 12:16, 12:16] += 0.7  # 짜임을 더한다
+    real_data[:, :, 12:16, 12:16] += 0.7  # 구조를 더한다
     real_data = torch.sigmoid(real_data)
     
     print(f"\nReal dataset: {n_real} samples")
@@ -193,7 +193,7 @@ def compare_models():
         "Good": MockGenerativeModel("good")
     }
     
-    # 모델마다 따진다
+    # 모델마다 평가한다
     all_metrics = {}
     for name, model in models.items():
         metrics = evaluate_generative_model(model, real_data, n_generated=1000)
@@ -217,7 +217,7 @@ def compare_models():
     print("Best Model Analysis:")
     print("-" * 70)
     
-    # 이 잣대는 낮을수록 좋다
+    # 이 지표는 낮을수록 좋다
     poor_fid = all_metrics["Poor"]["mock_fid"]
     mod_fid = all_metrics["Moderate"]["mock_fid"]
     good_fid = all_metrics["Good"]["mock_fid"]
@@ -238,63 +238,63 @@ def compare_models():
 
 def main():
     """
-    온전한 따지기 보기를 돌리는 으뜸 함수.
+    종합 평가 보기를 돌리는 메인 함수.
     """
     print("\n" + "=" * 70)
     print("COMPLETE GENERATIVE MODEL EVALUATION EXAMPLE")
     print("=" * 70)
     print("""
-이 보기는 두루 갖춘 따지기 흐름을 보인다.
+이 보기는 종합 평가 흐름을 보인다.
 1. 모델에서 표본을 만든다
-2. 눈으로 품질 따지기
+2. 눈으로 품질 평가
 3. 통계로 견주기
-4. FID 셈하기
-5. 다양함 따지기
-6. 표본 품질 잣대
-7. 견주어 살피기
+4. FID 계산
+5. 다양성 평가
+6. 표본 품질 지표
+7. 비교 분석
 
 실제로는 다음도 넣는다.
 - 인셉션 점수
 - 정밀도와 재현율
-- 느낌으로 재는 자(LPIPS)
-- 사람이 따지기
+- 지각적 지표(LPIPS)
+- 사람 평가
     """)
     
-    # 견주어 따지기를 돌린다
+    # 비교 평가를 돌린다
     compare_models()
     
     print("\n" + "=" * 70)
     print("KEY INSIGHTS FROM EVALUATION")
     print("=" * 70)
     print("""
-    1. 잣대가 여럿 필요하다:
-       - 잣대 하나가 모든 것을 담지는 못한다
-       - 잣대마다 재는 면이 다르다
-       - 수로 따지기 + 결로 따지기를 아우른다
+    1. 지표가 여럿 필요하다:
+       - 지표 하나가 모든 것을 담지는 못한다
+       - 지표마다 재는 면이 다르다
+       - 정량 평가 + 정성 평가를 아우른다
     
-    2. 잣대 풀이:
+    2. 지표 해석:
        - FID가 낮을수록 참 분포에 잘 들어맞는다
-       - 다양함이 클수록 봉우리 무너짐이 적다
-       - 통계 어긋남이 작을수록 적률이 잘 맞는다
+       - 다양성이 클수록 모드 붕괴가 적다
+       - 통계 오차가 작을수록 모멘트가 잘 맞는다
     
     3. 품질 수준:
-       - 나쁨: 높은 FID, 낮은 다양함, 큰 통계 어긋남
-       - 보통: 중간 FID, 보통 다양함
-       - 좋음: 낮은 FID, 높은 다양함, 작은 어긋남
+       - 나쁨: 높은 FID, 낮은 다양성, 큰 통계 오차
+       - 보통: 중간 FID, 보통 다양성
+       - 좋음: 낮은 FID, 높은 다양성, 작은 오차
     
     4. 가장 좋은 방식:
        - 표본을 넉넉히 만든다(FID이면 1만 개 이상)
-       - 서로 메우는 잣대를 여럿 쓴다
+       - 서로 보완하는 지표를 여럿 쓴다
        - 눈으로 살펴보기를 넣는다
-       - 믿음 구간을 알린다
-       - 바탕과 견준다
+       - 신뢰구간을 보고한다
+       - 베이스라인과 견준다
     
-    5. 실제 구조에서 살필 것:
-       - 잣대 셈하기를 자동으로 한다
-       - 익히는 동안 잣대를 좇는다
-       - 품질 임계를 정한다
+    5. 실제 운영에서 고려할 것:
+       - 지표 계산을 자동으로 한다
+       - 학습하는 동안 지표를 추적한다
+       - 품질 임계값을 정한다
        - 나빠지는지 지켜본다
-       - 사람이 꾸준히 따진다
+       - 사람이 꾸준히 평가한다
     """)
     print("=" * 70)
 
@@ -311,20 +311,20 @@ if __name__ == "__main__":
     COMPLETE GENERATIVE MODEL EVALUATION EXAMPLE
     ======================================================================
 
-    이 보기는 두루 갖춘 따지기 흐름을 보인다.
+    이 보기는 종합 평가 흐름을 보인다.
     1. 모델에서 표본을 만든다
-    2. 눈으로 품질 따지기
+    2. 눈으로 품질 평가
     3. 통계로 견주기
-    4. FID 셈하기
-    5. 다양함 따지기
-    6. 표본 품질 잣대
-    7. 견주어 살피기
+    4. FID 계산
+    5. 다양성 평가
+    6. 표본 품질 지표
+    7. 비교 분석
 
     실제로는 다음도 넣는다.
     - 인셉션 점수
     - 정밀도와 재현율
-    - 느낌으로 재는 자(LPIPS)
-    - 사람이 따지기
+    - 지각적 지표(LPIPS)
+    - 사람 평가
         
 
     ======================================================================
@@ -451,34 +451,34 @@ if __name__ == "__main__":
     KEY INSIGHTS FROM EVALUATION
     ======================================================================
 
-        1. 잣대가 여럿 필요하다:
-           - 잣대 하나가 모든 것을 담지는 못한다
-           - 잣대마다 재는 면이 다르다
-           - 수로 따지기 + 결로 따지기를 아우른다
+        1. 지표가 여럿 필요하다:
+           - 지표 하나가 모든 것을 담지는 못한다
+           - 지표마다 재는 면이 다르다
+           - 정량 평가 + 정성 평가를 아우른다
         
-        2. 잣대 풀이:
+        2. 지표 해석:
            - FID가 낮을수록 참 분포에 잘 들어맞는다
-           - 다양함이 클수록 봉우리 무너짐이 적다
-           - 통계 어긋남이 작을수록 적률이 잘 맞는다
+           - 다양성이 클수록 모드 붕괴가 적다
+           - 통계 오차가 작을수록 모멘트가 잘 맞는다
         
         3. 품질 수준:
-           - 나쁨: 높은 FID, 낮은 다양함, 큰 통계 어긋남
-           - 보통: 중간 FID, 보통 다양함
-           - 좋음: 낮은 FID, 높은 다양함, 작은 어긋남
+           - 나쁨: 높은 FID, 낮은 다양성, 큰 통계 오차
+           - 보통: 중간 FID, 보통 다양성
+           - 좋음: 낮은 FID, 높은 다양성, 작은 오차
         
         4. 가장 좋은 방식:
            - 표본을 넉넉히 만든다(FID이면 1만 개 이상)
-           - 서로 메우는 잣대를 여럿 쓴다
+           - 서로 보완하는 지표를 여럿 쓴다
            - 눈으로 살펴보기를 넣는다
-           - 믿음 구간을 알린다
-           - 바탕과 견준다
+           - 신뢰구간을 보고한다
+           - 베이스라인과 견준다
         
-        5. 실제 구조에서 살필 것:
-           - 잣대 셈하기를 자동으로 한다
-           - 익히는 동안 잣대를 좇는다
-           - 품질 임계를 정한다
+        5. 실제 운영에서 고려할 것:
+           - 지표 계산을 자동으로 한다
+           - 학습하는 동안 지표를 추적한다
+           - 품질 임계값을 정한다
            - 나빠지는지 지켜본다
-           - 사람이 꾸준히 따진다
+           - 사람이 꾸준히 평가한다
         
     ======================================================================
     ```
@@ -493,7 +493,7 @@ if __name__ == "__main__":
 | avg_diversity, min_diversity | 생성 이미지 쌍의 픽셀 L2 거리 | 의미적 다양성이나 품질을 보장하지 않는다 |
 | distribution_mse | 앞쪽 최대 100개 이미지에서 계산한 두 스칼라 평균 차이의 제곱 | 대응 이미지의 MSE나 분포 전체의 거리가 아니다 |
 
-`mock_fid`는 평균 이미지의 차이만 본다. 픽셀들의 공간 배치가 다른 분포라도 평균 이미지가 같으면 작을 수 있고, 공분산을 전혀 비교하지 않는다. `distribution_mse`는 이름과 달리 이미지별 차이를 계산하지 않아 더욱 제한적인 요약이다. 이를 표준 FID나 재구성 오차로 보고하지 않는다.
+`mock_fid`는 평균 이미지의 차이만 본다. 픽셀들의 공간 배치가 다른 분포라도 평균 이미지가 같으면 작을 수 있고, 공분산을 전혀 비교하지 않는다. `distribution_mse`는 이름과 달리 이미지별 차이를 계산하지 않아 더욱 제한적인 요약이다. 이를 표준 FID나 복원 오차로 보고하지 않는다.
 
 다양성 계산은 모든 N×N 거리를 만든 뒤 대각선 위쪽을 선택한다. N≥2가 필요하며 거리·마스크에 O(N²) 메모리가 든다. 잡음 세기가 큰 `poor` 규칙이 더 큰 픽셀 거리를 만들 수 있으므로 '평균 거리가 클수록 좋다'는 출력 설명을 보편적 품질 순위로 읽으면 안 된다. 기준 데이터와 패턴이 다른 `good` 규칙의 mock 점수가 더 나쁠 수도 있다.
 
@@ -501,13 +501,13 @@ if __name__ == "__main__":
 
 함수는 데이터 모양과 범위를 출력하지만 이미지 격자를 그리거나 사람이 평가한 결과를 수집하지 않는다. 실제 Inception 피처, IS, 정밀도·재현율, 최근접 학습 이웃, 신뢰구간도 계산하지 않는다. main의 안내문에 나열된 평가 항목과 실제 구현을 구분해야 한다.
 
-데모는 CPU·그래디언트 추적 없는 텐서를 가정한다. `.numpy()`를 직접 호출하고 생성기도 CPU 텐서를 만들므로 CUDA 입력이나 그래디언트를 추적하는 입력에 그대로 적용하는 일반 평가 함수가 아니다. 두 데이터 집합의 크기·채널·범위와 유한성에 대한 입력 검증도 별도로 필요하다.
+데모는 CPU·그래디언트 추적 없는 텐서를 가정한다. `.numpy()`를 직접 호출하고 제너레이터도 CPU 텐서를 만들므로 CUDA 입력이나 그래디언트를 추적하는 입력에 그대로 적용하는 일반 평가 함수가 아니다. 두 데이터 집합의 크기·채널·범위와 유한성에 대한 입력 검증도 별도로 필요하다.
 
 ## 4. 실제 모델 평가로 확장할 때
 
 평가 목적과 기준 집합을 정하고, 고정된 피처 모델과 전처리로 실제·생성 이미지를 처리한다. 생성 조건, 표본 수와 선택 규칙을 일치시킨 뒤 FID, 필요하면 IS와 정밀도·재현율을 계산한다. 표본 격자와 중복·최근접 이웃 검사를 함께 보고, 조건부 생성이면 조건의 분포와 조건 충실성도 확인한다.
 
-체크포인트 선택에 쓰는 검증 데이터와 최종 테스트를 구분한다. 고정 모델에서 샘플링을 반복한 변동과 모델을 다시 학습했을 때의 변동도 다르다. 현재 코드는 이런 실험을 수행하지 않으므로 실제 모델 성능이나 학습 시드에 따른 유의성을 이 결과로 주장할 수 없다.
+체크포인트 선택에 쓰는 검증 데이터와 최종 시험을 구분한다. 고정 모델에서 샘플링을 반복한 변동과 모델을 다시 학습했을 때의 변동도 다르다. 현재 코드는 이런 실험을 수행하지 않으므로 실제 모델 성능이나 학습 시드에 따른 유의성을 이 결과로 주장할 수 없다.
 
 ## 연습문제
 
@@ -535,7 +535,7 @@ distribution_mse는 대응된 이미지의 평균 제곱오차인가?
 
 ??? success "풀이"
 
-    아니다. 앞쪽 최대 100개 이미지에서 각 집합 전체의 평균을 스칼라 하나로 구하고 그 두 수의 차이를 제곱한다. 같은 평균을 가진 전혀 다른 이미지 분포도 0이 될 수 있다. 독립 생성 샘플은 임의의 실제 이미지와 짝지어 재구성 오차로 평가하지 않는다.
+    아니다. 앞쪽 최대 100개 이미지에서 각 집합 전체의 평균을 스칼라 하나로 구하고 그 두 수의 차이를 제곱한다. 같은 평균을 가진 전혀 다른 이미지 분포도 0이 될 수 있다. 독립 생성 샘플은 임의의 실제 이미지와 짝지어 복원 오차로 평가하지 않는다.
 
 
 
@@ -544,13 +544,13 @@ distribution_mse는 대응된 이미지의 평균 제곱오차인가?
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-이 코드에서 이름이 good인 생성기가 반드시 가장 좋은 점수를 얻는가?
+이 코드에서 이름이 good인 제너레이터가 반드시 가장 좋은 점수를 얻는가?
 
 </div>
 
 ??? success "풀이"
 
-    그렇지 않다. good은 십자 패턴 생성 규칙이고 기준 데이터는 작은 중앙 사각형 패턴이다. 이름과 평가 대상의 적합도가 일치하지 않을 수 있다. 평균 이미지 거리, 픽셀 거리 등의 결과가 어떤 특성에 반응하는지 확인해야 하며 결과 순서를 미리 사실로 정해 두면 안 된다.
+    그렇지 않다. good은 십자 패턴 생성 규칙이고 기준 데이터는 작은 중앙 사각형 패턴이다. 이름과 평가 대상의 적합도가 일치하지 않을 수 있다. 평균 이미지 거리, 픽셀 거리 등의 결과가 어떤 성질에 반응하는지 확인해야 하며 결과 순서를 미리 사실로 정해 두면 안 된다.
 
 
 
@@ -589,7 +589,7 @@ distribution_mse는 대응된 이미지의 평균 제곱오차인가?
 <div class="drillbox" markdown>
 
 **연습문제 6.** <span class="diff hard" title="어려움"></span>
-IS가 1이고 예측 레이블이 하나에 집중되면 생성기가 잠재 변수를 완전히 무시한다고 결론 내릴 수 있는가?
+IS가 1이고 예측 라벨이 하나에 집중되면 제너레이터가 잠재 변수를 완전히 무시한다고 결론 내릴 수 있는가?
 
 </div>
 
@@ -676,7 +676,7 @@ IS가 1이고 예측 레이블이 하나에 집중되면 생성기가 잠재 변
         )
     ```
     ```python
-    for name, imgs in (("참 자료", real), ("GAN", gan_s), ("VAE", vae_s)):
+    for name, imgs in (("실제 데이터", real), ("GAN", gan_s), ("VAE", vae_s)):
         print(name, evaluate(imgs, ref, net, meta))
     ```
 

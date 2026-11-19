@@ -12,27 +12,27 @@ basic_markov_chain.py (단원 01)
 ==============================
 
 Location: 06_markov_chain/01_fundamentals/
-난이도: ⭐ 첫스텝
+난이도: ⭐ 입문
 예상 시간: 2~3시간
 
 학습 목표:
 - 마르코프 성질 이해하기
-- 단순한 띄엄띄엄한 시간 마르코프 사슬 구현하기
-- 상태 옮김 흉내내기
-- 상태 늘어놓음 그려 보기
+- 단순한 이산 시간 마르코프 사슬 구현하기
+- 상태 전이 시뮬레이션
+- 상태 시퀀스 시각화하기
 
-수학적 바탕:
-마르코프 사슬은 다음을 만족하는 확률 변수의 늘어놓음 X_0, X_1, X_2, ...이다:
+수학적 배경:
+마르코프 사슬은 다음을 만족하는 확률 변수의 시퀀스 X_0, X_1, X_2, ...이다:
 P(X_{n+1} = j | X_n = i, X_{n-1} = k, ..., X_0 = m) = P(X_{n+1} = j | X_n = i)
 
-이를 마르코프 성질이라 한다. 곧 미래는 지난날이 아니라 지금에만 달렸다.
+이를 마르코프 성질이라 한다. 곧 미래는 과거가 아니라 현재에만 의존한다.
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
 # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
 np.random.seed(0)
 
@@ -43,21 +43,21 @@ np.random.seed(0)
 
 class BasicMarkovChain:
     """
-    띄엄띄엄한 시간 마르코프 사슬의 단순한 구현.
+    이산 시간 마르코프 사슬의 단순한 구현.
     
     속성:
         states (list): 상태 이름의 목록
-        transition_matrix (np.ndarray): 옮김 확률 행렬
+        transition_matrix (np.ndarray): 전이확률 행렬
         current_state (int): 지금 상태의 번호
     """
     
     def __init__(self, states, transition_matrix):
         """
-        마르코프 사슬 첫값 잡기.
+        마르코프 사슬 초기화.
         
         파라메터:
             states (list): 상태의 이름(이를테면 ['A', 'B', 'C'])
-            transition_matrix (np.ndarray): 옮김 확률 행렬 P
+            transition_matrix (np.ndarray): 전이확률 행렬 P
                                           여기서 P[i][j] = P(X_{n+1}=j | X_n=i)
         
         수학 메모:
@@ -68,7 +68,7 @@ class BasicMarkovChain:
         self.transition_matrix = np.array(transition_matrix)
         self.n_states = len(states)
         
-        # 옮김 행렬 확인하기
+        # 전이 행렬 확인하기
         self._validate_transition_matrix()
         
         # 무작위 상태에서 시작하기
@@ -76,21 +76,21 @@ class BasicMarkovChain:
     
     def _validate_transition_matrix(self):
         """
-        옮김 행렬이 확률 행렬인지 확인하기.
+        전이 행렬이 확률 행렬인지 확인하기.
         
         다음이면 행렬이 확률 행렬이다:
         1. 성분이 모두 음이 아니다
         2. 행마다 합이 1이다(확률 분포)
         """
-        # 차원 살피기
+        # 차원 확인하기
         if self.transition_matrix.shape != (self.n_states, self.n_states):
             raise ValueError(f"Transition matrix must be {self.n_states}x{self.n_states}")
         
-        # 음이 아닌지 살피기
+        # 음이 아닌지 확인하기
         if np.any(self.transition_matrix < 0):
             raise ValueError("All transition probabilities must be non-negative")
         
-        # 행의 합 살피기(각각 1이 되어야 함)
+        # 행의 합 확인하기(각각 1이 되어야 함)
         row_sums = np.sum(self.transition_matrix, axis=1)
         if not np.allclose(row_sums, 1.0):
             raise ValueError("Each row of transition matrix must sum to 1")
@@ -104,43 +104,43 @@ class BasicMarkovChain:
         
         수학 과정:
         지금 상태가 i일 때 확률 P[i][j]으로 다음 상태 j 고르기
-        이는 범주 분포에서 표집하는 것과 같다
-        옮김 행렬의 i번째 행이 정하는.
+        이는 범주형 분포에서 샘플링하는 것과 같다
+        전이 행렬의 i번째 행이 정하는.
         """
-        # 지금 상태의 옮김 확률 얻기
+        # 지금 상태의 전이확률 얻기
         probabilities = self.transition_matrix[self.current_state]
         
-        # 이 확률에 따라 다음 상태 표집
-        # np.random.choice는 확률이 정하는 띄엄띄엄한 분포를 쓴다
+        # 이 확률에 따라 다음 상태 샘플링
+        # np.random.choice는 확률이 정하는 이산 분포를 쓴다
         self.current_state = np.random.choice(self.n_states, p=probabilities)
         
         return self.states[self.current_state]
     
     def simulate(self, n_steps, initial_state=None):
         """
-        마르코프 사슬을 n스텝 흉내내기.
+        마르코프 사슬을 n스텝 시뮬레이션.
         
         파라메터:
-            n_steps (int): 흉내낼 스텝 수
+            n_steps (int): 시뮬레이션할 스텝 수
             initial_state (int or str): 시작 상태(번호나 이름)
         
         반환값:
-            list: 들른 상태의 늘어놓음
+            list: 들른 상태의 시퀀스
         
         수학 메모:
         이는 확률 과정 {X_n}의 한 실현을 만든다
         """
-        # 주어졌으면 첫 상태 잡기
+        # 주어졌으면 초기 상태 설정하기
         if initial_state is not None:
             if isinstance(initial_state, str):
                 self.current_state = self.states.index(initial_state)
             else:
                 self.current_state = initial_state
         
-        # 상태 늘어놓음 기록하기
+        # 상태 시퀀스 기록하기
         state_sequence = [self.states[self.current_state]]
         
-        # n스텝 흉내내기
+        # n스텝 시뮬레이션
         for _ in range(n_steps):
             state_sequence.append(self.step())
         
@@ -148,26 +148,26 @@ class BasicMarkovChain:
     
     def get_state_distribution(self, n_steps, n_simulations=10000):
         """
-        몬테카를로 흉내내기로 n스텝 뒤의 상태 분포 어림하기.
+        몬테카를로 시뮬레이션로 n스텝 뒤의 상태 분포 추정하기.
         
         파라메터:
             n_steps (int): 뗄 스텝 수
-            n_simulations (int): 돌릴 흉내내기의 횟수
+            n_simulations (int): 돌릴 시뮬레이션의 횟수
         
         반환값:
-            np.ndarray: 상태에 걸쳐 어림한 확률 분포
+            np.ndarray: 상태에 걸쳐 추정한 확률 분포
         
-        수학적 바탕:
-        π_0이 첫 분포이고 P이 옮김 행렬이면,
+        수학적 배경:
+        π_0이 초기분포이고 P이 전이 행렬이면,
         n스텝 뒤의 분포는 π_n = π_0 * P^n이다
         
-        흉내내기를 많이 돌리고 세어 이를 어림한다.
+        시뮬레이션을 많이 돌리고 세어 이를 추정한다.
         """
-        # 모든 흉내내기의 마지막 상태 세기
+        # 모든 시뮬레이션의 마지막 상태 세기
         final_state_counts = np.zeros(self.n_states)
         
         for _ in range(n_simulations):
-            # 흉내내기 한 번 돌리기
+            # 시뮬레이션 한 번 돌리기
             sequence = self.simulate(n_steps)
             final_state = sequence[-1]
             
@@ -175,7 +175,7 @@ class BasicMarkovChain:
             final_state_index = self.states.index(final_state)
             final_state_counts[final_state_index] += 1
         
-        # 셈한 수를 확률로 바꾸기
+        # 센 횟수를 확률로 바꾸기
         estimated_distribution = final_state_counts / n_simulations
         
         return estimated_distribution
@@ -186,7 +186,7 @@ def example_two_state_chain():
     보기 1: 단순한 두 상태 마르코프 사슬
     
     상태: {0, 1} 또는 {Off, On}
-    옮김 행렬:
+    전이 행렬:
         에서\로  Off   On
         Off      0.7   0.3
         On       0.4   0.6
@@ -202,7 +202,7 @@ def example_two_state_chain():
     # 상태 정하기
     states = ['Off', 'On']
     
-    # 옮김 행렬 정하기
+    # 전이 행렬 정하기
     # P[i][j] = 상태 i에서 상태 j으로 갈 확률
     transition_matrix = [
         [0.7, 0.3],  # Off에서: 70% Off 그대로, 30% On으로
@@ -216,11 +216,11 @@ def example_two_state_chain():
     print(transition_matrix)
     print("\nSimulating 20 steps...")
     
-    # 'Off'에서 시작해 흉내내기
+    # 'Off'에서 시작해 시뮬레이션
     sequence = mc.simulate(n_steps=20, initial_state='Off')
     print(f"\nState sequence: {sequence}")
     
-    # 오래 뒤의 분포 어림하기
+    # 오래 뒤의 분포 추정하기
     print("\nEstimating state distribution after 100 steps...")
     distribution = mc.get_state_distribution(n_steps=100)
     
@@ -231,11 +231,11 @@ def example_two_state_chain():
 
 def example_three_state_chain():
     """
-    보기 2: 세 상태 날씨 모형
+    보기 2: 세 상태 날씨 모델
     
     상태: {맑음, 흐림, 비}
     
-    이는 간추린 날씨 옮김을 본뜬다:
+    이는 간추린 날씨 전이를 모델링한다:
     - 맑음은 맑음 그대로이거나 흐림이 되는 경향이 있다
     - 흐림은 어느 쪽으로든 갈 수 있다
     - 비는 흐림이 되거나 비 그대로인 경향이 있다
@@ -247,7 +247,7 @@ def example_three_state_chain():
     # 상태 정하기
     states = ['Sunny', 'Cloudy', 'Rainy']
     
-    # 옮김 행렬 정하기
+    # 전이 행렬 정하기
     transition_matrix = [
         [0.7, 0.25, 0.05],  # 맑음에서
         [0.3, 0.4, 0.3],     # 흐림에서
@@ -262,16 +262,16 @@ def example_three_state_chain():
     for i, state in enumerate(states):
         print(f"{state:7s} {transition_matrix[i]}")
     
-    # 여러 날 흉내내기
+    # 여러 날 시뮬레이션
     print("\nSimulating 30 days starting from Sunny...")
     sequence = mc.simulate(n_steps=30, initial_state='Sunny')
     
-    # 읽기 좋은 형태로 찍기(줄마다 10일)
+    # 읽기 좋은 형태로 출력하기(줄마다 10일)
     for i in range(0, len(sequence), 10):
         day_sequence = sequence[i:i+10]
         print(f"Days {i:2d}-{min(i+9, len(sequence)-1):2d}: {day_sequence}")
     
-    # 상태 잦기 세기
+    # 상태 빈도 세기
     print("\nState frequencies in simulation:")
     for state in states:
         count = sequence.count(state)
@@ -281,7 +281,7 @@ def example_three_state_chain():
 
 def visualize_state_sequence(sequence, title="Markov Chain State Sequence"):
     """
-    시간에 따른 상태 늘어놓음 그려 보기.
+    시간에 따른 상태 시퀀스 시각화하기.
     
     파라메터:
         sequence (list): 상태 이름의 목록
@@ -291,7 +291,7 @@ def visualize_state_sequence(sequence, title="Markov Chain State Sequence"):
     unique_states = sorted(list(set(sequence)))
     state_to_int = {state: i for i, state in enumerate(unique_states)}
     
-    # 늘어놓음을 정수로 바꾸기
+    # 시퀀스를 정수로 바꾸기
     int_sequence = [state_to_int[state] for state in sequence]
     
     # 그림 만들기
@@ -429,7 +429,7 @@ $$P_{ij}=P(X_{t+1}=j\mid X_t=i)$$
 
 ### 입력과 예제의 범위
 
-상태 이름은 고유하게 정의하고 빈 상태 목록, 유효하지 않은 초기 인덱스·이름, 음수나 정수가 아닌 단계 수를 허용하지 않는다. 시뮬레이션 반복 수는 양수여야 한다. 행렬 검사와 별도로 이런 인자 조건을 확인해야 한다. 날씨·스위치 예제의 전이확률은 가정한 숫자이며 실제 자료에서 학습한 모델은 아니다.
+상태 이름은 고유하게 정의하고 빈 상태 목록, 유효하지 않은 초기 인덱스·이름, 음수나 정수가 아닌 단계 수를 허용하지 않는다. 시뮬레이션 반복 수는 양수여야 한다. 행렬 검사와 별도로 이런 인자 조건을 확인해야 한다. 날씨·스위치 예제의 전이확률은 가정한 숫자이며 실제 데이터에서 학습한 모델은 아니다.
 
 ## 연습문제
 
@@ -496,10 +496,10 @@ simulate와 get_state_distribution에 필요한 입력·반환 규약을 정리�
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

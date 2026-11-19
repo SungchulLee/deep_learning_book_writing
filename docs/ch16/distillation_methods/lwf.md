@@ -1,6 +1,6 @@
 # Learning without Forgetting(LwF)
 
-Learning without Forgetting(LwF)은 새 과제 입력에서 이전 모델의 예측을 유지하도록 증류하는 지속 학습 방법이다. 이전 원본 표본을 다시 사용하지 않고 새 지도 로스와 이전 출력의 증류 로스를 함께 최적화한다. 다만 새 입력에서의 출력 유지가 과거 데이터 전체의 성능 보장을 뜻하지는 않는다.
+Learning without Forgetting(LwF)는 새 과제 입력에서 이전 모델의 예측을 유지하도록 증류하는 지속 학습 방법이다. 이전 원본 표본을 다시 사용하지 않고 새 지도 로스와 이전 출력의 증류 로스를 함께 최적화한다. 다만 새 입력에서의 출력 유지가 과거 데이터 전체의 성능 보장을 뜻하지는 않는다.
 
 ## 1. 이론적 기초
 
@@ -20,7 +20,7 @@ T가 커지면 고정 로짓의 확률 분포가 더 완만해진다. T=1도 일
 
 $$L=L_{\mathrm{task}}+\lambda T^2\operatorname{KL}(p_{\mathrm{old},T}(x)\|p_{\mathrm{new},T}(x))$$
 
-코드의 kl_div에는 학생의 로그확률과 교사의 확률을 이 순서로 넣고 batchmean으로 평균 낸다. T²는 온도가 커질 때의 경사 스케일 변화를 완화하는 관례이며, 서로 다른 T의 최적화가 완전히 같아지는 것은 아니다.
+코드의 kl_div에는 학생의 로그확률과 교사의 확률을 이 순서로 넣고 batchmean으로 평균 낸다. T²는 온도가 커질 때의 그래디언트 스케일 변화를 완화하는 관례이며, 서로 다른 T의 최적화가 완전히 같아지는 것은 아니다.
 
 <div class="storybox" markdown>
 
@@ -28,19 +28,19 @@ $$L=L_{\mathrm{task}}+\lambda T^2\operatorname{KL}(p_{\mathrm{old},T}(x)\|p_{\ma
 
 로스에 $T^2$ 을 곱하는 줄은 외워 두는 관례처럼 보인다. 그런데 그 수는 고른 것이 아니라 **계산해서 나온 것**이다.
 
-증류 자체를 세운 2015년 힌턴·비냘스·딘의 글이 그 까닭을 적어 두었다. 목표를 부드럽게 만들려고 로짓을 $T$ 로 나누면, 거기서 나오는 **경사가 $1/T^2$ 으로 작아진다.** 온도를 올릴수록 증류 항이 조용해지는 것이다. 그래서 $T^2$ 을 곱해 되돌린다 — 그래야 $T$ 를 바꿔도 딱딱한 목표와 부드러운 목표의 비중이 그대로 남는다.
+증류 자체를 세운 2015년 힌턴·비냘스·딘의 논문이 그 까닭을 적어 두었다. 목표를 부드럽게 만들려고 로짓을 $T$ 로 나누면, 거기서 나오는 **그래디언트가 $1/T^2$ 으로 작아진다.** 온도를 올릴수록 증류 항이 조용해지는 것이다. 그래서 $T^2$ 을 곱해 되돌린다 — 그래야 $T$ 를 바꿔도 딱딱한 목표와 부드러운 목표의 비중이 그대로 남는다.
 
 정말 $1/T^2$ 인지 재어 보았다.
 
-![왼쪽은 가로축이 온도, 세로축이 경사 크기인 로그 그래프다. T 제곱을 곱하지 않은 경사는 1 분의 T 제곱 기준선 위에 거의 정확히 겹쳐 내려가고, T 제곱을 곱한 쪽은 온도가 바뀌어도 거의 평평하다. 오른쪽은 T 제곱을 곱한 경사가 T가 1일 때의 경사와 이루는 코사인으로, 온도가 올라갈수록 1에서 0.85까지 떨어진다.](figures/temperature_t2.svg)
+![왼쪽은 가로축이 온도, 세로축이 그래디언트 크기인 로그 그래프다. T 제곱을 곱하지 않은 그래디언트는 1 분의 T 제곱 기준선 위에 거의 정확히 겹쳐 내려가고, T 제곱을 곱한 쪽은 온도가 바뀌어도 거의 평평하다. 오른쪽은 T 제곱을 곱한 그래디언트가 T가 1일 때의 그래디언트와 이루는 코사인으로, 온도가 올라갈수록 1에서 0.85까지 떨어진다.](figures/temperature_t2.svg)
 
-왼쪽에서 $T^2$ 을 곱하지 않은 경사는 $1/T^2$ 선 위에 **거의 그대로 포개진다.** $T$ 를 1에서 8로 올리면 크기가 60분의 1 아래로 내려간다. $T^2$ 을 곱하면 온도와 상관없이 거의 평평해진다. 관례가 아니라 보정이다.
+왼쪽에서 $T^2$ 을 곱하지 않은 그래디언트는 $1/T^2$ 선 위에 **거의 그대로 포개진다.** $T$ 를 1에서 8로 올리면 크기가 60분의 1 아래로 내려간다. $T^2$ 을 곱하면 온도와 상관없이 거의 평평해진다. 관례가 아니라 보정이다.
 
-**그런데 되돌아오는 것은 크기뿐이다.** 오른쪽을 보면 $T^2$ 까지 곱한 경사가 $T=1$ 일 때의 경사와 이루는 각이 온도를 올릴수록 벌어져 코사인 0.85까지 내려간다. 같은 교사 로짓, 같은 학생 로짓인데도 **가리키는 쪽이 다르다.** 당연한 일이다 — $T$ 를 올리면 목표 분포 자체가 바뀌어, 틀린 답들 사이의 상대적인 크기가 더 크게 들어오기 때문이다.
+**그런데 되돌아오는 것은 크기뿐이다.** 오른쪽을 보면 $T^2$ 까지 곱한 그래디언트가 $T=1$ 일 때의 그래디언트와 이루는 각이 온도를 올릴수록 벌어져 코사인 0.85까지 내려간다. 같은 교사 로짓, 같은 학생 로짓인데도 **가리키는 쪽이 다르다.** 당연한 일이다 — $T$ 를 올리면 목표 분포 자체가 바뀌어, 틀린 답들 사이의 상대적인 크기가 더 크게 들어오기 때문이다.
 
-그래서 위 문단의 마지막 구절이 정확하다. $T^2$ 은 **크기를 맞춰 줄 뿐 목적을 같게 만들지 않는다.** $T$ 는 증류 항의 세기를 고르는 손잡이가 아니라 **무엇을 닮을지**를 고르는 손잡이이고, 아래 4절이 온도를 바꿔 가며 결과를 따로 재는 까닭도 그것이다. 세기만 맞추고 싶다면 그 자리에 있는 손잡이는 $T$ 가 아니라 증류 계수다.
+그래서 위 문단의 마지막 구절이 정확하다. $T^2$ 은 **크기를 맞춰 줄 뿐 목적을 같게 만들지 않는다.** $T$ 는 증류 항의 세기를 고르는 하이퍼파라메터가 아니라 **무엇을 닮을지**를 고르는 하이퍼파라메터이고, 아래 4절이 온도를 바꿔 가며 결과를 따로 재는 까닭도 그것이다. 세기만 맞추고 싶다면 그 역할을 맡는 하이퍼파라메터는 $T$ 가 아니라 증류 계수다.
 
-_확인한 곳 — G. Hinton, O. Vinyals, J. Dean, "Distilling the Knowledge in a Neural Network" (2015) 에 부드러운 목표에서 오는 경사가 $1/T^2$ 으로 작아진다는 것과 그래서 $T^2$ 을 곱한다는 설명이 있다. LwF 는 Z. Li, D. Hoiem, "Learning without Forgetting", *ECCV* (2016) / *IEEE TPAMI* (2017) 이다. 그림의 수는 그림을 그리는 코드가 같은 교사·학생 로짓으로 직접 재며, 경사가 정말 $1/T^2$ 을 따르는지와 $T^2$ 을 곱하면 평평해지는지를 먼저 확인한 뒤에만 그린다._
+_확인한 곳 — G. Hinton, O. Vinyals, J. Dean, "Distilling the Knowledge in a Neural Network" (2015) 에 부드러운 목표에서 오는 그래디언트가 $1/T^2$ 으로 작아진다는 것과 그래서 $T^2$ 을 곱한다는 설명이 있다. LwF 는 Z. Li, D. Hoiem, "Learning without Forgetting", *ECCV* (2016) / *IEEE TPAMI* (2017) 이다. 그림의 수는 그림을 그리는 코드가 같은 교사·학생 로짓으로 직접 재며, 그래디언트가 정말 $1/T^2$ 을 따르는지와 $T^2$ 을 곱하면 평평해지는지를 먼저 확인한 뒤에만 그린다._
 
 </div>
 
@@ -50,7 +50,7 @@ _확인한 곳 — G. Hinton, O. Vinyals, J. Dean, "Distilling the Knowledge in 
 
 ### LwF 학습기
 
-첫 과제 이후 각 과제 시작에 모델을 deepcopy하고 교사의 경사를 끄며 평가 모드로 둔다. 새 옵티마이저를 과제마다 생성하므로 Adam 상태는 이어지지 않는다. 클래스 확장이나 과제별 헤드 선택은 기본 학습기에 포함되지 않는다. 모델 이동은 호출자가 수행하고 빈 로더는 허용하지 않는다.
+첫 과제 이후 각 과제 시작에 모델을 deepcopy하고 교사의 그래디언트를 끄며 평가 모드로 둔다. 새 옵티마이저를 과제마다 생성하므로 Adam 상태는 이어지지 않는다. 클래스 확장이나 과제별 헤드 선택은 기본 학습기에 포함되지 않는다. 모델 이동은 호출자가 수행하고 빈 로더는 허용하지 않는다.
 
 ```python
 import torch
@@ -64,11 +64,11 @@ import copy
 
 class LwFLearner:
     """
-    연속 학습을 위한 잊지 않고 배우기.
+    지속 학습을 위한 Learning without Forgetting.
     
-    LwF은 다음으로 잊음을 막는다.
-    1. 새 과제를 익히기 전에 모델의 출력을 적어 둔다
-    2. 앎 증류로 옛 출력에 맞춘다
+    LwF는 다음으로 망각을 막는다.
+    1. 새 과제를 학습하기 전에 모델의 출력을 기록해 둔다
+    2. 지식 증류로 이전 출력에 맞춘다
     3. 증류 로스와 새 과제의 로스를 합친다
     
     참고: Li & Hoiem, "Learning Without Forgetting," TPAMI 2017
@@ -85,8 +85,8 @@ class LwFLearner:
         
         인수:
             model: 뉴럴 네트워크 모델
-            device: 셈할 장치
-            distill_lambda: 증류 로스의 무게
+            device: 계산 장치
+            distill_lambda: 증류 로스의 계수
             temperature: 부드러운 목표의 온도
                         클수록 분포가 부드럽다
             learning_rate: 옵티마이저의 러닝레이트
@@ -99,7 +99,7 @@ class LwFLearner:
         
         self.criterion = nn.CrossEntropyLoss()
         
-        # 증류에 쓸 참조 모델을 담아 둔다(얼린 채)
+        # 증류에 쓸 참조 모델을 저장한다(동결한 채)
         self.old_model: Optional[nn.Module] = None
         
         self.current_task = 0
@@ -108,14 +108,14 @@ class LwFLearner:
                           new_logits: torch.Tensor,
                           old_logits: torch.Tensor) -> torch.Tensor:
         """
-        앎 증류 로스를 셈한다.
+        지식 증류 로스를 계산한다.
         
-        부드러운 확률 분포 사이의 KL 벌어짐을 쓴다.
+        부드러운 확률 분포 사이의 KL 발산을 쓴다.
         L_distill = T² × KL(softmax(z_old/T) || softmax(z_new/T))
         
         인수:
-            new_logits: 지금 모델의 로짓
-            old_logits: 옛 (얼린) 모델의 로짓
+            new_logits: 현재 모델의 로짓
+            old_logits: 이전 (동결된) 모델의 로짓
         
         반환값:
             증류 로스(스칼라)
@@ -126,8 +126,8 @@ class LwFLearner:
         old_probs = F.softmax(old_logits / T, dim=1)
         new_log_probs = F.log_softmax(new_logits / T, dim=1)
         
-        # KL 벌어짐(T² 눈금을 씌운 것)
-        # 참고: F.kl_div은 첫 인자로 로그 확률을 받는다
+        # KL 발산(T² 스케일을 적용한 것)
+        # 참고: F.kl_div는 첫 인자로 로그 확률을 받는다
         loss = F.kl_div(new_log_probs, old_probs, reduction='batchmean')
         
         # 그래디언트의 크기를 지키려고 T²을 곱한다
@@ -135,15 +135,15 @@ class LwFLearner:
     
     def save_old_model(self):
         """
-        증류에 쓸 참조로 지금 모델을 담아 둔다.
+        증류에 쓸 참조로 현재 모델을 저장한다.
         
-        새 과제를 익히기 전에 부른다.
+        새 과제를 학습하기 전에 호출한다.
         """
         if self.current_task > 0:
             self.old_model = copy.deepcopy(self.model)
             self.old_model.eval()
             
-            # 모든 파라메터 얼리기
+            # 모든 파라메터 동결
             for param in self.old_model.parameters():
                 param.requires_grad = False
             
@@ -154,7 +154,7 @@ class LwFLearner:
                       epochs: int = 5,
                       verbose: bool = True) -> Dict:
         """
-        LwF 증류를 곁들여 과제로 익힌다.
+        LwF 증류를 적용해 과제를 학습한다.
         
         인수:
             train_loader: 학습 데이터 로더
@@ -164,7 +164,7 @@ class LwFLearner:
         반환값:
             학습 통계
         """
-        # 익히기 전에 옛 모델을 담아 둔다
+        # 학습하기 전에 이전 모델을 저장한다
         self.save_old_model()
         
         optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
@@ -181,13 +181,13 @@ class LwFLearner:
                 
                 optimizer.zero_grad()
                 
-                # 지금 모델로 피드포워드한다
+                # 현재 모델로 순전파한다
                 output = self.model(data)
                 
                 # 과제마다의 로스(교차 엔트로피)
                 task_loss = self.criterion(output, target)
                 
-                # 증류 로스(옛 모델이 있을 때)
+                # 증류 로스(이전 모델이 있을 때)
                 distill_loss = torch.tensor(0.0, device=self.device)
                 
                 if self.old_model is not None:
@@ -203,7 +203,7 @@ class LwFLearner:
                 total_loss.backward()
                 optimizer.step()
                 
-                # 로스를 좇는다
+                # 로스를 기록한다
                 epoch_losses['total'] += total_loss.item()
                 epoch_losses['task'] += task_loss.item()
                 epoch_losses['distill'] += distill_loss.item()
@@ -243,15 +243,15 @@ class LwFLearner:
                         test_loaders: List[DataLoader],
                         epochs_per_task: int = 5) -> Dict:
         """
-        LwF으로 연속 학습을 온전히 한다.
+        LwF로 지속 학습 전체를 수행한다.
         
         인수:
             train_loaders: 학습 DataLoader 목록
             test_loaders: 시험 DataLoader 목록
-            epochs_per_task: 과제마다의 학습 시대 수
+            epochs_per_task: 과제마다의 학습 에포크 수
         
         반환값:
-            정확도 행렬을 담은 사전
+            정확도 행렬을 담은 딕셔너리
         """
         num_tasks = len(train_loaders)
         accuracy_matrix = np.zeros((num_tasks, num_tasks))
@@ -261,7 +261,7 @@ class LwFLearner:
             print(f"Task {task_id}")
             print('='*60)
             
-            # 증류를 곁들여 지금 과제로 익힌다
+            # 증류를 적용해 현재 과제를 학습한다
             self.train_on_task(
                 train_loaders[task_id],
                 epochs=epochs_per_task
@@ -286,17 +286,17 @@ class LwFLearner:
 
 ---
 
-## 4. 하이퍼파라미터 분석
+## 4. 하이퍼파라메터 분석
 
 ### 온도의 효과
 
 온도는 클래스 간 로짓 차이를 어떤 스케일로 비교할지 정한다. T가 매우 크면 분포가 균등에 가까워지지만 T² 스케일과 로짓 상대 정보도 함께 고려해야 한다. 유효한 범위는 검증 과제에서 선택한다.
 
-아래 민감도 분석의 create_model과 ContinualLearningMetrics는 별도로 준비해야 한다. 후보마다 같은 초기화·순서를 사용하고 test_loaders 자리에 모델 선택용 검증 로더를 두어 최종 테스트 누수를 피한다.
+아래 민감도 분석의 create_model과 ContinualLearningMetrics는 별도로 준비해야 한다. 후보마다 같은 초기화·순서를 사용하고 test_loaders 자리에 모델 선택용 검증 로더를 두어 최종 시험 누수를 피한다.
 
 ```python
 def analyze_temperature(train_loaders, test_loaders, device):
-    """온도가 LwF 성능에 미치는 영향을 뜯어본다."""
+    """온도가 LwF 성능에 미치는 영향을 분석한다."""
     temperatures = [1.0, 2.0, 3.0, 4.0, 5.0]
     results = []
     
@@ -335,19 +335,19 @@ def analyze_temperature(train_loaders, test_loaders, device):
 
 입력 분포가 크게 다르거나 이전 교사가 새 입력에 불확실한 경우 증류 신호가 충분하지 않을 수 있다. 이전 모델의 오류도 전달될 수 있으므로 새 학습 성능과 과거 유지 성능을 함께 측정한다.
 
-## 6. 한 스텝 나아간 LwF 변형
+## 6. LwF의 심화 변형
 
-### 여러 머리 구조를 쓰는 LwF
+### 멀티헤드 구조를 쓰는 LwF
 
 과제별 헤드가 있는 구조의 시작 부분이다. 아래 하위 클래스는 nn.Module이 아닌 학습기 래퍼를 상속하며, 기존 train_on_task는 self.model만 호출하므로 새 forward나 task_heads를 사용하지 않는다. 헤드 추가·옵티마이저 등록·이전 헤드의 교사 저장과 평가 선택을 연결해야 완성된다. 더미 입력의 크기와 피처 차원도 모델에 맞춰야 한다.
 
 ```python
 class MultiHeadLwFLearner(LwFLearner):
     """
-    과제마다 출력 머리를 두는 LwF.
+    과제마다 출력 헤드를 두는 LwF.
     
-    피처 뽑개는 함께 쓰고 과제마다 제 출력 레이어를 갖는다.
-    증류는 머리마다 적용한다.
+    피처 추출기는 공유하고 과제마다 자기 출력 레이어를 갖는다.
+    증류는 헤드마다 적용한다.
     """
     
     def __init__(self, feature_extractor, num_classes_per_task, device, **kwargs):
@@ -365,45 +365,45 @@ class MultiHeadLwFLearner(LwFLearner):
         self.feat_dim = feat_dim
     
     def add_task_head(self):
-        """과제마다의 새 출력 머리를 더한다."""
+        """과제마다의 새 출력 헤드를 추가한다."""
         head = nn.Linear(self.feat_dim, self.num_classes_per_task)
         head = head.to(self.device)
         self.task_heads.append(head)
     
     def forward(self, x, task_id=None):
-        """과제를 지정할 수 있는 피드포워드."""
+        """과제를 지정할 수 있는 순전파."""
         features = self.feature_extractor(x)
         
         if task_id is not None:
             return self.task_heads[task_id](features)
         else:
-            # 머리를 모두 되돌린다(증류용)
+            # 모든 헤드의 출력을 반환한다(증류용)
             return [head(features) for head in self.task_heads]
 ```
 
-### 피처 증류를 곁들인 LwF
+### 피처 증류를 더한 LwF
 
-아래 FeatureLwF는 피처 사전과 비교 함수만 선언한다. 피처 추출 훅을 등록하거나 train_on_task에 피처 로스를 더하지 않으므로 그대로는 피처 증류가 적용되지 않는다. 교사 피처는 분리하고 학생 피처는 미분 경로를 유지하도록 연결해야 한다.
+아래 FeatureLwF는 피처 딕셔너리와 비교 함수만 선언한다. 피처 추출 훅을 등록하거나 train_on_task에 피처 로스를 더하지 않으므로 그대로는 피처 증류가 적용되지 않는다. 교사 피처는 분리하고 학생 피처는 미분 경로를 유지하도록 연결해야 한다.
 
 ```python
 class FeatureLwF(LwFLearner):
     """
-    중간 피처 증류를 곁들인 LwF.
+    중간 피처 증류를 더한 LwF.
     
-    출력뿐 아니라 중간 표현까지 옛 모델과 닮도록
-    옥죈다.
+    출력뿐 아니라 중간 표현까지 이전 모델과 닮도록
+    제약한다.
     """
     
     def __init__(self, model, device, feature_lambda=0.1, **kwargs):
         super().__init__(model, device, **kwargs)
         self.feature_lambda = feature_lambda
         
-        # 중간 피처를 잡아내도록 갈고리를 건다
+        # 중간 피처를 잡아내도록 훅(hook)을 건다
         self.features = {}
         self.old_features = {}
     
     def feature_distillation_loss(self, new_features, old_features):
-        """중간 피처 사이의 평균제곱오차 로스를 셈한다."""
+        """중간 피처 사이의 평균제곱오차 로스를 계산한다."""
         loss = 0.0
         for name in new_features:
             if name in old_features:
@@ -418,7 +418,7 @@ class FeatureLwF(LwFLearner):
 | 방법 | 보존에 사용하는 정보 | 주요 비용 |
 |---|---|---|
 | LwF | 새 입력에 대한 이전 모델 출력 | 교사 모델 저장과 순전파 |
-| EWC | 이전 웨이트와 중요도 | 중요도 추정·저장 및 벌점 |
+| EWC | 이전 웨이트와 중요도 | 중요도 추정·저장 및 패널티 |
 | 경험 리플레이 | 저장한 과거 표본 | 버퍼와 추가 표본 학습 |
 
 LwF의 추가 저장은 모델 크기에 비례하지만 출력 헤드가 늘면 모델 자체도 커질 수 있다. EWC도 온라인 병합인지 과제별 저장인지에 따라 비용이 다르다. 이전 원본 미저장이 곧 개인정보 보호를 보장하거나 정확도의 우열을 결정하지는 않는다.
@@ -427,7 +427,7 @@ LwF의 추가 저장은 모델 크기에 비례하지만 출력 헤드가 늘면
 
 Split MNIST의 정확도·BWT는 출력 공간과 라벨 재매핑, 클래스 분할·학습 예산·계수에 따라 달라진다. 조건이 없는 수치 표를 LwF·EWC·리플레이의 고정 순위로 제시할 수 없다.
 
-같은 조건에서 단순 순차 학습을 포함해 비교하고, 각 과제의 학습 직후 정확도와 이후 성능, 시간·메모리를 보고한다. 이번 편집에서는 코드를 실행하거나 새 결과를 측정하지 않았다.
+같은 조건에서 단순 순차 학습을 포함해 비교하고, 각 과제의 학습 직후 정확도와 이후 성능, 시간·메모리를 보고한다. 이 페이지는 실행 결과를 싣지 않는다.
 
 ## 9. 실용적인 고려
 

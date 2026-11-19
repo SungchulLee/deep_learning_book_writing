@@ -25,7 +25,7 @@ class BasicEncoder(nn.Module):
     인수:
         input_size: 입력 어휘의 크기
         embedding_dim: 단어 임베딩의 차원
-        hidden_size: 숨은 상태의 크기
+        hidden_size: 은닉 상태의 크기
         num_layers: 순환 레이어의 수
         dropout: 드롭아웃 확률
         bidirectional: 양방향 RNN을 쓸지 여부
@@ -76,19 +76,19 @@ class BasicEncoder(nn.Module):
         인코더를 지나는 순전파
         
         인수:
-            input_seq: 입력 순차열 텐서 (배치 크기, seq_len)
-            input_lengths: 순차열의 실제 길이 (선택)
+            input_seq: 입력 시퀀스 텐서 (배치 크기, seq_len)
+            input_lengths: 시퀀스의 실제 길이 (선택)
             
         반환값:
-            outputs: 모든 숨은 상태 (배치 크기, seq_len, hidden_size * num_directions)
-            hidden: 마지막 숨은 상태
-            cell: 마지막 세포 상태 (LSTM에만 있다)
+            outputs: 모든 은닉 상태 (배치 크기, seq_len, hidden_size * num_directions)
+            hidden: 마지막 은닉 상태
+            cell: 마지막 셀 상태 (LSTM에만 있다)
         """
         # 입력 임베딩
         embedded = self.embedding(input_seq)
         embedded = self.dropout(embedded)
         
-        # 길이가 주어지면 덧댄 순차열을 꾸리기
+        # 길이가 주어지면 패딩된 시퀀스를 패킹하기
         if input_lengths is not None:
             embedded = nn.utils.rnn.pack_padded_sequence(
                 embedded, input_lengths.cpu(), batch_first=True, enforce_sorted=False
@@ -101,14 +101,14 @@ class BasicEncoder(nn.Module):
             outputs, hidden = self.rnn(embedded)
             cell = None
         
-        # 꾸렸으면 풀기
+        # 패킹했으면 풀기
         if input_lengths is not None:
             outputs, _ = nn.utils.rnn.pad_packed_sequence(outputs, batch_first=True)
         
-        # 양방향이면 순방향과 역방향 숨은 상태를 합치기
+        # 양방향이면 순방향과 역방향 은닉 상태를 합치기
         if self.bidirectional:
             # hidden: (num_layers * 2, 배치 크기, hidden_size)
-            # (num_layers, 배치 크기, hidden_size * 2)로 모양 바꾸기
+            # (num_layers, 배치 크기, hidden_size * 2)로 형태 바꾸기
             hidden = self._combine_bidirectional(hidden)
             if cell is not None:
                 cell = self._combine_bidirectional(cell)
@@ -116,7 +116,7 @@ class BasicEncoder(nn.Module):
         return outputs, hidden, cell
     
     def _combine_bidirectional(self, hidden):
-        """순방향과 역방향의 숨은 상태를 합친다"""
+        """순방향과 역방향의 은닉 상태를 합친다"""
         # hidden: (num_layers * 2, 배치 크기, hidden_size)
         # 출력: (num_layers, 배치 크기, hidden_size * 2)
         num_directions = 2
@@ -131,7 +131,7 @@ class BasicEncoder(nn.Module):
 class ConvEncoder(nn.Module):
     """
     Seq2Seq 모델을 위한 컨볼루션 인코더
-    순차열 부호화에 1차원 컨볼루션을 쓴다
+    시퀀스 인코딩에 1차원 컨볼루션을 쓴다
     """
     
     def __init__(self, input_size, embedding_dim, hidden_size, 
@@ -160,10 +160,10 @@ class ConvEncoder(nn.Module):
         컨볼루션 인코더를 지나는 순전파
         
         인수:
-            input_seq: 입력 순차열 (배치 크기, seq_len)
+            input_seq: 입력 시퀀스 (배치 크기, seq_len)
             
         반환값:
-            outputs: 부호화된 표현 (배치 크기, seq_len, hidden_size)
+            outputs: 인코딩된 표현 (배치 크기, seq_len, hidden_size)
         """
         # 임베딩하고 conv1d를 위해 전치
         embedded = self.embedding(input_seq)  # (배치, seq_len, embed_dim)

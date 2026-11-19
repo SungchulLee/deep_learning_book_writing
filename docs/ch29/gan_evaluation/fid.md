@@ -25,18 +25,18 @@ $$\operatorname{Tr}(\Sigma_r^{1/2}\Sigma_g\Sigma_r^{1/2})^{1/2}
 
 ## 2. 피처 추출기와 전처리
 
-픽셀 거리는 위치 이동이나 밝기 차이에 민감하다. 사전학습 피처는 다른 수준의 구조를 반영할 수 있지만, 학습 데이터와 표현에 따른 바이어스를 갖는다. Inception-v3 피처가 모든 도메인에서 사람의 판단을 대변하는 것은 아니다.
+픽셀 거리는 위치 이동이나 밝기 차이에 민감하다. 사전학습 피처는 다른 수준의 구조를 반영할 수 있지만, 학습 데이터와 표현에 따른 편향을 갖는다. Inception-v3 피처가 모든 도메인에서 사람의 판단을 대변하는 것은 아니다.
 
 ```
 InceptionV3 구조:
 ┌─────────────┐
-│   들임      │ 299×299×3
+│   입력      │ 299×299×3
 ├─────────────┤
-│  겹말기/모으기 │ 여러 레이어
+│컨볼루션/풀링│ 여러 레이어
 ├─────────────┤
 │  Mixed_7c   │ 8×8×2048
 ├─────────────┤
-│  평균 모으기 │ 2048 ← FID가 이것을 쓴다!
+│  평균 풀링  │ 2048 ← FID가 이것을 쓴다!
 ├─────────────┤
 │    FC       │ 1000 (classes)
 └─────────────┘
@@ -57,26 +57,26 @@ from torchvision.models import inception_v3, Inception_V3_Weights
 
 class FIDCalculator:
     """
-    두루 갖춘 프레셰 인셉션 거리 셈개.
+    프레셰 인셉션 거리 종합 계산기.
     
-    FID는 미리 익힌 인셉션 뉴럴 네트워크의 피처 공간에서
-    실제 그림 분포와 만든 그림 분포 사이의 거리를 잰다.
+    FID는 사전학습된 인셉션 뉴럴 네트워크의 피처 공간에서
+    실제 그림 분포와 생성한 그림 분포 사이의 거리를 잰다.
     
     FID가 낮을수록 품질이 좋고 분포가 더 비슷하다.
     
     속성:
-        device: 셈할 장치
-        inception: 미리 익힌 InceptionV3 모델
-        feature_dim: 뽑아낸 피처의 차원(2048)
+        device: 계산할 장치
+        inception: 사전학습된 InceptionV3 모델
+        feature_dim: 추출한 피처의 차원(2048)
     """
     
     def __init__(self, 
                  device: str = 'cuda' if torch.cuda.is_available() else 'cpu'):
         """
-        FID 셈개를 초기화한다.
+        FID 계산기를 초기화한다.
         
         인수:
-            device: 셈할 장치('cuda' 또는 'cpu')
+            device: 계산할 장치('cuda' 또는 'cpu')
         """
         self.device = device
         self.inception = None
@@ -84,22 +84,22 @@ class FIDCalculator:
         
     def _load_inception(self):
         """
-        피처 뽑기를 위해 InceptionV3을 불러와 고친다.
+        피처 추출을 위해 InceptionV3을 불러와 고친다.
         
-        pool3 레이어에서 피처를 뽑는다(2048차원)
-        이는 높은 수준의 뜻 앎을 담는다.
+        pool3 레이어에서 피처를 추출한다(2048차원)
+        이는 높은 수준의 의미 정보를 담는다.
         """
-        # 미리 익힌 InceptionV3을 불러온다
+        # 사전학습된 InceptionV3을 불러온다
         self.inception = inception_v3(
             weights=Inception_V3_Weights.IMAGENET1K_V1,
             transform_input=False
         )
         
         # 마지막 분류 레이어를 없앤다
-        # 모으기 레이어의 피처를 얻으려 한다
+        # 풀링 레이어의 피처를 얻으려 한다
         self.inception.fc = nn.Identity()
         
-        # 밸류 방식으로 둔다
+        # 평가 모드로 둔다
         self.inception.eval()
         self.inception.to(self.device)
         
@@ -109,18 +109,18 @@ class FIDCalculator:
     
     def _preprocess(self, images: torch.Tensor) -> torch.Tensor:
         """
-        InceptionV3용으로 그림을 미리 다듬는다.
+        InceptionV3용으로 그림을 전처리한다.
         
         필요한 것:
         - 크기: 299×299
-        - 범위: ImageNet 통계로 고르게 맞춤
+        - 범위: ImageNet 통계로 정규화
         - Channels: 3 (RGB)
         
         인수:
-            images: [0, 1] 범위의 들임 그림 [B, C, H, W]
+            images: [0, 1] 범위의 입력 그림 [B, C, H, W]
             
         반환값:
-            미리 다듬은 그림
+            전처리한 그림
         """
         # 필요하면 크기를 바꾼다
         if images.shape[2] != 299 or images.shape[3] != 299:
@@ -131,11 +131,11 @@ class FIDCalculator:
                 align_corners=False
             )
         
-        # 회색을 다룬다
+        # 흑백을 다룬다
         if images.shape[1] == 1:
             images = images.repeat(1, 3, 1, 1)
         
-        # ImageNet 통계로 고르게 맞춘다
+        # ImageNet 통계로 정규화한다
         mean = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1)
         std = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
         
@@ -148,7 +148,7 @@ class FIDCalculator:
                         images: torch.Tensor,
                         batch_size: int = 64) -> np.ndarray:
         """
-        그림에서 InceptionV3 피처를 뽑는다.
+        그림에서 InceptionV3 피처를 추출한다.
         
         인수:
             images: [0, 1] 범위의 그림 [N, C, H, W]
@@ -168,7 +168,7 @@ class FIDCalculator:
                 batch = images[i:i+batch_size].to(self.device)
                 batch = self._preprocess(batch)
                 
-                # 피처를 뽑는다
+                # 피처를 추출한다
                 features = self.inception(batch)
                 all_features.append(features.cpu().numpy())
         
@@ -177,7 +177,7 @@ class FIDCalculator:
     @staticmethod
     def compute_statistics(features: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
-        피처의 평균과 함께 흩어짐을 셈한다.
+        피처의 평균과 공분산을 계산한다.
         
         인수:
             features: 피처 벡터 [N, D]
@@ -185,7 +185,7 @@ class FIDCalculator:
         반환값:
             (평균 [D], 공분산 [D, D]) 튜플
             
-        수학의 참고:
+        수학 참고:
             μ = (1/N) Σ x_i
             Σ = (1/(N-1)) Σ (x_i - μ)(x_i - μ)ᵀ
         """
@@ -201,7 +201,7 @@ class FIDCalculator:
                                    sigma2: np.ndarray,
                                    eps: float = 1e-6) -> float:
         """
-        정규 분포 둘 사이의 프레셰 거리를 셈한다.
+        정규 분포 둘 사이의 프레셰 거리를 계산한다.
         
         FID = ||μ₁ - μ₂||² + Tr(Σ₁ + Σ₂ - 2(Σ₁Σ₂)^{1/2})
         
@@ -229,12 +229,12 @@ class FIDCalculator:
         mean_term = np.dot(diff, diff)
         
         # 2. 행렬 제곱근: (Σ₁Σ₂)^{1/2}
-        # 이것이 셈이 비싼 스텝이다
+        # 이것이 계산 비용이 큰 스텝이다
         
-        # 함께 흩어짐의 곱
+        # 공분산의 곱
         product = sigma1 @ sigma2
         
-        # scipy으로 행렬 제곱근
+        # scipy로 행렬 제곱근
         covmean, _ = linalg.sqrtm(product, disp=False)
         
         # 수치 문제를 다룬다
@@ -243,7 +243,7 @@ class FIDCalculator:
             offset = np.eye(sigma1.shape[0]) * eps
             covmean = linalg.sqrtm((sigma1 + offset) @ (sigma2 + offset))
         
-        # 허수 몫을 다룬다(수치의 흠)
+        # 허수 성분을 다룬다(수치 오차)
         if np.iscomplexobj(covmean):
             if np.allclose(covmean.imag, 0, atol=1e-3):
                 covmean = covmean.real
@@ -263,18 +263,18 @@ class FIDCalculator:
                      generated_images: torch.Tensor,
                      batch_size: int = 64) -> float:
         """
-        실제 그림과 만든 그림 사이의 FID를 셈한다.
+        실제 그림과 생성한 그림 사이의 FID를 계산한다.
         
-        온전한 물길:
-        1. 실제 그림에서 인셉션 피처를 뽑는다
-        2. 만든 그림에서 인셉션 피처를 뽑는다
-        3. 둘 다의 통계(μ, Σ)를 셈한다
-        4. 프레셰 거리를 셈한다
+        전체 파이프라인:
+        1. 실제 그림에서 인셉션 피처를 추출한다
+        2. 생성한 그림에서 인셉션 피처를 추출한다
+        3. 둘 다의 통계(μ, Σ)를 계산한다
+        4. 프레셰 거리를 계산한다
         
         인수:
-            real_images: 참 그림 [N_r, C, H, W]
-            generated_images: 만들어 낸 그림 [N_g, C, H, W]
-            batch_size: 피처 뽑기의 배치 크기
+            real_images: 실제 그림 [N_r, C, H, W]
+            generated_images: 생성한 그림 [N_g, C, H, W]
+            batch_size: 피처 추출의 배치 크기
             
         반환값:
             FID 점수(낮을수록 좋다)
@@ -301,16 +301,16 @@ class FIDCalculator:
                                       generated_images: torch.Tensor,
                                       batch_size: int = 64) -> float:
         """
-        미리 셈한 실제 자료 통계로 FID를 셈한다.
+        미리 계산한 실제 데이터 통계로 FID를 계산한다.
         
-        같은 실제 자료 묶음에 여러 생성기를 견줄 때
+        같은 실제 데이터셋에 여러 제너레이터를 견줄 때
         이 편이 더 효율이 좋다.
         
         인수:
-            mu_real: 미리 셈한 참 피처의 평균 [D]
-            sigma_real: 미리 셈한 참 피처의 공분산 [D, D]
-            generated_images: 만들어 낸 그림 [N, C, H, W]
-            batch_size: 피처 뽑기의 배치 크기
+            mu_real: 미리 계산한 실제 피처의 평균 [D]
+            sigma_real: 미리 계산한 실제 피처의 공분산 [D, D]
+            generated_images: 생성한 그림 [N, C, H, W]
+            batch_size: 피처 추출의 배치 크기
             
         반환값:
             FID 점수
@@ -324,15 +324,15 @@ def save_reference_statistics(real_images: torch.Tensor,
                              save_path: str,
                              batch_size: int = 64):
     """
-    견줄 자료 묶음의 통계를 미리 셈해 갈무리한다.
+    기준 데이터셋의 통계를 미리 계산해 갈무리한다.
     
-    그러면 익히는 동안 실제 자료 통계를 다시 셈하지 않고
-    효율 좋게 FID를 셈할 수 있다.
+    그러면 학습하는 동안 실제 데이터 통계를 다시 계산하지 않고
+    효율 좋게 FID를 계산할 수 있다.
     
     인수:
-        real_images: 참 그림 [N, C, H, W]
-        save_path: 통계를 갈무리할 길(.npz 파일)
-        batch_size: 피처 뽑기의 배치 크기
+        real_images: 실제 그림 [N, C, H, W]
+        save_path: 통계를 갈무리할 경로(.npz 파일)
+        batch_size: 피처 추출의 배치 크기
     """
     calculator = FIDCalculator()
     features = calculator.extract_features(real_images, batch_size)
@@ -344,10 +344,10 @@ def save_reference_statistics(real_images: torch.Tensor,
 
 def load_reference_statistics(load_path: str) -> Tuple[np.ndarray, np.ndarray]:
     """
-    미리 셈한 통계를 불러온다.
+    미리 계산한 통계를 불러온다.
     
     인수:
-        load_path: .npz 파일의 길
+        load_path: .npz 파일의 경로
         
     반환값:
         (평균, 공분산) 튜플
@@ -367,7 +367,7 @@ eval과 no_grad는 각각 추론 모드와 그래디언트 기록을 제어한�
 ```python
 def demonstrate_fid_computation():
     """
-    다스린 상황으로 FID 셈하기를 보인다.
+    통제된 상황으로 FID 계산을 보인다.
     """
     print("=" * 70)
     print("Fréchet Inception Distance Demonstration")
@@ -404,7 +404,7 @@ def demonstrate_fid_computation():
     print(f"FID: {fid_shifted:.4f}")
     print("Note: Mean shift increases FID significantly")
     
-    # 상황 3: 흩어짐이 줄었다(봉우리 무너짐 표시)
+    # 상황 3: 분산이 줄었다(모드 붕괴 표시)
     print("\n📊 Scenario 3: Reduced Variance (Mode Collapse)")
     print("-" * 50)
     
@@ -462,7 +462,7 @@ Mode collapse                      722.71
 Lower FID = Better (more similar to real distribution)
 ```
 
-이 부분은 실제 이미지를 평가하지 않고 5,000×2,048 난수 피처를 사용한다. 같은 표준 정규분포에서 독립 생성한 두 배치의 모집단 FID는 0이지만 표본 평균·공분산은 다르다. 보존된 출력에서도 기준값이 약 420으로 나타나므로 'small non-zero'를 일반적인 작은 오차라는 뜻으로 읽으면 안 된다.
+이 부분은 실제 이미지를 평가하지 않고 5,000×2,048 난수 피처를 사용한다. 같은 표준 정규분포에서 독립 생성한 두 배치의 모집단 FID는 0이지만 표본 평균·공분산은 다르다. 출력에서도 기준값이 약 420으로 나타나므로 'small non-zero'를 일반적인 작은 오차라는 뜻으로 읽으면 안 된다.
 
 각 좌표의 평균을 0.5 옮긴 모집단의 FID는 512이며, 표준편차를 1에서 0.5로 줄인 모집단의 FID도 512다. 표본값은 모멘트 추정 오차를 포함한다. 단봉 가우시안의 분산 축소를 '모드 붕괴'라고 표시했지만 실제 이미지의 여러 모드 누락을 확인한 실험은 아니다.
 
@@ -471,7 +471,7 @@ Lower FID = Better (more similar to real distribution)
 ```python
 def analyze_fid_sample_size():
     """
-    표본 크기가 FID의 안정에 어떻게 영향을 주는지 살핀다.
+    표본 크기가 FID의 안정성에 어떻게 영향을 주는지 분석한다.
     """
     feature_dim = 2048
     true_mu = np.zeros(feature_dim)
@@ -505,7 +505,7 @@ def analyze_fid_sample_size():
     return results
 ```
 
-같은 분포의 독립 배치에서도 유한 표본 FID는 일반적으로 양수다. 표본 수에 따른 편향과 변동이 있으며, 개별 실험값이 표본 수에 따라 반드시 단조롭게 변하는 것은 아니다. [유한 표본 바이어스 연구](https://openaccess.thecvf.com/content_CVPR_2020/html/Chong_Effectively_Unbiased_FID_and_Inception_Score_and_Where_to_Find_CVPR_2020_paper.html)처럼 모델마다 바이어스가 다를 수 있다는 점도 고려한다. 표본을 피처 차원의 일정 배수만큼 쓰면 모든 평가가 정확하다는 법칙은 없다.
+같은 분포의 독립 배치에서도 유한 표본 FID는 일반적으로 양수다. 표본 수에 따른 편향과 변동이 있으며, 개별 실험값이 표본 수에 따라 반드시 단조롭게 변하는 것은 아니다. [유한 표본 편향 연구](https://openaccess.thecvf.com/content_CVPR_2020/html/Chong_Effectively_Unbiased_FID_and_Inception_Score_and_Where_to_Find_CVPR_2020_paper.html)처럼 모델마다 편향이 다를 수 있다는 점도 고려한다. 표본을 피처 차원의 일정 배수만큼 쓰면 모든 평가가 정확하다는 법칙은 없다.
 
 ```python
 def bootstrap_fid(real_features: np.ndarray,
@@ -513,16 +513,16 @@ def bootstrap_fid(real_features: np.ndarray,
                   n_bootstrap: int = 1000,
                   sample_size: Optional[int] = None) -> Tuple[float, float, float]:
     """
-    부트스트랩 믿음 구간과 함께 FID를 셈한다.
+    부트스트랩 신뢰구간과 함께 FID를 계산한다.
     
     인수:
-        real_features: 참 자료의 피처 [N, D]
-        gen_features: 만들어 낸 자료의 피처 [N, D]
+        real_features: 실제 데이터의 피처 [N, D]
+        gen_features: 생성한 데이터의 피처 [N, D]
         n_bootstrap: 부트스트랩 표본 수
         sample_size: 부트스트랩 표본의 크기(기본값: min(N_real, N_gen))
         
     반환값:
-        95% 믿음 구간의 (FID, 아래 끝, 위 끝) 튜플
+        95% 신뢰구간의 (FID, 하한, 상한) 튜플
     """
     n_real = len(real_features)
     n_gen = len(gen_features)
@@ -546,7 +546,7 @@ def bootstrap_fid(real_features: np.ndarray,
         fid = FIDCalculator.calculate_frechet_distance(mu_r, sigma_r, mu_g, sigma_g)
         bootstrap_fids.append(fid)
     
-    # 믿음 구간을 셈한다
+    # 신뢰구간을 계산한다
     fid_mean = np.mean(bootstrap_fids)
     lower = np.percentile(bootstrap_fids, 2.5)
     upper = np.percentile(bootstrap_fids, 97.5)
@@ -556,15 +556,15 @@ def bootstrap_fid(real_features: np.ndarray,
 
 위 부트스트랩은 주어진 피처 집합에서 양쪽을 복원추출하고, 반복 점수의 평균과 2.5·97.5 백분위수를 반환한다. 반환 평균은 원래 전체 표본에서 계산한 FID와 다르다. 기본 sample_size는 두 집합 크기의 최솟값이므로 원래 집합 크기가 다르면 재표집 크기도 바뀐다. 이 구간이 모집단 FID에 대해 정확한 95% 포함확률을 갖는다는 보장은 없으며, 고차원·특이 공분산과 편향의 영향을 검토해야 한다. 피처 추출기나 데이터 선택의 불확실성까지 포함하지도 않는다.
 
-## 6. 지표의 범위와 피처 바이어스
+## 6. 지표의 범위와 피처 편향
 
 ```python
 def demonstrate_inception_bias():
     """
-    FID가 피처 뽑개를 무엇으로 고르느냐에 달렸음을 보인다.
+    FID가 피처 추출기를 무엇으로 고르느냐에 달렸음을 보인다.
     """
     # InceptionV3, VGG, CLIP으로 FID를 재면 값이 달라진다
-    # "옳은" FID는 뜻의 닮음을 무엇으로 보느냐에 달렸다
+    # "옳은" FID는 의미적 유사도를 무엇으로 보느냐에 달렸다
     print("Different feature extractors give different FIDs:")
     print("- InceptionV3: Standard choice, trained on ImageNet")
     print("- CLIP: Better for text-to-image evaluation")
@@ -574,11 +574,11 @@ def demonstrate_inception_bias():
 위 함수는 다른 피처 추출기의 예를 출력할 뿐 실제 비교를 하지 않는다. CLIP이나 자기지도 피처로 바꾸면 별도 지표가 되며, 어떤 표현이 항상 더 우수하다고 단정할 수 없다. 도메인과 평가 목적에 맞는 검증이 필요하다.
 
 ```python
-# 나쁨: 한결같지 않은 미리 다듬기
+# 나쁨: 일관되지 않은 전처리
 real_images = resize(real_images, 299)  # 쌍선형
 gen_images = resize(gen_images, 299)    # 다른 방법이다!
 
-# 좋음: 한결같은 미리 다듬기
+# 좋음: 일관된 전처리
 def consistent_preprocess(images):
     return F.interpolate(images, size=(299, 299), 
                         mode='bilinear', align_corners=False)
@@ -589,7 +589,7 @@ def consistent_preprocess(images):
 ## 7. 재현 가능한 평가와 통계 캐시
 
 ```python
-# 권함: torch-fidelity
+# 권장: torch-fidelity
 from torch_fidelity import calculate_metrics
 
 metrics = calculate_metrics(
@@ -605,17 +605,17 @@ print(f"FID: {metrics['frechet_inception_distance']}")
 패키지 예시는 설치, 실제 이미지 경로와 장치 지원이 필요하다. 실행한 결과를 제시한 것이 아니며 CUDA 사용 가능 여부와 패키지의 평가 설정을 확인해야 한다.
 
 ```python
-# 실제 자료 통계를 한 번만 갈무리한다
+# 실제 데이터 통계를 한 번만 갈무리한다
 save_reference_statistics(real_images, 'cifar10_stats.npz')
 
-# 익히는 동안 다시 쓴다
+# 학습하는 동안 다시 쓴다
 mu_real, sigma_real = load_reference_statistics('cifar10_stats.npz')
 
 for epoch in range(epochs):
     # 표본 만들기
     fake_images = generator.sample(10000)
     
-    # FID를 효율 좋게 셈한다
+    # FID를 효율 좋게 계산한다
     fid = calculator.calculate_fid_from_statistics(
         mu_real, sigma_real, fake_images
     )
@@ -626,7 +626,7 @@ for epoch in range(epochs):
 
 ```python
 def report_fid(fid: float, n_real: int, n_gen: int):
-    """맥락과 함께 FID를 제대로 알린다."""
+    """맥락과 함께 FID를 제대로 보고한다."""
     print(f"FID: {fid:.2f}")
     print(f"  Real samples: {n_real:,}")
     print(f"  Generated samples: {n_gen:,}")
@@ -634,13 +634,13 @@ def report_fid(fid: float, n_real: int, n_gen: int):
     print(f"  Preprocessing: 299×299, bilinear, ImageNet normalization")
 ```
 
-보고에는 양쪽 표본 수, 기준 집합·분할, 피처 모델·레이어·웨이트, 전처리, dtype·구현 버전, 정규화 보정과 생성 조건을 포함한다. 임의의 'FID<5면 뛰어남' 같은 구간이나 조건 없는 최신 성능 표는 사용하지 않는다. 서로 다른 피처 눈금에서 절대값이 같아도 같은 품질을 뜻하지 않는다.
+보고에는 양쪽 표본 수, 기준 집합·분할, 피처 모델·레이어·웨이트, 전처리, dtype·구현 버전, 대각선 ε 보정과 생성 조건을 포함한다. 임의의 'FID<5면 뛰어남' 같은 구간이나 조건 없는 최신 성능 표는 사용하지 않는다. 서로 다른 피처 스케일에서 절대값이 같아도 같은 품질을 뜻하지 않는다.
 
 ## 8. FID와 다른 평가의 역할
 
 IS는 실제 기준 집합 없이 분류 예측을 요약하고, FID는 기준 피처의 첫 두 모멘트와 비교한다. FID가 0이어도 원래 피처 분포나 이미지 분포가 동일하다는 뜻은 아니다. 품질 저하와 다양성 부족이 같은 FID를 만들 수 있으며 암기를 직접 검출하지도 않는다.
 
-생성 정밀도·재현율, 표본 검사와 최근접 이웃 분석, 목적에 맞는 다운스트림 성능을 함께 고려한다. LPIPS 같은 이미지 쌍의 지각적 거리를 대응 관계 없는 단일 이미지 품질 점수로 사용하지 않는다. 모델 선택에는 검증 기준을 사용하고 최종 테스트 결과와 구분한다.
+생성 정밀도·재현율, 표본 검사와 최근접 이웃 분석, 목적에 맞는 다운스트림 성능을 함께 고려한다. LPIPS 같은 이미지 쌍의 지각적 거리를 대응 관계 없는 단일 이미지 품질 점수로 사용하지 않는다. 모델 선택에는 검증 기준을 사용하고 최종 시험 결과와 구분한다.
 
 ## 연습문제
 
@@ -698,7 +698,7 @@ IS가 클래스 내부 반복을 놓치는 예와 FID의 보완 범위를 설명
 
 ??? success "풀이"
 
-    각 지표가 보는 대상과 실패 사례를 구분한다. FID의 모멘트 거리, IS의 분류 확률, 정밀도·재현율의 이웃 근사, LPIPS의 이미지 쌍 거리는 서로 다르다. 여러 수치를 나열해도 데이터 누출이나 선별 바이어스가 해결되는 것은 아니며 보고 목적에 맞는 절차가 필요하다.
+    각 지표가 보는 대상과 실패 사례를 구분한다. FID의 모멘트 거리, IS의 분류 확률, 정밀도·재현율의 이웃 근사, LPIPS의 이미지 쌍 거리는 서로 다르다. 여러 수치를 나열해도 데이터 누출이나 선별 편향이 해결되는 것은 아니며 보고 목적에 맞는 절차가 필요하다.
 
 
 
@@ -713,7 +713,7 @@ FID의 평균 항과 공분산 항을 설명하라.
 
 ??? success "풀이"
 
-    평균 항은 $\|\mu_r-\mu_g\|^2$이며 공분산 항은 $\operatorname{Tr}(\Sigma_r+\Sigma_g-2(\Sigma_r^{1/2}\Sigma_g\Sigma_r^{1/2})^{1/2})$다. 두 가우시안의 중심과 스프레드 차이를 반영한다. 생성 다양성이 줄면 공분산이 달라질 수 있지만 모든 다양성 로스가 이 항으로 검출되는 것은 아니다.
+    평균 항은 $\|\mu_r-\mu_g\|^2$이며 공분산 항은 $\operatorname{Tr}(\Sigma_r+\Sigma_g-2(\Sigma_r^{1/2}\Sigma_g\Sigma_r^{1/2})^{1/2})$다. 두 가우시안의 중심과 스프레드 차이를 반영한다. 생성 다양성이 줄면 공분산이 달라질 수 있지만 모든 다양성 손실이 이 항으로 검출되는 것은 아니다.
 
 
 
@@ -784,7 +784,7 @@ FID의 가우시안 근사가 놓치는 것과 KID의 의미를 설명하라.
 
 ??? success "풀이"
 
-    첫 두 모멘트보다 높은 차이와 비가우시안 구조를 놓칠 수 있다. KID는 선택한 피처와 커널에 대한 MMD²의 비바이어스 U-통계량 추정을 사용하지만, 피처·커널 선택과 표본 변동의 영향을 받는다. 일반적인 다항 커널이 모든 분포 차이를 구별한다고 보장할 수 없고, 비바이어스 추정량은 유한 표본에서 음수가 될 수도 있다. 가우시안 가정이 없다는 것이 가정이나 한계가 전혀 없다는 뜻은 아니다.
+    첫 두 모멘트보다 높은 차이와 비가우시안 구조를 놓칠 수 있다. KID는 선택한 피처와 커널에 대한 MMD²의 비편향 U-통계량 추정을 사용하지만, 피처·커널 선택과 표본 변동의 영향을 받는다. 일반적인 다항 커널이 모든 분포 차이를 구별한다고 보장할 수 없고, 비편향 추정량은 유한 표본에서 음수가 될 수도 있다. 가우시안 가정이 없다는 것이 가정이나 한계가 전혀 없다는 뜻은 아니다.
 
 
 
@@ -808,13 +808,13 @@ FID의 가우시안 근사가 놓치는 것과 KID의 의미를 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 11.** <span class="diff med" title="중간"></span>
-FID로 체크포인트를 선택할 때 검증 집합과 최종 테스트를 어떻게 구분하는가?
+FID로 체크포인트를 선택할 때 검증 집합과 최종 시험을 어떻게 구분하는가?
 
 </div>
 
 ??? success "풀이"
 
-    고정한 검증 기준, 표본 수와 평가 절차로 체크포인트를 선택한다. 선택 과정에 사용하지 않은 테스트 데이터로 최종 평가하고 생성 조건도 기록한다. 반복 선택으로 지표나 검증 데이터에 맞출 수 있으므로 독립 지표와 표본 검사도 고려한다.
+    고정한 검증 기준, 표본 수와 평가 절차로 체크포인트를 선택한다. 선택 과정에 사용하지 않은 시험 데이터로 최종 평가하고 생성 조건도 기록한다. 반복 선택으로 지표나 검증 데이터에 맞출 수 있으므로 독립 지표와 표본 검사도 고려한다.
 
 
 
@@ -844,7 +844,7 @@ FID 보고에 필요한 정보를 적어라.
 
 ??? success "풀이"
 
-    보장할 수 없다. 기준 집합을 그대로 재생하면 그 집합과 모멘트가 같아 0에 가까울 수 있다. 독립 테스트 기준에서도 차이가 작게 나올 수 있으므로 학습·테스트 FID 차이만으로 암기를 확정하거나 배제하지 않는다. 최근접 이웃, 중복 검사와 목적에 맞는 일반화 평가를 함께 사용한다.
+    보장할 수 없다. 기준 집합을 그대로 재생하면 그 집합과 모멘트가 같아 0에 가까울 수 있다. 독립 시험 기준에서도 차이가 작게 나올 수 있으므로 학습·시험 FID 차이만으로 암기를 확정하거나 배제하지 않는다. 최근접 이웃, 중복 검사와 목적에 맞는 일반화 평가를 함께 사용한다.
 
 
 
@@ -859,7 +859,7 @@ FID 보고에 필요한 정보를 적어라.
 
 ??? success "풀이"
 
-    좌표를 공통으로 a배 하면 FID는 a²배가 된다. 피처 모델·레이어를 바꾸면 보존하는 정보와 눈금이 달라져 절대값을 같은 지표로 비교할 수 없다. 도메인 피처를 사용할 수 있으나 별도 지표임을 명시한다. 높은 차원은 추정 부담을 높일 수 있지만 그 자체로 바이어스의 크기나 품질 민감도를 완전히 정하지 않는다.
+    좌표를 공통으로 a배 하면 FID는 a²배가 된다. 피처 모델·레이어를 바꾸면 보존하는 정보와 스케일이 달라져 절대값을 같은 지표로 비교할 수 없다. 도메인 피처를 사용할 수 있으나 별도 지표임을 명시한다. 높은 차원은 추정 부담을 높일 수 있지만 그 자체로 편향의 크기나 품질 민감도를 완전히 정하지 않는다.
 
 
 

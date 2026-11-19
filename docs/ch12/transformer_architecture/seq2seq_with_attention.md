@@ -6,7 +6,7 @@ GRU 인코더·디코더에 Bahdanau 어텐션을 연결한 Seq2Seq 모델이다
 
 ```python
 """
-주의를 쓰는 수열 대 수열 모형
+어텐션을 쓰는 시퀀스 대 시퀀스 모델
 """
 import torch
 import torch.nn as nn
@@ -14,7 +14,7 @@ import torch.nn.functional as F
 
 # --- attention_mechanisms ---
 """
-순환 신경망을 위한 주의 얼개
+순환 뉴럴 네트워크를 위한 어텐션 메커니즘
 """
 
 # ========================================================================
@@ -22,7 +22,7 @@ import torch.nn.functional as F
 # ========================================================================
 
 class BahdanauAttention(nn.Module):
-    """바다나우(더하기) 주의"""
+    """바다나우(가산) 어텐션"""
     def __init__(self, hidden_size):
         super().__init__()
         self.W1 = nn.Linear(hidden_size, hidden_size)
@@ -30,7 +30,7 @@ class BahdanauAttention(nn.Module):
         self.V = nn.Linear(hidden_size, 1)
     
     def forward(self, query, keys):
-        # query: [batch, hidden] - 디코더의 숨은 상태
+        # query: [batch, hidden] - 디코더의 은닉 상태
         # keys: [batch, seq_len, hidden] - 인코더의 출력
         scores = self.V(torch.tanh(
             self.W1(query).unsqueeze(1) + self.W2(keys)
@@ -40,7 +40,7 @@ class BahdanauAttention(nn.Module):
         return context, attention_weights
 
 class LuongAttention(nn.Module):
-    """루옹(곱하기) 주의"""
+    """루옹(곱셈) 어텐션"""
     def __init__(self, hidden_size, method='dot'):
         super().__init__()
         self.method = method
@@ -59,13 +59,13 @@ class LuongAttention(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# 가린 소프트맥스 도구
+# 마스크 소프트맥스 도구
 # ---------------------------------------------------------------------------
-# 많은 수열 과제에서 입력의 길이가 제각각이다. 주의 점수를 셈할 때
-# 실제 수열 길이를 넘는 자리는 -inf로 가려서 소프트맥스가
+# 많은 시퀀스 과제에서 입력의 길이가 제각각이다. 어텐션 점수를 계산할 때
+# 실제 시퀀스 길이를 넘는 자리는 -inf로 가려서 소프트맥스가
 # 그 자리에 확률 0을 주도록 해야 한다.
-# 그러면 채움 토큰에 주의하지 않게 되며, 트랜스포머의 인코더 자기 주의와
-# 교차 주의 모두에 꼭 필요하다.
+# 그러면 패딩 토큰에 어텐션하지 않게 되며, 트랜스포머의 인코더 셀프 어텐션과
+# 교차 어텐션 모두에 꼭 필요하다.
 
 def masked_softmax(X, valid_lens):
     """유효 길이를 넘는 자리를 가리고 소프트맥스를 한다.
@@ -73,7 +73,7 @@ def masked_softmax(X, valid_lens):
     인수:
         X: 형태가 (batch_size, num_queries, num_keys)인 3차원 텐서
         valid_lens: 1차원 텐서 (batch_size,) 또는 2차원 텐서 (batch_size, num_queries)
-            성분마다 그 질의에 유효한 열쇠가 몇 개인지 알려 준다.
+            성분마다 그 쿼리에 유효한 키가 몇 개인지 알려 준다.
     반환값:
         X와 같은 형태의 소프트맥스 출력이며 가린 자리는 0이다.
     """
@@ -82,12 +82,12 @@ def masked_softmax(X, valid_lens):
 
     shape = X.shape
     if valid_lens.dim() == 1:
-        # 배치 원소마다 모든 질의에 같은 유효 길이를 쓴다
+        # 배치 원소마다 모든 쿼리에 같은 유효 길이를 쓴다
         valid_lens = valid_lens.repeat_interleave(shape[1])
     else:
         valid_lens = valid_lens.reshape(-1)
 
-    # 가림을 만든다: valid_len 이상인 자리에 -1e6을 주어 exp(-1e6) ≈ 0이 되게 한다
+    # 마스크를 만든다: valid_len 이상인 자리에 -1e6을 주어 exp(-1e6) ≈ 0이 되게 한다
     X_flat = X.reshape(-1, shape[-1])
     maxlen = X_flat.size(1)
     mask = torch.arange(maxlen, device=X.device)[None, :] < valid_lens[:, None]

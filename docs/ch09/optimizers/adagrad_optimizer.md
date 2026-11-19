@@ -193,7 +193,7 @@ def show_learning_rate_decay():
         
         # 갱신 전에 실효 러닝레이트 계산
         if i == 0:
-            # 아직 cache가 차지 않았다. 아래 클래스와 모양을 맞추어 배열로 둔다.
+            # 아직 cache가 차지 않았다. 아래 클래스와 형태를 맞추어 배열로 둔다.
             effective_lr = np.full_like(param, optimizer.learning_rate)
         else:
             effective_lr = optimizer.learning_rate / np.sqrt(optimizer.cache['param'] + optimizer.epsilon)
@@ -286,14 +286,14 @@ This can cause AdaGrad to stop learning prematurely in some cases.
 
 희소한 갱신에서는 사용되지 않은 좌표의 상태가 그대로 남는다. 드물게 갱신된다는 이유만으로 항상 계수가 더 큰 것은 아니며, 그래디언트의 크기까지 포함한 누적합을 비교해야 한다. 코드의 z 좌표는 10회마다 한 번만 갱신되므로, 매번 갱신되는 좌표보다 목표에 느리게 접근할 수 있다.
 
-`show_learning_rate_decay`는 갱신 전의 캐시를 이용해 표시값을 만든다. 첫 표시값은 전역 러닝레이트고 이후에는 epsilon을 제곱근 안에 넣는다. 따라서 표시 열은 현재 그래디언트를 반영한 실제 update의 분모와 정확히 같지 않다. 주석의 표현과 달리 이 예제의 기울기 2×param도 상수가 아니다. 클래스는 NumPy 배열의 사전을 반환하며 PyTorch 옵티마이저나 자동 미분을 사용하지 않는다.
+`show_learning_rate_decay`는 갱신 전의 캐시를 이용해 표시값을 만든다. 첫 표시값은 전역 러닝레이트고 이후에는 epsilon을 제곱근 안에 넣는다. 따라서 표시 열은 현재 그래디언트를 반영한 실제 update의 분모와 정확히 같지 않다. 주석의 표현과 달리 이 예제의 그래디언트 2×param도 상수가 아니다. 클래스는 NumPy 배열의 사전을 반환하며 PyTorch 옵티마이저나 자동 미분을 사용하지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-첫 기울기가 2, 전역 러닝레이트가 1일 때 첫 갱신량을 구하라.
+첫 그래디언트가 2, 전역 러닝레이트가 1일 때 첫 갱신량을 구하라.
 
 </div>
 
@@ -306,7 +306,7 @@ This can cause AdaGrad to stop learning prematurely in some cases.
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-한 좌표의 기울기가 0인 단계에서 캐시와 파라메터는 어떻게 되는가?
+한 좌표의 그래디언트가 0인 단계에서 캐시와 파라메터는 어떻게 되는가?
 
 </div>
 
@@ -324,7 +324,7 @@ This can cause AdaGrad to stop learning prematurely in some cases.
 </div>
 
 ??? success "풀이"
-    cache에 이전 문제의 누적합이 남는다. 새 문제에서는 새 객체를 만들거나 상태를 명시적으로 초기화해야 한다. 배열의 키·모양·부동소수점 자료형도 일치시킨다.
+    cache에 이전 문제의 누적합이 남는다. 새 문제에서는 새 객체를 만들거나 상태를 명시적으로 초기화해야 한다. 배열의 키·형태·부동소수점 자료형도 일치시킨다.
 
 ## 정리하며
 

@@ -2,11 +2,11 @@
 
 그룹 컨볼루션은 채널을 여러 그룹으로 나누어 독립적으로 처리한다. 깊이별 컨볼루션은 그 특수한 경우이며, 뒤에 1×1 점별 컨볼루션을 연결한 깊이별 분리 컨볼루션은 공간 필터링과 채널 혼합을 나눈다.
 
-이 구조는 웨이트와 연산량을 줄일 수 있지만 표현력과 실행 효율의 절충이 있다. 같은 입출력 모양이 같더라도 임의의 표준 컨볼루션을 똑같이 표현하는 것은 아니며 실제 속도는 목표 하드웨어에서 확인해야 한다.
+이 구조는 웨이트와 연산량을 줄일 수 있지만 표현력과 실행 효율 사이에 트레이드오프가 있다. 입출력 모양이 같더라도 임의의 표준 컨볼루션을 똑같이 표현하는 것은 아니며 실제 속도는 목표 하드웨어에서 확인해야 한다.
 
 여기서 그룹 수 G는 채널을 나누는 수이며 배치 크기와 다르다. 아래 깊이별 컨볼루션의 계산은 별도 표시가 없으면 채널 배수(depth multiplier)가 1인 경우를 기준으로 한다.
 
-## 1. 표준 컨볼루션 되짚기
+## 1. 표준 컨볼루션 복습
 
 입력 채널이 $C_{in}$개, 출력 채널이 $C_{out}$개이고 커널 크기가 $K$인 표준 컨볼루션에 대해 다음과 같다.
 
@@ -28,7 +28,7 @@
 
 ### 개념
 
-**그룹 컨볼루션**은 입력 채널과 출력 채널을 각각 $G$개의 묶음으로 나누고 묶음마다 따로 처리한다.
+**그룹 컨볼루션**은 입력 채널과 출력 채널을 각각 $G$개의 그룹으로 나누고 그룹마다 따로 처리한다.
 
 ```text
 Standard Convolution:           Grouped Convolution (G=2):
@@ -38,13 +38,13 @@ C_in ────────────→ C_out        C_in/2 ──→ C_out
 connected)         outputs)     C_in/2 ──→ C_out/2  (Group 2)
 ```
 
-- 입력을 채널 $C_{in}/G$개씩 $G$개의 묶음으로 나눈다
-- 묶음마다 제 필터로 채널 $C_{out}/G$개를 낸다
+- 입력을 채널 $C_{in}/G$개씩 $G$개의 그룹으로 나눈다
+- 그룹마다 제 필터로 채널 $C_{out}/G$개를 낸다
 - 출력을 채널 차원으로 이어 붙인다
 
 ### 수식으로 나타내기
 
-묶음 $g$($g = 0, 1, \dots, G-1$)에 대해 다음과 같다.
+그룹 $g$($g = 0, 1, \dots, G-1$)에 대해 다음과 같다.
 
 $$Y_{g}[o, i, j] = \sum_{c=0}^{C_{in}/G - 1} \sum_{m,n} X_g[c, i+m, j+n] \cdot K_g[o, c, m, n]$$
 
@@ -52,11 +52,11 @@ $$Y_{g}[o, i, j] = \sum_{c=0}^{C_{in}/G - 1} \sum_{m,n} X_g[c, i+m, j+n] \cdot K
 
 - $X_g$: 입력 채널 $[g \cdot C_{in}/G, (g+1) \cdot C_{in}/G)$
 - $Y_g$: 출력 채널 $[g \cdot C_{out}/G, (g+1) \cdot C_{out}/G)$
-- $K_g$: 묶음 $g$의 커널
+- $K_g$: 그룹 $g$의 커널
 
 ### 계산량 절약
 
-| 지표 | 표준 | 묶음 ($G$개) | 줄어드는 비 |
+| 지표 | 표준 | 그룹 ($G$개) | 줄어드는 비 |
 |--------|----------|-------------------|-----------|
 | 웨이트 | $C_{out} \times C_{in} \times K^2$ | $C_{out} \times \frac{C_{in}}{G} \times K^2$ | 정확히 $G\times$ |
 | 바이어스 | $C_{out}$ | $C_{out}$ | $1\times$ (줄지 않는다) |
@@ -75,7 +75,7 @@ conv_standard = nn.Conv2d(64, 128, kernel_size=3, padding=1)
 conv_grouped_2 = nn.Conv2d(64, 128, kernel_size=3, padding=1, groups=2)
 conv_grouped_4 = nn.Conv2d(64, 128, kernel_size=3, padding=1, groups=4)
 
-# 웨이트와 바이어스를 따로 센다 — 바이어스는 묶음 수와 무관하게 C_out = 128개로 고정이다
+# 웨이트와 바이어스를 따로 센다 — 바이어스는 그룹 수와 무관하게 C_out = 128개로 고정이다
 for name, conv in [("Standard", conv_standard),
                    ("Grouped (G=2)", conv_grouped_2),
                    ("Grouped (G=4)", conv_grouped_4)]:
@@ -119,8 +119,8 @@ Grouped (G=4) output: torch.Size([1, 128, 32, 32])
 
 ### 제약
 
-- $C_{in}$이 $G$으로 나누어떨어져야 한다
-- $C_{out}$이 $G$으로 나누어떨어져야 한다
+- $C_{in}$이 $G$로 나누어떨어져야 한다
+- $C_{out}$이 $G$로 나누어떨어져야 한다
 - $G = C_{in} = C_{out}$이면 깊이별 컨볼루션이 된다
 
 ---
@@ -205,10 +205,10 @@ Total reduction:  57.7x   (biases do not shrink)
 
 ### 개념
 
-깊이별 컨볼루션만으로는 채널 사이에 정보가 오가지 않는다. 그래서 공간을 거르는 일과 채널을 섞는 일을 따로 떼어 이어 붙인다. 깊이별 분리 컨볼루션은 표준 컨볼루션을 이렇게 두 단계로 쪼갠다.
+깊이별 컨볼루션만으로는 채널 사이에 정보가 오가지 않는다. 그래서 공간 필터링과 채널 혼합을 따로 떼어 이어 붙인다. 깊이별 분리 컨볼루션은 표준 컨볼루션을 이렇게 두 단계로 쪼갠다.
 
-1. **깊이별**: 공간적인 거르기 (채널마다 공간 무늬를 잡는다)
-2. **점별 (1×1)**: 채널 섞기 (채널에 걸친 정보를 엮는다)
+1. **깊이별**: 공간 필터링 (채널마다 공간 패턴을 잡는다)
+2. **점별 (1×1)**: 채널 혼합 (채널에 걸친 정보를 엮는다)
 
 ```text
 Standard Convolution:
@@ -261,7 +261,7 @@ class DepthwiseSeparableConv(nn.Module):
     깊이별 분리 컨볼루션 블록.
 
     다음으로 이루어진다:
-    1. 깊이별 컨볼루션: 채널마다 공간적 거르기
+    1. 깊이별 컨볼루션: 채널마다 공간 필터링
     2. 점별 컨볼루션: 채널을 섞는 1×1 컨볼루션
     """
     def __init__(self, in_channels, out_channels, kernel_size=3,
@@ -328,7 +328,7 @@ DS conv output: torch.Size([1, 128, 32, 32])
 
 ![표준 컨볼루션과 깊이별 분리 컨볼루션을 위아래로 견주는 그림. 위쪽은 64채널 입력이 128×64×3×3짜리 컨볼루션 하나를 지나 128채널이 되고 웨이트가 73,728개라고 적혀 있다. 아래쪽은 같은 입력이 64×1×3×3 깊이별 컨볼루션으로 576개, 128×64×1×1 점별 컨볼루션으로 8,192개를 써서 합계 8,768개가 된다. 두 줄 사이에 73,728을 8,768로 나눈 8.41배가 적혀 있고, 아래에 바이어스를 포함하면 73,856 대 8,960으로 8.24배가 된다고 적혀 있다.](figures/depthwise_decomposition.svg)
 
-한 덩어리였던 웨이트가 어디로 갈라지는지가 그림에 그대로 보인다. 위쪽의 73,728개가 아래에서는 공간을 거르는 576개와 채널을 섞는 8,192개로 쪼개지고, 그 합 8,768개가 8.41배라는 비를 만든다. 깊이별 쪽이 거의 공짜인 것처럼 보이지만 실제로 남는 값은 점별 단계의 8,192개이며, 이것이 $1/K^2 = 1/9$ 항이 끝내 사라지지 않는 까닭이다. 그림의 수는 모두 바이어스를 뺀 웨이트만 센 것이고, 바이어스까지 세면 어떻게 달라지는지는 그림 아래에 적어 두었다.
+한 덩어리였던 웨이트가 어디로 갈라지는지가 그림에 그대로 보인다. 위쪽의 73,728개가 아래에서는 공간 필터링의 576개와 채널을 섞는 8,192개로 쪼개지고, 그 합 8,768개가 8.41배라는 비를 만든다. 깊이별 쪽이 거의 공짜인 것처럼 보이지만 실제로 남는 비용은 점별 단계의 8,192개이며, 이것이 $1/K^2 = 1/9$ 항이 끝내 사라지지 않는 까닭이다. 그림의 수는 모두 바이어스를 뺀 웨이트만 센 것이고, 바이어스까지 세면 어떻게 달라지는지는 그림 아래에 적어 두었다.
 
 8절에서 같은 입출력 채널로 같은 비교를 다시 하는데 거기서는 8,768이 아니라 8,960이 나온다. 차이는 바이어스 192개(깊이별 64 + 점별 128)뿐이다. 8절의 모듈은 `bias=True`(PyTorch 기본값)로 만들었기 때문이며, 비도 8.41배가 아니라 8.24배로 조금 낮아진다.
 
@@ -339,7 +339,7 @@ DS conv output: torch.Size([1, 128, 32, 32])
 
 ## 5. MobileNet V1 블록
 
-MobileNet은 깊이별 분리 컨볼루션에 배치 정규화와 ReLU를 붙여 쓴다. 두 단계 사이에도 정규화와 활성화가 들어가므로, 이 블록은 표준 컨볼루션 하나가 아니라 컨볼루션 두 개짜리 작은 탑이다.
+MobileNet은 깊이별 분리 컨볼루션에 배치 정규화와 ReLU를 붙여 쓴다. 두 단계 사이에도 정규화와 활성화가 들어가므로, 이 블록은 표준 컨볼루션 하나가 아니라 컨볼루션 두 개짜리 작은 스택이다.
 
 ```python
 import torch
@@ -349,7 +349,7 @@ class MobileNetV1Block(nn.Module):
     """
     MobileNet V1 방식의 깊이별 분리 블록.
 
-    짜임:
+    구조:
     깊이별 컨볼루션 → BN → ReLU → 점별 컨볼루션 → BN → ReLU
     """
     def __init__(self, in_channels, out_channels, stride=1):
@@ -373,7 +373,7 @@ class MobileNetV1Block(nn.Module):
         x = self.pointwise(x)
         return x
 
-# 같은 입출력 채널을 갖는 표준 컨볼루션 탑과 견주기
+# 같은 입출력 채널을 갖는 표준 컨볼루션 스택과 견주기
 block = MobileNetV1Block(64, 128)
 standard_block = nn.Sequential(
     nn.Conv2d(64, 128, 3, padding=1, bias=False),
@@ -434,13 +434,13 @@ import torch.nn as nn
 
 class InvertedResidual(nn.Module):
     """
-    MobileNet V2의 뒤집은 잔차 블록.
+    MobileNet V2의 역잔차 블록.
 
     인수:
         in_channels: 입력 채널
         out_channels: 출력 채널
         stride: 깊이별 컨볼루션의 스트라이드
-        expand_ratio: 숨은 채널의 확장 배수
+        expand_ratio: 은닉 채널의 확장 배수
     """
     def __init__(self, in_channels, out_channels, stride=1, expand_ratio=6):
         super().__init__()
@@ -468,7 +468,7 @@ class InvertedResidual(nn.Module):
             nn.ReLU6(inplace=True)
         ])
 
-        # 사영 (1×1 컨볼루션) - 선형 (활성화 없음!)
+        # 투영 (1×1 컨볼루션) - 선형 (활성화 없음!)
         layers.extend([
             nn.Conv2d(hidden_channels, out_channels, 1, bias=False),
             nn.BatchNorm2d(out_channels)
@@ -482,9 +482,9 @@ class InvertedResidual(nn.Module):
         else:
             return self.conv(x)
 
-# 사용 예: 숨은 채널은 32 × 6 = 192개
+# 사용 예: 은닉 채널은 32 × 6 = 192개
 # 확장 32×192 = 6,144 · BN 384 | 깊이별 192×9 = 1,728 · BN 384
-# 사영 192×32 = 6,144 · BN 64  → 합계 14,848
+# 투영 192×32 = 6,144 · BN 64  → 합계 14,848
 block = InvertedResidual(32, 32, stride=1, expand_ratio=6)
 x = torch.randn(1, 32, 56, 56)
 out = block(x)
@@ -501,9 +501,9 @@ Parameters: 14,848
 
 ---
 
-## 7. 채널 섞기 (ShuffleNet)
+## 7. 채널 셔플 (ShuffleNet)
 
-그룹 컨볼루션은 묶음 사이에 정보가 흐르지 못하게 한다. 1×1 그룹 컨볼루션을 여러 레이어 쌓으면 어떤 출력 채널은 끝까지 같은 묶음의 입력만 보게 된다. **채널 섞기**가 이 한계를 푼다.
+그룹 컨볼루션은 그룹 사이에 정보가 흐르지 못하게 한다. 1×1 그룹 컨볼루션을 여러 레이어 쌓으면 어떤 출력 채널은 끝까지 같은 그룹의 입력만 보게 된다. **채널 셔플**(channel shuffle)이 이 한계를 푼다 — 그룹 사이에 채널을 재배치하는 연산이다.
 
 ```text
 Before Shuffle:                After Shuffle:
@@ -520,10 +520,10 @@ import torch.nn as nn
 
 def channel_shuffle(x, groups):
     """
-    채널 섞기 연산.
+    채널 셔플 연산.
 
     텐서를 (N, C, H, W)에서 (N, G, C//G, H, W)로 바꾸고
-    묶음 축과 묶음 안 채널 축을 전치한 뒤 다시 펼친다.
+    그룹 축과 그룹 안 채널 축을 전치한 뒤 다시 펼친다.
     """
     N, C, H, W = x.shape
 
@@ -539,7 +539,7 @@ def channel_shuffle(x, groups):
     return x
 
 class ShuffleNetBlock(nn.Module):
-    """묶음 컨볼루션과 채널 섞기를 쓰는 ShuffleNet V1 단위."""
+    """그룹 컨볼루션과 채널 셔플을 쓰는 ShuffleNet V1 단위."""
 
     def __init__(self, in_channels, out_channels, groups=3, stride=1):
         super().__init__()
@@ -552,7 +552,7 @@ class ShuffleNetBlock(nn.Module):
         if stride == 2:
             out_channels = out_channels - in_channels
 
-        # 묶음 컨볼루션 1×1
+        # 그룹 컨볼루션 1×1
         self.gconv1 = nn.Sequential(
             nn.Conv2d(in_channels, mid_channels, 1, groups=groups, bias=False),
             nn.BatchNorm2d(mid_channels),
@@ -566,13 +566,13 @@ class ShuffleNetBlock(nn.Module):
             nn.BatchNorm2d(mid_channels)
         )
 
-        # 묶음 컨볼루션 1×1
+        # 그룹 컨볼루션 1×1
         self.gconv2 = nn.Sequential(
             nn.Conv2d(mid_channels, out_channels, 1, groups=groups, bias=False),
             nn.BatchNorm2d(out_channels)
         )
 
-        # 지름길
+        # 스킵 연결 (shortcut)
         if stride == 2:
             self.shortcut = nn.AvgPool2d(3, stride=2, padding=1)
         else:
@@ -593,8 +593,8 @@ class ShuffleNetBlock(nn.Module):
 
         return nn.functional.relu(out)
 
-# 섞기가 하는 일을 직접 보기: 채널 9개를 묶음 3개 [0,1,2] [3,4,5] [6,7,8]로 볼 때
-# 새 묶음은 [0,3,6] [1,4,7] [2,5,8]이 되어 묶음마다 옛 묶음 셋을 하나씩 물려받는다
+# 셔플이 하는 일을 직접 보기: 채널 9개를 그룹 3개 [0,1,2] [3,4,5] [6,7,8]로 볼 때
+# 새 그룹은 [0,3,6] [1,4,7] [2,5,8]이 되어 그룹마다 옛 그룹 셋을 하나씩 물려받는다
 demo = torch.arange(9).float().view(1, 9, 1, 1)
 print(f"Before shuffle: {[int(v) for v in demo.flatten()]}")
 print(f"After  shuffle: {[int(v) for v in channel_shuffle(demo, 3).flatten()]}")
@@ -628,11 +628,11 @@ import torch
 import torch.nn as nn
 
 def count_ops_and_params(model, input_shape):
-    """파라메터를 세고 컨볼루션의 부동소수점 연산 수를 어림한다.
+    """파라메터를 세고 컨볼루션의 부동소수점 연산 수를 추정한다.
 
     곱셈과 덧셈 한 쌍을 2 FLOP으로 센다. 논문에서는 이 쌍을 1 MAdd로
     세는 일이 많은데, 그러면 아래 숫자의 절반이 된다.
-    컨볼루션만 세고 BatchNorm과 ReLU는 빼므로 어림값이다.
+    컨볼루션만 세고 BatchNorm과 ReLU는 빼므로 근삿값이다.
     """
     params = sum(p.numel() for p in model.parameters())
 
@@ -702,9 +702,9 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504  ( 3.98x,  4.00x)
 
 | 구조 | 핵심 혁신 | 흔한 쓰임새 |
 |--------------|----------------|------------------|
-| **MobileNetV1** | 깊이별 분리 컨볼루션 | 휴대 기기 배포 |
-| **MobileNetV2** | 역잔차와 선형 병목 | 휴대 기기·엣지 장치 |
-| **ShuffleNet** | 채널 섞기와 그룹 컨볼루션 | 매우 효율적 |
+| **MobileNetV1** | 깊이별 분리 컨볼루션 | 모바일 기기 배포 |
+| **MobileNetV2** | 역잔차와 선형 병목 | 모바일 기기·엣지 장치 |
+| **ShuffleNet** | 채널 셔플과 그룹 컨볼루션 | 매우 효율적 |
 | **EfficientNet** | 복합 스케일링과 MBConv | 최상급 효율 |
 | **ResNeXt** | 잔차 블록 속 그룹 컨볼루션 | 높은 정확도 |
 
@@ -712,10 +712,10 @@ Grouped (G=4)  : Params=    18,560, FLOPs=    115,605,504  ( 3.98x,  4.00x)
 
 ## 10. 핵심 정리
 
-1. **그룹 컨볼루션**은 채널을 서로 독립인 묶음으로 나누어 웨이트를 정확히 $G$배 줄인다. 바이어스는 줄지 않으므로 레이어 전체는 그보다 조금 덜 줄어든다 ($G=4$에서 4.000배 대 3.979배)
+1. **그룹 컨볼루션**은 채널을 서로 독립인 그룹으로 나누어 웨이트를 정확히 $G$배 줄인다. 바이어스는 줄지 않으므로 레이어 전체는 그보다 조금 덜 줄어든다 ($G=4$에서 4.000배 대 3.979배)
 2. **깊이별 컨볼루션**은 $G = C_{in}$인 그룹 컨볼루션으로, 채널마다 필터 하나를 쓴다 ($C=64$에서 웨이트 64배, 레이어 전체 57.7배)
 3. **깊이별 분리** = 깊이별 + 점별이며, 줄어드는 비는 $1/(1/C_{out} + 1/K^2)$이다. $K=3$이면 $C_{out}$을 아무리 키워도 9배를 넘지 못하고, 흔한 값에서는 8~9배다
-4. **채널 섞기**는 ShuffleNet에서 묶음 사이에 정보가 흐르게 해 준다
+4. **채널 셔플**은 ShuffleNet에서 그룹 사이에 정보가 흐르게 해 준다
 5. **역잔차**(MobileNetV2)는 선형 병목과 함께 좁음 → 넓음 → 좁음의 구조를 쓴다
 6. 파라메터와 FLOP이 8배 줄었다는 것이 벽시계 시간이 8배 빨라졌다는 뜻은 아니다. 깊이별 컨볼루션은 연산 집약도가 낮아 메모리 대역폭에 묶이기 쉽고, 이 페이지에는 측정한 시간이 없다
 

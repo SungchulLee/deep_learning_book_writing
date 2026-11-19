@@ -6,7 +6,7 @@ Q·K·V를 여러 헤드로 나누어 점수를 계산하고, 헤드별 문맥�
 
 ```python
 """
-다중 머리 주의
+멀티헤드 어텐션
 """
 import torch
 import torch.nn as nn
@@ -17,7 +17,7 @@ import math
 # ========================================================================
 
 class MultiHeadAttention(nn.Module):
-    """다중 머리 주의 구조"""
+    """멀티헤드 어텐션 구조"""
     def __init__(self, d_model, num_heads, dropout=0.1):
         super().__init__()
         assert d_model % num_heads == 0

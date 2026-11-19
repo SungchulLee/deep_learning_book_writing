@@ -95,15 +95,15 @@ Parameters: 1,025,696
 
 ### 단위 블록의 구현 조건
 
-`ShuffleUnit`의 두 1×1은 인수 `groups`를 쓰지만 `channel_shuffle(out,2)`는 항상 그룹 수 2를 쓴다. 따라서 그룹 컨볼루션의 설정과 섞기 설정이 일반적으로 일치하지 않는다. 중간 폭 `out_channels//4`와 입출력 폭의 나눗셈 조건도 충족해야 한다.
+`ShuffleUnit`의 두 1×1은 인수 `groups`를 쓰지만 `channel_shuffle(out,2)`는 항상 그룹 수 2를 쓴다. 따라서 그룹 컨볼루션의 설정과 셔플 설정이 일반적으로 일치하지 않는다. 중간 폭 `out_channels//4`와 입출력 폭의 나눗셈 조건도 충족해야 한다.
 
 stride=1이면 주 분기의 `out_channels`와 입력 채널 수가 같아야 덧셈이 가능하다. stride=2이면 평균 풀링한 입력과 주 분기를 연결하므로 실제 출력 폭은 **out_channels+in_channels**다. `out_channels`를 전체 블록의 최종 폭이라고 가정하면 다음 단계가 맞지 않는다. 원하는 최종 폭을 기준으로 두 분기의 폭을 따로 설계해야 한다.
 
 ### 본체와 버전 구분
 
-코드의 `ShuffleNetV2`는 24채널 stem과 풀링 뒤 1024입력 선형 레이어를 바로 연결한다. 중간 셔플 단계가 없고 전역 풀링한 피처는 24차원이므로 순전파에서 차원 불일치가 발생한다. 파라메터 개수만 출력하는 기존 실행부는 이 문제를 검사하지 않는다.
+코드의 `ShuffleNetV2`는 24채널 stem과 풀링 뒤 1024입력 선형 레이어를 바로 연결한다. 중간 셔플 단계가 없고 전역 풀링한 피처는 24차원이므로 순전파에서 차원 불일치가 발생한다. 파라메터 개수만 출력하는 실행부는 이 문제를 검사하지 않는다.
 
-V1의 그룹 1×1과 셔플 설계는 [원 ShuffleNet 논문](https://arxiv.org/abs/1707.01083)을, 채널 분할·분기 및 실제 비용을 고려한 별도 V2 설계는 [ShuffleNet V2 논문](https://openaccess.thecvf.com/content_ECCV_2018/html/Ningning_Light-weight_CNN_Architecture_ECCV_2018_paper.html)을 기준으로 구분한다. 이론적 MAC 절감이 같은 비율의 장치 속도 개선을 뜻하지는 않는다. 코드·출력은 그대로 유지했다.
+V1의 그룹 1×1과 셔플 설계는 [원 ShuffleNet 논문](https://arxiv.org/abs/1707.01083)을, 채널 분할·분기 및 실제 비용을 고려한 별도 V2 설계는 [ShuffleNet V2 논문](https://openaccess.thecvf.com/content_ECCV_2018/html/Ningning_Light-weight_CNN_Architecture_ECCV_2018_paper.html)을 기준으로 구분한다. 이론적 MAC 절감이 같은 비율의 장치 속도 개선을 뜻하지는 않는다.
 
 ## 연습문제
 
@@ -127,7 +127,7 @@ NCHW 입력에서 C=6, g=2인 채널 셔플 순서를 설명하라.
 </div>
 
 ??? success "풀이"
-    주 분기는 out_channels, 풀링 지름길은 in_channels를 유지하므로 연결 결과는 둘의 합이다. out_channels가 최종 목표 폭이라고 생각하고 블록을 쌓으면 다음 레이어가 맞지 않는다. stride=1의 덧셈에는 같은 채널 수·공간 크기가 필요하다.
+    주 분기는 out_channels, 풀링 스킵 연결은 in_channels를 유지하므로 연결 결과는 둘의 합이다. out_channels가 최종 목표 폭이라고 생각하고 블록을 쌓으면 다음 레이어가 맞지 않는다. stride=1의 덧셈에는 같은 채널 수·공간 크기가 필요하다.
 
 ---
 

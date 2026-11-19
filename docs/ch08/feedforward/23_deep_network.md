@@ -9,9 +9,9 @@
 15_deep_network.py - 아주 깊은 뉴럴 네트워크 만들기
 
 다음을 써서 아주 깊은 순방향 뉴럴 네트워크를 만들고 학습시키는 법을 배운다:
-- 잔차 연결 (건너뛰기 연결)
+- 잔차 연결 (스킵 연결)
 - 세심한 초기화
-- 그래디언트 자르기
+- 그래디언트 클리핑
 - 고급 기법
 
 깊이 들어가기: 레이어가 많을수록 용량은 커지지만 학습은 어려워진다!
@@ -50,7 +50,7 @@ print("="*80)
 
 class ResidualBlock(nn.Module):
     """
-    건너뛰기 연결을 갖는 잔차 블록.
+    스킵 연결을 갖는 잔차 블록.
     출력 = ReLU(Block(x) + x)
     """
     
@@ -72,7 +72,7 @@ class ResidualBlock(nn.Module):
     def forward(self, x):
         residual = x
         out = self.block(x)
-        # 건너뛰기 연결!
+        # 스킵 연결!
         # 여기서는 제자리 덧셈이 통하지만 아슬아슬하다. block이 배치
         # 정규화로 끝나고 그 역전파는 자기 출력을 다시 보지 않기
         # 때문이다. 만약 block이 ReLU로 끝났다면 ReLU의 역전파가
@@ -88,14 +88,14 @@ class DeepNet(nn.Module):
     def __init__(self, input_size=784, hidden_size=256, num_blocks=10, num_classes=10):
         super().__init__()
         
-        # 입력 사영
+        # 입력 투영
         self.input_proj = nn.Sequential(
             nn.Linear(input_size, hidden_size),
             nn.BatchNorm1d(hidden_size),
             nn.ReLU()
         )
         
-        # 잔차 블록 더미
+        # 잔차 블록 스택
         self.blocks = nn.ModuleList([
             ResidualBlock(hidden_size) for _ in range(num_blocks)
         ])
@@ -119,7 +119,7 @@ class DeepNet(nn.Module):
                 # gamma=1, beta=0이면 정규화한 값을 그대로 통과시킨다.
                 # 곧 학습 초반에는 정규화 레이어가 아무것도 바꾸지 않는다.
                 # 참고로 ResNet 계열에서는 블록의 "마지막" 정규화만
-                # gamma=0으로 두는 요령도 쓴다. 그러면 블록의 출력이
+                # gamma=0으로 두는 기법도 쓴다. 그러면 블록의 출력이
                 # 0에서 시작해 뉴럴 네트워크 전체가 항등 사상으로 출발하므로
                 # 아주 깊을 때 더 안정적이다
                 nn.init.constant_(m.weight, 1)
@@ -163,10 +163,10 @@ model = models['Deep (15 blocks)'].to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
-# 워밍업이 있는 러닝레이트 스케줄러
+# 코사인 어닐링 러닝레이트 스케줄러 (워밍업은 없다)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50)
 
-# 안정성을 위한 그래디언트 자르기
+# 안정성을 위한 그래디언트 클리핑
 max_grad_norm = 1.0
 
 def train_epoch(model, loader):
@@ -184,9 +184,9 @@ def train_epoch(model, loader):
         optimizer.zero_grad()
         loss.backward()
         
-        # 그래디언트 자르기 (그래디언트 폭발을 막는다).
+        # 그래디언트 클리핑 (그래디언트 폭발을 막는다).
         # 자리가 정해져 있다. backward "뒤", step "앞"이다. 순서를
-        # 어기면 자르기가 갱신에 반영되지 않는다.
+        # 어기면 클리핑이 갱신에 반영되지 않는다.
         # 전체 그래디언트를 하나의 벡터로 보고 그 노름이 1을 넘으면
         # 방향은 그대로 둔 채 길이만 1로 줄인다. 값 하나하나를 자르는
         # clip_grad_value_와 달리 방향이 보존된다
@@ -265,11 +265,11 @@ print("KEY TAKEAWAYS")
 print("="*80)
 print("""
 깊은 뉴럴 네트워크 짓기:
-✓ 잔차 연결(건너뛰기 연결)을 쓴다
+✓ 잔차 연결(스킵 연결)을 쓴다
 ✓ 선형 레이어 뒤의 배치 정규화
 ✓ 알맞은 웨이트 초기화(ReLU에는 카이밍)
-✓ 폭발을 막는 그래디언트 절단
-✓ 러닝 빠르기 짜기
+✓ 폭발을 막는 그래디언트 클리핑
+✓ 러닝레이트 스케줄링
 
 잔차 연결:
   H(x) = F(x) + x
@@ -278,15 +278,15 @@ print("""
   - ResNet, DenseNet, 트랜스포머에 쓴다
 
 학습 안정성:
-- 그래디언트 절단: 그래디언트의 크기를 제한한다
-- 배치 정규화: 엑티베이션을 안정시킨다
-- 건너뛰기 연결: 그래디언트가 곧장 흐르게 한다
+- 그래디언트 클리핑: 그래디언트의 크기를 제한한다
+- 배치 정규화: 활성화 값을 안정시킨다
+- 스킵 연결: 그래디언트가 곧장 흐르게 한다
 - 알맞은 초기화: 좋은 출발점
 
 깊이 대 너비:
 - 더 깊게: 위계적인 피처가 늘어난다
-- 더 넓게: 레이어마다 수용력이 커진다
-- 절충점은 문제에 달렸다
+- 더 넓게: 레이어마다 용량이 커진다
+- 트레이드오프는 문제에 달렸다
 
 깊이가 주는 어려움:
 ⚠ 그래디언트 소실과 폭발
@@ -298,7 +298,7 @@ SOLUTIONS:
 ✓ 잔차 연결
 ✓ 정규화 레이어
 ✓ 신중한 초기화
-✓ 그래디언트 절단
+✓ 그래디언트 클리핑
 ✓ 러닝레이트 워밍업
 
 CONGRATULATIONS!
@@ -314,11 +314,11 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-ResidualBlock은 선형 레이어 두 개와 배치 정규화를 거친 값에 입력을 더하고 마지막에 ReLU를 적용한다. 따라서 블록의 야코비안은 단순한 I+J_F에 마지막 ReLU의 도함수까지 곱한 형태이다. 잔차 연결만으로 경사가 반드시 보존되는 것은 아니다.
+ResidualBlock은 선형 레이어 두 개와 배치 정규화를 거친 값에 입력을 더하고 마지막에 ReLU를 적용한다. 따라서 블록의 야코비안은 단순한 I+J_F에 마지막 ReLU의 도함수까지 곱한 형태이다. 잔차 연결만으로 그래디언트가 반드시 보존되는 것은 아니다.
 
 DeepNet의 num_blocks는 선형 레이어 수가 아니다. 입력·출력 선형 레이어 두 개와 블록당 두 개가 있으므로, 블록 수 B일 때 선형 레이어는 2B+2개이다. 기본 10블록과 실제 학습에 선택한 15블록도 구분한다.
 
-클리핑은 계산된 경사의 노름을 제한하고, AdamW는 분리된 웨이트 감쇠를 적용한다. 매 에포크 테스트 정확도를 확인하므로 이를 구조 선택에 사용하면 독립 평가 역할이 사라진다. 별도의 검증셋이 필요하다.
+클리핑은 계산된 그래디언트의 노름을 제한하고, AdamW는 분리된 웨이트 감쇠를 적용한다. 매 에포크 시험 정확도를 확인하므로 이를 구조 선택에 사용하면 독립 평가 역할이 사라진다. 별도의 검증 집합이 필요하다.
 
 ## 연습문제
 
@@ -349,12 +349,12 @@ DeepNet의 num_blocks는 선형 레이어 수가 아니다. 입력·출력 선�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-잔차 합 뒤 ReLU가 경사에 미치는 영향을 설명하라.
+잔차 합 뒤 ReLU가 그래디언트에 미치는 영향을 설명하라.
 
 </div>
 
 ??? success "풀이"
-    블록 야코비안은 $D_{\mathrm{ReLU}}(I+J_F)$이다. 합이 음수인 성분은 마지막 ReLU에서 경사가 차단되므로 항등 분기가 있다고 모든 성분에 경사가 그대로 전달되는 것은 아니다.
+    블록 야코비안은 $D_{\mathrm{ReLU}}(I+J_F)$이다. 합이 음수인 성분은 마지막 ReLU에서 그래디언트가 차단되므로 항등 분기가 있다고 모든 성분에 그래디언트가 그대로 전달되는 것은 아니다.
 
 ---
 

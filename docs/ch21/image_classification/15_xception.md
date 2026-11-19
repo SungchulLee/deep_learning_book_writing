@@ -63,13 +63,13 @@ Inception은 1×1 병목 뒤 여러 공간 분기를 결합하는 구조이고, 
 
 ### 전체 구조와 예제의 누락
 
-원 Xception은 entry flow, 반복되는 middle flow와 exit flow를 사용하며 여러 분리 컨볼루션을 잔차 블록으로 연결한다. 아래 `Xception`은 stem과 32→64의 분리 컨볼루션 하나만 포함한다. 전역 풀링 뒤 피처는 64차원인데 선형 레이어는 2048입력을 요구하므로 순전파가 실패한다. 기존 출력의 파라미터 수는 이런 누락을 확인하는 실행 검증이 아니다.
+원 Xception은 entry flow, 반복되는 middle flow와 exit flow를 사용하며 여러 분리 컨볼루션을 잔차 블록으로 연결한다. 아래 `Xception`은 stem과 32→64의 분리 컨볼루션 하나만 포함한다. 전역 풀링 뒤 피처는 64차원인데 선형 레이어는 2048입력을 요구하므로 순전파가 실패한다. 출력의 파라메터 수는 이런 누락을 확인하는 실행 검증이 아니다.
 
 ### 잔차의 위치와 형태
 
-연습의 지름길은 stride 또는 채널 수가 바뀌면 1×1과 BN으로 투영한다. 이 코드는 분리 컨볼루션 내부에서 ReLU를 적용한 뒤 지름길을 더하며, 덧셈 뒤에는 별도 활성화가 없다. 여러 분리 컨볼루션을 묶는 원 Xception의 블록과 동일한 구조라고 가정하지 않는다. padding·stride가 두 경로의 공간 크기를 실제로 맞추는지도 확인해야 한다.
+연습의 스킵 연결은 stride 또는 채널 수가 바뀌면 1×1과 BN으로 투영한다. 이 코드는 분리 컨볼루션 내부에서 ReLU를 적용한 뒤 스킵 연결을 더하며, 덧셈 뒤에는 별도 활성화가 없다. 여러 분리 컨볼루션을 묶는 원 Xception의 블록과 동일한 구조라고 가정하지 않는다. padding·stride가 두 경로의 공간 크기를 실제로 맞추는지도 확인해야 한다.
 
-분리 연산의 파라미터 절감과 실제 장치 지연시간은 다른 지표다. [원 논문](https://openaccess.thecvf.com/content_cvpr_2017/html/Chollet_Xception_Deep_Learning_CVPR_2017_paper.html)의 ImageNet 비교는 전체 모델과 해당 학습·평가 설정의 결과이며 이 골격의 성능이 아니다. 코드·출력은 실행하지 않고 보존했다.
+분리 연산의 파라메터 절감과 실제 장치 지연시간은 다른 지표다. [원 논문](https://openaccess.thecvf.com/content_cvpr_2017/html/Chollet_Xception_Deep_Learning_CVPR_2017_paper.html)의 ImageNet 비교는 전체 모델과 해당 학습·평가 설정의 결과이며 이 골격의 성능이 아니다.
 
 ## 연습문제
 
@@ -106,7 +106,7 @@ Inception과 depthwise separable 연산이 다른 점을 설명하라.
 
 ??? success "풀이"
 
-    stride≠1이거나 입력·출력 채널이 다르면 1×1 투영과 BN을 사용한다. 기본 3×3 padding=1에서는 투영과 공간 크기를 맞출 수 있지만 다른 커널 설정에서는 다시 확인해야 한다. 주 분기는 SeparableConv2d 안에서 ReLU를 거친 뒤 지름길과 더해지며, 덧셈 뒤 ReLU는 없다. 원 Xception 블록 전체와 동일하다고 부르면 안 된다.
+    stride≠1이거나 입력·출력 채널이 다르면 1×1 투영과 BN을 사용한다. 기본 3×3 padding=1에서는 투영과 공간 크기를 맞출 수 있지만 다른 커널 설정에서는 다시 확인해야 한다. 주 분기는 SeparableConv2d 안에서 ReLU를 거친 뒤 스킵 연결과 더해지며, 덧셈 뒤 ReLU는 없다. 원 Xception 블록 전체와 동일하다고 부르면 안 된다.
 
     ```python
     class SepConvWithResidual(nn.Module):

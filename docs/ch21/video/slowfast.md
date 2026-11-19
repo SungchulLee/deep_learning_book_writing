@@ -1,6 +1,6 @@
 # SlowFast 네트워크의 시간 정렬과 피처 결합
 
-[SlowFast](https://arxiv.org/abs/1812.03982)는 같은 RGB 비디오 구간을 시간 해상도가 다른 두 경로로 처리한다. Slow는 프레임 수를 적게, Fast는 채널을 적게 사용해 외형과 시간 변화를 상호 보완적으로 표현하도록 설계한다. 이는 시각 처리에서 영감을 얻은 계산 구조이지 사람의 뉴럴 회로를 정확히 재현하거나 두 기능이 완전히 분리됨을 입증하는 모델은 아니다.
+[SlowFast](https://arxiv.org/abs/1812.03982)는 같은 RGB 비디오 구간을 시간 해상도가 다른 두 경로로 처리한다. Slow는 프레임 수를 적게, Fast는 채널을 적게 사용해 외형과 시간 변화를 상호 보완적으로 표현하도록 설계한다. 이는 시각 처리에서 영감을 얻은 계산 구조이지 사람의 신경 회로를 정확히 재현하거나 두 기능이 완전히 분리됨을 입증하는 모델은 아니다.
 
 ## 1. 시간 비율과 채널 비율
 
@@ -16,18 +16,18 @@ import torch.nn as nn
 
 class SlowFast(nn.Module):
     """
-    영상 알아보기를 위한 느림빠름 네트워크
+    영상 인식을 위한 SlowFast 네트워크
     (Feichtenhofer et al., 2019)
     
-    두 클래스 길 구조:
-    - 느림 길: 낮은 틀 비율, 많은 채널
-    - 빠름 길: 높은 틀 비율, 적은 채널
-    - 옆 이음이 길 사이의 앎을 녹여 붙인다
+    두 경로 구조:
+    - Slow 경로: 낮은 프레임률, 많은 채널
+    - Fast 경로: 높은 프레임률, 적은 채널
+    - 측면 연결(lateral connection)이 경로 사이의 정보를 융합한다
     """
     
     def __init__(self,
                  num_classes: int = 400,
-                 alpha: int = 8,      # 틀 비율 비
+                 alpha: int = 8,      # 프레임률 비
                  beta: float = 1/8,   # 채널 비
                  slow_channels: int = 64,
                  num_frames: int = 32):
@@ -39,26 +39,26 @@ class SlowFast(nn.Module):
         
         fast_channels = int(slow_channels * beta)
         
-        # 느림 길
+        # Slow 경로
         self.slow_pathway = SlowPathway(
             in_channels=3,
             base_channels=slow_channels
         )
         
-        # 빠름 길
+        # Fast 경로
         self.fast_pathway = FastPathway(
             in_channels=3,
             base_channels=fast_channels,
             alpha=alpha
         )
         
-        # 옆 이음(빠름 → 느림)
+        # 측면 연결(Fast → Slow)
         self.lateral_connections = nn.ModuleList([
             LateralConnection(fast_channels * mult, slow_channels * mult, alpha)
             for mult in [1, 2, 4, 8]  # 단계마다
         ])
         
-        # 마지막 가려내기
+        # 최종 분류
         slow_out = slow_channels * 8
         fast_out = fast_channels * 8
         self.head = nn.Linear(slow_out + fast_out, num_classes)
@@ -74,14 +74,14 @@ class SlowFast(nn.Module):
         """
         B, C, T, H, W = x.shape
         
-        # 길마다 틀 뽑기
-        # 느림: alpha번째 틀마다
+        # 경로마다 프레임 샘플링
+        # Slow: alpha번째 프레임마다
         x_slow = x[:, :, ::self.alpha, :, :]  # (B, C, T/α, H, W)
         
-        # 빠름: 모든 틀
+        # Fast: 모든 프레임
         x_fast = x  # (B, C, T, H, W)
         
-        # 옆 이음을 갖춘 길로 다루기
+        # 측면 연결을 갖춘 경로로 처리하기
         slow_features = []
         fast_features = []
         
@@ -95,30 +95,30 @@ class SlowFast(nn.Module):
             x_fast = fast_block(x_fast)
             lateral_out = lateral(x_fast)
             
-            # 옆 이음을 느림 길과 녹여 붙이기
+            # 측면 연결을 Slow 경로와 융합하기
             x_slow = torch.cat([x_slow, lateral_out], dim=1)
             x_slow = slow_block(x_slow)
         
-        # 전체 평균 모으기
+        # 전역 평균 풀링
         x_slow = x_slow.mean(dim=[2, 3, 4])  # (B, C_slow)
         x_fast = x_fast.mean(dim=[2, 3, 4])  # (B, C_fast)
         
-        # 이어 붙이고 클래스 매기기
+        # 연결하고 분류하기
         x = torch.cat([x_slow, x_fast], dim=1)
         
         return self.head(x)
 
 class SlowPathway(nn.Module):
     """
-    느림 길: 채널을 많이 쓰고 틀은 적게 다룬다.
+    Slow 경로: 채널을 많이 쓰고 프레임은 적게 다룬다.
     
-    자리의 뜻과 물체 알아보기에 초점을 둔다.
+    공간적 의미와 물체 인식에 초점을 둔다.
     """
     
     def __init__(self, in_channels: int, base_channels: int):
         super().__init__()
         
-        # 줄기
+        # 스템
         self.stem = nn.Sequential(
             nn.Conv3d(in_channels, base_channels, 
                      kernel_size=(1, 7, 7), stride=(1, 2, 2), padding=(0, 3, 3)),
@@ -143,9 +143,9 @@ class SlowPathway(nn.Module):
 
 class FastPathway(nn.Module):
     """
-    빠름 길: 채널을 적게 쓰고 틀을 더 많이 다룬다.
+    Fast 경로: 채널을 적게 쓰고 프레임을 더 많이 다룬다.
     
-    액션과 때에 걸친 흐름에 초점을 둔다.
+    움직임과 시간적 변화에 초점을 둔다.
     """
     
     def __init__(self, in_channels: int, base_channels: int, alpha: int):
@@ -153,7 +153,7 @@ class FastPathway(nn.Module):
         
         self.alpha = alpha
         
-        # 액션을 담아내려 때 커널을 키운 줄기
+        # 움직임을 담아내려 시간 커널을 키운 스템
         self.stem = nn.Sequential(
             nn.Conv3d(in_channels, base_channels,
                      kernel_size=(5, 7, 7), stride=(1, 2, 2), padding=(2, 3, 3)),
@@ -162,7 +162,7 @@ class FastPathway(nn.Module):
             nn.MaxPool3d(kernel_size=(1, 3, 3), stride=(1, 2, 2), padding=(0, 1, 1))
         )
         
-        # 때를 줄여 뽑는 단계
+        # 시간 다운샘플링 단계
         self.stages = nn.ModuleList([
             self._make_stage(base_channels, base_channels, blocks=3, temporal_stride=1),
             self._make_stage(base_channels, base_channels * 2, blocks=4, temporal_stride=2),
@@ -178,10 +178,10 @@ class FastPathway(nn.Module):
 
 class LateralConnection(nn.Module):
     """
-    빠름 길에서 느림 길로 가는 옆 이음.
+    Fast 경로에서 Slow 경로로 가는 측면 연결.
     
-    느림 길의 틀 비율에 맞추려 때를 줄여 뽑고,
-    그다음 녹여 붙이려 채널을 바꾼다.
+    Slow 경로의 프레임률에 맞추려 시간 축을 다운샘플링하고,
+    그다음 융합하려 채널을 바꾼다.
     """
     
     def __init__(self, fast_channels: int, slow_channels: int, alpha: int):
@@ -189,8 +189,8 @@ class LateralConnection(nn.Module):
         
         self.alpha = alpha
         
-        # 때 줄여 뽑기: 빠름 틀 → 느림 틀
-        # 성큼을 준 3차원 컨볼루션 쓰기
+        # 시간 다운샘플링: Fast 프레임 → Slow 프레임
+        # 스트라이드를 준 3차원 컨볼루션 쓰기
         self.transform = nn.Sequential(
             nn.Conv3d(fast_channels, fast_channels * 2,
                      kernel_size=(5, 1, 1), 
@@ -203,15 +203,15 @@ class LateralConnection(nn.Module):
     def forward(self, x_fast: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            x_fast: 빠름 길의 피처 (B, C_fast, T_fast, H, W)
+            x_fast: Fast 경로의 피처 (B, C_fast, T_fast, H, W)
         
         반환값:
-            느림 길에 맞춘 옆 피처 (B, C_out, T_slow, H, W)
+            Slow 경로에 맞춘 측면 피처 (B, C_out, T_slow, H, W)
         """
         return self.transform(x_fast)
 
 class ResBlock3D(nn.Module):
-    """3차원 잔차 덩이."""
+    """3차원 잔차 블록."""
     
     def __init__(self, in_channels, out_channels, temporal_stride=1):
         super().__init__()
@@ -253,8 +253,8 @@ Fast 피처를 lateral로 바꾸어 Slow와 채널 연결하면 입력 채널이
 def slowfast_4x16_r50():
     """
     SlowFast 4×16 R50:
-    - 느림: 틀 4개, ResNet-50 등뼈
-    - 빠름: 틀 32개(α=8), 채널 1/8(β=1/8)
+    - Slow: 프레임 4개, ResNet-50 백본
+    - Fast: 프레임 32개(α=8), 채널 1/8(β=1/8)
     """
     return SlowFast(
         num_classes=400,
@@ -267,9 +267,9 @@ def slowfast_4x16_r50():
 def slowfast_8x8_r101():
     """
     SlowFast 8×8 R101:
-    - 느림: 틀 8개
-    - 빠름: 틀 32개(α=4)
-    - ResNet-101 등뼈
+    - Slow: 프레임 8개
+    - Fast: 프레임 32개(α=4)
+    - ResNet-101 백본
     """
     return SlowFast(
         num_classes=400,
@@ -289,7 +289,7 @@ def slowfast_8x8_r101():
 ```python
 def train_slowfast(model, train_loader, epochs=196):
     """
-    논문에 나온 익히기 요령.
+    논문에 나온 학습 설정.
     """
     
     optimizer = torch.optim.SGD(
@@ -299,12 +299,12 @@ def train_slowfast(model, train_loader, epochs=196):
         weight_decay=1e-4
     )
     
-    # 반주기 코사인 일정
+    # 반주기 코사인 스케줄
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, T_max=epochs
     )
     
-    # 처음 34세대는 몸풀기
+    # 처음 34에포크는 워밍업
     warmup_epochs = 34
     
     for epoch in range(epochs):
@@ -316,7 +316,7 @@ def train_slowfast(model, train_loader, epochs=196):
         
         model.train()
         for videos, labels in train_loader:
-            # 영상은 틀 T=32인 (B, C, T, H, W)여야 한다
+            # 영상은 프레임 T=32인 (B, C, T, H, W)여야 한다
             videos = videos.cuda()
             labels = labels.cuda()
             
@@ -330,7 +330,7 @@ def train_slowfast(model, train_loader, epochs=196):
             scheduler.step()
 ```
 
-루프는 분류 로짓·정수 정답의 교차 엔트로피와 SGD를 사용하려는 골격이다. `F` import가 없고 loader·데이터 전처리는 별도로 필요하다. 비디오·레이블은 무조건 CUDA로 옮기지만 모델을 옮기는 줄은 없으므로 호출자가 모델 장치까지 맞춰야 한다. CPU·MPS 환경에 그대로 적용되지 않는다.
+루프는 분류 로짓·정수 정답의 교차 엔트로피와 SGD를 사용하려는 골격이다. `F` import가 없고 loader·데이터 전처리는 별도로 필요하다. 비디오·라벨은 무조건 CUDA로 옮기지만 모델을 옮기는 줄은 없으므로 호출자가 모델 장치까지 맞춰야 한다. CPU·MPS 환경에 그대로 적용되지 않는다.
 
 warm-up34epoch 이후 cosine scheduler를 호출하지만 T_max는 전체196epoch로 정한다. 기본 설정에서 실제 cosine step은162번뿐이라 학습 끝에 cosine 최솟값까지 도달하는 일정이 아니다. warm-up 이후 남은 기간과 스케줄러 step 기준을 맞춰 읽는다. 검증·최고 체크포인트·정확도 측정도 이 함수에는 없다.
 

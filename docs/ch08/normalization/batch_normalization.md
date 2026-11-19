@@ -13,7 +13,7 @@
 학습을 빠르게 하고 더 높은 러닝레이트를 쓸 수 있게 해 준다.
 
 논문: "Batch Normalization: Accelerating Deep Network Training by
-       내부 공변량 이동 줄이기"(Ioffe & Szegedy, 2015)
+       Reducing Internal Covariate Shift"(Ioffe & Szegedy, 2015)
 """
 
 import numpy as np
@@ -176,7 +176,7 @@ def demonstrate_batch_norm():
     print("Batch Normalization Demonstration")
     print("=" * 60)
     
-    # 척도가 다른 예시 데이터 만들기
+    # 스케일이 다른 예시 데이터 만들기
     np.random.seed(42)
     batch_size = 32
     num_features = 5
@@ -326,7 +326,7 @@ NumPy 구현은 `(B, C)`의 배치 축에서 평균과 분산을 구하고 피�
 
 PyTorch BatchNorm1d는 벡터에서 배치 축을, BatchNorm2d는 채널별 배치·공간 축을 함께 사용한다. 기본 설정의 평가에서는 누적된 이동 통계량을 사용하므로 학습과 동작이 다르다.
 
-NumPy 코드의 running_var는 분모 B인 배치 분산을 그대로 누적한다. PyTorch는 학습 출력에는 바이어스 분산 추정량을 쓰지만 이동 분산 갱신에는 불편추정량을 사용하므로 두 구현의 평가 출력이 항상 일치하지 않는다. [공식 문서](https://docs.pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html)의 규약을 구분한다.
+NumPy 코드의 running_var는 분모 B인 배치 분산을 그대로 누적한다. PyTorch는 학습 출력에는 편향 분산 추정량(분모가 B인 추정량)을 쓰지만 이동 분산 갱신에는 불편추정량을 사용하므로 두 구현의 평가 출력이 항상 일치하지 않는다. [공식 문서](https://docs.pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html)의 규약을 구분한다.
 
 ## 연습문제
 

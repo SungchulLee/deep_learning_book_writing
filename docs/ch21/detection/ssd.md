@@ -1,6 +1,6 @@
 # SSD: 기본 상자와 다중 해상도 객체 탐지
 
-SSD는 여러 해상도의 피처 맵에서 기본 상자(default box)별 위치 보정과 클래스를 예측하는 단일 단계 탐지기다. 영역 제안 단계를 두지 않지만 기본 상자와 정답의 매칭·학습 로스·추론 후처리는 필요하다. SSD의 피처를 단순히 YOLO와 두 단계 방식의 속도·정확도 중간값으로 정의하지 않는다.
+SSD는 여러 해상도의 피처 맵에서 기본 상자(default box)별 위치 보정과 클래스를 예측하는 단일 단계 탐지기다. 영역 제안 단계를 두지 않지만 기본 상자와 정답의 매칭·학습 로스·추론 후처리는 필요하다. SSD의 성격을 단순히 YOLO와 두 단계 방식의 속도·정확도 중간값으로 정의하지 않는다.
 
 ## 1. 여러 해상도의 피처
 
@@ -14,7 +14,7 @@ from typing import List, Tuple
 
 class SSDExtraLayers(nn.Module):
     """
-    여러 스케일 탐지를 위해 VGG 바탕 뒤에 붙인 덧컨볼루션 레이어.
+    다중 스케일 탐지를 위해 VGG 백본 뒤에 붙인 추가 컨볼루션 레이어.
     """
     def __init__(self, in_channels: int = 1024):
         super().__init__()
@@ -65,7 +65,7 @@ class SSDExtraLayers(nn.Module):
 
 ```python
 class DefaultBoxGenerator:
-    """SSD 붙박이 상자를 만든다."""
+    """SSD 기본 상자(default box)를 만든다."""
     def __init__(
         self,
         image_size: int = 300,
@@ -87,7 +87,7 @@ class DefaultBoxGenerator:
         else:
             self.aspect_ratios = aspect_ratios
         
-        # 스케일 셈하기
+        # 스케일 계산
         m = len(feature_maps)
         self.scales = [0.2 + (0.9 - 0.2) * k / (m - 1) for k in range(m)]
         self.scales.append(1.0)
@@ -126,7 +126,7 @@ class DefaultBoxGenerator:
 
 ```python
 class SSDHead(nn.Module):
-    """피처 지도 하나를 위한 SSD 탐지 머리."""
+    """피처 맵 하나를 위한 SSD 탐지 헤드."""
     def __init__(self, in_channels: int, num_boxes: int, num_classes: int):
         super().__init__()
         
@@ -161,21 +161,21 @@ class SSDLoss(nn.Module):
         pos_mask = conf_target > 0
         num_pos = pos_mask.sum(dim=1)
         
-        # 자리 잡기 로스
+        # 위치(localization) 로스
         loc_loss = F.smooth_l1_loss(
             loc_pred[pos_mask],
             loc_target[pos_mask],
             reduction='sum'
         )
         
-        # 어려운 음성 캐기를 곁들인 믿음도 로스
+        # 하드 네거티브 마이닝을 곁들인 신뢰도 로스
         conf_loss_all = F.cross_entropy(
             conf_pred.view(-1, self.num_classes),
             conf_target.view(-1),
             reduction='none'
         ).view(conf_pred.size(0), -1)
         
-        # 어려운 음성 캐기
+        # 하드 네거티브 마이닝
         conf_loss_neg = conf_loss_all.clone()
         conf_loss_neg[pos_mask] = 0
         
@@ -193,7 +193,7 @@ class SSDLoss(nn.Module):
 
 목표는 이미 기본 상자와 매칭·인코딩된 loc_target과 배경 0·객체 1 이상인 conf_target이다. 이 함수가 그 목표를 생성하지는 않는다. 반환값은 정규화된 위치·분류 로스 두 개이므로 학습 루프에서 계수를 정해 합해야 한다. N은 배치 전체 양성 수이며 0이면 분모를 1로 둔다. 양성이 없는 이미지는 num_neg도 0이 되어 이 구현에서 배경 분류 학습에 기여하지 않는다.
 
-음성 선택에는 추가 주의가 필요하다. 코드는 양성의 정렬 점수를 0으로 만들지만 `neg_mask`에서 양성을 명시적으로 제외하지 않는다. 요청한 음성 수가 실제 음성 수를 넘으면 양성이 다시 선택되어 분류 로스가 두 번 합산될 수 있다. 무시 레이블 처리도 따로 정의되어 있지 않다. 이 구현을 그대로 완전한 hard negative mining이라고 가정하지 않는다.
+음성 선택에는 추가 주의가 필요하다. 코드는 양성의 정렬 점수를 0으로 만들지만 `neg_mask`에서 양성을 명시적으로 제외하지 않는다. 요청한 음성 수가 실제 음성 수를 넘으면 양성이 다시 선택되어 분류 로스가 두 번 합산될 수 있다. 무시 라벨 처리도 따로 정의되어 있지 않다. 이 구현을 그대로 완전한 hard negative mining이라고 가정하지 않는다.
 
 ## 5. 사전 학습된 라이브러리 모델
 
@@ -212,7 +212,7 @@ scores = predictions[0]['scores']
 labels = predictions[0]['labels']
 ```
 
-이 부분은 앞의 조각을 조립한 모델이 아니라 별도의 [torchvision SSD300](https://docs.pytorch.org/vision/stable/models/generated/torchvision.models.detection.ssd300_vgg16.html)을 사용한다. 0~1 범위 C×H×W 텐서의 목록을 받아 추론 시 이미지별 boxes·scores·labels 사전을 반환한다. 웨이트를 처음 사용할 때 다운로드가 필요할 수 있다. 예제의 무작위 이미지는 API의 입력 형태를 보여 줄 뿐 탐지 성능을 평가하는 자료가 아니다.
+이 부분은 앞의 조각을 조립한 모델이 아니라 별도의 [torchvision SSD300](https://docs.pytorch.org/vision/stable/models/generated/torchvision.models.detection.ssd300_vgg16.html)을 사용한다. 0~1 범위 C×H×W 텐서의 목록을 받아 추론 시 이미지별 boxes·scores·labels 딕셔너리를 반환한다. 웨이트를 처음 사용할 때 다운로드가 필요할 수 있다. 예제의 무작위 이미지는 API의 입력 형태를 보여 줄 뿐 탐지 성능을 평가하는 데이터가 아니다.
 
 ## 6. 다른 탐지기와 비교하기
 
@@ -244,7 +244,7 @@ labels = predictions[0]['labels']
 
 ??? success "풀이"
 
-    아니다. 예를 들어 cx=0.1,w=0.6이면 왼쪽 모서리는 −0.2다. 중심·크기 표현을 xyxy로 바꾼 뒤 경계 처리 폴리시를 적용해야 한다. 생성기의 clamp는 일부 큰 너비·높이의 종횡비도 바꿀 수 있다.
+    아니다. 예를 들어 cx=0.1,w=0.6이면 왼쪽 모서리는 −0.2다. 중심·크기 표현을 xyxy로 바꾼 뒤 경계 처리 정책을 적용해야 한다. 생성기의 clamp는 일부 큰 너비·높이의 종횡비도 바꿀 수 있다.
 
 
 
@@ -291,7 +291,7 @@ SSD head의 loc 출력과 아래 NMS가 요구하는 상자의 차이를 설명�
 
 ??? success "풀이"
 
-    양성이 없으면 음성 선택 수도 0이다. 반대로 양성이 많아 3배 요청 수가 실제 음성 수를 넘으면 정렬에서 점수를 0으로 만든 양성도 neg_mask에 들어갈 수 있다. 실제 음성 수로 제한하고 양성을 명시적으로 제외하는 규칙이 필요하다. 현재 코드는 그대로 보존되어 있어 이 한계를 고려해 읽는다.
+    양성이 없으면 음성 선택 수도 0이다. 반대로 양성이 많아 3배 요청 수가 실제 음성 수를 넘으면 정렬에서 점수를 0으로 만든 양성도 neg_mask에 들어갈 수 있다. 실제 음성 수로 제한하고 양성을 명시적으로 제외하는 규칙이 필요하다. 본문 코드에는 이 처리가 없으므로 이 한계를 고려해 읽는다.
 
 
 

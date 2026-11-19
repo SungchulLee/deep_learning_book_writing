@@ -16,22 +16,22 @@ import numpy as np
 import torch
 
 class VideoLoader:
-    """두루 쓰는 영상 읽어 들이기 도구."""
+    """범용 영상 로더."""
     
     def __init__(self, video_path: str):
         self.video_path = video_path
         
     def load_video_opencv(self):
         """
-        OpenCV 뒷단으로 영상을 읽어 들인다.
+        OpenCV 백엔드로 영상을 읽어 들인다.
         
         반환값:
             frames: 형태가 (T, H, W, C)인 NumPy 배열
-            info: 영상 메타자료를 담은 사전
+            info: 영상 메타데이터를 담은 딕셔너리
         """
         cap = cv2.VideoCapture(self.video_path)
         
-        # 영상의 성질 뽑아내기
+        # 영상의 속성 읽기
         fps = cap.get(cv2.CAP_PROP_FPS)
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -42,7 +42,7 @@ class VideoLoader:
             ret, frame = cap.read()
             if not ret:
                 break
-            # BGR(OpenCV 붙박이)을 RGB로 바꾸기
+            # BGR(OpenCV 기본값)을 RGB로 바꾸기
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frames.append(frame)
         
@@ -68,22 +68,22 @@ from torchvision.io import read_video, write_video
 
 def load_video_torchvision(video_path: str):
     """
-    torchvision 뒷단으로 영상을 읽어 들인다.
+    torchvision 백엔드로 영상을 읽어 들인다.
     
     반환값:
         video: 값이 [0, 255]이고 형태가 (T, H, W, C)인 텐서
-        audio: 있으면 소리 텐서
-        info: 영상 메타자료를 담은 사전
+        audio: 있으면 오디오 텐서
+        info: 영상 메타데이터를 담은 딕셔너리
     """
     video, audio, info = read_video(
         video_path,
-        pts_unit='sec'  # 때 도장에 초를 쓴다
+        pts_unit='sec'  # 타임스탬프 단위로 초를 쓴다
     )
     
     return video, audio, info
 ```
 
-이 torchvision I/O 형식은 기본 THWC 비디오와 오디오·정보를 반환하는 API를 가정한다. 지원 API·코덱 의존성은 설치된 버전에서 확인한다. 이 메서드와 OpenCV 메서드의 정보 사전 키·오디오 처리도 같지 않다. 읽기 backend를 바꿀 때 반환 형태까지 같은 것으로 취급하면 안 된다.
+이 torchvision I/O 형식은 기본 THWC 비디오와 오디오·정보를 반환하는 API를 가정한다. 지원 API·코덱 의존성은 설치된 버전에서 확인한다. 이 메서드와 OpenCV 메서드의 정보 딕셔너리 키·오디오 처리도 같지 않다. 읽기 backend를 바꿀 때 반환 형태까지 같은 것으로 취급하면 안 된다.
 
 ```python
 def convert_to_pytorch_format(frames: np.ndarray) -> torch.Tensor:
@@ -99,10 +99,10 @@ def convert_to_pytorch_format(frames: np.ndarray) -> torch.Tensor:
     # 텐서로 바꾸기
     video_tensor = torch.from_numpy(frames).float()
     
-    # 차원 다시 늘어놓기: (T, H, W, C) → (T, C, H, W)
+    # 차원 재배열: (T, H, W, C) → (T, C, H, W)
     video_tensor = video_tensor.permute(0, 3, 1, 2)
     
-    # [0, 1]로 고르게 맞추기
+    # [0, 1]로 스케일링
     video_tensor = video_tensor / 255.0
     
     return video_tensor
@@ -115,14 +115,14 @@ def convert_to_pytorch_format(frames: np.ndarray) -> torch.Tensor:
 ```python
 def uniform_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
     """
-    영상 전체에서 틀을 고루 뽑는다.
+    영상 전체에서 프레임을 균일하게 샘플링한다.
     
     인수:
-        video: 들임 텐서 (T, C, H, W)
-        num_frames: 뽑을 틀의 개수
+        video: 입력 텐서 (T, C, H, W)
+        num_frames: 샘플링할 프레임의 개수
         
     반환값:
-        뽑은 텐서 (num_frames, C, H, W)
+        샘플링한 텐서 (num_frames, C, H, W)
     """
     T = video.shape[0]
     indices = torch.linspace(0, T - 1, num_frames).long()
@@ -134,19 +134,19 @@ def uniform_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
 ```python
 def stride_sampling(video: torch.Tensor, stride: int) -> torch.Tensor:
     """
-    붙박이 때 성큼으로 틀을 뽑는다.
+    고정 시간 스트라이드로 프레임을 샘플링한다.
     
     인수:
-        video: 들임 텐서 (T, C, H, W)
-        stride: 때 성큼(stride-1개 틀씩 건너뛴다)
+        video: 입력 텐서 (T, C, H, W)
+        stride: 시간 스트라이드(stride-1개 프레임씩 건너뛴다)
         
     반환값:
-        때 차원을 줄여 뽑은 텐서
+        시간 차원을 줄여 샘플링한 텐서
     """
     return video[::stride]
 ```
 
-stride_sampling은 0번부터 양의 s 간격으로 선택한다. 영상 전체를 일정 수로 압축하는 uniform과 달리 출력 프레임 수가 원본 길이에 따라 달라진다. 큰 stride는 빠른 액션을 놓칠 수 있으며 s=0·음수 등 허용 범위를 검증해야 한다.
+stride_sampling은 0번부터 양의 s 간격으로 선택한다. 영상 전체를 일정 수로 압축하는 uniform과 달리 출력 프레임 수가 원본 길이에 따라 달라진다. 큰 stride는 빠른 동작을 놓칠 수 있으며 s=0·음수 등 허용 범위를 검증해야 한다.
 
 ## 4. 여러 clip과 무작위 프레임
 
@@ -155,25 +155,25 @@ def dense_sampling(video: torch.Tensor,
                    clip_length: int, 
                    num_clips: int) -> list:
     """
-    촘촘한 어림을 위해 영상에서 토막을 여럿 뽑는다.
+    조밀한 예측을 위해 영상에서 클립을 여럿 샘플링한다.
     
     인수:
-        video: 들임 텐서 (T, C, H, W)
-        clip_length: 토막마다의 틀 개수
-        num_clips: 뽑을 토막의 개수
+        video: 입력 텐서 (T, C, H, W)
+        clip_length: 클립마다의 프레임 개수
+        num_clips: 샘플링할 클립의 개수
         
     반환값:
-        토막 텐서의 목록. 저마다 (clip_length, C, H, W)
+        클립 텐서의 리스트. 저마다 (clip_length, C, H, W)
     """
     T = video.shape[0]
     
     if T < clip_length:
-        # 영상이 토막 길이보다 짧으면 덧대기
+        # 영상이 클립 길이보다 짧으면 패딩
         padding = torch.zeros(clip_length - T, *video.shape[1:])
         video = torch.cat([video, padding], dim=0)
         T = clip_length
     
-    # 토막 시작 자리 셈하기
+    # 클립 시작 위치 계산하기
     max_start = T - clip_length
     if num_clips == 1:
         starts = [max_start // 2]
@@ -189,18 +189,18 @@ def dense_sampling(video: torch.Tensor,
 ```python
 def random_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
     """
-    틀을 마구잡이로 뽑는다(자료 불리기용).
+    프레임을 무작위로 샘플링한다(데이터 어그멘테이션용).
     
     인수:
-        video: 들임 텐서 (T, C, H, W)
-        num_frames: 뽑을 틀의 개수
+        video: 입력 텐서 (T, C, H, W)
+        num_frames: 샘플링할 프레임의 개수
         
     반환값:
-        뽑은 텐서 (num_frames, C, H, W)
+        샘플링한 텐서 (num_frames, C, H, W)
     """
     T = video.shape[0]
     
-    # 마구잡이 번호를 뽑고 때 차례를 지키려 정렬
+    # 무작위 인덱스를 뽑고 시간 순서를 지키려 정렬
     indices = torch.randint(0, T, (num_frames,))
     indices, _ = torch.sort(indices)
     
@@ -213,7 +213,7 @@ random_sampling은 복원 추출한 인덱스를 정렬한다. 중복 없는 부
 
 ```python
 class VideoPreprocessor:
-    """영상 자료를 위한 앞손질 도구."""
+    """영상 데이터를 위한 전처리 도구."""
     
     # ImageNet 통계량
     MEAN = torch.tensor([0.485, 0.456, 0.406])
@@ -221,22 +221,22 @@ class VideoPreprocessor:
     
     def normalize(self, video: torch.Tensor) -> torch.Tensor:
         """
-        영상에 ImageNet 방식 고르게 맞추기를 쓴다.
+        영상에 ImageNet 방식 정규화를 적용한다.
         
         인수:
-            video: 값이 [0, 1]인 들임 텐서 (T, C, H, W)
+            video: 값이 [0, 1]인 입력 텐서 (T, C, H, W)
             
         반환값:
-            평균 0, 흩어짐 1로 고르게 맞춘 텐서
+            평균 0, 표준편차 1로 정규화한 텐서
         """
-        # 퍼뜨리기를 위해 형태 바꾸기: (1, C, 1, 1)
+        # 브로드캐스팅을 위해 형태 바꾸기: (1, C, 1, 1)
         mean = self.MEAN.view(1, -1, 1, 1)
         std = self.STD.view(1, -1, 1, 1)
         
         return (video - mean) / std
     
     def denormalize(self, video: torch.Tensor) -> torch.Tensor:
-        """그려 보려고 고르게 맞추기를 되돌린다."""
+        """시각화를 위해 정규화를 되돌린다."""
         mean = self.MEAN.view(1, -1, 1, 1)
         std = self.STD.view(1, -1, 1, 1)
         
@@ -250,10 +250,10 @@ def spatial_crop(video: torch.Tensor,
                  crop_size: tuple,
                  position: str = 'center') -> torch.Tensor:
     """
-    모든 틀에 자리 잘라내기를 한다.
+    모든 프레임에 공간 크롭을 적용한다.
     
     인수:
-        video: 들임 텐서 (T, C, H, W)
+        video: 입력 텐서 (T, C, H, W)
         crop_size: (자를 높이, 자를 너비)
         position: 'center', 'random', 또는 'top_left'
         
@@ -275,7 +275,7 @@ def spatial_crop(video: torch.Tensor,
     return video[:, :, top:top+crop_h, left:left+crop_w]
 ```
 
-한 crop 위치를 모든 프레임에 적용해 우발적 흔들림을 줄인다. crop이 원본보다 크면 random 범위가 유효하지 않거나 슬라이싱이 예상과 다르게 작동한다. 시간 범위·공간 크기와 지원 position을 검증해야 한다. 목표 상자·마스크·flow가 있다면 같은 기하 변환과 각각의 레이블·벡터 규칙도 필요하다.
+한 crop 위치를 모든 프레임에 적용해 우발적 흔들림을 줄인다. crop이 원본보다 크면 random 범위가 유효하지 않거나 슬라이싱이 예상과 다르게 작동한다. 시간 범위·공간 크기와 지원 position을 검증해야 한다. 목표 상자·마스크·flow가 있다면 같은 기하 변환과 각각의 라벨·벡터 규칙도 필요하다.
 
 ```python
 import torch.nn.functional as F
@@ -283,10 +283,10 @@ import torch.nn.functional as F
 def resize_video(video: torch.Tensor, 
                  target_size: tuple) -> torch.Tensor:
     """
-    모든 틀을 목표 크기로 바꾼다.
+    모든 프레임을 목표 크기로 바꾼다.
     
     인수:
-        video: 들임 텐서 (T, C, H, W)
+        video: 입력 텐서 (T, C, H, W)
         target_size: (타깃 높이, 타깃 너비)
         
     반환값:
@@ -298,7 +298,7 @@ def resize_video(video: torch.Tensor,
     # 배치 처리를 위해 형태 바꾸기
     video_flat = video.view(T, C, H, W)
     
-    # 두 줄 사이 끼움 쓰기
+    # 쌍선형 보간 쓰기
     resized = F.interpolate(
         video_flat,
         size=(target_h, target_w),
@@ -318,11 +318,11 @@ import matplotlib.pyplot as plt
 
 def visualize_frames(video: torch.Tensor, num_frames: int = 8):
     """
-    영상에서 뽑은 틀을 보여 준다.
+    영상에서 샘플링한 프레임을 보여 준다.
     
     인수:
         video: 영상 텐서 (T, C, H, W)
-        num_frames: 보여 줄 틀의 개수
+        num_frames: 보여 줄 프레임의 개수
     """
     T = video.shape[0]
     indices = torch.linspace(0, T - 1, num_frames).long()

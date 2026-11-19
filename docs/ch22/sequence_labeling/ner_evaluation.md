@@ -24,7 +24,7 @@ class Entity:
     end: int
 
 def extract_entities(tags: List[str]) -> Set[Entity]:
-    """IOB2 레이블에서 개체 뽑기."""
+    """IOB2 라벨에서 개체 추출하기."""
     entities = set()
     current = None
     
@@ -38,7 +38,7 @@ def extract_entities(tags: List[str]) -> Set[Entity]:
                 entities.add(Entity(current[0], current[1], i))
             current = (tag[2:], i)
         elif tag.startswith('I-') and current and current[0] == tag[2:]:
-            pass  # 것 이어 가기
+            pass  # 개체 이어 가기
         else:
             if current:
                 entities.add(Entity(current[0], current[1], i))
@@ -53,7 +53,7 @@ def compute_ner_metrics(
     gold_tags: List[List[str]],
     average: str = 'micro'
 ) -> Dict[str, float]:
-    """개체명 인식 F1 지표 셈하기."""
+    """개체명 인식 F1 지표 계산하기."""
     tp_per_type = defaultdict(int)
     fp_per_type = defaultdict(int)
     fn_per_type = defaultdict(int)
@@ -95,13 +95,13 @@ def compute_ner_metrics(
     return {'f1': sum(f1s) / len(f1s) if f1s else 0}
 ```
 
-extract_entities는 IOB2 형태의 평면 span을 집합으로 반환한다. 토큰 offset이고 원문 문자 offset이 아니다. 잘못 시작한 I태그·유형이 바뀐I태그는 엄격한 오류 대신 열린 개체를 닫고 무시하는 폴리시를 사용한다. BIOES를 직접 처리하는 함수도 아니다. 입력을 검증할지, 오류 교정할지와 평가 도구의 관례를 맞춰야 한다.
+extract_entities는 IOB2 형태의 평면 span을 집합으로 반환한다. 토큰 offset이고 원문 문자 offset이 아니다. 잘못 시작한 I태그·유형이 바뀐I태그는 엄격한 오류 대신 열린 개체를 닫고 무시하는 정책을 사용한다. BIOES를 직접 처리하는 함수도 아니다. 입력을 검증할지, 오류 교정할지와 평가 도구의 관례를 맞춰야 한다.
 
 compute_ner_metrics는 표본별 집합끼리 비교해 같은 위치 번호라도 다른 문장의 언급을 섞지 않는다. 다만 바깥 목록을 zip하므로 예측·정답 표본 수가 다르면 남은 표본을 조용히 버린다. 각 표본의 토큰 길이가 같은지도 검사하지 않는다. 평가 전에 두 축의 대응을 확인해야 한다. 집합은 같은 span의 중복을 제거하므로 중복 탐지 출력을 허용하는 다른 API의 집계와도 다를 수 있다.
 
 micro는 모든 유형의TP·FP·FN을 합친 뒤P·R·F1을 계산하고 분모0이면0을 반환한다. micro F1은 유형별 F1의 단순 평균이나 정답 support 가중 평균이 아니다.
 
-그 밖의 average 값은 모두 관측된 유형들의 F1 단순 평균으로 처리한다. 따라서 `weighted`를 넣어도 **weighted F1은 구현되지 않는다**. 알려지지 않은 문자열도 오류 없이 이 경로로 간다. macro 유형 집합은 예측 또는 정답에 나타난 유형이며 전체 등록 유형을 고정해 평균하는 폴리시와 다르다. macro 경로는 F1만 반환해 P·R도 제공하는 micro 반환값과 키가 다르다.
+그 밖의 average 값은 모두 관측된 유형들의 F1 단순 평균으로 처리한다. 따라서 `weighted`를 넣어도 **weighted F1은 구현되지 않는다**. 알려지지 않은 문자열도 오류 없이 이 경로로 간다. macro 유형 집합은 예측 또는 정답에 나타난 유형이며 전체 등록 유형을 고정해 평균하는 정책과 다르다. macro 경로는 F1만 반환해 P·R도 제공하는 micro 반환값과 키가 다르다.
 
 ## 3. seqeval과 태그 체계
 
@@ -182,7 +182,7 @@ average=weighted는 실제 support 가중 F1을 계산하는가?
 
 ??? success "풀이"
 
-    초기 I·유형 전환 I 등 무효 태그의 교정·거부 폴리시와 strict 설정·태그 체계가 다를 수 있다. 같은 토큰화·유효 위치·문장 구분·빈 경우 규칙을 맞추고 경계 사례의 예상 span을 명시해 비교해야 한다.
+    초기 I·유형 전환 I 등 무효 태그의 교정·거부 정책과 strict 설정·태그 체계가 다를 수 있다. 같은 토큰화·유효 위치·문장 구분·빈 경우 규칙을 맞추고 경계 사례의 예상 span을 명시해 비교해야 한다.
 
 
 

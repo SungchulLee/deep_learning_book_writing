@@ -6,18 +6,18 @@
 
 ```python
 """
-한 예시 학습을 위한 샴 망
+원샷 학습을 위한 샴 네트워크
 
-샴 망은 보기 쌍 사이의 닮음 재기를 배운다.
-웨이트를 나누어 쓰는 쌍둥이 망으로 입력을 묻은 다음
-임베딩 사이의 닮음을 셈한다.
+샴 네트워크는 표본 쌍 사이의 유사도 측정을 배운다.
+웨이트를 공유하는 쌍둥이 네트워크로 입력을 임베딩한 다음
+임베딩 사이의 유사도를 계산한다.
 """
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 시드를 고정한다.
 torch.manual_seed(0)
 
 
@@ -28,7 +28,7 @@ torch.manual_seed(0)
 
 class SiameseEncoder(nn.Module):
     """
-    샴 망을 위한 CNN 인코더.
+    샴 네트워크를 위한 CNN 인코더.
     """
     def __init__(self, input_channels=1, hidden_dim=64, embedding_dim=128):
         super(SiameseEncoder, self).__init__()
@@ -55,8 +55,8 @@ class SiameseEncoder(nn.Module):
         )
         
         self.fc = nn.Sequential(
-            # 마지막 컨볼루션 켜의 자리 크기는 들임 크기에 따라 달라진다.
-            # 1x1로 모아 두면 아래 선형 켜의 들임 수가 언제나 맞는다.
+            # 마지막 컨볼루션 레이어의 공간 크기는 입력 크기에 따라 달라진다.
+            # 1x1로 풀링해 두면 아래 선형 레이어의 입력 차원이 언제나 맞는다.
             nn.AdaptiveAvgPool2d(1),
             nn.Flatten(),
             nn.Linear(hidden_dim * 4, embedding_dim),
@@ -71,7 +71,7 @@ class SiameseEncoder(nn.Module):
 
 class SiameseNetwork(nn.Module):
     """
-    쌍 사이의 닮음을 셈하는 샴 망.
+    쌍 사이의 유사도를 계산하는 샴 네트워크.
     """
     def __init__(self, encoder):
         super(SiameseNetwork, self).__init__()
@@ -79,7 +79,7 @@ class SiameseNetwork(nn.Module):
     
     def forward(self, x1, x2):
         """
-        입력 쌍의 임베딩과 거리를 셈한다.
+        입력 쌍의 임베딩과 거리를 계산한다.
         
         인수:
             x1: 첫 입력 (batch_size, channels, height, width)
@@ -92,28 +92,28 @@ class SiameseNetwork(nn.Module):
         embedding1 = self.encoder(x1)
         embedding2 = self.encoder(x2)
         
-        # L1 거리를 셈한다
+        # L1 거리를 계산한다
         distance = torch.abs(embedding1 - embedding2)
         
         return distance
     
     def predict_similarity(self, x1, x2):
         """
-        닮음 점수를 맞힌다(0 = 다름, 1 = 같음).
+        유사도 점수를 예측한다(0 = 다름, 1 = 같음).
         """
         distance = self.forward(x1, x2)
-        # 거리를 닮음으로 바꾸는 마지막 레이어를 더한다
+        # 거리를 유사도로 바꾸는 마지막 레이어를 더한다
         similarity = torch.sigmoid(distance.sum(dim=1))
         return similarity
 
 
 class ContrastiveLoss(nn.Module):
     """
-    샴 망을 익히는 대조 로스.
+    샴 네트워크를 학습하는 대조 로스.
     
     로스 = (1-Y) * 0.5 * D^2 + Y * 0.5 * max(margin - D, 0)^2
     
-    여기서 닮은 쌍이면 Y=0, 닮지 않은 쌍이면 Y=1이고,
+    여기서 유사한 쌍이면 Y=0, 유사하지 않은 쌍이면 Y=1이고,
     D은 임베딩 사이의 유클리드 거리이다.
     """
     def __init__(self, margin=1.0):
@@ -124,7 +124,7 @@ class ContrastiveLoss(nn.Module):
         """
         인수:
             distance: 임베딩 사이의 유클리드 거리
-            label: 닮은 쌍이면 0, 닮지 않은 쌍이면 1
+            label: 유사한 쌍이면 0, 유사하지 않은 쌍이면 1
         """
         loss = (1 - label) * torch.pow(distance, 2) + \
                label * torch.pow(torch.clamp(self.margin - distance, min=0.0), 2)
@@ -133,7 +133,7 @@ class ContrastiveLoss(nn.Module):
 
 class TripletLoss(nn.Module):
     """
-    트리플렛 로스: 앵커를 양의 보기 쪽으로 끌고 음의 보기에서 밀어낸다.
+    트리플렛 로스: 앵커를 양성 표본 쪽으로 끌고 음성 표본에서 밀어낸다.
     
     로스 = max(d(anchor, positive) - d(anchor, negative) + margin, 0)
     """
@@ -145,8 +145,8 @@ class TripletLoss(nn.Module):
         """
         인수:
             anchor: 앵커 임베딩 (batch_size, embedding_dim)
-            positive: 양의 임베딩(앵커와 같은 부류)
-            negative: 음의 임베딩(다른 부류)
+            positive: 양성 임베딩(앵커와 같은 클래스)
+            negative: 음성 임베딩(다른 클래스)
         """
         pos_distance = F.pairwise_distance(anchor, positive, p=2)
         neg_distance = F.pairwise_distance(anchor, negative, p=2)
@@ -157,11 +157,11 @@ class TripletLoss(nn.Module):
 
 def train_siamese(model, x1, x2, labels, optimizer, criterion):
     """
-    대조 로스를 쓰는 샴 망의 학습 스텝.
+    대조 로스를 쓰는 샴 네트워크의 학습 스텝.
     
     인수:
         x1, x2: 입력 쌍
-        labels: 닮으면 0, 닮지 않으면 1
+        labels: 유사하면 0, 유사하지 않으면 1
     """
     model.train()
     optimizer.zero_grad()
@@ -170,7 +170,7 @@ def train_siamese(model, x1, x2, labels, optimizer, criterion):
     emb1 = model.encoder(x1)
     emb2 = model.encoder(x2)
     
-    # 유클리드 거리를 셈한다
+    # 유클리드 거리를 계산한다
     distance = F.pairwise_distance(emb1, emb2)
     
     # 로스를 계산한다
@@ -184,15 +184,15 @@ def train_siamese(model, x1, x2, labels, optimizer, criterion):
 
 def one_shot_classification(model, support_set, support_labels, query):
     """
-    익힌 샴 망으로 한 예시 분류를 한다.
+    학습한 샴 네트워크로 원샷 분류를 한다.
     
     인수:
-        support_set: (n_classes, *input_shape) - 부류마다 보기 하나
-        support_labels: (n_classes,) - 부류 이름표
-        query: (n_query, *input_shape) - 가려낼 물음
+        support_set: (n_classes, *input_shape) - 클래스마다 표본 하나
+        support_labels: (n_classes,) - 클래스 라벨
+        query: (n_query, *input_shape) - 분류할 쿼리
     
     반환값:
-        predictions: (n_query,) - 맞힌 부류 이름표
+        predictions: (n_query,) - 예측한 클래스 라벨
     """
     model.eval()
     n_classes = support_set.shape[0]
@@ -204,10 +204,10 @@ def one_shot_classification(model, support_set, support_labels, query):
         
         predictions = []
         for i in range(n_query):
-            # 이 물음의 임베딩을 얻는다
+            # 이 쿼리의 임베딩을 얻는다
             query_embedding = model.encoder(query[i:i+1])
             
-            # 모든 받침 보기까지의 거리를 셈한다
+            # 모든 서포트 표본까지의 거리를 계산한다
             distances = []
             for j in range(n_classes):
                 dist = F.pairwise_distance(
@@ -218,7 +218,7 @@ def one_shot_classification(model, support_set, support_labels, query):
             
             distances = torch.stack(distances)
             
-            # 거리가 가장 작은 부류를 내놓는다
+            # 거리가 가장 작은 클래스를 출력한다
             predicted_idx = torch.argmin(distances)
             predictions.append(support_labels[predicted_idx])
         
@@ -231,21 +231,21 @@ if __name__ == "__main__":
     encoder = SiameseEncoder(input_channels=1, hidden_dim=64, embedding_dim=128)
     model = SiameseNetwork(encoder)
     
-    # 대조 로스로 익히기
+    # 대조 로스로 학습하기
     criterion = ContrastiveLoss(margin=1.0)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     
-    # 학습 배치 보기
+    # 학습 배치 예
     batch_size = 32
-    # Koch의 샴 네트워크는 105x105 Omniglot 그림을 바탕으로 한다
+    # Koch의 샴 네트워크는 105x105 Omniglot 이미지를 바탕으로 한다
     x1 = torch.randn(batch_size, 1, 105, 105)
     x2 = torch.randn(batch_size, 1, 105, 105)
-    labels = torch.randint(0, 2, (batch_size,)).float()  # 0=닮음, 1=닮지 않음
+    labels = torch.randint(0, 2, (batch_size,)).float()  # 0=유사, 1=비유사
     
     loss = train_siamese(model, x1, x2, labels, optimizer, criterion)
     print(f"Training loss: {loss:.4f}")
     
-    # 한 예시 분류 보기
+    # 원샷 분류 예
     n_classes = 5
     n_query = 10
     support_set = torch.randn(n_classes, 1, 105, 105)
@@ -255,7 +255,7 @@ if __name__ == "__main__":
     predictions = one_shot_classification(model, support_set, support_labels, query)
     print(f"Predictions: {predictions}")
     
-    # 대안: 트리플렛 로스로 익히기
+    # 대안: 트리플렛 로스로 학습하기
     triplet_criterion = TripletLoss(margin=1.0)
     anchor = torch.randn(batch_size, 1, 105, 105)
     positive = torch.randn(batch_size, 1, 105, 105)
@@ -290,7 +290,7 @@ SiameseNetwork.forward는 스칼라 거리 대신 성분별 절댓값 차이를 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-입력 (4,1,105,105)의 컨볼루션·풀링 출력과 최종 임베딩 모양을 추적하라.
+입력 (4,1,105,105)의 컨볼루션·풀링 출력과 최종 임베딩 형태를 추적하라.
 
 </div>
 

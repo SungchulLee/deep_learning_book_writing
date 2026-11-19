@@ -6,10 +6,10 @@
 
 ```python
 """
-시계열 자기 회귀 모델을 위한 자료 만들기 도구
+시계열 자기 회귀 모델을 위한 데이터 생성 도구
 
-이 단원은 인공 시계열 자료를 만드는 함수를 담는다
-자기 회귀 모델을 익히고 시험하는 데 쓴다.
+이 모듈은 인공 시계열 데이터를 만드는 함수를 담는다
+자기 회귀 모델을 학습하고 시험하는 데 쓴다.
 """
 
 import numpy as np
@@ -26,26 +26,26 @@ def generate_sine_wave(n_samples: int = 1000,
                        noise_std: float = 0.1,
                        seed: int = 42) -> np.ndarray:
     """
-    정규 분포 잡음을 더한 사인 물결을 만든다.
+    정규 분포 잡음을 더한 사인파을 만든다.
     
-    이는 되풀이되는 액션을 보이는 단순한 시계열이다.
-    자기 회귀 모델은 이 결을 배워 헤아릴 수 있어야 한다.
+    이는 주기적인 거동을 보이는 단순한 시계열이다.
+    자기 회귀 모델은 이 패턴을 학습해 예측할 수 있어야 한다.
     
     인수:
-        n_samples: 만들 때 점의 수
-        frequency: 사인 물결의 잦기(클수록 빨리 흔들린다)
+        n_samples: 만들 시점의 수
+        frequency: 사인파의 주파수(클수록 빨리 진동한다)
         noise_std: 더할 정규 분포 잡음의 표준 편차
-        seed: 되풀이할 수 있게 하는 아무 씨앗
+        seed: 재현을 위한 난수 시드
         
     반환값:
         시계열을 담은 형태 (n_samples,)인 넘파이 배열
     """
     np.random.seed(seed)
     
-    # 때 점을 만든다
+    # 시점을 만든다
     t = np.arange(n_samples)
     
-    # 깨끗한 사인 물결을 만든다
+    # 깨끗한 사인파을 만든다
     signal = np.sin(2 * np.pi * frequency * t)
     
     # 가우스 잡음을 더한다
@@ -61,21 +61,21 @@ def generate_ar_process(n_samples: int = 1000,
     """
     정한 계수로 참 AR(p) 과정을 만든다.
     
-    이는 알려진 자기 회귀 모델에서 자료를 만든다.
+    이는 알려진 자기 회귀 모델에서 데이터를 만든다.
     X_t = φ₁*X_{t-1} + φ₂*X_{t-2} + ... + φₚ*X_{t-p} + ε_t
     
     여기서 ε_t ~ N(0, noise_std²)
     
     인수:
-        n_samples: 만들 때 점의 수
+        n_samples: 만들 시점의 수
         coefficients: 자기 회귀 계수 목록 [φ₁, φ₂, ..., φₚ]
         noise_std: 잡음 항의 표준 편차
-        seed: 되풀이할 수 있게 하는 아무 씨앗
+        seed: 재현을 위한 난수 시드
         
     반환값:
         시계열을 담은 형태 (n_samples,)인 넘파이 배열
         
-    보기:
+    예:
         # AR(2) 과정을 만든다: X_t = 0.6*X_{t-1} - 0.3*X_{t-2} + ε_t
         data = generate_ar_process(1000, coefficients=[0.6, -0.3])
     """
@@ -84,12 +84,12 @@ def generate_ar_process(n_samples: int = 1000,
     p = len(coefficients)  # 자기 회귀 과정의 차수
     series = np.zeros(n_samples)
     
-    # 처음 p개 값을 작은 아무 수로 초기화한다
+    # 처음 p개 값을 작은 난수로 초기화한다
     series[:p] = np.random.normal(0, 0.1, p)
     
-    # 자기 회귀 식으로 나머지 차례를 만든다
+    # 자기 회귀 식으로 나머지 시퀀스를 만든다
     for t in range(p, n_samples):
-        # 자기 회귀 항을 셈한다: (계수 * 지난 값)의 합
+        # 자기 회귀 항을 계산한다: (계수 * 지난 값)의 합
         ar_term = sum(coefficients[i] * series[t - i - 1] for i in range(p))
         
         # 잡음 더하기
@@ -104,38 +104,38 @@ def generate_ar_process(n_samples: int = 1000,
 def create_sequences(data: np.ndarray, 
                      sequence_length: int = 10) -> Tuple[torch.Tensor, torch.Tensor]:
     """
-    자기 회귀 모델 익히기를 위한 들임-내놓기 짝을 만든다.
+    자기 회귀 모델 학습을 위한 입력-출력 쌍을 만든다.
     
-    시계열을 이끌린 러닝을 위한 차례로 바꾼다.
-    자기 회귀 모델에서는 X_{t-p}, ..., X_{t-1}으로 X_t을 헤아리려 한다
+    시계열을 지도 학습을 위한 시퀀스로 바꾼다.
+    자기 회귀 모델에서는 X_{t-p}, ..., X_{t-1}로 X_t를 예측하려 한다
     
     인수:
         data: 시계열 값의 1차원 넘파이 배열
         sequence_length: 쓸 지난 값의 수(AR(p)의 'p'이다)
         
     반환값:
-        (X, y) 짝이며 여기서:
-            X: 형태 (n_sequences, sequence_length)인 텐서 - 들임 차례
+        (X, y) 튜플이며 여기서:
+            X: 형태 (n_sequences, sequence_length)인 텐서 - 입력 시퀀스
             y: 형태 (n_sequences, 1)인 텐서 - 목표 값
             
-    보기:
+    예:
         data = [1, 2, 3, 4, 5]이고 sequence_length = 2이면:
         X = [[1, 2], [2, 3], [3, 4]]
         y = [[3], [4], [5]]
     """
     X, y = [], []
     
-    # 시계열 위로 창을 미끄러뜨린다
+    # 시계열 위로 슬라이딩 창을 옮겨 간다
     for i in range(len(data) - sequence_length):
-        # 들임: 지난 'sequence_length'개 값
+        # 입력: 지난 'sequence_length'개 값
         X.append(data[i:i + sequence_length])
         
-        # 내놓기: 다음 값
+        # 출력: 다음 값
         y.append(data[i + sequence_length])
     
     # PyTorch 텐서로 변환
     X = torch.FloatTensor(np.array(X))
-    y = torch.FloatTensor(np.array(y)).unsqueeze(1)  # 한결같게 하려 차원을 더한다
+    y = torch.FloatTensor(np.array(y)).unsqueeze(1)  # 일관성을 위해 차원을 더한다
     
     return X, y
 
@@ -144,24 +144,24 @@ def train_test_split_temporal(X: torch.Tensor,
                               y: torch.Tensor, 
                               train_ratio: float = 0.8) -> Tuple[torch.Tensor, ...]:
     """
-    시계열 자료를 익히기 배치와 시험 배치로 가른다.
+    시계열 데이터를 학습 세트와 시험 세트로 나눈다.
     
-    중요: 시계열에서는 자료를 섞으면 안 된다!
-    때 차례대로 가른다. 곧 앞선 자료로 익히고 뒤 자료로 시험한다.
-    이는 실제 내다보기 상황을 흉내 낸다.
+    중요: 시계열에서는 데이터를 섞으면 안 된다!
+    시간 순서대로 나눈다. 곧 앞선 데이터로 학습하고 뒤 데이터로 시험한다.
+    이는 실제 예측 상황을 모사한다.
     
     인수:
-        X: 들임 차례 텐서
+        X: 입력 시퀀스 텐서
         y: 목표 값 텐서
-        train_ratio: 익히기에 쓸 자료의 몫(나머지는 시험)
+        train_ratio: 학습에 쓸 데이터의 몫(나머지는 시험)
         
     반환값:
-        (X_train, X_test, y_train, y_test) 짝
+        (X_train, X_test, y_train, y_test) 튜플
     """
     n_samples = len(X)
     split_idx = int(n_samples * train_ratio)
     
-    # 때 차례대로 가른다(섞지 않는다!)
+    # 시간 순서대로 나눈다(섞지 않는다!)
     X_train = X[:split_idx]
     X_test = X[split_idx:]
     y_train = y[:split_idx]
@@ -172,11 +172,11 @@ def train_test_split_temporal(X: torch.Tensor,
 
 if __name__ == "__main__":
     """
-    보여 주기: 보기 자료를 만들어 그려 본다
+    시연: 예시 데이터를 만들어 그려 본다
     """
     import matplotlib.pyplot as plt
     
-    # 사인 물결을 만든다
+    # 사인파을 만든다
     sine_data = generate_sine_wave(n_samples=200, frequency=0.05, noise_std=0.2)
     
     # 참 자기 회귀 과정을 만든다
@@ -184,7 +184,7 @@ if __name__ == "__main__":
                                    coefficients=[0.7, -0.2], 
                                    noise_std=0.3)
     
-    # 차례를 만든다
+    # 시퀀스를 만든다
     X, y = create_sequences(ar_data, sequence_length=5)
     print(f"Created {len(X)} training sequences")
     print(f"Input shape: {X.shape}, Output shape: {y.shape}")
@@ -302,10 +302,10 @@ train_test_split_temporal은 이미 시간순으로 만든 창의 앞부분을 �
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

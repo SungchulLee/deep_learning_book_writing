@@ -26,11 +26,11 @@ class TransformerDecoderBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, mask=None):
-        # 가린 자기 주의
+        # 마스크 셀프 어텐션
         attn_output, _ = self.self_attention(x, x, x, attn_mask=mask)
         x = self.norm1(x + self.dropout(attn_output))
 
-        # 순전파
+        # 피드포워드
         ff_output = self.feed_forward(x)
         x = self.norm2(x + self.dropout(ff_output))
 
@@ -93,7 +93,7 @@ generate는 전체 토큰을 매 단계 다시 모델에 전달하고 마지막 
 
 기반 TransformerDecoder는 배치 우선 입력을 시퀀스 우선 어텐션에 그대로 넘기며 인과 마스크도 자동 생성하지 않는다. GPTModel은 mask=None으로 호출한다. 특히 배치 1에서는 내부가 길이 1의 여러 배치로 해석해 의도한 토큰 간 어텐션을 계산하지 못한다. 샘플링 루프를 추가하는 것만으로 이 문제가 해결되지는 않는다.
 
-self.eval은 드롭아웃을 끄고 no_grad는 경사 기록을 끈다. 샘플링 자체의 무작위성은 남는다. 메서드는 호출 전 학습 모드를 복원하지 않으며 EOS 종료·패딩 처리·KV 캐시가 없다. max_len은 전체 길이가 아니라 추가 생성 횟수이므로 프롬프트 길이도 따로 계산해야 한다.
+self.eval은 드롭아웃을 끄고 no_grad는 그래디언트 기록을 끈다. 샘플링 자체의 무작위성은 남는다. 메서드는 호출 전 학습 모드를 복원하지 않으며 EOS 종료·패딩 처리·KV 캐시가 없다. max_len은 전체 길이가 아니라 추가 생성 횟수이므로 프롬프트 길이도 따로 계산해야 한다.
 
 ## 연습문제
 
@@ -126,7 +126,7 @@ self.eval은 드롭아웃을 끄고 no_grad는 경사 기록을 끈다. 샘플�
 </div>
 
 ??? success "풀이"
-    저장된 표보다 입력이 길면 슬라이스는 표의 끝에서 멈추고, 입력 임베딩과 더할 때 위치 축이 달라 모양 오류가 난다. 범위 밖 위치를 직접 인덱싱하는 오류와 다르다. 아래 방식은 최근 context_window개만 넘겨 길이를 제한하지만 오래된 정보를 버리고 위치를 매번 0부터 다시 배정한다. 원래 긴 문맥 계산과 동등하지 않으며 디코더의 축·마스크 문제도 별도로 해결해야 한다.
+    저장된 표보다 입력이 길면 슬라이스는 표의 끝에서 멈추고, 입력 임베딩과 더할 때 위치 축이 달라 형태 불일치 오류가 난다. 범위 밖 위치를 직접 인덱싱하는 오류와 다르다. 아래 방식은 최근 context_window개만 넘겨 길이를 제한하지만 오래된 정보를 버리고 위치를 매번 0부터 다시 배정한다. 원래 긴 문맥 계산과 동등하지 않으며 디코더의 축·마스크 문제도 별도로 해결해야 한다.
     ```python
     def generate(self, start_tokens, max_len=50, temperature=1.0,
                  context_window=5000):

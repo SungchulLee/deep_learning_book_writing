@@ -9,13 +9,13 @@ NumPy로 GRU의 순전파를 구현하고 리셋·업데이트 게이트의 역�
 GRU의 이론과 밑바닥부터의 구현
 ==========================================
 
-문 달린 순환 단위(GRU)는 망각 문과 입력 문을 갱신 문 하나로 합치고
-세포 상태와 숨은 상태를 하나로 묶은, LSTM을 간소화한 판본이다.
+게이트 순환 유닛(GRU)은 망각 게이트와 입력 게이트를 업데이트 게이트 하나로 합치고
+셀 상태와 은닉 상태를 하나로 묶은, LSTM을 간소화한 변형이다.
 
 
 수식:
 ------------------------
-시각 t에 대해:
+시점 t에 대해:
 
 Reset Gate:    r_t = σ(W_r · [h_{t-1}, x_t] + b_r)
 Update Gate:   z_t = σ(W_z · [h_{t-1}, x_t] + b_z)
@@ -29,8 +29,8 @@ Hidden State:  h_t = (1 - z_t) ⊙ h_{t-1} + z_t ⊙ h̃_t
 - b는 바이어스 벡터이다
 
 LSTM과의 핵심 차이:
-- 문이 3개가 아니라 2개이다 (출력 문이 없다)
-- 세포 상태를 따로 두지 않는다
+- 게이트가 3개가 아니라 2개이다 (출력 게이트가 없다)
+- 셀 상태를 따로 두지 않는다
 - 파라메터가 적다 (학습이 빠르다)
 - 많은 과제에서 성능이 비슷하다
 """
@@ -44,70 +44,70 @@ import matplotlib.pyplot as plt
 
 
 class GRUCell:
-    """밑바닥부터 만든 GRU 세포 하나의 구현."""
+    """밑바닥부터 만든 GRU 셀 하나의 구현."""
     
     def __init__(self, input_size, hidden_size):
         """
-        GRU 세포의 파라메터를 초기화한다.
+        GRU 셀의 파라메터를 초기화한다.
         
         인수:
             input_size: 입력 피처의 차원
-            hidden_size: 숨은 상태의 차원
+            hidden_size: 은닉 상태의 차원
         """
         self.input_size = input_size
         self.hidden_size = hidden_size
         
-        # 자비에르 초기화로 웨이트 초기화
+        # Xavier 초기화로 웨이트 초기화
         scale = 1.0 / np.sqrt(input_size + hidden_size)
         
-        # 재설정 문의 웨이트
+        # 리셋 게이트의 웨이트
         self.W_r = np.random.randn(hidden_size, input_size + hidden_size) * scale
         self.b_r = np.zeros((hidden_size, 1))
         
-        # 갱신 문의 웨이트
+        # 업데이트 게이트의 웨이트
         self.W_z = np.random.randn(hidden_size, input_size + hidden_size) * scale
         self.b_z = np.zeros((hidden_size, 1))
         
-        # 후보 숨은 상태의 웨이트
+        # 후보 은닉 상태의 웨이트
         self.W_h = np.random.randn(hidden_size, input_size + hidden_size) * scale
         self.b_h = np.zeros((hidden_size, 1))
         
     def sigmoid(self, x):
-        """시그모이드 엑티베이션 함수."""
+        """시그모이드 활성화 함수."""
         return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
     
     def tanh(self, x):
-        """쌍곡탄젠트 엑티베이션 함수."""
+        """쌍곡탄젠트 활성화 함수."""
         return np.tanh(x)
     
     def forward(self, x, h_prev):
         """
-        GRU 세포를 지나는 순전파.
+        GRU 셀을 지나는 순전파.
         
         인수:
-            x: 지금 시각의 입력 (input_size, 1)
-            h_prev: 이전 숨은 상태 (hidden_size, 1)
+            x: 지금 시점의 입력 (input_size, 1)
+            h_prev: 이전 은닉 상태 (hidden_size, 1)
             
         반환값:
-            h: 새 숨은 상태
+            h: 새 은닉 상태
             cache: 역전파에 필요한 값
         """
-        # 이전 숨은 상태와 지금 입력 이어 붙이기
+        # 이전 은닉 상태와 지금 입력 이어 붙이기
         combined = np.vstack((h_prev, x))
         
-        # 재설정 문 — 과거 정보를 얼마나 잊을지 정한다
+        # 리셋 게이트 — 과거 정보를 얼마나 잊을지 정한다
         r = self.sigmoid(self.W_r @ combined + self.b_r)
         
-        # 갱신 문 — 얼마나 갱신할지 정한다
+        # 업데이트 게이트 — 얼마나 갱신할지 정한다
         z = self.sigmoid(self.W_z @ combined + self.b_z)
         
-        # 재설정 문을 쓴 후보 숨은 상태
-        # 재설정 문이 이전 숨은 상태를 조절한다
+        # 리셋 게이트를 쓴 후보 은닉 상태
+        # 리셋 게이트가 이전 은닉 상태를 조절한다
         combined_reset = np.vstack((r * h_prev, x))
         h_tilde = self.tanh(self.W_h @ combined_reset + self.b_h)
         
-        # 새 숨은 상태: 이전 상태와 후보 사이의 보간
-        # z가 "망각 문"과 "입력 문"을 합친 구실을 한다
+        # 새 은닉 상태: 이전 상태와 후보 사이의 보간
+        # z가 "망각 게이트"와 "입력 게이트"를 합친 역할을 한다
         h = (1 - z) * h_prev + z * h_tilde
         
         # 역전파를 위한 저장
@@ -125,7 +125,7 @@ class GRU:
         
         인수:
             input_size: 입력 피처의 차원
-            hidden_size: 숨은 상태의 차원
+            hidden_size: 은닉 상태의 차원
             output_size: 출력의 차원
         """
         self.cell = GRUCell(input_size, hidden_size)
@@ -138,14 +138,14 @@ class GRU:
         
     def forward(self, inputs):
         """
-        순차열 전체를 지나는 순전파.
+        시퀀스 전체를 지나는 순전파.
         
         인수:
-            inputs: 모양이 (input_size, 1)인 입력 벡터의 목록
+            inputs: 형태가 (input_size, 1)인 입력 벡터의 목록
             
         반환값:
             outputs: 출력 예측의 목록
-            hidden_states: 그려 보려고 모은 숨은 상태의 목록
+            hidden_states: 그려 보려고 모은 은닉 상태의 목록
         """
         h = np.zeros((self.hidden_size, 1))
         
@@ -163,21 +163,21 @@ class GRU:
 
 
 def demonstrate_gru_gates():
-    """그림으로 GRU의 문이 어떻게 움직이는지 보인다."""
+    """그림으로 GRU의 게이트가 어떻게 움직이는지 보인다."""
     print("=" * 60)
     print("GRU Gate Mechanics Demonstration")
     print("=" * 60)
     
-    # 간단한 GRU 세포 만들기
+    # 간단한 GRU 셀 만들기
     input_size = 3
     hidden_size = 4
     gru_cell = GRUCell(input_size, hidden_size)
     
-    # 예제 입력 순차열 만들기
+    # 예제 입력 시퀀스 만들기
     sequence_length = 20
     inputs = [np.random.randn(input_size, 1) for _ in range(sequence_length)]
     
-    # 문의 엑티베이션 좇기
+    # 게이트의 활성화 값 추적하기
     reset_gates = []
     update_gates = []
     hidden_states = []
@@ -201,7 +201,7 @@ def demonstrate_gru_gates():
         candidates.append(h_tilde.mean())
         hidden_states.append(h.mean())
     
-    # 문의 엑티베이션 그려 보기
+    # 게이트의 활성화 값 그려 보기
     plt.figure(figsize=(12, 8))
     
     plt.subplot(2, 2, 1)
@@ -241,7 +241,7 @@ def demonstrate_gru_gates():
 
 
 def compare_gate_mechanics():
-    """갱신 문이 이전 상태와 새 상태를 어떻게 보간하는지 견준다."""
+    """업데이트 게이트가 이전 상태와 새 상태를 어떻게 보간하는지 견준다."""
     print("\n" + "=" * 60)
     print("Understanding the Update Gate")
     print("=" * 60)
@@ -446,7 +446,7 @@ GRU 클래스는 호출마다 상태를 0으로 시작하고 선형 출력과 �
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 모양 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
+아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 형태 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
 
 </div>
 
@@ -459,16 +459,16 @@ GRU 클래스는 호출마다 상태를 0으로 시작하고 선형 출력과 �
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 형태, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

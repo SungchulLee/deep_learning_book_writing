@@ -6,21 +6,20 @@
 
 ```python
 """
-사전 바탕 개체명 인식
+사전 기반 개체명 인식
 ==========================================
 
-이 단원은 개체 사전과 찾기 표를 써서 사전/가제티어 바탕 개체명 인식을 짠다.
-이 방식은 단순하고 빠르며 또렷하게 정해진 개체 클래스에 잘 듣는다.
-것의 목록.
+이 단원은 개체 사전과 조회 테이블을 써서 사전/가제티어 기반 개체명 인식을 구현한다.
+이 방식은 단순하고 빠르며, 개체 목록을 뚜렷하게 정할 수 있는 개체 유형에 잘 맞는다.
 
 학습 목표:
 - 개체 사전(가제티어)을 세우고 쓴다
-- 효율적인 찾기 알고리즘 짜기
-- 단어 여럿짜리 개체 다루기
-- 예측 짝짓기와 아우르기
-- 사전 고침 다스리기
+- 효율적인 조회 알고리즘 구현하기
+- 여러 단어로 된 개체 다루기
+- 예측 매칭과 결합하기
+- 사전 갱신 관리하기
 
-지은이: 러닝 목적
+지은이: 교육 목적
 날짜: 2025
 """
 
@@ -36,13 +35,13 @@ from difflib import SequenceMatcher
 
 class EntityDictionary:
     """
-    알려진 것을 찾아보는 개체 사전(가제티어).
+    알려진 개체를 조회하는 개체 사전(가제티어).
     
-    가제티어은 특정 클래스의 알려진 것의 목록이다.
+    가제티어는 특정 유형의 알려진 개체 목록이다.
     보기로:
     - 사람 이름: ["Barack Obama", "Steve Jobs", ...]
     - 회사: ["Apple Inc.", "Microsoft", ...]
-    - 자리: ["New York", "Paris", ...]
+    - 장소: ["New York", "Paris", ...]
     """
     
     def __init__(self, entity_type: str):
@@ -50,65 +49,65 @@ class EntityDictionary:
         개체 사전 초기화.
         
         인수:
-            entity_type: 이 사전에 담긴 것의 클래스(PER, ORG, LOC 등)
+            entity_type: 이 사전에 담긴 개체의 유형(PER, ORG, LOC 등)
         """
         self.entity_type = entity_type
         self.entities: Set[str] = set()
-        self.entities_lower: Dict[str, str] = {}  # 소문자 -> 본디
+        self.entities_lower: Dict[str, str] = {}  # 소문자 -> 원래 표기
         self.multi_word_entities: Set[str] = set()
         
     def add_entity(self, entity: str):
-        """사전에 것 더하기."""
+        """사전에 개체 더하기."""
         self.entities.add(entity)
         self.entities_lower[entity.lower()] = entity
         
-        # 다듬기를 위해 단어 여럿짜리 개체를 따로 좇기
+        # 최적화를 위해 여러 단어로 된 개체를 따로 추적하기
         if len(entity.split()) > 1:
             self.multi_word_entities.add(entity)
     
     def add_entities(self, entities: List[str]):
-        """것을 한꺼번에 여럿 더하기."""
+        """개체를 한꺼번에 여럿 더하기."""
         for entity in entities:
             self.add_entity(entity)
     
     def contains(self, text: str, case_sensitive: bool = False) -> bool:
-        """글이 사전에 있는지 살피기."""
+        """텍스트가 사전에 있는지 확인하기."""
         if case_sensitive:
             return text in self.entities
         else:
             return text.lower() in self.entities_lower
     
     def __len__(self):
-        """사전에 든 것의 개수 돌려주기."""
+        """사전에 든 개체의 개수 반환하기."""
         return len(self.entities)
 
 
 class DictionaryNER:
     """
-    사전 바탕 개체명 인식 체계.
+    사전 기반 개체명 인식 시스템.
     
-    개체 사전(가제티어)을 찾아 것을 가려낸다.
+    개체 사전(가제티어)을 조회해 개체를 식별한다.
     
     과정:
-    1. 글을 토큰낸다
+    1. 텍스트를 토큰화한다
     2. 구간마다 사전과 맞춰 본다
-    3. 맞은 것을 것으로 돌려준다
+    3. 일치한 구간을 개체로 반환한다
     
-    이점:
-    - 아주 빠르다(O(1) 찾기)
-    - 사전에 있는 것에는 정밀도가 완벽하다
+    장점:
+    - 아주 빠르다(O(1) 조회)
+    - 사전에 있는 개체에는 정밀도가 완벽하다
     - 새 개체를 넣어 고치기 쉽다
-    - 익힐 필요가 없다
+    - 학습할 필요가 없다
     
-    나쁜 점:
-    - 사전에 없는 것에는 재현율이 0이다
-    - 두루 갖춘 사전이 필요하다
-    - 달라진 형태와 맞춤법 어긋남에 약하다
-    - 것의 아리송함을 풀지 못한다
+    단점:
+    - 사전에 없는 개체에는 재현율이 0이다
+    - 포괄적인 사전이 필요하다
+    - 변형과 철자 오류에 약하다
+    - 개체의 중의성을 해소하지 못한다
     """
     
     def __init__(self):
-        """사전 바탕 개체명 인식 초기화."""
+        """사전 기반 개체명 인식 초기화."""
         self.dictionaries: Dict[str, EntityDictionary] = {}
         self._initialize_default_dictionaries()
     
@@ -134,7 +133,7 @@ class DictionaryNER:
         ])
         self.dictionaries["ORG"] = org_dict
         
-        # 자리 사전
+        # 장소 사전
         loc_dict = EntityDictionary("LOC")
         loc_dict.add_entities([
             "New York", "Los Angeles", "Chicago", "San Francisco",
@@ -145,18 +144,18 @@ class DictionaryNER:
         self.dictionaries["LOC"] = loc_dict
     
     def add_dictionary(self, entity_type: str, entities: List[str]):
-        """개체 클래스의 사전을 더하거나 고치기."""
+        """개체 유형의 사전을 더하거나 갱신하기."""
         if entity_type not in self.dictionaries:
             self.dictionaries[entity_type] = EntityDictionary(entity_type)
         self.dictionaries[entity_type].add_entities(entities)
     
     def extract_entities(self, text: str, case_sensitive: bool = False) -> List[Dict]:
         """
-        사전 찾기로 개체 뽑기.
+        사전 조회로 개체 추출하기.
         
         인수:
             text: 입력 텍스트
-            case_sensitive: 대소문자를 가려 짝지을지 여부
+            case_sensitive: 대소문자를 구분해 매칭할지 여부
             
         반환값:
             개체 사전의 목록
@@ -164,7 +163,7 @@ class DictionaryNER:
         entities = []
         words = text.split()
         
-        # 가능한 모든 n-그램 살피기(단어 5개까지)
+        # 가능한 모든 n-그램 확인하기(단어 5개까지)
         for n in range(5, 0, -1):
             for i in range(len(words) - n + 1):
                 span = " ".join(words[i:i+n])
@@ -172,7 +171,7 @@ class DictionaryNER:
                 # 모든 사전과 맞춰 보기
                 for entity_type, dictionary in self.dictionaries.items():
                     if dictionary.contains(span, case_sensitive):
-                        # 본디 글에서의 자리 찾기
+                        # 원본 텍스트에서의 자리 찾기
                         start = text.find(span)
                         if start != -1:
                             entity = {
@@ -184,12 +183,12 @@ class DictionaryNER:
                             }
                             entities.append(entity)
         
-        # 겹치는 것과 포개진 것 없애기
+        # 겹치는 개체와 중첩된 개체 없애기
         entities = self._remove_overlaps(entities)
         return entities
     
     def _remove_overlaps(self, entities: List[Dict]) -> List[Dict]:
-        """겹치는 것을 없애고 긴 쪽을 남기기."""
+        """겹치는 개체를 없애고 긴 쪽을 남기기."""
         if not entities:
             return []
         
@@ -198,7 +197,7 @@ class DictionaryNER:
         
         filtered = []
         for entity in entities:
-            # 이미 더한 것과 겹치는지 살피기
+            # 이미 더한 개체와 겹치는지 확인하기
             overlaps = False
             for added in filtered:
                 if not (entity["end"] <= added["start"] or entity["start"] >= added["end"]):
@@ -212,7 +211,7 @@ class DictionaryNER:
 
 
 def demonstrate_dictionary_ner():
-    """사전 바탕 개체명 인식 보이기."""
+    """사전 기반 개체명 인식 시연."""
     print("="*70)
     print("Dictionary-Based NER Demonstration")
     print("="*70)
@@ -263,15 +262,15 @@ extract_entities는 text.split()의 단어에서 최대5개부터1개까지 후�
 
 일치 후보의 시작점은 현재 단어 위치가 아니라 `text.find(span)`로 원문에서 **첫 등장**을 다시 찾는다. 같은 이름이 두 번 나오면 두 후보가 모두 첫 위치를 가리키고 겹침 제거에서 하나로 줄어 뒤 언급을 놓칠 수 있다. text.find는 단어 경계도 알지 못하므로 앞의 다른 단어 내부에서 같은 부분 문자열을 찾을 가능성도 있다. 각 토큰의 원문 offset을 유지해 후보 위치를 직접 연결해야 한다.
 
-_remove_overlaps는 시작점 오름차순, 같은 시작이면 긴 후보 우선으로 정렬한 뒤 이미 선택한 구간과 겹치는 것을 버린다. 같은 시작점의 최장 일치는 선호하지만 나중에 시작하는 더 긴 겹침 후보보다 항상 긴 것을 선택하는 전역 최장 알고리즘은 아니다. 중첩·동일 문자열의 여러 유형도 이 폴리시에 따라 제거된다.
+_remove_overlaps는 시작점 오름차순, 같은 시작이면 긴 후보 우선으로 정렬한 뒤 이미 선택한 구간과 겹치는 것을 버린다. 같은 시작점의 최장 일치는 선호하지만 나중에 시작하는 더 긴 겹침 후보보다 항상 긴 것을 선택하는 전역 최장 알고리즘은 아니다. 중첩·동일 문자열의 여러 유형도 이 정책에 따라 제거된다.
 
 confidence=1.0은 정확 사전 일치의 고정값이다. 이름이 문맥에서 올바른 유형인지의 확률이나 데이터셋 정확도100%라는 뜻이 아니다. 출력은 매칭 결과를 보여 줄 뿐 정답 주석과 비교한 정밀도·재현율이 아니다.
 
-## 5. 실제 자료에 확장할 때
+## 5. 실제 데이터에 확장할 때
 
 이름 사전은 도메인·시간에 맞춰 갱신하고 변경 버전·별칭·유형 중의성·신규 이름을 관리해야 한다. 검색 최적화를 위해 trie나 다중 패턴 matcher를 사용할 수 있지만 이 코드가 그런 자료 구조를 사용하지는 않는다. 속도는 문장 길이·후보 길이·유형 수·겹침 검사에도 달렸다.
 
-자동 학습이나 역전파가 없으므로 실패는 경사 폭발보다 토큰 경계·원문 위치·사전 누락·유형 충돌을 먼저 살펴야 한다. 규칙·학습 모델과 결합할 때도 같은 offset·유형·평가 기준을 유지한다. 코드·출력은 보존하며 이 편집에서 재실행할 필요는 없다.
+자동 학습이나 역전파가 없으므로 실패는 그래디언트 폭발보다 토큰 경계·원문 위치·사전 누락·유형 충돌을 먼저 살펴야 한다. 규칙·학습 모델과 결합할 때도 같은 offset·유형·평가 기준을 유지한다. 코드·출력은 보존하며 이 편집에서 재실행할 필요는 없다.
 
 ## 연습문제
 
@@ -329,7 +328,7 @@ confidence=1.0과 SequenceMatcher import를 각각 어떻게 해석해야 하는
 
 ??? success "풀이"
 
-    EntityDictionary는 문자열 집합이며 forward·parameters·학습 경로가 없다. 미정의 입력·backward를 쓴 조각은 완성 시험이 아니다. 대소문자·구두점·반복 언급·공백 변형·최대 5단어·유형 충돌·겹침 폴리시와 빈 입력을 확인하는 명세가 필요하다.
+    EntityDictionary는 문자열 집합이며 forward·parameters·학습 경로가 없다. 미정의 입력·backward를 쓴 조각은 완성 시험이 아니다. 대소문자·구두점·반복 언급·공백 변형·최대 5단어·유형 충돌·겹침 정책과 빈 입력을 확인하는 명세가 필요하다.
 
     ```python
     def test_entitydictionary():
@@ -338,10 +337,10 @@ confidence=1.0과 SequenceMatcher import를 각각 어떻게 해석해야 하는
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
@@ -351,4 +350,4 @@ confidence=1.0과 SequenceMatcher import를 각각 어떻게 해석해야 하는
 
 ## 정리하며
 
-사전 기반 NER은 이름 목록뿐 아니라 토큰 경계·원문 offset·반복 언급과 겹침 폴리시가 정확해야 한다. 현재 구현의 구두점·최대 길이·첫 등장 검색 한계를 알고, 고정 일치 점수를 의미적 확신이나 성능으로 확대하지 않는다.
+사전 기반 NER은 이름 목록뿐 아니라 토큰 경계·원문 offset·반복 언급과 겹침 정책이 정확해야 한다. 현재 구현의 구두점·최대 길이·첫 등장 검색 한계를 알고, 고정 일치 점수를 의미적 확신이나 성능으로 확대하지 않는다.

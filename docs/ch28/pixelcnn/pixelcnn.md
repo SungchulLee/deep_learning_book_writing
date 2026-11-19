@@ -6,12 +6,12 @@ PixelCNN은 래스터 순서, 즉 위에서 아래·각 행의 왼쪽에서 오�
 
 ```python
 """
-자기 회귀 그림 만들어 내기를 위한 단순한 PixelCNN
+자기회귀 이미지 생성을 위한 단순한 PixelCNN
 
-PixelCNN은 가로 훑기 차례(왼쪽에서 오른쪽, 위에서 아래)로 화소 하나씩 그림을 만든다.
-화소마다 앞서 만든 모든 화소를 바탕으로 헤아린다.
+PixelCNN은 래스터 스캔 순서(왼쪽에서 오른쪽, 위에서 아래)로 픽셀 하나씩 이미지를 생성한다.
+픽셀마다 앞서 생성한 모든 픽셀을 조건으로 예측한다.
 
-이는 핵심 개념에 집중한 가르치기 위한 단순한 판이다.
+핵심 개념에 집중한 교육용 단순화 구현이다.
 """
 
 import torch
@@ -26,19 +26,19 @@ import numpy as np
 
 class MaskedConv2d(nn.Conv2d):
     """
-    자기 회귀 그림 만들어 내기를 위한 가린 겹말기.
+    자기회귀 이미지 생성을 위한 마스크 컨볼루션.
     
-    PixelCNN의 핵심 새로움: 화소마다 앞선 화소(위쪽과 왼쪽)에만
-    매이도록 겹말기를 가린다.
+    PixelCNN의 핵심 아이디어: 픽셀마다 앞선 픽셀(위쪽과 왼쪽)에만
+    의존하도록 컨볼루션을 마스킹한다.
     
-    마스크 클래스:
-    - A 클래스: 첫 레이어용이며 지금 화소를 뺀다
-    - B 클래스: 뒤 레이어용이며 지금 화소를 넣는다
+    마스크 종류:
+    - A 마스크: 첫 레이어용이며 현재 픽셀을 뺀다
+    - B 마스크: 뒤 레이어용이며 현재 픽셀을 넣는다
     """
     
     def __init__(self, mask_type: str, *args, **kwargs):
         """
-        가린 겹말기를 초기화한다.
+        마스크 컨볼루션을 초기화한다.
         
         인수:
             mask_type: 'A'나 'B'
@@ -49,22 +49,22 @@ class MaskedConv2d(nn.Conv2d):
         assert mask_type in ['A', 'B'], "mask_type must be 'A' or 'B'"
         self.mask_type = mask_type
         
-        # 마스크를 버퍼로 등록한다(익히는 동안 고쳐지지 않는다)
+        # 마스크를 버퍼로 등록한다(학습 중에 갱신되지 않는다)
         self.register_buffer('mask', torch.zeros_like(self.weight))
         self.create_mask()
     
     def create_mask(self):
         """
-        자기 회귀 마스크를 만든다.
+        자기회귀 마스크를 만든다.
         
         마스크는 다음을 보장한다.
-        - 위쪽 화소는 볼 수 있다
-        - 왼쪽 화소는 볼 수 있다
-        - 지금 화소: B 마스크에서만 보인다
-        - 아래쪽과 오른쪽 화소는 볼 수 없다
+        - 위쪽 픽셀은 볼 수 있다
+        - 왼쪽 픽셀은 볼 수 있다
+        - 현재 픽셀: B 마스크에서만 보인다
+        - 아래쪽과 오른쪽 픽셀은 볼 수 없다
         """
         # 차원을 얻는다
-        # 무게 형태: [내놓기 채널, 들임 채널, 커널 높이, 커널 너비]
+        # 웨이트 형태: [출력 채널, 입력 채널, 커널 높이, 커널 너비]
         k_h, k_w = self.weight.shape[2:]
         
         # 마스크를 모두 1로 초기화한다
@@ -74,8 +74,8 @@ class MaskedConv2d(nn.Conv2d):
         self.mask[:, :, k_h // 2 + 1:, :] = 0
         
         # 가운데 줄의 오른쪽을 0으로 만든다
-        # A 마스크: 가운데 화소를 뺀다
-        # B 마스크: 가운데 화소를 넣는다
+        # A 마스크: 가운데 픽셀을 뺀다
+        # B 마스크: 가운데 픽셀을 넣는다
         if self.mask_type == 'A':
             self.mask[:, :, k_h // 2, k_w // 2:] = 0
         else:  # mask_type == 'B'
@@ -83,38 +83,38 @@ class MaskedConv2d(nn.Conv2d):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        가린 무게로 하는 피드포워드.
+        마스크된 웨이트로 하는 순전파.
         
         인수:
             x: 입력 텐서
             
         반환값:
-            가린 겹말기의 내놓기
+            마스크 컨볼루션의 출력
         """
-        # 겹말기 앞에 무게에 마스크를 곱한다
-        # 그러면 허락된 화소만 쓰인다
+        # 컨볼루션 앞에서 웨이트에 마스크를 곱한다
+        # 그러면 허용된 픽셀만 쓰인다
         self.weight.data *= self.mask
         return super(MaskedConv2d, self).forward(x)
 
 
 class ResidualBlock(nn.Module):
     """
-    가린 겹말기를 갖춘 남은 덩이.
+    마스크 컨볼루션을 갖춘 잔차 블록.
     
-    짜임:
-        들임 -> 가린 겹말기 -> ReLU -> 가린 겹말기 -> 들임과 더하기
+    구조:
+        입력 -> 마스크 컨볼루션 -> ReLU -> 마스크 컨볼루션 -> 입력과 더하기
     """
     
     def __init__(self, channels: int):
         """
-        남은 덩이를 초기화한다.
+        잔차 블록을 초기화한다.
         
         인수:
             channels: 채널의 수
         """
         super(ResidualBlock, self).__init__()
         
-        # 첫 겹말기 뒤로는 모두 B 클래스이다
+        # 첫 컨볼루션 뒤로는 모두 B 마스크다
         self.conv1 = MaskedConv2d('B', channels, channels // 2, 
                                   kernel_size=1, padding=0)
         self.conv2 = MaskedConv2d('B', channels // 2, channels // 2,
@@ -123,7 +123,7 @@ class ResidualBlock(nn.Module):
                                   kernel_size=1, padding=0)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """남은 덩이를 지나는 피드포워드."""
+        """잔차 블록을 지나는 순전파."""
         residual = x
         
         out = F.relu(self.conv1(x))
@@ -136,12 +136,12 @@ class ResidualBlock(nn.Module):
 
 class PixelCNN(nn.Module):
     """
-    두값(검정/흰색) 그림 만들어 내기를 위한 단순한 PixelCNN.
+    이진(검정/흰색) 이미지 생성을 위한 단순한 PixelCNN.
     
-    이 자기 회귀 모델은 화소 하나씩 그림을 만든다.
-    P(그림) = P(x₁) × P(x₂|x₁) × P(x₃|x₁,x₂) × ... × P(xₙ|x₁,...,xₙ₋₁)
+    이 자기회귀 모델은 픽셀 하나씩 이미지를 생성한다.
+    P(이미지) = P(x₁) × P(x₂|x₁) × P(x₃|x₁,x₂) × ... × P(xₙ|x₁,...,xₙ₋₁)
     
-    여기서 xᵢ은 화소 값이다.
+    여기서 xᵢ는 픽셀 값이다.
     """
     
     def __init__(self, 
@@ -152,11 +152,11 @@ class PixelCNN(nn.Module):
         
         인수:
             n_channels: 피처 채널의 수
-            n_residual_blocks: 남은 덩이의 수
+            n_residual_blocks: 잔차 블록의 수
         """
         super(PixelCNN, self).__init__()
         
-        # 첫 레이어는 A 클래스 마스크를 쓴다(지금 화소를 뺀다)
+        # 첫 레이어는 A 마스크를 쓴다(현재 픽셀을 뺀다)
         self.input_conv = MaskedConv2d('A', 1, n_channels,
                                        kernel_size=7, padding=3)
         
@@ -165,41 +165,41 @@ class PixelCNN(nn.Module):
             ResidualBlock(n_channels) for _ in range(n_residual_blocks)
         ])
         
-        # 내놓기 레이어
+        # 출력 레이어
         self.output_conv1 = MaskedConv2d('B', n_channels, n_channels,
                                          kernel_size=1)
         self.output_conv2 = MaskedConv2d('B', n_channels, n_channels,
                                          kernel_size=1)
         
-        # 마지막 레이어: 화소마다 확률을 헤아린다
-        # 두값 그림에서는 채널 1개를 내놓는다(흰색일 확률)
+        # 마지막 레이어: 픽셀마다 확률을 예측한다
+        # 이진 이미지에서는 채널 1개를 출력한다(흰색일 확률)
         self.final_conv = MaskedConv2d('B', n_channels, 1,
                                        kernel_size=1)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        PixelCNN을 지나는 피드포워드.
+        PixelCNN을 지나는 순전파.
         
         인수:
-            x: 들임 그림 [배치 크기, 1, 높이, 너비]
+            x: 입력 이미지 [배치 크기, 1, 높이, 너비]
                [0, 1] 안의 값
                
         반환값:
-            화소마다의 로짓 [배치 크기, 1, 높이, 너비]
+            픽셀마다의 로짓 [배치 크기, 1, 높이, 너비]
             확률을 얻으려 시그모이드를 쓴다
         """
-        # 첫 가린 겹말기
+        # 첫 마스크 컨볼루션
         out = F.relu(self.input_conv(x))
         
         # 잔차 블록
         for block in self.residual_blocks:
             out = block(out)
         
-        # 내놓기 겹말기
+        # 출력 컨볼루션
         out = F.relu(self.output_conv1(out))
         out = F.relu(self.output_conv2(out))
         
-        # 마지막 헤아림
+        # 마지막 예측
         out = self.final_conv(out)
         
         return out
@@ -209,43 +209,43 @@ class PixelCNN(nn.Module):
                  shape: tuple,
                  device: str = 'cpu') -> torch.Tensor:
         """
-        그림을 자기 회귀로 만든다.
+        이미지를 자기회귀로 생성한다.
         
-        이것이 자기 회귀 만들어 내기의 커널이다.
-        1. 빈 그림(모두 0)에서 시작한다
-        2. 화소 자리마다(위에서 아래로, 왼쪽에서 오른쪽으로):
-           a. 화소가 1일 확률을 헤아린다
+        이것이 자기회귀 생성의 핵심이다.
+        1. 빈 이미지(모두 0)에서 시작한다
+        2. 픽셀 자리마다(위에서 아래로, 왼쪽에서 오른쪽으로):
+           a. 픽셀이 1일 확률을 예측한다
            b. 베르누이 분포에서 뽑는다
-           c. 화소를 채운다
-        3. 다 된 그림을 돌려준다
+           c. 픽셀을 채운다
+        3. 완성된 이미지를 돌려준다
         
         인수:
-            형태: (배치 크기, 높이, 너비)
-            device: 만들어 낼 기기
+            shape: (배치 크기, 높이, 너비)
+            device: 생성에 쓸 장치
             
         반환값:
-            만든 그림 [배치 크기, 1, 높이, 너비]
+            생성한 이미지 [배치 크기, 1, 높이, 너비]
         """
         self.eval()
         
         batch_size, height, width = shape
         
-        # 빈 바탕(모두 0)에서 시작한다
+        # 빈 이미지(모두 0)에서 시작한다
         samples = torch.zeros(batch_size, 1, height, width).to(device)
         
-        # 화소 하나씩 만든다
-        # 가로 훑기 차례: 위에서 아래로, 왼쪽에서 오른쪽으로
+        # 픽셀 하나씩 생성한다
+        # 래스터 스캔 순서: 위에서 아래로, 왼쪽에서 오른쪽으로
         for i in range(height):
             for j in range(width):
-                # 지금 화소의 헤아림을 얻는다
-                # 참고: 앞서 만든 화소를 모두 쓴다
+                # 현재 픽셀의 예측을 얻는다
+                # 참고: 앞서 생성한 픽셀을 모두 쓴다
                 logits = self.forward(samples)
                 
-                # 지금 화소 자리의 확률을 얻는다
+                # 현재 픽셀 자리의 확률을 얻는다
                 probs = torch.sigmoid(logits[:, :, i, j])
                 
                 # 베르누이 분포에서 뽑는다
-                # 그래서 만들어 내기가 확률에 따르게 된다
+                # 그래서 생성이 확률적이 된다
                 samples[:, :, i, j] = torch.bernoulli(probs)
         
         return samples
@@ -253,7 +253,7 @@ class PixelCNN(nn.Module):
 
 if __name__ == "__main__":
     """
-    보여 주기: 흉내 자료로 PixelCNN을 시험한다
+    데모: 더미 데이터로 PixelCNN을 시험한다
     """
     
     print("=" * 70)
@@ -281,12 +281,12 @@ if __name__ == "__main__":
     print(f"  Input shape: {x.shape}")
     print(f"  Output shape: {output.shape}")
     
-    # 만들어 내기를 시험한다
+    # 생성을 시험한다
     print(f"\nGenerating images...")
     print(f"  This will take a while (generating pixel by pixel)...")
     
-    # 보여 주기 위해 작은 그림을 만든다
-    small_shape = (2, 8, 8)  # 8x8 크기 그림 2장
+    # 데모용으로 작은 이미지를 생성한다
+    small_shape = (2, 8, 8)  # 8x8 크기 이미지 2장
     generated = model.generate(small_shape, device='cpu')
     
     print(f"  Generated shape: {generated.shape}")
@@ -299,9 +299,9 @@ if __name__ == "__main__":
 
 입력은 `(B,1,H,W)`이고 출력은 같은 크기의 logits다. Sigmoid를 적용한 값이 현재 픽셀을 1로 생성할 조건부 확률이다. 모델 forward 자체에는 Sigmoid가 없으므로 학습에서는 BCEWithLogitsLoss 등 logits용 로스를 사용한다. 연속 회색조의 밀도나 256단계 범주형 모형은 이 구현에 없다.
 
-마스크 A는 커널 중심의 현재 입력 픽셀, 그 오른쪽과 아래 행을 차단한다. 첫 레이어에 A를 두어 타깃 픽셀을 직접 읽지 않는다. 후속 마스크 B는 중심의 **은닉 피처**을 허용하지만 그 피처가 이미 과거 픽셀에서만 계산되므로 현재 타깃의 누출을 만들지 않는다. 잔차 연결도 이 안전한 은닉 피처를 더한다.
+마스크 A는 커널 중심의 현재 입력 픽셀, 그 오른쪽과 아래 행을 차단한다. 첫 레이어에 A를 두어 타깃 픽셀을 직접 읽지 않는다. 후속 마스크 B는 중심의 **은닉 피처**를 허용하지만 그 피처가 이미 과거 픽셀에서만 계산되므로 현재 타깃의 누출을 만들지 않는다. 잔차 연결도 이 안전한 은닉 피처를 더한다.
 
-**기존 출력 기록:**
+**출력:**
 
 ```
 ======================================================================
@@ -329,17 +329,17 @@ which trains on actual image data (like MNIST)
 
 실행 예는 32채널·잔차 블록 3개의 무작위 모델로 순전파와 8×8 표본 생성을 수행하는 구조 확인이다. 학습 반복문은 없고 입력도 무작위 회색조이므로 이 출력이 MNIST 분포 학습이나 의미 있는 이미지 생성 품질을 입증하지는 않는다.
 
-## 2. 모양과 수용 범위
+## 2. 모양과 리셉티브 필드
 
 기본 모델은 64채널과 잔차 블록 5개다. 입력 7×7·패딩 3, 잔차의 3×3·패딩 1과 1×1 레이어 모두 공간 크기를 유지한다. 각 잔차 블록은 채널을 C→floor(C/2)→floor(C/2)→C로 바꾸고 입력을 더한다. 유효한 중간 채널 수가 필요하므로 C≥2여야 한다.
 
-조건은 이전 모든 픽셀을 형식상 허용하지만 실제 네트워크는 유한한 마스크 리셉티브 필드의 일부 과거만 사용할 수 있다. 모든 이전 픽셀에 실제로 의존한다는 설명은 과하다. 기본 파라미터 집계는 78,785개이고 실행의 32채널·3블록은 13,921개다. 0으로 가리는 웨이트도 저장된 파라미터 수에는 포함된다.
+조건은 이전 모든 픽셀을 형식상 허용하지만 실제 네트워크는 유한한 마스크 리셉티브 필드의 일부 과거만 사용할 수 있다. 모든 이전 픽셀에 실제로 의존한다는 설명은 과하다. 기본 파라메터 집계는 78,785개이고 실행의 32채널·3블록은 13,921개다. 0으로 가리는 웨이트도 저장된 파라메터 수에는 포함된다.
 
 ## 3. 웨이트 마스킹의 구현상 주의
 
 forward는 weight.data에 mask를 곱해 매 호출 전 웨이트를 0으로 만든다. 현재 순전파에서 금지 위치를 차단하지만, 이 곱셈이 자동미분 그래프에 들어가지 않아 그 웨이트의 grad가 반드시 0이 되는 것은 아니다. optimizer가 금지 위치를 갱신해도 다음 forward에서 다시 0으로 만든다. 상태 저장 시점·옵티마이저 상태와 그래디언트 클리핑 등을 해석할 때 이 차이를 알아야 한다.
 
-일반적으로 마스크를 계산 그래프의 웨이트 연산으로 적용하는 설계가 더 명확하다. 이 절에서는 코드를 보존하고 현재 방식의 효과와 한계를 설명한다. 홀수 커널·스트라이드 1·해당 패딩을 사용하는 현재 구조에 맞는 마스크이며 임의 stride·dilation·padding 모드로 바꿀 때는 인과성·모양을 다시 검토해야 한다.
+일반적으로 마스크를 계산 그래프의 웨이트 연산으로 적용하는 설계가 더 명확하다. 이 절의 코드는 `weight.data` 방식을 쓰므로 그 효과와 한계를 알고 써야 한다. 홀수 커널·스트라이드 1·해당 패딩을 사용하는 현재 구조에 맞는 마스크이며 임의 stride·dilation·padding 모드로 바꿀 때는 인과성·모양을 다시 검토해야 한다.
 
 ## 4. 래스터 순서 생성
 
@@ -354,13 +354,13 @@ sample 생성 텐서의 기본 device와 부동소수점 자료형을 모델과 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-기본 모델과 배치 4,28×28 입력의 모양·파라미터를 계산하라.
+기본 모델과 배치 4,28×28 입력의 모양·파라메터를 계산하라.
 
 </div>
 
 ??? success "풀이"
 
-    입력 `(4,1,28,28)`은 첫 레이어 뒤 `(4,64,28,28)`이다. 각 잔차 블록의 중간은 32채널, 최종·잔차 합은 64채널이다. 출력 1×1 두 레이어 뒤에도 64채널이고 마지막은 `(4,1,28,28)`이다. 파라미터는 첫 레이어 3,200개, 블록당 13,440개씩 5개, 출력 두 레이어 8,320개, 최종 65개로 총 78,785개다. 마스크 버퍼는 학습 파라미터가 아니다.
+    입력 `(4,1,28,28)`은 첫 레이어 뒤 `(4,64,28,28)`이다. 각 잔차 블록의 중간은 32채널, 최종·잔차 합은 64채널이다. 출력 1×1 두 레이어 뒤에도 64채널이고 마지막은 `(4,1,28,28)`이다. 파라메터는 첫 레이어 3,200개, 블록당 13,440개씩 5개, 출력 두 레이어 8,320개, 최종 65개로 총 78,785개다. 마스크 버퍼는 학습 파라메터가 아니다.
 
 
 
@@ -390,7 +390,7 @@ sample 생성 텐서의 기본 device와 부동소수점 자료형을 모델과 
 
 ??? success "풀이"
 
-    편향 없는 표준 컨볼루션은 C_in C_out k², depthwise+pointwise는 C_in k²+C_in C_out개다. 하지만 마스크로 0인 웨이트도 dense 커널로 계산하면 실제 연산이 자동으로 줄지 않는다. 분리 대안을 설계할 때 첫 레이어의 현재 픽셀 차단과 후속 피처의 인과성, 필요하다면 색 채널 순서를 유지해야 한다. 비용 비율만으로 같은 함수 계열·우도·속도를 보장할 수 없다.
+    바이어스 없는 표준 컨볼루션은 C_in C_out k², depthwise+pointwise는 C_in k²+C_in C_out개다. 하지만 마스크로 0인 웨이트도 dense 커널로 계산하면 실제 연산이 자동으로 줄지 않는다. 분리 대안을 설계할 때 첫 레이어의 현재 픽셀 차단과 후속 피처의 인과성, 필요하다면 색 채널 순서를 유지해야 한다. 비용 비율만으로 같은 함수 계열·가능도(likelihood, 우도라고도 한다)·속도를 보장할 수 없다.
 
 
 

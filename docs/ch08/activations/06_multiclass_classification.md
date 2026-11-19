@@ -1,4 +1,4 @@
-# 엑티베이션 함수를 쓰는 다중 클래스 분류
+# 활성화 함수를 쓰는 다중 클래스 분류
 
 다중 클래스 분류는 이진 분류를 범주가 셋 이상인 문제로 확장한 것이다. 구조상의 핵심 차이는 출력 레이어가 클래스마다 로짓 하나씩을 내고, 모델이 내부에서 로그 소프트맥스를 적용하는 `CrossEntropyLoss`를 쓴다는 점이다. 이 설계는 수치적으로도 안정하고 계산도 효율적이어서 PyTorch에서 다중 클래스 문제를 다루는 표준 방식이다.
 
@@ -36,16 +36,16 @@ class MulticlassClassifier(nn.Module):
 
 def generate_multiclass_data(n_samples=600, n_classes=3):
     # 피처가 2개뿐이라 산점도로 그려 볼 수 있고, cluster_std=1.0인
-    # 블롭 세 덩이는 거의 겹치지 않는다. 아래에서 시험 정확도가
+    # 블롭 세 군집은 거의 겹치지 않는다. 아래에서 시험 정확도가
     # 1.0000이 나오는 것은 모델이 뛰어나서가 아니라 과제가 쉬워서다
     X, y = make_blobs(n_samples=n_samples, centers=n_classes,
                       n_features=2, cluster_std=1.0, random_state=42)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
-    # 입력은 실수라 FloatTensor, 이름표는 클래스 번호라 LongTensor다.
+    # 입력은 실수라 FloatTensor, 라벨은 클래스 번호라 LongTensor다.
     # CrossEntropyLoss는 원핫 벡터가 아니라 0, 1, 2 같은 정수 인덱스를
-    # 요구하며, 이름표를 FloatTensor로 넘기면 형 오류가 난다
+    # 요구하며, 라벨을 FloatTensor로 넘기면 형 오류가 난다
     X_train = torch.FloatTensor(X_train)
     y_train = torch.LongTensor(y_train)
     X_test = torch.FloatTensor(X_test)
@@ -117,9 +117,9 @@ Final Test Accuracy: 1.0000
 
 모델은 클래스마다 로짓 하나를 출력하고 CrossEntropyLoss로 학습한다. 이 예제는 정답 인덱스가 담긴 long 텐서를 사용한다. PyTorch는 로짓과 같은 모양의 부동소수점 확률 목표도 지원하므로 원핫 목표를 항상 금지하는 것은 아니다. 정수 원핫과 유효한 확률 텐서를 구분해야 한다.
 
-ReLU 은닉 레이어는 비선형 표현을 추가한다. 예측 클래스만 필요하면 로짓의 argmax를 사용하고, 확률이 필요하면 소프트맥스를 적용한다. 매 에포크 확인하는 테스트 지표로 설정을 조정하면 테스트셋도 선택에 사용되므로 별도의 검증 분할이 필요하다.
+ReLU 은닉 레이어는 비선형 표현을 추가한다. 예측 클래스만 필요하면 로짓의 argmax를 사용하고, 확률이 필요하면 소프트맥스를 적용한다. 매 에포크 확인하는 시험 지표로 설정을 조정하면 시험 집합도 선택에 사용되므로 별도의 검증 분할이 필요하다.
 
-흔한 실수는 `CrossEntropyLoss` 앞에서 소프트맥스를 적용하는 것인데, 이러면 소프트맥스가 두 번 적용되어 성능이 나빠진다. 추론에서 (예컨대 확신도 임계값을 쓰려고) 실제 확률이 필요하다면 예측 시점에만 `torch.softmax(logits, dim=1)`을 적용하고, `CrossEntropyLoss`으로 학습하는 동안에는 결코 적용하지 마라.
+흔한 실수는 `CrossEntropyLoss` 앞에서 소프트맥스를 적용하는 것인데, 이러면 소프트맥스가 두 번 적용되어 성능이 나빠진다. 추론에서 (예컨대 확신도 임계값을 쓰려고) 실제 확률이 필요하다면 예측 시점에만 `torch.softmax(logits, dim=1)`을 적용하고, `CrossEntropyLoss`로 학습하는 동안에는 결코 적용하지 마라.
 
 ## 연습문제
 
@@ -172,7 +172,7 @@ CrossEntropyLoss가 클래스 인덱스와 확률 목표를 받는 두 모드를
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-모델의 순전파에 (출력 앞에) 소프트맥스 레이어를 추가하고 `CrossEntropyLoss`으로 학습시켜라. 최종 시험 정확도를 원래 모델과 비교하고 관찰된 차이를 설명하라.
+모델의 순전파에 (출력 앞에) 소프트맥스 레이어를 추가하고 `CrossEntropyLoss`로 학습시켜라. 최종 시험 정확도를 원래 모델과 비교하고 관찰된 차이를 설명하라.
 
 </div>
 
@@ -185,8 +185,8 @@ CrossEntropyLoss가 클래스 인덱스와 확률 목표를 받는 두 모드를
         x = torch.softmax(self.fc3(x), dim=1)  # 나쁨: 소프트맥스가 두 번
         return x
     ```
-    소프트맥스 확률을 로짓으로 해석하면 목적함수와 경사가 달라진다. 변환 후의 점수가 0~1로 제한되어 표현 가능한 로스 범위도 달라진다. 실제 성능 차이는 실험 조건에 달려 있으며, 원래 의도한 학습에는 날것의 로짓을 전달한다.
+    소프트맥스 확률을 로짓으로 해석하면 목적함수와 그래디언트가 달라진다. 변환 후의 점수가 0~1로 제한되어 표현 가능한 로스 범위도 달라진다. 실제 성능 차이는 실험 조건에 달려 있으며, 원래 의도한 학습에는 날것의 로짓을 전달한다.
 
 ## 정리하며
 
-다중 클래스 분류는 클래스별 로짓과 CrossEntropyLoss를 연결한다. 정답 인덱스 모드와 확률 목표 모드의 모양·자료형을 구분하고, 소프트맥스 확률을 다시 로짓 로스에 전달하지 않는다. 검증과 테스트의 역할도 분리한다.
+다중 클래스 분류는 클래스별 로짓과 CrossEntropyLoss를 연결한다. 정답 인덱스 모드와 확률 목표 모드의 모양·자료형을 구분하고, 소프트맥스 확률을 다시 로짓 로스에 전달하지 않는다. 검증과 시험의 역할도 분리한다.

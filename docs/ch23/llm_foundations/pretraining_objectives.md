@@ -1,6 +1,6 @@
 # 대규모 언어 모델의 사전 학습 목표
 
-사전 학습 목표는 어떤 입력에서 무엇을 예측할지 정한다. 같은 텍스트도 다음 토큰 예측, 마스킹 복원, 구간 복원이나 교체 탐지의 자료로 구성할 수 있다. 목표는 구조·계산비용·전이 성능과 상호작용하지만 생성과 이해 능력을 혼자 결정하지는 않는다. 이 페이지는 대표 목적과 부분 구현을 비교한다.
+사전 학습 목표는 어떤 입력에서 무엇을 예측할지 정한다. 같은 텍스트도 다음 토큰 예측, 마스킹 복원, 구간 복원이나 교체 탐지의 데이터로 구성할 수 있다. 목표는 구조·계산비용·전이 성능과 상호작용하지만 생성과 이해 능력을 혼자 결정하지는 않는다. 이 페이지는 대표 목적과 부분 구현을 비교한다.
 
 ## 1. 인과 언어 모델링
 
@@ -9,7 +9,7 @@
 $$P_\theta(x_{1:n})=\prod_{t=1}^n P_\theta(x_t\mid x_{<t}),\qquad
 \mathcal L_{\mathrm{CLM}}=-\sum_t\log P_\theta(x_t\mid x_{<t}).$$
 
-첫 토큰의 시작 조건과 실제 로스에 포함할 위치를 정의해야 한다. 디코더 전용 구조에서 흔히 사용하지만 구조만으로 목적이 고정되는 것은 아니다. FIM처럼 순서를 바꾼 학습 자료도 인과적인 다음 토큰 예측에 사용할 수 있다.
+첫 토큰의 시작 조건과 실제 로스에 포함할 위치를 정의해야 한다. 디코더 전용 구조에서 흔히 사용하지만 구조만으로 목적이 고정되는 것은 아니다. FIM처럼 순서를 바꾼 학습 데이터도 인과적인 다음 토큰 예측에 사용할 수 있다.
 
 ```python
 import torch
@@ -22,17 +22,17 @@ torch.manual_seed(42)
 
 def create_causal_mask(seq_len: int) -> torch.Tensor:
     """
-    인과 주의 가림을 만든다.
+    인과 어텐션 마스크를 만든다.
     
     자리 i는 i 이하 자리만 볼 수 있다.
     
     반환값:
-        아래 세모 마스크 (차례 길이, 차례 길이)
+        하삼각 마스크 (시퀀스 길이, 시퀀스 길이)
     """
     mask = torch.tril(torch.ones(seq_len, seq_len))
     return mask  # 1 = 본다, 0 = 가린다
 
-# 차례 길이 4의 보기:
+# 시퀀스 길이 4의 보기:
 # [[1, 0, 0, 0],
 #  [1, 1, 0, 0],
 #  [1, 1, 1, 0],
@@ -43,7 +43,7 @@ create_causal_mask는 1을 허용, 0을 차단으로 표시한 개념적 행렬�
 
 ```python
 class CausalLMHead(nn.Module):
-    """인과 말 나타내기 머리."""
+    """인과 언어 모델링 헤드."""
     
     def __init__(self, hidden_size: int, vocab_size: int):
         super().__init__()
@@ -56,14 +56,14 @@ class CausalLMHead(nn.Module):
     ):
         """
         인수:
-            hidden_states: (배치, 차례 길이, 숨은 크기)
-            labels: (배치, 차례 길이) - 다음 토막 어림을 위해 1만큼 밀림
+            hidden_states: (배치, 시퀀스 길이, 은닉 크기)
+            labels: (배치, 시퀀스 길이) - 다음 토큰 예측을 위해 1만큼 밀림
         """
         logits = self.lm_head(hidden_states)  # (배치, seq_len, vocab_size)
         
         loss = None
         if labels is not None:
-            # 다음 토큰 맞히기를 위해 민다
+            # 다음 토큰 예측을 위해 민다
             shift_logits = logits[..., :-1, :].contiguous()
             shift_labels = labels[..., 1:].contiguous()
             
@@ -77,13 +77,13 @@ class CausalLMHead(nn.Module):
 
 def causal_lm_loss(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     """
-    홀로 서는 인과 말 나타내기 로스.
+    독립 함수로 쓴 인과 언어 모델링 로스.
     
     인수:
-        logits: [배치, 차례 길이, 단어 곳간 크기]
-        labels: [배치, 차례 길이]
+        logits: [배치, 시퀀스 길이, 어휘 크기]
+        labels: [배치, 시퀀스 길이]
     """
-    # 다음 토큰 맞히기를 위해 민다
+    # 다음 토큰 예측을 위해 민다
     shift_logits = logits[..., :-1, :].contiguous()
     shift_labels = labels[..., 1:].contiguous()
     
@@ -117,10 +117,10 @@ def bert_masking(
     mask_prob: float = 0.15
 ) -> Tuple[list, list]:
     """
-    BERT 형태 가리기: 토막의 15%를 고친다.
+    BERT 방식 마스킹: 토큰의 15%를 바꾼다.
     
-    가린 토막 가운데:
-    - 80%는 [MASK]으로 바꾼다
+    마스킹한 토큰 가운데:
+    - 80%는 [MASK]로 바꾼다
     - 10%는 무작위 토큰으로 바꾼다
     - 10%는 그대로 둔다
     """
@@ -129,14 +129,14 @@ def bert_masking(
     
     for i in range(len(tokens)):
         if random.random() < mask_prob:
-            labels[i] = tokens[i]  # 본디 토막이 이름표이다
+            labels[i] = tokens[i]  # 원래 토큰이 라벨이다
             
             r = random.random()
             if r < 0.8:
                 masked_tokens[i] = mask_token
             elif r < 0.9:
                 masked_tokens[i] = random.randint(0, vocab_size - 1)
-            # 그 밖에는 본디 것을 둔다(10%)
+            # 그 밖에는 원래 것을 둔다(10%)
     
     return masked_tokens, labels
 
@@ -148,29 +148,29 @@ def create_mlm_batch(
     special_token_ids: set = None
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
-    알맞은 텐서 연산으로 가린 말 모델 익히기 배치를 만든다.
+    올바른 텐서 연산으로 마스킹 언어 모델(MLM) 학습 배치를 만든다.
     
     인수:
-        input_ids: [배치, 차례 길이] 들임 토막 번호
-        vocab_size: 단어 곳간의 크기
-        mask_token_id: [MASK] 토막의 번호
-        mask_prob: 토막마다 가릴 확률
-        special_token_ids: 결코 가리지 않을 토막 번호의 모임(예: [CLS], [SEP], [PAD])
+        input_ids: [배치, 시퀀스 길이] 입력 토큰 ID
+        vocab_size: 어휘의 크기
+        mask_token_id: [MASK] 토큰의 ID
+        mask_prob: 토큰마다 마스킹할 확률
+        special_token_ids: 결코 마스킹하지 않을 토큰 ID의 집합(예: [CLS], [SEP], [PAD])
     """
     labels = input_ids.clone()
     
     # 확률 행렬을 만든다
     probability_matrix = torch.full(input_ids.shape, mask_prob)
     
-    # 특별 토큰은 가리지 않는다
+    # 특수 토큰은 마스킹하지 않는다
     if special_token_ids:
         for token_id in special_token_ids:
             probability_matrix.masked_fill_(input_ids == token_id, 0.0)
     
-    # 가릴 번호를 뽑는다
+    # 마스킹할 인덱스를 뽑는다
     masked_indices = torch.bernoulli(probability_matrix).bool()
     
-    # 가린 토막에서만 로스를 셈한다
+    # 마스킹한 토큰에서만 로스를 계산한다
     labels[~masked_indices] = -100
     
     # 80% -> [MASK]
@@ -179,7 +179,7 @@ def create_mlm_batch(
     ).bool() & masked_indices
     input_ids[indices_replaced] = mask_token_id
     
-    # 10% -> 아무 토막
+    # 10% -> 무작위 토큰
     indices_random = torch.bernoulli(
         torch.full(input_ids.shape, 0.5)
     ).bool() & masked_indices & ~indices_replaced
@@ -193,7 +193,7 @@ def create_mlm_batch(
 
 bert_masking은 특수 토큰을 제외하지 않는다. create_mlm_batch는 special_token_ids를 주면 해당 위치를 선택에서 제외하지만 입력 텐서를 직접 수정한다. 확률·난수 텐서는 CPU에 생성하므로 GPU 입력에 그대로 쓸 수 없고, 무작위 대체 토큰에 특수 ID가 들어갈 수도 있다. 목표가 하나도 선택되지 않은 배치의 로스도 정의해야 한다.
 
-로스를 선택 위치에서만 계산하더라도 주변 입력 표현과 공유 파라메터에는 역전파가 흐른다. ‘15%만 그래디언트를 받는다’와 ‘15%를 직접 복원 목표로 삼는다’는 다르다. MLM은 인과 문장 우도와 같지 않으며 생성에는 목적에 맞는 별도 절차가 필요하다.
+로스를 선택 위치에서만 계산하더라도 주변 입력 표현과 공유 파라메터에는 역전파가 흐른다. ‘15%만 그래디언트를 받는다’와 ‘15%를 직접 복원 목표로 삼는다’는 다르다. MLM은 인과 문장 가능도(likelihood, 우도라고도 한다)와 같지 않으며 생성에는 목적에 맞는 별도 절차가 필요하다.
 
 ## 3. 구간 손상과 복원
 
@@ -204,7 +204,7 @@ Input:  "The quick brown [X] the lazy dog"
 Target: "[X] fox jumps over"
 ```
 
-BART의 text infilling은 같은 MASK로 손상하고 원문 전체를 복원하는 구성이므로 T5의 구간별 sentinel 목표와 동일하지 않다. 로스는 손상 입력에 조건을 건 목표 시퀀스의 음의 자기회귀 로그우도다.
+BART의 text infilling은 같은 MASK로 손상하고 원문 전체를 복원하는 구성이므로 T5의 구간별 sentinel 목표와 동일하지 않다. 로스는 손상 입력에 조건을 건 목표 시퀀스의 음의 자기회귀 로그가능도다.
 
 ```python
 import numpy as np
@@ -218,16 +218,16 @@ def span_corruption(
     corruption_rate: float = 0.15
 ) -> Tuple[List[int], List[int]]:
     """
-    T5 형태 구간 망가뜨리기.
+    T5 방식 구간 손상(span corruption).
     
     인수:
-        tokens: 들임 토막 번호
-        sentinel_start_id: 파수 토막의 첫 번호([X], [Y], ...)
-        mean_span_length: 망가뜨린 구간의 평균 길이
-        corruption_rate: 망가뜨릴 토막의 비율
+        tokens: 입력 토큰 ID
+        sentinel_start_id: sentinel 토큰의 첫 ID([X], [Y], ...)
+        mean_span_length: 손상한 구간의 평균 길이
+        corruption_rate: 손상할 토큰의 비율
         
     반환값:
-        (망가뜨린 들임, 목표)의 짝
+        (손상한 입력, 목표)의 쌍
     """
     n = len(tokens)
     num_to_corrupt = int(n * corruption_rate)
@@ -242,7 +242,7 @@ def span_corruption(
     span_lengths = np.random.geometric(1.0 / mean_span_length, num_spans)
     span_lengths = np.clip(span_lengths, 1, n // num_spans)
     
-    # 목표 망가뜨림에 맞게 조절한다
+    # 목표 손상량에 맞게 조절한다
     total_length = span_lengths.sum()
     if total_length > num_to_corrupt:
         span_lengths = (span_lengths * num_to_corrupt / total_length).astype(int)
@@ -251,7 +251,7 @@ def span_corruption(
     num_spans = len(span_lengths)
     
     # 겹치지 않는 구간 자리를 뽑는다
-    # 차례를 num_spans 도막으로 나누고 도막마다 시작점 하나를 뽑는다
+    # 시퀀스를 num_spans 구역으로 나누고 구역마다 시작점 하나를 뽑는다
     segment_length = n // num_spans
     span_starts = []
     for i in range(num_spans):
@@ -265,30 +265,30 @@ def span_corruption(
     # 구간을 자리로 정렬한다
     spans = sorted(zip(span_starts, span_lengths))
     
-    # 망가뜨린 들임과 목표를 세운다
+    # 손상한 입력과 목표를 만든다
     input_tokens = []
     target_tokens = []
     sentinel_id = sentinel_start_id
     pos = 0
     
     for start, length in spans:
-        # 이 구간 앞의 토막을 더한다
+        # 이 구간 앞의 토큰을 더한다
         input_tokens.extend(tokens[pos:start])
         
-        # 들임에 파수 토막을 더한다
+        # 입력에 sentinel 토큰을 더한다
         input_tokens.append(sentinel_id)
         
-        # 목표에 파수 토막 + 본디 구간을 더한다
+        # 목표에 sentinel 토큰 + 원래 구간을 더한다
         target_tokens.append(sentinel_id)
         target_tokens.extend(tokens[start:start + length])
         
         sentinel_id += 1
         pos = start + length
     
-    # 남은 토막을 들임에 더한다
+    # 남은 토큰을 입력에 더한다
     input_tokens.extend(tokens[pos:])
     
-    # 목표에 마지막 파수 토막을 더한다
+    # 목표에 마지막 sentinel 토큰을 더한다
     target_tokens.append(sentinel_id)
     
     return input_tokens, target_tokens
@@ -304,7 +304,7 @@ if __name__ == "__main__":
 
 현재 span_corruption은 geometric 길이와 구역별 시작 위치를 사용하는 단순화 예다. 요청한 손상률과 실제 손상 토큰 수가 정확히 일치하지 않을 수 있으며 T5의 전처리를 그대로 재현하지 않는다. sentinel ID를 증가시키는 규칙도 실제 토크나이저의 예약 ID와 맞춰야 한다. 길이·손상률·평균 구간 길이와 sentinel 수를 검증하고 필요한 EOS를 구성해야 한다.
 
-**기존 출력:**
+**출력:**
 
 ```
 Original: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
@@ -312,7 +312,7 @@ Corrupted: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 100, 16, 17, 18, 19]
 Target: [100, 14, 15, 101]
 ```
 
-기존 출력은 특정 표본이며 코드가 난수 시드를 고정하지 않으므로 항상 같은 구간이 선택된다는 뜻은 아니다. 이 편집에서는 다시 실행하지 않았다.
+이 출력은 한 표본이다. 구간의 수와 위치는 난수에 따라 정해지므로 시드가 달라지면 다른 구간이 선택된다.
 
 ## 4. Prefix 언어 모델링
 
@@ -328,52 +328,52 @@ Generation (causal):    " Le chat est sur le tapis"
 ```python
 def prefix_lm_mask(seq_len: int, prefix_len: int) -> torch.Tensor:
     """
-    프리픽스 말 모델의 어텐션 마스크.
+    프리픽스 언어 모델의 어텐션 마스크.
     
-    - 프리픽스 토막: 양쪽 어텐션(프리픽스 토막을 모두 본다)
-    - 만들어 내기 토막: 인과 어텐션(프리픽스 + 앞서 만든 것을 본다)
+    - 프리픽스 토큰: 양방향 어텐션(프리픽스 토큰을 모두 본다)
+    - 생성 토큰: 인과 어텐션(프리픽스 + 앞서 생성한 것을 본다)
     
     인수:
-        seq_len: 전체 차례 길이
-        prefix_len: 프리픽스 몫의 길이
+        seq_len: 전체 시퀀스 길이
+        prefix_len: 프리픽스 부분의 길이
         
     반환값:
-        어텐션 마스크 (차례 길이, 차례 길이)
+        어텐션 마스크 (시퀀스 길이, 시퀀스 길이)
     """
     mask = torch.zeros(seq_len, seq_len)
     
-    # 프리픽스: 프리픽스 안에서는 어텐션이 온전하다
+    # 프리픽스: 프리픽스 안에서는 서로를 모두 본다
     mask[:prefix_len, :prefix_len] = 1
     
-    # 만들어 내기: 프리픽스 전부 + 만들어 내기 안에서는 인과로 본다
+    # 생성 구간: 프리픽스 전부 + 생성 구간 안에서는 인과로 본다
     for i in range(prefix_len, seq_len):
         mask[i, :prefix_len] = 1  # 프리픽스를 모두 본다
-        mask[i, prefix_len:i+1] = 1  # 만들어 내기 안에서는 인과로
+        mask[i, prefix_len:i+1] = 1  # 생성 구간 안에서는 인과로
     
     return mask
 
 # 보기: seq_len=6, prefix_len=3
-# [[1, 1, 1, 0, 0, 0],   <- 프리픽스 토막 0
-#  [1, 1, 1, 0, 0, 0],   <- 프리픽스 토막 1
-#  [1, 1, 1, 0, 0, 0],   <- 프리픽스 토막 2
-#  [1, 1, 1, 1, 0, 0],   <- 만든 토막 0(프리픽스 + 자신을 본다)
-#  [1, 1, 1, 1, 1, 0],   <- 만든 토막 1
-#  [1, 1, 1, 1, 1, 1]]   <- 만든 토막 2
+# [[1, 1, 1, 0, 0, 0],   <- 프리픽스 토큰 0
+#  [1, 1, 1, 0, 0, 0],   <- 프리픽스 토큰 1
+#  [1, 1, 1, 0, 0, 0],   <- 프리픽스 토큰 2
+#  [1, 1, 1, 1, 0, 0],   <- 생성 토큰 0(프리픽스 + 자신을 본다)
+#  [1, 1, 1, 1, 1, 0],   <- 생성 토큰 1
+#  [1, 1, 1, 1, 1, 1]]   <- 생성 토큰 2
 ```
 
 prefix_lm_mask도 1/0 허용 표시이므로 실제 어텐션 API에 맞춰 변환해야 한다. 0≤prefix_len≤seq_len을 확인하고 suffix가 미래를 보거나 prefix가 suffix를 보는 경로를 만들지 않아야 한다.
 
 ## 5. 교체 토큰 탐지
 
-[ELECTRA](https://arxiv.org/abs/2003.10555)는 작은 생성기로 만든 대체 토큰을 입력하고 판별기가 각 위치의 원래 토큰 여부를 구별하도록 학습한다. 여기서는 y_t=1을 원문과 다른 토큰, D_t를 그 확률로 정의하면 이진 교차 엔트로피를 사용할 수 있다. 원문과 같은 토큰을 샘플링한 위치는 바뀐 위치로 세지 않아야 한다.
+[ELECTRA](https://arxiv.org/abs/2003.10555)는 작은 제너레이터로 만든 대체 토큰을 입력하고 디스크리미네이터가 각 위치의 원래 토큰 여부를 구별하도록 학습한다. 여기서는 y_t=1을 원문과 다른 토큰, D_t를 그 확률로 정의하면 이진 교차 엔트로피를 사용할 수 있다. 원문과 같은 토큰을 샘플링한 위치는 바뀐 위치로 세지 않아야 한다.
 
 ```python
 class ELECTRA(nn.Module):
     """
-    ELECTRA: 글 인코더를 판별기로 미리 익히기.
+    ELECTRA: 텍스트 인코더를 디스크리미네이터로 사전 학습하기.
     
-    작은 생성기로 글을 망가뜨리고, 으뜸 모델이 망가진 곳을 알아내는 법을 배운다.
-    모든 토막이 신호를 주므로 가린 말 모델보다 표본을 아낀다.
+    작은 제너레이터로 텍스트를 손상하고, 주 모델이 손상된 곳을 탐지하는 법을 배운다.
+    모든 토큰이 신호를 주므로 마스킹 언어 모델보다 표본 효율이 높다.
     """
     
     def __init__(
@@ -384,8 +384,8 @@ class ELECTRA(nn.Module):
         disc_weight: float = 50.0
     ):
         super().__init__()
-        self.generator = generator  # 작은 가린 언어 모형
-        self.discriminator = discriminator  # 주 모형
+        self.generator = generator  # 작은 마스킹 언어 모델
+        self.discriminator = discriminator  # 주 모델
         self.gen_weight = gen_weight
         self.disc_weight = disc_weight
     
@@ -397,29 +397,29 @@ class ELECTRA(nn.Module):
     ):
         """
         인수:
-            input_ids: [MASK] 토막이 든 들임
-            masked_indices: 망가뜨린 자리의 참거짓 마스크
-            labels: 가린 자리의 본디 토막 번호
+            input_ids: [MASK] 토큰이 든 입력
+            masked_indices: 손상한 자리의 불리언 마스크
+            labels: 마스킹한 자리의 원래 토큰 ID
         """
-        # 생성기가 가린 토막을 어림한다(가린 말 모델)
+        # 제너레이터가 마스킹한 토큰을 예측한다(마스킹 언어 모델)
         gen_logits = self.generator(input_ids).logits
         gen_loss = F.cross_entropy(
             gen_logits[masked_indices],
             labels[masked_indices]
         )
         
-        # 생성기에서 바꿔 넣을 것을 뽑는다
+        # 제너레이터에서 대체 토큰을 뽑는다
         with torch.no_grad():
             gen_probs = F.softmax(gen_logits, dim=-1)
             sampled = torch.multinomial(
                 gen_probs.view(-1, gen_probs.size(-1)), 1
             ).view(input_ids.shape)
         
-        # 망가뜨린 차례를 만든다
+        # 손상한 시퀀스를 만든다
         corrupted = input_ids.clone()
         corrupted[masked_indices] = sampled[masked_indices]
         
-        # 판별기가 어느 토막이 바뀌었는지 어림한다
+        # 디스크리미네이터가 어느 토큰이 바뀌었는지 예측한다
         disc_logits = self.discriminator(corrupted).logits
         disc_labels = (corrupted != input_ids).float()
         
@@ -437,9 +437,9 @@ class ELECTRA(nn.Module):
         }
 ```
 
-현재 코드는 generator에 주는 input_ids와 corrupted를 비교해 disc_labels를 만든다. input_ids가 MASK를 포함한 교란 입력이라면 원문과의 비교가 아니므로 판별기 정답이 잘못된다. 반대로 원문을 그대로 주면 생성기의 마스킹 예측 입력이 아니다. 원문·교란 입력·선택 위치를 분리해야 한다.
+현재 코드는 generator에 주는 input_ids와 corrupted를 비교해 disc_labels를 만든다. input_ids가 MASK를 포함한 교란 입력이라면 원문과의 비교가 아니므로 디스크리미네이터 정답이 잘못된다. 반대로 원문을 그대로 주면 제너레이터의 마스킹 예측 입력이 아니다. 원문·교란 입력·선택 위치를 분리해야 한다.
 
-판별기는 위치별 단일 로짓을 반환해야 하고 generator는 어휘 로짓을 반환해야 한다. attention·padding 마스크, 유효 로스 위치와 선택된 목표가 없는 경우는 별도로 처리해야 한다. 기본 disc_weight=50은 예시 웨이트이며 모든 데이터·로스 집계에서 최적이라는 뜻은 아니다. 샘플링 토큰에는 일반적인 역전파가 없고 코드도 no_grad로 분리한다.
+디스크리미네이터는 위치별 단일 로짓을 반환해야 하고 generator는 어휘 로짓을 반환해야 한다. attention·padding 마스크, 유효 로스 위치와 선택된 목표가 없는 경우는 별도로 처리해야 한다. 기본 disc_weight=50은 예시 웨이트이며 모든 데이터·로스 집계에서 최적이라는 뜻은 아니다. 샘플링 토큰에는 일반적인 역전파가 없고 코드도 no_grad로 분리한다.
 
 ## 6. 손상 목표의 혼합과 UL2
 
@@ -454,22 +454,22 @@ import random
 
 @dataclass
 class UL2Config:
-    """UL2 잡음 없애기 목표의 자리매김."""
+    """UL2 디노이징 목표의 구성."""
     name: str
     mean_span_length: Optional[float]
     corruption_rate: Optional[float]
-    prefix: str  # 방식 토막을 들임에 더한다
+    prefix: str  # 모드 토큰을 입력에 더한다
 
 UL2_OBJECTIVES = [
     UL2Config('R', mean_span_length=3.0, corruption_rate=0.15, prefix='[R]'),   # 보통
-    UL2Config('S', mean_span_length=None, corruption_rate=None, prefix='[S]'),  # 차례차례(프리픽스 말 모델)
+    UL2Config('S', mean_span_length=None, corruption_rate=None, prefix='[S]'),  # 순차(프리픽스 언어 모델)
     UL2Config('X', mean_span_length=32.0, corruption_rate=0.50, prefix='[X]'),  # 극단
 ]
 
-UL2_WEIGHTS = [0.5, 0.25, 0.25]  # 표집 무게
+UL2_WEIGHTS = [0.5, 0.25, 0.25]  # 샘플링 웨이트
 
 def sample_ul2_objective() -> UL2Config:
-    """UL2 익히기 목표를 뽑는다."""
+    """UL2 학습 목표를 뽑는다."""
     return random.choices(UL2_OBJECTIVES, weights=UL2_WEIGHTS)[0]
 
 def ul2_transform(
@@ -478,22 +478,22 @@ def ul2_transform(
     mode_token_ids: dict
 ) -> Tuple[List[int], List[int]]:
     """
-    차례에 UL2 바꿈을 적용한다.
+    시퀀스에 UL2 변환을 적용한다.
     
     인수:
-        tokens: 들임 토막 번호
-        sentinel_start_id: 파수 토막의 첫 번호
-        mode_token_ids: 방식 이름('R', 'S', 'X')을 토막 번호에 대응시킨 사전
+        tokens: 입력 토큰 ID
+        sentinel_start_id: sentinel 토큰의 첫 ID
+        mode_token_ids: 모드 이름('R', 'S', 'X')을 토큰 ID에 대응시킨 딕셔너리
     """
     config = sample_ul2_objective()
     
     if config.name == 'S':
-        # 차례차례(프리픽스 말 모델): 프리픽스와 목표로 쪼갠다
+        # 순차(프리픽스 언어 모델): 프리픽스와 목표로 나눈다
         split_point = random.randint(len(tokens) // 4, 3 * len(tokens) // 4)
         input_tokens = [mode_token_ids['S']] + tokens[:split_point]
         target_tokens = tokens[split_point:]
     else:
-        # R이나 X: 파라메터를 달리한 구간 망가뜨리기
+        # R이나 X: 파라메터를 달리한 구간 손상
         corrupted, target = span_corruption(
             tokens,
             sentinel_start_id,
@@ -506,11 +506,11 @@ def ul2_transform(
     return input_tokens, target_tokens
 ```
 
-실제 학습에는 mode 토큰·sentinel·EOS·길이 예산·디코더 목표의 이동과 마스크를 일치시켜야 한다. 빈 입력이나 손상이 전혀 없는 짧은 입력에서 비어 있는 목표를 어떻게 다룰지도 필요하다. 이 함수는 자료 변환이며 학습 루프를 포함하지 않는다.
+실제 학습에는 mode 토큰·sentinel·EOS·길이 예산·디코더 목표의 이동과 마스크를 일치시켜야 한다. 빈 입력이나 손상이 전혀 없는 짧은 입력에서 비어 있는 목표를 어떻게 다룰지도 필요하다. 이 함수는 데이터 변환이며 학습 루프를 포함하지 않는다.
 
 ## 7. 가운데 채우기
 
-[FIM](https://arxiv.org/abs/2207.14255)은 prefix·middle·suffix로 나눈 자료를 재배열해 뒤 문맥도 제공한 채 가운데를 생성하도록 학습한다. 변환한 시퀀스에서 인과적인 다음 토큰 예측을 유지할 수 있다.
+[FIM](https://arxiv.org/abs/2207.14255)은 prefix·middle·suffix로 나눈 데이터를 재배열해 뒤 문맥도 제공한 채 가운데를 생성하도록 학습한다. 변환한 시퀀스에서 인과적인 다음 토큰 예측을 유지할 수 있다.
 
 ```python
 def fill_in_middle_transform(
@@ -519,25 +519,25 @@ def fill_in_middle_transform(
     fim_spm_rate: float = 0.5
 ) -> str:
     """
-    가운데 채우기 익히기를 위해 부호를 바꾼다.
+    가운데 채우기(FIM) 학습을 위해 코드를 변환한다.
     
     두 가지 형태:
     - PSM(앞-뒤-가운데): <PRE>앞<SUF>뒤<MID>가운데
     - SPM(뒤-앞-가운데): <SUF>뒤<PRE>앞<MID>가운데
     
     인수:
-        code: 본디 부호 글줄
-        fim_rate: 가운데 채우기를 적용할 확률(여느 인과 말 모델 대비)
+        code: 원래 코드 문자열
+        fim_rate: 가운데 채우기를 적용할 확률(일반 인과 언어 모델 대비)
         fim_spm_rate: 가운데 채우기를 쓸 때 SPM 형태가 될 확률
     """
     if random.random() > fim_rate:
-        return code  # 여느 인과 말 모델
+        return code  # 일반 인과 언어 모델
     
-    # 아무 데나 자르는 점
+    # 무작위 분할 지점
     split = random.randint(0, len(code))
     prefix = code[:split]
     
-    # 고를 수 있음: 가운데의 끝점을 아무 데나
+    # 선택 사항: 가운데의 끝점을 무작위로
     if random.random() < 0.5:
         end = random.randint(split, len(code))
     else:
@@ -555,7 +555,7 @@ def fill_in_middle_transform(
         return f"<PRE>{prefix}<SUF>{suffix}<MID>{middle}"
 
 # 보기:
-# 본디: "def foo():\n    return 42"
+# 원래: "def foo():\n    return 42"
 # FIM PSM:  "<PRE>def foo():\n<SUF>\n<MID>    return 42"
 ```
 
@@ -570,46 +570,46 @@ def effective_tokens_per_example(
     mask_rate: float = 0.15
 ) -> float:
     """
-    차례마다의 실효 익히기 신호를 셈한다.
+    시퀀스마다의 실효 학습 신호를 계산한다.
     
-    모든 목표가 토막마다 그래디언트 신호를 주지는 않는다.
+    모든 목표가 토큰마다 그래디언트 신호를 주지는 않는다.
     """
     if objective == 'CLM':
-        # 첫 토막만 빼고 모든 토막이 신호를 준다
+        # 첫 토큰만 빼고 모든 토큰이 신호를 준다
         return seq_len - 1
     
     elif objective == 'MLM':
-        # 가린 토막만 신호를 준다
+        # 마스킹한 토큰만 신호를 준다
         return seq_len * mask_rate
     
     elif objective == 'span_corruption':
-        # 가린 말 모델과 비슷하나 맥락이 더 낫다
+        # 마스킹 언어 모델과 비슷하나 문맥이 더 낫다
         return seq_len * mask_rate
     
     elif objective == 'prefix_lm':
-        # 만들어 내는 몫만 신호를 준다
+        # 생성하는 부분만 신호를 준다
         # 프리픽스가 50%쯤이라 치고
         return seq_len * 0.5
     
     elif objective == 'ELECTRA':
-        # 모든 토막이 판별기 신호를 준다
+        # 모든 토큰이 디스크리미네이터 신호를 준다
         return seq_len
 
 def training_equivalence(clm_tokens: int, mlm_mask_rate: float = 0.15) -> dict:
     """
-    인과 말 모델의 익히기 신호에 맞추려면 가린 말 모델 토막이 얼마나 필요한지 셈한다.
+    인과 언어 모델의 학습 신호에 맞추려면 마스킹 언어 모델 토큰이 얼마나 필요한지 계산한다.
     """
     return {
         'clm_effective': clm_tokens,
         'mlm_effective_per_token': mlm_mask_rate,
         'mlm_tokens_to_match': clm_tokens / mlm_mask_rate,
-        'ratio': 1 / mlm_mask_rate  # 가린 말 모델 토막이 약 6.7배 더 필요하다
+        'ratio': 1 / mlm_mask_rate  # 마스킹 언어 모델 토큰이 약 6.7배 더 필요하다
     }
 ```
 
 이 함수들은 직접 로스 위치 수를 거칠게 세는 예다. CLM의 이동된 목표, MLM의 기대 선택 수, ELECTRA의 이진 판별은 난이도·정보량·연산이 서로 다르다. 구간 복원 목표에는 sentinel 등 추가 토큰도 들어간다. 1/0.15≈6.67배 위치가 필요하다는 계산을 같은 품질·FLOPs·학습시간의 필요 비율로 해석하지 않는다.
 
-목표 비교는 같은 자료·구조·계산 예산·전이 평가에서 수행해야 한다. 사전 학습만으로 채팅 지시 준수·사실성·안전성이 완성되지는 않으며 데이터 구성과 후속 학습·평가도 함께 필요하다.
+목표 비교는 같은 데이터·구조·계산 예산·전이 평가에서 수행해야 한다. 사전 학습만으로 채팅 지시 준수·사실성·안전성이 완성되지는 않으며 데이터 구성과 후속 학습·평가도 함께 필요하다.
 
 ## 연습문제
 
@@ -637,7 +637,7 @@ MLM의 80/10/10과 로스 위치 15%가 무엇을 뜻하는지 설명하라.
 
 ??? success "풀이"
 
-    적격 위치 중 선택된 약 15%가 원래 토큰의 복원 목표다. 그 선택 위치의 80%는 MASK, 10%는 무작위, 10%는 그대로 입력한다. 로스는 선택 위치에서 계산하지만 주변 입력 표현·공유 파라메터에도 경사가 흐른다. 특수 토큰 제외와 목표가 없는 배치도 별도로 처리한다.
+    적격 위치 중 선택된 약 15%가 원래 토큰의 복원 목표다. 그 선택 위치의 80%는 MASK, 10%는 무작위, 10%는 그대로 입력한다. 로스는 선택 위치에서 계산하지만 주변 입력 표현·공유 파라메터에도 그래디언트가 흐른다. 특수 토큰 제외와 목표가 없는 배치도 별도로 처리한다.
 
 
 
@@ -652,7 +652,7 @@ MLM의 80/10/10과 로스 위치 15%가 무엇을 뜻하는지 설명하라.
 
 ??? success "풀이"
 
-    생성기에는 교란 입력을 줘야 하지만 판별기의 정답은 생성 후 토큰과 원문을 비교해야 한다. 코드처럼 교란 input_ids와 비교하면 MASK를 원문 토큰으로 복원해도 바뀐 것으로 표시할 수 있다. 원문과 같게 샘플링된 토큰은 원래 토큰으로 취급하며 padding은 로스에서 제외해야 한다.
+    제너레이터에는 교란 입력을 줘야 하지만 디스크리미네이터의 정답은 생성 후 토큰과 원문을 비교해야 한다. 코드처럼 교란 input_ids와 비교하면 MASK를 원문 토큰으로 복원해도 바뀐 것으로 표시할 수 있다. 원문과 같게 샘플링된 토큰은 원래 토큰으로 취급하며 padding은 로스에서 제외해야 한다.
 
 
 
@@ -667,7 +667,7 @@ T5 구간 복원·prefix LM·FIM이 입력과 목표를 구성하는 방식을 �
 
 ??? success "풀이"
 
-    T5는 sentinel로 대체한 입력에서 제거 구간과 표식을 생성한다. prefix LM은 prefix 내부 양방향·suffix 인과 어텐션을 사용하고 주로 suffix를 학습한다. FIM은 prefix·suffix를 먼저 제공하도록 자료를 재배열해 middle을 생성한다. 구조·마스크·자료 순서와 특수 토큰을 일치시켜야 하며 prefix tuning과도 다르다.
+    T5는 sentinel로 대체한 입력에서 제거 구간과 표식을 생성한다. prefix LM은 prefix 내부 양방향·suffix 인과 어텐션을 사용하고 주로 suffix를 학습한다. FIM은 prefix·suffix를 먼저 제공하도록 데이터를 재배열해 middle을 생성한다. 구조·마스크·데이터 순서와 특수 토큰을 일치시켜야 하며 prefix tuning과도 다르다.
 
 
 

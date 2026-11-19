@@ -6,19 +6,19 @@
 
 ```python
 """
-CRF 바탕 개체명 인식
+CRF 기반 개체명 인식
 ===================================
 
-피처 빚기를 곁들인 차례 레이블 붙이기를 위한 조건부 무작위 마당.
+피처 엔지니어링을 곁들인 시퀀스 라벨링을 위한 조건부 무작위장(CRF).
 
-여기 짠 것은 CRF 모델 익히기에 sklearn-crfsuite를 쓴다.
+이 구현은 CRF 모델 학습에 sklearn-crfsuite를 쓴다.
 
 핵심 개념:
-- 토큰의 피처 뽑기
-- CRF로 하는 차례 레이블 붙이기
+- 토큰의 피처 추출
+- CRF로 하는 시퀀스 라벨링
 - 학습과 평가
 
-지은이: 러닝 목적
+지은이: 교육 목적
 날짜: 2025
 """
 
@@ -32,7 +32,7 @@ from typing import List, Dict, Tuple
 
 
 class CRF_NER:
-    """피처 빚기를 곁들인 CRF 바탕 개체명 인식."""
+    """피처 엔지니어링을 곁들인 CRF 기반 개체명 인식."""
     
     def __init__(self):
         """CRF 모델 초기화."""
@@ -46,13 +46,13 @@ class CRF_NER:
     
     def word_features(self, sentence: List[str], i: int) -> Dict:
         """
-        자리 i의 토큰에서 피처 뽑기.
+        자리 i의 토큰에서 피처 추출하기.
         
         피처:
         - 단어 자체(소문자로)
         - 단어의 대문자 쓰기 패턴
         - 단어 형태
-        - 접두사와 뒷가지
+        - 접두사와 접미사
         - 맥락 단어
         """
         word = sentence[i]
@@ -76,7 +76,7 @@ class CRF_NER:
                 '-1:word.isupper()': word_prev.isupper(),
             })
         else:
-            features['BOS'] = True  # 월의 시작
+            features['BOS'] = True  # 문장의 시작
         
         if i < len(sentence) - 1:
             word_next = sentence[i+1]
@@ -86,27 +86,27 @@ class CRF_NER:
                 '+1:word.isupper()': word_next.isupper(),
             })
         else:
-            features['EOS'] = True  # 월의 끝
+            features['EOS'] = True  # 문장의 끝
         
         return features
     
     def sentence_features(self, sentence: List[str]) -> List[Dict]:
-        """월의 모든 토큰에서 피처 뽑기."""
+        """문장의 모든 토큰에서 피처 추출하기."""
         return [self.word_features(sentence, i) for i in range(len(sentence))]
     
     def train(self, X_train: List[List[str]], y_train: List[List[str]]):
         """
-        CRF 모델 익히기.
+        CRF 모델 학습하기.
         
         인수:
-            X_train: 월의 목록(월마다 토큰의 목록)
-            y_train: 레이블 차례의 목록(저마다 레이블의 목록)
+            X_train: 문장의 목록(문장마다 토큰의 목록)
+            y_train: 라벨 시퀀스의 목록(저마다 라벨의 목록)
         """
         X_train_features = [self.sentence_features(s) for s in X_train]
         self.model.fit(X_train_features, y_train)
     
     def predict(self, X_test: List[List[str]]) -> List[List[str]]:
-        """시험 월의 레이블 예측하기."""
+        """시험 문장의 라벨 예측하기."""
         X_test_features = [self.sentence_features(s) for s in X_test]
         return self.model.predict(X_test_features)
 
@@ -131,23 +131,23 @@ if __name__ == "__main__":
 
 word_features는 단어 소문자·끝2/3문자·대문자·숫자 여부, 앞뒤 한 토큰의 표기·대문자 여부와 문장 경계BOS/EOS를 만든다. suffix는 원문 대소문자를 유지해 word.lower()와 다른 신호다. sentence_features는 토큰 순서와 같은 길이의 사전 목록을 반환한다. 형태소·문자 LSTM·embedding을 학습하는 과정은 없다.
 
-CRF는 피처에 대한 태그별 점수와 태그 전이로 전체 열의 조건부 확률을 정의한다. 출력의 유형 이름은 학습 레이블에 의해 정해지므로 새 유형을 사용하려면 일치하는 학습 주석이 필요하다. 뒤 토큰 피처를 사용해 전체 문장 입력을 가정하며 온라인 미래 비참조 모델은 아니다.
+CRF는 피처에 대한 태그별 점수와 태그 전이로 전체 열의 조건부 확률을 정의한다. 출력의 유형 이름은 학습 라벨에 의해 정해지므로 새 유형을 사용하려면 일치하는 학습 주석이 필요하다. 뒤 토큰 피처를 사용해 전체 문장 입력을 가정하며 온라인 미래 비참조 모델은 아니다.
 
-## 3. 정규화와 가능한 전이
+## 3. 정칙화와 가능한 전이
 
-[sklearn-crfsuite API](https://sklearn-crfsuite.readthedocs.io/en/latest/api.html)의 lbfgs는 CRFsuite 최적화 설정이며 c1·c2는 각각L1·L2 정규화 계수다. dropout이나 러닝레이트와 같은 인수가 아니다. 둘을0.1로 정했다고 모든 자료에 적합한 규제가 되는 것은 아니다. 반복 상한100도 수렴·정확도를 보장하지 않는다.
+[sklearn-crfsuite API](https://sklearn-crfsuite.readthedocs.io/en/latest/api.html)의 lbfgs는 CRFsuite 최적화 설정이며 c1·c2는 각각L1·L2 정칙화 계수다. dropout이나 러닝레이트와 같은 인수가 아니다. 둘을0.1로 정했다고 모든 데이터에 적합한 정칙화가 되는 것은 아니다. 반복 상한100도 수렴·정확도를 보장하지 않는다.
 
-all_possible_transitions=True는 학습 자료에 관측되지 않은 태그 쌍도 전이 피처 후보로 생성하도록 한다. ‘BIO에 맞는 전이만 허용’하는 옵션이 아니다. 학습 가능한 전이 점수만으로 초기I·다른 유형I가 수학적으로 금지되지는 않으므로 유효성 검사·제약이 필요한 폴리시와 구분한다.
+all_possible_transitions=True는 학습 데이터에 관측되지 않은 태그 쌍도 전이 피처 후보로 생성하도록 한다. ‘BIO에 맞는 전이만 허용’하는 옵션이 아니다. 학습 가능한 전이 점수만으로 초기I·다른 유형I가 수학적으로 금지되지는 않으므로 유효성 검사·제약이 필요한 정책과 구분한다.
 
 ## 4. 데이터와 평가의 한계
 
 X_train·y_train은 문장 수와 문장별 토큰 수·태그 순서가 일치해야 한다. 태그 체계·유형·빈 입력·문장 경계를 검증하는 별도 코드가 없다. 이 시연의 학습은 Steve Jobs·Apple을 포함한 한 문장뿐이라 다양한 문맥·유형을 학습할 충분한 근거가 아니다.
 
-테스트 문장에 대한 예측만 출력하며 정답 태그를 주어 span F1을 계산하지 않는다. metrics를 import하지만 사용하지도 않는다. 문장 하나의 출력이 그럴듯하다는 사실을 정밀도·재현율이나 뉴럴 네트워크와의 우열로 해석하지 않는다. 실제 비교에는 별도의 분할과 동일한 토큰화·유형·평가 폴리시가 필요하다.
+시험 문장에 대한 예측만 출력하며 정답 태그를 주어 span F1을 계산하지 않는다. metrics를 import하지만 사용하지도 않는다. 문장 하나의 출력이 그럴듯하다는 사실을 정밀도·재현율이나 뉴럴 네트워크와의 우열로 해석하지 않는다. 실제 비교에는 별도의 분할과 동일한 토큰화·유형·평가 정책이 필요하다.
 
 ## 5. 확장 시 연결할 계약
 
-규칙·사전 피처를 더할 수 있지만 대상 영역의 오탐·미탐과 희귀 문자열을 검토하고 독립 자료에서 선택해야 한다. 사전 버전·피처 추출·태그 매핑·학습 모델을 함께 보관해 추론 때 같은 입력을 만든다. train과 predict는 문장 목록을 받는 인터페이스이며 PyTorch forward·경사 텐서의 계약과 다르다.
+규칙·사전 피처를 더할 수 있지만 대상 영역의 오탐·미탐과 희귀 문자열을 검토하고 독립 데이터에서 선택해야 한다. 사전 버전·피처 추출·태그 매핑·학습 모델을 함께 보관해 추론 때 같은 입력을 만든다. train과 predict는 문장 목록을 받는 인터페이스이며 PyTorch forward·그래디언트 텐서의 계약과 다르다.
 
 이 코드는 main 조건 아래에서 실제 fit을 호출한다. 문서 편집에서는 그 호출을 실행하거나 출력을 새로 만들지 않고 기존 설정의 의미와 한계를 설명한다.
 
@@ -162,7 +162,7 @@ all_possible_transitions=True가 BIO 유효성을 강제하는가?
 
 ??? success "풀이"
 
-    아니다. 관측되지 않은 태그 쌍도 학습 전이 후보에 포함하는 설정이다. 금지 BIO 경로의 강제 제약과는 다르며 레이블 유효성과 디코딩 폴리시를 별도로 정해야 한다.
+    아니다. 관측되지 않은 태그 쌍도 학습 전이 후보에 포함하는 설정이다. 금지 BIO 경로의 강제 제약과는 다르며 라벨 유효성과 디코딩 정책을 별도로 정해야 한다.
 
 
 
@@ -192,7 +192,7 @@ all_possible_transitions=True가 BIO 유효성을 강제하는가?
 
 ??? success "풀이"
 
-    학습 문장이 하나뿐이고 테스트 정답·span 지표·검증 분할이 없다. max_iterations는 상한이며 수렴 증거가 아니다. metrics import와 예측 출력만으로 성능이 측정되지는 않는다.
+    학습 문장이 하나뿐이고 시험 정답·span 지표·검증 분할이 없다. max_iterations는 상한이며 수렴 증거가 아니다. metrics import와 예측 출력만으로 성능이 측정되지는 않는다.
 
 
 
@@ -207,7 +207,7 @@ all_possible_transitions=True가 BIO 유효성을 강제하는가?
 
 ??? success "풀이"
 
-    CRF_NER는 train·predict를 제공하며 PyTorch forward·parameters·backward를 구현하지 않는다. 아래 미정의 입력도 완성 시험이 아니다. 문장·태그 정렬, 피처 타입·경계, 학습 유형·빈 입력 폴리시·예측 길이와 유효 태그를 확인하는 명세가 필요하다.
+    CRF_NER는 train·predict를 제공하며 PyTorch forward·parameters·backward를 구현하지 않는다. 아래 미정의 입력도 완성 시험이 아니다. 문장·태그 정렬, 피처 타입·경계, 학습 유형·빈 입력 정책·예측 길이와 유효 태그를 확인하는 명세가 필요하다.
 
     ```python
     def test_crf_ner():
@@ -216,10 +216,10 @@ all_possible_transitions=True가 BIO 유효성을 강제하는가?
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
@@ -229,4 +229,4 @@ all_possible_transitions=True가 BIO 유효성을 강제하는가?
 
 ## 정리하며
 
-피처 기반 CRF는 토큰 피처와 시퀀스 전이를 학습한다. 정규화 계수·미관측 전이 생성과 BIO 제약을 구분하고 입력·목표 정렬과 독립 span 평가를 연결한다. 한 문장 학습과 예측 출력만으로 일반 성능을 주장하지 않는다.
+피처 기반 CRF는 토큰 피처와 시퀀스 전이를 학습한다. 정칙화 계수·미관측 전이 생성과 BIO 제약을 구분하고 입력·목표 정렬과 독립 span 평가를 연결한다. 한 문장 학습과 예측 출력만으로 일반 성능을 주장하지 않는다.

@@ -7,9 +7,9 @@ GRU 순환 레이어 두 개와 선형 분류 레이어로 연속 피처 시퀀�
 ```python
 #!/usr/bin/env python3
 '''
-GRU — 문 달린 순환 단위
+GRU — 게이트 순환 유닛
 논문: "Learning Phrase Representations using RNN Encoder-Decoder" (2014)
-핵심: LSTM보다 간소한 문 장치와 적은 파라메터
+핵심: LSTM보다 간소한 게이트 메커니즘과 적은 파라메터
 '''
 import torch
 import torch.nn as nn
@@ -37,13 +37,13 @@ class GRUModel(nn.Module):
         self.fc = nn.Linear(hidden_size, num_classes)
     
     def forward(self, x):
-        # 숨은 상태 초기화
+        # 은닉 상태 초기화
         h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
         
         # GRU 순전파
         out, _ = self.gru(x, h0)
         
-        # 마지막 시각의 숨은 상태를 복호
+        # 마지막 시점의 은닉 상태를 디코딩
         out = self.fc(out[:, -1, :])
         return out
 
@@ -93,7 +93,7 @@ GRUModel의 기본 설정에서 파라메터 수를 계산하라.
 </div>
 
 ??? success "풀이"
-    입력은 `(B,L,100)`의 실수 피처가고 초기 상태의 레이어·배치·은닉 축이 모델과 맞아야 한다. 장치와 자료형도 일치시킨다. 패딩이 있다면 마지막 배열 위치와 실제 마지막 토큰을 구분한다.
+    입력은 `(B,L,100)`의 실수 피처이고 초기 상태의 레이어·배치·은닉 축이 모델과 맞아야 한다. 장치와 자료형도 일치시킨다. 패딩이 있다면 마지막 배열 위치와 실제 마지막 토큰을 구분한다.
 
 ---
 

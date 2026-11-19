@@ -4,9 +4,9 @@
 
 ## 1. DeViSE: 깊은 시각-의미 임베딩
 
-### 구조 훑어보기
+### 구조 개요
 
-DeViSE(Frome 외, 2013)는 CNN 시각 피처를 의미 임베딩 공간으로 투영하는 법을 배운다.
+DeViSE(Frome 외, 2013)는 CNN 시각 피처를 의미 임베딩 공간으로 투영하는 법을 학습한다.
 
 $$M: \mathbb{R}^{d_v} \rightarrow \mathbb{R}^{d_s}$$
 
@@ -14,22 +14,22 @@ $$M: \mathbb{R}^{d_v} \rightarrow \mathbb{R}^{d_s}$$
 
 $$M \cdot \mathbf{v}(\text{이미지}) \approx \mathbf{s}(\text{클래스 이름})$$
 
-### 부품
+### 구성 요소
 
 **시각 인코더**: 이미지에서 피처를 추출한다. 원 DeViSE는 당시의 CNN을 사용했으며, 아래 구현은 이미 추출한 피처를 입력받는다. 백본의 동결·미세 조정은 별도로 정해야 한다.
 
-- 끝에서 두 번째 레이어에서 피처를 뽑는다
-- 학습 중에 얼리거나 미세 조정한다
+- 끝에서 두 번째 레이어에서 피처를 추출한다
+- 학습 중에 동결하거나 미세 조정한다
 
-**투영하는 망**: 배운 변환
+**투영 네트워크**: 학습된 변환
 
-- 선형 또는 비선형 옮김
-- 시각 피처를 의미 공간으로 투영하는다
+- 선형 또는 비선형 변환
+- 시각 피처를 의미 공간으로 투영한다
 
 **의미 임베딩**: 미리 학습된 단어 벡터
 
 - Word2Vec, GloVe 또는 FastText
-- 학습 중에는 (대개) 고정로 둔다
+- 학습 중에는 (대개) 고정해 둔다
 
 ### 로스 함수
 
@@ -41,7 +41,7 @@ $$\mathcal{L} = \sum_{(\mathbf{x}, y)} \sum_{j \neq y} \max(0, \gamma - \mathbf{
 
 - $\hat{\mathbf{v}} = M \cdot \phi(\mathbf{x})$은 투영한 시각 임베딩이다
 - $\gamma$은 마진 파라메터이다
-- $j \neq y$에 대한 합은 음의 보기를 뽑아 어림할 수 있다
+- $j \neq y$에 대한 합은 음성 표본을 샘플링해 근사할 수 있다
 
 ### PyTorch 구현
 
@@ -56,7 +56,7 @@ class DeViSE(nn.Module):
     """
     깊은 시각-의미 임베딩 모델(DeViSE).
     
-    CNN 피처를 단어 임베딩 공간으로 쏘아 넣는다.
+    CNN 피처를 단어 임베딩 공간으로 투영한다.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
@@ -65,7 +65,7 @@ class DeViSE(nn.Module):
         
         self.embedding_dim = embedding_dim
         
-        # 시각 쏘아 넣기 망
+        # 시각 투영 네트워크
         self.visual_projection = nn.Sequential(
             nn.Linear(visual_dim, 2048),
             nn.BatchNorm1d(2048),
@@ -78,25 +78,25 @@ class DeViSE(nn.Module):
             nn.Linear(1024, embedding_dim)
         )
         
-        # 뜻 쏘아 넣기(선택)
+        # 의미 투영(선택)
         self.semantic_projection = nn.Linear(semantic_dim, embedding_dim)
         
-        # 소프트맥스의 온도(배울 수 있다)
+        # 소프트맥스의 온도(학습 가능)
         self.temperature = nn.Parameter(torch.ones(1))
     
     def project_visual(self, visual_features):
-        """시각 피처를 임베딩 공간으로 쏘아 넣는다."""
+        """시각 피처를 임베딩 공간으로 투영한다."""
         projected = self.visual_projection(visual_features)
         return F.normalize(projected, p=2, dim=1)
     
     def project_semantic(self, semantic_embeddings):
-        """의미 임베딩을 임베딩 공간으로 쏘아 넣는다."""
+        """의미 임베딩을 임베딩 공간으로 투영한다."""
         projected = self.semantic_projection(semantic_embeddings)
         return F.normalize(projected, p=2, dim=1)
     
     def forward(self, visual_features, semantic_pos, semantic_neg=None):
         """
-        학습용 피드포워드.
+        학습용 순전파.
         """
         v_proj = self.project_visual(visual_features)
         s_pos_proj = self.project_semantic(semantic_pos)
@@ -111,7 +111,7 @@ class DeViSE(nn.Module):
         return pos_score
     
     def predict(self, visual_features, class_embeddings, class_names):
-        """시각 피처의 부류를 맞힌다."""
+        """시각 피처의 클래스를 예측한다."""
         self.eval()
         
         with torch.no_grad():
@@ -140,7 +140,7 @@ class DeViSE(nn.Module):
 
 $$F(\mathbf{v}, \mathbf{s}) = \mathbf{v}^\top W \mathbf{s}$$
 
-여기서 $W \in \mathbb{R}^{d_v \times d_s}$은 배운 웨이트 행렬이다.
+여기서 $W \in \mathbb{R}^{d_v \times d_s}$은 학습된 웨이트 행렬이다.
 
 ### 저랭크 분해
 
@@ -159,7 +159,7 @@ use_low_rank=True 경로는 비선형 MLP와 정규화를 포함하므로 수식
 ```python
 class BilinearCompatibility(nn.Module):
     """
-    ZSL을 위한 쌍선형 어울림 모델.
+    ZSL을 위한 쌍선형 호환성 모델.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
@@ -187,7 +187,7 @@ class BilinearCompatibility(nn.Module):
             self.visual_bn = nn.BatchNorm1d(visual_dim)
     
     def forward(self, visual, semantic):
-        """쌍선형 어울림 점수를 셈한다."""
+        """쌍선형 호환성 점수를 계산한다."""
         if self.use_low_rank:
             v_proj = F.normalize(self.visual_proj(visual), dim=1)
             s_proj = F.normalize(self.semantic_proj(semantic), dim=-1)
@@ -267,7 +267,7 @@ def info_nce_loss(visual_emb, semantic_emb, temperature=0.07):
 
 ```python
 class CrossModalAttention(nn.Module):
-    """시각과 뜻을 맞추기 위한 클래스를 넘나드는 주의."""
+    """시각과 의미를 정렬하기 위한 교차 모달 어텐션."""
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
                  hidden_dim: int = 256, n_heads: int = 8):
@@ -307,7 +307,7 @@ class CrossModalAttention(nn.Module):
 
 ```python
 class TwoBranchNetwork(nn.Module):
-    """인코더를 따로 두는 두 가지 망."""
+    """인코더를 따로 두는 투 브랜치(two-branch) 네트워크."""
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
                  embedding_dim: int = 512):
@@ -351,15 +351,15 @@ class TwoBranchNetwork(nn.Module):
 
 ```python
 def hard_negative_mining(model, visual, positive_idx, all_embeddings, seen_classes):
-    """표본마다 가장 어려운 음의 보기를 고른다."""
+    """표본마다 가장 어려운 음성 표본(하드 네거티브)을 고른다."""
     with torch.no_grad():
         scores = model(visual, all_embeddings)
         
-        # 양의 부류를 가린다
+        # 양성 클래스를 마스킹한다
         for i, pos_i in enumerate(positive_idx):
             scores[i, pos_i] = -float('inf')
         
-        # 가장 어려운 음의 보기를 고른다
+        # 가장 어려운 음성 표본을 고른다
         hard_neg_indices = torch.argmax(scores, dim=1)
     
     return all_embeddings[hard_neg_indices]

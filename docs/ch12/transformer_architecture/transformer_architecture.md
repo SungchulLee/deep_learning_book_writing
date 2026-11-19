@@ -6,9 +6,9 @@
 
 어텐션을 결합한 RNN·LSTM·GRU는 대표적인 Seq2Seq 방식이다. 트랜스포머는 시간축의 순환 의존을 제거해 학습 시 토큰 위치를 병렬로 처리하도록 구성한다. 순환 구조가 모든 과제에서 부적합하다는 뜻은 아니다.
 
-### 차례차례 처리해야 하는 병목
+### 순차 처리의 병목
 
-순환 뉴럴 네트워크는 한 번에 토큰 하나씩 시퀀스을 처리하며 은닉 상태 $h_t$마다 앞선 상태 $h_{t-1}$에 매인다.
+순환 뉴럴 네트워크는 한 번에 토큰 하나씩 시퀀스를 처리하며 은닉 상태 $h_t$마다 앞선 상태 $h_{t-1}$에 의존한다.
 
 $$
 h_t = f(h_{t-1}, x_t)
@@ -37,7 +37,7 @@ $$
 
 ### 핵심 혁신 간추리기
 
-트랜스포머는 한데 모여 큰 전환을 이루는 여러 구조적 혁신을 들여왔다.
+트랜스포머는 한데 모여 큰 전환을 이루는 여러 구조적 혁신을 도입했다.
 
 | 요소 | 역할 | 해석할 때의 조건 |
 |---|---|---|
@@ -61,8 +61,8 @@ $$
 
 온전한 구조는 다음으로 이루어진다.
 
-1. **입력 임베딩 레이어**: 토큰을 빽빽한 벡터로 바꾼다
-2. **위치 인코딩**: 시퀀스의 차례 정보를 넣는다
+1. **입력 임베딩 레이어**: 토큰을 밀집 벡터(dense vector)로 바꾼다
+2. **위치 인코딩**: 시퀀스의 순서 정보를 넣는다
 3. **인코더 스택**: 같은 구조의 인코더 레이어 $N$개이며 보통 레이어별 파라메터는 독립
 4. **디코더 스택**: 같은 구조의 디코더 레이어 $N$개이며 보통 레이어별 파라메터는 독립
 5. **출력 선형 레이어**: 어휘 크기로 투영한다
@@ -86,6 +86,8 @@ $$
 \text{Target input} &: (B,T) \\
 \text{Decoder output} &: (B,T,d_{\text{model}}) \\
 \text{Logits} &: (B,T,V)
+\end{aligned}
+$$
 
 ---
 
@@ -161,11 +163,11 @@ $$
 
 ## 4. PyTorch 구현
 
-**구현의 핵심 제한:** Transformer.decode는 memory를 인수로 받지만 사용하지 않는다. decoder_layers도 인코더와 같은 TransformerBlock이어서 교차 어텐션이 없다. 따라서 현재 코드의 디코더 출력은 원문 src와 연결되지 않으며, 원문에 조건부인 번역 모델을 구현한 것이 아니다. 학습 로스를 디코더 출력에서 계산해도 인코더로 경사가 전달되지 않는다.
+**구현의 핵심 제한:** Transformer.decode는 memory를 인수로 받지만 사용하지 않는다. decoder_layers도 인코더와 같은 TransformerBlock이어서 교차 어텐션이 없다. 따라서 현재 코드의 디코더 출력은 원문 src와 연결되지 않으며, 원문에 조건부인 번역 모델을 구현한 것이 아니다. 학습 로스를 디코더 출력에서 계산해도 인코더로 그래디언트가 전달되지 않는다.
 
 인코더·디코더의 개념적 설명과 이 코드의 실제 동작을 구분한다. 완전한 구현에는 디코더의 교차 어텐션과 원문 메모리·패딩 마스크 전달이 필요하다. 현재 forward의 기본 tgt_mask=None은 미래 목표 토큰 접근도 허용하므로 인과 마스크를 명시해야 한다.
 
-위치 인코딩은 짝수 d_model과 max_len 이내의 입력을 가정한다. 생성한 목표 마스크는 CPU 텐서이므로 GPU 입력과 함께 사용할 때 장치도 맞춰야 한다. 반환값은 소프트맥스 전 로짓이다. 보존된 출력의 모양·파라메터 수는 번역 성능의 증거가 아니다.
+위치 인코딩은 짝수 d_model과 max_len 이내의 입력을 가정한다. 생성한 목표 마스크는 CPU 텐서이므로 GPU 입력과 함께 사용할 때 장치도 맞춰야 한다. 반환값은 소프트맥스 전 로짓이다. 보존된 출력의 형태·파라메터 수는 번역 성능의 증거가 아니다.
 
 ```python
 import torch
@@ -212,7 +214,7 @@ class TransformerBlock(nn.Module):
     ):
         super().__init__()
         
-        # 다중 머리 자기 주의
+        # 멀티헤드 셀프 어텐션
         self.self_attention = nn.MultiheadAttention(
             embed_dim=d_model,
             num_heads=num_heads,
@@ -220,7 +222,7 @@ class TransformerBlock(nn.Module):
             batch_first=True
         )
         
-        # 순방향 뉴럴 네트워크
+        # 피드포워드 뉴럴 네트워크
         self.feed_forward = nn.Sequential(
             nn.Linear(d_model, d_ff),
             nn.ReLU(),
@@ -244,10 +246,10 @@ class TransformerBlock(nn.Module):
         """
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
-            mask: 주의 가림 [seq_len, seq_len]
-            key_padding_mask: 채움 가림 [batch_size, seq_len]
+            mask: 어텐션 마스크 [seq_len, seq_len]
+            key_padding_mask: 패딩 마스크 [batch_size, seq_len]
         """
-        # 잔차 연결을 곁들인 자기 주의
+        # 잔차 연결을 곁들인 셀프 어텐션
         attn_output, _ = self.self_attention(
             x, x, x,
             attn_mask=mask,
@@ -255,14 +257,14 @@ class TransformerBlock(nn.Module):
         )
         x = self.norm1(x + self.dropout(attn_output))
         
-        # 잔차 연결이 있는 순방향 뉴럴 네트워크
+        # 잔차 연결이 있는 피드포워드 뉴럴 네트워크
         ff_output = self.feed_forward(x)
         x = self.norm2(x + self.dropout(ff_output))
         
         return x
 
 class Transformer(nn.Module):
-    """수열 대 수열 과제를 위한 온전한 트랜스포머 모형."""
+    """시퀀스 대 시퀀스 과제를 위한 온전한 트랜스포머 모델."""
     
     def __init__(
         self,
@@ -293,20 +295,20 @@ class Transformer(nn.Module):
             for _ in range(num_encoder_layers)
         ])
         
-        # 디코더 (간추림. 여기서는 인코더만 보인다)
+        # 디코더 (단순화. 여기서는 인코더 블록을 그대로 쓴다)
         self.decoder_layers = nn.ModuleList([
             TransformerBlock(d_model, num_heads, d_ff, dropout)
             for _ in range(num_decoder_layers)
         ])
         
-        # 출력 사영
+        # 출력 투영
         self.output_projection = nn.Linear(d_model, tgt_vocab_size)
         
         # 웨이트 초기화
         self._init_weights()
     
     def _init_weights(self):
-        """사비에르 균등으로 웨이트를 초기화한다."""
+        """Xavier 균등 분포로 웨이트를 초기화한다."""
         for p in self.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
@@ -317,7 +319,7 @@ class Transformer(nn.Module):
         src_mask: torch.Tensor = None,
         src_key_padding_mask: torch.Tensor = None
     ) -> torch.Tensor:
-        """원문 수열을 인코딩한다."""
+        """원문 시퀀스를 인코딩한다."""
         # 임베딩과 위치 인코딩
         x = self.src_embedding(src) * math.sqrt(self.d_model)
         x = self.positional_encoding(x)
@@ -334,7 +336,7 @@ class Transformer(nn.Module):
         memory: torch.Tensor,
         tgt_mask: torch.Tensor = None
     ) -> torch.Tensor:
-        """목표 수열을 디코딩한다."""
+        """목표 시퀀스를 디코딩한다."""
         # 임베딩과 위치 인코딩
         x = self.tgt_embedding(tgt) * math.sqrt(self.d_model)
         x = self.positional_encoding(x)
@@ -354,37 +356,37 @@ class Transformer(nn.Module):
         src_key_padding_mask: torch.Tensor = None
     ) -> torch.Tensor:
         """
-        트랜스포머를 지나는 피드포워드.
+        트랜스포머의 순전파.
         
         인수:
-            src: 원문 수열 [batch_size, src_len]
-            tgt: 목표 수열 [batch_size, tgt_len]
-            src_mask: 원문 주의 가림
-            tgt_mask: 목표문 주의 가림(인과)
-            src_key_padding_mask: 원문 채움 가림
+            src: 원문 시퀀스 [batch_size, src_len]
+            tgt: 목표 시퀀스 [batch_size, tgt_len]
+            src_mask: 원문 어텐션 마스크
+            tgt_mask: 목표문 어텐션 마스크(인과)
+            src_key_padding_mask: 원문 패딩 마스크
         
         반환값:
             출력 로짓 [batch_size, tgt_len, tgt_vocab_size]
         """
-        # 부호화
+        # 인코딩
         memory = self.encode(src, src_mask, src_key_padding_mask)
         
         # 디코딩
         output = self.decode(tgt, memory, tgt_mask)
         
-        # 어휘로 사영한다
+        # 어휘로 투영한다
         return self.output_projection(output)
     
     @staticmethod
     def generate_square_subsequent_mask(sz: int) -> torch.Tensor:
-        """자기 회귀 디코딩을 위한 인과 가림을 만든다."""
+        """자기 회귀 디코딩을 위한 인과 마스크를 만든다."""
         mask = torch.triu(torch.ones(sz, sz), diagonal=1)
         mask = mask.masked_fill(mask == 1, float('-inf'))
         return mask
 
-# 쓰는 보기
+# 사용 예
 if __name__ == "__main__":
-    # 모형 설정
+    # 모델 설정
     model = Transformer(
         src_vocab_size=10000,
         tgt_vocab_size=10000,
@@ -400,7 +402,7 @@ if __name__ == "__main__":
     src = torch.randint(0, 10000, (batch_size, src_len))
     tgt = torch.randint(0, 10000, (batch_size, tgt_len))
     
-    # 디코더를 위한 인과 가림을 만든다
+    # 디코더를 위한 인과 마스크를 만든다
     tgt_mask = Transformer.generate_square_subsequent_mask(tgt_len)
     
     # 순전파
@@ -421,7 +423,7 @@ Total parameters: 53,198,608
 
 ---
 
-## 5. 하이퍼파라미터
+## 5. 하이퍼파라메터
 
 원래 트랜스포머 논문은 설정 둘을 썼다.
 
@@ -448,7 +450,7 @@ $$
 
 이 식은 QK 내적과 V 가중합 및 명시적인 점수 저장을 나타낸다. Q·K·V와 출력 투영에는 추가 O(nd²) 연산이 든다. 배치·헤드·레이어 수와 역전파 저장은 생략했다. 메모리 효율 커널은 전체 점수 행렬 저장을 피할 수 있다.
 
-### 순전파의 복잡도
+### 피드포워드 레이어의 복잡도
 
 $$
 \text{Time: } O(n \cdot d \cdot d_{ff}) \qquad \text{Space: } O(n \cdot d_{ff})
@@ -513,14 +515,14 @@ Pre-LN는 아주 깊은 모델을 학습할 때 더 안정적인 편이다.
 
 ### 디코더만 (GPT 방식)
 
-- 인과(한 방향) 주의
+- 인과(단방향) 어텐션
 - 생성 과제에 쓴다
-- 다음 토큰 맞히기로 사전 학습한다
+- 다음 토큰 예측으로 사전 학습한다
 
 ### 인코더-디코더 (T5 방식)
 
 - 온전한 시퀀스 대 시퀀스 능력
-- 인코더와 디코더 사이의 크로스 어텐션
+- 인코더와 디코더 사이의 교차 어텐션
 - 텍스트에서 텍스트로 옮기는 하나의 틀
 
 ---

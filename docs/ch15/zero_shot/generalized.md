@@ -8,9 +8,9 @@
 
 기존 ZSL은 미학습 클래스 $\mathcal Y^u$만 후보로 두고, GZSL은 $\mathcal Y^s\cup\mathcal Y^u$에서 예측한다. 두 집합은 겹치지 않으며 모든 후보 클래스의 의미 표현을 제공한다. GZSL도 후보 밖의 임의 클래스를 자동으로 처리하는 오픈셋 인식과는 구별한다.
 
-### 학습 클래스 바이어스
+### 학습 클래스 편향
 
-학습 클래스의 로스로만 학습하면 그 클래스의 점수가 상대적으로 높아질 수 있다. 미학습 클래스 정답이 학습 클래스로 잘못 예측되는 비율과 각 그룹의 정확도를 확인한다. 학습 클래스 정확도가 높고 미학습 클래스 정확도가 낮다는 사실만으로 모든 오차가 이 바이어스 때문이라고 단정할 수는 없다.
+학습 클래스의 로스로만 학습하면 그 클래스의 점수가 상대적으로 높아질 수 있다. 미학습 클래스 정답이 학습 클래스로 잘못 예측되는 비율과 각 그룹의 정확도를 확인한다. 학습 클래스 정확도가 높고 미학습 클래스 정확도가 낮다는 사실만으로 모든 오차가 이 편향(학습 클래스 쪽으로 예측이 치우치는 현상) 때문이라고 단정할 수는 없다.
 
 ## 2. 평가 지표
 
@@ -42,13 +42,13 @@ from collections import defaultdict
 
 def evaluate_gzsl(predictions, labels, seen_classes, unseen_classes):
     """
-    GZSL을 두루 평가하기.
+    GZSL 종합 평가.
     
     인수:
-        predictions: 맞힌 부류 이름
-        labels: 참 부류 이름
-        seen_classes: 본 부류 이름 목록
-        unseen_classes: 못 본 부류 이름 목록
+        predictions: 예측한 클래스 이름
+        labels: 정답 클래스 이름
+        seen_classes: 학습 클래스 이름 목록
+        unseen_classes: 미학습 클래스 이름 목록
     
     반환값:
         모든 지표를 담은 사전
@@ -56,7 +56,7 @@ def evaluate_gzsl(predictions, labels, seen_classes, unseen_classes):
     predictions = np.array(predictions)
     labels = np.array(labels)
     
-    # 본 부류와 못 본 부류 시험 표본의 마스크
+    # 학습 클래스와 미학습 클래스 시험 표본의 마스크
     seen_mask = np.isin(labels, seen_classes)
     unseen_mask = np.isin(labels, unseen_classes)
     
@@ -108,17 +108,17 @@ $$\text{score}^{calib}_c = \begin{cases}
 ```python
 def calibrated_prediction(scores_seen, scores_unseen, calibration):
     """
-    눈금을 맞추어 맞힌다.
+    보정(calibration)을 적용해 예측한다.
     
     인수:
-        scores_seen: (batch, n_seen) 본 부류의 점수
-        scores_unseen: (batch, n_unseen) 못 본 부류의 점수
-        calibration: 못 본 부류 점수에 더하는 값
+        scores_seen: (batch, n_seen) 학습 클래스의 점수
+        scores_unseen: (batch, n_unseen) 미학습 클래스의 점수
+        calibration: 미학습 클래스 점수에 더하는 값
     
     반환값:
-        predictions, domain(본 부류/못 본 부류)
+        predictions, domain(학습 클래스/미학습 클래스)
     """
-    # 눈금 맞춤을 씌운다
+    # 보정을 적용한다
     scores_unseen_calib = scores_unseen + calibration
     
     # 점수를 합친다
@@ -150,14 +150,14 @@ $$\text{score}^{scaled}_c = \begin{cases}
 
 ### 검증 데이터에서 보정 선택
 
-최종 테스트 클래스와 분리한 검증용 가상 미학습 클래스로 γ를 선택한다. 모델은 (배치 크기, 후보 클래스 수)의 전체 점수 행렬을 반환해야 한다. 입력 행 수로 대응 쌍 여부를 추정하는 모델에는 이 조건을 명시해야 한다. CPU에서 생성하는 임베딩과 numpy 변환도 GPU 평가에 맞춰야 한다.
+최종 시험 클래스와 분리한 검증용 가상 미학습 클래스로 γ를 선택한다. 모델은 (배치 크기, 후보 클래스 수)의 전체 점수 행렬을 반환해야 한다. 입력 행 수로 대응 쌍 여부를 추정하는 모델에는 이 조건을 명시해야 한다. CPU에서 생성하는 임베딩과 numpy 변환도 GPU 평가에 맞춰야 한다.
 
 ```python
 def find_optimal_calibration(model, val_loader, class_embeddings,
                              seen_classes, unseen_classes,
                              calibration_range=np.arange(-2, 2, 0.1)):
     """
-    검증 집합에서 조화 평균을 가장 크게 하는 눈금 맞춤을 찾는다.
+    검증 집합에서 조화 평균을 가장 크게 하는 보정값을 찾는다.
     """
     model.eval()
     
@@ -168,14 +168,14 @@ def find_optimal_calibration(model, val_loader, class_embeddings,
     
     with torch.no_grad():
         for batch_x, batch_y in val_loader:
-            # 본 부류의 점수를 셈한다
+            # 학습 클래스의 점수를 계산한다
             seen_embs = torch.stack([
                 torch.tensor(class_embeddings[c], dtype=torch.float32)
                 for c in seen_classes
             ])
             scores_seen = model(batch_x, seen_embs)
             
-            # 못 본 부류의 점수를 셈한다
+            # 미학습 클래스의 점수를 계산한다
             unseen_embs = torch.stack([
                 torch.tensor(class_embeddings[c], dtype=torch.float32)
                 for c in unseen_classes
@@ -190,14 +190,14 @@ def find_optimal_calibration(model, val_loader, class_embeddings,
     scores_unseen = torch.cat(all_scores_unseen)
     labels = np.array(all_labels)
     
-    # 가장 좋은 눈금 맞춤을 찾는다
+    # 가장 좋은 보정값을 찾는다
     best_harmonic = 0
     best_calibration = 0
     
     results = []
     
     for calib in calibration_range:
-        # 눈금 맞춤을 씌운다
+        # 보정을 적용한다
         scores_unseen_calib = scores_unseen + calib
         
         # 예측한다
@@ -234,8 +234,8 @@ $$g(\mathbf{x}) = P(\text{영역} = \text{미학습 클래스} | \mathbf{x})$$
 
 그런 다음 예측의 길을 나눈다.
 
-- $g(\mathbf{x}) > 0.5$이면 미학습 클래스에서 맞힌다
-- 그렇지 않으면 학습 클래스에서 맞힌다
+- $g(\mathbf{x}) > 0.5$이면 미학습 클래스에서 예측한다
+- 그렇지 않으면 학습 클래스에서 예측한다
 
 ### 구현
 
@@ -248,14 +248,14 @@ import torch.nn as nn
 
 class GatedGZSL(nn.Module):
     """
-    배운 문 장치를 갖춘 GZSL 모델.
+    학습된 게이팅 메커니즘을 갖춘 GZSL 모델.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int,
                  embedding_dim: int = 256):
         super().__init__()
         
-        # 시각-뜻 어울림 모델
+        # 시각-의미 호환성 모델
         self.visual_encoder = nn.Sequential(
             nn.Linear(visual_dim, 1024),
             nn.BatchNorm1d(1024),
@@ -266,7 +266,7 @@ class GatedGZSL(nn.Module):
         
         self.semantic_encoder = nn.Linear(semantic_dim, embedding_dim)
         
-        # 문 망: 본 부류인지 못 본 부류인지 맞힌다
+        # 게이트 네트워크: 학습 클래스인지 미학습 클래스인지 예측한다
         self.gate = nn.Sequential(
             nn.Linear(visual_dim, 512),
             nn.ReLU(),
@@ -292,30 +292,30 @@ class GatedGZSL(nn.Module):
         return torch.sum(v_enc * s_enc, dim=1)
     
     def predict_gate(self, visual):
-        """못 본 부류 영역일 확률을 맞힌다."""
+        """미학습 클래스 영역일 확률을 예측한다."""
         return self.gate(visual)
     
     def gated_predict(self, visual, seen_embeddings, unseen_embeddings,
                       seen_classes, unseen_classes):
         """
-        문 장치로 맞힌다.
+        게이팅 메커니즘으로 예측한다.
         """
-        # 문의 예측을 얻는다
+        # 게이트의 예측을 얻는다
         gate_prob = self.predict_gate(visual).squeeze()
         
-        # 어울림 점수를 얻는다
+        # 호환성 점수를 얻는다
         scores_seen = self.compatibility(visual, seen_embeddings)
         scores_unseen = self.compatibility(visual, unseen_embeddings)
         
-        # 문을 거친 예측
+        # 게이트를 거친 예측
         predictions = []
         for i in range(len(visual)):
             if gate_prob[i] > 0.5:
-                # 못 본 부류에서 맞힌다
+                # 미학습 클래스에서 예측한다
                 pred_idx = scores_unseen[i].argmax().item()
                 predictions.append(unseen_classes[pred_idx])
             else:
-                # 본 부류에서 맞힌다
+                # 학습 클래스에서 예측한다
                 pred_idx = scores_seen[i].argmax().item()
                 predictions.append(seen_classes[pred_idx])
         
@@ -324,14 +324,14 @@ class GatedGZSL(nn.Module):
 def train_gated_gzsl(model, train_loader, class_embeddings, 
                      seen_classes, unseen_classes, epochs=50):
     """
-    문을 갖춘 GZSL 모델을 익힌다.
+    게이트를 갖춘 GZSL 모델을 학습시킨다.
     
-    참고: 문을 익히려면 못 본 부류 표본이 조금 필요하며,
-    대개 검증 쪼갬이나 지어낸 피처에서 얻는다.
+    참고: 게이트를 학습시키려면 미학습 클래스 표본이 조금 필요하며,
+    대개 검증 분할이나 생성한 피처에서 얻는다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     
-    # 임베딩을 마련한다
+    # 임베딩을 준비한다
     seen_embs = torch.stack([
         torch.tensor(class_embeddings[c], dtype=torch.float32)
         for c in seen_classes
@@ -342,13 +342,13 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
         total_loss = 0
         
         for batch_x, batch_y in train_loader:
-            # 어울림 로스(순위)
+            # 호환성 로스(순위)
             pos_emb = torch.stack([
                 torch.tensor(class_embeddings[y], dtype=torch.float32)
                 for y in batch_y
             ])
             
-            # 아무렇게나 고른 음의 보기
+            # 무작위로 고른 음성 표본
             neg_idx = torch.randint(0, len(seen_classes), (len(batch_y),))
             neg_emb = seen_embs[neg_idx]
             
@@ -357,7 +357,7 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
             
             ranking_loss = torch.clamp(0.2 - pos_score + neg_score, min=0).mean()
             
-            # 문 로스(학습 표본은 모두 본 부류 영역에서 온다)
+            # 게이트 로스(학습 표본은 모두 학습 클래스 영역에서 온다)
             gate_pred = model.predict_gate(batch_x)
             gate_loss = F.binary_cross_entropy(gate_pred, torch.zeros_like(gate_pred))
             
@@ -380,26 +380,26 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
 
 ### 개념
 
-의미 벡터와 잠재 잡음을 조건으로 미학습 클래스의 시각 피처를 생성하고, 실제 학습 클래스 피처와 합쳐 분류기를 학습할 수 있다. 생성기는 학습 클래스 자료에서 배운 관계를 새 의미 벡터로 일반화해야 하므로 생성 표본이 실제 분포를 보장하지는 않는다.
+의미 벡터와 잠재 잡음을 조건으로 미학습 클래스의 시각 피처를 생성하고, 실제 학습 클래스 피처와 합쳐 분류기를 학습할 수 있다. 생성기는 학습 클래스 데이터에서 학습한 관계를 새 의미 벡터로 일반화해야 하므로 생성 표본이 실제 분포를 보장하지는 않는다.
 
 $$G: \mathcal{S} \times \mathcal{Z} \rightarrow \mathcal{V}$$
 
 여기서 $\mathcal{Z}$은 잡음 분포이다.
 
-### VAE로 피처 지어내기
+### VAE로 피처 생성하기
 
 FeatureVAE는 시각 피처와 의미 벡터에서 잠재 분포를 추정하고 조건부 복원을 학습한다. 코드의 MSE는 전체 원소 평균, KL은 배치당 잠재 차원 합이므로 피처·잠재 차원에 따라 상대 스케일이 달라진다. 생성용 잡음과 의미 벡터를 CPU에 만들기 때문에 모델과 장치를 맞춰야 한다. 생성 후 최종 GZSL 분류기를 학습하는 단계는 포함되지 않는다.
 
 ```python
 class FeatureVAE(nn.Module):
     """
-    의미 임베딩에서 시각 피처를 지어내는 VAE.
+    의미 임베딩에서 시각 피처를 생성하는 VAE.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, latent_dim: int = 64):
         super().__init__()
         
-        # 인코더: 시각 + 뜻 -> 숨은 값
+        # 인코더: 시각 + 의미 -> 잠재 변수
         self.encoder = nn.Sequential(
             nn.Linear(visual_dim + semantic_dim, 512),
             nn.ReLU(),
@@ -409,7 +409,7 @@ class FeatureVAE(nn.Module):
         self.fc_mu = nn.Linear(256, latent_dim)
         self.fc_var = nn.Linear(256, latent_dim)
         
-        # 디코더: 숨은 값 + 뜻 -> 시각
+        # 디코더: 잠재 변수 + 의미 -> 시각
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim + semantic_dim, 256),
             nn.ReLU(),
@@ -439,13 +439,13 @@ class FeatureVAE(nn.Module):
         return recon, mu, logvar
     
     def generate(self, semantic, n_samples=1):
-        """주어진 의미 임베딩의 시각 피처를 지어낸다."""
+        """주어진 의미 임베딩의 시각 피처를 생성한다."""
         z = torch.randn(n_samples, self.fc_mu.out_features)
         semantic_expanded = semantic.unsqueeze(0).expand(n_samples, -1)
         return self.decode(z, semantic_expanded)
 
 def train_feature_vae(vae, train_loader, class_embeddings, epochs=100):
-    """피처 VAE를 익힌다."""
+    """피처 VAE를 학습시킨다."""
     optimizer = torch.optim.Adam(vae.parameters(), lr=0.001)
     
     for epoch in range(epochs):
@@ -463,7 +463,7 @@ def train_feature_vae(vae, train_loader, class_embeddings, epochs=100):
             # 복원 로스
             recon_loss = F.mse_loss(recon, batch_v)
             
-            # KL 벌어짐
+            # KL 발산
             kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
             kl_loss = kl_loss / batch_v.shape[0]
             
@@ -480,7 +480,7 @@ def train_feature_vae(vae, train_loader, class_embeddings, epochs=100):
 
 def generate_unseen_features(vae, class_embeddings, unseen_classes, 
                               n_per_class=100):
-    """못 본 부류의 피처를 지어낸다."""
+    """미학습 클래스의 피처를 생성한다."""
     vae.eval()
     
     X_gen = []
@@ -503,7 +503,7 @@ def generate_unseen_features(vae, class_embeddings, unseen_classes,
 
 ### 개념
 
-전이적(transductive) 설정은 평가할 타깃 집합의 입력을 라벨 없이 학습에 활용한다. 개별 쿼리를 처음 보는 귀납적 평가와 조건이 다르므로 따로 보고한다. 타깃 정답으로 임계값이나 반복 수를 고르면 평가 정보가 누수된다.
+전이적(transductive) 설정은 평가할 타깃 집합의 입력을 라벨 없이 학습에 활용한다. 개별 쿼리를 처음 보는 귀납적 평가와 조건이 다르므로 따로 보고한다. 타깃 정답으로 임계값이나 반복 수를 고르면 평가 정보가 누출된다.
 
 ### 의사 라벨 자기 학습
 
@@ -514,22 +514,22 @@ def transductive_gzsl(model, train_loader, test_loader,
                       class_embeddings, seen_classes, unseen_classes,
                       iterations=5, confidence_threshold=0.9):
     """
-    스스로 익히기를 쓰는 전달적 GZSL.
+    자기 학습을 쓰는 전이적 GZSL.
     """
-    # 본 부류로 처음 익히기
+    # 학습 클래스로 초기 학습
     train_model(model, train_loader, class_embeddings, seen_classes)
     
     for iteration in range(iterations):
         print(f"\nTransductive iteration {iteration + 1}/{iterations}")
         
-        # 시험 데이터에서 맞힌다
+        # 시험 데이터에서 예측한다
         model.eval()
         pseudo_X = []
         pseudo_y = []
         
         with torch.no_grad():
             for batch_x, _ in test_loader:
-                # 자신감과 함께 예측을 얻는다
+                # 신뢰도와 함께 예측을 얻는다
                 all_classes = seen_classes + unseen_classes
                 all_embs = torch.stack([
                     torch.tensor(class_embeddings[c], dtype=torch.float32)
@@ -541,7 +541,7 @@ def transductive_gzsl(model, train_loader, test_loader,
                 
                 max_probs, pred_indices = probs.max(dim=1)
                 
-                # 못 본 부류에 대한 자신감 높은 예측만 남긴다
+                # 미학습 클래스에 대한 신뢰도 높은 예측만 남긴다
                 for i in range(len(batch_x)):
                     if max_probs[i] > confidence_threshold:
                         pred_class = all_classes[pred_indices[i]]
@@ -553,7 +553,7 @@ def transductive_gzsl(model, train_loader, test_loader,
             print(f"  Added {len(pseudo_X)} pseudo-labeled unseen samples")
             
             # 학습 데이터와 합친다
-            # ... (합친 데이터셋을 만들고 다시 익힌다)
+            # ... (합친 데이터셋을 만들고 다시 학습시킨다)
         else:
             print("  No confident predictions on unseen classes")
             break
@@ -611,4 +611,4 @@ A_s=0.8, A_u=0.2일 때 산술 평균과 조화 평균을 계산하라.
 
 ## 정리하며
 
-GZSL은 학습·미학습 클래스를 함께 예측하므로 그룹별 성능과 점수 바이어스를 평가한다. 매크로·마이크로 정확도를 구분하고 보정 계수는 독립적인 검증 데이터에서 선택한다. 게이팅·생성·전이적 방법은 필요한 학습 신호와 데이터 사용 조건이 서로 다르다.
+GZSL은 학습·미학습 클래스를 함께 예측하므로 그룹별 성능과 점수 편향을 평가한다. 매크로·마이크로 정확도를 구분하고 보정 계수는 독립적인 검증 데이터에서 선택한다. 게이팅·생성·전이적 방법은 필요한 학습 신호와 데이터 사용 조건이 서로 다르다.

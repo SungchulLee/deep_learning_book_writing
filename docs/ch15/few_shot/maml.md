@@ -6,11 +6,11 @@ MAML(model-agnostic meta-learning)은 적은 서포트 데이터로 몇 번 갱�
 
 ```python
 """
-모델 가리지 않는 메타 학습(MAML)
+모델 불가지론적 메타 학습(MAML)
 
 참고: Finn 외, "Model-Agnostic Meta-Learning for Fast Adaptation" (2017)
 
-핵심 생각: 그래디언트 스텝 몇 번만으로 새 과제에 재빨리 맞추어 갈 수 있게 하는
+핵심 아이디어: 그래디언트 스텝 몇 번만으로 새 과제에 빠르게 적응할 수 있게 하는
 초기화를 배운다.
 """
 
@@ -19,7 +19,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
 
-# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 시드를 고정한다.
 torch.manual_seed(0)
 
 
@@ -40,7 +40,7 @@ class SimpleClassifier(nn.Module):
     
     def forward(self, x, params=None):
         """
-        파라메터를 갈아 끼울 수 있는 피드포워드.
+        파라메터를 바꿔 넣을 수 있는 순전파.
         
         인수:
             x: 입력 텐서
@@ -59,13 +59,13 @@ class SimpleClassifier(nn.Module):
 
 class MAML:
     """
-    모델 가리지 않는 메타 학습 알고리즘.
+    모델 불가지론적 메타 학습 알고리즘.
     
     인수:
         model: 뉴럴 네트워크 모델
-        inner_lr: 안쪽 회귀(과제 맞춤)의 러닝레이트
-        meta_lr: 바깥 회귀(메타 갱신)의 러닝레이트
-        num_inner_steps: 안쪽 회귀의 그래디언트 스텝 수
+        inner_lr: 내부 루프(과제 적응)의 러닝레이트
+        meta_lr: 외부 루프(메타 갱신)의 러닝레이트
+        num_inner_steps: 내부 루프의 그래디언트 스텝 수
     """
     def __init__(self, model, inner_lr=0.01, meta_lr=0.001, num_inner_steps=5):
         self.model = model
@@ -76,34 +76,34 @@ class MAML:
     
     def inner_loop(self, support_x, support_y, query_x, query_y):
         """
-        과제 하나에 대해 안쪽 회귀 맞춤을 한다.
+        과제 하나에 대해 내부 루프 적응을 수행한다.
         
         반환값:
-            query_loss: 맞춘 뒤 쿼리 집합에서의 로스
+            query_loss: 적응한 뒤 쿼리 집합에서의 로스
         """
-        # 과제별 맞춤을 위해 모델 파라메터를 복사한다
+        # 과제별 적응을 위해 모델 파라메터를 복사한다
         params = OrderedDict(self.model.named_parameters())
         
-        # 안쪽 회귀: 서포트 집합에 맞춘다
+        # 내부 루프: 서포트 집합에 적응한다
         for step in range(self.num_inner_steps):
-            # 지금 파라메터로 피드포워드한다
+            # 지금 파라메터로 순전파한다
             support_logits = self.model(support_x, params)
             support_loss = F.cross_entropy(support_logits, support_y)
             
-            # 파라메터에 대한 그래디언트를 셈한다
+            # 파라메터에 대한 그래디언트를 계산한다
             grads = torch.autograd.grad(
                 support_loss,
                 params.values(),
                 create_graph=True  # 이차 그래디언트에 중요하다
             )
             
-            # 그래디언트 내려가기로 파라메터를 고친다
+            # 경사 하강법으로 파라메터를 갱신한다
             params = OrderedDict(
                 (name, param - self.inner_lr * grad)
                 for ((name, param), grad) in zip(params.items(), grads)
             )
         
-        # 맞춘 파라메터로 쿼리 집합에서 평가한다
+        # 적응한 파라메터로 쿼리 집합에서 평가한다
         query_logits = self.model(query_x, params)
         query_loss = F.cross_entropy(query_logits, query_y)
         
@@ -117,7 +117,7 @@ class MAML:
             tasks: (support_x, support_y, query_x, query_y) 짝의 목록
         
         반환값:
-            meta_loss: 과제에 걸친 평균 물음 로스
+            meta_loss: 과제에 걸친 평균 쿼리 로스
             meta_accuracy: 쿼리 집합에서의 평균 정확도
         """
         self.meta_optimizer.zero_grad()
@@ -125,14 +125,14 @@ class MAML:
         meta_loss = 0.0
         meta_accuracy = 0.0
         
-        # 과제마다 안쪽 회귀를 돌고 그래디언트를 쌓는다
+        # 과제마다 내부 루프를 돌고 그래디언트를 누적한다
         for support_x, support_y, query_x, query_y in tasks:
             task_loss = self.inner_loop(support_x, support_y, query_x, query_y)
             meta_loss += task_loss
             
-            # 이 과제의 정확도를 셈한다.
-            # 맞추는 일 자체에는 그래디언트가 있어야 하므로 no_grad 안에서 돌 수
-            # 없다. 대신 스텝마다 결과를 떼어 내어 메타 그래프가 자라지 않게 한다.
+            # 이 과제의 정확도를 계산한다.
+            # 적응 과정 자체에는 그래디언트가 있어야 하므로 no_grad 안에서 돌 수
+            # 없다. 대신 스텝마다 결과를 분리(detach)하여 메타 그래프가 자라지 않게 한다.
             params = OrderedDict(self.model.named_parameters())
             for step in range(self.num_inner_steps):
                 support_logits = self.model(support_x, params)
@@ -143,7 +143,7 @@ class MAML:
                     for ((name, param), grad) in zip(params.items(), grads)
                 )
 
-            # 재는 일에는 그래디언트가 필요 없다
+            # 평가에는 그래디언트가 필요 없다
             with torch.no_grad():
                 query_logits = self.model(query_x, params)
                 predictions = torch.argmax(query_logits, dim=1)
@@ -154,7 +154,7 @@ class MAML:
         meta_loss = meta_loss / len(tasks)
         meta_accuracy = meta_accuracy / len(tasks)
         
-        # 메타 갱신: 처음 파라메터를 고친다
+        # 메타 갱신: 초기 파라메터를 갱신한다
         meta_loss.backward()
         self.meta_optimizer.step()
         
@@ -162,10 +162,10 @@ class MAML:
     
     def adapt(self, support_x, support_y, num_steps=None):
         """
-        서포트 집합이 주어졌을 때 모델을 새 과제에 맞춘다.
+        서포트 집합이 주어졌을 때 모델을 새 과제에 적응시킨다.
         
         반환값:
-            adapted_params: 과제에 맞춘 파라메터
+            adapted_params: 과제에 적응한 파라메터
         """
         if num_steps is None:
             num_steps = self.num_inner_steps
@@ -177,7 +177,7 @@ class MAML:
             support_loss = F.cross_entropy(support_logits, support_y)
             
             grads = torch.autograd.grad(support_loss, params.values())
-            # 다음 스텝에서 또 그래디언트를 구해야 하므로 requires_grad를 살려 둔다
+            # 다음 스텝에서 또 그래디언트를 구해야 하므로 requires_grad를 유지한다
             params = OrderedDict(
                 (name, (param - self.inner_lr * grad).detach().requires_grad_(True))
                 for ((name, param), grad) in zip(params.items(), grads)
@@ -187,12 +187,12 @@ class MAML:
     
     def predict(self, support_x, support_y, query_x):
         """
-        서포트 집합에 맞춘 뒤 쿼리 집합에서 맞힌다.
+        서포트 집합에 적응한 뒤 쿼리 집합에서 예측한다.
         """
         self.model.eval()
-        # 맞추는 일은 그래디언트를 쓰므로 no_grad 밖에서 한다
+        # 적응은 그래디언트를 쓰므로 no_grad 밖에서 한다
         adapted_params = self.adapt(support_x, support_y)
-        # 맞힌 뒤의 피드포워드에는 그래디언트가 필요 없다
+        # 적응한 뒤의 순전파에는 그래디언트가 필요 없다
         with torch.no_grad():
             query_logits = self.model(query_x, adapted_params)
             predictions = torch.argmax(query_logits, dim=1)
@@ -201,10 +201,10 @@ class MAML:
 
 # 사용 예
 if __name__ == "__main__":
-    # 모형 설정
-    input_dim = 784  # 편 28x28 그림
+    # 모델 설정
+    input_dim = 784  # 평탄화한 28x28 이미지
     hidden_dim = 128
-    output_dim = 5  # 5-클래스 분류
+    output_dim = 5  # 5-way 분류
     
     # 모델과 MAML 학습기를 만든다
     model = SimpleClassifier(input_dim, hidden_dim, output_dim)
@@ -215,7 +215,7 @@ if __name__ == "__main__":
         num_inner_steps=5
     )
     
-    # 과제 배치를 만든다(5-클래스 5-예시)
+    # 과제 배치를 만든다(5-way 5-shot)
     num_tasks = 4
     n_way = 5
     k_shot = 5
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     meta_loss, meta_acc = maml.meta_train_step(tasks)
     print(f"Meta-Loss: {meta_loss:.4f}, Meta-Accuracy: {meta_acc:.4f}")
     
-    # 새 과제로의 맞춤을 시험한다
+    # 새 과제에 대한 적응을 시험한다
     test_support_x = torch.randn(n_way * k_shot, input_dim)
     test_support_y = torch.arange(n_way).repeat_interleave(k_shot)
     test_query_x = torch.randn(n_query, input_dim)
@@ -253,9 +253,9 @@ Predictions: tensor([0, 0, 3, 4, 0, 0, 0, 4, 0, 3, 3, 3, 3, 0, 0])
 
 과제 $\tau$에서 한 번 적응한 웨이트는 $\theta'_\tau=\theta-\alpha\nabla_\theta L_{S_\tau}(\theta)$다. 메타 목표는 적응 후 쿼리 로스 $\mathbb E_\tau L_{Q_\tau}(\theta'_\tau)$를 줄이는 것이다. 내부 루프는 서포트 로스로 과제별 웨이트를 만들고, 외부 루프는 여러 과제의 쿼리 로스를 평균 내어 원래 초기 웨이트를 갱신한다. 서포트와 쿼리는 같은 과제의 클래스에 속하지만 표본은 분리한다.
 
-inner_loop의 create_graph=True는 경사 계산 자체의 그래프를 보존한다. 따라서 외부 역전파는 내부 갱신을 통과하며 2차 미분 항도 포함한다. 모델 웨이트를 제자리에서 덮어쓰는 대신 OrderedDict의 새 텐서를 forward에 넘기는 것이 핵심이다. num_inner_steps가 늘면 그래프와 메모리 부담도 커진다.
+inner_loop의 create_graph=True는 그래디언트 계산 자체의 그래프를 보존한다. 따라서 외부 역전파는 내부 갱신을 통과하며 2차 미분 항도 포함한다. 모델 웨이트를 제자리에서 덮어쓰는 대신 OrderedDict의 새 텐서를 forward에 넘기는 것이 핵심이다. num_inner_steps가 늘면 그래프와 메모리 부담도 커진다.
 
-정확도 계산은 별도의 적응 루프를 다시 수행하고 각 단계에서 detach한다. 이는 기록용이며 메타 로스의 미분 경로와 구별된다. predict는 평가 모드에서도 서포트 적응에 경사를 사용하므로 전체 호출을 no_grad로 감싸면 안 된다. model.eval() 자체는 경사를 끄지 않는다. 예제는 무작위 과제 한 배치를 갱신하며 실제 퓨샷 일반화 성능을 측정하지 않는다.
+정확도 계산은 별도의 적응 루프를 다시 수행하고 각 단계에서 detach한다. 이는 기록용이며 메타 로스의 미분 경로와 구별된다. predict는 평가 모드에서도 서포트 적응에 그래디언트를 사용하므로 전체 호출을 no_grad로 감싸면 안 된다. model.eval() 자체는 그래디언트를 끄지 않는다. 예제는 무작위 과제 한 배치를 갱신하며 실제 퓨샷 일반화 성능을 측정하지 않는다.
 
 ## 연습문제
 
@@ -286,12 +286,12 @@ inner_loop의 create_graph=True는 경사 계산 자체의 그래프를 보존�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-한 번의 내부 갱신에서 메타 경사와 1차 근사의 차이를 설명하라.
+한 번의 내부 갱신에서 메타 그래디언트와 1차 근사의 차이를 설명하라.
 
 </div>
 
 ??? success "풀이"
-    정확한 메타 경사는 $(I-\alpha H_S)^\top\nabla_{\theta'}L_Q(\theta')$이며 $H_S$는 서포트 로스의 헤시안이다. 1차 MAML은 헤시안 항을 생략한다. 코드의 inner_loop는 create_graph=True로 정확한 경로를 유지하며, 정확도 계산에서 detach하는 것과 혼동해서는 안 된다.
+    정확한 메타 그래디언트는 $(I-\alpha H_S)^\top\nabla_{\theta'}L_Q(\theta')$이며 $H_S$는 서포트 로스의 헤시안이다. 1차 MAML은 헤시안 항을 생략한다. 코드의 inner_loop는 create_graph=True로 정확한 경로를 유지하며, 정확도 계산에서 detach하는 것과 혼동해서는 안 된다.
 
 ---
 
@@ -313,4 +313,4 @@ inner_loop의 create_graph=True는 경사 계산 자체의 그래프를 보존�
 
 ## 정리하며
 
-MAML은 적응 후의 쿼리 로스로 초기 웨이트를 학습한다. 함수형 내부 갱신의 미분 경로를 유지하고, 평가 시에도 서포트 적응에는 경사를 허용해야 한다.
+MAML은 적응 후의 쿼리 로스로 초기 웨이트를 학습한다. 함수형 내부 갱신의 미분 경로를 유지하고, 평가 시에도 서포트 적응에는 그래디언트를 허용해야 한다.

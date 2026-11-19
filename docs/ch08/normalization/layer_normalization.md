@@ -74,9 +74,9 @@ class LayerNormNumPy:
         
         # 배율 조정과 이동.
         # 정규화가 평균 0, 분산 1을 강요하는데 그것이 늘 좋은 것은
-        # 아니므로, 뉴럴 네트워크가 그 제약을 되돌릴 수 있게 손잡이를 준다.
+        # 아니므로, 뉴럴 네트워크가 그 제약을 되돌릴 수 있게 학습 가능한 파라메터를 준다.
         # gamma=1, beta=0에서 시작해 필요한 만큼만 배우며,
-        # 극단적으로는 원래 분포를 그대로 되살릴 수도 있다.
+        # 극단적으로는 원래 분포를 그대로 복원할 수도 있다.
         # RMSNorm에 beta가 없는 것은 애초에 평균을 빼지 않아
         # 되돌릴 이동이 없기 때문이다
         out = self.gamma * x_normalized + self.beta
@@ -101,10 +101,10 @@ class RNNWithLayerNorm(nn.Module):
         
         # 레이어 정규화.
         # 순환 뉴럴 네트워크가 레이어 정규화가 태어난 자리다. 배치 정규화를 여기
-        # 쓰려면 시각마다 따로 통계를 두어야 하는데, 길이가 다른 계열이
-        # 섞이면 감당이 되지 않는다. 레이어 정규화는 시각마다 그 표본
+        # 쓰려면 시점마다 따로 통계를 두어야 하는데, 길이가 다른 시퀀스가
+        # 섞이면 감당이 되지 않는다. 레이어 정규화는 시점마다 그 표본
         # 하나만 보므로 그런 문제가 없다.
-        # 정규화 레이어 하나를 모든 시각에 돌려 쓴다는 점도 눈여겨보라.
+        # 정규화 레이어 하나를 모든 시점에 돌려 쓴다는 점도 눈여겨보라.
         # 학습되는 것은 gamma와 beta뿐이고 이동 통계가 없어서 가능하다
         self.ln = nn.LayerNorm(hidden_size)
         
@@ -135,8 +135,8 @@ class RNNWithLayerNorm(nn.Module):
             
             # 레이어 정규화 적용.
             # 활성화 앞이라는 자리가 중요하다. 순환 뉴럴 네트워크는 같은
-            # 웨이트를 시각마다 되풀이해 곱하므로 은닉 상태의 크기가
-            # 계열이 길어질수록 부풀거나 사그라들기 쉬운데, 매 시각
+            # 웨이트를 시점마다 되풀이해 곱하므로 은닉 상태의 크기가
+            # 시퀀스가 길어질수록 부풀거나 사그라들기 쉬운데, 매 시점
             # 크기를 다시 맞추어 주면 그 폭주를 막을 수 있다
             hidden = self.ln(hidden)
             
@@ -159,7 +159,7 @@ class TransformerBlockWithLayerNorm(nn.Module):
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1):
         super(TransformerBlockWithLayerNorm, self).__init__()
         
-        # 다중 머리 어텐션
+        # 멀티헤드 어텐션
         self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
         
         # 순방향 뉴럴 네트워크
@@ -167,7 +167,7 @@ class TransformerBlockWithLayerNorm(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.linear2 = nn.Linear(dim_feedforward, d_model)
         
-        # 레이어 정규화 (사례 2개)
+        # 레이어 정규화 (인스턴스 2개)
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
         
@@ -243,11 +243,11 @@ def demonstrate_layer_norm():
     batch_size = 4
     num_features = 5
     
-    # 표본마다 척도가 다른 피처를 갖는다
+    # 표본마다 스케일이 다른 피처를 갖는다
     x = np.array([
         [1.0, 2.0, 3.0, 4.0, 5.0],      # 표본 1
-        [10.0, 20.0, 30.0, 40.0, 50.0],  # 표본 2 (척도가 크다)
-        [0.1, 0.2, 0.3, 0.4, 0.5],      # 표본 3 (척도가 작다)
+        [10.0, 20.0, 30.0, 40.0, 50.0],  # 표본 2 (스케일이 크다)
+        [0.1, 0.2, 0.3, 0.4, 0.5],      # 표본 3 (스케일이 작다)
         [5.0, 5.0, 5.0, 5.0, 5.0],      # 표본 4 (상수)
     ])
     
@@ -520,7 +520,7 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
 </div>
 
 ??? success "풀이"
-    본문은 하위레이어 출력과 잔차를 더한 뒤 정규화한다. pre-norm은 하위레이어의 입력을 먼저 정규화하고 그 출력을 잔차에 더한다. 정규화 위치를 바꾸는 것은 단순한 문법 차이가 아니며 경사 경로도 달라진다.
+    본문은 하위레이어 출력과 잔차를 더한 뒤 정규화한다. pre-norm은 하위레이어의 입력을 먼저 정규화하고 그 출력을 잔차에 더한다. 정규화 위치를 바꾸는 것은 단순한 문법 차이가 아니며 그래디언트 경로도 달라진다.
 
 ---
 

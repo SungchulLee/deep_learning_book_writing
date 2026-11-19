@@ -6,10 +6,10 @@
 
 ```python
 """
-뽑기 대본 보기
+샘플링 스크립트 예제
 
-익힌 확산 모델에서 표본을 만든다.
-이 대본은 되짚을 자리를 불러와 새 MNIST 숫자를 만든다.
+학습된 확산 모델에서 표본을 생성한다.
+이 스크립트는 체크포인트를 불러와 새 MNIST 숫자를 생성한다.
 """
 
 import torch
@@ -23,9 +23,9 @@ from torchvision import datasets, transforms
 from tqdm import tqdm
 
 # --- diffusion_utils ---
-"""확산 도구."""
+"""확산 유틸리티."""
 # ============================================================================
-# diffusion_utils.py - 확산 모델의 수학 바탕
+# diffusion_utils.py - 확산 모델의 수학적 기초
 # ============================================================================
 
 
@@ -33,54 +33,54 @@ from tqdm import tqdm
 확산 모델 도구 - 핵심 개념
 ==========================================
 
-이 단원은 확산 모델의 수학 엔진을 담는다.
+이 모듈은 확산 모델의 수학 엔진을 담는다.
 
-고갱이 조각:
+핵심 구성 요소:
 ---------------
-1. 잡음 일정: 때 걸음마다 잡음을 얼마나 더할지 매긴다(β_t)
-2. 확산 매개변수: 효율을 위해 미리 셈한 수학 상수
-3. 앞 확산: 닫힌 형태 공식으로 잡음 더하기
+1. 노이즈 스케줄: 타임스텝마다 노이즈를 얼마나 더할지 정한다(β_t)
+2. 확산 파라메터: 효율을 위해 미리 계산한 수학 상수
+3. 정방향 확산: 닫힌 형태 공식으로 노이즈 더하기
    x_t = √ᾱ_t · x_0 + √(1-ᾱ_t) · ε
-4. 뒤 확산: 잡음을 거듭 걷어 낸다(만들기)
-5. 익히기 도구: 배우기 위한 손실 셈하기
-6. 그려 보기 연장: 확산을 눈으로 이해하기
+4. 역방향 확산: 노이즈를 반복해 제거한다(생성)
+5. 학습 도구: 학습을 위한 로스 계산
+6. 시각화 도구: 확산을 눈으로 이해하기
 
-수학 바탕:
+수학적 기초:
 ------------------------
-앞 과정(자료 → 잡음):
+정방향 과정(데이터 → 노이즈):
     q(x_t | x_{t-1}) = N(x_t; √(1-β_t)·x_{t-1}, β_t·I)
 
-닫힌 형태 풀이:
+닫힌 형태 해:
     q(x_t | x_0) = N(x_t; √ᾱ_t·x_0, (1-ᾱ_t)·I)
     여기서 ᾱ_t = ∏_{i=1}^t (1-β_i)
 
-뒤 과정(잡음 → 자료):
+역방향 과정(노이즈 → 데이터):
     p_θ(x_{t-1} | x_t) = N(x_{t-1}; μ_θ(x_t,t), Σ_θ(x_t,t))
 
-모델은 잡음 ε_θ(x_t, t)을 헤아려 μ_θ을 배운다.
+모델은 노이즈 ε_θ(x_t, t)을 예측해 μ_θ을 배운다.
 """
 
 # ============================================================================
-# 잡음 차례표
+# 노이즈 스케줄
 # ============================================================================
 
 def linear_beta_schedule(timesteps: int, beta_start: float = 0.0001, 
                         beta_end: float = 0.02) -> torch.Tensor:
     """
-    선형 잡음 차례표를 만든다.
+    선형 노이즈 스케줄를 만든다.
     
     β_t이 선형으로 늘어난다: [0.0001, 0.0002, ..., 0.02]
     
-    좋은 점: 단순하고 직관적이며 이해하기 쉽다
-    나쁜 점: 그림에는 가장 좋지 않고 끝에서 잡음을 너무 빨리 더한다
+    장점: 단순하고 직관적이며 이해하기 쉽다
+    단점: 이미지에는 최선이 아니고 끝에서 노이즈를 너무 빨리 더한다
     
-    역사 참고: 본디 DDPM 논문에서 썼다.
-    요즘 방식: 그림에는 코사인 차례표가 낫다.
+    역사: 원래 DDPM 논문에서 썼다.
+    요즘 방식: 이미지에는 코사인 스케줄가 낫다.
     
     인수:
-        timesteps: 온 확산 걸음 수(T)
-        beta_start: 처음 잡음 크기(≈0.0001)
-        beta_end: 마지막 잡음 크기(≈0.02)
+        timesteps: 전체 확산 스텝 수(T)
+        beta_start: 처음 노이즈 크기(≈0.0001)
+        beta_end: 마지막 노이즈 크기(≈0.02)
     
     반환값:
         betas: 형태가 (timesteps,)인 텐서
@@ -89,111 +89,111 @@ def linear_beta_schedule(timesteps: int, beta_start: float = 0.0001,
 
 def cosine_beta_schedule(timesteps: int, s: float = 0.008) -> torch.Tensor:
     """
-    코사인 잡음 차례표를 만든다(선형보다 나아진 것).
+    코사인 노이즈 스케줄를 만든다(선형보다 개선된 것).
     
     왜 코사인인가?
     -----------
-    - 퍼지는 내내 더 매끄럽게 나아간다
+    - 확산 내내 더 매끄럽게 진행한다
     - 끝에서 덜 과감하다
     - 신호 대 잡음비를 더 잘 지킨다
-    - 그림 만들어 내기 품질이 높다
+    - 이미지 생성 품질이 높다
     
-    수학 뜻매김:
+    수학적 정의:
     ------------------------
     f(t) = cos((t/T + s)/(1 + s) · π/2)²
     ᾱ_t = f(t)/f(0)
     β_t = 1 - (ᾱ_t/ᾱ_{t-1})
     
     코사인은 ᾱ_t이 줄어드는 매끄러운 S자 곡선을 만든다.
-    치우침 's'이 가장자리에서 수치가 흔들리는 것을 막는다.
+    오프셋 's'이 가장자리에서 수치가 흔들리는 것을 막는다.
     
-    좋은 점:
+    장점:
     ---------
-    1. 매끄러운 옮아감: 걸음마다 비슷한 양의 잡음을 없앤다
-    2. 더 나은 기울기: 때 걸음에 걸쳐 배움 신호가 고르다
-    3. 흠이 적다: 갑작스러운 바뀜이 덜하다
-    4. 겪어 본 성공: 최고 수준의 모델이 이것을 쓴다
+    1. 매끄러운 전이: 스텝마다 비슷한 양의 노이즈를 제거한다
+    2. 더 나은 그래디언트: 타임스텝에 걸쳐 학습 신호가 고르다
+    3. 아티팩트가 적다: 급격한 변화가 덜하다
+    4. 경험적 성공: 최고 수준의 모델이 이것을 쓴다
     
     참고: "Improved Denoising Diffusion Probabilistic Models"
                (니콜 & 다리왈, 2021)
     
     인수:
-        timesteps: 온 확산 걸음
-        s: 작은 치우침(기본값 0.008. 처음에 β_t ≈ 0이 되는 것을 막는다)
+        timesteps: 전체 확산 스텝
+        s: 작은 오프셋(기본값 0.008. 처음에 β_t ≈ 0이 되는 것을 막는다)
     
     반환값:
         betas: 형태 (timesteps,)인 텐서이며 매끄럽게 늘어난다
     """
-    # 때 어깨수를 만든다(차이를 셈하려면 T+1개 점이 필요하다)
+    # 시간 인덱스를 만든다(차이를 계산하려면 T+1개 점이 필요하다)
     steps = timesteps + 1
     x = torch.linspace(0, timesteps, steps)
     
-    # 코사인 함수로 ᾱ_t을 셈한다
+    # 코사인 함수로 ᾱ_t을 계산한다
     t_normalized = (x / timesteps + s) / (1 + s)
     alphas_cumprod = torch.cos(t_normalized * torch.pi * 0.5) ** 2
-    alphas_cumprod = alphas_cumprod / alphas_cumprod[0]  # ᾱ_0=1이 되게 고르게 맞춘다
+    alphas_cumprod = alphas_cumprod / alphas_cumprod[0]  # ᾱ_0=1이 되게 정규화한다
     
-    # ᾱ_t에서 β_t을 셈한다: β_t = 1 - (ᾱ_t/ᾱ_{t-1})
+    # ᾱ_t에서 β_t을 계산한다: β_t = 1 - (ᾱ_t/ᾱ_{t-1})
     betas = 1 - (alphas_cumprod[1:] / alphas_cumprod[:-1])
     
-    # 수치의 안정을 위해 자른다
+    # 수치 안정성을 위해 클리핑한다
     return torch.clip(betas, 0.0001, 0.9999)
 
 # ============================================================================
-# 확산 매개변수(효율을 위해 미리 셈함)
+# 확산 파라메터(효율을 위해 미리 계산함)
 # ============================================================================
 
 def get_diffusion_parameters(betas: torch.Tensor) -> dict:
     """
-    확산에 필요한 수학 상수를 모두 미리 셈한다.
+    확산에 필요한 수학 상수를 모두 미리 계산한다.
     
-    왜 미리 셈하는가?
+    왜 미리 계산하는가?
     ---------------
-    익힐 때 이 값이 거듭 든다. 한 번만 셈하면 O(T)이고,
-    되풀이마다 O(T) 대신 O(1) 찾아보기 → 엄청나게 빨라진다!
+    학습할 때 이 값이 반복해서 쓰인다. 한 번만 계산하면 O(T)이고,
+    반복마다 O(T) 대신 O(1) 조회 → 엄청나게 빨라진다!
     
-    T=1000, 되돌이 1만 번이면 셈 1000번 + 찾아보기 1만 번 대 셈 1000만 번이다
+    T=1000, 반복 1만 번이면 계산 1000번 + 조회 1만 번 대 계산 1000만 번이다
     
-    이끌어 낸 값:
+    유도한 값:
     -------------------
     α_t = 1 - β_t                    (남는 신호)
-    ᾱ_t = ∏_{i=1}^t α_i             (쌓은 신호)
-    √ᾱ_t, √(1-ᾱ_t)                  (앞 확산 계수)
-    1/√α_t                           (뒤 확산 잣대)
-    σ_t² = β_t(1-ᾱ_{t-1})/(1-ᾱ_t)  (사후 흩어짐)
+    ᾱ_t = ∏_{i=1}^t α_i             (누적 신호)
+    √ᾱ_t, √(1-ᾱ_t)                  (정방향 확산 계수)
+    1/√α_t                           (역방향 확산 스케일)
+    σ_t² = β_t(1-ᾱ_{t-1})/(1-ᾱ_t)  (사후분산)
     
     인수:
-        betas: β 일정, 형태 (T,)
+        betas: β 스케줄, 형태 (T,)
     
     반환값:
-        미리 셈한 매개변수를 모두 담은 사전:
+        미리 계산한 파라메터를 모두 담은 사전:
         - 'betas': β_t 값
         - 'alphas': α_t = 1 - β_t
-        - 'alphas_cumprod': ᾱ_t (쌓은 곱)
+        - 'alphas_cumprod': ᾱ_t (누적곱)
         - 'alphas_cumprod_prev': ᾱ_{t-1} (한 칸 옮김)
-        - 'sqrt_alphas_cumprod': √ᾱ_t (자료 계수)
-        - 'sqrt_one_minus_alphas_cumprod': √(1-ᾱ_t) (잡음 계수)
-        - 'sqrt_recip_alphas': 1/√α_t (뒤 잣대)
-        - 'posterior_variance': σ_t² (뒤 잡음)
+        - 'sqrt_alphas_cumprod': √ᾱ_t (데이터 계수)
+        - 'sqrt_one_minus_alphas_cumprod': √(1-ᾱ_t) (노이즈 계수)
+        - 'sqrt_recip_alphas': 1/√α_t (역방향 스케일)
+        - 'posterior_variance': σ_t² (역방향 노이즈)
     """
-    # α_t = 1 - β_t(걸음마다 남는 신호)
+    # α_t = 1 - β_t(스텝마다 남는 신호)
     alphas = 1.0 - betas
     
-    # ᾱ_t = ∏ α_i(쌓인 신호 - 핵심 양이다!)
+    # ᾱ_t = ∏ α_i(누적 신호 - 핵심 양이다!)
     alphas_cumprod = torch.cumprod(alphas, dim=0)
     # 성질: 줄어들고 ≈1에서 시작해 ≈0에서 끝난다
     
     # ᾱ_{t-1}(ᾱ_0 = 1이므로 앞에 1.0을 붙인다)
     alphas_cumprod_prev = torch.cat([torch.ones(1), alphas_cumprod[:-1]])
     
-    # 앞 확산 계수: x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε
+    # 정방향 확산 계수: x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε
     sqrt_alphas_cumprod = torch.sqrt(alphas_cumprod)
     sqrt_one_minus_alphas_cumprod = torch.sqrt(1.0 - alphas_cumprod)
     
-    # 뒤 확산 스케일 맞추기: μ = 1/√α_t·(...)
+    # 역방향 확산 스케일 맞추기: μ = 1/√α_t·(...)
     sqrt_recip_alphas = torch.sqrt(1.0 / alphas)
     
-    # 사후 흩어짐: 뒤로 갈 때 잡음을 얼마나 더할지
+    # 사후분산: 역방향으로 갈 때 노이즈를 얼마나 더할지
     posterior_variance = betas * (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod)
     
     return {
@@ -208,24 +208,24 @@ def get_diffusion_parameters(betas: torch.Tensor) -> dict:
     }
 
 # ============================================================================
-# 도구: 퍼뜨리기를 곁들인 배치 어깨수 찾기
+# 도구: 브로드캐스팅을 곁들인 배치 인덱스 조회
 # ============================================================================
 
 def extract(tensor: torch.Tensor, t: torch.Tensor, x_shape: tuple) -> torch.Tensor:
     """
-    1차원 텐서의 어깨수 t에서 값을 뽑고 퍼뜨리기에 맞게 형태를 바꾼다.
+    1차원 텐서의 인덱스 t에서 값을 뽑고 브로드캐스팅에 맞게 형태를 바꾼다.
     
     문제:
     ------------
-    배치마다 때 걸음이 다르다: t = [15, 73, 42, ...]
+    배치마다 타임스텝이 다르다: t = [15, 73, 42, ...]
     표본마다 다른 상수가 필요하다: √ᾱ_15, √ᾱ_73, √ᾱ_42, ...
     
     풀이:
     ---------
-    1. 자리 잡기: tensor[t] → 표본마다 값을 얻는다
-    2. 형태 바꾸기: 퍼뜨리기를 위해 (배치,) → (배치, 1, 1, ...)
+    1. 인덱싱: tensor[t] → 표본마다 값을 얻는다
+    2. 형태 바꾸기: 브로드캐스팅를 위해 (배치,) → (배치, 1, 1, ...)
     
-    펴 맞추기 보기:
+    브로드캐스팅 예:
     ---------------------
     x 형태: (3, 2)          2차원 점 셋
     values: (3, 1)           형태를 바꾼 뒤
@@ -235,30 +235,30 @@ def extract(tensor: torch.Tensor, t: torch.Tensor, x_shape: tuple) -> torch.Tens
      [x3, y3]]      [v3, 1]]       [v3·x3, v3·y3]]
     
     인수:
-        tensor: 밑 값, 형태 (T,)
-        t: 때 걸음 번호, 형태 (batch_size,)
-        x_shape: 퍼뜨리기의 목표 자료 형태
+        tensor: 조회할 값, 형태 (T,)
+        t: 타임스텝 번호, 형태 (batch_size,)
+        x_shape: 브로드캐스팅의 목표 데이터 형태
     
     반환값:
         뽑아서 형태를 바꾼 값, 형태 (batch_size, 1, 1, ...)
     """
     batch_size = t.shape[0]
-    out = tensor.gather(-1, t)  # 어깨수에서 뽑는다
+    out = tensor.gather(-1, t)  # 인덱스에서 뽑는다
     
-    # 퍼뜨리기에 맞게 형태를 바꾼다: (배치,) → (배치, 1, 1, ...)
+    # 브로드캐스팅에 맞게 형태를 바꾼다: (배치,) → (배치, 1, 1, ...)
     num_extra_dims = len(x_shape) - 1
     trailing_dims = (1,) * num_extra_dims
     return out.reshape(batch_size, *trailing_dims)
 
 # ============================================================================
-# 앞 확산
+# 정방향 확산
 # ============================================================================
 
 def forward_diffusion(x_0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor,
                      sqrt_alphas_cumprod: torch.Tensor,
                      sqrt_one_minus_alphas_cumprod: torch.Tensor) -> torch.Tensor:
     """
-    앞 확산을 쓴다: 깨끗한 자료에 잡음을 더한다.
+    정방향 확산을 적용한다: 깨끗한 데이터에 노이즈를 더한다.
     
     식:
     --------
@@ -266,45 +266,45 @@ def forward_diffusion(x_0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor,
     
     풀이:
     ---------------
-    자료와 잡음의 무게 실은 합:
-    - t=0:   ᾱ_0=1    → x_0 = x_0 (잡음 없음)
-    - t=50:  ᾱ_50≈0.6 → 자료 60% + 잡음 80%(크기 기준)
-    - t=100: ᾱ_100≈0.3 → 자료 30% + 잡음 95%
-    - t→∞:   ᾱ_∞→0   → 순수 잡음
+    데이터와 노이즈의 가중합:
+    - t=0:   ᾱ_0=1    → x_0 = x_0 (노이즈 없음)
+    - t=50:  ᾱ_50≈0.6 → 데이터 60% + 노이즈 80%(크기 기준)
+    - t=100: ᾱ_100≈0.3 → 데이터 30% + 노이즈 95%
+    - t→∞:   ᾱ_∞→0   → 순수 노이즈
     
     왜 제곱근인가?
     -----------------
-    흩어짐 지킴: √ᾱ_t² + √(1-ᾱ_t)² = 1
-    x_t의 흩어짐이 x_0과 같게 한다!
+    분산 보존: √ᾱ_t² + √(1-ᾱ_t)² = 1
+    x_t의 분산이 x_0과 같게 한다!
     
     인수:
-        x_0: 깨끗한 자료, 형태 (batch_size, *data_dims)
-        t: 때 걸음, 형태 (batch_size,)
-        noise: 정규 잡음 ε ~ N(0,I)이며 x_0과 같은 형태
-        sqrt_alphas_cumprod: 미리 셈한 √ᾱ_t, 형태 (T,)
-        sqrt_one_minus_alphas_cumprod: 미리 셈한 √(1-ᾱ_t), 형태 (T,)
+        x_0: 깨끗한 데이터, 형태 (batch_size, *data_dims)
+        t: 타임스텝, 형태 (batch_size,)
+        noise: 정규 노이즈 ε ~ N(0,I)이며 x_0과 같은 형태
+        sqrt_alphas_cumprod: 미리 계산한 √ᾱ_t, 형태 (T,)
+        sqrt_one_minus_alphas_cumprod: 미리 계산한 √(1-ᾱ_t), 형태 (T,)
     
     반환값:
-        x_t: 때 걸음 t의 잡음 섞인 자료
+        x_t: 타임스텝 t의 노이즈 섞인 데이터
     """
-    # 표본마다 때 걸음의 계수를 뽑고 퍼뜨리기에 맞게 형태를 바꾼다
+    # 표본마다 타임스텝의 계수를 뽑고 브로드캐스팅에 맞게 형태를 바꾼다
     sqrt_alpha_t = extract(sqrt_alphas_cumprod, t, x_0.shape)
     sqrt_one_minus_alpha_t = extract(sqrt_one_minus_alphas_cumprod, t, x_0.shape)
     
-    # 앞 확산 공식을 쓴다
+    # 정방향 확산 공식을 적용한다
     return sqrt_alpha_t * x_0 + sqrt_one_minus_alpha_t * noise
 
 # ============================================================================
-# 뒤 확산(만들어 내기)
+# 역방향 확산(생성)
 # ============================================================================
 
 @torch.no_grad()
 def p_sample(model: nn.Module, x_t: torch.Tensor, t: int, t_tensor: torch.Tensor,
             diffusion_params: dict, device: str = 'cpu') -> torch.Tensor:
     """
-    뒤 확산을 한 걸음 한다: x_t → x_{t-1}.
+    역방향 확산을 한 스텝 수행한다: x_t → x_{t-1}.
     
-    뒤 식:
+    역방향 식:
     ----------------
     μ_θ(x_t,t) = 1/√α_t · (x_t - β_t/√(1-ᾱ_t)·ε_θ(x_t,t))
     x_{t-1} = μ_θ + σ_t·z  (t>0이면)
@@ -312,46 +312,46 @@ def p_sample(model: nn.Module, x_t: torch.Tensor, t: int, t_tensor: torch.Tensor
     
     과정:
     --------
-    1. 모형이 잡음을 예측한다: ε_θ(x_t,t)
-    2. 잡음 없앤 평균을 셈한다: μ_θ
-    3. 여러 갈래가 나오도록 작은 잡음 σ_t·z을 더한다(t=0은 뺀다)
+    1. 모델이 노이즈를 예측한다: ε_θ(x_t,t)
+    2. 디노이징한 평균을 계산한다: μ_θ
+    3. 다양한 표본이 나오도록 작은 노이즈 σ_t·z을 더한다(t=0은 뺀다)
     
-    왜 잡음을 없애면서 잡음을 더하는가?
+    왜 노이즈를 제거하면서 노이즈를 더하는가?
     -------------------------------
-    잡음이 없으면: 정해짐 → 봉우리 무너짐, 다양함 없음
-    잡음이 있으면: 확률 → 풍부한 표본, 온전한 분포
-    고갱이: 더한 잡음 < 걷어 낸 잡음 → 알짜로 나아간다!
+    노이즈가 없으면: 결정적 → 모드 붕괴, 다양성 없음
+    노이즈가 있으면: 확률적 → 풍부한 표본, 완전한 분포
+    핵심: 더한 노이즈 < 제거한 노이즈 → 전체로는 노이즈가 줄어든다!
     
     인수:
-        model: 익힌 잡음 없애기 모델
-        x_t: 때 걸음 t의 잡음 섞인 자료
-        t: 이제 때 걸음(정수)
-        t_tensor: 텐서로 나타낸 때 걸음, 형태 (batch_size,)
-        diffusion_params: 미리 셈한 상수
+        model: 학습된 디노이징 모델
+        x_t: 타임스텝 t의 노이즈 섞인 데이터
+        t: 현재 타임스텝(정수)
+        t_tensor: 텐서로 나타낸 타임스텝, 형태 (batch_size,)
+        diffusion_params: 미리 계산한 상수
         device: 'cpu' 또는 'cuda'
     
     반환값:
-        x_{t-1}: 앞선 때 걸음의, 잡음이 덜한 자료
+        x_{t-1}: 이전 타임스텝의, 노이즈가 덜한 데이터
     """
-    # 모델로 잡음을 헤아린다
+    # 모델로 노이즈를 예측한다
     predicted_noise = model(x_t, t_tensor)
     
-    # 지금 때 걸음의 매개변수를 뽑는다
+    # 현재 타임스텝의 파라메터를 뽑는다
     beta_t = extract(diffusion_params['betas'], t_tensor, x_t.shape)
     sqrt_recip_alpha_t = extract(diffusion_params['sqrt_recip_alphas'], t_tensor, x_t.shape)
     sqrt_one_minus_alpha_cumprod_t = extract(
         diffusion_params['sqrt_one_minus_alphas_cumprod'], t_tensor, x_t.shape
     )
     
-    # 잡음 없앤 평균을 셈한다: μ = 1/√α_t·(x_t - β_t/√(1-ᾱ_t)·ε_pred)
+    # 디노이징한 평균을 계산한다: μ = 1/√α_t·(x_t - β_t/√(1-ᾱ_t)·ε_pred)
     noise_term = beta_t * predicted_noise / sqrt_one_minus_alpha_cumprod_t
     model_mean = sqrt_recip_alpha_t * (x_t - noise_term)
     
     if t == 0:
-        # 마지막 걸음: 잡음을 더하지 않는다
+        # 마지막 스텝: 노이즈를 더하지 않는다
         return model_mean
     else:
-        # 다양함을 위해 확률 잡음을 더한다
+        # 다양성을 위해 확률적 노이즈를 더한다
         posterior_variance_t = extract(diffusion_params['posterior_variance'], t_tensor, x_t.shape)
         noise = torch.randn_like(x_t)
         posterior_std = torch.sqrt(posterior_variance_t)
@@ -361,110 +361,110 @@ def p_sample(model: nn.Module, x_t: torch.Tensor, t: int, t_tensor: torch.Tensor
 def sample(model: nn.Module, shape: tuple, timesteps: int,
           diffusion_params: dict, device: str = 'cpu') -> torch.Tensor:
     """
-    온전한 뒤 확산으로 표본을 만든다.
+    전체 역방향 확산으로 표본을 생성한다.
     
     알고리즘:
     ----------
-    x_T ~ N(0,I)           ← 순수 잡음에서 시작
-        ↓ 잡음 없애기
+    x_T ~ N(0,I)           ← 순수 노이즈에서 시작
+        ↓ 디노이징
     x_{T-1} = p_θ(· | x_T)
         ↓ ...
     x_0                    ← 마지막 깨끗한 표본
     
-    맞바꿈:
+    트레이드오프:
     -----------
-    걸음이 많으면(T이 큼): 품질이 높고 느리다
-    걸음이 적으면(T이 작음): 빠르고 품질이 낮다
+    스텝이 많으면(T이 큼): 품질이 높고 느리다
+    스텝이 적으면(T이 작음): 빠르고 품질이 낮다
     
-    흔한 값: T=100(빠름), T=1000(여느 값), T=4000(높은 좋음)
+    흔한 값: T=100(빠름), T=1000(표준 값), T=4000(고품질)
     
     인수:
-        model: 익힌 잡음 걷개 모형(따짐 모드)
+        model: 학습된 디노이징 모델(평가 모드)
         shape: 표본의 형태. 보기로 (32, 2)이나 (16, 3, 256, 256)
-        timesteps: 잡음을 걷는 걸음 수(익힘과 맞아야 한다!)
-        diffusion_params: 미리 셈한 상수
+        timesteps: 디노이징 스텝 수(학습 때와 맞아야 한다!)
+        diffusion_params: 미리 계산한 상수
         device: 'cpu' 또는 'cuda'
     
     반환값:
-        형태에 맞는 만든 표본
+        주어진 형태의 생성 표본
     """
     model.eval()
     
-    # 순수 잡음에서 시작한다
+    # 순수 노이즈에서 시작한다
     x_t = torch.randn(shape, device=device)
     
-    # 거듭 잡음 없애기: T → T-1 → ... → 1 → 0
+    # 반복 디노이징: T → T-1 → ... → 1 → 0
     for t in reversed(range(timesteps)):
         t_tensor = torch.full((shape[0],), t, device=device, dtype=torch.long)
         x_t = p_sample(model, x_t, t, t_tensor, diffusion_params, device)
     
-    return x_t  # x_0: 깨끗한 만든 표본
+    return x_t  # x_0: 깨끗한 생성 표본
 
 # ============================================================================
-# 익히기 손실
+# 학습 로스
 # ============================================================================
 
 def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
             diffusion_params: dict, noise: torch.Tensor = None) -> torch.Tensor:
     """
-    확산 모델의 익히기 손실을 셈한다.
+    확산 모델의 학습 로스를 계산한다.
     
-    DDPM 익힘 목표:
+    DDPM 학습 목표:
     ------------------------
     L_simple = E_{t,x_0,ε}[||ε - ε_θ(x_t,t)||²]
     
-    x_t을 만들려 더한 바로 그 잡음을 모델이 헤아리기를 바란다.
+    x_t을 만들려 더한 바로 그 노이즈를 모델이 예측하기를 바란다.
     
-    왜 잡음을 헤아리는가?
+    왜 노이즈를 예측하는가?
     ------------------
-    - 잡음은 멈춰 있다: 모든 때 걸음에서 N(0,I)이다
-    - t에 걸쳐 배움 목표가 고르다
-    - 겪어 보니 표본의 좋음이 가장 높다
-    - 요즘 확산 모델의 여느 방식이다
+    - 노이즈의 분포는 고정되어 있다: 모든 타임스텝에서 N(0,I)이다
+    - t에 걸쳐 학습 목표가 고르다
+    - 경험적으로 표본 품질이 가장 높다
+    - 요즘 확산 모델의 표준 방식이다
     
-    마구잡이 때 걸음 뽑기:
+    무작위 타임스텝 샘플링:
     -------------------------
-    고갱이 솜씨: 배치마다 [0,T-1]에서 t을 고르게 뽑는다
-    → 모델이 모든 잡음 수준에서 잡음 없애는 법을 배운다
-    → 특정 때 걸음에 지나치게 맞춰지는 것을 막는다
+    핵심 기법: 배치마다 [0,T-1]에서 t을 균등하게 뽑는다
+    → 모델이 모든 노이즈 수준에서 디노이징하는 법을 배운다
+    → 특정 타임스텝에 과적합하는 것을 막는다
     
     인수:
-        model: 익힐 잡음 없애기 모델
-        x_0: 깨끗한 자료의 배치, 형태 (batch_size, *data_dims)
-        t: 마구잡이 때 걸음, 형태 (batch_size,)
-        diffusion_params: 미리 셈한 상수
-        noise: 미리 만든 잡음(골라 쓴다. None이면 여기서 만든다)
+        model: 학습할 디노이징 모델
+        x_0: 깨끗한 데이터의 배치, 형태 (batch_size, *data_dims)
+        t: 무작위 타임스텝, 형태 (batch_size,)
+        diffusion_params: 미리 계산한 상수
+        noise: 미리 만든 노이즈(선택 사항. None이면 여기서 만든다)
     
     반환값:
-        뒤먹임 퍼뜨리기를 위한 낱값 평균 제곱 어긋남 손실
+        역전파를 위한 스칼라 평균 제곱 오차(MSE) 로스
     """
-    # 잡음이 주어지지 않으면 만든다
+    # 노이즈가 주어지지 않으면 만든다
     if noise is None:
         noise = torch.randn_like(x_0)
     
-    # 앞 확산을 쓴다: 아는 잡음으로 x_t을 만든다
+    # 정방향 확산을 적용한다: 알려진 노이즈로 x_t을 만든다
     x_t = forward_diffusion(
         x_0, t, noise,
         diffusion_params['sqrt_alphas_cumprod'],
         diffusion_params['sqrt_one_minus_alphas_cumprod']
     )
     
-    # 모델이 잡음을 헤아린다
+    # 모델이 노이즈를 예측한다
     predicted_noise = model(x_t, t)
     
-    # 헤아린 잡음과 실제 잡음 사이의 평균 제곱 어긋남 손실을 셈한다
+    # 예측한 노이즈와 실제 노이즈 사이의 평균 제곱 오차 로스를 계산한다
     return nn.functional.mse_loss(predicted_noise, noise)
 
 # ============================================================================
-# 그려 보기 도구
+# 시각화 도구
 # ============================================================================
 
 def visualize_diffusion_process(x_0: torch.Tensor, timesteps: int,
                                diffusion_params: dict, num_images: int = 10):
     """
-    그림의 앞 확산을 그려 본다(자료 → 잡음).
+    이미지의 정방향 확산을 시각화한다(데이터 → 노이즈).
     
-    차츰 망가지는 모습을 보인다: 깨끗함 → 조금 잡음 → 아주 잡음 → 순수 잡음
+    차츰 망가지는 모습을 보인다: 깨끗함 → 약한 노이즈 → 강한 노이즈 → 순수 노이즈
     모델이 무엇을 거꾸로 돌려야 하는지 직관을 쌓는 데 도움이 된다.
     """
     sqrt_alphas_cumprod = diffusion_params['sqrt_alphas_cumprod']
@@ -479,8 +479,8 @@ def visualize_diffusion_process(x_0: torch.Tensor, timesteps: int,
         x_t = forward_diffusion(x_0, t_tensor, noise, 
                                sqrt_alphas_cumprod, sqrt_one_minus_alphas_cumprod)
         
-        # 보이기
-        if x_0.shape[1] == 1:  # 회색
+        # 표시
+        if x_0.shape[1] == 1:  # 흑백
             img = x_t[0, 0].cpu().numpy()
             axes[idx].imshow(img, cmap='gray')
         else:  # RGB
@@ -498,7 +498,7 @@ def visualize_diffusion_process(x_0: torch.Tensor, timesteps: int,
 
 def visualize_samples(samples: torch.Tensor, nrow: int = 8, 
                      filename: str = 'samples.png'):
-    """만든 표본을 격자로 보인다."""
+    """생성한 표본을 격자로 표시한다."""
     from torchvision.utils import make_grid
     
     samples = (samples - samples.min()) / (samples.max() - samples.min())
@@ -517,27 +517,27 @@ def visualize_samples(samples: torch.Tensor, nrow: int = 8,
     print(f"✓ Saved: {filename}")
 
 # ============================================================================
-# 때 임베딩(앞선 모델용)
+# 타임스텝 임베딩(고급 모델용)
 # ============================================================================
 
 class SinusoidalPositionEmbedding(nn.Module):
     """
-    때 걸음 조건 주기를 위한 사인 형태 때 임베딩.
+    타임스텝 조건화를 위한 사인파 타임스텝 임베딩.
     
-    왜 사인 형태인가?
+    왜 사인파인가?
     ---------------
-    홑값 t보다 나은 점:
-    - 이어져 있다: 가까운 때 걸음은 임베딩이 비슷하다
-    - 하나뿐이다: 때 걸음마다 다르다
+    스칼라 t보다 나은 점:
+    - 연속적이다: 가까운 타임스텝은 임베딩이 비슷하다
+    - 유일하다: 타임스텝마다 다르다
     - 매끄럽다: 작은 Δt → 작은 Δ임베딩
-    - 되풀이된다: 사인과 코사인으로 풍부한 나타냄
+    - 주기적이다: 사인과 코사인으로 풍부한 표현
     
     식(트랜스포머에서 가져옴):
     ----------------------------
     PE(t, 2i) = sin(t/10000^(2i/d))      짝수 번호
     PE(t, 2i+1) = cos(t/10000^(2i/d))    홀수 번호
     
-    차원마다 다른 잦기로 흔들린다.
+    차원마다 다른 주파수로 진동한다.
     """
     
     def __init__(self, dim: int):
@@ -551,10 +551,10 @@ class SinusoidalPositionEmbedding(nn.Module):
     
     def forward(self, time: torch.Tensor) -> torch.Tensor:
         """
-        때 걸음을 사인 형태 임베딩으로 바꾼다.
+        타임스텝을 사인파 임베딩으로 바꾼다.
         
         인수:
-            time: 때 걸음, 형태 (batch_size,)
+            time: 타임스텝, 형태 (batch_size,)
         
         반환값:
             임베딩, 형태 (batch_size, dim)
@@ -562,23 +562,23 @@ class SinusoidalPositionEmbedding(nn.Module):
         device = time.device
         half_dim = self.dim // 2
         
-        # 잦기 스케일을 셈한다(등비 수열)
+        # 주파수 스케일을 계산한다(등비 수열)
         embeddings = np.log(10000) / (half_dim - 1)
         embeddings = torch.exp(torch.arange(half_dim, device=device) * -embeddings)
         
-        # 때 × 잦기를 셈한다
+        # 시간 × 주파수를 계산한다
         embeddings = time[:, None] * embeddings[None, :]
         
-        # 사인과 코사인을 쓴다
+        # 사인과 코사인을 적용한다
         embeddings = torch.cat((embeddings.sin(), embeddings.cos()), dim=-1)
         return embeddings
 
 # ============================================================================
-# 보여 주기
+# 데모
 # ============================================================================
 
 if __name__ == "__main__":
-    """잡음 차례표를 견준다."""
+    """노이즈 스케줄를 견준다."""
     print("=" * 70)
     print("NOISE SCHEDULE COMPARISON")
     print("=" * 70)
@@ -623,10 +623,10 @@ if __name__ == "__main__":
 
 # --- unet_architecture ---
 """
-확산 모델을 위한 U-Net 얼개
+확산 모델을 위한 U-Net 아키텍처
 
-이 단원은 확산 모델에 흔히 쓰는 U-Net 얼개를 짠다.
-U-Net은 잡음 섞인 그림과 때 걸음 임베딩을 들임으로 받아 잡음을 헤아린다.
+이 모듈은 확산 모델에 흔히 쓰는 U-Net 아키텍처를 구현한다.
+U-Net은 노이즈 섞인 이미지와 타임스텝 임베딩을 입력으로 받아 노이즈를 예측한다.
 """
 
 
@@ -637,7 +637,7 @@ U-Net은 잡음 섞인 그림과 때 걸음 임베딩을 들임으로 받아 잡
 
 class ResidualBlock(nn.Module):
     """
-    GroupNorm과 때 임베딩을 갖춘 남은 덩이.
+    GroupNorm과 타임스텝 임베딩을 갖춘 잔차 블록.
     """
     
     def __init__(self, in_channels: int, out_channels: int, time_emb_dim: int, 
@@ -650,7 +650,7 @@ class ResidualBlock(nn.Module):
         self.norm1 = nn.GroupNorm(num_groups, in_channels)
         self.norm2 = nn.GroupNorm(num_groups, out_channels)
         
-        # 때 임베딩 쏘기
+        # 타임스텝 임베딩 프로젝션
         self.time_mlp = nn.Linear(time_emb_dim, out_channels)
         
         # 잔차 연결
@@ -662,24 +662,24 @@ class ResidualBlock(nn.Module):
     def forward(self, x: torch.Tensor, time_emb: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            x: 들임 텐서, 형태 (batch, in_channels, height, width)
+            x: 입력 텐서, 형태 (batch, in_channels, height, width)
             time_emb: 타임스텝 임베딩, 형태 (batch, time_emb_dim)
         
         반환값:
-            내놓음 텐서, 형태 (batch, out_channels, height, width)
+            출력 텐서, 형태 (batch, out_channels, height, width)
         """
         residual = self.residual_conv(x)
         
-        # 첫 누비기
+        # 첫 합성곱
         x = self.norm1(x)
         x = F.silu(x)
         x = self.conv1(x)
         
-        # 때 임베딩을 더한다
+        # 타임스텝 임베딩을 더한다
         time_emb = self.time_mlp(time_emb)
-        x = x + time_emb[:, :, None, None]  # 공간 차원으로 퍼뜨린다
+        x = x + time_emb[:, :, None, None]  # 공간 차원으로 브로드캐스팅한다
         
-        # 두 번째 누비기
+        # 두 번째 합성곱
         x = self.norm2(x)
         x = F.silu(x)
         x = self.conv2(x)
@@ -689,7 +689,7 @@ class ResidualBlock(nn.Module):
 
 class AttentionBlock(nn.Module):
     """
-    멀리 떨어진 매임을 담는 셀프 어텐션 덩이.
+    장거리 의존성을 포착하는 셀프 어텐션 블록.
     """
     
     def __init__(self, channels: int, num_heads: int = 4):
@@ -706,10 +706,10 @@ class AttentionBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            x: 들임 텐서, 형태 (batch, channels, height, width)
+            x: 입력 텐서, 형태 (batch, channels, height, width)
         
         반환값:
-            들임과 같은 형태의 내놓기 텐서
+            입력과 같은 형태의 출력 텐서
         """
         batch, channels, height, width = x.shape
         residual = x
@@ -717,9 +717,9 @@ class AttentionBlock(nn.Module):
         x = self.norm(x)
         qkv = self.qkv(x)
         
-        # 다중 머리 주의에 맞게 형태를 바꾼다
+        # 멀티 헤드 어텐션에 맞게 형태를 바꾼다
         qkv = qkv.reshape(batch, 3, self.num_heads, channels // self.num_heads, height * width)
-        qkv = qkv.permute(1, 0, 2, 4, 3)  # (3, 배치, 머리, hw, 차원)
+        qkv = qkv.permute(1, 0, 2, 4, 3)  # (3, 배치, 헤드, hw, 차원)
         q, k, v = qkv[0], qkv[1], qkv[2]
         
         # 어텐션
@@ -731,13 +731,13 @@ class AttentionBlock(nn.Module):
         out = torch.matmul(attn, v)
         out = out.permute(0, 1, 3, 2).reshape(batch, channels, height, width)
         
-        # 쏘고 남은 것을 더한다
+        # 프로젝션한 뒤 잔차를 더한다
         out = self.proj(out)
         return out + residual
 
 
 class Downsample(nn.Module):
-    """겹말기를 쓴 줄이기 층."""
+    """합성곱을 쓴 다운샘플링 레이어."""
     
     def __init__(self, channels: int):
         super().__init__()
@@ -748,7 +748,7 @@ class Downsample(nn.Module):
 
 
 class Upsample(nn.Module):
-    """자리 바꾼 겹말기를 쓴 키우기 층."""
+    """전치 합성곱을 쓴 업샘플링 레이어."""
     
     def __init__(self, channels: int):
         super().__init__()
@@ -760,13 +760,13 @@ class Upsample(nn.Module):
 
 class UNet(nn.Module):
     """
-    확산 모델을 위한 U-Net 얼개.
+    확산 모델을 위한 U-Net 아키텍처.
     
     신경망은 다음을 지닌다.
-    - 줄이기를 갖춘 인코더 길
+    - 다운샘플링을 갖춘 인코더 경로
     - 어텐션을 갖춘 병목
-    - 키우기와 건너뛰기 이음을 갖춘 디코더 길
-    - 때 걸음을 조건으로 삼는 때 임베딩
+    - 업샘플링과 스킵 연결을 갖춘 디코더 경로
+    - 타임스텝을 조건으로 삼는 타임스텝 임베딩
     """
     
     def __init__(self, 
@@ -780,21 +780,21 @@ class UNet(nn.Module):
                  time_emb_dim: int = 256):
         """
         인수:
-            in_channels: 들임 채널의 개수
-            out_channels: 내놓는 채널의 개수
-            base_channels: 바탕 채널 수
-            channel_multipliers: 해상도 층마다 채널 갑절
-            num_res_blocks: 해상도마다 남은 덩이의 수
+            in_channels: 입력 채널의 개수
+            out_channels: 출력 채널의 개수
+            base_channels: 기본 채널 수
+            channel_multipliers: 해상도 단계마다 채널 배수
+            num_res_blocks: 해상도마다 잔차 블록의 수
             attention_resolutions: 어텐션을 쓸 해상도
             dropout: 드롭아웃 확률
-            time_emb_dim: 때 임베딩의 차원
+            time_emb_dim: 타임스텝 임베딩의 차원
         """
         super().__init__()
         
         self.in_channels = in_channels
         self.out_channels = out_channels
         
-        # 때 임베딩
+        # 타임스텝 임베딩
         self.time_embedding = nn.Sequential(
             SinusoidalPositionEmbedding(base_channels),
             nn.Linear(base_channels, time_emb_dim),
@@ -821,7 +821,7 @@ class UNet(nn.Module):
                 now_channels = out_ch
                 channels.append(now_channels)
             
-            # 마지막 층만 빼고 줄이기를 더한다
+            # 마지막 단계만 빼고 다운샘플링을 더한다
             if i != len(channel_multipliers) - 1:
                 self.downsamples.append(Downsample(now_channels))
                 channels.append(now_channels)
@@ -841,17 +841,17 @@ class UNet(nn.Module):
             out_ch = base_channels * mult
             
             for j in range(num_res_blocks + 1):
-                # 인코더에서 오는 건너뛰기 이음
+                # 인코더에서 오는 스킵 연결
                 skip_ch = channels.pop()
                 block = ResidualBlock(now_channels + skip_ch, out_ch, time_emb_dim)
                 self.decoder_blocks.append(block)
                 now_channels = out_ch
             
-            # 마지막 층만 빼고 키우기를 더한다
+            # 마지막 단계만 빼고 업샘플링을 더한다
             if i != len(channel_multipliers) - 1:
                 self.upsamples.append(Upsample(now_channels))
         
-        # 내놓기
+        # 출력
         self.conv_out = nn.Sequential(
             nn.GroupNorm(8, now_channels),
             nn.SiLU(),
@@ -860,16 +860,16 @@ class UNet(nn.Module):
     
     def forward(self, x: torch.Tensor, time: torch.Tensor) -> torch.Tensor:
         """
-        U-Net을 지나는 앞먹임.
+        U-Net을 지나는 순전파.
         
         인수:
-            x: 잡음 섞인 들임, 형태 (batch, in_channels, height, width)
-            time: 때 걸음, 형태 (batch,)
+            x: 노이즈 섞인 입력, 형태 (batch, in_channels, height, width)
+            time: 타임스텝, 형태 (batch,)
         
         반환값:
-            예측한 잡음, 형태 (batch, out_channels, height, width)
+            예측한 노이즈, 형태 (batch, out_channels, height, width)
         """
-        # 때 임베딩
+        # 타임스텝 임베딩
         time_emb = self.time_embedding(time)
         
         # 첫 합성곱
@@ -904,7 +904,7 @@ class UNet(nn.Module):
         for upsample in self.upsamples:
             x = upsample(x)
         
-        # 내놓기
+        # 출력
         x = self.conv_out(x)
         
         return x
@@ -912,7 +912,7 @@ class UNet(nn.Module):
 
 class SimpleUNet(nn.Module):
     """
-    MNIST 같은 작은 자료 묶음에서 더 빨리 익히기 위한 단순한 U-Net.
+    MNIST 같은 작은 데이터셋에서 더 빨리 학습하기 위한 단순한 U-Net.
     배우기에 좋은 출발점이다.
     """
     
@@ -920,7 +920,7 @@ class SimpleUNet(nn.Module):
                  base_channels: int = 32, time_emb_dim: int = 128):
         super().__init__()
         
-        # 때 임베딩
+        # 타임스텝 임베딩
         self.time_embedding = nn.Sequential(
             SinusoidalPositionEmbedding(base_channels),
             nn.Linear(base_channels, time_emb_dim),
@@ -946,7 +946,7 @@ class SimpleUNet(nn.Module):
         self.up2 = Upsample(base_channels * 2)
         self.res5 = ResidualBlock(base_channels * 4, base_channels, time_emb_dim)
         
-        # 내놓기
+        # 출력
         self.conv_out = nn.Conv2d(base_channels, out_channels, 3, padding=1)
     
     def forward(self, x: torch.Tensor, time: torch.Tensor) -> torch.Tensor:
@@ -963,7 +963,7 @@ class SimpleUNet(nn.Module):
         # 병목
         x4 = self.res3(x3_down, time_emb)
         
-        # 건너뛰는 이음을 갖춘 디코더
+        # 스킵 연결을 갖춘 디코더
         x5 = self.up1(x4)
         x5 = torch.cat([x5, x3], dim=1)
         x5 = self.res4(x5, time_emb)
@@ -986,12 +986,12 @@ if __name__ == "__main__":
     out = model(x, t)
     print(f"SimpleUNet output shape: {out.shape}")
     
-    # 온전한 UNet을 시험한다
+    # 전체 UNet을 시험한다
     model = UNet(in_channels=1, base_channels=32).to(device)
     out = model(x, t)
     print(f"UNet output shape: {out.shape}")
     
-    # 매개변수 개수 세기
+    # 파라메터 개수 세기
     params = sum(p.numel() for p in model.parameters())
     print(f"Number of parameters: {params:,}")
 
@@ -1000,8 +1000,8 @@ if __name__ == "__main__":
 """
 MNIST 확산 모델
 
-MNIST 숫자 만들어 내기를 위한 확산 모델의 온전한 짜기.
-학부생을 위한 그럴듯한 그림 만들어 내기 보기를 준다.
+MNIST 숫자 생성을 위한 확산 모델의 완전한 구현.
+학부생을 위한 실제적인 이미지 생성 예제다.
 """
 
 
@@ -1013,7 +1013,7 @@ MNIST 숫자 만들어 내기를 위한 확산 모델의 온전한 짜기.
 
 class MNISTDiffusion:
     """
-    MNIST 확산 모델의 익히기와 뽑기를 감싸는 갈래.
+    MNIST 확산 모델의 학습과 샘플링을 감싸는 클래스.
     """
     
     def __init__(self, 
@@ -1023,10 +1023,10 @@ class MNISTDiffusion:
                  device: str = None):
         """
         인수:
-            timesteps: 확산 때 걸음 수
-            batch_size: 익히기 배치 크기
-            learning_rate: 옵티마이저의 학습률
-            device: 익힐 장치('cuda' 또는 'cpu')
+            timesteps: 확산 타임스텝 수
+            batch_size: 학습 배치 크기
+            learning_rate: 옵티마이저의 러닝레이트
+            device: 학습할 장치('cuda' 또는 'cpu')
         """
         self.timesteps = timesteps
         self.batch_size = batch_size
@@ -1039,15 +1039,15 @@ class MNISTDiffusion:
         
         print(f"Using device: {self.device}")
         
-        # 확산 매개변수를 채비한다
+        # 확산 파라메터를 준비한다
         betas = cosine_beta_schedule(timesteps)
         self.diffusion_params = get_diffusion_parameters(betas)
         
-        # 매개변수를 기기로 옮긴다
+        # 파라메터를 장치로 옮긴다
         for key in self.diffusion_params:
             self.diffusion_params[key] = self.diffusion_params[key].to(self.device)
         
-        # 모형을 시작한다
+        # 모델을 초기화한다
         self.model = SimpleUNet(
             in_channels=1,
             out_channels=1,
@@ -1074,7 +1074,7 @@ class MNISTDiffusion:
         print(f"Model parameters: {sum(p.numel() for p in self.model.parameters()):,}")
     
     def update_ema(self):
-        """모델 매개변수의 지수 이동 평균을 고친다."""
+        """모델 파라메터의 지수 이동 평균을 갱신한다."""
         with torch.no_grad():
             for ema_param, param in zip(self.ema_model.parameters(), 
                                         self.model.parameters()):
@@ -1082,10 +1082,10 @@ class MNISTDiffusion:
     
     def get_dataloader(self, train: bool = True):
         """
-        MNIST 자료 불러오개를 만든다.
+        MNIST 데이터 로더를 만든다.
         
         인수:
-            train: 익히기 배치를 불러올지 시험 배치를 불러올지
+            train: 학습 배치를 불러올지 시험 배치를 불러올지
         
         반환값:
             MNIST용 DataLoader
@@ -1111,7 +1111,7 @@ class MNISTDiffusion:
         )
     
     def train_epoch(self, dataloader):
-        """한 에폭을 학습한다."""
+        """한 에포크를 학습한다."""
         self.model.train()
         total_loss = 0
         num_batches = 0
@@ -1120,14 +1120,14 @@ class MNISTDiffusion:
         for images, _ in pbar:
             images = images.to(self.device)
             
-            # 아무 때 걸음을 뽑는다
+            # 무작위 타임스텝을 뽑는다
             t = torch.randint(
                 0, self.timesteps,
                 (images.shape[0],),
                 device=self.device
             )
             
-            # 손실을 계산한다
+            # 로스를 계산한다
             loss = get_loss(self.model, images, t, self.diffusion_params)
             
             # 최적화
@@ -1136,7 +1136,7 @@ class MNISTDiffusion:
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
             self.optimizer.step()
             
-            # 지수 이동 평균을 고친다
+            # 지수 이동 평균을 갱신한다
             self.update_ema()
             
             total_loss += loss.item()
@@ -1149,14 +1149,14 @@ class MNISTDiffusion:
     @torch.no_grad()
     def sample_images(self, n_samples: int = 64, use_ema: bool = True):
         """
-        표본 그림을 만든다.
+        표본 이미지를 생성한다.
         
         인수:
             n_samples: 만들 표본의 개수
             use_ema: 지수 이동 평균 모델을 쓸지 여부
         
         반환값:
-            만든 그림 텐서
+            생성한 이미지 텐서
         """
         model = self.ema_model if use_ema else self.model
         
@@ -1172,11 +1172,11 @@ class MNISTDiffusion:
     
     def train(self, epochs: int, save_interval: int = 10):
         """
-        확산 모델을 익힌다.
+        확산 모델을 학습한다.
         
         인수:
             epochs: 학습 에포크 수
-            save_interval: N바퀴마다 표본을 갈무리한다
+            save_interval: N에포크마다 표본을 저장한다
         """
         dataloader = self.get_dataloader(train=True)
         
@@ -1197,7 +1197,7 @@ class MNISTDiffusion:
             
             print(f"Average loss: {avg_loss:.4f}")
             
-            # 표본을 만들어 갈무리한다
+            # 표본을 생성해 저장한다
             if epoch % save_interval == 0 or epoch == 1:
                 print("Generating samples...")
                 samples = self.sample_images(n_samples=64)
@@ -1207,11 +1207,11 @@ class MNISTDiffusion:
                     filename=f'samples/epoch_{epoch:04d}.png'
                 )
             
-            # 검사점 저장
+            # 체크포인트 저장
             if epoch % 50 == 0:
                 self.save_checkpoint(f'checkpoint_epoch_{epoch}.pt')
         
-        # 학습 손실 그리기
+        # 학습 로스 그리기
         plt.figure(figsize=(10, 5))
         plt.plot(losses)
         plt.xlabel('Epoch')
@@ -1227,7 +1227,7 @@ class MNISTDiffusion:
         print("=" * 50)
     
     def save_checkpoint(self, filename: str):
-        """모델 되짚기 지점을 갈무리한다."""
+        """모델 체크포인트를 저장한다."""
         torch.save({
             'model_state_dict': self.model.state_dict(),
             'ema_model_state_dict': self.ema_model.state_dict(),
@@ -1237,7 +1237,7 @@ class MNISTDiffusion:
         print(f"Saved checkpoint to {filename}")
     
     def load_checkpoint(self, filename: str):
-        """모델 되짚기 지점을 불러온다."""
+        """모델 체크포인트를 불러온다."""
         checkpoint = torch.load(filename, map_location=self.device)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.ema_model.load_state_dict(checkpoint['ema_model_state_dict'])
@@ -1247,7 +1247,7 @@ class MNISTDiffusion:
 
 def main():
     """
-    MNIST 확산의 으뜸 익히기 대본.
+    MNIST 확산의 주 학습 스크립트.
     """
     print("=" * 50)
     print("MNIST Diffusion Model Training")
@@ -1291,10 +1291,10 @@ def generate_grid(diffusion, n_samples=64, filename='generated_grid.png'):
 
 
 def generate_interpolation(diffusion, n_steps=10):
-    """아무 출발점 사이를 메워 만든다."""
+    """무작위 출발점 사이를 보간해 생성한다."""
     print(f"Generating interpolation with {n_steps} steps...")
     
-    # 아무 잡음 벡터 둘을 만든다
+    # 무작위 노이즈 벡터 둘을 만든다
     noise1 = torch.randn(1, 1, 28, 28, device=diffusion.device)
     noise2 = torch.randn(1, 1, 28, 28, device=diffusion.device)
     
@@ -1303,10 +1303,10 @@ def generate_interpolation(diffusion, n_steps=10):
     interpolated_samples = []
     
     for alpha in alphas:
-        # 잡음 공간에서의 선형 사이 메우기
+        # 노이즈 공간에서의 선형 보간
         noise = (1 - alpha) * noise1 + alpha * noise2
         
-        # 이 출발점에서 잡음을 없앤다
+        # 이 출발점에서 노이즈를 제거한다
         x_t = noise
         for t in reversed(range(diffusion.timesteps)):
             t_tensor = torch.full((1,), t, device=diffusion.device, dtype=torch.long)
@@ -1335,7 +1335,7 @@ def generate_interpolation(diffusion, n_steps=10):
 
 
 def main():
-    # 되짚을 자리가 있는지 살핀다
+    # 체크포인트가 있는지 확인한다
     checkpoint_files = [
         'mnist_diffusion_model.pt',
         'mnist_diffusion_final.pt',
@@ -1357,7 +1357,7 @@ def main():
     print(f"Loading checkpoint: {checkpoint}")
     print("-" * 50)
     
-    # 모형을 시작한다
+    # 모델을 초기화한다
     diffusion = MNISTDiffusion(
         timesteps=1000,
         batch_size=64,
@@ -1374,10 +1374,10 @@ def main():
     generate_grid(diffusion, n_samples=64, filename='samples_8x8.png')
     generate_grid(diffusion, n_samples=100, filename='samples_10x10.png')
     
-    # 사이 메우기를 만든다
+    # 보간을 생성한다
     generate_interpolation(diffusion, n_steps=10)
     
-    # 다양함을 살피려 큰 배치를 만든다
+    # 다양성을 확인하려 큰 배치를 만든다
     print("\nGenerating large batch for visualization...")
     samples = diffusion.sample_images(n_samples=256)
     visualize_samples(samples, nrow=16, filename='samples_large.png')

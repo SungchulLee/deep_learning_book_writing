@@ -10,7 +10,7 @@
     """
     stationary_distribution.py (단원 04)
 
-    멈춘 분포 살피기
+    정상분포 분석
     ==================================
 
     Location: 06_markov_chain/02_analysis_methods/
@@ -18,27 +18,27 @@
     걸리는 시간: 4-5시간
 
     학습 목표:
-    - 멈춘 분포 이해하기
-    - 여러 방법으로 멈춘 분포 셈하기
-    - 있음과 하나뿐임의 조건 살피기
-    - 모이는 빠르기 살피기
+    - 정상분포 이해하기
+    - 여러 방법으로 정상분포 계산하기
+    - 존재와 유일성의 조건 분석
+    - 수렴 속도 분석
 
-    수학적 바탕:
-    멈춘 분포 π은 다음을 만족하는 확률 분포이다:
+    수학적 배경:
+    정상분포 π는 다음을 만족하는 확률 분포이다:
     π = π × P
 
     성질:
-    - π은 고윳값이 1인 P의 왼쪽 고유벡터이다
-    - 줄일 수 없고 주기가 없는 사슬에서는 멈춘 분포가 오직 하나 있다
-    - lim_{n→∞} P^n은 π으로 채운 행으로 모인다
-    - 물리로 풀이하면: 오래 보았을 때 상태마다 머문 시간의 비율
+    - π는 고윳값이 1인 P의 왼쪽 고유벡터이다
+    - 기약이고 비주기인 사슬에서는 정상분포가 유일하게 존재한다
+    - lim_{n→∞} P^n은 모든 행이 π인 행렬로 수렴한다
+    - 물리적 해석: 장기적으로 각 상태에 머문 시간의 비율
     """
 
     import numpy as np
     import matplotlib.pyplot as plt
     from scipy.linalg import eig
 
-    # 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+    # 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
     # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
     np.random.seed(0)
 
@@ -49,16 +49,16 @@
 
     class StationaryDistributionAnalyzer:
         """
-        멈춘 분포를 셈하고 살피는 도구.
+        정상분포를 계산하고 분석하는 도구.
         """
 
         def __init__(self, transition_matrix, state_names=None):
             """
-            옮김 행렬로 첫값 잡기.
+            전이 행렬로 초기화.
 
             파라메터:
-                transition_matrix (np.ndarray): 옮김 확률 행렬 P
-                state_names (list): 상태 이름(없어도 된다)
+                transition_matrix (np.ndarray): 전이 확률 행렬 P
+                state_names (list): 상태 이름(선택)
             """
             self.P = np.array(transition_matrix, dtype=float)
             self.n_states = self.P.shape[0]
@@ -70,26 +70,26 @@
 
         def compute_via_eigenvector(self):
             """
-            고유벡터 방법으로 멈춘 분포 셈하기.
+            고유벡터 방법으로 정상분포 계산하기.
 
             반환값:
-                np.ndarray: 멈춘 분포 π
+                np.ndarray: 정상분포 π
 
             수학 방법:
             고윳값 λ = 1인 P의 왼쪽 고유벡터 v 찾기
             π × P = π이므로 π^T = P^T × π^T이다
-            따라서 π^T은 고윳값이 1인 P^T의 오른쪽 고유벡터이다
+            따라서 π^T는 고윳값이 1인 P^T의 오른쪽 고유벡터이다
             """
-            # P^T의 고윳값과 고유벡터 셈하기
+            # P^T의 고윳값과 고유벡터 계산하기
             eigenvalues, eigenvectors = eig(self.P.T)
 
-            # 1에 가장 가까운 고윳값의 번호 찾기
+            # 1에 가장 가까운 고윳값의 인덱스 찾기
             idx = np.argmin(np.abs(eigenvalues - 1.0))
 
-            # 그에 딸린 고유벡터 뽑아내기
+            # 대응하는 고유벡터 추출
             stationary = np.real(eigenvectors[:, idx])
 
-            # 합이 1이 되도록 고르게 하기(확률 분포)
+            # 합이 1이 되도록 정규화하기(확률 분포)
             stationary = stationary / np.sum(stationary)
 
             # 성분이 모두 양수가 되도록 하기
@@ -100,41 +100,41 @@
 
         def compute_via_power_iteration(self, max_iter=1000, tol=1e-10):
             """
-            행렬 거듭제곱으로 셈하기: lim_{n→∞} P^n
+            행렬 거듭제곱으로 계산하기: lim_{n→∞} P^n
 
             반환값:
-                tuple: (멈춘 분포, 되풀이 횟수)
+                tuple: (정상분포, 반복 횟수)
 
-            수학의 바탕:
-            에르고드 사슬에서 P^n은 모든 행이 같은 행렬로 모이며,
-            멈춘 분포 π과 같다
+            수학적 근거:
+            에르고드 사슬에서 P^n은 모든 행이 같은 행렬로 수렴하며,
+            그 행이 정상분포 π와 같다
             """
             P_n = self.P.copy()
 
             for n in range(1, max_iter):
                 P_next = P_n @ self.P
 
-                # 모임 살피기
+                # 수렴 확인
                 if np.max(np.abs(P_next - P_n)) < tol:
-                    # 멈춘 분포 뽑아내기(아무 행)
+                    # 정상분포 추출(임의의 행)
                     return P_next[0, :], n
 
                 P_n = P_next
 
-            # 모이지 않았으면 가장 좋은 어림값 돌려주기
+            # 수렴하지 않았으면 마지막 근삿값 반환
             return P_n[0, :], max_iter
 
         def compute_via_linear_system(self):
             """
-            연립 일차 방정식을 풀어 셈하기: π(P - I) = 0, Σπ_i = 1
+            연립 일차 방정식을 풀어 계산하기: π(P - I) = 0, Σπ_i = 1
 
             반환값:
-                np.ndarray: 멈춘 분포
+                np.ndarray: 정상분포
 
-            수학의 차림:
+            수학적 설정:
             다음을 풀어야 한다:
             1. π × P = π  ⟹  π × (P - I) = 0
-            2. Σ π_i = 1(고르게 하기)
+            2. Σ π_i = 1(정규화)
 
             이는 다음을 푸는 것과 같다:
             π^T × (P^T - I) = 0
@@ -143,7 +143,7 @@
             # 연립 방정식 세우기: 제약 Σπ_i = 1 아래에서 (P^T - I) × π^T = 0
             A = (self.P.T - np.eye(self.n_states))
 
-            # 마지막 식을 고르게 하기 제약으로 바꾸기
+            # 마지막 식을 정규화 제약으로 바꾸기
             A[-1, :] = np.ones(self.n_states)
             b = np.zeros(self.n_states)
             b[-1] = 1.0
@@ -155,16 +155,16 @@
 
         def compute_via_simulation(self, n_steps=100000, initial_state=0):
             """
-            오래 돌리는 흉내내기로 어림하기.
+            장기 시뮬레이션으로 추정하기.
 
             파라메터:
-                n_steps (int): 흉내내기 스텝 수
+                n_steps (int): 시뮬레이션 스텝 수
                 initial_state (int): 시작 상태
 
             반환값:
-                np.ndarray: 어림한 멈춘 분포
+                np.ndarray: 추정한 정상분포
 
-            수학으로 뒷받침하기:
+            수학적 근거:
             에르고드 정리에 따라 시간 평균은 앙상블 평균과 같다:
             lim_{T→∞} (1/T) Σ I{X_t = j} = π_j
             """
@@ -174,27 +174,27 @@
             for _ in range(n_steps):
                 state_counts[current_state] += 1
 
-                # 다음 상태로 옮기기
+                # 다음 상태로 전이하기
                 current_state = np.random.choice(
                     self.n_states,
                     p=self.P[current_state, :]
                 )
 
-            # 확률을 얻으려고 고르게 하기
+            # 확률을 얻기 위해 정규화하기
             return state_counts / n_steps
 
         def check_ergodicity(self):
             """
-            사슬이 에르고드적인지 살피기(줄일 수 없고 주기가 없음).
+            사슬이 에르고드적인지 확인하기(기약이고 비주기).
 
             반환값:
-                dict: 에르고드성 살피기의 결과
+                dict: 에르고드성 점검 결과
 
-            수학의 조건:
-            1. 줄일 수 없음: 어느 상태에서든 어느 상태로도 닿을 수 있다
-            2. 주기 없음: 어느 상태로든 돌아오는 시간의 최대공약수가 1이다
+            수학적 조건:
+            1. 기약성: 어느 상태에서든 어느 상태로도 도달할 수 있다
+            2. 비주기성: 어느 상태로든 돌아오는 시간의 최대공약수가 1이다
 
-            넉넉한 조건: 어떤 P^k의 성분이 모두 양수이다
+            충분조건: 어떤 P^k의 성분이 모두 양수이다
             """
             results = {
                 'is_ergodic': False,
@@ -202,8 +202,8 @@
                 'is_irreducible': False
             }
 
-            # P의 어떤 거듭제곱이 모두 양수 성분인지 살피기
-            # 이는 줄일 수 없음과 주기 없음을 모두 보장한다
+            # P의 어떤 거듭제곱이 모두 양수 성분인지 확인
+            # 이는 기약성과 비주기성을 모두 보장한다
             P_power = self.P.copy()
 
             for k in range(1, self.n_states + 1):
@@ -220,7 +220,7 @@
 
     def example_computing_methods():
         """
-        보기 1: 멈춘 분포를 셈하는 여러 방법 견주기.
+        예제 1: 정상분포를 계산하는 여러 방법 비교.
         """
         print("=" * 70)
         print("Example 1: Computing Stationary Distribution - Method Comparison")
@@ -247,12 +247,12 @@
         for i, state in enumerate(states):
             print(f"  π({state}) = {π_eig[i]:.8f}")
 
-        # 확인: π × P은 π과 같아야 한다
+        # 확인: π × P는 π와 같아야 한다
         verification = π_eig @ P
         print("\nVerification (π × P should equal π):")
         print(f"  Max difference: {np.max(np.abs(verification - π_eig)):.2e}")
 
-        # 방법 2: 거듭제곱 되풀이
+        # 방법 2: 거듭제곱 반복
         print("\n" + "-" * 70)
         print("Method 2: Matrix Power Iteration")
         π_power, iterations = analyzer.compute_via_power_iteration()
@@ -269,7 +269,7 @@
         for i, state in enumerate(states):
             print(f"  π({state}) = {π_linear[i]:.8f}")
 
-        # 방법 4: 흉내내기
+        # 방법 4: 시뮬레이션
         print("\n" + "-" * 70)
         print("Method 4: Long-run Simulation (1,000,000 steps)")
         π_sim = analyzer.compute_via_simulation(n_steps=1000000)
@@ -277,7 +277,7 @@
         for i, state in enumerate(states):
             print(f"  π({state}) = {π_sim[i]:.8f}")
 
-        # 모든 방법 견주기
+        # 모든 방법 비교
         print("\n" + "-" * 70)
         print("Comparison of All Methods:")
         print(f"{'State':<8} {'Eigenvec':<12} {'Power':<12} {'Linear':<12} {'Simulation':<12}")
@@ -288,16 +288,16 @@
 
     def example_interpretation():
         """
-        보기 2: 멈춘 분포의 물리 풀이.
+        예제 2: 정상분포의 물리적 해석.
         """
         print("\n" + "=" * 70)
         print("Example 2: Physical Interpretation")
         print("=" * 70)
 
-        # 줄 체계: {빔, 손님 1명, 손님 2명}
+        # 대기열 시스템: {비어 있음, 고객 1명, 고객 2명}
         states = ['Empty', '1 Customer', '2 Customers']
         P = np.array([
-            [0.5, 0.4, 0.1],    # 빔에서: 손님이 올 가능성이 높음
+            [0.5, 0.4, 0.1],    # 비어 있음: 고객이 올 가능성이 높음
             [0.3, 0.5, 0.2],    # 1에서: 균형
             [0.4, 0.4, 0.2]     # 2에서: 줄어드는 쪽
         ])
@@ -321,14 +321,14 @@
         print(f"  - Queue has 1 customer {π[1]*100:.1f}% of the time")
         print(f"  - Queue has 2 customers {π[2]*100:.1f}% of the time")
 
-        # 손님 수의 기댓값
+        # 고객 수의 기댓값
         expected_customers = 0*π[0] + 1*π[1] + 2*π[2]
         print(f"\n  Average number of customers in system: {expected_customers:.4f}")
 
 
     def example_ergodicity():
         """
-        보기 3: 에르고드 조건 살피기.
+        예제 3: 에르고드 조건 분석.
         """
         print("\n" + "=" * 70)
         print("Example 3: Ergodicity Analysis")
@@ -369,7 +369,7 @@
         π2 = analyzer2.compute_via_eigenvector()
         print(f"  Stationary: {π2}")
 
-        # 줄일 수 있는 사슬
+        # 가약 사슬
         print("\nCase 3: Reducible Chain (Two Components)")
         P_reducible = np.array([
             [0.5, 0.5, 0, 0],
@@ -388,7 +388,7 @@
 
     def visualize_convergence():
         """
-        멈춘 분포로 모이는 것 그려 보기.
+        정상분포로의 수렴 시각화하기.
         """
         print("\n" + "=" * 70)
         print("Creating Convergence Visualization")
@@ -404,21 +404,21 @@
         analyzer = StationaryDistributionAnalyzer(P, states)
         π_stationary = analyzer.compute_via_eigenvector()
 
-        # 서로 다른 첫 분포에서의 모임 기록하기
+        # 서로 다른 초기분포에서의 수렴 기록하기
         fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-        # 서로 다른 첫 분포
+        # 서로 다른 초기분포
         initial_dists = [
             np.array([1.0, 0.0, 0.0]),  # A에서 시작
             np.array([0.0, 1.0, 0.0]),  # B에서 시작
             np.array([0.0, 0.0, 1.0]),  # C에서 시작
-            np.array([1/3, 1/3, 1/3])   # 고름
+            np.array([1/3, 1/3, 1/3])   # 균등
         ]
 
         labels = ['Start at A', 'Start at B', 'Start at C', 'Uniform']
         colors = ['red', 'blue', 'green', 'purple']
 
-        # 그림 1: 멈춘 분포까지의 거리
+        # 그림 1: 정상분포까지의 거리
         ax = axes[0]
 
         for init_dist, label, color in zip(initial_dists, labels, colors):
@@ -426,11 +426,11 @@
             dist = init_dist.copy()
 
             for n in range(50):
-                # 멈춘 분포까지의 거리 셈하기
+                # 정상분포까지의 거리 계산하기
                 distance = np.linalg.norm(dist - π_stationary)
                 distances.append(distance)
 
-                # 분포 새로 고치기
+                # 분포 갱신
                 dist = dist @ P
 
             ax.semilogy(distances, label=label, color=color, linewidth=2)
@@ -441,7 +441,7 @@
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-        # 그림 2: 상태 확률의 흘러감
+        # 그림 2: 상태 확률의 변화
         ax = axes[1]
 
         init_dist = np.array([1.0, 0.0, 0.0])  # A에서 시작
@@ -457,7 +457,7 @@
         for i, state in enumerate(states):
             ax.plot(steps, state_probs[state], marker='o', markersize=3,
                    label=state, linewidth=2)
-            # 멈춘 분포 선 더하기
+            # 정상분포 선 추가
             ax.axhline(y=π_stationary[i], linestyle='--', color=f'C{i}', alpha=0.5)
 
         ax.set_xlabel('Step n', fontsize=12)
@@ -475,7 +475,7 @@
 
     def main():
         """
-        보기 모두 돌리기.
+        예제 모두 실행하기.
         """
         print("STATIONARY DISTRIBUTION ANALYSIS")
         print("=================================\n")
@@ -698,10 +698,10 @@ P¹,…,P^N에 모두 양수인 행렬이 없으면 비주기성이 부정되는
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

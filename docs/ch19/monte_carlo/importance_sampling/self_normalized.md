@@ -1,12 +1,12 @@
 # 자기정규화 중요도 샘플링
 
-자기정규화 중요도 샘플링(SNIS)은 미정규화 목표밀도의 가중 합을 그 웨이트 합으로 나누어 기댓값을 추정한다. 알 수 없는 곱셈 상수는 비에서 약분된다. 대신 일반적으로 유한 표본 바이어스가 생기며, 일관성·분산·증거 추정의 조건을 따로 확인해야 한다.
+자기정규화 중요도 샘플링(SNIS)은 미정규화 목표밀도의 가중 합을 그 웨이트 합으로 나누어 기댓값을 추정한다. 알 수 없는 곱셈 상수는 비에서 약분된다. 대신 일반적으로 유한 표본 편향이 생기며, 일관성·분산·증거 추정의 조건을 따로 확인해야 한다.
 
 ## 1. 미정규화 목표밀도
 
-목표분포가 $\pi(\theta)=\gamma(\theta)/Z$, $Z=\int\gamma(\theta)d\theta$이고 0<Z<∞라고 하자. 베이즈 추론에서는 γ가 우도와 사전밀도의 곱일 수 있다.
+목표분포가 $\pi(\theta)=\gamma(\theta)/Z$, $Z=\int\gamma(\theta)d\theta$이고 0<Z<∞라고 하자. 베이즈 추론에서는 γ가 가능도(likelihood, 우도라고도 한다)와 사전밀도의 곱일 수 있다.
 
-π를 직접 평가할 수 없어도 γ의 로그값을 상수 차이까지 계산할 수 있다면 SNIS의 상대 웨이트를 구할 수 있다. 다만 모델 증거 Z의 절대값이 필요하면 우도·사전밀도의 모든 정규화 상수를 알아야 한다. 기댓값 계산에서 약분되는 상수가 모델 비교에서는 약분되지 않을 수 있다.
+π를 직접 평가할 수 없어도 γ의 로그값을 상수 차이까지 계산할 수 있다면 SNIS의 상대 웨이트를 구할 수 있다. 다만 모델 증거 Z의 절대값이 필요하면 가능도·사전밀도의 모든 정규화 상수를 알아야 한다. 기댓값 계산에서 약분되는 상수가 모델 비교에서는 약분되지 않을 수 있다.
 
 ## 2. 정규화 가중 평균
 
@@ -18,11 +18,11 @@ q는 γ의 지지집합을 덮어야 하고 웨이트 합은 양수·유한해�
 
 ## 3. SNIS의 성질
 
-### 바이어스와 일관성
+### 편향과 일관성
 
 분자·분모가 각각 불편이어도 비는 일반적으로 불편하지 않다. 다만 h가 상수이거나 q=π인 경우처럼 편향이 없는 특별한 경우도 있으므로 모든 유한 n에서 반드시 E[Î]≠I라고 단정하지 않는다.
 
-독립 표본과 E_π|h|<∞, 적절한 지지집합 아래 두 표본평균의 대수의 법칙에서 Î→I가 거의 확실하게 성립한다. 일반적인 O(1/n) 바이어스 전개에는 추가 모멘트와 분모 꼬리의 제어 등이 필요하다. 모든 일관적인 SNIS에서 같은 바이어스 속도나 무시할 수 있는 바이어스가 보장되는 것은 아니다.
+독립 표본과 E_π|h|<∞, 적절한 지지집합 아래 두 표본평균의 대수의 법칙에서 Î→I가 거의 확실하게 성립한다. 일반적인 O(1/n) 편향 전개에는 추가 적률과 분모 꼬리의 제어 등이 필요하다. 모든 일관적인 SNIS에서 같은 편향 감소 속도나 무시할 수 있는 편향이 보장되는 것은 아니다.
 
 ### 점근 분산
 
@@ -37,7 +37,7 @@ $$\sigma_{SN}^2=\frac{E_q[W^2(h-I)^2]}{Z^2}=\int\frac{(h(\theta)-I)^2\pi(\theta)
 | 항목 | 표준 IS | SNIS |
 |---|---|---|
 | 필요한 목표값 | 정규화된 π | 미정규화 γ, 공통 곱셈 상수는 약분 |
-| 유한 표본 바이어스 | 조건 아래 불편 | 일반적으로 바이어스, 특별한 무바이어스 경우도 있음 |
+| 유한 표본 편향 | 조건 아래 불편 | 일반적으로 편향 있음, 편향이 없는 특별한 경우도 있음 |
 | 일관성·CLT | 각각 적절한 적률 필요 | 각각 적절한 적률·비율 조건 필요 |
 | 추정 형태 | n⁻¹∑h_i π_i/q_i | 정규화 가중 평균 |
 | 분산 순서 | 보편적인 우열 없음 | 보편적인 우열 없음 |
@@ -48,7 +48,7 @@ $$\sigma_{SN}^2=\frac{E_q[W^2(h-I)^2]}{Z^2}=\int\frac{(h(\theta)-I)^2\pi(\theta)
 
 핵심 함수는 표본마다 스칼라 log γ·log q·h값이 하나인 배열을 가정한다. 반환 진단의 원시 웨이트와 Z 추정값은 exp로 변환하므로 오버플로할 수 있다. 주 계산의 로그 정규화가 안정적이어도 진단 전체가 안정적인 것은 아니다.
 
-정규 평균 예제의 unnormalized_log_posterior는 우도·사전의 정규화 상수를 생략한다. 사후평균 계산에는 무관하지만 출력 Marginal likelihood는 실제 p(y)가 아니라 생략 상수에 따른 적분이다. 사후분산은 별도 새 표본에서 이전 평균 주위 제곱을 추정하므로 평균 추정 오차가 섞인다.
+정규 평균 예제의 unnormalized_log_posterior는 가능도·사전의 정규화 상수를 생략한다. 사후평균 계산에는 무관하지만 출력 Marginal likelihood는 실제 p(y)가 아니라 생략 상수에 따른 적분이다. 사후분산은 별도 새 표본에서 이전 평균 주위 제곱을 추정하므로 평균 추정 오차가 섞인다.
 
 ```python
 import torch
@@ -59,62 +59,62 @@ def self_normalized_importance_sampling(h_function, unnormalized_log_target,
                                         proposal_dist, n_samples, 
                                         return_diagnostics=False):
     """
-    고르게 하지 않은 타깃을 위한, 스스로 고르게 하는 중요도 표집.
+    미정규화 타깃을 위한 자기정규화 중요도 샘플링.
     
     파라메터
     ----------
     h_function : callable
         기댓값을 구하려는 함수 h(θ)
     unnormalized_log_target : callable
-        고르게 하지 않은 타깃의 로그: π(θ) = γ(θ)/Z일 때 log γ(θ)
+        미정규화 타깃의 로그: π(θ) = γ(θ)/Z일 때 log γ(θ)
     proposal_dist : torch.distributions.Distribution
         제안 분포 q(θ)
     n_samples : int
         표본의 개수
     return_diagnostics : bool
-        진단 정보를 돌려줄지 여부
+        진단 정보를 반환할지 여부
         
     반환값
     -------
     estimate : torch.Tensor
-        E_π[h(θ)]의 SNIS 어림값
+        E_π[h(θ)]의 SNIS 추정값
     diagnostics : dict, optional
-        표본, 무게, ESS, 그 밖의 진단
+        표본, 웨이트, ESS, 그 밖의 진단
     
-    수학의 바탕
+    수학적 배경
     -----------------------
     Î_SNIS = Σᵢ h(θᵢ) w̄ᵢ
     
     여기서 각 기호는 다음과 같다.
-    - w̃ᵢ = γ(θᵢ)/q(θᵢ)(고르게 하지 않은 무게)
-    - w̄ᵢ = w̃ᵢ / Σⱼw̃ⱼ(고르게 한 무게, 합이 1)
+    - w̃ᵢ = γ(θᵢ)/q(θᵢ)(미정규화 웨이트)
+    - w̄ᵢ = w̃ᵢ / Σⱼw̃ⱼ(정규화 웨이트, 합이 1)
     - θᵢ ~ q(θ)
     """
-    # 스텝 1: 제안에서 표집
+    # 스텝 1: 제안에서 샘플링
     samples = proposal_dist.sample((n_samples,))
     
-    # 스텝 2: 고르게 하지 않은 로그 무게 셈하기
+    # 스텝 2: 미정규화 로그 웨이트 계산하기
     # log w̃(θ) = log γ(θ) - log q(θ)
     log_gamma = unnormalized_log_target(samples)
     log_q = proposal_dist.log_prob(samples)
     log_unnorm_weights = log_gamma - log_q
     
-    # 스텝 3: 무게 고르게 하기(수치 안정을 위해 log-sum-exp 사용)
+    # 스텝 3: 웨이트 정규화하기(수치 안정을 위해 log-sum-exp 사용)
     log_sum_weights = torch.logsumexp(log_unnorm_weights, dim=0)
     log_norm_weights = log_unnorm_weights - log_sum_weights
     norm_weights = torch.exp(log_norm_weights)
     
-    # 스텝 4: 함수 값 매기기
+    # 스텝 4: 함수 값 평가하기
     h_values = h_function(samples)
     
-    # 스텝 5: SNIS 어림값 셈하기: Σᵢ w̄ᵢ h(θᵢ)
+    # 스텝 5: SNIS 추정값 계산하기: Σᵢ w̄ᵢ h(θᵢ)
     estimate = torch.sum(norm_weights * h_values)
     
     if return_diagnostics:
-        # 실효 표본 크기: ESS = 1/Σᵢw̄ᵢ²
+        # 유효 표본 크기: ESS = 1/Σᵢw̄ᵢ²
         ess = 1.0 / torch.sum(norm_weights**2)
         
-        # 살피기 위한, 고르게 하지 않은 무게
+        # 진단용 미정규화 웨이트
         unnorm_weights = torch.exp(log_unnorm_weights)
         
         diagnostics = {
@@ -134,19 +134,19 @@ def self_normalized_importance_sampling(h_function, unnormalized_log_target,
 
 def compute_ess(weights):
     """
-    고르게 한 무게로 실효 표본 크기 셈하기.
+    정규화 웨이트로 유효 표본 크기 계산하기.
     
     ESS = 1 / Σᵢ wᵢ²
     
     해석:
-    - ESS ≈ n: 무게가 거의 고르다(아주 좋음)
-    - ESS << n: 몇몇 표본이 판친다(나쁨)
+    - ESS ≈ n: 웨이트가 거의 균등하다(아주 좋음)
+    - ESS << n: 몇몇 표본이 지배한다(나쁨)
     """
     return 1.0 / torch.sum(weights**2)
 
 def compute_ess_unnormalized(unnorm_weights):
     """
-    고르게 하지 않은 무게로 ESS 셈하기.
+    미정규화 웨이트로 ESS 계산하기.
     
     ESS = (Σᵢ w̃ᵢ)² / Σᵢ w̃ᵢ²
     """
@@ -154,10 +154,10 @@ def compute_ess_unnormalized(unnorm_weights):
     sum_w_sq = torch.sum(unnorm_weights**2)
     return sum_w**2 / sum_w_sq
 
-# 보기: 정규 평균의 베이즈 추론
-# 앞확률: θ ~ N(μ₀, τ₀²)
+# 예: 정규 평균의 베이즈 추론
+# 사전분포: θ ~ N(μ₀, τ₀²)
 # 가능도: 관측마다 y ~ N(θ, σ²)
-# 뒤확률: θ|y ~ N(μₙ, τₙ²)
+# 사후분포: θ|y ~ N(μₙ, τₙ²)
 
 # 합성 데이터 생성
 torch.manual_seed(42)
@@ -168,11 +168,11 @@ data = torch.normal(true_theta, sigma, size=(n_obs,))
 
 print(f"Data: n={n_obs}, sample mean={data.mean().item():.3f}")
 
-# 앞확률 파라메터
+# 사전분포 파라메터
 mu_0 = 0.0
 tau_0 = 2.0
 
-# 손으로 구한 뒤확률의 파라메터
+# 해석적으로 구한 사후분포의 파라메터
 precision_0 = 1.0 / tau_0**2
 precision_n = precision_0 + n_obs / sigma**2
 tau_n = 1.0 / (precision_n**0.5)
@@ -181,7 +181,7 @@ mu_n = (precision_0 * mu_0 + n_obs * data.mean() / sigma**2) / precision_n
 print(f"\nPrior: N({mu_0}, {tau_0}²)")
 print(f"Posterior (analytical): N({mu_n:.4f}, {tau_n:.4f}²)")
 
-# 고르게 하지 않은 로그 뒤확률 정하기
+# 미정규화 로그 사후밀도 정의하기
 def unnormalized_log_posterior(theta):
     """
     log γ(θ) = log p(y|θ) + log p(θ)
@@ -197,19 +197,19 @@ def unnormalized_log_posterior(theta):
     
     log_likelihood = -0.5 * torch.sum((data_expanded - theta_expanded)**2, dim=-1) / sigma**2
     
-    # 로그 앞확률: -(θ-μ₀)²/2τ₀²
+    # 로그 사전밀도: -(θ-μ₀)²/2τ₀²
     log_prior = -0.5 * (theta - mu_0)**2 / tau_0**2
     
     return log_likelihood + log_prior
 
-# 앞확률을 제안으로 쓰기
+# 사전분포를 제안으로 쓰기
 proposal = dist.Normal(mu_0, tau_0)
 
-# SNIS 어림하기
+# SNIS 추정하기
 n_samples = 5000
 
 estimate, diagnostics = self_normalized_importance_sampling(
-    h_function=lambda x: x,  # 뒤확률 평균
+    h_function=lambda x: x,  # 사후평균
     unnormalized_log_target=unnormalized_log_posterior,
     proposal_dist=proposal,
     n_samples=n_samples,
@@ -227,7 +227,7 @@ print(f"\nEffective Sample Size:")
 print(f"  ESS: {diagnostics['ess'].item():.1f}")
 print(f"  Efficiency: {diagnostics['ess_ratio'].item():.1%}")
 
-# 뒤확률 흩어짐 어림하기
+# 사후분산 추정하기
 var_estimate, _ = self_normalized_importance_sampling(
     h_function=lambda x: (x - estimate.item())**2,
     unnormalized_log_target=unnormalized_log_posterior,
@@ -240,13 +240,13 @@ print(f"\nPosterior variance Var[θ|y]:")
 print(f"  True: {tau_n**2:.6f}")
 print(f"  SNIS: {var_estimate.item():.6f}")
 
-# 고르게 하는 상수 어림하기(주변 가능도)
+# 정규화 상수 추정하기(주변 가능도)
 print(f"\nMarginal likelihood estimate: {diagnostics['estimate_normalizing_constant'].item():.4e}")
 
 # 시각화
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-# 칸 1: 앞확률, 제안, 뒤확률
+# 패널 1: 사전분포, 제안, 사후분포
 x = torch.linspace(-5, 10, 500)
 ax = axes[0, 0]
 
@@ -258,7 +258,7 @@ ax.plot(x.numpy(), prior.log_prob(x).exp().numpy(),
 ax.plot(x.numpy(), posterior.log_prob(x).exp().numpy(), 
         'b-', linewidth=2, label='Posterior (true)')
 
-# 표본의 무게 막대그림
+# 표본의 가중 히스토그램
 samples = diagnostics['samples']
 weights = diagnostics['norm_weights']
 ax.hist(samples.numpy(), bins=50, density=True, weights=weights.numpy(),
@@ -272,7 +272,7 @@ ax.set_title('Bayesian Posterior Estimation via SNIS', fontsize=13, fontweight='
 ax.legend(fontsize=10)
 ax.grid(True, alpha=0.3)
 
-# 칸 2: 무게 분포
+# 패널 2: 웨이트 분포
 ax = axes[0, 1]
 ax.hist(weights.numpy() * n_samples, bins=50, density=True, 
         alpha=0.7, color='purple', edgecolor='black')
@@ -286,7 +286,7 @@ ax.set_title(f'Weight Distribution (ESS = {diagnostics["ess"].item():.1f}, '
 ax.legend(fontsize=11)
 ax.grid(True, alpha=0.3)
 
-# 칸 3: 쌓인 무게
+# 패널 3: 누적 웨이트
 sorted_weights = torch.sort(weights, descending=True)[0]
 cumsum_weights = torch.cumsum(sorted_weights, dim=0)
 
@@ -303,14 +303,14 @@ ax.set_title('Weight Concentration', fontsize=13, fontweight='bold')
 ax.legend(fontsize=10)
 ax.grid(True, alpha=0.3)
 
-# 몰림 찾기
+# 집중도 계산
 n_50 = (cumsum_weights < 0.5).sum().item() + 1
 n_90 = (cumsum_weights < 0.9).sum().item() + 1
 ax.text(0.95, 0.05, f'{n_50} samples = 50% weight\n{n_90} samples = 90% weight',
         transform=ax.transAxes, fontsize=11, ha='right', va='bottom',
         bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
 
-# 칸 4: 치우침 살피기
+# 패널 4: 편향 확인
 sample_sizes = [50, 100, 200, 500, 1000, 2000, 5000]
 n_reps = 200
 
@@ -391,20 +391,20 @@ $$ESS_w=\frac1{\sum_i\bar w_i^2}=\frac{(\sum_iW_i)^2}{\sum_iW_i^2}$$
 ```python
 def diagnose_weights(norm_weights, name=""):
     """
-    무게 두루 진단하기.
+    웨이트 종합 진단하기.
     """
     n = len(norm_weights)
     
     # ESS
     ess = 1.0 / torch.sum(norm_weights**2)
     
-    # 변이 계수
+    # 변동 계수
     cv = torch.std(norm_weights) / torch.mean(norm_weights)
     
-    # 최대 무게
+    # 최대 웨이트
     max_w = torch.max(norm_weights)
     
-    # 무게 몰림
+    # 웨이트 집중도
     sorted_w = torch.sort(norm_weights, descending=True)[0]
     cumsum = torch.cumsum(sorted_w, dim=0)
     n_for_50 = (cumsum < 0.5).sum().item() + 1
@@ -432,8 +432,8 @@ def diagnose_weights(norm_weights, name=""):
         'n_for_90': n_for_90
     }
 
-# 진단 돌리기
-# 표집기가 돌려준 diagnostics를 덮어쓰면 뒤에서 쓸 'samples' 같은 열쇠가
+# 진단 실행
+# 샘플러가 반환한 diagnostics를 덮어쓰면 뒤에서 쓸 'samples' 같은 키가
 # 사라진다. 진단 결과는 따로 받는다.
 weight_report = diagnose_weights(diagnostics['norm_weights'], "(Prior as Proposal)")
 ```
@@ -456,7 +456,7 @@ Weight Diagnostics (Prior as Proposal)
 
 ## 7. 제안 분포 비교
 
-### 제안 고르기의 영향
+### 제안 선택의 영향
 
 Posterior (oracle)는 정확한 사후분포를 이미 아는 기준값이다. 예제에서 사후 표준편차는 약 0.222이므로 이름이 Too narrow인 표준편차 0.3 제안은 실제로 사후보다 넓다. 등급 이름만으로 판단하지 않는다.
 
@@ -502,13 +502,13 @@ Too narrow N(μₙ, 0.3)           5.1495     0.0022     4443.6      88.9%
 Too wide N(0, 5)                5.1661     0.0144      196.5       3.9%
 ```
 
-제안 고르기 전략을 체계로 다룬 것은 [제안 분포 설계](proposal_design.md)를 보아라.
+제안 선택 전략을 체계적으로 다룬 내용은 [제안 분포 설계](proposal_design.md)를 보아라.
 
 ---
 
 ## 8. 여러 기댓값 계산
 
-### 표본 다시 쓰기
+### 표본 재사용
 
 같은 가중 표본으로 여러 함수를 평가할 수 있지만 정확도는 함수마다 다르다. 아래 Var 항의 중심 estimate는 앞 제안 비교 루프에서 덮어쓴 별도 추정값이며 해당 가중 표본의 평균과 다를 수 있다. 그 결과를 정확한 가중 표본분산으로 읽지 않는다.
 
@@ -517,7 +517,7 @@ Too wide N(0, 5)                5.1661     0.0144      196.5       3.9%
 ```python
 def compute_multiple_expectations(samples, weights, functions):
     """
-    같은 표본으로 기댓값 여럿 어림하기.
+    같은 표본으로 여러 기댓값 추정하기.
     
     각 k에 대해 E_π[hₖ(θ)] ≈ Σᵢ w̄ᵢ hₖ(θᵢ)
     """
@@ -528,12 +528,12 @@ def compute_multiple_expectations(samples, weights, functions):
         results[name] = estimate.item()
     return results
 
-# 관심 있는 함수 여럿 정하기
+# 관심 함수 여럿 정의하기
 functions = {
     'E[θ]': lambda x: x,
     'E[θ²]': lambda x: x**2,
     'E[θ³]': lambda x: x**3,
-    'Var[θ]': lambda x: (x - estimate.item())**2,  # 뒤확률 평균에 가운데를 맞춤
+    'Var[θ]': lambda x: (x - estimate.item())**2,  # 사후평균을 중심으로 함
     'P(θ > 3)': lambda x: (x > 3).float(),
 }
 
@@ -578,7 +578,7 @@ $$
 ```python
 def posterior_predictive_pmf(y_values, samples, weights, likelihood):
     """
-    띄엄띄엄한 결과의 뒤확률 미리봄 P(ỹ|y) 어림하기.
+    이산 결과의 사후예측확률 P(ỹ|y) 추정하기.
     """
     probs = []
     for y in y_values:
@@ -591,7 +591,7 @@ def posterior_predictive_pmf(y_values, samples, weights, likelihood):
 
 ---
 
-## 10. 계량 금융에서의 쓰임새
+## 10. 계량 금융에서의 활용
 
 평균 μ와 log σ를 좌표로 하는 정규 수익률 모형의 사후평균 계산 예제다. log σ에 직접 정규 사전을 두므로 이 좌표의 밀도로 웨이트를 계산한다. σ에 사전을 둔 뒤 로그 좌표로 옮기는 경우와 야코비안 처리가 다르다.
 
@@ -602,19 +602,19 @@ proposal_dist.log_prob(samples).sum(dim=−1)은 좌표별 로그확률을 반�
 ```python
 def bayesian_return_model_snis(returns, proposal_dist, n_samples=10000):
     """
-    수익 분포 파라메터의 베이즈 어림을 위한 SNIS.
+    수익률 분포 파라메터의 베이즈 추정을 위한 SNIS.
     
     모형: r_t ~ N(μ, σ²)
-    앞확률: μ ~ N(0, 0.1²), log σ ~ N(log(0.02), 0.5²)
+    사전분포: μ ~ N(0, 0.1²), log σ ~ N(log(0.02), 0.5²)
     
     파라메터
     ----------
     returns : torch.Tensor
-        관측한 날마다의 로그 수익
+        관측한 일별 로그 수익률
     proposal_dist : callable
         (μ, log_σ)에 대한 결합 제안
     n_samples : int
-        중요도 표집 표본의 개수
+        중요도 샘플링 표본의 개수
     """
     n_obs = len(returns)
     
@@ -628,16 +628,16 @@ def bayesian_return_model_snis(returns, proposal_dist, n_samples=10000):
         log_lik = -0.5 * n_obs * torch.log(2 * torch.pi * sigma**2)
         log_lik -= 0.5 * torch.sum((returns.unsqueeze(0) - mu.unsqueeze(1))**2, dim=1) / sigma**2
         
-        # 로그 앞확률
+        # 로그 사전밀도
         log_prior_mu = dist.Normal(0.0, 0.1).log_prob(mu)
         log_prior_logsig = dist.Normal(torch.log(torch.tensor(0.02)), 0.5).log_prob(log_sigma)
         
         return log_lik + log_prior_mu + log_prior_logsig
     
-    # 제안에서 표집
+    # 제안에서 샘플링
     samples = proposal_dist.sample((n_samples,))
     
-    # SNIS 무게 셈하기
+    # SNIS 웨이트 계산하기
     log_gamma = unnormalized_log_posterior(samples)
     log_q = proposal_dist.log_prob(samples).sum(dim=-1)  # 독립인 성분
     log_weights = log_gamma - log_q
@@ -646,7 +646,7 @@ def bayesian_return_model_snis(returns, proposal_dist, n_samples=10000):
     log_sum = torch.logsumexp(log_weights, dim=0)
     norm_weights = torch.exp(log_weights - log_sum)
     
-    # 뒤확률의 적률
+    # 사후분포의 적률
     post_mu = torch.sum(norm_weights * samples[:, 0])
     post_sigma = torch.sum(norm_weights * torch.exp(samples[:, 1]))
     
@@ -661,29 +661,29 @@ def bayesian_return_model_snis(returns, proposal_dist, n_samples=10000):
     }
 ```
 
-### 주변 우도 추정의 추가 조건
+### 주변 가능도 추정의 추가 조건
 
-우도와 사전밀도의 절대 정규화 상수가 포함된 γ에서 q가 정규화된 제안이면 원시 웨이트 평균 $\hat Z=n^{-1}\sum_iW_i$로 증거를 추정할 수 있다. 정규화 웨이트만 남기면 Z의 크기를 복원할 수 없다. 이 계산은 SNIS 비율 자체가 아니라 같은 표본의 표준 IS 적분이다.
+가능도와 사전밀도의 절대 정규화 상수가 포함된 γ에서 q가 정규화된 제안이면 원시 웨이트 평균 $\hat Z=n^{-1}\sum_iW_i$로 증거를 추정할 수 있다. 정규화 웨이트만 남기면 Z의 크기를 복원할 수 없다. 이 계산은 SNIS 비율 자체가 아니라 같은 표본의 표준 IS 적분이다.
 
 모델 간 로그 BF의 추정값은 log Ẑ₁−log Ẑ₂다. 로그와 비의 비선형성 때문에 Ẑ가 불편이어도 이 로그비가 불편하다는 뜻은 아니다. 각 증거의 수치 오차와 사전 가정을 함께 보고한다.
 
 ## 11. 핵심 정리
 
-SNIS는 미지 곱셈 상수를 약분해 기댓값을 구한다. 일반적인 바이어스와 조건부 일관성, 점근 분산의 유한성을 구분한다. ESS의 고정 임계값으로 모든 평균·꼬리·분위수의 정확도를 인증하지 않는다.
+SNIS는 미지 곱셈 상수를 약분해 기댓값을 구한다. 일반적인 편향과 조건부 일관성, 점근 분산의 유한성을 구분한다. ESS의 고정 임계값으로 모든 평균·꼬리·분위수의 정확도를 인증하지 않는다.
 
 같은 가중 표본을 재사용해도 함수별 오차가 다르다. 여러 제안·반복 실행과 지지집합·꼬리를 점검하며, 증거가 필요하면 γ의 절대 정규화 상수를 복원해야 한다.
 
 ## 연습문제
 
-1. q=π 또는 상수 h에서 SNIS가 불편인 이유를 설명하고, 일반적인 비율 추정의 O(1/n) 바이어스 전개가 추가 조건을 요구함을 논하라.
+1. q=π 또는 상수 h에서 SNIS가 불편인 이유를 설명하고, 일반적인 비율 추정의 O(1/n) 편향 전개가 추가 조건을 요구함을 논하라.
 2. 고정된 q·π와 유한 E_q[W²]에서 ESS_w/n의 극한을 구하라. 이 비율이 각 유한 표본에서 일정하거나 모든 함수의 분산 비율인 것은 아닌 이유를 설명하라.
 3. 알려진 분산의 정규-정규 모형에서 사후예측 평균·분산을 유도하고 SNIS 가중 적분과 비교할 절차를 설계하라. 새 관측의 잡음분산과 파라메터 사후분산을 구분하라.
 4. 사전·라플라스·정확한 사후 제안의 표본 생성 비용과 꼬리를 비교하라. 관심 함수가 바뀌면 ESS 순위가 실제 오차 순위를 보장하지 않는 이유를 설명하라.
-5. 우도·사전의 상수를 포함한 원시 웨이트 평균으로 증거를 추정하라. 미정규화 γ에 상수 c를 곱할 때 SNIS 기대값·ESS·Z 추정값이 각각 어떻게 변하는지 설명하라.
+5. 가능도·사전의 상수를 포함한 원시 웨이트 평균으로 증거를 추정하라. 미정규화 γ에 상수 c를 곱할 때 SNIS 기댓값·ESS·Z 추정값이 각각 어떻게 변하는지 설명하라.
 
 ## 정리하며
 
-SNIS는 정규화 가중 평균이며 목표밀도의 공통 곱셈 상수에 불변이다. 일반적인 유한 표본 바이어스와 함수별 점근 분산을 고려하고, 웨이트 ESS를 정확도 보장으로 읽지 않는다. 주변 우도는 원시 웨이트와 절대 밀도 상수가 있어야 별도로 추정할 수 있다.
+SNIS는 정규화 가중 평균이며 목표밀도의 공통 곱셈 상수에 불변이다. 일반적인 유한 표본 편향과 함수별 점근 분산을 고려하고, 웨이트 ESS를 정확도 보장으로 읽지 않는다. 주변 가능도는 원시 웨이트와 절대 밀도 상수가 있어야 별도로 추정할 수 있다.
 
 **참고 문헌**
 

@@ -19,9 +19,9 @@ RBF의 표현력이 크다고 상위 몇 개 성분이 임의의 비선형 구�
 
 **그림으로 보는 AI 1.** 가지 않는 길이 1964년에 났다
 
-이 쪽이 기대고 있는 수 하나가 있다. φ(x)를 **한 번도 만들지 않고** 내적만 셈한다는 것이다. RBF 커널의 피처 공간은 무한 차원이라 만들려야 만들 수도 없는데, κ(x,x′) 한 번이면 그 공간의 내적이 나온다.
+이 쪽이 기대고 있는 기법 하나가 있다 — **커널 트릭**(kernel trick)이다. φ(x)를 **한 번도 만들지 않고** 내적만 계산한다는 것이다. RBF 커널의 피처 공간은 무한 차원이라 만들려야 만들 수도 없는데, κ(x,x′) 한 번이면 그 공간의 내적이 나온다.
 
-![왼쪽에 x와 x′가, 오른쪽에 두 피처 벡터의 내적이 놓여 있다. 위로 둥글게 도는 흐린 점선 길은 φ(x)를 거쳐 가는 길이고 아무도 가지 않는 길이라고 적혀 있다. 아래로 둥글게 도는 굵은 선은 커널을 바로 셈해 한 번에 건너가는 길이다.](figures/kernel_shortcut.svg)
+![왼쪽에 x와 x′가, 오른쪽에 두 피처 벡터의 내적이 놓여 있다. 위로 둥글게 도는 흐린 점선 길은 φ(x)를 거쳐 가는 길이고 아무도 가지 않는 길이라고 적혀 있다. 아래로 둥글게 도는 굵은 선은 커널을 바로 계산해 한 번에 건너가는 길이다.](figures/kernel_shortcut.svg)
 
 이 지름길은 PCA를 위해 만들어진 것이 아니다. 1964년 모스크바에서 마크 아이저만(Mark Aizerman)·에마누엘 브라베르만(Emmanuel Braverman)·레프 로조노에르(Lev Rozonoer)가 패턴 인식을 두고 쓴 글에 이미 들어 있었다. 그들은 그것을 커널이라 부르지 않고 **포텐셜 함수**라 불렀다 — 점마다 전위를 두고 그 합으로 경계를 긋는다는, 물리에서 빌려 온 그림이었다. 핵심은 같다. 점 두 개 사이의 값만 있으면 되고 사상은 만들 필요가 없다.
 
@@ -68,17 +68,17 @@ import numpy as np
 from scipy.spatial.distance import cdist
 
 class KernelPCA:
-    """비선형 차원 줄이기를 위한 커널 주성분 분석.
+    """비선형 차원 축소를 위한 커널 주성분 분석.
 
-    고른 커널 함수가 정하는, 넌지시 딸린 차원 높은 피처 공간에서
+    선택한 커널 함수가 암묵적으로 정하는 고차원 피처 공간에서
     주성분 분석을 한다.
 
     인수:
         n_components: 주성분의 수
         kernel: 'rbf', 'poly', 'linear' 가운데 하나
-        gamma: 방사 바탕 함수 커널의 띠너비
+        gamma: RBF 커널의 대역폭(bandwidth)
         degree: 다항 커널의 차수
-        coef0: 다항 커널의 치우침
+        coef0: 다항 커널의 상수항
     """
 
     def __init__(self, n_components, kernel='rbf', gamma=1.0,
@@ -90,7 +90,7 @@ class KernelPCA:
         self.coef0 = coef0
 
     def _compute_kernel(self, X, Y=None):
-        """커널 행렬 K[i,j] = kappa(X[i], Y[j])을 셈한다."""
+        """커널 행렬 K[i,j] = kappa(X[i], Y[j])을 계산한다."""
         if Y is None:
             Y = X
         if self.kernel == 'rbf':
@@ -104,39 +104,39 @@ class KernelPCA:
             raise ValueError(f"Unknown kernel: {self.kernel}")
 
     def _center_kernel(self, K):
-        """커널 행렬의 가운데를 맞춘다: K_centered = H K H."""
+        """커널 행렬을 중심화한다: K_centered = H K H."""
         n = K.shape[0]
         one_n = np.ones((n, n)) / n
         return K - one_n @ K - K @ one_n + one_n @ K @ one_n
 
     def fit(self, X):
-        """익히기 자료에 커널 주성분 분석을 맞춘다.
+        """학습 데이터에 커널 주성분 분석을 적합한다.
 
-        커널 행렬을 셈해 가운데를 맞추고
-        으뜸 고유벡터(쌍대 계수 alpha)를 찾는다.
+        커널 행렬을 계산해 중심화하고
+        상위 고유벡터(쌍대 계수 alpha)를 찾는다.
         """
         self.X_train = X.copy()
         n = X.shape[0]
 
-        # 커널 행렬을 셈하고 가운데를 맞춘다
+        # 커널 행렬을 계산하고 중심화한다
         K = self._compute_kernel(X)
         K_centered = self._center_kernel(K)
 
-        # 가운데 맞춘 커널 행렬의 고윳값 쪼개기
+        # 중심화한 커널 행렬의 고유분해
         eigenvalues, eigenvectors = np.linalg.eigh(K_centered)
 
-        # 내림차순으로 정렬해 으뜸 성분을 고른다
+        # 내림차순으로 정렬해 상위 성분을 고른다
         idx = np.argsort(eigenvalues)[::-1]
         eigenvalues = eigenvalues[idx[:self.n_components]]
         eigenvectors = eigenvectors[:, idx[:self.n_components]]
 
-        # 고르게 한다: alpha_j / sqrt(n * lambda_j)
+        # 정규화한다: alpha_j / sqrt(n * lambda_j)
         self.alphas = eigenvectors / np.sqrt(
             np.maximum(eigenvalues, 1e-10)
         )
         self.eigenvalues = eigenvalues / n
 
-        # 시험 때 가운데를 맞추려 통계를 곳간에 담는다
+        # 시험 때 중심화에 쓸 통계를 저장한다
         self.K_train = K
         self.K_train_col_mean = K.mean(axis=0)
         self.K_train_mean = K.mean()
@@ -144,14 +144,14 @@ class KernelPCA:
         return self
 
     def transform(self, X):
-        """새 자료를 커널 주성분에 쏜다.
+        """새 데이터를 커널 주성분에 투영한다.
 
-        시험 점과 익히기 점 사이 커널을 셈해
-        알맞게 가운데를 맞추고 쏜다.
+        시험 점과 학습 점 사이 커널을 계산해
+        알맞게 중심화한 뒤 투영한다.
         """
         K_test = self._compute_kernel(X, self.X_train)
 
-        # 시험 커널 행렬의 가운데를 맞춘다
+        # 시험 커널 행렬을 중심화한다
         K_test_centered = (
             K_test
             - K_test.mean(axis=1, keepdims=True)
@@ -179,15 +179,15 @@ import numpy as np
 from sklearn.datasets import make_circles
 from sklearn.decomposition import PCA, KernelPCA
 
-# 겹동그라미를 만든다
+# 동심원 데이터를 만든다
 X, y = make_circles(n_samples=500, factor=0.3, noise=0.05,
                      random_state=42)
 
-# 선형 주성분 분석(동그라미를 가르지 못한다)
+# 선형 주성분 분석(두 원을 분리하지 못한다)
 pca = PCA(n_components=2)
 X_pca = pca.fit_transform(X)
 
-# 방사 바탕 함수 커널 주성분 분석(동그라미를 가른다)
+# RBF 커널 주성분 분석(두 원을 분리한다)
 kpca = KernelPCA(n_components=2, kernel='rbf', gamma=10)
 X_kpca = kpca.fit_transform(X)
 
@@ -206,7 +206,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-이 블록은 `sklearn.decomposition.KernelPCA`를 다시 import해 앞의 클래스 이름을 덮어쓴다. 또한 원래 2차원 데이터를 2차원으로 변환해 시각화하므로 1차원 분류 정확도를 측정하는 예제가 아니다. 색으로 쓰는 레이블은 PCA 적합에 사용하지 않는다. 데이터와 커널 설정에 따라 분리가 달라지며 완벽한 분류가 보장되지는 않는다.
+이 블록은 `sklearn.decomposition.KernelPCA`를 다시 import해 앞의 클래스 이름을 덮어쓴다. 또한 원래 2차원 데이터를 2차원으로 변환해 시각화하므로 1차원 분류 정확도를 측정하는 예제가 아니다. 색으로 쓰는 라벨은 PCA 적합에 사용하지 않는다. 데이터와 커널 설정에 따라 분리가 달라지며 완벽한 분류가 보장되지는 않는다.
 
 scikit-learn의 RBF는 exp(−γ||x−x′||²)다. 따라서 앞의 폭 σ와는 γ=1/(2σ²) 관계다. **작은 σ는 좁은 커널**, **큰 scikit-learn γ도 좁은 커널**이다. 같은 `gamma` 인수 이름을 두 구현 사이에 그대로 옮기면 반대 효과를 낼 수 있다.
 
@@ -218,7 +218,7 @@ scikit-learn의 RBF는 exp(−γ||x−x′||²)다. 따라서 앞의 폭 σ와�
 from scipy.spatial.distance import pdist
 
 def median_heuristic(X):
-    """방사 바탕 함수의 gamma을 둘씩 거리의 가운뎃값으로 둔다."""
+    """RBF 커널의 gamma를 쌍별 거리의 중앙값으로 둔다."""
     dists = pdist(X, metric='euclidean')
     return np.median(dists)
 ```
@@ -230,7 +230,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
 
-# 좋은 쏘기의 대리 잣대로 가르기 정확도를 쓴다
+# 좋은 투영의 대리 지표로 분류 정확도를 쓴다
 pipe = Pipeline([
     ('kpca', KernelPCA(kernel='rbf')),
     ('clf', SVC())
@@ -256,8 +256,8 @@ print(f"Best params: {search.best_params_}")
 
 ```python
 def approximate_preimage(kpca, z, X_train, gamma, n_iter=100, lr=0.1):
-    """그래디언트 내려가기로 앞그림을 어림한다(방사 바탕 함수 커널)."""
-    # 익히기 점의 무게 붙은 평균으로 초기화한다
+    """경사 하강법으로 프리이미지를 근사한다(RBF 커널)."""
+    # 학습 점의 가중 평균으로 초기화한다
     K_weights = np.exp(-0.5 * np.sum(z ** 2))
     x = X_train.mean(axis=0).copy()
 
@@ -285,20 +285,20 @@ def approximate_preimage(kpca, z, X_train, gamma, n_iter=100, lr=0.1):
 변동성 표면이나 스프레드 곡선의 비선형 피처를 탐색할 때 커널 PCA를 후보로 사용할 수 있다. 아래 코드는 표본별로 평탄화된 표면 배열 `vol_surfaces`가 미리 주어졌다고 가정한다.
 
 ```python
-# 출렁임 면 살피기
-# X: [날 수, 행사가 수 * 만기 수]로 펼친 출렁임 면
-# 선형 주성분 분석은 높이/그래디언트/기간 짜임 결을 잡는다
-# 커널 주성분 분석은 스마일의 액션과 국면 바뀜을 잡을 수 있다
+# 변동성 표면 분석
+# X: [날 수, 행사가 수 * 만기 수]로 펼친 변동성 표면
+# 선형 주성분 분석은 수준/기울기/기간 구조 패턴을 잡는다
+# 커널 주성분 분석은 스마일의 움직임과 국면 전환을 잡을 수 있다
 
 from sklearn.decomposition import KernelPCA
 
-# 방사 바탕 함수 커널이 비선형 국면 짜임을 잡는다
+# RBF 커널이 비선형 국면 구조를 잡는다
 kpca = KernelPCA(n_components=5, kernel='rbf', gamma=0.1)
 vol_factors = kpca.fit_transform(vol_surfaces)
 
-# 요인 1: 전체 출렁임 높이(주성분 분석과 비슷)
-# 요인 2~5: 스마일 일그러짐, 기간 짜임 비틀림,
-#              국면 옮아감을 잡는 비선형 결
+# 요인 1: 전체 변동성 수준(주성분 분석과 비슷)
+# 요인 2~5: 스마일 왜곡, 기간 구조 뒤틀림,
+#              국면 전환을 잡는 비선형 패턴
 ```
 
 데이터 생성·전처리·검증과 요인의 경제적 의미는 이 코드에 포함되지 않는다. 시계열에서는 과거 학습 구간에서 커널과 통계를 정하고 이후 구간을 변환해야 한다. 좋은 시각화나 설명 분산만으로 위험 예측이나 투자 성과의 향상을 주장할 수 없다.
@@ -344,7 +344,7 @@ RBF 커널을 사용하면 동심원이 항상 한 좌표에서 완벽하게 분
 
 ??? success "풀이"
 
-    아니다. 표본 분포·잡음·폭과 선택된 성분에 따라 다르다. 비선형 피처 공간이 분류에 유용한 방향을 제공할 수 있지만 PCA는 레이블을 보지 않는다. 해당 설정의 별도 검증이 필요하고 같은 데이터의 시각적 분리만으로 일반화 정확도를 주장할 수 없다.
+    아니다. 표본 분포·잡음·폭과 선택된 성분에 따라 다르다. 비선형 피처 공간이 분류에 유용한 방향을 제공할 수 있지만 PCA는 라벨을 보지 않는다. 해당 설정의 별도 검증이 필요하고 같은 데이터의 시각적 분리만으로 일반화 정확도를 주장할 수 없다.
 
 
 
@@ -359,7 +359,7 @@ RBF 커널을 사용하면 동심원이 항상 한 좌표에서 완벽하게 분
 
 ??? success "풀이"
 
-    전처리, 커널 PCA와 분류기를 Pipeline으로 묶고 각 교차 검증 학습 폴드에서 적합한다. 검증 폴드는 그 학습 통계로만 변환한다. 최종 테스트 데이터는 설정 선택에 사용하지 않는다. 다른 폭의 설명 분산 비율을 같은 입력 공간의 정보 보존율로 비교하지 않는다.
+    전처리, 커널 PCA와 분류기를 Pipeline으로 묶고 각 교차 검증 학습 폴드에서 적합한다. 검증 폴드는 그 학습 통계로만 변환한다. 최종 시험 데이터는 설정 선택에 사용하지 않는다. 다른 폭의 설명 분산 비율을 같은 입력 공간의 정보 보존율로 비교하지 않는다.
 
 
 

@@ -2,7 +2,7 @@
 
 온도는 에너지와 엔트로피를 조절하는 여러 방법에 공통된 비유를 제공한다. 볼츠만 거듭제곱 목표와 정확히 대응하는 경우, 확산의 노이즈 수준처럼 관련은 있지만 다른 경우를 구분한다.
 
-## 1. 온도가 두루 하는 일
+## 1. 온도의 공통 역할
 
 정규화 가능한 π_T∝exp(−E/T)에서 T>0는 에너지 차이의 상대 스케일이다. 분포 q에 대한 E_qE−T H(q)를 최소화하면 해당 볼츠만 목표를 얻는 것이 기본적인 변분 원리다.
 
@@ -18,14 +18,14 @@ Annealed importance sampling은 정확한 쉬운 초기분포와 중간 미정�
 
 ```python
 def parallel_tempering_step(chains, temperatures, E):
-    """병렬 온도 다루기의 한 스텝."""
+    """병렬 템퍼링의 한 스텝."""
     n_chains = len(chains)
     
-    # 온도마다의 가까운 액션
+    # 온도별 국소 이동
     for i in range(n_chains):
         chains[i] = metropolis_step(chains[i], E, temperatures[i])
     
-    # 이웃한 온도 사이의 맞바꿈 시도
+    # 이웃한 온도 사이의 교환 시도
     for i in range(n_chains - 1):
         delta = (1/temperatures[i] - 1/temperatures[i+1]) * \
                 (E(chains[i+1]) - E(chains[i]))
@@ -40,7 +40,7 @@ def parallel_tempering_step(chains, temperatures, E):
 
 고정 T에서 dX=−∇Edt+√(2T)dW는 exp(−E/T)를 목표로 한다. 시간 단위를 바꾸면 dX=−∇E/Tdt+√2dW도 같은 정상 목표를 가질 수 있다. 따라서 온도를 드리프트로 표현하면 언제나 틀리다는 설명은 아니다.
 
-이산 근사 X′=X−h∇E+√(2hT)η에는 유한 스텝 바이어스·안정성 조건이 남는다. T→0의 고정 시간 극한은 경사 흐름과 연결되지만 비볼록 전역 최적을 자동으로 보장하지 않는다. T→∞에서는 잡음이 커지지만 시간·공간 재조정 없이 하나의 유한 계수 브라운 운동으로 수렴한다고 표현하지 않는다.
+이산 근사 X′=X−h∇E+√(2hT)η에는 유한 스텝 편향·안정성 조건이 남는다. T→0의 고정 시간 극한은 그래디언트 흐름과 연결되지만 비볼록 전역 최적을 자동으로 보장하지 않는다. T→∞에서는 잡음이 커지지만 시간·공간 재조정 없이 하나의 유한 계수 브라운 운동으로 수렴한다고 표현하지 않는다.
 
 ## 4. 확산 모델에서의 온도
 
@@ -54,21 +54,21 @@ def parallel_tempering_step(chains, temperatures, E):
 
 유한 로짓 z_i에서 softmax_T(z)_i=exp(z_i/T)/∑exp(z_j/T)다. T→∞는 균등, T→0은 최대 로짓 집합에 균등 집중하며 유일 최대일 때 one-hot이 된다. 양의 T는 클래스 argmax 순서를 바꾸지 않는다.
 
-지식 증류는 온도로 부드럽게 한 교사·학생 분포를 비교한다. 아래 함수는 KL(교사‖학생)에 T² 배율을 쓰고 hard label CE와 α로 섞는다. torch.nn.functional의 F 정의, T>0·0≤α≤1과 교사 경사 차단 여부를 확인해야 한다.
+지식 증류는 온도로 부드럽게 한 교사·학생 분포를 비교한다. 아래 함수는 KL(교사‖학생)에 T² 배율을 쓰고 hard label CE와 α로 섞는다. torch.nn.functional의 F 정의, T>0·0≤α≤1과 교사 그래디언트 차단 여부를 확인해야 한다.
 
-스케일 점곱 어텐션의 √d_k는 로짓 스케일을 조절해 고차원 내적의 분산을 관리하는 동기와 연결된다. 온도 비유는 가능하지만 모든 주의 메커니즘의 확률적 온도라고 동일시하지 않는다. Temperature scaling은 별도 캘리브레이션 자료로 T를 맞추며 모든 데이터셋의 정확도·보정 개선을 보장하지는 않는다.
+스케일 내적 어텐션의 √d_k는 로짓 스케일을 조절해 고차원 내적의 분산을 관리하는 동기와 연결된다. 온도 비유는 가능하지만 모든 어텐션 메커니즘의 확률적 온도라고 동일시하지 않는다. Temperature scaling은 별도 캘리브레이션 데이터로 T를 맞추며 모든 데이터셋의 정확도·보정 개선을 보장하지는 않는다.
 
 ```python
 def distillation_loss(student_logits, teacher_logits, labels, T=4.0, alpha=0.5):
-    """온도를 쓴 앎 내리기."""
+    """온도를 쓴 지식 증류."""
     soft_targets = F.softmax(teacher_logits / T, dim=1)
     soft_student = F.log_softmax(student_logits / T, dim=1)
     
-    # 앎 내리기 로스(힌턴을 따라 T^2으로 크기 맞춤)
+    # 지식 증류 로스(Hinton을 따라 T^2로 스케일 조정)
     distill_loss = F.kl_div(soft_student, soft_targets, 
                             reduction='batchmean') * T * T
     
-    # 딱 잘라 붙인 이름표의 로스
+    # 하드 라벨의 로스
     hard_loss = F.cross_entropy(student_logits, labels)
     
     return alpha * distill_loss + (1 - alpha) * hard_loss
@@ -76,7 +76,7 @@ def distillation_loss(student_logits, teacher_logits, labels, T=4.0, alpha=0.5):
 
 ## 6. 강화 학습에서의 온도
 
-유한 액션에서 고정 Q(s,a)에 대해 엔트로피 정규화된 선택은 분포 π를 최적화한다.
+유한 액션에서 고정 Q(s,a)에 대해 엔트로피 정칙화된 선택은 분포 π를 최적화한다.
 
 $$V(s)=\max_\pi\{E_{a\sim\pi}Q(s,a)+T H(\pi(\cdot|s))\}=T\log\sum_a\exp(Q(s,a)/T).$$
 
@@ -97,22 +97,22 @@ SAC의 엔트로피 계수 α는 리워드와 엔트로피의 상대 가중이�
 아래 p_wrong=softmax(z)^(1/T)는 합이 1이 아닐 수 있다. 하지만 이 벡터를 다시 합으로 나누면 정확히 softmax(z/T)와 같다. 거듭제곱 자체가 틀렸다기보다 재정규화가 빠진 조각이다. T와 정규화 상수는 비교 목적에 맞게 처리한다.
 
 ```python
-# 틀림: 확률에 온도 쓰기
+# 잘못된 방식: 확률에 온도 적용
 p_wrong = softmax(z) ** (1/T)
 
-# 옳음: 로짓에 온도 쓰기
+# 올바른 방식: 로짓에 온도 적용
 p_right = softmax(z / T)
 ```
 
-## 9. 계량 금융의 눈으로
+## 9. 계량 금융의 관점
 
-정수·종목 수 제약 최적화의 SA, 배분 분포의 엔트로피 정규화, 사후 탐색의 템퍼링을 검토할 수 있다. 각각의 목적·기준 측도·제약과 실제 비용을 명시한다.
+정수·종목 수 제약 최적화의 SA, 배분 분포의 엔트로피 정칙화, 사후 탐색의 템퍼링을 검토할 수 있다. 각각의 목적·기준 측도·제약과 실제 비용을 명시한다.
 
 희귀 payoff의 지수 틸팅 q∝p exp(λh)는 밀도 거듭제곱 p^(1/T)와 다른 제안족이다. 적절한 밀도비 보정과 함수별 분산 조건 없이 금융 가격·위험 추정의 정확성이나 개선을 보장하지 않는다.
 
-## 10. 역사의 눈으로
+## 10. 역사적 관점
 
-통계역학의 볼츠만 가중에서 출발한 아이디어는 Metropolis 샘플링·SA·템퍼링과 여러 엔트로피 정규화 방법에 연결된다. 스코어 기반 확산도 노이즈 수준을 바꾸는 생성 경로와 관련된 직관을 공유한다.
+통계역학의 볼츠만 가중에서 출발한 아이디어는 Metropolis 샘플링·SA·템퍼링과 여러 엔트로피 정칙화 방법에 연결된다. 스코어 기반 확산도 노이즈 수준을 바꾸는 생성 경로와 관련된 직관을 공유한다.
 
 그러나 시간에 따라 잡음을 바꾸는 현대 생성모형을 SA 최적화의 단순한 새 이름으로 읽지 않는다. 목표·전이식·학습 대상과 실제 보존 성질을 기준으로 각 방법의 관계를 이해한다.
 

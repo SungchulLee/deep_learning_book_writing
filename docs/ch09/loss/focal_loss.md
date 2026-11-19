@@ -1,18 +1,18 @@
 # Focal Loss
 
-Focal Loss는 정답 클래스 확률에 따라 교차 엔트로피의 비중을 조절한다. Lin 등은 조밀한 물체 검출에서 많은 쉬운 배경 예의 영향을 줄이기 위해 제안했다. 모든 불균형 문제에서 교차 엔트로피가 실패하거나 Focal Loss가 더 좋은 것은 아니다.
+Focal Loss는 정답 클래스 확률에 따라 교차 엔트로피의 비중을 조절한다. Lin 등은 후보 영역을 빽빽하게 훑는 밀집 객체 탐지(dense object detection)에서 많은 쉬운 배경 예의 영향을 줄이기 위해 제안했다. 모든 불균형 문제에서 교차 엔트로피가 실패하거나 Focal Loss가 더 좋은 것은 아니다.
 
 ## 1. 클래스 불균형 문제
 
-심하게 불균형한 데이터셋(예: 검출에서 배경 99%에 물체 1%, 사기 탐지에서 정상 99.9%에 사기 0.1%)에서는 표준 교차 엔트로피를 쓰면 모델이 다수 클래스만 내놓고도 높은 정확도를 얻는다. 핵심 문제는 정확도가 아니라 **그래디언트의 지배**이다. 수많은 쉬운 음성이 다 합쳐져 큰 그래디언트 신호를 만들고, 이것이 몇 안 되는 어려운 양성의 학습 신호를 삼켜 버린다.
+심하게 불균형한 데이터셋(예: 객체 탐지에서 배경 99%에 물체 1%, 사기 탐지에서 정상 99.9%에 사기 0.1%)에서는 표준 교차 엔트로피를 쓰면 모델이 다수 클래스만 내놓고도 높은 정확도를 얻는다. 핵심 문제는 정확도가 아니라 **그래디언트의 지배**이다. 수많은 쉬운 음성이 다 합쳐져 큰 그래디언트 신호를 만들고, 이것이 몇 안 되는 어려운 양성의 학습 신호를 삼켜 버린다.
 
-이미지마다 후보 영역 $10^5$개를 살피는데 그중 물체가 든 것은 몇 개뿐인 검출기를 생각해 보자. 쉬운 음성 하나하나의 로스가 작더라도 $10^5$개가 쌓인 그래디언트는 몇 안 되는 양성의 신호를 훨씬 뛰어넘는다. 모델은 어디서나 "배경"을 내놓는 법을 배우는데, 이는 퇴화한 해이지만 로스는 낮다.
+이미지마다 후보 영역 $10^5$개를 살피는데 그중 물체가 든 것은 몇 개뿐인 탐지기를 생각해 보자. 쉬운 음성 하나하나의 로스가 작더라도 $10^5$개가 쌓인 그래디언트는 몇 안 되는 양성의 신호를 훨씬 뛰어넘는다. 모델은 어디서나 "배경"을 내놓는 법을 배우는데, 이는 퇴화한 해이지만 로스는 낮다.
 
 ---
 
 ## 2. 수학적 정식화
 
-### 표준 교차 엔트로피 기준선
+### 표준 교차 엔트로피 베이스라인
 
 이진 분류에서 표본 하나에 대한 교차 엔트로피 로스는 다음과 같다.
 
@@ -34,7 +34,7 @@ $$\text{CE}_{\text{balanced}} = -\alpha_t \log(p_t)$$
 
 ### Focal Loss의 정의
 
-Focal Loss은 교차 엔트로피에 **조절 인수** $(1 - p_t)^\gamma$을 더한다.
+Focal Loss는 교차 엔트로피에 **조절 인수** $(1 - p_t)^\gamma$을 더한다.
 
 $$\mathcal{L}_{\text{FL}}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$$
 
@@ -73,13 +73,13 @@ $$(1 - 0.1)^2 = 0.81$$
 
 ---
 
-## 3. 경사 분석
+## 3. 그래디언트 분석
 
 로짓 $z$($p = \sigma(z)$)에 대한 Focal Loss의 그래디언트는 다음과 같다.
 
 $$\frac{\partial\mathcal L_{FL}}{\partial z}=\alpha_t(2y-1)(1-p_t)^\gamma\left[\gamma p_t\log p_t-(1-p_t)\right]$$
 
-여기서는 $y\in\{0,1\}$, $\partial p_t/\partial z=(2y-1)p_t(1-p_t)$를 사용했다. 조절 인수도 예측값에 의존하므로 그 미분까지 포함해야 한다. 로스에 곱한 인수를 그대로 기존 경사에 곱하는 계산과는 다르다.
+여기서는 $y\in\{0,1\}$, $\partial p_t/\partial z=(2y-1)p_t(1-p_t)$를 사용했다. 조절 인수도 예측값에 의존하므로 그 미분까지 포함해야 한다. 로스에 곱한 인수를 그대로 기존 그래디언트에 곱하는 것과는 다르다.
 
 ---
 
@@ -93,7 +93,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class FocalLoss(nn.Module):
-    """이진 분류를 위한 초점 로스.
+    """이진 분류를 위한 Focal Loss.
 
     참고: "Focal Loss for Dense Object Detection" (Lin 등, 2017)
     https://arxiv.org/abs/1708.02002
@@ -114,8 +114,8 @@ class FocalLoss(nn.Module):
     def forward(self, logits, targets):
         """
         인수:
-            logits: (시그모이드 전의) 모델의 날 출력, 모양 (N,).
-            targets: 이진 레이블 (0 또는 1), 모양 (N,).
+            logits: (시그모이드 전의) 모델의 원시 출력(로짓), 형태 (N,).
+            targets: 이진 라벨 (0 또는 1), 형태 (N,).
         """
         probs = torch.sigmoid(logits)
 
@@ -125,13 +125,13 @@ class FocalLoss(nn.Module):
         # alpha_t: 클래스 균형 웨이트
         alpha_t = torch.where(targets == 1, self.alpha, 1 - self.alpha)
 
-        # 초점 조절 인수
+        # 조절 인수
         focal_weight = (1 - p_t) ** self.gamma
 
         # 표준 BCE (표본별, 수치적으로 안정)
         bce = F.binary_cross_entropy_with_logits(logits, targets, reduction='none')
 
-        # 초점 로스
+        # Focal Loss
         loss = alpha_t * focal_weight * bce
 
         if self.reduction == 'mean':
@@ -145,10 +145,10 @@ class FocalLoss(nn.Module):
 
 ```python
 class MultiClassFocalLoss(nn.Module):
-    """다중 클래스 분류를 위한 초점 로스.
+    """다중 클래스 분류를 위한 Focal Loss.
 
     인수:
-        alpha: 클래스별 웨이트, 모양 (K,). None이면 클래스 가중을 하지 않는다.
+        alpha: 클래스별 웨이트, 형태 (K,). None이면 클래스 가중을 하지 않는다.
         gamma: 집중 파라메터. 기본값: 2.0.
         reduction: 'mean', 'sum', 또는 'none'.
     """
@@ -165,8 +165,8 @@ class MultiClassFocalLoss(nn.Module):
     def forward(self, logits, targets):
         """
         인수:
-            logits: 모델의 날 출력, 모양 (N, K).
-            targets: 클래스 인덱스, 모양 (N,).
+            logits: 모델의 원시 출력(로짓), 형태 (N, K).
+            targets: 클래스 인덱스, 형태 (N,).
         """
         # 소프트맥스 확률 계산
         log_probs = F.log_softmax(logits, dim=1)
@@ -175,13 +175,13 @@ class MultiClassFocalLoss(nn.Module):
         # p_t 모으기: 참 클래스의 확률
         p_t = probs.gather(1, targets.unsqueeze(1)).squeeze(1)
 
-        # 초점 조절 인수
+        # 조절 인수
         focal_weight = (1 - p_t) ** self.gamma
 
         # 표본별 음의 로그가능도 로스
         nll = F.nll_loss(log_probs, targets, reduction='none')
 
-        # 초점 웨이트 적용
+        # 조절 인수 적용
         loss = focal_weight * nll
 
         # 클래스 웨이트 적용
@@ -256,9 +256,9 @@ plt.show()
 
 ---
 
-## 6. 하이퍼파라미터 고르기
+## 6. 하이퍼파라메터 고르기
 
-**$\gamma$ (집중 파라메터).** 기본값 $\gamma = 2$에서 시작한다. 불균형이 더 심하거나 쉬운 예가 학습을 지배하면 $\gamma$을 올린다. 모델이 아무것도 배우지 못하면(교육 과정이 지나치게 과격할 수 있다) $\gamma$을 0 쪽으로 낮춘다.
+**$\gamma$ (집중 파라메터).** 기본값 $\gamma = 2$에서 시작한다. 불균형이 더 심하거나 쉬운 예가 학습을 지배하면 $\gamma$을 올린다. 모델이 아무것도 배우지 못하면(쉬운 예를 지나치게 억누른 것일 수 있다) $\gamma$을 0 쪽으로 낮춘다.
 
 **$\alpha$ (클래스 웨이트).** 빈도 역수에 비례하는 정규화 웨이트는 한 후보이지만 필수 정의는 아니다. 원 논문의 RetinaNet 설정은 양성 웨이트 0.25와 감마 2를 사용한다. 이 값을 다른 데이터의 최적값으로 일반화하지 말고 로스·샘플링 웨이트와 함께 검증한다.
 
@@ -273,13 +273,13 @@ plt.show()
 | **클래스 웨이트** ($\alpha_t$만) | 클래스마다 로스를 조정한다 | 쉬움과 어려움을 가리지 못한다 |
 | **Focal Loss** | 클래스와 무관하게 쉬운 예의 비중을 낮춘다 | $\gamma$을 조율해야 한다 |
 
-Focal Loss은 샘플링 전략과 서로 보완하며 함께 쓸 수 있다.
+Focal Loss는 샘플링 전략과 서로 보완하며 함께 쓸 수 있다.
 
 ---
 
 ## 8. 핵심 정리
 
-Focal Loss은 잘 분류된 예의 비중을 낮추는 인수 $(1 - p_t)^\gamma$으로 교차 엔트로피 로스를 조절하여 클래스 불균형을 다룬다. 집중 파라메터 $\gamma$이 비중을 낮추는 세기를 정하며 $\gamma = 2$이 표준 기본값이다. 단순한 클래스 가중과 달리 Focal Loss은 클래스 안에서 쉬운 예와 어려운 예를 가려 최적화의 힘을 가장 중요한 곳으로 돌린다. 구현은 수치 안정성을 위해 `BCEWithLogitsLoss` 위에 세우며 조절 인수만 더 계산하면 된다.
+Focal Loss는 잘 분류된 예의 비중을 낮추는 인수 $(1 - p_t)^\gamma$으로 교차 엔트로피 로스를 조절하여 클래스 불균형을 다룬다. 집중 파라메터 $\gamma$이 비중을 낮추는 세기를 정하며 $\gamma = 2$이 표준 기본값이다. 단순한 클래스 가중과 달리 Focal Loss는 클래스 안에서 쉬운 예와 어려운 예를 가려 최적화의 힘을 가장 중요한 곳으로 돌린다. 구현은 수치 안정성을 위해 `BCEWithLogitsLoss` 위에 세우며 조절 인수만 더 계산하면 된다.
 
 ---
 
@@ -293,14 +293,14 @@ $p_t$에 대한 도함수와 로짓에 대한 도함수를 구분해 Focal Loss�
 </div>
 
 ??? success "풀이"
-    $\partial FL/\partial p_t=\alpha_t\gamma(1-p_t)^{\gamma-1}\log p_t-\alpha_t(1-p_t)^\gamma/p_t$이다. 여기에 $(2y-1)p_t(1-p_t)$를 곱하면 본문의 로짓 경사를 얻는다. 잘 맞힌 예에서 경사는 더 빠르게 작아지지만, 큰 로스의 원인이 레이블 오류라면 그 표본을 상대적으로 강조할 위험도 있다.
+    $\partial FL/\partial p_t=\alpha_t\gamma(1-p_t)^{\gamma-1}\log p_t-\alpha_t(1-p_t)^\gamma/p_t$이다. 여기에 $(2y-1)p_t(1-p_t)$를 곱하면 본문의 로짓 그래디언트를 얻는다. 잘 맞힌 예에서 그래디언트는 더 빠르게 작아지지만, 큰 로스의 원인이 라벨 오류라면 그 표본을 상대적으로 강조할 위험도 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-Focal Loss을 쓰는 물체 검출에서 $\gamma$과 $\alpha$은 보통 어떤 값을 쓰는가?
+Focal Loss를 쓰는 객체 탐지에서 $\gamma$과 $\alpha$은 보통 어떤 값을 쓰는가?
 
 </div>
 
@@ -312,7 +312,7 @@ Focal Loss을 쓰는 물체 검출에서 $\gamma$과 $\alpha$은 보통 어떤 �
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-Focal Loss을 PyTorch로 구현하고, 불균형한 데이터셋에서 표준 BCE와 학습 곡선을 비교하여 보라.
+Focal Loss를 PyTorch로 구현하고, 불균형한 데이터셋에서 표준 BCE와 학습 곡선을 비교하여 보라.
 
 </div>
 
@@ -330,13 +330,13 @@ Focal Loss을 PyTorch로 구현하고, 불균형한 데이터셋에서 표준 BC
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-Focal Loss를 사용할 때 교차 엔트로피 기준과 비교해야 할 한계를 설명하라.
+Focal Loss를 사용할 때 교차 엔트로피 베이스라인과 비교해야 할 한계를 설명하라.
 
 </div>
 
 ??? success "풀이"
-    어려운 예에는 중요한 소수 표본뿐 아니라 오표기·모호한 표본도 포함된다. 감마와 클래스 웨이트는 검증해야 하고, 순위·임계값 성능과 확률 보정도 함께 평가한다. 클래스 비율만으로 사용 여부나 보편적 우열을 정하지 않는다.
+    어려운 예에는 중요한 소수 표본뿐 아니라 라벨이 잘못 붙은 표본이나 모호한 표본도 포함된다. 감마와 클래스 웨이트는 검증해야 하고, 순위·임계값 성능과 확률 보정도 함께 평가한다. 클래스 비율만으로 사용 여부나 보편적 우열을 정하지 않는다.
 
 ## 정리하며
 
-Focal Loss는 $-\alpha_t(1-p_t)^\gamma\log p_t$로 쉬운 예의 로스를 낮춘다. 감마 0은 클래스 가중 CE에 대응한다. 경사는 조절 인수의 미분까지 포함하며, 실제 효과와 확률 보정은 검증에서 판단한다.
+Focal Loss는 $-\alpha_t(1-p_t)^\gamma\log p_t$로 쉬운 예의 로스를 낮춘다. 감마 0은 클래스 가중 CE에 대응한다. 그래디언트는 조절 인수의 미분까지 포함하며, 실제 효과와 확률 보정은 검증에서 판단한다.

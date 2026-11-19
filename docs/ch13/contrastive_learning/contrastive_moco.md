@@ -1,12 +1,12 @@
 # 대조 학습 MoCo
 
-MoCo(Momentum Contrast)는 EMA로 갱신하는 키 인코더와 과거 피처 큐를 사용해 대조 학습의 후보 집합을 구성한다. 큐 크기와 현재 배치 크기를 분리할 수 있지만 모델·큐·점수와 학습 활성의 비용은 남는다. 아래 구현과 원래 MoCo 버전들의 차이도 함께 살펴본다.
+MoCo(Momentum Contrast)는 EMA로 갱신하는 키 인코더와 과거 피처 큐를 사용해 대조 학습의 후보 집합을 구성한다. 큐 크기와 현재 배치 크기를 분리할 수 있지만 모델·큐·점수와 학습 중 활성화 값의 비용은 남는다. 아래 구현과 원래 MoCo 버전들의 차이도 함께 살펴본다.
 
 ## 1. 코드
 
 ```python
 """
-MoCo: 지도 없는 시각 표현 학습을 위한 관성 대조
+MoCo: Momentum Contrast for Unsupervised Visual Representation Learning
 자기 지도 학습을 위한 MoCo v2 알고리즘 구현.
 """
 
@@ -16,7 +16,7 @@ import torch.nn.functional as F
 from torchvision import models
 import copy
 
-# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 시드를 고정한다.
 torch.manual_seed(0)
 
 
@@ -27,15 +27,15 @@ torch.manual_seed(0)
 
 class MoCo(nn.Module):
     """
-    관성 대조(MoCo) 모형
+    모멘텀 대조(MoCo) 모델
 
-    효율적인 대조 학습을 위해 관성 인코더와 큐 구조를 쓴다.
+    효율적인 대조 학습을 위해 모멘텀 인코더와 큐 구조를 쓴다.
 
     인수:
-        base_encoder: 등뼈 구조
+        base_encoder: 백본 구조
         dim: 피처 차원
         K: 큐 크기
-        m: 관성 계수
+        m: 모멘텀 계수
         T: 온도
     """
     def __init__(self, base_encoder='resnet50', dim=128, K=65536, m=0.999, T=0.07):
@@ -45,7 +45,7 @@ class MoCo(nn.Module):
         self.m = m
         self.T = T
 
-        # 질의 인코더를 만든다
+        # 쿼리 인코더를 만든다
         if base_encoder == 'resnet50':
             self.encoder_q = models.resnet50(pretrained=False)
             feature_dim = 2048
@@ -55,17 +55,17 @@ class MoCo(nn.Module):
         else:
             raise ValueError(f"Unknown encoder: {base_encoder}")
 
-        # 완전 연결 레이어를 사영 머리로 바꾼다
+        # 완전 연결 레이어를 투영 헤드로 바꾼다
         self.encoder_q.fc = nn.Sequential(
             nn.Linear(feature_dim, feature_dim),
             nn.ReLU(),
             nn.Linear(feature_dim, dim)
         )
 
-        # 열쇠 인코더(관성 인코더)를 만든다
+        # 키 인코더(모멘텀 인코더)를 만든다
         self.encoder_k = copy.deepcopy(self.encoder_q)
 
-        # 열쇠 인코더를 얼린다. 관성으로 갱신된다
+        # 키 인코더를 동결한다. 모멘텀으로 갱신된다
         for param in self.encoder_k.parameters():
             param.requires_grad = False
 
@@ -79,7 +79,7 @@ class MoCo(nn.Module):
     @torch.no_grad()
     def _momentum_update_key_encoder(self):
         """
-        열쇠 인코더의 관성 갱신
+        키 인코더의 모멘텀 갱신
         """
         for param_q, param_k in zip(self.encoder_q.parameters(), self.encoder_k.parameters()):
             param_k.data = param_k.data * self.m + param_q.data * (1. - self.m)
@@ -87,13 +87,13 @@ class MoCo(nn.Module):
     @torch.no_grad()
     def _dequeue_and_enqueue(self, keys):
         """
-        새 열쇠로 큐를 고친다
+        새 키로 큐를 갱신한다
         """
         batch_size = keys.shape[0]
 
         ptr = int(self.queue_ptr)
 
-        # ptr 자리의 열쇠를 바꾼다
+        # ptr 자리의 키를 바꾼다
         if ptr + batch_size <= self.K:
             self.queue[:, ptr:ptr + batch_size] = keys.T
         else:
@@ -109,7 +109,7 @@ class MoCo(nn.Module):
     @torch.no_grad()
     def _batch_shuffle_ddp(self, x):
         """
-        분산 학습을 위한 배치 뒤섞기 (간추린 판)
+        분산 학습을 위한 배치 뒤섞기 (단순화한 버전)
         온전한 구현에서는 여러 GPU에 걸쳐 뒤섞는다
         """
         idx_shuffle = torch.randperm(x.shape[0], device=x.device)
@@ -125,23 +125,23 @@ class MoCo(nn.Module):
 
     def forward(self, im_q, im_k):
         """
-        피드포워드
+        순전파
 
         인수:
-            im_q: 질의 그림 (batch_size, 3, H, W)
-            im_k: 열쇠 그림 (batch_size, 3, H, W)
+            im_q: 쿼리 이미지 (batch_size, 3, H, W)
+            im_k: 키 이미지 (batch_size, 3, H, W)
 
         반환값:
             logits: (batch_size, 1 + K)
             labels: (batch_size,)
         """
-        # 질의 피처를 셈한다
+        # 쿼리 피처를 계산한다
         q = self.encoder_q(im_q)
         q = F.normalize(q, dim=1)
 
-        # 열쇠 피처를 셈한다
+        # 키 피처를 계산한다
         with torch.no_grad():
-            # 관성 인코더를 갱신한다
+            # 모멘텀 인코더를 갱신한다
             self._momentum_update_key_encoder()
 
             # 배치 정규화를 제대로 쓰려고 뒤섞는다
@@ -166,7 +166,7 @@ class MoCo(nn.Module):
         # 온도를 적용한다
         logits /= self.T
 
-        # 이름표: 양성이 색인 0에 있다
+        # 라벨: 양성이 인덱스 0에 있다
         labels = torch.zeros(logits.shape[0], dtype=torch.long, device=logits.device)
 
         # 큐에서 빼고 큐에 넣는다
@@ -180,10 +180,10 @@ def train_step_moco(model, optimizer, batch_views, device):
     MoCo의 학습 단계 하나
 
     인수:
-        model: MoCo 모형
+        model: MoCo 모델
         optimizer: 옵티마이저
-        batch_views: (view1, view2) 짝. 불린 시야 둘
-        device: 토치 장치
+        batch_views: (view1, view2) 짝. 어그멘테이션 뷰 둘
+        device: torch 장치
     """
     model.train()
     optimizer.zero_grad()
@@ -194,7 +194,7 @@ def train_step_moco(model, optimizer, batch_views, device):
     # 순전파
     logits, labels = model(im_q, im_k)
 
-    # 로스(교차 엔트로피)을 셈한다
+    # 로스(교차 엔트로피)를 계산한다
     loss = F.cross_entropy(logits, labels)
 
     # 역전파
@@ -207,14 +207,14 @@ def train_step_moco(model, optimizer, batch_views, device):
 class MoCoV3(nn.Module):
     """
     MoCo v3: 비전 트랜스포머를 쓰는 개선판
-    핵심 개념에 집중한 간추린 구현
+    핵심 개념에 집중한 단순화한 구현
     """
     def __init__(self, base_encoder='resnet50', dim=256, mlp_dim=4096, T=0.2):
         super().__init__()
 
         self.T = T
 
-        # 바탕 인코더
+        # 기본 인코더
         if base_encoder == 'resnet50':
             backbone = models.resnet50(pretrained=False)
             feature_dim = 2048
@@ -224,7 +224,7 @@ class MoCoV3(nn.Module):
 
         self.encoder = backbone
 
-        # 사영 머리 (3레이어 다층 퍼셉트론)
+        # 투영 헤드 (3레이어 다층 퍼셉트론)
         self.projector = nn.Sequential(
             nn.Linear(feature_dim, mlp_dim),
             nn.BatchNorm1d(mlp_dim),
@@ -236,7 +236,7 @@ class MoCoV3(nn.Module):
             nn.BatchNorm1d(dim)
         )
 
-        # 예측 머리
+        # 예측 헤드
         self.predictor = nn.Sequential(
             nn.Linear(dim, mlp_dim),
             nn.BatchNorm1d(mlp_dim),
@@ -246,14 +246,14 @@ class MoCoV3(nn.Module):
 
     def forward(self, x1, x2):
         """
-        MoCo v3의 피드포워드
-        관성 인코더 없이 대칭 로스를 쓴다
+        MoCo v3의 순전파
+        모멘텀 인코더 없이 대칭 로스를 쓴다
         """
-        # 두 시야를 모두 부호화한다
+        # 두 뷰를 모두 인코딩한다
         f1 = self.encoder(x1)
         f2 = self.encoder(x2)
 
-        # 사영한다
+        # 투영한다
         z1 = self.projector(f1)
         z2 = self.projector(f2)
 
@@ -261,7 +261,7 @@ class MoCoV3(nn.Module):
         p1 = self.predictor(z1)
         p2 = self.predictor(z2)
 
-        # 대칭 로스를 셈한다
+        # 대칭 로스를 계산한다
         loss = self.contrastive_loss(p1, z2) / 2 + self.contrastive_loss(p2, z1) / 2
 
         return loss
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     # 사용 예
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # MoCo v2를 시작한다
+    # MoCo v2를 초기화한다
     print("Testing MoCo v2...")
     model_v2 = MoCo(base_encoder='resnet50', dim=128, K=4096).to(device)
     optimizer = torch.optim.SGD(model_v2.parameters(), lr=0.03, momentum=0.9, weight_decay=1e-4)
@@ -305,7 +305,7 @@ if __name__ == "__main__":
     print(f"Logits shape: {logits.shape}")
     print(f"Loss: {loss.item():.4f}")
 
-    # MoCo v3을 시작한다
+    # MoCo v3을 초기화한다
     print("\nTesting MoCo v3...")
     model_v3 = MoCoV3(base_encoder='resnet50', dim=256).to(device)
 
@@ -331,17 +331,17 @@ Loss: 3.5246
 
 ## 2. 논의
 
-MoCo 클래스는 역전파로 학습하는 쿼리 인코더와 초기 복사한 키 인코더를 갖는다. 키 계수는 $\theta_k\leftarrow m\theta_k+(1-m)\theta_q$로 갱신하고 키는 no_grad에서 계산한다. 큐는 (d,K)의 정규화한 피처 버퍼와 포인터를 저장한다. 로짓은 양성 하나와 큐 K개를 붙인 (B,K+1), 정답은 모두 0이다.
+MoCo 클래스는 역전파로 학습하는 쿼리 인코더와 초기 복사한 키 인코더를 갖는다. 키 인코더의 파라메터는 $\theta_k\leftarrow m\theta_k+(1-m)\theta_q$로 갱신하고 키는 no_grad에서 계산한다. 큐는 (d,K)의 정규화한 피처 버퍼와 포인터를 저장한다. 로짓은 양성 하나와 큐 K개를 붙인 (B,K+1), 정답은 모두 0이다.
 
 EMA는 파라메터만 갱신하고 BatchNorm 이동 통계 버퍼는 별도로 다뤄진다. no_grad·requires_grad=False만으로 평가 모드가 되는 것은 아니다. _batch_shuffle_ddp라는 이름과 달리 이 코드는 로컬 배치만 섞고 분산 all-gather를 하지 않는다. 같은 장치 안에서 순서만 바꾸어도 BatchNorm의 배치 통계는 같아 원래 분산 ShuffleBN의 역할을 재현하지 못한다.
 
-forward가 평가 모드에서도 EMA와 큐를 변경한다. 순전파를 한 번 확인하는 호출도 상태에 영향을 준다. 큐는 초기 난수로 시작하고 K보다 큰 배치를 넣는 일반적인 순환 삽입은 처리하지 않는다. K>0, 0≤m≤1, T>0과 배치·장치 규약을 확인한다. 큐의 다른 항목도 같은 의미의 이미지일 수 있어 거짓 음성이 존재한다.
+forward가 평가 모드에서도 EMA와 큐를 변경한다. 순전파를 한 번 확인하는 호출도 상태에 영향을 준다. 큐는 초기 난수로 시작하고 K보다 큰 배치를 넣는 일반적인 순환 삽입은 처리하지 않는다. K>0, 0≤m≤1, T>0과 배치·장치 규약을 확인한다. 큐의 다른 항목도 같은 의미의 이미지일 수 있어 거짓 음성(false negative)이 존재한다.
 
 <div class="storybox" markdown>
 
 **그림으로 보는 AI 1.** 0.999라는 값은 취향이 아니다
 
-위 코드의 기본값 `m=0.999`는 어림잡은 수처럼 보인다. 그런데 MoCo 논문의 제거 실험을 보면 이 자리는 손대면 **무너지는** 자리다.
+위 코드의 기본값 `m=0.999`(모멘텀 계수, 곧 EMA에서 옛 값을 남기는 비율)는 어림잡은 수처럼 보인다. 그런데 MoCo 논문의 제거 실험을 보면 이 자리는 손대면 **무너지는** 자리다.
 
 | m | 0 | 0.9 | 0.99 | 0.999 | 0.9999 |
 |---|---|---|---|---|---|
@@ -349,11 +349,11 @@ forward가 평가 모드에서도 EMA와 큐를 변경한다. 순전파를 한 �
 
 모멘텀을 아예 없애면 — 곧 키 인코더를 쿼리 인코더와 **똑같이** 두면 — 학습이 아예 되지 않는다. 가장 자연스러워 보이는 선택이 가장 나쁜 선택이다.
 
-![가로축이 키 인코더의 모멘텀 m, 세로축이 둘인 그림. 하나는 로그 눈금으로 큐를 한 번 갈아 끼우는 동안 키 인코더에 남아 있는 옛 웨이트의 몫이고, 다른 하나는 논문이 보고한 선형 평가 정확도다. 남아 있는 몫은 m이 0.99에서 0.076, 0.999에서 0.774, 0.9999에서 0.975로 가파르게 오르고 정확도 곡선도 같은 모양으로 따라 오르다 평평해진다. m이 0인 자리에는 수렴 실패라고 적혀 있다.](figures/momentum_consistency.svg)
+![가로축이 키 인코더의 모멘텀 m, 세로축이 둘인 그림. 하나는 로그 스케일로 큐를 한 번 갈아 끼우는 동안 키 인코더에 남아 있는 옛 웨이트의 몫이고, 다른 하나는 논문이 보고한 선형 평가 정확도다. 남아 있는 몫은 m이 0.99에서 0.076, 0.999에서 0.774, 0.9999에서 0.975로 가파르게 오르고 정확도 곡선도 같은 모양으로 따라 오르다 평평해진다. m이 0인 자리에는 수렴 실패라고 적혀 있다.](figures/momentum_consistency.svg)
 
 까닭은 큐가 **과거**를 담고 있기 때문이다. 위 코드의 큐는 $K$개의 피처를 들고 있는데, 그것들은 지금 이 순간의 키 인코더가 아니라 **며칠 전의 키 인코더**가 계산한 것이다. 큐가 한 바퀴 도는 데 걸리는 스텝 수는 $K/B$다. 논문 설정인 $K=65{,}536$, 배치 256이면 **256 스텝**이다.
 
-그 256 스텝 동안 키 인코더가 얼마나 달라지는지는 그냥 셈해 볼 수 있다. $\theta_k \leftarrow m\theta_k + (1-m)\theta_q$를 256번 되풀이하면 옛 웨이트의 몫이 $m^{256}$만큼 남는다.
+그 256 스텝 동안 키 인코더가 얼마나 달라지는지는 직접 계산해 볼 수 있다. $\theta_k \leftarrow m\theta_k + (1-m)\theta_q$를 256번 되풀이하면 옛 웨이트의 몫이 $m^{256}$만큼 남는다.
 
 - $m=0.9$ 이면 $0.9^{256} \approx 2\times10^{-12}$ — 큐의 끝과 머리가 **완전히 다른 모델**이다
 - $m=0.99$ 이면 0.076
@@ -361,15 +361,15 @@ forward가 평가 모드에서도 EMA와 큐를 변경한다. 순전파를 한 �
 
 그림에서 두 곡선이 같은 모양으로 오르다 함께 평평해진다. 정확도는 "남아 있는 몫"을 따라간다. 논문이 이를 **일관된 사전(consistent dictionary)** 이라는 말로 적어 두었다.
 
-그러니 모멘텀은 학습을 매끄럽게 하는 장식이 아니라 **큐를 쓸 수 있게 만드는 전제**다. 배치와 음성 수를 떼어 놓는 대신 치르는 값이 "인코더가 천천히 움직여야 한다"는 제약인 셈이다.
+그러니 모멘텀은 학습을 매끄럽게 하는 장식이 아니라 **큐를 쓸 수 있게 만드는 전제**다. 배치와 음성 수를 떼어 놓는 대신 치르는 비용이 "인코더가 천천히 움직여야 한다"는 제약인 셈이다.
 
 **다만 $m$ 하나로 정해지는 것도 아니다.** $m^{K/B}$ 라는 식 자체가 말해 주듯 적절한 $m$은 **$K$와 배치 크기에 함께 달려 있다.** 큐를 줄이거나 배치를 키우면 같은 $m$이 다른 일관성을 뜻한다. 위에서 $K$·배치·$m$을 함께 확인하라고 적은 까닭이 여기에 있고, 큐를 아예 쓰지 않는 MoCo v3에서 이 표를 그대로 옮겨 쓸 수 없는 까닭이기도 하다.
 
-_확인한 곳 — K. He, H. Fan, Y. Wu, S. Xie, R. Girshick, "Momentum Contrast for Unsupervised Visual Representation Learning" (arXiv:1911.05722). 모멘텀 제거 실험의 표와 "at the extreme of no momentum (m is 0), the training loss oscillates and fails to converge", 그리고 일관된 사전이라는 표현이 그 논문에 있다. 표의 정확도는 논문 것을 그대로 옮겼고, 남아 있는 몫 $m^{256}$ 은 그림을 그리는 코드가 직접 셈한다._
+_확인한 곳 — K. He, H. Fan, Y. Wu, S. Xie, R. Girshick, "Momentum Contrast for Unsupervised Visual Representation Learning" (arXiv:1911.05722). 모멘텀 제거 실험의 표와 "at the extreme of no momentum (m is 0), the training loss oscillates and fails to converge", 그리고 일관된 사전이라는 표현이 그 논문에 있다. 표의 정확도는 논문 것을 그대로 옮겼고, 남아 있는 몫 $m^{256}$ 은 그림을 그리는 코드가 직접 계산한다._
 
 </div>
 
-**MoCo v3와의 차이:** 원래 MoCo v3는 큐를 쓰지 않지만 모멘텀 인코더를 유지하고 배치 안 대조 목표를 사용한다. 이 페이지 MoCoV3는 모멘텀 목표 인코더도 stop-gradient도 없고 양쪽 가지에 경사를 전달한다. 따라서 예측 헤드가 있다는 사실만으로 원래 v3나 BYOL·SimSiam과 동등하지 않다. [공식 MoCo v3 구현](https://github.com/facebookresearch/moco-v3/blob/main/moco/builder.py)을 참고한다.
+**MoCo v3와의 차이:** 원래 MoCo v3는 큐를 쓰지 않지만 모멘텀 인코더를 유지하고 배치 안 대조 목표를 사용한다. 이 페이지 MoCoV3는 모멘텀 목표 인코더도 stop-gradient도 없고 양쪽 브랜치에 그래디언트를 전달한다. 따라서 예측 헤드가 있다는 사실만으로 원래 v3나 BYOL·SimSiam과 동등하지 않다. [공식 MoCo v3 구현](https://github.com/facebookresearch/moco-v3/blob/main/moco/builder.py)을 참고한다.
 
 main은 독립 난수 이미지의 로짓·로스를 계산할 뿐, 같은 이미지의 어그멘테이션·최적화·독립 평가를 포함하지 않는다. BatchNorm1d가 있는 v3는 학습 모드의 배치 1에서도 별도 제약을 갖는다.
 
@@ -383,19 +383,19 @@ K=65536, d=128의 FP32 큐와 같은 개수의 FP32 RGB 224×224 이미지 저�
 </div>
 
 ??? success "풀이"
-    큐는 33,554,432바이트=32MiB(약 33.55MB)다. 이미지는 39,460,012,032바이트=36.75GiB(약 39.46GB)이며 비율은 1176배다. MB와 MiB를 섞어 비율을 구하지 않는다. 이는 피처·이미지 원시 저장 비교이며 인코더·경사·큐 로짓 등의 메모리는 별도다.
+    큐는 33,554,432바이트=32MiB(약 33.55MB)다. 이미지는 39,460,012,032바이트=36.75GiB(약 39.46GB)이며 비율은 1176배다. MB와 MiB를 섞어 비율을 구하지 않는다. 이는 피처·이미지 원시 저장 비교이며 인코더·그래디언트·큐 로짓 등의 메모리는 별도다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-EMA 계수 m과 큐 피처의 시간적 일관성 사이의 절충을 설명하라.
+EMA 계수 m과 큐 피처의 시간적 일관성 사이의 트레이드오프를 설명하라.
 
 </div>
 
 ??? success "풀이"
-    m이 1에 가까우면 키 계수가 천천히 변해 과거 피처와의 변화가 완만해질 수 있지만 쿼리의 변화 반영도 늦어진다. m=0은 현재 쿼리 계수를 복사하고 m=1은 초기 키 계수를 유지한다. 0.999가 모든 큐·러닝레이트에서 최적이거나 m=0.5가 항상 실패하는 것은 아니다. BatchNorm 버퍼와 큐 나이도 함께 고려한다.
+    m이 1에 가까우면 키 인코더의 파라메터가 천천히 변해 과거 피처와의 변화가 완만해질 수 있지만 쿼리의 변화 반영도 늦어진다. m=0은 현재 쿼리 인코더의 파라메터를 복사하고 m=1은 초기 키 인코더의 파라메터를 유지한다. 0.999가 모든 큐·러닝레이트에서 최적이거나 m=0.5가 항상 실패하는 것은 아니다. BatchNorm 버퍼와 큐 나이도 함께 고려한다.
 
 ---
 
@@ -410,17 +410,17 @@ EMA 계수 m과 큐 피처의 시간적 일관성 사이의 절충을 설명하�
     ```python
     @torch.no_grad()
     def compute_alignment_uniformity(self, im_q, im_k):
-        """정렬(양성 비슷함)과 균일성(음성 비슷함)을 셈한다."""
+        """정렬(양성 유사도)과 균일성(음성 유사도)을 계산한다."""
         q = F.normalize(self.encoder_q(im_q), dim=1)
 
         im_k_shuffled, idx_unshuffle = self._batch_shuffle_ddp(im_k)
         k = F.normalize(self.encoder_k(im_k_shuffled), dim=1)
         k = self._batch_unshuffle_ddp(k, idx_unshuffle)
 
-        # 정렬: 양성 쌍의 평균 코사인 비슷함
+        # 정렬: 양성 쌍의 평균 코사인 유사도
         alignment = (q * k).sum(dim=1).mean().item()
 
-        # 균일성: 큐의 음성과의 평균 코사인 비슷함
+        # 균일성: 큐의 음성과의 평균 코사인 유사도
         neg_sim = torch.mm(q, self.queue.clone().detach())
         uniformity = neg_sim.mean().item()
 

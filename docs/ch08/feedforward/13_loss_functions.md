@@ -18,7 +18,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import numpy as np
-# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
 # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
 torch.manual_seed(0)
 
@@ -92,7 +92,7 @@ print("""
 다중 레이블           | BCEWithLogitsLoss    | 없음(로짓)
 
 핵심:
-✓ *WithLogits 판을 쓰라. 더 안정적이다
+✓ *WithLogits 버전을 쓰라. 더 안정적이다
 ✓ 이 로스 앞에 활성화를 걸지 마라
 ✓ CrossEntropyLoss는 원핫이 아니라 클래스 인덱스를 받는다
 ✓ MSE는 회귀에, 교차 엔트로피는 분류에 알맞다
@@ -192,7 +192,7 @@ LOSS FUNCTION SELECTION GUIDE
 다중 레이블           | BCEWithLogitsLoss    | 없음(로짓)
 
 핵심:
-✓ *WithLogits 판을 쓰라. 더 안정적이다
+✓ *WithLogits 버전을 쓰라. 더 안정적이다
 ✓ 이 로스 앞에 활성화를 걸지 마라
 ✓ CrossEntropyLoss는 원핫이 아니라 클래스 인덱스를 받는다
 ✓ MSE는 회귀에, 교차 엔트로피는 분류에 알맞다
@@ -276,16 +276,16 @@ CrossEntropyLoss에 클래스 인덱스와 확률 목표를 줄 때 필요한 �
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

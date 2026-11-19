@@ -7,9 +7,9 @@ Faster R-CNN은 backbone 피처를 공유하는 RPN으로 후보 영역을 만�
 ```python
 #!/usr/bin/env python3
 '''
-더 빠른 R-CNN — 자리 제안 네트워크로 실시간 물체 탐지에 다가가기
+Faster R-CNN — 영역 제안 네트워크로 실시간 객체 탐지를 향하여
 논문: "Faster R-CNN: Towards Real-Time Object Detection" (2015)
-핵심: 자리 제안에 RPN을 쓰며 끝에서 끝까지 익힐 수 있다
+핵심: 영역 제안에 RPN을 쓰며 종단간(end-to-end) 학습이 가능하다
 '''
 import torch
 import torch.nn as nn
@@ -21,23 +21,23 @@ import torch.nn as nn
 class FasterRCNN(nn.Module):
     def __init__(self, num_classes=21):
         super().__init__()
-        # 피처 뽑개
+        # 피처 추출기
         self.features = nn.Sequential(
             nn.Conv2d(3, 64, 3, 1, 1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2)
         )
         
-        # 자리 제안 네트워크
+        # 영역 제안 네트워크
         self.rpn = nn.Sequential(
             nn.Conv2d(64, 512, 3, 1, 1),
             nn.ReLU(inplace=True)
         )
         
         self.rpn_cls = nn.Conv2d(512, 2 * 9, 1)  # 클래스 2개 * 앵커 9개
-        self.rpn_reg = nn.Conv2d(512, 4 * 9, 1)  # 자리표 4개 * 앵커 9개
+        self.rpn_reg = nn.Conv2d(512, 4 * 9, 1)  # 좌표 4개 * 앵커 9개
         
-        # 관심 자리 모으기와 클래스 매기기
+        # RoI 풀링과 분류
         self.roi_pool = nn.AdaptiveMaxPool2d((7, 7))
         self.fc = nn.Sequential(
             nn.Linear(64 * 7 * 7, 4096),
@@ -54,7 +54,7 @@ class FasterRCNN(nn.Module):
     def forward(self, x):
         feat = self.features(x)
         
-        # 자리 제안 네트워크
+        # 영역 제안 네트워크
         rpn_feat = self.rpn(feat)
         rpn_cls = self.rpn_cls(rpn_feat)
         rpn_reg = self.rpn_reg(rpn_feat)
@@ -91,13 +91,13 @@ Parameters: 30,385,567
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-4×3×64×64 입력에서 실제 반환값의 텐서 모양을 계산하라.
+4×3×64×64 입력에서 실제 반환값의 텐서 형태를 계산하라.
 
 </div>
 
 ??? success "풀이"
 
-    features는 4×64×32×32, rpn_cls는 4×18×32×32, rpn_reg는 4×36×32×32다. 사전으로 반환되며 fc·cls_score·bbox_pred를 통과하지 않는다.
+    features는 4×64×32×32, rpn_cls는 4×18×32×32, rpn_reg는 4×36×32×32다. 딕셔너리로 반환되며 fc·cls_score·bbox_pred를 통과하지 않는다.
 
 
 

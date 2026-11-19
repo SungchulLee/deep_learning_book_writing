@@ -7,7 +7,7 @@
 ```python
 """
 비전 트랜스포머를 위한 시각화 도구
-비전 트랜스포머가 컨볼루션 뉴럴 네트워크와 어떻게 다르게 그림을 처리하는지 이해하도록 돕는다
+비전 트랜스포머가 컨볼루션 뉴럴 네트워크와 어떻게 다르게 이미지를 처리하는지 이해하도록 돕는다
 """
 
 import torch
@@ -24,8 +24,8 @@ import cv2
 
 class AttentionVisualizer:
     """
-    비전 트랜스포머의 주의 지도를 그려 본다.
-    모형이 그림의 어느 부분에 집중하는지 보인다.
+    비전 트랜스포머의 어텐션 맵을 시각화한다.
+    모델이 이미지의 어느 부분에 집중하는지 보인다.
     """
     
     def __init__(self, model: nn.Module, device: str = "cuda"):
@@ -33,18 +33,18 @@ class AttentionVisualizer:
         self.device = device
         self.attention_maps = []
         
-        # 주의를 붙잡으려고 후크를 등록한다
+        # 어텐션을 저장하려고 훅을 등록한다
         self._register_hooks()
     
     def _register_hooks(self):
-        """주의 웨이트를 붙잡으려고 피드포워드 후크를 등록한다"""
+        """어텐션 웨이트를 저장하려고 순방향 훅(forward hook)을 등록한다"""
         
         def hook_fn(module, input, output):
-            # MultiHeadAttention에서 주의 웨이트를 붙잡는다
+            # MultiHeadAttention에서 어텐션 웨이트를 저장한다
             if hasattr(module, 'attn'):
                 self.attention_maps.append(module.attn.detach().cpu())
         
-        # 모든 트랜스포머 블록에 후크를 등록한다
+        # 모든 트랜스포머 블록에 훅을 등록한다
         for block in self.model.blocks:
             block.attn.register_forward_hook(
                 lambda m, i, o: self.attention_maps.append(
@@ -54,12 +54,12 @@ class AttentionVisualizer:
     
     def get_attention_maps(self, image: torch.Tensor) -> List[torch.Tensor]:
         """
-        그림의 주의 지도를 뽑아낸다.
+        이미지의 어텐션 맵을 추출한다.
         
         인수:
             image: (1, 3, H, W) 텐서
         반환값:
-            레이어마다의 주의 지도 목록
+            레이어별 어텐션 맵 목록
         """
         self.attention_maps = []
         self.model.eval()
@@ -75,15 +75,15 @@ class AttentionVisualizer:
                           head_idx: Optional[int] = None,
                           save_path: Optional[str] = None):
         """
-        그림 위에 겹친 주의 지도를 그려 본다.
+        이미지 위에 겹친 어텐션 맵을 시각화한다.
         
         인수:
-            image: 입력 그림 텐서 (1, 3, H, W)
+            image: 입력 이미지 텐서 (1, 3, H, W)
             layer_idx: 어느 트랜스포머 레이어를 그릴지
-            head_idx: 어느 주의 머리를 그릴지(None이면 모두 평균)
+            head_idx: 어느 어텐션 헤드를 그릴지(None이면 모두 평균)
             save_path: 그림을 저장할 경로
         """
-        # 주의 지도를 얻는다
+        # 어텐션 맵을 얻는다
         attn_maps = self.get_attention_maps(image)
         
         if len(attn_maps) == 0:
@@ -93,24 +93,24 @@ class AttentionVisualizer:
         # 레이어를 고른다
         attn = attn_maps[layer_idx]  # (batch, heads, seq_len, seq_len)
         
-        # 따로 정하지 않으면 머리에 걸쳐 평균 낸다
+        # 따로 정하지 않으면 헤드에 걸쳐 평균 낸다
         if head_idx is None:
             attn = attn.mean(dim=1)  # (batch, seq_len, seq_len)
         else:
             attn = attn[:, head_idx]  # (batch, seq_len, seq_len)
         
-        # CLS 토큰에서 모든 조각으로 가는 주의를 얻는다
+        # CLS 토큰에서 모든 패치로 가는 어텐션을 얻는다
         attn = attn[0, 0, 1:]  # (n_patches,)
         
         # 공간 격자로 형태를 바꾼다
         n_patches = int(np.sqrt(len(attn)))
         attn = attn.reshape(n_patches, n_patches).numpy()
         
-        # 그림을 마련한다
+        # 이미지를 준비한다
         img = image[0].permute(1, 2, 0).cpu().numpy()
         img = (img - img.min()) / (img.max() - img.min())
         
-        # 주의 지도를 그림 크기로 바꾼다
+        # 어텐션 맵을 이미지 크기로 바꾼다
         attn_resized = cv2.resize(attn, (img.shape[1], img.shape[0]))
         attn_resized = (attn_resized - attn_resized.min()) / (attn_resized.max() - attn_resized.min())
         
@@ -122,7 +122,7 @@ class AttentionVisualizer:
         axes[0].set_title("Original Image")
         axes[0].axis('off')
         
-        # 주의 지도
+        # 어텐션 맵
         axes[1].imshow(attn_resized, cmap='jet')
         axes[1].set_title(f"Attention Map (Layer {layer_idx})")
         axes[1].axis('off')
@@ -146,10 +146,10 @@ def visualize_patch_embedding(image: torch.Tensor,
                              patch_size: int = 16,
                              save_path: Optional[str] = None):
     """
-    그림이 조각으로 어떻게 나뉘는지 그려 본다.
-    이어진 그림에서 띄엄띄엄한 토큰으로 잇는 다리를 보인다.
+    이미지가 패치로 어떻게 나뉘는지 시각화한다.
+    연속적인 이미지를 이산 토큰으로 바꾸는 과정을 보인다.
     """
-    # 넘파이로 바꾼다
+    # NumPy 배열로 바꾼다
     img = image[0].permute(1, 2, 0).cpu().numpy()
     img = (img - img.min()) / (img.max() - img.min())
     
@@ -164,7 +164,7 @@ def visualize_patch_embedding(image: torch.Tensor,
     axes[0].set_title("Original Image")
     axes[0].axis('off')
     
-    # 조각 격자를 얹은 그림
+    # 패치 격자를 얹은 이미지
     axes[1].imshow(img)
     
     # 격자를 그린다
@@ -187,15 +187,15 @@ def visualize_patch_embedding(image: torch.Tensor,
 
 def compare_receptive_fields():
     """
-    컨볼루션 뉴럴 네트워크와 비전 트랜스포머가 받는 영역의 차이를 그려 본다.
+    컨볼루션 뉴럴 네트워크와 비전 트랜스포머의 리셉티브 필드 차이를 시각화한다.
     """
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     
-    # 컨볼루션 뉴럴 네트워크가 받는 영역
+    # 컨볼루션 뉴럴 네트워크의 리셉티브 필드
     axes[0].set_xlim(0, 10)
     axes[0].set_ylim(0, 10)
     
-    # 위계를 이루는 리셉티브 필드를 그린다
+    # 계층적인 리셉티브 필드를 그린다
     colors = ['lightblue', 'lightgreen', 'lightyellow', 'lightcoral']
     sizes = [8, 6, 4, 2]
     
@@ -210,16 +210,16 @@ def compare_receptive_fields():
     axes[0].legend(loc='upper right')
     axes[0].grid(True, alpha=0.3)
     
-    # 비전 트랜스포머가 받는 영역
+    # 비전 트랜스포머의 리셉티브 필드
     axes[1].set_xlim(0, 10)
     axes[1].set_ylim(0, 10)
     
-    # 그림 전체에 대한 주의를 그린다
+    # 이미지 전체에 대한 어텐션을 그린다
     rect = plt.Rectangle((0, 0), 10, 10, color='lightblue', 
                          alpha=0.3, label='Global attention')
     axes[1].add_patch(rect)
     
-    # 조각 격자를 그린다
+    # 패치 격자를 그린다
     for i in range(4):
         for j in range(4):
             x, y = i * 2.5, j * 2.5
@@ -227,7 +227,7 @@ def compare_receptive_fields():
                                fill=False, edgecolor='red', linewidth=2)
             axes[1].add_patch(rect)
             
-            # 가운데 조각에서 나가는 주의 선을 그린다
+            # 가운데 패치에서 나가는 어텐션 선을 그린다
             if i == 1 and j == 1:
                 axes[1].plot(x+1.25, y+1.25, 'ro', markersize=10)
             else:
@@ -246,13 +246,13 @@ def compare_receptive_fields():
 
 def visualize_positional_encoding(n_patches: int = 196, embed_dim: int = 768):
     """
-    비전 트랜스포머에서 쓰는 위치 인코딩을 그려 본다.
-    자리 정보가 어떻게 담기는지 보인다.
+    비전 트랜스포머에서 쓰는 위치 인코딩을 시각화한다.
+    위치 정보가 어떻게 담기는지 보인다.
     """
     # 위치 임베딩을 만든다
     pos_embed = torch.randn(1, n_patches, embed_dim)
     
-    # 열지도로 그린다
+    # 히트맵으로 그린다
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
     # 위치 임베딩을 그린다
@@ -262,7 +262,7 @@ def visualize_positional_encoding(n_patches: int = 196, embed_dim: int = 768):
     axes[0].set_title('Learned Positional Embeddings')
     plt.colorbar(im1, ax=axes[0])
     
-    # 자리 사이의 비슷함을 셈한다
+    # 위치 사이의 코사인 유사도를 계산한다
     pos_embed_norm = pos_embed / pos_embed.norm(dim=-1, keepdim=True)
     similarity = (pos_embed_norm[0] @ pos_embed_norm[0].T).numpy()
     
@@ -358,7 +358,7 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
 </div>
 
 ??? success "풀이"
-    훅이 기대하는 모듈 속성 m.attn이 없고 실제 확률은 forward 지역 변수다. 훅 출력은 모듈 최종 피처가지 자동으로 확률 행렬이 되는 것도 아니다. 따라서 속성·반환 규약을 맞추고 None을 검증해야 한다.
+    훅이 기대하는 모듈 속성 m.attn이 없고 실제 확률은 forward 지역 변수다. 훅이 받는 출력은 모듈의 최종 출력이지 자동으로 확률 행렬이 되는 것도 아니다. 따라서 속성·반환 규약을 맞추고 None을 검증해야 한다.
 
 ---
 
@@ -382,14 +382,14 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
 </div>
 
 ??? success "풀이"
-    상수 이미지의 min-max 분모, CLS를 뺀 패치 수의 정사각 조건, 반환된 None·CPU/GPU 텐서와 numpy 변환을 확인한다. 훅 핸들을 제거하고 그림 객체를 닫는 수명 관리도 필요하다. 시각화 함수에 학습용 경사가 항상 있어야 한다는 가정은 적절하지 않다.
+    상수 이미지의 min-max 분모, CLS를 뺀 패치 수의 정사각 조건, 반환된 None·CPU/GPU 텐서와 numpy 변환을 확인한다. 훅 핸들을 제거하고 그림 객체를 닫는 수명 관리도 필요하다. 시각화 함수에 학습용 그래디언트가 항상 있어야 한다는 가정은 적절하지 않다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 모양 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
+아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 형태 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
 
 </div>
 
@@ -402,17 +402,17 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 형태, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 
-시각화의 데이터 출처와 훅 인터페이스를 먼저 확인한다. 이 예제에는 어텐션 추출의 미완성 부분과 무작위·도식 그림이 있으므로 학습된 설명으로 해석하지 않는다. 기존 그림은 이번 편집에서 다시 생성하지 않았다.
+시각화의 데이터 출처와 훅 인터페이스를 먼저 확인한다. 이 예제에는 어텐션 추출의 미완성 부분과 무작위·도식 그림이 있으므로 학습된 설명으로 해석하지 않는다. 코드가 저장하는 그림 파일은 이 쪽에 싣지 않는다.

@@ -2,59 +2,59 @@
 
 HMC의 한 전이는 운동량 생성, 고정된 수치 궤적과 에너지 차이의 MH 보정으로 구성한다. 이 절은 목표 불변성의 논리와 실제 교육용 구현의 범위를 구분한다.
 
-## 1. 알고리즘 훑어보기
+## 1. 알고리즘 개요
 
-입력은 유효한 초기 위치 x₀, 표본 수 N, 스텝 크기 ε>0, 양의 정수 Leapfrog 수 L, 상수 양의 정부호 M이다. 목표 π(x)∝exp(−U(x))와 필요한 경사를 평가할 수 있어야 한다.
+입력은 유효한 초기 위치 x₀, 표본 수 N, 스텝 크기 ε>0, 양의 정수 Leapfrog 수 L, 상수 양의 정부호 M이다. 목표 π(x)∝exp(−U(x))와 필요한 그래디언트를 평가할 수 있어야 한다.
 
 각 반복에서 p~N(0,M)를 뽑고 L단계 Leapfrog를 적용한 뒤 α=min(1,exp(H_old−H_new))로 위치를 갱신한다. 거절하면 현재 위치를 다음 표본으로 남긴다. 출력은 일반적으로 의존적인 체인이며 임의 초기값에서 즉시 목표의 독립 표본이 되는 것은 아니다. 아래 의사코드는 이 흐름을 보여 준다.
 
 ```
 for t = 1 to N:
-    # 스텝 1: 운동량 표집
+    # 스텝 1: 운동량 샘플링
     v ~ Normal(0, M)
     
-    # 스텝 2: 첫 해밀턴 함수 값 셈하기
+    # 스텝 2: 초기 해밀턴 함수 값 계산하기
     H_current = U(x⁽ᵗ⁻¹⁾) + ½ vᵀ M⁻¹ v
     
-    # 스텝 3: 개구리뜀 적분
+    # 스텝 3: Leapfrog 적분
     x_prop, v_prop = Leapfrog(x⁽ᵗ⁻¹⁾, v, ε, L)
     
-    # 스텝 4: 운동량 부호 뒤집기(되돌릴 수 있게)
+    # 스텝 4: 운동량 부호 반전(가역성을 위해)
     v_prop = -v_prop
     
-    # 스텝 5: 제안의 해밀턴 함수 값 셈하기
+    # 스텝 5: 제안의 해밀턴 함수 값 계산하기
     H_prop = U(x_prop) + ½ v_propᵀ M⁻¹ v_prop
     
-    # 스텝 6: 메트로폴리스-헤이스팅스 받아들임
+    # 스텝 6: 메트로폴리스-헤이스팅스 수락
     α = min(1, exp(H_current - H_prop))
     u ~ Uniform(0, 1)
     
     if u < α:
-        x⁽ᵗ⁾ = x_prop    # 받아들임
+        x⁽ᵗ⁾ = x_prop    # 수락
     else:
-        x⁽ᵗ⁾ = x⁽ᵗ⁻¹⁾    # 물리침
+        x⁽ᵗ⁾ = x⁽ᵗ⁻¹⁾    # 거절
 ```
 
-## 2. 스텝마다 자세히
+## 2. 단계별 설명
 
 운동량을 완전히 재생성하면 현재 위치가 목표를 따르는 경우 결합 상태가 π(x)N(p;0,M)를 따른다. 새 운동량은 에너지 면을 바꿀 기회를 주지만 에르고드성을 자동으로 보장하지는 않는다.
 
-H=U+pᵀM⁻¹p/2를 시작·제안 상태에서 평가한다. L단계에는 시작 경사를 포함해 L+1회, 이미 캐시한 경우 새 경사 L회가 필요하다. T=εL는 적분시간이며 끝점 이동거리와 같지 않다.
+H=U+pᵀM⁻¹p/2를 시작·제안 상태에서 평가한다. L단계에는 시작 그래디언트를 포함해 L+1회, 이미 캐시한 경우 새 그래디언트 L회가 필요하다. T=εL는 적분시간이며 끝점 이동거리와 같지 않다.
 
 운동량 반전 R과 Leapfrog 합성은 가역적인 자기 역 제안을 구성한다. 완전 재생성 후 위치만 기록할 때 반전을 생략해도 같은 위치 전이를 얻는 관례가 있지만, 부분 운동량 유지 방식에서는 거절·반전 규칙을 다시 설계해야 한다.
 
-ΔH=H_new−H_old≤0이면 수락확률 1, 양수이면 exp(−ΔH)다. 아래 짧은 수락 코드는 U∈[0,1)과 비교해 이 규칙을 구현하지만 큰 음의 ΔH에서 exp가 넘칠 수 있다. 실제로는 유한 로그값을 확인한 뒤 로그 수락 비교가 안정적이다. 운동량 생성 조각의 두 줄은 대안 표현이며 둘을 모두 실행하면 두 번째가 첫 번째를 덮어쓴다.
+ΔH=H_new−H_old≤0이면 수락확률 1, 양수이면 exp(−ΔH)다. 아래 짧은 수락 코드는 U∈[0,1)과 비교해 이 규칙을 구현하지만 큰 음의 ΔH에서 exp가 오버플로(overflow, 표현 범위를 넘는 것)할 수 있다. 실제로는 유한 로그값을 확인한 뒤 로그 수락 비교가 안정적이다. 운동량 생성 조각의 두 줄은 대안 표현이며 둘을 모두 실행하면 두 번째가 첫 번째를 덮어쓴다.
 
 ```python
 v = np.random.multivariate_normal(np.zeros(d), M)
-# 또는 같은 말로:
+# 또는 동등하게:
 v = L_M @ np.random.randn(d)  # 여기서 M = L_M @ L_M.T
 ```
 ```python
 delta_H = H_prop - H_current
 if np.random.rand() < np.exp(-delta_H):
-    x = x_prop  # 받아들임
-# 아니면 지금의 x 그대로 두기(물리침)
+    x = x_prop  # 수락
+# 아니면 현재 x를 유지(거절)
 ```
 
 ## 3. 확장 목표의 불변성
@@ -67,9 +67,9 @@ if np.random.rand() < np.exp(-delta_H):
 
 ## 4. 구현
 
-아래 HMC 클래스는 상수 질량과 고정 ε·L을 사용하는 NumPy 교육용 구현이다. n_warmup번의 같은 step을 버릴 뿐 설정 적응은 하지 않는다. 입력 차원·유한 로그확률·경사, 양의 표본 수·스텝 수와 M의 대칭 양의 정부호를 확인한다.
+아래 HMC 클래스는 상수 질량과 고정 ε·L을 사용하는 NumPy 교육용 구현이다. n_warmup번의 같은 step을 버릴 뿐 설정 적응은 하지 않는다. 입력 차원·유한 로그확률·그래디언트, 양의 표본 수·스텝 수와 M의 대칭 양의 정부호를 확인한다.
 
-step은 NaN 에너지 차이를 거절하지만 모든 비유한 상태를 진단·기록하지 않는다. exp(−delta_H)의 넘침도 로그 비교로 다룰 수 있다. 별도의 발산·에너지 기록 메서드는 클래스에 구현되어 있지 않다.
+step은 NaN 에너지 차이를 거절하지만 모든 비유한 상태를 진단·기록하지 않는다. exp(−delta_H)의 오버플로도 로그 비교로 다룰 수 있다. 별도의 발산·에너지 기록 메서드는 클래스에 구현되어 있지 않다.
 
 알려진 2차원 정규 평균·공분산은 확인 기준이지만 한 번의 표본 통계 일치가 모든 목표의 정확성 증명은 아니다. 신뢰할 수 있는 라이브러리 수준의 진단·적응·입력 처리를 갖춘 구현과 구분한다.
 
@@ -80,14 +80,14 @@ class HMC:
     def __init__(self, log_prob, grad_log_prob, dim, 
                  epsilon=0.1, L=10, M=None):
         """
-        해밀턴 몬테카를로 표집기.
+        해밀토니안 몬테카를로 샘플러.
         
         인수:
-            log_prob: (상수배를 빼고) log π(x)을 돌려주는 함수
-            grad_log_prob: ∇ log π(x)을 돌려주는 함수
-            dim: 타깃 분포의 차원
-            epsilon: 개구리뜀 스텝 크기
-            L: 개구리뜀 스텝 수
+            log_prob: (상수배를 빼고) log π(x)를 반환하는 함수
+            grad_log_prob: ∇ log π(x)를 반환하는 함수
+            dim: 목표분포의 차원
+            epsilon: Leapfrog 스텝 크기
+            L: Leapfrog 스텝 수
             M: 질량 행렬(기본값: 항등 행렬)
         """
         self.log_prob = log_prob
@@ -106,29 +106,29 @@ class HMC:
             self.L_M = np.linalg.cholesky(M)
     
     def kinetic_energy(self, v):
-        """운동 에너지 K(v) = ½ vᵀ M⁻¹ v 셈하기"""
+        """운동 에너지 K(v) = ½ vᵀ M⁻¹ v 계산하기"""
         return 0.5 * v @ self.M_inv @ v
     
     def hamiltonian(self, x, v):
-        """전체 에너지 H(x,v) = U(x) + K(v) 셈하기"""
+        """전체 에너지 H(x,v) = U(x) + K(v) 계산하기"""
         U = -self.log_prob(x)
         K = self.kinetic_energy(v)
         return U + K
     
     def leapfrog(self, x, v):
-        """개구리뜀 L스텝 밟기."""
+        """Leapfrog L스텝 수행하기."""
         x = x.copy()
         v = v.copy()
         
         # 운동량의 반 스텝
         v = v + (self.epsilon / 2) * self.grad_log_prob(x)
         
-        # 온 스텝
+        # 전체 스텝
         for _ in range(self.L - 1):
             x = x + self.epsilon * self.M_inv @ v
             v = v + self.epsilon * self.grad_log_prob(x)
         
-        # 마지막 자리 스텝
+        # 마지막 위치 스텝
         x = x + self.epsilon * self.M_inv @ v
         
         # 운동량의 마지막 반 스텝
@@ -137,28 +137,28 @@ class HMC:
         return x, v
     
     def sample_momentum(self):
-        """N(0, M)에서 운동량 표집하기."""
+        """N(0, M)에서 운동량 샘플링하기."""
         return self.L_M @ np.random.randn(self.dim)
     
     def step(self, x):
-        """HMC 되풀이 한 번 하기."""
-        # 운동량 표집
+        """HMC 반복 한 번 수행하기."""
+        # 운동량 샘플링
         v = self.sample_momentum()
         
-        # 지금의 해밀턴 함수 값
+        # 현재 해밀턴 함수 값
         H_current = self.hamiltonian(x, v)
         
-        # 개구리뜀 적분
+        # Leapfrog 적분
         x_prop, v_prop = self.leapfrog(x, v)
         
-        # 제안의 해밀턴 함수 값(운동량 부호 뒤집기는 H에 영향 없음)
+        # 제안의 해밀턴 함수 값(운동량 부호 반전은 H에 영향 없음)
         H_prop = self.hamiltonian(x_prop, v_prop)
         
-        # 메트로폴리스-헤이스팅스 받아들임
+        # 메트로폴리스-헤이스팅스 수락
         delta_H = H_prop - H_current
         
         if np.isnan(delta_H):
-            # 수치 말썽 - 물리치기
+            # 수치 문제 - 거절
             return x, False
         
         if np.random.rand() < np.exp(-delta_H):
@@ -168,16 +168,16 @@ class HMC:
     
     def sample(self, x0, n_samples, n_warmup=1000):
         """
-        타깃 분포에서 표본 만들기.
+        목표분포에서 표본 생성하기.
         
         인수:
-            x0: 첫 자리
-            n_samples: 만들 표본의 개수
-            n_warmup: 달굼 되풀이 횟수(버린다)
+            x0: 초기 위치
+            n_samples: 생성할 표본의 개수
+            n_warmup: 워밍업 반복 횟수(버린다)
         
         반환값:
             samples: 형태가 (n_samples, dim)인 배열
-            accept_rate: 받아들임 비율
+            accept_rate: 수락률
         """
         x = x0.copy()
         samples = np.zeros((n_samples, self.dim))
@@ -187,7 +187,7 @@ class HMC:
         for _ in range(n_warmup):
             x, _ = self.step(x)
         
-        # 표집
+        # 샘플링
         for i in range(n_samples):
             x, accepted = self.step(x)
             samples[i] = x
@@ -199,7 +199,7 @@ class HMC:
 ```python
 import numpy as np
 
-# 타깃: 상관이 있는 2차원 가우스
+# 목표: 상관이 있는 2차원 가우스
 mu = np.array([0, 0])
 Sigma = np.array([[1, 0.8], [0.8, 1]])
 Sigma_inv = np.linalg.inv(Sigma)
@@ -210,10 +210,10 @@ def log_prob(x):
 def grad_log_prob(x):
     return -Sigma_inv @ (x - mu)
 
-# 표집기 만들기
+# 샘플러 만들기
 hmc = HMC(log_prob, grad_log_prob, dim=2, epsilon=0.1, L=20)
 
-# 표본 만들기
+# 표본 생성하기
 x0 = np.zeros(2)
 samples, accept_rate = hmc.sample(x0, n_samples=10000, n_warmup=1000)
 
@@ -226,13 +226,13 @@ print(f"Sample cov:\n{np.cov(samples.T)}")
 
 질량과 스텝 크기·적분시간은 서로 영향을 주므로 같은 관심량의 비용·오차를 기준으로 조정한다. 이 관례에서는 가우스 목표의 M≈Σ⁻¹가 주파수를 맞추며, 적응 단계의 공분산 추정과 정규화가 필요하다.
 
-아래 비유한 에너지 거절·경사 clipping 조각은 클래스에 연결된 기능이 아니다. 위치에만 의존하는 잘린 힘의 전단은 가역적·체적 보존일 수 있어 원래 에너지로 올바르게 보정하면 반드시 상세균형이 깨지는 것은 아니다. 하지만 심플렉틱·에너지 정확도와 성능을 잃을 수 있으므로 임의의 경사 수정이 무조건 안전하다는 뜻도 아니다.
+아래 비유한 에너지 거절·그래디언트 클리핑 조각은 클래스에 연결된 기능이 아니다. 위치에만 의존하는 잘린 힘의 전단은 가역적·체적 보존일 수 있어 원래 에너지로 올바르게 보정하면 반드시 상세균형이 깨지는 것은 아니다. 하지만 심플렉틱·에너지 정확도와 성능을 잃을 수 있으므로 임의의 그래디언트 수정이 무조건 안전하다는 뜻도 아니다.
 
 여러 체인은 서로 독립적인 난수·초기조건으로 실행할 수 있지만 체인 내부 표본은 의존한다. 아래 sample_parallel의 중첩 함수는 multiprocessing 직렬화 방식에 따라 pickle 오류를 낼 수 있다. 단순 호출만으로 모든 환경에서 병렬 실행된다고 가정하지 않는다. 같은 체인들이 모두 놓친 영역은 체인 간 진단으로도 알기 어려울 수 있다.
 
 ```python
 if np.isnan(H_prop) or np.isinf(H_prop):
-    return x, False  # 물리치고 이어 감
+    return x, False  # 거절하고 계속
 ```
 ```python
 grad = grad_log_prob(x)
@@ -290,7 +290,7 @@ if delta_H > 1000:
 
 ## 8. 다른 MCMC와 비교
 
-랜덤 워크 MH는 경사 없이 유연한 제안을 사용하고, MALA는 한 단계의 경사 기반 비대칭 제안을 보정한다. HMC는 운동량을 유지한 다단계 적분을 보정하며, 깁스는 정확한 조건부 생성으로 해당 갱신의 수락확률이 1이다.
+랜덤 워크 MH는 그래디언트 없이 유연한 제안을 사용하고, MALA는 한 단계의 그래디언트 기반 비대칭 제안을 보정한다. HMC는 운동량을 유지한 다단계 적분을 보정하며, 깁스는 정확한 조건부 생성으로 해당 갱신의 수락확률이 1이다.
 
 0.234·0.574·0.65 같은 값은 특정 점근 분석과 비용 목적에 연결된 참고값이다. 방법별 보편적 순위나 모든 문제의 최적 수락률로 읽지 않는다. 비교는 같은 목표·함수·총 평가비용과 독립 반복의 변동을 고려한다.
 

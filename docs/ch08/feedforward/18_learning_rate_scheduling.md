@@ -1,6 +1,6 @@
-# 러닝레이트 일정 조절
+# 러닝레이트 스케줄링
 
-러닝레이트 스케줄러의 종류와 일정을 비교한다. 본문 코드는 학습 성능 실험 대신 러닝레이트 곡선을 수동 계산해 그리는 시연이다.
+러닝레이트 스케줄러의 종류와 스케줄을 비교한다. 본문 코드는 학습 성능 실험 대신 러닝레이트 곡선을 수동 계산해 그리는 시연이다.
 
 ## 1. 코드
 
@@ -54,26 +54,26 @@ print("CosineAnnealingLR: Cosine curve over 100 epochs")
 scheduler4 = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5)
 print("ReduceLROnPlateau: Reduce when val loss doesn't improve for 5 epochs")
 
-# 여러 일정을 시각화한다
+# 여러 스케줄을 시각화한다
 epochs = 100
 lrs_step = []
 lrs_exp = []
 lrs_cos = []
 
-# StepLR 모의실험
+# StepLR 시뮬레이션
 lr = 0.1
 for epoch in range(epochs):
     lrs_step.append(lr)
     if (epoch + 1) % 30 == 0:
         lr *= 0.1
 
-# ExponentialLR 모의실험
+# ExponentialLR 시뮬레이션
 lr = 0.1
 for epoch in range(epochs):
     lrs_exp.append(lr)
     lr *= 0.9
 
-# CosineAnnealingLR 모의실험
+# CosineAnnealingLR 시뮬레이션
 import math
 for epoch in range(epochs):
     lr = 0.1 * (1 + math.cos(math.pi * epoch / 100)) / 2
@@ -190,7 +190,7 @@ StepLR 등은 정한 호출 주기에 따라 갱신한다. ReduceLROnPlateau는 
 </div>
 
 ??? success "풀이"
-    아니다. 그래프는 수동 계산한 일정의 모양이다. 실제 동작을 확인하려면 독립 옵티마이저와 스케줄러를 구성해 호출 횟수별 러닝레이트를 기록하고 수동 식과 비교해야 한다.
+    아니다. 그래프는 수동 계산한 스케줄의 모양이다. 실제 동작을 확인하려면 독립 옵티마이저와 스케줄러를 구성해 호출 횟수별 러닝레이트를 기록하고 수동 식과 비교해야 한다.
 
 ---
 
@@ -245,7 +245,7 @@ ReduceLROnPlateau가 StepLR와 다른 입력을 요구하는 이유를 설명하
             model.load_state_dict(best_state)
             break
     ```
-    위 조각은 `evaluate`와 `val_loader` 등의 정의가 필요한 개략 코드이다. `state_dict().copy()`는 텐서를 독립 복제하지 않는 얕은 복사이므로 최선 상태가 바뀔 수 있다. 실제 구현에서는 깊은 복사나 파일 저장으로 상태를 보존하고, 그 상태를 복원한 뒤 별도 테스트셋에서 평가한다.
+    위 조각은 `evaluate`와 `val_loader` 등의 정의가 필요한 개략 코드이다. `state_dict().copy()`는 텐서를 독립 복제하지 않는 얕은 복사이므로 최선 상태가 바뀔 수 있다. 실제 구현에서는 깊은 복사나 파일 저장으로 상태를 보존하고, 그 상태를 복원한 뒤 별도 시험 집합에서 평가한다.
 
 ## 정리하며
 

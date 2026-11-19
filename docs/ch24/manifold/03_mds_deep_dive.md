@@ -5,13 +5,13 @@
 ## 1. 예제 코드와 출력
 
 ```python
-"""MDS 깊이 들여다보기."""
+"""MDS 자세히 살펴보기."""
 import time
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.distance import pdist, squareform
 
-# === 1부: 맨바닥에서 세우는 고전 MDS =====================================
+# === 1부: 밑바닥부터 구현하는 고전 MDS =====================================
 def classical_mds(D, n_components=2):
     n = D.shape[0]
     D_sq = D ** 2
@@ -39,7 +39,7 @@ plt.grid(True, alpha=0.3); plt.tight_layout()
 plt.savefig("mds_classical_scratch.png", dpi=150)
 plt.show()
 
-# === 2부: 주성분 분석과 같음 ================================================
+# === 2부: 주성분 분석과의 동등성 ================================================
 from sklearn.decomposition import PCA
 X_centered = X_demo - X_demo.mean(axis=0)
 Y_pca = PCA(n_components=2).fit_transform(X_centered)
@@ -75,10 +75,10 @@ def metric_mds_torch(D, n_components=2, n_iter=300, lr=0.01, seed=42):
 
 Y_torch, stress_hist = metric_mds_torch(D_demo, n_components=2)
 
-# === 4~7부는 줄임(스위스 롤, MNIST, 셰퍼드, 금융) ====
-# 스위스 롤에서 계량 MDS와 비계량 MDS 견줌, 주성분 분석으로 빠르게 한 MNIST의 MDS,
-# 셰퍼드 그림, 상관-거리 자산 지도는
-# 온전한 각본을 보라.
+# === 4~7부는 생략(스위스 롤, MNIST, 셰퍼드, 금융) ====
+# 스위스 롤에서 계량 MDS와 비계량 MDS 비교, 주성분 분석으로 빠르게 한 MNIST의 MDS,
+# 셰퍼드 다이어그램, 상관-거리 자산 지도는
+# 전체 스크립트를 보라.
 
 if __name__ == "__main__":
     pass
@@ -106,7 +106,7 @@ B는 표본 공간의 n×n 행렬이다. 그 고유벡터 Q는 원래 피처 공
 
 `metric_mds_torch`는 고전 MDS 좌표에서 시작해 상삼각 쌍의 원시 stress를 Adam으로 줄인다. 일반적인 SMACOF 구현은 아니고 고전 초기화가 항상 수렴을 빠르게 하거나 더 좋은 국소해를 준다는 보장도 없다. 초기값 후보로 비교할 수 있다.
 
-좌표 Y가 `requires_grad=True`인 최적화 변수다. 좌표도 학습 파라미터 역할을 하지만, 새로운 입력을 좌표로 바꾸는 뉴럴 네트워크 사상을 학습하는 것은 아니다. 현재 코드는 CPU float32 텐서를 만들며 지정 반복 300회와 러닝레이트 0.01의 수렴 여부를 따로 판정하지 않는다.
+좌표 Y가 `requires_grad=True`인 최적화 변수다. 좌표도 학습 파라메터 역할을 하지만, 새로운 입력을 좌표로 바꾸는 뉴럴 네트워크 사상을 학습하는 것은 아니다. 현재 코드는 CPU float32 텐서를 만들며 지정 반복 300회와 러닝레이트 0.01의 수렴 여부를 따로 판정하지 않는다.
 
 거리 계산의 `sqrt(sum(diff**2)+1e-12)`는 0 근처를 매끄럽게 만드는 수치 처리다. 비대각의 중복 좌표도 양의 작은 거리가 되어 원래 stress와 미세하게 달라진다. 마지막 `stress_hist` 값은 마지막 갱신 전 값이며 출력 좌표에서 다시 계산한 값과 같다고 보장할 수 없다.
 
@@ -120,13 +120,13 @@ B는 표본 공간의 n×n 행렬이다. 그 고유벡터 Q는 원래 피처 공
 
 ![왼쪽은 두 수를 형태로만 그린 그림이다. 1952년 토거슨은 곧은 화살표 하나로 한 번에 답에 닿고, 1964년 크러스컬은 울퉁불퉁한 지형 위를 내려가는데 서로 다른 두 골짜기에 공이 하나씩 멈춰 있다. 오른쪽은 실제로 잰 것으로, 같은 stress를 일곱 군데에서 내려가 닿은 값을 가로축에 찍었다. 무작위 출발 여섯은 4018에서 5217 사이에 흩어져 있고 고전 MDS 에서 떠난 것은 4080이다.](figures/kruskal_descent.svg)
 
-**바꾼 값은 곧바로 치러진다.** 푸는 문제에는 답이 하나지만 내려가는 문제에는 **어디서 떠났느냐**가 남는다. 이 쪽의 자료(씨앗 42, 3차원 점 200개)로 같은 stress를 일곱 군데에서 600걸음씩 내려가 보면, 무작위로 떠난 여섯은 4018.2에서 5217.4까지 흩어진다. 한 번은 눈에 띄게 나쁜 골짜기에 갇혔다.
+**바꾼 비용은 곧바로 치러진다.** 푸는 문제에는 답이 하나지만 내려가는 문제에는 **어디서 떠났느냐**가 남는다. 이 쪽의 데이터(시드 42, 3차원 점 200개)로 같은 stress를 일곱 군데에서 600스텝씩 내려가 보면, 무작위로 떠난 여섯은 4018.2에서 5217.4까지 흩어진다. 한 번은 눈에 띄게 나쁜 골짜기에 갇혔다.
 
 그리고 위 문단이 적어 둔 경고가 수로 확인된다. 이 쪽 코드가 쓰는 고전 MDS 출발은 4080.1에 닿는데, **무작위 출발 여섯 중 넷이 그보다 낮은 곳에 닿는다.** 고전 초기화는 그럴듯한 출발점이지 더 좋은 해를 주는 장치가 아니다.
 
 **다만 stress가 낮다고 지도가 더 옳은 것도 아니다.** stress는 넣어 준 비유사도에 얼마나 맞는지를 잴 뿐이고, 목표 차원을 늘리면 언제나 더 내려간다. 어느 골짜기에 닿았는지와 그 배치가 원래 구조를 담았는지는 따로 확인할 일이며, 그 둘을 가르는 것이 바로 아래 5절이다.
 
-_확인한 곳 — J. B. Kruskal, "Multidimensional scaling by optimizing goodness of fit to a nonmetric hypothesis", *Psychometrika* **29**(1), 1–27 (1964), 그리고 같은 해 같은 학술지 **29**(2), 115–129의 "Nonmetric multidimensional scaling: A numerical method". 크러스컬은 당시 벨 전화 연구소(Murray Hill)에 있었다. W. S. Torgerson, *Psychometrika* **17**, 401–419 (1952). 오른쪽 그림의 수는 그림을 그리는 코드가 이 쪽과 같은 씨앗의 자료로 직접 재어 얻는다._
+_확인한 곳 — J. B. Kruskal, "Multidimensional scaling by optimizing goodness of fit to a nonmetric hypothesis", *Psychometrika* **29**(1), 1–27 (1964), 그리고 같은 해 같은 학술지 **29**(2), 115–129의 "Nonmetric multidimensional scaling: A numerical method". 크러스컬은 당시 벨 전화 연구소(Murray Hill)에 있었다. W. S. Torgerson, *Psychometrika* **17**, 401–419 (1952). 오른쪽 그림의 수는 그림을 그리는 코드가 이 쪽과 같은 시드의 데이터로 직접 재어 얻는다._
 
 </div>
 
@@ -201,7 +201,7 @@ n×n float64 거리 행렬은 n=60,000일 때 28.8 GB이고 복사·고유분해
 
     ```python
     from sklearn.manifold import TSNE, MDS
-    X_sub = X_mnist[:500]  # 빠르기를 위해 500을 쓴다
+    X_sub = X_mnist[:500]  # 속도를 위해 500을 쓴다
     D_orig = squareform(pdist(X_sub))
     Y_mds = MDS(n_components=2, random_state=42, normalized_stress="auto").fit_transform(X_sub)
     Y_tsne = TSNE(n_components=2, random_state=42).fit_transform(X_sub)
@@ -241,7 +241,7 @@ n×n float64 거리 행렬은 n=60,000일 때 28.8 GB이고 복사·고유분해
 
 ??? success "풀이"
 
-    Z 자체를 최적화 변수로 두어 좌표를 갱신한다. n, steps와 torch 텐서 D, 상삼각 등의 mask를 같은 장치에 정의해야 하며 분모 거리 제곱합은 양수여야 한다. 이 조각만으로 새 입력 트랜스포머를 학습하지는 않는다. 최적화가 전역해에 도달하는지도 별도 문제다.
+    Z 자체를 최적화 변수로 두어 좌표를 갱신한다. n, steps와 torch 텐서 D, 상삼각 등의 mask를 같은 장치에 정의해야 하며 분모 거리 제곱합은 양수여야 한다. 이 조각만으로 새 입력을 좌표로 바꾸는 사상을 학습하지는 않는다. 최적화가 전역해에 도달하는지도 별도 문제다.
 
     ```python
     Z = torch.randn(n, 2, requires_grad=True)
@@ -317,7 +317,7 @@ n×n float64 거리 행렬은 n=60,000일 때 28.8 GB이고 복사·고유분해
 
 ??? success "풀이"
 
-    추정 기간·관측 수와 누락 처리, 상관 추정 오차와 국면 변화를 확인한다. 상관은 선형 2차 관계여서 꼬리 의존성을 충분히 설명하지 못할 수 있다. 2차원 왜곡과 원래 상관값을 함께 보고 정규화·축소 추정의 효과도 보류 구간에서 평가한다. 위기에서 모든 상관이 반드시 1이 된다는 법칙은 없다.
+    추정 기간·관측 수와 누락 처리, 상관 추정 오차와 국면 변화를 확인한다. 상관은 선형 2차 관계여서 꼬리 의존성을 충분히 설명하지 못할 수 있다. 2차원 왜곡과 원래 상관값을 함께 보고 정칙화·축소 추정의 효과도 보류 구간에서 평가한다. 위기에서 모든 상관이 반드시 1이 된다는 법칙은 없다.
 
 
 

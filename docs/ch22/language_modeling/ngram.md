@@ -8,7 +8,7 @@
 
 $$p(w_{1:M})=\prod_{i=1}^{M}p(w_i\mid w_{<i}).$$
 
-사슬 규칙 자체가 계산 불가능한 것은 아니다. 모든 긴 문맥을 별도 빈도로 추정하면 자료가 부족해지는 것이 문제다. n-그램은 마지막 n−1개로 문맥을 제한한다. 유니그램은 문맥 없음, 바이그램은 직전1개, 트라이그램은2개다. 차수를 높이면 표현할 국소 문맥은 길어지지만 희소성·저장량·추정 분산도 커져 평가 성능이 반드시 좋아지지는 않는다.
+사슬 규칙 자체가 계산 불가능한 것은 아니다. 모든 긴 문맥을 별도 빈도로 추정하면 데이터가 부족해지는 것이 문제다. n-그램은 마지막 n−1개로 문맥을 제한한다. 유니그램은 문맥 없음, 바이그램은 직전1개, 트라이그램은2개다. 차수를 높이면 표현할 국소 문맥은 길어지지만 희소성·저장량·추정 분산도 커져 평가 성능이 반드시 좋아지지는 않는다.
 
 ## 2. 유니그램의 상대 빈도
 
@@ -21,7 +21,7 @@ import math
 
 class UnigramModel:
     """
-    단어끼리 안 얽힌다고 가정하는 유니그램 언어 모델.
+    단어들이 서로 독립이라고 가정하는 유니그램 언어 모델.
     
     P(w) = count(w) / total_words
     """
@@ -32,7 +32,7 @@ class UnigramModel:
         self.vocab = set()
     
     def train(self, corpus: List[str]) -> None:
-        """월의 말뭉치로 익히기."""
+        """문장 말뭉치로 학습."""
         for sentence in corpus:
             words = sentence.lower().split()
             self.word_counts.update(words)
@@ -43,19 +43,19 @@ class UnigramModel:
         print(f"Total words: {self.total_words}")
     
     def probability(self, word: str) -> float:
-        """최대 가능도 추정으로 P(단어) 셈하기."""
+        """최대가능도 추정으로 P(단어) 계산."""
         word = word.lower()
         if word not in self.vocab:
             return 0.0
         return self.word_counts[word] / self.total_words
     
     def log_probability(self, word: str) -> float:
-        """수치를 든든하게 하는 로그 확률."""
+        """수치 안정성을 위한 로그 확률."""
         prob = self.probability(word)
         return math.log2(prob) if prob > 0 else float('-inf')
     
     def sentence_log_probability(self, sentence: str) -> float:
-        """log P(월) = log P(단어)의 합 셈하기."""
+        """log P(문장) = log P(단어)의 합 계산."""
         words = sentence.lower().split()
         return sum(self.log_probability(w) for w in words)
 
@@ -84,7 +84,7 @@ P(cat) = 0.1053
 P(elephant) = 0.0000
 ```
 
-train은 기존 빈도를 초기화하지 않고 누적한다. 미등록 단어는0확률, 로그는−∞다. 빈 문장의 로그합은0이지만 모든 문장의 종료 확률을 모델링한다는 뜻은 아니다. 위 고정 말뭉치는6단어 문장3개로 총18토큰·어휘9개이고 the는6번·cat은2번이다. 따라서 P(the)=1/3, P(cat)=1/9가 현재 코드·자료의 값이다. 기존 출력의19토큰·어휘11개·다른 확률은 이 입력과 일치하지 않으므로 검증된 실행값으로 인용하지 않는다.
+train은 기존 빈도를 초기화하지 않고 누적한다. 미등록 단어는0확률, 로그는−∞다. 빈 문장의 로그합은0이지만 모든 문장의 종료 확률을 모델링한다는 뜻은 아니다. 위 고정 말뭉치는6단어 문장3개로 총18토큰·어휘9개이고 the는6번·cat은2번이다. 따라서 P(the)=1/3, P(cat)=1/9가 현재 코드·데이터의 값이다. 기존 출력의19토큰·어휘11개·다른 확률은 이 입력과 일치하지 않으므로 검증된 실행값으로 인용하지 않는다.
 
 ## 3. 바이그램과 종료 토큰
 
@@ -99,7 +99,7 @@ class BigramModel:
     """
     바이그램 언어 모델: P(w_i | w_{i-1}).
     
-    월 경계 토큰을 쓴 최대 가능도 추정을 짠다.
+    문장 경계 토큰을 쓴 최대가능도 추정을 구현한다.
     """
     
     def __init__(self):
@@ -110,7 +110,7 @@ class BigramModel:
         self.END = "</s>"
     
     def train(self, corpus: List[str]) -> None:
-        """말뭉치로 바이그램 모델 익히기."""
+        """말뭉치로 바이그램 모델 학습."""
         total_bigrams = 0
         
         for sentence in corpus:
@@ -134,10 +134,10 @@ class BigramModel:
     
     def probability(self, word: str, context: str) -> float:
         """
-        최대 가능도 추정으로 P(단어 | 맥락) 셈하기.
+        최대가능도 추정으로 P(단어 | 문맥) 계산.
         
         인수:
-            word: 지금 단어 w_i
+            word: 현재 단어 w_i
             context: 앞 단어 w_{i-1}
         """
         word = word.lower()
@@ -149,12 +149,12 @@ class BigramModel:
         return bigram_count / context_count if context_count > 0 else 0.0
     
     def log_probability(self, word: str, context: str) -> float:
-        """수치를 든든하게 하는 로그 확률."""
+        """수치 안정성을 위한 로그 확률."""
         prob = self.probability(word, context)
         return math.log2(prob) if prob > 0 else float('-inf')
     
     def sentence_probability(self, sentence: str) -> float:
-        """사슬 규칙으로 P(월) 셈하기."""
+        """사슬 규칙으로 P(문장) 계산."""
         words = sentence.lower().split()
         words = [self.START] + words + [self.END]
         
@@ -168,7 +168,7 @@ class BigramModel:
         return prob
     
     def sentence_log_probability(self, sentence: str) -> float:
-        """월의 로그 확률."""
+        """문장의 로그 확률."""
         words = sentence.lower().split()
         words = [self.START] + words + [self.END]
         
@@ -198,7 +198,7 @@ P(sat | cat) = 0.5000
 P(played | dog) = 0.5000
 ```
 
-이 BigramModel은 outgoing 빈도를 unigram_counts에 저장하므로 보통 단어의 단순 빈도 사전과 구분한다. vocab에는 시작·종료를 제외하지만 bigram_counts에는 종료 예측이 있다. MLE의 분모는 outgoing 전체 합을 사용하므로 관측 문맥에서 종료를 포함한 분포를 계산할 수 있다. 미관측 문맥에는0을 반환해 정상화된 대체 분포를 제공하지 않는다. 긴 문장 확률의 곱은 underflow가 날 수 있어 로그합을 사용한다.
+이 BigramModel은 outgoing 빈도를 unigram_counts에 저장하므로 보통 단어의 단순 빈도 사전과 구분한다. vocab에는 시작·종료를 제외하지만 bigram_counts에는 종료 예측이 있다. MLE의 분모는 outgoing 전체 합을 사용하므로 관측 문맥에서 종료를 포함한 분포를 계산할 수 있다. 미관측 문맥에는0을 반환해 정규화된 대체 분포를 제공하지 않는다. 긴 문장 확률의 곱은 underflow가 날 수 있어 로그합을 사용한다.
 
 ## 4. 트라이그램과 희소성
 
@@ -209,7 +209,7 @@ class TrigramModel:
     """
     
     def __init__(self):
-        # trigram_counts[w1][w2][w3] = 셈
+        # trigram_counts[w1][w2][w3] = 빈도
         self.trigram_counts = defaultdict(lambda: defaultdict(Counter))
         self.bigram_counts = defaultdict(Counter)
         self.vocab = set()
@@ -217,10 +217,10 @@ class TrigramModel:
         self.END = "</s>"
     
     def train(self, corpus: List[str]) -> None:
-        """트라이그램 모델 익히기."""
+        """트라이그램 모델 학습."""
         for sentence in corpus:
             words = sentence.lower().split()
-            # 트라이그램 맥락을 위한 시작 토큰 둘
+            # 트라이그램 문맥을 위한 시작 토큰 둘
             words = [self.START, self.START] + words + [self.END]
             
             for i in range(len(words) - 2):
@@ -234,10 +234,10 @@ class TrigramModel:
     
     def probability(self, word: str, context1: str, context2: str) -> float:
         """
-        P(단어 | 맥락1, 맥락2) 셈하기.
+        P(단어 | 문맥1, 문맥2) 계산.
         
         인수:
-            word: 지금 단어 w_i
+            word: 현재 단어 w_i
             context1: 자리 i-2의 단어
             context2: 자리 i-1의 단어
         """
@@ -247,9 +247,9 @@ class TrigramModel:
         return trigram_count / bigram_count if bigram_count > 0 else 0.0
 ```
 
-앞의 두 시작 토큰과 마지막 종료 토큰을 포함해 세 단어 빈도/앞 두 단어 문맥 빈도로 계산한다. 이 클래스는 학습 때 소문자화하지만 probability에서는 입력을 소문자로 바꾸지 않아 호출자가 전처리를 맞춰야 한다. 미관측 문맥은0이다. 문법적으로 가능한 조합이라도 학습에 없으면 MLE는0을 줄 수 있고, 평가 정답에0이 하나라도 있으면 정확한 음의 로그우도·퍼플렉서티는 무한대가 된다.
+앞의 두 시작 토큰과 마지막 종료 토큰을 포함해 세 단어 빈도/앞 두 단어 문맥 빈도로 계산한다. 이 클래스는 학습 때 소문자화하지만 probability에서는 입력을 소문자로 바꾸지 않아 호출자가 전처리를 맞춰야 한다. 미관측 문맥은0이다. 문법적으로 가능한 조합이라도 학습에 없으면 MLE는0을 줄 수 있고, 평가 정답에0이 하나라도 있으면 정확한 음의 로그가능도(log-likelihood, 로그우도라고도 한다)·퍼플렉서티는 무한대가 된다.
 
-어휘 크기를 고정하면 가능한 n-그램 조합은 |V|^n이지만 모든 조합을 저장해야 하는 것은 아니다. 관측된 조합만 저장할 수 있고 차수·자료에 따라 메모리가 달라진다. UNK 폴리시와 평활화는 미관측 단어와 미관측 문맥을 어떻게 처리하는지 구분해야 한다.
+어휘 크기를 고정하면 가능한 n-그램 조합은 |V|^n이지만 모든 조합을 저장해야 하는 것은 아니다. 관측된 조합만 저장할 수 있고 차수·데이터에 따라 메모리가 달라진다. UNK 정책과 평활화는 미관측 단어와 미관측 문맥을 어떻게 처리하는지 구분해야 한다.
 
 ## 5. Add-k 평활화와 예측 어휘
 
@@ -257,11 +257,11 @@ class TrigramModel:
 
 $$p_k(w\mid h)=\frac{C(h,w)+k}{\sum_{v\in V}C(h,v)+k|V|}.$$
 
-후보 집합과 분모가 같아야 합이1이다. 시작은 조건, 종료는 예측 사건으로 포함할지 명시한다. 분자에 양수를 더했다는 사실만으로 임의의 어휘·분모가 정상화되는 것은 아니다.
+후보 집합과 분모가 같아야 합이1이다. 시작은 조건, 종료는 예측 사건으로 포함할지 명시한다. 분자에 양수를 더했다는 사실만으로 임의의 어휘·분모가 정규화되는 것은 아니다.
 
 ```python
 class LaplaceBigramModel:
-    """라플라스(하나 더하기) 부드럽게 하기를 쓴 바이그램 모델."""
+    """라플라스(add-one) 평활화를 쓴 바이그램 모델."""
     
     def __init__(self):
         self.bigram_counts = defaultdict(Counter)
@@ -273,18 +273,18 @@ class LaplaceBigramModel:
         self.END = "</s>"
     
     def train(self, corpus: List[str], min_freq: int = 1) -> None:
-        """단어 곳간 임계값을 두고 익히기."""
+        """어휘 임계값을 두고 학습."""
         # 1차: 단어 세기
         word_counts = Counter()
         for sentence in corpus:
             word_counts.update(sentence.lower().split())
         
-        # 단어 곳간 세우기(최소 잦기를 넘는 단어)
+        # 어휘 구축(최소 빈도 이상인 단어)
         self.vocab = {w for w, c in word_counts.items() if c >= min_freq}
         self.vocab.add(self.UNK)
         self.vocab_size = len(self.vocab)
         
-        # 2차: 곳간 밖 단어를 다루며 바이그램 세기
+        # 2차: 어휘 밖(OOV) 단어를 처리하며 바이그램 세기
         for sentence in corpus:
             words = sentence.lower().split()
             words = [w if w in self.vocab else self.UNK for w in words]
@@ -297,14 +297,14 @@ class LaplaceBigramModel:
     
     def probability(self, word: str, context: str) -> float:
         """
-        라플라스로 부드럽게 한 확률.
+        라플라스 평활화 확률.
         
         P(w|c) = (count(c, w) + 1) / (count(c) + V)
         """
         word = word.lower()
         context = context.lower()
         
-        # 곳간 밖 단어 다루기
+        # 어휘 밖 단어 처리
         if word not in self.vocab:
             word = self.UNK
         if context not in self.vocab and context != self.START:
@@ -320,17 +320,17 @@ class LaplaceBigramModel:
 
 ## 6. 보간과 Kneser–Ney의 아이디어
 
-여러 차수의 **정상화된** 분포를 비음수 λ_j, Σ_j λ_j=1로 합하면 보간 분포가 된다. 고정 가중 보간은 문맥 빈도가 드물다고 자동으로 웨이트를 바꾸는 backoff와는 다르다. 미관측 문맥의 높은 차수 분포가 전부0이면 단순 합의 전체 질량도 줄어들 수 있어 그 경우의 재정규화·가중 폴리시를 정해야 한다.
+여러 차수의 **정규화된** 분포를 비음수 λ_j, Σ_j λ_j=1로 합하면 보간 분포가 된다. 고정 가중 보간은 문맥 빈도가 드물다고 자동으로 웨이트를 바꾸는 backoff와는 다르다. 미관측 문맥의 높은 차수 분포가 전부0이면 단순 합의 전체 질량도 줄어들 수 있어 그 경우의 재정규화·가중 정책을 정해야 한다.
 
 ```python
 class InterpolatedBigramModel:
-    """선형 사이 끼움 부드럽게 하기를 쓴 바이그램 모델."""
+    """선형 보간 평활화를 쓴 바이그램 모델."""
     
     def __init__(self, lambda2: float = 0.7, lambda1: float = 0.3):
         """
         인수:
-            lambda2: 바이그램 확률의 무게
-            lambda1: 유니그램 확률의 무게
+            lambda2: 바이그램 확률의 웨이트
+            lambda1: 유니그램 확률의 웨이트
         """
         assert abs(lambda2 + lambda1 - 1.0) < 1e-6, "Lambdas must sum to 1"
         self.lambda2 = lambda2
@@ -342,24 +342,24 @@ class InterpolatedBigramModel:
         self.vocab = set()
     
     def train(self, corpus: List[str]) -> None:
-        """사이 끼운 모델 익히기."""
-        # ... 위와 비슷한 익히기 코드 ...
+        """보간 모델 학습."""
+        # ... 위와 비슷한 학습 코드 ...
         pass
     
     def unigram_probability(self, word: str) -> float:
-        """하나 더하기 부드럽게 하기를 쓴 P(단어)."""
+        """add-one 평활화를 쓴 P(단어)."""
         count = self.unigram_counts[word]
         return (count + 1) / (self.total_words + len(self.vocab))
     
     def bigram_probability_ml(self, word: str, context: str) -> float:
-        """날 최대 가능도 추정 바이그램 확률."""
+        """평활화하지 않은 최대가능도 추정 바이그램 확률."""
         bigram_count = self.bigram_counts[context][word]
         context_count = sum(self.bigram_counts[context].values())
         return bigram_count / context_count if context_count > 0 else 0.0
     
     def probability(self, word: str, context: str) -> float:
         """
-        사이 끼운 확률.
+        보간 확률.
         
         P(w|c) = λ₂ · P_bigram(w|c) + λ₁ · P_unigram(w)
         """
@@ -381,7 +381,7 @@ Kneser–Ney는 높은 차수의 관측 빈도를 discount하고 낮은 차수�
 import random
 
 class TextGenerator:
-    """여러 샘플링 전략을 쓴 글 만들어 내기."""
+    """여러 샘플링 전략을 쓴 텍스트 생성."""
     
     def __init__(self, bigram_model):
         self.model = bigram_model
@@ -396,7 +396,7 @@ class TextGenerator:
         return [(w, c/total) for w, c in counts.items()]
     
     def generate_greedy(self, max_length: int = 20) -> str:
-        """그리디 만들어 내기: 늘 가장 그럴듯한 것을 고른다."""
+        """그리디 생성: 늘 확률이 가장 높은 것을 고른다."""
         context = self.model.START
         generated = []
         
@@ -434,7 +434,7 @@ class TextGenerator:
             total = sum(scaled_probs)
             scaled_probs = [p/total for p in scaled_probs]
             
-            # 뽑기
+            # 샘플링
             next_word = random.choices(words, weights=scaled_probs, k=1)[0]
             
             if next_word == self.model.END:
@@ -459,12 +459,12 @@ class TextGenerator:
             dist.sort(key=lambda x: x[1], reverse=True)
             top_k = dist[:k]
             
-            # 다시 고른다
+            # 재정규화한다
             words, probs = zip(*top_k)
             total = sum(probs)
             probs = [p/total for p in probs]
             
-            # 뽑기
+            # 샘플링
             next_word = random.choices(words, weights=probs, k=1)[0]
             
             if next_word == self.model.END:
@@ -476,9 +476,9 @@ class TextGenerator:
         return ' '.join(generated)
 ```
 
-TextGenerator는 model.probability를 호출하지 않고 bigram_counts를 직접 정상화한다. 따라서 Laplace·보간 모델을 넣더라도 그 평활화 확률로 생성하는 것이 아니다. 관측 문맥에는 관측 후보만, 없는 문맥에는 vocab의 균일 분포를 사용한다. 종료가 vocab에 없으면 그 fallback에서는 종료를 직접 뽑지 못할 수 있다. max_length 제한이 실제 종료 확률과 같지는 않다.
+TextGenerator는 model.probability를 호출하지 않고 bigram_counts를 직접 정규화한다. 따라서 Laplace·보간 모델을 넣더라도 그 평활화 확률로 생성하는 것이 아니다. 관측 문맥에는 관측 후보만, 없는 문맥에는 vocab의 균일 분포를 사용한다. 종료가 vocab에 없으면 그 fallback에서는 종료를 직접 뽑지 못할 수 있다. max_length 제한이 실제 종료 확률과 같지는 않다.
 
-온도0·음수·극단값과 top-k0·빈 어휘·동점·재현성의 계약도 정의해야 한다. 동일 확률의 선택 순서는 자료 구조 순서의 영향을 받을 수 있다. 생성 전략을 바꾼 평가와 원래 모델의 정답 로그우도는 별개다.
+온도0·음수·극단값과 top-k0·빈 어휘·동점·재현성의 계약도 정의해야 한다. 동일 확률의 선택 순서는 자료 구조 순서의 영향을 받을 수 있다. 생성 전략을 바꾼 평가와 원래 모델의 정답 로그가능도는 별개다.
 
 ## 8. 퍼플렉서티와 기존 평가 코드
 
@@ -491,7 +491,7 @@ $$\operatorname{PPL}=\exp\left[-\frac1M\sum_i\log p(w_i\mid h_i)\right].$$
 ```python
 def compute_perplexity(model, test_corpus: List[str]) -> float:
     """
-    시험 말뭉치에서 퍼플렉서티 셈하기.
+    시험 말뭉치에서 퍼플렉서티 계산.
     
     PPL = 2^(-평균 로그 확률)
     """
@@ -507,7 +507,7 @@ def compute_perplexity(model, test_corpus: List[str]) -> float:
             if prob > 0:
                 total_log_prob += math.log2(prob)
             else:
-                total_log_prob += -100  # 큰 벌주기
+                total_log_prob += -100  # 큰 패널티
             total_words += 1
     
     cross_entropy = -total_log_prob / total_words
@@ -515,7 +515,7 @@ def compute_perplexity(model, test_corpus: List[str]) -> float:
     
     return perplexity
 
-# 부드럽게 하기 재주 견주기
+# 평활화 기법 비교
 train_corpus = ["the cat sat on the mat", "the dog sat on the log"] * 10
 test_corpus = ["the cat played", "a dog runs"]
 
@@ -536,7 +536,7 @@ compute_perplexity는 종료를 포함한 각 문장 길이+1개 사건을 센�
 
 차수·평활화는 동일 말뭉치·학습 어휘·UNK·토큰화·문장 경계에서 검증하고 최종 시험을 분리한다. 데이터 전처리·분할·사전 크기를 모르는 Penn Treebank의 ‘흔한 PPL’ 범위를 고정 순위로 제시하지 않는다. 코드가 구현하지 않은 Kneser–Ney 성능을 이 시연에 연결하지도 않는다.
 
-n-그램은 제한된 문맥과 개별 빈도를 사용해 희소 조합 사이의 파라미터 공유가 약하다. 그러나 낮은 차수 보간·공유 단어 빈도 덕분에 한 문장의 통계가 다른 문장에 전혀 영향을 주지 않는다는 설명도 지나치다. 뉴럴 언어 모델의 분산 표현은 다른 공유 방식을 제공하며 실제 이점은 데이터·학습·평가 조건에서 확인한다.
+n-그램은 제한된 문맥과 개별 빈도를 사용해 희소 조합 사이의 파라메터 공유가 약하다. 그러나 낮은 차수 보간·공유 단어 빈도 덕분에 한 문장의 통계가 다른 문장에 전혀 영향을 주지 않는다는 설명도 지나치다. 뉴럴 언어 모델의 분산 표현은 다른 공유 방식을 제공하며 실제 이점은 데이터·학습·평가 조건에서 확인한다.
 
 ## 연습문제
 
@@ -544,15 +544,15 @@ n-그램은 제한된 문맥과 개별 빈도를 사용해 희소 조합 사이�
 
 2. **평활화의 질량**: 종료 빈도를 분모에 넣고 예측 어휘에는 종료를 빼면 어떤 문제가 생기는가? → 어휘 후보에 분배되지 않은 빈도가 남아 질량이1보다 작을 수 있다. 후보·UNK·종료 변환과 분모를 일치시켜야 한다.
 
-3. **보간의 조건**: λ 합1만으로 정상화가 보장되는가? → 비음수 웨이트와 각 구성 분포의 정상화가 필요하다. 미관측 문맥에서0함수를 반환한 부분 모델은 그 조건을 만족하지 않는다.
+3. **보간의 조건**: λ 합1만으로 정규화가 보장되는가? → 비음수 웨이트와 각 구성 분포의 정규화가 필요하다. 미관측 문맥에서0함수를 반환한 부분 모델은 그 조건을 만족하지 않는다.
 
 4. **생성 계약**: TextGenerator에 Laplace 모델을 넣으면 Laplace 확률로 생성하는가? → 아니다. 저장 빈도를 직접 사용하므로 평활화 함수를 우회한다. 생성 후보와 학습 모델의 확률 정의를 연결해야 한다.
 
-5. **0확률의 평가**: 정답 확률0을 log2 값−100으로 치환하면 정확 PPL인가? → 아니다. 정확 로그우도는−∞·PPL은∞다. 임의 치환은 정의를 바꾸며 빈 평가 집합도 별도로 처리해야 한다.
+5. **0확률의 평가**: 정답 확률0을 log2 값−100으로 치환하면 정확 PPL인가? → 아니다. 정확 로그가능도는−∞·PPL은∞다. 임의 치환은 정의를 바꾸며 빈 평가 집합도 별도로 처리해야 한다.
 
 ## 정리하며
 
-n-그램 모델은 짧은 문맥의 빈도로 확률을 추정한다. 어휘·UNK·종료 토큰과 분모가 맞아야 평활화가 정상화되고, 생성·평가도 같은 모델 확률을 사용해야 한다. 현재 코드의 미완성 보간·종료 처리·PPL 절단과 기존 출력의 불일치를 구분해 읽는다.
+n-그램 모델은 짧은 문맥의 빈도로 확률을 추정한다. 어휘·UNK·종료 토큰과 분모가 맞아야 평활화가 정규화되고, 생성·평가도 같은 모델 확률을 사용해야 한다. 현재 코드의 미완성 보간·종료 처리·PPL 절단과 기존 출력의 불일치를 구분해 읽는다.
 
 **참고 문헌**
 

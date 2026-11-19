@@ -1,4 +1,4 @@
-# 맞춤 모듈로 레이어에 이름 붙이기 — `Sequential`로는 못 적는 것들
+# 사용자 정의 모듈로 레이어에 이름 붙이기 — `Sequential`로는 못 적는 것들
 
 <div class="leadbox" markdown>
 
@@ -11,7 +11,7 @@
 결과를 둘 내놓는 것, 중간에 지나간 값을 따로 꺼내 보는 것. 어느 것도 「앞의
 출력이 다음의 입력」이라는 한 줄에 들어맞지 않는다.
 
-첫째 것이 특히 그렇다. 입력을 **더하기로 한 번 더 얹는** — **잔차 연결** —
+첫째 것이 특히 그렇다. 입력을 **더하기로 한 번 더 얹는** **스킵 연결**(skip connection, 잔차 연결이라고도 한다)은
 아주 작은 변경인데,
 스무 층을 쌓고 재어 보면 맨 앞 층에 닿는 양이 **4천억 배쯤** 달라진다. 없는
 쪽은 사실상 0이고, 그 층들은 아무리 돌려도 배우지 않는다.
@@ -26,10 +26,10 @@
 `nn.Sequential`은 "한 줄로 지나가는" 모델만 적을 수 있다. 앞 층의 출력이 다음
 층의 입력이고, 그게 전부다. 그 틀을 벗어나는 것 넷을 본다.
 
-- **건너뛰어 더하기** — 입력을 한 번 더 쓴다
+- **스킵 연결**(skip connection) — 입력을 건너뛰어 출력에 한 번 더 더한다
 - **갈래 치기** — 출력이 둘 이상
 - **중간값 꺼내기** — `forward`가 인자를 더 받는다
-- **파라미터 없는 층을 안 만들기** — `F.relu`로 끝
+- **파라메터 없는 층을 안 만들기** — `F.relu`로 끝
 
 ## 1. 코드
 
@@ -75,11 +75,11 @@ def names():
     print("  state_dict 키:", list(net.state_dict().keys()))
     print("  ReLU 를 F.relu 로 적어 모듈이 아예 없다")
     print("  모듈 목록:", [n for n, _ in net.named_children()])
-    print("  Sequential 과 달리 파라미터 없는 층을 안 만들어도 된다")
+    print("  Sequential 과 달리 파라메터 없는 층을 안 만들어도 된다")
 
 
 # ========================================================================
-# 2. Sequential 로는 못 적는 것 — 건너뛰기
+# 2. Sequential 로는 못 적는 것 — 스킵 연결
 # ========================================================================
 
 class Residual(nn.Module):
@@ -95,25 +95,25 @@ class Residual(nn.Module):
 
 
 def skip():
-    header("2. 건너뛰어 더하기")
+    header("2. 스킵 연결")
     torch.manual_seed(0)
     block = Residual(4)
     x = torch.randn(2, 4)
-    print("  입력 모양", tuple(x.shape), "-> 출력", tuple(block(x).shape))
+    print("  입력 형태", tuple(x.shape), "-> 출력", tuple(block(x).shape))
     print("  x 를 한 번 더 쓰는 식은 Sequential 로 적을 수 없다")
     print("  Sequential 은 앞 층의 출력만 다음 층에 넘기기 때문이다")
 
-    print("  블록 스무 개를 쌓고 첫 블록에 닿는 경사를 재어 본다")
+    print("  블록 스무 개를 쌓고 첫 블록에 닿는 그래디언트를 재어 본다")
     for use_skip in (True, False):
         torch.manual_seed(0)
         deep = nn.Sequential(*[Residual(16, use_skip) for _ in range(20)])
         deep(torch.randn(8, 16)).pow(2).mean().backward()
         first = deep[0].fc1.weight.grad.abs().mean().item()
         last = deep[-1].fc1.weight.grad.abs().mean().item()
-        print(f"    지름길 {str(use_skip):5s} 첫 블록 {first:.3e}  "
+        print(f"    스킵 연결 {str(use_skip):5s} 첫 블록 {first:.3e}  "
               f"마지막 블록 {last:.3e}  비 {first / last:.2e}")
-    print("  지름길이 없으면 첫 블록의 경사가 사라진다")
-    print("  더하기의 미분이 1 이라 지름길이 경사를 그대로 흘려 보낸다")
+    print("  스킵 연결이 없으면 첫 블록의 그래디언트가 사라진다")
+    print("  더하기의 미분이 1 이라 스킵 연결이 그래디언트를 그대로 흘려 보낸다")
 
 
 # ========================================================================
@@ -137,7 +137,7 @@ def branching():
     torch.manual_seed(0)
     net = TwoHeads()
     a, b = net(torch.randn(2, 4))
-    print("  분류 머리", tuple(a.shape), "  회귀 머리", tuple(b.shape))
+    print("  분류 헤드", tuple(a.shape), "  회귀 헤드", tuple(b.shape))
     print("  Sequential 은 텐서 하나만 돌려줄 수 있다")
 
     loss = F.cross_entropy(a, torch.tensor([0, 1])) + b.pow(2).mean()
@@ -173,7 +173,7 @@ def tapping():
     out, h1, h2 = net(x, return_hidden=True)
     print("  중간값까지  :", tuple(out.shape), tuple(h1.shape), tuple(h2.shape))
     print("  forward 에 인자를 더 받을 수 있는 것도 Sequential 과 다르다")
-    print("  특징 뽑기, 증류, 시각화가 전부 이 자리에서 나온다")
+    print("  피처 추출, 증류, 시각화가 전부 이 자리에서 나온다")
 
 
 # ========================================================================
@@ -191,8 +191,8 @@ def forgot_super():
         Broken()
     except AttributeError as e:
         print("  만들 때:", str(e).splitlines()[0][:72])
-    print("  nn.Module 이 속성을 가로채려면 먼저 제 살림을 차려야 한다")
-    print("  그 살림이 _parameters, _modules 같은 사전들이다")
+    print("  nn.Module 이 속성을 가로채려면 먼저 제 내부 상태를 만들어야 한다")
+    print("  그 내부 상태가 _parameters, _modules 같은 사전들이다")
 
 
 def main():
@@ -214,20 +214,20 @@ if __name__ == "__main__":
   state_dict 키: ['encoder.weight', 'encoder.bias', 'head.weight', 'head.bias']
   ReLU 를 F.relu 로 적어 모듈이 아예 없다
   모듈 목록: ['encoder', 'head']
-  Sequential 과 달리 파라미터 없는 층을 안 만들어도 된다
+  Sequential 과 달리 파라메터 없는 층을 안 만들어도 된다
 
-=== 2. 건너뛰어 더하기 ===
-  입력 모양 (2, 4) -> 출력 (2, 4)
+=== 2. 스킵 연결 ===
+  입력 형태 (2, 4) -> 출력 (2, 4)
   x 를 한 번 더 쓰는 식은 Sequential 로 적을 수 없다
   Sequential 은 앞 층의 출력만 다음 층에 넘기기 때문이다
-  블록 스무 개를 쌓고 첫 블록에 닿는 경사를 재어 본다
-    지름길 True  첫 블록 1.177e-01  마지막 블록 5.382e-02  비 2.19e+00
-    지름길 False 첫 블록 2.311e-15  마지막 블록 9.248e-04  비 2.50e-12
-  지름길이 없으면 첫 블록의 경사가 사라진다
-  더하기의 미분이 1 이라 지름길이 경사를 그대로 흘려 보낸다
+  블록 스무 개를 쌓고 첫 블록에 닿는 그래디언트를 재어 본다
+    스킵 연결 True  첫 블록 1.177e-01  마지막 블록 5.382e-02  비 2.19e+00
+    스킵 연결 False 첫 블록 2.311e-15  마지막 블록 9.248e-04  비 2.50e-12
+  스킵 연결이 없으면 첫 블록의 그래디언트가 사라진다
+  더하기의 미분이 1 이라 스킵 연결이 그래디언트를 그대로 흘려 보낸다
 
 === 3. 출력이 둘 ===
-  분류 머리 (2, 3)   회귀 머리 (2, 1)
+  분류 헤드 (2, 3)   회귀 헤드 (2, 1)
   Sequential 은 텐서 하나만 돌려줄 수 있다
   두 로스를 더해 한 번 역전파하면 trunk 가 둘 다에게서 받는다
   trunk.weight.grad 가 있는가: True
@@ -236,12 +236,12 @@ if __name__ == "__main__":
   보통 부르면 : (2, 2)
   중간값까지  : (2, 2) (2, 8) (2, 8)
   forward 에 인자를 더 받을 수 있는 것도 Sequential 과 다르다
-  특징 뽑기, 증류, 시각화가 전부 이 자리에서 나온다
+  피처 추출, 증류, 시각화가 전부 이 자리에서 나온다
 
 === 5. super().__init__() 을 빼먹으면 ===
   만들 때: cannot assign module before Module.__init__() call
-  nn.Module 이 속성을 가로채려면 먼저 제 살림을 차려야 한다
-  그 살림이 _parameters, _modules 같은 사전들이다
+  nn.Module 이 속성을 가로채려면 먼저 제 내부 상태를 만들어야 한다
+  그 내부 상태가 _parameters, _modules 같은 사전들이다
 ```
 
 ## 2. `F.relu`로 적으면 모듈이 안 생긴다
@@ -252,12 +252,12 @@ state_dict 키: ['encoder.weight', 'encoder.bias', 'head.weight', 'head.bias']
 ```
 
 `nn.ReLU()`를 속성으로 두지 않고 `forward` 안에서 `F.relu`를 부르면 **모듈
-목록에 안 나타난다.** 파라미터가 없으니 `state_dict`에도 차이가 없다.
+목록에 안 나타난다.** 파라메터가 없으니 `state_dict`에도 차이가 없다.
 
 둘 중 어느 쪽이든 결과는 같다(연습문제 1). 가르는 것은 **모델을 들여다보거나
 고칠 때**다 — `nn.ReLU`로 두면 `print(model)`에 보이고 훅을 걸 수 있다.
 
-## 3. 건너뛰어 더하기 — 경사가 살아남는다
+## 3. 스킵 연결 — 그래디언트가 살아남는다
 
 ```python
 def forward(self, x):
@@ -267,22 +267,22 @@ def forward(self, x):
 `x`를 한 번 더 쓴다. `Sequential`로는 적을 수 없다 — 앞 층의 출력만 넘어가니
 원래 `x`에 닿을 길이 없다.
 
-블록 스무 개를 쌓고 **첫 블록에 닿는 경사**를 재어 보면 무엇이 달라지는지
+블록 스무 개를 쌓고 **첫 블록에 닿는 그래디언트**를 재어 보면 무엇이 달라지는지
 보인다.
 
 | | 첫 블록 | 마지막 블록 | 비 |
 |---|---|---|---|
-| 지름길 있음 | 1.177e-01 | 5.382e-02 | 2.19 |
-| 지름길 없음 | **2.311e-15** | 9.248e-04 | 2.50e-12 |
+| 스킵 연결 있음 | 1.177e-01 | 5.382e-02 | 2.19 |
+| 스킵 연결 없음 | **2.311e-15** | 9.248e-04 | 2.50e-12 |
 
-![두 칸 그림. 왼쪽은 지름길이 있는 구조와 없는 구조를 나란히 그려, 있는 쪽에서 입력이 한 번 더 쓰이는 길을 보인다. 오른쪽은 로그 눈금 그래프로, 지름길이 있으면 첫 블록과 마지막 블록의 경사가 거의 같은 높이에 있고 없으면 첫 블록이 바닥까지 내려간다.](figures/skip_connection.svg)
+![두 칸 그림. 왼쪽은 스킵 연결이 있는 구조와 없는 구조를 나란히 그려, 있는 쪽에서 입력이 한 번 더 쓰이는 길을 보인다. 오른쪽은 로그 스케일 그래프로, 스킵 연결이 있으면 첫 블록과 마지막 블록의 그래디언트가 거의 같은 높이에 있고 없으면 첫 블록이 바닥까지 내려간다.](figures/skip_connection.svg)
 
-지름길이 없으면 첫 블록의 경사가 $10^{-15}$다. **사라졌다.** 앞쪽 층들이
-사실상 학습되지 않는다. 로그 눈금에서 회색 선이 **열한 칸 넘게 떨어지는 것**이
+스킵 연결이 없으면 첫 블록의 그래디언트가 $10^{-15}$다. **사라졌다.** 앞쪽 층들이
+사실상 학습되지 않는다. 로그 스케일에서 회색 선이 **열한 칸 넘게 떨어지는 것**이
 그 말이다.
 
-까닭은 연쇄 법칙이다. 스무 층을 거치며 각 층의 야코비가 곱해지는데, 그 크기가
-1보다 조금만 작아도 스무 번 곱하면 0으로 간다. 지름길이 있으면
+까닭은 연쇄 법칙이다. 스무 층을 거치며 각 층의 야코비안(출력을 입력으로 미분한 행렬)이 곱해지는데, 그 크기가
+1보다 조금만 작아도 스무 번 곱하면 0으로 간다. 스킵 연결이 있으면
 $\frac{\partial}{\partial x}(x + f(x)) = 1 + f'(x)$라 **1이 더해져** 곱해도 안
 줄어든다.
 
@@ -298,17 +298,17 @@ def forward(self, x):
 ```
 
 ```
-분류 머리 (2, 3)   회귀 머리 (2, 1)
+분류 헤드 (2, 3)   회귀 헤드 (2, 1)
 두 로스를 더해 한 번 역전파하면 trunk 가 둘 다에게서 받는다
 trunk.weight.grad 가 있는가: True
 ```
 
-![x 가 줄기를 지나 두 갈래로 갈라져 분류 머리와 회귀 머리로 가고, 둘이 다시 하나의 로스로 모인 뒤 되짚는 화살표 하나가 줄기로 돌아오는 그림. 줄기 아래에 경사를 받았다는 칸이 채워져 있다.](figures/two_heads.svg)
+![x 가 백본을 지나 두 갈래로 갈라져 분류 헤드와 회귀 헤드로 가고, 둘이 다시 하나의 로스로 모인 뒤 역전파 화살표 하나가 백본으로 돌아오는 그림. 백본 아래에 그래디언트를 받았다는 칸이 채워져 있다.](figures/two_heads.svg)
 
 `Sequential`은 텐서 하나만 돌려줄 수 있다. 객체 탐지(상자와 클래스), 다중
 작업 학습, VAE(평균과 로그분산)가 전부 이 형태.
 
-`trunk`가 두 머리 양쪽에서 경사를 받는다 — 「경사 누적」에서 본 대로 한 입력이
+`trunk`가 두 헤드 양쪽에서 그래디언트를 받는다 — 「그래디언트 누적」에서 본 대로 한 입력이
 여러 곳에 쓰이면 **더해져서** 돌아온다.
 
 ## 5. 중간값 꺼내기
@@ -324,7 +324,7 @@ def forward(self, x, return_hidden=False):
 중간값까지  : (2, 2) (2, 8) (2, 8)
 ```
 
-`forward`가 **인자를 더 받는 것**도 `Sequential`과 다르다. 특징 뽑기, 지식
+`forward`가 **인자를 더 받는 것**도 `Sequential`과 다르다. 피처 추출, 지식
 증류, 어텐션 시각화가 전부 중간값을 꺼내는 일이다.
 
 (모델을 안 고치고 꺼내는 길도 있다 — `register_forward_hook`. 남의 모델에서
@@ -336,8 +336,8 @@ def forward(self, x, return_hidden=False):
 만들 때: cannot assign module before Module.__init__() call
 ```
 
-`nn.Module`이 속성 대입을 **가로채서** 등록하려면 먼저 제 살림(`_parameters`,
-`_modules` 같은 사전들)을 차려야 한다. 그래서 `super().__init__()`이 첫 줄에
+`nn.Module`이 속성 대입을 **가로채서** 등록하려면 먼저 제 내부 상태(`_parameters`,
+`_modules` 같은 사전들)를 만들어야 한다. 그래서 `super().__init__()`이 첫 줄에
 와야 하고, 빼먹으면 모델을 만드는 그 자리에서 터진다.
 
 다행히 터져 준다. 그런데 **리스트에 담으면 안 터진다** — 연습문제 3이 그
@@ -385,7 +385,7 @@ def forward(self, x, return_hidden=False):
       출력이 같은가: True
     ```
 
-    **`state_dict`는 같고 모듈 목록만 다르다.** ReLU에 파라미터가 없으니 저장할
+    **`state_dict`는 같고 모듈 목록만 다르다.** ReLU에 파라메터가 없으니 저장할
     것도 없기 때문이다. 출력도 당연히 같다.
 
     그래서 고르는 기준이 저장이나 성능이 아니라 **보이느냐**다.
@@ -433,7 +433,7 @@ def forward(self, x, return_hidden=False):
 
     훅에 기대는 기능이 많다.
 
-    - 중간 활성값을 꺼내는 코드(Grad-CAM, 특징 추출)
+    - 중간 활성값을 꺼내는 코드(Grad-CAM, 피처 추출)
     - `torch.jit.trace`나 프로파일러
     - 양자화·가지치기 라이브러리가 끼워 넣는 훅
 
@@ -464,7 +464,7 @@ def forward(self, x, return_hidden=False):
 
     bad = Bad()
     print("  순전파 되는가:", tuple(bad(torch.randn(3, 2)).shape))
-    print("  파라미터 수  :", sum(p.numel() for p in bad.parameters()))
+    print("  파라메터 수  :", sum(p.numel() for p in bad.parameters()))
     print("  state_dict   :", list(bad.state_dict().keys()))
     bad.to(torch.float64)
     print("  to(float64) 뒤 층의 dtype:", bad.layers[0].weight.dtype)
@@ -472,7 +472,7 @@ def forward(self, x, return_hidden=False):
 
     ```
       순전파 되는가: (3, 2)
-      파라미터 수  : 0
+      파라메터 수  : 0
       state_dict   : []
       to(float64) 뒤 층의 dtype: torch.float32
     ```
@@ -481,8 +481,8 @@ def forward(self, x, return_hidden=False):
 
     | 깨지는 것 | 드러나는 때 |
     |---|---|
-    | 파라미터 수가 **0** | 옵티마이저에 안 들어가 **학습이 안 된다** |
-    | `state_dict`가 **비어 있다** | 저장했는데 가중치가 없다 |
+    | 파라메터 수가 **0** | 옵티마이저에 안 들어가 **학습이 안 된다** |
+    | `state_dict`가 **비어 있다** | 저장했는데 웨이트가 없다 |
     | `.to()`가 안 옮긴다 | GPU에서 **device mismatch**로 터진다 |
 
     셋 다 **한참 뒤에** 드러난다. 학습을 한참 돌리고 "왜 로스가 안 줄지"
@@ -499,5 +499,5 @@ def forward(self, x, return_hidden=False):
     `nn.ModuleList`는 모듈이므로 등록되고, 그 안의 층들을 제 자식으로
     알려 준다.
 
-    사전이면 `nn.ModuleDict`, 파라미터 여럿이면 `nn.ParameterList`가 있다.
+    사전이면 `nn.ModuleDict`, 파라메터 여럿이면 `nn.ParameterList`가 있다.
     **담는 그릇이 필요하면 `nn.` 이 붙은 것을 쓴다**고 기억하면 된다.

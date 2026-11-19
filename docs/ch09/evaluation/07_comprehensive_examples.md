@@ -75,7 +75,7 @@ class Example1_BinaryClassification:
         print(f"Training set: {len(X_train)} samples")
         print(f"Test set: {len(X_test)} samples")
         
-        # 피처의 척도 조정
+        # 피처 스케일링
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
@@ -89,7 +89,7 @@ class Example1_BinaryClassification:
         lr_model.fit(X_train_scaled, y_train)
         print("✓ Logistic Regression trained")
         
-        # 모델 2: 랜덤 포리스트
+        # 모델 2: 랜덤 포레스트
         rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
         rf_model.fit(X_train_scaled, y_train)
         print("✓ Random Forest trained")
@@ -249,7 +249,7 @@ class Example3_Regression:
             noise=10, random_state=42
         )
         
-        # 현실적인 집값으로 척도 맞추기
+        # 현실적인 집값으로 스케일 맞추기
         y = (y - y.min()) / (y.max() - y.min()) * 500000 + 200000
         
         print(f"Total samples: {len(X)}")
@@ -264,7 +264,7 @@ class Example3_Regression:
             X, y, test_size=0.2, random_state=42
         )
         
-        # 피처의 척도 조정
+        # 피처 스케일링
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
@@ -567,9 +567,9 @@ if __name__ == "__main__":
 
 이진 분류는 make_classification으로 만든 불균형 합성 데이터이며 실제 거래 데이터가 아니다. 회귀도 make_regression으로 생성하므로 RMSE를 실제 주택 가격이나 달러 오차로 해석할 수 없다.
 
-이진 분류와 회귀는 외부 학습 부분 전체를 표준화한 뒤 내부 교차 검증을 수행한다. 외부 테스트를 scaler에 fit하지는 않았지만 내부 검증 입력의 통계가 전처리에 반영된다. 엄격한 내부 평가에는 scaler와 모델을 Pipeline으로 함께 검증해야 한다.
+이진 분류와 회귀는 외부 학습 부분 전체를 표준화한 뒤 내부 교차 검증을 수행한다. 외부 시험 집합을 scaler에 fit하지는 않았지만 내부 검증 입력의 통계가 전처리에 반영된다. 엄격한 내부 평가에는 scaler와 모델을 Pipeline으로 함께 검증해야 한다.
 
-여러 모델의 최종 테스트 지표를 비교해 가장 좋은 모델을 고르면 테스트가 선택에 쓰인다. 선택 기준은 검증에서 정하고 마지막 테스트를 독립적으로 해석한다. 불균형 분류의 F1, 재현율과 확률 지표는 각각 다른 질문에 답한다.
+여러 모델의 최종 시험 지표를 비교해 가장 좋은 모델을 고르면 시험 집합이 선택에 쓰인다. 선택 기준은 검증에서 정하고 마지막 시험 평가를 독립적으로 해석한다. 불균형 분류의 F1, 재현율과 확률 지표는 각각 다른 질문에 답한다.
 
 ## 연습문제
 
@@ -589,7 +589,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-외부 테스트를 분리했는데도 내부 교차 검증에 전처리 누출이 생기는 이유는 무엇인가?
+외부 시험 집합을 분리했는데도 내부 교차 검증에 전처리 누출(data leakage)이 생기는 이유는 무엇인가?
 
 </div>
 
@@ -607,7 +607,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    목표 분산이 크면 기준 평균보다 상당히 나은 예측이어도 단위상의 절대 오차가 클 수 있다. 같은 평가셋에서 R²와 RMSE는 상대·절대 성능을 다르게 표현한다.
+    목표 분산이 크면 기준 평균보다 상당히 나은 예측이어도 단위상의 절대 오차가 클 수 있다. 같은 평가 집합에서 R²와 RMSE는 상대·절대 성능을 다르게 표현한다.
 
 ## 정리하며
 

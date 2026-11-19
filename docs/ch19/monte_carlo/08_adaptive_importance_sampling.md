@@ -10,37 +10,37 @@
     """
     08_adaptive_importance_sampling.py
 
-    앞선 단계: 맞춰 가는 중요도 표집(AIS)
+    고급 단계: 적응적 중요도 샘플링(AIS)
 
-    이 단원은 맞춰 가는 중요도 표집을 구현한다. 여기서 제안
-    분포는 앞서 뽑은 표본에 따라 되풀이하며 다듬어진다.
+    이 단원은 적응적 중요도 샘플링을 구현한다. 여기서 제안
+    분포는 앞서 뽑은 표본에 따라 반복적으로 갱신된다.
 
-    수학적 바탕:
+    수학적 기초:
     ---------------------
-    표준 중요도 표집은 붙박인 제안 q(θ)을 쓴다. AIS은 q을 되풀이하며 낫게 한다:
+    표준 중요도 샘플링은 고정 제안 q(θ)를 쓴다. AIS는 q를 반복적으로 개선한다:
 
-    알고리즘(무리 몬테카를로 - PMC):
-    1. 첫값 잡기: q₀(θ) 고르기
+    알고리즘(집단 몬테카를로 - PMC):
+    1. 초기화: q₀(θ) 선택
     2. t = 1, 2, ..., T에 대해:
-       가) i=1,...,n에 대해 θᵢᵗ ~ qₜ₋₁(θ) 표집
-       나) 무게 wᵢᵗ = π(θᵢᵗ)/qₜ₋₁(θᵢᵗ) 셈하기
-       다) 제안 새로 고치기: {θᵢᵗ, wᵢᵗ}에 바탕을 둔 qₜ(θ)
-    3. 중요도 무게를 붙여 마지막 표본 돌려주기
+       가) i=1,...,n에 대해 θᵢᵗ ~ qₜ₋₁(θ) 샘플링
+       나) 웨이트 wᵢᵗ = π(θᵢᵗ)/qₜ₋₁(θᵢᵗ) 계산하기
+       다) 제안 갱신하기: {θᵢᵗ, wᵢᵗ}에 바탕을 둔 qₜ(θ)
+    3. 중요도 웨이트를 붙여 최종 표본 반환하기
 
-    흔한 새로 고침 전략:
-    1. 무게 큰 표본에 가운데를 맞춘 가우스 섞음
-    2. 무게 커널 밀도 어림
-    3. 파라메터 맞추기(이를테면 평균과 공분산을 새로 고친 가우스)
+    흔한 갱신 전략:
+    1. 웨이트가 큰 표본에 중심을 맞춘 가우스 혼합
+    2. 가중 커널 밀도 추정
+    3. 파라메터 적합(이를테면 평균과 공분산을 갱신한 가우스)
 
     이점:
-    - 타깃 분포에 저절로 맞춰 간다
-    - 봉우리 여럿인 짜임을 찾아낼 수 있다
-    - 대체로 붙박인 제안보다 ESS이 높다
+    - 타깃 분포에 자동으로 적응한다
+    - 봉우리가 여럿인 구조를 찾아낼 수 있다
+    - 대체로 고정 제안보다 ESS가 높다
 
     어려움:
-    - 무게를 제대로 셈하려면 조심해야 한다
-    - 그 자리 봉우리에 갇힐 수 있다
-    - 제안을 새로 고치는 셈 값
+    - 웨이트를 올바르게 계산하려면 주의해야 한다
+    - 국소 모드에 갇힐 수 있다
+    - 제안을 갱신하는 계산 비용
 
     지은이: 베이즈 추론 교육 자료
     """
@@ -58,7 +58,7 @@
 
     class AdaptiveImportanceSampler:
         """
-        섞음 제안을 쓰는 맞춰 가는 중요도 표집.
+        혼합 제안을 쓰는 적응적 중요도 샘플링.
         """
 
         def __init__(self, target_log_density: Callable, dim: int,
@@ -67,27 +67,27 @@
             파라메터:
             -----------
             target_log_density : function
-                고르게 하지 않은 타깃 밀도의 로그
+                정규화하지 않은 타깃 밀도의 로그
             dim : int
                 파라메터 공간의 차원
             n_components : int
-                섞음 성분의 개수
+                혼합 성분의 개수
             initial_scale : float
-                제안 성분의 첫 규모
+                제안 성분의 초기 스케일
             """
             self.target_log_density = target_log_density
             self.dim = dim
             self.n_components = n_components
             self.initial_scale = initial_scale
 
-            # 되풀이를 담을 저장 공간
+            # 반복 기록을 담을 저장 공간
             self.samples_history = []
             self.weights_history = []
             self.ess_history = []
 
         def initialize_proposal(self, initial_mean: np.ndarray = None):
             """
-            initial_mean에 가운데를 맞춘 N(μ, σ²I)으로 섞음 제안 첫값 잡기.
+            initial_mean에 중심을 맞춘 N(μ, σ²I)로 혼합 제안 초기화하기.
             """
             if initial_mean is None:
                 initial_mean = np.zeros(self.dim)
@@ -99,11 +99,11 @@
 
         def proposal_log_density(self, theta: np.ndarray) -> float:
             """
-            theta에서 지금 섞음 제안의 로그 밀도 값 매기기.
+            theta에서 현재 혼합 제안의 로그 밀도 평가.
 
             q(θ) = Σⱼ αⱼ N(θ|μⱼ, Σⱼ)
             """
-            # 성분마다 값 매기기
+            # 성분마다 평가하기
             log_densities = []
             for mean, cov, weight in zip(self.mixture_means, self.mixture_covs, 
                                           self.mixture_weights):
@@ -111,22 +111,22 @@
                 component = stats.multivariate_normal(mean, cov)
                 log_densities.append(np.log(weight + 1e-300) + component.logpdf(theta))
 
-            # 수치 안정을 위한 로그-합-지수
+            # 수치 안정을 위한 log-sum-exp
             return logsumexp(log_densities)
 
         def sample_from_proposal(self, n_samples: int) -> np.ndarray:
             """
-            지금 섞음 제안에서 표집하기.
+            현재 혼합 제안에서 샘플링하기.
             """
             samples = []
 
-            # 성분 배정 표집
+            # 성분 배정 샘플링
             component_probs = np.array(self.mixture_weights)
             component_probs /= component_probs.sum()
             components = np.random.choice(len(self.mixture_means), 
                                          size=n_samples, p=component_probs)
 
-            # 배정된 성분에서 표집
+            # 배정된 성분에서 샘플링
             for i in range(n_samples):
                 comp_idx = components[i]
                 mean = self.mixture_means[comp_idx]
@@ -139,58 +139,58 @@
         def update_proposal(self, samples: np.ndarray, weights: np.ndarray, 
                            method: str = 'resample'):
             """
-            무게 표본에 따라 섞음 제안 새로 고치기.
+            가중 표본에 따라 혼합 제안 갱신하기.
 
             방법:
             --------
-            'resample': 다시 표집한 알갱이에 섞음을 맞춘다
-            'weighted_means': 무게가 큰 표본에 성분을 놓는다
+            'resample': 재표집한 입자에 혼합을 적합한다
+            'weighted_means': 웨이트가 큰 표본에 성분을 배치한다
             """
-            # 무게 고르게 하기
+            # 웨이트 정규화하기
             normalized_weights = weights / np.sum(weights)
 
             if method == 'resample':
-                # 무게에 따라 다시 표집하기
+                # 웨이트에 따라 재표집하기
                 indices = np.random.choice(len(samples), size=self.n_components,
                                           replace=True, p=normalized_weights)
                 selected_samples = samples[indices]
 
-                # 모든 표본의 경험 공분산 셈하기
-                # 변수가 하나뿐이면 np.cov가 0차원 배열을 돌려주므로
-                # 아래의 += np.eye(dim) 가 방송되지 못한다. 2차원으로 맞춰 둔다.
+                # 모든 표본의 경험 공분산 계산하기
+                # 변수가 하나뿐이면 np.cov가 0차원 배열을 반환하므로
+                # 아래의 += np.eye(dim) 가 브로드캐스트되지 못한다. 2차원으로 맞춰 둔다.
                 weighted_cov = np.atleast_2d(
                     np.cov(samples.T, aweights=normalized_weights))
 
-                # 수치 안정을 위해 작은 벌주기 더하기
+                # 수치 안정을 위해 작은 정칙화 항 더하기
                 weighted_cov += np.eye(self.dim) * 1e-4
 
-                # 살펴보기-써먹기 주고받음을 위해 공분산 오그라뜨리기
+                # 탐색-활용 트레이드오프를 위해 공분산 축소하기
                 shrinkage = 0.7
                 weighted_cov *= shrinkage
 
-                # 섞음 성분 새로 고치기
+                # 혼합 성분 갱신하기
                 self.mixture_means = [s for s in selected_samples]
                 self.mixture_covs = [weighted_cov for _ in range(self.n_components)]
                 self.mixture_weights = [1.0/self.n_components] * self.n_components
 
             elif method == 'weighted_means':
-                # 무게가 큰 표본 고르기
+                # 웨이트가 큰 표본 고르기
                 top_indices = np.argsort(normalized_weights)[-self.n_components:]
 
-                # 고른 표본을 평균으로 쓰기
+                # 선택한 표본을 평균으로 쓰기
                 self.mixture_means = [samples[i] for i in top_indices]
 
-                # 맞춰 가는 공분산 셈하기
-                # 변수가 하나뿐이면 np.cov가 0차원 배열을 돌려주므로
-                # 아래의 += np.eye(dim) 가 방송되지 못한다. 2차원으로 맞춰 둔다.
+                # 적응 공분산 계산하기
+                # 변수가 하나뿐이면 np.cov가 0차원 배열을 반환하므로
+                # 아래의 += np.eye(dim) 가 브로드캐스트되지 못한다. 2차원으로 맞춰 둔다.
                 weighted_cov = np.atleast_2d(
                     np.cov(samples.T, aweights=normalized_weights))
                 weighted_cov += np.eye(self.dim) * 1e-4
-                weighted_cov *= 0.5  # 안정을 위해 오그라뜨림
+                weighted_cov *= 0.5  # 안정을 위해 축소
 
                 self.mixture_covs = [weighted_cov for _ in range(self.n_components)]
 
-                # 중요도 무게에 비례하는 무게
+                # 중요도 웨이트에 비례하는 웨이트
                 selected_weights = normalized_weights[top_indices]
                 self.mixture_weights = (selected_weights / selected_weights.sum()).tolist()
 
@@ -199,12 +199,12 @@
                 initial_mean: np.ndarray = None,
                 verbose: bool = True) -> Tuple[np.ndarray, np.ndarray]:
             """
-            맞춰 가는 중요도 표집 돌리기.
+            적응적 중요도 샘플링 실행하기.
 
             반환값:
             --------
             samples : 형태가 (n_iterations * n_samples, dim)인 배열
-            weights : 고르게 한 무게의 배열
+            weights : 정규화한 웨이트의 배열
             """
             self.initialize_proposal(initial_mean)
 
@@ -217,31 +217,31 @@
                 print("=" * 60)
 
             for t in range(n_iterations):
-                # 지금 제안에서 표집
+                # 현재 제안에서 샘플링
                 samples = self.sample_from_proposal(n_samples)
 
-                # 로그 중요도 무게 셈하기
+                # 로그 중요도 웨이트 계산하기
                 log_weights = np.array([
                     self.target_log_density(s) - self.proposal_log_density(s)
                     for s in samples
                 ])
 
-                # 표본과 무게 저장
+                # 표본과 웨이트 저장
                 all_samples.append(samples)
                 all_log_weights.append(log_weights)
 
-                # 이번 되풀이의 무게 고르게 하기
+                # 이번 반복의 웨이트 정규화하기
                 log_weights_normalized = log_weights - logsumexp(log_weights)
                 weights = np.exp(log_weights_normalized)
 
-                # 진단을 위한 ESS 셈하기
+                # 진단을 위한 ESS 계산하기
                 ess = 1.0 / np.sum(weights**2)
                 self.ess_history.append(ess)
 
                 if verbose:
                     print(f"Iteration {t+1:3d}: ESS = {ess:7.1f} ({ess/n_samples:5.1%})")
 
-                # 제안 새로 고치기(마지막 되풀이는 빼고)
+                # 제안 갱신하기(마지막 반복은 빼고)
                 if t < n_iterations - 1:
                     self.update_proposal(samples, np.exp(log_weights), 
                                         method=update_method)
@@ -249,11 +249,11 @@
                 self.samples_history.append(samples)
                 self.weights_history.append(weights)
 
-            # 표본을 모두 합치고 마지막 무게 다시 셈하기
+            # 표본을 모두 합치고 최종 웨이트 다시 계산하기
             all_samples = np.vstack(all_samples)
             all_log_weights = np.concatenate(all_log_weights)
 
-            # 마지막 고르게 한 무게
+            # 최종 정규화한 웨이트
             final_log_weights = all_log_weights - logsumexp(all_log_weights)
             final_weights = np.exp(final_log_weights)
 
@@ -266,7 +266,7 @@
     print("EXAMPLE 1: Adaptive IS for 1D Bimodal Distribution")
     print("=" * 70)
 
-    # 타깃: 가우스 둘의 섞음
+    # 타깃: 가우스 둘의 혼합
     def target_log_density_1d(theta):
         """봉우리 둘인 타깃: 0.3*N(-3,1) + 0.7*N(4,1.5)"""
         if theta.ndim == 0 or len(theta) == 1:
@@ -284,7 +284,7 @@
     def true_target_1d(x):
         return 0.3 * stats.norm.pdf(x, -3, 1) + 0.7 * stats.norm.pdf(x, 4, 1.5)
 
-    # 맞춰 가는 중요도 표집 돌리기
+    # 적응적 중요도 샘플링 실행하기
     sampler_1d = AdaptiveImportanceSampler(
         target_log_density=target_log_density_1d,
         dim=1,
@@ -303,7 +303,7 @@
     print(f"\nFinal ESS: {final_ess:.1f} out of {len(samples_1d)} samples")
     print(f"Efficiency: {final_ess/len(samples_1d):.1%}")
 
-    # 맞춰 가는 과정 그려 보기
+    # 적응 과정 시각화하기
     fig, axes = plt.subplots(2, 5, figsize=(18, 7))
     axes = axes.ravel()
 
@@ -317,16 +317,16 @@
         ax.plot(x_plot, true_target_1d(x_plot), 'r-', linewidth=2, 
                 label='Target', alpha=0.7)
 
-        # 이번 되풀이의 표본 그리기
+        # 이번 반복의 표본 그리기
         if iter_num < len(sampler_1d.samples_history):
             samples_iter = sampler_1d.samples_history[iter_num]
             weights_iter = sampler_1d.weights_history[iter_num]
 
-            # 표본의 막대그림
+            # 표본의 히스토그램
             ax.hist(samples_iter.flatten(), bins=30, density=True, alpha=0.5,
                     color='steelblue', edgecolor='black', linewidth=0.5)
 
-            # 무게로 색칠한 표본 흩뿌리기
+            # 웨이트로 색칠한 표본 산점도
             y_pos = np.zeros(len(samples_iter))
             scatter = ax.scatter(samples_iter.flatten(), y_pos, 
                                c=weights_iter*len(weights_iter), 
@@ -369,7 +369,7 @@
 
         return term1 + term2
 
-    # 맞춰 가는 중요도 표집 돌리기
+    # 적응적 중요도 샘플링 실행하기
     sampler_banana = AdaptiveImportanceSampler(
         target_log_density=target_log_density_banana,
         dim=2,
@@ -387,7 +387,7 @@
     final_ess_banana = 1.0 / np.sum(weights_banana**2)
     print(f"\nFinal ESS: {final_ess_banana:.1f} out of {len(samples_banana)} samples")
 
-    # 2차원 맞춰 가기 그려 보기
+    # 2차원 적응 과정 시각화하기
     fig, axes = plt.subplots(2, 4, figsize=(16, 8))
     axes = axes.ravel()
 
@@ -430,18 +430,18 @@
                 dpi=300, bbox_inches='tight')
 
 
-    # 보기 3: 붙박인 제안과 견주기
+    # 보기 3: 고정 제안과 견주기
     # =======================================
     print("\n" + "=" * 70)
     print("EXAMPLE 3: Adaptive vs Fixed Proposal IS")
     print("=" * 70)
 
-    # 붙박인 제안의 중요도 표집
-    n_fixed_samples = 3000  # 맞춰 가는 방식과 전체가 같음(되풀이 15번 × 표본 200개)
+    # 고정 제안의 중요도 샘플링
+    n_fixed_samples = 3000  # 적응 방식과 전체가 같음(반복 15번 × 표본 200개)
     fixed_proposal = stats.multivariate_normal([0, 0], [[9, 0], [0, 9]])
     samples_fixed = fixed_proposal.rvs(size=n_fixed_samples)
 
-    # 붙박인 제안의 무게 셈하기
+    # 고정 제안의 웨이트 계산하기
     log_weights_fixed = np.array([
         target_log_density_banana(s) - fixed_proposal.logpdf(s)
         for s in samples_fixed
@@ -461,10 +461,10 @@
 
     print(f"\nImprovement: {final_ess_banana/ess_fixed:.2f}x better ESS")
 
-    # 견줌을 그려 본다
+    # 비교를 시각화한다
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
-    # 붙박인 제안
+    # 고정 제안
     ax = axes[0]
     ax.contour(X1, X2, Z, levels=10, colors='red', alpha=0.5, linewidths=1.5)
     scatter = ax.scatter(samples_fixed[:, 0], samples_fixed[:, 1],
@@ -476,7 +476,7 @@
     ax.set_ylabel('θ₂', fontsize=11)
     plt.colorbar(scatter, ax=ax, label='Weight × n')
 
-    # 맞춰 가는 제안
+    # 적응 제안
     ax = axes[1]
     ax.contour(X1, X2, Z, levels=10, colors='red', alpha=0.5, linewidths=1.5)
     scatter = ax.scatter(samples_banana[:, 0], samples_banana[:, 1],
@@ -493,7 +493,7 @@
                 dpi=300, bbox_inches='tight')
 
 
-    # 보기 4: 되풀이에 따른 ESS의 흘러감
+    # 보기 4: 반복에 따른 ESS의 변화
     # ======================================
     print("\n" + "=" * 70)
     print("EXAMPLE 4: Tracking ESS Improvement")
@@ -539,54 +539,54 @@
     print("KEY TAKEAWAYS")
     print("=" * 70)
     print("""
-    1. 맞춰 가는 중요도 표집은 제안을 되풀이하며 다듬는다:
-       - 넓은 첫 제안으로 시작하기
-       - 무게 표본에 따라 새로 고치기
-       - 확률 높은 구역으로 모인다
+    1. 적응적 중요도 샘플링은 제안을 반복적으로 개선한다:
+       - 넓은 초기 제안으로 시작하기
+       - 가중 표본에 따라 갱신하기
+       - 확률이 높은 영역으로 수렴한다
 
-    2. 섞음 제안이 잘 듣는다:
+    2. 혼합 제안이 효과적이다:
        - 성분이 여럿이면 복잡한 형태를 덮는다
        - 봉우리 여럿을 잡아낼 수 있다
-       - 살펴보기와 써먹기의 균형
+       - 탐색과 활용의 균형
 
-    3. 새로 고치는 전략:
-       - 다시 표집: 무게 분포에서 뽑기
-       - 무게 평균: 무게 큰 표본에 가운데 맞추기
+    3. 갱신 전략:
+       - 재표집: 웨이트 분포에서 뽑기
+       - 가중 평균: 웨이트가 큰 표본에 중심 맞추기
        - 둘 다 형태를 잡는 데 경험 공분산을 쓴다
 
-    4. ESS은 보통 되풀이할수록 나아진다:
-       - 앞부분: ESS이 낮고 살펴보는 중
-       - 가운데: 제안이 맞춰 가면서 ESS이 커진다
-       - 뒷부분: ESS이 가장 좋은 값에서 평평해진다
+    4. ESS는 보통 반복할수록 나아진다:
+       - 초반: ESS가 낮고 탐색 중
+       - 중반: 제안이 적응하면서 ESS가 커진다
+       - 후반: ESS가 가장 좋은 값에서 정체된다
 
-    5. 붙박인 제안보다 나은 점:
+    5. 고정 제안보다 나은 점:
        - 좋은 제안을 미리 알 필요가 없다
-       - 타깃의 형태에 저절로 맞춰 간다
-       - ESS을 훨씬 높일 수 있다
+       - 타깃의 형태에 자동으로 적응한다
+       - ESS를 훨씬 높일 수 있다
        - 봉우리가 여럿인 타깃을 다룬다
 
-    6. 셈에서 살필 점:
-       - 붙박인 중요도 표집보다 표본마다 더 비싸다
+    6. 계산 측면의 고려 사항:
+       - 고정 제안 중요도 샘플링보다 표본마다 더 비싸다
        - 그러나 같은 정확도에 표본이 더 적게 든다
-       - 주고받음: 맞춰 가는 값과 ESS 나아짐
+       - 트레이드오프: 적응 비용과 ESS 개선
 
-    7. 맞춰 가는 중요도 표집을 언제 쓰나:
+    7. 적응적 중요도 샘플링을 언제 쓰나:
        - 타깃의 형태를 모를 때
        - 복잡하거나 봉우리가 여럿인 분포
-       - 붙박인 제안의 ESS이 나쁠 때
-       - 차례차례 결정하는 문제
+       - 고정 제안의 ESS가 나쁠 때
+       - 순차 의사결정 문제
 
     8. 실전 요령:
-       - 넓은 첫 제안으로 시작하기
-       - 섞음 성분 5개에서 10개 쓰기
-       - ESS의 모임 지켜보기
-       - 지나친 자신을 피하려고 공분산 오그라뜨리기
+       - 넓은 초기 제안으로 시작하기
+       - 혼합 성분 5개에서 10개 쓰기
+       - ESS의 수렴 모니터링하기
+       - 과신을 피하려고 공분산 축소하기
        - 보통 ESS > 0.3n이면 아주 좋다
 
     9. MCMC와 견주기:
-       - AIS: 독립 표본, 태우기 없음
-       - MCMC: 표본이 서로 얽혀 있고 태우기가 필요하다
-       - 좋은 제안을 배울 수 있으면 AIS이 낫다
+       - AIS: 독립 표본, 번인(burn-in) 없음
+       - MCMC: 표본이 서로 상관되어 있고 번인이 필요하다
+       - 좋은 제안을 학습할 수 있으면 AIS가 낫다
        - 차원이 아주 높으면 MCMC가 낫다
     """)
 
@@ -665,54 +665,54 @@
     KEY TAKEAWAYS
     ======================================================================
 
-    1. 맞춰 가는 중요도 표집은 제안을 되풀이하며 다듬는다:
-       - 넓은 첫 제안으로 시작하기
-       - 무게 표본에 따라 새로 고치기
-       - 확률 높은 구역으로 모인다
+    1. 적응적 중요도 샘플링은 제안을 반복적으로 개선한다:
+       - 넓은 초기 제안으로 시작하기
+       - 가중 표본에 따라 갱신하기
+       - 확률이 높은 영역으로 수렴한다
 
-    2. 섞음 제안이 잘 듣는다:
+    2. 혼합 제안이 효과적이다:
        - 성분이 여럿이면 복잡한 형태를 덮는다
        - 봉우리 여럿을 잡아낼 수 있다
-       - 살펴보기와 써먹기의 균형
+       - 탐색과 활용의 균형
 
-    3. 새로 고치는 전략:
-       - 다시 표집: 무게 분포에서 뽑기
-       - 무게 평균: 무게 큰 표본에 가운데 맞추기
+    3. 갱신 전략:
+       - 재표집: 웨이트 분포에서 뽑기
+       - 가중 평균: 웨이트가 큰 표본에 중심 맞추기
        - 둘 다 형태를 잡는 데 경험 공분산을 쓴다
 
-    4. ESS은 보통 되풀이할수록 나아진다:
-       - 앞부분: ESS이 낮고 살펴보는 중
-       - 가운데: 제안이 맞춰 가면서 ESS이 커진다
-       - 뒷부분: ESS이 가장 좋은 값에서 평평해진다
+    4. ESS는 보통 반복할수록 나아진다:
+       - 초반: ESS가 낮고 탐색 중
+       - 중반: 제안이 적응하면서 ESS가 커진다
+       - 후반: ESS가 가장 좋은 값에서 정체된다
 
-    5. 붙박인 제안보다 나은 점:
+    5. 고정 제안보다 나은 점:
        - 좋은 제안을 미리 알 필요가 없다
-       - 타깃의 형태에 저절로 맞춰 간다
-       - ESS을 훨씬 높일 수 있다
+       - 타깃의 형태에 자동으로 적응한다
+       - ESS를 훨씬 높일 수 있다
        - 봉우리가 여럿인 타깃을 다룬다
 
-    6. 셈에서 살필 점:
-       - 붙박인 중요도 표집보다 표본마다 더 비싸다
+    6. 계산 측면의 고려 사항:
+       - 고정 제안 중요도 샘플링보다 표본마다 더 비싸다
        - 그러나 같은 정확도에 표본이 더 적게 든다
-       - 주고받음: 맞춰 가는 값과 ESS 나아짐
+       - 트레이드오프: 적응 비용과 ESS 개선
 
-    7. 맞춰 가는 중요도 표집을 언제 쓰나:
+    7. 적응적 중요도 샘플링을 언제 쓰나:
        - 타깃의 형태를 모를 때
        - 복잡하거나 봉우리가 여럿인 분포
-       - 붙박인 제안의 ESS이 나쁠 때
-       - 차례차례 결정하는 문제
+       - 고정 제안의 ESS가 나쁠 때
+       - 순차 의사결정 문제
 
     8. 실전 요령:
-       - 넓은 첫 제안으로 시작하기
-       - 섞음 성분 5개에서 10개 쓰기
-       - ESS의 모임 지켜보기
-       - 지나친 자신을 피하려고 공분산 오그라뜨리기
+       - 넓은 초기 제안으로 시작하기
+       - 혼합 성분 5개에서 10개 쓰기
+       - ESS의 수렴 모니터링하기
+       - 과신을 피하려고 공분산 축소하기
        - 보통 ESS > 0.3n이면 아주 좋다
 
     9. MCMC와 견주기:
-       - AIS: 독립 표본, 태우기 없음
-       - MCMC: 표본이 서로 얽혀 있고 태우기가 필요하다
-       - 좋은 제안을 배울 수 있으면 AIS이 낫다
+       - AIS: 독립 표본, 번인(burn-in) 없음
+       - MCMC: 표본이 서로 상관되어 있고 번인이 필요하다
+       - 좋은 제안을 학습할 수 있으면 AIS가 낫다
        - 차원이 아주 높으면 MCMC가 낫다
 
     ```

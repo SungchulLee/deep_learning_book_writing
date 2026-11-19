@@ -17,7 +17,7 @@ RMSprop은 지난 그래디언트 제곱을 모두 누적하는 대신 이동 �
 - 그래디언트 제곱의 지수 이동 평균을 쓴다
 - 러닝레이트를 이 평균의 제곱근으로 나눈다
 - (AdaGrad와 달리) 비정상 문제에서 잘 통한다
-- (Adam과 달리) 바이어스 보정이 없다
+- (Adam과 달리) 편향 보정이 없다
 
 만든 사람: 제프리 힌턴 (코세라 강의)
 """
@@ -129,7 +129,7 @@ def demo_rmsprop():
 def compare_with_without_rmsprop():
     """
     RMSprop 적응이 있을 때와 없을 때의 경사 하강법을 견준다.
-    RMSprop이 서로 다른 그래디언트 척도를 다루는 모습을 보인다.
+    RMSprop이 서로 다른 그래디언트 스케일을 다루는 모습을 보인다.
     """
     print("=" * 60)
     print("RMSprop vs Standard Gradient Descent")
@@ -221,7 +221,7 @@ Notice: RMSprop converges faster on this ill-conditioned problem!
 
 ## 2. 논의
 
-캐시는 $v_t=\rho v_{t-1}+(1-\rho)g_t^2$로 갱신되고 파라메터에서는 $\eta g_t/(\sqrt{v_t}+\epsilon)$을 뺀다. 이 클래스에는 모멘텀, 중심화와 바이어스 보정이 없다. 그래디언트 제곱이 일정 범위 안에 있으면 캐시도 유계이지만, 지수 이동평균이라는 이유만으로 무한히 커지는 입력까지 제한되지는 않는다.
+캐시는 $v_t=\rho v_{t-1}+(1-\rho)g_t^2$로 갱신되고 파라메터에서는 $\eta g_t/(\sqrt{v_t}+\epsilon)$을 뺀다. 이 클래스에는 모멘텀, 중심화와 편향 보정이 없다. 그래디언트 제곱이 일정 범위 안에 있으면 캐시도 유계이지만, 지수 이동평균이라는 이유만으로 무한히 커지는 입력까지 제한되지는 않는다.
 
 비교 함수 $100x^2+y^2$에서 기본 경사 하강법은 x 방향의 안정성을 위해 러닝레이트가 0.01보다 작아야 한다. 코드에서 선택한 0.001만이 유일한 안정적인 값은 아니다. RMSprop에는 0.1을 사용하므로 결과는 이 두 설정의 비교이며 러닝레이트를 충분히 조율한 모든 방법에 대한 우위를 보이지 않는다.
 
@@ -232,12 +232,12 @@ Notice: RMSprop converges faster on this ill-conditioned problem!
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-rho=0.9, 초기 캐시 0, 첫 기울기 2일 때 새 캐시와 갱신량을 구하라.
+rho=0.9, 초기 캐시 0, 첫 그래디언트가 2일 때 새 캐시와 갱신량을 구하라.
 
 </div>
 
 ??? success "풀이"
-    캐시는 $0.1\times4=0.4$이고 갱신량은 $2\eta/(\sqrt{0.4}+\epsilon)$이다. 바이어스 보정이 없어 첫 분모는 그래디언트 크기 2보다 작다.
+    캐시는 $0.1\times4=0.4$이고 갱신량은 $2\eta/(\sqrt{0.4}+\epsilon)$이다. 편향 보정이 없어 첫 분모는 그래디언트 크기 2보다 작다.
 
 ---
 
@@ -245,7 +245,7 @@ rho=0.9, 초기 캐시 0, 첫 기울기 2일 때 새 캐시와 갱신량을 구�
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-기울기가 0인 단계에서 RMSprop과 Adagrad의 캐시는 어떻게 다른가?
+그래디언트가 0인 단계에서 RMSprop과 Adagrad의 캐시는 어떻게 다른가?
 
 </div>
 

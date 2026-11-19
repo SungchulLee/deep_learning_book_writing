@@ -2,7 +2,7 @@
 
 셀프 어텐션은 Q·K·V가 같은 입력 시퀀스의 표현에서 나오는 연산이다. 마스크가 허용하는 위치의 정보를 결합하며, 전체 문맥 또는 과거·현재 문맥을 활용하도록 설계할 수 있다.
 
-셀프 어텐션은 트랜스포머에 힘을 주는 핵심 장치로, 이해를 위한 구조(BERT, RoBERTa)와 생성을 위한 구조(GPT)의 기초를 이룬다. 순차적인 처리를 병렬적이고 내용에 기반한 상호작용으로 바꾸어 순차 데이터를 다루는 방식을 뒤집어 놓았다.
+셀프 어텐션은 트랜스포머의 핵심 메커니즘으로, 이해를 위한 구조(BERT, RoBERTa)와 생성을 위한 구조(GPT)의 기초를 이룬다. 순차적인 처리를 병렬적이고 내용에 기반한 상호작용으로 바꾸어 순차 데이터를 다루는 방식을 뒤집어 놓았다.
 
 ---
 
@@ -18,9 +18,9 @@ $$\text{SelfAttention}(\mathbf{X}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf
 
 여기서 $\mathbf{W}^Q, \mathbf{W}^K \in \mathbb{R}^{d \times d_k}$이고 $\mathbf{W}^V \in \mathbb{R}^{d \times d_v}$이다.
 
-**일반적인 어텐션과의 핵심 차이는 Q, K, V이 모두 같은 출처 X에서 나온다는 점이다.**
+**일반적인 어텐션과의 핵심 차이는 Q, K, V가 모두 같은 출처 X에서 나온다는 점이다.**
 
-### 왜 `d_k` 의 제곱근으로 배율을 조정하는가
+### 왜 `d_k` 의 제곱근으로 스케일을 조정하는가
 
 스케일 $1/\sqrt{d_k}$는 독립적인 평균 0·분산 1 성분의 내적에서 분산이 차원에 비례하는 현상을 완화한다. 실제 Q·K는 학습된 투영으로 서로 연관될 수 있다. 스케일만으로 포화를 없애거나 전체 학습이 멈추지 않도록 보장하지는 않는다.
 
@@ -114,7 +114,7 @@ Q   cat │ .1 │ .7 │ .2 │  Query "cat" attends mostly to itself
 | Q의 출처 | 같은 시퀀스 X | 디코더 시퀀스 |
 | K와 V의 출처 | 같은 시퀀스 X | 인코더 시퀀스 |
 | 목적 | 내부 문맥 다루기 | 바깥을 참조하고 붙들기 |
-| 어텐션의 모양 | 정사각 $(n \times n)$ | 직사각 $(n_q \times n_k)$ |
+| 어텐션의 형태 | 정사각 $(n \times n)$ | 직사각 $(n_q \times n_k)$ |
 | 흔한 쓰임 | 인코더나 디코더 안에서 | 디코더가 인코더에 주목할 때 |
 
 셀프 어텐션은 시퀀스 **안**의 관계를 붙잡고, 크로스 어텐션은 시퀀스 **사이**를 잇는다.
@@ -129,7 +129,7 @@ Q   cat │ .1 │ .7 │ .2 │  Query "cat" attends mostly to itself
 
 $$\mathbf{A} = \begin{pmatrix} a_{11} & a_{12} & a_{13} \\ a_{21} & a_{22} & a_{23} \\ a_{31} & a_{32} & a_{33} \end{pmatrix}$$
 
-**쓰임새:** 온전한 문맥을 쓸 수 있는 이해 과제(BERT, 문장 분류, 개체명 인식, 쿼리응답).
+**쓰임새:** 온전한 문맥을 쓸 수 있는 이해 과제(BERT, 문장 분류, 개체명 인식, 질의응답).
 
 ### 인과·마스크 (디코더 방식)
 
@@ -145,7 +145,7 @@ $$\text{scores}_{ij} = \begin{cases} \mathbf{q}_i^T \mathbf{k}_j / \sqrt{d_k} & 
 
 ### 멀티헤드 어텐션에서의 마스크
 
-멀티헤드 상황에서 인과 마스크를 쓰면 같은 마스크가 모든 헤드에 퍼진다. 헤드마다 서로 다른 어텐션 무늬를 따로 배우지만 모두 같은 인과 제약을 지킨다. 곧 헤드 $h$은 다음을 계산한다.
+멀티헤드 상황에서 인과 마스크를 쓰면 같은 마스크가 모든 헤드에 퍼진다. 헤드마다 서로 다른 어텐션 패턴을 따로 배우지만 모두 같은 인과 제약을 지킨다. 곧 헤드 $h$은 다음을 계산한다.
 
 $$\text{head}_h = \text{softmax}\left(\frac{\mathbf{Q}_h \mathbf{K}_h^T}{\sqrt{d_k}} + \mathbf{M}\right)\mathbf{V}_h$$
 
@@ -179,13 +179,13 @@ $$\text{SelfAttn}(\mathbf{P}\mathbf{X}) = \mathbf{P} \cdot \text{SelfAttn}(\math
 
 ### 지역성이나 순서에 대한 귀납 편향이 없다
 
-(순차적 바이어스가 있는) RNN이나 (지역 리셉티브 필드가 있는) CNN과 달리 셀프 어텐션에는 다음에 대한 가정이 없다.
+(순차적 귀납 편향이 있는) RNN이나 (지역 리셉티브 필드가 있는) CNN과 달리 셀프 어텐션에는 다음에 대한 가정이 없다.
 
 - 위치(어떤 토큰이 "가까운지")
 - 방향(왼쪽 문맥과 오른쪽 문맥)
 - 지역성(가까운 토큰이 더 쓸모 있다는 것)
 
-이는 (어떤 무늬든 배울 수 있는 유연함이라는) **강점**이면서 (데이터가 더 필요하고 위치 부호화를 따로 넣어야 하는) **약점**이기도 하다.
+이는 (어떤 패턴이든 배울 수 있는 유연함이라는) **강점**이면서 (데이터가 더 필요하고 위치 부호화를 따로 넣어야 하는) **약점**이기도 하다.
 
 ### 계산 복잡도
 
@@ -194,13 +194,13 @@ $$\text{SelfAttn}(\mathbf{P}\mathbf{X}) = \mathbf{P} \cdot \text{SelfAttn}(\math
 | 시간 | $O(n^2 d)$ | 시퀀스 길이에 이차 |
 | 메모리 | $O(n^2)$ | 어텐션 행렬을 담는 데 든다 |
 
-$O(n^2)$으로 커지는 것이 긴 시퀀스에서 가장 큰 한계이며, 그 때문에 선형 어텐션, Linformer, Performer, FlashAttention 같은 효율적인 판본이 나왔다.
+$O(n^2)$으로 커지는 것이 긴 시퀀스에서 가장 큰 한계이며, 그 때문에 선형 어텐션, Linformer, Performer, FlashAttention 같은 효율적인 변형이 나왔다.
 
 ---
 
 ## 6. 셀프 어텐션과 완전 연결 레이어
 
-입력 전체를 길이 nd의 벡터로 펼쳐 같은 크기로 보내는 일반 선형 레이어는 O(n²d²)의 웨이트를 가질 수 있다. 반면 토큰마다 공유하는 d→d 선형 레이어는 O(d²)이고 위치 간 정보를 직접 섞지 않는다. “완전 연결 레이어”을 비교할 때 어느 연산을 뜻하는지 명시해야 한다.
+입력 전체를 길이 nd의 벡터로 펼쳐 같은 크기로 보내는 일반 선형 레이어는 O(n²d²)의 웨이트를 가질 수 있다. 반면 토큰마다 공유하는 d→d 선형 레이어는 O(d²)이고 위치 간 정보를 직접 섞지 않는다. “완전 연결 레이어”를 비교할 때 어느 연산을 뜻하는지 명시해야 한다.
 
 셀프 어텐션은 공유된 Q·K·V 투영으로 입력에 따른 위치 간 결합 웨이트를 만든다. 학습된 투영 계수는 고정되어도 그 결합은 입력에 따라 달라진다.
 
@@ -221,14 +221,14 @@ import torch.nn.functional as F
 import math
 from typing import Optional, Tuple
 
-# 돌릴 때마다 수가 달라지지 않게 씨앗을 박는다.
+# 돌릴 때마다 수가 달라지지 않게 시드를 고정한다.
 torch.manual_seed(0)
 
 class SelfAttention(nn.Module):
     """
-    자기 어텐션 레이어
+    셀프 어텐션 레이어
     
-    질의와 열쇠와 값이 모두 같은 입력에서 나오는 어텐션을 계산한다.
+    쿼리와 키와 값이 모두 같은 입력에서 나오는 어텐션을 계산한다.
     트랜스포머 인코더 레이어에서 쓴다.
     """
     
@@ -244,12 +244,12 @@ class SelfAttention(nn.Module):
         self.d_v = d_v or d_model
         self.scale = self.d_k ** -0.5
         
-        # Q, K, V의 선형 사영
+        # Q, K, V의 선형 투영
         self.W_q = nn.Linear(d_model, self.d_k)
         self.W_k = nn.Linear(d_model, self.d_k)
         self.W_v = nn.Linear(d_model, self.d_v)
         
-        # 출력 사영
+        # 출력 투영
         self.out_proj = nn.Linear(self.d_v, d_model)
         self.dropout = nn.Dropout(dropout)
         
@@ -260,40 +260,40 @@ class SelfAttention(nn.Module):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         인수:
-            x: 입력 순차열 (배치 크기, seq_len, d_model)
+            x: 입력 시퀀스 (배치 크기, seq_len, d_model)
             mask: 선택적인 어텐션 마스크 (배치 크기, seq_len, seq_len)
                   0은 가릴 자리를 뜻한다
             
         반환값:
-            output: 자기 어텐션을 거친 출력 (배치 크기, seq_len, d_model)
+            output: 셀프 어텐션을 거친 출력 (배치 크기, seq_len, d_model)
             attention_weights: 어텐션 행렬 (배치 크기, seq_len, seq_len)
         """
-        # Q, K, V로 사영 (모두 같은 입력 x에서 나온다)
+        # Q, K, V로 투영 (모두 같은 입력 x에서 나온다)
         Q = self.W_q(x)  # (배치, seq_len, d_k)
         K = self.W_k(x)  # (배치, seq_len, d_k)
         V = self.W_v(x)  # (배치, seq_len, d_v)
         
-        # 배율 조정 내적 어텐션 점수 계산
+        # 스케일 내적 어텐션 점수 계산
         scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale
         
         # 마스크가 있으면 씌우기
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
-        # 열쇠(마지막 차원)에 대해 소프트맥스
+        # 키(마지막 차원)에 대해 소프트맥스
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         
         # 값의 가중합
         attended = torch.matmul(attention_weights, V)
         
-        # 출력 사영
+        # 출력 투영
         output = self.out_proj(attended)
         
         return output, attention_weights
 
 def demonstrate_self_attention():
-    """기본 자기 어텐션 시연."""
+    """기본 셀프 어텐션 시연."""
     d_model = 512
     seq_len = 10
     batch_size = 2
@@ -317,7 +317,7 @@ def demonstrate_self_attention():
 ```python
 class CausalSelfAttention(nn.Module):
     """
-    다중 머리를 지원하는 인과(마스크) 자기 어텐션
+    멀티헤드를 지원하는 인과(마스크) 셀프 어텐션
     
     자리마다 뒤의 자리에 주목하지 못하게 막는다.
     자기회귀 생성을 하는 GPT 같은 디코더 전용 모델에서 쓴다.
@@ -338,7 +338,7 @@ class CausalSelfAttention(nn.Module):
         self.head_dim = embed_dim // num_heads
         self.scale = self.head_dim ** -0.5
         
-        # 효율을 위해 QKV 사영을 합침 (행렬 곱 세 번 대신 한 번)
+        # 효율을 위해 QKV 투영을 합침 (행렬 곱 세 번 대신 한 번)
         self.qkv_proj = nn.Linear(embed_dim, 3 * embed_dim)
         self.out_proj = nn.Linear(embed_dim, embed_dim)
         self.dropout = nn.Dropout(dropout)
@@ -354,7 +354,7 @@ class CausalSelfAttention(nn.Module):
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
         인수:
-            x: 입력 순차열 (배치 크기, seq_len, embed_dim)
+            x: 입력 시퀀스 (배치 크기, seq_len, embed_dim)
             return_attention: 어텐션 웨이트를 돌려줄지 여부
             
         반환값:
@@ -363,7 +363,7 @@ class CausalSelfAttention(nn.Module):
         """
         batch_size, seq_len, _ = x.shape
         
-        # 효율적인 연산 한 번으로 Q, K, V 사영
+        # 효율적인 연산 한 번으로 Q, K, V 투영
         qkv = self.qkv_proj(x)
         qkv = qkv.view(batch_size, seq_len, 3, self.num_heads, self.head_dim)
         qkv = qkv.permute(2, 0, 3, 1, 4)  # (3, 배치, heads, seq, head_dim)
@@ -383,7 +383,7 @@ class CausalSelfAttention(nn.Module):
         # 값에 어텐션 적용
         attended = torch.matmul(attention_weights, V)
         
-        # 머리를 이어 붙이고 되사영
+        # 헤드를 이어 붙이고 다시 투영
         attended = attended.transpose(1, 2).contiguous()
         attended = attended.view(batch_size, seq_len, self.embed_dim)
         output = self.out_proj(attended)
@@ -393,7 +393,7 @@ class CausalSelfAttention(nn.Module):
         return output, None
 
 def demonstrate_causal_attention():
-    """인과 마스크의 무늬를 보인다."""
+    """인과 마스크의 패턴을 보인다."""
     batch_size, seq_len, embed_dim, num_heads = 1, 5, 64, 4
     
     x = torch.randn(batch_size, seq_len, embed_dim)
@@ -428,22 +428,22 @@ Note: Upper triangle is 0 (future positions masked)
 
 ---
 
-## 9. 다른 장치와 비교
+## 9. 다른 구조와 비교
 
 ### 셀프 어텐션과 RNN
 
 | 항목 | 셀프 어텐션 | RNN/LSTM |
 |--------|---------------|----------|
 | 먼 거리 의존 | 경로 길이 $O(1)$ | 경로 길이 $O(n)$ |
-| 병렬화 | 완전 병렬 | 순차적 (본디 직렬) |
+| 병렬화 | 완전 병렬 | 순차적 (본질적으로 직렬) |
 | 레이어당 계산 | $O(n^2 d)$ | $O(n d^2)$ |
 | 메모리 | $O(n^2)$ | $O(n)$ |
 | 그래디언트의 흐름 | 곧바른 연결 | 순환 스텝을 거침 |
-| 귀납 바이어스 | 없음 | 순차적·시간적 |
+| 귀납 편향 | 없음 | 순차적·시간적 |
 
 **셀프 어텐션이 나을 때:** 전역 문맥이 필요한 과제, 병렬 학습, 먼 거리 의존이 중요한 긴 시퀀스.
 
-**RNN이 나을 때:** 흐름 처리 응용, 메모리가 빠듯한 환경, 순차적·시간적 구조가 뚜렷한 과제.
+**RNN이 나을 때:** 스트리밍 응용, 메모리가 빠듯한 환경, 순차적·시간적 구조가 뚜렷한 과제.
 
 ### 셀프 어텐션과 컨볼루션
 
@@ -451,11 +451,11 @@ Note: Upper triangle is 0 (future positions masked)
 |--------|---------------|-------------|
 | 리셉티브 필드 | 전역 (시퀀스 전체) | 지역 (커널 크기 $k$) |
 | 파라메터 공유 | 어디서나 같은 Q, K, V | 어디서나 같은 커널 |
-| 귀납 바이어스 | 없음 | 평행 이동 동변성, 지역성 |
+| 귀납 편향 | 없음 | 평행 이동 동변성, 지역성 |
 | 계산 | 점수·가중합 $O(n^2d)$ | 일반적인 d→d Conv1d는 $O(knd^2)$ |
 | 먼 거리 | 곧바로 | 쌓거나 팽창해야 한다 |
 
-**착상:** CNN은 가까운 원소끼리 어울린다는 지역성 바이어스가 강하다. 셀프 어텐션은 거리와 상관없이 어떤 원소끼리 어울려야 하는지를 배운다.
+**핵심:** CNN은 가까운 원소끼리 어울린다는 지역성 편향이 강하다. 셀프 어텐션은 거리와 상관없이 어떤 원소끼리 어울려야 하는지를 배운다.
 
 ---
 
@@ -468,9 +468,9 @@ Note: Upper triangle is 0 (future positions masked)
 ```python
 class TransformerEncoderBlock(nn.Module):
     """
-    양방향 자기 어텐션이 있는 트랜스포머 인코더 블록 하나.
+    양방향 셀프 어텐션이 있는 트랜스포머 인코더 블록 하나.
     
-    구조: 자기 어텐션 → 더하기와 정규화 → 순방향 뉴럴 네트워크 → 더하기와 정규화
+    구조: 셀프 어텐션 → 더하기와 정규화 → 순방향 뉴럴 네트워크 → 더하기와 정규화
     """
     
     def __init__(
@@ -482,7 +482,7 @@ class TransformerEncoderBlock(nn.Module):
     ):
         super().__init__()
         
-        # 다중 머리 자기 어텐션 (양방향)
+        # 멀티헤드 셀프 어텐션 (양방향)
         self.self_attn = nn.MultiheadAttention(
             embed_dim, num_heads, 
             dropout=dropout, 
@@ -513,7 +513,7 @@ class TransformerEncoderBlock(nn.Module):
             src_mask: 어텐션 마스크 (seq_len, seq_len)
             src_key_padding_mask: 패딩 마스크 (배치, seq_len)
         """
-        # 잔차 연결이 있는 자기 어텐션 (사전 레이어 정규화 판본)
+        # 잔차 연결이 있는 셀프 어텐션 (사후 레이어 정규화 방식)
         attn_out, _ = self.self_attn(
             x, x, x, 
             attn_mask=src_mask,
@@ -530,15 +530,15 @@ class TransformerEncoderBlock(nn.Module):
 
 ### 비전 트랜스포머(ViT)의 셀프 어텐션
 
-이미지를 시퀀스로 다루어 이미지 조각에 셀프 어텐션을 적용한다.
+이미지를 시퀀스로 다루어 이미지 패치에 셀프 어텐션을 적용한다.
 
 ```python
 class VisionSelfAttention(nn.Module):
     """
-    이미지 조각을 위한 자기 어텐션 (비전 트랜스포머 방식).
+    이미지 패치를 위한 셀프 어텐션 (비전 트랜스포머 방식).
     
-    이미지를 조각으로 나누어 펼친 뒤 순차열로 다룬다.
-    조각마다 다른 모든 조각에 전역적으로 주목할 수 있다.
+    이미지를 패치로 나누어 펼친 뒤 시퀀스로 다룬다.
+    패치마다 다른 모든 패치에 전역적으로 주목할 수 있다.
     """
     
     def __init__(
@@ -558,14 +558,14 @@ class VisionSelfAttention(nn.Module):
     def forward(self, patches: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         인수:
-            patches: 펼친 이미지 조각 (배치, num_patches, embed_dim)
+            patches: 펼친 이미지 패치 (배치, num_patches, embed_dim)
                      대체로 첫 자리에 [CLS] 토큰이 있다
         
         반환값:
-            output: 자기 어텐션을 거친 조각 (배치, num_patches, embed_dim)
+            output: 셀프 어텐션을 거친 패치 (배치, num_patches, embed_dim)
             weights: 어텐션 웨이트 (배치, num_patches, num_patches)
         """
-        # 조각마다 (CLS 토큰을 포함한) 다른 모든 조각에 주목한다
+        # 패치마다 (CLS 토큰을 포함한) 다른 모든 패치에 주목한다
         attended, weights = self.attention(patches, patches, patches)
         
         # 잔차 연결
@@ -576,28 +576,28 @@ class VisionSelfAttention(nn.Module):
 
 ### 여러 맥락에서의 셀프 어텐션
 
-| 맥락 | 어텐션의 종류 | 핵심 피처 |
+| 맥락 | 어텐션의 종류 | 핵심 특징 |
 |---------|---------------|---------------------|
-| **BERT 인코더** | 양방향 | 온전한 문맥, 모으기에 [CLS] 토큰 사용 |
+| **BERT 인코더** | 양방향 | 온전한 문맥, 풀링에 [CLS] 토큰 사용 |
 | **GPT 디코더** | 인과 | 자기회귀적으로 다음 토큰을 예측 |
-| **비전 트랜스포머** | 양방향 | 조각을 토큰으로, 분류에 [CLS] 사용 |
-| **음향 (Wav2Vec)** | 양방향 | 날 파형이나 스펙트럼 피처 |
+| **비전 트랜스포머** | 양방향 | 패치를 토큰으로, 분류에 [CLS] 사용 |
+| **음향 (Wav2Vec)** | 양방향 | 원시 파형이나 스펙트럼 피처 |
 | **단백질 (ESM)** | 양방향 | 아미노산을 토큰으로 |
 
 ---
 
-## 11. 효율적인 셀프 어텐션 판본
+## 11. 효율적인 셀프 어텐션 변형
 
 $O(n^2)$의 복잡도 때문에 효율적인 대안이 많이 나왔다.
 
-| 방법 | 복잡도 | 핵심 착상 |
+| 방법 | 복잡도 | 핵심 아이디어 |
 |--------|------------|----------|
-| **성긴 어텐션** | $O(n\sqrt{n})$ | 정해진 무늬(지역과 스트라이드)에만 주목한다 |
-| **Linformer** | $O(n)$ | K와 V를 낮은 계수로 투영한다 |
-| **Performer** | $O(n)$ | 무작위 피처로 소프트맥스를 어림한다 |
+| **희소 어텐션** | $O(n\sqrt{n})$ | 정해진 패턴(지역과 스트라이드)에만 주목한다 |
+| **Linformer** | $O(n)$ | K와 V를 저랭크(low-rank)로 투영한다 |
+| **Performer** | $O(n)$ | 무작위 피처로 소프트맥스를 근사한다 |
 | **선형 어텐션** | $O(n)$ | 소프트맥스를 없애고 커널 트릭을 쓴다 |
 | **FlashAttention** | 시간 $O(n^2)$, 메모리 $O(n)$ | 입출력을 고려한 타일 계산 |
-| **미끄럼창** | $O(nw)$ | 창 크기가 $w$인 지역 어텐션 |
+| **슬라이딩 윈도** | $O(nw)$ | 창 크기가 $w$인 지역 어텐션 |
 
 ---
 

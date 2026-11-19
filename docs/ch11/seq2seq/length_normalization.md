@@ -41,9 +41,9 @@ $$\text{score}_{norm} = \frac{1}{T} \sum_{t=1}^{T} \log P(y_t | y_{<t})$$
 ```python
 def simple_length_normalize(score: float, length: int) -> float:
     """
-    점수를 순차열의 길이로 나누어 정규화한다.
+    점수를 시퀀스의 길이로 나누어 정규화한다.
     
-    확률의 기하 평균을 견주는 것과 같다.
+    확률의 기하 평균을 비교하는 것과 같다.
     간단하지만 길이를 지나치게 보정할 수 있다.
     """
     if length == 0:
@@ -59,22 +59,22 @@ $$lp(Y) = \frac{(5 + |Y|)^\alpha}{(5 + 1)^\alpha}$$
 
 $$\text{score}_{norm} = \frac{\text{score}}{lp(Y)}$$
 
-상수 5는 아주 짧은 시퀀스를 매끄럽게 하여 $|Y|$이 작을 때 극단적인 정규화를 막는다. 지수 $\alpha$이 정규화의 세기를 다스린다.
+상수 5는 아주 짧은 시퀀스를 매끄럽게 하여 $|Y|$가 작을 때 극단적인 정규화를 막는다. 지수 $\alpha$가 정규화의 세기를 조절한다.
 
 ```python
 def google_length_penalty(length: int, alpha: float = 0.6) -> float:
     """
-    Wu 등(2016)의 구글 길이 벌점.
+    Wu 등(2016)의 구글 길이 패널티.
     
-    alpha < 1이면 벌점이 길이에 대해 선형보다 느리게 커져,
-    날 점수와 토큰당 평균 사이의 균형을 잡아 준다.
+    alpha < 1이면 패널티가 길이에 대해 선형보다 느리게 커져,
+    원점수와 토큰당 평균 사이의 균형을 잡아 준다.
     
     인수:
-        length: 순차열의 길이
+        length: 시퀀스의 길이
         alpha: 정규화 지수 (0이면 정규화 없음, 1이면 완전 정규화)
         
     반환값:
-        길이 벌점의 제수
+        길이 패널티(점수를 나누는 수)
     """
     return ((5.0 + length) ** alpha) / ((5.0 + 1.0) ** alpha)
 
@@ -120,12 +120,12 @@ def compare_alpha_values():
 
 ### 그 밖의 정규화 함수
 
-아래 대안 함수들은 양수 길이와 적절한 파라메터를 가정한 수식 예시다. 음수 로그 점수를 큰 양수로 나누면 점수가 0에 가까워져 오히려 유리해진다. 따라서 adaptive 함수의 큰 분모를 그대로 사용하면 목표 길이에서 멀어진 후보를 벌주는 대신 유리하게 만들 수 있다. 의도한 페널티의 부호와 결합 방식을 먼저 확인한다.
+아래 대안 함수들은 양수 길이와 적절한 파라메터를 가정한 수식 예시다. 음수 로그 점수를 큰 양수로 나누면 점수가 0에 가까워져 오히려 유리해진다. 따라서 adaptive 함수의 큰 분모를 그대로 사용하면 목표 길이에서 멀어진 후보에 패널티를 주는 대신 유리하게 만들 수 있다. 의도한 패널티의 부호와 결합 방식을 먼저 확인한다.
 
 ```python
 def exponential_length_penalty(length: int, beta: float = 0.1) -> float:
     """
-    길이에 따라 더 가파르게 커지는 지수 벌점.
+    길이에 따라 더 가파르게 커지는 지수 패널티.
     
     아주 긴 출력이 나올 법하지 않은 과제에 더 센 보정을
     준다.
@@ -134,9 +134,9 @@ def exponential_length_penalty(length: int, beta: float = 0.1) -> float:
 
 def logarithmic_length_penalty(length: int, gamma: float = 1.0) -> float:
     """
-    부드럽게 정규화하는 로그 벌점.
+    부드럽게 정규화하는 로그 패널티.
     
-    천천히 커져 보통 길이에는 거의 손대지 않지만 아주 긴 순차열의
+    천천히 커져 보통 길이에는 거의 손대지 않지만 아주 긴 시퀀스의
     극단적인 치우침은 막는다.
     """
     return gamma * np.log(1 + length)
@@ -147,9 +147,9 @@ def adaptive_length_penalty(
     sigma: float = 5.0
 ) -> float:
     """
-    기대되는 표적 길이를 중심으로 하는 가우스 모양의 벌점.
+    기대되는 타깃 길이를 중심으로 하는 가우시안 형태의 패널티.
     
-    기대 길이에서 양쪽으로 벗어난 순차열에 벌점을 주며, 표적의 길이를
+    기대 길이에서 양쪽으로 벗어난 시퀀스에 패널티를 주며, 타깃의 길이를
     가늠할 수 있을 때 쓸모가 있다(길이 제약이 있는 요약 따위).
     
     """
@@ -170,7 +170,7 @@ class BeamScorer:
     """
     빔 탐색 가설을 위한 결합 점수 함수.
     
-    길이 정규화와 덮개 벌점, 그리고 선택적인 추가 항을
+    길이 정규화와 커버리지 패널티(coverage penalty), 그리고 선택적인 추가 항을
     아우른다.
     """
     
@@ -195,7 +195,7 @@ class BeamScorer:
         
         인수:
             log_prob_sum: 누적 로그 확률
-            length: 순차열의 길이
+            length: 시퀀스의 길이
             attention_weights: 어텐션 분포의 목록 (선택)
             
         반환값:
@@ -205,7 +205,7 @@ class BeamScorer:
         lp = ((5.0 + length) ** self.alpha) / ((5.0 + 1.0) ** self.alpha)
         normalized = log_prob_sum / lp
         
-        # 덮개 벌점 (어텐션 기반 모델용)
+        # 커버리지 패널티 (어텐션 기반 모델용)
         if self.beta > 0 and attention_weights:
             import torch
             coverage = torch.stack(attention_weights).sum(dim=0)
@@ -225,7 +225,7 @@ $$\text{score}_{final} = \frac{\sum_{t} \log P(y_t | y_{<t}, \mathbf{x})}{lp(|\m
 
 $$cp(\mathbf{y}) = \sum_{j=1}^{T_x} \log\left(\min\left(\sum_{t=1}^{T_y} \alpha_{t,j},\; 1\right)\right)$$
 
-이 패널티는 모든 원본 자리에 적어도 한 번 주목했을 때(덮개 $\geq 1$) 0이고, 덜 주목한 자리가 있으면(덮개 $< 1$) 음수이다.
+이 패널티는 모든 원본 자리에 적어도 한 번 주목했을 때(커버리지 $\geq 1$) 0이고, 덜 주목한 자리가 있으면(커버리지 $< 1$) 음수이다.
 
 ### 탐색 중에 점수 매기기와 탐색 뒤에 점수 매기기
 
@@ -239,7 +239,7 @@ def beam_step_with_normalization(
     normalize_during_search: bool = True
 ) -> list:
     """
-    탐색 중 정규화를 선택적으로 적용하며 빔을 쳐 낸다.
+    탐색 중 정규화를 선택적으로 적용하며 빔을 가지치기한다.
     
     normalize_during_search=True이면 길이가 다른 가설을 견줄 때 길이
     정규화를 적용한다. 그러면 짧은 가설이 빔을 독차지하는 것을
@@ -251,7 +251,7 @@ def beam_step_with_normalization(
             reverse=True
         )
     else:
-        # 날 점수만 (정규화는 탐색 뒤에 적용)
+        # 원점수만 (정규화는 탐색 뒤에 적용)
         beams.sort(key=lambda h: h.score, reverse=True)
     
     return beams[:beam_width]
@@ -263,7 +263,7 @@ def beam_step_with_normalization(
 
 ### 길이 분포 비교
 
-아래 함수는 외부의 beam_decoder와 test_loader를 요구하는 분석 조각이다. model 인수는 사용되지 않으며 실제 길이 분포 측정값은 제시하지 않는다. 길이뿐 아니라 공통 정답 기준의 품질도 평가하고 하이퍼파라미터 선택에는 검증셋을 사용해야 한다.
+아래 함수는 외부의 beam_decoder와 test_loader를 요구하는 분석 조각이다. model 인수는 사용되지 않으며 실제 길이 분포 측정값은 제시하지 않는다. 길이뿐 아니라 공통 정답 기준의 품질도 평가하고 하이퍼파라메터 선택에는 검증셋을 사용해야 한다.
 
 ```python
 def analyze_length_effects(
@@ -273,7 +273,7 @@ def analyze_length_effects(
     alpha_values: list = [0.0, 0.3, 0.6, 0.7, 1.0]
 ):
     """
-    alpha 값에 따른 출력 길이의 분포를 견준다.
+    alpha 값에 따른 출력 길이의 분포를 비교한다.
     
     기준 길이에 견주어 출력 길이가 어떻게 달라지는지 살펴 알맞은
     정규화의 세기를 찾는 데 도움이 된다.
@@ -350,7 +350,7 @@ T의 알파 제곱으로 원점수를 나누는 방식에서 알파의 역할을
 </div>
 
 ??? success "풀이"
-    $\alpha=0$은 원점수, $\alpha=1$은 토큰 로그 확률의 평균이다. 양수 지수는 길이에 따른 누적 페널티를 완화하려는 휴리스틱이며 확률 법칙에서 유일하게 유도되는 값은 아니다. GNMT의 이동 상수 5가 있는 식과 구분한다.
+    $\alpha=0$은 원점수, $\alpha=1$은 토큰 로그 확률의 평균이다. 양수 지수는 길이에 따른 누적 패널티를 완화하려는 휴리스틱이며 확률 법칙에서 유일하게 유도되는 값은 아니다. GNMT의 이동 상수 5가 있는 식과 구분한다.
 
 ---
 
@@ -378,7 +378,7 @@ T, T의 알파 제곱, GNMT 길이 패널티를 비교하라.
 </div>
 
 ??? success "풀이"
-    T로 나누면 정확한 토큰당 평균이다. $T^\alpha$는 보정 세기를 조절한다. GNMT는 $(5+T)^\alpha/6^\alpha$를 사용해 길이 1에서 분모가 1이다. 알파가 1이어도 T와는 다르다. 어느 방식도 짧은 출력 바이어스나 품질 문제의 완전한 제거를 보장하지 않는다.
+    T로 나누면 정확한 토큰당 평균이다. $T^\alpha$는 보정 세기를 조절한다. GNMT는 $(5+T)^\alpha/6^\alpha$를 사용해 길이 1에서 분모가 1이다. 알파가 1이어도 T와는 다르다. 어느 방식도 짧은 출력 편향이나 품질 문제의 완전한 제거를 보장하지 않는다.
 
 ## 정리하며
 

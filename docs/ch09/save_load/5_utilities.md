@@ -12,7 +12,7 @@
 
     이 모듈은 다음을 위한 도우미 함수와 유틸리티를 제공한다:
     - 모델 변환
-    - 성능 감시
+    - 성능 모니터링
     - 배포 검증
     - 흔한 연산
     """
@@ -79,7 +79,7 @@
                 results['info']['output_shape'] = list(output.shape)
                 results['info']['num_parameters'] = sum(p.numel() for p in model.parameters())
 
-                # 출력의 모양 확인
+                # 출력의 형태 확인
                 if num_classes and output.shape[-1] != num_classes:
                     results['warnings'].append(
                         f"Output shape {output.shape} doesn't match num_classes {num_classes}"
@@ -141,7 +141,7 @@
 
 
     class PerformanceMonitor:
-        """실전에서 모델의 성능을 감시한다"""
+        """운영 환경에서 모델의 성능을 모니터링한다"""
 
         def __init__(self):
             self.metrics = {
@@ -285,7 +285,7 @@
         def get_model(self, model_name: str, version: str = 'latest') -> Optional[Dict]:
             """레지스트리에서 모델의 정보를 얻는다"""
             if version == 'latest':
-                # 최신 판본 찾기
+                # 최신 버전 찾기
                 versions = [k for k in self.models.keys() if k.startswith(model_name + ':')]
                 if not versions:
                     return None
@@ -411,7 +411,7 @@
         optimize: bool = True
     ):
         """
-        실전을 위한 완전한 내보내기 파이프라인
+        운영 환경을 위한 완전한 내보내기 파이프라인
 
         필요한 산출물을 모두 만든다:
         - 원래 PyTorch 모델
@@ -514,7 +514,7 @@
 
 ## 2. 논의
 
-ModelValidator는 한 개의 난수 입력으로 순전파를 시도한다. PyTorch 경로는 NaN과 Inf를 검사하지만 ONNX 경로는 첫 출력의 NaN만 검사한다. 클래스 수 불일치는 경고로 기록하며, 모든 입력·출력의 모양과 의미를 검증하는 체계는 아니다. CPU에서 만든 예시 입력을 사용하므로 다른 장치·자료형의 모델에는 맞춰 주어야 한다.
+ModelValidator는 한 개의 난수 입력으로 순전파를 시도한다. PyTorch 경로는 NaN과 Inf를 검사하지만 ONNX 경로는 첫 출력의 NaN만 검사한다. 클래스 수 불일치는 경고로 기록하며, 모든 입력·출력의 형태와 의미를 검증하는 체계는 아니다. CPU에서 만든 예시 입력을 사용하므로 다른 장치·자료형의 모델에는 맞춰 주어야 한다.
 
 PerformanceMonitor는 호출자가 전달한 지연으로 평균과 백분위수를 계산한다. 직접 실제 추론 시간을 재거나 서비스 트래픽을 수집하지 않으며, 요청별 처리량의 산술평균은 전체 표본 수를 전체 시간으로 나눈 처리량과 다를 수 있다. 지연이 0이면 나눗셈 문제도 생긴다. 빈 기록과 잘못된 입력의 처리 방식을 별도로 정해야 한다.
 

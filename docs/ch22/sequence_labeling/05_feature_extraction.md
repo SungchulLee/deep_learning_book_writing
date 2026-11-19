@@ -6,19 +6,19 @@
 
 ```python
 """
-예로부터의 개체명 인식을 위한 피처 뽑기
+전통적인 개체명 인식을 위한 피처 추출
 =======================================
 
-예로부터의 기계 러닝 바탕 개체명 인식(CRF, MaxEnt 등)를 위한 피처 빚기.
+전통적인 기계 학습 기반 개체명 인식(CRF, MaxEnt 등)을 위한 피처 엔지니어링.
 
-뽑은 피처:
+추출하는 피처:
 - 단어 수준 피처
 - 글자 수준 피처
 - 철자 피처
 - 맥락 피처
 - 가제티어 피처
 
-지은이: 러닝 목적
+지은이: 교육 목적
 날짜: 2025
 """
 
@@ -31,20 +31,20 @@ import re
 
 
 class FeatureExtractor:
-    """예로부터의 기계 러닝 바탕 개체명 인식을 위한 피처 뽑기."""
+    """전통적인 기계 학습 기반 개체명 인식을 위한 피처 추출."""
     
     def __init__(self):
-        """피처 뽑개 초기화."""
+        """피처 추출기 초기화."""
         self.gazetteers = {}
     
     def extract_token_features(self, tokens: List[str], index: int, 
                               window_size: int = 2) -> Dict:
         """
-        토큰의 피처를 두루 뽑기.
+        토큰의 피처를 종합적으로 추출하기.
         
         인수:
-            tokens: 월 속 토큰의 목록
-            index: 지금 토큰의 번호
+            tokens: 문장 속 토큰의 목록
+            index: 현재 토큰의 인덱스
             window_size: 맥락 창의 크기
             
         반환값:
@@ -70,7 +70,7 @@ class FeatureExtractor:
         features['word_shape'] = self.get_word_shape(token)
         features['short_word_shape'] = self.get_word_shape(token, short=True)
         
-        # 접두사와 뒷가지 피처
+        # 접두사와 접미사 피처
         for n in range(1, min(5, len(token) + 1)):
             features[f'prefix_{n}'] = token[:n].lower()
             features[f'suffix_{n}'] = token[-n:].lower()
@@ -105,13 +105,13 @@ class FeatureExtractor:
         """
         단어 형태 표현 얻기.
         
-        글자를 형태 부호에 대응시킨다:
+        글자를 형태 기호에 대응시킨다:
         - 대문자: 'X'
         - 소문자: 'x'
         - 숫자: 'd'
         - 그 밖: 'c'
         
-        short=True이면 잇달아 같은 글자를 하나로 뭉갠다.
+        short=True이면 연속한 같은 글자를 하나로 줄인다.
         
         보기:
             "iPhone5" -> "xXxxxxd"(긴 형태) 또는 "xXxd"(짧은 형태)
@@ -130,7 +130,7 @@ class FeatureExtractor:
         shape_str = ''.join(shape)
         
         if short:
-            # 잇달아 같은 글자를 하나로 뭉개기
+            # 연속한 같은 글자를 하나로 줄이기
             if not shape_str:
                 return shape_str
             compressed = [shape_str[0]]
@@ -202,11 +202,11 @@ word_shape는 대문자X·소문자x·숫자d·그 밖c의 문자열이다. 예�
 
 기본 window_size2는 앞뒤 최대2토큰의 소문자 표기·대문자 여부를 넣는다. 문장 시작·끝에는 존재하는 이웃만 추가하므로 반환 사전의 키 수가 위치에 따라 달라진다. is_first·is_last는 문장 경계의 신호다. 뒤 단어를 참조하므로 미래 텍스트를 사용할 수 없는 스트리밍 계약에는 그대로 적용하지 않는다.
 
-유효한 index와 비음수 window_size를 검사하지 않는다. 음수 index는 Python 목록의 뒤에서 토큰을 선택하면서 이웃·경계의 논리는 음수 인덱스를 기준으로 계산해 의도와 다른 결과를 낼 수 있다. 빈 목록과 범위 밖 index도 계약을 정해야 한다. 빈 토큰 자체는 대문자 검사 전에 예외 처리하지만 원래 토큰화 폴리시와 일치하는지 확인한다.
+유효한 index와 비음수 window_size를 검사하지 않는다. 음수 index는 Python 목록의 뒤에서 토큰을 선택하면서 이웃·경계의 논리는 음수 인덱스를 기준으로 계산해 의도와 다른 결과를 낼 수 있다. 빈 목록과 범위 밖 index도 계약을 정해야 한다. 빈 토큰 자체는 대문자 검사 전에 예외 처리하지만 원래 토큰화 정책과 일치하는지 확인한다.
 
 ## 4. 피처 사전과 모델 연결
 
-반환 값은 문자열·bool·정수의 혼합 사전이다. 모델 라이브러리의 categorical·numeric feature 계약에 맞춰 변환해야 하며 PyTorch float32 영상 텐서를 받는 forward가 아니다. 길이 같은 숫자 피처의 스케일과 희귀 문자열·사전 크기는 학습·정규화에 영향을 줄 수 있다.
+반환 값은 문자열·bool·정수의 혼합 사전이다. 모델 라이브러리의 categorical·numeric feature 계약에 맞춰 변환해야 하며 PyTorch float32 영상 텐서를 받는 forward가 아니다. 길이 같은 숫자 피처의 스케일과 희귀 문자열·사전 크기는 학습·정칙화에 영향을 줄 수 있다.
 
 gazetteers는 빈 사전으로 저장하지만 피처 추출에서 사용하지 않는다. 따라서 사전 등재 피처가 구현되어 있다고 설명하면 안 된다. 학습 데이터에서 피처 선택·사전 구성을 정하고, 검증·시험 정보를 섞지 않은 동일 전처리로 평가한다. 이 페이지에는 학습·성능 비교가 없으며 뉴럴 네트워크 활성화·잔차 연결을 분석할 대상도 없다.
 
@@ -275,10 +275,10 @@ Steve의 word_shape·short_word_shape와 최대 접두·접미 길이를 설명�
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

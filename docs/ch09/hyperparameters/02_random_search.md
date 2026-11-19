@@ -6,7 +6,7 @@
 
 ```python
 """
-초파라메터 조율을 위한 무작위 탐색
+하이퍼파라메터 조율을 위한 무작위 탐색
 
 무작위 탐색은 분포에서 파라메터 값을 무작위로 뽑는다.
 모든 조합을 시도하지 않고 정해진 수만큼 설정을 뽑는다.
@@ -35,10 +35,10 @@ def describe(dist):
     """분포를 사람이 읽을 수 있게 적는다.
 
     그냥 찍으면 `<... rv_discrete_frozen object at 0x1330c59a0>` 처럼 메모리
-    번지가 나온다. 번지는 돌릴 때마다 달라지므로 쪽에 실어 둘 수가 없고,
+    주소가 나온다. 주소는 돌릴 때마다 달라지므로 쪽에 실어 둘 수가 없고,
     읽는 이에게 알려 주는 것도 없다. 이름과 구간을 적으면 둘 다 풀린다.
     """
-    if hasattr(dist, "dist"):                  # scipy 의 얼린 분포
+    if hasattr(dist, "dist"):                  # scipy 의 고정된(frozen) 분포
         return f"{dist.dist.name}{dist.args}"
     return str(dist)                           # 그냥 목록이면 그대로
 from utils import (load_sample_dataset, print_results,
@@ -51,7 +51,7 @@ from utils import (load_sample_dataset, print_results,
 
 def random_search_random_forest():
     """
-    랜덤 포리스트 분류기로 무작위 탐색 시연
+    랜덤 포레스트 분류기로 무작위 탐색 시연
     """
     print("\n" + "="*60)
     print("RANDOM SEARCH - RANDOM FOREST CLASSIFIER")
@@ -609,13 +609,14 @@ if __name__ == "__main__":
     - Often finds good parameters with fewer iterations
     - Trade-off between number of iterations and computation time
     ```
+
 ## 2. 논의
 
 RandomizedSearchCV의 n_iter는 후보 평가 수를 정한다. 모든 후보가 목록이면 복원 없이 조합을 뽑는 방식이고, 분포를 포함하면 샘플링 규약이 달라질 수 있으므로 재현성과 중복을 확인한다.
 
 scipy.stats.randint는 이산 분포이고 uniform은 연속 분포이다. 러닝레이트처럼 여러 자릿수에 걸친 양의 값은 로그 스케일 분포를 검토할 수 있지만, 본문의 일부 learning_rate 탐색은 선형 uniform을 사용한다. 분포가 어떤 범위에 예산을 쓰는지 읽어야 한다.
 
-격자보다 후보 수가 적다고 항상 더 빨리 좋은 값을 찾는 것은 아니다. 적합 비용과 탐색 범위·지표·예산이 같은지 확인한다. n_iter별 테스트 점수를 보며 횟수를 선택하면 테스트도 선택 과정에 참여한다.
+격자보다 후보 수가 적다고 항상 더 빨리 좋은 값을 찾는 것은 아니다. 적합 비용과 탐색 범위·지표·예산이 같은지 확인한다. n_iter별 시험 점수를 보며 횟수를 선택하면 시험 집합도 선택 과정에 참여한다.
 
 ## 연습문제
 

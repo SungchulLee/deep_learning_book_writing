@@ -8,9 +8,9 @@
 
 | 로스 | 원소별 형태 | 해석과 조건 |
 |---|---|---|
-| MSE | (x−x̂)² | 큰 오차에 이차 벌점, 이상적 복원은 조건부 평균 |
-| MAE/L1 | 절댓값 오차 | 선형 벌점, 이상적 복원은 조건부 중앙값 |
-| BCE | −x log p−(1−x)log(1−p) | p와 소프트 표적 x가 [0,1], 이진 관측에서는 베르누이 음의 로그우도 |
+| MSE | (x−x̂)² | 큰 오차에 이차 패널티, 이상적 복원은 조건부 평균 |
+| MAE/L1 | 절댓값 오차 | 선형 패널티, 이상적 복원은 조건부 중앙값 |
+| BCE | −x log p−(1−x)log(1−p) | p와 소프트 표적 x가 [0,1], 이진 관측에서는 베르누이 음의 로그가능도(log-likelihood, 로그우도라고도 한다) |
 
 MSE는 고정 분산 가우시안 관측, MAE는 고정 스케일 라플라스 관측으로 확률적으로 해석할 수 있다. 로스를 사용하려면 실제 데이터가 반드시 그 잡음 모형이어야 한다는 뜻은 아니다. BCE 확률에는 Sigmoid 같은 범위 제한이 필요하지만 `BCEWithLogitsLoss`는 로짓을 직접 받아 수치적으로 안정된 결합을 수행한다.
 
@@ -28,7 +28,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
 class AutoencoderWithAnalysis(nn.Module):
-    """숨은 공간 살피기 방법을 갖춘 오토인코더."""
+    """잠재 공간 분석 메서드를 갖춘 오토인코더."""
     
     def __init__(self, input_dim=784, latent_dim=32):
         super().__init__()
@@ -62,7 +62,7 @@ class AutoencoderWithAnalysis(nn.Module):
         return self.decode(z), z
 
 def compare_loss_functions(model_class, train_loader, test_loader, device):
-    """여러 다시 세우기 로스 함수를 견준다."""
+    """여러 재구성 로스 함수를 견준다."""
     
     losses = {
         'MSE': nn.MSELoss(),
@@ -110,12 +110,12 @@ def compare_loss_functions(model_class, train_loader, test_loader, device):
     return results
 ```
 
-`compare_loss_functions`는 각 목적에 새 무작위 모델을 만들고 10에포크 학습한 뒤 테스트 로더 첫 배치의 **처음 열 장**을 복원한다. 테스트 전체 MSE·MAE를 계산하지 않는다. 각 목적의 학습 로스값 자체를 직접 순위화할 수 없고 초기값도 다르다. `train_loader`, `test_loader`와 장치를 준비해 호출해야 실제 실행된다.
+`compare_loss_functions`는 각 목적에 새 무작위 모델을 만들고 10에포크 학습한 뒤 시험 로더 첫 배치의 **처음 열 장**을 복원한다. 시험 데이터 전체의 MSE·MAE를 계산하지 않는다. 각 목적의 학습 로스값 자체를 직접 순위화할 수 없고 초기값도 다르다. `train_loader`, `test_loader`와 장치를 준비해 호출해야 실제 실행된다.
 
 ```python
 def find_optimal_latent_dim(train_loader, test_loader, device, 
                             dims=[2, 4, 8, 16, 32, 64, 128, 256]):
-    """다시 세우기 어긋남으로 가장 좋은 숨은 차원을 찾는다."""
+    """재구성 오차로 가장 좋은 잠재 차원을 찾는다."""
     
     results = []
     
@@ -151,31 +151,31 @@ def find_optimal_latent_dim(train_loader, test_loader, device,
     return results
 ```
 
-`find_optimal_latent_dim`은 차원별 MSE 학습·평가를 제공하지만 배치별 평균 로스를 단순 평균한다. 마지막 배치 크기가 다르면 전체 픽셀 가중 MSE와 다르다. 차원을 고르는 데 사용한 데이터를 이름만 테스트로 두어도 독립 최종 테스트가 되지는 않는다. 검증 데이터에서 선택하고 최종 보류 구간을 따로 평가한다.
+`find_optimal_latent_dim`은 차원별 MSE 학습·평가를 제공하지만 배치별 평균 로스를 단순 평균한다. 마지막 배치 크기가 다르면 전체 픽셀 가중 MSE와 다르다. 차원을 고르는 데 사용한 데이터를 이름만 시험으로 두어도 독립 최종 시험이 되지는 않는다. 검증 데이터에서 선택하고 최종 보류 구간을 따로 평가한다.
 
 ## 3. 희소성: 작은 값과 낮은 활성 빈도
 
-활성화 h의 L1 패널티는 절댓값의 합 또는 평균을 줄인다. 정확한 0의 개수 제한이나 의미 있는 피처 분리를 강제하는 것은 아니다. 비정규화 디코더가 잠재 축소를 큰 웨이트로 리워드할 수도 있어 웨이트 크기·구조와 함께 해석한다.
+활성화 h의 L1 패널티는 절댓값의 합 또는 평균을 줄인다. 정확한 0의 개수 제한이나 의미 있는 피처 분리를 강제하는 것은 아니다. 정칙화하지 않은 디코더가 잠재 표현의 축소를 큰 웨이트로 상쇄할 수도 있어 웨이트 크기·구조와 함께 해석한다.
 
 베르누이 KL 희소성은 0<ρ<1과 평균 활성화 ρ̂_j에 다음 패널티를 사용한다.
 
 $$\Omega_{KL}=\sum_j\left[\rho\log\frac\rho{\hat\rho_j}+(1-\rho)\log\frac{1-\rho}{1-\hat\rho_j}\right].$$
 
-ρ̂_j는 [0,1] 범위의 활성화를 평균한 값이어야 한다. 예를 들어 Sigmoid 잠재 표현에서 사용할 수 있지만 Sigmoid만이 유일한 방법은 아니다. 평균 활성화 0.05가 정확히 5%의 표본에서만 켜짐을 뜻하지 않는다. 모든 표본에서 0.05여도 같은 평균이다. 목표와의 KL 최소화도 전체 재구성 로스과의 절충 때문에 정확히 달성되거나 죽은 단위가 사라진다고 보장할 수 없다.
+ρ̂_j는 [0,1] 범위의 활성화를 평균한 값이어야 한다. 예를 들어 Sigmoid 잠재 표현에서 사용할 수 있지만 Sigmoid만이 유일한 방법은 아니다. 평균 활성화 0.05가 정확히 5%의 표본에서만 켜짐을 뜻하지 않는다. 모든 표본에서 0.05여도 같은 평균이다. 목표와의 KL 최소화도 전체 재구성 로스와의 절충 때문에 정확히 달성되거나 죽은 단위가 사라진다고 보장할 수 없다.
 
 <div class="storybox" markdown>
 
-**그림으로 보는 AI 1.** 희소성은 정규화 수법으로 태어나지 않았다
+**그림으로 보는 AI 1.** 희소성은 정칙화 기법으로 태어나지 않았다
 
-활성화에 벌을 주어 성기게 만든다는 생각은 오토인코더를 길들이려고 나온 것이 아니다. **왜 시각 피질 세포가 그렇게 생겼는가**를 묻다가 나왔다.
+활성화에 패널티를 주어 희소하게(대부분의 유닛이 꺼져 있게) 만든다는 생각은 오토인코더를 길들이려고 나온 것이 아니다. **왜 시각 피질 세포가 그렇게 생겼는가**를 묻다가 나왔다.
 
-1996년에 브루노 올스하우젠(Bruno Olshausen)과 데이비드 필드(David Field)가 《네이처》에 세 쪽짜리 글을 실었다. 자연 영상 조각을 가져다 놓고, **성긴 선형 코드로 표현하라**는 조건 하나만 걸어 학습시켰다. 무엇을 찾으라고 일러 준 것은 없었다. 그런데 나온 기저 함수들이 국소적이고, 방향을 가지고, 특정 주파수 대역에 반응하는 형태 — 일차 시각 피질의 단순 세포에서 관찰되던 바로 그 성질을 갖추고 있었다. 성김이라는 요구 하나가 그 모양을 **끌어냈다**는 것이 요지였다.
+1996년에 브루노 올스하우젠(Bruno Olshausen)과 데이비드 필드(David Field)가 《네이처》에 세 쪽짜리 글을 실었다. 자연 영상 패치를 가져다 놓고, **희소한 선형 코드(sparse code)로 표현하라**는 조건 하나만 걸어 학습시켰다. 무엇을 찾으라고 일러 준 것은 없었다. 그런데 나온 기저 함수들이 국소적이고, 방향을 가지고, 특정 주파수 대역에 반응하는 형태 — 일차 시각 피질의 단순 세포에서 관찰되던 바로 그 성질을 갖추고 있었다. 희소성이라는 요구 하나가 그 모양을 **끌어냈다**는 것이 요지였다.
 
-**그러면 위 식의 ρ̂가 그 성김인가.** 그렇지 않다. 재어 보면 분명하다.
+**그러면 위 식의 ρ̂가 그 희소성인가.** 그렇지 않다. 재어 보면 분명하다.
 
 ![세 판으로 된 그림. 왼쪽 A는 60개 표본과 40개 잠재 유닛의 활성화를 그린 것으로 검은 점이 드문드문 흩어져 있고 나머지는 모두 희다. 가운데 B는 같은 크기인데 전체가 고르게 연한 회색이다. 오른쪽은 표로, 평균 활성화와 KL 패널티와 L1이 A와 B에서 모두 같은 값이고 호박색으로 표시되어 있으며, 정확한 0의 비율은 95퍼센트와 0퍼센트, Hoyer 희소성은 0.785와 0으로 갈린다.](figures/same_penalty_other_code.svg)
 
-A는 유닛마다 200개 표본 가운데 열 곳에서만 켜지고 나머지는 **정확히 0**이다. B는 모든 자리가 늘 0.05다. 두 코드는 닮은 데가 없는데, **위에 적은 두 패널티는 둘을 구별하지 못한다.** 유닛별 평균이 둘 다 꼭 0.05라 KL은 양쪽 모두 0이고(계산 오차 범위에서 $-1.3\times10^{-15}$), L1 평균도 똑같이 0.0500이다. 정확한 0의 비율은 95%와 0%, Hoyer 희소성은 0.785와 0.000으로 갈리는데도 그렇다.
+A는 유닛마다 200개 표본 가운데 열 곳에서만 켜지고 나머지는 **정확히 0**이다. B는 모든 자리가 늘 0.05다. 두 활성화 패턴은 닮은 데가 없는데, **위에 적은 두 패널티는 둘을 구별하지 못한다.** 유닛별 평균이 둘 다 꼭 0.05라 KL은 양쪽 모두 0이고(계산 오차 범위에서 $-1.3\times10^{-15}$), L1 평균도 똑같이 0.0500이다. 정확한 0의 비율은 95%와 0%, Hoyer 희소성은 0.785와 0.000으로 갈리는데도 그렇다.
 
 까닭은 두 패널티가 **유닛별 평균 하나만** 보기 때문이다. 바로 위 문단이 "모든 표본에서 0.05여도 같은 평균이다"라고 적어 둔 것이 이 그림이다.
 
@@ -188,11 +188,11 @@ _확인한 곳 — B. A. Olshausen, D. J. Field, "Emergence of simple-cell recep
 ```python
 class SparseAutoencoder_L1(nn.Module):
     """
-    숨은 활성화에 L1 벌주기를 쓴 성긴 오토인코더.
+    잠재 활성화에 L1 패널티를 쓴 희소 오토인코더.
     
-    로스 = 다시 세우기 로스 + λ × L1(숨은 활성화)
+    로스 = 재구성 로스 + λ × L1(잠재 활성화)
     
-    L1 벌주기가 숨은 활성화 여럿을 딱 0이 되도록 이끈다.
+    L1 패널티가 잠재 활성화 여럿을 정확히 0이 되도록 이끈다.
     """
     
     def __init__(self, input_dim: int = 784, latent_dim: int = 128):
@@ -201,12 +201,12 @@ class SparseAutoencoder_L1(nn.Module):
         self.input_dim = input_dim
         self.latent_dim = latent_dim
         
-        # 인코더: 넘치게 갖춘 나타냄을 위해 흔히 latent_dim을 크게 둔다
+        # 인코더: 과완비(overcomplete) 표현을 위해 흔히 latent_dim을 크게 둔다
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, 256),
             nn.ReLU(),
             nn.Linear(256, latent_dim),
-            nn.ReLU()  # 정류 선형이 저절로 성김을 북돋운다
+            nn.ReLU()  # ReLU가 저절로 희소성을 북돋운다
         )
         
         # 디코더
@@ -224,20 +224,20 @@ class SparseAutoencoder_L1(nn.Module):
 
 def l1_loss(latent: torch.Tensor) -> torch.Tensor:
     """
-    숨은 활성화의 L1 벌주기를 셈한다.
+    잠재 활성화의 L1 패널티를 계산한다.
     
     L1(h) = Σᵢⱼ |hᵢⱼ|
     
-    0이 아닌 활성화에 벌을 주어 성김을 이끈다.
+    0이 아닌 활성화에 패널티를 주어 희소성을 이끈다.
     """
     return torch.mean(torch.abs(latent))
 
 class SparseAutoencoder_KL(nn.Module):
     """
-    KL 벌어짐 성김 제약을 쓴 성긴 오토인코더.
+    KL 발산 희소성 제약을 쓴 희소 오토인코더.
     
-    뉴런마다의 평균 활성화가 목표 성김 수준 ρ(예컨대 0.05)에
-    가깝도록 옭아맨다.
+    뉴런마다의 평균 활성화가 목표 희소성 수준 ρ(예컨대 0.05)에
+    가깝도록 제약한다.
     """
     
     def __init__(self, input_dim: int = 784, latent_dim: int = 128):
@@ -246,12 +246,12 @@ class SparseAutoencoder_KL(nn.Module):
         self.input_dim = input_dim
         self.latent_dim = latent_dim
         
-        # KL 벌어짐을 위해 에스자를 쓴 인코더(내놓기가 [0,1])
+        # KL 발산을 위해 시그모이드를 쓴 인코더(출력이 [0,1])
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, 256),
             nn.ReLU(),
             nn.Linear(256, latent_dim),
-            nn.Sigmoid()  # KL 벌어짐에 필요하다
+            nn.Sigmoid()  # KL 발산에 필요하다
         )
         
         # 디코더
@@ -269,7 +269,7 @@ class SparseAutoencoder_KL(nn.Module):
 
 def kl_divergence_loss(latent: torch.Tensor, rho: float = 0.05) -> torch.Tensor:
     """
-    KL 벌어짐 성김 벌주기를 셈한다.
+    KL 발산 희소성 패널티를 계산한다.
     
     뉴런 j마다 평균 활성화가 ρ̂ⱼ ≈ ρ이기를 바란다.
     
@@ -284,7 +284,7 @@ def kl_divergence_loss(latent: torch.Tensor, rho: float = 0.05) -> torch.Tensor:
     eps = 1e-8
     rho_hat = torch.clamp(rho_hat, eps, 1 - eps)
     
-    # 뉴런마다의 KL 벌어짐
+    # 뉴런마다의 KL 발산
     kl = rho * torch.log(rho / rho_hat) + \
          (1 - rho) * torch.log((1 - rho) / (1 - rho_hat))
     
@@ -295,9 +295,9 @@ def train_sparse_autoencoder(
     sparsity_type='l1', sparsity_weight=0.001, rho=0.05
 ):
     """
-    성긴 오토인코더를 한 바퀴 익힌다.
+    희소 오토인코더를 한 에포크 학습한다.
     
-    전체 로스 = 다시 세우기 로스 + 성김 벌주기
+    전체 로스 = 재구성 로스 + 희소성 패널티
     """
     model.train()
     
@@ -319,7 +319,7 @@ def train_sparse_autoencoder(
         # 복원 로스
         recon_loss = recon_criterion(reconstructed, images)
         
-        # 성김 벌주기
+        # 희소성 패널티
         if sparsity_type == 'l1':
             sparsity_loss = l1_loss(latent)
         elif sparsity_type == 'kl':
@@ -342,11 +342,11 @@ def train_sparse_autoencoder(
             sparsity_loss_sum / num_batches)
 ```
 
-`l1_loss`는 배치·잠재 표현 전체의 **평균**, KL은 잠재 축의 **합**이라 같은 `sparsity_weight`가 같은 정규화 강도를 뜻하지 않는다. KL 평균은 현재 미니배치에서 구하므로 전체 데이터 평균의 목적과 확률적 추정도 구분한다. clamp는 극단값을 제한하지만 낮은 정밀도에서 ε와 1−ε가 표현되는지 확인해야 한다. 알 수 없는 `sparsity_type`에는 로스가 정의되지 않는다.
+`l1_loss`는 배치·잠재 표현 전체의 **평균**, KL은 잠재 축의 **합**이라 같은 `sparsity_weight`가 같은 정칙화 강도를 뜻하지 않는다. KL 평균은 현재 미니배치에서 구하므로 전체 데이터 평균의 목적과 확률적 추정도 구분한다. clamp는 극단값을 제한하지만 낮은 정밀도에서 ε와 1−ε가 표현되는지 확인해야 한다. 알 수 없는 `sparsity_type`에는 로스가 정의되지 않는다.
 
 ```python
 def analyze_sparsity(model, test_loader, device, num_samples=1000):
-    """배운 나타냄의 성김을 살핀다."""
+    """학습된 표현의 희소성을 분석한다."""
     model.eval()
     
     all_activations = []
@@ -361,24 +361,24 @@ def analyze_sparsity(model, test_loader, device, num_samples=1000):
     
     all_activations = np.concatenate(all_activations, axis=0)[:num_samples]
     
-    # 활성화 > 임계를 "깨어 있음"이라 한다
+    # 활성화 > 임계를 "활성"이라 한다
     threshold = 0.1
     active = all_activations > threshold
     
-    # 표본별 성김: 표본마다 깨어 있는 뉴런의 평균 몫
+    # 표본별 희소성: 표본마다 활성인 뉴런의 평균 몫
     population_sparsity = np.mean(np.mean(active, axis=1))
     
-    # 평생 성김: 뉴런마다 그것을 깨우는 표본의 몫
+    # 수명 희소성(lifetime sparsity): 뉴런마다 그것을 활성화하는 표본의 몫
     lifetime_sparsity = np.mean(active, axis=0)
     
     return population_sparsity, lifetime_sparsity
 ```
 
-`analyze_sparsity`는 0.1보다 큰 활성화를 켜짐으로 정의한다. 반환 `population_sparsity`는 이름과 달리 **평균 활성 비율**이며 클수록 더 많이 켜진다. `lifetime_sparsity`도 단위별 활성 빈도다. 부호 있는 잠재 표현라면 양수 임계값만으로 의미 있는 음수 활성화를 놓칠 수 있다. 빈 로더와 고정 `batch_size`에 의존하는 표본 수 추정도 별도 처리한다.
+`analyze_sparsity`는 0.1보다 큰 활성화를 켜짐으로 정의한다. 반환 `population_sparsity`는 이름과 달리 **평균 활성 비율**이며 클수록 더 많이 켜진다. `lifetime_sparsity`도 단위별 활성 빈도다. 부호 있는 잠재 표현이라면 양수 임계값만으로 의미 있는 음수 활성화를 놓칠 수 있다. 빈 로더와 고정 `batch_size`에 의존하는 표본 수 추정도 별도 처리한다.
 
-## 4. 수축 정규화와 야코비안
+## 4. 수축 정칙화와 야코비안
 
-수축 오토인코더(CAE)는 인코더 f의 입력 야코비안에 벌점을 준다.
+수축 오토인코더(CAE)는 인코더 f의 입력 야코비안에 패널티를 준다.
 
 $$L=L_{rec}+\lambda\,\mathbb E_x\|J_f(x)\|_F^2,\qquad\lambda\ge0.$$
 
@@ -388,7 +388,7 @@ $$L=L_{rec}+\lambda\,\mathbb E_x\|J_f(x)\|_F^2,\qquad\lambda\ge0.$$
 from torch.autograd import grad
 
 class ContractiveAutoencoder(nn.Module):
-    """야코비 벌주기를 갖춘 오그리는 오토인코더."""
+    """야코비안 패널티를 갖춘 수축 오토인코더."""
     
     def __init__(self, input_dim=784, latent_dim=64):
         super().__init__()
@@ -396,14 +396,14 @@ class ContractiveAutoencoder(nn.Module):
         self.input_dim = input_dim
         self.latent_dim = latent_dim
         
-        # 내놓기를 가두려 에스자를 쓴 인코더
+        # 출력 범위를 제한하려 시그모이드를 쓴 인코더
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, 256),
             nn.Sigmoid(),
             nn.Linear(256, 128),
             nn.Sigmoid(),
             nn.Linear(128, latent_dim),
-            nn.Sigmoid()  # 야코비가 안정되도록 [0,1]로 가둔다
+            nn.Sigmoid()  # 야코비안이 안정되도록 [0,1]로 제한한다
         )
         
         # 디코더
@@ -429,7 +429,7 @@ class ContractiveAutoencoder(nn.Module):
 
 def compute_jacobian_penalty(model, x):
     """
-    인코더 야코비 행렬의 프로베니우스 노름 제곱을 셈한다.
+    인코더 야코비안 행렬의 프로베니우스 노름 제곱을 계산한다.
     
     J_f(x)_ij = ∂z_i / ∂x_j
     ||J_f||_F^2 = Σ_ij (∂z_i / ∂x_j)^2
@@ -437,7 +437,7 @@ def compute_jacobian_penalty(model, x):
     x = x.requires_grad_(True)
     z = model.encode(x)
     
-    # 야코비 행렬을 세로줄마다 셈한다
+    # 야코비안 행렬을 열마다 계산한다
     jacobian_norm_sq = 0.0
     
     for i in range(z.shape[1]):
@@ -453,7 +453,7 @@ def compute_jacobian_penalty(model, x):
             retain_graph=True
         )[0]
         
-        # 이 세로줄의 제곱합
+        # 이 열의 제곱합
         jacobian_norm_sq = jacobian_norm_sq + torch.sum(jacobian_col ** 2)
     
     return jacobian_norm_sq / x.shape[0]  # 배치에 걸친 평균
@@ -463,9 +463,9 @@ def train_contractive_autoencoder(
     lambda_contractive=0.1, num_epochs=15
 ):
     """
-    오그리는 오토인코더를 익힌다.
+    수축 오토인코더를 학습한다.
     
-    로스 = 다시 세우기 + λ × ||J_f||_F^2
+    로스 = 재구성 + λ × ||J_f||_F^2
     """
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     recon_criterion = nn.MSELoss()
@@ -490,7 +490,7 @@ def train_contractive_autoencoder(
             # 복원 로스
             recon_loss = recon_criterion(recon, images)
             
-            # 오그림 벌주기
+            # 수축 패널티
             contractive_loss = compute_jacobian_penalty(model, images)
             
             # 전체 로스
@@ -515,9 +515,9 @@ def train_contractive_autoencoder(
     return history
 ```
 
-`compute_jacobian_penalty`는 각 잠재 표현 성분의 배치 합을 입력으로 미분한다. 여기처럼 표본 사이 연산이 없는 인코더에서는 표본별 야코비안 행을 구하는 것과 맞는다. BatchNorm처럼 표본을 결합하는 계층으로 바꾸면 이 해석이 달라진다. `create_graph=True`는 패널티에서 파라미터로 다시 미분하기 위해 필요하며 잠재 차원만큼 반복하므로 비용이 크다.
+`compute_jacobian_penalty`는 각 잠재 표현 성분의 배치 합을 입력으로 미분한다. 여기처럼 표본 사이 연산이 없는 인코더에서는 표본별 야코비안 행을 구하는 것과 맞는다. BatchNorm처럼 표본을 결합하는 계층으로 바꾸면 이 해석이 달라진다. `create_graph=True`는 패널티에서 파라메터로 다시 미분하기 위해 필요하며 잠재 차원만큼 반복하므로 비용이 크다.
 
-복원은 모든 원소 평균 MSE, 야코비안은 전체 입력·잠재 표현 제곱합의 표본 평균이다. 차원과 정규화 강도를 함께 기록한다. 모델을 장치로 옮기는 코드는 이 함수 안에 없고 실제로 학습 함수를 호출하는 부분도 없다.
+복원은 모든 원소 평균 MSE, 야코비안은 전체 입력·잠재 표현 제곱합의 표본 평균이다. 차원과 정칙화 강도를 함께 기록한다. 모델을 장치로 옮기는 코드는 이 함수 안에 없고 실제로 학습 함수를 호출하는 부분도 없다.
 
 ## 5. 디노이징과 수축은 같은 로스가 아니다
 
@@ -528,9 +528,9 @@ DAE는 입력을 오염시키고 깨끗한 표적을 복원한다. 작은 가우
 ```python
 def add_noise(images: torch.Tensor, noise_factor: float = 0.1) -> torch.Tensor:
     """
-    그림에 정규 잡음을 더한다.
+    이미지에 가우시안 잡음을 더한다.
     
-    망가뜨린 그림: x̃ = x + ε, 여기서 ε ~ N(0, σ²)
+    오염된 이미지: x̃ = x + ε, 여기서 ε ~ N(0, σ²)
     """
     noise = torch.randn_like(images) * noise_factor
     noisy_images = images + noise
@@ -538,7 +538,7 @@ def add_noise(images: torch.Tensor, noise_factor: float = 0.1) -> torch.Tensor:
 
 def add_salt_pepper_noise(images: torch.Tensor, 
                           noise_prob: float = 0.2) -> torch.Tensor:
-    """그림에 소금과 후추 잡음을 더한다."""
+    """이미지에 소금·후추(salt-and-pepper) 잡음을 더한다."""
     noisy_images = images.clone()
     
     noise_mask = torch.rand_like(images) < noise_prob
@@ -552,8 +552,8 @@ def add_salt_pepper_noise(images: torch.Tensor,
 def add_masking_noise(images: torch.Tensor, 
                       mask_prob: float = 0.3) -> torch.Tensor:
     """
-    화소를 아무렇게나 0으로 두어 가리기 잡음을 더한다.
-    요즘 보기 트랜스포머의 가린 오토인코더(MAE)와 맞닿는다.
+    픽셀을 무작위로 0으로 두어 마스킹 잡음을 더한다.
+    요즘 비전 트랜스포머의 마스크드 오토인코더(MAE)와 맞닿는다.
     """
     mask = (torch.rand_like(images) > mask_prob).float()
     return images * mask
@@ -569,14 +569,14 @@ def add_masking_noise(images: torch.Tensor,
 def train_regularized_autoencoder(
     model, train_loader, optimizer, device, epoch,
     regularization='none',       # 'none', 'l1', 'kl', 'contractive', 'denoising'
-    reg_weight=0.001,            # 벌주기 항의 무게
-    rho=0.05,                    # KL의 목표 성김
-    noise_factor=0.1             # 잡음 없애기의 잡음 수준
+    reg_weight=0.001,            # 정칙화 항의 가중치
+    rho=0.05,                    # KL의 목표 희소성
+    noise_factor=0.1             # 디노이징의 잡음 수준
 ):
     """
-    모든 벌주기 클래스를 받치는 아우른 익히기 함수.
+    모든 정칙화 종류를 지원하는 통합 학습 함수.
     
-    전체 로스 = 다시 세우기 로스 + reg_weight × 벌주기 항
+    전체 로스 = 재구성 로스 + reg_weight × 정칙화 항
     """
     model.train()
     
@@ -592,7 +592,7 @@ def train_regularized_autoencoder(
         
         optimizer.zero_grad()
         
-        # 들임을 마련한다(잡음 없애기면 망가뜨리고 아니면 깨끗이)
+        # 입력을 준비한다(디노이징이면 오염시키고 아니면 그대로)
         if regularization == 'denoising':
             input_images = add_noise(images, noise_factor)
         else:
@@ -601,10 +601,10 @@ def train_regularized_autoencoder(
         # 순전파
         reconstructed, latent = model(input_images)
         
-        # 다시 세우기 로스(늘 깨끗한 그림에 대해)
+        # 재구성 로스(늘 깨끗한 이미지에 대해)
         recon_loss = recon_criterion(reconstructed, images)
         
-        # 벌주기 항
+        # 정칙화 항
         if regularization == 'l1':
             reg_loss = l1_loss(latent)
         elif regularization == 'kl':
@@ -630,15 +630,15 @@ def train_regularized_autoencoder(
             reg_loss_sum / num_batches)
 ```
 
-이 루프는 `regularization` 문자열로 **한 가지 방식**을 고른다. 여러 패널티를 동시에 모두 합하는 구현이 아니다. `'denoising'`은 입력을 바꾸며 명시적 `reg_loss`는 0이다. L1·KL·수축에는 각 방법에 맞는 반환값·활성화와 `encode`가 필요하다. 알 수 없는 문자열도 조용히 정규화 없음으로 처리하므로 호출 값을 검증한다.
+이 루프는 `regularization` 문자열로 **한 가지 방식**을 고른다. 여러 패널티를 동시에 모두 합하는 구현이 아니다. `'denoising'`은 입력을 바꾸며 명시적 `reg_loss`는 0이다. L1·KL·수축에는 각 방법에 맞는 반환값·활성화와 `encode`가 필요하다. 알 수 없는 문자열도 조용히 정칙화 없음으로 처리하므로 호출 값을 검증한다.
 
 ```python
 def visualize_learned_features(model, num_features=64):
     """
-    하나만 뜨거운 숨은 벡터를 풀어 배운 피처를 그려 본다.
+    원핫 잠재 벡터를 디코딩해 학습된 피처를 시각화한다.
     
-    성긴 오토인코더에서는 피처가 흔히 더 풀이하기 쉬우며
-    국소한 결을 보인다.
+    희소 오토인코더에서는 피처가 흔히 더 해석하기 쉬우며
+    국소적인 패턴을 보인다.
     """
     model.eval()
     
@@ -648,15 +648,15 @@ def visualize_learned_features(model, num_features=64):
     features = []
     with torch.no_grad():
         for i in range(num_features):
-            # 하나만 뜨거운 벡터를 만든다
+            # 원핫 벡터를 만든다
             latent = torch.zeros(1, latent_dim)
-            latent[0, i] = 1.0  # 뉴런 i만 깨운다
+            latent[0, i] = 1.0  # 뉴런 i만 활성화한다
             
-            # 그림 공간으로 푼다
+            # 이미지 공간으로 디코딩한다
             feature = model.decoder(latent)
             features.append(feature.cpu().numpy().reshape(28, 28))
     
-    # 격자로 그려 본다
+    # 격자로 시각화한다
     grid_size = int(np.ceil(np.sqrt(num_features)))
     fig, axes = plt.subplots(grid_size, grid_size, figsize=(12, 12))
     axes = axes.flatten()
@@ -684,7 +684,7 @@ MNIST에서 BCE·MSE·MAE 중 어떤 로스가 좋은지 비교하는 절차를 
 
 ??? success "풀이"
 
-    같은 구조·전처리·초기값 조건과 각 로스에 적절한 학습 설정을 사용한다. 독립 검증에서 공통 MSE·MAE와 시각적 품질을 평가한다. 현재 비교 함수는 테스트 전체 수치가 아니라 열 장 복원만 반환한다. 고정 성능표나 BCE 우위를 이 코드의 결과로 가정하지 않는다. MAE가 조건부 중앙값을 선호해도 항상 검은 그림이 최적이라는 뜻은 아니다.
+    같은 구조·전처리·초기값 조건과 각 로스에 적절한 학습 설정을 사용한다. 독립 검증에서 공통 MSE·MAE와 시각적 품질을 평가한다. 현재 비교 함수는 시험 데이터 전체 수치가 아니라 열 장 복원만 반환한다. 고정 성능표나 BCE 우위를 이 코드의 결과로 가정하지 않는다. MAE가 조건부 중앙값을 선호해도 항상 검은 그림이 최적이라는 뜻은 아니다.
 
 
 
@@ -789,7 +789,7 @@ CAE 패널티가 작게 만드는 양과 구현의 합산 축을 설명하라.
 
 ??? success "풀이"
 
-    아니다. 두 목표가 절충되지만 어떤 방향이 유용한지 자동으로 식별하는 정리는 아니다. 너무 강하면 복원이나 구별 능력을 약화할 수 있고 잠재 축소를 디코더 확대가 리워드할 수도 있다. 야코비안 스펙트럼, 복원과 후속 태스크를 함께 검증한다.
+    아니다. 두 목표가 절충되지만 어떤 방향이 유용한지 자동으로 식별하는 정리는 아니다. 너무 강하면 복원이나 구별 능력을 약화할 수 있고 잠재 표현의 축소를 디코더의 확대가 상쇄할 수도 있다. 야코비안 스펙트럼, 복원과 후속 태스크를 함께 검증한다.
 
 
 

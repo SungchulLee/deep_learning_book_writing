@@ -1,6 +1,6 @@
 # 이미지 분류 학습
 
-ViT를 생성하고 무작위 이미지 배치의 순전파 모양을 확인한다. 함수 이름은 train_vit이지만 데이터셋·로스·역전파·옵티마이저 갱신을 포함하지 않아 실제 학습을 수행하지 않는다.
+ViT를 생성하고 무작위 이미지 배치의 순전파 형태를 확인한다. 함수 이름은 train_vit이지만 데이터셋·로스·역전파·옵티마이저 갱신을 포함하지 않아 실제 학습을 수행하지 않는다.
 
 ## 1. 코드
 
@@ -13,7 +13,7 @@ import torch.nn as nn
 
 # --- patch_embedding ---
 """
-비전 트랜스포머를 위한 그림 조각 임베딩
+비전 트랜스포머를 위한 패치 임베딩
 """
 
 # ========================================================================
@@ -52,7 +52,7 @@ class VisionTransformer(nn.Module):
         super().__init__()
         self.patch_embed = PatchEmbedding(img_size, patch_size, embed_dim=d_model)
         
-        # 분류 토큰과 자리 임베딩
+        # 분류 토큰과 위치 임베딩
         self.cls_token = nn.Parameter(torch.randn(1, 1, d_model))
         self.pos_embed = nn.Parameter(torch.randn(1, self.patch_embed.n_patches + 1, d_model))
         
@@ -60,18 +60,18 @@ class VisionTransformer(nn.Module):
         encoder_layer = nn.TransformerEncoderLayer(d_model, num_heads, dim_feedforward=d_model*4)
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers)
         
-        # 분류 머리
+        # 분류 헤드
         self.classifier = nn.Linear(d_model, num_classes)
     
     def forward(self, x):
-        # 조각 임베딩
+        # 패치 임베딩
         x = self.patch_embed(x)  # [B, n_patches, d_model]
         
         # 분류 토큰을 더한다
         cls_tokens = self.cls_token.expand(x.size(0), -1, -1)
         x = torch.cat([cls_tokens, x], dim=1)
         
-        # 자리 임베딩을 더한다
+        # 위치 임베딩을 더한다
         x = x + self.pos_embed
         
         # 트랜스포머
@@ -117,11 +117,11 @@ Ready for image classification training!
 
 ## 2. 논의
 
-외부 vision_transformer.VisionTransformer를 RGB 224×224, 패치 16과 10개 클래스로 생성한다. (4,3,224,224) 입력은 패치 196개와 CLS를 거쳐 (4,10) 로짓이 된다. 외부 모델의 계수는 85,804,810개이며 같은 폴더의 Pre-LN vit_model 구현과는 구조·계수 수가 다르다.
+외부 vision_transformer.VisionTransformer를 RGB 224×224, 패치 16과 10개 클래스로 생성한다. (4,3,224,224) 입력은 패치 196개와 CLS를 거쳐 (4,10) 로짓이 된다. 외부 모델의 파라메터는 85,804,810개이며 같은 폴더의 Pre-LN vit_model 구현과는 구조·파라메터 수가 다르다.
 
-eval이나 no_grad를 사용하지 않아 학습 모드와 경사 기록이 켜져 있지만, 이것만으로 웨이트가 갱신되는 것은 아니다. 본문 출력은 모델 생성·순전파 메시지이며 정확도·수렴·학습 성공을 보여 주지 않는다.
+eval이나 no_grad를 사용하지 않아 학습 모드와 그래디언트 기록이 켜져 있지만, 이것만으로 웨이트가 갱신되는 것은 아니다. 본문 출력은 모델 생성·순전파 메시지이며 정확도·수렴·학습 성공을 보여 주지 않는다.
 
-실제 분류 학습에는 데이터·레이블·독립 검증 분할과 전처리, 교차 엔트로피와 갱신 루프를 연결해야 한다. 무작위 이미지의 출력 모양 확인과 학습한 이미지 피처의 품질은 구분한다.
+실제 분류 학습에는 데이터·라벨·독립 검증 분할과 전처리, 교차 엔트로피와 갱신 루프를 연결해야 한다. 무작위 이미지의 출력 형태 확인과 학습한 이미지 피처의 품질은 구분한다.
 
 ## 연습문제
 
@@ -157,14 +157,14 @@ eval이나 no_grad를 사용하지 않아 학습 모드와 경사 기록이 켜�
 </div>
 
 ??? success "풀이"
-    추론에는 eval·no_grad를 적용하고 같은 전처리를 사용한다. 학습에는 train 모드에서 로짓 로스·경사 초기화·역전파·갱신을 수행한다. 별도 검증으로 설정을 선택하며 무작위 입력 검사로 정확도를 대신하지 않는다.
+    추론에는 eval·no_grad를 적용하고 같은 전처리를 사용한다. 학습에는 train 모드에서 로짓 로스·그래디언트 초기화·역전파·갱신을 수행한다. 별도 검증으로 설정을 선택하며 무작위 입력 검사로 정확도를 대신하지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 모양 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
+아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 형태 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
 
 </div>
 
@@ -177,17 +177,17 @@ eval이나 no_grad를 사용하지 않아 학습 모드와 경사 기록이 켜�
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 형태, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 
-이 페이지는 ViT의 생성과 순전파 모양 확인이다. 학습 모드·경사 기록·옵티마이저 갱신을 구분하고 실제 데이터 학습과 평가가 추가되어야 함을 이해한다.
+이 페이지는 ViT의 생성과 순전파 형태 확인이다. 학습 모드·그래디언트 기록·옵티마이저 갱신을 구분하고 실제 데이터 학습과 평가가 추가되어야 함을 이해한다.

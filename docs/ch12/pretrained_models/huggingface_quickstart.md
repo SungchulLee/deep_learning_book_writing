@@ -23,7 +23,7 @@ results = classifier([
 for r in results:
     print(f"  {r['label']:>8s}  (confidence: {r['score']:.3f})")
 
-# 2. 특정 모형으로 하는 자연어 추론
+# 2. 특정 모델로 하는 자연어 추론
 model_name = "cross-encoder/nli-distilroberta-base"
 nli_pipe = pipeline("text-classification", model=model_name)
 
@@ -36,7 +36,7 @@ for text in pairs:
     result = nli_pipe(text)
     print(f"  {result[0]['label']:>14s} ({result[0]['score']:.3f})")
 
-# 3. 손수 싣기: AutoTokenizer와 AutoModel
+# 3. 직접 로드하기: AutoTokenizer와 AutoModel
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 model_name = "distilbert-base-uncased-finetuned-sst-2-english"
@@ -54,7 +54,7 @@ labels = model.config.id2label
 for i, (label_id, label_name) in enumerate(labels.items()):
     print(f"  {label_name}: {probs[0, i]:.4f}")
 
-# 4. 토큰 나누기의 세부
+# 4. 토큰화의 세부
 sentences = [
     "Short text.",
     "This is a much longer sentence that demonstrates padding behaviour.",
@@ -109,7 +109,7 @@ for epoch in range(3):
         total_loss += loss.item()
     print(f"  Epoch {epoch + 1}: loss = {total_loss / len(loader):.4f}")
 
-# 6. GPT-2로 하는 글 생성
+# 6. GPT-2로 하는 텍스트 생성
 generator = pipeline("text-generation", model="gpt2")
 prompt = "Deep learning has revolutionized"
 results = generator(
@@ -126,9 +126,9 @@ pipeline은 전처리·모델 호출·후처리를 묶은 추론 인터페이스
 
 **NLI 입력의 한계:** 예제는 두 문장을 문자열의 [SEP]로 이어 text-classification에 넘긴다. RoBERTa 토크나이저에 이 문자열이 문장 쌍을 올바르게 구분한다는 보장은 없다. 실제 전제·가설은 해당 파이프라인이나 토크나이저의 text/text_pair 인터페이스로 전달해야 한다. “비가 오면 잔디가 젖었다” 역시 전제에서 반드시 따라오는 논리적 함의는 아니다.
 
-명시적인 추론은 eval과 no_grad를 함께 사용한다. 라벨 이름은 각 로짓의 실제 ID를 model.config.id2label에서 찾아 연결해야 하며, 사전의 순회 순서가 클래스 번호 순서라고 일반화하면 안 된다. attention_mask는 일반적으로 1이 유효, 0이 패딩이며 패딩 쿼리 출력이나 학습 정답까지 자동으로 제거하지는 않는다.
+명시적인 추론은 eval과 no_grad를 함께 사용한다. 라벨 이름은 각 로짓의 실제 ID를 model.config.id2label에서 찾아 연결해야 하며, 딕셔너리의 순회 순서가 클래스 번호 순서라고 일반화하면 안 된다. attention_mask는 일반적으로 1이 유효, 0이 패딩이며 패딩 쿼리 출력이나 학습 정답까지 자동으로 제거하지는 않는다.
 
-미세 조정은 기본 DistilBERT 인코더에 새 분류 헤드를 붙여 여섯 문장으로 세 에포크 학습한다. 이 데이터에는 검증·테스트 분할이 없고 라벨도 예제용이므로 성능을 판단할 수 없다. 앞의 SST-2 토크나이저를 재사용하지만 두 체크포인트의 어휘·특수 토큰이 같은지 확인해야 한다. 실제 과제에서는 모델과 맞는 토크나이저를 함께 선택한다.
+미세 조정은 기본 DistilBERT 인코더에 새 분류 헤드를 붙여 여섯 문장으로 세 에포크 학습한다. 이 데이터에는 검증·시험 분할이 없고 라벨도 예제용이므로 성능을 판단할 수 없다. 앞의 SST-2 토크나이저를 재사용하지만 두 체크포인트의 어휘·특수 토큰이 같은지 확인해야 한다. 실제 과제에서는 모델과 맞는 토크나이저를 함께 선택한다.
 
 GPT-2 생성은 확률 샘플링이라 결과가 달라질 수 있다. max_new_tokens는 새로 추가할 최대 토큰 수이며 출력 문자열에 프롬프트가 포함되는지 옵션도 확인한다. 영어 예제의 결과가 한국어 과제에도 그대로 적용되는 것은 아니다.
 
@@ -137,7 +137,7 @@ GPT-2 생성은 확률 샘플링이라 결과가 달라질 수 있다. max_new_t
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-아래 제로샷 분류 예제에서 후보 레이블과 가설 템플릿이 결과에 주는 영향을 설명하라. 실행 결과 없이 레이블 순위를 확정할 수 있는가?
+아래 제로샷 분류 예제에서 후보 라벨과 가설 템플릿이 결과에 주는 영향을 설명하라. 실행 결과 없이 라벨 순위를 확정할 수 있는가?
 
 </div>
 

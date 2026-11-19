@@ -73,7 +73,7 @@ class BiLSTMNER(nn.Module):
         embeds = self.embedding(input_ids)
         embeds = self.dropout(embeds)
         
-        # 양방향 LSTM 부호화
+        # 양방향 LSTM 인코딩
         if attention_mask is not None:
             lengths = attention_mask.sum(dim=1).cpu()
             packed = nn.utils.rnn.pack_padded_sequence(
@@ -91,7 +91,7 @@ class BiLSTMNER(nn.Module):
         # 분류
         logits = self.classifier(lstm_out)
         
-        # 레이블이 있으면 로스를 셈한다
+        # 라벨이 있으면 로스를 계산한다
         loss = None
         if labels is not None:
             loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
@@ -112,7 +112,7 @@ class BiLSTMNER(nn.Module):
 
 mask가 있으면 유효 길이로 pack한다. 양의 길이·오른쪽 연속 패딩을 가정하며 unpack은 배치의 최대 유효 길이로 줄어들 수 있다. labels가 원래 고정 패딩 길이를 유지하면 펼친 logits와 원소 수가 달라 CE에서 실패할 수 있다. total_length 또는 목표·마스크 정렬 규칙이 필요하다.
 
-로스는−100 레이블만 무시한다. attention_mask만0으로 두고 패딩 labels를O로 채우면 CE에서 자동으로 제외되지 않는다. 모든 레이블이−100일 때 평균의 유효 분모도 고려해야 한다. predict는 no_grad를 쓰지만 eval로 전환하지 않아 호출자가 학습 모드이면 dropout이 남는다. 반환 argmax에는 패딩 위치를 제거하는 별도 절차도 없다.
+로스는−100 라벨만 무시한다. attention_mask만0으로 두고 패딩 labels를O로 채우면 CE에서 자동으로 제외되지 않는다. 모든 라벨이−100일 때 평균의 유효 분모도 고려해야 한다. predict는 no_grad를 쓰지만 eval로 전환하지 않아 호출자가 학습 모드이면 dropout이 남는다. 반환 argmax에는 패딩 위치를 제거하는 별도 절차도 없다.
 
 ## 3. 문자 피처를 결합하는 모델
 
@@ -277,7 +277,7 @@ class BiLSTMCRF(nn.Module):
     def forward(self, input_ids, attention_mask, labels):
         emissions = self._get_emissions(input_ids, attention_mask)
         
-        # CRF 피드포워드: 로그 나눔 함수와 참값 점수 셈하기
+        # CRF 순방향 계산: 로그 분배 함수와 정답 점수 계산하기
         gold_score = self._score_sentence(emissions, labels, attention_mask)
         partition = self._forward_algorithm(emissions, attention_mask)
         
@@ -285,7 +285,7 @@ class BiLSTMCRF(nn.Module):
         return {'loss': loss, 'emissions': emissions}
     
     def _forward_algorithm(self, emissions, mask):
-        """로그 나눔 함수 셈하기."""
+        """로그 분배 함수 계산하기."""
         batch_size, seq_len, num_tags = emissions.shape
         
         # 초기화한다
@@ -309,7 +309,7 @@ class BiLSTMCRF(nn.Module):
         return torch.logsumexp(alpha + self.end_transitions, dim=1)
     
     def _score_sentence(self, emissions, tags, mask):
-        """참값 차례의 점수 셈하기."""
+        """정답 시퀀스의 점수 계산하기."""
         batch_size, seq_len, _ = emissions.shape
         
         score = self.start_transitions[tags[:, 0]]
@@ -333,7 +333,7 @@ class BiLSTMCRF(nn.Module):
         return self._viterbi_decode(emissions, attention_mask)
     
     def _viterbi_decode(self, emissions, mask):
-        """가장 좋은 레이블 차례 찾기."""
+        """가장 좋은 라벨 시퀀스 찾기."""
         batch_size, seq_len, num_tags = emissions.shape
         
         score = self.start_transitions + emissions[:, 0]
@@ -351,7 +351,7 @@ class BiLSTMCRF(nn.Module):
         
         score += self.end_transitions
         
-        # 되짚기
+        # 역추적
         best_tags = []
         for idx in range(batch_size):
             seq_len_i = mask[idx].sum().int().item()
@@ -376,7 +376,7 @@ decode는 eval·no_grad를 자체 적용하지 않으며 BIO 강제 제약도 �
 
 BiLSTM과 트랜스포머의 데이터 요구·속도·정확도를 하나의 고정 순위로 정할 수 없다. 사전 학습 규모·모델 크기·시퀀스 길이·장치·배치·토큰화·도메인이 영향을 준다. 무작위 BiLSTM과 대규모 사전 학습 인코더를 비교하면 구조뿐 아니라 사전 학습의 효과도 섞인다.
 
-문자 피처·dropout·경사 clipping·CRF·임베딩 초기화는 선택 가능한 설계다. 검증 자료에서 목적에 맞게 선택하고 최고 checkpoint와 독립 평가를 사용한다. 이 페이지는 구조 조각을 제공할 뿐 여러 모델을 학습한 통제 실험 결과를 제공하지 않는다.
+문자 피처·dropout·그래디언트 클리핑·CRF·임베딩 초기화는 선택 가능한 설계다. 검증 데이터에서 목적에 맞게 선택하고 최고 checkpoint와 독립 평가를 사용한다. 이 페이지는 구조 조각을 제공할 뿐 여러 모델을 학습한 통제 실험 결과를 제공하지 않는다.
 
 ## 연습문제
 

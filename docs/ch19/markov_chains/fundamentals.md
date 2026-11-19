@@ -12,9 +12,9 @@ $$P(X_{n+1} = j \mid X_n = i, X_{n-1} = i_{n-1}, \ldots, X_0 = i_0) = P(X_{n+1} 
 
 이것이 **마르코프 성질**(기억 없음)이다:
 
-> *지금 상태가 주어지면 앞날은 지난날과 조건부 독립이다.*
+> *현재 상태가 주어지면 미래는 과거와 조건부 독립이다.*
 
-이 성질은 지금 상태 $X_n = i$가 $X_{n+1}$을 미리 알아보는 데 필요한 정보를 모두 담고 있다고 말한다. 자취 전체 $(X_0, X_1, \ldots, X_{n-1})$은 $X_n$이 이미 주는 것 말고 더 보태는 예측력이 없다.
+이 성질은 지금 상태 $X_n = i$가 $X_{n+1}$을 예측하는 데 필요한 정보를 모두 담고 있다고 말한다. 이력 전체 $(X_0, X_1, \ldots, X_{n-1})$은 $X_n$이 이미 주는 것 말고 더 보태는 예측력이 없다.
 
 <div class="storybox" markdown>
 
@@ -22,7 +22,7 @@ $$P(X_{n+1} = j \mid X_n = i, X_{n-1} = i_{n-1}, \ldots, X_0 = i_0) = P(X_{n+1} 
 
 위 식은 담담해 보이지만, 안드레이 마르코프가 이것을 만든 까닭은 수학 안쪽에 있지 않았다. **그는 논쟁에서 이기려 했다.**
 
-1902년에 모스크바 대학의 파벨 네크라소프(Pavel Nekrasov)가 큰 수의 법칙을 자유의지와 예정설이라는 신학 논쟁에 끌어들였다. 논증은 이런 형태였 — 자유의지로 한 행동은 확률론의 **독립** 사건과 같아서 서로 인과로 묶여 있지 않다. 큰 수의 법칙은 그런 독립 사건에만 성립한다. 그런데 사회 통계는 큰 수의 법칙을 따른다. 그러므로 그 바탕의 개인 행동은 독립이고 자유의지에 따른 것이다.
+1902년에 모스크바 대학의 파벨 네크라소프(Pavel Nekrasov)가 큰 수의 법칙을 자유의지와 예정설이라는 신학 논쟁에 끌어들였다. 논증은 이런 형태였다 — 자유의지로 한 행동은 확률론의 **독립** 사건과 같아서 서로 인과로 묶여 있지 않다. 큰 수의 법칙은 그런 독립 사건에만 성립한다. 그런데 사회 통계는 큰 수의 법칙을 따른다. 그러므로 그 바탕의 개인 행동은 독립이고 자유의지에 따른 것이다.
 
 마르코프는 이 글을 "수학의 남용"이라 불렀다. 다만 그가 파고든 것은 신학도 정치도 아니고 **수학적 오류 한 군데**였다 — 네크라소프는 큰 수의 법칙이 독립을 **요구한다**고 가정했다. 그것이 틀렸음을 보이려면 방법이 하나 있다. **서로 기대어 있는데도 큰 수의 법칙을 따르는 수열**을 실제로 만들어 보이면 된다. 그것이 위의 성질이고, 오늘 우리가 마르코프 사슬이라 부르는 것이다.
 
@@ -34,25 +34,25 @@ $$P(X_{n+1} = j \mid X_n = i, X_{n-1} = i_{n-1}, \ldots, X_0 = i_0) = P(X_{n+1} 
 
 **다만 이것은 네크라소프의 결론이 틀렸음을 보인 것이지, 그 반대를 보인 것이 아니다.** 마르코프가 증명한 것은 "독립이 아니어도 큰 수의 법칙이 설 수 있다"이고, 거기서 자유의지에 대해 나오는 말은 없다. 그는 논증의 전제 하나를 무너뜨렸을 뿐이고, 그것으로 충분했다. 위 식이 "기억 없음"이라 불리는 것도 같은 결의 조심스러움이 필요하다 — **지난날을 잊는다는 말이 지난날과 무관하다는 말이 아니다.** 오네긴의 글자들은 앞 글자를 또렷이 기억하고 있고, 다만 그보다 더 앞은 보지 않을 뿐이다.
 
-_확인한 곳 — 네크라소프의 1902년 논증과 마르코프의 "수학의 남용"이라는 평, 그리고 그가 파고든 것이 "큰 수의 법칙이 독립을 요구한다"는 가정이었다는 것은 Brian Hayes, "First Links in the Markov Chain", *American Scientist* (2013) 에서 확인했다. 2만 글자·모음 8,638·자음 11,362·모음모음 쌍 1,104 라는 집계도 같은 글에 있다. 독립이었을 때의 3,731쌍과 두 조건부 확률은 그 집계에서 그림을 그리는 코드가 직접 셈한다. 마르코프의 1913년 발표 제목은 「An Example of Statistical Investigation of the Text Eugene Onegin Concerning the Connection of Samples in Chains」다._
+_확인한 곳 — 네크라소프의 1902년 논증과 마르코프의 "수학의 남용"이라는 평, 그리고 그가 파고든 것이 "큰 수의 법칙이 독립을 요구한다"는 가정이었다는 것은 Brian Hayes, "First Links in the Markov Chain", *American Scientist* (2013) 에서 확인했다. 2만 글자·모음 8,638·자음 11,362·모음모음 쌍 1,104 라는 집계도 같은 글에 있다. 독립이었을 때의 3,731쌍과 두 조건부 확률은 그 집계에서 그림을 그리는 코드가 직접 계산한다. 마르코프의 1913년 발표 제목은 「An Example of Statistical Investigation of the Text Eugene Onegin Concerning the Connection of Samples in Chains」다._
 
 </div>
 
 ### 시간 동질성
 
-전이확률이 시간 첨자에 기대지 않으면 마르코프 사슬이 **시간 동질적이다**고 한다:
+전이확률이 시간 첨자에 의존하지 않으면 마르코프 사슬이 **시간 동질적**이라고 한다:
 
 $$P(X_{n+1} = j \mid X_n = i) = P(X_1 = j \mid X_0 = i) \quad \text{for all } n \geq 0$$
 
-이 장에서는 따로 말하지 않는 한 시간 동질성을 놓고 다음과 같이 쓴다:
+이 장에서는 따로 말하지 않는 한 시간 동질성을 가정하고 다음과 같이 쓴다:
 
 $$P_{ij} = P(X_{n+1} = j \mid X_n = i)$$
 
 ### 상태 공간
 
-**상태 공간** $S$는 사슬이 가질 수 있는 모든 값의 배치다:
+**상태 공간** $S$는 사슬이 가질 수 있는 모든 값의 집합이다:
 
-| 클래스 | 상태 공간 | 보기 |
+| 종류 | 상태 공간 | 보기 |
 |------|------------|---------|
 | 유한 | $S = \{0, 1, 2, \ldots, N-1\}$ | 신용 등급, 날씨 상태 |
 | 가산 무한 | $S = \mathbb{Z}^+ = \{0, 1, 2, \ldots\}$ | 줄의 길이, 랜덤 워크 |
@@ -94,7 +94,7 @@ P_{N-1,0} & P_{N-1,1} & \cdots & P_{N-1,N-1}
 
 행렬 $P$가 (행) 확률 행렬일 때 그리고 그때만 모든 $i,j$에 대해 $P_{ij} \geq 0$이고 $P \mathbf{1} = \mathbf{1}$이다. 여기서 $\mathbf{1}$은 모두 1인 열 벡터이다. 핵심 결과는 다음과 같다:
 
-- 확률 행렬 둘의 곱도 확률 행렬이다(곱하기에 닫혀 있다).
+- 확률 행렬 둘의 곱도 확률 행렬이다(곱셈에 대해 닫혀 있다).
 - $P$의 고윳값은 모두 $|\lambda| \leq 1$을 만족한다.
 - $\lambda_1 = 1$은 늘 고윳값이며 오른쪽 고유벡터가 $\mathbf{1}$이다.
 
@@ -104,11 +104,11 @@ P_{N-1,0} & P_{N-1,1} & \cdots & P_{N-1,N-1}
 
 ### 정의
 
-**$n$ 스텝 전이확률**은 상태 $i$에서 꼭 $n$ 스텝에 상태 $j$에 닿을 확률이다:
+**$n$ 스텝 전이확률**은 상태 $i$에서 정확히 $n$ 스텝 만에 상태 $j$에 도달할 확률이다:
 
 $$P^{(n)}_{ij} = P(X_{n+m} = j \mid X_m = i)$$
 
-시간 동질적인 사슬에서는 이것이 $m$에 기대지 않는다.
+시간 동질적인 사슬에서는 이것이 $m$에 의존하지 않는다.
 
 ### 행렬의 거듭제곱
 
@@ -116,23 +116,23 @@ $$P^{(n)}_{ij} = P(X_{n+m} = j \mid X_m = i)$$
 
 $$P^{(n)}_{ij} = (P^n)_{ij}$$
 
-여기서 $P^n = \underbrace{P \cdot P \cdots P}_{n \text{ times}}$은 보통의 행렬 곱하기이다.
+여기서 $P^n = \underbrace{P \cdot P \cdots P}_{n \text{ times}}$은 보통의 행렬 곱셈이다.
 
 *증명 구조.* 전체 확률의 법칙에 따라:
 
 $$P^{(n)}_{ij} = \sum_{k \in S} P^{(n-1)}_{ik} P_{kj}$$
 
-이것이 바로 $P^{(n-1)}$과 $P$에 쓴 행렬 곱하기의 정의이다. 귀납으로 $P^{(n)} = P^n$이다. $\square$
+이것이 바로 $P^{(n-1)}$과 $P$에 쓴 행렬 곱셈의 정의이다. 귀납으로 $P^{(n)} = P^n$이다. $\square$
 
-이 결과는 몹시 쓸모 있다. 곧 여러 스텝 동역학이 모두 $P$의 거듭제곱에 담겨 있다.
+이 결과는 매우 유용하다. 곧 여러 스텝 동역학이 모두 $P$의 거듭제곱에 담겨 있다.
 
 ---
 
-## 4. Chapman-콜모고로프 방정식
+## 4. 채프먼-콜모고로프 방정식
 
 ### 진술
 
-음이 아닌 아무 정수 $m, n$에 대해:
+임의의 음이 아닌 정수 $m, n$에 대해:
 
 $$P^{(m+n)}_{ij} = \sum_{k \in S} P^{(m)}_{ik} P^{(n)}_{kj}$$
 
@@ -142,11 +142,11 @@ $$P^{m+n} = P^m \cdot P^n$$
 
 ### 해석
 
-상태 $i$에서 $m + n$ 스텝에 상태 $j$로 가려면 사슬이 때 $m$에 어떤 가운데 상태 $k$을 지나야 한다. Chapman-콜모고로프 방정식은 $(m+n)$ 스텝 전이을 다음과 같이 쪼갠다:
+상태 $i$에서 $m + n$ 스텝에 상태 $j$로 가려면 사슬이 시점 $m$에 어떤 중간 상태 $k$를 지나야 한다. 채프먼-콜모고로프 방정식은 $(m+n)$ 스텝 전이를 다음과 같이 분해한다:
 
 $$\underbrace{i \xrightarrow{m \text{ steps}} k}_{\text{probability } P^{(m)}_{ik}} \xrightarrow{n \text{ steps}} \underbrace{j}_{\text{probability } P^{(n)}_{kj}}$$
 
-있을 수 있는 모든 가운데 상태 $k$에 걸쳐 합한다.
+있을 수 있는 모든 중간 상태 $k$에 걸쳐 합한다.
 
 ---
 
@@ -160,7 +160,7 @@ $$\pi^{(0)}_i = P(X_0 = i)$$
 
 ### 분포의 전파
 
-(행 벡터로 쓴) 초기분포 $\pi^{(0)}$이 주어지면 때 $n$의 분포는 다음과 같다:
+(행 벡터로 쓴) 초기분포 $\pi^{(0)}$이 주어지면 시점 $n$의 분포는 다음과 같다:
 
 $$\pi^{(n)} = \pi^{(0)} P^n$$
 
@@ -168,7 +168,7 @@ $$\pi^{(n)} = \pi^{(0)} P^n$$
 
 $$\pi^{(n)}_j = P(X_n = j) = \sum_{i \in S} \pi^{(0)}_i P^{(n)}_{ij}$$
 
-이것이 전이 행렬과 분포의 변화을 잇는 근본 방정식이다. MCMC에서 결정적인 물음은 이것이다. *초기분포 $\pi^{(0)}$이 무엇이든 $n \to \infty$일 때 $\pi^{(n)}$이 목표분포 $\pi$으로 모이는가?*
+이것이 전이 행렬과 분포의 변화를 연결하는 기본 방정식이다. MCMC에서 핵심 질문은 이것이다. *초기분포 $\pi^{(0)}$이 무엇이든 $n \to \infty$일 때 $\pi^{(n)}$이 목표분포 $\pi$로 수렴하는가?*
 
 ---
 
@@ -185,13 +185,13 @@ from typing import List, Optional, Union, Dict, Tuple
 
 class MarkovChain:
     """
-    PyTorch로 구현한 띄엄띄엄한 시간 마르코프 사슬.
+    PyTorch로 구현한 이산 시간 마르코프 사슬.
 
     마르코프 성질은 다음을 말한다:
     P(X_{n+1} = j | X_n = i, X_{n-1}, ..., X_0) = P(X_{n+1} = j | X_n = i)
 
     속성:
-        P: 옮김 확률 행렬(행 확률 행렬)
+        P: 전이확률 행렬(행 확률 행렬)
         n_states: 상태의 개수
         state_names: 상태의 이름(없어도 된다)
     """
@@ -203,13 +203,13 @@ class MarkovChain:
         validate: bool = True
     ):
         """
-        마르코프 사슬 첫값 잡기.
+        마르코프 사슬 초기화.
 
         인수:
-            transition_matrix: N×N 옮김 확률 행렬
+            transition_matrix: N×N 전이확률 행렬
                 P[i,j] = P(X_{n+1} = j | X_n = i)
             state_names: 상태 이름의 목록(없어도 된다)
-            validate: 옮김 행렬을 확인할지 여부
+            validate: 전이 행렬을 확인할지 여부
         """
         self.P = transition_matrix.clone()
         self.n_states = self.P.shape[0]
@@ -248,7 +248,7 @@ class MarkovChain:
 
     def step(self, current_state: int) -> int:
         """
-        한 스텝 밟기: X_n = current_state일 때 X_{n+1} 표집.
+        한 스텝 밟기: X_n = current_state일 때 X_{n+1} 샘플링.
 
         인수:
             current_state: 지금 상태의 번호
@@ -266,12 +266,12 @@ class MarkovChain:
         initial_distribution: Optional[torch.Tensor] = None
     ) -> List[int]:
         """
-        마르코프 사슬을 n스텝 흉내내기.
+        마르코프 사슬을 n스텝 시뮬레이션.
 
         인수:
-            n_steps: 옮김의 횟수
+            n_steps: 전이의 횟수
             initial_state: 시작 상태(정했을 때)
-            initial_distribution: 첫 상태를 표집할 분포
+            initial_distribution: 초기 상태를 샘플링할 분포
 
         반환값:
             들른 상태의 목록(길이 n_steps + 1)
@@ -304,13 +304,13 @@ class MarkovChain:
 
 def create_stochastic_matrix(matrix: torch.Tensor) -> torch.Tensor:
     """
-    음이 아닌 아무 행렬이나 행 확률 행렬로 바꾼다
-    행마다 합이 1이 되도록 고르게 하여.
+    음이 아닌 임의의 행렬을, 행마다 합이 1이 되도록 정규화해
+    행 확률 행렬로 바꾼다.
     """
     matrix = torch.relu(matrix)
     row_sums = matrix.sum(dim=1, keepdim=True)
 
-    # 0인 행 다루기: 고른 분포 주기
+    # 0인 행 다루기: 균등분포 부여하기
     zero_rows = (row_sums == 0).squeeze()
     if zero_rows.any():
         n = matrix.shape[1]
@@ -327,8 +327,8 @@ CPU에서 새 배열·항등행렬을 생성하는 부분이 있으므로 장치
 ```python
 class TransitionMatrixAnalyzer:
     """
-    옮김 행렬을 살피고 여러 스텝 옮김 확률을
-    셈하는 도구.
+    전이 행렬을 분석하고 여러 스텝 전이확률을
+    계산하는 도구.
     """
 
     def __init__(
@@ -353,7 +353,7 @@ class TransitionMatrixAnalyzer:
 
     def n_step_matrix(self, n: int) -> torch.Tensor:
         """
-        n스텝 옮김 행렬 P^n 셈하기.
+        n스텝 전이 행렬 P^n 계산하기.
 
         P^n[i,j] = P(X_n = j | X_0 = i)
         """
@@ -366,7 +366,7 @@ class TransitionMatrixAnalyzer:
     def n_step_probability(
         self, from_state: int, to_state: int, n: int
     ) -> float:
-        """P^{(n)}_{ij} 셈하기."""
+        """P^{(n)}_{ij} 계산하기."""
         P_n = self.n_step_matrix(n)
         return P_n[from_state, to_state].item()
 
@@ -376,7 +376,7 @@ class TransitionMatrixAnalyzer:
         n_steps: int
     ) -> torch.Tensor:
         """
-        π^{(k)} = π^{(0)} P^k일 때 π^{(0)}, π^{(1)}, ..., π^{(n)} 셈하기.
+        π^{(k)} = π^{(0)} P^k일 때 π^{(0)}, π^{(1)}, ..., π^{(n)} 계산하기.
 
         반환값:
             형태가 (n_steps+1, n_states)인 텐서
@@ -412,10 +412,10 @@ def analyze_convergence(
     tol: float = 1e-8
 ) -> Dict:
     """
-    n → ∞일 때 P^n의 모임 살피기.
+    n → ∞일 때 P^n의 수렴 분석.
 
     에르고드 사슬에서 P^n의 모든 행은
-    멈춘 분포 π.
+    정상분포 π로 수렴한다.
     """
     results = {
         'converged': False,
@@ -460,7 +460,7 @@ P = torch.tensor([
 
 analyzer = TransitionMatrixAnalyzer(P, state_names=states)
 
-# 여러 스텝 옮김 확률
+# 여러 스텝 전이확률
 print("Weather Model: Multi-Step Transition Probabilities")
 print("=" * 60)
 
@@ -478,7 +478,7 @@ for n in [1, 2, 5, 10, 50]:
         )
         print(row)
 
-# 정해진 시작점에서의 분포 흘러감
+# 정해진 시작점에서의 분포 변화
 pi_0 = torch.tensor([1.0, 0.0, 0.0])  # 맑음에서 시작
 
 print("\nDistribution evolution starting from Sunny:")
@@ -552,7 +552,7 @@ Chapman-Kolmogorov P^20 = P^10 · P^10: True
 
 ## 8. 시각화
 
-### 전이 행렬 열지도
+### 전이 행렬 히트맵
 
 ```python
 import matplotlib.pyplot as plt
@@ -562,7 +562,7 @@ def plot_transition_matrix(
     state_names: List[str] = None,
     title: str = "Transition Matrix"
 ):
-    """옮김 행렬의 열지도 그림 만들기."""
+    """전이 행렬의 히트맵 그림 만들기."""
     n_states = P.shape[0]
     if state_names is None:
         state_names = [f"S{i}" for i in range(n_states)]
@@ -596,7 +596,7 @@ def plot_distribution_evolution(
     state_names: List[str] = None,
     title: str = "Distribution Evolution"
 ):
-    """시간에 따른 상태 분포의 흘러감 그리기."""
+    """시간에 따른 상태 분포의 변화 그리기."""
     n_steps, n_states = distributions.shape
     if state_names is None:
         state_names = [f"S{i}" for i in range(n_states)]
@@ -632,11 +632,11 @@ MCMC는 목표분포를 불변으로 유지하는 전이 커널을 구성한다.
 
 2. **고윳값 한계.** 행 확률 행렬의 모든 고윳값 $\lambda$가 $|\lambda| \leq 1$을 만족함을 보여라. (*힌트*: 게르슈고린 원 정리를 써라.)
 
-3. **판 놀이.** 자리 6개의 둥근 판에서 말이 같은 확률로 1~3칸 앞으로 나아가는 단순한 판 놀이의 마르코프 사슬을 만들어라. 10 스텝 전이 행렬을 계산하고 행마다 고른 분포에 가까워지는지 확인하여라.
+3. **보드게임.** 자리 6개의 원형 판에서 말이 같은 확률로 1~3칸 앞으로 나아가는 단순한 보드게임의 마르코프 사슬을 만들어라. 10 스텝 전이 행렬을 계산하고 행마다 균등분포에 가까워지는지 확인하여라.
 
-4. **Chapman-콜모고로프 확인.** 위 날씨 모델에서 $P^{(3)}_{0,2}$(맑음에서 시작해 사흘 뒤 비 올 확률)을 $P^3$으로 곧바로, 그리고 $m=1, n=2$인 Chapman-콜모고로프 방정식으로 손수 계산하여라. 둘이 맞는지 확인하여라.
+4. **채프먼-콜모고로프 확인.** 위 날씨 모델에서 $P^{(3)}_{0,2}$(맑음에서 시작해 사흘 뒤 비 올 확률)을 $P^3$으로 곧바로, 그리고 $m=1, n=2$인 채프먼-콜모고로프 방정식으로 손수 계산하여라. 둘이 맞는지 확인하여라.
 
-5. **자료 기반 전이 추정.** 일별 수익률을 내림·보합·오름으로 구분하는 기준을 먼저 정하고 학습 기간에서 전이 도수를 추정하라. 자료가 없는 출발 상태 행의 처리도 정의하라. 시간 동질성·마르코프 가정을 점검하고 이후 기간에서 20단계 상태 예측을 평가하라. 이는 20일 누적 수익률 분포나 투자 수익의 보장과 다르다.
+5. **데이터 기반 전이 추정.** 일별 수익률을 내림·보합·오름으로 구분하는 기준을 먼저 정하고 학습 기간에서 전이 도수를 추정하라. 데이터가 없는 출발 상태 행의 처리도 정의하라. 시간 동질성·마르코프 가정을 점검하고 이후 기간에서 20단계 상태 예측을 평가하라. 이는 20일 누적 수익률 분포나 투자 수익의 보장과 다르다.
 
 ## 정리하며
 

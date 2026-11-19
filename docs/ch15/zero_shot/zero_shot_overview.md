@@ -10,10 +10,10 @@
 
 ### 형식적 정의
 
-$\mathcal{X}$을 입력 공간(이를테면 이미지), $\mathcal{Y}$을 레이블 공간이라 하자. ZSL에서 레이블 공간은 다음으로 나뉜다.
+$\mathcal{X}$을 입력 공간(이를테면 이미지), $\mathcal{Y}$을 라벨 공간이라 하자. ZSL에서 라벨 공간은 다음으로 나뉜다.
 
-- **학습 클래스**: $\mathcal{Y}^s = \{y_1^s, y_2^s, \ldots, y_K^s\}$ — 학습 보기가 있는 클래스
-- **미학습 클래스**: $\mathcal{Y}^u = \{y_1^u, y_2^u, \ldots, y_L^u\}$ — 학습 보기가 없는 클래스
+- **학습 클래스**: $\mathcal{Y}^s = \{y_1^s, y_2^s, \ldots, y_K^s\}$ — 학습 표본이 있는 클래스
+- **미학습 클래스**: $\mathcal{Y}^u = \{y_1^u, y_2^u, \ldots, y_L^u\}$ — 학습 표본이 없는 클래스
 
 근본 제약은 다음과 같다.
 
@@ -23,28 +23,28 @@ $$\mathcal{Y}^s \cap \mathcal{Y}^u = \emptyset$$
 
 **학습 단계:**
 
-- 레이블 붙은 데이터를 쓸 수 있다: $\mathcal{D}^{tr} = \{(\mathbf{x}_i, y_i) : y_i \in \mathcal{Y}^s\}_{i=1}^{N}$
+- 라벨 붙은 데이터를 쓸 수 있다: $\mathcal{D}^{tr} = \{(\mathbf{x}_i, y_i) : y_i \in \mathcal{Y}^s\}_{i=1}^{N}$
 - 모든 클래스의 의미 설명을 쓸 수 있다: $\{\mathbf{s}_c\}_{c \in \mathcal{Y}^s \cup \mathcal{Y}^u}$
 
 **시험 단계(기존 ZSL):**
 
-- 시험 사례는 미학습 클래스에만 든다
+- 시험 사례는 미학습 클래스에만 속한다
 - 예측 공간: $\mathcal{Y}^u$
 
 **시험 단계(일반화된 ZSL):**
 
-- 시험 사례는 어느 클래스에나 들 수 있다
+- 시험 사례는 어느 클래스에나 속할 수 있다
 - 예측 공간: $\mathcal{Y}^s \cup \mathcal{Y}^u$
 
 ---
 
 ## 2. 의미 표현
 
-ZSL의 키는 학습 클래스와 미학습 클래스에 두루 쓰이는 표현을 주는 의미 공간 $\mathcal{S}$이다.
+ZSL의 핵심은 학습 클래스와 미학습 클래스에 두루 쓰이는 표현을 주는 의미 공간 $\mathcal{S}$이다.
 
 ### 속성 기반 표현
 
-클래스 $c$마다 속성 벡터 $\mathbf{a}_c \in \mathbb{R}^M$으로 그려지며 $M$은 속성의 개수이다.
+클래스 $c$마다 속성 벡터 $\mathbf{a}_c \in \mathbb{R}^M$으로 표현되며 $M$은 속성의 개수이다.
 
 $$\mathbf{a}_c = [a_c^{(1)}, a_c^{(2)}, \ldots, a_c^{(M)}]$$
 
@@ -79,14 +79,14 @@ $$\mathbf{s}_c = \text{Embed}(\text{classname}_c) \in \mathbb{R}^D$$
 
 클래스별 속성을 사람이 일일이 표시하는 비용을 줄이고 텍스트 코퍼스의 관계를 활용한다. 다만 클래스 이름의 중의성, 어휘 누락, 언어·도메인 차이를 처리해야 한다. 단어 임베딩을 얻는 것만으로 시각 분류가 완성되지는 않는다.
 
-1. 손 표시가 필요 없다
-2. 풍부한 의미 관계를 알아서 담는다
-3. 엄청난 텍스트 코퍼스로 미리 학습되어 있다
-4. 말에 담긴 앎을 시각 영역으로 옮긴다
+1. 수작업 주석이 필요 없다
+2. 풍부한 의미 관계를 자동으로 담는다
+3. 대규모 텍스트 코퍼스로 미리 학습되어 있다
+4. 언어에 담긴 지식을 시각 영역으로 전이한다
 
 ### 의미 유사도
 
-의미 공간은 유사도 관계를 자아낸다.
+의미 공간은 유사도 관계를 유도한다.
 
 $$\text{sim}(c_1, c_2) = f(\mathbf{s}_{c_1}, \mathbf{s}_{c_2})$$
 
@@ -96,11 +96,11 @@ $$\text{sim}(c_1, c_2) = f(\mathbf{s}_{c_1}, \mathbf{s}_{c_2})$$
 
 $$\text{sim}_{\cos}(\mathbf{s}_1, \mathbf{s}_2) = \frac{\mathbf{s}_1 \cdot \mathbf{s}_2}{\|\mathbf{s}_1\| \|\mathbf{s}_2\|}$$
 
-**유클리드 거리(유사도으로 바꾼 것):**
+**유클리드 거리(유사도로 바꾼 것):**
 
 $$\text{sim}_{\text{euc}}(\mathbf{s}_1, \mathbf{s}_2) = \exp(-\|\mathbf{s}_1 - \mathbf{s}_2\|^2)$$
 
-**점곱:**
+**내적:**
 
 $$\text{sim}_{\text{dot}}(\mathbf{s}_1, \mathbf{s}_2) = \mathbf{s}_1^\top \mathbf{s}_2$$
 
@@ -114,7 +114,7 @@ $$\text{sim}_{\text{dot}}(\mathbf{s}_1, \mathbf{s}_2) = \mathbf{s}_1^\top \mathb
 
 $$F(\mathbf{v}, \mathbf{s}) = \mathbf{v}^\top W \mathbf{s}$$
 
-여기서 $W \in \mathbb{R}^{d_v \times d_s}$은 배운 투영 행렬이다.
+여기서 $W \in \mathbb{R}^{d_v \times d_s}$은 학습된 투영 행렬이다.
 
 ### 쌍선형 호환성
 
@@ -122,7 +122,7 @@ $$F(\mathbf{v}, \mathbf{s}) = \mathbf{v}^\top W \mathbf{s}$$
 
 $$F(\mathbf{v}, \mathbf{s}) = \mathbf{v}^\top W \mathbf{s}$$
 
-W는 시각 차원과 의미 차원의 상호작용을 학습한다. 앞의 식과 동일하므로 별도의 더 복잡한 모형으로 세지 않는다.
+W는 시각 차원과 의미 차원의 상호작용을 학습한다. 앞의 식과 동일하므로 별도의 더 복잡한 모델로 세지 않는다.
 
 ### 뉴럴 호환성
 
@@ -133,8 +133,8 @@ $$F(\mathbf{v}, \mathbf{s}) = g_\theta(\mathbf{v}, \mathbf{s})$$
 흔한 구조는 다음과 같다.
 
 - 이어 붙인 뒤 MLP
-- 교차 주의 장치
-- 잔차 호환성 망
+- 교차 어텐션 메커니즘
+- 잔차 호환성 네트워크
 
 ### 임베딩 기반 호환성
 
@@ -158,7 +158,7 @@ $$\mathcal{L}_{CE} = -\sum_{(\mathbf{x}, y) \in \mathcal{D}^{tr}} \log \frac{\ex
 
 ### 순위 로스(힌지 로스)
 
-맞는 클래스가 틀린 클래스보다 더 잘 어울리도록 북돋운다.
+맞는 클래스가 틀린 클래스보다 더 높은 호환성 점수를 받도록 유도한다.
 
 $$\mathcal{L}_{rank} = \sum_{(\mathbf{x}, y)} \sum_{c \neq y} \max(0, \Delta + F(\phi(\mathbf{x}), \mathbf{s}_c) - F(\phi(\mathbf{x}), \mathbf{s}_y))$$
 
@@ -206,11 +206,11 @@ import torchvision.transforms as transforms
 
 # 미리 학습된 ResNet을 불러온다
 resnet = models.resnet101(pretrained=True)
-# 가려내기 머리를 없앤다
+# 분류 헤드를 제거한다
 feature_extractor = torch.nn.Sequential(*list(resnet.children())[:-1])
 feature_extractor.eval()
 
-# 표준 앞손질
+# 표준 전처리
 preprocess = transforms.Compose([
     transforms.Resize(256),
     transforms.CenterCrop(224),
@@ -219,7 +219,7 @@ preprocess = transforms.Compose([
                         std=[0.229, 0.224, 0.225])
 ])
 
-# 피처를 뽑는다
+# 피처를 추출한다
 def extract_features(image):
     with torch.no_grad():
         x = preprocess(image).unsqueeze(0)
@@ -235,8 +235,8 @@ def extract_features(image):
 
 시각 피처가 $\mathbf{v} = \phi(\mathbf{x})$인 시험 사례 $\mathbf{x}$에 대해 다음과 같다.
 
-1. 투영한 피처가나 호환성 점수를 계산한다
-2. 가장 잘 어울리는 클래스를 찾는다
+1. 투영한 피처나 호환성 점수를 계산한다
+2. 호환성 점수가 가장 높은 클래스를 찾는다
 
 **기존 ZSL:**
 
@@ -256,19 +256,19 @@ import numpy as np
 def predict_zsl(visual_features, class_embeddings, class_names, 
                 compatibility_fn='cosine'):
     """
-    영 예시 학습으로 부류를 맞힌다.
+    제로샷 학습으로 클래스를 예측한다.
     
     인수:
         visual_features: (n_samples, d_v) 시각 피처 행렬
         class_embeddings: (n_classes, d_s) 의미 임베딩 행렬
-        class_names: 부류 이름 목록
+        class_names: 클래스 이름 목록
         compatibility_fn: 'cosine', 'dot' 또는 'euclidean'
     
     반환값:
-        predictions: 맞힌 부류 이름 목록
+        predictions: 예측한 클래스 이름 목록
     """
     if compatibility_fn == 'cosine':
-        # 코사인 닮음을 위해 고른다
+        # 코사인 유사도를 위해 정규화한다
         v_norm = visual_features / np.linalg.norm(visual_features, axis=1, keepdims=True)
         s_norm = class_embeddings / np.linalg.norm(class_embeddings, axis=1, keepdims=True)
         scores = v_norm @ s_norm.T
@@ -288,13 +288,13 @@ def predict_zsl(visual_features, class_embeddings, class_names,
 
 ## 7. 핵심 어려움
 
-### 영역 이동
+### 도메인 이동
 
-학습 클래스의 시각 피처는 미학습 클래스와 분포가 다를 수 있다.
+학습 클래스의 시각 피처는 미학습 클래스와 분포가 다를 수 있다. 이를 도메인 이동(domain shift)이라 한다.
 
 - **클래스 안 분산**: 같은 클래스의 사례끼리도 달라 보인다
 - **클래스 사이 유사도**: 미학습 클래스끼리가 학습 클래스와보다 더 닮았을 수 있다
-- **투영 영역 이동**: 배운 옮김이 잘 일반화되지 않을 수 있다
+- **투영 도메인 이동**: 학습된 변환이 잘 일반화되지 않을 수 있다
 
 ### 허브니스 문제
 
@@ -304,23 +304,23 @@ $$\text{중심쏠림}(c) = \sum_{\mathbf{x} \in \text{test}} \mathbb{1}[\text{NN
 
 그래서 어떤 클래스가 너무 자주 예측된다.
 
-**누그러뜨리는 전략:**
+**완화 전략:**
 
 - 국소 스케일 조절(CSLS)을 쓴다
-- 중심 쏠림 줄이기 기법을 쓴다
+- 허브니스 완화 기법을 쓴다
 - 임베딩 학습에 정규화를 쓴다
 
 ### 의미와 시각의 차이
 
-의미 공간이 시각의 갈림을 온전히 담지 못할 수 있다.
+의미 공간이 시각적 차이를 온전히 담지 못할 수 있다.
 
-- 눈으로 닮은 클래스가 서로 다른 의미 표현을 가질 수 있다
-- 눈으로 다른 클래스가 닮은 의미 표현을 가질 수 있다
-- 촘촘한 갈림은 속성이나 단어 임베딩으로 담기지 않을 수 있다
+- 시각적으로 비슷한 클래스가 서로 다른 의미 표현을 가질 수 있다
+- 시각적으로 다른 클래스가 비슷한 의미 표현을 가질 수 있다
+- 세밀한(fine-grained) 구분은 속성이나 단어 임베딩으로 담기지 않을 수 있다
 
-### GZSL의 바이어스
+### GZSL의 편향
 
-학습 클래스만으로 로스를 최적화하면 학습 클래스의 점수가 상대적으로 높아질 수 있다. GZSL은 학습·미학습 클래스 전체에서 예측하므로 이런 바이어스를 평가하고 검증 데이터에서 점수 보정을 선택한다. 모든 모델이 같은 정도로 바이어스된다는 법칙은 아니다.
+학습 클래스만으로 로스를 최적화하면 학습 클래스의 점수가 상대적으로 높아질 수 있다. GZSL은 학습·미학습 클래스 전체에서 예측하므로 이런 편향을 평가하고 검증 데이터에서 점수 보정을 선택한다. 모든 모델이 같은 정도로 편향된다는 법칙은 아니다.
 
 학습 클래스로만 학습된 모델은 학습 클래스를 내놓는 쪽으로 크게 치우친다.
 
@@ -354,7 +354,7 @@ $$\text{중심쏠림}(c) = \sum_{\mathbf{x} \in \text{test}} \mathbb{1}[\text{NN
 </div>
 
 ??? success "풀이"
-    각 클래스가 최근접 이웃으로 선택되는 횟수를 집계한다. 실제 클래스 빈도나 난이도와 무관하게 일부 벡터에 예측이 몰리는지 확인한다. 정규화나 국소 스케일 보정 등을 비교할 수 있지만 빈도 바이어스만으로 원인을 단정하지 않는다.
+    각 클래스가 최근접 이웃으로 선택되는 횟수를 집계한다. 실제 클래스 빈도나 난이도와 무관하게 일부 벡터에 예측이 몰리는지 확인한다. 정규화나 국소 스케일 보정 등을 비교할 수 있지만 빈도 편향만으로 원인을 단정하지 않는다.
 
 ---
 

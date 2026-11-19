@@ -11,16 +11,16 @@
 - $x$: 원문 시퀀스 (이를테면 영어 문장)
 - $y$: 목표 시퀀스 (이를테면 프랑스어 번역)
 
-인코더는 $x$을 그대로 받고 디코더는 $y$을 **오른쪽으로 민** 것을 받는다.
+인코더는 $x$를 그대로 받고 디코더는 $y$를 **오른쪽으로 민**(right-shifted) 것을 받는다.
 
 ### 티처 포싱
 
-티처 포싱는 학습 중에 모델 자신의 예측 대신 참 목표 시퀀스을 디코더에 넣는 것이다. 그러면 모든 목표 자리를 한꺼번에 병렬로 셈할 수 있다.
+티처 포싱(teacher forcing)은 학습 중에 모델 자신의 예측 대신 참 목표 시퀀스를 디코더에 넣는 것이다. 그러면 모든 목표 자리를 한꺼번에 병렬로 계산할 수 있다.
 
 목표 시퀀스 $y = [y_1, y_2, \ldots, y_T]$에 대해 다음과 같다.
 
 - **디코더 입력**(오른쪽으로 민 것): $[\langle\text{start}\rangle,y_1,y_2,\ldots,y_T]$
-- **참 레이블**: $[y_1, y_2, \ldots, y_T, \langle\text{end}\rangle]$
+- **참 라벨**: $[y_1, y_2, \ldots, y_T, \langle\text{end}\rangle]$
 
 디코더 입력과 정답은 같은 길이를 갖게 정렬한다. 위처럼 EOS를 정답에 추가하면 디코더 입력에도 마지막 원래 토큰 y_T까지 포함해야 한다. 여기에 인과 마스크를 함께 적용해야 정답 토큰 자체나 미래 목표에 접근하지 못한다.
 
@@ -46,13 +46,13 @@ $$
 
 여기서 $P_\theta(y_t \mid y_{<t}, x)$은 앞선 목표 토큰 $y_{<t}$과 원문 시퀀스 $x$ 전체를 조건으로 하여 위치 $t$의 올바른 토큰 $y_t$에 모델이 매긴 확률이다.
 
-위치마다 디코더는 어휘 전체에 대한 확률 분포를 낸다. 교차 엔트로피 로스는 모델이 올바른 다음 토큰에 낮은 확률을 매기면 벌을 준다.
+위치마다 디코더는 어휘 전체에 대한 확률 분포를 낸다. 교차 엔트로피 로스는 모델이 올바른 다음 토큰에 낮은 확률을 매기면 패널티를 준다.
 
 ### 임베딩 학습
 
-단어 임베딩은 대개 트랜스포머의 나머지와 함께 학습한다. 임베딩 레이어는 무작위로 초기화하고 역전파로 갱신한다. 흔한 방식이 셋 있다.
+단어 임베딩은 대개 트랜스포머의 나머지와 함께 학습한다. 임베딩 레이어는 무작위로 초기화하고 역전파로 갱신한다. 흔한 방식이 둘 있다.
 
-1. **맨바닥부터 학습**: 무작위 초기화. 임베딩이 학습 중에 과제에 맞는 표현을 배운다.
+1. **처음부터 학습**(from scratch): 무작위 초기화. 임베딩이 학습 중에 과제에 맞는 표현을 배운다.
 2. **사전 학습 웨이트 사용**: 같은 어휘·토큰화·차원을 갖는 임베딩이나 모델 체크포인트를 불러와 갱신하거나 동결한다. 문맥 임베딩은 문장과 위치마다 달라 단일 고정 어휘 테이블과 동일하게 직접 복사할 수는 없다.
 
 ---
@@ -68,30 +68,30 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-# 돌릴 때마다 수가 달라지지 않게 씨앗을 박는다.
+# 돌릴 때마다 수가 달라지지 않게 시드를 고정한다.
 torch.manual_seed(0)
 
 def create_masks(src, tgt, src_pad_idx=0, tgt_pad_idx=0):
     """
-    트랜스포머 학습을 위한 채움 가림과 인과 가림을 만든다.
+    트랜스포머 학습을 위한 패딩 마스크와 인과 마스크를 만든다.
     
     인수:
         src: 원문 토큰 [batch_size, src_len]
         tgt: 목표 토큰 [batch_size, tgt_len]
-        src_pad_idx: 원문의 채움 토큰 색인
-        tgt_pad_idx: 목표문의 채움 토큰 색인
+        src_pad_idx: 원문의 패딩 토큰 인덱스
+        tgt_pad_idx: 목표문의 패딩 토큰 인덱스
     
     반환값:
-        src_key_padding_mask: [batch_size, src_len] - 채운 자리가 True
-        tgt_key_padding_mask: [batch_size, tgt_len] - 채운 자리가 True
-        tgt_mask: [tgt_len, tgt_len] - 인과 가림
+        src_key_padding_mask: [batch_size, src_len] - 패딩 자리가 True
+        tgt_key_padding_mask: [batch_size, tgt_len] - 패딩 자리가 True
+        tgt_mask: [tgt_len, tgt_len] - 인과 마스크
         memory_key_padding_mask: src_key_padding_mask와 같다
     """
-    # 채움 가림: 채운 자리가 True
+    # 패딩 마스크: 패딩 자리가 True
     src_key_padding_mask = (src == src_pad_idx)       # [batch_size, src_len]
     tgt_key_padding_mask = (tgt == tgt_pad_idx)       # [batch_size, tgt_len]
     
-    # 디코더를 위한 인과 가림: 앞으로의 토큰에 주의하지 못하게 한다
+    # 디코더를 위한 인과 마스크: 미래 토큰에 어텐션하지 못하게 한다
     tgt_len = tgt.size(1)
     tgt_mask = torch.triu(                            # [tgt_len, tgt_len]
         torch.ones(tgt_len, tgt_len, device=tgt.device),
@@ -102,29 +102,29 @@ def create_masks(src, tgt, src_pad_idx=0, tgt_pad_idx=0):
 
 def train_step(model, optimizer, criterion, src, tgt, src_pad_idx=0, tgt_pad_idx=0):
     """
-    트랜스포머의 학습 단계 하나.
+    트랜스포머의 학습 스텝 하나.
     
     인수:
-        model: 트랜스포머 모형
+        model: 트랜스포머 모델
         optimizer: 옵티마이저 객체
         criterion: 로스 함수(CrossEntropyLoss)
         src: 원문 토큰 [batch_size, src_len]
-        tgt: 목표 수열 전체 [batch_size, tgt_len]
-        src_pad_idx: 원문의 채움 색인
-        tgt_pad_idx: 목표문의 채움 색인
+        tgt: 목표 시퀀스 전체 [batch_size, tgt_len]
+        src_pad_idx: 원문의 패딩 인덱스
+        tgt_pad_idx: 목표문의 패딩 인덱스
     
     반환값:
         loss: 스칼라 로스 값
     """
     model.train()
     
-    # 디코더 입력(오른쪽으로 민 목표)과 이름표를 마련한다
+    # 디코더 입력(오른쪽으로 민 목표)과 라벨을 마련한다
     # 디코더가 보는 것: [<start>, y1, y2, ..., y_{T-1}]
-    # 이름표: [y1, y2, ..., y_T]
+    # 라벨: [y1, y2, ..., y_T]
     tgt_input = tgt[:, :-1]     # [batch_size, tgt_len - 1]
     tgt_labels = tgt[:, 1:]     # [batch_size, tgt_len - 1]
     
-    # 가림을 만든다
+    # 마스크를 만든다
     src_pad_mask, tgt_pad_mask, tgt_causal_mask = create_masks(
         src, tgt_input, src_pad_idx, tgt_pad_idx
     )
@@ -140,7 +140,7 @@ def train_step(model, optimizer, criterion, src, tgt, src_pad_idx=0, tgt_pad_idx
         memory_key_padding_mask=src_pad_mask
     )
     
-    # 로스를 셈한다 (교차 엔트로피를 위해 편다)
+    # 로스를 계산한다 (교차 엔트로피를 위해 편다)
     vocab_size = output.size(-1)
     loss = criterion(
         output.reshape(-1, vocab_size),               # [batch_size * (tgt_len-1), vocab_size]
@@ -156,10 +156,10 @@ def train_step(model, optimizer, criterion, src, tgt, src_pad_idx=0, tgt_pad_idx
 
 def train_epoch(model, dataloader, optimizer, criterion, device):
     """
-    한 세대를 학습한다.
+    한 에포크를 학습한다.
     
     인수:
-        model: 트랜스포머 모형
+        model: 트랜스포머 모델
         dataloader: (src, tgt) 배치를 내보내는 DataLoader
         optimizer: 옵티마이저 객체
         criterion: 로스 함수
@@ -189,17 +189,17 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
 
 ### 자기 회귀 생성
 
-추론 중에는 원문 시퀀스 $x$만 주어진다. 디코더는 한 번에 토큰 하나씩 만들며 맞힌 토큰마다 다음 단계의 입력으로 되먹인다.
+추론 중에는 원문 시퀀스 $x$만 주어진다. 디코더는 한 번에 토큰 하나씩 만들며 예측한 토큰을 다음 스텝의 입력으로 다시 넣는다.
 
-생성 고리는 다음과 같이 돈다.
+생성 루프는 다음과 같이 진행한다.
 
 $$
 \hat{y}_t = \arg\max_{v \in \mathcal{V}} P_\theta(v \mid \hat{y}_1, \ldots, \hat{y}_{t-1}, x)
 $$
 
-1. 인코더로 원문 시퀀스 $x$을 인코딩한다(한 번만 한다)
+1. 인코더로 원문 시퀀스 $x$를 인코딩한다(한 번만 한다)
 2. 디코더 입력을 $\langle\text{start}\rangle$ 토큰으로 시작한다
-3. 단계 $t$마다 다음을 한다.
+3. 스텝 $t$마다 다음을 한다.
    - 지금까지 만든 토큰 $[\langle\text{start}\rangle, \hat{y}_1, \ldots, \hat{y}_{t-1}]$을 모두 디코더에 넣는다
    - 마지막 자리의 예측을 꺼낸다
    - 다음 토큰을 고른다(탐욕 디코딩, 빔 탐색, 또는 샘플링으로)
@@ -210,7 +210,7 @@ $$
 
 이 greedy_decode는 배치 1개만 지원한다. generated를 (1,1)로 만들고 next_token.item()으로 종료를 판단하기 때문이다. max_len은 새 토큰 반복 횟수라 반환에는 시작 토큰까지 포함된다. model.decode는 은닉 표현이 아니라 어휘 로짓을 반환해야 하며 캐시는 사용하지 않는다.
 
-translate는 PAD를 0으로 고정해 제거하고 토큰을 공백으로 연결한다. 서브워드 토크나이저의 실제 복호화와 같지 않으며, 생성 0회이면 squeeze가 스칼라를 만들어 후속 순회가 실패할 수 있다.
+translate는 PAD를 0으로 고정해 제거하고 토큰을 공백으로 연결한다. 서브워드 토크나이저의 실제 디코딩과 같지 않으며, 생성 0회이면 squeeze가 스칼라를 만들어 후속 순회가 실패할 수 있다.
 
 ```python
 @torch.no_grad()
@@ -226,20 +226,20 @@ def greedy_decode(
     트랜스포머의 자기 회귀 탐욕 디코딩.
     
     인수:
-        model: 학습된 트랜스포머 모형
-        src: 원문 수열 [1, src_len]
+        model: 학습된 트랜스포머 모델
+        src: 원문 시퀀스 [1, src_len]
         max_len: 생성할 최대 길이
-        start_token: 수열 시작 토큰의 번호
-        end_token: 수열 끝 토큰의 번호
-        pad_idx: 채움 토큰의 번호
+        start_token: 시퀀스 시작 토큰의 번호
+        end_token: 시퀀스 끝 토큰의 번호
+        pad_idx: 패딩 토큰의 번호
     
     반환값:
-        generated: 만들어진 토큰 수열 [1, gen_len]
+        generated: 생성된 토큰 시퀀스 [1, gen_len]
     """
     model.eval()
     device = src.device
     
-    # 원문을 인코딩한다 (한 번만 셈한다)
+    # 원문을 인코딩한다 (한 번만 계산한다)
     src_pad_mask = (src == pad_idx)                    # [1, src_len]
     memory = model.encode(src, src_key_padding_mask=src_pad_mask)
     
@@ -249,7 +249,7 @@ def greedy_decode(
     for _ in range(max_len):
         tgt_len = generated.size(1)
         
-        # 지금 수열 길이에 맞는 인과 가림을 만든다
+        # 현재 시퀀스 길이에 맞는 인과 마스크를 만든다
         tgt_mask = torch.triu(                        # [tgt_len, tgt_len]
             torch.ones(tgt_len, tgt_len, device=device),
             diagonal=1
@@ -266,7 +266,7 @@ def greedy_decode(
         next_token_logits = output[:, -1, :]          # [1, vocab_size]
         next_token = next_token_logits.argmax(dim=-1, keepdim=True)  # [1, 1]
         
-        # 만들어진 수열에 덧붙인다
+        # 생성된 시퀀스에 덧붙인다
         generated = torch.cat([generated, next_token], dim=1)  # [1, tgt_len + 1]
         
         # <end> 토큰이 나오면 멈춘다
@@ -285,24 +285,24 @@ def translate(
     end_token: int = 2
 ) -> str:
     """
-    원문 수열을 글로 옮긴다.
+    원문 시퀀스를 텍스트로 번역한다.
     
     인수:
-        model: 학습된 트랜스포머 모형
+        model: 학습된 트랜스포머 모델
         src_tokens: 원문 토큰 번호 [1, src_len]
-        idx_to_token: 토큰 색인에서 글자로의 잇댐
+        idx_to_token: 토큰 인덱스에서 문자열로의 매핑
         max_len: 생성할 최대 길이
         start_token: 시작 토큰의 번호
         end_token: 끝 토큰의 번호
     
     반환값:
-        translated_text: 만들어진 번역 글
+        translated_text: 생성된 번역 텍스트
     """
     generated = greedy_decode(
         model, src_tokens, max_len, start_token, end_token
     )
     
-    # <start>와 <end>를 빼고 토큰 번호를 글자로 바꾼다
+    # <start>와 <end>를 빼고 토큰 번호를 문자열로 바꾼다
     tokens = generated.squeeze().tolist()
     words = [
         idx_to_token.get(idx, "<unk>")
@@ -322,10 +322,10 @@ def translate(
 | **인코더 입력** | 원문 시퀀스 $x$ | 원문 시퀀스 $x$ |
 | **디코더 입력** | 오른쪽으로 민 참값 $y_{\text{shifted}}$ | 앞서 만든 토큰 $\hat{y}_{<t}$ |
 | **목표가 필요한가** | 그렇다 (로스 계산에) | 아니다 |
-| **병렬성** | 온전함 (모든 자리를 한꺼번에 계산한다) | 차례대로 (단계마다 토큰 하나) |
+| **병렬성** | 온전함 (모든 자리를 한꺼번에 계산한다) | 차례대로 (스텝마다 토큰 하나) |
 | **방식** | 티처 포싱 | 자기 회귀 (탐욕, 빔, 샘플링) |
-| **인과 마스크** | 앞을 엿보지 못하게 학습 중에 적용한다 | 생성 단계마다 적용한다 |
-| **계산** | 시퀀스 전체에 순방향 한 번 | 길이 $T$의 출력에 순방향 $T$번 |
+| **인과 마스크** | 앞을 엿보지 못하게 학습 중에 적용한다 | 생성 스텝마다 적용한다 |
+| **계산** | 시퀀스 전체에 순전파 한 번 | 길이 $T$의 출력에 순전파 $T$번 |
 
 ---
 
@@ -362,7 +362,7 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 class TransformerSeq2Seq(nn.Module):
-    """임베딩 레이어와 출력 레이어를 갖춘 nn.Transformer의 감싸개."""
+    """임베딩 레이어와 출력 레이어를 갖춘 nn.Transformer의 래퍼."""
     
     def __init__(
         self,
@@ -383,7 +383,7 @@ class TransformerSeq2Seq(nn.Module):
         self.tgt_embed = nn.Embedding(tgt_vocab_size, d_model)
         self.pos_encoder = PositionalEncoding(d_model, dropout)
         
-        # 트랜스포머 커널
+        # 트랜스포머 본체
         self.transformer = nn.Transformer(
             d_model=d_model,
             nhead=nhead,
@@ -394,17 +394,17 @@ class TransformerSeq2Seq(nn.Module):
             batch_first=True
         )
         
-        # 출력 사영
+        # 출력 투영
         self.output_proj = nn.Linear(d_model, tgt_vocab_size)
     
     def encode(self, src, src_key_padding_mask=None):
-        """원문 수열을 인코딩한다."""
+        """원문 시퀀스를 인코딩한다."""
         x = self.src_embed(src) * math.sqrt(self.d_model)
         x = self.pos_encoder(x)
         return self.transformer.encoder(x, src_key_padding_mask=src_key_padding_mask)
     
     def decode(self, tgt, memory, tgt_mask=None, memory_key_padding_mask=None):
-        """인코더의 기억이 주어졌을 때 목표 수열을 디코딩한다."""
+        """인코더의 출력(memory)이 주어졌을 때 목표 시퀀스를 디코딩한다."""
         x = self.tgt_embed(tgt) * math.sqrt(self.d_model)
         x = self.pos_encoder(x)
         x = self.transformer.decoder(
@@ -417,7 +417,7 @@ class TransformerSeq2Seq(nn.Module):
     def forward(self, src, tgt, src_mask=None, tgt_mask=None,
                 src_key_padding_mask=None, tgt_key_padding_mask=None,
                 memory_key_padding_mask=None):
-        """온전한 피드포워드."""
+        """전체 순전파."""
         src_emb = self.src_embed(src) * math.sqrt(self.d_model)
         tgt_emb = self.tgt_embed(tgt) * math.sqrt(self.d_model)
         src_emb = self.pos_encoder(src_emb)
@@ -444,9 +444,9 @@ def build_transformer(
     dropout: float = 0.1
 ) -> TransformerSeq2Seq:
     """
-    사비에르 초기화를 쓴 트랜스포머 모형을 세운다.
+    Xavier 초기화를 쓴 트랜스포머 모델을 만든다.
     
-    임베딩 레이어와 출력 사영을 갖춘 TransformerSeq2Seq를 돌려준다.
+    임베딩 레이어와 출력 투영을 갖춘 TransformerSeq2Seq를 반환한다.
     """
     model = TransformerSeq2Seq(
         src_vocab_size, tgt_vocab_size,
@@ -455,18 +455,18 @@ def build_transformer(
         dim_feedforward, dropout
     )
     
-    # 사비에르 초기화
+    # Xavier 초기화
     for p in model.parameters():
         if p.dim() > 1:
             nn.init.xavier_uniform_(p)
     
     return model
 
-# 학습 고리 보기
+# 학습 루프 예제
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    # 초파라메터
+    # 하이퍼파라메터
     src_vocab_size = 5000
     tgt_vocab_size = 5000
     d_model = 256
@@ -476,16 +476,16 @@ if __name__ == "__main__":
     num_epochs = 20
     learning_rate = 1e-4
     
-    # 모형을 세운다
+    # 모델을 만든다
     model = build_transformer(
         src_vocab_size, tgt_vocab_size,
         d_model, nhead, num_layers, num_layers
     ).to(device)
     
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, betas=(0.9, 0.98), eps=1e-9)
-    criterion = nn.CrossEntropyLoss(ignore_index=0)  # 채움을 무시한다
+    criterion = nn.CrossEntropyLoss(ignore_index=0)  # 패딩을 무시한다
     
-    # 임시 데이터 (실제 데이터셋으로 바꾸어라)
+    # 더미 데이터 (실제 데이터셋으로 바꾸어라)
     src_data = torch.randint(1, src_vocab_size, (640, 20))  # 표본 640개, 길이 20
     tgt_data = torch.randint(1, tgt_vocab_size, (640, 22))  # <start>와 <end>를 넣는다
     
@@ -525,11 +525,11 @@ Epoch 20/20, Loss: 7.0911
 
 ---
 
-## 6. 레이블 스무딩
+## 6. 라벨 스무딩
 
 아래 LabelSmoothingLoss는 정답 확률을 1−epsilon, 나머지를 epsilon/(V−1)로 두어 위의 균등 혼합 식과 다르다. 유효 행에서도 PAD 클래스에 스무딩 확률을 주며 PAD 정답 행만 제외한다. vocab_size>1, 0≤smoothing≤1, logits=(N,V), target=(N)의 정수 ID를 가정한다. target=-100을 scatter 전에 처리하지 않으므로 그 값을 직접 넘기면 실패하고, 모두 PAD인 입력의 mean도 유효하지 않다.
 
-레이블 스무딩은 정답 원핫 분포의 일부 질량을 다른 클래스에 나눠 주는 정규화 방법이다. 아래 식은 전체 어휘의 균등 분포와 섞는 정의다. 정답 외 클래스에만 나누는 정의와 PAD 제외 방식도 있으므로 식·구현을 맞춰야 한다.
+라벨 스무딩(label smoothing)은 정답 원핫 분포의 일부 질량을 다른 클래스에 나눠 주는 정칙화 방법이다. 아래 식은 전체 어휘의 균등 분포와 섞는 정의다. 정답 외 클래스에만 나누는 정의와 PAD 제외 방식도 있으므로 식·구현을 맞춰야 한다.
 
 $$
 y_{\text{smooth}}(k) = (1 - \epsilon) \cdot \mathbf{1}_{k=y} + \frac{\epsilon}{|\mathcal{V}|}
@@ -539,7 +539,7 @@ $$
 
 ```python
 class LabelSmoothingLoss(nn.Module):
-    """레이블 평활화를 쓰는 교차 엔트로피 로스."""
+    """라벨 스무딩을 쓰는 교차 엔트로피 로스."""
     
     def __init__(self, vocab_size: int, smoothing: float = 0.1, pad_idx: int = 0):
         super().__init__()
@@ -555,11 +555,11 @@ class LabelSmoothingLoss(nn.Module):
         """
         log_probs = torch.log_softmax(logits, dim=-1)       # [N, vocab_size]
         
-        # 매끄럽게 한 목표 분포를 만든다
+        # 스무딩한 목표 분포를 만든다
         smooth_target = torch.full_like(log_probs, self.smoothing / (self.vocab_size - 1))
         smooth_target.scatter_(1, target.unsqueeze(1), 1.0 - self.smoothing)
         
-        # 채운 자리를 0으로 만든다
+        # 패딩 자리를 0으로 만든다
         non_pad_mask = target != self.pad_idx                # [N]
         smooth_target[~non_pad_mask] = 0.0
         
@@ -589,7 +589,7 @@ Seq2Seq 학습에서 데이터·목표 정렬·마스크·로스를 연결해 �
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-KV 캐시가 한 단계와 전체 생성에 주는 비용 차이를 설명하라.
+KV 캐시가 한 스텝과 전체 생성에 주는 비용 차이를 설명하라.
 
 </div>
 
@@ -618,10 +618,10 @@ KV 캐시가 한 단계와 전체 생성에 주는 비용 차이를 설명하라
 </div>
 
 ??? success "풀이"
-    model·input_ids·vocab_size·optimizer·scheduler와 F는 외부에 정의되어야 한다. 모델은 미래 접근을 차단한 로짓을 반환하고 PAD 정답을 로스에서 제외해야 한다. 조각은 함수 시작의 경사 초기화를 보여 주지 않으므로 이전 배치의 경사가 남지 않게 해야 하며, 모델이 내부 시프트하는 API라면 외부 시프트와 중복하지 않는다.
+    model·input_ids·vocab_size·optimizer·scheduler와 F는 외부에 정의되어야 한다. 모델은 미래 접근을 차단한 로짓을 반환하고 PAD 정답을 로스에서 제외해야 한다. 조각은 함수 시작의 그래디언트 초기화를 보여 주지 않으므로 이전 배치의 그래디언트가 남지 않게 해야 하며, 모델이 내부 시프트하는 API라면 외부 시프트와 중복하지 않는다.
 
     ```python
-    logits = model(input_ids[:, :-1])  # 다음 토큰을 맞힌다
+    logits = model(input_ids[:, :-1])  # 다음 토큰을 예측한다
     targets = input_ids[:, 1:]  # 민 목표
     loss = F.cross_entropy(logits.reshape(-1, vocab_size), targets.reshape(-1))
     loss.backward()

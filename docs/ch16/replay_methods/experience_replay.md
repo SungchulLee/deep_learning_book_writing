@@ -18,19 +18,19 @@ $$L=L_{\mathrm{current}}+\beta L_{\mathrm{memory}}$$
 
 버퍼에 옛 보기를 담아 두었다가 다시 쓰는 이 방법을 **리허설(rehearsal)** 이라 부른 것은 1995년 앤서니 로빈스(Anthony Robins)다. 그런데 같은 논문에 두 번째 방법이 함께 들어 있었다. **유사 리허설(pseudorehearsal)** 이다.
 
-생각은 이렇다. 옛 자료를 못 쓰게 되었다면 **지어내면 된다.** 아무 입력이나 만들어 옛 신경망에 넣고, 그 신경망이 뱉은 답을 정답인 셈 치고 함께 배운다. 옛 보기는 한 장도 저장하지 않는다. 이 장의 5절이 다루는 증류 — 새 입력에서 이전 모델의 출력을 유지하는 LwF — 가 바로 이 형태. 버퍼를 쓰는 길과 증류하는 길이 **한 논문에서 같이 나왔다.**
+생각은 이렇다. 옛 데이터를 못 쓰게 되었다면 **지어내면 된다.** 아무 입력이나 만들어 옛 뉴럴 네트워크에 넣고, 그 네트워크가 내놓은 출력을 정답인 셈 치고 함께 배운다. 옛 보기는 한 장도 저장하지 않는다. 이 장의 5절이 다루는 증류 — 새 입력에서 이전 모델의 출력을 유지하는 LwF — 가 바로 이 형태다. 버퍼를 쓰는 길과 증류하는 길이 **한 논문에서 같이 나왔다.**
 
 둘을 같은 자리에서 재어 보았다.
 
 ![가로축이 되새김에 쓴 항목 수, 세로축이 새 과제를 배운 뒤 옛 과제의 정확도인 그래프. 진짜 보기를 저장해 쓰는 리허설은 항목이 둘일 때 23퍼센트에서 열일곱일 때 100퍼센트까지 가파르게 올라가고, 지어낸 항목을 쓰는 유사 리허설은 13퍼센트에서 28퍼센트까지 완만하게 올라간다. 아무것도 하지 않으면 11.8퍼센트인 가로 점선이 아래에 있다.](figures/rehearsal_vs_pseudo.svg)
 
-**유사 리허설은 듣는다.** 아무것도 안 하면 11.8%인데 지어낸 항목만으로 27.9%까지 올라간다. 저장한 것이 하나도 없는데 그렇다.
+**유사 리허설은 효과가 있다.** 아무것도 안 하면 11.8%인데 지어낸 항목만으로 27.9%까지 올라간다. 저장한 것이 하나도 없는데 그렇다.
 
 **그러나 같은 개수에서는 진짜가 언제나 낫다.** 항목 둘이면 23% 대 13%, 열일곱이면 **100% 대 28%** 다. 옛 보기 열일곱 개를 그대로 들고 있으면 망각이 **완전히** 사라지는데, 지어낸 열일곱 개로는 4분의 1 남짓만 건진다.
 
-여기서 하마터면 거꾸로 적을 뻔했다. 처음 재었을 때는 유사 리허설이 더 나아 보였는데, **항목 수를 맞추지 않은 탓**이었다 — 지어낸 것 34개와 진짜 4개를 견주고 있었다. 지어내는 쪽은 얼마든지 많이 만들 수 있으니 개수를 맞추지 않으면 공짜로 유리해진다. 위 문단이 β와 샘플링 확률을 함께 보라고 적은 것이 꼭 이 이야기다 — **무엇을 얼마나 되새기는지를 맞추지 않으면 두 방법을 견준 것이 아니다.**
+이 비교는 **항목 수를 맞추지 않으면 거꾸로 나온다.** 지어낸 것 34개와 진짜 4개를 견주면 유사 리허설이 더 나아 보인다. 지어내는 쪽은 얼마든지 많이 만들 수 있으니 개수를 맞추지 않으면 공짜로 유리해진다. 위 문단이 β와 샘플링 확률을 함께 보라고 적은 것이 꼭 이 이야기다 — **무엇을 얼마나 되새기는지를 맞추지 않으면 두 방법을 견준 것이 아니다.**
 
-_확인한 곳 — A. Robins, "Catastrophic forgetting, rehearsal and pseudorehearsal", *Connection Science* **7**, 123–146 (1995). 저장 없이 지어낸 항목으로 되새긴다는 유사 리허설이 그 논문의 것이다. 그림의 수는 그림을 그리는 코드가 한 자리 덧셈 사실로 씨앗 8개를 직접 돌려 얻으며, 개수를 맞추었을 때 진짜 리허설이 언제나 같거나 낫다는 것을 먼저 확인한 뒤에만 그린다._
+_확인한 곳 — A. Robins, "Catastrophic forgetting, rehearsal and pseudorehearsal", *Connection Science* **7**, 123–146 (1995). 저장 없이 지어낸 항목으로 되새긴다는 유사 리허설이 그 논문의 것이다. 그림의 수는 그림을 그리는 코드가 한 자리 덧셈 사실로 시드 8개를 직접 돌려 얻으며, 개수를 맞추었을 때 진짜 리허설이 언제나 같거나 낫다는 것을 먼저 확인한 뒤에만 그린다._
 
 </div>
 
@@ -51,10 +51,10 @@ from typing import List, Tuple, Optional
 
 class ReservoirBuffer:
     """
-    경험 리플레이를 위한 저수지 뽑기 버퍼.
+    경험 리플레이를 위한 저수지 샘플링 버퍼.
     
-    도착한 차례와 상관없이 지금까지 본 보기 전체에 대한
-    고른 표본을 지닌다.
+    도착한 순서와 상관없이 지금까지 본 예제 전체에 대한
+    균등 표본을 유지한다.
     """
     
     def __init__(self, max_size: int):
@@ -63,7 +63,7 @@ class ReservoirBuffer:
         self.seen_count = 0
     
     def add(self, example: torch.Tensor, label: int):
-        """저수지 뽑기로 보기를 더한다."""
+        """저수지 샘플링으로 예제를 추가한다."""
         self.seen_count += 1
         
         if len(self.buffer) < self.max_size:
@@ -76,7 +76,7 @@ class ReservoirBuffer:
     
     def sample(self, batch_size: int) -> Tuple[Optional[torch.Tensor], 
                                                 Optional[torch.Tensor]]:
-        """버퍼에서 배치를 뽑는다."""
+        """버퍼에서 배치를 샘플링한다."""
         if len(self.buffer) == 0:
             return None, None
         
@@ -96,10 +96,10 @@ ClassBalancedBuffer는 클래스마다 같은 상한을 배정하고 초과 표�
 ```python
 class ClassBalancedBuffer:
     """
-    부류를 고르게 맞춘 기억 버퍼.
+    클래스 균형을 맞춘 메모리 버퍼.
     
-    기억에서 모든 부류가 똑같은 비중을 갖게 하며,
-    부류 증분 학습에 중요하다.
+    버퍼에서 모든 클래스가 똑같은 비중을 갖게 하며,
+    클래스 증분 학습에 중요하다.
     """
     
     def __init__(self, max_size: int):
@@ -107,7 +107,7 @@ class ClassBalancedBuffer:
         self.class_buffers: Dict[int, List[torch.Tensor]] = {}
     
     def add_task(self, examples: torch.Tensor, labels: torch.Tensor):
-        """새 과제의 보기를 더한다."""
+        """새 과제의 예제를 추가한다."""
         unique_classes = labels.unique().tolist()
         
         for cls in unique_classes:
@@ -118,7 +118,7 @@ class ClassBalancedBuffer:
         self._rebalance()
     
     def _rebalance(self):
-        """부류가 고르도록 버퍼의 균형을 다시 잡는다."""
+        """클래스가 균등하도록 버퍼의 균형을 다시 잡는다."""
         num_classes = len(self.class_buffers)
         if num_classes == 0:
             return
@@ -135,7 +135,7 @@ class ClassBalancedBuffer:
                 ]
     
     def sample(self, batch_size: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        """부류를 고르게 맞추어 뽑는다."""
+        """클래스 균형을 맞추어 샘플링한다."""
         all_examples = []
         all_labels = []
         
@@ -174,12 +174,12 @@ from typing import List, Dict
 
 class ExperienceReplayLearner:
     """
-    경험 리플레이를 쓰는 이어 배우는 학습기.
+    경험 리플레이를 쓰는 연속 학습 학습기.
     
     전략:
-    1. 앞선 보기를 담은 기억 버퍼를 지닌다
-    2. 익히는 동안 지금 과제의 데이터와 되살린 표본을 섞는다
-    3. 합친 로스가 새 과제를 배우면서도 잊음을 막는다
+    1. 이전 예제를 담은 메모리 버퍼를 유지한다
+    2. 학습하는 동안 현재 과제의 데이터와 리플레이 표본을 섞는다
+    3. 결합한 로스가 새 과제를 배우면서도 망각을 막는다
     """
     
     def __init__(self,
@@ -194,10 +194,10 @@ class ExperienceReplayLearner:
         
         인수:
             model: 뉴럴 네트워크 모델
-            device: 셈할 장치
-            memory_size: 기억 버퍼의 전체 용량
-            examples_per_task: 과제마다 담아 둘 보기 수
-            replay_batch_ratio: 배치에서 되살린 것의 비율
+            device: 계산할 장치
+            memory_size: 메모리 버퍼의 전체 용량
+            examples_per_task: 과제마다 저장할 예제 수
+            replay_batch_ratio: 현재 배치 크기에 대한 리플레이 표본 수의 비율
             learning_rate: 옵티마이저의 러닝레이트
         """
         self.model = model
@@ -209,18 +209,18 @@ class ExperienceReplayLearner:
         
         self.criterion = nn.CrossEntropyLoss()
         
-        # 기억 저장소
+        # 메모리 저장소
         self.memory_data: List[torch.Tensor] = []
         self.memory_labels: List[int] = []
     
     def add_to_memory(self, data_loader: DataLoader):
         """
-        지금 과제의 보기를 기억에 더한다.
+        현재 과제의 예제를 메모리에 추가한다.
         
-        대표할 만한 보기를 무작위로 고른다.
+        대표 예제를 무작위로 고른다.
         
         인수:
-            data_loader: 지금 과제의 DataLoader
+            data_loader: 현재 과제의 DataLoader
         """
         # 과제의 데이터를 모두 모은다
         all_data, all_labels = [], []
@@ -231,12 +231,12 @@ class ExperienceReplayLearner:
         all_data = torch.cat(all_data, dim=0)
         all_labels = torch.cat(all_labels, dim=0)
         
-        # 무작위로 고르기
+        # 무작위 선택
         n_available = all_data.size(0)
         n_select = min(self.examples_per_task, n_available)
         indices = torch.randperm(n_available)[:n_select]
         
-        # 기억에 더한다
+        # 메모리에 추가한다
         for idx in indices:
             self.memory_data.append(all_data[idx].clone())
             self.memory_labels.append(all_labels[idx].item())
@@ -249,7 +249,7 @@ class ExperienceReplayLearner:
         print(f"  Memory size: {len(self.memory_data)} examples")
     
     def sample_memory(self, batch_size: int):
-        """기억에서 배치를 뽑는다."""
+        """메모리에서 배치를 샘플링한다."""
         if len(self.memory_data) == 0:
             return None, None
         
@@ -266,7 +266,7 @@ class ExperienceReplayLearner:
                       epochs: int = 5,
                       verbose: bool = True) -> Dict:
         """
-        경험 리플레이를 곁들여 과제로 익힌다.
+        경험 리플레이를 사용해 과제를 학습한다.
         
         인수:
             train_loader: 학습 데이터 로더
@@ -291,7 +291,7 @@ class ExperienceReplayLearner:
                 
                 optimizer.zero_grad()
                 
-                # 지금 과제의 로스
+                # 현재 과제의 로스
                 output = self.model(data)
                 current_loss = self.criterion(output, target)
                 
@@ -310,11 +310,11 @@ class ExperienceReplayLearner:
                 # 결합된 로스
                 total_loss = current_loss + replay_loss
                 
-                # 되돌리고 최적화한다
+                # 역전파하고 최적화한다
                 total_loss.backward()
                 optimizer.step()
                 
-                # 로스를 좇는다
+                # 로스를 기록한다
                 epoch_losses['total'] += total_loss.item()
                 epoch_losses['current'] += current_loss.item()
                 epoch_losses['replay'] += replay_loss.item()
@@ -352,15 +352,15 @@ class ExperienceReplayLearner:
                         test_loaders: List[DataLoader],
                         epochs_per_task: int = 5) -> Dict:
         """
-        리플레이로 연속 학습을 온전히 한다.
+        리플레이로 연속 학습 전체를 수행한다.
         
         인수:
             train_loaders: 학습 DataLoader 목록
             test_loaders: 시험 DataLoader 목록
-            epochs_per_task: 과제마다의 학습 시대 수
+            epochs_per_task: 과제마다의 학습 에포크 수
         
         반환값:
-            정확도 행렬을 담은 사전
+            정확도 행렬을 담은 딕셔너리
         """
         num_tasks = len(train_loaders)
         accuracy_matrix = np.zeros((num_tasks, num_tasks))
@@ -370,13 +370,13 @@ class ExperienceReplayLearner:
             print(f"Task {task_id}")
             print('='*60)
             
-            # 지금 과제로 익힌다
+            # 현재 과제를 학습한다
             self.train_on_task(
                 train_loaders[task_id],
                 epochs=epochs_per_task
             )
             
-            # 익힌 **뒤에** 기억에 더한다
+            # 학습한 **뒤에** 메모리에 추가한다
             self.add_to_memory(train_loaders[task_id])
             
             # 모든 과제에서 평가한다
@@ -398,17 +398,17 @@ class ExperienceReplayLearner:
 
 ---
 
-## 4. 하이퍼파라미터 분석
+## 4. 하이퍼파라메터 분석
 
 ### 버퍼 용량과 과제별 표본 수
 
 버퍼 용량은 최종 저장 상한이고 examples_per_task는 과제 종료 시 추가할 표본 수다. 자체 리스트 구현에서는 과제가 많아지면 앞의 표본이 제거되므로 과제별로 일정 수를 영구 보장하지 않는다. 버퍼 표본 수만으로 모든 문제의 적절한 용량을 정할 수 없다.
 
-아래 민감도 분석의 create_model과 ContinualLearningMetrics는 별도로 준비해야 한다. 최종 테스트셋 대신 검증 순서를 사용해 설정을 선택하고 후보마다 같은 초기화·과제 순서를 맞춘다.
+아래 민감도 분석의 create_model과 ContinualLearningMetrics는 별도로 준비해야 한다. 최종 시험 집합 대신 검증 순서를 사용해 설정을 선택하고 후보마다 같은 초기화·과제 순서를 맞춘다.
 
 ```python
 def analyze_memory_parameters(train_loaders, test_loaders, device):
-    """기억 파라메터의 영향을 뜯어본다."""
+    """메모리 파라메터의 영향을 분석한다."""
     
     configs = [
         {'memory_size': 500, 'examples_per_task': 100},
@@ -445,15 +445,15 @@ def analyze_memory_parameters(train_loaders, test_loaders, device):
 
 ### 그래디언트 크기 기반 선택
 
-GradientBasedBuffer는 표본별 경사 노름 제곱이 큰 표본을 고른다. 경사 간 방향의 다양성을 최적화하지는 않는다. 버퍼가 가득 차면 새 표본을 교체하지 않고 gradients 목록도 쓰지 않는다. F 임포트와 모델 모드가 필요하며, 이 계산은 기존 학습 경사를 지우고 새 경사를 남기므로 학습 갱신과 분리해야 한다.
+GradientBasedBuffer는 표본별 그래디언트 노름 제곱이 큰 표본을 고른다. 그래디언트 간 방향의 다양성을 최적화하지는 않는다. 버퍼가 가득 차면 새 표본을 교체하지 않고 gradients 목록도 쓰지 않는다. F 임포트와 모델 모드가 필요하며, 이 계산은 기존 학습 그래디언트를 지우고 새 그래디언트를 남기므로 학습 갱신과 분리해야 한다.
 
 ```python
 class GradientBasedBuffer:
     """
-    그래디언트 정보를 바탕으로 보기를 고른다.
+    그래디언트 정보를 바탕으로 예제를 고른다.
     
-    그래디언트가 크거나 서로 다른 보기에 우선순위를 주는데,
-    학습에 커널이 가장 많기 때문이다.
+    그래디언트가 크거나 서로 다른 예제에 우선순위를 주는데,
+    학습에 주는 정보가 가장 많기 때문이다.
     """
     
     def __init__(self, model, max_size, device):
@@ -464,7 +464,7 @@ class GradientBasedBuffer:
         self.gradients = []
     
     def compute_gradient_score(self, example, label):
-        """보기 하나의 그래디언트 크기를 셈한다."""
+        """예제 하나의 그래디언트 크기를 계산한다."""
         self.model.zero_grad()
         example = example.unsqueeze(0).to(self.device)
         label = torch.tensor([label], device=self.device)
@@ -481,13 +481,13 @@ class GradientBasedBuffer:
         return score
     
     def add_task(self, examples, labels, num_select):
-        """그래디언트 점수로 우선순위를 매겨 보기를 더한다."""
+        """그래디언트 점수로 우선순위를 매겨 예제를 추가한다."""
         scores = []
         for i in range(len(examples)):
             score = self.compute_gradient_score(examples[i], labels[i].item())
             scores.append((score, i))
         
-        # 그래디언트 기준으로 위 보기를 고른다
+        # 그래디언트 점수가 높은 예제를 고른다
         scores.sort(reverse=True)
         selected = [scores[i][1] for i in range(min(num_select, len(scores)))]
         
@@ -503,14 +503,14 @@ class GradientBasedBuffer:
 ```python
 class LossBasedBuffer:
     """
-    로스 값을 바탕으로 보기를 고른다.
+    로스 값을 바탕으로 예제를 고른다.
     
-    어려운 보기(로스가 큰 것)가 판단 경계를 지키는 데
-    더 값질 수 있다.
+    어려운 예제(로스가 큰 것)가 결정 경계를 유지하는 데
+    더 유용할 수 있다.
     """
     
     def select_by_loss(self, examples, labels, model, num_select, device):
-        """로스가 가장 큰 보기를 고른다."""
+        """로스가 가장 큰 예제를 고른다."""
         model.eval()
         
         with torch.no_grad():
@@ -518,7 +518,7 @@ class LossBasedBuffer:
             losses = F.cross_entropy(outputs, labels.to(device), 
                                     reduction='none')
         
-        # 로스가 가장 큰 보기를 고른다
+        # 로스가 가장 큰 예제를 고른다
         _, indices = torch.topk(losses, min(num_select, len(losses)))
         
         return examples[indices.cpu()], labels[indices.cpu()]
@@ -528,7 +528,7 @@ class LossBasedBuffer:
 
 ## 6. 다른 방법과의 비교
 
-리플레이는 과거 입력·정답을 저장해 다시 학습하고, EWC는 중요도와 기준 웨이트로 이동에 벌점을 준다. 두 방식은 조합할 수 있다. EWC의 메모리도 과제별 저장인지 병합인지에 따라 달라진다.
+리플레이는 과거 입력·정답을 저장해 다시 학습하고, EWC는 중요도와 기준 웨이트로 이동에 패널티를 준다. 두 방식은 조합할 수 있다. EWC의 메모리도 과제별 저장인지 병합인지에 따라 달라진다.
 
 원본 표본 보관 여부는 데이터 관리 조건에 영향을 주지만 모델·통계도 정보 노출 가능성이 있어 단순한 개인정보 보호 순위를 정하지 않는다. 고정된 Split MNIST 정확도 표 대신 같은 출력 공간·데이터 순서·학습 예산에서 새 학습과 이전 유지 성능을 비교한다.
 
@@ -536,7 +536,7 @@ class LossBasedBuffer:
 
 버퍼의 갱신 시점과 분포를 명시한다. 과제 종료 갱신은 경계가 주어진 설정이며, 매 표본 갱신은 스트림 설정에 맞게 별도로 정의할 수 있다.
 
-현재와 과거의 샘플링 비율, 로스 계수와 실제 표본 노출량을 구분해 기록한다. 동일한 전역 라벨 규약을 유지하고 데이터 어그멘테이션을 재적용할지, 이미 변환한 입력을 저장할지 정한다. 테스트 데이터는 버퍼에 넣지 않고 모델 선택은 독립적인 검증셋에서 수행한다.
+현재와 과거의 샘플링 비율, 로스 계수와 실제 표본 노출량을 구분해 기록한다. 동일한 전역 라벨 규약을 유지하고 데이터 어그멘테이션을 재적용할지, 이미 변환한 입력을 저장할지 정한다. 시험 데이터는 버퍼에 넣지 않고 모델 선택은 독립적인 검증셋에서 수행한다.
 
 ## 연습문제
 
@@ -548,7 +548,7 @@ class LossBasedBuffer:
 </div>
 
 ??? success "풀이"
-    아니다. 샘플링 비율과 로스 웨이트, 표본 노출 수와 최적화 경로가 같아야 목적·결과를 비교할 수 있다. 전체 과거 자료를 보관해도 현재 자료를 과도하게 학습하면 분포 웨이트가 달라진다.
+    아니다. 샘플링 비율과 로스 웨이트, 표본 노출 수와 최적화 경로가 같아야 목적·결과를 비교할 수 있다. 전체 과거 데이터를 보관해도 현재 데이터를 과도하게 학습하면 분포 웨이트가 달라진다.
 
 ---
 

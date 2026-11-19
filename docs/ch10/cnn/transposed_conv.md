@@ -20,7 +20,7 @@ k_0 & k_1 & k_2 & 0 & 0 \\
 \end{bmatrix} \in \mathbb{R}^{3 \times 5}
 $$
 
-을 **컨볼루션 행렬**이라 한다($\mathbb{R}^5 \to \mathbb{R}^3$, 경계에서 줄어든 것이며 스트라이드에 의한 부분표집과는 구분한다). 같은 웨이트로 만든 $\mathbf{C}^\top$을 쓰는 연산
+을 **컨볼루션 행렬**이라 한다($\mathbb{R}^5 \to \mathbb{R}^3$, 경계에서 줄어든 것이며 스트라이드에 의한 다운샘플링과는 구분한다). 같은 웨이트로 만든 $\mathbf{C}^\top$을 쓰는 연산
 
 $$
 \mathbf{C}^\top = \begin{bmatrix}
@@ -60,7 +60,7 @@ $$
 
     인데 $I_5$의 계수는 5다. $3 < 5$이므로 둘은 같을 수 없다. $\square$
 
-    차원만으로 끝나는 논증이라 **커널 값과 무관**하다. $\mathbf{C}$는 정사각이 아니어서 애초에 역행렬을 가질 수 없고, 다섯 수를 세 수로 줄이는 사상이 잃어버린 2차원은 어떤 커널로도 되살릴 수 없다.
+    차원만으로 끝나는 논증이라 **커널 값과 무관**하다. $\mathbf{C}$는 정사각이 아니어서 애초에 역행렬을 가질 수 없고, 다섯 수를 세 수로 줄이는 사상이 잃어버린 2차원은 어떤 커널로도 복원할 수 없다.
 
 <div class="thmbox" markdown>
 
@@ -110,7 +110,7 @@ y.backward(grad_output)
 grad_input_manual = F.conv_transpose2d(grad_output, w, padding=1)
 print(f"Gradient match: {torch.allclose(x.grad, grad_input_manual, atol=1e-5)}")
 
-# 전치는 역행렬이 아니다: 같은 커널으로 되돌려도 값은 돌아오지 않는다
+# 전치는 역행렬이 아니다: 같은 커널로 되돌려도 값은 돌아오지 않는다
 torch.manual_seed(0)
 a = torch.randn(1, 1, 8, 8)
 k = torch.randn(1, 1, 3, 3)
@@ -141,20 +141,20 @@ Relative error:  6.6400
 팽창률 1, output_padding=0인 경우 전치 컨볼루션을 다음 단계로 이해할 수 있다. 커널 크기 k, 스트라이드 s, 패딩 p로 두고, k−1−p가 음수이면 패딩 대신 해당 경계의 자르기로 해석한다. 채널이 여럿이면 전치에 맞는 채널 축의 대응도 필요하다.
 
 1. (스트라이드가 1보다 크면) 입력 원소 사이에 **0을 $s-1$개씩 끼워 넣는다** — $i \times i$ 입력이 $\big(s(i-1)+1\big) \times \big(s(i-1)+1\big)$이 된다
-2. 각 변에 **0을 $k-1-p$개 덧댄다**
+2. 각 변에 **0을 $k-1-p$개 패딩한다**
 3. 뒤집은 커널로 **스트라이드 1 표준 컨볼루션**을 적용한다
 
-2번의 패딩 양에 주의하라. 패딩가 $p$가 아니라 $k-1-p$이므로, `padding`을 **키우면 출력이 작아진다** — 보통 컨볼루션과 정반대다. 전치 컨볼루션의 `padding` 인자는 "0을 더 넣어라"가 아니라 "가장자리를 그만큼 잘라내라"에 가깝다.
+2번의 패딩 양에 주의하라. 패딩이 $p$가 아니라 $k-1-p$이므로, `padding`을 **키우면 출력이 작아진다** — 표준 컨볼루션과 정반대다. 전치 컨볼루션의 `padding` 인자는 "0을 더 넣어라"가 아니라 "가장자리를 그만큼 잘라내라"에 가깝다.
 
 3×3 커널을 쓰는 스트라이드 2, 패딩 1 전치 컨볼루션에서는 다음과 같다. 패딩 양은 $k-1-p = 3-1-1 = 1$이므로 각 변에 한 줄씩이다.
 
-![전치 컨볼루션의 세 걸음. 위쪽 줄은 2×2 입력에서 0을 끼워 넣은 3×3, 각 변에 한 줄씩 덧댄 5×5, 그리고 3×3 valid 컨볼루션이 내놓는 3×3 출력으로 이어진다. 아래쪽 줄은 같은 설정에 output_padding을 1로 둔 경우로, 덧댄 맵이 오른쪽과 아래로 한 줄씩 늘어난 6×6이 되고 출력은 4×4가 된다.](figures/transposed_conv_steps.svg)
+![전치 컨볼루션의 세 단계. 위쪽 줄은 2×2 입력에서 0을 끼워 넣은 3×3, 각 변에 한 줄씩 패딩한 5×5, 그리고 3×3 valid 컨볼루션이 내놓는 3×3 출력으로 이어진다. 아래쪽 줄은 같은 설정에 output_padding을 1로 둔 경우로, 패딩한 맵이 오른쪽과 아래로 한 줄씩 늘어난 6×6이 되고 출력은 4×4가 된다.](figures/transposed_conv_steps.svg)
 
-위쪽 줄이 세 걸음이다. 0을 끼우는 1번이 맵을 2×2에서 3×3으로 키우고, 2번이 각 변에 $k-1-p=1$줄씩 덧대어 5×5를 만든다. 여기에 3×3 valid 컨볼루션을 씌우므로 출력은 $5-3+1=3$, 곧 **3×3이다**. 2×2를 꼭 두 배인 4×4로 키우고 싶다면 아래쪽 줄처럼 `output_padding=1`이 더 있어야 한다.
+위쪽 줄이 세 단계다. 0을 끼우는 1번이 맵을 2×2에서 3×3으로 키우고, 2번이 각 변에 $k-1-p=1$줄씩 패딩하여 5×5를 만든다. 여기에 3×3 valid 컨볼루션을 씌우므로 출력은 $5-3+1=3$, 곧 **3×3이다**. 2×2를 꼭 두 배인 4×4로 키우고 싶다면 아래쪽 줄처럼 `output_padding=1`이 더 있어야 한다.
 
-그 한 줄이 어디에 붙는지도 눈여겨보라. 점선으로 그린 0의 행과 열은 **덧댄 맵의 오른쪽과 아래쪽에만** 붙는다. 출력에 0을 덧대는 것이 아니므로 늘어난 마지막 행과 열의 값도 $a, b, c, d$에서 계산된 값이지 0이 아니다.
+그 한 줄이 어디에 붙는지도 눈여겨보라. 점선으로 그린 0의 행과 열은 **패딩한 맵의 오른쪽과 아래쪽에만** 붙는다. 출력에 0을 패딩하는 것이 아니므로 늘어난 마지막 행과 열의 값도 $a, b, c, d$에서 계산된 값이지 0이 아니다.
 
-세 스텝이 정말 `conv_transpose2d`와 같은 값을 내는지 손으로 만들어 비교하여 보자.
+세 단계가 정말 `conv_transpose2d`와 같은 값을 내는지 손으로 만들어 비교하여 보자.
 
 ```python
 import torch
@@ -164,7 +164,7 @@ torch.manual_seed(0)
 
 
 def transposed_by_hand(x, w, stride, padding):
-    """0 끼워 넣기 → 덧대기 → 보통 컨볼루션, 세 스텝으로 손수 만든 전치 컨볼루션."""
+    """0 끼워 넣기 → 패딩 → 표준 컨볼루션, 세 단계로 직접 만든 전치 컨볼루션."""
     i, k = x.shape[-1], w.shape[-1]
 
     # 1. 원소 사이에 0을 stride - 1개씩 끼워 넣는다
@@ -172,11 +172,11 @@ def transposed_by_hand(x, w, stride, padding):
     z = torch.zeros(x.shape[0], x.shape[1], n, n)
     z[:, :, ::stride, ::stride] = x
 
-    # 2. 각 변에 k - 1 - padding개의 0을 덧댄다 (padding이 클수록 적게 덧댄다)
+    # 2. 각 변에 k - 1 - padding개의 0을 패딩한다 (padding이 클수록 적게 패딩한다)
     pad = k - 1 - padding
     z = F.pad(z, (pad, pad, pad, pad))
 
-    # 3. 뒤집은 커널으로 스트라이드 1 보통 컨볼루션
+    # 3. 뒤집은 커널로 스트라이드 1 표준 컨볼루션
     return F.conv2d(z, torch.flip(w, [-1, -2]).transpose(0, 1)), z.shape[-1]
 
 
@@ -186,7 +186,7 @@ w = torch.randn(2, 3, 3, 3)
 for stride, padding in [(1, 0), (2, 0), (2, 1), (3, 1)]:
     ref = F.conv_transpose2d(x, w, stride=stride, padding=padding)
     got, padded = transposed_by_hand(x, w, stride, padding)
-    print(f"s={stride} p={padding}: 0 끼운 뒤 덧댄 크기 {padded}×{padded}"
+    print(f"s={stride} p={padding}: 0 끼운 뒤 패딩한 크기 {padded}×{padded}"
           f" → 출력 {got.shape[-1]}×{got.shape[-1]}"
           f" (conv_transpose2d와 같은가: {torch.allclose(ref, got, atol=1e-5)})")
 
@@ -201,15 +201,15 @@ for op in (0, 1):
 **출력:**
 
 ```
-s=1 p=0: 0 끼운 뒤 덧댄 크기 8×8 → 출력 6×6 (conv_transpose2d와 같은가: True)
-s=2 p=0: 0 끼운 뒤 덧댄 크기 11×11 → 출력 9×9 (conv_transpose2d와 같은가: True)
-s=2 p=1: 0 끼운 뒤 덧댄 크기 9×9 → 출력 7×7 (conv_transpose2d와 같은가: True)
-s=3 p=1: 0 끼운 뒤 덧댄 크기 12×12 → 출력 10×10 (conv_transpose2d와 같은가: True)
+s=1 p=0: 0 끼운 뒤 패딩한 크기 8×8 → 출력 6×6 (conv_transpose2d와 같은가: True)
+s=2 p=0: 0 끼운 뒤 패딩한 크기 11×11 → 출력 9×9 (conv_transpose2d와 같은가: True)
+s=2 p=1: 0 끼운 뒤 패딩한 크기 9×9 → 출력 7×7 (conv_transpose2d와 같은가: True)
+s=3 p=1: 0 끼운 뒤 패딩한 크기 12×12 → 출력 10×10 (conv_transpose2d와 같은가: True)
 2×2 입력, k=3 s=2 p=1 output_padding=0 → 3×3
 2×2 입력, k=3 s=2 p=1 output_padding=1 → 4×4
 ```
 
-$p$를 0에서 1로 키우자 덧댄 크기가 11에서 9로 줄고 출력도 9에서 7로 줄었다. 앞에서 말한 "패딩를 키우면 출력이 작아진다"가 이것이다.
+$p$를 0에서 1로 키우자 패딩한 크기가 11에서 9로 줄고 출력도 9에서 7로 줄었다. 앞에서 말한 "패딩을 키우면 출력이 작아진다"가 이것이다.
 
 ### 출력 크기 공식
 
@@ -244,20 +244,20 @@ import torch.nn as nn
 
 torch.manual_seed(0)
 
-# 보통 컨볼루션 (하향 표본화)
+# 표준 컨볼루션 (다운샘플링)
 conv = nn.Conv2d(64, 32, kernel_size=3, stride=2, padding=1)
 
-# 전치 컨볼루션 (상향 표본화)
+# 전치 컨볼루션 (업샘플링)
 conv_transpose = nn.ConvTranspose2d(32, 64, kernel_size=3, stride=2,
                                     padding=1, output_padding=1)
 
 x = torch.randn(1, 64, 32, 32)
 
-# 하향 표본화
+# 다운샘플링
 y = conv(x)
 print(f"Conv: {x.shape} → {y.shape}")  # [1, 64, 32, 32] → [1, 32, 16, 16]
 
-# 상향 표본화
+# 업샘플링
 z = conv_transpose(y)
 print(f"ConvT: {y.shape} → {z.shape}")  # [1, 32, 16, 16] → [1, 64, 32, 32]
 ```
@@ -271,7 +271,7 @@ ConvT: torch.Size([1, 32, 16, 16]) → torch.Size([1, 64, 32, 32])
 
 ### `output_padding` 파라메터
 
-스트라이드가 1보다 크면 보통 컨볼루션에서 여러 입력 크기가 같은 출력 크기를 낼 수 있다. 이를테면 $K=3$, $s=2$, $p=1$에서는 31×31 입력과 32×32 입력이 모두 16×16 출력을 낸다. 거꾸로 갈 때 둘 중 어느 것을 돌려줄지 정해 주는 것이 `output_padding`이다.
+스트라이드가 1보다 크면 표준 컨볼루션에서 여러 입력 크기가 같은 출력 크기를 낼 수 있다. 이를테면 $K=3$, $s=2$, $p=1$에서는 31×31 입력과 32×32 입력이 모두 16×16 출력을 낸다. 거꾸로 갈 때 둘 중 어느 것을 돌려줄지 정해 주는 것이 `output_padding`이다.
 
 ```python
 # output_padding이 없으면 2 × 16 - 1 = 31×31이 된다
@@ -298,7 +298,7 @@ With output_padding=1: torch.Size([1, 64, 32, 32])
 groups=G인 ConvTranspose2d의 웨이트는 $(C_{in},C_{out}/G,K_H,K_W)$ 모양이며 개수는 $C_{in}C_{out}K_HK_W/G$이다. bias=True이면 출력 채널 수 $C_{out}$만큼 더한다. 입출력 채널을 맞바꾼 Conv2d와 웨이트 수는 같지만 바이어스 수는 달라질 수 있다.
 
 ```python
-# 보통: 채널 64개 → 32개
+# 표준: 채널 64개 → 32개
 conv = nn.Conv2d(64, 32, 3, bias=False)
 print(f"Conv2d params: {sum(p.numel() for p in conv.parameters()):,}")
 # 32 × 64 × 3 × 3 = 18,432
@@ -378,7 +378,7 @@ kernel=2, stride=2  (K % s = 0)  →  출력 (6, 6)
  [1 1 1 1 1 1]]
 ```
 
-$K=3$, $s=2$에서는 안쪽이 2와 4를 한 칸 걸러 오간다 — 이것이 바둑판 무늬다. $K=4$, $s=2$에서는 안쪽이 모두 4로 고르고, $K=2$, $s=2$에서는 겹침이 아예 없어 모든 자리가 1이다. 앞의 두 경우는 가장자리 두 줄이 값을 덜 받는데, 이는 어느 커널 크기에서나 생기는 테두리 효과일 뿐 바둑판 무늬와는 다른 이야기다($K=2$에서는 그마저 없다). 무늬인지 테두리인지는 **안쪽**을 보면 갈린다.
+$K=3$, $s=2$에서는 안쪽이 2와 4를 한 칸 걸러 오간다 — 이것이 바둑판 무늬다. $K=4$, $s=2$에서는 안쪽이 모두 4로 균일하고, $K=2$, $s=2$에서는 겹침이 아예 없어 모든 자리가 1이다. 앞의 두 경우는 가장자리 두 줄이 값을 덜 받는데, 이는 어느 커널 크기에서나 생기는 테두리 효과일 뿐 바둑판 무늬와는 다른 이야기다($K=2$에서는 그마저 없다). 무늬인지 테두리인지는 **안쪽**을 보면 갈린다.
 
 팽창률 1인 내부 영역에서 커널 크기가 스트라이드로 나누어떨어지지 않으면 기하학적 겹침 횟수가 불균일해질 수 있다. 이것은 체커보드 아티팩트의 한 원인이며 필요충분조건은 아니다. 균일한 겹침에서도 학습된 웨이트나 다른 연산 때문에 패턴이 생길 수 있다.
 
@@ -399,7 +399,7 @@ better = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1)
 good = nn.ConvTranspose2d(64, 32, kernel_size=2, stride=2)
 ```
 
-다만 이 해법이 없애는 것은 **기하학적인** 원인뿐이다. 겹침 횟수가 고르더라도 학습된 웨이트가 자리마다 다르면 약한 무늬가 남을 수 있다.
+다만 이 해법이 없애는 것은 **기하학적인** 원인뿐이다. 겹침 횟수가 균일하더라도 학습된 웨이트가 자리마다 다르면 약한 무늬가 남을 수 있다.
 
 ### 해법 2: 크기 조정 뒤 컨볼루션 (권장)
 
@@ -414,8 +414,8 @@ torch.manual_seed(0)
 
 class UpsampleConv(nn.Module):
     """
-    보간 뒤 컨볼루션으로 상향 표본화한다.
-    전치 컨볼루션에서 오는 바둑판 무늬 흠을 피한다.
+    보간 뒤 컨볼루션으로 업샘플링한다.
+    전치 컨볼루션에서 오는 체커보드 아티팩트를 피한다.
     """
 
     def __init__(self, in_channels, out_channels, kernel_size=3,
@@ -437,7 +437,7 @@ x = torch.randn(1, 64, 16, 16)
 # 전치 컨볼루션
 conv_t = nn.ConvTranspose2d(64, 32, 4, stride=2, padding=1)
 
-# 크기 조정 뒤 컨볼루션 (흠 없음)
+# 크기 조정 뒤 컨볼루션 (불균일한 겹침 없음)
 resize_conv = UpsampleConv(64, 32, scale_factor=2)
 
 print(f"ConvTranspose: {conv_t(x).shape}")     # [1, 32, 32, 32]
@@ -458,9 +458,9 @@ PixelShuffle은 채널을 공간 위치로 재배열한다. 이 재배열 자체
 ```python
 class SubPixelUpsample(nn.Module):
     """
-    효율적인 상향 표본화를 위한 부화소 컨볼루션(PixelShuffle).
+    효율적인 업샘플링을 위한 서브픽셀 컨볼루션(PixelShuffle).
 
-    보통 컨볼루션으로 채널을 r²개 만든 뒤 다시 늘어놓아
+    표준 컨볼루션으로 채널을 r²개 만든 뒤 다시 늘어놓아
     공간 해상도를 r배로 키운다.
     """
 
@@ -505,13 +505,13 @@ torch.manual_seed(0)
 
 class ConvAutoencoder(nn.Module):
     """
-    복호에 전치 컨볼루션을 쓰는 컨볼루션 오토인코더.
+    디코딩에 전치 컨볼루션을 쓰는 컨볼루션 오토인코더.
     """
 
     def __init__(self):
         super().__init__()
 
-        # 인코더: 차츰 하향 표본화
+        # 인코더: 차츰 다운샘플링
         self.encoder = nn.Sequential(
             nn.Conv2d(3, 64, 3, stride=2, padding=1),    # 224 → 112
             nn.BatchNorm2d(64),
@@ -524,7 +524,7 @@ class ConvAutoencoder(nn.Module):
             nn.ReLU(inplace=True),
         )
 
-        # 디코더: 차츰 상향 표본화 (K=4, s=2 이므로 겹침이 고르다)
+        # 디코더: 차츰 업샘플링 (K=4, s=2 이므로 겹침이 균일하다)
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1),  # 28 → 56
             nn.BatchNorm2d(128),
@@ -566,16 +566,16 @@ Parameters: 1,030,723
 ```python
 class UNetDecoder(nn.Module):
     """
-    인코더에서 오는 건너뛰기 연결이 있는 U-Net 디코더 블록.
+    인코더에서 오는 스킵 연결이 있는 U-Net 디코더 블록.
 
-    피처 맵을 상향 표본화하여 짝이 되는 인코더 피처와 이어 붙인 뒤
+    피처 맵을 업샘플링하여 짝이 되는 인코더 피처와 이어 붙인 뒤
     컨볼루션을 적용한다.
     """
 
     def __init__(self, in_channels, skip_channels, out_channels):
         super().__init__()
 
-        # 상향 표본화 (전치 컨볼루션 또는 크기 조정 뒤 컨볼루션)
+        # 업샘플링 (전치 컨볼루션 또는 크기 조정 뒤 컨볼루션)
         self.up = nn.ConvTranspose2d(in_channels, in_channels // 2,
                                      kernel_size=4, stride=2, padding=1)
 
@@ -637,7 +637,7 @@ params: 967,552
 | ConvTranspose2d | 커널과 선택적 바이어스 | 겹침과 학습된 웨이트에 따른 아티팩트 |
 | 보간 뒤 컨볼루션 | 컨볼루션 | 보간·경계 규약과 고해상도 계산 비용 |
 | PixelShuffle | 앞의 컨볼루션 | 채널 재배열은 무파라메터, 위상별 출력 차이 가능 |
-| 보간만 사용 | 없음 | 고정된 재표집 규약, 세부 정보 복원의 한계 |
+| 보간만 사용 | 없음 | 고정된 리샘플링 규약, 세부 정보 복원의 한계 |
 
 속도와 파라메터는 채널·커널·배율과 장치에 따라 달라진다. 아래 예제의 파라메터 순위는 선택한 구성에 대한 결과이다.
 
@@ -690,7 +690,7 @@ Bilinear + Conv               : torch.Size([1, 64, 16, 16]) → torch.Size([1, 3
 ```python
 torch.manual_seed(0)
 
-# 시간 방향 상향 표본화를 위한 1차원 전치 컨볼루션
+# 시간 방향 업샘플링을 위한 1차원 전치 컨볼루션
 conv_t1d = nn.ConvTranspose1d(
     in_channels=64,
     out_channels=32,
@@ -699,7 +699,7 @@ conv_t1d = nn.ConvTranspose1d(
     padding=1
 )
 
-x = torch.randn(1, 64, 50)  # 시각 50개
+x = torch.randn(1, 64, 50)  # 시점 50개
 out = conv_t1d(x)
 print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 ```
@@ -734,7 +734,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 </div>
 
 ??? success "풀이"
-    보통 컨볼루션과 전치 컨볼루션은 크기를 서로 반대로 옮긴다. 헷갈리지 않도록 보통 컨볼루션 쪽 이름을 따로 두자. 보통 컨볼루션이 크기 $n$을 크기 $m$으로 보낸다고 하면
+    표준 컨볼루션과 전치 컨볼루션은 크기를 서로 반대로 옮긴다. 헷갈리지 않도록 표준 컨볼루션 쪽 이름을 따로 두자. 표준 컨볼루션이 크기 $n$을 크기 $m$으로 보낸다고 하면
 
     $$m = \left\lfloor \frac{n + 2p - k}{s} \right\rfloor + 1$$
 
@@ -748,7 +748,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
     $$o = (i-1)s - 2p + k + p_{out}, \qquad 0 \le p_{out} < s$$
 
-    의 $p_{out}$이다. 팽창률 $d$까지 넣으면 커널의 실효 크기가 $d(k-1)+1$이 되므로 $k$를 그것으로 바꾸어 본문의 공식이 된다. $\square$
+    의 $p_{out}$이다. 팽창률 $d$까지 넣으면 커널의 유효 크기가 $d(k-1)+1$이 되므로 $k$를 그것으로 바꾸어 본문의 공식이 된다. $\square$
 
 ---
 
@@ -767,7 +767,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-(a) 전치 컨볼루션과 (b) 바이리니어 보간 뒤 컨볼루션으로 업샘플링 모듈을 각각 구현하고, 출력 크기·파라메터 수·겹침의 고르기를 비교하여라.
+(a) 전치 컨볼루션과 (b) 쌍선형(bilinear) 보간 뒤 컨볼루션으로 업샘플링 모듈을 각각 구현하고, 출력 크기·파라메터 수·겹침의 균일성을 비교하여라.
 
 </div>
 
@@ -780,10 +780,10 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 
     x = torch.randn(1, 64, 16, 16)
 
-    # 방법 (a): 전치 컨볼루션 — 상향 표본화 필터까지 배운다
+    # 방법 (a): 전치 컨볼루션 — 업샘플링 필터까지 학습한다
     up_a = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1)
 
-    # 방법 (b): 쌍선형 보간 뒤 컨볼루션 — 상향 표본화는 고정, 컨볼루션만 배운다
+    # 방법 (b): 쌍선형 보간 뒤 컨볼루션 — 업샘플링은 고정, 컨볼루션만 학습한다
     up_b = nn.Sequential(
         nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
         nn.Conv2d(64, 32, kernel_size=3, padding=1)
@@ -794,13 +794,13 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
         print(f"{name:<22}: → {tuple(out.shape)}, "
               f"params {sum(p.numel() for p in m.parameters()):,}")
 
-    # 겹침이 고른지: 커널을 1로 두고 받은 횟수를 센다
+    # 겹침이 균일한지: 커널을 1로 두고 받은 횟수를 센다
     ones = torch.ones(1, 1, 8, 8)
     counts_a = nn.functional.conv_transpose2d(
         ones, torch.ones(1, 1, 4, 4), stride=2, padding=1).squeeze()
     print(f"(a) 받은 횟수 — 안쪽 최소 {counts_a[1:-1, 1:-1].min():.0f}, "
           f"최대 {counts_a[1:-1, 1:-1].max():.0f}")
-    print("(b) 받은 횟수 — 보간은 모든 자리를 똑같이 채우므로 고르다")
+    print("(b) 받은 횟수 — 보간은 모든 자리를 똑같이 채우므로 균일하다")
     ```
 
     **출력:**
@@ -809,7 +809,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
     (a) ConvTranspose     : → (1, 32, 32, 32), params 32,800
     (b) Bilinear+Conv     : → (1, 32, 32, 32), params 18,464
     (a) 받은 횟수 — 안쪽 최소 4, 최대 4
-    (b) 받은 횟수 — 보간은 모든 자리를 똑같이 채우므로 고르다
+    (b) 받은 횟수 — 보간은 모든 자리를 똑같이 채우므로 균일하다
     ```
 
     두 구성은 같은 공간 크기를 내지만 커널 크기가 달라 파라메터가 32800개와 18464개이다. 차이를 단순히 업샘플링 필터의 학습 여부로 설명할 수는 없다. 겹침 시각화는 입력·웨이트를 모두 1로 두었을 때의 기하학적 비교이고 실제 생성 품질의 평가가 아니다. 구조 선택은 목표 품질과 장치에서의 지연·메모리를 기준으로 비교한다.
@@ -824,7 +824,7 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 </div>
 
 ??? success "풀이"
-    디코더 뉴럴 네트워크에서 쓰인다. U-Net(분할), 오토인코더, GAN(생성기의 업샘플링), 초해상도 뉴럴 네트워크가 그 예이다. 고정된 업샘플링 방법의 학습 가능한 짝으로, 뉴럴 네트워크가 알맞은 업샘플링 필터를 배우게 해 준다.
+    디코더 뉴럴 네트워크에서 쓰인다. U-Net(세그멘테이션), 오토인코더, GAN(제너레이터의 업샘플링), 초해상도 뉴럴 네트워크가 그 예이다. 고정된 업샘플링 방법의 학습 가능한 짝으로, 뉴럴 네트워크가 알맞은 업샘플링 필터를 배우게 해 준다.
 
 ---
 

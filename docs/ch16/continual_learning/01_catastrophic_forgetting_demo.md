@@ -8,24 +8,24 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
 
     ```python
     """
-    57모듈: 연속 학습 - 초급
-    파일 1: 파국적 잊음 보여 주기
+    57모듈: 지속 학습 - 초급
+    파일 1: 파국적 망각 시연
 
-    이 스크립트는 과제를 차례로 배울 때 뉴럴 네트워크에 생기는 파국적 잊음 문제를 보여 준다.
-    단순한 망을 여러 과제로 익히면서
-    앞선 과제의 성능이 어떻게 떨어지는지 그려 본다.
+    이 스크립트는 과제를 차례로 배울 때 뉴럴 네트워크에 생기는 파국적 망각 문제를 보여 준다.
+    단순한 네트워크를 여러 과제로 학습시키면서
+    앞선 과제의 성능이 어떻게 떨어지는지 시각화한다.
 
     학습 목표:
-    1. 파국적 잊음이 무엇인지 이해한다
-    2. 구체적인 보기로 문제를 그려 본다
-    3. 잊음을 수로 잰다
-    4. 연속 학습 방법의 베이스라인을 세운다
+    1. 파국적 망각이 무엇인지 이해한다
+    2. 구체적인 예제로 문제를 시각화한다
+    3. 망각을 수치로 측정한다
+    4. 지속 학습 방법의 베이스라인을 세운다
 
     수학적 바탕:
     - 과제 T₁, T₂, ..., T_n에 대해 다음을 잰다.
-      * 과제 j을 배운 뒤 과제 i의 정확도: Acc_{i,j}
-      * 잊음: F_i = Acc_{i,i} - Acc_{i,n}
-      * 평균 잊음: (1/n) Σ F_i
+      * 과제 j를 배운 뒤 과제 i의 정확도: Acc_{i,j}
+      * 망각: F_i = Acc_{i,i} - Acc_{i,n}
+      * 평균 망각: (1/n) Σ F_i
     """
 
     import torch
@@ -50,30 +50,30 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
 
     class SimpleNetwork(nn.Module):
         """
-        파국적 잊음을 보여 주기 위한 단순한 피드포워드 망.
+        파국적 망각을 보여 주기 위한 단순한 피드포워드 네트워크.
 
         구조:
         - 입력: 28x28을 편 784차원
-        - 숨은 레이어: ReLU 활성을 쓴 레이어 둘
-        - 출력: 부류 10개(MNIST 숫자)
+        - 은닉 레이어: ReLU 활성화 함수를 쓴 레이어 둘
+        - 출력: 클래스 10개(MNIST 숫자)
 
-        이 단순한 구조가 파국적 잊음을 더 또렷이 드러낸다.
+        이 단순한 구조가 파국적 망각을 더 또렷이 드러낸다.
         """
 
         def __init__(self, input_size: int = 784, hidden_size: int = 256, 
                      num_classes: int = 10):
             super(SimpleNetwork, self).__init__()
 
-            # 망의 레이어를 정한다
-            # 레이어 1: 입력에서 첫 숨은 레이어로
+            # 네트워크의 레이어를 정의한다
+            # 레이어 1: 입력에서 첫 은닉 레이어로
             self.fc1 = nn.Linear(input_size, hidden_size)
             self.relu1 = nn.ReLU()
 
-            # 레이어 2: 첫 숨은 레이어에서 둘째 숨은 레이어로
+            # 레이어 2: 첫 은닉 레이어에서 둘째 은닉 레이어로
             self.fc2 = nn.Linear(hidden_size, hidden_size)
             self.relu2 = nn.ReLU()
 
-            # 레이어 3: 둘째 숨은 레이어에서 출력 레이어로
+            # 레이어 3: 둘째 은닉 레이어에서 출력 레이어로
             self.fc3 = nn.Linear(hidden_size, num_classes)
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -89,9 +89,9 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
             # 필요하면 입력을 편다([batch, 1, 28, 28]에서 [batch, 784]로)
             x = x.view(x.size(0), -1)
 
-            # 앞으로 퍼뜨리기
-            x = self.relu1(self.fc1(x))  # ReLU를 쓴 첫 숨은 레이어
-            x = self.relu2(self.fc2(x))  # ReLU를 쓴 둘째 숨은 레이어
+            # 순전파
+            x = self.relu1(self.fc1(x))  # ReLU를 쓴 첫 은닉 레이어
+            x = self.relu2(self.fc2(x))  # ReLU를 쓴 둘째 은닉 레이어
             x = self.fc3(x)               # 출력 레이어(로짓)
 
             return x
@@ -99,12 +99,12 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
 
     def create_split_mnist_tasks(num_tasks: int = 5) -> List[List[int]]:
         """
-        숫자 10개를 무리로 나누어 Split MNIST 과제를 만든다.
+        숫자 10개를 그룹으로 나누어 Split MNIST 과제를 만든다.
 
-        Split MNIST은 MNIST 숫자 10개를 여러 이진(또는 다중) 분류 과제로
-        쪼개는 고전적인 연속 학습 잣대이다.
+        Split MNIST는 MNIST 숫자 10개를 여러 이진(또는 다중) 분류 과제로
+        쪼개는 고전적인 지속 학습 벤치마크다.
 
-        과제 5개일 때의 보기:
+        과제 5개일 때의 예제:
         - 과제 0: 숫자 0과 1
         - 과제 1: 숫자 2와 3
         - 과제 2: 숫자 4와 5
@@ -115,14 +115,14 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
             num_tasks: 만들 과제의 개수(기본값 5)
 
         반환값:
-            리스트의 리스트이며, 안쪽 리스트마다 그 과제의 숫자 부류를 담는다
+            리스트의 리스트이며, 안쪽 리스트마다 그 과제의 숫자 클래스를 담는다
         """
         all_digits = list(range(10))
         classes_per_task = 10 // num_tasks
 
         tasks = []
         for i in range(num_tasks):
-            # 이 과제에 쓸 부류를 고른다
+            # 이 과제에 쓸 클래스를 고른다
             task_classes = all_digits[i * classes_per_task:(i + 1) * classes_per_task]
             tasks.append(task_classes)
 
@@ -131,21 +131,21 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
 
     def create_task_dataset(full_dataset, task_classes: List[int]) -> TensorDataset:
         """
-        부류를 걸러 특정 과제의 데이터셋을 만든다.
+        클래스로 걸러 특정 과제의 데이터셋을 만든다.
 
         이 함수는 다음을 한다.
-        1. 지정한 부류만 남도록 데이터셋을 거른다
-        2. 이름표를 이어지게(0, 1, 2, ...) 다시 매긴다
-        3. 새 TensorDataset을 되돌린다
+        1. 지정한 클래스만 남도록 데이터셋을 필터링한다
+        2. 라벨을 연속된 번호(0, 1, 2, ...)로 다시 매긴다
+        3. 새 TensorDataset을 반환한다
 
         인수:
             full_dataset: 온전한 데이터셋(이를테면 MNIST)
-            task_classes: 이 과제에 넣을 부류 이름표 목록
+            task_classes: 이 과제에 넣을 클래스 라벨 목록
 
         반환값:
-            지정한 부류의 보기만 담은 TensorDataset
+            지정한 클래스의 예제만 담은 TensorDataset
         """
-        # 과제 부류에 드는 보기의 첨자를 찾는다
+        # 과제 클래스에 드는 예제의 인덱스를 찾는다
         indices = []
         for idx in range(len(full_dataset)):
             _, label = full_dataset[idx]
@@ -155,7 +155,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
         # 데이터셋의 부분집합을 만든다
         subset = Subset(full_dataset, indices)
 
-        # 데이터와 이름표를 모두 뽑아낸다
+        # 데이터와 라벨을 모두 꺼낸다
         data_list = []
         label_list = []
 
@@ -163,7 +163,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
             img, label = subset[idx]
             data_list.append(img)
 
-            # 이름표를 이어지게 다시 매긴다(이를테면 부류 [4,5]가 [0,1]이 된다)
+            # 라벨을 연속된 번호로 다시 매긴다(이를테면 클래스 [4,5]가 [0,1]이 된다)
             new_label = task_classes.index(label)
             label_list.append(new_label)
 
@@ -180,34 +180,34 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
                       epochs: int = 5,
                       learning_rate: float = 0.001) -> List[float]:
         """
-        과제 하나로 모델을 익힌다.
+        과제 하나로 모델을 학습시킨다.
 
         학습 절차:
         1. 모델을 학습 모드로 둔다
-        2. 시대마다 다음을 한다.
+        2. 에포크마다 다음을 한다.
             a. 배치를 훑는다
-            b. 로스를 셈한다(교차 엔트로피)
-            c. 그래디언트를 거꾸로 퍼뜨린다
-            d. 옵티마이저로 웨이트를 고친다
-        3. 살펴보려고 학습 로스를 좇는다
+            b. 로스를 계산한다(교차 엔트로피)
+            c. 그래디언트를 역전파한다
+            d. 옵티마이저로 웨이트를 갱신한다
+        3. 모니터링을 위해 학습 로스를 기록한다
 
         인수:
-            model: 익힐 뉴럴 네트워크
+            model: 학습할 뉴럴 네트워크
             train_loader: 학습 데이터의 DataLoader
-            device: 익힐 장치(CPU나 GPU)
+            device: 학습할 장치(CPU나 GPU)
             epochs: 학습 에포크 수
             learning_rate: 옵티마이저의 러닝레이트
 
         반환값:
-            시대마다의 평균 로스 목록
+            에포크마다의 평균 로스 목록
         """
         # 로스 함수를 정한다(분류에는 교차 엔트로피)
         criterion = nn.CrossEntropyLoss()
 
-        # 옵티마이저를 정한다(Adam이 튼튼하고 널리 쓰인다)
+        # 옵티마이저를 정한다(Adam이 안정적이고 널리 쓰인다)
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-        # 학습 로스를 좇는다
+        # 학습 로스를 추적한다
         losses = []
 
         model.train()  # 학습 모드로 둔다(드롭아웃 등을 켠다)
@@ -220,16 +220,16 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
                 # 데이터를 장치로 옮기기
                 data, target = data.to(device), target.to(device)
 
-                # 앞선 되풀이의 그래디언트를 0으로 만든다
+                # 앞선 반복의 그래디언트를 0으로 만든다
                 optimizer.zero_grad()
 
-                # 피드포워드: 예측을 셈한다
+                # 순전파: 예측을 계산한다
                 output = model(data)
 
                 # 로스를 계산한다
                 loss = criterion(output, target)
 
-                # 역전파: 경사를 계산한다
+                # 역전파: 그래디언트를 계산한다
                 loss.backward()
 
                 # 웨이트를 갱신한다
@@ -239,7 +239,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
                 epoch_loss += loss.item()
                 num_batches += 1
 
-            # 이 시대의 평균 로스
+            # 이 에포크의 평균 로스
             avg_loss = epoch_loss / num_batches
             losses.append(avg_loss)
 
@@ -288,7 +288,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
                 total_loss += loss.item()
 
                 # 정확도를 계산한다
-                _, predicted = torch.max(output, 1)  # 확률이 가장 높은 부류를 얻는다
+                _, predicted = torch.max(output, 1)  # 확률이 가장 높은 클래스를 얻는다
                 total += target.size(0)
                 correct += (predicted == target).sum().item()
 
@@ -303,22 +303,22 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
                                            epochs_per_task: int = 5,
                                            batch_size: int = 128):
         """
-        파국적 잊음을 보여 주는 주 함수.
+        파국적 망각을 보여 주는 주 함수.
 
         과정:
         1. Split MNIST 과제를 만든다
         2. 새 모델을 초기화한다
-        3. 과제마다 차례로 익힌다
+        3. 과제마다 차례로 학습한다
         4. 과제를 마칠 때마다 앞선 모든 과제에서 평가한다
-        5. 성능이 어떻게 떨어지는지 그려 본다
+        5. 성능이 어떻게 떨어지는지 시각화한다
 
         핵심 관찰:
         새 과제를 배울수록 앞선 과제의 정확도가 크게 떨어진다.
-        이것이 파국적 잊음이다!
+        이것이 파국적 망각이다!
 
         인수:
             num_tasks: Split MNIST의 과제 개수
-            epochs_per_task: 과제마다의 학습 시대 수
+            epochs_per_task: 과제마다의 학습 에포크 수
             batch_size: 학습에 쓸 배치 크기
         """
         # 장치 지정
@@ -328,7 +328,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
         # MNIST 데이터셋 불러오기
         transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))  # MNIST 고르기
+            transforms.Normalize((0.1307,), (0.3081,))  # MNIST 정규화(평균·표준편차)
         ])
 
         train_dataset = torchvision.datasets.MNIST(
@@ -361,7 +361,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
             train_loaders.append(train_loader)
             test_loaders.append(test_loader)
 
-        # 모형을 시작한다
+        # 모델을 초기화한다
         num_classes_per_task = len(task_classes[0])
         model = SimpleNetwork(input_size=784, hidden_size=256, 
                              num_classes=num_classes_per_task).to(device)
@@ -371,10 +371,10 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
         print(f"\nTotal Parameters: {sum(p.numel() for p in model.parameters()):,}\n")
 
         # 정확도를 담을 행렬: 행은 과제, 열은 학습 단계
-        # accuracy_matrix[i][j] = 과제 j까지 익힌 뒤 과제 i의 정확도
+        # accuracy_matrix[i][j] = 과제 j까지 학습한 뒤 과제 i의 정확도
         accuracy_matrix = np.zeros((num_tasks, num_tasks))
 
-        # 과제마다 차례로 익힌다
+        # 과제마다 차례로 학습한다
         print("=" * 70)
         print("SEQUENTIAL TRAINING (Demonstrating Catastrophic Forgetting)")
         print("=" * 70)
@@ -384,7 +384,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
             print(f"Training on Task {task_id} (Classes: {task_classes[task_id]})")
             print('=' * 70)
 
-            # 지금 과제로 익힌다
+            # 지금 과제로 학습한다
             train_on_task(
                 model=model,
                 train_loader=train_loaders[task_id],
@@ -410,7 +410,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
                 # 결과 출력
                 print(f"  Task {eval_task_id}: Accuracy = {accuracy:.2f}%")
 
-                # 파국적 잊음을 두드러지게 보인다
+                # 파국적 망각을 강조해 보인다
                 if eval_task_id < task_id:
                     original_acc = accuracy_matrix[eval_task_id][eval_task_id]
                     forgetting = original_acc - accuracy
@@ -421,19 +421,19 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
         print("RESULTS SUMMARY")
         print("=" * 70)
 
-        # 잊음 지표를 셈한다
+        # 망각 지표를 계산한다
         print("\nAccuracy Matrix (rows = tasks, columns = after training task):")
         print("(Each entry shows accuracy on row's task after training column's task)")
         print()
 
-        # 머리글을 찍는다
+        # 머리글을 출력한다
         print("Task |", end="")
         for j in range(num_tasks):
             print(f" After T{j} |", end="")
         print(" Forgetting")
         print("-" * (12 + 12 * num_tasks))
 
-        # 잊음 셈과 함께 정확도 행렬을 찍는다
+        # 망각 계산과 함께 정확도 행렬을 출력한다
         total_forgetting = 0.0
         for i in range(num_tasks):
             print(f"  {i}  |", end="")
@@ -443,8 +443,8 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
                 else:
                     print(f"    -    |", end="")
 
-            # 이 과제의 잊음을 셈한다
-            if i < num_tasks - 1:  # 마지막 과제에는 셈하지 않는다
+            # 이 과제의 망각을 계산한다
+            if i < num_tasks - 1:  # 마지막 과제에는 계산하지 않는다
                 original = accuracy_matrix[i][i]
                 final = accuracy_matrix[i][num_tasks - 1]
                 forgetting = original - final
@@ -453,13 +453,13 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
             else:
                 print("    N/A")
 
-        # 평균 잊음을 셈한다
+        # 평균 망각을 계산한다
         avg_forgetting = total_forgetting / (num_tasks - 1) if num_tasks > 1 else 0
         print()
         print(f"Average Forgetting: {avg_forgetting:.2f}%")
         print(f"Final Average Accuracy: {np.mean(accuracy_matrix[:, -1]):.2f}%")
 
-        # 결과를 그려 본다
+        # 결과를 시각화한다
         visualize_catastrophic_forgetting(accuracy_matrix, task_classes)
 
         return accuracy_matrix
@@ -468,36 +468,36 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
     def visualize_catastrophic_forgetting(accuracy_matrix: np.ndarray,
                                          task_classes: List[List[int]]):
         """
-        파국적 잊음을 그려 본다.
+        파국적 망각을 시각화한다.
 
         그림 둘을 만든다.
-        1. 때에 따른 잊음을 보여 주는 정확도 행렬의 열 지도
-        2. 과제마다의 정확도 자취를 보여 주는 선 그림
+        1. 시간에 따른 망각을 보여 주는 정확도 행렬의 히트맵
+        2. 과제마다의 정확도 궤적을 보여 주는 선 그림
 
         인수:
             accuracy_matrix: 정확도 행렬(과제 × 학습 단계)
-            task_classes: 과제마다의 부류 배정 목록
+            task_classes: 과제마다의 클래스 배정 목록
         """
         num_tasks = len(task_classes)
 
-        # 부분 그림 둘을 담은 그림을 만든다
+        # 서브플롯 둘을 담은 그림을 만든다
         fig, axes = plt.subplots(1, 2, figsize=(15, 5))
 
-        # 그림 1: 정확도 행렬의 열 지도
+        # 그림 1: 정확도 행렬의 히트맵
         ax1 = axes[0]
         im = ax1.imshow(accuracy_matrix, cmap='RdYlGn', aspect='auto', 
                         vmin=0, vmax=100)
 
-        # 색 막대를 더한다
+        # 컬러바를 더한다
         cbar = plt.colorbar(im, ax=ax1)
         cbar.set_label('Accuracy (%)', rotation=270, labelpad=20)
 
-        # 이름표를 붙인다
+        # 축 라벨을 붙인다
         ax1.set_xlabel('After Training Task', fontsize=12)
         ax1.set_ylabel('Evaluated Task', fontsize=12)
         ax1.set_title('Catastrophic Forgetting Heatmap', fontsize=14, fontweight='bold')
 
-        # 눈금을 매긴다
+        # 축 눈금을 설정한다
         ax1.set_xticks(range(num_tasks))
         ax1.set_yticks(range(num_tasks))
         ax1.set_xticklabels([f'T{i}' for i in range(num_tasks)])
@@ -510,11 +510,11 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
                     text = ax1.text(j, i, f'{accuracy_matrix[i, j]:.1f}',
                                   ha="center", va="center", color="black", fontsize=9)
 
-        # 그림 2: 정확도 자취를 보여 주는 선 그림
+        # 그림 2: 정확도 궤적을 보여 주는 선 그림
         ax2 = axes[1]
 
         for task_id in range(num_tasks):
-            # 이 과제의 정확도 자취를 뽑아낸다
+            # 이 과제의 정확도 궤적을 꺼낸다
             accuracies = [accuracy_matrix[task_id][j] for j in range(task_id, num_tasks)]
             stages = list(range(task_id, num_tasks))
 
@@ -523,7 +523,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
                     label=f'Task {task_id} (Classes {task_classes[task_id]})',
                     markersize=8)
 
-            # 처음 정확도를 두드러지게 보인다
+            # 처음 정확도를 강조해 보인다
             ax2.scatter([task_id], [accuracies[0]], s=150, 
                        marker='*', zorder=5)
 
@@ -544,17 +544,17 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
 
     if __name__ == "__main__":
         """
-        주 실행: Split MNIST에서 파국적 잊음을 보여 준다
+        주 실행: Split MNIST에서 파국적 망각을 보여 준다
 
         기대되는 관찰:
         1. 과제마다 처음에는 정확도가 95~99% 남짓이다
         2. 새 과제를 배울수록 옛 과제의 정확도가 크게 떨어진다
-        3. 평균 잊음은 대개 40~60%이다
-        4. 이는 뉴럴 네트워크가 그대로 두면 파국적으로 잊는다는 것을 보여 준다
+        3. 평균 망각은 대개 40~60%이다
+        4. 이는 뉴럴 네트워크가 별도 조치 없이는 파국적 망각을 겪는다는 것을 보여 준다
 
         핵심 요점:
-        보통의 뉴럴 네트워크 학습은 연속 학습에 **알맞지 않다**.
-        파국적 잊음을 막으려면 특별한 기법이 필요하다!
+        보통의 뉴럴 네트워크 학습은 지속 학습에 **알맞지 않다**.
+        파국적 망각을 막으려면 특별한 기법이 필요하다!
         """
 
         print("=" * 70)
@@ -566,7 +566,7 @@ MNIST를 다섯 개의 숫자 쌍으로 나누어 같은 모델에 순서대로 
         print("how performance on earlier tasks degrades dramatically.")
         print("=" * 70)
 
-        # 보여 주기를 돌린다
+        # 시연을 실행한다
         accuracy_matrix = demonstrate_catastrophic_forgetting(
             num_tasks=5,
             epochs_per_task=5,
@@ -809,4 +809,4 @@ SimpleNetwork의 기본 설정과 주 실험 설정에서 파라메터 수를 �
 
 ## 정리하며
 
-동일 모델의 과제별 학습 직후와 이후 성능을 비교해 망각을 관찰한다. 로컬 이진 출력의 의미와 행렬 축을 고정하고, 저장된 출력의 수치를 보편적인 기대값으로 해석하지 않는다.
+동일 모델의 과제별 학습 직후와 이후 성능을 비교해 망각을 관찰한다. 로컬 이진 출력의 의미와 행렬 축을 고정하고, 저장된 출력의 수치를 보편적인 기댓값으로 해석하지 않는다.

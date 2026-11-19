@@ -10,7 +10,7 @@
     """
     random_walk.py (단원 03)
 
-    무작위 스텝 흉내내기
+    랜덤 워크 시뮬레이션
     =======================
 
     Location: 06_markov_chain/01_fundamentals/
@@ -18,33 +18,33 @@
     걸리는 시간: 3-4시간
 
     학습 목표:
-    - 마르코프 사슬로서 무작위 스텝 이해하기
-    - 1차원과 2차원 무작위 스텝 구현하기
-    - 성질 살피기: 기댓값 자리, 흩어짐
-    - 경계 조건과 첫 지나감 시간 살피기
+    - 마르코프 사슬로서 랜덤 워크 이해하기
+    - 1차원과 2차원 랜덤 워크 구현하기
+    - 성질 분석: 기대 위치, 분산
+    - 경계 조건과 최초 도달 시간 분석
 
-    수학적 바탕:
-    무작위 스텝은 무작위 방향의 스텝으로 이루어진 길이다.
+    수학적 배경:
+    랜덤 워크는 무작위 방향의 스텝으로 이루어진 경로다.
     이는 다음을 만족하는 마르코프 사슬의 특별한 경우이다:
-    - 상태는 자리이다(정수나 좌표)
-    - 옮김은 지금 자리에만 달렸다
+    - 상태는 위치이다(정수나 좌표)
+    - 전이는 현재 위치에만 의존한다
 
-    1차원 대칭 무작위 스텝에서:
+    1차원 대칭 랜덤 워크에서:
     - P(X_{n+1} = X_n + 1) = p
     - P(X_{n+1} = X_n - 1) = 1-p
-    - p = 0.5이면 단순한 대칭 무작위 스텝이다
+    - p = 0.5이면 단순 대칭 랜덤 워크다
 
     핵심 성질:
-    - 치우친 스텝에서는 E[X_n] = X_0 + n(2p-1)
+    - 편향된 워크에서는 E[X_n] = X_0 + n(2p-1)
     - Var[X_n] = 4np(1-p)
-    - 대칭 스텝에서는 E[X_n] = X_0, Var[X_n] = n
+    - 대칭 워크에서는 E[X_n] = X_0, Var[X_n] = n
     """
 
     import numpy as np
     import matplotlib.pyplot as plt
     from collections import defaultdict
 
-    # 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+    # 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
     # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
     np.random.seed(0)
 
@@ -55,27 +55,27 @@
 
     class RandomWalk1D:
         """
-        정수 위의 1차원 무작위 스텝.
+        정수 위의 1차원 랜덤 워크.
 
-        수학 모형:
+        수학 모델:
         X_n = X_0 + Σ_{i=1}^n ξ_i
-        여기서 ξ_i은 다음을 만족하는 독립 확률 변수이다:
+        여기서 ξ_i는 다음을 만족하는 독립 확률 변수이다:
         P(ξ_i = +1) = p
         P(ξ_i = -1) = 1-p
         """
 
         def __init__(self, p=0.5, initial_position=0):
             """
-            무작위 스텝 첫값 잡기.
+            랜덤 워크 초기화.
 
             파라메터:
-                p (float): 오른쪽으로 걸을 확률([0,1] 안이어야 한다)
-                initial_position (int): 시작 자리
+                p (float): 오른쪽으로 이동할 확률([0,1] 안이어야 한다)
+                initial_position (int): 시작 위치
 
             수학 메모:
-            - p = 0.5: 대칭(치우치지 않은) 무작위 스텝
-            - p > 0.5: 오른쪽으로 쏠린다
-            - p < 0.5: 왼쪽으로 쏠린다
+            - p = 0.5: 대칭(편향 없는) 랜덤 워크
+            - p > 0.5: 오른쪽으로 편향된다
+            - p < 0.5: 왼쪽으로 편향된다
             """
             if not 0 <= p <= 1:
                 raise ValueError("p must be in [0, 1]")
@@ -87,16 +87,16 @@
 
         def step(self):
             """
-            무작위 스텝의 한 스텝 떼기.
+            랜덤 워크의 한 스텝 이동.
 
             반환값:
-                int: 새 자리
+                int: 새 위치
 
             수학 과정:
-            확률 p으로 오른쪽(+1)으로 움직인다
-            확률 1-p으로 왼쪽(-1)으로 움직인다
+            확률 p로 오른쪽(+1)으로 움직인다
+            확률 1-p로 왼쪽(-1)으로 움직인다
             """
-            # 스텝 만들기: 확률 p으로 +1, 확률 1-p으로 -1
+            # 스텝 만들기: 확률 p로 +1, 확률 1-p로 -1
             if np.random.random() < self.p:
                 step_size = 1
             else:
@@ -109,19 +109,19 @@
 
         def simulate(self, n_steps, initial_position=None):
             """
-            무작위 스텝 n스텝 흉내내기.
+            랜덤 워크 n스텝 시뮬레이션.
 
             파라메터:
-                n_steps (int): 뗄 스텝 수
-                initial_position (int): 시작 자리(되돌릴 때)
+                n_steps (int): 진행할 스텝 수
+                initial_position (int): 시작 위치(재설정할 때)
 
             반환값:
-                list: 자리의 늘어놓음
+                list: 위치의 열
 
-            통계의 성질(대칭 스텝, p=0.5):
-            - E[X_n] = X_0(기댓값 쏠림 없음)
-            - Var[X_n] = n(흩어짐이 시간에 비례해 자란다)
-            - Std[X_n] = √n(표준편차가 제곱근으로 자란다)
+            통계적 성질(대칭 워크, p=0.5):
+            - E[X_n] = X_0(기대 표류 없음)
+            - Var[X_n] = n(분산이 시간에 비례해 커진다)
+            - Std[X_n] = √n(표준편차가 제곱근으로 커진다)
             """
             if initial_position is not None:
                 self.current_position = initial_position
@@ -134,19 +134,19 @@
 
         def expected_position(self, n_steps):
             """
-            n스텝 뒤의 이론상 기댓값 자리 셈하기.
+            n스텝 뒤의 이론적 기대 위치 계산하기.
 
             파라메터:
                 n_steps (int): 스텝 수
 
             반환값:
-                float: 기댓값 자리 E[X_n]
+                float: 기대 위치 E[X_n]
 
             수학 공식:
             E[X_n] = X_0 + n(2p - 1)
 
-            이끌어 내기:
-            스텝마다 확률 p으로 +1, 확률 1-p으로 -1을 보탠다
+            유도:
+            스텝마다 확률 p로 +1, 확률 1-p로 -1을 더한다
             E[ξ_i] = (+1)×p + (-1)×(1-p) = 2p - 1
             E[X_n] = E[X_0 + Σξ_i] = X_0 + n×E[ξ_i] = X_0 + n(2p-1)
             """
@@ -154,20 +154,20 @@
 
         def variance(self, n_steps):
             """
-            n스텝 뒤의 이론상 흩어짐 셈하기.
+            n스텝 뒤의 이론적 분산 계산하기.
 
             파라메터:
                 n_steps (int): 스텝 수
 
             반환값:
-                float: 흩어짐 Var[X_n]
+                float: 분산 Var[X_n]
 
             수학 공식:
             Var[X_n] = 4np(1-p)
 
-            대칭 스텝에서는(p=0.5) Var[X_n] = n
+            대칭 워크에서는(p=0.5) Var[X_n] = n
 
-            이끌어 내기:
+            유도:
             Var[ξ_i] = E[ξ_i²] - (E[ξ_i])²
             E[ξ_i²] = (+1)²×p + (-1)²×(1-p) = 1
             Var[ξ_i] = 1 - (2p-1)² = 4p(1-p)
@@ -177,18 +177,18 @@
 
         def first_passage_time(self, target_position, max_steps=10000):
             """
-            스텝이 target_position에 처음 닿는 때 찾기.
+            워크가 target_position에 처음 도달하는 시점 찾기.
 
             파라메터:
-                target_position (int): 닿을 타깃
+                target_position (int): 도달할 목표 위치
                 max_steps (int): 시도할 최대 스텝 수
 
             반환값:
-                int or None: 첫 지나감 시간, 닿지 못하면 None
+                int or None: 최초 도달 시간, 도달하지 못하면 None
 
             수학 메모:
-            첫 지나감 시간 T = min{n ≥ 0 : X_n = target}
-            대칭 스텝에서는 어떤 타깃에 대해서도 E[T]이 유한하다.
+            최초 도달 시간 T = min{n ≥ 0 : X_n = target}
+            대칭 워크는 어떤 목표에도 거의 확실하게 도달하지만 E[T]는 무한하다.
             """
             self.current_position = self.initial_position
 
@@ -197,23 +197,23 @@
                     return step
                 self.step()
 
-            return None  # max_steps 안에 타깃에 닿지 못함
+            return None  # max_steps 안에 목표에 도달하지 못함
 
 
     class RandomWalk2D:
         """
-        정수 격자 Z² 위의 2차원 무작위 스텝.
+        정수 격자 Z² 위의 2차원 랜덤 워크.
 
-        수학 모형:
+        수학 모델:
         (X_n, Y_n) = (X_0, Y_0) + Σ_{i=1}^n (ξ_i, η_i)
 
-        대칭 스텝에서:
+        대칭 워크에서:
         P(오른쪽) = P(왼쪽) = P(위) = P(아래) = 1/4
         """
 
         def __init__(self, initial_position=(0, 0)):
             """
-            2차원 무작위 스텝 첫값 잡기.
+            2차원 랜덤 워크 초기화.
 
             파라메터:
                 initial_position (tuple): 시작 (x, y) 좌표
@@ -224,10 +224,10 @@
 
         def step(self):
             """
-            무작위 사방 가운데 한 방향으로 한 스텝 떼기.
+            네 방향 가운데 무작위 한 방향으로 한 스텝 이동.
 
             반환값:
-                np.ndarray: 새 자리 (x, y)
+                np.ndarray: 새 위치 (x, y)
 
             수학 과정:
             네 방향 가운데 하나를 같은 확률로 고른다:
@@ -240,8 +240,8 @@
             directions = np.array([
                 [1, 0],   # 오른쪽
                 [-1, 0],  # 왼쪽
-                [0, 1],   # 오름
-                [0, -1]   # 내림
+                [0, 1],   # 위
+                [0, -1]   # 아래
             ])
 
             # 무작위 방향 고르기
@@ -254,15 +254,15 @@
 
         def simulate(self, n_steps):
             """
-            2차원 무작위 스텝 n스텝 흉내내기.
+            2차원 랜덤 워크 n스텝 시뮬레이션.
 
             파라메터:
                 n_steps (int): 스텝 수
 
             반환값:
-                list: (x, y) 자리의 목록
+                list: (x, y) 위치의 목록
 
-            통계의 성질:
+            통계적 성질:
             - n이 크면 E[출발점에서의 거리] ≈ √(2n/π)
             - (2차원에서) n → ∞이면 출발점으로 돌아올 확률 → 0
             """
@@ -276,7 +276,7 @@
 
         def distance_from_origin(self):
             """
-            출발점에서의 유클리드 거리 셈하기.
+            출발점에서의 유클리드 거리 계산하기.
 
             반환값:
                 float: ||X_n|| = √(x² + y²)
@@ -286,15 +286,15 @@
 
     def example_symmetric_walk():
         """
-        보기 1: 대칭 무작위 스텝(p = 0.5).
+        예제 1: 대칭 랜덤 워크(p = 0.5).
 
-        기댓값 쏠림이 0이고 흩어짐이 자람을 보인다.
+        기대 표류가 0이고 분산이 커짐을 보인다.
         """
         print("=" * 70)
         print("Example 1: Symmetric Random Walk (p = 0.5)")
         print("=" * 70)
 
-        # 대칭 스텝 만들기
+        # 대칭 워크 만들기
         walk = RandomWalk1D(p=0.5, initial_position=0)
 
         # 한 번의 실현
@@ -305,14 +305,14 @@
         print(f"  Maximum position: {max(path)}")
         print(f"  Minimum position: {min(path)}")
 
-        # 이론과 경험의 통계량 견줌
+        # 이론값과 경험적 통계량 비교
         n = 100
         print(f"\nTheoretical properties after {n} steps:")
         print(f"  Expected position: {walk.expected_position(n):.2f}")
         print(f"  Variance: {walk.variance(n):.2f}")
         print(f"  Standard deviation: {np.sqrt(walk.variance(n)):.2f}")
 
-        # 확인하려고 흉내내기를 많이 돌리기
+        # 확인을 위해 시뮬레이션을 여러 번 실행
         n_simulations = 10000
         final_positions = []
 
@@ -329,15 +329,15 @@
 
     def example_biased_walk():
         """
-        보기 2: 치우친 무작위 스텝(p ≠ 0.5).
+        예제 2: 편향된 랜덤 워크(p ≠ 0.5).
 
-        기댓값 방향으로 쏠림을 보인다.
+        기대 방향으로 표류함을 보인다.
         """
         print("\n" + "=" * 70)
         print("Example 2: Biased Random Walk (p = 0.6)")
         print("=" * 70)
 
-        # 치우친 스텝 만들기
+        # 편향된 워크 만들기
         p = 0.6
         walk = RandomWalk1D(p=p, initial_position=0)
 
@@ -347,13 +347,13 @@
         print(f"\nSimulation of {n} steps with p = {p}:")
         print(f"  Final position: {path[-1]}")
 
-        # 이론의 기댓값
+        # 이론적 기댓값
         print(f"\nTheoretical properties:")
         print(f"  Expected drift per step: {2*p - 1:.2f}")
         print(f"  Expected position after {n} steps: {walk.expected_position(n):.2f}")
         print(f"  Variance: {walk.variance(n):.2f}")
 
-        # p = 0.3, 0.5, 0.7 견주기
+        # p = 0.3, 0.5, 0.7 비교
         print("\n" + "-" * 70)
         print("Comparing different values of p:")
         print(f"{'p':<8} {'E[X_1000]':<15} {'Var[X_1000]':<15}")
@@ -367,9 +367,9 @@
 
     def example_first_passage():
         """
-        보기 3: 첫 지나감 시간 살피기.
+        예제 3: 최초 도달 시간 분석.
 
-        목표 자리에 닿는 데 얼마나 걸리나?
+        목표 위치에 도달하는 데 얼마나 걸리나?
         """
         print("\n" + "=" * 70)
         print("Example 3: First Passage Time")
@@ -400,19 +400,19 @@
 
     def example_2d_walk():
         """
-        보기 4: 2차원 무작위 스텝.
+        예제 4: 2차원 랜덤 워크.
 
-        2차원 공간의 무작위 액션을 살펴본다.
+        2차원 공간의 무작위 움직임을 살펴본다.
         """
         print("\n" + "=" * 70)
         print("Example 4: Two-Dimensional Random Walk")
         print("=" * 70)
 
-        # 2차원 스텝 하나
+        # 2차원 워크 하나
         walk = RandomWalk2D(initial_position=(0, 0))
         path = walk.simulate(n_steps=1000)
 
-        # x과 y 좌표 뽑아내기
+        # x와 y 좌표 추출
         x_coords = [pos[0] for pos in path]
         y_coords = [pos[1] for pos in path]
 
@@ -422,7 +422,7 @@
         print(f"  Max |x|: {max(abs(x) for x in x_coords)}")
         print(f"  Max |y|: {max(abs(y) for y in y_coords)}")
 
-        # 거리 분포 살피기
+        # 거리 분포 분석
         n_simulations = 1000
         final_distances = []
 
@@ -438,16 +438,16 @@
 
     def visualize_random_walks():
         """
-        무작위 스텝의 그림 만들기.
+        랜덤 워크 시각화.
         """
         print("\n" + "=" * 70)
         print("Creating Visualizations")
         print("=" * 70)
 
-        # 1차원 스텝 견주기
+        # 1차원 워크 비교
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-        # 작은 그림 1: 대칭 스텝 여럿
+        # 서브플롯 1: 대칭 워크 여럿
         ax = axes[0, 0]
         for i in range(10):
             walk = RandomWalk1D(p=0.5)
@@ -460,7 +460,7 @@
         ax.set_title('10 Symmetric Random Walks (p=0.5)', fontsize=12)
         ax.grid(True, alpha=0.3)
 
-        # 작은 그림 2: 치우친 스텝
+        # 서브플롯 2: 편향된 워크
         ax = axes[0, 1]
         for p_val, color in [(0.3, 'blue'), (0.5, 'green'), (0.7, 'red')]:
             walk = RandomWalk1D(p=p_val)
@@ -474,7 +474,7 @@
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-        # 작은 그림 3: 2차원 스텝
+        # 서브플롯 3: 2차원 워크
         ax = axes[1, 0]
         walk_2d = RandomWalk2D()
         path_2d = walk_2d.simulate(500)
@@ -496,7 +496,7 @@
         ax.grid(True, alpha=0.3)
         ax.axis('equal')
 
-        # 작은 그림 4: 마지막 자리의 분포
+        # 서브플롯 4: 최종 위치의 분포
         ax = axes[1, 1]
         walk = RandomWalk1D(p=0.5)
         final_positions = []
@@ -511,7 +511,7 @@
         ax.set_title('Distribution of Final Positions (100 steps, 5000 simulations)', fontsize=12)
         ax.grid(True, alpha=0.3)
 
-        # 이론의 정규 분포 더하기
+        # 이론적 정규분포 추가
         mu = 0
         sigma = np.sqrt(100)
         x = np.linspace(-40, 40, 100)
@@ -527,7 +527,7 @@
 
     def main():
         """
-        무작위 스텝 보기 모두 돌리기.
+        랜덤 워크 예제 모두 실행하기.
         """
         print("RANDOM WALK SIMULATIONS")
         print("=======================\n")
@@ -679,7 +679,7 @@ RandomWalk1D.simulate는 새 초기 위치를 지정하지 않으면 경로를 �
 
 **그런데 이 문장과 위 문단의 √ 가 서로 어긋나 보인다.** 평균 거리가 $\sqrt{\pi n}/2$ 로 끝없이 자란다면서, 가장 그럴듯한 자리가 출발점 근처라니.
 
-![왼쪽은 400걸음짜리 2차원 격자 워크 40만 번의 끝 거리 분포다. 막대가 r 이 15 근처에서 가장 높고 거리 0 쪽은 아주 낮다. 오른쪽은 같은 자료를 자리 하나씩으로 본 것으로, 출발점에서 x 칸 떨어진 한 자리에 있을 확률을 로그 눈금으로 그렸다. 출발점 근처 세 자리가 가장 높고 표본 안에서 서로 구별되지 않으며, 40칸 떨어진 자리는 44배 낮다.](figures/pearson_walk.svg)
+![왼쪽은 400걸음짜리 2차원 격자 워크 40만 번의 끝 거리 분포다. 막대가 r 이 15 근처에서 가장 높고 거리 0 쪽은 아주 낮다. 오른쪽은 같은 데이터를 자리 하나씩으로 본 것으로, 출발점에서 x 칸 떨어진 한 자리에 있을 확률을 로그 스케일로 그렸다. 출발점 근처 세 자리가 가장 높고 표본 안에서 서로 구별되지 않으며, 40칸 떨어진 자리는 44배 낮다.](figures/pearson_walk.svg)
 
 둘 다 맞다. 400걸음을 40만 번 걸어 보면 평균 거리는 **17.724**, 식이 주는 $\sqrt{\pi n}/2 = 17.725$ 와 소수점 셋째 자리까지 같다. 그리고 가장 흔한 **거리**는 **15 언저리**이지 0이 아니다. 그런데 **자리 하나씩**으로 보면 이야기가 뒤집힌다 — 출발점 근처의 한 자리에 있을 확률이 가장 높고, 40칸 떨어진 한 자리보다 **44배** 높다.
 
@@ -687,7 +687,7 @@ RandomWalk1D.simulate는 새 초기 위치를 지정하지 않으면 경로를 �
 
 **다만 그림의 왼쪽 끝을 두고 더 말하지는 않겠다.** 출발점 바로 둘레의 세 자리는 이 표본에서 **서로 구별되지 않는다.** 참값의 차이가 1% 남짓이라 가려내려면 40만 번이 아니라 6천만 번쯤 걸어야 한다. 그래서 그림은 "원점이 꼭대기"라고 적지 않고 "가까운 셋은 잡음 안에서 같다"고 적어 두었다. 재어서 말할 수 있는 것은 **가까운 쪽과 먼 쪽의 차이**까지다.
 
-_확인한 곳 — K. Pearson, "The Problem of the Random Walk", *Nature* **72**, 294 (1905년 7월 1일). 레일리의 답장이 일주일 뒤 같은 잡지에 실렸고, 이 왕복에서 오늘의 용어와 "취한 사람" 비유가 자리 잡았다. 인용한 문장과 날짜·권호는 2차 문헌으로 확인했다. 그림의 수는 그림을 그리는 코드가 씨앗을 박고 직접 재며, 평균 거리가 식과 맞는지와 거리의 최빈값이 0 이 아닌지를 먼저 확인한 뒤에만 그린다._
+_확인한 곳 — K. Pearson, "The Problem of the Random Walk", *Nature* **72**, 294 (1905년 7월 1일). 레일리의 답장이 일주일 뒤 같은 잡지에 실렸고, 이 왕복에서 오늘의 용어와 "취한 사람" 비유가 자리 잡았다. 인용한 문장과 날짜·권호는 2차 문헌으로 확인했다. 그림의 수는 그림을 그리는 코드가 시드를 고정하고 직접 재며, 평균 거리가 식과 맞는지와 거리의 최빈값이 0 이 아닌지를 먼저 확인한 뒤에만 그린다._
 
 </div>
 
@@ -756,10 +756,10 @@ _확인한 곳 — K. Pearson, "The Problem of the Random Walk", *Nature* **72**
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

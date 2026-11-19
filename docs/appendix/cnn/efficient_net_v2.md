@@ -1,15 +1,15 @@
 # EfficientNet V2
 
-EfficientNetV2은 2021년 글 "EfficientNetV2: 더 작은 모델과 더 빠른 학습"에서 나왔으며, 녹여 붙인 MBConv 켜와 차근차근 배우는 꾀로 본디 EfficientNet을 낫게 한다. 이로써 맞음은 지키거나 올리면서 학습 때는 크게 준다. 구조는 뉴럴 네트워크 아키텍처 탐색과 손질을 아울러 찾아냈으며, 학습 빠르기와 파라메터의 잘 듦을 함께 다듬었다.
+EfficientNetV2는 2021년 논문 "EfficientNetV2: Smaller Models and Faster Training"에서 나왔으며, Fused-MBConv 레이어와 점진적 학습(progressive learning) 전략으로 원래의 EfficientNet을 개선한다. 이로써 정확도는 유지하거나 올리면서 학습 시간은 크게 준다. 구조는 뉴럴 아키텍처 탐색(NAS)과 스케일링을 결합해 찾아냈으며, 학습 속도와 파라메터 효율을 함께 최적화했다.
 
 ## 1. 코드
 
 ```python
 #!/usr/bin/env python3
 '''
-EfficientNetV2 - 나아진 효율과 빠르기
+EfficientNetV2 - 개선된 효율과 속도
 논문: "EfficientNetV2: Smaller Models and Faster Training" (2021)
-핵심: Fused-MBConv 레이어, 차츰 나아가는 러닝, 빨라진 익히기
+핵심: Fused-MBConv 레이어, 점진적 학습, 더 빠른 학습
 '''
 import torch
 import torch.nn as nn
@@ -58,42 +58,42 @@ Parameters: 1,281,648
 
 ## 2. 논의
 
-EfficientNetV2의 핵심 구조 새로움은 녹여 붙인 MBConv 덩이다. 이른 도막에서 깊이별로 가른 컨볼루션을 여느 $3 \times 3$ 컨볼루션으로 갈음한다. 깊이별로 가른 컨볼루션은 파라메터가 적지만 계산의 밀도가 낮아 요즘 빠르게 하는 쇠 붙임새(GPU/TPU)를 덜 쓴다. 녹여 붙인 클래스는 여느 $3 \times 3$ 컨볼루션으로 클래스를 넓힌 뒤 $1 \times 1$으로 되비추어, 파라메터가 조금 늘지만 쇠 붙임새를 더 잘 쓴다. EfficientNetV2은 결 그림이 큰 이른 도막에는 녹여 붙인 MBConv을, 늦은 도막에는 여느 MBConv을 쓴다.
+EfficientNetV2의 핵심 구조 혁신은 Fused-MBConv 블록이다. 앞쪽 스테이지에서 깊이별 분리 컨볼루션(depthwise separable convolution)을 일반적인 $3 \times 3$ 컨볼루션으로 대체한다. 깊이별 분리 컨볼루션은 파라메터가 적지만 연산 밀도가 낮아 최신 가속 하드웨어(GPU/TPU)를 충분히 활용하지 못한다. Fused 변형은 일반적인 $3 \times 3$ 컨볼루션으로 채널을 확장한 뒤 $1 \times 1$로 사영하여, 파라메터가 조금 늘지만 하드웨어를 더 잘 활용한다. EfficientNetV2는 피처 맵이 큰 앞쪽 스테이지에는 Fused-MBConv를, 뒤쪽 스테이지에는 일반 MBConv를 쓴다.
 
-차근차근 배우는 꾀도 핵심 이바지다. 익히는 동안 그림의 결과 다독임의 계산(드롭아웃, 데이터 어그멘테이션)을 차츰 올린다. 이른 판에는 작은 그림과 여린 불리기를 써서 거친 결을 빨리 배우게 하고, 늦은 판에는 온 결의 그림과 센 다독임을 쓴다. 이 맞추어 가는 길은 결을 붙박은 학습보다 학습 때를 최대 11배까지 줄일 수 있다.
+점진적 학습 전략도 핵심 기여다. 학습하는 동안 이미지 해상도와 정칙화 강도(드롭아웃, 데이터 어그멘테이션)를 차츰 올린다. 초기 에포크에는 작은 이미지와 약한 어그멘테이션을 써서 거친 피처를 빨리 학습하게 하고, 후기 에포크에는 전체 해상도의 이미지와 강한 정칙화를 쓴다. 이 적응적 방식은 해상도를 고정한 학습보다 학습 시간을 최대 11배까지 줄일 수 있다.
 
-EfficientNetV2은 어디에나 SiLU(Swish) 활성화를 쓰는데, 여러 자리에서 ReLU보다 낫다고 밝혀졌다. SiLU 함수 $f(x) = x \cdot \sigma(x)$은 매끄럽고 한 방향으로만 오르지 않아 익히는 동안 그래디언트가 더 잘 흐른다.
+EfficientNetV2는 전체에 걸쳐 SiLU(Swish) 활성화 함수를 쓰는데, 여러 상황에서 ReLU보다 낫다고 알려졌다. SiLU 함수 $f(x) = x \cdot \sigma(x)$은 매끄럽고 단조가 아니어서 학습하는 동안 그래디언트가 더 잘 흐른다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-입력 형태가 $(1, 32, 56, 56)$, 넓힘 비교 4, 출력 클래스 32일 때 여느 MBConv 덩이와 녹여 붙인 MBConv 덩이의 계산 비용(뜨는 계산 횟수)을 비교하여라.
+입력 형태가 $(1, 32, 56, 56)$, 확장 비율 4, 출력 채널 32일 때 일반 MBConv 블록과 Fused-MBConv 블록의 계산 비용(FLOPs, 부동소수점 연산 횟수)을 비교하여라.
 
 </div>
 
 ??? success "풀이"
-    MBConv에서는 (1) $1 \times 1$ 넓힘: $32 \times 128 \times 56 \times 56 \approx 12.8M$번. (2) $3 \times 3$ 깊이별: $128 \times 9 \times 56 \times 56 \approx 3.6M$번. (3) $1 \times 1$ 되비춤: $128 \times 32 \times 56 \times 56 \approx 12.8M$번. 모두 $\approx 29.2M$번이다. 녹여 붙인 MBConv에서는 (1) $3 \times 3$ 여느 컨볼루션: $32 \times 128 \times 9 \times 56 \times 56 \approx 115.6M$번. (2) $1 \times 1$ 되비춤: $128 \times 32 \times 56 \times 56 \approx 12.8M$번. 모두 $\approx 128.4M$번이다. 녹여 붙인 MBConv은 계산이 약 4.4배 많지만 쇠 붙임새를 더 잘 써서 GPU에서는 벽시계 때가 더 빠른 일이 잦다.
+    MBConv에서는 (1) $1 \times 1$ 확장: $32 \times 128 \times 56 \times 56 \approx 12.8M$번. (2) $3 \times 3$ 깊이별: $128 \times 9 \times 56 \times 56 \approx 3.6M$번. (3) $1 \times 1$ 사영: $128 \times 32 \times 56 \times 56 \approx 12.8M$번. 모두 $\approx 29.2M$번이다. Fused-MBConv에서는 (1) $3 \times 3$ 일반 컨볼루션: $32 \times 128 \times 9 \times 56 \times 56 \approx 115.6M$번. (2) $1 \times 1$ 사영: $128 \times 32 \times 56 \times 56 \approx 12.8M$번. 모두 $\approx 128.4M$번이다. Fused-MBConv는 연산이 약 4.4배 많지만 하드웨어를 더 잘 활용해서 GPU에서는 실제 소요 시간이 더 짧은 일이 잦다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-차근차근 학습하기(익히는 동안 결을 올리기)가 ResNet처럼 결이 붙박인 모델보다 EfficientNet 결의 모델에 더 이로운 까닭을 밝혀라.
+점진적 학습(학습하는 동안 해상도를 올리기)이 ResNet처럼 해상도가 고정된 모델보다 EfficientNet 계열 모델에 더 이로운 까닭을 설명하여라.
 
 </div>
 
 ??? success "풀이"
-    EfficientNet 모델은 깊이, 너비, 결을 함께 손보는 복합 스케일링을 쓴다. 그 구조는 여러 결에서 두루 듣도록 꾸며졌다. 차근차근 학습하기는 이를 써서 낮은 결(다룰 픽셀이 적어 회귀가 빠름)에서 비롯해 차츰 온 결로 올린다. 네트워크 구조가 결을 가리지 않으므로 낮은 결에서 배운 결이 자연스레 옮아간다. ResNet은 구조의 가정이 붙박여 결이 바뀌면 성능이 더 흔들린다. 게다가 차근차근 학습하기의 다독임 구조(낮은 결에는 여린 불리기, 높은 결에는 센 불리기)은 모델이 불린 작은 그림에 지나치게 맞춰지는 것을 막는데, 결을 붙박고 익히는 ResNet에는 덜 걸리는 탈이다.
+    EfficientNet 모델은 깊이, 너비, 해상도를 함께 조정하는 복합 스케일링을 쓴다. 그 구조는 여러 해상도에서 두루 잘 동작하도록 설계되었다. 점진적 학습은 이를 이용해 낮은 해상도(처리할 픽셀이 적어 반복이 빠름)에서 출발해 차츰 전체 해상도로 올린다. 네트워크 구조가 해상도에 구애받지 않으므로 낮은 해상도에서 학습한 피처가 자연스럽게 전이된다. ResNet은 구조의 가정이 고정되어 있어 해상도가 바뀌면 성능이 더 흔들린다. 게다가 점진적 학습의 정칙화 스케줄(낮은 해상도에는 약한 어그멘테이션, 높은 해상도에는 강한 어그멘테이션)은 모델이 어그멘테이션된 작은 이미지에 과적합하는 것을 막는데, 해상도를 고정하고 학습하는 ResNet에는 덜 해당하는 문제다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-쥐어짜 북돋우기(SE) 어텐션과 건너뛰는 이음을 갖춘 온전한 `FusedMBConv` 덩이를 짜라.
+SE(Squeeze-and-Excitation) 어텐션과 스킵 연결을 갖춘 완전한 `FusedMBConv` 블록을 구현하여라.
 
 </div>
 
@@ -135,6 +135,6 @@ EfficientNetV2은 어디에나 SiLU(Swish) 활성화를 쓰는데, 여러 자리
 
 **다룬 것** — EfficientNet V2
 
-EfficientNetV2의 핵심 구조 새로움은 녹여 붙인 MBConv 덩이다.
+EfficientNetV2의 핵심 구조 혁신은 Fused-MBConv 블록이다.
 
-핵심 클래스는 `FusedMBConv`, `EfficientNetV2`, `FusedMBConvSE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `FusedMBConv`, `EfficientNetV2`, `FusedMBConvSE`이며 앞의 연습문제 3개로 스스로 확인해 볼 수 있다.

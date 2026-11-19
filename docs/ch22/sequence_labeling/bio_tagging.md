@@ -1,10 +1,10 @@
 # BIO와 BIOES: 개체 경계의 시퀀스 표현
 
-평면 개체명 인식은 토큰마다 개체의 시작·계속·바깥을 표시해 연속 span과 유형을 표현할 수 있다. 같은 유형의 개체가 붙어 있을 때도 경계를 구분해야 한다. 단일 태그 열은 토큰 하나에 한 레이블을 주므로 중첩·불연속 언급을 일반적으로 모두 표현하지 못한다.
+평면 개체명 인식은 토큰마다 개체의 시작·계속·바깥을 표시해 연속 span과 유형을 표현할 수 있다. 같은 유형의 개체가 붙어 있을 때도 경계를 구분해야 한다. 단일 태그 열은 토큰 하나에 한 라벨을 주므로 중첩·불연속 언급을 일반적으로 모두 표현하지 못한다.
 
 ## 1. IOB1·IOB2·BIOES의 차이
 
-원래 IOB1에서는 개체 내부를 I-X로 표시하고 같은 유형의 다른 개체가 바로 앞에 있을 때 새 개체의 첫 토큰에 B-X를 사용한다. 따라서 문장 처음의 I-X가 그 체계에서는 반드시 오류가 아니다. 아래 기존 예는 IOB1의 규칙을 보여 준다.
+원래 IOB1에서는 개체 내부를 I-X로 표시하고 같은 유형의 다른 개체가 바로 앞에 있을 때 새 개체의 첫 토큰에 B-X를 사용한다. 따라서 문장 처음의 I-X가 그 체계에서는 반드시 오류가 아니다. 아래 예는 IOB1의 규칙을 보여 준다.
 
 ```
 Tokens:  Steve  Jobs   founded  Apple  Inc   in  California
@@ -25,7 +25,7 @@ Tokens:  Steve  Jobs   founded  Apple  Inc   in  California
 BIOES:   B-PER  E-PER  O        B-ORG  E-ORG O   S-LOC
 ```
 
-유형 K개이면 IOB1·IOB2의 레이블 목록은2K+1, BIOES는4K+1개다. K4이면9개·17개다. 목록 크기와 실제로 유효한 시퀀스 수는 다르다. 두 체계는 유효한 평면 연속 span을 같은 정보로 표현할 수 있어 BIOES의 레이블이 많다는 사실 자체가 더 풍부한 정답 객체를 담는다는 뜻은 아니다.
+유형 K개이면 IOB1·IOB2의 라벨 목록은 2K+1, BIOES는 4K+1개다. K=4이면 9개·17개다. 목록 크기와 실제로 유효한 시퀀스 수는 다르다. 두 체계는 유효한 평면 연속 span을 같은 정보로 표현할 수 있어 BIOES의 라벨이 많다는 사실 자체가 더 풍부한 정답 객체를 담는다는 뜻은 아니다.
 
 ## 2. 시작·종료와 전이 제약
 
@@ -38,20 +38,20 @@ from enum import Enum
 from dataclasses import dataclass
 
 class TagScheme(Enum):
-    """받치는 레이블 방식."""
+    """지원하는 라벨 체계."""
     IOB = "IOB"
     IOB2 = "IOB2"
     BIOES = "BIOES"
 
 @dataclass
 class TagInfo:
-    """레이블에서 뜯어 읽은 앎."""
+    """라벨을 파싱해 얻은 정보."""
     prefix: str
     entity_type: Optional[str]
     
     @classmethod
     def parse(cls, tag: str) -> 'TagInfo':
-        """레이블 문자열을 접두사와 개체 클래스로 뜯어 읽기."""
+        """라벨 문자열을 접두사와 개체 유형으로 파싱하기."""
         if tag == 'O':
             return cls(prefix='O', entity_type=None)
         
@@ -67,20 +67,20 @@ class TagInfo:
         return f"{self.prefix}-{self.entity_type}"
 
 class TagValidator:
-    """레이블 방식의 규칙에 따라 레이블 차례를 확인한다."""
+    """라벨 체계의 규칙에 따라 라벨 시퀀스를 검증한다."""
     
     @staticmethod
     def validate_iob2(tags: List[str]) -> Tuple[bool, str]:
         """
-        IOB2 레이블 차례 확인하기.
+        IOB2 라벨 시퀀스 검증하기.
         
         규칙:
-        1. I-TYPE 앞에는 같은 클래스의 B-TYPE이나 I-TYPE이 와야 한다
-        2. B-TYPE은 아무 레이블 뒤에나 올 수 있다
-        3. O는 아무 레이블 뒤에나 올 수 있다
+        1. I-TYPE 앞에는 같은 유형의 B-TYPE이나 I-TYPE이 와야 한다
+        2. B-TYPE은 아무 라벨 뒤에나 올 수 있다
+        3. O는 아무 라벨 뒤에나 올 수 있다
         
         인수:
-            tags: IOB2 레이블의 목록
+            tags: IOB2 라벨의 목록
             
         반환값:
             (is_valid, error_message) 튜플
@@ -97,7 +97,7 @@ class TagValidator:
             if info.prefix not in ('B', 'I'):
                 return False, f"Position {i}: Invalid prefix '{info.prefix}' for IOB2"
             
-            # I- 레이블 앞에는 같은 클래스의 B-나 I-가 와야 한다
+            # I- 라벨 앞에는 같은 유형의 B-나 I-가 와야 한다
             if info.prefix == 'I':
                 if i == 0:
                     return False, f"Position {i}: I-{info.entity_type} cannot start sequence"
@@ -116,16 +116,16 @@ class TagValidator:
     @staticmethod
     def validate_bioes(tags: List[str]) -> Tuple[bool, str]:
         """
-        BIOES 레이블 차례 확인하기.
+        BIOES 라벨 시퀀스 검증하기.
         
         규칙:
-        1. B- 뒤에는 같은 클래스의 I-나 E-가 와야 한다
-        2. I- 앞에는 같은 클래스의 B-나 I-가, 뒤에는 I-나 E-가 와야 한다
-        3. E- 앞에는 같은 클래스의 B-나 I-가 와야 한다
-        4. S-는 토큰 하나로 온전한 것을 나타낸다
+        1. B- 뒤에는 같은 유형의 I-나 E-가 와야 한다
+        2. I- 앞에는 같은 유형의 B-나 I-가, 뒤에는 I-나 E-가 와야 한다
+        3. E- 앞에는 같은 유형의 B-나 I-가 와야 한다
+        4. S-는 토큰 하나로 된 개체를 나타낸다
         
         인수:
-            tags: BIOES 레이블의 목록
+            tags: BIOES 라벨의 목록
             
         반환값:
             (is_valid, error_message) 튜플
@@ -142,7 +142,7 @@ class TagValidator:
             if info.prefix not in ('B', 'I', 'O', 'E', 'S'):
                 return False, f"Position {i}: Invalid prefix '{info.prefix}' for BIOES"
             
-            # 앞선 것 제약 살피기
+            # 앞 태그 제약 확인하기
             if info.prefix in ('I', 'E'):
                 if i == 0:
                     return False, f"Position {i}: {tag} cannot start sequence"
@@ -153,7 +153,7 @@ class TagValidator:
                 if not valid_prev:
                     return False, f"Position {i}: {tag} cannot follow {tags[i-1]}"
             
-            # 뒤따르는 것 제약 살피기
+            # 뒤 태그 제약 확인하기
             if info.prefix in ('B', 'I'):
                 if i == len(tags) - 1:
                     return False, f"Position {i}: {tag} cannot end sequence (needs E-)"
@@ -168,7 +168,7 @@ class TagValidator:
     
     @classmethod
     def validate(cls, tags: List[str], scheme: TagScheme) -> Tuple[bool, str]:
-        """정한 방식에 따라 레이블 확인하기."""
+        """지정한 체계에 따라 라벨 검증하기."""
         if scheme == TagScheme.IOB2:
             return cls.validate_iob2(tags)
         elif scheme == TagScheme.BIOES:
@@ -177,30 +177,30 @@ class TagValidator:
             raise ValueError(f"Unsupported scheme: {scheme}")
 ```
 
-TagValidator는 문자열 파싱과 연결 규칙의 일부를 검사한다. 그러나 TagInfo.parse는 빈 유형 `B-`를 허용하고 유형 목록의 회원 여부도 검증하지 않는다. BIOES의 허용 prefix 목록에 O가 있어 `O-X`처럼 규격 밖인 문자열을 통과시킬 수도 있다. 일부 이전·다음 태그 파싱은 예외 처리 밖에서 이루어져 언제나 `(False,메시지)`로 반환되는 것도 아니다. TagScheme.IOB는 enum에 있지만 validate에서는 지원하지 않는다.
+TagValidator는 문자열 파싱과 연결 규칙의 일부를 검사한다. 그러나 TagInfo.parse는 빈 유형 `B-`를 허용하고 그 유형이 유형 목록에 속하는지도 검증하지 않는다. BIOES의 허용 prefix 목록에 O가 있어 `O-X`처럼 규격 밖인 문자열을 통과시킬 수도 있다. 일부 이전·다음 태그 파싱은 예외 처리 밖에서 이루어져 언제나 `(False,메시지)`로 반환되는 것도 아니다. TagScheme.IOB는 enum에 있지만 validate에서는 지원하지 않는다.
 
 ## 3. 변환과 span 추출의 입력 조건
 
 ```python
 class TagConverter:
-    """서로 다른 레이블 방식 사이를 바꾸기."""
+    """서로 다른 라벨 체계 사이의 변환."""
     
     @staticmethod
     def iob2_to_bioes(tags: List[str]) -> List[str]:
         """
-        IOB2 레이블을 BIOES 레이블로 바꾸기.
+        IOB2 라벨을 BIOES 라벨로 변환하기.
         
-        바꾸기 규칙:
+        변환 규칙:
         - 토큰 하나짜리 개체: B-TYPE → S-TYPE
         - 토큰 여럿의 시작: B-TYPE → B-TYPE(뒤에 I-가 올 때)
         - 토큰 여럿의 가운데: I-TYPE → I-TYPE(뒤에 I-가 올 때)
         - 토큰 여럿의 끝: I-TYPE → E-TYPE(뒤에 O나 B-가 오거나 끝일 때)
         
         인수:
-            tags: IOB2 레이블의 목록
+            tags: IOB2 라벨의 목록
             
         반환값:
-            BIOES 레이블의 목록
+            BIOES 라벨의 목록
         """
         bioes_tags = []
         n = len(tags)
@@ -212,7 +212,7 @@ class TagConverter:
             
             info = TagInfo.parse(tag)
             
-            # 것의 마지막 토큰인지 살피기
+            # 개체의 마지막 토큰인지 확인하기
             is_last = (i == n - 1) or \
                       (tags[i + 1] == 'O') or \
                       (TagInfo.parse(tags[i + 1]).prefix == 'B')
@@ -237,18 +237,18 @@ class TagConverter:
     @staticmethod
     def bioes_to_iob2(tags: List[str]) -> List[str]:
         """
-        BIOES 레이블을 IOB2 레이블로 바꾸기.
+        BIOES 라벨을 IOB2 라벨로 변환하기.
         
-        바꾸기 규칙:
+        변환 규칙:
         - S-TYPE → B-TYPE
         - E-TYPE → I-TYPE
         - B-TYPE, I-TYPE, O는 그대로 둔다
         
         인수:
-            tags: BIOES 레이블의 목록
+            tags: BIOES 라벨의 목록
             
         반환값:
-            IOB2 레이블의 목록
+            IOB2 라벨의 목록
         """
         iob2_tags = []
         
@@ -275,19 +275,19 @@ class TagConverter:
         scheme: TagScheme = TagScheme.IOB2
     ) -> List[Tuple[str, str, int, int]]:
         """
-        레이블 붙인 차례에서 개체 뽑기.
+        라벨이 붙은 시퀀스에서 개체 추출하기.
         
         인수:
             tokens: 토큰의 목록
-            tags: 그에 맞는 레이블의 목록
-            scheme: 쓴 레이블 방식
+            tags: 그에 맞는 라벨의 목록
+            scheme: 사용한 라벨 체계
             
         반환값:
             (entity_text, entity_type, start_idx, end_idx) 튜플의 목록
         """
         assert len(tokens) == len(tags), "Tokens and tags must have same length"
         
-        # 한결같이 다루려 IOB2로 바꾸기
+        # 일관되게 처리하려 IOB2로 변환하기
         if scheme == TagScheme.BIOES:
             tags = TagConverter.bioes_to_iob2(tags)
         
@@ -308,7 +308,7 @@ class TagConverter:
                     current_entity = None
             
             elif tag.startswith('B-'):
-                # 앞 것을 닫고 새것을 시작하기
+                # 앞 개체를 닫고 새 개체를 시작하기
                 if current_entity is not None:
                     ent_type, start_idx, ent_tokens = current_entity
                     entities.append((
@@ -326,7 +326,7 @@ class TagConverter:
                 if current_entity is not None:
                     current_entity[2].append(token)
         
-        # 마지막 것을 잊지 말 것
+        # 마지막 개체를 잊지 말 것
         if current_entity is not None:
             ent_type, start_idx, ent_tokens = current_entity
             entities.append((
@@ -343,7 +343,7 @@ IOB2→BIOES 변환은 다음 태그를 보고 한 토큰 개체를 S로, 마지
 
 `tags_to_entities`는 토큰·태그 길이가 같아야 하며 반환 start·end는0부터 시작하는 **토큰 단위 반열린 구간 [start,end)**다. 문자 offset은 아니다. 문자열을 공백으로 join하므로 원문의 공백·구두점 배치를 복원하지도 않는다. 한국어·서브워드에서 원문 복원이 필요하면 원문 offset을 보관한다.
 
-초기 I 태그는 열린 개체가 없어 무시되고, 열린 개체 뒤의 다른 유형 I 태그도 유형 확인 없이 같은 개체에 붙을 수 있다. scheme=IOB라고 해도 IOB1 처리를 따로 하지 않는다. 유효성 검사와 엄격 거부·오류 교정 폴리시를 먼저 정의해야 하며, 추출 결과가 그럴듯하다는 이유로 잘못된 태그를 정상으로 취급하면 안 된다.
+초기 I 태그는 열린 개체가 없어 무시되고, 열린 개체 뒤의 다른 유형 I 태그도 유형 확인 없이 같은 개체에 붙을 수 있다. scheme=IOB라고 해도 IOB1 처리를 따로 하지 않는다. 유효성 검사와 엄격 거부·오류 교정 정책을 먼저 정의해야 하며, 추출 결과가 그럴듯하다는 이유로 잘못된 태그를 정상으로 취급하면 안 된다.
 
 ## 4. CRF의 전이 마스크
 
@@ -353,13 +353,13 @@ def build_transition_mask(
     scheme: TagScheme = TagScheme.IOB2
 ) -> torch.Tensor:
     """
-    CRF 레이어의 전이 마스크 세우기.
+    CRF 레이어의 전이 마스크 만들기.
     
     마스크는 올바른 전이에 0, 올바르지 않은 것에 -inf를 준다.
     
     인수:
-        label_to_idx: 레이블 문자열에서 번호로의 대응
-        scheme: 레이블 방식
+        label_to_idx: 라벨 문자열에서 인덱스로의 매핑
+        scheme: 라벨 체계
         
     반환값:
         전이 점수를 담은, 형태가 (num_labels, num_labels)인 텐서
@@ -370,7 +370,7 @@ def build_transition_mask(
     # 모든 전이를 올바른 것으로 두고 초기화
     mask = torch.zeros(num_labels, num_labels)
     
-    # 개체 클래스 뽑기
+    # 개체 유형 추출하기
     entity_types = set()
     for label in label_to_idx:
         if label != 'O':
@@ -392,7 +392,7 @@ def _is_valid_transition(
     to_tag: str, 
     scheme: TagScheme
 ) -> bool:
-    """from_tag에서 to_tag로 넘어가는 것이 올바른지 살피기."""
+    """from_tag에서 to_tag로 넘어가는 것이 올바른지 확인하기."""
     # O는 무엇으로든 넘어갈 수 있다
     if from_tag == 'O':
         if to_tag == 'O':
@@ -422,7 +422,7 @@ def _is_valid_transition(
         return True
     
     else:  # BIOES
-        # I나 E 앞에는 같은 클래스의 B나 I가 와야 한다
+        # I나 E 앞에는 같은 유형의 B나 I가 와야 한다
         if to_info.prefix in ('I', 'E'):
             return (from_info.prefix in ('B', 'I') and 
                     from_info.entity_type == to_info.entity_type)
@@ -434,11 +434,11 @@ def _is_valid_transition(
         return False
 ```
 
-mask[i,j]는 이전 레이블 i에서 다음 j로 가는 점수에 더하는0 또는−∞다. 금지 전이에 실제로 적용해야 제약이 생기며, 학습 가능한 전이 점수만으로 금지 전이가 수학적으로 불가능해지지는 않는다. 시작·종료 제약은 별도의 점수·마스크가 필요하다. 이 코드의 K×K 행렬만으로 문장 처음 I-X나 마지막 BIOES의 B-X를 막지는 못한다.
+mask[i,j]는 이전 라벨 i에서 다음 j로 가는 점수에 더하는0 또는−∞다. 금지 전이에 실제로 적용해야 제약이 생기며, 학습 가능한 전이 점수만으로 금지 전이가 수학적으로 불가능해지지는 않는다. 시작·종료 제약은 별도의 점수·마스크가 필요하다. 이 코드의 K×K 행렬만으로 문장 처음 I-X나 마지막 BIOES의 B-X를 막지는 못한다.
 
 label_to_idx는0~K−1의 연속 인덱스와 유효한 해당 체계의 태그 집합이어야 한다. 지원되지 않은 IOB enum이 내부에서 BIOES 쪽 분기로 처리되는 것도 완전한 IOB1 지원이 아니다. 모든 경로가 막힌 입력·패딩·빈 문장의 처리는 CRF 쪽에서 정의해야 한다. 마스크를 학습 정규화와 Viterbi 중 어디에 적용하는지도 명시한다.
 
-## 5. 서브워드와 단어 레이블 정렬
+## 5. 서브워드와 단어 라벨 정렬
 
 ```python
 def align_labels_to_subwords(
@@ -447,15 +447,15 @@ def align_labels_to_subwords(
     label_first_subword_only: bool = True
 ) -> List[str]:
     """
-    단어 수준 레이블을 서브워드 토큰에 맞추기.
+    단어 수준 라벨을 서브워드 토큰에 정렬하기.
     
     인수:
-        word_labels: 단어마다의 레이블
-        word_to_subword_map: 단어마다의 서브워드 번호 목록
-        label_first_subword_only: True이면 첫 서브워드만 레이블을 받는다
+        word_labels: 단어마다의 라벨
+        word_to_subword_map: 단어마다의 서브워드 인덱스 목록
+        label_first_subword_only: True이면 첫 서브워드만 라벨을 받는다
         
     반환값:
-        서브워드 토큰마다의 레이블
+        서브워드 토큰마다의 라벨
     """
     subword_labels = []
     
@@ -464,14 +464,14 @@ def align_labels_to_subwords(
         
         for i, subword_idx in enumerate(subword_indices):
             if i == 0:
-                # 첫 서브워드이 본디 레이블을 받는다
+                # 첫 서브워드가 원래 라벨을 받는다
                 subword_labels.append(label)
             else:
                 if label_first_subword_only:
-                    # 첫째가 아닌 서브워드은 특별 레이블을 받는다(로스에서 무시)
+                    # 첫째가 아닌 서브워드는 특수 라벨을 받는다(로스에서 무시)
                     subword_labels.append('[IGNORE]')
                 else:
-                    # 이어지는 서브워드에 I- 레이블 퍼뜨리기
+                    # 이어지는 서브워드에 I- 라벨 전파하기
                     if label.startswith('B-'):
                         subword_labels.append('I-' + label[2:])
                     else:
@@ -480,7 +480,7 @@ def align_labels_to_subwords(
     return subword_labels
 ```
 
-첫 서브워드만 지도하는 폴리시는 뒤 조각과 특수 토큰을 loss의 ignore_index로 처리한다. 모든 조각을 지도하면 IOB2의 B-X 뒤 조각은 I-X로 바꾸는 등의 규칙이 필요하다. 두 폴리시의 단어별 웨이트도 달라질 수 있다. BIOES의 S·E를 모든 조각에 그대로 복제하면 유효한 경계 표현이 되지 않으므로 체계별 재부호화가 필요하다.
+첫 서브워드만 지도하는 정책은 뒤 조각과 특수 토큰을 loss의 ignore_index로 처리한다. 모든 조각을 지도하면 IOB2의 B-X 뒤 조각은 I-X로 바꾸는 등의 규칙이 필요하다. 두 정책의 단어별 웨이트도 달라질 수 있다. BIOES의 S·E를 모든 조각에 그대로 복제하면 유효한 경계 표현이 되지 않으므로 체계별 재부호화가 필요하다.
 
 위 함수는 `[IGNORE]`라는 문자열을 반환할 뿐 실제 로스의 정수 ignore_index로 바꾸지 않는다. 또 word_to_subword_map의 실제 인덱스를 출력 배치에 사용하지 않고 조각 수만큼 순서대로 append한다. 특수 토큰·잘린 단어·순서가 다른 매핑·빈 매핑을 포함한 전체 tokenizer 출력에 자동 정렬되는 함수가 아니다. word_ids·offset 등 실제 토큰화 결과와 함께 목표 배열을 구성해야 한다.
 
@@ -493,15 +493,15 @@ def visualize_tags(
     scheme: TagScheme = TagScheme.IOB2
 ) -> str:
     """
-    레이블 붙인 차례를 눈으로 볼 수 있게 나타내기.
+    라벨이 붙은 시퀀스를 시각화하기.
     
     인수:
         tokens: 토큰의 목록
-        tags: 레이블의 목록
-        scheme: 레이블 방식
+        tags: 라벨의 목록
+        scheme: 라벨 체계
         
     반환값:
-        토큰과 레이블을 줄맞춘 문자열
+        토큰과 라벨을 줄맞춘 문자열
     """
     # 줄맞춤을 위한 최대 너비 찾기
     max_token_len = max(len(t) for t in tokens)
@@ -511,7 +511,7 @@ def visualize_tags(
     lines.append("Tokens: " + " ".join(f"{t:<{max_token_len}}" for t in tokens))
     lines.append("Tags:   " + " ".join(f"{t:<{max_token_len}}" for t in tags))
     
-    # 개체 뽑기 더하기
+    # 추출한 개체 덧붙이기
     entities = TagConverter.tags_to_entities(tokens, tags, scheme)
     if entities:
         lines.append("\nExtracted Entities:")
@@ -531,7 +531,7 @@ print("\nBIOES Format:")
 print(visualize_tags(tokens, tags_bioes, TagScheme.BIOES))
 ```
 
-**기존 출력:**
+**출력:**
 
 ```
 IOB2 Format:
@@ -553,7 +553,7 @@ Extracted Entities:
 
 시연은 유효한 IOB2 예제를 변환·추출해 표시한다. 빈 tokens·tags에는 max()가 실패할 수 있고 표시 폭이 정확한 원문 문자 offset을 뜻하지도 않는다. 평가에는 경계와 유형이 모두 맞는 span 단위 비교, 무효 태그 처리와 분할·집계 규칙을 명시한다. 토큰 정확도는 O 비중이 크면 높아질 수 있다.
 
-IOB2와 BIOES의 선택은 데이터·도구 호환성과 모델·제약 설계에 따른다. 레이블을 바꿔 얻는 고정1~2% 개선이나 출처·동일 조건이 없는 F1 표를 보편적 결과로 제시하지 않는다. [NER 설계 연구](https://aclanthology.org/W09-1119/)처럼 구체적인 실험 조건과 정규화·디코딩을 맞춰 비교해야 한다.
+IOB2와 BIOES의 선택은 데이터·도구 호환성과 모델·제약 설계에 따른다. 라벨을 바꿔 얻는 고정1~2% 개선이나 출처·동일 조건이 없는 F1 표를 보편적 결과로 제시하지 않는다. [NER 설계 연구](https://aclanthology.org/W09-1119/)처럼 구체적인 실험 조건과 정규화·디코딩을 맞춰 비교해야 한다.
 
 ## 연습문제
 
@@ -596,7 +596,7 @@ tags_to_entities의 start·end와 무효 I 태그 처리의 한계를 설명하�
 
 ??? success "풀이"
 
-    start·end는 토큰 인덱스의 반열린 구간이며 문자 offset이 아니다. 초기 I는 무시될 수 있고 열린 개체 뒤 다른 유형 I도 붙일 수 있어 먼저 유효성 검사·교정 폴리시를 적용해야 한다. 공백 join은 원문 복원을 보장하지 않는다.
+    start·end는 토큰 인덱스의 반열린 구간이며 문자 offset이 아니다. 초기 I는 무시될 수 있고 열린 개체 뒤 다른 유형 I도 붙일 수 있어 먼저 유효성 검사·교정 정책을 적용해야 한다. 공백 join은 원문 복원을 보장하지 않는다.
 
 
 

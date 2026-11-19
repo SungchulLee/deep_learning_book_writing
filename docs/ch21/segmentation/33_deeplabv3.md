@@ -7,9 +7,9 @@ DeepLabv3는 dilated(atrous) convolution과 여러 공간 범위의 문맥을 �
 ```python
 #!/usr/bin/env python3
 '''
-DeepLabV3 — 뜻 나누기를 위한 구멍 뚫린 컨볼루션 다시 생각하기
+DeepLabV3 — 시맨틱 분할을 위한 atrous 컨볼루션 다시 생각하기
 논문: "Rethinking Atrous Convolution for Semantic Image Segmentation" (2017)
-핵심: 구멍 뚫린 자리 피라미드 모으기(ASPP), 여러 벌림 비율
+핵심: atrous 공간 피라미드 풀링(ASPP), 여러 팽창률
 '''
 import torch
 import torch.nn as nn
@@ -104,7 +104,7 @@ Parameters: 820,821
 
 ### Dilated convolution의 간격과 범위
 
-커널 크기 k, dilation=r이면 이론적인 유효 커널 크기는 k_eff=k+(k−1)(r−1)이다.3×3에서는2r+1이므로 r=6·12·18은13·25·37 크기의 영역에 걸친9개 표본을 참조한다. 같은9개 웨이트의 간격을 늘리는 것이지 영역의 모든 픽셀에 별도 웨이트를 두는 큰 dense 커널이 아니다. 파라미터 수는 dilation만 바꿔서는 늘지 않는다.
+커널 크기 k, dilation=r이면 이론적인 유효 커널 크기는 k_eff=k+(k−1)(r−1)이다.3×3에서는2r+1이므로 r=6·12·18은13·25·37 크기의 영역에 걸친9개 표본을 참조한다. 같은9개 웨이트의 간격을 늘리는 것이지 영역의 모든 픽셀에 별도 웨이트를 두는 큰 dense 커널이 아니다. 파라메터 수는 dilation만 바꿔서는 늘지 않는다.
 
 padding=r, stride1이면3×3 dilated 연산의 공간 크기를 유지한다. 큰 dilation은 유한한 피처 맵에서 많은 표본이 패딩 밖으로 나가거나 사이 간격의 정보가 빠질 수 있다. 범위를 넓힌다는 것과 모든 세부를 포괄한다는 것은 다르다.
 
@@ -116,13 +116,13 @@ padding=r, stride1이면3×3 dilated 연산의 공간 크기를 유지한다. �
 
 ### backbone과 입력 좌표
 
-예제 backbone은 stride2 컨볼루션과 stride2 풀링뿐이어서 피처 stride는 대략4다. 원 모델의 더 깊은 dilated backbone과 output stride8·16 등의 설정과 다르다. 같은 dilation 숫자를 쓰더라도 입력 이미지 기준 간격은 backbone stride와 수용영역에 따라 달라진다. 원 모델의 rate를 어떤 해상도의 피처에나 그대로 적용하는 것이 항상 같은 설계는 아니다.
+예제 backbone은 stride2 컨볼루션과 stride2 풀링뿐이어서 피처 stride는 대략4다. 원 모델의 더 깊은 dilated backbone과 output stride8·16 등의 설정과 다르다. 같은 dilation 숫자를 쓰더라도 입력 이미지 기준 간격은 backbone stride와 리셉티브 필드에 따라 달라진다. 원 모델의 rate를 어떤 해상도의 피처에나 그대로 적용하는 것이 항상 같은 설계는 아니다.
 
-입력64×64에서 backbone은64채널16×16, ASPP는256채널16×16, classifier는K채널16×16을 만들고 마지막에64×64로 보간한다. 반환값은 로짓이며 K클래스 CE에는 N×H×W의 정수 레이블을 사용한다. 보간은 정렬과 크기를 맞추지만 그 자체로 경계의 정확도를 보장하지 않는다.
+입력64×64에서 backbone은64채널16×16, ASPP는256채널16×16, classifier는K채널16×16을 만들고 마지막에64×64로 보간한다. 반환값은 로짓이며 K클래스 CE에는 N×H×W의 정수 라벨을 사용한다. 보간은 정렬과 크기를 맞추지만 그 자체로 경계의 정확도를 보장하지 않는다.
 
 ### 모듈 확장
 
-ASPP 분기를 늘리거나 rate를 바꿀 때는 병렬 목록, 채널 연결과 마지막 projection의 입력 폭을 함께 바꿔야 한다. 연습의 일반 ModuleList 순차 골격은 이런 병렬 설계를 구현하지 않는다. 정확한 scope와 실험은 [DeepLabv3 원 논문](https://arxiv.org/abs/1706.05587)을 참고한다. 기존 코드는 파라미터 수만 출력하며 실행·학습 결과를 새로 확인하지 않았다.
+ASPP 분기를 늘리거나 rate를 바꿀 때는 병렬 목록, 채널 연결과 마지막 projection의 입력 폭을 함께 바꿔야 한다. 연습의 일반 ModuleList 순차 골격은 이런 병렬 설계를 구현하지 않는다. 정확한 scope와 실험은 [DeepLabv3 원 논문](https://arxiv.org/abs/1706.05587)을 참고한다. 기존 코드는 파라메터 수만 출력하며 학습 결과를 확인하지 않는다.
 
 ## 연습문제
 

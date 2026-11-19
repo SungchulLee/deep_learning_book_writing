@@ -27,11 +27,11 @@ class TransformerEncoderBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, mask=None):
-        # 다중 머리 어텐션
+        # 멀티헤드 어텐션
         attn_output, _ = self.attention(x, x, x, key_padding_mask=mask)
         x = self.norm1(x + self.dropout(attn_output))
 
-        # 순전파
+        # 피드포워드
         ff_output = self.feed_forward(x)
         x = self.norm2(x + self.dropout(ff_output))
 
@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-**축 불일치:** TransformerEncoder는 $(B,L,E)$를 만들지만 각 블록의 nn.MultiheadAttention은 batch_first=False 기본값으로 $(L,B,E)$를 기대한다. 전치 없이 전달하므로 B를 시퀀스 길이로 해석해 서로 다른 표본 사이에 어텐션을 계산한다. 출력 모양이 입력과 같다는 사실만으로 계산이 올바른지는 알 수 없다.
+**축 불일치:** TransformerEncoder는 $(B,L,E)$를 만들지만 각 블록의 nn.MultiheadAttention은 batch_first=False 기본값으로 $(L,B,E)$를 기대한다. 전치 없이 전달하므로 B를 시퀀스 길이로 해석해 서로 다른 표본 사이에 어텐션을 계산한다. 출력 형태가 입력과 같다는 사실만으로 계산이 올바른지는 알 수 없다.
 
 원래 의도한 $(B,L)$ 패딩 마스크를 전달하면 내부에서 기대하는 $(L,B)$와 달라 오류가 날 수 있다. batch_first=True로 일관되게 구성하거나 블록 진입·복귀의 축 전치를 맞춰야 한다. 이 문제는 아래 BERTModel 등 이 인코더를 사용하는 모듈에도 영향을 준다.
 
@@ -79,12 +79,12 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-아래 예제의 출력 모양만 확인하면 축 처리를 검증할 수 있는가? MultiheadAttention의 기본 규약과 패딩 마스크를 검토하라.
+아래 예제의 출력 형태만 확인하면 축 처리를 검증할 수 있는가? MultiheadAttention의 기본 규약과 패딩 마스크를 검토하라.
 
 </div>
 
 ??? success "풀이"
-    그렇지 않다. 배치 우선 (4,30,512)가 기본 시퀀스 우선 어텐션에 전달되어 축 해석이 뒤바뀐다. 제시한 (4,30) 마스크도 내부 기대 모양과 다르다. 아래 코드는 그 문제를 드러내는 검토 대상이며 완성된 검증 예제가 아니다.
+    그렇지 않다. 배치 우선 (4,30,512)가 기본 시퀀스 우선 어텐션에 전달되어 축 해석이 뒤바뀐다. 제시한 (4,30) 마스크도 내부 기대 형태와 다르다. 아래 코드는 그 문제를 드러내는 검토 대상이며 완성된 검증 예제가 아니다.
 
     ```python
     encoder = TransformerEncoder(
@@ -92,9 +92,9 @@ if __name__ == "__main__":
         num_layers=6, d_ff=2048
     )
     x = torch.randint(0, 5000, (4, 30))
-    # 채움 가림: True면 무시, False면 주의
+    # 패딩 마스크: True면 무시, False면 어텐션
     mask = torch.zeros(4, 30, dtype=torch.bool)
-    mask[0, 20:] = True  # 첫 수열의 길이는 20
+    mask[0, 20:] = True  # 첫 시퀀스의 길이는 20
     mask[1, 25:] = True  # 둘째는 길이 25
 
     output = encoder(x, mask)
@@ -154,4 +154,4 @@ nn.MultiheadAttention의 key_padding_mask와 attn_mask를 비교하라.
 
 ## 정리하며
 
-인코더의 입출력 모양뿐 아니라 각 연산이 해석하는 배치·시퀀스 축을 확인한다. 이 구현에는 축 불일치가 있고, 위치 표현을 바꾸는 것만으로 해결되지 않는다. 패딩 마스크·최대 길이·학습 여부를 함께 구분한다.
+인코더의 입출력 형태뿐 아니라 각 연산이 해석하는 배치·시퀀스 축을 확인한다. 이 구현에는 축 불일치가 있고, 위치 표현을 바꾸는 것만으로 해결되지 않는다. 패딩 마스크·최대 길이·학습 여부를 함께 구분한다.

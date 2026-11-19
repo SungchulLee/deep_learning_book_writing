@@ -4,17 +4,17 @@
 
 **들어가는 이야기** — 세어 본 수와 파일 크기가 안 맞을 때
 
-모델이 얼마나 큰지 말할 때 사람들은 **수의 개수**를 센다. 「파라미터 7억 개」
+모델이 얼마나 큰지 말할 때 사람들은 **수의 개수**를 센다. 「파라메터 7억 개」
 같은 식이다. 세는 법도 한 줄이고, 파이토치가 그 한 줄을 위한 길을 열어 두었다.
 
 그런데 그렇게 센 수와 저장한 파일의 크기를 견주면 **딱 맞지 않는** 때가 있다.
 파일 쪽이 더 크다. 어딘가에 세어지지 않은 것이 들어 있다는 뜻이다.
 
-그 정체는 **학습되지는 않는데 모델이 스스로 고치는 수**다. 옵티마이저는 손도
-안 대고, 미분도 받지 않는다. 그런데 앞으로 계산해 갈 때마다 조용히 갱신되고,
-저장할 때 같이 따라간다. 되살릴 때 이것이 빠지면 모델이 다르게 동작한다.
+그 정체는 **학습되지는 않는데 모델이 스스로 고치는 수**다. 파이토치는 이것을 **버퍼**(buffer)라 부른다. 옵티마이저는 손도
+안 대고, 미분도 받지 않는다. 그런데 순전파를 할 때마다 조용히 갱신되고,
+저장할 때 같이 따라간다. 복원할 때 이것이 빠지면 모델이 다르게 동작한다.
 
-널리 쓰이는 층 하나가 그런 수를 셋이나 들고 있다.
+널리 쓰이는 층인 배치 정규화 하나가 그런 수를 셋이나 들고 있다.
 
 </div>
 
@@ -23,10 +23,10 @@
 
 | | 무엇인가 | 학습되는가 | 저장되는가 |
 |---|---|---|---|
-| 파라미터 | `nn.Parameter` | **예** | 예 |
+| 파라메터 | `nn.Parameter` | **예** | 예 |
 | 버퍼 | `register_buffer` 로 등록한 텐서 | 아니오 | **예** |
 
-세 번째 열이 잊히는 자리다. 파라미터 수를 세면 버퍼는 빠지는데, **저장 파일에는
+세 번째 열이 잊히는 자리다. 파라메터 수를 세면 버퍼는 빠지는데, **저장 파일에는
 들어간다.** 배치 정규화의 `running_mean`이 거기 있다.
 
 ## 1. 코드
@@ -37,13 +37,13 @@
 `print(model)` 한 줄이 꽤 많은 것을 보여 주지만, 거기 안 나오는 것이
 있다. 모델을 고치거나 저장할 때 알아야 하는 것은 셋이다.
 
-- **모듈 나무** — `named_children()` 은 바로 아래만, `named_modules()`
+- **모듈 트리** — `named_children()` 은 바로 아래만, `named_modules()`
   는 전부
-- **파라미터** — 학습되는 텐서. `parameters()` 가 준다
+- **파라메터** — 학습되는 텐서. `parameters()` 가 준다
 - **버퍼** — 학습되지는 않는데 **저장은 되는** 텐서. 배치 정규화의
   `running_mean` 이 여기 있다
 
-세 번째가 자주 잊힌다. 파라미터 수를 세면 버퍼는 빠지는데, 저장
+세 번째가 자주 잊힌다. 파라메터 수를 세면 버퍼는 빠지는데, 저장
 파일에는 들어간다.
 
 실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
@@ -86,7 +86,7 @@ def show_repr(net):
     header("1. print(model)")
     print(net)
     print("  들여쓰기가 중첩을 보여 준다")
-    print("  그런데 파라미터 수도, 출력 모양도, 버퍼도 안 나온다")
+    print("  그런데 파라메터 수도, 출력 모양도, 버퍼도 안 나온다")
 
 
 # ========================================================================
@@ -106,20 +106,20 @@ def tree(net):
 
 
 # ========================================================================
-# 3. 파라미터와 버퍼
+# 3. 파라메터와 버퍼
 # ========================================================================
 
 def params_and_buffers(net):
-    header("3. 파라미터와 버퍼")
+    header("3. 파라메터와 버퍼")
     for name, p in net.named_parameters():
         print(f"  param  {name:22s} {str(tuple(p.shape)):10s} "
               f"requires_grad={p.requires_grad}")
     for name, b in net.named_buffers():
         print(f"  buffer {name:22s} {str(tuple(b.shape)):10s} "
               f"requires_grad={b.requires_grad}")
-    print("  파라미터 수:", sum(p.numel() for p in net.parameters()))
+    print("  파라메터 수:", sum(p.numel() for p in net.parameters()))
     print("  버퍼  수   :", sum(b.numel() for b in net.buffers()),
-          "<- 위 셈에 안 들어간다")
+          "<- 위 합에 안 들어간다")
     print("  state_dict 키:")
     for k in net.state_dict():
         print("   ", k)
@@ -133,14 +133,14 @@ def params_and_buffers(net):
 def real_buffer():
     header("4. 배치 정규화의 버퍼")
     bn = nn.BatchNorm1d(4)
-    print("  파라미터:", [n for n, _ in bn.named_parameters()])
+    print("  파라메터:", [n for n, _ in bn.named_parameters()])
     print("  버퍼    :", [n for n, _ in bn.named_buffers()])
     before = bn.running_mean.clone()
     bn.train()
     bn(torch.randn(8, 4))
     print("  순전파 한 번 뒤 running_mean 이 바뀌었나:",
           not torch.equal(before, bn.running_mean))
-    print("  경사는 없다:", bn.running_mean.grad_fn, bn.running_mean.requires_grad)
+    print("  그래디언트는 없다:", bn.running_mean.grad_fn, bn.running_mean.requires_grad)
     print("  학습되지 않는데 순전파가 고친다 — 그래서 버퍼다")
 
     # 쌓는 것과 쓰는 것이 두 모드로 갈린다
@@ -164,7 +164,7 @@ def real_buffer():
 
 def summary(net):
     header("5. 층마다 수를 세어 본다")
-    print(f"  {'이름':24s} {'종류':12s} {'파라미터':>10s}")
+    print(f"  {'이름':24s} {'종류':12s} {'파라메터':>10s}")
     total = 0
     for name, m in net.named_modules():
         own = sum(p.numel() for p in m.parameters(recurse=False))
@@ -209,7 +209,7 @@ Net(
   (head): Linear(in_features=8, out_features=2, bias=True)
 )
   들여쓰기가 중첩을 보여 준다
-  그런데 파라미터 수도, 출력 모양도, 버퍼도 안 나온다
+  그런데 파라메터 수도, 출력 모양도, 버퍼도 안 나온다
 
 === 2. children 과 modules ===
   named_children (바로 아래만): ['stem', 'blocks', 'head']
@@ -227,7 +227,7 @@ Net(
   modules() 는 자기 자신도 센다 — 그래서 하나 더 많다
   이름이 점으로 이어진 형태가 그대로 state_dict 의 키가 된다
 
-=== 3. 파라미터와 버퍼 ===
+=== 3. 파라메터와 버퍼 ===
   param  stem.weight            (8, 4)     requires_grad=True
   param  stem.bias              (8,)       requires_grad=True
   param  blocks.0.fc.weight     (8, 8)     requires_grad=True
@@ -237,8 +237,8 @@ Net(
   param  head.weight            (2, 8)     requires_grad=True
   param  head.bias              (2,)       requires_grad=True
   buffer steps                  (1,)       requires_grad=False
-  파라미터 수: 202
-  버퍼  수   : 1 <- 위 셈에 안 들어간다
+  파라메터 수: 202
+  버퍼  수   : 1 <- 위 합에 안 들어간다
   state_dict 키:
     steps
     stem.weight
@@ -252,10 +252,10 @@ Net(
   버퍼가 맨 앞에 끼어 있다. 저장은 되고 학습은 안 된다
 
 === 4. 배치 정규화의 버퍼 ===
-  파라미터: ['weight', 'bias']
+  파라메터: ['weight', 'bias']
   버퍼    : ['running_mean', 'running_var', 'num_batches_tracked']
   순전파 한 번 뒤 running_mean 이 바뀌었나: True
-  경사는 없다: None False
+  그래디언트는 없다: None False
   학습되지 않는데 순전파가 고친다 — 그래서 버퍼다
   train()  running_mean 바뀌나 True   출력 평균 [-0.0, -0.0, 0.0]
   eval()   running_mean 바뀌나 False  출력 평균 [5.097, 4.115, 4.784]
@@ -263,7 +263,7 @@ Net(
   뒤집는 것은 train/eval 뿐이다 — no_grad 로 감싸도 안 바뀐다
 
 === 5. 층마다 수를 세어 본다 ===
-  이름                       종류                 파라미터
+  이름                       종류                 파라메터
   stem                     Linear               40
   blocks.0.fc              Linear               72
   blocks.0.act             ReLU                  0
@@ -291,7 +291,7 @@ Net(
 들여쓰기가 중첩을 그대로 보여 주고, 각 층의 설정도 보인다. 모델을 처음 볼 때
 가장 빠른 길이다.
 
-안 나오는 것이 셋이다. **파라미터 수**, **출력 모양**, **버퍼**. 앞의 둘은 따로
+안 나오는 것이 셋이다. **파라메터 수**, **출력 모양**, **버퍼**. 앞의 둘은 따로
 세어야 하고(5절), 셋째는 아예 다른 목록에 있다(4절).
 
 ## 3. 바로 아래만 vs 전부
@@ -307,26 +307,26 @@ named_modules  (전부 10개):
         ...
 ```
 
-`children()`은 **한 겹만**, `modules()`는 **나무 전체**를 준다. 그리고
+`children()`은 **한 단계만**, `modules()`는 **모듈 트리 전체**를 준다. 그리고
 `modules()`는 **자기 자신도 센다** — 그래서 10개 중 하나가 루트다.
 
 이름이 점으로 이어진 형태에 주목하자. `blocks.0.fc`가 그대로 `state_dict`의 키
 앞부분이 된다. 그래서 **모델의 속성 이름을 바꾸면 옛 체크포인트를 못 읽는다.**
 「모델 체크포인트」에서 구조가 안 저장된다고 한 것의 다른 얼굴이다.
 
-고르는 기준은 간단하다. 층마다 무언가를 하려면 `modules()`, 큰 덩이 단위로
+고르는 기준은 간단하다. 층마다 무언가를 하려면 `modules()`, 큰 블록 단위로
 다루려면 `children()`.
 
 ## 4. 버퍼 — 학습되지 않는데 순전파가 고친다
 
 ```
-파라미터: ['weight', 'bias']
+파라메터: ['weight', 'bias']
 버퍼    : ['running_mean', 'running_var', 'num_batches_tracked']
 순전파 한 번 뒤 running_mean 이 바뀌었나: True
-경사는 없다: None False
+그래디언트는 없다: None False
 ```
 
-![왼쪽에 파라미터 두 개가 채워진 칸으로, 오른쪽에 버퍼 세 개가 빈 칸으로 놓인 그림. 아래에 순전파 한 번으로 버퍼가 바뀌었고 역전파는 아무것도 주지 않았다고 적혀 있다.](figures/batchnorm_buffers.svg)
+![왼쪽에 파라메터 두 개가 채워진 칸으로, 오른쪽에 버퍼 세 개가 빈 칸으로 놓인 그림. 아래에 순전파 한 번으로 버퍼가 바뀌었고 역전파는 아무것도 주지 않았다고 적혀 있다.](figures/batchnorm_buffers.svg)
 
 배치 정규화가 버퍼의 본보기다. `running_mean`은
 
@@ -351,7 +351,7 @@ eval()   running_mean 바뀌나 False  출력 평균 [5.097, 4.115, 4.784]
 
 여기서 버퍼라는 갈래가 왜 있는지가 닫힌다. **학습이 적어 두고 평가가 읽는
 쪽지**이기 때문에, 학습되지 않으면서도 저장되어야 한다. 체크포인트에서 이것이
-빠지면 구조와 가중치가 같아도 **평가가 다른 답을 낸다.**
+빠지면 구조와 웨이트가 같아도 **평가가 다른 답을 낸다.**
 
 !!! warning "뒤집는 것은 `train()`·`eval()`뿐이다"
     때가 평가 때라서 바뀌는 것이 아니라 **그 메서드를 불러서** 바뀐다. 안
@@ -359,10 +359,10 @@ eval()   running_mean 바뀌나 False  출력 평균 [5.097, 4.115, 4.784]
 
     `torch.no_grad()`로 감싸도 이 동작은 **하나도 안 바뀐다.**
     [`torch.no_grad`](10_with_torch_no_grad.md)가 재어 둔 대로 둘은 다른
-    손잡이이고, 빼먹었을 때의 결과도 다르다 — `no_grad`를 빼면 느려지고,
+    설정이고, 빼먹었을 때의 결과도 다르다 — `no_grad`를 빼면 느려지고,
     `eval()`을 빼면 **답이 틀린다.**
 
-세 성질이 다 필요해서 버퍼라는 갈래가 따로 있다. 파라미터로 두면 옵티마이저가
+세 성질이 다 필요해서 버퍼라는 갈래가 따로 있다. 파라메터로 두면 옵티마이저가
 건드리려 들고, 그냥 속성으로 두면 저장도 장치 이동도 안 된다.
 
 ```
@@ -372,16 +372,16 @@ state_dict 키:
   ...
 ```
 
-![테두리 둘이 겹쳐 그려진 그림. 안쪽 테두리는 옵티마이저가 움직이는 파라미터 여덟 개 202 수를 감싸고, 바깥 테두리는 그것과 버퍼 하나를 함께 감싸 저장 파일에 들어가는 범위를 나타낸다. 버퍼는 안쪽 테두리 밖에 있다.](figures/params_vs_buffers.svg)
+![테두리 둘이 겹쳐 그려진 그림. 안쪽 테두리는 옵티마이저가 움직이는 파라메터 여덟 개 202 수를 감싸고, 바깥 테두리는 그것과 버퍼 하나를 함께 감싸 저장 파일에 들어가는 범위를 나타낸다. 버퍼는 안쪽 테두리 밖에 있다.](figures/params_vs_buffers.svg)
 
-그래서 **파라미터 수와 저장 파일 크기가 안 맞는다.** 수를 셀 때는 빠지고 저장할
+그래서 **파라메터 수와 저장 파일 크기가 안 맞는다.** 수를 셀 때는 빠지고 저장할
 때는 들어가므로, 둘을 견주려면 버퍼도 더해야 한다. 그림의 **안쪽 테두리가
 바깥보다 좁은 것**이 그 말이다.
 
 ## 5. 층마다 세기 — `recurse=False`가 필요하다
 
 ```
-이름                       종류                 파라미터
+이름                       종류                 파라메터
 stem                     Linear               40
 blocks.0.fc              Linear               72
 blocks.0.act             ReLU                  0
@@ -392,7 +392,7 @@ head                     Linear               18
 ```
 
 `m.parameters()`는 **자식 것까지** 준다. 그래서 모든 모듈을 돌며 더하면 같은
-파라미터를 여러 번 센다 — 루트가 전부를, `blocks`가 블록 둘을, 각 블록이 제
+파라메터를 여러 번 센다 — 루트가 전부를, `blocks`가 블록 둘을, 각 블록이 제
 것을 다시.
 
 `recurse=False`를 주면 **그 층이 제 몫으로 가진 것**만 센다. 그러면 합이
@@ -453,19 +453,19 @@ head                     Linear               18
             self.bad = [nn.Linear(2, 2) for _ in range(3)]
 
     m = WithList()
-    print("  ModuleList 의 파라미터:", len(list(m.good.parameters())))
-    print("  전체 파라미터 수      :", len(list(m.parameters())))
+    print("  ModuleList 의 파라메터:", len(list(m.good.parameters())))
+    print("  전체 파라메터 수      :", len(list(m.parameters())))
     print("  state_dict 키:", list(m.state_dict().keys()))
     ```
 
     ```
-      ModuleList 의 파라미터: 6
-      전체 파라미터 수      : 6
+      ModuleList 의 파라메터: 6
+      전체 파라메터 수      : 6
       state_dict 키: ['good.0.weight', 'good.0.bias', 'good.1.weight',
                       'good.1.bias', 'good.2.weight', 'good.2.bias']
     ```
 
-    **`bad`는 아예 없는 것처럼 취급된다.** 전체 파라미터가 6개뿐이고
+    **`bad`는 아예 없는 것처럼 취급된다.** 전체 파라메터가 6개뿐이고
     `state_dict`에 `bad`가 한 줄도 없다.
 
     그냥 파이썬 리스트에 담으면 `nn.Module`이 그것을 등록하지 못한다.

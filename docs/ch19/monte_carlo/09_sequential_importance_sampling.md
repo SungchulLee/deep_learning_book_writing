@@ -1,6 +1,6 @@
 # 순차 중요도 샘플링
 
-고정된 파라메터 입자의 웨이트를 새 관측의 우도로 갱신한다. 재표집이 웨이트 집중을 줄이는 효과와 입자 다양성을 잃는 효과를 구분하는 순차 베이즈 예제다.
+고정된 파라메터 입자의 웨이트를 새 관측의 가능도(likelihood, 우도라고도 한다)로 갱신한다. 재표집이 웨이트 집중을 줄이는 효과와 입자 다양성을 잃는 효과를 구분하는 순차 베이즈 예제다.
 
 ## 1. 코드
 
@@ -10,45 +10,45 @@
     """
     09_sequential_importance_sampling.py
 
-    앞선 단계: 차례차례 중요도 표집(SIS)
+    고급 단계: 순차 중요도 샘플링(SIS)
 
-    이 단원은 차례차례 중요도 표집을 구현한다.
-    자료를 차례로 다루고 차례차례 베이즈 추론을 하는 데 쓴다.
+    이 단원은 순차 중요도 샘플링을 구현한다.
+    데이터를 순차적으로 처리하고 순차 베이즈 추론을 하는 데 쓴다.
 
-    수학적 바탕:
+    수학적 기초:
     ---------------------
-    차례차례 중요도 표집은 새 자료가 올 때마다 중요도 무게를 새로 고친다:
+    순차 중요도 샘플링은 새 데이터가 올 때마다 중요도 웨이트를 갱신한다:
 
-    시간 t에 자료 y₁:t = (y₁, ..., y_t)이 있다
+    시간 t에 데이터 y₁:t = (y₁, ..., y_t)가 있다
 
-    뒤확률: p(θ|y₁:t) ∝ p(y₁:t|θ)p(θ)
+    사후분포: p(θ|y₁:t) ∝ p(y₁:t|θ)p(θ)
 
-    차례차례 인수 나누기:
+    순차 인수분해:
         p(θ|y₁:t) ∝ p(yt|θ, y₁:t₋₁) × p(θ|y₁:t₋₁)
 
-    중요도 무게 새로 고치기:
+    중요도 웨이트 갱신:
         w_t(θ) ∝ w_t₋₁(θ) × p(yt|θ, y₁:t₋₁) / q_t(θ|y₁:t, θ₁:t₋₁)
 
-    붙박인 제안 q(θ)에서(맞춰 가지 않을 때):
+    고정 제안 q(θ)에서(적응하지 않을 때):
         w_t(θ) ∝ w_t₋₁(θ) × p(yt|θ)
 
-    무게가 시간에 따라 곱해져 다음에 이른다:
+    웨이트가 시간에 따라 곱해져 다음 문제에 이른다:
 
-    무게 찌부러짐 문제:
-    - 무게가 점점 더 고르지 않게 된다
-    - 시간이 갈수록 ESS이 줄어든다
-    - 끝내 몇몇 알갱이가 판친다
+    웨이트 퇴화(weight degeneracy) 문제:
+    - 웨이트가 점점 더 불균등해진다
+    - 시간이 갈수록 ESS가 줄어든다
+    - 결국 몇몇 입자가 지배한다
 
-    풀이:
-    1. 다시 표집(알갱이 필터)
-    2. 맞춰 가는 제안
-    3. 지킴 섞기
+    해결책:
+    1. 재표집(입자 필터)
+    2. 적응 제안
+    3. 방어적 혼합
 
-    쓰임새:
-    - 차례차례 베이즈 새로 고치기
+    응용:
+    - 순차 베이즈 갱신
     - 시계열 분석
-    - 흐름 속 러닝
-    - 알갱이 필터
+    - 온라인 학습
+    - 입자 필터
 
     지은이: 베이즈 추론 교육 자료
     """
@@ -65,7 +65,7 @@
 
     class SequentialImportanceSampler:
         """
-        다시 표집을 붙일 수 있는 차례차례 중요도 표집.
+        재표집을 붙일 수 있는 순차 중요도 샘플링.
         """
 
         def __init__(self, prior_dist, proposal_dist):
@@ -73,7 +73,7 @@
             파라메터:
             -----------
             prior_dist : scipy.stats distribution
-                앞확률 분포 p(θ)
+                사전분포 p(θ)
             proposal_dist : scipy.stats distribution
                 제안 분포 q(θ)
             """
@@ -89,12 +89,12 @@
 
         def initialize(self, n_particles: int):
             """
-            제안에서 알갱이 첫값 잡기.
+            제안에서 입자 초기화하기.
             """
             self.n_particles = n_particles
             self.particles = self.proposal_dist.rvs(size=n_particles)
 
-            # 첫 무게: w₀(θ) = p(θ)/q(θ)
+            # 초기 웨이트: w₀(θ) = p(θ)/q(θ)
             self.log_weights = (
                 self.prior_dist.logpdf(self.particles) -
                 self.proposal_dist.logpdf(self.particles)
@@ -110,18 +110,18 @@
 
         def update(self, likelihood_fn, y_new):
             """
-            새 관측으로 무게 새로 고치기.
+            새 관측으로 웨이트 갱신하기.
 
             파라메터:
             -----------
             likelihood_fn : 호출 가능 객체
                 함수: likelihood_fn(theta, y) -> 가능도 값
             y_new : 관측
-                새 자료 점
+                새 데이터 점
             """
             self.t += 1
 
-            # 로그 무게 새로 고치기: log w_t = log w_{t-1} + log p(y_t|θ)
+            # 로그 웨이트 갱신: log w_t = log w_{t-1} + log p(y_t|θ)
             log_likelihoods = np.array([
                 likelihood_fn(theta, y_new) for theta in self.particles
             ])
@@ -138,26 +138,26 @@
             return ess
 
         def _normalize_weights(self):
-            """안정을 위해 log-sum-exp으로 무게 고르게 하기."""
+            """안정을 위해 log-sum-exp로 웨이트 정규화하기."""
             self.log_weights = self.log_weights - logsumexp(self.log_weights)
             self.weights = np.exp(self.log_weights)
 
         def compute_ess(self):
-            """실효 표본 크기 셈하기."""
+            """유효 표본 크기 계산하기."""
             return 1.0 / np.sum(self.weights**2)
 
         def resample(self, threshold=0.5):
             """
-            ESS이 임계값 아래로 떨어지면 알갱이 다시 표집하기.
+            ESS가 임계값 아래로 떨어지면 입자 재표집하기.
 
-            다항 다시 표집: 알갱이를 되돌려 놓으며 뽑는다
-            무게에 따라.
+            다항 재표집: 웨이트에 따라 입자를
+            복원 추출한다.
             """
             ess = self.compute_ess()
             rel_ess = ess / self.n_particles
 
             if rel_ess < threshold:
-                # 다항 다시 표집
+                # 다항 재표집
                 indices = np.random.choice(
                     self.n_particles,
                     size=self.n_particles,
@@ -167,23 +167,23 @@
 
                 self.particles = self.particles[indices]
 
-                # 무게를 고르게 되돌리기
+                # 웨이트를 균등하게 되돌리기
                 self.log_weights = np.zeros(self.n_particles)
                 self.weights = np.ones(self.n_particles) / self.n_particles
 
-                return True  # 다시 표집함
+                return True  # 재표집함
 
-            return False  # 다시 표집 없음
+            return False  # 재표집 없음
 
         def estimate(self, h_function):
             """
-            E[h(θ)|y₁:t]의 무게 어림값 셈하기.
+            E[h(θ)|y₁:t]의 가중 추정값 계산하기.
             """
             return np.sum(self.weights * h_function(self.particles))
 
         def credible_interval(self, alpha=0.95):
             """
-            무게 분위수로 믿음 구간 셈하기.
+            가중 분위수로 신용구간 계산하기.
             """
             sorted_indices = np.argsort(self.particles)
             sorted_particles = self.particles[sorted_indices]
@@ -197,7 +197,7 @@
             return sorted_particles[lower_idx], sorted_particles[upper_idx]
 
 
-    # 보기 1: 차례차례 베이즈 새로 고치기(정규 평균)
+    # 보기 1: 순차 베이즈 갱신(정규 평균)
     # ===================================================
     print("=" * 70)
     print("EXAMPLE 1: Sequential Bayesian Updating")
@@ -205,31 +205,31 @@
 
     print("""
     모형: σ² = 1을 아는 yᵢ ~ N(θ, σ²)
-    앞확률: θ ~ N(0, 4)
-    자료를 차례로 다루며 ESS이 나빠지는 것 지켜보기.
+    사전분포: θ ~ N(0, 4)
+    데이터를 순차적으로 처리하며 ESS가 나빠지는 것 관찰하기.
     """)
 
     # 참 파라메터
     theta_true = 2.5
     sigma = 1.0
 
-    # 차례 있는 자료 만들기
+    # 순차 데이터 생성하기
     n_obs = 50
     data_seq = np.random.normal(theta_true, sigma, n_obs)
 
     print(f"\nTrue θ = {theta_true}")
     print(f"Generated {n_obs} observations sequentially")
 
-    # 앞확률과 제안
+    # 사전분포와 제안
     prior = stats.norm(0, 2)
-    proposal = stats.norm(0, 2)  # 앞확률을 제안으로 씀
+    proposal = stats.norm(0, 2)  # 사전분포를 제안으로 씀
 
     # 가능도 함수
     def likelihood_normal(theta, y):
         """관측 하나의 로그 가능도."""
         return stats.norm.logpdf(y, theta, sigma)
 
-    # SIS 첫값 잡기
+    # SIS 초기화하기
     n_particles = 2000
     sis = SequentialImportanceSampler(prior, proposal)
     sis.initialize(n_particles)
@@ -237,15 +237,15 @@
     print(f"\nInitialized {n_particles} particles")
     print(f"Initial ESS: {sis.ess_history[0]:.1f}")
 
-    # 견주기 위한, 손으로 구한 뒤확률
+    # 견주기 위한 해석적 사후분포
     def analytical_posterior(y_data, sigma, mu_0, tau_0):
-        """흩어짐을 알 때 손으로 구한 뒤확률 N(μₙ, τₙ²)."""
+        """분산을 알 때의 해석적 사후분포 N(μₙ, τₙ²)."""
         n = len(y_data)
         tau_n_sq = 1.0 / (1.0/tau_0**2 + n/sigma**2)
         mu_n = tau_n_sq * (mu_0/tau_0**2 + np.sum(y_data)/sigma**2)
         return mu_n, np.sqrt(tau_n_sq)
 
-    # 자료를 차례로 다루기
+    # 데이터를 순차적으로 처리하기
     print("\nSequential Processing:")
     print(f"{'t':>3} {'y_t':>8} {'Post Mean':>10} {'ESS':>8} {'Rel ESS':>8}")
     print("-" * 50)
@@ -254,18 +254,18 @@
     posterior_stds = []
 
     for t, y_t in enumerate(data_seq):
-        # 새 관측으로 새로 고치기
+        # 새 관측으로 갱신하기
         ess = sis.update(likelihood_normal, y_t)
 
-        # 뒤확률 평균 어림하기
+        # 사후 평균 추정하기
         post_mean = sis.estimate(lambda x: x)
         posterior_means.append(post_mean)
 
-        # 손으로 구한 뒤확률
+        # 해석적 사후분포
         mu_n, tau_n = analytical_posterior(data_seq[:t+1], sigma, 0, 2)
         posterior_stds.append(tau_n)
 
-        # 관측 5개마다 찍기
+        # 관측 5개마다 출력하기
         if (t+1) % 5 == 0 or t == 0:
             print(f"{t+1:3d} {y_t:8.3f} {post_mean:10.4f} {ess:8.1f} "
                   f"{ess/n_particles:8.1%}")
@@ -281,7 +281,7 @@
     print(f"  Analytical: {final_analytical_mean:.4f}")
     print(f"  Final ESS: {sis.ess_history[-1]:.1f} ({sis.ess_history[-1]/n_particles:.1%})")
 
-    # ESS 나빠짐 그려 보기
+    # ESS 감소 시각화하기
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
     # 칸 1: 시간에 따른 ESS
@@ -298,7 +298,7 @@
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.3)
 
-    # 칸 2: 뒤확률 평균의 흘러감
+    # 칸 2: 사후 평균의 변화
     ax = axes[0, 1]
     ax.plot(range(1, len(posterior_means)+1), posterior_means, 'b-',
             linewidth=2, label='SIS estimate')
@@ -314,12 +314,12 @@
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.3)
 
-    # 칸 3: 때에 따른 무게 분포
+    # 칸 3: 시점에 따른 웨이트 분포
     ax = axes[1, 0]
     times_to_plot = [0, 10, 25, 49]
     colors_weights = ['blue', 'green', 'orange', 'red']
 
-    # 정해진 때의 무게를 얻으려 다시 돌리기
+    # 정해진 시점의 웨이트를 얻으려 다시 실행하기
     sis_temp = SequentialImportanceSampler(prior, proposal)
     sis_temp.initialize(n_particles)
     weights_over_time = [sis_temp.weights.copy()]
@@ -343,21 +343,21 @@
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
 
-    # 칸 4: 지금의 알갱이 분포
+    # 칸 4: 현재의 입자 분포
     ax = axes[1, 1]
     x_range = np.linspace(-2, 6, 1000)
 
-    # 알갱이 그리기
+    # 입자 그리기
     ax.hist(sis.particles, bins=50, weights=sis.weights, density=True,
             alpha=0.6, color='steelblue', edgecolor='black',
             label='Weighted particles')
 
-    # 참 뒤확률
+    # 참 사후분포
     true_post_dist = stats.norm(final_analytical_mean, final_analytical_std)
     ax.plot(x_range, true_post_dist.pdf(x_range), 'r-', linewidth=2,
             label='True posterior')
 
-    # 앞확률
+    # 사전분포
     ax.plot(x_range, prior.pdf(x_range), 'g--', linewidth=2,
             label='Prior', alpha=0.5)
 
@@ -374,7 +374,7 @@
                 dpi=300, bbox_inches='tight')
 
 
-    # 보기 2: 다시 표집을 붙인 SIS(알갱이 필터)
+    # 보기 2: 재표집을 붙인 SIS(입자 필터)
     # ==============================================
     print("\n" + "=" * 70)
     print("EXAMPLE 2: Sequential IS with Resampling")
@@ -382,7 +382,7 @@
 
     print("\nResampling when ESS drops below 50% threshold")
 
-    # 새 SIS 첫값 잡기
+    # 새 SIS 초기화하기
     sis_resample = SequentialImportanceSampler(prior, proposal)
     sis_resample.initialize(n_particles)
 
@@ -395,7 +395,7 @@
         sis_resample.update(likelihood_normal, y_t)
         ess = sis_resample.ess_history[-1]
 
-        # 필요하면 다시 표집하기
+        # 필요하면 재표집하기
         did_resample = sis_resample.resample(threshold=0.5)
 
         if did_resample:
@@ -407,7 +407,7 @@
 
     print(f"\nResampled {len(resampling_times)} times at t = {resampling_times}")
 
-    # 다시 표집할 때와 아닐 때의 ESS 견주기
+    # 재표집할 때와 아닐 때의 ESS 견주기
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     ax = axes[0]
@@ -427,7 +427,7 @@
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.3)
 
-    # 무게 분포 견주기
+    # 웨이트 분포 견주기
     ax = axes[1]
     ax.hist(sis.weights * n_particles, bins=50, alpha=0.5, density=True,
             color='blue', edgecolor='black', label='Without resampling')
@@ -445,13 +445,13 @@
                 dpi=300, bbox_inches='tight')
 
 
-    # 보기 3: 흐름 속 파라메터 어림
+    # 보기 3: 온라인 파라메터 추정
     # ====================================
     print("\n" + "=" * 70)
     print("EXAMPLE 3: Online Credible Intervals")
     print("=" * 70)
 
-    # 시간에 따른 믿음 구간 기록하기
+    # 시간에 따른 신용구간 기록하기
     sis_ci = SequentialImportanceSampler(prior, proposal)
     sis_ci.initialize(n_particles)
 
@@ -460,7 +460,7 @@
 
     for y_t in data_seq:
         sis_ci.update(likelihood_normal, y_t)
-        sis_ci.resample(threshold=0.5)  # 다시 표집을 붙임
+        sis_ci.resample(threshold=0.5)  # 재표집을 붙임
 
         mean = sis_ci.estimate(lambda x: x)
         ci_lower, ci_upper = sis_ci.credible_interval(alpha=0.95)
@@ -468,7 +468,7 @@
         posterior_means_ci.append(mean)
         credible_intervals.append((ci_lower, ci_upper))
 
-    # 시간에 따른 믿음 구간 그리기
+    # 시간에 따른 신용구간 그리기
     fig, ax = plt.subplots(figsize=(12, 6))
 
     t_vals = range(1, len(credible_intervals)+1)
@@ -497,65 +497,65 @@
     print("KEY TAKEAWAYS")
     print("=" * 70)
     print("""
-    1. 차례차례 중요도 표집은 자료를 조금씩 다룬다:
-       - 무게가 시간에 따라 곱해진다: w_t = w_{t-1} × p(y_t|θ)
-       - 자료를 모두 다시 다룰 필요가 없다
-       - 흐름 속 쓰임새에 쓸모 있다
+    1. 순차 중요도 샘플링은 데이터를 조금씩 처리한다:
+       - 웨이트가 시간에 따라 곱해진다: w_t = w_{t-1} × p(y_t|θ)
+       - 데이터를 모두 다시 처리할 필요가 없다
+       - 온라인 응용에 유용하다
 
-    2. 무게 찌부러짐이 근본 문제이다:
-       - 시간이 갈수록 ESS이 줄어든다
-       - 끝내 몇몇 알갱이가 판친다
-       - 알갱이가 붙박이면 피할 수 없다
+    2. 웨이트 퇴화가 근본 문제이다:
+       - 시간이 갈수록 ESS가 줄어든다
+       - 결국 몇몇 입자가 지배한다
+       - 입자가 고정되어 있으면 피할 수 없다
 
-    3. 찌부러짐 빠르기:
-       - 많은 경우 지수꼴이다
-       - 정보가 많은 자료에서 더 빠르다
+    3. 퇴화 속도:
+       - 많은 경우 지수적이다
+       - 정보가 많은 데이터에서 더 빠르다
        - 좋은 제안이 있을 때는 더 느리다
 
-    4. 다시 표집은 찌부러짐에 맞선다:
-       - 무게 큰 알갱이 복제하기
-       - 무게 작은 알갱이 버리기
-       - 무게를 고르게 되돌리기
-       - 알갱이의 다양함을 잃게 한다
+    4. 재표집은 퇴화를 완화한다:
+       - 웨이트가 큰 입자 복제하기
+       - 웨이트가 작은 입자 버리기
+       - 웨이트를 균등하게 되돌리기
+       - 입자의 다양성을 잃게 한다
 
-    5. 다시 표집 전략:
-       - 임계값 방식: ESS < 임계값이면 다시 표집
-       - 주기적: k스텝마다 다시 표집
-       - 맞춰 감: ESS이나 다른 잣대에 바탕
+    5. 재표집 전략:
+       - 임계값 방식: ESS < 임계값이면 재표집
+       - 주기적: k스텝마다 재표집
+       - 적응적: ESS나 다른 기준에 기반
 
-    6. 다시 표집의 주고받음:
-       - 이로움: 실효 표본 크기를 지킨다
-       - 값: 알갱이의 다양함을 잃는다(표본 메마름)
-       - 값: 표집의 흔들림이 더 생긴다
+    6. 재표집의 트레이드오프:
+       - 이점: 유효 표본 크기를 유지한다
+       - 비용: 입자의 다양성을 잃는다(표본 빈곤화)
+       - 비용: 샘플링 변동이 더 생긴다
 
-    7. 알갱이 필터 = SIS + 다시 표집:
+    7. 입자 필터 = SIS + 재표집:
        - 시계열에서 널리 쓰인다
        - 상태 공간 모형
-       - 뒤쫓기 쓰임새
-       - 로봇 공학과 길 찾기
+       - 추적 응용
+       - 로봇 공학과 내비게이션
 
-    8. 차례차례 중요도 표집을 언제 쓰나:
-       - 자료가 차례로 온다
-       - 흐름 속 러닝의 상황
-       - 셈의 제약(자료를 모두 다시 다룰 수 없다)
+    8. 순차 중요도 샘플링을 언제 쓰나:
+       - 데이터가 순차적으로 들어온다
+       - 온라인 학습 상황
+       - 계산 제약(데이터를 모두 다시 처리할 수 없다)
        - 시계열 분석
 
-    9. 실전에서 살필 점:
-       - ESS을 끊임없이 지켜보기
-       - ESS < 0.5n(또는 0.3n)이면 다시 표집하기
-       - 될 수 있으면 맞춰 가는 제안 쓰기
-       - 아주 긴 늘어놓음에는 알갱이 MCMC 생각해 보기
+    9. 실전에서의 고려 사항:
+       - ESS를 계속 모니터링하기
+       - ESS < 0.5n(또는 0.3n)이면 재표집하기
+       - 될 수 있으면 적응 제안 쓰기
+       - 아주 긴 시퀀스에는 입자 MCMC 고려하기
 
     10. 한계:
-        - 다시 표집에 따른 표본 메마름
-        - 붙박인 알갱이는 새 구역을 살펴볼 수 없다
-        - 배치 방법만큼 튼튼하지는 않다
-        - 다시 표집 임계값을 꼼꼼히 맞춰야 한다
+        - 재표집에 따른 표본 빈곤화
+        - 고정된 입자는 새 영역을 탐색할 수 없다
+        - 배치 방법만큼 강건하지는 않다
+        - 재표집 임계값을 세심하게 조정해야 한다
 
-    11. 다른 길과 개선:
-        - 맞춰 가는 제안(붙박인 것보다 낫다)
-        - 도움 알갱이 필터
-        - 알갱이 MCMC(되살리기)
+    11. 대안과 개선:
+        - 적응 제안(고정 제안보다 낫다)
+        - 보조 입자 필터
+        - 입자 MCMC(재활성화)
         - 라오-블랙웰화(할 수 있을 때)
     """)
 
@@ -573,8 +573,8 @@
     ======================================================================
 
     모형: σ² = 1을 아는 yᵢ ~ N(θ, σ²)
-    앞확률: θ ~ N(0, 4)
-    자료를 차례로 다루며 ESS이 나빠지는 것 지켜보기.
+    사전분포: θ ~ N(0, 4)
+    데이터를 순차적으로 처리하며 ESS가 나빠지는 것 관찰하기.
 
 
     True θ = 2.5
@@ -636,65 +636,65 @@
     KEY TAKEAWAYS
     ======================================================================
 
-    1. 차례차례 중요도 표집은 자료를 조금씩 다룬다:
-       - 무게가 시간에 따라 곱해진다: w_t = w_{t-1} × p(y_t|θ)
-       - 자료를 모두 다시 다룰 필요가 없다
-       - 흐름 속 쓰임새에 쓸모 있다
+    1. 순차 중요도 샘플링은 데이터를 조금씩 처리한다:
+       - 웨이트가 시간에 따라 곱해진다: w_t = w_{t-1} × p(y_t|θ)
+       - 데이터를 모두 다시 처리할 필요가 없다
+       - 온라인 응용에 유용하다
 
-    2. 무게 찌부러짐이 근본 문제이다:
-       - 시간이 갈수록 ESS이 줄어든다
-       - 끝내 몇몇 알갱이가 판친다
-       - 알갱이가 붙박이면 피할 수 없다
+    2. 웨이트 퇴화가 근본 문제이다:
+       - 시간이 갈수록 ESS가 줄어든다
+       - 결국 몇몇 입자가 지배한다
+       - 입자가 고정되어 있으면 피할 수 없다
 
-    3. 찌부러짐 빠르기:
-       - 많은 경우 지수꼴이다
-       - 정보가 많은 자료에서 더 빠르다
+    3. 퇴화 속도:
+       - 많은 경우 지수적이다
+       - 정보가 많은 데이터에서 더 빠르다
        - 좋은 제안이 있을 때는 더 느리다
 
-    4. 다시 표집은 찌부러짐에 맞선다:
-       - 무게 큰 알갱이 복제하기
-       - 무게 작은 알갱이 버리기
-       - 무게를 고르게 되돌리기
-       - 알갱이의 다양함을 잃게 한다
+    4. 재표집은 퇴화를 완화한다:
+       - 웨이트가 큰 입자 복제하기
+       - 웨이트가 작은 입자 버리기
+       - 웨이트를 균등하게 되돌리기
+       - 입자의 다양성을 잃게 한다
 
-    5. 다시 표집 전략:
-       - 임계값 방식: ESS < 임계값이면 다시 표집
-       - 주기적: k스텝마다 다시 표집
-       - 맞춰 감: ESS이나 다른 잣대에 바탕
+    5. 재표집 전략:
+       - 임계값 방식: ESS < 임계값이면 재표집
+       - 주기적: k스텝마다 재표집
+       - 적응적: ESS나 다른 기준에 기반
 
-    6. 다시 표집의 주고받음:
-       - 이로움: 실효 표본 크기를 지킨다
-       - 값: 알갱이의 다양함을 잃는다(표본 메마름)
-       - 값: 표집의 흔들림이 더 생긴다
+    6. 재표집의 트레이드오프:
+       - 이점: 유효 표본 크기를 유지한다
+       - 비용: 입자의 다양성을 잃는다(표본 빈곤화)
+       - 비용: 샘플링 변동이 더 생긴다
 
-    7. 알갱이 필터 = SIS + 다시 표집:
+    7. 입자 필터 = SIS + 재표집:
        - 시계열에서 널리 쓰인다
        - 상태 공간 모형
-       - 뒤쫓기 쓰임새
-       - 로봇 공학과 길 찾기
+       - 추적 응용
+       - 로봇 공학과 내비게이션
 
-    8. 차례차례 중요도 표집을 언제 쓰나:
-       - 자료가 차례로 온다
-       - 흐름 속 러닝의 상황
-       - 셈의 제약(자료를 모두 다시 다룰 수 없다)
+    8. 순차 중요도 샘플링을 언제 쓰나:
+       - 데이터가 순차적으로 들어온다
+       - 온라인 학습 상황
+       - 계산 제약(데이터를 모두 다시 처리할 수 없다)
        - 시계열 분석
 
-    9. 실전에서 살필 점:
-       - ESS을 끊임없이 지켜보기
-       - ESS < 0.5n(또는 0.3n)이면 다시 표집하기
-       - 될 수 있으면 맞춰 가는 제안 쓰기
-       - 아주 긴 늘어놓음에는 알갱이 MCMC 생각해 보기
+    9. 실전에서의 고려 사항:
+       - ESS를 계속 모니터링하기
+       - ESS < 0.5n(또는 0.3n)이면 재표집하기
+       - 될 수 있으면 적응 제안 쓰기
+       - 아주 긴 시퀀스에는 입자 MCMC 고려하기
 
     10. 한계:
-        - 다시 표집에 따른 표본 메마름
-        - 붙박인 알갱이는 새 구역을 살펴볼 수 없다
-        - 배치 방법만큼 튼튼하지는 않다
-        - 다시 표집 임계값을 꼼꼼히 맞춰야 한다
+        - 재표집에 따른 표본 빈곤화
+        - 고정된 입자는 새 영역을 탐색할 수 없다
+        - 배치 방법만큼 강건하지는 않다
+        - 재표집 임계값을 세심하게 조정해야 한다
 
-    11. 다른 길과 개선:
-        - 맞춰 가는 제안(붙박인 것보다 낫다)
-        - 도움 알갱이 필터
-        - 알갱이 MCMC(되살리기)
+    11. 대안과 개선:
+        - 적응 제안(고정 제안보다 낫다)
+        - 보조 입자 필터
+        - 입자 MCMC(재활성화)
         - 라오-블랙웰화(할 수 있을 때)
 
     ```
@@ -704,15 +704,15 @@
 
 ### 고정 파라메터의 순차 갱신
 
-초기 입자 θ_i~q에 p(θ_i)/q(θ_i)를 부여하고, 조건부 독립 관측마다 이전 웨이트에 p(y_t|θ_i)를 곱한다. likelihood_fn이라는 이름과 달리 update는 로그우도를 반환하는 함수를 요구한다. 코드의 정규화는 누적 로그 웨이트에서 log-sum-exp를 빼므로 양의 상수배를 제거한다.
+초기 입자 θ_i~q에 p(θ_i)/q(θ_i)를 부여하고, 조건부 독립 관측마다 이전 웨이트에 p(y_t|θ_i)를 곱한다. likelihood_fn이라는 이름과 달리 update는 로그가능도를 반환하는 함수를 요구한다. 코드의 정규화는 누적 로그 웨이트에서 log-sum-exp를 빼므로 양의 상수배를 제거한다.
 
 이 구현에는 동적 상태의 전이·이동 단계가 없다. 상태공간 모형의 일반적인 입자 필터 전체 구현이 아니라 정적 파라메터의 순차 재가중·재표집 예제다. 사전 N(0,4)는 분산 4, SciPy norm(0,2)는 표준편차 2로 같은 분포를 뜻한다.
 
 ### 재표집과 실제 정보량
 
-ESS가 임계값 아래이면 multinomial 재표집으로 입자를 복제하고 웨이트를 1/N으로 되돌린다. 직후 웨이트 ESS는 N이지만 복제된 입자가 독립적인 새 정보를 주는 것은 아니다. 재표집은 없는 영역의 입자를 새로 만들 수 없고 정적 파라메터에서는 다양성 로스가 누적될 수 있다. 사후를 보존하는 이동 단계나 별도의 새 입자 제안을 고려할 수 있다.
+ESS가 임계값 아래이면 multinomial 재표집으로 입자를 복제하고 웨이트를 1/N으로 되돌린다. 직후 웨이트 ESS는 N이지만 복제된 입자가 독립적인 새 정보를 주는 것은 아니다. 재표집은 없는 영역의 입자를 새로 만들 수 없고 정적 파라메터에서는 다양성 손실이 누적될 수 있다. 사후를 보존하는 이동 단계나 별도의 새 입자 제안을 고려할 수 있다.
 
-ess_history는 update 직후이면서 resample 이전 값을 저장한다. 따라서 그래프의 ESS와 실제 재표집 직후 웨이트 ESS는 다를 수 있다. initialize는 history를 지우지 않으므로 같은 객체의 재실행 기록에도 주의한다. 자료를 더 관측할 때 ESS가 항상 단조 감소하거나 고정된 지수 속도로 감소하는 것은 아니다.
+ess_history는 update 직후이면서 resample 이전 값을 저장한다. 따라서 그래프의 ESS와 실제 재표집 직후 웨이트 ESS는 다를 수 있다. initialize는 history를 지우지 않으므로 같은 객체의 재실행 기록에도 주의한다. 데이터를 더 관측할 때 ESS가 항상 단조 감소하거나 고정된 지수 속도로 감소하는 것은 아니다.
 
 ### 구간과 표시 범위
 
@@ -746,7 +746,7 @@ update와 credible_interval의 입력 조건은 무엇인가?
 
 ??? success "풀이"
 
-    입자를 먼저 초기화하고 likelihood_fn은 각 θ·관측에 로그우도를 반환해야 한다. 입자 수는 양수, 구간 질량 alpha는 0과 1 사이이며 로그 웨이트가 모두 −∞인 경우를 처리해야 한다.
+    입자를 먼저 초기화하고 likelihood_fn은 각 θ·관측에 로그가능도를 반환해야 한다. 입자 수는 양수, 구간 질량 alpha는 0과 1 사이이며 로그 웨이트가 모두 −∞인 경우를 처리해야 한다.
 
 
 
@@ -755,7 +755,7 @@ update와 credible_interval의 입력 조건은 무엇인가?
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-재표집 직후 ESS=N이면 정보 로스가 회복되는가?
+재표집 직후 ESS=N이면 정보 손실이 회복되는가?
 
 </div>
 
@@ -776,7 +776,7 @@ update와 credible_interval의 입력 조건은 무엇인가?
 
 ??? success "풀이"
 
-    같은 자료의 배치·순차 로그우도 웨이트 일치, 해석적 정규 사후, 정렬된 가중 분위수와 재표집 전후 웨이트·입자 중복을 확인한다. 아래 model(x)·backward 인터페이스는 이 클래스에 없다.
+    같은 데이터의 배치·순차 로그가능도 웨이트 일치, 해석적 정규 사후, 정렬된 가중 분위수와 재표집 전후 웨이트·입자 중복을 확인한다. 아래 model(x)·backward 인터페이스는 이 클래스에 없다.
 
     ```python
     def test_sequentialimportancesampler():
@@ -785,10 +785,10 @@ update와 credible_interval의 입력 조건은 무엇인가?
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
@@ -798,4 +798,4 @@ update와 credible_interval의 입력 조건은 무엇인가?
 
 ## 정리하며
 
-고정된 파라메터 입자의 웨이트를 새 관측의 우도로 갱신한다. 재표집이 웨이트 집중을 줄이는 효과와 입자 다양성을 잃는 효과를 구분하는 순차 베이즈 예제다. 웨이트 진단과 실제 계산식을 함께 확인하고, 보존된 출력의 고정 결론을 일반적인 보장으로 받아들이지 않는다.
+고정된 파라메터 입자의 웨이트를 새 관측의 가능도로 갱신한다. 재표집이 웨이트 집중을 줄이는 효과와 입자 다양성을 잃는 효과를 구분하는 순차 베이즈 예제다. 웨이트 진단과 실제 계산식을 함께 확인하고, 보존된 출력의 고정 결론을 일반적인 보장으로 받아들이지 않는다.

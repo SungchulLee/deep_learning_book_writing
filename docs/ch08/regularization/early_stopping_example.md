@@ -1,6 +1,6 @@
 # 조기 종료 예제
 
-고정 횟수 학습과 검증 로스 기반 조기 종료를 비교한다. 검증으로 종료 시점을 선택하고 별도 테스트셋에서 평가한다.
+고정 횟수 학습과 검증 로스 기반 조기 종료를 비교한다. 검증으로 종료 시점을 선택하고 별도 시험 집합에서 평가한다.
 
 ## 1. 코드
 
@@ -63,7 +63,7 @@ class EarlyStopping:
             self.best_score = score
             self.counter = 0
             if self.restore_best_weights:
-                # deepcopy가 필요하다. state_dict()는 살아 있는 파라미터
+                # deepcopy가 필요하다. state_dict()는 살아 있는 파라메터
                 # 텐서를 그대로 가리키므로, 그냥 담아 두면 다음 step()이
                 # 그 텐서를 덮어써 "가장 좋았던 웨이트"가 현재 웨이트를
                 # 따라 계속 바뀌어 버린다
@@ -123,7 +123,7 @@ def train_without_early_stopping(X_train, y_train, X_val, y_val, epochs=200):
 
     history = {'loss': [], 'accuracy': [], 'val_loss': [], 'val_accuracy': []}
     # 200 에포크를 끝까지 돈다. 검증 로스가 돌아선 뒤에도 계속 학습하므로
-    # 아래 조기 종료 판본과 견주면 과적합이 눈에 들어온다
+    # 아래 조기 종료 버전과 견주면 과적합이 눈에 들어온다
     for _ in range(epochs):
         tl, ta = run_epoch(model, train_loader, criterion, optimizer)
         vl, va = run_epoch(model, val_loader, criterion)
@@ -166,7 +166,7 @@ def train_with_early_stopping(X_train, y_train, X_val, y_val,
 
 
 def train_with_advanced_early_stopping(X_train, y_train, X_val, y_val, epochs=200):
-    """러닝레이트 감소와 검사점 저장을 함께 쓰는 학습."""
+    """러닝레이트 감소와 체크포인트 저장을 함께 쓰는 학습."""
     print("Training with ADVANCED early stopping (multiple callbacks)...")
     torch.manual_seed(42)
     model = create_model(X_train.shape[1])
@@ -199,7 +199,7 @@ def train_with_advanced_early_stopping(X_train, y_train, X_val, y_val, epochs=20
         # 스케줄러는 검증 로스를 보고 판단하므로 그 값을 넘겨 준다
         scheduler.step(vl)
 
-        # 검사점 저장. 정확도가 가장 높았던 순간의 웨이트를 따로 담아 둔다.
+        # 체크포인트 저장. 정확도가 가장 높았던 순간의 웨이트를 따로 담아 둔다.
         # 주의: 이쪽은 정확도를 보는데 위의 조기 종료는 로스를 본다.
         # 두 지표의 최고점이 같은 에포크라는 보장이 없으므로, 여기 담긴
         # best_state와 아래에서 복원되는 웨이트가 서로 다를 수 있다.
@@ -296,7 +296,7 @@ def main():
     print(f"Validation set: {X_val.shape}")
     print(f"Test set: {X_test.shape}\n")
 
-    # 텐서로 옮긴다. 목표는 (N, 1)이어야 (N, 1)인 출력과 방송되지 않는다
+    # 텐서로 옮긴다. 목표는 (N, 1)이어야 (N, 1)인 출력과 브로드캐스팅되지 않는다
     X_train = torch.FloatTensor(X_train)
     y_train = torch.FloatTensor(y_train).reshape(-1, 1)
     X_val = torch.FloatTensor(X_val)
@@ -432,7 +432,7 @@ EarlyStopping은 이전 에포크보다 좋아졌는지가 아니라 저장한 b
 
 최선 상태는 deepcopy로 별도 저장한다. restore를 호출해야 그 상태로 돌아가며, 단순히 루프에서 break하는 것만으로 복원이 되지는 않는다. min_delta를 넘지 않은 작은 개선은 저장 기준상 개선으로 취급되지 않을 수 있다.
 
-데이터는 학습·검증·테스트로 분리하고 scaler는 학습 입력으로만 맞춘다. 검증 지표는 선택에 사용되므로 마지막 테스트 결과와 역할이 다르다. 스케줄러와 조합할 때는 러닝레이트 변경 후 회복할 시간을 patience가 허용하는지도 살핀다.
+데이터는 학습·검증·시험로 분리하고 scaler는 학습 입력으로만 맞춘다. 검증 지표는 선택에 사용되므로 마지막 시험 결과와 역할이 다르다. 스케줄러와 조합할 때는 러닝레이트 변경 후 회복할 시간을 patience가 허용하는지도 살핀다.
 
 ## 연습문제
 
@@ -463,12 +463,12 @@ best_score=0.50, min_delta=0.01일 때 0.495는 개선으로 인정되는가?
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-검증셋을 테스트셋 대신 사용해야 하는 이유를 설명하라.
+검증 집합을 시험 집합 대신 사용해야 하는 이유를 설명하라.
 
 </div>
 
 ??? success "풀이"
-    종료 시점은 학습된 모델을 선택하는 하이퍼파라미터이다. 같은 데이터에서 선택과 최종 평가를 반복하면 선택 효과가 성능 추정에 들어간다. 별도 테스트는 선택을 마친 모델에 사용한다.
+    종료 시점은 학습된 모델을 선택하는 하이퍼파라메터이다. 같은 데이터에서 선택과 최종 평가를 반복하면 선택 효과가 성능 추정에 들어간다. 별도 시험 집합은 선택을 마친 모델에 사용한다.
 
 ---
 
@@ -488,17 +488,17 @@ best_score=0.50, min_delta=0.01일 때 0.495는 개선으로 인정되는가?
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 
-조기 종료의 결과는 개선 판정, 대기 횟수와 복원 상태에 달려 있다. 이 구현의 깊은 복사와 명시적인 복원을 확인하고 학습·검증·테스트의 역할을 유지한다.
+조기 종료의 결과는 개선 판정, 대기 횟수와 복원 상태에 달려 있다. 이 구현의 깊은 복사와 명시적인 복원을 확인하고 학습·검증·시험의 역할을 유지한다.

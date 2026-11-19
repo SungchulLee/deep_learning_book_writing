@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 torch.manual_seed(42)
 
 # XOR 문제. 입력 네 가지와 그 정답이 전부다.
-# 이 문제가 유명한 까닭은 선형으로 갈리지 않기 때문이다. 평면에
+# 이 문제가 유명한 까닭은 선형 분리가 되지 않기 때문이다. 평면에
 # 직선 하나를 어떻게 그어도 (0,1),(1,0)을 (0,0),(1,1)에서 떼어 낼 수 없다.
 # 곧 은닉 레이어가 없는 뉴럴 네트워크는 정확도 75%를 넘지 못한다.
 X = torch.tensor([[0., 0.], [0., 1.], [1., 0.], [1., 1.]])
@@ -25,7 +25,7 @@ class TwoLayerNet(nn.Module):
         self.fc1 = nn.Linear(input_size, hidden_size)
         # 이 ReLU가 이 예제의 전부다. 이것이 없으면 두 선형 레이어의 합성이
         # 다시 선형이 되어 레이어를 아무리 쌓아도 XOR을 풀 수 없다.
-        # 비선형이 있어야 은닉 레이어가 입력을 갈릴 수 있는 자리로 옮겨 준다
+        # 비선형이 있어야 은닉 레이어가 입력을 선형 분리 가능한 표현으로 옮겨 준다
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(hidden_size, output_size)
         # 출력을 [0,1]로 눌러 확률로 읽는다. 아래 BCELoss가 확률을 받기 때문이다
@@ -55,7 +55,7 @@ for epoch in range(5000):
     loss.backward()                 # 역전파
     optimizer.step()                # 한 스텝 옮긴다
 
-model.eval()   # 평가 결로 바꾼다(여기서는 드롭아웃이 없어 차이가 없지만 버릇을 들인다)
+model.eval()   # 평가 모드로 바꾼다(여기서는 드롭아웃이 없어 차이가 없지만 버릇을 들인다)
 with torch.no_grad():   # 그래디언트가 필요 없으므로 추적을 끈다
     predictions = model(X)
     # 확률 0.5를 임계값으로 0과 1을 정한다

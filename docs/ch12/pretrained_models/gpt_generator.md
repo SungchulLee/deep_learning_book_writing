@@ -26,7 +26,7 @@ class GPTGenerator(nn.Module):
         seq_len = x.size(1)
         x = self.embedding(x) + self.pos_encoding[:, :seq_len, :]
 
-        # 인과 가림을 만든다
+        # 인과 마스크를 만든다
         mask = torch.triu(
             torch.ones(seq_len, seq_len), diagonal=1
         ).bool().to(x.device)
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    출력 모양은 (2,64,5000)이지만 마스크 검사는 목표 셀프 어텐션만 다룬다. 미래 토큰을 바꿨을 때 과거 위치 로짓이 그대로인지도 확인해야 한다. 현재 구현은 교차 어텐션 메모리에 미래 입력이 남아 있어 그 조건을 만족하는 인과 모델이 아니다.
+    출력 형태는 (2,64,5000)이지만 마스크 검사는 목표 셀프 어텐션만 다룬다. 미래 토큰을 바꿨을 때 과거 위치 로짓이 그대로인지도 확인해야 한다. 현재 구현은 교차 어텐션 메모리에 미래 입력이 남아 있어 그 조건을 만족하는 인과 모델이 아니다.
 
     ```python
     model = GPTGenerator(vocab_size=5000)
@@ -68,10 +68,10 @@ if __name__ == "__main__":
     output = model(x)
     print(f"Output shape: {output.shape}")  # (2, 64, 5000)
 
-    # 인과 가림을 확인한다
+    # 인과 마스크를 확인한다
     mask = torch.triu(torch.ones(64, 64), diagonal=1).bool()
     print(f"Mask shape: {mask.shape}")       # (64, 64)
-    print(f"Mask[0, 0] = {mask[0, 0]}")     # False (주의할 수 있다)
+    print(f"Mask[0, 0] = {mask[0, 0]}")     # False (어텐션할 수 있다)
     print(f"Mask[0, 1] = {mask[0, 1]}")     # True (막혔다)
     ```
 

@@ -6,9 +6,9 @@
 
 ```python
 """
-교차 어텐션 장치 구현
+크로스 어텐션 메커니즘 구현
 =========================================
-이 모듈은 인코더-디코더 구조에서 쓰는 교차 어텐션 장치를 구현한다.
+이 모듈은 인코더-디코더 구조에서 쓰는 크로스 어텐션 메커니즘을 구현한다.
 """
 
 import torch
@@ -23,9 +23,9 @@ import math
 
 class CrossAttention(nn.Module):
     """
-    교차 어텐션 레이어
+    크로스 어텐션 레이어
     
-    질의는 한 순차열(디코더 따위)에서, 열쇠와 값은 다른 순차열(인코더 따위)에서
+    쿼리는 한 시퀀스(디코더 따위)에서, 키와 값은 다른 시퀀스(인코더 따위)에서
     오는 어텐션을 계산한다.
     트랜스포머 디코더 레이어에서 인코더의 출력에 주목할 때 쓴다.
     """
@@ -64,9 +64,9 @@ class CrossAttention(nn.Module):
 
 class MultiHeadCrossAttention(nn.Module):
     """
-    다중 머리 교차 어텐션
+    멀티헤드 크로스 어텐션
     
-    머리를 여럿 두어 교차 어텐션의 표현을 풍부하게 한다.
+    헤드를 여럿 두어 크로스 어텐션의 표현을 풍부하게 한다.
     """
     
     def __init__(self, query_dim, key_dim, embed_dim, num_heads, dropout=0.1):
@@ -116,7 +116,7 @@ class EncoderDecoderAttention(nn.Module):
     """
     완전한 인코더-디코더 어텐션 블록
     
-    (디코더의) 자기 어텐션과 (인코더-디코더의) 교차 어텐션을 모두 담고 있다.
+    (디코더의) 셀프 어텐션과 (인코더-디코더의) 크로스 어텐션을 모두 담고 있다.
     트랜스포머 디코더의 전형적인 블록이다.
     """
     
@@ -162,7 +162,7 @@ class EncoderDecoderAttention(nn.Module):
 
 
 def demonstrate_cross_attention():
-    """기본 교차 어텐션 시연"""
+    """기본 크로스 어텐션 시연"""
     print("=" * 60)
     print("Cross-Attention Demo")
     print("=" * 60)
@@ -187,7 +187,7 @@ def demonstrate_cross_attention():
 
 
 def demonstrate_multi_head_cross_attention():
-    """다중 머리 교차 어텐션 시연"""
+    """멀티헤드 크로스 어텐션 시연"""
     print("\n" + "=" * 60)
     print("Multi-Head Cross-Attention Demo")
     print("=" * 60)
@@ -278,9 +278,9 @@ Cross-attention weights shape: torch.Size([2, 8, 4, 6])
 
 ## 2. 논의
 
-CrossAttention은 쿼리·키·값을 공통 차원으로 투영한 뒤 점수와 가중합을 구한다. 쿼리 길이가 Q, 원본 길이가 S이면 단일 헤드 웨이트는 $(B,Q,S)$다. 멀티헤드는 $(B,h,Q,S)$의 웨이트를 만들고 헤드별 문맥을 이어 붙여 출력 레이어에 전달한다. 같은 모델 차원에서 헤드 수를 바꿔도 네 투영레이어의 파라메터 수는 같다.
+CrossAttention은 쿼리·키·값을 공통 차원으로 투영한 뒤 점수와 가중합을 구한다. 쿼리 길이가 Q, 원본 길이가 S이면 단일 헤드 웨이트는 $(B,Q,S)$다. 멀티헤드는 $(B,h,Q,S)$의 웨이트를 만들고 헤드별 문맥을 이어 붙여 출력 레이어에 전달한다. 같은 모델 차원에서 헤드 수를 바꿔도 네 투영 레이어의 파라메터 수는 같다.
 
-EncoderDecoderAttention은 셀프 어텐션, 크로스 어텐션과 피드포워드 부분레이어를 잔차·LayerNorm과 결합한 블록이다. 위치 표현과 토큰 임베딩, 출력 어휘레이어를 포함한 전체 디코더는 아니다. self_attn_mask의 기본값은 None이며 실행 예제도 마스크를 주지 않으므로 인과적 디코더로 동작한다고 설명할 수 없다.
+EncoderDecoderAttention은 셀프 어텐션, 크로스 어텐션과 피드포워드 서브레이어를 잔차·LayerNorm과 결합한 블록이다. 위치 표현과 토큰 임베딩, 출력 어휘 레이어를 포함한 전체 디코더는 아니다. self_attn_mask의 기본값은 None이며 실행 예제도 마스크를 주지 않으므로 인과적 디코더로 동작한다고 설명할 수 없다.
 
 각 마스크는 점수 형태에 브로드캐스트 가능해야 하고 이 사용자 정의 구현은 0을 제외 위치로 쓴다. 전부 가려진 행은 NaN이 생길 수 있다. 반환 웨이트는 드롭아웃 적용 후여서 학습 모드에서는 합이 반드시 1이 아니다. 헤드가 각각 문법·의미 역할을 분담한다고 보장되지 않으며 평균하면 헤드별 차이가 사라질 수 있다.
 
@@ -289,7 +289,7 @@ EncoderDecoderAttention은 셀프 어텐션, 크로스 어텐션과 피드포워
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-인코더 출력의 모양이 $(B, 10, 256)$이고 디코더 쿼리의 모양이 $(B, 1, 256)$이며 헤드가 8개인 크로스 어텐션 레이어를 생각해 보자. `MultiHeadCrossAttention` 모듈의 학습 가능한 파라메터 총수를 (바이어스를 넣어) 계산하라.
+인코더 출력의 형태가 $(B, 10, 256)$이고 디코더 쿼리의 형태가 $(B, 1, 256)$이며 헤드가 8개인 크로스 어텐션 레이어를 생각해 보자. `MultiHeadCrossAttention` 모듈의 학습 가능한 파라메터 총수를 (바이어스를 넣어) 계산하라.
 
 </div>
 
@@ -338,7 +338,7 @@ EncoderDecoderAttention은 셀프 어텐션, 크로스 어텐션과 피드포워
         with torch.no_grad():
             _, _, cross_weights = block(decoder_input, encoder_output)
         
-        # 머리에 걸쳐 평균: (1, num_heads, decoder_len, encoder_len) -> (decoder_len, encoder_len)
+        # 헤드에 걸쳐 평균: (1, num_heads, decoder_len, encoder_len) -> (decoder_len, encoder_len)
         alignment = cross_weights[0].mean(dim=0).numpy()
         
         fig, ax = plt.subplots(figsize=(8, 6))

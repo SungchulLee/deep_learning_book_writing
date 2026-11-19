@@ -1,6 +1,6 @@
-# 시퀀스 레이블링을 위한 조건부 랜덤 필드
+# 시퀀스 라벨링을 위한 조건부 랜덤 필드
 
-선형 사슬 조건부 랜덤 필드(CRF)는 입력 X가 주어졌을 때 레이블 열 Y의 조건부 분포를 모델링한다. 뉴럴 인코더의 위치별 점수와 인접 레이블 전이 점수를 합해 전체 열을 정규화한다. 점수는 실수값의 잠재 함수이며 그 자체가 확률·우도인 것은 아니다. CRF를 붙이는 것만으로 BIO 규칙이 자동 강제되지는 않는다.
+선형 사슬 조건부 랜덤 필드(CRF)는 입력 X가 주어졌을 때 라벨 열 Y의 조건부 분포를 모델링한다. 뉴럴 인코더의 위치별 점수와 인접 라벨 전이 점수를 합해 전체 열을 정규화한다. 점수는 실수값의 퍼텐셜(potential) 함수이며 그 자체가 확률·가능도(likelihood, 우도라고도 한다)인 것은 아니다. CRF를 붙이는 것만으로 BIO 규칙이 자동 강제되지는 않는다.
 
 ## 1. 시퀀스 점수와 전이 방향
 
@@ -12,9 +12,9 @@ $$S(X,Y)=s_{y_1}+\sum_{i=1}^{n}E_{i,y_i}
 $$p(Y\mid X)=\exp[S(X,Y)-\log Z(X)],\qquad
 Z(X)=\sum_{Y'\in\mathcal Y(X)}\exp S(X,Y').$$
 
-전이만 이웃 레이블을 연결하더라도 E는 전체 입력 X를 보는 BiLSTM·트랜스포머에서 만들 수 있다. 유효 태그 열 집합에 제한을 두려면 시작·종료·전이 제약을 일관되게 적용한다. 학습용 정답은 같은 집합 안에 있어야 한다.
+전이만 이웃 라벨을 연결하더라도 E는 전체 입력 X를 보는 BiLSTM·트랜스포머에서 만들 수 있다. 유효 태그 열 집합에 제한을 두려면 시작·종료·전이 제약을 일관되게 적용한다. 학습용 정답은 같은 집합 안에 있어야 한다.
 
-## 2. 순방향 알고리즘과 로그우도
+## 2. 순방향 알고리즘과 로그가능도
 
 모든 K^n개 열을 열거하는 대신, i위치의 b로 끝나는 부분 열들의 로그합 α_i(b)를 계산한다.
 
@@ -26,7 +26,7 @@ $$\log Z(X)=\operatorname{logsumexp}_{b}[\alpha_n(b)+e_b].$$
 
 logsumexp는 큰 값의 지수 overflow 등을 피하도록 안정적으로 계산한다. 전체 경로가 금지된 경우처럼 모든 입력이−∞이면 별도의 유효 경로 처리가 필요하다. 복잡도는 O(nK²)이고 순방향 값만 갱신하면 O(K) 상태를 유지할 수 있다. 실제 배치·자동미분 중간 텐서·Viterbi 역추적 저장량은 따로 계산한다.
 
-정답 Y*의 음의 로그우도는 L=log Z−S(X,Y*)다. 제약과 점수가 같은 정상화된 분포이면0이상이다. emission 경사는 주변확률−정답 지시값이며 전이 경사는 해당 전이의 기대 횟수−관측 횟수다. 전체 시퀀스 로스의 평균과 토큰 수로 나누는 평균은 서로 다른 가중 방식이다.
+정답 Y*의 음의 로그가능도는 L=log Z−S(X,Y*)다. 제약과 점수가 같은 정규화된 분포이면0이상이다. emission 그래디언트는 주변확률−정답 지시값이며 전이 그래디언트는 해당 전이의 기대 횟수−관측 횟수다. 전체 시퀀스 로스의 평균과 토큰 수로 나누는 평균은 서로 다른 가중 방식이다.
 
 ## 3. Viterbi와 코드의 방향 불일치
 
@@ -39,13 +39,13 @@ from typing import List, Tuple, Optional
 
 class CRF(nn.Module):
     """
-    차례 레이블 붙이기를 위한 조건부 무작위 마당 레이어.
+    시퀀스 라벨링을 위한 조건부 랜덤 필드 레이어.
     
-    여기 짠 것이 받치는 것:
-    - 덧대기를 곁들인 배치 셈하기
-    - 수치를 든든하게 하는 로그 자리 피드포워드 알고리즘
-    - 미룸을 위한 비터비 디코딩
-    - 가리기로 거는 전이 제약
+    이 구현이 지원하는 것:
+    - 패딩을 포함한 배치 계산
+    - 수치적으로 안정한 로그 공간 순방향 알고리즘
+    - 추론을 위한 비터비 디코딩
+    - 마스킹으로 거는 전이 제약
     """
     
     def __init__(
@@ -58,9 +58,9 @@ class CRF(nn.Module):
         CRF 레이어 초기화.
         
         인수:
-            num_tags: 레이블의 개수(START와 END를 쓰면 함께)
-            batch_first: True이면 들임이 (batch, seq, features)이다
-            pad_tag_id: 덧대기용 레이블 번호(로스에서 뺀다)
+            num_tags: 라벨의 개수(START와 END를 쓰면 함께)
+            batch_first: True이면 입력이 (batch, seq, features)이다
+            pad_tag_id: 패딩용 라벨 인덱스(로스에서 뺀다)
         """
         super().__init__()
         
@@ -69,7 +69,7 @@ class CRF(nn.Module):
         self.pad_tag_id = pad_tag_id
         
         # 전이 행렬: transitions[i, j] = j -> i의 점수
-        # 효율적인 셈을 위한 (next_tag, current_tag) 번호 매김
+        # 효율적인 계산을 위한 (next_tag, current_tag) 인덱싱
         self.transitions = nn.Parameter(torch.randn(num_tags, num_tags))
         
         # 시작과 끝 전이 점수
@@ -79,7 +79,7 @@ class CRF(nn.Module):
         self._reset_parameters()
     
     def _reset_parameters(self):
-        """파라메터를 고른 분포로 초기화."""
+        """파라메터를 균등 분포로 초기화."""
         nn.init.uniform_(self.transitions, -0.1, 0.1)
         nn.init.uniform_(self.start_transitions, -0.1, 0.1)
         nn.init.uniform_(self.end_transitions, -0.1, 0.1)
@@ -92,16 +92,16 @@ class CRF(nn.Module):
         reduction: str = 'mean'
     ) -> torch.Tensor:
         """
-        음의 로그 가능도 로스 셈하기.
+        음의 로그 가능도 로스 계산하기.
         
         인수:
-            emissions: 내보냄 점수 (batch, seq_len, num_tags)
-            tags: 참값 레이블 (batch, seq_len)
-            mask: 불 마스크 (batch, seq_len). 쓸 수 있는 자리는 True
+            emissions: emission 점수 (batch, seq_len, num_tags)
+            tags: 정답 라벨 (batch, seq_len)
+            mask: 불리언 마스크 (batch, seq_len). 유효한 자리는 True
             reduction: 'none', 'mean', 또는 'sum'
             
         반환값:
-            로스 값(reduction에 따라 홑값이거나 표본마다)
+            로스 값(reduction에 따라 스칼라이거나 표본마다)
         """
         if not self.batch_first:
             emissions = emissions.transpose(0, 1)
@@ -112,10 +112,10 @@ class CRF(nn.Module):
         if mask is None:
             mask = torch.ones_like(tags, dtype=torch.bool)
         
-        # 참값 차례의 점수 셈하기
+        # 정답 시퀀스의 점수 계산하기
         gold_score = self._compute_score(emissions, tags, mask)
         
-        # 나눔 함수 셈하기(모든 차례에 대한 로그-합-지수)
+        # 분배 함수 계산하기(모든 시퀀스에 대한 logsumexp)
         partition = self._compute_partition(emissions, mask)
         
         # 음의 로그 가능도
@@ -137,7 +137,7 @@ class CRF(nn.Module):
         mask: torch.Tensor
     ) -> torch.Tensor:
         """
-        참값 레이블 차례의 점수 셈하기.
+        정답 라벨 시퀀스의 점수 계산하기.
         
         인수:
             emissions: (batch, seq_len, num_tags)
@@ -145,29 +145,29 @@ class CRF(nn.Module):
             mask: (batch, seq_len)
             
         반환값:
-            배치 안 차례마다의 점수 (batch,)
+            배치 안 시퀀스마다의 점수 (batch,)
         """
         batch_size, seq_len, _ = emissions.shape
         
         # 시작 전이 점수
         score = self.start_transitions[tags[:, 0]]
         
-        # 첫 자리의 내보냄 점수
+        # 첫 자리의 emission 점수
         score += emissions[:, 0].gather(1, tags[:, 0:1]).squeeze(1)
         
         for i in range(1, seq_len):
             # 전이 점수: tags[i-1] -> tags[i]
-            # 쓸 수 있는 자리에만 더하기
+            # 유효한 자리에만 더하기
             trans_score = self.transitions[tags[:, i], tags[:, i-1]]
             
-            # 자리 i의 내보냄 점수
+            # 자리 i의 emission 점수
             emit_score = emissions[:, i].gather(1, tags[:, i:i+1]).squeeze(1)
             
-            # 가리기: 쓸 수 있는 자리만 고치기
+            # 마스킹: 유효한 자리만 갱신하기
             score += (trans_score + emit_score) * mask[:, i].float()
         
         # 끝 전이 점수
-        # 차례마다 마지막으로 쓸 수 있는 자리 찾기
+        # 시퀀스마다 마지막 유효 자리 찾기
         seq_lengths = mask.sum(dim=1).long()
         last_tags = tags.gather(1, (seq_lengths - 1).unsqueeze(1)).squeeze(1)
         score += self.end_transitions[last_tags]
@@ -180,42 +180,42 @@ class CRF(nn.Module):
         mask: torch.Tensor
     ) -> torch.Tensor:
         """
-        피드포워드 알고리즘으로 로그 나눔 함수 셈하기.
+        순방향 알고리즘으로 로그 분배 함수 계산하기.
         
         인수:
             emissions: (batch, seq_len, num_tags)
             mask: (batch, seq_len)
             
         반환값:
-            차례마다의 로그 나눔 함수 (batch,)
+            시퀀스마다의 로그 분배 함수 (batch,)
         """
         batch_size, seq_len, num_tags = emissions.shape
         
-        # 시작 전이와 첫 내보냄으로 초기화
+        # 시작 전이와 첫 emission으로 초기화
         # alpha: (batch, num_tags)
         alpha = self.start_transitions + emissions[:, 0]
         
         for i in range(1, seq_len):
-            # 가능한 모든 전이에 퍼뜨리기
+            # 가능한 모든 전이에 브로드캐스트하기
             # alpha_expand: (batch, num_tags, 1)
-            # transitions: (num_tags, num_tags) -> (batch, num_tags, num_tags)로 퍼뜨림
+            # transitions: (num_tags, num_tags) -> (batch, num_tags, num_tags)로 브로드캐스트
             # emissions_expand: (batch, 1, num_tags)
             
             alpha_expand = alpha.unsqueeze(2)  # (batch, num_tags, 1)
             emit_scores = emissions[:, i].unsqueeze(1)  # (batch, 1, num_tags)
             
-            # 아무 레이블에서 아무 레이블로 넘어가는 점수
+            # 아무 라벨에서 아무 라벨로 넘어가는 점수
             # (batch, num_tags, num_tags)
             scores = alpha_expand + self.transitions + emit_scores
             
-            # 앞 레이블에 대한 로그-합-지수
+            # 앞 라벨에 대한 logsumexp
             new_alpha = torch.logsumexp(scores, dim=1)  # (batch, num_tags)
             
-            # 가리기: 덧댄 자리는 옛 alpha 유지
+            # 마스킹: 패딩 자리는 이전 alpha 유지
             mask_i = mask[:, i].unsqueeze(1)  # (batch, 1)
             alpha = torch.where(mask_i, new_alpha, alpha)
         
-        # 끝 전이를 더하고 마지막 로그-합-지수를 셈하기
+        # 끝 전이를 더하고 마지막 logsumexp를 계산하기
         alpha = alpha + self.end_transitions
         return torch.logsumexp(alpha, dim=1)
     
@@ -225,14 +225,14 @@ class CRF(nn.Module):
         mask: Optional[torch.Tensor] = None
     ) -> List[List[int]]:
         """
-        비터비 알고리즘으로 가장 그럴듯한 레이블 차례 찾기.
+        비터비 알고리즘으로 점수가 가장 높은 라벨 시퀀스 찾기.
         
         인수:
             emissions: (batch, seq_len, num_tags)
             mask: (batch, seq_len)
             
         반환값:
-            배치 항목마다의 레이블 차례 목록
+            배치 항목마다의 라벨 시퀀스 목록
         """
         if not self.batch_first:
             emissions = emissions.transpose(0, 1)
@@ -251,14 +251,14 @@ class CRF(nn.Module):
         mask: torch.Tensor
     ) -> List[List[int]]:
         """
-        비터비 디코딩 짜기.
+        비터비 디코딩 구현.
         
         인수:
             emissions: (batch, seq_len, num_tags)
             mask: (batch, seq_len)
             
         반환값:
-            가장 좋은 레이블 차례의 목록
+            가장 좋은 라벨 시퀀스의 목록
         """
         batch_size, seq_len, num_tags = emissions.shape
         
@@ -266,11 +266,11 @@ class CRF(nn.Module):
         # score: (batch, num_tags)
         score = self.start_transitions + emissions[:, 0]
         
-        # 뒤 마스크 저장
+        # 역추적 포인터 저장
         history = []
         
         for i in range(1, seq_len):
-            # 모든 전이에 퍼뜨리기
+            # 모든 전이에 브로드캐스트하기
             # score: (batch, num_tags, 1)
             # transitions: (num_tags, num_tags)
             broadcast_score = score.unsqueeze(2)
@@ -280,44 +280,44 @@ class CRF(nn.Module):
             # (batch, num_tags, num_tags)
             next_score = broadcast_score + self.transitions + broadcast_emission
             
-            # 지금 레이블마다 가장 좋은 앞 레이블
+            # 지금 라벨마다 가장 좋은 앞 라벨
             # (batch, num_tags)
             next_score, indices = next_score.max(dim=1)
             
-            # 뒤 마스크 저장
+            # 역추적 포인터 저장
             history.append(indices)
             
-            # 가리기: 덧댄 자리는 옛 점수 유지
+            # 마스킹: 패딩 자리는 이전 점수 유지
             mask_i = mask[:, i].unsqueeze(1)
             score = torch.where(mask_i, next_score, score)
         
         # 끝 전이 더하기
         score = score + self.end_transitions
         
-        # 가장 좋은 마지막 레이블 얻기
+        # 가장 좋은 마지막 라벨 얻기
         seq_lengths = mask.sum(dim=1).long()
         
-        # 되짚기
+        # 역추적
         best_tags_list = []
         
         for idx in range(batch_size):
-            # 마지막 자리의 가장 좋은 레이블
+            # 마지막 자리의 가장 좋은 라벨
             _, best_last_tag = score[idx].max(dim=0)
             best_tags = [best_last_tag.item()]
             
-            # 발자취를 되짚기
+            # 저장한 포인터를 따라 역추적하기
             for hist in reversed(history[:seq_lengths[idx] - 1]):
                 best_last_tag = hist[idx][best_tags[-1]]
                 best_tags.append(best_last_tag.item())
             
-            # 앞 차례를 얻으려 뒤집기
+            # 순방향 순서를 얻으려 뒤집기
             best_tags.reverse()
             best_tags_list.append(best_tags)
         
         return best_tags_list
 ```
 
-위 코드에는 중요한 전이 방향 불일치가 있다. `_compute_score`의 정답 점수는 `transitions[next,prev]`를 쓰지만 partition·Viterbi는 `transitions[prev,next]`로 계산한다. 비대칭 전이에서는 정답 점수와 정규화가 **다른 모델**이므로 반환값이 올바른 CRF 음의 로그우도가 아니며 음수가 될 수도 있다. 전이 방향을 한 관례로 통일하기 전에는 이 구현이 정상적인 CRF 학습·추론을 수행한다고 설명할 수 없다.
+위 코드에는 중요한 전이 방향 불일치가 있다. `_compute_score`의 정답 점수는 `transitions[next,prev]`를 쓰지만 partition·Viterbi는 `transitions[prev,next]`로 계산한다. 비대칭 전이에서는 정답 점수와 정규화가 **다른 모델**이므로 반환값이 올바른 CRF 음의 로그가능도가 아니며 음수가 될 수도 있다. 전이 방향을 한 관례로 통일하기 전에는 이 구현이 정상적인 CRF 학습·추론을 수행한다고 설명할 수 없다.
 
 기본 입력은 B×L×K emission, B×L 태그·bool mask다. batch_first=False일 때 시간·배치 축을 바꾼다. 첫 위치가 유효하고 적어도1토큰이며 mask는 오른쪽 패딩 형태의 연속 prefix라고 가정한다. 첫 위치는 mask를 확인하지 않고 사용하고, 마지막 태그도 mask 합−1로 고르므로 빈 열·중간이 비는 mask에는 맞지 않는다.
 
@@ -328,7 +328,7 @@ class CRF(nn.Module):
 ```python
 class BiLSTMCRF(nn.Module):
     """
-    차례 레이블 붙이기를 위한 양방향 LSTM-CRF 모델.
+    시퀀스 라벨링을 위한 양방향 LSTM-CRF 모델.
     
     구조:
         임베딩 → 양방향 LSTM → 선형 → CRF
@@ -353,7 +353,7 @@ class BiLSTMCRF(nn.Module):
         
         self.lstm = nn.LSTM(
             embedding_dim,
-            hidden_dim // 2,  # 양방향이면 숨은 크기가 두 배
+            hidden_dim // 2,  # 양방향이면 은닉 크기가 두 배
             num_layers=num_layers,
             batch_first=True,
             bidirectional=True,
@@ -362,7 +362,7 @@ class BiLSTMCRF(nn.Module):
         
         self.dropout = nn.Dropout(dropout)
         
-        # LSTM의 내놓음을 레이블 공간으로 내리쬐기
+        # LSTM의 출력을 라벨 공간으로 사영하기
         self.hidden2tag = nn.Linear(hidden_dim, num_tags)
         
         # CRF 레이어
@@ -374,19 +374,19 @@ class BiLSTMCRF(nn.Module):
         attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        양방향 LSTM에서 내보냄 점수 얻기.
+        양방향 LSTM에서 emission 점수 얻기.
         
         인수:
             input_ids: (batch, seq_len)
             attention_mask: (batch, seq_len)
             
         반환값:
-            내보냄 점수 (batch, seq_len, num_tags)
+            emission 점수 (batch, seq_len, num_tags)
         """
         embeddings = self.embedding(input_ids)
         embeddings = self.dropout(embeddings)
         
-        # 효율적인 LSTM 셈을 위해 덧댄 차례 묶기
+        # 효율적인 LSTM 계산을 위해 패딩된 시퀀스 묶기(pack)
         if attention_mask is not None:
             lengths = attention_mask.sum(dim=1).cpu()
             packed = nn.utils.rnn.pack_padded_sequence(
@@ -411,7 +411,7 @@ class BiLSTMCRF(nn.Module):
         attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        익히기용 로스 셈하기.
+        학습용 로스 계산하기.
         
         인수:
             input_ids: (batch, seq_len)
@@ -434,14 +434,14 @@ class BiLSTMCRF(nn.Module):
         attention_mask: Optional[torch.Tensor] = None
     ) -> List[List[int]]:
         """
-        비터비 디코딩로 레이블 차례 예측하기.
+        비터비 디코딩으로 라벨 시퀀스 예측하기.
         
         인수:
             input_ids: (batch, seq_len)
             attention_mask: (batch, seq_len)
             
         반환값:
-            예측한 레이블 차례의 목록
+            예측한 라벨 시퀀스의 목록
         """
         emissions = self._get_emissions(input_ids, attention_mask)
         
@@ -451,7 +451,7 @@ class BiLSTMCRF(nn.Module):
 
 BiLSTMCRF는 embedding·양방향 LSTM·선형 emission·CRF를 연결한다. hidden_dim//2를 방향별 크기로 쓰고 선형 입력은 hidden_dim이므로 hidden_dim은 짝수여야 한다. packed sequence는 양의 유효 길이와 오른쪽 패딩을 가정한다. unpack 때 total_length를 지정하지 않아 출력은 배치의 최대 유효 길이로 줄어들 수 있다. 입력 전체 패딩 길이를 유지한다고 가정하지 말고 emission·목표·mask의 대응을 명시한다.
 
-predict는 eval·no_grad를 자체 적용하지 않는다. 추론 호출자가 모드와 경사 추적을 정해야 dropout과 메모리 사용을 제어할 수 있다. CRF의 mask와 LSTM의 packing, embedding의 padding_idx는 서로 다른 기능이다.
+predict는 eval·no_grad를 자체 적용하지 않는다. 추론 호출자가 모드와 그래디언트 추적을 정해야 dropout과 메모리 사용을 제어할 수 있다. CRF의 mask와 LSTM의 packing, embedding의 padding_idx는 서로 다른 기능이다.
 
 ```python
 from transformers import AutoModel
@@ -487,7 +487,7 @@ class TransformerCRF(nn.Module):
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor
     ) -> torch.Tensor:
-        """트랜스포머에서 내보냄 점수 얻기."""
+        """트랜스포머에서 emission 점수 얻기."""
         outputs = self.transformer(
             input_ids=input_ids,
             attention_mask=attention_mask
@@ -505,7 +505,7 @@ class TransformerCRF(nn.Module):
         attention_mask: torch.Tensor,
         labels: torch.Tensor
     ) -> torch.Tensor:
-        """CRF 로스 셈하기."""
+        """CRF 로스 계산하기."""
         emissions = self._get_emissions(input_ids, attention_mask)
         loss = self.crf(emissions, labels, mask=attention_mask.bool())
         return loss
@@ -515,14 +515,14 @@ class TransformerCRF(nn.Module):
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor
     ) -> List[List[int]]:
-        """비터비 디코딩로 예측하기."""
+        """비터비 디코딩으로 예측하기."""
         emissions = self._get_emissions(input_ids, attention_mask)
         return self.crf.decode(emissions, mask=attention_mask.bool())
 ```
 
 TransformerCRF는 사전 학습 인코더의 각 토큰 피처에서 태그 점수를 만든다. 특수 토큰·서브워드 목표를 실제 CRF 태그 열에 어떻게 정렬할지 정해야 한다. Transformer의 attention_mask를 그대로 CRF mask로 쓰면 `[CLS]`·`[SEP]`도 보통 유효 위치가 된다. 뒤 서브워드를−100으로 무시하는 CE 관례를 이 CRF에 그대로 쓸 수 없다. 유효 단어를 모아 연속 열로 만들거나 그에 맞는 별도 설계가 필요하다.
 
-freeze_encoder는 인코더 파라메터의 경사를 끌 뿐 model.train()에서 dropout을 자동 고정하지는 않는다. 사전 학습 토큰화·입력과 학습하려는 태그 집합의 계약을 함께 확인한다.
+freeze_encoder는 인코더 파라메터의 그래디언트를 끌 뿐 model.train()에서 dropout을 자동 고정하지는 않는다. 사전 학습 토큰화·입력과 학습하려는 태그 집합의 계약을 함께 확인한다.
 
 ## 5. IOB2 제약의 적용
 
@@ -539,7 +539,7 @@ def apply_iob2_constraints(
     
     인수:
         crf: 고칠 CRF 레이어
-        tag_to_idx: 레이블 이름에서 번호로의 대응
+        tag_to_idx: 라벨 이름에서 인덱스로의 매핑
         penalty: 올바르지 않은 전이의 점수
     """
     idx_to_tag = {v: k for k, v in tag_to_idx.items()}
@@ -566,7 +566,7 @@ def apply_iob2_constraints(
                 crf.start_transitions.data[i] = penalty
 ```
 
-이 함수는 `transitions[next,prev]` 관례로 금지 전이·시작 점수를−10000으로 **한 번 대입**한다. partition·Viterbi의 반대 관례와도 맞지 않는다. 또한 유한 벌점은 경로를 수학적으로 제거하지 않으며 optimizer가 이후 값을 바꿀 수 있다. 매 순전파에서 적용하는 고정 마스크 등 지속적인 제약과 구분한다.
+이 함수는 `transitions[next,prev]` 관례로 금지 전이·시작 점수를−10000으로 **한 번 대입**한다. partition·Viterbi의 반대 관례와도 맞지 않는다. 또한 유한 패널티는 경로를 수학적으로 제거하지 않으며 optimizer가 이후 값을 바꿀 수 있다. 매 순전파에서 적용하는 고정 마스크 등 지속적인 제약과 구분한다.
 
 진짜−∞를 적용하는 설계에서도 금지 점수×패딩0은NaN이 될 수 있으므로 mask 처리와 수치 연산 순서를 검토해야 한다. 학습 정규화·정답 점수·디코딩에서 같은 경로 집합을 쓰는 것이 핵심이다. IOB2의 종료에는 O·B·I가 가능하고 시작에는 I를 허용하지 않는다.
 
@@ -583,7 +583,7 @@ def train_ner_model(
     scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None
 ):
     """
-    CRF를 갖춘 개체명 인식 모델의 익히기 되풀이.
+    CRF를 갖춘 개체명 인식 모델의 학습 루프.
     """
     best_f1 = 0.0
     
@@ -602,7 +602,7 @@ def train_ner_model(
             loss = model(input_ids, labels, attention_mask)
             loss.backward()
             
-            # 안정성을 위한 그래디언트 자르기
+            # 안정성을 위한 그래디언트 클리핑
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             
             optimizer.step()
@@ -627,7 +627,7 @@ def train_ner_model(
                 
                 predictions = model.predict(input_ids, attention_mask)
                 
-                # 예측과 레이블 모으기
+                # 예측과 라벨 모으기
                 for pred, label, mask in zip(
                     predictions,
                     labels.cpu().numpy(),
@@ -637,7 +637,7 @@ def train_ner_model(
                     all_preds.append(pred[:seq_len])
                     all_labels.append(label[:seq_len].tolist())
         
-        # F1 점수 셈하기
+        # F1 점수 계산하기
         f1 = compute_entity_f1(all_labels, all_preds)
         
         print(f"Epoch {epoch+1}/{num_epochs}")
@@ -654,9 +654,9 @@ def train_ner_model(
 
 루프의 `model(input_ids,labels,attention_mask)`는 BiLSTMCRF의 인수 순서다. TransformerCRF는 `(input_ids,attention_mask,labels)`라 같은 호출을 쓰면 두 텐서가 뒤바뀐다. 키워드 인수나 공통 인터페이스가 필요하며 모델 자체의 장치도 호출 전에 맞춰야 한다.
 
-scheduler는 배치마다 인수 없이 step하므로 배치 단위 폴리시를 가정한다. epoch 단위나 검증 지표를 요구하는 스케줄러와 그대로 호환되는 범용 루프는 아니다. 출력 로스도 단순 배치 평균이어서 마지막 작은 배치가 다른 가중을 받을 수 있다.
+scheduler는 배치마다 인수 없이 step하므로 배치 단위 정책을 가정한다. epoch 단위나 검증 지표를 요구하는 스케줄러와 그대로 호환되는 범용 루프는 아니다. 출력 로스도 단순 배치 평균이어서 마지막 작은 배치가 다른 가중을 받을 수 있다.
 
-`compute_entity_f1`은 정의되어 있지 않다. 태그 ID를 문자열·span으로 바꾸는 매핑, 특수·패딩 위치와 무효 태그 폴리시를 포함한 정확 span 평가가 별도로 필요하다. best_f1이0에서 시작하므로 개선이 없으면 파일을 저장하지 않고, 저장한 최고 모델을 끝에 복원하지도 않는다. 검증을 재사용한 최고 점수와 독립 시험 성능을 구분한다.
+`compute_entity_f1`은 정의되어 있지 않다. 태그 ID를 문자열·span으로 바꾸는 매핑, 특수·패딩 위치와 무효 태그 정책을 포함한 정확 span 평가가 별도로 필요하다. best_f1이0에서 시작하므로 개선이 없으면 파일을 저장하지 않고, 저장한 최고 모델을 끝에 복원하지도 않는다. 검증을 재사용한 최고 점수와 독립 시험 성능을 구분한다.
 
 ## 연습문제
 
@@ -669,7 +669,7 @@ scheduler는 배치마다 인수 없이 step하므로 배치 단위 폴리시를
 
 ??? success "풀이"
 
-    정답 점수는 전이 [next,prev], partition과 Viterbi는 [prev,next]를 쓴다. 비대칭 전이에서 같은 점수 함수를 사용하지 않아 log Z−정답 점수가 정상화된 −log 확률이 아니다. 모든 경로의 전이 관례를 통일해야 한다.
+    정답 점수는 전이 [next,prev], partition과 Viterbi는 [prev,next]를 쓴다. 비대칭 전이에서 같은 점수 함수를 사용하지 않아 log Z−정답 점수가 정규화된 −log 확률이 아니다. 모든 경로의 전이 관례를 통일해야 한다.
 
 
 

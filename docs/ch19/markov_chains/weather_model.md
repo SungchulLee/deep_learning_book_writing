@@ -10,7 +10,7 @@
     """
     weather_model.py (단원 07)
 
-    마르코프 사슬로 날씨 본뜨기
+    마르코프 사슬 날씨 모델링
     ====================================
 
     Location: 06_markov_chain/03_applications/
@@ -18,30 +18,30 @@
     예상 시간: 2~3시간
 
     학습 목표:
-    - 마르코프 사슬로 실제 현상 본뜨기
-    - 자료로 옮김 행렬 어림하기
-    - 날씨 미리보기
-    - 오래 뒤의 날씨 무늬 살피기
+    - 마르코프 사슬로 실제 현상 모델링하기
+    - 데이터로 전이 행렬 추정하기
+    - 날씨 예측하기
+    - 장기 날씨 패턴 분석하기
 
-    수학적 바탕:
-    다음을 놓으면 날씨를 마르코프 사슬로 본뜰 수 있다:
-    - 내일 날씨는 오늘 날씨에만 달렸다
-    - 옮김 확률이 시간에 고르다(일정하다)
+    수학적 배경:
+    다음을 가정하면 날씨를 마르코프 사슬로 모델링할 수 있다:
+    - 내일 날씨는 오늘 날씨에만 의존한다
+    - 전이 확률이 시간에 따라 변하지 않는다(시간 동질성)
 
-    이는 간추린 것이지만 무늬를 이해하는 데 쓸모 있다.
+    이는 단순화이지만 패턴을 이해하는 데 유용하다.
 
-    쓰임새:
-    지난 날씨 자료가 있으면 다음을 할 수 있다:
-    1. 옮김 확률 어림하기
-    2. 앞으로의 날씨 미리보기
-    3. 날씨 클래스별로 오래 뒤의 잦기 셈하기
+    응용:
+    과거 날씨 데이터가 있으면 다음을 할 수 있다:
+    1. 전이 확률 추정하기
+    2. 미래 날씨 예측하기
+    3. 날씨 상태별 장기 빈도 계산하기
     """
 
     import numpy as np
     import matplotlib.pyplot as plt
     from collections import Counter
 
-    # 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+    # 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
     # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
     np.random.seed(0)
 
@@ -52,14 +52,14 @@
 
     class WeatherMarkovChain:
         """
-        날씨 미리보기를 위한 마르코프 사슬 모형.
+        날씨 예측을 위한 마르코프 사슬 모형.
 
         상태에는 보통 맑음, 흐림, 비 따위가 들어간다.
         """
 
         def __init__(self, states):
             """
-            날씨 모형 첫값 잡기.
+            날씨 모형 초기화.
 
             파라메터:
                 states (list): 날씨 상태의 이름(이를테면 ['Sunny', 'Rainy'])
@@ -71,37 +71,37 @@
 
         def estimate_from_data(self, weather_sequence):
             """
-            관측한 날씨 자료로 옮김 행렬 어림하기.
+            관측한 날씨 데이터로 전이 행렬 추정하기.
 
             파라메터:
-                weather_sequence (list): 관측한 날씨 상태의 늘어놓음
+                weather_sequence (list): 관측한 날씨 상태의 시퀀스
 
             반환값:
-                np.ndarray: 어림한 옮김 행렬
+                np.ndarray: 추정한 전이 행렬
 
-            수학 방법:
-            최대 가능도 어림(MLE):
-            P̂[i][j] = (i에서 j로 간 옮김의 수) / (상태 i에 머문 횟수)
+            수학적 방법:
+            최대가능도 추정(MLE):
+            P̂[i][j] = (i에서 j로 간 전이의 수) / (상태 i에 머문 횟수)
 
-            이것이 잦기 어림꼴이다:
+            이것이 빈도 추정량이다:
             P̂[i][j] = N_{ij} / Σ_k N_{ik}
-            여기서 N_{ij} = 관측한 옮김 i → j의 횟수
+            여기서 N_{ij} = 관측한 전이 i → j의 횟수
             """
-            # 옮김 세기
-            # transition_counts[i][j] = 상태 i에서 상태 j으로 간 옮김의 수
+            # 전이 횟수 세기
+            # transition_counts[i][j] = 상태 i에서 상태 j로 간 전이의 수
             transition_counts = np.zeros((self.n_states, self.n_states))
 
             for t in range(len(weather_sequence) - 1):
                 current_state = weather_sequence[t]
                 next_state = weather_sequence[t + 1]
 
-                # 색인으로 바꾸기
+                # 인덱스로 바꾸기
                 i = self.state_to_idx[current_state]
                 j = self.state_to_idx[next_state]
 
                 transition_counts[i, j] += 1
 
-            # 확률을 얻으려고 고르게 하기
+            # 확률을 얻으려고 정규화하기
             # 행마다 합이 1
             row_sums = transition_counts.sum(axis=1, keepdims=True)
 
@@ -114,7 +114,7 @@
 
         def predict_next_day(self, current_weather):
             """
-            내일 날씨 미리보기(확률로).
+            내일 날씨 예측하기(확률로).
 
             파라메터:
                 current_weather (str): 오늘의 날씨
@@ -122,7 +122,7 @@
             반환값:
                 dict: 내일 날씨의 확률 분포
 
-            수학의 바탕:
+            수학적 배경:
             P(X_{t+1} = j | X_t = i) = P[i][j]
             """
             if self.transition_matrix is None:
@@ -131,27 +131,27 @@
             i = self.state_to_idx[current_weather]
             probabilities = self.transition_matrix[i, :]
 
-            # 사전으로 돌려주기
+            # 딕셔너리로 반환하기
             return {state: prob for state, prob in zip(self.states, probabilities)}
 
         def predict_n_days(self, current_weather, n_days):
             """
-            n일 뒤의 날씨 분포 미리보기.
+            n일 뒤의 날씨 분포 예측하기.
 
             파라메터:
-                current_weather (str): 지금의 날씨 상태
+                current_weather (str): 현재 날씨 상태
                 n_days (int): 며칠 뒤인가
 
             반환값:
                 dict: n일 뒤의 확률 분포
 
-            수학의 바탕:
+            수학적 배경:
             P(X_{t+n} = j | X_t = i) = [P^n]_{i,j}
             """
             if self.transition_matrix is None:
                 raise ValueError("Must estimate transition matrix first")
 
-            # 첫 분포 만들기(100% current_weather)
+            # 초기 분포 만들기(100% current_weather)
             initial_dist = np.zeros(self.n_states)
             initial_dist[self.state_to_idx[current_weather]] = 1.0
 
@@ -163,14 +163,14 @@
 
         def simulate_weather(self, n_days, initial_weather):
             """
-            n일 동안의 날씨 늘어놓음 흉내내기.
+            n일 동안의 날씨 시퀀스 시뮬레이션하기.
 
             파라메터:
-                n_days (int): 흉내낼 날의 수
+                n_days (int): 시뮬레이션할 날의 수
                 initial_weather (str): 시작 날씨
 
             반환값:
-                list: 흉내낸 날씨 늘어놓음
+                list: 시뮬레이션한 날씨 시퀀스
             """
             if self.transition_matrix is None:
                 raise ValueError("Must estimate transition matrix first")
@@ -179,7 +179,7 @@
             current_idx = self.state_to_idx[initial_weather]
 
             for _ in range(n_days):
-                # 옮김 확률에 따라 다음 상태 표집
+                # 전이 확률에 따라 다음 상태 샘플링
                 probs = self.transition_matrix[current_idx, :]
                 next_idx = np.random.choice(self.n_states, p=probs)
 
@@ -190,20 +190,20 @@
 
         def stationary_distribution(self, method='eigenvector'):
             """
-            멈춘 분포 셈하기.
+            정상분포 계산하기.
 
             파라메터:
                 method (str): 'eigenvector' 또는 'power'
 
             반환값:
-                dict: 상태마다의 멈춘 확률
+                dict: 상태별 정상 확률
 
-            수학적 바탕:
-            멈춘 분포 π은 π = π × P을 만족한다
-            곧 π은 고윳값이 1인 P의 왼쪽 고유벡터라는 뜻이다.
+            수학적 배경:
+            정상분포 π는 π = π × P를 만족한다
+            곧 π는 고윳값이 1인 P의 왼쪽 고유벡터라는 뜻이다.
 
-            물리로 풀이하기:
-            날씨 상태마다 오래 보았을 때 머문 시간의 비율.
+            물리적 해석:
+            장기적으로 각 날씨 상태에 머무는 시간의 비율.
             """
             if self.transition_matrix is None:
                 raise ValueError("Must estimate transition matrix first")
@@ -213,32 +213,32 @@
                 # P^T × v = 1 × v이므로 P^T의 고유벡터를 찾는다
                 eigenvalues, eigenvectors = np.linalg.eig(self.transition_matrix.T)
 
-                # 고윳값 1에 딸린 고유벡터 찾기
+                # 고윳값 1에 대응하는 고유벡터 찾기
                 idx = np.argmin(np.abs(eigenvalues - 1.0))
                 stationary = np.real(eigenvectors[:, idx])
 
-                # 합이 1이 되도록 고르게 하기
+                # 합이 1이 되도록 정규화하기
                 stationary = stationary / stationary.sum()
 
             elif method == 'power':
-                # 큰 n에 대해 P^n 셈하기
+                # 큰 n에 대해 P^n 계산하기
                 P_n = np.linalg.matrix_power(self.transition_matrix, 1000)
-                stationary = P_n[0, :]  # 아무 행이나 멈춘 분포를 준다
+                stationary = P_n[0, :]  # 아무 행이나 정상분포를 준다
 
             return {state: prob for state, prob in zip(self.states, stationary)}
 
 
     def example_simple_weather_model():
         """
-        보기 1: 단순한 세 상태 날씨 모형.
+        예제 1: 단순한 세 상태 날씨 모형.
 
-        자료로 어림하고 미리보는 것을 보인다.
+        데이터로 추정하고 예측하는 과정을 보인다.
         """
         print("=" * 70)
         print("Example 1: Three-State Weather Model")
         print("=" * 70)
 
-        # 관측한 날씨 자료(30일)
+        # 관측한 날씨 데이터(30일)
         observed_weather = [
             'Sunny', 'Sunny', 'Cloudy', 'Rainy', 'Rainy', 'Cloudy',
             'Sunny', 'Sunny', 'Sunny', 'Cloudy', 'Rainy', 'Rainy',
@@ -250,13 +250,13 @@
         print(f"\nObserved weather sequence ({len(observed_weather)} days):")
         print(observed_weather)
 
-        # 잦기 세기
+        # 빈도 세기
         counter = Counter(observed_weather)
         print(f"\nObserved frequencies:")
         for state, count in sorted(counter.items()):
             print(f"  {state}: {count}/{len(observed_weather)} = {count/len(observed_weather):.3f}")
 
-        # 모형을 만들고 옮김 어림하기
+        # 모형을 만들고 전이 행렬 추정하기
         states = ['Sunny', 'Cloudy', 'Rainy']
         model = WeatherMarkovChain(states)
         P = model.estimate_from_data(observed_weather)
@@ -282,15 +282,15 @@
 
     def example_stationary_distribution():
         """
-        보기 2: 멈춘 분포 셈하고 풀이하기.
+        예제 2: 정상분포 계산하고 해석하기.
 
-        오래 뒤의 날씨 무늬를 보인다.
+        장기 날씨 패턴을 보인다.
         """
         print("\n" + "=" * 70)
         print("Example 2: Stationary Distribution Analysis")
         print("=" * 70)
 
-        # 미리 정한 옮김 행렬 쓰기
+        # 미리 정한 전이 행렬 쓰기
         states = ['Sunny', 'Cloudy', 'Rainy']
         P = np.array([
             [0.7, 0.25, 0.05],   # 맑음에서
@@ -308,7 +308,7 @@
         model = WeatherMarkovChain(states)
         model.transition_matrix = P
 
-        # 멈춘 분포 셈하기
+        # 정상분포 계산하기
         print("\n" + "-" * 70)
         print("Stationary Distribution (long-run frequencies):")
 
@@ -318,13 +318,13 @@
         for state, prob in sorted(stationary_eig.items()):
             print(f"  π({state}) = {prob:.6f}")
 
-        # 방법 2: 거듭제곱 되풀이
+        # 방법 2: 거듭제곱 반복
         stationary_pow = model.stationary_distribution(method='power')
         print("\nUsing matrix power method:")
         for state, prob in sorted(stationary_pow.items()):
             print(f"  π({state}) = {prob:.6f}")
 
-        # 흉내내기로 확인하기
+        # 시뮬레이션으로 확인하기
         print("\n" + "-" * 70)
         print("Verification via simulation (10,000 days):")
 
@@ -340,9 +340,9 @@
 
     def example_seasonal_weather():
         """
-        보기 3: 인공 계절 날씨 자료 만들기.
+        예제 3: 합성 계절 날씨 데이터 만들기.
 
-        옮김 확률이 다른 계절을 본뜬다.
+        전이 확률이 다른 계절을 모델링한다.
         """
         print("\n" + "=" * 70)
         print("Example 3: Seasonal Weather Patterns")
@@ -350,14 +350,14 @@
 
         states = ['Sunny', 'Cloudy', 'Rainy']
 
-        # 여름 옮김 행렬(맑은 날이 더 많음)
+        # 여름 전이 행렬(맑은 날이 더 많음)
         P_summer = np.array([
             [0.8, 0.15, 0.05],
             [0.5, 0.3, 0.2],
             [0.4, 0.4, 0.2]
         ])
 
-        # 겨울 옮김 행렬(비 오는 날이 더 많음)
+        # 겨울 전이 행렬(비 오는 날이 더 많음)
         P_winter = np.array([
             [0.5, 0.3, 0.2],
             [0.3, 0.4, 0.3],
@@ -370,17 +370,17 @@
         print("\nWinter Transition Matrix:")
         print(P_winter)
 
-        # 여름 흉내내기
+        # 여름 시뮬레이션
         model_summer = WeatherMarkovChain(states)
         model_summer.transition_matrix = P_summer
         summer_weather = model_summer.simulate_weather(90, 'Sunny')
 
-        # 겨울 흉내내기
+        # 겨울 시뮬레이션
         model_winter = WeatherMarkovChain(states)
         model_winter.transition_matrix = P_winter
         winter_weather = model_winter.simulate_weather(90, 'Cloudy')
 
-        # 잦기 견주기
+        # 빈도 비교하기
         summer_freq = Counter(summer_weather)
         winter_freq = Counter(winter_weather)
 
@@ -396,7 +396,7 @@
 
     def visualize_weather_model():
         """
-        날씨 모형의 그림 만들기.
+        날씨 모형의 시각화 만들기.
         """
         print("\n" + "=" * 70)
         print("Creating Visualizations")
@@ -414,7 +414,7 @@
 
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-        # 작은 그림 1: 옮김 행렬 열지도
+        # 서브플롯 1: 전이 행렬 히트맵
         ax = axes[0, 0]
         im = ax.imshow(P, cmap='YlOrRd', vmin=0, vmax=1)
         ax.set_xticks(range(len(states)))
@@ -425,7 +425,7 @@
         ax.set_ylabel('From State', fontsize=11)
         ax.set_title('Transition Probability Matrix', fontsize=12)
 
-        # 글자 주석을 추가한다
+        # 텍스트 주석을 추가한다
         for i in range(len(states)):
             for j in range(len(states)):
                 text = ax.text(j, i, f'{P[i, j]:.2f}',
@@ -433,7 +433,7 @@
 
         plt.colorbar(im, ax=ax)
 
-        # 작은 그림 2: 날씨 늘어놓음 표본
+        # 서브플롯 2: 날씨 시퀀스 표본
         ax = axes[0, 1]
         weather_seq = model.simulate_weather(60, 'Sunny')
 
@@ -449,7 +449,7 @@
         ax.set_title('Simulated 60-Day Weather Sequence', fontsize=12)
         ax.grid(True, alpha=0.3)
 
-        # 작은 그림 3: 오래 뒤 미리봄의 모임
+        # 서브플롯 3: 장기 예측의 수렴
         ax = axes[1, 0]
 
         days_ahead = range(1, 31)
@@ -467,7 +467,7 @@
         ax.plot(days_ahead, cloudy_probs, 's-', label='Cloudy', linewidth=2)
         ax.plot(days_ahead, rainy_probs, '^-', label='Rainy', linewidth=2)
 
-        # 멈춘 분포 선들 더하기
+        # 정상분포 선 추가하기
         stationary = model.stationary_distribution()
         ax.axhline(y=stationary['Sunny'], color='C0', linestyle='--', alpha=0.5)
         ax.axhline(y=stationary['Cloudy'], color='C1', linestyle='--', alpha=0.5)
@@ -479,7 +479,7 @@
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-        # 작은 그림 4: 멈춘 분포 막대그래프
+        # 서브플롯 4: 정상분포 막대그래프
         ax = axes[1, 1]
         stationary = model.stationary_distribution()
 
@@ -492,7 +492,7 @@
         ax.set_ylim(0, 1)
         ax.grid(True, alpha=0.3, axis='y')
 
-        # 막대에 값 이름표를 추가한다
+        # 막대에 값 라벨을 추가한다
         for bar, state in zip(bars, states):
             height = bar.get_height()
             ax.text(bar.get_x() + bar.get_width()/2., height,
@@ -507,7 +507,7 @@
 
     def main():
         """
-        날씨 본뜨기 보기 모두 돌리기.
+        날씨 모델링 예제 모두 실행하기.
         """
         print("WEATHER MODELING WITH MARKOV CHAINS")
         print("====================================\n")
@@ -642,11 +642,11 @@
 
 ### 전이 도수 추정
 
-상태 i에서 j로 전이한 횟수를 N_ij라 하면 출발 도수 N_i>0인 행의 최대 우도 추정은 다음과 같다.
+상태 i에서 j로 전이한 횟수를 N_ij라 하면 출발 도수 N_i>0인 행의 최대가능도 추정(maximum likelihood estimation; 가능도는 우도라고도 한다)은 다음과 같다.
 
 $$\hat P_{ij}=N_{ij}/\sum_jN_{ij}$$
 
-관측 길이가 T이면 전이는 T−1개다. 상태별 전체 출현 횟수에는 마지막 날도 포함되지만 출발 전이 도수에는 포함되지 않는다. 코드가 0합 행의 분모를 1로 바꾸면 행 전체는 0으로 남으므로 유효한 확률행렬이 되지 않는다. 미관측 출발 상태에는 사전·평활화·추정 불가 표시 등 별도 규칙이 필요하다.
+관측 길이가 T이면 전이는 T−1개다. 상태별 전체 출현 횟수에는 마지막 날도 포함되지만 출발 전이 도수에는 포함되지 않는다. 코드가 0합 행의 분모를 1로 바꾸면 행 전체는 0으로 남으므로 유효한 확률행렬이 되지 않는다. 미관측 출발 상태에는 사전분포·평활화·추정 불가 표시 등 별도 규칙이 필요하다.
 
 ### 여러 단계 예측과 정상분포
 
@@ -656,7 +656,7 @@ stationary_distribution의 거듭제곱 방식은 P¹⁰⁰⁰의 첫 행을 반
 
 ### 계절성과 추정 불확실성
 
-계절 예제는 여름·겨울에 별도로 가정한 전이행렬을 시뮬레이션한다. 연중 변하는 모형을 자료에서 공동 추정하거나 계절 경계를 연속적으로 연결하지 않는다. simulate_weather(90)는 초기 날을 포함해 91개 상태를 반환하므로 빈도의 분모와 기간을 맞춘다.
+계절 예제는 여름·겨울에 별도로 가정한 전이행렬을 시뮬레이션한다. 연중 변하는 모형을 데이터에서 공동 추정하거나 계절 경계를 연속적으로 연결하지 않는다. simulate_weather(90)는 초기 날을 포함해 91개 상태를 반환하므로 빈도의 분모와 기간을 맞춘다.
 
 표본 전이를 대입한 예측은 전이행렬 추정 오차를 포함하지 않는다. 실제 적용에는 시간 순서에 맞춘 검증, 계절별 안정성, 상태 정의와 미관측 전이의 처리가 필요하다. 짧은 가상 목록과 미리 정한 행렬의 결과를 실제 날씨 성능으로 읽지 않는다.
 
@@ -686,7 +686,7 @@ stationary_distribution의 거듭제곱 방식은 P¹⁰⁰⁰의 첫 행을 반
 
 ??? success "풀이"
 
-    행합이 0이어서 확률행렬이 아니다. 샘플링이 실패하거나 행렬 예측의 총 확률이 1보다 작아질 수 있다. 상태 공간을 다시 정의하거나 명시한 사전·평활화를 적용해야 하며 분모만 1로 바꾸는 것으로 해결되지 않는다.
+    행합이 0이어서 확률행렬이 아니다. 샘플링이 실패하거나 행렬 예측의 총 확률이 1보다 작아질 수 있다. 상태 공간을 다시 정의하거나 명시한 사전분포·평활화를 적용해야 하며 분모만 1로 바꾸는 것으로 해결되지 않는다.
 
 
 
@@ -716,7 +716,7 @@ stationary_distribution의 거듭제곱 방식은 P¹⁰⁰⁰의 첫 행을 반
 
 ??? success "풀이"
 
-    이 클래스에는 뉴럴 네트워크 호출·경사 인터페이스가 없다. 짧은 알려진 관측열의 전이 도수, 모든 행의 비음성·합 1, 미관측 상태, n=0의 현재 상태 분포, 시뮬레이션의 n+1 길이와 지원하지 않는 method 처리를 점검해야 한다. 일반 시험 조각은 이 규약을 구현하지 않는다.
+    이 클래스에는 뉴럴 네트워크 호출·그래디언트 인터페이스가 없다. 짧은 알려진 관측열의 전이 도수, 모든 행의 비음성·합 1, 미관측 상태, n=0의 현재 상태 분포, 시뮬레이션의 n+1 길이와 지원하지 않는 method 처리를 점검해야 한다. 일반 시험 조각은 이 규약을 구현하지 않는다.
 
     ```python
     def test_weathermarkovchain():
@@ -725,10 +725,10 @@ stationary_distribution의 거듭제곱 방식은 P¹⁰⁰⁰의 첫 행을 반
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
@@ -738,4 +738,4 @@ stationary_distribution의 거듭제곱 방식은 P¹⁰⁰⁰의 첫 행을 반
 
 ## 정리하며
 
-전이 도수 기반 날씨 모형은 유효한 행확률과 시간 동질성 가정이 필요하다. 미관측 행·초기 상태·예측 사건을 명시하고 유한 단계 예측과 정상분포, 계절별 가상 실험과 실제 자료 검증을 구분한다.
+전이 도수 기반 날씨 모형은 유효한 행확률과 시간 동질성 가정이 필요하다. 미관측 행·초기 상태·예측 사건을 명시하고 유한 단계 예측과 정상분포, 계절별 가상 실험과 실제 데이터 검증을 구분한다.

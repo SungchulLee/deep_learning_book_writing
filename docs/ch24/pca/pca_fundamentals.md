@@ -28,11 +28,11 @@ $$\Sigma=V\Lambda V^T,\qquad V^TV=I,\qquad
 
 중심화와 피처별 표준화는 다르다. 표준화는 각 피처를 표준편차로 나누어 상대적인 변동을 비슷한 척도로 비교한다. 단위가 다르면 유용할 수 있지만 반드시 해야 하는 규칙은 아니다. 같은 단위여도 변동성 차이를 제거하고 싶을 수 있고, 서로 다른 단위의 크기 자체가 목적상 중요할 수도 있다. 미터로 표현한 값은 같은 물리량을 킬로미터로 표현한 값보다 숫자가 1,000배 커지므로 단위 선택이 결과에 영향을 준다.
 
-표준화한 데이터의 PCA는 같은 분모 관례로 구한 상관행렬의 고유분해에 해당한다. 분산이 0인 피처는 별도로 처리한다. 학습 데이터에서 구한 평균·스케일을 검증·테스트에도 그대로 적용해 데이터 누출을 피한다.
+표준화한 데이터의 PCA는 같은 분모 관례로 구한 상관행렬의 고유분해에 해당한다. 분산이 0인 피처는 별도로 처리한다. 학습 데이터에서 구한 평균·스케일을 검증·시험에도 그대로 적용해 데이터 누출을 피한다.
 
 ```python
 def preprocess(X):
-    """주성분 분석을 위해 자료의 가운데를 맞추고 스케일을 맞춘다."""
+    """주성분 분석을 위해 데이터를 중심화하고 표준화한다."""
     mu = X.mean(axis=0)
     X_centered = X - mu
 
@@ -42,7 +42,7 @@ def preprocess(X):
     return X_scaled, mu, sigma
 ```
 
-위 함수는 호출마다 평균과 표준편차를 새로 추정한다. 테스트 데이터에 독립적으로 다시 호출하는 트랜스포머가 아니다. ε를 더하므로 분산이 매우 작은 피처는 정확히 단위 분산이 되지 않으며, 이 처리가 잡음 증폭 문제를 자동으로 해결하지도 않는다.
+위 함수는 호출마다 평균과 표준편차를 새로 추정한다. 시험 데이터에 독립적으로 다시 호출하는 트랜스포머가 아니다. ε를 더하므로 분산이 매우 작은 피처는 정확히 단위 분산이 되지 않으며, 이 처리가 잡음 증폭 문제를 자동으로 해결하지도 않는다.
 
 ## 3. 주성분 계수와 점수 해석하기
 
@@ -54,7 +54,7 @@ def preprocess(X):
 
 ```python
 def correlation_loadings(loadings, eigenvalues):
-    """주성분과의 상관을 나타내도록 실림의 스케일을 맞춘다."""
+    """주성분과의 상관을 나타내도록 로딩의 스케일을 맞춘다."""
     return loadings * np.sqrt(eigenvalues)[:, np.newaxis]
 ```
 
@@ -134,7 +134,7 @@ $$\mathcal E_k=\sum_{j>k}\lambda_j$$
 
     에카르트–영–미르스키 정리는 X의 절단 SVD가 랭크 **k 이하** 행렬 중 프로베니우스 오차를 최소화함을 보인다. 이 대수적 최적성에는 가우시안 잡음 가정이 필요하지 않다. 가우시안 오차 모델은 제곱 오차를 확률적으로 해석하는 별도의 관점이다.
 
-이는 표본별 제곱 거리의 평균이다. 모든 피처 원소에 대한 MSE는 여기에 d를 더 나눈 값이다. 고윳값이 1/(n−1) 관례이면 표본별 평균 오차는 (n−1)/n을 곱해야 한다. 같은 식을 다른 테스트 데이터의 오차에 그대로 대입할 수는 없다.
+이는 표본별 제곱 거리의 평균이다. 모든 피처 원소에 대한 MSE는 여기에 d를 더 나눈 값이다. 고윳값이 1/(n−1) 관례이면 표본별 평균 오차는 (n−1)/n을 곱해야 한다. 같은 식을 다른 시험 데이터의 오차에 그대로 대입할 수는 없다.
 
 <div class="storybox" markdown>
 
@@ -148,11 +148,11 @@ $$\mathcal E_k=\sum_{j>k}\lambda_j$$
 
 ![왼쪽과 오른쪽에 같은 점구름과 같은 직선이 그려져 있다. 왼쪽에는 점마다 직선까지 수직으로 내린 짧은 선들이 있고 그 제곱합이 적혀 있다. 오른쪽에는 점들이 직선 위로 모인 눈금으로 찍혀 있고 그 퍼진 길이를 가리키는 양방향 화살표와 분산이 적혀 있다.](figures/pearson_hotelling.svg)
 
-그림의 두 판은 **같은 자료, 같은 선**이다. 왼쪽이 피어슨의 물음, 오른쪽이 호텔링 쪽의 물음이다. 두 수를 더하면 4.659가 되는데 이 값은 선을 어떻게 돌려도 변하지 않는다. **그러니 하나를 크게 하는 일과 다른 하나를 작게 하는 일이 애초에 같은 일이다.** 정리 2가 식으로 적은 것이 이것이다.
+그림의 두 판은 **같은 데이터, 같은 선**이다. 왼쪽이 피어슨의 물음, 오른쪽이 호텔링 쪽의 물음이다. 두 수를 더하면 4.659가 되는데 이 값은 선을 어떻게 돌려도 변하지 않는다. **그러니 하나를 크게 하는 일과 다른 하나를 작게 하는 일이 애초에 같은 일이다.** 정리 2가 식으로 적은 것이 이것이다.
 
-재미있는 것은 **연장이 둘보다 먼저 있었다**는 점이다. 특잇값 분해는 19세기의 마지막 사반세기에 이미 나와 있었다. 두 사람은 각자의 물음을 들고 와, 이미 거기 있던 대수를 집어 든 셈이다.
+재미있는 것은 **도구가 둘보다 먼저 있었다**는 점이다. 특잇값 분해는 19세기의 마지막 사반세기에 이미 나와 있었다. 두 사람은 각자의 물음을 들고 와, 이미 거기 있던 대수를 집어 든 셈이다.
 
-**다만 같은 선을 고른다는 것이 같은 질문이라는 뜻은 아니다.** 피어슨 쪽으로 읽으면 "얼마나 가까운가"를 묻게 되고 호텔링 쪽으로 읽으면 "얼마나 남겼는가"를 묻게 되는데, 이 쪽의 연습문제 6이 보이듯 **어느 쪽도 새 자료에서의 오차를 말해 주지 않는다.** 정리 2는 두 목적이 한 부분공간을 고른다는 말이지, 그 부분공간이 쓸모 있다는 말이 아니다. 연습문제 10은 한 걸음 더 간다 — 부분공간이 정해져도 그 안의 축은 정해지지 않는다.
+**다만 같은 선을 고른다는 것이 같은 질문이라는 뜻은 아니다.** 피어슨 쪽으로 읽으면 "얼마나 가까운가"를 묻게 되고 호텔링 쪽으로 읽으면 "얼마나 남겼는가"를 묻게 되는데, 이 쪽의 연습문제 6이 보이듯 **어느 쪽도 새 데이터에서의 오차를 말해 주지 않는다.** 정리 2는 두 목적이 한 부분공간을 고른다는 말이지, 그 부분공간이 쓸모 있다는 말이 아니다. 연습문제 10은 한 걸음 더 간다 — 부분공간이 정해져도 그 안의 축은 정해지지 않는다.
 
 _확인한 곳 — Pearson, K. (1901). On lines and planes of closest fit to systems of points in space. *Philosophical Magazine*, Ser. 6, 2, 559–572 · Hotelling, H. (1933). Analysis of a complex of statistical variables into principal components. *Journal of Educational Psychology* · 영문 위키백과 "Principal component analysis"(피어슨의 1901년 창안과 호텔링이 1930년대에 따로 개발하고 이름 붙였다는 서술, 특잇값 분해가 19세기 마지막 사반세기에 나왔다는 서술), "Harold Hotelling". 그림의 수는 모두 직접 계산한 값이다._
 
@@ -167,7 +167,7 @@ _확인한 곳 — Pearson, K. (1901). On lines and planes of closest fit to sys
 
 ```python
 def choose_n_components(eigenvalues, threshold=0.95):
-    """바라는 설명 흩어짐을 얻는 가장 작은 k을 찾는다."""
+    """원하는 설명 분산 비율에 이르는 가장 작은 k를 찾는다."""
     total = eigenvalues.sum()
     cumsum = np.cumsum(eigenvalues)
     k = np.searchsorted(cumsum / total, threshold) + 1
@@ -180,7 +180,7 @@ def choose_n_components(eigenvalues, threshold=0.95):
 
 ```python
 def choose_by_error(eigenvalues, max_error):
-    """받아들일 만한 다시 세우기 어긋남을 얻는 가장 작은 k을 찾는다."""
+    """허용할 수 있는 재구성 오차에 이르는 가장 작은 k를 찾는다."""
     cumsum_discarded = eigenvalues.sum() - np.cumsum(eigenvalues)
     k = np.searchsorted(-cumsum_discarded, -max_error) + 1
     return k
@@ -190,7 +190,7 @@ def choose_by_error(eigenvalues, max_error):
 
 ```python
 def plot_scree(eigenvalues):
-    """고윳값과 쌓아 올린 설명 흩어짐을 그린다."""
+    """고윳값과 누적 설명 분산을 그린다."""
     import matplotlib.pyplot as plt
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
@@ -218,7 +218,7 @@ $$\operatorname{CEVR}_k=\frac{\sum_{j\le k}\lambda_j}{\operatorname{tr}(\Sigma)}
 
 ```python
 def explained_variance_analysis(eigenvalues):
-    """설명하는 흩어짐 비와 다시 세우기 어긋남을 셈한다."""
+    """설명 분산 비율과 재구성 오차를 계산한다."""
     total = eigenvalues.sum()
     evr = eigenvalues / total
     cumulative_evr = np.cumsum(evr)
@@ -227,7 +227,7 @@ def explained_variance_analysis(eigenvalues):
     return evr, cumulative_evr, reconstruction_error
 ```
 
-이 함수는 전체 스펙트럼을 내림차순으로 받는다는 전제다. 전체 분산이 0이면 비율이 정의되지 않는다. PCA 고유벡터 기저의 점수 공분산은 WᵀΣW=diag(λ₁,…,λ_k)다. 상관이 없다는 성질은 해당 데이터의 경험 공분산에 대한 것이며 좌표의 통계적 독립성이나 테스트 데이터에서의 무상관을 보장하지 않는다.
+이 함수는 전체 스펙트럼을 내림차순으로 받는다는 전제다. 전체 분산이 0이면 비율이 정의되지 않는다. PCA 고유벡터 기저의 점수 공분산은 WᵀΣW=diag(λ₁,…,λ_k)다. 상관이 없다는 성질은 해당 데이터의 경험 공분산에 대한 것이며 좌표의 통계적 독립성이나 시험 데이터에서의 무상관을 보장하지 않는다.
 
 ---
 
@@ -261,7 +261,7 @@ def explained_variance_analysis(eigenvalues):
 
 중심화된 데이터에서 활성화·바이어스 없는 k차원 선형 오토인코더의 제곱 재구성 로스를 **전역 최적화**하면 PCA와 같은 최소 오차를 달성할 수 있다. 하지만 학습된 인코더가 직교 고유벡터를 분산 순으로 반환하는 것은 아니다.
 
-예를 들어 가역행렬 A에 대해 디코더 W A와 인코더 A⁻¹Wᵀ는 같은 재구성 W Wᵀ를 만든다. 따라서 웨이트가 자동으로 묶이거나 각 축이 주성분과 같아진다고 할 수 없다. 유한 횟수의 경사 기반 학습이 전역 최적점에 도달한다는 보장도 별개다. [선형 오토인코더 연구](https://proceedings.mlr.press/v97/kunin19a.html)에서도 주부분공간과 개별 주방향의 차이를 다룬다.
+예를 들어 가역행렬 A에 대해 디코더 W A와 인코더 A⁻¹Wᵀ는 같은 재구성 W Wᵀ를 만든다. 따라서 웨이트가 자동으로 묶이거나 각 축이 주성분과 같아진다고 할 수 없다. 유한 횟수의 그래디언트 기반 학습이 전역 최적점에 도달한다는 보장도 별개다. [선형 오토인코더 연구](https://proceedings.mlr.press/v97/kunin19a.html)에서도 주부분공간과 개별 주방향의 차이를 다룬다.
 
 ```python
 import torch
@@ -270,8 +270,8 @@ import torch.nn as nn
 class LinearAutoencoder(nn.Module):
     """주성분 분석과 같은 선형 오토인코더.
 
-    평균 제곱 어긋남 로스를 쓰고 활성화도 치우침도 없으면 익히기가
-    주성분 분석 풀이로 모인다.
+    평균 제곱 오차 로스를 쓰고 활성화도 바이어스도 없으면 학습이
+    주성분 분석의 해로 수렴한다.
     """
     def __init__(self, input_dim, latent_dim):
         super().__init__()
@@ -283,14 +283,14 @@ class LinearAutoencoder(nn.Module):
         return self.decoder(z)
 ```
 
-위 두 선형 계층은 독립적인 웨이트를 가지며 직교성이나 공유를 강제하지 않는다. PCA도 GPU 선형대수로 계산할 수 있으므로 GPU 지원 여부만으로 두 방법을 구분하지 않는다. 계산 비용은 표본·피처 수, 목표 차원과 분해 알고리즘에 따라 달라진다.
+위 두 선형 레이어는 독립적인 웨이트를 가지며 직교성이나 공유를 강제하지 않는다. PCA도 GPU 선형대수로 계산할 수 있으므로 GPU 지원 여부만으로 두 방법을 구분하지 않는다. 계산 비용은 표본·피처 수, 목표 차원과 분해 알고리즘에 따라 달라진다.
 
 ```python
 import torch
 import torch.nn as nn
 
 class LinearAutoencoder(nn.Module):
-    """그래디언트 내려가기로 주성분 분석 풀이를 배운다."""
+    """경사 하강법으로 주성분 분석의 해를 학습한다."""
     def __init__(self, d, k):
         super().__init__()
         self.encoder = nn.Linear(d, k, bias=False)
@@ -300,7 +300,7 @@ class LinearAutoencoder(nn.Module):
         return self.decoder(self.encoder(x))
 
 def verify_equivalence(X, k, epochs=5000, lr=0.01):
-    """주성분 분석과 선형 오토인코더의 다시 세우기 어긋남을 견준다."""
+    """주성분 분석과 선형 오토인코더의 재구성 오차를 견준다."""
     X_centered = X - X.mean(axis=0)
 
     # 닫힌 형태 주성분 분석
@@ -320,7 +320,7 @@ def verify_equivalence(X, k, epochs=5000, lr=0.01):
         loss.backward()
         opt.step()
 
-    ae_error = loss.item() * X.shape[1]  # 평균 제곱 어긋남 -> 전체 어긋남
+    ae_error = loss.item() * X.shape[1]  # 평균 제곱 오차 -> 전체 오차
 
     print(f"PCA error:       {pca_error:.6f}")
     print(f"Linear AE error: {ae_error:.6f}")
@@ -346,16 +346,16 @@ def verify_equivalence(X, k, epochs=5000, lr=0.01):
 import numpy as np
 
 def pca(X, k):
-    """주성분 분석: 흩어짐 가장 크게 하기 / 다시 세우기 어긋남 가장 작게 하기.
+    """주성분 분석: 분산 최대화 / 재구성 오차 최소화.
 
     인수:
-        X: 가운데 맞춘 자료 [n, d]
+        X: 중심화한 데이터 [n, d]
         k: 성분의 수
 
     반환값:
-        W: 실림 [d, k]
+        W: 로딩 [d, k]
         Z: 점수 [n, k]
-        eigenvalues: 성분마다의 흩어짐 [k]
+        eigenvalues: 성분별 분산 [k]
     """
     n = X.shape[0]
     Sigma = X.T @ X / n
@@ -384,7 +384,7 @@ PCA는 하나의 평평한 부분공간을 찾는다. 스위스 롤처럼 굽은
 from sklearn.datasets import make_swiss_roll
 
 X, color = make_swiss_roll(n_samples=1000, noise=0.1)
-# 속 차원은 2이지만 주성분 분석은 그것을 "펴지" 못한다
+# 내재 차원은 2이지만 주성분 분석은 그것을 "펴지" 못한다
 ```
 
 비선형 활성화를 넣은 오토인코더나 커널 PCA는 더 복잡한 구조를 표현할 수 있지만, 좋은 매니폴드나 분류 경계를 반드시 찾는 것은 아니다. 모델 선택과 데이터, 최적화와 검증이 필요하다.
@@ -394,7 +394,7 @@ X, color = make_swiss_roll(n_samples=1000, noise=0.1)
 encoder = nn.Linear(784, 32)
 decoder = nn.Linear(32, 784)
 
-# 비선형(다양체를 배울 수 있다)
+# 비선형(매니폴드를 학습할 수 있다)
 encoder = nn.Sequential(
     nn.Linear(784, 256), nn.ReLU(),
     nn.Linear(256, 32)
@@ -420,12 +420,12 @@ from sklearn.decomposition import PCA
 
 np.random.seed(0)
 
-# 상관 있는 2차원 자료를 만든다
+# 상관 있는 2차원 데이터를 만든다
 x = np.random.normal(size=(200,))
 y = 0.5 * x + 2 + 0.1 * np.random.normal(size=(200,))
 X = np.column_stack([x, y])
 
-# 1차원으로 줄이고 다시 세운다
+# 1차원으로 줄이고 재구성한다
 pca = PCA(n_components=1).fit(X)
 X_pca = pca.transform(X)
 X_reconstructed = pca.inverse_transform(X_pca)
@@ -434,7 +434,7 @@ print(f"Original shape:      {X.shape}")           # (200, 2)
 print(f"Projected shape:     {X_pca.shape}")        # (200, 1)
 print(f"Reconstructed shape: {X_reconstructed.shape}")  # (200, 2)
 
-# 본디 자료와 쏜 자료를 그린다
+# 원래 데이터와 투영한 데이터를 그린다
 fig, ax = plt.subplots(figsize=(10, 5))
 ax.scatter(X[:, 0], X[:, 1], alpha=0.3, label="Original")
 ax.scatter(X_reconstructed[:, 0], X_reconstructed[:, 1],
@@ -451,7 +451,7 @@ Reconstructed shape: (200, 2)
 
 ### MNIST 차원 축소
 
-PCA를 학습 데이터에 적합하고 테스트 이미지를 변환한다. 출력의 성분 수는 해당 데이터와 전처리에 대한 예시다. 좌표 수의 감소율은 압축 파일의 배율과 같지 않다. 모델의 평균·기저 저장과 각 좌표의 dtype도 필요하다.
+PCA를 학습 데이터에 적합하고 시험 이미지를 변환한다. 출력의 성분 수는 해당 데이터와 전처리에 대한 예시다. 좌표 수의 감소율은 압축 파일의 배율과 같지 않다. 모델의 평균·기저 저장과 각 좌표의 dtype도 필요하다.
 
 ```python
 import numpy as np
@@ -467,7 +467,7 @@ test_set = datasets.MNIST(root='./data', train=False, download=True)
 X_train = train_set.data.numpy().reshape(-1, 784).astype(np.float32)
 X_test = test_set.data.numpy().reshape(-1, 784).astype(np.float32)
 
-# 흩어짐을 95% 남기는 주성분 분석
+# 분산을 95% 남기는 주성분 분석
 pca = PCA(n_components=0.95, svd_solver='full').fit(X_train)
 X_reduced = pca.transform(X_test)
 X_recovered = pca.inverse_transform(X_reduced)
@@ -491,7 +491,7 @@ Compression:     5.1x
 # MNIST에 정규 잡음을 더한다
 X_noisy = X_train + 10.0 * np.random.normal(size=X_train.shape)
 
-# 잡음 낀 자료에 흩어짐을 90% 남겨 주성분 분석을 맞춘다
+# 잡음 낀 데이터에 분산을 90% 남겨 주성분 분석을 적합한다
 pca = PCA(n_components=0.9, svd_solver='full').fit(X_noisy)
 X_filtered = pca.inverse_transform(pca.transform(X_noisy))
 
@@ -513,20 +513,20 @@ from sklearn.decomposition import PCA
 faces = fetch_lfw_people(min_faces_per_person=60)
 print(f"Dataset: {faces.data.shape}")  # (사람 수, 62*47)
 
-# 성분 150개로 주성분 분석을 맞춘다
+# 성분 150개로 주성분 분석을 적합한다
 pca = PCA(n_components=150, svd_solver='randomized').fit(faces.data)
 
 # 성분마다 "고유 얼굴"이다
 eigenface_0 = pca.components_[0].reshape(62, 47)
 
-# 성분 150개로 얼굴을 다시 세운다
+# 성분 150개로 얼굴을 재구성한다
 components = pca.transform(faces.data)
 reconstructed = pca.inverse_transform(components)
 ```
 
 ### PyTorch 선형 오토인코더
 
-다음 예제는 MNIST의 [0,1] 픽셀을 그대로 사용하며 피처별 학습 평균을 빼지 않는다. 바이어스 없는 선형 계층이므로 중심화 PCA의 아핀 재구성과 정확히 같은 문제가 아니다. 비교하려면 같은 학습 평균을 빼고 같은 차원의 PCA와 원소별 MSE를 비교해야 한다.
+다음 예제는 MNIST의 [0,1] 픽셀을 그대로 사용하며 피처별 학습 평균을 빼지 않는다. 바이어스 없는 선형 레이어이므로 중심화 PCA의 아핀 재구성과 정확히 같은 문제가 아니다. 비교하려면 같은 학습 평균을 빼고 같은 차원의 PCA와 원소별 MSE를 비교해야 한다.
 
 ```python
 import torch
@@ -536,7 +536,7 @@ from torchvision import datasets, transforms
 torch.manual_seed(0)
 
 class PCAAutoencoder(nn.Module):
-    """선형 오토인코더(활성화 없음, 치우침 없음) ≡ 주성분 분석."""
+    """선형 오토인코더(활성화 없음, 바이어스 없음) ≡ 주성분 분석."""
     def __init__(self, input_dim=784, latent_dim=20):
         super().__init__()
         self.encoder = nn.Linear(input_dim, latent_dim, bias=False)
@@ -580,7 +580,7 @@ Epoch 60: loss=0.0256
 Epoch 80: loss=0.0256
 ```
 
-보존된 출력은 학습 로스의 예시이며 중심화 PCA와의 동등성이나 테스트 일반화 성능을 검증한 결과가 아니다. 배치별 평균을 다시 평균한 기록이므로 마지막 배치의 크기가 다르면 전체 원소 가중 평균과도 약간 다를 수 있다.
+보존된 출력은 학습 로스의 예시이며 중심화 PCA와의 동등성이나 시험 일반화 성능을 검증한 결과가 아니다. 배치별 평균을 다시 평균한 기록이므로 마지막 배치의 크기가 다르면 전체 원소 가중 평균과도 약간 다를 수 있다.
 
 ---
 
@@ -592,7 +592,7 @@ Epoch 80: loss=0.0256
 import matplotlib.pyplot as plt
 
 def biplot(scores, loadings, feature_names, labels=None):
-    """주성분 겹그림: 점수는 흩뿌림으로, 실림은 화살표로."""
+    """주성분 바이플롯: 점수는 산점도로, 로딩은 화살표로."""
     fig, ax = plt.subplots(figsize=(10, 8))
 
     scatter = ax.scatter(scores[:, 0], scores[:, 1],
@@ -616,7 +616,7 @@ def biplot(scores, loadings, feature_names, labels=None):
 
 ```python
 def interpret_loadings(loadings, feature_names, n_top=5):
-    """성분마다 가장 많이 보태는 피처를 보인다."""
+    """성분마다 기여가 가장 큰 피처를 보인다."""
     for k in range(loadings.shape[0]):
         abs_load = np.abs(loadings[k])
         top_idx = np.argsort(abs_load)[::-1][:n_top]
@@ -635,24 +635,24 @@ import numpy as np
 
 def pca(X, n_components):
     """
-    고윳값 쪼개기로 하는 주성분 분석.
+    고유분해로 하는 주성분 분석.
 
     인수:
-        X: 자료 행렬 [표본 수, 피처 수]
+        X: 데이터 행렬 [표본 수, 피처 수]
         n_components: 주성분의 수
 
     반환값:
-        W: 주성분(실림) [피처 수, 성분 수]
-        Z: 쏜 자료(점수) [표본 수, 성분 수]
-        eigenvalues: 성분마다 설명하는 흩어짐
+        W: 주성분(로딩) [피처 수, 성분 수]
+        Z: 투영한 데이터(점수) [표본 수, 성분 수]
+        eigenvalues: 성분별 설명 분산
     """
-    # 자료의 가운데를 맞춘다
+    # 데이터를 중심화한다
     X_centered = X - X.mean(dim=0)
 
     # 공분산 행렬
     cov = X_centered.T @ X_centered / (X.shape[0] - 1)
 
-    # 고윳값 쪼개기(대칭 행렬에는 eigh)
+    # 고유분해(대칭 행렬에는 eigh)
     eigenvalues, eigenvectors = torch.linalg.eigh(cov)
 
     # 고윳값 내림차순으로 정렬한다
@@ -660,7 +660,7 @@ def pca(X, n_components):
     eigenvalues = eigenvalues[idx[:n_components]]
     W = eigenvectors[:, idx[:n_components]]
 
-    # 쏜다(점수를 셈한다)
+    # 투영한다(점수를 계산한다)
     Z = X_centered @ W
 
     return W, Z, eigenvalues
@@ -716,7 +716,7 @@ PCA 전에 중심화와 표준화를 각각 언제 적용하는지 설명하라.
 
     **표준화는 목적에 따른 선택이다.** 피처의 단위가 서로 다르면(미터와 킬로그램) 숫자가 큰 피처가 분산을 지배하므로 표준화가 유용하다. 같은 단위라면 변동성의 차이 자체가 정보일 수 있어 표준화가 오히려 그것을 지운다.
 
-    어느 쪽이든 **평균과 스케일은 학습 데이터에서 구해 검증·테스트에 그대로 적용한다.** 테스트 데이터로 다시 추정하면 누출이다.
+    어느 쪽이든 **평균과 스케일은 학습 데이터에서 구해 검증·시험에 그대로 적용한다.** 시험 데이터로 다시 추정하면 누출이다.
 
 ---
 
@@ -761,16 +761,16 @@ SVD로 주성분 방향과 점수, 공분산 고윳값을 구하는 관계를 �
 <div class="drillbox" markdown>
 
 **연습문제 6.** <span class="diff med" title="중간"></span>
-학습 데이터의 고윳값으로 테스트 데이터의 재구성 MSE를 정확히 알 수 있는가?
+학습 데이터의 고윳값으로 시험 데이터의 재구성 MSE를 정확히 알 수 있는가?
 
 </div>
 
 ??? success "풀이"
     없다. 정리 2의 $\mathcal E_k=\sum_{j>k}\lambda_j$는 **그 고윳값을 계산한 바로 그 데이터** 에 대한 등식이다.
 
-    테스트 데이터에서는 학습 평균과 학습 기저를 쓰므로 투영이 그 데이터에 최적이 아니고, 오차는 대개 더 크다. 분포가 달라졌다면 훨씬 클 수도 있다.
+    시험 데이터에서는 학습 평균과 학습 기저를 쓰므로 투영이 그 데이터에 최적이 아니고, 오차는 대개 더 크다. 분포가 달라졌다면 훨씬 클 수도 있다.
 
-    테스트 오차를 알고 싶으면 **재어야 한다** — 학습 $\mu$와 $W$로 변환·복원한 뒤 직접 계산한다.
+    시험 오차를 알고 싶으면 **재어야 한다** — 학습 $\mu$와 $W$로 변환·복원한 뒤 직접 계산한다.
 
 ---
 
@@ -890,6 +890,6 @@ PCA의 최적성에 가우시안 잡음 가정이 필요한가? 선형 오토인
 2. **고유벡터가 답인 까닭은 정지 조건에 있지 않다**: 정지 조건은 모든 고유벡터를 후보로 내놓고, 그중 최대를 고르는 것은 목적값이 곧 고윳값이기 때문이다
 3. **부분공간과 기저는 다른 문제다**: 대각합 목적은 부분공간만 정한다. 임의의 직교 $Q$에 대해 $WQ$가 같은 값을 준다
 4. **선형 오토인코더는 부분공간을 맞히고 기저는 맞히지 않는다**(정리 3). 로스가 같다고 축이 주성분인 것이 아니다
-5. **설명 분산 비율은 그 데이터의 제곱 거리에 대한 것이다**: 95%를 남겼다는 말이 예측 정보 95%를 남겼다는 뜻이 아니고, 테스트 오차는 학습 고윳값으로 알 수 없다
+5. **설명 분산 비율은 그 데이터의 제곱 거리에 대한 것이다**: 95%를 남겼다는 말이 예측 정보 95%를 남겼다는 뜻이 아니고, 시험 오차는 학습 고윳값으로 알 수 없다
 6. **분모와 단위를 밝힌다**: $n$과 $n-1$, 표본별 제곱 거리와 원소별 MSE는 서로 다른 수다
 7. **비유일성의 출처는 셋이다**: 부호, 공간 안의 중복 고윳값, 선택 경계의 중복. 거의 같은 고윳값은 축을 불안정하게 만든다

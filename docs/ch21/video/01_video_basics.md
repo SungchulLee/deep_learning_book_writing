@@ -8,19 +8,19 @@
 
     ```python
     """
-    영상 이해 — 첫스텝 수준
+    영상 이해 — 입문 수준
     파일 01: 영상 기초 — 영상 읽어 들이고 다루기
 
-    이 파일은 영상 자료를 다루는 근본을 다룬다:
-    - 영상을 틀의 때 차례로 이해하기
+    이 파일은 영상 데이터를 다루는 기초를 다룬다:
+    - 영상을 프레임의 시퀀스로 이해하기
     - 여러 방법으로 영상 읽어 들이기
-    - 기본 영상 앞손질 연산
-    - PyTorch에서 영상 자료 나타내기
-    - 틀 뽑기와 표집 전략
+    - 기본 영상 전처리 연산
+    - PyTorch에서 영상 데이터 표현하기
+    - 프레임 추출과 샘플링 전략
 
     수학적 바탕:
-    - 영상 V은 틀 T개의 차례이다: V = {I_1, I_2, ..., I_T}
-    - 틀마다 I_t ∈ ℝ^(H×W×C), 여기서 H=높이, W=너비, C=채널
+    - 영상 V는 프레임 T개의 시퀀스이다: V = {I_1, I_2, ..., I_T}
+    - 프레임마다 I_t ∈ ℝ^(H×W×C), 여기서 H=높이, W=너비, C=채널
     - 영상 텐서: PyTorch에서 V ∈ ℝ^(T×C×H×W)((T, C, H, W) 형태)
     """
 
@@ -43,46 +43,46 @@
 
 
     #=============================================================================
-    # 1부: 영상 나타내기와 읽어 들이기
+    # 1부: 영상 표현과 읽어 들이기
     #=============================================================================
 
     class VideoLoader:
         """
-        여러 뒷단을 받쳐 주는 두루 쓰는 영상 읽어 들이기 도구.
+        여러 백엔드를 지원하는 범용 영상 로더.
 
         속성:
             video_path: 영상 파일의 경로
-            backend: 읽어 들이기 뒷단('torchvision', 'opencv', 'decord')
+            backend: 읽어 들이기 백엔드('torchvision', 'opencv', 'decord')
         """
 
         def __init__(self, video_path: str, backend: str = 'opencv'):
             """
-            영상 읽개를 초기화한다.
+            영상 로더를 초기화한다.
 
             인수:
                 video_path: 영상 파일의 경로
-                backend: 쓸 뒷단('torchvision', 'opencv', 'decord')
+                backend: 쓸 백엔드('torchvision', 'opencv', 'decord')
             """
             self.video_path = video_path
             self.backend = backend
 
         def load_video_torchvision(self) -> Tuple[torch.Tensor, torch.Tensor, dict]:
             """
-            torchvision 뒷단으로 영상을 읽어 들인다.
+            torchvision 백엔드로 영상을 읽어 들인다.
 
             반환값:
                 video: 값이 [0, 255]이고 형태가 (T, H, W, C)인 영상 텐서
-                audio: 있으면 소리 텐서
-                info: 영상 메타자료(초당 틀 수, 길이 등)를 담은 사전
+                audio: 있으면 오디오 텐서
+                info: 영상 메타데이터(초당 프레임 수, 길이 등)를 담은 딕셔너리
 
-            수학으로 나타내기:
-                V ∈ ℝ^(T×H×W×3), 여기서 T = 틀의 개수
+            수학적 표현:
+                V ∈ ℝ^(T×H×W×3), 여기서 T = 프레임의 개수
             """
             # torchvision으로 영상 읽어 들이기
             # 유의: torchvision은 (T, H, W, C) 형태로 돌려준다
             video, audio, info = read_video(
                 self.video_path,
-                pts_unit='sec'  # 때 도장에 초를 쓴다
+                pts_unit='sec'  # 타임스탬프 단위로 초를 쓴다
             )
 
             print(f"Video shape: {video.shape}")  # (T, H, W, C)
@@ -93,24 +93,24 @@
 
         def load_video_opencv(self) -> Tuple[np.ndarray, dict]:
             """
-            OpenCV 뒷단으로 영상을 읽어 들인다(더 유연하고 널리 받쳐 준다).
+            OpenCV 백엔드로 영상을 읽어 들인다(더 유연하고 널리 지원된다).
 
             반환값:
                 frames: 형태가 (T, H, W, C)인 NumPy 배열
-                info: 영상 메타자료를 담은 사전
+                info: 영상 메타데이터를 담은 딕셔너리
 
-            OpenCV는 효율적이고 여러 형태를 받쳐 주어 실전에 좋다.
+            OpenCV는 효율적이고 여러 형식을 지원해 실전에 좋다.
             """
             # 영상 파일 열기
             cap = cv2.VideoCapture(self.video_path)
 
-            # 영상의 성질 얻기
+            # 영상의 속성 얻기
             fps = cap.get(cv2.CAP_PROP_FPS)
             frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
             width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-            # 모든 틀 읽기
+            # 모든 프레임 읽기
             frames = []
             while True:
                 ret, frame = cap.read()
@@ -145,8 +145,8 @@
             영상을 읽어 들여 PyTorch 텐서 형태로 바꾼다.
 
             인수:
-                num_frames: 뽑을 틀의 개수(None이면 모든 틀)
-                target_size: 틀을 (H, W)로 바꾼다
+                num_frames: 뽑을 프레임의 개수(None이면 모든 프레임)
+                target_size: 프레임을 (H, W)로 바꾼다
 
             반환값:
                 video_tensor: 형태 (T, C, H, W) — PyTorch 표준 형태
@@ -157,65 +157,65 @@
             """
             frames, info = self.load_video_opencv()
 
-            # 정해졌으면 틀 뽑기
+            # 정해졌으면 프레임 뽑기
             if num_frames is not None and num_frames < len(frames):
                 indices = np.linspace(0, len(frames) - 1, num_frames).astype(int)
                 frames = frames[indices]
 
-            # 틀 크기 바꾸기
+            # 프레임 크기 바꾸기
             resized_frames = []
             for frame in frames:
                 # cv2.resize는 (H, W)가 아니라 (W, H)를 바란다
                 resized = cv2.resize(frame, (target_size[1], target_size[0]))
                 resized_frames.append(resized)
 
-            # 텐서로 바꾸고 고르게 맞추기
+            # 텐서로 바꾸고 정규화하기
             # 원래: 값이 [0, 255]인 (T, H, W, C) numpy 배열
             # 결과: 값이 [0, 1]인 (T, C, H, W) 텐서
             video_tensor = torch.from_numpy(np.array(resized_frames)).float()
             video_tensor = video_tensor.permute(0, 3, 1, 2)  # (T, H, W, C) → (T, C, H, W)
-            video_tensor = video_tensor / 255.0  # [0, 1]로 고르게 맞추기
+            video_tensor = video_tensor / 255.0  # [0, 1]로 정규화하기
 
             return video_tensor
 
 
     #=============================================================================
-    # 2부: 틀 표집 전략
+    # 2부: 프레임 샘플링 전략
     #=============================================================================
 
     class FrameSampler:
         """
-        영상 이해를 위한 여러 틀 표집 전략을 짠다.
+        영상 이해를 위한 여러 프레임 샘플링 전략을 구현한다.
 
-        표집은 다음에 결정적이다:
-        1. 셈 값 다스리기(영상에는 틀이 많다)
-        2. 스케일마다의 때에 걸친 액션 담아내기
-        3. 길이가 들쭉날쭉한 영상 다루기
+        샘플링은 다음에 중요하다:
+        1. 계산 비용 조절하기(영상에는 프레임이 많다)
+        2. 여러 시간 스케일의 움직임 포착하기
+        3. 길이가 서로 다른 영상 다루기
         """
 
         @staticmethod
         def uniform_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
             """
-            영상 전체에서 틀을 고루 뽑는다.
+            영상 전체에서 프레임을 균일하게 뽑는다.
 
             인수:
-                video: 들임 영상 텐서 (T, C, H, W)
-                num_frames: 뽑을 틀의 개수
+                video: 입력 영상 텐서 (T, C, H, W)
+                num_frames: 뽑을 프레임의 개수
 
             반환값:
                 뽑은 영상 텐서 (num_frames, C, H, W)
 
-            수학으로 나타내기:
-                뽑는 번호: k = 0, 1, ..., num_frames-1에 대해 i_k = floor(k * T / num_frames)
-                이러면 영상 길이 전체에 고루 떨어지게 된다
+            수학적 표현:
+                뽑는 인덱스: k = 0, 1, ..., num_frames-1에 대해 i_k = floor(k * T / num_frames)
+                이러면 영상 길이 전체에 균일한 간격으로 놓인다
             """
             T = video.shape[0]
 
-            # 고루 떨어진 번호 만들기
-            # linspace는 [0, T-1]에서 고루 떨어진 num_frames개 점을 준다
+            # 균일한 간격의 인덱스 만들기
+            # linspace는 [0, T-1]에서 균일한 간격의 num_frames개 점을 준다
             indices = torch.linspace(0, T - 1, num_frames).long()
 
-            # 영상 텐서에서 번호로 뽑기
+            # 영상 텐서에서 인덱스로 뽑기
             sampled_video = video[indices]
 
             print(f"Uniform sampling: {T} → {num_frames} frames")
@@ -226,23 +226,23 @@
         @staticmethod
         def random_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
             """
-            틀을 마구잡이로 뽑는다(자료 불리기에 쓸모 있다).
+            프레임을 무작위로 뽑는다(데이터 어그멘테이션에 쓸모 있다).
 
             인수:
-                video: 들임 영상 텐서 (T, C, H, W)
-                num_frames: 뽑을 틀의 개수
+                video: 입력 영상 텐서 (T, C, H, W)
+                num_frames: 뽑을 프레임의 개수
 
             반환값:
                 뽑은 영상 텐서 (num_frames, C, H, W)
 
-            마구잡이 표집은 모델이 때에 안 바뀜을 배우도록 돕는다
+            무작위 샘플링은 모델이 시간 불변성(temporal invariance)을 학습하도록 돕는다
             """
             T = video.shape[0]
 
-            # 되넣으며 마구잡이 번호 뽑기
+            # 복원 추출로 무작위 인덱스 뽑기
             indices = torch.randint(0, T, (num_frames,))
 
-            # 때 차례를 지키려 정렬
+            # 시간 순서를 지키려 정렬
             indices, _ = torch.sort(indices)
 
             sampled_video = video[indices]
@@ -253,21 +253,21 @@
         def temporal_stride_sampling(video: torch.Tensor, 
                                      stride: int) -> torch.Tensor:
             """
-            stride번째 틀마다 뽑는다.
+            stride번째 프레임마다 뽑는다.
 
             인수:
-                video: 들임 영상 텐서 (T, C, H, W)
-                stride: 때 성큼(보기로 stride=2이면 두 틀마다 하나)
+                video: 입력 영상 텐서 (T, C, H, W)
+                stride: 시간 스트라이드(보기로 stride=2이면 두 프레임마다 하나)
 
             반환값:
                 뽑은 영상 텐서
 
             보기:
-                stride=1: 모든 틀 [0, 1, 2, 3, 4, 5, 6, 7, 8]
-                stride=2: 두 틀마다  [0, 2, 4, 6, 8]
-                stride=4: 네 틀마다  [0, 4, 8]
+                stride=1: 모든 프레임 [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                stride=2: 두 프레임마다  [0, 2, 4, 6, 8]
+                stride=4: 네 프레임마다  [0, 4, 8]
             """
-            # 성큼을 준 자르기 쓰기
+            # 스트라이드를 준 슬라이싱 쓰기
             sampled_video = video[::stride]
 
             print(f"Stride sampling (stride={stride}): "
@@ -280,40 +280,40 @@
                           clip_length: int,
                           num_clips: int = 1) -> List[torch.Tensor]:
             """
-            영상에서 촘촘한 때 토막을 뽑는다.
+            영상에서 조밀하게 시간 클립을 뽑는다.
 
             인수:
-                video: 들임 영상 텐서 (T, C, H, W)
-                clip_length: 토막마다 잇닿은 틀의 개수
-                num_clips: 뽑을 토막의 개수
+                video: 입력 영상 텐서 (T, C, H, W)
+                clip_length: 클립마다 연속한 프레임의 개수
+                num_clips: 뽑을 클립의 개수
 
             반환값:
-                영상 토막의 목록. 저마다 형태가 (clip_length, C, H, W)
+                영상 클립의 목록. 저마다 형태가 (clip_length, C, H, W)
 
-            TSN(때 토막 네트워크)과 비슷한 구조에 쓰인다
-            영상을 토막으로 나누고 토막마다 뽑는다
+            TSN(Temporal Segment Networks)과 비슷한 구조에 쓰인다
+            영상을 세그먼트로 나누고 세그먼트마다 뽑는다
             """
             T = video.shape[0]
 
             if T < clip_length:
-                # 영상이 clip_length보다 짧으면 덧대거나 원본을 돌려준다
+                # 영상이 clip_length보다 짧으면 패딩하거나 원본을 돌려준다
                 return [video]
 
             clips = []
 
-            # 토막 길이 셈하기
+            # 세그먼트 길이 계산하기
             segment_length = (T - clip_length) // num_clips
 
             for i in range(num_clips):
-                # 토막의 시작
+                # 세그먼트의 시작
                 start_idx = i * segment_length
 
-                # 자료 불리기를 위해 토막 안에서 마구잡이로 뽑기
+                # 데이터 어그멘테이션을 위해 세그먼트 안에서 무작위로 뽑기
                 random_offset = torch.randint(0, segment_length + 1, (1,)).item()
                 clip_start = start_idx + random_offset
                 clip_end = clip_start + clip_length
 
-                # 토막 뽑아내기
+                # 클립 추출하기
                 if clip_end <= T:
                     clip = video[clip_start:clip_end]
                     clips.append(clip)
@@ -322,48 +322,48 @@
 
 
     #=============================================================================
-    # 3부: 영상 앞손질과 불리기
+    # 3부: 영상 전처리와 어그멘테이션
     #=============================================================================
 
     class VideoPreprocessor:
         """
-        영상에 맞춘 앞손질 연산.
+        영상에 맞춘 전처리 연산.
 
-        앞손질은 다음에 결정적이다:
-        1. 들임 고르게 맞추기(평균, 표준편차)
-        2. 해상도가 들쭉날쭉한 것 다루기
-        3. 튼튼함을 위한 자료 불리기
+        전처리는 다음에 중요하다:
+        1. 입력 정규화(평균, 표준편차)
+        2. 서로 다른 해상도 다루기
+        3. 강건성을 위한 데이터 어그멘테이션
         """
 
         def __init__(self, 
                      mean: List[float] = [0.485, 0.456, 0.406],
                      std: List[float] = [0.229, 0.224, 0.225]):
             """
-            고르게 맞추기 파라메터로 앞손질기를 초기화한다.
+            정규화 파라메터로 전처리기를 초기화한다.
 
             인수:
-                mean: 채널마다의 평균(ImageNet 붙박이)
+                mean: 채널마다의 평균(ImageNet 기본값)
                 std: 채널마다의 표준편차
 
-            고르게 맞추기 식:
-                x_고르게맞춤 = (x - 평균) / 표준편차
+            정규화 식:
+                x_정규화 = (x - 평균) / 표준편차
             """
             self.mean = torch.tensor(mean).view(1, 3, 1, 1)
             self.std = torch.tensor(std).view(1, 3, 1, 1)
 
         def normalize(self, video: torch.Tensor) -> torch.Tensor:
             """
-            영상 텐서를 고르게 맞춘다.
+            영상 텐서를 정규화한다.
 
             인수:
-                video: 값이 [0, 1]인 들임 텐서 (T, C, H, W)
+                video: 값이 [0, 1]인 입력 텐서 (T, C, H, W)
 
             반환값:
-                고르게 맞춘 영상 텐서
+                정규화한 영상 텐서
 
-            고르게 맞추기는 익히기를 든든하게 하고 더 빨리 모이게 한다
+            정규화는 학습을 안정시키고 더 빨리 수렴하게 한다
             """
-            # 퍼뜨리기를 위해 차원 늘리기: (1, 3, 1, 1) → (T, 3, H, W)
+            # 브로드캐스팅으로 차원 늘리기: (1, 3, 1, 1) → (T, 3, H, W)
             mean = self.mean.to(video.device)
             std = self.std.to(video.device)
 
@@ -373,13 +373,13 @@
 
         def denormalize(self, video: torch.Tensor) -> torch.Tensor:
             """
-            그려 보려고 고르게 맞추기를 되돌린다.
+            시각화를 위해 정규화를 되돌린다.
 
             인수:
-                video: 고르게 맞춘 텐서 (T, C, H, W)
+                video: 정규화한 텐서 (T, C, H, W)
 
             반환값:
-                고르게 맞추기를 되돌려 [0, 1]로 만든 영상 텐서
+                정규화를 되돌려 [0, 1]로 만든 영상 텐서
             """
             mean = self.mean.to(video.device)
             std = self.std.to(video.device)
@@ -394,12 +394,12 @@
                          start_frame: int,
                          num_frames: int) -> torch.Tensor:
             """
-            때 잘라내기(잇닿은 틀의 차례)를 뽑는다.
+            시간 크롭(연속한 프레임의 시퀀스)을 뽑는다.
 
             인수:
-                video: 들임 텐서 (T, C, H, W)
-                start_frame: 시작 틀 번호
-                num_frames: 뽑을 틀의 개수
+                video: 입력 텐서 (T, C, H, W)
+                start_frame: 시작 프레임 번호
+                num_frames: 뽑을 프레임의 개수
 
             반환값:
                 잘라낸 영상 텐서 (num_frames, C, H, W)
@@ -414,15 +414,15 @@
                         crop_size: Tuple[int, int],
                         position: str = 'center') -> torch.Tensor:
             """
-            모든 틀에 자리 잘라내기를 한다.
+            모든 프레임에 공간 크롭을 적용한다.
 
             인수:
-                video: 들임 텐서 (T, C, H, W)
+                video: 입력 텐서 (T, C, H, W)
                 crop_size: (자를 높이, 자를 너비)
                 position: 'center', 'random', 또는 'top_left'
 
             반환값:
-                자리를 잘라낸 영상
+                공간 크롭한 영상
             """
             T, C, H, W = video.shape
             crop_h, crop_w = crop_size
@@ -442,23 +442,23 @@
 
 
     #=============================================================================
-    # 4부: 영상 그려 보기
+    # 4부: 영상 시각화
     #=============================================================================
 
     def visualize_frames(video: torch.Tensor,
                         num_frames: int = 8,
                         figsize: Tuple[int, int] = (16, 4)):
         """
-        영상에서 뽑은 틀을 그려 본다.
+        영상에서 뽑은 프레임을 시각화한다.
 
         인수:
             video: 영상 텐서 (T, C, H, W)
-            num_frames: 보여 줄 틀의 개수
+            num_frames: 보여 줄 프레임의 개수
             figsize: 그림 크기
         """
         T = video.shape[0]
 
-        # 틀을 고루 뽑기
+        # 프레임을 균일하게 뽑기
         if T > num_frames:
             indices = torch.linspace(0, T - 1, num_frames).long()
             frames_to_show = video[indices]
@@ -466,7 +466,7 @@
             frames_to_show = video
             num_frames = T
 
-        # 아래 그림 만들기
+        # 서브플롯 만들기
         fig, axes = plt.subplots(1, num_frames, figsize=figsize)
         if num_frames == 1:
             axes = [axes]
@@ -490,20 +490,20 @@
     def visualize_optical_flow(flow: np.ndarray,
                               figsize: Tuple[int, int] = (12, 4)):
         """
-        빛 흐름을 RGB로 그려 본다(뒤 단원 미리보기).
+        광학 흐름(optical flow)을 RGB로 시각화한다(뒤 단원 미리보기).
 
         인수:
-            flow: (u, v) 성분을 갖는 빛 흐름 배열 (H, W, 2)
+            flow: (u, v) 성분을 갖는 광학 흐름 배열 (H, W, 2)
             figsize: 그림 크기
         """
-        # 그려 보려고 흐름을 HSV로 바꾸기
+        # 시각화를 위해 흐름을 HSV로 바꾸기
         # 각 → 색상, 크기 → 밝기
         h, w = flow.shape[:2]
 
-        # 크기와 각 셈하기
+        # 크기와 각 계산하기
         mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
 
-        # HSV 그림 만들기
+        # HSV 이미지 만들기
         hsv = np.zeros((h, w, 3), dtype=np.uint8)
         hsv[..., 0] = ang * 180 / np.pi / 2  # 각 → 색상
         hsv[..., 1] = 255  # 가득 찬 채도
@@ -523,31 +523,31 @@
 
 
     #=============================================================================
-    # 5부: 쓰는 보기와 보임
+    # 5부: 사용 예와 시연
     #=============================================================================
 
     def demonstrate_video_loading():
         """
-        여러 가지 영상 읽어 들이기와 다루기 재주를 보여 준다.
+        여러 가지 영상 읽어 들이기와 다루기 기법을 보여 준다.
         """
         print("="*80)
         print("VIDEO BASICS DEMONSTRATION")
         print("="*80)
 
-        # 보여 주려고 인공 영상 만들기
+        # 시연용 합성 영상 만들기
         print("\n1. Creating synthetic video...")
         # 형태: (T, C, H, W) = (30, 3, 128, 128)
-        # 128x128 RGB 영상 30틀
+        # 128x128 RGB 영상 30프레임
         T, C, H, W = 30, 3, 128, 128
 
-        # 움직이는 무늬가 있는 영상 만들기
+        # 움직이는 패턴이 있는 영상 만들기
         video = torch.zeros(T, C, H, W)
         for t in range(T):
             # 움직이는 세로 막대 만들기
             bar_position = int((t / T) * W)
             video[t, :, :, max(0, bar_position-5):min(W, bar_position+5)] = 1.0
 
-            # 실제 같도록 잡음 더하기
+            # 실제 같도록 노이즈 더하기
             video[t] += torch.randn(C, H, W) * 0.1
 
         video = torch.clamp(video, 0, 1)
@@ -555,24 +555,24 @@
         print(f"Created synthetic video: {video.shape}")
         print(f"Min value: {video.min():.3f}, Max value: {video.max():.3f}")
 
-        # 표집 전략 보여 주기
+        # 샘플링 전략 보여 주기
         print("\n2. Testing sampling strategies...")
         sampler = FrameSampler()
 
-        # 고른 표집
+        # 균일 샘플링
         uniform_sampled = sampler.uniform_sampling(video, num_frames=10)
         print(f"After uniform sampling: {uniform_sampled.shape}")
 
-        # 성큼 표집
+        # 스트라이드 샘플링
         stride_sampled = sampler.temporal_stride_sampling(video, stride=3)
         print(f"After stride sampling: {stride_sampled.shape}")
 
-        # 촘촘한 표집
+        # 조밀 샘플링
         clips = sampler.dense_sampling(video, clip_length=8, num_clips=3)
         print(f"Dense sampling produced {len(clips)} clips")
         print(f"Each clip shape: {clips[0].shape}")
 
-        # 앞손질 보여 주기
+        # 전처리 보여 주기
         print("\n3. Testing preprocessing...")
         preprocessor = VideoPreprocessor()
 
@@ -582,18 +582,18 @@
         denormalized = preprocessor.denormalize(normalized)
         print(f"After denormalization - Mean: {denormalized.mean():.3f}")
 
-        # 자리 잘라내기
+        # 공간 크롭
         cropped = preprocessor.spatial_crop(video, crop_size=(96, 96), position='center')
         print(f"After spatial crop: {cropped.shape}")
 
-        # 틀 그려 보기
+        # 프레임 시각화
         print("\n4. Visualizing frames...")
         visualize_frames(video, num_frames=8)
 
-        # 인공 빛 흐름 만들고 그려 보기
+        # 합성 광학 흐름 만들고 시각화하기
         print("\n5. Creating synthetic optical flow...")
         flow = np.zeros((H, W, 2), dtype=np.float32)
-        # 가로 흐름 무늬 만들기
+        # 가로 흐름 패턴 만들기
         flow[:, :, 0] = 5.0  # u 성분(가로)
         flow[:, :, 1] = 0.0  # v 성분(세로)
         visualize_optical_flow(flow)
@@ -609,7 +609,7 @@
         """
         print(__doc__)
 
-        # 재현성을 위해 난수 씨앗 고정
+        # 재현성을 위해 난수 시드 고정
         torch.manual_seed(42)
         np.random.seed(42)
 
@@ -621,31 +621,31 @@
         print("KEY TAKEAWAYS")
         print("="*80)
         print("""
-        1. 영상 형태: 영상은 틀의 차례 V = {I_1, I_2, ..., I_T}이다
-           - PyTorch 형태: (T, C, H, W), 여기서 T=때, C=채널, H=높이, W=너비
+        1. 영상 형태: 영상은 프레임의 시퀀스 V = {I_1, I_2, ..., I_T}이다
+           - PyTorch 형태: (T, C, H, W), 여기서 T=시간, C=채널, H=높이, W=너비
 
         2. 읽어 들이는 방법:
            - torchvision: PyTorch에 곧바로 붙고 쓰기 쉽다
-           - OpenCV: 유연하고 널리 받쳐 주며 실전에 쓸 수 있다
-           - 필요와 이미 갖춘 얼거리에 따라 고른다
+           - OpenCV: 유연하고 널리 지원되며 실전에 쓸 수 있다
+           - 필요와 이미 갖춘 환경에 따라 고른다
 
-        3. 틀 표집:
-           - 선택: 영상 전체에 고루 떨어짐(가장 흔함)
-           - 마구잡이: 자료 불리기용
-           - 성큼: 효율을 위해 틀을 건너뛴다
-           - 촘촘: 때 네트워크를 위한 여러 토막
+        3. 프레임 샘플링:
+           - 균일: 영상 전체에 균일한 간격(가장 흔함)
+           - 무작위: 데이터 어그멘테이션용
+           - 스트라이드: 효율을 위해 프레임을 건너뛴다
+           - 조밀: 시간 네트워크를 위한 여러 클립
 
-        4. 앞손질:
-           - 고르게 맞추기: 평균/표준편차로 익히기를 든든하게 한다
-           - 잘라내기: 때(틀)와 자리(구역)
-           - 불리기: 두루 통함을 낫게 한다
+        4. 전처리:
+           - 정규화: 평균/표준편차로 학습을 안정시킨다
+           - 크롭: 시간(프레임)과 공간(영역)
+           - 어그멘테이션: 일반화를 개선한다
 
-        5. 영상과 그림:
-           - 영상에는 때 차원이 있다(복잡함이 더해진다)
-           - 표집 전략이 모델이 무엇을 배우는지를 바꾼다
-           - 앞손질은 때의 한결같음을 지켜야 한다
+        5. 영상과 이미지:
+           - 영상에는 시간 차원이 있다(복잡함이 더해진다)
+           - 샘플링 전략이 모델이 무엇을 배우는지를 바꾼다
+           - 전처리는 시간적 일관성을 지켜야 한다
 
-        다음: 자리와 때의 피처를 배우는 3차원 컨볼루션을 살펴본다!
+        다음: 시공간 피처를 학습하는 3차원 컨볼루션을 살펴본다!
         """)
 
 
@@ -667,7 +667,7 @@ OpenCV로 읽은 프레임은 H×W×3 BGR이므로 코드에서 RGB로 변환한
 
 반면 `load_video_to_tensor(num_frames=...)`는 요청 수가 더 작을 때만 줄인다. 짧은 영상에 프레임을 채워 같은 길이로 만드는 기능은 없다. dense_sampling도 원본이 clip_length보다 짧으면 원본 하나를 그대로 반환하므로 고정 길이 배치를 보장하지 않는다. 프레임 반복·패딩·마스크 등 짧은 영상 처리 규칙이 별도로 필요하다.
 
-stride 샘플링은 양의 간격을 가정한다. 고정 fps에서 stride s로 선택하면 인접 표본의 시간 간격은 s/fps다. 같은 16프레임이라도 fps·stride가 다르면 덮는 시간과 액션의 의미가 다르다. 균일 샘플링은 전체 비디오, 연속 clip은 짧은 구간을 보는 차이가 있으므로 과제에 맞게 선택한다.
+stride 샘플링은 양의 간격을 가정한다. 고정 fps에서 stride s로 선택하면 인접 표본의 시간 간격은 s/fps다. 같은 16프레임이라도 fps·stride가 다르면 덮는 시간과 움직임의 의미가 다르다. 균일 샘플링은 전체 비디오, 연속 clip은 짧은 구간을 보는 차이가 있으므로 과제에 맞게 선택한다.
 
 ## 4. 정규화와 일관된 crop
 
@@ -707,7 +707,7 @@ stride 샘플링은 양의 간격을 가정한다. 고정 fps에서 stride s로 
 
 ??? success "풀이"
 
-    아니다. uniform sampling은 중복 선택으로 요청 수를 만들 수 있지만 load_video_to_tensor는 원본보다 많은 요청을 채우지 않는다. dense sampling도 짧으면 원본 하나를 반환한다. 빈 입력·양의 요청 수·패딩 또는 반복 폴리시를 명시해야 한다.
+    아니다. uniform sampling은 중복 선택으로 요청 수를 만들 수 있지만 load_video_to_tensor는 원본보다 많은 요청을 채우지 않는다. dense sampling도 짧으면 원본 하나를 반환한다. 빈 입력·양의 요청 수·패딩 또는 반복 정책을 명시해야 한다.
 
 
 
@@ -746,10 +746,10 @@ stride 샘플링은 양의 간격을 가정한다. 고정 fps에서 stride s로 
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

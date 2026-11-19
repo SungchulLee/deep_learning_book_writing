@@ -1,4 +1,4 @@
-# L1/L2 정규화
+# L1/L2 정칙화
 
 선형 회귀와 회귀 MLP에서 L1·L2 패널티의 효과를 비교한다. 목적함수에 직접 패널티를 더하며 어떤 계수가 포함되는지 확인한다.
 
@@ -8,7 +8,7 @@
 """
 L1과 L2 정칙화 예제
 =================================
-L1(라쏘)과 L2(능선) 정칙화가 로스 함수에 벌점 항을 더해
+L1(라쏘)과 L2(릿지) 정칙화가 로스 함수에 패널티 항을 더해
 과적합을 막는 방식을 보인다.
 """
 
@@ -31,7 +31,7 @@ from torch.utils.data import DataLoader, TensorDataset
 def build_mlp(input_dim):
     """회귀용 다층 퍼셉트론을 만든다.
 
-    네 실험이 모두 같은 구조를 쓴다. 바뀌는 것은 벌점뿐이어야
+    네 실험이 모두 같은 구조를 쓴다. 바뀌는 것은 패널티뿐이어야
     결과의 차이를 정칙화 탓으로 돌릴 수 있다.
     """
     return nn.Sequential(
@@ -47,9 +47,9 @@ def build_mlp(input_dim):
 
 
 def regularization_penalty(model, l1_factor=0.0, l2_factor=0.0):
-    """웨이트에만 적용하는 L1/L2 벌점을 계산한다.
+    """웨이트에만 적용하는 L1/L2 패널티를 계산한다.
 
-    l1_factor만 주면 라쏘, l2_factor만 주면 능선,
+    l1_factor만 주면 라쏘, l2_factor만 주면 릿지,
     둘 다 주면 엘라스틱 넷이 된다.
     """
     device = next(model.parameters()).device
@@ -57,12 +57,12 @@ def regularization_penalty(model, l1_factor=0.0, l2_factor=0.0):
     l2 = torch.tensor(0.0, device=device)
     # named_parameters로 이름을 보아 바이어스를 걸러 낸다. 바이어스는 과적합의
     # 원인이 아니라 출력의 중심을 옮기는 자유도라 눌러 둘 까닭이 없다.
-    # model.parameters()를 그냥 훑으면 바이어스까지 벌점을 받는다
+    # model.parameters()를 그냥 훑으면 바이어스까지 패널티를 받는다
     for name, param in model.named_parameters():
         if 'weight' not in name:
             continue
         # += 대신 = a + b로 누적한다. 제자리 연산은 덮어쓴 값을 역전파가
-        # 필요로 할 때 탈이 나므로, 누적에는 이 형태가 안전하다
+        # 필요로 할 때 오류가 나므로, 누적에는 이 형태가 안전하다
         l1 = l1 + param.abs().sum()
         l2 = l2 + param.pow(2).sum()
     return l1_factor * l1 + l2_factor * l2
@@ -70,9 +70,9 @@ def regularization_penalty(model, l1_factor=0.0, l2_factor=0.0):
 
 def train_mlp(model, X_train, y_train, l1_factor=0.0, l2_factor=0.0,
               epochs=100, batch_size=32, lr=1e-3):
-    """벌점을 걸어 모델을 학습시키고 에포크별 이력을 돌려준다."""
-    # 벌점은 위의 함수로 직접 만들어 로스에 더한다. 손이 조금 더 가는
-    # 대신, 무엇이 벌점을 받고 무엇이 받지 않는지가 코드에 그대로 보인다
+    """패널티를 걸어 모델을 학습시키고 에포크별 이력을 돌려준다."""
+    # 패널티는 위의 함수로 직접 만들어 로스에 더한다. 손이 조금 더 가는
+    # 대신, 무엇이 패널티를 받고 무엇이 받지 않는지가 코드에 그대로 보인다
     n_val = int(0.2 * len(X_train))
     train_ds = TensorDataset(X_train[:-n_val], y_train[:-n_val])
     val_ds = TensorDataset(X_train[-n_val:], y_train[-n_val:])
@@ -92,7 +92,7 @@ def train_mlp(model, X_train, y_train, l1_factor=0.0, l2_factor=0.0,
             loss = mse + regularization_penalty(model, l1_factor, l2_factor)
             loss.backward()
             optimizer.step()
-            # 기록은 벌점을 뺀 mse로 한다. 그래야 벌점의 세기가 다른
+            # 기록은 패널티를 뺀 mse로 한다. 그래야 패널티의 세기가 다른
             # 실험끼리 로스 곡선을 견줄 수 있다
             total += mse.item() * xb.size(0)
         history['loss'].append(total / len(train_ds))
@@ -137,7 +137,7 @@ def sklearn_regularization_demo():
     
     # 모델 학습
     models = {
-        # 강도가 서로 다르다. 두 벌점의 눈금이 달라 같은 alpha를 주면
+        # 강도가 서로 다르다. 두 패널티의 스케일이 달라 같은 alpha를 주면
         # 라쏘가 훨씬 세게 누르기 때문이다. 이 표에서 볼 것은
         # 강도별 성능이 아니라 계수를 다루는 방식의 차이다
         'No Regularization': LinearRegression(),
@@ -152,10 +152,11 @@ def sklearn_regularization_demo():
         test_score = model.score(X_test_scaled, y_test)
         
         # 영이 아닌 계수 세기
-        # 셋 모두에 같은 임계값을 쓴다. 라쏘는 정확히 0을 만들지만
-        # 능선과 최소제곱은 그러지 못하므로, 이 줄의 결과는 라쏘만
-        # 20 언저리로 떨어지고 나머지 둘은 50에 가깝게 나온다.
-        # 데이터에 심어 둔 유효 피처가 20개였음을 떠올려 보라
+        # 셋 모두에 같은 임계값을 쓴다. 라쏘는 정확히 0을 만들 수 있지만
+        # 릿지와 최소제곱은 그러지 못한다. 아래 출력에서는 릿지와
+        # 최소제곱이 50개를 모두 남기고 라쏘는 48개를 남긴다. 데이터에
+        # 심어 둔 유효 피처가 20개였는데도 2개만 걸러진 것은 alpha=0.1이
+        # 약하기 때문이다
         non_zero = np.sum(np.abs(model.coef_) > 1e-5)
         
         results[name] = {
@@ -200,15 +201,15 @@ def neural_network_regularization_demo():
     X_test_scaled = scaler.transform(X_test)
     
     # 텐서로 옮긴다. 목표를 (N, 1)로 맞추어야 MSELoss가 (N, 1)인 출력과
-    # 방송되지 않는다. (N,)으로 두면 오류 없이 (N, N) 차이 행렬이 만들어져
+    # 브로드캐스팅되지 않는다. (N,)으로 두면 오류 없이 (N, N) 차이 행렬이 만들어져
     # 조용히 틀린 로스가 나온다
     X_train_t = torch.FloatTensor(X_train_scaled)
     y_train_t = torch.FloatTensor(y_train).reshape(-1, 1)
     X_test_t = torch.FloatTensor(X_test_scaled)
     y_test_t = torch.FloatTensor(y_test).reshape(-1, 1)
 
-    # 벌점의 세기만 다르고 구조는 모두 같다. l1과 l2 계수를 어떻게
-    # 주느냐가 곧 라쏘, 능선, 엘라스틱 넷을 가른다
+    # 패널티의 세기만 다르고 구조는 모두 같다. l1과 l2 계수를 어떻게
+    # 주느냐가 곧 라쏘, 릿지, 엘라스틱 넷을 가른다
     settings = {
         'No Regularization': (0.0, 0.0),
         'L1 Regularization': (0.001, 0.0),
@@ -219,7 +220,7 @@ def neural_network_regularization_demo():
     histories = {}
     for name, (l1_factor, l2_factor) in settings.items():
         print(f"\nTraining {name}...")
-        # 모델을 만들기 직전마다 씨앗을 심어 네 실험이 같은 초기
+        # 모델을 만들기 직전마다 시드를 고정해 네 실험이 같은 초기
         # 웨이트에서 출발하게 한다
         torch.manual_seed(42)
         model = build_mlp(X_train_t.shape[1])
@@ -336,7 +337,7 @@ regularization_penalty는 이름에 weight가 들어간 텐서에 절댓값 합�
 
 뉴럴 네트워크 학습은 Adam에 패널티를 직접 더한다. L2 목적의 패널티와 AdamW의 분리된 감쇠를 같은 갱신으로 해석하지 않는다. L1 항을 Adam으로 최적화한다고 정확한 0이 자동으로 보장되는 것도 아니다.
 
-MLP의 내부 검증은 외부 학습 데이터를 scaler로 변환한 후 나누므로 검증 입력의 통계가 전처리에 반영된다. 엄격한 설정 선택에는 먼저 내부 분할한 뒤 실제 학습 부분만으로 scaler를 맞춘다. 선형 모델과 뉴럴 네트워크는 로스 집계와 정규화 계수의 관례가 다를 수 있다.
+MLP의 내부 검증은 외부 학습 데이터를 scaler로 변환한 후 나누므로 검증 입력의 통계가 전처리에 반영된다. 엄격한 설정 선택에는 먼저 내부 분할한 뒤 실제 학습 부분만으로 scaler를 맞춘다. 선형 모델과 뉴럴 네트워크는 로스 집계와 정칙화 계수의 관례가 다를 수 있다.
 
 ## 연습문제
 
@@ -392,16 +393,16 @@ L1 뉴럴 네트워크의 희소성을 어떻게 평가해야 하는가?
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

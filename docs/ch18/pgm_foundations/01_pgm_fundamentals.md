@@ -8,29 +8,29 @@
 
     ```python
     """
-    확률 그래프 모형 — 바탕
+    확률 그래프 모델 — 기초
     ==============================================
 
-    이 모듈은 확률 그래프 모형(PGM)의 바탕 개념을 들여온다.
+    이 모듈은 확률 그래프 모델(PGM)의 기초 개념을 소개한다.
 
     학습 목표:
     -------------------
-    1. 확률 그래프 모형이 무엇이고 왜 쓸모 있는지 이해하기
+    1. 확률 그래프 모델이 무엇이고 왜 유용한지 이해하기
     2. 확률 분포의 그래프 표현 배우기
     3. 독립과 조건부 독립 개념 익히기
-    4. 방향 그래프에서의 d-가름 이해하기
+    4. 방향 그래프에서의 d-분리 이해하기
     5. 결합 확률 분포를 간결하게 나타내는 법 배우기
 
-    수학의 바탕:
+    수학적 기초:
     ------------------------
     - 결합 확률: P(X1, X2, ..., Xn)
     - 조건부 확률: P(X|Y) = P(X,Y) / P(Y)
-    - 사슬 규칙: P(X1,...,Xn) = ∏ P(Xi | X1,...,Xi-1)
+    - 연쇄 법칙: P(X1,...,Xn) = ∏ P(Xi | X1,...,Xi-1)
     - 독립: P(X,Y) = P(X)P(Y)
     - 조건부 독립: P(X,Y|Z) = P(X|Z)P(Y|Z)
 
     지은이: 교육용 ML 팀
-    수준: 첫스텝
+    수준: 입문
     미리 알아야 할 것: 기본 확률 이론
     """
 
@@ -47,14 +47,14 @@
 
     class ProbabilityDistribution:
         """
-        확률 변수 배치에 걸친 이산 확률 분포를 나타낸다.
+        확률 변수 집합에 걸친 이산 확률 분포를 나타낸다.
 
-        이 클래스는 주변화, 조건 걸기, 독립 검정을 비롯해 확률 분포를 다루는
+        이 클래스는 주변화, 조건화, 독립 검정을 비롯해 확률 분포를 다루는
         기본 연산을 준다.
 
         속성:
             variables: 확률 변수 이름의 목록
-            cardinalities: 변수 이름을 가짓수에 잇는 사전
+            cardinalities: 변수 이름을 상태 수에 대응시키는 딕셔너리
             values: 확률 값을 담은 NumPy 배열
         """
 
@@ -63,14 +63,14 @@
                      cardinalities: Dict[str, int],
                      values: Optional[np.ndarray] = None):
             """
-            확률 분포의 첫스텝을 잡는다.
+            확률 분포를 초기화한다.
 
             인수:
                 variables: 변수 이름의 목록(이를테면 ['X', 'Y', 'Z'])
-                cardinalities: 가짓수 사전(이를테면 {'X': 2, 'Y': 3, 'Z': 2})
-                values: 있어도 되고 없어도 되는 확률 값 배열. None이면 고른 분포
+                cardinalities: 상태 수 딕셔너리(이를테면 {'X': 2, 'Y': 3, 'Z': 2})
+                values: 선택적인 확률 값 배열. None이면 균등 분포
 
-            보기:
+            예:
                 # 이진 변수 둘에 걸친 분포 만들기
                 dist = ProbabilityDistribution(
                     variables=['X', 'Y'],
@@ -81,16 +81,16 @@
             self.variables = variables
             self.cardinalities = cardinalities
 
-            # 분포 배열의 형태 셈하기
+            # 분포 배열의 형태 계산하기
             shape = tuple(cardinalities[var] for var in variables)
 
             if values is None:
-                # 고른 분포로 첫스텝 잡기
+                # 균등 분포로 초기화하기
                 total_size = np.prod(shape)
                 self.values = np.ones(shape) / total_size
             else:
                 self.values = np.array(values)
-                # 분포가 고르게 되었는지 보장하기
+                # 분포가 정규화되었는지 보장하기
                 self.values = self.values / np.sum(self.values)
 
             # 형태가 맞는지 확인하기
@@ -104,7 +104,7 @@
             주변화는 변수를 합으로 지워 부분 변수에 걸친 분포를
             얻는 일이다.
 
-            수학의 정의:
+            수학적 정의:
                 P(X) = Σ_Y P(X, Y)
 
             인수:
@@ -113,15 +113,15 @@
             반환값:
                 정해진 변수에 걸친 새 ProbabilityDistribution
 
-            보기:
-                # P(X, Y, Z)이 있으면 Z을 주변화해 P(X, Y)을 얻을 수 있다
+            예:
+                # P(X, Y, Z)가 있으면 Z를 주변화해 P(X, Y)를 얻을 수 있다
                 joint = ProbabilityDistribution(['X', 'Y', 'Z'], ...)
-                marginal = joint.marginalize(['X', 'Y'])  # 이것이 P(X, Y)을 준다
+                marginal = joint.marginalize(['X', 'Y'])  # 이것이 P(X, Y)를 준다
             """
             # 합으로 지울 변수 찾기
             variables_to_sum = [var for var in self.variables if var not in variables_to_keep]
 
-            # 지울 변수가 없으면 베낀 것을 되돌린다
+            # 지울 변수가 없으면 복사본을 반환한다
             if not variables_to_sum:
                 return ProbabilityDistribution(
                     self.variables, 
@@ -135,7 +135,7 @@
             # 알맞은 축에 걸쳐 합해 주변화하기
             marginalized_values = np.sum(self.values, axis=axes_to_sum)
 
-            # 새 가짓수 사전 만들기
+            # 새 상태 수 딕셔너리 만들기
             new_cardinalities = {var: self.cardinalities[var] for var in variables_to_keep}
 
             return ProbabilityDistribution(
@@ -146,27 +146,27 @@
 
         def condition(self, evidence: Dict[str, int]) -> 'ProbabilityDistribution':
             """
-            관측한 증거에 분포를 조건 건다.
+            관측한 증거로 분포를 조건화한다.
 
-            조건 걸기는 어떤 변수를 관측 값으로 붙박아 두고 분포를
-            다시 고르게 하는 일이다.
+            조건화는 어떤 변수를 관측 값으로 고정하고 분포를
+            다시 정규화하는 일이다.
 
-            수학의 정의:
+            수학적 정의:
                 P(X|Y=y) = P(X, Y=y) / P(Y=y)
 
             인수:
-                evidence: 변수 이름을 관측 값에 잇는 사전
+                evidence: 변수 이름을 관측 값에 대응시키는 딕셔너리
                          (이를테면 {'X': 0, 'Y': 1})
 
             반환값:
-                증거에 조건 건 새 ProbabilityDistribution
+                증거로 조건화한 새 ProbabilityDistribution
 
-            보기:
-                # P(X, Y, Z)에 Y=1을 조건으로 걸어 P(X, Z | Y=1)을 얻기
+            예:
+                # P(X, Y, Z)에 Y=1을 조건으로 두어 P(X, Z | Y=1)를 얻기
                 joint = ProbabilityDistribution(['X', 'Y', 'Z'], ...)
                 conditional = joint.condition({'Y': 1})
             """
-            # 알맞은 값을 고르는 조각 만들기
+            # 알맞은 값을 고르는 슬라이스 만들기
             slice_indices = []
             remaining_variables = []
             remaining_cardinalities = {}
@@ -181,10 +181,10 @@
                     remaining_variables.append(var)
                     remaining_cardinalities[var] = self.cardinalities[var]
 
-            # 조건 건 값 뽑아내기
+            # 조건화한 값 뽑아내기
             conditioned_values = self.values[tuple(slice_indices)]
 
-            # 제대로 된 확률 분포가 되도록 고르게 하기
+            # 제대로 된 확률 분포가 되도록 정규화하기
             # P(X|Y=y) = P(X,Y=y) / Σ_X P(X,Y=y)
             total = np.sum(conditioned_values)
             if total > 0:
@@ -204,8 +204,8 @@
             """
             변수 둘이 독립인지 검정한다.
 
-            다음이면 변수 X과 Y이 독립이다:
-                X과 Y의 모든 값에 대해 P(X, Y) = P(X) * P(Y)
+            다음이면 변수 X와 Y가 독립이다:
+                X와 Y의 모든 값에 대해 P(X, Y) = P(X) * P(Y)
 
             인수:
                 var1: 첫 변수의 이름
@@ -215,7 +215,7 @@
             반환값:
                 변수가 독립이면 True, 아니면 False
 
-            보기:
+            예:
                 dist = ProbabilityDistribution(['X', 'Y'], ...)
                 if dist.is_independent('X', 'Y'):
                     print("X and Y are independent")
@@ -227,12 +227,12 @@
             # 이 변수 둘에만 걸친 결합 분포 얻기
             p_joint = self.marginalize([var1, var2])
 
-            # 주변 분포의 곱 셈하기: P(X) * P(Y)
-            # 바깥곱을 셈해야 한다
+            # 주변 분포의 곱 계산하기: P(X) * P(Y)
+            # 외적을 계산해야 한다
             idx1 = p_joint.variables.index(var1)
             idx2 = p_joint.variables.index(var2)
 
-            # 퍼뜨리기를 위해 배열 형태 바꾸기
+            # 브로드캐스팅을 위해 배열 형태 바꾸기
             shape1 = [1] * len(p_joint.variables)
             shape1[idx1] = self.cardinalities[var1]
 
@@ -244,7 +244,7 @@
                 p_var2.values.reshape(shape2)
             )
 
-            # P(X,Y) ≈ P(X)P(Y)인지 살피기
+            # P(X,Y) ≈ P(X)P(Y)인지 확인하기
             difference = np.abs(p_joint.values - marginal_product)
             return np.all(difference < threshold)
 
@@ -256,10 +256,10 @@
             """
             다른 변수가 주어졌을 때 변수 둘이 조건부 독립인지 검정한다.
 
-            다음이면 Z이 주어졌을 때 X과 Y이 조건부 독립이다:
+            다음이면 Z가 주어졌을 때 X와 Y가 조건부 독립이다:
                 모든 값에 대해 P(X, Y | Z) = P(X | Z) * P(Y | Z)
 
-            이는 Z의 모든 값 z에 대해 다음을 확인해 살필 수 있다:
+            이는 Z의 모든 값 z에 대해 다음을 검사해 확인할 수 있다:
                 P(X, Y, Z=z) = P(X, Z=z) * P(Y, Z=z) / P(Z=z)
 
             인수:
@@ -271,23 +271,23 @@
             반환값:
                 조건부 독립이면 True, 아니면 False
 
-            보기:
-                # X ⊥ Y | Z인지 검정하기(Z을 조건으로 X과 Y이 독립인지)
+            예:
+                # X ⊥ Y | Z인지 검정하기(Z를 조건으로 X와 Y가 독립인지)
                 if dist.is_conditionally_independent('X', 'Y', ['Z']):
                     print("X and Y are conditionally independent given Z")
             """
-            # 조건 변수의 모든 값에 대해 이를 살펴야 한다
-            # 조건 변수에 있을 수 있는 대입을 모두 얻기
+            # 조건 변수의 모든 값에 대해 이를 확인해야 한다
+            # 조건 변수에 가능한 대입을 모두 얻기
             given_cardinalities = [self.cardinalities[var] for var in given]
 
             for given_values in product(*[range(card) for card in given_cardinalities]):
-                # 증거 사전 만들기
+                # 증거 딕셔너리 만들기
                 evidence = {var: val for var, val in zip(given, given_values)}
 
-                # 이 증거에 조건 걸기
+                # 이 증거로 조건화하기
                 conditioned = self.condition(evidence)
 
-                # 조건 건 분포에서 var1과 var2이 독립인지 살피기
+                # 조건화한 분포에서 var1과 var2가 독립인지 확인하기
                 if not conditioned.is_independent(var1, var2, threshold):
                     return False
 
@@ -300,43 +300,43 @@
 
     class DirectedGraph:
         """
-        베이즈 망을 위한 방향 비순환 그래프(DAG)를 나타낸다.
+        베이즈 네트워크를 위한 방향 비순환 그래프(DAG)를 나타낸다.
 
-        DAG은 방향 변을 갖고 고리가 없는 그래프이다.
-        이것이 베이즈 망을 떠받치는 근본 짜임이다.
+        DAG는 방향 간선을 갖고 사이클이 없는 그래프이다.
+        이것이 베이즈 네트워크를 떠받치는 기본 구조이다.
 
         속성:
             graph: NetworkX DiGraph 객체
         """
 
         def __init__(self):
-            """빈 방향 그래프의 첫스텝을 잡는다."""
+            """빈 방향 그래프를 초기화한다."""
             self.graph = nx.DiGraph()
 
         def add_node(self, node: str):
             """
-            그래프에 마디(확률 변수)를 더한다.
+            그래프에 노드(확률 변수)를 더한다.
 
             인수:
-                node: 마디/변수의 이름
+                node: 노드/변수의 이름
             """
             self.graph.add_node(node)
 
         def add_edge(self, parent: str, child: str):
             """
-            어버이에서 자식으로 가는 방향 변을 더한다.
+            부모에서 자식으로 가는 방향 간선을 더한다.
 
-            이 변은 곧바른 확률 기댐을 나타낸다.
-            곧 어버이가 자식에 영향을 준다.
+            이 간선은 직접적인 확률적 의존을 나타낸다.
+            곧 부모가 자식에 영향을 준다.
 
             인수:
-                parent: 어버이 절의 이름
-                child: 자식 마디의 이름
+                parent: 부모 노드의 이름
+                child: 자식 노드의 이름
 
-            일으키는 예외:
-                ValueError: 그 변을 더하면 고리가 생길 때
+            발생하는 예외:
+                ValueError: 그 간선을 더하면 사이클이 생길 때
             """
-            # 이 변을 더하면 고리가 생기는지 살피기
+            # 이 간선을 더하면 사이클이 생기는지 확인하기
             self.graph.add_edge(parent, child)
             if not nx.is_directed_acyclic_graph(self.graph):
                 self.graph.remove_edge(parent, child)
@@ -344,78 +344,78 @@
 
         def get_parents(self, node: str) -> List[str]:
             """
-            마디의 어버이를 얻는다.
+            노드의 부모를 얻는다.
 
-            어버이는 이 절를 가리키는 방향 변을 갖는 마디이다.
-            확률로 말하면 이 절가 곧바로 기대는
+            부모는 이 노드를 가리키는 방향 간선을 갖는 노드이다.
+            확률로 말하면 이 노드가 직접 의존하는
             변수들이다.
 
             인수:
-                node: 마디의 이름
+                node: 노드의 이름
 
             반환값:
-                어버이 절 이름의 목록
+                부모 노드 이름의 목록
             """
             return list(self.graph.predecessors(node))
 
         def get_children(self, node: str) -> List[str]:
             """
-            마디의 자식을 얻는다.
+            노드의 자식을 얻는다.
 
-            자식은 이 절가 방향 변으로 가리키는 마디이다.
+            자식은 이 노드가 방향 간선으로 가리키는 노드이다.
 
             인수:
-                node: 마디의 이름
+                node: 노드의 이름
 
             반환값:
-                자식 마디 이름의 목록
+                자식 노드 이름의 목록
             """
             return list(self.graph.successors(node))
 
         def get_ancestors(self, node: str) -> Set[str]:
             """
-            마디의 조상을 모두 얻는다.
+            노드의 조상을 모두 얻는다.
 
-            조상에는 어버이, 어버이의 어버이 등이 든다.
-            이 절로 가는 방향 길이 있는 모든 마디이다.
+            조상에는 부모, 부모의 부모 등이 든다.
+            이 노드로 가는 방향 경로가 있는 모든 노드이다.
 
             인수:
-                node: 마디의 이름
+                node: 노드의 이름
 
             반환값:
-                조상 마디 이름의 배치
+                조상 노드 이름의 집합
             """
             return nx.ancestors(self.graph, node)
 
         def get_descendants(self, node: str) -> Set[str]:
             """
-            마디의 자손을 모두 얻는다.
+            노드의 자손을 모두 얻는다.
 
             자손에는 자식, 자식의 자식 등이 든다.
-            이 절에서 가는 방향 길이 있는 모든 마디이다.
+            이 노드에서 가는 방향 경로가 있는 모든 노드이다.
 
             인수:
-                node: 마디의 이름
+                node: 노드의 이름
 
             반환값:
-                자손 마디 이름의 배치
+                자손 노드 이름의 집합
             """
             return nx.descendants(self.graph, node)
 
         def topological_order(self) -> List[str]:
             """
-            마디의 위상 차례를 얻는다.
+            노드의 위상 순서를 얻는다.
 
-            위상 차례는 변 (u,v)마다 u이 v보다 앞에 오도록
-            마디를 늘어놓은 것이다.
+            위상 순서는 간선 (u,v)마다 u가 v보다 앞에 오도록
+            노드를 나열한 것이다.
 
-            다음에 쓸모 있다:
-            1. 사슬 규칙으로 결합 확률 셈하기
-            2. 피드포워드 표집
+            다음에 유용하다:
+            1. 연쇄 법칙으로 결합 확률 계산하기
+            2. 순방향 샘플링
             3. 여러 추론 알고리즘
 
             반환값:
-                위상 차례로 늘어놓은 마디의 목록
+                위상 순서로 나열한 노드의 목록
             """
             return list(nx.topological_sort(self.graph))
 
@@ -424,41 +424,41 @@
                           Y: Set[str], 
                           Z: Set[str]) -> bool:
             """
-            Z이 주어졌을 때 X과 Y이 d-갈리는지 검정한다.
+            Z가 주어졌을 때 X와 Y가 d-분리되는지 검정한다.
 
-            d-가름(방향 가름)은 베이즈 망에서 조건부 독립을 가리는
+            d-분리(방향 분리)는 베이즈 네트워크에서 조건부 독립을 가리는
             그래프 기준이다.
 
-            Z이 주어졌을 때 X과 Y이 d-갈리면 X ⊥ Y | Z이다
-            (Z이 주어졌을 때 X과 Y이 조건부 독립이다).
+            Z가 주어졌을 때 X와 Y가 d-분리되면 X ⊥ Y | Z이다
+            (Z가 주어졌을 때 X와 Y가 조건부 독립이다).
 
-            d-가름 규칙:
-            1. 사슬: X -> Z -> Y: Z이 주어지면 X과 Y이 d-갈린다
-            2. 클래스: X <- Z -> Y: Z이 주어지면 X과 Y이 d-갈린다
-            3. 충돌자: X -> Z <- Y: Z이 주어지면 X과 Y이 d-갈리지 않는다
-                         그러나 Z을 관측하지 않으면 d-갈린다
+            d-분리 규칙:
+            1. 사슬: X -> Z -> Y: Z가 주어지면 X와 Y가 d-분리된다
+            2. 포크: X <- Z -> Y: Z가 주어지면 X와 Y가 d-분리된다
+            3. 충돌점: X -> Z <- Y: Z가 주어지면 X와 Y가 d-분리되지 않는다
+                         그러나 Z를 관측하지 않으면 d-분리된다
 
             인수:
-                X: 첫 무리의 마디 배치
-                Y: 둘째 무리의 마디 배치
-                Z: 조건 마디의 배치
+                X: 첫째 노드 집합
+                Y: 둘째 노드 집합
+                Z: 조건 노드의 집합
 
             반환값:
-                Z이 주어졌을 때 X과 Y이 d-갈리면 True
+                Z가 주어졌을 때 X와 Y가 d-분리되면 True
 
-            보기:
+            예:
                 graph = DirectedGraph()
                 graph.add_edge('X', 'Z')
                 graph.add_edge('Z', 'Y')
-                # Z을 조건으로 X과 Y은 d-갈린다(사슬 짜임)
+                # Z를 조건으로 X와 Y는 d-분리된다(사슬 구조)
                 is_sep = graph.is_d_separated({'X'}, {'Y'}, {'Z'})  # 참
             """
-            # NetworkX이 d-가름 검정을 준다
+            # NetworkX가 d-분리 검정을 준다
             return nx.d_separated(self.graph, X, Y, Z)
 
         def visualize(self, title: str = "Directed Graph", figsize: Tuple[int, int] = (10, 6)):
             """
-            방향 그래프를 그려 본다.
+            방향 그래프를 시각화한다.
 
             인수:
                 title: 그림의 제목
@@ -466,7 +466,7 @@
             """
             plt.figure(figsize=figsize)
 
-            # 더 잘 보이도록 레이어 배치를 쓴다
+            # 더 잘 보이도록 스프링 레이아웃을 쓴다
             try:
                 pos = nx.spring_layout(self.graph, k=2, iterations=50)
             except:
@@ -492,16 +492,16 @@
 
     def demonstrate_independence():
         """
-        보기를 들어 독립 개념을 보인다.
+        예를 들어 독립 개념을 보인다.
 
         이 함수는 독립과 조건부 독립을 보이는 분포를 만들어
-        그 개념을 그려 보게 돕는다.
+        그 개념을 시각적으로 이해하도록 돕는다.
         """
         print("=" * 70)
         print("DEMONSTRATION: Independence vs Conditional Independence")
         print("=" * 70)
 
-        # 보기 1: 독립인 변수
+        # 예 1: 독립인 변수
         # 동전 두 번 던지기 — 서로 독립이다
         print("\nExample 1: Two Independent Coin Flips")
         print("-" * 70)
@@ -519,7 +519,7 @@
         print(independent_dist.values)
         print(f"\nAre Coin1 and Coin2 independent? {independent_dist.is_independent('Coin1', 'Coin2')}")
 
-        # 보기 2: 서로 기대는 변수
+        # 예 2: 서로 종속인 변수
         # 날씨가 우산을 드는지에 영향을 준다
         print("\n\nExample 2: Dependent Variables (Weather and Umbrella)")
         print("-" * 70)
@@ -537,26 +537,26 @@
         print(dependent_dist.values)
         print(f"\nAre Rain and Umbrella independent? {dependent_dist.is_independent('Rain', 'Umbrella')}")
 
-        # 보기 3: 조건부 독립
-        # X -> Z -> Y 짜임(사슬)
+        # 예 3: 조건부 독립
+        # X -> Z -> Y 구조(사슬)
         print("\n\nExample 3: Conditional Independence (Chain Structure)")
         print("-" * 70)
         print("Structure: X -> Z -> Y")
         print("X and Y are conditionally independent given Z")
 
         # 조건부 독립을 보이는 분포 만들기
-        # X이 Z에, Z이 Y에 영향을 줄 때의 P(X, Z, Y)
+        # X가 Z에, Z가 Y에 영향을 줄 때의 P(X, Z, Y)
         chain_values = np.zeros((2, 2, 2))
-        # 사슬 규칙으로 쌓기: P(X,Z,Y) = P(X) P(Z|X) P(Y|Z)
+        # 연쇄 법칙으로 구성하기: P(X,Z,Y) = P(X) P(Z|X) P(Y|Z)
 
         # P(X)
         p_x = np.array([0.6, 0.4])
 
-        # P(Z|X) — X이 Z에 영향을 준다
+        # P(Z|X) — X가 Z에 영향을 준다
         p_z_given_x = np.array([[0.8, 0.2],  # Z|X=0
                                 [0.3, 0.7]])  # Z|X=1
 
-        # P(Y|Z) — Z이 Y에 영향을 준다
+        # P(Y|Z) — Z가 Y에 영향을 준다
         p_y_given_z = np.array([[0.7, 0.3],  # Y|Z=0
                                 [0.2, 0.8]])  # Y|Z=1
 
@@ -581,16 +581,16 @@
 
     def demonstrate_d_separation():
         """
-        서로 다른 그래프 짜임으로 d-가름을 보인다.
+        서로 다른 그래프 구조로 d-분리를 보인다.
 
-        d-가름은 베이즈 망에서 조건부 독립을 이해하는
+        d-분리는 베이즈 네트워크에서 조건부 독립을 이해하는
         핵심 개념이다.
         """
         print("\n\n" + "=" * 70)
         print("DEMONSTRATION: D-Separation in Different Structures")
         print("=" * 70)
 
-        # 짜임 1: 사슬(X -> Z -> Y)
+        # 구조 1: 사슬(X -> Z -> Y)
         print("\nStructure 1: Chain (X -> Z -> Y)")
         print("-" * 70)
         chain = DirectedGraph()
@@ -606,7 +606,7 @@
         print("\nIntuition: Information flows from X to Y through Z.")
         print("If we observe Z, the path is blocked.")
 
-        # 짜임 2: 클래스(X <- Z -> Y)
+        # 구조 2: 포크(X <- Z -> Y)
         print("\n\nStructure 2: Fork (X <- Z -> Y)")
         print("-" * 70)
         fork = DirectedGraph()
@@ -622,7 +622,7 @@
         print("\nIntuition: Z is a common cause of X and Y.")
         print("If we observe Z, X and Y become independent.")
 
-        # 짜임 3: 충돌자(X -> Z <- Y)
+        # 구조 3: 충돌점(X -> Z <- Y)
         print("\n\nStructure 3: Collider (X -> Z <- Y)")
         print("-" * 70)
         collider = DirectedGraph()
@@ -639,7 +639,7 @@
         print("If we DON'T observe Z, X and Y are independent.")
         print("If we DO observe Z, X and Y become dependent (explaining away effect).")
 
-        # 세 짜임 모두 그려 보기
+        # 세 구조 모두 시각화하기
         print("\n\nVisualizing all three structures...")
 
         fig, axes = plt.subplots(1, 3, figsize=(15, 4))
@@ -666,14 +666,14 @@
 
     def demonstrate_factorization():
         """
-        베이즈 망이 결합 분포를 어떻게 쪼개는지 보인다.
+        베이즈 네트워크가 결합 분포를 어떻게 인수분해하는지 보인다.
 
-        핵심 통찰: 변수 X1, ..., Xn에 걸친 베이즈 망은
+        핵심 통찰: 변수 X1, ..., Xn에 걸친 베이즈 네트워크는
         결합 분포를 다음과 같이 나타낸다:
 
         P(X1, ..., Xn) = ∏ P(Xi | Parents(Xi))
 
-        이 쪼개기가 셈을 훨씬 효율적으로 만든다.
+        이 인수분해가 계산을 훨씬 효율적으로 만든다.
         """
         print("\n\n" + "=" * 70)
         print("DEMONSTRATION: Factorization in Bayesian Networks")
@@ -720,16 +720,16 @@
         print("- We can perform reasoning with incomplete information")
         print("- We can identify independence relationships")
 
-        # 망 그려 보기
+        # 네트워크 시각화하기
         graph.visualize("Alarm Network: Factorized Representation")
 
 
     def main():
         """
-        모든 보여 주기를 돌리는 주된 함수.
+        모든 시연을 실행하는 메인 함수.
 
-        이는 구체적인 보기와 그림으로 PGM의 바탕을
-        두루 갖춰 들여온다.
+        이는 구체적인 예와 그림으로 PGM의 기초를
+        종합적으로 소개한다.
         """
         print("\n" + "=" * 70)
         print("PROBABILISTIC GRAPHICAL MODELS - FUNDAMENTALS")
@@ -956,9 +956,9 @@ $$P(X)=\sum_yP(X,y),\qquad P(X\mid Y=y)=\frac{P(X,Y=y)}{P(Y=y)}$$
 
 **그림으로 보는 AI 1.** 충돌점의 그 규칙은 병원 기록에서 먼저 나왔다
 
-셋 가운데 충돌점만 방향이 반대다. 사슬과 포크는 가운데를 **관측하면 닫히는데** 충돌점은 가운데를 관측하면 **열린다.** 외우기도 헷갈리고 처음 보면 어딘가 억지스럽다. 그런데 이 규칙은 그래프 이론에서 연역해 낸 것이 아니라, 그래프를 그리기 한참 전에 **자료에서 먼저 발견된** 것이다.
+셋 가운데 충돌점만 방향이 반대다. 사슬과 포크는 가운데를 **관측하면 닫히는데** 충돌점은 가운데를 관측하면 **열린다.** 외우기도 헷갈리고 처음 보면 어딘가 억지스럽다. 그런데 이 규칙은 그래프 이론에서 연역해 낸 것이 아니라, 그래프를 그리기 한참 전에 **데이터에서 먼저 발견된** 것이다.
 
-1946년에 메이오 클리닉의 조지프 버크슨(Joseph Berkson)이 《바이오메트릭스 불러틴》에 짧은 글을 실었다. 병원 자료로 두 질병의 관계를 따지는 연구에 근본적인 함정이 있다는 것이었다. 병원에 있는 사람만 들여다보면 **서로 아무 관계가 없는 두 병이 관계있는 것처럼 보인다.** 까닭은 간단하다. 둘 중 **하나라도** 있으면 입원할 확률이 올라가므로, 입원한 사람 가운데 A가 없는 사람은 B 때문에 왔을 가능성이 높다.
+1946년에 메이오 클리닉의 조지프 버크슨(Joseph Berkson)이 《바이오메트릭스 불러틴》에 짧은 글을 실었다. 병원 데이터로 두 질병의 관계를 따지는 연구에 근본적인 함정이 있다는 것이었다. 병원에 있는 사람만 들여다보면 **서로 아무 관계가 없는 두 병이 관계있는 것처럼 보인다.** 까닭은 간단하다. 둘 중 **하나라도** 있으면 입원할 확률이 올라가므로, 입원한 사람 가운데 A가 없는 사람은 B 때문에 왔을 가능성이 높다.
 
 그림으로 적으면 바로 A → 입원 ← B, 곧 충돌점이다. 그리고 "입원한 사람만 본다"가 바로 **충돌점을 조건으로 두는 일**이다.
 
@@ -966,7 +966,7 @@ $$P(X)=\sum_yP(X,y),\qquad P(X\mid Y=y)=\frac{P(X,Y=y)}{P(Y=y)}$$
 
 삼백만 명을 만들어 재어 보았다. 병 A와 병 B는 **설계상 완전히 독립**이고, 모집단 오즈비는 1.00이다. 그런데 둘 다 입원 확률을 올리게 해 두고 입원한 사람만 보면 오즈비가 0.30으로, 유발력을 더 키우면 **0.052**까지 내려간다. 두 병이 서로를 막아 주는 것처럼 보이는 수다. 병에 대해 바뀐 것은 아무것도 없고 **누구를 들여다보는가**만 바뀌었다.
 
-**그래서 위 문단의 "열릴 수 있다"는 조심스러운 표현이 아니다.** 열리는 정도가 선택의 세기에 따라 매끄럽게 커지므로, 충돌점을 조건으로 둔 분석은 "조금 치우쳤다"가 아니라 **얼마나 치우쳤는지 자료만 보고는 알 수 없는** 상태가 된다. 그리고 이 조건화는 대개 의도해서 하는 것이 아니다 — 표본을 어떻게 모았는가에 이미 들어 있다. 아래 문단이 적어 둔 대로 d-분리는 **그래프를 맞게 그렸을 때** 독립성을 보장하는 것이고, 표본이 어떤 변수로 걸러졌는지는 그 그래프에 그려 넣지 않으면 어디에도 나타나지 않는다.
+**그래서 위 문단의 "열릴 수 있다"는 조심스러운 표현이 아니다.** 열리는 정도가 선택의 세기에 따라 매끄럽게 커지므로, 충돌점을 조건으로 둔 분석은 "조금 치우쳤다"가 아니라 **얼마나 치우쳤는지 데이터만 보고는 알 수 없는** 상태가 된다. 그리고 이 조건화는 대개 의도해서 하는 것이 아니다 — 표본을 어떻게 모았는가에 이미 들어 있다. 아래 문단이 적어 둔 대로 d-분리는 **그래프를 맞게 그렸을 때** 독립성을 보장하는 것이고, 표본이 어떤 변수로 걸러졌는지는 그 그래프에 그려 넣지 않으면 어디에도 나타나지 않는다.
 
 _확인한 곳 — J. Berkson, "Limitations of the Application of Fourfold Table Analysis to Hospital Data", *Biometrics Bulletin* **2**(3), 47–53 (1946년 6월). 병원 표본에서 실제로는 무관한 두 질병이 연관된 것처럼 보인다는 것이 그 글의 요지이며, 지금은 버크슨 편향이라 부른다. 그림의 수는 그림을 그리는 코드가 직접 만들어 재며, 모집단에서 두 병이 독립이라는 것을 `assert` 로 확인한 뒤에 그린다._
 
@@ -974,7 +974,7 @@ _확인한 곳 — J. Berkson, "Limitations of the Application of Fourfold Table
 
 d-분리는 그래프에 따라 인수분해되는 분포의 조건부 독립을 보장한다. 반대로 d-연결되었다는 사실만으로 모든 수치 파라메터에서 반드시 종속이라는 뜻은 아니다. 추가 독립이 없는 충실성 가정과 구분한다. 그래프의 화살표도 인과 가정을 추가하지 않으면 통계적 분해의 방향이다.
 
-코드의 독립 검사 함수는 표의 수치가 곱으로 분해되는지 허용오차로 비교한다. 표본 자료에서 독립성을 검정하는 통계적 유의성 검정은 아니다. 그래프 API의 버전과 상태 수, 증거의 유효성을 확인해야 한다.
+코드의 독립 검사 함수는 표의 수치가 곱으로 분해되는지 허용오차로 비교한다. 표본 데이터에서 독립성을 검정하는 통계적 유의성 검정은 아니다. 그래프 API의 버전과 상태 수, 증거의 유효성을 확인해야 한다.
 
 ## 연습문제
 
@@ -987,7 +987,7 @@ d-분리는 그래프에 따라 인수분해되는 분포의 조건부 독립을
 
 ??? success "풀이"
 
-    아래 표는 P(D)P(S₁|D)P(S₂|D)로 생성되므로 D의 양쪽 값에서 조건부 독립이다. 서로 다른 D의 상태를 혼합하면 두 결과가 공통원인 정보를 공유해 주변적으로 종속일 수 있다. 코드는 D=0의 조건부 독립과 주변 종속을 수치 비교한다. 의료 이름은 가상 변수명이며 실제 진단 모형을 검증한 자료가 아니다.
+    아래 표는 P(D)P(S₁|D)P(S₂|D)로 생성되므로 D의 양쪽 값에서 조건부 독립이다. 서로 다른 D의 상태를 혼합하면 두 결과가 공통원인 정보를 공유해 주변적으로 종속일 수 있다. 코드는 D=0의 조건부 독립과 주변 종속을 수치 비교한다. 의료 이름은 가상 변수명이며 실제 진단 모델을 검증한 데이터가 아니다.
 
     ```python
     import numpy as np
@@ -1009,12 +1009,12 @@ d-분리는 그래프에 따라 인수분해되는 분포의 조건부 독립을
     p_s1 = p_s1_s2.sum(axis=1)
     p_s2 = p_s1_s2.sum(axis=0)
 
-    # 주변 독립 살피기
+    # 주변 독립 확인하기
     print('Marginal P(S1,S2):', p_s1_s2)
     print('P(S1)*P(S2):', np.outer(p_s1, p_s2))
     print('Marginally independent?', np.allclose(p_s1_s2, np.outer(p_s1, p_s2)))
 
-    # D=0을 조건으로 한 조건부 독립 살피기
+    # D=0을 조건으로 한 조건부 독립 확인하기
     p_given_d0 = values[0] / values[0].sum()
     p_s1_d0 = p_given_d0.sum(axis=1)
     p_s2_d0 = p_given_d0.sum(axis=0)

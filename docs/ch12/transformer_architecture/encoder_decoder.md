@@ -32,7 +32,7 @@ $$\mathbf{H} = \text{LayerNorm}(\mathbf{Z} + \text{FFN}(\mathbf{Z}))$$
 
 $$\mathbf{Y}' = \text{LayerNorm}(\mathbf{Y} + \text{MaskedMultiHead}(\mathbf{Y}, \mathbf{Y}, \mathbf{Y}))$$
 
-인과 마스크가 앞으로의 자리에 주의하지 못하게 막아 자기 회귀 성질을 지킨다.
+인과 마스크가 미래 위치를 참조하지 못하게 막아 자기 회귀 성질을 지킨다.
 
 **하위 레이어 2 — 크로스 어텐션:**
 
@@ -100,7 +100,7 @@ Pre-LN은 항등 잔차 경로가 정규화 바깥에 남는다. 깊은 모델�
 
 **어텐션**: 모든 자리가 모든 자리를 본다(양방향)
 
-인코더만 쓰는 구조는 디코더를 아주 없앤다. 모델은 입력을 양방향 셀프 어텐션 레이어 스택로 처리하여 토큰마다 맥락이 담긴 표현을 낸다.
+인코더만 쓰는 구조는 디코더를 아주 없앤다. 모델은 입력을 양방향 셀프 어텐션 레이어 스택으로 처리하여 토큰마다 맥락이 담긴 표현을 낸다.
 
 ```python
 import torch
@@ -115,10 +115,10 @@ class EncoderOnly(nn.Module):
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers)
     
     def forward(self, x):
-        return self.encoder(self.embed(x))  # 인과 가림 없음
+        return self.encoder(self.embed(x))  # 인과 마스크 없음
 ```
 
-**쓰임새**: 분류, 개체명 인식, 쿼리응답 추출, 문장 임베딩
+**쓰임새**: 분류, 개체명 인식, 질의응답 추출, 문장 임베딩
 
 **사전 학습**: BERT의 마스크 언어 모델링(MLM)은 선택한 토큰을 양방향 문맥으로 예측한다. 이 목표와 순차적인 다음 토큰 생성은 다르지만 인코더가 “이해만 할 수 있다”는 구조적 제약을 뜻하지는 않는다.
 
@@ -148,7 +148,7 @@ class DecoderOnly(nn.Module):
         return self.lm_head(h)
 ```
 
-**쓰임새**: 글 생성, 대화, 코드, 맥락 안 학습
+**쓰임새**: 글 생성, 대화, 코드, 인컨텍스트 학습(in-context learning, 맥락 내 학습)
 
 **사전 학습**: 인과 언어 모델링(CLM)은 앞선 토큰을 조건으로 다음 토큰을 예측한다. 각 유효 위치에 로스를 줄 수 있지만 다른 목표보다 항상 데이터 효율이 좋다는 뜻은 아니다.
 
@@ -162,7 +162,7 @@ class DecoderOnly(nn.Module):
 
 **어텐션**: 인코더는 양방향, 디코더는 인과, 그리고 크로스 어텐션
 
-인코더-디코더 구조는 원래 트랜스포머 설계를 온전히 지닌다. 인코더가 입력을 양방향으로 처리하고, 디코더는 인코더의 표현에 주의하면서 출력을 자기 회귀로 만들어 낸다.
+인코더-디코더 구조는 원래 트랜스포머 설계를 온전히 지닌다. 인코더가 입력을 양방향으로 처리하고, 디코더는 인코더의 표현을 참조하면서 출력을 자기 회귀로 만들어 낸다.
 
 ```python
 class EncoderDecoder(nn.Module):
@@ -188,7 +188,7 @@ class EncoderDecoder(nn.Module):
 
 **쓰임새**: 번역, 요약, 텍스트에서 텍스트로 옮기는 과제
 
-**사전 학습**: T5는 일부 구간을 제거하고 특수 표식으로 대체해 제거된 구간을 출력하게 한다. BART는 손상된 입력에서 원문을 복원한다. 둘 다 입력 복원 계열이지만 출력 목표가 정확히 같지는 않다.
+**사전 학습**: T5는 일부 구간을 제거하고 특수 토큰으로 대체해 제거된 구간을 출력하게 한다. BART는 손상된 입력에서 원문을 복원한다. 둘 다 입력 복원 계열이지만 출력 목표가 정확히 같지는 않다.
 
 ---
 
@@ -206,7 +206,7 @@ class EncoderDecoder(nn.Module):
 
 **문맥 접근**: 인코더의 각 토큰 표현은 원문의 앞뒤를 볼 수 있다. 디코더 전용 모델의 현재 출력은 과거 입력과 프롬프트 전체를 활용할 수 있어 생성 외의 분류·추론 과제에도 쓸 수 있다. 인코더·디코더는 원문을 양방향으로 처리하면서 목표문을 순차적으로 생성한다.
 
-**파라메터 수**: 인코더와 디코더를 각각 N레이어씩 두면 단일 N레이어 스택보다 계수가 늘지만 정확히 두 배는 아니다. 교차 어텐션·출력 레이어·어휘 공유 여부도 포함해야 한다. 전체 파라메터와 학습·생성 비용을 같은 예산에서 비교한다.
+**파라메터 수**: 인코더와 디코더를 각각 N레이어씩 두면 단일 N레이어 스택보다 파라메터가 늘지만 정확히 두 배는 아니다. 교차 어텐션·출력 레이어·어휘 공유 여부도 포함해야 한다. 전체 파라메터와 학습·생성 비용을 같은 예산에서 비교한다.
 
 **학습 목표**: 구조는 사용할 수 있는 문맥을 정하고, 로스는 그 문맥에서 무엇을 예측할지 정한다. 대표 목표가 구조와 잘 맞더라도 한 구조에 오직 한 가지 목표만 가능한 것은 아니다.
 
@@ -240,11 +240,11 @@ $$\text{FFN}(\mathbf{x}) = f(\mathbf{x}\mathbf{W}_1)\mathbf{W}_2$$
 
 상세 예제의 입력 attention_mask는 1이 유효, 0이 패딩이며 내부 key_padding_mask는 True가 차단이다. 모든 키가 패딩이면 소프트맥스에서 NaN이 발생할 수 있다. 패딩 쿼리의 출력까지 자동으로 0으로 만들지는 않는다.
 
-Pre-LN의 all_hidden_states는 최종 정규화 전의 마지막 블록 출력까지 담지만 last_hidden_state에는 최종 정규화가 적용된다. 두 값을 곧바로 같다고 비교하면 안 된다. 어텐션 웨이트는 드롭아웃 이후이므로 학습 모드의 행 합은 항상 1이 아니다. 예제의 108,890,112개는 학습 전 구조의 계수 수다.
+Pre-LN의 all_hidden_states는 최종 정규화 전의 마지막 블록 출력까지 담지만 last_hidden_state에는 최종 정규화가 적용된다. 두 값을 곧바로 같다고 비교하면 안 된다. 어텐션 웨이트는 드롭아웃 이후이므로 학습 모드의 행 합은 항상 1이 아니다. 예제의 108,890,112개는 학습 전 구조의 파라메터 수다.
 
-### 훑어보기
+### 개요
 
-트랜스포머 인코더 블록은 BERT 같은 인코더 기반 구조의 근본 되는 구조 단위이다. 블록마다 셀프 어텐션과 피드포워드 레이어로 입력을 바꾸어, 시퀀스의 길이는 지키면서 표현을 다듬는다.
+트랜스포머 인코더 블록은 BERT 같은 인코더 기반 구조의 기본 구조 단위이다. 블록마다 셀프 어텐션과 피드포워드 레이어로 입력을 바꾸어, 시퀀스의 길이는 지키면서 표현을 다듬는다.
 
 ### 구조
 
@@ -266,7 +266,7 @@ $$
 
 ### 인코더의 멀티헤드 셀프 어텐션
 
-인코더는 위치마다 모든 자리에 참조할 수 있는 양방향 셀프 어텐션을 쓴다.
+인코더는 위치마다 모든 자리를 참조할 수 있는 양방향 셀프 어텐션을 쓴다.
 
 $$
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
@@ -278,13 +278,13 @@ $$
 Q = XW^Q, \quad K = XW^K, \quad V = XW^V
 $$
 
-### 입력에서 주의까지: 한 스텝씩
+### 입력에서 어텐션까지: 한 단계씩
 
-날것의 문장이 인코더를 어떻게 흘러가는지 이해하려면 변환을 하나씩 따라가야 한다.
+원시 문장이 인코더를 어떻게 흘러가는지 이해하려면 변환을 하나씩 따라가야 한다.
 
-**1단계 — 토큰 나누기**: 입력 문장을 토큰(단어이나 부분 단어)으로 나눈다. 이를테면 "The cat sat"은 토큰 시퀀스 $[\text{The}, \text{cat}, \text{sat}]$이 된다.
+**1단계 — 토큰화**: 입력 문장을 토큰(단어나 서브워드)으로 나눈다. 이를테면 "The cat sat"은 토큰 시퀀스 $[\text{The}, \text{cat}, \text{sat}]$이 된다.
 
-**2단계 — 임베딩 찾기**: 임베딩 행렬 $E \in \mathbb{R}^{V \times d_{\text{model}}}$으로 토큰마다 빽빽한 벡터를 잇대어, $n$이 시퀀스의 길이일 때 행렬 $X_{\text{embed}} \in \mathbb{R}^{n \times d_{\text{model}}}$을 만든다. 임베딩에는 $\sqrt{d_{\text{model}}}$을 곱한다.
+**2단계 — 임베딩 조회**: 임베딩 행렬 $E \in \mathbb{R}^{V \times d_{\text{model}}}$으로 토큰마다 밀집 벡터(dense vector)를 대응시켜, $n$이 시퀀스의 길이일 때 행렬 $X_{\text{embed}} \in \mathbb{R}^{n \times d_{\text{model}}}$을 만든다. 임베딩에는 $\sqrt{d_{\text{model}}}$을 곱한다.
 
 **3단계 — 위치 인코딩**: 사인·코사인 위치 인코딩을 성분별로 더한다.
 
@@ -308,7 +308,7 @@ $$
 Q_i, K_i, V_i \in \mathbb{R}^{n \times d_k} \quad \text{for } i = 1, \ldots, h
 $$
 
-**6단계 — 헤드마다 스케일 조정 내적 어텐션**: 헤드마다 따로 주의를 계산한다.
+**6단계 — 헤드마다 스케일 조정 내적 어텐션**: 헤드마다 따로 어텐션을 계산한다.
 
 $$
 \text{head}_i = \text{softmax}\left(\frac{Q_i K_i^T}{\sqrt{d_k}}\right) V_i
@@ -347,7 +347,7 @@ $$
 \text{FFN}(x) = \text{ReLU}(xW_1 + b_1)W_2 + b_2
 $$
 
-또는 (요즘 모델에서 흔한) GELU 활성으로 다음과 같이 한다.
+또는 (요즘 모델에서 흔한) GELU 활성화 함수로 다음과 같이 한다.
 
 $$
 \text{FFN}(x) = \text{GELU}(xW_1 + b_1)W_2 + b_2
@@ -355,7 +355,7 @@ $$
 
 ### 차원 넓히기
 
-피드포워드 뉴럴 네트워크는 대개 숨은 차원을 4배로 넓힌다.
+피드포워드 뉴럴 네트워크는 대개 은닉 차원을 4배로 넓힌다.
 
 - 입력: $d_{\text{model}}$
 - 은닉 레이어: $d_{ff} = 4 \times d_{\text{model}}$
@@ -388,9 +388,9 @@ from typing import Optional, Tuple
 
 class MultiHeadSelfAttention(nn.Module):
     """
-    트랜스포머 인코더를 위한 다중 머리 자기 주의.
+    트랜스포머 인코더를 위한 멀티헤드 셀프 어텐션.
     
-    모든 자리가 다른 모든 자리에 주의할 수 있다(양방향).
+    모든 자리가 다른 모든 자리에 어텐션할 수 있다(양방향).
     """
     
     def __init__(
@@ -402,10 +402,10 @@ class MultiHeadSelfAttention(nn.Module):
     ):
         """
         인수:
-            d_model: 모형 차원
-            num_heads: 주의 머리의 수
+            d_model: 모델 차원
+            num_heads: 어텐션 헤드의 수
             dropout: 드롭아웃 확률
-            bias: 선형 사영에 바이어스를 둘지 여부
+            bias: 선형 투영에 바이어스를 둘지 여부
         """
         super().__init__()
         
@@ -416,10 +416,10 @@ class MultiHeadSelfAttention(nn.Module):
         self.head_dim = d_model // num_heads
         self.scale = self.head_dim ** -0.5
         
-        # 효율을 위해 QKV를 한데 모은 사영
+        # 효율을 위해 QKV를 한데 모은 투영
         self.qkv_proj = nn.Linear(d_model, 3 * d_model, bias=bias)
         
-        # 출력 사영
+        # 출력 투영
         self.out_proj = nn.Linear(d_model, d_model, bias=bias)
         
         # 드롭아웃
@@ -433,33 +433,33 @@ class MultiHeadSelfAttention(nn.Module):
         return_attention: bool = False
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
-        피드포워드.
+        순전파.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
-            key_padding_mask: 채움 토큰을 위한 가림 [batch_size, seq_len]
-                가릴 자리(채움)가 True
+            key_padding_mask: 패딩 토큰을 위한 마스크 [batch_size, seq_len]
+                마스크할 자리(패딩)가 True
             return_attention: 어텐션 웨이트를 돌려줄지 여부
             
         반환값:
             output: 바뀐 텐서 [batch_size, seq_len, d_model]
-            attention_weights: 선택으로 돌려주는 주의 웨이트 [batch_size, num_heads, seq_len, seq_len]
+            attention_weights: 선택으로 돌려주는 어텐션 웨이트 [batch_size, num_heads, seq_len, seq_len]
         """
         batch_size, seq_len, _ = x.shape
         
-        # 사영 한 번으로 Q, K, V를 셈한다
+        # 투영 한 번으로 Q, K, V를 계산한다
         qkv = self.qkv_proj(x)  # [batch, seq, 3 * d_model]
         qkv = qkv.reshape(batch_size, seq_len, 3, self.num_heads, self.head_dim)
         qkv = qkv.permute(2, 0, 3, 1, 4)  # [3, batch, heads, seq, head_dim]
         q, k, v = qkv[0], qkv[1], qkv[2]
         
-        # 주의 점수를 셈한다
+        # 어텐션 점수를 계산한다
         # [batch, heads, seq, seq]
         attn_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
-        # 채움 가림이 있으면 적용한다
+        # 패딩 마스크가 있으면 적용한다
         if key_padding_mask is not None:
-            # 가림을 넓힌다: [batch, seq] -> [batch, 1, 1, seq]
+            # 마스크를 넓힌다: [batch, seq] -> [batch, 1, 1, seq]
             mask = key_padding_mask.unsqueeze(1).unsqueeze(2)
             attn_scores = attn_scores.masked_fill(mask, float('-inf'))
         
@@ -471,7 +471,7 @@ class MultiHeadSelfAttention(nn.Module):
         # [batch, heads, seq, head_dim]
         context = torch.matmul(attn_weights, v)
         
-        # 형태를 바꾸고 사영한다
+        # 형태를 바꾸고 투영한다
         context = context.transpose(1, 2).contiguous()
         context = context.view(batch_size, seq_len, self.d_model)
         output = self.out_proj(context)
@@ -483,7 +483,7 @@ class MultiHeadSelfAttention(nn.Module):
 
 class PositionWiseFeedForward(nn.Module):
     """
-    자리별 순전파 뉴럴 네트워크.
+    자리별 피드포워드 뉴럴 네트워크.
     
     FFN(x) = activation(xW1 + b1)W2 + b2
     """
@@ -497,10 +497,10 @@ class PositionWiseFeedForward(nn.Module):
     ):
         """
         인수:
-            d_model: 모형 차원
-            d_ff: 순전파의 숨은 차원
+            d_model: 모델 차원
+            d_ff: 피드포워드의 은닉 차원
             dropout: 드롭아웃 확률
-            activation: 엑티베이션 함수('relu' 또는 'gelu')
+            activation: 활성화 함수('relu' 또는 'gelu')
         """
         super().__init__()
         
@@ -517,7 +517,7 @@ class PositionWiseFeedForward(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        피드포워드.
+        순전파.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
@@ -537,8 +537,8 @@ class TransformerEncoderBlock(nn.Module):
     트랜스포머 인코더 블록 하나.
     
     다음으로 이루어진다:
-    1. 다중 머리 자기 주의 + 잔차 + 레이어 정규화
-    2. 자리별 순전파 + 잔차 + 레이어 정규화
+    1. 멀티헤드 셀프 어텐션 + 잔차 + 레이어 정규화
+    2. 자리별 피드포워드 + 잔차 + 레이어 정규화
     """
     
     def __init__(
@@ -552,25 +552,25 @@ class TransformerEncoderBlock(nn.Module):
     ):
         """
         인수:
-            d_model: 모형 차원
-            num_heads: 주의 머리의 수
-            d_ff: 순전파의 숨은 차원
+            d_model: 모델 차원
+            num_heads: 어텐션 헤드의 수
+            d_ff: 피드포워드의 은닉 차원
             dropout: 드롭아웃 확률
-            activation: 순전파의 엑티베이션 함수
-            pre_norm: 앞 정규화(True)를 쓸지 뒤 정규화(False)를 쓸지
+            activation: 피드포워드의 활성화 함수
+            pre_norm: Pre-LN(True)를 쓸지 Post-LN(False)를 쓸지
         """
         super().__init__()
         
         self.pre_norm = pre_norm
         
-        # 자기 주의
+        # 셀프 어텐션
         self.self_attention = MultiHeadSelfAttention(
             d_model=d_model,
             num_heads=num_heads,
             dropout=dropout
         )
         
-        # 순방향 뉴럴 네트워크
+        # 피드포워드 뉴럴 네트워크
         self.feed_forward = PositionWiseFeedForward(
             d_model=d_model,
             d_ff=d_ff,
@@ -592,20 +592,20 @@ class TransformerEncoderBlock(nn.Module):
         return_attention: bool = False
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
-        피드포워드.
+        순전파.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
-            key_padding_mask: 채움 가림 [batch_size, seq_len]
+            key_padding_mask: 패딩 마스크 [batch_size, seq_len]
             return_attention: 어텐션 웨이트를 돌려줄지 여부
             
         반환값:
             output: 바뀐 텐서 [batch_size, seq_len, d_model]
-            attention_weights: 선택으로 돌려주는 주의 웨이트
+            attention_weights: 선택으로 돌려주는 어텐션 웨이트
         """
         if self.pre_norm:
-            # 앞 정규화: 아래 레이어 앞에서 레이어 정규화
-            # 주의 블록
+            # Pre-LN: 하위 레이어 앞에서 레이어 정규화
+            # 어텐션 블록
             residual = x
             x = self.norm1(x)
             attn_output, attn_weights = self.self_attention(
@@ -613,20 +613,20 @@ class TransformerEncoderBlock(nn.Module):
             )
             x = residual + self.dropout(attn_output)
             
-            # 순전파 블록
+            # 피드포워드 블록
             residual = x
             x = self.norm2(x)
             ff_output = self.feed_forward(x)
             x = residual + self.dropout(ff_output)
         else:
-            # 뒤 정규화: 아래 레이어 뒤에서 레이어 정규화
-            # 주의 블록
+            # Post-LN: 하위 레이어 뒤에서 레이어 정규화
+            # 어텐션 블록
             attn_output, attn_weights = self.self_attention(
                 x, key_padding_mask, return_attention
             )
             x = self.norm1(x + self.dropout(attn_output))
             
-            # 순전파 블록
+            # 피드포워드 블록
             ff_output = self.feed_forward(x)
             x = self.norm2(x + self.dropout(ff_output))
         
@@ -634,13 +634,13 @@ class TransformerEncoderBlock(nn.Module):
 
 class TransformerEncoder(nn.Module):
     """
-    온전한 트랜스포머 인코더 더미.
+    온전한 트랜스포머 인코더 스택.
     
     다음으로 이루어진다:
     1. 토큰 임베딩
     2. 위치 인코딩
-    3. 인코더 블록 N개의 더미
-    4. 선택으로 두는 마지막 레이어 정규화(앞 정규화를 위해)
+    3. 인코더 블록 N개의 스택
+    4. 선택으로 두는 마지막 레이어 정규화(Pre-LN를 위해)
     """
     
     def __init__(
@@ -658,14 +658,14 @@ class TransformerEncoder(nn.Module):
         """
         인수:
             vocab_size: 어휘 크기
-            d_model: 모형 차원
-            num_heads: 주의 머리의 수
+            d_model: 모델 차원
+            num_heads: 어텐션 헤드의 수
             num_layers: 인코더 블록의 수
-            d_ff: 순전파의 숨은 차원
-            max_len: 순차열의 최대 길이
+            d_ff: 피드포워드의 은닉 차원
+            max_len: 시퀀스의 최대 길이
             dropout: 드롭아웃 확률
-            activation: 순전파의 엑티베이션 함수
-            pre_norm: 앞 정규화 구조를 쓸지 여부
+            activation: 피드포워드의 활성화 함수
+            pre_norm: Pre-LN 구조를 쓸지 여부
         """
         super().__init__()
         
@@ -694,7 +694,7 @@ class TransformerEncoder(nn.Module):
             for _ in range(num_layers)
         ])
         
-        # 마지막 레이어 정규화 (앞 정규화 구조를 위해)
+        # 마지막 레이어 정규화 (Pre-LN 구조를 위해)
         if pre_norm:
             self.final_norm = nn.LayerNorm(d_model)
         else:
@@ -715,16 +715,16 @@ class TransformerEncoder(nn.Module):
         return_all_hidden_states: bool = False
     ) -> dict:
         """
-        피드포워드.
+        순전파.
         
         인수:
             input_ids: 토큰 번호 [batch_size, seq_len]
-            attention_mask: 주의 가림 [batch_size, seq_len]
-                실제 토큰은 1, 채움은 0
+            attention_mask: 어텐션 마스크 [batch_size, seq_len]
+                실제 토큰은 1, 패딩은 0
             return_all_hidden_states: 모든 레이어의 출력을 돌려줄지 여부
             
         반환값:
-            다음을 담은 사전:
+            다음을 담은 딕셔너리:
                 - last_hidden_state: 마지막 인코더 출력
                 - all_hidden_states: 선택으로 돌려주는 모든 레이어의 출력 목록
         """
@@ -742,9 +742,9 @@ class TransformerEncoder(nn.Module):
         x = token_embeds * math.sqrt(self.d_model) + position_embeds
         x = self.embedding_dropout(x)
         
-        # 주의 가림을 열쇠 채움 가림으로 바꾼다
-        # attention_mask: 실제는 1, 채움은 0
-        # key_padding_mask: 채움이 True (가릴 자리)
+        # 어텐션 마스크를 키 패딩 마스크로 바꾼다
+        # attention_mask: 실제는 1, 패딩은 0
+        # key_padding_mask: 패딩이 True (마스크할 자리)
         if attention_mask is not None:
             key_padding_mask = (attention_mask == 0)
         else:
@@ -767,7 +767,7 @@ class TransformerEncoder(nn.Module):
             'all_hidden_states': all_hidden_states
         }
 
-# 쓰는 보기와 시험
+# 사용 예와 시험
 if __name__ == "__main__":
     # 설정
     vocab_size = 30522  # BERT 같은 어휘
@@ -795,7 +795,7 @@ if __name__ == "__main__":
     
     input_ids = torch.randint(0, vocab_size, (batch_size, seq_len))
     attention_mask = torch.ones(batch_size, seq_len)
-    attention_mask[:, -10:] = 0  # 채움을 흉내 낸다
+    attention_mask[:, -10:] = 0  # 패딩을 흉내 낸다
     
     # 순전파
     outputs = encoder(input_ids, attention_mask, return_all_hidden_states=True)
@@ -849,8 +849,9 @@ Attention shape: torch.Size([4, 8, 32, 32])
 
 $$
 \nabla_{x^{(0)}}\mathcal{L}=J_0^T J_1^T\cdots J_{L-1}^T\nabla_{x^{(L)}}\mathcal{L}
+$$
 
-항등 건너뛰기가 있는 y=x+F(x) 또는 Pre-LN 블록의 야코비안에는 I 항이 남는다. 이때 전체 곱을 전개하면 항등 경로에서 오는 다음 항이 포함된다. Post-LN은 정규화가 잔차 합 바깥에 있어 같은 식을 그대로 적용하지 않는다.
+항등 스킵 연결이 있는 y=x+F(x) 또는 Pre-LN 블록의 야코비안에는 I 항이 남는다. 이때 전체 곱을 전개하면 항등 경로에서 오는 다음 항이 포함된다. Post-LN은 정규화가 잔차 합 바깥에 있어 같은 식을 그대로 적용하지 않는다.
 
 $$
 \frac{\partial \mathcal{L}}{\partial \mathbf{x}^{(0)}} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}^{(L)}} + \text{other terms}
@@ -875,7 +876,7 @@ $$
 
 ### 레이어마다의 복잡도
 
-시퀀스 길이 $n$, 모델 차원 $d$, 순전파 차원 $d_{ff}$에 대해 다음과 같다.
+시퀀스 길이 $n$, 모델 차원 $d$, 피드포워드 차원 $d_{ff}$에 대해 다음과 같다.
 
 | 요소 | 주요 연산 | 활성·점수 저장의 대표 비용 |
 |---|---|---|
@@ -907,7 +908,7 @@ $$
 1. **전역 의존을 잡아낸다**: 셀프 어텐션이 모든 자리를 잇는다
 2. **비선형 변환을 적용한다**: 피드포워드 뉴럴 네트워크가 표현 능력을 더한다
 3. **그래디언트 흐름을 지킨다**: 잔차가 깊은 구조를 가능케 한다
-4. **학습을 안정되게 한다**: 레이어 정규화가 활성을 다스린다
+4. **학습을 안정되게 한다**: 레이어 정규화가 활성화 값의 스케일을 조절한다
 
 인코더 블록을 이해하는 것은 BERT나 RoBERTa 같은 모델과 인코더 기반 구조를 구현하는 데 꼭 필요하다.
 
@@ -926,9 +927,9 @@ $$
 
 generate는 no_grad를 사용하지만 eval 모드로 전환하지 않는다. 예제 그대로라면 드롭아웃이 켜져 있다. EOS 종료·길이 초과 처리·패딩 마스크 전달과 KV 캐시가 없으므로 매번 전체 접두를 재계산한다. temperature>0, 1≤top_k≤어휘 크기와 0<top_p≤1 조건도 호출자가 확인해야 한다. 예제의 무작위 토큰 로스·생성 길이는 언어 품질 평가가 아니다.
 
-### 훑어보기
+### 개요
 
-트랜스포머 디코더 블록은 GPT 같은 자기 회귀 모델의 구조 단위이다. 인코더와 달리 디코더는 **인과(가린) 셀프 어텐션**을 써서 자리가 앞으로의 자리에 주의하지 못하게 막아 왼쪽에서 오른쪽으로의 생성을 가능케 한다.
+트랜스포머 디코더 블록은 GPT 같은 자기 회귀 모델의 구조 단위이다. 인코더와 달리 디코더는 **인과(마스크) 셀프 어텐션**을 써서 자리가 미래 위치를 참조하지 못하게 막아 왼쪽에서 오른쪽으로의 생성을 가능케 한다.
 
 ### 구조의 변형
 
@@ -957,7 +958,7 @@ $$
 
 ### 인과 셀프 어텐션
 
-인코더 셀프 어텐션와의 핵심 차이는 앞으로의 자리에 주의하지 못하게 막는 **인과 마스크**가다.
+인코더 셀프 어텐션과의 핵심 차이는 미래 위치를 참조하지 못하게 막는 **인과 마스크**다.
 
 ### 인과 마스크
 
@@ -1009,9 +1010,9 @@ from typing import Optional, Tuple
 
 class CausalSelfAttention(nn.Module):
     """
-    트랜스포머 디코더를 위한 인과(가린) 자기 주의.
+    트랜스포머 디코더를 위한 인과(마스크) 셀프 어텐션.
     
-    자리마다 제 자신과 앞선 자리에만 주의할 수 있다.
+    자리마다 제 자신과 앞선 자리에만 어텐션할 수 있다.
     """
     
     def __init__(
@@ -1031,14 +1032,14 @@ class CausalSelfAttention(nn.Module):
         self.head_dim = d_model // num_heads
         self.scale = self.head_dim ** -0.5
         
-        # QKV를 한데 모은 사영
+        # QKV를 한데 모은 투영
         self.qkv_proj = nn.Linear(d_model, 3 * d_model, bias=bias)
         self.out_proj = nn.Linear(d_model, d_model, bias=bias)
         
         self.attn_dropout = nn.Dropout(dropout)
         self.proj_dropout = nn.Dropout(dropout)
         
-        # 인과 가림을 미리 셈한다
+        # 인과 마스크를 미리 계산한다
         self.register_buffer(
             'causal_mask',
             torch.triu(torch.ones(max_len, max_len), diagonal=1).bool()
@@ -1051,29 +1052,29 @@ class CausalSelfAttention(nn.Module):
         return_attention: bool = False
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
-        인과 가림을 쓰는 피드포워드.
+        인과 마스크를 쓰는 순전파.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
-            key_padding_mask: 채움 가림 [batch_size, seq_len]
+            key_padding_mask: 패딩 마스크 [batch_size, seq_len]
             return_attention: 어텐션 웨이트를 돌려줄지 여부
         """
         batch_size, seq_len, _ = x.shape
         
-        # Q, K, V를 셈한다
+        # Q, K, V를 계산한다
         qkv = self.qkv_proj(x)
         qkv = qkv.reshape(batch_size, seq_len, 3, self.num_heads, self.head_dim)
         qkv = qkv.permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
         
-        # 주의 점수를 셈한다
+        # 어텐션 점수를 계산한다
         attn_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
-        # 인과 가림을 적용한다
+        # 인과 마스크를 적용한다
         causal_mask = self.causal_mask[:seq_len, :seq_len]
         attn_scores = attn_scores.masked_fill(causal_mask, float('-inf'))
         
-        # 채움 가림이 있으면 적용한다
+        # 패딩 마스크가 있으면 적용한다
         if key_padding_mask is not None:
             mask = key_padding_mask.unsqueeze(1).unsqueeze(2)
             attn_scores = attn_scores.masked_fill(mask, float('-inf'))
@@ -1085,7 +1086,7 @@ class CausalSelfAttention(nn.Module):
         # 값에 어텐션 적용
         context = torch.matmul(attn_weights, v)
         
-        # 형태를 바꾸고 사영한다
+        # 형태를 바꾸고 투영한다
         context = context.transpose(1, 2).contiguous()
         context = context.view(batch_size, seq_len, self.d_model)
         output = self.out_proj(context)
@@ -1100,8 +1101,8 @@ class TransformerDecoderBlock(nn.Module):
     트랜스포머 디코더 블록 하나(GPT 방식).
     
     다음으로 이루어진다:
-    1. 가린 자기 주의 + 잔차 + 레이어 정규화
-    2. 순전파 뉴럴 네트워크 + 잔차 + 레이어 정규화
+    1. 마스크 셀프 어텐션 + 잔차 + 레이어 정규화
+    2. 피드포워드 뉴럴 네트워크 + 잔차 + 레이어 정규화
     """
     
     def __init__(
@@ -1118,7 +1119,7 @@ class TransformerDecoderBlock(nn.Module):
         
         self.pre_norm = pre_norm
         
-        # 가린 자기 주의
+        # 마스크 셀프 어텐션
         self.self_attention = CausalSelfAttention(
             d_model=d_model,
             num_heads=num_heads,
@@ -1127,7 +1128,7 @@ class TransformerDecoderBlock(nn.Module):
         )
         self.norm1 = nn.LayerNorm(d_model)
         
-        # 순방향 뉴럴 네트워크
+        # 피드포워드 뉴럴 네트워크
         self.feed_forward = nn.Sequential(
             nn.Linear(d_model, d_ff),
             nn.GELU() if activation == 'gelu' else nn.ReLU(),
@@ -1144,9 +1145,9 @@ class TransformerDecoderBlock(nn.Module):
         x: torch.Tensor,
         key_padding_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        """피드포워드."""
+        """순전파."""
         if self.pre_norm:
-            # 앞 정규화: 아래 레이어 앞에서 레이어 정규화
+            # Pre-LN: 하위 레이어 앞에서 레이어 정규화
             residual = x
             x = self.norm1(x)
             attn_out, _ = self.self_attention(x, key_padding_mask)
@@ -1157,7 +1158,7 @@ class TransformerDecoderBlock(nn.Module):
             ff_out = self.feed_forward(x)
             x = residual + ff_out
         else:
-            # 뒤 정규화: 아래 레이어 뒤에서 레이어 정규화
+            # Post-LN: 하위 레이어 뒤에서 레이어 정규화
             attn_out, _ = self.self_attention(x, key_padding_mask)
             x = self.norm1(x + self.dropout(attn_out))
             
@@ -1170,7 +1171,7 @@ class TransformerDecoder(nn.Module):
     """
     온전한 트랜스포머 디코더(GPT 방식, 디코더만).
     
-    언어 모형화와 글 생성을 위한 것이다.
+    언어 모델링와 텍스트 생성을 위한 것이다.
     """
     
     def __init__(
@@ -1208,10 +1209,10 @@ class TransformerDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         
-        # 마지막 레이어 정규화 (앞 정규화를 위해)
+        # 마지막 레이어 정규화 (Pre-LN를 위해)
         self.final_norm = nn.LayerNorm(d_model) if pre_norm else None
         
-        # 출력 사영 (임베딩과 웨이트 묶기)
+        # 출력 투영 (임베딩과 웨이트 묶기)
         self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
         self.lm_head.weight = self.token_embedding.weight
         
@@ -1229,12 +1230,12 @@ class TransformerDecoder(nn.Module):
         labels: Optional[torch.Tensor] = None
     ) -> dict:
         """
-        피드포워드.
+        순전파.
         
         인수:
             input_ids: 토큰 번호 [batch_size, seq_len]
-            attention_mask: 주의 가림 [batch_size, seq_len]
-            labels: 언어 모형 로스를 위한 이름표 [batch_size, seq_len]
+            attention_mask: 어텐션 마스크 [batch_size, seq_len]
+            labels: 언어 모델 로스를 위한 라벨 [batch_size, seq_len]
         """
         batch_size, seq_len = input_ids.shape
         device = input_ids.device
@@ -1246,7 +1247,7 @@ class TransformerDecoder(nn.Module):
         x = self.token_embedding(input_ids) + self.position_embedding(position_ids)
         x = self.embedding_dropout(x)
         
-        # 채움 가림
+        # 패딩 마스크
         key_padding_mask = (attention_mask == 0) if attention_mask is not None else None
         
         # 디코더 레이어를 통과시킨다
@@ -1257,10 +1258,10 @@ class TransformerDecoder(nn.Module):
         if self.final_norm is not None:
             x = self.final_norm(x)
         
-        # 언어 모형 머리
+        # 언어 모델 헤드
         logits = self.lm_head(x)
         
-        # 이름표가 있으면 로스를 셈한다
+        # 라벨이 있으면 로스를 계산한다
         loss = None
         if labels is not None:
             shift_logits = logits[..., :-1, :].contiguous()
@@ -1283,13 +1284,13 @@ class TransformerDecoder(nn.Module):
         top_p: Optional[float] = None,
         do_sample: bool = True
     ) -> torch.Tensor:
-        """자기 회귀로 글을 짓는다."""
+        """자기 회귀로 텍스트를 생성한다."""
         for _ in range(max_new_tokens):
             # 마지막 자리의 로짓을 얻는다
             outputs = self.forward(input_ids)
             logits = outputs['logits'][:, -1, :] / temperature
             
-            # 상위 k 거르기를 적용한다
+            # top-k 필터링을 적용한다
             if top_k is not None:
                 values, _ = torch.topk(logits, top_k)
                 min_value = values[:, -1].unsqueeze(-1)
@@ -1299,7 +1300,7 @@ class TransformerDecoder(nn.Module):
                     logits
                 )
             
-            # 상위 p(커널) 거르기를 적용한다
+            # top-p(뉴클리어스) 필터링을 적용한다
             if top_p is not None:
                 sorted_logits, sorted_indices = torch.sort(logits, descending=True)
                 cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
@@ -1311,7 +1312,7 @@ class TransformerDecoder(nn.Module):
                 )
                 logits = logits.masked_fill(indices_to_remove, float('-inf'))
             
-            # 뽑기 또는 탐욕
+            # 샘플링 또는 탐욕적 선택
             if do_sample:
                 probs = F.softmax(logits, dim=-1)
                 next_token = torch.multinomial(probs, num_samples=1)
@@ -1324,7 +1325,7 @@ class TransformerDecoder(nn.Module):
 
 # 사용 예
 if __name__ == "__main__":
-    # 웨이트 초깃값도 입력도 난수에서 나오므로 씨앗을 박는다
+    # 웨이트 초깃값도 입력도 난수에서 나오므로 시드를 고정한다
     torch.manual_seed(0)
     
     # GPT 방식 디코더 설정
@@ -1371,7 +1372,7 @@ Total parameters: 124,439,808
 
 ```python
 class CausalSelfAttentionWithCache(nn.Module):
-    """효율적인 추론을 위해 KV 캐시를 갖춘 인과 자기 주의."""
+    """효율적인 추론을 위해 KV 캐시를 갖춘 인과 셀프 어텐션."""
     
     def __init__(self, d_model: int, num_heads: int, dropout: float = 0.1):
         super().__init__()
@@ -1391,16 +1392,16 @@ class CausalSelfAttentionWithCache(nn.Module):
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """
-        KV 캐시를 선택으로 쓰는 피드포워드.
+        KV 캐시를 선택으로 쓰는 순전파.
         
         인수:
             x: 입력 [batch, seq_len, d_model], 캐시를 쓰면 [batch, 1, d_model]
-            past_kv: 앞 단계에서 담아 둔 (열쇠, 값) 텐서
+            past_kv: 앞 단계에서 담아 둔 (키, 값) 텐서
             use_cache: 고친 캐시를 돌려줄지 여부
         """
         batch_size, seq_len, _ = x.shape
         
-        # 지금 입력의 Q, K, V를 셈한다
+        # 지금 입력의 Q, K, V를 계산한다
         qkv = self.qkv_proj(x)
         qkv = qkv.view(batch_size, seq_len, 3, self.num_heads, self.head_dim)
         qkv = qkv.permute(2, 0, 3, 1, 4)
@@ -1412,14 +1413,14 @@ class CausalSelfAttentionWithCache(nn.Module):
             k = torch.cat([past_k, k], dim=2)
             v = torch.cat([past_v, v], dim=2)
         
-        # 다음 되풀이를 위해 담아 둔다
+        # 다음 반복를 위해 담아 둔다
         present_kv = (k, v) if use_cache else None
         
-        # 주의 (토큰 하나에 캐시를 쓸 때는 인과 가림이 필요 없다)
+        # 어텐션 (토큰 하나에 캐시를 쓸 때는 인과 마스크가 필요 없다)
         full_seq_len = k.size(2)
         attn_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
-        # 처음 맥락(seq_len > 1)에만 인과 가림을 적용한다
+        # 처음 맥락(seq_len > 1)에만 인과 마스크를 적용한다
         if seq_len > 1:
             causal_mask = torch.triu(
                 torch.ones(seq_len, full_seq_len, device=x.device),
@@ -1457,7 +1458,7 @@ $$
 
 | 측면 | 인코더 | 디코더 |
 |--------|---------|---------|
-| 어텐션의 종류 | 양방향 | 인과 (가린) |
+| 어텐션의 종류 | 양방향 | 인과 (마스크) |
 | 앞을 볼 수 있는가 | 그렇다 | 아니다 |
 | 주된 쓰임 | 이해 | 생성 |
 | 보기 | BERT, RoBERTa | GPT, LLaMA |
@@ -1466,7 +1467,7 @@ $$
 
 트랜스포머 디코더 블록은 다음으로 자기 회귀 생성을 가능케 한다.
 
-1. **인과 마스크**: 앞으로의 자리에 주의하지 못하게 막는다
+1. **인과 마스크**: 미래 위치를 참조하지 못하게 막는다
 2. **크로스 어텐션**: 시퀀스 대 시퀀스 모델에서 인코더와 잇는다
 3. **KV 캐싱**: 효율적인 점진 생성을 가능케 한다
 4. **Pre-LN 구조**: 학습의 안정성을 높인다

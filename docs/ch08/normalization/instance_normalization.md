@@ -8,11 +8,11 @@
 
     ```python
     """
-    사례 정규화의 구현과 예제
+    인스턴스 정규화의 구현과 예제
     ===================================================
 
-    사례 정규화는 표본마다, 채널마다 따로 정규화한다.
-    배치 통계가 섞이면 안 되는 양식 전이와 GAN에서 널리 쓰인다.
+    인스턴스 정규화는 표본마다, 채널마다 따로 정규화한다.
+    배치 통계가 섞이면 안 되는 스타일 전이와 GAN에서 널리 쓰인다.
 
     논문: "Instance Normalization: The Missing Ingredient for Fast Stylization"
            (Ulyanov et al., 2016)
@@ -30,7 +30,7 @@
 
     class InstanceNorm2dNumPy:
         """
-        NumPy로 바닥부터 구현한 사례 정규화.
+        NumPy로 바닥부터 구현한 인스턴스 정규화.
         표본마다, 채널마다 따로 정규화한다.
         """
 
@@ -52,7 +52,7 @@
 
         def forward(self, x):
             """
-            사례 정규화의 순전파.
+            인스턴스 정규화의 순전파.
 
             인수:
                 x: 모양이 (N, C, H, W)인 입력
@@ -60,7 +60,7 @@
             반환값:
                 같은 모양의 정규화된 출력
             """
-            # 사례별, 채널별로 평균과 분산 계산
+            # 인스턴스별, 채널별로 평균과 분산 계산
             # 각 (N, C)에 대해 공간 차원 (H, W)으로 평균
             # 축 (2, 3)은 높이와 너비다. 곧 배치 축도 채널 축도 건드리지
             # 않고, 표본 하나의 채널 하나 안에서만 통계를 낸다.
@@ -70,8 +70,8 @@
             #   인스턴스:    (2, 3)    — 표본마다 채널마다 따로
             #   그룹 정규화: 채널을 몇 묶음으로 나눈 중간형
             # 이미지 하나의 한 채널이 지닌 평균과 분산은 대체로 그 그림의
-            # 밝기와 대비, 곧 화풍에 해당한다. 그것을 지워 버리므로
-            # 화풍 옮기기에 알맞다
+            # 밝기와 대비, 곧 화풍(스타일)에 해당한다. 그것을 지워 버리므로
+            # 스타일 전이에 알맞다
             mean = np.mean(x, axis=(2, 3), keepdims=True)
             var = np.var(x, axis=(2, 3), keepdims=True)
 
@@ -87,9 +87,9 @@
 
     class StyleTransferNetwork(nn.Module):
         """
-        사례 정규화를 쓰는 양식 전이 뉴럴 네트워크.
-        사례 정규화는 사례별 대비 정보를 없애 양식 전이를 더 효과적으로 만들므로
-        양식 전이에서 매우 중요하다.
+        인스턴스 정규화를 쓰는 스타일 전이 뉴럴 네트워크.
+        인스턴스 정규화는 인스턴스별 대비 정보를 없애 스타일 전이를 더 효과적으로 만들므로
+        스타일 전이에서 매우 중요하다.
         """
 
         def __init__(self):
@@ -100,9 +100,9 @@
                 nn.Conv2d(3, 32, kernel_size=9, stride=1, padding=4),
                 # affine=True를 명시해야 gamma와 beta를 배운다.
                 # nn.InstanceNorm2d의 기본값은 False라 그냥 두면 정규화만 하고
-                # 되돌릴 손잡이가 없다. 배치 정규화와 레이어 정규화는 기본값이
+                # 되돌릴 파라메터가 없다. 배치 정규화와 레이어 정규화는 기본값이
                 # True이므로 이 레이어만 다르다는 점을 기억해 두어야 한다.
-                # 화풍 옮기기에서는 이 gamma와 beta가 곧 "입힐 화풍"의
+                # 스타일 전이에서는 이 gamma와 beta가 곧 "입힐 화풍"의
                 # 통계 노릇을 하므로 더욱 중요하다
                 nn.InstanceNorm2d(32, affine=True),
                 nn.ReLU(inplace=True),
@@ -148,7 +148,7 @@
 
     class ResidualBlock(nn.Module):
         """
-        사례 정규화를 갖춘 잔차 블록.
+        인스턴스 정규화를 갖춘 잔차 블록.
         """
 
         def __init__(self, channels):
@@ -164,7 +164,7 @@
 
         def forward(self, x):
             # 23_deep_network.md의 잔차 블록과 달리 더한 뒤에 ReLU를 걸지
-            # 않는다. 화풍 옮기기의 생성기는 음수 값도 그대로 흘려보내야
+            # 않는다. 스타일 전이의 제너레이터는 음수 값도 그대로 흘려보내야
             # 하는데, 여기서 ReLU를 걸면 신호의 절반이 잘려 나간다.
             # 제자리 연산(+=)이 아니라 새 텐서를 만드는 형태라 블록이
             # 무엇으로 끝나든 안전하다
@@ -173,7 +173,7 @@
 
     class GeneratorWithInstanceNorm(nn.Module):
         """
-        사례 정규화를 쓰는 GAN 생성기.
+        인스턴스 정규화를 쓰는 GAN 제너레이터.
         이미지 대 이미지 변환에서 흔하다 (예: CycleGAN, Pix2Pix).
         """
 
@@ -187,7 +187,7 @@
                 nn.ReLU(inplace=True)
             ]
 
-            # 하향 표본화
+            # 다운샘플링
             n_downsampling = 2
             for i in range(n_downsampling):
                 mult = 2 ** i
@@ -202,7 +202,7 @@
             for i in range(9):
                 model += [ResidualBlock(ngf * mult)]
 
-            # 상향 표본화
+            # 업샘플링
             for i in range(n_downsampling):
                 mult = 2 ** (n_downsampling - i)
                 model += [
@@ -226,7 +226,7 @@
 
     def demonstrate_instance_norm():
         """
-        사례 정규화가 어떻게 작동하는지 보인다.
+        인스턴스 정규화가 어떻게 작동하는지 보인다.
         """
         print("=" * 60)
         print("Instance Normalization Demonstration")
@@ -240,7 +240,7 @@
         # 이미지별, 채널별로 통계가 다른 데이터 만들기
         x = np.random.randn(batch_size, channels, height, width)
 
-        # 채널마다 척도를 다르게 하기
+        # 채널마다 스케일을 다르게 하기
         x[0, 0] *= 10   # 이미지 1, 채널 1: 큰 값
         x[0, 1] *= 1    # 이미지 1, 채널 2: 보통 값
         x[0, 2] *= 0.1  # 이미지 1, 채널 3: 작은 값
@@ -257,7 +257,7 @@
                 std = np.std(x[n, c])
                 print(f"  Channel {c}: mean={mean:6.2f}, std={std:6.2f}")
 
-        # 사례 정규화 적용
+        # 인스턴스 정규화 적용
         instance_norm = InstanceNorm2dNumPy(channels)
         x_normalized = instance_norm.forward(x)
 
@@ -277,7 +277,7 @@
 
     def compare_all_normalizations():
         """
-        배치 정규화, 레이어 정규화, 사례 정규화를 나란히 비교한다.
+        배치 정규화, 레이어 정규화, 인스턴스 정규화를 나란히 비교한다.
         """
         print("\n" + "=" * 60)
         print("Comparing All Normalization Methods")
@@ -300,12 +300,12 @@
         ln = nn.LayerNorm([3, 4, 4])
         x_ln = ln(x)
 
-        # 사례 정규화 (각 N, C에 대해 H, W로 정규화)
+        # 인스턴스 정규화 (각 N, C에 대해 H, W로 정규화)
         instance_norm = nn.InstanceNorm2d(3, affine=False)
         x_in = instance_norm(x)
 
         # G=3인 그룹 정규화 (채널마다 자기 그룹)
-        gn = nn.GroupNorm(3, 3)  # 채널마다 한 그룹이면 사례 정규화와 비슷하다
+        gn = nn.GroupNorm(3, 3)  # 채널마다 한 그룹이면 인스턴스 정규화와 비슷하다
         x_gn = gn(x)
 
         print("\n" + "-" * 60)
@@ -348,7 +348,7 @@
 
     def demonstrate_style_transfer_example():
         """
-        왜 양식 전이에서 사례 정규화가 중요한지 보인다.
+        왜 스타일 전이에서 인스턴스 정규화가 중요한지 보인다.
         """
         print("\n" + "=" * 60)
         print("Why Instance Norm for Style Transfer?")
@@ -359,7 +359,7 @@
         # 내용 이미지 모의실험 (밝음)
         content = torch.randn(1, 3, 32, 32) + 2.0
 
-        # 양식 이미지 모의실험 (어두움)
+        # 스타일 이미지 모의실험 (어두움)
         style = torch.randn(1, 3, 32, 32) - 2.0
 
         print("\nOriginal statistics:")
@@ -377,7 +377,7 @@
         print(f"Normalized style mean:   {normalized_bn[1].mean():.4f}")
         print("→ Statistics are mixed across images!")
 
-        # 사례 정규화를 쓸 때 (서로 독립)
+        # 인스턴스 정규화를 쓸 때 (서로 독립)
         instance_norm = nn.InstanceNorm2d(3, affine=False)
         content_in = instance_norm(content)
         style_in = instance_norm(style)

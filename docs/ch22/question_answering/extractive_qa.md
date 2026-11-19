@@ -39,7 +39,7 @@ def answer_question(question, context):
     start_idx = torch.argmax(outputs.start_logits)
     end_idx = torch.argmax(outputs.end_logits)
 
-    # 답 구간 풀어내기
+    # 답 구간 디코딩하기
     input_ids = inputs["input_ids"][0]
     answer_tokens = input_ids[start_idx:end_idx + 1]
     return tokenizer.decode(answer_tokens, skip_special_tokens=True)
@@ -54,7 +54,7 @@ print(answer_question("What was Tesla's Q3 revenue?", context))
 
 [roberta-base-squad2](https://huggingface.co/deepset/roberta-base-squad2)는 RoBERTa 기반 QA 체크포인트다. 예제의 단순 answer_question은 시작·끝을 독립 argmax하고 질문·특수 토큰 마스킹·최대 답 길이·답 없음 결정을 수행하지 않는다. 따라서 위의 제약 있는 구간 탐색이나 SQuAD 2.0 전체 추론을 구현한 함수가 아니다.
 
-truncation=True는 긴 입력을 자를 뿐 자동으로 겹치는 여러 문맥 창을 만들지 않는다. 잘린 영역에 정답이 있으면 현재 함수로 복구할 수 없다. 입력도 CPU에서 만들어지므로 모델 장치와 맞춰야 한다. 코드에 적힌 회사·실적 수치와 출력 주석은 예시 문맥이며 실제 공시를 검증한 자료나 이번 편집의 실행 결과가 아니다.
+truncation=True는 긴 입력을 자를 뿐 자동으로 겹치는 여러 문맥 창을 만들지 않는다. 잘린 영역에 정답이 있으면 현재 함수로 복구할 수 없다. 입력도 CPU에서 만들어지므로 모델 장치와 맞춰야 한다. 코드에 적힌 회사·실적 수치와 출력 주석은 예시 문맥이며 실제 공시를 검증한 데이터나 실행 결과가 아니다.
 
 ## 4. 사용자 정의 head와 학습
 
@@ -77,19 +77,19 @@ class ExtractiveQAModel(nn.Module):
         return start_logits.squeeze(-1), end_logits.squeeze(-1)
 ```
 
-ExtractiveQAModel은 encoder 뒤에 H→2 선형 레이어를 붙여 B×T의 시작·끝 로짓을 반환한다. 이 새 head는 QA 데이터로 학습하지 않은 초기 상태다. 답의 문자 offset을 subword 위치에 정렬하고 시작·끝 교차 엔트로피, 답 없음 위치, 잘린 답·padding의 폴리시를 구성해야 한다. encoder의 attention_mask만으로 QA 로스나 답 후보가 자동으로 제한되지 않는다.
+ExtractiveQAModel은 encoder 뒤에 H→2 선형 레이어를 붙여 B×T의 시작·끝 로짓을 반환한다. 이 새 head는 QA 데이터로 학습하지 않은 초기 상태다. 답의 문자 offset을 subword 위치에 정렬하고 시작·끝 교차 엔트로피, 답 없음 위치, 잘린 답·padding의 처리 규칙을 구성해야 한다. encoder의 attention_mask만으로 QA 로스나 답 후보가 자동으로 제한되지 않는다.
 
 학습된 QA 체크포인트를 불러오는 앞 예제와 새 head를 붙이는 이 예제는 학습 상태가 다르다. 모든 encoder가 BERT식 token_type_ids를 같은 방식으로 지원하는 것도 아니므로 선택한 모델의 인터페이스에 맞춘다.
 
 ## 5. 답 없음과 긴 문맥
 
-[SQuAD 2.0](https://aclanthology.org/P18-2124/)은 문맥에서 답할 수 없는 질문을 포함한다. BERT식 추론에서는 null 위치의 시작·끝 로짓 합과 최선의 유효 구간 점수를 비교할 수 있다. 예를 들어 s_null−s_span>τ이면 답 없음을 선택한다. τ는 개발 자료에서 선택하며 점수 차를 보정된 확률로 오해하지 않는다.
+[SQuAD 2.0](https://aclanthology.org/P18-2124/)은 문맥에서 답할 수 없는 질문을 포함한다. BERT식 추론에서는 null 위치의 시작·끝 로짓 합과 최선의 유효 구간 점수를 비교할 수 있다. 예를 들어 s_null−s_span>τ이면 답 없음을 선택한다. τ는 개발 데이터에서 선택하며 점수 차를 보정된 확률로 오해하지 않는다.
 
 긴 문맥은 질문·특수 토큰 길이를 제외한 문맥 예산으로 겹치는 창을 구성한다. 라이브러리의 stride가 겹침 토큰 수를 뜻하는지 이동 간격인지 확인한다. 창마다 원문 offset을 보존하고, 답 전체를 포함하지 못한 학습 창의 처리와 중복 답·null 점수의 창 간 집계 규칙을 정한다. 서로 다른 창의 소프트맥스 확률을 곧바로 공통 신뢰도로 간주하지 않는다.
 
 ## 6. 정확 일치와 토큰 F1
 
-SQuAD 평가는 정규화한 문자열의 정확 일치(EM)와 답 토큰 중복 기반 F1을 사용한다. 이 토큰은 BERT subword ID가 아니라 평가 스크립트의 문자열 정규화·공백 분리 기준이다. 반복 토큰도 출현 수로 제한해 세고 정답 표현이 여러 개면 공식 폴리시에 따라 비교한다. 답 없음의 빈 답 처리도 포함해야 한다.
+SQuAD 평가는 정규화한 문자열의 정확 일치(EM)와 답 토큰 중복 기반 F1을 사용한다. 이 토큰은 BERT subword ID가 아니라 평가 스크립트의 문자열 정규화·공백 분리 기준이다. 반복 토큰도 출현 수로 제한해 세고 정답 표현이 여러 개면 공식 규칙에 따라 비교한다. 답 없음의 빈 답 처리도 포함해야 한다.
 
 영어 SQuAD의 소문자화·관사·구두점 제거를 모든 언어의 일반 평가 규칙으로 적용하지 않는다. 한국어의 형태·띄어쓰기와 업무 요구에 맞는 원문·값 일치 기준을 별도로 명시할 수 있다.
 
@@ -149,7 +149,7 @@ SQuAD 평가는 정규화한 문자열의 정확 일치(EM)와 답 토큰 중복
 
 ??? success "풀이"
 
-    null 점수와 최선 구간의 차이 임계값은 답변과 유보의 균형을 정하므로 개발 자료에서 선택한다. 긴 문맥을 한 번 자르면 정답을 잃을 수 있어 겹치는 창과 원문 offset이 필요하다. 여러 창에서 중복 구간과 null 점수를 어떻게 모으는지도 명시해야 전체 문서의 일관된 답을 선택할 수 있다.
+    null 점수와 최선 구간의 차이 임계값은 답변과 유보의 균형을 정하므로 개발 데이터에서 선택한다. 긴 문맥을 한 번 자르면 정답을 잃을 수 있어 겹치는 창과 원문 offset이 필요하다. 여러 창에서 중복 구간과 null 점수를 어떻게 모으는지도 명시해야 전체 문서의 일관된 답을 선택할 수 있다.
 
 
 

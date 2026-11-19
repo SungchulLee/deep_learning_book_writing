@@ -24,10 +24,10 @@ class Adam:
     """
     Adam 옵티마이저의 구현.
     
-    매개변수:
+    파라메터:
     -----------
     learning_rate : float, 기본값=0.001
-        매개변수 갱신의 걸음 크기
+        파라메터 갱신의 스텝 크기
     beta1 : float, 기본값=0.9
         일차 모멘트 추정값의 지수 감쇠율
     beta2 : float, 기본값=0.999
@@ -43,24 +43,24 @@ class Adam:
         self.epsilon = epsilon
         
         # 상태 변수
-        self.m = {}  # 일차 모멘트 벡터 (기울기의 평균)
-        self.v = {}  # 이차 모멘트 벡터 (기울기의 분산)
+        self.m = {}  # 일차 모멘트 벡터 (그래디언트의 평균)
+        self.v = {}  # 이차 모멘트 벡터 (그래디언트의 분산)
         self.t = 0   # 시각
     
     def update(self, params, grads):
         """
-        Adam 알고리즘으로 매개변수를 갱신한다.
+        Adam 알고리즘으로 파라메터를 갱신한다.
         
-        매개변수:
+        파라메터:
         -----------
         params : dict
-            갱신할 매개변수의 사전
+            갱신할 파라메터의 사전
         grads : dict
-            매개변수별 기울기의 사전
+            파라메터별 그래디언트의 사전
         
         반환값:
         --------
-        dict : 갱신된 매개변수
+        dict : 갱신된 파라메터
         """
         self.t += 1
         
@@ -72,10 +72,10 @@ class Adam:
                 self.m[key] = np.zeros_like(params[key])
                 self.v[key] = np.zeros_like(params[key])
             
-            # 치우친 일차 모멘트 추정값 갱신
+            # 편향된 일차 모멘트 추정값 갱신
             self.m[key] = self.beta1 * self.m[key] + (1 - self.beta1) * grads[key]
             
-            # 치우친 이차 원시 모멘트 추정값 갱신
+            # 편향된 이차 원시 모멘트 추정값 갱신
             self.v[key] = self.beta2 * self.v[key] + (1 - self.beta2) * (grads[key] ** 2)
             
             # 편향을 보정한 일차 모멘트 추정값 계산
@@ -84,7 +84,7 @@ class Adam:
             # 편향을 보정한 이차 원시 모멘트 추정값 계산
             v_hat = self.v[key] / (1 - self.beta2 ** self.t)
             
-            # 매개변수 갱신
+            # 파라메터 갱신
             updated_params[key] = params[key] - self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
         
         return updated_params
@@ -94,12 +94,12 @@ class RMSprop:
     """
     RMSprop 옵티마이저의 구현.
     
-    매개변수:
+    파라메터:
     -----------
     learning_rate : float, 기본값=0.001
-        매개변수 갱신의 걸음 크기
+        파라메터 갱신의 스텝 크기
     rho : float, 기본값=0.9
-        기울기 제곱의 이동 평균에 대한 감쇠율
+        그래디언트 제곱의 이동 평균에 대한 감쇠율
     epsilon : float, 기본값=1e-8
         수치 안정성을 위한 작은 상수
     """
@@ -110,22 +110,22 @@ class RMSprop:
         self.epsilon = epsilon
         
         # 상태 변수
-        self.cache = {}  # 기울기 제곱의 이동 평균
+        self.cache = {}  # 그래디언트 제곱의 이동 평균
     
     def update(self, params, grads):
         """
-        RMSprop 알고리즘으로 매개변수를 갱신한다.
+        RMSprop 알고리즘으로 파라메터를 갱신한다.
         
-        매개변수:
+        파라메터:
         -----------
         params : dict
-            갱신할 매개변수의 사전
+            갱신할 파라메터의 사전
         grads : dict
-            매개변수별 기울기의 사전
+            파라메터별 그래디언트의 사전
         
         반환값:
         --------
-        dict : 갱신된 매개변수
+        dict : 갱신된 파라메터
         """
         updated_params = {}
         
@@ -134,11 +134,11 @@ class RMSprop:
             if key not in self.cache:
                 self.cache[key] = np.zeros_like(params[key])
             
-            # 기울기 제곱의 이동 평균 갱신
+            # 그래디언트 제곱의 이동 평균 갱신
             self.cache[key] = self.rho * self.cache[key] + (1 - self.rho) * (grads[key] ** 2)
             
-            # 매개변수 갱신
-            # 학습률을 이동 평균의 제곱근으로 나눈다
+            # 파라메터 갱신
+            # 러닝레이트를 이동 평균의 제곱근으로 나눈다
             updated_params[key] = params[key] - self.learning_rate * grads[key] / (np.sqrt(self.cache[key]) + self.epsilon)
         
         return updated_params
@@ -148,10 +148,10 @@ class AdaGrad:
     """
     AdaGrad 옵티마이저의 구현.
     
-    매개변수:
+    파라메터:
     -----------
     learning_rate : float, 기본값=0.01
-        처음 학습률 (전역 걸음 크기)
+        초기 러닝레이트 (전역 스텝 크기)
     epsilon : float, 기본값=1e-8
         수치 안정성을 위한 작은 상수
     """
@@ -161,22 +161,22 @@ class AdaGrad:
         self.epsilon = epsilon
         
         # 상태 변수
-        self.cache = {}  # 누적된 기울기 제곱의 합
+        self.cache = {}  # 누적된 그래디언트 제곱의 합
     
     def update(self, params, grads):
         """
-        AdaGrad 알고리즘으로 매개변수를 갱신한다.
+        AdaGrad 알고리즘으로 파라메터를 갱신한다.
         
-        매개변수:
+        파라메터:
         -----------
         params : dict
-            갱신할 매개변수의 사전
+            갱신할 파라메터의 사전
         grads : dict
-            매개변수별 기울기의 사전
+            파라메터별 그래디언트의 사전
         
         반환값:
         --------
-        dict : 갱신된 매개변수
+        dict : 갱신된 파라메터
         """
         updated_params = {}
         
@@ -185,11 +185,11 @@ class AdaGrad:
             if key not in self.cache:
                 self.cache[key] = np.zeros_like(params[key])
             
-            # 기울기 제곱 누적
+            # 그래디언트 제곱 누적
             self.cache[key] += grads[key] ** 2
             
-            # 매개변수 갱신
-            # 학습률을 누적된 기울기 제곱의 제곱근으로 나눈다
+            # 파라메터 갱신
+            # 러닝레이트를 누적된 그래디언트 제곱의 제곱근으로 나눈다
             updated_params[key] = params[key] - self.learning_rate * grads[key] / (np.sqrt(self.cache[key]) + self.epsilon)
         
         return updated_params
@@ -226,7 +226,7 @@ def test_simple_quadratic():
     print("-" * 80)
     
     for i in range(50):
-        # 경사를 계산한다
+        # 그래디언트를 계산한다
         grads_adam = {'x': 2 * params_adam['x'], 'y': 2 * params_adam['y']}
         grads_rmsprop = {'x': 2 * params_rmsprop['x'], 'y': 2 * params_rmsprop['y']}
         grads_adagrad = {'x': 2 * params_adagrad['x'], 'y': 2 * params_adagrad['y']}
@@ -250,7 +250,7 @@ def test_simple_quadratic():
 
 def test_ill_conditioned():
     """
-    그래디언트의 척도가 서로 다른, 조건이 나쁜 문제에서 시험한다.
+    그래디언트의 스케일이 서로 다른, 조건이 나쁜 문제에서 시험한다.
     f(x, y) = 100*x^2 + y^2 최소화
     """
     print("=" * 80)
@@ -299,7 +299,7 @@ def test_ill_conditioned():
 
 def test_noisy_gradients():
     """
-    잡음이 섞인 그래디언트로 시험하여 옵티마이저마다 얼마나 견고한지 본다.
+    잡음이 섞인 그래디언트로 시험하여 옵티마이저마다 얼마나 강건한지 본다.
     그래디언트에 잡음을 더한 채로 f(x, y) = x^2 + y^2 최소화
     """
     print("=" * 80)
@@ -361,7 +361,7 @@ def test_noisy_gradients():
 
 def test_rosenbrock():
     """
-    고전적인 최적화 기준인 로젠브록 함수에서 시험한다.
+    고전적인 최적화 벤치마크인 로젠브록 함수에서 시험한다.
     f(x, y) = (1-x)^2 + 100*(y - x^2)^2 최소화
     """
     print("=" * 80)
@@ -598,7 +598,7 @@ if __name__ == "__main__":
 
 이차 함수 $x^2+y^2$와 조건수가 큰 함수 $100x^2+y^2$는 좌표별 스케일 차이를 비교하는 기준이다. 후자의 헤시안 고윳값은 200과 2로 조건수는 100이다. 적응형 방법은 각 좌표의 그래디언트 이력에 따라 갱신을 조절하지만, 이 비교 코드에는 기본 SGD가 포함되어 있지 않다.
 
-잡음 예제에서는 매 단계 뽑은 같은 noise_x와 noise_y를 세 방법에 더한다. 잡음 실현은 공유하지만 파라메터가 서로 달라지므로 잡음을 더하기 전의 그래디언트는 같지 않다. 한 시드의 로스값만으로 잡음에 대한 견고함의 순위를 확정할 수 없다.
+잡음 예제에서는 매 단계 뽑은 같은 noise_x와 noise_y를 세 방법에 더한다. 잡음 실현은 공유하지만 파라메터가 서로 달라지므로 잡음을 더하기 전의 그래디언트는 같지 않다. 한 시드의 로스값만으로 잡음에 대한 강건성의 순위를 확정할 수 없다.
 
 로젠브록 함수의 전역 최솟값은 (1, 1)에서 0이다. 좁고 굽은 골짜기가 있어 유한한 반복 후의 값은 초기점과 설정에 민감하다. 코드에서는 Adagrad의 러닝레이트가 다른 두 방법의 10배이며 반복 예산도 함수마다 다르다. 출력에 있는 일괄적인 우위 설명은 이 설정의 관찰로 한정하며, 더 넓은 문제군에서의 보장으로 읽지 않는다.
 
@@ -642,4 +642,4 @@ if __name__ == "__main__":
 
 ## 정리하며
 
-기준 함수는 갱신의 피처를 드러내지만 보편적인 순위를 정하지 않는다. 동일한 초기점과 잡음 조건, 방법별 조율 예산과 반복 횟수를 함께 제시해야 결과를 해석할 수 있다.
+기준 함수는 갱신의 특성을 드러내지만 보편적인 순위를 정하지 않는다. 동일한 초기점과 잡음 조건, 방법별 조율 예산과 반복 횟수를 함께 제시해야 결과를 해석할 수 있다.

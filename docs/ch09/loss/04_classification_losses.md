@@ -15,7 +15,7 @@
 - 이진 분류를 위한 이진 교차 엔트로피 (BCE)
 - 다중 클래스 분류를 위한 교차 엔트로피 로스
 - 로짓과 확률 이해하기
-- 원핫 부호화와 클래스 레이블
+- 원핫 인코딩와 클래스 라벨
 
 선수 지식:
 - 앞선 입문 튜토리얼을 마친다
@@ -63,7 +63,7 @@ print("-" * 80)
 
 print("Let's classify 5 emails as Spam (1) or Not Spam (0):\n")
 
-# 참 레이블 (0 = 정상, 1 = 스팸)
+# 참 라벨 (0 = 정상, 1 = 스팸)
 true_labels = torch.tensor([0, 1, 0, 1, 1], dtype=torch.float32)
 print(f"True labels: {true_labels}")
 print("  0 = Not Spam, 1 = Spam\n")
@@ -130,7 +130,7 @@ print("UNDERSTANDING LOGITS (RAW OUTPUTS)")
 print("-" * 80)
 
 print("""
-실제로 뉴럴 네트워크는 "로짓"(가공하지 않은 무계 값)을 출력한다.
+실제로 뉴럴 네트워크는 "로짓"(가공하지 않은, 범위 제한이 없는 값)을 출력한다.
 시그모이드 함수로 로짓을 확률로 바꾼다.
 
 로짓(원본) → 시그모이드 → 확률(0에서 1)
@@ -162,7 +162,7 @@ print("""
 쓰기:       모델 → BCEWithLogitsLoss(둘을 합친다!)
 
 Benefits:
-  ✓ 수치가 더 든든하다
+  ✓ 수치적으로 더 안정적이다
   ✓ 계산이 더 빠르다
   ✓ 그래디언트 문제를 막는다
 """)
@@ -188,7 +188,7 @@ print("-" * 80)
 
 print("Classifying 4 images into 3 categories: Cat, Dog, Bird\n")
 
-# 참 레이블 (클래스 인덱스)
+# 참 라벨 (클래스 인덱스)
 true_classes = torch.tensor([0, 2, 1, 0])  # 0=고양이, 1=개, 2=새
 print(f"True classes: {true_classes}")
 print("  Image 1: Cat (0)")
@@ -197,7 +197,7 @@ print("  Image 3: Dog (1)")
 print("  Image 4: Cat (0)\n")
 
 # 모델의 출력 (클래스별 로짓)
-# 모양: (batch_size, num_classes) = (4, 3)
+# 형태: (batch_size, num_classes) = (4, 3)
 logits_multi = torch.tensor([
     [3.0, 1.0, 0.5],   # 이미지 1: 고양이에 대한 확신이 높다
     [0.5, 0.8, 2.5],   # 이미지 2: 새에 대한 확신이 높다
@@ -235,7 +235,7 @@ print("\n" + "-" * 80)
 print("CROSS-ENTROPY LOSS (Multi-Class)")
 print("-" * 80)
 
-# 중요: CrossEntropyLoss는 확률이 아니라 날 로짓을 받는다!
+# 중요: CrossEntropyLoss는 확률이 아니라 원시 로짓을 받는다!
 ce_criterion = nn.CrossEntropyLoss()
 ce_loss = ce_criterion(logits_multi, true_classes)
 
@@ -260,7 +260,7 @@ for i in range(len(true_classes)):
 print("\n→ Lower probability for true class = Higher loss")
 
 # ============================================================================
-# 8절: 원핫 부호화와 클래스 인덱스
+# 8절: 원핫 인코딩와 클래스 인덱스
 # ============================================================================
 print("\n" + "-" * 80)
 print("ONE-HOT ENCODING VS CLASS INDICES")
@@ -275,7 +275,7 @@ print("One-hot encoded:")
 print(one_hot)
 print("\nEach row has a 1 in the position of the true class, 0s elsewhere")
 
-# 원핫 부호화된 레이블이 있다면 바꾼다:
+# 원핫 인코딩된 라벨이 있다면 바꾼다:
 classes_from_one_hot = torch.argmax(one_hot, dim=1)
 print(f"\nConverting back: {classes_from_one_hot}")
 print(f"Same as original: {torch.equal(classes_from_one_hot, true_classes)}")
@@ -296,7 +296,7 @@ print("""
 ║ 활성화            ║ 시그모이드         ║ 소프트맥스              ║
 ║ 출력 범위         ║ [0, 1]             ║ [0, 1](합이 1)          ║
 ║ 로스 함수         ║ BCEWithLogitsLoss  ║ CrossEntropyLoss        ║
-║ 참 레이블 형식    ║ 0 또는 1           ║ 클래스 인덱스(0~N-1)    ║
+║ 참 라벨 형식      ║ 0 또는 1           ║ 클래스 인덱스(0~N-1)    ║
 ╚═══════════════════╩════════════════════╩═════════════════════════╝
 """)
 
@@ -312,14 +312,14 @@ print("""
   • 이진 분류에는 BCEWithLogitsLoss를 쓴다
   • 다중 클래스 분류에는 CrossEntropyLoss를 쓴다
   • 활성화(시그모이드나 소프트맥스)는 로스 함수가 안에서 처리하게 하라
-  • CrossEntropyLoss의 레이블에는 클래스 인덱스를 쓴다
+  • CrossEntropyLoss의 라벨에는 클래스 인덱스를 쓴다
   • 수렴을 확인하려면 학습 중 로스를 살핀다
 
 ✗ DON'T:
   • BCEWithLogitsLoss 앞에 시그모이드를 걸기(안에서 이미 한다!)
   • CrossEntropyLoss 앞에 소프트맥스를 걸기(안에서 이미 한다!)
   • 원본 로짓에 BCELoss 쓰기(대신 BCEWithLogitsLoss를 쓰라)
-  • CrossEntropyLoss에 원핫 레이블 쓰기(클래스 인덱스를 쓰라)
+  • CrossEntropyLoss에 원핫 라벨 쓰기(클래스 인덱스를 쓰라)
 
 흔한 모델 구조:
   이진:       [...레이어...] → Linear(in_features, 1) → BCEWithLogitsLoss
@@ -339,13 +339,13 @@ print("""
    • BCEWithLogitsLoss를 쓴다
    • 모델이 값 하나(로짓)를 출력한다
    • 시그모이드가 로짓을 확률로 바꾼다
-   • 레이블은 0 또는 1이다
+   • 라벨은 0 또는 1이다
 
 3. 다중 클래스 분류(클래스 3개 이상):
    • CrossEntropyLoss를 쓴다
    • 모델이 클래스마다 하나씩 N개의 값(로짓)을 출력한다
    • 소프트맥스가 로짓을 확률 분포로 바꾼다
-   • 레이블은 클래스 인덱스(0, 1, 2, ...)이다
+   • 라벨은 클래스 인덱스(0, 1, 2, ...)이다
 
 4. 두 로스 함수 모두 활성화를 안에서 처리한다
    • 로스 앞에서 시그모이드나 소프트맥스를 직접 걸지 마라!
@@ -435,7 +435,7 @@ if __name__ == "__main__":
     UNDERSTANDING LOGITS (RAW OUTPUTS)
     --------------------------------------------------------------------------------
 
-    실제로 뉴럴 네트워크는 "로짓"(가공하지 않은 무계 값)을 출력한다.
+    실제로 뉴럴 네트워크는 "로짓"(가공하지 않은, 범위 제한이 없는 값)을 출력한다.
     시그모이드 함수로 로짓을 확률로 바꾼다.
 
     로짓(원본) → 시그모이드 → 확률(0에서 1)
@@ -458,7 +458,7 @@ if __name__ == "__main__":
     쓰기:       모델 → BCEWithLogitsLoss(둘을 합친다!)
 
     Benefits:
-      ✓ 수치가 더 든든하다
+      ✓ 수치적으로 더 안정적이다
       ✓ 계산이 더 빠르다
       ✓ 그래디언트 문제를 막는다
 
@@ -548,7 +548,7 @@ if __name__ == "__main__":
     ║ 활성화            ║ 시그모이드         ║ 소프트맥스              ║
     ║ 출력 범위         ║ [0, 1]             ║ [0, 1](합이 1)          ║
     ║ 로스 함수         ║ BCEWithLogitsLoss  ║ CrossEntropyLoss        ║
-    ║ 참 레이블 형식    ║ 0 또는 1           ║ 클래스 인덱스(0~N-1)    ║
+    ║ 참 라벨 형식      ║ 0 또는 1           ║ 클래스 인덱스(0~N-1)    ║
     ╚═══════════════════╩════════════════════╩═════════════════════════╝
 
 
@@ -560,14 +560,14 @@ if __name__ == "__main__":
       • 이진 분류에는 BCEWithLogitsLoss를 쓴다
       • 다중 클래스 분류에는 CrossEntropyLoss를 쓴다
       • 활성화(시그모이드나 소프트맥스)는 로스 함수가 안에서 처리하게 하라
-      • CrossEntropyLoss의 레이블에는 클래스 인덱스를 쓴다
+      • CrossEntropyLoss의 라벨에는 클래스 인덱스를 쓴다
       • 수렴을 확인하려면 학습 중 로스를 살핀다
 
     ✗ DON'T:
       • BCEWithLogitsLoss 앞에 시그모이드를 걸기(안에서 이미 한다!)
       • CrossEntropyLoss 앞에 소프트맥스를 걸기(안에서 이미 한다!)
       • 원본 로짓에 BCELoss 쓰기(대신 BCEWithLogitsLoss를 쓰라)
-      • CrossEntropyLoss에 원핫 레이블 쓰기(클래스 인덱스를 쓰라)
+      • CrossEntropyLoss에 원핫 라벨 쓰기(클래스 인덱스를 쓰라)
 
     흔한 모델 구조:
       이진:       [...레이어...] → Linear(in_features, 1) → BCEWithLogitsLoss
@@ -584,13 +584,13 @@ if __name__ == "__main__":
        • BCEWithLogitsLoss를 쓴다
        • 모델이 값 하나(로짓)를 출력한다
        • 시그모이드가 로짓을 확률로 바꾼다
-       • 레이블은 0 또는 1이다
+       • 라벨은 0 또는 1이다
 
     3. 다중 클래스 분류(클래스 3개 이상):
        • CrossEntropyLoss를 쓴다
        • 모델이 클래스마다 하나씩 N개의 값(로짓)을 출력한다
        • 소프트맥스가 로짓을 확률 분포로 바꾼다
-       • 레이블은 클래스 인덱스(0, 1, 2, ...)이다
+       • 라벨은 클래스 인덱스(0, 1, 2, ...)이다
 
     4. 두 로스 함수 모두 활성화를 안에서 처리한다
        • 로스 앞에서 시그모이드나 소프트맥스를 직접 걸지 마라!
@@ -613,9 +613,9 @@ if __name__ == "__main__":
 
 BCELoss는 확률, BCEWithLogitsLoss는 로짓을 받는다. 후자는 시그모이드와 로그 항을 안정적으로 결합한다. BCE라는 이름만 보고 시그모이드가 항상 내장되어 있다고 생각하면 안 된다.
 
-다중 클래스 CrossEntropyLoss는 로짓과 정수 인덱스 목표를 흔히 사용한다. 로짓과 같은 모양의 부동소수점 확률 목표도 지원하므로 원핫을 모두 금지하지 않는다. 이진·다중 레이블의 로짓 BCE 목표는 보통 출력과 같은 모양이다.
+다중 클래스 CrossEntropyLoss는 로짓과 정수 인덱스 목표를 흔히 사용한다. 로짓과 같은 형태의 부동소수점 확률 목표도 지원하므로 원핫을 모두 금지하지 않는다. 이진·다중 라벨의 로짓 BCE 목표는 보통 출력과 같은 형태이다.
 
-레이블 1인 관측과 혼동 행렬의 참양성은 다른 표현이다. 로스는 정답 클래스의 확률을 평가하며, 예측 임계값을 적용한 뒤의 TP·FP 등의 사건과 구분한다. 포화·클리핑과 집계 규약도 구현별로 확인한다.
+라벨 1인 관측과 혼동 행렬의 참양성은 다른 표현이다. 로스는 정답 클래스의 확률을 평가하며, 예측 임계값을 적용한 뒤의 TP·FP 등의 사건과 구분한다. 포화·클리핑과 집계 규약도 구현별로 확인한다.
 
 ## 연습문제
 
@@ -635,7 +635,7 @@ BCELoss는 확률, BCEWithLogitsLoss는 로짓을 받는다. 후자는 시그모
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-다중 클래스 인덱스 목표와 확률 목표의 모양·자료형을 설명하라.
+다중 클래스 인덱스 목표와 확률 목표의 형태·자료형을 설명하라.
 
 </div>
 

@@ -8,29 +8,29 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
     ```python
     """
-    영상 이해 — 가운데 수준
-    파일 05: 두 클래스 네트워크 — 자리 클래스와 때 클래스 녹여 붙이기
+    영상 이해 — 중급 수준
+    파일 05: Two-Stream 네트워크 — 공간 스트림과 시간 스트림 융합
 
-    이 파일은 몸짓 알아보기를 위한 두 클래스 구조를 다룬다:
-    - 겉모습 앎을 위한 자리 클래스(RGB 틀)
-    - 액션 앎을 위한 때 클래스(빛 흐름)
-    - 늦은 녹여 붙이기 전략
-    - 처음의 두 클래스 컨볼루션 뉴럴 네트워크 짜기
+    이 파일은 액션 인식을 위한 Two-Stream 구조를 다룬다:
+    - 외형 정보를 위한 공간 스트림(RGB 프레임)
+    - 움직임 정보를 위한 시간 스트림(옵티컬 플로우)
+    - 후기 융합 전략
+    - 원래의 Two-Stream 컨볼루션 뉴럴 네트워크 구현
 
     수학적 바탕:
-    두 클래스 구조:
-        틀이 {I_1, ..., I_T}이고 빛 흐름이 {F_1, ..., F_{T-1}}인 영상 V에 대해:
+    Two-Stream 구조:
+        프레임이 {I_1, ..., I_T}이고 옵티컬 플로우가 {F_1, ..., F_{T-1}}인 영상 V에 대해:
 
-        자리 클래스: f_s(I_t) → p_자리
-        때 클래스: f_t(F_t) → p_때
+        공간 스트림: f_s(I_t) → p_공간
+        시간 스트림: f_t(F_t) → p_시간
 
-        마지막 어림: p = α·p_자리 + (1-α)·p_때
+        최종 예측: p = α·p_공간 + (1-α)·p_시간
 
-        여기서 α는 녹여 붙이기 무게(보통 0.5)
+        여기서 α는 융합 웨이트(보통 0.5)
 
-    핵심 눈썰미: 겉모습과 액션은 서로 채워 주는 실마리이다!
-        - 자리: 어떤 물체/장면이 있는가
-        - 때: 어떻게 움직이는가
+    핵심 통찰: 외형과 움직임은 상호 보완적인 단서다!
+        - 공간: 어떤 물체/장면이 있는가
+        - 시간: 어떻게 움직이는가
     """
 
     import torch
@@ -49,19 +49,19 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
 
     #=============================================================================
-    # 1부: 자리 클래스(겉모습)
+    # 1부: 공간 스트림(외형)
     #=============================================================================
 
     class SpatialStream(nn.Module):
         """
-        겉모습 앎을 위한 자리 클래스 컨볼루션 뉴럴 네트워크.
+        외형 정보를 위한 공간 스트림 컨볼루션 뉴럴 네트워크.
 
-        RGB 틀 하나를 다뤄 다음을 담아낸다:
+        RGB 프레임 하나를 다뤄 다음을 담아낸다:
         - 물체가 무엇인지
-        - 장면의 앎
-        - 자세와 겉모습
+        - 장면 정보
+        - 자세와 외형
 
-        보통의 2차원 컨볼루션 뉴럴 네트워크(보기로 ResNet, VGG)을 쓴다
+        보통의 2차원 컨볼루션 뉴럴 네트워크(예: ResNet, VGG)를 쓴다
         """
 
         def __init__(self, 
@@ -69,23 +69,23 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                      pretrained: bool = True,
                      dropout: float = 0.5):
             """
-            자리 클래스를 초기화한다.
+            공간 스트림을 초기화한다.
 
             인수:
-                num_classes: 몸짓 클래스의 개수
-                pretrained: ImageNet에서 미리 익힌 무게를 쓸지 여부
+                num_classes: 액션 클래스의 개수
+                pretrained: ImageNet에서 사전 학습된 웨이트를 쓸지 여부
                 dropout: 드롭아웃 확률
             """
             super().__init__()
 
-            # 등뼈로 ResNet-50 쓰기(표준 고름)
-            # 들임: RGB 틀 하나 (B, 3, H, W)
+            # 백본으로 ResNet-50 쓰기(표준적인 선택)
+            # 입력: RGB 프레임 하나 (B, 3, H, W)
             resnet = models.resnet50(pretrained=pretrained)
 
-            # 마지막 온전히 이은 레이어 없애기
+            # 마지막 완전 연결 레이어 제거
             self.features = nn.Sequential(*list(resnet.children())[:-1])
 
-            # 몸짓을 위한 맞춤 클래스 매개
+            # 액션 인식용 맞춤 분류기
             # ResNet-50은 2048차원 피처를 내놓는다
             self.classifier = nn.Sequential(
                 nn.Dropout(p=dropout),
@@ -94,20 +94,20 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
             """
-            자리 클래스를 지나는 피드포워드.
+            공간 스트림을 지나는 순전파.
 
             인수:
-                x: RGB 틀 (B, 3, H, W) — 틀 하나 또는 (B, T, 3, H, W) 배치
+                x: RGB 프레임 (B, 3, H, W) — 프레임 하나 또는 (B, T, 3, H, W) 배치
 
             반환값:
                 클래스 점수 (B, num_classes)
 
-            유의: 영상은 틀을 여럿 뽑아 어림을 고루낼 수 있다
+            유의: 영상은 프레임을 여럿 뽑아 예측을 평균할 수 있다
             """
-            # 틀 하나와 영상 들임을 모두 다루기
+            # 프레임 하나와 영상 입력을 모두 다루기
             if x.dim() == 5:  # (B, T, 3, H, W)
                 B, T, C, H, W = x.shape
-                x = x.view(B * T, C, H, W)  # 모든 틀 다루기
+                x = x.view(B * T, C, H, W)  # 모든 프레임 다루기
                 batch_mode = True
             else:
                 batch_mode = False
@@ -120,7 +120,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
             # 분류
             logits = self.classifier(features)  # (B*T, num_classes)
 
-            # 영상 들임이면 때에 걸쳐 고루내기
+            # 영상 입력이면 시간에 걸쳐 평균하기
             if batch_mode:
                 logits = logits.view(B, T, -1).mean(dim=1)  # (B, num_classes)
 
@@ -128,19 +128,19 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
 
     #=============================================================================
-    # 2부: 때 클래스(액션)
+    # 2부: 시간 스트림(움직임)
     #=============================================================================
 
     class TemporalStream(nn.Module):
         """
-        액션 앎을 위한 때 클래스 컨볼루션 뉴럴 네트워크.
+        움직임 정보를 위한 시간 스트림 컨볼루션 뉴럴 네트워크.
 
-        빛 흐름을 다뤄 다음을 담아낸다:
-        - 액션 무늬
-        - 빠르기와 방향
-        - 때에 걸친 액션
+        옵티컬 플로우를 다뤄 다음을 담아낸다:
+        - 움직임 패턴
+        - 속도와 방향
+        - 시간에 걸친 움직임
 
-        들임: 잇단 빛 흐름 마당 L개의 쌓기
+        입력: 연속한 옵티컬 플로우 장 L개의 스택
         """
 
         def __init__(self,
@@ -148,25 +148,25 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                      flow_length: int = 10,
                      dropout: float = 0.5):
             """
-            때 클래스를 초기화한다.
+            시간 스트림을 초기화한다.
 
             인수:
-                num_classes: 몸짓 클래스의 개수
-                flow_length: 쌓을 흐름 마당의 개수(L)
+                num_classes: 액션 클래스의 개수
+                flow_length: 쌓을 흐름장의 개수(L)
                 dropout: 드롭아웃 확률
             """
             super().__init__()
 
             self.flow_length = flow_length
 
-            # 들임 채널: 2*L(흐름 L개의 u와 v 성분)
-            # 잇단 빛 흐름 L개를 쌓아 들임으로 삼기
+            # 입력 채널: 2*L(흐름 L개의 u와 v 성분)
+            # 연속한 옵티컬 플로우 L개를 쌓아 입력으로 삼기
             input_channels = 2 * flow_length
 
-            # 들임 채널을 달리해 고친 ResNet
+            # 입력 채널 수를 바꿔 수정한 ResNet
             resnet = models.resnet50(pretrained=False)
 
-            # 2*L 채널을 받도록 첫 컨볼루션 레이어 갈음
+            # 2*L 채널을 받도록 첫 컨볼루션 레이어 교체
             self.conv1 = nn.Conv2d(
                 input_channels,  # 3 대신 2*L채널
                 64,
@@ -194,12 +194,12 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
         def forward(self, flow: torch.Tensor) -> torch.Tensor:
             """
-            때 클래스를 지나는 피드포워드.
+            시간 스트림을 지나는 순전파.
 
             인수:
-                flow: 빛 흐름 쌓기 (B, 2*L, H, W)
+                flow: 옵티컬 플로우 스택 (B, 2*L, H, W)
                       흐름마다 채널이 2개다(u, v)
-                      잇단 흐름 L개를 쌓는다
+                      연속한 흐름 L개를 쌓는다
 
             반환값:
                 클래스 점수 (B, num_classes)
@@ -225,19 +225,19 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
 
     #=============================================================================
-    # 3부: 두 클래스 녹여 붙이기
+    # 3부: Two-Stream 융합
     #=============================================================================
 
     class TwoStreamNetwork(nn.Module):
         """
-        녹여 붙이기를 갖춘 온전한 두 클래스 네트워크.
+        융합을 갖춘 온전한 Two-Stream 네트워크.
 
-        몸짓 알아보기를 위해 자리 클래스와 때 클래스를 아우른다.
+        액션 인식을 위해 공간 스트림과 시간 스트림을 결합한다.
 
-        녹여 붙이기 전략:
-            1. 늦은 녹여 붙이기(고루내기): p = (p_자리 + p_때) / 2
-            2. 무게를 준 녹여 붙이기: p = α·p_자리 + (1-α)·p_때
-            3. 배운 녹여 붙이기: p = MLP([p_자리, p_때])
+        융합 전략:
+            1. 후기 융합(평균): p = (p_공간 + p_시간) / 2
+            2. 가중 융합: p = α·p_공간 + (1-α)·p_시간
+            3. 학습된 융합: p = MLP([p_공간, p_시간])
         """
 
         def __init__(self,
@@ -245,29 +245,29 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                      flow_length: int = 10,
                      fusion_type: str = 'average'):
             """
-            두 클래스 네트워크를 초기화한다.
+            Two-Stream 네트워크를 초기화한다.
 
             인수:
-                num_classes: 몸짓 클래스의 개수
-                flow_length: 빛 흐름 마당의 개수
+                num_classes: 액션 클래스의 개수
+                flow_length: 옵티컬 플로우 장의 개수
                 fusion_type: 'average', 'weighted', 또는 'learned'
             """
             super().__init__()
 
             self.fusion_type = fusion_type
 
-            # 자리 클래스와 때 클래스
+            # 공간 스트림과 시간 스트림
             self.spatial_stream = SpatialStream(num_classes=num_classes)
             self.temporal_stream = TemporalStream(
                 num_classes=num_classes,
                 flow_length=flow_length
             )
 
-            # 무게를 준 녹여 붙이기 파라메터
+            # 가중 융합 파라메터
             if fusion_type == 'weighted':
                 self.fusion_weight = nn.Parameter(torch.tensor(0.5))
 
-            # 배운 녹여 붙이기 네트워크
+            # 학습된 융합 네트워크
             elif fusion_type == 'learned':
                 self.fusion_net = nn.Sequential(
                     nn.Linear(num_classes * 2, 512),
@@ -281,33 +281,33 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                     flow: torch.Tensor,
                     return_separate: bool = False) -> torch.Tensor:
             """
-            두 클래스 네트워크를 지나는 피드포워드.
+            Two-Stream 네트워크를 지나는 순전파.
 
             인수:
-                rgb: RGB 틀 (B, 3, H, W) 또는 (B, T, 3, H, W)
-                flow: 빛 흐름 쌓기 (B, 2*L, H, W)
-                return_separate: 클래스별 내놓음을 돌려줄지 여부
+                rgb: RGB 프레임 (B, 3, H, W) 또는 (B, T, 3, H, W)
+                flow: 옵티컬 플로우 스택 (B, 2*L, H, W)
+                return_separate: 스트림별 출력을 반환할지 여부
 
             반환값:
-                녹여 붙인 클래스 점수 (B, num_classes)
-                return_separate=True이면 (녹여 붙임, 자리, 때) 튜플
+                융합한 클래스 점수 (B, num_classes)
+                return_separate=True이면 (융합, 공간, 시간) 튜플
             """
-            # 두 클래스에서 어림 얻기
+            # 두 스트림에서 예측 얻기
             spatial_logits = self.spatial_stream(rgb)
             temporal_logits = self.temporal_stream(flow)
 
-            # 녹여 붙이기 전략
+            # 융합 전략
             if self.fusion_type == 'average':
-                # 단순 고루내기 녹여 붙이기
+                # 단순 평균 융합
                 fused_logits = (spatial_logits + temporal_logits) / 2
 
             elif self.fusion_type == 'weighted':
-                # 배울 수 있는 무게로 녹여 붙이기
+                # 학습 가능한 웨이트로 융합
                 alpha = torch.sigmoid(self.fusion_weight)
                 fused_logits = alpha * spatial_logits + (1 - alpha) * temporal_logits
 
             elif self.fusion_type == 'learned':
-                # 다층 퍼셉트론으로 배운 녹여 붙이기
+                # 다층 퍼셉트론으로 학습된 융합
                 combined = torch.cat([spatial_logits, temporal_logits], dim=1)
                 fused_logits = self.fusion_net(combined)
 
@@ -320,33 +320,33 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
 
     #=============================================================================
-    # 4부: 빛 흐름 만들기(간추림)
+    # 4부: 옵티컬 플로우 계산(간략판)
     #=============================================================================
 
     def compute_dense_optical_flow(prev_frame: np.ndarray,
                                    next_frame: np.ndarray,
                                    method: str = 'farneback') -> np.ndarray:
         """
-        두 틀 사이의 촘촘한 빛 흐름을 셈한다.
+        두 프레임 사이의 밀집 옵티컬 플로우를 계산한다.
 
         인수:
-            prev_frame: 앞 틀 (H, W, 3) 또는 (H, W)
-            next_frame: 다음 틀 (H, W, 3) 또는 (H, W)
-            method: 흐름 셈하기 방법
+            prev_frame: 앞 프레임 (H, W, 3) 또는 (H, W)
+            next_frame: 다음 프레임 (H, W, 3) 또는 (H, W)
+            method: 흐름 계산 방법
 
         반환값:
-            flow: (u, v) 성분을 갖는 빛 흐름 (H, W, 2)
+            flow: (u, v) 성분을 갖는 옵티컬 플로우 (H, W, 2)
 
         수학적 바탕:
-            빛 흐름 식(밝기가 한결같음):
+            옵티컬 플로우 방정식(밝기 불변):
             I(x, y, t) = I(x+u, y+v, t+1)
 
-            선형으로 만들기:
+            선형화:
             I_x·u + I_y·v + I_t = 0
 
-            여기서 (u,v)은 흐름 벡터
+            여기서 (u,v)는 흐름 벡터
         """
-        # 필요하면 잿빛으로 바꾸기
+        # 필요하면 그레이스케일로 바꾸기
         if prev_frame.ndim == 3:
             prev_gray = cv2.cvtColor((prev_frame * 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
             next_gray = cv2.cvtColor((next_frame * 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
@@ -355,17 +355,17 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
             next_gray = (next_frame * 255).astype(np.uint8)
 
         if method == 'farneback':
-            # 파르네베크 방법: 다항식 펼침
+            # 파르네베크 방법: 다항식 전개
             flow = cv2.calcOpticalFlowFarneback(
                 prev_gray,
                 next_gray,
                 None,
                 pyr_scale=0.5,  # 피라미드 스케일
-                levels=3,        # 피라미드 레이어 수
+                levels=3,        # 피라미드 레벨 수
                 winsize=15,      # 창 크기
-                iterations=3,    # 피라미드 켜마다의 되풀이 횟수
-                poly_n=5,        # 다항식 펼침 차수
-                poly_sigma=1.2,  # 다항식 펼침의 가우스 표준편차
+                iterations=3,    # 피라미드 레벨마다의 반복 횟수
+                poly_n=5,        # 다항식 전개 차수
+                poly_sigma=1.2,  # 다항식 전개의 가우스 표준편차
                 flags=0
             )
         else:
@@ -377,21 +377,21 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
     def extract_flow_stack(video: torch.Tensor,
                            flow_length: int = 10) -> torch.Tensor:
         """
-        영상에서 쌓아 올린 빛 흐름을 뽑는다.
+        영상에서 스택으로 쌓은 옵티컬 플로우를 뽑는다.
 
         인수:
             video: 영상 텐서 (T, C, H, W) 또는 (B, T, C, H, W)
             flow_length: 쌓을 흐름의 개수(L)
 
         반환값:
-            flow_stack: 쌓아 올린 흐름 (B, 2*L, H, W)
+            flow_stack: 스택으로 쌓은 흐름 (B, 2*L, H, W)
         """
         if video.dim() == 4:
             video = video.unsqueeze(0)  # 배치 차원 더하기
 
         B, T, C, H, W = video.shape
 
-        # 틀이 적어도 flow_length+1개 필요하다
+        # 프레임이 적어도 flow_length+1개 필요하다
         if T < flow_length + 1:
             raise ValueError(f"Need at least {flow_length+1} frames, got {T}")
 
@@ -400,19 +400,19 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
         for b in range(B):
             flows = []
 
-            # 잇단 틀 사이의 빛 흐름 셈하기
+            # 연속한 프레임 사이의 옵티컬 플로우 계산하기
             for t in range(flow_length):
                 prev_frame = video[b, t].permute(1, 2, 0).cpu().numpy()  # (H, W, C)
                 next_frame = video[b, t+1].permute(1, 2, 0).cpu().numpy()
 
-                # 흐름 셈하기
+                # 흐름 계산하기
                 flow = compute_dense_optical_flow(prev_frame, next_frame)
 
-                # 텐서로 바꾸고 고르게 맞추기
+                # 텐서로 바꾸고 정규화하기
                 flow_tensor = torch.from_numpy(flow).permute(2, 0, 1).float()  # (2, H, W)
                 flows.append(flow_tensor)
 
-            # 흐름 쌓기: (L, 2, H, W) → (2*L, H, W)
+            # 흐름 스택: (L, 2, H, W) → (2*L, H, W)
             flow_stack = torch.cat(flows, dim=0)
             flow_stacks.append(flow_stack)
 
@@ -422,12 +422,12 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
 
     #=============================================================================
-    # 5부: 보임
+    # 5부: 시연
     #=============================================================================
 
     def demonstrate_two_stream():
         """
-        두 클래스 네트워크 구조와 녹여 붙이기를 보여 준다.
+        Two-Stream 네트워크 구조와 융합을 보여 준다.
         """
         print("\n" + "="*80)
         print("TWO-STREAM NETWORK DEMONSTRATION")
@@ -450,7 +450,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
         # 모델 만들기
         print("\n1. Creating two-stream network...")
 
-        # 여러 녹여 붙이기 전략 시험
+        # 여러 융합 전략 테스트
         fusion_types = ['average', 'weighted', 'learned']
 
         for fusion_type in fusion_types:
@@ -465,7 +465,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
             params = sum(p.numel() for p in model.parameters())
             print(f"   Total parameters: {params:,}")
 
-            # 보기 들임 만들기
+            # 예시 입력 만들기
             rgb = torch.randn(batch_size, 3, height, width)
             flow = torch.randn(batch_size, 2 * flow_length, height, width)
 
@@ -482,7 +482,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
             print(f"   Temporal output: {temporal_out.shape}")
             print(f"   Fused output: {output.shape}")
 
-            # 녹여 붙이기 살피기
+            # 융합 결과 살펴보기
             spatial_probs = F.softmax(spatial_out[0], dim=0)
             temporal_probs = F.softmax(temporal_out[0], dim=0)
             fused_probs = F.softmax(output[0], dim=0)
@@ -503,50 +503,50 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
         print("KEY TAKEAWAYS")
         print("="*80)
         print("""
-        1. 두 클래스 구조:
-           - 자리 클래스: 겉모습을 위해 RGB를 다룬다
-           - 때 클래스: 액션을 위해 빛 흐름을 다룬다
-           - 서로 채워 주는 앎 → 더 나은 성능
+        1. Two-Stream 구조:
+           - 공간 스트림: 외형을 위해 RGB를 다룬다
+           - 시간 스트림: 움직임을 위해 옵티컬 플로우를 다룬다
+           - 상호 보완적인 정보 → 더 나은 성능
 
-        2. 빛 흐름:
-           - 틀 사이의 액션 앎을 담아낸다
-           - (u, v) 성분이 가로와 세로 액션을 담는다
-           - 파르네베크: 다항식 펼침을 쓴 촘촘한 빛 흐름
+        2. 옵티컬 플로우:
+           - 프레임 사이의 움직임 정보를 담아낸다
+           - (u, v) 성분이 가로와 세로 움직임을 담는다
+           - 파르네베크: 다항식 전개를 쓴 밀집 옵티컬 플로우
 
-        3. 녹여 붙이기 전략:
-           - 고루내기: 단순하지만 잘 된다(무게가 같음)
-           - 무게: 배울 수 있는 녹여 붙이기 무게 α
-           - 러닝: 다층 퍼셉트론이 가장 좋은 아우름을 배운다
+        3. 융합 전략:
+           - 평균: 단순하지만 잘 된다(웨이트가 같음)
+           - 가중: 학습 가능한 융합 웨이트 α
+           - 학습: 다층 퍼셉트론이 가장 좋은 결합을 학습한다
 
-        4. 성능에서 얻은 눈썰미:
-           - 두 클래스 >> RGB 한 클래스(지난 결과들)
-           - 몸짓 알아보기에서 정확도 약 10~15% 나아짐
-           - 때 클래스는 컨볼루션 뉴럴 네트워크가 틀 하나에서 얻지 못하는 것을 담아낸다
+        4. 성능에서 얻은 통찰:
+           - Two-Stream >> RGB 단일 스트림(과거 결과들)
+           - 액션 인식에서 정확도 약 10~15% 나아짐
+           - 시간 스트림은 컨볼루션 뉴럴 네트워크가 프레임 하나에서 얻지 못하는 것을 담아낸다
 
-        5. 실전에서 헤아릴 점:
-           - 빛 흐름은 셈하기에 값이 비싸다
-           - 흐름을 미리 셈해 두어야 한다
-           - 모델 둘 → 파라메터와 셈이 2배
+        5. 실전에서 고려할 점:
+           - 옵티컬 플로우는 계산 비용이 크다
+           - 흐름을 미리 계산해 두어야 한다
+           - 모델 둘 → 파라메터와 계산량이 2배
            - 요즘의 대안: 3차원 컨볼루션 뉴럴 네트워크, 영상 트랜스포머
         """)
 
 
     def main():
         """
-        두 클래스 네트워크의 주된 보임.
+        Two-Stream 네트워크의 메인 시연.
         """
         print(__doc__)
 
-        # 난수 씨앗 고정
+        # 난수 시드 고정
         torch.manual_seed(42)
         np.random.seed(42)
 
-        # 보여 주기를 돌린다
+        # 시연을 실행한다
         demonstrate_two_stream()
 
 
     if __name__ == "__main__":
-        import cv2  # 설치 안 됐을 때 탈이 없도록 여기서 들여온다
+        import cv2  # 설치되지 않았을 때 문제가 없도록 여기서 임포트한다
         main()
     ```
 
@@ -554,7 +554,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
 `SpatialStream`은 ImageNet 사전 학습 ResNet-50의 분류 레이어를 제거하고 새 K클래스 head를 붙인다. backbone을 사전 학습했다는 사실과 새 액션 분류 head가 학습되었다는 것은 다르다. 웨이트의 RGB 정규화·입력 분포를 맞춰야 하며 `pretrained`는 과거 API 형식이므로 설치 버전과 호환성을 확인한다.
 
-4차원 입력은 B×3×H×W이고, 5차원은 **B×T×3×H×W**다. 프레임별 2048차원 피처에서 로짓을 만든 뒤 시간 평균을 낸다. Conv3d의 B×C×T×H×W와 축 순서가 다르다. 이 평균은 시간 순서에 민감한 모형이 아니므로 프레임을 재배열해도 eval 모드의 결과는 같다. 학습 중 BN·dropout과 같은 확률적·배치 효과는 따로 고려한다.
+4차원 입력은 B×3×H×W이고, 5차원은 **B×T×3×H×W**다. 프레임별 2048차원 피처에서 로짓을 만든 뒤 시간 평균을 낸다. Conv3d의 B×C×T×H×W와 축 순서가 다르다. 이 평균은 시간 순서에 민감한 모델이 아니므로 프레임을 재배열해도 eval 모드의 결과는 같다. 학습 중 BN·dropout과 같은 확률적·배치 효과는 따로 고려한다.
 
 ## 3. 흐름 스택과 시간 가지
 

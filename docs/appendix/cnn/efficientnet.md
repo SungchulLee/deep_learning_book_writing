@@ -1,15 +1,15 @@
 # EfficientNet
 
-EfficientNet은 2019년 글 "EfficientNet: 컨볼루션 뉴럴 네트워크의 모델 키우기 다시 보기"에서 나왔으며, 깊이, 너비, 결의 세 차수를 한꺼번에 키우는 이치에 닿는 길을 내놓았다. 복합 스케일링 값을 써서, 앞선 모델보다 파라메터와 뜨는 계산 횟수가 훨씬 적으면서도 가장 앞선 맞음을 이룬다. 밑 구조인 EfficientNet-B0은 뉴럴 네트워크 아키텍처 탐색로 찾아냈다.
+EfficientNet은 2019년 논문 "EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks"에서 나왔으며, 깊이, 너비, 해상도의 세 차원을 한꺼번에 스케일링하는 원칙 있는 방법을 제시했다. 복합 스케일링 계수(compound coefficient)를 써서, 앞선 모델보다 파라메터와 FLOPs(부동소수점 연산 횟수)가 훨씬 적으면서도 최고 수준의 정확도를 이룬다. 기본 구조인 EfficientNet-B0은 뉴럴 아키텍처 탐색(NAS)으로 찾아냈다.
 
 ## 1. 코드
 
 ```python
 #!/usr/bin/env python3
 '''
-EfficientNet - 모형 키우기 다시 보기
+EfficientNet - 모델 스케일링 다시 보기
 논문: "EfficientNet: Rethinking Model Scaling for CNNs" (2019)
-핵심: 깊이·너비·해상도를 함께 키우며 매우 잘 든다
+핵심: 깊이·너비·해상도를 함께 스케일링하며 효율이 매우 높다
 '''
 import torch
 import torch.nn as nn
@@ -90,42 +90,42 @@ Parameters: 1,352,888
 
 ## 2. 논의
 
-MBConv(손전화 뒤집힌 목 컨볼루션) 덩이가 EfficientNet의 기초 벽돌이다. 뒤집힌 나머지 구조를 따른다. 먼저 클래스 차수를 몇 곱절(흔히 6배)로 넓히고, 넓힌 차수에서 깊이별로 가른 컨볼루션을 건 뒤, 더 작은 출력 차수로 되비춘다. 입력과 출력의 차수가 같으면 나머지 이음이 덩이를 통째로 건너뛰어 그래디언트가 잘 흐르게 한다. ReLU 대신 SiLU(Swish) 활성화를 써서 그래디언트가 더 매끄럽다.
+MBConv(Mobile Inverted Bottleneck Convolution, 모바일 역 병목 컨볼루션) 블록이 EfficientNet의 기본 구성 요소다. 역 잔차(inverted residual) 구조를 따른다. 먼저 채널 차원을 몇 배(흔히 6배)로 확장하고, 확장한 차원에서 깊이별 분리 컨볼루션을 적용한 뒤, 더 작은 출력 차원으로 사영한다. 입력과 출력의 차원이 같으면 잔차 연결이 블록을 통째로 건너뛰어 그래디언트가 잘 흐르게 한다. ReLU 대신 SiLU(Swish) 활성화 함수를 써서 그래디언트가 더 매끄럽다.
 
-복합 스케일링 방법이 EfficientNet의 핵심 이론 이바지다. 깊이(켜 늘리기), 너비(클래스 늘리기), 결(그림 키우기)을 따로따로 키우는 대신, 겹 값 $\phi$으로 셋을 함께 키운다. 깊이 $d = \alpha^\phi$, 너비 $w = \beta^\phi$, 결 $r = \gamma^\phi$이고 $\alpha \cdot \beta^2 \cdot \gamma^2 \approx 2$을 지킨다. 이 제약 덕에 $\phi$이 1 오를 때마다 뜨는 계산 횟수가 대략 곱절이 되고, 세 차수 사이의 사이가 B0에서 B7까지 그대로 지켜진다.
+복합 스케일링 방법이 EfficientNet의 핵심 이론적 기여다. 깊이(레이어 늘리기), 너비(채널 늘리기), 해상도(이미지 키우기)를 따로따로 스케일링하는 대신, 복합 계수 $\phi$로 셋을 함께 스케일링한다. 깊이 $d = \alpha^\phi$, 너비 $w = \beta^\phi$, 해상도 $r = \gamma^\phi$이고 $\alpha \cdot \beta^2 \cdot \gamma^2 \approx 2$을 만족시킨다. 이 제약 덕에 $\phi$가 1 오를 때마다 FLOPs가 대략 두 배가 되고, 세 차원 사이의 비율이 B0에서 B7까지 그대로 유지된다.
 
-복합 스케일링이 참으로 미치는 힘은 크다. EfficientNet-B7은 파라메터 6600만 개로 이미지넷에서 으뜸 맞음 84.3%을 이루는데, GPipe은 같은 84.3%에 5억 5700만 개가 든다. 차수를 고르게 키우는 편이 한 차수만 끝까지 키우는 것보다 훨씬 잘 든다는 뜻이다.
+복합 스케일링의 실제 효과는 크다. EfficientNet-B7은 파라메터 6600만 개로 이미지넷에서 톱-1 정확도 84.3%을 이루는데, GPipe은 같은 84.3%에 5억 5700만 개가 든다. 차원을 균형 있게 스케일링하는 편이 한 차원만 극단적으로 키우는 것보다 훨씬 효율적이라는 뜻이다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-복합 스케일링 파라메터 $\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$과 $\phi = 2$이 주어졌을 때 키운 깊이, 너비, 결의 곱값을 계산하여라.
+복합 스케일링 파라메터 $\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$과 $\phi = 2$이 주어졌을 때 스케일링된 깊이, 너비, 해상도의 배율을 계산하여라.
 
 </div>
 
 ??? success "풀이"
-    깊이 곱값: $d = \alpha^\phi = 1.2^2 = 1.44$. 너비 곱값: $w = \beta^\phi = 1.1^2 = 1.21$. 결 곱값: $r = \gamma^\phi = 1.15^2 = 1.3225$. 따져 보면 $\alpha \cdot \beta^2 \cdot \gamma^2 = 1.2 \times 1.21 \times 1.3225 \approx 1.919 \approx 2$이다. 그러므로 $\phi = 2$이면 밑 모델에 비교하여 켜가 약 $1.44 \times$, 클래스가 $1.21 \times$ 너르고, 입력의 결이 $1.32 \times$ 크다.
+    깊이 배율: $d = \alpha^\phi = 1.2^2 = 1.44$. 너비 배율: $w = \beta^\phi = 1.1^2 = 1.21$. 해상도 배율: $r = \gamma^\phi = 1.15^2 = 1.3225$. 확인해 보면 $\alpha \cdot \beta^2 \cdot \gamma^2 = 1.2 \times 1.21 \times 1.3225 \approx 1.919 \approx 2$이다. 그러므로 $\phi = 2$이면 기본 모델에 비해 레이어가 약 $1.44 \times$, 채널이 $1.21 \times$ 많고, 입력 해상도가 $1.32 \times$ 크다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-MBConv 덩이가 마지막 되비춤에 또 다른 깊이별 컨볼루션이 아니라 $1 \times 1$ 컨볼루션을 쓰는 까닭은 무엇인가? 선형 목이 하는 몫을 밝혀라.
+MBConv 블록이 마지막 사영에 또 다른 깊이별 컨볼루션이 아니라 $1 \times 1$ 컨볼루션을 쓰는 까닭은 무엇인가? 선형 병목(linear bottleneck)의 역할을 설명하여라.
 
 </div>
 
 ??? success "풀이"
-    $1 \times 1$ 되비춤은 넓힌 리프리젠테이션을 곧지 않은 활성화 없이 더 낮은 차수로 눌러 담는 "선형 목" 노릇을 한다. 이는 일부러 그런 것이다. 넓힌 밭(클래스 6배)이 깊이별 컨볼루션으로 결끼리의 넉넉한 주고받음을 담고, 되비춤이 그 결을 곧게 아우른다. 여기에 곧지 않은 활성화를 더하면 MobileNetV2 글이 보인 대로 낮은 차수의 목에서 소식이 무너진다. 목 차수에서 깊이별 컨볼루션을 쓰면 이미 눌러 담긴 차수에서 클래스마다 따로 자리를 거를 뿐이라, $1 \times 1$ 컨볼루션이 주는 클래스끼리 섞기를 놓친다.
+    $1 \times 1$ 사영은 확장된 표현을 비선형 활성화 함수 없이 더 낮은 차원으로 압축하는 "선형 병목" 역할을 한다. 이는 의도된 설계다. 확장된 공간(채널 6배)이 깊이별 컨볼루션으로 피처 사이의 풍부한 상호작용을 담고, 사영이 그 피처를 선형으로 결합한다. 여기에 비선형 활성화 함수를 더하면 MobileNetV2 논문이 보인 대로 낮은 차원의 병목에서 정보가 손실된다. 병목 차원에서 깊이별 컨볼루션을 쓰면 이미 압축된 차원에서 채널마다 따로 공간 필터링을 할 뿐이라, $1 \times 1$ 컨볼루션이 주는 채널 간 혼합을 놓친다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-`MBConv` 덩이의 깊이별 컨볼루션과 마지막 $1 \times 1$ 되비춤 사이에 쥐어짜 북돋우기(SE) 묶음을 더하여라.
+`MBConv` 블록의 깊이별 컨볼루션과 마지막 $1 \times 1$ 사영 사이에 SE(Squeeze-and-Excitation) 모듈을 더하여라.
 
 </div>
 
@@ -169,12 +169,12 @@ MBConv 덩이가 마지막 되비춤에 또 다른 깊이별 컨볼루션이 아
                 out = out + x
             return out
     ```
-    SE 배치는 깊이별 컨볼루션 뒤, 되비춤 앞에 놓여 넓힌 클래스 차수에서 움직인다.
+    SE 모듈은 깊이별 컨볼루션 뒤, 사영 앞에 놓여 확장된 채널 차원에서 동작한다.
 
 ## 정리하며
 
 **다룬 것** — EfficientNet
 
-MBConv(손전화 뒤집힌 목 컨볼루션) 덩이가 EfficientNet의 기초 벽돌이다.
+MBConv(모바일 역 병목 컨볼루션) 블록이 EfficientNet의 기본 구성 요소다.
 
-핵심 클래스는 `MBConv`, `EfficientNet`, `MBConvSE`이며 앞의 연습문제 3개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `MBConv`, `EfficientNet`, `MBConvSE`이며 앞의 연습문제 3개로 스스로 확인해 볼 수 있다.

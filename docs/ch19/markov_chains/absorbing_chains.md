@@ -19,39 +19,39 @@
 
     학습 목표:
     - 흡수 상태와 흡수 사슬 이해하기
-    - 흡수 확률 셈하기
-    - 흡수까지의 기댓값 시간 셈하기
-    - 바탕 행렬 살피기
+    - 흡수 확률 계산하기
+    - 흡수까지의 기대 시간 계산하기
+    - 기본행렬 분석하기
 
-    수학적 바탕:
+    수학적 배경:
     흡수 상태는 한 번 들어가면 떠날 수 없는 상태이다.
-    P[i][i] = 1이면 상태 i은 흡수 상태이다.
+    P[i][i] = 1이면 상태 i는 흡수 상태이다.
 
     흡수 사슬은 다음을 갖는다:
     1. 흡수 상태가 적어도 하나 있다
-    2. 모든 상태에서 흡수 상태에 닿을 수 있다
+    2. 모든 상태에서 흡수 상태에 도달할 수 있다
 
     P의 정준 형태:
         ┌       ┐
     P = │ Q  R  │  여기서:
         │ 0  I  │
         └       ┘
-    - Q: 지나가는 상태 사이의 옮김
-    - R: 지나가는 상태에서 흡수 상태로의 옮김
+    - Q: 과도 상태 사이의 전이
+    - R: 과도 상태에서 흡수 상태로의 전이
     - I: 항등 행렬(흡수 상태)
     - 0: 영행렬(흡수 상태를 떠날 수 없다)
 
     핵심 양:
-    - 바탕 행렬: N = (I - Q)^{-1}
-    - N[i][j] = i에서 시작해 지나가는 상태 j에 들르는 기댓값 횟수
-    - 흡수까지의 기댓값 스텝 수: t = N × 1(1로 채운 열벡터)
+    - 기본행렬: N = (I - Q)^{-1}
+    - N[i][j] = i에서 시작해 과도 상태 j에 방문하는 기대 횟수
+    - 흡수까지의 기대 스텝 수: t = N × 1(1로 채운 열벡터)
     - 흡수 확률: B = N × R
     """
 
     import numpy as np
     import matplotlib.pyplot as plt
 
-    # 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+    # 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
     # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
     np.random.seed(0)
 
@@ -62,15 +62,15 @@
 
     class AbsorbingMarkovChain:
         """
-        흡수 마르코프 사슬을 살피는 도구.
+        흡수 마르코프 사슬을 분석하는 도구.
         """
 
         def __init__(self, transition_matrix, state_names=None):
             """
-            흡수 사슬 첫값 잡기.
+            흡수 사슬 초기화.
 
             파라메터:
-                transition_matrix (np.ndarray): 옮김 행렬
+                transition_matrix (np.ndarray): 전이 행렬
                 state_names (list): 상태 이름(없어도 된다)
             """
             self.P = np.array(transition_matrix, dtype=float)
@@ -81,17 +81,17 @@
             else:
                 self.state_names = state_names
 
-            # 흡수 상태와 지나가는 상태 가려내기
+            # 흡수 상태와 과도 상태 식별하기
             self._identify_states()
 
-            # 필요하면 차례 바꾸기
+            # 필요하면 순서 바꾸기
             self._reorder_canonical()
 
         def _identify_states(self):
             """
-            어느 상태가 흡수 상태인지 가려내기.
+            어느 상태가 흡수 상태인지 식별하기.
 
-            P[i][i] = 1이고 나머지 P[i][j] = 0이면 상태 i은 흡수 상태이다
+            P[i][i] = 1이고 나머지 P[i][j] = 0이면 상태 i는 흡수 상태이다
             """
             self.absorbing_indices = []
             self.transient_indices = []
@@ -107,40 +107,40 @@
 
         def _reorder_canonical(self):
             """
-            상태를 정준 형태로 다시 늘어놓기: 지나가는 상태 먼저, 그다음 흡수 상태.
+            상태를 정준 형태로 다시 정렬하기: 과도 상태 먼저, 그다음 흡수 상태.
 
-            Q, R 행렬을 만들고 바탕 행렬 N 셈하기.
+            Q, R 행렬을 만들고 기본행렬 N 계산하기.
             """
             if self.n_absorbing == 0:
                 raise ValueError("No absorbing states found")
 
-            # 상태 차례 바꾸기
+            # 상태 순서 바꾸기
             reordered_indices = self.transient_indices + self.absorbing_indices
 
-            # 옮김 행렬의 차례 바꾸기
+            # 전이 행렬의 순서 바꾸기
             P_canonical = self.P[np.ix_(reordered_indices, reordered_indices)]
 
-            # Q과 R 뽑아내기
+            # Q와 R 추출하기
             self.Q = P_canonical[:self.n_transient, :self.n_transient]
             self.R = P_canonical[:self.n_transient, self.n_transient:]
 
-            # 차례 바꾼 이름 저장
+            # 순서 바꾼 이름 저장
             self.transient_names = [self.state_names[i] for i in self.transient_indices]
             self.absorbing_names = [self.state_names[i] for i in self.absorbing_indices]
 
         def fundamental_matrix(self):
             """
-            바탕 행렬 N = (I - Q)^{-1} 셈하기.
+            기본행렬 N = (I - Q)^{-1} 계산하기.
 
             반환값:
-                np.ndarray: 바탕 행렬 N
+                np.ndarray: 기본행렬 N
 
-            수학으로 풀이하기:
-            N[i][j] = 지나가는 상태 j에 머무는 기댓값 횟수,
-                      지나가는 상태 i에서 시작해 흡수되기 전까지
+            수학적 설명:
+            N[i][j] = 과도 상태 j에 머무는 기대 횟수,
+                      과도 상태 i에서 시작해 흡수되기 전까지
 
-            이끌어 내기:
-            M[i][j] = E[i에서 시작해 j에 들르는 횟수]이라 하자
+            유도:
+            M[i][j] = E[i에서 시작해 j를 방문하는 횟수]라 하자
             M[i][j] = δ_{ij} + Σ_k P[i][k] × M[k][j]
             행렬로 쓰면: M = I + Q × M
             풀면: M = (I - Q)^{-1} = N
@@ -151,16 +151,16 @@
 
         def expected_steps_to_absorption(self):
             """
-            상태마다 흡수까지의 기댓값 스텝 수 셈하기.
+            상태마다 흡수까지의 기대 스텝 수 계산하기.
 
             반환값:
-                dict: 지나가는 상태마다의 기댓값 스텝 수
+                dict: 과도 상태마다의 기대 스텝 수
 
             수학 공식:
             t = N × 1(여기서 1은 1로 채운 열벡터)
 
             해석:
-            t[i] = 지나가는 상태 i에서 시작해 흡수까지의 기댓값 스텝 수
+            t[i] = 과도 상태 i에서 시작해 흡수까지의 기대 스텝 수
             """
             if not hasattr(self, 'N'):
                 self.fundamental_matrix()
@@ -169,7 +169,7 @@
             ones = np.ones((self.n_transient, 1))
             t = self.N @ ones
 
-            # 사전으로 돌려주기
+            # 딕셔너리로 반환하기
             result = {}
             for i, name in enumerate(self.transient_names):
                 result[name] = t[i, 0]
@@ -178,24 +178,24 @@
 
         def absorption_probabilities(self):
             """
-            흡수 상태마다 흡수될 확률 셈하기.
+            흡수 상태마다 흡수될 확률 계산하기.
 
             반환값:
-                dict: 지나가는 상태마다 흡수 상태별로 흡수될 확률
+                dict: 과도 상태마다 흡수 상태별로 흡수될 확률
 
             수학 공식:
             B = N × R
 
             해석:
-            B[i][j] = 흡수 상태 j으로 흡수될 확률,
-                      지나가는 상태 i에서 시작해
+            B[i][j] = 흡수 상태 j로 흡수될 확률,
+                      과도 상태 i에서 시작해
             """
             if not hasattr(self, 'N'):
                 self.fundamental_matrix()
 
             self.B = self.N @ self.R
 
-            # 겹친 사전으로 돌려주기
+            # 중첩 딕셔너리로 반환하기
             result = {}
             for i, trans_name in enumerate(self.transient_names):
                 result[trans_name] = {}
@@ -206,14 +206,14 @@
 
         def variance_steps_to_absorption(self):
             """
-            흡수까지 스텝 수의 흩어짐 셈하기.
+            흡수까지 스텝 수의 분산 계산하기.
 
             반환값:
-                dict: 지나가는 상태마다의 흩어짐
+                dict: 과도 상태마다의 분산
 
             수학 공식:
             Var[T_i] = (2N - I) × t - t²
-            여기서 t은 기댓값 스텝 수 벡터이다
+            여기서 t는 기대 스텝 수 벡터이다
             """
             if not hasattr(self, 'N'):
                 self.fundamental_matrix()
@@ -233,10 +233,10 @@
 
     def example_simple_gambler():
         """
-        보기 1: 노름꾼의 파산 문제.
+        보기 1: 도박꾼의 파산 문제.
 
-        노름꾼이 $2으로 시작한다. 판마다 $1을 따거나(p=0.5) $1을 잃는다(1-p=0.5).
-        $0(파산)이나 $4(목표)에 이르면 노름이 끝난다.
+        도박꾼이 $2로 시작한다. 게임마다 $1을 따거나(p=0.5) $1을 잃는다(1-p=0.5).
+        $0(파산)이나 $4(목표)에 이르면 게임이 끝난다.
         """
         print("=" * 70)
         print("Example 1: Gambler's Ruin")
@@ -244,16 +244,16 @@
 
         # 상태: $0, $1, $2, $3, $4
         # 흡수: $0(파산), $4(승리)
-        # 지나감: $1, $2, $3
+        # 과도: $1, $2, $3
 
         states = ['$0 (Broke)', '$1', '$2', '$3', '$4 (Win)']
 
-        # 옮김 행렬(공정한 노름이면 p = 0.5)
+        # 전이 행렬(공정한 게임이면 p = 0.5)
         P = np.array([
             [1.0, 0.0, 0.0, 0.0, 0.0],  # $0: 파산 그대로
-            [0.5, 0.0, 0.5, 0.0, 0.0],  # $1: $0이나 $2으로
+            [0.5, 0.0, 0.5, 0.0, 0.0],  # $1: $0이나 $2로
             [0.0, 0.5, 0.0, 0.5, 0.0],  # $2: $1이나 $3으로
-            [0.0, 0.0, 0.5, 0.0, 0.5],  # $3: $2이나 $4으로
+            [0.0, 0.0, 0.5, 0.0, 0.5],  # $3: $2나 $4로
             [0.0, 0.0, 0.0, 0.0, 1.0]   # $4: 승리 그대로
         ])
 
@@ -265,7 +265,7 @@
         print(f"\nAbsorbing states: {chain.absorbing_names}")
         print(f"Transient states: {chain.transient_names}")
 
-        # 바탕 행렬
+        # 기본행렬
         print("\n" + "-" * 70)
         print("Fundamental Matrix N (expected visits):")
         N = chain.fundamental_matrix()
@@ -274,7 +274,7 @@
             row = " ".join(f"{N[i,j]:8.4f}" for j in range(len(chain.transient_names)))
             print(f"{name:8s} {row}")
 
-        # 흡수까지의 기댓값 스텝 수
+        # 흡수까지의 기대 스텝 수
         print("\n" + "-" * 70)
         print("Expected Steps to Absorption:")
         expected_steps = chain.expected_steps_to_absorption()
@@ -291,7 +291,7 @@
                 prob = absorption_probs[trans_state][abs_state]
                 print(f"    P(absorb at {abs_state}) = {prob:.6f}")
 
-        # 흩어짐
+        # 분산
         print("\n" + "-" * 70)
         print("Variance of Steps to Absorption:")
         variances = chain.variance_steps_to_absorption()
@@ -301,10 +301,10 @@
 
     def example_disease_model():
         """
-        보기 2: 병의 진행 모형.
+        보기 2: 질병 진행 모형.
 
-        상태: 건강, 감염, 회복, 죽음
-        흡수: 회복, 죽음
+        상태: 건강, 감염, 회복, 사망
+        흡수: 회복, 사망
         """
         print("\n" + "=" * 70)
         print("Example 2: Disease Progression Model")
@@ -313,10 +313,10 @@
         states = ['Healthy', 'Infected', 'Recovered', 'Dead']
 
         P = np.array([
-            [0.7, 0.3, 0.0, 0.0],    # 건강: 옮을 수 있음
-            [0.0, 0.4, 0.5, 0.1],    # 감염: 낫거나, 앓은 채이거나, 죽음
+            [0.7, 0.3, 0.0, 0.0],    # 건강: 감염될 수 있음
+            [0.0, 0.4, 0.5, 0.1],    # 감염: 회복하거나, 감염 상태로 남거나, 사망
             [0.0, 0.0, 1.0, 0.0],    # 회복: 흡수
-            [0.0, 0.0, 0.0, 1.0]     # 죽음: 흡수
+            [0.0, 0.0, 0.0, 1.0]     # 사망: 흡수
         ])
 
         print("\nTransition Matrix:")
@@ -330,7 +330,7 @@
         print(f"\nAbsorbing states: {chain.absorbing_names}")
         print(f"Transient states: {chain.transient_names}")
 
-        # 흡수까지의 기댓값 시간
+        # 흡수까지의 기대 시간
         expected_steps = chain.expected_steps_to_absorption()
         print("\nExpected time until recovery or death:")
         for state, steps in expected_steps.items():
@@ -348,13 +348,13 @@
 
     def visualize_absorption():
         """
-        흉내내기로 흡수 과정 그려 보기.
+        시뮬레이션으로 흡수 과정 시각화하기.
         """
         print("\n" + "=" * 70)
         print("Creating Absorption Visualization")
         print("=" * 70)
 
-        # 노름꾼의 파산
+        # 도박꾼의 파산
         states_idx = {'$0': 0, '$1': 1, '$2': 2, '$3': 3, '$4': 4}
         P = np.array([
             [1.0, 0.0, 0.0, 0.0, 0.0],
@@ -364,7 +364,7 @@
             [0.0, 0.0, 0.0, 0.0, 1.0]
         ])
 
-        # 여러 경로 흉내내기
+        # 여러 경로 시뮬레이션
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
         # 그림 1: 표본 경로
@@ -454,7 +454,7 @@
                    f'{val:.4f}',
                    ha='center', va='bottom', fontsize=11, fontweight='bold')
 
-        # 그림 4: 바탕 행렬 그림
+        # 그림 4: 기본행렬 그림
         ax = axes[1, 1]
 
         chain = AbsorbingMarkovChain(P, ['$0', '$1', '$2', '$3', '$4'])
@@ -484,7 +484,7 @@
 
     def main():
         """
-        보기 모두 돌리기.
+        보기 모두 실행하기.
         """
         print("ABSORBING MARKOV CHAINS")
         print("=======================\n")
@@ -656,7 +656,7 @@ $$\operatorname{Var}(T)=(2N-I)t-t\odot t$$
 
 ??? success "풀이"
 
-    아니다. 흡수 상태로 나갈 수 없는 비흡수 닫힌 클래스가 있으면 그 블록은 사라지지 않고 Q의 고유값 1이 생겨 I−Q가 특이해진다. 유한 흡수 사슬의 공식을 쓰려면 모든 비흡수 상태가 흡수 상태에 도달 가능해야 한다.
+    아니다. 흡수 상태로 나갈 수 없는 비흡수 닫힌 클래스가 있으면 그 블록은 사라지지 않고 Q의 고윳값 1이 생겨 I−Q가 특이해진다. 유한 흡수 사슬의 공식을 쓰려면 모든 비흡수 상태가 흡수 상태에 도달 가능해야 한다.
 
 
 
@@ -695,10 +695,10 @@ $$\operatorname{Var}(T)=(2N-I)t-t\odot t$$
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

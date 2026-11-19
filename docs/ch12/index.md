@@ -17,7 +17,7 @@ Q·K·V의 투영, 마스크, 위치 표현과 정규화가 어떻게 연결되�
 - [셀프 어텐션](transformer_architecture/self_attention.md) — `heads` 인수를 받지만 **실제 헤드 분할은 없다**
 - [멀티헤드 어텐션](transformer_architecture/multihead_attention.md) — 쪼개고 이어 붙인다. 셀프·크로스 둘 다에 쓴다
 - [마스크 셀프 어텐션](transformer_architecture/masked_attention.md) — 인과 마스크와 패딩 마스크
-- [트랜스포머의 LayerNorm](transformer_architecture/layer_norm.md) — 잔차 앞에 두느냐 뒤에 두느냐로 **경사 경로가 달라진다**
+- [트랜스포머의 LayerNorm](transformer_architecture/layer_norm.md) — 잔차 앞에 두느냐 뒤에 두느냐로 **그래디언트 경로가 달라진다**
 
 **위치를 알려 주기**
 
@@ -32,7 +32,7 @@ Q·K·V의 투영, 마스크, 위치 표현과 정규화가 어떻게 연결되�
 
 **돌려 보기**
 
-- [시연](transformer_architecture/demo.md) — 무작위 입력의 출력 모양만 본다
+- [시연](transformer_architecture/demo.md) — 무작위 입력의 출력 형태만 본다
 
 ## 2. 사전 학습 모델
 
@@ -94,7 +94,7 @@ BERT, GPT와 T5는 공통 구성 요소를 사용하지만 접근 가능한 문�
 **부품**
 
 - [패치 임베딩](transformers_vision/patch_embedding.md) — `Conv2d` 하나 뒤에 공간 축을 편다
-- [이미지을 위한 위치 임베딩](transformers_vision/position_embeddings.md) — 없으면 패치 **순열 동변**이다
+- [이미지를 위한 위치 임베딩](transformers_vision/position_embeddings.md) — 없으면 패치 **순열 동변**이다
 
 **모델로 조립하기**
 
@@ -106,7 +106,7 @@ BERT, GPT와 T5는 공통 구성 요소를 사용하지만 접근 가능한 문�
 
 **학습시키기**
 
-- [이미지 분류 학습](transformers_vision/train_image_classification.md) — 이름은 `train_vit` 이지만 **순전파 모양만 확인한다**
+- [이미지 분류 학습](transformers_vision/train_image_classification.md) — 이름은 `train_vit` 이지만 **순전파의 출력 형태만 확인한다**
 - [비전 트랜스포머 학습](transformers_vision/train_vit.md) — CIFAR-10 에 실제로 학습한다
 
 **들여다보기**

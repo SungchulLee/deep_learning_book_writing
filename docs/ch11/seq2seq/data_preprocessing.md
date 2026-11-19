@@ -23,7 +23,7 @@ import unicodedata
 
 class Tokenizer:
     """
-    텍스트 전처리를 위한 간단한 토큰 나누개
+    텍스트 전처리를 위한 간단한 토크나이저
     """
     
     def __init__(self, lower=True, remove_punct=False):
@@ -58,7 +58,7 @@ class Tokenizer:
 
 class Vocabulary:
     """
-    토큰과 색인의 대응을 관리하는 어휘 클래스
+    토큰과 인덱스의 대응을 관리하는 어휘 클래스
     
     인수:
         max_size: 어휘의 최대 크기 (None이면 제한 없음)
@@ -72,7 +72,7 @@ class Vocabulary:
         self.min_freq = min_freq
         self.special_tokens = special_tokens
         
-        # 토큰을 색인으로 잇기
+        # 토큰을 인덱스로 잇기
         self.token2idx = {}
         self.idx2token = {}
         
@@ -92,7 +92,7 @@ class Vocabulary:
         
         인수:
             texts: 텍스트 문자열의 목록 또는 토큰 목록의 목록
-            tokenizer: 토큰 나누개 함수 (선택)
+            tokenizer: 토크나이저 함수 (선택)
         """
         # 토큰의 빈도 세기
         counter = Counter()
@@ -125,13 +125,13 @@ class Vocabulary:
                 self.idx2token[idx] = token
     
     def encode(self, tokens):
-        """토큰을 색인으로 바꾼다"""
+        """토큰을 인덱스로 바꾼다"""
         if isinstance(tokens, str):
             tokens = tokens.split()
         return [self.token2idx.get(token, self.unk_idx) for token in tokens]
     
     def decode(self, indices, skip_special=True):
-        """색인을 토큰으로 바꾼다"""
+        """인덱스를 토큰으로 바꾼다"""
         tokens = []
         for idx in indices:
             if skip_special and idx in [self.pad_idx, self.sos_idx, self.eos_idx]:
@@ -174,16 +174,16 @@ class Vocabulary:
 
 class ParallelDataset:
     """
-    순차열 대 순차열 과제를 위한 병렬 데이터셋
+    시퀀스-투-시퀀스 과제를 위한 병렬 데이터셋
     
     인수:
         src_texts: 원본 텍스트의 목록
-        trg_texts: 표적 텍스트의 목록
+        trg_texts: 타깃 텍스트의 목록
         src_vocab: 원본 어휘
-        trg_vocab: 표적 어휘
-        src_tokenizer: 원본 토큰 나누개
-        trg_tokenizer: 표적 토큰 나누개
-        max_len: 순차열의 최대 길이
+        trg_vocab: 타깃 어휘
+        src_tokenizer: 원본 토크나이저
+        trg_tokenizer: 타깃 토크나이저
+        max_len: 시퀀스의 최대 길이
     """
     
     def __init__(self, src_texts, trg_texts, src_vocab, trg_vocab,
@@ -197,7 +197,7 @@ class ParallelDataset:
         self.max_len = max_len
     
     def process_pair(self, src_text, trg_text):
-        """원본-표적 쌍을 처리한다"""
+        """원본-타깃 쌍을 처리한다"""
         # 토큰으로 나누기
         src_tokens = self.src_tokenizer.tokenize(src_text)
         trg_tokens = self.trg_tokenizer.tokenize(trg_text)
@@ -207,7 +207,7 @@ class ParallelDataset:
             src_tokens = src_tokens[:self.max_len]
             trg_tokens = trg_tokens[:self.max_len]
         
-        # 부호화
+        # 인코딩
         src_indices = self.src_vocab.encode(src_tokens)
         trg_indices = [self.trg_vocab.sos_idx] + self.trg_vocab.encode(trg_tokens) + [self.trg_vocab.eos_idx]
         
@@ -226,12 +226,12 @@ def load_parallel_data(src_path, trg_path, max_samples=None):
     
     인수:
         src_path: 원본 파일의 경로
-        trg_path: 표적 파일의 경로
+        trg_path: 타깃 파일의 경로
         max_samples: 불러올 표본의 최대 수
         
     반환값:
         src_texts: 원본 텍스트의 목록
-        trg_texts: 표적 텍스트의 목록
+        trg_texts: 타깃 텍스트의 목록
     """
     with open(src_path, 'r', encoding='utf-8') as f:
         src_texts = [line.strip() for line in f]
@@ -282,7 +282,7 @@ def split_data(data, train_ratio=0.8, val_ratio=0.1):
         train_data, val_data, test_data: 나뉜 데이터셋
     """
     if isinstance(data, tuple):
-        # 여러 데이터셋 (원본과 표적 따위)
+        # 여러 데이터셋 (원본과 타깃 따위)
         total_len = len(data[0])
         train_len = int(total_len * train_ratio)
         val_len = int(total_len * val_ratio)
@@ -325,7 +325,7 @@ if __name__ == "__main__":
         "Enchanté de vous rencontrer!"
     ]
     
-    # 토큰 나누개 만들기
+    # 토크나이저 만들기
     tokenizer = Tokenizer(lower=True, remove_punct=False)
     
     # 어휘 만들기
@@ -339,7 +339,7 @@ if __name__ == "__main__":
     print(f"Source vocabulary size: {len(src_vocab)}")
     print(f"Target vocabulary size: {len(trg_vocab)}")
     
-    # 부호화와 복호 시험
+    # 인코딩과 디코딩 시험
     print("\nTesting encoding/decoding...")
     test_text = "Hello, how are you?"
     tokens = tokenizer.tokenize(test_text)
@@ -419,7 +419,7 @@ Loaded target vocabulary size: 25
 
 Tokenizer는 기본적으로 소문자로 바꾸고 일부 구두점 앞뒤에 공백을 넣는다. 구두점 제거 설정은 문장 부호를 삭제하므로 원문을 완전히 복원할 수 없다. Vocabulary.build_vocab에는 호출 가능한 토큰화 함수를 넘겨야 하며 Tokenizer 객체 자체는 __call__이 없어 직접 전달할 수 없다.
 
-Vocabulary는 특수 토큰을 먼저 등록하고 빈도 내림차순으로 단어를 추가한다. 동률은 입력에서 관측된 순서에 영향을 받는다. max_size는 특수 토큰을 포함한 한도이므로 그보다 작게 설정하면 음수 슬라이싱이 생길 수 있다. 입력 검증이 필요하며 사전은 학습 데이터로 만든 뒤 검증·테스트에 고정한다.
+Vocabulary는 특수 토큰을 먼저 등록하고 빈도 내림차순으로 단어를 추가한다. 동률은 입력에서 관측된 순서에 영향을 받는다. max_size는 특수 토큰을 포함한 한도이므로 그보다 작게 설정하면 음수 슬라이싱이 생길 수 있다. 입력 검증이 필요하며 사전은 학습 데이터로 만든 뒤 검증·시험에 고정한다.
 
 ParallelDataset은 원문에는 특수 경계 토큰을 붙이지 않고, 타깃에는 SOS와 EOS를 추가한다. max_len은 특수 토큰을 추가하기 전의 단어 수 제한이라 타깃의 최종 길이는 최대 max_len+2다. 빈 원문은 길이 0이 되어 패킹에 부적합할 수 있다. 데이터셋 생성자 자체는 원문·타깃 목록 길이를 검사하지 않는다.
 
@@ -456,7 +456,7 @@ max_len=10일 때 원문·타깃의 최대 길이와 배치 구성에서 확인�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-언어 정보가 전처리에서 로스될 수 있는 경우와 학습·추론 불일치를 설명하라.
+언어 정보가 전처리에서 손실될 수 있는 경우와 학습·추론 불일치를 설명하라.
 
 </div>
 
@@ -468,7 +468,7 @@ max_len=10일 때 원문·타깃의 최대 길이와 배치 구성에서 확인�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 모양 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
+아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 형태 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
 
 </div>
 
@@ -481,16 +481,16 @@ max_len=10일 때 원문·타깃의 최대 길이와 배치 구성에서 확인�
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 형태, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

@@ -1,30 +1,30 @@
 # MAML: 모델에 독립적인 메타 학습
 
-MAML은 서포트 데이터로 몇 번 갱신한 뒤의 쿼리 성능이 좋아지도록 초기 웨이트를 학습한다. Finn 등(2017)이 제안한 방법으로, 특정한 네트워크 구조를 요구하지 않지만 내부 로스를 경사로 최적화할 수 있어야 한다. 과제별 최적점에 단순히 가까운 초기화보다, 적은 갱신으로 적응하기 좋은 초기화를 찾는다는 점이 핵심이다.
+MAML은 서포트 데이터로 몇 번 갱신한 뒤의 쿼리 성능이 좋아지도록 초기 웨이트를 학습한다. Finn 등(2017)이 제안한 방법으로, 특정한 네트워크 구조를 요구하지 않지만 내부 로스를 그래디언트로 최적화할 수 있어야 한다. 과제별 최적점에 단순히 가까운 초기화보다, 적은 갱신으로 적응하기 좋은 초기화를 찾는다는 점이 핵심이다.
 
 ## 1. MAML 알고리즘
 
 ### 문제 정식화
 
-과제 분포에서 여러 과제를 추출하고, 각 과제를 서포트와 쿼리로 나눈다. 서포트 로스는 내부 적응에, 쿼리 로스는 초기 웨이트의 외부 갱신에 쓴다. 최종 메타 테스트의 쿼리 정답은 학습에 사용하지 않는다.
+과제 분포에서 여러 과제를 추출하고, 각 과제를 서포트와 쿼리로 나눈다. 서포트 로스는 내부 적응에, 쿼리 로스는 초기 웨이트의 외부 갱신에 쓴다. 최종 메타 시험의 쿼리 정답은 학습에 사용하지 않는다.
 
 ### 이중 수준 최적화
 
-MAML은 최적화 루프 두 겹을 쓴다.
+MAML은 최적화 루프 두 개를 중첩해 쓴다.
 
-**내부 루프(과제 맞춤)**:
-서포트 집합이 $\mathcal{D}_i^{\text{train}}$인 과제 $\mathcal{T}_i$이 주어지면 파라메터를 맞춘다.
+**내부 루프(과제 적응)**:
+서포트 집합이 $\mathcal{D}_i^{\text{train}}$인 과제 $\mathcal{T}_i$이 주어지면 파라메터를 적응시킨다.
 
 $$\theta'_i = \theta - \alpha \nabla_\theta \mathcal{L}_{\mathcal{T}_i}(\theta; \mathcal{D}_i^{\text{train}})$$
 
 **외부 루프(메타 갱신)**:
-맞춘 파라메터가 쿼리 집합에서 낸 성능으로 초기화를 고친다.
+적응된 파라메터가 쿼리 집합에서 낸 성능으로 초기화를 갱신한다.
 
 $$\theta \leftarrow \theta - \beta \nabla_\theta \sum_{\mathcal{T}_i \sim p(\mathcal{T})} \mathcal{L}_{\mathcal{T}_i}(\theta'_i; \mathcal{D}_i^{\text{test}})$$
 
 ### 메타 그래디언트
 
-적응 후 쿼리 로스를 적응 전 웨이트에 대해 미분한다. 아래 두 식에서는 같은 과제 로스 기호를 사용하지만 내부 경사는 서포트에서, 외부 로스는 쿼리에서 계산한다.
+적응 후 쿼리 로스를 적응 전 웨이트에 대해 미분한다. 아래 두 식에서는 같은 과제 로스 기호를 사용하지만 내부 그래디언트는 서포트에서, 외부 로스는 쿼리에서 계산한다.
 
 $$\nabla_\theta \mathcal{L}_{\mathcal{T}_i}(\theta'_i) = \nabla_\theta \mathcal{L}_{\mathcal{T}_i}(\theta - \alpha \nabla_\theta \mathcal{L}_{\mathcal{T}_i}(\theta))$$
 
@@ -44,24 +44,24 @@ $$\frac{\partial \theta'_i}{\partial \theta} = I - \alpha \nabla^2_\theta \mathc
 
 ### 그래디언트 계산
 
-안쪽 스텝이 하나일 때 메타 그래디언트는 다음과 같다.
+내부 스텝이 하나일 때 메타 그래디언트는 다음과 같다.
 
 $$\nabla_\theta L_{Q_i}(\theta'_i)=(I-\alpha H_{S_i})^\top\nabla_{\theta'_i}L_{Q_i}(\theta'_i)$$
 
-여기서 H_S는 적응 전 웨이트에서 계산한 서포트 로스의 헤시안이다. 열벡터 경사 규약에 맞춰 야코비안의 전치를 곱한다. 여러 내부 단계에서는 각 갱신의 야코비안을 연쇄적으로 통과한다.
+여기서 H_S는 적응 전 웨이트에서 계산한 서포트 로스의 헤시안이다. 열벡터 그래디언트 규약에 맞춰 야코비안의 전치를 곱한다. 여러 내부 단계에서는 각 갱신의 야코비안을 연쇄적으로 통과한다.
 
-안쪽 스텝이 여럿이면 계산이 더 복잡해지지만, 맞춤 자취를 거슬러 되돌려 퍼뜨린다는 같은 원리를 따른다.
+내부 스텝이 여럿이면 계산이 더 복잡해지지만, 적응 경로를 거슬러 역전파한다는 같은 원리를 따른다.
 
 ### 1차 근사 FOMAML
 
-FOMAML은 내부 경사의 웨이트 의존성을 생략하고 적응 후 쿼리 경사를 초기 웨이트에 전달한다. 아래의 근사는 내부 갱신의 야코비안을 단위행렬로 보는 것이다.
+FOMAML은 내부 그래디언트의 웨이트 의존성을 생략하고 적응 후 쿼리 그래디언트를 초기 웨이트에 전달한다. 아래의 근사는 내부 갱신의 야코비안을 단위행렬로 보는 것이다.
 
 $$\nabla_\theta \mathcal{L}(\theta'_i) \approx \nabla_{\theta'_i} \mathcal{L}(\theta'_i)$$
 
-이 어림은 $\frac{\partial \theta'_i}{\partial \theta} \approx I$을 놓는데, 다음일 때 그럴듯하다.
+이 근사는 $\frac{\partial \theta'_i}{\partial \theta} \approx I$을 가정하는데, 다음 조건에서 타당하다.
 
 - $\alpha$이 작다
-- 로스 지형이 그 언저리에서 평평하다(헤시안 행렬이 작다)
+- 로스 지형이 그 근방에서 평평하다(헤시안 행렬이 작다)
 
 근사의 오차는 내부 러닝레이트와 곡률, 적응 경로에 따라 달라진다. 여러 단계를 누적하면 각 단계의 작은 차이가 커질 수 있으므로 FOMAML과 MAML의 성능 차이는 실제 검증 과제에서 비교한다.
 
@@ -71,7 +71,7 @@ Reptile(Nichol 외, 2018)은 또 다른 일차 변형이다.
 
 $$\theta \leftarrow \theta + \epsilon \cdot \frac{1}{n} \sum_{i=1}^n (\theta'_i - \theta)$$
 
-이는 과제들에 걸쳐 평균 내면서 맞춘 파라메터 쪽으로 움직이는 것으로 풀이할 수 있다.
+이는 과제들에 걸쳐 평균 내면서 적응된 파라메터 쪽으로 이동하는 것으로 해석할 수 있다.
 
 ---
 
@@ -79,7 +79,7 @@ $$\theta \leftarrow \theta + \epsilon \cdot \frac{1}{n} \sum_{i=1}^n (\theta'_i 
 
 ### MAML 기본 구현
 
-inner_loop는 원래 파라메터의 clone에서 시작한다. clone은 미분 연결을 유지하며, create_graph 설정으로 2차 항의 포함 여부를 정한다. 모델은 외부 파라메터 사전을 실제 forward 연산에 사용해야 한다. ConvMAMLModel은 평가 모드에서도 배치 통계를 직접 계산하므로 쿼리 배치 구성에 결과가 의존할 수 있다.
+inner_loop는 원래 파라메터의 clone에서 시작한다. clone은 미분 연결을 유지하며, create_graph 설정으로 2차 항의 포함 여부를 정한다. 모델은 외부 파라메터 딕셔너리를 실제 forward 연산에 사용해야 한다. ConvMAMLModel은 평가 모드에서도 배치 통계를 직접 계산하므로 쿼리 배치 구성에 결과가 의존할 수 있다.
 
 ```python
 import torch
@@ -91,10 +91,10 @@ import copy
 
 class MAMLModel(nn.Module):
     """
-    함수형 피드포워드를 갖춘 MAML의 바탕 모델 클래스.
+    함수형 순전파를 갖춘 MAML의 기본 모델 클래스.
     
-    파라메터를 드러내어 넘길 수 있게 하여 안쪽 회귀 맞춤을 꿰뚫는
-    그래디언트 셈이 되게 한다.
+    파라메터를 명시적으로 넘길 수 있게 하여 내부 루프 적응을 통과하는
+    그래디언트 계산이 가능하게 한다.
     """
     
     def __init__(self, input_dim: int, hidden_dim: int, output_dim: int):
@@ -110,12 +110,12 @@ class MAMLModel(nn.Module):
         params: Optional[Dict[str, torch.Tensor]] = None
     ) -> torch.Tensor:
         """
-        파라메터를 갈아 끼울 수 있는 피드포워드.
+        파라메터를 교체할 수 있는 순전파.
         
         인수:
             x: 입력 텐서
-            params: self.parameters() 대신 쓸 파라메터 사전
-                   열쇠는 state_dict의 열쇠와 맞아야 한다
+            params: self.parameters() 대신 쓸 파라메터 딕셔너리
+                   키는 state_dict의 키와 맞아야 한다
         """
         if params is None:
             x = F.relu(self.fc1(x))
@@ -128,12 +128,12 @@ class MAMLModel(nn.Module):
         return x
     
     def get_params(self) -> Dict[str, torch.Tensor]:
-        """파라메터를 사전으로 되돌린다."""
+        """파라메터를 딕셔너리로 반환한다."""
         return OrderedDict(self.named_parameters())
 
 class ConvMAMLModel(nn.Module):
     """
-    그림 분류를 위한 컨볼루션 MAML 모델.
+    이미지 분류를 위한 컨볼루션 MAML 모델.
     """
     
     def __init__(
@@ -164,7 +164,7 @@ class ConvMAMLModel(nn.Module):
         x: torch.Tensor, 
         params: Optional[Dict[str, torch.Tensor]] = None
     ) -> torch.Tensor:
-        """함수형 피드포워드."""
+        """함수형 순전파."""
         if params is None:
             params = dict(self.named_parameters())
         
@@ -192,7 +192,7 @@ class ConvMAMLModel(nn.Module):
         x = F.relu(x)
         x = F.max_pool2d(x, 2)
         
-        # 전역 평균 풀링과 가려내개
+        # 전역 평균 풀링과 분류기
         x = F.adaptive_avg_pool2d(x, 1)
         x = x.view(x.size(0), -1)
         x = F.linear(x, params['fc.weight'], params['fc.bias'])
@@ -201,9 +201,9 @@ class ConvMAMLModel(nn.Module):
 
 class MAML:
     """
-    모델 가리지 않는 메타 학습 알고리즘.
+    모델에 독립적인 메타 학습(MAML) 알고리즘.
     
-    새 과제에 재빨리 맞추어 갈 수 있게 하는 초기화를 배운다.
+    새 과제에 빠르게 적응할 수 있는 초기화를 학습한다.
     """
     
     def __init__(
@@ -217,9 +217,9 @@ class MAML:
         """
         인수:
             model: 메타 학습할 모델
-            inner_lr: 안쪽 회귀(과제 맞춤)의 러닝레이트
-            meta_lr: 바깥 회귀(메타 갱신)의 러닝레이트
-            inner_steps: 안쪽 회귀의 그래디언트 스텝 수
+            inner_lr: 내부 루프(과제 적응)의 러닝레이트
+            meta_lr: 외부 루프(메타 갱신)의 러닝레이트
+            inner_steps: 내부 루프의 그래디언트 스텝 수
             first_order: True이면 FOMAML을 쓴다(이차 항을 무시한다)
         """
         self.model = model
@@ -240,17 +240,17 @@ class MAML:
         params: Dict[str, torch.Tensor]
     ) -> Dict[str, torch.Tensor]:
         """
-        서포트 집합에 대해 안쪽 회귀 맞춤을 한다.
+        서포트 집합에 대해 내부 루프 적응을 수행한다.
         
         인수:
-            support_x: 받침 입력
-            support_y: 받침 이름표
-            params: 처음 파라메터(맞추어질 것이다)
+            support_x: 서포트 입력
+            support_y: 서포트 라벨
+            params: 초기 파라메터(적응 대상)
         
         반환값:
-            adapted_params: 맞춘 뒤의 파라메터
+            adapted_params: 적응된 파라메터
         """
-        # 맞춤을 위해 파라메터를 복제한다
+        # 적응을 위해 파라메터를 복제한다
         adapted_params = OrderedDict(
             (name, param.clone()) for name, param in params.items()
         )
@@ -260,7 +260,7 @@ class MAML:
             logits = self.model(support_x, adapted_params)
             loss = F.cross_entropy(logits, support_y)
             
-            # 경사를 계산한다
+            # 그래디언트를 계산한다
             grads = torch.autograd.grad(
                 loss,
                 adapted_params.values(),
@@ -281,25 +281,25 @@ class MAML:
         tasks: List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]]
     ) -> Tuple[float, float]:
         """
-        과제 배치에 대해 메타 학습 스텝을 한 번 밟는다.
+        과제 배치에 대해 메타 학습 스텝을 한 번 수행한다.
         
         인수:
-            tasks: (support_x, support_y, query_x, query_y) 짝의 목록
+            tasks: (support_x, support_y, query_x, query_y) 튜플의 리스트
         
         반환값:
-            meta_loss: 과제에 걸친 평균 물음 로스
-            meta_accuracy: 과제에 걸친 평균 물음 정확도
+            meta_loss: 과제에 걸친 평균 쿼리 로스
+            meta_accuracy: 과제에 걸친 평균 쿼리 정확도
         """
         self.meta_optimizer.zero_grad()
         
         meta_loss = 0.0
         meta_accuracy = 0.0
         
-        # 처음 파라메터를 얻는다
+        # 초기 파라메터를 얻는다
         init_params = OrderedDict(self.model.named_parameters())
         
         for support_x, support_y, query_x, query_y in tasks:
-            # 안쪽 회귀: 과제에 맞춘다
+            # 내부 루프: 과제에 적응한다
             adapted_params = self.inner_loop(support_x, support_y, init_params)
             
             # 쿼리 집합에서 평가한다
@@ -333,12 +333,12 @@ class MAML:
         inner_steps: Optional[int] = None
     ) -> Tuple[float, float]:
         """
-        새 과제에 맞추고 평가한다.
+        새 과제에 적응하고 평가한다.
         
         인수:
-            support_x, support_y: 맞춤에 쓸 서포트 집합
+            support_x, support_y: 적응에 쓸 서포트 집합
             query_x, query_y: 평가에 쓸 쿼리 집합
-            inner_steps: 맞춤 스텝 수를 갈아 끼운다
+            inner_steps: 적응 스텝 수를 덮어쓴다
         
         반환값:
             쿼리 집합에서의 로스와 정확도
@@ -350,13 +350,13 @@ class MAML:
         self.model.eval()
         
         with torch.no_grad():
-            # 처음 파라메터를 얻는다
+            # 초기 파라메터를 얻는다
             init_params = OrderedDict(
                 (name, param.clone()) 
                 for name, param in self.model.named_parameters()
             )
         
-        # 맞춘다(안쪽 회귀에만 그래디언트를 쓴다)
+        # 적응한다(내부 루프에만 그래디언트를 쓴다)
         adapted_params = OrderedDict(
             (name, param.requires_grad_(True))
             for name, param in init_params.items()
@@ -404,7 +404,7 @@ class Reptile:
     """
     Reptile 메타 학습 알고리즘.
     
-    MAML보다 단순하다. 그저 맞춘 파라메터 쪽으로 움직인다.
+    MAML보다 단순하다. 단순히 적응된 파라메터 쪽으로 이동한다.
     """
     
     def __init__(
@@ -425,8 +425,8 @@ class Reptile:
         support_y: torch.Tensor
     ) -> Dict[str, torch.Tensor]:
         """
-        서포트 집합에서 모델 파라메터를 맞춘다.
-        계산 그래프 없이 맞춘 파라메터를 되돌린다.
+        서포트 집합에서 모델 파라메터를 적응시킨다.
+        계산 그래프 없이 적응된 파라메터를 반환한다.
         """
         # 과제별 학습을 위해 모델을 복제한다
         task_model = copy.deepcopy(self.model)
@@ -447,26 +447,26 @@ class Reptile:
         tasks: List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]]
     ) -> Tuple[float, float]:
         """
-        Reptile 메타 갱신: 맞춘 파라메터 쪽으로 움직인다.
+        Reptile 메타 갱신: 적응된 파라메터 쪽으로 이동한다.
         """
-        # 처음 파라메터를 담아 둔다
+        # 초기 파라메터를 보관한다
         init_params = OrderedDict(
             (name, param.clone())
             for name, param in self.model.named_parameters()
         )
         
-        # 모든 과제에서 맞춘 파라메터를 모은다
+        # 모든 과제에서 적응된 파라메터를 모은다
         adapted_params_list = []
         meta_accuracy = 0.0
         
         for support_x, support_y, query_x, query_y in tasks:
-            # 과제에 맞춘다
+            # 과제에 적응한다
             adapted_params = self.inner_loop(support_x, support_y)
             adapted_params_list.append(adapted_params)
             
             # 평가한다(기록용)
             with torch.no_grad():
-                # 맞춘 파라메터로 임시 모델을 만든다
+                # 적응된 파라메터로 임시 모델을 만든다
                 for name, param in self.model.named_parameters():
                     param.data.copy_(adapted_params[name])
                 
@@ -477,10 +477,10 @@ class Reptile:
         
         meta_accuracy /= len(tasks)
         
-        # Reptile 갱신: 맞춘 파라메터의 평균 쪽으로 움직인다
+        # Reptile 갱신: 적응된 파라메터의 평균 쪽으로 이동한다
         with torch.no_grad():
             for name, param in self.model.named_parameters():
-                # 맞춘 파라메터의 평균
+                # 적응된 파라메터의 평균
                 avg_adapted = torch.stack([
                     adapted[name] for adapted in adapted_params_list
                 ]).mean(dim=0)
@@ -488,7 +488,7 @@ class Reptile:
                 # 갱신: θ ← θ + ε(θ' - θ)
                 param.data.add_(self.meta_lr * (avg_adapted - init_params[name]))
         
-        return 0.0, meta_accuracy  # Reptile은 메타 로스를 셈하지 않는다
+        return 0.0, meta_accuracy  # Reptile은 메타 로스를 계산하지 않는다
 ```
 
 ---
@@ -512,7 +512,7 @@ def train_maml(
     device: str = 'cuda'
 ):
     """
-    온전한 MAML 학습 회귀.
+    전체 MAML 학습 루프.
     """
     maml.model.to(device)
     
@@ -539,14 +539,14 @@ def train_maml(
     return maml
 ```
 
-### 하이퍼파라미터 설정
+### 하이퍼파라메터 설정
 
 | 설정 | 역할 | 선택 기준 |
 |---|---|---|
 | 내부 러닝레이트 | 서포트 적응의 갱신 크기 | 곡률과 적응 단계 수에 맞춰 검증 |
 | 메타 러닝레이트 | 초기 웨이트의 외부 갱신 크기 | 독립적인 검증 과제에서 선택 |
-| 내부 단계 수 | 과제별 적응 예산 | 학습·테스트 조건을 함께 기록 |
-| 메타 배치 크기 | 외부 갱신당 과제 수 | 메모리와 경사 변동을 고려 |
+| 내부 단계 수 | 과제별 적응 예산 | 학습·시험 조건을 함께 기록 |
+| 메타 배치 크기 | 외부 갱신당 과제 수 | 메모리와 그래디언트 변동을 고려 |
 | 외부 반복 수 | 메타 학습 예산 | 검증 성능으로 종료 시점 선택 |
 
 ---
@@ -560,13 +560,13 @@ Meta-SGD는 초기 웨이트와 함께 파라메터별 갱신 계수를 학습�
 ```python
 class MetaSGD(MAML):
     """
-    Meta-SGD: 파라메터마다의 안쪽 러닝레이트를 배운다.
+    Meta-SGD: 파라메터별 내부 러닝레이트를 학습한다.
     """
     
     def __init__(self, model: nn.Module, **kwargs):
         super().__init__(model, **kwargs)
         
-        # 파라메터마다 배울 수 있는 러닝레이트
+        # 파라메터별 학습 가능한 러닝레이트
         self.inner_lrs = nn.ParameterDict({
             name.replace('.', '_'): nn.Parameter(
                 torch.ones_like(param) * self.inner_lr
@@ -594,7 +594,7 @@ class MetaSGD(MAML):
                 create_graph=not self.first_order
             )
             
-            # 배운 러닝레이트를 쓴다
+            # 학습된 러닝레이트를 쓴다
             adapted_params = OrderedDict(
                 (name, param - self.inner_lrs[name.replace('.', '_')] * grad)
                 for (name, param), grad in zip(adapted_params.items(), grads)
@@ -605,33 +605,33 @@ class MetaSGD(MAML):
 
 ### ANIL(내부 루프 거의 없음)
 
-ANIL은 내부 루프에서 헤드만 갱신하고 외부 루프에서는 피처 추출기도 학습한다. head_names에는 fc3.weight처럼 정확한 파라메터 이름을 전달한다. 아래 코드는 head_params 사전을 첫 단계에만 만들고 갱신하지 않으므로 여러 내부 단계에서 현재 적응 웨이트가 아닌 이전 텐서를 미분하게 된다. 상속한 평가 함수도 모든 파라메터를 적응시키므로 이 예제만으로 일관된 ANIL 학습·평가가 완성되지는 않는다.
+ANIL은 내부 루프에서 헤드만 갱신하고 외부 루프에서는 피처 추출기도 학습한다. head_names에는 fc3.weight처럼 정확한 파라메터 이름을 전달한다. 아래 코드는 head_params 딕셔너리를 첫 단계에만 만들고 갱신하지 않으므로 여러 내부 단계에서 현재 적응 웨이트가 아닌 이전 텐서를 미분하게 된다. 상속한 평가 함수도 모든 파라메터를 적응시키므로 이 예제만으로 일관된 ANIL 학습·평가가 완성되지는 않는다.
 
 ```python
 class ANIL(MAML):
     """
-    안쪽 회귀 거의 없음 - 가려내기 머리만 맞춘다.
+    내부 루프 거의 없음(ANIL) - 분류 헤드만 적응시킨다.
     
-    안쪽 회귀 동안 피처 뽑개는 얼려 두고
-    마지막 가려내개만 맞춘다.
+    내부 루프 동안 피처 추출기는 동결하고
+    마지막 분류기만 적응시킨다.
     """
     
     def __init__(self, model: nn.Module, head_names: List[str], **kwargs):
         """
         인수:
-            head_names: 맞출 파라메터의 이름(이를테면 ['fc.weight', 'fc.bias'])
+            head_names: 적응시킬 파라메터의 이름(예: ['fc.weight', 'fc.bias'])
         """
         super().__init__(model, **kwargs)
         self.head_names = set(head_names)
     
     def inner_loop(self, support_x, support_y, params):
-        # 머리 파라메터만 맞춘다
+        # 헤드 파라메터만 적응시킨다
         adapted_params = OrderedDict(
             (name, param.clone() if name in self.head_names else param)
             for name, param in params.items()
         )
         
-        # 그래디언트 셈에 쓸 머리 파라메터만 얻는다
+        # 그래디언트 계산에 쓸 헤드 파라메터만 얻는다
         head_params = {
             name: param for name, param in adapted_params.items()
             if name in self.head_names
@@ -646,7 +646,7 @@ class ANIL(MAML):
                 create_graph=not self.first_order
             )
             
-            # 머리만 고친다
+            # 헤드만 갱신한다
             for (name, grad) in zip(head_params.keys(), grads):
                 adapted_params[name] = adapted_params[name] - self.inner_lr * grad
         
@@ -660,7 +660,7 @@ class ANIL(MAML):
 ```python
 class TaskAdaptiveMAML(MAML):
     """
-    과제 적응 MAML - 러닝레이트를 과제에 맞추어 조건 짓는다.
+    과제 적응 MAML - 러닝레이트를 과제에 따라 조건화한다.
     """
     
     def __init__(self, model: nn.Module, embed_dim: int = 64, **kwargs):
@@ -680,18 +680,18 @@ class TaskAdaptiveMAML(MAML):
         )
     
     def compute_task_embedding(self, support_x, support_y):
-        """서포트 집합에서 과제 표현을 셈한다."""
+        """서포트 집합에서 과제 표현을 계산한다."""
         with torch.no_grad():
             features = self.model.encoder(support_x)
             task_embedding = features.mean(dim=0)
         return task_embedding
     
     def inner_loop(self, support_x, support_y, params):
-        # 과제별 러닝레이트를 셈한다
+        # 과제별 러닝레이트를 계산한다
         task_emb = self.compute_task_embedding(support_x, support_y)
         lr_scales = torch.sigmoid(self.task_encoder(task_emb))
         
-        # ... 나머지는 MAML과 비슷하되 러닝레이트에 눈금을 씌운다
+        # ... 나머지는 MAML과 비슷하되 러닝레이트를 스케일링한다
 ```
 
 ---
@@ -725,7 +725,7 @@ for module in model.modules():
 
 ### 그래디언트 클리핑
 
-메타 로스의 backward 후, 외부 optimizer.step 전에 경사 노름을 제한할 수 있다. 아래 호출은 해당 위치에 삽입하는 코드 조각이다. 클리핑은 큰 갱신을 줄이지만 잘못된 미분 경로나 모든 학습 불안정을 해결하지는 않는다.
+메타 로스의 backward 후, 외부 optimizer.step 전에 그래디언트 노름을 제한할 수 있다. 아래 호출은 해당 위치에 삽입하는 코드 조각이다. 클리핑은 큰 갱신을 줄이지만 잘못된 미분 경로나 모든 학습 불안정을 해결하지는 않는다.
 
 ```python
 # meta_loss.backward() 뒤에
@@ -734,14 +734,14 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=10.0)
 
 ### 메모리 효율
 
-체크포인팅은 중간 엑티베이션 저장을 줄이는 대신 역전파에서 재계산한다. 아래 조각은 params_flat, unflatten과 adaptation_step의 본문이 없어 완성된 구현이 아니다. 내부에서 autograd.grad를 사용하는 계산에 맞는 체크포인트 방식과 난수·상태 처리도 정해야 한다.
+체크포인팅은 중간 활성화 값 저장을 줄이는 대신 역전파에서 재계산한다. 아래 조각은 params_flat, unflatten과 adaptation_step의 본문이 없어 완성된 구현이 아니다. 내부에서 autograd.grad를 사용하는 계산에 맞는 체크포인트 방식과 난수·상태 처리도 정해야 한다.
 
 ```python
 from torch.utils.checkpoint import checkpoint
 
 def inner_loop_checkpointed(self, support_x, support_y, params):
     def adaptation_step(params_flat, support_x, support_y):
-        # 편 것을 되돌리고 한 스텝 밟는다
+        # 평탄화한 것을 복원하고 한 스텝 수행한다
         ...
     
     for step in range(self.inner_steps):
@@ -762,7 +762,7 @@ MAML의 내부 적응과 외부 갱신에서 어떤 데이터를 사용하는가
 </div>
 
 ??? success "풀이"
-    내부 갱신은 각 과제의 서포트 로스로 적응 웨이트를 만든다. 외부 갱신은 적응 웨이트에서 계산한 쿼리 로스를 원래 초기 웨이트에 대해 미분한다. 메타 학습 과제의 쿼리 정답은 외부 학습에 사용하지만 최종 메타 테스트 정답은 평가에만 사용한다.
+    내부 갱신은 각 과제의 서포트 로스로 적응 웨이트를 만든다. 외부 갱신은 적응 웨이트에서 계산한 쿼리 로스를 원래 초기 웨이트에 대해 미분한다. 메타 학습 과제의 쿼리 정답은 외부 학습에 사용하지만 최종 메타 시험 정답은 평가에만 사용한다.
 
 ---
 
@@ -774,7 +774,7 @@ MAML의 2차 미분과 FOMAML 근사를 설명하라.
 </div>
 
 ??? success "풀이"
-    한 단계 내부 갱신의 야코비안은 I−αH_S다. 정확한 메타 경사는 이 야코비안의 전치를 쿼리 경사에 곱하며, 자동 미분으로 헤시안·벡터 곱을 계산할 수 있다. FOMAML은 야코비안을 I로 근사한다. α가 작아도 곡률이 크거나 단계가 많으면 오차가 커질 수 있다.
+    한 단계 내부 갱신의 야코비안은 I−αH_S다. 정확한 메타 그래디언트는 이 야코비안의 전치를 쿼리 그래디언트에 곱하며, 자동 미분으로 헤시안·벡터 곱을 계산할 수 있다. FOMAML은 야코비안을 I로 근사한다. α가 작아도 곡률이 크거나 단계가 많으면 오차가 커질 수 있다.
 
 ---
 
@@ -795,7 +795,7 @@ MAML의 2차 미분과 FOMAML 근사를 설명하라.
             loss = F.cross_entropy(model(support_x), support_y)
             grads = torch.autograd.grad(loss, params, create_graph=True)
             params = [p - inner_lr * g for p, g in zip(params, grads)]
-        return params  # 맞춘 파라메터
+        return params  # 적응된 파라메터
     ```
 
 ---
@@ -808,7 +808,7 @@ MAML의 계산 비용과 평가에서 주의할 점을 설명하라.
 </div>
 
 ??? success "풀이"
-    내부 갱신 경로를 보존하면 단계 수에 따라 메모리와 계산량이 늘어난다. FOMAML은 2차 경사를 생략하지만 여전히 내부 적응이 필요하다. 서포트·쿼리 분리, 메타 테스트 과제의 독립성, BatchNorm 통계와 평가 적응 방식을 맞춰야 한다.
+    내부 갱신 경로를 보존하면 단계 수에 따라 메모리와 계산량이 늘어난다. FOMAML은 2차 그래디언트를 생략하지만 여전히 내부 적응이 필요하다. 서포트·쿼리 분리, 메타 시험 과제의 독립성, BatchNorm 통계와 평가 적응 방식을 맞춰야 한다.
 
 ## 정리하며
 

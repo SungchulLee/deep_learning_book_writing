@@ -1,6 +1,6 @@
 # 퓨샷 학습의 기초
 
-퓨샷 학습은 목표 과제에서 사용할 수 있는 레이블 예시가 적은 상황을 다룬다. 적은 목표 예시가 전체 학습 데이터·계산도 적다는 뜻은 아니며, 사전 학습이나 여러 과제 학습을 활용할 수 있다. 새 클래스 분류의 에피소드 규약과 표현·적응·평가를 구분한다.
+퓨샷 학습은 목표 과제에서 사용할 수 있는 라벨 예시가 적은 상황을 다룬다. 적은 목표 예시가 전체 학습 데이터·계산도 적다는 뜻은 아니며, 사전 학습이나 여러 과제 학습을 활용할 수 있다. 새 클래스 분류의 에피소드 규약과 표현·적응·평가를 구분한다.
 
 ## 1. 문제의 구조
 
@@ -8,28 +8,28 @@
 
 퓨샷 학습에서는 클래스 집합 $\mathcal{C}$ 위에서 정의된 과제 $\mathcal{T}$을 생각한다. 일반적인 지도 학습보다 목표 과제에서 사용할 라벨 수가 제한되어 있다.
 
-**학습 단계**: 클래스 $\mathcal{C}_{\text{train}}$을 아우르는 크고 레이블 붙은 데이터셋 $\mathcal{D}_{\text{train}}$을 쓸 수 있다.
+**학습 단계**: 클래스 $\mathcal{C}_{\text{train}}$을 아우르는 크고 라벨 붙은 데이터셋 $\mathcal{D}_{\text{train}}$을 쓸 수 있다.
 
-**시험 단계**: $\mathcal{C}_{\text{train}} \cap \mathcal{C}_{\text{test}} = \emptyset$인 새 클래스 $\mathcal{C}_{\text{test}}$의 보기를, 클래스마다 레이블 붙은 보기 몇 개만 가지고 가려야 한다.
+**시험 단계**: $\mathcal{C}_{\text{train}} \cap \mathcal{C}_{\text{test}} = \emptyset$인 새 클래스 $\mathcal{C}_{\text{test}}$의 표본을, 클래스마다 라벨 붙은 예시 몇 개만 가지고 분류해야 한다.
 
 ### N-way K-shot 분류
 
-새 클래스 분류의 흔한 규약은 N-way K-shot이다. way는 후보 클래스 수, shot은 클래스별 레이블 있는 서포트 수를 뜻한다. 회귀·분할·가변 클래스 과제 등 모든 퓨샷 문제가 같은 형식인 것은 아니다.
+새 클래스 분류의 흔한 규약은 N-way K-shot이다. way는 후보 클래스 수, shot은 클래스별 라벨 있는 서포트 수를 뜻한다. 회귀·분할·가변 클래스 과제 등 모든 퓨샷 문제가 같은 형식인 것은 아니다.
 
 - **N-way**: 과제마다의 클래스 개수
-- **K-shot**: 클래스마다 레이블 붙은 보기의 개수
+- **K-shot**: 클래스마다 라벨 붙은 예시의 개수
 
 흔한 설정은 다음과 같다.
 
 - **5-way 1-shot**: 클래스 5개에 서포트 각 1개
-- **5-way 5-shot**: 클래스 5개에 보기 각 5개
+- **5-way 5-shot**: 클래스 5개에 서포트 각 5개
 - **20-way 1-shot**: 클래스가 더 많아 규모 확장성을 시험한다
 
 ### 서포트 집합과 쿼리 집합
 
 퓨샷 과제마다 두 집합으로 짜인다.
 
-**서포트 집합** $\mathcal{S}$: 배우는 데 쓰는 레이블 붙은 소규모 표본 집합
+**서포트 집합** $\mathcal{S}$: 배우는 데 쓰는 라벨 붙은 소규모 표본 집합
 
 $$\mathcal{S} = \{(x_1, y_1), (x_2, y_2), \ldots, (x_{N \times K}, y_{N \times K})\}$$
 
@@ -37,7 +37,7 @@ $$\mathcal{S} = \{(x_1, y_1), (x_2, y_2), \ldots, (x_{N \times K}, y_{N \times K
 
 $$\mathcal{Q} = \{(x_1^q, y_1^q), (x_2^q, y_2^q), \ldots, (x_{N \times Q}, y_{N \times Q})\}$$
 
-여기서 Q는 클래스별 쿼리 수다. 쿼리 정답은 메타 학습·평가 지표 계산에 쓰며 테스트 적응에는 허용하지 않는다. 비지도·트랜스덕티브 설정에서 쿼리 입력을 함께 사용하는 경우도 정답 사용과 구분해 명시한다.
+여기서 Q는 클래스별 쿼리 수다. 쿼리 정답은 메타 학습·평가 지표 계산에 쓰며 시험 시점의 적응에는 허용하지 않는다. 비지도·트랜스덕티브 설정에서 쿼리 입력을 함께 사용하는 경우도 정답 사용과 구분해 명시한다.
 
 ---
 
@@ -45,12 +45,12 @@ $$\mathcal{Q} = \{(x_1^q, y_1^q), (x_2^q, y_2^q), \ldots, (x_{N \times Q}, y_{N 
 
 ### 에피소드 학습
 
-에피소드 학습은 학습 클래스에서 작은 서포트·쿼리 과제를 반복 구성하는 방식이다. 사전 학습한 일반 표현 위에 최근접 프로토타입·선형 분류·미세 조정을 적용하는 비에피소드 기준도 가능하다.
+에피소드 학습은 학습 클래스에서 작은 서포트·쿼리 과제를 반복 구성하는 방식이다. 사전 학습한 일반 표현 위에 최근접 프로토타입·선형 분류·미세 조정을 적용하는 비에피소드 베이스라인도 가능하다.
 
 1. $\mathcal{C}_{\text{train}}$에서 클래스 $N$개를 뽑는다.
 2. 클래스마다 서포트 표본 $K$개와 쿼리 표본 $Q$개를 뽑는다.
 3. 서포트만으로 과제에 적응하거나 클래스 표현을 구성한다.
-4. 쿼리 집합의 성능을 기반으로 모델 파라메터를 고친다.
+4. 쿼리 집합의 성능을 기반으로 모델 파라메터를 갱신한다.
 
 서포트·쿼리 로스의 역할을 나누는 설계지만 특정 클래스를 외우지 않거나 새 과제 일반화가 자동 보장되는 것은 아니다.
 
@@ -72,11 +72,11 @@ $$\theta^* = \argmin_\theta \mathbb{E}_{\mathcal{T} \sim p(\mathcal{T})} \left[ 
 
 ## 3. 접근법의 종류
 
-퓨샷 학습 방법은 크게 세 클래스로 나눌 수 있다.
+퓨샷 학습 방법은 크게 세 갈래로 나눌 수 있다.
 
 ### 1. 거리 기반 방법
 
-거리를 비교하여 가려낼 수 있는 임베딩 공간을 배운다.
+거리를 비교하여 분류할 수 있는 임베딩 공간을 배운다.
 
 $$p(y = c | x, \mathcal{S}) = \frac{\exp(-d(f_\theta(x), \mu_c))}{\sum_{c'} \exp(-d(f_\theta(x), \mu_{c'}))}$$
 
@@ -86,11 +86,11 @@ $$p(y = c | x, \mathcal{S}) = \frac{\exp(-d(f_\theta(x), \mu_c))}{\sum_{c'} \exp
 
 ### 2. 최적화 기반 방법(메타 학습)
 
-그래디언트 기반 최적화로 새 과제에 재빨리 맞추어 가는 법을 배운다.
+그래디언트 기반 최적화로 새 과제에 빠르게 적응하는 법을 배운다.
 
 $$\theta' = \theta - \alpha \nabla_\theta \mathcal{L}_{\mathcal{S}}(\theta)$$
 
-모델은 그래디언트 스텝 몇 번으로 재빨리 맞추어 갈 수 있게 하는 초기화 $\theta$을 배운다.
+모델은 그래디언트 스텝 몇 번으로 빠르게 적응할 수 있게 하는 초기화 $\theta$을 배운다.
 
 **주요 방법**: MAML, Reptile, Meta-SGD, FOMAML
 
@@ -102,29 +102,29 @@ $$h_t = f(x_t, h_{t-1}, \mathcal{M})$$
 
 여기서 $\mathcal{M}$은 외부 메모리 모듈이다.
 
-**주요 방법**: 메모리 어그멘테이션 뉴럴 네트워크, 소수 예시용 뉴럴 튜링 기계
+**주요 방법**: 메모리 증강 뉴럴 네트워크, 퓨샷용 뉴럴 튜링 머신
 
 ---
 
 ## 4. 핵심 개념
 
-### 귀납 바이어스
+### 귀납 편향
 
-쓸모 있는 퓨샷 학습은 알맞은 귀납 바이어스에 크게 기댄다.
+쓸모 있는 퓨샷 학습은 알맞은 귀납 편향에 크게 기댄다.
 
 1. **조합성**: 물체는 다시 쓸 수 있는 부품으로 이루어진다
 2. **유사도 구조**: 과제에 유용한 유사도 관계를 표현한다
-3. **과제 구조**: 과제들은 기초의 공통 구조를 나누어 가진다
+3. **과제 구조**: 과제들은 바탕에 깔린 공통 구조를 공유한다
 
 ### 전이 학습과 퓨샷 학습
 
 | 관점 | 설명 |
 |---|---|
 | 전이 학습 | 사전 학습한 지식·웨이트·표현을 새 과제에 재사용 |
-| 퓨샷 설정 | 목표 레이블 예시 수가 제한된 문제 |
+| 퓨샷 설정 | 목표 라벨 예시 수가 제한된 문제 |
 | 에피소드 메타 학습 | 여러 과제를 통해 적응 규칙·표현을 학습 |
 
-셋은 서로 배타적이지 않다. 퓨샷에 미세 조정을 쓸 수 있고 모든 퓨샷이 클래스 비중복·에피소드 학습을 필수로 하는 것도 아니다. 이 장의 새 클래스 벤치마크에서는 학습·검증·테스트 클래스를 분리한다.
+셋은 서로 배타적이지 않다. 퓨샷에 미세 조정을 쓸 수 있고 모든 퓨샷이 클래스 비중복·에피소드 학습을 필수로 하는 것도 아니다. 이 장의 새 클래스 벤치마크에서는 학습·검증·시험 클래스를 분리한다.
 
 ### 사전 학습의 역할
 
@@ -142,7 +142,7 @@ $$f_\theta = g_\psi \circ h_\phi$$
 
 Omniglot은 50개 문자 체계의 글자 클래스 1,623개로 이루어진다. 각 글자는 서로 다른 사람이 쓴 표본 20개를 포함한다.
 
-- 글자마다 보기 20개
+- 글자마다 표본 20개
 - 원본 흑백 이미지와 모델 입력 전처리를 구분한다. 이 장의 28×28은 축소한 입력 규약이며 원본 해상도가 아니다.
 
 ### miniImageNet
@@ -158,15 +158,15 @@ Omniglot은 50개 문자 체계의 글자 클래스 1,623개로 이루어진다.
 tieredImageNet은 계층적 클래스 분할로 더 큰 의미 범주의 일반화를 평가한다.
 
 - 클래스 608개를 상위 범주 34개로 묶는다.
-- 상위 범주가 겹치지 않도록 학습·검증·테스트를 나눈다.
+- 상위 범주가 겹치지 않도록 학습·검증·시험를 나눈다.
 - 클래스 수와 분할 버전을 결과와 함께 기록한다.
 
 ### Meta-Dataset
 
-여러 영역에 걸친 벤치마크이다.
+여러 도메인에 걸친 벤치마크이다.
 
 - ImageNet, Omniglot, Aircraft, Birds, Textures, Quick Draw, Fungi, VGG Flower, Traffic Signs, MSCOCO
-- 영역을 넘나드는 일반화를 시험한다
+- 도메인 간 일반화를 시험한다
 
 ---
 
@@ -204,19 +204,19 @@ from collections import defaultdict
 
 class EpisodeSampler:
     """
-    소수 예시 학습의 학습과 평가에 쓸 에피소드를 뽑는다.
+    퓨샷 학습의 학습과 평가에 쓸 에피소드를 뽑는다.
     
-    에피소드마다 아무렇게나 고른 부류 N개에서 뽑은
+    에피소드마다 무작위로 고른 클래스 N개에서 뽑은
     서포트 집합과 쿼리 집합을 담는다.
     """
     
     def __init__(self, labels, n_way, k_shot, n_query, n_episodes):
         """
         인수:
-            labels: 모든 표본의 부류 이름표 텐서
-            n_way: 에피소드마다의 부류 개수
-            k_shot: 부류마다의 받침 보기 개수
-            n_query: 부류마다의 물음 보기 개수
+            labels: 모든 표본의 클래스 라벨 텐서
+            n_way: 에피소드마다의 클래스 개수
+            k_shot: 클래스마다의 서포트 표본 개수
+            n_query: 클래스마다의 쿼리 표본 개수
             n_episodes: 만들어 낼 에피소드의 총 개수
         """
         self.labels = labels
@@ -225,14 +225,14 @@ class EpisodeSampler:
         self.n_query = n_query
         self.n_episodes = n_episodes
         
-        # 첨자 대응을 만든다: 부류 -> 표본 첨자 목록
+        # 인덱스 매핑을 만든다: 클래스 -> 표본 인덱스 목록
         self.class_to_indices = defaultdict(list)
         for idx, label in enumerate(labels):
             self.class_to_indices[label.item()].append(idx)
         
         self.classes = list(self.class_to_indices.keys())
         
-        # 부류마다 표본이 넉넉한지 확인한다
+        # 클래스마다 표본이 넉넉한지 확인한다
         min_samples = k_shot + n_query
         for c, indices in self.class_to_indices.items():
             if len(indices) < min_samples:
@@ -246,11 +246,11 @@ class EpisodeSampler:
         에피소드 하나를 뽑는다.
         
         반환값:
-            support_indices: 서포트 집합의 첨자
-            query_indices: 쿼리 집합의 첨자
-            class_mapping: 본디 이름표를 0...N-1로 옮기는 사전
+            support_indices: 서포트 집합의 인덱스
+            query_indices: 쿼리 집합의 인덱스
+            class_mapping: 원래 라벨을 0...N-1로 매핑하는 딕셔너리
         """
-        # 이 에피소드에 쓸 부류 N개를 뽑는다
+        # 이 에피소드에 쓸 클래스 N개를 뽑는다
         episode_classes = np.random.choice(
             self.classes, 
             self.n_way, 
@@ -264,10 +264,10 @@ class EpisodeSampler:
         for new_label, original_class in enumerate(episode_classes):
             class_mapping[original_class] = new_label
             
-            # 이 부류의 모든 첨자를 얻는다
+            # 이 클래스의 모든 인덱스를 얻는다
             available_indices = self.class_to_indices[original_class]
             
-            # 되돌리지 않고 뽑는다
+            # 비복원 추출한다
             selected = np.random.choice(
                 available_indices,
                 self.k_shot + self.n_query,
@@ -288,7 +288,7 @@ class EpisodeSampler:
 
 class FewShotDataset(torch.utils.data.Dataset):
     """
-    보통의 데이터셋에서 소수 예시 에피소드를 만드는 감싸개.
+    보통의 데이터셋에서 퓨샷 에피소드를 만드는 래퍼.
     """
     
     def __init__(self, data, labels, n_way, k_shot, n_query, n_episodes):
@@ -296,9 +296,9 @@ class FewShotDataset(torch.utils.data.Dataset):
         인수:
             data: 형태가 (N, *input_shape)인 텐서
             labels: 형태가 (N,)인 텐서
-            n_way: 에피소드마다의 부류 개수
-            k_shot: 부류마다의 받침 보기
-            n_query: 부류마다의 물음 보기
+            n_way: 에피소드마다의 클래스 개수
+            k_shot: 클래스마다의 서포트 표본
+            n_query: 클래스마다의 쿼리 표본
             n_episodes: 에피소드 개수
         """
         self.data = data
@@ -318,7 +318,7 @@ class FewShotDataset(torch.utils.data.Dataset):
         support_data = self.data[support_idx]
         query_data = self.data[query_idx]
         
-        # 이름표를 0...N-1로 다시 매긴다
+        # 라벨을 0...N-1로 다시 매긴다
         support_labels = torch.tensor([
             class_map[self.labels[i].item()] 
             for i in support_idx
@@ -344,7 +344,7 @@ import torch.nn.functional as F
 
 class ConvBlock(nn.Module):
     """
-    소수 예시 학습에서 쓰는 표준 컨볼루션 블록.
+    퓨샷 학습에서 쓰는 표준 컨볼루션 블록.
     Conv -> BatchNorm -> ReLU -> MaxPool
     """
     
@@ -364,12 +364,12 @@ class ConvBlock(nn.Module):
 
 class Conv4Encoder(nn.Module):
     """
-    소수 예시 학습에서 흔히 쓰는 4레이어 컨볼루션 인코더.
+    퓨샷 학습에서 흔히 쓰는 4레이어 컨볼루션 인코더.
     
-    이 구조는 원형 망, 맞춤 망, MAML 같은
-    논문에서 표준 등뼈로 쓰인다.
+    이 구조는 프로토타입 네트워크, 매칭 네트워크, MAML 같은
+    논문에서 표준 백본으로 쓰인다.
     
-    출력: 그림마다 64차원 임베딩(28x28 입력일 때)
+    출력: 이미지마다 64차원 임베딩(28x28 입력일 때)
     """
     
     def __init__(self, in_channels=1, hidden_dim=64):
@@ -382,7 +382,7 @@ class Conv4Encoder(nn.Module):
             ConvBlock(hidden_dim, hidden_dim),       # 3 -> 1
         )
         
-        # 입력 크기를 바탕으로 출력 차원을 셈한다
+        # 입력 크기를 바탕으로 출력 차원을 계산한다
         # 28x28일 때: 64 * 1 * 1 = 64
         # 84x84일 때: 64 * 5 * 5 = 1600
         self.output_dim = hidden_dim
@@ -390,7 +390,7 @@ class Conv4Encoder(nn.Module):
     def forward(self, x):
         """
         인수:
-            x: 입력 그림 (batch, channels, height, width)
+            x: 입력 이미지 (batch, channels, height, width)
         
         반환값:
             embeddings: (batch, output_dim)
@@ -402,10 +402,10 @@ class Conv4Encoder(nn.Module):
 
 class ResNetEncoder(nn.Module):
     """
-    소수 예시 학습을 위한 ResNet 기반 인코더.
+    퓨샷 학습을 위한 ResNet 기반 인코더.
     
-    미리 학습했거나 아무렇게나 초기화한 ResNet 등뼈를 쓰되
-    마지막 가려내기 레이어는 없앤다.
+    사전 학습했거나 무작위로 초기화한 ResNet 백본을 쓰되
+    마지막 분류 레이어는 없앤다.
     """
     
     def __init__(self, pretrained=True):
@@ -415,7 +415,7 @@ class ResNetEncoder(nn.Module):
         
         resnet = models.resnet18(pretrained=pretrained)
         
-        # 마지막 온연결 레이어를 없앤다
+        # 마지막 완전 연결 레이어를 없앤다
         self.encoder = nn.Sequential(*list(resnet.children())[:-1])
         self.output_dim = 512
     
@@ -426,7 +426,7 @@ class ResNetEncoder(nn.Module):
 
 ### 평가 도구
 
-evaluate_few_shot은 model(support,support_labels,query)가 로짓을 반환하는 API만 가정한다. no_grad로 전체 평가를 감싸 MAML처럼 경사 적응이 필요한 모델에는 그대로 맞지 않는다. 기본 CUDA 장치와 모델 장치를 맞추고 로더 길이가 요청 에피소드보다 짧을 때 실제 횟수도 확인한다.
+evaluate_few_shot은 model(support,support_labels,query)가 로짓을 반환하는 API만 가정한다. no_grad로 전체 평가를 감싸 MAML처럼 그래디언트 적응이 필요한 모델에는 그대로 맞지 않는다. 기본 CUDA 장치와 모델 장치를 맞추고 로더 길이가 요청 에피소드보다 짧을 때 실제 횟수도 확인한다.
 
 Student-t 구간은 독립 에피소드 표본과 유효한 분산 추정에 기반한 근사다. 같은 이미지·고정 클래스 집합을 공유한 평가의 모든 불확실성을 설명하지는 않는다. n<2나 빈 쿼리에서 sem·정확도가 유효하지 않으며 confidence 범위도 검증한다.
 
@@ -436,11 +436,11 @@ from scipy import stats
 
 def compute_accuracy(predictions, labels):
     """
-    가려내기 정확도를 셈한다.
+    분류 정확도를 계산한다.
     
     인수:
-        predictions: (n,) 맞힌 부류 첨자
-        labels: (n,) 참 부류 첨자
+        predictions: (n,) 예측한 클래스 인덱스
+        labels: (n,) 참 클래스 인덱스
     
     반환값:
         accuracy: [0, 1] 안의 실수
@@ -449,17 +449,17 @@ def compute_accuracy(predictions, labels):
 
 def compute_confidence_interval(accuracies, confidence=0.95):
     """
-    정확도 측정값의 믿음 구간을 셈한다.
+    정확도 측정값의 신뢰구간을 계산한다.
     
     작은 표본에서 제대로 추론하도록 스튜던트 t분포를 쓴다.
     
     인수:
         accuracies: 여러 에피소드에서 얻은 정확도 값의 목록
-        confidence: 믿음 수준(기본값 0.95는 95% 믿음 구간)
+        confidence: 신뢰 수준(기본값 0.95는 95% 신뢰구간)
     
     반환값:
         mean: 평균 정확도
-        ci: 믿음 구간의 반너비
+        ci: 신뢰구간의 반폭
     """
     accuracies = np.array(accuracies)
     n = len(accuracies)
@@ -467,7 +467,7 @@ def compute_confidence_interval(accuracies, confidence=0.95):
     mean = np.mean(accuracies)
     std_error = stats.sem(accuracies)  # 평균의 표준 오차
     
-    # 주어진 믿음 수준의 t값
+    # 주어진 신뢰 수준의 t값
     t_value = stats.t.ppf((1 + confidence) / 2, n - 1)
     ci = t_value * std_error
     
@@ -475,17 +475,17 @@ def compute_confidence_interval(accuracies, confidence=0.95):
 
 def evaluate_few_shot(model, test_dataset, n_episodes=600, device='cuda'):
     """
-    표준 소수 예시 평가 규약.
+    표준 퓨샷 평가 규약.
     
     인수:
-        model: forward(support, support_labels, query)를 갖춘 소수 예시 모델
+        model: forward(support, support_labels, query)를 갖춘 퓨샷 모델
         test_dataset: 평가용 FewShotDataset
         n_episodes: 평가할 에피소드 개수
         device: 평가를 돌릴 장치
     
     반환값:
         mean_accuracy: 에피소드에 걸친 평균 정확도
-        ci: 95% 믿음 구간
+        ci: 95% 신뢰구간
     """
     model.eval()
     accuracies = []
@@ -526,7 +526,7 @@ def evaluate_few_shot(model, test_dataset, n_episodes=600, device='cuda'):
 
 ### 데이터 어그멘테이션
 
-보기가 적으므로 퓨샷 학습에서 데이터 어그멘테이션은 매우 중요하다.
+예시가 적으므로 퓨샷 학습에서 데이터 어그멘테이션은 매우 중요하다.
 
 ```python
 import torchvision.transforms as T
@@ -541,7 +541,7 @@ few_shot_transforms = T.Compose([
 ])
 ```
 
-### 하이퍼파라미터 민감도
+### 하이퍼파라메터 민감도
 
 설정은 독립적인 메타 검증 과제에서 선택한다.
 
@@ -551,8 +551,8 @@ few_shot_transforms = T.Compose([
 
 1. **정보 누수**: 평가 정답·동일 원본·사전 학습 중복을 검사한다.
 2. **과제 구성**: 균형 에피소드는 하나의 규약이며 불균형·가변 way/shot도 명시적으로 평가할 수 있다.
-3. **모델 선택**: 메타 테스트가 아니라 메타 검증 과제로 선택한다.
-4. **기준 모델**: 같은 인코더·사전 학습·튜닝 예산의 단순 기준을 포함한다.
+3. **모델 선택**: 메타 시험이 아니라 메타 검증 과제로 선택한다.
+4. **베이스라인 모델**: 같은 인코더·사전 학습·튜닝 예산의 단순 베이스라인을 포함한다.
 
 ---
 
@@ -566,7 +566,7 @@ N-way K-shot과 에피소드 학습의 서포트·쿼리 역할을 정의하라.
 </div>
 
 ??? success "풀이"
-    N개 클래스 각각 K개의 레이블 있는 서포트를 사용해 별도 쿼리를 예측한다. 메타 학습은 서포트 기반 적응·표현 구성 뒤 쿼리 로스로 공유 계수를 갱신할 수 있다. 테스트 쿼리 정답을 적응에 사용하지 않으며 에피소드 학습만으로 새 과제 일반화를 보장하지 않는다.
+    N개 클래스 각각 K개의 라벨 있는 서포트를 사용해 별도 쿼리를 예측한다. 메타 학습은 서포트 기반 적응·표현 구성 뒤 쿼리 로스로 공유 파라메터를 갱신할 수 있다. 시험 쿼리 정답을 적응에 사용하지 않으며 에피소드 학습만으로 새 과제 일반화를 보장하지 않는다.
 
 ---
 
@@ -585,12 +585,12 @@ N-way K-shot과 에피소드 학습의 서포트·쿼리 역할을 정의하라.
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-아래 간단한 샘플러의 클래스 ID·레이블 대응과 유효 입력 조건을 검토하라.
+아래 간단한 샘플러의 클래스 ID·라벨 대응과 유효 입력 조건을 검토하라.
 
 </div>
 
 ??? success "풀이"
-    random import가 필요하다. ImageFolder류의 dataset.classes는 클래스 이름이고 targets는 정수여서 cls와 y를 그대로 비교하면 후보가 비어 있을 수 있다. 실제 클래스 ID를 사용하고 클래스 수·K+Q 표본, 중복과 로컬 레이블 매핑을 확인한다. 반환값은 데이터·새 레이블이 아니라 인덱스 두 목록뿐이다.
+    random import가 필요하다. ImageFolder류의 dataset.classes는 클래스 이름이고 targets는 정수여서 cls와 y를 그대로 비교하면 후보가 비어 있을 수 있다. 실제 클래스 ID를 사용하고 클래스 수·K+Q 표본, 중복과 로컬 라벨 매핑을 확인한다. 반환값은 데이터·새 라벨이 아니라 인덱스 두 목록뿐이다.
 
     ```python
     def sample_episode(dataset, N=5, K=5, Q=15):
@@ -614,11 +614,11 @@ N-way K-shot과 에피소드 학습의 서포트·쿼리 역할을 정의하라.
 </div>
 
 ??? success "풀이"
-    퓨샷·제로샷은 목표 과제·클래스의 레이블 예시를 몇 개 쓰는지에 관한 설정이다. 메타 학습은 여러 과제에서 적응 규칙·초기화·표현을 배우는 방법이다. 제로샷은 레이블 이름·설명·사전 학습 지식을 쓸 수 있어 아무 정보도 없는 학습은 아니다. 퓨샷이 모두 메타 학습인 것도 아니다.
+    퓨샷·제로샷은 목표 과제·클래스의 라벨 예시를 몇 개 쓰는지에 관한 설정이다. 메타 학습은 여러 과제에서 적응 규칙·초기화·표현을 배우는 방법이다. 제로샷은 라벨 이름·설명·사전 학습 지식을 쓸 수 있어 아무 정보도 없는 학습은 아니다. 퓨샷이 모두 메타 학습인 것도 아니다.
 
 ## 정리하며
 
-목표 예시 수, 사전 학습·메타 학습의 자원과 평가 과제를 구분한다. 서포트·쿼리·로컬 레이블·BatchNorm과 경사 적응 규약을 맞추고, 정보 누수 없는 분할과 실제 에피소드 수·불확실성을 보고한다.
+목표 예시 수, 사전 학습·메타 학습의 자원과 평가 과제를 구분한다. 서포트·쿼리·로컬 라벨·BatchNorm과 그래디언트 적응 규약을 맞추고, 정보 누수 없는 분할과 실제 에피소드 수·불확실성을 보고한다.
 
 **참고 문헌**
 

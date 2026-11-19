@@ -6,7 +6,7 @@ RMSNorm은 입력 평균을 빼지 않고 RMS(root mean square)를 이용해 스
 
 ## 1. 수학적 정식화
 
-### 표준 레이어 정규화 (되짚어 보기)
+### 표준 레이어 정규화 (복습)
 
 입력 $\mathbf{x} \in \mathbb{R}^n$에 대해 다음과 같다.
 
@@ -24,7 +24,7 @@ $$\text{RMSNorm}(\mathbf{x}) = \gamma\odot\frac{\mathbf{x}}{\sqrt{\frac1n\sum_i 
 
 여기서 각 기호는 다음과 같다.
 
-- $\gamma \in \mathbb{R}^n$은 학습 가능한 배율 파라메터이다
+- $\gamma \in \mathbb{R}^n$은 학습 가능한 스케일(배율) 파라메터이다
 - $\epsilon$은 수치적 안정성을 위한 작은 상수이다
 - (설계상) 바이어스 항 $\beta$이 없고 평균을 빼지도 않는다
 
@@ -75,7 +75,7 @@ class RMSNorm(nn.Module):
         # 레이어 정규화와 갈리는 지점이 여기다. 레이어 정규화는 평균을 빼고
         # 표준편차로 나누지만, RMSNorm은 평균을 빼지 않고 제곱평균의
         # 제곱근으로만 나눈다. 곧 크기만 맞추고 중심은 건드리지 않는다.
-        # 평균을 구하는 한 번의 훑기가 빠지므로 더 빠르고, 실제로
+        # 평균을 구하는 연산 한 번이 빠지므로 더 빠르고, 실제로
         # 성능이 떨어지지 않는다는 것이 RMSNorm 논문의 관찰이다.
         # dim=-1은 마지막 축, 곧 피처 축이다. 표본마다 따로 정규화하므로
         # 배치 크기와 무관하고 추론에서도 학습과 똑같이 동작한다.
@@ -93,9 +93,9 @@ class RMSNorm(nn.Module):
             같은 모양의 정규화된 텐서
         """
         # 정규화하고 배율 조정.
-        # float()으로 올렸다가 type_as로 되돌리는 것이 요령이다. 半정밀도
-        # (fp16, bf16)로 학습할 때 x^2의 합이 넘치거나 정밀도를 잃기
-        # 쉬운데, 정규화만 32비트로 셈하고 결과를 원래 자료형으로
+        # float()으로 올렸다가 type_as로 되돌리는 것이 요령이다. 반정밀도
+        # (fp16, bf16)로 학습할 때 x^2의 합이 오버플로를 내거나 정밀도를 잃기
+        # 쉬운데, 정규화만 32비트로 계산하고 결과를 원래 자료형으로
         # 되돌리면 그 위험을 피하면서 메모리는 그대로 아낀다.
         # 대규모 언어 모델 구현에서 흔히 보이는 형태다
         output = self._norm(x.float()).type_as(x)
@@ -126,26 +126,26 @@ class LayerNormBaseline(nn.Module):
 
     RMSNorm과 견주기 위한 기준이다. 두 가지가 다르다.
       (1) LayerNorm은 평균을 빼서 중심을 옮기지만 RMSNorm은 옮기지 않는다.
-      (2) LayerNorm은 바이어스(bias)을 두지만 RMSNorm은 두지 않는다.
+      (2) LayerNorm은 바이어스(bias)를 두지만 RMSNorm은 두지 않는다.
     """
 
     def __init__(self, dim, eps=1e-6):
         super().__init__()
         self.eps = eps   # 분산이 0에 가까울 때 0으로 나누는 것을 막는다
 
-        # 정규화로 모든 성분을 같은 자에 맞춘 뒤, 학습된 값으로 다시 늘이고
+        # 정규화로 모든 성분을 같은 스케일에 맞춘 뒤, 학습된 값으로 다시 늘이고
         # 옮긴다. 이것이 없으면 정규화가 표현력을 깎아 버린다
         self.weight = nn.Parameter(torch.ones(dim))    # 늘이기(초기값 1: 항등)
         self.bias = nn.Parameter(torch.zeros(dim))     # 옮기기(초기값 0: 항등)
 
     def forward(self, x):
-        # dim=-1: 배치나 위치가 아니라 특성 축을 따라 정규화한다.
+        # dim=-1: 배치나 위치가 아니라 피처 축을 따라 정규화한다.
         # 표본 하나 안에서 끝나므로 배치 크기에 흔들리지 않는다
-        # keepdim=True: 뒤에서 x와 방송(broadcast)되도록 축을 남겨 둔다
+        # keepdim=True: 뒤에서 x와 브로드캐스팅(broadcast)되도록 축을 남겨 둔다
         mean = x.mean(dim=-1, keepdim=True)
 
         # unbiased=False: n-1이 아니라 n으로 나눈다.
-        # 표본 분산을 추정하려는 것이 아니라 그저 자를 맞추려는 것이므로
+        # 표본 분산을 추정하려는 것이 아니라 그저 스케일을 맞추려는 것이므로
         # 베셀 보정을 쓰지 않는다
         var = x.var(dim=-1, keepdim=True, unbiased=False)
 
@@ -156,15 +156,15 @@ class LayerNormBaseline(nn.Module):
 
 ## 3. RMSNorm이 통하는 이유
 
-### 가설: 다시 중심을 맞추는 일은 필요 없다
+### 가설: 재중심화는 필요 없다
 
-원 논문은 LayerNorm의 성공이 (평균을 빼는) 재중심화가 아니라 주로 **재배율 불변성**이라는 성질에서 온다고 가정한다.
+원 논문은 LayerNorm의 성공이 (평균을 빼는) 재중심화(re-centering)가 아니라 주로 **재스케일링 불변성**(re-scaling invariance)이라는 성질에서 온다고 가정한다.
 
 **스케일에 대한 성질:** $\epsilon=0$이고 입력과 배율이 0이 아닐 때 다음 식이 성립한다. 실제 구현의 양의 epsilon은 0 근처의 안정성을 위해 이 정확한 불변성을 바꾼다.
 
 $$\text{RMSNorm}(a \cdot \mathbf{x}) = \text{sign}(a) \cdot \text{RMSNorm}(\mathbf{x})$$
 
-이 성질은 입력 스케일에 덜 민감한 변환을 설명하지만, 전체 뉴럴 네트워크의 경사나 학습 안정성을 단독으로 보장하지는 않는다.
+이 성질은 입력 스케일에 덜 민감한 변환을 설명하지만, 전체 뉴럴 네트워크의 그래디언트나 학습 안정성을 단독으로 보장하지는 않는다.
 
 ### 실험적 증거
 
@@ -184,7 +184,7 @@ def compare_normalization_effects():
     test_cases = [
         ("Normal", torch.randn(32, dim)),            # 평균 0, 표준편차 1
         ("Shifted", torch.randn(32, dim) + 5.0),     # 중심만 옮긴 것
-        ("Scaled", torch.randn(32, dim) * 10.0),     # 자만 키운 것
+        ("Scaled", torch.randn(32, dim) * 10.0),     # 스케일만 키운 것
         ("Skewed", torch.exp(torch.randn(32, dim))), # 로그정규: 한쪽으로 크게 기운 것
     ]
 
@@ -233,17 +233,17 @@ RMSNorm의 출력 평균은 일반적으로 0이 아니다. 평균 중심화가 
 
 ---
 
-## 4. 경사 분석
+## 4. 그래디언트 분석
 
-### 입력에 대한 경사
+### 입력에 대한 그래디언트
 
-$r=\sqrt{\frac1n\sum_jx_j^2+\epsilon}$, $y_i=\gamma_i x_i/r$, $g_i=\partial\mathcal{L}/\partial y_i$로 두면 입력 경사는 다음과 같다. 배율이 성분마다 다르므로 합 안에도 $\gamma_j$가 들어간다.
+$r=\sqrt{\frac1n\sum_jx_j^2+\epsilon}$, $y_i=\gamma_i x_i/r$, $g_i=\partial\mathcal{L}/\partial y_i$로 두면 입력 그래디언트는 다음과 같다. 배율이 성분마다 다르므로 합 안에도 $\gamma_j$가 들어간다.
 
 $$\frac{\partial\mathcal{L}}{\partial x_i}=\frac{\gamma_i g_i}{r}-\frac{x_i}{nr^3}\sum_{j=1}^n\gamma_jx_jg_j$$
 
 ### 사용자 정의 역전파 예제
 
-아래 보존된 구현의 `grad_x` 두 번째 항에는 `rms`로 나누는 인수가 하나 빠져 있어 위의 미분식과 일치하지 않는다. 사용자 정의 backward의 설명용 코드로 읽고, 실제 사용 전에는 자동 미분으로 계산한 경사와 대조해야 한다.
+아래 보존된 구현의 `grad_x` 두 번째 항에는 `rms`로 나누는 인수가 하나 빠져 있어 위의 미분식과 일치하지 않는다. 사용자 정의 backward의 설명용 코드로 읽고, 실제 사용 전에는 자동 미분으로 계산한 그래디언트와 대조해야 한다.
 
 ```python
 class RMSNormWithGradientAnalysis(torch.autograd.Function):
@@ -341,7 +341,7 @@ def benchmark_normalization(batch_size=32, seq_len=512, dim=4096, num_iterations
 # benchmark_normalization()
 ```
 
-실제 속도는 융합 커널, 자료형, 텐서 크기, 장치에 달려 있다. 위 비교는 사용자 정의 구현과 레이어 정규화 구현을 비교하므로 연산 수만의 차이를 재는 것은 아니다. 워밍업, 동기화, 경사 기록 여부와 측정 범위를 맞춰 해석한다.
+실제 속도는 융합 커널, 자료형, 텐서 크기, 장치에 달려 있다. 위 비교는 사용자 정의 구현과 레이어 정규화 구현을 비교하므로 연산 수만의 차이를 재는 것은 아니다. 워밍업, 동기화, 그래디언트 기록 여부와 측정 범위를 맞춰 해석한다.
 
 ---
 
@@ -360,7 +360,7 @@ class LLaMABlock(nn.Module):
         self.attention_norm = RMSNorm(dim, eps=norm_eps)
         self.ffn_norm = RMSNorm(dim, eps=norm_eps)
         
-        # 어텐션 (그룹 질의 어텐션)
+        # 어텐션 (그룹 쿼리 어텐션, GQA)
         self.attention = GroupedQueryAttention(dim, n_heads, n_kv_heads)
         
         # 순방향 뉴럴 네트워크 (SwiGLU)
@@ -393,33 +393,33 @@ class SwiGLU(nn.Module):
         super().__init__()
         
         # 보통의 순방향 뉴럴 네트워크는 행렬이 둘인데 여기는 셋이다. w1과 w3가
-        # 같은 입력을 나란히 받아 하나는 활성화를 거치고 하나는 문
+        # 같은 입력을 나란히 받아 하나는 활성화를 거치고 하나는 게이트
         # 노릇을 한다. 그래서 같은 파라메터 수를 맞추려면 hidden_dim을
         # 3분의 2쯤으로 잡는다.
         # bias=False는 LLaMA 계열의 관례다. 바로 앞에 RMSNorm이 있어
-        # 바이어스가 할 일이 거의 없고, 파라메터와 셈을 아낀다
+        # 바이어스가 할 일이 거의 없고, 파라메터와 계산을 아낀다
         self.w1 = nn.Linear(dim, hidden_dim, bias=False)
         self.w2 = nn.Linear(hidden_dim, dim, bias=False)
         self.w3 = nn.Linear(dim, hidden_dim, bias=False)
     
     def forward(self, x):
-        # silu(w1(x))가 문이고 w3(x)가 통과시킬 값이다. 원소별로 곱하므로
+        # silu(w1(x))가 게이트이고 w3(x)가 통과시킬 값이다. 원소별로 곱하므로
         # 어느 성분을 얼마나 흘려보낼지를 뉴럴 네트워크가 스스로 정한다.
         # ReLU 하나를 쓰는 것보다 표현력이 좋다는 것이 SwiGLU의 요지다
         return self.w2(nn.functional.silu(self.w1(x)) * self.w3(x))
 
 class GroupedQueryAttention(nn.Module):
-    """LLaMA 2에서 쓰는 그룹 질의 어텐션."""
+    """LLaMA 2에서 쓰는 그룹 쿼리 어텐션(GQA)."""
     
     def __init__(self, dim, n_heads, n_kv_heads):
         super().__init__()
         
-        # 질의 머리는 n_heads개인데 열쇠와 값의 머리는 n_kv_heads개로
-        # 더 적다. 여러 질의 머리가 열쇠/값 한 벌을 나누어 쓰는 것이다.
-        # 추론에서 캐시해 두어야 할 열쇠/값이 그만큼 줄어드는 것이 요점이며,
+        # 쿼리 헤드는 n_heads개인데 키와 값의 헤드는 n_kv_heads개로
+        # 더 적다. 여러 쿼리 헤드가 키/값 한 벌을 나누어 쓰는 것이다.
+        # 추론에서 캐시해 두어야 할 키/값이 그만큼 줄어드는 것이 요점이며,
         # 긴 문맥에서 메모리를 크게 아낀다.
-        # n_kv_heads=n_heads면 보통의 다중 머리 어텐션이 되고,
-        # n_kv_heads=1이면 다중 질의 어텐션이 된다
+        # n_kv_heads=n_heads면 보통의 멀티헤드 어텐션이 되고,
+        # n_kv_heads=1이면 멀티쿼리 어텐션이 된다
         self.n_heads = n_heads
         self.n_kv_heads = n_kv_heads
         self.head_dim = dim // n_heads
@@ -440,7 +440,7 @@ class GroupedQueryAttention(nn.Module):
         if freqs_cis is not None:
             q, k = apply_rotary_emb(q, k, freqs_cis)
         
-        # 그룹 질의 어텐션을 위해 KV 머리 늘리기
+        # 그룹 쿼리 어텐션을 위해 KV 헤드 늘리기
         n_rep = self.n_heads // self.n_kv_heads
         k = k.repeat_interleave(n_rep, dim=2)
         v = v.repeat_interleave(n_rep, dim=2)
@@ -487,12 +487,12 @@ class LLaMA(nn.Module):
         self.norm = RMSNorm(dim, eps=norm_eps)
 
         # bias=False: 어휘가 수만 개라 바이어스만으로도 파라메터가 크게 늘고,
-        # 뒤에 소프트맥스가 오므로 클래스마다의 상수는 확률을 거의 바꾸지 못한다
+        # 출력 레이어에 바이어스를 두지 않는 것은 LLaMA 계열 구조의 선택이다
         self.output = nn.Linear(dim, vocab_size, bias=False)
 
-        # 회전 임베딩(RoPE)의 회전각을 미리 셈해 둔다. 위치에만 달린 값이라
+        # 회전 임베딩(RoPE)의 회전각을 미리 계산해 둔다. 위치에만 달린 값이라
         # 학습되지 않으므로 한 번 만들어 두고 모든 레이어가 나눠 쓴다.
-        # dim // n_heads: RoPE는 머리마다 따로 걸리므로 머리 하나의 차원이 필요하다
+        # dim // n_heads: RoPE는 헤드마다 따로 걸리므로 헤드 하나의 차원이 필요하다
         self.freqs_cis = precompute_freqs_cis(dim // n_heads, max_seq_len)
 
     def forward(self, tokens):
@@ -553,7 +553,7 @@ def comprehensive_comparison():
 
     # 파라메터 개수. LayerNorm은 감마와 베타 둘이라 2*dim,
     # RMSNorm은 감마만 있어 dim이다. 값 자체는 크지 않지만,
-    # RMSNorm이 실제로 버는 것은 파라메터가 아니라 평균을 셈하고 빼는
+    # RMSNorm이 실제로 버는 것은 파라메터가 아니라 평균을 계산하고 빼는
     # 연산이 사라진 데서 오는 속도다
     print(f"\nParameter count:")
     print(f"  LayerNorm: {sum(p.numel() for p in ln.parameters())}")
@@ -594,7 +594,7 @@ Parameter count:
 ✅ **대형 언어 모델** (LLaMA, Mistral, Gemma)  
 ✅ **계산 효율이 중요할 때**  
 ✅ **아주 깊은 뉴럴 네트워크** (정규화 레이어가 많을 때)  
-✅ **선정규화 구조**  
+✅ **사전 정규화(pre-norm) 구조**  
 ✅ **평균 중심화가 결정적이지 않을 때**
 
 ### LayerNorm이 나을 수 있는 경우

@@ -9,9 +9,9 @@
 ```python
 #!/usr/bin/env python3
 '''
-YOLOv3 — 한 번만 본다 v3
+YOLOv3 — You Only Look Once v3
 논문: "YOLOv3: An Incremental Improvement" (2018)
-핵심: 한 방 물체 탐지로 3가지 스케일에서 어림한다
+핵심: 단일 단계 객체 탐지로 3가지 스케일에서 예측한다
 '''
 import torch
 import torch.nn as nn
@@ -42,7 +42,7 @@ class ResidualBlock(nn.Module):
 class YOLOv3(nn.Module):
     def __init__(self, num_classes=80):
         super().__init__()
-        # Darknet-53 등뼈(간추림)
+        # Darknet-53 백본(축약)
         self.conv1 = ConvBlock(3, 32, 3)
         self.conv2 = ConvBlock(32, 64, 3, stride=2)
         self.res1 = ResidualBlock(64)
@@ -53,7 +53,7 @@ class YOLOv3(nn.Module):
         self.conv4 = ConvBlock(128, 256, 3, stride=2)
         self.res3 = nn.Sequential(*[ResidualBlock(256) for _ in range(8)])
         
-        # 스케일마다의 탐지 머리
+        # 스케일마다의 탐지 헤드
         self.detect1 = nn.Conv2d(256, (5 + num_classes) * 3, 1)  # 스케일마다 앵커 3개
     
     def forward(self, x):
@@ -100,13 +100,13 @@ YOLOv3의 일반적인 디코딩에서 격자 좌표 c_x,c_y, stride s와 픽셀
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-기본 클래스 수에서 4×3×64×64 입력의 단계별 모양과 최종 후보 수를 계산하라.
+기본 클래스 수에서 4×3×64×64 입력의 단계별 텐서 형태와 최종 후보 수를 계산하라.
 
 </div>
 
 ??? success "풀이"
 
-    32×64×64, 64×32×32, 128×16×16, 256×8×8의 피처를 배치 차원 4와 함께 얻는다. 탐지 head는 4×255×8×8이며 이미지당 앵커 후보는 192개다. 잔차 블록은 해당 단계의 모양을 유지하고 선형 레이어나 풀링은 사용하지 않는다.
+    32×64×64, 64×32×32, 128×16×16, 256×8×8의 피처를 배치 차원 4와 함께 얻는다. 탐지 head는 4×255×8×8이며 이미지당 앵커 후보는 192개다. 잔차 블록은 해당 단계의 형태를 유지하고 선형 레이어나 풀링은 사용하지 않는다.
 
 
 

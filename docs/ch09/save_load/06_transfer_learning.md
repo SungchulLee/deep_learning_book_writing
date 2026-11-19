@@ -16,7 +16,7 @@
 
 주제:
 - 미리 학습된 모델 불러오기
-- 레이어 얼리고 녹이기
+- 레이어 동결과 해제
 - 미세 조정한 모델 저장하기
 - 상태 사전 부분적으로 불러오기
 """
@@ -24,7 +24,7 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
-# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
 # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
 torch.manual_seed(0)
 
@@ -69,7 +69,7 @@ model.fc = nn.Linear(num_features, num_classes)
 print(f"\nNew classifier output classes: {num_classes}")
 
 # ============================================================
-# 레이어 얼리기
+# 레이어 동결
 # ============================================================
 
 print("\n" + "=" * 70)
@@ -78,11 +78,11 @@ print("=" * 70)
 
 print("\nFreezing all layers except final classifier...")
 
-# 모든 파라메터 얼리기
+# 모든 파라메터 동결
 for param in model.parameters():
     param.requires_grad = False
 
-# 마지막 레이어 녹이기
+# 마지막 레이어 동결 해제
 for param in model.fc.parameters():
     param.requires_grad = True
 
@@ -105,7 +105,7 @@ optimizer = torch.optim.Adam(
     lr=0.001
 )
 
-# 전이 학습 정보와 함께 검사점 저장
+# 전이 학습 정보와 함께 체크포인트 저장
 checkpoint = {
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
@@ -143,9 +143,9 @@ model.fc = nn.Linear(num_features, num_classes)
 model.load_state_dict(checkpoint['model_state_dict'])
 print("\nModel state loaded")
 
-# 얼리기를 먼저 되살린다.
-# 저장할 때의 옵티마이저는 '학습할 파라메터'만 들고 있었으므로, 같은 배치로
-# 다시 만들어야 상태를 받을 수 있다. 얼리기를 나중에 하면 배치 크기가 어긋나
+# 동결 설정을 먼저 복원한다.
+# 저장할 때의 옵티마이저는 '학습할 파라메터'만 들고 있었으므로, 같은 구성으로
+# 다시 만들어야 상태를 받을 수 있다. 동결을 나중에 하면 파라메터 그룹의 크기가 어긋나
 # ValueError: loaded state dict contains a parameter group that doesn't match
 # 가 난다.
 if checkpoint.get('frozen_layers', False):
@@ -207,9 +207,9 @@ saved_state = model.state_dict()
 # 모델 고치기
 model.fc = nn.Linear(512, 20)  # 클래스 수가 다르다
 
-# strict=False가 봐주는 것은 '없는 열쇠'와 '남는 열쇠'뿐이다.
-# 두 쪽에 다 있으면서 모양만 다른 열쇠(여기서는 fc.weight, fc.bias)는
-# strict와 무관하게 오류를 낸다. 그러므로 모양이 맞는 것만 골라 넘긴다.
+# strict=False가 봐주는 것은 '없는 키'와 '남는 키'뿐이다.
+# 두 쪽에 다 있으면서 형태만 다른 키(여기서는 fc.weight, fc.bias)는
+# strict와 무관하게 오류를 낸다. 그러므로 형태가 맞는 것만 골라 넘긴다.
 model_state = model.state_dict()
 compatible = {
     k: v for k, v in saved_state.items()
@@ -340,7 +340,7 @@ Key Takeaways:
 
 512차원 피처를 10개 클래스로 보내는 새 분류기에는 512×10+10=5130개의 학습 파라메터가 있다. 다른 파라메터의 requires_grad를 False로 해도 BatchNorm의 이동 통계 버퍼까지 동결되지는 않는다. 실제 학습에서는 백본의 모드와 전처리, 사용할 사전 학습 웨이트의 입력 규약도 함께 정해야 한다.
 
-strict=False는 누락되거나 추가된 키를 허용하지만 같은 키의 텐서 모양 불일치를 무시하지 않는다. 코드처럼 호환되는 모양을 걸러 내고 반환된 누락·추가 키를 확인한다. 키에서 fc라는 부분 문자열을 제외하는 방법은 이 모델의 이름에 의존한다. 단계적으로 동결을 해제한다면 새 파라메터가 옵티마이저 그룹에 실제로 포함되는지도 확인해야 한다.
+strict=False는 누락되거나 추가된 키를 허용하지만 같은 키의 텐서 형태(shape) 불일치를 무시하지 않는다. 코드처럼 형태가 호환되는 항목만 걸러 내고 반환된 누락·추가 키를 확인한다. 키에서 fc라는 부분 문자열을 제외하는 방법은 이 모델의 이름에 의존한다. 단계적으로 동결을 해제한다면 새 파라메터가 옵티마이저 그룹에 실제로 포함되는지도 확인해야 한다.
 
 ## 연습문제
 
@@ -365,7 +365,7 @@ strict=False이면 1000클래스 분류기 웨이트를 10클래스 분류기에
 </div>
 
 ??? success "풀이"
-    아니다. 동일 키의 텐서 모양이 다르면 오류가 난다. 해당 키를 제거하거나 호환되는 항목만 걸러 부분 복원하고 누락 키를 확인한다.
+    아니다. 동일 키의 텐서 형태가 다르면 오류가 난다. 해당 키를 제거하거나 호환되는 항목만 걸러 부분 복원하고 누락 키를 확인한다.
 
 ---
 
@@ -382,4 +382,4 @@ requires_grad=False로 백본을 동결한 뒤에도 BatchNorm 상태가 달라�
 
 ## 정리하며
 
-전이 학습에서는 사전 학습 웨이트 사용 여부, 분류기 차원과 동결 범위를 명확히 한다. 부분 복원의 키 허용과 모양 호환성은 별도 조건이다.
+전이 학습에서는 사전 학습 웨이트 사용 여부, 분류기 차원과 동결 범위를 명확히 한다. 부분 복원의 키 허용과 형태 호환성은 별도 조건이다.

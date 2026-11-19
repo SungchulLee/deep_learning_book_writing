@@ -1,6 +1,6 @@
 # Split MNIST의 경험 리플레이
 
-과제마다 고른 과거 표본을 저장하고 새 과제 배치와 함께 학습하는 경험 리플레이 예제다. 버퍼의 과제별 분포와 현재·과거 로스를 기록한다. 마지막 비교 그림의 기준값은 같은 실행에서 측정한 결과가 아니라 직접 적어 넣은 예시다.
+과제마다 선택한 과거 표본을 저장하고 새 과제 배치와 함께 학습하는 경험 리플레이 예제다. 버퍼의 과제별 분포와 현재·과거 로스를 기록한다. 마지막 비교 그림의 기준값은 같은 실행에서 측정한 결과가 아니라 직접 적어 넣은 예시다.
 
 ## 1. 코드
 
@@ -8,18 +8,18 @@
 
     ```python
     """
-    57모듈: 연속 학습 - 초급
+    57모듈: 지속 학습 - 초급
     파일 3: 단순 경험 리플레이
 
-    이 스크립트는 가장 단순한 연속 학습 기법인 경험 리플레이를 구현한다.
-    앞선 보기를 담은 작은 버퍼를 두고, 새 과제를 익히는 동안 그것을 되살려
-    잊음을 막자는 생각이다.
+    이 스크립트는 가장 단순한 지속 학습 기법인 경험 리플레이를 구현한다.
+    앞선 예제를 담은 작은 버퍼를 두고, 새 과제를 학습하는 동안 그것을 리플레이하여
+    망각을 막자는 아이디어다.
 
     학습 목표:
     1. 경험 리플레이의 개념을 이해한다
-    2. 무작위 뽑기를 갖춘 기억 버퍼를 구현한다
-    3. 소박한 베이스라인보다 얼마나 나아졌는지 잰다
-    4. 기억과 효율의 맞바꿈을 배운다
+    2. 무작위 샘플링을 갖춘 메모리 버퍼를 구현한다
+    3. 단순 베이스라인보다 얼마나 나아졌는지 잰다
+    4. 메모리와 효율의 트레이드오프를 배운다
 
     수식:
     과제 τ에서 로스는 다음이 된다.
@@ -27,10 +27,10 @@
 
     여기서 각 기호는 다음과 같다.
     - L_current = 지금 과제 데이터의 로스
-    - L_replay = 앞선 과제에서 되살린 보기의 로스
+    - L_replay = 앞선 과제에서 리플레이한 예제의 로스
 
     이렇게 단순히 섞으면 학습 중에 옛 과제의 그래디언트가 "살아 있어"
-    파국적 잊음이 막힌다.
+    파국적 망각이 막힌다.
     """
 
     import torch
@@ -53,23 +53,23 @@
 
     class MemoryBuffer:
         """
-        지난 보기를 담아 두고 뽑아 쓰는 단순한 기억 버퍼.
+        지난 예제를 저장해 두고 샘플링하는 단순한 메모리 버퍼.
 
-        다음을 갖춘 기본 에피소드 기억을 구현한다.
-        1. (입력, 이름표, 과제 번호) 짝을 담는다
-        2. 리플레이를 위한 무작위 뽑기를 받쳐 준다
-        3. 최대 용량이 붙박여 있다
+        다음을 갖춘 기본 에피소드 메모리를 구현한다.
+        1. (입력, 라벨, 과제 번호) 짝을 담는다
+        2. 리플레이를 위한 무작위 샘플링을 지원한다
+        3. 최대 용량이 고정되어 있다
 
-        버퍼가 차면 새 보기가 옛 보기를 아무렇게나 갈아 끼운다
-        (더 고르게 담으려면 저수지 뽑기를 쓸 수도 있다).
+        버퍼가 차면 새 예제가 옛 예제를 무작위로 교체한다
+        (더 균등하게 담으려면 저수지 샘플링을 쓸 수도 있다).
         """
 
         def __init__(self, max_size: int = 1000):
             """
-            기억 버퍼를 초기화한다.
+            메모리 버퍼를 초기화한다.
 
             인수:
-                max_size: 담아 둘 보기의 최대 개수
+                max_size: 담아 둘 예제의 최대 개수
             """
             self.max_size = max_size
             self.data = []
@@ -81,15 +81,15 @@
                         labels: torch.Tensor,
                         task_id: int):
             """
-            기억 버퍼에 보기를 더한다.
+            메모리 버퍼에 예제를 더한다.
 
-            버퍼가 차면 옛 보기를 아무렇게나 갈아 끼운다.
+            버퍼가 차면 옛 예제를 무작위로 교체한다.
             이는 단순한 전략이며 더 정교한 방법도 있다.
 
             인수:
                 data: 입력 데이터 텐서 (batch_size, ...)
-                labels: 이름표 텐서 (batch_size,)
-                task_id: 이 보기가 속한 과제의 번호
+                labels: 라벨 텐서 (batch_size,)
+                task_id: 이 예제가 속한 과제의 번호
             """
             batch_size = data.size(0)
 
@@ -103,8 +103,8 @@
                     self.labels.append(label)
                     self.task_ids.append(task_id)
                 else:
-                    # 버퍼가 찼으니 무작위로 갈아 끼운다(저수지 뽑기 방식)
-                    # 그래야 뽑힐 확률이 고르다
+                    # 버퍼가 찼으니 무작위 슬롯을 교체한다(저수지 샘플링과는 다르다)
+                    # 새 예제는 항상 들어가므로 포함 확률은 균등하지 않다
                     idx = random.randint(0, self.max_size - 1)
                     self.data[idx] = example
                     self.labels[idx] = label
@@ -112,23 +112,23 @@
 
         def sample(self, batch_size: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
             """
-            기억 버퍼에서 배치를 아무렇게나 뽑는다.
+            메모리 버퍼에서 배치를 무작위로 샘플링한다.
 
             인수:
-                batch_size: 뽑을 보기의 개수
+                batch_size: 샘플링할 예제의 개수
 
             반환값:
-                (데이터, 이름표, 과제 번호) 짝
+                (데이터, 라벨, 과제 번호) 짝
             """
             if len(self.data) == 0:
-                # 버퍼가 비었으니 빈 텐서를 되돌린다
+                # 버퍼가 비었으니 빈 텐서를 반환한다
                 return torch.tensor([]), torch.tensor([]), torch.tensor([])
 
-            # 되돌려 놓고 뽑는다(되돌리지 않고 뽑을 수도 있다)
+            # 비복원 추출로 뽑는다(random.sample은 중복 없이 뽑는다)
             sample_size = min(batch_size, len(self.data))
             indices = random.sample(range(len(self.data)), sample_size)
 
-            # 뽑은 보기를 모은다
+            # 샘플링한 예제를 모은다
             sampled_data = torch.stack([self.data[i] for i in indices])
             sampled_labels = torch.tensor([self.labels[i] for i in indices], 
                                          dtype=torch.long)
@@ -138,15 +138,15 @@
             return sampled_data, sampled_labels, sampled_task_ids
 
         def __len__(self) -> int:
-            """버퍼에 든 보기의 개수를 되돌린다."""
+            """버퍼에 든 예제의 개수를 반환한다."""
             return len(self.data)
 
         def get_stats(self) -> Dict[int, int]:
             """
-            버퍼가 어떻게 짜였는지 통계를 얻는다.
+            버퍼의 과제별 구성 통계를 얻는다.
 
             반환값:
-                과제 번호를 보기 개수로 옮기는 사전
+                과제 번호를 예제 개수에 대응시키는 딕셔너리
             """
             stats = defaultdict(int)
             for task_id in self.task_ids:
@@ -156,16 +156,16 @@
 
     class ExperienceReplayLearner:
         """
-        경험 리플레이를 쓰는 이어 배우는 학습기.
+        경험 리플레이를 쓰는 지속 학습기.
 
         학습 절차:
         1. 지금 과제 데이터의 배치마다 다음을 한다.
-           a. 기억에서 되살릴 배치를 뽑는다
-           b. 지금 배치의 로스를 셈한다
-           c. 되살린 배치의 로스를 셈한다
-           d. 합친 로스를 거꾸로 퍼뜨린다
-           e. 웨이트를 고친다
-        2. 과제를 익힌 뒤 보기 얼마를 기억 버퍼에 더한다
+           a. 메모리에서 리플레이할 배치를 샘플링한다
+           b. 지금 배치의 로스를 계산한다
+           c. 리플레이 배치의 로스를 계산한다
+           d. 합친 로스를 역전파한다
+           e. 웨이트를 갱신한다
+        2. 과제를 학습한 뒤 예제 얼마를 메모리 버퍼에 더한다
         """
 
         def __init__(self,
@@ -180,8 +180,8 @@
             인수:
                 model: 뉴럴 네트워크 모델
                 device: 학습에 쓸 장치
-                memory_size: 기억 버퍼의 전체 크기
-                examples_per_task: 과제마다 담아 둘 보기의 개수
+                memory_size: 메모리 버퍼의 전체 크기
+                examples_per_task: 과제마다 담아 둘 예제의 개수
                 learning_rate: 옵티마이저의 러닝레이트
             """
             self.model = model
@@ -189,7 +189,7 @@
             self.learning_rate = learning_rate
             self.criterion = nn.CrossEntropyLoss()
 
-            # 기억 버퍼를 초기화한다
+            # 메모리 버퍼를 초기화한다
             self.memory = MemoryBuffer(max_size=memory_size)
             self.examples_per_task = examples_per_task
 
@@ -203,20 +203,20 @@
                            task_id: int,
                            num_examples: int):
             """
-            지금 과제의 보기로 기억 버퍼를 채운다.
+            지금 과제의 예제로 메모리 버퍼를 채운다.
 
-            전략: 학습 집합에서 보기를 아무렇게나 고른다.
-            더 정교한 전략(몰이, 그래디언트 기반 고르기)을 쓰면
+            전략: 학습 집합에서 예제를 무작위로 고른다.
+            더 정교한 전략(허딩(herding), 그래디언트 기반 선택)을 쓰면
             성능이 더 좋아질 수 있다.
 
             인수:
                 train_loader: 지금 과제의 DataLoader
                 task_id: 지금 과제의 번호
-                num_examples: 기억에 더할 보기의 개수
+                num_examples: 메모리에 더할 예제의 개수
             """
             print(f"\n  Adding {num_examples} examples to memory buffer...")
 
-            # 지금 과제의 보기를 모두 모은다
+            # 지금 과제의 예제를 모두 모은다
             all_data = []
             all_labels = []
 
@@ -228,7 +228,7 @@
             all_data = torch.cat(all_data, dim=0)
             all_labels = torch.cat(all_labels, dim=0)
 
-            # num_examples개를 아무렇게나 고른다
+            # num_examples개를 무작위로 고른다
             num_available = all_data.size(0)
             num_to_select = min(num_examples, num_available)
 
@@ -236,10 +236,10 @@
             selected_data = all_data[indices]
             selected_labels = all_labels[indices]
 
-            # 기억 버퍼에 더한다
+            # 메모리 버퍼에 더한다
             self.memory.add_examples(selected_data, selected_labels, task_id)
 
-            # 버퍼 통계를 찍는다
+            # 버퍼 통계를 출력한다
             stats = self.memory.get_stats()
             print(f"  Memory buffer: {len(self.memory)}/{self.memory.max_size} examples")
             print(f"  Distribution: {stats}")
@@ -249,11 +249,11 @@
                       task_id: int,
                       epochs: int = 5) -> List[float]:
             """
-            경험 리플레이를 곁들여 과제 하나로 익힌다.
+            경험 리플레이를 함께 써서 과제 하나로 학습한다.
 
-            소박한 학습과의 핵심 차이:
-            - 배치마다 되살릴 보기도 뽑아 함께 익힌다
-            - 그러면 옛 과제의 그래디언트가 지켜져 잊음이 막힌다
+            단순 학습과의 핵심 차이:
+            - 배치마다 리플레이할 예제도 샘플링해 함께 학습한다
+            - 그러면 옛 과제의 그래디언트가 유지되어 망각이 막힌다
 
             인수:
                 train_loader: 지금 과제의 DataLoader
@@ -261,7 +261,7 @@
                 epochs: 학습 에포크 수
 
             반환값:
-                시대마다의 로스 목록
+                에포크마다의 로스 목록
             """
             optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
@@ -293,7 +293,7 @@
                     replay_loss = torch.tensor(0.0).to(self.device)
 
                     if len(self.memory) > 0:
-                        # 기억 버퍼에서 뽑는다
+                        # 메모리 버퍼에서 샘플링한다
                         replay_data, replay_labels, _ = self.memory.sample(
                             batch_size=data.size(0)
                         )
@@ -302,15 +302,15 @@
                             replay_data = replay_data.to(self.device)
                             replay_labels = replay_labels.to(self.device)
 
-                            # 리플레이 로스를 셈한다
+                            # 리플레이 로스를 계산한다
                             replay_output = self.model(replay_data)
                             replay_loss = self.criterion(replay_output, replay_labels)
 
                     # ===== 합친 로스 =====
-                    # 단순한 무게 합침(다른 무게를 쓸 수도 있다)
+                    # 단순한 가중 합(다른 가중 계수를 쓸 수도 있다)
                     total_loss = current_loss + replay_loss
 
-                    # 합친 로스에 대해 되돌린다
+                    # 합친 로스를 역전파한다
                     total_loss.backward()
                     optimizer.step()
 
@@ -370,11 +370,11 @@
                            test_loaders: List[DataLoader],
                            epochs_per_task: int = 5):
             """
-            경험 리플레이를 쓰는 연속 학습의 주 회귀.
+            경험 리플레이를 쓰는 지속 학습의 주 루프.
 
             과제마다의 절차:
-            1. 리플레이를 곁들여 익힌다
-            2. 이 과제의 보기로 기억 버퍼를 채운다
+            1. 리플레이와 함께 학습한다
+            2. 이 과제의 예제로 메모리 버퍼를 채운다
             3. 모든 과제에서 평가한다
             """
             num_tasks = len(train_loaders)
@@ -390,14 +390,14 @@
             print(f"Examples per Task: {self.examples_per_task}")
 
             for task_id in range(num_tasks):
-                # 지금 과제로 익힌다
+                # 지금 과제로 학습한다
                 self.train_task(
                     train_loader=train_loaders[task_id],
                     task_id=task_id,
                     epochs=epochs_per_task
                 )
 
-                # 이 과제의 보기로 기억을 채운다
+                # 이 과제의 예제로 메모리를 채운다
                 self.populate_memory(
                     train_loader=train_loaders[task_id],
                     task_id=task_id,
@@ -428,13 +428,13 @@
             return self.calculate_metrics()
 
         def calculate_metrics(self):
-            """연속 학습 지표를 셈한다."""
+            """지속 학습 지표를 계산한다."""
             num_tasks = self.accuracy_matrix.shape[0]
 
             # 평균 정확도
             average_accuracy = np.mean(self.accuracy_matrix[:, -1])
 
-            # 뒤로의 옮김(잊음)
+            # 후방 전이(망각)
             backward_transfer = 0.0
             forgetting_per_task = []
 
@@ -448,7 +448,7 @@
             if num_tasks > 1:
                 backward_transfer /= (num_tasks - 1)
 
-            # 러닝 정확도
+            # 학습 직후 정확도
             learning_accuracy = np.mean(np.diag(self.accuracy_matrix))
 
             return {
@@ -463,7 +463,7 @@
     def create_simple_model(input_size: int = 784,
                            hidden_size: int = 256,
                            num_classes: int = 2) -> nn.Module:
-        """단순한 피드포워드 망을 만든다."""
+        """단순한 피드포워드 네트워크를 만든다."""
         model = nn.Sequential(
             nn.Flatten(),
             nn.Linear(input_size, hidden_size),
@@ -517,16 +517,16 @@
                             baseline_metrics: dict,
                             num_tasks: int):
         """
-        경험 리플레이를 베이스라인과 견준다.
+        경험 리플레이를 베이스라인과 비교한다.
 
         인수:
             replay_metrics: 경험 리플레이의 지표
-            baseline_metrics: 소박한 베이스라인의 지표
+            baseline_metrics: 단순 베이스라인의 지표
             num_tasks: 과제 개수
         """
         fig, axes = plt.subplots(1, 3, figsize=(18, 5))
 
-        # 그림 1: 정확도 행렬 견줌
+        # 그림 1: 정확도 행렬 비교
         ax1 = axes[0]
         replay_acc = replay_metrics['accuracy_matrix']
         x = np.arange(num_tasks)
@@ -548,14 +548,14 @@
         ax1.grid(True, alpha=0.3, axis='y')
         ax1.set_ylim([0, 105])
 
-        # 값 이름표를 추가한다
+        # 값 라벨을 추가한다
         for bars in [bars1, bars2]:
             for bar in bars:
                 height = bar.get_height()
                 ax1.text(bar.get_x() + bar.get_width()/2., height,
                         f'{height:.1f}', ha='center', va='bottom', fontsize=8)
 
-        # 그림 2: 잊음 견줌
+        # 그림 2: 망각 비교
         ax2 = axes[1]
 
         replay_forgetting = replay_metrics['forgetting_per_task']
@@ -576,7 +576,7 @@
         ax2.legend()
         ax2.grid(True, alpha=0.3, axis='y')
 
-        # 그림 3: 지표 간추림
+        # 그림 3: 지표 요약
         ax3 = axes[2]
 
         metrics_names = ['Avg Accuracy', 'Backward Transfer', 'Learning Accuracy']
@@ -606,7 +606,7 @@
         ax3.grid(True, alpha=0.3, axis='y')
         ax3.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
 
-        # 값 이름표를 추가한다
+        # 값 라벨을 추가한다
         for bars in [bars1, bars2]:
             for bar in bars:
                 height = bar.get_height()
@@ -637,12 +637,12 @@
         batch_size = 128
         learning_rate = 0.001
         memory_size = 1000
-        examples_per_task = 200  # 과제마다 보기 200개 = 과제 5개에 모두 1000개
+        examples_per_task = 200  # 과제마다 예제 200개 = 과제 5개에 모두 1000개
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"\nUsing device: {device}")
 
-        # 재현성을 위해 씨앗을 설정한다
+        # 재현성을 위해 시드를 설정한다
         torch.manual_seed(42)
         np.random.seed(42)
         random.seed(42)
@@ -701,7 +701,7 @@
             learning_rate=learning_rate
         )
 
-        # 경험 리플레이로 연속 학습을 돌린다
+        # 경험 리플레이로 지속 학습을 돌린다
         start_time = time.time()
         replay_metrics = learner.train_continual(
             train_loaders=train_loaders,
@@ -720,13 +720,13 @@
         print(f"   Backward Transfer:    {replay_metrics['backward_transfer']:.2f}%")
         print(f"\n⏱️  Training Time: {total_time:.2f} seconds")
 
-        # 견주기 위해 베이스라인을 만든다(흉내 낸 것)
-        # 실제로는 소박한 베이스라인을 따로 돌릴 것이다
-        # 여기서는 그림을 위해 어림한 베이스라인 지표를 만든다
+        # 비교하기 위해 베이스라인을 만든다(가정한 값)
+        # 실제로는 단순 베이스라인을 따로 돌릴 것이다
+        # 여기서는 그림을 위해 가정한 베이스라인 지표를 만든다
         baseline_metrics = {
             'average_accuracy': 50.0,  # 흔한 베이스라인
-            'backward_transfer': -40.0,  # 많이 잊음
-            'learning_accuracy': 95.0,  # 처음에는 잘 러닝
+            'backward_transfer': -40.0,  # 망각이 큼
+            'learning_accuracy': 95.0,  # 처음에는 잘 학습
             'forgetting_per_task': [-35, -40, -45, -38],
             'accuracy_matrix': np.array([
                 [95, 60, 55, 50, 48],
@@ -737,7 +737,7 @@
             ])
         }
 
-        # 견줌을 그려 본다
+        # 비교를 시각화한다
         visualize_comparison(replay_metrics, baseline_metrics, num_tasks)
 
         print("\n" + "=" * 70)
@@ -933,7 +933,7 @@
 
 MemoryBuffer는 용량이 차면 새 표본을 항상 무작위 슬롯에 넣는다. 누적 표본 수에 따른 포함 확률을 조절하지 않으므로 저수지 샘플링이 아니며 최근 표본이 유리하다. 기본 다섯 과제×200개=1000개 설정에서는 용량에 정확히 도달하므로 교체가 일어나지 않는다. task_ids는 통계에 사용하지만 예측이나 로스에서 과제별 출력을 선택하지는 않는다.
 
-현재 배치와 같은 수의 과거 표본을 뽑아 두 평균 로스를 합산한다. 버퍼가 작으면 과거 표본 수는 더 적어도 평균 로스의 계수는 1이다. 버퍼 추가를 위해 전체 과제 자료를 cat하므로 임시 메모리는 최종 버퍼보다 클 수 있다. .cpu()는 이미 CPU인 텐서를 반드시 복사하지 않으므로 독립 저장이 필요하면 복사 의미도 확인한다.
+현재 배치와 같은 수의 과거 표본을 뽑아 두 평균 로스를 합산한다. 버퍼가 작으면 과거 표본 수는 더 적어도 평균 로스의 계수는 1이다. 버퍼 추가를 위해 전체 과제 데이터를 cat하므로 임시 메모리는 최종 버퍼보다 클 수 있다. .cpu()는 이미 CPU인 텐서를 반드시 복사하지 않으므로 독립 저장이 필요하면 복사 의미도 확인한다.
 
 각 과제 라벨은 0·1로 재매핑하며 같은 단일 헤드를 사용한다. baseline_metrics는 코드에 고정되어 있고 그 행렬의 AA=60.8, LA=95.8, BWT=−43.75가 별도 필드 50,95,−40과도 일치하지 않는다. 따라서 출력의 개선폭과 비교 그림을 공정한 측정 결과로 읽어서는 안 된다. 같은 초기화·학습 예산에서 기준 모델을 별도 평가한 값이 필요하다.
 
@@ -983,7 +983,7 @@ MemoryBuffer는 용량이 차면 새 표본을 항상 무작위 슬롯에 넣는
 </div>
 
 ??? success "풀이"
-    아래는 검토용 조각이다. state_dict().copy()는 얕은 사전 복사여서 내부 텐서가 이후 갱신과 함께 바뀔 수 있다. 고정 체크포인트는 deepcopy하거나 각 텐서를 분리해 복사해야 한다.
+    아래는 검토용 조각이다. state_dict().copy()는 얕은 딕셔너리 복사여서 내부 텐서가 이후 갱신과 함께 바뀔 수 있다. 고정 체크포인트는 deepcopy하거나 각 텐서를 분리해 복사해야 한다.
     ```python
     best_loss = float('inf')
     patience_counter = 0
@@ -1002,7 +1002,7 @@ MemoryBuffer는 용량이 차면 새 표본을 항상 무작위 슬롯에 넣는
             model.load_state_dict(best_state)
             break
     ```
-    현재 과제만의 검증 로스로 조기 종료하면 과거 성능과의 균형을 놓칠 수 있다. 사용할 과제별 검증 지표와 집계 규칙을 정하고 테스트셋은 선택에 사용하지 않는다. 인내 횟수에 도달하지 않고 종료된 경우에도 선택한 최적 상태를 복원하는 경로가 필요하다.
+    현재 과제만의 검증 로스로 조기 종료하면 과거 성능과의 균형을 놓칠 수 있다. 사용할 과제별 검증 지표와 집계 규칙을 정하고 시험 세트는 선택에 사용하지 않는다. 인내 횟수에 도달하지 않고 종료된 경우에도 선택한 최적 상태를 복원하는 경로가 필요하다.
 
 ## 정리하며
 

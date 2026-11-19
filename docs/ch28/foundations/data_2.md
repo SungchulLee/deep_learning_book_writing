@@ -6,10 +6,10 @@
 
 ```python
 """
-글자 수준 말 모델을 위한 자료 도구
+문자 수준 언어 모델을 위한 자료 도구
 
-이 단원은 자기 회귀 말 모델을 익히기 위한 글 다루기를 맡는다
-익히기 대본.
+이 모듈은 자기 회귀 언어 모델 학습 스크립트를 위한
+텍스트 처리를 맡는다.
 """
 
 import torch
@@ -23,30 +23,30 @@ from typing import Tuple, List
 
 class CharacterDataset:
     """
-    글자 수준 말 나타내기를 위한 자료 묶음.
+    문자 수준 언어 모델링을 위한 데이터셋.
     
     이 클래스는:
-    1. 글을 수 어깨수로 바꾼다(토큰 나누기)
-    2. 익히기를 위한 들임-내놓기 짝을 만든다
-    3. 부호로 바꾸고 푸는 도구를 준다
+    1. 텍스트를 정수 인덱스로 바꾼다(토큰화)
+    2. 학습을 위한 입력-출력 쌍을 만든다
+    3. 인코딩·디코딩 도구를 준다
     """
     
     def __init__(self, text: str, sequence_length: int = 50):
         """
-        글자 자료 묶음을 초기화한다.
+        문자 데이터셋을 초기화한다.
         
         인수:
-            text: 배울 들임 글자열
-            sequence_length: 익히기용 글자 차례의 길이
+            text: 학습할 입력 문자열
+            sequence_length: 학습용 문자 시퀀스의 길이
         """
         self.text = text
         self.sequence_length = sequence_length
         
-        # 서로 다른 글자(단어)를 얻는다
+        # 서로 다른 문자(어휘)를 얻는다
         self.chars = sorted(list(set(text)))
         self.vocab_size = len(self.chars)
         
-        # 옮김을 만든다: 글자 <-> 정수
+        # 매핑을 만든다: 문자 <-> 정수
         self.char_to_idx = {ch: i for i, ch in enumerate(self.chars)}
         self.idx_to_char = {i: ch for i, ch in enumerate(self.chars)}
         
@@ -56,51 +56,51 @@ class CharacterDataset:
         
     def encode(self, text: str) -> List[int]:
         """
-        글을 정수 목록으로 바꾼다.
+        텍스트를 정수 목록으로 바꾼다.
         
         인수:
-            text: 부호로 바꿀 글자열
+            text: 인코딩할 문자열
             
         반환값:
-            정수 어깨수 목록
+            정수 인덱스 목록
         """
         return [self.char_to_idx[ch] for ch in text]
     
     def decode(self, indices: List[int]) -> str:
         """
-        정수 목록을 다시 글로 바꾼다.
+        정수 목록을 다시 텍스트로 바꾼다.
         
         인수:
-            indices: 정수 어깨수 목록
+            indices: 정수 인덱스 목록
             
         반환값:
-            푼 글자열
+            디코딩한 문자열
         """
         return ''.join([self.idx_to_char[idx] for idx in indices])
     
     def create_sequences(self) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        글에서 익히기 차례를 만든다.
+        텍스트에서 학습 시퀀스를 만든다.
         
-        자기 회귀 말 나타내기에서는:
-        - 들임: 글자의 차례 [c1, c2, ..., cn]
-        - 목표: 자리마다 다음 글자 [c2, c3, ..., cn+1]
+        자기 회귀 언어 모델링에서는:
+        - 입력: 문자의 시퀀스 [c1, c2, ..., cn]
+        - 목표: 자리마다 다음 문자 [c2, c3, ..., cn+1]
         
         반환값:
-            텐서로 된 (들임, 목표) 짝
+            텐서로 된 (입력, 목표) 튜플
         """
-        # 온 글을 부호로 바꾼다
+        # 전체 텍스트를 인코딩한다
         encoded_text = self.encode(self.text)
         
         sequences = []
         targets = []
         
-        # 글 위로 창을 미끄러뜨린다
+        # 텍스트 위로 슬라이딩 창을 옮겨 간다
         for i in range(len(encoded_text) - self.sequence_length):
-            # 들임: i에서 i+sequence_length까지의 글자
+            # 입력: i에서 i+sequence_length까지의 문자
             seq = encoded_text[i:i + self.sequence_length]
             
-            # 목표: 차례 다음에 오는 글자
+            # 목표: 시퀀스 다음에 오는 문자
             target = encoded_text[i + self.sequence_length]
             
             sequences.append(seq)
@@ -115,12 +115,12 @@ class CharacterDataset:
 
 def load_sample_text() -> str:
     """
-    보여 주기용 보기 글을 불러온다.
+    시연용 예시 텍스트를 불러온다.
     
     반환값:
-        보기 글자열
+        예시 문자열
     """
-    # 보기 글: 셰익스피어풍 글월
+    # 예시 텍스트: 셰익스피어풍 문장
     표본 = """
     To be, or not to be, that is the question:
     Whether 'tis nobler in the mind to suffer
@@ -143,13 +143,13 @@ def load_sample_text() -> str:
 
 def load_text_file(filepath: str) -> str:
     """
-    파일에서 글을 불러온다.
+    파일에서 텍스트를 불러온다.
     
     인수:
-        filepath: 글 파일의 길
+        filepath: 텍스트 파일의 경로
         
     반환값:
-        글자열로 된 글 내용
+        문자열로 된 텍스트 내용
     """
     with open(filepath, 'r', encoding='utf-8') as f:
         return f.read()
@@ -159,15 +159,15 @@ def train_test_split(X: torch.Tensor,
                      y: torch.Tensor, 
                      train_ratio: float = 0.9) -> Tuple[torch.Tensor, ...]:
     """
-    자료를 익히기 배치와 시험 배치로 가른다.
+    자료를 학습 세트와 시험 세트로 나눈다.
     
-    글에서는 흔히 익히기 비율을 더 높게 쓴다(예컨대 90/10)
-    익히기 자료를 되도록 많이 얻으려 하기 때문이다.
+    텍스트에서는 흔히 학습 비율을 더 높게 쓴다(예컨대 90/10)
+    학습 데이터를 되도록 많이 얻으려 하기 때문이다.
     
     인수:
-        X: 들임 차례
-        y: 목표 글자
-        train_ratio: 익히기에 쓸 몫
+        X: 입력 시퀀스
+        y: 목표 문자
+        train_ratio: 학습에 쓸 몫
         
     반환값:
         (X_train, X_test, y_train, y_test)
@@ -175,7 +175,7 @@ def train_test_split(X: torch.Tensor,
     n = len(X)
     split_idx = int(n * train_ratio)
     
-    # 글에서는 앞뒤가 이어지도록 섞지 않는다
+    # 텍스트에서는 앞뒤가 이어지도록 섞지 않는다
     X_train = X[:split_idx]
     X_test = X[split_idx:]
     y_train = y[:split_idx]
@@ -186,10 +186,10 @@ def train_test_split(X: torch.Tensor,
 
 if __name__ == "__main__":
     """
-    보여 주기: 보기 글을 다룬다
+    시연: 예시 텍스트를 다룬다
     """
     
-    # 보기 글을 불러온다
+    # 예시 텍스트를 불러온다
     text = load_sample_text()
     print("Sample text:")
     print(text[:200] + "...")
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     # 데이터셋 생성
     dataset = CharacterDataset(text, sequence_length=20)
     
-    # 부호화와 복호 시험
+    # 인코딩과 디코딩 시험
     sample_text = "Hello, World!"
     encoded = dataset.encode(sample_text)
     decoded = dataset.decode(encoded)
@@ -208,13 +208,13 @@ if __name__ == "__main__":
     print(f"Decoded: {decoded}")
     print(f"Match: {sample_text == decoded}")
     
-    # 차례를 만든다
+    # 시퀀스를 만든다
     X, y = dataset.create_sequences()
     print(f"\nCreated {len(X)} training sequences")
     print(f"Input shape: {X.shape}")
     print(f"Target shape: {y.shape}")
     
-    # 보기를 보인다
+    # 예시를 보인다
     print(f"\nExample sequence:")
     print(f"Input (encoded): {X[0]}")
     print(f"Input (decoded): '{dataset.decode(X[0].tolist())}'")
@@ -313,10 +313,10 @@ train_test_split은 창의 앞부분·뒷부분을 순서대로 나눈다. 인�
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

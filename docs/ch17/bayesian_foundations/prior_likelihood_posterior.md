@@ -1,21 +1,21 @@
-# 사전분포, 우도, 사후분포
+# 사전분포, 가능도, 사후분포
 
-베이즈 추론은 사전분포와 우도를 결합해 사후분포를 구한다. 주변 우도는 이 분포를 정규화하고 모델 비교에도 사용된다. 각 개념을 정의한 뒤 베타-이항과 정규-정규 모델의 사후분포를 유도하고, 순차 갱신과 수치 근사의 조건을 살펴본다.
+베이즈 추론은 사전분포와 가능도(likelihood, 우도라고도 한다)를 결합해 사후분포를 구한다. 주변 가능도는 이 분포를 정규화하고 모델 비교에도 사용된다. 각 개념을 정의한 뒤 베타-이항과 정규-정규 모델의 사후분포를 유도하고, 순차 갱신과 수치 근사의 조건을 살펴본다.
 
 ## 1. 베이즈 정리: 네 조각
 
-**정의 1.** [사전분포, 우도, 사후분포, 증거]
+**정의 1.** [사전분포, 가능도, 사후분포, 증거]
 
 파라메터 θ와 관측 데이터 D에 대해 다음과 같이 정의한다. 연속형 변수에서는 확률 자체와 확률밀도를 구분하며, p는 문맥에 따라 확률질량 또는 밀도를 나타낸다.
 
 - **사전분포** $p(\theta)$: 데이터를 관측하기 전 파라메터의 불확실성을 나타낸다.
-- **우도** $p(D\mid\theta)$: 관측한 D를 고정하고 θ의 함수로 보는 확률질량 또는 밀도다.
+- **가능도** $p(D\mid\theta)$: 관측한 D를 고정하고 θ의 함수로 보는 확률질량 또는 밀도다.
 - **사후분포** $p(\theta\mid D)$: 관측 데이터를 반영한 파라메터의 분포다.
-- **주변 우도** $p(D)$: 우도를 사전분포에 대해 평균한 값이며 증거라고도 한다.
+- **주변 가능도** $p(D)$: 가능도를 사전분포에 대해 평균한 값이며 증거라고도 한다.
 
 <div class="thmbox" markdown>
 
-### 정리 1. 베이즈 정리 — 사후분포는 우도와 사전분포의 곱에 비례한다 { .thm }
+### 정리 1. 베이즈 정리 — 사후분포는 가능도와 사전분포의 곱에 비례한다 { .thm }
 
 $0<p(D)<∞$이면 다음이 성립한다. 이산형 파라메터에서는 적분을 합으로 바꾼다.
 
@@ -52,13 +52,13 @@ $$
     $$
 
 !!! note "쓰임새"
-    비례식은 정규화 가능한 사후분포의 형태를 정한다. MAP처럼 밀도의 최댓값만 필요할 때는 θ와 무관한 주변 우도를 계산하지 않아도 된다. 다만 적분이 유한하고 양수인지, 최댓값이 존재하는지는 별도로 확인해야 한다.
+    비례식은 정규화 가능한 사후분포의 형태를 정한다. MAP처럼 밀도의 최댓값만 필요할 때는 θ와 무관한 주변 가능도를 계산하지 않아도 된다. 다만 적분이 유한하고 양수인지, 최댓값이 존재하는지는 별도로 확인해야 한다.
 
 <div class="storybox" markdown>
 
 **그림으로 보는 AI 1.** 베이즈는 위의 식을 쓴 적이 없다
 
-위 정리에 그의 이름이 붙어 있지만, 토머스 베이즈(Thomas Bayes)가 남긴 글에는 저런 형태의 식이 없다. 사전분포·우도·사후분포라는 말도 없다. 그는 이 글을 **발표하지도 않았다.**
+위 정리에 그의 이름이 붙어 있지만, 토머스 베이즈(Thomas Bayes)가 남긴 글에는 저런 형태의 식이 없다. 사전분포·가능도·사후분포라는 말도 없다. 그는 이 글을 **발표하지도 않았다.**
 
 세상에 나온 경위가 제목에 그대로 적혀 있다 — "By the late Rev. Mr. Bayes, communicated by Mr. Price". 1763년 12월 23일에 낭독된 그 글은 친구 리처드 프라이스(Richard Price)가 보낸 편지에 담겨 있었고, 편지는 이렇게 시작한다. "I now send you an essay which I have found among the papers of our deceased friend Mr. Bayes." 죽은 벗의 서류 더미에서 찾아낸 글이라는 뜻이다. 베이즈가 직접 쓴 머리말은 빠지고 프라이스의 머리말이 그 자리에 들어갔다.
 
@@ -66,7 +66,7 @@ $$
 
 > "Given the number of times in which an unknown event has happened and failed: Required the chance that the probability of its happening in a single trial lies somewhere **between any two degrees of probability that can be named.**"
 
-곧 **두 점 사이에 있을 확률**을 구하라는 것이다. 오늘 말로 하면 신용구간이고, 이 장의 [베이즈 신용구간](credible_intervals.md) 쪽이 셈하는 바로 그 양이다.
+곧 **두 점 사이에 있을 확률**을 구하라는 것이다. 오늘 말로 하면 신용구간이고, 이 장의 [베이즈 신용구간](credible_intervals.md) 쪽이 계산하는 바로 그 양이다.
 
 ![왼쪽은 베이즈가 둔 장치를 그린 것이다. 네 꼭짓점이 A, B, C, D 인 정사각 판 위에 공 W 가 멈춰 있고, 그 자리를 지나 변 AD 에 나란한 세로선 os 가 그어져 있다. 공을 열두 번 던져 선 왼쪽에 다섯 개, 오른쪽에 일곱 개가 떨어졌고 왼쪽 구간에 사건 M 이라고 적혀 있다. 아래에 1763년의 Postulate 1 이며 원문에 billiard 라는 단어는 한 번도 나오지 않는다고 적혀 있다. 오른쪽은 그 결과로 얻는 사후분포 곡선으로, 0.4 와 0.8 사이가 칠해져 있고 그 넓이가 0.573 이라고 적혀 있다.](figures/bayes_table.svg)
 
@@ -76,21 +76,21 @@ $$
 
 **그리고 베이즈의 균등 사전분포는 "모르니까 균등"이 아니었다.** Postulate 1 을 다시 보면 판이 "so made and levelled" 하다고, 곧 **평평하게 만들어졌다**고 적혀 있다. 공이 어디에 멈출지 균등한 것은 무지의 표현이 아니라 **장치에 대한 물리적 사실**이다. 아래 2절이 사전분포를 고르는 일을 따로 다루는 까닭이 여기에 있다 — 베이즈에게는 사전분포를 정당화해 주는 판이 있었고, 우리가 다루는 문제에는 대개 그런 판이 없다.
 
-_확인한 곳 — 원문 "LII. An Essay towards solving a Problem in the Doctrine of Chances", *Philosophical Transactions* (1763년 12월 23일 낭독) 을 내려받아 확인했다. 인용한 PROBLEM 문장과 Postulate 1, 프라이스의 편지 첫 문장이 모두 그 글에 있고, `billiard` 는 0 번 나온다. 라플라스의 1774년 독립 발견과 1781년에야 베이즈의 글을 접한 경위는 2차 문헌에서 확인했다. 오른쪽 그림의 수는 그림을 그리는 코드가 직접 셈하며, 칠한 넓이가 그 확률과 같은지 스스로 확인한 뒤에만 그린다._
+_확인한 곳 — 원문 "LII. An Essay towards solving a Problem in the Doctrine of Chances", *Philosophical Transactions* (1763년 12월 23일 낭독) 을 내려받아 확인했다. 인용한 PROBLEM 문장과 Postulate 1, 프라이스의 편지 첫 문장이 모두 그 글에 있고, `billiard` 는 0 번 나온다. 라플라스의 1774년 독립 발견과 1781년에야 베이즈의 글을 접한 경위는 2차 문헌에서 확인했다. 오른쪽 그림의 수는 그림을 그리는 코드가 직접 계산하며, 칠한 넓이가 그 확률과 같은지 스스로 확인한 뒤에만 그린다._
 
 </div>
 
 ## 2. 사전분포
 
-**정의 2.** [정보를 담은 사전분포과 담지 않은 사전분포]
+**정의 2.** [정보를 담은 사전분포와 담지 않은 사전분포]
 
-사전분포가 특정 범위에 얼마나 집중하는지를 기준으로 정보적 사전분포와 약한 정보 사전분포를 구분한다. 완전히 중립적인 사전분포가 하나로 정해지는 것은 아니며 변수의 스케일과 관측 모형에 따라 영향이 달라진다. 우도와 결합한 사후분포가 같은 분포족에 속하면 켤레 사전분포라 한다.
+사전분포가 특정 범위에 얼마나 집중하는지를 기준으로 정보적 사전분포와 약한 정보 사전분포를 구분한다. 완전히 중립적인 사전분포가 하나로 정해지는 것은 아니며 변수의 스케일과 관측 모형에 따라 영향이 달라진다. 가능도와 결합한 사후분포가 같은 분포족에 속하면 켤레 사전분포라 한다.
 
 | 종류 | 예 | 해석과 조건 |
 |------|------|-------|
 | 균등 사전분포 | Beta(1,1) | 성공 확률 θ의 원래 좌표에서 균등하다. |
 | 부적절 사전분포 | 실수 전체에서 p(μ)∝1 | 적분이 무한하므로 확률분포가 아니다. 사후분포의 적절성을 확인한다. |
-| 제프리스 사전분포 | 베르누이 모형의 Beta(0.5,0.5) | 일대일 리파라메리제이션에서 같은 확률측도를 정의한다. |
+| 제프리스 사전분포 | 베르누이 모형의 Beta(0.5,0.5) | 일대일 재매개변수화(reparameterization)에서 같은 확률측도를 정의한다. |
 | 약한 정보의 예 | Beta(2,2) | 이 모형에서는 0·1 근처를 완화한다. 영향은 데이터 양에 달려 있다. |
 | 집중된 사전분포의 예 | Beta(10,10) | θ≈0.5라는 상대적으로 강한 가정을 반영한다. |
 
@@ -98,7 +98,7 @@ _확인한 곳 — 원문 "LII. An Essay towards solving a Problem in the Doctri
 
 ### 정리 2. 사전예측분포 — 관측 전의 데이터 분포 { .thm }
 
-데이터를 보기 전에 어떤 데이터가 나올지 묻는 분포는 우도를 사전분포로 평균 낸 것이며, 이는 곧 증거이다.
+데이터를 보기 전에 어떤 데이터가 나올지 묻는 분포는 가능도를 사전분포로 평균 낸 것이며, 이는 곧 증거이다.
 
 $$
 p(D) = \int p(D \mid \theta)\,p(\theta)\,d\theta
@@ -116,7 +116,7 @@ $$
 
 ??? proof "증명"
 
-    이항 우도와 베타 사전분포를 넣으면
+    이항 가능도와 베타 사전분포를 넣으면
 
     $$
     p(k) = \int_0^1 \binom{n}{k}\theta^{k}(1-\theta)^{n-k}\,
@@ -132,7 +132,7 @@ $$
     를 쓰면 곧바로 결론이 나온다.
 
 !!! note "쓰임새"
-    사전예측분포는 사전분포와 관측 모형의 조합을 점검하는 데 사용한다. 현실적으로 불가능한 자료에 큰 확률을 주면 사전분포뿐 아니라 우도의 스케일과 관측 가정도 검토한다. 주변 우도를 확률분포로 해석하려면 적절한 사전분포가 필요하다.
+    사전예측분포는 사전분포와 관측 모형의 조합을 점검하는 데 사용한다. 현실적으로 불가능한 데이터에 큰 확률을 주면 사전분포뿐 아니라 가능도의 스케일과 관측 가정도 검토한다. 주변 가능도를 확률분포로 해석하려면 적절한 사전분포가 필요하다.
 
 **보기 1.** <span class="diff easy" title="쉬움"></span> $\text{Beta}(1,1)$ 사전분포에서 동전을 $n$ 번 던질 때 앞면이 $k$ 번 나올 사전예측확률을 구하시오.
 
@@ -147,19 +147,19 @@ $$
 
     이다. 곧 $k = 0,1,\dots,n$ 이 모두 **동일한 확률을 갖는다**. 균등 사전분포가 뜻하는 바가 "성공 횟수에 대해 아무 선호도 없다"임을 보여 준다.
 
-**문제 1.** <span class="diff med" title="중간"></span> 제프리스 사전분포 $\text{Beta}(0.5, 0.5)$ 가 파라메터 바꾸기에 흔들리지 않는다는 것이 무슨 뜻인지 설명하고, 균등 사전분포가 왜 그 성질을 갖지 못하는지 보이시오.
+**문제 1.** <span class="diff med" title="중간"></span> 제프리스 사전분포 $\text{Beta}(0.5, 0.5)$ 가 재매개변수화에 불변이라는 것이 무슨 뜻인지 설명하고, 균등 사전분포가 왜 그 성질을 갖지 못하는지 보이시오.
 
 ??? success "풀이"
 
-    $\theta$ 에 균등 사전분포를 두면 $\eta = \log\frac{\theta}{1-\theta}$ 같은 다른 파라메터에서는 고르지 않다. 야코비안 $\bigl|d\theta/d\eta\bigr| = \theta(1-\theta)$ 가 붙기 때문이다. 곧 "아무것도 모른다"는 진술이 어떤 자로 재느냐에 따라 달라진다.
+    $\theta$ 에 균등 사전분포를 두면 $\eta = \log\frac{\theta}{1-\theta}$ 같은 다른 파라메터에서는 균등하지 않다. 야코비안 $\bigl|d\theta/d\eta\bigr| = \theta(1-\theta)$ 가 붙기 때문이다. 곧 "아무것도 모른다"는 진술이 어떤 좌표로 재느냐에 따라 달라진다.
 
-    제프리스 사전분포는 $p(\theta) \propto \sqrt{I(\theta)}$ 로 잡는데, 피셔 정보 $I$ 가 파라메터 바꾸기에서 야코비안의 제곱으로 바뀌므로 $\sqrt{I}$ 는 야코비안 한 겹으로 바뀐다. 이는 밀도가 바뀌는 방식과 정확히 같아서, 어느 자로 재든 같은 사전분포를 준다. 베르누이에서 $I(\theta) = 1/(\theta(1-\theta))$ 이므로 $p(\theta)\propto \theta^{-1/2}(1-\theta)^{-1/2}$, 곧 $\text{Beta}(0.5,0.5)$ 이다.
+    제프리스 사전분포는 $p(\theta) \propto \sqrt{I(\theta)}$ 로 잡는데, 피셔 정보 $I$ 가 재매개변수화에서 야코비안의 제곱으로 바뀌므로 $\sqrt{I}$ 는 야코비안에 비례해 바뀐다. 이는 밀도가 바뀌는 방식과 정확히 같아서, 어느 좌표로 재든 같은 사전분포를 준다. 베르누이에서 $I(\theta) = 1/(\theta(1-\theta))$ 이므로 $p(\theta)\propto \theta^{-1/2}(1-\theta)^{-1/2}$, 곧 $\text{Beta}(0.5,0.5)$ 이다.
 
-## 3. 우도 함수
+## 3. 가능도 함수
 
-**정의 3.** [우도와 로그우도]
+**정의 3.** [가능도와 로그가능도]
 
-데이터 $D$ 를 고정하고 $\theta$ 의 함수로 본 $p(D \mid \theta)$ 를 **우도 함수** $L(\theta)$ 라 하고, 그 로그를 **로그우도** $\ell(\theta) = \log L(\theta)$ 라 한다. 관측이 θ를 조건으로 서로 독립이면
+데이터 $D$ 를 고정하고 $\theta$ 의 함수로 본 $p(D \mid \theta)$ 를 **가능도 함수** $L(\theta)$ 라 하고, 그 로그를 **로그가능도** $\ell(\theta) = \log L(\theta)$ 라 한다. 관측이 θ를 조건으로 서로 독립이면
 
 $$
 L(\theta) = \prod_{i=1}^n p(x_i \mid \theta),
@@ -167,11 +167,11 @@ L(\theta) = \prod_{i=1}^n p(x_i \mid \theta),
 \ell(\theta) = \sum_{i=1}^n \log p(x_i \mid \theta)
 $$
 
-이다. 우도는 θ에 대한 확률밀도로 정의되지 않으므로 θ에 대한 적분이 1일 필요가 없다. 데이터 공간에 대한 정규화와 파라메터 공간에 대한 정규화는 다르다.
+이다. 가능도는 θ에 대한 확률밀도로 정의되지 않으므로 θ에 대한 적분이 1일 필요가 없다. 데이터 공간에 대한 정규화와 파라메터 공간에 대한 정규화는 다르다.
 
 <div class="thmbox" markdown>
 
-### 정리 3. 인수분해 정리 — 충분 통계량이 우도를 요약한다 { .thm }
+### 정리 3. 인수분해 정리 — 충분 통계량이 가능도를 요약한다 { .thm }
 
 공통 지배측도 아래 밀도를 갖는 통계 모형에서, 통계량 $T(D)$에 대해 음이 아닌 함수 $g,h$가 있어
 
@@ -196,9 +196,9 @@ $$
     = \frac{g(T(D),\theta)p(\theta)}{\int g(T(D),\theta')p(\theta')\,d\theta'}
     $$
 
-    이다. 관측한 자료에서 정규화가 가능하면 h(D)가 약분되므로 사후분포는 D에 대해 T(D)를 통해서만 달라진다. 이는 인수분해가 베이즈 갱신을 요약한다는 설명이며, 특정 사전분포 하나에서의 사후 관계만으로 빈도주의 충분성을 역으로 증명한 것은 아니다.
+    이다. 관측한 데이터에서 정규화가 가능하면 h(D)가 약분되므로 사후분포는 D에 대해 T(D)를 통해서만 달라진다. 이는 인수분해가 베이즈 갱신을 요약한다는 설명이며, 특정 사전분포 하나에서의 사후 관계만으로 빈도주의 충분성을 역으로 증명한 것은 아니다.
 
-    이산형 자료에서는 충분성의 정의에 따라 D의 T 조건부 분포가 θ에 의존하지 않는다. 따라서 g(T,θ)=p(T|θ), h(D)=p(D|T(D))로 인수분해할 수 있다. 연속형 자료의 일반적인 필요충분성은 조건부 밀도와 지배측도에 대한 인수분해 정리로 이해한다.
+    이산형 데이터에서는 충분성의 정의에 따라 D의 T 조건부 분포가 θ에 의존하지 않는다. 따라서 g(T,θ)=p(T|θ), h(D)=p(D|T(D))로 인수분해할 수 있다. 연속형 데이터의 일반적인 필요충분성은 조건부 밀도와 지배측도에 대한 인수분해 정리로 이해한다.
 
 !!! note "쓰임새"
     베르누이 시행 $n$ 번에서 충분 통계량은 성공 횟수 $\sum x_i$ 하나뿐이다. 어느 시행에서 성공했는지 하는 순서 정보는 $\theta$ 에 대해 아무것도 말해 주지 않는다. 그래서 데이터 $n$ 개를 수 하나로 줄여도 손해가 없다.
@@ -207,7 +207,7 @@ $$
 
 ??? success "풀이"
 
-    로그우도를 펼치면
+    로그가능도를 펼치면
 
     $$
     \ell(\mu) = -\frac{1}{2\sigma^2}\sum_i (x_i - \mu)^2 + \text{const}
@@ -216,11 +216,11 @@ $$
 
     이다. $\mu$ 와 얽힌 항은 $\sum_i x_i$ 뿐이므로 $T(D) = \sum_i x_i$, 같은 말로 표본 평균 $\bar x$ 가 충분 통계량이다.
 
-**문제 2.** <span class="diff med" title="중간"></span> **우도 원리**란 두 실험이 비례하는 우도를 주면 같은 추론을 해야 한다는 것이다. 동전을 $12$ 번 던져 앞면 $9$ 번을 본 경우와, 앞면이 $9$ 번 나올 때까지 던져 $12$ 번 만에 멈춘 경우를 비교하여 이 원리를 설명하시오.
+**문제 2.** <span class="diff med" title="중간"></span> **가능도 원리**란 두 실험이 비례하는 가능도를 주면 같은 추론을 해야 한다는 것이다. 동전을 $12$ 번 던져 앞면 $9$ 번을 본 경우와, 앞면이 $9$ 번 나올 때까지 던져 $12$ 번 만에 멈춘 경우를 비교하여 이 원리를 설명하시오.
 
 ??? success "풀이"
 
-    앞의 것은 이항, 뒤의 것은 음이항 실험이다. 우도는 각각
+    앞의 것은 이항, 뒤의 것은 음이항 실험이다. 가능도는 각각
 
     $$
     \binom{12}{9}\theta^9(1-\theta)^3,
@@ -230,17 +230,17 @@ $$
 
     으로 $\theta$ 에 대해 **비례한다**. 상수 $\binom{12}{9}$ 와 $\binom{11}{8}$ 은 $\theta$ 에 달리지 않으므로 정리 1의 비례 관계에서 지워진다.
 
-    따라서 같은 사전분포와 올바른 관측 모형을 사용하면 두 경우의 사후분포가 같다. 반면 빈도주의 $p$ 값은 "더 극단적인 결과"를 어떻게 셈하느냐가 실험 설계에 달려 있어 서로 다른 값이 나온다. 이것이 우도 원리를 둘러싼 오랜 다툼의 자리다.
+    따라서 같은 사전분포와 올바른 관측 모형을 사용하면 두 경우의 사후분포가 같다. 반면 빈도주의 $p$ 값은 "더 극단적인 결과"를 어떻게 계산하느냐가 실험 설계에 달려 있어 서로 다른 값이 나온다. 이것이 가능도 원리를 둘러싼 오랜 다툼의 자리다.
 
 ## 4. 증거와 사후분포 계산
 
 **정의 4.** [증거]
 
-$p(D) = \int p(D\mid\theta)p(\theta)\,d\theta$ 를 **증거** 또는 **주변 우도**라 한다. 사후분포를 정규화하는 상수이면서, 동시에 그 모델이 데이터를 얼마나 잘 설명하는지를 나타내는 값이다.
+$p(D) = \int p(D\mid\theta)p(\theta)\,d\theta$ 를 **증거** 또는 **주변 가능도**라 한다. 사후분포를 정규화하는 상수이면서, 동시에 그 모델이 데이터를 얼마나 잘 설명하는지를 나타내는 값이다.
 
 <div class="thmbox" markdown>
 
-### 정리 4. 증거의 두 얼굴 — 정규화 상수이자 모델 비교의 자 { .thm }
+### 정리 4. 증거의 두 얼굴 — 정규화 상수이자 모델 비교의 기준 { .thm }
 
 두 모델 $M_1, M_2$ 에 대해 베이즈 인자를
 
@@ -248,7 +248,7 @@ $$
 \text{BF}_{12} = \frac{p(D \mid M_1)}{p(D \mid M_2)}
 $$
 
-로 두면, 모델에 대한 사후 오즈은 사전 오즈에 베이즈 인자를 곱한 것이다.
+로 두면, 모델에 대한 사후 오즈는 사전 오즈에 베이즈 인자를 곱한 것이다.
 
 $$
 \frac{p(M_1 \mid D)}{p(M_2 \mid D)} = \text{BF}_{12}\cdot\frac{p(M_1)}{p(M_2)}
@@ -273,36 +273,36 @@ $$
     를 얻는다.
 
 !!! note "쓰임새"
-    파라메터의 정규화된 사후분포를 구할 때 주변 우도는 정규화 상수다. 모델 비교에서는 각 모델의 적절한 파라메터 사전분포로 평균한 우도를 사용한다. 잘 맞는 좁은 영역만 있는 모델은 넓은 사전 범위 때문에 평균 우도가 낮아질 수 있지만, 파라메터가 많다는 이유만으로 주변 우도가 반드시 감소하지는 않는다. 부적절 사전분포의 임의 상수는 베이즈 인자를 정의하지 못하게 할 수 있다.
+    파라메터의 정규화된 사후분포를 구할 때 주변 가능도는 정규화 상수다. 모델 비교에서는 각 모델의 적절한 파라메터 사전분포로 평균한 가능도를 사용한다. 잘 맞는 좁은 영역만 있는 모델은 넓은 사전 범위 때문에 평균 가능도가 낮아질 수 있지만, 파라메터가 많다는 이유만으로 주변 가능도가 반드시 감소하지는 않는다. 부적절 사전분포의 임의 상수는 베이즈 인자를 정의하지 못하게 할 수 있다.
 
-저차원에서는 격자 수치 적분으로 근사할 수 있다. 아래 함수에는 같은 길이의 1차원 격자·밀도·우도 값을 전달해야 하며 격자는 오름차순이고 적분값은 유한한 양수여야 한다. 격자 밖 질량과 곱셈의 언더플로도 확인해야 한다.
+저차원에서는 격자 수치 적분으로 근사할 수 있다. 아래 함수에는 같은 길이의 1차원 격자·밀도·가능도 값을 전달해야 하며 격자는 오름차순이고 적분값은 유한한 양수여야 한다. 격자 밖 질량과 곱셈의 언더플로도 확인해야 한다.
 
 ```python
 import numpy as np
 
 def posterior_continuous(theta_grid, prior, likelihood, normalize=True):
     """
-    격자 위에서 뒤확률 분포를 셈한다.
+    격자 위에서 사후분포를 계산한다.
     
     파라메터
     ----------
     theta_grid : array-like
         파라메터 값의 격자
     prior : array-like
-        theta_grid에서 값을 매긴 앞확률 밀도
+        theta_grid에서 평가한 사전 밀도
     likelihood : array-like
-        theta_grid에서 값을 매긴 가능도
+        theta_grid에서 평가한 가능도
     
     반환값
     -------
     posterior : numpy array
-        theta_grid에서의 뒤확률 밀도
+        theta_grid에서의 사후 밀도
     """
     theta_grid = np.asarray(theta_grid)
     prior = np.asarray(prior)
     likelihood = np.asarray(likelihood)
     
-    # 고르게 하지 않은 뒤확률
+    # 정규화하지 않은 사후분포
     posterior = prior * likelihood
     
     if normalize:
@@ -317,13 +317,13 @@ def posterior_continuous(theta_grid, prior, likelihood, normalize=True):
 
 ??? success "풀이"
 
-    정리 1의 비례 관계에 따라 격자 위에서 `prior * likelihood` 를 셈하면 정규화하지 않은 사후분포가 곧바로 나온다. 남은 일은 그 곡선 아래 넓이로 나누어 적분이 $1$ 이 되게 하는 것뿐이며, 그 넓이가 바로 증거 $p(D)$ 의 수치 추정값이다.
+    정리 1의 비례 관계에 따라 격자 위에서 `prior * likelihood` 를 계산하면 정규화하지 않은 사후분포가 곧바로 나온다. 남은 일은 그 곡선 아래 넓이로 나누어 적분이 $1$ 이 되게 하는 것뿐이며, 그 넓이가 바로 증거 $p(D)$ 의 수치 추정값이다.
 
     격자가 촘촘할수록 정확해지지만 차원이 늘면 격자점 수가 지수로 늘어난다. 그래서 파라메터가 몇 개만 넘어가도 격자 대신 샘플링을 쓴다.
 
 ## 5. 베타-이항 켤레 모델
 
-이항 우도와 베타 사전분포를 결합하면 사후분포가 다시 베타가 된다. 켤레성이 주는 가장 단순하고 중요한 보기다.
+이항 가능도와 베타 사전분포를 결합하면 사후분포가 다시 베타가 된다. 켤레성이 주는 가장 단순하고 중요한 보기다.
 
 <div class="thmbox" markdown>
 
@@ -335,7 +335,7 @@ $$
 \theta \mid D \;\sim\; \text{Beta}(\alpha + k,\ \beta + n - k)
 $$
 
-이다. 따라서 사후분포의 평균은 사전평균과 최대 우도 추정값의 가중 평균이다. 이 표현은 n>0일 때 사용하며 n=0이면 사후분포는 사전분포와 같다.
+이다. 따라서 사후분포의 평균은 사전평균과 최대 가능도 추정값의 가중 평균이다. 이 표현은 n>0일 때 사용하며 n=0이면 사후분포는 사전분포와 같다.
 
 $$
 \mathbb{E}[\theta \mid D]
@@ -383,14 +383,14 @@ def beta_binomial_inference(n_heads, n_tails, prior_alpha=1, prior_beta=1):
     n_tails : int
         관측된 뒷면의 횟수
     prior_alpha, prior_beta : float
-        베타 앞확률의 파라메터
+        베타 사전분포의 파라메터
     
     반환값
     -------
     posterior_dist : scipy.stats.beta
-        뒤확률 베타 분포
+        사후분포 베타 분포
     """
-    # 켤레 새로 고치기
+    # 켤레 갱신
     post_alpha = prior_alpha + n_heads
     post_beta = prior_beta + n_tails
     
@@ -403,7 +403,7 @@ def beta_binomial_inference(n_heads, n_tails, prior_alpha=1, prior_beta=1):
     post_mean = posterior_dist.mean()
     post_mode = (post_alpha - 1) / (post_alpha + post_beta - 2)
     
-    # 최대 가능도 어림값
+    # 최대가능도 추정값
     mle = n_heads / (n_heads + n_tails)
     
     return posterior_dist
@@ -411,7 +411,7 @@ def beta_binomial_inference(n_heads, n_tails, prior_alpha=1, prior_beta=1):
 
 ```python
 def compare_priors(n_heads, n_tails):
-    """서로 다른 앞확률 아래의 뒤확률을 견준다."""
+    """서로 다른 사전분포 아래의 사후분포를 비교한다."""
     
     priors = {
         'Uniform': (1, 1),
@@ -434,7 +434,7 @@ def compare_priors(n_heads, n_tails):
 
 ??? success "풀이"
 
-    최대 우도는 $15/20 = 0.75$ 이다. 정리 5를 쓰면 다음과 같다.
+    최대 가능도는 $15/20 = 0.75$ 이다. 정리 5를 쓰면 다음과 같다.
 
     | 사전분포 | 유사 관측 $\alpha+\beta$ | 사후평균 |
     |--------|------|------------|
@@ -446,13 +446,13 @@ def compare_priors(n_heads, n_tails):
 
     유사 관측이 데이터 $20$ 번에 비교하여 작을수록 사후평균이 $0.75$ 에 가깝다. 회의적인 $\text{Beta}(2,8)$ 은 $0.2$ 쪽으로 끌어당기는 힘이 세어 답이 크게 달라진다.
 
-**문제 3.** <span class="diff hard" title="어려움"></span> 사전분포과 데이터가 정면으로 부딪칠 때 사후분포가 어떤 모양이 되는지 밝히시오. 이를테면 $\text{Beta}(20,2)$ 사전분포에 $n=20$, $k=2$ 인 데이터를 주면 어떻게 되는가?
+**문제 3.** <span class="diff hard" title="어려움"></span> 사전분포와 데이터가 정면으로 부딪칠 때 사후분포가 어떤 모양이 되는지 밝히시오. 이를테면 $\text{Beta}(20,2)$ 사전분포에 $n=20$, $k=2$ 인 데이터를 주면 어떻게 되는가?
 
 ??? success "풀이"
 
-    사후분포는 $\text{Beta}(22, 20)$ 으로 평균이 $22/42 \approx 0.524$ 이다. 사전평균 $20/22\approx 0.909$ 와 최대 우도 $2/20 = 0.1$ 의 **가운데 어딘가**이며, 어느 쪽도 지지하지 않는 값이다.
+    사후분포는 $\text{Beta}(22, 20)$ 으로 평균이 $22/42 \approx 0.524$ 이다. 사전평균 $20/22\approx 0.909$ 와 최대 가능도 $2/20 = 0.1$ 의 **가운데 어딘가**이며, 어느 쪽도 지지하지 않는 값이다.
 
-    이 사례의 갱신 파라메터는 둘 다 1보다 크므로 사후분포는 내부에 하나의 최빈값을 갖는다. 베타분포 전체가 단봉인 것은 아니며 두 파라메터가 1보다 작으면 U자 모양도 가능하다. 사전분포와 자료의 불일치는 모형 점검의 계기지만, 두 개의 분리된 가설이 실제로 존재한다는 뜻은 아니다. 다봉 구조가 필요하면 혼합분포 등의 모형을 명시적으로 고려한다.
+    이 사례의 갱신 파라메터는 둘 다 1보다 크므로 사후분포는 내부에 하나의 최빈값을 갖는다. 베타분포 전체가 단봉인 것은 아니며 두 파라메터가 1보다 작으면 U자 모양도 가능하다. 사전분포와 데이터의 불일치는 모형 점검의 계기지만, 두 개의 분리된 가설이 실제로 존재한다는 뜻은 아니다. 다봉 구조가 필요하면 혼합분포 등의 모형을 명시적으로 고려한다.
 
 ## 6. 정규-정규 켤레 모델
 
@@ -486,7 +486,7 @@ $$
     -\frac{\tau_0 + n\tau}{2}\,\mu^2 + (\tau_0\mu_0 + n\tau\bar x)\,\mu + \text{const}
     $$
 
-    이다. 이는 정밀도가 $\tau_0 + n\tau$ 이고 평균이 $(\tau_0\mu_0+n\tau\bar x)/(\tau_0+n\tau)$ 인 정규분포의 로그밀도와 같은 형태. 완전제곱으로 묶으면 곧바로 결론이 나온다.
+    이다. 이는 정밀도가 $\tau_0 + n\tau$ 이고 평균이 $(\tau_0\mu_0+n\tau\bar x)/(\tau_0+n\tau)$ 인 정규분포의 로그밀도와 같은 형태다. 완전제곱으로 묶으면 곧바로 결론이 나온다.
 
 !!! note "쓰임새"
     정밀도로 생각하면 베이즈 갱신이 **정보를 더하는 일**로 보인다. 사전분포가 $\tau_0$ 만큼, 데이터가 $n\tau$ 만큼 정보를 들고 오고, 사후분포는 그 합만큼을 갖는다. 데이터가 늘수록 $n\tau$ 가 커져 사전분포의 몫이 줄어든다.
@@ -494,23 +494,23 @@ $$
 ```python
 def normal_normal_inference(data, prior_mean, prior_std, known_std):
     """
-    흩어짐을 아는 정규 평균에 대한 베이즈 추론.
+    분산을 아는 정규분포의 평균에 대한 베이즈 추론.
     
     파라메터
     ----------
     data : array-like
-        관측된 자료점
+        관측된 데이터 점
     prior_mean : float
-        앞확률 분포의 평균
+        사전분포의 평균
     prior_std : float
-        앞확률의 표준편차
+        사전분포의 표준편차
     known_std : float
-        아는 자료의 표준편차
+        알려진 데이터 표준편차
     
     반환값
     -------
     posterior_dist : scipy.stats.norm
-        뒤확률 정규 분포
+        사후분포 정규 분포
     """
     data = np.asarray(data)
     n = len(data)
@@ -521,7 +521,7 @@ def normal_normal_inference(data, prior_mean, prior_std, known_std):
     data_precision = n / known_std**2
     posterior_precision = prior_precision + data_precision
     
-    # 뒤확률 파라메터
+    # 사후분포 파라메터
     posterior_mean = (prior_precision * prior_mean + 
                       data_precision * sample_mean) / posterior_precision
     posterior_std = np.sqrt(1 / posterior_precision)
@@ -580,19 +580,19 @@ $$
 ```python
 def sequential_beta_binomial(flip_sequence, prior_alpha=1, prior_beta=1):
     """
-    베타-이항 모형으로 차례대로 베이즈 새로 고치기.
+    베타-이항 모형으로 순차 베이즈 갱신.
     
     파라메터
     ----------
     flip_sequence : str의 list
-        'H'과 'T' 관측의 늘어놓음
+        'H'와 'T' 관측의 시퀀스
     prior_alpha, prior_beta : float
-        첫 앞확률 파라메터
+        초기 사전분포 파라메터
     
     반환값
     -------
     alpha_history, beta_history : list
-        새로 고침에 따른 파라메터의 흐름
+        갱신에 따른 파라메터의 이력
     """
     alpha_history = [prior_alpha]
     beta_history = [prior_beta]
@@ -642,9 +642,9 @@ def sequential_beta_binomial(flip_sequence, prior_alpha=1, prior_beta=1):
 
 ```python
 """
-앞확률, 가능도, 뒤확률: 베이즈의 핵심 장치
+사전분포, 가능도, 사후분포: 베이즈 추론의 핵심 구성 요소
 
-이 모듈은 베이즈 추론의 근본 구성 요소를 그려 보기와 실전 보여 주기와 함께
+이 모듈은 베이즈 추론의 기본 구성 요소를 시각화와 실용적인 시연과 함께
 구현한다.
 """
 
@@ -662,23 +662,23 @@ from dataclasses import dataclass
 @dataclass
 class BayesianModel:
     """
-    앞확률과 가능도를 가진 베이즈 모형을 감싼다.
+    사전분포와 가능도를 가진 베이즈 모형을 감싼다.
     
     속성
     ----------
     prior : callable
-        앞확률 밀도 p(θ)
+        사전 밀도 p(θ)
     likelihood : callable
         가능도 함수 p(D|θ)
     theta_range : tuple
-        파라메터 θ의 쓸 수 있는 범위
+        파라메터 θ의 허용 범위
     """
     prior: Callable[[np.ndarray], np.ndarray]
     likelihood: Callable[[np.ndarray, np.ndarray], np.ndarray]
     theta_range: Tuple[float, float]
     
     def log_prior(self, theta: np.ndarray) -> np.ndarray:
-        """로그 앞확률 밀도."""
+        """로그 사전 밀도."""
         return np.log(self.prior(theta) + 1e-300)
     
     def log_likelihood(self, theta: np.ndarray, data: np.ndarray) -> np.ndarray:
@@ -686,21 +686,21 @@ class BayesianModel:
         return np.log(self.likelihood(theta, data) + 1e-300)
     
     def unnormalized_posterior(self, theta: np.ndarray, data: np.ndarray) -> np.ndarray:
-        """고르게 하지 않은 뒤확률: 가능도 × 앞확률."""
+        """정규화하지 않은 사후분포: 가능도 × 사전분포."""
         return self.likelihood(theta, data) * self.prior(theta)
     
     def log_unnormalized_posterior(self, theta: np.ndarray, data: np.ndarray) -> np.ndarray:
-        """고르게 하지 않은 로그 뒤확률."""
+        """정규화하지 않은 로그 사후밀도."""
         return self.log_likelihood(theta, data) + self.log_prior(theta)
     
     def compute_evidence(self, data: np.ndarray, n_points: int = 1000) -> float:
         """
-        수치 적분으로 증거 p(D)을 셈한다.
+        수치 적분으로 증거 p(D)를 계산한다.
         
         파라메터
         ----------
         data : array
-            관측 자료
+            관측 데이터
         n_points : int
             구적점의 개수
         
@@ -721,39 +721,39 @@ class BayesianModel:
         n_points: int = 1000
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        격자 위에서 고르게 한 뒤확률을 셈한다.
+        격자 위에서 정규화한 사후분포를 계산한다.
         
         반환값
         -------
         theta_grid : array
             파라메터 값의 격자
         posterior : array
-            격자점마다 고르게 한 뒤확률 밀도
+            격자점마다 정규화한 사후 밀도
         """
         theta_grid = np.linspace(self.theta_range[0], self.theta_range[1], n_points)
         unnorm_post = self.unnormalized_posterior(theta_grid, data)
         
-        # 사다리꼴 적분으로 고르게 하기
+        # 사다리꼴 적분으로 정규화하기
         evidence = np.trapz(unnorm_post, theta_grid)
         posterior = unnorm_post / evidence
         
         return theta_grid, posterior
 
 # =============================================================================
-# 뒤확률 간추림
+# 사후분포 요약
 # =============================================================================
 
 def posterior_mean(theta_grid: np.ndarray, posterior: np.ndarray) -> float:
-    """뒤확률 평균 E[θ|D]을 셈한다."""
+    """사후평균 E[θ|D]를 계산한다."""
     return np.trapz(theta_grid * posterior, theta_grid)
 
 def posterior_variance(theta_grid: np.ndarray, posterior: np.ndarray) -> float:
-    """뒤확률 흩어짐 Var[θ|D]을 셈한다."""
+    """사후분산 Var[θ|D]를 계산한다."""
     mean = posterior_mean(theta_grid, posterior)
     return np.trapz((theta_grid - mean)**2 * posterior, theta_grid)
 
 def posterior_mode(theta_grid: np.ndarray, posterior: np.ndarray) -> float:
-    """뒤확률 최빈값(MAP 어림값)을 셈한다."""
+    """사후분포 최빈값(MAP 추정값)을 계산한다."""
     return theta_grid[np.argmax(posterior)]
 
 def credible_interval(
@@ -762,7 +762,7 @@ def credible_interval(
     alpha: float = 0.05
 ) -> Tuple[float, float]:
     """
-    양끝이 같은 믿음 구간을 셈한다.
+    동일 꼬리 신용구간을 계산한다.
     
     파라메터
     ----------
@@ -772,9 +772,9 @@ def credible_interval(
     반환값
     -------
     tuple
-        믿음 구간의 (아래, 위) 경계
+        신용구간의 (아래, 위) 경계
     """
-    # 누적분포함수 셈하기
+    # 누적분포함수 계산하기
     cdf = np.cumsum(posterior) * (theta_grid[1] - theta_grid[0])
     cdf = cdf / cdf[-1]  # 1에서 끝나도록 보장
     
@@ -790,7 +790,7 @@ def hpd_interval(
     alpha: float = 0.05
 ) -> Tuple[float, float]:
     """
-    최고 뒤확률 밀도(HPD) 구간을 셈한다.
+    최고 사후 밀도(HPD) 구간을 계산한다.
     
     (1-alpha)의 확률 질량을 담는 가장 짧은 구간.
     """
@@ -799,11 +799,11 @@ def hpd_interval(
     sorted_posterior = posterior[sorted_indices]
     sorted_theta = theta_grid[sorted_indices]
     
-    # (1-alpha) 질량에 이를 때까지 쌓기
+    # (1-alpha) 질량에 이를 때까지 누적하기
     cumsum = np.cumsum(sorted_posterior) * (theta_grid[1] - theta_grid[0])
     cutoff_idx = np.searchsorted(cumsum, 1 - alpha)
     
-    # HPD 구역은 밀도가 임계값을 넘는 모든 theta이다
+    # HPD 영역은 밀도가 임계값을 넘는 모든 theta이다
     hpd_theta = sorted_theta[:cutoff_idx+1]
     
     return hpd_theta.min(), hpd_theta.max()
@@ -816,14 +816,14 @@ def create_beta_binomial_model(alpha_prior: float, beta_prior: float) -> Bayesia
     """
     베타-이항 베이즈 모형을 만든다.
     
-    앞확률: θ ~ Beta(α, β)
+    사전분포: θ ~ Beta(α, β)
     가능도: k | θ ~ 이항(n, θ)
     """
     def prior(theta):
         return stats.beta.pdf(theta, alpha_prior, beta_prior)
     
     def likelihood(theta, data):
-        k, n = data  # 시도 n번에서 성공 k번
+        k, n = data  # 시행 n번에서 성공 k번
         return stats.binom.pmf(k, n, theta)
     
     return BayesianModel(
@@ -833,7 +833,7 @@ def create_beta_binomial_model(alpha_prior: float, beta_prior: float) -> Bayesia
     )
 
 # =============================================================================
-# 보기: 가우스 모형(흩어짐을 아는 경우)
+# 보기: 가우스 모형(분산을 아는 경우)
 # =============================================================================
 
 def create_gaussian_model(
@@ -842,9 +842,9 @@ def create_gaussian_model(
     known_var: float
 ) -> BayesianModel:
     """
-    흩어짐을 아는 가우스 베이즈 모형을 만든다.
+    분산을 아는 가우스 베이즈 모형을 만든다.
     
-    앞확률: μ ~ N(μ₀, σ₀²)
+    사전분포: μ ~ N(μ₀, σ₀²)
     가능도: x | μ ~ N(μ, σ²), 여기서 σ²은 안다
     """
     def prior(mu):
@@ -857,7 +857,7 @@ def create_gaussian_model(
             result *= stats.norm.pdf(x, mu, np.sqrt(known_var))
         return result
     
-    # 앞확률 ± 표준편차 4배에 자료 범위를 더해 범위 잡기
+    # 사전평균 ± 표준편차 5배로 범위 잡기
     return BayesianModel(
         prior=prior,
         likelihood=likelihood,
@@ -876,16 +876,16 @@ def plot_bayesian_update(
     title: str = "Bayesian Update"
 ):
     """
-    앞확률, 가능도, 뒤확률을 그려 본다.
+    사전분포, 가능도, 사후분포를 시각화한다.
     """
     theta_grid = np.linspace(model.theta_range[0], model.theta_range[1], 1000)
     
-    # 구성 요소 셈하기
+    # 구성 요소 계산하기
     prior_vals = model.prior(theta_grid)
     likelihood_vals = model.likelihood(theta_grid, data)
     _, posterior_vals = model.posterior_grid(data)
     
-    # 그려 보려고 고르게 하기
+    # 시각화를 위해 정규화하기
     prior_vals = prior_vals / np.max(prior_vals)
     likelihood_vals = likelihood_vals / np.max(likelihood_vals)
     posterior_vals = posterior_vals / np.max(posterior_vals)
@@ -921,7 +921,7 @@ def plot_posterior_summaries(
     true_theta: Optional[float] = None
 ):
     """
-    점 어림값과 믿음 구간을 곁들여 뒤확률을 그려 본다.
+    점 추정값과 신용구간을 함께 표시해 사후분포를 시각화한다.
     """
     mean = posterior_mean(theta_grid, posterior)
     mode = posterior_mode(theta_grid, posterior)
@@ -931,17 +931,17 @@ def plot_posterior_summaries(
     
     fig, ax = plt.subplots(figsize=(10, 6))
     
-    # 뒤확률
+    # 사후분포
     ax.fill_between(theta_grid, posterior, alpha=0.4, color='steelblue')
     ax.plot(theta_grid, posterior, 'b-', linewidth=2, label='Posterior')
     
-    # 점 어림값
+    # 점 추정값
     ax.axvline(mean, color='red', linestyle='-', linewidth=2, 
                label=f'Mean = {mean:.3f}')
     ax.axvline(mode, color='orange', linestyle='--', linewidth=2, 
                label=f'Mode (MAP) = {mode:.3f}')
     
-    # 믿음 구간
+    # 신용구간
     ax.axvspan(ci[0], ci[1], alpha=0.2, color='green', 
                label=f'95% CI: [{ci[0]:.3f}, {ci[1]:.3f}]')
     
@@ -960,12 +960,12 @@ def plot_posterior_summaries(
     return fig
 
 # =============================================================================
-# 보여 주기: 앞확률과 자료의 효과
+# 시연: 사전분포와 데이터의 효과
 # =============================================================================
 
 def demonstrate_prior_data_tradeoff():
     """
-    뒤확률이 앞확률과 자료의 균형을 어떻게 잡는지 보인다.
+    사후분포가 사전분포와 데이터의 균형을 어떻게 잡는지 보인다.
     """
     np.random.seed(42)
     
@@ -981,12 +981,12 @@ def demonstrate_prior_data_tradeoff():
     print(f"MLE: {k/n_obs:.3f}")
     print()
     
-    # 서로 다른 앞확률
+    # 서로 다른 사전분포
     priors = [
         ("Uniform (α=1, β=1)", 1, 1),
-        ("Skeptical (α=2, β=8)", 2, 8),  # 앞확률은 낮은 θ을 믿는다
-        ("Confident (α=8, β=2)", 8, 2),  # 앞확률은 높은 θ을 믿는다
-        ("Strong (α=20, β=20)", 20, 20),  # 0.5에 놓인 센 앞확률
+        ("Skeptical (α=2, β=8)", 2, 8),  # 사전분포가 낮은 θ를 지지한다
+        ("Confident (α=8, β=2)", 8, 2),  # 사전분포가 높은 θ를 지지한다
+        ("Strong (α=20, β=20)", 20, 20),  # 0.5 중심의 강한 사전분포
     ]
     
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
@@ -995,12 +995,12 @@ def demonstrate_prior_data_tradeoff():
         model = create_beta_binomial_model(alpha, beta)
         theta_grid, posterior = model.posterior_grid(np.array([k, n_obs]))
         
-        # 앞확률 그리기
+        # 사전분포 그리기
         prior_vals = stats.beta.pdf(theta_grid, alpha, beta)
         prior_vals = prior_vals / np.max(prior_vals)
         ax.plot(theta_grid, prior_vals, 'b--', linewidth=2, label='Prior', alpha=0.7)
         
-        # 뒤확률 그리기
+        # 사후분포 그리기
         posterior_norm = posterior / np.max(posterior)
         ax.fill_between(theta_grid, posterior_norm, alpha=0.4, color='red')
         ax.plot(theta_grid, posterior_norm, 'r-', linewidth=2, label='Posterior')
@@ -1009,7 +1009,7 @@ def demonstrate_prior_data_tradeoff():
         ax.axvline(true_theta, color='black', linestyle=':', linewidth=2, label=f'True θ')
         ax.axvline(k/n_obs, color='green', linestyle='--', linewidth=2, label='MLE')
         
-        # 뒤확률 평균
+        # 사후평균
         post_mean = posterior_mean(theta_grid, posterior)
         ax.axvline(post_mean, color='red', linestyle=':', linewidth=1.5)
         
@@ -1027,14 +1027,14 @@ def demonstrate_prior_data_tradeoff():
 
 def demonstrate_data_overwhelming_prior():
     """
-    자료가 늘어나면 앞확률을 어떻게 눌러 버리는지 보인다.
+    데이터가 늘어나면 사전분포를 어떻게 압도하는지 보인다.
     """
     np.random.seed(42)
     
     true_theta = 0.7
     
-    # 엉뚱한 자리의 센 앞확률
-    prior_alpha, prior_beta = 10, 40  # 앞확률 평균 = 0.2
+    # 잘못된 위치의 강한 사전분포
+    prior_alpha, prior_beta = 10, 40  # 사전평균 = 0.2
     
     sample_sizes = [1, 5, 20, 100, 500]
     
@@ -1048,12 +1048,12 @@ def demonstrate_data_overwhelming_prior():
         model = create_beta_binomial_model(prior_alpha, prior_beta)
         theta_grid, posterior = model.posterior_grid(np.array([k, n]))
         
-        # 앞확률
+        # 사전분포
         prior_vals = stats.beta.pdf(theta_grid, prior_alpha, prior_beta)
         ax.plot(theta_grid, prior_vals / np.max(prior_vals), 'b--', 
                 linewidth=2, label='Prior', alpha=0.7)
         
-        # 뒤확률
+        # 사후분포
         ax.fill_between(theta_grid, posterior / np.max(posterior), 
                         alpha=0.4, color='red')
         ax.plot(theta_grid, posterior / np.max(posterior), 'r-', 
@@ -1085,7 +1085,7 @@ def demonstrate_data_overwhelming_prior():
         print(f"  n = {n:4d}: posterior mean = {posterior_mean(theta_grid, posterior):.4f}")
 
 # =============================================================================
-# 주된 보여 주기
+# 주 시연
 # =============================================================================
 
 if __name__ == "__main__":
@@ -1098,13 +1098,13 @@ if __name__ == "__main__":
     
     # 단순한 보기
     model = create_beta_binomial_model(alpha_prior=2, beta_prior=2)
-    data = np.array([7, 10])  # 시도 10번에서 성공 7번
+    data = np.array([7, 10])  # 시행 10번에서 성공 7번
     
     theta_grid, posterior = model.posterior_grid(data)
     
     print(f"Prior: Beta(2, 2)")
     print(f"Data: 7 successes in 10 trials")
-    print(f"Posterior: Beta(9, 5)")  # 켤레 새로 고치기
+    print(f"Posterior: Beta(9, 5)")  # 켤레 갱신
     print(f"\nPosterior summaries:")
     print(f"  Mean: {posterior_mean(theta_grid, posterior):.4f}")
     print(f"  Mode: {posterior_mode(theta_grid, posterior):.4f}")
@@ -1171,7 +1171,7 @@ See: data_overwhelming_prior.png
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff easy" title="쉬움"></span> 강한 사전분포과 약한 사전분포가 같은 데이터에서 어떻게 다른 사후분포를 주는지 정리 5로 설명하시오.
+**연습문제 1.** <span class="diff easy" title="쉬움"></span> 강한 사전분포와 약한 사전분포가 같은 데이터에서 어떻게 다른 사후분포를 주는지 정리 5로 설명하시오.
 
 </div>
 
@@ -1189,13 +1189,13 @@ See: data_overwhelming_prior.png
 
 ??? success "풀이"
 
-    여러 개의 합리적인 사전분포를 사용해 관심 결론이 얼마나 달라지는지 비교한다. 결과가 비슷하더라도 시도한 사전분포의 범위가 좁았을 수 있다. 큰 차이는 자료가 해당 관심량을 충분히 식별하지 못하거나 사전분포와 자료가 충돌한다는 신호일 수 있으므로 모형 점검과 함께 해석한다.
+    여러 개의 합리적인 사전분포를 사용해 관심 결론이 얼마나 달라지는지 비교한다. 결과가 비슷하더라도 시도한 사전분포의 범위가 좁았을 수 있다. 큰 차이는 데이터가 해당 관심량을 충분히 식별하지 못하거나 사전분포와 데이터가 충돌한다는 신호일 수 있으므로 모형 점검과 함께 해석한다.
 
-    문제 3처럼 사전분포과 데이터가 부딪치는 경우에는 반드시 해야 한다. 알릴 때도 하나의 사후분포가 아니라 사전분포 몇 가지에서 나온 결과를 나란히 보이는 것이 정직하다.
+    문제 3처럼 사전분포와 데이터가 부딪치는 경우에는 반드시 해야 한다. 알릴 때도 하나의 사후분포가 아니라 사전분포 몇 가지에서 나온 결과를 나란히 보이는 것이 정직하다.
 
 <div class="drillbox" markdown>
 
-**연습문제 3.** <span class="diff med" title="중간"></span> 순차 갱신에서 사후분포가 참값으로 모여드는 모습을 시뮬레이션으로 확인하시오.
+**연습문제 3.** <span class="diff med" title="중간"></span> 순차 갱신에서 사후분포가 참값으로 수렴하는 모습을 시뮬레이션으로 확인하시오.
 
 </div>
 
@@ -1207,7 +1207,7 @@ See: data_overwhelming_prior.png
 
 <div class="drillbox" markdown>
 
-**연습문제 4.** <span class="diff hard" title="어려움"></span> 정규 모델에서 평균과 분산을 **둘 다** 모를 때의 켤레 사전분포인 정규-역감마를 적고, 사후분포의 파라메터를 이끌어 내시오.
+**연습문제 4.** <span class="diff hard" title="어려움"></span> 정규 모델에서 평균과 분산을 **둘 다** 모를 때의 켤레 사전분포인 정규-역감마를 적고, 사후분포의 파라메터를 유도하시오.
 
 </div>
 
@@ -1225,11 +1225,11 @@ See: data_overwhelming_prior.png
     b_n = b_0 + \frac12\sum_i (x_i-\bar x)^2 + \frac{\kappa_0 n(\bar x - \mu_0)^2}{2(\kappa_0+n)}
     $$
 
-    $\mu_n$ 이 정리 6과 같은 가중 평균 형태임에 주목하라. $b_n$ 의 마지막 항은 사전평균과 표본 평균이 얼마나 어긋났는지에 대한 벌이며, 둘이 멀수록 분산을 크게 잡는다.
+    $\mu_n$ 이 정리 6과 같은 가중 평균 형태임에 주목하라. $b_n$ 의 마지막 항은 사전평균과 표본 평균이 얼마나 어긋났는지에 대한 패널티이며, 둘이 멀수록 분산을 크게 잡는다.
 
 <div class="drillbox" markdown>
 
-**연습문제 5.** <span class="diff hard" title="어려움"></span> 실제 데이터를 하나 골라 사전분포를 세우고, 사후분포를 셈한 뒤, 사전예측분포로 모델을 시험하시오.
+**연습문제 5.** <span class="diff hard" title="어려움"></span> 실제 데이터를 하나 골라 사전분포를 세우고, 사후분포를 계산한 뒤, 사전예측분포로 모델을 시험하시오.
 
 </div>
 
@@ -1241,7 +1241,7 @@ See: data_overwhelming_prior.png
 
 ## 정리하며
 
-사전분포와 우도의 곱을 정규화하면 사후분포를 얻는다. 주변 우도는 모델 비교에서 중요하며 적절한 사전분포와 동일한 관측 자료가 필요하다. 베타-이항은 성공·실패 수로, 알려진 분산의 정규 모형은 정밀도로 간단히 갱신된다. 조건부 독립 모형의 순차 갱신은 일괄 갱신과 같지만, 사후 일관성과 수치 근사의 정확성은 별도의 조건을 요구한다.
+사전분포와 가능도의 곱을 정규화하면 사후분포를 얻는다. 주변 가능도는 모델 비교에서 중요하며 적절한 사전분포와 동일한 관측 데이터가 필요하다. 베타-이항은 성공·실패 수로, 알려진 분산의 정규 모형은 정밀도로 간단히 갱신된다. 조건부 독립 모형의 순차 갱신은 일괄 갱신과 같지만, 사후 일관성과 수치 근사의 정확성은 별도의 조건을 요구한다.
 
 점 추정은 [MAP 추정](map_estimation.md), 구간 요약은 [베이즈 신용구간](credible_intervals.md), 비켤레 추론의 예는 [깁스 샘플링](../../ch19/mcmc/gibbs_sampling.md)을 참고한다.
 

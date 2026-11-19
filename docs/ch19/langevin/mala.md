@@ -31,29 +31,29 @@ For t = 0, 1, ..., T-1:
        Else:      θₜ₊₁ = θₜ    (reject)
 ```
 
-## 2. 바이어스 보정
+## 2. 편향 보정
 
-정확한 목표값·제안밀도와 올바른 MH 보정으로 구성한 MALA는 목표 π를 불변으로 갖는다. 안정적인 고정 스텝 ULA의 목표 근사 바이어스와 다르다. 다만 초기 영향·미탐색 모드·상관된 유한 평균의 오차·수치 구현 문제가 사라지는 것은 아니다.
+정확한 목표값·제안밀도와 올바른 MH 보정으로 구성한 MALA는 목표 π를 불변으로 갖는다. 안정적인 고정 스텝 ULA의 목표 근사 편향과 다르다. 다만 초기 영향·미탐색 모드·상관된 유한 평균의 오차·수치 구현 문제가 사라지는 것은 아니다.
 
 대표적인 고차원 곱 목표의 점근 이론에서 이 페이지의 제안 분산 ε는 d⁻¹/³ 차수, 잡음 표준편차 √ε는 d⁻¹/⁶ 차수다. 관련 조건에서 수락률 약 0.574가 효율 기준을 최적화한다. 이는 모든 모형의 필수 수락률이 아니다.
 
 ## 3. PyTorch 구현
 
-단일 체인 클래스는 길이 d의 상태와 스칼라 로그확률을 가정한다. grad 함수는 상태를 detach한 뒤 미분하지만 lp.backward()는 상태뿐 아니라 log_prob에 학습 가능한 파라메터가 있으면 그 경사도 누적할 수 있다. 상태 경사 계산과 모델 학습을 구분해야 한다.
+단일 체인 클래스는 길이 d의 상태와 스칼라 로그확률을 가정한다. grad 함수는 상태를 detach한 뒤 미분하지만 lp.backward()는 상태뿐 아니라 log_prob에 학습 가능한 파라메터가 있으면 그 그래디언트도 누적할 수 있다. 상태 그래디언트 계산과 모델 학습을 구분해야 한다.
 
-sample은 입력을 float32로 바꾸고 기본 CPU 텐서에 표본·잡음을 생성한다. 임의 GPU·dtype 입력을 그대로 지원하는 구현은 아니다. 양의 ε·표본 수, 비음수 워밍업과 유한 로그비를 확인한다. warmup은 같은 고정 전이를 버리는 반복이며 스텝 크기를 적응하지 않는다. 같은 경사를 여러 번 재평가하므로 이론의 경사 비용과 실제 조각의 비용도 구분한다.
+sample은 입력을 float32로 바꾸고 기본 CPU 텐서에 표본·잡음을 생성한다. 임의 GPU·dtype 입력을 그대로 지원하는 구현은 아니다. 양의 ε·표본 수, 비음수 워밍업과 유한 로그비를 확인한다. warmup은 같은 고정 전이를 버리는 반복이며 스텝 크기를 적응하지 않는다. 같은 그래디언트를 여러 번 재평가하므로 이론의 그래디언트 비용과 실제 조각의 비용도 구분한다.
 
 ```python
 import torch
 
 class MALA:
     """
-    메트로폴리스로 다듬은 랑주뱅 알고리즘.
+    메트로폴리스 보정 랑주뱅 알고리즘.
     
     파라메터
     ----------
     log_prob : callable
-        log π̃(θ)을 셈한다. autograd를 받쳐야 한다.
+        log π̃(θ)를 계산한다. autograd를 지원해야 한다.
     step_size : float
         랑주뱅 스텝 크기 ε
     """
@@ -63,14 +63,14 @@ class MALA:
         self.step_size = step_size
     
     def _grad_log_prob(self, theta):
-        """autograd로 ∇log π̃(θ) 셈하기."""
+        """autograd로 ∇log π̃(θ) 계산하기."""
         theta = theta.detach().requires_grad_(True)
         lp = self.log_prob(theta)
         lp.backward()
         return theta.grad.detach()
     
     def _log_proposal(self, theta_to, theta_from):
-        """log q(theta_to | theta_from) 셈하기."""
+        """log q(theta_to | theta_from) 계산하기."""
         grad = self._grad_log_prob(theta_from)
         mean = theta_from + 0.5 * self.step_size * grad
         diff = theta_to - mean
@@ -90,14 +90,14 @@ class MALA:
             mean = theta + 0.5 * self.step_size * grad
             theta_prop = mean + (self.step_size ** 0.5) * torch.randn(d)
             
-            # 로그 받아들임 비
+            # 로그 수락 비
             log_alpha = (
                 self.log_prob(theta_prop) - self.log_prob(theta)
                 + self._log_proposal(theta, theta_prop)
                 - self._log_proposal(theta_prop, theta)
             )
             
-            # 받아들이거나 물리치기
+            # 수락 또는 거절
             if torch.log(torch.rand(1)) < log_alpha:
                 theta = theta_prop
                 if t >= warmup:
@@ -118,9 +118,9 @@ P≈목표 공분산은 전역 스케일의 출발점이 될 수 있다. 위치 
 
 ## 5. 방법 간 비용과 정확도 비교
 
-MALA는 한 가우스 제안에 정·역 스코어 평가가 필요하고 HMC는 여러 적분 단계의 경사를 사용한다. 랜덤 워크·MALA의 대표 점근 반복 스케일과 HMC의 궤적당 Leapfrog 수를 하나의 혼합시간 열로 비교하지 않는다.
+MALA는 한 가우스 제안에 정·역 스코어 평가가 필요하고 HMC는 여러 적분 단계의 그래디언트를 사용한다. 랜덤 워크·MALA의 대표 점근 반복 스케일과 HMC의 궤적당 Leapfrog 수를 하나의 혼합시간 열로 비교하지 않는다.
 
-ULA/SGLD의 근사 바이어스를 허용하는 경우와 MH 보정의 비용을 지불하는 경우를 나누어 동일한 관심 함수의 오차·시간을 비교한다. 차원이 낮음·중간·높음이라는 구분만으로 방법의 우열을 결정할 수 없다.
+ULA/SGLD의 근사 편향을 허용하는 경우와 MH 보정의 비용을 지불하는 경우를 나누어 동일한 관심 함수의 오차·시간을 비교한다. 차원이 낮음·중간·높음이라는 구분만으로 방법의 우열을 결정할 수 없다.
 
 ## 6. 정·역 가우스 제안비
 
@@ -134,24 +134,24 @@ $$\log\frac{q(x|y)}{q(y|x)}=\frac{\|y-x-\epsilon s(x)/2\|^2-\|x-y-\epsilon s(y)/
 
 mala_batch의 입력은 배치×차원이고 log_prob_fn은 각 행의 로그확률을 길이 배치로 반환해야 한다. score_fn은 같은 배치×차원 형태를 반환한다. 행별 잡음과 수락 마스크를 사용해 여러 체인의 마지막 상태를 돌려준다.
 
-이 배치는 n_steps개 시점의 체인 전체가 아니다. n_accept/n_steps는 매 단계 배치 수락 비율의 평균이며 행별 진단 기록을 대체하지 않는다. 양의 스텝 수·ε와 유한한 값·기기 호환성을 확인하고, 같은 경사를 사용하는 행별 독립 전이라는 전제를 유지한다.
+이 배치는 n_steps개 시점의 체인 전체가 아니다. n_accept/n_steps는 매 단계 배치 수락 비율의 평균이며 행별 진단 기록을 대체하지 않는다. 양의 스텝 수·ε와 유한한 값·기기 호환성을 확인하고, 같은 그래디언트를 사용하는 행별 독립 전이라는 전제를 유지한다.
 
 ```python
 import torch
 
 def mala_batch(log_prob_fn, score_fn, x0, n_steps, epsilon):
-    """나란한 사슬 여럿을 위한 배치 MALA.
+    """여러 병렬 사슬을 위한 배치 MALA.
 
     인수:
-        log_prob_fn: x [batch, dim] → log π(x) [batch]으로 잇는다.
-        score_fn: x [batch, dim] → ∇ log π(x) [batch, dim]으로 잇는다.
-        x0: 첫 상태 [batch, dim].
-        n_steps: 되풀이 횟수.
+        log_prob_fn: x [batch, dim] → log π(x) [batch]로 사상한다.
+        score_fn: x [batch, dim] → ∇ log π(x) [batch, dim]로 사상한다.
+        x0: 초기 상태 [batch, dim].
+        n_steps: 반복 횟수.
         epsilon: 스텝 크기.
 
     반환값:
         samples: 마지막 표본 [batch, dim].
-        accept_rate: 받아들여진 제안의 몫.
+        accept_rate: 수락된 제안의 비율.
     """
     x = x0.clone()
     n_accept = 0
@@ -164,7 +164,7 @@ def mala_batch(log_prob_fn, score_fn, x0, n_steps, epsilon):
 
         s_xp = score_fn(x_prop)
 
-        # 로그 받아들임 비
+        # 로그 수락 비
         log_pi_diff = log_prob_fn(x_prop) - log_prob_fn(x)
 
         # 제안의 로그 비: log q(x|x') - log q(x'|x)
@@ -183,7 +183,7 @@ def mala_batch(log_prob_fn, score_fn, x0, n_steps, epsilon):
 
 ## 8. 스텝 단위와 조정 기준
 
-이 페이지 전체에서 ε는 제안 분산이다. 따라서 MALA 점근 ε∝d⁻¹/³와 표준편차 √ε∝d⁻¹/⁶를 구분한다. ULA에 같은 보편적 차원 스케일을 임의로 부여하면 안 되며 허용 바이어스·거리·목표의 정칙성에 따라 스텝을 정한다.
+이 페이지 전체에서 ε는 제안 분산이다. 따라서 MALA 점근 ε∝d⁻¹/³와 표준편차 √ε∝d⁻¹/⁶를 구분한다. ULA에 같은 보편적 차원 스케일을 임의로 부여하면 안 되며 허용 편향·거리·목표의 정칙성에 따라 스텝을 정한다.
 
 0.574는 특정 점근 분석의 참고값이고 70%·45%를 모든 문제의 자동 조정 경계로 제시하지 않는다. 아래 정규 배치 예제의 분산과 수락률은 보존된 한 결과다. 수락률이 높다는 사실만으로 설정이 나쁘다거나 충분히 수렴했다고 결론내릴 수 없다. 함수별 MCSE·비용과 여러 시작점을 함께 평가한다.
 
@@ -198,7 +198,7 @@ def log_prob(x):
 def score(x):
     return -x
 
-x0 = torch.randn(n_samples, dim) * 3  # 지나치게 흩어진 시작
+x0 = torch.randn(n_samples, dim) * 3  # 과분산된 초기값
 
 x_mala, acc = mala_batch(log_prob, score, x0.clone(), n_steps=500, epsilon=0.5)
 print(f"MALA variance: {x_mala.var(dim=0).mean():.4f}, acceptance: {acc:.2%}")
@@ -217,7 +217,7 @@ MALA의 수락 규칙에서 왜 정·역 제안밀도가 필요한가?
 </div>
 
 ??? success "풀이"
-    경사에 따라 제안 평균이 바뀌므로 비대칭이다. 두 가우스 이차형식의 차이를 로그 목표비에 더해야 일반적인 MH 상세균형이 성립한다.
+    그래디언트에 따라 제안 평균이 바뀌므로 비대칭이다. 두 가우스 이차형식의 차이를 로그 목표비에 더해야 일반적인 MH 상세균형이 성립한다.
 
 ---
 

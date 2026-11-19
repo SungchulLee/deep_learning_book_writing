@@ -51,7 +51,7 @@ $$\|P^n(i,\cdot)-\pi\|_{TV}\leq\frac12\sqrt{\pi_i^{-1}-1}\,\rho^n$$
 
 고유값이 음수일 수 있으므로 대수적으로 두 번째 큰 고유값을 사용하는 갭과 절대 갭을 구분한다. 비가역 행렬의 비대각화 가능한 부분에는 다항 인자가 생길 수 있어 똑같은 Cρⁿ 공식을 자동 적용하지 않는다.
 
-약한 연결로 나뉜 지역이나 거의 주기적인 액션은 느린 혼합을 만들 수 있다. 그러나 큰 차원·상관·작은 갭만으로 잘못 설계한 제안이라고 단정할 수는 없다. 목표분포의 구조와 커널을 함께 분석해야 한다.
+약한 연결로 나뉜 지역이나 거의 주기적인 거동은 느린 혼합을 만들 수 있다. 그러나 큰 차원·상관·작은 갭만으로 잘못 설계한 제안이라고 단정할 수는 없다. 목표분포의 구조와 커널을 함께 분석해야 한다.
 
 ## 6. 혼합 시간
 
@@ -81,7 +81,7 @@ StateClassifier는 양의 행렬 거듭제곱으로 도달 가능성을 계산�
 
 MixingTimeAnalyzer는 Pᵀ가 아니라 P의 **오른쪽 고유벡터**로 pi를 만든다. 행 확률행렬 P의 고유값 1 오른쪽 고유벡터는 상수 벡터이므로 일반적인 정상분포를 얻는 방법이 아니다. 대칭·이중 확률행렬 예제에서 우연히 균등 정상분포와 맞을 수 있지만, 일반 행렬에서는 TV 거리와 혼합 시간 결과도 잘못될 수 있다.
 
-고유값 정렬은 복소수의 절댓값이 아닌 실수부 절댓값을 사용하므로 비가역 행렬의 복소 고유값 순서도 잘못될 수 있다. 1상태 행렬에는 두 번째 고유값이 없다. CPU 배열·NumPy 변환과 자료형 조건을 확인하고 반환한 pi의 비음성·합·pi@P−pi 잔차를 독립적으로 점검해야 한다. 아래 코드와 출력은 이런 제한이 있는 기존 예제로 보존했다.
+고유값 정렬은 복소수의 절댓값이 아닌 실수부 절댓값을 사용하므로 비가역 행렬의 복소 고유값 순서도 잘못될 수 있다. 1상태 행렬에는 두 번째 고유값이 없다. CPU 배열·NumPy 변환과 자료형 조건을 확인하고 반환한 pi의 비음성·합·pi@P−pi 잔차를 독립적으로 점검해야 한다. 아래 코드와 출력은 이런 제한을 가진 예제다.
 
 ### 상태 분류기
 
@@ -92,8 +92,8 @@ from math import gcd
 
 class StateClassifier:
     """
-    마르코프 사슬의 상태 가르기: 서로 통하는 무리,
-    줄일 수 없음, 주기, 에르고드성.
+    마르코프 사슬의 상태 분류: 소통류,
+    기약성, 주기, 에르고드성.
     """
 
     def __init__(self, transition_matrix: torch.Tensor):
@@ -103,7 +103,7 @@ class StateClassifier:
     def is_accessible(
         self, i: int, j: int, max_steps: int = None
     ) -> bool:
-        """상태 i에서 상태 j에 닿을 수 있는지 살피기."""
+        """상태 i에서 상태 j에 도달할 수 있는지 확인하기."""
         if max_steps is None:
             max_steps = self.n_states
 
@@ -116,11 +116,11 @@ class StateClassifier:
         return P_sum[i, j].item() > 0
 
     def communicates(self, i: int, j: int) -> bool:
-        """상태 i과 j이 서로 통하는지 살피기(i ↔ j)."""
+        """상태 i와 j가 소통하는지 확인하기(i ↔ j)."""
         return self.is_accessible(i, j) and self.is_accessible(j, i)
 
     def find_communicating_classes(self) -> List[Set[int]]:
-        """상태 공간을 서로 통하는 무리로 나누기."""
+        """상태 공간을 소통류로 나누기."""
         visited = [False] * self.n_states
         classes = []
 
@@ -140,12 +140,12 @@ class StateClassifier:
         return classes
 
     def is_irreducible(self) -> bool:
-        """사슬에 서로 통하는 무리가 하나뿐인지 살피기."""
+        """사슬에 소통류가 하나뿐인지 확인하기."""
         return len(self.find_communicating_classes()) == 1
 
     def compute_period(self, state: int) -> int:
         """
-        주기 d(i) = gcd{n ≥ 1 : P^{(n)}_{ii} > 0} 셈하기.
+        주기 d(i) = gcd{n ≥ 1 : P^{(n)}_{ii} > 0} 계산하기.
         """
         return_times = []
         P_n = self.P.clone()
@@ -167,15 +167,15 @@ class StateClassifier:
         return period
 
     def is_aperiodic(self) -> bool:
-        """주기 없음 살피기(넉넉한 조건: 자기 고리가 하나라도 있음)."""
+        """비주기성 확인하기(충분조건: 자기 루프가 하나라도 있음)."""
         if torch.any(torch.diag(self.P) > 0):
             return True
         return self.compute_period(0) == 1
 
     def is_ergodic(self) -> Dict[str, bool]:
         """
-        에르고드성 살피기 = 줄일 수 없음 + 주기 없음.
-        끝이 있는 사슬에서는 이것이 양의 되돌아옴을 뜻한다.
+        에르고드성 확인하기 = 기약성 + 비주기성.
+        유한 사슬에서는 이것이 양의 재귀성을 뜻한다.
         """
         is_irr = self.is_irreducible()
         is_aper = self.is_aperiodic()
@@ -186,7 +186,7 @@ class StateClassifier:
         }
 
     def classify_all_states(self) -> Dict[int, Dict]:
-        """모든 상태의 온전한 가르기."""
+        """모든 상태의 전체 분류."""
         classes = self.find_communicating_classes()
         state_to_class = {}
         for idx, cls in enumerate(classes):
@@ -209,8 +209,8 @@ class StateClassifier:
 ```python
 class MixingTimeAnalyzer:
     """
-    모임과 섞임의 성질 살피기: 스펙트럼 틈,
-    섞임 시간, 총변동 거리의 흘러감.
+    수렴과 혼합의 성질 분석: 스펙트럼 갭,
+    혼합 시간, 총변동 거리의 변화.
     """
 
     def __init__(
@@ -227,7 +227,7 @@ class MixingTimeAnalyzer:
         self._compute_stationary()
 
     def _compute_spectrum(self):
-        """절댓값으로 정렬한 고윳값 셈하기."""
+        """절댓값으로 정렬한 고윳값 계산하기."""
         eigenvalues, eigenvectors = torch.linalg.eig(self.P)
         abs_vals = torch.abs(eigenvalues.real)
         sorted_idx = torch.argsort(abs_vals, descending=True)
@@ -235,13 +235,13 @@ class MixingTimeAnalyzer:
         self.eigenvectors = eigenvectors[:, sorted_idx]
 
     def _compute_stationary(self):
-        """고유벡터에서 멈춘 분포 뽑아내기."""
+        """고유벡터에서 정상분포 뽑아내기."""
         idx = torch.argmin(torch.abs(self.eigenvalues.real - 1.0))
         pi = self.eigenvectors[:, idx].real
         self.pi = torch.abs(pi) / torch.abs(pi).sum()
 
     def spectral_gap(self) -> float:
-        """스펙트럼 틈 γ = 1 - |λ₂|."""
+        """스펙트럼 갭 γ = 1 - |λ₂|."""
         lambda_2 = self.eigenvalues[1]
         return (1 - torch.abs(lambda_2)).item()
 
@@ -257,7 +257,7 @@ class MixingTimeAnalyzer:
         max_steps: int = 10000
     ) -> Dict:
         """
-        τ_mix(ε) 셈하기: max_x TV(P^n(x,·), π) ≤ ε이 되는 첫 n.
+        τ_mix(ε) 계산하기: max_x TV(P^n(x,·), π) ≤ ε이 되는 첫 n.
         """
         results = {
             'epsilon': epsilon,
@@ -281,7 +281,7 @@ class MixingTimeAnalyzer:
         return results
 
     def convergence_rate(self, max_steps: int = 100) -> Dict:
-        """시작 상태마다의 TV 거리 흘러감."""
+        """시작 상태마다의 TV 거리 변화."""
         results = {
             'spectral_gap': self.spectral_gap(),
             'second_eigenvalue': self.eigenvalues[1].item(),
@@ -310,11 +310,11 @@ class MixingTimeAnalyzer:
 
 ```python
 def demonstrate_mixing_analysis():
-    """잘 이어진 사슬과 병목이 있는 사슬의 섞임 굶 견주기."""
+    """잘 연결된 사슬과 병목이 있는 사슬의 혼합 거동 비교하기."""
     print("Mixing Time Analysis")
     print("=" * 70)
 
-    # 빠른 섞임: 잘 이어짐
+    # 빠른 혼합: 잘 연결됨
     print("\n1. Fast Mixing Chain (Well-Connected)")
     print("-" * 50)
 
@@ -331,7 +331,7 @@ def demonstrate_mixing_analysis():
     mixing_fast = analyzer_fast.mixing_time(epsilon=0.01)
     print(f"Mixing time (ε=0.01): {mixing_fast['mixing_time']} steps")
 
-    # 느린 섞임: 병목
+    # 느린 혼합: 병목
     print("\n2. Slow Mixing Chain (Bottleneck)")
     print("-" * 50)
 
@@ -392,7 +392,7 @@ def visualize_chain_structure(
     state_names: List[str] = None,
     title: str = "Markov Chain Structure"
 ):
-    """서로 통하는 무리로 색칠한 방향 그래프로 사슬 그려 보기."""
+    """소통류별로 색칠한 방향 그래프로 사슬 시각화하기."""
     n_states = P.shape[0]
     if state_names is None:
         state_names = [f"S{i}" for i in range(n_states)]
@@ -444,7 +444,7 @@ def visualize_convergence(
     state_names: list = None,
     max_steps: int = 50
 ):
-    """네 칸짜리 모임 그림."""
+    """네 칸짜리 수렴 그림."""
     analyzer = MixingTimeAnalyzer(P, state_names)
 
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
@@ -484,7 +484,7 @@ def visualize_convergence(
     ax.grid(True, alpha=0.3)
     ax.axis('equal')
 
-    # (1,0) 상태 분포의 흘러감
+    # (1,0) 상태 분포의 변화
     ax = axes[1, 0]
     n_states = P.shape[0]
     sn = state_names or [f'S{i}' for i in range(n_states)]
@@ -508,7 +508,7 @@ def visualize_convergence(
     ax.legend()
     ax.grid(True, alpha=0.3)
 
-    # (1,1) 섞임 시간
+    # (1,1) 혼합 시간
     ax = axes[1, 1]
     mixing_data = analyzer.mixing_time(epsilon=0.25, max_steps=max_steps)
     ax.semilogy(mixing_data['max_tv_over_time'], 'b-', linewidth=2,
@@ -549,7 +549,7 @@ result = classifier.is_ergodic()
 print(f"Irreducible: {result['irreducible']}")
 print(f"Aperiodic: {result['aperiodic']}")
 print(f"Ergodic: {result['ergodic']}")
-# → 에르고드적: 참. π이 오직 하나 있고 P^n이 모인다.
+# → 에르고드적: 참. π가 유일하게 존재하고 P^n이 수렴한다.
 
 # 보기 2: 주기 사슬(주기 3)
 print("\nExample 2: Periodic Chain")
@@ -566,9 +566,9 @@ print(f"This chain cycles: 0 → 1 → 2 → 0 → ...")
 print(f"Period of state 0: {classifier_periodic.compute_period(0)}")
 result = classifier_periodic.is_ergodic()
 print(f"Ergodic: {result['ergodic']} (irreducible but periodic)")
-# → 에르고드적이 아니다. (줄일 수 없어) π이 오직 하나 있지만 P^n이 흔들린다.
+# → 에르고드적이 아니다. (기약이라) π가 유일하게 존재하지만 P^n이 진동한다.
 
-# 보기 3: 줄일 수 있는 사슬
+# 보기 3: 가약 사슬
 print("\nExample 3: Reducible Chain")
 print("=" * 50)
 
@@ -583,7 +583,7 @@ classifier_reducible = StateClassifier(P_reducible)
 classes = classifier_reducible.find_communicating_classes()
 print(f"Communicating classes: {classes}")
 print(f"Irreducible: {classifier_reducible.is_irreducible()}")
-# → 줄일 수 있다. 멈춘 분포가 여럿 있다.
+# → 가약이다. 정상분포가 여럿 있다.
 ```
 
 **출력:**
@@ -609,7 +609,7 @@ Irreducible: False
 
 ---
 
-## 10. 핵심 정리 간추림
+## 10. 핵심 정리 요약
 
 | 조건·개념 | 보장과 한계 |
 |---|---|
@@ -624,9 +624,9 @@ Irreducible: False
 
 ## 11. 차원과 계산 효율
 
-차원·상관·다봉성·곡률은 커널의 효율에 영향을 줄 수 있지만 방법 이름만으로 보편적인 혼합 시간의 차원 지수를 정할 수는 없다. 특정 곱분포·확산 극한에서의 이동 스케일과 수락률, 한 단계의 경사 계산 비용, 전체 유효 표본당 비용은 서로 다른 분석량이다.
+차원·상관·다봉성·곡률은 커널의 효율에 영향을 줄 수 있지만 방법 이름만으로 보편적인 혼합 시간의 차원 지수를 정할 수는 없다. 특정 곱분포·확산 극한에서의 이동 스케일과 수락률, 한 단계의 그래디언트 계산 비용, 전체 유효 표본당 비용은 서로 다른 분석량이다.
 
-랜덤 워크 MH·MALA·HMC의 단일 고정 지수를 일반 목표분포의 혼합 시간으로 제시하지 않는다. 같은 관심 함수와 정확도, 경사 평가 비용을 맞추고 ESS/시간 등 실제 계산 효율을 비교한다.
+랜덤 워크 MH·MALA·HMC의 단일 고정 지수를 일반 목표분포의 혼합 시간으로 제시하지 않는다. 같은 관심 함수와 정확도, 그래디언트 평가 비용을 맞추고 ESS/시간 등 실제 계산 효율을 비교한다.
 
 ## 12. 몬테카를로 오차
 

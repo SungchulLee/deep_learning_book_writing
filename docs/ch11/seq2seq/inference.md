@@ -7,7 +7,7 @@
 ```python
 """
 Seq2Seq 모델을 위한 추론 스크립트
-탐욕적 복호, 빔 탐색, 번역 도구를 담고 있다
+탐욕 디코딩, 빔 탐색, 번역 도구를 담고 있다
 """
 
 import torch
@@ -37,8 +37,8 @@ class BasicEncoder(nn.Module):
     인수:
         input_size: 입력 어휘의 크기
         embedding_dim: 단어 임베딩의 차원
-        hidden_size: 숨은 상태의 크기
-        num_layers: 순환 층의 수
+        hidden_size: 은닉 상태의 크기
+        num_layers: 순환 레이어의 수
         dropout: 드롭아웃 확률
         bidirectional: 양방향 RNN을 쓸지 여부
         rnn_type: RNN의 종류 ('LSTM' 또는 'GRU')
@@ -55,13 +55,13 @@ class BasicEncoder(nn.Module):
         self.bidirectional = bidirectional
         self.rnn_type = rnn_type
         
-        # 임베딩 층
+        # 임베딩 레이어
         self.embedding = nn.Embedding(input_size, embedding_dim)
         
-        # 드롭아웃 층
+        # 드롭아웃 레이어
         self.dropout = nn.Dropout(dropout)
         
-        # RNN 층
+        # RNN 레이어
         if rnn_type == 'LSTM':
             self.rnn = nn.LSTM(
                 embedding_dim,
@@ -88,19 +88,19 @@ class BasicEncoder(nn.Module):
         인코더를 지나는 순전파
         
         인수:
-            input_seq: 입력 순차열 텐서 (배치 크기, seq_len)
-            input_lengths: 순차열의 실제 길이 (선택)
+            input_seq: 입력 시퀀스 텐서 (배치 크기, seq_len)
+            input_lengths: 시퀀스의 실제 길이 (선택)
             
         반환값:
-            outputs: 모든 숨은 상태 (배치 크기, seq_len, hidden_size * num_directions)
-            hidden: 마지막 숨은 상태
-            cell: 마지막 세포 상태 (LSTM에만 있다)
+            outputs: 모든 은닉 상태 (배치 크기, seq_len, hidden_size * num_directions)
+            hidden: 마지막 은닉 상태
+            cell: 마지막 셀 상태 (LSTM에만 있다)
         """
         # 입력 임베딩
         embedded = self.embedding(input_seq)
         embedded = self.dropout(embedded)
         
-        # 길이가 주어지면 덧댄 순차열을 꾸리기
+        # 길이가 주어지면 패딩된 시퀀스를 패킹하기
         if input_lengths is not None:
             embedded = nn.utils.rnn.pack_padded_sequence(
                 embedded, input_lengths.cpu(), batch_first=True, enforce_sorted=False
@@ -113,14 +113,14 @@ class BasicEncoder(nn.Module):
             outputs, hidden = self.rnn(embedded)
             cell = None
         
-        # 꾸렸으면 풀기
+        # 패킹했으면 풀기
         if input_lengths is not None:
             outputs, _ = nn.utils.rnn.pad_packed_sequence(outputs, batch_first=True)
         
-        # 양방향이면 순방향과 역방향 숨은 상태를 합치기
+        # 양방향이면 순방향과 역방향 은닉 상태를 합치기
         if self.bidirectional:
             # hidden: (num_layers * 2, 배치 크기, hidden_size)
-            # (num_layers, 배치 크기, hidden_size * 2)로 모양 바꾸기
+            # (num_layers, 배치 크기, hidden_size * 2)로 형태 바꾸기
             hidden = self._combine_bidirectional(hidden)
             if cell is not None:
                 cell = self._combine_bidirectional(cell)
@@ -128,7 +128,7 @@ class BasicEncoder(nn.Module):
         return outputs, hidden, cell
     
     def _combine_bidirectional(self, hidden):
-        """순방향과 역방향의 숨은 상태를 합친다"""
+        """순방향과 역방향의 은닉 상태를 합친다"""
         # hidden: (num_layers * 2, 배치 크기, hidden_size)
         # 출력: (num_layers, 배치 크기, hidden_size * 2)
         num_directions = 2
@@ -142,8 +142,8 @@ class BasicEncoder(nn.Module):
 
 class ConvEncoder(nn.Module):
     """
-    Seq2Seq 모델을 위한 합성곱 인코더
-    순차열 부호화에 1차원 합성곱을 쓴다
+    Seq2Seq 모델을 위한 컨볼루션 인코더
+    시퀀스 인코딩에 1차원 컨볼루션을 쓴다
     """
     
     def __init__(self, input_size, embedding_dim, hidden_size, 
@@ -153,7 +153,7 @@ class ConvEncoder(nn.Module):
         self.embedding = nn.Embedding(input_size, embedding_dim)
         self.dropout = nn.Dropout(dropout)
         
-        # 합성곱 층
+        # 컨볼루션 레이어
         conv_layers = []
         in_channels = embedding_dim
         
@@ -169,20 +169,20 @@ class ConvEncoder(nn.Module):
         
     def forward(self, input_seq):
         """
-        합성곱 인코더를 지나는 순전파
+        컨볼루션 인코더를 지나는 순전파
         
         인수:
-            input_seq: 입력 순차열 (배치 크기, seq_len)
+            input_seq: 입력 시퀀스 (배치 크기, seq_len)
             
         반환값:
-            outputs: 부호화된 표현 (배치 크기, seq_len, hidden_size)
+            outputs: 인코딩된 표현 (배치 크기, seq_len, hidden_size)
         """
         # 임베딩하고 conv1d를 위해 전치
         embedded = self.embedding(input_seq)  # (배치, seq_len, embed_dim)
         embedded = self.dropout(embedded)
         embedded = embedded.transpose(1, 2)  # (배치, embed_dim, seq_len)
         
-        # 합성곱 적용
+        # 컨볼루션 적용
         outputs = self.conv_layers(embedded)  # (배치, hidden_size, seq_len)
         outputs = outputs.transpose(1, 2)  # (배치, seq_len, hidden_size)
         
@@ -241,8 +241,8 @@ class BasicDecoder(nn.Module):
     인수:
         output_size: 출력 어휘의 크기
         embedding_dim: 단어 임베딩의 차원
-        hidden_size: 숨은 상태의 크기
-        num_layers: 순환 층의 수
+        hidden_size: 은닉 상태의 크기
+        num_layers: 순환 레이어의 수
         dropout: 드롭아웃 확률
         rnn_type: RNN의 종류 ('LSTM' 또는 'GRU')
     """
@@ -257,13 +257,13 @@ class BasicDecoder(nn.Module):
         self.num_layers = num_layers
         self.rnn_type = rnn_type
         
-        # 임베딩 층
+        # 임베딩 레이어
         self.embedding = nn.Embedding(output_size, embedding_dim)
         
         # 드롭아웃
         self.dropout = nn.Dropout(dropout)
         
-        # RNN 층
+        # RNN 레이어
         if rnn_type == 'LSTM':
             self.rnn = nn.LSTM(
                 embedding_dim,
@@ -283,22 +283,22 @@ class BasicDecoder(nn.Module):
         else:
             raise ValueError(f"Unknown RNN type: {rnn_type}")
         
-        # 출력층
+        # 출력 레이어
         self.fc_out = nn.Linear(hidden_size, output_size)
         
     def forward(self, input_token, hidden, cell=None):
         """
-        한 시각의 순전파
+        한 타임스텝의 순전파
         
         인수:
             input_token: 입력 토큰 (배치 크기, 1)
-            hidden: 앞 시각의 숨은 상태
-            cell: 앞 시각의 세포 상태 (LSTM에만 있다)
+            hidden: 이전 타임스텝의 은닉 상태
+            cell: 이전 타임스텝의 셀 상태 (LSTM에만 있다)
             
         반환값:
             output: 출력 예측 (배치 크기, output_size)
-            hidden: 갱신된 숨은 상태
-            cell: 갱신된 세포 상태 (LSTM에만 있다)
+            hidden: 갱신된 은닉 상태
+            cell: 갱신된 셀 상태 (LSTM에만 있다)
         """
         # 입력 토큰 임베딩
         embedded = self.embedding(input_token)  # (배치 크기, 1, embedding_dim)
@@ -319,14 +319,14 @@ class BasicDecoder(nn.Module):
 
 class AttentionDecoder(nn.Module):
     """
-    바다나우(덧셈) 어텐션 장치가 있는 디코더
+    바다나우(덧셈) 어텐션 메커니즘이 있는 디코더
     
     인수:
         output_size: 출력 어휘의 크기
         embedding_dim: 단어 임베딩의 차원
-        hidden_size: 디코더 숨은 상태의 크기
-        encoder_hidden_size: 인코더 숨은 상태의 크기
-        num_layers: 순환 층의 수
+        hidden_size: 디코더 은닉 상태의 크기
+        encoder_hidden_size: 인코더 은닉 상태의 크기
+        num_layers: 순환 레이어의 수
         dropout: 드롭아웃 확률
         rnn_type: RNN의 종류 ('LSTM' 또는 'GRU')
     """
@@ -342,16 +342,16 @@ class AttentionDecoder(nn.Module):
         self.num_layers = num_layers
         self.rnn_type = rnn_type
         
-        # 임베딩 층
+        # 임베딩 레이어
         self.embedding = nn.Embedding(output_size, embedding_dim)
         
         # 드롭아웃
         self.dropout = nn.Dropout(dropout)
         
-        # 어텐션 장치
+        # 어텐션 메커니즘
         self.attention = BahdanauAttention(hidden_size, encoder_hidden_size)
         
-        # RNN 층 (입력은 임베딩과 문맥 벡터)
+        # RNN 레이어 (입력은 임베딩과 문맥 벡터)
         rnn_input_size = embedding_dim + encoder_hidden_size
         
         if rnn_type == 'LSTM':
@@ -373,32 +373,32 @@ class AttentionDecoder(nn.Module):
         else:
             raise ValueError(f"Unknown RNN type: {rnn_type}")
         
-        # 출력층
+        # 출력 레이어
         self.fc_out = nn.Linear(hidden_size + encoder_hidden_size + embedding_dim, output_size)
         
     def forward(self, input_token, hidden, encoder_outputs, cell=None, mask=None):
         """
-        어텐션을 쓰는 한 시각의 순전파
+        어텐션을 쓰는 한 타임스텝의 순전파
         
         인수:
             input_token: 입력 토큰 (배치 크기, 1)
-            hidden: 앞 시각의 숨은 상태
+            hidden: 이전 타임스텝의 은닉 상태
             encoder_outputs: 인코더의 모든 출력 (배치 크기, src_len, encoder_hidden_size)
-            cell: 앞 시각의 세포 상태 (LSTM에만 있다)
+            cell: 이전 타임스텝의 셀 상태 (LSTM에만 있다)
             mask: 패딩을 가리는 마스크 (배치 크기, src_len)
             
         반환값:
             output: 출력 예측 (배치 크기, output_size)
-            hidden: 갱신된 숨은 상태
-            cell: 갱신된 세포 상태 (LSTM에만 있다)
-            attention_weights: 어텐션 가중치 (배치 크기, src_len)
+            hidden: 갱신된 은닉 상태
+            cell: 갱신된 셀 상태 (LSTM에만 있다)
+            attention_weights: 어텐션 웨이트 (배치 크기, src_len)
         """
         # 입력 토큰 임베딩
         embedded = self.embedding(input_token)  # (배치 크기, 1, embedding_dim)
         embedded = self.dropout(embedded)
         
         # 어텐션 계산
-        # 어텐션에 맨 위 층의 숨은 상태 쓰기
+        # 어텐션에 맨 위 레이어의 은닉 상태 쓰기
         query = hidden[-1].unsqueeze(1) if hidden.dim() == 3 else hidden.unsqueeze(1)
         context, attention_weights = self.attention(query, encoder_outputs, mask)
         
@@ -427,11 +427,11 @@ class AttentionDecoder(nn.Module):
 
 class BahdanauAttention(nn.Module):
     """
-    바다나우(덧셈) 어텐션 장치
+    바다나우(덧셈) 어텐션 메커니즘
     
     인수:
-        decoder_hidden_size: 디코더 숨은 상태의 크기
-        encoder_hidden_size: 인코더 숨은 상태의 크기
+        decoder_hidden_size: 디코더 은닉 상태의 크기
+        encoder_hidden_size: 인코더 은닉 상태의 크기
     """
     
     def __init__(self, decoder_hidden_size, encoder_hidden_size):
@@ -443,16 +443,16 @@ class BahdanauAttention(nn.Module):
         
     def forward(self, query, keys, mask=None):
         """
-        어텐션 가중치와 문맥 벡터를 계산한다
+        어텐션 웨이트와 문맥 벡터를 계산한다
         
         인수:
-            query: 디코더의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
+            query: 디코더의 은닉 상태 (배치 크기, 1, decoder_hidden_size)
             keys: 인코더의 출력 (배치 크기, src_len, encoder_hidden_size)
             mask: 패딩 마스크 (배치 크기, src_len)
             
         반환값:
             context: 문맥 벡터 (배치 크기, 1, encoder_hidden_size)
-            attention_weights: 어텐션 가중치 (배치 크기, 1, src_len)
+            attention_weights: 어텐션 웨이트 (배치 크기, 1, src_len)
         """
         # 어텐션 점수 계산
         # query: (배치, 1, dec_hidden)
@@ -461,7 +461,7 @@ class BahdanauAttention(nn.Module):
         query_transformed = self.W_decoder(query)  # (배치, 1, dec_hidden)
         keys_transformed = self.W_encoder(keys)    # (배치, src_len, dec_hidden)
         
-        # 방송하여 더하기
+        # 브로드캐스팅하여 더하기
         scores = self.V(torch.tanh(query_transformed + keys_transformed))  # (배치, src_len, 1)
         scores = scores.squeeze(2)  # (배치, src_len)
         
@@ -469,7 +469,7 @@ class BahdanauAttention(nn.Module):
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
-        # 어텐션 가중치 계산
+        # 어텐션 웨이트 계산
         attention_weights = F.softmax(scores, dim=1).unsqueeze(1)  # (배치, 1, src_len)
         
         # 문맥 벡터 계산
@@ -480,11 +480,11 @@ class BahdanauAttention(nn.Module):
 
 class LuongAttention(nn.Module):
     """
-    루옹(곱셈) 어텐션 장치
+    루옹(곱셈) 어텐션 메커니즘
     
     인수:
-        decoder_hidden_size: 디코더 숨은 상태의 크기
-        encoder_hidden_size: 인코더 숨은 상태의 크기
+        decoder_hidden_size: 디코더 은닉 상태의 크기
+        encoder_hidden_size: 인코더 은닉 상태의 크기
         attention_type: 점수 함수의 종류 ('dot', 'general', 'concat')
     """
     
@@ -501,16 +501,16 @@ class LuongAttention(nn.Module):
         
     def forward(self, query, keys, mask=None):
         """
-        어텐션 가중치와 문맥 벡터를 계산한다
+        어텐션 웨이트와 문맥 벡터를 계산한다
         
         인수:
-            query: 디코더의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
+            query: 디코더의 은닉 상태 (배치 크기, 1, decoder_hidden_size)
             keys: 인코더의 출력 (배치 크기, src_len, encoder_hidden_size)
             mask: 패딩 마스크 (배치 크기, src_len)
             
         반환값:
             context: 문맥 벡터 (배치 크기, 1, encoder_hidden_size)
-            attention_weights: 어텐션 가중치 (배치 크기, 1, src_len)
+            attention_weights: 어텐션 웨이트 (배치 크기, 1, src_len)
         """
         if self.attention_type == 'dot':
             # 단순 내적
@@ -533,7 +533,7 @@ class LuongAttention(nn.Module):
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
-        # 어텐션 가중치 계산
+        # 어텐션 웨이트 계산
         attention_weights = F.softmax(scores, dim=1).unsqueeze(1)  # (배치, 1, src_len)
         
         # 문맥 벡터 계산
@@ -581,7 +581,7 @@ if __name__ == "__main__":
 
 # --- seq2seq_model ---
 """
-완전한 순차열 대 순차열 모델
+완전한 시퀀스-투-시퀀스 모델
 인코더와 디코더를 엮어 온전한 구조를 만든다
 """
 
@@ -593,7 +593,7 @@ if __name__ == "__main__":
 
 class Seq2Seq(nn.Module):
     """
-    어텐션이 없는 기본 순차열 대 순차열 모델
+    어텐션이 없는 기본 시퀀스-투-시퀀스 모델
     
     인수:
         encoder: 인코더 모듈
@@ -613,13 +613,13 @@ class Seq2Seq(nn.Module):
         seq2seq 모델을 지나는 순전파
         
         인수:
-            src: 원본 순차열 (배치 크기, src_len)
-            trg: 표적 순차열 (배치 크기, trg_len)
-            teacher_forcing_ratio: 교사 강요를 쓸 확률
-            src_lengths: 원본 순차열의 실제 길이
+            src: 원본 시퀀스 (배치 크기, src_len)
+            trg: 타깃 시퀀스 (배치 크기, trg_len)
+            teacher_forcing_ratio: 티처 포싱을 쓸 확률
+            src_lengths: 원본 시퀀스의 실제 길이
             
         반환값:
-            outputs: 시각마다의 예측 (배치 크기, trg_len, output_size)
+            outputs: 타임스텝마다의 예측 (배치 크기, trg_len, output_size)
         """
         batch_size = src.shape[0]
         trg_len = trg.shape[1]
@@ -628,13 +628,13 @@ class Seq2Seq(nn.Module):
         # 디코더의 출력을 담을 텐서
         outputs = torch.zeros(batch_size, trg_len, trg_vocab_size).to(self.device)
         
-        # 원본 순차열 부호화
+        # 원본 시퀀스 인코딩
         encoder_outputs, hidden, cell = self.encoder(src, src_lengths)
         
         # 디코더의 첫 입력은 <sos> 토큰이다
         decoder_input = trg[:, 0].unsqueeze(1)
         
-        # 한 번에 토큰 하나씩 복호
+        # 한 번에 토큰 하나씩 디코딩
         for t in range(1, trg_len):
             # 디코더를 지나는 순전파
             output, hidden, cell = self.decoder(decoder_input, hidden, cell)
@@ -642,7 +642,7 @@ class Seq2Seq(nn.Module):
             # 예측 담기
             outputs[:, t] = output
             
-            # 교사 강요를 쓸지 정하기
+            # 티처 포싱을 쓸지 정하기
             teacher_force = random.random() < teacher_forcing_ratio
             
             # 예측한 토큰 얻기
@@ -655,24 +655,24 @@ class Seq2Seq(nn.Module):
     
     def generate(self, src, max_len=50, sos_idx=1, eos_idx=2, src_lengths=None):
         """
-        탐욕적 복호로 순차열을 만든다
+        탐욕 디코딩로 시퀀스를 만든다
         
         인수:
-            src: 원본 순차열 (배치 크기, src_len)
-            max_len: 만들 순차열의 최대 길이
-            sos_idx: 순차열 시작 토큰의 색인
-            eos_idx: 순차열 끝 토큰의 색인
-            src_lengths: 원본 순차열의 실제 길이
+            src: 원본 시퀀스 (배치 크기, src_len)
+            max_len: 만들 시퀀스의 최대 길이
+            sos_idx: 시퀀스 시작 토큰의 인덱스
+            eos_idx: 시퀀스 끝 토큰의 인덱스
+            src_lengths: 원본 시퀀스의 실제 길이
             
         반환값:
-            generated: 만들어진 순차열 (배치 크기, seq_len)
+            generated: 만들어진 시퀀스 (배치 크기, seq_len)
         """
         self.eval()
         
         with torch.no_grad():
             batch_size = src.shape[0]
             
-            # 원본 부호화
+            # 원본 인코딩
             encoder_outputs, hidden, cell = self.encoder(src, src_lengths)
             
             # <sos> 토큰으로 시작
@@ -688,13 +688,13 @@ class Seq2Seq(nn.Module):
                 # 예측한 토큰 얻기
                 predicted = output.argmax(1).unsqueeze(1)
                 
-                # 끝난 순차열 갱신
+                # 끝난 시퀀스 갱신
                 finished |= (predicted.squeeze(1) == eos_idx)
                 
                 # 예측 담기
                 generated.append(predicted)
                 
-                # 모든 순차열이 끝나면 멈추기
+                # 모든 시퀀스가 끝나면 멈추기
                 if finished.all():
                     break
                 
@@ -709,13 +709,13 @@ class Seq2Seq(nn.Module):
 
 class Seq2SeqAttention(nn.Module):
     """
-    어텐션 장치가 있는 순차열 대 순차열 모델
+    어텐션 메커니즘이 있는 시퀀스-투-시퀀스 모델
     
     인수:
         encoder: 인코더 모듈
         decoder: 어텐션이 있는 디코더 모듈
         device: 돌릴 장치
-        pad_idx: 패딩 토큰의 색인
+        pad_idx: 패딩 토큰의 인덱스
     """
     
     def __init__(self, encoder, decoder, device, pad_idx=0):
@@ -736,44 +736,44 @@ class Seq2SeqAttention(nn.Module):
         어텐션이 있는 seq2seq 모델을 지나는 순전파
         
         인수:
-            src: 원본 순차열 (배치 크기, src_len)
-            trg: 표적 순차열 (배치 크기, trg_len)
-            teacher_forcing_ratio: 교사 강요를 쓸 확률
-            src_lengths: 원본 순차열의 실제 길이
+            src: 원본 시퀀스 (배치 크기, src_len)
+            trg: 타깃 시퀀스 (배치 크기, trg_len)
+            teacher_forcing_ratio: 티처 포싱을 쓸 확률
+            src_lengths: 원본 시퀀스의 실제 길이
             
         반환값:
-            outputs: 시각마다의 예측 (배치 크기, trg_len, output_size)
-            attentions: 시각마다의 어텐션 가중치 (배치 크기, trg_len, src_len)
+            outputs: 타임스텝마다의 예측 (배치 크기, trg_len, output_size)
+            attentions: 타임스텝마다의 어텐션 웨이트 (배치 크기, trg_len, src_len)
         """
         batch_size = src.shape[0]
         trg_len = trg.shape[1]
         trg_vocab_size = self.decoder.output_size
         
-        # 출력과 어텐션 가중치를 담을 텐서
+        # 출력과 어텐션 웨이트를 담을 텐서
         outputs = torch.zeros(batch_size, trg_len, trg_vocab_size).to(self.device)
         attentions = torch.zeros(batch_size, trg_len, src.shape[1]).to(self.device)
         
-        # 원본 순차열의 마스크 만들기
+        # 원본 시퀀스의 마스크 만들기
         mask = self.create_mask(src)
         
-        # 원본 순차열 부호화
+        # 원본 시퀀스 인코딩
         encoder_outputs, hidden, cell = self.encoder(src, src_lengths)
         
         # 디코더의 첫 입력은 <sos> 토큰이다
         decoder_input = trg[:, 0].unsqueeze(1)
         
-        # 한 번에 토큰 하나씩 복호
+        # 한 번에 토큰 하나씩 디코딩
         for t in range(1, trg_len):
             # 어텐션이 있는 디코더를 지나는 순전파
             output, hidden, cell, attention_weights = self.decoder(
                 decoder_input, hidden, encoder_outputs, cell, mask
             )
             
-            # 예측과 어텐션 가중치 담기
+            # 예측과 어텐션 웨이트 담기
             outputs[:, t] = output
             attentions[:, t] = attention_weights
             
-            # 교사 강요를 쓸지 정하기
+            # 티처 포싱을 쓸지 정하기
             teacher_force = random.random() < teacher_forcing_ratio
             
             # 예측한 토큰 얻기
@@ -786,18 +786,18 @@ class Seq2SeqAttention(nn.Module):
     
     def generate(self, src, max_len=50, sos_idx=1, eos_idx=2, src_lengths=None):
         """
-        어텐션과 함께 탐욕적 복호로 순차열을 만든다
+        어텐션과 함께 탐욕 디코딩로 시퀀스를 만든다
         
         인수:
-            src: 원본 순차열 (배치 크기, src_len)
-            max_len: 만들 순차열의 최대 길이
-            sos_idx: 순차열 시작 토큰의 색인
-            eos_idx: 순차열 끝 토큰의 색인
-            src_lengths: 원본 순차열의 실제 길이
+            src: 원본 시퀀스 (배치 크기, src_len)
+            max_len: 만들 시퀀스의 최대 길이
+            sos_idx: 시퀀스 시작 토큰의 인덱스
+            eos_idx: 시퀀스 끝 토큰의 인덱스
+            src_lengths: 원본 시퀀스의 실제 길이
             
         반환값:
-            generated: 만들어진 순차열 (배치 크기, seq_len)
-            all_attentions: 걸음마다의 어텐션 가중치 (배치 크기, seq_len, src_len)
+            generated: 만들어진 시퀀스 (배치 크기, seq_len)
+            all_attentions: 스텝마다의 어텐션 웨이트 (배치 크기, seq_len, src_len)
         """
         self.eval()
         
@@ -807,7 +807,7 @@ class Seq2SeqAttention(nn.Module):
             # 마스크 만들기
             mask = self.create_mask(src)
             
-            # 원본 부호화
+            # 원본 인코딩
             encoder_outputs, hidden, cell = self.encoder(src, src_lengths)
             
             # <sos> 토큰으로 시작
@@ -823,19 +823,19 @@ class Seq2SeqAttention(nn.Module):
                     decoder_input, hidden, encoder_outputs, cell, mask
                 )
                 
-                # 어텐션 가중치 담기
+                # 어텐션 웨이트 담기
                 all_attentions.append(attention_weights.unsqueeze(1))
                 
                 # 예측한 토큰 얻기
                 predicted = output.argmax(1).unsqueeze(1)
                 
-                # 끝난 순차열 갱신
+                # 끝난 시퀀스 갱신
                 finished |= (predicted.squeeze(1) == eos_idx)
                 
                 # 예측 담기
                 generated.append(predicted)
                 
-                # 모든 순차열이 끝나면 멈추기
+                # 모든 시퀀스가 끝나면 멈추기
                 if finished.all():
                     break
                 
@@ -851,30 +851,30 @@ class Seq2SeqAttention(nn.Module):
     def beam_search(self, src, beam_width=5, max_len=50, sos_idx=1, eos_idx=2, 
                    src_lengths=None, length_penalty=0.6):
         """
-        빔 탐색으로 순차열을 만든다
+        빔 탐색으로 시퀀스를 만든다
         
         인수:
-            src: 원본 순차열 (1, src_len) — 순차열 하나만
+            src: 원본 시퀀스 (1, src_len) — 시퀀스 하나만
             beam_width: 빔의 수
-            max_len: 만들 순차열의 최대 길이
-            sos_idx: 순차열 시작 토큰의 색인
-            eos_idx: 순차열 끝 토큰의 색인
-            src_lengths: 원본 순차열의 실제 길이
-            length_penalty: 길이 정규화 벌점 (alpha)
+            max_len: 만들 시퀀스의 최대 길이
+            sos_idx: 시퀀스 시작 토큰의 인덱스
+            eos_idx: 시퀀스 끝 토큰의 인덱스
+            src_lengths: 원본 시퀀스의 실제 길이
+            length_penalty: 길이 정규화 패널티 (alpha)
             
         반환값:
-            best_sequence: 가장 좋은 순차열
-            best_score: 가장 좋은 순차열의 점수
+            best_sequence: 가장 좋은 시퀀스
+            best_score: 가장 좋은 시퀀스의 점수
         """
         self.eval()
         
         with torch.no_grad():
-            # 원본 부호화
+            # 원본 인코딩
             mask = self.create_mask(src)
             encoder_outputs, hidden, cell = self.encoder(src, src_lengths)
             
             # 빔 초기화
-            # 빔마다: (순차열, 점수, 숨은 상태, 세포 상태)
+            # 빔마다: (시퀀스, 점수, 은닉 상태, 셀 상태)
             beams = [(torch.full((1, 1), sos_idx, dtype=torch.long).to(self.device), 
                      0.0, hidden, cell)]
             completed = []
@@ -883,7 +883,7 @@ class Seq2SeqAttention(nn.Module):
                 candidates = []
                 
                 for sequence, score, h, c in beams:
-                    # 순차열이 이미 끝났으면 건너뛰기
+                    # 시퀀스가 이미 끝났으면 건너뛰기
                     if sequence[0, -1].item() == eos_idx:
                         completed.append((sequence, score, h, c))
                         continue
@@ -917,7 +917,7 @@ class Seq2SeqAttention(nn.Module):
             # 남은 빔을 끝난 목록에 더하기
             completed.extend(beams)
             
-            # 가장 좋은 순차열 고르기
+            # 가장 좋은 시퀀스 고르기
             if completed:
                 best = max(completed, key=lambda x: x[1] / (len(x[0][0]) ** length_penalty))
                 return best[0], best[1]
@@ -929,7 +929,7 @@ if __name__ == "__main__":
     # 사용 예
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    # 초매개변수
+    # 하이퍼파라메터
     input_vocab_size = 10000
     output_vocab_size = 10000
     embedding_dim = 256
@@ -991,12 +991,12 @@ class Seq2SeqInference:
     
     인수:
         model: 학습된 Seq2Seq 모델
-        src_vocab: 원본 어휘 (토큰을 색인으로)
-        trg_vocab: 표적 어휘 (토큰을 색인으로)
+        src_vocab: 원본 어휘 (토큰을 인덱스로)
+        trg_vocab: 타깃 어휘 (토큰을 인덱스로)
         device: 추론을 돌릴 장치
-        sos_idx: 순차열 시작 토큰의 색인
-        eos_idx: 순차열 끝 토큰의 색인
-        pad_idx: 패딩 토큰의 색인
+        sos_idx: 시퀀스 시작 토큰의 인덱스
+        eos_idx: 시퀀스 끝 토큰의 인덱스
+        pad_idx: 패딩 토큰의 인덱스
     """
     
     def __init__(self, model, src_vocab, trg_vocab, device, sos_idx=1, eos_idx=2, pad_idx=0):
@@ -1008,7 +1008,7 @@ class Seq2SeqInference:
         self.eos_idx = eos_idx
         self.pad_idx = pad_idx
         
-        # 거꾸로 된 어휘 만들기 (색인에서 토큰으로)
+        # 거꾸로 된 어휘 만들기 (인덱스에서 토큰으로)
         self.idx_to_src = {idx: token for token, idx in src_vocab.items()}
         self.idx_to_trg = {idx: token for token, idx in trg_vocab.items()}
     
@@ -1020,14 +1020,14 @@ class Seq2SeqInference:
             text: 원본 텍스트 문자열이나 토큰의 목록
             
         반환값:
-            tokens: 토큰 색인의 목록
+            tokens: 토큰 인덱스의 목록
         """
         if isinstance(text, str):
             tokens = text.lower().split()
         else:
             tokens = text
         
-        # 색인으로 바꾸기
+        # 인덱스로 바꾸기
         indices = [self.src_vocab.get(token, self.src_vocab.get('<unk>', 3)) 
                    for token in tokens]
         
@@ -1035,10 +1035,10 @@ class Seq2SeqInference:
     
     def detokenize_target(self, indices):
         """
-        표적의 색인을 다시 텍스트로 바꾼다
+        타깃의 인덱스를 다시 텍스트로 바꾼다
         
         인수:
-            indices: 토큰 색인의 목록이나 텐서
+            indices: 토큰 인덱스의 목록이나 텐서
             
         반환값:
             text: 토큰을 되돌린 텍스트 문자열
@@ -1058,11 +1058,11 @@ class Seq2SeqInference:
     
     def greedy_decode(self, src_text, max_len=50):
         """
-        탐욕적 복호로 번역을 만든다
+        탐욕 디코딩로 번역을 만든다
         
         인수:
             src_text: 원본 텍스트 문자열이나 토큰의 목록
-            max_len: 만들 순차열의 최대 길이
+            max_len: 만들 시퀀스의 최대 길이
             
         반환값:
             translation: 번역된 텍스트
@@ -1104,8 +1104,8 @@ class Seq2SeqInference:
         인수:
             src_text: 원본 텍스트 문자열이나 토큰의 목록
             beam_width: 빔의 수
-            max_len: 만들 순차열의 최대 길이
-            length_penalty: 길이 정규화 벌점
+            max_len: 만들 시퀀스의 최대 길이
+            length_penalty: 길이 정규화 패널티
             
         반환값:
             translation: 번역된 텍스트
@@ -1139,8 +1139,8 @@ class Seq2SeqInference:
         
         인수:
             src_texts: 원본 텍스트의 목록
-            method: 복호 방법 ('greedy' 또는 'beam')
-            **kwargs: 복호에 쓸 추가 인자
+            method: 디코딩 방법 ('greedy' 또는 'beam')
+            **kwargs: 디코딩에 쓸 추가 인자
             
         반환값:
             translations: 번역된 텍스트의 목록
@@ -1174,7 +1174,7 @@ class Seq2SeqInference:
             if not src_text:
                 continue
             
-            # 탐욕적 복호
+            # 탐욕 디코딩
             translation_greedy, attention = self.greedy_decode(src_text)
             print(f"Greedy: {translation_greedy}")
             
@@ -1259,7 +1259,7 @@ class BLEU:
             precision = matches / len(hyp_ngrams)
             precisions.append(precision)
         
-        # 짧음 벌점
+        # 간결성 패널티(brevity penalty)
         bp = BLEU._brevity_penalty(len(reference), len(hypothesis))
         
         # 정밀도의 기하 평균
@@ -1283,7 +1283,7 @@ class BLEU:
     
     @staticmethod
     def _brevity_penalty(ref_len, hyp_len):
-        """짧음 벌점을 계산한다"""
+        """간결성 패널티(brevity penalty)를 계산한다"""
         if hyp_len > ref_len:
             return 1.0
         else:
@@ -1407,7 +1407,7 @@ greedy, beam과 translate_batch의 역할을 구분하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 모양 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
+아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 형태 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
 
 </div>
 
@@ -1420,16 +1420,16 @@ greedy, beam과 translate_batch의 역할을 구분하라.
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 형태, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

@@ -27,7 +27,7 @@
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-입력 X∈Rᴴˣᵂˣᶜ에서 C는 **입력 채널 수**이며 RGB는 3이다. 분류할 클래스 수 K와 다르다. 상호 배타적인 K클래스 분할의 정답은 Y∈{0,…,K−1}ᴴˣᵂ이고, 모델 로짓은 보통 N×K×H×W다. 클래스 축 softmax 뒤 합이 1인 픽셀별 확률을 얻고 argmax로 레이블을 선택한다. 모델이 반환하는 원시 로짓 자체가 확률은 아니다.
+입력 X∈Rᴴˣᵂˣᶜ에서 C는 **입력 채널 수**이며 RGB는 3이다. 분류할 클래스 수 K와 다르다. 상호 배타적인 K클래스 분할의 정답은 Y∈{0,…,K−1}ᴴˣᵂ이고, 모델 로짓은 보통 N×K×H×W다. 클래스 축 softmax 뒤 합이 1인 픽셀별 확률을 얻고 argmax로 라벨을 선택한다. 모델이 반환하는 원시 로짓 자체가 확률은 아니다.
 
 이진 전경/배경은 한 채널 로짓과 sigmoid로 나타낼 수도 있다. 이 방식의 0/1 마스크와 두 클래스 softmax의 정수 클래스 맵은 로스·형태가 다르므로 섞어 사용하지 않는다.
 
@@ -41,16 +41,16 @@
 import torch
 import torch.nn as nn
 
-# 막무가내 화소별 클래스 매개(설명용이며 실전용 아님)
+# 단순한 픽셀별 분류기(설명용이며 실전용 아님)
 class NaivePixelClassifier(nn.Module):
     """
-    화소마다 클래스를 매기는 것이 왜 실전에 맞지 않는지 보여 준다.
-    화소마다 작은 이웃 조각만 본다.
+    픽셀마다 따로 분류하는 것이 왜 실전에 맞지 않는지 보여 준다.
+    픽셀마다 작은 이웃 패치만 본다.
     """
     def __init__(self, num_classes, patch_size=3):
         super().__init__()
         self.patch_size = patch_size
-        # 조각을 펴서 클래스 매기기
+        # 패치를 펴서 분류하기
         self.classifier = nn.Sequential(
             nn.Linear(3 * patch_size * patch_size, 64),
             nn.ReLU(),
@@ -59,11 +59,11 @@ class NaivePixelClassifier(nn.Module):
     
     def forward(self, x):
         # 이것은 몹시 느리고 쓸모가 없다
-        # 화소마다 3x3 이웃만 보기 때문이다
+        # 픽셀마다 3x3 이웃만 보기 때문이다
         pass
 ```
 
-컨볼루션의 이론적 수용영역은 stride·커널·dilation과 깊이에 따라 커진다. 병목까지 내려갔다고 반드시 전체 이미지를 참조하는 것은 아니고, 이론적 영역 안의 실제 영향도도 균일하지 않다. 다운샘플링·dilated convolution·다중 스케일 연산은 서로 다른 방식으로 문맥과 비용을 조절한다.
+컨볼루션의 이론적 리셉티브 필드(receptive field, 출력의 한 점이 참조하는 입력 영역)는 stride·커널·dilation과 깊이에 따라 커진다. 병목까지 내려갔다고 반드시 전체 이미지를 참조하는 것은 아니고, 이론적 영역 안의 실제 영향도도 균일하지 않다. 다운샘플링·dilated convolution·다중 스케일 연산은 서로 다른 방식으로 문맥과 비용을 조절한다.
 
 ## 3. 인코더–디코더와 스킵 연결
 
@@ -99,7 +99,7 @@ Output Mask (H×W×K)
 ```python
 class EncoderDecoderWithSkips(nn.Module):
     """
-    건너뛰는 이음을 보여 주는 간추린 인코더-디코더.
+    스킵 연결을 보여 주는 간추린 인코더-디코더.
     """
     def __init__(self, in_channels=3, num_classes=21):
         super().__init__()
@@ -114,17 +114,17 @@ class EncoderDecoderWithSkips(nn.Module):
         # 병목
         self.bottleneck = self._conv_block(256, 512)
         
-        # 디코더 덩이(건너뛰는 이음 탓에 들임 채널이 두 배임에 유의)
+        # 디코더 블록(스킵 연결 탓에 입력 채널이 두 배임에 유의)
         self.up3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
-        self.dec3 = self._conv_block(512, 256)  # 키우기에서 256 + 건너뛰기에서 256
+        self.dec3 = self._conv_block(512, 256)  # 업샘플링에서 256 + 스킵에서 256
         
         self.up2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
-        self.dec2 = self._conv_block(256, 128)  # 키우기에서 128 + 건너뛰기에서 128
+        self.dec2 = self._conv_block(256, 128)  # 업샘플링에서 128 + 스킵에서 128
         
         self.up1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
-        self.dec1 = self._conv_block(128, 64)   # 키우기에서 64 + 건너뛰기에서 64
+        self.dec1 = self._conv_block(128, 64)   # 업샘플링에서 64 + 스킵에서 64
         
-        # 마지막 클래스 매기기 레이어
+        # 마지막 분류 레이어
         self.final = nn.Conv2d(64, num_classes, kernel_size=1)
     
     def _conv_block(self, in_ch, out_ch):
@@ -138,30 +138,30 @@ class EncoderDecoderWithSkips(nn.Module):
         )
     
     def forward(self, x):
-        # 건너뛰는 이음에 쓸 피처를 갈무리하는 인코더
-        e1 = self.enc1(x)           # 건너뛰기에 쓰려 갈무리
+        # 스킵 연결에 쓸 피처를 갈무리하는 인코더
+        e1 = self.enc1(x)           # 스킵에 쓰려 갈무리
         x = self.pool(e1)
         
-        e2 = self.enc2(x)           # 건너뛰기에 쓰려 갈무리
+        e2 = self.enc2(x)           # 스킵에 쓰려 갈무리
         x = self.pool(e2)
         
-        e3 = self.enc3(x)           # 건너뛰기에 쓰려 갈무리
+        e3 = self.enc3(x)           # 스킵에 쓰려 갈무리
         x = self.pool(e3)
         
         # 병목
         x = self.bottleneck(x)
         
-        # 건너뛰는 이음을 갖춘 디코더
+        # 스킵 연결을 갖춘 디코더
         x = self.up3(x)
-        x = torch.cat([x, e3], dim=1)  # 건너뛰는 이음: 이어 붙이기
+        x = torch.cat([x, e3], dim=1)  # 스킵 연결: 이어 붙이기
         x = self.dec3(x)
         
         x = self.up2(x)
-        x = torch.cat([x, e2], dim=1)  # 건너뛰는 이음
+        x = torch.cat([x, e2], dim=1)  # 스킵 연결
         x = self.dec2(x)
         
         x = self.up1(x)
-        x = torch.cat([x, e1], dim=1)  # 건너뛰는 이음
+        x = torch.cat([x, e1], dim=1)  # 스킵 연결
         x = self.dec1(x)
         
         return self.final(x)
@@ -177,20 +177,20 @@ class EncoderDecoderWithSkips(nn.Module):
 def calculate_iou(pred: torch.Tensor, target: torch.Tensor, 
                   num_classes: int, ignore_index: int = 255) -> dict:
     """
-    클래스마다의 겹침 비와 평균 겹침 비를 셈한다.
+    클래스별 IoU와 mIoU를 계산한다.
     
     인수:
-        pred: 어림한 클래스 이름표 (B, H, W)
-        target: 참값 이름표 (B, H, W)
+        pred: 예측한 클래스 라벨 (B, H, W)
+        target: 정답 라벨 (B, H, W)
         num_classes: 클래스의 개수
-        ignore_index: 무시할 번호(보기로 테두리 화소)
+        ignore_index: 무시할 인덱스(보기로 경계 픽셀)
     
     반환값:
-        클래스별 겹침 비와 평균 겹침 비를 담은 사전
+        클래스별 IoU와 mIoU를 담은 딕셔너리
     """
     ious = {}
     
-    # 쓸 수 있는 화소의 마스크 만들기
+    # 유효 픽셀의 마스크 만들기
     valid_mask = (target != ignore_index)
     
     for cls in range(num_classes):
@@ -205,7 +205,7 @@ def calculate_iou(pred: torch.Tensor, target: torch.Tensor,
         else:
             ious[cls] = float('nan')  # 그 클래스가 없음
     
-    # 평균 겹침 비 셈하기(NaN 클래스 뺌)
+    # mIoU 계산하기(NaN 클래스 뺌)
     valid_ious = [v for v in ious.values() if not np.isnan(v)]
     ious['mIoU'] = np.mean(valid_ious) if valid_ious else 0.0
     
@@ -218,18 +218,18 @@ def calculate_iou(pred: torch.Tensor, target: torch.Tensor,
 
 이진 영역의 Dice는 2TP/(2TP+FP+FN)이며 같은 비어 있지 않은 영역 쌍에서 Dice=2IoU/(1+IoU)다. 이 관계를 서로 다르게 평균한 mean Dice와 mIoU 사이에 그대로 적용하면 안 된다.
 
-아래 함수는 입력을 펼쳐 원소 곱과 합을 계산한다. 0/1 마스크이면 평활화한 이진 Dice, 확률이면 soft Dice의 한 형태다. 정수 다중 클래스 레이블을 그대로 곱하면 클래스별 겹침이 아니므로 클래스별 이진 맵이나 적절한 one-hot 표현이 필요하다.
+아래 함수는 입력을 펼쳐 원소 곱과 합을 계산한다. 0/1 마스크이면 평활화한 이진 Dice, 확률이면 soft Dice의 한 형태다. 정수 다중 클래스 라벨을 그대로 곱하면 클래스별 겹침이 아니므로 클래스별 이진 맵이나 적절한 one-hot 표현이 필요하다.
 
 ```python
 def calculate_dice(pred: torch.Tensor, target: torch.Tensor, 
                    smooth: float = 1e-6) -> float:
     """
-    두 분류의 다이스 계수를 셈한다.
+    이진 분류의 다이스 계수를 계산한다.
     
     인수:
-        pred: 시그모이드를 거친 어림 확률 (B, 1, H, W)
-        target: 참값 두 클래스 마스크 (B, 1, H, W)
-        smooth: 0으로 나누는 것을 막는 평활 인수
+        pred: 시그모이드를 거친 예측 확률 (B, 1, H, W)
+        target: 정답 이진 마스크 (B, 1, H, W)
+        smooth: 0으로 나누는 것을 막는 평활화 상수
     
     반환값:
         다이스 계수
@@ -256,15 +256,15 @@ smooth를 분자·분모에 넣어 양쪽 모두 빈 마스크를 1로 만드는
 def calculate_pixel_accuracy(pred: torch.Tensor, target: torch.Tensor,
                              ignore_index: int = 255) -> float:
     """
-    화소마다의 정확도를 셈한다.
+    픽셀 정확도를 계산한다.
     
     인수:
-        pred: 어림한 클래스 이름표 (B, H, W)
-        target: 참값 이름표 (B, H, W)
-        ignore_index: 셈에서 무시할 번호
+        pred: 예측한 클래스 라벨 (B, H, W)
+        target: 정답 라벨 (B, H, W)
+        ignore_index: 계산에서 무시할 인덱스
     
     반환값:
-        실수로 된 화소 정확도
+        실수로 된 픽셀 정확도
     """
     valid_mask = (target != ignore_index)
     correct = ((pred == target) & valid_mask).float().sum()
@@ -291,9 +291,9 @@ IoU penalizes missing small objects that pixel accuracy ignores.
 
 ## 7. 로스와 데이터 설계
 
-상호 배타적인 클래스에는 픽셀별 교차 엔트로피, 독립적인 이진 마스크에는 BCE를 사용할 수 있다. 클래스 웨이트·표집·focal loss·Dice 기반 로스는 불균형을 다루는 방법이지만 각각 다른 목적과 하이퍼파라미터를 갖는다. CE를 쓴다고 유한 모델이 자동으로 캘리브레이션되는 것도, Dice가 모든 클래스에 자동으로 동일한 웨이트를 주는 것도 아니다.
+상호 배타적인 클래스에는 픽셀별 교차 엔트로피, 독립적인 이진 마스크에는 BCE를 사용할 수 있다. 클래스 웨이트·표집·focal loss·Dice 기반 로스는 불균형을 다루는 방법이지만 각각 다른 목적과 하이퍼파라메터를 갖는다. CE를 쓴다고 유한 모델이 자동으로 캘리브레이션되는 것도, Dice가 모든 클래스에 자동으로 동일한 웨이트를 주는 것도 아니다.
 
-클래스·객체 크기·경계의 평가가 중요하면 그 집계와 로스의 관계를 명시한다. crop·회전·resize 같은 기하 변환은 이미지와 마스크에 같은 난수·좌표를 적용하고, 정수 클래스 마스크는 레이블을 보존하는 보간을 사용한다. 색상·밝기 변화는 보통 이미지에만 적용한다.
+클래스·객체 크기·경계의 평가가 중요하면 그 집계와 로스의 관계를 명시한다. crop·회전·resize 같은 기하 변환은 이미지와 마스크에 같은 난수·좌표를 적용하고, 정수 클래스 마스크는 라벨을 보존하는 보간을 사용한다. 색상·밝기 변화는 보통 이미지에만 적용한다.
 
 ## 8. 응용과 한계
 
@@ -309,7 +309,7 @@ IoU penalizes missing small objects that pixel accuracy ignores.
 </div>
 
 ??? success "풀이"
-    시맨틱 분할은 두 객체를 같은 클래스 레이블로 표시하고 ID를 구분하지 않는다. 인스턴스 분할은 객체별 마스크를 구분한다. 파놉틱 분할은 모든 유효 픽셀의 클래스와 thing 객체의 ID를 함께 표현하고 stuff 영역도 포함한다.
+    시맨틱 분할은 두 객체를 같은 클래스 라벨로 표시하고 ID를 구분하지 않는다. 인스턴스 분할은 객체별 마스크를 구분한다. 파놉틱 분할은 모든 유효 픽셀의 클래스와 thing 객체의 ID를 함께 표현하고 stuff 영역도 포함한다.
 
 ---
 
@@ -321,7 +321,7 @@ IoU penalizes missing small objects that pixel accuracy ignores.
 </div>
 
 ??? success "풀이"
-    업샘플링은 해상도를 키우고 스킵은 높은 해상도에서 얻은 피처를 제공한다. 로스된 정보를 반드시 복원하는 것은 아니다. 연결은 배치·공간 크기를 맞추고 채널은 합하며, 원소별 덧셈은 채널까지 같아야 한다. 풀링한 홀수 크기는 명시적 정렬이 필요할 수 있다.
+    업샘플링은 해상도를 키우고 스킵은 높은 해상도에서 얻은 피처를 제공한다. 손실된 정보를 반드시 복원하는 것은 아니다. 연결은 배치·공간 크기를 맞추고 채널은 합하며, 원소별 덧셈은 채널까지 같아야 한다. 풀링한 홀수 크기는 명시적 정렬이 필요할 수 있다.
 
 ---
 
@@ -349,7 +349,7 @@ RoIAlign이 필요한 문제와 픽셀 전체의 시맨틱 분할을 구분하�
 
 ## 정리하며
 
-분할은 픽셀의 클래스와 객체 ID를 어떤 수준에서 구분하는지에 따라 과제가 달라진다. 로짓·확률·레이블의 형태와 IoU·Dice의 집계·빈 마스크 규칙을 명시한다. 인코더–디코더와 스킵의 역할을 이해하되 구조·로스 하나가 정확성을 자동으로 보장한다고 해석하지 않는다.
+분할은 픽셀의 클래스와 객체 ID를 어떤 수준에서 구분하는지에 따라 과제가 달라진다. 로짓·확률·라벨의 형태와 IoU·Dice의 집계·빈 마스크 규칙을 명시한다. 인코더–디코더와 스킵의 역할을 이해하되 구조·로스 하나가 정확성을 자동으로 보장한다고 해석하지 않는다.
 
 **더 읽을거리**
 

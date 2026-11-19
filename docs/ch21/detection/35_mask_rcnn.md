@@ -9,9 +9,9 @@ Mask R-CNN은 영역 제안 기반 객체 탐지에 객체별 마스크 예측�
 ```python
 #!/usr/bin/env python3
 '''
-마스크 R-CNN — 낱 물체 나누기 얼거리
+Mask R-CNN — 인스턴스 분할 골격
 논문: "Mask R-CNN" (2017)
-핵심: 마스크 어림 가지를 더해 더 빠른 R-CNN을 넓힌다
+핵심: 마스크 예측 브랜치를 더해 Faster R-CNN을 확장한다
 '''
 import torch
 import torch.nn as nn
@@ -23,19 +23,19 @@ import torch.nn as nn
 class MaskRCNN(nn.Module):
     def __init__(self, num_classes=81):
         super().__init__()
-        # 간추린 등뼈
+        # 축약한 백본
         self.backbone = nn.Sequential(
             nn.Conv2d(3, 64, 7, 2, 3),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(3, 2, 1)
         )
         
-        # RPN(자리 제안 네트워크)
+        # RPN(영역 제안 네트워크)
         self.rpn_conv = nn.Conv2d(64, 512, 3, 1, 1)
-        self.rpn_cls = nn.Conv2d(512, 2 * 9, 1)  # 앵커 9개, 클래스 2개(물체/아님)
-        self.rpn_reg = nn.Conv2d(512, 4 * 9, 1)  # 앵커 9개, 자리표 4개
+        self.rpn_cls = nn.Conv2d(512, 2 * 9, 1)  # 앵커 9개, 클래스 2개(객체/배경)
+        self.rpn_reg = nn.Conv2d(512, 4 * 9, 1)  # 앵커 9개, 좌표 4개
         
-        # 관심 자리 머리
+        # RoI 헤드
         self.roi_head = nn.Sequential(
             nn.Linear(64 * 7 * 7, 1024),
             nn.ReLU(inplace=True),
@@ -43,11 +43,11 @@ class MaskRCNN(nn.Module):
             nn.ReLU(inplace=True)
         )
         
-        # 클래스 매기기와 두름 상자 되돌리기
+        # 분류와 경계 상자 회귀
         self.cls_score = nn.Linear(1024, num_classes)
         self.bbox_pred = nn.Linear(1024, num_classes * 4)
         
-        # 마스크 어림
+        # 마스크 예측
         self.mask_conv = nn.Sequential(
             nn.Conv2d(64, 256, 3, 1, 1),
             nn.ReLU(inplace=True),
@@ -57,12 +57,12 @@ class MaskRCNN(nn.Module):
     def forward(self, x):
         features = self.backbone(x)
         
-        # 자리 제안 네트워크
+        # 영역 제안 네트워크
         rpn_feat = torch.nn.functional.relu(self.rpn_conv(features))
         rpn_cls = self.rpn_cls(rpn_feat)
         rpn_reg = self.rpn_reg(rpn_feat)
         
-        # 간추린 내놓음
+        # 축약한 출력
         return {'features': features, 'rpn_cls': rpn_cls, 'rpn_reg': rpn_reg}
 
 if __name__ == "__main__":
@@ -80,7 +80,7 @@ Parameters: 5,178,140
 
 ## 2. RPN 출력과 영역별 head
 
-RGB 입력 4×3×64×64를 가정하면 stride2 컨볼루션은 4×64×32×32, stride2 최대 풀링은 4×64×16×16을 만든다. RPN 컨볼루션은 4×512×16×16이고 반환 사전에는 backbone 피처와 4×18×16×16의 `rpn_cls`, 4×36×16×16의 `rpn_reg`가 들어간다.
+RGB 입력 4×3×64×64를 가정하면 stride2 컨볼루션은 4×64×32×32, stride2 최대 풀링은 4×64×16×16을 만든다. RPN 컨볼루션은 4×512×16×16이고 반환 딕셔너리에는 backbone 피처와 4×18×16×16의 `rpn_cls`, 4×36×16×16의 `rpn_reg`가 들어간다.
 
 18채널은 위치마다 앵커 9개의 전경·배경 로짓 두 개씩이다. 의미 클래스 18개가 아니다. 36채널은 앵커마다 상자 오프셋 네 개이며 아직 이미지 좌표의 경계 상자가 아니다. 앵커의 크기·비율과 오프셋 정의를 정해 디코딩해야 한다.
 
@@ -93,13 +93,13 @@ RGB 입력 4×3×64×64를 가정하면 stride2 컨볼루션은 4×64×32×32, s
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-4×3×64×64 입력에서 실제 forward가 반환하는 텐서 모양을 추적하라.
+4×3×64×64 입력에서 실제 forward가 반환하는 텐서의 형태를 추적하라.
 
 </div>
 
 ??? success "풀이"
 
-    backbone은 4×64×16×16이다. RPN 중간 피처는 4×512×16×16, 분류 출력은 4×18×16×16, 회귀 출력은 4×36×16×16이다. 반환값은 이 중 backbone 피처·RPN 분류·회귀를 담은 사전이다. 선형 레이어와 mask_conv는 호출하지 않는다.
+    backbone은 4×64×16×16이다. RPN 중간 피처는 4×512×16×16, 분류 출력은 4×18×16×16, 회귀 출력은 4×36×16×16이다. 반환값은 이 중 backbone 피처·RPN 분류·회귀를 담은 딕셔너리다. 선형 레이어와 mask_conv는 호출하지 않는다.
 
 
 
@@ -114,7 +114,7 @@ RGB 입력 4×3×64×64를 가정하면 stride2 컨볼루션은 4×64×32×32, s
 
 ??? success "풀이"
 
-    첫 컨볼루션의 입력 채널이 이미 3이고 backbone·RPN은 해당 공간 크기를 처리한다. 그러나 반환값은 최종 상자나 마스크가 아니다. 이미지 크기 변경만으로 빠진 앵커·제안·RoIAlign·head 호출·후처리가 추가되지는 않는다. 사전 반환값에 .shape를 직접 접근하는 설명도 맞지 않는다.
+    첫 컨볼루션의 입력 채널이 이미 3이고 backbone·RPN은 해당 공간 크기를 처리한다. 그러나 반환값은 최종 상자나 마스크가 아니다. 이미지 크기 변경만으로 빠진 앵커·제안·RoIAlign·head 호출·후처리가 추가되지는 않는다. 딕셔너리 반환값에 .shape를 직접 접근하는 설명도 맞지 않는다.
 
 
 

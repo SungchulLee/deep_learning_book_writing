@@ -30,13 +30,13 @@ class LinearWarmup:
         """
         인수:
             base_lr: 워밍업 뒤의 목표 러닝레이트
-            warmup_steps: 워밍업 구간의 단계 수
+            warmup_steps: 워밍업 구간의 스텝 수
         """
         self.base_lr = base_lr
         self.warmup_steps = warmup_steps
     
     def get_lr(self, step: int) -> float:
-        """주어진 단계의 러닝레이트를 얻는다."""
+        """주어진 스텝의 러닝레이트를 얻는다."""
         if step < self.warmup_steps:
             return self.base_lr * (step + 1) / self.warmup_steps
         return self.base_lr
@@ -52,7 +52,7 @@ class ExponentialWarmup:
         """
         인수:
             base_lr: 워밍업 뒤의 목표 러닝레이트
-            warmup_steps: 워밍업 구간의 단계 수
+            warmup_steps: 워밍업 구간의 스텝 수
             start_lr: 처음 러닝레이트 (아주 작아야 한다)
         """
         self.base_lr = base_lr
@@ -60,7 +60,7 @@ class ExponentialWarmup:
         self.start_lr = start_lr
     
     def get_lr(self, step: int) -> float:
-        """주어진 단계의 러닝레이트를 얻는다."""
+        """주어진 스텝의 러닝레이트를 얻는다."""
         if step < self.warmup_steps:
             # 지수 보간
             factor = (step + 1) / self.warmup_steps
@@ -78,13 +78,13 @@ class CosineWarmup:
         """
         인수:
             base_lr: 워밍업 뒤의 목표 러닝레이트
-            warmup_steps: 워밍업 구간의 단계 수
+            warmup_steps: 워밍업 구간의 스텝 수
         """
         self.base_lr = base_lr
         self.warmup_steps = warmup_steps
     
     def get_lr(self, step: int) -> float:
-        """주어진 단계의 러닝레이트를 얻는다."""
+        """주어진 스텝의 러닝레이트를 얻는다."""
         if step < self.warmup_steps:
             # 0에서 base_lr까지 코사인 보간
             progress = (step + 1) / self.warmup_steps
@@ -108,8 +108,8 @@ class WarmupWithDecay:
         """
         인수:
             base_lr: 워밍업 뒤의 최고 러닝레이트
-            warmup_steps: 워밍업 구간의 단계 수
-            total_steps: 전체 학습 단계 수
+            warmup_steps: 워밍업 구간의 스텝 수
+            total_steps: 전체 학습 스텝 수
             min_lr: 학습이 끝날 때의 최소 러닝레이트
         """
         self.base_lr = base_lr
@@ -118,7 +118,7 @@ class WarmupWithDecay:
         self.min_lr = min_lr
     
     def get_lr(self, step: int) -> float:
-        """주어진 단계의 러닝레이트를 얻는다."""
+        """주어진 스텝의 러닝레이트를 얻는다."""
         if step < self.warmup_steps:
             # 선형 워밍업
             return self.base_lr * (step + 1) / self.warmup_steps
@@ -133,7 +133,7 @@ class WarmupWithDecay:
 
 def plot_warmup_schedules(warmup_steps: int = 1000, total_steps: int = 10000):
     """
-    여러 워밍업 일정을 그려 보인다.
+    여러 워밍업 스케줄을 그려 보인다.
     matplotlib이 필요하다.
     """
     try:
@@ -235,7 +235,7 @@ Plot saved to warmup_schedules.png
 
 이 구현은 0부터 세는 step에 대해 (step+1)/warmup_steps를 사용한다. 따라서 LinearWarmup의 첫 값은 0이 아니라 base_lr/warmup_steps이다. 지수 워밍업도 첫 값이 start_lr보다 크며, 양수인 시작값과 목표값 사이를 기하적으로 보간한다. 코사인 워밍업은 같은 진행률에 반코사인 함수를 적용한다.
 
-WarmupWithDecay는 선형 워밍업 뒤 코사인 감쇠를 적용하고 total_steps 이후에는 min_lr를 유지한다. total_steps는 warmup_steps보다 커야 하며 단계는 음이 아닌 값으로 사용한다. get_lr는 숫자를 계산하는 함수이므로 실제 옵티마이저에 그 값을 전달하는 연결이 필요하다. 그림의 기본 범위는 전체 10000단계 중 앞 5000단계뿐이므로 마지막 감쇠값까지 보여 주는 그래프가 아니다.
+WarmupWithDecay는 선형 워밍업 뒤 코사인 감쇠를 적용하고 total_steps 이후에는 min_lr를 유지한다. total_steps는 warmup_steps보다 커야 하며 스텝은 음이 아닌 값으로 사용한다. get_lr는 숫자를 계산하는 함수이므로 실제 옵티마이저에 그 값을 전달하는 연결이 필요하다. 그림의 기본 범위는 전체 10000스텝 중 앞 5000스텝뿐이므로 마지막 감쇠값까지 보여 주는 그래프가 아니다.
 
 ## 연습문제
 
@@ -273,7 +273,7 @@ base_lr=0.001, warmup_steps=1000인 LinearWarmup에서 step 0과 999의 값은 �
 </div>
 
 ??? success "풀이"
-    의도한 길이가 옵티마이저 갱신 횟수인지 처리 표본 수인지 먼저 정한다. 갱신 기준이면 실제 optimizer.step()마다 단계를 증가시킨다. 같은 미니배치 수를 사용해도 누적 횟수가 바뀌면 갱신 수는 달라진다.
+    의도한 길이가 옵티마이저 갱신 횟수인지 처리 표본 수인지 먼저 정한다. 갱신 기준이면 실제 optimizer.step()마다 스텝을 증가시킨다. 같은 미니배치 수를 사용해도 누적 횟수가 바뀌면 갱신 수는 달라진다.
 
 ## 정리하며
 

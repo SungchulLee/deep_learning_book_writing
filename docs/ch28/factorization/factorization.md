@@ -23,16 +23,16 @@ import torch.nn.functional as F
 
 class DiscreteARModel(nn.Module):
     """
-    띄엄띄엄한 차례용 자기 회귀 모델.
+    이산 시퀀스용 자기 회귀 모델.
     
-    자리마다 단어에 대한 범주형 분포를 헤아린다.
+    자리마다 어휘에 대한 범주형 분포를 예측한다.
     """
     
     def __init__(self, vocab_size: int, embedding_dim: int, hidden_dim: int):
         super().__init__()
         self.vocab_size = vocab_size
         
-        # 임베딩 레이어: 띄엄띄엄한 토큰을 이어진 벡터로 바꾼다
+        # 임베딩 레이어: 이산 토큰을 연속 벡터로 바꾼다
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         
         # 맥락 인코더: 앞 토큰을 다룬다
@@ -42,44 +42,44 @@ class DiscreteARModel(nn.Module):
             batch_first=True
         )
         
-        # 내놓기 쏘기: 숨은 상태 -> 단어 로짓
+        # 출력 사영: 은닉 상태 -> 어휘 로짓
         self.output_proj = nn.Linear(hidden_dim, vocab_size)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        자리마다 다음 토큰 헤아리기의 로짓을 셈한다.
+        자리마다 다음 토큰 예측의 로짓을 계산한다.
         
         인수:
-            x: 들임 차례 [배치 크기, 차례 길이]
+            x: 입력 시퀀스 [배치 크기, 시퀀스 길이]
             
         반환값:
-            로짓 [배치 크기, 차례 길이, 단어 수]
+            로짓 [배치 크기, 시퀀스 길이, 어휘 수]
         """
-        # 들임 토큰을 박아 넣는다
-        embedded = self.embedding(x)  # [배치, 차례 길이, 임베딩 차원]
+        # 입력 토큰을 임베딩한다
+        embedded = self.embedding(x)  # [배치, 시퀀스 길이, 임베딩 차원]
         
-        # 맥락 부호화
-        hidden_states, _ = self.encoder(embedded)  # [배치, 차례 길이, 숨은 차원]
+        # 맥락 인코딩
+        hidden_states, _ = self.encoder(embedded)  # [배치, 시퀀스 길이, 은닉 차원]
         
         # 어휘로 사영한다
-        logits = self.output_proj(hidden_states)  # [배치, 차례 길이, 단어 수]
+        logits = self.output_proj(hidden_states)  # [배치, 시퀀스 길이, 어휘 수]
         
         return logits
     
     def compute_loss(self, x: torch.Tensor) -> torch.Tensor:
         """
-        음의 로그 가능도 로스 셈하기.
+        음의 로그 가능도 로스 계산.
         
-        스승 밀어 넣기를 쓴다. 곧 x[0:t]으로 x[t]을 헤아린다.
+        teacher forcing을 쓴다. 곧 x[0:t]로 x[t]를 예측한다.
         """
-        # 다음 토큰 맞히기를 위해 민다
+        # 다음 토큰 예측을 위해 한 칸 민다
         inputs = x[:, :-1]   # 마지막 토큰만 뺀 모두
         targets = x[:, 1:]   # 첫 토큰만 뺀 모두
         
         # 예측을 얻는다
         logits = self.forward(inputs)
         
-        # 어긋 엔트로피 로스 = 음의 로그 가능도
+        # 교차 엔트로피 로스 = 음의 로그 가능도
         loss = F.cross_entropy(
             logits.reshape(-1, self.vocab_size),
             targets.reshape(-1)
@@ -99,7 +99,7 @@ logits의 같은 시간 위치는 해당 입력 토큰까지 본 뒤 **다음** 
 ```python
 class ContinuousARModel(nn.Module):
     """
-    정규 분포 내놓기를 갖춘 이어진 차례용 자기 회귀 모델.
+    정규 분포 출력을 갖춘 연속 시퀀스용 자기 회귀 모델.
     """
     
     def __init__(self, input_dim: int, hidden_dim: int):
@@ -107,20 +107,20 @@ class ContinuousARModel(nn.Module):
         
         self.encoder = nn.GRU(input_dim, hidden_dim, batch_first=True)
         
-        # 평균과 로그 흩어짐을 내놓는다
+        # 평균과 로그 분산을 출력한다
         self.mean_proj = nn.Linear(hidden_dim, input_dim)
         self.logvar_proj = nn.Linear(hidden_dim, input_dim)
     
     def forward(self, x: torch.Tensor):
         """
-        자리마다 정규 분포 파라메터를 셈한다.
+        자리마다 정규 분포 파라메터를 계산한다.
         
         인수:
-            x: 들임 차례 [배치 크기, 차례 길이, 들임 차원]
+            x: 입력 시퀀스 [배치 크기, 시퀀스 길이, 입력 차원]
             
         반환값:
-            mean: [배치 크기, 차례 길이, 들임 차원]
-            logvar: [배치 크기, 차례 길이, 들임 차원]
+            mean: [배치 크기, 시퀀스 길이, 입력 차원]
+            logvar: [배치 크기, 시퀀스 길이, 입력 차원]
         """
         hidden_states, _ = self.encoder(x)
         
@@ -131,7 +131,7 @@ class ContinuousARModel(nn.Module):
     
     def compute_loss(self, x: torch.Tensor) -> torch.Tensor:
         """
-        정규 분포의 음의 로그 가능도를 셈한다.
+        정규 분포의 음의 로그 가능도를 계산한다.
         """
         inputs = x[:, :-1, :]
         targets = x[:, 1:, :]
@@ -161,13 +161,13 @@ $$-\log p_\theta(x)=-\sum_i\log p_\theta(x_i|x_{<i}).$$
 ```python
 def train_step(model, optimizer, batch):
     """
-    스승 밀어 넣기로 하는 익히기 스텝 하나.
+    teacher forcing으로 하는 학습 스텝 하나.
     
-    모델은 자리마다 참 앞 토큰을 본다.
+    모델은 자리마다 실제 앞 토큰을 본다.
     """
     optimizer.zero_grad()
     
-    # 스승 밀어 넣기: 참 들임을 쓴다
+    # teacher forcing: 실제 입력을 쓴다
     loss = model.compute_loss(batch)
     
     loss.backward()
@@ -188,16 +188,16 @@ def train_step(model, optimizer, batch):
 @torch.no_grad()
 def sample(model, start_token, max_length, temperature=1.0):
     """
-    조상 뽑기로 차례를 만든다.
+    조상 샘플링로 시퀀스를 만든다.
     
     인수:
-        model: 익힌 자기 회귀 모델
+        model: 학습한 자기 회귀 모델
         start_token: 첫 토큰
-        max_length: 최대 차례 길이
+        max_length: 최대 시퀀스 길이
         temperature: 표본 추출의 온도 (높을수록 더 무작위)
     
     반환값:
-        만든 차례
+        만든 시퀀스
     """
     model.eval()
     
@@ -206,10 +206,10 @@ def sample(model, start_token, max_length, temperature=1.0):
     hidden = None
     
     for _ in range(max_length - 1):
-        # 지금 들임을 얻는다
+        # 현재 입력을 얻는다
         x = torch.tensor([[generated[-1]]])
         
-        # 다음 토큰의 로짓을 셈한다
+        # 다음 토큰의 로짓을 계산한다
         embedded = model.embedding(x)
         output, hidden = model.encoder(embedded, hidden)
         logits = model.output_proj(output[:, -1, :])
@@ -232,7 +232,7 @@ def sample(model, start_token, max_length, temperature=1.0):
 
 ```python
 def top_k_sampling(logits, k):
-    """가장 그럴듯한 웃 k개 토큰에서 뽑는다."""
+    """확률이 가장 큰 상위 k개 토큰에서 뽑는다."""
     values, indices = torch.topk(logits, k)
     probs = F.softmax(values, dim=-1)
     sampled_idx = torch.multinomial(probs, 1)
@@ -243,7 +243,7 @@ Top-k는 확률이 큰 k개만 남겨 재정규화한다. 위 구현은 마지�
 
 ```python
 def top_p_sampling(logits, p):
-    """쌓인 확률이 p 이상이 되는 가장 작은 토큰 모임에서 뽑는다."""
+    """누적 확률이 p 이상이 되는 가장 작은 토큰 집합에서 뽑는다."""
     sorted_logits, sorted_indices = torch.sort(logits, descending=True)
     cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
     
@@ -275,10 +275,10 @@ Top-p는 확률 내림차순에서 누적 질량이 임계에 도달할 때까�
 ```python
 class FinancialARModel(nn.Module):
     """
-    돈살림 시계열용 자기 회귀 모델.
+    금융 시계열용 자기 회귀 모델.
     
-    돈살림 수익률에 흔한 두꺼운 꼬리를 담으려
-    스튜던트 t 분포의 파라메터를 내놓는다.
+    금융 수익률에 흔한 두꺼운 꼬리를 담으려
+    스튜던트 t 분포의 파라메터를 출력한다.
     """
     
     def __init__(self, input_dim: int, hidden_dim: int):
@@ -286,7 +286,7 @@ class FinancialARModel(nn.Module):
         
         self.lstm = nn.LSTM(input_dim, hidden_dim, batch_first=True)
         
-        # 스튜던트 t 파라메터: 자리, 스케일, 자유도
+        # 스튜던트 t 파라메터: 위치, 스케일, 자유도
         self.loc_proj = nn.Linear(hidden_dim, 1)
         self.scale_proj = nn.Linear(hidden_dim, 1)
         self.df_proj = nn.Linear(hidden_dim, 1)
@@ -296,7 +296,7 @@ class FinancialARModel(nn.Module):
         
         loc = self.loc_proj(hidden)
         scale = F.softplus(self.scale_proj(hidden)) + 1e-6
-        df = F.softplus(self.df_proj(hidden)) + 2  # 흩어짐이 유한하려면 df > 2
+        df = F.softplus(self.df_proj(hidden)) + 2  # 분산이 유한하려면 df > 2
         
         return loc, scale, df
 ```

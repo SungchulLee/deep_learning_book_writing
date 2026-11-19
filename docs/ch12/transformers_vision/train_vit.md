@@ -24,7 +24,7 @@ from typing import Tuple
 # --- vit_model ---
 """
 비전 트랜스포머(ViT) 구현
-이미지 분류에서 합성곱 신경망과 트랜스포머를 잇는다
+이미지 분류에서 컨볼루션 뉴럴 네트워크와 트랜스포머를 잇는다
 """
 
 
@@ -35,8 +35,8 @@ from typing import Tuple
 
 class PatchEmbedding(nn.Module):
     """
-    그림을 조각으로 바꾸고 임베딩으로 사영한다.
-    합성곱 신경망 방식의 입력과 트랜스포머 처리를 잇는 다리이다.
+    이미지를 패치로 바꾸고 임베딩으로 투영한다.
+    컨볼루션 뉴럴 네트워크 방식의 입력과 트랜스포머 처리를 잇는 다리이다.
     """
     def __init__(self, img_size: int = 224, patch_size: int = 16, 
                  in_channels: int = 3, embed_dim: int = 768):
@@ -45,7 +45,7 @@ class PatchEmbedding(nn.Module):
         self.patch_size = patch_size
         self.n_patches = (img_size // patch_size) ** 2
         
-        # 편 조각의 선형 사영 (합성곱 신경망의 합성곱과 비슷하다)
+        # 펼친 패치의 선형 투영 (컨볼루션 뉴럴 네트워크의 컨볼루션과 비슷하다)
         self.proj = nn.Conv2d(in_channels, embed_dim, 
                              kernel_size=patch_size, stride=patch_size)
         
@@ -64,8 +64,8 @@ class PatchEmbedding(nn.Module):
 
 class MultiHeadAttention(nn.Module):
     """
-    트랜스포머에서 온 다중 머리 자기 주의 얼개.
-    모형이 그림의 여러 부분에 한꺼번에 주의하게 해 준다.
+    트랜스포머에서 온 멀티헤드 셀프 어텐션 메커니즘.
+    모델이 이미지의 여러 부분에 한꺼번에 어텐션을 주게 해 준다.
     """
     def __init__(self, embed_dim: int = 768, n_heads: int = 12, dropout: float = 0.1):
         super().__init__()
@@ -94,7 +94,7 @@ class MultiHeadAttention(nn.Module):
         qkv = qkv.permute(2, 0, 3, 1, 4)  # (3, B, n_heads, N, head_dim)
         q, k, v = qkv[0], qkv[1], qkv[2]
         
-        # 주의 점수
+        # 어텐션 점수
         attn = (q @ k.transpose(-2, -1)) * self.scale
         attn = attn.softmax(dim=-1)
         attn = self.dropout(attn)
@@ -109,8 +109,8 @@ class MultiHeadAttention(nn.Module):
 
 class MLP(nn.Module):
     """
-    트랜스포머 블록에서 쓰는 순전파 신경망.
-    비선형성과 특징 변환을 준다.
+    트랜스포머 블록에서 쓰는 피드포워드 네트워크.
+    비선형성과 피처 변환을 준다.
     """
     def __init__(self, embed_dim: int = 768, mlp_ratio: int = 4, dropout: float = 0.1):
         super().__init__()
@@ -131,7 +131,7 @@ class MLP(nn.Module):
 
 class TransformerBlock(nn.Module):
     """
-    자기 주의와 다층 퍼셉트론을 갖춘 표준 트랜스포머 인코더 블록.
+    셀프 어텐션과 다층 퍼셉트론을 갖춘 표준 트랜스포머 인코더 블록.
     """
     def __init__(self, embed_dim: int = 768, n_heads: int = 12, 
                  mlp_ratio: int = 4, dropout: float = 0.1):
@@ -142,21 +142,21 @@ class TransformerBlock(nn.Module):
         self.mlp = MLP(embed_dim, mlp_ratio, dropout)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # 잔차 연결을 곁들인 주의
+        # 잔차 연결을 더한 어텐션
         x = x + self.attn(self.norm1(x))
-        # 잔차 연결을 곁들인 다층 퍼셉트론
+        # 잔차 연결을 더한 다층 퍼셉트론
         x = x + self.mlp(self.norm2(x))
         return x
 
 
 class VisionTransformer(nn.Module):
     """
-    비전 트랜스포머(ViT) 모형.
+    비전 트랜스포머(ViT) 모델.
     
     핵심 혁신:
-    1. 그림을 조각의 수열로 다룬다
-    2. (본디 자연어 처리에서 온) 트랜스포머 인코더를 이미지 분류에 쓴다
-    3. 합성곱 신경망 방식의 입력 처리와 트랜스포머 구조를 잇는다
+    1. 이미지를 패치의 시퀀스로 다룬다
+    2. (원래 자연어 처리에서 온) 트랜스포머 인코더를 이미지 분류에 쓴다
+    3. 컨볼루션 뉴럴 네트워크 방식의 입력 처리와 트랜스포머 구조를 잇는다
     """
     def __init__(self, 
                  img_size: int = 224,
@@ -170,11 +170,11 @@ class VisionTransformer(nn.Module):
                  dropout: float = 0.1):
         super().__init__()
         
-        # 조각 임베딩 층 (그림에서 토큰으로 잇는 다리)
+        # 패치 임베딩 레이어 (이미지에서 토큰으로 잇는 다리)
         self.patch_embed = PatchEmbedding(img_size, patch_size, in_channels, embed_dim)
         n_patches = self.patch_embed.n_patches
         
-        # 분류 토큰 (학습되며 수열 앞에 붙인다)
+        # 분류 토큰 (학습되며 시퀀스 앞에 붙인다)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         
         # 위치 임베딩 (학습되는 것)
@@ -187,11 +187,11 @@ class VisionTransformer(nn.Module):
             for _ in range(depth)
         ])
         
-        # 분류 머리
+        # 분류 헤드
         self.norm = nn.LayerNorm(embed_dim)
         self.head = nn.Linear(embed_dim, n_classes)
         
-        # 가중치 초기화
+        # 웨이트 초기화
         nn.init.trunc_normal_(self.cls_token, std=0.02)
         nn.init.trunc_normal_(self.pos_embed, std=0.02)
         self.apply(self._init_weights)
@@ -214,7 +214,7 @@ class VisionTransformer(nn.Module):
         """
         B = x.shape[0]
         
-        # 그림을 조각 임베딩으로 바꾼다
+        # 이미지를 패치 임베딩으로 바꾼다
         x = self.patch_embed(x)  # (B, n_patches, embed_dim)
         
         # 분류 토큰을 앞에 붙인다
@@ -238,7 +238,7 @@ class VisionTransformer(nn.Module):
 
 
 def create_vit_tiny(n_classes: int = 1000) -> VisionTransformer:
-    """ViT-Tiny: 매개변수 500만"""
+    """ViT-Tiny: 파라메터 500만"""
     return VisionTransformer(
         img_size=224, patch_size=16, embed_dim=192, 
         depth=12, n_heads=3, n_classes=n_classes
@@ -246,7 +246,7 @@ def create_vit_tiny(n_classes: int = 1000) -> VisionTransformer:
 
 
 def create_vit_small(n_classes: int = 1000) -> VisionTransformer:
-    """ViT-Small: 매개변수 2200만"""
+    """ViT-Small: 파라메터 2200만"""
     return VisionTransformer(
         img_size=224, patch_size=16, embed_dim=384,
         depth=12, n_heads=6, n_classes=n_classes
@@ -254,7 +254,7 @@ def create_vit_small(n_classes: int = 1000) -> VisionTransformer:
 
 
 def create_vit_base(n_classes: int = 1000) -> VisionTransformer:
-    """ViT-Base: 매개변수 8600만"""
+    """ViT-Base: 파라메터 8600만"""
     return VisionTransformer(
         img_size=224, patch_size=16, embed_dim=768,
         depth=12, n_heads=12, n_classes=n_classes
@@ -262,7 +262,7 @@ def create_vit_base(n_classes: int = 1000) -> VisionTransformer:
 
 
 def create_vit_large(n_classes: int = 1000) -> VisionTransformer:
-    """ViT-Large: 매개변수 3억 700만"""
+    """ViT-Large: 파라메터 3억 700만"""
     return VisionTransformer(
         img_size=224, patch_size=16, embed_dim=1024,
         depth=24, n_heads=16, n_classes=n_classes
@@ -284,7 +284,7 @@ if __name__ == "__main__":
 
 
 class Trainer:
-    """비전 트랜스포머 모형을 위한 학습 도구"""
+    """비전 트랜스포머 모델을 위한 학습 도구"""
     
     def __init__(self, model: nn.Module, device: str = "cuda"):
         self.model = model.to(device)
@@ -320,7 +320,7 @@ class Trainer:
             total += labels.size(0)
             correct += predicted.eq(labels).sum().item()
             
-            # 진행 막대를 고친다
+            # 진행 막대를 갱신한다
             pbar.set_postfix({
                 'loss': f'{loss.item():.4f}',
                 'acc': f'{100.*correct/total:.2f}%'
@@ -334,7 +334,7 @@ class Trainer:
     def validate(self, 
                 val_loader: DataLoader,
                 criterion: nn.Module) -> Dict[str, float]:
-        """모형을 검증한다"""
+        """모델을 검증한다"""
         self.model.eval()
         total_loss = 0.0
         correct = 0
@@ -369,7 +369,7 @@ class Trainer:
              n_epochs: int = 10,
              learning_rate: float = 3e-4,
              weight_decay: float = 0.1) -> Dict[str, list]:
-        """온전한 학습 고리"""
+        """전체 학습 루프"""
         
         # 준비
         criterion = nn.CrossEntropyLoss()
@@ -379,7 +379,7 @@ class Trainer:
             weight_decay=weight_decay
         )
         
-        # 코사인 담금질 일정 조정기
+        # 코사인 어닐링 스케줄러
         scheduler = optim.lr_scheduler.CosineAnnealingLR(
             optimizer, T_max=n_epochs
         )
@@ -436,10 +436,10 @@ def get_data_loaders(data_dir: str = "./data",
                     num_workers: int = 4) -> Tuple[DataLoader, DataLoader]:
     """
     학습을 위한 데이터 로더를 마련한다.
-    표준 데이터 불리기 기법을 쓴다.
+    표준 데이터 어그멘테이션 기법을 쓴다.
     """
     
-    # 데이터를 불리는 학습 변환
+    # 어그멘테이션을 적용하는 학습 변환
     train_transform = transforms.Compose([
         transforms.RandomResizedCrop(224),
         transforms.RandomHorizontalFlip(),
@@ -458,7 +458,7 @@ def get_data_loaders(data_dir: str = "./data",
                            std=[0.229, 0.224, 0.225])
     ])
     
-    # 보기로 CIFAR-10을 싣는다
+    # 예시로 CIFAR-10을 불러온다
     train_dataset = datasets.CIFAR10(
         root=data_dir,
         train=True,
@@ -493,7 +493,7 @@ def get_data_loaders(data_dir: str = "./data",
 
 
 def main():
-    """주 학습 함수"""
+    """메인 학습 함수"""
     
     # 설정
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -539,23 +539,23 @@ if __name__ == "__main__":
 
 train_epoch는 학습 모드에서 교차 엔트로피·역전파·AdamW 갱신을 수행하고 validate는 eval·no_grad로 평가한다. 정확도는 표본 수로 집계하지만 로스는 배치 평균의 단순 평균이라 마지막 배치 크기가 다르면 전체 표본 평균과 다르다. 빈 로더는 처리하지 않는다.
 
-train은 에포크마다 CosineAnnealingLR을 진행하며 별도의 워밍업은 없다. 모든 계수에 같은 weight_decay를 적용한다. 반환 history에는 관측 지표만 있고 가장 좋은 모델의 저장·복원은 없다. main의 체크포인트도 마지막 웨이트와 history만 저장해 옵티마이저·스케줄러·난수·전처리 설정을 보존하지 않는다.
+train은 에포크마다 CosineAnnealingLR을 진행하며 별도의 워밍업은 없다. 모든 파라메터에 같은 weight_decay를 적용한다. 반환 history에는 관측 지표만 있고 가장 좋은 모델의 저장·복원은 없다. main의 체크포인트도 마지막 웨이트와 history만 저장해 옵티마이저·스케줄러·난수·전처리 설정을 보존하지 않는다.
 
 CIFAR-10의 32×32 이미지를 224×224 크기로 변환한다. 학습의 RandomResizedCrop은 확대·자르기를, 평가는 Resize(256)·CenterCrop(224)를 사용해 서로 다른 입력 분포가 된다. 224 패치 모델을 사용하는 선택이지 원래 해상도 학습과 같은 실험은 아니다.
 
-val_dataset은 CIFAR-10의 공식 테스트 분할이다. 에포크별 지표를 보며 모델·설정을 선택하면 테스트가 검증 역할을 하므로 독립 최종 평가로 사용할 수 없다. 학습 분할에서 검증을 따로 나누는 설계가 필요하다. 기본 Trainer 장치는 CUDA를 가정하지만 main은 사용 가능 여부에 따라 선택한다.
+val_dataset은 CIFAR-10의 공식 시험 분할이다. 에포크별 지표를 보며 모델·설정을 선택하면 시험 분할이 검증 역할을 하므로 독립 최종 평가로 사용할 수 없다. 학습 분할에서 검증을 따로 나누는 설계가 필요하다. 기본 Trainer 장치는 CUDA를 가정하지만 main은 사용 가능 여부에 따라 선택한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-zero_grad를 생략할 때의 경사 누적과 의도적인 누적 학습을 구분하라.
+zero_grad를 생략할 때의 그래디언트 누적과 의도적인 누적 학습을 구분하라.
 
 </div>
 
 ??? success "풀이"
-    역전파는 기존 grad에 경사를 더하므로 이전 갱신 시점의 경사가 계속 남을 수 있다. 이는 일반적으로 러닝레이트에 단계 수를 곱하는 것과 같지 않다. 의도적 경사 누적은 로스 웨이트·갱신 간격·초기화 시점을 정한 방법이다. 로스가 반드시 발산한다고 단정할 수는 없다.
+    역전파는 기존 grad에 그래디언트를 더하므로 이전 갱신 시점의 그래디언트가 계속 남을 수 있다. 이는 일반적으로 러닝레이트에 단계 수를 곱하는 것과 같지 않다. 의도적 그래디언트 누적은 로스 웨이트·갱신 간격·초기화 시점을 정한 방법이다. 로스가 반드시 발산한다고 단정할 수는 없다.
 
 ---
 
@@ -567,7 +567,7 @@ zero_grad를 생략할 때의 경사 누적과 의도적인 누적 학습을 구
 </div>
 
 ??? success "풀이"
-    두 옵티마이저의 감쇠 방식·기본값이 다르므로 lr만 바꾼 비교의 의미를 먼저 정한다. 같은 초기 모델·데이터 분할·학습 예산에서 각각 검증 러닝레이트를 선택하고 어그멘테이션·정밀도·스케줄을 기록한다. 테스트 분할을 그 선택에 사용하지 않는다.
+    두 옵티마이저의 감쇠 방식·기본값이 다르므로 lr만 바꾼 비교의 의미를 먼저 정한다. 같은 초기 모델·데이터 분할·학습 예산에서 각각 검증 러닝레이트를 선택하고 어그멘테이션·정밀도·스케줄을 기록한다. 시험 분할을 그 선택에 사용하지 않는다.
 
 ---
 
@@ -579,7 +579,7 @@ zero_grad를 생략할 때의 경사 누적과 의도적인 누적 학습을 구
 </div>
 
 ??? success "풀이"
-    공식 테스트를 에포크별 검증으로 써 최종 평가의 독립성이 사라질 수 있다. 또한 32→224 변환과 학습·평가 자르기 차이가 지표에 영향을 준다. 별도 검증 분할과 목적에 맞는 전처리를 정하고 학습·평가 모드가 다른 정확도 격차를 곧바로 과적합의 크기로 해석하지 않는다.
+    공식 시험 분할을 에포크별 검증으로 써 최종 평가의 독립성이 사라질 수 있다. 또한 32→224 변환과 학습·평가 자르기 차이가 지표에 영향을 준다. 별도 검증 분할과 목적에 맞는 전처리를 정하고 학습·평가 모드가 다른 정확도 격차를 곧바로 과적합의 크기로 해석하지 않는다.
 
 ---
 
@@ -591,7 +591,7 @@ zero_grad를 생략할 때의 경사 누적과 의도적인 누적 학습을 구
 </div>
 
 ??? success "풀이"
-    아래의 state_dict().copy()는 사전만 얕게 복사해 텐서 저장소를 공유할 수 있으므로 학습 중 최고 상태가 덮여 바뀔 수 있다. 독립적인 텐서 복사나 파일 저장이 필요하다. 조각은 외부 evaluate·num_epochs를 가정하고 학습 갱신도 보여 주지 않는다.
+    아래의 state_dict().copy()는 딕셔너리만 얕게 복사해 텐서 저장소를 공유할 수 있으므로 학습 중 최고 상태가 덮여 바뀔 수 있다. 독립적인 텐서 복사나 파일 저장이 필요하다. 조각은 외부 evaluate·num_epochs를 가정하고 학습 갱신도 보여 주지 않는다.
     ```python
     best_loss = float('inf')
     patience_counter = 0
@@ -614,4 +614,4 @@ zero_grad를 생략할 때의 경사 누적과 의도적인 누적 학습을 구
 
 ## 정리하며
 
-Trainer의 갱신·평가 흐름과 데이터 분할을 연결한다. 이 예제는 새 ViT를 학습하며 테스트 분할을 검증으로 사용한다는 제약이 있다. 마지막 체크포인트와 최고 모델·학습 재시작 상태를 구분하고 조기 종료의 독립 웨이트 복사를 확인한다.
+Trainer의 갱신·평가 흐름과 데이터 분할을 연결한다. 이 예제는 새 ViT를 학습하며 시험 분할을 검증으로 사용한다는 제약이 있다. 마지막 체크포인트와 최고 모델·학습 재시작 상태를 구분하고 조기 종료의 독립 웨이트 복사를 확인한다.

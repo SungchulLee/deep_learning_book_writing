@@ -8,7 +8,7 @@
 """
 continuous_time_markov.py (단원 10)
 
-이어진 시간 마르코프 사슬(CTMC)
+연속시간 마르코프 사슬(CTMC)
 =====================================
 
 Location: 06_markov_chain/03_applications/
@@ -16,25 +16,25 @@ Location: 06_markov_chain/03_applications/
 걸리는 시간: 3-4시간
 
 학습 목표:
-- 이어진 시간 과정 이해하기
-- 옮김 확률 P(t) 셈하기
-- 낳는 행렬 살피기
-- 이어진 시간 마르코프 사슬 흉내내기
+- 연속시간 과정 이해하기
+- 전이확률 P(t) 계산하기
+- 생성행렬 분석하기
+- 연속시간 마르코프 사슬 시뮬레이션
 
-수학적 바탕:
-이어진 시간 마르코프 사슬: X(t), t ≥ 0
-- 옮김은 아무 때나 일어날 수 있다
-- 머무는 시간이 지수 분포를 따른다
-- 낳는 행렬 Q: Q[i][j] = i에서 j으로의 옮김 비율(i≠j)
-- 콜모고로프 앞방정식: P'(t) = P(t) × Q
-- 풀이: P(t) = exp(Qt)
+수학적 배경:
+연속시간 마르코프 사슬: X(t), t ≥ 0
+- 전이는 아무 때나 일어날 수 있다
+- 대기시간이 지수 분포를 따른다
+- 생성행렬 Q: Q[i][j] = i에서 j으로의 전이율(i≠j)
+- 콜모고로프 전진 방정식: P'(t) = P(t) × Q
+- 해: P(t) = exp(Qt)
 """
 
 import numpy as np
 from scipy.linalg import expm
 import matplotlib.pyplot as plt
 
-# 돌릴 때마다 수가 달라지지 않게 씨앗을 박는다.
+# 돌릴 때마다 수가 달라지지 않게 시드를 고정한다.
 np.random.seed(0)
 
 # ========================================================================
@@ -43,11 +43,11 @@ np.random.seed(0)
 
 
 class ContinuousTimeMarkovChain:
-    """이어진 시간 마르코프 사슬 흉내내기 장치."""
+    """연속시간 마르코프 사슬 시뮬레이터."""
     
     def __init__(self, generator_matrix, state_names=None):
         """
-        이어진 시간 마르코프 사슬 첫값 잡기.
+        연속시간 마르코프 사슬 초기화.
         
         파라메터:
             generator_matrix: Q[i][j]이 i에서 j으로의 비율인 Q(i≠j)
@@ -61,18 +61,18 @@ class ContinuousTimeMarkovChain:
             self.state_names = state_names
     
     def transition_probabilities(self, t):
-        """P(t) = exp(Qt) 셈하기."""
+        """P(t) = exp(Qt) 계산하기."""
         return expm(self.Q * t)
     
     def simulate(self, T, initial_state=0):
-        """시간 T까지 이어진 시간 마르코프 사슬 흉내내기."""
+        """시간 T까지 연속시간 마르코프 사슬 시뮬레이션."""
         times = [0]
         states = [initial_state]
         current_state = initial_state
         current_time = 0
         
         while current_time < T:
-            # 지금 상태에 머무는 시간(비율이 -Q[i][i]인 지수 분포)
+            # 지금 상태에서의 대기시간(비율(rate)이 -Q[i][i]인 지수 분포)
             rate = -self.Q[current_state, current_state]
             if rate <= 0:
                 break
@@ -98,12 +98,12 @@ class ContinuousTimeMarkovChain:
         return times, states
 
 
-# 보기: 태어남-죽음 과정
+# 보기: 출생-사망 과정
 if __name__ == "__main__":
     print("CONTINUOUS-TIME MARKOV CHAINS")
     print("=" * 70)
     
-    # 태어남-죽음 과정: 무리가 늘거나 줄 수 있다
+    # 출생-사망 과정: 개체 수가 늘거나 줄 수 있다
     Q = np.array([
         [-2, 2, 0],
         [1, -3, 2],
@@ -217,7 +217,7 @@ CTMC의 대기시간과 다음 점프 상태 분포를 설명하라.
 
 ??? success "풀이"
 
-    이 클래스는 뉴럴 네트워크·경사 인터페이스가 없다. Q의 행합 0·비대각 비음성, P(0)=I, P(s+t)≈P(s)P(t), P(t)의 확률 조건, 정렬된 경로 시간과 마지막 T의 의미를 확인해야 한다. 흡수 상태·T=0·잘못된 초기 인덱스도 경계 사례다.
+    이 클래스는 뉴럴 네트워크·그래디언트 인터페이스가 없다. Q의 행합 0·비대각 비음성, P(0)=I, P(s+t)≈P(s)P(t), P(t)의 확률 조건, 정렬된 경로 시간과 마지막 T의 의미를 확인해야 한다. 흡수 상태·T=0·잘못된 초기 인덱스도 경계 사례다.
 
     ```python
     def test_continuoustimemarkovchain():
@@ -226,10 +226,10 @@ CTMC의 대기시간과 다음 점프 상태 분포를 설명하라.
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

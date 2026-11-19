@@ -6,19 +6,19 @@
 
 ```python
 """
-한 예시 학습을 위한 맞춤 망
+원샷 학습을 위한 매칭 네트워크
 
 참고: Vinyals 외, "Matching Networks for One Shot Learning" (2016)
 
-핵심 생각: 주의 장치로 물음 보기를 서포트 집합과 견주어,
-받침 보기마다 예측에 이바지하는 무게를 매긴다.
+핵심 아이디어: 어텐션 메커니즘으로 쿼리 표본을 서포트 집합과 비교하여,
+서포트 표본마다 예측에 기여하는 웨이트를 매긴다.
 """
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 시드를 고정한다.
 torch.manual_seed(0)
 
 
@@ -29,7 +29,7 @@ torch.manual_seed(0)
 
 class AttentionEncoder(nn.Module):
     """
-    맞춤 망을 위한 주의 장치를 갖춘 인코더.
+    매칭 네트워크를 위한 어텐션 메커니즘을 갖춘 인코더.
     """
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(AttentionEncoder, self).__init__()
@@ -45,7 +45,7 @@ class AttentionEncoder(nn.Module):
 
 class SimpleEncoder(nn.Module):
     """
-    그림을 위한 단순한 CNN 인코더.
+    이미지를 위한 단순한 CNN 인코더.
     """
     def __init__(self, input_channels=1, hidden_dim=64, output_dim=64):
         super(SimpleEncoder, self).__init__()
@@ -74,10 +74,10 @@ class SimpleEncoder(nn.Module):
 
 class MatchingNetwork(nn.Module):
     """
-    코사인 닮음 주의를 쓰는 맞춤 망.
+    코사인 유사도 어텐션을 쓰는 매칭 네트워크.
     
-    모델은 서포트 집합 위의 주의 무게를 셈하여 물음을 가려내며,
-    주의는 임베딩 사이의 코사인 닮음을 바탕으로 한다.
+    모델은 서포트 집합 위의 어텐션 웨이트를 계산하여 쿼리를 분류하며,
+    어텐션은 임베딩 사이의 코사인 유사도를 바탕으로 한다.
     """
     def __init__(self, encoder, use_full_context_embeddings=False):
         super(MatchingNetwork, self).__init__()
@@ -88,21 +88,21 @@ class MatchingNetwork(nn.Module):
         """
         인수:
             support: (n_support, *input_shape) - 서포트 집합
-            support_labels: (n_support,) - 원핫 또는 이름표 첨자
+            support_labels: (n_support,) - 원핫 또는 라벨 인덱스
             query: (n_query, *input_shape) - 쿼리 집합
         
         반환값:
             predictions: (n_query, n_classes) - 예측 확률
         """
-        # 받침과 물음을 부호로 바꾼다
+        # 서포트와 쿼리를 인코딩한다
         support_embeddings = self.encoder(support)
         query_embeddings = self.encoder(query)
         
-        # 코사인 닮음을 위해 임베딩을 고른다
+        # 코사인 유사도를 위해 임베딩을 정규화한다
         support_embeddings = F.normalize(support_embeddings, p=2, dim=1)
         query_embeddings = F.normalize(query_embeddings, p=2, dim=1)
         
-        # 코사인 닮음으로 주의 무게를 셈한다
+        # 코사인 유사도로 어텐션 웨이트를 계산한다
         # 형태: (n_query, n_support)
         attention = torch.mm(query_embeddings, support_embeddings.t())
         attention = F.softmax(attention, dim=1)
@@ -114,7 +114,7 @@ class MatchingNetwork(nn.Module):
         else:
             support_labels_one_hot = support_labels.float()
         
-        # 주의를 바탕으로 받침 이름표를 무게 두어 더한다
+        # 어텐션을 바탕으로 서포트 라벨을 가중합한다
         # 형태: (n_query, n_classes)
         predictions = torch.mm(attention, support_labels_one_hot)
         
@@ -122,7 +122,7 @@ class MatchingNetwork(nn.Module):
     
     def predict(self, support, support_labels, query):
         """
-        물음 보기의 부류 예측을 얻는다.
+        쿼리 표본의 클래스 예측을 얻는다.
         """
         predictions = self.forward(support, support_labels, query)
         return torch.argmax(predictions, dim=1)
@@ -130,13 +130,13 @@ class MatchingNetwork(nn.Module):
 
 def cosine_distance(x, y):
     """
-    두 임베딩 집합 사이의 코사인 거리를 셈한다.
+    두 임베딩 집합 사이의 코사인 거리를 계산한다.
     """
     # 정규화
     x = F.normalize(x, p=2, dim=1)
     y = F.normalize(y, p=2, dim=1)
     
-    # 코사인 닮음
+    # 코사인 유사도
     similarity = torch.mm(x, y.t())
     
     return 1 - similarity
@@ -144,7 +144,7 @@ def cosine_distance(x, y):
 
 def train_matching_network(model, support, support_labels, query, query_labels, optimizer):
     """
-    맞춤 망의 학습 스텝.
+    매칭 네트워크의 학습 스텝.
     """
     model.train()
     optimizer.zero_grad()
@@ -152,11 +152,11 @@ def train_matching_network(model, support, support_labels, query, query_labels, 
     # 예측을 얻는다
     predictions = model(support, support_labels, query)
     
-    # 로스를 셈한다(부드러운 목표를 쓰는 교차 엔트로피)
+    # 로스를 계산한다(소프트 타깃을 쓰는 교차 엔트로피)
     query_labels_one_hot = F.one_hot(query_labels, predictions.shape[1]).float()
     loss = F.binary_cross_entropy(predictions, query_labels_one_hot)
     
-    # 또는 딱딱한 이름표로 교차 엔트로피를 쓴다
+    # 또는 하드 라벨로 교차 엔트로피를 쓴다
     # loss = F.cross_entropy(predictions, query_labels)
     
     loss.backward()
@@ -171,7 +171,7 @@ def train_matching_network(model, support, support_labels, query, query_labels, 
 
 def evaluate_matching_network(model, support, support_labels, query, query_labels):
     """
-    맞춤 망을 평가한다.
+    매칭 네트워크를 평가한다.
     """
     model.eval()
     with torch.no_grad():
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     encoder = SimpleEncoder(input_channels=1, hidden_dim=64, output_dim=64)
     model = MatchingNetwork(encoder)
     
-    # 5-클래스 5-예시 과제 보기
+    # 5-way 5-shot 과제 예
     n_way = 5
     k_shot = 5
     n_query = 15
@@ -230,14 +230,14 @@ Predicted classes: tensor([4, 4, 4, 3, 3, 4, 4, 4, 4, 3, 3, 4, 3, 4, 3])
 
 이 구현은 use_full_context_embeddings 값을 저장하지만 실제 계산에 사용하지 않는다. AttentionEncoder도 주 예제에서 호출되지 않는다. 따라서 양방향 LSTM으로 서포트 문맥을 반영하는 원 논문의 전체 모델로 해석할 수 없다. 주 예제의 SimpleEncoder는 세 번 풀링하여 28×28을 3×3으로 줄이고 576차원 임베딩을 만든다.
 
-학습 함수는 원핫 정답과 예측 확률의 이진 교차 엔트로피를 사용한다. 단일 라벨 다중 클래스 분류의 일반적인 음의 로그 우도와는 다른 목적함수다. 주석의 대안처럼 확률을 CrossEntropyLoss에 직접 넣으면 다시 log-softmax가 적용되므로 같은 로스가 되지 않는다. 확률을 이용한 음의 로그 우도는 정답 클래스 확률의 로그로 계산한다. 인덱스 라벨은 0부터 연속적으로 매기고, 원핫 입력은 열 개수가 클래스 수임을 확인한다. 무작위 입력의 출력 예시는 실제 인식 정확도가 아니다.
+학습 함수는 원핫 정답과 예측 확률의 이진 교차 엔트로피를 사용한다. 단일 라벨 다중 클래스 분류의 일반적인 음의 로그가능도(negative log-likelihood, 우도라고도 한다)와는 다른 목적함수다. 주석의 대안처럼 확률을 CrossEntropyLoss에 직접 넣으면 다시 log-softmax가 적용되므로 같은 로스가 되지 않는다. 확률을 이용한 음의 로그가능도는 정답 클래스 확률의 로그로 계산한다. 인덱스 라벨은 0부터 연속적으로 매기고, 원핫 입력은 열 개수가 클래스 수임을 확인한다. 무작위 입력의 출력 예시는 실제 인식 정확도가 아니다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-AttentionEncoder에 (4,10,input_dim)을 넣었을 때 LSTM과 최종 출력의 모양을 설명하라.
+AttentionEncoder에 (4,10,input_dim)을 넣었을 때 LSTM과 최종 출력의 형태를 설명하라.
 
 </div>
 

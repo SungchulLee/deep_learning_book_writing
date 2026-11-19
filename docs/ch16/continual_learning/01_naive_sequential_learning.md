@@ -1,6 +1,6 @@
 # 단순 순차 학습 기준 모델
 
-단순 순차 학습은 망각 방지 항 없이 새 과제의 교차 엔트로피만 최적화하는 기준 방법이다. Split MNIST의 로컬 이진 분류 규약에서 평균 정확도와 학습 직후 성능, 후방 전이를 계산한다.
+단순 순차 학습은 망각 방지 항 없이 새 과제의 교차 엔트로피만 최적화하는 베이스라인이다. Split MNIST의 로컬 이진 분류 규약에서 평균 정확도와 학습 직후 성능, 후방 전이를 계산한다.
 
 ## 1. 코드
 
@@ -8,24 +8,24 @@
 
     ```python
     """
-    57모듈: 연속 학습 - 초급
-    파일 2: 소박한 차례 학습(베이스라인)
+    57모듈: 지속 학습 - 초급
+    파일 2: 단순 순차 학습(베이스라인)
 
-    이 스크립트는 연속 학습 실험의 베이스라인이 되는
-    소박한 차례 학습 방법을 구현한다. 잊음을 수로 나타내는
+    이 스크립트는 지속 학습 실험의 베이스라인이 되는
+    단순 순차 학습 방법을 구현한다. 망각을 정량화하는
     제대로 된 평가 지표도 함께 구현한다.
 
     학습 목표:
-    1. 제대로 된 연속 학습 평가 규약을 구현한다
-    2. 표준 연속 학습 지표를 셈한다
-    3. 방법을 견줄 베이스라인을 이해한다
-    4. 연속 학습 실험을 어떻게 짜는지 배운다
+    1. 표준 지속 학습 평가 프로토콜을 구현한다
+    2. 표준 지속 학습 지표를 계산한다
+    3. 방법을 비교할 베이스라인을 이해한다
+    4. 지속 학습 실험을 어떻게 짜는지 배운다
 
     수학적 지표:
     1. 평균 정확도(AA): (1/T) Σ Acc_{i,T}
-    2. 뒤로의 옮김(BWT): (1/(T-1)) Σ (Acc_{i,T} - Acc_{i,i})
-    3. 앞으로의 옮김(FWT): (1/(T-1)) Σ (Acc_{i,i-1} - Acc_{i,init})
-    4. 러닝 정확도(LA): (1/T) Σ Acc_{i,i}
+    2. 후방 전이(BWT): (1/(T-1)) Σ (Acc_{i,T} - Acc_{i,i})
+    3. 전방 전이(FWT): (1/(T-1)) Σ (Acc_{i,i-1} - Acc_{i,init})
+    4. 학습 직후 정확도(LA): (1/T) Σ Acc_{i,i}
     """
 
     import torch
@@ -39,7 +39,7 @@
     from typing import List, Tuple, Dict
     import time
     from dataclasses import dataclass
-    # 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+    # 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
     # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
     torch.manual_seed(0)
 
@@ -51,14 +51,14 @@
     @dataclass
     class ContinualLearningMetrics:
         """
-        연속 학습 지표를 모두 담는 데이터 클래스.
+        지속 학습 지표를 모두 담는 데이터 클래스.
 
         속성:
             average_accuracy: 마지막에 모든 과제에 걸친 평균 정확도
-            backward_transfer: 잊음의 재기(음수면 잊었다는 뜻)
-            forward_transfer: 새 과제로 앎이 옮겨 간 정도
+            backward_transfer: 망각의 측정값(음수면 망각했다는 뜻)
+            forward_transfer: 새 과제로 지식이 전이된 정도
             learning_accuracy: 막 배운 직후의 평균 정확도
-            forgetting_per_task: 과제마다의 잊음 정도
+            forgetting_per_task: 과제마다의 망각 정도
             accuracy_matrix: 모든 정확도를 담은 온전한 행렬
         """
         average_accuracy: float
@@ -71,16 +71,16 @@
 
     class ContinualLearner:
         """
-        연속 학습 실험의 바탕 클래스.
+        지속 학습 실험의 기반 클래스.
 
         이 클래스는 다음을 준다.
-        - 표준 평가 규약
-        - 지표 셈하기
-        - 실험 좇기
+        - 표준 평가 프로토콜
+        - 지표 계산
+        - 실험 추적
         - 시각화 도구
 
-        하위 클래스가 특정 메서드를 갈아 끼워 서로 다른
-        연속 학습 전략을 구현할 수 있다.
+        하위 클래스가 특정 메서드를 오버라이드해 서로 다른
+        지속 학습 전략을 구현할 수 있다.
         """
 
         def __init__(self, 
@@ -88,11 +88,11 @@
                      device: torch.device,
                      learning_rate: float = 0.001):
             """
-            이어 배우는 학습기를 초기화한다.
+            지속 학습기를 초기화한다.
 
             인수:
                 model: 뉴럴 네트워크 모델
-                device: 익힐 장치(CPU나 GPU)
+                device: 학습할 장치(CPU나 GPU)
                 learning_rate: 옵티마이저의 러닝레이트
             """
             self.model = model
@@ -100,7 +100,7 @@
             self.learning_rate = learning_rate
             self.criterion = nn.CrossEntropyLoss()
 
-            # 좇을 변수
+            # 추적할 변수
             self.current_task = 0
             self.task_train_loaders = []
             self.task_test_loaders = []
@@ -111,10 +111,10 @@
                        task_id: int,
                        epochs: int = 5) -> List[float]:
             """
-            과제 하나로 익힌다.
+            과제 하나로 학습한다.
 
-            이것이 소박한 방법이다. 그저 지금 과제의 데이터로
-            보통의 지도 학습을 한다. 잊음을 막을 특별한 기법은
+            이것이 단순한 방법이다. 그저 지금 과제의 데이터로
+            보통의 지도 학습을 한다. 망각을 막을 특별한 기법은
             쓰지 않는다.
 
             인수:
@@ -123,7 +123,7 @@
                 epochs: 학습 에포크 수
 
             반환값:
-                시대마다의 로스 목록
+                에포크마다의 로스 목록
             """
             # 이 과제에 쓸 새 옵티마이저를 만든다
             optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
@@ -144,7 +144,7 @@
                     # 장치로 옮긴다
                     data, target = data.to(self.device), target.to(self.device)
 
-                    # 경사 초기화
+                    # 그래디언트 초기화
                     optimizer.zero_grad()
 
                     # 순전파
@@ -213,20 +213,20 @@
                            test_loaders: List[DataLoader],
                            epochs_per_task: int = 5) -> ContinualLearningMetrics:
             """
-            연속 학습의 주 회귀.
+            지속 학습의 주 루프.
 
             과정:
             1. 과제마다 차례로 다음을 한다.
-               a. 과제 데이터로 익힌다
+               a. 과제 데이터로 학습한다
                b. 모든 과제(앞선 것까지)에서 평가한다
                c. 정확도를 적는다
-            2. 연속 학습 지표를 셈한다
-            3. 두루 갖춘 결과를 되돌린다
+            2. 지속 학습 지표를 계산한다
+            3. 종합 결과를 반환한다
 
             인수:
                 train_loaders: 학습용 DataLoader 목록
                 test_loaders: 시험용 DataLoader 목록
-                epochs_per_task: 과제마다 익힐 시대 수
+                epochs_per_task: 과제마다 학습할 에포크 수
 
             반환값:
                 지표를 모두 담은 ContinualLearningMetrics 객체
@@ -236,10 +236,10 @@
             self.task_test_loaders = test_loaders
 
             # 정확도 행렬을 초기화한다
-            # accuracy_matrix[i,j] = 과제 j까지 익힌 뒤 과제 i의 정확도
+            # accuracy_matrix[i,j] = 과제 j까지 학습한 뒤 과제 i의 정확도
             self.accuracy_matrix = np.zeros((num_tasks, num_tasks))
 
-            # 처음 무작위 정확도를 좇는다(익히기 전)
+            # 처음 무작위 정확도를 추적한다(학습 전)
             print("\n" + "=" * 70)
             print("INITIAL EVALUATION (Before Any Training)")
             print("=" * 70)
@@ -247,9 +247,9 @@
                 acc, _ = self.evaluate_task(test_loaders[task_id], task_id)
                 print(f"Task {task_id}: {acc:.2f}% (random guess ~ {100/2:.1f}%)")
 
-            # 과제마다 차례로 익힌다
+            # 과제마다 차례로 학습한다
             for task_id in range(num_tasks):
-                # 지금 과제로 익힌다
+                # 지금 과제로 학습한다
                 self.train_task(
                     train_loader=train_loaders[task_id],
                     task_id=task_id,
@@ -270,7 +270,7 @@
                     # 정확도 행렬에 담는다
                     self.accuracy_matrix[eval_task_id, task_id] = acc
 
-                    # 해당하면 잊음 정보와 함께 찍는다
+                    # 해당하면 망각 정보와 함께 출력한다
                     if eval_task_id == task_id:
                         print(f"  Task {eval_task_id}: {acc:.2f}% (just learned)")
                     elif eval_task_id < task_id:
@@ -279,31 +279,31 @@
                         print(f"  Task {eval_task_id}: {acc:.2f}% "
                               f"(was {original_acc:.2f}%, forgot {forgetting:.2f}%)")
 
-            # 지표를 셈해 되돌린다
+            # 지표를 계산해 반환한다
             metrics = self.calculate_metrics()
             return metrics
 
         def calculate_metrics(self) -> ContinualLearningMetrics:
             """
-            정확도 행렬에서 연속 학습 지표를 모두 셈한다.
+            정확도 행렬에서 지속 학습 지표를 모두 계산한다.
 
-            지표 풀이:
+            지표 설명:
 
             1. 평균 정확도(AA):
                모든 과제를 배운 뒤 모든 과제의 평균 정확도
                AA = (1/T) Σ_{i=1}^T Acc_{i,T}
 
-            2. 뒤로의 옮김(BWT):
-               잊음을 잰다. 곧 옛 과제의 정확도가 얼마나 바뀌었는가
+            2. 후방 전이(BWT):
+               망각을 측정한다. 곧 옛 과제의 정확도가 얼마나 바뀌었는가
                BWT = (1/(T-1)) Σ_{i=1}^{T-1} (Acc_{i,T} - Acc_{i,i})
-               BWT가 음수면 잊음, 양수면 나아짐
+               BWT가 음수면 망각, 양수면 나아짐
 
-            3. 앞으로의 옮김(FWT):
-               지난 앎을 새 과제에 쓰는 힘을 잰다
-               과제 i을 익히기 전 그 과제의 정확도를 잰다
+            3. 전방 전이(FWT):
+               과거 지식을 새 과제에 활용하는 능력을 측정한다
+               과제 i를 학습하기 전 그 과제의 정확도를 측정한다
                FWT = (1/(T-1)) Σ_{i=2}^T (Acc_{i,i-1} - 베이스라인)
 
-            4. 러닝 정확도(LA):
+            4. 학습 직후 정확도(LA):
                과제를 막 배운 직후의 평균 정확도
                LA = (1/T) Σ_{i=1}^T Acc_{i,i}
 
@@ -316,27 +316,27 @@
             final_accuracies = self.accuracy_matrix[:, -1]
             average_accuracy = np.mean(final_accuracies)
 
-            # 2. 뒤로의 옮김(잊음)
-            # 마지막 정확도를 막 배운 직후의 정확도와 견준다
+            # 2. 후방 전이(망각)
+            # 마지막 정확도를 막 배운 직후의 정확도와 비교한다
             backward_transfer = 0.0
             forgetting_per_task = []
 
-            for i in range(num_tasks - 1):  # 마지막 과제는 뺀다(잊을 틈이 없다)
+            for i in range(num_tasks - 1):  # 마지막 과제는 뺀다(망각할 기회가 없다)
                 initial_acc = self.accuracy_matrix[i, i]  # 막 배운 직후
                 final_acc = self.accuracy_matrix[i, num_tasks - 1]  # 모든 과제를 마친 뒤
-                forgetting = final_acc - initial_acc  # 음수면 잊었다는 뜻
+                forgetting = final_acc - initial_acc  # 음수면 망각했다는 뜻
                 backward_transfer += forgetting
                 forgetting_per_task.append(forgetting)
 
             if num_tasks > 1:
                 backward_transfer /= (num_tasks - 1)
 
-            # 3. 앞으로의 옮김(소박한 학습에는 해당 없음)
-            # 소박한 학습에는 앞으로 옮길 장치가 없다
-            # 그러려면 과제 i을 익히기 전에 그 과제에서 평가해야 한다
-            forward_transfer = 0.0  # 소박한 베이스라인을 위한 자리 채우개
+            # 3. 전방 전이(단순 학습에는 해당 없음)
+            # 단순 학습에는 전방 전이를 측정할 절차가 없다
+            # 그러려면 과제 i를 학습하기 전에 그 과제에서 평가해야 한다
+            forward_transfer = 0.0  # 단순 베이스라인을 위한 자리 표시자
 
-            # 4. 러닝 정확도(행렬의 대각선)
+            # 4. 학습 직후 정확도(행렬의 대각선)
             learning_accuracy = np.mean(np.diag(self.accuracy_matrix))
 
             return ContinualLearningMetrics(
@@ -353,11 +353,11 @@
                            hidden_size: int = 256,
                            num_classes: int = 2) -> nn.Module:
         """
-        단순한 피드포워드 망을 만든다.
+        단순한 피드포워드 네트워크를 만든다.
 
         인수:
             input_size: 입력 차원
-            hidden_size: 숨은 레이어의 크기
+            hidden_size: 은닉 레이어의 크기
             num_classes: 출력 클래스의 수
 
         반환값:
@@ -388,7 +388,7 @@
 
 
     def create_task_dataset(full_dataset, task_classes: List[int]) -> TensorDataset:
-        """부류를 걸러 특정 과제의 데이터셋을 만든다."""
+        """클래스를 걸러 특정 과제의 데이터셋을 만든다."""
         indices = []
         for idx in range(len(full_dataset)):
             _, label = full_dataset[idx]
@@ -414,7 +414,7 @@
 
     def print_metrics_summary(metrics: ContinualLearningMetrics, num_tasks: int):
         """
-        연속 학습 지표를 두루 간추려 찍는다.
+        지속 학습 지표를 종합 요약해 출력한다.
 
         인수:
             metrics: ContinualLearningMetrics 객체
@@ -461,7 +461,7 @@
 
     def visualize_metrics(metrics: ContinualLearningMetrics, num_tasks: int):
         """
-        연속 학습 결과를 두루 그려 본다.
+        지속 학습 결과를 종합해 시각화한다.
 
         인수:
             metrics: ContinualLearningMetrics 객체
@@ -469,7 +469,7 @@
         """
         fig = plt.figure(figsize=(18, 5))
 
-        # 그림 1: 정확도 행렬 열 지도
+        # 그림 1: 정확도 행렬 히트맵
         ax1 = plt.subplot(1, 3, 1)
         im = ax1.imshow(metrics.accuracy_matrix, cmap='RdYlGn', 
                         aspect='auto', vmin=0, vmax=100)
@@ -487,7 +487,7 @@
                     ax1.text(j, i, f'{metrics.accuracy_matrix[i, j]:.1f}',
                             ha="center", va="center", color="black", fontsize=9)
 
-        # 그림 2: 과제별 잊음
+        # 그림 2: 과제별 망각
         ax2 = plt.subplot(1, 3, 2)
         tasks = list(range(len(metrics.forgetting_per_task)))
         colors = ['red' if f < 0 else 'green' for f in metrics.forgetting_per_task]
@@ -500,14 +500,14 @@
         ax2.set_xticks(tasks)
         ax2.grid(True, alpha=0.3, axis='y')
 
-        # 막대에 값 이름표를 추가한다
+        # 막대에 값 라벨을 추가한다
         for i, (bar, val) in enumerate(zip(bars, metrics.forgetting_per_task)):
             height = bar.get_height()
             ax2.text(bar.get_x() + bar.get_width()/2., height,
                     f'{val:.1f}%', ha='center', 
                     va='bottom' if val >= 0 else 'top', fontsize=9)
 
-        # 그림 3: 러닝 정확도와 마지막 정확도
+        # 그림 3: 학습 직후 정확도와 마지막 정확도
         ax3 = plt.subplot(1, 3, 3)
         tasks = list(range(num_tasks))
         learning_accs = np.diag(metrics.accuracy_matrix)
@@ -529,7 +529,7 @@
         ax3.grid(True, alpha=0.3, axis='y')
         ax3.set_ylim([0, 105])
 
-        # 값 이름표를 추가한다
+        # 값 라벨을 추가한다
         for bars in [bars1, bars2]:
             for bar in bars:
                 height = bar.get_height()
@@ -544,9 +544,9 @@
 
     def main():
         """
-        소박한 차례 학습 베이스라인을 돌리는 주 함수.
+        단순 순차 학습 베이스라인을 돌리는 주 함수.
 
-        이는 뒤이은 스크립트에서 연속 학습 방법을 견줄
+        이는 뒤이은 스크립트에서 지속 학습 방법을 비교할
         베이스라인 성능을 세운다.
         """
         print("=" * 70)
@@ -614,14 +614,14 @@
 
         print(f"\nModel: {sum(p.numel() for p in model.parameters()):,} parameters")
 
-        # 이어 배우는 학습기를 만든다
+        # 지속 학습기를 만든다
         learner = ContinualLearner(
             model=model,
             device=device,
             learning_rate=learning_rate
         )
 
-        # 연속 학습을 돌린다
+        # 지속 학습을 돌린다
         start_time = time.time()
         metrics = learner.train_continual(
             train_loaders=train_loaders,
@@ -833,12 +833,12 @@ AA는 최종 열 평균, LA는 대각선 평균이며 T개 과제에서 AA=LA+(T
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-각 배치에서 zero_grad를 생략하면 경사가 어떻게 달라지는가?
+각 배치에서 zero_grad를 생략하면 그래디언트가 어떻게 달라지는가?
 
 </div>
 
 ??? success "풀이"
-    이전 .grad에 현재 경사가 더해진다. 과거 경사가 현재 경사와 같은 방향·크기라는 보장은 없어 단순히 러닝레이트에 누적 단계 수를 곱한 것과 같지는 않다. 의도한 경사 누적을 할 때는 누적 구간·평균 로스와 optimizer.step 시점을 정해야 한다.
+    이전 .grad에 현재 그래디언트가 더해진다. 과거 그래디언트가 현재 그래디언트와 같은 방향·크기라는 보장은 없어 단순히 러닝레이트에 누적 단계 수를 곱한 것과 같지는 않다. 의도한 그래디언트 누적을 할 때는 누적 구간·평균 로스와 optimizer.step 시점을 정해야 한다.
 
 ---
 
@@ -874,7 +874,7 @@ BWT가 음수일 때 forgetting_per_task의 부호를 어떻게 읽는가?
 </div>
 
 ??? success "풀이"
-    아래는 검토용 조각이다. state_dict().copy()는 얕은 사전 복사여서 내부 텐서가 이후 갱신과 함께 바뀔 수 있다. 고정 체크포인트는 deepcopy하거나 각 텐서를 분리해 복사해야 한다.
+    아래는 검토용 조각이다. state_dict().copy()는 얕은 딕셔너리 복사여서 내부 텐서가 이후 갱신과 함께 바뀔 수 있다. 고정 체크포인트는 deepcopy하거나 각 텐서를 분리해 복사해야 한다.
     ```python
     best_loss = float('inf')
     patience_counter = 0
@@ -893,7 +893,7 @@ BWT가 음수일 때 forgetting_per_task의 부호를 어떻게 읽는가?
             model.load_state_dict(best_state)
             break
     ```
-    현재 과제만의 검증 로스로 조기 종료하면 과거 성능과의 균형을 놓칠 수 있다. 사용할 과제별 검증 지표와 집계 규칙을 정하고 테스트셋은 선택에 사용하지 않는다. 인내 횟수에 도달하지 않고 종료된 경우에도 선택한 최적 상태를 복원하는 경로가 필요하다.
+    현재 과제만의 검증 로스로 조기 종료하면 과거 성능과의 균형을 놓칠 수 있다. 사용할 과제별 검증 지표와 집계 규칙을 정하고 시험 세트는 선택에 사용하지 않는다. 인내 횟수에 도달하지 않고 종료된 경우에도 선택한 최적 상태를 복원하는 경로가 필요하다.
 
 ## 정리하며
 

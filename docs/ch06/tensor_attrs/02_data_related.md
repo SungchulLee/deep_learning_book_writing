@@ -4,7 +4,7 @@
 `numpy()`. 이 길들은 두 가지에서 갈린다.
 
 - **저장소를 나눠 쓰는가** — 꺼낸 것을 고치면 원본도 바뀌는가
-- **그래프에 이어져 있는가** — 경사가 거슬러 올라가는가
+- **그래프에 이어져 있는가** — 그래디언트가 거슬러 올라가는가
 
 이 둘은 따로 움직인다. `clone()`은 저장소를 끊고 그래프는 남기고, `detach()`는
 그래프를 끊고 저장소는 남긴다. 둘을 하나로 묶어 "복사"라고 생각하면 어느 쪽에서든
@@ -22,7 +22,7 @@
 `detach()`·`numpy()`. 이 길들은 두 가지에서 갈린다.
 
 - 저장소를 나눠 쓰는가 (고치면 원본도 바뀌는가)
-- 그래프에 이어져 있는가 (경사가 거슬러 올라가는가)
+- 그래프에 이어져 있는가 (그래디언트가 거슬러 올라가는가)
 
 둘은 따로 움직인다. `clone()` 은 저장소를 끊고 그래프는 남기며,
 `detach()` 는 그래프를 끊고 저장소는 남긴다. 그리고 `.data` 는 둘 다
@@ -40,7 +40,7 @@ def header(title):
 
 
 # ========================================================================
-# 1. 홑값과 리스트로 꺼내기
+# 1. 스칼라와 리스트로 꺼내기
 # ========================================================================
 
 def extracting():
@@ -79,10 +79,10 @@ def copies():
         print(f"  {label}{str(t.data_ptr() == a.data_ptr()):>6s}"
               f"{str(t.requires_grad):>16s}{fn:>18s}")
 
-    # clone() 은 그래프를 남기므로 경사가 원본까지 거슬러 간다
+    # clone() 은 그래프를 남기므로 그래디언트가 원본까지 거슬러 간다
     b = torch.tensor([1.0, 2.0], requires_grad=True)
     (b.clone() ** 2).sum().backward()
-    print("  clone() 을 지나 온 경사  b.grad =", b.grad.tolist(), "(2b)")
+    print("  clone() 을 지나 온 그래디언트  b.grad =", b.grad.tolist(), "(2b)")
 
     # detach() 는 끊으므로 뒤로 걸을 길이 없다
     c = torch.tensor([1.0, 2.0], requires_grad=True)
@@ -162,7 +162,7 @@ def data_attribute():
         print(f"  {label:16s} _version={y._version}", end="  ")
         try:
             y.sum().backward()
-            print("경사 =", [round(v, 4) for v in x.grad.tolist()])
+            print("그래디언트 =", [round(v, 4) for v in x.grad.tolist()])
         except RuntimeError as e:
             print("RuntimeError:", str(e).splitlines()[0][:62])
     print("  참값 d(sum exp x)/dx = exp(x) =",
@@ -200,7 +200,7 @@ if __name__ == "__main__":
   a.clone()            False            True    CloneBackward0
   a.detach()            True           False              None
   a.detach().clone()   False           False              None
-  clone() 을 지나 온 경사  b.grad = [2.0, 4.0] (2b)
+  clone() 을 지나 온 그래디언트  b.grad = [2.0, 4.0] (2b)
   detach() 를 지나 뒤로 걸으면: element 0 of tensors does not require grad and does not have a grad_fn
 
 === 3. numpy 와 메모리를 나눠 쓴다 ===
@@ -220,7 +220,7 @@ if __name__ == "__main__":
 
 === 5. .data 는 버전 카운터를 지나간다 ===
   y.add_(1)        _version=1  RuntimeError: one of the variables needed for gradient computation has been 
-  y.data.add_(1)   _version=0  경사 = [3.7183, 8.3891]
+  y.data.add_(1)   _version=0  그래디언트 = [3.7183, 8.3891]
   참값 d(sum exp x)/dx = exp(x) = [2.7183, 7.3891]
   .data 쪽은 1 씩 크다 — 고쳐진 y 를 그대로 읽었다
   막아 주던 검사를 끈 셈이라, 터지는 대신 틀린 수가 나온다
@@ -261,13 +261,13 @@ float32는 유효숫자를 24비트만 쥐므로 3.14159를 정확히 담을 수
 | `a.detach().clone()` | False | False | None |
 
 `clone()`에 `grad_fn`이 붙은 것이 이 표의 핵심이다. **`clone()`은 미분을 끊지
-않는다.** 복사본을 거쳐 온 경사가 원본까지 거슬러 올라간다.
+않는다.** 복사본을 거쳐 온 그래디언트가 원본까지 거슬러 올라간다.
 
 ```
-clone() 을 지나 온 경사  b.grad = [2.0, 4.0] (2b)
+clone() 을 지나 온 그래디언트  b.grad = [2.0, 4.0] (2b)
 ```
 
-$b$를 복사해 제곱하고 더해 역전파했는데 $b$가 경사를 받았다. 복사본에서 한 일이
+$b$를 복사해 제곱하고 더해 역전파했는데 $b$가 그래디언트를 받았다. 복사본에서 한 일이
 원본의 학습에 그대로 섞여 들어간다는 뜻이다. 기록용 스냅숏을 `clone()`으로
 떠 두면 이 길이 열린 채 남는다.
 
@@ -431,14 +431,14 @@ numpy 배열에서 텐서를 만드는 길이 둘이다. `torch.from_numpy(a)`�
       torch.tensor  가장 빠른   226.6 us   가장 느린  1842.8 us
     ```
 
-    `from_numpy`는 **같은 메모리에 텐서 머리만 씌운다.** 그래서 배열을 고치면
+    `from_numpy`는 **같은 메모리에 텐서 헤더(모양·자료형 같은 메타데이터)만 씌운다.** 그래서 배열을 고치면
     텐서도 바뀌고, 100만 개를 만드는 데 1 마이크로초도 안 걸린다. 크기와 거의
     무관한 시간이다.
 
     `torch.tensor(a)`는 **복사한다.** 그래서 배열을 고쳐도 끄떡없고, 100만 개에
     수백 마이크로초가 든다.
 
-    시간 쪽은 퍼짐이 크다 — 둘 다 백 배 가까이 흔들린다. 그래도 **두 범위가
+    시간 쪽은 퍼짐(스프레드)이 크다 — 둘 다 백 배 가까이 흔들린다. 그래도 **두 범위가
     겹치지 않는다**는 것은 말할 수 있다. 가장 느린 `from_numpy`(71.9)가 가장
     빠른 `torch.tensor`(226.6)보다 세 배 빠르다. 한 번씩만 재어 "200배"라고
     적으면 그 수는 다음 실행에서 바뀐다.
@@ -453,7 +453,7 @@ numpy 배열에서 텐서를 만드는 길이 둘이다. `torch.from_numpy(a)`�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-`.data`가 위험하다고 하면서도 옛 코드에 흔히 남아 있다. 가중치를 손으로 고치는
+`.data`가 위험하다고 하면서도 옛 코드에 흔히 남아 있다. 웨이트를 손으로 고치는
 자리에서 `.data`와 `torch.no_grad()`가 **같은 결과를 주는 경우**와 **갈리는
 경우**를 각각 만들어라. 무엇이 둘을 가르는가?
 
@@ -461,7 +461,7 @@ numpy 배열에서 텐서를 만드는 길이 둘이다. `torch.from_numpy(a)`�
 
 ??? success "풀이"
     ```python
-    print("가. 가중치를 고치는 데 쓰면")
+    print("가. 웨이트를 고치는 데 쓰면")
     for label in ("no_grad", ".data  "):
         w = torch.tensor([2.0], requires_grad=True)
         for _ in range(3):
@@ -487,7 +487,7 @@ numpy 배열에서 텐서를 만드는 길이 둘이다. `torch.from_numpy(a)`�
         print(f"  {label} _version={y._version}", end="  ")
         try:
             y.sum().backward()
-            print("경사 =", [round(v, 4) for v in x.grad.tolist()])
+            print("그래디언트 =", [round(v, 4) for v in x.grad.tolist()])
         except RuntimeError as e:
             print("RuntimeError:", str(e).splitlines()[0][:52])
     print("  참값 exp(x) =",
@@ -495,17 +495,17 @@ numpy 배열에서 텐서를 만드는 길이 둘이다. `torch.from_numpy(a)`�
     ```
 
     ```
-    가. 가중치를 고치는 데 쓰면
+    가. 웨이트를 고치는 데 쓰면
       no_grad 세 걸음 뒤 w = [1.024]
       .data   세 걸음 뒤 w = [1.024]
 
     나. 역전파가 저장해 둔 값을 고치면
       no_grad _version=1  RuntimeError: one of the variables needed for gradient computation
-      .data   _version=0  경사 = [3.7183, 8.3891]
+      .data   _version=0  그래디언트 = [3.7183, 8.3891]
       참값 exp(x) = [2.7183, 7.3891]
     ```
 
-    **가에서는 소수점 여섯째 자리까지 같다.** 가중치를 고치는 자리에서는 그 값을
+    **가에서는 소수점 여섯째 자리까지 같다.** 웨이트를 고치는 자리에서는 그 값을
     기다리는 역전파가 없으니, 기록을 끄든 검사를 끄든 결과가 같다. `.data`가 옛
     코드에 살아남은 까닭이 이것이다 — 그렇게 쓰면 멀쩡히 돌아간다.
 
@@ -514,7 +514,7 @@ numpy 배열에서 텐서를 만드는 길이 둘이다. `torch.from_numpy(a)`�
     - `no_grad`로 고치면 `_version`이 1로 올라가고, 엔진이 어긋남을 알아채
       `RuntimeError`를 낸다. **`no_grad`는 버전 카운터를 끄지 않는다.**
     - `.data`로 고치면 `_version`이 0으로 남아 엔진이 모른 채 지나가고,
-      고쳐진 값으로 센 경사가 나온다. 참값보다 정확히 1씩 크다.
+      고쳐진 값으로 센 그래디언트가 나온다. 참값보다 정확히 1씩 크다.
 
     그래서 둘을 가르는 것은 **고치는 값이 아직 쓰일 데가 있는가**다. 그리고
     `no_grad`는 *기록*을 끄고, `.data`는 *검사*를 끈다. 앞의 것은 끄는 게 맞는

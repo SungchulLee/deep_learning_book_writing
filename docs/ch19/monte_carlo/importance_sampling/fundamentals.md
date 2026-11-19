@@ -2,7 +2,7 @@
 
 중요도 샘플링은 제안분포에서 얻은 표본에 밀도비 웨이트를 부여해 목표분포의 기댓값을 추정한다. 직접 표본 생성이 어려운 분포나 희귀 사건 적분에 유용하지만, 제안분포가 부적절하면 분산이 커지거나 무한해질 수 있다. 정규화된 목표의 표준 추정량과 미정규화 목표의 자기정규화 추정량을 구분한다.
 
-## 1. 지난 이야기
+## 1. 역사적 배경
 
 중요도 샘플링은 입자 수송을 비롯한 초기 몬테카를로 연구와 통계적 적분에서 발전했다. 이 절은 역사적 우선권보다 밀도비 항등식·불편성·분산 조건에 초점을 둔다. 아래 참고 문헌의 Kahn–Harris 연구와 현대 몬테카를로 교재는 서로 다른 응용과 계산 관점을 제공한다.
 
@@ -10,27 +10,27 @@
 
 ### 문제 설정
 
-우리는 목표분포 $\pi(\theta)$ 아래의 기댓값을 셈하려 한다:
+우리는 목표분포 $\pi(\theta)$ 아래의 기댓값을 계산하려 한다:
 
 $$
 I = \mathbb{E}_{\pi}[h(\theta)] = \int h(\theta) \, \pi(\theta) \, d\theta
 $$
 
-**어려움**: $\pi(\theta)$에서 곧바로 표집하기가 어렵거나 불가능할 수 있다.
+**어려움**: $\pi(\theta)$에서 직접 샘플링하기가 어렵거나 불가능할 수 있다.
 
 ### 흔한 상황
 
-1. **베이즈 추론**: $\pi(\theta) = p(\theta|y)$은 사후분포가며 비례 상수까지만 알려져 있다
-2. **희귀 사건 추정하기**: $\pi$ 아래에서 확률이 $< 10^{-6}$인 일
+1. **베이즈 추론**: $\pi(\theta) = p(\theta|y)$은 사후분포이며 비례 상수까지만 알려져 있다
+2. **희귀 사건 추정하기**: $\pi$ 아래에서 확률이 $< 10^{-6}$인 사건
 3. **복잡한 밀도**: 표준 샘플링 알고리즘이 없다
 
 ---
 
-## 3. 측도 바꾸기
+## 3. 측도 변환
 
 ### 핵심 항등식
 
-제안분포 $q(\theta)$를 들여와 $1 = \frac{q(\theta)}{q(\theta)}$을 곱한다:
+제안분포 $q(\theta)$를 도입해 $1 = \frac{q(\theta)}{q(\theta)}$을 곱한다:
 
 $$
 I = \int h(\theta) \, \pi(\theta) \, d\theta = \int h(\theta) \frac{\pi(\theta)}{q(\theta)} \, q(\theta) \, d\theta
@@ -50,7 +50,7 @@ $$
 
 ### 지지집합 조건
 
-이 적분 하나에서는 h(θ)π(θ)≠0인 곳에서 q(θ)>0이어야 한다. 여러 함수 또는 자기정규화 추정을 위해서는 일반적으로 π의 지지집합 전체를 덮는 제안을 선택한다. q=0인 누락 영역의 hπ 적분은 추정할 수 없어 바이어스가 생긴다. 그 바이어스가 반드시 무한하다는 뜻은 아니다. 지지집합을 덮어도 가중 이차 적률은 무한할 수 있다.
+이 적분 하나에서는 h(θ)π(θ)≠0인 곳에서 q(θ)>0이어야 한다. 여러 함수 또는 자기정규화 추정을 위해서는 일반적으로 π의 지지집합 전체를 덮는 제안을 선택한다. q=0인 누락 영역의 hπ 적분은 추정할 수 없어 편향(bias)이 생긴다. 그 편향이 반드시 무한하다는 뜻은 아니다. 지지집합을 덮어도 가중 이차 적률은 무한할 수 있다.
 
 ## 4. 중요도 샘플링 추정량
 
@@ -64,9 +64,9 @@ $$
 
 ### 성질
 
-π는 정규화된 목표밀도이며 h가 절대 적분 가능하고 제안표본은 독립·동일분포라고 가정한다. 이 경우 표준 IS는 불편하다. 아래 유한 분산과 일반적인 √n 중심극한정리에는 ∫h²π²/q<∞가 추가로 필요하다. 미정규화 목표를 그대로 넣으면 기대값의 미지 상수가 함께 곱해지므로 같은 추정량이 아니다.
+π는 정규화된 목표밀도이며 h가 절대 적분 가능하고 제안표본은 독립·동일분포라고 가정한다. 이 경우 표준 IS는 불편하다. 아래 유한 분산과 일반적인 √n 중심극한정리에는 ∫h²π²/q<∞가 추가로 필요하다. 미정규화 목표를 그대로 넣으면 기댓값의 미지 상수가 함께 곱해지므로 같은 추정량이 아니다.
 
-**바이어스 없음:**
+**불편성(편향 없음):**
 
 $$
 \mathbb{E}_q[\hat{I}_{\text{IS}}] = \mathbb{E}_q\left[\frac{1}{n} \sum_{i=1}^n h(\theta_i) w(\theta_i)\right] = \mathbb{E}_q[h(\theta) w(\theta)] = I
@@ -80,21 +80,21 @@ $$
 
 ---
 
-## 5. 직관: 중요한 곳에서 표집하라
+## 5. 직관: 중요한 곳에서 샘플링하라
 
 ### 핵심 생각
 
-$\pi$에서 소박하게 몬테카를로를 하면:
+$\pi$에서 단순 몬테카를로를 쓰면:
 
-- 많은 표본이 $|h(\theta)|$이 작은 구역에 떨어져 보태는 바가 적다
+- 많은 표본이 $|h(\theta)|$이 작은 영역에 떨어져 기여가 작다
 - $|h(\theta)|$이 큰 곳에는 표본이 적게 떨어져 분산이 크다
 
 $q$에서 중요도 샘플링을 하면:
 
-- $|h(\theta)\pi(\theta)|$이 큰 중요한 구역을 **넘치게 샘플링**한다
-- 웨이트 $w(\theta) = \pi(\theta)/q(\theta)$으로 넘치게 표집한 것을 **바로잡는다**
+- $|h(\theta)\pi(\theta)|$이 큰 중요한 영역을 **과다 샘플링**(oversampling)한다
+- 웨이트 $w(\theta) = \pi(\theta)/q(\theta)$로 과다 샘플링한 것을 **보정한다**
 
-표어로 하면 **"중요한 곳에서 샘플링하고 웨이트로 바로잡아라."**
+표어로 하면 **"중요한 곳에서 샘플링하고 웨이트로 보정하라."**
 
 ### 그림으로 보는 직관
 
@@ -145,20 +145,20 @@ $$
 
 $q$를 잘못 고르면 중요도 샘플링이 분산을 *키운다*:
 
-- $q$가 너무 좁다: 중요한 구역을 놓쳐 어떤 웨이트가 터진다
-- $q$가 $\pi$에서 비켜 있다: 웨이트 대부분이 0에 가깝고 몇몇만 아주 크다
+- $q$가 너무 좁다: 중요한 영역을 놓쳐 일부 웨이트가 폭발한다
+- $q$가 $\pi$에서 벗어나 있다: 웨이트 대부분이 0에 가깝고 몇몇만 아주 크다
 
 !!! warning "웨이트 퇴화"
     $q$가 $\pi$와 잘 맞지 않으면:
     
     - 몇몇 표본의 웨이트가 엄청나게 크다
-    - 표본 대부분의 웨이트가 하찮다
+    - 표본 대부분의 웨이트가 무시할 만큼 작다
     - 유효 표본 크기가 감소한다
-    - 분산이 터진다
+    - 분산이 폭발한다
 
 ---
 
-## 7. 가장 좋은 제안 분포
+## 7. 최적 제안 분포
 
 0<A=∫|h(θ)|π(θ)dθ<∞라 하자. 정규화된 q에 대한 Cauchy–Schwarz 부등식에서 다음을 얻는다.
 
@@ -183,17 +183,17 @@ import torch
 import torch.distributions as dist
 import matplotlib.pyplot as plt
 
-torch.manual_seed(0)   # 아래 수는 전부 표본에서 나오므로 씨앗이 없으면 돌릴 때마다 달라진다
+torch.manual_seed(0)   # 아래 수는 전부 표본에서 나오므로 시드가 없으면 돌릴 때마다 달라진다
 
 def importance_sampling(h_function, target_log_pdf, proposal_dist, 
                         n_samples, return_diagnostics=False):
     """
-    고르게 하는 상수를 아는 표준 중요도 표집.
+    정규화 상수를 아는 표준 중요도 샘플링.
     
     파라메터
     ----------
     h_function : callable
-        기댓값을 셈하려는 함수 h(θ)
+        기댓값을 계산하려는 함수 h(θ)
     target_log_pdf : callable  
         타깃 π(θ)의 로그 밀도
     proposal_dist : torch.distributions.Distribution
@@ -201,16 +201,16 @@ def importance_sampling(h_function, target_log_pdf, proposal_dist,
     n_samples : int
         뽑을 표본의 개수
     return_diagnostics : bool
-        진단 정보를 돌려줄지 여부
+        진단 정보를 반환할지 여부
         
     반환값
     -------
     estimate : torch.Tensor
-        E_π[h(θ)]의 중요도 표집 어림값
+        E_π[h(θ)]의 중요도 샘플링 추정값
     se : torch.Tensor
-        어림한 표준 오차
+        추정한 표준 오차
     diagnostics : dict, optional
-        표본, 무게, 그 밖의 진단
+        표본, 웨이트, 그 밖의 진단
     
     수학의 바탕
     -----------------------
@@ -221,23 +221,23 @@ def importance_sampling(h_function, target_log_pdf, proposal_dist,
     # 스텝 1: 제안 q(θ)에서 표본 뽑기
     samples = proposal_dist.sample((n_samples,))
     
-    # 스텝 2: 로그 밀도 값 매기기
+    # 스텝 2: 로그 밀도 평가하기
     log_target = target_log_pdf(samples)
     log_proposal = proposal_dist.log_prob(samples)
     
-    # 스텝 3: 중요도 무게 셈하기(안정을 위해 로그 공간에서)
+    # 스텝 3: 중요도 웨이트 계산하기(안정을 위해 로그 공간에서)
     # w(θ) = π(θ)/q(θ)  →  log w(θ) = log π(θ) - log q(θ)
     log_weights = log_target - log_proposal
     weights = torch.exp(log_weights)
     
-    # 스텝 4: 표본 점에서 함수 h 값 매기기
+    # 스텝 4: 표본 점에서 함수 h 평가하기
     h_values = h_function(samples)
     
-    # 스텝 5: 중요도 표집 어림값 셈하기: (1/n) Σᵢ h(θᵢ) w(θᵢ)
+    # 스텝 5: 중요도 샘플링 추정값 계산하기: (1/n) Σᵢ h(θᵢ) w(θᵢ)
     weighted_h = h_values * weights
     estimate = torch.mean(weighted_h)
     
-    # 스텝 6: 표준 오차 어림하기
+    # 스텝 6: 표준 오차 추정하기
     variance = torch.var(weighted_h, unbiased=True)
     se = torch.sqrt(variance / n_samples)
     
@@ -254,7 +254,7 @@ def importance_sampling(h_function, target_log_pdf, proposal_dist,
     
     return estimate, se
 
-# 보기: π = N(3, 1)일 때 E_π[θ²] 셈하기
+# 보기: π = N(3, 1)일 때 E_π[θ²] 계산하기
 # 제안 q = N(0, 2) 사용
 
 # 참값: E[θ²] = μ² + σ² = 9 + 1 = 10
@@ -264,7 +264,7 @@ true_value = 10.0
 target_mean, target_std = 3.0, 1.0
 proposal_mean, proposal_std = 0.0, 2.0
 
-# 타깃의 로그 밀도(고르게 함)
+# 타깃의 로그 밀도(정규화됨)
 def target_log_pdf(theta):
     return dist.Normal(target_mean, target_std).log_prob(theta)
 
@@ -274,7 +274,7 @@ proposal = dist.Normal(proposal_mean, proposal_std)
 # 관심 있는 함수
 h = lambda theta: theta**2
 
-# 중요도 표집 돌리기
+# 중요도 샘플링 돌리기
 estimate, se, diagnostics = importance_sampling(
     h, target_log_pdf, proposal, 
     n_samples=10000, return_diagnostics=True
@@ -287,7 +287,7 @@ print(f"IS estimate: {estimate.item():.6f}")
 print(f"Standard error: {se.item():.6f}")
 print(f"Error: {abs(estimate.item() - true_value):.6f}")
 
-# 무게 진단
+# 웨이트 진단
 weights = diagnostics['weights']
 print(f"\nWeight Statistics:")
 print(f"  Mean: {weights.mean().item():.4f}")
@@ -311,7 +311,7 @@ ax.set_title('Target vs Proposal Distributions', fontsize=13, fontweight='bold')
 ax.legend(fontsize=11)
 ax.grid(True, alpha=0.3)
 
-# 칸 2: 무게 분포
+# 칸 2: 웨이트 분포
 ax = axes[0, 1]
 ax.hist(weights.numpy(), bins=50, density=True, alpha=0.7, 
         color='purple', edgecolor='black')
@@ -323,7 +323,7 @@ ax.set_title('Distribution of Importance Weights', fontsize=13, fontweight='bold
 ax.legend(fontsize=11)
 ax.grid(True, alpha=0.3)
 
-# 칸 3: 무게로 색칠한 표본
+# 칸 3: 웨이트로 색칠한 표본
 samples = diagnostics['samples']
 ax = axes[1, 0]
 scatter = ax.scatter(samples.numpy(), h(samples).numpy(), 
@@ -335,7 +335,7 @@ ax.set_title('Samples Colored by Importance Weight', fontsize=13, fontweight='bo
 plt.colorbar(scatter, ax=ax, label='Weight')
 ax.grid(True, alpha=0.3)
 
-# 칸 4: 모임
+# 칸 4: 수렴
 n_values = torch.arange(100, 10001, 100)
 estimates = []
 for n in n_values:
@@ -380,7 +380,7 @@ Weight Statistics:
 
 ## 9. 제안 분포 비교
 
-### 제안을 고르는 것의 효과
+### 제안 선택의 효과
 
 N(3,1) 목표에서 N(3,0.5) 제안은 지지집합은 맞지만 h(θ)=θ²의 가중 이차 적률이 무한하다. 유한 반복에서 표본분산이 작게 보이더라도 드문 큰 웨이트를 놓쳤을 수 있다. 웨이트 기반 ESS는 관심 함수별 적분 오차를 보장하지 않는다.
 
@@ -403,7 +403,7 @@ def compare_proposals(h_function, target_log_pdf, proposals,
             )
             estimates.append(est.item())
             
-            # ESS 셈하기
+            # ESS 계산하기
             w = diag['weights']
             w_normalized = w / w.sum()
             ess = 1.0 / (w_normalized**2).sum()
@@ -453,7 +453,7 @@ Bad: N(3, 0.5)             9.9529       1.4401        626.5       12.53%
 
 ---
 
-## 10. 분산 줄이기 보기: 꼬리 확률
+## 10. 분산 감소 예: 꼬리 확률
 
 ### 희귀 사건 문제
 
@@ -469,19 +469,19 @@ print(f"True P(X > 4): {true_prob.item():.2e}")
 # 지시 함수
 h_indicator = lambda x: (x > 4).float()
 
-# 타깃에서 뽑는 어수룩한 몬테카를로
+# 타깃에서 뽑는 단순 몬테카를로
 target = dist.Normal(0, 1)
 n_samples = 100000
 
-# 어수룩한 몬테카를로
+# 단순 몬테카를로
 samples_naive = target.sample((n_samples,))
 naive_estimate = h_indicator(samples_naive).mean()
 naive_se = h_indicator(samples_naive).std() / (n_samples**0.5)
 
-# 어수룩한 쪽의 표준오차는 참값으로도 적는다. 지시 함수의 분산은 p(1-p)이므로
+# 단순 몬테카를로의 표준오차는 참값으로도 적는다. 지시 함수의 분산은 p(1-p)이므로
 # 표본을 안 봐도 알 수 있다. 표본에서 잰 SE 는 꼬리를 한 번도 못 맞히면 0이
-# 되어 버리는데 — 기댓값이 세 번뿐이라 그런 씨앗이 드물지 않다 — 그 0을 아래
-# 줄임 배수에 넣으면 배수가 0배로 뒤집힌다.
+# 되어 버리는데 — 기댓값이 세 번뿐이라 그런 시드가 드물지 않다 — 그 0을 아래
+# 감소 배수에 넣으면 배수가 0배로 뒤집힌다.
 naive_se_true = (true_prob * (1 - true_prob) / n_samples).sqrt()
 
 print(f"\nNaive MC (n={n_samples}):")
@@ -489,8 +489,8 @@ print(f"  Estimate: {naive_estimate.item():.6f}")
 print(f"  SE (표본에서): {naive_se.item():.6f}")
 print(f"  SE (참값에서): {naive_se_true.item():.6f}")
 
-# 옮긴 제안을 쓴 중요도 표집
-shifted_proposal = dist.Normal(4.0, 1.5)  # 꼬리에 가운데를 맞춤
+# 이동한 제안을 쓴 중요도 샘플링
+shifted_proposal = dist.Normal(4.0, 1.5)  # 꼬리에 중심을 맞춤
 
 def target_log_pdf_std(x):
     return dist.Normal(0, 1).log_prob(x)
@@ -504,7 +504,7 @@ print(f"\nImportance Sampling (n=10000):")
 print(f"  Estimate: {is_estimate.item():.6f}")
 print(f"  SE: {is_se.item():.6f}")
 
-# 흩어짐 줄임 배수 — 어수룩한 쪽은 참 표준오차를 쓴다
+# 분산 감소 배수 — 단순 몬테카를로는 참 표준오차를 쓴다
 variance_reduction = (naive_se_true / is_se)**2
 print(f"\nVariance reduction factor: {variance_reduction.item():.1f}x")
 ```
@@ -526,7 +526,7 @@ Importance Sampling (n=10000):
 Variance reduction factor: 433.6x
 ```
 
-어수룩한 쪽은 표본 10만 개로 **한 번도 못 맞혔다.** 참 확률이 $3.17 \times 10^{-5}$이니 10만 번에 세 번쯤 걸릴 일이고, 세 번쯤 걸릴 일은 **영 번 걸리는 일도 흔하다** — 이 씨앗이 그랬다. 추정값이 0이 되면 표본에서 잰 표준오차도 0이 되어 흩어짐 줄임 배수가 0배로 뒤집히므로, 위 코드는 어수룩한 쪽의 표준오차를 $\sqrt{p(1-p)/n}$으로 따로 적는다. 중요도 샘플링 쪽은 표본을 10분의 1만 쓰고도 $3.2 \times 10^{-5}$을 내놓았다.
+단순 몬테카를로 쪽은 표본 10만 개로 사건을 **한 번도 관측하지 못했다.** 참 확률이 $3.17 \times 10^{-5}$이니 10만 번에 세 번쯤 걸릴 일이고, 세 번쯤 걸릴 일은 **영 번 걸리는 일도 흔하다** — 이 시드가 그랬다. 추정값이 0이 되면 표본에서 잰 표준오차도 0이 되어 분산 감소 배수가 0배로 뒤집히므로, 위 코드는 단순 몬테카를로의 표준오차를 $\sqrt{p(1-p)/n}$으로 따로 적는다. 중요도 샘플링 쪽은 표본을 10분의 1만 쓰고도 $3.2 \times 10^{-5}$을 내놓았다.
 
 ---
 
@@ -534,9 +534,9 @@ Variance reduction factor: 433.6x
 
 ### 희귀 사건 위험 추정하기
 
-아래 함수는 자기정규화 가중 경험 누적분포의 분위수로 VaR를 추정한다. 로스가 연속이면 상위 꼬리의 가중 평균으로 ES를 근사할 수 있지만 이산 질량이 있으면 losses>VaR만의 평균이 일반적인 Expected Shortfall과 다르다. 꼬리 표본이 없을 때 VaR를 ES로 대체하는 처리는 올바른 ES를 보장하지 않는다. α·표본 수·웨이트 유한성과 관심 꼬리의 유효 정보를 확인해야 한다.
+아래 함수는 자기정규화 가중 경험 누적분포의 분위수로 VaR를 추정한다. 손실이 연속이면 상위 꼬리의 가중 평균으로 ES를 근사할 수 있지만 이산 질량이 있으면 losses>VaR만의 평균이 일반적인 Expected Shortfall과 다르다. 꼬리 표본이 없을 때 VaR를 ES로 대체하는 처리는 올바른 ES를 보장하지 않는다. α·표본 수·웨이트 유한성과 관심 꼬리의 유효 정보를 확인해야 한다.
 
-중요도 샘플링은 계량 금융에서 꼬리 위험 잣대를 추정하는 데 널리 쓰인다. 극단 분위수(이를테면 99.9%)에서 위험 값(VaR)과 기대 부족액(ES)을 셈하려면 드문 로스 일을 효율적으로 추정해야 하는데, 이는 위에서 세운 중요도 샘플링 구조의 자연스러운 쓰임새이다.
+중요도 샘플링은 계량 금융에서 꼬리 위험 지표를 추정하는 데 널리 쓰인다. 극단 분위수(이를테면 99.9%)에서 위험 가치(VaR)와 기대 부족액(ES)을 계산하려면 드문 손실 사건을 효율적으로 추정해야 하는데, 이는 위에서 세운 중요도 샘플링 구조의 자연스러운 쓰임새이다.
 
 ```python
 def estimate_var_es_importance_sampling(
@@ -544,42 +544,42 @@ def estimate_var_es_importance_sampling(
     alpha=0.999, n_samples=10000
 ):
     """
-    중요도 표집으로 VaR과 기댓값 모자람 어림하기.
+    중요도 샘플링으로 VaR와 기대 부족액 추정하기.
     
     파라메터
     ----------
     loss_function : callable
-        위험 인자를 포트폴리오 로스로 잇는다
+        위험 인자를 포트폴리오 손실로 사상한다
     target_dist : torch.distributions.Distribution
         P 아래에서 위험 인자의 분포
     proposal_dist : torch.distributions.Distribution
         꼬리 쪽으로 치우친 제안
     alpha : float
-        믿음 수준(이를테면 0.999)
+        신뢰수준(이를테면 0.999)
     n_samples : int
-        중요도 표집 표본의 개수
+        중요도 샘플링 표본의 개수
     """
-    # 제안에서 표집
+    # 제안에서 샘플링
     samples = proposal_dist.sample((n_samples,))
     
-    # 중요도 무게 셈하기
+    # 중요도 웨이트 계산하기
     log_weights = target_dist.log_prob(samples) - proposal_dist.log_prob(samples)
     weights = torch.exp(log_weights - torch.logsumexp(log_weights, dim=0))
     
-    # 로스 셈하기
+    # 손실 계산하기
     losses = loss_function(samples)
     
-    # 무게 분위수를 어림하려고 로스로 정렬
+    # 가중 분위수를 추정하려고 손실로 정렬
     sorted_indices = torch.argsort(losses)
     sorted_losses = losses[sorted_indices]
     sorted_weights = weights[sorted_indices]
     
-    # VaR을 위한 무게 누적분포함수
+    # VaR를 위한 가중 누적분포함수
     cumulative_weights = torch.cumsum(sorted_weights, dim=0)
     var_idx = (cumulative_weights >= alpha).nonzero(as_tuple=True)[0][0]
     var_estimate = sorted_losses[var_idx]
     
-    # 기댓값 모자람: E[L | L > VaR]
+    # 기대 부족액: E[L | L > VaR]
     tail_mask = losses > var_estimate
     if tail_mask.sum() > 0:
         tail_weights = weights[tail_mask]
@@ -598,16 +598,16 @@ def estimate_var_es_importance_sampling(
         'ess_ratio': (ess / n_samples).item()
     }
 
-# 보기: 꼬리 두꺼운 포트폴리오 로스
+# 보기: 꼬리 두꺼운 포트폴리오 손실
 torch.manual_seed(42)
 
-# 위험 인자 분포(보통 시장 상황)
+# 위험 인자 분포(정상 시장 상황)
 target = dist.Normal(0.0, 1.0)
 
-# 로스 꼬리 쪽으로 옮긴 제안
+# 손실 꼬리 쪽으로 이동한 제안
 proposal = dist.Normal(3.0, 1.5)
 
-# 단순한 로스 함수: L = exp(0.5 * X) - 1
+# 단순한 손실 함수: L = exp(0.5 * X) - 1
 loss_fn = lambda x: torch.exp(0.5 * x) - 1.0
 
 results = estimate_var_es_importance_sampling(
@@ -647,9 +647,9 @@ $$
 
 사후분포는 보통 비례 상수까지만 알려져 있으며, 그래서 **자기정규화 중요도 샘플링**이 나온다([자기정규화 중요도 샘플링](self_normalized.md)에서 다룬다).
 
-### 모델 증거와의 이음
+### 모델 증거와의 연결
 
-중요도 샘플링으로 주변 우도도 추정할 수 있다:
+중요도 샘플링으로 주변 가능도(marginal likelihood, 우도라고도 한다)도 추정할 수 있다:
 
 $$
 p(y) = \int p(y|\theta) p(\theta) d\theta
@@ -661,7 +661,7 @@ $$
 \hat{p}(y) = \frac{1}{n} \sum_{i=1}^n p(y|\theta_i), \quad \theta_i \sim p(\theta)
 $$
 
-이것은 **사전 표본 우도의 산술평균**으로 구한 주변 우도 추정량이다. 사후표본의 역우도를 평균한 뒤 역수를 취하는 조화평균 방법과 다르다. 사전분포가 사후의 중요한 영역을 거의 방문하지 못하면 이 산술평균도 매우 비효율적일 수 있다.
+이것은 **사전 표본 가능도의 산술평균**으로 구한 주변 가능도 추정량이다. 사후표본의 가능도 역수를 평균한 뒤 역수를 취하는 조화평균 방법과 다르다. 사전분포가 사후의 중요한 영역을 거의 방문하지 못하면 이 산술평균도 매우 비효율적일 수 있다.
 
 ---
 
@@ -669,21 +669,21 @@ $$
 
 표준 IS는 정규화된 목표와 적절한 지지집합 조건에서 불편하지만 유한 분산은 별도 이차 적률 조건이다. 목표와 비슷한 제안이라도 관심 함수와 꼬리에 따라 성능이 달라진다.
 
-웨이트 분포·최대 웨이트·ESS와 함께 반복 실험 및 관심 함수의 기여를 살핀다. 높은 ESS나 유한한 표본분산만으로 누락 영역·무한 분산을 배제하지 못한다. 제안 선택과 적응에 자료를 사용하면 어떤 표본·밀도에 웨이트를 대응시키는지도 명시해야 한다.
+웨이트 분포·최대 웨이트·ESS와 함께 반복 실험 및 관심 함수의 기여를 살핀다. 높은 ESS나 유한한 표본분산만으로 누락 영역·무한 분산을 배제하지 못한다. 제안 선택과 적응에 데이터를 사용하면 어떤 표본·밀도에 웨이트를 대응시키는지도 명시해야 한다.
 
 ## 연습문제
 
 ### 연습 1: 분산 비교
-$X \sim \mathcal{N}(0,1)$일 때 $\mathbb{E}[e^{2X}]$을 추정하는 소박한 몬테카를로와 중요도 샘플링의 분산을 비교하여라. 제안으로 $q = \mathcal{N}(0,1)$, $q = \mathcal{N}(1,1)$, $q = \mathcal{N}(2,1)$을 써라. 어느 것이 분산이 가장 작으며 왜 그런가?
+$X \sim \mathcal{N}(0,1)$일 때 $\mathbb{E}[e^{2X}]$을 추정하는 단순 몬테카를로와 중요도 샘플링의 분산을 비교하여라. 제안으로 $q = \mathcal{N}(0,1)$, $q = \mathcal{N}(1,1)$, $q = \mathcal{N}(2,1)$을 써라. 어느 것이 분산이 가장 작으며 왜 그런가?
 
 ### 연습 2: 지지집합 포함
-제안이 목표분포의 지지집합을 덮지 않으면 어떻게 되는지 보여라. $\pi = \mathcal{N}(0,1)$, $q = \text{Uniform}(-2, 2)$이라 하자. $\mathbb{E}[X^2]$을 추정하고 바이어스를 설명하여라.
+제안이 목표분포의 지지집합을 덮지 않으면 어떻게 되는지 보여라. $\pi = \mathcal{N}(0,1)$, $q = \text{Uniform}(-2, 2)$이라 하자. $\mathbb{E}[X^2]$을 추정하고 편향을 설명하여라.
 
 ### 연습 3: 최적 제안 근사
-$h(\theta) = \theta^2$이고 $\pi = \mathcal{N}(3,1)$일 때 가장 좋은 제안은 $q^* \propto \theta^2 \cdot \mathcal{N}(3,1)$이다. 정규분포의 평균·분산을 조정해 θ²·N(3,1)의 정규화된 형태를 근사하라. |θ|가 아니라 θ²로 가중한 모멘트임을 확인하고, 원래 목표 N(3,1)을 제안으로 쓸 때와 가중 이차 적률·분산을 비교하라.
+$h(\theta) = \theta^2$이고 $\pi = \mathcal{N}(3,1)$일 때 최적 제안은 $q^* \propto \theta^2 \cdot \mathcal{N}(3,1)$이다. 정규분포의 평균·분산을 조정해 θ²·N(3,1)의 정규화된 형태를 근사하라. |θ|가 아니라 θ²로 가중한 모멘트임을 확인하고, 원래 목표 N(3,1)을 제안으로 쓸 때와 가중 이차 적률·분산을 비교하라.
 
-### 연습 4: 중요도 샘플링으로 옵션 값 매기기
-블랙-숄즈 모델 아래에서 깊은 외가격 유럽식 콜 옵션의 값을 중요도 샘플링으로 매겨라. 소박한 몬테카를로(위험 중립 측도 아래에서 경로를 샘플링)와 제안을 행사가 쪽으로 옮긴 중요도 샘플링의 분산을 비교하여라. 분산이 줄어든 배수를 계산하여라.
+### 연습 4: 중요도 샘플링으로 옵션 가격 결정하기
+블랙-숄즈 모델 아래에서 깊은 외가격 유럽식 콜 옵션의 가격을 중요도 샘플링으로 계산하여라. 단순 몬테카를로(위험 중립 측도 아래에서 경로를 샘플링)와 제안을 행사가 쪽으로 이동한 중요도 샘플링의 분산을 비교하여라. 분산이 줄어든 배수를 계산하여라.
 
 ## 정리하며
 

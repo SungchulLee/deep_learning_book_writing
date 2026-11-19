@@ -6,7 +6,7 @@
 
 θ=(θ₁,…,θ_K)에 대해 q(θ)=∏ⱼqⱼ(θⱼ)로 둔다. θⱼ는 스칼라일 수도 있고 여러 변수를 묶은 블록일 수도 있다. 필요한 적률이 존재하면 서로 다른 블록의 공분산은 0이지만 블록 안의 상관까지 반드시 제거하는 것은 아니다.
 
-‘평균장’이라는 용어는 다른 변수들의 영향을 평균한 장으로 대체하는 통계물리의 근사에서 유래한다. 변분 갱신은 일반적으로 다른 변수의 **기댓값 로그 결합밀도**를 이용하며, 그 변수의 평균 하나만 필요한 것은 아니다. 이차항이나 비선형항에는 분산·고차 적률 등이 필요할 수 있다.
+‘평균장’이라는 용어는 다른 변수들의 영향을 평균한 장으로 대체하는 통계물리의 근사에서 유래한다. 변분 갱신은 일반적으로 다른 변수에 대한 **로그 결합밀도의 기댓값**을 이용하며, 그 변수의 평균 하나만 필요한 것은 아니다. 이차항이나 비선형항에는 분산·고차 적률 등이 필요할 수 있다.
 
 아래 도식은 상관된 목표와 독립 근사의 모양을 비교한다. 근사의 주변분산은 원래 사후의 주변분산을 그대로 복사한 값으로 정해지지 않는다.
 
@@ -56,11 +56,11 @@ $$D_{\mathrm{KL}}(q^*\Vert p)=-\tfrac12\log(1-\rho^2).$$
 
 ![왼쪽은 바이스의 바꿔치기를 형태로 그린 것이다. 격자에 제각기 다른 방향을 가리키는 화살표들이 있고, 그 오른쪽에는 모두 같은 방향을 가리키는 화살표 격자가 있으며 흔들림이 남아 있지 않다고 적혀 있다. 오른쪽은 상관계수 0.9인 가우스의 등고선 타원과 가장 좋은 평균장 근사의 등고선을 겹쳐 그린 것으로, 기울어진 긴 타원 안에 훨씬 작은 원이 들어 있고 주변분산 1.00이 0.19가 되어 81퍼센트가 사라졌다고 적혀 있다.](figures/mean_field_weiss.svg)
 
-위 2절이 변분분포에 한 일이 꼭 같다. 서로 얽힌 $\theta_1,\theta_2$ 를 독립인 두 인자로 바꾸면 **이웃이 무엇을 하고 있었는지가 지워진다.** 그리고 지워진 자리에서 사라지는 것도 같다 — 흔들림이다. $\rho=0.9$ 에서 주변분산 1.00이 $1-\rho^2=0.19$ 로 줄어 81%가 없어진다. 물리에서도 바이스 근사의 가장 잘 알려진 결함이 이것이어서, 임계점 근처의 실제 지수는 평균장을 벗어나야만 얻어진다. 흔들림을 평균으로 바꾼 대가를 흔들림으로 치르는 셈이다.
+위 2절이 변분분포에 한 일이 꼭 같다. 서로 얽힌 $\theta_1,\theta_2$ 를 독립인 두 인자로 바꾸면 **이웃이 무엇을 하고 있었는지가 지워진다.** 그리고 지워진 자리에서 사라지는 것도 같다 — 흔들림, 곧 요동(fluctuation)이다. $\rho=0.9$ 에서 주변분산 1.00이 $1-\rho^2=0.19$ 로 줄어 81%가 없어진다. 물리에서도 바이스 근사의 가장 잘 알려진 결함이 이것이어서, 임계점 근처의 실제 지수는 평균장을 벗어나야만 얻어진다. 흔들림을 평균으로 바꾼 대가를 흔들림으로 치르는 셈이다.
 
 **다만 "평균장은 분산을 과소추정한다"를 정리처럼 들고 다니면 안 된다.** 위 문단이 이미 못 박아 둔 대로다. 여기서 줄어든 것은 이 가우스 예에서, 그리고 $\mathrm{KL}(q\Vert p)$ 라는 **방향을 고른 결과**다. 방향을 뒤집어 $\mathrm{KL}(p\Vert q)$ 를 줄이면 같은 독립 가우스가 주변분산을 1.00으로 **정확히 맞춘다.** 자석과 사후분포가 나누어 가진 것은 결론이 아니라 **장치**다 — 얽힌 것을 평균으로 바꿔 풀기 쉽게 만든다는 장치이고, 무엇을 잃는지는 그때그때 재어 봐야 한다.
 
-_확인한 곳 — P. Weiss, "L'hypothèse du champ moléculaire et la propriété ferromagnétique" (1907) 의 분자장 가설과 거기서 따라 나오는 퀴리–바이스 법칙. 바이스 자신은 "분자장"이라 불렀고 "평균장"은 뒤에 이런 형태의 근사를 가리키는 일반 이름이 되었다. 그림 오른쪽의 수는 그림을 그리는 코드가 $v_j=1/\Lambda_{jj}$ 로 직접 셈하며, 위 표의 KL 값도 모두 따로 셈해 맞는 것을 확인했다._
+_확인한 곳 — P. Weiss, "L'hypothèse du champ moléculaire et la propriété ferromagnétique" (1907) 의 분자장 가설과 거기서 따라 나오는 퀴리–바이스 법칙. 바이스 자신은 "분자장"이라 불렀고 "평균장"은 뒤에 이런 형태의 근사를 가리키는 일반 이름이 되었다. 그림 오른쪽의 수는 그림을 그리는 코드가 $v_j=1/\Lambda_{jj}$ 로 직접 계산하며, 위 표의 KL 값도 같은 코드로 따로 계산해 대조한다._
 
 </div>
 
@@ -119,7 +119,7 @@ $$b=\beta_0+\frac12\left[\kappa_0(m-\mu_0)^2+\sum_i(x_i-m)^2+(\kappa_0+n)v\right
 
 정확한 결합 사후는 여전히 정규–감마이며 독립 곱이 아니다. α_n=α₀+n/2, β_n=β₀+[∑ᵢ(xᵢ−x̄)²+κ₀n(x̄−μ₀)²/κ]/2라 하자. 평균장 고정점은 a=α_n+1/2, b=β_n a/α_n, v=β_n/(κα_n)이다. 정확한 μ 주변분산은 α_n>1일 때 β_n/[κ(α_n−1)]이므로 이 예에서 평균장이 더 작다.
 
-아래 구현의 `update_q_tau`는 사전 항의 Var(μ)까지 포함하므로 위의 갱신과 일치한다. 적절한 양의 하이퍼파라미터와 비어 있지 않은 데이터가 필요하며, 종료의 작은 절댓값 차이 자체가 전체 수렴 정리인 것은 아니다.
+아래 구현의 `update_q_tau`는 사전 항의 Var(μ)까지 포함하므로 위의 갱신과 일치한다. 적절한 양의 하이퍼파라메터와 비어 있지 않은 데이터가 필요하며, 종료의 작은 절댓값 차이 자체가 전체 수렴 정리인 것은 아니다.
 
 ```python
 import torch
@@ -130,14 +130,14 @@ import numpy as np
 
 class MeanFieldGaussianCAVI:
     """
-    평균과 정밀도를 모르는 가우스의 좌표 오르기 변분 추론.
+    평균과 정밀도를 모르는 가우스의 좌표 상승 변분 추론(CAVI).
     
-    모형:
-        τ ~ Gamma(α₀, β₀)           [정밀도 앞확률]
-        μ | τ ~ N(μ₀, (λ₀τ)⁻¹)      [조건부 평균 앞확률]
+    모델:
+        τ ~ Gamma(α₀, β₀)           [정밀도 사전분포]
+        μ | τ ~ N(μ₀, (λ₀τ)⁻¹)      [조건부 평균 사전분포]
         xᵢ | μ,τ ~ N(μ, τ⁻¹)        [가능도]
     
-    변분 집안:
+    변분분포족:
         q(μ,τ) = q(μ)q(τ)
         q(μ) = N(μₙ, λₙ⁻¹)
         q(τ) = Gamma(αₙ, βₙ)
@@ -146,14 +146,14 @@ class MeanFieldGaussianCAVI:
     def __init__(self, alpha_0: float = 1.0, beta_0: float = 1.0,
                  mu_0: float = 0.0, lambda_0: float = 1.0):
         """
-        앞확률의 웃파라메터로 첫값 잡기.
+        사전분포의 하이퍼파라메터로 초기화한다.
         """
         self.alpha_0 = alpha_0
         self.beta_0 = beta_0
         self.mu_0 = mu_0
         self.lambda_0 = lambda_0
         
-        # 변분 파라메터(앞확률로 첫값을 잡는다)
+        # 변분 파라메터(사전분포의 값으로 초기화한다)
         self.alpha_n = alpha_0
         self.beta_n = beta_0
         self.mu_n = mu_0
@@ -161,27 +161,27 @@ class MeanFieldGaussianCAVI:
     
     @property
     def E_tau(self) -> float:
-        """기댓값 정밀도 E_q[τ]"""
+        """정밀도의 기댓값 E_q[τ]"""
         return self.alpha_n / self.beta_n
     
     @property
     def E_log_tau(self) -> float:
-        """기댓값 로그 정밀도 E_q[log τ]"""
+        """로그 정밀도의 기댓값 E_q[log τ]"""
         return torch.digamma(torch.tensor(self.alpha_n)).item() - np.log(self.beta_n)
     
     @property
     def E_mu(self) -> float:
-        """기댓값 평균 E_q[μ]"""
+        """평균의 기댓값 E_q[μ]"""
         return self.mu_n
     
     @property
     def Var_mu(self) -> float:
-        """평균의 흩어짐 Var_q[μ]"""
+        """평균의 분산 Var_q[μ]"""
         return 1.0 / self.lambda_n
     
     def update_q_mu(self, data: torch.Tensor) -> None:
         """
-        q(μ)의 변분 파라메터 새로 고치기.
+        q(μ)의 변분 파라메터를 갱신한다.
         
         q*(μ) ∝ exp{E_q(τ)[log p(x,μ,τ)]}
         """
@@ -196,16 +196,16 @@ class MeanFieldGaussianCAVI:
     
     def update_q_tau(self, data: torch.Tensor) -> None:
         """
-        q(τ)의 변분 파라메터 새로 고치기.
+        q(τ)의 변분 파라메터를 갱신한다.
         
         q*(τ) ∝ exp{E_q(μ)[log p(x,μ,τ)]}
         """
         n = len(data)
         
-        # 형태 파라메터
+        # shape 파라메터
         self.alpha_n = self.alpha_0 + (n + 1) / 2
         
-        # 비율 파라메터
+        # rate 파라메터
         # E[(μ - μ₀)²] = (E[μ] - μ₀)² + Var[μ]
         E_mu_minus_mu0_sq = (self.E_mu - self.mu_0)**2 + self.Var_mu
         
@@ -216,7 +216,7 @@ class MeanFieldGaussianCAVI:
     
     def compute_elbo(self, data: torch.Tensor) -> float:
         """
-        증거 아래 경계 셈하기.
+        증거 하한(ELBO)을 계산한다.
         
         ELBO = E_q[log p(x,μ,τ)] - E_q[log q(μ,τ)]
              = E_q[log p(x|μ,τ)] + E_q[log p(μ|τ)] + E_q[log p(τ)]
@@ -224,7 +224,7 @@ class MeanFieldGaussianCAVI:
         """
         n = len(data)
         
-        # E[log p(x|μ,τ)] - 기댓값 로그 가능도
+        # E[log p(x|μ,τ)] - 기대 로그가능도
         E_log_likelihood = (
             0.5 * n * (self.E_log_tau - np.log(2 * np.pi))
             - 0.5 * self.E_tau * (
@@ -232,7 +232,7 @@ class MeanFieldGaussianCAVI:
             )
         )
         
-        # E[log p(μ|τ)] - μ에 대한 기댓값 로그 앞확률
+        # E[log p(μ|τ)] - μ의 기대 로그 사전밀도
         E_log_prior_mu = (
             0.5 * (np.log(self.lambda_0) + self.E_log_tau - np.log(2 * np.pi))
             - 0.5 * self.lambda_0 * self.E_tau * (
@@ -240,7 +240,7 @@ class MeanFieldGaussianCAVI:
             )
         )
         
-        # E[log p(τ)] - τ에 대한 기댓값 로그 앞확률
+        # E[log p(τ)] - τ의 기대 로그 사전밀도
         E_log_prior_tau = (
             self.alpha_0 * np.log(self.beta_0)
             - torch.lgamma(torch.tensor(self.alpha_0)).item()
@@ -266,7 +266,7 @@ class MeanFieldGaussianCAVI:
     def fit(self, data: torch.Tensor, max_iter: int = 100, 
             tol: float = 1e-6, verbose: bool = True) -> Dict:
         """
-        모일 때까지 CAVI 알고리즘 돌리기.
+        수렴할 때까지 CAVI 알고리즘을 실행한다.
         """
         history = {
             'elbo': [],
@@ -281,11 +281,11 @@ class MeanFieldGaussianCAVI:
         elbo_prev = -float('inf')
         
         for iteration in range(max_iter):
-            # 좌표 오르기 새로 고침
+            # 좌표 상승 갱신
             self.update_q_mu(data)
             self.update_q_tau(data)
             
-            # ELBO 셈하기
+            # ELBO 계산
             elbo = self.compute_elbo(data)
             
             # 이력 기록
@@ -301,7 +301,7 @@ class MeanFieldGaussianCAVI:
                 print(f"Iter {iteration+1:3d}: ELBO = {elbo:.4f}, "
                       f"E[μ] = {self.E_mu:.4f}, E[τ] = {self.E_tau:.4f}")
             
-            # 모임 살피기
+            # 수렴 확인
             if abs(elbo - elbo_prev) < tol:
                 if verbose:
                     print(f"\nConverged at iteration {iteration + 1}")
@@ -312,7 +312,7 @@ class MeanFieldGaussianCAVI:
         return history
     
     def get_posterior_distributions(self) -> Tuple[dist.Distribution, dist.Distribution]:
-        """변분 분포를 돌려준다."""
+        """변분분포를 반환한다."""
         q_mu = dist.Normal(self.mu_n, 1.0 / np.sqrt(self.lambda_n))
         q_tau = dist.Gamma(self.alpha_n, self.beta_n)
         return q_mu, q_tau
@@ -322,11 +322,11 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
                           data: torch.Tensor,
                           true_mu: float = None,
                           true_tau: float = None):
-    """CAVI 결과 두루 그려 보기."""
+    """CAVI 결과를 종합적으로 시각화한다."""
     
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     
-    # 그림 1: ELBO의 모임
+    # 그림 1: ELBO의 수렴
     ax = axes[0, 0]
     ax.plot(history['elbo'], 'b-', linewidth=2)
     ax.set_xlabel('Iteration', fontsize=11)
@@ -334,7 +334,7 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     ax.set_title('(a) ELBO Convergence', fontsize=12, fontweight='bold')
     ax.grid(True, alpha=0.3)
     
-    # 그림 2: 평균 파라메터의 모임
+    # 그림 2: 평균 파라메터의 수렴
     ax = axes[0, 1]
     ax.plot(history['E_mu'], 'b-', linewidth=2, label='E[μ]')
     if true_mu is not None:
@@ -347,7 +347,7 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 3: 정밀도 파라메터의 모임
+    # 그림 3: 정밀도 파라메터의 수렴
     ax = axes[0, 2]
     ax.plot(history['E_tau'], 'b-', linewidth=2, label='E[τ]')
     if true_tau is not None:
@@ -358,7 +358,7 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 4: 뒤확률 q(μ)
+    # 그림 4: 사후분포 q(μ)
     ax = axes[1, 0]
     q_mu, _ = model.get_posterior_distributions()
     mu_range = torch.linspace(model.E_mu - 3/np.sqrt(model.lambda_n),
@@ -376,7 +376,7 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 5: 뒤확률 q(τ)
+    # 그림 5: 사후분포 q(τ)
     ax = axes[1, 1]
     _, q_tau = model.get_posterior_distributions()
     tau_range = torch.linspace(0.01, model.E_tau * 3, 200)
@@ -393,12 +393,12 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 6: 자료와 뒤확률 미리봄
+    # 그림 6: 데이터와 사후 예측
     ax = axes[1, 2]
     ax.hist(data.numpy(), bins=20, density=True, alpha=0.6, 
             color='gray', edgecolor='black', label='Data')
     
-    # 뒤확률 미리봄(표집으로 어림)
+    # 사후 예측(샘플링으로 근사)
     n_samples = 1000
     mu_samples = np.random.normal(model.mu_n, 1/np.sqrt(model.lambda_n), n_samples)
     tau_samples = np.random.gamma(model.alpha_n, 1/model.beta_n, n_samples)
@@ -429,7 +429,7 @@ if __name__ == "__main__":
     
     # 합성 데이터 생성
     true_mu = 3.0
-    true_tau = 0.5  # 정밀도 = 1/흩어짐
+    true_tau = 0.5  # 정밀도 = 1/분산
     n_samples = 100
     
     data = torch.randn(n_samples) / np.sqrt(true_tau) + true_mu
@@ -441,10 +441,10 @@ if __name__ == "__main__":
     print(f"Sample mean = {data.mean().item():.4f}")
     print(f"Sample variance = {data.var().item():.4f}")
     
-    # CAVI 돌리기
+    # CAVI 실행
     model = MeanFieldGaussianCAVI(
-        alpha_0=1.0, beta_0=1.0,  # τ에 두는 감마 앞확률
-        mu_0=0.0, lambda_0=0.01   # μ에 두는 정규 앞확률
+        alpha_0=1.0, beta_0=1.0,  # τ에 두는 감마 사전분포
+        mu_0=0.0, lambda_0=0.01   # μ에 두는 정규 사전분포
     )
     
     history = model.fit(data, max_iter=100, verbose=True)
@@ -457,7 +457,7 @@ if __name__ == "__main__":
     visualize_cavi_results(model, history, data, true_mu, true_tau)
 ```
 
-다음 출력과 그림 코드는 기존 내용을 보존했다. 예측 그림은 q_μq_τ에서 생성한 몬테카를로 근사이며 정확한 결합 사후 예측과 같다고 단정하지 않는다.
+다음은 위 코드의 출력이다. 예측 그림은 q_μq_τ에서 생성한 몬테카를로 근사이며 정확한 결합 사후 예측과 같다고 단정하지 않는다.
 
 ```
 ============================================================
@@ -533,7 +533,7 @@ $$s_k^2=(\sigma_0^{-2}+N_k\sigma^{-2})^{-1},\qquad m_k=s_k^2\left(\mu_0\sigma_0^
 
 $$H[\mathrm{Dir}(\alpha)]=\sum_k\log\Gamma(\alpha_k)-\log\Gamma(A)+(A-K)\psi(A)-\sum_k(\alpha_k-1)\psi(\alpha_k).$$
 
-코드는 앞의 로그 베타함수 항을 반대 부호로 넣는다. 따라서 기록한 값을 완전한 ELBO나 증거 하한으로 해석하거나 그 단조성으로 CAVI 이론을 확인하면 안 된다. 좌표 갱신식의 정당성과 모니터링 목적함수의 구현 정확성은 별개의 문제다. 코드와 출력은 요청대로 유지했다.
+코드는 앞의 로그 베타함수 항을 반대 부호로 넣는다. 따라서 기록한 값을 완전한 ELBO나 증거 하한으로 해석하거나 그 단조성으로 CAVI 이론을 확인하면 안 된다. 좌표 갱신식의 정당성과 모니터링 목적함수의 구현 정확성은 별개의 문제다.
 
 ```python
 import torch
@@ -545,15 +545,15 @@ import numpy as np
 
 class GMMCavi:
     """
-    가우스 섞음 모형의 좌표 오르기 변분 추론.
+    가우스 혼합 모델의 좌표 상승 변분 추론(CAVI).
     
-    모형:
+    모델:
         π ~ Dir(α₀)
         μₖ ~ N(μ₀, σ₀²)
         zᵢ ~ Cat(π)
         xᵢ | zᵢ ~ N(μ_{zᵢ}, σ²)
     
-    변분 집안:
+    변분분포족:
         q(π, μ, z) = q(π) ∏ₖ q(μₖ) ∏ᵢ q(zᵢ)
     """
     
@@ -563,14 +563,14 @@ class GMMCavi:
                  sigma_0: float = 10.0,
                  sigma: float = 1.0):
         """
-        가우스 섞음 모형 CAVI 첫값 잡기.
+        가우스 혼합 모델 CAVI를 초기화한다.
         
         인수:
-            n_components: 섞음 성분의 개수 K
-            alpha_0: 디리클레 앞확률의 몰림
-            mu_0: 성분 평균의 앞확률 평균
-            sigma_0: 성분 평균의 앞확률 표준편차
-            sigma: 아는 관측 잡음의 표준편차
+            n_components: 혼합 성분의 개수 K
+            alpha_0: 디리클레 사전분포의 집중도(concentration)
+            mu_0: 성분 평균의 사전 평균
+            sigma_0: 성분 평균의 사전 표준편차
+            sigma: 알려진 관측 잡음의 표준편차
         """
         self.K = n_components
         self.alpha_0 = alpha_0
@@ -578,38 +578,38 @@ class GMMCavi:
         self.sigma_0 = sigma_0
         self.sigma = sigma
         
-        # 변분 파라메터(자료로 첫값을 잡는다)
-        self.r = None       # N x K 맡음 몫 행렬
+        # 변분 파라메터(데이터로 초기화한다)
+        self.r = None       # N x K 책임도 행렬
         self.alpha = None   # 디리클레 파라메터 K개
         self.m = None       # 성분 평균 K개
-        self.s2 = None      # 성분 흩어짐 K개
+        self.s2 = None      # 성분 분산 K개
     
     def initialize(self, data: torch.Tensor, init_method: str = 'kmeans'):
         """
-        변분 파라메터 첫값 잡기.
+        변분 파라메터를 초기화한다.
         """
         N = len(data)
         
         if init_method == 'random':
-            # 무작위 첫값 잡기
+            # 무작위 초기화
             self.r = torch.rand(N, self.K)
             self.r = self.r / self.r.sum(dim=1, keepdim=True)
         elif init_method == 'kmeans':
-            # k 평균++ 방식의 첫값 잡기
+            # 무작위로 고른 데이터 점을 중심으로 삼는 소프트 배정(k-평균++는 아니다)
             indices = torch.randperm(N)[:self.K]
             centers = data[indices].clone()
             
-            # 거리를 셈하고 배정하기
+            # 거리를 계산하고 배정한다
             dists = torch.cdist(data.unsqueeze(1), centers.unsqueeze(0).unsqueeze(2))
             self.r = F.softmax(-dists.squeeze() / self.sigma**2, dim=1)
         
-        # 맡음 몫에 따라 다른 파라메터 첫값 잡기
+        # 책임도에 따라 다른 파라메터를 초기화한다
         self._update_q_pi()
         self._update_q_mu(data)
     
     def _update_q_z(self, data: torch.Tensor) -> None:
         """
-        모든 자료 점에 대해 q(zᵢ) 새로 고치기.
+        모든 데이터 점에 대해 q(zᵢ)를 갱신한다.
         
         q*(zᵢ = k) ∝ exp{E[log πₖ] - (xᵢ - E[μₖ])²/(2σ²) - Var[μₖ]/(2σ²)}
         """
@@ -618,7 +618,7 @@ class GMMCavi:
         # E[log πₖ] = ψ(αₖ) - ψ(Σⱼ αⱼ)
         E_log_pi = torch.digamma(self.alpha) - torch.digamma(self.alpha.sum())
         
-        # 로그 맡음 몫(고르게 하지 않음)
+        # 로그 책임도(정규화 전)
         log_r = torch.zeros(N, self.K)
         
         for k in range(self.K):
@@ -626,28 +626,28 @@ class GMMCavi:
             E_sq_diff = (data - self.m[k])**2 + self.s2[k]
             log_r[:, k] = E_log_pi[k] - 0.5 / self.sigma**2 * E_sq_diff
         
-        # 고르게 하기(소프트맥스)
+        # 정규화(소프트맥스)
         self.r = F.softmax(log_r, dim=1)
     
     def _update_q_mu(self, data: torch.Tensor) -> None:
         """
-        모든 성분에 대해 q(μₖ) 새로 고치기.
+        모든 성분에 대해 q(μₖ)를 갱신한다.
         
         q*(μₖ) = N(mₖ, sₖ²)
         """
-        N_k = self.r.sum(dim=0)  # 성분마다의 기댓값 횟수
+        N_k = self.r.sum(dim=0)  # 성분별 기대 개수
         
-        # 뒤확률 정밀도
+        # 사후 정밀도
         precision = 1/self.sigma_0**2 + N_k / self.sigma**2
         self.s2 = 1 / precision
         
-        # 뒤확률 평균
+        # 사후 평균
         weighted_sum = (self.r * data.unsqueeze(1)).sum(dim=0)
         self.m = self.s2 * (self.mu_0 / self.sigma_0**2 + weighted_sum / self.sigma**2)
     
     def _update_q_pi(self) -> None:
         """
-        q(π) 새로 고치기.
+        q(π)를 갱신한다.
         
         q*(π) = Dir(α₁, ..., αₖ)
         αₖ = α₀ + Σᵢ rᵢₖ
@@ -657,12 +657,12 @@ class GMMCavi:
     
     def compute_elbo(self, data: torch.Tensor) -> float:
         """
-        증거 아래 경계 셈하기.
+        증거 하한(ELBO)을 계산한다.
         """
         N = len(data)
         N_k = self.r.sum(dim=0)
         
-        # E[log p(x|z,μ)] - 기댓값 로그 가능도
+        # E[log p(x|z,μ)] - 기대 로그가능도
         E_log_lik = 0.0
         for k in range(self.K):
             E_sq_diff = (data - self.m[k])**2 + self.s2[k]
@@ -671,18 +671,18 @@ class GMMCavi:
                 - 0.5 / self.sigma**2 * E_sq_diff
             )).sum()
         
-        # E[log p(z|π)] - z에 대한 기댓값 로그 앞확률
+        # E[log p(z|π)] - z의 기대 로그 사전확률
         E_log_pi = torch.digamma(self.alpha) - torch.digamma(self.alpha.sum())
         E_log_p_z = (self.r * E_log_pi).sum()
         
-        # E[log p(π)] - π에 대한 기댓값 로그 앞확률
+        # E[log p(π)] - π의 기대 로그 사전밀도
         E_log_p_pi = (
             torch.lgamma(torch.tensor(self.K * self.alpha_0))
             - self.K * torch.lgamma(torch.tensor(self.alpha_0))
             + (self.alpha_0 - 1) * E_log_pi.sum()
         )
         
-        # E[log p(μ)] - μ에 대한 기댓값 로그 앞확률
+        # E[log p(μ)] - μ의 기대 로그 사전밀도
         E_log_p_mu = 0.0
         for k in range(self.K):
             E_log_p_mu += (
@@ -713,7 +713,7 @@ class GMMCavi:
     def fit(self, data: torch.Tensor, max_iter: int = 100,
             tol: float = 1e-6, verbose: bool = True) -> Dict:
         """
-        CAVI 알고리즘 돌리기.
+        CAVI 알고리즘을 실행한다.
         """
         # 초기화한다
         self.initialize(data)
@@ -728,12 +728,12 @@ class GMMCavi:
         elbo_prev = -float('inf')
         
         for iteration in range(max_iter):
-            # CAVI 새로 고침
+            # CAVI 갱신
             self._update_q_z(data)
             self._update_q_mu(data)
             self._update_q_pi()
             
-            # ELBO 셈하기
+            # ELBO 계산
             elbo = self.compute_elbo(data)
             
             # 이력 기록
@@ -746,7 +746,7 @@ class GMMCavi:
                 print(f"Iter {iteration+1:3d}: ELBO = {elbo:.4f}, "
                       f"means = {self.m.numpy()}")
             
-            # 모임 살피기
+            # 수렴 확인
             if abs(elbo - elbo_prev) < tol:
                 if verbose:
                     print(f"\nConverged at iteration {iteration + 1}")
@@ -758,18 +758,18 @@ class GMMCavi:
     
     def predict(self, data: torch.Tensor) -> torch.Tensor:
         """
-        무리 배정 미리보기.
+        군집 배정을 예측한다.
         """
         self._update_q_z(data)
         return self.r.argmax(dim=1)
 
 def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
                        true_labels: torch.Tensor = None):
-    """가우스 섞음 모형 CAVI 결과 그려 보기."""
+    """가우스 혼합 모델 CAVI 결과를 시각화한다."""
     
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     
-    # 그림 1: ELBO의 모임
+    # 그림 1: ELBO의 수렴
     ax = axes[0, 0]
     ax.plot(history['elbo'], 'b-', linewidth=2)
     ax.set_xlabel('Iteration', fontsize=11)
@@ -777,7 +777,7 @@ def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
     ax.set_title('(a) ELBO Convergence', fontsize=12, fontweight='bold')
     ax.grid(True, alpha=0.3)
     
-    # 그림 2: 성분 평균의 모임
+    # 그림 2: 성분 평균의 수렴
     ax = axes[0, 1]
     means_history = torch.stack(history['m'])
     for k in range(model.K):
@@ -788,7 +788,7 @@ def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 3: 마지막 무리짓기
+    # 그림 3: 최종 군집화
     ax = axes[0, 2]
     predictions = model.r.argmax(dim=1)
     colors = plt.cm.tab10(predictions.numpy() / model.K)
@@ -801,10 +801,10 @@ def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 4: 맡음 몫의 흘러감
+    # 그림 4: 책임도의 변화
     ax = axes[1, 0]
     r_history = torch.stack(history['r'])
-    sample_idx = 0  # 첫 자료 점 기록
+    sample_idx = 0  # 첫 데이터 점을 추적한다
     for k in range(model.K):
         ax.plot(r_history[:, sample_idx, k], linewidth=2, label=f'r_{sample_idx+1},{k+1}')
     ax.set_xlabel('Iteration', fontsize=11)
@@ -825,7 +825,7 @@ def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 6: 마지막 섞음 밀도
+    # 그림 6: 최종 혼합 밀도
     ax = axes[1, 2]
     x_range = torch.linspace(data.min() - 2, data.max() + 2, 500)
     
@@ -858,13 +858,13 @@ if __name__ == "__main__":
     torch.manual_seed(42)
     np.random.seed(42)
     
-    # 인공 섞음 자료 만들기
+    # 합성 혼합 데이터 생성
     n_samples = 300
     true_means = torch.tensor([-3.0, 0.0, 4.0])
     true_weights = torch.tensor([0.3, 0.4, 0.3])
     sigma = 1.0
     
-    # 섞음에서 표집
+    # 혼합분포에서 샘플링
     z_true = torch.multinomial(true_weights, n_samples, replacement=True)
     data = torch.randn(n_samples) * sigma + true_means[z_true]
     
@@ -874,7 +874,7 @@ if __name__ == "__main__":
     print(f"\nTrue means: {true_means.numpy()}")
     print(f"True weights: {true_weights.numpy()}")
     
-    # CAVI로 가우스 섞음 모형 맞추기
+    # CAVI로 가우스 혼합 모델 적합
     model = GMMCavi(n_components=3, alpha_0=1.0, sigma=sigma)
     history = model.fit(data, max_iter=100, verbose=True)
     
@@ -886,7 +886,7 @@ if __name__ == "__main__":
     visualize_gmm_cavi(model, history, data)
 ```
 
-다음은 기존 출력이다. `predict`는 새 데이터의 책임도를 `self.r`에 다시 저장하므로 호출 뒤 그 배열이 훈련 데이터의 책임도라고 가정하지 않는다. 예측 밀도 그림은 평균장 근사 아래에서 평균의 불확실성을 관측 분산에 더한 혼합분포를 나타낸다.
+다음은 위 코드의 출력이다. `predict`는 새 데이터의 책임도를 `self.r`에 다시 저장하므로 호출 뒤 그 배열이 학습 데이터의 책임도라고 가정하지 않는다. 예측 밀도 그림은 평균장 근사 아래에서 평균의 불확실성을 관측 분산에 더한 혼합분포를 나타낸다.
 
 ```
 ============================================================
@@ -939,7 +939,7 @@ Dirichlet의 로그 밀도에서 엔트로피를 유도해 예제의 로그 베�
 
 ## 정리하며
 
-평균장 VI는 블록 독립 근사를 사용하고 CAVI는 다른 인자를 고정한 기댓값 로그 결합밀도로 각 인자를 갱신한다. 정확한 좌표 갱신의 ELBO 비감소성과 전체 파라메터 수렴을 구분한다. 상관된 가우스의 최적 역방향 KL 근사는 주변분산을 그대로 복사하지 않으며, 구현에서는 갱신식뿐 아니라 엔트로피와 목적값도 확인해야 한다.
+평균장 VI는 블록 독립 근사를 사용하고 CAVI는 다른 인자를 고정한 로그 결합밀도의 기댓값으로 각 인자를 갱신한다. 정확한 좌표 갱신의 ELBO 비감소성과 전체 파라메터 수렴을 구분한다. 상관된 가우스의 최적 역방향 KL 근사는 주변분산을 그대로 복사하지 않으며, 구현에서는 갱신식뿐 아니라 엔트로피와 목적값도 확인해야 한다.
 
 **참고 문헌**
 

@@ -7,9 +7,9 @@
 ```python
 #!/usr/bin/env python3
 '''
-Seq2Seq의 어텐션 장치
+Seq2Seq의 어텐션 메커니즘
 논문: "Neural Machine Translation by Jointly Learning to Align and Translate" (2014)
-핵심: 입력의 쓸모 있는 부분에 집중하는 어텐션 장치
+핵심: 입력의 쓸모 있는 부분에 집중하는 어텐션 메커니즘
 '''
 import torch
 import torch.nn as nn
@@ -31,7 +31,7 @@ class Attention(nn.Module):
         batch_size = encoder_outputs.shape[0]
         seq_len = encoder_outputs.shape[1]
         
-        # 디코더의 숨은 상태를 seq_len번 되풀이
+        # 디코더의 은닉 상태를 seq_len번 반복
         hidden = hidden.permute(1, 0, 2)  # [배치, 1, hidden_size]
         hidden = hidden.repeat(1, seq_len, 1)  # [배치, seq_len, hidden_size]
         
@@ -96,7 +96,7 @@ Parameters: 1,140,836
 
 ## 2. 논의
 
-이 인코더는 입력 임베딩 없이 LSTM을 사용하므로 src는 $(B,S,F)$의 실수 피처가다. 반면 trg는 $(B,T)$의 정수 토큰 ID다. input_size=100은 인코더 피처 수이고 output_size=100은 출력 어휘 크기이며, 같은 숫자여도 의미가 다르다.
+이 인코더는 입력 임베딩 없이 LSTM을 사용하므로 src는 $(B,S,F)$의 실수 피처다. 반면 trg는 $(B,T)$의 정수 토큰 ID다. input_size=100은 인코더 피처 수이고 output_size=100은 출력 어휘 크기이며, 같은 숫자여도 의미가 다르다.
 
 Attention은 단일 레이어 상태 $(1,B,H)$를 입력 길이만큼 반복하고, 인코더 출력과 이어 붙여 점수를 계산한다. 소프트맥스 축은 입력 위치다. AttentionDecoder는 $(B,1)$의 토큰 하나와 상태를 받아 $(B,V)$ 로짓, 새 상태와 $(B,S)$ 웨이트를 반환한다.
 
@@ -114,7 +114,7 @@ Attention은 단일 레이어 상태 $(1,B,H)$를 입력 길이만큼 반복하�
 </div>
 
 ??? success "풀이"
-    Linear(2H,H)는 $2H^2+H$개, 편향 없는 Linear(H,1)은 H개다. 합계는 $2H^2+2H$개이고 H=256이면 131584개다.
+    Linear(2H,H)는 $2H^2+H$개, 바이어스 없는 Linear(H,1)은 H개다. 합계는 $2H^2+2H$개이고 H=256이면 131584개다.
 
 ---
 
@@ -126,7 +126,7 @@ Attention은 단일 레이어 상태 $(1,B,H)$를 입력 길이만큼 반복하�
 </div>
 
 ??? success "풀이"
-    학습 중 일부 웨이트가 0이 되고 유지된 값은 1/(1-p)배 되므로 한 번의 호출에서 합이 반드시 1인 것은 아니다. 기대값은 원래 웨이트와 같다. 평가 모드에서는 드롭아웃이 꺼진다. 규제 효과가 있을 수 있지만 더 고른 분포나 성능 향상을 보장하지 않는다.
+    학습 중 일부 웨이트가 0이 되고 유지된 값은 1/(1-p)배 되므로 한 번의 호출에서 합이 반드시 1인 것은 아니다. 기대값은 원래 웨이트와 같다. 평가 모드에서는 드롭아웃이 꺼진다. 정칙화 효과가 있을 수 있지만 더 균일한 분포나 성능 향상을 보장하지 않는다.
 
 ---
 

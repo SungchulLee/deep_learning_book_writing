@@ -6,7 +6,7 @@
 
 생성모델의 θ를 고정하고 관측 x의 잠재변수 사후를 q_λ(z)로 근사하자. 개별 추론은 λ★(x)∈argmax_λ Lₓ(λ;θ)를 구한다. 상각 추론은 λ=f_ψ(x)를 학습해 관측마다 최적화를 반복하는 비용을 줄인다. 인코더의 파라메터 ψ와 관측별 분포의 파라메터 λ를 구분한다.
 
-모든 VI가 관측별 독립 최적화 문제로 분해되는 것은 아니다. 여기서는 조건부로 분리되는 지역 잠재변수와 고정된 전역 모델을 기준으로 비교한다. 새 관측에도 인코더를 적용할 수 있지만 훈련 분포 밖에서의 정확성이나 일반화가 자동으로 보장되지는 않는다.
+모든 VI가 관측별 독립 최적화 문제로 분해되는 것은 아니다. 여기서는 조건부로 분리되는 지역 잠재변수와 고정된 전역 모델을 기준으로 비교한다. 새 관측에도 인코더를 적용할 수 있지만 학습 분포 밖에서의 정확성이나 일반화가 자동으로 보장되지는 않는다.
 
 <div class="storybox" markdown>
 
@@ -24,7 +24,7 @@ $\lambda=f_\psi(x)$ 를 배워 두자는 이 절의 생각은 VAE보다 열여�
 
 잠재 차원이 2이고 은닉 64짜리 인코더 하나라면 들고 있을 수가 1,604개다. **$N$ 이 얼마든 1,604개다.** 관측마다 $\lambda$ 를 따로 두면 $4N$ 개라서 $N=401$ 에서 두 쪽이 만나고, 백만 관측이면 400만 대 1,604가 된다. 게다가 새 $x$ 가 오면 최적화를 다시 도는 대신 순전파 한 번이면 된다.
 
-**그런데 아낀 것은 저장과 속도이지 근사의 질이 아니다.** 바로 아래 2절이 그 값을 식으로 갈라 적는다 — $\log p_\theta(x)-L_x(f_\psi(x);\theta)$ 는 분포족 때문에 생기는 근사 차이에 **상각 차이** $L_x^\star-L_x(f_\psi(x);\theta)$ 가 더해진 것이다. 관측마다 따로 풀었다면 없었을 차이가 인코더를 쓰기로 한 대가로 새로 생긴다. 인코더가 $x$ 마다의 최적 $\lambda^\star(x)$ 를 정확히 맞힐 이유가 없기 때문이고, 위 문단이 적어 둔 대로 훈련 분포 밖에서는 더욱 그렇다. 1,604라는 수에는 그 차이가 들어 있지 않다.
+**그런데 아낀 것은 저장과 속도이지 근사의 질이 아니다.** 바로 아래 2절이 그 비용을 식으로 나누어 적는다 — $\log p_\theta(x)-L_x(f_\psi(x);\theta)$ 는 분포족 때문에 생기는 근사 차이에 **상각 차이** $L_x^\star-L_x(f_\psi(x);\theta)$ 가 더해진 것이다. 관측마다 따로 풀었다면 없었을 차이가 인코더를 쓰기로 한 대가로 새로 생긴다. 인코더가 $x$ 마다의 최적 $\lambda^\star(x)$ 를 정확히 맞힐 이유가 없기 때문이고, 위 문단이 적어 둔 대로 학습 분포 밖에서는 더욱 그렇다. 1,604라는 수에는 그 차이가 들어 있지 않다.
 
 _확인한 곳 — P. Dayan, G. E. Hinton, R. M. Neal, R. S. Zemel, "The Helmholtz Machine", *Neural Computation* **7**(5), 889–904 (1995). 인용한 문장은 인식모델을 설명하는 대목이다. 같은 해 G. E. Hinton, P. Dayan, B. J. Frey, R. M. Neal 의 wake-sleep 알고리즘이 *Science* 에 함께 나왔다. D. P. Kingma, M. Welling, arXiv:1312.6114 (2013) 이 같은 장치를 recognition model 이라 부른다. 그림의 두 수는 그림을 그리는 코드가 직접 센다._
 
@@ -52,17 +52,17 @@ $$D_{\mathrm{KL}}(q_\psi\Vert p)=\frac12\sum_j\left[\mu_j^2+\sigma_j^2-1-\log\si
 
 $$L_x=E_{q_\psi(z|x)}[\log p_\theta(x|z)]-D_{\mathrm{KL}}(q_\psi(z|x)\Vert p(z)).$$
 
-ε∼N(0,I), z=μ+exp(log σ²/2)⊙ε로 표본을 생성하면 인코더와 디코더까지 경로별 경사를 계산할 수 있다. 확률적 경사 갱신은 유한 반복마다 목적이 단조롭게 증가하는 알고리즘은 아니다. 이 구성을 MNIST에 걸어 실제로 학습하고 잠재 표현과 표본을 재는 것은 [5.2절의 VAE 쪽](../../ch05/latent_generative/01_vae.md)이다.
+ε∼N(0,I), z=μ+exp(log σ²/2)⊙ε로 표본을 생성하면 인코더와 디코더까지 경로별 그래디언트를 계산할 수 있다. 확률적 그래디언트 갱신은 유한 반복마다 목적이 단조롭게 증가하는 알고리즘은 아니다. 이 구성을 MNIST에 걸어 실제로 학습하고 잠재 표현과 표본을 재는 것은 [5.2절의 VAE 쪽](../../ch05/latent_generative/01_vae.md)이다.
 
 ## 4. 예제 로스와 생성 표본의 의미
 
-아래 구현은 재구성 제곱오차를 피처 차원에서 합하고 배치 크기로 나눈 뒤, 같은 관측당 단위의 KL을 더한다. β=1일 때 가우스 관측분산 σ_x²=1/2를 고정한 음의 ELBO와 **관측 정규화 상수만큼** 차이가 난다. 표준편차 1의 가우스 우도를 의도한다면 제곱오차 계수 1/2와 단위가 달라진다. 생략한 상수를 복원하지 않은 절대 로스를 로그 증거와 직접 비교하지 않는다.
+아래 구현은 재구성 제곱오차를 피처 차원에서 합하고 배치 크기로 나눈 뒤, 같은 관측당 단위의 KL을 더한다. β=1일 때 가우스 관측분산 σ_x²=1/2를 고정한 음의 ELBO와 **관측 정규화 상수만큼** 차이가 난다. 표준편차 1의 가우스 가능도(likelihood, 우도라고도 한다)를 의도한다면 제곱오차 계수 1/2와 단위가 달라진다. 생략한 상수를 복원하지 않은 절대 로스를 로그 증거와 직접 비교하지 않는다.
 
 `sample`은 z를 사전에서 뽑아 디코더 출력을 반환한다. 디코더가 가우스 평균을 출력한다면 이는 생성 평균의 표본이며, 관측 잡음까지 포함한 p_θ(x)의 완전한 표본은 아니다. `reconstruct`도 디코더에 잠재 평균을 넣는 결정론적 재구성으로, 비선형 디코더의 사후 예측 평균 E_q[p_θ의 평균]과 일반적으로 다르다.
 
-`measure_amortization_gap`은 생성모델을 갱신하지 않고 지역 μ·logvar를 유한 회수 최적화한다. 그러나 각 목적값에 몬테카를로 잡음이 있고 마지막 `loss`는 마지막 갱신 전 값이다. ‘optimal ELBO’는 참 최적값이 아니며 추정 차이가 음수가 될 수도 있다. 디코더 파라메터의 경사는 누적될 수 있으나 지역 옵티마이저가 그 파라메터를 갱신하는 것은 아니다.
+`measure_amortization_gap`은 생성모델을 갱신하지 않고 지역 μ·logvar를 유한 회수 최적화한다. 그러나 각 목적값에 몬테카를로 잡음이 있고 마지막 `loss`는 마지막 갱신 전 값이다. ‘optimal ELBO’는 참 최적값이 아니며 추정 차이가 음수가 될 수도 있다. 디코더 파라메터의 그래디언트는 누적될 수 있으나 지역 옵티마이저가 그 파라메터를 갱신하는 것은 아니다.
 
-배치별 평균 로스를 다시 단순 평균하므로 마지막 배치 크기가 다르면 전체 관측당 평균과 다를 수 있다. 시각화는 최소 두 잠재 차원을 전제하고, 입력 장치·모델 장치의 일치도 필요하다. 다음 코드와 출력은 재실행하지 않고 유지했다.
+배치별 평균 로스를 다시 단순 평균하므로 마지막 배치 크기가 다르면 전체 관측당 평균과 다를 수 있다. 시각화는 최소 두 잠재 차원을 전제하고, 입력 장치·모델 장치의 일치도 필요하다. 이러한 한계를 전제로 다음 코드와 출력을 읽는다.
 
 ```python
 import torch
@@ -76,15 +76,15 @@ import numpy as np
 
 class Encoder(nn.Module):
     """
-    VAE 인코더: 들임 x을 변분 파라메터 (μ, log σ²)로 잇는다.
+    VAE 인코더: 입력 x를 변분 파라메터 (μ, log σ²)로 사상한다.
     
-    구조: x -> [숨은 레이어] -> (μ, log σ²)
+    구조: x -> [은닉 레이어] -> (μ, log σ²)
     """
     
     def __init__(self, input_dim: int, hidden_dims: list, latent_dim: int):
         super().__init__()
         
-        # 인코더 레이어 세우기
+        # 인코더 레이어 구성
         layers = []
         prev_dim = input_dim
         for h_dim in hidden_dims:
@@ -96,17 +96,17 @@ class Encoder(nn.Module):
         
         self.encoder = nn.Sequential(*layers)
         
-        # 평균과 로그 흩어짐을 내는 레이어
+        # 평균과 로그 분산을 출력하는 레이어
         self.fc_mu = nn.Linear(prev_dim, latent_dim)
         self.fc_logvar = nn.Linear(prev_dim, latent_dim)
     
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        x을 변분 파라메터로 부호화하기.
+        x를 변분 파라메터로 인코딩하기.
         
         반환값:
             mu: q(z|x)의 평균
-            logvar: q(z|x)의 로그 흩어짐
+            logvar: q(z|x)의 로그 분산
         """
         h = self.encoder(x)
         mu = self.fc_mu(h)
@@ -115,15 +115,15 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
     """
-    VAE 디코더: 숨은 z을 복원 파라메터로 잇는다.
+    VAE 디코더: 잠재 표현 z를 복원 파라메터로 사상한다.
     
-    구조: z -> [숨은 레이어] -> x_recon
+    구조: z -> [은닉 레이어] -> x_recon
     """
     
     def __init__(self, latent_dim: int, hidden_dims: list, output_dim: int):
         super().__init__()
         
-        # 디코더 레이어 세우기
+        # 디코더 레이어 구성
         layers = []
         prev_dim = latent_dim
         for h_dim in reversed(hidden_dims):
@@ -140,16 +140,16 @@ class Decoder(nn.Module):
     
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         """
-        z을 풀어 복원.
+        z를 디코딩해 복원.
         """
         return self.decoder(z)
 
 class VAE(nn.Module):
     """
-    변분 자동인코더.
+    변분 오토인코더(VAE).
     
-    인코더(추론 망)와 디코더(낳는 모형)를 어우르며
-    ELBO를 가장 크게 하여 함께 익힌다.
+    인코더(추론 네트워크)와 디코더(생성 모델)를 결합하며
+    ELBO를 최대화하여 함께 학습한다.
     """
     
     def __init__(self, input_dim: int, hidden_dims: list, latent_dim: int):
@@ -160,16 +160,16 @@ class VAE(nn.Module):
         self.decoder = Decoder(latent_dim, hidden_dims, input_dim)
     
     def encode(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        """들임을 변분 파라메터로 부호화하기."""
+        """입력을 변분 파라메터로 인코딩하기."""
         return self.encoder(x)
     
     def decode(self, z: torch.Tensor) -> torch.Tensor:
-        """숨은 값을 풀어 복원."""
+        """잠재 표현을 디코딩해 복원."""
         return self.decoder(z)
     
     def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
         """
-        파라메터 바꾸기 재주: z = μ + σ ⊙ ε
+        리파라메리제이션 기법: z = μ + σ ⊙ ε
         """
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
@@ -177,12 +177,12 @@ class VAE(nn.Module):
     
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        온전한 피드포워드.
+        전체 순전파.
         
         반환값:
-            x_recon: 되살린 들임
+            x_recon: 복원한 입력
             mu: 변분 평균
-            logvar: 변분 로그 흩어짐
+            logvar: 변분 로그 분산
         """
         mu, logvar = self.encode(x)
         z = self.reparameterize(mu, logvar)
@@ -193,25 +193,25 @@ class VAE(nn.Module):
              mu: torch.Tensor, logvar: torch.Tensor,
              beta: float = 1.0) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        VAE 로스 = -ELBO = 복원 로스 + β * KL 벌어짐 셈하기
+        VAE 로스 = -ELBO = 복원 로스 + β * KL 발산 계산
         
         인수:
-            x: 들임 자료
-            x_recon: 되살린 자료
+            x: 입력 데이터
+            x_recon: 복원한 데이터
             mu: 변분 평균
-            logvar: 변분 로그 흩어짐
-            beta: KL 항의 무게(β-VAE)
+            logvar: 변분 로그 분산
+            beta: KL 항의 웨이트(β-VAE)
         
         반환값:
             loss: 전체 로스
             recon_loss: 복원 항
-            kl_loss: KL 벌어짐 항
+            kl_loss: KL 발산 항
         """
-        # 복원 로스(음의 로그 가능도)
-        # 이어진 자료에는 평균 제곱 오차를 쓴다(가우스 가능도)
+        # 복원 로스(음의 로그가능도)
+        # 연속 데이터에는 평균 제곱 오차를 쓴다(가우스 가능도)
         recon_loss = F.mse_loss(x_recon, x, reduction='sum') / x.size(0)
         
-        # KL 벌어짐: KL(N(μ,σ²) || N(0,1))
+        # KL 발산: KL(N(μ,σ²) || N(0,1))
         # = -0.5 * Σ(1 + log(σ²) - μ² - σ²)
         kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp()) / x.size(0)
         
@@ -222,7 +222,7 @@ class VAE(nn.Module):
     
     def sample(self, n_samples: int, device: str = 'cpu') -> torch.Tensor:
         """
-        모형에서 표본 만들기.
+        모델에서 표본 생성.
         
         z ~ p(z) = N(0, I)
         x ~ p(x|z)
@@ -232,15 +232,15 @@ class VAE(nn.Module):
         return samples
     
     def reconstruct(self, x: torch.Tensor) -> torch.Tensor:
-        """인코더와 디코더를 거쳐 들임 복원."""
-        mu, _ = self.encode(x)  # 평균 쓰기(표집 없음)
+        """인코더와 디코더를 거쳐 입력 복원."""
+        mu, _ = self.encode(x)  # 평균 사용(샘플링 없음)
         return self.decode(mu)
 
 def train_vae(model: VAE, train_loader: DataLoader,
               n_epochs: int = 100, lr: float = 1e-3,
               beta: float = 1.0, verbose: bool = True) -> Dict:
     """
-    ELBO를 가장 크게 하여 VAE 익히기.
+    ELBO를 최대화하여 VAE 학습하기.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     
@@ -291,17 +291,17 @@ def measure_amortization_gap(model: VAE, x: torch.Tensor,
                               n_opt_steps: int = 1000,
                               lr: float = 0.01) -> Tuple[float, float]:
     """
-    나눠 갚는 최적화와 낱낱 최적화를 견주어 나눠 갚기 틈 재기.
+    상각 최적화와 관측별 최적화를 비교해 상각 차이 측정하기.
     
-    틈 = ELBO(낱낱 최적) - ELBO(나눠 갚음)
+    차이 = ELBO(관측별 최적) - ELBO(상각)
     """
-    # 나눠 갚는 ELBO
+    # 상각 ELBO
     with torch.no_grad():
         x_recon, mu_amort, logvar_amort = model(x)
         _, recon_amort, kl_amort = model.loss(x, x_recon, mu_amort, logvar_amort)
         elbo_amortized = -(recon_amort + kl_amort).item()
     
-    # 낱낱 최적화
+    # 관측별 최적화
     mu_opt = mu_amort.clone().detach().requires_grad_(True)
     logvar_opt = logvar_amort.clone().detach().requires_grad_(True)
     
@@ -310,7 +310,7 @@ def measure_amortization_gap(model: VAE, x: torch.Tensor,
     for _ in range(n_opt_steps):
         optimizer.zero_grad()
         
-        # 최적화한 파라메터로 z 표집
+        # 최적화한 파라메터로 z 샘플링
         std = torch.exp(0.5 * logvar_opt)
         z = mu_opt + std * torch.randn_like(std)
         
@@ -331,7 +331,7 @@ def measure_amortization_gap(model: VAE, x: torch.Tensor,
     return elbo_amortized, elbo_optimal, gap
 
 def visualize_vae_results(model: VAE, history: Dict, test_data: torch.Tensor):
-    """VAE 결과 두루 그려 보기."""
+    """VAE 결과 종합 시각화."""
     
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     
@@ -346,7 +346,7 @@ def visualize_vae_results(model: VAE, history: Dict, test_data: torch.Tensor):
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 2: 본디와 되살린 것(처음 몇 표본)
+    # 그림 2: 원본과 복원 결과(처음 몇 표본)
     ax = axes[0, 1]
     model.eval()
     with torch.no_grad():
@@ -364,7 +364,7 @@ def visualize_vae_results(model: VAE, history: Dict, test_data: torch.Tensor):
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 그림 3: 숨은 공간(2차원일 때)
+    # 그림 3: 잠재 공간(2차원일 때)
     ax = axes[0, 2]
     with torch.no_grad():
         mu, _ = model.encode(test_data)
@@ -374,14 +374,14 @@ def visualize_vae_results(model: VAE, history: Dict, test_data: torch.Tensor):
         ax.set_xlabel('z₁', fontsize=11)
         ax.set_ylabel('z₂', fontsize=11)
     else:
-        # 처음 두 차원 보이기
+        # 처음 두 차원 표시
         ax.scatter(mu[:, 0].numpy(), mu[:, 1].numpy(), alpha=0.5, s=10)
         ax.set_xlabel('z₁', fontsize=11)
         ax.set_ylabel('z₂', fontsize=11)
     ax.set_title('(c) Latent Space (first 2 dims)', fontsize=12, fontweight='bold')
     ax.grid(True, alpha=0.3)
     
-    # 그림 4: 만들어 낸 표본
+    # 그림 4: 생성한 표본
     ax = axes[1, 0]
     with torch.no_grad():
         samples = model.sample(20)
@@ -397,7 +397,7 @@ def visualize_vae_results(model: VAE, history: Dict, test_data: torch.Tensor):
     ax = axes[1, 1]
     with torch.no_grad():
         mu, logvar = model.encode(test_data)
-        # 숨은 차원마다의 KL
+        # 잠재 차원마다의 KL
         kl_per_dim = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp()).mean(dim=0)
     
     ax.bar(range(len(kl_per_dim)), kl_per_dim.numpy())
@@ -406,7 +406,7 @@ def visualize_vae_results(model: VAE, history: Dict, test_data: torch.Tensor):
     ax.set_title('(e) KL per Latent Dimension', fontsize=12, fontweight='bold')
     ax.grid(True, alpha=0.3)
     
-    # 그림 6: 나눠 갚기 틈 살피기
+    # 그림 6: 상각 차이 분석
     ax = axes[1, 2]
     gaps = []
     n_test = min(50, len(test_data))
@@ -432,11 +432,11 @@ if __name__ == "__main__":
     torch.manual_seed(42)
     np.random.seed(42)
     
-    # 인공 자료 만들기(차원 높은 공간의 가우스 섞음)
+    # 합성 데이터 생성(고차원 공간의 가우시안 혼합)
     n_samples = 2000
     input_dim = 20
     
-    # 단순한 모형에서 만들기: z -> x = Wz + 잡음
+    # 단순한 모델에서 생성: z -> x = Wz + 잡음
     true_latent_dim = 3
     W = torch.randn(input_dim, true_latent_dim)
     z_true = torch.randn(n_samples, true_latent_dim)
@@ -446,7 +446,7 @@ if __name__ == "__main__":
     train_data = data[:1600]
     test_data = data[1600:]
     
-    # 자료 실개 만들기
+    # 데이터 로더 만들기
     train_dataset = TensorDataset(train_data)
     train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
     
@@ -456,8 +456,8 @@ if __name__ == "__main__":
     print(f"\nData shape: {data.shape}")
     print(f"True latent dim: {true_latent_dim}")
     
-    # VAE 만들고 익히기
-    latent_dim = 5  # 참 숨은 차원을 살짝 높여 잡음
+    # VAE 만들고 학습하기
+    latent_dim = 5  # 참 잠재 차원보다 조금 크게 잡음
     model = VAE(
         input_dim=input_dim,
         hidden_dims=[64, 32],
@@ -471,10 +471,10 @@ if __name__ == "__main__":
     
     history = train_vae(model, train_loader, n_epochs=100, lr=1e-3, verbose=True)
     
-    # 결과를 그려 본다
+    # 결과를 시각화한다
     visualize_vae_results(model, history, test_data)
     
-    # 나눠 갚기 틈 재기
+    # 상각 차이 측정
     print("\n--- Amortization Gap Analysis ---")
     elbo_amort, elbo_opt, gap = measure_amortization_gap(model, test_data[:1])
     print(f"Amortized ELBO: {elbo_amort:.4f}")
@@ -521,7 +521,7 @@ $$L(x,c)=E_{q_\psi(z|x,c)}[\log p_\theta(x|z,c)]-D_{\mathrm{KL}}(q_\psi(z|x,c)\V
 
 ## 6. 지역 보정과 반복 추론
 
-인코더의 출력을 초기값으로 지역 변분 파라메터를 더 최적화하면 유한 계산 예산에서 상각 오차를 줄일 수 있다. 같은 θ·목적을 고정하고 실제 개선을 확보해야 하며, 임의의 Adam 반복이 매번 개선한다는 보장은 없다. 반복 인코더는 현재 근사나 경사 정보를 입력받아 갱신을 학습하는 다른 방식이다.
+인코더의 출력을 초기값으로 지역 변분 파라메터를 더 최적화하면 유한 계산 예산에서 상각 오차를 줄일 수 있다. 같은 θ·목적을 고정하고 실제 개선을 확보해야 하며, 임의의 Adam 반복이 매번 개선한다는 보장은 없다. 반복 인코더는 현재 근사나 그래디언트 정보를 입력받아 갱신을 학습하는 다른 방식이다.
 
 아래 코드는 지역 보정의 의도를 보여 주지만 그대로 완성된 구현은 아니다. `mu.clone().requires_grad_(True)`는 원래 인코더 출력의 계산 그래프를 유지하므로 일반적인 Adam이 요구하는 leaf 텐서가 아니다. 독립적인 지역 최적화에는 분리한 leaf 변수가 필요하다. `compute_loss`도 외부 정의이며, 디코더·인코더의 학습 경로와 고정 여부를 명시해야 한다.
 
@@ -529,10 +529,10 @@ $$L(x,c)=E_{q_\psi(z|x,c)}[\log p_\theta(x|z,c)]-D_{\mathrm{KL}}(q_\psi(z|x,c)\V
 
 ```python
 def semi_amortized_inference(model, x, n_refine_steps=10):
-    # 나눠 갚아 얻은 첫 파라메터 가져오기
+    # 상각 추론으로 얻은 초기 파라메터 가져오기
     mu, logvar = model.encode(x)
     
-    # 그래디언트 내리기로 다듬기
+    # 경사 하강법으로 보정하기
     mu = mu.clone().requires_grad_(True)
     logvar = logvar.clone().requires_grad_(True)
     
@@ -560,7 +560,7 @@ def semi_amortized_inference(model, x, n_refine_steps=10):
 
 ### 연습 1: 두 차이의 분해
 
-고정 θ에서 로그 주변우도와 상각 ELBO의 차이를 근사 차이와 상각 차이로 분해하라. 인코더를 크게 만드는 것과 변분분포족을 확장하는 것의 역할을 구분하라.
+고정 θ에서 로그 주변가능도와 상각 ELBO의 차이를 근사 차이와 상각 차이로 분해하라. 인코더를 크게 만드는 것과 변분분포족을 확장하는 것의 역할을 구분하라.
 
 ### 연습 2: VAE 로스의 단위
 

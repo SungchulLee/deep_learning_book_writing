@@ -1,6 +1,6 @@
 # 웨이트 초기화
 
-같은 MLP에 Xavier, He, 작은 정규분포와 0 초기화를 적용하고 웨이트와 활성화의 통계량을 비교한다. 초기 신호의 비교와 학습 후 성능 비교는 서로 다른 실험이다.
+같은 MLP에 Xavier, He, 작은 정규분포와 0 초기화를 적용하고 웨이트와 활성화 값의 통계량을 비교한다. 초기 신호의 비교와 학습 후 성능 비교는 서로 다른 실험이다.
 
 ## 1. 코드
 
@@ -8,7 +8,7 @@
 """
 11_weight_initialization.py - 좋은 웨이트로 시작하기
 
-알맞은 초기화는 학습 성공의 열쇠다.
+알맞은 초기화는 학습 성공의 핵심이다.
 나쁜 초기화 → 그래디언트 소실/폭발 → 느리거나 실패하는 학습
 
 소요 시간: 25~30분 | 난이도: ⭐⭐⭐☆☆
@@ -18,7 +18,7 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 import matplotlib.pyplot as plt
-# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
 # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
 torch.manual_seed(0)
 
@@ -52,7 +52,7 @@ class DemoNet(nn.Module):
                     init.xavier_uniform_(m.weight)
                 elif method == 'he':
                     # ReLU가 입력의 절반을 0으로 죽여 분산을 반토막 내므로,
-                    # 그만큼 넓게 뽑아 메운다. 그래서 자비에르보다 크다.
+                    # 그만큼 넓게 뽑아 메운다. 그래서 Xavier보다 크다.
                     # 주의: 이것은 nn.Linear의 기본 초기화와 같지 않다.
                     # 기본값은 kaiming_uniform_(a=sqrt(5))이라 경계가
                     # 1/sqrt(fan_in)인데, 여기 nonlinearity='relu'는
@@ -65,7 +65,7 @@ class DemoNet(nn.Module):
                     # 나은 까닭이 여기 있다
                     init.normal_(m.weight, mean=0, std=0.01)
                 elif method == 'zeros':
-                    # 배우지 못하는 초기화다. 한 레이어의 모든 뉴런이 똑같은
+                    # 학습이 되지 않는 초기화다. 한 레이어의 모든 뉴런이 똑같은
                     # 값을 내고 똑같은 그래디언트를 받으므로, 갱신해도 계속
                     # 나란히 움직인다. 대칭이 영영 깨지지 않아 폭 256인
                     # 레이어가 사실상 뉴런 하나짜리로 주저앉는다
@@ -100,9 +100,9 @@ print("\n" + "="*70)
 print("INITIALIZATION GUIDE")
 print("="*70)
 print("""
-자비에르(글로로) 초기화:
+Xavier(Glorot) 초기화:
   Formula: U(-√(6/(n_in + n_out)), √(6/(n_in + n_out)))
-  쓰는 곳: 시그모이드, tanh 활성화
+  쓰는 곳: 시그모이드, tanh 활성화 함수
   목표: 레이어 사이에서 분산을 유지한다
 
 HE (KAIMING) INITIALIZATION:
@@ -110,7 +110,7 @@ HE (KAIMING) INITIALIZATION:
   쓰는 곳: ReLU와 그 변형
   목표: ReLU의 비선형성을 반영한다
 
-정규 초기화:
+정규분포 초기화:
   Formula: N(0, 0.01)
   쓰임: 드물다. 너무 작거나 클 수 있다
 
@@ -120,7 +120,7 @@ ZEROS:
 
 RECOMMENDATIONS:
   ReLU 뉴럴 네트워크 → He 초기화(PyTorch의 기본값)
-  시그모이드나 tanh → 자비에르 초기화
+  시그모이드나 tanh → Xavier 초기화
   바이어스 → 0이나 작은 상수
   
 PyTorch 기본값: 선형 레이어에 카이밍 균등 초기화
@@ -192,9 +192,9 @@ ZEROS:
 INITIALIZATION GUIDE
 ======================================================================
 
-자비에르(글로로) 초기화:
+Xavier(Glorot) 초기화:
   Formula: U(-√(6/(n_in + n_out)), √(6/(n_in + n_out)))
-  쓰는 곳: 시그모이드, tanh 활성화
+  쓰는 곳: 시그모이드, tanh 활성화 함수
   목표: 레이어 사이에서 분산을 유지한다
 
 HE (KAIMING) INITIALIZATION:
@@ -202,7 +202,7 @@ HE (KAIMING) INITIALIZATION:
   쓰는 곳: ReLU와 그 변형
   목표: ReLU의 비선형성을 반영한다
 
-정규 초기화:
+정규분포 초기화:
   Formula: N(0, 0.01)
   쓰임: 드물다. 너무 작거나 클 수 있다
 
@@ -212,7 +212,7 @@ ZEROS:
 
 RECOMMENDATIONS:
   ReLU 뉴럴 네트워크 → He 초기화(PyTorch의 기본값)
-  시그모이드나 tanh → 자비에르 초기화
+  시그모이드나 tanh → Xavier 초기화
   바이어스 → 0이나 작은 상수
   
 PyTorch 기본값: 선형 레이어에 카이밍 균등 초기화
@@ -264,12 +264,12 @@ He 초기화는 ReLU를 통과하는 2차 적률을 고려한다. 코드에서�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-활성화 표준편차가 비슷한 두 초기화가 같은 학습 성능을 갖는가?
+활성화 값의 표준편차가 비슷한 두 초기화가 같은 학습 성능을 갖는가?
 
 </div>
 
 ??? success "풀이"
-    그렇지 않다. 평균, 상관구조, 활성 비율, 경사 전파와 최적화 조건도 다를 수 있다. 초기 통계량만으로 최종 검증 성능을 보장할 수 없다.
+    그렇지 않다. 평균, 상관구조, 활성 비율, 그래디언트 전파와 최적화 조건도 다를 수 있다. 초기 통계량만으로 최종 검증 성능을 보장할 수 없다.
 
 ---
 

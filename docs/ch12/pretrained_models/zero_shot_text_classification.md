@@ -1,6 +1,6 @@
 # 제로샷 텍스트 분류
 
-추가 과제별 학습 없이 NLI나 마스크 예측으로 레이블을 점수화하는 제로샷 분류와, 소수의 예시 임베딩으로 분류하는 퓨샷 방식을 살펴본다. 어느 방식도 새 분야에서 정확도를 보장하지 않으며 후보 레이블·프롬프트·평가 자료를 함께 설계해야 한다.
+추가 과제별 학습 없이 NLI나 마스크 예측으로 라벨을 점수화하는 제로샷 분류와, 소수의 예시 임베딩으로 분류하는 퓨샷 방식을 살펴본다. 어느 방식도 새 분야에서 정확도를 보장하지 않으며 후보 라벨·프롬프트·평가 데이터를 함께 설계해야 한다.
 
 ## 1. 코드
 
@@ -11,7 +11,7 @@ import random
 import re
 from typing import List, Dict
 
-# 1부: 자연어 추론으로 하는 영 예시 분류
+# 1부: 자연어 추론으로 하는 제로샷 분류
 try:
     from transformers import pipeline
 
@@ -28,7 +28,7 @@ try:
     for label, score in zip(result["labels"], result["scores"]):
         print(f"  {label:12s}: {score:.3f}")
 
-    # 여러 이름표
+    # 다중 라벨
     result_ml = zero_shot_clf(text, candidate_labels, multi_label=True)
     for label, score in zip(result_ml["labels"], result_ml["scores"]):
         print(f"  {label:12s}: {score:.3f}")
@@ -37,7 +37,7 @@ except (ImportError, OSError) as e:
     print(f"  Skipping: {e}")
 
 
-# 2부: 가린 언어 모형 프롬프트
+# 2부: 마스크 언어 모델 프롬프트
 try:
     fill_mask = pipeline("fill-mask", model="bert-base-uncased")
     text = "The researchers discovered a new species of butterfly in the Amazon."
@@ -50,7 +50,7 @@ except (ImportError, OSError) as e:
     print(f"  Skipping: {e}")
 
 
-# 3부: 임베딩 기반 소수 예시
+# 3부: 임베딩 기반 퓨샷
 try:
     from transformers import AutoTokenizer, AutoModel
     from numpy.linalg import norm
@@ -94,7 +94,7 @@ except (ImportError, OSError) as e:
     print(f"  Skipping: {e}")
 
 
-# 4부: 데이터 불리기
+# 4부: 데이터 어그멘테이션
 def synonym_replace(text, n=1):
     synonyms = {
         "good": ["great", "excellent", "fine"],
@@ -129,20 +129,20 @@ def random_swap(text, n=1):
 
 ## 2. 논의
 
-NLI 기반 파이프라인은 입력을 전제, 후보 레이블을 넣은 템플릿을 가설로 만든다. 일반적인 단일 레이블 모드는 후보들의 entailment 로짓끼리 정규화한다. multi_label=True는 후보마다 contradiction과 entailment 로짓의 두 값으로 정규화해 entailment 점수를 낸다. 단순히 각 entailment 로짓에 독립 시그모이드를 적용하는 것과 다르다. 구현 규약은 [제로샷 파이프라인 소스](https://github.com/huggingface/transformers/blob/main/src/transformers/pipelines/zero_shot_classification.py)를 참고한다.
+NLI 기반 파이프라인은 입력을 전제, 후보 라벨을 넣은 템플릿을 가설로 만든다. 일반적인 단일 라벨 모드는 후보들의 entailment 로짓끼리 정규화한다. multi_label=True는 후보마다 contradiction과 entailment 로짓의 두 값으로 정규화해 entailment 점수를 낸다. 단순히 각 entailment 로짓에 독립 시그모이드를 적용하는 것과 다르다. 구현 규약은 [제로샷 파이프라인 소스](https://github.com/huggingface/transformers/blob/main/src/transformers/pipelines/zero_shot_classification.py)를 참고한다.
 
-단일 레이블 점수는 후보 집합이 바뀌면 함께 달라지고, 다중 레이블 점수도 보정된 실제 정답 확률로 간주할 수 없다. 영어 MNLI 모델의 범위와 새로운 분야·언어에서의 성능을 구분한다. fill-mask 예제는 후보 단어의 마스크 토큰 확률을 이용하는 다른 방식이며 단어가 여러 서브워드가 되면 targets 처리도 확인해야 한다.
+단일 라벨 점수는 후보 집합이 바뀌면 함께 달라지고, 다중 라벨 점수도 보정된 실제 정답 확률로 간주할 수 없다. 영어 MNLI 모델의 범위와 새로운 분야·언어에서의 성능을 구분한다. fill-mask 예제는 후보 단어의 마스크 토큰 확률을 이용하는 다른 방식이며 단어가 여러 서브워드가 되면 targets 처리도 확인해야 한다.
 
-퓨샷 예제는 DistilBERT의 마스크 평균 임베딩과 코사인 유사도로 가장 가까운 예시를 고른다. 모델을 추가 학습하지 않는 것이지 레이블 예시를 쓰지 않는 제로샷 방식은 아니다. 기본 언어 모델의 평균 표현이 문장 유사도에 최적화되어 있다는 보장도 없다. no_grad와 별개로 평가 모드를 명시하고 영벡터의 노름·빈 입력을 처리한다. max_length=128 절단은 중요한 정보를 버릴 수 있다.
+퓨샷 예제는 DistilBERT의 마스크 평균 임베딩과 코사인 유사도로 가장 가까운 예시를 고른다. 모델을 추가 학습하지 않는 것이지 라벨 예시를 쓰지 않는 제로샷 방식은 아니다. 기본 언어 모델의 평균 표현이 문장 유사도에 최적화되어 있다는 보장도 없다. no_grad와 별개로 평가 모드를 명시하고 영벡터의 노름·빈 입력을 처리한다. max_length=128 절단은 중요한 정보를 버릴 수 있다.
 
-데이터 어그멘테이션은 원래 레이블이 유지되는지 확인해야 한다. 동의어라도 문맥·극성이 달라질 수 있고 부정어 삭제나 어순 변경은 정답을 바꿀 수 있다. 이 코드의 synonym_replace는 작은 사전에서 처음 일치하는 단어를 바꾸며, 반복 횟수만큼 서로 다른 단어를 바꾸는 구현은 아니다. 사본 수를 늘리는 것이 독립적인 정보량 증가나 정확도 개선을 뜻하지 않는다. 어그멘테이션은 분할 후 학습셋에 적용해 원문·변형이 평가 분할에 섞이지 않게 한다.
+데이터 어그멘테이션은 원래 라벨이 유지되는지 확인해야 한다. 동의어라도 문맥·극성이 달라질 수 있고 부정어 삭제나 어순 변경은 정답을 바꿀 수 있다. 이 코드의 synonym_replace는 작은 사전에서 처음 일치하는 단어를 바꾸며, 반복 횟수만큼 서로 다른 단어를 바꾸는 구현은 아니다. 사본 수를 늘리는 것이 독립적인 정보량 증가나 정확도 개선을 뜻하지 않는다. 어그멘테이션은 분할 후 학습셋에 적용해 원문·변형이 평가 분할에 섞이지 않게 한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-아래 문장의 제로샷 점수 순위를 실행 전에 확정할 수 있는가? 후보 레이블과 템플릿의 영향을 설명하라.
+아래 문장의 제로샷 점수 순위를 실행 전에 확정할 수 있는가? 후보 라벨과 템플릿의 영향을 설명하라.
 
 </div>
 
@@ -157,7 +157,7 @@ NLI 기반 파이프라인은 입력을 전제, 후보 레이블을 넣은 템�
     for label, score in zip(result["labels"], result["scores"]):
         print(f"  {label}: {score:.3f}")
     ```
-    computer science나 physics가 관련 있을 것으로 예상할 수 있지만 실제 점수 순위는 체크포인트·템플릿·후보 표현에 따라 달라진다. 서로 겹치는 후보를 단일 레이블로 경쟁시키는 것이 원하는 과제인지 먼저 정해야 한다. 예제 한 문장은 성능 검증을 대신하지 않는다.
+    computer science나 physics가 관련 있을 것으로 예상할 수 있지만 실제 점수 순위는 체크포인트·템플릿·후보 표현에 따라 달라진다. 서로 겹치는 후보를 단일 라벨로 경쟁시키는 것이 원하는 과제인지 먼저 정해야 한다. 예제 한 문장은 성능 검증을 대신하지 않는다.
 
 ---
 
@@ -179,14 +179,14 @@ NLI 기반 파이프라인은 입력을 전제, 후보 레이블을 넣은 템�
         votes = [support_labels[i] for i in top_k_idx]
         return Counter(votes).most_common(1)[0][0]
     ```
-    1≤k≤예시 수를 확인하고 코사인 유사도의 0 노름을 처리해야 한다. Counter 동률은 예시의 순서에 영향을 받을 수 있어 명시적인 폴리시가 필요하다. 이 예시처럼 두 클래스에 각 두 개뿐이면 k=3의 다수결이 적어도 두 클래스의 표를 포함하지만, 데이터가 늘거나 클래스가 달라지면 같은 성질을 일반화할 수 없다. k의 효과는 독립 검증셋에서 비교한다.
+    1≤k≤예시 수를 확인하고 코사인 유사도의 0 노름을 처리해야 한다. Counter 동률은 예시의 순서에 영향을 받을 수 있어 명시적인 정책이 필요하다. 이 예시처럼 두 클래스에 각 두 개뿐이면 k=3의 다수결이 적어도 두 클래스의 표를 포함하지만, 데이터가 늘거나 클래스가 달라지면 같은 성질을 일반화할 수 없다. k의 효과는 독립 검증셋에서 비교한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-아래 어그멘테이션 조각이 만드는 출력 수와 레이블 보존을 검토하라.
+아래 어그멘테이션 조각이 만드는 출력 수와 라벨 보존을 검토하라.
 
 </div>
 
@@ -203,4 +203,4 @@ NLI 기반 파이프라인은 입력을 전제, 후보 레이블을 넣은 템�
 
 ## 정리하며
 
-제로샷 점수의 정규화 기준과 후보·템플릿 의존성을 이해하고, 퓨샷의 레이블 예시 활용과 구분한다. 평균 임베딩·최근접 이웃·어그멘테이션은 간단한 출발점이며 독립 평가와 레이블 보존 검토가 필요하다.
+제로샷 점수의 정규화 기준과 후보·템플릿 의존성을 이해하고, 퓨샷의 라벨 예시 활용과 구분한다. 평균 임베딩·최근접 이웃·어그멘테이션은 간단한 출발점이며 독립 평가와 라벨 보존 검토가 필요하다.

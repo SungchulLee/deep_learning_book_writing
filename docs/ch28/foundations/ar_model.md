@@ -8,8 +8,8 @@
 """
 시계열을 위한 자기 회귀 모델
 
-이 단원은 PyTorch로 단순한 AR(p) 모델을 짠다.
-모델은 지난 p개 값을 바탕으로 시계열의 다음 값을 헤아리는 법을 배운다.
+이 모듈은 PyTorch로 단순한 AR(p) 모델을 짠다.
+모델은 지난 p개 값을 바탕으로 시계열의 다음 값을 예측하는 법을 배운다.
 """
 
 import torch
@@ -24,16 +24,16 @@ from typing import Optional
 
 class ARModel(nn.Module):
     """
-    시계열 헤아리기를 위한 자기 회귀 모델 AR(p).
+    시계열 예측을 위한 자기 회귀 모델 AR(p).
     
-    이는 다음을 헤아리는 단순한 선형 자기 회귀 모델이다.
+    이는 다음을 예측하는 단순한 선형 자기 회귀 모델이다.
     X_t = c + φ₁*X_{t-1} + φ₂*X_{t-2} + ... + φₚ*X_{t-p}
     
-    뉴럴 네트워크 말로 하면 이는 깨움 함수가 없는 선형 레이어일 뿐이다.
+    뉴럴 네트워크 용어로 하면 이는 활성화 함수가 없는 선형 레이어일 뿐이다.
     
     구조:
-        들임: [배치 크기, 차례 길이] - 지난 p개 값
-        내놓기: [배치 크기, 1] - 헤아린 다음 값
+        입력: [배치 크기, 시퀀스 길이] - 지난 p개 값
+        출력: [배치 크기, 1] - 예측한 다음 값
     """
     
     def __init__(self, order: int):
@@ -47,25 +47,25 @@ class ARModel(nn.Module):
         
         self.order = order
         
-        # 선형 레이어: 계수 φ₁, φ₂, ..., φₚ과 상수 c을 배운다
-        # 들임 차원: 차수(지난 값 p개)
-        # 내놓기 차원: 1(다음 값)
-        # bias=True는 상수항 c을 배운다는 뜻이다
+        # 선형 레이어: 계수 φ₁, φ₂, ..., φₚ와 상수 c를 배운다
+        # 입력 차원: 차수(지난 값 p개)
+        # 출력 차원: 1(다음 값)
+        # bias=True는 상수항 c를 배운다는 뜻이다
         self.linear = nn.Linear(order, 1, bias=True)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        피드포워드: 지난 값으로 다음 값을 헤아린다.
+        순전파: 지난 값으로 다음 값을 예측한다.
         
         인수:
-            x: 형태 [배치 크기, order]인 들임 텐서
+            x: 형태 [배치 크기, order]인 입력 텐서
                표본마다 지난 'order'개 값을 담는다
                
         반환값:
-            헤아린 다음 값, 형태 [배치 크기, 1]
+            예측한 다음 값, 형태 [배치 크기, 1]
         """
-        # 단순한 선형 바꿈
-        # 내놓기 = w₁*x₁ + w₂*x₂ + ... + wₚ*xₚ + b
+        # 단순한 선형 변환
+        # 출력 = w₁*x₁ + w₂*x₂ + ... + wₚ*xₚ + b
         return self.linear(x)
     
     def get_coefficients(self) -> dict:
@@ -77,7 +77,7 @@ class ARModel(nn.Module):
                 - 'coefficients': 배운 φ 값 [φ₁, φ₂, ..., φₚ]
                 - 'constant': 배운 상수항 c
         """
-        # 선형 레이어에서 무게와 치우침을 얻는다
+        # 선형 레이어에서 웨이트와 바이어스을 얻는다
         weights = self.linear.weight.data.cpu().numpy().flatten()
         bias = self.linear.bias.data.cpu().numpy()[0]
         
@@ -90,37 +90,37 @@ class ARModel(nn.Module):
                         initial_sequence: torch.Tensor, 
                         n_steps: int) -> np.ndarray:
         """
-        앞날 헤아림을 자기 회귀로 만든다.
+        미래 예측을 자기 회귀로 만든다.
         
-        이 함수는 다음으로 앞날 여러 스텝을 헤아린다.
-        1. 아는 지난 값으로 다음 값을 헤아린다
-        2. 헤아린 값을 차례에 더한다
-        3. 가장 최근 값(헤아린 값 포함)으로 다음을 헤아린다
+        이 함수는 다음으로 미래 여러 스텝을 예측한다.
+        1. 아는 지난 값으로 다음 값을 예측한다
+        2. 예측한 값을 시퀀스에 더한다
+        3. 가장 최근 값(예측한 값 포함)으로 다음을 예측한다
         4. 스텝 2-3을 되풀이한다
         
         인수:
-            initial_sequence: 출발 값을 담은 형태 [order]인 텐서
-            n_steps: 앞날로 헤아릴 스텝의 수
+            initial_sequence: 초기 값을 담은 형태 [order]인 텐서
+            n_steps: 미래로 예측할 스텝의 수
             
         반환값:
-            헤아린 값을 담은 길이 n_steps인 넘파이 배열
+            예측한 값을 담은 길이 n_steps인 넘파이 배열
         """
-        self.eval()  # 따지기 모드로 둔다
+        self.eval()  # 평가 모드로 둔다
         
-        # 헤아림을 담아 둔다
+        # 예측을 담아 둔다
         predictions = []
         
-        # 지금 차례(미끄러지는 창)
+        # 현재 시퀀스(슬라이딩 창)
         current_seq = initial_sequence.clone().unsqueeze(0)  # 배치 차원을 더한다
         
-        with torch.no_grad():  # 그래디언트 셈이 필요 없다
+        with torch.no_grad():  # 그래디언트 계산이 필요 없다
             for _ in range(n_steps):
-                # 다음 값을 헤아린다
+                # 다음 값을 예측한다
                 pred = self.forward(current_seq)
                 predictions.append(pred.item())
                 
-                # 차례를 새로 고친다: 가장 오래된 것을 빼고 가장 새 헤아림을 더한다
-                # 왼쪽으로 밀고 끝에 새 헤아림을 더한다
+                # 시퀀스를 갱신한다: 가장 오래된 것을 빼고 가장 새 예측을 더한다
+                # 왼쪽으로 밀고 끝에 새 예측을 더한다
                 current_seq = torch.cat([current_seq[:, 1:], pred], dim=1)
         
         return np.array(predictions)
@@ -128,13 +128,13 @@ class ARModel(nn.Module):
 
 class NeuralARModel(nn.Module):
     """
-    뉴럴 자기 회귀 모델 - AR(p)의 비선형 넓힘.
+    뉴럴 자기 회귀 모델 - AR(p)의 비선형 확장.
     
     단순한 선형 모델 대신 작은 뉴럴 네트워크를 써서
     시계열의 비선형 관계를 담는다.
     
     구조:
-        들임 -> 숨은 레이어(ReLU) -> 숨은 레이어(ReLU) -> 내놓기
+        입력 -> 은닉 레이어(ReLU) -> 은닉 레이어(ReLU) -> 출력
     """
     
     def __init__(self, 
@@ -144,8 +144,8 @@ class NeuralARModel(nn.Module):
         뉴럴 자기 회귀 모델을 초기화한다.
         
         인수:
-            order: 들임으로 쓸 지난 값의 수
-            hidden_size: 숨은 레이어의 뉴런 수
+            order: 입력으로 쓸 지난 값의 수
+            hidden_size: 은닉 레이어의 뉴런 수
         """
         super(NeuralARModel, self).__init__()
         
@@ -167,13 +167,13 @@ class NeuralARModel(nn.Module):
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        뉴럴 네트워크를 지나는 피드포워드.
+        뉴럴 네트워크를 지나는 순전파.
         
         인수:
-            x: 형태 [배치 크기, order]인 들임 텐서
+            x: 형태 [배치 크기, order]인 입력 텐서
             
         반환값:
-            헤아린 다음 값, 형태 [배치 크기, 1]
+            예측한 다음 값, 형태 [배치 크기, 1]
         """
         return self.network(x)
     
@@ -181,16 +181,16 @@ class NeuralARModel(nn.Module):
                         initial_sequence: torch.Tensor, 
                         n_steps: int) -> np.ndarray:
         """
-        앞날 헤아림을 자기 회귀로 만든다.
+        미래 예측을 자기 회귀로 만든다.
         
-        ARModel.predict_sequence()과 같되 뉴럴 네트워크를 쓴다.
+        ARModel.predict_sequence()와 같되 뉴럴 네트워크를 쓴다.
         
         인수:
-            initial_sequence: 출발 값
-            n_steps: 내다볼 스텝의 수
+            initial_sequence: 초기 값
+            n_steps: 예측할 스텝의 수
             
         반환값:
-            헤아린 값의 배열
+            예측한 값의 배열
         """
         self.eval()
         predictions = []
@@ -207,14 +207,14 @@ class NeuralARModel(nn.Module):
 
 if __name__ == "__main__":
     """
-    보여 주기: 흉내 자료로 자기 회귀 모델을 시험한다
+    시연: 모의 데이터로 자기 회귀 모델을 시험한다
     """
     
     # 임시 데이터 만들기
     batch_size = 32
     order = 5  # AR(5) 모델
     
-    # 아무 들임: 배치의 표본마다 지난 값 5개
+    # 무작위 입력: 배치의 표본마다 지난 값 5개
     X = torch.randn(batch_size, order)
     
     print("=" * 60)
@@ -234,7 +234,7 @@ if __name__ == "__main__":
     print(f"\nLearned coefficients: {coeffs['coefficients']}")
     print(f"Learned constant: {coeffs['constant']:.4f}")
     
-    # 차례 헤아리기를 시험한다
+    # 시퀀스 예측을 시험한다
     initial_seq = torch.randn(order)
     future_preds = model.predict_sequence(initial_seq, n_steps=10)
     print(f"\nGenerated {len(future_preds)} future predictions")

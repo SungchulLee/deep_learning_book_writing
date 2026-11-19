@@ -18,15 +18,15 @@ $$
 
 ### 표준 셀프 어텐션
 
-마스크가 없으면 주의는 위치마다 모든 자리에 주의하게 한다.
+마스크가 없으면 어텐션은 위치마다 모든 자리를 참조하게 한다.
 
 $$
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
 $$
 
-### 인과(가린) 셀프 어텐션
+### 인과(마스크) 셀프 어텐션
 
-소프트맥스에 앞서 앞으로의 자리를 $-\infty$으로 두는 마스크 $M$을 더한다.
+소프트맥스에 앞서 미래 위치를 $-\infty$로 두는 마스크 $M$을 더한다.
 
 $$
 \text{MaskedAttention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + M\right)V
@@ -40,7 +40,7 @@ $$
 
 ### 어텐션 웨이트에 미치는 영향
 
-$-\infty$ 마스크과 함께 소프트맥스를 적용하면 다음과 같다.
+$-\infty$ 마스크와 함께 소프트맥스를 적용하면 다음과 같다.
 
 $$
 \text{softmax}(-\infty) = 0
@@ -64,9 +64,9 @@ import torch
 
 def create_causal_mask(seq_len: int, device: torch.device = None) -> torch.Tensor:
     """
-    인과 주의 가림을 만든다.
+    인과 어텐션 마스크를 만든다.
     
-    mask[i,j] = True이면 자리 i가 j에 주의할 수 **없다**는 뜻인 가림을 돌려준다.
+    mask[i,j] = True이면 자리 i가 j에 어텐션할 수 **없다**는 뜻인 마스크를 돌려준다.
     
     seq_len=4일 때의 보기:
     [[False,  True,  True,  True],
@@ -79,9 +79,9 @@ def create_causal_mask(seq_len: int, device: torch.device = None) -> torch.Tenso
 
 def create_causal_mask_float(seq_len: int, device: torch.device = None) -> torch.Tensor:
     """
-    가린 자리를 -inf로 둔 인과 가림을 만든다.
+    마스크한 자리를 -inf로 둔 인과 마스크를 만든다.
     
-    주의 점수에 곧바로 더할 수 있는 가림을 돌려준다.
+    어텐션 점수에 곧바로 더할 수 있는 마스크를 돌려준다.
     """
     mask = torch.triu(
         torch.full((seq_len, seq_len), float('-inf'), device=device),
@@ -120,10 +120,10 @@ from typing import Optional, Tuple
 
 class MaskedSelfAttention(nn.Module):
     """
-    가린(인과) 자기 주의 구조.
+    마스크(인과) 셀프 어텐션 구조.
     
-    자리마다 제 자신과 앞선 자리에만 주의할 수 있는
-    자기 회귀 주의를 구현한다.
+    자리마다 제 자신과 앞선 자리에만 어텐션할 수 있는
+    자기 회귀 어텐션을 구현한다.
     """
     
     def __init__(
@@ -135,10 +135,10 @@ class MaskedSelfAttention(nn.Module):
     ):
         """
         인수:
-            d_model: 모형 차원
-            num_heads: 주의 머리의 수
-            dropout: 주의 드롭아웃 확률
-            max_len: 미리 셈해 둘 가림의 최대 수열 길이
+            d_model: 모델 차원
+            num_heads: 어텐션 헤드의 수
+            dropout: 어텐션 드롭아웃 확률
+            max_len: 미리 계산해 둘 마스크의 최대 시퀀스 길이
         """
         super().__init__()
         
@@ -149,7 +149,7 @@ class MaskedSelfAttention(nn.Module):
         self.head_dim = d_model // num_heads
         self.scale = self.head_dim ** -0.5
         
-        # 선형 사영
+        # 선형 투영
         self.W_q = nn.Linear(d_model, d_model)
         self.W_k = nn.Linear(d_model, d_model)
         self.W_v = nn.Linear(d_model, d_model)
@@ -158,13 +158,13 @@ class MaskedSelfAttention(nn.Module):
         # 드롭아웃
         self.dropout = nn.Dropout(dropout)
         
-        # 인과 가림을 미리 셈해 등록한다
+        # 인과 마스크를 미리 계산해 등록한다
         mask = torch.triu(torch.ones(max_len, max_len), diagonal=1).bool()
         self.register_buffer('causal_mask', mask)
     
     def _split_heads(self, x: torch.Tensor) -> torch.Tensor:
         """
-        텐서를 여러 머리로 나눈다.
+        텐서를 여러 헤드로 나눈다.
         
         입력: [batch, seq_len, d_model]
         출력: [batch, num_heads, seq_len, head_dim]
@@ -175,7 +175,7 @@ class MaskedSelfAttention(nn.Module):
     
     def _merge_heads(self, x: torch.Tensor) -> torch.Tensor:
         """
-        머리를 다시 텐서 하나로 합친다.
+        헤드를 다시 텐서 하나로 합친다.
         
         입력: [batch, num_heads, seq_len, head_dim]
         출력: [batch, seq_len, d_model]
@@ -191,12 +191,12 @@ class MaskedSelfAttention(nn.Module):
         return_attention: bool = False
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
-        인과 가림을 쓰는 피드포워드.
+        인과 마스크를 쓰는 순전파.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
-            padding_mask: 선택으로 주는 채움 가림 [batch_size, seq_len]
-                가릴 자리(채움 토큰)가 True
+            padding_mask: 선택으로 주는 패딩 마스크 [batch_size, seq_len]
+                마스크할 자리(패딩 토큰)가 True
             return_attention: 어텐션 웨이트를 돌려줄지 여부
             
         반환값:
@@ -205,28 +205,28 @@ class MaskedSelfAttention(nn.Module):
         """
         batch_size, seq_len, _ = x.shape
         
-        # 1단계: 선형 사영
+        # 1단계: 선형 투영
         Q = self.W_q(x)  # [batch, seq, d_model]
         K = self.W_k(x)
         V = self.W_v(x)
         
-        # 2단계: 머리로 나눈다
+        # 2단계: 헤드로 나눈다
         Q = self._split_heads(Q)  # [batch, heads, seq, head_dim]
         K = self._split_heads(K)
         V = self._split_heads(V)
         
-        # 3단계: 스케일 조정 내적 주의
+        # 3단계: 스케일 조정 내적 어텐션
         # [batch, heads, seq, seq]
         attention_scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale
         
-        # 4단계: 인과 가림을 적용한다 (앞으로의 자리에 주의하지 못하게)
+        # 4단계: 인과 마스크를 적용한다 (앞으로의 자리에 어텐션하지 못하게)
         causal_mask = self.causal_mask[:seq_len, :seq_len]
         attention_scores = attention_scores.masked_fill(
             causal_mask.unsqueeze(0).unsqueeze(0),
             float('-inf')
         )
         
-        # 5단계: 채움 가림을 적용한다 (선택)
+        # 5단계: 패딩 마스크를 적용한다 (선택)
         if padding_mask is not None:
             # padding_mask: [batch, seq] -> [batch, 1, 1, seq]
             padding_mask = padding_mask.unsqueeze(1).unsqueeze(2)
@@ -238,17 +238,17 @@ class MaskedSelfAttention(nn.Module):
         # 6단계: 소프트맥스
         attention_weights = F.softmax(attention_scores, dim=-1)
         
-        # 모두 가려진 행에서 나오는 NaN을 다룬다 (인과 가림에서는 생기지 않아야 한다)
+        # 모두 가려진 행에서 나오는 NaN을 다룬다 (인과 마스크에서는 생기지 않아야 한다)
         attention_weights = torch.nan_to_num(attention_weights, 0.0)
         
         # 7단계: 드롭아웃
         attention_weights = self.dropout(attention_weights)
         
-        # 8단계: 값에 주의를 적용한다
+        # 8단계: 값에 어텐션을 적용한다
         # [batch, heads, seq, head_dim]
         context = torch.matmul(attention_weights, V)
         
-        # 9단계: 머리를 합치고 마지막 사영을 한다
+        # 9단계: 헤드를 합치고 마지막 투영을 한다
         context = self._merge_heads(context)  # [batch, seq, d_model]
         output = self.W_o(context)
         
@@ -257,11 +257,11 @@ class MaskedSelfAttention(nn.Module):
         return output, None
 
 def visualize_causal_attention(seq_len: int = 10):
-    """인과 주의 무늬를 그려 본다."""
+    """인과 어텐션 패턴를 그려 본다."""
     import matplotlib.pyplot as plt
     import numpy as np
     
-    # 보기용 주의 웨이트를 만든다 (허락된 자리 안에서 고르게)
+    # 보기용 어텐션 웨이트를 만든다 (허용된 자리 안에서 균등하게)
     mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
     attention = torch.ones(seq_len, seq_len)
     attention = attention.masked_fill(mask, 0.0)
@@ -271,7 +271,7 @@ def visualize_causal_attention(seq_len: int = 10):
     
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
-    # 인과 가림
+    # 인과 마스크
     ax1 = axes[0]
     im1 = ax1.imshow(mask.float().numpy(), cmap='Reds')
     ax1.set_xlabel('Key Position (j)')
@@ -281,7 +281,7 @@ def visualize_causal_attention(seq_len: int = 10):
     ax1.set_yticks(range(seq_len))
     plt.colorbar(im1, ax=ax1)
     
-    # 주의 무늬
+    # 어텐션 패턴
     ax2 = axes[1]
     im2 = ax2.imshow(attention.numpy(), cmap='Blues')
     ax2.set_xlabel('Key Position (j)')
@@ -314,8 +314,8 @@ if __name__ == "__main__":
     torch.manual_seed(0)
     x = torch.randn(batch_size, seq_len, d_model)
     
-    # 드롭아웃을 끈다. 켜 두면 주의 웨이트에도 걸려서 줄의 합이 1이 아니게 된다
-    # — 살아남은 자리는 1/(1-p) 로 커지고 걸린 자리는 0이 되므로, 아래 「줄의
+    # 드롭아웃을 끈다. 켜 두면 어텐션 웨이트에도 걸려서 행의 합이 1이 아니게 된다
+    # — 살아남은 자리는 1/(1-p) 로 커지고 걸린 자리는 0이 되므로, 아래 「행의
     # 합이 1인가」 검사가 못 쓰게 된다. 인과성 검사는 둘 다에서 통과한다.
     masked_attn.eval()
     
@@ -326,8 +326,8 @@ if __name__ == "__main__":
     print(f"Output shape: {output.shape}")
     print(f"Attention weights shape: {attn_weights.shape}")
     
-    # 인과성을 확인한다: 주의 웨이트가 아래 삼각이어야 한다
-    # 위 삼각(대각선 제외)이 모두 0인지 살핀다
+    # 인과성을 확인한다: 어텐션 웨이트가 아래 삼각이어야 한다
+    # 위 삼각(대각선 제외)이 모두 0인지 확인한다
     for b in range(batch_size):
         for h in range(num_heads):
             upper = torch.triu(attn_weights[b, h], diagonal=1)
@@ -336,10 +336,10 @@ if __name__ == "__main__":
     
     print("\n✓ Causality verified: No attention to future positions")
     
-    # 첫 머리의 주의 무늬를 보인다
+    # 첫 헤드의 어텐션 패턴를 보인다
     print("\nAttention pattern (first batch, first head):")
     pattern = attn_weights[0, 0].detach()
-    # 끝자리까지 찍으면 0.9999998807907104 처럼 쓰레드 갈림에 따라 흔들리는 수가
+    # 끝자리까지 찍으면 0.9999998807907104 처럼 스레드 스케줄링에 따라 흔들리는 수가
     # 나온다. 재어야 하는 것은 「1인가」이지 열다섯째 자리가 아니므로 반올림한다.
     sums = [round(v, 5) for v in pattern.sum(dim=-1)[:5].tolist()]
     print(f"Sum of each row (should be 1.0): {sums}")
@@ -366,11 +366,11 @@ Visualization saved to 'causal_attention_pattern.png'
 
 ---
 
-## 5. 인과 마스크과 패딩 마스크 섞기
+## 5. 인과 마스크와 패딩 마스크 결합하기
 
 아래 함수는 True가 차단인 두 불리언 마스크를 OR로 합쳐 (B,1,L,L)을 반환한다. 마스크를 생성하는 장치와 padding_mask의 장치가 같아야 한다.
 
-실제로는 인과 마스크과 패딩 마스크를 자주 함께 쓴다.
+실제로는 인과 마스크와 패딩 마스크를 자주 함께 쓴다.
 
 ```python
 def create_combined_mask(
@@ -379,17 +379,17 @@ def create_combined_mask(
     device: torch.device = None
 ) -> torch.Tensor:
     """
-    인과 가림과 채움 가림을 합쳐 만든다.
+    인과 마스크와 패딩 마스크를 합쳐 만든다.
     
     인수:
-        seq_len: 수열 길이
-        padding_mask: [batch, seq]. 채운 자리가 True
-        device: 가림 텐서를 둘 장치
+        seq_len: 시퀀스 길이
+        padding_mask: [batch, seq]. 패딩 자리가 True
+        device: 마스크 텐서를 둘 장치
         
     반환값:
-        합친 가림 [batch, 1, seq, seq]
+        합친 마스크 [batch, 1, seq, seq]
     """
-    # 인과 가림: [seq, seq]
+    # 인과 마스크: [seq, seq]
     causal_mask = torch.triu(
         torch.ones(seq_len, seq_len, device=device),
         diagonal=1
@@ -398,10 +398,10 @@ def create_combined_mask(
     # [1, 1, seq, seq]로 넓힌다
     causal_mask = causal_mask.unsqueeze(0).unsqueeze(0)
     
-    # 채움 가림: [batch, seq] -> [batch, 1, 1, seq]
+    # 패딩 마스크: [batch, seq] -> [batch, 1, 1, seq]
     padding_mask = padding_mask.unsqueeze(1).unsqueeze(2)
     
-    # 합친다: 둘 중 하나라도 참이면 가린다
+    # 합친다: 둘 중 하나라도 참이면 마스크한다
     combined_mask = causal_mask | padding_mask
     
     return combined_mask
@@ -409,7 +409,7 @@ def create_combined_mask(
 
 ---
 
-## 6. FlashAttention로 효율적으로 구현하기
+## 6. FlashAttention으로 효율적으로 구현하기
 
 scaled_dot_product_attention은 조건에 따라 메모리 효율 커널을 선택한다. 아래 함수가 항상 FlashAttention을 사용한다고 단정할 수는 없다. 함수형 API의 dropout_p는 모델의 eval 모드와 무관하게 적용되므로 평가에서는 0을 넘긴다.
 
@@ -424,7 +424,7 @@ def efficient_causal_attention(
     dropout_p: float = 0.0
 ) -> torch.Tensor:
     """
-    파이토치의 SDPA를 쓰는 효율적인 인과 주의.
+    파이토치의 SDPA를 쓰는 효율적인 인과 어텐션.
     
     인수:
         query, key, value: [batch, heads, seq, head_dim]
@@ -437,13 +437,13 @@ def efficient_causal_attention(
         query, key, value,
         attn_mask=None,
         dropout_p=dropout_p,
-        is_causal=True  # 인과 가림을 저절로 적용한다
+        is_causal=True  # 인과 마스크를 자동으로 적용한다
     )
 ```
 
 ---
 
-## 7. 접두 언어 모델: 양방향 접두와 인과 접미
+## 7. 프리픽스 언어 모델: 양방향 접두부와 인과 접미부
 
 접두부는 양방향으로 읽고 그 뒤는 인과적으로 생성하는 목적을 prefix LM이라고 한다. 일반적인 T5 디코더 전체가 이 마스크를 사용한다는 뜻은 아니다.
 
@@ -456,21 +456,21 @@ def create_prefix_lm_mask(
     device: torch.device = None
 ) -> torch.Tensor:
     """
-    접두 언어 모형 주의 가림을 만든다.
+    프리픽스 언어 모델 어텐션 마스크를 만든다.
     
-    접두 자리(1부터 prefix_len까지)는 서로 양방향으로 주의할 수 있다.
-    접미 자리는 접두와 앞선 접미 자리에 주의할 수 있다.
+    접두 자리(1부터 prefix_len까지)는 서로 양방향으로 어텐션할 수 있다.
+    접미 자리는 접두와 앞선 접미 자리에 어텐션할 수 있다.
     
     인수:
         prefix_len: 양방향 접두의 길이
-        total_len: 수열 전체의 길이
+        total_len: 시퀀스 전체의 길이
         
     반환값:
-        가림 텐서 [total_len, total_len]
+        마스크 텐서 [total_len, total_len]
     """
     mask = torch.zeros(total_len, total_len, device=device)
     
-    # 접미 자리는 앞으로의 접미에 주의할 수 없다
+    # 접미 자리는 앞으로의 접미에 어텐션할 수 없다
     suffix_mask = torch.triu(
         torch.ones(total_len - prefix_len, total_len - prefix_len, device=device),
         diagonal=1
@@ -479,14 +479,14 @@ def create_prefix_lm_mask(
     
     return mask.bool()
 
-# 보기: 토큰 5개짜리 접두를 가진 접두 언어 모형
+# 보기: 토큰 5개짜리 접두를 가진 프리픽스 언어 모델
 # 자리 1~5: 양방향 (서로 볼 수 있다)
 # 자리 6 이상: 인과 (접두와 앞선 접미를 볼 수 있다)
 ```
 
 ---
 
-## 8. 슬라이딩 윈도 주의
+## 8. 슬라이딩 윈도 어텐션
 
 슬라이딩 윈도 마스크는 각 쿼리가 자신과 가까운 과거 위치만 보게 한다. window_size는 양수여야 한다. 이 코드는 전체 L×L 마스크를 생성하므로 윈도 제한만으로 연산·메모리가 선형으로 바뀌지는 않는다. 윈도 전용 커널이나 희소 연산이 필요하다.
 
@@ -497,21 +497,21 @@ def create_sliding_window_causal_mask(
     device: torch.device = None
 ) -> torch.Tensor:
     """
-    미끄러지는 창 인과 주의 가림을 만든다.
+    슬라이딩 윈도 인과 어텐션 마스크를 만든다.
     
-    자리마다 많아야 window_size개의 앞선 자리에 주의할 수 있다.
+    자리마다 많아야 window_size개의 앞선 자리에 어텐션할 수 있다.
     
     인수:
-        seq_len: 수열 길이
-        window_size: 주의 창의 크기
+        seq_len: 시퀀스 길이
+        window_size: 어텐션 윈도의 크기
         
     반환값:
-        가림 텐서 [seq_len, seq_len]
+        마스크 텐서 [seq_len, seq_len]
     """
-    # 인과 가림으로 시작한다
+    # 인과 마스크로 시작한다
     mask = torch.triu(torch.ones(seq_len, seq_len, device=device), diagonal=1)
     
-    # 창 바깥의 자리도 가린다
+    # 윈도 바깥의 자리도 마스크한다
     for i in range(seq_len):
         start = max(0, i - window_size + 1)
         mask[i, :start] = 1
@@ -528,7 +528,7 @@ def create_sliding_window_causal_mask(
 학습에서는 입력과 목표를 한 토큰 어긋나게 맞춘다. 위치 i의 입력까지 읽어 다음 토큰을 예측하므로 마스크의 대각선은 허용해도 된다. 아래 호출은 외부에서 정의한 입력과 모델을 가정하는 개념 조각이다.
 
 ```python
-# 모든 자리를 한꺼번에 셈한다
+# 모든 자리를 한꺼번에 계산한다
 output = masked_attention(input_sequence)  # [batch, seq_len, d_model]
 ```
 
@@ -539,7 +539,7 @@ output = masked_attention(input_sequence)  # [batch, seq_len, d_model]
 ```python
 # 토큰을 하나씩 만든다
 for t in range(max_tokens):
-    # 마지막 자리만 셈한다
+    # 마지막 자리만 계산한다
     logits = model(generated_tokens)[:, -1, :]
     next_token = sample(logits)
     generated_tokens = torch.cat([generated_tokens, next_token], dim=1)
@@ -573,9 +573,9 @@ for t in range(max_tokens):
 ??? success "풀이"
     ```python
     def causal_mask(n):
-        return torch.triu(torch.ones(n, n), diagonal=1).bool()  # True면 가린다
+        return torch.triu(torch.ones(n, n), diagonal=1).bool()  # True면 마스크한다
 
-    # 주의에서: scores.masked_fill_(mask, float('-inf'))
+    # 어텐션에서: scores.masked_fill_(mask, float('-inf'))
     ```
 
 ---

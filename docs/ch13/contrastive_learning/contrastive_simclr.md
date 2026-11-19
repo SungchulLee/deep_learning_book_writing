@@ -6,7 +6,7 @@ SimCLR는 같은 이미지에서 만든 두 어그멘테이션 뷰를 양성 쌍
 
 ```python
 """
-SimCLR: 시각 표현의 대조 학습을 위한 간단한 틀
+SimCLR: A Simple Framework for Contrastive Learning of Visual Representations
 자기 지도 학습을 위한 SimCLR 알고리즘 구현.
 """
 
@@ -21,7 +21,7 @@ from torchvision import models
 
 
 class ProjectionHead(nn.Module):
-    """SimCLR의 사영 머리"""
+    """SimCLR의 투영 헤드"""
     def __init__(self, input_dim=2048, hidden_dim=2048, output_dim=128):
         super().__init__()
         self.net = nn.Sequential(
@@ -36,16 +36,16 @@ class ProjectionHead(nn.Module):
 
 class SimCLR(nn.Module):
     """
-    대조 학습을 위한 SimCLR 모형
+    대조 학습을 위한 SimCLR 모델
 
     인수:
-        base_model: 등뼈 구조 (resnet18, resnet50 등)
-        projection_dim: 사영 머리 출력의 차원
+        base_model: 백본 구조 (resnet18, resnet50 등)
+        projection_dim: 투영 헤드 출력의 차원
     """
     def __init__(self, base_model='resnet50', projection_dim=128):
         super().__init__()
 
-        # 등뼈를 싣는다
+        # 백본을 싣는다
         if base_model == 'resnet18':
             self.encoder = models.resnet18(pretrained=False)
             feature_dim = 512
@@ -58,7 +58,7 @@ class SimCLR(nn.Module):
         # 마지막 분류 레이어를 없앤다
         self.encoder.fc = nn.Identity()
 
-        # 사영 머리를 더한다
+        # 투영 헤드를 더한다
         self.projection_head = ProjectionHead(
             input_dim=feature_dim,
             hidden_dim=feature_dim,
@@ -68,7 +68,7 @@ class SimCLR(nn.Module):
     def forward(self, x):
         # 피처를 뽑는다
         features = self.encoder(x)
-        # 대조 공간으로 사영한다
+        # 대조 공간으로 투영한다
         projections = self.projection_head(features)
         return features, projections
 
@@ -85,8 +85,8 @@ class NTXentLoss(nn.Module):
     def forward(self, z_i, z_j):
         """
         인수:
-            z_i: 불린 시야 1의 사영, 형태는 (batch_size, projection_dim)
-            z_j: 불린 시야 2의 사영, 형태는 (batch_size, projection_dim)
+            z_i: 어그멘테이션 뷰 1의 투영, 형태는 (batch_size, projection_dim)
+            z_j: 어그멘테이션 뷰 2의 투영, 형태는 (batch_size, projection_dim)
         """
         batch_size = z_i.shape[0]
 
@@ -94,28 +94,28 @@ class NTXentLoss(nn.Module):
         z_i = F.normalize(z_i, dim=1)
         z_j = F.normalize(z_j, dim=1)
 
-        # 두 시야를 이어 붙인다
+        # 두 뷰를 이어 붙인다
         representations = torch.cat([z_i, z_j], dim=0)  # (2*batch_size, projection_dim)
 
-        # 비슷함 행렬을 셈한다
+        # 유사도 행렬을 계산한다
         similarity_matrix = F.cosine_similarity(
             representations.unsqueeze(1),
             representations.unsqueeze(0),
             dim=2
         )  # (2*batch_size, 2*batch_size)
 
-        # 이름표를 만든다: 양성 쌍이 대각 블록이다
+        # 라벨을 만든다: 양성 쌍이 대각 블록이다
         labels = torch.arange(batch_size, device=z_i.device)
         labels = torch.cat([labels + batch_size, labels], dim=0)
 
-        # 제 자신과의 비슷함을 가린다
+        # 자기 자신과의 유사도를 마스킹한다
         mask = torch.eye(2 * batch_size, dtype=torch.bool, device=z_i.device)
         similarity_matrix = similarity_matrix.masked_fill(mask, -float('inf'))
 
         # 온도 조정을 적용한다
         similarity_matrix = similarity_matrix / self.temperature
 
-        # 교차 엔트로피 로스를 셈한다
+        # 교차 엔트로피 로스를 계산한다
         loss = F.cross_entropy(similarity_matrix, labels)
 
         return loss
@@ -126,11 +126,11 @@ def train_step(model, optimizer, criterion, batch_views, device):
     SimCLR의 학습 단계 하나
 
     인수:
-        model: SimCLR 모형
+        model: SimCLR 모델
         optimizer: 옵티마이저
         criterion: NTXentLoss
-        batch_views: (view1, view2) 짝. 배치의 불린 시야 둘
-        device: 토치 장치
+        batch_views: (view1, view2) 짝. 배치의 어그멘테이션 뷰 둘
+        device: torch 장치
     """
     model.train()
     optimizer.zero_grad()
@@ -138,11 +138,11 @@ def train_step(model, optimizer, criterion, batch_views, device):
     view1, view2 = batch_views
     view1, view2 = view1.to(device), view2.to(device)
 
-    # 두 시야를 모두 피드포워드한다
+    # 두 뷰를 모두 순전파한다
     _, projections1 = model(view1)
     _, projections2 = model(view2)
 
-    # 대조 로스를 셈한다
+    # 대조 로스를 계산한다
     loss = criterion(projections1, projections2)
 
     # 역전파
@@ -155,7 +155,7 @@ def train_step(model, optimizer, criterion, batch_views, device):
 def extract_features(model, dataloader, device):
     """
     학습된 SimCLR 인코더로 피처를 뽑는다
-    아래쪽 과제에 쓸모 있다
+    다운스트림 과제에 쓸모 있다
     """
     model.eval()
     features_list = []
@@ -178,14 +178,14 @@ if __name__ == "__main__":
     # 사용 예
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # 모형을 시작한다
+    # 모델을 초기화한다
     model = SimCLR(base_model='resnet50', projection_dim=128).to(device)
 
-    # 로스와 옵티마이저를 시작한다
+    # 로스와 옵티마이저를 초기화한다
     criterion = NTXentLoss(temperature=0.5)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
-    # 학습 고리 보기 (의사 코드)
+    # 학습 루프 예시 (의사 코드)
     print("SimCLR Model initialized successfully!")
     print(f"Encoder: {model.encoder.__class__.__name__}")
     print(f"Projection head output dim: 128")
@@ -235,7 +235,7 @@ SimCLR 논문이 그것을 재어 보고 4.2절 제목에 그대로 적었다 �
 
 작게 재현해 보았다. CIFAR-10 에 작은 컨볼루션 인코더로 NT-Xent 를 3 에포크 돌린 뒤 h 와 z 에 **같은 조건으로** 선형 분류기를 얹었더니 **0.5771 대 0.4366**, 14.0 점 차이가 났다. 3 에포크짜리 장난감이라 절대값은 낮지만 방향은 논문과 같다.
 
-논문이 든 까닭은 이 장 전체와 이어진다. z 는 **어그멘테이션에 불변**이 되도록 학습된다. 그런데 어그멘테이션이 지우는 것 중에는 색이나 방향처럼 다운스트림에서 쓸모 있는 정보가 섞여 있다. 그러니 g 는 로스가 시킨 일을 성실히 하면서 **쓸 정보까지 같이 버린다.** 바로 앞 쪽의 색 변화가 지름길을 막으려고 색을 지웠다면, 그 대가가 z 에서 치러지는 것이다.
+논문이 든 까닭은 이 장 전체와 이어진다. z 는 **어그멘테이션에 불변**이 되도록 학습된다. 그런데 어그멘테이션이 지우는 것 중에는 색이나 방향처럼 다운스트림에서 쓸모 있는 정보가 섞여 있다. 그러니 g 는 로스가 시킨 일을 성실히 하면서 **쓸 정보까지 같이 버린다.** 바로 앞 쪽의 색 변화가 지름길(shortcut)을 막으려고 색을 지웠다면, 그 대가가 z 에서 치러지는 것이다.
 
 **다만 이것이 "언제나 h 를 쓰라"는 법칙은 아니다.** 바로 위 문단이 적어 둔 대로, 모든 과제에서 h 가 낫다거나 z 가 특정 정보를 반드시 버린다고 단정할 수 없다. 여기서 보인 것은 **이 설정에서 이만큼 벌어졌다**는 것뿐이고, 어느 레이어에서 무엇이 얼마나 사라지는지는 같은 평가 분할과 같은 분류기 예산으로 h 와 z 를 나란히 재어야 안다.
 
@@ -280,24 +280,24 @@ N=256과 N=32인 두 뷰 배치에서 앵커별 양성·음성 수를 계산하�
     ```python
     @torch.no_grad()
     def topk_retrieval_accuracy(model, query_loader, db_loader, device, k=5):
-        """SimCLR 인코더의 피처로 상위 k 검색 정확도를 셈한다."""
+        """SimCLR 인코더의 피처로 상위 k 검색 정확도를 계산한다."""
         model.eval()
 
-        # 질의 피처와 이름표를 뽑는다
+        # 쿼리 피처와 라벨을 뽑는다
         q_features, q_labels = extract_features(model, query_loader, device)
         q_features = F.normalize(q_features, dim=1)
 
-        # 데이터베이스 피처와 이름표를 뽑는다
+        # 데이터베이스 피처와 라벨을 뽑는다
         db_features, db_labels = extract_features(model, db_loader, device)
         db_features = F.normalize(db_features, dim=1)
 
-        # 코사인 비슷함 행렬을 셈한다
+        # 코사인 유사도 행렬을 계산한다
         similarity = torch.mm(q_features, db_features.t())
 
-        # 질의마다 상위 k개 색인을 얻는다
+        # 쿼리마다 상위 k개 인덱스를 얻는다
         _, topk_indices = similarity.topk(k, dim=1)
 
-        # 상위 k개 이웃 가운데 질의와 같은 이름표가 있는지 살핀다
+        # 상위 k개 이웃 가운데 쿼리와 같은 라벨이 있는지 확인한다
         correct = 0
         for i in range(len(q_labels)):
             neighbor_labels = db_labels[topk_indices[i]]
@@ -308,7 +308,7 @@ N=256과 N=32인 두 뷰 배치에서 앵커별 양성·음성 수를 계산하�
         return accuracy
     ```
 
-    쿼리마다 상위 k개 중 같은 레이블이 하나라도 있으면 성공인 hit@k다. k-NN 다수결 분류 정확도와 다르며 k가 커질수록 성공 가능성이 늘어난다. 쿼리가 DB에도 있으면 자기 항목을 제외하고 중복도 관리한다. 1≤k≤DB 크기·비어 있지 않은 로더와 클래스 구성을 확인한다. 전체 쿼리×DB 유사도를 저장하므로 큰 자료에는 청크·검색 인덱스가 필요하다.
+    쿼리마다 상위 k개 중 같은 라벨이 하나라도 있으면 성공인 hit@k다. k-NN 다수결 분류 정확도와 다르며 k가 커질수록 성공 가능성이 늘어난다. 쿼리가 DB에도 있으면 자기 항목을 제외하고 중복도 관리한다. 1≤k≤DB 크기·비어 있지 않은 로더와 클래스 구성을 확인한다. 전체 쿼리×DB 유사도를 저장하므로 큰 데이터에는 청크·검색 인덱스가 필요하다.
 
 ## 정리하며
 

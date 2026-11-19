@@ -11,21 +11,21 @@ PyTorch의 map-style Dataset과 IterableDataset을 비교한다. 보존된 코�
 # ========================================================
 """
 반복자 방식 데이터셋:
-- __iter__으로 표본을 흘려보낸다. 설계상 임의 인덱싱이 없다.
+- __iter__으로 표본을 스트리밍한다. 설계상 임의 인덱싱이 없다.
 - 길이를 모를 수 있다. __len__은 선택 사항이다.
-- DataLoader는 IterableDataset에 표집기를 쓰지 않는다. 그저 반복자를 소비할 뿐이다.
-- 섞기, 에포크 제어, 일꾼 분배가 필요하면 __iter__ 안에서 직접 구현한다.
+- DataLoader는 IterableDataset에 샘플러를 쓰지 않는다. 그저 반복자를 소비할 뿐이다.
+- 셔플, 에포크 제어, 워커 분배가 필요하면 __iter__ 안에서 직접 구현한다.
 
-다시 훑기:
-- 교육용 예제에서는 __iter__ 안에서 씨앗을 다시 심어 매번 같은 열이
+재반복:
+- 교육용 예제에서는 __iter__ 안에서 시드를 다시 고정해 매번 같은 열이
   나오게 하기도 한다.
-- 실무에서는 에포크와 일꾼마다 씨앗을 달리한다 (torch.utils.data.get_worker_info 참고).
+- 실무에서는 에포크와 워커마다 시드를 달리한다 (torch.utils.data.get_worker_info 참고).
 
 참고 — PyTorch의 두 가지 데이터셋 방식:
 - 맵 방식 (torch.utils.data.Dataset): __len__과 __getitem__(i). Sampler(shuffle=True),
   random_split, Subset과 함께 쓸 수 있다.
-- 반복자 방식 (torch.utils.data.IterableDataset): __iter__(흘려보내기).
-  DataLoader가 표집하지 않으므로 섞기와 분배를 직접 처리한다.
+- 반복자 방식 (torch.utils.data.IterableDataset): __iter__(스트리밍).
+  DataLoader가 샘플링하지 않으므로 셔플과 분배를 직접 처리한다.
 """
 
 
@@ -81,4 +81,4 @@ shuffle이나 무작위 인덱스 샘플러를 map-style과 같은 방식으로 
 
 ## 정리하며
 
-IterableDataset의 핵심은 표본을 순차 제공하는 인터페이스이다. 구현에는 worker·rank 분할, 순서 섞기, 길이와 재시작 폴리시가 필요하다. 이 페이지의 코드 자체는 그 구현을 제공하지 않는다.
+IterableDataset의 핵심은 표본을 순차 제공하는 인터페이스이다. 구현에는 worker·rank 분할, 순서 섞기, 길이와 재시작 정책이 필요하다. 이 페이지의 코드 자체는 그 구현을 제공하지 않는다.

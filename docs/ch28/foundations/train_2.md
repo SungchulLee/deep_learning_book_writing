@@ -6,12 +6,12 @@
 
 ```python
 """
-글자 수준 말 모델을 위한 익히기 대본
+문자 수준 언어 모델을 위한 학습 스크립트
 
-이 대본은 다음을 보인다.
-1. 글 자료를 불러와 다듬는다
-2. 자기 회귀 글자 모델 익히기
-3. 새 글 표본 만들어 내기
+이 스크립트는 다음을 보인다.
+1. 텍스트 데이터를 불러와 전처리한다
+2. 자기 회귀 문자 모델 학습
+3. 새 텍스트 표본 생성
 """
 
 import torch
@@ -30,11 +30,10 @@ from typing import Optional, Tuple
 
 # --- model ---
 """
-글자 수준 자기 되돌이 말 모델
+문자 수준 자기 회귀 언어 모델
 
-이 단원은 글자 하나씩 글을 만들어 내는 신경 자기 되돌이 모델을 짠다.
-곧 글자마다 앞선 글자를 바탕으로 헤아린다.
-차례의 앞선 모든 글자를 바탕으로 한다.
+이 모듈은 문자 하나씩 텍스트를 생성하는 뉴럴 자기 회귀 모델을 짠다.
+곧 문자마다 시퀀스의 앞선 모든 문자를 바탕으로 예측한다.
 """
 
 
@@ -45,15 +44,15 @@ from typing import Optional, Tuple
 
 class CharRNN(nn.Module):
     """
-    글 만들어 내기를 위한 글자 수준 되돌이 신경망.
+    텍스트 생성을 위한 문자 수준 순환 뉴럴 네트워크.
     
-    이는 다음과 같은 자기 되돌이 모델이다.
-    1. 글자의 차례를 들임으로 받는다
-    2. 되돌이 신경망(긴 짧은 기억)으로 다룬다
-    3. 다음 글자를 헤아린다
+    이는 다음과 같은 자기 회귀 모델이다.
+    1. 문자의 시퀀스를 입력으로 받는다
+    2. 순환 뉴럴 네트워크(LSTM)으로 다룬다
+    3. 다음 문자를 예측한다
     
     구조:
-        임베딩 -> 긴 짧은 기억 -> 선형 -> 소프트맥스
+        임베딩 -> LSTM -> 선형 -> 소프트맥스
     """
     
     def __init__(self, 
@@ -62,13 +61,13 @@ class CharRNN(nn.Module):
                  hidden_dim: int = 128,
                  n_layers: int = 2):
         """
-        글자 되돌이 신경망을 초기화한다.
+        문자 순환 뉴럴 네트워크을 초기화한다.
         
         인수:
-            vocab_size: 단어 속 서로 다른 글자의 수
-            embedding_dim: 글자 임베딩의 차원
-            hidden_dim: 긴 짧은 기억의 숨은 낱개 수
-            n_layers: 긴 짧은 기억 층의 수
+            vocab_size: 어휘 속 서로 다른 문자의 수
+            embedding_dim: 문자 임베딩의 차원
+            hidden_dim: LSTM의 은닉 유닛 수
+            n_layers: LSTM 레이어의 수
         """
         super(CharRNN, self).__init__()
         
@@ -76,21 +75,21 @@ class CharRNN(nn.Module):
         self.hidden_dim = hidden_dim
         self.n_layers = n_layers
         
-        # 임베딩 층: 글자 어깨수를 빽빽한 벡터로 바꾼다
-        # 글자마다 배울 수 있는 임베딩 벡터를 갖는다
+        # 임베딩 레이어: 문자 인덱스를 밀집 벡터로 바꾼다
+        # 문자마다 배울 수 있는 임베딩 벡터를 갖는다
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         
-        # 긴 짧은 기억: 임베딩의 차례를 다룬다
-        # batch_first=True는 들임 형태가 [배치, 차례, 특징]이라는 뜻이다
+        # LSTM: 임베딩의 시퀀스를 다룬다
+        # batch_first=True는 입력 형태가 [배치, 시퀀스, 피처]이라는 뜻이다
         self.lstm = nn.LSTM(
             embedding_dim, 
             hidden_dim, 
             n_layers,
             batch_first=True,
-            dropout=0.2 if n_layers > 1 else 0  # 긴 짧은 기억 층 사이의 떨구기
+            dropout=0.2 if n_layers > 1 else 0  # LSTM 레이어 사이의 드롭아웃
         )
         
-        # 내놓기 층: 긴 짧은 기억의 숨은 상태를 단어 점수로 옮긴다
+        # 출력 레이어: LSTM의 은닉 상태를 어휘 점수로 옮긴다
         self.fc = nn.Linear(hidden_dim, vocab_size)
         
     def forward(self, 
@@ -98,40 +97,40 @@ class CharRNN(nn.Module):
                 hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
                ) -> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         """
-        모델을 지나는 앞먹임.
+        모델을 지나는 순전파.
         
         인수:
-            x: 형태 [배치 크기, 차례 길이]인 들임 텐서
-               글자 어깨수를 담는다
-            hidden: 앞선 앞먹임에서 온 숨은 상태(있으면)
-                    긴 짧은 기억을 위한 (h_0, c_0) 짝
+            x: 형태 [배치 크기, 시퀀스 길이]인 입력 텐서
+               문자 인덱스를 담는다
+            hidden: 앞선 순전파에서 온 은닉 상태(있으면)
+                    LSTM을 위한 (h_0, c_0) 튜플
                     
         반환값:
-            output: 형태 [배치 크기, 단어 수]인 로짓
-                   단어 속 글자마다의 점수
-            hidden: 갱신된 숨은 상태
+            output: 형태 [배치 크기, 어휘 수]인 로짓
+                   어휘 속 문자마다의 점수
+            hidden: 갱신된 은닉 상태
         """
-        # 배치 크기(차례의 수)를 얻는다
+        # 배치 크기(시퀀스의 수)를 얻는다
         batch_size = x.size(0)
         
-        # 1. 글자를 박아 넣는다
-        # 들임: [배치, 차례 길이]
-        # 내놓기: [배치, 차례 길이, 임베딩 차원]
+        # 1. 문자를 임베딩한다
+        # 입력: [배치, 시퀀스 길이]
+        # 출력: [배치, 시퀀스 길이, 임베딩 차원]
         embedded = self.embedding(x)
         
-        # 2. 긴 짧은 기억으로 다룬다
-        # 숨은 상태를 주지 않으면 긴 짧은 기억이 0으로 초기화한다
-        # lstm_out: [배치, 차례 길이, 숨은 차원]
-        # hidden: (h_n, c_n) - 마지막 숨은 상태와 칸 상태
+        # 2. LSTM으로 다룬다
+        # 은닉 상태를 주지 않으면 LSTM이 0으로 초기화한다
+        # lstm_out: [배치, 시퀀스 길이, 은닉 차원]
+        # hidden: (h_n, c_n) - 마지막 은닉 상태와 셀 상태
         lstm_out, hidden = self.lstm(embedded, hidden)
         
-        # 3. 헤아리기에 마지막 때 걸음만 쓴다
-        # 차례 다음에 오는 글자를 헤아리려 한다
-        # 형태: [배치, 숨은 차원]
+        # 3. 예측에 마지막 시간 스텝만 쓴다
+        # 시퀀스 다음에 오는 문자를 예측하려 한다
+        # 형태: [배치, 은닉 차원]
         last_output = lstm_out[:, -1, :]
         
-        # 4. 단어 점수로 옮긴다
-        # 형태: [배치, 단어 수]
+        # 4. 어휘 점수로 옮긴다
+        # 형태: [배치, 어휘 수]
         output = self.fc(last_output)
         
         return output, hidden
@@ -141,37 +140,37 @@ class CharRNN(nn.Module):
                 length: int,
                 temperature: float = 1.0) -> torch.Tensor:
         """
-        자기 회귀로 글을 짓는다.
+        자기 회귀로 텍스트를 생성한다.
         
-        이것이 자기 되돌이 만들어 내기의 핵심 과정이다.
-        1. 씨앗 차례에서 시작한다
-        2. 다음 글자를 헤아린다
-        3. 헤아린 값을 차례에 덧붙인다
-        4. 걸음 2-3을 되풀이한다
+        이것이 자기 회귀 생성의 핵심 과정이다.
+        1. 시드 시퀀스에서 시작한다
+        2. 다음 문자를 예측한다
+        3. 예측한 값을 시퀀스에 덧붙인다
+        4. 스텝 2-3을 되풀이한다
         
         인수:
-            start_sequence: 글자 어깨수의 씨앗 차례 [sequence_length]
-            length: 만들 글자의 수
+            start_sequence: 문자 인덱스의 시드 시퀀스 [sequence_length]
+            length: 만들 문자의 수
             temperature: 표본 추출의 온도 (높을수록 더 무작위)
-                        1.0 = 보통, <1.0 = 더 조심스럽다, >1.0 = 더 마구잡이다
+                        1.0 = 보통, <1.0 = 더 보수적이다, >1.0 = 더 무작위적이다
                         
         반환값:
-            만든 글자 어깨수의 차례
+            만든 문자 인덱스의 시퀀스
         """
-        self.eval()  # 따지기 모드로 둔다
+        self.eval()  # 평가 모드로 둔다
         
-        # 씨앗 차례에서 시작한다
+        # 시드 시퀀스에서 시작한다
         generated = start_sequence.clone().unsqueeze(0)  # 배치 차원을 더한다
         
         with torch.no_grad():
-            hidden = None  # 숨은 상태 없이 시작한다
+            hidden = None  # 은닉 상태 없이 시작한다
             
             for _ in range(length):
-                # 다음 글자의 헤아림을 얻는다
+                # 다음 문자의 예측을 얻는다
                 output, hidden = self.forward(generated, hidden)
                 
                 # 로짓에 온도를 쓴다
-                # 온도가 마구잡이 정도를 다스린다:
+                # 온도가 무작위성의 정도를 조절한다:
                 # - 낮은 온도(< 1): 더 자신 있고 덜 다양하다
                 # - 높은 온도(> 1): 덜 자신 있고 더 다양하다
                 output = output / temperature
@@ -179,8 +178,8 @@ class CharRNN(nn.Module):
                 # 로짓을 확률로 바꾸기
                 probs = F.softmax(output, dim=-1)
                 
-                # 확률 분포에서 다음 글자를 뽑는다
-                # 그래서 만들어 내기가 정해진 것이 아니라 확률에 따르게(마구잡이가) 된다
+                # 확률 분포에서 다음 문자를 뽑는다
+                # 그래서 생성이 결정적이지 않고 확률적이 된다
                 next_char = torch.multinomial(probs, 1)
                 
                 # 만들어진 수열에 덧붙인다
@@ -192,11 +191,10 @@ class CharRNN(nn.Module):
 
 class SimpleCharTransformer(nn.Module):
     """
-    글자 수준 말 나타내기를 위한 단순한 트랜스포머.
+    문자 수준 언어 모델링를 위한 단순한 트랜스포머.
     
-    이는 되돌이 대신 셀프 어텐션을 쓰는 더 요즘다운 되돌이 신경망의 대안이다.
-    트랜스포머는 GPT 같은 모델의 바탕 얼개이다.
-    GPT 같은 모델.
+    이는 순환 대신 셀프 어텐션을 쓰는, 순환 뉴럴 네트워크의 더 현대적인 대안이다.
+    트랜스포머는 GPT 같은 모델의 바탕 구조이다.
     """
     
     def __init__(self,
@@ -209,25 +207,25 @@ class SimpleCharTransformer(nn.Module):
         트랜스포머 모델을 초기화한다.
         
         인수:
-            vocab_size: 서로 다른 글자의 수
-            embedding_dim: 임베딩의 차원(n_heads으로 나누어떨어져야 한다)
-            n_heads: 어텐션 머리의 수
-            n_layers: 트랜스포머 층의 수
-            max_seq_length: 최대 차례 길이(자리 부호화용)
+            vocab_size: 서로 다른 문자의 수
+            embedding_dim: 임베딩의 차원(n_heads로 나누어떨어져야 한다)
+            n_heads: 어텐션 헤드의 수
+            n_layers: 트랜스포머 레이어의 수
+            max_seq_length: 최대 시퀀스 길이(위치 인코딩용)
         """
         super(SimpleCharTransformer, self).__init__()
         
         self.vocab_size = vocab_size
         self.embedding_dim = embedding_dim
         
-        # 토큰 임베딩: 글자 어깨수를 벡터로 바꾼다
+        # 토큰 임베딩: 문자 인덱스를 벡터로 바꾼다
         self.token_embedding = nn.Embedding(vocab_size, embedding_dim)
         
-        # 자리 임베딩: 자리 앎을 더한다
-        # 트랜스포머에는 본디 차례가 없으므로 자리 앎을 더한다
+        # 위치 임베딩: 위치 정보를 더한다
+        # 트랜스포머에는 본래 순서 정보가 없으므로 위치 정보를 더한다
         self.position_embedding = nn.Embedding(max_seq_length, embedding_dim)
         
-        # 트랜스포머 인코더 층
+        # 트랜스포머 인코더 레이어
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=embedding_dim,
             nhead=n_heads,
@@ -237,43 +235,43 @@ class SimpleCharTransformer(nn.Module):
         )
         self.transformer = nn.TransformerEncoder(encoder_layer, n_layers)
         
-        # 출력층
+        # 출력 레이어
         self.fc = nn.Linear(embedding_dim, vocab_size)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        트랜스포머를 지나는 앞먹임.
+        트랜스포머를 지나는 순전파.
         
         인수:
-            x: 들임 텐서 [배치 크기, 차례 길이]
+            x: 입력 텐서 [배치 크기, 시퀀스 길이]
             
         반환값:
-            내놓기 로짓 [배치 크기, 단어 수]
+            출력 로짓 [배치 크기, 어휘 수]
         """
         batch_size, seq_length = x.shape
         
         # 토큰 임베딩
         token_emb = self.token_embedding(x)
         
-        # 자리 임베딩
+        # 위치 임베딩
         positions = torch.arange(seq_length, device=x.device).unsqueeze(0)
         pos_emb = self.position_embedding(positions)
         
-        # 토큰 임베딩과 자리 임베딩을 아우른다
+        # 토큰 임베딩과 위치 임베딩을 아우른다
         x = token_emb + pos_emb
         
         # 인과 마스크를 만든다: 자리마다 앞 자리만 볼 수 있다
-        # 이는 자기 되돌이로 나타내는 데 결정적이다!
+        # 이는 자기 회귀 모델링에 결정적이다!
         mask = torch.triu(torch.ones(seq_length, seq_length, device=x.device), diagonal=1)
         mask = mask.bool()
         
         # 인과 마스크와 함께 트랜스포머를 쓴다
         x = self.transformer(x, mask=mask)
         
-        # 헤아리기에 마지막 자리를 쓴다
+        # 예측에 마지막 자리를 쓴다
         x = x[:, -1, :]
         
-        # 단어로 옮긴다
+        # 어휘로 옮긴다
         output = self.fc(x)
         
         return output
@@ -281,11 +279,11 @@ class SimpleCharTransformer(nn.Module):
 
 if __name__ == "__main__":
     """
-    보여 주기: 흉내 자료로 모델을 시험한다
+    시연: 모의 데이터로 모델을 시험한다
     """
     
-    # 초매개변수
-    vocab_size = 50  # 서로 다른 글자 50개
+    # 하이퍼파라메터
+    vocab_size = 50  # 서로 다른 문자 50개
     batch_size = 16
     seq_length = 20
     
@@ -296,10 +294,10 @@ if __name__ == "__main__":
     print("Testing CharRNN")
     print("=" * 60)
     
-    # 모형을 시작한다
+    # 모델을 초기화한다
     rnn_model = CharRNN(vocab_size, embedding_dim=32, hidden_dim=64, n_layers=2)
     
-    # 매개변수 개수 세기
+    # 파라메터 개수 세기
     n_params = sum(p.numel() for p in rnn_model.parameters())
     print(f"Number of parameters: {n_params:,}")
     
@@ -309,7 +307,7 @@ if __name__ == "__main__":
     print(f"Output shape: {output.shape}")
     print(f"Output represents scores for {vocab_size} possible next characters")
     
-    # 만들어 내기를 시험한다
+    # 생성를 시험한다
     seed = torch.randint(0, vocab_size, (10,))
     generated = rnn_model.generate(seed, length=20, temperature=1.0)
     print(f"\nGenerated sequence length: {len(generated)}")
@@ -321,7 +319,7 @@ if __name__ == "__main__":
     # 트랜스포머를 초기화한다
     transformer_model = SimpleCharTransformer(
         vocab_size, 
-        embedding_dim=64,  # n_heads으로 나누어떨어져야 한다
+        embedding_dim=64,  # n_heads로 나누어떨어져야 한다
         n_heads=4,
         n_layers=2
     )
@@ -344,17 +342,17 @@ def train_epoch(model: nn.Module,
                 optimizer: optim.Optimizer,
                 device: str) -> float:
     """
-    한 세대를 학습한다.
+    한 에포크를 학습한다.
     
     인수:
-        model: 말 모델
-        dataloader: 익히기 자료용 DataLoader
+        model: 언어 모델
+        dataloader: 학습 데이터용 DataLoader
         criterion: 로스 함수(CrossEntropyLoss)
         optimizer: 옵티마이저
-        device: 익힐 기기('cpu'나 'cuda')
+        device: 학습할 장치('cpu'나 'cuda')
         
     반환값:
-        바퀴의 평균 로스
+        에포크의 평균 로스
     """
     model.train()
     total_loss = 0
@@ -378,7 +376,7 @@ def train_epoch(model: nn.Module,
         loss.backward()
         
         # 그래디언트가 터지지 않도록 자른다
-        # 이는 회귀 뉴럴 네트워크에서 특히 중요하다
+        # 이는 순환 뉴럴 네트워크에서 특히 중요하다
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         
         # 웨이트를 갱신한다
@@ -397,13 +395,13 @@ def evaluate(model: nn.Module,
     시험 데이터로 모델을 평가한다.
     
     인수:
-        model: 말 모델
-        dataloader: 시험 자료용 DataLoader
+        model: 언어 모델
+        dataloader: 시험 데이터용 DataLoader
         criterion: 로스 함수
         device: 평가할 장치
         
     반환값:
-        시험 배치의 평균 로스
+        시험 세트의 평균 로스
     """
     model.eval()
     total_loss = 0
@@ -431,22 +429,22 @@ def generate_text(model: nn.Module,
                  temperature: float = 0.8,
                  device: str = 'cpu') -> str:
     """
-    씨앗에서 글을 자기 회귀로 만든다.
+    시드에서 텍스트를 자기 회귀로 생성한다.
     
     인수:
-        model: 익힌 말 모델
-        dataset: 자료 묶음(부호로 바꾸고 풀기용)
-        seed_text: 출발 글
-        length: 만들 글자의 수
-        temperature: 표집 온도
+        model: 학습한 언어 모델
+        dataset: 데이터셋(인코딩·디코딩용)
+        seed_text: 시작 텍스트
+        length: 만들 문자의 수
+        temperature: 샘플링 온도
         device: 돌릴 장치
         
     반환값:
-        만든 글자열
+        생성한 문자열
     """
     model.eval()
     
-    # 씨앗 글을 부호로 바꾼다
+    # 시드 텍스트를 인코딩한다
     seed_indices = dataset.encode(seed_text)
     seed_tensor = torch.LongTensor(seed_indices).to(device)
     
@@ -454,16 +452,16 @@ def generate_text(model: nn.Module,
     if isinstance(model, CharRNN):
         generated = model.generate(seed_tensor, length, temperature)
     else:
-        # 트랜스포머에서는 만들어 내기를 다르게 짜야 한다
-        # 이는 간략한 판본이다
+        # 트랜스포머에서는 생성을 다르게 구현해야 한다
+        # 이는 간략한 버전이다
         generated = seed_tensor.clone()
         
         with torch.no_grad():
             for _ in range(length):
-                # 마지막 sequence_length개 글자를 쓴다
+                # 마지막 sequence_length개 문자를 쓴다
                 input_seq = generated[-dataset.sequence_length:].unsqueeze(0)
                 
-                # 다음 글자를 헤아린다
+                # 다음 문자를 예측한다
                 output = model(input_seq)
                 output = output / temperature
                 probs = torch.softmax(output, dim=-1)
@@ -472,7 +470,7 @@ def generate_text(model: nn.Module,
                 # 만들어진 수열에 덧붙인다
                 generated = torch.cat([generated, next_char.unsqueeze(0)])
     
-    # 글로 푼다
+    # 텍스트로 디코딩한다
     generated_text = dataset.decode(generated.cpu().tolist())
     
     return generated_text
@@ -480,24 +478,24 @@ def generate_text(model: nn.Module,
 
 def main():
     """
-    으뜸 익히기 물길
+    메인 학습 파이프라인
     """
     print("=" * 70)
     print("Character-Level Autoregressive Language Model Training")
     print("=" * 70)
     
-    # ==================== 채비 ====================
-    # GPU이 있는지 살핀다
+    # ==================== 설정 ====================
+    # GPU가 있는지 확인한다
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"\nUsing device: {device}")
     
-    # 초파라메터
-    SEQUENCE_LENGTH = 50  # 들임 차례의 길이
+    # 하이퍼파라메터
+    SEQUENCE_LENGTH = 50  # 입력 시퀀스의 길이
     BATCH_SIZE = 64       # 배치 크기
     EMBEDDING_DIM = 128   # 임베딩 차원
-    HIDDEN_DIM = 256      # 숨은 차원(회귀 뉴럴 네트워크용)
+    HIDDEN_DIM = 256      # 은닉 차원(순환 뉴럴 네트워크용)
     N_LAYERS = 2          # 레이어의 수
-    N_EPOCHS = 50         # 익히기 바퀴 수
+    N_EPOCHS = 50         # 학습 에포크 수
     LEARNING_RATE = 0.001
     
     print(f"\nHyperparameters:")
@@ -509,12 +507,12 @@ def main():
     print(f"  Epochs: {N_EPOCHS}")
     print(f"  Learning Rate: {LEARNING_RATE}")
     
-    # ==================== 자료 불러오기 ====================
+    # ==================== 데이터 불러오기 ====================
     print(f"\n{'='*70}")
     print("Step 1: Loading and preparing text data...")
     print(f"{'='*70}")
     
-    # 보기 글을 불러온다(셰익스피어)
+    # 예시 텍스트를 불러온다(셰익스피어)
     text = load_sample_text()
     
     # 파일에서 불러올 수도 있다:
@@ -527,7 +525,7 @@ def main():
     # 데이터셋 생성
     dataset = CharacterDataset(text, sequence_length=SEQUENCE_LENGTH)
     
-    # 차례를 만든다
+    # 시퀀스를 만든다
     X, y = dataset.create_sequences()
     
     # 데이터 나누기
@@ -554,8 +552,8 @@ def main():
     print("Step 2: Initializing model...")
     print(f"{'='*70}")
     
-    # 모델 클래스를 고른다
-    # 고르기 1: 회귀 뉴럴 네트워크(긴 짧은 기억)
+    # 모델 종류를 고른다
+    # 선택지 1: 순환 뉴럴 네트워크(LSTM)
     model = CharRNN(
         vocab_size=dataset.vocab_size,
         embedding_dim=EMBEDDING_DIM,
@@ -564,7 +562,7 @@ def main():
     ).to(device)
     model_name = "CharRNN"
     
-    # 고르기 2: 트랜스포머(쓰려면 주석을 푼다)
+    # 선택지 2: 트랜스포머(쓰려면 주석을 푼다)
     # model = SimpleCharTransformer(
     #     vocab_size=dataset.vocab_size,
     #     embedding_dim=EMBEDDING_DIM,
@@ -583,7 +581,7 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
-    # ==================== 익히기 ====================
+    # ==================== 학습 ====================
     print(f"\n{'='*70}")
     print("Step 3: Training model...")
     print(f"{'='*70}\n")
@@ -601,13 +599,13 @@ def main():
         train_losses.append(train_loss)
         test_losses.append(test_loss)
         
-        # 10바퀴마다 나아감을 찍는다
+        # 10에포크마다 진행 상황을 출력한다
         if (epoch + 1) % 10 == 0:
             print(f"\nEpoch {epoch+1}/{N_EPOCHS}")
             print(f"  Train Loss: {train_loss:.4f}")
             print(f"  Test Loss: {test_loss:.4f}")
             
-            # 보기 글을 만든다
+            # 예시 텍스트를 만든다
             seed = "To be"
             sample = generate_text(model, dataset, seed, length=100, 
                                  temperature=0.8, device=device)
@@ -618,12 +616,12 @@ def main():
     print(f"  Final train loss: {train_losses[-1]:.4f}")
     print(f"  Final test loss: {test_losses[-1]:.4f}")
     
-    # ==================== 그려 보기 ====================
+    # ==================== 시각화 ====================
     print(f"\n{'='*70}")
     print("Step 4: Creating visualizations...")
     print(f"{'='*70}")
     
-    # 익히기 곡선을 그린다
+    # 학습 곡선을 그린다
     plt.figure(figsize=(10, 5))
     plt.plot(train_losses, label='Train Loss', alpha=0.7)
     plt.plot(test_losses, label='Test Loss', alpha=0.7)
@@ -636,7 +634,7 @@ def main():
     plt.savefig('training_history.png', dpi=150)
     print("✓ Saved training_history.png")
     
-    # ==================== 표본 만들기 ====================
+    # ==================== 표본 생성 ====================
     print(f"\n{'='*70}")
     print("Step 5: Generating text samples...")
     print(f"{'='*70}")
@@ -657,7 +655,7 @@ def main():
             print()
         print()
     
-    # ==================== 간추리기 ====================
+    # ==================== 요약 ====================
     print(f"{'='*70}")
     print("Training Complete!")
     print(f"{'='*70}")

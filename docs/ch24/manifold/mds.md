@@ -12,15 +12,15 @@
 
 "비유사도가 반드시 거리는 아니다"는 위 문단은 MDS를 나중에 느슨하게 쓰다 보니 생긴 단서가 아니다. **처음부터 그랬다.** MDS는 기하학이 아니라 심리측정에서 나왔고, 워런 토거슨(Warren Torgerson)이 1952년 《사이코메트리카》에 방법을 세웠을 때 재려던 것은 자로 잴 수 있는 무엇이 아니라 사람이 느끼는 닮음이었다.
 
-두 해 뒤 예스타 에크만(Gösta Ekman)의 색 실험이 그 쓰임을 잘 보여 준다. 색 14가지를 둘씩 짝지어 — 모두 91쌍이다 — 31명에게 보이고, 얼마나 닮았는지를 0에서 4까지 다섯 눈금으로 답하게 했다. 입력은 그 평점을 평균한 14×14 표 하나뿐이다. 좌표도, 공간도, 거리도 주지 않았다.
+두 해 뒤 예스타 에크만(Gösta Ekman)의 색 실험이 그 쓰임을 잘 보여 준다. 색 14가지를 둘씩 짝지어 — 모두 91쌍이다 — 31명에게 보이고, 얼마나 닮았는지를 0에서 4까지 다섯 단계 척도로 답하게 했다. 입력은 그 평점을 평균한 14×14 표 하나뿐이다. 좌표도, 공간도, 거리도 주지 않았다.
 
-![왼쪽은 색 두 조각을 나란히 놓고 0에서 4까지 다섯 눈금으로 닮음을 묻는 그림이다. 가운데는 434 나노미터에서 674 나노미터까지 곧게 이어지는 띠로, 빛은 수 하나이며 두 끝이 가장 멀다고 적혀 있다. 오른쪽은 색 열넷이 고리를 이루고 두 끝이 되돌아와 거의 만나는 그림이다.](figures/ekman_colors.svg)
+![왼쪽은 색 두 조각을 나란히 놓고 0에서 4까지 다섯 단계 척도로 닮음을 묻는 그림이다. 가운데는 434 나노미터에서 674 나노미터까지 곧게 이어지는 띠로, 빛은 수 하나이며 두 끝이 가장 멀다고 적혀 있다. 오른쪽은 색 열넷이 고리를 이루고 두 끝이 되돌아와 거의 만나는 그림이다.](figures/ekman_colors.svg)
 
 놀라운 곳은 나온 그림이다. 자극은 파장 하나, 434nm에서 674nm까지 **곧은 선**이고 두 끝은 그 선에서 가장 먼 자리다. 그런데 사람의 대답을 2차원에 늘어놓으면 축이 둘 필요하고, **그 두 끝이 되돌아와 거의 맞닿는다.** 색상환이라 부르는 그 고리다. 로저 셰퍼드(Roger Shepard)가 같은 표에 비계량 MDS를 돌려 얻은 2차원 배치는 변동의 84% 가량을 설명한다.
 
 **다만 이 고리는 빛에 대해서는 아무것도 말해 주지 않는다.** 434nm와 674nm는 여전히 파장으로 가장 먼 둘이고, 물리에는 되돌아오는 고리가 없다. 고리는 **대답에 들어 있던 것**이지 MDS가 찾아 준 것이 아니다. MDS는 넣어 준 표의 지도를 그릴 뿐이라, 평점을 넣으면 평점의 지도가 나온다. 아래 8절의 셰퍼드 다이어그램이 필요한 까닭도 같다 — 그림이 그럴듯하다는 것과 입력을 잘 담았다는 것은 따로 확인해야 한다.
 
-_확인한 곳 — W. S. Torgerson, "Multidimensional scaling: I. Theory and method", *Psychometrika* **17**, 401–419 (1952). G. Ekman, "Dimensions of color vision", *Journal of Psychology* **38**, 467–474 (1954) — 색 14가지, 434–674nm, 31명, 0–4의 다섯 눈금. 그림의 고리는 형태만 옮긴 것이고 원 논문의 평점 행렬로 셈하지 않았다._
+_확인한 곳 — W. S. Torgerson, "Multidimensional scaling: I. Theory and method", *Psychometrika* **17**, 401–419 (1952). G. Ekman, "Dimensions of color vision", *Journal of Psychology* **38**, 467–474 (1954) — 색 14가지, 434–674nm, 31명, 0–4의 다섯 단계 척도. 그림의 고리는 형태만 옮긴 것이고 원 논문의 평점 행렬로 계산하지 않았다._
 
 </div>
 
@@ -43,28 +43,28 @@ import numpy as np
 
 def classical_mds(D, n_components=2):
     """
-    두 번 가운데 맞춤으로 하는 고전(계량) MDS.
+    이중 중심화로 하는 고전(계량) MDS.
     
     인수:
         D: 거리 행렬 [n, n](대칭, 대각이 0)
         n_components: 임베딩 차원
     
     반환값:
-        Y: 묻힌 좌표 [n, n_components]
-        eigenvalues: 으뜸 고윳값
+        Y: 임베딩 좌표 [n, n_components]
+        eigenvalues: 상위 고윳값
     """
     n = D.shape[0]
     
     # 제곱 거리 행렬
     D_sq = D ** 2
     
-    # 가운데 맞춤 행렬
+    # 중심화 행렬
     H = np.eye(n) - np.ones((n, n)) / n
     
-    # 두 번 가운데 맞춤 -> 그람 행렬
+    # 이중 중심화 -> 그람 행렬
     B = -0.5 * H @ D_sq @ H
     
-    # 고윳값 쪼개기
+    # 고윳값 분해
     eigenvalues, eigenvectors = np.linalg.eigh(B)
     
     # 내림차순 정렬
@@ -72,7 +72,7 @@ def classical_mds(D, n_components=2):
     eigenvalues = eigenvalues[idx]
     eigenvectors = eigenvectors[:, idx]
     
-    # 으뜸 k개 양의 고윳값
+    # 상위 k개 양의 고윳값
     k = n_components
     Lambda_k = np.diag(np.sqrt(np.maximum(eigenvalues[:k], 0)))
     Q_k = eigenvectors[:, :k]
@@ -141,23 +141,23 @@ import torch
 
 def metric_mds_torch(D, n_components=2, n_iter=300, lr=0.01, seed=42):
     """
-    스트레스에 그래디언트 내려가기를 써서 하는 계량 MDS.
+    스트레스에 경사 하강법을 써서 하는 계량 MDS.
     
     인수:
         D: 거리 행렬 [n, n](numpy 배열)
         n_components: 임베딩 차원
-        n_iter: 가장 좋게 하기 되풀이 수
+        n_iter: 최적화 반복 수
         lr: 러닝레이트
     
     반환값:
-        Y: 묻힌 좌표 [n, n_components]
-        stress_history: 되풀이마다의 스트레스
+        Y: 임베딩 좌표 [n, n_components]
+        stress_history: 반복마다의 스트레스
     """
     torch.manual_seed(seed)
     n = D.shape[0]
     D_tensor = torch.tensor(D, dtype=torch.float32)
     
-    # 위쪽 세모 마스크
+    # 상삼각 마스크
     mask = torch.triu(torch.ones(n, n, dtype=torch.bool), diagonal=1)
     
     # 고전 MDS 결과로 초기화한다
@@ -170,7 +170,7 @@ def metric_mds_torch(D, n_components=2, n_iter=300, lr=0.01, seed=42):
     for _ in range(n_iter):
         optimizer.zero_grad()
         
-        # 임베딩에서 둘씩의 거리
+        # 임베딩에서 쌍별 거리
         diff = Y.unsqueeze(0) - Y.unsqueeze(1)       # [n, n, k]
         dist_embed = torch.sqrt((diff ** 2).sum(-1) + 1e-12)
         
@@ -205,7 +205,7 @@ mds_metric = MDS(
 Y_metric = mds_metric.fit_transform(X)
 print(f"Stress: {mds_metric.stress_:.4f}")
 
-# --- 미리 셈한 거리 행렬로 하기 ---
+# --- 미리 계산한 거리 행렬로 하기 ---
 D = squareform(pdist(X))
 mds_pre = MDS(
     n_components=2,
@@ -241,11 +241,11 @@ from scipy.spatial.distance import pdist, squareform
 
 def shepard_diagram(D_original, Y_embedded):
     """
-    셰퍼드 그림으로 MDS 품질을 가늠한다.
+    셰퍼드 다이어그램으로 MDS 품질을 평가한다.
     
     인수:
-        D_original: 본디 거리 행렬 [n, n]
-        Y_embedded: 묻힌 좌표 [n, k]
+        D_original: 원래 거리 행렬 [n, n]
+        Y_embedded: 임베딩 좌표 [n, k]
     """
     D_embed = squareform(pdist(Y_embedded))
     mask = np.triu_indices_from(D_original, k=1)
@@ -286,7 +286,7 @@ def asset_mds_map(returns, asset_names):
     
     인수:
         returns: 수익률 행렬 [기간 수, 자산 수]
-        asset_names: 자산 이름 글줄의 목록
+        asset_names: 자산 이름 문자열의 목록
     """
     corr = np.corrcoef(returns.T)
     D = np.sqrt(2 * (1 - corr))
@@ -309,7 +309,7 @@ def asset_mds_map(returns, asset_names):
     plt.tight_layout()
     plt.show()
 
-# 만든 업종 수익률로 보는 보기
+# 합성 업종 수익률로 보는 예시
 np.random.seed(42)
 n_periods = 500
 market = np.random.randn(n_periods)

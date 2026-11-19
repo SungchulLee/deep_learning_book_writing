@@ -53,7 +53,7 @@ $$L(\theta)=\sum_i\lambda_i\mathbb E\left\|s_\theta(x_0+\sigma_i\epsilon,\sigma_
 $$\sigma^2\left\|s_\theta+\frac\epsilon\sigma\right\|^2
 =\|\sigma s_\theta+\epsilon\|^2$$
 
-이를 노이즈 예측으로 바꾸려면 εθ=−σsθ로 정의한다. 이 대수적 관계가 실제 파라미터 그래디언트의 크기나 학습 난이도를 모든 수준에서 같게 만든다는 뜻은 아니다. 데이터 스케일·조건 입력·모델 표현력도 영향을 준다.
+이를 노이즈 예측으로 바꾸려면 εθ=−σsθ로 정의한다. 이 대수적 관계가 실제 파라메터 그래디언트의 크기나 학습 난이도를 모든 수준에서 같게 만든다는 뜻은 아니다. 데이터 스케일·조건 입력·모델 표현력도 영향을 준다.
 
 등비 σ 목록은 흔한 선택이지만 σmin=0.01이나 데이터의 최대 쌍별 거리를 σmax로 쓰는 규칙은 보편적인 최적값이 아니다. 이상값, 차원과 전처리에 민감하고 전체 쌍별 거리 계산도 비싸다. 학습 범위와 샘플링 초기분포·최종 노이즈를 함께 정한다.
 
@@ -68,7 +68,7 @@ $$s_{x_t}(x_t,t)=-\frac{\epsilon_\theta(x_t,t)}{\sqrt{1-\bar\alpha_t}}$$
 $$s_{u_t}(u_t,t)=\sqrt{\bar\alpha_t}\,s_{x_t}(\sqrt{\bar\alpha_t}u_t,t)
 =-\frac{\epsilon_\theta}{\tau_t}$$
 
-τ를 쓰면서 xₜ 좌표의 스코어 배율을 그대로 사용하는 것은 맞지 않는다. 단순 노이즈 MSE는 가중 DSM과 연결되지만 전체 변분 우도 목적과 항상 같은 수치·웨이트를 갖지는 않는다. [DDPM 논문](https://arxiv.org/abs/2006.11239)의 전이와 목적 정의를 함께 확인한다.
+τ를 쓰면서 xₜ 좌표의 스코어 배율을 그대로 사용하는 것은 맞지 않는다. 단순 노이즈 MSE는 가중 DSM과 연결되지만 전체 변분 가능도(likelihood, 우도라고도 한다) 목적과 항상 같은 수치·웨이트를 갖지는 않는다. [DDPM 논문](https://arxiv.org/abs/2006.11239)의 전이와 목적 정의를 함께 확인한다.
 
 ## 5. 다른 노이즈 커널
 
@@ -86,15 +86,15 @@ import torch.nn as nn
 
 def dsm_loss(score_net: nn.Module, x: torch.Tensor,
              sigma: float) -> torch.Tensor:
-    """잡음 수준 하나의 잡음 없애는 점수 맞추기 로스.
+    """노이즈 수준 하나의 디노이징 스코어 매칭 로스.
 
     인수:
         score_net: [batch, dim]을 [batch, dim]으로 보내는 네트워크 s(x).
-        x: 깨끗한 자료 [batch, dim].
-        sigma: 잡음의 표준 편차.
+        x: 깨끗한 데이터 [batch, dim].
+        sigma: 노이즈의 표준편차.
 
     반환값:
-        낱값 로스.
+        스칼라 로스.
     """
     noise = torch.randn_like(x)
     x_noisy = x + sigma * noise
@@ -108,17 +108,17 @@ def dsm_loss(score_net: nn.Module, x: torch.Tensor,
 ```python
 def dsm_loss_energy(energy_net: nn.Module, x: torch.Tensor,
                     sigma: float) -> torch.Tensor:
-    """에너지 바탕 모델의 잡음 없애는 점수 맞추기 로스.
+    """에너지 기반 모델의 디노이징 스코어 매칭 로스.
 
-    점수는 자동 미분으로 ∇_x E_θ(x)으로 셈한다.
+    스코어는 자동 미분으로 ∇_x E_θ(x)로 계산한다.
 
     인수:
-        energy_net: 낱값 에너지 뉴럴 네트워크 E(x).
-        x: 깨끗한 자료 [batch, dim].
-        sigma: 잡음의 표준 편차.
+        energy_net: 스칼라 에너지 네트워크 E(x).
+        x: 깨끗한 데이터 [batch, dim].
+        sigma: 노이즈의 표준편차.
 
     반환값:
-        낱값 로스.
+        스칼라 로스.
     """
     noise = torch.randn_like(x)
     x_noisy = (x + sigma * noise).requires_grad_(True)
@@ -132,7 +132,7 @@ def dsm_loss_energy(energy_net: nn.Module, x: torch.Tensor,
     return ((score - target)**2).sum(dim=1).mean()
 ```
 
-에너지 형태의 함수는 energy.sum의 입력 그래디언트를 **양의 부호**로 사용한다. 이는 log 비정규화 밀도 E, 즉 p∝exp(E)라는 관례다. 보통 p∝exp(−E)의 에너지 관례를 쓰면 부호가 반대다. 표본별 스칼라 출력을 전제로 하고 create_graph=True로 파라미터 미분을 유지한다. 따라서 직접 벡터 스코어 DSM과 달리 에너지에 대한 입력 미분과 혼합 미분 비용이 있다. 이 함수에는 1/2 배율도 없다.
+에너지 형태의 함수는 energy.sum의 입력 그래디언트를 **양의 부호**로 사용한다. 이는 log 비정규화 밀도 E, 즉 p∝exp(E)라는 관례다. 보통 p∝exp(−E)의 에너지 관례를 쓰면 부호가 반대다. 표본별 스칼라 출력을 전제로 하고 create_graph=True로 파라메터 미분을 유지한다. 따라서 직접 벡터 스코어 DSM과 달리 에너지에 대한 입력 미분과 혼합 미분 비용이 있다. 이 함수에는 1/2 배율도 없다.
 
 ## 7. 다중 수준과 연속 σ 구현
 
@@ -141,16 +141,16 @@ def multi_scale_dsm_loss(
     score_net: nn.Module, x: torch.Tensor,
     sigmas: list[float], weights: list[float] | None = None
 ) -> torch.Tensor:
-    """기본으로 σ² 무게를 준 여러 스케일의 잡음 없애는 점수 맞추기 로스.
+    """기본으로 σ² 웨이트를 준 다중 스케일 디노이징 스코어 매칭 로스.
 
     인수:
-        score_net: 잡음 조건을 갖춘 뉴럴 네트워크 s(x, sigma).
-        x: 깨끗한 자료 [batch, dim].
-        sigmas: 잡음 수준.
-        weights: 수준마다 무게(기본: σ²으로 고르게 맞춘 것).
+        score_net: 노이즈 수준을 조건으로 받는 네트워크 s(x, sigma).
+        x: 깨끗한 데이터 [batch, dim].
+        sigmas: 노이즈 수준.
+        weights: 수준별 웨이트(기본: σ²을 합으로 나눠 정규화한 것).
 
     반환값:
-        스케일에 걸친 무게 있는 잡음 없애는 점수 맞추기 로스.
+        스케일에 걸쳐 가중한 디노이징 스코어 매칭 로스.
     """
     if weights is None:
         raw = [s**2 for s in sigmas]
@@ -176,9 +176,9 @@ def dsm_loss_random_sigma(
     score_net: nn.Module, x: torch.Tensor,
     sigma_min: float = 0.01, sigma_max: float = 10.0
 ) -> torch.Tensor:
-    """표본마다 아무 시그마(로그 고른 분포)를 쓴 잡음 없애는 점수 맞추기 로스.
+    """표본마다 무작위 시그마(로그 균등 분포)를 쓴 디노이징 스코어 매칭 로스.
 
-    모든 시그마 수준을 되풀이하는 것보다 효율이 좋다.
+    모든 시그마 수준을 반복하는 것보다 효율이 좋다.
     """
     log_sigma = (
         torch.rand(x.shape[0], 1, device=x.device)
@@ -192,7 +192,7 @@ def dsm_loss_random_sigma(
     score = score_net(x_noisy, sigma)
     target = -noise / sigma
 
-    # σ² 무게를 준 로스
+    # σ² 웨이트를 준 로스
     return 0.5 * (sigma**2 * (score - target)**2).sum(dim=-1).mean()
 ```
 
@@ -200,7 +200,7 @@ def dsm_loss_random_sigma(
 
 ```python
 class ScoreNet(nn.Module):
-    """잡음 수준을 조건으로 삼는 여러 레이어 뉴럴 네트워크 점수 뉴럴 네트워크."""
+    """노이즈 수준을 조건으로 받는 MLP 스코어 네트워크."""
 
     def __init__(self, data_dim: int = 2, hidden_dim: int = 128):
         super().__init__()
@@ -212,7 +212,7 @@ class ScoreNet(nn.Module):
         )
 
     def forward(self, x: torch.Tensor, sigma: torch.Tensor) -> torch.Tensor:
-        """인자: x [batch, dim], sigma [batch, 1]."""
+        """인수: x [batch, dim], sigma [batch, 1]."""
         inp = torch.cat([x, torch.log(sigma) / 4.0], dim=-1)
         return self.net(inp)
 ```
@@ -224,7 +224,7 @@ import numpy as np
 
 def train_dsm(data: torch.Tensor, n_epochs: int = 5000,
               batch_size: int = 256, lr: float = 1e-3):
-    """아무 시그마 잡음 없애는 점수 맞추기로 점수 뉴럴 네트워크를 익힌다."""
+    """무작위 시그마 디노이징 스코어 매칭으로 스코어 네트워크를 학습한다."""
     model = ScoreNet(data_dim=data.shape[1])
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 

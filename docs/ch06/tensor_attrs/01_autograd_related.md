@@ -1,9 +1,9 @@
 # Autograd 관련 속성 — 누구에게 `.grad` 가 생기는가
 
 `requires_grad=True`로 만든 텐서라야 미분이 따라붙는다. 그런데 `requires_grad`가
-`True`인 텐서라고 모두 `.grad`를 받지는 않는다. **잎(leaf)만 받는다.**
+`True`인 텐서라고 모두 `.grad`를 받지는 않는다. **리프(leaf)만 받는다.**
 
-이 쪽은 그 경계를 재어서 보인다. 어느 텐서가 잎인지, 잎이 아닌 텐서의 `.grad`를
+이 쪽은 그 경계를 재어서 보인다. 어느 텐서가 리프인지, 리프가 아닌 텐서의 `.grad`를
 읽으면 무엇이 오는지, 그리고 그 경계를 몰라서 생기는 잘못 가운데 파이토치가
 막아 주는 것과 **조용히 지나가는 것**을 가른다.
 
@@ -13,14 +13,14 @@
 """자동 미분에 쓰이는 텐서 속성 — 누구에게 .grad 가 생기는가.
 
 `requires_grad=True` 로 만들어도 `.grad` 가 채워지는 텐서는 그 가운데
-일부뿐이다. 잎(leaf)만 받는다. 이 쪽은 그 경계를 재어서 보인다.
+일부뿐이다. 리프(leaf)만 받는다. 이 쪽은 그 경계를 재어서 보인다.
 
 - requires_grad / is_leaf / grad_fn 의 조합 — 넷 가운데 셋만 있다
-- 잎이 아닌 텐서의 .grad 는 None 이고, 파이토치가 경고를 띄운다
+- 리프가 아닌 텐서의 .grad 는 None 이고, 파이토치가 경고를 띄운다
 - 누적이 기본값이다. set_to_none=True 는 0 으로 채우기와 걸음이 다르다
-- 홑값이 아닌 출력에는 v 를 주어야 한다(벡터-야코비 곱)
+- 스칼라가 아닌 출력에는 v 를 주어야 한다(벡터-야코비 곱)
 - backward 를 두 번 부르면 터지는 그래프와 안 터지는 그래프가 있다
-- no_grad 없이 잎을 제자리에서 고치면 막힌다
+- no_grad 없이 리프를 제자리에서 고치면 막힌다
 
 실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
@@ -58,8 +58,8 @@ def combinations():
     b = torch.tensor([1.0], requires_grad=True)
     cases = (
         ("상수", a),
-        ("파라미터", b),
-        ("파라미터 x 2", b * 2),
+        ("파라메터", b),
+        ("파라메터 x 2", b * 2),
         ("상수 x 2", a * 2),
         ("detach()", (b * 2).detach()),
     )
@@ -71,13 +71,13 @@ def combinations():
 
 
 # ========================================================================
-# 2. .grad 는 잎에만 채워진다
+# 2. .grad 는 리프에만 채워진다
 # ========================================================================
 
 def only_leaves_get_grad():
-    header("2. 잎이 아니면 .grad 가 None 이다")
+    header("2. 리프가 아니면 .grad 가 None 이다")
     x = torch.tensor([1.0, 2.0], requires_grad=True)
-    h = x * 3           # 잎이 아니다
+    h = x * 3           # 리프가 아니다
     y = (h ** 2).sum()
     y.backward()
 
@@ -127,21 +127,21 @@ def none_vs_zeros():
         nn.functional.mse_loss(m(x), y).backward()
         opt.step()                       # 모멘텀이 쌓인 한 걸음
         opt.zero_grad(set_to_none=set_to_none)
-        opt.step()                       # 경사가 비었는데 또 걷는다
+        opt.step()                       # 그래디언트가 비었는데 또 걷는다
         got.append(m.weight.detach().flatten().clone())
     print("  set_to_none=True   :", "  ".join(f"{v:+.6f}" for v in got[0].tolist()))
     print("  set_to_none=False  :", "  ".join(f"{v:+.6f}" for v in got[1].tolist()))
     print(f"  가장 큰 차이        : {(got[0] - got[1]).abs().max():.6f}")
-    print("  None 이면 step 이 그 파라미터를 건너뛴다.")
+    print("  None 이면 step 이 그 파라메터를 건너뛴다.")
     print("  0 이면 모멘텀이 남아 계속 밀고 간다.")
 
 
 # ========================================================================
-# 5. 홑값이 아닌 출력 — 벡터-야코비 곱
+# 5. 스칼라가 아닌 출력 — 벡터-야코비 곱
 # ========================================================================
 
 def vjp():
-    header("5. 홑값이 아니면 v 를 주어야 한다")
+    header("5. 스칼라가 아니면 v 를 주어야 한다")
     torch.manual_seed(0)
     x = torch.randn(4, 3, requires_grad=True)
     A = torch.randn(2, 3)
@@ -189,11 +189,11 @@ def twice():
 
 
 # ========================================================================
-# 7. no_grad 없이 잎을 고치면
+# 7. no_grad 없이 리프를 고치면
 # ========================================================================
 
 def updating():
-    header("7. 파라미터를 제자리에서 고치려면")
+    header("7. 파라메터를 제자리에서 고치려면")
     p = torch.tensor([1.0, 2.0], requires_grad=True)
     (p ** 2).sum().backward()
     try:
@@ -228,13 +228,13 @@ if __name__ == "__main__":
 === 1. requires_grad x is_leaf ===
               requires_grad  is_leaf        grad_fn
 상수                  False     True           None
-파라미터               True     True           None
-파라미터 x 2           True    False   MulBackward0
+파라메터               True     True           None
+파라메터 x 2           True    False   MulBackward0
 상수 x 2              False     True           None
 detach()              False     True           None
 requires_grad=False 이면서 is_leaf=False 인 텐서는 없다
 
-=== 2. 잎이 아니면 .grad 가 None 이다 ===
+=== 2. 리프가 아니면 .grad 가 None 이다 ===
 h.grad : None
 경고   : The .grad attribute of a Tensor that is not a leaf Tensor is being
          accessed. Its .grad attribute won't be populated during
@@ -253,10 +253,10 @@ retain_grad 뒤 h2.grad : tensor([ 6., 12.])
   set_to_none=True   : -0.021486  +0.282214  -0.422172
   set_to_none=False  : -0.036934  +0.257463  -0.374460
   가장 큰 차이        : 0.047712
-  None 이면 step 이 그 파라미터를 건너뛴다.
+  None 이면 step 이 그 파라메터를 건너뛴다.
   0 이면 모멘텀이 남아 계속 밀고 간다.
 
-=== 5. 홑값이 아니면 v 를 주어야 한다 ===
+=== 5. 스칼라가 아니면 v 를 주어야 한다 ===
   v 없이 부르면: grad can be implicitly created only for scalar outputs
   x.grad.shape : (4, 3)
   손으로 v @ A 와 같은가: True
@@ -269,14 +269,14 @@ retain_grad 뒤 h2.grad : tensor([ 6., 12.])
   x.exp().sum()  Trying to backward through the graph a second ...  (exp(x) 를 저장해 둔다)
   retain_graph=True 로는 두 번   grad=[4.0, 8.0]  (2*2x)
 
-=== 7. 파라미터를 제자리에서 고치려면 ===
+=== 7. 파라메터를 제자리에서 고치려면 ===
   no_grad 없이: a leaf Variable that requires grad is being used in an in-place operation.
   no_grad 안에서: [0.8, 1.6]
   p.requires_grad 는 그대로: True
   p.is_leaf 도 그대로: True
 ```
 
-## 2. 잎이란 무엇인가
+## 2. 리프란 무엇인가
 
 `requires_grad`와 `is_leaf`는 둘 다 참·거짓 하나씩이니 네 조합이 있어야 할 텐데,
 실제로는 **셋만 있다.**
@@ -284,25 +284,25 @@ retain_grad 뒤 h2.grad : tensor([ 6., 12.])
 | | `requires_grad` | `is_leaf` | `grad_fn` |
 |---|---|---|---|
 | 상수 | False | True | None |
-| 파라미터 | True | True | None |
-| 파라미터 × 2 | True | **False** | `MulBackward0` |
+| 파라메터 | True | True | None |
+| 파라메터 × 2 | True | **False** | `MulBackward0` |
 | 상수 × 2 | False | True | None |
 | `detach()` | False | True | None |
 
 `requires_grad=False`이면서 `is_leaf=False`인 텐서는 없다. 미분을 따라가지 않는
-텐서는 그래프 위에 있지도 않으니, 그래프 바깥에 있다는 말과 잎이라는 말이 같은
-뜻이 된다. 그래서 `상수 × 2`도 잎이고, `detach()`로 떼어 낸 것도 잎이다.
+텐서는 그래프 위에 있지도 않으니, 그래프 바깥에 있다는 말과 리프라는 말이 같은
+뜻이 된다. 그래서 `상수 × 2`도 리프이고, `detach()`로 떼어 낸 것도 리프다.
 
-잎의 뜻은 이렇게 적는 게 맞다. **그래프를 거꾸로 거슬러 올라가 더 갈 곳이 없는
-텐서.** 그래서 잎은 두 갈래다 — 내가 손으로 만든 것(파라미터·입력), 그리고
+리프의 뜻은 이렇게 적는 게 맞다. **그래프를 거꾸로 거슬러 올라가 더 갈 곳이 없는
+텐서.** 그래서 리프는 두 갈래다 — 내가 손으로 만든 것(파라메터·입력), 그리고
 미분을 따라가지 않아 애초에 그래프에 들지 않은 것(상수).
 
-`grad_fn`은 그 텐서를 만든 연산을 가리킨다. 잎에는 만든 연산이 없으니 `None`이고,
-`None`이 아니라면 그 텐서는 잎이 아니다. 둘은 같은 사실을 두 방향에서 말한다.
+`grad_fn`은 그 텐서를 만든 연산을 가리킨다. 리프에는 만든 연산이 없으니 `None`이고,
+`None`이 아니라면 그 텐서는 리프가 아니다. 둘은 같은 사실을 두 방향에서 말한다.
 
-## 3. `.grad`는 잎에만 채워진다
+## 3. `.grad`는 리프에만 채워진다
 
-`h = x * 3`은 `requires_grad=True`지만 잎이 아니다. `backward()`를 부른 뒤
+`h = x * 3`은 `requires_grad=True`지만 리프가 아니다. `backward()`를 부른 뒤
 `h.grad`를 읽으면 `None`이 온다.
 
 조용히 `None`이 오는 것이 아니다. **파이토치가 경고를 띄운다.**
@@ -326,7 +326,7 @@ $\partial y/\partial h = 2h = [6, 12]$인데, 그 값이 그대로 들어왔다.
 `.grad`는 덮어쓰는 것이 아니라 **더한다.** 같은 식으로 세 번 `backward()`를 부르면
 `[2,4,6] → [4,8,12] → [6,12,18]`로 쌓인다.
 
-기본값이 왜 누적인지는 「메모리 관리」에서 본 경사 누적이 답이다 — 배치를 쪼개
+기본값이 왜 누적인지는 「메모리 관리」에서 본 그래디언트 누적이 답이다 — 배치를 쪼개
 여러 번 `backward()`하고 한 번 `step()`하면 큰 배치와 같아진다. 그러니 누적은
 버그가 아니라 기능이고, 매 걸음 지우는 쪽이 사용자의 몫이다.
 
@@ -336,24 +336,24 @@ $\partial y/\partial h = 2h = [6, 12]$인데, 그 값이 그대로 들어왔다.
 `opt.zero_grad(set_to_none=True)`로 `None`으로 두거나. 흔히 메모리를 아끼려는
 차이로만 설명되는데, **걸음이 달라진다.**
 
-모멘텀을 켠 SGD로 한 걸음 걷고 경사를 지운 다음 `step()`을 한 번 더 불러 보았다.
+모멘텀을 켠 SGD로 한 걸음 걷고 그래디언트를 지운 다음 `step()`을 한 번 더 불러 보았다.
 
-| | 가중치 |
+| | 웨이트 |
 |---|---|
 | `set_to_none=True` | −0.021486  +0.282214  −0.422172 |
 | `set_to_none=False` | −0.036934  +0.257463  −0.374460 |
 
-0.047712만큼 다른 자리에 가 있다. `None`이면 `step()`이 그 파라미터를 아예
-건너뛰는데, 0이면 경사가 0일 뿐이므로 **모멘텀이 남아 계속 밀고 간다.** 가중치
+0.047712만큼 다른 자리에 가 있다. `None`이면 `step()`이 그 파라메터를 아예
+건너뛰는데, 0이면 그래디언트가 0일 뿐이므로 **모멘텀이 남아 계속 밀고 간다.** 웨이트
 감쇠를 켜 두었다면 그것도 계속 작용한다.
 
 파이토치 2.0부터 `zero_grad()`의 기본값이 `set_to_none=True`인 까닭이 여기 있다.
-경사를 지웠다는 말은 "이번에는 이 파라미터에 할 말이 없다"는 뜻이어야 하고,
+그래디언트를 지웠다는 말은 "이번에는 이 파라메터에 할 말이 없다"는 뜻이어야 하고,
 0은 "0만큼 움직여라"라는 다른 말이다.
 
-## 5. 홑값이 아닌 출력에는 `v` 를 주어야 한다
+## 5. 스칼라가 아닌 출력에는 `v` 를 주어야 한다
 
-`out`이 홑값이면 `out.backward()`로 끝나지만, 모양이 있으면 거절한다.
+`out`이 스칼라이면 `out.backward()`로 끝나지만, 모양이 있으면 거절한다.
 
 ```
 grad can be implicitly created only for scalar outputs
@@ -364,7 +364,7 @@ grad can be implicitly created only for scalar outputs
 `.grad`는 언제나 텐서와 같은 모양이다.
 
 그래서 `backward(v)`는 야코비를 만들지 않고 **$v^\top J$만 계산한다**(벡터-야코비
-곱). $v$는 "출력 각 자리를 얼마씩 중히 보겠다"는 무게이고, 홑값일 때
+곱). $v$는 "출력 각 자리를 얼마씩 중히 보겠다"는 가중 계수이고, 스칼라일 때
 `backward()`가 되는 것은 $v=1$을 넣어 주기 때문이다.
 
 $\text{out} = xA^\top$이면 $x$에 대한 VJP는 $vA$다. 코드가 그 둘을 견주어
@@ -394,18 +394,18 @@ $\frac{d}{dx}x^2 = 2x$를 계산하려면 $x$가 있어야 하고, $\frac{d}{dx}
 `retain_graph=True`를 켜면 버퍼를 남겨 두므로 두 번 걸을 수 있고, 그만큼 메모리를
 더 오래 쥔다.
 
-## 7. 파라미터를 제자리에서 고치려면
+## 7. 파라메터를 제자리에서 고치려면
 
-옵티마이저 없이 손으로 가중치를 고쳐 보자. `p -= 0.1 * p.grad`를 그냥 쓰면
+옵티마이저 없이 손으로 웨이트를 고쳐 보자. `p -= 0.1 * p.grad`를 그냥 쓰면
 막힌다.
 
 ```
 a leaf Variable that requires grad is being used in an in-place operation.
 ```
 
-막는 까닭은 분명하다. `p`는 잎이고 미분이 따라붙어 있는데 그 값을 제자리에서
+막는 까닭은 분명하다. `p`는 리프이고 미분이 따라붙어 있는데 그 값을 제자리에서
 바꾸면, 이미 쌓아 둔 그래프가 가리키는 값과 달라진다. `torch.no_grad()` 안에서는
-이 검사를 넘기고, `p`는 그대로 잎이며 `requires_grad`도 `True`로 남는다.
+이 검사를 넘기고, `p`는 그대로 리프이며 `requires_grad`도 `True`로 남는다.
 
 여기까지는 파이토치가 지켜 준다. **지켜 주지 않는 길도 있다** — 연습문제 2가
 그 자리다.
@@ -450,7 +450,7 @@ $f(x) = x^3 - 2x^2 + x$에 대해 autograd로 $f'(3)$을 구하고, 손으로 �
 
     $f'(x) = 3x^2 - 4x + 1$이므로 $f'(3) = 27 - 12 + 1 = 16$이다.
 
-    `x`는 손으로 만든 잎이므로 `.grad`를 받는다. 중간에 생긴 `f`는 잎이 아니어서
+    `x`는 손으로 만든 리프이므로 `.grad`를 받는다. 중간에 생긴 `f`는 리프가 아니어서
     `f.grad`는 `None`이고, 읽으려 하면 3절의 경고가 뜬다.
 
 ---
@@ -460,7 +460,7 @@ $f(x) = x^3 - 2x^2 + x$에 대해 autograd로 $f'(3)$을 구하고, 손으로 �
 **연습문제 2.** <span class="diff med" title="중간"></span>
 `detach()`와 `torch.no_grad()`는 둘 다 미분 추적을 끊는다. 그러나 같지 않다.
 두 가지로 만든 텐서가 원본과 **저장소를 공유하는지** 확인하라. 그리고 `detach()`로
-받은 손잡이를 제자리에서 고친 뒤 `backward()`를 불러, 나온 경사가 맞는지 보라.
+받은 핸들을 제자리에서 고친 뒤 `backward()`를 불러, 나온 그래디언트가 맞는지 보라.
 
 </div>
 
@@ -475,7 +475,7 @@ $f(x) = x^3 - 2x^2 + x$에 대해 autograd로 $f'(3)$을 구하고, 손으로 �
     print(f"  no_grad 안 w*1  requires_grad={n.requires_grad}  "
           f"저장소 공유={n.data_ptr() == w.data_ptr()}")
 
-    # detach 로 받은 손잡이를 고치면 원본이 바뀐다
+    # detach 로 받은 핸들을 고치면 원본이 바뀐다
     w = torch.tensor([1.0, 2.0], requires_grad=True)
     y = w * 3
     y.detach()[0] = 99.0
@@ -485,12 +485,12 @@ $f(x) = x^3 - 2x^2 + x$에 대해 autograd로 $f'(3)$을 구하고, 손으로 �
     print("    참값 18w   =", (18 * torch.tensor([1.0, 2.0])).tolist())
     print("    터지지도, 경고하지도 않는다")
 
-    # 잎을 직접 고치려 하면 막는다 (7절)
+    # 리프를 직접 고치려 하면 막는다 (7절)
     p = torch.tensor([1.0, 2.0], requires_grad=True)
     try:
         p[0] = 99.0
     except RuntimeError as e:
-        print("  잎을 직접:", str(e).splitlines()[0])
+        print("  리프를 직접:", str(e).splitlines()[0])
     ```
 
     ```
@@ -500,7 +500,7 @@ $f(x) = x^3 - 2x^2 + x$에 대해 autograd로 $f'(3)$을 구하고, 손으로 �
         w.grad     = [594.0, 36.0]
         참값 18w   = [18.0, 36.0]
         터지지도, 경고하지도 않는다
-      잎을 직접: a view of a leaf Variable that requires grad is being used in an in-place operation.
+      리프를 직접: a view of a leaf Variable that requires grad is being used in an in-place operation.
     ```
 
     **`detach()`는 저장소를 공유한다.** 미분만 떼어 낸 같은 데이터이고, 그래서
@@ -509,11 +509,11 @@ $f(x) = x^3 - 2x^2 + x$에 대해 autograd로 $f'(3)$을 구하고, 손으로 �
 
     그 다음이 이 문제의 핵심이다. $y = 3w$, 로스 $= \sum (3w)^2$이므로 참값은
     $18w = [18, 36]$인데 **`[594, 36]`이 나왔다.** 594는 $2 \times 99 \times 3$,
-    곧 99로 고쳐진 값으로 계산한 경사다. 역전파가 저장해 둔 버퍼를 `detach()`
-    손잡이로 덮어썼고, 엔진은 덮어쓴 것을 그대로 읽었다.
+    곧 99로 고쳐진 값으로 계산한 그래디언트다. 역전파가 저장해 둔 버퍼를 `detach()`
+    핸들로 덮어썼고, 엔진은 덮어쓴 것을 그대로 읽었다.
 
     **터지지도, 경고하지도 않는다.** 7절에서 같은 종류의 잘못을 파이토치가
-    `RuntimeError`로 막았고, 잎의 뷰를 직접 고치려 해도 막는다. 그런데
+    `RuntimeError`로 막았고, 리프의 뷰를 직접 고치려 해도 막는다. 그런데
     `detach()`를 한 번 거치면 그 검사를 지나가고, 남는 것은 조용히 틀린 숫자다.
 
     그래서 `detach()`는 "미분을 끊는다"로만 기억할 것이 아니다. **읽기 전용으로
@@ -568,6 +568,6 @@ $f(x) = x^3 - 2x^2 + x$에 대해 autograd로 $f'(3)$을 구하고, 손으로 �
 
     이 방법의 값은 출력이 몇 개인지에 달려 있다. 출력이 $m$개면 역전파를 $m$번
     불러야 하므로, 출력이 하나인 로스에서는 한 번으로 끝나고 출력이 큰 함수에서는
-    비싸다. 로스를 홑값으로 만들어 쓰는 관행이 여기서 나온다. 야코비가 정말
+    비싸다. 로스를 스칼라로 만들어 쓰는 관행이 여기서 나온다. 야코비가 정말
     필요하면 `torch.autograd.functional.jacobian`이나 `torch.func.jacrev`를
     쓰는 쪽이 낫다.

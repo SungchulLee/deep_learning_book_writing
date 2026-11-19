@@ -1,25 +1,25 @@
 # 프로토타입 네트워크
 
-프로토타입 네트워크는 서포트 표본의 임베딩을 클래스별로 평균 내고, 쿼리를 가장 가까운 평균에 배정한다. 에피소드마다 새 분류 기준을 계산하므로 테스트 클래스마다 별도의 출력 레이어를 학습할 필요가 없다. Snell 등의 「Prototypical Networks for Few-shot Learning」(2017)에 기반한 간단한 예제다.
+프로토타입 네트워크는 서포트 표본의 임베딩을 클래스별로 평균 내고, 쿼리를 가장 가까운 평균에 배정한다. 에피소드마다 새 분류 기준을 계산하므로 시험 클래스마다 별도의 출력 레이어를 학습할 필요가 없다. Snell 등의 「Prototypical Networks for Few-shot Learning」(2017)에 기반한 간단한 예제다.
 
 ## 1. 코드
 
 ```python
 """
-소수 예시 학습을 위한 원형 망
+퓨샷 학습을 위한 프로토타입 네트워크
 
 참고: Snell 외, "Prototypical Networks for Few-shot Learning" (2017)
 
-핵심 생각: 받침 보기의 임베딩을 평균 내어 부류마다 원형 표현을 셈한 다음,
-그 원형까지의 거리를 바탕으로
-물음을 가려낸다.
+핵심 아이디어: 서포트 표본의 임베딩을 평균 내어 클래스마다 프로토타입 표현을 계산한 다음,
+그 프로토타입까지의 거리를 바탕으로
+쿼리를 분류한다.
 """
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 시드를 고정한다.
 torch.manual_seed(0)
 
 
@@ -30,8 +30,8 @@ torch.manual_seed(0)
 
 class ConvEncoder(nn.Module):
     """
-    그림을 묻는 단순한 4레이어 컨볼루션 인코더.
-    소수 예시 학습 논문에서 흔히 쓴다.
+    이미지를 임베딩하는 단순한 4레이어 컨볼루션 인코더.
+    퓨샷 학습 논문에서 흔히 쓴다.
     """
     def __init__(self, input_channels=1, hidden_dim=64, output_dim=64):
         super(ConvEncoder, self).__init__()
@@ -58,10 +58,10 @@ class ConvEncoder(nn.Module):
 
 class PrototypicalNetwork(nn.Module):
     """
-    N-클래스 K-예시 분류를 위한 원형 망.
+    N-way K-shot 분류를 위한 프로토타입 네트워크.
     
     인수:
-        encoder: 입력을 피처 공간에 묻는 뉴럴 네트워크
+        encoder: 입력을 피처 공간에 임베딩하는 뉴럴 네트워크
     """
     def __init__(self, encoder):
         super(PrototypicalNetwork, self).__init__()
@@ -70,44 +70,44 @@ class PrototypicalNetwork(nn.Module):
     def forward(self, support, support_labels, query):
         """
         인수:
-            support: (n_support, *input_shape) - 서포트 집합 보기
-            support_labels: (n_support,) - 서포트 집합의 이름표
-            query: (n_query, *input_shape) - 가려낼 물음 보기
+            support: (n_support, *input_shape) - 서포트 집합 표본
+            support_labels: (n_support,) - 서포트 집합의 라벨
+            query: (n_query, *input_shape) - 분류할 쿼리 표본
         
         반환값:
-            logits: (n_query, n_classes) - 가려내기 로짓
+            logits: (n_query, n_classes) - 분류 로짓
         """
-        # 모든 보기를 묻는다
+        # 모든 표본을 임베딩한다
         n_classes = len(torch.unique(support_labels))
         n_support = support.shape[0]
         n_query = query.shape[0]
         
-        # 효율적인 부호화를 위해 받침과 물음을 이어 붙인다
+        # 효율적인 인코딩을 위해 서포트와 쿼리를 이어 붙인다
         all_examples = torch.cat([support, query], dim=0)
         embeddings = self.encoder(all_examples)
         
-        # 다시 받침과 물음으로 쪼갠다
+        # 다시 서포트와 쿼리로 나눈다
         support_embeddings = embeddings[:n_support]
         query_embeddings = embeddings[n_support:]
         
-        # 부류마다 원형을 셈한다
+        # 클래스마다 프로토타입을 계산한다
         prototypes = self._compute_prototypes(support_embeddings, support_labels, n_classes)
         
-        # 물음에서 원형까지의 거리를 셈한다
+        # 쿼리에서 프로토타입까지의 거리를 계산한다
         logits = self._compute_logits(query_embeddings, prototypes)
         
         return logits
     
     def _compute_prototypes(self, embeddings, labels, n_classes):
         """
-        받침 임베딩의 평균으로 부류마다 원형을 셈한다.
+        서포트 임베딩의 평균으로 클래스마다 프로토타입을 계산한다.
         """
         prototypes = []
         for c in range(n_classes):
-            # 부류 c의 받침 보기를 모두 찾는다
+            # 클래스 c의 서포트 표본을 모두 찾는다
             class_mask = (labels == c)
             class_embeddings = embeddings[class_mask]
-            # 평균(원형)을 셈한다
+            # 평균(프로토타입)을 계산한다
             prototype = class_embeddings.mean(dim=0)
             prototypes.append(prototype)
         
@@ -115,16 +115,16 @@ class PrototypicalNetwork(nn.Module):
     
     def _compute_logits(self, query_embeddings, prototypes):
         """
-        물음에서 원형까지의 유클리드 거리 제곱의 음수를 셈한다.
-        거리의 음수가 로짓 노릇을 한다(가까울수록 확률이 높다).
+        쿼리에서 프로토타입까지의 유클리드 거리 제곱의 음수를 계산한다.
+        거리의 음수가 로짓 역할을 한다(가까울수록 확률이 높다).
         """
-        # 퍼뜨리기를 위해 차원을 늘린다
+        # 브로드캐스팅을 위해 차원을 늘린다
         # query: (n_query, 1, embedding_dim)
         # prototypes: (1, n_classes, embedding_dim)
         query_expanded = query_embeddings.unsqueeze(1)
         prototypes_expanded = prototypes.unsqueeze(0)
         
-        # 유클리드 거리의 제곱을 셈한다
+        # 유클리드 거리의 제곱을 계산한다
         distances = torch.sum((query_expanded - prototypes_expanded) ** 2, dim=2)
         
         # 거리의 음수를 로짓으로 낸다
@@ -133,7 +133,7 @@ class PrototypicalNetwork(nn.Module):
 
 def train_step(model, support, support_labels, query, query_labels, optimizer):
     """
-    원형 망의 학습 스텝 하나.
+    프로토타입 네트워크의 학습 스텝 하나.
     """
     model.train()
     optimizer.zero_grad()
@@ -157,7 +157,7 @@ def train_step(model, support, support_labels, query, query_labels, optimizer):
 
 def evaluate(model, support, support_labels, query, query_labels):
     """
-    소수 예시 과제에서 모델을 평가한다.
+    퓨샷 과제에서 모델을 평가한다.
     """
     model.eval()
     with torch.no_grad():
@@ -175,12 +175,12 @@ if __name__ == "__main__":
     encoder = ConvEncoder(input_channels=1, hidden_dim=64, output_dim=64)
     model = PrototypicalNetwork(encoder)
     
-    # 5-클래스 1-예시 과제 보기
+    # 5-way 1-shot 과제 예
     n_way = 5
     k_shot = 1
     n_query = 15
     
-    # 흉내 데이터(batch_size, channels, height, width)
+    # 더미 데이터(batch_size, channels, height, width)
     support = torch.randn(n_way * k_shot, 1, 28, 28)
     support_labels = torch.arange(n_way).repeat_interleave(k_shot)
     query = torch.randn(n_query, 1, 28, 28)
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     logits = model(support, support_labels, query)
     print(f"Logits shape: {logits.shape}")  # (15, 5)이어야 한다
     
-    # 학습 보기
+    # 학습 예
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss, acc = train_step(model, support, support_labels, query, query_labels, optimizer)
     print(f"Loss: {loss:.4f}, Accuracy: {acc:.4f}")
@@ -205,7 +205,7 @@ Loss: 10.5765, Accuracy: 0.0667
 
 ## 2. 논의
 
-클래스 $c$의 서포트 집합을 $S_c$라 하면 프로토타입은 $p_c=|S_c|^{-1}\sum_{x\in S_c}f_\theta(x)$다. 쿼리 $q$의 로짓은 $-\|f_\theta(q)-p_c\|^2$이며, 클래스 축 소프트맥스로 확률을 얻는다. 학습 중에는 쿼리 로스의 경사가 쿼리 임베딩과 서포트 평균을 거쳐 인코더에 전달된다.
+클래스 $c$의 서포트 집합을 $S_c$라 하면 프로토타입은 $p_c=|S_c|^{-1}\sum_{x\in S_c}f_\theta(x)$다. 쿼리 $q$의 로짓은 $-\|f_\theta(q)-p_c\|^2$이며, 클래스 축 소프트맥스로 확률을 얻는다. 학습 중에는 쿼리 로스의 그래디언트가 쿼리 임베딩과 서포트 평균을 거쳐 인코더에 전달된다.
 
 코드는 고유 라벨의 개수를 센 다음 0부터 순회한다. 따라서 에피소드 라벨은 빈 클래스 없이 0부터 N−1까지 다시 매겨야 한다. 예를 들어 원래 라벨 3과 8을 그대로 전달하면 빈 집합의 평균을 계산하게 된다. 예제의 쿼리 15개는 클래스당 15개가 아니라 에피소드 전체 개수다.
 
@@ -216,7 +216,7 @@ Loss: 10.5765, Accuracy: 0.0667
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-배치 4개, 입력 (4,1,28,28)일 때 ConvEncoder의 각 블록 출력과 최종 임베딩 모양을 계산하라.
+배치 4개, 입력 (4,1,28,28)일 때 ConvEncoder의 각 블록 출력과 최종 임베딩 형태를 계산하라.
 
 </div>
 

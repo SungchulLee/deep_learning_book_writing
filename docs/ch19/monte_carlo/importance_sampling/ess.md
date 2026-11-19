@@ -12,7 +12,7 @@ w̄_i²≤w̄_i에서 ∑w̄_i²≤1, Cauchy–Schwarz에서 1=(∑w̄_i)²≤n�
 
 ## 2. 해석
 
-ESS_w/n은 웨이트의 집중도를 상대적으로 보여준다. 값이 작으면 소수의 관측 표본이 정규화 평균을 좌우한다. 하지만 ESS_w=n이라는 사실만으로 표본이 목표분포를 정확히 대표하거나 독립이라고 할 수는 없다. 중요한 모드를 놓쳤거나 재표집된 동일 표본이 복제되어도 웨이트는 균등할 수 있다.
+ESS_w/n은 웨이트의 집중도를 상대적으로 보여준다. 값이 작으면 소수의 관측 표본이 정규화 평균을 좌우한다. 하지만 ESS_w=n이라는 사실만으로 표본이 목표분포를 정확히 대표하거나 독립이라고 할 수는 없다. 중요한 모드를 놓쳤거나 재샘플링된 동일 표본이 복제되어도 웨이트는 균등할 수 있다.
 
 SNIS의 함수별 점근 분산은 다음과 같다.
 
@@ -51,29 +51,29 @@ import matplotlib.pyplot as plt
 
 def compute_ess_normalized(weights):
     """
-    고르게 한 무게로 ESS 셈하기.
+    정규화한 웨이트로 ESS 계산하기.
     
     ESS = 1 / sum_i w_i^2
     
     파라메터
     ----------
     weights : torch.Tensor
-        고르게 한 무게(합이 1)
+        정규화한 웨이트(합이 1)
         
     반환값
     -------
     ess : float
-        실효 표본 크기
+        유효 표본 크기
     """
     return 1.0 / torch.sum(weights**2)
 
 def compute_ess_unnormalized(unnorm_weights):
     """
-    고르게 하지 않은 무게로 ESS 셈하기.
+    정규화하지 않은 웨이트로 ESS 계산하기.
     
     ESS = (sum_i w_i)^2 / sum_i w_i^2
     
-    먼저 고르게 하는 것보다 수치로 더 안정하다.
+    먼저 정규화하는 것보다 수치적으로 더 안정적이다.
     """
     sum_w = torch.sum(unnorm_weights)
     sum_w_sq = torch.sum(unnorm_weights**2)
@@ -81,11 +81,11 @@ def compute_ess_unnormalized(unnorm_weights):
 
 def compute_ess_log_weights(log_weights):
     """
-    로그 무게로 ESS 셈하기(수치로 가장 안정하다).
+    로그 웨이트로 ESS 계산하기(수치적으로 가장 안정적이다).
     
-    무게가 여러 자릿수에 걸쳐 있을 때 쓸모 있다.
+    웨이트가 여러 자릿수에 걸쳐 있을 때 쓸모 있다.
     """
-    # 로그 공간에서 고르게 하기
+    # 로그 공간에서 정규화하기
     log_sum = torch.logsumexp(log_weights, dim=0)
     log_norm_weights = log_weights - log_sum
     
@@ -97,26 +97,26 @@ def compute_ess_log_weights(log_weights):
 
 def weight_diagnostics(weights, n_samples=None, name=""):
     """
-    무게와 ESS 두루 진단하기.
+    웨이트와 ESS 종합 진단하기.
     
     파라메터
     ----------
     weights : torch.Tensor
-        중요도 무게(고르게 했거나 안 했거나)
+        중요도 웨이트(정규화했거나 안 했거나)
     n_samples : int, optional
-        표본의 전체 개수(None이면 무게에서 미루어 안다)
+        표본의 전체 개수(None이면 웨이트에서 추론한다)
     name : str
-        찍기 위한 이름표
+        출력용 라벨
         
     반환값
     -------
     dict
-        진단 통계량의 사전
+        진단 통계량의 딕셔너리
     """
     if n_samples is None:
         n_samples = len(weights)
     
-    # 필요하면 고르게 하기
+    # 필요하면 정규화하기
     if not torch.isclose(weights.sum(), torch.tensor(1.0), atol=1e-6):
         norm_weights = weights / weights.sum()
     else:
@@ -126,15 +126,15 @@ def weight_diagnostics(weights, n_samples=None, name=""):
     ess = compute_ess_normalized(norm_weights)
     ess_ratio = ess / n_samples
     
-    # 무게 통계량
+    # 웨이트 통계량
     max_weight = norm_weights.max()
     min_weight = norm_weights.min()
     uniform_weight = 1.0 / n_samples
     
-    # 변이 계수
+    # 변동계수
     cv = norm_weights.std() / norm_weights.mean()
     
-    # 무게 몰림
+    # 웨이트 집중
     sorted_weights = torch.sort(norm_weights, descending=True)[0]
     cumsum = torch.cumsum(sorted_weights, dim=0)
     
@@ -147,7 +147,7 @@ def weight_diagnostics(weights, n_samples=None, name=""):
     max_entropy = torch.log(torch.tensor(float(n_samples)))
     perplexity = torch.exp(entropy)
     
-    # 흩어짐 부풂
+    # 분산 팽창
     variance_inflation = n_samples / ess
     
     diagnostics = {
@@ -187,7 +187,7 @@ def weight_diagnostics(weights, n_samples=None, name=""):
               f"(normalized: {diagnostics['normalized_entropy']:.3f})")
         print(f"  Perplexity: {perplexity.item():.1f}")
         
-        # 질 살피기
+        # 품질 평가
         if ess_ratio.item() > 0.5:
             quality = "EXCELLENT"
         elif ess_ratio.item() > 0.2:
@@ -216,7 +216,7 @@ proposals = {
     'Decent: N(4.5, 1.5)': dist.Normal(4.5, 1.5),
     'Poor: N(3, 2)': dist.Normal(3.0, 2.0),
     'Bad: N(5, 0.5)': dist.Normal(5.0, 0.5),  # 너무 좁음
-    'Terrible: N(0, 1)': dist.Normal(0.0, 1.0),  # 틀린 자리
+    'Terrible: N(0, 1)': dist.Normal(0.0, 1.0),  # 잘못된 위치
 }
 
 n_samples = 5000
@@ -230,7 +230,7 @@ print("-" * 70)
 
 results = {}
 for name, proposal in proposals.items():
-    # 표집하고 무게 셈하기
+    # 샘플링하고 웨이트 계산하기
     samples = proposal.sample((n_samples,))
     log_weights = target.log_prob(samples) - proposal.log_prob(samples)
     weights = torch.exp(log_weights - torch.logsumexp(log_weights, 0))
@@ -261,7 +261,7 @@ Terrible: N(0, 1)                1.2       0.0%      65.82       4653.5x
 
 ---
 
-## 5. ESS과 표본 크기 늘리기
+## 5. ESS와 표본 크기 증가
 
 고정된 q에서 독립 표본을 얻고 0<E_qW<∞, E_qW²<∞라면 대수의 법칙으로 다음을 얻는다.
 
@@ -275,7 +275,7 @@ $$\frac{ESS_w}{n}\xrightarrow{a.s.}\frac{(E_qW)^2}{E_qW^2}$$
 # n에 따른 ESS 변화 보이기
 sample_sizes = [100, 500, 1000, 2000, 5000, 10000]
 
-# 붙박인 제안-타깃 짝
+# 고정된 제안-타깃 쌍
 target = dist.Normal(5.0, 1.0)
 proposal = dist.Normal(3.0, 2.0)  # 일부러 어긋나게 함
 
@@ -334,7 +334,7 @@ def verify_variance_ess_relationship(
     true_value, n_samples=5000, n_reps=500
 ):
     """
-    Var(어림꼴) ~ Var_pi(h)/ESS임을 경험으로 확인하기
+    Var(추정량) ~ Var_pi(h)/ESS임을 경험으로 확인하기
     """
     estimates = []
     ess_values = []
@@ -361,7 +361,7 @@ def verify_variance_ess_relationship(
     mse = ((estimates - true_value)**2).mean().item()
     bias = (estimates.mean() - true_value).item()
     
-    # 이론의 미리봄
+    # 이론의 예측
     good_proposal = dist.Normal(5.0, 1.1)
     samples = good_proposal.sample((50000,))
     log_w = (target_log_prob(samples)
@@ -425,7 +425,7 @@ def track_ess_over_iterations(
     log_target, initial_proposal, n_per_iter, n_iters
 ):
     """
-    표본을 쌓거나 제안을 맞춰 가며 ESS 기록하기.
+    표본을 누적하거나 제안을 적응시키며 ESS 기록하기.
     """
     ess_history = []
     cumulative_ess_history = []
@@ -444,14 +444,14 @@ def track_ess_over_iterations(
         all_samples.append(samples)
         all_log_weights.append(log_weights)
         
-        # 이번 되풀이의 ESS
+        # 이번 반복의 ESS
         weights = torch.exp(
             log_weights - torch.logsumexp(log_weights, 0)
         )
         ess_iter = compute_ess_normalized(weights)
         ess_history.append(ess_iter.item())
         
-        # 쌓인 ESS(지금까지의 모든 표본)
+        # 누적 ESS(지금까지의 모든 표본)
         all_log_w = torch.cat(all_log_weights)
         all_w = torch.exp(
             all_log_w - torch.logsumexp(all_log_w, 0)
@@ -459,7 +459,7 @@ def track_ess_over_iterations(
         cumulative_ess = compute_ess_normalized(all_w)
         cumulative_ess_history.append(cumulative_ess.item())
         
-        # 단순한 맞춰 가기: 무게 표본에 가우스 맞추기
+        # 단순한 적응: 가중 표본에 가우스 적합하기
         if t > 0 and t % 5 == 0:
             all_s = torch.cat(all_samples)
             weighted_mean = torch.sum(
@@ -482,9 +482,9 @@ def track_ess_over_iterations(
 
 ## 8. 계량 금융에서의 ESS
 
-꼬리 위험 추정에서는 전체 웨이트 ESS와 로스 꼬리의 정보량이 다를 수 있다. 이 페이지에 특정 위험지표별 최소 ESS를 규제 요구처럼 제시할 근거는 없다. 정확도 목표를 정하고 가중 분위수·꼬리 기여의 변동과 모형 불확실성을 따로 평가한다.
+꼬리 위험 추정에서는 전체 웨이트 ESS와 손실 꼬리의 정보량이 다를 수 있다. 이 페이지에 특정 위험지표별 최소 ESS를 규제 요구처럼 제시할 근거는 없다. 정확도 목표를 정하고 가중 분위수·꼬리 기여의 변동과 모형 불확실성을 따로 평가한다.
 
-아래 함수는 ESS 임계값에서 표본 수집을 멈추고 로스와 **웨이트**를 반환할 뿐 VaR·ES를 계산하지 않는다. 이후 웨이트를 버리고 단순 로스 분위수를 계산하면 제안분포의 위험을 추정하게 된다. ESS 기반 임의 종료가 고정 표본 신뢰구간의 커버리지를 보장하지 않으며 최대 배치 도달도 따로 보고해야 한다.
+아래 함수는 ESS 임계값에서 표본 수집을 멈추고 손실과 **웨이트**를 반환할 뿐 VaR·ES를 계산하지 않는다. 이후 웨이트를 버리고 단순 손실 분위수를 계산하면 제안분포의 위험을 추정하게 된다. ESS 기반 임의 종료가 고정 표본 신뢰구간의 커버리지를 보장하지 않으며 최대 배치 도달도 따로 보고해야 한다.
 
 ### ESS 모니터링 예제
 
@@ -494,19 +494,19 @@ def risk_estimation_with_ess_monitoring(
     ess_threshold=1000, max_batches=10, batch_size=10000
 ):
     """
-    ESS을 지켜보다가 멈추는 맞춰 가는 위험 어림
-    실효 표본이 넉넉히 모이면 멈춘다.
+    ESS를 모니터링하다가 멈추는 적응적 위험 추정
+    유효 표본이 넉넉히 모이면 멈춘다.
     
     파라메터
     ----------
     loss_simulator : callable
-        위험 인자 표본을 포트폴리오 로스로 잇는다
+        위험 인자 표본을 포트폴리오 손실로 사상한다
     proposal_dist : distribution
-        중요도 표집 제안
+        중요도 샘플링 제안
     target_dist : distribution
         위험 인자의 타깃(실제) 분포
     ess_threshold : float
-        미더운 어림값에 필요한 최소 ESS
+        신뢰할 만한 추정값에 필요한 최소 ESS
     """
     all_samples = []
     all_log_weights = []
@@ -520,7 +520,7 @@ def risk_estimation_with_ess_monitoring(
         all_samples.append(samples)
         all_log_weights.append(log_w)
         
-        # 쌓인 ESS 셈하기
+        # 누적 ESS 계산하기
         combined_log_w = torch.cat(all_log_weights)
         combined_w = torch.exp(
             combined_log_w
@@ -537,7 +537,7 @@ def risk_estimation_with_ess_monitoring(
             print(f"ESS threshold {ess_threshold} reached.")
             break
     
-    # 마지막 무게 표본으로 위험 잣대 셈하기
+    # 마지막 가중 표본으로 위험 지표 계산하기
     combined_samples = torch.cat(all_samples)
     losses = loss_simulator(combined_samples)
     
@@ -553,7 +553,7 @@ def risk_estimation_with_ess_monitoring(
 ```python
 def plot_ess_diagnostics(weights, samples, name=""):
     """
-    ESS을 두루 그려 보기.
+    ESS 종합 시각화.
     """
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     n = len(weights)
@@ -565,7 +565,7 @@ def plot_ess_diagnostics(weights, samples, name=""):
     
     ess = compute_ess_normalized(weights)
     
-    # 칸 1: 무게 막대그림
+    # 칸 1: 웨이트 히스토그램
     ax = axes[0, 0]
     ax.hist(weights.numpy() * n, bins=50, density=True, 
             alpha=0.7, color='steelblue', edgecolor='black')
@@ -581,7 +581,7 @@ def plot_ess_diagnostics(weights, samples, name=""):
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 칸 2: 쌓인 무게 곡선
+    # 칸 2: 누적 웨이트 곡선
     sorted_w = torch.sort(weights, descending=True)[0]
     cumsum = torch.cumsum(sorted_w, dim=0)
     
@@ -604,7 +604,7 @@ def plot_ess_diagnostics(weights, samples, name=""):
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.3)
     
-    # 칸 3: 로그 무게 막대그림
+    # 칸 3: 로그 웨이트 히스토그램
     log_weights = torch.log(weights * n)
     
     ax = axes[1, 0]
@@ -619,7 +619,7 @@ def plot_ess_diagnostics(weights, samples, name=""):
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 칸 4: n에 따른 ESS 흉내내기
+    # 칸 4: n에 따른 ESS 시뮬레이션
     ns = [100, 200, 500, 1000, 2000, 5000]
     ratios = []
     
@@ -658,7 +658,7 @@ def plot_ess_diagnostics(weights, samples, name=""):
 
 ## 10. 핵심 정리
 
-ESS_w는 웨이트의 집중도를 요약하고 원시 웨이트의 공통 배수에 불변이다. 함수별 MCSE·바이어스·모드 누락·독립성을 판정하는 양은 아니다. 재표집 직후 균등 웨이트가 되었다고 원래 표본의 다양성이 회복되는 것도 아니다.
+ESS_w는 웨이트의 집중도를 요약하고 원시 웨이트의 공통 배수에 불변이다. 함수별 MCSE·편향·모드 누락·독립성을 판정하는 양은 아니다. 재샘플링 직후 균등 웨이트가 되었다고 원래 표본의 다양성이 회복되는 것도 아니다.
 
 로그 계산으로 안정화하고 지지집합·가중 꼬리·반복 실행과 관심 함수의 오차를 함께 살핀다. MCMC의 자기상관 기반 ESS와 중요도 웨이트 ESS도 서로 다른 진단이다.
 

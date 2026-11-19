@@ -1,6 +1,6 @@
 # LSTM 언어 모델
 
-LSTM은 셀 상태와 게이트로 정보를 유지·갱신하는 순환 뉴럴 네트워크다. 단순 tanh RNN보다 장기 의존성의 학습을 돕도록 설계되었지만 그래디언트 사라짐이나 기억 로스를 항상 없애 주지는 않는다. 이 예제는 단어 임베딩·다층 LSTM·출력 선형 레이어로 다음 단어 로짓을 만드는 구조다.
+LSTM은 셀 상태와 게이트로 정보를 유지·갱신하는 순환 뉴럴 네트워크다. 단순 tanh RNN보다 장기 의존성의 학습을 돕도록 설계되었지만 그래디언트 사라짐이나 기억 손실을 항상 없애 주지는 않는다. 이 예제는 단어 임베딩·다층 LSTM·출력 선형 레이어로 다음 단어 로짓을 만드는 구조다.
 
 ## 1. 코드와 기존 출력
 
@@ -9,11 +9,11 @@ LSTM은 셀 상태와 게이트로 정보를 유지·갱신하는 순환 뉴럴 
 튜토리얼 06: LSTM 언어 모델
 
 LSTM 식:
-f_t = sigma(W_f . [h_{t-1}, x_t] + b_f)  # 망각 문
-i_t = sigma(W_i . [h_{t-1}, x_t] + b_i)  # 입력 문
+f_t = sigma(W_f . [h_{t-1}, x_t] + b_f)  # 망각 게이트
+i_t = sigma(W_i . [h_{t-1}, x_t] + b_i)  # 입력 게이트
 C_t = f_t * C_{t-1} + i_t * tanh(W_C . [h_{t-1}, x_t] + b_C)
-o_t = sigma(W_o . [h_{t-1}, x_t] + b_o)  # 출력 문
-h_t = o_t * tanh(C_t)  # 새 숨은 상태
+o_t = sigma(W_o . [h_{t-1}, x_t] + b_o)  # 출력 게이트
+h_t = o_t * tanh(C_t)  # 새 은닉 상태
 """
 
 import torch
@@ -26,7 +26,7 @@ import numpy as np
 
 
 class LSTMLanguageModel(nn.Module):
-    """LSTM 바탕 언어 모델."""
+    """LSTM 기반 언어 모델."""
     
     def __init__(self, vocab_size, embedding_dim, hidden_dim, 
                  num_layers=2, dropout=0.2):
@@ -70,7 +70,7 @@ LSTM LM parameters: 11,368,208
 
 단어 ID 입력은 B×T, 로짓은 B×T×V다. hidden은 (h,c) 튜플이며 각 텐서는 레이어 수×B×h다. 이전 청크의 상태를 계속 쓰려면 시퀀스와 배치 행이 이어져야 하고 truncated BPTT에서는 두 텐서를 각각 detach해야 한다. 문장별 독립 처리·padding 길이·로스 마스킹은 호출부가 구성해야 한다.
 
-드롭아웃은 임베딩과 최종 출력에 적용되고 다층 LSTM 내부에서는 레이어 사이에도 적용된다. 현재 main은 모델 생성과 파라메터 수 출력만 한다. 자료·로스·학습 루프·스케줄러·그래디언트 클리핑과 시험 퍼플렉서티는 구현되어 있지 않다. 특정 Penn Treebank 수치나 RNN 대비 향상을 이 코드의 결과로 제시할 수 없다.
+드롭아웃은 임베딩과 최종 출력에 적용되고 다층 LSTM 내부에서는 레이어 사이에도 적용된다. 현재 main은 모델 생성과 파라메터 수 출력만 한다. 데이터·로스·학습 루프·스케줄러·그래디언트 클리핑과 시험 퍼플렉서티는 구현되어 있지 않다. 특정 Penn Treebank 수치나 RNN 대비 향상을 이 코드의 결과로 제시할 수 없다.
 
 ## 4. 웨이트 공유
 
@@ -131,7 +131,7 @@ f_t=0, i_t=1이면 셀 상태와 직접 기억 경로에 어떤 일이 생기며
                                batch_first=True)
             self.dropout = nn.Dropout(dropout)
             self.fc = nn.Linear(dim, vocab_size)
-            self.fc.weight = self.embedding.weight  # 무게 묶기
+            self.fc.weight = self.embedding.weight  # 웨이트 공유(weight tying)
         
         def forward(self, x, hidden=None):
             embeds = self.dropout(self.embedding(x))

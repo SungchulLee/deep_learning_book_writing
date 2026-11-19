@@ -20,9 +20,9 @@ $$(x^+-x^-)^TM^{-1}p^+,\qquad (x^+-x^-)^TM^{-1}p^-.$$
 
 ## 3. 배증 확장과 계산량
 
-초기 상태 하나에서 시작해 새 확장마다 1,2,4,…개의 적분 단계를 추가한다. j회 완전 확장했다면 새 Leapfrog는 2ʲ−1개, 초기점을 포함한 방문점은 2ʲ개다. 아래 도식은 마디 수와 인덱스를 혼용하므로 정확한 단계 수 계산으로 사용하지 않는다.
+초기 상태 하나에서 시작해 새 확장마다 1,2,4,…개의 적분 단계를 추가한다. j회 완전 확장했다면 새 Leapfrog는 2ʲ−1개, 초기점을 포함한 방문점은 2ʲ개다. 아래 도식은 노드 수와 인덱스를 혼용하므로 정확한 단계 수 계산으로 사용하지 않는다.
 
-재귀 깊이는 O(log L)일 수 있지만 실제 경사 평가 수는 O(L)다. 무작위 방향과 대칭 트리만으로 올바른 목표 보존이 자동으로 증명되지는 않는다. 부분 트리의 정지·후보 자격·선택 규칙을 함께 만족해야 한다. 트리에는 양 끝 상태, 후보, 후보 질량 또는 개수와 정지 정보를 유지한다.
+재귀 깊이는 O(log L)일 수 있지만 실제 그래디언트 평가 수는 O(L)다. 무작위 방향과 대칭 트리만으로 올바른 목표 보존이 자동으로 증명되지는 않는다. 부분 트리의 정지·후보 자격·선택 규칙을 함께 만족해야 한다. 트리에는 양 끝 상태, 후보, 후보 질량 또는 개수와 정지 정보를 유지한다.
 
 ```
 Depth 0:        [x₀]                    (1 point)
@@ -44,34 +44,34 @@ Depth j: 2ʲ points total
 
 ```
 function NUTS(x₀, ε, M):
-    # 운동량 표집
+    # 운동량 샘플링
     v₀ ~ Normal(0, M)
     
-    # 나무 첫값 잡기
+    # 트리 초기화
     x⁻ = x⁺ = x₀
     v⁻ = v⁺ = v₀
-    j = 0  # 나무 깊이
-    n = 1  # 받아들일 수 있는 상태의 수
-    s = 1  # 이어 감 깃발
+    j = 0  # 트리 깊이
+    n = 1  # 유효한 상태의 수
+    s = 1  # 계속 진행 플래그
     
-    # 첫 후보
+    # 초기 후보
     x_sample = x₀
     
     while s == 1:
-        # 방향을 고르게 고르기
+        # 방향을 균등하게 선택
         direction ~ Uniform({-1, +1})
         
-        # 고른 방향으로 나무 세우기
+        # 선택한 방향으로 트리 구축
         if direction == -1:
             x⁻, v⁻, _, _, x', n', s' = BuildTree(x⁻, v⁻, -1, j, ε)
         else:
             _, _, x⁺, v⁺, x', n', s' = BuildTree(x⁺, v⁺, +1, j, ε)
         
-        # 새 표본을 받아들일 수도 있다
+        # 새 표본을 확률적으로 수락
         if s' == 1 and Random() < n'/n:
             x_sample = x'
         
-        # 개수를 새로 고치고 유턴 살피기
+        # 개수를 갱신하고 유턴 검사
         n = n + n'
         s = s' AND NoUTurn(x⁻, x⁺, v⁻, v⁺)
         
@@ -82,29 +82,29 @@ function NUTS(x₀, ε, M):
 ```
 function BuildTree(x, v, direction, depth, ε):
     if depth == 0:
-        # 바닥 경우: 개구리뜀 한 스텝
+        # 기저 경우: Leapfrog 한 스텝
         x', v' = Leapfrog(x, v, direction * ε)
         
-        # 에너지 살피기
+        # 에너지 검사
         valid = (H(x', v') - H(x₀, v₀) < Δmax)
         
         return x', v', x', v', x', valid, valid
     else:
-        # 회귀: 왼쪽 부분 나무 세우기
+        # 재귀: 왼쪽 부분 트리 구축
         x⁻, v⁻, x⁺, v⁺, x', n', s' = BuildTree(x, v, direction, depth-1, ε)
         
         if s' == 1:
-            # 오른쪽 부분 나무 세우기
+            # 오른쪽 부분 트리 구축
             if direction == -1:
                 x⁻, v⁻, _, _, x'', n'', s'' = BuildTree(x⁻, v⁻, direction, depth-1, ε)
             else:
                 _, _, x⁺, v⁺, x'', n'', s'' = BuildTree(x⁺, v⁺, direction, depth-1, ε)
             
-            # 표본을 새로 고칠 수도 있다
+            # 표본을 확률적으로 갱신
             if Random() < n''/(n' + n''):
                 x' = x''
             
-            # 부분 나무 안의 유턴 살피기
+            # 부분 트리 안의 유턴 검사
             s' = s'' AND NoUTurn(x⁻, x⁺, v⁻, v⁺)
             n' = n' + n''
         
@@ -144,7 +144,7 @@ NUTS의 적응용 accept_stat은 보통 시도한 적분 단계의 MH 수락확�
 
 아래 클래스는 상수 질량 행렬과 고정 ε를 사용하는 교육용 다항 가중 트리 예제다. sample의 n_warmup은 같은 step을 반복해 버리는 횟수이며 스텝 크기·질량 행렬을 학습하지 않는다. 완전한 자동 적응 NUTS나 검증된 라이브러리 구현으로 소개하지 않는다.
 
-차원과 초기값·경사 형태, 양의 ε, 양의 정부호 M, 양의 정수 깊이와 유한한 로그확률을 확인해야 한다. 워밍업 중 발산은 반환 통계에 포함하지 않고 깊이는 평균으로만 보고하므로 개별 최대 깊이 도달률을 알 수 없다. NaN·에너지 오류와 트리 선택·정지 조건을 별도로 검토해야 한다.
+차원과 초기값·그래디언트 형태, 양의 ε, 양의 정부호 M, 양의 정수 깊이와 유한한 로그확률을 확인해야 한다. 워밍업 중 발산은 반환 통계에 포함하지 않고 깊이는 평균으로만 보고하므로 개별 최대 깊이 도달률을 알 수 없다. NaN·에너지 오류와 트리 선택·정지 조건을 별도로 검토해야 한다.
 
 2차원 정규 예제의 알려진 평균·공분산은 확인 기준이지만 한 번의 출력만으로 알고리즘 전체의 불변성·수렴을 검증할 수 없다. 표시된 출력과 구현은 보존된 예시다.
 
@@ -192,7 +192,7 @@ class NUTS:
     
     def build_tree(self, x, v, direction, depth, H0):
         if depth == 0:
-            # 바닥 경우: 개구리뜀 한 스텝
+            # 기저 경우: Leapfrog 한 스텝
             x_new, v_new = self.leapfrog(x, v, direction)
             H_new = self.hamiltonian(x_new, v_new)
             
@@ -200,13 +200,13 @@ class NUTS:
             valid = (H_new - H0) < self.delta_max
             divergent = (H_new - H0) > self.delta_max
             
-            # 다항 표집을 위한 무게
+            # 다항 샘플링을 위한 웨이트
             log_weight = -H_new if valid else -np.inf
             
             return (x_new, v_new, x_new, v_new, x_new, 
                     log_weight, valid, divergent, 1)
         else:
-            # 회귀
+            # 재귀
             (x_minus, v_minus, x_plus, v_plus, x_prime,
              log_weight, valid, divergent, n_steps) = \
                 self.build_tree(x, v, direction, depth - 1, H0)
@@ -223,7 +223,7 @@ class NUTS:
                         self.build_tree(x_plus, v_plus, direction,
                                        depth - 1, H0)
                 
-                # 다항 표집
+                # 다항 샘플링
                 log_weight_sum = np.logaddexp(log_weight, log_weight2)
                 if np.log(np.random.rand()) < log_weight2 - log_weight_sum:
                     x_prime = x_prime2
@@ -239,11 +239,11 @@ class NUTS:
                     log_weight, valid, divergent, n_steps)
     
     def step(self, x):
-        # 운동량 표집
+        # 운동량 샘플링
         v = self.L_M @ np.random.randn(self.dim)
         H0 = self.hamiltonian(x, v)
         
-        # 나무 첫값 잡기
+        # 트리 초기화
         x_minus = x_plus = x
         v_minus = v_plus = v
         depth = 0
@@ -253,10 +253,10 @@ class NUTS:
         n_divergent = 0
         
         while valid and depth < self.max_depth:
-            # 방향 고르기
+            # 방향 선택
             direction = 2 * (np.random.rand() < 0.5) - 1
             
-            # 나무 세우기
+            # 트리 구축
             if direction == -1:
                 (x_minus, v_minus, _, _, x_prime,
                  log_weight_subtree, valid_subtree, divergent, _) = \
@@ -268,13 +268,13 @@ class NUTS:
             
             n_divergent += divergent
             
-            # 새 표본을 받아들일 수도 있다
+            # 새 표본을 확률적으로 수락
             if valid_subtree:
                 if np.log(np.random.rand()) < log_weight_subtree - log_weight:
                     x_sample = x_prime
                 log_weight = np.logaddexp(log_weight, log_weight_subtree)
             
-            # 전체 유턴 살피기
+            # 전체 유턴 검사
             valid = valid_subtree and self.check_uturn(x_minus, x_plus,
                                                         v_minus, v_plus)
             depth += 1
@@ -287,11 +287,11 @@ class NUTS:
         depths = []
         n_divergent = 0
         
-        # 달굼(여기에 맞춰 가기를 넣을 수도 있다)
+        # 워밍업(여기에 적응을 넣을 수도 있다)
         for _ in range(n_warmup):
             x, _, _ = self.step(x)
         
-        # 표집
+        # 샘플링
         for i in range(n_samples):
             x, depth, divergent = self.step(x)
             samples[i] = x
@@ -301,7 +301,7 @@ class NUTS:
         return samples, np.mean(depths), n_divergent / n_samples
 ```
 ```python
-# 서로 얽힌 2차원 가우스
+# 상관된 2차원 가우스
 mu = np.array([0, 0])
 Sigma = np.array([[1, 0.8], [0.8, 1]])
 Sigma_inv = np.linalg.inv(Sigma)
@@ -312,7 +312,7 @@ def log_prob(x):
 def grad_log_prob(x):
     return -Sigma_inv @ (x - mu)
 
-# 뽑기
+# 샘플링
 nuts = NUTS(log_prob, grad_log_prob, dim=2, epsilon=0.1)
 samples, avg_depth, div_rate = nuts.sample(np.zeros(2), 5000)
 
@@ -336,15 +336,15 @@ $$\widehat{\mathrm{E\! -\! BFMI}}=\frac{\operatorname{mean}_{t>1}(E_t-E_{t-1})^2
 
 낮은 값은 에너지 탐색의 경고 기준이며 고정 임계값을 통과했다고 수렴이 보장되지는 않는다. 여러 체인의 R-hat·함수별 ESS·MCSE와 그림을 함께 평가한다.
 
-## 9. NUTS과 표준 HMC의 비교
+## 9. NUTS와 표준 HMC의 비교
 
 NUTS는 고정 L을 정하는 부담을 줄이지만 트리 구축·후보 선택 비용이 추가된다. 잘 맞춘 고정 길이 HMC가 더 효율적일 수도 있고 반대일 수도 있다. 차원 하나만으로 승자를 결정하지 않는다.
 
-같은 관심량의 MCSE, 경사 평가당·시간당 ESS와 워밍업 비용을 비교한다. 스텝 크기·질량 행렬, 다봉성·조건수·초기상태의 차이도 확인한다. NUTS가 모든 문제에서 일관되게 더 좋은 효율을 보인다는 표는 근거로 사용할 수 없다.
+같은 관심량의 MCSE, 그래디언트 평가당·시간당 ESS와 워밍업 비용을 비교한다. 스텝 크기·질량 행렬, 다봉성·조건수·초기상태의 차이도 확인한다. NUTS가 모든 문제에서 일관되게 더 좋은 효율을 보인다는 표는 근거로 사용할 수 없다.
 
 ## 10. 실전 권고
 
-워밍업에서 스텝 크기와 질량 행렬을 조정하고 수집 단계의 설정을 고정하는 방식을 사용할 수 있다. 일정과 구간 길이는 구현·전체 워밍업 길이에 따라 달라지므로 특정 75·975·1000 구간을 일반적인 명세로 외우지 않는다.
+워밍업에서 스텝 크기와 질량 행렬을 조정하고 수집 단계의 설정을 고정하는 방식을 사용할 수 있다. 스케줄과 구간 길이는 구현·전체 워밍업 길이에 따라 달라지므로 특정 75·975·1000 구간을 일반적인 명세로 외우지 않는다.
 
 아래 adapt_step_size는 수락 통계량에 따라 ε를 1.02배·0.98배 하는 휴리스틱이다. 함수 인수에 gamma·t0·kappa가 있어도 실제 갱신에는 사용하지 않으며 쌍대 평균 알고리즘을 구현하지 않는다. 주어진 NUTS 클래스도 이 함수를 호출하지 않는다.
 
@@ -353,8 +353,8 @@ NUTS는 고정 L을 정하는 부담을 줄이지만 트리 구축·후보 선�
 ```python
 def adapt_step_size(epsilon, accept_stat, target=0.8, 
                     gamma=0.05, t0=10, kappa=0.75, iteration=None):
-    # 스텝 크기 맞추기를 위한 쌍대 평균내기
-    # (간추린 판)
+    # 스텝 크기 적응을 위한 쌍대 평균
+    # (단순화한 버전)
     if accept_stat > target:
         return epsilon * 1.02
     else:
@@ -367,11 +367,11 @@ def adapt_step_size(epsilon, accept_stat, target=0.8,
 
 2. K=pᵀM⁻¹p/2일 때 유턴 식에서 p가 아닌 M⁻¹p를 쓰는 이유를 유도하라. 해밀토니안 방정식 ẋ=∂K/∂p=M⁻¹p가 실제 속도를 주기 때문이다.
 
-3. 깊이 10의 완전 배증 트리에서 새 적분 수를 계산하라. 1+2+⋯+2⁹=1023이며 초기점까지 1024개다. 재귀 깊이 O(log L)과 경사 평가 O(L)를 구분한다.
+3. 깊이 10의 완전 배증 트리에서 새 적분 수를 계산하라. 1+2+⋯+2⁹=1023이며 초기점까지 1024개다. 재귀 깊이 O(log L)과 그래디언트 평가 O(L)를 구분한다.
 
 4. 이 클래스의 워밍업과 별도 adapt_step_size 함수를 검토하라. 워밍업은 고정 step 반복이고 조정 함수를 호출하지 않는다. 별도 함수도 쌍대 평균이 아니라 고정 배율 휴리스틱이다.
 
-5. HMC와 NUTS 비교를 설계할 때 통제할 항목을 정리하라. 같은 목표·관심량·예산·시드 변동을 고려하고 전체 워밍업 비용과 경사 평가당 오차, 발산·깊이 도달을 함께 평가한다.
+5. HMC와 NUTS 비교를 설계할 때 통제할 항목을 정리하라. 같은 목표·관심량·예산·시드 변동을 고려하고 전체 워밍업 비용과 그래디언트 평가당 오차, 발산·깊이 도달을 함께 평가한다.
 
 ## 정리하며
 

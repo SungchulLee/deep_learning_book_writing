@@ -15,7 +15,7 @@
     2. 최적화한다 (가지치기, 양자화)
     3. ONNX로 바꾼다
     4. 최적화된 추론으로 배포한다
-    5. 감시하고 성능을 잰다
+    5. 모니터링하고 성능을 잰다
     """
 
     import torch
@@ -273,8 +273,8 @@
             모델을 ONNX 형식으로 바꾼다
 
             인수:
-                input_shape: 입력 텐서의 모양 (배치 차원 제외)
-                opset_version: ONNX opset 판본
+                input_shape: 입력 텐서의 형태 (배치 차원 제외)
+                opset_version: ONNX opset 버전
 
             반환값:
                 ONNX 모델의 경로
@@ -422,7 +422,7 @@
             )
 
         def _compare_metrics(self, baseline: str, optimized: str):
-            """두 모델 판본의 지표를 견준다"""
+            """두 모델 버전의 지표를 견준다"""
             base = self.metrics_history[baseline]
             opt = self.metrics_history[optimized]
 
@@ -540,7 +540,7 @@
 
 ## 2. 논의
 
-예제의 입력과 레이블은 무작위로 만든 합성 데이터이다. 따라서 정확도는 실제 이미지 분류 성능의 증거가 아니다. main은 학습 뒤 동적 양자화와 ONNX 변환을 각각 수행하며 가지치기 함수는 호출하지 않는다. optimize_onnx는 일반적인 그래프 최적화가 아니라 ONNX 동적 양자화를 적용한다.
+예제의 입력과 라벨은 무작위로 만든 합성 데이터이다. 따라서 정확도는 실제 이미지 분류 성능의 증거가 아니다. main은 학습 뒤 동적 양자화와 ONNX 변환을 각각 수행하며 가지치기 함수는 호출하지 않는다. optimize_onnx는 일반적인 그래프 최적화가 아니라 ONNX 동적 양자화를 적용한다.
 
 benchmark_model은 인수로 받은 model의 지연·크기를 측정하지만 정확도는 self.evaluate를 호출해 self.model에서 계산한다. 따라서 양자화 모델에 기록된 정확도를 그 모델의 실제 정확도로 해석할 수 없다. 또한 CUDA가 있으면 모델을 일괄적으로 CUDA로 옮기므로 CPU 양자화 커널을 사용하는 경로와 충돌할 수 있다. 이 상태의 자동 추천은 실제 배포 결정을 뒷받침하는 검증 결과가 아니다.
 
@@ -577,7 +577,7 @@ benchmark_model은 인수로 받은 model의 지연·크기를 측정하지만 �
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-자동 추천의 정확도 로스 1% 기준은 어떻게 해석해야 하는가?
+자동 추천의 정확도 손실 1% 기준은 어떻게 해석해야 하는가?
 
 </div>
 

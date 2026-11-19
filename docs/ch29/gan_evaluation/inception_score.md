@@ -8,7 +8,7 @@
 
 $$\mathrm{IS}=\exp\left[\mathbb E_XD_{\mathrm{KL}}\big(q(y\mid X)\|\bar q(y)\big)\right].$$
 
-분류 확률에 따라 클래스 변수 Y를 뽑는 결합분포 $p_G(x)q(y\mid x)$를 생각하면 다음 관계를 얻는다. 여기서 Y는 실제 정답이나 argmax 레이블이 아니라 분류 확률에 따른 확률변수다.
+분류 확률에 따라 클래스 변수 Y를 뽑는 결합분포 $p_G(x)q(y\mid x)$를 생각하면 다음 관계를 얻는다. 여기서 Y는 실제 정답이나 argmax 라벨이 아니라 분류 확률에 따른 확률변수다.
 
 $$\log\mathrm{IS}=H(Y)-H(Y\mid X)=I(X;Y).$$
 
@@ -18,7 +18,7 @@ C개 클래스에서 0≤I(X;Y)≤log C이므로 1≤IS≤C다. 모든 이미지
 
 ## 2. Inception-v3를 사용하는 계산기
 
-아래 계산기는 torchvision의 ImageNet 사전학습 Inception-v3를 불러와 1,000개 클래스 확률을 얻는다. 모델을 처음 불러올 때는 가중치 파일이 필요하다. 여기서는 코드 구조만 설명하며 실행이나 다운로드를 전제로 결과를 확인하지 않는다.
+아래 계산기는 torchvision의 ImageNet 사전학습 Inception-v3를 불러와 1,000개 클래스 확률을 얻는다. 모델을 처음 불러올 때는 웨이트 파일이 필요하다. 이 블록은 클래스와 함수의 정의뿐이라 출력이 없다.
 
 ```python
 import torch
@@ -31,51 +31,51 @@ from scipy import stats
 
 class InceptionScoreCalculator:
     """
-    자세한 풀이를 곁들인 두루 갖춘 인셉션 점수 셈틀.
+    자세한 설명을 곁들인 인셉션 점수 종합 계산기.
     
-    인셉션 점수는 미리 익힌 인셉션 신경망의 갈래 헤아림을 살펴
-    만들어 낸 그림의 품질과 다양함을 함께 잰다.
+    인셉션 점수는 사전학습된 인셉션 뉴럴 네트워크의 클래스 예측을 분석해
+    생성한 그림의 품질과 다양성을 함께 잰다.
     """
     
     def __init__(self, 
                  device: str = 'cuda' if torch.cuda.is_available() else 'cpu'):
         """
-        인셉션 점수 셈틀의 첫자리를 잡는다.
+        인셉션 점수 계산기를 초기화한다.
         
         인자:
-            device: 셈할 장치('cuda' 또는 'cpu')
+            device: 계산할 장치('cuda' 또는 'cpu')
         """
         self.device = device
         self.inception_model = None
         
     def _load_inception(self):
-        """ImageNet으로 미리 익힌 InceptionV3 모델을 불러온다."""
+        """ImageNet으로 사전학습된 InceptionV3 모델을 불러온다."""
         from torchvision.models import inception_v3, Inception_V3_Weights
         
-        # 미리 익힌 InceptionV3을 불러온다
+        # 사전학습된 InceptionV3을 불러온다
         self.inception_model = inception_v3(
             weights=Inception_V3_Weights.IMAGENET1K_V1,
-            transform_input=False  # 미리 다듬기는 우리가 손수 한다
+            transform_input=False  # 전처리는 직접 한다
         )
         self.inception_model.eval()
         self.inception_model.to(self.device)
         
-        # 곁들이 내놓음을 끈다
+        # 보조 출력을 끈다
         self.inception_model.aux_logits = False
         
     def _preprocess_images(self, images: torch.Tensor) -> torch.Tensor:
         """
-        InceptionV3에 맞게 그림을 미리 다듬는다.
+        InceptionV3에 맞게 그림을 전처리한다.
         
-        InceptionV3은 다음을 바란다.
+        InceptionV3은 다음을 요구한다.
         - 크기가 299×299인 그림
-        - ImageNet 평균과 표준편차로 잣대를 맞춘 그림
+        - ImageNet 평균과 표준편차로 정규화한 그림
         
         인자:
-            images: [0, 1] 범위의 들임 그림 [B, C, H, W]
+            images: [0, 1] 범위의 입력 그림 [B, C, H, W]
             
-        돌려주는 값:
-            인셉션에 바로 넣을 수 있게 다듬은 그림
+        반환값:
+            인셉션에 바로 넣을 수 있게 전처리한 그림
         """
         # 필요하면 299×299로 크기를 바꾼다
         if images.shape[2] != 299 or images.shape[3] != 299:
@@ -86,12 +86,12 @@ class InceptionScoreCalculator:
                 align_corners=False
             )
         
-        # 필요하면 잿빛을 RGB로 바꾼다
+        # 필요하면 흑백을 RGB로 바꾼다
         if images.shape[1] == 1:
             images = images.repeat(1, 3, 1, 1)
         
-        # ImageNet 통계로 잣대를 맞춘다
-        # 눈여겨볼 것: 인셉션은 속으로 [-1, 1] 범위를 바란다
+        # ImageNet 통계로 정규화한다
+        # 주의: 인셉션은 내부적으로 [-1, 1] 범위를 요구한다
         mean = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).to(images.device)
         std = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).to(images.device)
         
@@ -103,13 +103,13 @@ class InceptionScoreCalculator:
                        images: torch.Tensor, 
                        batch_size: int = 32) -> np.ndarray:
         """
-        그림 배치에 대한 인셉션 헤아림을 얻는다.
+        그림 배치에 대한 인셉션 예측을 얻는다.
         
         인자:
-            images: [0, 1] 범위의 만들어 낸 그림 [N, C, H, W]
-            batch_size: 다룰 때 쓰는 배치 크기
+            images: [0, 1] 범위의 생성한 그림 [N, C, H, W]
+            batch_size: 처리할 때 쓰는 배치 크기
             
-        돌려주는 값:
+        반환값:
             소프트맥스 확률 [N, 1000]
         """
         if self.inception_model is None:
@@ -123,10 +123,10 @@ class InceptionScoreCalculator:
                 batch = images[i:i+batch_size].to(self.device)
                 batch = self._preprocess_images(batch)
                 
-                # 인셉션을 지나 앞으로 걸음
+                # 인셉션 순전파
                 logits = self.inception_model(batch)
                 
-                # 소프트맥스를 걸어 확률을 얻는다
+                # 소프트맥스를 적용해 확률을 얻는다
                 probs = F.softmax(logits, dim=1)
                 all_probs.append(probs.cpu().numpy())
         
@@ -137,43 +137,43 @@ class InceptionScoreCalculator:
                                   splits: int = 10,
                                   batch_size: int = 32) -> Tuple[float, float]:
         """
-        믿음 구간과 함께 인셉션 점수를 셈한다.
+        분할별 표준편차와 함께 인셉션 점수를 계산한다.
         
-        차례:
+        절차:
         1. 그림마다 인셉션에서 p(y|x)을 얻는다
-        2. 흩어짐을 셈하려고 자료를 `splits`개 무리로 나눈다
-        3. 조각마다:
-           a. 가장자리 분포 p(y) = mean(p(y|x))을 셈한다
-           b. 표본마다 KL(p(y|x) || p(y))을 셈한다
+        2. 분산을 계산하려고 데이터를 `splits`개 분할로 나눈다
+        3. 분할마다:
+           a. 주변 분포 p(y) = mean(p(y|x))을 계산한다
+           b. 표본마다 KL(p(y|x) || p(y))을 계산한다
            c. KL을 평균 내고 지수를 취한다
-        4. 조각들의 평균과 표준편차를 돌려준다
+        4. 분할들의 평균과 표준편차를 반환한다
         
         인자:
-            images: [0, 1] 범위의 만들어 낸 그림 [N, C, H, W]
-            splits: 표준편차를 셈할 때 나눌 조각의 수
-            batch_size: 인셉션 미룸에 쓰는 배치 크기
+            images: [0, 1] 범위의 생성한 그림 [N, C, H, W]
+            splits: 표준편차를 계산할 때 나눌 분할의 수
+            batch_size: 인셉션 추론에 쓰는 배치 크기
             
-        돌려주는 값:
+        반환값:
             (인셉션 점수 평균, 표준편차) 튜플
         """
-        # 헤아림을 얻는다
+        # 예측을 얻는다
         probs = self.get_predictions(images, batch_size)
         
-        # 조각을 나누어 인셉션 점수를 셈한다
+        # 분할을 나누어 인셉션 점수를 계산한다
         scores = []
         n = len(probs)
         split_size = n // splits
         
         for k in range(splits):
-            # 조각을 가져온다
+            # 분할을 가져온다
             start = k * split_size
             end = start + split_size if k < splits - 1 else n
             part = probs[start:end]
             
-            # 가장자리 분포를 셈한다: p(y) = (1/N) Σ p(y|x_i)
+            # 주변 분포를 계산한다: p(y) = (1/N) Σ p(y|x_i)
             p_y = np.mean(part, axis=0, keepdims=True)
             
-            # 표본마다 KL 갈림을 셈한다
+            # 표본마다 KL 발산을 계산한다
             # KL(p(y|x) || p(y)) = Σ p(y|x) * log(p(y|x) / p(y))
             eps = 1e-16
             part = np.clip(part, eps, 1.0)
@@ -182,7 +182,7 @@ class InceptionScoreCalculator:
             # 로그 비
             log_ratio = np.log(part) - np.log(p_y)
             
-            # 표본마다의 KL 갈림
+            # 표본마다의 KL 발산
             kl_per_sample = np.sum(part * log_ratio, axis=1)
             
             # KL을 평균 내고 지수를 취한다
@@ -196,45 +196,45 @@ class InceptionScoreCalculator:
 
 def compute_inception_score_step_by_step(probs: np.ndarray) -> dict:
     """
-    배움을 돕고자 중간 결과까지 자세히 내며 인셉션 점수를 셈한다.
+    학습을 돕고자 중간 결과까지 자세히 내며 인셉션 점수를 계산한다.
     
-    이 함수는 인셉션 점수 셈을 읽기 쉬운 걸음으로 나누어
-    각 조각이 무엇을 재는지 알기 쉽게 한다.
+    이 함수는 인셉션 점수 계산을 읽기 쉬운 단계로 나누어
+    각 구성 요소가 무엇을 재는지 알기 쉽게 한다.
     
     인자:
-        probs: 인셉션이 낸 갈래 확률 [N, C]
+        probs: 인셉션이 낸 클래스 확률 [N, C]
         
-    돌려주는 값:
+    반환값:
         중간 값과 마지막 인셉션 점수를 담은 사전
     """
     eps = 1e-16
     probs = np.clip(probs, eps, 1.0)
     
-    # 걸음 1: 가장자리 분포 p(y)을 셈한다
-    # 이는 모든 표본에 걸친 갈래 분포를 나타낸다
+    # 단계 1: 주변 분포 p(y)을 계산한다
+    # 이는 모든 표본에 걸친 클래스 분포를 나타낸다
     p_y = np.mean(probs, axis=0)
     
-    # 걸음 2: 가장자리 분포의 엔트로피 H(y)을 셈한다
-    # 엔트로피가 클수록 표본이 다양하다(갈래를 더 두루 덮는다)
+    # 단계 2: 주변 분포의 엔트로피 H(y)을 계산한다
+    # 엔트로피가 클수록 표본이 다양하다(클래스를 더 두루 덮는다)
     h_marginal = -np.sum(p_y * np.log(p_y))
     
-    # 걸음 3: 표본마다 조건 엔트로피 H(y|x)을 셈한다
-    # 조건 엔트로피가 작을수록 헤아림이 자신 있다(품질이 높다)
+    # 단계 3: 표본마다 조건부 엔트로피 H(y|x)을 계산한다
+    # 조건부 엔트로피가 작을수록 예측이 확신에 차 있다(품질이 높다)
     h_conditional_per_sample = -np.sum(probs * np.log(probs), axis=1)
     h_conditional = np.mean(h_conditional_per_sample)
     
-    # 걸음 4: KL 갈림을 셈한다
+    # 단계 4: KL 발산을 계산한다
     # 기댓값으로 보면 KL(p(y|x) || p(y)) = H(y) - H(y|x)
-    # 다만 정확함을 위해 곧바로 셈한다
+    # 다만 정확함을 위해 직접 계산한다
     kl_per_sample = np.sum(probs * (np.log(probs) - np.log(p_y)), axis=1)
     mean_kl = np.mean(kl_per_sample)
     
-    # 걸음 5: 마지막 인셉션 점수 = exp(mean_kl)
+    # 단계 5: 마지막 인셉션 점수 = exp(mean_kl)
     inception_score = np.exp(mean_kl)
     
-    # 덧붙이는 눈썰미
-    effective_classes = np.exp(h_marginal)  # 실제로 쓰인 갈래의 실질 수
-    avg_confidence = np.exp(-h_conditional)  # 헤아림의 평균 자신도
+    # 추가 해석 지표
+    effective_classes = np.exp(h_marginal)  # 실제로 쓰인 클래스의 유효 수
+    avg_confidence = np.exp(-h_conditional)  # 예측의 평균 확신도
     
     return {
         'inception_score': inception_score,
@@ -247,7 +247,7 @@ def compute_inception_score_step_by_step(probs: np.ndarray) -> dict:
     }
 ```
 
-입력은 N×C×H×W의 부동소수점 이미지이며 0~1 범위를 가정한다. 흑백 채널은 세 번 복제하고, 크기는 bilinear 보간으로 299×299로 맞춘 뒤 지정한 ImageNet 평균·표준편차로 정규화한다. tanh 출력을 받는다면 그 전에 범위 변환이 필요하다. 이는 이 코드의 전처리이며, 다른 IS 구현과 같은 가중치·변환·resize 관례를 쓰는지 확인하지 않고 값을 비교해서는 안 된다.
+입력은 N×C×H×W의 부동소수점 이미지이며 0~1 범위를 가정한다. 흑백 채널은 세 번 복제하고, 크기는 bilinear 보간으로 299×299로 맞춘 뒤 지정한 ImageNet 평균·표준편차로 정규화한다. tanh 출력을 받는다면 그 전에 범위 변환이 필요하다. 이는 이 코드의 전처리이며, 다른 IS 구현과 같은 웨이트·변환·resize 관례를 쓰는지 확인하지 않고 값을 비교해서는 안 된다.
 
 `get_predictions`는 eval 모드와 no_grad로 추론하고 CPU NumPy 확률 배열을 모은다. 빈 입력, 지원하지 않는 채널 수, 유효하지 않은 배치 크기는 처리하지 않는다. `calculate_inception_score`는 입력을 섞지 않고 연속 구간으로 나누어 구간별 점수의 평균과 표준편차를 반환한다. 1≤splits≤N이 필요하며 나머지는 마지막 구간에 포함한다.
 
@@ -262,7 +262,7 @@ import matplotlib.pyplot as plt
 
 def demonstrate_inception_score():
     """
-    품질이 다른 여러 상황에서 인셉션 점수 셈을 보인다.
+    품질이 다른 여러 상황에서 인셉션 점수 계산을 보인다.
     """
     n_samples = 1000
     n_classes = 10  # 보이기 위해 단출하게 줄였다
@@ -271,15 +271,15 @@ def demonstrate_inception_score():
     print("Inception Score Demonstration")
     print("=" * 70)
     
-    # 상황 1: 높은 품질 + 높은 다양함(가장 바람직)
+    # 상황 1: 높은 품질 + 높은 다양성(가장 바람직)
     print("\n📊 Scenario 1: High Quality + High Diversity")
     print("-" * 50)
     
     probs_ideal = np.zeros((n_samples, n_classes))
     for i in range(n_samples):
-        class_idx = i % n_classes  # 고르게 덮는다
+        class_idx = i % n_classes  # 클래스를 균등하게 덮는다
         probs_ideal[i, class_idx] = 0.9
-        probs_ideal[i, :] += 0.01  # 작고 고른 잡음
+        probs_ideal[i, :] += 0.01  # 작고 균등한 잡음
     probs_ideal = probs_ideal / probs_ideal.sum(axis=1, keepdims=True)
     
     results_ideal = compute_inception_score_step_by_step(probs_ideal)
@@ -287,7 +287,7 @@ def demonstrate_inception_score():
     print(f"  Effective classes: {results_ideal['effective_classes']:.2f}")
     print(f"  Average confidence: {results_ideal['avg_confidence']:.4f}")
     
-    # 상황 2: 품질이 낮다(헤아림이 흐릿하다)
+    # 상황 2: 품질이 낮다(예측이 불확실하다)
     print("\n📊 Scenario 2: Low Quality (Uncertain Predictions)")
     print("-" * 50)
     
@@ -299,7 +299,7 @@ def demonstrate_inception_score():
     print(f"  Average confidence: {results_uncertain['avg_confidence']:.4f}")
     print("  Note: Minimum IS = 1.0 when all predictions are uniform")
     
-    # 상황 3: 봉우리 무너짐(갈래가 하나뿐)
+    # 상황 3: 모드 붕괴(클래스가 하나뿐)
     print("\n📊 Scenario 3: Mode Collapse (Single Class)")
     print("-" * 50)
     
@@ -319,7 +319,7 @@ def demonstrate_inception_score():
     }
 
 
-# 보임을 돌린다
+# 데모를 돌린다
 results = demonstrate_inception_score()
 ```
 
@@ -357,10 +357,10 @@ Inception Score Demonstration
 ```python
 def demonstrate_memorization_blindness():
     """
-    모델이 익힘 자료를 외워도 인셉션 점수는 알아채지 못함을 보인다.
+    모델이 학습 데이터를 암기해도 인셉션 점수는 탐지하지 못함을 보인다.
     """
-    # 같은 그림 10장을 나무랄 데 없이 만들어 내는 모델도
-    # 그 그림들이 자신 있게 갈리면 인셉션 점수가 높게 나온다
+    # 같은 그림 10장을 완벽하게 생성하는 모델도
+    # 그 그림들이 확신 있게 분류되면 인셉션 점수가 높게 나온다
     n_unique = 10
     n_total = 1000
     
@@ -384,11 +384,11 @@ def demonstrate_memorization_blindness():
 ```python
 def demonstrate_gaming_is():
     """
-    맞겨루기 꾀로 인셉션 점수를 어떻게 '주무를' 수 있는지 보인다.
+    적대적 전략으로 인셉션 점수를 어떻게 '조작할' 수 있는지 보인다.
     """
-    # 꾀: 갈래마다 그림을 꼭 하나씩만 만든다
+    # 전략: 클래스마다 그림을 꼭 하나씩만 생성한다
     n_classes = 1000
-    probs_gamed = np.eye(n_classes)  # 갈래마다 나무랄 데 없이 갈린다
+    probs_gamed = np.eye(n_classes)  # 클래스마다 완벽하게 분류된다
     
     results = compute_inception_score_step_by_step(probs_gamed)
     print(f"Gamed IS: {results['inception_score']:.2f}")
@@ -402,7 +402,7 @@ def demonstrate_gaming_is():
 ```python
 def analyze_sample_size_effect(generator, sample_sizes=[100, 500, 1000, 5000, 10000]):
     """
-    표본 수가 인셉션 점수의 든든함에 어떤 영향을 주는지 살핀다.
+    표본 수가 인셉션 점수의 강건성에 어떤 영향을 주는지 분석한다.
     """
     calculator = InceptionScoreCalculator()
     
@@ -423,10 +423,10 @@ def analyze_sample_size_effect(generator, sample_sizes=[100, 500, 1000, 5000, 10
 위 함수는 외부 객체의 `generate(n)` 인터페이스를 가정한다. 이 페이지에서 정의한 학습된 생성기는 없다. 표본 수를 바꾸면 주변 확률 추정의 변동과 편향, 분할당 표본 수가 모두 달라질 수 있다. 특정 최소 개수만 넘으면 정확하다고 보장할 수 없으므로 동일 조건과 필요한 정밀도에 맞춰 정한다.
 
 ```python
-# 흔한 방식: 조각 10개
+# 흔한 방식: 분할 10개
 is_mean, is_std = calculator.calculate_inception_score(images, splits=10)
 
-# 이렇게 알린다: 인셉션 점수 = 평균 ± 표준편차
+# 이렇게 보고한다: 인셉션 점수 = 평균 ± 표준편차
 print(f"IS = {is_mean:.2f} ± {is_std:.2f}")
 ```
 
@@ -436,7 +436,7 @@ print(f"IS = {is_mean:.2f} ± {is_std:.2f}")
 
 분류기와 체크포인트, 데이터 전처리, 표본 수, 분할 수, 순서와 시드, 생성 조건 및 선별 규칙을 보고한다. 실제 데이터의 IS는 경험적 비교 기준이며 이론적 천장이 아니다. 데이터셋 이름만으로 특정 실제 점수나 '좋음' 구간을 고정할 수 없다. MNIST 분류기로 같은 식을 계산하면 ImageNet Inception-v3 기준 점수와 다른 지표임을 명시한다.
 
-FID는 실제·생성 특징의 첫 두 모멘트를 비교하고, 생성 정밀도·재현율은 선택한 특징 공간의 근접성을 이용해 품질과 포괄성을 나누어 살펴본다. 어느 것도 모든 중복이나 암기를 검출하지 못한다. 표본, 최근접 이웃, 목적에 맞는 작업 성능과 함께 평가한다.
+FID는 실제·생성 피처의 첫 두 모멘트를 비교하고, 생성 정밀도·재현율은 선택한 피처 공간의 근접성을 이용해 품질과 포괄성을 나누어 살펴본다. 어느 것도 모든 중복이나 암기를 검출하지 못한다. 표본, 최근접 이웃, 목적에 맞는 작업 성능과 함께 평가한다.
 
 ## 참고 문헌
 
@@ -454,7 +454,7 @@ FID는 IS와 무엇을 다르게 비교하며 어떤 한계가 있는가?
 
 ??? success "연습문제 1 풀이"
 
-    FID는 실제와 생성 특징의 평균·공분산으로 맞춘 가우시안 사이의 제곱 Wasserstein 거리를 계산한다. IS에는 없는 실제 기준 집합을 사용한다. 다만 첫 두 모멘트가 같아도 전체 분포는 다를 수 있으므로 모든 모드 붕괴를 검출한다고 보장하지 않는다. 특징 추출기, 전처리, 표본 수와 수치 계산 방식에도 의존한다.
+    FID는 실제와 생성 피처의 평균·공분산으로 맞춘 가우시안 사이의 제곱 Wasserstein 거리를 계산한다. IS에는 없는 실제 기준 집합을 사용한다. 다만 첫 두 모멘트가 같아도 전체 분포는 다를 수 있으므로 모든 모드 붕괴를 검출한다고 보장하지 않는다. 피처 추출기, 전처리, 표본 수와 수치 계산 방식에도 의존한다.
 
 
 
@@ -484,7 +484,7 @@ FID는 IS와 무엇을 다르게 비교하며 어떤 한계가 있는가?
 
 ??? success "연습문제 3 풀이"
 
-    분류에서는 정답 레이블을 기준으로 참·거짓 양성을 센다. 생성 평가의 한 방식은 실제·생성 특징에서 k번째 최근접 이웃 반지름의 구들을 만들고 서로 다른 집합의 포함 비율을 계산한다. 이는 특징 공간의 유한 표본 근사이며 참 분포의 수학적 지지집합을 정확히 아는 것이 아니다.
+    분류에서는 정답 라벨을 기준으로 참·거짓 양성을 센다. 생성 평가의 한 방식은 실제·생성 피처에서 k번째 최근접 이웃 반지름의 구들을 만들고 서로 다른 집합의 포함 비율을 계산한다. 이는 피처 공간의 유한 표본 근사이며 참 분포의 수학적 지지집합을 정확히 아는 것이 아니다.
 
 
 
@@ -499,7 +499,7 @@ IS, FID와 LPIPS를 함께 해석할 때 각각의 평가 대상을 구분하라
 
 ??? success "연습문제 4 풀이"
 
-    IS는 분류 예측, FID는 두 특징 분포의 첫 두 모멘트, LPIPS는 두 이미지의 지각적 거리를 요약한다. LPIPS는 대응 관계 없이 이미지 하나의 절대적 품질을 매기는 지표가 아니다. 여러 지표를 쓴다고 전체 품질을 자동으로 검증하는 것은 아니므로 과제와 표본 선택에 맞는 평가를 설계한다.
+    IS는 분류 예측, FID는 두 피처 분포의 첫 두 모멘트, LPIPS는 두 이미지의 지각적 거리를 요약한다. LPIPS는 대응 관계 없이 이미지 하나의 절대적 품질을 매기는 지표가 아니다. 여러 지표를 쓴다고 전체 품질을 자동으로 검증하는 것은 아니므로 과제와 표본 선택에 맞는 평가를 설계한다.
 
 
 
@@ -529,7 +529,7 @@ IS의 범위와 최솟값·최댓값의 달성 조건을 설명하라.
 
 ??? success "연습문제 6 풀이"
 
-    전체 점수를 한 번 구하면 조건부 엔트로피는 0, 주변 엔트로피는 log 10이므로 IS=10이다. 분할이 불균형하면 분할별 평균은 달라질 수 있다. FID는 반복으로 바뀐 특징 평균·공분산에 반응할 수 있으나 반드시 차이를 검출하는 것은 아니다. 이 페이지에는 실제 이미지로 계산한 FID 비교 실험이 없다.
+    전체 점수를 한 번 구하면 조건부 엔트로피는 0, 주변 엔트로피는 log 10이므로 IS=10이다. 분할이 불균형하면 분할별 평균은 달라질 수 있다. FID는 반복으로 바뀐 피처 평균·공분산에 반응할 수 있으나 반드시 차이를 검출하는 것은 아니다. 이 페이지에는 실제 이미지로 계산한 FID 비교 실험이 없다.
 
 
 
@@ -593,7 +593,7 @@ IS의 로그가 상호정보량이라는 표현에서 Y는 무엇인가?
 
 ??? success "연습문제 10 풀이"
 
-    생성 이미지 X와 평가 분류기의 조건부 확률 q(y|X)로 정의한 결합분포에서의 클래스 변수다. Y를 argmax 레이블로 바꾸면 조건부 엔트로피와 점수가 달라진다. $I(X;Y)=H(Y)-H(Y|X)$이며 이것이 표준 IS의 로그다. 실제 이미지의 모든 의미 정보를 측정하는 상호정보량은 아니다.
+    생성 이미지 X와 평가 분류기의 조건부 확률 q(y|X)로 정의한 결합분포에서의 클래스 변수다. Y를 argmax 라벨로 바꾸면 조건부 엔트로피와 점수가 달라진다. $I(X;Y)=H(Y)-H(Y|X)$이며 이것이 표준 IS의 로그다. 실제 이미지의 모든 의미 정보를 측정하는 상호정보량은 아니다.
 
 
 
@@ -653,7 +653,7 @@ IS를 보완할 평가 방법과 각 방법의 남는 한계를 설명하라.
 
 ??? success "연습문제 14 풀이"
 
-    FID는 실제 기준 특징의 모멘트를 비교하지만 품질과 포괄성을 한 수치에 섞는다. 정밀도·재현율 계열은 두 측면을 나누지만 특징과 이웃 설정에 의존한다. 표본 격자와 사람 평가는 세부 결함을 볼 수 있으나 표본 수·선택·평가자에 영향을 받는다. 중복·최근접 이웃 검사와 다운스트림 평가도 목적에 맞게 추가한다. 어느 방법도 단독으로 모든 생성 품질을 보증하지 않는다.
+    FID는 실제 기준 피처의 모멘트를 비교하지만 품질과 포괄성을 한 수치에 섞는다. 정밀도·재현율 계열은 두 측면을 나누지만 피처와 이웃 설정에 의존한다. 표본 격자와 사람 평가는 세부 결함을 볼 수 있으나 표본 수·선택·평가자에 영향을 받는다. 중복·최근접 이웃 검사와 다운스트림 평가도 목적에 맞게 추가한다. 어느 방법도 단독으로 모든 생성 품질을 보증하지 않는다.
 
 
 

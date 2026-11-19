@@ -6,10 +6,10 @@
 
 ```python
 """
-트랜스포머 기반 소수 예시 학습
+트랜스포머 기반 퓨샷 학습
 
-자기 주의로 서포트 집합과 쿼리 집합을 함께 다루어,
-모델이 보기 사이의 관계를 따져 볼 수 있게 하는 오늘날의 접근법.
+셀프 어텐션으로 서포트 집합과 쿼리 집합을 함께 다루어,
+모델이 표본 사이의 관계를 추론할 수 있게 하는 오늘날의 접근법.
 """
 
 import torch
@@ -17,7 +17,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 시드를 고정한다.
 torch.manual_seed(0)
 
 
@@ -28,7 +28,7 @@ torch.manual_seed(0)
 
 class PositionalEncoding(nn.Module):
     """
-    임베딩에 자리 정보를 더한다.
+    임베딩에 위치 정보를 더한다.
     """
     def __init__(self, d_model, max_len=100):
         super(PositionalEncoding, self).__init__()
@@ -51,10 +51,10 @@ class PositionalEncoding(nn.Module):
 
 class TransformerFewShotClassifier(nn.Module):
     """
-    트랜스포머 기반 소수 예시 가려내개.
+    트랜스포머 기반 퓨샷 분류기.
     
-    모델은 받침 보기와 물음 보기를 함께 다루어, 주의 장치가
-    집합을 넘나들며 보기를 견주고 이어 보게 한다.
+    모델은 서포트 표본과 쿼리 표본을 함께 다루어, 어텐션 메커니즘이
+    두 집합에 걸쳐 표본을 비교하고 관련짓게 한다.
     """
     def __init__(self, input_dim, d_model=128, nhead=4, num_layers=2, dim_feedforward=512):
         super(TransformerFewShotClassifier, self).__init__()
@@ -75,7 +75,7 @@ class TransformerFewShotClassifier(nn.Module):
         )
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         
-        # 분류 머리
+        # 분류 헤드
         self.classifier = nn.Linear(d_model, 1)
     
     def forward(self, support, support_labels, query):
@@ -92,32 +92,32 @@ class TransformerFewShotClassifier(nn.Module):
         n_query = query.shape[0]
         n_classes = support_labels.max().item() + 1
         
-        # 받침과 물음을 합친다
+        # 서포트와 쿼리를 합친다
         all_examples = torch.cat([support, query], dim=0)  # (n_support + n_query, input_dim)
         
-        # d_model로 쏘아 넣는다
+        # d_model 차원으로 투영한다
         embeddings = self.input_projection(all_examples)  # (n_support + n_query, d_model)
         
-        # 자리 부호를 더한다
+        # 위치 인코딩을 더한다
         embeddings = self.pos_encoder(embeddings.unsqueeze(0)).squeeze(0)
         
-        # 트랜스포머를 씌운다
+        # 트랜스포머를 적용한다
         transformed = self.transformer(embeddings.unsqueeze(0)).squeeze(0)
         
-        # 다시 받침과 물음으로 쪼갠다
+        # 다시 서포트와 쿼리로 나눈다
         support_transformed = transformed[:n_support]
         query_transformed = transformed[n_support:]
         
-        # 물음마다 부류마다의 로짓을 셈한다
+        # 쿼리마다 클래스마다의 로짓을 계산한다
         logits = []
         for query_emb in query_transformed:
             class_logits = []
             for c in range(n_classes):
-                # 이 부류의 받침 보기를 얻는다
+                # 이 클래스의 서포트 표본을 얻는다
                 class_mask = (support_labels == c)
                 class_support = support_transformed[class_mask]
                 
-                # 물음과 부류 원형 사이의 닮음을 셈한다
+                # 쿼리와 클래스 프로토타입 사이의 유사도를 계산한다
                 query_expanded = query_emb.unsqueeze(0).expand(class_support.shape[0], -1)
                 similarities = F.cosine_similarity(query_expanded, class_support, dim=1)
                 class_logit = similarities.mean()
@@ -130,17 +130,17 @@ class TransformerFewShotClassifier(nn.Module):
 
 class SetTransformer(nn.Module):
     """
-    소수 예시 학습을 위한 집합 기반 트랜스포머.
+    퓨샷 학습을 위한 집합 기반 트랜스포머.
     
-    유도 집합 주의를 써서 서포트 집합과 쿼리 집합의
-    순열에 흔들리지 않는 표현을 만든다.
+    유도 집합 어텐션(induced set attention)을 써서 서포트 집합과 쿼리 집합의
+    순열 불변인 표현을 만든다.
     """
     def __init__(self, input_dim, d_model=128, num_heads=4, num_inds=32):
         super(SetTransformer, self).__init__()
         
         self.input_proj = nn.Linear(input_dim, d_model)
         
-        # 유도 집합 주의 블록
+        # 유도 집합 어텐션 블록
         self.inducing_points = nn.Parameter(torch.randn(num_inds, d_model))
         
         self.mab1 = MultiheadAttentionBlock(d_model, num_heads)
@@ -156,17 +156,17 @@ class SetTransformer(nn.Module):
         반환값:
             output: (batch_size, d_model) - 집합 임베딩
         """
-        # 입력을 쏘아 넣는다
+        # 입력을 투영한다
         x = self.input_proj(x)  # (batch_size, set_size, d_model)
         
-        # 유도 집합 주의
+        # 유도 집합 어텐션
         batch_size = x.shape[0]
         inds = self.inducing_points.unsqueeze(0).expand(batch_size, -1, -1)
         
         h = self.mab1(inds, x)  # (batch_size, num_inds, d_model)
         h = self.mab2(h, h)     # (batch_size, num_inds, d_model)
         
-        # 유도점 위에서 모은다
+        # 유도점에 대해 평균 풀링한다
         output = h.mean(dim=1)  # (batch_size, d_model)
         
         return self.output_proj(output)
@@ -174,7 +174,7 @@ class SetTransformer(nn.Module):
 
 class MultiheadAttentionBlock(nn.Module):
     """
-    Set Transformer를 위한 여러 머리 주의 블록.
+    Set Transformer를 위한 멀티헤드 어텐션 블록.
     """
     def __init__(self, d_model, num_heads):
         super(MultiheadAttentionBlock, self).__init__()
@@ -197,7 +197,7 @@ class MultiheadAttentionBlock(nn.Module):
         attn_out, _ = self.attention(query, key_value, key_value)
         query = self.layer_norm(query + attn_out)
         
-        # 순전파 뉴럴 네트워크
+        # 피드포워드 네트워크
         ffn_out = self.ffn(query)
         query = self.layer_norm2(query + ffn_out)
         
@@ -206,7 +206,7 @@ class MultiheadAttentionBlock(nn.Module):
 
 def train_transformer_fewshot(model, support, support_labels, query, query_labels, optimizer):
     """
-    트랜스포머 소수 예시 모델의 학습 스텝.
+    트랜스포머 퓨샷 모델의 학습 스텝.
     """
     model.train()
     optimizer.zero_grad()
@@ -230,8 +230,8 @@ def train_transformer_fewshot(model, support, support_labels, query, query_label
 
 # 사용 예
 if __name__ == "__main__":
-    # 모형 설정
-    input_dim = 784  # 편 28x28 그림
+    # 모델 설정
+    input_dim = 784  # 평탄화한 28x28 이미지
     d_model = 128
     nhead = 4
     num_layers = 2
@@ -244,7 +244,7 @@ if __name__ == "__main__":
         num_layers=num_layers
     )
     
-    # 5-클래스 5-예시 과제 보기
+    # 5-way 5-shot 과제 예
     n_way = 5
     k_shot = 5
     n_query = 15
@@ -265,7 +265,7 @@ if __name__ == "__main__":
     )
     print(f"Loss: {loss:.4f}, Accuracy: {acc:.4f}")
     
-    # Set Transformer를 쓴 보기
+    # Set Transformer를 쓴 예
     set_model = SetTransformer(input_dim=input_dim, d_model=128, num_heads=4)
     support_set = support.unsqueeze(0)  # 배치 차원을 더한다
     set_embedding = set_model(support_set)

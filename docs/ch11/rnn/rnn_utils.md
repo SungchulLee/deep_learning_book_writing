@@ -10,8 +10,8 @@ RNN 실습에 사용하는 모델, 학습·평가 함수와 텍스트·저장 �
 ============
 RNN 실습을 위한 종합 유틸리티 모듈
 
-다음을 위한 공통 함수를 준다.
-- 인자 구문 분석
+다음을 위한 공통 함수를 제공한다.
+- 인자 파싱
 - 데이터 적재와 전처리
 - RNN 모델 구조
 - 학습과 평가
@@ -35,10 +35,10 @@ from torch.utils.data import Dataset, DataLoader
 # =============================================================================
 
 def parse_args():
-    """RNN 학습을 위한 명령줄 인자 구문 분석"""
+    """RNN 학습을 위한 명령줄 인자 파싱"""
     parser = argparse.ArgumentParser(description='PyTorch RNN Training')
     
-    # 학습 하이퍼파라미터
+    # 학습 하이퍼파라메터
     parser.add_argument('--batch-size', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--lr', type=float, default=0.001)
@@ -46,7 +46,7 @@ def parse_args():
     parser.add_argument('--num-layers', type=int, default=1)
     parser.add_argument('--dropout', type=float, default=0.5)
     
-    # 순차열 파라메터
+    # 시퀀스 파라메터
     parser.add_argument('--sequence-length', type=int, default=50)
     parser.add_argument('--embedding-dim', type=int, default=100)
     
@@ -71,7 +71,7 @@ def parse_args():
     return args
 
 def set_seed(seed=42):
-    """재현성을 위해 무작위 씨앗 정하기"""
+    """재현성을 위해 난수 시드 고정하기"""
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
@@ -84,7 +84,7 @@ def set_seed(seed=42):
 # =============================================================================
 
 class SimpleRNN(nn.Module):
-    """순차열 분류를 위한 기본 RNN"""
+    """시퀀스 분류를 위한 기본 RNN"""
     def __init__(self, input_size, hidden_size, output_size, num_layers=1):
         super(SimpleRNN, self).__init__()
         self.hidden_size = hidden_size
@@ -101,7 +101,7 @@ class SimpleRNN(nn.Module):
         return out, hidden
 
 class LSTMClassifier(nn.Module):
-    """순차열 분류를 위한 LSTM"""
+    """시퀀스 분류를 위한 LSTM"""
     def __init__(self, vocab_size, embedding_dim, hidden_size, output_size, 
                  num_layers=1, dropout=0.5):
         super(LSTMClassifier, self).__init__()
@@ -118,13 +118,13 @@ class LSTMClassifier(nn.Module):
         # x: (배치, seq_len)
         embedded = self.embedding(x)  # (배치, seq_len, embedding_dim)
         lstm_out, (hidden, cell) = self.lstm(embedded)
-        # 마지막 숨은 상태 쓰기
+        # 마지막 은닉 상태 쓰기
         out = self.dropout(hidden[-1])
         out = self.fc(out)
         return out
 
 class GRUPredictor(nn.Module):
-    """순차열 예측(시계열 따위)을 위한 GRU"""
+    """시퀀스 예측(시계열 따위)을 위한 GRU"""
     def __init__(self, input_size, hidden_size, output_size, num_layers=1, dropout=0.2):
         super(GRUPredictor, self).__init__()
         self.hidden_size = hidden_size
@@ -158,7 +158,7 @@ class BiLSTM(nn.Module):
     def forward(self, x):
         embedded = self.embedding(x)
         lstm_out, (hidden, cell) = self.lstm(embedded)
-        # 마지막 순방향과 역방향 숨은 상태 이어 붙이기
+        # 마지막 순방향과 역방향 은닉 상태 이어 붙이기
         hidden_fwd = hidden[-2]
         hidden_bwd = hidden[-1]
         hidden_cat = torch.cat([hidden_fwd, hidden_bwd], dim=1)
@@ -186,7 +186,7 @@ def train_epoch(model, dataloader, criterion, optimizer, device, clip=None):
         loss = criterion(output, target)
         loss.backward()
         
-        # 그래디언트 폭발을 막으려고 그래디언트 자르기
+        # 그래디언트 폭발을 막으려고 그래디언트 클리핑
         if clip:
             torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
         
@@ -259,11 +259,11 @@ class Vocabulary:
         return self.n_words
 
 def tokenize(text):
-    """간단한 토큰 나누개"""
+    """간단한 토크나이저"""
     return text.lower().split()
 
 def text_to_sequence(text, vocab, max_length=None):
-    """텍스트를 색인의 순차열로 바꾸기"""
+    """텍스트를 인덱스의 시퀀스로 바꾸기"""
     tokens = tokenize(text)
     sequence = [vocab.word2idx.get(word, vocab.word2idx['<UNK>']) for word in tokens]
     
@@ -386,7 +386,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    SimpleRNN의 튜플에서 로짓을 분리해야 한다. 분류의 정수 클래스와 회귀의 실수 타깃을 구분하고 로스에 맞는 모양을 확인한다. 출력 열 수가 여러 개라는 사실만으로 분류 정확도를 계산해서는 안 된다. 길이와 패딩도 별도 처리한다.
+    SimpleRNN의 튜플에서 로짓을 분리해야 한다. 분류의 정수 클래스와 회귀의 실수 타깃을 구분하고 로스에 맞는 형태를 확인한다. 출력 열 수가 여러 개라는 사실만으로 분류 정확도를 계산해서는 안 된다. 길이와 패딩도 별도 처리한다.
 
 ---
 

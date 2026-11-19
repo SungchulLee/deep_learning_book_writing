@@ -14,7 +14,7 @@ $$
 
 ## 2. 사인·코사인 위치 인코딩
 
-본디 트랜스포머 논문은 진동수가 다른 사인과 코사인 함수를 써서 사인·코사인 위치 인코딩을 들여온다.
+원래 트랜스포머 논문은 주파수가 다른 사인과 코사인 함수를 써서 사인·코사인 위치 인코딩을 도입한다.
 
 $$
 \text{PE}_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/d_{\text{model}}}}\right)
@@ -27,10 +27,10 @@ $$
 여기서:
 
 - $pos$은 시퀀스에서의 자리이다(0부터 센다)
-- $i$은 차원 색인이다(0부터 $d_{\text{model}}/2 - 1$까지)
+- $i$은 차원 인덱스이다(0부터 $d_{\text{model}}/2 - 1$까지)
 - $d_{\text{model}}$은 모델의 차원이다
 
-### 진동수 분석
+### 주파수 분석
 
 차원 쌍 $(2i, 2i+1)$마다 다음 파장의 사인·코사인에 해당한다.
 
@@ -42,7 +42,7 @@ $$
 
 ### 상대 위치 성질
 
-핵심 성질은 상대 위치를 선형 변환으로 나타낼 수 있다는 것이다. 고정된 어긋남 $k$에 대해 다음이 성립한다.
+핵심 성질은 상대 위치를 선형 변환으로 나타낼 수 있다는 것이다. 고정된 오프셋 $k$에 대해 다음이 성립한다.
 
 $$
 \text{PE}_{pos+k} = f(\text{PE}_{pos})
@@ -89,8 +89,8 @@ class SinusoidalPositionalEncoding(nn.Module):
     ):
         """
         인수:
-            d_model: 모형 차원(짝수여야 한다)
-            max_len: 미리 셈해 둘 최대 수열 길이
+            d_model: 모델 차원(짝수여야 한다)
+            max_len: 미리 계산해 둘 최대 시퀀스 길이
             dropout: 드롭아웃 확률
         """
         super().__init__()
@@ -103,16 +103,16 @@ class SinusoidalPositionalEncoding(nn.Module):
         # 위치 인코딩 행렬을 만든다 [max_len, d_model]
         pe = torch.zeros(max_len, d_model)
         
-        # 자리 번호 [max_len, 1]
+        # 위치 인덱스 [max_len, 1]
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
         
-        # 진동수를 위한 나눗셈 항 [d_model/2]
+        # 주파수를 위한 나눗셈 항 [d_model/2]
         # 수치 안정성을 위해 exp와 log를 쓴다
         div_term = torch.exp(
             torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)
         )
         
-        # 짝수 색인에는 sin, 홀수 색인에는 cos을 적용한다
+        # 짝수 인덱스에는 sin, 홀수 인덱스에는 cos을 적용한다
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
         
@@ -134,17 +134,17 @@ class SinusoidalPositionalEncoding(nn.Module):
         """
         seq_len = x.size(1)
         
-        # 위치 인코딩을 더한다 (배치 차원으로 퍼뜨린다)
+        # 위치 인코딩을 더한다 (배치 차원으로 브로드캐스트한다)
         x = x + self.pe[:, :seq_len, :]
         
         return self.dropout(x)
     
     def get_encoding(self, seq_len: int) -> torch.Tensor:
-        """그려 보려고 위치 인코딩을 얻는다."""
+        """시각화를 위해 위치 인코딩을 얻는다."""
         return self.pe[:, :seq_len, :].squeeze(0)
 
 def visualize_positional_encoding(d_model: int = 128, max_len: int = 100):
-    """사인파 위치 인코딩 행렬을 그려 본다."""
+    """사인파 위치 인코딩 행렬을 시각화한다."""
     
     pe = SinusoidalPositionalEncoding(d_model, max_len, dropout=0.0)
     encoding = pe.get_encoding(max_len).numpy()
@@ -159,7 +159,7 @@ def visualize_positional_encoding(d_model: int = 128, max_len: int = 100):
     ax1.set_title('Positional Encoding Matrix')
     plt.colorbar(im1, ax=ax1)
     
-    # 특정 자리의 인코딩
+    # 특정 위치의 인코딩
     ax2 = axes[0, 1]
     positions_to_plot = [0, 10, 20, 50, 99]
     for pos in positions_to_plot:
@@ -181,7 +181,7 @@ def visualize_positional_encoding(d_model: int = 128, max_len: int = 100):
     ax3.legend()
     ax3.grid(True, alpha=0.3)
     
-    # 자리 사이의 비슷함 (내적)
+    # 위치 사이의 유사도 (내적)
     ax4 = axes[1, 1]
     similarity = encoding @ encoding.T
     im4 = ax4.imshow(similarity, cmap='viridis')
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     print(f"Input shape: {x.shape}")
     print(f"Output shape: {output.shape}")
     
-    # 상대 자리 성질을 확인한다
+    # 상대 위치 성질을 확인한다
     encoding = pe.get_encoding(100)
     
     # PE[pos+k]를 PE[pos]에서 선형 변환으로 얻을 수 있는지 살핀다
@@ -285,8 +285,8 @@ class LearnedPositionalEncoding(nn.Module):
     ):
         """
         인수:
-            d_model: 모형 차원
-            max_len: 순차열의 최대 길이
+            d_model: 모델 차원
+            max_len: 시퀀스의 최대 길이
             dropout: 드롭아웃 확률
         """
         super().__init__()
@@ -294,7 +294,7 @@ class LearnedPositionalEncoding(nn.Module):
         self.d_model = d_model
         self.max_len = max_len
         
-        # 학습되는 자리 임베딩
+        # 학습되는 위치 임베딩
         self.position_embeddings = nn.Embedding(max_len, d_model)
         
         # 드롭아웃
@@ -304,7 +304,7 @@ class LearnedPositionalEncoding(nn.Module):
         self._init_weights()
     
     def _init_weights(self):
-        """자리 임베딩을 작은 값으로 초기화한다."""
+        """위치 임베딩을 작은 값으로 초기화한다."""
         nn.init.normal_(self.position_embeddings.weight, mean=0.0, std=0.02)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -324,27 +324,27 @@ class LearnedPositionalEncoding(nn.Module):
                 f"Sequence length {seq_len} exceeds maximum length {self.max_len}"
             )
         
-        # 자리 번호를 만든다 [seq_len]
+        # 위치 인덱스를 만든다 [seq_len]
         positions = torch.arange(seq_len, device=x.device)
         
-        # 자리 임베딩을 얻는다 [seq_len, d_model]
+        # 위치 임베딩을 얻는다 [seq_len, d_model]
         pos_embeddings = self.position_embeddings(positions)
         
-        # 입력에 더한다 (배치 차원으로 퍼뜨린다)
+        # 입력에 더한다 (배치 차원으로 브로드캐스트한다)
         x = x + pos_embeddings
         
         return self.dropout(x)
     
     def get_encoding(self, seq_len: int) -> torch.Tensor:
-        """그려 보려고 학습된 인코딩을 얻는다."""
+        """시각화를 위해 학습된 인코딩을 얻는다."""
         positions = torch.arange(seq_len)
         return self.position_embeddings(positions)
 
 class LearnedPositionalEncodingWithInterpolation(nn.Module):
     """
-    길이가 제각각일 때를 위해 사이 채우기를 갖춘 학습된 위치 인코딩.
+    길이가 제각각일 때를 위해 보간(interpolation)을 갖춘 학습된 위치 인코딩.
     
-    사이 채우기로 max_len보다 긴 수열도 다룰 수 있다.
+    보간으로 max_len보다 긴 시퀀스도 다룰 수 있다.
     """
     
     def __init__(
@@ -358,7 +358,7 @@ class LearnedPositionalEncodingWithInterpolation(nn.Module):
         self.d_model = d_model
         self.max_len = max_len
         
-        # 학습되는 자리 임베딩
+        # 학습되는 위치 임베딩
         self.position_embeddings = nn.Parameter(
             torch.randn(1, max_len, d_model) * 0.02
         )
@@ -367,7 +367,7 @@ class LearnedPositionalEncodingWithInterpolation(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        사이 채우기를 받치며 학습된 위치 인코딩을 더한다.
+        보간을 지원하며 학습된 위치 인코딩을 더한다.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
@@ -381,7 +381,7 @@ class LearnedPositionalEncodingWithInterpolation(nn.Module):
             # 임베딩을 그대로 쓴다
             pos_embeddings = self.position_embeddings[:, :seq_len, :]
         else:
-            # 더 긴 수열을 위해 사이를 채운다
+            # 더 긴 시퀀스를 위해 보간한다
             pos_embeddings = torch.nn.functional.interpolate(
                 self.position_embeddings.transpose(1, 2),
                 size=seq_len,
@@ -406,10 +406,10 @@ if __name__ == "__main__":
     output = learned_pe(x)
     print(f"Learned PE output shape: {output.shape}")
     
-    # 사이 채우기와 함께
+    # 보간과 함께
     learned_pe_interp = LearnedPositionalEncodingWithInterpolation(d_model, max_len)
     
-    # 더 긴 수열로 시험한다
+    # 더 긴 시퀀스로 시험한다
     x_long = torch.randn(32, 1000, d_model)
     output_long = learned_pe_interp(x_long)
     print(f"Interpolated PE output shape: {output_long.shape}")
@@ -450,7 +450,7 @@ class RotaryPositionalEncoding(nn.Module):
     """
     LLaMA에서 쓰는 회전 위치 임베딩(RoPE).
     
-    복소 공간의 회전으로 자리를 담는다.
+    복소 공간의 회전으로 위치를 인코딩한다.
     """
     
     def __init__(
@@ -461,9 +461,9 @@ class RotaryPositionalEncoding(nn.Module):
     ):
         """
         인수:
-            d_model: 모형 차원(짝수여야 한다)
-            max_len: 순차열의 최대 길이
-            base: 진동수를 셈할 때 쓰는 밑
+            d_model: 모델 차원(짝수여야 한다)
+            max_len: 시퀀스의 최대 길이
+            base: 주파수를 계산할 때 쓰는 밑
         """
         super().__init__()
         
@@ -473,32 +473,32 @@ class RotaryPositionalEncoding(nn.Module):
         self.max_len = max_len
         self.base = base
         
-        # 진동수의 역수를 셈한다
+        # 주파수의 역수를 계산한다
         inv_freq = 1.0 / (
             base ** (torch.arange(0, d_model, 2).float() / d_model)
         )
         self.register_buffer('inv_freq', inv_freq)
         
-        # 회전 행렬을 미리 셈한다
+        # 회전 행렬을 미리 계산한다
         self._precompute_freqs(max_len)
     
     def _precompute_freqs(self, seq_len: int):
-        """회전을 위한 sin과 cos을 미리 셈한다."""
-        # 자리 번호 [seq_len]
+        """회전을 위한 sin과 cos을 미리 계산한다."""
+        # 위치 인덱스 [seq_len]
         t = torch.arange(seq_len, device=self.inv_freq.device)
         
-        # 진동수 [seq_len, d_model/2]
+        # 주파수 [seq_len, d_model/2]
         freqs = torch.outer(t, self.inv_freq)
         
         # sin과 cos을 위해 두 벌로 만든다 [seq_len, d_model]
         emb = torch.cat((freqs, freqs), dim=-1)
         
-        # cos과 sin을 담아 둔다
+        # cos과 sin을 캐시한다
         self.register_buffer('cos_cached', emb.cos())
         self.register_buffer('sin_cached', emb.sin())
     
     def _rotate_half(self, x: torch.Tensor) -> torch.Tensor:
-        """차원의 절반을 돌린다."""
+        """차원의 절반을 회전시킨다."""
         x1 = x[..., : x.shape[-1] // 2]
         x2 = x[..., x.shape[-1] // 2 :]
         return torch.cat((-x2, x1), dim=-1)
@@ -510,24 +510,24 @@ class RotaryPositionalEncoding(nn.Module):
         seq_len: int = None
     ) -> tuple:
         """
-        질의와 열쇠에 회전 위치 임베딩을 적용한다.
+        쿼리와 키에 회전 위치 임베딩을 적용한다.
         
         인수:
-            q: 질의 텐서 [batch_size, num_heads, seq_len, head_dim]
-            k: 열쇠 텐서 [batch_size, num_heads, seq_len, head_dim]
-            seq_len: 수열 길이(선택. 주지 않으면 q에서 알아낸다)
+            q: 쿼리 텐서 [batch_size, num_heads, seq_len, head_dim]
+            k: 키 텐서 [batch_size, num_heads, seq_len, head_dim]
+            seq_len: 시퀀스 길이(선택. 주지 않으면 q에서 알아낸다)
             
         반환값:
-            돌린 (q, k) 짝
+            회전시킨 (q, k) 쌍
         """
         if seq_len is None:
             seq_len = q.shape[2]
         
-        # 담아 둔 값을 얻는다
+        # 캐시된 값을 얻는다
         cos = self.cos_cached[:seq_len]
         sin = self.sin_cached[:seq_len]
         
-        # 퍼뜨리기 좋게 형태를 바꾼다 [1, 1, seq_len, d_model]
+        # 브로드캐스트하기 좋게 형태를 바꾼다 [1, 1, seq_len, d_model]
         cos = cos.unsqueeze(0).unsqueeze(0)
         sin = sin.unsqueeze(0).unsqueeze(0)
         
@@ -547,7 +547,7 @@ if __name__ == "__main__":
     
     rope = RotaryPositionalEncoding(head_dim, max_len=512)
     
-    # 질의와 열쇠를 만든다
+    # 쿼리와 키를 만든다
     q = torch.randn(batch_size, num_heads, seq_len, head_dim)
     k = torch.randn(batch_size, num_heads, seq_len, head_dim)
     
@@ -567,7 +567,7 @@ Key shape: torch.Size([32, 8, 100, 8])
 
 ---
 
-## 6. ALiBi (선형 바이어스를 쓰는 주의)
+## 6. ALiBi (선형 바이어스를 쓰는 어텐션)
 
 ALiBi는 자리에 따라 달라지는 바이어스를 어텐션 점수에 곧바로 더한다.
 
@@ -575,7 +575,7 @@ $$
 \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}} + \mathbf{m} \cdot [-(i-j)]\right)
 $$
 
-여기서 $\mathbf{m}$은 헤드마다 다른 그래디언트이다.
+여기서 $\mathbf{m}$은 헤드마다 다른 기울기이다.
 
 ### 구현
 
@@ -586,31 +586,31 @@ import math
 
 class ALiBiPositionalBias(nn.Module):
     """
-    선형 바이어스를 쓰는 주의(ALiBi).
+    선형 바이어스를 쓰는 어텐션(ALiBi).
     
-    주의 점수에 선형 자리 바이어스를 더한다.
+    어텐션 점수에 선형 위치 바이어스를 더한다.
     """
     
     def __init__(self, num_heads: int, max_len: int = 2048):
         """
         인수:
-            num_heads: 주의 머리의 수
-            max_len: 순차열의 최대 길이
+            num_heads: 어텐션 헤드의 수
+            max_len: 시퀀스의 최대 길이
         """
         super().__init__()
         
         self.num_heads = num_heads
         
-        # 머리마다 그래디언트를 셈한다
+        # 헤드마다 기울기를 계산한다
         slopes = self._get_slopes(num_heads)
         self.register_buffer('slopes', slopes)
         
-        # 자리 차이 행렬을 미리 셈한다
+        # 위치 차이 행렬을 미리 계산한다
         self._precompute_bias(max_len)
     
     def _get_slopes(self, num_heads: int) -> torch.Tensor:
         """
-        머리마다 ALiBi 그래디언트를 얻는다.
+        헤드마다 ALiBi 기울기를 얻는다.
         
         등비수열을 쓴다: 2^(-8/n), 2^(-16/n), ..., 2^(-8)
         """
@@ -622,7 +622,7 @@ class ALiBiPositionalBias(nn.Module):
         if math.log2(num_heads).is_integer():
             slopes = get_slopes_power_of_2(num_heads)
         else:
-            # 2의 거듭제곱이 아닌 머리 수를 다룬다
+            # 2의 거듭제곱이 아닌 헤드 수를 다룬다
             closest_power_of_2 = 2 ** math.floor(math.log2(num_heads))
             slopes = get_slopes_power_of_2(closest_power_of_2)
             extra_slopes = get_slopes_power_of_2(2 * closest_power_of_2)[0::2]
@@ -631,14 +631,14 @@ class ALiBiPositionalBias(nn.Module):
         return torch.tensor(slopes).view(num_heads, 1, 1)
     
     def _precompute_bias(self, max_len: int):
-        """자리 바이어스 행렬을 미리 셈한다."""
-        # 자리 번호
+        """위치 바이어스 행렬을 미리 계산한다."""
+        # 위치 인덱스
         positions = torch.arange(max_len)
         
-        # 상대 자리 [max_len, max_len]
+        # 상대 위치 [max_len, max_len]
         relative_positions = positions.unsqueeze(0) - positions.unsqueeze(1)
         
-        # ALiBi는 인과 주의에 음의 상대 자리를 쓴다
+        # ALiBi는 인과 어텐션에 음의 상대 위치를 쓴다
         # 바이어스는 인과가 아니면 -|i - j|, 인과이면 -(i - j)이다 (위 삼각은 가린다)
         bias = -torch.abs(relative_positions)
         
@@ -646,22 +646,22 @@ class ALiBiPositionalBias(nn.Module):
     
     def forward(self, seq_len: int) -> torch.Tensor:
         """
-        주어진 수열 길이의 ALiBi 바이어스를 얻는다.
+        주어진 시퀀스 길이의 ALiBi 바이어스를 얻는다.
         
         인수:
-            seq_len: 수열 길이
+            seq_len: 시퀀스 길이
             
         반환값:
             바이어스 텐서 [num_heads, seq_len, seq_len]
         """
-        # 지금 수열 길이의 바이어스를 얻는다
+        # 지금 시퀀스 길이의 바이어스를 얻는다
         bias = self.alibi_bias[:seq_len, :seq_len]
         
-        # 그래디언트를 곱한다 [num_heads, seq_len, seq_len]
+        # 기울기를 곱한다 [num_heads, seq_len, seq_len]
         return self.slopes * bias
 
 class ALiBiAttention(nn.Module):
-    """ALiBi 자리 바이어스를 갖춘 다중 머리 주의."""
+    """ALiBi 위치 바이어스를 갖춘 멀티헤드 어텐션."""
     
     def __init__(
         self,
@@ -678,7 +678,7 @@ class ALiBiAttention(nn.Module):
         self.head_dim = d_model // num_heads
         self.scale = self.head_dim ** -0.5
         
-        # 사영
+        # 투영
         self.q_proj = nn.Linear(d_model, d_model)
         self.k_proj = nn.Linear(d_model, d_model)
         self.v_proj = nn.Linear(d_model, d_model)
@@ -695,28 +695,28 @@ class ALiBiAttention(nn.Module):
         mask: torch.Tensor = None
     ) -> torch.Tensor:
         """
-        ALiBi 자리 바이어스를 쓰는 피드포워드.
+        ALiBi 위치 바이어스를 쓰는 순전파.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
-            mask: 주의 가림 [seq_len, seq_len]
+            mask: 어텐션 마스크 [seq_len, seq_len]
             
         반환값:
             출력 텐서 [batch_size, seq_len, d_model]
         """
         batch_size, seq_len, _ = x.shape
         
-        # Q, K, V를 셈한다
+        # Q, K, V를 계산한다
         q = self.q_proj(x).view(batch_size, seq_len, self.num_heads, self.head_dim)
         k = self.k_proj(x).view(batch_size, seq_len, self.num_heads, self.head_dim)
         v = self.v_proj(x).view(batch_size, seq_len, self.num_heads, self.head_dim)
         
-        # 주의에 맞게 옮겨 놓는다: [batch, heads, seq, dim]
+        # 어텐션에 맞게 축을 바꾼다: [batch, heads, seq, dim]
         q = q.transpose(1, 2)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
         
-        # 주의 점수를 셈한다
+        # 어텐션 점수를 계산한다
         scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
         # ALiBi 바이어스를 더한다 [1, num_heads, seq_len, seq_len]
@@ -734,7 +734,7 @@ class ALiBiAttention(nn.Module):
         # 값에 어텐션 적용
         output = torch.matmul(attn_weights, v)
         
-        # 형태를 바꾸고 사영한다
+        # 형태를 바꾸고 투영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         output = self.out_proj(output)
         
@@ -784,7 +784,7 @@ Output shape: torch.Size([32, 100, 512])
 
 ### 들어가며
 
-RoFormer에서 나와 LLaMA, Mistral을 비롯한 요즘 대형 언어 모델이 받아들인 회전 위치 임베딩(RoPE)은 복소 공간의 회전 행렬로 위치 정보를 담는다. 더하는 방식의 위치 인코딩과 달리 RoPE는 어텐션을 셈하는 과정 안에서 상대 위치를 자연스레 잡아낸다.
+RoFormer에서 나와 LLaMA, Mistral을 비롯한 요즘 대형 언어 모델이 받아들인 회전 위치 임베딩(RoPE)은 복소 공간의 회전 행렬로 위치 정보를 담는다. 더하는 방식의 위치 인코딩과 달리 RoPE는 어텐션을 계산하는 과정 안에서 상대 위치를 자연스레 잡아낸다.
 
 ### 왜 필요한가
 
@@ -812,7 +812,7 @@ $$
 
 ### 높은 차원으로 넓히기
 
-$d$차원 벡터에서는 차원을 짝지어 서로 다른 진동수를 적용한다.
+$d$차원 벡터에서는 차원을 짝지어 서로 다른 주파수를 적용한다.
 
 $$
 \theta_i = 10000^{-2i/d}, \quad i = 0, 1, \ldots, d/2 - 1
@@ -832,7 +832,7 @@ $$
 
 ### 상대 위치 성질
 
-핵심 성질은 이렇다. 위치 $m$과 $n$ 사이의 어텐션을 셈할 때 다음과 같다.
+핵심 성질은 이렇다. 위치 $m$과 $n$ 사이의 어텐션을 계산할 때 다음과 같다.
 
 $$
 (R_m q)^T (R_n k) = q^T R_m^T R_n k = q^T R_{n-m} k
@@ -864,8 +864,8 @@ class RotaryPositionEmbedding(nn.Module):
     """
     회전 위치 임베딩(RoPE).
     
-    회전으로 절대 자리를 담아 주의 점수가 상대 자리에
-    매이게 만든다.
+    회전으로 절대 위치를 담아 어텐션 점수가 상대 위치에
+    의존하게 만든다.
     """
     
     def __init__(
@@ -877,8 +877,8 @@ class RotaryPositionEmbedding(nn.Module):
         """
         인수:
             dim: 임베딩의 차원(짝수여야 한다)
-            max_seq_len: 미리 셈해 둘 최대 수열 길이
-            base: 진동수를 셈할 때 쓰는 밑
+            max_seq_len: 미리 계산해 둘 최대 시퀀스 길이
+            base: 주파수를 계산할 때 쓰는 밑
         """
         super().__init__()
         
@@ -888,32 +888,32 @@ class RotaryPositionEmbedding(nn.Module):
         self.max_seq_len = max_seq_len
         self.base = base
         
-        # 진동수 띠를 미리 셈한다
+        # 주파수 대역를 미리 계산한다
         # i = 0, 1, ..., d/2-1에 대해 theta_i = 10000^(-2i/d)
         inv_freq = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
         self.register_buffer('inv_freq', inv_freq)
         
-        # sin과 cos 캐시를 미리 셈한다
+        # sin과 cos 캐시를 미리 계산한다
         self._build_cache(max_seq_len)
     
     def _build_cache(self, seq_len: int):
-        """sin과 cos 값을 미리 셈한다."""
-        # 자리 번호: [0, 1, 2, ..., seq_len-1]
+        """sin과 cos 값을 미리 계산한다."""
+        # 위치 인덱스: [0, 1, 2, ..., seq_len-1]
         t = torch.arange(seq_len, device=self.inv_freq.device, dtype=self.inv_freq.dtype)
         
-        # 바깥곱: [seq_len, dim/2]
+        # 외적: [seq_len, dim/2]
         freqs = torch.outer(t, self.inv_freq)
         
         # 온전한 차원을 위해 이어 붙인다: [seq_len, dim]
         emb = torch.cat((freqs, freqs), dim=-1)
         
-        # cos과 sin을 담아 둔다
+        # cos과 sin을 캐시한다
         self.register_buffer('cos_cached', emb.cos(), persistent=False)
         self.register_buffer('sin_cached', emb.sin(), persistent=False)
     
     def _rotate_half(self, x: torch.Tensor) -> torch.Tensor:
         """
-        숨은 차원의 절반을 돌린다.
+        은닉 차원의 절반을 회전시킨다.
         
         [x0, x1, x2, x3, ...] -> [-x1, x0, -x3, x2, ...]
         """
@@ -928,15 +928,15 @@ class RotaryPositionEmbedding(nn.Module):
         position_ids: Optional[torch.Tensor] = None
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        질의와 열쇠에 회전 위치 임베딩을 적용한다.
+        쿼리와 키에 회전 위치 임베딩을 적용한다.
         
         인수:
-            q: 질의 텐서 [batch, num_heads, seq_len, head_dim]
-            k: 열쇠 텐서 [batch, num_heads, seq_len, head_dim]
-            position_ids: 선택으로 주는 자리 색인 [batch, seq_len]
+            q: 쿼리 텐서 [batch, num_heads, seq_len, head_dim]
+            k: 키 텐서 [batch, num_heads, seq_len, head_dim]
+            position_ids: 선택으로 주는 위치 인덱스 [batch, seq_len]
             
         반환값:
-            돌린 (q, k) 짝
+            회전시킨 (q, k) 쌍
         """
         seq_len = q.shape[2]
         
@@ -944,13 +944,13 @@ class RotaryPositionEmbedding(nn.Module):
         if seq_len > self.max_seq_len:
             self._build_cache(seq_len)
         
-        # 담아 둔 값을 얻는다
+        # 캐시된 값을 얻는다
         if position_ids is not None:
-            # 따로 정한 자리 (생성 중 KV 캐시를 위해)
+            # 따로 지정한 위치 (생성 중 KV 캐시를 위해)
             cos = self.cos_cached[position_ids].unsqueeze(1)
             sin = self.sin_cached[position_ids].unsqueeze(1)
         else:
-            # 표준 차례 자리
+            # 표준 순차 위치
             cos = self.cos_cached[:seq_len].unsqueeze(0).unsqueeze(0)
             sin = self.sin_cached[:seq_len].unsqueeze(0).unsqueeze(0)
         
@@ -962,9 +962,9 @@ class RotaryPositionEmbedding(nn.Module):
 
 class RoPEAttention(nn.Module):
     """
-    회전 위치 임베딩을 갖춘 다중 머리 주의.
+    회전 위치 임베딩을 갖춘 멀티헤드 어텐션.
     
-    LLaMA, Mistral을 비롯한 요즘 대형 언어 모형이 쓴다.
+    LLaMA, Mistral을 비롯한 요즘 대형 언어 모델이 쓴다.
     """
     
     def __init__(
@@ -984,7 +984,7 @@ class RoPEAttention(nn.Module):
         self.head_dim = d_model // num_heads
         self.scale = self.head_dim ** -0.5
         
-        # 사영
+        # 투영
         self.q_proj = nn.Linear(d_model, d_model, bias=False)
         self.k_proj = nn.Linear(d_model, d_model, bias=False)
         self.v_proj = nn.Linear(d_model, d_model, bias=False)
@@ -999,7 +999,7 @@ class RoPEAttention(nn.Module):
         
         self.dropout = nn.Dropout(dropout)
         
-        # 인과 가림
+        # 인과 마스크
         self.register_buffer(
             'causal_mask',
             torch.triu(torch.ones(max_seq_len, max_seq_len), diagonal=1).bool()
@@ -1014,23 +1014,23 @@ class RoPEAttention(nn.Module):
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """
-        피드포워드.
+        순전파.
         
         인수:
             x: 입력 [batch, seq_len, d_model]
-            attention_mask: 선택으로 주는 가림
-            position_ids: RoPE를 위한 자리 색인
-            past_key_value: 생성을 위해 담아 둔 KV
-            use_cache: 고친 캐시를 돌려줄지 여부
+            attention_mask: 선택으로 주는 마스크
+            position_ids: RoPE를 위한 위치 인덱스
+            past_key_value: 생성을 위해 캐시해 둔 KV
+            use_cache: 갱신한 캐시를 반환할지 여부
         """
         batch_size, seq_len, _ = x.shape
         
-        # Q, K, V를 사영한다
+        # Q, K, V를 투영한다
         q = self.q_proj(x)
         k = self.k_proj(x)
         v = self.v_proj(x)
         
-        # 다중 머리 주의에 맞게 형태를 바꾼다
+        # 멀티헤드 어텐션에 맞게 형태를 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -1045,11 +1045,11 @@ class RoPEAttention(nn.Module):
         
         present_key_value = (k, v) if use_cache else None
         
-        # 주의 점수
+        # 어텐션 점수
         kv_seq_len = k.size(2)
         attn_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
-        # 인과 가림을 적용한다
+        # 인과 마스크를 적용한다
         if seq_len > 1:  # 토큰 하나를 만들 때는 건너뛴다
             causal_mask = self.causal_mask[
                 kv_seq_len - seq_len:kv_seq_len,
@@ -1057,7 +1057,7 @@ class RoPEAttention(nn.Module):
             ]
             attn_scores = attn_scores.masked_fill(causal_mask, float('-inf'))
         
-        # 주의 가림이 있으면 적용한다
+        # 어텐션 마스크가 있으면 적용한다
         if attention_mask is not None:
             attn_scores = attn_scores + attention_mask
         
@@ -1067,7 +1067,7 @@ class RoPEAttention(nn.Module):
         
         output = torch.matmul(attn_weights, v)
         
-        # 형태를 바꾸고 출력을 사영한다
+        # 형태를 바꾸고 출력을 투영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         output = self.o_proj(output)
         
@@ -1075,10 +1075,10 @@ class RoPEAttention(nn.Module):
 
 class RoPEWithNTKScaling(RotaryPositionEmbedding):
     """
-    길이를 더 잘 뻗도록 NTK를 고려해 크기를 조정한 RoPE.
+    길이 외삽(extrapolation)이 더 잘 되도록 NTK 기반 스케일링을 적용한 RoPE.
     
-    학습 때 본 것보다 긴 수열을 다루려고 밑 진동수의
-    크기를 조정한다.
+    학습 때 본 것보다 긴 시퀀스를 다루려고 밑 주파수를
+    스케일링한다.
     """
     
     def __init__(
@@ -1088,16 +1088,16 @@ class RoPEWithNTKScaling(RotaryPositionEmbedding):
         base: int = 10000,
         scaling_factor: float = 1.0
     ):
-        # NTK 크기 조정을 위해 밑을 고친다
+        # NTK 스케일링을 위해 밑을 조정한다
         adjusted_base = base * (scaling_factor ** (dim / (dim - 2)))
         super().__init__(dim, max_seq_len, int(adjusted_base))
         self.scaling_factor = scaling_factor
 
 class RoPEWithLinearScaling(RotaryPositionEmbedding):
     """
-    길이를 뻗으려고 선형 사이 채우기를 쓰는 RoPE.
+    길이 외삽을 위해 선형 보간을 쓰는 RoPE.
     
-    자리 색인의 크기를 조정해 학습 범위 안에 맞춘다.
+    위치 인덱스를 스케일링해 학습 범위 안에 맞춘다.
     """
     
     def __init__(
@@ -1116,16 +1116,16 @@ class RoPEWithLinearScaling(RotaryPositionEmbedding):
         k: torch.Tensor,
         position_ids: Optional[torch.Tensor] = None
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """자리에 선형 크기 조정을 적용한다."""
+        """위치에 선형 스케일링을 적용한다."""
         seq_len = q.shape[2]
         
         if position_ids is None:
             position_ids = torch.arange(seq_len, device=q.device)
         
-        # 자리의 크기를 조정한다
+        # 위치를 스케일링한다
         scaled_positions = position_ids.float() / self.scaling_factor
         
-        # 크기를 조정한 자리의 cos과 sin을 셈한다
+        # 스케일링한 위치의 cos과 sin을 계산한다
         freqs = torch.outer(scaled_positions.flatten(), self.inv_freq)
         emb = torch.cat((freqs, freqs), dim=-1)
         
@@ -1137,9 +1137,9 @@ class RoPEWithLinearScaling(RotaryPositionEmbedding):
         
         return q_rotated, k_rotated
 
-# 보이기와 그리기
+# 시연과 시각화
 def visualize_rope_properties():
-    """RoPE의 상대 자리 성질을 그려 본다."""
+    """RoPE의 상대 위치 성질을 시각화한다."""
     import matplotlib.pyplot as plt
     import numpy as np
     
@@ -1147,20 +1147,20 @@ def visualize_rope_properties():
     seq_len = 100
     rope = RotaryPositionEmbedding(dim, seq_len)
     
-    # 무작위 질의와 열쇠를 만든다
+    # 무작위 쿼리와 키를 만든다
     q = torch.randn(1, 1, seq_len, dim)
     k = torch.randn(1, 1, seq_len, dim)
     
     # RoPE를 적용한다
     q_rot, k_rot = rope(q, k)
     
-    # 주의 무늬를 셈한다 (상대 자리에 매임을 보인다)
+    # 어텐션 패턴을 계산한다 (상대 위치에 의존함을 보인다)
     attn = torch.matmul(q_rot, k_rot.transpose(-2, -1)) / (dim ** 0.5)
     attn = torch.softmax(attn, dim=-1)
     
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     
-    # 주의 무늬
+    # 어텐션 패턴
     ax1 = axes[0]
     im1 = ax1.imshow(attn[0, 0].detach().numpy(), cmap='viridis')
     ax1.set_xlabel('Key Position')
@@ -1168,9 +1168,9 @@ def visualize_rope_properties():
     ax1.set_title('Attention Pattern with RoPE')
     plt.colorbar(im1, ax=ax1)
     
-    # 상대 자리에 따른 잦아듦
+    # 상대 위치에 따른 감쇠
     ax2 = axes[1]
-    # 상대 자리의 함수로 본 평균 주의 웨이트
+    # 상대 위치의 함수로 본 평균 어텐션 웨이트
     relative_weights = []
     for offset in range(-seq_len+1, seq_len):
         weights = []
@@ -1212,7 +1212,7 @@ if __name__ == "__main__":
     print(f"Query shape: {q.shape} -> {q_rot.shape}")
     print(f"Key shape: {k.shape} -> {k_rot.shape}")
     
-    # 온전한 주의 레이어를 시험한다
+    # 온전한 어텐션 레이어를 시험한다
     attention = RoPEAttention(d_model, num_heads, max_seq_len=2048)
     
     x = torch.randn(batch_size, seq_len, d_model)
@@ -1293,7 +1293,7 @@ Visualization saved to 'rope_visualization.png'
 | NTK 기반 스케일링 | 주파수의 밑 | 차원별 회전 속도를 변경 |
 | 복합 확장 방법 | 주파수·스케일과 학습 조건 | 방법별 설계와 평가를 확인 |
 
-확장 배율에 보편적인 상한이나 품질 보장은 없다. 아래 코드의 NTK 식은 dim=2에서 분모가 0이 되며, 선형 스케일링도 양의 scaling_factor와 위치 ID의 모양을 확인해야 한다.
+확장 배율에 보편적인 상한이나 품질 보장은 없다. 아래 코드의 NTK 식은 dim=2에서 분모가 0이 되며, 선형 스케일링도 양의 scaling_factor와 위치 ID의 형태를 확인해야 한다.
 
 ### 핵심 내용
 
@@ -1311,9 +1311,9 @@ RoPE는 Q·K의 회전 내적에 상대 위치를 반영한다. 회전 연산 �
 
 ## 9. ALiBi 깊이 들여다보기
 
-앞 절의 간단한 ALiBiAttention은 자동 인과 마스크가 없다. 이 절의 causal=True 구현은 인과 마스크를 적용하지만 마스크 크기를 자동 확장하지 않아 max_seq_len보다 긴 입력 시연은 모양 오류가 날 수 있다. 바이어스 캐시 재생성도 장치를 확인해야 한다.
+앞 절의 간단한 ALiBiAttention은 자동 인과 마스크가 없다. 이 절의 causal=True 구현은 인과 마스크를 적용하지만 마스크 크기를 자동 확장하지 않아 max_seq_len보다 긴 입력 시연은 형태 오류가 날 수 있다. 바이어스 캐시 재생성도 장치를 확인해야 한다.
 
-get_bias_for_kv_cache는 query_len 인수를 사용하지 않고 마지막 위치 한 개 기준의 바이어스를 만든다. 양의 그래디언트와 인과 마스킹에서 여러 쿼리 행 간 차이가 행별 상수라면 소프트맥스가 이를 상쇄하지만, 함수가 일반적인 상대 거리 행렬을 반환하는 것은 아니다. 추가 attention_mask는 점수에 더하는 가산 마스크다.
+get_bias_for_kv_cache는 query_len 인수를 사용하지 않고 마지막 위치 한 개 기준의 바이어스를 만든다. 양의 기울기와 인과 마스킹에서 여러 쿼리 행 간 차이가 행별 상수라면 소프트맥스가 이를 상쇄하지만, 함수가 일반적인 상대 거리 행렬을 반환하는 것은 아니다. 추가 attention_mask는 점수에 더하는 가산 마스크다.
 
 ### 들어가며
 
@@ -1327,7 +1327,7 @@ $$
 \text{softmax}\left(\mathbf{q}_i \mathbf{K}^T + m \cdot [-(i-j)]\right)
 $$
 
-여기서 $m$은 먼 자리에 주의하는 것에 벌을 주는, 헤드마다 다른 그래디언트이다.
+여기서 $m$은 먼 자리에 어텐션하는 것에 패널티를 주는, 헤드마다 다른 기울기이다.
 
 ### 수학적 정식화
 
@@ -1348,9 +1348,9 @@ a_{ij} = \begin{cases}
 \end{cases}
 $$
 
-### 헤드마다 다른 그래디언트
+### 헤드마다 다른 기울기
 
-헤드별 그래디언트를 다르게 정한다. H가 2의 거듭제곱일 때 대표 구성은 다음 식과 같다.
+헤드별 기울기를 다르게 정한다. H가 2의 거듭제곱일 때 대표 구성은 다음 식과 같다.
 
 $$
 m_h = \frac{1}{2^{8h/H}}
@@ -1358,7 +1358,7 @@ $$
 
 H가 2의 거듭제곱일 때 위 식은 h=1,…,H를 사용한다. H=8이면 기울기는 $\{2^{-1},\ldots,2^{-8}\}$이다. 다른 헤드 수는 아래 get_alibi_slopes의 구성 규칙을 따른다.
 
-그래디언트 m이 클수록 같은 거리에 더 큰 음의 바이어스를 주어 가까운 위치를 강하게 선호한다. m이 작으면 거리 패널티가 완만하다. 실제 웨이트는 내용 점수와 소프트맥스에도 의존한다.
+기울기 m이 클수록 같은 거리에 더 큰 음의 바이어스를 주어 가까운 위치를 강하게 선호한다. m이 작으면 거리 패널티가 완만하다. 실제 웨이트는 내용 점수와 소프트맥스에도 의존한다.
 
 ### 바이어스 행렬
 
@@ -1384,15 +1384,15 @@ from typing import Optional, Tuple
 
 def get_alibi_slopes(num_heads: int) -> torch.Tensor:
     """
-    주의 머리마다 ALiBi 그래디언트를 셈한다.
+    어텐션 헤드마다 ALiBi 기울기를 계산한다.
     
     등비수열을 쓴다: 2^(-8/n), 2^(-16/n), ..., 2^(-8)
     
     인수:
-        num_heads: 주의 머리의 수
+        num_heads: 어텐션 헤드의 수
         
     반환값:
-        그래디언트 텐서 [num_heads]
+        기울기 텐서 [num_heads]
     """
     def get_slopes_power_of_2(n: int):
         start = 2 ** (-(2 ** -(math.log2(n) - 3)))
@@ -1403,7 +1403,7 @@ def get_alibi_slopes(num_heads: int) -> torch.Tensor:
         # 2의 거듭제곱: 표준 등비수열을 쓴다
         slopes = get_slopes_power_of_2(num_heads)
     else:
-        # 2의 거듭제곱이 아닐 때: 사이를 채운다
+        # 2의 거듭제곱이 아닐 때: 보간한다
         closest_power_of_2 = 2 ** math.floor(math.log2(num_heads))
         base_slopes = get_slopes_power_of_2(closest_power_of_2)
         extra_slopes = get_slopes_power_of_2(2 * closest_power_of_2)[0::2]
@@ -1413,53 +1413,53 @@ def get_alibi_slopes(num_heads: int) -> torch.Tensor:
 
 class ALiBiPositionalBias(nn.Module):
     """
-    ALiBi(선형 바이어스를 쓰는 주의) 위치 인코딩.
+    ALiBi(선형 바이어스를 쓰는 어텐션) 위치 인코딩.
     
-    자리에 따라 달라지는 선형 바이어스를 주의 점수에 더한다.
-    학습되는 파라메터가 없다. 등비 그래디언트뿐이다.
+    자리에 따라 달라지는 선형 바이어스를 어텐션 점수에 더한다.
+    학습되는 파라메터가 없다. 등비 기울기뿐이다.
     """
     
     def __init__(self, num_heads: int, max_seq_len: int = 4096):
         """
         인수:
-            num_heads: 주의 머리의 수
-            max_seq_len: 미리 셈해 둘 최대 수열 길이
+            num_heads: 어텐션 헤드의 수
+            max_seq_len: 미리 계산해 둘 최대 시퀀스 길이
         """
         super().__init__()
         
         self.num_heads = num_heads
         self.max_seq_len = max_seq_len
         
-        # 머리마다 그래디언트를 얻는다
+        # 헤드마다 기울기를 얻는다
         slopes = get_alibi_slopes(num_heads)
         self.register_buffer('slopes', slopes.view(num_heads, 1, 1))
         
-        # 바이어스 행렬을 미리 셈한다
+        # 바이어스 행렬을 미리 계산한다
         self._build_alibi_bias(max_seq_len)
     
     def _build_alibi_bias(self, seq_len: int):
         """ALiBi 바이어스 행렬을 세운다."""
-        # 자리 번호
+        # 위치 인덱스
         positions = torch.arange(seq_len)
         
-        # 상대 자리 행렬: [seq_len, seq_len]
+        # 상대 위치 행렬: [seq_len, seq_len]
         # relative_pos[i, j] = j - i
         relative_pos = positions.unsqueeze(0) - positions.unsqueeze(1)
         
-        # 인과 주의에서는 j <= i만 따진다
-        # 허락된 자리의 바이어스는 -(i - j) = j - i이다
+        # 인과 어텐션에서는 j <= i만 고려한다
+        # 허용된 위치의 바이어스는 -(i - j) = j - i이다
         # 행마다 0, -1, -2, -3, ...이 된다
         relative_pos = relative_pos.float()
         
-        # 퍼뜨리기 좋게 [1, seq_len, seq_len]으로 담는다
+        # 브로드캐스트하기 좋게 [1, seq_len, seq_len]으로 담는다
         self.register_buffer('alibi_bias_base', relative_pos.unsqueeze(0))
     
     def forward(self, seq_len: int) -> torch.Tensor:
         """
-        주어진 수열 길이의 ALiBi 바이어스를 얻는다.
+        주어진 시퀀스 길이의 ALiBi 바이어스를 얻는다.
         
         인수:
-            seq_len: 지금의 수열 길이
+            seq_len: 지금의 시퀀스 길이
             
         반환값:
             바이어스 텐서 [num_heads, seq_len, seq_len]
@@ -1467,10 +1467,10 @@ class ALiBiPositionalBias(nn.Module):
         if seq_len > self.max_seq_len:
             self._build_alibi_bias(seq_len)
         
-        # 지금 수열 길이의 바이어스를 얻는다
+        # 지금 시퀀스 길이의 바이어스를 얻는다
         bias = self.alibi_bias_base[:, :seq_len, :seq_len]
         
-        # 머리마다 다른 그래디언트를 곱한다: [num_heads, seq_len, seq_len]
+        # 헤드마다 다른 기울기를 곱한다: [num_heads, seq_len, seq_len]
         return self.slopes * bias
     
     def get_bias_for_kv_cache(
@@ -1482,28 +1482,28 @@ class ALiBiPositionalBias(nn.Module):
         KV 캐시를 쓰는 점진 디코딩을 위한 ALiBi 바이어스를 얻는다.
         
         인수:
-            query_len: 질의 자리의 수(대개 1)
-            kv_len: 캐시를 넣은 열쇠·값의 전체 길이
+            query_len: 쿼리 위치의 수(대개 1)
+            kv_len: 캐시를 넣은 키·값의 전체 길이
             
         반환값:
             바이어스 텐서 [num_heads, query_len, kv_len]
         """
-        # 자리 kv_len-1의 질의 하나가 열쇠 kv_len개 모두에 주의할 때
-        # 상대 자리: [-(kv_len-1), -(kv_len-2), ..., -1, 0]
+        # 위치 kv_len-1의 쿼리 하나가 키 kv_len개 모두에 어텐션할 때
+        # 상대 위치: [-(kv_len-1), -(kv_len-2), ..., -1, 0]
         relative_pos = torch.arange(kv_len, device=self.slopes.device).float()
         relative_pos = relative_pos - (kv_len - 1)  # 마지막 자리가 0이 되도록 민다
         
-        # 질의 차원으로 넓힌다: [1, kv_len]
+        # 쿼리 차원으로 넓힌다: [1, kv_len]
         relative_pos = relative_pos.unsqueeze(0)
         
-        # 그래디언트를 곱한다: [num_heads, 1, kv_len]
+        # 기울기를 곱한다: [num_heads, 1, kv_len]
         return self.slopes * relative_pos
 
 class ALiBiAttention(nn.Module):
     """
-    ALiBi 자리 바이어스를 갖춘 다중 머리 주의.
+    ALiBi 위치 바이어스를 갖춘 멀티헤드 어텐션.
     
-    BLOOM, MPT를 비롯한 모형이 쓴다.
+    BLOOM, MPT를 비롯한 모델이 쓴다.
     """
     
     def __init__(
@@ -1516,11 +1516,11 @@ class ALiBiAttention(nn.Module):
     ):
         """
         인수:
-            d_model: 모형 차원
-            num_heads: 주의 머리의 수
-            max_seq_len: 최대 수열 길이
-            dropout: 주의 드롭아웃
-            causal: 인과 가림을 쓸지 여부
+            d_model: 모델 차원
+            num_heads: 어텐션 헤드의 수
+            max_seq_len: 최대 시퀀스 길이
+            dropout: 어텐션 드롭아웃
+            causal: 인과 마스크를 쓸지 여부
         """
         super().__init__()
         
@@ -1532,7 +1532,7 @@ class ALiBiAttention(nn.Module):
         self.scale = self.head_dim ** -0.5
         self.causal = causal
         
-        # 사영
+        # 투영
         self.q_proj = nn.Linear(d_model, d_model, bias=False)
         self.k_proj = nn.Linear(d_model, d_model, bias=False)
         self.v_proj = nn.Linear(d_model, d_model, bias=False)
@@ -1543,7 +1543,7 @@ class ALiBiAttention(nn.Module):
         
         self.dropout = nn.Dropout(dropout)
         
-        # 인과 가림
+        # 인과 마스크
         if causal:
             mask = torch.triu(torch.ones(max_seq_len, max_seq_len), diagonal=1)
             self.register_buffer('causal_mask', mask.bool())
@@ -1556,22 +1556,22 @@ class ALiBiAttention(nn.Module):
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """
-        ALiBi를 쓰는 피드포워드.
+        ALiBi를 쓰는 순전파.
         
         인수:
             x: 입력 [batch, seq_len, d_model]
-            attention_mask: 선택으로 주는 주의 가림
-            past_key_value: 생성을 위해 담아 둔 KV
-            use_cache: 고친 캐시를 돌려줄지 여부
+            attention_mask: 선택으로 주는 어텐션 마스크
+            past_key_value: 생성을 위해 캐시해 둔 KV
+            use_cache: 갱신한 캐시를 반환할지 여부
         """
         batch_size, seq_len, _ = x.shape
         
-        # Q, K, V를 셈한다
+        # Q, K, V를 계산한다
         q = self.q_proj(x)
         k = self.k_proj(x)
         v = self.v_proj(x)
         
-        # 다중 머리 주의에 맞게 형태를 바꾼다
+        # 멀티헤드 어텐션에 맞게 형태를 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -1584,24 +1584,24 @@ class ALiBiAttention(nn.Module):
         present_key_value = (k, v) if use_cache else None
         kv_len = k.size(2)
         
-        # 주의 점수를 셈한다
+        # 어텐션 점수를 계산한다
         attn_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
         # ALiBi 바이어스를 더한다
         if past_key_value is not None:
-            # 점진 디코딩: 질의가 자리 하나이다
+            # 점진 디코딩: 쿼리가 위치 하나이다
             alibi_bias = self.alibi.get_bias_for_kv_cache(seq_len, kv_len)
         else:
             alibi_bias = self.alibi(kv_len)
         
         attn_scores = attn_scores + alibi_bias.unsqueeze(0)
         
-        # 인과 가림을 적용한다
+        # 인과 마스크를 적용한다
         if self.causal and seq_len > 1:
             causal_mask = self.causal_mask[kv_len - seq_len:kv_len, :kv_len]
             attn_scores = attn_scores.masked_fill(causal_mask, float('-inf'))
         
-        # 추가 주의 가림을 적용한다
+        # 추가 어텐션 마스크를 적용한다
         if attention_mask is not None:
             attn_scores = attn_scores + attention_mask
         
@@ -1612,14 +1612,14 @@ class ALiBiAttention(nn.Module):
         # 값에 적용한다
         output = torch.matmul(attn_weights, v)
         
-        # 형태를 바꾸고 사영한다
+        # 형태를 바꾸고 투영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         output = self.o_proj(output)
         
         return output, present_key_value
 
 class ALiBiTransformerBlock(nn.Module):
-    """ALiBi 주의를 갖춘 트랜스포머 블록."""
+    """ALiBi 어텐션을 갖춘 트랜스포머 블록."""
     
     def __init__(
         self,
@@ -1655,14 +1655,14 @@ class ALiBiTransformerBlock(nn.Module):
         past_key_value: Optional[Tuple] = None,
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple]]:
-        """앞 정규화 구조의 피드포워드."""
+        """Pre-LN 구조의 순전파."""
         # 어텐션
         residual = x
         x = self.norm1(x)
         attn_out, present = self.attention(x, past_key_value=past_key_value, use_cache=use_cache)
         x = residual + self.dropout(attn_out)
         
-        # 순전파 뉴럴 네트워크
+        # 피드포워드 뉴럴 네트워크
         residual = x
         x = self.norm2(x)
         x = residual + self.feed_forward(x)
@@ -1670,13 +1670,13 @@ class ALiBiTransformerBlock(nn.Module):
         return x, present
 
 def visualize_alibi_bias(num_heads: int = 8, seq_len: int = 64):
-    """머리마다의 ALiBi 바이어스 무늬를 그려 본다."""
+    """헤드마다의 ALiBi 바이어스 패턴을 시각화한다."""
     import matplotlib.pyplot as plt
     
     alibi = ALiBiPositionalBias(num_heads, seq_len)
     bias = alibi(seq_len)  # [num_heads, seq_len, seq_len]
     
-    # 그림을 위해 인과 가림을 적용한다
+    # 그림을 위해 인과 마스크를 적용한다
     causal_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
     bias = bias.masked_fill(causal_mask, float('nan'))
     
@@ -1707,7 +1707,7 @@ if __name__ == "__main__":
     batch_size = 2
     seq_len = 128
     
-    # ALiBi 주의를 시험한다
+    # ALiBi 어텐션을 시험한다
     attention = ALiBiAttention(
         d_model=d_model,
         num_heads=num_heads,
@@ -1721,7 +1721,7 @@ if __name__ == "__main__":
     print(f"Output shape: {output.shape}")
     print(f"Cache shapes: K={cache[0].shape}, V={cache[1].shape}")
     
-    # 길이 바깥으로 뻗기를 시험한다
+    # 길이 외삽을 시험한다
     print("\n--- Testing Length Extrapolation ---")
     long_seq = torch.randn(1, max_seq_len * 2, d_model)
     long_output, _ = attention(long_seq)
@@ -1756,7 +1756,7 @@ if __name__ == "__main__":
 
 ### 1. 파라메터가 더 들지 않는다
 
-ALiBi는 미리 셈해 둔 그래디언트만 있으면 된다. 학습되는 임베딩이 없다.
+ALiBi는 미리 계산해 둔 기울기만 있으면 된다. 학습되는 임베딩이 없다.
 
 | 방식 | 위치 표현의 추가 학습 파라메터 |
 |---|---|
@@ -1767,7 +1767,7 @@ ALiBi는 미리 셈해 둔 그래디언트만 있으면 된다. 학습되는 임
 
 고정 버퍼와 전체 거리 행렬도 메모리를 사용하므로 추가 파라메터가 0이라는 사실을 저장 비용이 0이라는 뜻으로 해석하지 않는다.
 
-### 2. 길이를 아주 잘 뻗는다
+### 2. 길이 외삽
 
 ALiBi 원 논문은 학습보다 긴 입력에 대한 실험을 보고했다. 그 결과를 임의의 모델·데이터와 길이에 적용할 수는 없다. 같은 토큰화와 로스 집계 방식으로 길이별 품질 및 메모리를 측정해야 한다.
 
@@ -1797,9 +1797,9 @@ attn_weights = softmax(attn_scores)
 
 ### 핵심 내용
 
-ALiBi는 고정 그래디언트로 상대 거리에 대한 선호를 점수에 넣는다. 그래디언트 크기, 마스킹과 캐시 위치를 함께 이해해야 하며, 긴 문맥 성능은 별도의 검증 대상이다.
+ALiBi는 고정 기울기로 상대 거리에 대한 선호를 점수에 넣는다. 기울기 크기, 마스킹과 캐시 위치를 함께 이해해야 하며, 긴 문맥 성능은 별도의 검증 대상이다.
 
-고정 거리 바이어스와 인과 마스크는 역할이 다르다. 위치 표현에 학습 계수가 없더라도 Q·K·V 투영과 다른 모델 파라메터는 학습한다.
+고정 거리 바이어스와 인과 마스크는 역할이 다르다. 위치 표현에 학습 파라메터가 없더라도 Q·K·V 투영과 다른 모델 파라메터는 학습한다.
 
 ### 참고 문헌
 

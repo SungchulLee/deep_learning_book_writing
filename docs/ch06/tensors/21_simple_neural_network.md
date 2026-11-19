@@ -194,7 +194,7 @@ $$
 w \leftarrow w - \eta \cdot \frac{\partial L}{\partial w}
 $$
 
-이고, 출력이 그것을 그대로 보인다 — 바뀐 양과 $-\eta \cdot \text{grad}$가 같다(SGD에 모멘텀을 두지 않았을 때다). 찍힌 수의 끝자리가 조금 어긋나는 것은 `float32`의 셈 차례 탓이고, `allclose`가 `True`다.
+이고, 출력이 그것을 그대로 보인다 — 바뀐 양과 $-\eta \cdot \text{grad}$가 같다(SGD에 모멘텀을 두지 않았을 때다). 찍힌 수의 끝자리가 조금 어긋나는 것은 `float32`의 연산 순서 탓이고, `allclose`가 `True`다.
 
 ## 4. `eval()`은 그래디언트를 끄지 않는다
 

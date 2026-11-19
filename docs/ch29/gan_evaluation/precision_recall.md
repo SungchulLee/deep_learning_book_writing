@@ -1,6 +1,6 @@
 # 생성 모델의 정밀도와 재현율
 
-생성 정밀도·재현율은 생성 샘플이 실제 데이터와 얼마나 가까운지, 실제 데이터가 생성 샘플에 얼마나 포괄되는지를 나누어 살펴보는 지표다. 여기서는 [Kynkäänniemi 등의 방법](https://arxiv.org/abs/1904.06991)처럼 피처 공간의 최근접 이웃 반지름으로 영역을 근사한다. 정답 레이블로 참양성·거짓양성을 세는 분류 평가와는 계산 대상이 다르다.
+생성 정밀도·재현율은 생성 샘플이 실제 데이터와 얼마나 가까운지, 실제 데이터가 생성 샘플에 얼마나 포괄되는지를 나누어 살펴보는 지표다. 여기서는 [Kynkäänniemi 등의 방법](https://arxiv.org/abs/1904.06991)처럼 피처 공간의 최근접 이웃 반지름으로 영역을 근사한다. 정답 라벨로 참양성·거짓양성을 세는 분류 평가와는 계산 대상이 다르다.
 
 ## 1. 하나의 거리에서 두 측면으로
 
@@ -37,12 +37,12 @@ from scipy.spatial.distance import cdist
 
 class PrecisionRecallCalculator:
     """
-    만들어 내는 모델의 정밀도와 재현율 잣대.
+    생성 모델의 정밀도와 재현율 지표.
     
     Sajjadi 외(2018)와 Kynkäänniemi 외(2019)를 바탕으로 한다.
     
-    정밀도는 충실함을 잰다. 곧 만든 표본이 그럴듯한가?
-    재현율은 다양함을 잰다. 곧 모델이 모든 봉우리를 덮는가?
+    정밀도는 충실도(fidelity)를 잰다. 곧 생성 표본이 그럴듯한가?
+    재현율은 다양성을 잰다. 곧 모델이 모든 모드를 덮는가?
     """
     
     def __init__(self,
@@ -50,12 +50,12 @@ class PrecisionRecallCalculator:
                  row_batch_size: int = 10000,
                  col_batch_size: int = 10000):
         """
-        셈개를 초기화한다.
+        계산기를 초기화한다.
         
         인수:
-            k: k번째 가장 가까운 이웃의 이웃 수
-            row_batch_size: 거리 셈에 쓰는 배치 크기(줄)
-            col_batch_size: 거리 셈에 쓰는 배치 크기(열)
+            k: k번째 최근접 이웃의 이웃 수
+            row_batch_size: 거리 계산에 쓰는 배치 크기(행)
+            col_batch_size: 거리 계산에 쓰는 배치 크기(열)
         """
         self.k = k
         self.row_batch_size = row_batch_size
@@ -65,11 +65,11 @@ class PrecisionRecallCalculator:
                                   X: np.ndarray,
                                   Y: np.ndarray) -> np.ndarray:
         """
-        배치 단위로 짝마다 유클리드 거리를 셈한다.
+        배치 단위로 쌍별 유클리드 거리를 계산한다.
         
         인수:
-            X: 첫째 점 모임 [N, D]
-            Y: 둘째 점 모임 [M, D]
+            X: 첫째 점 집합 [N, D]
+            Y: 둘째 점 집합 [M, D]
             
         반환값:
             Distance matrix [N, M]
@@ -94,14 +94,14 @@ class PrecisionRecallCalculator:
                               X: np.ndarray,
                               Y: np.ndarray) -> np.ndarray:
         """
-        X에서 Y까지 k번째 가장 가까운 이웃 거리를 셈한다.
+        X에서 Y까지 k번째 최근접 이웃 거리를 계산한다.
         
         인수:
             X: Query points [N, D]
             Y: Reference points [M, D]
             
         반환값:
-            X의 점마다 k번째 가장 가까운 이웃까지의 거리 [N]
+            X의 점마다 k번째 최근접 이웃까지의 거리 [N]
         """
         distances = self._batch_pairwise_distances(X, Y)
         
@@ -115,17 +115,17 @@ class PrecisionRecallCalculator:
                                 real_features: np.ndarray,
                                 generated_features: np.ndarray) -> Tuple[float, float]:
         """
-        정밀도와 재현율을 셈한다.
+        정밀도와 재현율을 계산한다.
         
         알고리즘:
-        1. 실제 자료의 k번째 이웃 공을 셈한다
-        2. 정밀도: 실제 k번째 이웃 공에 드는 만든 표본의 몫
-        3. 만든 자료의 k번째 이웃 공을 셈한다
-        4. 재현율: 만든 k번째 이웃 공에 드는 실제 표본의 몫
+        1. 실제 데이터의 k번째 이웃 구를 계산한다
+        2. 정밀도: 실제 k번째 이웃 구에 드는 생성 표본의 몫
+        3. 생성 데이터의 k번째 이웃 구를 계산한다
+        4. 재현율: 생성 k번째 이웃 구에 드는 실제 표본의 몫
         
         인수:
-            real_features: 참 그림에서 뽑은 피처 [N_r, D]
-            generated_features: 만들어 낸 그림에서 뽑은 피처 [N_g, D]
+            real_features: 실제 이미지에서 뽑은 피처 [N_r, D]
+            generated_features: 생성 이미지에서 뽑은 피처 [N_g, D]
             
         반환값:
             (정밀도, 재현율) 튜플
@@ -134,37 +134,37 @@ class PrecisionRecallCalculator:
         print(f"  Real samples: {len(real_features)}")
         print(f"  Generated samples: {len(generated_features)}")
         
-        # 실제 자료의 다양체 반지름을 셈한다
-        # (실제 자료 안에서 k번째 가장 가까운 이웃까지의 거리)
+        # 실제 데이터의 매니폴드 반지름을 계산한다
+        # (실제 데이터 안에서 k번째 최근접 이웃까지의 거리)
         real_nn_distances = self._compute_knn_distances(real_features, real_features)
         
-        # 만든 것에서 실제까지의 거리를 셈한다
+        # 생성 표본에서 실제 표본까지의 거리를 계산한다
         gen_to_real_distances = self._compute_knn_distances(generated_features, real_features)
         
-        # 정밀도: 실제 다양체 안의 만든 표본
-        # 만든 표본마다 가장 가까운 실제 이웃이
-        # 그 실제 표본의 k번째 이웃 공 안에 있는지
+        # 정밀도: 실제 매니폴드 안의 생성 표본
+        # 생성 표본마다 가장 가까운 실제 이웃이
+        # 그 실제 표본의 k번째 이웃 구 안에 있는지
         distances_gen_to_real = self._batch_pairwise_distances(
             generated_features, real_features
         )
         nearest_real_idx = np.argmin(distances_gen_to_real, axis=1)
         nearest_real_dist = distances_gen_to_real[np.arange(len(generated_features)), nearest_real_idx]
         
-        # 다양체 안에 있는지 살핀다
+        # 매니폴드 안에 있는지 확인한다
         precision_mask = nearest_real_dist <= real_nn_distances[nearest_real_idx]
         precision = np.mean(precision_mask)
         
-        # 만든 자료의 다양체 반지름을 셈한다
+        # 생성 데이터의 매니폴드 반지름을 계산한다
         gen_nn_distances = self._compute_knn_distances(generated_features, generated_features)
         
-        # 재현율: 만든 다양체 안의 실제 표본
+        # 재현율: 생성 매니폴드 안의 실제 표본
         distances_real_to_gen = self._batch_pairwise_distances(
             real_features, generated_features
         )
         nearest_gen_idx = np.argmin(distances_real_to_gen, axis=1)
         nearest_gen_dist = distances_real_to_gen[np.arange(len(real_features)), nearest_gen_idx]
         
-        # 다양체 안에 있는지 살핀다
+        # 매니폴드 안에 있는지 확인한다
         recall_mask = nearest_gen_dist <= gen_nn_distances[nearest_gen_idx]
         recall = np.mean(recall_mask)
         
@@ -175,12 +175,12 @@ class PrecisionRecallCalculator:
 
 class ImprovedPrecisionRecall:
     """
-    Kynkäänniemi 외(2019)의 나아진 정밀도와 재현율(IPR).
+    Kynkäänniemi 외(2019)의 개선된 정밀도와 재현율(IPR).
     
-    본디 것보다 나아진 핵심:
-    1. 초구면에 바탕한 다양체 어림을 쓴다
-    2. 동떨어진 값에 더 튼튼하다
-    3. 성긴 자리를 더 잘 다룬다
+    원래 방법보다 개선된 점:
+    1. 초구에 기반한 매니폴드 추정을 쓴다
+    2. 이상값에 더 강건하다
+    3. 희소한 영역을 더 잘 다룬다
     """
     
     def __init__(self,
@@ -188,12 +188,12 @@ class ImprovedPrecisionRecall:
                  row_batch_size: int = 10000,
                  col_batch_size: int = 10000):
         """
-        나아진 정밀도와 재현율 셈개를 초기화한다.
+        개선된 정밀도와 재현율 계산기를 초기화한다.
         
         인수:
-            k: 다양체 어림의 이웃 수
-            row_batch_size: 거리 셈하기의 배치 크기
-            col_batch_size: 거리 셈하기의 배치 크기
+            k: 매니폴드 추정의 이웃 수
+            row_batch_size: 거리 계산의 배치 크기
+            col_batch_size: 거리 계산의 배치 크기
         """
         self.k = k
         self.row_batch_size = row_batch_size
@@ -202,7 +202,7 @@ class ImprovedPrecisionRecall:
     def _batch_pairwise_distances(self,
                                   X: np.ndarray,
                                   Y: np.ndarray) -> np.ndarray:
-        """배치 단위로 짝마다 거리를 셈한다."""
+        """배치 단위로 쌍별 거리를 계산한다."""
         n = len(X)
         m = len(Y)
         distances = np.zeros((n, m), dtype=np.float32)
@@ -221,10 +221,10 @@ class ImprovedPrecisionRecall:
     
     def _compute_manifold(self, features: np.ndarray) -> np.ndarray:
         """
-        k번째 가장 가까운 이웃으로 다양체 반지름을 셈한다.
+        k번째 최근접 이웃으로 매니폴드 반지름을 계산한다.
         
-        점마다 다양체 반지름은 그 k번째 가장 가까운 이웃까지의 거리이다
-        가장 가까운 이웃(제 자신은 뺀다).
+        점마다 매니폴드 반지름은 그 점의 k번째 최근접 이웃까지의
+        거리이다(자기 자신은 뺀다).
         
         인수:
             features: 피처 벡터 [N, D]
@@ -234,7 +234,7 @@ class ImprovedPrecisionRecall:
         """
         distances = self._batch_pairwise_distances(features, features)
         
-        # 대각선을 무한으로 둔다(자신을 뺀다)
+        # 대각선을 무한대로 둔다(자신을 뺀다)
         np.fill_diagonal(distances, np.inf)
         
         # 점마다 k번째로 작은 거리를 얻는다
@@ -246,37 +246,37 @@ class ImprovedPrecisionRecall:
                                          real_features: np.ndarray,
                                          generated_features: np.ndarray) -> Tuple[float, float]:
         """
-        나아진 정밀도와 재현율을 셈한다.
+        개선된 정밀도와 재현율을 계산한다.
         
-        나아진 정밀도와 재현율은 초구면에 바탕한 다양체 어림을 쓴다.
-        - 실제 다양체: 실제 표본 둘레 초구면의 합집합
-        - 만든 다양체: 만든 표본 둘레 초구면의 합집합
+        개선된 정밀도와 재현율은 초구에 기반한 매니폴드 추정을 쓴다.
+        - 실제 매니폴드: 실제 표본을 중심으로 한 초구의 합집합
+        - 생성 매니폴드: 생성 표본을 중심으로 한 초구의 합집합
         
         인수:
-            real_features: 참 그림의 피처 [N_r, D]
-            generated_features: 만들어 낸 그림의 피처 [N_g, D]
+            real_features: 실제 이미지의 피처 [N_r, D]
+            generated_features: 생성 이미지의 피처 [N_g, D]
             
         반환값:
             (정밀도, 재현율) 튜플
         """
         print(f"Computing Improved Precision/Recall (k={self.k})")
         
-        # 다양체 반지름을 셈한다
+        # 매니폴드 반지름을 계산한다
         real_radii = self._compute_manifold(real_features)
         gen_radii = self._compute_manifold(generated_features)
         
-        # 실제와 만든 것 사이의 거리를 셈한다
+        # 실제 표본과 생성 표본 사이의 거리를 계산한다
         dist_gen_to_real = self._batch_pairwise_distances(generated_features, real_features)
         dist_real_to_gen = self._batch_pairwise_distances(real_features, generated_features)
         
-        # 정밀도: 만든 표본마다 어떤 실제 표본이
-        # 그것을 제 다양체 안에 담는지 살핀다(곧 거리 <= 실제 반지름)
+        # 정밀도: 생성 표본마다 어떤 실제 표본이
+        # 그것을 자기 매니폴드 안에 담는지 확인한다(곧 거리 <= 실제 반지름)
         # 형태: [N_g, N_r] - real_radii [N_r]
         in_real_manifold = dist_gen_to_real <= real_radii[np.newaxis, :]
         precision = np.mean(np.any(in_real_manifold, axis=1))
         
-        # 재현율: 실제 표본마다 어떤 만든 표본이
-        # 그것을 제 다양체 안에 담는지 살핀다
+        # 재현율: 실제 표본마다 어떤 생성 표본이
+        # 그것을 자기 매니폴드 안에 담는지 확인한다
         in_gen_manifold = dist_real_to_gen <= gen_radii[np.newaxis, :]
         recall = np.mean(np.any(in_gen_manifold, axis=1))
         
@@ -289,37 +289,37 @@ def compute_density_coverage(real_features: np.ndarray,
                             generated_features: np.ndarray,
                             k: int = 5) -> Tuple[float, float]:
     """
-    밀도와 덮음 자를 셈한다(Naeem 외, 2020).
+    밀도(density)와 커버리지(coverage) 지표를 계산한다(Naeem 외, 2020).
     
-    이는 정밀도와 재현율을 달리 적은 것이다.
-    - 밀도: 만든 표본의 실제 이웃 평균 수
-    - 덮기: 만든 이웃이 적어도 하나 있는 실제 표본의 몫
+    정밀도와 재현율을 대신하는 지표다.
+    - 밀도: 생성 표본의 실제 이웃 평균 수
+    - 커버리지: 생성 표본 이웃이 적어도 하나 있는 실제 표본의 몫
     
     인수:
-        real_features: 참 피처 [N_r, D]
-        generated_features: 만들어 낸 피처 [N_g, D]
+        real_features: 실제 피처 [N_r, D]
+        generated_features: 생성 피처 [N_g, D]
         k: 이웃 수
         
     반환값:
-        (밀도, 덮음) 튜플
+        (밀도, 커버리지) 튜플
     """
     from scipy.spatial.distance import cdist
     
-    # 실제 자료의 k번째 이웃 반지름을 셈한다
+    # 실제 데이터의 k번째 이웃 반지름을 계산한다
     real_to_real = cdist(real_features, real_features, 'euclidean')
     np.fill_diagonal(real_to_real, np.inf)
     real_radii = np.partition(real_to_real, k-1, axis=1)[:, k-1]
     
-    # 만든 것에서 실제까지의 거리
+    # 생성 표본에서 실제 표본까지의 거리
     gen_to_real = cdist(generated_features, real_features, 'euclidean')
     
-    # 밀도: 만든 표본마다 그 이웃 안에 드는 실제 표본의 평균 수
-    # 이웃(실제 다양체로 정한다)
+    # 밀도: 생성 표본마다 그 이웃 안에 드는 실제 표본의 평균 수
+    # 이웃(실제 매니폴드로 정한다)
     in_ball = gen_to_real <= real_radii[np.newaxis, :]
     density = np.mean(np.sum(in_ball, axis=1)) / k
     
-    # 덮기: 만든 이웃이 적어도 하나 있는 실제 표본의 몫
-    # 그 다양체 안에
+    # 커버리지: 생성 표본 이웃이 적어도 하나 있는 실제 표본의 몫
+    # 그 매니폴드 안에
     real_to_gen = cdist(real_features, generated_features, 'euclidean')
     covered = np.any(real_to_gen <= real_radii[:, np.newaxis], axis=1)
     coverage = np.mean(covered)
@@ -338,7 +338,7 @@ def compute_density_coverage(real_features: np.ndarray,
 ```python
 def demonstrate_precision_recall():
     """
-    다스린 상황으로 정밀도와 재현율을 보인다.
+    통제된 시나리오로 정밀도와 재현율을 보인다.
     """
     print("=" * 70)
     print("Precision and Recall Demonstration")
@@ -348,7 +348,7 @@ def demonstrate_precision_recall():
     n_samples = 5000
     feature_dim = 128
     
-    # 실제 자료: 정규 분포 무리 4개 섞기
+    # 실제 데이터: 가우시안 군집 4개의 혼합
     cluster_centers = np.array([
         [-2, -2],
         [-2, 2],
@@ -362,7 +362,7 @@ def demonstrate_precision_recall():
         real_features.append(cluster)
     real_features = np.concatenate(real_features, axis=0)
     
-    # 더 높은 차원으로 채운다(인셉션 피처를 흉내 낸다)
+    # 더 높은 차원으로 패딩한다(인셉션 피처를 흉내 낸다)
     real_features = np.concatenate([
         real_features,
         np.zeros((len(real_features), feature_dim - 2))
@@ -370,7 +370,7 @@ def demonstrate_precision_recall():
     
     calculator = ImprovedPrecisionRecall(k=3)
     
-    # 상황 1: 가장 좋은 만들어 내기(품질을 지키며 모든 봉우리를 덮는다)
+    # 상황 1: 이상적인 생성(품질을 지키며 모든 모드를 덮는다)
     print("\n📊 Scenario 1: Ideal Generation")
     print("-" * 50)
     
@@ -386,7 +386,7 @@ def demonstrate_precision_recall():
     
     p1, r1 = calculator.compute_improved_precision_recall(real_features, gen_ideal)
     
-    # 상황 2: 봉우리 무너짐(정밀도 높고 재현율 낮음)
+    # 상황 2: 모드 붕괴(정밀도 높고 재현율 낮음)
     print("\n📊 Scenario 2: Mode Collapse (only 1 cluster)")
     print("-" * 50)
     
@@ -470,7 +470,7 @@ Mode Collapse                   0.9772       0.2466
 Low Quality                     0.5018       0.9870
 ```
 
-실제 이미지 대신 네 개의 2차원 가우시안 군집을 만들고 나머지 126좌표에는 0을 붙인다. 따라서 유효한 기하 구조는 2차원이며 일반적인 128차원 이미지 피처의 난이도를 재현하지 않는다. 같은 방식의 네 군집, 한 군집만 생성, 넓게 퍼진 네 군집을 비교한다. 보존된 출력은 이 난수 예시의 결과이며 새로 실행한 결과가 아니다.
+실제 이미지 대신 네 개의 2차원 가우시안 군집을 만들고 나머지 126좌표에는 0을 붙인다. 따라서 유효한 기하 구조는 2차원이며 일반적인 128차원 이미지 피처의 난이도를 재현하지 않는다. 같은 방식의 네 군집, 한 군집만 생성, 넓게 퍼진 네 군집을 비교한다. 출력은 이 난수 예시의 결과다.
 
 가우시안 군집은 수학적으로 전체 평면에서 양의 밀도를 가지므로, 이 실험의 '모드 포괄'은 주요 고밀도 영역의 유한 표본 포괄을 뜻한다. 참 지지집합을 정확히 비교하는 실험으로 해석하지 않는다. 같은 모집단의 독립 표본에서도 추정 정밀도·재현율이 반드시 1이 되는 것은 아니다.
 
@@ -491,7 +491,7 @@ def plot_precision_recall_tradeoff(models_results: dict):
     모델 여럿의 정밀도와 재현율을 그린다.
     
     인수:
-        models_results: 모델 이름을 (정밀도, 재현율)로 보내는 사전
+        models_results: 모델 이름을 (정밀도, 재현율)로 대응시키는 딕셔너리
     """
     fig, ax = plt.subplots(figsize=(8, 8))
     
@@ -503,7 +503,7 @@ def plot_precision_recall_tradeoff(models_results: dict):
     ax.axhline(0.5, color='gray', linestyle='--', alpha=0.5)
     ax.axvline(0.5, color='gray', linestyle='--', alpha=0.5)
     
-    # 사분면 이름표
+    # 사분면 라벨
     ax.text(0.25, 0.75, 'Mode Collapse\n(good quality, low diversity)', 
             ha='center', va='center', fontsize=10, alpha=0.7)
     ax.text(0.75, 0.75, 'Ideal\n(good quality, high diversity)', 
@@ -533,7 +533,7 @@ def compare_fid_and_pr():
     """
     # FID는 같지만 정밀도와 재현율이 다른 모델 둘
     
-    # 모델 A: 봉우리 무너짐(정밀도 높고 재현율 낮다)
+    # 모델 A: 모드 붕괴(정밀도 높고 재현율 낮다)
     # 모델 B: 낮은 품질(정밀도 낮고 재현율 높다)
     
     print("Two models with similar FID:")
@@ -551,7 +551,7 @@ def compare_fid_and_pr():
 ```python
 def comprehensive_evaluation(real_features, gen_features):
     """
-    잣대 여럿으로 두루 따지기.
+    여러 지표를 쓴 종합 평가.
     """
     from fid_calculator import FIDCalculator
     
@@ -567,7 +567,7 @@ def comprehensive_evaluation(real_features, gen_features):
         real_features, gen_features
     )
     
-    # 알리기
+    # 보고
     print("Comprehensive Evaluation:")
     print(f"  FID: {fid:.2f}")
     print(f"  Precision: {precision:.4f}")
@@ -599,12 +599,12 @@ $$F_\beta=(1+\beta^2)\frac{PR}{\beta^2P+R}.$$
 ```python
 def compute_f_score(precision: float, recall: float, beta: float = 1.0) -> float:
     """
-    F-베타 점수를 셈한다.
+    F-베타 점수를 계산한다.
     
     인수:
         precision: 정밀도 값
         recall: 재현율 값
-        beta: 무게 파라메터(beta > 1이면 재현율을 더 친다)
+        beta: 가중 파라메터(beta > 1이면 재현율을 더 친다)
         
     반환값:
         F-베타 점수
@@ -642,7 +642,7 @@ F₁은 두 값을 대칭적으로 결합하고 β<1은 정밀도, β>1은 재�
 ```python
 def analyze_k_sensitivity(real_features, gen_features, k_values=[1, 3, 5, 10, 20]):
     """
-    파라메터 k에 대한 민감함을 살핀다.
+    파라메터 k에 대한 민감도를 분석한다.
     """
     results = []
     
@@ -658,12 +658,12 @@ def analyze_k_sensitivity(real_features, gen_features, k_values=[1, 3, 5, 10, 20
 고정된 피처 집합에서 k를 늘리면 각 반지름이 커지거나 같아져 합집합 방식의 정밀도·재현율은 감소하지 않는다. 하지만 최대 허용 k에서도 영역은 유한하므로 모든 점이 반드시 포함되는 것은 아니다. 외딴 실제 표본의 큰 구가 정밀도를 부풀릴 수 있고, 생성 집합의 이상값도 재현율에 영향을 준다. 데이터 밀도만 보고 최적 k를 단정하지 말고 미리 정한 설정과 민감도 분석을 보고한다.
 
 ```python
-# 여느 것: InceptionV3(FID와 같다)
+# 기본: InceptionV3(FID와 같다)
 from torchvision.models import inception_v3
 
-# 특정 마당의 대안:
-# - 글에서 그림으로에는 CLIP 피처
-# - 의료나 위성 그림에는 마당에 맞춘 뉴럴 네트워크
+# 특정 도메인의 대안:
+# - 텍스트-이미지 생성에는 CLIP 피처
+# - 의료나 위성 이미지에는 도메인에 맞춘 뉴럴 네트워크
 ```
 
 피처 모델을 바꾸면 거리의 의미와 값도 바뀐다. 모델·체크포인트·전처리, 각 집합의 표본 수, k, 거리 정의와 정확·근사 이웃 계산법을 명시한다. 특정 표본 수만 넘으면 안정적이라는 보장은 없으며 근사 이웃 탐색도 포함 판정을 바꿀 수 있다.

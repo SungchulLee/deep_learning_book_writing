@@ -60,9 +60,9 @@ class LayerNorm(nn.Module):
 
 ---
 
-## 2. Pre-LN와 Post-LN
+## 2. Pre-LN과 Post-LN
 
-LayerNorm을 하위 레이어에 비교하여 어디에 두느냐가 학습의 안정성과 모델의 질에 큰 영향을 준다.
+LayerNorm을 하위 레이어를 기준으로 어디에 두느냐가 학습의 안정성과 모델의 질에 큰 영향을 준다.
 
 ### Post-LN (원래 트랜스포머)
 
@@ -77,7 +77,7 @@ $$
 - 잔차를 더한 결과가 정규화를 통과한다.
 - 역전파의 잔차 경로에도 정규화의 야코비안이 들어간다.
 - 초기화·러닝레이트에 따라 워밍업이 안정적인 학습에 도움이 될 수 있다.
-- Pre-LN와의 성능 우열은 모델과 학습 조건에 따라 다르다.
+- Pre-LN과의 성능 우열은 모델과 학습 조건에 따라 다르다.
 
 ### Pre-LN (요즘의 표준)
 
@@ -100,6 +100,7 @@ Pre-LN 블록을 $x_{l+1}=x_l+F_l(N_l(x_l))$로 쓰면 입력에 대한 야코�
 
 $$
 J_l=I+J_{F_l}(N_l(x_l))J_{N_l}(x_l)
+$$
 
 여러 블록의 역전파에는 이 야코비안들의 전치 곱이 나타난다. 각 블록에 항등 항이 있어도 다른 항과의 상쇄·확대가 가능하므로 그래디언트의 크기가 항상 유지되는 것은 아니다. Post-LN 블록의 야코비안은 정규화의 야코비안을 잔차 합 바깥에 곱한 형태다.
 
@@ -111,7 +112,7 @@ import torch.nn as nn
 from typing import Optional, Tuple
 
 class PostNormTransformerBlock(nn.Module):
-    """뒤 정규화: 잔차를 더한 뒤의 레이어 정규화(본디 트랜스포머)."""
+    """Post-LN: 잔차를 더한 뒤의 레이어 정규화(원래 트랜스포머)."""
     
     def __init__(self, d_model: int, num_heads: int, d_ff: int, dropout: float = 0.1):
         super().__init__()
@@ -125,7 +126,7 @@ class PostNormTransformerBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
     
     def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        # 뒤 정규화: 잔차 뒤에 정규화한다
+        # Post-LN: 잔차 뒤에 정규화한다
         attn_out, _ = self.self_attn(x, x, x, attn_mask=mask)
         x = self.norm1(x + self.dropout(attn_out))
         
@@ -134,7 +135,7 @@ class PostNormTransformerBlock(nn.Module):
         return x
 
 class PreNormTransformerBlock(nn.Module):
-    """앞 정규화: 아래 레이어 앞의 레이어 정규화(요즘의 표준)."""
+    """Pre-LN: 하위 레이어 앞의 레이어 정규화(요즘의 표준)."""
     
     def __init__(self, d_model: int, num_heads: int, d_ff: int, dropout: float = 0.1):
         super().__init__()
@@ -148,7 +149,7 @@ class PreNormTransformerBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
     
     def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        # 앞 정규화: 아래 레이어 앞에 정규화한다
+        # Pre-LN: 하위 레이어 앞에 정규화한다
         residual = x
         x_norm = self.norm1(x)
         attn_out, _ = self.self_attn(x_norm, x_norm, x_norm, attn_mask=mask)
@@ -172,23 +173,23 @@ class PreNormTransformer(nn.Module):
         self.layers = nn.ModuleList([
             PreNormTransformerBlock(d_model, ...) for _ in range(num_layers)
         ])
-        self.final_norm = nn.LayerNorm(d_model)  # 앞 정규화에 매우 중요하다
+        self.final_norm = nn.LayerNorm(d_model)  # Pre-LN에 매우 중요하다
         self.output_proj = nn.Linear(d_model, vocab_size)
     
     def forward(self, x):
         for layer in self.layers:
             x = layer(x)
-        x = self.final_norm(x)  # 출력 사영 앞에서 정규화한다
+        x = self.final_norm(x)  # 출력 투영 앞에서 정규화한다
         return self.output_proj(x)
 ```
 
-Post-LN는 각 블록의 잔차 합 뒤에 이미 정규화가 있어 추가 마지막 정규화를 생략하는 구성이 일반적이다.
+Post-LN은 각 블록의 잔차 합 뒤에 이미 정규화가 있어 추가 마지막 정규화를 생략하는 구성이 일반적이다.
 
 ---
 
 ## 3. RMSNorm
 
-제곱평균제곱근 LayerNorm(RMSNorm)는 평균 맞추기 단계를 없애 LayerNorm을 간단하게 한 것으로 LLaMA, Mistral을 비롯한 요즘 대형 언어 모델에 쓰인다.
+제곱평균제곱근 LayerNorm(RMSNorm)은 평균 중심화 단계를 없애 LayerNorm을 간단하게 한 것으로 LLaMA, Mistral을 비롯한 요즘 대형 언어 모델에 쓰인다.
 
 $$
 \text{RMSNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x}}{\sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2+\epsilon}}
@@ -213,8 +214,8 @@ class RMSNorm(nn.Module):
     """
     제곱평균제곱근 레이어 정규화.
     
-    LLaMA, Mistral을 비롯한 요즘 대형 언어 모형이 쓴다.
-    레이어 정규화보다 간단하고 빠르면서 성능은 같다.
+    LLaMA, Mistral을 비롯한 요즘 대형 언어 모델이 쓴다.
+    평균을 빼지 않아 레이어 정규화보다 연산이 간단하다.
     """
     
     def __init__(self, d_model: int, eps: float = 1e-6):
@@ -239,7 +240,7 @@ class RMSNorm(nn.Module):
 |---|---|---|
 | 평균 빼기 | 적용 | 생략 |
 | 정규화 기준 | 평균으로 중심화한 분산 | 원소 제곱의 평균 |
-| 학습 계수 | 배율·이동, $2d$개 | 배율, $d$개 |
+| 학습 파라메터 | 배율·이동, $2d$개 | 배율, $d$개 |
 | epsilon | 분산에 더한 뒤 제곱근 | 제곱평균에 더한 뒤 제곱근 |
 | 속도·성능 | 실험 조건에 따라 비교 | 실험 조건에 따라 비교 |
 
@@ -261,7 +262,7 @@ T5의 정규화는 이름이 LayerNorm으로 표시되더라도 일반 LayerNorm
 
 ### 웨이트 감쇠와 정규화
 
-정규화의 배율·이동을 웨이트 감쇠에서 제외하는 설정이 흔하지만 필수 규칙은 아니다. 아래 조각은 외부의 model을 가정하며 이름에 norm 또는 bias가 들어가는지를 기준으로 분류한다. 실제 모듈 종류를 확인하지 않으므로 의도한 모든 정규화 계수를 정확히 분리한다고 보장할 수 없다.
+정규화의 배율·이동을 웨이트 감쇠에서 제외하는 설정이 흔하지만 필수 규칙은 아니다. 아래 조각은 외부의 model을 가정하며 이름에 norm 또는 bias가 들어가는지를 기준으로 분류한다. 실제 모듈 종류를 확인하지 않으므로 의도한 모든 정규화 파라메터를 정확히 분리한다고 보장할 수 없다.
 
 ```python
 # 옵티마이저를 위해 파라메터를 가른다
@@ -281,17 +282,17 @@ optimizer = torch.optim.AdamW([
 
 ### 수치적 안정성
 
-혼합 정밀도에서는 통계량 계산을 FP32로 수행하고 출력을 원래 자료형으로 돌려 수치 오차를 줄일 수 있다. 아래 StableLayerNorm은 입력만 float로 바꾼다. 모델 전체를 half로 변환해 정규화 계수도 FP16이 되면 지원 여부와 자료형 호환성을 따로 확인해야 한다. FP32 누산과 모든 파라메터를 FP32로 보관하는 것은 다르다.
+혼합 정밀도에서는 통계량 계산을 FP32로 수행하고 출력을 원래 자료형으로 돌려 수치 오차를 줄일 수 있다. 아래 StableLayerNorm은 입력만 float로 바꾼다. 모델 전체를 half로 변환해 정규화 파라메터도 FP16이 되면 지원 여부와 자료형 호환성을 따로 확인해야 한다. FP32 누산과 모든 파라메터를 FP32로 보관하는 것은 다르다.
 
 ```python
-# 섞인 정밀도 학습에서 정규화는 FP32으로 셈한다
+# 혼합 정밀도 학습에서 정규화는 FP32로 계산한다
 class StableLayerNorm(nn.Module):
     def __init__(self, d_model, eps=1e-6):
         super().__init__()
         self.norm = nn.LayerNorm(d_model, eps=eps)
     
     def forward(self, x):
-        # 정규화를 위해 FP32으로 올린다
+        # 정규화를 위해 FP32로 올린다
         return self.norm(x.float()).type_as(x)
 ```
 
@@ -302,12 +303,12 @@ class StableLayerNorm(nn.Module):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-토큰별 LayerNorm의 평균·분산과 학습 계수를 설명하라.
+토큰별 LayerNorm의 평균·분산과 학습 파라메터를 설명하라.
 
 </div>
 
 ??? success "풀이"
-    피처 d개에서 평균과 $d$로 나눈 중심 제곱 편차를 계산하고 $\sqrt{\sigma^2+\epsilon}$으로 나눈다. 이어 피처별 배율·이동을 적용한다. epsilon과 학습 계수가 있어 최종 출력의 분산이 항상 정확히 1인 것은 아니다.
+    피처 d개에서 평균과 $d$로 나눈 중심 제곱 편차를 계산하고 $\sqrt{\sigma^2+\epsilon}$으로 나눈다. 이어 피처별 배율·이동을 적용한다. epsilon과 학습 파라메터가 있어 최종 출력의 분산이 항상 정확히 1인 것은 아니다.
 
 ---
 
@@ -343,7 +344,7 @@ Post-LN과 Pre-LN의 잔차·정규화 순서를 식으로 비교하라.
 </div>
 
 ??? success "풀이"
-    아래 조각은 표준편차에 epsilon을 더하므로 분산에 더한 뒤 제곱근을 취하는 nn.LayerNorm과 다르다. unbiased=False는 모집단 분산 기준과 맞지만 epsilon 위치도 맞춰야 한다. 같은 계수·epsilon·자료형에서 비교해야 한다.
+    아래 조각은 표준편차에 epsilon을 더하므로 분산에 더한 뒤 제곱근을 취하는 nn.LayerNorm과 다르다. unbiased=False는 모집단 분산 기준과 맞지만 epsilon 위치도 맞춰야 한다. 같은 파라메터·epsilon·자료형에서 비교해야 한다.
 
     ```python
     def layer_norm(x, gamma, beta, eps=1e-5):

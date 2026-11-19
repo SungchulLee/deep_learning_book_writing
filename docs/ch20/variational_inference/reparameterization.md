@@ -1,6 +1,6 @@
 # 리파라메리제이션과 블랙박스 변분 추론
 
-블랙박스 변분 추론은 모델별 좌표 갱신을 유도하는 대신 몬테카를로 경사로 ELBO를 최적화한다. 점수함수 추정과 리파라메리제이션은 서로 다른 미분 경로를 이용한다. 표본화·로그 밀도 평가·정칙성·유한 분산 등의 조건이 필요하므로 ‘어떤 모델에도 자동으로 적용된다’는 표현은 지나치게 넓다.
+블랙박스 변분 추론은 모델별 좌표 갱신을 유도하는 대신 몬테카를로 그래디언트 추정으로 ELBO를 최적화한다. 점수함수 추정과 리파라메리제이션은 서로 다른 미분 경로를 이용한다. 표본화·로그 밀도 평가·정칙성·유한 분산 등의 조건이 필요하므로 ‘어떤 모델에도 자동으로 적용된다’는 표현은 지나치게 넓다.
 
 ## 1. 분포와 피적분함수의 파라메터 의존성
 
@@ -14,27 +14,27 @@ $$\nabla_\phi L=E_{q_\phi}[(\log p(D,\theta)-\log q_\phi(\theta))\nabla_\phi\log
 
 일반적인 파라메터 의존 함수 f_φ에 대해 명시적 미분 항을 처음부터 생략하면 안 된다. 이동하는 지지집합이나 비정칙 밀도에서는 경계 항이 생기거나 점수의 평균이 0이라는 논증이 실패할 수 있다.
 
-## 2. 점수함수 경사 추정
+## 2. 점수함수 그래디언트 추정
 
-θˢ∼q_φ를 독립 생성해 위 기대의 표본 평균을 계산한다. 이 방법은 연속·이산 변수 모두에 사용할 수 있고 θ에 대한 모델의 경사가 꼭 필요하지 않다. 대신 로그 결합밀도, q의 로그 밀도와 φ에 대한 점수를 평가할 수 있어야 한다. 기대 경사가 존재해도 추정 분산은 무한할 수 있다.
+θˢ∼q_φ를 독립 생성해 위 기대의 표본 평균을 계산한다. 이 방법은 연속·이산 변수 모두에 사용할 수 있고 θ에 대한 모델의 그래디언트가 꼭 필요하지 않다. 대신 로그 결합밀도, q의 로그 밀도와 φ에 대한 점수를 평가할 수 있어야 한다. 그래디언트의 기댓값이 존재해도 추정 분산은 무한할 수 있다.
 
-대각 가우스 q=N(μ,diag σ²)의 점수는 s_μ=(θ−μ)/σ², s_logσ=(θ−μ)²/σ²−1이다. 점수함수 로스를 자동미분으로 구성할 때 θ는 점수 미분에서 고정 표본이고, 곱해 주는 학습 신호도 해당 경사에 맞게 분리해야 한다. 리파라메리제이션된 θ를 그대로 따라 미분하면 의도한 점수함수 추정과 다른 경로가 섞일 수 있다.
+대각 가우스 q=N(μ,diag σ²)의 점수는 s_μ=(θ−μ)/σ², s_logσ=(θ−μ)²/σ²−1이다. 점수함수 로스를 자동미분으로 구성할 때 θ는 점수 미분에서 고정 표본이고, 곱해 주는 학습 신호도 해당 그래디언트에 맞게 분리(detach)해야 한다. 리파라메리제이션된 θ를 그대로 따라 미분하면 의도한 점수함수 추정과 다른 경로가 섞일 수 있다.
 
-## 3. 기준선과 제어변량
+## 3. 베이스라인과 제어변량
 
-표본 θ와 독립인 상수 기준선 b는 E[b s_φ]=0이므로 다음 기대를 바꾸지 않는다.
+표본 θ와 독립인 상수 베이스라인(baseline) b는 E[b s_φ]=0이므로 다음 기대를 바꾸지 않는다.
 
 $$\nabla L=E[(f_\phi-b)s_\phi].$$
 
-벡터 경사 추정의 전체 분산, 즉 공분산 행렬의 trace를 최소화하는 상수는 분모가 양수이고 기대가 유한할 때 b★=E[f_φ∥s_φ∥²]/E[∥s_φ∥²]다. 단순 이동평균은 실용적인 근사지만 이 최적 가중 기준선과 반드시 같지는 않다.
+벡터 그래디언트 추정의 전체 분산, 즉 공분산 행렬의 trace를 최소화하는 상수는 분모가 양수이고 기대가 유한할 때 b★=E[f_φ∥s_φ∥²]/E[∥s_φ∥²]다. 단순 이동평균은 실용적인 근사지만 이 최적 가중 베이스라인과 반드시 같지는 않다.
 
-일반적인 표본 의존 c(θ)를 빼면 E[c(θ)s_φ]를 다시 더해야 한다. 이를 E[c]E[s_φ]=0으로 바꾸면 일반적으로 바이어스가 생긴다. 같은 표본 묶음의 평균으로 기준선을 만들어 각 표본에 빼는 경우에도 의존성 때문에 바이어스가 생길 수 있어 이전 묶음의 기준선이나 leave-one-out 등의 구성을 검토한다.
+일반적인 표본 의존 c(θ)를 빼면 E[c(θ)s_φ]를 다시 더해야 한다. 이를 E[c]E[s_φ]=0으로 바꾸면 일반적으로 편향이 생긴다. 같은 표본 배치의 평균으로 베이스라인을 만들어 각 표본에 빼는 경우에도 의존성 때문에 편향이 생길 수 있어 이전 배치의 베이스라인이나 leave-one-out 등의 구성을 검토한다.
 
-Rao–Blackwell화는 경사 추정량의 일부 변수를 조건부로 적분해 기대를 유지하고 분산을 줄인다. 실제 경사 추정량의 조건부 기대를 사용해야 하며, f만 임의로 평균낸 뒤 원래 점수를 곱하는 것으로 항상 같은 결과가 되지는 않는다.
+Rao–Blackwell화는 그래디언트 추정량의 일부 변수를 조건부로 적분해 기대를 유지하고 분산을 줄인다. 실제 그래디언트 추정량의 조건부 기대를 사용해야 하며, f만 임의로 평균낸 뒤 원래 점수를 곱하는 것으로 항상 같은 결과가 되지는 않는다.
 
-## 4. 리파라메리제이션 경사
+## 4. 리파라메리제이션 그래디언트
 
-φ와 무관한 ε∼p₀와 θ=g_φ(ε)로 표본을 표현하면 다음 경로별 경사를 사용할 수 있다.
+φ와 무관한 ε∼p₀와 θ=g_φ(ε)로 표본을 표현하면 다음 경로별(pathwise) 그래디언트를 사용할 수 있다.
 
 $$\nabla_\phi L=E_{p_0}[\nabla_\phi f_\phi(g_\phi(\epsilon))].$$
 
@@ -48,31 +48,31 @@ $$\nabla_\phi L=E_{p_0}[\nabla_\phi f_\phi(g_\phi(\epsilon))].$$
 
 **그림으로 보는 AI 1.** "분산이 너무 크다"는 한 줄에서 시작했다
 
-리파라메리제이션을 오늘의 자리에 올려놓은 글은 2013년 12월에 나온 디데릭 킹마(Diederik Kingma)와 막스 벨링(Max Welling)의 「Auto-Encoding Variational Bayes」다. 그 글이 점수함수 추정을 물리치는 데 쓴 말은 딱 한 줄이다.
+리파라메리제이션을 오늘의 자리에 올려놓은 논문은 2013년 12월에 나온 디데릭 킹마(Diederik Kingma)와 막스 벨링(Max Welling)의 「Auto-Encoding Variational Bayes」다. 그 논문이 점수함수 추정을 물리치는 데 쓴 말은 딱 한 줄이다.
 
 > "This gradient estimator exhibits **very high variance** and is impractical for our purposes."
 
 그러고는 $\theta=g_\phi(\epsilon)$ 로 바꿔 쓰면 미분 가능한 불편 추정량이 나온다는 것을 보이고, 그것을 SGVB(Stochastic Gradient Variational Bayes)라 불렀다.
 
-그런데 **"분산이 크다"는 말은 재어 봐야 하는 말**이다. 바로 아래 5절이 적어 두었듯 학습 중 ELBO의 이동 분산은 경사 추정량의 분산이 아니다. 연습 3이 요구하는 절차 그대로 — 같은 $\phi$, 같은 표본 수 $S=10$, 독립 반복 4,000번 — 켤레 가우스 모형에서 직접 재면 이렇게 나온다.
+그런데 **"분산이 크다"는 말은 재어 봐야 하는 말**이다. 바로 아래 5절이 적어 두었듯 학습 중 ELBO의 이동 분산은 그래디언트 추정량의 분산이 아니다. 연습 3이 요구하는 절차 그대로 — 같은 $\phi$, 같은 표본 수 $S=10$, 독립 반복 4,000번 — 켤레 가우스 모델에서 직접 재면 이렇게 나온다.
 
-![왼쪽은 세 추정량의 전체 경사 분산을 로그 눈금 막대로 비교한 것이다. 최적점에서 떨어진 자리와 정확한 사후 두 경우를 나란히 두었고, 경로별과 점수함수와 기준선을 더한 점수함수 셋을 견준다. 정확한 사후에서 기준선을 더한 점수함수 막대만 바닥까지 내려가 있고 정확히 0이라고 적혀 있다. 오른쪽은 세로축이 로그 결합밀도에서 변분 로그 밀도를 뺀 값인 곡선 둘로, 최적점에서 떨어진 쪽은 크게 휘어 있고 정확한 사후 쪽은 완전히 평평하며 4의 마이너스 15제곱까지 평평하다고 적혀 있다.](figures/gradient_variance.svg)
+![왼쪽은 세 추정량의 전체 그래디언트 분산을 로그 스케일 막대로 비교한 것이다. 최적점에서 떨어진 자리와 정확한 사후 두 경우를 나란히 두었고, 경로별과 점수함수와 베이스라인을 더한 점수함수 셋을 견준다. 정확한 사후에서 베이스라인을 더한 점수함수 막대만 바닥까지 내려가 있고 정확히 0이라고 적혀 있다. 오른쪽은 세로축이 로그 결합밀도에서 변분 로그 밀도를 뺀 값인 곡선 둘로, 최적점에서 떨어진 쪽은 크게 휘어 있고 정확한 사후 쪽은 완전히 평평하며 4의 마이너스 15제곱까지 평평하다고 적혀 있다.](figures/gradient_variance.svg)
 
-최적점에서 떨어져 있을 때는 킹마와 벨링의 말이 맞는다. 경로별이 48.6이고 기준선을 붙인 점수함수가 327.4라서 **약 6.7배** 차이가 난다.
+최적점에서 떨어져 있을 때는 킹마와 벨링의 말이 맞는다. 경로별이 48.6이고 베이스라인을 붙인 점수함수가 327.4라서 **약 6.7배** 차이가 난다.
 
-**그런데 정확한 사후에 가 있으면 뒤집힌다.** 거기서는 기준선을 붙인 점수함수의 분산이 $6.6\times10^{-31}$, 사실상 **정확히 0**인데 경로별은 1.26으로 남아 있다. 까닭은 오른쪽 그림에 있다. $q$ 가 사후와 같아지면 $f(\theta)=\log p(x,\theta)-\log q(\theta)$ 가 $\theta$ 에 대해 **상수**가 되어 버린다(여기서는 $4\times10^{-15}$ 까지 평평하다). 그 상수는 바로 $\log p(x)$ 다. 상수에서 기준선을 빼면 남는 것이 0이므로 점수함수 추정량은 흔들릴 거리가 없어지고, 반대로 경로별 추정량은 $\epsilon$ 을 통해 들어온 흔들림을 그대로 안고 간다.
+**그런데 정확한 사후에 가 있으면 뒤집힌다.** 거기서는 베이스라인을 붙인 점수함수의 분산이 $6.6\times10^{-31}$, 사실상 **정확히 0**인데 경로별은 1.26으로 남아 있다. 까닭은 오른쪽 그림에 있다. $q$ 가 사후와 같아지면 $f(\theta)=\log p(x,\theta)-\log q(\theta)$ 가 $\theta$ 에 대해 **상수**가 되어 버린다(여기서는 $4\times10^{-15}$ 까지 평평하다). 그 상수는 바로 $\log p(x)$ 다. 상수에서 베이스라인을 빼면 남는 것이 0이므로 점수함수 추정량은 흔들릴 거리가 없어지고, 반대로 경로별 추정량은 $\epsilon$ 을 통해 들어온 흔들림을 그대로 안고 간다.
 
 그러니 위 문단의 "항상 작은 분산을 보장하지는 않는다"는 조심스러운 말이 아니라 **잴 수 있는 사실**이다. 어느 쪽이 덜 흔들리는지는 추정량의 성질이 아니라 **지금 $\phi$ 가 어디 있는지**에 달려 있고, 그래서 한 번 재어 본 비율을 모델과 지점을 옮겨 가며 인용하면 안 된다.
 
-_확인한 곳 — D. P. Kingma, M. Welling, "Auto-Encoding Variational Bayes", arXiv:1312.6114 (2013), ICLR 2014. 인용한 문장은 2.1절, 리파라메리제이션은 2.4절이다. 그림의 수는 그림을 그리는 코드가 직접 돌려 얻으며, 기준선은 쪽 3절의 조건대로 현재 표본과 분리해 따로 뽑는다. 정확한 사후에서 $f$ 가 상수라는 것은 코드가 확인하고 어긋나면 멈춘다._
+_확인한 곳 — D. P. Kingma, M. Welling, "Auto-Encoding Variational Bayes", arXiv:1312.6114 (2013), ICLR 2014. 인용한 문장은 2.1절, 리파라메리제이션은 2.4절이다. 그림의 수는 그림을 그리는 코드가 직접 돌려 얻으며, 베이스라인은 쪽 3절의 조건대로 현재 표본과 분리해 따로 뽑는다. 정확한 사후에서 $f$ 가 상수라는 것은 코드가 확인하고 어긋나면 멈춘다._
 
 </div>
 
 ## 5. 예제 코드의 비교 범위
 
-아래 점수함수 구현은 가우스 점수를 명시적으로 계산해 경사를 대입한다. 표본 생성에 `rsample`을 사용해도 여기서는 그 계산 그래프를 `backward`로 미분하지 않으므로 계산된 점수의 수치값과 경로별 자동미분을 구분한다. 기준선은 이전 반복의 값이므로 현재 표본과 분리되어 있다. 불필요한 그래프 보유와 장치·자료형 처리는 일반화되어 있지 않다.
+아래 점수함수 구현은 가우스 점수를 명시적으로 계산해 그래디언트를 대입한다. 표본 생성에 `rsample`을 사용해도 여기서는 그 계산 그래프를 `backward`로 미분하지 않으므로 계산된 점수의 수치값과 경로별 자동미분을 구분한다. 베이스라인은 이전 반복의 값이므로 현재 표본과 분리되어 있다. 불필요한 그래프 보유와 장치·자료형 처리는 일반화되어 있지 않다.
 
-비교 예제의 `log_joint`는 θ와 무관한 정규화 상수를 생략한다. 최적 사후 형태는 같을 수 있지만 기록된 절대 목적값을 원래 모델의 완전한 ELBO나 모델 증거 비교에 사용하면 안 된다. 관측 분산을 바꾸려면 우도 이차항의 분산 배율도 일관되게 반영해야 한다. 현재 예제는 분산을 1로 고정한다.
+비교 예제의 `log_joint`는 θ와 무관한 정규화 상수를 생략한다. 최적 사후 형태는 같을 수 있지만 기록된 절대 목적값을 원래 모델의 완전한 ELBO나 모델 증거 비교에 사용하면 안 된다. 관측 분산을 바꾸려면 가능도(likelihood, 우도라고도 한다) 이차항의 분산 배율도 일관되게 반영해야 한다. 현재 예제는 분산을 1로 고정한다.
 
 ```python
 import torch
@@ -84,17 +84,17 @@ import numpy as np
 
 class ScoreFunctionVI:
     """
-    점수 함수(REINFORCE) 그래디언트 어림꼴을 쓴 깜깜이 변분 추론.
+    점수 함수(REINFORCE) 그래디언트 추정량을 쓴 블랙박스 변분 추론.
     
-    다음을 할 수 있는 아무 분포 q_φ에나 통한다:
-    1. θ ~ q_φ 표집
-    2. ∇_φ log q_φ(θ) 셈하기
+    다음을 할 수 있는 분포 q_φ이면 어디에나 적용된다:
+    1. θ ~ q_φ 샘플링
+    2. ∇_φ log q_φ(θ) 계산
     """
     
     def __init__(self, log_joint: Callable, dim: int):
         """
         인수:
-            log_joint: log p(D, θ)을 셈하는 함수
+            log_joint: log p(D, θ)를 계산하는 함수
             dim: θ의 차원
         """
         self.log_joint = log_joint
@@ -109,46 +109,46 @@ class ScoreFunctionVI:
         return torch.exp(self.log_sigma)
     
     def sample(self, n_samples: int) -> torch.Tensor:
-        """q_φ(θ)에서 표집하기."""
+        """q_φ(θ)에서 샘플링한다."""
         q = dist.Normal(self.mu, self.sigma)
         return q.rsample((n_samples,))
     
     def log_q(self, theta: torch.Tensor) -> torch.Tensor:
-        """log q_φ(θ) 셈하기."""
+        """log q_φ(θ)를 계산한다."""
         q = dist.Normal(self.mu, self.sigma)
         return q.log_prob(theta).sum(dim=-1)
     
     def score_function_gradient(self, n_samples: int = 100,
                                 baseline: float = 0.0) -> Tuple[torch.Tensor, float]:
         """
-        기준선을 붙인 점수 함수 어림꼴로 그래디언트 셈하기.
+        베이스라인을 붙인 점수 함수 추정량으로 그래디언트를 계산한다.
         
         ∇_φ ELBO ≈ (1/S) Σ (f(θ⁽ˢ⁾) - b) ∇_φ log q_φ(θ⁽ˢ⁾)
         
         여기서 f(θ) = log p(D,θ) - log q_φ(θ)이다
         """
-        # q에서 표집
+        # q에서 샘플링
         theta = self.sample(n_samples)  # [S, dim]
         
-        # f(θ) = log p(D,θ) - log q(θ) 셈하기
+        # f(θ) = log p(D,θ) - log q(θ) 계산
         log_p = self.log_joint(theta)           # [S]
         log_q = self.log_q(theta)               # [S]
         f = log_p - log_q                       # [S]
         
-        # ELBO 어림값
+        # ELBO 추정값
         elbo = f.mean().item()
         
         # 점수 함수 그래디언트
-        # 표본마다 ∇_φ log q_φ(θ)을 셈해야 한다
+        # 표본마다 ∇_φ log q_φ(θ)를 계산해야 한다
         # 가우스에서: ∇_μ log q = (θ - μ)/σ², ∇_log_σ log q = ((θ-μ)²/σ² - 1)
         
-        # 경사 초기화
+        # 그래디언트 초기화
         if self.mu.grad is not None:
             self.mu.grad.zero_()
         if self.log_sigma.grad is not None:
             self.log_sigma.grad.zero_()
         
-        # 표본마다 그래디언트 셈하기(효율은 낮지만 또렷하다)
+        # 표본마다 그래디언트 계산(효율은 낮지만 명료하다)
         grad_mu = torch.zeros_like(self.mu)
         grad_log_sigma = torch.zeros_like(self.log_sigma)
         
@@ -157,7 +157,7 @@ class ScoreFunctionVI:
             score_mu = (theta[s] - self.mu) / self.sigma**2
             score_log_sigma = ((theta[s] - self.mu)**2 / self.sigma**2 - 1)
             
-            # (f - 기준선)으로 무게를 두어 쌓기
+            # (f - 베이스라인)으로 가중해 누적한다
             weight = f[s].item() - baseline
             grad_mu += weight * score_mu
             grad_log_sigma += weight * score_log_sigma
@@ -171,7 +171,7 @@ class ScoreFunctionVI:
             lr: float = 0.01, use_baseline: bool = True,
             verbose: bool = True) -> Dict:
         """
-        점수 함수 그래디언트로 최적화하기.
+        점수 함수 그래디언트로 최적화한다.
         """
         optimizer = torch.optim.Adam([self.mu, self.log_sigma], lr=lr)
         
@@ -181,16 +181,16 @@ class ScoreFunctionVI:
         for i in range(n_iterations):
             optimizer.zero_grad()
             
-            # 그래디언트 셈하기
+            # 그래디언트 계산
             (grad_mu, grad_log_sigma), elbo = self.score_function_gradient(
                 n_samples, baseline if use_baseline else 0.0
             )
             
-            # 기준선 새로 고치기(f의 달리는 평균)
+            # 베이스라인 갱신(f의 이동 평균)
             if use_baseline:
                 baseline = 0.9 * baseline + 0.1 * elbo
             
-            # 그래디언트 정하기(옵티마이저가 최소화하므로 음수)
+            # 그래디언트 설정(옵티마이저가 최소화하므로 음수)
             self.mu.grad = -grad_mu
             self.log_sigma.grad = -grad_log_sigma
             
@@ -209,15 +209,15 @@ class ScoreFunctionVI:
 
 class ReparameterizedVI:
     """
-    파라메터 바꾸기 재주를 쓴 깜깜이 변분 추론.
+    리파라메리제이션 기법을 쓴 블랙박스 변분 추론.
     
-    이어진 q에서는 점수 함수 어림꼴보다 흩어짐이 훨씬 작다.
+    연속 q에서는 흔히 점수 함수 추정량보다 분산이 작다.
     """
     
     def __init__(self, log_joint: Callable, dim: int):
         """
         인수:
-            log_joint: log p(D, θ)을 셈하는 함수
+            log_joint: log p(D, θ)를 계산하는 함수
             dim: θ의 차원
         """
         self.log_joint = log_joint
@@ -233,22 +233,22 @@ class ReparameterizedVI:
     
     def elbo(self, n_samples: int = 100) -> torch.Tensor:
         """
-        파라메터 바꾸기로 ELBO 셈하기.
+        리파라메리제이션으로 ELBO를 계산한다.
         
         θ = μ + σ ⊙ ε,  ε ~ N(0, I)
         
         ELBO = E_ε[log p(D, μ + σε) - log q(μ + σε)]
         """
-        # 바탕 분포에서 표집
+        # 기저 분포에서 샘플링
         epsilon = torch.randn(n_samples, self.dim)
         
-        # 파라메터 바꾸기
+        # 리파라메리제이션
         theta = self.mu + self.sigma * epsilon
         
-        # 로그 결합 확률 셈하기
+        # 로그 결합밀도 계산
         log_p = self.log_joint(theta)
         
-        # log q 셈하기(가우스에서는 손으로 구함)
+        # log q 계산(가우스에서는 닫힌 형태로 구한다)
         log_q = dist.Normal(self.mu, self.sigma).log_prob(theta).sum(dim=-1)
         
         # ELBO
@@ -257,9 +257,9 @@ class ReparameterizedVI:
     def fit(self, n_iterations: int = 1000, n_samples: int = 10,
             lr: float = 0.01, verbose: bool = True) -> Dict:
         """
-        파라메터 바꾸기 그래디언트로 최적화하기.
+        리파라메리제이션 그래디언트로 최적화한다.
         
-        메모: 점수 함수보다 표본이 훨씬 적게 든다!
+        참고: 이 예제에서는 점수 함수보다 적은 표본을 쓴다.
         """
         optimizer = torch.optim.Adam([self.mu, self.log_sigma], lr=lr)
         
@@ -268,10 +268,10 @@ class ReparameterizedVI:
         for i in range(n_iterations):
             optimizer.zero_grad()
             
-            # ELBO 셈하기(그래디언트가 파라메터 바꾸기를 지나 흐른다)
+            # ELBO 계산(그래디언트가 리파라메리제이션 경로를 따라 흐른다)
             elbo = self.elbo(n_samples)
             
-            # 그래디언트 오르기(ELBO의 음수를 가장 작게 하기)
+            # 경사 상승(ELBO의 음수를 최소화한다)
             loss = -elbo
             loss.backward()
             optimizer.step()
@@ -288,17 +288,17 @@ class ReparameterizedVI:
         return history
 
 def compare_estimators():
-    """점수 함수 어림꼴과 파라메터 바꾸기 어림꼴 견주기."""
+    """점수 함수 추정량과 리파라메리제이션 추정량을 비교한다."""
     
-    # 단순한 타깃: 가우스 평균의 뒤확률
-    # 앞확률: θ ~ N(0, 1)
+    # 단순한 타깃: 가우스 평균의 사후분포
+    # 사전분포: θ ~ N(0, 1)
     # 가능도: x_i ~ N(θ, 1), 관측 평균 = 2.0
     
     n_data = 50
     data_mean = 2.0
     data_var = 1.0
     
-    # 정확한 뒤확률: N(μ_n, σ_n²)
+    # 정확한 사후분포: N(μ_n, σ_n²)
     posterior_precision = 1 + n_data / data_var
     exact_mean = n_data * data_mean / data_var / posterior_precision
     exact_std = 1 / np.sqrt(posterior_precision)
@@ -307,7 +307,7 @@ def compare_estimators():
     
     def log_joint(theta):
         """Log p(D, θ) = log p(D|θ) + log p(θ)"""
-        # 앞확률
+        # 사전분포
         log_prior = dist.Normal(0, 1).log_prob(theta).sum(dim=-1)
         
         # 가능도(충분 통계량 사용)
@@ -315,25 +315,25 @@ def compare_estimators():
         
         return log_prior + log_lik
     
-    # 방법 견주기
+    # 방법 비교
     results = {}
     
-    # 점수 함수(표본이 많이 든다)
+    # 점수 함수(표본을 많이 쓴다)
     print("\n--- Score Function Estimator ---")
     vi_score = ScoreFunctionVI(log_joint, dim=1)
     results['score'] = vi_score.fit(n_iterations=500, n_samples=100, 
                                     lr=0.01, verbose=True)
     
-    # 파라메터 바꾸기(표본이 적게 든다)
+    # 리파라메리제이션(표본을 적게 쓴다)
     print("\n--- Reparameterization Trick ---")
     vi_reparam = ReparameterizedVI(log_joint, dim=1)
     results['reparam'] = vi_reparam.fit(n_iterations=500, n_samples=10,
                                         lr=0.01, verbose=True)
     
-    # 견줌을 그려 본다
+    # 비교를 시각화한다
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     
-    # ELBO 견주기
+    # ELBO 비교
     ax = axes[0, 0]
     ax.plot(results['score']['elbo'], alpha=0.7, label='Score Function')
     ax.plot(results['reparam']['elbo'], alpha=0.7, label='Reparameterization')
@@ -343,7 +343,7 @@ def compare_estimators():
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 평균의 모임
+    # 평균의 수렴
     ax = axes[0, 1]
     mu_score = torch.stack(results['score']['mu']).squeeze().numpy()
     mu_reparam = torch.stack(results['reparam']['mu']).squeeze().numpy()
@@ -356,7 +356,7 @@ def compare_estimators():
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # ELBO 어림값의 흩어짐
+    # ELBO 추정값의 분산
     ax = axes[1, 0]
     window = 50
     var_score = np.array([np.var(results['score']['elbo'][max(0,i-window):i+1]) 
@@ -372,7 +372,7 @@ def compare_estimators():
     ax.grid(True, alpha=0.3)
     ax.set_yscale('log')
     
-    # 마지막 뒤확률
+    # 최종 사후분포
     ax = axes[1, 1]
     theta_range = torch.linspace(exact_mean - 3*exact_std, 
                                   exact_mean + 3*exact_std, 200)
@@ -389,7 +389,7 @@ def compare_estimators():
     ax.plot(theta_range.numpy(), score_pdf.numpy(), '--', linewidth=2,
             label=f'Score (μ={mu_s:.3f}, σ={sigma_s:.3f})')
     
-    # 파라메터 바꾸기 결과
+    # 리파라메리제이션 결과
     mu_r = results['reparam']['mu'][-1].item()
     sigma_r = results['reparam']['sigma'][-1].item()
     reparam_pdf = dist.Normal(mu_r, sigma_r).log_prob(theta_range).exp()
@@ -413,7 +413,7 @@ if __name__ == "__main__":
     compare_estimators()
 ```
 
-다음 기존 출력은 재실행하지 않았다. 두 방법은 각각 100개와 10개의 표본을 사용하므로 동일한 표본 예산의 비교가 아니다. 그림의 ‘Gradient Variance’ 패널도 고정 φ에서 반복 계산한 **경사 분산**이 아니라 학습 중 ELBO 기록의 이동 구간 분산이다. 최적화 이동과 표본 오차가 섞여 있어 경사 추정량의 분산 우열을 증명하지 않는다.
+다음은 위 코드의 출력이다. 두 방법은 각각 100개와 10개의 표본을 사용하므로 동일한 표본 예산의 비교가 아니다. 그림의 ‘Gradient Variance’ 패널도 고정 φ에서 반복 계산한 **그래디언트 분산**이 아니라 학습 중 ELBO 기록의 이동 구간 분산이다. 최적화 이동과 표본 오차가 섞여 있어 그래디언트 추정량의 분산 우열을 증명하지 않는다.
 
 ```
 Exact posterior: N(1.9608, 0.1400²)
@@ -435,7 +435,7 @@ Iter  500: ELBO = -29.5348, μ = [1.953634], σ = [0.24334748]
 
 ## 6. 자동미분 변분 추론
 
-ADVI는 제약을 없앤 연속 좌표에서 가우스 근사를 사용하고 리파라메리제이션 경사를 계산한다. 평균장과 전 공분산 가우스 등의 선택이 있으며, 미분 가능한 연속 모델이라는 적용 범위와 수치적 제약을 가진다. 이산 잠재변수가 그대로 남거나 적절한 변환·미분이 없는 모델에 무조건 적용할 수는 없다.
+ADVI는 제약을 없앤 연속 좌표에서 가우스 근사를 사용하고 리파라메리제이션 그래디언트를 계산한다. 평균장과 전 공분산 가우스 등의 선택이 있으며, 미분 가능한 연속 모델이라는 적용 범위와 수치적 제약을 가진다. 이산 잠재변수가 그대로 남거나 적절한 변환·미분이 없는 모델에 무조건 적용할 수는 없다.
 
 θ=h(ζ)가 같은 차원의 가역 미분변환이면 변환 좌표에서의 결합밀도는 다음과 같다.
 
@@ -449,15 +449,15 @@ $$\log p_\zeta(D,\zeta)=\log p_\theta(D,h(\zeta))+\log|\det Dh(\zeta)|.$$
 
 ### 연습 1: 파라메터 의존성
 
-일반적인 E_qφ[f_φ]의 경사를 유도하고, ELBO에서 명시적 미분 항이 기댓값 아래 사라지는 조건을 설명하라. 지지집합이 움직이는 Uniform(0,φ)에서는 어떤 주의가 필요한가?
+일반적인 E_qφ[f_φ]의 그래디언트를 유도하고, ELBO에서 명시적 미분 항이 기댓값 아래 사라지는 조건을 설명하라. 지지집합이 움직이는 Uniform(0,φ)에서는 어떤 주의가 필요한가?
 
-### 연습 2: 기준선의 조건
+### 연습 2: 베이스라인의 조건
 
-상수 기준선과 표본 의존 제어변량의 보정식을 비교하라. E[c(θ)s_φ]를 E[c]E[s_φ]로 바꿀 수 없는 이유를 설명하라.
+상수 베이스라인과 표본 의존 제어변량의 보정식을 비교하라. E[c(θ)s_φ]를 E[c]E[s_φ]로 바꿀 수 없는 이유를 설명하라.
 
 ### 연습 3: 분산 비교 설계
 
-동일한 φ·표본 수에서 경사 추정량을 독립 반복 계산하는 비교 절차를 설계하라. 학습 중 ELBO의 이동 분산이 그 비교를 대신하지 못하는 이유를 설명하라.
+동일한 φ·표본 수에서 그래디언트 추정량을 독립 반복 계산하는 비교 절차를 설계하라. 학습 중 ELBO의 이동 분산이 그 비교를 대신하지 못하는 이유를 설명하라.
 
 ### 연습 4: 제약과 변환밀도
 
@@ -465,7 +465,7 @@ $$\log p_\zeta(D,\zeta)=\log p_\theta(D,h(\zeta))+\log|\det Dh(\zeta)|.$$
 
 ## 정리하며
 
-점수함수와 경로별 추정은 ELBO의 파라메터 의존성을 서로 다른 방식으로 처리한다. 정칙성, 기준선의 독립성, 제어변량의 보정과 변환밀도의 야코비안을 확인해야 한다. 추정 분산은 고정된 파라메터에서 같은 계산 기준으로 비교한다.
+점수함수와 경로별 추정은 ELBO의 파라메터 의존성을 서로 다른 방식으로 처리한다. 정칙성, 베이스라인의 독립성, 제어변량의 보정과 변환밀도의 야코비안을 확인해야 한다. 추정 분산은 고정된 파라메터에서 같은 계산 기준으로 비교한다.
 
 **참고 문헌**
 

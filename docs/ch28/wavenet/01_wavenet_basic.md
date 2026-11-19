@@ -7,18 +7,18 @@ WaveNet의 핵심 요소 중 하나는 인과적 확장 컨볼루션(dilated cau
 ```python
 """WaveNet 기본."""
 # ---
-# title: "WaveNet: 기본 늘린 인과 겹말기"
-# description: "차례 나타내기를 위한 늘린 인과 겹말기의 PyTorch 짜기"
+# title: "WaveNet: 기본 인과적 확장 컨볼루션"
+# description: "시퀀스 모델링을 위한 인과적 확장 컨볼루션의 PyTorch 구현"
 # ---
 #
-# WaveNet(van den Oord 외, 2016)은 늘린 인과 겹말기를 쌓아
-# 받는 자리를 지수로 키우면서도
-# 파라메터가 지수로 늘지 않게 한다.
+# WaveNet(van den Oord 외, 2016)은 인과적 확장 컨볼루션을 쌓아
+# 리셉티브 필드를 지수적으로 키우면서도
+# 파라메터가 지수적으로 늘지 않게 한다.
 #
-# 이 대본은 핵심 벽돌을 PyTorch로 짠다:
-#   1. 인과 Conv1d(앞날이 새지 않도록 왼쪽을 채운다)
-#   2. 단순한 늘린 겹말기 쌓기(문 없음)
-#   3. 인공 시계열 내다보기 과제로 익히기
+# 이 스크립트는 핵심 구성 요소를 PyTorch로 구현한다:
+#   1. 인과 Conv1d(미래가 새지 않도록 왼쪽을 패딩한다)
+#   2. 단순한 확장 컨볼루션 스택(게이트 없음)
+#   3. 인공 시계열 예측 과제로 학습
 #
 # 바탕: O'Reilly Hands-On ML 15장(TF → PyTorch)
 
@@ -40,8 +40,8 @@ torch.manual_seed(42)
 
 # ─── 인과 Conv1d ───────────────────────────────────────────────────────────
 class CausalConv1d(nn.Module):
-    """때 t의 내놓기가 때 ≤ t의 들임에만 매이도록
-    인과(왼쪽) 채우기를 한 Conv1d."""
+    """시점 t의 출력이 시점 ≤ t의 입력에만 의존하도록
+    인과(왼쪽) 패딩을 한 Conv1d."""
 
     def __init__(self, in_channels, out_channels, kernel_size, dilation=1):
         super().__init__()
@@ -50,38 +50,38 @@ class CausalConv1d(nn.Module):
             in_channels, out_channels,
             kernel_size=kernel_size,
             dilation=dilation,
-            padding=0,          # 손수 채운다
+            padding=0,          # 직접 패딩한다
         )
 
     def forward(self, x):
-        # x: (배치, 채널, 순차열 길이)
-        x = F.pad(x, (self.padding, 0))   # 왼쪽만 채운다
+        # x: (배치, 채널, 시퀀스 길이)
+        x = F.pad(x, (self.padding, 0))   # 왼쪽만 패딩한다
         return self.conv(x)
 
 
-# ─── 단순한 늘린 쌓기 ──────────────────────────────────────────────────────
+# ─── 단순한 확장 스택 ──────────────────────────────────────────────────────
 class SimpleDilatedStack(nn.Module):
-    """ReLU 깨움을 갖춘 늘린 인과 겹말기 쌓기.
-    늘림 비율이 레이어마다 두 배가 된다: 1, 2, 4, 8, 1, 2, 4, 8, …"""
+    """ReLU 활성화를 갖춘 인과적 확장 컨볼루션 스택.
+    dilation이 레이어마다 두 배가 된다: 1, 2, 4, 8, 1, 2, 4, 8, …"""
 
     def __init__(self, in_channels=1, hidden=20, n_layers=8, kernel_size=2):
         super().__init__()
         layers = []
         for i in range(n_layers):
-            dilation = 2 ** (i % 4)          # 돌기: 1,2,4,8
+            dilation = 2 ** (i % 4)          # 주기: 1,2,4,8
             c_in = in_channels if i == 0 else hidden
             layers.append(CausalConv1d(c_in, hidden, kernel_size, dilation))
             layers.append(nn.ReLU())
-        layers.append(nn.Conv1d(hidden, 10, kernel_size=1))  # 점마다 내놓기
+        layers.append(nn.Conv1d(hidden, 10, kernel_size=1))  # 위치별 출력
         self.net = nn.Sequential(*layers)
 
     def forward(self, x):
         return self.net(x)
 
 
-# ─── 자료 만들기 ───────────────────────────────────────────────────────────
+# ─── 데이터 생성 ───────────────────────────────────────────────────────────
 def generate_time_series(batch_size, n_steps):
-    """여러 스텝 앞을 헤아리는 단순한 목표를 만든다."""
+    """여러 스텝 앞을 예측하는 단순한 타깃을 만든다."""
     freq1, freq2 = np.random.uniform(0.1, 0.5, (2, batch_size, 1))
     offsets1, offsets2 = np.random.uniform(0, 2 * np.pi, (2, batch_size, 1))
     time = np.linspace(0, 1, n_steps + 10).reshape(1, -1)
@@ -103,7 +103,7 @@ Y_test  = torch.tensor(series[9000:, 1:n_steps + 1]).unsqueeze(1)
 
 print(f"X_train shape: {X_train.shape}  Y_train shape: {Y_train.shape}")
 
-# ─── 익히기 ────────────────────────────────────────────────────────────────
+# ─── 학습 ──────────────────────────────────────────────────────────────────
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = SimpleDilatedStack(in_channels=1, hidden=20, n_layers=8).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
@@ -125,7 +125,7 @@ for epoch in range(1, epochs + 1):
         idx = perm[i : i + batch_size]
         xb, yb = X_train[idx].to(device), Y_train[idx].to(device)
         pred = model(xb)
-        # 마지막 때 스텝 10개만 견준다(모델이 채널 10개를 내놓는다)
+        # 마지막 시간 스텝 10개만 견준다(모델이 채널 10개를 출력한다)
         loss = loss_fn(pred[:, :, -10:], yb[:, :, -10:].expand_as(pred[:, :, -10:]))
         optimizer.zero_grad()
         loss.backward()
@@ -164,9 +164,9 @@ if __name__ == "__main__":
 
 CausalConv1d는 왼쪽에만 (k−1)d개를 패딩하고 스트라이드 1 컨볼루션을 적용해 길이를 유지한다. 출력 위치 t는 현재 입력 x_t와 과거에 의존하고 미래 x_(t+1)에는 의존하지 않는다. 같은 위치 출력을 다음 값 x_(t+1)의 타깃과 맞추므로 이 예제의 자기회귀 정렬은 성립한다. 현재 토큰 자체를 타깃으로 쓰려면 별도 이동이 필요하다.
 
-SimpleDilatedStack의 기본 은닉 채널은 20, 커널은 2, 컨볼루션 레이어는 8개다. dilation은 1,2,4,8을 두 번 반복한다. 마지막 1×1 컨볼루션이 10채널 출력을 만들며 입력 `(B,1,T)`에서 출력은 `(B,10,T)`다. 기본 학습 파라미터는 6,010개다.
+SimpleDilatedStack의 기본 은닉 채널은 20, 커널은 2, 컨볼루션 레이어는 8개다. dilation은 1,2,4,8을 두 번 반복한다. 마지막 1×1 컨볼루션이 10채널 출력을 만들며 입력 `(B,1,T)`에서 출력은 `(B,10,T)`다. 기본 학습 파라메터는 6,010개다.
 
-**기존 출력 기록:**
+**출력:**
 
 ```
 X_train shape: torch.Size([7000, 1, 50])  Y_train shape: torch.Size([7000, 1, 50])
@@ -182,7 +182,7 @@ Epoch  20  train_loss=0.0171  val_loss=0.0176
 Done.
 ```
 
-기존 기록은 보존했으며 이 편집에서 학습이나 그림 생성을 실행하지 않았다. 입력·타깃 모양, 로스의 의미와 수치 재현을 구분해 읽는다.
+입력·타깃 모양, 로스의 의미와 수치 재현을 구분해 읽는다.
 
 ## 2. 리셉티브 필드와 길이
 
@@ -194,15 +194,15 @@ Done.
 
 Y는 `(B,1,50)`이고 마지막 시간 10개를 잘라 expand_as로 출력 10채널에 반복한다. 따라서 각 시간 t에서 **10채널 모두 같은 다음 값 하나**를 예측한다. 채널별로 x_(t+1),…,x_(t+10)을 예측하는 다중 지평 모델이 아니다. MSE는 배치·채널·선택한 시간의 평균이며 확률 분포의 분산·범주형 logits도 정의하지 않는다.
 
-실제 10개 지평 예측을 만들려면 채널 h의 타깃을 x_(t+h)로 따로 정하고 유효 시간 범위를 맞춰야 한다. 이 절은 코드 변경 없이 현재 로스의 의미를 설명한다.
+실제 10개 지평 예측을 만들려면 채널 h의 타깃을 x_(t+h)로 따로 정하고 유효 시간 범위를 맞춰야 한다. 이 절의 코드는 그렇게 하지 않으므로 현재 로스의 의미를 그대로 읽어야 한다.
 
-## 4. 자료와 평가
+## 4. 데이터와 평가
 
-인공 자료는 각 시퀀스마다 다른 주파수·위상의 사인 성분 둘과 잡음을 결합한다. 잡음은 0.1(randn−0.5)이므로 평균이 −0.05이며 평균 0 가우시안 잡음이 아니다. frequency 변수의 역할도 정규화 시간과 n_steps 배율을 포함한 식으로 해석해야 한다.
+인공 데이터는 각 시퀀스마다 다른 주파수·위상의 사인 성분 둘과 잡음을 결합한다. 잡음은 0.1(randn−0.5)이므로 평균이 −0.05이며 평균 0 가우시안 잡음이 아니다. frequency 변수의 역할도 정규화 시간과 n_steps 배율을 포함한 식으로 해석해야 한다.
 
-독립적으로 만든 10,000개 시퀀스 중 7,000개는 학습, 2,000개는 검증, 1,000개는 테스트로 둔다. 테스트 텐서는 정의하지만 이 코드에서 평가하지 않는다. 학습 로그는 배치 평균들의 단순 평균이라 마지막 배치 크기의 영향을 받고, 검증은 전체 검증 텐서의 평균 MSE다. NumPy 시드는 고정하지만 PyTorch 초기화·배치 순서 시드는 고정하지 않는다.
+독립적으로 만든 10,000개 시퀀스 중 7,000개는 학습, 2,000개는 검증, 1,000개는 시험용으로 둔다. 시험 텐서는 정의하지만 이 코드에서 평가하지 않는다. 학습 로그는 배치 평균들의 단순 평균이라 마지막 배치 크기의 영향을 받고, 검증은 전체 검증 텐서의 평균 MSE다. NumPy 시드와 PyTorch 시드(초기화·배치 순서)는 모두 42로 고정한다.
 
-코드는 최상위에서 자료 생성·학습·그림 저장을 수행하므로 import만 해도 실행되는 부분이 있다. 생성 함수나 오디오 분포·양자화 처리는 없으며 원 WaveNet의 전체 구현과 구분한다.
+코드는 최상위에서 데이터 생성·학습·그림 저장을 수행하므로 import만 해도 실행되는 부분이 있다. 생성 함수나 오디오 분포·양자화 처리는 없으며 원 WaveNet의 전체 구현과 구분한다.
 
 ## 연습문제
 
@@ -230,7 +230,7 @@ Y는 `(B,1,50)`이고 마지막 시간 10개를 잘라 expand_as로 출력 10채
 
 ??? success "풀이"
 
-    현재 타깃을 반복하는 대신 채널 h에 x_(t+h)를 대응시키는 별도 타깃 텐서를 구성해야 한다. 길이·패딩·관측 종료를 고려해 모든 h의 타깃이 존재하는 t만 평가한다. 현재 입력의 t까지가 예측 시점이며 다른 미래를 입력으로 넣으면 안 된다. 모양이 `(B,10,T)`라는 이유만으로 이미 10지평 모델인 것은 아니다. 이 Conv1d 예제에 RGB Conv2d 입력을 바로 주는 기존 질문은 적용되지 않는다.
+    현재 타깃을 반복하는 대신 채널 h에 x_(t+h)를 대응시키는 별도 타깃 텐서를 구성해야 한다. 길이·패딩·관측 종료를 고려해 모든 h의 타깃이 존재하는 t만 평가한다. 현재 입력의 t까지가 예측 시점이며 다른 미래를 입력으로 넣으면 안 된다. 모양이 `(B,10,T)`라는 이유만으로 이미 10지평 모델인 것은 아니다. RGB Conv2d 입력을 바로 주는 질문은 이 Conv1d 예제에 적용되지 않는다.
 
 
 
@@ -245,7 +245,7 @@ Y는 `(B,1,50)`이고 마지막 시간 10개를 잘라 expand_as로 출력 10채
 
 ??? success "풀이"
 
-    바이어스를 제외하면 표준 Conv1d는 C_in C_out k개이고 depthwise와 pointwise는 C_in k+C_in C_out개다. 같은 출력 길이에서 웨이트·곱셈 누적 횟수의 비는 1/C_out+1/k다. 2차원 커널의 k² 식을 적용하지 않는다. 분리 구조의 표현 제약·실행 커널 때문에 파라미터 감소가 같은 정확도나 같은 속도 비율을 보장하지는 않는다.
+    바이어스를 제외하면 표준 Conv1d는 C_in C_out k개이고 depthwise와 pointwise는 C_in k+C_in C_out개다. 같은 출력 길이에서 웨이트·곱셈 누적 횟수의 비는 1/C_out+1/k다. 2차원 커널의 k² 식을 적용하지 않는다. 분리 구조의 표현 제약·실행 커널 때문에 파라메터 감소가 같은 정확도나 같은 속도 비율을 보장하지는 않는다.
 
 
 

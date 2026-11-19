@@ -26,19 +26,19 @@ import numpy as np
 def abc_rejection(prior_sampler, simulator, summary_fn, y_obs, 
                   distance_fn, epsilon, n_samples):
     """
-    ABC 물리치기 표집.
+    ABC 거절 샘플링.
     
     인수:
-        prior_sampler: 앞확률에서 표본 하나를 돌려주는 함수
-        simulator: 자료를 흉내내는 함수 theta -> x
-        summary_fn: 간추린 통계량을 셈하는 함수 x -> s
-        y_obs: 관측한 자료
+        prior_sampler: 사전분포에서 표본 하나를 돌려주는 함수
+        simulator: 데이터를 시뮬레이션하는 함수 theta -> x
+        summary_fn: 요약통계량을 계산하는 함수 x -> s
+        y_obs: 관측한 데이터
         distance_fn: 함수 (s1, s2) -> 거리
-        epsilon: 받아들임 너그러움
-        n_samples: 바라는 뒤확률 표본의 개수
+        epsilon: 채택 허용오차
+        n_samples: 바라는 사후분포 표본의 개수
     
     반환값:
-        samples: 받아들인 파라메터 값의 배열
+        samples: 채택한 파라메터 값의 배열
         acceptance_rate: Fraction of proposals accepted
     """
     s_obs = summary_fn(y_obs)
@@ -47,14 +47,14 @@ def abc_rejection(prior_sampler, simulator, summary_fn, y_obs,
     n_attempts = 0
     
     while len(samples) < n_samples:
-        # 앞확률에서 표집
+        # 사전분포에서 샘플링
         theta = prior_sampler()
         
-        # 흉내내기
+        # 시뮬레이션
         x = simulator(theta)
         s_x = summary_fn(x)
         
-        # 받아들이거나 물리치기
+        # 채택 또는 거절
         n_attempts += 1
         if distance_fn(s_x, s_obs) < epsilon:
             samples.append(theta)
@@ -67,7 +67,7 @@ def abc_rejection(prior_sampler, simulator, summary_fn, y_obs,
 
 A_ε(θ)=P_θ(ρ(S(X),s_obs)<ε)라 두면 π_ε(θ|y)∝p(θ)A_ε(θ)다. 전체 채택확률 a=E_prior A_ε가 양수일 때 채택 N개에 필요한 기대 시뮬레이션 수는 N/a다.
 
-요약밀도의 정칙성 아래 ε→0은 p(θ|S(y))에 연결되고 S가 충분하면 원자료 사후와 같아질 수 있다. 유한 ε의 원사후 근사 오차는 별도다.
+요약밀도의 정칙성 아래 ε→0은 p(θ|S(y))에 연결되고 S가 충분하면 원데이터 사후와 같아질 수 있다. 유한 ε의 원사후 근사 오차는 별도다.
 
 θ~prior에 웨이트 A_ε를 주는 IS 표현도 가능하지만 A_ε 자체는 보통 모른다. 한 번의 시뮬레이션으로 0/1 가중을 생성한 확장 공간의 거절 방법이라고 이해할 수 있다. 고정 시도 수에서 채택이 0이면 정규화 평균을 정의할 수 없다. 채택값의 평균이 모든 함수의 원사후 기대를 불편하게 추정하는 것도 아니다.
 
@@ -82,7 +82,7 @@ A_ε(θ)=P_θ(ρ(S(X),s_obs)<ε)라 두면 π_ε(θ|y)∝p(θ)A_ε(θ)다. 전�
 ```python
 def estimate_acceptance_rate(prior_sampler, simulator, summary_fn, 
                              y_obs, distance_fn, epsilon, n_trials=10000):
-    """주어진 엡실론의 받아들임 비율 어림하기."""
+    """주어진 엡실론의 채택률 추정하기."""
     s_obs = summary_fn(y_obs)
     
     n_accepted = 0
@@ -99,7 +99,7 @@ def estimate_acceptance_rate(prior_sampler, simulator, summary_fn,
 ```python
 def find_epsilon(prior_sampler, simulator, summary_fn, y_obs, 
                  distance_fn, target_rate=0.01, n_pilot=10000):
-    """목표 받아들임 비율에 맞는 엡실론 찾기."""
+    """목표 채택률에 맞는 엡실론 찾기."""
     s_obs = summary_fn(y_obs)
     
     # 예비 실행에서 거리 모으기
@@ -110,7 +110,7 @@ def find_epsilon(prior_sampler, simulator, summary_fn, y_obs,
         s_x = summary_fn(x)
         distances.append(distance_fn(s_x, s_obs))
     
-    # 분위수로 잡은 엡실론
+    # 분위수로 정한 엡실론
     epsilon = np.percentile(distances, target_rate * 100)
     return epsilon
 ```
@@ -123,11 +123,11 @@ def find_epsilon(prior_sampler, simulator, summary_fn, y_obs,
 
 ```python
 def ar1_summaries(y):
-    """AR(1) 모형의 간추린 통계량."""
+    """AR(1) 모형의 요약통계량."""
     return np.array([
         np.mean(y),
         np.var(y),
-        np.corrcoef(y[:-1], y[1:])[0, 1],  # 뒤짐 1의 자기상관
+        np.corrcoef(y[:-1], y[1:])[0, 1],  # 시차 1의 자기상관
     ])
 ```
 
@@ -135,11 +135,11 @@ def ar1_summaries(y):
 
 유클리드 거리는 원래 단위에 민감하다. 표준화 유클리드는 성분별 표준편차로 차이를 나누고, 마할라노비스는 요약 공분산의 역을 사용한다.
 
-아래 normalized_euclidean의 sigma는 분산이 아니라 표준편차이며 각 값이 양수여야 한다. Sigma_inv는 대칭 양의 정부호이고 요약 차원에 맞아야 한다. 사전예측 공분산이 특이하거나 추정 잡음이 크면 정규화·차원 축소를 검토한다. 단순 스케일 선택이 충분성·식별성을 만들어 주지는 않는다.
+아래 normalized_euclidean의 sigma는 분산이 아니라 표준편차이며 각 값이 양수여야 한다. Sigma_inv는 대칭 양의 정부호이고 요약 차원에 맞아야 한다. 사전예측 공분산이 특이하거나 추정 잡음이 크면 정칙화·차원 축소를 검토한다. 단순 스케일 선택이 충분성·식별성을 만들어 주지는 않는다.
 
 ```python
 def normalized_euclidean(s1, s2, sigma):
-    """고르게 한 유클리드 거리."""
+    """표준화 유클리드 거리."""
     return np.sqrt(np.sum(((s1 - s2) / sigma)**2))
 ```
 ```python
@@ -150,7 +150,7 @@ def mahalanobis_distance(s1, s2, Sigma_inv):
 ```
 ```python
 def estimate_summary_covariance(prior_sampler, simulator, summary_fn, n_sims=1000):
-    """앞확률 미리봄에서 간추린 통계량의 공분산 어림하기."""
+    """사전예측에서 요약통계량의 공분산 추정하기."""
     summaries = []
     for _ in range(n_sims):
         theta = prior_sampler()
@@ -164,7 +164,7 @@ def estimate_summary_covariance(prior_sampler, simulator, summary_fn, n_sims=100
 
 정규 예제는 μ~Uniform(−10,10), σ~Uniform(0.1,10)와 n=100의 생성 모형을 사용한다. 사전은 σ에 균등하며 σ²에 균등한 사전과 다르다. 관측 평균·표본 표준편차를 충분 요약으로 사용해도 pilot에서 정한 양의 ε의 근사는 남는다.
 
-추정치를 생성에 사용한 참값과 비교하는 것은 유한 자료의 통계 오차를 포함한다. 정확한 수치 사후나 독립 기준과 비교해야 ABC 수치 오차를 더 분리할 수 있다.
+추정치를 생성에 사용한 참값과 비교하는 것은 유한 데이터의 통계 오차를 포함한다. 정확한 수치 사후나 독립 기준과 비교해야 ABC 수치 오차를 더 분리할 수 있다.
 
 병렬 조각의 try_sample은 중첩 함수라 프로세스 직렬화에서 실패할 수 있다. 난수 스트림도 작업자별로 독립 관리해야 한다. 느린 시뮬레이션·직렬화·프로세스 시작 비용 때문에 작업자 수만큼 정확히 빨라지는 것은 아니다. progress 조각에도 양의 report_every와 예산 상한 등의 입력 처리가 필요하다.
 
@@ -172,23 +172,23 @@ def estimate_summary_covariance(prior_sampler, simulator, summary_fn, n_sims=100
 import numpy as np
 from scipy import stats
 
-# 참 파라메터와 관측한 자료
+# 참 파라메터와 관측한 데이터
 mu_true, sigma_true = 5.0, 2.0
 n_obs = 100
 y_obs = np.random.normal(mu_true, sigma_true, n_obs)
 
-# 앞확률
+# 사전분포
 def prior_sampler():
     mu = np.random.uniform(-10, 10)
     sigma = np.random.uniform(0.1, 10)
     return np.array([mu, sigma])
 
-# 흉내내기 장치
+# 시뮬레이터
 def simulator(theta):
     mu, sigma = theta
     return np.random.normal(mu, sigma, n_obs)
 
-# 간추린 통계량(이 모형에 넉넉함)
+# 요약통계량(이 모형에 충분함)
 def summary_fn(x):
     return np.array([np.mean(x), np.std(x, ddof=1)])
 
@@ -196,7 +196,7 @@ def summary_fn(x):
 def distance_fn(s1, s2):
     return np.linalg.norm(s1 - s2)
 
-# 엡실론 눈금 맞추기
+# 엡실론 보정
 s_obs = summary_fn(y_obs)
 pilot_distances = []
 for _ in range(10000):
@@ -204,7 +204,7 @@ for _ in range(10000):
     x = simulator(theta)
     pilot_distances.append(distance_fn(summary_fn(x), s_obs))
 
-epsilon = np.percentile(pilot_distances, 1)  # 받아들임 1%
+epsilon = np.percentile(pilot_distances, 1)  # 채택률 1%
 print(f"Epsilon: {epsilon:.4f}")
 
 # ABC 돌리기
@@ -228,7 +228,7 @@ from multiprocessing import Pool
 
 def abc_rejection_parallel(prior_sampler, simulator, summary_fn, y_obs,
                           distance_fn, epsilon, n_samples, n_workers=4):
-    """나란한 ABC 물리치기 표집."""
+    """병렬 ABC 거절 샘플링."""
     s_obs = summary_fn(y_obs)
     
     def try_sample(_):
@@ -246,7 +246,7 @@ def abc_rejection_parallel(prior_sampler, simulator, summary_fn, y_obs,
 ```python
 def abc_rejection_with_progress(prior_sampler, simulator, summary_fn, y_obs,
                                 distance_fn, epsilon, n_samples, report_every=100):
-    """나아감을 알려 주는 ABC."""
+    """진행 상황을 알려 주는 ABC."""
     s_obs = summary_fn(y_obs)
     samples = []
     n_attempts = 0
@@ -270,9 +270,9 @@ def abc_rejection_with_progress(prior_sampler, simulator, summary_fn, y_obs,
 
 ## 7. 한계
 
-작은 채택률은 계산비용을 늘리고, 요약 정보 로스·허용오차는 목표를 바꾼다. 넓은 사전의 적은 영역에 사후가 몰리면 prior 기반 제안이 비효율적일 수 있다.
+작은 채택률은 계산비용을 늘리고, 요약 정보 손실·허용오차는 목표를 바꾼다. 넓은 사전의 적은 영역에 사후가 몰리면 prior 기반 제안이 비효율적일 수 있다.
 
-요약을 체계적으로 선택하는 방법이 전혀 없는 것은 아니다. 보조 모형·회귀·학습 기반 요약을 사용할 수 있지만 관심 정보를 보존하는지 평가해야 한다. θ에서 반복한 ABC 지시변수 평균은 A_ε(θ)의 불편 추정이므로 우도와 관련된 양을 전혀 추정할 수 없다는 설명도 부정확하다. 이것이 원자료 우도나 정당한 모형 비교 증거와 같은 것은 아니며 커널·요약의 정규화·충분성을 검토해야 한다.
+요약을 체계적으로 선택하는 방법이 전혀 없는 것은 아니다. 보조 모형·회귀·학습 기반 요약을 사용할 수 있지만 관심 정보를 보존하는지 평가해야 한다. θ에서 반복한 ABC 지시변수 평균은 A_ε(θ)의 불편 추정이므로 가능도(likelihood, 우도라고도 한다)와 관련된 양을 전혀 추정할 수 없다는 설명도 부정확하다. 이것이 원데이터 가능도나 정당한 모형 비교 증거와 같은 것은 아니며 커널·요약의 정규화·충분성을 검토해야 한다.
 
 ## 8. 사용 범위와 다른 ABC 방법
 
@@ -284,7 +284,7 @@ ABC-MCMC와 ABC-SMC는 제안을 개선할 수 있지만 초기화·혼합·중�
 
 1. 채택확률 a에서 N개를 모으는 기대 시도 수를 구하라. 독립 반복이면 N/a이며 분산·예산 초과 가능성은 별도다.
 
-2. 요약이 충분해도 양의 ε에서 정확 사후인가? 일반적으로 아니다. 요약 정보 로스는 없어도 허용오차 근사가 남는다.
+2. 요약이 충분해도 양의 ε에서 정확 사후인가? 일반적으로 아니다. 요약 정보 손실은 없어도 허용오차 근사가 남는다.
 
 3. 정규 예제의 사전이 σ²에 균등한가? 아니다. σ에 균등하므로 분산 v=σ²로 변환하면 야코비안 1/(2√v)가 들어간다.
 

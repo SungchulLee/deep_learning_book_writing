@@ -12,7 +12,7 @@ $$h_t = \tanh(W_{xh} x_t + W_{hh} h_{t-1} + b_h)$$
 
 $$y_t = W_{hy} h_t + b_y$$
 
-$\tanh$ 활성화는 은닉 상태 값을 $[-1, 1]$으로 묶어 끝없이 커지는 것을 막으면서도 양수와 음수 엑티베이션을 모두 허용한다. 이 선택은 그래디언트의 흐름에 중요한 결과를 낳는데, BPTT 절에서 살펴본다.
+$\tanh$ 활성화는 은닉 상태 값을 $[-1, 1]$으로 묶어 끝없이 커지는 것을 막으면서도 양수와 음수 활성화 값을 모두 허용한다. 이 선택은 그래디언트의 흐름에 중요한 결과를 낳는데, BPTT 절에서 살펴본다.
 
 ---
 
@@ -27,7 +27,7 @@ import torch
 import torch.nn as nn
 
 class VanillaRNNCell(nn.Module):
-    """한 시각을 계산하는 RNN 세포 하나."""
+    """한 시각을 계산하는 RNN 셀 하나."""
     
     def __init__(self, input_size, hidden_size):
         super().__init__()
@@ -41,9 +41,9 @@ class VanillaRNNCell(nn.Module):
         """
         인수:
             x: 입력 텐서 (배치 크기, input_size)
-            h_prev: 이전 숨은 상태 (배치 크기, hidden_size)
+            h_prev: 이전 은닉 상태 (배치 크기, hidden_size)
         반환값:
-            h: 새 숨은 상태 (배치 크기, hidden_size)
+            h: 새 은닉 상태 (배치 크기, hidden_size)
         """
         h = torch.tanh(self.W_xh(x) + self.W_hh(h_prev))
         return h
@@ -57,7 +57,7 @@ class VanillaRNNCell(nn.Module):
 
 ```python
 class VanillaRNN(nn.Module):
-    """순차열 전체를 처리하는 온전한 RNN."""
+    """시퀀스 전체를 처리하는 온전한 RNN."""
     
     def __init__(self, input_size, hidden_size, output_size):
         super().__init__()
@@ -68,11 +68,11 @@ class VanillaRNN(nn.Module):
     def forward(self, x, h_0=None):
         """
         인수:
-            x: 입력 순차열 (배치 크기, seq_len, input_size)
-            h_0: 처음 숨은 상태 (배치 크기, hidden_size)
+            x: 입력 시퀀스 (배치 크기, seq_len, input_size)
+            h_0: 처음 은닉 상태 (배치 크기, hidden_size)
         반환값:
             outputs: 모든 은닉 상태 (batch_size, seq_len, hidden_size)
-            h_n: 마지막 숨은 상태 (배치 크기, hidden_size)
+            h_n: 마지막 은닉 상태 (배치 크기, hidden_size)
         """
         batch_size, seq_len, _ = x.shape
         
@@ -96,15 +96,15 @@ class VanillaRNN(nn.Module):
 
 ## 3. PyTorch 내장 RNN 쓰기
 
-PyTorch는 장치에 맞게 최적화된 최적화된 `nn.RNN`을 제공한다.
+PyTorch는 장치에 맞게 최적화된 `nn.RNN`을 제공한다.
 
 ```python
 rnn = nn.RNN(
     input_size=10,      # 입력의 피처 차원
-    hidden_size=20,     # 숨은 상태의 차원
+    hidden_size=20,     # 은닉 상태의 차원
     num_layers=1,       # 쌓은 RNN 레이어의 수
-    batch_first=True,   # 입력의 모양: (배치, seq, 피처)
-    nonlinearity='tanh' # 엑티베이션 함수 ('tanh' 또는 'relu')
+    batch_first=True,   # 입력의 형태: (배치, seq, 피처)
+    nonlinearity='tanh' # 활성화 함수 ('tanh' 또는 'relu')
 )
 
 # 입력: (batch_size=32, seq_len=15, input_size=10)
@@ -130,8 +130,8 @@ Final hidden: torch.Size([1, 32, 20])
 
 ```python
 # PyTorch는 우리 표기와 다르게 웨이트의 이름을 붙인다
-print(rnn.weight_ih_l0.shape)  # (20, 10) — W_xh (입력에서 숨은 상태로)
-print(rnn.weight_hh_l0.shape)  # (20, 20) — W_hh (숨은 상태에서 숨은 상태로)
+print(rnn.weight_ih_l0.shape)  # (20, 10) — W_xh (입력에서 은닉 상태로)
+print(rnn.weight_hh_l0.shape)  # (20, 20) — W_hh (은닉 상태에서 은닉 상태로)
 print(rnn.bias_ih_l0.shape)    # (20,)    — b_xh
 print(rnn.bias_hh_l0.shape)    # (20,)    — b_hh
 ```
@@ -160,7 +160,7 @@ class RNNClassifier(nn.Module):
         self.fc = nn.Linear(hidden_size, num_classes)
         
     def forward(self, x):
-        # x: (배치, seq_len) — 토큰 색인
+        # x: (배치, seq_len) — 토큰 인덱스
         embedded = self.embedding(x)        # (배치, seq_len, embed_dim)
         outputs, h_n = self.rnn(embedded)   # h_n: (1, 배치, hidden)
         
@@ -169,7 +169,7 @@ class RNNClassifier(nn.Module):
         return logits
 ```
 
-마지막 상태 $h_T$는 전체 입력에 의존하지만 모든 정보를 로스 없이 담는 것은 아니다. 패딩이 있는 입력을 그대로 처리하면 PAD에서도 상태가 갱신되므로, 실제 길이를 반영한 상태 선택이나 패킹이 필요하다.
+마지막 상태 $h_T$는 전체 입력에 의존하지만 모든 정보를 손실 없이 담는 것은 아니다. 패딩이 있는 입력을 그대로 처리하면 PAD에서도 상태가 갱신되므로, 실제 길이를 반영한 상태 선택이나 패킹이 필요하다.
 
 ---
 
@@ -212,16 +212,16 @@ class RNNGenerator(nn.Module):
 
 ---
 
-## 6. 엑티베이션 함수의 선택
+## 6. 활성화 함수의 선택
 
-기본 RNN은 엑티베이션 함수 두 가지를 지원한다.
+기본 RNN은 활성화 함수 두 가지를 지원한다.
 
-**$\tanh$** (기본값): 출력이 $[-1, 1]$이고 도함수가 $1 - \tanh^2(x) \in [0, 1]$이다. 도함수가 묶여 있어 그래디언트 소실에 한몫하지만 엑티베이션이 안정된다.
+**$\tanh$** (기본값): 출력이 $[-1, 1]$이고 도함수가 $1 - \tanh^2(x) \in [0, 1]$이다. 도함수가 묶여 있어 그래디언트 소실에 한몫하지만 활성화 값이 안정된다.
 
-**ReLU**: 출력이 $[0, \infty)$이고 도함수가 0 아니면 1이다. 그래디언트 소실을 누그러뜨릴 수 있지만 은닉 상태가 더는 묶여 있지 않아 엑티베이션이 폭발할 위험이 있다. ReLU를 쓰는 RNN은 초기화를 뉴럴 써야 한다. Le 등(2015)은 ReLU 활성화와 함께 $W_{hh}$을 항등 행렬로 초기화하면 어떤 과제에서는 LSTM에 맞먹는 성능이 나옴을 보였다.
+**ReLU**: 출력이 $[0, \infty)$이고 도함수가 0 아니면 1이다. 그래디언트 소실을 완화할 수 있지만 은닉 상태가 더는 묶여 있지 않아 활성화 값이 폭발할 위험이 있다. ReLU를 쓰는 RNN은 초기화에 신경 써야 한다. Le 등(2015)은 ReLU 활성화와 함께 $W_{hh}$을 항등 행렬로 초기화하면 어떤 과제에서는 LSTM에 맞먹는 성능이 나옴을 보였다.
 
 ```python
-# ReLU 판본
+# ReLU 버전
 rnn_relu = nn.RNN(
     input_size=10, hidden_size=20,
     batch_first=True, nonlinearity='relu'
@@ -230,7 +230,7 @@ rnn_relu = nn.RNN(
 
 ---
 
-## 7. 하이퍼파라미터 길잡이
+## 7. 하이퍼파라메터 길잡이
 
 | 파라메터 | 흔한 범위 | 고려할 점 |
 |-----------|--------------|----------------|
@@ -292,7 +292,7 @@ tanh의 포화가 그래디언트에 주는 영향과 그 설명의 한계를 �
     ```python
     rnn = nn.RNN(input_size=50, hidden_size=128, batch_first=True)
     fc = nn.Linear(128, num_classes)
-    x = rnn(input_seq)[0][:, -1, :]  # 마지막 숨은 상태
+    x = rnn(input_seq)[0][:, -1, :]  # 마지막 은닉 상태
     logits = fc(x)
     ```
 

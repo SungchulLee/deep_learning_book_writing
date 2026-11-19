@@ -1,10 +1,10 @@
 # 9장: 뉴럴 네트워크의 구성 요소
 
-이 장에서는 다층 퍼셉트론을 구성하고 학습시키는 데 필요한 요소를 살펴본다. 엑티베이션 함수로 비선형성을 만들고, 순전파와 역전파로 예측과 경사를 계산한다. 이어서 초기화, 정규화 레이어, 과적합을 줄이는 기법이 학습에 어떤 영향을 주는지 설명한다.
+이 장에서는 다층 퍼셉트론을 구성하고 학습시키는 데 필요한 요소를 살펴본다. 활성화 함수로 비선형성을 만들고, 순전파와 역전파로 예측과 그래디언트를 계산한다. 이어서 초기화, 정규화 레이어, 과적합을 줄이는 기법이 학습에 어떤 영향을 주는지 설명한다.
 
-## 1. 엑티베이션 함수
+## 1. 활성화 함수
 
-엑티베이션 함수는 선형 변환만으로 표현할 수 없는 관계를 학습하게 한다. 함수의 모양뿐 아니라 도함수, 출력 범위, 로스과의 조합을 함께 살펴본다.
+활성화 함수는 선형 변환만으로 표현할 수 없는 관계를 학습하게 한다. 함수의 모양뿐 아니라 도함수, 출력 범위, 로스와의 조합을 함께 살펴본다.
 
 - [ELU](activations/elu.md): 음수 입력에서도 값을 내는 활성화
 - [회귀 예제](activations/07_regression_with_activations.md): 출력 범위와 활성화 선택
@@ -13,7 +13,7 @@
 
 ## 2. 순방향 뉴럴 네트워크
 
-먼저 각 레이어의 차원과 파라메터 개수를 정리하고, 데이터와 경사가 레이어를 통과하는 과정을 이해한다. 구현 예제는 NumPy의 수동 계산에서 PyTorch의 학습 루프와 응용으로 이어진다.
+먼저 각 레이어의 차원과 파라메터 개수를 정리하고, 데이터와 그래디언트가 레이어를 통과하는 과정을 이해한다. 구현 예제는 NumPy의 수동 계산에서 PyTorch의 학습 루프와 응용으로 이어진다.
 
 이 절이 **이 장에서 가장 길다**(29쪽). 이론 여섯 쪽 뒤로는 **같은 것을 여러 번 짓는** 자리이므로, 아는 도구가 나오면 건너뛰어도 된다.
 
@@ -21,13 +21,13 @@
 
 - [MLP 구조](feedforward/mlp_architecture.md) — 레이어마다의 차원과 파라메터 수
 - [순전파](feedforward/forward_pass.md) · [역전파](feedforward/backpropagation.md)
-- [경사의 흐름](feedforward/gradient_flow.md) — 레이어마다의 인수가 곱으로 쌓여 소실·폭주가 된다
+- [그래디언트의 흐름](feedforward/gradient_flow.md) — 레이어마다의 인수가 곱으로 쌓여 소실·폭발이 된다
 - [보편 근사 정리](feedforward/universal_approximation.md) — 너비만으로 충분하다는 말이 무엇을 **보장하지 않는가**
 - [깊이와 너비](feedforward/depth_vs_width.md) — 용량을 정하는 두 축
 
 **바닥부터 올라가기** (아래 여섯은 차례로 읽도록 되어 있다)
 
-1. [순수 NumPy로 만드는 선형 회귀](feedforward/01_linear_regression_numpy.md) — 순전파·로스·경사·갱신을 전부 손으로
+1. [순수 NumPy로 만드는 선형 회귀](feedforward/01_linear_regression_numpy.md) — 순전파·로스·그래디언트·갱신을 전부 손으로
 2. [PyTorch 텐서로 만드는 선형 회귀](feedforward/02_linear_regression_pytorch.md) — 텐서로 옮기되 autograd 는 아직 끈 채로
 3. [역전파를 직접 구현한 간단한 뉴럴 네트워크](feedforward/03_simple_nn_manual.md) — ReLU 은닉 레이어를 더해 동심원을 가른다
 4. [Autograd 소개](feedforward/04_autograd_introduction.md) — 수동 역전파를 `backward()` 로 바꾼다
@@ -62,14 +62,14 @@
 
 ## 3. 웨이트 초기화
 
-초기화는 레이어를 지나는 활성화와 경사의 크기에 영향을 준다. 분산 보존에 관한 근사 가정을 이해하고 활성화에 맞는 방법을 선택한다.
+초기화는 레이어를 지나는 활성화와 그래디언트의 크기에 영향을 준다. 분산 보존에 관한 근사 가정을 이해하고 활성화에 맞는 방법을 선택한다.
 
 - [웨이트 초기화의 원리](weight_initialization/weight_initialization.md)
 - [He 초기화](weight_initialization/he_init.md)
 
 ## 4. 정규화 레이어
 
-정규화 레이어(normalization)은 정한 축의 통계량으로 활성화의 크기를 조정한다. 배치 통계량을 쓰는지, 표본마다 계산하는지, 학습과 평가에서 동작이 달라지는지 구분한다.
+정규화 레이어(normalization)는 정한 축의 통계량으로 활성화의 크기를 조정한다. 배치 통계량을 쓰는지, 표본마다 계산하는지, 학습과 평가에서 동작이 달라지는지 구분한다.
 
 - [배치 정규화](normalization/batch_normalization.md)
 - [레이어 정규화](normalization/layer_normalization.md)
@@ -104,8 +104,8 @@
 
 **학습을 멈추거나 흔들기**
 
-- [조기 종료](regularization/early_stopping.md) · [조기 종료 예제](regularization/early_stopping_example.md) — 검증으로 멈출 때를 고르고 **별도 테스트셋**에서 잰다
-- [잡음 주입](regularization/noise_injection.md) — 입력·웨이트·활성화·경사 어디에나 줄 수 있다
+- [조기 종료](regularization/early_stopping.md) · [조기 종료 예제](regularization/early_stopping_example.md) — 검증으로 멈출 때를 고르고 **별도 시험 세트**에서 잰다
+- [잡음 주입](regularization/noise_injection.md) — 입력·웨이트·활성화·그래디언트 어디에나 줄 수 있다
 
 ## 정리하며
 

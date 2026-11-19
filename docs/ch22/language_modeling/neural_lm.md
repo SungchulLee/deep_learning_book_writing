@@ -1,6 +1,6 @@
 # 뉴럴 네트워크 언어 모델의 문맥·학습·생성
 
-뉴럴 네트워크 언어 모델은 embedding과 공유된 함수로 다음 토큰의 로짓을 계산한다. 빈도표의 각 문맥을 독립적으로 저장하는 방식과 달리 여러 단어·문맥 사이에서 파라메터를 공유할 수 있다. 하지만 학습한 표현이 항상 의미적 유사성을 정확히 반영하거나 미관측 자료에서 일반화를 보장하는 것은 아니다. 문맥 길이·어휘·시간 상태·인과성은 구조와 구현에서 각각 확인해야 한다.
+뉴럴 네트워크 언어 모델은 embedding과 공유된 함수로 다음 토큰의 로짓을 계산한다. 빈도표의 각 문맥을 독립적으로 저장하는 방식과 달리 여러 단어·문맥 사이에서 파라메터를 공유할 수 있다. 하지만 학습한 표현이 항상 의미적 유사성을 정확히 반영하거나 미관측 데이터에서 일반화를 보장하는 것은 아니다. 문맥 길이·어휘·시간 상태·인과성은 구조와 구현에서 각각 확인해야 한다.
 
 ## 1. 고정 문맥의 순방향 모델
 
@@ -32,7 +32,7 @@ from torch.utils.data import Dataset, DataLoader
 from typing import List, Tuple
 
 class Vocabulary:
-    """뉴럴 언어 모델의 단어 곳간 다스리기."""
+    """뉴럴 언어 모델의 어휘 관리."""
     
     def __init__(self):
         self.word2idx = {}
@@ -42,7 +42,7 @@ class Vocabulary:
         self.START = "<s>"
         self.END = "</s>"
         
-        # 특수 토큰 더하기
+        # 특수 토큰 추가
         for token in [self.PAD, self.UNK, self.START, self.END]:
             self._add(token)
     
@@ -54,7 +54,7 @@ class Vocabulary:
         return self.word2idx[word]
     
     def build(self, corpus: List[str], min_freq: int = 1):
-        """말뭉치에서 단어 곳간 세우기."""
+        """말뭉치에서 어휘 구축."""
         from collections import Counter
         counts = Counter()
         for sentence in corpus:
@@ -76,7 +76,7 @@ class Vocabulary:
         return len(self.word2idx)
 
 class FeedforwardLMDataset(Dataset):
-    """피드포워드 언어 모델 익히기용 데이터셋."""
+    """피드포워드 언어 모델 학습용 데이터셋."""
     
     def __init__(self, corpus: List[str], vocab: Vocabulary, context_size: int):
         self.vocab = vocab
@@ -85,11 +85,11 @@ class FeedforwardLMDataset(Dataset):
         
         for sentence in corpus:
             words = sentence.lower().split()
-            # 시작 토큰으로 덧대기
+            # 시작 토큰으로 패딩
             words = [vocab.START] * context_size + words + [vocab.END]
             indices = [vocab.encode(w) for w in words]
             
-            # (맥락, 목표) 짝 만들기
+            # (문맥, 목표) 쌍 만들기
             for i in range(context_size, len(indices)):
                 context = indices[i - context_size:i]
                 target = indices[i]
@@ -107,13 +107,13 @@ class FeedforwardLM(nn.Module):
     피드포워드 뉴럴 언어 모델(Bengio 외, 2003).
     
     구조:
-        임베딩 → 이어 붙이기 → 숨은 레이어 → 내놓음 → 소프트맥스
+        임베딩 → 연결 → 은닉 레이어 → 출력 → 소프트맥스
     
     인수:
-        vocab_size: 단어 곳간의 크기
+        vocab_size: 어휘의 크기
         embedding_dim: 단어 임베딩의 차원
-        context_size: 맥락 단어의 개수
-        hidden_dim: 숨은 레이어의 차원
+        context_size: 문맥 단어의 개수
+        hidden_dim: 은닉 레이어의 차원
     """
     
     def __init__(self, vocab_size: int, embedding_dim: int,
@@ -127,7 +127,7 @@ class FeedforwardLM(nn.Module):
         self._init_weights()
     
     def _init_weights(self):
-        """익히기를 낫게 하는 자비에 초기화."""
+        """학습을 돕는 Xavier 초기화."""
         nn.init.xavier_uniform_(self.embedding.weight)
         nn.init.xavier_uniform_(self.fc1.weight)
         nn.init.xavier_uniform_(self.fc2.weight)
@@ -135,10 +135,10 @@ class FeedforwardLM(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        피드포워드.
+        순전파.
         
         인수:
-            x: (batch_size, context_size) 맥락 단어 번호
+            x: (batch_size, context_size) 문맥 단어 인덱스
             
         반환값:
             (batch_size, vocab_size) 로짓
@@ -146,13 +146,13 @@ class FeedforwardLM(nn.Module):
         # 임베딩: (batch, context_size) → (batch, context_size, embed_dim)
         embeds = self.embedding(x)
         
-        # 펴기: (batch, context_size * embed_dim)
+        # 평탄화: (batch, context_size * embed_dim)
         embeds = embeds.view(x.size(0), -1)
         
-        # tanh 활성화를 갖춘 숨은 레이어
+        # tanh 활성화를 갖춘 은닉 레이어
         hidden = torch.tanh(self.fc1(embeds))
         
-        # 내놓는 로짓
+        # 출력 로짓
         logits = self.fc2(hidden)
         
         return logits
@@ -170,7 +170,7 @@ def train_feedforward_lm(corpus: List[str], context_size: int = 3,
                          embedding_dim: int = 64, hidden_dim: int = 128,
                          epochs: int = 20, batch_size: int = 32,
                          learning_rate: float = 0.001):
-    """피드포워드 언어 모델 익히기."""
+    """피드포워드 언어 모델 학습."""
     
     # 어휘 만들기
     vocab = Vocabulary()
@@ -180,7 +180,7 @@ def train_feedforward_lm(corpus: List[str], context_size: int = 3,
     dataset = FeedforwardLMDataset(corpus, vocab, context_size)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     
-    # 모형을 시작한다
+    # 모델 초기화
     model = FeedforwardLM(
         vocab_size=len(vocab),
         embedding_dim=embedding_dim,
@@ -216,7 +216,7 @@ def train_feedforward_lm(corpus: List[str], context_size: int = 3,
     return model, vocab
 ```
 
-Vocabulary는 PAD·UNK·시작·종료를 먼저 등록하고 소문자 공백 토큰으로 어휘를 만든다. 데이터는 문장 앞에 m개 시작 토큰, 뒤에 종료를 넣어 고정 문맥과 다음 단어 목표를 만든다. 어휘는 학습 분할에서만 구성하고 평가의 미등록 단어는 같은 UNK 규칙을 적용한다. 모델 출력에는 PAD·시작 같은 특수 토큰도 있어 생성 시 허용 폴리시가 필요하다.
+Vocabulary는 PAD·UNK·시작·종료를 먼저 등록하고 소문자 공백 토큰으로 어휘를 만든다. 데이터는 문장 앞에 m개 시작 토큰, 뒤에 종료를 넣어 고정 문맥과 다음 단어 목표를 만든다. 어휘는 학습 분할에서만 구성하고 평가의 미등록 단어는 같은 UNK 규칙을 적용한다. 모델 출력에는 PAD·시작 같은 특수 토큰도 있어 생성 시 허용 정책이 필요하다.
 
 학습은 CE에 raw 로짓을 넣고 Adam으로 갱신한다. 출력 PPL은 학습 배치 로스를 단순 평균한 exp이며 마지막 배치 크기·평가 토큰 수를 가중한 독립 검증 PPL과 다르다. 빈 loader도 처리하지 않는다. get_next_word_probs는 CPU 입력을 만들고 eval로 바꾼 채 돌려주므로 장치·모드의 부수 효과를 확인한다.
 
@@ -234,14 +234,14 @@ For each time step t:
 ```python
 class RNNLanguageModel(nn.Module):
     """
-    맥락 길이가 바뀌는 리커런트 네트워크 언어 모델.
+    가변 길이 문맥을 다루는 리커런트 네트워크 언어 모델.
     
-    숨은 상태가 아무리 먼 지난 이야기의 앎도 나른다.
+    은닉 상태가 아무리 먼 과거 문맥의 정보도 전달한다.
     
     인수:
-        vocab_size: 단어 곳간의 크기
+        vocab_size: 어휘의 크기
         embedding_dim: 단어 임베딩의 차원
-        hidden_dim: 리커런트 네트워크 숨은 상태의 차원
+        hidden_dim: 리커런트 네트워크 은닉 상태의 차원
         num_layers: 쌓은 리커런트 네트워크 레이어의 개수
         dropout: 드롭아웃 확률
     """
@@ -276,15 +276,15 @@ class RNNLanguageModel(nn.Module):
     
     def forward(self, x: torch.Tensor, hidden: torch.Tensor = None):
         """
-        리커런트 네트워크를 지나는 피드포워드.
+        리커런트 네트워크를 지나는 순전파.
         
         인수:
-            x: (batch, seq_len) 들임 토큰 번호
-            hidden: 처음 숨은 상태(없어도 됨)
+            x: (batch, seq_len) 입력 토큰 인덱스
+            hidden: 초기 은닉 상태(선택)
             
         반환값:
             logits: (batch, seq_len, vocab_size)
-            hidden: 마지막 숨은 상태
+            hidden: 마지막 은닉 상태
         """
         # 임베딩: (batch, seq_len, embed_dim)
         embeds = self.dropout(self.embedding(x))
@@ -299,11 +299,11 @@ class RNNLanguageModel(nn.Module):
         return logits, hidden
     
     def init_hidden(self, batch_size: int) -> torch.Tensor:
-        """숨은 상태를 0으로 초기화."""
+        """은닉 상태를 0으로 초기화."""
         return torch.zeros(self.num_layers, batch_size, self.hidden_dim)
 
 class RNNLMDataset(Dataset):
-    """리커런트 네트워크 언어 모델용 데이터셋(차례에서 차례로)."""
+    """리커런트 네트워크 언어 모델용 데이터셋(시퀀스에서 시퀀스로)."""
     
     def __init__(self, corpus: List[str], vocab: Vocabulary, max_len: int = 35):
         self.sequences = []
@@ -313,7 +313,7 @@ class RNNLMDataset(Dataset):
             words = [vocab.START] + words + [vocab.END]
             indices = [vocab.encode(w) for w in words]
             
-            # 익히기를 위해 덩이로 쪼개기
+            # 학습을 위해 청크로 나누기
             for i in range(0, len(indices) - 1, max_len):
                 seq = indices[i:i + max_len + 1]
                 if len(seq) > 1:
@@ -324,14 +324,14 @@ class RNNLMDataset(Dataset):
     
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         seq = self.sequences[idx]
-        # 들임: 마지막 토큰을 뺀 전부, 목표: 첫 토큰을 뺀 전부
+        # 입력: 마지막 토큰을 뺀 전부, 목표: 첫 토큰을 뺀 전부
         return torch.tensor(seq[:-1]), torch.tensor(seq[1:])
 
 def collate_sequences(batch):
-    """길이가 들쭉날쭉한 차례를 덧대어 모으기."""
+    """길이가 다른 시퀀스를 패딩해 모으기."""
     inputs, targets = zip(*batch)
     
-    # 배치 안 최대 길이까지 덧대기
+    # 배치 안 최대 길이까지 패딩
     max_len = max(len(x) for x in inputs)
     
     padded_inputs = []
@@ -352,7 +352,7 @@ RNNLMDataset은 시작·종료를 포함한 각 문장을 max_len 길이 구간�
 
 ```python
 def train_rnn_truncated_bptt(model, data, hidden, seq_len=35):
-    """잘라 낸 때 거슬러 퍼뜨리기로 익히기."""
+    """잘린 BPTT(truncated backpropagation through time)로 학습."""
     model.train()
     
     for i in range(0, data.size(1) - 1, seq_len):
@@ -361,10 +361,10 @@ def train_rnn_truncated_bptt(model, data, hidden, seq_len=35):
         inputs = data[:, i:i+seqlen]
         targets = data[:, i+1:i+1+seqlen]
         
-        # 숨은 상태를 발자취에서 떼어 내기
+        # 은닉 상태를 계산 그래프에서 분리하기
         hidden = hidden.detach()
         
-        # 피드포워드와 되돌림
+        # 순전파와 역전파
         logits, hidden = model(inputs, hidden)
         loss = criterion(logits.view(-1, vocab_size), targets.view(-1))
         
@@ -376,26 +376,26 @@ def train_rnn_truncated_bptt(model, data, hidden, seq_len=35):
     return hidden
 ```
 
-잘린 BPTT는 상태 값은 다음 구간에 전달하되 detach로 경사 연결을 자른다. 위 함수는 RNN의 단일 hidden 텐서를 가정하며 LSTM의(h,c) 튜플에는 그대로 적용되지 않는다. criterion·optimizer·vocab_size도 외부 정의가 필요하다. targets는 배치의 열 구간 slicing이라 비연속일 수 있어 view(-1)가 실패할 수 있다. 배치 행이 같은 스트림을 계속 나타내는지와 경계에서의 상태 초기화도 필요하다. RNN init_hidden은 CPU 기본 dtype 텐서를 만들므로 모델의 장치·dtype과 맞춰야 한다.
+잘린 BPTT는 상태 값은 다음 구간에 전달하되 detach로 그래디언트 연결을 자른다. 위 함수는 RNN의 단일 hidden 텐서를 가정하며 LSTM의(h,c) 튜플에는 그대로 적용되지 않는다. criterion·optimizer·vocab_size도 외부 정의가 필요하다. targets는 배치의 열 구간 slicing이라 비연속일 수 있어 view(-1)가 실패할 수 있다. 배치 행이 같은 스트림을 계속 나타내는지와 경계에서의 상태 초기화도 필요하다. RNN init_hidden은 CPU 기본 dtype 텐서를 만들므로 모델의 장치·dtype과 맞춰야 한다.
 
 ## 3. LSTM과 weight tying
 
-LSTM은 망각·입력·출력 gate와 후보 셀을 사용해 셀 상태 c_t=f_t⊙c_{t−1}+i_t⊙c̃_t를 갱신하고 h_t=o_t⊙tanh(c_t)를 만든다. 경사와 기억 경로를 개선하는 설계지만 긴 의존을 항상 보존하거나 경사 문제가 완전히 사라지는 것은 아니다.
+LSTM은 망각·입력·출력 gate와 후보 셀을 사용해 셀 상태 c_t=f_t⊙c_{t−1}+i_t⊙c̃_t를 갱신하고 h_t=o_t⊙tanh(c_t)를 만든다. 그래디언트와 기억 경로를 개선하는 설계지만 긴 의존을 항상 보존하거나 그래디언트 문제가 완전히 사라지는 것은 아니다.
 
 ```python
 class LSTMLanguageModel(nn.Module):
     """
-    먼 거리 얽힘을 위해 문을 둔 LSTM 언어 모델.
+    장거리 의존성을 위해 게이트를 둔 LSTM 언어 모델.
     
-    칸 상태가 그래디언트 흐름의 "고속도로"가 된다.
+    셀 상태가 그래디언트 흐름의 "고속도로"가 된다.
     
     인수:
-        vocab_size: 단어 곳간의 크기
+        vocab_size: 어휘의 크기
         embedding_dim: 단어 임베딩의 차원
-        hidden_dim: LSTM 숨은 상태의 차원
+        hidden_dim: LSTM 은닉 상태의 차원
         num_layers: 쌓은 LSTM 레이어의 개수
         dropout: 드롭아웃 확률
-        tie_weights: 임베딩 무게와 내놓는 무게를 묶을지 여부
+        tie_weights: 임베딩 웨이트와 출력 웨이트를 묶을지 여부
     """
     
     def __init__(self, vocab_size: int, embedding_dim: int, hidden_dim: int,
@@ -419,7 +419,7 @@ class LSTMLanguageModel(nn.Module):
         
         self.fc = nn.Linear(hidden_dim, vocab_size)
         
-        # 무게 묶기: 임베딩과 내놓음이 무게를 나눠 쓴다
+        # 웨이트 묶기(weight tying): 임베딩과 출력 레이어가 웨이트를 공유한다
         if tie_weights and embedding_dim == hidden_dim:
             self.fc.weight = self.embedding.weight
         
@@ -434,11 +434,11 @@ class LSTMLanguageModel(nn.Module):
     
     def forward(self, x: torch.Tensor, hidden: Tuple = None):
         """
-        LSTM을 지나는 피드포워드.
+        LSTM을 지나는 순전파.
         
         인수:
-            x: (batch, seq_len) 들임 토큰
-            hidden: 처음 상태 (h_0, c_0) 튜플
+            x: (batch, seq_len) 입력 토큰
+            hidden: 초기 상태 (h_0, c_0) 튜플
             
         반환값:
             logits: (batch, seq_len, vocab_size)
@@ -452,7 +452,7 @@ class LSTMLanguageModel(nn.Module):
         return logits, hidden
     
     def init_hidden(self, batch_size: int):
-        """숨은 상태와 칸 상태 초기화."""
+        """은닉 상태와 셀 상태 초기화."""
         device = next(self.parameters()).device
         h = torch.zeros(self.num_layers, batch_size, self.hidden_dim, device=device)
         c = torch.zeros(self.num_layers, batch_size, self.hidden_dim, device=device)
@@ -462,7 +462,7 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
                   hidden_dim: int = 512, num_layers: int = 2,
                   epochs: int = 30, batch_size: int = 32,
                   learning_rate: float = 0.001):
-    """LSTM 언어 모델 익히기."""
+    """LSTM 언어 모델 학습."""
     
     vocab = Vocabulary()
     vocab.build(corpus)
@@ -478,7 +478,7 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
         num_layers=num_layers
     )
     
-    criterion = nn.CrossEntropyLoss(ignore_index=0)  # 채움을 무시한다
+    criterion = nn.CrossEntropyLoss(ignore_index=0)  # 패딩을 무시한다
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     
     for epoch in range(epochs):
@@ -547,23 +547,23 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', pe.unsqueeze(0))
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """들임에 자리 부호 더하기."""
+        """입력에 위치 인코딩 더하기."""
         return x + self.pe[:, :x.size(1)]
 
 class TransformerLM(nn.Module):
     """
     GPT 방식 트랜스포머 언어 모델.
     
-    말 나타내기를 위해 인과(자기되돌리기) 가리기를 쓴다.
+    언어 모델링을 위해 인과(자기회귀) 마스킹을 쓴다.
     
     인수:
-        vocab_size: 단어 곳간의 크기
-        d_model: 모형 차원
-        nhead: 어텐션 머리의 개수
+        vocab_size: 어휘의 크기
+        d_model: 모델 차원
+        nhead: 어텐션 헤드의 개수
         num_layers: 트랜스포머 레이어의 개수
         dim_feedforward: 피드포워드 네트워크의 안쪽 차원
         dropout: 드롭아웃 확률
-        max_len: 순차열의 최대 길이
+        max_len: 시퀀스의 최대 길이
     """
     
     def __init__(self, vocab_size: int, d_model: int = 512, nhead: int = 8,
@@ -608,10 +608,10 @@ class TransformerLM(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        인과 가림을 쓰는 피드포워드.
+        인과 마스크를 쓰는 순전파.
         
         인수:
-            x: (batch, seq_len) 들임 토큰
+            x: (batch, seq_len) 입력 토큰
             
         반환값:
             (batch, seq_len, vocab_size) 로짓
@@ -623,10 +623,10 @@ class TransformerLM(nn.Module):
         x = self.pos_encoder(x)
         x = self.dropout(x)
         
-        # 인과 가림
+        # 인과 마스크
         mask = self.generate_causal_mask(seq_len).to(x.device)
         
-        # 트랜스포머 피드포워드(셀프 어텐션만)
+        # 트랜스포머 순전파(셀프 어텐션만)
         output = self.transformer(x, x, tgt_mask=mask)
         
         # 어휘로 사영한다
@@ -637,7 +637,7 @@ class TransformerLM(nn.Module):
 def train_transformer_lm(corpus: List[str], d_model: int = 256,
                          nhead: int = 4, num_layers: int = 4,
                          epochs: int = 30, batch_size: int = 32):
-    """트랜스포머 언어 모델 익히기."""
+    """트랜스포머 언어 모델 학습."""
     
     vocab = Vocabulary()
     vocab.build(corpus)
@@ -695,29 +695,29 @@ def generate_text(model, vocab, max_length: int = 50,
                   temperature: float = 1.0, top_k: int = None,
                   top_p: float = None) -> str:
     """
-    익힌 언어 모델로 글 만들어 내기.
+    학습한 언어 모델로 텍스트 생성.
     
     인수:
-        model: 익힌 언어 모델(LSTM 또는 트랜스포머)
-        vocab: 단어 곳간 개체
-        max_length: 만들어 낼 최대 토큰 수
+        model: 학습한 언어 모델(LSTM 또는 트랜스포머)
+        vocab: 어휘 객체
+        max_length: 생성할 최대 토큰 수
         temperature: 샘플링 온도
-        top_k: 상위 k 거르기(없어도 됨)
-        top_p: 뉴클리어스 샘플링 임계값(없어도 됨)
+        top_k: top-k 필터링(선택)
+        top_p: 뉴클리어스 샘플링 임계값(선택)
     """
     model.eval()
     
     # START 토큰으로 시작하기
     generated = [vocab.encode(vocab.START)]
     
-    # LSTM 숨은 상태 다루기
+    # LSTM 은닉 상태 다루기
     hidden = None
     if hasattr(model, 'init_hidden'):
         hidden = model.init_hidden(1)
     
     with torch.no_grad():
         for _ in range(max_length):
-            # 들임 갖추기
+            # 입력 준비
             x = torch.tensor([generated[-50:]])  # 마지막 토큰 50개 쓰기
             
             # 순전파
@@ -729,12 +729,12 @@ def generate_text(model, vocab, max_length: int = 50,
             # 마지막 자리의 로짓을 얻는다
             logits = logits[0, -1, :] / temperature
             
-            # 상위 k 거르기를 적용한다
+            # top-k 필터링을 적용한다
             if top_k is not None:
                 indices_to_remove = logits < torch.topk(logits, top_k)[0][-1]
                 logits[indices_to_remove] = float('-inf')
             
-            # 뉴클리어스(상위 p) 거르기 쓰기
+            # 뉴클리어스(top-p) 필터링 적용
             if top_p is not None:
                 sorted_logits, sorted_indices = torch.sort(logits, descending=True)
                 cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
@@ -748,22 +748,22 @@ def generate_text(model, vocab, max_length: int = 50,
                 )
                 logits[indices_to_remove] = float('-inf')
             
-            # 뽑기
+            # 샘플링
             probs = F.softmax(logits, dim=-1)
             next_token = torch.multinomial(probs, 1).item()
             
-            # END 토큰인지 살피기
+            # END 토큰인지 확인
             if next_token == vocab.encode(vocab.END):
                 break
             
             generated.append(next_token)
     
-    # 토큰 풀어내기
+    # 토큰 디코딩
     words = [vocab.decode(idx) for idx in generated[1:]]  # START 건너뛰기
     return ' '.join(words)
 ```
 
-generate_text는 모든 구조를 지원하는 함수처럼 보이지만 서로 다른 호출 계약을 섞는다. LSTM에서는 이전 hidden을 유지하면서 매번 늘어난 prefix를 다시 입력해 과거 토큰을 중복 처리한다. 상태를 유지하면 새 토큰만, 전체 prefix를 다시 넣으면 초기 상태에서 계산하는 일관된 폴리시가 필요하다.
+generate_text는 모든 구조를 지원하는 함수처럼 보이지만 서로 다른 호출 계약을 섞는다. LSTM에서는 이전 hidden을 유지하면서 매번 늘어난 prefix를 다시 입력해 과거 토큰을 중복 처리한다. 상태를 유지하면 새 토큰만, 전체 prefix를 다시 넣으면 초기 상태에서 계산하는 일관된 정책이 필요하다.
 
 RNN에는 lstm 속성이 없어 else로 가지만 반환값은(logits,hidden) 튜플이라 뒤의 텐서 인덱싱과 맞지 않는다. FeedforwardLM은 고정 context_size와 B×V 출력을 기대하는데 이 함수는 가변 prefix와 B×L×V를 가정한다. Transformer도 위 인과 누출 문제가 남고 최대50토큰으로 자르면 원래 관찰 범위·위치 인덱스가 달라진다.
 
@@ -774,11 +774,11 @@ RNN에는 lstm 속성이 없어 else로 가지만 반환값은(logits,hidden) �
 ```python
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
-# 미리 익힌 GPT-2 읽어 들이기
+# 사전 학습된 GPT-2 불러오기
 model = GPT2LMHeadModel.from_pretrained('gpt2')
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
-# 글 만들어 내기
+# 텍스트 생성
 input_text = "The quick brown fox"
 input_ids = tokenizer.encode(input_text, return_tensors='pt')
 
@@ -797,7 +797,7 @@ print(tokenizer.decode(output[0]))
 
 순방향·RNN·LSTM·트랜스포머의 문맥·속도·메모리를 고정 순위로 제시하지 않는다. RNN은 길이에 순차적인 상태 갱신을 하고 attention은 학습 위치를 병렬 계산할 수 있지만 자기회귀 생성은 다음 토큰에 의존한다. dense attention의 쌍별O(L²D)·projection O(LD²), recurrent 활성 저장·BPTT·cache와 구현도 구분한다.
 
-PPL은 같은 평가 자료·어휘·토큰화·UNK·경계·사전 학습 조건에서 비교한다. 서로 다른 조건의 Penn Treebank나 GPT-2 숫자를 한 표의 구조 순위로 제시하지 않는다. 큰 모델의 구체적 구조·파라메터가 공개되지 않았을 때 특정 상용 모델을 일률적인 크기·구조의 예로 단정하지 않는다.
+PPL은 같은 평가 데이터·어휘·토큰화·UNK·경계·사전 학습 조건에서 비교한다. 서로 다른 조건의 Penn Treebank나 GPT-2 숫자를 한 표의 구조 순위로 제시하지 않는다. 큰 모델의 구체적 구조·파라메터가 공개되지 않았을 때 특정 상용 모델을 일률적인 크기·구조의 예로 단정하지 않는다.
 
 ## 연습문제
 
@@ -809,7 +809,7 @@ PPL은 같은 평가 자료·어휘·토큰화·UNK·경계·사전 학습 조�
 
 4. **웨이트 공유**: 학습 함수의 기본256차원 embedding·512차원 hidden에서 tie_weights가 적용되는가? → 코드 조건이 같지 않아 적용되지 않는다. 구조·차원과 실제 Parameter 공유를 확인한다.
 
-5. **PPL 집계**: 길이가 다른 배치 로스를 같은 웨이트로 평균한 exp는 토큰 PPL인가? → 일반적으로 아니다. 무시하지 않은 토큰의 NLL 합을 같은 사건 수로 나눈 뒤 exp해야 한다. 독립 검증 자료와 인과성도 필요하다.
+5. **PPL 집계**: 길이가 다른 배치 로스를 같은 웨이트로 평균한 exp는 토큰 PPL인가? → 일반적으로 아니다. 무시하지 않은 토큰의 NLL 합을 같은 사건 수로 나눈 뒤 exp해야 한다. 독립 검증 데이터와 인과성도 필요하다.
 
 ## 정리하며
 

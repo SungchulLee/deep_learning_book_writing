@@ -10,33 +10,33 @@
     """
     07_mixture_proposals.py
 
-    중급 단계: 중요도 표집 제안으로서의 섞음 분포
+    중급 단계: 중요도 샘플링 제안으로서의 혼합 분포
 
-    이 단원은 섞음 분포를 제안으로 쓰는 것을 살펴본다
-    이는 특히 다음에 잘 듣는다:
+    이 단원은 혼합 분포를 제안으로 쓰는 방법을 다룬다
+    이는 특히 다음에 효과적이다:
     - 봉우리가 여럿인 타깃 분포
-    - 복잡하고 표준이 아닌 형태
-    - 덮음과 ESS이 나아짐
+    - 복잡한 비표준 형태
+    - 커버리지와 ESS가 개선됨
 
-    수학적 바탕:
+    수학적 기초:
     ---------------------
-    섞음 제안:
+    혼합 제안:
         q(θ) = Σⱼ αⱼ qⱼ(θ)
 
     여기서 각 기호는 다음과 같다.
-    - qⱼ(θ)은 성분 분포이다
-    - αⱼ은 섞음 무게이다(Σⱼ αⱼ = 1, αⱼ ≥ 0)
-    - K은 성분의 개수이다
+    - qⱼ(θ)는 성분 분포이다
+    - αⱼ는 혼합 웨이트이다(Σⱼ αⱼ = 1, αⱼ ≥ 0)
+    - K는 성분의 개수이다
 
-    섞음에서 표집하기:
-    1. 확률 αⱼ으로 성분 j 표집
-    2. θ ~ qⱼ(θ) 표집
+    혼합에서 샘플링하기:
+    1. 확률 αⱼ로 성분 j 샘플링
+    2. θ ~ qⱼ(θ) 샘플링
 
-    밀도 값 매기기:
+    밀도 평가:
         q(θ) = Σⱼ αⱼ qⱼ(θ)
 
     이점:
-    - 복잡한 형태를 어림할 수 있다
+    - 복잡한 형태를 근사할 수 있다
     - 봉우리가 여럿인 타깃을 자연스럽게 다룬다
     - 유연하고 표현력이 좋다
     - 성분마다 단순해도 된다(이를테면 가우스)
@@ -57,7 +57,7 @@
 
     class MixtureProposal:
         """
-        중요도 표집을 위한 섞음 분포 제안.
+        중요도 샘플링을 위한 혼합 분포 제안.
         """
 
         def __init__(self, components: List, weights: np.ndarray):
@@ -67,7 +67,7 @@
             components : list of scipy.stats distributions
                 성분 분포
             weights : array
-                섞음 무게(고르게 될 것이다)
+                혼합 웨이트(정규화된다)
             """
             self.components = components
             self.weights = np.array(weights) / np.sum(weights)
@@ -75,21 +75,21 @@
 
         def rvs(self, size: int = 1) -> np.ndarray:
             """
-            섞음 분포에서 표집하기.
+            혼합 분포에서 샘플링하기.
 
             알고리즘:
             1. 표본마다:
-               가) 확률 αⱼ으로 성분 j 뽑기
+               가) 확률 αⱼ로 성분 j 뽑기
                나) qⱼ에서 표본 뽑기
             """
-            # 성분 번호 표집
+            # 성분 인덱스 샘플링
             component_indices = np.random.choice(
                 self.n_components,
                 size=size,
                 p=self.weights
             )
 
-            # 고른 성분에서 표집
+            # 선택한 성분에서 샘플링
             samples = []
             for idx in component_indices:
                 sample = self.components[idx].rvs()
@@ -99,7 +99,7 @@
 
         def pdf(self, x: np.ndarray) -> np.ndarray:
             """
-            섞음의 밀도 값 매기기: q(x) = Σⱼ αⱼ qⱼ(x)
+            혼합의 밀도 평가: q(x) = Σⱼ αⱼ qⱼ(x)
             """
             x = np.atleast_1d(x)
             density = np.zeros(len(x))
@@ -111,7 +111,7 @@
 
         def logpdf(self, x: np.ndarray) -> np.ndarray:
             """
-            안정을 위해 log-sum-exp을 써서 섞음의 로그 밀도 값 매기기.
+            안정을 위해 log-sum-exp를 써서 혼합의 로그 밀도 평가.
 
             log q(x) = log(Σⱼ αⱼ qⱼ(x))
                      = log-sum-exp(log αⱼ + log qⱼ(x))
@@ -130,26 +130,26 @@
                                      h_function: Callable,
                                      n_samples: int) -> tuple:
         """
-        섞음 제안을 쓰는 중요도 표집.
+        혼합 제안을 쓰는 중요도 샘플링.
 
         반환값:
         --------
         estimate : float
         samples : array
-        weights : 배열(고르게 함)
+        weights : 배열(정규화됨)
         ess : float
         """
-        # 섞음 제안에서 표집
+        # 혼합 제안에서 샘플링
         samples = proposal.rvs(size=n_samples)
 
-        # 중요도 무게 셈하기
+        # 중요도 웨이트 계산하기
         target_vals = target_density(samples)
         proposal_vals = proposal.pdf(samples)
 
         unnorm_weights = target_vals / (proposal_vals + 1e-300)
         weights = unnorm_weights / np.sum(unnorm_weights)
 
-        # 어림하기
+        # 추정하기
         estimate = np.sum(weights * h_function(samples))
 
         # ESS
@@ -164,14 +164,14 @@
     print("EXAMPLE 1: Bimodal Target Distribution")
     print("=" * 70)
 
-    # 타깃: 가우스 둘의 섞음
+    # 타깃: 가우스 둘의 혼합
     # 0.3 N(-2, 0.8) + 0.7 N(3, 1.2)
     def bimodal_target(x):
         """봉우리 둘인 타깃 밀도"""
         return (0.3 * stats.norm.pdf(x, -2, 0.8) +
                 0.7 * stats.norm.pdf(x, 3, 1.2))
 
-    # 어림할 함수: E[θ]
+    # 추정할 함수: E[θ]
     h_mean = lambda x: x
 
     # 참 기댓값
@@ -197,12 +197,12 @@
     print(f"  Error: {abs(estimate_single - true_mean):.6f}")
     print(f"  ESS: {ess_single:.1f} ({ess_single/n_samples:.1%})")
 
-    # 제안 2: 타깃의 짜임에 맞춘 섞음
+    # 제안 2: 타깃의 구조에 맞춘 혼합
     components_matched = [
         stats.norm(-2, 1.0),   # 왼쪽 봉우리 덮기
         stats.norm(3, 1.5),    # 오른쪽 봉우리 덮기
     ]
-    weights_matched = [0.3, 0.7]  # 타깃의 무게에 맞춤
+    weights_matched = [0.3, 0.7]  # 타깃의 웨이트에 맞춤
 
     proposal_mixture_matched = MixtureProposal(components_matched, weights_matched)
 
@@ -216,12 +216,12 @@
     print(f"  Error: {abs(estimate_matched - true_mean):.6f}")
     print(f"  ESS: {ess_matched:.1f} ({ess_matched/n_samples:.1%})")
 
-    # 제안 3: 무게가 같은 섞음
+    # 제안 3: 웨이트가 같은 혼합
     components_equal = [
         stats.norm(-2, 1.0),
         stats.norm(3, 1.5),
     ]
-    weights_equal = [0.5, 0.5]  # 같은 무게(가장 좋지는 않음)
+    weights_equal = [0.5, 0.5]  # 같은 웨이트(가장 좋지는 않음)
 
     proposal_mixture_equal = MixtureProposal(components_equal, weights_equal)
 
@@ -272,7 +272,7 @@
                 fontsize=12, fontweight='bold')
     ax.legend(fontsize=10)
 
-    # 칸 3: 섞음에서 뽑은 표본(맞춤)
+    # 칸 3: 혼합에서 뽑은 표본(구조에 맞춤)
     ax = axes[1, 0]
     ax.hist(samples_matched, bins=50, density=True, alpha=0.5,
             color='green', edgecolor='black')
@@ -301,7 +301,7 @@
     ax.grid(True, alpha=0.3, axis='y')
     ax.legend(fontsize=10)
 
-    # 값 이름표를 추가한다
+    # 값 라벨을 추가한다
     for bar, ess in zip(bars, ess_values):
         height = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2., height,
@@ -321,7 +321,7 @@
 
     # 타깃: 봉우리 셋
     def trimodal_target(x):
-        """잘 떨어진 봉우리 셋"""
+        """잘 분리된 봉우리 셋"""
         return (0.2 * stats.norm.pdf(x, -4, 0.6) +
                 0.5 * stats.norm.pdf(x, 0, 0.8) +
                 0.3 * stats.norm.pdf(x, 5, 0.7))
@@ -332,7 +332,7 @@
     print(f"\nTarget: 0.2 N(-4,0.6) + 0.5 N(0,0.8) + 0.3 N(5,0.7)")
     print(f"True mean: {true_mean_tri:.6f}")
 
-    # 섞음 성분 개수를 달리해 견주기
+    # 혼합 성분 개수를 달리해 견주기
     n_samples_tri = 4000
 
     # 성분 1개(가우스 하나)
@@ -350,7 +350,7 @@
         trimodal_target, proposal_k2, h_mean, n_samples_tri
     )
 
-    # 성분 3개(짜임에 맞춤)
+    # 성분 3개(구조에 맞춤)
     components_k3 = [
         stats.norm(-4, 0.8),
         stats.norm(0, 1.0),
@@ -415,28 +415,28 @@
                 dpi=300, bbox_inches='tight')
 
 
-    # 보기 3: 지킴 섞음(튼튼함)
+    # 보기 3: 방어적 혼합(강건성)
     # =======================================
     print("\n" + "=" * 70)
     print("EXAMPLE 3: Defensive Mixture for Robustness")
     print("=" * 70)
 
     print("""
-    지킴 중요도 표집은 겨냥 제안에
-    덮음을 보장하려고 넓은 "안전" 성분을 섞는다:
+    방어적 중요도 샘플링은 집중 제안에
+    커버리지를 보장하려고 넓은 "안전" 성분을 섞는다:
 
         q_def(θ) = α q_target(θ) + (1-α) q_safe(θ)
 
     여기서 각 기호는 다음과 같다.
-    - q_target: 확률 높은 구역에 모임
-    - q_safe: 넓은 덮음(이를테면 앞확률이나 평평한 분포)
-    - α ∈ (0,1): 주고받음 파라메터(보통 α ≈ 0.7-0.9)
+    - q_target: 확률이 높은 영역에 집중
+    - q_safe: 넓은 커버리지(이를테면 사전분포나 평평한 분포)
+    - α ∈ (0,1): 트레이드오프 파라메터(보통 α ≈ 0.7-0.9)
     """)
 
     # 타깃: 봉우리 둘(보기 1과 같음)
-    alpha_defensive = 0.8  # 겨냥 성분의 무게
+    alpha_defensive = 0.8  # 집중 성분의 웨이트
 
-    # 겨냥 성분: 봉우리 둘을 다 덮는 섞음
+    # 집중 성분: 봉우리 둘을 다 덮는 혼합
     components_targeted = [stats.norm(-2, 0.8), stats.norm(3, 1.2)]
     weights_targeted = [0.3, 0.7]
     proposal_targeted = MixtureProposal(components_targeted, weights_targeted)
@@ -444,10 +444,10 @@
     # 안전 성분: 넓은 가우스
     proposal_safe = stats.norm(0, 5)
 
-    # 지킴 섞음
+    # 방어적 혼합
     components_defensive = [proposal_targeted, proposal_safe]
 
-    # 한 성분을 그 자체로 섞음으로 다루는 맞춤 섞음
+    # 한 성분을 그 자체로 혼합으로 다루는 사용자 정의 혼합
     class DefensiveMixture:
         def __init__(self, targeted_mixture, safe_dist, alpha):
             self.targeted = targeted_mixture
@@ -478,7 +478,7 @@
     print(f"  Error: {abs(estimate_def - true_mean):.6f}")
     print(f"  ESS: {ess_def:.1f} ({ess_def/n_samples:.1%})")
 
-    # 순수 겨냥 제안과 견주기
+    # 순수 집중 제안과 견주기
     estimate_pure, _, weights_pure, ess_pure = \
         importance_sampling_mixture(bimodal_target, proposal_targeted,
                                     h_mean, n_samples)
@@ -496,64 +496,64 @@
     print("KEY TAKEAWAYS")
     print("=" * 70)
     print("""
-    1. 섞음 제안은 복잡한 타깃에 힘세다:
-       - 아무 형태 어림할 수 있다
+    1. 혼합 제안은 복잡한 타깃에 강력하다:
+       - 임의의 형태를 근사할 수 있다
        - 봉우리가 여럿인 분포에 자연스럽다
        - 유연하고 표현력이 좋다
 
-    2. 섞음 짜기:
-       - 타깃의 봉우리에 성분 놓기
-       - 섞음의 무게를 봉우리의 무게에 (대체로) 맞추기
+    2. 혼합 설계:
+       - 타깃의 봉우리에 성분 배치하기
+       - 혼합의 웨이트를 봉우리의 웨이트에 (대체로) 맞추기
        - 타깃의 봉우리보다 조금 넓은 성분 쓰기
        - 보통 K = 봉우리의 수가 필요하다
 
     3. 성분의 개수:
-       - 너무 적으면: 중요한 구역을 놓치고 ESS이 낮다
-       - 알맞은 정도: 봉우리를 모두 덮고 ESS이 높다
-       - 너무 많으면: 셈의 덧짐이 커지고 ESS은 조금밖에 안 는다
-       - K = 짐작되는 봉우리 수로 시작한 뒤 다듬기
+       - 너무 적으면: 중요한 영역을 놓치고 ESS가 낮다
+       - 알맞은 정도: 봉우리를 모두 덮고 ESS가 높다
+       - 너무 많으면: 계산 오버헤드가 커지고 ESS는 조금밖에 안 는다
+       - K = 예상되는 봉우리 수로 시작한 뒤 조정하기
 
-    4. 섞음 무게:
-       - 타깃 봉우리의 무게와 대체로 맞아야 한다
-       - 같은 무게도 되지만 가장 좋지는 않을 수 있다
-       - 예비 표본으로 어림할 수 있다
+    4. 혼합 웨이트:
+       - 타깃 봉우리의 웨이트와 대체로 맞아야 한다
+       - 같은 웨이트도 되지만 가장 좋지는 않을 수 있다
+       - 예비 표본으로 추정할 수 있다
 
-    5. 성분 놓기:
-       - 어림 봉우리 자리에 성분의 가운데를 맞추기
-       - 최적화나 무리짓기로 봉우리를 찾을 수 있다
-       - 미리 살펴보는 것이 도움이 된다
+    5. 성분 배치:
+       - 추정한 봉우리 위치에 성분의 중심을 맞추기
+       - 최적화나 군집화로 봉우리를 찾을 수 있다
+       - 사전 탐색이 도움이 된다
 
-    6. 지킴 섞음:
-       - 겨냥 성분과 넓은 안전 성분 섞기
+    6. 방어적 혼합:
+       - 집중 성분과 넓은 안전 성분 섞기
        - q(θ) = α q_target(θ) + (1-α) q_safe(θ)
        - 보통 α ≈ 0.7-0.9
-       - 튼튼함을 얻으려고 ESS을 내준다
-       - 최소 ESS을 보장한다
+       - 강건성을 얻으려고 ESS를 내준다
+       - 최소 ESS를 보장한다
 
-    7. 좋은 점:
+    7. 장점:
        - 봉우리가 여럿이면 성분 하나보다 훨씬 낫다
-       - ESS을 5배에서 10배 높일 수 있다
-       - 복잡한 형태에도 넉넉히 유연하다
+       - ESS를 5배에서 10배 높일 수 있다
+       - 복잡한 형태에도 충분히 유연하다
        - 성분은 단순해도 된다(이를테면 가우스)
 
     8. 실전 요령:
        - 성분 두세 개로 시작하기
-       - 살펴보기 표본으로 봉우리 자리 찾기
-       - 성분 하나일 때보다 ESS이 나아지는지 살피기
-       - 무게 몰림 지켜보기
-       - 튼튼함을 위해 지킴 클래스 생각해 보기
+       - 탐색용 표본으로 봉우리 위치 찾기
+       - 성분 하나일 때보다 ESS가 나아지는지 확인하기
+       - 웨이트 집중 모니터링하기
+       - 강건성을 위해 방어적 변형 고려하기
 
     9. 언제 쓰나:
        - 봉우리가 여럿인 타깃(꼭 필요하다)
-       - 복잡하고 표준이 아닌 형태
-       - 성분 하나로는 ESS이 나쁠 때
+       - 복잡한 비표준 형태
+       - 성분 하나로는 ESS가 나쁠 때
        - 봉우리가 여럿인 베이즈 추론
 
-    10. 셈 값:
-        - 표집: O(K)의 덧짐
-        - 밀도 값 매기기: O(K) 값
-        - ESS이 나아지므로 대개 값어치가 있다
-        - 성분 표집을 나란히 할 수 있다
+    10. 계산 비용:
+        - 샘플링: O(K)의 오버헤드
+        - 밀도 평가: O(K) 비용
+        - ESS가 나아지므로 대개 가치가 있다
+        - 성분 샘플링을 병렬화할 수 있다
     """)
 
 
@@ -612,15 +612,15 @@
     EXAMPLE 3: Defensive Mixture for Robustness
     ======================================================================
 
-    지킴 중요도 표집은 겨냥 제안에
-    덮음을 보장하려고 넓은 "안전" 성분을 섞는다:
+    방어적 중요도 샘플링은 집중 제안에
+    커버리지를 보장하려고 넓은 "안전" 성분을 섞는다:
 
         q_def(θ) = α q_target(θ) + (1-α) q_safe(θ)
 
     여기서 각 기호는 다음과 같다.
-    - q_target: 확률 높은 구역에 모임
-    - q_safe: 넓은 덮음(이를테면 앞확률이나 평평한 분포)
-    - α ∈ (0,1): 주고받음 파라메터(보통 α ≈ 0.7-0.9)
+    - q_target: 확률이 높은 영역에 집중
+    - q_safe: 넓은 커버리지(이를테면 사전분포나 평평한 분포)
+    - α ∈ (0,1): 트레이드오프 파라메터(보통 α ≈ 0.7-0.9)
 
 
     Defensive Mixture (α=0.8):
@@ -639,64 +639,64 @@
     KEY TAKEAWAYS
     ======================================================================
 
-    1. 섞음 제안은 복잡한 타깃에 힘세다:
-       - 아무 형태 어림할 수 있다
+    1. 혼합 제안은 복잡한 타깃에 강력하다:
+       - 임의의 형태를 근사할 수 있다
        - 봉우리가 여럿인 분포에 자연스럽다
        - 유연하고 표현력이 좋다
 
-    2. 섞음 짜기:
-       - 타깃의 봉우리에 성분 놓기
-       - 섞음의 무게를 봉우리의 무게에 (대체로) 맞추기
+    2. 혼합 설계:
+       - 타깃의 봉우리에 성분 배치하기
+       - 혼합의 웨이트를 봉우리의 웨이트에 (대체로) 맞추기
        - 타깃의 봉우리보다 조금 넓은 성분 쓰기
        - 보통 K = 봉우리의 수가 필요하다
 
     3. 성분의 개수:
-       - 너무 적으면: 중요한 구역을 놓치고 ESS이 낮다
-       - 알맞은 정도: 봉우리를 모두 덮고 ESS이 높다
-       - 너무 많으면: 셈의 덧짐이 커지고 ESS은 조금밖에 안 는다
-       - K = 짐작되는 봉우리 수로 시작한 뒤 다듬기
+       - 너무 적으면: 중요한 영역을 놓치고 ESS가 낮다
+       - 알맞은 정도: 봉우리를 모두 덮고 ESS가 높다
+       - 너무 많으면: 계산 오버헤드가 커지고 ESS는 조금밖에 안 는다
+       - K = 예상되는 봉우리 수로 시작한 뒤 조정하기
 
-    4. 섞음 무게:
-       - 타깃 봉우리의 무게와 대체로 맞아야 한다
-       - 같은 무게도 되지만 가장 좋지는 않을 수 있다
-       - 예비 표본으로 어림할 수 있다
+    4. 혼합 웨이트:
+       - 타깃 봉우리의 웨이트와 대체로 맞아야 한다
+       - 같은 웨이트도 되지만 가장 좋지는 않을 수 있다
+       - 예비 표본으로 추정할 수 있다
 
-    5. 성분 놓기:
-       - 어림 봉우리 자리에 성분의 가운데를 맞추기
-       - 최적화나 무리짓기로 봉우리를 찾을 수 있다
-       - 미리 살펴보는 것이 도움이 된다
+    5. 성분 배치:
+       - 추정한 봉우리 위치에 성분의 중심을 맞추기
+       - 최적화나 군집화로 봉우리를 찾을 수 있다
+       - 사전 탐색이 도움이 된다
 
-    6. 지킴 섞음:
-       - 겨냥 성분과 넓은 안전 성분 섞기
+    6. 방어적 혼합:
+       - 집중 성분과 넓은 안전 성분 섞기
        - q(θ) = α q_target(θ) + (1-α) q_safe(θ)
        - 보통 α ≈ 0.7-0.9
-       - 튼튼함을 얻으려고 ESS을 내준다
-       - 최소 ESS을 보장한다
+       - 강건성을 얻으려고 ESS를 내준다
+       - 최소 ESS를 보장한다
 
-    7. 좋은 점:
+    7. 장점:
        - 봉우리가 여럿이면 성분 하나보다 훨씬 낫다
-       - ESS을 5배에서 10배 높일 수 있다
-       - 복잡한 형태에도 넉넉히 유연하다
+       - ESS를 5배에서 10배 높일 수 있다
+       - 복잡한 형태에도 충분히 유연하다
        - 성분은 단순해도 된다(이를테면 가우스)
 
     8. 실전 요령:
        - 성분 두세 개로 시작하기
-       - 살펴보기 표본으로 봉우리 자리 찾기
-       - 성분 하나일 때보다 ESS이 나아지는지 살피기
-       - 무게 몰림 지켜보기
-       - 튼튼함을 위해 지킴 클래스 생각해 보기
+       - 탐색용 표본으로 봉우리 위치 찾기
+       - 성분 하나일 때보다 ESS가 나아지는지 확인하기
+       - 웨이트 집중 모니터링하기
+       - 강건성을 위해 방어적 변형 고려하기
 
     9. 언제 쓰나:
        - 봉우리가 여럿인 타깃(꼭 필요하다)
-       - 복잡하고 표준이 아닌 형태
-       - 성분 하나로는 ESS이 나쁠 때
+       - 복잡한 비표준 형태
+       - 성분 하나로는 ESS가 나쁠 때
        - 봉우리가 여럿인 베이즈 추론
 
-    10. 셈 값:
-        - 표집: O(K)의 덧짐
-        - 밀도 값 매기기: O(K) 값
-        - ESS이 나아지므로 대개 값어치가 있다
-        - 성분 표집을 나란히 할 수 있다
+    10. 계산 비용:
+        - 샘플링: O(K)의 오버헤드
+        - 밀도 평가: O(K) 비용
+        - ESS가 나아지므로 대개 가치가 있다
+        - 성분 샘플링을 병렬화할 수 있다
 
     ```
 
@@ -711,7 +711,7 @@ q(x)=∑α_kq_k(x), α_k≥0, ∑α_k=1에서 성분을 선택한 뒤 해당 분
 
 ### 성분 수와 비용
 
-여러 봉우리에 성분을 배치하면 방문 범위를 개선할 수 있지만 성분 수가 봉우리 수와 같아야 하는 것은 아니다. 추가 성분이 항상 ESS를 늘리지도 않는다. 5개 성분은 고정해 지정했으므로 코드의 overfit 라벨을 학습 자료에 대한 과적합의 실증으로 볼 수 없다.
+여러 봉우리에 성분을 배치하면 방문 범위를 개선할 수 있지만 성분 수가 봉우리 수와 같아야 하는 것은 아니다. 추가 성분이 항상 ESS를 늘리지도 않는다. 5개 성분은 고정해 지정했으므로 코드의 overfit 라벨을 학습 데이터에 대한 과적합의 실증으로 볼 수 없다.
 
 MixtureProposal은 1차원 표본과 정수 size를 가정한다. 비어 있지 않은 성분 목록, 같은 길이의 유한 비음수 비중, 양의 비중 합을 확인해야 한다. pdf는 K개 밀도를 더하며 logpdf는 log-sum-exp를 사용하지만 실제 IS 함수는 pdf 비를 사용하므로 로그밀도 구현의 안정성을 자동으로 얻지 못한다.
 
@@ -786,10 +786,10 @@ q_def=αq_target+(1−α)q_safe에서는 q_def≥(1−α)q_safe다. 따라서 �
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

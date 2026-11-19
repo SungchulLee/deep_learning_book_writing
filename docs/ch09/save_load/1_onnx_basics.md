@@ -57,13 +57,13 @@ def convert_pytorch_to_onnx(
         model: PyTorch 모델
         dummy_input: 추적에 쓸 예시 입력 텐서
         onnx_path: ONNX 모델을 저장할 경로
-        input_names: 입력 마디의 이름
-        output_names: 출력 마디의 이름
-        dynamic_axes: 입력의 모양이 변할 수 있는 동적 축
+        input_names: 입력 노드의 이름
+        output_names: 출력 노드의 이름
+        dynamic_axes: 입력의 형태가 변할 수 있는 동적 축
     """
     model.eval()
     
-    # 동적 축은 배치 크기와 순차열 길이가 변할 수 있게 해 준다
+    # 동적 축은 배치 크기와 시퀀스 길이가 변할 수 있게 해 준다
     if dynamic_axes is None:
         dynamic_axes = {
             'input': {0: 'batch_size'},
@@ -76,7 +76,7 @@ def convert_pytorch_to_onnx(
         dummy_input,
         onnx_path,
         export_params=True,
-        opset_version=14,  # 알맞은 ONNX opset 판본 쓰기
+        opset_version=14,  # 알맞은 ONNX opset 버전 쓰기
         do_constant_folding=True,  # 상수를 접어 최적화
         input_names=input_names,
         output_names=output_names,
@@ -317,7 +317,7 @@ ONNXInferenceSession의 기본 실행 장치는 무엇인가?
 </div>
 
 ??? success "풀이"
-    첫 입력 이름에 하나의 배열만 전달하므로 일반적인 다중 입력 모델에는 충분하지 않다. 각 입력의 이름·모양·자료형을 맞춘 사전과 필요한 출력 처리로 확장해야 한다.
+    첫 입력 이름에 하나의 배열만 전달하므로 일반적인 다중 입력 모델에는 충분하지 않다. 각 입력의 이름·형태·자료형을 맞춘 사전과 필요한 출력 처리로 확장해야 한다.
 
 ---
 
@@ -330,7 +330,7 @@ ONNXInferenceSession의 기본 실행 장치는 무엇인가?
 </div>
 
 ??? success "풀이"
-    형식 검사, 대표 입력의 원본 대비 출력 오차와 허용 입력 모양을 확인한다. 실제 지연·처리량도 목표 제공자에서 측정해야 하며 노드 수 감소만으로 속도를 판단하지 않는다.
+    형식 검사, 대표 입력의 원본 대비 출력 오차와 허용 입력 형태를 확인한다. 실제 지연·처리량도 목표 제공자에서 측정해야 하며 노드 수 감소만으로 속도를 판단하지 않는다.
 
 ## 정리하며
 

@@ -8,18 +8,18 @@
 
     ```python
     """
-    보기 4: 앞선 뜻 나누기 재주
+    보기 4: 고급 시맨틱 분할 기법
     =====================================================
 
-    이 각본은 뜻 나누기의 가장 앞선 재주를 보여 준다:
-    - 어텐션 구조(CBAM)
-    - 앞선 로스 함수(초점 + 다이스 + 테두리)
-    - 여러 스케일 익히기
-    - 시험 때 불리기
-    - 뒷손질
-    - 섞인 정밀도 익히기
+    이 스크립트는 시맨틱 분할의 최신 기법을 보여 준다:
+    - 어텐션 메커니즘(CBAM)
+    - 고급 로스 함수(포컬 + 다이스 + 경계)
+    - 다중 스케일 학습
+    - 테스트 시 어그멘테이션
+    - 후처리
+    - 혼합 정밀도 학습
 
-    이 재주들은 어려운 일에서 성능을 크게 올릴 수 있다.
+    이 기법들은 어려운 과제에서 성능을 크게 올릴 수 있다.
 
     지은이: PyTorch Semantic Segmentation Tutorial
     날짜: 2025
@@ -37,7 +37,7 @@
     import time
     from scipy.ndimage import binary_erosion, binary_dilation
 
-    # 난수 씨앗을 설정한다
+    # 난수 시드를 설정한다
     torch.manual_seed(42)
     np.random.seed(42)
 
@@ -47,7 +47,7 @@
 
     USE_MIXED_PRECISION = True
     USE_MULTI_SCALE = True
-    USE_TTA = True  # 시험 때 불리기
+    USE_TTA = True  # 테스트 시 어그멘테이션
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
@@ -62,17 +62,17 @@
     print(f"  Test-time Augmentation: {USE_TTA}\n")
 
     # ============================================================================
-    # 1단계: 어텐션 단원
+    # 1단계: 어텐션 모듈
     # ============================================================================
     """
-    어텐션 구조는 모델이 중요한 자리와 피처에 초점을 두게 돕는다.
-    CBAM(컨볼루션 덩이 어텐션 단원)은 어텐션을
-    채널 차원과 자리 차원 모두에 준다.
+    어텐션 메커니즘은 모델이 중요한 위치와 피처에 초점을 두게 돕는다.
+    CBAM(컨볼루션 블록 어텐션 모듈)은 어텐션을
+    채널 차원과 공간 차원 모두에 준다.
     """
 
     class ChannelAttention(nn.Module):
         """
-        채널 어텐션 단원.
+        채널 어텐션 모듈.
         어떤 채널(피처)이 중요한지 배운다.
         """
         def __init__(self, in_channels, reduction=16):
@@ -96,8 +96,8 @@
 
     class SpatialAttention(nn.Module):
         """
-        자리 어텐션 단원.
-        어떤 자리가 중요한지 배운다.
+        공간 어텐션 모듈.
+        어떤 위치가 중요한지 배운다.
         """
         def __init__(self, kernel_size=7):
             super().__init__()
@@ -114,8 +114,8 @@
 
     class CBAM(nn.Module):
         """
-        컨볼루션 덩이 어텐션 단원.
-        채널 어텐션과 자리 어텐션을 아우른다.
+        컨볼루션 블록 어텐션 모듈.
+        채널 어텐션과 공간 어텐션을 결합한다.
         """
         def __init__(self, in_channels, reduction=16):
             super().__init__()
@@ -125,17 +125,17 @@
         def forward(self, x):
             # 채널 어텐션 쓰기
             x = x * self.channel_attention(x)
-            # 자리 어텐션 쓰기
+            # 공간 어텐션 쓰기
             x = x * self.spatial_attention(x)
             return x
 
 
     # ============================================================================
-    # 2단계: 어텐션을 갖춘 앞선 U-넷
+    # 2단계: 어텐션을 갖춘 고급 U-넷
     # ============================================================================
 
     class AttentionDoubleConv(nn.Module):
-        """어텐션을 갖춘 겹 컨볼루션 덩이."""
+        """어텐션을 갖춘 이중 컨볼루션 블록."""
         def __init__(self, in_channels, out_channels, use_attention=True):
             super().__init__()
             self.conv = nn.Sequential(
@@ -156,10 +156,10 @@
 
     class AdvancedUNet(nn.Module):
         """
-        다음을 갖춘 앞선 U-넷:
-        - 어텐션 단원(CBAM)
-        - 깊은 이끎(있어도 되고 없어도 됨)
-        - 잔차 이음(있어도 되고 없어도 됨)
+        다음을 갖춘 고급 U-넷:
+        - 어텐션 모듈(CBAM)
+        - 심층 감독(deep supervision)(있어도 되고 없어도 됨)
+        - 잔차 연결(있어도 되고 없어도 됨)
         """
         def __init__(self, in_channels=3, num_classes=1, use_attention=True):
             super().__init__()
@@ -241,17 +241,17 @@
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}\n")
 
     # ============================================================================
-    # 3단계: 앞선 로스 함수
+    # 3단계: 고급 로스 함수
     # ============================================================================
     """
-    앞선 로스 함수는 나누기의 좋음을 크게 올릴 수 있다.
-    가장 좋은 결과를 위해 여러 로스를 아우른다.
+    고급 로스 함수는 분할의 품질을 크게 올릴 수 있다.
+    가장 좋은 결과를 위해 여러 로스를 결합한다.
     """
 
     class FocalLoss(nn.Module):
         """
-        클래스 치우침을 다루는 초점 로스.
-        쉬운 보기의 무게를 낮추고 어려운 음성에 초점을 둔다.
+        클래스 불균형을 다루는 포컬 로스.
+        쉬운 예의 웨이트를 낮추고 어려운 음성에 초점을 둔다.
         """
         def __init__(self, alpha=0.25, gamma=2.0):
             super().__init__()
@@ -266,7 +266,7 @@
 
 
     class DiceLoss(nn.Module):
-        """나누기를 위한 다이스 로스."""
+        """분할을 위한 다이스 로스."""
         def __init__(self, smooth=1e-6):
             super().__init__()
             self.smooth = smooth
@@ -283,22 +283,22 @@
 
     class BoundaryLoss(nn.Module):
         """
-        테두리 자리를 도드라지게 하는 로스.
-        테두리에 가까운 화소에 더 큰 무게를 준다.
+        경계 영역을 강조하는 로스.
+        경계에 가까운 픽셀에 더 큰 웨이트를 준다.
         """
         def __init__(self, theta=5):
             super().__init__()
-            self.theta = theta  # 테두리 너비를 다스린다
+            self.theta = theta  # 경계 너비를 조절한다
 
         def forward(self, inputs, targets):
-            # 테두리 무게 셈하기
-            # 테두리에 가까운 화소에 더 큰 무게
+            # 경계 웨이트 계산
+            # 경계에 가까운 픽셀에 더 큰 웨이트
             targets_np = targets.cpu().numpy()
             boundary_weights = np.zeros_like(targets_np)
 
             for i in range(targets_np.shape[0]):
                 mask = targets_np[i, 0]
-                # 테두리를 찾으려 깎고 부풀리기
+                # 경계를 찾으려 침식(erosion)과 팽창(dilation) 적용
                 eroded = binary_erosion(mask > 0.5, iterations=2)
                 dilated = binary_dilation(mask > 0.5, iterations=2)
                 boundary = dilated & ~eroded
@@ -306,7 +306,7 @@
 
             boundary_weights = torch.from_numpy(boundary_weights).to(inputs.device)
 
-            # 무게를 준 두 클래스 엇갈린 엔트로피
+            # 가중 이진 교차 엔트로피
             bce = F.binary_cross_entropy_with_logits(inputs, targets, reduction='none')
             weighted_bce = bce * boundary_weights
             return weighted_bce.mean()
@@ -314,14 +314,14 @@
 
     class CombinedLoss(nn.Module):
         """
-        아우른 로스: 초점 + 다이스 + 테두리
-        여러 로스의 센 점을 써먹는다.
+        결합 로스: 포컬 + 다이스 + 경계
+        여러 로스의 장점을 활용한다.
         """
         def __init__(self, alpha=0.3, beta=0.4, gamma=0.3):
             super().__init__()
-            self.alpha = alpha  # 초점 로스의 무게
-            self.beta = beta    # 다이스 로스의 무게
-            self.gamma = gamma  # 테두리 로스의 무게
+            self.alpha = alpha  # 포컬 로스의 웨이트
+            self.beta = beta    # 다이스 로스의 웨이트
+            self.gamma = gamma  # 경계 로스의 웨이트
 
             self.focal = FocalLoss()
             self.dice = DiceLoss()
@@ -342,11 +342,11 @@
     print("Loss: Combined (Focal + Dice + Boundary)")
 
     # ============================================================================
-    # 4단계: 여러 스케일을 갖춘 인공 자료 뭉치
+    # 4단계: 다중 스케일을 갖춘 합성 데이터셋
     # ============================================================================
 
     class MultiScaleDataset(Dataset):
-        """여러 스케일의 그림을 돌려주는 자료 뭉치."""
+        """여러 스케일의 이미지를 돌려주는 데이터셋."""
         def __init__(self, num_samples=800, scales=[256, 384] if USE_MULTI_SCALE else [256]):
             self.num_samples = num_samples
             self.scales = scales
@@ -359,7 +359,7 @@
                 self.samples.append((img, mask))
 
         def _generate_sample(self, size):
-            """인공 나누기 표본을 만든다."""
+            """합성 분할 표본을 만든다."""
             img = Image.new('RGB', (size, size), 
                            tuple(np.random.randint(100, 200, 3).tolist()))
             mask = Image.new('L', (size, size), 0)
@@ -367,7 +367,7 @@
             draw_img = ImageDraw.Draw(img)
             draw_mask = ImageDraw.Draw(mask)
 
-            # 여러 형태
+            # 여러 도형
             for _ in range(np.random.randint(1, 4)):
                 shape_type = np.random.choice(['circle', 'rectangle'])
                 center_x = np.random.randint(size//4, 3*size//4)
@@ -395,9 +395,9 @@
         def __getitem__(self, idx):
             img, mask = self.samples[idx]
 
-            # 스케일은 보기마다가 아니라 배치마다 골라야 한다. 보기마다 고르면
+            # 스케일은 표본마다가 아니라 배치마다 골라야 한다. 표본마다 고르면
             # 한 배치에 크기가 다른 텐서가 섞여 stack이 되지 않는다.
-            # 여기서는 가장 큰 스케일로 내놓고, 줄이는 일은 collate가 맡는다.
+            # 여기서는 가장 큰 스케일로 반환하고, 줄이는 일은 collate가 맡는다.
             scale = max(self.scales)
             img = img.resize((scale, scale), Image.BILINEAR)
             mask = mask.resize((scale, scale), Image.NEAREST)
@@ -414,7 +414,7 @@
 
     # 데이터셋들을 만든다
     train_dataset = MultiScaleDataset(num_samples=800)
-    val_dataset = MultiScaleDataset(num_samples=100, scales=[256])  # 검증용 붙박이 스케일
+    val_dataset = MultiScaleDataset(num_samples=100, scales=[256])  # 검증용 고정 스케일
     test_dataset = MultiScaleDataset(num_samples=100, scales=[256])
 
     BATCH_SIZE = 4  # 여러 스케일과 어텐션 때문에 더 작다
@@ -436,7 +436,7 @@
     print(f"\nDataset created: {len(train_dataset)} train, {len(val_dataset)} val, {len(test_dataset)} test\n")
 
     # ============================================================================
-    # 5단계: 가장 좋게 하개와 일정 짜개
+    # 5단계: 옵티마이저와 스케줄러
     # ============================================================================
 
     optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
@@ -446,11 +446,11 @@
         scaler = GradScaler()
 
     # ============================================================================
-    # 6단계: 섞인 정밀도로 익히기
+    # 6단계: 혼합 정밀도로 학습
     # ============================================================================
 
     def train_one_epoch(model, loader, criterion, optimizer, scaler, device):
-        """켜져 있으면 섞인 정밀도로 익힌다."""
+        """켜져 있으면 혼합 정밀도로 학습한다."""
         model.train()
         running_loss = 0.0
 
@@ -463,7 +463,7 @@
             if USE_MIXED_PRECISION:
                 with autocast():
                     outputs = model(images)
-                    # 마스크 크기에 맞게 내놓음 크기 바꾸기(여러 스케일용)
+                    # 마스크 크기에 맞게 출력 크기 바꾸기(여러 스케일용)
                     if outputs.shape[-2:] != masks.shape[-2:]:
                         outputs = F.interpolate(outputs, size=masks.shape[-2:], 
                                               mode='bilinear', align_corners=False)
@@ -487,7 +487,7 @@
 
 
     def calculate_dice(pred, target):
-        """다이스 계수를 셈한다."""
+        """다이스 계수를 계산한다."""
         with torch.no_grad():
             pred = torch.sigmoid(pred)
             pred = (pred > 0.5).float()
@@ -501,7 +501,7 @@
 
 
     def validate(model, loader, criterion, device):
-        """다이스 셈하기를 곁들인 검증."""
+        """다이스 계산을 포함한 검증."""
         model.eval()
         running_loss = 0.0
         running_dice = 0.0
@@ -528,13 +528,13 @@
 
 
     # ============================================================================
-    # 7단계: 시험 때 불리기
+    # 7단계: 테스트 시 어그멘테이션
     # ============================================================================
 
     def test_time_augmentation(model, image, device):
         """
-        시험 때 불리기를 여러 번 하고 어림을 고루낸다.
-        튼튼함을 낫게 하며 흔히 성능을 1~3% 올린다.
+        테스트 시 어그멘테이션을 여러 번 하고 예측을 평균한다.
+        강건성을 높이며 흔히 성능을 1~3% 올린다.
         """
         model.eval()
         predictions = []
@@ -556,13 +556,13 @@
             pred = torch.sigmoid(model(torch.flip(image, dims=[2, 3])))
             predictions.append(torch.flip(pred, dims=[2, 3]))
 
-        # 모든 어림 고루내기
+        # 모든 예측 평균 내기
         avg_pred = torch.stack(predictions).mean(dim=0)
         return avg_pred
 
 
     def evaluate_with_tta(model, loader, device):
-        """시험 때 불리기로 평가한다."""
+        """테스트 시 어그멘테이션으로 평가한다."""
         model.eval()
         running_dice = 0.0
 
@@ -576,7 +576,7 @@
                 with torch.no_grad():
                     predictions = torch.sigmoid(model(images))
 
-            # 다이스 셈하기
+            # 다이스 계산
             pred = (predictions > 0.5).float()
             target = masks
 
@@ -591,7 +591,7 @@
 
 
     # ============================================================================
-    # 8단계: 익히기 되풀이
+    # 8단계: 학습 루프
     # ============================================================================
 
     NUM_EPOCHS = 30
@@ -635,7 +635,7 @@
     print(f"{'='*70}\n")
 
     # ============================================================================
-    # 9단계: 시험 때 불리기를 쓴 마지막 밸류
+    # 9단계: 테스트 시 어그멘테이션을 쓴 마지막 평가
     # ============================================================================
 
     model.load_state_dict(torch.load('best_advanced_model.pth'))
@@ -643,11 +643,11 @@
     print("Final Test Evaluation:")
     print("="*70)
 
-    # 시험 때 불리기 안 씀
+    # 테스트 시 어그멘테이션 안 씀
     test_dice_no_tta = evaluate_with_tta(model, test_loader, device)
     print(f"Test Dice (no TTA): {test_dice_no_tta:.4f}")
 
-    # 시험 때 불리기 씀
+    # 테스트 시 어그멘테이션 씀
     if USE_TTA:
         print("\nEvaluating with Test-Time Augmentation...")
         USE_TTA_TEMP = True
@@ -709,21 +709,21 @@ U-Net의 컨볼루션 블록마다 CBAM을 붙이지만 `use_attention=False`여
 
 FocalLoss는 pt=exp(−BCE)와 (1−pt)^γ로 어려운 픽셀에 상대적으로 더 큰 비중을 준다. 그러나 코드의 alpha는 양성·음성 모두에 동일한0.25를 곱한다. 원래의 α_y처럼 클래스별 균형을 다르게 주는 식이 아니므로 ‘양성 클래스 웨이트0.25’라고 해석하지 않는다. gamma=0이면 이 alpha를 곱한 BCE가 된다.
 
-DiceLoss는 배치 전체 확률을 펼친 soft Dice이며 임계화한 평가 Dice의 직접 최적값과 같지 않다. BoundaryLoss는 GT 마스크를2회 erosion·dilation한 띠에1+theta의 웨이트를 주는 **경계 가중 BCE**다. 거리 변환에 기반한 특정 이름의 boundary loss나 경계 정확도 지표와 동일한 알고리즘은 아니다. GT에서 만든 웨이트는 상수지만 BCE를 통한 입력 로짓 경사는 계산된다.
+DiceLoss는 배치 전체 확률을 펼친 soft Dice이며 임계화한 평가 Dice의 직접 최적값과 같지 않다. BoundaryLoss는 GT 마스크를2회 erosion·dilation한 띠에1+theta의 웨이트를 주는 **경계 가중 BCE**다. 거리 변환에 기반한 특정 이름의 boundary loss나 경계 정확도 지표와 동일한 알고리즘은 아니다. GT에서 만든 웨이트는 상수지만 BCE를 통한 입력 로짓 그래디언트는 계산된다.
 
 현재 형태학 연산은 매 배치 GPU→CPU→NumPy→GPU를 거쳐 수행해 동기화·전송 비용이 들 수 있다. 띠의 폭은 고정 픽셀 수여서 학습 해상도를 바꾸면 원 물체 크기에 대한 상대 폭도 달라진다. CombinedLoss의0.3·0.4·0.3은 서로 다른 스케일의 항을 조합하는 선택이며 항상 최적인 비율은 아니다.
 
 ### 다중 해상도 데이터의 실제 경로
 
-Dataset은 각 표본을 최대 해상도로 생성·반환한다. **훈련 collate 함수**가 배치마다256 또는384 중 하나를 고르고 이미지를 bilinear, 마스크를 nearest로 함께 resize한다. 한 배치의 크기를 맞추는 것이며 각 표본이 다른 크기인 텐서를 그대로 stack하는 방식이 아니다. 이 collate는 전역 train_dataset의 scales에 의존하므로 다른 dataset에 재사용할 때 해당 의존성을 확인한다.
+Dataset은 각 표본을 최대 해상도로 생성·반환한다. **학습 collate 함수**가 배치마다256 또는384 중 하나를 고르고 이미지를 bilinear, 마스크를 nearest로 함께 resize한다. 한 배치의 크기를 맞추는 것이며 각 표본이 다른 크기인 텐서를 그대로 stack하는 방식이 아니다. 이 collate는 전역 train_dataset의 scales에 의존하므로 다른 dataset에 재사용할 때 해당 의존성을 확인한다.
 
-검증·테스트는256으로 고정한다. 두 크기는16의 배수라 네 번 풀링한 스킵과 맞지만 일반 크기의 crop·padding은 없다. 모델 출력 뒤 보간 코드는 이미 실패한 내부 스킵 연결을 고치지 못한다. 두 해상도 학습이 임의 스케일에 대한 완전한 불변성을 보장하지도 않는다.
+검증·시험은256으로 고정한다. 두 크기는16의 배수라 네 번 풀링한 스킵과 맞지만 일반 크기의 crop·padding은 없다. 모델 출력 뒤 보간 코드는 이미 실패한 내부 스킵 연결을 고치지 못한다. 두 해상도 학습이 임의 스케일에 대한 완전한 불변성을 보장하지도 않는다.
 
 ### 혼합 정밀도의 범위
 
 이 예제는 CUDA AMP 경로를 선택하고 CUDA가 없으면 해당 flag를 끈다. 이를 모든 형태의 혼합 정밀도가 CUDA에서만 가능하다는 일반 설명으로 읽지 않는다. 설치 버전에 맞는 autocast·GradScaler API, 모델·입력 장치와 연산 정밀도를 확인해야 한다. 가속과 메모리 절감은 장치·연산·입력에 따라 달라진다.
 
-특히 soft Dice의 `inputs.sum()`은 큰 FP16 텐서에서 표현 범위를 넘을 수 있다. targets와의 곱이 float32로 승격되더라도 별도로 계산한 확률 합의 overflow가 자동으로 복구되지는 않는다. 수치적으로 민감한 합·분모는 적절한 누적 정밀도를 검토해야 한다. GradScaler는 경사 스케일을 다루며 forward의 모든 overflow를 해결하는 장치가 아니다. CPU 형태학 처리의 비용 역시 AMP만으로 사라지지 않는다.
+특히 soft Dice의 `inputs.sum()`은 큰 FP16 텐서에서 표현 범위를 넘을 수 있다. targets와의 곱이 float32로 승격되더라도 별도로 계산한 확률 합의 overflow가 자동으로 복구되지는 않는다. 수치적으로 민감한 합·분모는 적절한 누적 정밀도를 검토해야 한다. GradScaler는 그래디언트 스케일을 다루며 forward의 모든 overflow를 해결하는 장치가 아니다. CPU 형태학 처리의 비용 역시 AMP만으로 사라지지 않는다.
 
 ### TTA의 역변환과 잘못된 기준 비교
 
@@ -759,14 +759,14 @@ CBAM의 게이트 형태와 어텐션 비활성화 flag의 한계를 설명하�
 </div>
 
 ??? success "풀이"
-    Dataset은 최대 크기로 반환하고 collate가 배치별 공통 scale을 선택해 이미지 bilinear·마스크 nearest로 변환한다. 입력은이미3채널이며 네 풀링과 스킵의 내부 크기가 맞아야 한다. 모델 최종 출력의 보간은 내부의 실패한 스킵 덧붙이기를 고칠 수 없다.
+    Dataset은 최대 크기로 반환하고 collate가 배치별 공통 scale을 선택해 이미지 bilinear·마스크 nearest로 변환한다. 입력은 이미3채널이며 네 풀링과 스킵의 내부 크기가 맞아야 한다. 모델 최종 출력의 보간은 내부의 실패한 스킵 연결을 고칠 수 없다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-최종 두 테스트 호출이 TTA 유무의 비교가 아닌 이유를 설명하라.
+최종 두 시험 호출이 TTA 유무의 비교가 아닌 이유를 설명하라.
 
 </div>
 

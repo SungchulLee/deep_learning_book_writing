@@ -1,6 +1,6 @@
 # 구조 학습
 
-구조 학습은 자료에서 베이즈 네트워크의 DAG 또는 그 동치류를 추정하는 문제다. 제약 기반 방법은 조건부 독립을 검정하고 점수 기반 방법은 적합도·복잡도의 점수를 탐색한다. 유한 자료의 검정 오차와 탐색 비용, 관측 자료에서 방향을 식별할 수 있는 범위를 구분해야 한다.
+구조 학습은 데이터에서 베이즈 네트워크의 DAG 또는 그 동치류를 추정하는 문제다. 제약 기반 방법은 조건부 독립을 검정하고 점수 기반 방법은 적합도·복잡도의 점수를 탐색한다. 유한 데이터의 검정 오차와 탐색 비용, 관측 데이터에서 방향을 식별할 수 있는 범위를 구분해야 한다.
 
 ## 1. 코드
 
@@ -8,38 +8,38 @@
 
     ```python
     """
-    베이즈 망의 짜임 배우기
+    베이즈 망의 구조 학습
     ========================================
 
-    이 모듈은 자료에서 베이즈 망의 짜임(그래프)을 배우는 일을 다룬다.
+    이 모듈은 데이터에서 베이즈 망의 구조(그래프)를 학습하는 문제를 다룬다.
 
     학습 목표:
     -------------------
-    1. 짜임 배우기 문제 이해하기
+    1. 구조 학습 문제 이해하기
     2. 제약 기반 방법(PC 알고리즘) 배우기
-    3. 점수 기반 방법(BIC를 쓴 언덕 오르기) 배우기
-    4. 짜임 배우기의 어려움 이해하기
-    5. 실제 자료에 짜임 배우기 쓰기
+    3. 점수 기반 방법(BIC를 쓴 힐 클라이밍) 배우기
+    4. 구조 학습의 어려움 이해하기
+    5. 실제 데이터에 구조 학습 적용하기
 
-    수학의 바탕:
+    수학적 배경:
     ------------------------
-    짜임 배우기 문제: 자료 D이 주어졌을 때 D을 가장 잘 설명하는 짜임 G 찾기
+    구조 학습 문제: 데이터 D가 주어졌을 때 D를 가장 잘 설명하는 구조 G 찾기
 
-    두 큰 클래스:
+    두 큰 갈래:
     1. 제약 기반: 조건부 독립을 검정한다
-       - PC 알고리즘: d-가름을 검정한다
-       - 통계적 독립 검정에 기댄다
+       - PC 알고리즘: d-분리를 검정한다
+       - 통계적 독립 검정에 의존한다
 
     2. 점수 기반: 점수 함수를 최적화한다
        - 점수: BIC, AIC, BDe 등
-       - 뒤지기: 언덕 오르기, 욕심, 유전 알고리즘
+       - 탐색: 힐 클라이밍, 탐욕 탐색, 유전 알고리즘
 
     BIC 점수: BIC(G, D) = log P(D | G, θ_MLE) - (d/2) log n
     여기서 d = 파라메터의 개수, n = 표본의 개수
 
     지은이: 교육용 ML 팀
-    수준: 나아간 단계
-    미리 볼 것: 첫스텝과 중간 수준의 모든 모듈
+    수준: 고급
+    선수 내용: 입문과 중간 수준의 모든 모듈
     """
 
     import numpy as np
@@ -69,7 +69,7 @@
                              var2: str,
                              alpha: float = 0.05) -> bool:
             """
-            var1과 var2이 독립인지 검정한다.
+            var1과 var2가 독립인지 검정한다.
 
             독립의 카이제곱 검정을 쓴다.
 
@@ -79,7 +79,7 @@
                 alpha: 유의수준
 
             반환값:
-                독립이면(H0을 물리치지 못하면) True, 아니면 False
+                독립이면(H0을 기각하지 못하면) True, 아니면 False
             """
             # 분할표 만들기
             contingency = pd.crosstab(data[var1], data[var2])
@@ -87,7 +87,7 @@
             # 카이제곱 검정
             chi2, p_value, dof, expected = chi2_contingency(contingency)
 
-            # p값 > alpha이면 귀무가설(독립)을 물리치지 못한다
+            # p값 > alpha이면 귀무가설(독립)을 기각하지 못한다
             return p_value > alpha
 
         @staticmethod
@@ -97,7 +97,7 @@
                                          given: List[str],
                                          alpha: float = 0.05) -> bool:
             """
-            `given`이 주어졌을 때 var1과 var2이 조건부 독립인지 검정한다.
+            `given`이 주어졌을 때 var1과 var2가 조건부 독립인지 검정한다.
 
             검정: X ⊥ Y | Z
 
@@ -121,10 +121,10 @@
 
             p_values = []
             for name, group in grouped:
-                if len(group) < 5:  # 너무 작은 무리는 건너뛴다
+                if len(group) < 5:  # 너무 작은 그룹은 건너뛴다
                     continue
 
-                # 이 무리에서 독립 검정하기
+                # 이 그룹에서 독립 검정하기
                 contingency = pd.crosstab(group[var1], group[var2])
 
                 try:
@@ -134,29 +134,29 @@
                     continue
 
             if not p_values:
-                return True  # 자료가 모자라니 독립이라고 놓는다
+                return True  # 데이터가 모자라니 독립이라고 놓는다
 
-            # 가장 작은 p값을 쓴다(가장 깐깐하다)
+            # 가장 작은 p값을 쓴다(가장 보수적이다)
             min_p_value = min(p_values)
             return min_p_value > alpha
 
 
     class PCAlgorithm:
         """
-        짜임 배우기를 위한 PC(피터-클라크) 알고리즘을 구현한다.
+        구조 학습을 위한 PC(피터-클라크) 알고리즘을 구현한다.
 
         PC 알고리즘은 다음과 같은 제약 기반 방법이다:
         1. 완전 무방향 그래프에서 시작한다
-        2. 조건부 독립 검정에 따라 변을 지운다
-        3. v-짜임에 따라 변의 방향을 정한다
-        4. 방향을 퍼뜨린다
+        2. 조건부 독립 검정에 따라 간선을 지운다
+        3. v-구조(충돌점)에 따라 간선의 방향을 정한다
+        4. 방향을 전파한다
 
-        CPDAG(온전히 채운 부분 방향 비순환 그래프)을 되돌린다.
+        CPDAG(완성된 부분 방향 비순환 그래프)를 반환한다.
         """
 
         def __init__(self, alpha: float = 0.05):
             """
-            PC 알고리즘의 첫스텝을 잡는다.
+            PC 알고리즘을 초기화한다.
 
             인수:
                 alpha: 독립 검정의 유의수준
@@ -166,7 +166,7 @@
 
         def learn_structure(self, data: pd.DataFrame) -> nx.Graph:
             """
-            PC 알고리즘으로 베이즈 망의 짜임을 배운다.
+            PC 알고리즘으로 베이즈 망의 구조를 학습한다.
 
             인수:
                 data: 표본을 담은 DataFrame
@@ -190,9 +190,9 @@
 
             print(f"\nStep 1: Started with complete graph ({graph.number_of_edges()} edges)")
 
-            # 스텝 2: 조건부 독립에 따라 변 지우기
-            # 조건 배치의 크기를 늘려 가며 검정하기
-            separating_sets = {}  # 나중을 위해 가름 집합을 담아 둔다
+            # 스텝 2: 조건부 독립에 따라 간선 지우기
+            # 조건 집합의 크기를 늘려 가며 검정하기
+            separating_sets = {}  # 나중을 위해 분리 집합을 저장해 둔다
 
             for order in range(n):
                 print(f"\nStep 2.{order+1}: Testing conditional independence with |S| = {order}")
@@ -202,11 +202,11 @@
                 for edge in list(graph.edges()):
                     var1, var2 = edge
 
-                    # 조건 배치 후보 얻기(var1이나 var2의 이웃)
+                    # 조건 집합 후보 얻기(var1이나 var2의 이웃)
                     neighbors = set(graph.neighbors(var1)) | set(graph.neighbors(var2))
                     neighbors -= {var1, var2}
 
-                    # 크기가 `order`인 조건 배치 모두 검정하기
+                    # 크기가 `order`인 조건 집합 모두 검정하기
                     if len(neighbors) >= order:
                         for cond_set in combinations(neighbors, order):
                             cond_list = list(cond_set)
@@ -220,14 +220,14 @@
                                 print(f"  {var1} ⊥ {var2} | {{{', '.join(cond_list)}}}")
                                 break
 
-                # 변 지우기
+                # 간선 지우기
                 for edge in edges_to_remove:
                     graph.remove_edge(*edge)
 
                 if edges_to_remove:
                     print(f"  Removed {len(edges_to_remove)} edges")
 
-                # 더 검정할 변이 없으면 멈춘다
+                # 더 검정할 간선이 없으면 멈춘다
                 if graph.number_of_edges() == 0:
                     break
 
@@ -238,30 +238,30 @@
 
     class ScoreBasedLearning:
         """
-        BIC 점수를 쓴 언덕 오르기로 하는 점수 기반 짜임 배우기.
+        BIC 점수를 쓴 힐 클라이밍으로 하는 점수 기반 구조 학습.
 
         점수 기반 방법:
         1. 점수 함수를 정한다(BIC, AIC, BDe 등)
-        2. 점수를 가장 크게 하는 짜임을 뒤진다
-        3. 어림짐작 뒤지기를 쓴다(언덕 오르기, 유전 알고리즘 등)
+        2. 점수를 가장 크게 하는 구조를 탐색한다
+        3. 휴리스틱 탐색을 쓴다(힐 클라이밍, 유전 알고리즘 등)
         """
 
         def __init__(self, data: pd.DataFrame):
             """
-            점수 기반 배우기의 첫스텝을 잡는다.
+            점수 기반 학습을 초기화한다.
 
             인수:
-                data: 학습 자료
+                data: 학습 데이터
             """
             self.data = data
             self.variables = list(data.columns)
             self.n_samples = len(data)
 
-            # 점수 매기기용 통계량 셈하기
+            # 점수 계산용 통계량 계산하기
             self._compute_statistics()
 
         def _compute_statistics(self):
-            """효율적인 점수 매기기를 위해 통계량을 미리 셈한다."""
+            """효율적인 점수 계산을 위해 통계량을 미리 계산한다."""
             self.counts = {}
 
             for var in self.variables:
@@ -270,13 +270,13 @@
 
         def compute_bic_score(self, graph: nx.DiGraph) -> float:
             """
-            주어진 DAG의 BIC 점수를 셈한다.
+            주어진 DAG의 BIC 점수를 계산한다.
 
             BIC = log P(D | G, θ_MLE) - (d/2) log n
 
             여기서 각 기호는 다음과 같다.
-            - P(D | G, θ_MLE)은 MLE 파라메터로 셈한 가능도이다
-            - d은 자유 파라메터의 개수이다
+            - P(D | G, θ_MLE)는 MLE 파라메터로 계산한 가능도이다
+            - d는 자유 파라메터의 개수이다
             - n은 표본의 개수이다
 
             인수:
@@ -291,9 +291,9 @@
             for var in graph.nodes():
                 parents = list(graph.predecessors(var))
 
-                # 이 변수의 국소 BIC 점수 셈하기
+                # 이 변수의 국소 BIC 점수 계산하기
                 if not parents:
-                    # 어버이 없음: 앞확률 분포일 뿐
+                    # 부모 없음: 주변 분포일 뿐
                     local_counts = self.data[var].value_counts()
                     n_local = local_counts.sum()
 
@@ -303,31 +303,31 @@
                             p = count / n_local
                             score += count * np.log(p)
 
-                    # 벌점 항
+                    # 패널티 항
                     cardinality = len(local_counts)
                     num_parameters += cardinality - 1
 
                 else:
-                    # 어버이 있음: 조건부 분포
-                    # 어버이 값으로 묶기
+                    # 부모 있음: 조건부 분포
+                    # 부모 값으로 묶기
                     parent_groups = self.data.groupby(parents)[var]
 
                     for parent_values, group in parent_groups:
                         counts = group.value_counts()
                         n_local = counts.sum()
 
-                        # 이 어버이 형태의 로그 가능도
+                        # 이 부모 조합의 로그가능도
                         for count in counts:
                             if count > 0:
                                 p = count / n_local
                                 score += count * np.log(p)
 
-                    # 벌점 항
+                    # 패널티 항
                     var_card = self.data[var].nunique()
                     parent_configs = len(parent_groups)
                     num_parameters += parent_configs * (var_card - 1)
 
-            # BIC 벌점
+            # BIC 패널티
             penalty = (num_parameters / 2) * np.log(self.n_samples)
             bic = score - penalty
 
@@ -335,20 +335,20 @@
 
         def hill_climbing(self, max_parents: int = 3, max_iterations: int = 100) -> nx.DiGraph:
             """
-            언덕 오르기 뒤지기로 짜임을 배운다.
+            힐 클라이밍 탐색으로 구조를 학습한다.
 
-            언덕 오르기:
+            힐 클라이밍:
             1. 빈 그래프(또는 무작위 그래프)에서 시작한다
-            2. 스텝마다 변 하나짜리 손질을 모두 해 본다
-            3. 점수를 가장 많이 올리는 손질을 한다
+            2. 스텝마다 간선 하나짜리 조작을 모두 해 본다
+            3. 점수를 가장 많이 올리는 조작을 적용한다
             4. 더 나아질 수 없으면 멈춘다
 
             인수:
-                max_parents: 마디마다 어버이의 최대 개수
-                max_iterations: 되풀이의 최대 횟수
+                max_parents: 노드마다 부모의 최대 개수
+                max_iterations: 반복의 최대 횟수
 
             반환값:
-                배운 DAG
+                학습한 DAG
             """
             print(f"\nHill Climbing Structure Learning")
             print(f"Max parents: {max_parents}, Max iterations: {max_iterations}")
@@ -368,31 +368,31 @@
                 best_score = current_score
                 best_operation = None
 
-                # 변 하나짜리 연산을 모두 해 보기
+                # 간선 하나짜리 연산을 모두 해 보기
 
-                # 1. 변 더하기
+                # 1. 간선 추가
                 for var1 in self.variables:
                     for var2 in self.variables:
                         if var1 == var2:
                             continue
 
-                        # 변이 이미 있는지 살피기
+                        # 간선이 이미 있는지 확인하기
                         if current_graph.has_edge(var1, var2):
                             continue
 
-                        # 더하면 어버이 최대 개수를 넘는지 살피기
+                        # 추가하면 부모 최대 개수를 넘는지 확인하기
                         if len(list(current_graph.predecessors(var2))) >= max_parents:
                             continue
 
-                        # 변 더해 보기
+                        # 간선 추가해 보기
                         new_graph = current_graph.copy()
                         new_graph.add_edge(var1, var2)
 
-                        # 아직 고리가 없는지 살피기
+                        # 여전히 순환(cycle)이 없는지 확인하기
                         if not nx.is_directed_acyclic_graph(new_graph):
                             continue
 
-                        # 점수 셈하기
+                        # 점수 계산하기
                         score = self.compute_bic_score(new_graph)
 
                         if score > best_score:
@@ -400,7 +400,7 @@
                             best_graph = new_graph
                             best_operation = f"Add {var1} -> {var2}"
 
-                # 2. 변 지우기
+                # 2. 간선 삭제
                 for var1, var2 in current_graph.edges():
                     new_graph = current_graph.copy()
                     new_graph.remove_edge(var1, var2)
@@ -412,9 +412,9 @@
                         best_graph = new_graph
                         best_operation = f"Remove {var1} -> {var2}"
 
-                # 3. 변 뒤집기
+                # 3. 간선 반전
                 for var1, var2 in current_graph.edges():
-                    # 뒤집으면 어버이 최대 개수를 넘는지 살피기
+                    # 반전하면 부모 최대 개수를 넘는지 확인하기
                     if len(list(current_graph.predecessors(var1))) >= max_parents:
                         continue
 
@@ -422,7 +422,7 @@
                     new_graph.remove_edge(var1, var2)
                     new_graph.add_edge(var2, var1)
 
-                    # 아직 고리가 없는지 살피기
+                    # 여전히 순환(cycle)이 없는지 확인하기
                     if not nx.is_directed_acyclic_graph(new_graph):
                         continue
 
@@ -433,7 +433,7 @@
                         best_graph = new_graph
                         best_operation = f"Reverse {var1} -> {var2}"
 
-                # 나아진 것을 찾았는지 살피기
+                # 개선을 찾았는지 확인하기
                 if best_graph is None:
                     print("No improvement found. Converged!")
                     break
@@ -451,25 +451,25 @@
 
 
     def demonstrate_structure_learning():
-        """흉내 낸 자료로 짜임 배우기를 보인다."""
+        """합성 데이터로 구조 학습을 시연한다."""
         print("\n" + "="*70)
         print("DEMONSTRATION: Structure Learning")
         print("="*70)
 
-        # 알려진 짜임에서 흉내 낸 자료 만들기
+        # 알려진 구조에서 합성 데이터 만들기
         print("\nGenerating synthetic data from known structure...")
 
         # 단순한 망 만들기: A -> B -> C, A -> C
         np.random.seed(42)
         n_samples = 1000
 
-        # A 표집(앞확률)
+        # A 샘플링(사전 확률)
         A = np.random.binomial(1, 0.5, n_samples)
 
-        # A이 주어졌을 때 B 표집
+        # A가 주어졌을 때 B 샘플링
         B = np.random.binomial(1, 0.3 + 0.4 * A)
 
-        # A과 B이 주어졌을 때 C 표집
+        # A와 B가 주어졌을 때 C 샘플링
         prob_C = 0.2 + 0.3 * A + 0.4 * B
         C = np.random.binomial(1, prob_C)
 
@@ -479,7 +479,7 @@
         print(f"Generated {n_samples} samples")
         print(f"True structure: A -> B -> C, A -> C")
 
-        # 언덕 오르기로 짜임 배우기
+        # 힐 클라이밍으로 구조 학습하기
         print("\n" + "="*70)
         print("Score-Based Learning (Hill Climbing)")
         print("="*70)
@@ -487,7 +487,7 @@
         learner = ScoreBasedLearning(data)
         learned_graph = learner.hill_climbing(max_parents=2, max_iterations=20)
 
-        # 배운 짜임 그려 보기
+        # 학습한 구조 시각화하기
         plt.figure(figsize=(10, 6))
         pos = nx.spring_layout(learned_graph)
         nx.draw(learned_graph, pos,
@@ -508,7 +508,7 @@
 
 
     def main():
-        """주된 보여 주기."""
+        """메인 데모."""
         print("\n" + "="*70)
         print("STRUCTURE LEARNING FOR BAYESIAN NETWORKS")
         print("="*70)
@@ -629,7 +629,7 @@ KEY TAKEAWAYS
 
 ### 제약 기반 방법
 
-PC는 조건부 독립을 이용해 무방향 뼈대를 추정한 뒤 분리 집합으로 비차폐 충돌점을 식별하고 추가 방향 규칙을 적용한다. 적절한 마르코프·충실성, 인과적 충분성 등의 가정과 정확한 독립 정보 아래 인과적 동치류를 복원하는 이론을 갖지만, 유한 표본·숨은 공통원인·선택 바이어스에서는 추가 고려가 필요하다.
+PC는 조건부 독립을 이용해 무방향 뼈대를 추정한 뒤 분리 집합으로 비차폐 충돌점을 식별하고 추가 방향 규칙을 적용한다. 적절한 마르코프·충실성, 인과적 충분성 등의 가정과 정확한 독립 정보 아래 인과적 동치류를 복원하는 이론을 갖지만, 유한 표본·숨은 공통원인·선택 편향(selection bias)에서는 추가 고려가 필요하다.
 
 본문 PCAlgorithm은 뼈대만 반환한다. 분리 집합을 지역 변수에 저장하지만 이를 이용한 충돌점 방향 지정이나 Meek 규칙을 구현하지 않으므로 완전한 PC 결과인 CPDAG를 출력하지 않는다.
 
@@ -659,19 +659,19 @@ $$a_n=\sum_{k=1}^{n}(-1)^{k+1}\binom{n}{k}2^{k(n-k)}a_{n-k}$$
 
 그 옆에 탐욕적 힐 클라이밍이 한 걸음에 살펴보는 이웃의 수를 같이 그렸다. 간선을 하나 더하거나 빼거나 뒤집는 수이니 $n^2$ 쯤이고, 변수가 열다섯이어도 **225**다. 두 곡선이 같은 그림 안에 들어가지 않을 만큼 벌어진다.
 
-**그리고 더 영리해지는 것으로는 이 간극을 메울 수 없다.** 1996년에 데이비드 치커링(David Chickering)이 점수가 가장 높은 베이즈 망 구조를 찾는 문제 자체가 NP-난해임을 보였다. 전역 최적을 포기한 것은 구현이 허술해서가 아니라 **그것이 이 문제의 값**이기 때문이다.
+**그리고 더 영리해지는 것으로는 이 간극을 메울 수 없다.** 1996년에 데이비드 치커링(David Chickering)이 점수가 가장 높은 베이즈 망 구조를 찾는 문제 자체가 NP-난해임을 보였다. 전역 최적을 포기한 것은 구현이 허술해서가 아니라 **그것이 이 문제의 비용**이기 때문이다.
 
-그러니 위 문단의 경고는 읽는 자리를 바꿔야 한다. "전역 최적이 아니다"는 고칠 결함이 아니라 **결과를 읽는 방식**이다 — 돌려 얻은 구조는 "자료가 지목한 구조"가 아니라 **"이 출발점에서 이 수들로 올라가다 멈춘 자리"**다. 출발점과 간선 조작의 종류와 최대 부모 수를 함께 적어 두어야 하는 까닭이고, 아래 절이 추정 구조를 곧바로 인과 그래프로 보고하지 말라고 하는 것도 같은 이야기의 다른 면이다.
+그러니 위 문단의 경고는 읽는 자리를 바꿔야 한다. "전역 최적이 아니다"는 고칠 결함이 아니라 **결과를 읽는 방식**이다 — 돌려 얻은 구조는 "데이터가 지목한 구조"가 아니라 **"이 출발점에서 이 조작들로 올라가다 멈춘 자리"**다. 출발점과 간선 조작의 종류와 최대 부모 수를 함께 적어 두어야 하는 까닭이고, 아래 절이 추정 구조를 곧바로 인과 그래프로 보고하지 말라고 하는 것도 같은 이야기의 다른 면이다.
 
 _확인한 곳 — R. W. Robinson, "Counting labeled acyclic digraphs", in F. Harary (ed.), *New Directions in the Theory of Graphs*, Academic Press (1973) 의 점화식. D. M. Chickering, "Learning Bayesian networks is NP-complete" (1996). 그림의 개수는 그림을 그리는 코드가 그 점화식으로 직접 셈하며, $n \le 6$ 의 알려진 값(1, 3, 25, 543, 29281, 3781503) 과 맞는지 `assert` 로 대조한 뒤에 그린다._
 
 </div>
 
-표형 이산 CPT의 자유 파라메터 수는 각 변수에 대해 (r_i−1)∏_{j∈Pa(i)}r_j를 합한 값이다. 코드는 관측된 부모 조합만 세므로 미관측 조합이 있으면 전체 모형의 차원을 낮게 센다. 범주 상태 공간은 자료의 단순 빈도와 구분해 정의해야 한다.
+표형 이산 CPT의 자유 파라메터 수는 각 변수에 대해 (r_i−1)∏_{j∈Pa(i)}r_j를 합한 값이다. 코드는 관측된 부모 조합만 세므로 미관측 조합이 있으면 전체 모형의 차원을 낮게 센다. 범주 상태 공간은 데이터의 단순 빈도와 구분해 정의해야 한다.
 
 ### 마르코프 동치와 식별성
 
-두 DAG가 같은 뼈대와 같은 비차폐 충돌점을 가지면 같은 구조적 조건부 독립을 나타낸다. 추가 가정이 없는 관측 자료만으로 그 동치류 안의 모든 방향을 유일하게 정할 수는 없다. 개입·시간 순서·분야 지식 또는 특별한 함수·잡음 가정은 추가 식별 정보를 제공할 수 있다. 추정 구조를 곧바로 입증된 인과 그래프로 보고하지 않는다.
+두 DAG가 같은 뼈대와 같은 비차폐 충돌점을 가지면 같은 구조적 조건부 독립을 나타낸다. 추가 가정이 없는 관측 데이터만으로 그 동치류 안의 모든 방향을 유일하게 정할 수는 없다. 개입·시간 순서·분야 지식 또는 특별한 함수·잡음 가정은 추가 식별 정보를 제공할 수 있다. 추정 구조를 곧바로 입증된 인과 그래프로 보고하지 않는다.
 
 ## 연습문제
 
@@ -775,7 +775,7 @@ A→B→C와 A←B→C는 왜 동치이며 A→B←C는 왜 다른가?
             n_params += len(counts) - 1
         return ll - 0.5 * n_params * np.log(n)
 
-    # 핵심 짜임 검정하기
+    # 핵심 구조 평가하기
     structures = {
         'A->B, A->C': {'A': [], 'B': ['A'], 'C': ['A']},
         'B->A, C->A': {'A': ['B','C'], 'B': [], 'C': []},
@@ -791,4 +791,4 @@ A→B→C와 A←B→C는 왜 동치이며 A→B←C는 왜 다른가?
 
 ## 정리하며
 
-구조 학습은 조건부 독립 검사나 점수 최적화로 그래프를 추정한다. 기각 실패와 독립의 증명을 구분하고 동치류·유한 자료·국소 탐색의 한계를 보고한다. 본문 코드는 뼈대 추정과 단순 탐욕 탐색 예제이며 완전한 PC 또는 인과 방향 식별을 구현하지 않는다.
+구조 학습은 조건부 독립 검사나 점수 최적화로 그래프를 추정한다. 기각 실패와 독립의 증명을 구분하고 동치류·유한 데이터·국소 탐색의 한계를 보고한다. 본문 코드는 뼈대 추정과 단순 탐욕 탐색 예제이며 완전한 PC 또는 인과 방향 식별을 구현하지 않는다.

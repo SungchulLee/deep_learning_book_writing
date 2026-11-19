@@ -64,11 +64,11 @@ $$
                 = -\nabla^2\phi(p)\,(S - np)
     $$
 
-    **$\phi$에 관한 항이 모두 지워졌다.** $\phi$가 엄격히 볼록하므로 $\nabla^2\phi(p)$는 양정부호, 따라서 가역이다. 그러므로 $\nabla g(p) = 0$은 $S - np = 0$, 곧 $p = \tfrac{1}{n}S$와 같다. $g$가 볼록하므로 이 정류점이 최솟값이다. $\square$
+    **$\phi$에 관한 항이 모두 지워졌다.** $\phi$가 엄격히 볼록하므로 $\nabla^2\phi(p)$는 양의 정부호, 따라서 가역이다. 그러므로 $\nabla g(p) = 0$은 $S - np = 0$, 곧 $p = \tfrac{1}{n}S$와 같다. $g$가 볼록하므로 이 정류점이 최솟값이다. $\square$
 
 **두 인수의 자리를 바꾸면 성립하지 않는다.** 정리 1은 표본을 **앞자리**에 두고 대표점을 뒷자리에서 최적화한 경우다. $\sum_i D_\phi(p, z_i)$를 최소화하면 답이 평균이 아니며 $\phi$에 따라 달라진다. 브레그만 발산은 대칭이 아니므로 어느 자리에 무엇을 두는지가 결론을 바꾼다.
 
-프로토타입을 클래스 평균으로 두는 것이 정당화되는 자리가 여기다. 다만 이것은 **대표점을 고르는 문제**에 대한 답이지, 평균 기반 분류기가 임의의 데이터에서 가장 잘 가른다는 뜻은 아니다.
+프로토타입을 클래스 평균으로 두는 것이 정당화되는 자리가 여기다. 다만 이것은 **대표점을 고르는 문제**에 대한 답이지, 평균 기반 분류기가 임의의 데이터에서 가장 잘 분류한다는 뜻은 아니다.
 
 ### 가우시안 모형으로 해석하기
 
@@ -94,7 +94,7 @@ from typing import Tuple, Optional
 
 class PrototypicalNetwork(nn.Module):
     """
-    소수 예시 학습을 위한 원형 망.
+    퓨샷 학습을 위한 프로토타입 네트워크.
     
     참고: Snell 외, "Prototypical Networks for Few-shot Learning"
     NeurIPS 2017
@@ -108,9 +108,9 @@ class PrototypicalNetwork(nn.Module):
     ):
         """
         인수:
-            encoder: 임베딩 망 f_θ
+            encoder: 임베딩 네트워크 f_θ
             distance: 'euclidean' 또는 'cosine'
-            temperature: 로짓의 눈금 인자
+            temperature: 로짓의 스케일 인자(온도)
         """
         super().__init__()
         self.encoder = encoder
@@ -123,7 +123,7 @@ class PrototypicalNetwork(nn.Module):
         support_labels: torch.Tensor
     ) -> torch.Tensor:
         """
-        받침 임베딩에서 부류 원형을 셈한다.
+        서포트 임베딩에서 클래스 프로토타입을 계산한다.
         
         인수:
             support_embeddings: (n_support, embed_dim)
@@ -149,7 +149,7 @@ class PrototypicalNetwork(nn.Module):
         prototypes: torch.Tensor
     ) -> torch.Tensor:
         """
-        물음에서 원형까지의 거리를 셈한다.
+        쿼리에서 프로토타입까지의 거리를 계산한다.
         
         인수:
             query_embeddings: (n_query, embed_dim)
@@ -184,30 +184,30 @@ class PrototypicalNetwork(nn.Module):
         query: torch.Tensor
     ) -> torch.Tensor:
         """
-        물음 보기의 가려내기 로짓을 셈한다.
+        쿼리 표본의 분류 로짓을 계산한다.
         
         인수:
-            support: 서포트 집합 그림 (n_support, *input_shape)
-            support_labels: 받침 이름표 (n_support,)
-            query: 물음 그림 (n_query, *input_shape)
+            support: 서포트 집합 이미지 (n_support, *input_shape)
+            support_labels: 서포트 라벨 (n_support,)
+            query: 쿼리 이미지 (n_query, *input_shape)
         
         반환값:
-            logits: (n_query, n_way) 가려내기 로짓
+            logits: (n_query, n_way) 분류 로짓
         """
         n_support = support.size(0)
         
-        # 효율적인 배치 부호화를 위해 이어 붙인다
+        # 효율적인 배치 인코딩을 위해 연결한다
         all_images = torch.cat([support, query], dim=0)
         all_embeddings = self.encoder(all_images)
         
-        # 다시 쪼갠다
+        # 다시 나눈다
         support_embeddings = all_embeddings[:n_support]
         query_embeddings = all_embeddings[n_support:]
         
-        # 원형을 셈한다
+        # 프로토타입을 계산한다
         prototypes = self.compute_prototypes(support_embeddings, support_labels)
         
-        # 거리를 셈한다
+        # 거리를 계산한다
         distances = self.compute_distances(query_embeddings, prototypes)
         
         # 로짓으로 바꾼다(거리의 음수)
@@ -223,11 +223,11 @@ class PrototypicalNetwork(nn.Module):
         query_labels: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        에피소드의 로스와 정확도를 셈한다.
+        에피소드의 로스와 정확도를 계산한다.
         
         반환값:
             loss: 교차 엔트로피 로스
-            accuracy: 가려내기 정확도
+            accuracy: 분류 정확도
         """
         logits = self.forward(support, support_labels, query)
         loss = F.cross_entropy(logits, query_labels)
@@ -245,7 +245,7 @@ Conv4Encoder는 네 번 풀링한 뒤 적응형 평균 풀링을 적용하므로
 ```python
 class Conv4Encoder(nn.Module):
     """
-    소수 예시 학습에서 흔히 쓰는 4레이어 컨볼루션 인코더.
+    퓨샷 학습에서 흔히 쓰는 4레이어 컨볼루션 인코더.
     """
     
     def __init__(self, in_channels: int = 1, hidden_dim: int = 64):
@@ -292,14 +292,14 @@ def train_prototypical_network(
     device: str = 'cuda'
 ):
     """
-    원형 망을 한 시대 동안 익힌다.
+    프로토타입 네트워크를 한 에포크 동안 학습한다.
     """
     model.train()
     total_loss = 0
     total_acc = 0
     
     for episode in range(n_episodes):
-        # 에피소드를 뽑는다
+        # 에피소드를 샘플링한다
         support, support_labels, query, query_labels = sample_episode(
             train_dataset, n_way, k_shot, n_query
         )
@@ -309,7 +309,7 @@ def train_prototypical_network(
         query = query.to(device)
         query_labels = query_labels.to(device)
         
-        # 피드포워드와 되돌림
+        # 순전파와 역전파
         optimizer.zero_grad()
         loss, acc = model.loss(support, support_labels, query, query_labels)
         loss.backward()
@@ -323,7 +323,7 @@ def train_prototypical_network(
 
 ### 학습 설정
 
-N-way, K-shot, 클래스별 쿼리 수와 에피소드 수를 명시한다. 학습 N을 테스트보다 크게 두는 방법도 있지만 데이터셋과 인코더에 따라 효과가 달라지므로 검증 과제에서 선택한다. 온도와 임베딩 스케일은 예측 확률과 경사 크기에 영향을 준다. 모델 비교에는 같은 클래스 분할과 평가 에피소드를 사용한다.
+N-way, K-shot, 클래스별 쿼리 수와 에피소드 수를 명시한다. 학습 N을 시험보다 크게 두는 방법도 있지만 데이터셋과 인코더에 따라 효과가 달라지므로 검증 과제에서 선택한다. 온도와 임베딩 스케일은 예측 확률과 그래디언트 크기에 영향을 준다. 모델 비교에는 같은 클래스 분할과 평가 에피소드를 사용한다.
 
 ---
 
@@ -331,13 +331,13 @@ N-way, K-shot, 클래스별 쿼리 수와 에피소드 수를 명시한다. 학�
 
 ### 클래스별 다중 프로토타입
 
-아래 코드는 클래스별 KMeans로 고정 상한 개수의 군집을 계산한다. 원 논문의 비모수적 무한 혼합 모형을 구현한 것은 아니다. forward와 최종 클래스 확률 계산도 없다. 경사가 필요한 텐서를 그대로 numpy()로 변환하면 오류가 나며, detach 후 변환해도 군집화 경로의 자동 미분은 끊어진다.
+아래 코드는 클래스별 KMeans로 고정 상한 개수의 군집을 계산한다. 원 논문의 비모수적 무한 혼합 모형을 구현한 것은 아니다. forward와 최종 클래스 확률 계산도 없다. 그래디언트가 필요한 텐서를 그대로 numpy()로 변환하면 오류가 나며, detach 후 변환해도 군집화 경로의 자동 미분은 끊어진다.
 
 ```python
 class InfiniteMixturePrototypes(nn.Module):
     """
-    섞음 모델을 써서 부류마다
-    원형을 여럿 두어 나타낸다.
+    혼합 모델을 써서 클래스마다
+    프로토타입을 여럿 두어 표현한다.
     """
     
     def __init__(self, encoder: nn.Module, n_prototypes: int = 3):
@@ -351,7 +351,7 @@ class InfiniteMixturePrototypes(nn.Module):
         support_labels: torch.Tensor
     ):
         """
-        k-평균으로 부류마다 원형을 여럿 찾는다.
+        k-평균으로 클래스마다 프로토타입을 여럿 찾는다.
         """
         from sklearn.cluster import KMeans
         
@@ -377,7 +377,7 @@ class InfiniteMixturePrototypes(nn.Module):
                 kmeans.fit(class_embeddings)
                 prototypes = kmeans.cluster_centers_
                 
-                # 무리 크기로 무게를 준다
+                # 군집 크기로 가중한다
                 labels = kmeans.labels_
                 weights = [(labels == k).sum() / len(labels) 
                           for k in range(n_clusters)]
@@ -401,14 +401,14 @@ class InfiniteMixturePrototypes(nn.Module):
 ```python
 class TaskAdaptivePrototypes(nn.Module):
     """
-    받침-물음 쌍 위의 주의로 원형을 다듬는다.
+    서포트-쿼리 쌍에 대한 어텐션으로 프로토타입을 보정한다.
     """
     
     def __init__(self, encoder: nn.Module, embed_dim: int = 64):
         super().__init__()
         self.encoder = encoder
         
-        # 어텐션 장치
+        # 어텐션 메커니즘
         self.query_attention = nn.MultiheadAttention(
             embed_dim=embed_dim,
             num_heads=4,
@@ -419,22 +419,22 @@ class TaskAdaptivePrototypes(nn.Module):
         n_support = support.size(0)
         n_way = support_labels.max().item() + 1
         
-        # 부호화
+        # 인코딩
         all_images = torch.cat([support, query], dim=0)
         all_embeddings = self.encoder(all_images)
         
         support_embeddings = all_embeddings[:n_support]
         query_embeddings = all_embeddings[n_support:]
         
-        # 처음 원형
+        # 초기 프로토타입
         prototypes = []
         for c in range(n_way):
             mask = support_labels == c
             prototypes.append(support_embeddings[mask].mean(dim=0))
         prototypes = torch.stack(prototypes)  # (n_way, embed_dim)
         
-        # 물음에 주의를 주어 다듬는다
-        # 물음: 원형, 열쇠와 값: 받침 전체
+        # 어텐션으로 보정한다
+        # 쿼리: 프로토타입, 키와 값: 서포트 전체
         refined_prototypes, _ = self.query_attention(
             prototypes.unsqueeze(0),
             support_embeddings.unsqueeze(0),
@@ -442,10 +442,10 @@ class TaskAdaptivePrototypes(nn.Module):
         )
         refined_prototypes = refined_prototypes.squeeze(0)
         
-        # 본디 것과 다듬은 것을 합친다
+        # 원래 것과 보정한 것을 결합한다
         prototypes = 0.5 * prototypes + 0.5 * refined_prototypes
         
-        # 거리를 셈한다
+        # 거리를 계산한다
         distances = torch.cdist(query_embeddings, prototypes, p=2) ** 2
         
         return -distances
@@ -458,7 +458,7 @@ class TaskAdaptivePrototypes(nn.Module):
 ```python
 class SemiSupervisedProtoNet(nn.Module):
     """
-    부드러운 배정으로 이름표 없는 보기를 아우른다.
+    소프트 할당으로 라벨 없는 표본을 활용한다.
     """
     
     def __init__(self, encoder: nn.Module, n_refine_steps: int = 3):
@@ -473,28 +473,28 @@ class SemiSupervisedProtoNet(nn.Module):
         query: torch.Tensor,
         unlabeled: Optional[torch.Tensor] = None
     ):
-        # 모두 부호로 바꾼다
+        # 모두 인코딩한다
         support_emb = self.encoder(support)
         query_emb = self.encoder(query)
         
         n_way = support_labels.max().item() + 1
         
-        # 이름표 붙은 받침에서 얻은 처음 원형
+        # 라벨 있는 서포트에서 얻은 초기 프로토타입
         prototypes = self._compute_prototypes(support_emb, support_labels, n_way)
         
         if unlabeled is not None:
             unlabeled_emb = self.encoder(unlabeled)
             
-            # 원형을 되풀이하여 다듬는다
+            # 프로토타입을 반복해서 보정한다
             for _ in range(self.n_refine_steps):
-                # 이름표 없는 것을 원형에 부드럽게 배정한다
+                # 라벨 없는 표본을 프로토타입에 소프트 할당한다
                 distances = torch.cdist(unlabeled_emb, prototypes, p=2) ** 2
                 soft_labels = F.softmax(-distances, dim=1)  # (n_unlabeled, n_way)
                 
-                # 원형을 다시 셈한다
+                # 프로토타입을 다시 계산한다
                 new_prototypes = []
                 for c in range(n_way):
-                    # 이름표 없는 것까지 넣은 무게 준 평균
+                    # 라벨 없는 표본까지 포함한 가중 평균
                     labeled_mask = support_labels == c
                     labeled_contrib = support_emb[labeled_mask].sum(dim=0)
                     labeled_count = labeled_mask.sum()
@@ -508,7 +508,7 @@ class SemiSupervisedProtoNet(nn.Module):
                 
                 prototypes = torch.stack(new_prototypes)
         
-        # 마지막 가려내기
+        # 최종 분류
         distances = torch.cdist(query_emb, prototypes, p=2) ** 2
         return -distances
     
@@ -530,7 +530,7 @@ class SemiSupervisedProtoNet(nn.Module):
 
 $$\mathbb E\|\hat p_c-\mu_c\|^2=\frac{\operatorname{tr}\Sigma_c}{K}$$
 
-차원별 분산이 $\sigma^2$으로 같으면 $d\sigma^2/K$다. 평균 추정 오차가 줄어도 클래스 간 겹침이나 인코더의 바이어스는 남는다. 이 식만으로 분류 오차가 특정 속도로 줄어든다고 결론낼 수 없다.
+차원별 분산이 $\sigma^2$으로 같으면 $d\sigma^2/K$다. 평균 추정 오차가 줄어도 클래스 간 겹침이나 인코더의 편향은 남는다. 이 식만으로 분류 오차가 특정 속도로 줄어든다고 결론낼 수 없다.
 
 ### 분류 계산 비용
 
@@ -548,15 +548,15 @@ $$\mathbb E\|\hat p_c-\mu_c\|^2=\frac{\operatorname{tr}\Sigma_c}{K}$$
 
 ```python
 def forward_with_normalization(self, support, support_labels, query):
-    # 부호화
+    # 인코딩
     support_emb = self.encoder(support)
     query_emb = self.encoder(query)
     
-    # L2로 고른다(성능이 좋아질 때가 많다)
+    # L2 정규화한다(성능이 좋아질 때가 많다)
     support_emb = F.normalize(support_emb, p=2, dim=1)
     query_emb = F.normalize(query_emb, p=2, dim=1)
     
-    # 피드포워드의 나머지...
+    # 순전파의 나머지...
 ```
 
 ### 데이터 어그멘테이션
@@ -578,7 +578,7 @@ train_transform = transforms.Compose([
 
 ## 8. 실험 결과
 
-논문의 정확도를 비교할 때는 클래스 분할, 인코더, 이미지 크기, 학습·테스트 N-way와 K-shot, 평가 에피소드 수 및 신뢰구간을 함께 확인한다. 서로 다른 논문에서 조건 없이 모은 수치를 직접적인 우열로 해석하지 않는다. 이 페이지의 코드로 측정한 벤치마크 결과는 제공하지 않는다.
+논문의 정확도를 비교할 때는 클래스 분할, 인코더, 이미지 크기, 학습·시험 N-way와 K-shot, 평가 에피소드 수 및 신뢰구간을 함께 확인한다. 서로 다른 논문에서 조건 없이 모은 수치를 직접적인 우열로 해석하지 않는다. 이 페이지의 코드로 측정한 벤치마크 결과는 제공하지 않는다.
 
 ## 연습문제
 
@@ -614,7 +614,7 @@ train_transform = transforms.Compose([
 </div>
 
 ??? success "풀이"
-    torch.cdist의 기본값은 유클리드 거리이며 제곱하지 않았으므로 본문의 제곱 거리 로짓과 로스가 다르다. 순위는 같아도 확률과 경사는 달라진다. support_labels에는 0부터 n_way−1까지 빈 클래스가 없어야 한다.
+    torch.cdist의 기본값은 유클리드 거리이며 제곱하지 않았으므로 본문의 제곱 거리 로짓과 로스가 다르다. 순위는 같아도 확률과 그래디언트는 달라진다. support_labels에는 0부터 n_way−1까지 빈 클래스가 없어야 한다.
 
     ```python
     def prototypical_loss(support_emb, support_labels, query_emb, query_labels, n_way):

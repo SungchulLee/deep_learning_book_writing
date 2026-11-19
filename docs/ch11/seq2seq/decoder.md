@@ -26,7 +26,7 @@ class BasicDecoder(nn.Module):
     인수:
         output_size: 출력 어휘의 크기
         embedding_dim: 단어 임베딩의 차원
-        hidden_size: 숨은 상태의 크기
+        hidden_size: 은닉 상태의 크기
         num_layers: 순환 레이어의 수
         dropout: 드롭아웃 확률
         rnn_type: RNN의 종류 ('LSTM' 또는 'GRU')
@@ -77,13 +77,13 @@ class BasicDecoder(nn.Module):
         
         인수:
             input_token: 입력 토큰 (배치 크기, 1)
-            hidden: 앞 시각의 숨은 상태
-            cell: 앞 시각의 세포 상태 (LSTM에만 있다)
+            hidden: 앞 시각의 은닉 상태
+            cell: 앞 시각의 셀 상태 (LSTM에만 있다)
             
         반환값:
             output: 출력 예측 (배치 크기, output_size)
-            hidden: 갱신된 숨은 상태
-            cell: 갱신된 세포 상태 (LSTM에만 있다)
+            hidden: 갱신된 은닉 상태
+            cell: 갱신된 셀 상태 (LSTM에만 있다)
         """
         # 입력 토큰 임베딩
         embedded = self.embedding(input_token)  # (배치 크기, 1, embedding_dim)
@@ -104,13 +104,13 @@ class BasicDecoder(nn.Module):
 
 class AttentionDecoder(nn.Module):
     """
-    바다나우(덧셈) 어텐션 장치가 있는 디코더
+    바다나우(가산) 어텐션 메커니즘이 있는 디코더
     
     인수:
         output_size: 출력 어휘의 크기
         embedding_dim: 단어 임베딩의 차원
-        hidden_size: 디코더 숨은 상태의 크기
-        encoder_hidden_size: 인코더 숨은 상태의 크기
+        hidden_size: 디코더 은닉 상태의 크기
+        encoder_hidden_size: 인코더 은닉 상태의 크기
         num_layers: 순환 레이어의 수
         dropout: 드롭아웃 확률
         rnn_type: RNN의 종류 ('LSTM' 또는 'GRU')
@@ -133,7 +133,7 @@ class AttentionDecoder(nn.Module):
         # 드롭아웃
         self.dropout = nn.Dropout(dropout)
         
-        # 어텐션 장치
+        # 어텐션 메커니즘
         self.attention = BahdanauAttention(hidden_size, encoder_hidden_size)
         
         # RNN 레이어 (입력은 임베딩과 문맥 벡터)
@@ -167,15 +167,15 @@ class AttentionDecoder(nn.Module):
         
         인수:
             input_token: 입력 토큰 (배치 크기, 1)
-            hidden: 앞 시각의 숨은 상태
+            hidden: 앞 시각의 은닉 상태
             encoder_outputs: 인코더의 모든 출력 (배치 크기, src_len, encoder_hidden_size)
-            cell: 앞 시각의 세포 상태 (LSTM에만 있다)
+            cell: 앞 시각의 셀 상태 (LSTM에만 있다)
             mask: 패딩을 가리는 마스크 (배치 크기, src_len)
             
         반환값:
             output: 출력 예측 (배치 크기, output_size)
-            hidden: 갱신된 숨은 상태
-            cell: 갱신된 세포 상태 (LSTM에만 있다)
+            hidden: 갱신된 은닉 상태
+            cell: 갱신된 셀 상태 (LSTM에만 있다)
             attention_weights: 어텐션 웨이트 (배치 크기, src_len)
         """
         # 입력 토큰 임베딩
@@ -183,7 +183,7 @@ class AttentionDecoder(nn.Module):
         embedded = self.dropout(embedded)
         
         # 어텐션 계산
-        # 어텐션에 맨 위 레이어의 숨은 상태 쓰기
+        # 어텐션에 맨 위 레이어의 은닉 상태 쓰기
         query = hidden[-1].unsqueeze(1) if hidden.dim() == 3 else hidden.unsqueeze(1)
         context, attention_weights = self.attention(query, encoder_outputs, mask)
         
@@ -212,11 +212,11 @@ class AttentionDecoder(nn.Module):
 
 class BahdanauAttention(nn.Module):
     """
-    바다나우(덧셈) 어텐션 장치
+    바다나우(가산) 어텐션 메커니즘
     
     인수:
-        decoder_hidden_size: 디코더 숨은 상태의 크기
-        encoder_hidden_size: 인코더 숨은 상태의 크기
+        decoder_hidden_size: 디코더 은닉 상태의 크기
+        encoder_hidden_size: 인코더 은닉 상태의 크기
     """
     
     def __init__(self, decoder_hidden_size, encoder_hidden_size):
@@ -231,7 +231,7 @@ class BahdanauAttention(nn.Module):
         어텐션 웨이트와 문맥 벡터를 계산한다
         
         인수:
-            query: 디코더의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
+            query: 디코더의 은닉 상태 (배치 크기, 1, decoder_hidden_size)
             keys: 인코더의 출력 (배치 크기, src_len, encoder_hidden_size)
             mask: 패딩 마스크 (배치 크기, src_len)
             
@@ -246,7 +246,7 @@ class BahdanauAttention(nn.Module):
         query_transformed = self.W_decoder(query)  # (배치, 1, dec_hidden)
         keys_transformed = self.W_encoder(keys)    # (배치, src_len, dec_hidden)
         
-        # 방송하여 더하기
+        # 브로드캐스팅으로 더하기
         scores = self.V(torch.tanh(query_transformed + keys_transformed))  # (배치, src_len, 1)
         scores = scores.squeeze(2)  # (배치, src_len)
         
@@ -265,11 +265,11 @@ class BahdanauAttention(nn.Module):
 
 class LuongAttention(nn.Module):
     """
-    루옹(곱셈) 어텐션 장치
+    루옹(곱셈) 어텐션 메커니즘
     
     인수:
-        decoder_hidden_size: 디코더 숨은 상태의 크기
-        encoder_hidden_size: 인코더 숨은 상태의 크기
+        decoder_hidden_size: 디코더 은닉 상태의 크기
+        encoder_hidden_size: 인코더 은닉 상태의 크기
         attention_type: 점수 함수의 종류 ('dot', 'general', 'concat')
     """
     
@@ -289,7 +289,7 @@ class LuongAttention(nn.Module):
         어텐션 웨이트와 문맥 벡터를 계산한다
         
         인수:
-            query: 디코더의 숨은 상태 (배치 크기, 1, decoder_hidden_size)
+            query: 디코더의 은닉 상태 (배치 크기, 1, decoder_hidden_size)
             keys: 인코더의 출력 (배치 크기, src_len, encoder_hidden_size)
             mask: 패딩 마스크 (배치 크기, src_len)
             
@@ -403,7 +403,7 @@ AttentionDecoder는 최상위 은닉 상태를 쿼리로 삼고 BahdanauAttentio
 </div>
 
 ??? success "풀이"
-    먼저 유효 위치만 소프트맥스로 정규화하고 그 뒤 드롭아웃을 적용할 수 있다. 학습 중 합이 매번 1인 것은 아니며 유지된 값은 재스케일된다. 평가에서는 드롭아웃을 끈다. 패딩 마스크를 대신하거나 균등한 주의를 보장하는 기법은 아니다.
+    먼저 유효 위치만 소프트맥스로 정규화하고 그 뒤 드롭아웃을 적용할 수 있다. 학습 중 합이 매번 1인 것은 아니며 유지된 값은 재스케일된다. 평가에서는 드롭아웃을 끈다. 패딩 마스크를 대신하거나 균등한 어텐션을 보장하는 기법은 아니다.
 
 ---
 

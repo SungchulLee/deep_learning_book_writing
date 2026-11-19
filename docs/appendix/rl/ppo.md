@@ -1,27 +1,27 @@
 # PPO
 
-PPO은 2017년 글 "Proximal Policy Optimization Algorithms"에서 나왔다. - 크게 고쳐지는 것을 막는 *잘라 낸 대리 목표*를 쓰는 폴리시 경사 - 흔히 GAE 이득과 작은 배치 판을 쓴다.
+PPO은 2017년 논문 "Proximal Policy Optimization Algorithms"에서 나왔다. - 폴리시가 한 번에 크게 바뀌는 것을 막는 *클리핑된 대리 목적함수(clipped surrogate objective)*를 쓰는 폴리시 경사 - 흔히 GAE 어드밴티지와 미니배치 에포크를 쓴다.
 
-여기 구현은 PPO을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 PPO을 짧고 학습하기 좋게 보인 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
 ```python
 #!/usr/bin/env python3
 """
-PPO - 가까운 폴리시 다듬기
-글: "가까운 폴리시 다듬기 셈법" (2017)
+PPO - 근접 폴리시 최적화
+논문: "근접 폴리시 최적화 알고리즘" (2017)
 지은이: 존 슐먼 외
-핵심 깨침:
-  - 크게 고쳐지는 것을 막는 *잘라 낸 대리 목표*를 쓰는 폴리시 그래디언트
-  - 흔히 GAE 이득과 작은 배치 판을 쓴다
+핵심 아이디어:
+  - 폴리시가 한 번에 크게 바뀌는 것을 막는 *클리핑된 대리 목적함수(clipped surrogate objective)*를 쓰는 폴리시 그래디언트
+  - 흔히 GAE 어드밴티지와 미니배치 에포크를 쓴다
 
-잘라 낸 목표:
+클리핑된 목적함수:
   r_t = pi(a|s) / pi_old(a|s)
   L_clip = E[ min( r_t * A_t, clip(r_t, 1-eps, 1+eps) * A_t ) ]
 
-두루마리: appendix/rl/ppo.py
-눈여겨볼 것: PPO 잃음을 배우기 위해 짜 본 것이다(따로 떨어진 액션).
+파일: appendix/rl/ppo.py
+참고: PPO 로스를 교육용으로 구현한 것이다(이산 액션).
 """
 
 import torch
@@ -44,33 +44,33 @@ def ppo_loss(
     entropy_coef=0.01,
 ):
     """
-    PPO 잃음을 셈한다:
-      - 잘라 낸 폴리시 잃음
-      - 값 잃음
-      - 엔트로피 덤
+    PPO 로스를 계산한다:
+      - 클리핑된 폴리시 로스
+      - 밸류 로스
+      - 엔트로피 보너스
     """
-    # 새 폴리시와 옛 폴리시에서의 로그 확률을 셈한다
+    # 새 폴리시와 옛 폴리시에서의 로그 확률을 계산한다
     logp_new = F.log_softmax(logits_new, dim=1)
     logp_old = F.log_softmax(logits_old, dim=1)
 
     logp_new_a = logp_new.gather(1, actions.long().unsqueeze(1)).squeeze(1)
     logp_old_a = logp_old.gather(1, actions.long().unsqueeze(1)).squeeze(1)
 
-    # 종요로움 견줌 r_t = exp(log pi_new - log pi_old)
+    # 중요도 비율(importance ratio) r_t = exp(log pi_new - log pi_old)
     ratio = torch.exp(logp_new_a - logp_old_a)
 
-    # 이득은 흔히 잣대를 맞춘다. 움직이는 이가 이득으로 되짚지 않도록 떼어 낸다
+    # 어드밴티지는 흔히 정규화한다. 그래디언트가 어드밴티지 쪽으로 역전파되지 않도록 떼어 낸다(detach)
     A = advantages.detach()
 
-    # 잘라 낸 대리 목표
+    # 클리핑된 대리 목적함수
     unclipped = ratio * A
     clipped = torch.clamp(ratio, 1.0 - clip_eps, 1.0 + clip_eps) * A
     policy_loss = -torch.min(unclipped, clipped).mean()
 
-    # 값 함수 잃음
+    # 밸류 함수 로스
     value_loss = F.mse_loss(values, returns)
 
-    # 엔트로피 덤(둘러보기를 북돋운다)
+    # 엔트로피 보너스(탐색을 장려한다)
     p_new = torch.softmax(logits_new, dim=1)
     entropy = -(p_new * logp_new).sum(dim=1).mean()
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 강화학습의 핵심 깨침을 보인다. 묶음으로 나눈 구조 덕에 몫 하나하나를 살펴보고 다른 일이나 데이터셋에 맞추어 바꾸기 쉽다.
+이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 강화학습의 핵심 아이디어를 보인다. 모듈식 구조 덕분에 구성 요소 하나하나를 살펴보고 다른 과제나 데이터셋에 맞추어 바꾸기 쉽다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -93,56 +93,56 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 읽고 핵심이 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 강화학습에 알맞은지 밝혀라.
+코드를 읽고 핵심 설계 결정을 짚어라. 구조적 선택 셋을 들고, 각각이 왜 강화학습에 알맞은지 설명하라.
 
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 잣대 잡는 꾀 -- 배치 잣대 잡기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 드러내는 힘, 계산 비용, 학습의 든든함 사이의 트레이드오프를 보여 준다.
+    설계 결정은 구현마다 다르나 흔히 이런 것이 있다. (1) 활성화 함수 선택 -- ReLU 계열은 그래디언트가 포화하지 않아 학습이 빠르다. (2) 정규화 전략 -- 배치 정규화가 내부 공변량 이동(internal covariate shift)을 줄여 학습을 안정시킨다. (3) 잔차 연결 -- 있으면 스킵 경로를 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 선택마다 표현력, 계산 비용, 학습 안정성 사이의 트레이드오프를 보여 준다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력의 형태와 데이터 클래스가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
+입력의 형태와 자료형이 기대한 대로인지 확인하는 입력 검증을 주요 함수나 클래스에 더하여라. 올바르지 않은 입력에는 이해하기 쉬운 오류 메시지를 띄워라.
 
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차수를 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 더한다. 형태를 검증하려면 핵심 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅을 크게 앞당기고 코드를 재사용하기에 더 강건하게 만든다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현이 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현에서 일어날 수 있는 실패 양상(failure mode) 둘을 들고, 각각을 어떻게 탐지하고 고칠지 설명하라.
 
 </div>
 
 ??? success "풀이"
-    흔히 무너지는 결은 이렇다. (1) **그래디언트가 사라지거나 터짐** -- 그래디언트 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 그래디언트 자르기, 더 나은 첫자리 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 잣대 잡기)로 고친다. (2) **지나치게 맞추기** -- 학습 로스는 줄어드는데 따짐 로스가 오르면 짚어낸다. 다독임(드롭아웃, 짐 줄이기, 데이터 어그멘테이션)이나 모델 크기 줄이기로 고친다. 학습과 따짐 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
+    흔한 실패 양상은 이렇다. (1) **그래디언트 소실·폭발** -- 그래디언트 노름을 모니터링해 탐지한다(`torch.nn.utils.clip_grad_norm_`이나 레이어마다 `param.grad.norm()` 기록하기). 그래디언트 클리핑, 더 나은 초기화(Xavier/Kaiming), 구조 변경(잔차 연결, 정규화)으로 고친다. (2) **과적합** -- 학습 로스는 줄어드는데 검증 로스가 오르면 탐지한다. 정칙화(드롭아웃, 웨이트 감쇠, 데이터 어그멘테이션)나 모델 크기 줄이기로 고친다. 학습 지표와 검증 지표를 늘 함께 모니터링해 이를 일찍 잡아야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-PPO 구현이 옳은지 두루 따지는 시험 함수를 써라. 빈 입력, 원소 하나짜리 입력, 아주 큰 입력, 값이 끝으로 치우친 입력(0, 아주 큰 수)까지 금 언저리를 시험하여라.
+PPO 구현이 옳은지 종합적으로 검증하는 시험 함수를 작성하라. 빈 입력, 원소 하나짜리 입력, 아주 큰 입력, 극단적인 값(0, 아주 큰 수)을 가진 입력 등 경계 사례를 시험하여라.
 
 </div>
 
 ??? success "풀이"
-    금 언저리 조건을 두루 건드리는 시험 함수를 짓는다.
+    경계 조건을 두루 시험하는 함수를 만든다.
     ```python
     def test_ppo():
         model = PPO(...)
-        # 여느 들임
+        # 보통의 입력
         assert model(normal_input).shape == expected_shape
         # 원소 하나짜리 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값(넘침을 살핀다)
+        # 큰 값(오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
         # 그래디언트 흐름
@@ -151,12 +151,12 @@ PPO 구현이 옳은지 두루 따지는 시험 함수를 써라. 빈 입력, �
         for p in model.parameters():
             assert p.grad is not None
     ```
-    구조가 끝에서 끝까지 학습을 받치는지 알려면 그래디언트 흐름을 시험하는 것이 특히 중요하다.
+    구조가 엔드투엔드 학습을 지원하는지 확인하려면 그래디언트 흐름을 시험하는 것이 특히 중요하다.
 
 ## 정리하며
 
 **다룬 것** — PPO
 
-이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 강화학습의 핵심 깨침을 보인다.
+이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 강화학습의 핵심 아이디어를 보인다.
 
-앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+앞의 연습문제 4개로 스스로 확인해 볼 수 있다.

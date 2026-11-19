@@ -7,9 +7,9 @@
 ```python
 #!/usr/bin/env python3
 '''
-Seq2Seq — 뉴럴 네트워크로 하는 순차열 대 순차열 학습
+Seq2Seq — 뉴럴 네트워크로 하는 시퀀스 투 시퀀스(sequence-to-sequence) 학습
 논문: "Sequence to Sequence Learning with Neural Networks" (2014)
-핵심: 순차열 변환을 위한 인코더-디코더 구조
+핵심: 시퀀스 변환을 위한 인코더-디코더 구조
 '''
 import torch
 import torch.nn as nn
@@ -70,7 +70,7 @@ Parameters: 2,874,344
 
 ## 2. 논의
 
-Encoder의 input_size는 연속 피처 수가 아니라 입력 어휘 크기다. 정수 ID 형태 $(B,S)$를 임베딩한 뒤 인코더의 은닉·셀 상태를 반환한다. 인코더와 디코더는 같은 레이어수와 은닉 차원을 사용하므로 상태를 직접 전달할 수 있다.
+Encoder의 input_size는 연속 피처 수가 아니라 입력 어휘 크기다. 정수 ID 형태 $(B,S)$를 임베딩한 뒤 인코더의 은닉·셀 상태를 반환한다. 인코더와 디코더는 같은 레이어 수와 은닉 차원을 사용하므로 상태를 직접 전달할 수 있다.
 
 Decoder는 전달된 타깃 토큰열 전체를 입력받고 각 위치의 로짓을 계산한다. 학습 시 정답을 그대로 같은 위치의 입력과 타깃으로 쓰면 답을 미리 보게 되므로, 시작 토큰을 포함한 이전 토큰열을 입력으로 쓰고 한 칸 이동한 다음 토큰을 정답으로 만들어야 한다. 이 정렬은 현재 forward가 자동으로 수행하지 않는다.
 
@@ -81,7 +81,7 @@ Decoder는 전달된 타깃 토큰열 전체를 입력받고 각 위치의 로�
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-입력 어휘 V, 은닉 크기 h, 레이어수 L인 Encoder의 파라메터 수를 구하라.
+입력 어휘 V, 은닉 크기 h, 레이어 수 L인 Encoder의 파라메터 수를 구하라.
 
 </div>
 

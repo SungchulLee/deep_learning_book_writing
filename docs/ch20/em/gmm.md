@@ -19,9 +19,9 @@ $$p(x_i,z_i=k)=\pi_k\mathcal N(x_i;\mu_k,\Sigma_k),\qquad p(x_i)=\sum_{k=1}^K\pi
 
 라벨을 일관되게 순열하면 같은 밀도를 얻는다. 모든 성분이 구별되는 경우 K!개의 라벨 표현이 있지만 중복 성분이나 0인 비중에서는 대칭성이 달라진다. 라벨의 다중성과 서로 다른 적합 밀도의 국소 최적점은 구분한다.
 
-## 2. 로그 우도와 책임도
+## 2. 로그가능도와 책임도
 
-독립 관측의 로그 우도는 ℓ(θ)=∑ᵢlog∑ₖπₖN(xᵢ;μₖ,Σₖ)다. 이는 일반적으로 비오목하지만 미분 가능한 유효 영역에서는 직접 경사 최적화도 가능하다. EM은 숨은 라벨을 도입해 계산하기 쉬운 기댓값 완전 데이터 로그 우도를 사용한다.
+독립 관측의 로그가능도(log-likelihood, 가능도는 우도라고도 한다)는 ℓ(θ)=∑ᵢlog∑ₖπₖN(xᵢ;μₖ,Σₖ)다. 이는 일반적으로 비오목하지만 미분 가능한 유효 영역에서는 직접 그래디언트 최적화도 가능하다. EM은 잠재 라벨을 도입해 계산하기 쉬운 기댓값 완전 데이터 로그가능도를 사용한다.
 
 현재 파라메터에서 책임도와 유효 표본 수는 다음과 같다.
 
@@ -31,7 +31,7 @@ $$r_{ik}=\frac{\pi_k\mathcal N(x_i;\mu_k,\Sigma_k)}{\sum_j\pi_j\mathcal N(x_i;\m
 
 ## 3. EM 갱신의 유도
 
-라벨 지시변수를 Zᵢₖ라 하면 완전 데이터 로그 우도는 ∑ᵢₖZᵢₖ[log πₖ+log N(xᵢ;μₖ,Σₖ)]다. E 단계에서 Zᵢₖ의 기댓값을 rᵢₖ로 바꾸면 Q를 얻는다. M 단계에서는 이 r을 고정한다.
+라벨 지시변수를 Zᵢₖ라 하면 완전 데이터 로그가능도는 ∑ᵢₖZᵢₖ[log πₖ+log N(xᵢ;μₖ,Σₖ)]다. E 단계에서 Zᵢₖ의 기댓값을 rᵢₖ로 바꾸면 Q를 얻는다. M 단계에서는 이 r을 고정한다.
 
 비중 제약에 라그랑주 승수를 적용하면 Nₖ/πₖ가 모든 k에서 같아야 하므로 πₖⁿᵉʷ=Nₖ/N이다. 평균의 정상방정식은 ∑ᵢrᵢₖ(xᵢ−μₖ)=0이고, 공분산을 최적화하면 다음을 얻는다.
 
@@ -39,7 +39,7 @@ $$\mu_k^{new}=\frac{\sum_i r_{ik}x_i}{N_k},\qquad \Sigma_k^{new}=\frac{\sum_i r_
 
 공분산은 새 평균을 중심으로 계산한다. Nₖ>0이어야 하며, 가중 중심화 데이터의 랭크가 d보다 작으면 전 공분산 해는 특이하다. Nₖ는 실수 웨이트의 합이므로 단순히 Nₖ와 d+1을 비교하는 것만으로 랭크를 판정할 수 없다.
 
-아래는 표준 EM의 반복 구조다. 실제 구현의 정규화와 종료 규칙은 별도로 확인한다.
+아래는 표준 EM의 반복 구조다. 실제 구현의 정칙화와 종료 규칙은 별도로 확인한다.
 
 ```
 Input: Data X, number of components K
@@ -48,18 +48,18 @@ Output: Parameters θ = {π, μ, Σ}
 1. Initialize parameters θ⁽⁰⁾
 2. Repeat until convergence:
    
-   # E 스텝: 맡음 몫 셈하기
+   # E 단계: 책임도 계산
    For each i, k:
        γ_ik ← π_k N(x_i | μ_k, Σ_k) / Σ_j π_j N(x_i | μ_j, Σ_j)
    
-   # M 스텝: 파라메터 새로 고치기
+   # M 단계: 파라메터 갱신
    For each k:
        N_k ← Σ_i γ_ik
        π_k ← N_k / N
        μ_k ← (1/N_k) Σ_i γ_ik x_i
        Σ_k ← (1/N_k) Σ_i γ_ik (x_i - μ_k)(x_i - μ_k)ᵀ
    
-   # 모임 살피기
+   # 수렴 확인
    If |ℓ(θ⁽ᵗ⁺¹⁾) - ℓ(θ⁽ᵗ⁾)| < tolerance: break
 
 3. Return θ
@@ -69,7 +69,7 @@ Output: Parameters θ = {π, μ, Σ}
 
 무작위 데이터점이나 k-means 중심으로 평균을 초기화할 수 있다. k-means++는 기존 중심까지의 제곱 거리에 비례해 다음 중심을 선택하는 초기화 방식이며, 임의 중심으로 Lloyd 반복을 몇 차례 수행하는 것과 다르다. 여러 초기값은 국소해의 영향을 줄일 수 있으나 전역 최적해를 보장하지 않는다.
 
-소프트 책임도 대신 최대 책임도의 성분 하나에 배정하는 것은 하드 EM이다. 동일하게 고정한 구면 공분산과 동일한 비중을 사용하는 경우 평균 갱신이 k-means와 일치한다. 공분산·비중을 함께 학습하는 일반 GMM과는 다르며 표준 EM의 관측 우도 단조성을 그대로 보장하지 않는다.
+소프트 책임도 대신 최대 책임도의 성분 하나에 배정하는 것은 하드 EM이다. 동일하게 고정한 구면 공분산과 동일한 비중을 사용하는 경우 평균 갱신이 k-means와 일치한다. 공분산·비중을 함께 학습하는 일반 GMM과는 다르며 표준 EM의 관측 가능도 단조성을 그대로 보장하지 않는다.
 
 전 공분산은 성분별 상관관계를 표현하지만 추정할 값이 많다. 대각 공분산은 좌표축 방향의 분산만 표현하므로 좌표 회전에 불변인 모델이 아니다. 구면 공분산은 한 성분의 모든 방향에 같은 분산을 사용한다. 공유 공분산은 성분별 평균을 허용하면서 전체 공분산을 하나로 묶는다.
 
@@ -77,13 +77,13 @@ Output: Parameters θ = {π, μ, Σ}
 
 ## 5. 성분 수 선택
 
-성분 수와 공분산 구조는 적합도와 복잡도를 함께 비교한다. 파라메터 수를 p, 적합 로그 우도를 ℓ̂이라 하면 통상적인 기준은 다음과 같다.
+성분 수와 공분산 구조는 적합도와 복잡도를 함께 비교한다. 파라메터 수를 p, 적합 로그가능도를 ℓ̂이라 하면 통상적인 기준은 다음과 같다.
 
 $$\mathrm{AIC}=-2\hat\ell+2p,\qquad \mathrm{BIC}=-2\hat\ell+p\log N.$$
 
-두 기준 모두 작은 값을 선호한다. N>e²일 때 BIC의 단위 파라메터당 벌점이 AIC보다 크다. 그러나 혼합 모델에는 비식별성·중복 성분·경계 등의 특이성이 있어 정규 모델의 점근 이론을 그대로 적용할 수 없다. BIC를 정확한 로그 주변우도나 참 K의 보장으로 읽지 않는다.
+두 기준 모두 작은 값을 선호한다. N>e²일 때 BIC의 단위 파라메터당 패널티가 AIC보다 크다. 그러나 혼합 모델에는 비식별성·중복 성분·경계 등의 특이성이 있어 정규 모델의 점근 이론을 그대로 적용할 수 없다. BIC를 정확한 로그 주변가능도나 참 K의 보장으로 읽지 않는다.
 
-군집 분리까지 고려하는 흔한 ICL 근사는 H=−∑ᵢₖrᵢₖlog rᵢₖ라 할 때 ICL≈BIC+2H다. 배정이 불확실하면 벌점이 커지므로 밀도 추정에 좋은 K와 명확한 군집을 만드는 K가 다를 수 있다.
+군집 분리까지 고려하는 흔한 ICL 근사는 H=−∑ᵢₖrᵢₖlog rᵢₖ라 할 때 ICL≈BIC+2H다. 배정이 불확실하면 패널티가 커지므로 밀도 추정에 좋은 K와 명확한 군집을 만드는 K가 다를 수 있다.
 
 아래 선택 절차에서는 후보마다 같은 데이터와 적합 조건을 사용하고 초기화 실패나 공분산 붕괴 여부도 확인한다.
 
@@ -93,40 +93,40 @@ bic_scores = []
 
 for K in K_values:
     gmm = fit_gmm(X, K)
-    n_params = K * (1 + d + d*(d+1)/2) - 1  # 온전한 공분산
+    n_params = K * (1 + d + d*(d+1)/2) - 1  # 전 공분산
     bic = -2 * gmm.log_likelihood(X) + n_params * log(N)
     bic_scores.append(bic)
 
 best_K = K_values[argmin(bic_scores)]
 ```
 
-검증 데이터의 평균 로그 밀도로 예측 성능을 비교하는 방법도 있다. 시계열에서는 시간 순서를 고려해 평가하고 스케일 변환 같은 전처리도 훈련 데이터에서 추정한다. 훈련 우도만으로 K를 늘리면 과적합과 특이해를 놓칠 수 있다.
+검증 데이터의 평균 로그 밀도로 예측 성능을 비교하는 방법도 있다. 시계열에서는 시간 순서를 고려해 평가하고 스케일 변환 같은 전처리도 학습 데이터에서 추정한다. 학습 가능도만으로 K를 늘리면 과적합과 특이해를 놓칠 수 있다.
 
-## 6. 특이점과 명시적 정규화
+## 6. 특이점과 명시적 정칙화
 
-한 성분의 평균이 관측점과 일치하고 공분산이 그 점으로 붕괴하면 그 관측에서 밀도가 발산할 수 있다. 다른 성분이 나머지 데이터를 설명하면 전체 우도도 상계가 없어질 수 있다. 모든 x에서 분산을 줄이기만 하면 밀도가 커진다는 뜻은 아니다.
+한 성분의 평균이 관측점과 일치하고 공분산이 그 점으로 붕괴하면 그 관측에서 밀도가 발산할 수 있다. 다른 성분이 나머지 데이터를 설명하면 전체 가능도도 상계가 없어질 수 있다. 모든 x에서 분산을 줄이기만 하면 밀도가 커진다는 뜻은 아니다.
 
 <div class="storybox" markdown>
 
-**그림으로 보는 AI 1.** 최대 우도라고 부르지만 최대가 없다
+**그림으로 보는 AI 1.** 최대가능도라고 부르지만 최대가 없다
 
-위 문단은 조심스럽게 적혀 있다. 그런데 이것은 "그럴 수도 있다"가 아니라 **언제나 그렇다**는 정리다. 성분이 둘 이상이고 성분마다 분산을 따로 두면, 표본이 몇 개든 우도의 상한은 $+\infty$ 다. 키퍼와 월포위츠(1956), 그리고 데이(1969)가 적어 둔 것이 이것이다.
+위 문단은 조심스럽게 적혀 있다. 그런데 이것은 "그럴 수도 있다"가 아니라 **언제나 그렇다**는 정리다. 성분이 둘 이상이고 성분마다 분산을 따로 두면, 표본이 몇 개든 가능도의 상한은 $+\infty$ 다. 키퍼와 월포위츠(1956), 그리고 데이(1969)가 적어 둔 것이 이것이다.
 
 까닭은 딱 한 줄이다. 성분 하나의 평균을 관측점 $x_1$ 에 붙여 놓고 그 분산만 줄이면, $x_1$ 에서의 밀도가 $1/\sigma$ 로 커진다. 나머지 점들은 다른 성분이 떠맡으므로 손해가 유한하다. 직접 재어 보면 이렇다.
 
-![가로축이 분산을 1에서 몇 십년자리나 내렸는지, 세로축이 로그 우도인 그림. 성분마다 분산을 따로 둔 곡선은 잠깐 내려갔다가 곧게 올라가며, 분산이 10의 마이너스 34제곱일 때 분산이 1일 때의 값을 넘어서고 계속 올라간다. 십년자리마다 기울기가 2.303이라고 적혀 있다. 분산을 하나로 묶은 곡선은 곧바로 아래로 떨어져 네 십년자리에서 8만 2천까지 내려간다고 적혀 있다.](figures/unbounded_likelihood.svg)
+![가로축이 분산을 1에서 몇 자릿수(열 배 단위)나 내렸는지, 세로축이 로그가능도인 그림. 성분마다 분산을 따로 둔 곡선은 잠깐 내려갔다가 곧게 올라가며, 분산이 10의 마이너스 34제곱일 때 분산이 1일 때의 값을 넘어서고 계속 올라간다. 자릿수마다 기울기가 2.303이라고 적혀 있다. 분산을 하나로 묶은 곡선은 곧바로 아래로 떨어져 네 자릿수에서 8만 2천까지 내려간다고 적혀 있다.](figures/unbounded_likelihood.svg)
 
-로그 우도가 십년자리마다 **정확히 2.303**, 곧 $\ln 10$ 씩 자란다. $-\log\sigma$ 그대로다. 분산이 $10^{-34}$ 쯤에서 "분산 1"일 때의 값을 넘어서고, 거기서 멈출 이유가 없다. 아무리 좋은 적합을 찾아와도 분산을 조금 더 줄인 쪽이 언제나 더 큰 우도를 준다. **최대 우도 추정이라 부르는데 최대가 존재하지 않는다.**
+로그가능도가 자릿수마다 **정확히 2.303**, 곧 $\ln 10$ 씩 자란다. $-\log\sigma$ 그대로다. 분산이 $10^{-34}$ 쯤에서 "분산 1"일 때의 값을 넘어서고, 거기서 멈출 이유가 없다. 아무리 좋은 적합을 찾아와도 분산을 조금 더 줄인 쪽이 언제나 더 큰 가능도를 준다. **최대가능도 추정이라 부르는데 최대가 존재하지 않는다.**
 
-분산을 하나로 묶으면 사정이 뒤집힌다. 그림에서 묶은 쪽은 곧바로 아래로 떨어져 네 십년자리 만에 $-82{,}195$ 가 된다. 평균 위에 있지 않은 점들의 밀도까지 함께 0으로 보내기 때문이다. 성분마다 분산을 따로 두는 순간 이 보호가 사라진다.
+분산을 하나로 묶으면 사정이 뒤집힌다. 그림에서 묶은 쪽은 곧바로 아래로 떨어져 네 자릿수 만에 $-82{,}195$ 가 된다. 평균 위에 있지 않은 점들의 밀도까지 함께 0으로 보내기 때문이다. 성분마다 분산을 따로 두는 순간 이 보호가 사라진다.
 
-**그렇다고 EM이 망가진 것은 아니다.** 바로 이 대목이 조심할 자리다. 1978년에 키퍼가 보인 것은, 상한이 없는데도 **국소** 최대점 가운데 강일치이고 점근적으로 효율적인 것이 존재한다는 것이었다. 그러니 아래에서 고유값 하한이나 벌점이나 사전분포를 두는 것은 땜질이 아니라 **목표를 바꾸는 일**이다 — 가장 큰 우도를 찾는 일을 그만두고 쓸 만한 국소해를 찾는 일로 바꾼다. 적합 결과를 고를 때 우도가 가장 큰 것을 그냥 집으면 안 되는 까닭이고, 5절이 붕괴 여부를 함께 확인하라고 적어 둔 까닭이다.
+**그렇다고 EM이 망가진 것은 아니다.** 바로 이 대목이 조심할 자리다. 1978년에 키퍼가 보인 것은, 상한이 없는데도 **국소** 최대점 가운데 강일치이고 점근적으로 효율적인 것이 존재한다는 것이었다. 그러니 아래에서 고유값 하한이나 패널티나 사전분포를 두는 것은 땜질이 아니라 **목표를 바꾸는 일**이다 — 가장 큰 가능도를 찾는 일을 그만두고 쓸 만한 국소해를 찾는 일로 바꾼다. 적합 결과를 고를 때 가능도가 가장 큰 것을 그냥 집으면 안 되는 까닭이고, 5절이 붕괴 여부를 함께 확인하라고 적어 둔 까닭이다.
 
-_확인한 곳 — 상한이 없다는 사실은 J. Kiefer, J. Wolfowitz (1956) 와 N. E. Day, "Estimating the components of a mixture of normal distributions", *Biometrika* **56**(3), 463–474 (1969) 로 거슬러 간다. 국소 최대점의 일치성은 J. Kiefer (1978) 이다. 그림의 수는 그림을 그리는 코드가 직접 셈하며, 기울기가 $\ln 10$ 이 아니면 코드가 멈춘다._
+_확인한 곳 — 상한이 없다는 사실은 J. Kiefer, J. Wolfowitz (1956) 와 N. E. Day, "Estimating the components of a mixture of normal distributions", *Biometrika* **56**(3), 463–474 (1969) 로 거슬러 간다. 국소 최대점의 일치성은 J. Kiefer (1978) 이다. 그림의 수는 그림을 그리는 코드가 직접 계산하며, 기울기가 $\ln 10$ 이 아니면 코드가 멈춘다._
 
 </div>
 
-최소 고유값 제약, 벌점 또는 적절한 사전분포는 문제를 바꿔 이런 붕괴를 다루는 방법이다. 단순히 가중 공분산에 εI를 더하는 휴리스틱은 원래 최대 우도 해와 다르므로 목적함수의 단조성을 별도로 확인한다. 고유값 하한을 둔 정확한 제약 최적화와 대각에 일정 값을 더하는 갱신도 일반적으로 같은 연산이 아니다.
+최소 고유값 제약, 패널티 또는 적절한 사전분포는 문제를 바꿔 이런 붕괴를 다루는 방법이다. 단순히 가중 공분산에 εI를 더하는 휴리스틱은 원래 최대가능도 해와 다르므로 목적함수의 단조성을 별도로 확인한다. 고유값 하한을 둔 정확한 제약 최적화와 대각에 일정 값을 더하는 갱신도 일반적으로 같은 연산이 아니다.
 
 비중의 Dirichlet 사전에서 모든 αₖ>1이면 내부 MAP 해의 장벽 역할을 할 수 있다. αₖ=1은 균일 사전이며 αₖ<1은 오히려 경계의 희소한 비중을 선호할 수 있으므로 ‘Dirichlet이면 빈 성분을 막는다’고 일반화하지 않는다.
 
@@ -138,15 +138,15 @@ $$\Sigma_k^{MAP}=\frac{\Psi_0+S_k}{\nu_0+N_k+d+1}.$$
 
 ## 7. PyTorch 구현의 범위
 
-아래 코드는 공분산 구조별 계산과 다중 초기화의 흐름을 보여 준다. 코드 자체는 유지했으며 다음 설명은 정적 검토에 따른 것이다.
+아래 코드는 공분산 구조별 계산과 다중 초기화의 흐름을 보여 준다. 다음 설명은 코드를 읽어 확인한 것이다.
 
 초기 평균은 무작위로 고른 관측점에서 시작해 Lloyd 반복을 10회 수행하며 k-means++가 아니다. `_initialize_covariances`는 전달받은 군집 배정을 사용하지 않고 전체 데이터의 분산으로 초기화한다. 비중에 사용하는 배정은 마지막 중심 갱신 전의 값이다.
 
-`fit`의 `ll`은 M 단계 전 E 단계에서 계산된다. 최대 반복 수에 도달하면 저장 파라메터는 마지막 M 단계 이후인데 비교에 쓰는 우도는 이전 값일 수 있다. 따라서 `lower_bound_`를 최종 파라메터의 재평가 우도나 별도로 계산한 ELBO로 해석하면 안 된다. `converged_`와 `n_iter_`도 초기화별·최선 결과별로 일관되게 저장하지 않아 선택된 모델의 메타데이터라고 단정할 수 없다.
+`fit`의 `ll`은 M 단계 전 E 단계에서 계산된다. 최대 반복 수에 도달하면 저장 파라메터는 마지막 M 단계 이후인데 비교에 쓰는 가능도는 이전 값일 수 있다. 따라서 `lower_bound_`를 최종 파라메터의 재평가 가능도나 별도로 계산한 ELBO로 해석하면 안 된다. `converged_`와 `n_iter_`도 초기화별·최선 결과별로 일관되게 저장하지 않아 선택된 모델의 메타데이터라고 단정할 수 없다.
 
 Nₖ에 작은 상수를 더하고 N으로 나누므로 비중의 합이 정확히 1인 갱신도 아니다. 밀도 평가와 샘플링에서 공분산에 `reg_covar * I`를 더하지만 저장된 공분산 갱신은 그 유효 공분산을 정확히 최대화하는 방식이 아니다. Cholesky 실패 뒤 일반 역행렬을 쓰는 분기는 잘못된 공분산을 양의 정부호로 고쳐 주지 않는다.
 
-코드에서 대각 구조의 이름은 `'diagonal'`이다. 입력 검증과 장치·자료형 전달은 일반화되어 있지 않으며 1≤K≤N, 유효한 반복 수·데이터·공분산을 전제로 읽는다. `score`는 관측당 평균 로그 밀도이고 AIC/BIC는 총 로그 우도를 사용한다. 서로 다른 단위를 혼동하지 않는다.
+코드에서 대각 구조의 이름은 `'diagonal'`이다. 입력 검증과 장치·자료형 전달은 일반화되어 있지 않으며 1≤K≤N, 유효한 반복 수·데이터·공분산을 전제로 읽는다. `score`는 관측당 평균 로그 밀도이고 AIC/BIC는 총 로그가능도를 사용한다. 서로 다른 단위를 혼동하지 않는다.
 
 ```python
 import torch
@@ -156,9 +156,9 @@ from typing import Tuple, Optional
 
 class GaussianMixtureModel:
     """
-    온전한 EM 구현을 갖춘 가우스 섞음 모형.
+    완전한 EM 구현을 갖춘 가우시안 혼합 모델.
     
-    여러 공분산 클래스와 벌주기를 받쳐 준다.
+    여러 공분산 유형과 정칙화를 지원한다.
     """
     
     def __init__(
@@ -175,15 +175,15 @@ class GaussianMixtureModel:
     ):
         """
         인수:
-            n_components: 섞음 성분의 개수(K)
-            n_features: 자료의 차원(d)
+            n_components: 혼합 성분의 개수(K)
+            n_features: 데이터의 차원(d)
             covariance_type: 'full', 'diagonal', 'spherical', 'tied' 가운데 하나
-            reg_covar: 공분산의 대각에 더하는 벌주기
+            reg_covar: 공분산의 대각에 더하는 정칙화
             init_method: 'kmeans', 'random', 'kmeans++' 가운데 하나
-            n_init: 시도할 첫값 잡기의 횟수
-            max_iter: 최대 EM 되풀이 횟수
-            tol: 모임 너그러움
-            random_state: 무작위 씨앗
+            n_init: 시도할 초기화의 횟수
+            max_iter: 최대 EM 반복 횟수
+            tol: 수렴 허용오차
+            random_state: 난수 시드
         """
         self.K = n_components
         self.d = n_features
@@ -197,38 +197,38 @@ class GaussianMixtureModel:
         if random_state is not None:
             torch.manual_seed(random_state)
         
-        # 파라메터(fit에서 첫값을 잡는다)
+        # 파라메터(fit에서 초기화한다)
         self.weights_ = None      # (K,)
         self.means_ = None        # (K, d)
         self.covariances_ = None  # 형태는 covariance_type에 달렸다
         
-        # 맞추기 정보
+        # 적합 정보
         self.converged_ = False
         self.n_iter_ = 0
         self.lower_bound_ = float('-inf')
         
     def _initialize_parameters(self, X: torch.Tensor):
-        """가우스 섞음 모형의 파라메터 첫값 잡기."""
+        """가우시안 혼합 모델의 파라메터 초기화."""
         N, d = X.shape
         
         if self.init_method == 'kmeans':
-            # 단순한 k 평균 첫값 잡기
+            # 단순한 k-평균 초기화
             indices = torch.randperm(N)[:self.K]
             self.means_ = X[indices].clone()
             
-            # k 평균을 몇 번 되풀이하기
+            # k-평균을 몇 번 반복하기
             for _ in range(10):
-                # 점을 가장 가까운 가운데에 배정
+                # 점을 가장 가까운 중심에 배정
                 dists = torch.cdist(X, self.means_)
                 assignments = dists.argmin(dim=1)
                 
-                # 가운데 새로 고치기
+                # 중심 갱신
                 for k in range(self.K):
                     mask = assignments == k
                     if mask.sum() > 0:
                         self.means_[k] = X[mask].mean(dim=0)
             
-            # k 평균 무리로 공분산 첫값 잡기
+            # k-평균 군집으로 공분산 초기화
             self._initialize_covariances(X, assignments)
             
             # 웨이트 초기화
@@ -237,7 +237,7 @@ class GaussianMixtureModel:
             ).float() / N
             
         elif self.init_method == 'random':
-            # 무작위 첫값 잡기
+            # 무작위 초기화
             self.means_ = X[torch.randperm(N)[:self.K]].clone()
             self.weights_ = torch.ones(self.K) / self.K
             self._initialize_covariances(X, None)
@@ -245,7 +245,7 @@ class GaussianMixtureModel:
     def _initialize_covariances(
         self, X: torch.Tensor, assignments: Optional[torch.Tensor]
     ):
-        """공분산 행렬 첫값 잡기."""
+        """공분산 행렬 초기화."""
         N, d = X.shape
         
         if self.covariance_type == 'full':
@@ -263,7 +263,7 @@ class GaussianMixtureModel:
             
     def _compute_log_prob(self, X: torch.Tensor) -> torch.Tensor:
         """
-        관측마다 성분마다 log p(x|z=k) 셈하기.
+        관측마다 성분마다 log p(x|z=k) 계산.
         
         반환값:
             log_prob: 로그 확률의 (N, K) 텐서
@@ -281,20 +281,20 @@ class GaussianMixtureModel:
             elif self.covariance_type == 'tied':
                 cov = self.covariances_
                 
-            # 벌주기 더하기
+            # 정칙화 더하기
             cov = cov + self.reg_covar * torch.eye(self.d)
             
-            # 로그 확률 셈하기
+            # 로그 확률 계산
             diff = X - self.means_[k]
             
-            # 수치 안정을 위한 촐레스키
+            # 수치 안정을 위한 촐레스키 분해
             try:
                 L = torch.linalg.cholesky(cov)
                 log_det = 2 * torch.log(torch.diag(L)).sum()
                 solve = torch.linalg.solve_triangular(L, diff.T, upper=False)
                 mahalanobis = (solve ** 2).sum(dim=0)
             except:
-                # 곧바른 셈하기로 물러서기
+                # 직접 계산으로 폴백
                 log_det = torch.logdet(cov)
                 cov_inv = torch.inverse(cov)
                 mahalanobis = (diff @ cov_inv * diff).sum(dim=1)
@@ -309,7 +309,7 @@ class GaussianMixtureModel:
     
     def _e_step(self, X: torch.Tensor) -> Tuple[torch.Tensor, float]:
         """
-        E 스텝: 맡음 몫과 로그 가능도 셈하기.
+        E 단계: 책임도과 로그가능도 계산.
         
         반환값:
             responsibilities: (N, K) 텐서
@@ -318,13 +318,13 @@ class GaussianMixtureModel:
         log_prob = self._compute_log_prob(X)  # (N, K)
         log_weights = torch.log(self.weights_)  # (K,)
         
-        # 로그 맡음 몫(고르게 하지 않음)
+        # 로그 책임도(정규화 전)
         log_resp = log_prob + log_weights  # (N, K)
         
-        # 고르게 하기 위한 log-sum-exp
+        # 정규화를 위한 log-sum-exp
         log_resp_norm = torch.logsumexp(log_resp, dim=1, keepdim=True)  # (N, 1)
         
-        # 고르게 한 로그 맡음 몫
+        # 정규화한 로그 책임도
         log_resp = log_resp - log_resp_norm
         
         # 로그가능도
@@ -333,10 +333,10 @@ class GaussianMixtureModel:
         return torch.exp(log_resp), log_likelihood
     
     def _m_step(self, X: torch.Tensor, responsibilities: torch.Tensor):
-        """M 스텝: 맡음 몫이 주어졌을 때 파라메터 새로 고치기."""
+        """M 단계: 책임도이 주어졌을 때 파라메터 갱신."""
         N = X.shape[0]
         
-        # 실효 횟수
+        # 유효 표본 수
         N_k = responsibilities.sum(dim=0) + 1e-10  # (K,)
         
         # 웨이트를 갱신한다
@@ -354,7 +354,7 @@ class GaussianMixtureModel:
         responsibilities: torch.Tensor,
         N_k: torch.Tensor
     ):
-        """covariance_type에 따라 공분산 행렬 새로 고치기."""
+        """covariance_type에 따라 공분산 행렬 갱신."""
         N, d = X.shape
         
         if self.covariance_type == 'full':
@@ -385,10 +385,10 @@ class GaussianMixtureModel:
     
     def fit(self, X: torch.Tensor, verbose: bool = False) -> 'GaussianMixtureModel':
         """
-        EM 알고리즘으로 가우스 섞음 모형 맞추기.
+        EM 알고리즘으로 가우시안 혼합 모델 적합하기.
         
         인수:
-            X: 형태가 (N, d)인 자료 텐서
+            X: 형태가 (N, d)인 데이터 텐서
             verbose: 진행 상황 출력 여부
             
         반환값:
@@ -404,10 +404,10 @@ class GaussianMixtureModel:
             prev_ll = float('-inf')
             
             for iteration in range(self.max_iter):
-                # E 스텝
+                # E 단계
                 responsibilities, ll = self._e_step(X)
                 
-                # 모임 살피기
+                # 수렴 확인
                 if abs(ll - prev_ll) < self.tol:
                     self.converged_ = True
                     self.n_iter_ = iteration + 1
@@ -416,12 +416,12 @@ class GaussianMixtureModel:
                 if verbose and iteration % 10 == 0:
                     print(f"Init {init+1}, Iter {iteration}: LL = {ll:.4f}")
                 
-                # M 스텝
+                # M 단계
                 self._m_step(X, responsibilities)
                 
                 prev_ll = ll
             
-            # 가장 좋은 첫값 남기기
+            # 가장 좋은 초기화 결과 보존
             if ll > best_ll:
                 best_ll = ll
                 best_params = (
@@ -431,29 +431,29 @@ class GaussianMixtureModel:
                     else [c.clone() for c in self.covariances_]
                 )
         
-        # 가장 좋은 파라메터 되돌리기
+        # 가장 좋은 파라메터 복원
         self.weights_, self.means_, self.covariances_ = best_params
         self.lower_bound_ = best_ll
         
         return self
     
     def predict(self, X: torch.Tensor) -> torch.Tensor:
-        """무리 이름표 미리보기."""
+        """군집 라벨 예측."""
         responsibilities, _ = self._e_step(X)
         return responsibilities.argmax(dim=1)
     
     def predict_proba(self, X: torch.Tensor) -> torch.Tensor:
-        """무리 확률 미리보기."""
+        """군집 확률 예측."""
         responsibilities, _ = self._e_step(X)
         return responsibilities
     
     def score(self, X: torch.Tensor) -> float:
-        """평균 로그 가능도 셈하기."""
+        """평균 로그가능도 계산."""
         _, ll = self._e_step(X)
         return ll / X.shape[0]
     
     def bic(self, X: torch.Tensor) -> float:
-        """베이즈 정보 기준을 셈한다."""
+        """베이즈 정보 기준(BIC)을 계산한다."""
         N = X.shape[0]
         _, ll = self._e_step(X)
         
@@ -470,8 +470,8 @@ class GaussianMixtureModel:
         return -2 * ll + n_params * torch.log(torch.tensor(N)).item()
     
     def sample(self, n_samples: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        """맞춘 모형에서 표본 만들기."""
-        # 성분 배정 표집
+        """적합한 모델에서 표본 생성."""
+        # 성분 배정 샘플링
         component_counts = torch.multinomial(
             self.weights_, n_samples, replacement=True
         )
@@ -502,7 +502,7 @@ class GaussianMixtureModel:
         X = torch.cat(samples, dim=0)
         y = torch.tensor(labels)
         
-        # 뒤섞는다
+        # 섞는다(셔플)
         perm = torch.randperm(n_samples)
         return X[perm], y[perm]
 ```
@@ -536,7 +536,7 @@ $$F_R(q)=\sum_k\pi_k\Phi\left(\frac{q-\mu_k}{\sigma_k}\right).$$
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-책임도로부터 비중·평균·공분산의 최대 우도 갱신을 설명하라.
+책임도로부터 비중·평균·공분산의 최대가능도 갱신을 설명하라.
 
 </div>
 
@@ -560,13 +560,13 @@ $$F_R(q)=\sum_k\pi_k\Phi\left(\frac{q-\mu_k}{\sigma_k}\right).$$
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-예제에서 `lower_bound_`와 최종 모델의 우도가 어긋날 수 있는 시점을 설명하라.
+예제에서 `lower_bound_`와 최종 모델의 가능도가 어긋날 수 있는 시점을 설명하라.
 
 </div>
 
 ??? success "풀이"
-    E 단계에서 ll을 계산한 뒤 M 단계를 수행하고 최대 반복 수로 종료하면, 최종 파라메터는 바뀌었지만 ll은 이전 값이다. 다중 초기화의 비교와 저장된 lower_bound_도 이 영향을 받을 수 있으므로 최종 파라메터에서 우도를 재평가해야 일관된 비교가 된다.
+    E 단계에서 ll을 계산한 뒤 M 단계를 수행하고 최대 반복 수로 종료하면, 최종 파라메터는 바뀌었지만 ll은 이전 값이다. 다중 초기화의 비교와 저장된 lower_bound_도 이 영향을 받을 수 있으므로 최종 파라메터에서 가능도를 재평가해야 일관된 비교가 된다.
 
 ## 정리하며
 
-GMM의 EM은 책임도를 계산한 뒤 가중 최대 우도 추정으로 파라메터를 갱신한다. 공분산 구조·초기화·특이점 제어와 평가 기준을 함께 고려하고, 혼합 모델의 비식별성과 예제 구현의 한계를 구분한다. 혼합분포의 분위수는 혼합 CDF에서 구한다.
+GMM의 EM은 책임도를 계산한 뒤 가중 최대가능도 추정으로 파라메터를 갱신한다. 공분산 구조·초기화·특이점 제어와 평가 기준을 함께 고려하고, 혼합 모델의 비식별성과 예제 구현의 한계를 구분한다. 혼합분포의 분위수는 혼합 CDF에서 구한다.

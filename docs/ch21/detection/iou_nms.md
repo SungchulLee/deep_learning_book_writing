@@ -1,6 +1,6 @@
 # IoU와 비최대 억제(NMS)
 
-객체 탐지에서는 경계 상자의 겹침을 측정하고, 같은 객체에 대한 중복 후보를 정리해야 한다. IoU는 두 영역의 겹침 비율이며 NMS는 점수와 겹침에 따른 후보 선택 규칙이다. 높은 IoU가 곧 같은 객체라는 뜻은 아니고, NMS가 정답 객체를 알고 선택하는 것도 아니다.
+객체 탐지에서는 경계 상자의 겹침을 측정하고, 같은 객체에 대한 중복 후보를 정리해야 한다. IoU(Intersection over Union)는 두 영역의 교집합 넓이를 합집합 넓이로 나눈 겹침 비율이며 NMS는 점수와 겹침에 따른 후보 선택 규칙이다. 높은 IoU가 곧 같은 객체라는 뜻은 아니고, NMS가 정답 객체를 알고 선택하는 것도 아니다.
 
 ## 1. IoU의 정의와 좌표
 
@@ -22,7 +22,7 @@ $$\operatorname{IoU}(A,B)=\frac{|A\cap B|}{|A|+|B|-|A\cap B|}.$$
 
 교집합의 왼쪽 위는 두 시작 좌표의 최댓값, 오른쪽 아래는 끝 좌표의 최솟값이다. 교집합 너비·높이를 각각 0 이상으로 잘라 곱하고 합집합은 두 면적의 합에서 교집합을 뺀다. 양의 면적 상자에서 IoU는 0~1이고 대칭이다. 경계만 접촉해도 교집합 면적이 0이므로 IoU=0이다. ε 없는 정의에서 IoU=1이면 두 상자가 일치한다.
 
-두 상자를 같은 비율로 확대하거나 같은 양만큼 이동해도 IoU는 같다. 공통 좌표 축별 양의 스케일 변환에도 면적 배수가 약분된다. 한 상자만 바꾸거나 고정 ε의 영향을 무시할 수 없는 경우까지 불변인 것은 아니다. 큰 물체와 작은 물체에서 같은 픽셀 이동이 서로 다른 IoU를 만들 수 있다.
+두 상자를 같은 비율로 확대하거나 같은 양만큼 이동해도 IoU는 같다. 공통 좌표 축별 양의 스케일 변환에도 면적 배수가 약분된다. 한 상자만 바꾸거나 고정 ε의 영향을 무시할 수 없는 경우까지 불변인 것은 아니다. 큰 객체와 작은 객체에서 같은 픽셀 이동이 서로 다른 IoU를 만들 수 있다.
 
 ```python
 import torch
@@ -34,9 +34,9 @@ def box_iou(
     eps: float = 1e-7
 ) -> torch.Tensor:
     """
-    두 상자 모음 사이의 짝짓기 겹침 비를 셈한다.
+    두 상자 집합 사이의 모든 쌍(pairwise) IoU를 계산한다.
     
-    여기 짠 것은 효율을 위해 배치 셈을 받쳐 준다.
+    이 구현은 효율을 위해 배치 연산을 지원한다.
     
     인수:
         boxes1: xyxy 형태의, 형태가 (N, 4)인 텐서
@@ -44,9 +44,9 @@ def box_iou(
         eps: 0으로 나누지 않도록 하는 작은 엡실론
         
     반환값:
-        짝짓기 겹침 비 값을 담은, 형태가 (N, M)인 텐서
+        쌍별 IoU 값을 담은, 형태가 (N, M)인 텐서
         
-    보기:
+    예:
         >>> boxes1 = torch.tensor([[0, 0, 10, 10], [5, 5, 15, 15]], dtype=torch.float32)
         >>> boxes2 = torch.tensor([[5, 5, 15, 15], [20, 20, 30, 30]], dtype=torch.float32)
         >>> iou = box_iou(boxes1, boxes2)
@@ -54,45 +54,45 @@ def box_iou(
         tensor([[0.1429, 0.0000],
                 [1.0000, 0.0000]])
     """
-    # 자리표 뽑아내기
-    # boxes1: 퍼뜨리기를 위해 (N, 4) -> (N, 1, 4)
-    # boxes2: 퍼뜨리기를 위해 (M, 4) -> (1, M, 4)
+    # 좌표 추출
+    # boxes1: 브로드캐스팅을 위해 (N, 4) -> (N, 1, 4)
+    # boxes2: 브로드캐스팅을 위해 (M, 4) -> (1, M, 4)
     x1_1, y1_1, x2_1, y2_1 = boxes1.unsqueeze(1).unbind(-1)
     x1_2, y1_2, x2_2, y2_2 = boxes2.unsqueeze(0).unbind(-1)
     
-    # 교집합 자리표 셈하기
+    # 교집합 좌표 계산하기
     inter_x1 = torch.max(x1_1, x1_2)
     inter_y1 = torch.max(y1_1, y1_2)
     inter_x2 = torch.min(x2_1, x2_2)
     inter_y2 = torch.min(y2_1, y2_2)
     
-    # 교집합 넓이 셈하기(안 겹치면 0으로 묶기)
+    # 교집합 넓이 계산하기(안 겹치면 0으로 클램프)
     inter_width = (inter_x2 - inter_x1).clamp(min=0)
     inter_height = (inter_y2 - inter_y1).clamp(min=0)
     inter_area = inter_width * inter_height
     
-    # 낱낱의 넓이 셈하기
+    # 각 상자의 넓이 계산하기
     area1 = (x2_1 - x1_1) * (y2_1 - y1_1)
     area2 = (x2_2 - x1_2) * (y2_2 - y1_2)
     
-    # 합집합 넓이 셈하기
+    # 합집합 넓이 계산하기
     union_area = area1 + area2 - inter_area
     
-    # 겹침 비 셈하기
+    # IoU 계산하기
     iou = inter_area / (union_area + eps)
     
     return iou
 
 def box_iou_single(box1: torch.Tensor, box2: torch.Tensor) -> float:
     """
-    낱낱의 두 상자 사이 겹침 비를 셈한다.
+    상자 한 쌍의 IoU를 계산한다.
     
     인수:
         box1: xyxy 형태의, 형태가 (4,)인 텐서
         box2: xyxy 형태의, 형태가 (4,)인 텐서
         
     반환값:
-        실수로 된 겹침 비 값
+        실수로 된 IoU 값
     """
     return box_iou(box1.unsqueeze(0), box2.unsqueeze(0)).item()
 ```
@@ -105,16 +105,16 @@ def batch_iou(
     target_boxes: torch.Tensor
 ) -> torch.Tensor:
     """
-    짝지어진 상자 사이의 겹침 비를 셈한다(짝짓기가 아님).
+    대응된 상자 쌍의 IoU를 계산한다(모든 쌍이 아님).
     
-    어림이 이미 목표에 짝지어진 익히기 동안 쓸모 있다.
+    예측이 이미 목표에 매칭된 학습 단계에서 쓸모 있다.
     
     인수:
-        pred_boxes: xyxy 형태의 (N, 4) 어림 상자
+        pred_boxes: xyxy 형태의 (N, 4) 예측 상자
         target_boxes: xyxy 형태의 (N, 4) 목표 상자
         
     반환값:
-        (N,) 어림-목표 짝마다의 겹침 비 값
+        (N,) 예측-목표 쌍마다의 IoU 값
     """
     # 교집합
     inter_x1 = torch.max(pred_boxes[:, 0], target_boxes[:, 0])
@@ -152,9 +152,9 @@ def generalized_box_iou(
     eps: float = 1e-7
 ) -> torch.Tensor:
     """
-    짝지어진 상자 사이의 넓힌 겹침 비를 셈한다.
+    대응된 상자 쌍의 일반화 IoU(GIoU)를 계산한다.
     
-    GIoU = 겹침 비 - (감싸는 상자의 넓이 - 합집합) / 감싸는 상자의 넓이
+    GIoU = IoU - (감싸는 상자의 넓이 - 합집합) / 감싸는 상자의 넓이
     
     인수:
         boxes1: xyxy 형태의 (N, 4) 상자
@@ -166,7 +166,7 @@ def generalized_box_iou(
     참고:
         Rezatofighi 외, "Generalized Intersection over Union", CVPR 2019
     """
-    # 보통의 겹침 비 셈하기
+    # 보통의 IoU 계산하기
     inter_x1 = torch.max(boxes1[:, 0], boxes2[:, 0])
     inter_y1 = torch.max(boxes1[:, 1], boxes2[:, 1])
     inter_x2 = torch.min(boxes1[:, 2], boxes2[:, 2])
@@ -195,7 +195,7 @@ def generalized_box_iou(
     return giou
 ```
 
-GIoU는 감싸는 영역에서 비어 있는 면적을 벌점으로 주며 범위는 −1~1이다. 다만 모든 상황에서 유용한 그래디언트를 보장하지는 않는다. 한 상자가 다른 상자 안에 있으면 C가 합집합과 같아 GIoU=IoU이고, 두 상자가 일치하지 않아도 이 등식이 성립한다.
+GIoU는 감싸는 영역에서 비어 있는 면적을 패널티로 주며 범위는 −1~1이다. 다만 모든 상황에서 유용한 그래디언트를 보장하지는 않는다. 한 상자가 다른 상자 안에 있으면 C가 합집합과 같아 GIoU=IoU이고, 두 상자가 일치하지 않아도 이 등식이 성립한다.
 
 DIoU는 중심 거리, CIoU는 여기에 가로세로비 차이를 반영한다. 중심 거리 ρ와 C의 대각선 길이 c에 대해 다음과 같다.
 
@@ -214,12 +214,12 @@ def complete_box_iou(
     eps: float = 1e-7
 ) -> torch.Tensor:
     """
-    짝지어진 상자 사이의 온전한 겹침 비(CIoU)를 셈한다.
+    대응된 상자 쌍의 완전 IoU(CIoU)를 계산한다.
     
-    CIoU는 겹침, 가운데점 거리, 가로세로비를 헤아린다.
+    CIoU는 겹침, 중심점 거리, 가로세로비를 고려한다.
     
     인수:
-        boxes1: xyxy 형태의 (N, 4) 어림 상자
+        boxes1: xyxy 형태의 (N, 4) 예측 상자
         boxes2: xyxy 형태의 (N, 4) 목표 상자
         
     반환값:
@@ -228,7 +228,7 @@ def complete_box_iou(
     참고:
         Zheng 외, "Distance-IoU Loss", AAAI 2020
     """
-    # 겹침 비 셈하기
+    # IoU 계산하기
     inter_x1 = torch.max(boxes1[:, 0], boxes2[:, 0])
     inter_y1 = torch.max(boxes1[:, 1], boxes2[:, 1])
     inter_x2 = torch.min(boxes1[:, 2], boxes2[:, 2])
@@ -243,7 +243,7 @@ def complete_box_iou(
     
     iou = inter_area / (union_area + eps)
     
-    # 가운데점 거리
+    # 중심점 거리
     center1_x = (boxes1[:, 0] + boxes1[:, 2]) / 2
     center1_y = (boxes1[:, 1] + boxes1[:, 3]) / 2
     center2_x = (boxes2[:, 0] + boxes2[:, 2]) / 2
@@ -319,22 +319,22 @@ def nms(
     iou_threshold: float = 0.5
 ) -> torch.Tensor:
     """
-    알아낸 상자에 최대가 아닌 것 누르기를 한다.
+    탐지된 상자에 비최대 억제를 적용한다.
     
-    이것은 러닝을 위한 순수 파이썬 짜기이다.
-    실전에서는 C++로 다듬은 torchvision.ops.nms를 쓴다.
+    이것은 학습용 순수 파이썬 구현이다.
+    실전에서는 C++로 최적화된 torchvision.ops.nms를 쓴다.
     
     인수:
-        boxes: xyxy 형태의 (N, 4) 두름 상자
-        scores: (N,) 믿음도 점수
-        iou_threshold: 누르기용 겹침 비 임계값
+        boxes: xyxy 형태의 (N, 4) 경계 상자
+        scores: (N,) 신뢰도 점수
+        iou_threshold: 억제용 IoU 임계값
         
     반환값:
-        남길 상자의 번호
+        남길 상자의 인덱스
         
     복잡도:
         시간: 상자 N개에 O(N² × 4)
-        공간: 번호에 O(N)
+        공간: 인덱스에 O(N)
     """
     if boxes.numel() == 0:
         return torch.empty(0, dtype=torch.long, device=boxes.device)
@@ -352,16 +352,16 @@ def nms(
         if sorted_indices.numel() == 1:
             break
         
-        # 남은 번호 얻기
+        # 남은 인덱스 얻기
         remaining_indices = sorted_indices[1:]
         
-        # 지금 상자와 남은 상자 사이 겹침 비 셈하기
+        # 현재 상자와 남은 상자 사이 IoU 계산하기
         current_box = boxes[current_idx].unsqueeze(0)
         remaining_boxes = boxes[remaining_indices]
         
         ious = box_iou(current_box, remaining_boxes).squeeze(0)
         
-        # 겹침 비가 임계값 아래인 상자 남기기
+        # IoU가 임계값 아래인 상자 남기기
         mask = ious < iou_threshold
         sorted_indices = remaining_indices[mask]
     
@@ -374,20 +374,20 @@ def batched_nms(
     iou_threshold: float = 0.5
 ) -> torch.Tensor:
     """
-    클래스마다 따로 NMS를 한다.
+    클래스마다 따로 NMS를 적용한다.
     
-    클래스가 다른 상자끼리는 서로 누르지 않는다.
+    클래스가 다른 상자끼리는 서로 억제하지 않는다.
     
     인수:
-        boxes: (N, 4) 두름 상자
-        scores: (N,) 믿음도 점수
-        labels: (N,) 클래스 이름표
-        iou_threshold: 겹침 비 임계값
+        boxes: (N, 4) 경계 상자
+        scores: (N,) 신뢰도 점수
+        labels: (N,) 클래스 라벨
+        iou_threshold: IoU 임계값
         
     반환값:
-        남길 상자의 번호
+        남길 상자의 인덱스
     """
-    # 클래스끼리 누르지 않도록 클래스별로 상자를 밀기
+    # 클래스끼리 억제하지 않도록 클래스별로 상자를 이동
     max_coord = boxes.max()
     offsets = labels.float() * (max_coord + 1)
     boxes_for_nms = boxes + offsets[:, None]
@@ -418,7 +418,7 @@ final_labels = labels[keep_indices]
 
 ## 4. Soft-NMS와 거리 기반 NMS
 
-Soft-NMS는 후보를 즉시 삭제하는 대신 겹침에 따라 점수를 낮추고 갱신된 점수의 최댓값을 다시 선택한다. 가우스 방식은 σ>0에서 다음과 같다.
+Soft-NMS는 후보를 즉시 삭제하는 대신 겹침에 따라 점수를 낮추고 갱신된 점수의 최댓값을 다시 선택한다. 가우시안 방식은 σ>0에서 다음과 같다.
 
 $$s_i\leftarrow s_i\exp[-\operatorname{IoU}(M,b_i)^2/\sigma].$$
 
@@ -434,17 +434,17 @@ def soft_nms(
     method: str = 'gaussian'
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
-    부드러운 최대가 아닌 것 누르기.
+    Soft-NMS(소프트 비최대 억제).
     
     겹치는 상자를 없애는 대신 그 점수를 줄인다.
-    물체가 겹치는 붐비는 장면에 더 낫다.
+    객체가 겹치는 혼잡한 장면에 더 낫다.
     
     인수:
-        boxes: xyxy 형태의 (N, 4) 두름 상자
-        scores: (N,) 믿음도 점수
-        iou_threshold: 선형 방식의 겹침 비 임계값
+        boxes: xyxy 형태의 (N, 4) 경계 상자
+        scores: (N,) 신뢰도 점수
+        iou_threshold: 선형 방식의 IoU 임계값
         score_threshold: 남길 최소 점수
-        sigma: 가우스 줄임 파라메터
+        sigma: 가우시안 감쇠 파라메터
         method: 'linear' 또는 'gaussian'
         
     반환값:
@@ -467,20 +467,20 @@ def soft_nms(
         if scores.numel() == 1:
             break
         
-        # 지금 상자를 얻어 나머지와 겹침 비 셈하기
+        # 현재 상자를 얻어 나머지와 IoU 계산하기
         current_box = boxes[max_idx:max_idx+1]
         
-        # 지금 상자를 헤아림에서 빼기
+        # 현재 상자를 후보에서 제외
         mask = torch.ones(scores.numel(), dtype=torch.bool, device=boxes.device)
         mask[max_idx] = False
         boxes = boxes[mask]
         scores = scores[mask]
         indices = indices[mask]
         
-        # 겹침 비 셈하기
+        # IoU 계산하기
         ious = box_iou(current_box, boxes).squeeze(0)
         
-        # 겹침 비에 따라 점수 줄이기
+        # IoU에 따라 점수 줄이기
         if method == 'gaussian':
             decay = torch.exp(-(ious ** 2) / sigma)
         else:  # 선형
@@ -510,18 +510,18 @@ def diou_nms(
     beta: float = 0.6
 ) -> torch.Tensor:
     """
-    DIoU에 바탕한 최대가 아닌 것 누르기.
+    DIoU 기반 비최대 억제.
     
-    겹치는 물체를 더 잘 다루려 겹침 비 대신 DIoU를 쓴다.
+    겹치는 객체를 더 잘 다루려 IoU 대신 DIoU를 쓴다.
     
     인수:
-        boxes: xyxy 형태의 (N, 4) 두름 상자
-        scores: (N,) 믿음도 점수
-        iou_threshold: 누르기용 DIoU 임계값
-        beta: DIoU의 지수(가운데점 거리 무게를 다스린다)
+        boxes: xyxy 형태의 (N, 4) 경계 상자
+        scores: (N,) 신뢰도 점수
+        iou_threshold: 억제용 DIoU 임계값
+        beta: DIoU의 지수(중심점 거리의 가중을 조절한다)
         
     반환값:
-        남길 상자의 번호
+        남길 상자의 인덱스
     """
     if boxes.numel() == 0:
         return torch.empty(0, dtype=torch.long, device=boxes.device)
@@ -538,21 +538,21 @@ def diou_nms(
         
         remaining_indices = sorted_indices[1:]
         
-        # DIoU 셈하기
+        # DIoU 계산하기
         current_box = boxes[current_idx].unsqueeze(0).expand(len(remaining_indices), -1)
         remaining_boxes = boxes[remaining_indices]
         
         dious = compute_diou(current_box, remaining_boxes)
         
-        # DIoU에 따라 누르기
+        # DIoU에 따라 억제
         mask = dious < iou_threshold
         sorted_indices = remaining_indices[mask]
     
     return torch.tensor(keep, dtype=torch.long, device=boxes.device)
 
 def compute_diou(boxes1: torch.Tensor, boxes2: torch.Tensor) -> torch.Tensor:
-    """짝지어진 상자 사이의 DIoU를 셈한다."""
-    # 겹침 비
+    """대응된 상자 쌍의 DIoU를 계산한다."""
+    # IoU
     inter_x1 = torch.max(boxes1[:, 0], boxes2[:, 0])
     inter_y1 = torch.max(boxes1[:, 1], boxes2[:, 1])
     inter_x2 = torch.min(boxes1[:, 2], boxes2[:, 2])
@@ -566,7 +566,7 @@ def compute_diou(boxes1: torch.Tensor, boxes2: torch.Tensor) -> torch.Tensor:
     
     iou = inter_area / (area1 + area2 - inter_area + 1e-7)
     
-    # 가운데점 거리
+    # 중심점 거리
     c1_x = (boxes1[:, 0] + boxes1[:, 2]) / 2
     c1_y = (boxes1[:, 1] + boxes1[:, 3]) / 2
     c2_x = (boxes2[:, 0] + boxes2[:, 2]) / 2
@@ -585,7 +585,7 @@ def compute_diou(boxes1: torch.Tensor, boxes2: torch.Tensor) -> torch.Tensor:
     return iou - center_dist_sq / (diag_sq + 1e-7)
 ```
 
-위 함수의 `beta` 인수는 사용되지 않는다. 따라서 β를 바꿔도 결과가 달라지는 구현으로 설명할 수 없다. 여기서 구현한 거리 벌점과 논문·다른 라이브러리의 변형을 구분한다.
+위 함수의 `beta` 인수는 사용되지 않는다. 따라서 β를 바꿔도 결과가 달라지는 구현으로 설명할 수 없다. 여기서 구현한 거리 패널티와 논문·다른 라이브러리의 변형을 구분한다.
 
 ## 5. 탐지 후처리와 계산비용
 
@@ -599,22 +599,22 @@ def detection_postprocess(
     max_detections: int = 100
 ) -> dict:
     """
-    물체 탐지의 온전한 뒷손질 물길.
+    객체 탐지의 전체 후처리 파이프라인.
     
     인수:
-        predictions: 'boxes', 'scores', 'labels' 텐서를 담은 사전
-        conf_threshold: 거르기용 믿음도 임계값
-        nms_threshold: NMS의 겹침 비 임계값
-        max_detections: 돌려줄 알아냄의 최대 개수
+        predictions: 'boxes', 'scores', 'labels' 텐서를 담은 딕셔너리
+        conf_threshold: 거르기용 신뢰도 임계값
+        nms_threshold: NMS의 IoU 임계값
+        max_detections: 반환할 탐지의 최대 개수
         
     반환값:
-        거른 'boxes', 'scores', 'labels'를 담은 사전
+        거른 'boxes', 'scores', 'labels'를 담은 딕셔너리
     """
     boxes = predictions['boxes']
     scores = predictions['scores']
     labels = predictions['labels']
     
-    # 1단계: 믿음도 임계값 두기
+    # 1단계: 신뢰도 임계값 적용
     conf_mask = scores >= conf_threshold
     boxes = boxes[conf_mask]
     scores = scores[conf_mask]
@@ -630,7 +630,7 @@ def detection_postprocess(
     # 2단계: 클래스별 NMS
     keep = ops.batched_nms(boxes, scores, labels, nms_threshold)
     
-    # 3단계: 알아냄 수 제한
+    # 3단계: 탐지 수 제한
     if len(keep) > max_detections:
         # 점수 기준 상위 k개 남기기
         _, top_k_indices = scores[keep].topk(max_detections)
@@ -650,7 +650,7 @@ CUDA 사용은 장치 지원과 데이터 위치에 달렸다. 적은 후보를 
 boxes = boxes.cuda()
 scores = scores.cuda()
 
-# torchvision의 NMS는 CUDA 커널을 저절로 쓴다
+# torchvision의 NMS는 CUDA 커널을 자동으로 쓴다
 keep = ops.nms(boxes, scores, iou_threshold=0.5)
 ```
 
@@ -661,7 +661,7 @@ def batched_detection_postprocess(
     batch_predictions: list[dict],
     **kwargs
 ) -> list[dict]:
-    """어림 배치를 다룬다."""
+    """예측 배치를 처리한다."""
     return [detection_postprocess(pred, **kwargs) for pred in batch_predictions]
 ```
 
@@ -693,7 +693,7 @@ IoU가 0인 경우와 1인 경우를 양의 면적 상자에 대해 설명하라
 
 ??? success "풀이"
 
-    포함 관계이면 최소 외접 상자 C가 합집합과 같아 GIoU의 면적 벌점이 0이다. DIoU는 중심 거리의 제곱을 C의 대각선 제곱으로 나눈 항을 빼므로 포함 관계에서도 중심이 다르면 다른 점수를 줄 수 있다. 어느 로스가 항상 더 빠른 학습을 보장하는 것은 아니다.
+    포함 관계이면 최소 외접 상자 C가 합집합과 같아 GIoU의 면적 패널티가 0이다. DIoU는 중심 거리의 제곱을 C의 대각선 제곱으로 나눈 항을 빼므로 포함 관계에서도 중심이 다르면 다른 점수를 줄 수 있다. 어느 로스가 항상 더 빠른 학습을 보장하는 것은 아니다.
 
 
 
@@ -746,7 +746,7 @@ Soft-NMS의 keep과 scores를 바로 대응시킬 수 없는 이유와 클래스
 
 ## 정리하며
 
-IoU는 겹침의 척도이며 GIoU·DIoU·CIoU는 회귀에 추가 기하 정보를 제공한다. NMS는 예측 후보를 선택하는 후처리다. 매칭·신뢰도·억제 임계값을 구분하고, 경계 비교와 클래스·이미지별 처리, 반환 점수의 의미와 좌표 조건을 확인한다.
+IoU는 겹침의 지표이며 GIoU·DIoU·CIoU는 회귀에 추가 기하 정보를 제공한다. NMS는 예측 후보를 선택하는 후처리다. 매칭·신뢰도·억제 임계값을 구분하고, 경계 비교와 클래스·이미지별 처리, 반환 점수의 의미와 좌표 조건을 확인한다.
 
 **참고 문헌**
 

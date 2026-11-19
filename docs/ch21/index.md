@@ -22,7 +22,7 @@
 - [SqueezeNet](image_classification/12_squeeze_net.md) — Fire 모듈로 웨이트를 줄인다
 - [심화 MobileNet](image_classification/05_mobilenet_advanced.md) · [MobileNet V2](image_classification/11_mobilenet_v2.md) — depthwise separable, 그리고 역병목
 - [ShuffleNet](image_classification/13_shuffle_net.md) — 그룹 컨볼루션 + 채널 셔플. 여기서 group 은 **채널** 그룹이지 미니배치가 아니다
-- [GhostNet](image_classification/26_ghost_net.md) — 값싼 변환으로 피처를 불린다 · [MixNet](image_classification/27_mixnet.md) — 그룹마다 커널 크기를 달리
+- [GhostNet](image_classification/26_ghost_net.md) — 값싼 변환으로 피처를 늘린다 · [MixNet](image_classification/27_mixnet.md) — 그룹마다 커널 크기를 달리
 
 **크기를 설계하기**
 
@@ -47,7 +47,7 @@
 - [ConvNeXt](image_classification/06_convnext.md) — 큰 depthwise 커널과 LayerNorm 으로 ResNet 을 다시 짠다
 - [ConvNeXt V2](image_classification/20_convnext_v2.md) — 마스크드 오토인코더 사전 학습과 GRN 을 함께 설계한다
 
-여러 구조의 파라메터·MAC·활성 메모리와 실제 지연시간은 같은 척도가 아니다. 출력 클래스 수와 입력 해상도·장치·학습 조건을 맞춰 비교한다. 이 장의 개별 구조 페이지는 설계 원리를 설명하며 모두 동일한 성능 실험을 제공하지는 않는다.
+여러 구조의 파라메터·MAC·활성화 메모리와 실제 지연시간은 같은 지표가 아니다. 출력 클래스 수와 입력 해상도·장치·학습 조건을 맞춰 비교한다. 이 장의 개별 구조 페이지는 설계 원리를 설명하며 모두 동일한 성능 실험을 제공하지는 않는다.
 
 ## 2. 이미지 분할
 
@@ -59,7 +59,7 @@
 
 **인코더–디코더와 U-Net**
 
-- [U-Net](segmentation/unet.md) — 줄였다 되살리고 스킵으로 잇는다
+- [U-Net](segmentation/unet.md) — 줄였다 복원하고 스킵 연결로 잇는다
 - [U-Net 구현](segmentation/31_u_net.md) — `padding=1` 과 BN 을 써서 **원 논문의 valid 컨볼루션과 다르다**
 - [U-Net 이미지 분할 기초](segmentation/basic_unet_segmentation.md) — 합성 도형으로 학습·검증·체크포인트까지
 
@@ -88,7 +88,7 @@
 - [FCOS](detection/fcos.md): 위치별 거리·centerness와 목표 할당
 - [탐지 기초 예제](detection/basic_object_detection.md): 직접 지정한 후보의 좌표·후처리
 - [YOLO 추론 예제](detection/yolo_detection.md): Results의 상자·점수·클래스 읽기
-- [합성 데이터 학습 구성](detection/custom_object_detection.md): 이미지·정규화 레이블·데이터 분할
+- [합성 데이터 학습 구성](detection/custom_object_detection.md): 이미지·정규화 라벨·데이터 분할
 - [추론 설정과 export](detection/advanced_detection.md): 크기 변경·배치·임계값·ONNX의 의미
 
 평가 매칭 IoU·NMS IoU·신뢰도 임계값은 서로 다른 기준이다. 탐지 개수나 짧은 시간 측정으로 AP·정확도·실시간 성능을 대신하지 않는다.
@@ -106,7 +106,7 @@
 **시공간 컨볼루션**
 
 - [3차원 컨볼루션과 시공간 피처](video/02_3d_convolution.md) — 세 번째 축은 깊이가 아니라 **프레임**이다
-- [합성 비디오를 분류하는 3D CNN](video/03_simple_video_classifier.md) — 합성 자료라 지름길을 배울 수 있다
+- [합성 비디오를 분류하는 3D CNN](video/03_simple_video_classifier.md) — 합성 데이터라 지름길을 배울 수 있다
 
 **움직임을 따로 보기**
 

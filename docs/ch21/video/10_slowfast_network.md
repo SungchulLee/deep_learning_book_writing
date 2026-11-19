@@ -1,11 +1,11 @@
 # SlowFast의 두 시간 해상도 경로
 
-[SlowFast](https://arxiv.org/abs/1812.03982)는 같은 시간 구간의 RGB 비디오를 낮은 시간 샘플링률의 Slow 경로와 높은 샘플링률의 Fast 경로로 처리한다. 외형과 빠른 시간 변화를 서로 다른 용량의 경로에서 표현하고 피처를 결합한다. 이 페이지의 기존 코드는 안내 문구만 출력하며 네트워크를 구현하지 않는다. 실제 축약 구조는 [SlowFast 상세 절](slowfast.md)에서 살펴본다.
+[SlowFast](https://arxiv.org/abs/1812.03982)는 같은 시간 구간의 RGB 비디오를 낮은 시간 샘플링률의 Slow 경로와 높은 샘플링률의 Fast 경로로 처리한다. 외형과 빠른 시간 변화를 서로 다른 용량의 경로에서 표현하고 피처를 결합한다. 이 페이지의 코드는 안내 문구만 출력하며 네트워크를 구현하지 않는다. 실제 축약 구조는 [SlowFast 상세 절](slowfast.md)에서 살펴본다.
 
-## 1. 기존 코드와 출력
+## 1. 코드와 출력
 
 ```python
-"""느림빠름 네트워크"""
+"""SlowFast 네트워크"""
 import torch
 
 # ========================================================================
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     pass
 ```
 
-**기존 출력:**
+**출력:**
 
 ```
 SlowFast Network module
@@ -92,13 +92,13 @@ SlowFast와 RGB+flow Two-Stream의 입력 차이를 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 기존 시험 조각 대신 SlowFast에서 명확히 할 계약을 설명하라.
+아래 테스트 조각 대신 SlowFast에서 명확히 할 계약을 설명하라.
 
 </div>
 
 ??? success "풀이"
 
-    현재 본문에는 모델이 없고 아래 공백 식별자·미정의 객체도 실행 불가능하다. 실제 구현에는 두 구간의 인덱스·시간 정렬, lateral 출력 길이와 채널, 짧은 입력·홀수 길이, 분류 출력과 장치·dtype의 계약이 필요하다. 기존 조각은 자리 표시자다.
+    현재 본문에는 모델이 없고 아래 공백 식별자·미정의 객체도 실행 불가능하다. 실제 구현에는 두 구간의 인덱스·시간 정렬, lateral 출력 길이와 채널, 짧은 입력·홀수 길이, 분류 출력과 장치·dtype의 계약이 필요하다. 아래 조각은 자리 표시자다.
 
     ```python
     def test_module 34():
@@ -107,10 +107,10 @@ SlowFast와 RGB+flow Two-Stream의 입력 차이를 설명하라.
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

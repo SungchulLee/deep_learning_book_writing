@@ -1,15 +1,15 @@
 # 객체 탐지 추론 설정과 ONNX 내보내기
 
-YOLOv8n에서 입력 이미지 크기 변경, ONNX 내보내기, 배치 추론과 신뢰도 임계값을 살펴보는 예제다. 입력은 물체가 없는 단색 이미지이며 정확도 평가나 배포 시스템의 검증을 수행하지 않는다. 기존 출력의 ‘Production Ready’는 그러한 검증을 대신하지 않는다.
+YOLOv8n에서 입력 이미지 크기 변경, ONNX 내보내기, 배치 추론과 신뢰도 임계값을 살펴보는 예제다. 입력은 객체가 없는 단색 이미지이며 정확도 평가나 배포 시스템의 검증을 수행하지 않는다. 기존 출력의 ‘Production Ready’는 그러한 검증을 대신하지 않는다.
 
 ## 1. 코드와 기존 출력
 
 ```python
 """
-보기 4: 앞선 물체 탐지 재주
+예제 4: 고급 객체 탐지 기법
 ================================================
 
-실전에 쓸 수 있는 탐지 재주를 보여 준다.
+실전에 쓸 수 있는 탐지 기법을 보여 준다.
 """
 
 import torch
@@ -34,7 +34,7 @@ print("="*70)
 # 모델을 불러온다
 model = YOLO('yolov8n.pt')
 
-# 재주 1: 여러 스케일 미룸
+# 기법 1: 다중 스케일 추론
 print("\n1. Multi-Scale Inference")
 print("-"*70)
 print("Testing at multiple scales improves accuracy")
@@ -49,7 +49,7 @@ for scale in scales:
     results = model(resized, verbose=False)
     print(f"Scale {scale}: {len(results[0].boxes)} detections")
 
-# 재주 2: 모델 내보내기
+# 기법 2: 모델 내보내기
 print("\n2. Model Export to ONNX")
 print("-"*70)
 print("Exporting model to ONNX for production deployment...")
@@ -61,7 +61,7 @@ try:
 except Exception as e:
     print(f"Export failed: {e}")
 
-# 재주 3: 배치 단위 다루기
+# 기법 3: 배치 처리
 print("\n3. Batch Processing")
 print("-"*70)
 
@@ -75,7 +75,7 @@ batch_time = time.time() - start
 print(f"Processed {batch_size} images in {batch_time*1000:.2f} ms")
 print(f"Per-image: {batch_time*1000/batch_size:.2f} ms")
 
-# 재주 4: 믿음도 눈금 맞추기
+# 기법 4: 신뢰도 보정
 print("\n4. Confidence Thresholds")
 print("-"*70)
 
@@ -194,10 +194,10 @@ dynamic=False로 export한 모델의 입력과 결과를 검증할 때 필요한
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

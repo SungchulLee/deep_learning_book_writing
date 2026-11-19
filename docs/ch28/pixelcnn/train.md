@@ -6,12 +6,12 @@
 
 ```python
 """
-PixelCNN 그림 만들어 내기를 위한 익히기 대본
+PixelCNN 이미지 생성을 위한 학습 스크립트
 
-이 대본은 다음을 보인다.
-1. MNIST 자료 묶음으로 PixelCNN 익히기
-2. 자기 회귀 그림 만들어 내기
-3. 만든 표본 그려 보기
+이 스크립트는 다음을 보인다.
+1. MNIST 데이터셋으로 PixelCNN 학습
+2. 자기회귀 이미지 생성
+3. 생성한 표본 시각화
 """
 
 import torch
@@ -31,12 +31,12 @@ import torch.nn.functional as F
 
 # --- pixelcnn ---
 """
-자기 되돌이 그림 만들어 내기를 위한 단순한 PixelCNN
+자기회귀 이미지 생성을 위한 단순한 PixelCNN
 
-PixelCNN은 가로 훑기 차례(왼쪽에서 오른쪽, 위에서 아래)로 화소 하나씩 그림을 만든다.
-화소마다 앞서 만든 모든 화소를 바탕으로 헤아린다.
+PixelCNN은 래스터 스캔 순서(왼쪽에서 오른쪽, 위에서 아래)로 픽셀 하나씩 이미지를 생성한다.
+픽셀마다 앞서 생성한 모든 픽셀을 조건으로 예측한다.
 
-이는 핵심 개념에 집중한 가르치기 위한 단순한 판이다.
+핵심 개념에 집중한 교육용 단순화 구현이다.
 """
 
 
@@ -47,19 +47,19 @@ PixelCNN은 가로 훑기 차례(왼쪽에서 오른쪽, 위에서 아래)로 �
 
 class MaskedConv2d(nn.Conv2d):
     """
-    자기 되돌이 그림 만들어 내기를 위한 가린 겹말기.
+    자기회귀 이미지 생성을 위한 마스크 컨볼루션.
     
-    PixelCNN의 핵심 새로움: 화소마다 앞선 화소(위쪽과 왼쪽)에만
-    매이도록 겹말기를 가린다.
+    PixelCNN의 핵심 아이디어: 픽셀마다 앞선 픽셀(위쪽과 왼쪽)에만
+    의존하도록 컨볼루션을 마스킹한다.
     
-    마스크 갈래:
-    - A 갈래: 첫 층용이며 지금 화소를 뺀다
-    - B 갈래: 뒤 층용이며 지금 화소를 넣는다
+    마스크 종류:
+    - A 마스크: 첫 레이어용이며 현재 픽셀을 뺀다
+    - B 마스크: 뒤 레이어용이며 현재 픽셀을 넣는다
     """
     
     def __init__(self, mask_type: str, *args, **kwargs):
         """
-        가린 겹말기를 초기화한다.
+        마스크 컨볼루션을 초기화한다.
         
         인수:
             mask_type: 'A'나 'B'
@@ -70,22 +70,22 @@ class MaskedConv2d(nn.Conv2d):
         assert mask_type in ['A', 'B'], "mask_type must be 'A' or 'B'"
         self.mask_type = mask_type
         
-        # 마스크를 버퍼로 등록한다(익히는 동안 고쳐지지 않는다)
+        # 마스크를 버퍼로 등록한다(학습 중에 갱신되지 않는다)
         self.register_buffer('mask', torch.zeros_like(self.weight))
         self.create_mask()
     
     def create_mask(self):
         """
-        자기 되돌이 마스크를 만든다.
+        자기회귀 마스크를 만든다.
         
         마스크는 다음을 보장한다.
-        - 위쪽 화소는 볼 수 있다
-        - 왼쪽 화소는 볼 수 있다
-        - 지금 화소: B 마스크에서만 보인다
-        - 아래쪽과 오른쪽 화소는 볼 수 없다
+        - 위쪽 픽셀은 볼 수 있다
+        - 왼쪽 픽셀은 볼 수 있다
+        - 현재 픽셀: B 마스크에서만 보인다
+        - 아래쪽과 오른쪽 픽셀은 볼 수 없다
         """
         # 차원을 얻는다
-        # 무게 형태: [내놓기 채널, 들임 채널, 알맹이 높이, 알맹이 너비]
+        # 웨이트 형태: [출력 채널, 입력 채널, 커널 높이, 커널 너비]
         k_h, k_w = self.weight.shape[2:]
         
         # 마스크를 모두 1로 초기화한다
@@ -95,8 +95,8 @@ class MaskedConv2d(nn.Conv2d):
         self.mask[:, :, k_h // 2 + 1:, :] = 0
         
         # 가운데 줄의 오른쪽을 0으로 만든다
-        # A 마스크: 가운데 화소를 뺀다
-        # B 마스크: 가운데 화소를 넣는다
+        # A 마스크: 가운데 픽셀을 뺀다
+        # B 마스크: 가운데 픽셀을 넣는다
         if self.mask_type == 'A':
             self.mask[:, :, k_h // 2, k_w // 2:] = 0
         else:  # mask_type == 'B'
@@ -104,38 +104,38 @@ class MaskedConv2d(nn.Conv2d):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        가린 무게로 하는 앞먹임.
+        마스크된 웨이트로 하는 순전파.
         
         인수:
             x: 입력 텐서
             
         반환값:
-            가린 겹말기의 내놓기
+            마스크 컨볼루션의 출력
         """
-        # 겹말기 앞에 무게에 마스크를 곱한다
-        # 그러면 허락된 화소만 쓰인다
+        # 컨볼루션 앞에서 웨이트에 마스크를 곱한다
+        # 그러면 허용된 픽셀만 쓰인다
         self.weight.data *= self.mask
         return super(MaskedConv2d, self).forward(x)
 
 
 class ResidualBlock(nn.Module):
     """
-    가린 겹말기를 갖춘 남은 덩이.
+    마스크 컨볼루션을 갖춘 잔차 블록.
     
-    짜임:
-        들임 -> 가린 겹말기 -> ReLU -> 가린 겹말기 -> 들임과 더하기
+    구조:
+        입력 -> 마스크 컨볼루션 -> ReLU -> 마스크 컨볼루션 -> 입력과 더하기
     """
     
     def __init__(self, channels: int):
         """
-        남은 덩이를 초기화한다.
+        잔차 블록을 초기화한다.
         
         인수:
             channels: 채널의 수
         """
         super(ResidualBlock, self).__init__()
         
-        # 첫 겹말기 뒤로는 모두 B 갈래이다
+        # 첫 컨볼루션 뒤로는 모두 B 마스크다
         self.conv1 = MaskedConv2d('B', channels, channels // 2, 
                                   kernel_size=1, padding=0)
         self.conv2 = MaskedConv2d('B', channels // 2, channels // 2,
@@ -144,7 +144,7 @@ class ResidualBlock(nn.Module):
                                   kernel_size=1, padding=0)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """남은 덩이를 지나는 앞먹임."""
+        """잔차 블록을 지나는 순전파."""
         residual = x
         
         out = F.relu(self.conv1(x))
@@ -157,12 +157,12 @@ class ResidualBlock(nn.Module):
 
 class PixelCNN(nn.Module):
     """
-    두값(검정/흰색) 그림 만들어 내기를 위한 단순한 PixelCNN.
+    이진(검정/흰색) 이미지 생성을 위한 단순한 PixelCNN.
     
-    이 자기 되돌이 모델은 화소 하나씩 그림을 만든다.
-    P(그림) = P(x₁) × P(x₂|x₁) × P(x₃|x₁,x₂) × ... × P(xₙ|x₁,...,xₙ₋₁)
+    이 자기회귀 모델은 픽셀 하나씩 이미지를 생성한다.
+    P(이미지) = P(x₁) × P(x₂|x₁) × P(x₃|x₁,x₂) × ... × P(xₙ|x₁,...,xₙ₋₁)
     
-    여기서 xᵢ은 화소 값이다.
+    여기서 xᵢ는 픽셀 값이다.
     """
     
     def __init__(self, 
@@ -172,12 +172,12 @@ class PixelCNN(nn.Module):
         PixelCNN을 초기화한다.
         
         인수:
-            n_channels: 특징 채널의 수
-            n_residual_blocks: 남은 덩이의 수
+            n_channels: 피처 채널의 수
+            n_residual_blocks: 잔차 블록의 수
         """
         super(PixelCNN, self).__init__()
         
-        # 첫 층은 A 갈래 마스크를 쓴다(지금 화소를 뺀다)
+        # 첫 레이어는 A 마스크를 쓴다(현재 픽셀을 뺀다)
         self.input_conv = MaskedConv2d('A', 1, n_channels,
                                        kernel_size=7, padding=3)
         
@@ -186,41 +186,41 @@ class PixelCNN(nn.Module):
             ResidualBlock(n_channels) for _ in range(n_residual_blocks)
         ])
         
-        # 내놓기 층
+        # 출력 레이어
         self.output_conv1 = MaskedConv2d('B', n_channels, n_channels,
                                          kernel_size=1)
         self.output_conv2 = MaskedConv2d('B', n_channels, n_channels,
                                          kernel_size=1)
         
-        # 마지막 층: 화소마다 확률을 헤아린다
-        # 두값 그림에서는 채널 1개를 내놓는다(흰색일 확률)
+        # 마지막 레이어: 픽셀마다 확률을 예측한다
+        # 이진 이미지에서는 채널 1개를 출력한다(흰색일 확률)
         self.final_conv = MaskedConv2d('B', n_channels, 1,
                                        kernel_size=1)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        PixelCNN을 지나는 앞먹임.
+        PixelCNN을 지나는 순전파.
         
         인수:
-            x: 들임 그림 [배치 크기, 1, 높이, 너비]
+            x: 입력 이미지 [배치 크기, 1, 높이, 너비]
                [0, 1] 안의 값
                
         반환값:
-            화소마다의 로짓 [배치 크기, 1, 높이, 너비]
+            픽셀마다의 로짓 [배치 크기, 1, 높이, 너비]
             확률을 얻으려 시그모이드를 쓴다
         """
-        # 첫 가린 겹말기
+        # 첫 마스크 컨볼루션
         out = F.relu(self.input_conv(x))
         
         # 잔차 블록
         for block in self.residual_blocks:
             out = block(out)
         
-        # 내놓기 겹말기
+        # 출력 컨볼루션
         out = F.relu(self.output_conv1(out))
         out = F.relu(self.output_conv2(out))
         
-        # 마지막 헤아림
+        # 마지막 예측
         out = self.final_conv(out)
         
         return out
@@ -230,43 +230,43 @@ class PixelCNN(nn.Module):
                  shape: tuple,
                  device: str = 'cpu') -> torch.Tensor:
         """
-        그림을 자기 되돌이로 만든다.
+        이미지를 자기회귀로 생성한다.
         
-        이것이 자기 되돌이 만들어 내기의 알맹이이다.
-        1. 빈 그림(모두 0)에서 시작한다
-        2. 화소 자리마다(위에서 아래로, 왼쪽에서 오른쪽으로):
-           a. 화소가 1일 확률을 헤아린다
+        이것이 자기회귀 생성의 핵심이다.
+        1. 빈 이미지(모두 0)에서 시작한다
+        2. 픽셀 자리마다(위에서 아래로, 왼쪽에서 오른쪽으로):
+           a. 픽셀이 1일 확률을 예측한다
            b. 베르누이 분포에서 뽑는다
-           c. 화소를 채운다
-        3. 다 된 그림을 돌려준다
+           c. 픽셀을 채운다
+        3. 완성된 이미지를 돌려준다
         
         인수:
-            형태: (배치 크기, 높이, 너비)
-            device: 만들어 낼 기기
+            shape: (배치 크기, 높이, 너비)
+            device: 생성에 쓸 장치
             
         반환값:
-            만든 그림 [배치 크기, 1, 높이, 너비]
+            생성한 이미지 [배치 크기, 1, 높이, 너비]
         """
         self.eval()
         
         batch_size, height, width = shape
         
-        # 빈 바탕(모두 0)에서 시작한다
+        # 빈 이미지(모두 0)에서 시작한다
         samples = torch.zeros(batch_size, 1, height, width).to(device)
         
-        # 화소 하나씩 만든다
-        # 가로 훑기 차례: 위에서 아래로, 왼쪽에서 오른쪽으로
+        # 픽셀 하나씩 생성한다
+        # 래스터 스캔 순서: 위에서 아래로, 왼쪽에서 오른쪽으로
         for i in range(height):
             for j in range(width):
-                # 지금 화소의 헤아림을 얻는다
-                # 참고: 앞서 만든 화소를 모두 쓴다
+                # 현재 픽셀의 예측을 얻는다
+                # 참고: 앞서 생성한 픽셀을 모두 쓴다
                 logits = self.forward(samples)
                 
-                # 지금 화소 자리의 확률을 얻는다
+                # 현재 픽셀 자리의 확률을 얻는다
                 probs = torch.sigmoid(logits[:, :, i, j])
                 
                 # 베르누이 분포에서 뽑는다
-                # 그래서 만들어 내기가 확률에 따르게 된다
+                # 그래서 생성이 확률적이 된다
                 samples[:, :, i, j] = torch.bernoulli(probs)
         
         return samples
@@ -274,7 +274,7 @@ class PixelCNN(nn.Module):
 
 if __name__ == "__main__":
     """
-    보여 주기: 흉내 자료로 PixelCNN을 시험한다
+    데모: 더미 데이터로 PixelCNN을 시험한다
     """
     
     print("=" * 70)
@@ -284,7 +284,7 @@ if __name__ == "__main__":
     # 모델 생성
     model = PixelCNN(n_channels=32, n_residual_blocks=3)
     
-    # 매개변수 개수 세기
+    # 파라메터 개수 세기
     n_params = sum(p.numel() for p in model.parameters())
     print(f"\nModel has {n_params:,} parameters")
     
@@ -302,12 +302,12 @@ if __name__ == "__main__":
     print(f"  Input shape: {x.shape}")
     print(f"  Output shape: {output.shape}")
     
-    # 만들어 내기를 시험한다
+    # 생성을 시험한다
     print(f"\nGenerating images...")
     print(f"  This will take a while (generating pixel by pixel)...")
     
-    # 보여 주기 위해 작은 그림을 만든다
-    small_shape = (2, 8, 8)  # 8x8 크기 그림 2장
+    # 데모용으로 작은 이미지를 생성한다
+    small_shape = (2, 8, 8)  # 8x8 크기 이미지 2장
     generated = model.generate(small_shape, device='cpu')
     
     print(f"  Generated shape: {generated.shape}")
@@ -320,16 +320,16 @@ if __name__ == "__main__":
 
 def binarize(x: torch.Tensor) -> torch.Tensor:
     """
-    그림을 검정과 흰색 두값으로 만든다.
+    이미지를 검정과 흰색으로 이진화한다.
     
-    이는 문제를 단순하게 만든다. 곧 화소마다 있을 수 있는 값 256가지를
-    헤아리는 대신 두값(0이나 1)만 헤아린다.
+    이는 문제를 단순하게 만든다. 곧 픽셀마다 가능한 값 256가지를
+    예측하는 대신 두 값(0이나 1)만 예측한다.
     
     인수:
-        x: 값이 [0, 1]인 그림 텐서
+        x: 값이 [0, 1]인 이미지 텐서
         
     반환값:
-        두값으로 만든 그림(0 또는 1)
+        이진화한 이미지(0 또는 1)
     """
     return (x > 0.5).float()
 
@@ -339,7 +339,7 @@ def train_epoch(model: nn.Module,
                 optimizer: optim.Optimizer,
                 device: str) -> float:
     """
-    한 세대를 학습한다.
+    한 에포크를 학습한다.
     
     인수:
         model: PixelCNN 모델
@@ -348,24 +348,24 @@ def train_epoch(model: nn.Module,
         device: 학습에 쓸 장치
         
     반환값:
-        바퀴의 평균 로스
+        에포크의 평균 로스
     """
     model.train()
     total_loss = 0
     
-    # 두값 어긋 엔트로피 로스
-    # 화소마다 1(흰색)일 확률을 헤아린다
+    # 이진 교차 엔트로피 로스
+    # 픽셀마다 1(흰색)일 확률을 예측한다
     criterion = nn.BCEWithLogitsLoss()
     
-    for images, _ in dataloader:  # 만들어 내기에는 이름표가 필요 없다
-        # 기기로 옮기고 두값으로 만든다
+    for images, _ in dataloader:  # 생성에는 라벨이 필요 없다
+        # 장치로 옮기고 이진화한다
         images = binarize(images.to(device))
         
         # 순전파
         logits = model(images)
         
         # 로스를 계산한다
-        # 실제 그림의 화소 값을 헤아리려 한다
+        # 실제 이미지의 픽셀 값을 예측하려 한다
         loss = criterion(logits, images)
         
         # 역전파
@@ -382,15 +382,15 @@ def evaluate(model: nn.Module,
             dataloader: torch.utils.data.DataLoader,
             device: str) -> float:
     """
-    시험 배치에서 모델을 따진다.
+    시험 세트에서 모델을 평가한다.
     
     인수:
         model: PixelCNN 모델
-        dataloader: 시험 자료 불러개
+        dataloader: 시험 데이터로더
         device: 평가할 장치
         
     반환값:
-        시험 배치의 평균 로스
+        시험 세트의 평균 로스
     """
     model.eval()
     total_loss = 0
@@ -411,17 +411,17 @@ def visualize_samples(model: nn.Module,
                      device: str,
                      n_samples: int = 16):
     """
-    표본을 만들어 그려 본다.
+    표본을 생성해 시각화한다.
     
     인수:
-        model: 익힌 PixelCNN
-        real_images: 견주기 위한 실제 그림
-        device: 만들어 낼 기기
-        n_samples: 만들 표본의 개수
+        model: 학습된 PixelCNN
+        real_images: 견주기 위한 실제 이미지
+        device: 생성에 쓸 장치
+        n_samples: 생성할 표본의 개수
     """
     model.eval()
     
-    # 새 그림을 만든다
+    # 새 이미지를 생성한다
     print("Generating samples (this may take a minute)...")
     with torch.no_grad():
         generated = model.generate(
@@ -432,7 +432,7 @@ def visualize_samples(model: nn.Module,
     # 그림을 만든다
     fig, axes = plt.subplots(4, 8, figsize=(16, 8))
     
-    # 실제 그림을 위 두 줄에 그린다
+    # 실제 이미지를 위 두 줄에 그린다
     for i in range(2):
         for j in range(8):
             idx = i * 8 + j
@@ -441,7 +441,7 @@ def visualize_samples(model: nn.Module,
             if j == 0:
                 axes[i, j].set_ylabel('Real', rotation=0, labelpad=30, fontsize=12)
     
-    # 만든 그림을 아래 두 줄에 그린다
+    # 생성한 이미지를 아래 두 줄에 그린다
     for i in range(2, 4):
         for j in range(8):
             idx = (i - 2) * 8 + j
@@ -458,13 +458,13 @@ def visualize_samples(model: nn.Module,
 
 def main():
     """
-    으뜸 익히기 물길
+    메인 학습 파이프라인
     """
     print("=" * 70)
     print("PixelCNN: Autoregressive Image Generation")
     print("=" * 70)
     
-    # ==================== 채비 ====================
+    # ==================== 설정 ====================
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"\nUsing device: {device}")
     
@@ -473,9 +473,9 @@ def main():
         print("PixelCNN generates pixel-by-pixel, which is computationally intensive.")
         print("Consider using a smaller model or fewer epochs for CPU training.\n")
     
-    # 초파라메터
+    # 하이퍼파라메터
     BATCH_SIZE = 64
-    N_EPOCHS = 20  # CPU에서 익히면 줄인다
+    N_EPOCHS = 20  # CPU에서 학습하면 줄인다
     LEARNING_RATE = 0.001
     N_CHANNELS = 64
     N_RESIDUAL_BLOCKS = 5
@@ -487,12 +487,12 @@ def main():
     print(f"  Feature Channels: {N_CHANNELS}")
     print(f"  Residual Blocks: {N_RESIDUAL_BLOCKS}")
     
-    # ==================== 자료 불러오기 ====================
+    # ==================== 데이터 불러오기 ====================
     print(f"\n{'='*70}")
     print("Step 1: Loading MNIST dataset...")
     print(f"{'='*70}")
     
-    # 바꾸기: 텐서로 바꾸고 [0, 1]으로 고르게 맞춘다
+    # 변환: 텐서로 바꾸고 [0, 1]로 정규화한다
     transform = transforms.Compose([
         transforms.ToTensor(),
     ])
@@ -549,7 +549,7 @@ def main():
     # 옵티마이저
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
-    # ==================== 익히기 ====================
+    # ==================== 학습 ====================
     print(f"\n{'='*70}")
     print("Step 3: Training PixelCNN...")
     print(f"{'='*70}")
@@ -580,12 +580,12 @@ def main():
     print(f"  Final train loss: {train_losses[-1]:.4f}")
     print(f"  Final test loss: {test_losses[-1]:.4f}")
     
-    # ==================== 그려 보기 ====================
+    # ==================== 시각화 ====================
     print(f"\n{'='*70}")
     print("Step 4: Creating visualizations...")
     print(f"{'='*70}")
     
-    # 익히기 곡선을 그린다
+    # 학습 곡선을 그린다
     plt.figure(figsize=(10, 5))
     plt.plot(train_losses, label='Train Loss', alpha=0.7)
     plt.plot(test_losses, label='Test Loss', alpha=0.7)
@@ -598,16 +598,16 @@ def main():
     plt.savefig('pixelcnn_training.png', dpi=150)
     print("✓ Saved pixelcnn_training.png")
     
-    # 견주려고 실제 그림 몇 장을 얻는다
+    # 견주려고 실제 이미지 몇 장을 얻는다
     real_images, _ = next(iter(test_loader))
     real_images = binarize(real_images[:16])
     
-    # 표본을 만들어 그려 본다
+    # 표본을 생성해 시각화한다
     fig = visualize_samples(model, real_images, device, n_samples=16)
     plt.savefig('pixelcnn_samples.png', dpi=150)
     print("✓ Saved pixelcnn_samples.png")
     
-    # ==================== 만들어 내기 보여 주기 ====================
+    # ==================== 생성 데모 ====================
     print(f"\n{'='*70}")
     print("Step 5: Demonstrating autoregressive generation...")
     print(f"{'='*70}")
@@ -615,15 +615,15 @@ def main():
     print("\nGenerating a single image step-by-step...")
     print("Watch how the image is filled pixel by pixel!")
     
-    # 그림 하나를 만들며 중간 스텝을 보인다
+    # 이미지 하나를 생성하며 중간 스텝을 보인다
     model.eval()
     height, width = 28, 28
     
-    # 만들어 내는 과정을 보이는 그림 낱장을 만든다
+    # 생성 과정을 보이는 프레임을 만든다
     frames = []
     sample = torch.zeros(1, 1, height, width).to(device)
     
-    # 화소 50개마다 그림 낱장을 만들어 갈무리한다
+    # 픽셀 50개마다 프레임을 만들어 저장한다
     pixel_count = 0
     with torch.no_grad():
         for i in range(height):
@@ -636,7 +636,7 @@ def main():
                 if pixel_count % 50 == 0 or pixel_count == height * width:
                     frames.append(sample.clone())
     
-    # 만들어 내는 과정을 그려 본다
+    # 생성 과정을 시각화한다
     n_frames = len(frames)
     fig, axes = plt.subplots(2, 5, figsize=(12, 5))
     axes = axes.flatten()
@@ -651,7 +651,7 @@ def main():
     plt.savefig('generation_process.png', dpi=150)
     print("✓ Saved generation_process.png")
     
-    # ==================== 간추리기 ====================
+    # ==================== 요약 ====================
     print(f"\n{'='*70}")
     print("Training Complete!")
     print(f"{'='*70}")
@@ -670,7 +670,7 @@ if __name__ == "__main__":
 
 기본 설정은 64채널·잔차 블록 5개, 배치 64, Adam 0.001과 20에포크다. 입력에 ToTensor를 적용한 뒤 x>0.5인 픽셀만 1로 바꾼다. 0.5 자체는 0이며 확률적으로 이진화하는 방법과 다르다. 학습·평가·실제 이미지 표시에 같은 변환을 적용한다.
 
-import하는 로컬 pixelcnn.py와 같은 모듈이 검색되어야 하며 모델·입력은 선택한 CUDA 또는 CPU에 둔다. 기본 파라미터 수는 78,785개다. 마스크의 인과성이 지켜지므로 현재 이미지를 입력과 타깃으로 함께 주어도 현재 픽셀 값을 직접 복사하는 일반 오토인코더 로스와 다르다.
+import하는 로컬 pixelcnn.py와 같은 모듈이 검색되어야 하며 모델·입력은 선택한 CUDA 또는 CPU에 둔다. 기본 파라메터 수는 78,785개다. 마스크의 인과성이 지켜지므로 현재 이미지를 입력과 타깃으로 함께 주어도 현재 픽셀 값을 직접 복사하는 일반 오토인코더 로스와 다르다.
 
 ## 2. 로스의 단위와 계산비용
 
@@ -682,7 +682,7 @@ BCEWithLogitsLoss는 Sigmoid를 포함한 안정적인 BCE 계산으로 이진 �
 
 ## 3. 평가·표본 격자
 
-평가는 eval·no_grad이며 라벨은 사용하지 않는 무조건부 이미지 모형이다. 테스트 로스를 매 에포크 기록하므로 이를 하이퍼파라미터·종료 선택에 쓰면 별도 검증셋과 최종 테스트셋을 구분해야 한다. 현재 main에는 체크포인트 저장·최적 모델 복원·조기 종료가 없다.
+평가는 eval·no_grad이며 라벨은 사용하지 않는 무조건부 이미지 모형이다. 시험 로스를 매 에포크 기록하므로 이를 하이퍼파라메터·종료 선택에 쓰면 별도 검증셋과 최종 시험셋을 구분해야 한다. 현재 main에는 체크포인트 저장·최적 모델 복원·조기 종료가 없다.
 
 visualize_samples는 고정 4×8 격자에 실제 16장과 생성 16장을 표시한다. 인수 n_samples를 임의로 바꿔도 격자 반복 수가 바뀌지 않아 16보다 작으면 인덱스 오류, 크면 일부만 표시할 수 있다. real_images에도 적어도 16장이 필요하다. 표본은 픽셀별 베르누이 추출이지만 격자의 다양성·품질은 별도 평가가 필요하다.
 
@@ -690,7 +690,7 @@ visualize_samples는 고정 4×8 격자에 실제 16장과 생성 16장을 표�
 
 마지막 단계는 50픽셀마다 중간 상태를 저장하고 마지막 완성 상태도 더한다. 784픽셀에서는 50,…,750의 15개와 마지막 1개로 총 16프레임이다. 그런데 표시 축은 2×5로 10개뿐이다. 따라서 현재 루프는 11번째 프레임에서 축 인덱스를 벗어나 generation_process.png 저장까지 완료하지 못한다.
 
-코드·기존 출력·그림은 보존했으므로 완료 안내문을 이 경로의 성공 증거로 읽으면 안 된다. 이 편집에서는 학습·샘플링·그림 생성을 실행하지 않았다. 자동으로 “다양한 숫자 구조를 배웠다”는 결론을 내리기보다 독립 테스트 NLL과 품질·다양성을 함께 살펴야 한다.
+따라서 코드 끝의 완료 안내문을 이 경로의 성공 증거로 읽으면 안 된다. 자동으로 “다양한 숫자 구조를 배웠다”는 결론을 내리기보다 독립 시험 NLL과 품질·다양성을 함께 살펴야 한다.
 
 ## 연습문제
 
@@ -718,7 +718,7 @@ visualize_samples는 고정 4×8 격자에 실제 16장과 생성 16장을 표�
 
 ??? success "풀이"
 
-    이미 Adam 0.001을 쓰므로 같은 설정으로 다시 지정하는 것은 새 비교가 아니다. 다른 옵티마이저·러닝레이트에는 동일한 자료 이진화·분할·구조와 같은 튜닝 예산을 적용한다. 검증 픽셀당 NLL을 표본 가중 평균하고 생성의 품질·다양성·비용도 따로 비교한다. 훈련 로스나 단일 시드의 이미지로 일반적인 우열을 정하지 않는다.
+    이미 Adam 0.001을 쓰므로 같은 설정으로 다시 지정하는 것은 새 비교가 아니다. 다른 옵티마이저·러닝레이트에는 동일한 데이터 이진화·분할·구조와 같은 튜닝 예산을 적용한다. 검증 픽셀당 NLL을 표본 가중 평균하고 생성의 품질·다양성·비용도 따로 비교한다. 학습 로스나 단일 시드의 이미지로 일반적인 우열을 정하지 않는다.
 
 
 
@@ -733,7 +733,7 @@ visualize_samples는 고정 4×8 격자에 실제 16장과 생성 16장을 표�
 
 ??? success "풀이"
 
-    타깃 누출이 없는지, 다양한 숫자를 생성하는지, 독립 자료에 잘 맞는지, 모든 시각화 경로가 끝나는지는 별도다. 특히 본문 생성 과정은 16프레임을 10축에 넣어 실패한다. 마스크 경로·타깃·프레임 수를 정적으로 확인하고 검증 NLL·대표 표본·다양성을 함께 평가한다. 현재·미래 픽셀을 볼 수 있는 임의 BatchNorm이나 비인과 경로를 추가해 로스를 낮추면 확률 계약을 깨뜨릴 수 있다.
+    타깃 누출이 없는지, 다양한 숫자를 생성하는지, 독립 데이터에 잘 맞는지, 모든 시각화 경로가 끝나는지는 별도다. 특히 본문 생성 과정은 16프레임을 10축에 넣어 실패한다. 마스크 경로·타깃·프레임 수를 정적으로 확인하고 검증 NLL·대표 표본·다양성을 함께 평가한다. 현재·미래 픽셀을 볼 수 있는 임의 BatchNorm이나 비인과 경로를 추가해 로스를 낮추면 확률 계약을 깨뜨릴 수 있다.
 
 
 
@@ -748,7 +748,7 @@ visualize_samples는 고정 4×8 격자에 실제 16장과 생성 16장을 표�
 
 ??? success "풀이"
 
-    현재 evaluate는 model·dataloader·device를 받으므로 아래 두 인수 호출은 맞지 않는다. 학습 자료에서 검증셋을 만들고 동일 이진화·로스 단위로 평가한다. state_dict().copy는 얕은 복사여서 독립 웨이트 보존에 부족하며 파일 저장이나 깊은 복제가 필요하다. 정상 종료에도 최적 모델을 복원하고 구조·전처리·선택 규칙을 기록해야 한다. 최종 테스트는 선택에 반복 사용하지 않는다.
+    현재 evaluate는 model·dataloader·device를 받으므로 아래 두 인수 호출은 맞지 않는다. 학습 데이터에서 검증셋을 만들고 동일 이진화·로스 단위로 평가한다. state_dict().copy는 얕은 복사여서 독립 웨이트 보존에 부족하며 파일 저장이나 깊은 복제가 필요하다. 정상 종료에도 최적 모델을 복원하고 구조·전처리·선택 규칙을 기록해야 한다. 최종 시험셋은 선택에 반복 사용하지 않는다.
 
     ```python
     best_loss = float('inf')
@@ -772,4 +772,4 @@ visualize_samples는 고정 4×8 격자에 실제 16장과 생성 16장을 표�
 
 ## 정리하며
 
-이진 PixelCNN은 모든 위치의 베르누이 logits를 병렬로 학습하고 픽셀별로 표본을 생성한다. 로스의 픽셀당 단위·이진화·검증 분할을 맞추고, 고정 격자·프레임 수 같은 시각화 계약도 확인해야 한다. 생성 품질은 완료 문구나 훈련 로스와 별도로 평가한다.
+이진 PixelCNN은 모든 위치의 베르누이 logits를 병렬로 학습하고 픽셀별로 표본을 생성한다. 로스의 픽셀당 단위·이진화·검증 분할을 맞추고, 고정 격자·프레임 수 같은 시각화 계약도 확인해야 한다. 생성 품질은 완료 문구나 학습 로스와 별도로 평가한다.

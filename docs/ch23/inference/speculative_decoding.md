@@ -27,29 +27,29 @@ Input: Target model p, Draft model q, Prompt x₀, Draft length K
 Output: Generated sequence
 
 while not done:
-    # 스텝1: 밑그림 마디
+    # 스텝1: 초안 단계
     for i = 1 to K:
         Sample x̃ᵢ ~ q(· | x₀, x̃₁, ..., x̃ᵢ₋₁)
         Store q(x̃ᵢ | ...)
     
-    # 스텝2: 확인 마디(피드포워드 한 번)
+    # 스텝2: 검증 단계(순전파 한 번)
     Compute p(x̃₁ | x₀), p(x̃₂ | x₀, x̃₁), ..., p(x̃ₖ | x₀, ..., x̃ₖ₋₁)
     
-    # 스텝3: 받아들이기/물리치기
-    n = 0  # 받아들인 토막 수
+    # 스텝3: 수용/거절
+    n = 0  # 수용한 토큰 수
     for i = 1 to K:
         r ~ Uniform(0, 1)
         if r < min(1, p(x̃ᵢ)/q(x̃ᵢ)):
             Accept x̃ᵢ
             n = n + 1
         else:
-            # 남은 분포에서 뽑는다
+            # 잔차 분포에서 뽑는다
             Sample x from norm(max(0, p(·) - q(·)))
             Append x to sequence
             break
     
     if all K tokens accepted:
-        # 덤: p에서 토막 하나를 더 뽑는다
+        # 보너스: p에서 토큰 하나를 더 뽑는다
         Sample x ~ p(· | x₀, x̃₁, ..., x̃ₖ)
         Append x to sequence
     
@@ -58,7 +58,7 @@ while not done:
 
 K개 제안을 순차적으로 만들고 목표 모델은 그 접두사들의 조건부 확률과 마지막 보너스 분포를 한 번의 인과 계산으로 얻을 수 있다. 첫 거절까지의 제안만 수용하고 거절 지점에서는 보정 토큰을 넣는다. 전부 수용하면 마지막 목표 분포에서 보너스 토큰 하나를 더 뽑는다.
 
-위 기존 의사코드의 q(x̃_i) 저장만으로 잔차 벡터가 준비되는 것은 아니다. 각 제안 prefix의 전체 q_i를 저장하거나 정확히 재계산해야 한다. 다음 단계에는 수용한 제안뿐 아니라 보정/보너스까지 확정 prefix에 포함하고, 거절 뒤의 미확정 cache는 제거해야 한다.
+위 의사코드의 q(x̃_i) 저장만으로 잔차 벡터가 준비되는 것은 아니다. 각 제안 prefix의 전체 q_i를 저장하거나 정확히 재계산해야 한다. 다음 단계에는 수용한 제안뿐 아니라 보정/보너스까지 확정 prefix에 포함하고, 거절 뒤의 미확정 cache는 제거해야 한다.
 
 ## 3. 현재 PyTorch 코드의 한계
 
@@ -71,7 +71,7 @@ from dataclasses import dataclass
 
 @dataclass
 class SpeculativeOutput:
-    """미리 짚어 풀기 한 스텝이 내놓는 것."""
+    """Speculative decoding 한 스텝의 출력."""
     tokens: torch.Tensor
     num_accepted: int
     num_drafted: int
@@ -82,9 +82,9 @@ class SpeculativeOutput:
 
 class SpeculativeDecoder:
     """
-    글 만들어 내기를 빠르게 하는 미리 짚어 풀기.
+    텍스트 생성을 빠르게 하는 speculative decoding.
     
-    작은 밑그림 모델로 토막을 내놓고 더 큰 목표 모델이 확인한다.
+    작은 초안 모델이 토큰을 제안하고 더 큰 목표 모델이 검증한다.
     """
     
     def __init__(
@@ -107,14 +107,14 @@ class SpeculativeDecoder:
         draft_cache: Optional[Tuple] = None
     ) -> Tuple[SpeculativeOutput, Optional[Tuple], Optional[Tuple]]:
         """
-        미리 짚어 풀기의 한 스텝.
+        Speculative decoding의 한 스텝.
         
-        받아들인 토막과 새로 고친 곳간을 돌려준다.
+        수용한 토큰과 갱신한 캐시를 돌려준다.
         """
         device = input_ids.device
         batch_size = input_ids.size(0)
         
-        # 스텝1: 밑그림 토막 K개를 만든다
+        # 스텝1: 초안 토큰 K개를 만든다
         draft_tokens = []
         draft_probs = []
         current_ids = input_ids
@@ -123,7 +123,7 @@ class SpeculativeDecoder:
             logits, draft_cache = self.draft(current_ids, past_caches=draft_cache)
             probs = F.softmax(logits[:, -1, :] / self.temperature, dim=-1)
             
-            # 밑그림 분포에서 뽑는다
+            # 초안 분포에서 뽑는다
             token = torch.multinomial(probs, num_samples=1)
             draft_tokens.append(token)
             draft_probs.append(probs.gather(-1, token))
@@ -133,27 +133,27 @@ class SpeculativeDecoder:
         draft_tokens = torch.cat(draft_tokens, dim=1)  # [배치, K]
         draft_probs = torch.cat(draft_probs, dim=1)    # [배치, K]
         
-        # 스텝2: 목표 모델로 K개 토막을 모두 나란히 확인한다
+        # 스텝2: 목표 모델로 K개 토큰을 모두 병렬로 검증한다
         verify_ids = torch.cat([input_ids, draft_tokens], dim=1)
         target_logits, target_cache = self.target(verify_ids, past_caches=target_cache)
         
-        # 밑그림 토막에 대한 목표 확률을 얻는다
-        # target_logits[:, -K-1:-1, :]는 밑그림 토막마다 그 앞자리에 맞닿는다
+        # 초안 토큰에 대한 목표 확률을 얻는다
+        # target_logits[:, -K-1:-1, :]는 초안 토큰마다 그 앞 위치에 대응한다
         target_probs = F.softmax(target_logits[:, -self.K-1:, :] / self.temperature, dim=-1)
         
-        # 스텝3: 알맞은 번호 매기기로 받아들이거나 물리친다
+        # 스텝3: 올바른 인덱싱으로 수용하거나 거절한다
         accepted_tokens = []
         num_accepted = 0
         
         for i in range(self.K):
-            # 밑그림으로 낸 토막의 목표 확률
+            # 초안으로 제안한 토큰의 목표 확률
             p = target_probs[:, i, :].gather(-1, draft_tokens[:, i:i+1]).squeeze(-1)
             q = draft_probs[:, i]
             
-            # 받아들일 확률
+            # 수용 확률
             accept_prob = torch.clamp(p / q, max=1.0)
             
-            # 받아들임을 뽑는다
+            # 수용 여부를 뽑는다
             r = torch.rand(batch_size, device=device)
             accept = r < accept_prob
             
@@ -161,7 +161,7 @@ class SpeculativeDecoder:
                 accepted_tokens.append(draft_tokens[:, i:i+1])
                 num_accepted += 1
             else:
-                # 물리침: 남은 분포에서 뽑는다
+                # 거절: 잔차 분포에서 뽑는다
                 residual = torch.clamp(target_probs[:, i, :] - 
                                        F.softmax(logits[:, -1, :] / self.temperature, dim=-1), 
                                        min=0)
@@ -177,7 +177,7 @@ class SpeculativeDecoder:
                 num_accepted += 1
                 break
         else:
-            # K개 토막을 모두 받아들였다 - 덤 토막을 뽑는다
+            # K개 토큰을 모두 수용했다 - 보너스 토큰을 뽑는다
             bonus = torch.multinomial(target_probs[:, -1, :], num_samples=1)
             accepted_tokens.append(bonus)
             num_accepted += 1
@@ -197,7 +197,7 @@ class SpeculativeDecoder:
         max_new_tokens: int = 100
     ) -> Tuple[torch.Tensor, dict]:
         """
-        미리 짚어 풀기로 토막을 만든다.
+        Speculative decoding으로 토큰을 생성한다.
         """
         generated = input_ids
         total_accepted = 0
@@ -217,7 +217,7 @@ class SpeculativeDecoder:
             total_drafted += output.num_drafted
             num_steps += 1
             
-            # 기억 공간 문제를 피하려 곳간을 이따금 비운다
+            # 메모리 문제를 피하려 캐시를 이따금 비운다
             if num_steps % 50 == 0:
                 target_cache = None
                 draft_cache = None
@@ -236,33 +236,33 @@ def speculative_sample(
     draft_token: torch.Tensor
 ) -> Tuple[torch.Tensor, bool]:
     """
-    미리 짚어 뽑기의 핵심 연산.
+    Speculative sampling의 핵심 연산.
     
     인수:
-        target_probs: [단어 곳간 크기] 목표 모델의 확률
-        draft_probs: [단어 곳간 크기] 밑그림 모델의 확률
-        draft_token: 밑그림 모델이 내놓은 토막
+        target_probs: [어휘 크기] 목표 모델의 확률
+        draft_probs: [어휘 크기] 초안 모델의 확률
+        draft_token: 초안 모델이 제안한 토큰
         
     반환값:
-        (받아들인 토막, 받아들였는지 여부)
+        (수용한 토큰, 수용했는지 여부)
     """
     p = target_probs[draft_token]
     q = draft_probs[draft_token]
     
-    # min(1, p/q)의 확률로 받아들인다
+    # min(1, p/q)의 확률로 수용한다
     if torch.rand(1) < p / q:
         return draft_token, True
     
-    # 물리침: 남은 것에서 뽑는다
+    # 거절: 잔차에서 뽑는다
     residual = torch.clamp(target_probs - draft_probs, min=0)
     residual = residual / residual.sum()
     
     corrected = torch.multinomial(residual, num_samples=1)
     return corrected, False
 
-# 가짜 모델로 보이기
+# 가짜 모델로 시연하기
 class MockLanguageModel(nn.Module):
-    """보이기 위한 단순한 가짜 말 모델."""
+    """시연을 위한 단순한 가짜 언어 모델."""
     
     def __init__(self, vocab_size: int, hidden_size: int, num_layers: int):
         super().__init__()
@@ -318,7 +318,7 @@ main의 MockLanguageModel은 인과 마스크와 위치 표현 없이 Transforme
 
 별도 speculative_sample 함수의 한 위치 수용·잔차 식은 핵심 원리에 가깝지만 1차원 분포·단일 토큰과 유효 q를 전제로 한다. torch.rand는 CPU에 생성되며 장치·정규화와 잔차의 수치 처리를 맞춰야 한다. 이 함수가 잘 맞는다고 전체 캐시·배치 구현이 자동으로 검증되는 것은 아니다.
 
-**기존 출력:**
+**출력:**
 
 ```
 Speculative Decoding Demo
@@ -330,7 +330,7 @@ Tokens per step: 2.50
 Theoretical speedup: 2.50x
 ```
 
-num_accepted는 실제 수용한 초안뿐 아니라 보정·보너스도 센다. 따라서 acceptance_rate는 진짜 제안 수용률이 아니고 K개 모두 수용하면 (K+1)/K로 100%를 넘을 수 있다. speedup_factor도 측정 시간의 비가 아니라 출력 토큰/단계 수다. 마지막 길이 제한에서 잘린 토큰도 통계에 남을 수 있다. 기존 출력은 재실행 없이 보존했다.
+num_accepted는 실제 수용한 초안뿐 아니라 보정·보너스도 센다. 따라서 acceptance_rate는 진짜 제안 수용률이 아니고 K개 모두 수용하면 (K+1)/K로 100%를 넘을 수 있다. speedup_factor도 측정 시간의 비가 아니라 출력 토큰/단계 수다. 마지막 길이 제한에서 잘린 토큰도 통계에 남을 수 있다.
 
 ## 4. 기대 전진량과 지연
 

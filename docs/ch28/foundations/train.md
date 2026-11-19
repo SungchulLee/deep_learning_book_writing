@@ -6,13 +6,13 @@
 
 ```python
 """
-자기 회귀 시계열 모델을 위한 익히기 대본
+자기 회귀 시계열 모델을 위한 학습 스크립트
 
-이 대본은 다음을 보인다.
-1. 인공 시계열 자료를 만든다
-2. 자기 회귀 모델 익히기에 맞게 다듬는다
-3. 선형과 뉴럴 자기 회귀 모델을 모두 익힌다
-4. 결과를 따지고 그려 본다
+이 스크립트는 다음을 보인다.
+1. 인공 시계열 데이터를 만든다
+2. 자기 회귀 모델 학습에 맞게 전처리한다
+3. 선형과 뉴럴 자기 회귀 모델을 모두 학습한다
+4. 결과를 평가하고 시각화한다
 """
 
 import torch
@@ -26,15 +26,15 @@ from tqdm import tqdm
 # 메인
 # ========================================================================
 
-# 우리가 만든 단원을 들여온다
+# 우리가 만든 모듈을 임포트한다
 from typing import Optional
 
 # --- ar_model ---
 """
-시계열을 위한 자기 되돌이 모델
+시계열을 위한 자기 회귀 모델
 
-이 단원은 PyTorch로 단순한 AR(p) 모델을 짠다.
-모델은 지난 p개 값을 바탕으로 시계열의 다음 값을 헤아리는 법을 배운다.
+이 모듈은 PyTorch로 단순한 AR(p) 모델을 짠다.
+모델은 지난 p개 값을 바탕으로 시계열의 다음 값을 예측하는 법을 배운다.
 """
 
 
@@ -45,60 +45,60 @@ from typing import Optional
 
 class ARModel(nn.Module):
     """
-    시계열 헤아리기를 위한 자기 되돌이 모델 AR(p).
+    시계열 예측을 위한 자기 회귀 모델 AR(p).
     
-    이는 다음을 헤아리는 단순한 선형 자기 되돌이 모델이다.
+    이는 다음을 예측하는 단순한 선형 자기 회귀 모델이다.
     X_t = c + φ₁*X_{t-1} + φ₂*X_{t-2} + ... + φₚ*X_{t-p}
     
-    신경망 말로 하면 이는 깨움 함수가 없는 선형 층일 뿐이다.
+    뉴럴 네트워크 용어로 하면 이는 활성화 함수가 없는 선형 레이어일 뿐이다.
     
     구조:
-        들임: [배치 크기, 차례 길이] - 지난 p개 값
-        내놓기: [배치 크기, 1] - 헤아린 다음 값
+        입력: [배치 크기, 시퀀스 길이] - 지난 p개 값
+        출력: [배치 크기, 1] - 예측한 다음 값
     """
     
     def __init__(self, order: int):
         """
-        자기 되돌이 모델을 초기화한다.
+        자기 회귀 모델을 초기화한다.
         
         인수:
-            order: 자기 되돌이 모델의 차수 p(지난 값을 몇 개 쓸지)
+            order: 자기 회귀 모델의 차수 p(지난 값을 몇 개 쓸지)
         """
         super(ARModel, self).__init__()
         
         self.order = order
         
-        # 선형 층: 계수 φ₁, φ₂, ..., φₚ과 상수 c을 배운다
-        # 들임 차원: 차수(지난 값 p개)
-        # 내놓기 차원: 1(다음 값)
-        # bias=True는 상수항 c을 배운다는 뜻이다
+        # 선형 레이어: 계수 φ₁, φ₂, ..., φₚ와 상수 c를 배운다
+        # 입력 차원: 차수(지난 값 p개)
+        # 출력 차원: 1(다음 값)
+        # bias=True는 상수항 c를 배운다는 뜻이다
         self.linear = nn.Linear(order, 1, bias=True)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        앞먹임: 지난 값으로 다음 값을 헤아린다.
+        순전파: 지난 값으로 다음 값을 예측한다.
         
         인수:
-            x: 형태 [배치 크기, order]인 들임 텐서
+            x: 형태 [배치 크기, order]인 입력 텐서
                표본마다 지난 'order'개 값을 담는다
                
         반환값:
-            헤아린 다음 값, 형태 [배치 크기, 1]
+            예측한 다음 값, 형태 [배치 크기, 1]
         """
-        # 단순한 선형 바꿈
-        # 내놓기 = w₁*x₁ + w₂*x₂ + ... + wₚ*xₚ + b
+        # 단순한 선형 변환
+        # 출력 = w₁*x₁ + w₂*x₂ + ... + wₚ*xₚ + b
         return self.linear(x)
     
     def get_coefficients(self) -> dict:
         """
-        배운 자기 되돌이 계수를 뽑아낸다.
+        배운 자기 회귀 계수를 뽑아낸다.
         
         반환값:
             다음을 담은 사전:
                 - 'coefficients': 배운 φ 값 [φ₁, φ₂, ..., φₚ]
                 - 'constant': 배운 상수항 c
         """
-        # 선형 층에서 무게와 치우침을 얻는다
+        # 선형 레이어에서 웨이트와 바이어스을 얻는다
         weights = self.linear.weight.data.cpu().numpy().flatten()
         bias = self.linear.bias.data.cpu().numpy()[0]
         
@@ -111,37 +111,37 @@ class ARModel(nn.Module):
                         initial_sequence: torch.Tensor, 
                         n_steps: int) -> np.ndarray:
         """
-        앞날 헤아림을 자기 되돌이로 만든다.
+        미래 예측을 자기 회귀로 만든다.
         
-        이 함수는 다음으로 앞날 여러 걸음을 헤아린다.
-        1. 아는 지난 값으로 다음 값을 헤아린다
-        2. 헤아린 값을 차례에 더한다
-        3. 가장 최근 값(헤아린 값 포함)으로 다음을 헤아린다
-        4. 걸음 2-3을 되풀이한다
+        이 함수는 다음으로 미래 여러 스텝을 예측한다.
+        1. 아는 지난 값으로 다음 값을 예측한다
+        2. 예측한 값을 시퀀스에 더한다
+        3. 가장 최근 값(예측한 값 포함)으로 다음을 예측한다
+        4. 스텝 2-3을 되풀이한다
         
         인수:
-            initial_sequence: 출발 값을 담은 형태 [order]인 텐서
-            n_steps: 앞날로 헤아릴 걸음의 수
+            initial_sequence: 초기 값을 담은 형태 [order]인 텐서
+            n_steps: 미래로 예측할 스텝의 수
             
         반환값:
-            헤아린 값을 담은 길이 n_steps인 넘파이 배열
+            예측한 값을 담은 길이 n_steps인 넘파이 배열
         """
-        self.eval()  # 따지기 모드로 둔다
+        self.eval()  # 평가 모드로 둔다
         
-        # 헤아림을 담아 둔다
+        # 예측을 담아 둔다
         predictions = []
         
-        # 지금 차례(미끄러지는 창)
+        # 현재 시퀀스(슬라이딩 창)
         current_seq = initial_sequence.clone().unsqueeze(0)  # 배치 차원을 더한다
         
-        with torch.no_grad():  # 기울기 셈이 필요 없다
+        with torch.no_grad():  # 그래디언트 계산이 필요 없다
             for _ in range(n_steps):
-                # 다음 값을 헤아린다
+                # 다음 값을 예측한다
                 pred = self.forward(current_seq)
                 predictions.append(pred.item())
                 
-                # 차례를 새로 고친다: 가장 오래된 것을 빼고 가장 새 헤아림을 더한다
-                # 왼쪽으로 밀고 끝에 새 헤아림을 더한다
+                # 시퀀스를 갱신한다: 가장 오래된 것을 빼고 가장 새 예측을 더한다
+                # 왼쪽으로 밀고 끝에 새 예측을 더한다
                 current_seq = torch.cat([current_seq[:, 1:], pred], dim=1)
         
         return np.array(predictions)
@@ -149,52 +149,52 @@ class ARModel(nn.Module):
 
 class NeuralARModel(nn.Module):
     """
-    신경 자기 되돌이 모델 - AR(p)의 비선형 넓힘.
+    뉴럴 자기 회귀 모델 - AR(p)의 비선형 확장.
     
-    단순한 선형 모델 대신 작은 신경망을 써서
+    단순한 선형 모델 대신 작은 뉴럴 네트워크을 써서
     시계열의 비선형 관계를 담는다.
     
     구조:
-        들임 -> 숨은 층(ReLU) -> 숨은 층(ReLU) -> 내놓기
+        입력 -> 은닉 레이어(ReLU) -> 은닉 레이어(ReLU) -> 출력
     """
     
     def __init__(self, 
                  order: int, 
                  hidden_size: int = 64):
         """
-        신경 자기 되돌이 모델을 초기화한다.
+        뉴럴 자기 회귀 모델을 초기화한다.
         
         인수:
-            order: 들임으로 쓸 지난 값의 수
-            hidden_size: 숨은 층의 신경 세포 수
+            order: 입력으로 쓸 지난 값의 수
+            hidden_size: 은닉 레이어의 뉴런 수
         """
         super(NeuralARModel, self).__init__()
         
         self.order = order
         
-        # 여러 층 신경망
+        # 여러 레이어 뉴럴 네트워크
         self.network = nn.Sequential(
-            # 첫 번째 은닉층
+            # 첫 번째 은닉 레이어
             nn.Linear(order, hidden_size),
             nn.ReLU(),
             
-            # 두 번째 은닉층
+            # 두 번째 은닉 레이어
             nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),
             
-            # 출력층
+            # 출력 레이어
             nn.Linear(hidden_size, 1)
         )
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        신경망을 지나는 앞먹임.
+        뉴럴 네트워크을 지나는 순전파.
         
         인수:
-            x: 형태 [배치 크기, order]인 들임 텐서
+            x: 형태 [배치 크기, order]인 입력 텐서
             
         반환값:
-            헤아린 다음 값, 형태 [배치 크기, 1]
+            예측한 다음 값, 형태 [배치 크기, 1]
         """
         return self.network(x)
     
@@ -202,16 +202,16 @@ class NeuralARModel(nn.Module):
                         initial_sequence: torch.Tensor, 
                         n_steps: int) -> np.ndarray:
         """
-        앞날 헤아림을 자기 되돌이로 만든다.
+        미래 예측을 자기 회귀로 만든다.
         
-        ARModel.predict_sequence()과 같되 신경망을 쓴다.
+        ARModel.predict_sequence()와 같되 뉴럴 네트워크을 쓴다.
         
         인수:
-            initial_sequence: 출발 값
-            n_steps: 내다볼 걸음의 수
+            initial_sequence: 초기 값
+            n_steps: 예측할 스텝의 수
             
         반환값:
-            헤아린 값의 배열
+            예측한 값의 배열
         """
         self.eval()
         predictions = []
@@ -228,21 +228,21 @@ class NeuralARModel(nn.Module):
 
 if __name__ == "__main__":
     """
-    보여 주기: 흉내 자료로 자기 되돌이 모델을 시험한다
+    시연: 모의 데이터로 자기 회귀 모델을 시험한다
     """
     
     # 임시 데이터 만들기
     batch_size = 32
     order = 5  # AR(5) 모델
     
-    # 아무 들임: 배치의 표본마다 지난 값 5개
+    # 무작위 입력: 배치의 표본마다 지난 값 5개
     X = torch.randn(batch_size, order)
     
     print("=" * 60)
     print("Testing Linear AR Model")
     print("=" * 60)
     
-    # 선형 자기 되돌이 모델을 초기화한다
+    # 선형 자기 회귀 모델을 초기화한다
     model = ARModel(order=order)
     
     # 순전파
@@ -255,7 +255,7 @@ if __name__ == "__main__":
     print(f"\nLearned coefficients: {coeffs['coefficients']}")
     print(f"Learned constant: {coeffs['constant']:.4f}")
     
-    # 차례 헤아리기를 시험한다
+    # 시퀀스 예측을 시험한다
     initial_seq = torch.randn(order)
     future_preds = model.predict_sequence(initial_seq, n_steps=10)
     print(f"\nGenerated {len(future_preds)} future predictions")
@@ -264,7 +264,7 @@ if __name__ == "__main__":
     print("Testing Neural AR Model")
     print("=" * 60)
     
-    # 신경 자기 되돌이 모델을 초기화한다
+    # 뉴럴 자기 회귀 모델을 초기화한다
     neural_model = NeuralARModel(order=order, hidden_size=32)
     
     # 순전파
@@ -272,7 +272,7 @@ if __name__ == "__main__":
     print(f"Input shape: {X.shape}")
     print(f"Output shape: {predictions.shape}")
     
-    # 매개변수 개수 세기
+    # 파라메터 개수 세기
     n_params = sum(p.numel() for p in neural_model.parameters())
     print(f"Number of parameters: {n_params}")
     
@@ -289,27 +289,27 @@ def train_model(model: nn.Module,
                 learning_rate: float = 0.01,
                 verbose: bool = True) -> dict:
     """
-    평균 제곱 어긋남 로스로 자기 회귀 모델을 익힌다.
+    평균제곱오차 로스로 자기 회귀 모델을 학습한다.
     
     인수:
-        model: 익힐 자기 회귀 모델(ARModel이나 NeuralARModel)
-        X_train: 익히기 들임 차례
-        y_train: 익히기 목표 값
-        X_test: 시험 들임 차례
+        model: 학습할 자기 회귀 모델(ARModel이나 NeuralARModel)
+        X_train: 학습 입력 시퀀스
+        y_train: 학습 목표 값
+        X_test: 시험 입력 시퀀스
         y_test: 시험 목표 값
-        n_epochs: 익히기 바퀴 수
+        n_epochs: 학습 에포크 수
         learning_rate: 옵티마이저의 러닝레이트
-        verbose: 나아감 막대를 보일지 여부
+        verbose: 진행 막대를 보일지 여부
         
     반환값:
-        익히기 지난 일(로스)을 담은 사전
+        학습 이력(로스)을 담은 사전
     """
     
     # 로스 함수: 평균제곱오차
-    # 평균 제곱 어긋남 = (1/n) * Σ(헤아린 값 - 실제 값)²
+    # 평균제곱오차 = (1/n) * Σ(예측한 값 - 실제 값)²
     criterion = nn.MSELoss()
     
-    # 가장 좋게 하개: Adam(맞추어 가는 러닝 빠르기)
+    # 옵티마이저: Adam(적응적 러닝레이트)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     
     # 그리려고 로스를 담아 둔다
@@ -320,26 +320,26 @@ def train_model(model: nn.Module,
     iterator = tqdm(range(n_epochs), desc="Training") if verbose else range(n_epochs)
     
     for epoch in iterator:
-        # ==================== 익히기 단계 ====================
+        # ==================== 학습 단계 ====================
         model.train()  # 모델을 학습 모드로
         
-        # 피드포워드: 예측을 셈한다
+        # 순전파: 예측을 계산한다
         train_predictions = model(X_train)
         
-        # 로스를 셈한다: 헤아린 값이 참값에서 얼마나 먼가?
+        # 로스를 계산한다: 예측한 값이 참값에서 얼마나 먼가?
         train_loss = criterion(train_predictions, y_train)
         
-        # 역전파: 경사를 계산한다
+        # 역전파: 그래디언트를 계산한다
         optimizer.zero_grad()  # 이전 그래디언트 지우기
         train_loss.backward()  # 새 그래디언트 계산
         
-        # 모델 파라메터를 새로 고친다
+        # 모델 파라메터를 갱신한다
         optimizer.step()
         
-        # ==================== 따지기 단계 ====================
+        # ==================== 평가 단계 ====================
         model.eval()  # 모델을 평가 모드로
         
-        with torch.no_grad():  # 따질 때는 그래디언트를 셈하지 않는다
+        with torch.no_grad():  # 평가할 때는 그래디언트를 계산하지 않는다
             test_predictions = model(X_test)
             test_loss = criterion(test_predictions, y_test)
         
@@ -347,7 +347,7 @@ def train_model(model: nn.Module,
         train_losses.append(train_loss.item())
         test_losses.append(test_loss.item())
         
-        # 진행 막대를 고친다
+        # 진행 막대를 갱신한다
         if verbose and epoch % 10 == 0:
             iterator.set_postfix({
                 'train_loss': f'{train_loss.item():.4f}',
@@ -369,21 +369,21 @@ def visualize_results(data: np.ndarray,
                      n_forecast: int = 50,
                      title: str = "AR Model Results"):
     """
-    모델 솜씨를 두루 그려 본다.
+    모델 성능을 종합해 시각화한다.
     
     인수:
-        data: 본디 시계열 자료
-        model: 익힌 자기 회귀 모델
-        X_test: 시험 들임 차례
+        data: 원래 시계열 데이터
+        model: 학습한 자기 회귀 모델
+        X_test: 시험 입력 시퀀스
         y_test: 시험 목표 값
-        sequence_length: 들임 차례의 길이
-        train_size: 익히기 표본의 수
-        n_forecast: 앞날로 내다볼 스텝의 수
+        sequence_length: 입력 시퀀스의 길이
+        train_size: 학습 표본의 수
+        n_forecast: 미래로 예측할 스텝의 수
         title: 그림의 제목
     """
     fig, axes = plt.subplots(2, 1, figsize=(14, 8))
     
-    # ==================== 그림 1: 헤아린 값과 실제 값 ====================
+    # ==================== 그림 1: 예측한 값과 실제 값 ====================
     model.eval()
     with torch.no_grad():
         test_predictions = model(X_test).numpy().flatten()
@@ -398,14 +398,14 @@ def visualize_results(data: np.ndarray,
     axes[0].legend()
     axes[0].grid(True, alpha=0.3)
     
-    # ==================== 그림 2: 앞날 내다보기 ====================
-    # 시험 배치의 마지막 차례를 출발점으로 삼는다
+    # ==================== 그림 2: 미래 예측 ====================
+    # 시험 세트의 마지막 시퀀스를 출발점으로 삼는다
     initial_sequence = X_test[-1]
     
-    # 앞날 헤아림을 만든다
+    # 미래 예측을 만든다
     future_predictions = model.predict_sequence(initial_sequence, n_steps=n_forecast)
     
-    # 본디 자료와 내다보기를 그린다
+    # 원래 데이터와 예측을 그린다
     forecast_start = len(data) - n_forecast
     
     axes[1].plot(range(len(data)), data, label='Historical Data', 
@@ -414,7 +414,7 @@ def visualize_results(data: np.ndarray,
                 future_predictions, label='Forecast', 
                 linewidth=2, alpha=0.7, color='red', linestyle='--')
     
-    # 지난 일과 내다보기를 가르는 세로선을 더한다
+    # 과거 구간과 예측 구간을 가르는 세로선을 더한다
     axes[1].axvline(x=forecast_start, color='gray', linestyle=':', 
                    linewidth=2, label='Forecast Start')
     
@@ -430,18 +430,18 @@ def visualize_results(data: np.ndarray,
 
 def main():
     """
-    으뜸 익히기 물길
+    메인 학습 파이프라인
     """
     print("=" * 70)
     print("Autoregressive Time Series Model Training")
     print("=" * 70)
     
-    # ==================== 웃파라메터 ====================
+    # ==================== 하이퍼파라메터 ====================
     SEQUENCE_LENGTH = 10  # AR(10) - 지난 값 10개를 쓴다
-    N_SAMPLES = 1000      # 때 점 1000개를 만든다
-    TRAIN_RATIO = 0.8     # 익히기 80%, 시험 20%
-    N_EPOCHS = 200        # 익히기 바퀴 수
-    LEARNING_RATE = 0.01  # 러닝 비율
+    N_SAMPLES = 1000      # 시점 1000개를 만든다
+    TRAIN_RATIO = 0.8     # 학습 80%, 시험 20%
+    N_EPOCHS = 200        # 학습 에포크 수
+    LEARNING_RATE = 0.01  # 러닝레이트
     
     print(f"\nHyperparameters:")
     print(f"  Sequence Length (AR order): {SEQUENCE_LENGTH}")
@@ -450,17 +450,17 @@ def main():
     print(f"  Epochs: {N_EPOCHS}")
     print(f"  Learning Rate: {LEARNING_RATE}")
     
-    # ==================== 자료 만들기 ====================
+    # ==================== 데이터 생성 ====================
     print(f"\n{'='*70}")
     print("Step 1: Generating synthetic time series data...")
     print(f"{'='*70}")
     
-    # 어떤 클래스의 자료를 쓸지 고를 수 있다:
-    # 고르기 1: 잡음 섞인 사인 물결
+    # 어떤 종류의 데이터를 쓸지 고를 수 있다:
+    # 선택지 1: 잡음이 섞인 사인파
     data = generate_sine_wave(n_samples=N_SAMPLES, frequency=0.05, noise_std=0.2)
     data_name = "Sine Wave"
     
-    # 고르기 2: 참 자기 회귀 과정(대신 쓰려면 주석을 푼다)
+    # 선택지 2: 참 자기 회귀 과정(대신 쓰려면 주석을 푼다)
     # data = generate_ar_process(n_samples=N_SAMPLES,
     #                            coefficients=[0.7, -0.3, 0.1],
     #                            noise_std=0.3)
@@ -468,7 +468,7 @@ def main():
     
     print(f"✓ Generated {len(data)} data points ({data_name})")
     
-    # ==================== 자료 준비 ====================
+    # ==================== 데이터 준비 ====================
     print(f"\n{'='*70}")
     print("Step 2: Preparing sequences for training...")
     print(f"{'='*70}")
@@ -483,7 +483,7 @@ def main():
     print(f"  Train: {len(X_train)} sequences")
     print(f"  Test: {len(X_test)} sequences")
     
-    # ==================== 선형 자기 회귀 모델 익히기 ====================
+    # ==================== 선형 자기 회귀 모델 학습 ====================
     print(f"\n{'='*70}")
     print("Step 3a: Training Linear AR Model...")
     print(f"{'='*70}")
@@ -510,7 +510,7 @@ def main():
         print(f"  φ_{i+1} = {coef:.4f}")
     print(f"  Constant c = {coeffs['constant']:.4f}")
     
-    # ==================== 뉴럴 자기 회귀 모델 익히기 ====================
+    # ==================== 뉴럴 자기 회귀 모델 학습 ====================
     print(f"\n{'='*70}")
     print("Step 3b: Training Neural AR Model...")
     print(f"{'='*70}")
@@ -529,12 +529,12 @@ def main():
     print(f"  Final train loss: {neural_history['train_losses'][-1]:.4f}")
     print(f"  Final test loss: {neural_history['test_losses'][-1]:.4f}")
     
-    # ==================== 결과 그려 보기 ====================
+    # ==================== 결과 시각화 ====================
     print(f"\n{'='*70}")
     print("Step 4: Creating visualizations...")
     print(f"{'='*70}")
     
-    # 익히기 곡선을 그린다
+    # 학습 곡선을 그린다
     plt.figure(figsize=(12, 5))
     
     plt.subplot(1, 2, 1)
@@ -559,7 +559,7 @@ def main():
     plt.savefig('training_curves.png', dpi=150)
     print("✓ Saved training_curves.png")
     
-    # 선형 모델의 헤아림을 그린다
+    # 선형 모델의 예측을 그린다
     fig = visualize_results(
         data, linear_model, X_test, y_test, 
         SEQUENCE_LENGTH, len(X_train),
@@ -568,7 +568,7 @@ def main():
     plt.savefig('linear_ar_results.png', dpi=150)
     print("✓ Saved linear_ar_results.png")
     
-    # 뉴럴 모델의 헤아림을 그린다
+    # 뉴럴 모델의 예측을 그린다
     fig = visualize_results(
         data, neural_model, X_test, y_test,
         SEQUENCE_LENGTH, len(X_train),
@@ -577,7 +577,7 @@ def main():
     plt.savefig('neural_ar_results.png', dpi=150)
     print("✓ Saved neural_ar_results.png")
     
-    # ==================== 간추리기 ====================
+    # ==================== 요약 ====================
     print(f"\n{'='*70}")
     print("Training Complete! Summary:")
     print(f"{'='*70}")

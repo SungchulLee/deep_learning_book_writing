@@ -151,7 +151,7 @@ scripted_model = torch.jit.script(model)
 
 print("\nApplying optimizations...")
 
-# 모델 얼리기
+# 모델 동결(freeze)
 frozen_model = torch.jit.freeze(scripted_model)
 print("Model frozen")
 
@@ -251,7 +251,7 @@ freeze 전에 eval()이 필요한 이유는 무엇인가?
 </div>
 
 ??? success "풀이"
-    동결은 평가 동작을 기준으로 변경되지 않는 상태를 그래프에 반영하는 과정이다. 드롭아웃이나 BatchNorm의 학습 동작을 그대로 유지하며 훈련하는 용도로 사용하는 과정이 아니다.
+    동결은 평가 동작을 기준으로 변경되지 않는 상태를 그래프에 반영하는 과정이다. 드롭아웃이나 BatchNorm의 학습 동작을 그대로 유지하며 학습하는 용도로 사용하는 과정이 아니다.
 
 ---
 

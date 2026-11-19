@@ -6,17 +6,17 @@
 
 ```python
 """
-미리 익힌 모델을 쓰는 트랜스포머 바탕 개체명 인식
+사전 학습 모델을 쓰는 트랜스포머 기반 개체명 인식
 ===============================================
 
 개체명 인식에 BERT/RoBERTa 쓰기.
 
 핵심 개념:
-- 미리 익힌 트랜스포머 곱게 다듬기
-- 서브워드 토큰내기 다루기
-- 토큰 클래스 매기기
+- 사전 학습 트랜스포머 파인튜닝
+- 서브워드 토큰화 다루기
+- 토큰 분류
 
-지은이: 러닝 목적
+지은이: 교육 목적
 날짜: 2025
 """
 
@@ -32,10 +32,10 @@ from typing import List, Dict
 
 class TransformerNER(nn.Module):
     """
-    미리 익힌 모델을 쓰는 트랜스포머 바탕 개체명 인식.
+    사전 학습 모델을 쓰는 트랜스포머 기반 개체명 인식.
     
     구조:
-    들임 → BERT/RoBERTa → 선형 → 소프트맥스 → 레이블
+    입력 → BERT/RoBERTa → 선형 → 소프트맥스 → 라벨
     """
     
     def __init__(self, model_name: str = 'bert-base-cased', num_labels: int = 9):
@@ -44,27 +44,27 @@ class TransformerNER(nn.Module):
         
         인수:
             model_name: Hugging Face 모델 이름
-            num_labels: 개체명표의 개수
+            num_labels: 개체명 태그의 개수
         """
         super(TransformerNER, self).__init__()
         
         self.num_labels = num_labels
         self.model_name = model_name
         
-        # 미리 익힌 트랜스포머 읽어 들이기
+        # 사전 학습 트랜스포머 불러오기
         self.transformer = AutoModel.from_pretrained(model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         
         # 정칙화를 위한 드롭아웃
         self.dropout = nn.Dropout(0.1)
         
-        # 분류 머리
+        # 분류 헤드
         hidden_size = self.transformer.config.hidden_size
         self.classifier = nn.Linear(hidden_size, num_labels)
     
     def forward(self, input_ids, attention_mask=None):
         """
-        피드포워드.
+        순전파.
         
         인수:
             input_ids: [batch_size, seq_len]
@@ -73,16 +73,16 @@ class TransformerNER(nn.Module):
         반환값:
             logits: [batch_size, seq_len, num_labels]
         """
-        # 트랜스포머의 내놓음 얻기
+        # 트랜스포머의 출력 얻기
         outputs = self.transformer(
             input_ids=input_ids,
             attention_mask=attention_mask
         )
         
-        # 숨은 상태 얻기
+        # 은닉 상태 얻기
         sequence_output = outputs[0]  # [배치, seq_len, hidden_size]
         
-        # 떨구기 쓰기
+        # 드롭아웃 적용
         sequence_output = self.dropout(sequence_output)
         
         # 분류
@@ -92,13 +92,13 @@ class TransformerNER(nn.Module):
     
     def predict(self, text: str) -> List[Tuple[str, str]]:
         """
-        글 속의 것 예측하기.
+        텍스트 속의 개체 예측하기.
         
         인수:
-            text: 들임 텍스트 문자열
+            text: 입력 텍스트 문자열
             
         반환값:
-            (토큰, 레이블) 짝의 목록
+            (토큰, 라벨) 짝의 목록
         """
         # 토큰으로 나누기
         encoding = self.tokenizer(text, return_tensors='pt', 
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
 ## 2. 생성과 입력·출력 계약
 
-기본 모델 이름은 bert-base-cased이고9개 레이블을 출력하도록 선언한다. 그러나 PER·ORG·LOC·MISC의BIO9개처럼 구체적인 id2label 매핑은 없다. 같은9클래스라도 순서·의미가 다르면 모델·정답·출력 해석이 맞지 않는다. tokenizer는 사전 학습 모델과 같은 이름에서 로드하지만 forward는 텍스트가 아니라 정수 input_ids와 attention_mask를 받는다.
+기본 모델 이름은 bert-base-cased이고9개 라벨을 출력하도록 선언한다. 그러나 PER·ORG·LOC·MISC의BIO9개처럼 구체적인 id2label 매핑은 없다. 같은9클래스라도 순서·의미가 다르면 모델·정답·출력 해석이 맞지 않는다. tokenizer는 사전 학습 모델과 같은 이름에서 로드하지만 forward는 텍스트가 아니라 정수 input_ids와 attention_mask를 받는다.
 
 출력 피처는 B×L×H이고 dropout 뒤 선형 head는 B×L×K 로짓을 반환한다. 기본 BERT의 H768에서 새 head는(768+1)×9=6921개 파라메터다. 전체 수는 로드한 인코더와 head를 합하며 모델 이름·설정이 바뀌면 달라진다. 여기서 사전 학습 웨이트를 다운로드·실행할 필요는 없다.
 
@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
 ## 3. 서브워드·특수 토큰·긴 입력
 
-predict는 토큰화된 모든 위치의 argmax를 반환한다. 특수 토큰·padding을 제외하거나 서브워드를 단어·개체 span으로 합치는 처리가 없다. continuation 조각에 붙인 태그와 단어 레이블의 관계를 정의하고 tokenizer의 offset·word_ids를 이용해 원문 span으로 정렬해야 한다. CRF나 BIO 강제 제약도 없다.
+predict는 토큰화된 모든 위치의 argmax를 반환한다. 특수 토큰·padding을 제외하거나 서브워드를 단어·개체 span으로 합치는 처리가 없다. continuation 서브워드에 붙인 태그와 단어 라벨의 관계를 정의하고 tokenizer의 offset·word_ids를 이용해 원문 span으로 정렬해야 한다. CRF나 BIO 강제 제약도 없다.
 
 truncation=True는 모델 한도를 넘는 텍스트를 자를 수 있다. 긴 문서 전체를 자동 처리하거나 잘린 개체를 복원하는 기능은 아니다. 창별 입력·겹침·경계·중복 합치기와 원문 offset을 명시해야 한다. 학습에도 특수·패딩·무시 서브워드를 loss의 유효 위치에 맞춰 처리한다.
 
@@ -142,11 +142,11 @@ truncation=True는 모델 한도를 넘는 텍스트를 자를 수 있다. 긴 �
 
 predict는 no_grad를 쓰지만 eval로 전환하지 않는다. 모델이 train 모드이면 인코더와 새 head의 dropout이 남는다. 생성된 토큰 텐서는 CPU이며 모델을 CUDA·MPS로 옮긴 경우 입력도 같은 장치에 맞춰야 한다. no_grad는 평가 모드나 장치 이동을 대신하지 않는다.
 
-이 클래스의 dropout0.1은 인코더 출력 뒤 피처 dropout이다. 내부 softmax attention 웨이트 dropout을 새로 추가한 것이 아니다. 기존 사전 학습 인코더의 attention 설정과 학습 head의 정규화를 구분한다. 어떤 dropout도 자동으로 attention을 균등하게 하거나 NER 정확도를 보장하지 않는다.
+이 클래스의 dropout0.1은 인코더 출력 뒤 피처 dropout이다. 내부 softmax attention 웨이트 dropout을 새로 추가한 것이 아니다. 기존 사전 학습 인코더의 attention 설정과 학습 head의 정칙화를 구분한다. 어떤 dropout도 자동으로 attention을 균등하게 하거나 NER 정확도를 보장하지 않는다.
 
 ## 5. 학습과 비교의 범위
 
-토큰별 로짓에는 단일 레이블 교차 엔트로피 등을 연결할 수 있지만 이 코드에는 labels·로스·최적화가 없다. 사전 학습과 파인튜닝·평가 자료를 구분하고 정확 span 평가를 사용한다. 레이어 수를 임의로 바꾸는 것은 사전 학습 인코더의 구조·웨이트 호환성 문제를 포함하므로 generic ModuleList 반복만으로 처리할 수 없다.
+토큰별 로짓에는 단일 라벨 교차 엔트로피 등을 연결할 수 있지만 이 코드에는 labels·로스·최적화가 없다. 사전 학습과 파인튜닝·평가 데이터를 구분하고 정확 span 평가를 사용한다. 레이어 수를 임의로 바꾸는 것은 사전 학습 인코더의 구조·웨이트 호환성 문제를 포함하므로 generic ModuleList 반복만으로 처리할 수 없다.
 
 길이L의 dense attention 쌍별 연산은 O(L²H), projection은 O(LH²)이며 전체 인코더의 MLP·레이어 수와 구현도 비용에 영향을 준다. 토큰 수·관찰 문서 범위·padding·사전 학습 조건을 맞춰 다른 NER 구조와 비교한다.
 
@@ -191,7 +191,7 @@ predict의 토큰·정수 ID 목록을 곧바로 개체 span으로 볼 수 없�
 
 ??? success "풀이"
 
-    특수 토큰 제외·서브워드 정렬·id2label·BIO 검사와 원문 offset 복원이 없다. 잘린 문서의 뒤 구간도 처리하지 않는다. 출력 annotation의 미수입 Tuple과 실제 정수 반환도 현재 템플릿의 한계다.
+    특수 토큰 제외·서브워드 정렬·id2label·BIO 검사와 원문 offset 복원이 없다. 잘린 문서의 뒤 구간도 처리하지 않는다. 출력 annotation의 import하지 않은 Tuple과 실제 정수 반환도 현재 템플릿의 한계다.
 
 
 
@@ -206,7 +206,7 @@ predict의 토큰·정수 ID 목록을 곧바로 개체 span으로 볼 수 없�
 
 ??? success "풀이"
 
-    YourBlock이 정의되어 있지 않으며 인코더의 hidden 크기·레이어 구조·웨이트 이름·사전 학습 호환성을 맞춰야 한다. 라이브러리 설정과 모델 로드 폴리시를 정하고 새 구조를 평가해야 한다. 단순 모듈 등록이 사전 학습·NER 학습을 자동 완성하지 않는다.
+    YourBlock이 정의되어 있지 않으며 인코더의 hidden 크기·레이어 구조·웨이트 이름·사전 학습 호환성을 맞춰야 한다. 라이브러리 설정과 모델 로드 정책을 정하고 새 구조를 평가해야 한다. 단순 모듈 등록이 사전 학습·NER 학습을 자동 완성하지 않는다.
 
     ```python
     self.layers = nn.ModuleList()

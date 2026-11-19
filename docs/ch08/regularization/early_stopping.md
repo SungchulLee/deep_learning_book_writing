@@ -16,9 +16,9 @@
 
 이 세 단계는 전형적인 설명일 뿐 모든 학습 곡선이 이 순서를 따르지는 않는다. 검증 지표가 흔들리거나 러닝레이트 감소 뒤 다시 좋아질 수 있으므로 patience와 스케줄을 함께 설계한다.
 
-### 암묵적 정규화
+### 암묵적 정칙화
 
-조기 종료는 다음을 통해 암묵적 정규화 장치로 작동한다.
+조기 종료는 다음을 통해 암묵적 정칙화 장치로 작동한다.
 
 - 최적화 반복 횟수를 제한하여 모델의 복잡도를 제한한다
 - 웨이트가 극단적인 값에 이르는 것을 막는다
@@ -52,7 +52,7 @@ $$
 
 ### 일반화 한계의 관점
 
-학습 길이 제한의 정규화 효과를 선형 모형에서 분석하면 다음 규모의 릿지 강도와 비교할 수 있다. 이는 정확한 등식이나 일반 뉴럴 네트워크에 적용되는 공식이 아니다.
+학습 길이 제한의 정칙화 효과를 선형 모형에서 분석하면 다음 규모의 릿지 강도와 비교할 수 있다. 이는 정확한 등식이나 일반 뉴럴 네트워크에 적용되는 공식이 아니다.
 
 $$
 \lambda_{\text{eff}} \approx \frac{1}{\eta t}
@@ -104,7 +104,7 @@ class EarlyStopping:
         # 개선 여부를 판정하는 규칙을 여기서 한 번만 정해 두면,
         # 아래 __call__에서 mode를 다시 갈라볼 필요가 없다.
         # min_delta를 빼거나 더하는 것이 핵심이다. 잡음 수준의 미세한
-        # 흔들림을 "개선"으로 세면 인내 계수가 계속 초기화되어
+        # 흔들림을 "개선"으로 세면 인내 카운터가 계속 초기화되어
         # 조기 종료가 영영 걸리지 않는다.
         # 주의: 람다가 붙잡는 것은 self.min_delta가 아니라 인수
         # min_delta다. 만든 뒤에 stopper.min_delta를 바꿔도
@@ -127,7 +127,7 @@ class EarlyStopping:
             학습을 멈춰야 하면 True
         """
         # 첫 호출은 견줄 대상이 없으므로 기준점만 세우고 물러난다.
-        # 인내 계수는 두 번째 호출부터 세기 시작한다
+        # 인내 카운터는 두 번째 호출부터 세기 시작한다
         if self.best_score is None:
             self.best_score = score
             self.best_epoch = epoch
@@ -138,13 +138,13 @@ class EarlyStopping:
         if self.is_better(score, self.best_score):
             self.best_score = score
             self.best_epoch = epoch
-            # 나아졌으니 인내 계수를 0으로 되돌린다. 즉 patience는
+            # 나아졌으니 인내 카운터를 0으로 되돌린다. 즉 patience는
             # "학습을 시작한 뒤 몇 에포크"가 아니라 "마지막 개선 뒤
             # 몇 에포크"를 세는 값이다
             self.counter = 0
             if self.restore_best_weights:
                 # deepcopy가 반드시 필요하다. state_dict()는 살아 있는
-                # 파라미터 텐서를 그대로 가리키므로, 그냥 담아 두면
+                # 파라메터 텐서를 그대로 가리키므로, 그냥 담아 두면
                 # 다음 optimizer.step()이 그 텐서를 덮어써 "가장 좋았던
                 # 웨이트"가 현재 웨이트를 따라 계속 바뀌어 버린다
                 self.best_weights = copy.deepcopy(model.state_dict())
@@ -234,7 +234,7 @@ def train_with_early_stopping(
             # 꽉 찬 배치들과 같은 무게를 얻어 값이 살짝 어긋난다
             train_loss += loss.item() * X_batch.size(0)
             # max(1)은 (최댓값, 위치)를 돌려주는데 필요한 것은 위치뿐이다.
-            # 이름표가 클래스 번호인 분류 과제를 전제한 코드다
+            # 라벨이 클래스 번호인 분류 과제를 전제한 코드다
             _, predicted = outputs.max(1)
             train_total += y_batch.size(0)
             train_correct += predicted.eq(y_batch).sum().item()
@@ -314,7 +314,7 @@ class MultiMetricEarlyStopping:
         self.patience = patience
         self.restore_best_weights = restore_best_weights
         
-        # 지표마다 최고 기록과 인내 계수를 따로 둔다. 로스는 내려가야
+        # 지표마다 최고 기록과 인내 카운터를 따로 둔다. 로스는 내려가야
         # 좋고 정확도는 올라가야 좋으니 한 벌로는 셀 수 없다.
         # 앞의 EarlyStopping과 달리 min_delta가 없다는 점에 주의하라.
         # 아주 미세한 개선도 개선으로 세므로 더 늦게 멈춘다
@@ -433,10 +433,10 @@ class EarlyStoppingWithLRScheduler:
             
             # 정체되면 러닝레이트를 줄인다
             if self.lr_counter >= self.lr_patience:
-                # 주의: 읽기는 첫 배치에서만 하고 쓰기는 모든 배치에 한다.
-                # 배치마다 다른 러닝레이트를 준 경우(레이어별로 러닝레이트를 달리하는
+                # 주의: 읽기는 첫 파라메터 그룹에서만 하고 쓰기는 모든 파라메터 그룹에 한다.
+                # 파라메터 그룹마다 다른 러닝레이트를 준 경우(레이어별로 러닝레이트를 달리하는
                 # 미세 조정 등) 여기서 전부 같은 값으로 뭉개진다.
-                # 배치마다 제 값을 절반으로 줄이려면 아래 반복문 안에서
+                # 파라메터 그룹마다 제 값을 절반으로 줄이려면 아래 반복문 안에서
                 # param_group['lr']을 각각 읽어 고쳐야 한다
                 current_lr = self.optimizer.param_groups[0]['lr']
                 # min_lr에서 멈춘다. 0까지 내려가 학습이 멎는 것을 막는다
@@ -460,11 +460,11 @@ class EarlyStoppingWithLRScheduler:
 
 ---
 
-## 4. 하이퍼파라미터에 대한 고려
+## 4. 하이퍼파라메터에 대한 고려
 
 ### 인내 값 고르기
 
-patience는 다음 사이의 절충을 조절한다.
+patience는 다음 사이의 트레이드오프를 조절한다.
 
 - **너무 작으면**: 일시적인 요동 중에 너무 일찍 멈출 수 있다
 - **너무 크면**: 계산을 낭비하고 과적합의 위험을 안는다
@@ -487,22 +487,22 @@ def analyze_optimal_patience(history: dict, test_patience_values: list):
     반환값:
         인내를 종료 에포크와 최적 val_loss에 대응시키는 사전
     """
-    # 이미 끝난 학습의 이력을 두고 "참을성을 다르게 잡았다면 어디서
+    # 이미 끝난 학습의 이력을 두고 "인내를 다르게 잡았다면 어디서
     # 멈췄을까"를 되짚어 본다. 학습을 다시 돌릴 필요가 없으므로
-    # 참을성을 고르는 데 드는 비용이 사실상 0이다.
+    # 인내를 고르는 데 드는 비용이 사실상 0이다.
     val_losses = history['val_loss']
     results = {}
 
     for patience in test_patience_values:
         best_loss = float('inf')
         best_epoch = 0
-        counter = 0   # 나아지지 않은 채 지난 에폭 수
+        counter = 0   # 나아지지 않은 채 지난 에포크 수
 
         for epoch, loss in enumerate(val_losses):
             if loss < best_loss:
                 best_loss = loss
                 best_epoch = epoch
-                counter = 0        # 나아졌으니 참을성을 되돌린다
+                counter = 0        # 나아졌으니 인내를 되돌린다
             else:
                 counter += 1
 
@@ -510,8 +510,8 @@ def analyze_optimal_patience(history: dict, test_patience_values: list):
                 break              # 여기서 조기 종료가 걸렸을 것이다
 
         # stop_epoch 와 best_epoch 를 함께 담는 것이 요점이다.
-        # 둘의 차이가 곧 "헛되이 더 돌린 에폭 수"이며, 참을성을 키울수록
-        # 이 간격이 벌어진다. 반대로 참을성이 너무 작으면 잠깐 나빠졌다가
+        # 둘의 차이가 곧 "헛되이 더 돌린 에포크 수"이며, 인내를 키울수록
+        # 이 간격이 벌어진다. 반대로 인내가 너무 작으면 잠깐 나빠졌다가
         # 다시 좋아지는 구간을 못 넘기고 일찍 끊겨 best_val_loss가 나빠진다.
         #
         # 주의: for가 break 없이 끝나면 epoch는 마지막 값으로 남는다.
@@ -561,13 +561,13 @@ $$
 w_t=\sum_{s=0}^{t-1}(I-\eta X^\top X)^s\eta X^\top y
 $$
 
-적절한 고정 러닝레이트에서 수렴하면 최소 노름 최소제곱 해를 얻는다. $X$가 열 전계수이면 $(X^\top X)^{-1}X^\top y$이다. 양의 강도를 쓰는 릿지 해로 수렴하는 것은 아니다.
+적절한 고정 러닝레이트에서 수렴하면 최소 노름 최소제곱 해를 얻는다. $X$가 열 완전계수(full column rank)이면 $(X^\top X)^{-1}X^\top y$이다. 양의 강도를 쓰는 릿지 해로 수렴하는 것은 아니다.
 
 고윳값 $\mu>0$ 방향에서 조기 종료의 축소 인자는 $1-(1-\eta\mu)^t$이고 릿지의 인자는 $\mu/(\mu+a)$이다. 형태는 유사하지만 서로 같지 않으므로 $a\approx1/(\eta t)$는 규모를 비교하는 근사로 읽는다. MSE의 평균이나 상수배를 바꾸면 $\eta$에 해당하는 배율도 달라진다.
 
 ### 검증 선택의 한계
 
-검증셋에서 고른 시점은 잡음이 섞인 추정에 따른 선택이다. 학습 횟수에 따른 바이어스·분산의 단조 변화나 최적 테스트 성능을 보장하지 않는다. 검증셋에 반복적으로 맞추는 효과를 고려하고, 최종 평가는 독립 테스트셋에서 수행한다.
+검증셋에서 고른 시점은 잡음이 섞인 추정에 따른 선택이다. 학습 횟수에 따른 편향·분산의 단조 변화나 최적 시험 성능을 보장하지 않는다. 검증셋에 반복적으로 맞추는 효과를 고려하고, 최종 평가는 독립 시험셋에서 수행한다.
 
 ## 6. 실무 지침
 
@@ -619,11 +619,11 @@ def recommended_training_setup(model, train_loader, val_loader):
 
 ### 체크포인트 저장
 
-조기 종료와 함께 언제나 체크포인트을 저장하라.
+조기 종료와 함께 언제나 체크포인트를 저장하라.
 
 ```python
 class CheckpointingEarlyStopping(EarlyStopping):
-    """주기적인 검사점 저장과 함께 쓰는 조기 종료."""
+    """주기적인 체크포인트 저장과 함께 쓰는 조기 종료."""
     
     def __init__(self, checkpoint_dir: str = './checkpoints', 
                  checkpoint_freq: int = 10, **kwargs):
@@ -635,13 +635,13 @@ class CheckpointingEarlyStopping(EarlyStopping):
     
     def __call__(self, score, model, epoch):
         # 두 가지 저장이 서로 다른 목적을 가진다.
-        #   (1) 주기적 검사점 — 학습이 죽었을 때 이어서 돌리기 위한 것
+        #   (1) 주기적 체크포인트 — 학습이 죽었을 때 이어서 돌리기 위한 것
         #   (2) 최고 성적 모델 — 배포할 모델을 고르기 위한 것
-        # 둘을 헷갈리면 마지막 검사점을 배포하는 실수를 하게 되는데,
+        # 둘을 헷갈리면 마지막 체크포인트를 배포하는 실수를 하게 되는데,
         # 조기 종료가 걸린 시점의 모델은 이미 나빠지고 있던 모델이다.
 
-        # (1) 주기적인 검사점 저장.
-        # 파일 이름에 에폭을 넣어 덮어쓰지 않는다. 다만 이대로 두면
+        # (1) 주기적인 체크포인트 저장.
+        # 파일 이름에 에포크를 넣어 덮어쓰지 않는다. 다만 이대로 두면
         # 파일이 계속 쌓이므로 실제로는 오래된 것을 지우는 손질이 필요하다
         if (epoch + 1) % self.checkpoint_freq == 0:
             path = f"{self.checkpoint_dir}/checkpoint_epoch_{epoch+1}.pt"
@@ -653,7 +653,7 @@ class CheckpointingEarlyStopping(EarlyStopping):
             # 학습을 이어 가려면 옵티마이저 상태도 함께 담아야 한다.
             # Adam의 모멘텀 통계가 사라지면 이어받은 학습이 흔들린다
 
-        # 부모 클래스가 최고 성적 갱신과 참을성 세기를 맡는다.
+        # 부모 클래스가 최고 성적 갱신과 인내 세기를 맡는다.
         # 성적이 나아졌으면 self.best_weights를 여기서 새로 채운다
         should_stop = super().__call__(score, model, epoch)
 
@@ -688,15 +688,15 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
     epochs = range(1, len(history['train_loss']) + 1)
 
     # ── 왼쪽: 로스 곡선 ─────────────────────────────────────────────
-    # 훈련과 검증을 반드시 함께 그린다. 검증 로스만 보면 왜 나빠지는지
-    # 알 수 없는데, 훈련 로스가 계속 내려가는 동안 검증이 올라가면
+    # 학습과 검증을 반드시 함께 그린다. 검증 로스만 보면 왜 나빠지는지
+    # 알 수 없는데, 학습 로스가 계속 내려가는 동안 검증이 올라가면
     # 그것이 과적합의 그림이다
     axes[0].plot(epochs, history['train_loss'], label='Train Loss')
     axes[0].plot(epochs, history['val_loss'], label='Val Loss')
 
     # 세로 점선이 되돌릴 지점이다. 조기 종료가 걸린 곳이 아니라
     # 검증 로스가 가장 낮았던 곳을 표시해야 한다. 둘 사이의 간격이
-    # 참을성만큼 벌어져 있는 것이 정상이다
+    # 인내만큼 벌어져 있는 것이 정상이다
     axes[0].axvline(best_epoch + 1, color='r', linestyle='--', 
                     label=f'Best Epoch ({best_epoch + 1})')
     axes[0].set_xlabel('Epoch')
@@ -734,7 +734,7 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
 2. **인내가 너무 작음**: 정상적인 요동 중에 멈춘다
 3. **최적 웨이트를 되돌리지 않기**: 최적 웨이트 대신 마지막 웨이트를 쓴다
 4. **지표를 무시하기**: 과제에 맞지 않는 지표를 쓴다
-5. **데이터 유출**: 검증 집합이 학습 데이터에 오염된다
+5. **데이터 누출**: 검증 집합이 학습 데이터에 오염된다
 
 ---
 
@@ -743,7 +743,7 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-조기 종료가 모델의 파라메터 수를 바꾸지 않아도 정규화로 볼 수 있는 이유를 설명하라.
+조기 종료가 모델의 파라메터 수를 바꾸지 않아도 정칙화로 볼 수 있는 이유를 설명하라.
 
 </div>
 
@@ -792,7 +792,7 @@ PyTorch 학습 루프에서 patience를 갖는 조기 종료를 구현하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-조기 종료와 L2가 같은 테스트 성능을 보장하지 않는 이유를 설명하라.
+조기 종료와 L2가 같은 시험 성능을 보장하지 않는 이유를 설명하라.
 
 </div>
 

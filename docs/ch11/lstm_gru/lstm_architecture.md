@@ -4,7 +4,7 @@ LSTM은 셀 상태와 게이트를 이용해 기본 RNN의 장기 의존성 학�
 
 셀 상태에는 이전 값을 성분별로 보존하고 새 값을 더하는 경로가 있다. 게이트는 이 경로의 보존·갱신 비율을 학습한다. 어느 길이까지 정보를 유지하는지는 과제와 파라메터에 따라 달라지며 수백·수천 시점을 보장하지 않는다.
 
-**구조의 핵심 착상:** LSTM은 상태 벡터 두 개를 지닌다.
+**구조의 핵심 아이디어:** LSTM은 상태 벡터 두 개를 지닌다.
 
 - **은닉 상태** $h_t$: 셀의 출력으로 쓰이는 상태다
 - **셀 상태** $c_t$: 게이트로 보존·갱신하는 내부 상태다
@@ -75,7 +75,7 @@ $$h_t = o_t \odot \tanh(c_t)$$
 
 ### 왜 하필 이 비선형인가
 
-엑티베이션 함수의 선택에는 뜻이 있다.
+활성화 함수의 선택에는 뜻이 있다.
 
 | 부품 | 활성화 | 범위 | 근거 |
 |-----------|------------|-------|-----------|
@@ -93,11 +93,11 @@ $$h_t = o_t \odot \tanh(c_t)$$
 
 LSTM에는 나란한 통로가 두 개 있다고 볼 수 있다. 셀 하나를 통째로 펼치면 그 둘이 한 그림에 들어온다.
 
-![LSTM 셀 하나를 펼친 그림. 맨 위에 셀 상태가 지나는 가로줄이 띠로 강조되어 있고 그 위에는 성분별 곱 마디와 덧셈 마디만 놓여 있다. 아래쪽에는 이전 은닉 상태와 입력을 이어 붙인 회색 버스가 지나가고 거기에서 망각, 입력, 후보, 출력의 네 묶음이 갈라져 나온다. 망각 묶음은 곱 마디로 올라가고, 입력과 후보 묶음은 서로 곱해진 뒤 덧셈 마디로 올라가며, 셀 상태는 덧셈 마디보다 오른쪽에서 갈라져 tanh를 지나 출력 묶음과 곱해져 은닉 상태가 된다](figures/lstm_cell_flow.svg)
+![LSTM 셀 하나를 펼친 그림. 맨 위에 셀 상태가 지나는 가로줄이 띠로 강조되어 있고 그 위에는 성분별 곱 노드와 덧셈 노드만 놓여 있다. 아래쪽에는 이전 은닉 상태와 입력을 이어 붙인 회색 버스가 지나가고 거기에서 망각, 입력, 후보, 출력의 네 묶음이 갈라져 나온다. 망각 묶음은 곱 노드로 올라가고, 입력과 후보 묶음은 서로 곱해진 뒤 덧셈 노드로 올라가며, 셀 상태는 덧셈 노드보다 오른쪽에서 갈라져 tanh를 지나 출력 묶음과 곱해져 은닉 상태가 된다](figures/lstm_cell_flow.svg)
 
-**어느 마디가 띠 위에 올라와 있는지**를 먼저 보면 된다. 띠 위에 있는 것은 곱 마디와 덧셈 마디 둘뿐이고, 네 묶음이 하는 일은 모두 띠 아래에서 끝난다. 망각 묶음만 곱 마디로 곧장 올라가 **옛 값에 직접 손을 대고**, 입력과 후보는 아래에서 먼저 서로 곱해진 다음 그 결과 하나만 덧셈 마디로 올라간다. 출력 묶음은 띠에 닿지도 않는다 — 셀 상태를 바꾸는 것이 아니라 내보낼 때 거르기만 하기 때문이다.
+**어느 노드가 띠 위에 올라와 있는지**를 먼저 보면 된다. 띠 위에 있는 것은 곱 노드와 덧셈 노드 둘뿐이고, 네 묶음이 하는 일은 모두 띠 아래에서 끝난다. 망각 묶음만 곱 노드로 곧장 올라가 **옛 값에 직접 손을 대고**, 입력과 후보는 아래에서 먼저 서로 곱해진 다음 그 결과 하나만 덧셈 노드로 올라간다. 출력 묶음은 띠에 닿지도 않는다 — 셀 상태를 바꾸는 것이 아니라 내보낼 때 거르기만 하기 때문이다.
 
-갈라지는 자리도 눈여겨볼 만하다. $h_t$로 가는 가지는 덧셈 마디보다 **오른쪽**에서 나오므로, 은닉 상태가 보는 것은 이미 갱신이 끝난 $c_t$다. 그리고 그 $h_t$는 다음 시각에 회색 버스로 되돌아와 네 묶음을 다시 계산한다. 띠가 곧 전체 그래디언트가 아닌 까닭이 이 되돌아오는 길이다 — 띠는 1절에서 말한 **직접 경로 하나**를 그린 것이고, 전체 미분에는 이 가지를 거치는 항이 함께 들어온다.
+갈라지는 자리도 눈여겨볼 만하다. $h_t$로 가는 가지는 덧셈 노드보다 **오른쪽**에서 나오므로, 은닉 상태가 보는 것은 이미 갱신이 끝난 $c_t$다. 그리고 그 $h_t$는 다음 시각에 회색 버스로 되돌아와 네 묶음을 다시 계산한다. 띠가 곧 전체 그래디언트가 아닌 까닭이 이 되돌아오는 길이다 — 띠는 1절에서 말한 **직접 경로 하나**를 그린 것이고, 전체 미분에는 이 가지를 거치는 항이 함께 들어온다.
 
 ### 셀 상태 통로 (기억의 고속도로)
 
@@ -108,9 +108,9 @@ LSTM에는 나란한 통로가 두 개 있다고 볼 수 있다. 셀 하나를 �
 은닉 상태는 셀 상태를 걸러 변형한 모습이다. 다음에 쓰이므로 비선형을 거친다.
 
 1. 지금의 출력이나 예측을 계산하기
-2. 다음 시각의 문 계산에 정보를 주기
+2. 다음 시각의 게이트 계산에 정보를 주기
 
-**설계의 착상:** 셀 상태는 날 정보를 담고, 은닉 상태는 그 정보를 과제에 맞게 보여 준다.
+**설계의 아이디어:** 셀 상태는 가공되지 않은 정보를 담고, 은닉 상태는 그 정보를 과제에 맞게 보여 준다.
 
 ---
 
@@ -118,7 +118,7 @@ LSTM에는 나란한 통로가 두 개 있다고 볼 수 있다. 셀 하나를 �
 
 입력 차원이 $d$이고 은닉 차원이 $n$인 LSTM에 대해 다음과 같다.
 
-| 부품 | 모양 | 설명 |
+| 부품 | 형태 | 설명 |
 |-----------|-------|-------------|
 | $x_t$ | $(d,)$ | 입력 벡터 |
 | $h_{t-1}, h_t$ | $(n,)$ | 은닉 상태 |
@@ -126,7 +126,7 @@ LSTM에는 나란한 통로가 두 개 있다고 볼 수 있다. 셀 하나를 �
 | $[h_{t-1}, x_t]$ | $(n+d,)$ | 이어 붙인 입력 |
 | $W_f, W_i, W_c, W_o$ | $(n, n+d)$ | 웨이트 행렬 |
 | $b_f, b_i, b_c, b_o$ | $(n,)$ | 바이어스 벡터 |
-| $f_t, i_t, o_t$ | $(n,)$ | 문의 엑티베이션 |
+| $f_t, i_t, o_t$ | $(n,)$ | 게이트의 활성화 값 |
 | $\tilde{c}_t$ | $(n,)$ | 셀 후보 |
 
 ### 파라메터의 수
@@ -165,7 +165,7 @@ import numpy as np
 
 class LSTMCell(nn.Module):
     """
-    러닝을 위해 손수 만든 LSTM 세포 구현.
+    학습용으로 직접 구현한 LSTM 셀.
     
     계산 효율을 위해 웨이트 행렬을 합쳐 표준 LSTM 식을 구현한다.
     
@@ -177,9 +177,9 @@ class LSTMCell(nn.Module):
         self.hidden_size = hidden_size
         
         # 효율을 위해 웨이트를 합침: [W_i, W_f, W_c, W_o]를 쌓았다
-        # 그러면 모든 문을 행렬 곱 한 번으로 계산할 수 있다
-        # 모양: 입력 웨이트는 (4 * hidden_size, input_size)
-        # 모양: 숨은 웨이트는 (4 * hidden_size, hidden_size)
+        # 그러면 모든 게이트를 행렬 곱 한 번으로 계산할 수 있다
+        # 형태: 입력 웨이트는 (4 * hidden_size, input_size)
+        # 형태: 은닉 웨이트는 (4 * hidden_size, hidden_size)
         self.weight_ih = nn.Parameter(
             torch.randn(4 * hidden_size, input_size) / np.sqrt(input_size)
         )
@@ -188,20 +188,20 @@ class LSTMCell(nn.Module):
         )
         self.bias = nn.Parameter(torch.zeros(4 * hidden_size))
         
-        # 망각 문의 바이어스를 1로 초기화 (그래디언트의 흐름에 매우 중요)
+        # 망각 게이트의 바이어스를 1로 초기화 (그래디언트의 흐름에 매우 중요)
         self._init_forget_gate_bias()
     
     def _init_forget_gate_bias(self):
         """
-        망각 문의 바이어스를 1로 초기화한다.
+        망각 게이트의 바이어스를 1로 초기화한다.
         
         그러면 학습 초반에 모델이 기본적으로 기억하게 되어, 무엇을 잊어야
         할지 배우기 전에 그래디언트가 일찍 사라지는 것을 막는다.
         
         """
         with torch.no_grad():
-            # 문의 순서: [입력, 망각, 세포, 출력]
-            # 망각 문의 바이어스는 두 번째 사분면에 있다
+            # 게이트의 순서: [입력, 망각, 셀 후보, 출력]
+            # 망각 게이트의 바이어스는 두 번째 사분면에 있다
             n = self.hidden_size
             self.bias[n:2*n].fill_(1.0)
     
@@ -214,13 +214,13 @@ class LSTMCell(nn.Module):
         한 시각의 순전파.
         
         인수:
-            x: 모양이 (배치 크기, input_size)인 입력 텐서
+            x: 형태가 (배치 크기, input_size)인 입력 텐서
             state: (h_prev, c_prev)의 쌍이며 각각 (배치 크기, hidden_size)
                    None이면 0으로 초기화한다.
         
         반환값:
-            h_new: 새 숨은 상태 (배치 크기, hidden_size)
-            c_new: 새 세포 상태 (배치 크기, hidden_size)
+            h_new: 새 은닉 상태 (배치 크기, hidden_size)
+            c_new: 새 셀 상태 (배치 크기, hidden_size)
         """
         batch_size = x.size(0)
         
@@ -231,32 +231,32 @@ class LSTMCell(nn.Module):
         else:
             h_prev, c_prev = state
         
-        # 효율을 위해 행렬 곱 한 번으로 모든 문 계산
+        # 효율을 위해 행렬 곱 한 번으로 모든 게이트 계산
         # gates = W_ih @ x + W_hh @ h_prev + bias
         gates = (x @ self.weight_ih.t() + 
                  h_prev @ self.weight_hh.t() + 
                  self.bias)
         
-        # 문마다 나누기
+        # 게이트마다 나누기
         n = self.hidden_size
-        i_gate = torch.sigmoid(gates[:, 0*n:1*n])      # 입력 문
-        f_gate = torch.sigmoid(gates[:, 1*n:2*n])      # 망각 문
-        c_tilde = torch.tanh(gates[:, 2*n:3*n])        # 세포 후보
-        o_gate = torch.sigmoid(gates[:, 3*n:4*n])      # 출력 문
+        i_gate = torch.sigmoid(gates[:, 0*n:1*n])      # 입력 게이트
+        f_gate = torch.sigmoid(gates[:, 1*n:2*n])      # 망각 게이트
+        c_tilde = torch.tanh(gates[:, 2*n:3*n])        # 셀 후보
+        o_gate = torch.sigmoid(gates[:, 3*n:4*n])      # 출력 게이트
         
-        # 세포 상태 갱신: c_t = f_t ⊙ c_{t-1} + i_t ⊙ c̃_t
+        # 셀 상태 갱신: c_t = f_t ⊙ c_{t-1} + i_t ⊙ c̃_t
         c_new = f_gate * c_prev + i_gate * c_tilde
         
-        # 숨은 상태: h_t = o_t ⊙ tanh(c_t)
+        # 은닉 상태: h_t = o_t ⊙ tanh(c_t)
         h_new = o_gate * torch.tanh(c_new)
         
         return h_new, c_new
 
 class LSTM(nn.Module):
     """
-    순차열을 처리하는 온전한 LSTM 레이어.
+    시퀀스를 처리하는 온전한 LSTM 레이어.
     
-    여러 레이어를 쌓는 것을 지원하며 뒤따르는 처리를 위해 모든 숨은 상태를
+    여러 레이어를 쌓는 것을 지원하며 뒤따르는 처리를 위해 모든 은닉 상태를
     돌려준다.
     """
     
@@ -272,7 +272,7 @@ class LSTM(nn.Module):
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         
-        # 레이어마다 세포 만들기
+        # 레이어마다 셀 만들기
         # 첫 레이어는 input_size를, 뒤 레이어는 hidden_size를 받는다
         self.cells = nn.ModuleList([
             LSTMCell(input_size if i == 0 else hidden_size, hidden_size)
@@ -288,17 +288,17 @@ class LSTM(nn.Module):
         state: tuple[torch.Tensor, torch.Tensor] | None = None
     ) -> tuple[torch.Tensor, tuple[torch.Tensor, torch.Tensor]]:
         """
-        순차열 전체를 LSTM으로 처리한다.
+        시퀀스 전체를 LSTM으로 처리한다.
         
         인수:
-            x: 입력 순차열 (배치 크기, seq_len, input_size)
+            x: 입력 시퀀스 (배치 크기, seq_len, input_size)
             state: 처음 상태의 쌍:
                    - h_0: (num_layers, 배치 크기, hidden_size)
                    - c_0: (num_layers, 배치 크기, hidden_size)
         
         반환값:
-            output: 맨 위 레이어의 모든 숨은 상태 (배치 크기, seq_len, hidden_size)
-            (h_n, c_n): 모든 레이어의 마지막 상태이며 입력 상태와 모양이 같다
+            output: 맨 위 레이어의 모든 은닉 상태 (배치 크기, seq_len, hidden_size)
+            (h_n, c_n): 모든 레이어의 마지막 상태이며 입력 상태와 형태가 같다
         """
         batch_size, seq_len, _ = x.size()
         
@@ -312,7 +312,7 @@ class LSTM(nn.Module):
             h = [state[0][i] for i in range(self.num_layers)]
             c = [state[1][i] for i in range(self.num_layers)]
         
-        # 순차열을 시각마다 처리
+        # 시퀀스를 시각마다 처리
         outputs = []
         for t in range(seq_len):
             layer_input = x[:, t, :]
@@ -357,7 +357,7 @@ def verify_implementation():
     
     # 웨이트 옮기기 (순서가 다른 점을 감안)
     with torch.no_grad():
-        # PyTorch는 문의 순서를 [i, f, g, o]로 두며 우리도 같게 쓴다
+        # PyTorch는 게이트의 순서를 [i, f, g, o]로 두며 우리도 같게 쓴다
         torch_lstm.weight_ih_l0.copy_(our_lstm.cells[0].weight_ih)
         torch_lstm.weight_hh_l0.copy_(our_lstm.cells[0].weight_hh)
         torch_lstm.bias_ih_l0.copy_(our_lstm.cells[0].bias)
@@ -389,9 +389,9 @@ import torch.nn as nn
 # LSTM 레이어 만들기
 lstm = nn.LSTM(
     input_size=100,      # 입력 피처의 차원
-    hidden_size=256,     # 숨은 상태와 세포 상태의 차원
+    hidden_size=256,     # 은닉 상태와 셀 상태의 차원
     num_layers=2,        # 쌓은 LSTM 레이어의 수
-    batch_first=True,    # 입력의 모양: (배치, seq, 피처)
+    batch_first=True,    # 입력의 형태: (배치, seq, 피처)
     dropout=0.3,         # 레이어 사이의 드롭아웃 (num_layers > 1일 때만)
     bidirectional=False  # 순방향만 처리
 )
@@ -408,7 +408,7 @@ print(f"Final cell: {c_n.shape}")          # (2, 32, 256) — 레이어마다 �
 
 # 뒤따르는 과제를 위해 출력에 접근
 last_output = output[:, -1, :]    # 마지막 시각: (32, 256)
-last_hidden = h_n[-1]             # 마지막 레이어의 숨은 상태: (32, 256)
+last_hidden = h_n[-1]             # 마지막 레이어의 은닉 상태: (32, 256)
 # 참고: 단방향 LSTM에서는 last_output == last_hidden이다
 ```
 
@@ -431,9 +431,9 @@ Final cell: torch.Size([2, 32, 256])
 ```python
 class LSTMClassifier(nn.Module):
     """
-    순차열 분류를 위한 LSTM (감성 분석, 스팸 판정 등).
+    시퀀스 분류를 위한 LSTM (감성 분석, 스팸 판정 등).
     
-    마지막 숨은 상태를 순차열 전체의 차원 고정 표현으로 삼아
+    마지막 은닉 상태를 시퀀스 전체의 차원 고정 표현으로 삼아
     분류한다.
     """
     
@@ -466,7 +466,7 @@ class LSTMClassifier(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            x: 토큰 색인 (배치 크기, seq_len)
+            x: 토큰 인덱스 (배치 크기, seq_len)
         
         반환값:
             logits: 분류 로짓 (배치 크기, num_classes)
@@ -478,9 +478,9 @@ class LSTMClassifier(nn.Module):
         # LSTM 순전파
         lstm_out, (h_n, c_n) = self.lstm(embedded)
         
-        # 분류에 마지막 숨은 상태 쓰기
-        # h_n의 모양: (num_layers, 배치, hidden_size)
-        # 마지막 레이어의 숨은 상태 가져오기
+        # 분류에 마지막 은닉 상태 쓰기
+        # h_n의 형태: (num_layers, 배치, hidden_size)
+        # 마지막 레이어의 은닉 상태 가져오기
         final_hidden = h_n[-1]  # (배치, hidden_size)
         final_hidden = self.dropout(final_hidden)
         
@@ -499,7 +499,7 @@ model = LSTMClassifier(
     dropout=0.5
 )
 
-# 입력: 토큰 100개짜리 순차열 32개의 배치
+# 입력: 토큰 100개짜리 시퀀스 32개의 배치
 x = torch.randint(0, 30000, (32, 100))
 logits = model(x)  # (32, 2)
 probs = torch.softmax(logits, dim=-1)
@@ -514,7 +514,7 @@ class LSTMLanguageModel(nn.Module):
     """
     자기회귀 텍스트 생성을 위한 LSTM.
     
-    앞선 토큰이 주어졌을 때 다음 토큰을 예측하여, 되풀이 표본 추출로
+    앞선 토큰이 주어졌을 때 다음 토큰을 예측하여, 반복 샘플링으로
     텍스트를 만들 수 있게 한다.
     """
     
@@ -542,7 +542,7 @@ class LSTMLanguageModel(nn.Module):
             dropout=dropout if num_layers > 1 else 0
         )
         
-        # 숨은 상태를 어휘로 사영
+        # 은닉 상태를 어휘로 투영
         self.fc = nn.Linear(hidden_size, vocab_size)
         
         # 선택적으로 임베딩과 출력 웨이트를 묶기
@@ -556,7 +556,7 @@ class LSTMLanguageModel(nn.Module):
     ) -> tuple[torch.Tensor, tuple[torch.Tensor, torch.Tensor]]:
         """
         인수:
-            x: 토큰 색인 (배치 크기, seq_len)
+            x: 토큰 인덱스 (배치 크기, seq_len)
             hidden: 이전의 (h, c) 상태
         
         반환값:
@@ -571,7 +571,7 @@ class LSTMLanguageModel(nn.Module):
         return logits, hidden
     
     def init_hidden(self, batch_size: int, device: torch.device):
-        """숨은 상태를 0으로 초기화한다."""
+        """은닉 상태를 0으로 초기화한다."""
         h = torch.zeros(self.num_layers, batch_size, self.hidden_size, device=device)
         c = torch.zeros(self.num_layers, batch_size, self.hidden_size, device=device)
         return (h, c)
@@ -588,13 +588,13 @@ class LSTMLanguageModel(nn.Module):
         자기회귀적으로 토큰을 만든다.
         
         인수:
-            start_tokens: 처음 토큰의 색인 (seq_len,)
+            start_tokens: 처음 토큰의 인덱스 (seq_len,)
             max_new_tokens: 만들 새 토큰의 수
-            temperature: 표본 추출의 온도 (높을수록 더 무작위)
+            temperature: 샘플링의 온도 (높을수록 더 무작위)
             top_k: 정하면 가장 그럴듯한 상위 k개 토큰에서만 뽑는다
         
         반환값:
-            만들어진 토큰 색인의 목록
+            만들어진 토큰 인덱스의 목록
         """
         self.eval()
         device = next(self.parameters()).device
@@ -636,7 +636,7 @@ class LSTMForecaster(nn.Module):
     """
     다변량 시계열 예측을 위한 LSTM.
     
-    관측의 순차열이 주어지면 정해진 예측 지평의 미래 값을
+    관측의 시퀀스가 주어지면 정해진 예측 기간(horizon)의 미래 값을
     예측한다.
     """
     
@@ -646,7 +646,7 @@ class LSTMForecaster(nn.Module):
         hidden_size: int,
         num_layers: int,
         output_size: int,    # 출력 피처의 수
-        horizon: int = 1,    # 예측 지평 (앞을 내다보는 스텝 수)
+        horizon: int = 1,    # 예측 기간 (앞을 내다보는 스텝 수)
         dropout: float = 0.2
     ):
         super().__init__()
@@ -661,21 +661,21 @@ class LSTMForecaster(nn.Module):
             dropout=dropout if num_layers > 1 else 0
         )
         
-        # 예측 지평의 모든 스텝을 한꺼번에 예측
+        # 예측 기간의 모든 스텝을 한꺼번에 예측
         self.fc = nn.Linear(hidden_size, output_size * horizon)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            x: 입력 순차열 (배치 크기, seq_len, input_size)
+            x: 입력 시퀀스 (배치 크기, seq_len, input_size)
         
         반환값:
             predictions: 예측 (배치 크기, horizon, output_size)
         """
-        # 순차열 처리
+        # 시퀀스 처리
         lstm_out, (h_n, c_n) = self.lstm(x)
         
-        # 예측에 마지막 숨은 상태 쓰기
+        # 예측에 마지막 은닉 상태 쓰기
         final_hidden = h_n[-1]  # (배치, hidden_size)
         
         # 모든 스텝 예측
@@ -684,7 +684,7 @@ class LSTMForecaster(nn.Module):
         
         return predictions
 
-# 예: 지난 20스텝으로 피처 3개의 다음 스텝5 예측
+# 예: 지난 20스텝으로 피처 3개의 다음 5스텝 예측
 model = LSTMForecaster(
     input_size=3,
     hidden_size=128,
@@ -708,22 +708,22 @@ def init_lstm_weights(lstm: nn.LSTM):
     """
     모범 관행에 따라 LSTM의 웨이트를 초기화한다.
     
-    - 입력에서 숨은 상태로 가는 웨이트: 자비에르(글로럿) 균등
-    - 숨은 상태끼리의 웨이트: 직교 (그래디언트의 노름을 지킨다)
-    - 바이어스: 0, 다만 망각 문의 바이어스는 1
+    - 입력에서 은닉 상태로 가는 웨이트: Xavier(Glorot) 균등
+    - 은닉 상태끼리의 웨이트: 직교 (그래디언트의 노름을 지킨다)
+    - 바이어스: 0, 다만 망각 게이트의 바이어스는 1
     """
     for name, param in lstm.named_parameters():
         if 'weight_ih' in name:
-            # 입력에서 숨은 상태로 가는 웨이트: 자비에르 균등
+            # 입력에서 은닉 상태로 가는 웨이트: Xavier 균등
             nn.init.xavier_uniform_(param)
         elif 'weight_hh' in name:
-            # 숨은 상태끼리의 웨이트: 직교
+            # 은닉 상태끼리의 웨이트: 직교
             # 그러면 순환을 지나도 그래디언트의 크기가 지켜진다
             nn.init.orthogonal_(param)
         elif 'bias' in name:
             # 바이어스: 대체로 0
             nn.init.zeros_(param)
-            # 다만 망각 문의 바이어스는 1로 둔다
+            # 다만 망각 게이트의 바이어스는 1로 둔다
             n = param.size(0) // 4
             param.data[n:2*n].fill_(1.0)
 ```
@@ -738,17 +738,17 @@ $$f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + 1) \approx \sigma(1) \approx 0.73$$
 
 이 근사는 가중 입력이 0 부근일 때 유효하다. 위 초기화 함수는 PyTorch의 두 바이어스 모두에서 망각 부분을 1로 채우므로 유효 바이어스는 2다. 이 경우 0 입력 근사값은 sigmoid(2) 약 0.881이며 위 sigmoid(1) 예시와 다르다. 또한 쌓인 순환 웨이트 전체를 직교 초기화하는 것은 각 게이트 블록을 각각 직교 초기화하는 것과 다르며 전체 그래디언트를 보장하지 않는다.
 
-### 그래디언트 자르기
+### 그래디언트 클리핑
 
 ```python
-# 학습 중에는 폭발을 막으려고 그래디언트를 자른다
+# 학습 중에는 폭발을 막으려고 그래디언트를 클리핑한다
 optimizer.zero_grad()
 loss.backward()
 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
 optimizer.step()
 ```
 
-LSTM은 그래디언트 소실을 다루지만 특히 학습 초반에는 그래디언트 폭발을 겪을 수 있다. 그래디언트 자르기가 표준 관행이다.
+LSTM은 그래디언트 소실을 다루지만 특히 학습 초반에는 그래디언트 폭발을 겪을 수 있다. 그래디언트 클리핑(노름이 한도를 넘으면 그만큼 줄이는 것)이 표준 관행이다.
 
 ### 러닝레이트 스케줄링
 
@@ -761,7 +761,7 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     patience=5
 )
 
-# 세대마다
+# 에포크마다
 scheduler.step(val_loss)
 ```
 
@@ -771,7 +771,7 @@ scheduler.step(val_loss)
 
 ### 망각 게이트와 입력 게이트 묶기
 
-관찰: 옛 정보를 잊을 때는 대개 새 정보를 넣고, 그 반대도 마찬가지이다. 두 문을 묶으면 다음과 같다.
+관찰: 옛 정보를 잊을 때는 대개 새 정보를 넣고, 그 반대도 마찬가지이다. 두 게이트를 묶으면 다음과 같다.
 
 $$c_t = f_t \odot c_{t-1} + (1 - f_t) \odot \tilde{c}_t$$
 
@@ -782,7 +782,7 @@ $$c_t = f_t \odot c_{t-1} + (1 - f_t) \odot \tilde{c}_t$$
 GRU는 다음과 같이 LSTM을 간소화한다.
 
 1. 셀 상태와 은닉 상태를 하나로 합친다
-2. 망각 게이트와 입력 게이트를 "갱신 문" 하나로 엮는다
+2. 망각 게이트와 입력 게이트를 "업데이트 게이트" 하나로 엮는다
 3. 후보 계산에 이전 상태를 얼마나 반영할지 조절하는 리셋 게이트를 둔다. 출력 게이트와 일대일로 대응하지는 않는다
 
 $$z_t = \sigma(W_z \cdot [h_{t-1}, x_t])$$
@@ -844,7 +844,7 @@ def diagnose_lstm(model, dataloader, device):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-LSTM의 식을 적고 각 문의 구실을 설명하라.
+LSTM의 식을 적고 각 게이트의 구실을 설명하라.
 
 </div>
 
@@ -852,7 +852,7 @@ LSTM의 식을 적고 각 문의 구실을 설명하라.
     망각 게이트: $f_t = \sigma(W_f[h_{t-1}, x_t] + b_f)$ — 셀 상태에서 무엇을 버릴지.
     입력 게이트: $i_t = \sigma(W_i[h_{t-1}, x_t] + b_i)$ — 어떤 새 정보를 담을지.
     후보: $\tilde{c}_t = \tanh(W_c[h_{t-1}, x_t] + b_c)$ — 새 후보 값.
-    세포 갱신: $c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$.
+    셀 갱신: $c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$.
     출력 게이트: $o_t = \sigma(W_o[h_{t-1}, x_t] + b_o)$ — 무엇을 내보낼지.
     은닉 상태: $h_t = o_t \odot \tanh(c_t)$.
 

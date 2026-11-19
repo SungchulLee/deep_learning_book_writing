@@ -1,6 +1,6 @@
 # EM의 변형
 
-EM의 두 단계는 문제에 따라 일부만 최적화하거나, 표본으로 근사하거나, 제한된 분포족으로 대체할 수 있다. 이때 가장 먼저 확인할 것은 실제로 최적화하는 목적함수다. 정확한 관측 우도, 몬테카를로 근사 Q, 변분 하한은 서로 다른 양이며 표준 EM의 보장이 모든 변형에 그대로 적용되지는 않는다.
+EM의 두 단계는 문제에 따라 일부만 최적화하거나, 표본으로 근사하거나, 제한된 분포족으로 대체할 수 있다. 이때 가장 먼저 확인할 것은 실제로 최적화하는 목적함수다. 정확한 관측 가능도(likelihood, 우도라고도 한다), 몬테카를로 근사 Q, 변분 하한은 서로 다른 양이며 표준 EM의 보장이 모든 변형에 그대로 적용되지는 않는다.
 
 ## 1. 일반화 EM
 
@@ -8,9 +8,9 @@ EM의 두 단계는 문제에 따라 일부만 최적화하거나, 표본으로 
 
 $$Q(\theta_{t+1}|\theta_t)\geq Q(\theta_t|\theta_t).$$
 
-현재 점에서 ELBO가 관측 우도와 일치하므로 이 조건으로 관측 우도의 비감소성을 얻는다. 등호도 허용하므로 반드시 엄격한 진전이 있다는 뜻은 아니다. 정상점 수렴에는 여전히 적절한 상승·정칙성 조건이 필요하다.
+현재 점에서 ELBO가 관측 가능도와 일치하므로 이 조건으로 관측 가능도의 비감소성을 얻는다. 등호도 허용하므로 반드시 엄격한 진전이 있다는 뜻은 아니다. 정상점 수렴에는 여전히 적절한 상승·정칙성 조건이 필요하다.
 
-M 단계에 경사 상승, Newton 또는 준 Newton 방법을 사용할 수 있다. 그러나 임의의 러닝레이트로 경사 방향을 따라 한 번 이동했다고 Q가 증가하는 것은 아니다. 제약을 만족하는 후보와 선 탐색 등으로 실제 목적값을 확인해야 한다. 단순 사영 역시 일반적인 Q 증가의 보장이 아니다.
+M 단계에 경사 상승, Newton 또는 준 Newton 방법을 사용할 수 있다. 그러나 임의의 러닝레이트로 그래디언트 방향을 따라 한 번 이동했다고 Q가 증가하는 것은 아니다. 제약을 만족하는 후보와 선 탐색 등으로 실제 목적값을 확인해야 한다. 단순 사영 역시 일반적인 Q 증가의 보장이 아니다.
 
 <div class="storybox" markdown>
 
@@ -20,15 +20,15 @@ M 단계에 경사 상승, Newton 또는 준 Newton 방법을 사용할 수 있�
 
 > "Definition. An iterative algorithm with mapping $M(\phi)$ is a **generalized EM algorithm (a GEM algorithm)** if $Q(M(\phi)|\phi) \ge Q(\phi|\phi)$ for every $\phi$ in $\Omega$."
 
-그리고 더 중요한 것은 같은 절의 정리 1이 **EM이 아니라 GEM에 대해** 증명되어 있다는 점이다 — "For every GEM algorithm, $L(M(\phi)) \ge L(\phi)$". 다시 말해 관측 우도가 올라간다는 보장은 M 단계에서 **최대화할 것을 요구한 적이 없다.** 올리기만 하면 된다. 세 사람은 처음부터 그렇게 적어 두었다.
+그리고 더 중요한 것은 같은 절의 정리 1이 **EM이 아니라 GEM에 대해** 증명되어 있다는 점이다 — "For every GEM algorithm, $L(M(\phi)) \ge L(\phi)$". 다시 말해 관측 가능도가 올라간다는 보장은 M 단계에서 **최대화할 것을 요구한 적이 없다.** 올리기만 하면 된다. 세 사람은 처음부터 그렇게 적어 두었다.
 
 그래서 M 단계를 어설프게 해도 보장이 살아 있다. 성분 둘짜리 혼합에서 M 단계를 해까지 가지 않고 **30%만** 걸어가 보았다.
 
-![왼쪽은 반복에 따른 관측 로그 우도 곡선 셋이다. EM과 MCEM은 빠르게 오르고 GEM은 조금 느리게 올라 같은 높이에 닿으며, 범례에 EM과 GEM은 감소가 0번, MCEM은 29번이라고 적혀 있다. 오른쪽은 평평해진 뒤를 확대한 그림으로, EM과 GEM은 완전히 평평한 직선이고 MCEM만 아래로 거듭 출렁인다.](figures/em_variants.svg)
+![왼쪽은 반복에 따른 관측 로그가능도 곡선 셋이다. EM과 MCEM은 빠르게 오르고 GEM은 조금 느리게 올라 같은 높이에 닿으며, 범례에 EM과 GEM은 감소가 0번, MCEM은 29번이라고 적혀 있다. 오른쪽은 평평해진 뒤를 확대한 그림으로, EM과 GEM은 완전히 평평한 직선이고 MCEM만 아래로 거듭 출렁인다.](figures/em_variants.svg)
 
-GEM은 느리게 올라가지만 60걸음 동안 로그 우도가 **한 번도 내려가지 않는다.** 닿는 곳도 EM과 같다. 위 문단이 적은 조건 $Q(\theta_{t+1}|\theta_t)\ge Q(\theta_t|\theta_t)$ 하나면 충분하다는 것이 이 그림이다.
+GEM은 느리게 올라가지만 60번의 반복 동안 로그가능도가 **한 번도 내려가지 않는다.** 닿는 곳도 EM과 같다. 위 문단이 적은 조건 $Q(\theta_{t+1}|\theta_t)\ge Q(\theta_t|\theta_t)$ 하나면 충분하다는 것이 이 그림이다.
 
-**그런데 같은 그림이 경계선도 보여 준다.** 몬테카를로 EM을 표본 4개로 돌리면 로그 우도가 **29번 내려간다.** 오른쪽 확대에서 EM·GEM이 완전히 평평한 자리에서 MCEM만 거듭 주저앉는다. 정리 1이 배신한 것이 아니다 — MCEM은 애초에 정리의 조건을 만족하지 않는다. 식 (3.5)는 **참 $Q$** 에 대한 부등식인데 MCEM이 들고 있는 것은 $Q$ 의 추정값이라, 표본 잡음이 부등식을 깨는 순간 보장이 적용될 자리가 없어진다.
+**그런데 같은 그림이 경계선도 보여 준다.** 몬테카를로 EM을 표본 4개로 돌리면 로그가능도가 **29번 내려간다.** 오른쪽 확대에서 EM·GEM이 완전히 평평한 자리에서 MCEM만 거듭 주저앉는다. 정리 1이 배신한 것이 아니다 — MCEM은 애초에 정리의 조건을 만족하지 않는다. 식 (3.5)는 **참 $Q$** 에 대한 부등식인데 MCEM이 들고 있는 것은 $Q$ 의 추정값이라, 표본 잡음이 부등식을 깨는 순간 보장이 적용될 자리가 없어진다.
 
 이 쪽 머리글이 "가장 먼저 확인할 것은 실제로 최적화하는 목적함수다"라고 적은 까닭이 그것이다. **$Q$ 를 덜 올리는 것과 $Q$ 를 추정하는 것은 전혀 다른 종류의 변형이다.** 앞은 1977년에 이미 덮였고, 뒤는 아래 5절처럼 따로 따져야 한다.
 
@@ -46,13 +46,13 @@ $$\theta_1^{new}\in\arg\max_{\theta_1}Q(\theta_1,\theta_2^t|\theta_t),\qquad \th
 
 인자 분석처럼 파라메터가 얽힌 모델에서도 블록별 선형계나 분산 갱신이 편리할 수 있다. 다만 그 모델의 모든 파라메터에 항상 결합 닫힌 해가 없다는 뜻은 아니다. 중심화 여부·제약·사전분포에 따라 결합 해나 더 효율적인 갱신이 가능하다.
 
-## 3. 관측 우도를 활용하는 ECME
+## 3. 관측 가능도를 활용하는 ECME
 
-ECME는 일부 조건부 최대화 단계를 Q 대신 관측 로그 우도 ℓ에 대한 조건부 최적화로 바꾼다. 결측 정보가 큰 방향을 직접 다루면 반복 수가 줄어들 수 있다. 그러나 한 반복의 비용이 커질 수 있으므로 전체 실행비용과 함께 비교한다.
+ECME는 일부 조건부 최대화 단계를 Q 대신 관측 로그가능도 ℓ에 대한 조건부 최적화로 바꾼다. 결측 정보가 큰 방향을 직접 다루면 반복 수가 줄어들 수 있다. 그러나 한 반복의 비용이 커질 수 있으므로 전체 실행비용과 함께 비교한다.
 
-단조성 설명에는 단계의 순서와 기준점이 중요하다. 한 가지 안전한 구성은 현재 사후분포에 기초한 Q 단계들을 먼저 수행해 우도를 높인 뒤, 관측 우도를 직접 높이는 단계들을 수행하는 것이다. 관측 우도 갱신 뒤에 오래된 q의 Q를 다시 높이면 그 시점의 우도를 높인다고 자동으로 결론 낼 수 없다. 다시 E 단계를 수행해 하한을 맞추거나 직접 우도 증가를 확인하는 등 설계에 맞는 논증이 필요하다.
+단조성 설명에는 단계의 순서와 기준점이 중요하다. 한 가지 안전한 구성은 현재 사후분포에 기초한 Q 단계들을 먼저 수행해 가능도를 높인 뒤, 관측 가능도를 직접 높이는 단계들을 수행하는 것이다. 관측 가능도 갱신 뒤에 오래된 q의 Q를 다시 높이면 그 시점의 가능도를 높인다고 자동으로 결론 낼 수 없다. 다시 E 단계를 수행해 하한을 맞추거나 직접 가능도 증가를 확인하는 등 설계에 맞는 논증이 필요하다.
 
-ECME라는 이름만으로 임의의 Q·우도 단계 배열이 정당화되지는 않는다. 원래 알고리즘의 조건부 공간과 단조성 조건을 명시해야 한다.
+ECME라는 이름만으로 임의의 Q·가능도 단계 배열이 정당화되지는 않는다. 원래 알고리즘의 조건부 공간과 단조성 조건을 명시해야 한다.
 
 ## 4. 파라메터 확장 EM
 
@@ -60,7 +60,7 @@ PX-EM은 보조 파라메터를 도입한 확장 모델에서 갱신한 다음 �
 
 $$p_{exp}(X|\phi)=p_{orig}(X|R(\phi)).$$
 
-원래 모델을 확장 공간에 포함하는 기준값과, 확장된 완전 데이터 구조도 함께 정의해야 한다. 단순히 파라메터 개수를 늘리거나 동일한 우도를 재표현하는 것만으로 가속 EM이 되는 것은 아니다.
+원래 모델을 확장 공간에 포함하는 기준값과, 확장된 완전 데이터 구조도 함께 정의해야 한다. 단순히 파라메터 개수를 늘리거나 동일한 가능도를 재표현하는 것만으로 가속 EM이 되는 것은 아니다.
 
 예를 들어 인자 분석에서 잠재 공분산 Σ_z를 허용하면 관측 공분산은 WΣ_zWᵀ+Ψ다. Σ_z=LLᵀ로 분해해 W_red=WL로 환원하면 표준 잠재 공분산 I인 모델의 같은 관측분포를 얻는다. 이 불필요한 자유도를 갱신에 활용할 수 있다. 적절한 PX 설계는 국소 수렴을 개선할 수 있지만 모든 확장과 초기값에서 엄격히 더 빠르다는 일반적 보장은 아니다.
 
@@ -72,28 +72,28 @@ $$Z^{(m)}\sim p(Z|X,\theta_t),\qquad \widehat Q_M(\theta|\theta_t)=\frac1M\sum_{
 
 한 M 단계의 최적화 동안 표본을 고정하면 동일한 무작위 목적함수를 최적화할 수 있다. 제안분포에서 표본을 얻었다면 필요한 중요도 웨이트를 포함해야 하며, MCMC 표본이면 자기상관과 초기화 오차도 고려한다.
 
-유한 M에서 Q의 근사가 증가해도 정확한 관측 우도가 매번 증가하는 것은 아니다. 반복 후반에 표본 수를 늘리는 전략이 유용할 수 있지만 Mₜ→∞만으로 모든 수렴 정리가 성립하는 것은 아니다. 오차의 누적·증가 속도·최적화 정확도 등에 대한 해당 이론의 조건이 필요하다.
+유한 M에서 Q의 근사가 증가해도 정확한 관측 가능도가 매번 증가하는 것은 아니다. 반복 후반에 표본 수를 늘리는 전략이 유용할 수 있지만 Mₜ→∞만으로 모든 수렴 정리가 성립하는 것은 아니다. 오차의 누적·증가 속도·최적화 정확도 등에 대한 해당 이론의 조건이 필요하다.
 
-아래 예제는 사후 샘플러와 완전 데이터 로그 우도, 최적화 루틴을 외부에서 제공받는 골격이다. 이 함수들이 정의되어 있고 현재 θ의 사후를 올바르게 표본화한다는 전제 없이 독립 실행 가능한 MCEM 구현으로 읽지 않는다.
+아래 예제는 사후 샘플러와 완전 데이터 로그가능도, 최적화 루틴을 외부에서 제공받는 골격이다. 이 함수들이 정의되어 있고 현재 θ의 사후를 올바르게 표본화한다는 전제 없이 독립 실행 가능한 MCEM 구현으로 읽지 않는다.
 
 ```python
 def mcem_iteration(X, theta, n_samples, sampler):
     """
-    몬테카를로 EM의 한 되풀이.
+    몬테카를로 EM의 한 반복.
     
     인수:
-        X: 관측한 자료
-        theta: 지금의 파라메터
+        X: 관측 데이터
+        theta: 현재 파라메터
         n_samples: 몬테카를로 표본의 개수
-        sampler: 뒤확률에서 Z을 표집하는 함수
+        sampler: 사후분포에서 Z를 샘플링하는 함수
     
     반환값:
-        새로 고친 theta
+        갱신한 theta
     """
-    # E 스텝: 뒤확률에서 표집
+    # E 단계: 사후분포에서 샘플링
     Z_samples = [sampler(X, theta) for _ in range(n_samples)]
     
-    # M 스텝: 어림한 Q을 가장 크게 하기
+    # M 단계: 근사한 Q를 최대화하기
     def neg_Q(new_theta):
         return -sum(
             complete_log_likelihood(X, Z, new_theta) 
@@ -108,7 +108,7 @@ def mcem_iteration(X, theta, n_samples, sampler):
 
 SEM은 사후분포에서 잠재 배정 Z를 하나 생성한 뒤 그 완전 데이터의 파라메터를 최대화하는 방식이다. GMM에서는 확률적으로 라벨을 뽑아 군집별 추정을 수행한다. 사후 모드 라벨을 선택하는 하드 EM과 달리 배정에 무작위성이 있다.
 
-잠재 배정을 표본화한다고 θ까지 베이즈 사후에서 생성하는 것은 아니다. θ는 여전히 최대화 갱신을 받으므로 이 절차를 파라메터 사후의 깁스 샘플러로 해석하면 안 된다. 반복의 정상분포나 최적점 주변의 변동에 관한 결과는 모델과 알고리즘의 별도 조건에 의존한다. 관측 우도의 매회 단조성도 일반적으로 없다.
+잠재 배정을 표본화한다고 θ까지 베이즈 사후에서 생성하는 것은 아니다. θ는 여전히 최대화 갱신을 받으므로 이 절차를 파라메터 사후의 깁스 샘플러로 해석하면 안 된다. 반복의 정상분포나 최적점 주변의 변동에 관한 결과는 모델과 알고리즘의 별도 조건에 의존한다. 관측 가능도의 매회 단조성도 일반적으로 없다.
 
 한 번의 확률 배정에서 빈 성분이나 표본이 부족한 성분이 생길 수 있다. 공분산과 비중의 처리 규칙을 명시해야 한다. 무작위성이 국소해 탐색에 도움을 줄 수 있어도 전역 최적성을 보장하지는 않는다.
 
@@ -120,7 +120,7 @@ $$\mathcal L(q,\theta)=E_q[\log p(X,Z|\theta)]-E_q[\log q(Z)].$$
 
 평균장 q(Z)=∏ⱼqⱼ(Zⱼ)를 쓰면 다른 인자를 고정한 최적 인자는 log qⱼ★=E_q₋ⱼ[log p(X,Z|θ)]+상수의 형태다. 이 기댓값을 실제로 계산할 수 있는지, 인자가 정규화 가능한지는 모델별로 확인한다.
 
-각 좌표를 정확히 최적화하거나 하한 증가를 확인하면 ELBO가 감소하지 않는다. 그러나 사후 근사 오차가 달라지므로 관측 우도의 단조성은 따라오지 않는다. 차이 ℓ−L은 KL이지만 주변우도 ℓ을 모르면 실제 KL 차이도 일반적으로 계산할 수 없다. 하한의 안정화는 제한된 근사 문제의 진단이며 정확한 사후나 전역 최적점의 증명이 아니다.
+각 좌표를 정확히 최적화하거나 하한 증가를 확인하면 ELBO가 감소하지 않는다. 그러나 사후 근사 오차가 달라지므로 관측 가능도의 단조성은 따라오지 않는다. 차이 ℓ−L은 KL이지만 주변가능도 ℓ을 모르면 실제 KL 차이도 일반적으로 계산할 수 없다. 하한의 안정화는 제한된 근사 문제의 진단이며 정확한 사후나 전역 최적점의 증명이 아니다.
 
 ## 8. 증분 EM과 온라인 EM
 
@@ -138,22 +138,22 @@ GMM에서는 성분별 배정 비중 Sₖ, 가중 일차 적률 Tₖ, **원점 �
 
 ```python
 def online_em_step(batch, theta, sufficient_stats, learning_rate):
-    """흐름 속 EM에서 작은 배치 하나 다루기."""
+    """온라인 EM에서 미니배치 하나 처리하기."""
     
-    # 배치에 대한 E 스텝
+    # 배치에 대한 E 단계
     gamma = compute_responsibilities(batch, theta)
     
-    # 배치의 충분 통계량 셈하기
+    # 배치의 충분통계량 계산
     batch_S = gamma.sum(dim=0)
     batch_T = gamma.T @ batch
     batch_V = compute_weighted_outer_products(batch, gamma, theta['mu'])
     
-    # 흐름 속 새로 고침
+    # 온라인 갱신
     sufficient_stats['S'] = (1 - learning_rate) * sufficient_stats['S'] + learning_rate * batch_S * N_total / len(batch)
     sufficient_stats['T'] = (1 - learning_rate) * sufficient_stats['T'] + learning_rate * batch_T * N_total / len(batch)
     sufficient_stats['V'] = (1 - learning_rate) * sufficient_stats['V'] + learning_rate * batch_V * N_total / len(batch)
     
-    # 충분 통계량으로 하는 M 스텝
+    # 충분통계량으로 하는 M 단계
     theta['pi'] = sufficient_stats['S'] / sufficient_stats['S'].sum()
     theta['mu'] = sufficient_stats['T'] / sufficient_stats['S'].unsqueeze(1)
     theta['Sigma'] = sufficient_stats['V'] / sufficient_stats['S'].unsqueeze(1).unsqueeze(2)
@@ -181,10 +181,10 @@ $$-\nabla^2\ell=E[-\nabla^2\log p(X,Z|\theta)\mid X]-\operatorname{Cov}(\nabla\l
 |---|---|---|
 | GEM | M 단계의 완전 최대화를 완화 | 고정 Q의 실제 증가 |
 | ECM | M 단계를 조건부 블록으로 분할 | 같은 Q와 최신 블록 값 |
-| ECME | 일부 단계를 관측 우도로 대체 | 단계 순서와 관측 우도 증가 |
+| ECME | 일부 단계를 관측 가능도로 대체 | 단계 순서와 관측 가능도 증가 |
 | PX-EM | 확장 공간에서 갱신 후 환원 | 같은 관측 모델로의 환원 |
 | MCEM·SEM | 사후 기댓값을 표본으로 대체 | 몬테카를로 오차와 빈 성분 |
-| 변분 EM | 제한된 사후 근사 | ELBO와 근사 바이어스 |
+| 변분 EM | 제한된 사후 근사 | ELBO와 근사 편향 |
 | 온라인 EM | 통계량의 확률근사 | 데이터 단위·러닝레이트·안정성 |
 
 빠르다는 비교에는 반복 수뿐 아니라 사후 계산, 선 탐색, 행렬 연산과 샘플링 비용을 포함한다. 모든 모델에서 성립하는 속도 순위는 없다.
@@ -193,9 +193,9 @@ $$-\nabla^2\ell=E[-\nabla^2\log p(X,Z|\theta)\mid X]-\operatorname{Cov}(\nabla\l
 
 아래 구현은 Dirichlet 비중과 정규–Wishart 성분 파라메터의 평균장 갱신을 보여 준다. 유효한 사전에는 α₀>0, β₀>0, ν₀>d−1과 양의 정부호 Wishart 스케일이 필요하다. 코드의 기본 ν₀=d는 이 자유도 조건을 만족한다. 가중 산포·평균의 수축·기댓값 로그 행렬식은 해당 파라메터화에 맞춰 해석한다.
 
-중요한 한계는 `_compute_elbo`다. 이 함수는 주로 기댓값 관측 로그 밀도와 배정 엔트로피만 계산한다. 배정의 E[log π], Dirichlet 사전·사후 항, 정규–Wishart 사전·사후 항 등이 빠져 있어 **완전한 ELBO가 아니다**. 따라서 이 값의 변화나 `lower_bound_`를 로그 주변우도의 정당한 하한·전체 변분 목적의 수렴으로 보고하면 안 된다.
+중요한 한계는 `_compute_elbo`다. 이 함수는 주로 기댓값 관측 로그 밀도와 배정 엔트로피만 계산한다. 배정의 E[log π], Dirichlet 사전·사후 항, 정규–Wishart 사전·사후 항 등이 빠져 있어 **완전한 ELBO가 아니다**. 따라서 이 값의 변화나 `lower_bound_`를 로그 주변가능도의 정당한 하한·전체 변분 목적의 수렴으로 보고하면 안 된다.
 
-또한 Wishart 갱신의 행렬에 정규화 항을 더하므로 정확한 좌표 최적해와 차이가 생길 수 있다. 기본 텐서의 장치·자료형과 K≤N 등의 입력 조건도 일반화되어 있지 않다. 코드는 그대로 두었으며 실제 실행 결과나 성능을 확인했다는 의미는 아니다.
+또한 Wishart 갱신의 행렬에 정칙화 항을 더하므로 정확한 좌표 최적해와 차이가 생길 수 있다. 기본 텐서의 장치·자료형과 K≤N 등의 입력 조건도 일반화되어 있지 않다. 이 쪽은 이 코드의 실행 결과를 싣지 않는다.
 
 ```python
 import torch
@@ -204,10 +204,10 @@ from torch.distributions import MultivariateNormal, Dirichlet, Categorical
 
 class VariationalGMM:
     """
-    가우스 섞음 모형의 변분 EM.
+    가우시안 혼합 모델의 변분 EM.
     
-    섞음 무게에 디리클레 앞확률을 두고 성분 파라메터에 정규-위샤트
-    앞확률을 두는 평균장 어림을 쓴다.
+    혼합 웨이트에 디리클레 사전분포를 두고 성분 파라메터에 정규-위샤트
+    사전분포를 두는 평균장 근사를 쓴다.
     """
     
     def __init__(self, n_components: int, n_features: int, 
@@ -215,48 +215,48 @@ class VariationalGMM:
                  nu_0: float = None, reg_covar: float = 1e-6):
         """
         인수:
-            n_components: 섞음 성분의 개수
-            n_features: 자료의 차원
-            alpha_0: 디리클레 몰림 파라메터
-            beta_0: 앞확률 정밀도의 크기 잡기
+            n_components: 혼합 성분의 개수
+            n_features: 데이터의 차원
+            alpha_0: 디리클레 집중(concentration) 파라메터
+            beta_0: 사전분포 정밀도의 스케일
             nu_0: 위샤트 자유도(기본값: n_features)
-            reg_covar: 공분산 벌주기
+            reg_covar: 공분산 정칙화
         """
         self.K = n_components
         self.d = n_features
         self.reg_covar = reg_covar
         
-        # 앞확률의 웃파라메터
+        # 사전분포의 하이퍼파라메터
         self.alpha_0 = alpha_0
         self.beta_0 = beta_0
         self.nu_0 = nu_0 if nu_0 is not None else float(n_features)
         
-        # 변분 파라메터(fit에서 첫값을 잡는다)
-        self.alpha_ = None      # 섞음 무게의 디리클레 파라메터
-        self.beta_ = None       # 정밀도 크기 잡기
+        # 변분 파라메터(fit에서 초기화한다)
+        self.alpha_ = None      # 혼합 웨이트의 디리클레 파라메터
+        self.beta_ = None       # 정밀도 스케일
         self.m_ = None          # 평균 파라메터
-        self.W_ = None          # 위샤트 규모 행렬
+        self.W_ = None          # 위샤트 스케일 행렬
         self.nu_ = None         # 위샤트 자유도
         
     def _initialize(self, X: torch.Tensor):
-        """변분 파라메터 첫값 잡기."""
+        """변분 파라메터 초기화."""
         N, d = X.shape
         
-        # k 평균으로 평균 첫값 잡기
+        # 무작위 관측점으로 평균 초기화
         indices = torch.randperm(N)[:self.K]
         self.m_ = X[indices].clone()
         
-        # 다른 파라메터 첫값 잡기
+        # 다른 파라메터 초기화
         self.alpha_ = torch.ones(self.K) * self.alpha_0 + N / self.K
         self.beta_ = torch.ones(self.K) * self.beta_0 + N / self.K
         self.nu_ = torch.ones(self.K) * self.nu_0 + N / self.K
         self.W_ = torch.stack([torch.eye(d) for _ in range(self.K)])
         
     def _compute_responsibilities(self, X: torch.Tensor) -> torch.Tensor:
-        """변분 E 스텝: 기댓값 맡음 몫 셈하기."""
+        """변분 E 단계: 기댓값 책임도 계산."""
         N = X.shape[0]
         
-        # 기댓값 로그 섞음 무게: E[log π_k]
+        # 기댓값 로그 혼합 웨이트: E[log π_k]
         log_pi = torch.digamma(self.alpha_) - torch.digamma(self.alpha_.sum())
         
         # 기댓값 로그 정밀도 행렬식: E[log |Λ_k|]
@@ -282,10 +282,10 @@ class VariationalGMM:
         return torch.exp(log_rho - log_rho_norm)
     
     def _update_parameters(self, X: torch.Tensor, r: torch.Tensor):
-        """변분 M 스텝: 변분 파라메터 새로 고치기."""
+        """변분 M 단계: 변분 파라메터 갱신."""
         N = X.shape[0]
         
-        # 충분 통계량
+        # 충분통계량
         N_k = r.sum(dim=0) + 1e-10
         x_bar = (r.T @ X) / N_k.unsqueeze(1)
         
@@ -294,11 +294,11 @@ class VariationalGMM:
         self.beta_ = self.beta_0 + N_k
         self.nu_ = self.nu_0 + N_k
         
-        # 평균의 앞확률(0으로 놓음)
+        # 평균의 사전 평균(0으로 둠)
         m_0 = torch.zeros(self.d)
         self.m_ = (self.beta_0 * m_0 + N_k.unsqueeze(1) * x_bar) / self.beta_.unsqueeze(1)
         
-        # 위샤트 규모 행렬
+        # 위샤트 스케일 행렬
         W_0_inv = torch.eye(self.d)
         for k in range(self.K):
             diff = X - x_bar[k]
@@ -313,14 +313,14 @@ class VariationalGMM:
             self.W_[k] = torch.inverse(W_k_inv + self.reg_covar * torch.eye(self.d))
     
     def _compute_elbo(self, X: torch.Tensor, r: torch.Tensor) -> float:
-        """증거 아래 경계 셈하기."""
+        """증거 하한(ELBO) 계산."""
         N = X.shape[0]
         N_k = r.sum(dim=0) + 1e-10
         
-        # 이는 간추린 ELBO 셈하기이다
-        # 온전한 판에는 모든 변분 분포의 KL 벌어짐이 들어간다
+        # 이는 단순화한 ELBO 계산이다
+        # 완전한 버전에는 모든 변분 분포의 KL 발산이 들어간다
         
-        # 기댓값 로그 가능도
+        # 기댓값 로그가능도
         E_log_lik = 0.0
         for k in range(self.K):
             diff = X - self.m_[k]
@@ -332,26 +332,26 @@ class VariationalGMM:
             
             E_log_lik += (r[:, k] * (0.5 * log_det - 0.5 * self.d * torch.log(torch.tensor(2 * torch.pi)) - 0.5 * mahal)).sum()
         
-        # 맡음 몫의 엔트로피
+        # 책임도의 엔트로피
         H_r = -(r * torch.log(r + 1e-10)).sum()
         
         return (E_log_lik + H_r).item()
     
     def fit(self, X: torch.Tensor, max_iter: int = 100, tol: float = 1e-4,
             verbose: bool = False) -> 'VariationalGMM':
-        """변분 EM으로 변분 가우스 섞음 모형 맞추기."""
+        """변분 EM으로 변분 가우시안 혼합 모델 적합하기."""
         self._initialize(X)
         
         prev_elbo = float('-inf')
         
         for iteration in range(max_iter):
-            # 변분 E 스텝
+            # 변분 E 단계
             r = self._compute_responsibilities(X)
             
-            # M 스텝
+            # M 단계
             self._update_parameters(X, r)
             
-            # ELBO 셈하기
+            # ELBO 계산
             elbo = self._compute_elbo(X, r)
             
             if verbose and iteration % 10 == 0:
@@ -367,12 +367,12 @@ class VariationalGMM:
         return self
     
     def predict(self, X: torch.Tensor) -> torch.Tensor:
-        """무리 배정 미리보기."""
+        """군집 배정 예측."""
         r = self._compute_responsibilities(X)
         return r.argmax(dim=1)
     
     def predict_proba(self, X: torch.Tensor) -> torch.Tensor:
-        """무리 확률 미리보기."""
+        """군집 확률 예측."""
         return self._compute_responsibilities(X)
 ```
 
@@ -381,12 +381,12 @@ class VariationalGMM:
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-GEM에서 한 번의 경사 갱신이 관측 우도 증가를 보장하려면 무엇을 확인해야 하는가?
+GEM에서 한 번의 그래디언트 갱신이 관측 가능도 증가를 보장하려면 무엇을 확인해야 하는가?
 
 </div>
 
 ??? success "풀이"
-    정확한 E 단계로 현재 우도에 일치하는 하한을 만든 뒤, 유효한 파라메터에서 같은 Q가 감소하지 않는지 확인해야 한다. 경사 방향이라는 사실만으로 임의의 러닝레이트가 안전한 것은 아니다. 선 탐색 등으로 Q 증가를 확보할 수 있다.
+    정확한 E 단계로 현재 가능도에 일치하는 하한을 만든 뒤, 유효한 파라메터에서 같은 Q가 감소하지 않는지 확인해야 한다. 그래디언트 방향이라는 사실만으로 임의의 러닝레이트가 안전한 것은 아니다. 선 탐색 등으로 Q 증가를 확보할 수 있다.
 
 ---
 
@@ -398,7 +398,7 @@ MCEM과 변분 EM의 근사 대상과 단조성 주장을 비교하라.
 </div>
 
 ??? success "풀이"
-    MCEM은 현재 사후의 Q 기댓값을 표본으로 근사하므로 유한 표본에서는 관측 우도가 감소할 수 있다. 변분 EM은 제한된 분포족의 ELBO를 최적화하며 좌표별 증가를 확보해도 정확한 관측 우도가 증가한다는 보장은 없다.
+    MCEM은 현재 사후의 Q 기댓값을 표본으로 근사하므로 유한 표본에서는 관측 가능도가 감소할 수 있다. 변분 EM은 제한된 분포족의 ELBO를 최적화하며 좌표별 증가를 확보해도 정확한 관측 가능도가 증가한다는 보장은 없다.
 
 ---
 
@@ -426,7 +426,7 @@ MCEM과 변분 EM의 근사 대상과 단조성 주장을 비교하라.
 
 ## 정리하며
 
-EM의 변형은 계산과 최적화의 병목을 다르게 완화한다. 각 방법이 Q·관측 우도·변분 하한 중 무엇을 실제로 높이는지, 근사·표본 오차가 어떤 보장을 바꾸는지 확인한다. 예제의 불완전한 목적값을 완전한 ELBO로 해석하지 않는다.
+EM의 변형은 계산과 최적화의 병목을 다르게 완화한다. 각 방법이 Q·관측 가능도·변분 하한 중 무엇을 실제로 높이는지, 근사·표본 오차가 어떤 보장을 바꾸는지 확인한다. 예제의 불완전한 목적값을 완전한 ELBO로 해석하지 않는다.
 
 ### 주요 참고 문헌
 

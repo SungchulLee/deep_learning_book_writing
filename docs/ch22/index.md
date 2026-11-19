@@ -14,7 +14,7 @@
 
 **빈도로 — n-그램**
 
-- [n-그램 기초](language_modeling/tutorial_01_ngram_basics.md) — 학습이 아니라 **최대우도 빈도 계산**이다
+- [n-그램 기초](language_modeling/tutorial_01_ngram_basics.md) — 학습이 아니라 **최대가능도(maximum likelihood, 최대우도라고도 한다) 빈도 계산**이다
 - [확률 평활화](language_modeling/tutorial_02_ngram_smoothing.md) — 미관측 전이 하나가 문장 전체 확률을 0으로 만든다
 - [n-그램으로 텍스트 생성](language_modeling/tutorial_03_text_generation_ngrams.md) — 같은 빈도라도 선택 규칙이 결과를 바꾼다
 
@@ -35,9 +35,9 @@
 
 - [wav2vec 2.0](language_modeling/10_wav2vec.md) — 글이 아니라 음성의 자기지도 학습이다
 
-## 2. 시퀀스 레이블링과 개체명 인식
+## 2. 시퀀스 라벨링과 개체명 인식
 
-개체의 구간·유형을 찾고 단어와 subword의 레이블을 정렬한다. 토큰 정확도와 개체 구간 F1은 서로 다른 지표다.
+개체의 구간·유형을 찾고 단어와 subword의 라벨을 정렬한다. 토큰 정확도와 개체 구간 F1은 서로 다른 지표다.
 
 **무엇을 푸는 과제인가**
 
@@ -76,7 +76,7 @@
 문장 전체 감성과 특정 측면의 감성은 다르다. 분류 성능·모델 설명과 업무적 유효성도 각각 평가해야 한다.
 
 - [측면 기반 감성 분석](text_classification/aspect_sentiment.md): 측면 추출과 측면 조건부 분류
-- [FinBERT와 금융 텍스트](text_classification/finbert_sentiment.md): 사전 학습 모델 안내와 합성 자료의 작은 모델 구분
+- [FinBERT와 금융 텍스트](text_classification/finbert_sentiment.md): 사전 학습 모델 안내와 합성 데이터의 작은 모델 구분
 - [LIME·SHAP 모델 해석](text_classification/lime_shap_interpretability.md): 삭제 민감도·회귀 계수·설명 기여도의 차이
 
 ## 4. 정보 추출

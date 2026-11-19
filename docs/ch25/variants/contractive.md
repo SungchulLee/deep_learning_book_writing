@@ -10,7 +10,7 @@ $$L=\mathbb E_x[L_{rec}(g(f(x)),x)]+\lambda\mathbb E_x\|J_f(x)\|_F^2,\qquad\lamb
 
 J_f의 크기는 k×d이고 프로베니우스 제곱 노름은 모든 입력·출력 편미분의 제곱합이다. 작은 δ에 대해 f(x+δ)−f(x)≈J_f(x)δ이므로 국소 잠재 표현 변화를 제한하는 지표다. 최악 방향 변화율은 연산자 노름에 대응하고 프로베니우스 노름은 그 상계다. 노름과 제곱 노름의 숫자도 구분한다.
 
-재구성과 민감도는 절충할 수 있으나 잡음 방향만 선택적으로 줄이는 정리는 아니다. λ가 너무 크면 유용한 차이를 버릴 수 있다. 자유로운 디코더가 작은 잠재 표현 척도를 큰 웨이트로 리워드할 수 있어 인코더 수축만으로 전체 복원이 안정적이라고 할 수도 없다. [CAE 원 논문](https://icml.cc/2011/papers/455_icmlpaper.pdf)의 표현 민감도 목적과 구분해 평가한다.
+재구성과 민감도는 절충할 수 있으나 잡음 방향만 선택적으로 줄이는 정리는 아니다. λ가 너무 크면 유용한 차이를 버릴 수 있다. 자유로운 디코더가 작은 잠재 표현 스케일을 큰 웨이트로 보상할 수 있어 인코더 수축만으로 전체 복원이 안정적이라고 할 수도 없다. [CAE 원 논문](https://icml.cc/2011/papers/455_icmlpaper.pdf)의 표현 민감도 목적과 구분해 평가한다.
 
 ## 2. DAE와의 관계를 정확히 읽기
 
@@ -22,17 +22,17 @@ J_f의 크기는 k×d이고 프로베니우스 제곱 노름은 모든 입력·�
 
 **그림으로 보는 AI 1.** 지은이들이 바로 이 구분을 하려고 만들었다
 
-수축 오토인코더는 2011년에 살라 리파이(Salah Rifai)·파스칼 뱅상(Pascal Vincent)·자비에 뮐러(Xavier Muller)·자비에 글로로(Xavier Glorot)·요슈아 벤지오(Yoshua Bengio)가 몬트리올 대학에서 내놓았다. 제목에 이미 의도가 적혀 있다 — 「수축 오토인코더: 피처 추출에서의 **명시적** 불변성」. 디노이징 오토인코더가 잡음을 뿌려 **확률적으로** 얻던 안정성을, 미분을 직접 벌하는 식으로 **해석적으로** 적어 보자는 것이었다.
+수축 오토인코더는 2011년에 살라 리파이(Salah Rifai)·파스칼 뱅상(Pascal Vincent)·자비에 뮐러(Xavier Muller)·자비에 글로로(Xavier Glorot)·요슈아 벤지오(Yoshua Bengio)가 몬트리올 대학에서 내놓았다. 제목에 이미 의도가 적혀 있다 — 「수축 오토인코더: 피처 추출에서의 **명시적** 불변성」. 디노이징 오토인코더가 잡음을 뿌려 **확률적으로** 얻던 안정성을, 미분에 직접 패널티를 주는 식으로 **해석적으로** 적어 보자는 것이었다.
 
 위 문단이 두 방법을 조심스럽게 갈라 놓은 것은 과장이 아니다. **원 논문이 바로 그 구분을 하려고 쓰였다.** 지은이들의 말 그대로다.
 
 > "CAEs explicitly encourage robustness of **representation** f(x), whereas DAEs encourages robustness of **reconstruction** (g∘f)(x)."
 
-![왼쪽은 x에서 인코더 f를 거쳐 잠재 표현 z로, 다시 디코더 g를 거쳐 복원으로 이어지는 길을 그린 그림이다. x에서 z까지만 덮는 짧은 선에는 CAE가 벌하는 구간, 곧 표현의 야코비안이라고 적혀 있고, x에서 복원까지 덮는 긴 선에는 작은 잡음의 DAE를 펼치면 나오는 구간, 곧 재구성의 야코비안이라고 적혀 있다. 오른쪽은 막대 둘로 두 야코비안 노름을 실제로 잰 것으로 표현 쪽이 0.112, 재구성 쪽이 2.916이다.](figures/two_jacobians.svg)
+![왼쪽은 x에서 인코더 f를 거쳐 잠재 표현 z로, 다시 디코더 g를 거쳐 복원으로 이어지는 길을 그린 그림이다. x에서 z까지만 덮는 짧은 선에는 CAE가 패널티를 주는 구간, 곧 표현의 야코비안이라고 적혀 있고, x에서 복원까지 덮는 긴 선에는 작은 잡음의 DAE를 펼치면 나오는 구간, 곧 재구성의 야코비안이라고 적혀 있다. 오른쪽은 막대 둘로 두 야코비안 노름을 실제로 잰 것으로 표현 쪽이 0.112, 재구성 쪽이 2.916이다.](figures/two_jacobians.svg)
 
-그리고 위 문단이 "추가 가정 없이 σ²‖J_f‖²_F로 바꿀 수 없다"고 한 대목도 논문이 먼저 적어 두었다. 아주 작은 가산 가우시안 잡음의 극한에서 DAE의 확률적 기준을 펼치면 나오는 항은 **재구성의 야코비안** ‖J_{g∘f}‖²_F이지 CAE가 벌하는 **표현의 야코비안** ‖J_f‖²_F가 아니라는 것이다.
+그리고 위 문단이 "추가 가정 없이 σ²‖J_f‖²_F로 바꿀 수 없다"고 한 대목도 논문이 먼저 적어 두었다. 아주 작은 가산 가우시안 잡음의 극한에서 DAE의 확률적 기준을 펼치면 나오는 항은 **재구성의 야코비안** ‖J_{g∘f}‖²_F이지 CAE가 패널티를 주는 **표현의 야코비안** ‖J_f‖²_F가 아니라는 것이다.
 
-두 수가 정말 다른지 작은 오토인코더 하나를 학습해 재어 보면, 표현 쪽이 0.112이고 재구성 쪽이 2.916이다. 한쪽을 벌하는 것이 다른 쪽을 벌하는 일이 아님을 보이기에는 충분하다. 다만 이것은 **한 번 학습한 한 모델의 수**이므로 26배라는 비율 자체를 일반적인 값으로 옮기면 안 된다.
+두 수가 정말 다른지 작은 오토인코더 하나를 학습해 재어 보면, 표현 쪽이 0.112이고 재구성 쪽이 2.916이다. 한쪽에 패널티를 주는 것이 다른 쪽에 패널티를 주는 일이 아님을 보이기에는 충분하다. 다만 이것은 **한 번 학습한 한 모델의 수**이므로 26배라는 비율 자체를 일반적인 값으로 옮기면 안 된다.
 
 **그러면 어느 쪽이 나은가는 무엇을 쓸 것인지에 달렸다.** 논문도 그렇게 답한다 — "Since we will use only the encoder part for classification, robustness of the extracted features appears more important than robustness of the reconstruction." 인코더만 떼어 쓸 작정이면 표현의 안정성이 중요하고, 복원 자체가 목적이면 그 주장은 그대로 옮겨지지 않는다. 1절이 λ가 크면 쓸모 있는 차이까지 버린다고 적어 둔 것, 6절이 수축과 기하의 해석에 선을 긋는 것도 같은 자리에서 나온다.
 
@@ -52,10 +52,10 @@ from torch.autograd import grad
 
 class ContractiveAutoencoder(nn.Module):
     """
-    야코비 벌주기를 갖춘 오그리는 오토인코더.
+    야코비안 패널티를 갖춘 수축 오토인코더.
     
-    내놓기를 가두려 인코더에 에스자 활성화를 쓰며,
-    그래야 야코비가 얌전하다.
+    출력 범위를 제한하려 인코더에 시그모이드 활성화를 쓰며,
+    그래야 야코비안이 안정된다.
     """
     
     def __init__(self, input_dim=784, latent_dim=64):
@@ -64,14 +64,14 @@ class ContractiveAutoencoder(nn.Module):
         self.input_dim = input_dim
         self.latent_dim = latent_dim
         
-        # 내놓기를 가두려 에스자를 쓴 인코더
+        # 출력 범위를 제한하려 시그모이드를 쓴 인코더
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, 256),
             nn.Sigmoid(),
             nn.Linear(256, 128),
             nn.Sigmoid(),
             nn.Linear(128, latent_dim),
-            nn.Sigmoid()  # 야코비가 안정되도록 [0,1]로 가둔다
+            nn.Sigmoid()  # 야코비안이 안정되도록 [0,1]로 제한한다
         )
         
         # 디코더
@@ -97,12 +97,12 @@ class ContractiveAutoencoder(nn.Module):
 
 def compute_jacobian_penalty(model, x):
     """
-    인코더 야코비 행렬의 프로베니우스 노름 제곱을 셈한다.
+    인코더 야코비안 행렬의 프로베니우스 노름 제곱을 계산한다.
     
     J_f(x)_ij = ∂z_i / ∂x_j
     ||J_f||²_F = Σ_ij (∂z_i / ∂x_j)²
     
-    저절로 미분하기로 세로줄마다 셈한다.
+    자동 미분으로 열마다 계산한다.
     """
     x = x.requires_grad_(True)
     z = model.encode(x)
@@ -128,9 +128,9 @@ def compute_jacobian_penalty(model, x):
 
 기본 인코더는 784→256→128→64이며 각 선형 출력에 Sigmoid를 사용한다. 디코더는 64→128→256→784로 복원한다. `compute_jacobian_penalty`는 잠재 표현 성분마다 역방향 벡터-야코비안 곱을 구해 제곱합을 누적한다.
 
-현재 인코더는 표본끼리 독립이므로 같은 잠재 표현 성분의 배치 합을 미분해도 표본별 야코비안의 해당 행을 얻는다. BatchNorm처럼 배치 표본을 결합하는 연산이 들어가면 교차 표본 미분이 더해져 이 해석이 달라진다. `create_graph=True`는 패널티를 파라미터까지 다시 미분하기 위한 설정이다.
+현재 인코더는 표본끼리 독립이므로 같은 잠재 표현 성분의 배치 합을 미분해도 표본별 야코비안의 해당 행을 얻는다. BatchNorm처럼 배치 표본을 결합하는 연산이 들어가면 교차 표본 미분이 더해져 이 해석이 달라진다. `create_graph=True`는 패널티를 파라메터까지 다시 미분하기 위한 설정이다.
 
-잠재 차원 k번의 역방향 호출과 추가 그래프가 필요하므로 비용이 크지만 전체 학습 시간이 단순히 k배라고 확정할 수는 없다. 단일 Sigmoid 계층의 해석적 식, 벡터화와 확률적 노름 추정 등도 가능하다. 예를 들어 E[vvᵀ]=I인 무작위 v에서 E||Jᵀv||²=||J||_F²를 사용하면 추정 분산과 계산비용을 절충할 수 있다.
+잠재 차원 k번의 역방향 호출과 추가 그래프가 필요하므로 비용이 크지만 전체 학습 시간이 단순히 k배라고 확정할 수는 없다. 단일 Sigmoid 레이어의 해석적 식, 벡터화와 확률적 노름 추정 등도 가능하다. 예를 들어 E[vvᵀ]=I인 무작위 v에서 E||Jᵀv||²=||J||_F²를 사용하면 추정 분산과 계산비용을 절충할 수 있다.
 
 ## 4. 학습과 집계의 단위
 
@@ -140,9 +140,9 @@ def train_contractive_autoencoder(
     lambda_contractive=0.1, num_epochs=15
 ):
     """
-    오그리는 오토인코더를 익힌다.
+    수축 오토인코더를 학습한다.
     
-    로스 = 다시 세우기 + λ × ||J_f||²_F
+    로스 = 재구성 + λ × ||J_f||²_F
     """
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     recon_criterion = nn.MSELoss()
@@ -167,7 +167,7 @@ def train_contractive_autoencoder(
             # 복원 로스
             recon_loss = recon_criterion(recon, images)
             
-            # 오그림 벌주기
+            # 수축 패널티
             contractive_loss = compute_jacobian_penalty(model, images)
             
             # 전체 로스
@@ -193,17 +193,17 @@ def train_contractive_autoencoder(
 
 복원은 모든 픽셀·표본의 평균 MSE이고 수축 항은 입력·잠재 표현의 제곱 편미분 합을 표본 수로 나눈 값이다. λ를 비교할 때 이 축과 입력 스케일을 명시한다. 학습 함수는 모델을 장치로 옮기지 않으므로 호출하는 쪽이 맞추어야 한다.
 
-기록은 배치별 평균의 단순 평균이어서 마지막 배치 크기가 다르면 전체 표본 가중 평균과 다르다. 빈 로더도 처리하지 않는다. 코드에는 실행을 위한 로더 구성·함수 호출이 없고 테스트 복원 MSE를 계산하는 함수도 없다. 고정된 성능 표를 이 정의만으로 측정된 결과라고 제시할 수 없다.
+기록은 배치별 평균의 단순 평균이어서 마지막 배치 크기가 다르면 전체 표본 가중 평균과 다르다. 빈 로더도 처리하지 않는다. 코드에는 실행을 위한 로더 구성·함수 호출이 없고 시험 복원 MSE를 계산하는 함수도 없다. 고정된 성능 표를 이 정의만으로 측정된 결과라고 제시할 수 없다.
 
 ## 5. 잡음 민감도 비교의 범위
 
 ```python
 def analyze_contraction(model, test_loader, device, noise_std=0.1):
     """
-    숨은 값의 바뀜과 들임의 바뀜의 비를 재어 배운 나타냄이
-    얼마나 오그라드는지 살핀다.
+    잠재 표현의 변화와 입력의 변화의 비를 재어 학습한 표현이
+    얼마나 수축하는지 분석한다.
     
-    오그리는 인코더는 민감함 비가 1보다 훨씬 작다.
+    수축하는 인코더는 민감도 비가 1보다 훨씬 작다.
     """
     model.eval()
     
@@ -221,7 +221,7 @@ def analyze_contraction(model, test_loader, device, noise_std=0.1):
             input_change = torch.norm(noise, dim=1)
             latent_change = torch.norm(z_noisy - z_original, dim=1)
             
-            # 민감함 = ||Δz|| / ||Δx||
+            # 민감도 = ||Δz|| / ||Δx||
             sensitivity = latent_change / (input_change + 1e-8)
             sensitivity_scores.extend(sensitivity.cpu().numpy())
             
@@ -232,9 +232,9 @@ def analyze_contraction(model, test_loader, device, noise_std=0.1):
 
 def compare_with_standard_ae(train_loader, test_loader, device):
     """
-    인코더의 민감함으로 오그리는 오토인코더와 여느 오토인코더를 견준다.
+    인코더의 민감도로 수축 오토인코더와 표준 오토인코더를 견준다.
     """
-    # 여느 오토인코더(구조는 같고 오그림 벌주기는 없다)
+    # 표준 오토인코더(구조는 같고 수축 패널티는 없다)
     standard_ae = ContractiveAutoencoder().to(device)
     optimizer = optim.Adam(standard_ae.parameters(), lr=0.001)
     criterion = nn.MSELoss()
@@ -250,7 +250,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
             loss.backward()
             optimizer.step()
     
-    # 오그리는 오토인코더
+    # 수축 오토인코더
     contractive_ae = ContractiveAutoencoder().to(device)
     
     print("\nTraining Contractive AE...")
@@ -259,7 +259,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
         lambda_contractive=0.1, num_epochs=15
     )
     
-    # 민감함을 견준다
+    # 민감도를 견준다
     print("\nAnalyzing sensitivity to noise...")
     
     std_sensitivity = analyze_contraction(standard_ae, test_loader, device)
@@ -300,9 +300,9 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 엄밀한 수축 사상은 어떤 고정 c<1에 대해 모든 점 쌍의 거리가 ||f(x)−f(y)||≤c||x−y||를 만족한다. c=1의 부등식은 비확장 사상이다. 학습 표본에서의 평균 패널티가 1보다 작다는 사실은 이런 전역 조건을 증명하지 않는다. 볼록 영역 전체에서 연산자 노름을 같은 c로 제한하는 조건 등은 별개의 충분조건이다.
 
-야코비안 특이값은 학습된 인코더가 어느 입력 방향에 민감한지 보여 준다. 큰 특이값 방향이 반드시 참 데이터 매니폴드의 접방향이거나 0이 아닌 값의 개수가 내재 차원인 것은 아니다. 스케일·노이즈·모델과 λ에 의존한다. 표본 불확실성과 보류 데이터에서의 안정성을 함께 살핀다.
+야코비안 특이값은 학습된 인코더가 어느 입력 방향에 민감한지 보여 준다. 큰 특이값 방향이 반드시 참 데이터 매니폴드의 접방향이거나 0이 아닌 값의 개수가 내재 차원인 것은 아니다. 스케일·잡음·모델과 λ에 의존한다. 표본 불확실성과 보류 데이터에서의 안정성을 함께 검토한다.
 
-금융 요인 같은 응용에서도 작은 입력 변화에 대한 잠재 표현 안정성과 위험 예측·공분산 추정의 품질은 구분한다. 시장의 실제 국면 변화를 잡음으로 눌러 유용한 정보를 잃을 수도 있다. 데이터 척도와 사용 조건, 후속 태스크를 기준으로 λ와 다른 정규화를 비교한다.
+금융 요인 같은 응용에서도 작은 입력 변화에 대한 잠재 표현 안정성과 위험 예측·공분산 추정의 품질은 구분한다. 시장의 실제 국면 변화를 잡음으로 눌러 유용한 정보를 잃을 수도 있다. 데이터 스케일과 사용 조건, 후속 태스크를 기준으로 λ와 다른 정칙화를 비교한다.
 
 ## 연습문제
 
@@ -310,7 +310,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-λ를 높이면 반드시 테스트 복원이 악화되고 안정성이 개선되는가?
+λ를 높이면 반드시 시험 복원이 악화되고 안정성이 개선되는가?
 
 </div>
 
@@ -331,7 +331,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 
 ??? success "풀이"
 
-    연결 영역 전체에서 야코비안이 0인 미분 가능한 인코더는 상수다. 고정 상수 출력의 제곱 오차 최적값은 데이터 평균이다. 그러나 패널티는 유한 표본에서 측정하고 디코더 스케일 리워드도 가능하므로 λ를 키우는 학습이 반드시 이 극한에 도달한다고 할 수 없다. 최적해 존재·웨이트 제약과 최적화 조건이 필요하다.
+    연결 영역 전체에서 야코비안이 0인 미분 가능한 인코더는 상수다. 고정 상수 출력의 제곱 오차 최적값은 데이터 평균이다. 그러나 패널티는 유한 표본에서 측정하고 디코더 스케일 보상도 가능하므로 λ를 키우는 학습이 반드시 이 극한에 도달한다고 할 수 없다. 최적해 존재·웨이트 제약과 최적화 조건이 필요하다.
 
 
 
@@ -376,7 +376,7 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 <div class="drillbox" markdown>
 
 **연습문제 5.** <span class="diff med" title="중간"></span>
-수축 패널티와 L2 웨이트 정규화의 관계를 선형·비선형에서 비교하라.
+수축 패널티와 L2 웨이트 정칙화의 관계를 선형·비선형에서 비교하라.
 
 </div>
 
@@ -421,13 +421,13 @@ def compare_with_standard_ae(train_loader, test_loader, device):
 <div class="drillbox" markdown>
 
 **연습문제 8.** <span class="diff med" title="중간"></span>
-인코더 패널티가 있으면 디코더 정규화가 필요 없다는 주장은 맞는가?
+인코더 패널티가 있으면 디코더 정칙화가 필요 없다는 주장은 맞는가?
 
 </div>
 
 ??? success "풀이"
 
-    재구성은 학습된 잠재 표현에서의 출력만 제약하고 디코더의 모든 위치·방향을 제약하지 않는다. 작은 잠재 표현 스케일을 큰 디코더 웨이트로 리워드하는 자유도도 남는다. 웨이트·디코더 민감도 정규화가 필요한지는 목적과 보류 성능에 따라 검토한다.
+    재구성은 학습된 잠재 표현에서의 출력만 제약하고 디코더의 모든 위치·방향을 제약하지 않는다. 작은 잠재 표현 스케일을 큰 디코더 웨이트로 보상하는 자유도도 남는다. 웨이트·디코더 민감도 정칙화가 필요한지는 목적과 보류 성능에 따라 검토한다.
 
 
 
@@ -463,7 +463,7 @@ CAE 적용 여부를 판단할 평가 기준을 설명하라.
 
 ## 정리하며
 
-CAE는 인코더의 국소 야코비안 민감도를 직접 제한한다. 계산한 패널티, 유한 잡음 변화율과 전역 수축은 다른 양이다. DAE와의 관계에는 추가 조건이 필요하며 잠재 표현 스케일·디코더 리워드와 표본 외 품질을 함께 평가해야 한다.
+CAE는 인코더의 국소 야코비안 민감도를 직접 제한한다. 계산한 패널티, 유한 잡음 변화율과 전역 수축은 다른 양이다. DAE와의 관계에는 추가 조건이 필요하며 잠재 표현 스케일·디코더 보상과 표본 외 품질을 함께 평가해야 한다.
 
 **참고 문헌**
 

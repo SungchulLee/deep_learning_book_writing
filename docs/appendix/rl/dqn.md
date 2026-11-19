@@ -1,24 +1,24 @@
 # DQN
 
-DQN은 2015년 글 "Human-level control through deep reinforcement learning"에서 나왔다. - 뉴럴 네트워크로 Q(s,a)을 어림한다 - *타깃 네트워크*을 쓰는 TD 타깃으로 학습된이다 - 겪음 되짚기로 얽힘을 끊는다.
+DQN은 2015년 논문 "Human-level control through deep reinforcement learning"에서 나왔다. - 뉴럴 네트워크로 Q(s,a)을 근사한다 - *타깃 네트워크*을 쓰는 TD 타깃으로 학습한다 - 경험 리플레이(experience replay)로 표본 사이의 상관을 끊는다.
 
-여기 구현은 DQN을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 DQN을 짧고 학습하기 좋게 보인 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
 ```python
 #!/usr/bin/env python3
 """
-DQN - 깊은 Q 네트워크
-글: "깊은 북돋움 러닝으로 사람 수준 다루기" (2015)
+DQN - 심층 Q 네트워크
+논문: "심층 강화학습으로 사람 수준 제어" (2015)
 지은이: 볼로디미르 므니 외
-핵심 깨침:
-  - 뉴럴 네트워크로 Q(s,a)을 어림한다
-  - *타깃 네트워크*을 쓰는 TD 타깃으로 익힌다
-  - 겪음 되짚기로 얽힘을 끊는다
+핵심 아이디어:
+  - 뉴럴 네트워크로 Q(s,a)을 근사한다
+  - *타깃 네트워크*을 쓰는 TD 타깃으로 학습한다
+  - 경험 리플레이(experience replay)로 표본 사이의 상관을 끊는다
 
-두루마리: appendix/rl/dqn.py
-눈여겨볼 것: 배우기 위한 본이다. 모형 + 되짚기 + TD 잃음 셈(온전한 둘레 회귀는 없다).
+파일: appendix/rl/dqn.py
+참고: 교육용 예제다. 모델 + 리플레이 + TD 로스 계산(완전한 환경 루프는 없다).
 """
 
 from dataclasses import dataclass
@@ -35,7 +35,7 @@ import torch.nn.functional as F
 
 
 class QNetwork(nn.Module):
-    """따로 떨어진 액션을 위한 단순한 MLP Q(s,a) 어림개."""
+    """이산 액션을 위한 단순한 MLP Q(s,a) 근사기."""
     def __init__(self, obs_dim: int, num_actions: int, hidden: int = 128):
         super().__init__()
         self.net = nn.Sequential(
@@ -53,7 +53,7 @@ class QNetwork(nn.Module):
 
 @dataclass
 class Transition:
-    """되짚기 곳간에 담는 겪음 하나."""
+    """리플레이 버퍼에 담는 경험(전이) 하나."""
     s: torch.Tensor
     a: torch.Tensor
     r: torch.Tensor
@@ -62,7 +62,7 @@ class Transition:
 
 
 class ReplayBuffer:
-    """크기가 붙박인 선입선출 되짚기 곳간."""
+    """크기가 고정된 선입선출 리플레이 버퍼."""
     def __init__(self, capacity: int = 100_000):
         self.buf = deque(maxlen=capacity)
 
@@ -71,7 +71,7 @@ class ReplayBuffer:
 
     def sample(self, batch_size: int):
         batch = random.sample(self.buf, batch_size)
-        # 밭을 쌓아 배치 텐서로 만든다
+        # 필드를 쌓아 배치 텐서로 만든다
         s = torch.stack([b.s for b in batch], dim=0)
         a = torch.stack([b.a for b in batch], dim=0)
         r = torch.stack([b.r for b in batch], dim=0)
@@ -85,26 +85,26 @@ class ReplayBuffer:
 
 def dqn_td_loss(q_net: nn.Module, target_net: nn.Module, batch, gamma: float = 0.99):
     """
-    DQN의 TD 잃음을 셈한다.
+    DQN의 TD 로스를 계산한다.
 
-    넘어감 (s,a,r,s',done)마다:
+    전이 (s,a,r,s',done)마다:
       target = r + gamma * (1-done) * max_a' Q_target(s', a')
       loss = MSE( Q(s,a), target )
 
-    눈여겨볼 것:
-      - a은 따로 떨어진 액션의 번호다(형태: (B,))
+    참고:
+      - a은 이산 액션의 인덱스다(형태: (B,))
       - done은 끝이면 1, 아니면 0이다
     """
     s, a, r, s2, done = batch
 
-    # 모든 액션에 대한 이제의 Q 값: (B, A)
+    # 모든 액션에 대한 현재의 Q 값: (B, A)
     q_values = q_net(s)
 
     # gather으로 Q(s,a)을 고른다:
     # dim=1에서 gather 하려면 a의 형태가 (B,1)이어야 한다
     q_sa = q_values.gather(1, a.long().unsqueeze(1)).squeeze(1)  # (B,)
 
-    # 타깃 네트워크로 타깃을 셈한다(그래디언트 없이)
+    # 타깃 네트워크로 타깃을 계산한다(그래디언트 없이)
     with torch.no_grad():
         q_next = target_net(s2)                   # (B, A)
         max_q_next = q_next.max(dim=1).values     # (B,)
@@ -115,12 +115,12 @@ def dqn_td_loss(q_net: nn.Module, target_net: nn.Module, batch, gamma: float = 0
 
 
 if __name__ == "__main__":
-    # 장난감 맛보기 시험(둘레 없음)
+    # 간단한 스모크 테스트(환경 없음)
     obs_dim, num_actions = 8, 4
     q = QNetwork(obs_dim, num_actions)
     tgt = QNetwork(obs_dim, num_actions)
 
-    # 거짓 배치
+    # 가짜 배치
     B = 5
     s = torch.randn(B, obs_dim)
     a = torch.randint(0, num_actions, (B,))
@@ -140,7 +140,7 @@ loss: 1.1922111511230469
 
 ## 2. 논의
 
-이 구현은 클래스 3개(`QNetwork`, `Transition`, `ReplayBuffer`)를 매기고, 이들이 어울려 온전한 강화학습 구조를 이룬다. 클래스마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 계산 그림을 매긴다.
+이 구현은 클래스 3개(`QNetwork`, `Transition`, `ReplayBuffer`)를 정의하고, 이들이 함께 완전한 강화학습 구조를 이룬다. 클래스마다 고유한 역할을 맡아 코드를 모듈화하고 확장하기 쉽게 한다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정의한다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -149,59 +149,59 @@ loss: 1.1922111511230469
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 첫자리로 잡은 `QNetwork`의 배울 수 있는 파라메터를 모두 세어라. 짐과 바이어스를 아울러 켜마다 나누어 적어라.
+기본 설정으로 초기화한 `QNetwork`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
 
 </div>
 
 ??? success "풀이"
-    `nn.Linear(in_features, out_features)`마다 짐 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 짐이 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 켜를 모두 더한다. `sum(p.numel() for p in model.parameters())`으로 따져 볼 수 있다.
+    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`으로 확인할 수 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력의 형태와 데이터 클래스가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
+입력의 형태와 자료형이 기대한 대로인지 확인하는 입력 검증을 주요 함수나 클래스에 더하여라. 올바르지 않은 입력에는 이해하기 쉬운 오류 메시지를 띄워라.
 
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차수를 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 더한다. 형태를 검증하려면 핵심 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅을 크게 앞당기고 코드를 재사용하기에 더 강건하게 만든다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현이 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현에서 일어날 수 있는 실패 양상(failure mode) 둘을 들고, 각각을 어떻게 탐지하고 고칠지 설명하라.
 
 </div>
 
 ??? success "풀이"
-    흔히 무너지는 결은 이렇다. (1) **그래디언트가 사라지거나 터짐** -- 그래디언트 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 그래디언트 자르기, 더 나은 첫자리 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 잣대 잡기)로 고친다. (2) **지나치게 맞추기** -- 학습 로스는 줄어드는데 따짐 로스가 오르면 짚어낸다. 다독임(드롭아웃, 짐 줄이기, 데이터 어그멘테이션)이나 모델 크기 줄이기로 고친다. 학습과 따짐 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
+    흔한 실패 양상은 이렇다. (1) **그래디언트 소실·폭발** -- 그래디언트 노름을 모니터링해 탐지한다(`torch.nn.utils.clip_grad_norm_`이나 레이어마다 `param.grad.norm()` 기록하기). 그래디언트 클리핑, 더 나은 초기화(Xavier/Kaiming), 구조 변경(잔차 연결, 정규화)으로 고친다. (2) **과적합** -- 학습 로스는 줄어드는데 검증 로스가 오르면 탐지한다. 정칙화(드롭아웃, 웨이트 감쇠, 데이터 어그멘테이션)나 모델 크기 줄이기로 고친다. 학습 지표와 검증 지표를 늘 함께 모니터링해 이를 일찍 잡아야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`QNetwork`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 파라메터를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+`QNetwork`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 인자를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
 ??? success "풀이"
-    박아 넣은 켜를 다음으로 갈음한다.
+    하드코딩된 레이어를 다음으로 바꾼다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 파라메터를 모두 다듬기에 올린다. `for n in [2, 4, 8]: model = QNetwork(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 파라메터를 옵티마이저에 등록한다. `for n in [2, 4, 8]: model = QNetwork(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
 
 ## 정리하며
 
 **다룬 것** — DQN
 
-이 구현은 클래스 3개(`QNetwork`, `Transition`, `ReplayBuffer`)를 매기고, 이들이 어울려 온전한 강화학습 구조를 이룬다.
+이 구현은 클래스 3개(`QNetwork`, `Transition`, `ReplayBuffer`)를 정의하고, 이들이 함께 완전한 강화학습 구조를 이룬다.
 
-핵심 클래스는 `QNetwork`, `Transition`, `ReplayBuffer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `QNetwork`, `Transition`, `ReplayBuffer`이며 앞의 연습문제 4개로 스스로 확인해 볼 수 있다.

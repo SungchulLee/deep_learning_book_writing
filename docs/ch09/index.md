@@ -8,7 +8,7 @@
 
 ## 2. 데이터셋과 데이터로더
 
-텐서, 이미지 폴더, 좌표 레이블과 순차 데이터에 맞는 인터페이스를 살펴본다. 표본의 대응을 지키고 학습·검증·테스트를 먼저 분리한 뒤 필요한 통계량과 변환을 학습한다.
+텐서, 이미지 폴더, 좌표 라벨과 순차 데이터에 맞는 인터페이스를 살펴본다. 표본의 대응을 지키고 학습·검증·시험 집합을 먼저 분리한 뒤 필요한 통계량과 변환을 학습한다.
 
 - [TensorDataset](datasets/dataset_from_tensor.md)과 [IterableDataset 안내](datasets/11_iterable_style_minimal.md)
 - [MNIST](datasets/mnist.md), [FashionMNIST](datasets/fashion_mnist.md), [CIFAR-10](datasets/cifar10.md)
@@ -24,21 +24,21 @@
 
 출력 형식과 목표에 맞는 [로스 선택](loss/loss_selection.md)이 먼저이다. [후버 로스](loss/huber_loss.md), [Focal Loss](loss/focal_loss.md)와 [사용자 정의 로스](loss/01_custom_loss_functions.md)을 살펴보고 각 가정과 집계 방식을 비교한다.
 
-옵티마이저는 로스에서 계산한 경사를 사용해 갱신한다. **어느 방법의 우열도 러닝레이트와 평가 조건에서 떼어 판단할 수 없다.**
+옵티마이저는 로스에서 계산한 그래디언트를 사용해 갱신한다. **어느 방법의 우열도 러닝레이트와 평가 조건에서 떼어 판단할 수 없다.**
 
 **모멘텀 계열**
 
-- [모멘텀을 쓰는 SGD](optimizers/momentum.md) — 지난 경사의 지수 감쇠 평균을 쌓는다
-- [네스테로프 가속 경사](optimizers/nesterov.md) — 먼저 가 보고 그 자리에서 경사를 잰다
+- [모멘텀을 쓰는 SGD](optimizers/momentum.md) — 지난 그래디언트의 지수 감쇠 평균을 쌓는다
+- [네스테로프 가속 경사](optimizers/nesterov.md) — 먼저 가 보고 그 자리에서 그래디언트를 잰다
 
 **좌표마다 보폭을 바꾸기**
 
-- [Adagrad](optimizers/adagrad.md) — 경사 제곱을 **누적**한다. 그래서 보폭이 한없이 줄어든다
+- [Adagrad](optimizers/adagrad.md) — 그래디언트 제곱을 **누적**한다. 그래서 스텝 크기가 한없이 줄어든다
 - [Adadelta](optimizers/adadelta.md) · [RMSprop](optimizers/rmsprop.md) — 누적 대신 **지수 감쇠 평균**으로 그 문제를 푼다
 
 **둘을 합친 Adam 계열**
 
-- [Adam](optimizers/adam.md) — 경사와 경사 제곱의 지수 평균, 그리고 초기화 바이어스 보정
+- [Adam](optimizers/adam.md) — 그래디언트와 그래디언트 제곱의 지수 평균, 그리고 초기화 편향 보정
 - [AdamW](optimizers/adamw.md) — 웨이트 감쇠를 적응형 변환에서 **떼어낸다**
 - [LAMB](optimizers/lamb.md) — 텐서별 신뢰 비율. 원 논문의 큰 배치 결과는 **특정 하드웨어·설정**의 것이다
 
@@ -60,11 +60,11 @@
 
 [워밍업](schedulers/lr_warmup.md)과 [순환 러닝레이트](schedulers/cyclical_lr.md)은 갱신의 시간별 스케일을 바꾼다. 호출 단위와 스케줄러 상태를 확인한다. [편향–분산](overfitting/bias_variance_tradeoff.md), [학습 곡선](overfitting/learning_curves_demo.md), [과적합·과소적합](overfitting/overfitting_underfitting_demo.md)을 함께 보며 학습 부족과 일반화 문제를 구분한다.
 
-## 6. 평가와 하이퍼파라미터 선택
+## 6. 평가와 하이퍼파라메터 선택
 
 [분류 지표](evaluation/02_classification_metrics.md), [회귀 지표](evaluation/03_regression_metrics.md)와 [혼동 행렬](evaluation/05_confusion_matrix.md)은 서로 다른 오류를 보여 준다. [교차 검증](evaluation/04_cross_validation.md)과 [통계적 추론](evaluation/statistical_inference.md)에서는 선택 효과와 평가의 불확실성을 고려한다.
 
-[격자 탐색](hyperparameters/01_grid_search.md), [무작위 탐색](hyperparameters/02_random_search.md), [베이즈 최적화](hyperparameters/03_bayesian_optimization.md), [연속 반감법](hyperparameters/06_successive_halving.md)의 탐색 비용과 조건을 비교한다. 최종 테스트셋은 탐색에 반복 사용하지 않는다.
+[격자 탐색](hyperparameters/01_grid_search.md), [무작위 탐색](hyperparameters/02_random_search.md), [베이즈 최적화](hyperparameters/03_bayesian_optimization.md), [연속 반감법](hyperparameters/06_successive_halving.md)의 탐색 비용과 조건을 비교한다. 최종 시험 집합은 탐색에 반복 사용하지 않는다.
 
 ## 7. 저장과 배포
 

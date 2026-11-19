@@ -10,37 +10,37 @@
     """
     04_effective_sample_size.py
 
-    중급 단계: 실효 표본 크기(ESS) - 이론과 진단
+    중급 단계: 유효 표본 크기(ESS) - 이론과 진단
 
-    이 단원은 ESS을 두루 다룬다:
-    - 수학의 바탕
+    이 단원은 ESS를 종합적으로 다룬다:
+    - 수학적 기초
     - ESS의 여러 가지 표현
-    - 진단과 풀이
-    - 흩어짐과의 관계
+    - 진단과 해석
+    - 분산과의 관계
 
-    수학적 바탕:
+    수학적 배경:
     ---------------------
-    ESS은 독립 표본의 "실효" 개수를 잰다
-    중요도 표집으로 얻은.
+    ESS는 중요도 샘플링으로 얻은 표본이
+    독립 표본 몇 개에 해당하는지("유효" 개수)를 잰다.
 
     표준 정의:
         ESS = 1 / Σᵢ wᵢ²
 
-    여기서 wᵢ은 고르게 한 무게이다.
+    여기서 wᵢ는 정규화한 웨이트이다.
 
-    다른 표현(고르게 하지 않은 무게 사용):
+    다른 표현(정규화하지 않은 웨이트 사용):
         ESS = (Σᵢ w̃ᵢ)² / Σᵢ w̃ᵢ²
 
     성질:
     - 1 ≤ ESS ≤ n
-    - 무게가 모두 같으면 ESS = n이다(완벽한 표집)
-    - 무게 하나가 판치면 ESS = 1이다(찌부러짐)
+    - 웨이트가 모두 같으면 ESS = n이다(완벽한 샘플링)
+    - 웨이트 하나가 지배하면 ESS = 1이다(퇴화, degeneracy)
     - ESS/n은 "상대 효율"이다
 
-    흩어짐과의 관계:
+    분산과의 관계:
         Var[Ê] ≈ Var_π[h(θ)] / ESS
 
-    따라서 ESS이 낮을수록 → 어림값의 흩어짐이 커진다.
+    따라서 ESS가 낮을수록 → 추정값의 분산이 커진다.
 
     지은이: 베이즈 추론 교육 자료
     """
@@ -57,13 +57,13 @@
 
     def compute_ess_normalized(weights: np.ndarray) -> float:
         """
-        고르게 한 무게를 써서 ESS 셈하기.
+        정규화한 웨이트를 써서 ESS 계산하기.
 
         ESS = 1 / Σᵢ wᵢ²
 
         파라메터:
         -----------
-        weights : 고르게 한 무게(합이 1)
+        weights : 정규화한 웨이트(합이 1)
 
         반환값:
         --------
@@ -74,16 +74,16 @@
 
     def compute_ess_unnormalized(unnormalized_weights: np.ndarray) -> float:
         """
-        고르게 하지 않은 무게를 써서 ESS 셈하기.
+        정규화하지 않은 웨이트를 써서 ESS 계산하기.
 
         ESS = (Σᵢ w̃ᵢ)² / Σᵢ w̃ᵢ²
 
-        이는 고르게 한 판과 같지만 수치로 더 안정하다
-        무게가 아주 작을 때.
+        웨이트가 아주 작을 때는 정규화한 식과 값이 같으면서
+        수치적으로 더 안정하다.
 
         파라메터:
         -----------
-        unnormalized_weights : 고르게 하지 않은 무게
+        unnormalized_weights : 정규화하지 않은 웨이트
 
         반환값:
         --------
@@ -96,29 +96,29 @@
 
     def compute_weight_statistics(weights: np.ndarray) -> Dict:
         """
-        중요도 무게의 통계량을 두루 셈하기.
+        중요도 웨이트의 통계량을 종합적으로 계산하기.
 
-        여러 진단을 담은 사전을 돌려준다.
+        여러 진단을 담은 딕셔너리를 반환한다.
         """
         n = len(weights)
         ess = compute_ess_normalized(weights)
 
-        # 무게의 변이 계수
+        # 웨이트의 변동계수
         cv = np.std(weights) / (np.mean(weights) + 1e-10)
 
-        # 최대 무게
+        # 최대 웨이트
         max_weight = np.max(weights)
 
-        # 무게 분포의 엔트로피
-        # 엔트로피가 높을수록 → 무게가 더 고르다
+        # 웨이트 분포의 엔트로피
+        # 엔트로피가 높을수록 → 웨이트가 더 균등하다
         entropy = -np.sum(weights * np.log(weights + 1e-300))
-        max_entropy = np.log(n)  # 고른 분포
+        max_entropy = np.log(n)  # 균등 분포
         normalized_entropy = entropy / max_entropy
 
-        # 퍼플렉서티(ESS과 이어진 또 하나의 잣대)
+        # 퍼플렉서티(ESS와 관련된 또 하나의 지표)
         perplexity = np.exp(entropy)
 
-        # 위쪽 표본이 차지하는 무게의 백분율
+        # 상위 표본이 차지하는 웨이트의 백분율
         sorted_weights = np.sort(weights)[::-1]
         cumsum_weights = np.cumsum(sorted_weights)
         top_10_pct = np.searchsorted(cumsum_weights, 0.10) + 1
@@ -142,24 +142,24 @@
 
     def estimate_variance_inflation(weights: np.ndarray) -> float:
         """
-        흩어짐 부풂 배수 어림하기.
+        분산 팽창 계수 추정하기.
 
-        Var[중요도 표집 어림꼴] ≈ Var[몬테카를로 어림꼴] × (1 + Var[w])
+        Var[중요도 샘플링 추정량] ≈ Var[몬테카를로 추정량] × (1 + Var[w])
 
-        여기서 w은 고르게 하지 않은 중요도 비이다.
+        여기서 w는 정규화하지 않은 중요도 비이다.
 
         반환값:
         --------
         inflation : float
-            흩어짐이 부푸는 배수
+            분산이 팽창하는 배수
         """
         ess = compute_ess_normalized(weights)
         n = len(weights)
-        # 흩어짐 부풂 ≈ n/ESS
+        # 분산 팽창 ≈ n/ESS
         return n / ess
 
 
-    # 보기 1: 제안 분포에 따른 ESS
+    # 예제 1: 제안 분포에 따른 ESS
     # =================================================
     print("=" * 70)
     print("EXAMPLE 1: ESS Depends on Proposal Quality")
@@ -186,14 +186,14 @@
     results_dict = {}
 
     for name, proposal in proposals.items():
-        # 제안에서 표집
+        # 제안에서 샘플링
         samples = proposal.rvs(size=n_samples)
 
-        # 무게 셈하기
+        # 웨이트 계산하기
         unnorm_weights = target.pdf(samples) / proposal.pdf(samples)
         weights = unnorm_weights / np.sum(unnorm_weights)
 
-        # 통계를 셈한다
+        # 통계를 계산한다
         stats_dict = compute_weight_statistics(weights)
         results_dict[name] = stats_dict
 
@@ -231,18 +231,18 @@
                 dpi=300, bbox_inches='tight')
 
 
-    # 보기 2: ESS과 흩어짐의 관계
+    # 예제 2: ESS와 분산의 관계
     # ==============================================
     print("\n" + "=" * 70)
     print("EXAMPLE 2: ESS and Estimation Variance")
     print("=" * 70)
 
     # 타깃: N(5, 1)
-    # E[θ²] 어림하기
+    # E[θ²] 추정하기
     h_function = lambda x: x**2
     true_value = 5**2 + 1**2  # N(5,1)의 E[θ²]
 
-    # ESS이 다른 여러 제안
+    # ESS가 다른 여러 제안
     proposals_var = {
         'High ESS': stats.norm(5, 1.1),
         'Medium ESS': stats.norm(4, 1.5),
@@ -277,10 +277,10 @@
 
         print(f"{name:<12} {mean_ess:8.1f} {bias:+10.4f} {std_dev:10.4f} {rmse:10.4f}")
 
-    # 흩어짐과 ESS 그려 보기
+    # 분산과 ESS 시각화
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-    # 흩뿌림 그림: ESS과 표준편차(경험값)
+    # 산점도: ESS와 표준편차(경험값)
     ess_vs_std = []
     for name, proposal in proposals_var.items():
         estimates = []
@@ -310,7 +310,7 @@
     ax.grid(True, alpha=0.3)
     ax.legend()
 
-    # 이론의 흩어짐 부풂
+    # 이론의 분산 팽창
     ax = axes[1]
     ess_range = np.linspace(10, n_samples, 100)
     variance_inflation = n_samples / ess_range
@@ -330,13 +330,13 @@
                 dpi=300, bbox_inches='tight')
 
 
-    # 보기 3: 표본 크기의 함수로 본 ESS
+    # 예제 3: 표본 크기의 함수로 본 ESS
     # =======================================
     print("\n" + "=" * 70)
     print("EXAMPLE 3: How ESS Scales with Sample Size")
     print("=" * 70)
 
-    # 붙박인 제안에서 ESS은 n에 따라 어떻게 자라나?
+    # 고정된 제안에서 ESS는 n에 따라 어떻게 커지는가?
     proposal_fixed = stats.norm(4, 1.5)
     sample_sizes = [100, 500, 1000, 2000, 5000, 10000]
 
@@ -394,7 +394,7 @@
                 dpi=300, bbox_inches='tight')
 
 
-    # 보기 4: 무게 몰림 진단
+    # 예제 4: 웨이트 집중 진단
     # ========================================
     print("\n" + "=" * 70)
     print("EXAMPLE 4: Weight Concentration Analysis")
@@ -402,7 +402,7 @@
 
     def analyze_weight_concentration(weights: np.ndarray, name: str):
         """
-        무게가 어떻게 몰리는지 자세히 살피기.
+        웨이트가 어떻게 집중되는지 자세히 분석하기.
         """
         n = len(weights)
         sorted_weights = np.sort(weights)[::-1]
@@ -463,47 +463,47 @@
     print("KEY TAKEAWAYS")
     print("=" * 70)
     print("""
-    1. 실효 표본 크기(ESS)는 중요도 표집의 질을 재어 준다:
-       - ESS = 1/Σᵢwᵢ²(고르게 한 무게)
-       - ESS = (Σᵢw̃ᵢ)²/Σᵢw̃ᵢ²(고르게 하지 않은 무게)
+    1. 유효 표본 크기(ESS)는 중요도 샘플링의 질을 재어 준다:
+       - ESS = 1/Σᵢwᵢ²(정규화한 웨이트)
+       - ESS = (Σᵢw̃ᵢ)²/Σᵢw̃ᵢ²(정규화하지 않은 웨이트)
        - 범위: 1 ≤ ESS ≤ n
 
-    2. 풀이:
-       - ESS/n ≈ 1: 아주 좋음, 무게가 거의 고르다
-       - ESS/n ≈ 0.5: 좋음, 실효 표본이 절반
+    2. 해석:
+       - ESS/n ≈ 1: 아주 좋음, 웨이트가 거의 균등하다
+       - ESS/n ≈ 0.5: 좋음, 유효 표본이 절반
        - ESS/n < 0.1: 나쁨, 더 나은 제안을 생각해 보라
-       - ESS/n << 0.01: 나쁨, 몇몇 표본이 판친다
+       - ESS/n << 0.01: 나쁨, 몇몇 표본이 지배한다
 
-    3. 흩어짐과의 관계:
-       - 흩어짐 부풂 ≈ n/ESS
-       - ESS이 낮을수록 → 어림값의 흩어짐이 커진다
-       - 제안을 낫게 하지 않고 n만 늘려서는 고칠 수 없다
+    3. 분산과의 관계:
+       - 분산 팽창 ≈ n/ESS
+       - ESS가 낮을수록 → 추정값의 분산이 커진다
+       - 제안을 개선하지 않고 n만 늘려서는 고칠 수 없다
 
-    4. 무게 몰림:
-       - ESS이 낮다 → 몇몇 표본이 무게의 대부분을 진다
-       - 살피기: 무게의 50%에 표본이 몇 개나 드나?
+    4. 웨이트 집중:
+       - ESS가 낮다 → 몇몇 표본이 웨이트의 대부분을 진다
+       - 확인: 웨이트의 50%에 표본이 몇 개나 드나?
        - 되도록 여러 표본에 널리 퍼져 있어야 한다
 
     5. 늘 살펴야 할 진단:
-       - ESS과 상대 ESS(ESS/n)
-       - 무게의 변이 계수
-       - 무게 몰림(위쪽 10%, 50%, 90%)
-       - 최대 무게 값
-       - 무게 엔트로피
+       - ESS와 상대 ESS(ESS/n)
+       - 웨이트의 변동계수
+       - 웨이트 집중(상위 10%, 50%, 90%)
+       - 최대 웨이트 값
+       - 웨이트 엔트로피
 
-    6. ESS이 낮을 때:
+    6. ESS가 낮을 때:
        - n만 늘리지 마라(별 도움이 안 된다)
-       - 제안 분포 낫게 하기
-       - 맞춰 가는 중요도 표집 생각해 보기
+       - 제안 분포 개선하기
+       - 적응적 중요도 샘플링 생각해 보기
        - 아니면 MCMC 방법으로 바꾸기
 
-    7. ESS은 n에 비례해 커진다:
+    7. ESS는 n에 비례해 커진다:
        - 표본 n개에서 ESS/n ≈ c이면
        - 그러면 아무 n에 대해서도 (대체로) ESS/n ≈ c이다
        - 상대 효율은 대체로 일정하다
 
     8. 실전 규칙:
-       - ESS > 1000: 대개 웬만한 쓰임새에 넉넉하다
+       - ESS > 1000: 대개 웬만한 용도에 충분하다
        - ESS/n > 0.1: 받아들일 만한 효율
        - ESS/n < 0.01: 반드시 더 나은 제안이 필요하다
     """)
@@ -607,47 +607,47 @@
     KEY TAKEAWAYS
     ======================================================================
 
-    1. 실효 표본 크기(ESS)는 중요도 표집의 질을 재어 준다:
-       - ESS = 1/Σᵢwᵢ²(고르게 한 무게)
-       - ESS = (Σᵢw̃ᵢ)²/Σᵢw̃ᵢ²(고르게 하지 않은 무게)
+    1. 유효 표본 크기(ESS)는 중요도 샘플링의 질을 재어 준다:
+       - ESS = 1/Σᵢwᵢ²(정규화한 웨이트)
+       - ESS = (Σᵢw̃ᵢ)²/Σᵢw̃ᵢ²(정규화하지 않은 웨이트)
        - 범위: 1 ≤ ESS ≤ n
 
-    2. 풀이:
-       - ESS/n ≈ 1: 아주 좋음, 무게가 거의 고르다
-       - ESS/n ≈ 0.5: 좋음, 실효 표본이 절반
+    2. 해석:
+       - ESS/n ≈ 1: 아주 좋음, 웨이트가 거의 균등하다
+       - ESS/n ≈ 0.5: 좋음, 유효 표본이 절반
        - ESS/n < 0.1: 나쁨, 더 나은 제안을 생각해 보라
-       - ESS/n << 0.01: 나쁨, 몇몇 표본이 판친다
+       - ESS/n << 0.01: 나쁨, 몇몇 표본이 지배한다
 
-    3. 흩어짐과의 관계:
-       - 흩어짐 부풂 ≈ n/ESS
-       - ESS이 낮을수록 → 어림값의 흩어짐이 커진다
-       - 제안을 낫게 하지 않고 n만 늘려서는 고칠 수 없다
+    3. 분산과의 관계:
+       - 분산 팽창 ≈ n/ESS
+       - ESS가 낮을수록 → 추정값의 분산이 커진다
+       - 제안을 개선하지 않고 n만 늘려서는 고칠 수 없다
 
-    4. 무게 몰림:
-       - ESS이 낮다 → 몇몇 표본이 무게의 대부분을 진다
-       - 살피기: 무게의 50%에 표본이 몇 개나 드나?
+    4. 웨이트 집중:
+       - ESS가 낮다 → 몇몇 표본이 웨이트의 대부분을 진다
+       - 확인: 웨이트의 50%에 표본이 몇 개나 드나?
        - 되도록 여러 표본에 널리 퍼져 있어야 한다
 
     5. 늘 살펴야 할 진단:
-       - ESS과 상대 ESS(ESS/n)
-       - 무게의 변이 계수
-       - 무게 몰림(위쪽 10%, 50%, 90%)
-       - 최대 무게 값
-       - 무게 엔트로피
+       - ESS와 상대 ESS(ESS/n)
+       - 웨이트의 변동계수
+       - 웨이트 집중(상위 10%, 50%, 90%)
+       - 최대 웨이트 값
+       - 웨이트 엔트로피
 
-    6. ESS이 낮을 때:
+    6. ESS가 낮을 때:
        - n만 늘리지 마라(별 도움이 안 된다)
-       - 제안 분포 낫게 하기
-       - 맞춰 가는 중요도 표집 생각해 보기
+       - 제안 분포 개선하기
+       - 적응적 중요도 샘플링 생각해 보기
        - 아니면 MCMC 방법으로 바꾸기
 
-    7. ESS은 n에 비례해 커진다:
+    7. ESS는 n에 비례해 커진다:
        - 표본 n개에서 ESS/n ≈ c이면
        - 그러면 아무 n에 대해서도 (대체로) ESS/n ≈ c이다
        - 상대 효율은 대체로 일정하다
 
     8. 실전 규칙:
-       - ESS > 1000: 대개 웬만한 쓰임새에 넉넉하다
+       - ESS > 1000: 대개 웬만한 용도에 충분하다
        - ESS/n > 0.1: 받아들일 만한 효율
        - ESS/n < 0.01: 반드시 더 나은 제안이 필요하다
 
@@ -666,11 +666,11 @@
 
 Top 10%는 가장 큰 표본 10%가 차지하는 질량이 아니라 누적 웨이트 10%에 도달하는 데 필요한 표본 수다. 그림은 표와 다른 난수 표본을 새로 생성하므로 개별 숫자가 일치할 필요는 없다.
 
-함수 estimate_variance_inflation이 반환하는 n/ESS는 집중도에서 유도한 휴리스틱이다. 일반적인 SNIS의 실제 분산비는 관심 함수와 웨이트의 결합에 의존하며 이 값과 정확히 같지 않다. 여기서는 N(5,1²)의 E[θ²]=26을 반복 추정한 바이어스·표준편차·RMSE로 함수별 성능을 별도로 비교한다.
+함수 estimate_variance_inflation이 반환하는 n/ESS는 집중도에서 유도한 휴리스틱이다. 일반적인 SNIS의 실제 분산비는 관심 함수와 웨이트의 결합에 의존하며 이 값과 정확히 같지 않다. 여기서는 N(5,1²)의 E[θ²]=26을 반복 추정한 편향·표준편차·RMSE로 함수별 성능을 별도로 비교한다.
 
 ### 표본 수와 제안의 꼬리
 
-고정 제안의 독립 표본에서 E_qW²가 유한하면 ESS/n은 (E_qW)²/E_qW²로 수렴한다. 이 조건 없이 모든 n에서 상대 ESS가 일정하다고 단정할 수 없다. 목표 표준편차 1에 제안 표준편차 0.5인 정규쌍은 밀도비의 이차 적률이 발산하므로 유한 실행의 ESS만으로 안정적인 분산을 결론내리면 안 된다.
+고정 제안의 독립 표본에서 E_qW²가 유한하면 ESS/n은 (E_qW)²/E_qW²로 수렴한다. 이 조건 없이 모든 n에서 상대 ESS가 일정하다고 단정할 수 없다. 목표 표준편차 1에 제안 표준편차 0.5인 정규쌍은 밀도비의 이차 모멘트가 발산하므로 유한 실행의 ESS만으로 안정적인 분산을 결론내리면 안 된다.
 
 표본 수 증가는 적절한 조건에서 실제 오차를 줄인다. 낮은 상대 ESS가 표본 수 증가를 무의미하게 만드는 것은 아니다. 다만 제안을 개선하는 편이 비용 효율적일 수 있다. ESS>1000·ESS/n>0.1 같은 출력 기준은 수렴이나 원하는 오차의 보증이 아니며 함수별 몬테카를로 표준오차와 누락된 영역을 함께 살펴야 한다.
 
@@ -739,10 +739,10 @@ ESS/n이 같으면 두 제안의 모든 함수 추정 오차도 같은가?
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

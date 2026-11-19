@@ -10,7 +10,7 @@ Bayes by Backprop은 웨이트의 변분분포를 리파라메리제이션하고
 
 $$\mathcal L(\phi)=E_{q_\phi(\theta)}[\log p(D|\theta)]-D_{\mathrm{KL}}(q_\phi(\theta)\Vert p(\theta)).$$
 
-이 식은 총 관측 로그 우도를 사용한다. 미니배치 B의 크기가 m이고 균등 표집이라면 전체 합의 불편 추정은 (N/m)∑ᵢ∈B log p(yᵢ|xᵢ,θ)다. 관측당 평균 목적을 최소화할 때는 배치 평균 음의 로그 우도에 KL/N을 더한다. 배치 **합** 로스라면 상대적으로 같은 배율은 (m/N)KL이다.
+이 식은 총 관측 로그가능도(log-likelihood, 가능도는 우도라고도 한다)를 사용한다. 미니배치 B의 크기가 m이고 균등 샘플링이라면 전체 합의 불편 추정은 (N/m)∑ᵢ∈B log p(yᵢ|xᵢ,θ)다. 관측당 평균 목적을 최소화할 때는 배치 평균 음의 로그가능도에 KL/N을 더한다. 배치 **합** 로스라면 상대적으로 같은 배율은 (m/N)KL이다.
 
 사전 항과 데이터 항의 스케일을 맞추지 않으면 다른 목적을 학습한다. KL 웨이트 β를 따로 사용하면 β=1이 표준 목적이며, β≠1은 그 상대 웨이트를 바꾼다.
 
@@ -18,7 +18,7 @@ $$\mathcal L(\phi)=E_{q_\phi(\theta)}[\log p(D|\theta)]-D_{\mathrm{KL}}(q_\phi(\
 
 D개의 웨이트·바이어스에 대해 q_φ(θ)=∏ⱼN(θⱼ;μⱼ,σⱼ²), σⱼ=softplus(ρⱼ)로 둔다. 스케일은 양수가 되며 변분 파라메터 수는 2D개다. 유한 정밀도에서 극단적인 ρ는 여전히 수치 문제를 만들 수 있다.
 
-ε∼N(0,I), θ=μ+σ⊙ε로 쓰면 L=E_ε[log p(D|θ)+log p(θ)−log q_φ(θ)]를 φ로 미분할 수 있다. 정칙성 아래 표본 경사의 평균은 목적 경사의 불편 추정이다. 표본 하나의 미분값을 정확한 기대 경사와 등호로 연결하지 않는다.
+ε∼N(0,I), θ=μ+σ⊙ε로 쓰면 L=E_ε[log p(D|θ)+log p(θ)−log q_φ(θ)]를 φ로 미분할 수 있다. 정칙성 아래 표본 그래디언트의 평균은 목적 그래디언트의 불편 추정이다. 표본 하나의 미분값을 정확한 기대 그래디언트와 등호로 연결하지 않는다.
 
 분포족의 독립성은 웨이트 간 사후 의존성을 제한한다. 뉴럴 네트워크 출력은 비선형이므로 독립 웨이트에서도 출력의 상관이 생길 수 있다. 반대로 복잡한 웨이트 사후가 반드시 다양한 예측을 뜻하지는 않는다.
 
@@ -32,7 +32,7 @@ D개의 웨이트·바이어스에 대해 q_φ(θ)=∏ⱼN(θⱼ;μⱼ,σⱼ²),
 
 ![왼쪽은 입력 둘, 은닉 셋, 출력 하나인 작은 네트워크로 각 연결 가운데에 점이 하나씩 찍혀 있고 배울 수가 열셋이라고 적혀 있다. 오른쪽은 같은 네트워크인데 점 자리마다 작은 종 모양 곡선이 그려져 있고 배울 수가 스물여섯이며 같은 열셋 각각에 평균과 스케일이 하나씩이라고 적혀 있다.](figures/weights_as_distributions.svg)
 
-값은 그림에 그대로 보인다. 위 2절이 적은 대로 변분 파라메터는 $2D$ 개다 — 작은 네트워크라면 13개가 26개가 되고, 큰 네트워크라면 **언제나 정확히 두 배**다. 2011년 알렉스 그레이브스(Alex Graves)를 거쳐 2015년에 이르러 달라진 것은 생각이 아니라 셈이었다. 블런델 일행이 내세운 기여도 새 목적이 아니라 "the gradients of Graves (2011) can be made **unbiased**" 였다.
+비용은 그림에 그대로 보인다. 위 2절이 적은 대로 변분 파라메터는 $2D$ 개다 — 작은 네트워크라면 13개가 26개가 되고, 큰 네트워크라면 **언제나 정확히 두 배**다. 2011년 알렉스 그레이브스(Alex Graves)를 거쳐 2015년에 이르러 달라진 것은 생각이 아니라 계산이었다. 블런델 일행이 내세운 기여도 새 목적이 아니라 "the gradients of Graves (2011) can be made **unbiased**" 였다.
 
 **다만 분포를 얹었다고 불확실성을 얻은 것은 아니다.** 바로 위 문단이 못 박은 대로 이 분포족은 웨이트들이 서로 독립이라고 가정하며, 그것은 사후의 성질이 아니라 **우리가 고른 제약**이다. 파라메터를 두 배로 늘려 산 것은 웨이트마다의 폭 하나씩이지 웨이트들 사이의 얽힘이 아니다. 그 폭이 쓸 만한 예측 불확실성으로 이어지는지는 6절처럼 따로 재어 봐야 한다.
 
@@ -42,7 +42,7 @@ _확인한 곳 — C. Blundell, J. Cornebise, K. Kavukcuoglu, D. Wierstra, "Weig
 
 ## 3. 미니배치 알고리즘
 
-다음 의사코드는 관측당 평균 음의 로그 우도와 KL/N을 사용한다. 표본 수와 옵티마이저·초기값은 최적화 오차에 영향을 준다.
+다음 의사코드는 관측당 평균 음의 로그가능도와 KL/N을 사용한다. 표본 수와 옵티마이저·초기값은 최적화 오차에 영향을 준다.
 
 ```
 Algorithm: Bayes by Backprop
@@ -70,15 +70,15 @@ KL 워밍업은 초기 β를 작게 두고 목표값까지 올리는 학습 전�
 
 $$D_{\mathrm{KL}}(q_\phi\Vert p)=\sum_{j=1}^D\left[\log\frac{\sigma_p}{\sigma_j}+\frac{\sigma_j^2+\mu_j^2}{2\sigma_p^2}-\frac12\right].$$
 
-이 KL을 정확히 계산하면 우도 기댓값만 표본으로 근사할 수 있다. 스케일 혼합 사전은 원래 Bayes by Backprop에서 다루는 선택 중 하나지만 같은 단일 가우스 KL 공식을 사용할 수는 없다. log p의 혼합 항을 안정적으로 평가하거나 그 사전에 맞는 다른 계산이 필요하다.
+이 KL을 정확히 계산하면 가능도 기댓값만 표본으로 근사할 수 있다. 스케일 혼합 사전은 원래 Bayes by Backprop에서 다루는 선택 중 하나지만 같은 단일 가우스 KL 공식을 사용할 수는 없다. log p의 혼합 항을 안정적으로 평가하거나 그 사전에 맞는 다른 계산이 필요하다.
 
 ## 5. 예제 구현의 로스와 예측
 
 `BayesLinear`는 매 순전파마다 웨이트·바이어스를 새로 생성하고 같은 배치 안에서는 그 웨이트를 공유한다. `.eval()`에서도 이 샘플링을 멈추지 않는다. 레이어별 KL은 순전파에서 갱신되므로 `kl_loss`를 호출하는 시점도 중요하다.
 
-코드의 `train_bnn`은 MSE를 배치에서 **합산**하면서 KL/N을 더한다. 위 의사코드의 배치 평균 목적과 다르며, 배치 크기 m 기준으로 KL의 상대 웨이트가 약 m배 작아진다. 같은 표준 목적에 맞추려면 평균 로스+KL/N 또는 합 로스+(m/N)KL의 단위를 사용해야 한다. 코드는 요청에 따라 수정하지 않았다.
+코드의 `train_bnn`은 MSE를 배치에서 **합산**하면서 KL/N을 더한다. 위 의사코드의 배치 평균 목적과 다르며, 배치 크기 m 기준으로 KL의 상대 웨이트가 약 m배 작아진다. 같은 표준 목적에 맞추려면 평균 로스+KL/N 또는 합 로스+(m/N)KL의 단위를 사용해야 한다. 아래 코드는 이 합산 형태를 그대로 보여 준다.
 
-MSE 계수 1은 관측분산 1/2의 가우스 음의 로그 우도와 정규화 상수만큼 차이가 난다. 코드는 관측 잡음 분산을 별도로 학습하지 않는다. `predict`가 반환하는 분산은 웨이트별 네트워크 출력의 표본분산이므로 전체 관측 예측분산이 아니다. 분류에 사용한다면 로짓 대신 클래스 확률을 표본별로 계산해 평균해야 한다.
+MSE 계수 1은 관측분산 1/2의 가우스 음의 로그가능도와 정규화 상수만큼 차이가 난다. 코드는 관측 잡음 분산을 별도로 학습하지 않는다. `predict`가 반환하는 분산은 웨이트별 네트워크 출력의 표본분산이므로 전체 관측 예측분산이 아니다. 분류에 사용한다면 로짓 대신 클래스 확률을 표본별로 계산해 평균해야 한다.
 
 `predict`에는 no-grad 문맥이 없고 표본 수 1에서 기본 불편 표본분산이 정의되지 않을 수 있다. 평가 모드와 자동미분 비활성화는 별개의 설정이다. 이러한 한계를 전제로 아래 구현을 읽는다.
 
@@ -90,10 +90,10 @@ import math
 
 class BayesLinear(nn.Module):
     """
-    배울 수 있는 가중값 분포를 갖는 베이즈 선형 레이어.
+    학습 가능한 웨이트 분포를 갖는 베이즈 선형 레이어.
     
-    가중값: w ~ N(mu_w, softplus(rho_w)^2)
-    치우침:  b ~ N(mu_b, softplus(rho_b)^2)
+    웨이트:   w ~ N(mu_w, softplus(rho_w)^2)
+    바이어스: b ~ N(mu_b, softplus(rho_b)^2)
     """
     
     def __init__(self, in_features: int, out_features: int,
@@ -103,11 +103,11 @@ class BayesLinear(nn.Module):
         self.out_features = out_features
         self.prior_sigma = prior_sigma
         
-        # 가중값의 변분 파라메터
+        # 웨이트의 변분 파라메터
         self.mu_w = nn.Parameter(torch.empty(out_features, in_features))
         self.rho_w = nn.Parameter(torch.empty(out_features, in_features))
         
-        # 치우침의 변분 파라메터
+        # 바이어스의 변분 파라메터
         self.mu_b = nn.Parameter(torch.empty(out_features))
         self.rho_b = nn.Parameter(torch.empty(out_features))
         
@@ -116,7 +116,7 @@ class BayesLinear(nn.Module):
     
     def reset_parameters(self):
         nn.init.kaiming_uniform_(self.mu_w, a=math.sqrt(5))
-        nn.init.constant_(self.rho_w, -3.0)  # 작은 첫 흩어짐
+        nn.init.constant_(self.rho_w, -3.0)  # 작은 초기 표준편차
         nn.init.zeros_(self.mu_b)
         nn.init.constant_(self.rho_b, -3.0)
     
@@ -129,21 +129,21 @@ class BayesLinear(nn.Module):
         return F.softplus(self.rho_b)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # 파라메터 바꾸기로 가중값 표집
+        # 리파라메리제이션으로 웨이트 샘플링
         eps_w = torch.randn_like(self.mu_w)
         eps_b = torch.randn_like(self.mu_b)
         
         w = self.mu_w + self.sigma_w * eps_w
         b = self.mu_b + self.sigma_b * eps_b
         
-        # KL 벌어짐 셈하기
+        # KL 발산 계산
         self.kl = self._kl_divergence(
             self.mu_w, self.sigma_w, self.mu_b, self.sigma_b)
         
         return F.linear(x, w, b)
     
     def _kl_divergence(self, mu_w, sigma_w, mu_b, sigma_b):
-        """가우스 분포의 닫힌 형태 KL(q || 앞확률)."""
+        """가우스 분포의 닫힌 형태 KL(q || 사전분포)."""
         sp = self.prior_sigma
         
         kl_w = (torch.log(sp / sigma_w) + 
@@ -154,7 +154,7 @@ class BayesLinear(nn.Module):
         return kl_w + kl_b
 
 class BayesianMLP(nn.Module):
-    """회귀나 가르기를 위한 베이즈 다층 퍼셉트론."""
+    """회귀나 분류를 위한 베이즈 다층 퍼셉트론."""
     
     def __init__(self, input_dim: int, hidden_dim: int, output_dim: int,
                  prior_sigma: float = 1.0):
@@ -169,11 +169,11 @@ class BayesianMLP(nn.Module):
         return self.fc3(x)
     
     def kl_loss(self):
-        """모든 베이즈 레이어에 걸친 전체 KL 벌어짐."""
+        """모든 베이즈 레이어에 걸친 전체 KL 발산."""
         return sum(m.kl for m in self.modules() if isinstance(m, BayesLinear))
     
     def predict(self, x: torch.Tensor, n_samples: int = 50):
-        """몬테카를로 미리봄 분포."""
+        """몬테카를로 예측분포."""
         self.eval()
         preds = torch.stack([self(x) for _ in range(n_samples)])
         return preds.mean(dim=0), preds.var(dim=0)
@@ -181,12 +181,12 @@ class BayesianMLP(nn.Module):
 def train_bnn(model, train_loader, n_epochs=100, lr=1e-3, 
               n_train=None, kl_weight=1.0):
     """
-    KL 담금질로 베이즈 뉴럴 네트워크 익히기.
+    KL 어닐링(워밍업)으로 베이즈 뉴럴 네트워크 학습하기.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     
     for epoch in range(n_epochs):
-        # KL 담금질: KL 무게를 차츰 올리기
+        # KL 어닐링: KL 웨이트를 차츰 올리기
         beta = min(1.0, (epoch + 1) / (n_epochs * 0.3)) * kl_weight
         
         epoch_loss = 0.0
@@ -197,7 +197,7 @@ def train_bnn(model, train_loader, n_epochs=100, lr=1e-3,
             nll = F.mse_loss(output, y_batch, reduction='sum')
             kl = model.kl_loss()
             
-            # ELBO 로스: 음의 로그 가능도에 크기 맞춘 KL 더하기
+            # ELBO 로스: 음의 로그가능도에 스케일을 맞춘 KL 더하기
             loss = nll + beta * kl / (n_train or len(train_loader.dataset))
             
             loss.backward()
@@ -213,7 +213,7 @@ MC 드롭아웃은 여러 마스크의 예측분포를 평균한다. 아래 예�
 
 ```python
 class MCDropoutModel(nn.Module):
-    """몬테카를로 떨구기로 어림 베이즈 뉴럴 네트워크처럼 쓸 수 있는 표준 망."""
+    """MC 드롭아웃으로 근사 베이즈 뉴럴 네트워크처럼 쓸 수 있는 표준 네트워크."""
     
     def __init__(self, input_dim, hidden_dim, output_dim, p=0.1):
         super().__init__()
@@ -227,14 +227,14 @@ class MCDropoutModel(nn.Module):
         return self.net(x)
     
     def mc_predict(self, x, n_samples=100):
-        """떨구기를 켠 채로 피드포워드를 T번 돌리기."""
-        self.train()  # 떨구기를 켠 채로 둔다
+        """드롭아웃을 켠 채로 순전파를 T번 수행하기."""
+        self.train()  # 드롭아웃을 켠 채로 둔다
         preds = torch.stack([self(x) for _ in range(n_samples)])
         self.eval()
         return preds.mean(dim=0), preds.var(dim=0)
 ```
 
-독립 가우스 BNN은 평균·스케일을 저장하고, MC 드롭아웃은 보통 기본 웨이트와 마스크를 사용한다. 양쪽 모두 여러 순전파가 예측 비용을 늘린다. 학습 비용이 정확히 두 배라거나 어느 방법의 캘리브레이션이 항상 우수하다는 결론은 없다. 동일한 우도·데이터·평가 지표·계산 예산에서 비교해야 한다.
+독립 가우스 BNN은 평균·스케일을 저장하고, MC 드롭아웃은 보통 기본 웨이트와 마스크를 사용한다. 양쪽 모두 여러 순전파가 예측 비용을 늘린다. 학습 비용이 정확히 두 배라거나 어느 방법의 캘리브레이션이 항상 우수하다는 결론은 없다. 동일한 가능도·데이터·평가 지표·계산 예산에서 비교해야 한다.
 
 ## 연습문제
 
@@ -246,14 +246,14 @@ class MCDropoutModel(nn.Module):
 </div>
 
 ??? success "풀이"
-    총 목적의 음수는 (N/m)배 배치 음의 로그 우도 합+KL로 추정한다. 이를 N으로 나누면 배치 평균 음의 로그 우도+KL/N이다. 배치 합을 유지하고 같은 상대 웨이트를 쓰려면 합+(m/N)KL로 쓴다.
+    총 목적의 음수는 (N/m)배 배치 음의 로그가능도 합+KL로 추정한다. 이를 N으로 나누면 배치 평균 음의 로그가능도+KL/N이다. 배치 합을 유지하고 같은 상대 웨이트를 쓰려면 합+(m/N)KL로 쓴다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-리파라메리제이션된 ELBO의 경사와 한 표본 추정을 구분하라.
+리파라메리제이션된 ELBO의 그래디언트와 한 표본 추정을 구분하라.
 
 </div>
 
@@ -286,7 +286,7 @@ KL 워밍업과 `.eval()`이 각각 무엇을 바꾸는지 설명하라.
 
 ## 정리하며
 
-Bayes by Backprop은 리파라메리제이션 경사로 웨이트의 변분분포를 학습한다. 배치 합·평균과 KL의 배율을 일치시키고, 웨이트 출력 분산과 관측 예측분산을 구분한다. 예제의 로스 스케일과 평가 모드는 해당 한계를 전제로 해석한다.
+Bayes by Backprop은 리파라메리제이션 그래디언트로 웨이트의 변분분포를 학습한다. 배치 합·평균과 KL의 배율을 일치시키고, 웨이트 출력 분산과 관측 예측분산을 구분한다. 예제의 로스 스케일과 평가 모드는 해당 한계를 전제로 해석한다.
 
 **참고 문헌**
 

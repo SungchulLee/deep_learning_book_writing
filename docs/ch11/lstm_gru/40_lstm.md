@@ -9,7 +9,7 @@ LSTM 순환 레이어 두 개와 선형 분류 레이어로 연속 피처 시퀀
 '''
 LSTM — 장단기 기억 뉴럴 네트워크
 논문: "Long Short-Term Memory" (1997)
-핵심: 순차열의 장기 의존을 붙잡는 문 장치
+핵심: 시퀀스의 장기 의존성을 포착하는 게이트 메커니즘
 '''
 import torch
 import torch.nn as nn
@@ -37,21 +37,21 @@ class LSTMModel(nn.Module):
         self.fc = nn.Linear(hidden_size, num_classes)
     
     def forward(self, x):
-        # 숨은 상태와 세포 상태 초기화
+        # 은닉 상태와 셀 상태 초기화
         h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
         c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
         
         # LSTM 순전파
         out, _ = self.lstm(x, (h0, c0))
         
-        # 마지막 시각의 숨은 상태를 복호
+        # 마지막 시점의 은닉 상태를 디코딩
         out = self.fc(out[:, -1, :])
         return out
 
 if __name__ == "__main__":
     model = LSTMModel()
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
-    x = torch.randn(32, 10, 100)  # 배치, 순차열, 피처
+    x = torch.randn(32, 10, 100)  # 배치, 시퀀스, 피처
     print(f"Input: {x.shape}, Output: {model(x).shape}")
 ```
 
@@ -94,7 +94,7 @@ LSTMModel의 기본 설정에서 파라메터 수를 계산하라.
 </div>
 
 ??? success "풀이"
-    입력은 `(B,L,100)`의 실수 피처가고 초기 상태의 레이어·배치·은닉 축이 모델과 맞아야 한다. 장치와 자료형도 일치시킨다. 패딩이 있다면 마지막 배열 위치와 실제 마지막 토큰을 구분한다.
+    입력은 `(B,L,100)`의 실수 피처이고 초기 상태의 레이어·배치·은닉 축이 모델과 맞아야 한다. 장치와 자료형도 일치시킨다. 패딩이 있다면 마지막 배열 위치와 실제 마지막 토큰을 구분한다.
 
 ---
 

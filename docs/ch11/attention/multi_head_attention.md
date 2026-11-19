@@ -16,13 +16,13 @@ $$\text{head}_i = \text{Attention}(\mathbf{X}\mathbf{W}_Q^{(i)}, \mathbf{X}\math
 
 ### 하나의 점수 함수
 
-헤드가 하나인 어텐션에서 어텐션의 무늬는 다음이 정한다.
+헤드가 하나인 어텐션에서 어텐션의 패턴은 다음이 정한다.
 
 $$\mathbf{A} = \text{softmax}\left(\frac{\mathbf{X}\mathbf{W}_Q\mathbf{W}_K^T\mathbf{X}^T}{\sqrt{d_k}}\right)$$
 
 행렬 $\mathbf{W}_Q\mathbf{W}_K^T \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$이 관련성을 계산하는 **쌍선형 형식 하나**를 정의한다.
 
-### 무늬 하나로는 모자란 까닭
+### 패턴 하나로는 모자란 까닭
 
 "The animal didn't cross the street because it was too tired."를 생각해 보자.
 
@@ -30,7 +30,7 @@ $$\mathbf{A} = \text{softmax}\left(\frac{\mathbf{X}\mathbf{W}_Q\mathbf{W}_K^T\ma
 
 1. **문법적 선행사**: "animal" (명사구의 구조)
 2. **의미적 제약**: "tired" (생물성. 거리는 피곤해지지 않는다)
-3. **지역 문맥**: "didn't cross" (설명되고 있는 액션)
+3. **지역 문맥**: "didn't cross" (설명되고 있는 동작)
 
 어텐션 분포가 하나뿐이면 타협해야 한다.
 
@@ -89,15 +89,15 @@ $$\underbrace{h \cdot 3 \cdot d_{\text{model}} \cdot d_k}_{\text{QKV projections
 
 ### 왜 필요한가
 
-출력 투영 $\mathbf{W}_O$은 **잔차 연결** 때문에 순방향 뉴럴 네트워크에 흡수될 수 없다.
+출력 투영 $\mathbf{W}_O$은 **잔차 연결** 때문에 피드포워드 네트워크에 흡수될 수 없다.
 
 $$\mathbf{X}' = \text{LayerNorm}(\mathbf{X} + \text{Concat}(\ldots)\mathbf{W}_O)$$
 
-어텐션의 출력은 순방향 뉴럴 네트워크에 앞서 **$\mathbf{X}$에 더해진다**. $\mathbf{W}_O$이 없으면 다음과 같다.
+어텐션의 출력은 피드포워드 네트워크에 앞서 **$\mathbf{X}$에 더해진다**. $\mathbf{W}_O$이 없으면 다음과 같다.
 
 $$\mathbf{X}' = \text{LayerNorm}(\mathbf{X} + \text{Concat}(\ldots))$$
 
-순방향 뉴럴 네트워크의 $\mathbf{W}_1$은 이미 잔차를 품은 $\mathbf{X}'$에 작용한다. 계산 그래프가 $\mathbf{W}_O$과 $\mathbf{W}_1$을 갈라놓는다.
+피드포워드 네트워크의 $\mathbf{W}_1$은 이미 잔차를 품은 $\mathbf{X}'$에 작용한다. 계산 그래프가 $\mathbf{W}_O$과 $\mathbf{W}_1$을 갈라놓는다.
 
 ### 헤드 사이의 소통
 
@@ -111,7 +111,7 @@ $$\text{Concat}(\text{head}_1, \ldots, \text{head}_h) = [\mathbf{z}^{(1)} | \mat
 
 $$\text{Concat}(\ldots)\mathbf{W}_O = \sum_{j=1}^{h} \mathbf{z}^{(j)} \mathbf{W}_O^{(j)}$$
 
-여기서 모델이 **서로 다른 어텐션 무늬를 어떻게 엮을지**를 배운다.
+여기서 모델이 **서로 다른 어텐션 패턴을 어떻게 엮을지**를 배운다.
 
 ### 구체적인 예
 
@@ -119,7 +119,7 @@ $$\text{Concat}(\ldots)\mathbf{W}_O = \sum_{j=1}^{h} \mathbf{z}^{(j)} \mathbf{W}
 
 - 1번 헤드가 문법 정보를 찾았다: "주어는 'cat'이다"
 - 2번 헤드가 의미 정보를 찾았다: "서술어가 생물성을 함의한다"
-- 3번 헤드가 위치 정보를 찾았다: "가까운 토큰이 액션에 관한 것이다"
+- 3번 헤드가 위치 정보를 찾았다: "가까운 토큰이 동작에 관한 것이다"
 
 **$\mathbf{W}_O$ 이전** (이어 붙이기):
 
@@ -164,9 +164,9 @@ from typing import Optional, Tuple
 
 class MultiHeadSelfAttention(nn.Module):
     """
-    다중 머리 자기 어텐션
+    멀티헤드 셀프 어텐션
     
-    임베딩 차원을 여러 머리로 나누어, 모델이 서로 다른 표현 부분공간의
+    임베딩 차원을 여러 헤드로 나누어, 모델이 서로 다른 표현 부분공간의
     정보에 주목할 수 있게 한다.
     """
     
@@ -187,12 +187,12 @@ class MultiHeadSelfAttention(nn.Module):
         self.d_k = d_model // n_heads
         self.scale = self.d_k ** -0.5
         
-        # Q, K, V의 선형 사영
+        # Q, K, V의 선형 투영
         self.W_q = nn.Linear(d_model, d_model, bias=bias)
         self.W_k = nn.Linear(d_model, d_model, bias=bias)
         self.W_v = nn.Linear(d_model, d_model, bias=bias)
         
-        # 출력 사영 (머리 사이의 소통을 가능하게 한다)
+        # 출력 투영 (헤드 사이의 소통을 가능하게 한다)
         self.W_o = nn.Linear(d_model, d_model, bias=bias)
         self.dropout = nn.Dropout(dropout)
         
@@ -203,12 +203,12 @@ class MultiHeadSelfAttention(nn.Module):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         batch_size, seq_len, _ = x.shape
         
-        # 사영하고 모양 바꾸기: (배치, seq, d_model) -> (배치, heads, seq, d_k)
+        # 투영하고 형태 바꾸기: (배치, seq, d_model) -> (배치, heads, seq, d_k)
         Q = self.W_q(x).view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         K = self.W_k(x).view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         V = self.W_v(x).view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         
-        # 모든 머리에 대해 배율 조정 내적 어텐션을 나란히 계산
+        # 모든 헤드에 대해 스케일 내적 어텐션을 나란히 계산
         scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale
         
         if mask is not None:
@@ -220,14 +220,14 @@ class MultiHeadSelfAttention(nn.Module):
         # 값에 어텐션 적용
         context = torch.matmul(attn_weights, V)
         
-        # 모양 바꾸고 사영: (배치, heads, seq, d_k) -> (배치, seq, d_model)
+        # 형태 바꾸고 투영: (배치, heads, seq, d_k) -> (배치, seq, d_model)
         context = context.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         output = self.W_o(context)
         
         return output, attn_weights
 
 def demonstrate_multi_head():
-    """다중 머리 자기 어텐션 시연."""
+    """멀티헤드 셀프 어텐션 시연."""
     batch_size, seq_len, d_model, n_heads = 2, 10, 64, 8
     
     x = torch.randn(batch_size, seq_len, d_model)
@@ -259,14 +259,14 @@ Heads:    8
 Head dim: 8
 ```
 
-### 일반적인 멀티헤드 어텐션 (교차 어텐션용)
+### 일반적인 멀티헤드 어텐션 (크로스 어텐션용)
 
 ```python
 class MultiHeadAttention(nn.Module):
     """
-    일반적인 다중 머리 어텐션
+    일반적인 멀티헤드 어텐션
     
-    자기 어텐션(Q=K=V=X)이나 교차 어텐션(Q는 디코더, K와 V는 인코더)에 모두 쓸 수 있다.
+    셀프 어텐션(Q=K=V=X)이나 크로스 어텐션(Q는 디코더, K와 V는 인코더)에 모두 쓸 수 있다.
     """
     
     def __init__(self, d_model: int, n_heads: int, dropout: float = 0.0):
@@ -293,15 +293,15 @@ class MultiHeadAttention(nn.Module):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         인수:
-            Q: 질의의 출처 (배치, seq_q, d_model)
-            K: 열쇠의 출처 (배치, seq_k, d_model)
+            Q: 쿼리의 출처 (배치, seq_q, d_model)
+            K: 키의 출처 (배치, seq_k, d_model)
             V: 값의 출처 (배치, seq_v, d_model), 대체로 seq_k == seq_v
             mask: 선택적인 어텐션 마스크
         """
         batch_size = Q.size(0)
         seq_q, seq_k = Q.size(1), K.size(1)
         
-        # 사영하고 모양 바꾸기
+        # 투영하고 형태 바꾸기
         Q = self.W_q(Q).view(batch_size, seq_q, self.n_heads, self.d_k).transpose(1, 2)
         K = self.W_k(K).view(batch_size, seq_k, self.n_heads, self.d_k).transpose(1, 2)
         V = self.W_v(V).view(batch_size, seq_k, self.n_heads, self.d_k).transpose(1, 2)
@@ -317,7 +317,7 @@ class MultiHeadAttention(nn.Module):
         
         context = torch.matmul(attn_weights, V)
         
-        # 모양 바꾸고 출력 사영
+        # 형태 바꾸고 출력 투영
         context = context.transpose(1, 2).contiguous().view(batch_size, seq_q, self.d_model)
         output = self.W_o(context)
         
@@ -330,12 +330,12 @@ class MultiHeadAttention(nn.Module):
 
 학습된 트랜스포머를 분석한 연구는 기능의 분업을 확인해 준다.
 
-| 헤드의 종류 | 무늬 | 예 |
+| 헤드의 종류 | 패턴 | 예 |
 |-----------|---------|---------|
 | **위치 헤드** | 앞이나 뒤 토큰에 주목 | "The [cat]" → "The"에 주목 |
 | **문법 헤드** | 주어와 동사의 의존을 붙잡음 | "cats [run]" → "cats"에 주목 |
 | **상호 참조 헤드** | 대명사와 선행사의 관계를 좇음 | "[it] was tired" → "animal"에 주목 |
-| **베끼기 헤드** | 드문 단어와 고유 명사에 집중 | 이름, 전문 용어 |
+| **복사 헤드** | 드문 단어와 고유 명사에 집중 | 이름, 전문 용어 |
 | **구분자 헤드** | 문장 부호와 문장 경계에 주목 | 마침표, [SEP] 토큰 |
 
 특정 모델의 제거 실험은 일부 헤드의 역할과 중복성을 보여 줄 수 있다. 모든 헤드가 하나의 독립 기능에 대응하거나 하나를 없애면 그 기능만 사라지는 것은 아니다.
@@ -350,7 +350,7 @@ class MultiHeadAttention(nn.Module):
 
 **여러 헤드**는 서로 **독립인 결합 $h$개**를 계산한 뒤 그것들을 **가장 좋게 섞는 법을 배운다**.
 
-여러 웨이트 분포는 단일 분포와 다른 표현 구조를 제공한다. 표현력의 엄밀한 비교에는 헤드·피처 차원, 레이어수와 출력 함수 등의 조건이 필요하며, 멀티헤드가 차원과 상관없이 모든 단일 헤드 구조보다 우세하다는 주장으로 일반화할 수 없다.
+여러 웨이트 분포는 단일 분포와 다른 표현 구조를 제공한다. 표현력의 엄밀한 비교에는 헤드·피처 차원, 레이어 수와 출력 함수 등의 조건이 필요하며, 멀티헤드가 차원과 상관없이 모든 단일 헤드 구조보다 우세하다는 주장으로 일반화할 수 없다.
 
 ---
 
@@ -368,7 +368,7 @@ class MultiHeadAttention(nn.Module):
 
 ---
 
-## 9. 하이퍼파라미터: 헤드의 수
+## 9. 하이퍼파라메터: 헤드의 수
 
 흔한 설정은 다음과 같다.
 
@@ -380,7 +380,7 @@ class MultiHeadAttention(nn.Module):
 | GPT-3 (175B) | 12288 | 96 | 128 |
 | LLaMA-7B | 4096 | 32 | 128 |
 
-**어림 규칙**: $d_k = 64$이나 $d_k = 128$이 흔하다. $d_{\text{model}}$에 맞추어 헤드 수를 조정한다.
+**경험 규칙**: $d_k = 64$이나 $d_k = 128$이 흔하다. $d_{\text{model}}$에 맞추어 헤드 수를 조정한다.
 
 ---
 
@@ -388,12 +388,12 @@ class MultiHeadAttention(nn.Module):
 
 ### 그룹 쿼리 어텐션 (GQA)
 
-GQA는 여러 쿼리 헤드가 더 적은 키·값 헤드를 공유하는 구조다. 아래 클래스는 투영레이어 생성자만 있고 forward가 없어 실제 어텐션 계산이나 KV 반복을 구현하지 않는다. d_model의 헤드 수 나눗셈 조건도 추가로 확인해야 한다.
+GQA는 여러 쿼리 헤드가 더 적은 키·값 헤드를 공유하는 구조다. 아래 클래스는 투영 레이어 생성자만 있고 forward가 없어 실제 어텐션 계산이나 KV 반복을 구현하지 않는다. d_model의 헤드 수 나눗셈 조건도 추가로 확인해야 한다.
 
 ```python
 class GroupedQueryAttention(nn.Module):
     """
-    GQA: 질의 머리 n_heads개가 열쇠-값 머리 n_kv_heads개를 나누어 쓴다.
+    GQA: 쿼리 헤드 n_heads개가 키-값 헤드 n_kv_heads개를 나누어 쓴다.
     추론할 때 KV 캐시의 크기를 줄인다.
     """
     def __init__(self, d_model: int, n_heads: int, n_kv_heads: int):
@@ -405,9 +405,9 @@ class GroupedQueryAttention(nn.Module):
         self.n_groups = n_heads // n_kv_heads
         self.d_k = d_model // n_heads
         
-        self.W_q = nn.Linear(d_model, d_model)  # Q에는 온전한 머리
-        self.W_k = nn.Linear(d_model, n_kv_heads * self.d_k)  # K에는 줄인 머리
-        self.W_v = nn.Linear(d_model, n_kv_heads * self.d_k)  # V에는 줄인 머리
+        self.W_q = nn.Linear(d_model, d_model)  # Q에는 온전한 헤드
+        self.W_k = nn.Linear(d_model, n_kv_heads * self.d_k)  # K에는 줄인 헤드
+        self.W_v = nn.Linear(d_model, n_kv_heads * self.d_k)  # V에는 줄인 헤드
         self.W_o = nn.Linear(d_model, d_model)
 ```
 

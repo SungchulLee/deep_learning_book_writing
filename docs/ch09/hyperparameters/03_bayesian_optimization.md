@@ -6,9 +6,9 @@
 
 ```python
 """
-초파라메터 조율을 위한 베이즈 최적화
+하이퍼파라메터 조율을 위한 베이즈 최적화
 
-베이즈 최적화는 확률 모형으로 최적의 초파라메터를 찾는 탐색을 이끈다.
+베이즈 최적화는 확률 모델로 최적의 하이퍼파라메터를 찾는 탐색을 이끈다.
 목적 함수의 대리 모델을 세우고 그것으로 다음에 어디를 뽑을지 정한다.
 
 
@@ -24,7 +24,7 @@
 - 국소 최적에 갇힐 수 있다
 - 추가 라이브러리가 필요하다 (예: Optuna, scikit-optimize)
 
-이 예제는 요즘의 초파라메터 최적화 틀인 Optuna를 쓴다.
+이 예제는 요즘의 하이퍼파라메터 최적화 프레임워크인 Optuna를 쓴다.
 """
 
 import numpy as np
@@ -53,7 +53,7 @@ from utils import load_sample_dataset, print_results
 
 def bayesian_optimization_rf():
     """
-    Optuna로 랜덤 포리스트에 베이즈 최적화 적용
+    Optuna로 랜덤 포레스트에 베이즈 최적화 적용
     """
     if not OPTUNA_AVAILABLE:
         print("Please install optuna: pip install optuna")
@@ -80,7 +80,7 @@ def bayesian_optimization_rf():
         --------
         float : 최대로 하려는 교차 검증 점수
         """
-        # 초파라메터 제안
+        # 하이퍼파라메터 제안
         params = {
             'n_estimators': trial.suggest_int('n_estimators', 50, 500),
             'max_depth': trial.suggest_int('max_depth', 3, 50),
@@ -296,7 +296,7 @@ def pruning_example():
 
 def compare_samplers():
     """
-    베이즈 최적화에서 표집 전략을 달리하여 견주기
+    베이즈 최적화에서 샘플링 전략을 달리하여 견주기
     """
     if not OPTUNA_AVAILABLE:
         print("Please install optuna: pip install optuna")
@@ -320,7 +320,7 @@ def compare_samplers():
         score = cross_val_score(rf, X_train, y_train, cv=3, scoring='accuracy', n_jobs=-1).mean()
         return score
     
-    # 여러 표집기 시험
+    # 여러 샘플러 시험
     samplers = {
         'TPE': optuna.samplers.TPESampler(seed=42),
         'Random': optuna.samplers.RandomSampler(seed=42),
@@ -442,7 +442,7 @@ TPE·CMA-ES·무작위 샘플러는 지원하는 변수와 병렬화 조건이 �
 </div>
 
 ??? success "풀이"
-    그렇다. 앞선 점수를 이용해 후보를 적응적으로 고르므로 관측된 최고 점수에는 선택 효과가 있다. 탐색이 끝난 뒤 독립 테스트나 바깥 검증으로 절차를 평가한다.
+    그렇다. 앞선 점수를 이용해 후보를 적응적으로 고르므로 관측된 최고 점수에는 선택 효과가 있다. 탐색이 끝난 뒤 독립 시험 집합이나 바깥 검증으로 절차를 평가한다.
 
 ## 정리하며
 

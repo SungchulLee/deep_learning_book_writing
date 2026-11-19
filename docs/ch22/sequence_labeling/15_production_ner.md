@@ -6,19 +6,19 @@
 
 ```python
 """
-실전에 쓸 수 있는 개체명 인식 물길
+실전에 쓸 수 있는 개체명 인식 파이프라인
 ==============================
 
-실전에 펼칠 준비가 된 온전한 개체명 인식 물길.
+실전 배포 준비가 된 완전한 개체명 인식 파이프라인.
 
-피처:
+기능:
 - 전처리
-- 여러 모델 받치기
-- 뒷손질
-- 어긋남 다루기
-- 기록 남기기
+- 여러 모델 지원
+- 후처리
+- 오류 처리
+- 로깅
 
-지은이: 러닝 목적
+지은이: 교육 목적
 날짜: 2025
 """
 
@@ -32,24 +32,24 @@ import time
 
 
 class ProductionNERPipeline:
-    """실전에 쓸 수 있는 개체명 인식 물길."""
+    """실전에 쓸 수 있는 개체명 인식 파이프라인."""
     
     def __init__(self, model_name: str = 'transformer'):
         """
-        물길 초기화.
+        파이프라인 초기화.
         
         인수:
-            model_name: 쓸 모델 클래스(transformer, bilstm, crf, rule-based)
+            model_name: 쓸 모델 종류(transformer, bilstm, crf, rule-based)
         """
         self.model_name = model_name
         self.logger = self._setup_logger()
         self.model = None
         
-        # 클래스에 따라 모델 초기화
+        # 종류에 따라 모델 초기화
         self._initialize_model()
     
     def _setup_logger(self) -> logging.Logger:
-        """기록 남기기 자리매김."""
+        """로깅 설정."""
         logger = logging.getLogger('NER_Pipeline')
         logger.setLevel(logging.INFO)
         handler = logging.StreamHandler()
@@ -68,27 +68,27 @@ class ProductionNERPipeline:
     
     def preprocess(self, text: str) -> str:
         """
-        개체명 인식 앞에 글 전처리하기.
+        개체명 인식 앞에 텍스트 전처리하기.
         
         단계:
-        - 남는 빈칸 없애기
-        - 특별한 글자 다루기
-        - 글 고르게 맞추기
+        - 여분의 공백 없애기
+        - 특수 문자 다루기
+        - 텍스트 정규화
         """
-        # 남는 빈칸 없애기
+        # 여분의 공백 없애기
         text = ' '.join(text.split())
         return text
     
     def postprocess(self, entities: List[Dict]) -> List[Dict]:
         """
-        뽑은 것 뒷손질하기.
+        추출한 개체 후처리하기.
         
         단계:
-        - 겹치는 것 없애기
-        - 믿음도 낮은 것 거르기
-        - 겹치는 것 어울리기
+        - 중복 개체 없애기
+        - 신뢰도 낮은 개체 거르기
+        - 겹치는 개체 병합하기
         """
-        # (text, type, start, end)로 겹치는 것 없애기
+        # (text, type, start, end)로 중복 개체 없애기
         unique_entities = []
         seen = set()
         
@@ -103,14 +103,14 @@ class ProductionNERPipeline:
     def extract_entities(self, text: str, 
                         confidence_threshold: float = 0.5) -> Dict:
         """
-        글에서 개체 뽑기.
+        텍스트에서 개체 추출하기.
         
         인수:
             text: 입력 텍스트
-            confidence_threshold: 것의 최소 믿음도
+            confidence_threshold: 개체의 최소 신뢰도
             
         반환값:
-            것과 메타자료를 담은 사전
+            개체와 메타데이터를 담은 사전
         """
         start_time = time.time()
         
@@ -118,13 +118,13 @@ class ProductionNERPipeline:
             # 전처리
             processed_text = self.preprocess(text)
             
-            # 개체 뽑기(자리 채움)
-            entities = []  # 여기서 모델 미룸
+            # 개체 추출(자리표시자)
+            entities = []  # 여기서 모델 추론
             
-            # 뒷손질
+            # 후처리
             entities = self.postprocess(entities)
             
-            # 믿음도로 거르기
+            # 신뢰도로 거르기
             entities = [e for e in entities 
                        if e.get('confidence', 1.0) >= confidence_threshold]
             
@@ -174,7 +174,7 @@ Processing time: 0.000s
 
 preprocess는 공백·탭·줄바꿈을 공백 하나로 합친다. 모델을 나중에 추가하면 이 변형된 문자열의 offset이 원문과 달라질 수 있다. 반환 text는 원문인데 processed_text나 offset 매핑은 반환하지 않으므로 전처리 좌표를 그대로 넣으면 잘못된 원문 span이 될 수 있다. 원문을 유지하거나 명시적인 인덱스 대응을 보관해야 한다.
 
-빈 문자열·문서 길이·지원 언어·비정상 입력과 tokenizer의 잘림 폴리시도 정해야 한다. 이것은 고정 이미지 텐서 모양을 검사하는 문제와 다르다. 실제 모델 출력과 유형·범위·점수의 유효성도 연결 단계에서 검증한다.
+빈 문자열·문서 길이·지원 언어·비정상 입력과 tokenizer의 잘림 정책도 정해야 한다. 이것은 고정 이미지 텐서 모양을 검사하는 문제와 다르다. 실제 모델 출력과 유형·범위·점수의 유효성도 연결 단계에서 검증한다.
 
 ## 4. 중복·점수 필터의 의미
 
@@ -231,7 +231,7 @@ _setup_logger는 이름이 같은 전역 logger에 새 handler를 매번 추가�
 
 ??? success "풀이"
 
-    첫0.2만 남기고 뒤0.9를 중복으로 버린 다음0.2도 임계값에서 제거한다. 최대 점수 선택이나 필터 순서를 명시해야 한다. 점수가 없는 항목의 기본1.0 처리도 별도 폴리시다.
+    첫0.2만 남기고 뒤0.9를 중복으로 버린 다음0.2도 임계값에서 제거한다. 최대 점수 선택이나 필터 순서를 명시해야 한다. 점수가 없는 항목의 기본1.0 처리도 별도 정책이다.
 
 
 
@@ -246,7 +246,7 @@ _setup_logger는 이름이 같은 전역 logger에 새 handler를 매번 추가�
 
 ??? success "풀이"
 
-    이 클래스는 PyTorch 모델 forward·parameters·역전파를 제공하지 않는다. 아래 미정의 입력도 완성 시험이 아니다. 실제 모델 연결 여부·원문 offset·중복/점수 폴리시·빈 입력·반복 logger 초기화·성공/오류 응답 스키마를 확인하는 명세가 필요하다.
+    이 클래스는 PyTorch 모델 forward·parameters·역전파를 제공하지 않는다. 아래 미정의 입력도 완성 시험이 아니다. 실제 모델 연결 여부·원문 offset·중복/점수 정책·빈 입력·반복 logger 초기화·성공/오류 응답 스키마를 확인하는 명세가 필요하다.
 
     ```python
     def test_productionnerpipeline():
@@ -255,10 +255,10 @@ _setup_logger는 이름이 같은 전역 logger에 새 handler를 매번 추가�
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():

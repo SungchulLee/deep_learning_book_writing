@@ -1,6 +1,6 @@
 # Split MNIST의 LwF
 
-새 과제 입력에서 이전 모델의 출력 분포를 맞추는 LwF 예제다. 각 과제 학습 후 모델을 고정 교사로 복사하고 다음 과제의 지도 로스에 출력 증류를 더한다. 과거 원본 데이터의 재학습과는 다른 보존 방식이다.
+새 과제 입력에서 이전 모델의 출력 분포를 맞추는 LwF(Learning without Forgetting, 망각 없는 학습) 예제다. 각 과제 학습 후 모델을 고정 교사로 복사하고 다음 과제의 지도 로스에 출력 증류를 더한다. 과거 원본 데이터의 재학습과는 다른 보존 방식이다.
 
 ## 1. 코드
 
@@ -9,17 +9,17 @@
     ```python
     """
     57모듈: 연속 학습 - 중급
-    파일 2: 잊지 않고 배우기(LWF)
+    파일 2: 망각 없는 학습(LWF)
 
-    이 스크립트는 보기를 하나도 담아 두지 않고 앎 증류로 앞선 과제의 앎을 지키는
-    연속 학습 방법인 잊지 않고 배우기를
+    이 스크립트는 표본을 하나도 저장하지 않고 지식 증류로 앞선 과제의 지식을 지키는
+    연속 학습 방법인 망각 없는 학습을
     구현한다.
 
     학습 목표:
-    1. 연속 학습을 위한 앎 증류를 이해한다
-    2. 부드러운 목표를 쓰는 LWF 로스를 구현한다
-    3. 새 과제 배우기와 옛 앎 지키기의 균형을 잡는다
-    4. 부드러운 목표를 위한 온도 눈금을 배운다
+    1. 연속 학습을 위한 지식 증류를 이해한다
+    2. 소프트 타깃을 쓰는 LWF 로스를 구현한다
+    3. 새 과제 배우기와 옛 지식 지키기의 균형을 잡는다
+    4. 소프트 타깃을 위한 온도 스케일링을 배운다
 
     수학적 바탕:
     LWF 로스는 다음을 합친다.
@@ -34,12 +34,12 @@
     L_distill = KL(softmax(z_old/T) || softmax(z_new/T))
 
     여기서 각 기호는 다음과 같다.
-    - z_old: 옛 모델(얼린 것)의 로짓
-    - z_new: 새 모델(익히는 중)의 로짓
+    - z_old: 옛 모델(동결한 것)의 로짓
+    - z_new: 새 모델(학습 중)의 로짓
     - T: 온도(T가 클수록 확률이 부드럽다)
-    - KL: 쿨백-라이블러 벌어짐
+    - KL: 쿨백-라이블러 발산
 
-    온도 눈금:
+    온도 스케일링:
     softmax_T(z_i) = exp(z_i/T) / Σ_j exp(z_j/T)
 
     T가 클수록 → 확률이 부드러워지고 → 모델이 맞추기 쉬워진다
@@ -66,28 +66,28 @@
 
     class LWFLearner:
         """
-        잊지 않고 배우기를 쓰는 이어 배우는 학습기.
+        망각 없는 학습을 쓰는 연속 학습기.
 
         LWF 전략:
-        1. 새 과제를 배우기 전에 지금 모델의 사본을 담아 둔다
-        2. 새 과제를 익히는 동안 다음을 한다.
-           a. 지금 모델로 새 데이터를 피드포워드한다
-           b. 옛 모델(얼린 것)으로 새 데이터를 피드포워드한다
-           c. 옛 모델의 예측에 맞추도록 증류 로스를 셈한다
-           d. 새 과제의 로스를 셈한다
-           e. 합친 로스를 거꾸로 퍼뜨린다
+        1. 새 과제를 배우기 전에 지금 모델의 사본을 저장한다
+        2. 새 과제를 학습하는 동안 다음을 한다.
+           a. 지금 모델로 새 데이터를 순전파한다
+           b. 옛 모델(동결한 것)으로 새 데이터를 순전파한다
+           c. 옛 모델의 예측에 맞추도록 증류 로스를 계산한다
+           d. 새 과제의 로스를 계산한다
+           e. 합친 로스를 역전파한다
 
-        핵심 통찰: 옛 모델의 부드러운 예측에는 앞선 과제에 대한 앎이
+        핵심 통찰: 옛 모델의 소프트 예측에는 앞선 과제에 대한 지식이
         담겨 있다. 새 과제 데이터에서 이 예측에 맞추면
-        옛 앎이 넌지시 지켜진다.
+        옛 지식이 암묵적으로 보존된다.
 
         이점:
-        - 앞선 보기를 담아 두지 않는다(사생활을 지킨다)
-        - 어떤 뉴럴 네트워크 구조에서도 굴러간다
-        - 셈이 효율적이다
+        - 앞선 표본을 저장하지 않는다(프라이버시를 보호한다)
+        - 어떤 뉴럴 네트워크 구조에서도 동작한다
+        - 계산이 효율적이다
 
         한계:
-        - 배치마다 피드포워드를 두 번 돌려야 한다
+        - 배치마다 순전파를 두 번 해야 한다
         - 새 과제의 데이터가 옛 과제와 아주 다르면 힘겨울 수 있다
         """
 
@@ -103,8 +103,8 @@
             인수:
                 model: 뉴럴 네트워크 모델
                 device: 학습에 쓸 장치
-                distill_lambda: 증류 로스의 무게
-                               값이 클수록 옛 앎을 더 많이 지킨다
+                distill_lambda: 증류 로스의 가중 계수
+                               값이 클수록 옛 지식을 더 많이 지킨다
                                흔한 범위: [0.5, 5.0]
                 temperature: 확률 분포를 부드럽게 하는 온도
                             온도가 높을수록 분포가 부드럽다
@@ -118,8 +118,8 @@
             self.learning_rate = learning_rate
             self.criterion = nn.CrossEntropyLoss()
 
-            # 증류에 쓸 앞선 모델을 담아 둔다
-            # 과제를 마칠 때마다 고쳐진다
+            # 증류에 쓸 앞선 모델을 저장한다
+            # 과제를 마칠 때마다 갱신된다
             self.old_model = None
 
             # 추적
@@ -131,11 +131,11 @@
                              old_logits: torch.Tensor,
                              temperature: float) -> torch.Tensor:
             """
-            앎 증류 로스를 셈한다.
+            지식 증류 로스를 계산한다.
 
-            증류 로스는 다음 둘 사이의 KL 벌어짐이다.
-            - 옛 모델의 부드러운 예측(스승)
-            - 새 모델의 부드러운 예측(제자)
+            증류 로스는 다음 둘 사이의 KL 발산이다.
+            - 옛 모델의 소프트 예측(교사)
+            - 새 모델의 소프트 예측(학생)
 
             수학적 자세한 내용:
             KL(P || Q) = Σ_i P(i) * log(P(i) / Q(i))
@@ -143,30 +143,30 @@
             수치 안정성을 위해 다음을 쓴다.
             KL = Σ_i P(i) * (log P(i) - log Q(i))
 
-            온도 눈금:
+            온도 스케일링:
             - 소프트맥스 전에 로짓을 T로 나누면 분포가 부드러워진다
-            - T가 클수록 → 분포가 고루 퍼지고 → 맞추기 쉬워진다
-            - 인자 T²이 눈금을 메운다(끌어내기는 논문을 보라)
+            - T가 클수록 → 분포가 균등분포에 가까워지고 → 맞추기 쉬워진다
+            - 인자 T²이 스케일을 보정한다(유도는 논문을 보라)
 
             인수:
-                new_logits: 지금 모델(제자)의 로짓
-                old_logits: 옛 모델(스승)의 로짓
-                temperature: 눈금을 위한 온도
+                new_logits: 지금 모델(학생)의 로짓
+                old_logits: 옛 모델(교사)의 로짓
+                temperature: 스케일링에 쓸 온도
 
             반환값:
                 증류 로스(스칼라)
             """
-            # 온도 눈금을 씌우고 로그 확률을 셈한다
+            # 온도 스케일링을 적용하고 로그 확률을 계산한다
             # log_softmax_T(z) = log(exp(z/T) / Σ exp(z/T))
             #                  = z/T - log(Σ exp(z/T))
             new_log_probs = F.log_softmax(new_logits / temperature, dim=1)
 
-            # 옛 모델에서 부드러운 목표를 셈한다
+            # 옛 모델에서 소프트 타깃을 계산한다
             # softmax_T(z) = exp(z/T) / Σ exp(z/T)
             old_probs = F.softmax(old_logits / temperature, dim=1)
 
-            # 온도를 메운 KL 벌어짐
-            # 인자 T²이 온도 눈금을 메운다
+            # 온도를 보정한 KL 발산
+            # 인자 T²이 온도 스케일링을 보정한다
             # (논문 "Distilling the Knowledge in a Neural Network"을 보라)
             loss = F.kl_div(
                 new_log_probs,
@@ -181,7 +181,7 @@
                       task_id: int,
                       epochs: int = 5) -> List[float]:
             """
-            LWF을 곁들여 과제 하나로 익힌다.
+            LWF를 적용해 과제 하나를 학습한다.
 
             과제 τ > 0의 로스 함수:
             L = L_new + λ * L_distill
@@ -195,13 +195,13 @@
                 epochs: 학습 에포크 수
 
             반환값:
-                시대마다의 로스 목록
+                에포크마다의 로스 목록
             """
             optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
             self.model.train()
 
-            # 옛 모델을 평가 모드로 둔다(얼린다)
+            # 옛 모델을 평가 모드로 둔다(동결한다)
             if self.old_model is not None:
                 self.old_model.eval()
 
@@ -227,7 +227,7 @@
 
                     optimizer.zero_grad()
 
-                    # ===== 지금 모델로 피드포워드 =====
+                    # ===== 지금 모델로 순전파 =====
                     new_logits = self.model(data)
 
                     # ===== 새 과제의 로스 =====
@@ -237,11 +237,11 @@
                     distill_loss = torch.tensor(0.0).to(self.device)
 
                     if self.old_model is not None:
-                        # 옛 모델로 피드포워드한다(얼려 둔 채)
+                        # 옛 모델로 순전파한다(동결한 채)
                         with torch.no_grad():
                             old_logits = self.old_model(data)
 
-                        # 증류 로스를 셈한다
+                        # 증류 로스를 계산한다
                         distill_loss = self.distillation_loss(
                             new_logits=new_logits,
                             old_logits=old_logits,
@@ -286,10 +286,10 @@
 
         def update_old_model(self):
             """
-            과제를 배운 뒤 옛 모델(스승)을 고친다.
+            과제를 배운 뒤 옛 모델(교사)을 갱신한다.
 
             지금 모델을 깊이 복사하여 다음 과제의
-            스승으로 삼는다.
+            교사로 삼는다.
             """
             print("\n  Updating old model for next task...")
 
@@ -300,7 +300,7 @@
             self.old_model.to(self.device)
             self.old_model.eval()
 
-            # 파라메터를 얼린다(그래디언트를 셈할 필요가 없다)
+            # 파라메터를 동결한다(그래디언트를 계산할 필요가 없다)
             for param in self.old_model.parameters():
                 param.requires_grad = False
 
@@ -338,11 +338,11 @@
                            test_loaders: List[DataLoader],
                            epochs_per_task: int = 5):
             """
-            LWF을 쓰는 연속 학습의 주 회귀.
+            LWF를 쓰는 연속 학습의 주 루프.
 
             과제마다의 절차:
-            1. 증류 로스를 곁들여 익힌다(첫 과제가 아니면)
-            2. 다음 과제를 위해 옛 모델을 고친다
+            1. 증류 로스를 더해 학습한다(첫 과제가 아니면)
+            2. 다음 과제를 위해 옛 모델을 갱신한다
             3. 모든 과제에서 평가한다
             """
             num_tasks = len(train_loaders)
@@ -357,14 +357,14 @@
             for task_id in range(num_tasks):
                 self.current_task = task_id
 
-                # 지금 과제로 익힌다
+                # 지금 과제를 학습한다
                 self.train_task(
                     train_loader=train_loaders[task_id],
                     task_id=task_id,
                     epochs=epochs_per_task
                 )
 
-                # 다음 과제를 위해 옛 모델을 고친다
+                # 다음 과제를 위해 옛 모델을 갱신한다
                 self.update_old_model()
 
                 # 모든 과제에서 평가한다
@@ -391,7 +391,7 @@
             return self.calculate_metrics()
 
         def calculate_metrics(self):
-            """연속 학습 지표를 셈한다."""
+            """연속 학습 지표를 계산한다."""
             num_tasks = self.accuracy_matrix.shape[0]
 
             average_accuracy = np.mean(self.accuracy_matrix[:, -1])
@@ -423,7 +423,7 @@
     def create_simple_model(input_size: int = 784,
                            hidden_size: int = 256,
                            num_classes: int = 2) -> nn.Module:
-        """단순한 피드포워드 망을 만든다."""
+        """단순한 피드포워드 네트워크를 만든다."""
         return nn.Sequential(
             nn.Flatten(),
             nn.Linear(input_size, hidden_size),
@@ -459,10 +459,10 @@
 
 
     def visualize_lwf_results(lwf_metrics: dict, num_tasks: int):
-        """LWF 결과를 그려 본다."""
+        """LWF 결과를 시각화한다."""
         fig, axes = plt.subplots(1, 3, figsize=(18, 5))
 
-        # 그림 1: 정확도 행렬 열 지도
+        # 그림 1: 정확도 행렬 히트맵
         ax1 = axes[0]
         im = ax1.imshow(lwf_metrics['accuracy_matrix'], cmap='RdYlGn',
                         aspect='auto', vmin=0, vmax=100)
@@ -479,7 +479,7 @@
                     ax1.text(j, i, f'{lwf_metrics["accuracy_matrix"][i, j]:.1f}',
                             ha="center", va="center", color="black", fontsize=9)
 
-        # 그림 2: 뒤로의 옮김
+        # 그림 2: 후방 전이
         ax2 = axes[1]
         tasks = list(range(len(lwf_metrics['forgetting_per_task'])))
         colors = ['green' if f >= 0 else 'red'
@@ -500,7 +500,7 @@
                     f'{val:.1f}%', ha='center',
                     va='bottom' if val >= 0 else 'top', fontsize=9)
 
-        # 그림 3: 러닝 정확도와 마지막 정확도
+        # 그림 3: 학습 정확도와 최종 정확도
         ax3 = axes[2]
         learning_accs = np.diag(lwf_metrics['accuracy_matrix'])
         final_accs = lwf_metrics['accuracy_matrix'][:, -1]
@@ -528,7 +528,7 @@
 
 
     def main():
-        """LWF을 보여 주는 주 함수."""
+        """LWF를 보여 주는 주 함수."""
         print("=" * 70)
         print("LEARNING WITHOUT FORGETTING (LWF)")
         print("=" * 70)
@@ -543,8 +543,8 @@
         epochs_per_task = 5
         batch_size = 128
         learning_rate = 0.001
-        distill_lambda = 1.0  # 증류 로스의 무게
-        temperature = 2.0     # 부드러운 목표의 온도
+        distill_lambda = 1.0  # 증류 로스의 가중 계수
+        temperature = 2.0     # 소프트 타깃의 온도
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"\nUsing device: {device}")
@@ -831,7 +831,7 @@ temperature는 양수여야 하고 T=1에서도 교사 목표는 일반적으로
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-새 입력에서 교사 로스가 작으면 이전 테스트 정확도도 반드시 유지되는가?
+새 입력에서 교사 로스가 작으면 이전 시험 정확도도 반드시 유지되는가?
 
 </div>
 
@@ -848,7 +848,7 @@ temperature는 양수여야 하고 T=1에서도 교사 목표는 일반적으로
 </div>
 
 ??? success "풀이"
-    아래는 검토용 조각이다. state_dict().copy()는 얕은 사전 복사여서 내부 텐서가 이후 갱신과 함께 바뀔 수 있다. 고정 체크포인트는 deepcopy하거나 각 텐서를 분리해 복사해야 한다.
+    아래는 검토용 조각이다. state_dict().copy()는 얕은 딕셔너리 복사여서 내부 텐서가 이후 갱신과 함께 바뀔 수 있다. 고정 체크포인트는 deepcopy하거나 각 텐서를 분리해 복사해야 한다.
     ```python
     best_loss = float('inf')
     patience_counter = 0
@@ -867,7 +867,7 @@ temperature는 양수여야 하고 T=1에서도 교사 목표는 일반적으로
             model.load_state_dict(best_state)
             break
     ```
-    현재 과제만의 검증 로스로 조기 종료하면 과거 성능과의 균형을 놓칠 수 있다. 사용할 과제별 검증 지표와 집계 규칙을 정하고 테스트셋은 선택에 사용하지 않는다. 인내 횟수에 도달하지 않고 종료된 경우에도 선택한 최적 상태를 복원하는 경로가 필요하다.
+    현재 과제만의 검증 로스로 조기 종료하면 과거 성능과의 균형을 놓칠 수 있다. 사용할 과제별 검증 지표와 집계 규칙을 정하고 시험 집합은 선택에 사용하지 않는다. 인내 횟수에 도달하지 않고 종료된 경우에도 선택한 최적 상태를 복원하는 경로가 필요하다.
 
 ## 정리하며
 

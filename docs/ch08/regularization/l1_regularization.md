@@ -1,6 +1,6 @@
-# L1 정규화 (라쏘)
+# L1 정칙화 (라쏘)
 
-라쏘(Least Absolute Shrinkage and Selection Operator)라고도 하는 L1 정규화는 모델 웨이트의 절댓값에 비례하는 패널티를 로스 함수에 더한다. 이 기법은 학습된 파라메터의 희소성을 북돋우며, 관련 없는 피처의 웨이트를 정확히 0으로 몰아 사실상 자동 피처 선택을 수행한다.
+라쏘(Least Absolute Shrinkage and Selection Operator)라고도 하는 L1 정칙화는 모델 웨이트의 절댓값에 비례하는 패널티를 로스 함수에 더한다. 이 기법은 학습된 파라메터의 희소성을 북돋우며, 관련 없는 피처의 웨이트를 정확히 0으로 몰아 사실상 자동 피처 선택을 수행한다.
 
 ---
 
@@ -8,7 +8,7 @@
 
 ### L1 패널티를 더한 표준 로스
 
-파라메터가 $\theta = \{w_1, w_2, \ldots, w_n\}$인 로스 함수 $\mathcal{L}(\theta)$에 대해 L1 정규화는 목적 함수를 다음과 같이 바꾼다.
+파라메터가 $\theta = \{w_1, w_2, \ldots, w_n\}$인 로스 함수 $\mathcal{L}(\theta)$에 대해 L1 정칙화는 목적 함수를 다음과 같이 바꾼다.
 
 $$
 \mathcal{L}_{\text{L1}}(\theta) = \mathcal{L}(\theta) + \lambda \sum_{i=1}^{n} |w_i|
@@ -17,7 +17,7 @@ $$
 여기서 각 기호는 다음과 같다.
 
 - $\mathcal{L}(\theta)$은 원래의 로스 함수이다(예: MSE, 교차 엔트로피)
-- $\lambda \geq 0$은 정규화의 강도이다(하이퍼파라미터)
+- $\lambda \geq 0$은 정칙화의 강도이다(하이퍼파라메터)
 - $\sum_{i=1}^{n} |w_i|$은 웨이트 벡터의 L1 노름이다
 
 ### L1을 쓰는 선형 회귀 (라쏘 회귀)
@@ -104,13 +104,13 @@ L1 제약 영역의 마름모 모양은 좌표축 위에 **모서리**를 갖는
 
 1. **영에서 떨어져 있을 때**: 그래디언트에 $\lambda \cdot \text{sign}(w_i)$이 들어가 $w_i$을 영 쪽으로 민다
 2. **영에서**: 부분그래디언트가 구간 $[-\lambda, +\lambda]$을 포함한다
-3. **영에 머무를 조건**: $w_i = 0$에서 원래 로스의 기울기가 $[-\lambda, +\lambda]$ 안에 있으면 $w_i = 0$이 최적이다
+3. **영에 머무를 조건**: $w_i = 0$에서 원래 로스의 그래디언트가 $[-\lambda, +\lambda]$ 안에 있으면 $w_i = 0$이 최적이다
 
 이는 최적점의 조건이다. 일반 SGD나 Adam에 L1 항을 더하는 것만으로 유한한 반복에서 계수가 정확히 0이 되지는 않을 수 있다. 정확한 희소성이 필요하면 근접법이나 좌표 하강법과 같은 알고리즘을 검토한다.
 
 ### 소프트 스레숄딩 연산자
 
-L1 정규화된 최소제곱에서 (좌표 하강법의) 각 좌표에 대한 해석적 해는 다음과 같다.
+L1 정칙화된 최소제곱에서 (좌표 하강법의) 각 좌표에 대한 해석적 해는 다음과 같다.
 
 $$
 w_i^*=S_{\lambda/a_i}(z_i),\qquad a_i=\|X_{:,i}\|_2^2/m>0
@@ -122,7 +122,7 @@ $z_i$는 다른 계수를 고정한 조건부 최소제곱 계수이고 $S_t(z)=
 
 ## 4. PyTorch 구현
 
-### L1 정규화 직접 구현하기
+### L1 정칙화 직접 구현하기
 
 ```python
 import torch
@@ -130,14 +130,14 @@ import torch.nn as nn
 
 def l1_regularization(model: nn.Module, lambda_l1: float) -> torch.Tensor:
     """
-    모델의 모든 파라메터에 대한 L1 정칙화 벌점을 계산한다.
+    모델의 모든 파라메터에 대한 L1 정칙화 패널티를 계산한다.
     
     인수:
         model: 뉴럴 네트워크 모델
         lambda_l1: 정칙화의 강도
         
     반환값:
-        L1 벌점 항
+        L1 패널티 항
     """
     # requires_grad=True는 사실 필요 없다. 0은 상수이고, 아래에서 더하는
     # param 쪽이 이미 그래디언트를 나르기 때문이다.
@@ -164,7 +164,7 @@ class L1RegularizedTrainer:
         predictions = self.model(X)
         loss = self.criterion(predictions, y)
         
-        # L1 벌점 더하기
+        # L1 패널티 더하기
         l1_penalty = l1_regularization(self.model, self.lambda_l1)
         total_loss = loss + l1_penalty
         
@@ -175,7 +175,7 @@ class L1RegularizedTrainer:
         return loss.item(), l1_penalty.item()
 ```
 
-### PyTorch의 내장 정규화 장치 쓰기
+### PyTorch의 내장 정칙화 장치 쓰기
 
 ```python
 import torch.nn as nn
@@ -191,11 +191,11 @@ class L1Regularizer(nn.Module):
 
     def __init__(self, lambda_l1: float):
         super().__init__()
-        self.lambda_l1 = lambda_l1   # 벌점의 세기
+        self.lambda_l1 = lambda_l1   # 패널티의 세기
 
     def forward(self, weight):
         # parametrize가 요구하는 자리. 웨이트를 바꾸지 않고 그대로 흘려보낸다.
-        # 실제 벌점은 아래 함수에서 로스에 더한다
+        # 실제 패널티는 아래 함수에서 로스에 더한다
         return weight
 
     def right_inverse(self, weight):
@@ -208,16 +208,16 @@ def add_l1_regularization_to_loss(model, base_loss, lambda_l1):
     # 모든 파라메터의 절댓값을 더한다. 이것이 ||w||_1 이다.
     # 절댓값은 원점에서 뾰족해 미분이 +-lambda로 뛰므로, 데이터가 주는
     # 그래디언트가 lambda보다 작으면 웨이트가 정확히 0에 머문다.
-    # L2가 0에 가깝게만 만드는 것과 달리 L1이 성긴 해를 주는 까닭이다
+    # L2가 0에 가깝게만 만드는 것과 달리 L1이 희소한 해를 주는 까닭이다
     l1_norm = sum(p.abs().sum() for p in model.parameters())
 
-    # 주의: 바이어스까지 포함해 더하고 있다. 엄밀하게는 바이어스에 벌을 주지
+    # 주의: 바이어스까지 포함해 더하고 있다. 엄밀하게는 바이어스에 패널티를 주지
     # 않는 것이 보통이며, 그러려면 model.parameters() 대신
     # 이름이 'bias'가 아닌 파라메터만 골라야 한다
     return base_loss + lambda_l1 * l1_norm
 ```
 
-### L1 정규화를 쓰는 뉴럴 네트워크
+### L1 정칙화를 쓰는 뉴럴 네트워크
 
 ```python
 import torch
@@ -254,7 +254,7 @@ class SparseNN(nn.Module):
         # 덧셈이지만 덧셈의 역전파는 덮어쓴 값을 필요로 하지 않아 안전하다
         l1_norm = 0
         for param in self.parameters():
-            # 바이어스까지 함께 센다. 보통 바이어스에는 벌점을 주지 않는데,
+            # 바이어스까지 함께 센다. 보통 바이어스에는 패널티를 주지 않는데,
             # 바이어스는 과적합의 원인이 아니라 출력의 중심을 옮기는 자유도라서다.
             # 웨이트만 고르려면 named_parameters()로 걸러야 한다
             l1_norm += torch.sum(torch.abs(param))
@@ -262,7 +262,7 @@ class SparseNN(nn.Module):
     
     def count_zero_weights(self, threshold=1e-6):
         """사실상 영인 웨이트의 수를 센다."""
-        # 이름 그대로 "사실상" 영이다. L1 벌점을 로스에 더해 Adam으로
+        # 이름 그대로 "사실상" 영이다. L1 패널티를 로스에 더해 Adam으로
         # 미분해 내려가는 방식은 웨이트를 0 근처로 밀 뿐 0에 못박지
         # 못한다. 정확히 0을 얻으려면 아래의 근접 경사 하강법이 필요하다.
         # 그래서 여기서 나온 희소도는 임계값을 얼마로 잡느냐에 달려 있다
@@ -306,7 +306,7 @@ def train_with_l1(model, train_loader, val_loader,
             
             predictions = model(X_batch)
             mse_loss = criterion(predictions, y_batch)
-            # 벌점은 배치와 무관하다. 데이터를 보지 않고 웨이트만 보므로
+            # 패널티는 배치와 무관하다. 데이터를 보지 않고 웨이트만 보므로
             # 한 에포크 안에서도 값이 거의 같지만, 배치마다 다시 계산해야
             # 한다. 갱신 뒤에는 웨이트가 달라져 있기 때문이다
             l1_penalty = lambda_l1 * model.get_l1_norm()
@@ -314,9 +314,9 @@ def train_with_l1(model, train_loader, val_loader,
             
             loss.backward()
             optimizer.step()
-            # 기록하는 것은 loss가 아니라 mse_loss다. 벌점을 빼고 재야
+            # 기록하는 것은 loss가 아니라 mse_loss다. 패널티를 빼고 재야
             # lambda_l1이 다른 실험끼리 로스 곡선을 견줄 수 있다.
-            # 벌점까지 넣으면 강도가 셀수록 로스가 커 보여 뜻이 흐려진다
+            # 패널티까지 넣으면 강도가 셀수록 로스가 커 보여 뜻이 흐려진다
             train_loss += mse_loss.item()
         
         # 검증
@@ -328,8 +328,8 @@ def train_with_l1(model, train_loader, val_loader,
                 val_loss += criterion(predictions, y_batch).item()
         
         # 지표를 추적한다
-        # len(loader)는 배치의 개수다. 즉 표본이 아니라 묶음으로 나눈
-        # 평균이라, 마지막 배치가 짧으면 그 배치가 실제보다 큰 무게를
+        # len(loader)는 배치의 개수다. 즉 표본 수가 아니라 배치 수로 나눈
+        # 평균이라, 마지막 배치가 짧으면 그 배치가 실제보다 큰 비중을
         # 얻는다. 표본 단위로 재려면 로스에 배치 크기를 곱해 두었다가
         # 표본 총수로 나누어야 한다
         train_loss /= len(train_loader)
@@ -356,7 +356,7 @@ L1로 더 효율적으로 최적화하려면 근접 경사 하강법을 쓴다.
 def proximal_l1(weights: torch.Tensor, lambda_l1: float, 
                 lr: float) -> torch.Tensor:
     """
-    L1 정칙화의 근접 연산자 (연성 임계화).
+    L1 정칙화의 근접 연산자 (소프트 스레숄딩).
     
     인수:
         weights: 파라메터 텐서
@@ -364,17 +364,17 @@ def proximal_l1(weights: torch.Tensor, lambda_l1: float,
         lr: 러닝레이트
         
     반환값:
-        연성 임계화를 거친 웨이트
+        소프트 스레숄딩을 거친 웨이트
     """
     # 이것이 앞에서 말한 "0에 못박는" 연산이다. 로스에 |w|를 더해
-    # 미분해 내려가는 방식은 웨이트를 0 근처로 밀 뿐이지만, 연성
-    # 임계화는 크기가 임계값에 못 미치는 웨이트를 정확히 0으로 만든다.
+    # 미분해 내려가는 방식은 웨이트를 0 근처로 밀 뿐이지만, 소프트
+    # 스레숄딩은 크기가 임계값에 못 미치는 웨이트를 정확히 0으로 만든다.
     # 그래서 count_zero_weights의 임계값 타령이 여기서는 필요 없다.
     #
     # 식을 뜯어보면, 부호는 그대로 두고 크기에서 threshold만큼을 빼되
     # 음수가 되면 0에서 멈춘다. |w| <= threshold인 웨이트는 모두 0으로
     # 떨어지고, 살아남은 웨이트도 threshold만큼 0 쪽으로 당겨진다.
-    # 임계가 lambda * lr인 까닭은 한 스텝에 벌점이 미치는 크기가
+    # 임계가 lambda * lr인 까닭은 한 스텝에 패널티가 미치는 크기가
     # 그만큼이기 때문이다
     threshold = lambda_l1 * lr
     return torch.sign(weights) * torch.clamp(torch.abs(weights) - threshold, min=0)
@@ -393,16 +393,16 @@ class ProximalL1Optimizer:
             for param in self.model.parameters():
                 if param.grad is not None:
                     # 두 스텝을 나누어 밟는 것이 근접 경사 하강법의 요체다.
-                    # 먼저 벌점을 뺀 로스만으로 보통의 경사 하강을 하고,
-                    # 그다음 벌점을 임계화라는 별도의 연산으로 적용한다.
-                    # |w|는 0에서 미분할 수 없으므로 벌점을 그래디언트에
+                    # 먼저 패널티를 뺀 로스만으로 보통의 경사 하강을 하고,
+                    # 그다음 패널티를 스레숄딩이라는 별도의 연산으로 적용한다.
+                    # |w|는 0에서 미분할 수 없으므로 패널티를 그래디언트에
                     # 섞지 않고 이렇게 떼어 놓는 것이다.
-                    # 주의: param.grad에는 벌점이 들어 있으면 안 된다.
+                    # 주의: param.grad에는 패널티가 들어 있으면 안 된다.
                     # 로스에 L1을 더해 backward한 뒤 이 옵티마이저를 쓰면
-                    # 벌점이 두 번 걸린다
+                    # 패널티가 두 번 걸린다
                     # 그래디언트 단계
                     param.data -= self.lr * param.grad
-                    # 근접 단계 (연성 임계화)
+                    # 근접 단계 (소프트 스레숄딩)
                     param.data = proximal_l1(param.data, self.lambda_l1, self.lr)
     
     def zero_grad(self):
@@ -434,8 +434,8 @@ def lasso_feature_selection(X, y, alphas=None):
         선택된 피처의 인덱스와 라쏘 모델
     """
     # 피처 표준화 (L1에서 중요하다).
-    # 벌점이 모든 계수에 같은 세기로 걸리므로, 자가 큰 특성일수록
-    # 계수가 작아져 벌을 덜 받는다. 그러면 "어떤 특성이 살아남는가"가
+    # 패널티가 모든 계수에 같은 세기로 걸리므로, 스케일이 큰 피처일수록
+    # 계수가 작아져 패널티를 덜 받는다. 그러면 "어떤 피처가 살아남는가"가
     # 실제 중요도가 아니라 단위에 따라 정해져 버린다
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
@@ -482,16 +482,16 @@ def compare_regularization_strengths(X, y, alphas):
             'coefficients': lasso.coef_.copy()
         })
 
-    # alpha를 키워 가며 n_nonzero가 줄어드는 자취가 곧 정칙화 경로다.
+    # alpha를 키워 가며 n_nonzero가 줄어드는 궤적이 곧 정칙화 경로다.
     # alpha가 충분히 크면 모든 계수가 0이 되고 모델은 절편만 남는다
     return results
 ```
 
 ---
 
-## 6. 정규화 경로
+## 6. 정칙화 경로
 
-**정규화 경로**는 $\lambda$이 변할 때 계수가 어떻게 바뀌는지 보여 준다.
+**정칙화 경로**는 $\lambda$이 변할 때 계수가 어떻게 바뀌는지 보여 준다.
 
 ```python
 import matplotlib.pyplot as plt
@@ -508,7 +508,7 @@ def plot_lasso_path(X, y, eps=1e-3, n_alphas=100):
         n_alphas: alpha 값의 개수
     """
     # 표준화
-    # 벌점이 계수의 크기를 보고 매겨지므로, 눈금을 맞추지 않으면
+    # 패널티가 계수의 크기를 보고 매겨지므로, 스케일을 맞추지 않으면
     # 단위를 무엇으로 쟀느냐가 어느 피처가 먼저 0이 되는지를 좌우한다.
     # y를 중심화하면 절편을 따로 다루지 않아도 된다
     X_scaled = (X - X.mean(axis=0)) / X.std(axis=0)
@@ -554,7 +554,7 @@ def plot_lasso_path(X, y, eps=1e-3, n_alphas=100):
 
 ---
 
-## 8. 하이퍼파라미터 선택
+## 8. 하이퍼파라메터 선택
 
 ### lambda를 위한 교차 검증
 
@@ -570,15 +570,15 @@ def select_lambda_cv(X, y, lambdas, cv=5):
         X: 피처
         y: 목푯값
         lambdas: 평가할 lambda 값
-        cv: 교차 검증 겹의 수
+        cv: 교차 검증 폴드의 수
         
     반환값:
         최적의 lambda와 교차 검증 점수
     """
     from sklearn.linear_model import Lasso
 
-    # lambda는 학습으로 정해지지 않는 초파라메터다. 훈련 자료에서 고르면
-    # 늘 lambda=0(벌점 없음)이 이기므로, 반드시 검증으로 골라야 한다
+    # lambda는 학습으로 정해지지 않는 하이퍼파라메터다. 학습 데이터에서 고르면
+    # 늘 lambda=0(패널티 없음)이 이기므로, 반드시 검증으로 골라야 한다
     cv_scores = []
     for lam in lambdas:
         model = Lasso(alpha=lam)   # sklearn에서는 lambda를 alpha라 부른다
@@ -586,14 +586,14 @@ def select_lambda_cv(X, y, lambdas, cv=5):
         # sklearn의 scoring은 "클수록 좋다"는 규약이므로 MSE에 음수를 붙여 준다.
         # 그래서 여기서 다시 음수를 씌워 원래의 MSE로 되돌린다
         scores = cross_val_score(model, X, y, cv=cv, scoring='neg_mean_squared_error')
-        cv_scores.append(-scores.mean())   # 겹 5개의 평균 MSE
+        cv_scores.append(-scores.mean())   # 폴드 5개의 평균 MSE
 
     # 이제는 보통의 MSE이므로 가장 작은 것을 고른다
     optimal_idx = np.argmin(cv_scores)
 
     # 곡선 전체를 함께 돌려주는 까닭은, 최솟값 하나보다 곡선의 모양이
     # 더 많은 것을 말해 주기 때문이다. 바닥이 평평하면 lambda를 조금
-    # 크게 잡아 더 성긴 모델을 고르는 편이 낫다(1-표준오차 규칙)
+    # 크게 잡아 더 희소한 모델을 고르는 편이 낫다(1-표준오차 규칙)
     return lambdas[optimal_idx], cv_scores
 ```
 
@@ -609,7 +609,7 @@ $$
 \text{BIC} = k\ln(n) - 2\ln(\hat{L})
 $$
 
-AIC·BIC의 $k$는 해당 통계 모형의 자유도이고 $\hat L$은 그 모형의 최대우도이다. 라쏘의 비영 계수 수를 자유도의 추정값으로 쓰는 데에는 가정이 필요하며, 분산·절편의 추정도 고려한다. 비볼록 뉴럴 네트워크의 임의 L1 학습 결과에 이 식을 그대로 적용하지 않는다.
+AIC·BIC의 $k$는 해당 통계 모형의 자유도이고 $\hat L$은 그 모형의 최대가능도(maximum likelihood; 가능도는 우도라고도 한다)이다. 라쏘의 비영 계수 수를 자유도의 추정값으로 쓰는 데에는 가정이 필요하며, 분산·절편의 추정도 고려한다. 비볼록 뉴럴 네트워크의 임의 L1 학습 결과에 이 식을 그대로 적용하지 않는다.
 
 ---
 
@@ -628,7 +628,7 @@ class SparseInputNetwork(nn.Module):
         self.input_l1 = input_l1
         
         # 첫 레이어 (강하게 정칙화).
-        # 이 레이어만 따로 떼어 둔 까닭은 여기에만 벌점을 걸기 위해서다.
+        # 이 레이어만 따로 떼어 둔 까닭은 여기에만 패널티를 걸기 위해서다.
         # 입력 피처 하나에 해당하는 것은 weight의 한 "열"이라, 그 열이
         # 통째로 0이 되면 그 피처는 뉴럴 네트워크에 아예 들어오지 못한다.
         # 곧 피처 선택이다. 은닉 레이어까지 눌러 버리면 표현력만 잃고
@@ -650,13 +650,13 @@ class SparseInputNetwork(nn.Module):
         return self.hidden(x)
     
     def get_input_l1_penalty(self):
-        """입력 레이어에만 적용하는 L1 벌점."""
+        """입력 레이어에만 적용하는 L1 패널티."""
         # .weight만 쓰고 .bias는 빼는 점을 눈여겨보라. 바이어스는 특정 입력
         # 피처에 딸린 값이 아니라 뉴런마다 하나씩인 상수라, 피처를
         # 고르는 일과 관계가 없다.
-        # 다만 원소마다 벌점을 주는 이 형태는 열을 통째로 밀어내지는
-        # 못한다. 한 피처를 확실히 끄려면 열의 노름에 벌점을 주는
-        # 배치 라쏘가 필요하다
+        # 다만 원소마다 패널티를 주는 이 형태는 열을 통째로 밀어내지는
+        # 못한다. 한 피처를 확실히 끄려면 열의 노름에 패널티를 주는
+        # 그룹 라쏘(group lasso)가 필요하다
         return self.input_l1 * torch.sum(torch.abs(self.input_layer.weight))
 ```
 
@@ -664,7 +664,7 @@ class SparseInputNetwork(nn.Module):
 
 ## 10. 실무 지침
 
-### L1 정규화를 쓸 때
+### L1 정칙화를 쓸 때
 
 1. **피처 선택이 필요할 때**: 피처가 많고 그중 가장 중요한 것을 가려내고 싶을 때
 2. **해석 가능성이 중요할 때**: 희소한 모델이 해석하기 더 쉽다
@@ -673,17 +673,17 @@ class SparseInputNetwork(nn.Module):
 
 ### lambda 고르기
 
-- **너무 작으면**: 정규화가 약하고 과적합하며 영이 아닌 웨이트가 많다
+- **너무 작으면**: 정칙화가 약하고 과적합하며 영이 아닌 웨이트가 많다
 - **너무 크면**: 과소적합하고 고른 피처가 너무 적다
 - **교차 검증을 쓰라**: 데이터가 선택을 이끌게 하라
-- **척도를 고려하라**: L1을 적용하기 전에 피처를 표준화하라
+- **스케일을 고려하라**: L1을 적용하기 전에 피처를 표준화하라
 
 ### 흔한 함정
 
-1. **피처의 척도 조정**: L1은 크기에 따라 패널티를 준다. 척도를 맞추지 않은 피처는 바이어스된 선택으로 이어진다
+1. **피처의 스케일 조정**: L1은 크기에 따라 패널티를 준다. 스케일을 맞추지 않은 피처는 편향된 선택으로 이어진다
 2. **상관된 피처**: 비슷한 피처 사이의 선택이 불안정할 수 있고 해가 유일하지 않을 수도 있다
 3. **미분 불가능성**: 표준 경사 하강법은 어려움을 겪을 수 있으므로 근접 방법을 쓴다
-4. **편향-분산 절충**: $\lambda$이 크면 바이어스는 늘고 분산은 준다
+4. **편향-분산 트레이드오프**: $\lambda$이 크면 편향은 늘고 분산은 준다
 
 ---
 
@@ -692,7 +692,7 @@ class SparseInputNetwork(nn.Module):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-부분그래디언트의 최적 조건과 단순 경사 갱신에서의 정확한 0을 구분하라.
+부분그래디언트의 최적 조건과 단순 그래디언트 갱신에서의 정확한 0을 구분하라.
 
 </div>
 
@@ -716,7 +716,7 @@ L1과 L2의 희소성 경향과 그 한계를 비교하라.
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-L1 정규화 학습을 위한 근접 경사 하강법을 구현하라.
+L1 정칙화 학습을 위한 근접 경사 하강법을 구현하라.
 
 </div>
 
@@ -724,7 +724,7 @@ L1 정규화 학습을 위한 근접 경사 하강법을 구현하라.
     ```python
     def proximal_step(w, grad, lr, lam):
         w_tmp = w - lr * grad  # 그래디언트 단계
-        # 연성 임계화 (L1의 근접 연산자)
+        # 소프트 스레숄딩 (L1의 근접 연산자)
         return torch.sign(w_tmp) * torch.clamp(w_tmp.abs() - lr * lam, min=0)
     ```
 

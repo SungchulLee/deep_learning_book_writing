@@ -27,11 +27,11 @@ class TransformerDecoderBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, mask=None):
-        # 가린 자기 주의
+        # 마스크 셀프 어텐션
         attn_output, _ = self.self_attention(x, x, x, attn_mask=mask)
         x = self.norm1(x + self.dropout(attn_output))
 
-        # 순전파
+        # 피드포워드
         ff_output = self.feed_forward(x)
         x = self.norm2(x + self.dropout(ff_output))
 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
 **축과 마스크의 제한:** 토큰 입력 $(B,L)$를 임베딩하면 $(B,L,E)$가 되지만 nn.MultiheadAttention은 batch_first=False로 $(L,B,E)$를 기대한다. 전치 없이 전달하므로 서로 다른 표본을 시퀀스 위치로 해석해 정보가 섞인다. (L,L) 인과 마스크를 주면 내부가 기대하는 (B,B)와 달라 오류가 날 수 있다.
 
-이 모듈은 mask를 받아 전달할 뿐 인과 마스크를 만들지 않는다. 기본 mask=None인 예제는 의도한 위치별 인과성을 검증하지 않는다. 먼저 batch_first=True 또는 일관된 축 전치로 규약을 맞춘 뒤 미래 키 접근을 제한해야 한다. 출력 모양이 (B,L,V)라는 사실만으로 올바른 디코더임을 확인할 수 없다.
+이 모듈은 mask를 받아 전달할 뿐 인과 마스크를 만들지 않는다. 기본 mask=None인 예제는 의도한 위치별 인과성을 검증하지 않는다. 먼저 batch_first=True 또는 일관된 축 전치로 규약을 맞춘 뒤 미래 키 접근을 제한해야 한다. 출력 형태가 (B,L,V)라는 사실만으로 올바른 디코더임을 확인할 수 없다.
 
 블록은 잔차 합 뒤에 LayerNorm을 두는 Post-LN이며 E→d_ff→E 피드포워드를 사용한다. 위치 표는 학습 가능한 Parameter이고 max_len 이내의 길이를 가정한다. 패딩 마스크·KV 캐시·목표 시프트와 학습 로스는 이 클래스에서 처리하지 않는다.
 
@@ -78,12 +78,12 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-아래 예제가 출력 모양만 확인하는 이유와 추가로 검토해야 할 축·인과성을 설명하라.
+아래 예제가 출력 형태만 확인하는 이유와 추가로 검토해야 할 축·인과성을 설명하라.
 
 </div>
 
 ??? success "풀이"
-    배치 우선 텐서를 기본 시퀀스 우선 어텐션에 전달하는 오류가 있어도 같은 모양의 출력이 나올 수 있다. 축을 맞춘 후 다른 표본 변화가 현재 표본의 예측에 영향을 주지 않는지, 미래 토큰 변경이 과거 위치 출력에 영향을 주지 않는지 평가 모드에서 확인해야 한다. 현재 예제는 마스크도 생략한다.
+    배치 우선 텐서를 기본 시퀀스 우선 어텐션에 전달하는 오류가 있어도 같은 형태의 출력이 나올 수 있다. 축을 맞춘 후 다른 표본 변화가 현재 표본의 예측에 영향을 주지 않는지, 미래 토큰 변경이 과거 위치 출력에 영향을 주지 않는지 평가 모드에서 확인해야 한다. 현재 예제는 마스크도 생략한다.
 
     ```python
     decoder = TransformerDecoder(

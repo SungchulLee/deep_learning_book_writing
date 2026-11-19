@@ -1,10 +1,10 @@
 # 액션 인식을 위한 Two-Stream 네트워크
 
-Two-Stream은 RGB 외형과 optical flow 이동 정보를 별도의 네트워크에서 처리해 결합하는 방식이다. [원 논문](https://arxiv.org/abs/1406.2199)은 두 신호의 상호 보완성을 액션 인식에서 실험했다. 이 계산 구조를 사람의 시각 경로와 정확히 일치하는 모형으로 해석하거나, flow가 모든 과제에서 RGB보다 낫다는 보장으로 확대하지 않는다.
+Two-Stream은 RGB 외형과 optical flow 이동 정보를 별도의 네트워크에서 처리해 결합하는 방식이다. [원 논문](https://arxiv.org/abs/1406.2199)은 두 신호의 상호 보완성을 액션 인식에서 실험했다. 이 계산 구조를 사람의 시각 경로와 정확히 일치하는 모델로 해석하거나, flow가 모든 과제에서 RGB보다 낫다는 보장으로 확대하지 않는다.
 
 ## 1. RGB 가지와 프레임 집계
 
-RGB 한 프레임은 물체·장면·자세를 제공하지만 시간 방향이 중요한 액션은 여러 프레임이 필요할 수 있다. 그렇다고 RGB 기반 단일 경로가 시간 정보를 배울 수 없는 것은 아니다. 3D CNN·LSTM·attention 등으로도 시간 결합이 가능하다. Two-Stream의 피처는 여기서 흐름을 별도 입력으로 제공한다는 데 있다.
+RGB 한 프레임은 물체·장면·자세를 제공하지만 시간 방향이 중요한 액션은 여러 프레임이 필요할 수 있다. 그렇다고 RGB 기반 단일 경로가 시간 정보를 배울 수 없는 것은 아니다. 3D CNN·LSTM·attention 등으로도 시간 결합이 가능하다. Two-Stream의 특징은 여기서 흐름을 별도 입력으로 제공한다는 데 있다.
 
 ```python
 import torch
@@ -13,10 +13,10 @@ import torchvision.models as models
 
 class SpatialStream(nn.Module):
     """
-    겉모습에 바탕한 알아보기를 위한 자리 클래스.
+    외형 기반 인식을 위한 공간 스트림.
     
-    옮겨 배우기에 ImageNet에서 미리 익힌 모델을 쓴다.
-    핵심 눈썰미: 몸짓은 흔히 물체 및 장면과 얽혀 있다.
+    전이 학습을 위해 ImageNet에서 사전 학습된 모델을 쓴다.
+    핵심 통찰: 액션은 흔히 물체 및 장면과 얽혀 있다.
     """
     
     def __init__(self, 
@@ -26,7 +26,7 @@ class SpatialStream(nn.Module):
                  dropout: float = 0.5):
         super().__init__()
         
-        # 미리 익힌 등뼈 읽어 들이기
+        # 사전 학습된 백본 불러오기
         if backbone == 'resnet50':
             base = models.resnet50(pretrained=pretrained)
             self.feature_dim = 2048
@@ -36,10 +36,10 @@ class SpatialStream(nn.Module):
         else:
             raise ValueError(f"Unknown backbone: {backbone}")
         
-        # 마지막 온전히 이은 레이어 없애기
+        # 마지막 완전 연결 레이어 제거
         self.features = nn.Sequential(*list(base.children())[:-1])
         
-        # 몸짓 클래스 매개
+        # 액션 분류기
         self.classifier = nn.Sequential(
             nn.Dropout(p=dropout),
             nn.Linear(self.feature_dim, num_classes)
@@ -48,11 +48,11 @@ class SpatialStream(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            x: RGB 틀 (B, 3, H, W) 또는 영상 (B, T, 3, H, W)
+            x: RGB 프레임 (B, 3, H, W) 또는 영상 (B, T, 3, H, W)
         반환값:
             클래스 로짓 (B, num_classes)
         """
-        # 영상 들임 다루기
+        # 영상 입력 다루기
         if x.dim() == 5:
             B, T, C, H, W = x.shape
             x = x.view(B * T, C, H, W)
@@ -68,14 +68,14 @@ class SpatialStream(nn.Module):
         # 분류
         logits = self.classifier(features)
         
-        # 영상은 때에 걸쳐 어림 고루내기
+        # 영상은 시간에 걸쳐 예측을 평균하기
         if is_video:
             logits = logits.view(B, T, -1).mean(dim=1)
         
         return logits
     
     def extract_features(self, x: torch.Tensor) -> torch.Tensor:
-        """클래스를 매기지 않고 피처만 뽑는다."""
+        """분류하지 않고 피처만 추출한다."""
         if x.dim() == 5:
             B, T, C, H, W = x.shape
             x = x.view(B * T, C, H, W)
@@ -92,10 +92,10 @@ SpatialStream은 ResNet-50 또는101의 이미지 피처를 사용하고 새 액
 def sample_frames_spatial(video: torch.Tensor, 
                           num_samples: int = 25) -> torch.Tensor:
     """
-    자리 클래스 시험을 위해 틀을 뽑는다.
+    공간 스트림 시험을 위해 프레임을 뽑는다.
     
-    전략: 영상 전체에서 틀 25개를 고루 뽑는다.
-    어림: 틀마다의 소프트맥스 점수를 고루낸 값.
+    전략: 영상 전체에서 프레임 25개를 균일하게 뽑는다.
+    예측: 프레임마다의 소프트맥스 점수를 평균한 값.
     """
     T = video.shape[0]
     indices = torch.linspace(0, T - 1, num_samples).long()
@@ -109,13 +109,13 @@ def sample_frames_spatial(video: torch.Tensor,
 ```python
 class TemporalStream(nn.Module):
     """
-    액션에 바탕한 알아보기를 위한 때 클래스.
+    움직임 기반 인식을 위한 시간 스트림.
     
-    들임: 잇단 빛 흐름 마당 L개의 쌓기.
+    입력: 연속한 옵티컬 플로우 장 L개의 스택.
     흐름마다 채널이 2개다(가로 u, 세로 v).
-    전체 들임 채널: 2L
+    전체 입력 채널: 2L
     
-    흔한 자리매김: L = 10(흐름 마당 10개 = 채널 20개)
+    흔한 설정: L = 10(흐름장 10개 = 채널 20개)
     """
     
     def __init__(self,
@@ -127,22 +127,22 @@ class TemporalStream(nn.Module):
         self.flow_length = flow_length
         input_channels = 2 * flow_length  # 흐름마다의 u와 v
         
-        # 흐름 들임에 맞게 고친 ResNet
-        # 미리 익힌 무게를 쓸 수 없다(들임 채널이 다르다)
+        # 흐름 입력에 맞게 수정한 ResNet
+        # 사전 학습된 웨이트를 쓸 수 없다(입력 채널이 다르다)
         resnet = models.resnet50(pretrained=False)
         
-        # 첫 컨볼루션 레이어 갈음
+        # 첫 컨볼루션 레이어 교체
         self.conv1 = nn.Conv2d(
             input_channels, 64,
             kernel_size=7, stride=2, padding=3, bias=False
         )
         
-        # 미리 익힌 RGB 무게의 평균으로 초기화
-        # 이러면 자리 짜임에 대한 앎이 얼마간 옮겨진다
-        if True:  # 있어도 되는 무게 초기화
+        # 사전 학습된 RGB 웨이트의 평균으로 초기화
+        # 이러면 공간 구조에 대한 지식이 얼마간 전이된다
+        if True:  # 선택적인 웨이트 초기화
             pretrained = models.resnet50(pretrained=True)
             pretrained_weight = pretrained.conv1.weight.data
-            # RGB 채널로 고루내고 흐름 채널만큼 되풀이
+            # RGB 채널에 걸쳐 평균하고 흐름 채널 수만큼 반복
             mean_weight = pretrained_weight.mean(dim=1, keepdim=True)
             self.conv1.weight.data = mean_weight.repeat(1, input_channels, 1, 1)
             self.conv1.weight.data /= input_channels  # 알맞게 스케일 맞추기
@@ -166,7 +166,7 @@ class TemporalStream(nn.Module):
     def forward(self, flow: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            flow: 쌓아 올린 빛 흐름 (B, 2*L, H, W)
+            flow: 스택으로 쌓은 옵티컬 플로우 (B, 2*L, H, W)
         반환값:
             클래스 로짓 (B, num_classes)
         """
@@ -202,35 +202,35 @@ def compute_optical_flow(frame1: np.ndarray,
                          frame2: np.ndarray,
                          method: str = 'farneback') -> np.ndarray:
     """
-    두 틀 사이의 촘촘한 빛 흐름을 셈한다.
+    두 프레임 사이의 밀집 옵티컬 플로우를 계산한다.
     
     인수:
-        frame1: 앞 틀 (H, W, 3) RGB, 값 [0, 1]
-        frame2: 지금 틀 (H, W, 3) RGB, 값 [0, 1]
+        frame1: 앞 프레임 (H, W, 3) RGB, 값 [0, 1]
+        frame2: 현재 프레임 (H, W, 3) RGB, 값 [0, 1]
         method: 흐름 알고리즘('farneback' 또는 'tvl1')
     
     반환값:
-        flow: (u, v) 성분을 갖는 빛 흐름 (H, W, 2)
+        flow: (u, v) 성분을 갖는 옵티컬 플로우 (H, W, 2)
         
-    흐름 벡터는 화소의 옮김을 가리킨다:
-        - u: 가로 액션(양수 = 오른쪽)
-        - v: 세로 액션(양수 = 아래쪽)
+    흐름 벡터는 픽셀의 변위를 가리킨다:
+        - u: 가로 움직임(양수 = 오른쪽)
+        - v: 세로 움직임(양수 = 아래쪽)
     """
-    # 잿빛 uint8로 바꾸기
+    # 그레이스케일 uint8로 바꾸기
     gray1 = cv2.cvtColor((frame1 * 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
     gray2 = cv2.cvtColor((frame2 * 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
     
     if method == 'farneback':
         # 군나르 파르네베크 알고리즘
-        # 이웃을 어림하려 다항식 펼침을 쓴다
+        # 이웃을 근사하려 다항식 전개를 쓴다
         flow = cv2.calcOpticalFlowFarneback(
             gray1, gray2, None,
             pyr_scale=0.5,    # 피라미드 스케일(0.5 = 고전 피라미드)
-            levels=3,          # 피라미드 레이어 수
-            winsize=15,        # 고루내기 창 크기
-            iterations=3,      # 피라미드 켜마다의 되풀이 횟수
-            poly_n=5,          # 화소 이웃의 크기
-            poly_sigma=1.2,    # 다항식 펼침의 가우스 표준편차
+            levels=3,          # 피라미드 레벨 수
+            winsize=15,        # 평균 창 크기
+            iterations=3,      # 피라미드 레벨마다의 반복 횟수
+            poly_n=5,          # 픽셀 이웃의 크기
+            poly_sigma=1.2,    # 다항식 전개의 가우스 표준편차
             flags=0
         )
     elif method == 'tvl1':
@@ -246,15 +246,15 @@ def extract_flow_stack(video: torch.Tensor,
                        flow_length: int = 10,
                        normalize: bool = True) -> torch.Tensor:
     """
-    때 클래스를 위해 영상에서 쌓아 올린 빛 흐름을 뽑는다.
+    시간 스트림을 위해 영상에서 스택으로 쌓은 옵티컬 플로우를 뽑는다.
     
     인수:
         video: 값이 [0, 1]인 영상 텐서 (T, C, H, W)
-        flow_length: 쌓을 흐름 마당의 개수(L)
-        normalize: 흐름 값을 고르게 맞출지 여부
+        flow_length: 쌓을 흐름장의 개수(L)
+        normalize: 흐름 값을 정규화할지 여부
     
     반환값:
-        flow_stack: 쌓아 올린 흐름 (2*L, H, W)
+        flow_stack: 스택으로 쌓은 흐름 (2*L, H, W)
     """
     T, C, H, W = video.shape
     
@@ -267,20 +267,20 @@ def extract_flow_stack(video: torch.Tensor,
         frame1 = video[t].permute(1, 2, 0).numpy()  # (H, W, C)
         frame2 = video[t + 1].permute(1, 2, 0).numpy()
         
-        # 흐름 셈하기
+        # 흐름 계산하기
         flow = compute_optical_flow(frame1, frame2)  # (H, W, 2)
         
-        # 흐름 값 고르게 맞추기
+        # 흐름 값 정규화하기
         if normalize:
-            # 흔한 흐름 값은 화소 [-20, 20] 안이다
-            # [-1, 1]로 고르게 맞추기
+            # 일반적인 흐름 값은 픽셀 [-20, 20] 안이다
+            # [-1, 1]로 정규화하기
             flow = np.clip(flow / 20.0, -1, 1)
         
         # 텐서로 바꾸기: (2, H, W)
         flow_tensor = torch.from_numpy(flow).permute(2, 0, 1).float()
         flows.append(flow_tensor)
     
-    # 쌓기: (L, 2, H, W) → (2*L, H, W)
+    # 스택: (L, 2, H, W) → (2*L, H, W)
     flow_stack = torch.cat(flows, dim=0)
     
     return flow_stack
@@ -288,26 +288,26 @@ def extract_flow_stack(video: torch.Tensor,
 
 이 함수는0~1 RGB 프레임을255배해 grayscale uint8로 바꾼다. uint8 입력이나 이미 정규화된 모델 입력을 그대로 넣으면 맞지 않는다. Farnebäck와 TV-L1은 다른 추정기이며 후자는 `cv2.optflow`를 제공하는 설치 구성이 필요하다. 밝기 변화·가림·큰 이동·반복 무늬에서 오차가 생길 수 있다.
 
-extract_flow_stack은 CPU·경사 없는 T×3×H×W에서 처음 L쌍을 계산한다. .numpy()전에 장치 이동·detach가 없으므로 GPU나 requires_grad 입력에는 그대로 쓸 수 없다. normalize=True는 성분을20으로 나누어−1~1로 자르므로20픽셀보다 큰 이동량의 구분이 사라진다. 이 값은 확률도 표준편차 정규화도 아니다. L쌍에는 적어도 L+1프레임이 필요하고 이 과정은 미분 가능한 흐름 추정 경로가 아니다.
+extract_flow_stack은 CPU·그래디언트 없는 T×3×H×W에서 처음 L쌍을 계산한다. .numpy()전에 장치 이동·detach가 없으므로 GPU나 requires_grad 입력에는 그대로 쓸 수 없다. normalize=True는 성분을20으로 나누어−1~1로 자르므로20픽셀보다 큰 이동량의 구분이 사라진다. 이 값은 확률도 표준편차 정규화도 아니다. L쌍에는 적어도 L+1프레임이 필요하고 이 과정은 미분 가능한 흐름 추정 경로가 아니다.
 
 ```python
 def visualize_flow(flow: np.ndarray) -> np.ndarray:
     """
-    빛 흐름을 RGB 그림으로 바꾼다.
+    옵티컬 플로우를 RGB 그림으로 바꾼다.
     
-    부호화:
+    인코딩:
         - 색상: 흐름 방향(각)
         - 채도: 최대(상수)
         - 밝기: 흐름의 크기
     
     인수:
-        flow: 빛 흐름 (H, W, 2)
+        flow: 옵티컬 플로우 (H, W, 2)
     반환값:
         RGB 그림 (H, W, 3)
     """
     h, w = flow.shape[:2]
     
-    # 크기와 각 셈하기
+    # 크기와 각 계산하기
     mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
     
     # HSV 그림 만들기
@@ -329,12 +329,12 @@ def visualize_flow(flow: np.ndarray) -> np.ndarray:
 ```python
 class TwoStreamNetwork(nn.Module):
     """
-    녹여 붙이기를 갖춘 온전한 두 클래스 네트워크.
+    융합을 갖춘 온전한 Two-Stream 네트워크.
     
-    녹여 붙이기 선택:
-    1. 고루내기: 소프트맥스 점수의 단순 평균
-    2. 무게: 배울 수 있거나 붙박이인 무게
-    3. 러닝: 다층 퍼셉트론이 피처 벡터를 아우른다
+    융합 방식:
+    1. 평균: 소프트맥스 점수의 단순 평균
+    2. 가중: 학습 가능하거나 고정된 웨이트
+    3. 학습: 다층 퍼셉트론이 피처 벡터를 결합한다
     """
     
     def __init__(self,
@@ -349,10 +349,10 @@ class TwoStreamNetwork(nn.Module):
         self.fusion = fusion
         
         if fusion == 'weighted':
-            # 붙박이 무게 또는 배울 수 있는 무게
+            # 고정 웨이트 또는 학습 가능한 웨이트
             self.alpha = nn.Parameter(torch.tensor(spatial_weight))
         elif fusion == 'learned':
-            # 피처를 이어 붙이고 아우름을 배우기
+            # 피처를 연결하고 결합을 학습하기
             self.fusion_net = nn.Sequential(
                 nn.Linear(num_classes * 2, num_classes * 2),
                 nn.ReLU(),
@@ -365,27 +365,27 @@ class TwoStreamNetwork(nn.Module):
                 flow: torch.Tensor) -> torch.Tensor:
         """
         인수:
-            rgb: RGB 틀 (B, 3, H, W) 또는 (B, T, 3, H, W)
-            flow: 빛 흐름 쌓기 (B, 2*L, H, W)
+            rgb: RGB 프레임 (B, 3, H, W) 또는 (B, T, 3, H, W)
+            flow: 옵티컬 플로우 스택 (B, 2*L, H, W)
         반환값:
-            녹여 붙인 클래스 로짓 (B, num_classes)
+            융합한 클래스 로짓 (B, num_classes)
         """
-        # 클래스별 어림 얻기
+        # 스트림별 예측 얻기
         spatial_logits = self.spatial(rgb)
         temporal_logits = self.temporal(flow)
         
-        # 녹여 붙이기
+        # 융합
         if self.fusion == 'average':
-            # 단순 고루내기(실제로는 때 클래스가 조금 낫다)
+            # 단순 평균(실제로는 시간 스트림이 조금 낫다)
             fused = (spatial_logits + temporal_logits) / 2
             
         elif self.fusion == 'weighted':
-            # 무게를 준 아우름
+            # 가중 결합
             alpha = torch.sigmoid(self.alpha)  # [0, 1]에 두기
             fused = alpha * spatial_logits + (1 - alpha) * temporal_logits
             
         elif self.fusion == 'learned':
-            # 이어 붙이고 배우기
+            # 연결하고 학습하기
             combined = torch.cat([spatial_logits, temporal_logits], dim=1)
             fused = self.fusion_net(combined)
         
@@ -397,9 +397,9 @@ class TwoStreamNetwork(nn.Module):
 ```python
 class FeatureFusionTwoStream(nn.Module):
     """
-    이른 녹여 붙이기: 두 클래스의 피처를 아우른다.
+    조기 융합: 두 스트림의 피처를 결합한다.
     
-    점수 녹여 붙이기보다 잘 나타내지만
+    점수 융합보다 표현력이 좋지만
     피처 차원을 맞춰야 한다.
     """
     
@@ -418,11 +418,11 @@ class FeatureFusionTwoStream(nn.Module):
         )
     
     def forward(self, rgb, flow):
-        # 피처 뽑아내기(로짓 아님)
+        # 피처 추출하기(로짓 아님)
         spatial_feat = self.spatial.extract_features(rgb)  # (B, 2048)
         temporal_feat = self.temporal.features(flow).flatten(1)  # (B, 2048)
         
-        # 이어 붙이고 녹여 붙이기
+        # 연결하고 융합하기
         combined = torch.cat([spatial_feat, temporal_feat], dim=1)
         return self.fusion_layer(combined)
 ```
@@ -434,14 +434,14 @@ FeatureFusionTwoStream은 선언된 TemporalStream에 없는 `.features`를 호�
 ```python
 def train_two_stream_separate():
     """
-    두 클래스 네트워크의 익히기 절차.
+    Two-Stream 네트워크의 학습 절차.
     
-    1. RGB 틀로 자리 클래스 익히기(ImageNet에서 미리 익힌 것을 쓸 수 있다)
-    2. 빛 흐름 쌓기로 때 클래스 익히기
-    3. 시험 때 어림 녹여 붙이기
+    1. RGB 프레임으로 공간 스트림 학습하기(ImageNet에서 사전 학습된 것을 쓸 수 있다)
+    2. 옵티컬 플로우 스택으로 시간 스트림 학습하기
+    3. 시험 때 예측 융합하기
     """
     
-    # 자리 클래스 익히기
+    # 공간 스트림 학습하기
     spatial_stream = SpatialStream(num_classes=101)
     spatial_optimizer = torch.optim.SGD(
         spatial_stream.parameters(),
@@ -450,7 +450,7 @@ def train_two_stream_separate():
     
     for epoch in range(epochs):
         for frames, labels in spatial_loader:
-            # 영상마다 틀 하나 뽑기
+            # 영상마다 프레임 하나 뽑기
             idx = torch.randint(0, frames.shape[1], (1,)).item()
             single_frame = frames[:, idx]
             
@@ -461,7 +461,7 @@ def train_two_stream_separate():
             loss.backward()
             spatial_optimizer.step()
     
-    # 때 클래스 익히기(마찬가지로)
+    # 시간 스트림 학습하기(마찬가지로)
     temporal_stream = TemporalStream(num_classes=101)
     temporal_optimizer = torch.optim.SGD(
         temporal_stream.parameters(),
@@ -482,7 +482,7 @@ def train_two_stream_separate():
 
 ```python
 def train_two_stream_e2e(model, train_loader, optimizer, epochs):
-    """녹여 붙인 두 클래스 네트워크를 끝에서 끝까지 익히기."""
+    """융합한 Two-Stream 네트워크를 엔드투엔드로 학습하기."""
     
     for epoch in range(epochs):
         for rgb, flow, labels in train_loader:
@@ -496,7 +496,7 @@ def train_two_stream_e2e(model, train_loader, optimizer, epochs):
             optimizer.step()
 ```
 
-공동 학습 루프는 입력·레이블만 CUDA로 옮기므로 모델의 장치를 맞춰야 하고 `.train()` 호출도 없다. 호출 전에 eval로 두었다면 dropout·BN이 학습 모드로 자동 전환되지 않는다. flow 텐서를 입력으로 받는 네트워크의 공동 최적화이지 OpenCV flow 추정까지 역전파하는 end-to-end 학습은 아니다.
+공동 학습 루프는 입력·라벨만 CUDA로 옮기므로 모델의 장치를 맞춰야 하고 `.train()` 호출도 없다. 호출 전에 eval로 두었다면 dropout·BN이 학습 모드로 자동 전환되지 않는다. flow 텐서를 입력으로 받는 네트워크의 공동 최적화이지 OpenCV flow 추정까지 역전파하는 end-to-end 학습은 아니다.
 
 ## 6. 성능을 비교하는 조건
 

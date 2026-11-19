@@ -1,15 +1,15 @@
 # wav2vec 2.0과 음성 표현의 자기지도 학습
 
-[wav2vec 2.0](https://arxiv.org/abs/2006.11477)은 원시 음성에서 잠재 피처를 얻고 일부 구간을 마스킹한 문맥 표현으로 양자화 목표를 구별하는 자기지도 학습 방법이다. 전사 없이 사전 학습한 뒤 레이블이 있는 음성으로 인식 head를 파인튜닝한다. 다음은 그 전체 목적을 구현한 모델이 아니라 컨볼루션·트랜스포머와 선형 출력의 축약 구조다.
+[wav2vec 2.0](https://arxiv.org/abs/2006.11477)은 원시 음성에서 잠재 피처를 얻고 일부 구간을 마스킹한 문맥 표현으로 양자화 목표를 구별하는 자기지도 학습 방법이다. 전사 없이 사전 학습한 뒤 라벨이 있는 음성으로 인식 head를 파인튜닝한다. 다음은 그 전체 목적을 구현한 모델이 아니라 컨볼루션·트랜스포머와 선형 출력의 축약 구조다.
 
 ## 1. 코드와 기존 출력
 
 ```python
 #!/usr/bin/env python3
 '''
-Wav2Vec 2.0 — 말소리 알아듣기를 위한 스스로 살피는 러닝
+Wav2Vec 2.0 — 음성 인식을 위한 자기지도 학습
 논문: "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations" (2020)
-핵심: 말소리를 위한 맞대어 배우기, 양자화, 트랜스포머 인코더
+핵심: 음성을 위한 대조 학습, 양자화, 트랜스포머 인코더
 '''
 import torch
 import torch.nn as nn
@@ -94,7 +94,7 @@ L16000이면 출력 길이는3199→1599→799다. 총 stride20이고 리셉티�
 
 ## 4. 전사 head와 CTC 디코딩
 
-파인튜닝에서는 문맥 표현에 전사 어휘의 선형 head를 붙일 수 있다. 레이블 있는 파형과 전사·실제 입력/목표 길이, CTC의 log-probability·blank 계약을 맞춰 학습해야 한다. 이 파일의 파인튜닝 예제도 head만 선언하고 학습을 수행하지 않는다.
+파인튜닝에서는 문맥 표현에 전사 어휘의 선형 head를 붙일 수 있다. 라벨 있는 파형과 전사·실제 입력/목표 길이, CTC의 log-probability·blank 계약을 맞춰 학습해야 한다. 이 파일의 파인튜닝 예제도 head만 선언하고 학습을 수행하지 않는다.
 
 greedy CTC는 위치별 argmax의 연속 반복을 합친 뒤 blank를 제거하는 경로 축약이다. 예를 들어 a·a·blank·a는 aa가 되어 blank가 구분한 반복은 남는다. 이는 전체 가능한 CTC 경로를 합한 최적 전사 탐색과는 다르다. padding 프레임의 실제 길이도 적용해야 한다. 아래 연습문제의 무작위 입력·웨이트에서 나온 문자열은 인식 정확도의 근거가 아니다.
 
@@ -116,7 +116,7 @@ greedy CTC는 위치별 argmax의 연속 반복을 합친 뒤 blank를 제거하
         def __init__(self):
             super().__init__()
             self.conv_layers = nn.Sequential(
-                nn.Conv1d(2, 512, 10, stride=5, bias=False),  # 들임 채널 2개
+                nn.Conv1d(2, 512, 10, stride=5, bias=False),  # 입력 채널 2개
                 nn.GroupNorm(512, 512),
                 nn.GELU(),
                 nn.Conv1d(512, 512, 3, stride=2, bias=False),
@@ -169,8 +169,8 @@ greedy CTC는 위치별 argmax의 연속 반복을 합친 뒤 blank를 제거하
             super().__init__()
             self.wav2vec2 = Wav2Vec2(d_model, n_layers, n_heads)
             self.lm_head = nn.Linear(d_model, vocab_size)
-            self.blank_id = vocab_size - 1  # CTC 빈 토큰
-            # 단어 곳간: a-z (0-25), 사이 (26), ' (27), <unk> (28), <blank> (29)
+            self.blank_id = vocab_size - 1  # CTC blank 토큰
+            # 어휘: a-z (0-25), 공백 (26), ' (27), <unk> (28), <blank> (29)
             self.vocab = list("abcdefghijklmnopqrstuvwxyz '") + ["<unk>", "<blank>"]
         
         def forward(self, x):
@@ -194,7 +194,7 @@ greedy CTC는 위치별 argmax의 연속 반복을 합친 뒤 blank를 제거하
                 texts.append("".join(chars))
             return texts
     
-    # 쓰는 법:
+    # 사용법:
     model = Wav2Vec2ForASR()
     x = torch.randn(1, 1, 16000)
     logits = model(x)

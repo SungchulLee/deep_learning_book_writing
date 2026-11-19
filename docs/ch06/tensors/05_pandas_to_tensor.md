@@ -17,7 +17,7 @@ import numpy as np
 def print_info(t):
     # 텐서를 빠르게 살펴보는 함수:
     # - t: dtype을 고려한 형식으로 값을 출력한다
-    # - t.shape: 계수/크기. []는 스칼라, [N]은 1차원, [R,C]는 2차원 등이다.
+    # - t.shape: 차원 수/크기. []는 스칼라, [N]은 1차원, [R,C]는 2차원 등이다.
     # - t.dtype: 추론되거나 강제된다. NumPy float64 → 기본적으로 torch.float64
     # - requires_grad: autograd 플래그(실수/복소수에 True로 설정하지 않으면 False)
     print(f"{t = }", f"{t.shape = }", f"{t.dtype = }", f"{t.requires_grad = }", sep="\n", end="\n\n")
@@ -94,14 +94,14 @@ def main():
     #                                        스트라이드가 지원되면 공유, 아니면 COPY로 되돌아간다)
     #
     # • 파이썬 리스트/튜플을 쓸 때(NumPy가 아닐 때):
-    #     torch.tensor(list_like)      → **베낌**
+    #     torch.tensor(list_like)      → **COPY**
     #     torch.as_tensor(list_like)   → **COPY**(공유할 것이 없다)
     #
     # • Autograd:
     #     새로 만든 텐서는 requires_grad=False이다.
     #     역전파를 할 것이라면 실수/복소수 텐서에 requires_grad=True를 설정한다.
     #
-    # • 기기/데이터 클래스:
+    # • 장치/자료형:
     #     dtype를 명시하는 편이 좋다(예: 학습에는 float32). 필요하면 장치를 옮긴다:
     #         t = torch.from_numpy(arr).to("cuda")   # CPU에서 먼저 공유한 뒤 GPU로 COPY
     #         t = torch.tensor(df.to_numpy(np.float32), device="cuda")  # GPU로 바로 **COPY**
@@ -323,11 +323,11 @@ s2 = pd.Series([1, 2, None], dtype="Int64")      # 대문자 I
     그러므로 확인은 **바꾸기 전에** pandas 쪽에서 한다.
 
     ```python
-    print("빠진 값이 있는가:", s1.isna().any())
+    print("결측값이 있는가:", s1.isna().any())
     ```
 
     ```
-    빠진 값이 있는가: True
+    결측값이 있는가: True
     ```
 
 ## 정리하며

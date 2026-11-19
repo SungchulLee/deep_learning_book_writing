@@ -1,12 +1,12 @@
 # 켤레 사전분포
 
-켤레 사전분포를 사용하면 사후분포가 같은 분포족에 속하므로 하이퍼파라미터의 갱신만으로 추론을 정리할 수 있다. 지수족에서 이 구조가 나타나는 이유를 설명하고 베타-이항, 감마-푸아송, 정규-정규, 정규-역감마 모델의 갱신과 예측분포를 유도한다. 분포의 파라메터화와 적절성 조건을 함께 확인한다.
+켤레 사전분포를 사용하면 사후분포가 같은 분포족에 속하므로 하이퍼파라메터의 갱신만으로 추론을 정리할 수 있다. 지수족에서 이 구조가 나타나는 이유를 설명하고 베타-이항, 감마-푸아송, 정규-정규, 정규-역감마 모델의 갱신과 예측분포를 유도한다. 분포의 파라메터화와 적절성 조건을 함께 확인한다.
 
 ## 1. 켤레 사전분포란 무엇인가
 
 **정의 1.** [켤레족]
 
-우도족 $\{p(D \mid \theta)\}$ 에 대해 사전분포의 족 $\mathcal{F}$ 가 다음을 만족하면 $\mathcal{F}$ 를 그 우도의 **켤레족**이라 한다.
+가능도(likelihood, 우도라고도 한다)의 족 $\{p(D \mid \theta)\}$ 에 대해 사전분포의 족 $\mathcal{F}$ 가 다음을 만족하면 $\mathcal{F}$ 를 그 가능도의 **켤레족**이라 한다.
 
 $$
 p(\theta) \in \mathcal{F} \;\Longrightarrow\; p(\theta \mid D) \in \mathcal{F}
@@ -18,7 +18,7 @@ $$
 
 ### 정리 1. 지수족의 켤레성 — 자연 파라메터에 대한 선형 갱신 { .thm }
 
-우도가 자연 파라메터 $\eta$ 와 충분 통계량 $T(x)$ 를 갖는 지수족
+가능도가 자연 파라메터 $\eta$ 와 충분 통계량 $T(x)$ 를 갖는 지수족
 
 $$
 p(x \mid \eta) = h(x)\,\exp\bigl(\eta^\top T(x) - A(\eta)\bigr)
@@ -30,7 +30,7 @@ $$
 p(\eta \mid \nu, \chi) \;\propto\; \exp\bigl(\eta^\top \chi - \nu A(\eta)\bigr)
 $$
 
-형태의 사전분포가 정규화 가능하고 관측들이 η를 조건으로 독립이면 켤레 갱신을 얻는다. 이 식은 자연 파라메터 공간의 고정된 기준측도에 대한 밀도다. 관측 $x_1,\dots,x_n$ 뒤의 하이퍼파라미터는
+형태의 사전분포가 정규화 가능하고 관측들이 η를 조건으로 독립이면 켤레 갱신을 얻는다. 이 식은 자연 파라메터 공간의 고정된 기준측도에 대한 밀도다. 관측 $x_1,\dots,x_n$ 뒤의 하이퍼파라메터는
 
 $$
 \chi_n = \chi + \sum_{i=1}^n T(x_i), \qquad \nu_n = \nu + n
@@ -42,7 +42,7 @@ $$
 
 ??? proof "증명"
 
-    비례 관계에 우도와 사전분포를 넣으면
+    비례 관계에 가능도와 사전분포를 넣으면
 
     $$
     p(\eta \mid D) \;\propto\; \Bigl[\textstyle\prod_i h(x_i)\Bigr]
@@ -56,16 +56,16 @@ $$
     p(\eta\mid D) \;\propto\; \exp\Bigl(\eta^\top\bigl(\chi + \textstyle\sum_i T(x_i)\bigr) - (\nu+n)A(\eta)\Bigr)
     $$
 
-    이고, 이는 하이퍼파라미터가 $(\chi_n, \nu_n)$ 인 같은 형태의 분포이다.
+    이고, 이는 하이퍼파라메터가 $(\chi_n, \nu_n)$ 인 같은 형태의 분포이다.
 
 !!! note "쓰임새"
-    지수족의 우도와 위 사전분포는 자연 파라메터에 대한 지수가 같은 형태이므로 충분통계량을 더해 갱신된다. ν·χ는 사전 정보의 크기와 중심을 표현하지만 실제 관측 수와 일대일로 같지는 않다. 다른 파라메터 좌표에서 밀도를 적을 때는 야코비안을 포함해야 하며, 허용 가능한 하이퍼파라미터와 정규화 가능성도 확인해야 한다.
+    지수족의 가능도와 위 사전분포는 자연 파라메터에 대한 지수가 같은 형태이므로 충분통계량을 더해 갱신된다. ν·χ는 사전 정보의 크기와 중심을 표현하지만 실제 관측 수와 일대일로 같지는 않다. 다른 파라메터 좌표에서 밀도를 적을 때는 야코비안을 포함해야 하며, 허용 가능한 하이퍼파라메터와 정규화 가능성도 확인해야 한다.
 
-| 우도 | 켤레 사전분포 | 갱신되는 것 |
+| 가능도 | 켤레 사전분포 | 갱신되는 것 |
 |--------|------------|------------|
 | 베르누이 · 이항 | 베타 | 성공 횟수, 실패 횟수 |
 | 푸아송 | 감마 | 사건 수의 합, 관측 시간 |
-| 정규(분산 앎) | 정규 | 정밀도, 정밀도로 가중 평균 |
+| 정규(분산을 알 때) | 정규 | 정밀도, 정밀도로 가중 평균 |
 | 정규(둘 다 모름) | 정규-역감마 | 위의 것에 제곱합을 더함 |
 | 다항 | 디리클레 | 범주별 도수 |
 | 지수 | 감마 | 관측 수, 값의 합 |
@@ -76,19 +76,19 @@ $$
 
 위 표의 짝들은 자연이 정해 준 것이 아니다. **대수가 닫히도록 고른 것**이고, 그렇게 고르자는 생각에 이름을 붙인 사람은 하워드 라이파(Howard Raiffa)와 로버트 슐라이퍼(Robert Schlaifer)다. 1961년 책 『Applied Statistical Decision Theory』에서 켤레족이라는 말을 세우고 지수족마다 짝을 정리해 두었다. 조지 바너드(George A. Barnard)가 따로 같은 생각에 이르렀고, 개별 사례는 19세기까지 거슬러 올라간다 — 베이즈가 1763년에 쓴 베타-이항도 켤레인데, 그는 그렇게 부르지 않았다.
 
-고른 기준은 위 정리가 그대로 말해 준다. 충분통계량의 차원이 고정된 우도라면 갱신이 **더하기와 세기**로 끝난다는 것이다. 컴퓨터가 귀하던 시절에 이것은 "편하다"가 아니라 "할 수 있다"와 "못 한다"를 가르는 선이었다.
+고른 기준은 위 정리가 그대로 말해 준다. 충분통계량의 차원이 고정된 가능도라면 갱신이 **더하기와 세기**로 끝난다는 것이다. 컴퓨터가 귀하던 시절에 이것은 "편하다"가 아니라 "할 수 있다"와 "못 한다"를 가르는 선이었다.
 
-**그러니 켤레족은 믿음을 적는 언어가 아니라 셈을 쉽게 하는 형태.** 둘이 어긋나는 자리가 있다. "이 동전은 0.2 쯤이거나 0.8 쯤이고, 그 가운데는 아닐 것 같다"는 믿음을 베타 하나로 적어 보자.
+**그러니 켤레족은 믿음을 적는 언어가 아니라 계산을 쉽게 하는 형태다.** 둘이 어긋나는 자리가 있다. "이 동전은 0.2 쯤이거나 0.8 쯤이고, 그 가운데는 아닐 것 같다"는 믿음을 베타 하나로 적어 보자.
 
-![왼쪽은 사전분포 둘을 겹쳐 그린 것이다. 베타 두 개를 섞은 곡선은 0.125 와 0.875 에 봉우리가 둘 있고 양 끝에서는 0 으로 내려간다. 평균과 분산을 똑같이 맞춘 단일 베타는 가운데가 패이고 양 끝에서 치솟는 U 자 형태. 양 끝의 좁은 띠가 칠해져 있고 그 구간의 확률이 혼합은 0.0712, 단일 베타는 0.1877 이라고 적혀 있다. 오른쪽은 네 번 던져 한 번 앞면이 나온 뒤의 사후분포 둘로, 두 곡선의 모양이 다르고 같은 구간의 확률이 0.0217 과 0.0394 다.](figures/conjugate_limit.svg)
+![왼쪽은 사전분포 둘을 겹쳐 그린 것이다. 베타 두 개를 섞은 곡선은 0.125 와 0.875 에 봉우리가 둘 있고 양 끝에서는 0 으로 내려간다. 평균과 분산을 똑같이 맞춘 단일 베타는 가운데가 패이고 양 끝에서 치솟는 U 자 형태다. 양 끝의 좁은 띠가 칠해져 있고 그 구간의 확률이 혼합은 0.0712, 단일 베타는 0.1877 이라고 적혀 있다. 오른쪽은 네 번 던져 한 번 앞면이 나온 뒤의 사후분포 둘로, 두 곡선의 모양이 다르고 같은 구간의 확률이 0.0217 과 0.0394 다.](figures/conjugate_limit.svg)
 
 평균도 0.500으로 같고 분산도 0.1045로 같은데 **말하는 바가 다르다.** 섞은 쪽은 안쪽에 봉우리가 둘(0.125와 0.875) 있고 양 끝에서는 밀도가 0으로 떨어진다. 평균과 분산을 맞춘 단일 베타는 $\text{Beta}(0.696, 0.696)$ 인데, **안쪽에 봉우리가 하나도 없고** 양 끝에서 치솟는다. 베타도 봉우리를 둘 가질 수는 있지만 그 자리가 0과 1로 못 박혀 있어서, "0.2 쯤 아니면 0.8 쯤"이 아니라 "거의 늘 앞면이거나 거의 늘 뒷면"이라고 말하게 된다. 다른 믿음이다.
 
-재어 보면 값이 나온다. "사실상 한쪽으로 고정된 동전"일 확률, 곧 $P(\theta<0.05 \text{ 또는 } \theta>0.95)$ 가 섞은 쪽은 0.0712인데 단일 베타는 0.1877이다. **평균과 분산이 같은데 2.6배 차이가 난다.** 자료를 넣어도 간격은 남아서, 네 번 던져 한 번 앞면이 나온 뒤에도 0.0217 대 0.0394다.
+재어 보면 값이 나온다. "사실상 한쪽으로 고정된 동전"일 확률, 곧 $P(\theta<0.05 \text{ 또는 } \theta>0.95)$ 가 섞은 쪽은 0.0712인데 단일 베타는 0.1877이다. **평균과 분산이 같은데 2.6배 차이가 난다.** 데이터를 넣어도 간격은 남아서, 네 번 던져 한 번 앞면이 나온 뒤에도 0.0217 대 0.0394다.
 
-**다만 이것이 켤레성을 버릴 까닭은 아니다.** 오른쪽 그림이 보여 주듯 **켤레 사전분포를 섞은 것도 갱신 뒤에 같은 형태로 닫힌다** — 성분마다 켤레 갱신을 하고 가중치만 주변우도 비로 다시 매기면 된다. 대수의 편의는 표의 한 줄보다 멀리까지 간다. 조심할 것은 표를 **믿음의 목록으로 읽는 일**이고, 고른 형태가 하고 싶은 말을 담는지는 쓸 때마다 따로 확인할 일이다.
+**다만 이것이 켤레성을 버릴 까닭은 아니다.** 오른쪽 그림이 보여 주듯 **켤레 사전분포를 섞은 것도 갱신 뒤에 같은 형태로 닫힌다** — 성분마다 켤레 갱신을 하고 가중치만 주변가능도 비로 다시 매기면 된다. 대수의 편의는 표의 한 줄보다 멀리까지 간다. 조심할 것은 표를 **믿음의 목록으로 읽는 일**이고, 고른 형태가 하고 싶은 말을 담는지는 쓸 때마다 따로 확인할 일이다.
 
-_확인한 곳 — H. Raiffa, R. Schlaifer, *Applied Statistical Decision Theory* (1961) 가 켤레족이라는 용어와 지수족별 목록을 세웠다. G. A. Barnard 의 독립적 발견과 19세기의 개별 사례도 2차 문헌에서 확인했다. 그림의 수는 그림을 그리는 코드가 직접 셈하며, 두 사전분포의 평균과 분산이 정말 같은지와 단일 베타에 안쪽 봉우리가 없는지를 스스로 확인한 뒤에만 그린다._
+_확인한 곳 — H. Raiffa, R. Schlaifer, *Applied Statistical Decision Theory* (1961) 가 켤레족이라는 용어와 지수족별 목록을 세웠다. G. A. Barnard 의 독립적 발견과 19세기의 개별 사례도 2차 문헌에서 확인했다. 그림의 수는 그림을 그리는 코드가 직접 계산하며, 두 사전분포의 평균과 분산이 정말 같은지와 단일 베타에 안쪽 봉우리가 없는지를 스스로 확인한 뒤에만 그린다._
 
 </div>
 
@@ -115,7 +115,7 @@ $$
 \theta \mid D \;\sim\; \text{Beta}(\alpha+k,\; \beta+n-k)
 $$
 
-이다. 사후분포의 평균은 사전평균과 최대 우도의 가중 평균이며, 분산은
+이다. 사후분포의 평균은 사전평균과 최대가능도 추정값의 가중 평균이며, 분산은
 
 $$
 \operatorname{Var}[\theta \mid D] = \frac{\alpha_n\beta_n}{(\alpha_n+\beta_n)^2(\alpha_n+\beta_n+1)},
@@ -138,7 +138,7 @@ $$
     이고 이는 $\text{Beta}(\alpha+k,\beta+n-k)$ 의 커널이다. 분산 식은 베타 분포의 이차 적률에서 곧바로 나온다.
 
 !!! note "쓰임새"
-    α+β는 사후평균 웨이트에서 사전분포의 유효 표본 크기로 해석할 수 있다. 실제 성공·실패 관측 수와 동일하다는 뜻은 아니다. 고정된 양의 사전 파라메터와 내부 참값을 가정하면 사후분산은 대략 1/n, 사후 표준편차는 1/√n 크기로 감소한다. 분산 감소가 모든 관측 단계에서 단조롭다는 보장은 없다.
+    α+β는 사후평균의 가중치에서 사전분포의 유효 표본 크기로 해석할 수 있다. 실제 성공·실패 관측 수와 동일하다는 뜻은 아니다. 고정된 양의 사전 파라메터와 내부 참값을 가정하면 사후분산은 대략 1/n, 사후 표준편차는 1/√n 크기로 감소한다. 분산 감소가 모든 관측 단계에서 단조롭다는 보장은 없다.
 
 ??? note "코드 1 (43줄)"
 
@@ -147,10 +147,10 @@ $$
     import numpy as np
 
     class BetaBinomialModel:
-        """이진 자료를 위한 베타-이항 켤레 모형."""
+        """이진 데이터를 위한 베타-이항 켤레 모형."""
 
         def __init__(self, alpha=1, beta=1):
-            """Beta(alpha, beta) 앞확률로 첫스텝을 잡는다."""
+            """Beta(alpha, beta) 사전분포로 초기화한다."""
             self.prior_alpha = alpha
             self.prior_beta = beta
             self.posterior_alpha = alpha
@@ -158,14 +158,14 @@ $$
             self.data_history = []
 
         def update(self, successes, trials):
-            """관측 자료로 뒤확률을 새로 고친다."""
+            """관측 데이터로 사후분포를 갱신한다."""
             failures = trials - successes
             self.posterior_alpha += successes
             self.posterior_beta += failures
             self.data_history.append((successes, trials))
 
         def posterior_predictive(self, n_trials=1):
-            """뒤확률 예측 확률을 셈한다."""
+            """사후 예측 확률을 계산한다."""
             y_values = np.arange(n_trials + 1)
             probs = []
 
@@ -180,7 +180,7 @@ $$
             return np.array(probs)
 
         def summary(self):
-            """간추린 통계량을 찍는다."""
+            """요약 통계량을 출력한다."""
             post_dist = stats.beta(self.posterior_alpha, self.posterior_beta)
 
             print(f"Posterior: Beta({self.posterior_alpha}, {self.posterior_beta})")
@@ -189,7 +189,7 @@ $$
     ```
 
 
-**보기 1.** <span class="diff easy" title="쉬움"></span> 균등 사전분포 $\text{Beta}(1,1)$ 에서 동전을 $10$ 번 던져 앞면 $7$ 번을 보았다. 사후분포과 그 평균·최빈값·표준편차를 구하시오.
+**보기 1.** <span class="diff easy" title="쉬움"></span> 균등 사전분포 $\text{Beta}(1,1)$ 에서 동전을 $10$ 번 던져 앞면 $7$ 번을 보았다. 사후분포와 그 평균·최빈값·표준편차를 구하시오.
 
 ??? success "풀이"
 
@@ -205,7 +205,7 @@ $$
     \;\Longrightarrow\; \text{표준편차} \approx 0.131
     $$
 
-    최빈값이 최대 우도 $0.7$ 과 같은 것은 균등 사전분포가 $\alpha=\beta=1$ 이어서 지수에 아무것도 더하지 않기 때문이다.
+    최빈값이 최대가능도 추정값 $0.7$ 과 같은 것은 균등 사전분포가 $\alpha=\beta=1$ 이어서 지수에 아무것도 더하지 않기 때문이다.
 
 **문제 1.** <span class="diff med" title="중간"></span> 같은 데이터에 $\text{Beta}(10,10)$ 사전분포를 두면 사후분포의 표준편차가 어떻게 달라지는가? 사전분포가 세면 왜 사후분포가 좁아지는지 설명하시오.
 
@@ -222,7 +222,7 @@ $$
 
 ## 3. 사후예측분포와 연속법칙
 
-사후분포 자체보다 "다음에 무엇이 나올까"가 궁금할 때가 많다. 이때는 사후분포로 우도를 평균 낸다.
+사후분포 자체보다 "다음에 무엇이 나올까"가 궁금할 때가 많다. 이때는 사후분포로 가능도를 평균 낸다.
 
 <div class="thmbox" markdown>
 
@@ -246,7 +246,7 @@ $$
 
 ??? proof "증명"
 
-    예측 확률은 우도를 사후분포로 평균 낸 것이다.
+    예측 확률은 가능도를 사후분포로 평균 낸 것이다.
 
     $$
     P(x_{n+1}=1\mid D) = \int_0^1 P(x_{n+1}=1\mid\theta)\,p(\theta\mid D)\,d\theta
@@ -256,13 +256,13 @@ $$
     이는 곧 사후분포의 평균이고, 정리 2에서 사후분포가 $\text{Beta}(\alpha+k,\beta+n-k)$ 이므로 그 평균은 $\dfrac{\alpha+k}{\alpha+\beta+n}$ 이다. $\alpha=\beta=1$ 을 넣으면 $(k+1)/(n+2)$ 이다.
 
 !!! note "쓰임새"
-    최대 우도는 $k=0$ 일 때 확률을 $0$ 으로 못 박아, 한 번도 못 본 일은 **결코 일어나지 않는다**고 말한다. 연속법칙은 $1/(n+2)$ 를 남겨 이 과신을 막는다. 언어 모델의 가산 평활화가 바로 이 계산이다.
+    최대가능도 추정은 $k=0$ 일 때 확률을 $0$ 으로 못 박아, 한 번도 못 본 일은 **결코 일어나지 않는다**고 말한다. 연속법칙은 $1/(n+2)$ 를 남겨 이 과신을 막는다. 언어 모델의 가산 평활화가 바로 이 계산이다.
 
 **보기 2.** <span class="diff easy" title="쉬움"></span> 같은 공정에서 생산한 부품 20개를 독립적으로 검사했는데 불량이 없었다. 불량 확률에 Beta(1,1) 사전분포를 둘 때 다음 부품의 불량 예측확률을 구하시오.
 
 ??? success "풀이"
 
-    $n=20$, $k=0$ 이므로 부작용이 날 확률은
+    $n=20$, $k=0$ 이므로 다음 부품이 불량일 확률은
 
     $$
     P(\text{불량}) = \frac{1}{22} \approx 0.045
@@ -295,7 +295,7 @@ $$
 
 ??? proof "증명"
 
-    우도는 $\prod_i e^{-\lambda}\lambda^{x_i}/x_i! \propto \lambda^{\sum x_i}e^{-n\lambda}$ 이고 사전분포는 $\propto \lambda^{a-1}e^{-b\lambda}$ 이다. 곱하면
+    가능도는 $\prod_i e^{-\lambda}\lambda^{x_i}/x_i! \propto \lambda^{\sum x_i}e^{-n\lambda}$ 이고 사전분포는 $\propto \lambda^{a-1}e^{-b\lambda}$ 이다. 곱하면
 
     $$
     p(\lambda\mid D) \propto \lambda^{a+\sum x_i-1}e^{-(b+n)\lambda}
@@ -326,10 +326,10 @@ $$
 
     ```python
     class GammaPoissonModel:
-        """세기 자료를 위한 감마-푸아송 켤레 모형."""
+        """계수(count) 데이터를 위한 감마-푸아송 켤레 모형."""
 
         def __init__(self, alpha=1, beta=1):
-            """Gamma(alpha, beta) 앞확률로 첫스텝을 잡는다."""
+            """Gamma(alpha, beta) 사전분포로 초기화한다."""
             self.prior_alpha = alpha
             self.prior_beta = beta
             self.posterior_alpha = alpha
@@ -337,20 +337,20 @@ $$
             self.data = []
 
         def update(self, counts):
-            """관측된 세기로 뒤확률을 새로 고친다."""
+            """관측된 횟수로 사후분포를 갱신한다."""
             counts = np.asarray(counts)
             self.posterior_alpha += np.sum(counts)
             self.posterior_beta += len(counts)
             self.data.extend(counts)
 
         def posterior_predictive(self):
-            """뒤확률 예측 분포(음이항)를 되돌린다."""
+            """사후예측분포(음이항)를 반환한다."""
             n = self.posterior_alpha
             p = self.posterior_beta / (self.posterior_beta + 1)
             return stats.nbinom(n, p)
 
         def summary(self):
-            """간추린 통계량을 찍는다."""
+            """요약 통계량을 출력한다."""
             post_dist = stats.gamma(self.posterior_alpha, 
                                     scale=1/self.posterior_beta)
 
@@ -415,10 +415,10 @@ $$
 
     ```python
     class NormalNormalModel:
-        """정규-정규 켤레 모형(흩어짐을 아는 경우)."""
+        """정규-정규 켤레 모형(분산을 아는 경우)."""
 
         def __init__(self, prior_mean=0, prior_std=1, known_std=1):
-            """N(prior_mean, prior_std^2) 앞확률로 첫스텝을 잡는다."""
+            """N(prior_mean, prior_std^2) 사전분포로 초기화한다."""
             self.prior_mean = prior_mean
             self.prior_std = prior_std
             self.known_std = known_std
@@ -428,12 +428,12 @@ $$
             self.data = []
 
         def update(self, observations):
-            """새 관측으로 뒤확률을 새로 고친다."""
+            """새 관측으로 사후분포를 갱신한다."""
             observations = np.asarray(observations)
             n = len(observations)
             x_bar = np.mean(observations)
 
-            # 정밀도 셈하기
+            # 정밀도 계산
             prior_precision = 1 / (self.prior_std ** 2)
             data_precision = n / (self.known_std ** 2)
             posterior_precision = prior_precision + data_precision
@@ -443,14 +443,14 @@ $$
                                    data_precision * x_bar) / posterior_precision)
             self.posterior_std = np.sqrt(1 / posterior_precision)
 
-            # 잇단 새로 고치기용
+            # 순차 갱신용
             self.prior_mean = self.posterior_mean
             self.prior_std = self.posterior_std
 
             self.data.extend(observations)
 
         def summary(self):
-            """간추린 통계량을 찍는다."""
+            """요약 통계량을 출력한다."""
             post_dist = stats.norm(self.posterior_mean, self.posterior_std)
 
             print(f"Posterior: N({self.posterior_mean:.4f}, {self.posterior_std:.4f})")
@@ -505,7 +505,7 @@ $$
 
 ??? proof "증명"
 
-    우도의 지수를 평균 언저리로 갈라 적으면
+    가능도의 지수를 평균 언저리로 갈라 적으면
 
     $$
     \sum_i (x_i-\mu)^2 = \sum_i (x_i-\bar x)^2 + n(\bar x-\mu)^2
@@ -521,9 +521,9 @@ $$
     을 얻는다. 이는 완전제곱 묶기이며, 남은 상수항이 $b_n$ 의 마지막 항이다. $\mu$ 부분을 떼어 내면 $\sigma^2$ 에 대해 역감마 형태가 남고 그 파라메터가 $(a_n, b_n)$ 이다.
 
 !!! note "쓰임새"
-    b_n은 역감마 분포의 스케일 파라메터이며 분산 자체가 아니다. 각 항은 사전 스케일, 자료 내 제곱편차의 절반, 사전평균·표본평균 불일치의 기여다. 다른 조건을 고정하면 마지막 항이 커질수록 σ²의 사후평균도 커진다. 다만 이 평균은 a_n>1일 때만 존재하며, 이 항만으로 모형 부적합을 진단할 수는 없다.
+    b_n은 역감마 분포의 스케일 파라메터이며 분산 자체가 아니다. 각 항은 사전 스케일, 데이터 내 제곱편차의 절반, 사전평균·표본평균 불일치의 기여다. 다른 조건을 고정하면 마지막 항이 커질수록 σ²의 사후평균도 커진다. 다만 이 평균은 a_n>1일 때만 존재하며, 이 항만으로 모형 부적합을 진단할 수는 없다.
 
-## 7. 주변 사후분포과 스튜던트 t
+## 7. 주변 사후분포와 스튜던트 t
 
 분산을 모르면 평균에 대한 사후분포는 더 이상 정규가 아니다.
 
@@ -557,7 +557,7 @@ $$
     \propto \Bigl(1 + \frac{\kappa_n(\mu-\mu_n)^2}{2b_n}\Bigr)^{-\frac{2a_n+1}{2}}
     $$
 
-    를 얻는다. 이는 자유도 $\nu = 2a_n$ 인 t 밀도 $\bigl(1+\frac{(\mu-m)^2}{\nu s^2}\bigr)^{-(\nu+1)/2}$ 의 형태이, 비교하여 보면 $s^2 = b_n/(a_n\kappa_n)$ 이다.
+    를 얻는다. 이는 자유도 $\nu = 2a_n$ 인 t 밀도 $\bigl(1+\frac{(\mu-m)^2}{\nu s^2}\bigr)^{-(\nu+1)/2}$ 의 형태이고, 비교하여 보면 $s^2 = b_n/(a_n\kappa_n)$ 이다.
 
 !!! note "쓰임새"
     정규 평균의 조건부 사후분포를 역감마 분산에 대해 적분하면 꼬리가 두꺼운 t분포가 된다. 빈도주의 t통계량과 형태는 비슷하지만 임의의 사전분포가 정확히 같은 구간을 주지는 않는다. 자유도가 커지면 표준화한 t분포는 표준정규분포에 가까워진다.
@@ -632,13 +632,13 @@ $$
 
 ??? success "풀이"
 
-    첫째는 **적률 맞추기**다. 앞선 지식으로 평균 $m$ 과 표준편차 $s$ 를 정한 뒤 베타의 적률 식을 풀어 $(\alpha,\beta)$ 를 얻는다.
+    첫째는 **적률 매칭**(moment matching)이다. 앞선 지식으로 평균 $m$ 과 표준편차 $s$ 를 정한 뒤 베타의 적률 식을 풀어 $(\alpha,\beta)$ 를 얻는다.
 
     $$
     \alpha+\beta = \frac{m(1-m)}{s^2}-1,\qquad \alpha = m(\alpha+\beta)
     $$
 
-    둘째는 사후평균의 유효 표본 크기 N>0와 중심 0<m<1을 정해 α=mN, β=(1−m)N으로 두는 방법이다. 이는 평균 웨이트 해석이며 실제 과거 성공·실패 수를 그대로 재현한다는 뜻은 아니다. 적률법에는 0<s²<m(1−m) 조건이 필요하고, 선택한 사전분포의 예측과 민감도를 점검한다.
+    둘째는 사후평균의 유효 표본 크기 N>0와 중심 0<m<1을 정해 α=mN, β=(1−m)N으로 두는 방법이다. 이는 평균 가중치 해석이며 실제 과거 성공·실패 수를 그대로 재현한다는 뜻은 아니다. 적률법에는 0<s²<m(1−m) 조건이 필요하고, 선택한 사전분포의 예측과 민감도를 점검한다.
 
 ## 9. 전체 구현 예제
 
@@ -646,22 +646,22 @@ $$
 
 코드 1의 posterior_predictive에 있는 stats.binom.comb와 stats.beta.beta_func는 공식 SciPy API가 아니다. 조합과 베타 함수는 [scipy.special](https://docs.scipy.org/doc/scipy/reference/special.html)에 있으며 아래의 더 긴 베타 예제는 comb·betaln을 사용한다. 코드 1을 완성된 예측 구현으로 해석하지 않는다.
 
-긴 베타 예제의 log_marginal_likelihood는 순서가 지정된 베르누이 관측열의 확률을 계산한다. 성공 횟수만 관측한 이항 자료의 주변 우도에는 조합 계수가 추가된다. HPD 함수는 [0.001,0.999] 격자에서 높은 밀도를 고른 뒤 최소·최대값을 반환하므로 경계 질량과 분리된 HPD 집합을 정확히 처리하지 못한다. mode가 0인 경우에도 시연의 조건식은 undefined를 출력할 수 있다.
+긴 베타 예제의 log_marginal_likelihood는 순서가 지정된 베르누이 관측열의 확률을 계산한다. 성공 횟수만 관측한 이항 데이터의 주변 가능도에는 조합 계수가 추가된다. HPD 함수는 [0.001,0.999] 격자에서 높은 밀도를 고른 뒤 최소·최대값을 반환하므로 경계 질량과 분리된 HPD 집합을 정확히 처리하지 못한다. mode가 0인 경우에도 시연의 조건식은 undefined를 출력할 수 있다.
 
-알려진 분산의 긴 정규 예제에서 사후 갱신·예측 공식과 log_marginal_likelihood를 구분한다. 후자의 정규화 항과 제곱항은 정규 적분의 주변 우도 공식과 일치하지 않는다. 모델 비교에 그대로 사용하지 않는다. 반면 사후 예측분산은 알려진 관측분산과 평균의 사후분산의 합이다.
+알려진 분산의 긴 정규 예제에서 사후 갱신·예측 공식과 log_marginal_likelihood를 구분한다. 후자의 정규화 항과 제곱항은 정규 적분의 주변 가능도 공식과 일치하지 않는다. 모델 비교에 그대로 사용하지 않는다. 반면 사후 예측분산은 알려진 관측분산과 평균의 사후분산의 합이다.
 
 정규-역감마 예제의 t 스케일과 역감마 스케일은 서로 다른 양이다. 제곱합에서 큰 비슷한 수를 빼는 계산은 반올림 오차를 일으킬 수 있다. update_sequential은 기존 상태를 초기화하며, 위치 파라메터를 사후평균으로 해석하려면 t평균의 존재 조건이 필요하다. 자유도 30이라는 표시도 모든 꼬리 확률에서 정규 근사가 충분하다는 기준은 아니다.
 
-아래 출력과 그림은 기존 예시를 보존했다. 작은 양의 NIG 하이퍼파라미터를 사용한 t구간 비교는 자유도 n−1의 고전적 구간과 정확히 같은 계산은 아니다.
+아래 출력은 예시 코드의 실행 결과다. 작은 양의 NIG 하이퍼파라메터를 사용한 t구간 비교는 자유도 n−1의 고전적 구간과 정확히 같은 계산은 아니다.
 
 ??? note "코드 4 (527줄)"
 
     ```python
     """
-    베르누이-베타 켤레 모형: 온전한 구현
+    베르누이-베타 켤레 모형: 전체 구현
 
-    이 모듈은 베타-베르누이 켤레 짝을 써서 이진 자료에 대한 베이즈 추론을
-    두루 갖춰 구현한다.
+    이 모듈은 베타-베르누이 켤레 짝을 써서 이진 데이터에 대한 베이즈 추론을
+    종합적으로 구현한다.
     """
 
     import numpy as np
@@ -674,18 +674,18 @@ $$
     @dataclass
     class BetaPosterior:
         """
-        베타 뒤확률 분포를 나타낸다.
+        베타 사후분포를 나타낸다.
 
         속성
         ----------
         alpha : float
-            첫째 모양 파라메터(가짜 성공 + 1)
+            첫째 형상 파라메터(유사 성공 + 1)
         beta : float
-            둘째 모양 파라메터(가짜 실패 + 1)
+            둘째 형상 파라메터(유사 실패 + 1)
         n_successes : int
             관측된 성공 횟수
         n_trials : int
-            관측된 시도 횟수
+            관측된 시행 횟수
         """
         alpha: float
         beta: float
@@ -694,12 +694,12 @@ $$
 
         @property
         def mean(self) -> float:
-            """뒤확률 평균 E[θ|D]."""
+            """사후평균 E[θ|D]."""
             return self.alpha / (self.alpha + self.beta)
 
         @property
         def mode(self) -> Optional[float]:
-            """뒤확률 최빈값(MAP 어림값)."""
+            """사후 최빈값(MAP 추정값)."""
             if self.alpha > 1 and self.beta > 1:
                 return (self.alpha - 1) / (self.alpha + self.beta - 2)
             elif self.alpha <= 1 and self.beta > 1:
@@ -711,40 +711,40 @@ $$
 
         @property
         def variance(self) -> float:
-            """뒤확률 흩어짐 Var[θ|D]."""
+            """사후분산 Var[θ|D]."""
             a, b = self.alpha, self.beta
             return (a * b) / ((a + b)**2 * (a + b + 1))
 
         @property
         def std(self) -> float:
-            """뒤확률 표준편차."""
+            """사후 표준편차."""
             return np.sqrt(self.variance)
 
         def pdf(self, theta: np.ndarray) -> np.ndarray:
-            """뒤확률 밀도의 값을 매긴다."""
+            """사후밀도를 계산한다."""
             return stats.beta.pdf(theta, self.alpha, self.beta)
 
         def cdf(self, theta: float) -> float:
-            """뒤확률 누적분포함수의 값을 매긴다."""
+            """사후 누적분포함수를 계산한다."""
             return stats.beta.cdf(theta, self.alpha, self.beta)
 
         def quantile(self, p: float) -> float:
-            """뒤확률 분위수를 셈한다."""
+            """사후 분위수를 계산한다."""
             return stats.beta.ppf(p, self.alpha, self.beta)
 
         def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
             """
-            양끝이 같은 믿음 구간을 셈한다.
+            동일꼬리 신용구간을 계산한다.
 
             파라메터
             ----------
             level : float
-                믿음 수준(95% 구간이면 기본값 0.95)
+                신용 수준(95% 구간이면 기본값 0.95)
 
             반환값
             -------
             tuple
-                (아래, 위) 경계
+                (하한, 상한) 경계
             """
             alpha_level = 1 - level
             lower = self.quantile(alpha_level / 2)
@@ -753,11 +753,11 @@ $$
 
         def hpd_interval(self, level: float = 0.95, n_points: int = 1000) -> Tuple[float, float]:
             """
-            최고 뒤확률 밀도 구간을 셈한다.
+            최고사후밀도(HPD) 구간을 계산한다.
 
             주어진 확률 질량을 담는 가장 짧은 구간.
             """
-            # HPD을 찾는 격자 뒤지기
+            # HPD를 찾는 격자 탐색
             theta_grid = np.linspace(0.001, 0.999, n_points)
             pdf_vals = self.pdf(theta_grid)
 
@@ -766,16 +766,16 @@ $$
             sorted_theta = theta_grid[sorted_idx]
             sorted_pdf = pdf_vals[sorted_idx]
 
-            # 확률 질량 쌓기
+            # 확률 질량 누적
             cumsum = np.cumsum(sorted_pdf) * (theta_grid[1] - theta_grid[0])
             cutoff_idx = np.searchsorted(cumsum, level)
 
-            # HPD 구역 경계
+            # HPD 영역 경계
             hpd_theta = sorted_theta[:cutoff_idx + 1]
             return (hpd_theta.min(), hpd_theta.max())
 
         def sample(self, n_samples: int) -> np.ndarray:
-            """뒤확률에서 표본을 뽑는다."""
+            """사후분포에서 표본을 뽑는다."""
             return stats.beta.rvs(self.alpha, self.beta, size=n_samples)
 
         def predictive_prob(self) -> float:
@@ -787,14 +787,14 @@ $$
 
     class BetaBernoulliModel:
         """
-        온전한 베타-베르누이 켤레 모형.
+        완전한 베타-베르누이 켤레 모형.
 
         파라메터
         ----------
         prior_alpha : float
-            앞확률 α 파라메터
+            사전분포 α 파라메터
         prior_beta : float
-            앞확률 β 파라메터
+            사전분포 β 파라메터
         """
 
         def __init__(self, prior_alpha: float = 1.0, prior_beta: float = 1.0):
@@ -803,7 +803,7 @@ $$
             self._reset()
 
         def _reset(self):
-            """앞확률 상태로 되돌린다."""
+            """사전분포 상태로 초기화한다."""
             self.current_alpha = self.prior_alpha
             self.current_beta = self.prior_beta
             self.n_successes = 0
@@ -811,12 +811,12 @@ $$
 
         @property
         def prior(self) -> BetaPosterior:
-            """앞확률 분포를 되돌린다."""
+            """사전분포를 반환한다."""
             return BetaPosterior(self.prior_alpha, self.prior_beta)
 
         @property
         def posterior(self) -> BetaPosterior:
-            """지금의 뒤확률 분포를 되돌린다."""
+            """현재의 사후분포를 반환한다."""
             return BetaPosterior(
                 self.current_alpha, 
                 self.current_beta,
@@ -826,19 +826,19 @@ $$
 
         def update(self, successes: int, trials: int) -> BetaPosterior:
             """
-            새 관측으로 뒤확률을 새로 고친다.
+            새 관측으로 사후분포를 갱신한다.
 
             파라메터
             ----------
             successes : int
                 관측된 성공 횟수
             trials : int
-                관측된 시도 횟수
+                관측된 시행 횟수
 
             반환값
             -------
             BetaPosterior
-                새로 고친 뒤확률 분포
+                갱신된 사후분포
             """
             self.current_alpha += successes
             self.current_beta += (trials - successes)
@@ -848,7 +848,7 @@ $$
 
         def update_single(self, outcome: int) -> BetaPosterior:
             """
-            관측 하나로 새로 고친다.
+            관측 하나로 갱신한다.
 
             파라메터
             ----------
@@ -858,23 +858,23 @@ $$
             반환값
             -------
             BetaPosterior
-                새로 고친 뒤확률
+                갱신된 사후분포
             """
             return self.update(outcome, 1)
 
         def update_sequence(self, outcomes: List[int]) -> List[BetaPosterior]:
             """
-            차례대로 새로 고치며 뒤확률의 자취를 되돌린다.
+            순차적으로 갱신하며 사후분포의 이력을 반환한다.
 
             파라메터
             ----------
             outcomes : list
-                0/1 관측의 늘어놓음
+                0/1 관측열
 
             반환값
             -------
             list
-                새로 고칠 때마다의 뒤확률 분포 목록
+                갱신할 때마다의 사후분포 목록
             """
             history = [self.posterior]
             for outcome in outcomes:
@@ -884,7 +884,7 @@ $$
 
         def log_marginal_likelihood(self) -> float:
             """
-            로그 주변 가능도(로그 증거)를 셈한다.
+            로그 주변 가능도(로그 증거)를 계산한다.
 
             log p(D) = log B(α + k, β + n - k) - log B(α, β)
 
@@ -902,12 +902,12 @@ $$
 
         def predictive_distribution(self, m: int) -> np.ndarray:
             """
-            앞으로의 시도 m번에 대한 베타-이항 예측 분포를 셈한다.
+            앞으로의 시행 m번에 대한 베타-이항 예측 분포를 계산한다.
 
             파라메터
             ----------
             m : int
-                앞으로의 시도 횟수
+                앞으로의 시행 횟수
 
             반환값
             -------
@@ -928,7 +928,7 @@ $$
             return np.exp(log_probs)
 
     # =============================================================================
-    # 그려 보기 함수
+    # 시각화 함수
     # =============================================================================
 
     def plot_beta_distribution(
@@ -962,24 +962,24 @@ $$
         true_theta: Optional[float] = None,
         title: str = "Bayesian Update"
     ) -> plt.Figure:
-        """앞확률, 가능도, 뒤확률을 그려 본다."""
+        """사전분포, 가능도, 사후분포를 시각화한다."""
 
         fig, ax = plt.subplots(figsize=(10, 6))
         theta = np.linspace(0.001, 0.999, 500)
 
-        # 앞확률
+        # 사전분포
         prior_pdf = stats.beta.pdf(theta, model.prior_alpha, model.prior_beta)
         ax.plot(theta, prior_pdf / prior_pdf.max(), 'b--', 
                 linewidth=2, label=f'Prior: Beta({model.prior_alpha}, {model.prior_beta})')
 
-        # 가능도(그려 보려고 고르게 함)
+        # 가능도(시각화를 위해 정규화함)
         if model.n_trials > 0:
             k, n = model.n_successes, model.n_trials
             likelihood = theta**k * (1 - theta)**(n - k)
             ax.plot(theta, likelihood / likelihood.max(), 'g:', 
                     linewidth=2, label=f'Likelihood ({k}/{n} successes)')
 
-        # 뒤확률
+        # 사후분포
         post = model.posterior
         posterior_pdf = post.pdf(theta)
         ax.fill_between(theta, posterior_pdf / posterior_pdf.max(), 
@@ -992,7 +992,7 @@ $$
             ax.axvline(true_theta, color='black', linestyle='--', 
                        linewidth=2, label=f'True θ = {true_theta}')
 
-        # 뒤확률 평균
+        # 사후평균
         ax.axvline(post.mean, color='red', linestyle=':', linewidth=1.5)
 
         ax.set_xlabel('θ', fontsize=12)
@@ -1010,7 +1010,7 @@ $$
         prior_beta: float = 1.0,
         true_theta: Optional[float] = None
     ) -> plt.Figure:
-        """차례대로 베이즈 새로 고치기를 그려 본다."""
+        """순차 베이즈 갱신을 시각화한다."""
 
         model = BetaBernoulliModel(prior_alpha, prior_beta)
         history = model.update_sequence(outcomes)
@@ -1043,7 +1043,7 @@ $$
             ax.set_xlim(0, 1)
             ax.set_xlabel('θ')
 
-        # 안 쓰는 축 감추기
+        # 사용하지 않는 축 숨기기
         for ax in axes[n_steps:]:
             ax.set_visible(False)
 
@@ -1053,7 +1053,7 @@ $$
         return fig
 
     # =============================================================================
-    # 보여 주기
+    # 시연
     # =============================================================================
 
     def demo_basic_inference():
@@ -1074,7 +1074,7 @@ $$
         print(f"Data: {k} successes in {n_trials} trials")
         print(f"MLE: {k/n_trials:.4f}")
 
-        # 서로 다른 앞확률
+        # 서로 다른 사전분포
         priors = [
             ("Uniform", 1, 1),
             ("Jeffreys", 0.5, 0.5),
@@ -1100,7 +1100,7 @@ $$
             print(f"  P(next success): {post.predictive_prob():.4f}")
 
     def demo_sequential_learning():
-        """차례대로 새로 고치기를 보인다."""
+        """순차 갱신을 보인다."""
 
         print("\n" + "=" * 60)
         print("SEQUENTIAL BAYESIAN LEARNING")
@@ -1113,7 +1113,7 @@ $$
         print(f"\nTrue θ: {true_theta}")
         print(f"Outcomes: {outcomes}")
 
-        model = BetaBernoulliModel(1, 1)  # 고른 앞확률
+        model = BetaBernoulliModel(1, 1)  # 균등 사전분포
 
         print("\nEvolution of posterior mean:")
         print("-" * 40)
@@ -1134,13 +1134,13 @@ $$
         print("\nSee: sequential_beta_update.png")
 
     def demo_predictive_distribution():
-        """뒤확률 예측 분포를 보인다."""
+        """사후예측분포를 보인다."""
 
         print("\n" + "=" * 60)
         print("POSTERIOR PREDICTIVE DISTRIBUTION")
         print("=" * 60)
 
-        # 관측 자료
+        # 관측 데이터
         k, n = 7, 10
 
         model = BetaBernoulliModel(1, 1)
@@ -1149,7 +1149,7 @@ $$
         print(f"\nObserved: {k} successes in {n} trials")
         print(f"Posterior: Beta({model.current_alpha}, {model.current_beta})")
 
-        # 다음 시도 m번 미리 알기
+        # 다음 시행 m번 예측
         m = 10
         predictive = model.predictive_distribution(m)
 
@@ -1279,10 +1279,10 @@ See: predictive_distribution.png
 
     ```python
     """
-    흩어짐을 아는 가우스 추론: 온전한 구현
+    분산을 아는 가우스 추론: 전체 구현
 
-    이 모듈은 흩어짐을 알 때 가우스 분포의 평균에 대한 베이즈 추론을 주며,
-    정밀도로 무게를 준 평균 내기와 차례대로 새로 고치기를
+    이 모듈은 분산을 알 때 가우스 분포의 평균에 대한 베이즈 추론을 제공하며,
+    정밀도 가중 평균과 순차 갱신을
     보여 준다.
     """
 
@@ -1295,16 +1295,16 @@ See: predictive_distribution.png
     @dataclass
     class GaussianPosterior:
         """
-        μ의 가우스 뒤확률 분포를 나타낸다.
+        μ의 가우스 사후분포를 나타낸다.
 
         속성
         ----------
         mean : float
-            뒤확률 평균 μₙ
+            사후평균 μₙ
         variance : float
-            뒤확률 흩어짐 σₙ²
+            사후분산 σₙ²
         n_observations : int
-            담아 넣은 관측의 개수
+            반영한 관측의 개수
         """
         mean: float
         variance: float
@@ -1312,38 +1312,38 @@ See: predictive_distribution.png
 
         @property
         def precision(self) -> float:
-            """뒤확률 정밀도 τₙ = 1/σₙ²."""
+            """사후 정밀도 τₙ = 1/σₙ²."""
             return 1.0 / self.variance
 
         @property
         def std(self) -> float:
-            """뒤확률 표준편차 σₙ."""
+            """사후 표준편차 σₙ."""
             return np.sqrt(self.variance)
 
         def pdf(self, mu: np.ndarray) -> np.ndarray:
-            """뒤확률 밀도의 값을 매긴다."""
+            """사후밀도를 계산한다."""
             return stats.norm.pdf(mu, self.mean, self.std)
 
         def cdf(self, mu: float) -> float:
-            """뒤확률 누적분포함수의 값을 매긴다."""
+            """사후 누적분포함수를 계산한다."""
             return stats.norm.cdf(mu, self.mean, self.std)
 
         def quantile(self, p: float) -> float:
-            """뒤확률 분위수를 셈한다."""
+            """사후 분위수를 계산한다."""
             return stats.norm.ppf(p, self.mean, self.std)
 
         def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
             """
-            믿음 구간을 셈한다.
+            신용구간을 계산한다.
 
-            가우스에서는 양끝이 같은 구간과 HPD 구간이 맞아떨어진다.
+            가우스에서는 동일꼬리 구간과 HPD 구간이 일치한다.
             """
             alpha = 1 - level
             z = stats.norm.ppf(1 - alpha/2)
             return (self.mean - z * self.std, self.mean + z * self.std)
 
         def sample(self, n_samples: int) -> np.ndarray:
-            """뒤확률에서 표본을 뽑는다."""
+            """사후분포에서 표본을 뽑는다."""
             return np.random.normal(self.mean, self.std, n_samples)
 
         def __repr__(self) -> str:
@@ -1351,16 +1351,16 @@ See: predictive_distribution.png
 
     class GaussianKnownVarianceModel:
         """
-        흩어짐을 알 때 가우스 평균에 대한 베이즈 추론.
+        분산을 알 때 가우스 평균에 대한 베이즈 추론.
 
         파라메터
         ----------
         prior_mean : float
-            앞확률 평균 μ₀
+            사전평균 μ₀
         prior_variance : float
-            앞확률 흩어짐 σ₀²
+            사전분산 σ₀²
         known_variance : float
-            아는 자료 흩어짐 σ²
+            아는 데이터 분산 σ²
         """
 
         def __init__(
@@ -1377,11 +1377,11 @@ See: predictive_distribution.png
             self.prior_precision = 1.0 / prior_variance
             self.data_precision = 1.0 / known_variance
 
-            # 지금 상태
+            # 현재 상태
             self._reset()
 
         def _reset(self):
-            """앞확률 상태로 되돌린다."""
+            """사전분포 상태로 초기화한다."""
             self.current_precision = self.prior_precision
             self.current_mean = self.prior_mean
             self.n_observations = 0
@@ -1389,12 +1389,12 @@ See: predictive_distribution.png
 
         @property
         def prior(self) -> GaussianPosterior:
-            """앞확률 분포를 되돌린다."""
+            """사전분포를 반환한다."""
             return GaussianPosterior(self.prior_mean, self.prior_variance, 0)
 
         @property
         def posterior(self) -> GaussianPosterior:
-            """지금의 뒤확률 분포를 되돌린다."""
+            """현재의 사후분포를 반환한다."""
             return GaussianPosterior(
                 self.current_mean,
                 1.0 / self.current_precision,
@@ -1403,7 +1403,7 @@ See: predictive_distribution.png
 
         def update(self, data: np.ndarray) -> GaussianPosterior:
             """
-            새 관측으로 뒤확률을 새로 고친다.
+            새 관측으로 사후분포를 갱신한다.
 
             파라메터
             ----------
@@ -1413,19 +1413,19 @@ See: predictive_distribution.png
             반환값
             -------
             GaussianPosterior
-                새로 고친 뒤확률
+                갱신된 사후분포
             """
             data = np.atleast_1d(data)
             n = len(data)
 
-            # 충분 통계량 새로 고치기
+            # 충분 통계량 갱신
             self.n_observations += n
             self.sum_x += data.sum()
 
-            # 정밀도 새로 고치기(정밀도는 더해진다)
+            # 정밀도 갱신(정밀도는 더해진다)
             self.current_precision = self.prior_precision + self.n_observations * self.data_precision
 
-            # 평균 새로 고치기(정밀도로 무게 준 평균)
+            # 평균 갱신(정밀도 가중 평균)
             self.current_mean = (
                 self.prior_precision * self.prior_mean + 
                 self.data_precision * self.sum_x
@@ -1434,22 +1434,22 @@ See: predictive_distribution.png
             return self.posterior
 
         def update_single(self, x: float) -> GaussianPosterior:
-            """관측 하나로 새로 고친다."""
+            """관측 하나로 갱신한다."""
             return self.update(np.array([x]))
 
         def update_sequential(self, data: np.ndarray) -> List[GaussianPosterior]:
             """
-            차례대로 새로 고치며 뒤확률의 자취를 되돌린다.
+            순차적으로 갱신하며 사후분포의 이력을 반환한다.
 
             파라메터
             ----------
             data : array
-                관측의 늘어놓음
+                관측열
 
             반환값
             -------
             list
-                관측마다의 뒤확률
+                관측마다의 사후분포
             """
             self._reset()
             history = [self.posterior]
@@ -1462,12 +1462,12 @@ See: predictive_distribution.png
 
         def predictive_distribution(self) -> Tuple[float, float]:
             """
-            다음 관측의 뒤확률 예측 분포를 셈한다.
+            다음 관측의 사후예측분포를 계산한다.
 
             반환값
             -------
             tuple
-                (예측_평균, 예측_흩어짐)
+                (예측_평균, 예측_분산)
             """
             pred_mean = self.current_mean
             pred_var = self.known_variance + 1.0 / self.current_precision
@@ -1475,7 +1475,7 @@ See: predictive_distribution.png
 
         def log_marginal_likelihood(self, data: np.ndarray) -> float:
             """
-            로그 주변 가능도(로그 증거)를 셈한다.
+            로그 주변 가능도(로그 증거)를 계산한다.
 
             log p(D) = log ∫ p(D|μ) p(μ) dμ
 
@@ -1484,10 +1484,10 @@ See: predictive_distribution.png
             n = len(data)
             x_bar = data.mean()
 
-            # 주변 분포는 흩어짐이 부푼 가우스
+            # 주변 분포는 분산이 커진 가우스
             marginal_var = self.prior_variance + self.known_variance / n
 
-            # 앞확률 평균에서의 제곱 어긋남의 합
+            # 사전평균에서의 제곱 편차의 합
             ss_from_prior = np.sum((data - self.prior_mean)**2)
 
             # 로그 주변 가능도
@@ -1502,19 +1502,19 @@ See: predictive_distribution.png
             return log_ml
 
         def prior_weight(self) -> float:
-            """앞확률 평균에 주는 무게를 셈한다."""
+            """사전평균에 주는 가중치를 계산한다."""
             return self.prior_precision / self.current_precision
 
         def data_weight(self) -> float:
-            """자료 평균에 주는 무게를 셈한다."""
+            """데이터 평균에 주는 가중치를 계산한다."""
             return (self.n_observations * self.data_precision) / self.current_precision
 
         def equivalent_prior_samples(self) -> float:
-            """앞확률을 맞먹는 관측 개수로 나타낸다."""
+            """사전분포를 등가 관측 개수로 나타낸다."""
             return self.prior_precision / self.data_precision
 
     # =============================================================================
-    # 그려 보기 함수
+    # 시각화 함수
     # =============================================================================
 
     def plot_precision_weighted_averaging(
@@ -1522,14 +1522,14 @@ See: predictive_distribution.png
         data: np.ndarray,
         true_mu: Optional[float] = None
     ) -> plt.Figure:
-        """정밀도로 무게를 준 평균 내기를 그려 본다."""
+        """정밀도 가중 평균을 시각화한다."""
 
         model._reset()
         model.update(data)
 
         fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-        # 왼쪽: 앞확률, 가능도, 뒤확률
+        # 왼쪽: 사전분포, 가능도, 사후분포
         ax = axes[0]
 
         x_bar = data.mean()
@@ -1539,18 +1539,18 @@ See: predictive_distribution.png
             500
         )
 
-        # 앞확률
+        # 사전분포
         prior_pdf = stats.norm.pdf(mu_range, model.prior_mean, np.sqrt(model.prior_variance))
         ax.plot(mu_range, prior_pdf, 'b--', linewidth=2, 
                 label=f'Prior: N({model.prior_mean}, {model.prior_variance})')
 
-        # 가능도(그려 보려고 고르게 함)
+        # 가능도(시각화를 위해 정규화함)
         likelihood_var = model.known_variance / len(data)
         likelihood_pdf = stats.norm.pdf(mu_range, x_bar, np.sqrt(likelihood_var))
         ax.plot(mu_range, likelihood_pdf, 'g:', linewidth=2,
                 label=f'Likelihood: centered at x̄={x_bar:.2f}')
 
-        # 뒤확률
+        # 사후분포
         post = model.posterior
         posterior_pdf = post.pdf(mu_range)
         ax.fill_between(mu_range, posterior_pdf, alpha=0.3, color='red')
@@ -1569,7 +1569,7 @@ See: predictive_distribution.png
         ax.legend(fontsize=9)
         ax.grid(True, alpha=0.3)
 
-        # 오른쪽: 무게 그림
+        # 오른쪽: 가중치 그림
         ax = axes[1]
 
         weights = [model.prior_weight(), model.data_weight()]
@@ -1598,14 +1598,14 @@ See: predictive_distribution.png
         known_variance: float,
         true_mu: Optional[float] = None
     ) -> plt.Figure:
-        """차례대로 베이즈 새로 고치기를 그려 본다."""
+        """순차 베이즈 갱신을 시각화한다."""
 
         model = GaussianKnownVarianceModel(prior_mean, prior_variance, known_variance)
         history = model.update_sequential(data)
 
         fig, axes = plt.subplots(2, 1, figsize=(12, 8))
 
-        # 위: 뒤확률 평균과 믿음 구간의 흐름
+        # 위: 사후평균과 신용구간의 흐름
         ax = axes[0]
 
         n_vals = np.arange(len(history))
@@ -1632,13 +1632,13 @@ See: predictive_distribution.png
         ax.legend(loc='upper right', fontsize=9)
         ax.grid(True, alpha=0.3)
 
-        # 아래: 뒤확률 표준편차의 흐름
+        # 아래: 사후 표준편차의 흐름
         ax = axes[1]
 
         stds = [h.std for h in history]
         ax.plot(n_vals, stds, 'g-', linewidth=2, marker='s', markersize=4)
 
-        # 이론상 점근
+        # 이론적 점근선
         asymptotic_std = np.sqrt(known_variance) / np.sqrt(np.maximum(n_vals, 1))
         asymptotic_std[0] = np.sqrt(prior_variance)
         ax.plot(n_vals, asymptotic_std, 'r--', linewidth=1.5, 
@@ -1657,7 +1657,7 @@ See: predictive_distribution.png
         model: GaussianKnownVarianceModel,
         true_mu: Optional[float] = None
     ) -> plt.Figure:
-        """뒤확률 예측 분포를 그려 본다."""
+        """사후예측분포를 시각화한다."""
 
         pred_mean, pred_var = model.predictive_distribution()
         post = model.posterior
@@ -1667,7 +1667,7 @@ See: predictive_distribution.png
         x_range = np.linspace(pred_mean - 4*np.sqrt(pred_var), 
                               pred_mean + 4*np.sqrt(pred_var), 500)
 
-        # μ의 뒤확률
+        # μ의 사후분포
         posterior_pdf = post.pdf(x_range)
         ax.plot(x_range, posterior_pdf, 'b-', linewidth=2,
                 label=f'Posterior for μ: N({post.mean:.2f}, {post.variance:.3f})')
@@ -1688,7 +1688,7 @@ See: predictive_distribution.png
         ax.legend(fontsize=10)
         ax.grid(True, alpha=0.3)
 
-        # 흩어짐 쪼개기 적어 넣기
+        # 분산 분해 주석 달기
         textstr = (f'Predictive Var = {pred_var:.3f}\n'
                    f'  = Aleatoric ({model.known_variance:.3f})\n'
                    f'  + Epistemic ({post.variance:.3f})')
@@ -1700,7 +1700,7 @@ See: predictive_distribution.png
         return fig
 
     # =============================================================================
-    # 보여 주기
+    # 시연
     # =============================================================================
 
     def demo_basic_inference():
@@ -1723,7 +1723,7 @@ See: predictive_distribution.png
         print(f"Sample: n = {n}, x̄ = {data.mean():.4f}")
         print(f"MLE: {data.mean():.4f}")
 
-        # 서로 다른 앞확률
+        # 서로 다른 사전분포
         priors = [
             ("Weak prior (σ₀² = 100)", 0.0, 100.0),
             ("Moderate prior", 3.0, 4.0),
@@ -1748,7 +1748,7 @@ See: predictive_distribution.png
             print(f"  95% CI: [{ci[0]:.3f}, {ci[1]:.3f}]")
 
     def demo_sequential_updating():
-        """차례대로 새로 고치기를 보인다."""
+        """순차 갱신을 보인다."""
 
         print("\n" + "=" * 60)
         print("SEQUENTIAL BAYESIAN UPDATING")
@@ -1760,7 +1760,7 @@ See: predictive_distribution.png
         np.random.seed(123)
         data = np.random.normal(true_mu, np.sqrt(known_var), 20)
 
-        # 틀린 앞확률로 시작
+        # 틀린 사전분포로 시작
         prior_mean = 80.0
         prior_var = 100.0
 
@@ -1923,10 +1923,10 @@ See: gaussian_predictive.png
 
     ```python
     """
-    흩어짐을 모르는 가우스 추론: 온전한 구현
+    분산을 모르는 가우스 추론: 전체 구현
 
-    이 모듈은 정규-역감마 켤레 앞확률을 써서 가우스 분포의 평균과 흩어짐에 대한
-    베이즈 추론을 주며, 평균의 주변 뒤확률이 스튜던트 t임을
+    이 모듈은 정규-역감마 켤레 사전분포를 써서 가우스 분포의 평균과 분산에 대한
+    베이즈 추론을 제공하며, 평균의 주변 사후분포가 스튜던트 t임을
     보여 준다.
     """
 
@@ -1951,11 +1951,11 @@ See: gaussian_predictive.png
         mu : float
             위치 파라메터 μ₀
         kappa : float
-            정밀도 눈금 κ(평균에 대한 실효 표본 크기)
+            정밀도 스케일 κ(평균에 대한 유효 표본 크기)
         alpha : float
-            흩어짐의 모양 파라메터 α
+            분산의 형상 파라메터 α
         beta : float
-            흩어짐의 눈금 파라메터 β
+            분산의 스케일 파라메터 β
         """
         mu: float
         kappa: float
@@ -1989,7 +1989,7 @@ See: gaussian_predictive.png
 
         @property
         def mu_scale(self) -> float:
-            """μ의 주변 t분포의 눈금 파라메터."""
+            """μ의 주변 t분포의 스케일 파라메터."""
             return np.sqrt(self.beta / (self.alpha * self.kappa))
 
         def __repr__(self) -> str:
@@ -1997,14 +1997,14 @@ See: gaussian_predictive.png
 
     class StudentTPosterior:
         """
-        μ의 주변 스튜던트 t 뒤확률을 나타낸다.
+        μ의 주변 스튜던트 t 사후분포를 나타낸다.
 
         파라메터
         ----------
         loc : float
-            위치 파라메터(뒤확률 평균)
+            위치 파라메터(사후평균)
         scale : float
-            배율 파라메터
+            스케일 파라메터
         df : float
             자유도
         """
@@ -2022,30 +2022,30 @@ See: gaussian_predictive.png
 
         @property
         def variance(self) -> Optional[float]:
-            """df > 2이면 흩어짐이 있다."""
+            """df > 2이면 분산이 있다."""
             if self.df > 2:
                 return (self.df / (self.df - 2)) * self.scale**2
             return None
 
         def pdf(self, x: np.ndarray) -> np.ndarray:
-            """뒤확률 밀도의 값을 매긴다."""
+            """사후밀도를 계산한다."""
             return self._dist.pdf(x)
 
         def cdf(self, x: float) -> float:
-            """뒤확률 누적분포함수의 값을 매긴다."""
+            """사후 누적분포함수를 계산한다."""
             return self._dist.cdf(x)
 
         def quantile(self, p: float) -> float:
-            """뒤확률 분위수를 셈한다."""
+            """사후 분위수를 계산한다."""
             return self._dist.ppf(p)
 
         def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
-            """양끝이 같은 믿음 구간을 셈한다."""
+            """동일꼬리 신용구간을 계산한다."""
             alpha = 1 - level
             return (self.quantile(alpha/2), self.quantile(1 - alpha/2))
 
         def sample(self, n_samples: int) -> np.ndarray:
-            """뒤확률에서 표본을 뽑는다."""
+            """사후분포에서 표본을 뽑는다."""
             return self._dist.rvs(n_samples)
 
         def __repr__(self) -> str:
@@ -2053,14 +2053,14 @@ See: gaussian_predictive.png
 
     class InverseGammaPosterior:
         """
-        σ²의 주변 역감마 뒤확률을 나타낸다.
+        σ²의 주변 역감마 사후분포를 나타낸다.
 
         파라메터
         ----------
         alpha : float
-            모양 파라메터
+            형상 파라메터
         beta : float
-            배율 파라메터
+            스케일 파라메터
         """
 
         def __init__(self, alpha: float, beta: float):
@@ -2079,24 +2079,24 @@ See: gaussian_predictive.png
             return self.beta / (self.alpha + 1)
 
         def pdf(self, x: np.ndarray) -> np.ndarray:
-            """뒤확률 밀도의 값을 매긴다."""
+            """사후밀도를 계산한다."""
             return self._dist.pdf(x)
 
         def cdf(self, x: float) -> float:
-            """뒤확률 누적분포함수의 값을 매긴다."""
+            """사후 누적분포함수를 계산한다."""
             return self._dist.cdf(x)
 
         def quantile(self, p: float) -> float:
-            """뒤확률 분위수를 셈한다."""
+            """사후 분위수를 계산한다."""
             return self._dist.ppf(p)
 
         def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
-            """양끝이 같은 믿음 구간을 셈한다."""
+            """동일꼬리 신용구간을 계산한다."""
             alpha = 1 - level
             return (self.quantile(alpha/2), self.quantile(1 - alpha/2))
 
         def sample(self, n_samples: int) -> np.ndarray:
-            """뒤확률에서 표본을 뽑는다."""
+            """사후분포에서 표본을 뽑는다."""
             return self._dist.rvs(n_samples)
 
         def __repr__(self) -> str:
@@ -2104,20 +2104,20 @@ See: gaussian_predictive.png
 
     class GaussianUnknownVarianceModel:
         """
-        평균과 흩어짐을 모르는 가우스에 대한 베이즈 추론.
+        평균과 분산을 모르는 가우스에 대한 베이즈 추론.
 
-        정규-역감마 켤레 앞확률을 쓴다.
+        정규-역감마 켤레 사전분포를 쓴다.
 
         파라메터
         ----------
         prior_mu : float
-            앞확률 평균 위치 μ₀
+            사전분포 위치 μ₀
         prior_kappa : float
-            앞확률 정밀도 눈금 κ₀
+            사전분포 정밀도 스케일 κ₀
         prior_alpha : float
-            앞확률 모양 α₀
+            사전분포 형상 α₀
         prior_beta : float
-            앞확률 눈금 β₀
+            사전분포 스케일 β₀
         """
 
         def __init__(
@@ -2131,7 +2131,7 @@ See: gaussian_predictive.png
             self._reset()
 
         def _reset(self):
-            """앞확률 상태로 되돌린다."""
+            """사전분포 상태로 초기화한다."""
             self.current = NIGParameters(
                 self.prior.mu, self.prior.kappa, 
                 self.prior.alpha, self.prior.beta
@@ -2142,12 +2142,12 @@ See: gaussian_predictive.png
 
         @property
         def posterior_nig(self) -> NIGParameters:
-            """지금의 NIG 뒤확률 파라메터를 되돌린다."""
+            """현재의 NIG 사후 파라메터를 반환한다."""
             return self.current
 
         @property
         def posterior_mu(self) -> StudentTPosterior:
-            """μ의 주변 뒤확률(스튜던트 t)을 되돌린다."""
+            """μ의 주변 사후분포(스튜던트 t)를 반환한다."""
             return StudentTPosterior(
                 loc=self.current.mu,
                 scale=self.current.mu_scale,
@@ -2156,7 +2156,7 @@ See: gaussian_predictive.png
 
         @property
         def posterior_variance(self) -> InverseGammaPosterior:
-            """σ²의 주변 뒤확률(역감마)을 되돌린다."""
+            """σ²의 주변 사후분포(역감마)를 반환한다."""
             return InverseGammaPosterior(
                 alpha=self.current.alpha,
                 beta=self.current.beta
@@ -2164,7 +2164,7 @@ See: gaussian_predictive.png
 
         def update(self, data: np.ndarray) -> NIGParameters:
             """
-            새 관측으로 뒤확률을 새로 고친다.
+            새 관측으로 사후분포를 갱신한다.
 
             파라메터
             ----------
@@ -2174,7 +2174,7 @@ See: gaussian_predictive.png
             반환값
             -------
             NIGParameters
-                새로 고친 뒤확률 파라메터
+                갱신된 사후 파라메터
             """
             data = np.atleast_1d(data).astype(float)
             n = len(data)
@@ -2182,7 +2182,7 @@ See: gaussian_predictive.png
             if n == 0:
                 return self.current
 
-            # 충분 통계량 새로 고치기
+            # 충분 통계량 갱신
             self.n_observations += n
             self._data_sum += data.sum()
             self._data_sum_sq += (data**2).sum()
@@ -2190,18 +2190,18 @@ See: gaussian_predictive.png
             # 전체 표본 평균
             overall_mean = self._data_sum / self.n_observations
 
-            # 표본 흩어짐 셈하기(모든 자료를 써서)
+            # 표본 분산 계산(모든 데이터를 써서)
             if self.n_observations > 1:
                 ss = self._data_sum_sq - self.n_observations * overall_mean**2
             else:
                 ss = 0.0
 
-            # NIG 새로 고치기 공식
+            # NIG 갱신 공식
             kappa_n = self.prior.kappa + self.n_observations
             mu_n = (self.prior.kappa * self.prior.mu + self._data_sum) / kappa_n
             alpha_n = self.prior.alpha + self.n_observations / 2
 
-            # 베타 새로 고치기
+            # 베타 갱신
             prior_data_sq = (self.prior.kappa * self.n_observations / kappa_n) * \
                             (overall_mean - self.prior.mu)**2
             beta_n = self.prior.beta + 0.5 * ss + 0.5 * prior_data_sq
@@ -2210,7 +2210,7 @@ See: gaussian_predictive.png
             return self.current
 
         def update_single(self, x: float) -> NIGParameters:
-            """온라인 공식을 써서 관측 하나로 새로 고친다."""
+            """온라인 공식을 써서 관측 하나로 갱신한다."""
             kappa_old = self.current.kappa
             mu_old = self.current.mu
 
@@ -2228,7 +2228,7 @@ See: gaussian_predictive.png
             return self.current
 
         def update_sequential(self, data: np.ndarray) -> List[NIGParameters]:
-            """차례대로 새로 고치며 뒤확률의 자취를 되돌린다."""
+            """순차적으로 갱신하며 사후분포의 이력을 반환한다."""
             self._reset()
             history = [self.current]
 
@@ -2239,7 +2239,7 @@ See: gaussian_predictive.png
             return history
 
         def predictive_distribution(self) -> StudentTPosterior:
-            """다음 관측의 뒤확률 예측 분포를 셈한다."""
+            """다음 관측의 사후예측분포를 계산한다."""
             pred_scale = np.sqrt(
                 self.current.beta * (self.current.kappa + 1) / 
                 (self.current.alpha * self.current.kappa)
@@ -2251,25 +2251,25 @@ See: gaussian_predictive.png
             )
 
         def sample_posterior(self, n_samples: int) -> Tuple[np.ndarray, np.ndarray]:
-            """뒤확률에서 (mu, sigma2) 결합 표본을 뽑는다."""
-            # 먼저 역감마에서 σ²을 표집
+            """사후분포에서 (mu, sigma2) 결합 표본을 뽑는다."""
+            # 먼저 역감마에서 σ²를 샘플링
             sigma2_samples = self.posterior_variance.sample(n_samples)
 
-            # 그다음 정규에서 μ | σ²을 표집
+            # 그다음 정규에서 μ | σ²를 샘플링
             mu_std = np.sqrt(sigma2_samples / self.current.kappa)
             mu_samples = np.random.normal(self.current.mu, mu_std)
 
             return mu_samples, sigma2_samples
 
         def log_marginal_likelihood(self, data: np.ndarray) -> float:
-            """로그 주변 가능도(모형 증거)를 셈한다."""
+            """로그 주변 가능도(모형 증거)를 계산한다."""
             data = np.atleast_1d(data)
             n = len(data)
 
             if n == 0:
                 return 0.0
 
-            # 뒤확률 파라메터 셈하기
+            # 사후 파라메터 계산
             x_bar = data.mean()
             ss = ((data - x_bar)**2).sum() if n > 1 else 0.0
 
@@ -2289,7 +2289,7 @@ See: gaussian_predictive.png
             return log_ml
 
     # =============================================================================
-    # 그려 보기 함수
+    # 시각화 함수
     # =============================================================================
 
     def plot_joint_posterior(
@@ -2298,7 +2298,7 @@ See: gaussian_predictive.png
         true_sigma2: Optional[float] = None,
         n_grid: int = 100
     ) -> plt.Figure:
-        """결합 뒤확률과 주변 뒤확률을 그려 본다."""
+        """결합 사후분포와 주변 사후분포를 시각화한다."""
 
         fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 
@@ -2315,7 +2315,7 @@ See: gaussian_predictive.png
         mu_vals = np.linspace(mu_range[0], mu_range[1], n_grid)
         var_vals = np.linspace(var_range[0], var_range[1], n_grid)
 
-        # 왼쪽 위: 결합 뒤확률 등고선
+        # 왼쪽 위: 결합 사후분포 등고선
         ax = axes[0, 0]
         MU, VAR = np.meshgrid(mu_vals, var_vals)
 
@@ -2362,7 +2362,7 @@ See: gaussian_predictive.png
         ax.legend(fontsize=9)
         ax.grid(True, alpha=0.3)
 
-        # 오른쪽 아래: 뒤확률 표본
+        # 오른쪽 아래: 사후 표본
         ax = axes[1, 1]
         mu_samples, var_samples = model.sample_posterior(1000)
         ax.scatter(mu_samples, var_samples, alpha=0.3, s=10, c='steelblue')
@@ -2385,7 +2385,7 @@ See: gaussian_predictive.png
         true_mu: Optional[float] = None,
         true_sigma2: Optional[float] = None
     ) -> plt.Figure:
-        """차례대로 베이즈 새로 고치기를 그려 본다."""
+        """순차 베이즈 갱신을 시각화한다."""
 
         model = GaussianUnknownVarianceModel(prior_mu, prior_kappa, prior_alpha, prior_beta)
         history = model.update_sequential(data)
@@ -2394,7 +2394,7 @@ See: gaussian_predictive.png
 
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-        # 왼쪽 위: μ의 뒤확률 평균
+        # 왼쪽 위: μ의 사후평균
         ax = axes[0, 0]
         mu_means = [h.mu for h in history]
 
@@ -2415,7 +2415,7 @@ See: gaussian_predictive.png
         ax.legend(fontsize=9)
         ax.grid(True, alpha=0.3)
 
-        # 오른쪽 위: σ²의 뒤확률 최빈값
+        # 오른쪽 위: σ²의 사후 최빈값
         ax = axes[0, 1]
         var_modes = [h.variance_mode for h in history]
         ax.plot(n_vals, var_modes, 'g-', linewidth=2, marker='s', markersize=4, label='Mode[σ²|D]')
@@ -2438,7 +2438,7 @@ See: gaussian_predictive.png
         ax.legend(fontsize=10)
         ax.grid(True, alpha=0.3)
 
-        # 오른쪽 아래: κ과 α의 자람
+        # 오른쪽 아래: κ와 α의 증가
         ax = axes[1, 1]
         kappas = [h.kappa for h in history]
         alphas = [h.alpha for h in history]
@@ -2454,11 +2454,11 @@ See: gaussian_predictive.png
         return fig
 
     # =============================================================================
-    # 보여 주기
+    # 시연
     # =============================================================================
 
     def demo_basic_inference():
-        """흩어짐을 모를 때의 기본 추론을 보인다."""
+        """분산을 모를 때의 기본 추론을 보인다."""
 
         print("=" * 70)
         print("GAUSSIAN INFERENCE WITH UNKNOWN VARIANCE")
@@ -2479,7 +2479,7 @@ See: gaussian_predictive.png
         print(f"Marginal for σ²: {model.posterior_variance}")
 
     def demo_t_test_connection():
-        """빈도주의 t검정과의 이음을 보인다."""
+        """빈도주의 t검정과의 관계를 보인다."""
 
         print("\n" + "=" * 70)
         print("CONNECTION TO t-TEST")
@@ -2493,7 +2493,7 @@ See: gaussian_predictive.png
         t_crit = stats.t.ppf(0.975, df=len(data)-1)
         freq_ci = (x_bar - t_crit * s/np.sqrt(len(data)), x_bar + t_crit * s/np.sqrt(len(data)))
 
-        # 흐릿한 앞확률을 쓴 베이즈
+        # 모호한(vague) 사전분포를 쓴 베이즈
         model = GaussianUnknownVarianceModel(0.0, 0.001, 0.001, 0.001)
         model.update(data)
         bayes_ci = model.posterior_mu.credible_interval(0.95)
@@ -2541,7 +2541,7 @@ Difference: 0.093895
 
 ??? success "풀이"
 
-    조건부 독립 다항 관측의 범주별 도수를 n_j라 하면 우도는 범주 확률 π_j에 대해 $\prod_j\pi_j^{n_j}$에 비례한다. 디리클레 사전 밀도 $\prod_j\pi_j^{\alpha_j-1}$를 곱하면 지수가 α_j+n_j−1로 갱신된다. α_j>0이고 π는 확률 단체에 속한다. 자연 파라메터에서 정리 1을 사용할 때는 좌표 변환의 야코비안을 반영한다.
+    조건부 독립 다항 관측의 범주별 도수를 n_j라 하면 가능도는 범주 확률 π_j에 대해 $\prod_j\pi_j^{n_j}$에 비례한다. 디리클레 사전 밀도 $\prod_j\pi_j^{\alpha_j-1}$를 곱하면 지수가 α_j+n_j−1로 갱신된다. α_j>0이고 π는 확률 단체에 속한다. 자연 파라메터에서 정리 1을 사용할 때는 좌표 변환의 야코비안을 반영한다.
 
     갱신은 도수를 더하는 일뿐이다.
 
@@ -2553,13 +2553,13 @@ Difference: 0.093895
 
 <div class="drillbox" markdown>
 
-**연습문제 2.** <span class="diff med" title="중간"></span> 지수 우도의 켤레 사전분포가 감마임을 보이고 갱신 규칙을 이끌어 내시오.
+**연습문제 2.** <span class="diff med" title="중간"></span> 지수 가능도의 켤레 사전분포가 감마임을 보이고 갱신 규칙을 이끌어 내시오.
 
 </div>
 
 ??? success "풀이"
 
-    $x_i\sim\text{Exp}(\lambda)$ 이면 우도는 $\lambda^n e^{-\lambda\sum x_i}$ 이다. 사전분포를 $\text{Gamma}(a,b)\propto \lambda^{a-1}e^{-b\lambda}$ 로 두면
+    $x_i\sim\text{Exp}(\lambda)$ 이면 가능도는 $\lambda^n e^{-\lambda\sum x_i}$ 이다. 사전분포를 $\text{Gamma}(a,b)\propto \lambda^{a-1}e^{-b\lambda}$ 로 두면
 
     $$
     p(\lambda\mid D)\propto \lambda^{a+n-1}e^{-(b+\sum x_i)\lambda}

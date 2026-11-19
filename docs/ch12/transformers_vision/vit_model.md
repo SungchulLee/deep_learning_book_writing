@@ -22,7 +22,7 @@ from typing import Tuple
 
 class PatchEmbedding(nn.Module):
     """
-    그림을 조각으로 바꾸고 임베딩으로 사영한다.
+    이미지를 패치로 나누고 임베딩으로 투영한다.
     컨볼루션 뉴럴 네트워크 방식의 입력과 트랜스포머 처리를 잇는 다리이다.
     """
     def __init__(self, img_size: int = 224, patch_size: int = 16, 
@@ -32,7 +32,7 @@ class PatchEmbedding(nn.Module):
         self.patch_size = patch_size
         self.n_patches = (img_size // patch_size) ** 2
         
-        # 편 조각의 선형 사영 (컨볼루션 뉴럴 네트워크의 컨볼루션과 비슷하다)
+        # 펼친 패치의 선형 투영 (컨볼루션 뉴럴 네트워크의 컨볼루션과 비슷하다)
         self.proj = nn.Conv2d(in_channels, embed_dim, 
                              kernel_size=patch_size, stride=patch_size)
         
@@ -51,8 +51,8 @@ class PatchEmbedding(nn.Module):
 
 class MultiHeadAttention(nn.Module):
     """
-    트랜스포머에서 온 다중 머리 자기 주의 구조.
-    모형이 그림의 여러 부분에 한꺼번에 주의하게 해 준다.
+    트랜스포머에서 온 멀티헤드 셀프 어텐션.
+    모델이 이미지의 여러 부분에 한꺼번에 어텐션을 주게 해 준다.
     """
     def __init__(self, embed_dim: int = 768, n_heads: int = 12, dropout: float = 0.1):
         super().__init__()
@@ -81,7 +81,7 @@ class MultiHeadAttention(nn.Module):
         qkv = qkv.permute(2, 0, 3, 1, 4)  # (3, B, n_heads, N, head_dim)
         q, k, v = qkv[0], qkv[1], qkv[2]
         
-        # 주의 점수
+        # 어텐션 점수
         attn = (q @ k.transpose(-2, -1)) * self.scale
         attn = attn.softmax(dim=-1)
         attn = self.dropout(attn)
@@ -96,7 +96,7 @@ class MultiHeadAttention(nn.Module):
 
 class MLP(nn.Module):
     """
-    트랜스포머 블록에서 쓰는 순전파 뉴럴 네트워크.
+    트랜스포머 블록에서 쓰는 피드포워드 네트워크(MLP).
     비선형성과 피처 변환을 준다.
     """
     def __init__(self, embed_dim: int = 768, mlp_ratio: int = 4, dropout: float = 0.1):
@@ -118,7 +118,7 @@ class MLP(nn.Module):
 
 class TransformerBlock(nn.Module):
     """
-    자기 주의와 다층 퍼셉트론을 갖춘 표준 트랜스포머 인코더 블록.
+    셀프 어텐션과 다층 퍼셉트론(MLP)을 갖춘 표준 트랜스포머 인코더 블록.
     """
     def __init__(self, embed_dim: int = 768, n_heads: int = 12, 
                  mlp_ratio: int = 4, dropout: float = 0.1):
@@ -129,7 +129,7 @@ class TransformerBlock(nn.Module):
         self.mlp = MLP(embed_dim, mlp_ratio, dropout)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # 잔차 연결을 곁들인 주의
+        # 잔차 연결을 곁들인 어텐션
         x = x + self.attn(self.norm1(x))
         # 잔차 연결을 곁들인 다층 퍼셉트론
         x = x + self.mlp(self.norm2(x))
@@ -138,11 +138,11 @@ class TransformerBlock(nn.Module):
 
 class VisionTransformer(nn.Module):
     """
-    비전 트랜스포머(ViT) 모형.
+    비전 트랜스포머(ViT) 모델.
     
     핵심 혁신:
-    1. 그림을 조각의 수열로 다룬다
-    2. (본디 자연어 처리에서 온) 트랜스포머 인코더를 이미지 분류에 쓴다
+    1. 이미지를 패치의 시퀀스로 다룬다
+    2. (원래 자연어 처리에서 온) 트랜스포머 인코더를 이미지 분류에 쓴다
     3. 컨볼루션 뉴럴 네트워크 방식의 입력 처리와 트랜스포머 구조를 잇는다
     """
     def __init__(self, 
@@ -157,11 +157,11 @@ class VisionTransformer(nn.Module):
                  dropout: float = 0.1):
         super().__init__()
         
-        # 조각 임베딩 레이어 (그림에서 토큰으로 잇는 다리)
+        # 패치 임베딩 레이어 (이미지를 토큰으로 바꾸는 자리)
         self.patch_embed = PatchEmbedding(img_size, patch_size, in_channels, embed_dim)
         n_patches = self.patch_embed.n_patches
         
-        # 분류 토큰 (학습되며 수열 앞에 붙인다)
+        # 분류 토큰 (학습되며 시퀀스 앞에 붙인다)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         
         # 위치 임베딩 (학습되는 것)
@@ -174,7 +174,7 @@ class VisionTransformer(nn.Module):
             for _ in range(depth)
         ])
         
-        # 분류 머리
+        # 분류 헤드
         self.norm = nn.LayerNorm(embed_dim)
         self.head = nn.Linear(embed_dim, n_classes)
         
@@ -201,7 +201,7 @@ class VisionTransformer(nn.Module):
         """
         B = x.shape[0]
         
-        # 그림을 조각 임베딩으로 바꾼다
+        # 이미지를 패치 임베딩으로 바꾼다
         x = self.patch_embed(x)  # (B, n_patches, embed_dim)
         
         # 분류 토큰을 앞에 붙인다
@@ -287,12 +287,12 @@ TransformerBlock은 입력을 정규화한 뒤 어텐션·MLP를 실행하고 �
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-main의 패치·CLS·최종 출력 모양과 파라메터 수를 설명하라.
+main의 패치·CLS·최종 출력 형태와 파라메터 수를 설명하라.
 
 </div>
 
 ??? success "풀이"
-    입력 (2,3,224,224)에서 패치 (2,196,768), CLS 포함 (2,197,768), 출력 (2,10)이다. 계수는 85,806,346개이며 학습 결과가 아니라 구조의 수다.
+    입력 (2,3,224,224)에서 패치 (2,196,768), CLS 포함 (2,197,768), 출력 (2,10)이다. 파라메터는 85,806,346개이며 학습 결과가 아니라 구조의 수다.
 
 ---
 

@@ -6,7 +6,7 @@
 
 ```python
 """
-초파라메터 조율을 위한 격자 탐색
+하이퍼파라메터 조율을 위한 격자 탐색
 
 격자 탐색은 지정한 파라메터 격자를 남김없이 훑는다.
 가능한 모든 파라메터 조합을 시도한다.
@@ -38,7 +38,7 @@ from utils import (load_sample_dataset, print_results,
 
 def grid_search_random_forest():
     """
-    랜덤 포리스트 분류기로 격자 탐색 시연
+    랜덤 포레스트 분류기로 격자 탐색 시연
     """
     print("\n" + "="*60)
     print("GRID SEARCH - RANDOM FOREST CLASSIFIER")
@@ -66,7 +66,7 @@ def grid_search_random_forest():
     grid_search = GridSearchCV(
         estimator=rf,
         param_grid=param_grid,
-        cv=5,  # 5겹 교차 검증
+        cv=5,  # 5-폴드 교차 검증
         scoring='accuracy',
         n_jobs=-1,  # 쓸 수 있는 모든 코어 사용
         verbose=1,
@@ -172,7 +172,7 @@ def grid_search_svm():
 def nested_grid_search():
     """
     격자 탐색과 함께 중첩 교차 검증 시연
-    이래야 모델의 성능을 더 튼튼하게 추정할 수 있다
+    이래야 모델의 성능을 더 강건하게 추정할 수 있다
     """
     print("\n" + "="*60)
     print("NESTED GRID SEARCH (More Robust Evaluation)")
@@ -190,7 +190,7 @@ def nested_grid_search():
         'min_samples_split': [2, 5]
     }
     
-    # 초파라메터 조율을 위한 안쪽 교차 검증
+    # 하이퍼파라메터 조율을 위한 안쪽 교차 검증
     inner_cv = GridSearchCV(
         estimator=RandomForestClassifier(random_state=42),
         param_grid=param_grid,
@@ -374,7 +374,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-랜덤 포리스트 격자는 3×4×3×3×2=216개 조합이다. 5폴드이면 후보 평가 적합이 1080회이고, 기본 refit=True에서는 최선 설정을 전체 학습 데이터에 다시 적합하는 한 번이 추가된다. 후보에 따라 적합 시간은 다를 수 있다.
+랜덤 포레스트 격자는 3×4×3×3×2=216개 조합이다. 5폴드이면 후보 평가 적합이 1080회이고, 기본 refit=True에서는 최선 설정을 전체 학습 데이터에 다시 적합하는 한 번이 추가된다. 후보에 따라 적합 시간은 다를 수 있다.
 
 중첩 검증은 안쪽에서 설정을 고르고 바깥에서 선택 절차를 평가한다. 바깥 점수는 안쪽 최고 점수의 선택 효과를 줄이는 데 유용하지만 모든 데이터 조건에서 완전히 불편한 추정이라고 단정하지 않는다. 전처리도 안쪽 학습 부분에서만 맞춰야 한다.
 
@@ -398,12 +398,12 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-best_score_가 독립 테스트 점수와 다른 이유를 설명하라.
+best_score_가 독립 시험 점수와 다른 이유를 설명하라.
 
 </div>
 
 ??? success "풀이"
-    같은 검증 점수를 높이도록 후보를 골랐기 때문이다. 선택한 최고 점수에는 선택 효과가 있고 독립 테스트는 선택을 마친 모델을 평가한다.
+    같은 검증 점수를 높이도록 후보를 골랐기 때문이다. 선택한 최고 점수에는 선택 효과가 있고 독립 시험 평가는 선택을 마친 모델을 평가한다.
 
 ---
 
@@ -416,7 +416,7 @@ best_score_가 독립 테스트 점수와 다른 이유를 설명하라.
 </div>
 
 ??? success "풀이"
-    검증과 예산을 유지하며 후보 범위를 넓히거나 무작위 탐색 등 다른 방법을 사용한다. 범위를 추가한 사실과 전체 탐색 횟수를 기록하고 테스트셋을 탐색에 쓰지 않는다.
+    검증과 예산을 유지하며 후보 범위를 넓히거나 무작위 탐색 등 다른 방법을 사용한다. 범위를 추가한 사실과 전체 탐색 횟수를 기록하고 시험 집합을 탐색에 쓰지 않는다.
 
 ## 정리하며
 

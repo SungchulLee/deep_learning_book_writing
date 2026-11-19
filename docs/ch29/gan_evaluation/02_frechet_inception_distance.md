@@ -9,15 +9,15 @@
 52단원: 프레셰 인셉션 거리(FID)
 ==========================================
 
-가장 널리 쓰이는 잣대 가운데 하나인 FID를 두루 갖추어 짠다
-만들어 내는 모델을 따지는 데 쓴다.
+생성 모델을 평가하는 데 가장 널리 쓰이는 지표 가운데 하나인
+FID를 처음부터 끝까지 구현한다.
 
 학습 목표:
 -------------------
-1. FID의 수학 바탕을 이해한다
-2. FID를 바닥부터 짠다
-3. 피처 뽑기에 미리 익힌 InceptionV3을 쓴다
-4. FID 점수를 제대로 풀이한다
+1. FID의 수학적 기초를 이해한다
+2. FID를 처음부터 구현한다
+3. 피처 추출에 사전학습된 InceptionV3을 쓴다
+4. FID 점수를 올바로 해석한다
 
 핵심 공식:
 -----------
@@ -44,35 +44,35 @@ np.random.seed(42)
 
 class FIDCalculator:
     """
-    프레셰 인셉션 거리 셈개.
+    프레셰 인셉션 거리 계산기.
     
-    수학적 바탕:
+    수학적 기초:
     -----------------------
-    FID는 여러 변수 정규 분포 둘 사이의 거리를 잰다.
+    FID는 다변량 정규 분포 둘 사이의 거리를 잰다.
     
-    참 분포: X_real ~ N(μ_r, Σ_r)
-    만들어 낸 분포: X_gen ~ N(μ_g, Σ_g)
+    실제 분포: X_real ~ N(μ_r, Σ_r)
+    생성 분포: X_gen ~ N(μ_g, Σ_g)
     
     FID = ||μ_r - μ_g||² + Tr(Σ_r + Σ_g - 2(Σ_r Σ_g)^{1/2})
     
     왜 프레셰 거리인가?
     --------------------
     1. 프레셰 거리(바서슈타인-2 거리라고도 한다)는
-       정규 분포의 가장 좋은 나르기 거리
-    2. 정규 분포에는 닫힌 형태 풀이가 있다
-    3. 평균과 함께 흩어짐의 차이에 모두 민감하다
+       정규 분포 사이의 최적 수송 거리
+    2. 정규 분포에는 닫힌 형태의 해가 있다
+    3. 평균과 공분산의 차이에 모두 민감하다
     4. FID가 낮을수록 두 분포가 더 닮았다
     
     왜 인셉션 피처인가?
     ----------------------
-    1. ImageNet으로 익힌 InceptionV3은 그림의 뜻 피처를 담는다
-    2. pool3 피처(2048차원)은 그림의 높은 레이어 내용을 나타낸다
-    3. 화소 수준 견줌보다 튼튼하다
-    4. 사람의 판단과 잘 이어진다
+    1. ImageNet으로 학습한 InceptionV3은 이미지의 의미 피처를 담는다
+    2. pool3 피처(2048차원)은 이미지의 고수준 내용을 나타낸다
+    3. 픽셀 수준 비교보다 강건하다
+    4. 사람의 판단과 잘 상관된다
     
     흔한 FID 값:
     ------------------
-    - FID < 10: 아주 좋음(거의 나무랄 데 없이 만들어 냄)
+    - FID < 10: 아주 좋음(거의 완벽한 생성)
     - FID 10-50: 좋은 품질
     - FID 50-100: 보통 품질
     - FID > 100: 나쁜 품질
@@ -85,9 +85,9 @@ class FIDCalculator:
                                    sigma2: np.ndarray,
                                    eps: float = 1e-6) -> float:
         """
-        정규 분포 둘 사이의 프레셰 거리를 셈한다.
+        정규 분포 둘 사이의 프레셰 거리를 계산한다.
         
-        수학의 이끌어 내기:
+        수학적 유도:
         -----------------------
         X ~ N(μ₁, Σ₁)와 Y ~ N(μ₂, Σ₂)에 대해 프레셰 거리는 다음과 같다.
         
@@ -96,7 +96,7 @@ class FIDCalculator:
         공식을 나누어 보면:
         1. ||μ₁ - μ₂||²: 평균의 차이(첫째 적률)
         2. Tr(Σ₁ + Σ₂): Sum of variances
-        3. -2Tr((Σ₁Σ₂)^{1/2}): 공분산이 겹치는 마디
+        3. -2Tr((Σ₁Σ₂)^{1/2}): 공분산이 겹치는 항
         
         인수:
             mu1: 첫째 분포의 평균 [d]
@@ -108,7 +108,7 @@ class FIDCalculator:
         반환값:
             프레셰 거리(스칼라)
         """
-        # 들임이 넘파이 배열이 되게 한다
+        # 입력이 넘파이 배열이 되게 한다
         mu1 = np.atleast_1d(mu1)
         mu2 = np.atleast_1d(mu2)
         sigma1 = np.atleast_2d(sigma1)
@@ -117,18 +117,18 @@ class FIDCalculator:
         assert mu1.shape == mu2.shape, "Means must have same shape"
         assert sigma1.shape == sigma2.shape, "Covariances must have same shape"
         
-        # 1. 평균 차이를 셈한다: ||μ₁ - μ₂||²
+        # 1. 평균 차이를 계산한다: ||μ₁ - μ₂||²
         diff = mu1 - mu2
         mean_diff_squared = np.dot(diff, diff)
         
-        # 2. 행렬 제곱근을 셈한다: (Σ₁Σ₂)^{1/2}
-        # 이것이 셈이 가장 비싼 스텝이다
+        # 2. 행렬 제곱근을 계산한다: (Σ₁Σ₂)^{1/2}
+        # 이것이 계산 비용이 가장 큰 스텝이다
         
         # 행렬 곱: Σ₁ @ Σ₂
         # 형태: [d, d] @ [d, d] = [d, d]
         covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
         
-        # 행렬 제곱근의 수치 어긋남을 다룬다
+        # 행렬 제곱근의 수치 오차를 다룬다
         # 수치 문제로 sqrtm이 복소수를 돌려줄 때가 있다
         if not np.isfinite(covmean).all():
             print(f"WARNING: FID calculation produced non-finite values.")
@@ -137,14 +137,14 @@ class FIDCalculator:
             offset = np.eye(sigma1.shape[0]) * eps
             covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
         
-        # 허수 몫이 작으면 실수부를 취한다
+        # 허수부가 작으면 실수부를 취한다
         if np.iscomplexobj(covmean):
             if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
                 max_imag = np.max(np.abs(covmean.imag))
                 raise ValueError(f"Imaginary component too large: {max_imag}")
             covmean = covmean.real
         
-        # 3. 대각합 항을 셈한다: Tr(Σ₁ + Σ₂ - 2(Σ₁Σ₂)^{1/2})
+        # 3. 대각합 항을 계산한다: Tr(Σ₁ + Σ₂ - 2(Σ₁Σ₂)^{1/2})
         trace_term = np.trace(sigma1) + np.trace(sigma2) - 2 * np.trace(covmean)
         
         # 4. 마지막 FID = ||μ₁ - μ₂||² + Tr(...)
@@ -155,7 +155,7 @@ class FIDCalculator:
     @staticmethod
     def compute_statistics(features: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
-        피처의 평균과 함께 흩어짐을 셈한다.
+        피처의 평균과 공분산을 계산한다.
         
         인수:
             features: 피처 벡터 [n_samples, feature_dim]
@@ -163,20 +163,20 @@ class FIDCalculator:
         반환값:
             (평균 [feature_dim], 공분산 [feature_dim, feature_dim]) 튜플
         
-        수학의 참고:
+        수학적 참고:
         ------------------
         Mean: μ = (1/N) Σ x_i
         Covariance: Σ = (1/N) Σ (x_i - μ)(x_i - μ)ᵀ
         
         열마다 하나의 변수로 보려고 rowvar=False을 쓴다
         """
-        # 평균을 셈한다: 표본에 걸쳐 평균 낸다
+        # 평균을 계산한다: 표본에 걸쳐 평균 낸다
         # 형태: [피처 차원]
         mu = np.mean(features, axis=0)
         
-        # 함께 흩어짐 행렬을 셈한다
+        # 공분산 행렬을 계산한다
         # 형태: [피처 차원, 피처 차원]
-        # rowvar=False: 세로줄마다 변수, 가로줄마다 관측이다
+        # rowvar=False: 열마다 변수, 행마다 관측이다
         sigma = np.cov(features, rowvar=False)
         
         return mu, sigma
@@ -185,38 +185,38 @@ class FIDCalculator:
     def calculate_fid(real_features: np.ndarray,
                      generated_features: np.ndarray) -> float:
         """
-        실제 피처와 만든 피처로 FID를 셈한다.
+        실제 피처와 생성 피처로 FID를 계산한다.
         
-        온전한 물길:
+        전체 파이프라인:
         -----------------
-        1. InceptionV3에서 피처를 뽑는다(이 함수에 앞서 한다)
-        2. 참 자료의 통계(μ, Σ)를 셈한다
-        3. 만들어 낸 자료의 통계(μ, Σ)를 셈한다
-        4. 프레셰 거리를 셈한다
+        1. InceptionV3에서 피처를 추출한다(이 함수에 앞서 한다)
+        2. 실제 데이터의 통계(μ, Σ)를 계산한다
+        3. 생성 데이터의 통계(μ, Σ)를 계산한다
+        4. 프레셰 거리를 계산한다
         
         인수:
-            real_features: 참 그림에서 뽑은 피처 [n_real, 2048]
-            generated_features: 만들어 낸 그림에서 뽑은 피처 [n_gen, 2048]
+            real_features: 실제 이미지에서 추출한 피처 [n_real, 2048]
+            generated_features: 생성 이미지에서 추출한 피처 [n_gen, 2048]
         
         반환값:
             FID 점수(낮을수록 좋다)
         
-        가장 작은 표본 크기:
+        최소 표본 크기:
         --------------------
-        - 가장 적어도: 표본 2048개(= 피처 차원)
-        - 권함: 안정된 어림을 위해 표본 10,000개 이상
-        - 표본이 많을수록 FID가 미덥다
+        - 최소: 표본 2048개(= 피처 차원)
+        - 권장: 안정된 추정을 위해 표본 10,000개 이상
+        - 표본이 많을수록 FID를 신뢰할 수 있다
         """
         print(f"Computing FID with {len(real_features)} real and "
               f"{len(generated_features)} generated samples...")
         
-        # 실제 자료의 통계를 셈한다
+        # 실제 데이터의 통계를 계산한다
         mu_real, sigma_real = FIDCalculator.compute_statistics(real_features)
         
-        # 만든 자료의 통계를 셈한다
+        # 생성 데이터의 통계를 계산한다
         mu_gen, sigma_gen = FIDCalculator.compute_statistics(generated_features)
         
-        # 프레셰 거리를 셈한다
+        # 프레셰 거리를 계산한다
         fid = FIDCalculator.calculate_frechet_distance(
             mu_real, sigma_real, mu_gen, sigma_gen
         )
@@ -228,20 +228,20 @@ class FIDCalculator:
 
 class SimpleInceptionV3Wrapper:
     """
-    가르치기 위한 단순한 InceptionV3 감싸개.
+    교육용으로 단순화한 InceptionV3 래퍼.
     
     실제로는 다음을 쓴다.
     - torchvision.models.inception_v3(pretrained=True)
-    - torch-fidelity 꾸러미
-    - pytorch-fid 꾸러미
+    - torch-fidelity 패키지
+    - pytorch-fid 패키지
     
-    이 클래스는 실제 InceptionV3 무게 없이
+    이 클래스는 실제 InceptionV3 웨이트 없이
     핵심 개념을 보인다.
     """
     
     def __init__(self, feature_dim: int = 2048):
         """
-        흉내 피처 뽑개로 초기화한다.
+        mock 피처 추출기로 초기화한다.
         
         인수:
             feature_dim: 피처 벡터의 차원(InceptionV3이면 2048)
@@ -252,27 +252,27 @@ class SimpleInceptionV3Wrapper:
     
     def extract_features(self, images: torch.Tensor) -> np.ndarray:
         """
-        그림에서 피처를 뽑는다(흉내만 낸 짜기).
+        이미지에서 피처를 추출한다(mock 구현).
         
-        실제 짜기에서는:
-        1. 그림을 InceptionV3 형태로 미리 다듬는다(299×299, 잣대 맞춤)
-        2. InceptionV3을 지나는 피드포워드
-        3. pool3 피처를 뽑는다(2048차원)
-        4. 그래디언트가 필요 없다(따짐 결)
+        실제 구현에서는:
+        1. 이미지를 InceptionV3 입력 형식으로 전처리한다(299×299, 정규화)
+        2. InceptionV3을 지나는 순전파
+        3. pool3 피처를 추출한다(2048차원)
+        4. 그래디언트가 필요 없다(평가 모드)
         
         인수:
-            images: 그림 배치 [batch_size, C, H, W]
+            images: 이미지 배치 [batch_size, C, H, W]
         
         반환값:
             피처 [batch_size, feature_dim]
         """
         batch_size = images.shape[0]
         
-        # 흉내 피처(실제로는 InceptionV3에서 온다)
+        # mock 피처(실제로는 InceptionV3에서 온다)
         # 그럴듯한 통계 성질을 지닌 피처를 만든다
         features = torch.randn(batch_size, self.feature_dim)
         
-        # 그림에 따라 달라지는 몫을 더한다(실제 피처 뽑기를 흉내 낸다)
+        # 이미지에 따라 달라지는 성분을 더한다(실제 피처 추출을 흉내 낸다)
         image_stats = images.mean(dim=[1,2,3], keepdim=True)
         features = features + image_stats * 0.1
         
@@ -281,7 +281,7 @@ class SimpleInceptionV3Wrapper:
 
 def demonstrate_fid_computation():
     """
-    인공 자료로 FID 셈하기를 보인다.
+    합성 데이터로 FID 계산을 보인다.
     """
     print("=" * 70)
     print("Fréchet Inception Distance (FID) Demonstration")
@@ -318,14 +318,14 @@ def demonstrate_fid_computation():
     print(f"FID: {fid_mean:.4f}")
     print("Interpretation: FID increases with mean difference")
     
-    # 상황 3: 함께 흩어짐이 다르다
+    # 상황 3: 공분산이 다르다
     print("\nScenario 3: Different Covariances (Same Mean)")
     print("-" * 70)
     
     mu1 = np.array([0.0, 0.0])
     sigma1 = np.array([[1.0, 0.0], [0.0, 1.0]])
     mu2 = np.array([0.0, 0.0])
-    sigma2 = np.array([[4.0, 0.0], [0.0, 4.0]])  # 더 큰 흩어짐
+    sigma2 = np.array([[4.0, 0.0], [0.0, 4.0]])  # 더 큰 분산
     
     fid_cov = FIDCalculator.calculate_frechet_distance(mu1, sigma1, mu2, sigma2)
     print(f"Covariance 1:\n{sigma1}")
@@ -340,7 +340,7 @@ def demonstrate_fid_computation():
     mu1 = np.array([0.0, 0.0])
     sigma1 = np.array([[1.0, 0.0], [0.0, 1.0]])
     mu2 = np.array([2.0, 2.0])
-    sigma2 = np.array([[3.0, 0.5], [0.5, 3.0]])  # 다른 흩어짐 + 서로 이어짐
+    sigma2 = np.array([[3.0, 0.5], [0.5, 3.0]])  # 다른 분산 + 상관
     
     fid_both = FIDCalculator.calculate_frechet_distance(mu1, sigma1, mu2, sigma2)
     print(f"Mean difference: {np.linalg.norm(mu1 - mu2):.4f}")
@@ -360,13 +360,13 @@ def demonstrate_fid_computation():
 
 def demonstrate_fid_with_features():
     """
-    피처 벡터로 FID 셈하기를 보인다.
+    피처 벡터로 FID 계산을 보인다.
     """
     print("\n" + "=" * 70)
     print("FID with Feature Vectors")
     print("=" * 70)
     
-    # 인공 피처 벡터를 만든다
+    # 합성 피처 벡터를 만든다
     n_samples = 5000
     feature_dim = 2048
     
@@ -375,16 +375,16 @@ def demonstrate_fid_with_features():
     # 실제 분포: N(0, I)
     real_features = np.random.randn(n_samples, feature_dim)
     
-    # 만든 분포 1: 똑같다(FID가 낮아야 한다)
+    # 생성 분포 1: 똑같다(FID가 낮아야 한다)
     gen1_features = np.random.randn(n_samples, feature_dim)
     
-    # 만든 분포 2: 평균이 옮겨졌다
+    # 생성 분포 2: 평균이 옮겨졌다
     gen2_features = np.random.randn(n_samples, feature_dim) + 0.5
     
-    # 만든 분포 3: 흩어짐이 줄었다(봉우리 무너짐 표시)
+    # 생성 분포 3: 분산이 줄었다(모드 붕괴의 징후)
     gen3_features = np.random.randn(n_samples, feature_dim) * 0.5
     
-    # FID를 셈한다
+    # FID를 계산한다
     print("\n" + "-" * 70)
     print("FID Comparison:")
     print("-" * 70)
@@ -407,13 +407,13 @@ def demonstrate_fid_with_features():
 
 def main():
     """
-    주된 보여 주기 함수.
+    메인 시연 함수.
     """
     print("\n" + "=" * 70)
     print("MODULE 52: FRÉCHET INCEPTION DISTANCE (FID)")
     print("=" * 70)
     
-    # 기본 FID 셈하기를 보여 준다
+    # 기본 FID 계산을 보여 준다
     demonstrate_fid_computation()
     
     # 피처 벡터로 보여 준다
@@ -423,32 +423,32 @@ def main():
     print("KEY TAKEAWAYS")
     print("=" * 70)
     print("""
-    1. FID 뜻매김:
-       - 실제 분포와 만든 분포 사이의 거리를 잰다
+    1. FID 정의:
+       - 실제 분포와 생성 분포 사이의 거리를 잰다
        - 피처 공간에서 정규 분포를 가정한다
-       - FID가 낮을수록 만들어 내는 품질이 좋다
+       - FID가 낮을수록 생성 품질이 좋다
     
-    2. 수학의 몫:
+    2. 수학적 구성 요소:
        - 평균 차이: ||μ_r - μ_g||²
        - Covariance term: Tr(Σ_r + Σ_g - 2(Σ_r Σ_g)^{1/2})
-       - 정규 분포의 닫힌 형태 풀이
+       - 정규 분포의 닫힌 형태의 해
     
     3. 왜 InceptionV3인가?
-       - 그림의 뜻 피처를 담는다
-       - ImageNet으로 미리 익혔다
+       - 이미지의 의미 피처를 담는다
+       - ImageNet으로 사전학습했다
        - 2048차원 pool3 피처
-       - 화소 공간 견줌보다 낫다
+       - 픽셀 공간 비교보다 낫다
     
     4. 표본 크기가 중요하다:
-       - 가장 적어도: 표본 2048개(= 피처 차원)
-       - 권함: 표본 10,000개 이상
-       - 표본이 많을수록 FID 어림이 든든하다
+       - 최소: 표본 2048개(= 피처 차원)
+       - 권장: 표본 10,000개 이상
+       - 표본이 많을수록 FID 추정이 안정된다
     
     5. 한계:
-       - 가우스 분포라고 가정한다(맞지 않을 수 있다)
-       - 피처 뽑개를 무엇으로 고르느냐에 치우친다
-       - 모든 잘못됨을 알아내지는 못한다
-       - 다른 잣대와 아울러야 한다
+       - 가우시안 분포라고 가정한다(맞지 않을 수 있다)
+       - 피처 추출기의 선택에 따라 편향된다
+       - 모든 결함을 탐지하지는 못한다
+       - 다른 지표와 함께 써야 한다
     
     6. 흔한 값:
        - FID < 10: 뛰어난 품질
@@ -547,32 +547,32 @@ if __name__ == "__main__":
     KEY TAKEAWAYS
     ======================================================================
 
-        1. FID 뜻매김:
-           - 실제 분포와 만든 분포 사이의 거리를 잰다
+        1. FID 정의:
+           - 실제 분포와 생성 분포 사이의 거리를 잰다
            - 피처 공간에서 정규 분포를 가정한다
-           - FID가 낮을수록 만들어 내는 품질이 좋다
+           - FID가 낮을수록 생성 품질이 좋다
         
-        2. 수학의 몫:
+        2. 수학적 구성 요소:
            - 평균 차이: ||μ_r - μ_g||²
            - Covariance term: Tr(Σ_r + Σ_g - 2(Σ_r Σ_g)^{1/2})
-           - 정규 분포의 닫힌 형태 풀이
+           - 정규 분포의 닫힌 형태의 해
         
         3. 왜 InceptionV3인가?
-           - 그림의 뜻 피처를 담는다
-           - ImageNet으로 미리 익혔다
+           - 이미지의 의미 피처를 담는다
+           - ImageNet으로 사전학습했다
            - 2048차원 pool3 피처
-           - 화소 공간 견줌보다 낫다
+           - 픽셀 공간 비교보다 낫다
         
         4. 표본 크기가 중요하다:
-           - 가장 적어도: 표본 2048개(= 피처 차원)
-           - 권함: 표본 10,000개 이상
-           - 표본이 많을수록 FID 어림이 든든하다
+           - 최소: 표본 2048개(= 피처 차원)
+           - 권장: 표본 10,000개 이상
+           - 표본이 많을수록 FID 추정이 안정된다
         
         5. 한계:
-           - 가우스 분포라고 가정한다(맞지 않을 수 있다)
-           - 피처 뽑개를 무엇으로 고르느냐에 치우친다
-           - 모든 잘못됨을 알아내지는 못한다
-           - 다른 잣대와 아울러야 한다
+           - 가우시안 분포라고 가정한다(맞지 않을 수 있다)
+           - 피처 추출기의 선택에 따라 편향된다
+           - 모든 결함을 탐지하지는 못한다
+           - 다른 지표와 함께 써야 한다
         
         6. 흔한 값:
            - FID < 10: 뛰어난 품질
@@ -601,7 +601,7 @@ $$\mathrm{FID}=\|\mu_r-\mu_g\|^2+
 
 5,000×2,048 피처 예제는 가우시안 난수다. 첫 번째 생성 피처는 실제 피처와 **같은 모집단에서 독립 생성한 다른 표본**이므로 표본 FID가 0일 필요가 없다. 평균을 0.5 이동한 모집단의 FID는 2048×0.5²=512이며, 표준편차를 0.5로 줄인 모집단의 FID도 2048×(1−0.5)²=512다. 코드의 표본값은 모멘트 추정 오차 때문에 이 값들과 다를 수 있다. 분산을 줄인 단봉 가우시안을 '모드 붕괴'라고 부르는 것은 여기서는 비유이며 여러 실제 모드의 누락 실험은 아니다.
 
-유한 표본 FID에는 편향과 변동이 있고 모델에 따라 바이어스도 다를 수 있다. 표본 수가 커질수록 개별 결과가 반드시 단조롭게 감소하는 것은 아니다. [유한 표본 바이어스 연구](https://openaccess.thecvf.com/content_CVPR_2020/html/Chong_Effectively_Unbiased_FID_and_Inception_Score_and_Where_to_Find_CVPR_2020_paper.html)를 참고하고, 비교 시 실제·생성 표본 수를 각각 고정해 보고한다.
+유한 표본 FID에는 편향과 변동이 있고 모델에 따라 그 편향의 크기도 다를 수 있다. 표본 수가 커질수록 개별 결과가 반드시 단조롭게 감소하는 것은 아니다. [유한 표본 편향 연구](https://openaccess.thecvf.com/content_CVPR_2020/html/Chong_Effectively_Unbiased_FID_and_Inception_Score_and_Where_to_Find_CVPR_2020_paper.html)를 참고하고, 비교 시 실제·생성 표본 수를 각각 고정해 보고한다.
 
 ## 4. 수치 안정성과 mock 피처 추출기
 
@@ -756,7 +756,7 @@ N≤d일 때 특이 공분산이 되는 이유와 대각선 ε 보정의 한계�
 
 ??? success "풀이"
 
-    중심화한 N개 표본의 계수는 최대 N−1이어서 d차원 공분산의 계수도 그 이하이다. εI를 더하면 수치 계산에 도움이 될 수 있으나 추정 정확도를 회복시키거나 표본 바이어스를 제거하지는 않는다. 아래 보정 조각은 사용 위치에 따라 목적량을 바꾸며, 보정 후 유한성·허수부·최종값 검사가 필요하다.
+    중심화한 N개 표본의 계수는 최대 N−1이어서 d차원 공분산의 계수도 그 이하이다. εI를 더하면 수치 계산에 도움이 될 수 있으나 추정 정확도를 회복시키거나 표본 편향을 제거하지는 않는다. 아래 보정 조각은 사용 위치에 따라 목적량을 바꾸며, 보정 후 유한성·허수부·최종값 검사가 필요하다.
 
     ```python
     eps = 1e-6
@@ -785,7 +785,7 @@ N≤d일 때 특이 공분산이 되는 이유와 대각선 ε 보정의 한계�
 
     ```python
     FID_N = 2000                      # 고정
-    torch.manual_seed(0)              # 뽑기 씨앗도 고정
+    torch.manual_seed(0)              # 샘플링 시드도 고정
     ```
 
 

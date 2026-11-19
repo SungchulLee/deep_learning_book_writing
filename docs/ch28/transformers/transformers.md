@@ -20,9 +20,9 @@ import math
 
 class CausalSelfAttention(nn.Module):
     """
-    자기 회귀 모델을 위한 인과(가린) 셀프 어텐션.
+    자기회귀 모델을 위한 인과적(마스크된) 셀프 어텐션.
     
-    자리마다 제 자신과 앞선 자리에만 주의할 수 있다.
+    위치마다 자기 자신과 앞선 위치에만 어텐션할 수 있다.
     """
     
     def __init__(
@@ -51,7 +51,7 @@ class CausalSelfAttention(nn.Module):
         self.dropout = nn.Dropout(dropout)
         
         # 인과 마스크 만들기(하삼각)
-        # 버퍼로 등록해 모델과 함께 갈무리되되 익혀지지는 않게 한다
+        # 버퍼로 등록해 모델과 함께 저장되되 학습되지는 않게 한다
         mask = torch.triu(torch.ones(max_seq_len, max_seq_len), diagonal=1).bool()
         self.register_buffer('causal_mask', mask)
     
@@ -61,39 +61,39 @@ class CausalSelfAttention(nn.Module):
         attention_mask: torch.Tensor = None
     ) -> torch.Tensor:
         """
-        인과 가림을 쓰는 피드포워드.
+        인과 마스킹을 쓰는 순전파.
         
         인수:
             x: 입력 텐서 [batch_size, seq_len, d_model]
-            attention_mask: 덧붙일 수 있는 마스크 [배치 크기, 차례 길이]
+            attention_mask: 선택적 마스크 [배치 크기, 시퀀스 길이]
             
         반환값:
             출력 텐서 [batch_size, seq_len, d_model]
         """
         batch_size, seq_len, _ = x.shape
         
-        # Q, K, V를 셈한다
-        Q = self.W_q(x)  # [배치, 차례 길이, d_model]
+        # Q, K, V를 계산한다
+        Q = self.W_q(x)  # [배치, 시퀀스 길이, d_model]
         K = self.W_k(x)
         V = self.W_v(x)
         
-        # 다중 머리 주의에 맞게 형태를 바꾼다
-        # [배치, 차례 길이, 머리 수, d_k] -> [배치, 머리 수, 차례 길이, d_k]
+        # 멀티헤드 어텐션에 맞게 형태를 바꾼다
+        # [배치, 시퀀스 길이, 헤드 수, d_k] -> [배치, 헤드 수, 시퀀스 길이, d_k]
         Q = Q.view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         K = K.view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         V = V.view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         
-        # 주의 점수를 셈한다
-        # [배치, 머리 수, 차례 길이, 차례 길이]
+        # 어텐션 점수를 계산한다
+        # [배치, 헤드 수, 시퀀스 길이, 시퀀스 길이]
         scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
         
-        # 인과 가림을 적용한다
+        # 인과 마스크를 적용한다
         causal_mask = self.causal_mask[:seq_len, :seq_len]
         scores = scores.masked_fill(causal_mask, float('-inf'))
         
-        # 있으면 어텐션 마스크를 쓴다(예컨대 채우기)
+        # 있으면 어텐션 마스크를 쓴다(예컨대 패딩)
         if attention_mask is not None:
-            # attention_mask: [배치, 차례 길이] -> [배치, 1, 1, 차례 길이]
+            # attention_mask: [배치, 시퀀스 길이] -> [배치, 1, 1, 시퀀스 길이]
             attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
             scores = scores.masked_fill(attention_mask == 0, float('-inf'))
         
@@ -102,11 +102,11 @@ class CausalSelfAttention(nn.Module):
         attention_weights = self.dropout(attention_weights)
         
         # 값에 어텐션 적용
-        # [배치, 머리 수, 차례 길이, d_k]
+        # [배치, 헤드 수, 시퀀스 길이, d_k]
         context = torch.matmul(attention_weights, V)
         
         # 다시 형태 되돌리기
-        # [배치, 차례 길이, d_model]
+        # [배치, 시퀀스 길이, d_model]
         context = context.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         
         # 출력 사영
@@ -117,18 +117,18 @@ class CausalSelfAttention(nn.Module):
 
 입력 `(B,T,d_model)`에서 Q·K·V는 `(B,H,T,d_k)`, 점수는 `(B,H,T,T)`다. d_model은 양의 n_heads로 나누어져야 하며 T는 미리 만든 causal_mask 범위 이하여야 한다. attention_mask는 `(B,T)`의 0인 **키 위치**를 차단한다. 쿼리 위치의 로스를 제외하거나 출력 자체를 0으로 만들지는 않는다.
 
-어떤 쿼리의 모든 키가 가려지면 −∞만 있는 행에 softmax를 적용해 NaN이 생길 수 있다. 특히 왼쪽 패딩·빈 문맥을 고려한 폴리시가 필요하다. 드롭아웃은 attention 확률 뒤에 적용되므로 학습 중 각 행 합이 반드시 1인 것은 아니며 eval에서 비활성화된다.
+어떤 쿼리의 모든 키가 가려지면 −∞만 있는 행에 softmax를 적용해 NaN이 생길 수 있다. 특히 왼쪽 패딩·빈 문맥을 고려한 처리 규칙이 필요하다. 드롭아웃은 attention 확률 뒤에 적용되므로 학습 중 각 행 합이 반드시 1인 것은 아니며 eval에서 비활성화된다.
 
 ## 2. Pre-LN 블록과 잔차 경로
 
 ```python
 class TransformerBlock(nn.Module):
     """
-    트랜스포머 디코더 덩이 하나.
+    트랜스포머 디코더 블록 하나.
     
-    짜임:
-        x -> 레이어 고르게 맞추기 -> 인과 어텐션 -> + -> 레이어 고르게 맞추기 -> 피드포워드 뉴럴 네트워크 -> +
-             |__________________________|      |___________________|
+    구조:
+        x -> 레이어 정규화 -> 인과 어텐션 -> + -> 레이어 정규화 -> FFN -> +
+        |____________________________________| |__________________________|
     """
     
     def __init__(
@@ -141,9 +141,9 @@ class TransformerBlock(nn.Module):
     ):
         super().__init__()
         
-        d_ff = d_ff or 4 * d_model  # 여느 방식: 피드포워드 뉴럴 네트워크는 모델 차원의 4배
+        d_ff = d_ff or 4 * d_model  # 관례: FFN 은닉 차원은 모델 차원의 4배
         
-        # 레이어 고르게 맞추기(앞 레이어 고르게 맞추기 구조)
+        # 레이어 정규화(pre-LN 구조)
         self.ln1 = nn.LayerNorm(d_model)
         self.ln2 = nn.LayerNorm(d_model)
         
@@ -152,7 +152,7 @@ class TransformerBlock(nn.Module):
             d_model, n_heads, max_seq_len, dropout
         )
         
-        # 순방향 뉴럴 네트워크
+        # 피드포워드 네트워크(FFN)
         self.ffn = nn.Sequential(
             nn.Linear(d_model, d_ff),
             nn.GELU(),
@@ -167,19 +167,19 @@ class TransformerBlock(nn.Module):
         attention_mask: torch.Tensor = None
     ) -> torch.Tensor:
         """
-        트랜스포머 덩이를 지나는 피드포워드.
+        트랜스포머 블록을 지나는 순전파.
         
         인수:
-            x: 들임 [배치 크기, 차례 길이, d_model]
-            attention_mask: 쓸 수도 있는 마스크 [배치 크기, 차례 길이]
+            x: 입력 [배치 크기, 시퀀스 길이, d_model]
+            attention_mask: 선택적 마스크 [배치 크기, 시퀀스 길이]
             
         반환값:
-            내놓기 [배치 크기, 차례 길이, d_model]
+            출력 [배치 크기, 시퀀스 길이, d_model]
         """
-        # 잔차를 곁들인 자기 주의
+        # 잔차 연결을 곁들인 셀프 어텐션
         x = x + self.attention(self.ln1(x), attention_mask)
         
-        # 잔차를 곁들인 순전파
+        # 잔차 연결을 곁들인 FFN
         x = x + self.ffn(self.ln2(x))
         
         return x
@@ -187,7 +187,7 @@ class TransformerBlock(nn.Module):
 
 블록은 x←x+Attention(LN(x)), 이어 x←x+FFN(LN(x))를 계산한다. 첫 업데이트 결과가 두 번째 잔차 경로의 기준이다. 토큰별 LayerNorm은 시간 위치 사이 통계를 섞지 않아 이 코드의 인과성을 유지한다. 잔차·정규화는 최적화에 유용하지만 깊이·러닝레이트에 무관한 안정성 보장은 아니다.
 
-아래 기존 도식은 post-LN·pre-LN의 배치 차이를 개념적으로 보여 준다. 화살표가 생략된 부분은 위 코드와 두 업데이트 식을 기준으로 읽는다.
+아래 도식은 post-LN·pre-LN의 배치 차이를 개념적으로 보여 준다. 화살표가 생략된 부분은 위 코드와 두 업데이트 식을 기준으로 읽는다.
 
 ```
 x -> Attention -> + -> LayerNorm -> FFN -> + -> LayerNorm
@@ -205,12 +205,12 @@ x -> LayerNorm -> Attention -> + -> LayerNorm -> FFN -> +
 ```python
 class GPT(nn.Module):
     """
-    GPT 형태 자기 회귀 트랜스포머.
+    GPT 형태의 자기회귀 트랜스포머.
     
     구조:
-        - 토큰 임베딩 + 자리 임베딩
-        - 트랜스포머 디코더 덩이 쌓기
-        - 단어로의 내놓기 쏘기
+        - 토큰 임베딩 + 위치 임베딩
+        - 트랜스포머 디코더 블록 쌓기
+        - 어휘로의 출력 사영
     """
     
     def __init__(
@@ -228,7 +228,7 @@ class GPT(nn.Module):
         self.d_model = d_model
         self.max_seq_len = max_seq_len
         
-        # 토큰 임베딩과 자리 임베딩
+        # 토큰 임베딩과 위치 임베딩
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(max_seq_len, d_model)
         
@@ -243,17 +243,17 @@ class GPT(nn.Module):
         # 마지막 레이어 정규화
         self.ln_f = nn.LayerNorm(d_model)
         
-        # 내놓기 쏘기(흔히 토큰 임베딩과 묶는다)
+        # 출력 사영(흔히 토큰 임베딩과 웨이트를 공유한다)
         self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
         
-        # 무게 묶기
+        # 웨이트 공유(weight tying)
         self.lm_head.weight = self.token_embedding.weight
         
         # 웨이트 초기화
         self.apply(self._init_weights)
     
     def _init_weights(self, module):
-        """GPT-2을 따라 무게를 초기화한다."""
+        """GPT-2를 따라 웨이트를 초기화한다."""
         if isinstance(module, nn.Linear):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
             if module.bias is not None:
@@ -267,14 +267,14 @@ class GPT(nn.Module):
         attention_mask: torch.Tensor = None
     ) -> torch.Tensor:
         """
-        피드포워드.
+        순전파.
         
         인수:
-            input_ids: 토큰 어깨수 [배치 크기, 차례 길이]
-            attention_mask: 쓸 수도 있는 마스크 [배치 크기, 차례 길이]
+            input_ids: 토큰 인덱스 [배치 크기, 시퀀스 길이]
+            attention_mask: 선택적 마스크 [배치 크기, 시퀀스 길이]
             
         반환값:
-            로짓 [배치 크기, 차례 길이, 단어 수]
+            로짓 [배치 크기, 시퀀스 길이, 어휘 크기]
         """
         batch_size, seq_len = input_ids.shape
         
@@ -288,11 +288,11 @@ class GPT(nn.Module):
         
         x = self.dropout(tok_emb + pos_emb)
         
-        # 트랜스포머 덩이를 지난다
+        # 트랜스포머 블록을 지난다
         for block in self.blocks:
             x = block(x, attention_mask)
         
-        # 마지막 레이어 고르게 맞추기와 쏘기
+        # 마지막 레이어 정규화와 출력 사영
         x = self.ln_f(x)
         logits = self.lm_head(x)
         
@@ -304,9 +304,9 @@ class GPT(nn.Module):
         attention_mask: torch.Tensor = None
     ) -> torch.Tensor:
         """
-        다음 토큰 헤아리기의 어긋 엔트로피 로스를 셈한다.
+        다음 토큰 예측의 교차 엔트로피 로스를 계산한다.
         """
-        # 다음 토큰 맞히기를 위해 민다
+        # 다음 토큰 예측을 위해 한 칸 민다
         inputs = input_ids[:, :-1]
         targets = input_ids[:, 1:]
         
@@ -317,7 +317,7 @@ class GPT(nn.Module):
         loss = F.cross_entropy(
             logits.reshape(-1, logits.size(-1)),
             targets.reshape(-1),
-            ignore_index=-100  # 채움을 무시한다
+            ignore_index=-100  # 패딩을 무시한다
         )
         
         return loss
@@ -325,10 +325,10 @@ class GPT(nn.Module):
 
 정수 input_ids `(B,T)`를 토큰·학습 위치 임베딩으로 바꾸고 블록을 거쳐 logits `(B,T,V)`를 반환한다. 최종 출력 웨이트는 토큰 임베딩과 공유한다. 이 모델은 무작위 초기화되며 사전학습 웨이트·토크나이저를 자동으로 불러오지 않는다.
 
-compute_loss는 입력·타깃을 한 칸 이동해 모든 위치 평균 교차엔트로피를 계산한다. 첫 토큰에 조건부인 목적이며 BOS·EOS·패딩 폴리시는 호출부에서 정의해야 한다. attention_mask는 attention의 키만 가릴 뿐 패딩 타깃을 로스에서 제외하지 않는다. ignore_index=−100을 지정해도 targets를 실제로 −100으로 바꾸는 처리는 없다. input_ids 자체에 −100을 넣으면 입력 임베딩 범위를 벗어날 수도 있어 입력과 별도 labels의 계약이 필요하다. 유효 타깃이 없거나 T<2인 경우도 처리해야 한다.
+compute_loss는 입력·타깃을 한 칸 이동해 모든 위치 평균 교차엔트로피를 계산한다. 첫 토큰에 조건부인 목적이며 BOS·EOS·패딩 규칙은 호출부에서 정의해야 한다. attention_mask는 attention의 키만 가릴 뿐 패딩 타깃을 로스에서 제외하지 않는다. ignore_index=−100을 지정해도 targets를 실제로 −100으로 바꾸는 처리는 없다. input_ids 자체에 −100을 넣으면 입력 임베딩 범위를 벗어날 수도 있어 입력과 별도 labels의 계약이 필요하다. 유효 타깃이 없거나 T<2인 경우도 처리해야 한다.
 
 ```python
-# GPT-2 짜임새
+# GPT-2 설정
 GPT2_CONFIGS = {
     'gpt2-small': {
         'vocab_size': 50257,
@@ -361,7 +361,7 @@ GPT2_CONFIGS = {
 }
 
 def create_gpt2(config_name: str) -> GPT:
-    """짜임새 이름으로 GPT-2 모델을 만든다."""
+    """설정 이름으로 GPT-2 모델을 만든다."""
     config = GPT2_CONFIGS[config_name]
     return GPT(**config)
 ```
@@ -376,7 +376,7 @@ def create_gpt2(config_name: str) -> GPT:
 self.position_embedding = nn.Embedding(max_seq_len, d_model)
 ```
 
-이 구현의 위치 표는 max_seq_len 범위로 고정되어 있다. 표를 단순 확장하는 것과 학습보다 긴 문맥에 잘 일반화하는 것은 다른 문제다. 생성 중 창을 잘라 쓰면 위치를 어떻게 다시 부여하는지도 모델 폴리시의 일부다.
+이 구현의 위치 표는 max_seq_len 범위로 고정되어 있다. 표를 단순 확장하는 것과 학습보다 긴 문맥에 잘 일반화하는 것은 다른 문제다. 생성 중 창을 잘라 쓰면 위치를 어떻게 다시 부여하는지도 모델 설계의 일부다.
 
 사인·코사인 위치 표현은 다음과 같다.
 
@@ -385,7 +385,7 @@ PE_{pos,2i+1}=\cos(pos/10000^{2i/d}).$$
 
 ```python
 class SinusoidalPositionalEncoding(nn.Module):
-    """붙박인 사인 형태 자리 부호화."""
+    """고정된 사인파 위치 인코딩."""
     
     def __init__(self, d_model: int, max_seq_len: int = 5000):
         super().__init__()
@@ -404,7 +404,7 @@ class SinusoidalPositionalEncoding(nn.Module):
         self.register_buffer('pe', pe)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """들임에 자리 부호 더하기."""
+        """입력에 위치 인코딩 더하기."""
         return x + self.pe[:, :x.size(1)]
 ```
 
@@ -417,8 +417,8 @@ class RotaryPositionalEmbedding(nn.Module):
     """
     회전 위치 임베딩(RoPE).
     
-    물음과 열쇠 벡터를 돌려 자리를 담는다.
-    길이를 더 잘 늘려 헤아릴 수 있게 한다.
+    쿼리와 키 벡터를 회전시켜 위치를 담는다.
+    더 긴 길이로의 일반화를 노린다.
     """
     
     def __init__(self, d_model: int, max_seq_len: int = 4096, base: int = 10000):
@@ -427,20 +427,20 @@ class RotaryPositionalEmbedding(nn.Module):
         self.d_model = d_model
         self.max_seq_len = max_seq_len
         
-        # 돌림 잦기를 셈한다
+        # 회전 주파수를 계산한다
         inv_freq = 1.0 / (base ** (torch.arange(0, d_model, 2).float() / d_model))
         self.register_buffer('inv_freq', inv_freq)
         
-        # 코사인과 사인을 미리 셈한다
+        # 코사인과 사인을 미리 계산한다
         self._precompute_cache(max_seq_len)
     
     def _precompute_cache(self, seq_len: int):
-        """코사인과 사인 값을 미리 셈한다."""
+        """코사인과 사인 값을 미리 계산한다."""
         t = torch.arange(seq_len, device=self.inv_freq.device)
-        freqs = torch.outer(t, self.inv_freq)  # [차례 길이, d_model/2]
+        freqs = torch.outer(t, self.inv_freq)  # [시퀀스 길이, d_model/2]
         
         # 사인과 코사인 둘 다에 쓰려 겹친다
-        emb = torch.cat([freqs, freqs], dim=-1)  # [차례 길이, d_model]
+        emb = torch.cat([freqs, freqs], dim=-1)  # [시퀀스 길이, d_model]
         
         self.register_buffer('cos_cached', emb.cos())
         self.register_buffer('sin_cached', emb.sin())
@@ -452,15 +452,15 @@ class RotaryPositionalEmbedding(nn.Module):
         seq_len: int
     ) -> tuple:
         """
-        물음과 열쇠에 돌림 임베딩을 쓴다.
+        쿼리와 키에 회전 임베딩을 적용한다.
         
         인수:
-            q: 물음 텐서 [배치, 머리 수, 차례 길이, d_k]
-            k: 열쇠 텐서 [배치, 머리 수, 차례 길이, d_k]
-            seq_len: 수열 길이
+            q: 쿼리 텐서 [배치, 헤드 수, 시퀀스 길이, d_k]
+            k: 키 텐서 [배치, 헤드 수, 시퀀스 길이, d_k]
+            seq_len: 시퀀스 길이
             
         반환값:
-            (돌린 q, 돌린 k)
+            (회전한 q, 회전한 k)
         """
         cos = self.cos_cached[:seq_len]
         sin = self.sin_cached[:seq_len]
@@ -471,7 +471,7 @@ class RotaryPositionalEmbedding(nn.Module):
         return q_rot, k_rot
     
     def _apply_rotation(self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
-        """텐서에 돌림을 적용한다."""
+        """텐서에 회전을 적용한다."""
         # 두 반으로 가른다
         x1, x2 = x[..., :x.shape[-1]//2], x[..., x.shape[-1]//2:]
         
@@ -497,19 +497,19 @@ def generate(
     device: str = 'cuda'
 ) -> torch.Tensor:
     """
-    자기 회귀로 글을 짓는다.
+    자기회귀로 텍스트를 생성한다.
     
     인수:
-        model: 익힌 GPT 모델
-        prompt_ids: 출발 토큰 어깨수 [1, prompt_len]
-        max_new_tokens: 만들 토큰의 최대 개수
-        temperature: 표집 온도
-        top_k: 상위 k 표집 파라메터
-        top_p: 웃 p(커널) 뽑기 파라메터
-        device: 만들어 낼 기기
+        model: 학습된 GPT 모델
+        prompt_ids: 시작 토큰 인덱스 [1, prompt_len]
+        max_new_tokens: 생성할 토큰의 최대 개수
+        temperature: 샘플링 온도
+        top_k: top-k 샘플링 파라메터
+        top_p: top-p(nucleus) 샘플링 파라메터
+        device: 생성에 쓸 장치
         
     반환값:
-        만든 토큰 어깨수 [1, prompt_len + max_new_tokens]
+        생성한 토큰 인덱스 [1, prompt_len + max_new_tokens]
     """
     model.eval()
     model = model.to(device)
@@ -517,27 +517,27 @@ def generate(
     generated = prompt_ids.clone().to(device)
     
     for _ in range(max_new_tokens):
-        # 최대 차례 길이로 자른다
+        # 최대 시퀀스 길이로 자른다
         context = generated[:, -model.max_seq_len:]
         
         # 다음 토큰의 로짓을 얻는다
         logits = model(context)
-        next_token_logits = logits[:, -1, :]  # [1, 단어 수]
+        next_token_logits = logits[:, -1, :]  # [1, 어휘 크기]
         
         # 온도를 적용한다
         next_token_logits = next_token_logits / temperature
         
-        # 상위 k 거르기를 적용한다
+        # top-k 필터링을 적용한다
         if top_k is not None:
             indices_to_remove = next_token_logits < torch.topk(next_token_logits, top_k)[0][..., -1, None]
             next_token_logits[indices_to_remove] = float('-inf')
         
-        # 상위 p(커널) 거르기를 적용한다
+        # top-p(nucleus) 필터링을 적용한다
         if top_p is not None:
             sorted_logits, sorted_indices = torch.sort(next_token_logits, descending=True)
             cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
             
-            # 쌓인 확률이 임계값을 넘는 토막 없애기
+            # 누적 확률이 임계값을 넘는 토큰 없애기
             sorted_indices_to_remove = cumulative_probs > top_p
             sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
             sorted_indices_to_remove[..., 0] = False
@@ -551,10 +551,10 @@ def generate(
         probs = F.softmax(next_token_logits, dim=-1)
         next_token = torch.multinomial(probs, num_samples=1)
         
-        # 만들어진 수열에 덧붙인다
+        # 생성된 시퀀스에 덧붙인다
         generated = torch.cat([generated, next_token], dim=1)
         
-        # 차례 끝 토큰이 있는지 살핀다(뜻매김되어 있으면)
+        # 시퀀스 끝(EOS) 토큰인지 확인한다(정의되어 있으면)
         # if next_token.item() == eos_token_id:
         #     break
     
@@ -563,7 +563,7 @@ def generate(
 
 이 함수는 `(B,문맥 길이)` 프롬프트에서 지정 개수의 토큰을 추가한다. 기본 device는 cuda로 고정되어 있어 CUDA가 없는 환경에는 명시적 조정이 필요하다. 프롬프트는 비어 있지 않아야 하고 온도는 유한한 양수, top_k는 1~V, top_p는 보통 0~1 사이의 양수로 정한다. EOS 중단이나 패딩 프롬프트 마스크는 없다.
 
-매 스텝 마지막 max_seq_len 토큰만 다시 계산하고 위치도 0부터 부여한다. 따라서 최대 길이 밖에서는 전체 과거 조건부가 아닌 잘린 문맥 폴리시를 사용한다. 원래 GPT의 compute_loss와 별도로 이 폴리시를 기록해야 한다. top-k의 동점 경계는 k개보다 많은 토큰을 남길 수 있고, top-p를 함께 쓰면 top-k 이후 재정규화 분포에 적용된다. 온도·필터가 있으면 기본 조건부에서의 표본과 달라진다.
+매 스텝 마지막 max_seq_len 토큰만 다시 계산하고 위치도 0부터 부여한다. 따라서 최대 길이 밖에서는 전체 과거 조건부가 아닌 잘린 문맥 규칙을 사용한다. 원래 GPT의 compute_loss와 별도로 이 규칙을 기록해야 한다. top-k의 동점 경계는 k개보다 많은 토큰을 남길 수 있고, top-p를 함께 쓰면 top-k 이후 재정규화 분포에 적용된다. 온도·필터가 있으면 기본 조건부에서의 표본과 달라진다.
 
 ## 6. KV cache의 계약
 
@@ -571,7 +571,7 @@ def generate(
 
 ```python
 class CausalSelfAttentionWithCache(nn.Module):
-    """효율 좋은 만들어 내기를 위한 열쇠-값 저장턱을 갖춘 셀프 어텐션."""
+    """효율적인 생성을 위한 키-값(KV) 캐시를 갖춘 셀프 어텐션."""
     
     def __init__(self, d_model: int, n_heads: int, max_seq_len: int = 2048):
         super().__init__()
@@ -584,7 +584,7 @@ class CausalSelfAttentionWithCache(nn.Module):
         self.W_v = nn.Linear(d_model, d_model, bias=False)
         self.W_o = nn.Linear(d_model, d_model, bias=False)
         
-        # 만들어 내기를 위한 저장턱
+        # 생성을 위한 캐시
         self.cache_k = None
         self.cache_v = None
     
@@ -595,38 +595,38 @@ class CausalSelfAttentionWithCache(nn.Module):
         past_cache: tuple = None
     ) -> tuple:
         """
-        저장턱을 쓸 수도 있는 피드포워드.
+        캐시를 선택적으로 쓰는 순전파.
         
         인수:
             x: 입력 [batch, seq_len, d_model]
-            use_cache: 저장턱을 쓰거나 고칠지 여부
-            past_cache: 앞선 (K, V) 저장턱
+            use_cache: 캐시를 쓰거나 갱신할지 여부
+            past_cache: 이전 (K, V) 캐시
             
         반환값:
-            (내놓기, 저장턱). use_cache이면 저장턱은 (K, V), 아니면 None
+            (출력, 캐시). use_cache이면 캐시는 (K, V), 아니면 None
         """
         batch_size, seq_len, _ = x.shape
         
-        # 새 토큰의 Q, K, V을 셈한다
+        # 새 토큰의 Q, K, V를 계산한다
         Q = self.W_q(x).view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         K = self.W_k(x).view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         V = self.W_v(x).view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
         
-        # 쓰고 있으면 저장턱에 덧붙인다
+        # 쓰고 있으면 캐시에 덧붙인다
         if past_cache is not None:
             past_k, past_v = past_cache
             K = torch.cat([past_k, K], dim=2)
             V = torch.cat([past_v, V], dim=2)
         
-        # 다음 되풀이를 위해 저장턱을 담아 둔다
+        # 다음 반복을 위해 캐시를 담아 둔다
         cache = (K, V) if use_cache else None
         
         # 어텐션 계산
         total_len = K.size(2)
         scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
         
-        # 새 자리가 옛 자리를 볼 때만 인과 마스크를 쓴다
-        # 지난 자리는 모두 쓸 수 있다
+        # 새 위치가 이전 위치를 볼 때만 인과 마스크를 쓴다
+        # 지난 위치는 모두 볼 수 있다
         if seq_len > 1:
             mask = torch.triu(torch.ones(seq_len, total_len, device=x.device), diagonal=total_len - seq_len + 1).bool()
             scores = scores.masked_fill(mask, float('-inf'))
@@ -647,13 +647,13 @@ def generate_with_cache(
     temperature: float = 1.0
 ) -> torch.Tensor:
     """
-    열쇠-값 저장턱을 쓴 효율 좋은 만들어 내기.
+    키-값(KV) 캐시를 쓴 효율적인 생성.
     
-    맥락에는 저장턱의 K/V을 쓰고 새 토큰의 어텐션만 셈한다.
+    문맥에는 캐시의 K/V를 쓰고 새 토큰의 어텐션만 계산한다.
     """
     model.eval()
     
-    # 채근 글에 대한 첫 피드포워드
+    # 프롬프트에 대한 첫 순전파
     generated = prompt_ids.clone()
     past_cache = None
     
@@ -664,7 +664,7 @@ def generate_with_cache(
         else:
             input_ids = generated[:, -1:]
         
-        # 저장턱과 함께 피드포워드한다
+        # 캐시와 함께 순전파한다
         logits, past_cache = model.forward_with_cache(input_ids, past_cache)
         
         # 다음 토큰을 뽑는다
@@ -679,7 +679,7 @@ def generate_with_cache(
 
 캐시 attention 예시는 전달받은 past_cache에 새 K·V를 이어 붙인다. 여러 새 토큰의 마스크는 과거 길이만큼 오프셋을 두고 미래 새 토큰을 차단한다. 하나의 새 토큰이면 현재까지의 모든 키를 볼 수 있다. 캐시의 배치·헤드·차원·장치·자료형과 모델 상태가 일치해야 한다.
 
-그러나 위 GPT에는 forward_with_cache가 없어 generate_with_cache가 그대로 동작하지 않는다. 실제 통합에는 레이어별 캐시 반환, 새 토큰만 처리하는 경로와 위치 오프셋, 문맥 한계·패딩·캐시 초기화 폴리시가 필요하다. 선언된 cache_k·cache_v 속성을 자동 사용하는 구현도 아니다. 전체 접두사와 과거 캐시를 동시에 다시 전달해 중복 처리하지 않아야 한다.
+그러나 위 GPT에는 forward_with_cache가 없어 generate_with_cache가 그대로 동작하지 않는다. 실제 통합에는 레이어별 캐시 반환, 새 토큰만 처리하는 경로와 위치 오프셋, 문맥 한계·패딩·캐시 초기화 규칙이 필요하다. 선언된 cache_k·cache_v 속성을 자동 사용하는 구현도 아니다. 전체 접두사와 과거 캐시를 동시에 다시 전달해 중복 처리하지 않아야 한다.
 
 ## 7. Attention과 FFN의 변형
 
@@ -688,9 +688,9 @@ def generate_with_cache(
 ```python
 class MultiQueryAttention(nn.Module):
     """
-    여러 물음 어텐션: 모든 머리가 K, V 하나를 나누어 쓴다.
+    멀티쿼리 어텐션(MQA): 모든 헤드가 K, V 하나를 공유한다.
     
-    열쇠-값 저장턱 크기를 n_heads 갑절만큼 줄인다.
+    KV 캐시 크기를 n_heads 배만큼 줄인다.
     """
     
     def __init__(self, d_model: int, n_heads: int):
@@ -698,7 +698,7 @@ class MultiQueryAttention(nn.Module):
         self.n_heads = n_heads
         self.d_k = d_model // n_heads
         
-        self.W_q = nn.Linear(d_model, d_model, bias=False)  # 물음 머리 여럿
+        self.W_q = nn.Linear(d_model, d_model, bias=False)  # 쿼리 헤드 여럿
         self.W_k = nn.Linear(d_model, self.d_k, bias=False)  # K 하나
         self.W_v = nn.Linear(d_model, self.d_k, bias=False)  # V 하나
         self.W_o = nn.Linear(d_model, d_model, bias=False)
@@ -709,9 +709,9 @@ class MultiQueryAttention(nn.Module):
 ```python
 class GroupedQueryAttention(nn.Module):
     """
-    무리 물음 어텐션: 무리 안에서 K, V을 나누어 쓴다.
+    그룹 쿼리 어텐션(GQA): 그룹 안에서 K, V를 공유한다.
     
-    n_kv_heads < n_heads이면 기억과 셈을 아낀다.
+    n_kv_heads < n_heads이면 메모리와 계산을 아낀다.
     """
     
     def __init__(self, d_model: int, n_heads: int, n_kv_heads: int):
@@ -736,7 +736,7 @@ class GroupedQueryAttention(nn.Module):
 ```python
 class SwiGLU(nn.Module):
     """
-    SwiGLU 깨움: 스위시 문 달린 선형 낱개.
+    SwiGLU 활성화: Swish 게이트 선형 유닛.
     
     SwiGLU(x) = Swish(xW1) * (xW2)
     여기서 Swish(x) = x * 시그모이드(x)
@@ -752,7 +752,7 @@ class SwiGLU(nn.Module):
         return self.W3(F.silu(self.W1(x)) * self.W2(x))
 ```
 
-편향 없는 이 구현의 웨이트는 3d×d_ff개로 같은 은닉 폭의 일반 두 projection FFN 2d×d_ff보다 많다. 비교에서는 폭·파라미터·계산 예산을 맞춰야 한다. 기본 GPT의 GELU FFN에 자동 적용되어 있지 않다.
+바이어스 없는 이 구현의 웨이트는 3d×d_ff개로 같은 은닉 폭의 일반 두 projection FFN 2d×d_ff보다 많다. 비교에서는 폭·파라메터·계산 예산을 맞춰야 한다. 기본 GPT의 GELU FFN에 자동 적용되어 있지 않다.
 
 [RMSNorm](https://arxiv.org/abs/1910.07467)은 평균을 빼는 대신 제곱평균제곱근으로 크기를 정규화한다.
 
@@ -761,7 +761,7 @@ class RMSNorm(nn.Module):
     """
     제곱평균제곱근 레이어 정규화.
     
-    레이어 고르게 맞추기보다 단순하고 빠르다(평균을 빼지 않는다).
+    레이어 정규화(LayerNorm)보다 단순하고 빠르다(평균을 빼지 않는다).
     """
     
     def __init__(self, d_model: int, eps: float = 1e-6):
@@ -776,7 +776,7 @@ class RMSNorm(nn.Module):
 
 LayerNorm과 같은 연산은 아니며 이 구현은 학습 스케일만 갖고 바이어스는 없다. x.pow(2)의 정밀도와 극단값도 고려해야 한다. 계산 일부를 줄이는 의도와 실제 하드웨어 속도·학습 성능은 구분한다.
 
-## 8. 러닝레이트와 엑티베이션 체크포인팅
+## 8. 러닝레이트와 활성화 체크포인팅
 
 ```python
 def get_lr_schedule(
@@ -787,7 +787,7 @@ def get_lr_schedule(
     min_lr: float
 ) -> float:
     """
-    몸 풀기를 갖춘 코사인 러닝 빠르기 차례표.
+    워밍업을 갖춘 코사인 러닝레이트 스케줄.
     """
     if step < warmup_steps:
         # 선형 워밍업
@@ -806,37 +806,37 @@ def get_lr_schedule(
 from torch.utils.checkpoint import checkpoint
 
 class GPTWithCheckpointing(GPT):
-    """기억을 줄이려 그래디언트 되짚을 자리를 둔 GPT."""
+    """메모리를 줄이려 그래디언트 체크포인팅을 쓰는 GPT."""
     
     def forward(self, input_ids, attention_mask=None):
         # ... 임베딩 ...
         
         for block in self.blocks:
-            # 기억을 아끼려 덩이마다 되짚을 자리를 둔다
+            # 메모리를 아끼려 블록마다 체크포인트를 둔다
             x = checkpoint(block, x, attention_mask)
         
-        # ... 내놓기 쏘기 ...
+        # ... 출력 사영 ...
 ```
 
-엑티베이션 체크포인팅은 역전파 때 중간 계산을 다시 수행해 메모리와 계산을 교환한다. 웨이트 파일 저장과 다른 개념이다. 위 GPTWithCheckpointing.forward는 x가 정의되지 않고 임베딩·최종 정규화·출력·return도 없어 실행 가능한 완성 예제가 아니다. 실제 적용에는 원래 forward 경로를 유지하고 [PyTorch checkpoint 문서](https://docs.pytorch.org/docs/stable/checkpoint.html)의 use_reentrant·난수 상태·재계산 계약을 맞춰야 한다.
+활성화 체크포인팅(activation checkpointing)은 역전파 때 중간 계산을 다시 수행해 메모리와 계산을 교환한다. 웨이트 파일 저장과 다른 개념이다. 위 GPTWithCheckpointing.forward는 x가 정의되지 않고 임베딩·최종 정규화·출력·return도 없어 실행 가능한 완성 예제가 아니다. 실제 적용에는 원래 forward 경로를 유지하고 [PyTorch checkpoint 문서](https://docs.pytorch.org/docs/stable/checkpoint.html)의 use_reentrant·난수 상태·재계산 계약을 맞춰야 한다.
 
 ## 9. 도메인 확장 골격의 범위
 
 ```python
 class FinancialGPT(GPT):
     """
-    돈살림 글 만들어 내기에 미세 조정한 GPT.
+    금융 텍스트 생성에 미세 조정한 GPT.
     
-    쓰임새:
-    - 보고서 간추리기
-    - 되짚어 시험하기를 위한 소식 만들어 내기
-    - 시나리오 이야기 만들어 내기
+    용도:
+    - 보고서 요약
+    - 백테스트를 위한 뉴스 생성
+    - 시나리오 서사 생성
     """
     
     def __init__(self, financial_vocab_size: int, **kwargs):
         super().__init__(vocab_size=financial_vocab_size, **kwargs)
         
-        # 덧붙인 돈살림 낱개 임베딩
+        # 추가한 금융 엔티티 임베딩
         self.entity_embedding = nn.Embedding(1000, kwargs.get('d_model', 768))
 ```
 
@@ -845,9 +845,9 @@ FinancialGPT는 entity_embedding을 추가하지만 상속한 forward에서 사�
 ```python
 class TimeSeriesTransformer(nn.Module):
     """
-    돈살림 시계열 내다보기를 위한 트랜스포머.
+    금융 시계열 예측을 위한 트랜스포머.
     
-    값의 지난 일을 이어진 값의 "문장"으로 본다.
+    가격 이력을 연속값의 "문장"으로 본다.
     """
     
     def __init__(
@@ -860,7 +860,7 @@ class TimeSeriesTransformer(nn.Module):
     ):
         super().__init__()
         
-        # 이어진 값을 d_model으로 쏜다
+        # 연속값을 d_model로 사영한다
         self.input_projection = nn.Linear(input_dim, d_model)
         
         # 트랜스포머 블록
@@ -869,17 +869,17 @@ class TimeSeriesTransformer(nn.Module):
             for _ in range(n_layers)
         ])
         
-        # 내놓기: 분포 파라메터를 헤아린다
-        self.output_projection = nn.Linear(d_model, input_dim * 2)  # 평균, 표준 편차
+        # 출력: 분포 파라메터를 예측한다
+        self.output_projection = nn.Linear(d_model, input_dim * 2)  # 평균, 표준편차
         self.forecast_horizon = forecast_horizon
     
     def forward(self, x: torch.Tensor) -> tuple:
         """
         인수:
-            x: 지난 값 [배치, 차례 길이, 들임 차원]
+            x: 과거 값 [배치, 시퀀스 길이, 입력 차원]
             
         반환값:
-            내다보기 분포의 (평균, 표준 편차)
+            예측 분포의 (평균, 표준편차)
         """
         h = self.input_projection(x)
         
@@ -899,8 +899,8 @@ TimeSeriesTransformer는 마지막 피처에서 다음 벡터의 평균과 양�
 1. 같은 실제 접두사에서 미래 입력만 바꿀 때 과거 위치 logits가 유지되어야 하는 이유를 설명하라. 마스크뿐 아니라 dropout·패딩·정규화의 평가 조건도 정하라.
 2. 학습 위치·사인 위치·RoPE를 같은 작은 작업에 적용하는 비교를 설계하라. 헤드 차원·캐시 위치 오프셋·학습 길이와 평가 길이를 구분하고 실행 결과를 가정하지 마라.
 3. GPT에 레이어별 KV cache를 통합하는 입력·출력 계약을 설계하라. eval에서 같은 문맥의 전체 재계산과 증분 logits가 일치하려면 무엇이 필요한가? 캐시 저장량과 attention 계산량을 따로 계산하라.
-4. 별도 도메인 텍스트로 모델을 학습·평가할 때 토큰화·자료 분할·중복·시간 정보 누출과 체크포인트 설정을 어떻게 통제할지 설명하라. 선언만 된 entity_embedding이 왜 충분하지 않은지도 설명하라.
-5. MHA·MQA·GQA 또는 GELU·SwiGLU를 비교할 때 동일 폭,동일 파라미터 수,동일 학습 예산이 각각 어떤 다른 질문에 답하는지 설명하라. 제공 골격에서 구현되지 않은 경로도 식별하라.
+4. 별도 도메인 텍스트로 모델을 학습·평가할 때 토큰화·데이터 분할·중복·시간 정보 누출과 체크포인트 설정을 어떻게 통제할지 설명하라. 선언만 된 entity_embedding이 왜 충분하지 않은지도 설명하라.
+5. MHA·MQA·GQA 또는 GELU·SwiGLU를 비교할 때 동일 폭,동일 파라메터 수,동일 학습 예산이 각각 어떤 다른 질문에 답하는지 설명하라. 제공 골격에서 구현되지 않은 경로도 식별하라.
 
 ## 정리하며
 

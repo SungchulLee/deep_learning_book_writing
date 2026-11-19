@@ -8,15 +8,15 @@ DataParallel 등으로 감싼 모델의 체크포인트를 일반 모델과 주�
 #!/usr/bin/env python3
 """
 ============================================================
-분산 학습: 검사점의 저장과 불러오기
+분산 학습: 체크포인트의 저장과 불러오기
 ============================================================
 
 DataParallel이나 DistributedDataParallel을 쓸 때 모델을 제대로
 저장하고 불러오는 법을 배운다.
 
 주제:
-- DataParallel의 검사점
-- DistributedDataParallel의 검사점
+- DataParallel의 체크포인트
+- DistributedDataParallel의 체크포인트
 - 'module.' 접두사 다루기
 - 다중 GPU의 좋은 관행
 """
@@ -70,7 +70,7 @@ else:
     print("\nSingle GPU or CPU mode")
     model_wrapped = False
 
-# 학습 모의실험
+# 학습 시뮬레이션
 print("\nSimulating training...")
 
 # DataParallel과 함께 저장하기
@@ -110,7 +110,7 @@ new_model = SimpleModel()
 new_model.load_state_dict(checkpoint['model_state_dict'])
 print("State dict loaded into fresh model")
 
-# 필요하면 DataParallel으로 감싸기
+# 필요하면 DataParallel로 감싸기
 if checkpoint.get('wrapped', False) and torch.cuda.device_count() > 1:
     new_model = nn.DataParallel(new_model)
     print("Model wrapped with DataParallel")
@@ -129,7 +129,7 @@ print("\n" + "=" * 70)
 print("SCENARIO 2: Handling 'module.' Prefix")
 print("=" * 70)
 
-# 'module.' 접두사가 붙은 상태 사전 모의실험
+# 'module.' 접두사가 붙은 상태 사전 시뮬레이션
 model = SimpleModel()
 if torch.cuda.device_count() > 1:
     model = nn.DataParallel(model)
@@ -168,7 +168,7 @@ def add_module_prefix(state_dict):
         new_state_dict[name] = v
     return new_state_dict
 
-# 깨끗한 판본 저장
+# 깨끗한 버전 저장
 checkpoint_path = "clean_checkpoint.pth"
 torch.save({
     'model_state_dict': clean_state_dict,
@@ -210,7 +210,7 @@ SAVING:
    - 'module.' 접두사가 자동으로 없어진다
    - 체크포인트를 옮겨 쓰기 좋게 만든다
 
-2. 감싸개에만 있는 키 없이 저장한다
+2. 래퍼에만 있는 키 없이 저장한다
    - 불러오기가 더 유연하다
 
 3. 감싸기에 대한 메타데이터를 담는다
@@ -265,8 +265,8 @@ Example:
    → 또는 model.module에 불러온다
 
 4. GPU 개수가 다르면 체크포인트가 불러와지지 않음
-   → 감싸개 없는 깨끗한 상태 사전을 저장하라
-   → 불러온 뒤에 감싸개를 다시 만들라
+   → 래퍼 없는 깨끗한 상태 사전을 저장하라
+   → 불러온 뒤에 래퍼를 다시 만들라
 """)
 
 print("\n" + "=" * 70)
@@ -339,7 +339,7 @@ if __name__ == "__main__":
        - 'module.' 접두사가 자동으로 없어진다
        - 체크포인트를 옮겨 쓰기 좋게 만든다
 
-    2. 감싸개에만 있는 키 없이 저장한다
+    2. 래퍼에만 있는 키 없이 저장한다
        - 불러오기가 더 유연하다
 
     3. 감싸기에 대한 메타데이터를 담는다
@@ -394,8 +394,8 @@ if __name__ == "__main__":
        → 또는 model.module에 불러온다
 
     4. GPU 개수가 다르면 체크포인트가 불러와지지 않음
-       → 감싸개 없는 깨끗한 상태 사전을 저장하라
-       → 불러온 뒤에 감싸개를 다시 만들라
+       → 래퍼 없는 깨끗한 상태 사전을 저장하라
+       → 불러온 뒤에 래퍼를 다시 만들라
 
 
     ======================================================================
@@ -429,7 +429,7 @@ model.module.state_dict()와 model.state_dict()는 언제 키가 달라지는가
 </div>
 
 ??? success "풀이"
-    DataParallel이나 DDP처럼 module 아래에 원래 모델을 둔 감싸개에서는 바깥 state_dict에 module. 접두사가 붙는다. 내부 모델의 state_dict를 저장하면 그 감싸개 접두사를 피할 수 있다.
+    DataParallel이나 DDP처럼 module 아래에 원래 모델을 둔 래퍼(wrapper)에서는 바깥 state_dict에 module. 접두사가 붙는다. 내부 모델의 state_dict를 저장하면 그 래퍼 접두사를 피할 수 있다.
 
 ---
 
@@ -459,4 +459,4 @@ model.module.state_dict()와 model.state_dict()는 언제 키가 달라지는가
 
 ## 정리하며
 
-분산 감싸개와 내부 모델의 키 구조를 구분하면 웨이트를 이식하기 쉽다. 접두사 정리만으로 분산 학습의 저장·재개 전체가 해결되지는 않는다.
+분산 래퍼와 내부 모델의 키 구조를 구분하면 웨이트를 이식하기 쉽다. 접두사 정리만으로 분산 학습의 저장·재개 전체가 해결되지는 않는다.

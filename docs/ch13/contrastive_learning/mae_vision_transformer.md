@@ -8,8 +8,8 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
 
     ```python
     """
-    MAE: 가린 자동 인코더는 잘 커지는 시각 학습기이다
-    그림의 자기 지도 학습을 위한 가린 자동 인코더 구현.
+    MAE: Masked Autoencoders Are Scalable Vision Learners
+    이미지의 자기 지도 학습을 위한 마스크 오토인코더 구현.
     """
 
     import torch
@@ -17,7 +17,7 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
     import torch.nn.functional as F
     import numpy as np
 
-    # 돌릴 때마다 수가 달라지지 않게 씨앗을 박는다.
+    # 돌릴 때마다 수가 달라지지 않게 시드를 고정한다.
     torch.manual_seed(0)
     np.random.seed(0)
 
@@ -28,8 +28,8 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
 
     class PatchEmbed(nn.Module):
         """
-        그림에서 조각 임베딩으로
-        그림을 조각 임베딩의 수열로 바꾼다
+        이미지에서 패치 임베딩으로
+        이미지를 패치 임베딩의 시퀀스로 바꾼다
         """
         def __init__(self, img_size=224, patch_size=16, in_chans=3, embed_dim=768):
             super().__init__()
@@ -47,7 +47,7 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
 
 
     class Attention(nn.Module):
-        """다중 머리 자기 어텐션"""
+        """멀티헤드 셀프 어텐션"""
         def __init__(self, dim, num_heads=8, qkv_bias=False, attn_drop=0., proj_drop=0.):
             super().__init__()
             self.num_heads = num_heads
@@ -75,7 +75,7 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
 
 
     class MLP(nn.Module):
-        """순전파 뉴럴 네트워크"""
+        """피드포워드 뉴럴 네트워크"""
         def __init__(self, in_features, hidden_features=None, out_features=None, drop=0.):
             super().__init__()
             out_features = out_features or in_features
@@ -113,20 +113,20 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
 
     class MAE(nn.Module):
         """
-        비전 트랜스포머 등뼈를 쓰는 가린 자동 인코더
+        비전 트랜스포머 백본을 쓰는 마스크 오토인코더
 
         인수:
-            img_size: 입력 그림 크기
-            patch_size: 조각 크기
-            in_chans: 입력 통로의 수
+            img_size: 입력 이미지 크기
+            patch_size: 패치 크기
+            in_chans: 입력 채널의 수
             embed_dim: 인코더의 임베딩 차원
             depth: 인코더의 깊이
-            num_heads: 어텐션 머리의 수
+            num_heads: 어텐션 헤드의 수
             decoder_embed_dim: 디코더의 임베딩 차원
             decoder_depth: 디코더의 깊이
-            decoder_num_heads: 디코더의 어텐션 머리 수
-            mlp_ratio: 임베딩 차원에 대한 다층 퍼셉트론 숨은 차원의 비
-            mask_ratio: 가릴 조각의 비율
+            decoder_num_heads: 디코더의 어텐션 헤드 수
+            mlp_ratio: 임베딩 차원에 대한 다층 퍼셉트론 은닉 차원의 비
+            mask_ratio: 가릴 패치의 비율
         """
         def __init__(
             self,
@@ -171,13 +171,13 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
             ])
             self.decoder_norm = nn.LayerNorm(decoder_embed_dim)
 
-            # 예측 머리
+            # 예측 헤드
             self.decoder_pred = nn.Linear(decoder_embed_dim, patch_size**2 * in_chans)
 
             self.initialize_weights()
 
         def initialize_weights(self):
-            # 위치 임베딩을 시작한다
+            # 위치 임베딩을 초기화한다
             torch.nn.init.normal_(self.pos_embed, std=0.02)
             torch.nn.init.normal_(self.decoder_pos_embed, std=0.02)
 
@@ -191,16 +191,16 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
 
         def random_masking(self, x, mask_ratio):
             """
-            MAE 논문을 따르는 무작위 가리기
+            MAE 논문을 따르는 무작위 마스킹
 
             인수:
-                x: [N, L, D], 수열
-                mask_ratio: 가릴 조각의 비율
+                x: [N, L, D], 시퀀스
+                mask_ratio: 가릴 패치의 비율
 
             반환값:
-                x_masked: [N, L_kept, D], 보이는 조각
+                x_masked: [N, L_kept, D], 보이는 패치
                 mask: [N, L], 0은 남기기, 1은 없애기
-                ids_restore: [N, L], 본디 순서를 되살릴 색인
+                ids_restore: [N, L], 원래 순서를 복원할 인덱스
             """
             N, L, D = x.shape
             len_keep = int(L * (1 - mask_ratio))
@@ -216,7 +216,7 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
             ids_keep = ids_shuffle[:, :len_keep]
             x_masked = torch.gather(x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D))
 
-            # 이진 가림을 만든다: 0은 남기기, 1은 없애기
+            # 이진 마스크를 만든다: 0은 남기기, 1은 없애기
             mask = torch.ones([N, L], device=x.device)
             mask[:, :len_keep] = 0
             mask = torch.gather(mask, dim=1, index=ids_restore)
@@ -224,14 +224,14 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
             return x_masked, mask, ids_restore
 
         def forward_encoder(self, x, mask_ratio):
-            """인코더의 피드포워드"""
-            # 조각을 임베딩한다
+            """인코더의 순전파"""
+            # 패치를 임베딩한다
             x = self.patch_embed(x)
 
             # 위치 임베딩을 더한다 (cls 토큰은 빼고)
             x = x + self.pos_embed[:, 1:, :]
 
-            # 가리기
+            # 마스킹
             x, mask, ids_restore = self.random_masking(x, mask_ratio)
 
             # cls 토큰을 덧붙인다
@@ -247,11 +247,11 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
             return x, mask, ids_restore
 
         def forward_decoder(self, x, ids_restore):
-            """디코더의 피드포워드"""
+            """디코더의 순전파"""
             # 토큰 임베딩
             x = self.decoder_embed(x)
 
-            # 수열에 가림 토큰을 덧붙인다
+            # 시퀀스에 마스크 토큰을 덧붙인다
             mask_tokens = self.mask_token.repeat(x.shape[0], ids_restore.shape[1] + 1 - x.shape[1], 1)
             x_ = torch.cat([x[:, 1:, :], mask_tokens], dim=1)  # cls 토큰 없음
             x_ = torch.gather(x_, dim=1, index=ids_restore.unsqueeze(-1).repeat(1, 1, x.shape[2]))  # 뒤섞은 것을 되돌린다
@@ -265,7 +265,7 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
                 x = blk(x)
             x = self.decoder_norm(x)
 
-            # 예측기 사영
+            # 예측기 투영
             x = self.decoder_pred(x)
 
             # cls 토큰을 없앤다
@@ -275,7 +275,7 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
 
         def forward_loss(self, imgs, pred, mask):
             """
-            복원 로스를 셈한다
+            복원 로스를 계산한다
 
             인수:
                 imgs: [N, 3, H, W]
@@ -284,21 +284,21 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
             """
             target = self.patchify(imgs)
 
-            # 목표를 조각마다 정규화한다
-            if True:  # 조각마다 정규화한다
+            # 목표를 패치마다 정규화한다
+            if True:  # 패치마다 정규화한다
                 mean = target.mean(dim=-1, keepdim=True)
                 var = target.var(dim=-1, keepdim=True)
                 target = (target - mean) / (var + 1.e-6)**.5
 
             loss = (pred - target) ** 2
-            loss = loss.mean(dim=-1)  # [N, L], 조각마다의 평균 로스
+            loss = loss.mean(dim=-1)  # [N, L], 패치마다의 평균 로스
 
-            loss = (loss * mask).sum() / mask.sum()  # 없앤 조각에 대한 평균 로스
+            loss = (loss * mask).sum() / mask.sum()  # 없앤 패치에 대한 평균 로스
             return loss
 
         def patchify(self, imgs):
             """
-            그림을 조각으로 바꾼다
+            이미지를 패치로 바꾼다
             imgs: [N, 3, H, W]
             x: [N, L, patch_size**2 *3]
             """
@@ -313,7 +313,7 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
 
         def unpatchify(self, x):
             """
-            조각을 도로 그림으로 바꾼다
+            패치를 도로 이미지로 바꾼다
             x: [N, L, patch_size**2 *3]
             imgs: [N, 3, H, W]
             """
@@ -328,11 +328,11 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
 
         def forward(self, imgs, mask_ratio=None):
             """
-            피드포워드
+            순전파
 
             인수:
                 imgs: [N, 3, H, W]
-                mask_ratio: 가릴 조각의 비율
+                mask_ratio: 가릴 패치의 비율
             """
             if mask_ratio is None:
                 mask_ratio = self.mask_ratio
@@ -346,17 +346,17 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
 
     def visualize_reconstruction(model, img, device):
         """
-        가린 그림과 되살린 그림을 그려 본다
+        마스킹한 이미지와 복원한 이미지를 만든다
         """
         model.eval()
         with torch.no_grad():
             img = img.unsqueeze(0).to(device)
             loss, pred, mask = model(img)
 
-            # 조각을 되돌려 그림으로 만든다
+            # 패치를 되돌려 이미지로 만든다
             pred_img = model.unpatchify(pred)
 
-            # 본디 그림에 가림을 적용한다
+            # 원래 이미지에 마스크를 적용한다
             mask = mask.unsqueeze(-1).repeat(1, 1, model.patch_size**2 * 3)
             mask = model.unpatchify(mask)
 
@@ -369,7 +369,7 @@ MAE(마스크 오토인코더)는 일부 패치만 인코딩하고 디코더에�
         # 사용 예
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        # MAE를 시작한다
+        # MAE를 초기화한다
         model = MAE(
             img_size=224,
             patch_size=16,
@@ -426,7 +426,7 @@ Number of masked patches: 147 / 196
 
 로스는 패치별로 정규화한 목표와 예측의 제곱 오차를 가린 위치에서만 평균한다. 이 코드는 if True로 정규화를 항상 적용한다. 모델 출력이 정규화된 패치 값이므로 unpatchify만 적용한 pred_img는 원래 픽셀 스케일의 복원이 아니다. 입력 정규화와 패치 평균·분산을 어떻게 되돌릴지 시각화의 해석을 정해야 한다. 여기서는 그림을 재생성하지 않는다.
 
-이 구현은 위치 표를 학습 가능한 Parameter로 초기화해 원래 MAE의 고정 사인·코사인 위치 표현과 다르다. img_size에 맞는 고정 길이를 가정하고 patchify·unpatchify는 채널 3을 하드코딩하므로 생성자의 in_chans를 다른 값으로 바꾸는 것만으로 전체 모델이 지원하지 않는다. 정사각·패치 배수 입력과 헤드별 피처 차원도 확인한다.
+이 구현은 위치 임베딩을 학습 가능한 Parameter로 초기화해 원래 MAE의 고정 사인·코사인 위치 임베딩과 다르다. img_size에 맞는 고정 길이를 가정하고 patchify·unpatchify는 채널 3을 하드코딩하므로 생성자의 in_chans를 다른 값으로 바꾸는 것만으로 전체 모델이 지원하지 않는다. 정사각·패치 배수 입력과 헤드별 피처 차원도 확인한다.
 
 0≤mask_ratio≤1 범위와 실제 정수 반올림 결과를 확인한다. 마스크가 하나도 없으면 mask.sum=0으로 나누어 로스가 NaN이 된다. 전체 피처 추출은 별도 encode_full을 사용하는 편이 적절하다. eval에서도 random_masking은 새 난수를 뽑으므로 같은 입력의 마스크·복원 결과가 매번 달라질 수 있다.
 
@@ -436,23 +436,23 @@ Number of masked patches: 147 / 196
 
 **그림으로 보는 AI 1.** 글에서는 15%인데 그림에서는 왜 75%인가
 
-바로 위 문단이 BERT의 15%와 이 쪽의 75%를 나란히 적어 두었다. 다섯 배 차이다. 같은 "가리고 맞히기"인데 왜 이렇게 다른가 — MAE 논문이 1절에서 그 까닭을 밝혔고, 핵심은 **글과 그림이 담고 있는 정보의 빽빽함이 다르다**는 것이다.
+바로 위 문단이 BERT의 15%와 이 쪽의 75%를 나란히 적어 두었다. 다섯 배 차이다. 같은 "가리고 맞히기"인데 왜 이렇게 다른가 — MAE 논문이 1절에서 그 까닭을 밝혔고, 핵심은 **글과 그림이 담고 있는 정보의 밀도가 다르다**는 것이다.
 
 > "Images, on the contrary, are natural signals with heavy spatial redundancy — e.g., a missing patch can be recovered from **neighboring patches with little high-level understanding** of parts, objects, and scenes."
 
-문장에서 단어 하나를 지우면 메우기 어렵지만, 그림에서 조각 하나를 지우면 **옆을 보고 베끼면 된다.** 그러면 과제는 풀리는데 배우는 것이 없다.
+문장에서 단어 하나를 지우면 메우기 어렵지만, 그림에서 패치 하나를 지우면 **옆을 보고 베끼면 된다.** 그러면 과제는 풀리는데 배우는 것이 없다.
 
-![왼쪽은 가로축이 가린 패치의 비율, 세로축이 가린 자리의 오차인 그림이다. 그림 전체의 평균색으로 채우는 기준선은 비율과 상관없이 평평하고, 보이는 이웃에서 채우는 선은 15퍼센트와 25퍼센트에서는 기준선보다 훨씬 아래에 있다가 50퍼센트 부근에서 기준선과 만나고 75퍼센트와 90퍼센트에서는 기준선 위로 올라간다. 75퍼센트 자리에 세로 점선이 그어져 있다. 오른쪽은 말 사진 하나를 15퍼센트 가린 것과 75퍼센트 가린 것으로, 앞은 거의 다 보이고 뒤는 드문드문한 조각만 남아 있다.](figures/mask_ratio.svg)
+![왼쪽은 가로축이 가린 패치의 비율, 세로축이 가린 자리의 오차인 그림이다. 그림 전체의 평균색으로 채우는 베이스라인은 비율과 상관없이 평평하고, 보이는 이웃에서 채우는 선은 15퍼센트와 25퍼센트에서는 베이스라인보다 훨씬 아래에 있다가 50퍼센트 부근에서 베이스라인과 만나고 75퍼센트와 90퍼센트에서는 베이스라인 위로 올라간다. 75퍼센트 자리에 세로 점선이 그어져 있다. 오른쪽은 말 사진 하나를 15퍼센트 가린 것과 75퍼센트 가린 것으로, 앞은 거의 다 보이고 뒤는 드문드문한 패치만 남아 있다.](figures/mask_ratio.svg)
 
-그 "옆을 보고 베끼기"가 언제까지 통하는지 재어 보았다. 가린 패치를 **보이는 이웃 패치의 평균**으로만 채우고, 그림 전체의 평균색으로 채우는 시시한 기준선과 견주었다.
+그 "옆을 보고 베끼기"가 언제까지 통하는지 재어 보았다. 가린 패치를 **보이는 이웃 패치의 평균**으로만 채우고, 그림 전체의 평균색으로 채우는 단순한 베이스라인과 견주었다.
 
-15%를 가리면 이웃에서 베낀 쪽이 0.1061, 시시한 기준선이 0.1897이다. 이웃을 보는 것이 **크게 이긴다** — 지름길이 살아 있다는 뜻이다. 그런데 50%에서 둘이 거의 같아지고(0.1752 대 0.1832), **75%에서는 이웃에서 베끼는 쪽이 0.2849로 기준선 0.1810보다 오히려 나빠진다.** 남은 이웃이 너무 드물어 베낄 것이 없다. 오른쪽 두 그림을 견주면 눈으로도 같은 이야기가 보인다.
+15%를 가리면 이웃에서 베낀 쪽이 0.1061, 단순한 베이스라인이 0.1897이다. 이웃을 보는 것이 **크게 이긴다** — 지름길(shortcut)이 살아 있다는 뜻이다. 그런데 50%에서 둘이 거의 같아지고(0.1752 대 0.1832), **75%에서는 이웃에서 베끼는 쪽이 0.2849로 베이스라인 0.1810보다 오히려 나빠진다.** 남은 이웃이 너무 드물어 베낄 것이 없다. 오른쪽 두 그림을 견주면 눈으로도 같은 이야기가 보인다.
 
 그러니 75%는 "많이 가릴수록 좋다"가 아니라 **베끼기가 더는 통하지 않는 자리**로 고른 수다. 15%로는 글에서와 달리 과제가 너무 쉬워진다.
 
-**다만 이 셈이 말해 주는 것은 거기까지다.** 지름길 하나가 막혔다는 것이지, 그 덕에 물체와 장면을 이해하게 되었다는 뜻이 아니다. 위 문단이 "높은 마스킹이 자동으로 의미·공간 구조를 완전히 이해하게 한다고 단정할 수 없다"고 못 박은 것과 같다. 그리고 여기서 잰 것은 **이웃 평균**이라는 가장 단순한 베끼기뿐이어서, 더 똑똑한 보간이 75%에서도 통할 가능성은 이 그림이 배제하지 않는다.
+**다만 이 측정이 말해 주는 것은 거기까지다.** 지름길 하나가 막혔다는 것이지, 그 덕에 물체와 장면을 이해하게 되었다는 뜻이 아니다. 위 문단이 "높은 마스킹이 자동으로 의미·공간 구조를 완전히 이해하게 한다고 단정할 수 없다"고 못 박은 것과 같다. 그리고 여기서 잰 것은 **이웃 평균**이라는 가장 단순한 베끼기뿐이어서, 더 똑똑한 보간이 75%에서도 통할 가능성은 이 그림이 배제하지 않는다.
 
-_확인한 곳 — K. He, X. Chen, S. Xie, Y. Li, P. Dollár, R. Girshick, "Masked Autoencoders Are Scalable Vision Learners" (arXiv:2111.06377) 1절. 인용한 문장과 높은 마스크 비율이 중복을 없애 쉬운 외삽으로 풀 수 없게 만든다는 설명이 그 절에 있다. 그림과 본문의 수는 그림을 그리는 코드가 CIFAR-10 으로 직접 재며, 낮은 비율에서 이웃 보간이 기준선을 크게 이기는지와 75%에서 뒤집히는지를 먼저 확인한 뒤에만 그린다._
+_확인한 곳 — K. He, X. Chen, S. Xie, Y. Li, P. Dollár, R. Girshick, "Masked Autoencoders Are Scalable Vision Learners" (arXiv:2111.06377) 1절. 인용한 문장과 높은 마스크 비율이 중복을 없애 쉬운 외삽으로 풀 수 없게 만든다는 설명이 그 절에 있다. 그림과 본문의 수는 그림을 그리는 코드가 CIFAR-10 으로 직접 재며, 낮은 비율에서 이웃 보간이 베이스라인을 크게 이기는지와 75%에서 뒤집히는지를 먼저 확인한 뒤에만 그린다._
 
 </div>
 
@@ -492,8 +492,8 @@ _확인한 곳 — K. He, X. Chen, S. Xie, Y. Li, P. Dollár, R. Girshick, "Mask
 ??? success "풀이"
     ```python
     def encode_full(self, x):
-        """가리지 않고 모든 조각을 부호화한다 (아래쪽 과제용)."""
-        # 조각을 임베딩한다
+        """마스킹하지 않고 모든 패치를 인코딩한다 (다운스트림 과제용)."""
+        # 패치를 임베딩한다
         x = self.patch_embed(x)
 
         # 위치 임베딩을 더한다 (cls 토큰은 빼고)
@@ -516,4 +516,4 @@ _확인한 곳 — K. He, X. Chen, S. Xie, Y. Li, P. Dollár, R. Girshick, "Mask
 
 ## 정리하며
 
-MAE의 보이는 토큰 인코더, 순서를 복원하는 디코더와 가린 위치 로스를 연결한다. 학습 가능한 위치 표·RGB 고정·빈 마스크 분모와 정규화된 복원 이미지의 해석을 확인하고, 인코더 점수 비용과 전체 학습 속도를 구분한다.
+MAE의 보이는 토큰 인코더, 순서를 복원하는 디코더와 가린 위치 로스를 연결한다. 학습 가능한 위치 임베딩·RGB 고정·빈 마스크 분모와 정규화된 복원 이미지의 해석을 확인하고, 인코더 점수 비용과 전체 학습 속도를 구분한다.

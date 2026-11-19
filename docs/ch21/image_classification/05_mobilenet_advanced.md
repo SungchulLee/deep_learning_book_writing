@@ -10,7 +10,7 @@ import torch.nn as nn
 
 
 class DepthwiseSeparableConv(nn.Module):
-    """깊이별로 갈라지는 컨볼루션 = 깊이별 + 점별."""
+    """깊이별 분리 컨볼루션 = depthwise + pointwise."""
     def __init__(self, in_channels, out_channels, stride):
         super().__init__()
         self.depthwise = nn.Sequential(
@@ -30,7 +30,7 @@ class DepthwiseSeparableConv(nn.Module):
 
 
 class InvertedResidual(nn.Module):
-    """뒤집은 잔차 덩이(MobileNetV2)."""
+    """역잔차 블록(MobileNetV2)."""
     def __init__(self, in_channels, out_channels, stride, expand_ratio):
         super().__init__()
         self.use_residual = (stride == 1 and in_channels == out_channels)
@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
 ### 역잔차와 선형 병목
 
-역잔차 블록은 좁은 입력을 넓은 내부 채널로 확장하고 depthwise로 공간을 처리한 뒤 좁은 출력으로 투영한다. 확장과 공간 연산 뒤에는 ReLU6를 사용하지만 최종 투영 뒤에는 ReLU를 두지 않는다. 낮은 차원의 표현에서 추가 비선형 절단을 피하려는 설계이며 정보 로스가 절대 없다는 보장은 아니다. 선형 투영도 차원을 줄이면 정보를 잃을 수 있다.
+역잔차 블록은 좁은 입력을 넓은 내부 채널로 확장하고 depthwise로 공간을 처리한 뒤 좁은 출력으로 투영한다. 확장과 공간 연산 뒤에는 ReLU6를 사용하지만 최종 투영 뒤에는 ReLU를 두지 않는다. 낮은 차원의 표현에서 추가 비선형 절단을 피하려는 설계이며 정보 손실이 절대 없다는 보장은 아니다. 선형 투영도 차원을 줄이면 정보를 잃을 수 있다.
 
 코드의 투영 뒤에는 BN이 있다. ‘선형 병목’은 이 위치에 ReLU 같은 추가 비선형 활성화를 넣지 않는다는 구조적 표현이지, 학습 모드의 배치 통계 계산까지 전체적으로 고정 선형 사상이라는 뜻은 아니다. stride=1이고 입력·출력 채널 수가 같을 때만 잔차 덧셈을 사용한다.
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    바이어스·BN을 제외하면 표준은 256²×9=589,824개, 분리는 256×9+256²=67,840개다. 표준/분리 비는 약 8.69다. 채널별 multiplier=1과 해당 입출력 폭을 가정하며 V2 블록의 확장레이어까지 포함한 값은 아니다.
+    바이어스·BN을 제외하면 표준은 256²×9=589,824개, 분리는 256×9+256²=67,840개다. 표준/분리 비는 약 8.69다. 채널별 multiplier=1과 해당 입출력 폭을 가정하며 V2 블록의 확장 레이어까지 포함한 값은 아니다.
 
 ---
 
@@ -145,7 +145,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    좁은 출력 공간에서 음수 활성까지 제거하는 추가 비선형 절단을 피하려는 설계다. 그러나 투영 자체가 정보를 완전히 보존한다는 보장은 아니다. 코드에는 BN도 있으며, 역잔차의 덧셈은 stride와 채널 형태가 맞을 때만 사용한다.
+    좁은 출력 공간에서 음수 활성화 값까지 제거하는 추가 비선형 절단을 피하려는 설계다. 그러나 투영 자체가 정보를 완전히 보존한다는 보장은 아니다. 코드에는 BN도 있으며, 역잔차의 덧셈은 stride와 채널 형태가 맞을 때만 사용한다.
 
 ---
 

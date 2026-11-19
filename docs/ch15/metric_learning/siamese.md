@@ -6,7 +6,7 @@
 
 ### 웨이트를 공유하는 두 경로
 
-샴 네트워크는 같은 웨이트를 공유하는 똑같은 부분 망 둘(쌍둥이)로 이루어진다. 부분 망마다 입력 하나를 다루고, 그 출력을 비교하여 닮음을 가린다.
+샴 네트워크는 같은 웨이트를 공유하는 동일한 부분 네트워크 둘(쌍둥이)로 이루어진다. 부분 네트워크마다 입력 하나를 다루고, 그 출력을 비교하여 유사도를 판단한다.
 
 ```
 Input 1 ──→ [Encoder f_θ] ──→ Embedding 1 ──┐
@@ -25,19 +25,19 @@ Input 2 ──→ [Encoder f_θ] ──→ Embedding 2 ──┘
 
 $$z_1 = f_\theta(x_1), \quad z_2 = f_\theta(x_2)$$
 
-**닮음과 거리**:
+**유사도와 거리**:
 
 $$s(x_1, x_2) = g(|z_1 - z_2|)$$
 
-여기서 $f_\theta$은 인코더 망이고, $|z_1 - z_2|$은 성분마다의 절대 차이를 셈하며, $g$은 대개 그 차이를 닮음 점수로 옮기는 배운 함수이다.
+여기서 $f_\theta$은 인코더 네트워크이고, $|z_1 - z_2|$은 성분별 절대 차이를 계산하며, $g$은 대개 그 차이를 유사도 점수로 변환하는 학습된 함수이다.
 
 ### 공유 웨이트와 대칭성
 
 웨이트 공유는 두 입력에 같은 변환을 적용하고 필요한 파라메터 수를 줄인다. 같은 입력도 학습 모드의 드롭아웃이나 서로 다른 배치 통계 때문에 다른 표현을 낼 수 있으므로 비교 시 모델 상태와 전처리를 맞춘다.
 
-1. **대칭적**: 입력의 차례와 상관없이 같은 변환이 쓰인다
-2. **한결같음**: 닮은 입력은 늘 닮은 자리로 옮겨진다
-3. **효율적**: 망을 하나만 담아 두고 익히면 된다
+1. **대칭적**: 입력의 순서와 상관없이 같은 변환이 쓰인다
+2. **일관성**: 비슷한 입력은 비슷한 위치로 변환된다
+3. **효율적**: 네트워크 하나만 저장하고 학습하면 된다
 
 ---
 
@@ -56,10 +56,10 @@ $$s(x_1, x_2) = g(|z_1 - z_2|)$$
 
     class SiameseConvEncoder(nn.Module):
         """
-        샴 망을 위한 컨볼루션 인코더.
+        샴 네트워크를 위한 컨볼루션 인코더.
 
         구조는 Koch 외(2015)를 따르되
-        입력 크기에 맞추어 손질했다.
+        입력 크기에 맞추어 조정했다.
         """
 
         def __init__(
@@ -72,8 +72,8 @@ $$s(x_1, x_2) = g(|z_1 - z_2|)$$
             """
             인수:
                 input_channels: 입력 채널 수(흑백이면 1)
-                input_size: 입력 그림 크기(정사각 그림으로 놓는다)
-                hidden_dim: 컨볼루션 필터의 바탕 개수
+                input_size: 입력 이미지 크기(정사각 이미지로 가정한다)
+                hidden_dim: 컨볼루션 필터의 기본 개수
                 embedding_dim: 마지막 임베딩 차원
             """
             super().__init__()
@@ -84,23 +84,23 @@ $$s(x_1, x_2) = g(|z_1 - z_2|)$$
             self.conv3 = nn.Conv2d(hidden_dim * 2, hidden_dim * 2, kernel_size=4)
             self.conv4 = nn.Conv2d(hidden_dim * 2, hidden_dim * 4, kernel_size=4)
 
-            # 컨볼루션 뒤의 편 크기를 셈한다
+            # 컨볼루션 뒤의 평탄화한 크기를 계산한다
             self._conv_output_size = self._get_conv_output_size(
                 input_channels, input_size
             )
 
-            # 임베딩으로 가는 온연결 레이어
+            # 임베딩으로 가는 완전 연결 레이어
             self.fc = nn.Linear(self._conv_output_size, embedding_dim)
 
         def _get_conv_output_size(self, channels: int, size: int) -> int:
-            """컨볼루션 레이어 뒤의 출력 크기를 셈한다."""
+            """컨볼루션 레이어 뒤의 출력 크기를 계산한다."""
             with torch.no_grad():
                 dummy = torch.zeros(1, channels, size, size)
                 dummy = self._conv_forward(dummy)
                 return dummy.view(1, -1).size(1)
 
         def _conv_forward(self, x: torch.Tensor) -> torch.Tensor:
-            """컨볼루션 레이어를 씌운다."""
+            """컨볼루션 레이어를 적용한다."""
             x = F.relu(self.conv1(x))
             x = F.max_pool2d(x, 2)
 
@@ -116,10 +116,10 @@ $$s(x_1, x_2) = g(|z_1 - z_2|)$$
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
             """
-            입력의 임베딩을 셈한다.
+            입력의 임베딩을 계산한다.
 
             인수:
-                x: 입력 그림 (batch, channels, height, width)
+                x: 입력 이미지 (batch, channels, height, width)
 
             반환값:
                 embeddings: (batch, embedding_dim)
@@ -134,7 +134,7 @@ $$s(x_1, x_2) = g(|z_1 - z_2|)$$
 
 ### ResNet 백본 인코더
 
-ResNet 인코더는 기본 RGB 입력과 사전 학습 웨이트에 맞는 전처리를 가정한다. 출력은 L2 정규화한 embedding_dim차원 벡터다. 투영레이어에 BatchNorm1d가 있으므로 학습 모드의 배치 크기 1도 별도로 고려해야 한다.
+ResNet 인코더는 기본 RGB 입력과 사전 학습 웨이트에 맞는 전처리를 가정한다. 출력은 L2 정규화한 embedding_dim차원 벡터다. 투영 레이어에 BatchNorm1d가 있으므로 학습 모드의 배치 크기 1도 별도로 고려해야 한다.
 
 ??? note "코드 2 (40줄)"
 
@@ -143,7 +143,7 @@ ResNet 인코더는 기본 RGB 입력과 사전 학습 웨이트에 맞는 전�
 
     class ResNetSiameseEncoder(nn.Module):
         """
-        미리 학습된 ResNet 등뼈를 쓰는 샴 인코더.
+        미리 학습된 ResNet 백본을 쓰는 샴 인코더.
         """
 
         def __init__(
@@ -156,10 +156,10 @@ ResNet 인코더는 기본 RGB 입력과 사전 학습 웨이트에 맞는 전�
             # 미리 학습된 ResNet을 불러온다
             resnet = models.resnet18(pretrained=pretrained)
 
-            # 마지막 가려내기 레이어를 없앤다
+            # 마지막 분류 레이어를 없앤다
             self.backbone = nn.Sequential(*list(resnet.children())[:-1])
 
-            # 임베딩 공간으로 쏘아 넣는 머리
+            # 임베딩 공간으로 투영하는 헤드
             self.projection = nn.Sequential(
                 nn.Linear(512, embedding_dim),
                 nn.BatchNorm1d(embedding_dim),
@@ -170,12 +170,12 @@ ResNet 인코더는 기본 RGB 입력과 사전 학습 웨이트에 맞는 전�
             self.embedding_dim = embedding_dim
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
-            """임베딩을 셈한다."""
+            """임베딩을 계산한다."""
             features = self.backbone(x)
             features = features.view(features.size(0), -1)
             embeddings = self.projection(features)
 
-            # 임베딩을 L2로 고른다
+            # 임베딩을 L2 정규화한다
             embeddings = F.normalize(embeddings, p=2, dim=1)
 
             return embeddings
@@ -188,30 +188,30 @@ ResNet 인코더는 기본 RGB 입력과 사전 학습 웨이트에 맞는 전�
 
 ### 표준 구현
 
-use_distance=True이면 유클리드 거리를 반환하고 False이면 절댓값 차이에서 학습한 sigmoid 점수를 반환한다. 거리는 작을수록, 유사도는 클수록 같은 클래스라고 판단한다. 임계값은 검증 데이터에서 선택한다. SiameseConvEncoder는 embedding_dim 속성을 저장하지 않으므로 기본 4096 이외의 임베딩 크기를 쓰면 비교레이어 차원이 맞지 않을 수 있다.
+use_distance=True이면 유클리드 거리를 반환하고 False이면 절댓값 차이에서 학습한 sigmoid 점수를 반환한다. 거리는 작을수록, 유사도는 클수록 같은 클래스라고 판단한다. 임계값은 검증 데이터에서 선택한다. SiameseConvEncoder는 embedding_dim 속성을 저장하지 않으므로 기본 4096 이외의 임베딩 크기를 쓰면 비교 레이어 차원이 맞지 않을 수 있다.
 
 ??? note "코드 3 (85줄)"
 
     ```python
     class SiameseNetwork(nn.Module):
         """
-        닮음 학습을 위한 온전한 샴 망.
+        유사도 학습을 위한 전체 샴 네트워크.
 
-        배운 임베딩을 견주어 두 입력이
-        같은 부류에 드는지를 셈한다.
+        학습된 임베딩을 비교하여 두 입력이
+        같은 클래스에 속하는지를 계산한다.
         """
 
         def __init__(self, encoder: nn.Module, use_distance: bool = True):
             """
             인수:
-                encoder: 나누어 쓰는 인코더 망
-                use_distance: True이면 거리를 내고, 아니면 닮음을 낸다
+                encoder: 공유 인코더 네트워크
+                use_distance: True이면 거리를 반환하고, 아니면 유사도를 반환한다
             """
             super().__init__()
             self.encoder = encoder
             self.use_distance = use_distance
 
-            # 선택: 거리 위에 함수를 하나 더 배운다
+            # 선택: 거리 위에 함수를 하나 더 학습한다
             if hasattr(encoder, 'embedding_dim'):
                 embed_dim = encoder.embedding_dim
             else:
@@ -223,7 +223,7 @@ use_distance=True이면 유클리드 거리를 반환하고 False이면 절댓�
             )
 
         def forward_one(self, x: torch.Tensor) -> torch.Tensor:
-            """입력 하나를 부호로 바꾼다."""
+            """입력 하나를 인코딩한다."""
             return self.encoder(x)
 
         def forward(
@@ -232,7 +232,7 @@ use_distance=True이면 유클리드 거리를 반환하고 False이면 절댓�
             x2: torch.Tensor
         ) -> torch.Tensor:
             """
-            두 입력 사이의 닮음을 셈한다.
+            두 입력 사이의 유사도를 계산한다.
 
             인수:
                 x1: 첫 입력 배치 (batch, *input_shape)
@@ -240,9 +240,9 @@ use_distance=True이면 유클리드 거리를 반환하고 False이면 절댓�
 
             반환값:
                 use_distance이면 L2 거리 (batch,)
-                아니면 [0, 1] 안의 닮음 점수 (batch,)
+                아니면 [0, 1] 안의 유사도 점수 (batch,)
             """
-            # 두 입력을 모두 부호로 바꾼다
+            # 두 입력을 모두 인코딩한다
             z1 = self.encoder(x1)
             z2 = self.encoder(x2)
 
@@ -251,7 +251,7 @@ use_distance=True이면 유클리드 거리를 반환하고 False이면 절댓�
                 distance = F.pairwise_distance(z1, z2, p=2)
                 return distance
             else:
-                # 절대 차이 위에서 배운 닮음
+                # 절대 차이 위에서 학습된 유사도
                 diff = torch.abs(z1 - z2)
                 similarity = self.similarity_network(diff)
                 return similarity.squeeze(-1)
@@ -263,14 +263,14 @@ use_distance=True이면 유클리드 거리를 반환하고 False이면 절댓�
             threshold: float = 0.5
         ) -> torch.Tensor:
             """
-            입력이 같은 부류에서 왔는지 맞힌다.
+            입력이 같은 클래스에서 왔는지 예측한다.
 
             인수:
                 x1, x2: 입력 배치
                 threshold: 판단 임계값
 
             반환값:
-                predictions: 참거짓 텐서 (batch,)
+                predictions: 불리언 텐서 (batch,)
             """
             if self.use_distance:
                 distances = self.forward(x1, x2)
@@ -291,23 +291,23 @@ use_distance=True이면 유클리드 거리를 반환하고 False이면 절댓�
 
 $$\mathcal{L}(z_1, z_2, y) = (1-y) \cdot \frac{1}{2} d^2 + y \cdot \frac{1}{2} \max(0, m - d)^2$$
 
-여기서 닮은 쌍이면 $y=0$이고 닮지 않은 쌍이면 $y=1$이다.
+여기서 유사한 쌍이면 $y=0$이고 유사하지 않은 쌍이면 $y=1$이다.
 
 ??? note "코드 4 (75줄)"
 
     ```python
     class ContrastiveLoss(nn.Module):
         """
-        샴 망을 위한 대조 로스.
+        샴 네트워크를 위한 대조 로스.
 
-        닮은 쌍은 끌어당기고 닮지 않은 쌍은
-        여백 너머로 밀어낸다.
+        유사한 쌍은 끌어당기고 유사하지 않은 쌍은
+        마진 너머로 밀어낸다.
         """
 
         def __init__(self, margin: float = 1.0):
             """
             인수:
-                margin: 닮지 않은 쌍의 가장 작은 거리
+                margin: 유사하지 않은 쌍의 가장 작은 거리
             """
             super().__init__()
             self.margin = margin
@@ -319,23 +319,23 @@ $$\mathcal{L}(z_1, z_2, y) = (1-y) \cdot \frac{1}{2} d^2 + y \cdot \frac{1}{2} \
             y: torch.Tensor
         ) -> torch.Tensor:
             """
-            대조 로스를 셈한다.
+            대조 로스를 계산한다.
 
             인수:
                 z1: 첫 임베딩 (batch, embed_dim)
                 z2: 둘째 임베딩 (batch, embed_dim)
-                y: 이름표 - 닮으면 0, 닮지 않으면 1
+                y: 라벨 - 유사하면 0, 유사하지 않으면 1
 
             반환값:
                 loss: 스칼라 로스 값
             """
-            # 유클리드 거리를 셈한다
+            # 유클리드 거리를 계산한다
             distance = F.pairwise_distance(z1, z2, p=2)
 
-            # 닮은 쌍의 로스: 거리를 가장 작게 한다
+            # 유사한 쌍의 로스: 거리를 가장 작게 한다
             similar_loss = (1 - y) * 0.5 * distance ** 2
 
-            # 닮지 않은 쌍의 로스: 여백까지 거리를 가장 크게 한다
+            # 유사하지 않은 쌍의 로스: 마진까지 거리를 가장 크게 한다
             dissimilar_loss = y * 0.5 * F.relu(self.margin - distance) ** 2
 
             loss = similar_loss + dissimilar_loss
@@ -344,7 +344,7 @@ $$\mathcal{L}(z_1, z_2, y) = (1-y) \cdot \frac{1}{2} d^2 + y \cdot \frac{1}{2} \
 
     class MarginContrastiveLoss(nn.Module):
         """
-        닮은 쌍과 닮지 않은 쌍에 따로 여백을 두는 변형.
+        유사한 쌍과 유사하지 않은 쌍에 따로 마진을 두는 변형.
         """
 
         def __init__(
@@ -364,10 +364,10 @@ $$\mathcal{L}(z_1, z_2, y) = (1-y) \cdot \frac{1}{2} d^2 + y \cdot \frac{1}{2} \
         ) -> torch.Tensor:
             distance = F.pairwise_distance(z1, z2, p=2)
 
-            # 닮은 쌍은 pos_margin보다 가까워야 한다
+            # 유사한 쌍은 pos_margin보다 가까워야 한다
             pos_loss = (1 - y) * F.relu(distance - self.pos_margin) ** 2
 
-            # 닮지 않은 쌍은 neg_margin보다 멀어야 한다
+            # 유사하지 않은 쌍은 neg_margin보다 멀어야 한다
             neg_loss = y * F.relu(self.neg_margin - distance) ** 2
 
             return (pos_loss + neg_loss).mean()
@@ -383,10 +383,10 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
     ```python
     class SiameseBCELoss(nn.Module):
         """
-        샴 닮음 예측을 위한 이진 교차 엔트로피 로스.
+        샴 유사도 예측을 위한 이진 교차 엔트로피 로스.
 
         문제를 이진 분류로 다룬다.
-        이 쌍은 같은 부류에서 왔는가?
+        이 쌍은 같은 클래스에서 왔는가?
         """
 
         def __init__(self, label_smoothing: float = 0.0):
@@ -400,10 +400,10 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
         ) -> torch.Tensor:
             """
             인수:
-                similarity: [0, 1] 안의 맞힌 닮음
-                y: 이름표 - 같은 부류면 1, 다르면 0
+                similarity: [0, 1] 안의 예측된 유사도
+                y: 라벨 - 같은 클래스면 1, 다르면 0
             """
-            # 선택: 이름표 매끄럽게 하기
+            # 선택: 라벨 스무딩
             if self.label_smoothing > 0:
                 y = y * (1 - self.label_smoothing) + 0.5 * self.label_smoothing
 
@@ -430,17 +430,17 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
         device: str = 'cuda'
     ) -> torch.Tensor:
         """
-        샴 망으로 한 예시 분류를 한다.
+        샴 네트워크로 원샷 분류를 한다.
 
         인수:
-            model: 익힌 샴 망
-            support_set: 부류마다 보기 하나 (n_classes, *input_shape)
-            support_labels: 부류 이름표 (n_classes,)
-            query: 가려낼 물음 그림 (n_query, *input_shape)
-            device: 셈할 장치
+            model: 학습된 샴 네트워크
+            support_set: 클래스마다 표본 하나 (n_classes, *input_shape)
+            support_labels: 클래스 라벨 (n_classes,)
+            query: 분류할 쿼리 이미지 (n_query, *input_shape)
+            device: 계산할 장치
 
         반환값:
-            predictions: 맞힌 부류 이름표 (n_query,)
+            predictions: 예측된 클래스 라벨 (n_query,)
         """
         model.eval()
         model = model.to(device)
@@ -454,13 +454,13 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
         predictions = []
 
         with torch.no_grad():
-            # 서포트 집합을 한 번만 부호로 바꾼다
+            # 서포트 집합을 한 번만 인코딩한다
             support_embeddings = model.forward_one(support_set)
 
             for i in range(n_query):
                 query_embedding = model.forward_one(query[i:i+1])
 
-                # 받침 보기마다의 거리를 셈한다
+                # 서포트 표본별 거리를 계산한다
                 distances = []
                 for j in range(n_classes):
                     dist = F.pairwise_distance(
@@ -469,7 +469,7 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
                     )
                     distances.append(dist.item())
 
-                # 거리가 가장 작은 부류를 내놓는다
+                # 거리가 가장 작은 클래스를 반환한다
                 pred_idx = np.argmin(distances)
                 predictions.append(support_labels[pred_idx].item())
 
@@ -482,7 +482,7 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
         query: torch.Tensor
     ) -> torch.Tensor:
         """
-        배치 연산을 쓰는 효율적인 한 예시 분류.
+        배치 연산을 쓰는 효율적인 원샷 분류.
         """
         model.eval()
 
@@ -490,7 +490,7 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
         n_query = query.size(0)
 
         with torch.no_grad():
-            # 모든 보기를 부호로 바꾼다
+            # 모든 표본을 인코딩한다
             support_embeddings = model.forward_one(support_set)  # (C, D)
             query_embeddings = model.forward_one(query)  # (Q, D)
 
@@ -498,7 +498,7 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
             # (Q, C) 거리 행렬
             distances = torch.cdist(query_embeddings, support_embeddings, p=2)
 
-            # 물음마다 가장 가까운 받침 보기를 얻는다
+            # 쿼리마다 가장 가까운 서포트 표본을 얻는다
             nearest_idx = distances.argmin(dim=1)
             predictions = support_labels[nearest_idx]
 
@@ -522,7 +522,7 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
 
     class PairSampler:
         """
-        샴 망 학습을 위해 고르게 쌍을 뽑는다.
+        샴 네트워크 학습을 위해 균형 있게 쌍을 샘플링한다.
         """
 
         def __init__(
@@ -532,13 +532,13 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
         ):
             """
             인수:
-                labels: 모든 부류 이름표
-                positive_ratio: 뽑을 닮은 쌍의 비율
+                labels: 모든 클래스 라벨
+                positive_ratio: 뽑을 유사한 쌍의 비율
             """
             self.labels = labels
             self.positive_ratio = positive_ratio
 
-            # 부류에서 첨자로 가는 대응을 만든다
+            # 클래스에서 인덱스로 가는 매핑을 만든다
             self.class_indices = defaultdict(list)
             for idx, label in enumerate(labels):
                 self.class_indices[label.item()].append(idx)
@@ -550,31 +550,31 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
             쌍의 배치를 뽑는다.
 
             반환값:
-                idx1, idx2: 짝지은 보기의 첨자
-                labels: 같은 부류면 0, 다른 부류면 1
+                idx1, idx2: 짝지은 표본의 인덱스
+                labels: 같은 클래스면 0, 다른 클래스면 1
             """
             idx1, idx2, pair_labels = [], [], []
 
             n_positive = int(batch_size * self.positive_ratio)
             n_negative = batch_size - n_positive
 
-            # 양의 쌍을 뽑는다(같은 부류)
+            # 양성 쌍을 뽑는다(같은 클래스)
             for _ in range(n_positive):
-                # 보기가 둘 이상인 부류를 고른다
+                # 표본이 둘 이상인 클래스를 고른다
                 valid_classes = [c for c in self.classes 
                               if len(self.class_indices[c]) >= 2]
                 cls = random.choice(valid_classes)
 
-                # 이 부류에서 서로 다른 보기 둘을 뽑는다
+                # 이 클래스에서 서로 다른 표본 둘을 뽑는다
                 i1, i2 = random.sample(self.class_indices[cls], 2)
 
                 idx1.append(i1)
                 idx2.append(i2)
-                pair_labels.append(0)  # 같은 부류
+                pair_labels.append(0)  # 같은 클래스
 
-            # 음의 쌍을 뽑는다(다른 부류)
+            # 음성 쌍을 뽑는다(다른 클래스)
             for _ in range(n_negative):
-                # 서로 다른 부류 둘을 고른다
+                # 서로 다른 클래스 둘을 고른다
                 cls1, cls2 = random.sample(self.classes, 2)
 
                 i1 = random.choice(self.class_indices[cls1])
@@ -582,7 +582,7 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
 
                 idx1.append(i1)
                 idx2.append(i2)
-                pair_labels.append(1)  # 다른 부류
+                pair_labels.append(1)  # 다른 클래스
 
             # 뒤섞는다
             combined = list(zip(idx1, idx2, pair_labels))
@@ -597,7 +597,7 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
 
     class HardPairMiner:
         """
-        더 야무진 학습을 위한 실시간 어려운 쌍 캐기.
+        더 효과적인 학습을 위한 온라인 하드 쌍 마이닝.
         """
 
         def __init__(self, model: SiameseNetwork, margin: float = 0.5):
@@ -610,24 +610,24 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
             labels: torch.Tensor
         ):
             """
-            어려운 양의 쌍과 음의 쌍을 찾는다.
+            하드 양성 쌍과 하드 음성 쌍을 찾는다.
 
-            어려운 양의 쌍: 같은 부류인데 멀리 떨어져 있다
-            어려운 음의 쌍: 다른 부류인데 가까이 있다
+            하드 양성 쌍: 같은 클래스인데 멀리 떨어져 있다
+            하드 음성 쌍: 다른 클래스인데 가까이 있다
             """
             n = embeddings.size(0)
 
             # 모든 쌍별 거리 계산
             distances = torch.cdist(embeddings, embeddings, p=2)
 
-            # 이름표 마스크를 만든다
+            # 라벨 마스크를 만든다
             labels_eq = labels.unsqueeze(0) == labels.unsqueeze(1)
 
             hard_pos_pairs = []
             hard_neg_pairs = []
 
             for i in range(n):
-                # 어려운 양의 보기: 같은 부류에서 거리가 가장 먼 것
+                # 하드 양성 표본: 같은 클래스에서 거리가 가장 먼 것
                 pos_mask = labels_eq[i].clone()
                 pos_mask[i] = False  # 자기 자신 제외
 
@@ -638,7 +638,7 @@ BCE는 같은 클래스일 확률을 출력으로 사용하는 방식이다. 이
                     if distances[i, hardest_pos_idx] > self.margin:
                         hard_pos_pairs.append((i, hardest_pos_idx.item(), 0))
 
-                # 어려운 음의 보기: 다른 부류에서 거리가 가장 가까운 것
+                # 하드 음성 표본: 다른 클래스에서 거리가 가장 가까운 것
                 neg_mask = ~labels_eq[i]
 
                 if neg_mask.any():
@@ -663,7 +663,7 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
     ```python
     class SiameseTrainer:
         """
-        샴 망의 학습 회귀.
+        샴 네트워크의 학습 루프.
         """
 
         def __init__(
@@ -691,7 +691,7 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
             log_interval: int = 100
         ):
             """
-            한 세대를 학습한다.
+            한 에포크를 학습한다.
             """
             self.model.train()
             total_loss = 0
@@ -720,7 +720,7 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
 
                 total_loss += loss.item()
 
-                # 정확도를 셈한다(살펴보기용)
+                # 정확도를 계산한다(모니터링용)
                 with torch.no_grad():
                     distances = F.pairwise_distance(z1, z2)
                     predictions = (distances > 0.5).float()
@@ -746,25 +746,25 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
             n_episodes: int = 100
         ):
             """
-            한 예시 분류 성능을 평가한다.
+            원샷 분류 성능을 평가한다.
             """
             self.model.eval()
 
             test_data = test_data.to(self.device)
             test_labels = test_labels.to(self.device)
 
-            # 서로 다른 부류를 얻는다
+            # 서로 다른 클래스를 얻는다
             unique_classes = torch.unique(test_labels)
 
             accuracies = []
 
             for _ in range(n_episodes):
-                # n_way개의 부류를 뽑는다
+                # n_way개의 클래스를 뽑는다
                 episode_classes = unique_classes[
                     torch.randperm(len(unique_classes))[:n_way]
                 ]
 
-                # 부류마다 받침 1개와 물음 1개를 뽑는다
+                # 클래스마다 서포트 1개와 쿼리 1개를 뽑는다
                 support_data = []
                 query_data = []
                 query_labels = []
@@ -814,7 +814,7 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
     ```python
     class TripletSiameseNetwork(nn.Module):
         """
-        트리플렛 로스로 익힌 샴 망.
+        트리플렛 로스로 학습한 샴 네트워크.
         """
 
         def __init__(self, encoder: nn.Module):
@@ -828,7 +828,7 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
             negative: torch.Tensor
         ):
             """
-            트리플렛의 임베딩을 셈한다.
+            트리플렛의 임베딩을 계산한다.
             """
             z_a = self.encoder(anchor)
             z_p = self.encoder(positive)
@@ -843,7 +843,7 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
             negative: torch.Tensor,
             margin: float = 0.2
         ):
-            """트리플렛 로스를 셈한다."""
+            """트리플렛 로스를 계산한다."""
             z_a, z_p, z_n = self.forward(anchor, positive, negative)
 
             d_ap = F.pairwise_distance(z_a, z_p)
@@ -855,19 +855,19 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
     ```
 
 
-### 영역을 넘나드는 샴 네트워크
+### 교차 도메인 샴 네트워크
 
-서로 다른 도메인용 인코더와 투영레이어로 공통 차원의 정규화 벡터를 만든다. 두 인코더의 웨이트를 공유하는 구조는 아니며, 클래스가 같은 쌍을 연결하는 로스 등 학습 목표가 별도로 필요하다. 모듈을 선언하는 것만으로 도메인 정렬이 이루어지지는 않는다. 두 인코더는 embedding_dim 속성을 제공해야 한다.
+서로 다른 도메인용 인코더와 투영 레이어로 공통 차원의 정규화 벡터를 만든다. 두 인코더의 웨이트를 공유하는 구조는 아니며, 클래스가 같은 쌍을 연결하는 로스 등 학습 목표가 별도로 필요하다. 모듈을 선언하는 것만으로 도메인 정렬이 이루어지지는 않는다. 두 인코더는 embedding_dim 속성을 제공해야 한다.
 
 ??? note "코드 10 (34줄)"
 
     ```python
     class CrossDomainSiamese(nn.Module):
         """
-        영역마다 따로 인코더를 두는 샴 망.
+        도메인마다 따로 인코더를 두는 샴 네트워크.
 
-        서로 다른 영역의 보기를 견줄 때 쓸모 있다
-        (이를테면 스케치와 사진 맞추기).
+        서로 다른 도메인의 표본을 비교할 때 유용하다
+        (예: 스케치와 사진 매칭).
         """
 
         def __init__(
@@ -880,18 +880,18 @@ SiameseTrainer는 인코더 두 출력에 대조 로스를 적용하며 임계�
             self.encoder_a = encoder_a
             self.encoder_b = encoder_b
 
-            # 함께 쓰는 공간으로 쏘아 넣는다
+            # 공유 공간으로 투영한다
             self.project_a = nn.Linear(encoder_a.embedding_dim, shared_dim)
             self.project_b = nn.Linear(encoder_b.embedding_dim, shared_dim)
 
         def forward(self, x_a: torch.Tensor, x_b: torch.Tensor):
             """
-            두 영역의 보기를 견준다.
+            두 도메인의 표본을 비교한다.
             """
             z_a = self.project_a(self.encoder_a(x_a))
             z_b = self.project_b(self.encoder_b(x_b))
 
-            # L2로 고른다
+            # L2 정규화한다
             z_a = F.normalize(z_a, p=2, dim=1)
             z_b = F.normalize(z_b, p=2, dim=1)
 

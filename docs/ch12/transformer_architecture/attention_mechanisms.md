@@ -6,7 +6,7 @@
 
 ```python
 """
-순환 뉴럴 네트워크를 위한 주의 구조
+순환 뉴럴 네트워크를 위한 어텐션 메커니즘
 """
 import torch
 import torch.nn as nn
@@ -17,7 +17,7 @@ import torch.nn.functional as F
 # ========================================================================
 
 class BahdanauAttention(nn.Module):
-    """바다나우(더하기) 주의"""
+    """바다나우(가산) 어텐션"""
     def __init__(self, hidden_size):
         super().__init__()
         self.W1 = nn.Linear(hidden_size, hidden_size)
@@ -25,7 +25,7 @@ class BahdanauAttention(nn.Module):
         self.V = nn.Linear(hidden_size, 1)
     
     def forward(self, query, keys):
-        # query: [batch, hidden] - 디코더의 숨은 상태
+        # query: [batch, hidden] - 디코더의 은닉 상태
         # keys: [batch, seq_len, hidden] - 인코더의 출력
         scores = self.V(torch.tanh(
             self.W1(query).unsqueeze(1) + self.W2(keys)
@@ -35,7 +35,7 @@ class BahdanauAttention(nn.Module):
         return context, attention_weights
 
 class LuongAttention(nn.Module):
-    """루옹(곱하기) 주의"""
+    """루옹(곱셈) 어텐션"""
     def __init__(self, hidden_size, method='dot'):
         super().__init__()
         self.method = method
@@ -54,35 +54,35 @@ class LuongAttention(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# 가린 소프트맥스 도구
+# 마스크드 소프트맥스 유틸리티
 # ---------------------------------------------------------------------------
-# 많은 수열 과제에서 입력의 길이가 제각각이다. 주의 점수를 셈할 때
-# 실제 수열 길이를 넘는 자리는 -inf로 가려서 소프트맥스가
+# 많은 시퀀스 과제에서 입력의 길이가 제각각이다. 어텐션 점수를 계산할 때
+# 실제 시퀀스 길이를 넘는 자리는 -inf로 마스킹해서 소프트맥스가
 # 그 자리에 확률 0을 주도록 해야 한다.
-# 그러면 채움 토큰에 주의하지 않게 되며, 트랜스포머의 인코더 자기 주의와
-# 교차 주의 모두에 꼭 필요하다.
+# 그러면 패딩 토큰에 어텐션을 주지 않게 되며, 트랜스포머의 인코더 셀프 어텐션과
+# 교차 어텐션 모두에 꼭 필요하다.
 
 def masked_softmax(X, valid_lens):
-    """유효 길이를 넘는 자리를 가리고 소프트맥스를 한다.
+    """유효 길이를 넘는 자리를 마스킹하고 소프트맥스를 한다.
 
     인수:
         X: 형태가 (batch_size, num_queries, num_keys)인 3차원 텐서
         valid_lens: 1차원 텐서 (batch_size,) 또는 2차원 텐서 (batch_size, num_queries)
-            성분마다 그 질의에 유효한 열쇠가 몇 개인지 알려 준다.
+            성분마다 그 쿼리에 유효한 키가 몇 개인지 알려 준다.
     반환값:
-        X와 같은 형태의 소프트맥스 출력이며 가린 자리는 0이다.
+        X와 같은 형태의 소프트맥스 출력이며 마스킹한 자리는 0이다.
     """
     if valid_lens is None:
         return F.softmax(X, dim=-1)
 
     shape = X.shape
     if valid_lens.dim() == 1:
-        # 배치 원소마다 모든 질의에 같은 유효 길이를 쓴다
+        # 배치 원소마다 모든 쿼리에 같은 유효 길이를 쓴다
         valid_lens = valid_lens.repeat_interleave(shape[1])
     else:
         valid_lens = valid_lens.reshape(-1)
 
-    # 가림을 만든다: valid_len 이상인 자리에 -1e6을 주어 exp(-1e6) ≈ 0이 되게 한다
+    # 마스크를 만든다: valid_len 이상인 자리에 -1e6을 주어 exp(-1e6) ≈ 0이 되게 한다
     X_flat = X.reshape(-1, shape[-1])
     maxlen = X_flat.size(1)
     mask = torch.arange(maxlen, device=X.device)[None, :] < valid_lens[:, None]
@@ -125,7 +125,7 @@ Luong의 method는 dot 또는 general을 가정하지만 다른 문자열을 검
 </div>
 
 ??? success "풀이"
-    점수에 유효 위치 마스크를 적용한 뒤 위치 축으로 소프트맥스한다. 반환 웨이트 축이 다르므로 마스크 모양을 각각 맞춘다. 모든 위치가 패딩인 입력은 별도 처리한다. 드롭아웃을 추가하더라도 패딩 마스크를 대신하지 않는다.
+    점수에 유효 위치 마스크를 적용한 뒤 위치 축으로 소프트맥스한다. 반환 웨이트 축이 다르므로 마스크 형태를 각각 맞춘다. 모든 위치가 패딩인 입력은 별도 처리한다. 드롭아웃을 추가하더라도 패딩 마스크를 대신하지 않는다.
 
 ---
 

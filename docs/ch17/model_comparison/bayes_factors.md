@@ -1,26 +1,26 @@
 # 베이즈 인자
 
-베이즈 인자는 같은 자료에 대한 두 모델의 주변 우도 비다. 모델 사전 오즈를 사후 오즈로 바꾸는 배수이며, 각 모델 내부의 파라메터 사전분포에 의존한다. 정의와 계산 방향, 순차 분해, 사전 민감도와 수치 근사를 구분해 살펴본다.
+베이즈 인자는 같은 데이터에 대한 두 모델의 주변 가능도(marginal likelihood; 가능도는 우도라고도 한다) 비다. 모델 사전 오즈를 사후 오즈로 바꾸는 배수이며, 각 모델 내부의 파라메터 사전분포에 의존한다. 정의와 계산 방향, 순차 분해, 사전 민감도와 수치 근사를 구분해 살펴본다.
 
-## 1. 왜 필요한가: 영가설 검정 너머로
+## 1. 왜 필요한가: 귀무가설 검정 너머로
 
-p값은 귀무가설 아래 지정한 검정통계량의 극단성을 측정한다. 가설이 참일 확률이나 두 모델의 상대적인 예측 증거와는 다르다. 큰 표본에서는 실질적으로 작은 효과도 유의할 수 있지만, 참인 귀무가설까지 자료가 많으면 반드시 기각되는 것은 아니다.
+p값은 귀무가설 아래 지정한 검정통계량의 극단성을 측정한다. 가설이 참일 확률이나 두 모델의 상대적인 예측 증거와는 다르다. 큰 표본에서는 실질적으로 작은 효과도 유의할 수 있지만, 참인 귀무가설까지 데이터가 많으면 반드시 기각되는 것은 아니다.
 
-베이즈 인자는 대립모델과 귀무모델 양쪽의 주변 우도를 비교한다. 연속적인 상대 증거를 제공하되 모델의 절대 적합도나 경제적·과학적 중요성을 대신 판단하지는 않는다. 빈도주의 추론도 효과 크기·구간·동등성 검정 등을 함께 사용할 수 있으므로 이분법적인 기각만으로 한정하지 않는다.
+베이즈 인자는 대립모델과 귀무모델 양쪽의 주변 가능도를 비교한다. 연속적인 상대 증거를 제공하되 모델의 절대 적합도나 경제적·과학적 중요성을 대신 판단하지는 않는다. 빈도주의 추론도 효과 크기·구간·동등성 검정 등을 함께 사용할 수 있으므로 이분법적인 기각만으로 한정하지 않는다.
 
-## 2. 정의와 풀이
+## 2. 정의와 해석
 
 파라메터 사전분포가 명시된 모델 M₁·M₂에 대해 다음과 같다.
 
 $$B_{12}=\frac{p(D\mid M_1)}{p(D\mid M_2)},\qquad p(D\mid M_k)=\int p(D\mid\theta_k,M_k)p(\theta_k\mid M_k)\,d\theta_k$$
 
-주변 우도가 양수·유한해야 하며 동일한 관측 공간·기준측도·자료로 비교한다. BF의 아래첨자에서 앞의 모델이 분자다.
+주변 가능도가 양수·유한해야 하며 동일한 관측 공간·기준측도·데이터로 비교한다. BF의 아래첨자에서 앞의 모델이 분자다.
 
 $$\frac{p(M_1\mid D)}{p(M_2\mid D)}=B_{12}\frac{p(M_1)}{p(M_2)}$$
 
-수치 계산은 $\log B_{12}=\log p(D|M_1)-\log p(D|M_2)$로 수행한다. 따라서 B₂₁=1/B₁₂이고 동일하게 정의한 세 모델 사이에는 B₁₃=B₁₂B₂₃가 성립한다. 자료 묶음에 대한 독립성만으로 각 묶음에서 같은 사전분포를 다시 사용한 BF를 곱할 수는 없다. 순차 갱신은 다음 절에서 구분한다.
+수치 계산은 $\log B_{12}=\log p(D|M_1)-\log p(D|M_2)$로 수행한다. 따라서 B₂₁=1/B₁₂이고 동일하게 정의한 세 모델 사이에는 B₁₃=B₁₂B₂₃가 성립한다. 데이터 묶음에 대한 독립성만으로 각 묶음에서 같은 사전분포를 다시 사용한 BF를 곱할 수는 없다. 순차 갱신은 다음 절에서 구분한다.
 
-## 3. 풀이 지침
+## 3. 해석 지침
 
 ### 증거 등급
 
@@ -43,21 +43,21 @@ $$\frac{p(M_1\mid D)}{p(M_2\mid D)}=B_{12}\frac{p(M_1)}{p(M_2)}$$
 
 ### 순차 예측 분해
 
-공통 잠재 파라메터가 있는 모형에서 관측이 그 파라메터를 조건으로 독립이더라도 주변화 후 자료는 일반적으로 독립이 아니다. 정확한 분해는 다음과 같다.
+공통 잠재 파라메터가 있는 모형에서 관측이 그 파라메터를 조건으로 독립이더라도 주변화 후 데이터는 일반적으로 독립이 아니다. 정확한 분해는 다음과 같다.
 
 $$p(D_1,D_2\mid M)=p(D_1\mid M)p(D_2\mid D_1,M)$$
 
-따라서 전체 로그 BF는 D₁의 로그 BF와 **D₁로 갱신한 사후분포를 사용한** D₂의 조건부 로그 BF의 합이다. 양쪽 자료에서 원래 사전을 각각 사용하는 합은 모델 아래 자료가 주변적으로 독립인 특별한 경우에만 맞는다.
+따라서 전체 로그 BF는 D₁의 로그 BF와 **D₁로 갱신한 사후분포를 사용한** D₂의 조건부 로그 BF의 합이다. 양쪽 데이터에서 원래 사전을 각각 사용하는 합은 모델 아래 데이터가 주변적으로 독립인 특별한 경우에만 맞는다.
 
 ### 일관성과 근사
 
-식별 가능한 모델, 적절한 사전 지지집합과 정규성 조건 등 아래 BF가 참모델을 점근적으로 지지할 수 있다. 동일한 관측분포를 표현하거나 서로 겹치는 모델, 참모델이 후보에 없는 경우에 무조건 B→∞를 주장할 수는 없다. 같은 우도족에서 사전분포만 다른 모델의 BF는 유한한 값으로 수렴할 수도 있다.
+식별 가능한 모델, 적절한 사전 지지집합과 정규성 조건 등 아래 BF가 참모델을 점근적으로 지지할 수 있다. 동일한 관측분포를 표현하거나 서로 겹치는 모델, 참모델이 후보에 없는 경우에 무조건 B→∞를 주장할 수는 없다. 같은 가능도족에서 사전분포만 다른 모델의 BF는 유한한 값으로 수렴할 수도 있다.
 
 정규적인 고정 차원 모델에서 M₁의 차원이 M₂보다 k만큼 크면 BIC 근사는 다음과 같다.
 
 $$\log B_{12}=\ell_1(\hat\theta_1)-\ell_2(\hat\theta_2)-\frac k2\log n+O(1)$$
 
-여기서 추정값은 최대 우도 추정값이다. 사전과 곡률에 따른 O(1)항을 버린 근사이므로 정확한 BF와 같지 않으며, 혼합모형·비식별 모형·고차원 뉴럴 네트워크 등에 그대로 적용할 수 없다.
+여기서 추정값은 최대가능도 추정값이다. 사전과 곡률에 따른 O(1)항을 버린 근사이므로 정확한 BF와 같지 않으며, 혼합모형·비식별 모형·고차원 뉴럴 네트워크 등에 그대로 적용할 수 없다.
 
 ## 5. 흔한 검정의 베이즈 인자
 
@@ -71,11 +71,11 @@ $$B_{01}=\frac{p(D\mid\theta_0)}{\int p(D\mid\theta)p(\theta\mid H_1)\,d\theta}$
 
 $$B_{01}=\frac{p(\theta_0\mid D,H_1)}{p(\theta_0\mid H_1)}$$
 
-이는 한 점의 확률이 아니라 **밀도**의 비다. nuisance 파라메터가 있으면 귀무모델의 사전분포가 대립모델에서 θ=θ₀를 조건으로 한 사전분포와 일치하는 등의 조건이 필요하다. [일반화된 새비지-디키 연구](https://arxiv.org/abs/2004.09899)는 조건이 다른 경우의 보정을 다룬다.
+이는 한 점의 확률이 아니라 **밀도**의 비다. nuisance 파라메터(관심 대상은 아니지만 모델에 들어 있는 파라메터, 장애 모수)가 있으면 귀무모델의 사전분포가 대립모델에서 θ=θ₀를 조건으로 한 사전분포와 일치하는 등의 조건이 필요하다. [일반화된 새비지-디키 연구](https://arxiv.org/abs/2004.09899)는 조건이 다른 경우의 보정을 다룬다.
 
 ### 평균과 그룹 비교
 
-알려진 분산과 정규 사전분포에서는 평균 비교의 주변 우도를 해석적으로 구할 수 있다. 분산을 몰라도 특정 켤레 사전 아래 해석적 계산이 가능하므로 언제나 수치 적분이 필요한 것은 아니다. 여러 그룹의 평균이 모두 같은 모형·모두 다른 모형·일부만 같은 중간 모형을 각각 정의해 비교할 수 있으며, 중간 모형의 평가가 반드시 그룹별 쌍대 검정이어야 하는 것은 아니다.
+알려진 분산과 정규 사전분포에서는 평균 비교의 주변 가능도를 해석적으로 구할 수 있다. 분산을 몰라도 특정 켤레 사전 아래 해석적 계산이 가능하므로 언제나 수치 적분이 필요한 것은 아니다. 여러 그룹의 평균이 모두 같은 모형·모두 다른 모형·일부만 같은 중간 모형을 각각 정의해 비교할 수 있으며, 중간 모형의 평가가 반드시 그룹별 쌍대 검정이어야 하는 것은 아니다.
 
 ## 6. 린들리의 역설
 
@@ -83,17 +83,17 @@ $$B_{01}=\frac{p(\theta_0\mid D,H_1)}{p(\theta_0\mid H_1)}$$
 
 $$B_{01}=\sqrt{1+n\tau^2/\sigma^2}\exp\left[-\frac{n\bar x^2}{2\sigma^2}\frac{n\tau^2/\sigma^2}{1+n\tau^2/\sigma^2}\right]$$
 
-z=√n·x̄/σ를 유의성 경계인 z_(1−α/2)에 고정한 자료열을 생각하면 양측 p값은 α에 머물지만 B₀₁은 커진다. 이때 x̄는 고정된 효과가 아니라 n에 따라 0으로 가까워지는 값이다.
+z=√n·x̄/σ를 유의성 경계인 z_(1−α/2)에 고정한 데이터열을 생각하면 양측 p값은 α에 머물지만 B₀₁은 커진다. 이때 x̄는 고정된 효과가 아니라 n에 따라 0으로 가까워지는 값이다.
 
 이는 고정된 대립 사전 스케일과 p값의 서로 다른 비교 기준에서 생긴다. 참효과를 0이 아닌 상수로 고정하고 표본을 늘리는 실험과는 다르다. 후자의 정규 모형에서는 충분히 큰 n에서 BF도 대립가설을 지지할 수 있다. 어느 쪽이 모든 상황에서 옳다는 선언 대신 관심 질문과 사전 스케일을 명시한다.
 
 ## 7. 사전확률을 어떻게 정하느냐에 대한 민감도
 
-주변 우도는 모델의 파라메터 사전분포 전체로 우도를 평균하므로 사전 범위에 민감하다. 사후 파라메터 추론 역시 사전에 의존하지만, 충분한 자료에서 사후 요약이 안정적이어도 BF는 사전 스케일에 민감할 수 있다.
+주변 가능도는 모델의 파라메터 사전분포 전체로 가능도를 평균하므로 사전 범위에 민감하다. 사후 파라메터 추론 역시 사전에 의존하지만, 충분한 데이터에서 사후 요약이 안정적이어도 BF는 사전 스케일에 민감할 수 있다.
 
-아주 넓은 대립 사전은 관측 자료를 잘 설명하지 않는 영역에 질량을 배분해 주변 우도를 낮출 수 있다. 넓다는 이유만으로 중립적이라고 보지 않는다. 단위·효과 크기에 맞는 적절한 사전분포 몇 가지에서 민감도를 비교한다.
+아주 넓은 대립 사전은 관측 데이터를 잘 설명하지 않는 영역에 질량을 배분해 주변 가능도를 낮출 수 있다. 넓다는 이유만으로 중립적이라고 보지 않는다. 단위·효과 크기에 맞는 적절한 사전분포 몇 가지에서 민감도를 비교한다.
 
-부적절 사전의 임의 정규화 상수는 보통 모델 간에 약분되지 않아 일반적인 BF가 정의되지 않는다. 공유 nuisance 파라메터의 특별한 처리나 분수·내재 BF처럼 별도 정의한 방법과 일반 BF를 구분한다. 계산에 자료를 사용한 사전분포를 그대로 다시 대입하는 것이 정당한 해결책은 아니다.
+부적절 사전의 임의 정규화 상수는 보통 모델 간에 약분되지 않아 일반적인 BF가 정의되지 않는다. 공유 nuisance 파라메터의 특별한 처리나 분수·내재 BF처럼 별도 정의한 방법과 일반 BF를 구분한다. 계산에 데이터를 사용한 사전분포를 그대로 다시 대입하는 것이 정당한 해결책은 아니다.
 
 <div class="storybox" markdown>
 
@@ -101,17 +101,17 @@ z=√n·x̄/σ를 유의성 경계인 z_(1−α/2)에 고정한 자료열을 생
 
 6절의 린들리 역설이 1957년에 나왔을 때, 그 글에는 빠진 항이 하나 있었다. 같은 해 같은 학술지에 모리스 바틀릿(Maurice Bartlett)이 「A comment on D. V. Lindley's statistical paradox」라는 두 쪽짜리 글을 실어 그것을 바로잡았다. 린들리가 대립가설 쪽 균등 사전분포의 **폭에서 오는 $1/I$ 인자**를 빠뜨렸다는 지적이었다. 말을 바꾸면, 린들리 자신도 그 결과가 **사전분포의 폭에 달려 있다는 것을 바틀릿이 짚어 줄 때까지 몰랐다.**
 
-바틀릿이 연 문이 이 절의 주제다. 6절은 $n$ 을 키웠지만, 여기서는 **자료를 전혀 건드리지 않고** 대립 사전분포의 폭만 키워 본다.
+바틀릿이 연 문이 이 절의 주제다. 6절은 $n$ 을 키웠지만, 여기서는 **데이터를 전혀 건드리지 않고** 대립 사전분포의 폭만 키워 본다.
 
-![가로축이 H1 사전분포의 폭, 세로축이 영가설을 지지하는 베이즈 인자인 로그 그래프. 곡선은 U 자 형태로, 폭이 아주 좁을 때 1 에서 출발해 0.473 까지 내려갔다가 다시 올라가 폭이 10 의 6 제곱일 때 1,465,001 에 이른다. 가장 낮은 자리가 폭 0.168 로 표시되어 있고 H1 이 낼 수 있는 가장 좋은 값이라고 적혀 있다. 배경에는 제프리스의 등급 띠가 깔려 있다. 제목은 자료는 전혀 바뀌지 않았다는 것이다.](figures/bartlett.svg)
+![가로축이 H1 사전분포의 폭, 세로축이 귀무가설을 지지하는 베이즈 인자인 로그 그래프. 곡선은 U 자 형태로, 폭이 아주 좁을 때 1 에서 출발해 0.473 까지 내려갔다가 다시 올라가 폭이 10 의 6 제곱일 때 1,465,001 에 이른다. 가장 낮은 자리가 폭 0.168 로 표시되어 있고 H1 이 낼 수 있는 가장 좋은 값이라고 적혀 있다. 배경에는 제프리스의 등급 띠가 깔려 있다. 제목은 데이터는 전혀 바뀌지 않았다는 것이다.](figures/bartlett.svg)
 
-$n=100$, $p=0.0500$ 으로 자료를 붙박아 둔 채 폭 $\tau$ 만 움직였다. 폭이 1이면 BF가 $1.50$, 1,000이면 $1{,}465$, $10^6$ 이면 **1,465,001** 이다. 큰 $\tau$ 에서 기울기가 정확히 1이니 **$\tau$ 에 비례해 끝없이 자란다.** 바로 위 문단이 "아주 넓은 대립 사전은 … 주변 우도를 낮출 수 있다"고 적어 둔 것의 크기가 이것이고, 그래서 "넓으니까 중립적"이 왜 성립하지 않는지도 분명해진다. **폭을 무한히 넓히는 것, 곧 부적절 사전분포를 쓰는 것은 "아무 말도 하지 않기"가 아니라 "H0 를 무한히 세게 지지하기"다.**
+$n=100$, $p=0.0500$ 으로 데이터를 고정해 둔 채 폭 $\tau$ 만 움직였다. 폭이 1이면 BF가 $1.50$, 1,000이면 $1{,}465$, $10^6$ 이면 **1,465,001** 이다. 큰 $\tau$ 에서 기울기가 정확히 1이니 **$\tau$ 에 비례해 끝없이 자란다.** 바로 위 문단이 "아주 넓은 대립 사전은 … 주변 가능도를 낮출 수 있다"고 적어 둔 것의 크기가 이것이고, 그래서 "넓으니까 중립적"이 왜 성립하지 않는지도 분명해진다. **폭을 무한히 넓히는 것, 곧 부적절 사전분포를 쓰는 것은 "아무 말도 하지 않기"가 아니라 "H0 를 무한히 세게 지지하기"다.**
 
-U자의 왼쪽 끝도 읽을 거리가 있다. 폭을 0으로 줄이면 H1 이 H0 와 같아지므로 BF 가 1로 돌아간다. 그래서 곡선에 **바닥**이 있다 — 이 자료에서 H1 이 낼 수 있는 가장 좋은 값이 $0.473$ 이고, 그 자리의 폭 $0.168$ 은 관측된 효과 크기 $0.196$ 바로 근처다. 사전분포를 자료에 맞춰 가장 유리하게 골라 주어도 **2:1 남짓**이라는 뜻이다. $p=0.05$ 가 들고 있는 증거의 무게가 그 정도다.
+U자의 왼쪽 끝도 읽을 거리가 있다. 폭을 0으로 줄이면 H1 이 H0 와 같아지므로 BF 가 1로 돌아간다. 그래서 곡선에 **바닥**이 있다 — 이 데이터에서 H1 이 낼 수 있는 가장 좋은 값이 $0.473$ 이고, 그 자리의 폭 $0.168$ 은 관측된 효과 크기 $0.196$ 바로 근처다. 사전분포를 데이터에 맞춰 가장 유리하게 골라 주어도 **2:1 남짓**이라는 뜻이다. $p=0.05$ 가 들고 있는 증거의 무게가 그 정도다.
 
-**그러므로 BF 를 보고할 때 사전분포를 함께 적는 것은 예의가 아니라 의무다.** 사후 요약은 자료가 쌓이면 사전분포를 잊지만, 베이즈 인자는 잊지 않는다 — 폭이 식 안에 그대로 남아 있기 때문이다. 아래 8절이 기본·객관 베이즈 인자라는 별도의 장치를 따로 만들어야 했던 까닭이 여기에 있다.
+**그러므로 BF 를 보고할 때 사전분포를 함께 적는 것은 예의가 아니라 의무다.** 사후 요약은 데이터가 쌓이면 사전분포를 잊지만, 베이즈 인자는 잊지 않는다 — 폭이 식 안에 그대로 남아 있기 때문이다. 아래 8절이 기본·객관 베이즈 인자라는 별도의 장치를 따로 만들어야 했던 까닭이 여기에 있다.
 
-_확인한 곳 — M. S. Bartlett, "A comment on D. V. Lindley's statistical paradox", *Biometrika* **44**(3–4), 533–534 (1957년 12월). 린들리가 사전분포 폭에서 오는 인자를 빠뜨렸고 바틀릿이 그것을 바로잡았다는 것이 그 글이다. 등급 띠는 H. Jeffreys, *Theory of Probability* (1961) 부록 B. 그림의 수는 그림을 그리는 코드가 직접 셈하며, 큰 폭에서 기울기가 정말 1 인지와 폭이 0 으로 갈 때 BF 가 1 로 돌아가는지를 스스로 확인한 뒤에만 그린다 — 처음에 "단조증가" 라고 적었다가 그 확인에 걸려 고쳤다._
+_확인한 곳 — M. S. Bartlett, "A comment on D. V. Lindley's statistical paradox", *Biometrika* **44**(3–4), 533–534 (1957년 12월). 린들리가 사전분포 폭에서 오는 인자를 빠뜨렸고 바틀릿이 그것을 바로잡았다는 것이 그 글이다. 등급 띠는 H. Jeffreys, *Theory of Probability* (1961) 부록 B. 그림의 수는 그림을 그리는 코드가 직접 계산하며, 큰 폭에서 기울기가 정말 1 인지와 폭이 0 으로 갈 때 BF 가 1 로 돌아가는지를 스스로 확인한 뒤에만 그린다._
 
 </div>
 
@@ -129,7 +129,7 @@ _확인한 곳 — M. S. Bartlett, "A comment on D. V. Lindley's statistical par
 
 $$B_{12}^{F}=\frac{m_1(1)/m_1(b)}{m_2(1)/m_2(b)}$$
 
-우도의 일부로 적절한 갱신을 만들고 나머지 기여를 비교하는 방식이다. π_k의 임의 상수는 모델별 비에서 약분되지만, b와 기본 사전 선택의 영향이 사라지는 것은 아니다.
+가능도의 일부로 적절한 갱신을 만들고 나머지 기여를 비교하는 방식이다. π_k의 임의 상수는 모델별 비에서 약분되지만, b와 기본 사전 선택의 영향이 사라지는 것은 아니다.
 
 ## 9. 여러 모델 비교
 
@@ -145,11 +145,11 @@ $$p(y^*\mid x^*,D)=\sum_kp(y^*\mid x^*,D,M_k)p(M_k\mid D)$$
 
 이는 지정한 후보 집합 안의 불확실성이며 누락된 모델까지 포함하지 않는다. 단일 모델보다 성능이나 보정이 항상 좋은 것은 아니다. 쌍대 BF를 사용하더라도 모델 사전확률을 포함해 일관되게 정규화하면 같은 다중 모델 추론을 구성할 수 있다.
 
-## 10. 셈하는 방법
+## 10. 계산 방법
 
 ### 해석적 계산과 라플라스 근사
 
-켤레 모형에서는 정규화 상수의 비로 주변 우도를 구할 수 있다. 적절한 내부 사후 최빈값 θ̂와 양의 정부호 음의 로그 사후 헤시안 H에서 다음 라플라스 근사를 사용한다.
+켤레 모형에서는 정규화 상수의 비로 주변 가능도를 구할 수 있다. 적절한 내부 사후 최빈값 θ̂와 양의 정부호 음의 로그 사후 헤시안 H에서 다음 라플라스 근사를 사용한다.
 
 $$\log p(D\mid M)\approx\log p(D\mid\hat\theta,M)+\log p(\hat\theta\mid M)+\frac d2\log(2\pi)-\frac12\log|H|$$
 
@@ -175,18 +175,18 @@ $$\log p(D\mid M)=\int_0^1E_{p_t}[\log L(\theta)]\,dt$$
 
 코드의 BF 관련 함수는 대부분 **자연로그 BF**를 반환한다. savage_dickey_gaussian·savage_dickey_ratio는 log B₀₁이고 bic_bayes_factor는 log B₁₂다. 해석 함수의 M1·M2는 인자로 넣은 로그비의 분자·분모이므로 실제 모델 이름과 맞춰 읽는다. interpret_bayes_factor의 kass_raftery 분기는 본문의 2 ln B 기준과 다른 관행적 log₁₀ 경계를 사용하며, B=1도 M2를 약하게 지지한다고 표시하므로 출력 등급을 원전과 동일시하지 않는다.
 
-베타 예제는 성공 횟수만의 이항 자료가 아니라 순서가 지정된 베르누이 관측열의 주변 우도를 계산한다. Beta(50,50) 등의 공정한 동전 표시는 θ=0.5인 점 귀무가설이 아니라 0.5 주변에 집중한 연속 사전모형이다. 같은 우도족의 사전모형 비교이므로 증거가 한쪽으로 무한히 커져야 한다고 볼 수 없다.
+베타 예제는 성공 횟수만의 이항 데이터가 아니라 순서가 지정된 베르누이 관측열의 주변 가능도를 계산한다. Beta(50,50) 등의 공정한 동전 표시는 θ=0.5인 점 귀무가설이 아니라 0.5 주변에 집중한 연속 사전모형이다. 같은 가능도족의 사전모형 비교이므로 증거가 한쪽으로 무한히 커져야 한다고 볼 수 없다.
 
 bayes_factor_one_sample_t의 적분은 JZS의 표준 혼합식과 일치하지 않는다. g에 대한 사전 정규화와 스케일, (1+n g)의 요인 및 공통 t통계량 정규화가 맞아야 하며, 이 함수 값을 검증된 JZS BF로 사용하지 않는다. savage_dickey_gaussian도 극단적인 경우 밀도 언더플로로 로그비가 유효하지 않을 수 있다.
 
-린들리 시연은 0이 아닌 참효과를 고정하고 표본 크기를 바꾼다. 본문의 z를 고정한 점근 자료열을 재현하지 않으며, p값은 분산 미지 t검정·BF는 분산 1을 아는 모형을 사용한다. 코드와 출력의 결론 문구가 모든 표본 크기에서 성립하는 이론적 보장이라는 뜻은 아니다. 다항 회귀 BIC 시연은 잡음분산 0.25를 알려진 값으로 사용하므로 파라메터 수에 분산을 추가하지 않는다.
+린들리 시연은 0이 아닌 참효과를 고정하고 표본 크기를 바꾼다. 본문의 z를 고정한 점근 데이터열을 재현하지 않으며, p값은 분산 미지 t검정·BF는 분산 1을 아는 모형을 사용한다. 코드와 출력의 결론 문구가 모든 표본 크기에서 성립하는 이론적 보장이라는 뜻은 아니다. 다항 회귀 BIC 시연은 잡음분산 0.25를 알려진 값으로 사용하므로 파라메터 수에 분산을 추가하지 않는다.
 
 ```python
 """
-베이즈 인자: 온전한 구현
+베이즈 인자: 전체 구현
 
-이 모듈은 모형 견줌을 위한 베이즈 인자의 셈하기와 풀이를 주며,
-켤레 모형의 정확한 방법, 어림, 그리고 그려 보기 도구를
+이 모듈은 모델 비교를 위한 베이즈 인자의 계산과 해석을 제공하며,
+켤레 모형의 정확한 방법, 근사, 그리고 시각화 도구를
 함께 담는다.
 """
 
@@ -200,12 +200,12 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
 # =============================================================================
-# 풀이 도구
+# 해석 도구
 # =============================================================================
 
 def interpret_bayes_factor(log_bf: float, scale: str = 'kass_raftery') -> str:
     """
-    표준 눈금으로 로그 베이즈 인자를 풀이한다.
+    표준 스케일로 로그 베이즈 인자를 해석한다.
     
     파라메터
     ----------
@@ -217,9 +217,9 @@ def interpret_bayes_factor(log_bf: float, scale: str = 'kass_raftery') -> str:
     반환값
     -------
     str
-        증거 세기의 풀이
+        증거 강도의 해석
     """
-    # 표준 눈금을 위해 log10으로 바꾸기
+    # 표준 스케일에 맞추려고 log10으로 바꾸기
     log10_bf = log_bf / np.log(10)
     
     if scale == 'kass_raftery':
@@ -262,24 +262,24 @@ def interpret_bayes_factor(log_bf: float, scale: str = 'kass_raftery') -> str:
 
 def log_bf_to_posterior_prob(log_bf: float, prior_odds: float = 1.0) -> float:
     """
-    로그 베이즈 인자를 M1의 뒤확률로 바꾼다.
+    로그 베이즈 인자를 M1의 사후확률로 바꾼다.
     
     파라메터
     ----------
     log_bf : float
         베이즈 인자 B_12의 자연로그
     prior_odds : float
-        앞확률 승산 p(M1)/p(M2), 기본값 1(앞확률이 같음)
+        사전 오즈 p(M1)/p(M2), 기본값 1(사전확률이 같음)
     
     반환값
     -------
     float
-        뒤확률 p(M1 | D)
+        사후확률 p(M1 | D)
     """
     log_posterior_odds = log_bf + np.log(prior_odds)
-    # p(M1|D) = 뒤확률_승산 / (1 + 뒤확률_승산)
-    #         = 1 / (1 + 1/뒤확률_승산)
-    #         = 1 / (1 + exp(-로그_뒤확률_승산))
+    # p(M1|D) = 사후_오즈 / (1 + 사후_오즈)
+    #         = 1 / (1 + 1/사후_오즈)
+    #         = 1 / (1 + exp(-로그_사후_오즈))
     return 1.0 / (1.0 + np.exp(-log_posterior_odds))
 
 def posterior_probs_from_log_evidences(
@@ -287,19 +287,19 @@ def posterior_probs_from_log_evidences(
     prior_probs: Optional[np.ndarray] = None
 ) -> np.ndarray:
     """
-    로그 증거에서 뒤확률 모형 확률을 셈한다.
+    로그 증거에서 모델 사후확률을 계산한다.
     
     파라메터
     ----------
     log_evidences : array-like
         모형마다의 로그 모형 증거
-    prior_probs : array-like, 있어도 되고 없어도 됨
-        앞확률(따로 정하지 않으면 균등)
+    prior_probs : array-like, 선택 사항
+        모델 사전확률(따로 정하지 않으면 균등)
     
     반환값
     -------
     ndarray
-        뒤확률 모형 확률
+        모델 사후확률
     """
     log_evidences = np.asarray(log_evidences)
     K = len(log_evidences)
@@ -319,20 +319,20 @@ def posterior_probs_from_log_evidences(
 # =============================================================================
 
 class BetaBernoulliModel:
-    """정확한 증거 셈하기를 갖춘 베타-베르누이 모형."""
+    """정확한 증거 계산을 갖춘 베타-베르누이 모형."""
     
     def __init__(self, alpha: float, beta: float):
         """
         파라메터
         ----------
         alpha, beta : float
-            베타 앞확률 파라메터
+            베타 사전분포 파라메터
         """
         self.alpha0 = alpha
         self.beta0 = beta
     
     def log_evidence(self, data: np.ndarray) -> float:
-        """로그 주변 가능도를 셈한다."""
+        """로그 주변 가능도를 계산한다."""
         n = len(data)
         s = np.sum(data)  # 성공
         f = n - s         # 실패
@@ -354,7 +354,7 @@ def bayes_factor_beta_bernoulli(
     model2_params: Tuple[float, float]
 ) -> float:
     """
-    베타-베르누이 모형 둘의 베이즈 인자를 셈한다.
+    베타-베르누이 모형 둘의 베이즈 인자를 계산한다.
     
     파라메터
     ----------
@@ -376,29 +376,29 @@ def bayes_factor_beta_bernoulli(
     return model1.log_evidence(data) - model2.log_evidence(data)
 
 class GaussianKnownVarianceModel:
-    """흩어짐을 알고 평균에 정규 앞확률을 준 가우스 모형."""
+    """분산이 알려져 있고 평균에 정규 사전분포를 둔 가우스 모형."""
     
     def __init__(self, mu0: float, sigma0_sq: float, sigma_sq: float):
         """
         파라메터
         ----------
         mu0 : float
-            앞확률 평균
+            사전 평균
         sigma0_sq : float
-            앞확률 흩어짐
+            사전 분산
         sigma_sq : float
-            아는 자료 흩어짐
+            알려진 데이터 분산
         """
         self.mu0 = mu0
         self.sigma0_sq = sigma0_sq
         self.sigma_sq = sigma_sq
     
     def log_evidence(self, data: np.ndarray) -> float:
-        """로그 주변 가능도를 셈한다."""
+        """로그 주변 가능도를 계산한다."""
         n = len(data)
         x_bar = np.mean(data)
         
-        # 뒤확률 정밀도
+        # 사후 정밀도
         tau0 = 1.0 / self.sigma0_sq
         tau = 1.0 / self.sigma_sq
         tau_n = tau0 + n * tau
@@ -419,7 +419,7 @@ def bayes_factor_one_sample_t(
     prior_scale: float = np.sqrt(2) / 2
 ) -> Tuple[float, float]:
     """
-    한 표본 t검정의 JZS 베이즈 인자.
+    일표본 t검정의 JZS 베이즈 인자.
     
     H0: delta = 0(효과 크기가 0)
     H1: delta ~ 코시(0, prior_scale)
@@ -427,11 +427,11 @@ def bayes_factor_one_sample_t(
     파라메터
     ----------
     data : ndarray
-        관측 자료
+        관측 데이터
     null_value : float
         귀무가설 아래의 값
     prior_scale : float
-        코시 앞확률의 눈금(기본값: sqrt(2)/2)
+        코시 사전분포의 스케일(기본값: sqrt(2)/2)
     
     반환값
     -------
@@ -443,7 +443,7 @@ def bayes_factor_one_sample_t(
     n = len(data)
     t_stat = (np.mean(data) - null_value) / (np.std(data, ddof=1) / np.sqrt(n))
     
-    # 수치로 적분하기
+    # 수치 적분
     def integrand(g):
         """JZS 베이즈 인자의 피적분 함수."""
         if g <= 0:
@@ -458,7 +458,7 @@ def bayes_factor_one_sample_t(
     # 수치 적분
     result, _ = quad(integrand, 0, np.inf)
     
-    # 귀무와 견주기(g 없이 t분포만)
+    # 귀무가설과 비교하기(g 없이 t분포만)
     null_density = stats.t.pdf(t_stat, df=n-1)
     
     log_bf_01 = np.log(null_density) - np.log(result) if result > 0 else np.inf
@@ -475,16 +475,16 @@ def savage_dickey_ratio(
     prior_density_at_null: float
 ) -> float:
     """
-    새비지-디키 밀도 비로 베이즈 인자를 셈한다.
+    새비지-디키 밀도 비로 베이즈 인자를 계산한다.
     
     B_01 = p(theta_0 | D, H1) / p(theta_0 | H1)
     
     파라메터
     ----------
     posterior_density_at_null : float
-        귀무값에서의 뒤확률 밀도
+        귀무값에서의 사후 밀도
     prior_density_at_null : float
-        귀무값에서의 앞확률 밀도
+        귀무값에서의 사전 밀도
     
     반환값
     -------
@@ -501,22 +501,22 @@ def savage_dickey_gaussian(
     known_var: float
 ) -> float:
     """
-    정규 앞확률을 쓴 가우스 모형의 새비지-디키.
+    정규 사전분포를 쓴 가우스 모형의 새비지-디키.
     
     H0: mu = null_value 대 H1: mu ~ N(prior_mean, prior_var)을 검정한다
     
     파라메터
     ----------
     data : ndarray
-        관측 자료
+        관측 데이터
     null_value : float
         귀무가설 아래의 값
     prior_mean : float
-        H1 아래의 앞확률 평균
+        H1 아래의 사전 평균
     prior_var : float
-        H1 아래의 앞확률 흩어짐
+        H1 아래의 사전 분산
     known_var : float
-        아는 자료 흩어짐
+        알려진 데이터 분산
     
     반환값
     -------
@@ -526,7 +526,7 @@ def savage_dickey_gaussian(
     n = len(data)
     x_bar = np.mean(data)
     
-    # 뒤확률 파라메터
+    # 사후 파라메터
     tau0 = 1.0 / prior_var
     tau = 1.0 / known_var
     tau_n = tau0 + n * tau
@@ -540,7 +540,7 @@ def savage_dickey_gaussian(
     return np.log(posterior_density) - np.log(prior_density)
 
 # =============================================================================
-# 베이즈 인자의 BIC 어림
+# 베이즈 인자의 BIC 근사
 # =============================================================================
 
 def bic_bayes_factor(
@@ -551,14 +551,14 @@ def bic_bayes_factor(
     n: int
 ) -> float:
     """
-    로그 베이즈 인자의 BIC 어림.
+    로그 베이즈 인자의 BIC 근사.
     
     log B_12 ≈ (log L1 - k1/2 * log n) - (log L2 - k2/2 * log n)
     
     파라메터
     ----------
     log_lik1, log_lik2 : float
-        최대로 만든 로그 가능도
+        최대화한 로그가능도
     k1, k2 : int
         파라메터의 개수
     n : int
@@ -567,7 +567,7 @@ def bic_bayes_factor(
     반환값
     -------
     float
-        어림 로그 베이즈 인자
+        근사 로그 베이즈 인자
     """
     bic1 = -2 * log_lik1 + k1 * np.log(n)
     bic2 = -2 * log_lik2 + k2 * np.log(n)
@@ -595,7 +595,7 @@ def demonstrate_lindley_paradox(
     sample_sizes : ndarray
         살펴볼 표본 크기
     prior_var : float
-        H1 아래의 앞확률 흩어짐
+        H1 아래의 사전 분산
     alpha : float
         유의수준
     
@@ -606,7 +606,7 @@ def demonstrate_lindley_paradox(
     bayes_factors : ndarray
         표본 크기마다의 로그 베이즈 인자 B_01
     decisions : ndarray
-        고전적 결정(True = 귀무를 물리침)
+        고전적 결정(True = 귀무가설 기각)
     """
     np.random.seed(42)
     
@@ -615,7 +615,7 @@ def demonstrate_lindley_paradox(
     decisions = []
     
     for n in sample_sizes:
-        # 붙박이 효과 크기로 자료 흉내내기
+        # 고정된 효과 크기로 데이터 시뮬레이션하기
         true_mean = effect_size
         data = np.random.normal(true_mean, 1.0, n)
         
@@ -624,7 +624,7 @@ def demonstrate_lindley_paradox(
         p_values.append(p_val)
         decisions.append(p_val < alpha)
         
-        # 베이즈 인자(간추림, 흩어짐 = 1을 안다고 놓고)
+        # 베이즈 인자(단순화, 분산 = 1이 알려졌다고 가정하고)
         x_bar = np.mean(data)
         se = 1.0 / np.sqrt(n)
         
@@ -632,7 +632,7 @@ def demonstrate_lindley_paradox(
         # H0 아래: 가능도는 N(0, 1/n)
         log_lik_h0 = stats.norm.logpdf(x_bar, 0, se)
         
-        # N(0, 앞확률_흩어짐) 앞확률을 쓴 H1 아래: 주변 분포는 N(0, 앞확률_흩어짐 + 1/n)
+        # N(0, 사전_분산) 사전분포를 쓴 H1 아래: 주변 분포는 N(0, 사전_분산 + 1/n)
         marginal_var = prior_var + se**2
         log_lik_h1 = stats.norm.logpdf(x_bar, 0, np.sqrt(marginal_var))
         
@@ -642,19 +642,19 @@ def demonstrate_lindley_paradox(
     return np.array(p_values), np.array(log_bfs), np.array(decisions)
 
 # =============================================================================
-# 그려 보기 함수
+# 시각화 함수
 # =============================================================================
 
 def plot_bayes_factor_interpretation(log_bfs: np.ndarray, labels: List[str]) -> plt.Figure:
     """
-    풀이 구역과 함께 베이즈 인자를 그려 본다.
+    해석 구역과 함께 베이즈 인자를 시각화한다.
     
     파라메터
     ----------
     log_bfs : ndarray
         로그 베이즈 인자(자연로그)
     labels : list
-        견줌마다의 이름표
+        비교 항목마다의 라벨
     
     반환값
     -------
@@ -666,7 +666,7 @@ def plot_bayes_factor_interpretation(log_bfs: np.ndarray, labels: List[str]) -> 
     # log10으로 바꾸기
     log10_bfs = log_bfs / np.log(10)
     
-    # 바탕 구역(캐스-래프터리 눈금)
+    # 배경 구역(Kass–Raftery 스케일)
     regions = [
         (-np.inf, -2, 'Decisive for M2', '#d62728', 0.2),
         (-2, -1, 'Strong for M2', '#ff7f0e', 0.2),
@@ -696,7 +696,7 @@ def plot_bayes_factor_interpretation(log_bfs: np.ndarray, labels: List[str]) -> 
     ax.set_xlim(-4, 4)
     ax.grid(True, axis='x', alpha=0.3)
     
-    # 값 적어 넣기
+    # 값 표기하기
     for i, (bf, label) in enumerate(zip(log10_bfs, labels)):
         x_pos = bf + 0.1 if bf > 0 else bf - 0.1
         ha = 'left' if bf > 0 else 'right'
@@ -707,7 +707,7 @@ def plot_bayes_factor_interpretation(log_bfs: np.ndarray, labels: List[str]) -> 
 
 def plot_lindley_paradox() -> plt.Figure:
     """
-    린들리의 역설을 그려 본다.
+    린들리의 역설을 시각화한다.
     
     반환값
     -------
@@ -765,14 +765,14 @@ def plot_prior_sensitivity(
     prior_scales: np.ndarray = np.array([0.1, 0.5, 1.0, 2.0, 5.0, 10.0])
 ) -> plt.Figure:
     """
-    베이즈 인자가 앞확률에 얼마나 민감한지 보인다.
+    베이즈 인자가 사전분포에 얼마나 민감한지 보인다.
     
     파라메터
     ----------
     data : ndarray
-        관측 자료
+        관측 데이터
     prior_scales : ndarray
-        시험해 볼 앞확률 표준편차
+        시험해 볼 사전 표준편차
     
     반환값
     -------
@@ -784,11 +784,11 @@ def plot_prior_sensitivity(
     n = len(data)
     x_bar = np.mean(data)
     
-    # 앞확률 눈금마다 베이즈 인자 셈하기
+    # 사전 스케일마다 베이즈 인자 계산하기
     log_bfs_01 = []
     for scale in prior_scales:
         prior_var = scale**2
-        se = 1.0 / np.sqrt(n)  # 흩어짐 = 1을 안다고 놓고
+        se = 1.0 / np.sqrt(n)  # 분산 = 1이 알려졌다고 가정하고
         
         log_lik_h0 = stats.norm.logpdf(x_bar, 0, se)
         marginal_var = prior_var + se**2
@@ -799,7 +799,7 @@ def plot_prior_sensitivity(
     log_bfs_01 = np.array(log_bfs_01)
     log10_bfs = log_bfs_01 / np.log(10)
     
-    # 왼쪽: 앞확률 밀도
+    # 왼쪽: 사전 밀도
     ax = axes[0]
     theta_range = np.linspace(-5, 5, 200)
     
@@ -814,7 +814,7 @@ def plot_prior_sensitivity(
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # 오른쪽: 앞확률 눈금에 따른 베이즈 인자
+    # 오른쪽: 사전 스케일에 따른 베이즈 인자
     ax = axes[1]
     ax.semilogx(prior_scales, log10_bfs, 'o-', color='#1f77b4', linewidth=2, markersize=8)
     ax.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
@@ -839,14 +839,14 @@ def plot_model_comparison_sequential(
     model2: 'BetaBernoulliModel'
 ) -> plt.Figure:
     """
-    모형 둘의 잇단 증거 쌓임을 그린다.
+    모형 둘의 순차적 증거 누적을 그린다.
     
     파라메터
     ----------
     data : ndarray
-        잇단 관측
+        순차 관측
     model1, model2 : BetaBernoulliModel
-        견줄 모형
+        비교할 모형
     
     반환값
     -------
@@ -866,7 +866,7 @@ def plot_model_comparison_sequential(
     
     log10_bfs = np.array(log_bfs) / np.log(10)
     
-    # 잇단 베이즈 인자 그리기
+    # 순차 베이즈 인자 그리기
     ax.plot(range(1, n + 1), log10_bfs, 'o-', color='#1f77b4', 
             linewidth=2, markersize=4, alpha=0.7)
     
@@ -898,13 +898,13 @@ def plot_model_comparison_sequential(
 # =============================================================================
 
 def demo_basic_bayes_factors():
-    """기본 베이즈 인자 셈하기와 풀이를 보인다."""
+    """기본 베이즈 인자 계산과 해석을 보인다."""
     
     print("=" * 70)
     print("BAYES FACTORS: BASIC DEMONSTRATION")
     print("=" * 70)
     
-    # 동전 던지기 자료 만들기
+    # 동전 던지기 데이터 만들기
     np.random.seed(42)
     true_theta = 0.65
     n = 100
@@ -916,8 +916,8 @@ def demo_basic_bayes_factors():
     # 모델 비교
     print("\n--- Comparing Prior Beliefs ---")
     
-    # 모형 1: 고른 앞확률(θ은 무엇이든 될 수 있다)
-    # 모형 2: 공평한 동전 앞확률(θ이 0.5 언저리에 몰려 있다)
+    # 모형 1: 균등 사전분포(θ는 무엇이든 될 수 있다)
+    # 모형 2: 공정한 동전 사전분포(θ가 0.5 언저리에 몰려 있다)
     model_uniform = BetaBernoulliModel(1, 1)
     model_fair = BetaBernoulliModel(50, 50)
     model_biased = BetaBernoulliModel(7, 3)  # θ ≈ 0.7을 기대한다
@@ -941,7 +941,7 @@ def demo_basic_bayes_factors():
     print(f"  Fair vs Biased:     {interpret_bayes_factor(log_bf_fb)}")
     print(f"  Uniform vs Fair:    {interpret_bayes_factor(log_bf_uf)}")
     
-    # 뒤확률 모형 확률(앞확률 승산이 같음)
+    # 모델 사후확률(사전 오즈가 같음)
     log_evs = [log_ev_uniform, log_ev_fair, log_ev_biased]
     probs = posterior_probs_from_log_evidences(log_evs)
     
@@ -967,13 +967,13 @@ def demo_savage_dickey():
     print(f"\nData: n={n}, mean={np.mean(data):.3f}, std={np.std(data):.3f}")
     print(f"True μ = {true_mu}")
     
-    # 앞확률 파라메터
+    # 사전분포 파라메터
     prior_mean = 0.0
     prior_var = 1.0
     known_var = 1.0
     null_value = 0.0
     
-    # 새비지-디키 베이즈 인자 셈하기
+    # 새비지-디키 베이즈 인자 계산하기
     log_bf_01 = savage_dickey_gaussian(data, null_value, prior_mean, prior_var, known_var)
     
     print(f"\nTesting H0: μ = 0 vs H1: μ ~ N(0, 1)")
@@ -997,7 +997,7 @@ def demo_savage_dickey():
     print(f"  Ratio (B_01):      {posterior_at_null / prior_at_null:.6f}")
 
 def demo_bic_approximation():
-    """베이즈 인자의 BIC 어림을 보인다."""
+    """베이즈 인자의 BIC 근사를 보인다."""
     
     print("\n" + "=" * 70)
     print("BIC APPROXIMATION TO BAYES FACTORS")
@@ -1005,7 +1005,7 @@ def demo_bic_approximation():
     
     np.random.seed(42)
     
-    # 다항 회귀 자료 만들기
+    # 다항 회귀 데이터 만들기
     n = 100
     x = np.linspace(-2, 2, n)
     true_coeffs = [1, 0.5, -0.3]  # 이차
@@ -1014,16 +1014,16 @@ def demo_bic_approximation():
     print(f"\nTrue model: y = 1 + 0.5x - 0.3x² + ε")
     print(f"Sample size: n = {n}")
     
-    # 차수가 다른 모형 맞추기
+    # 차수가 다른 모형 적합하기
     print("\n--- Model Comparison ---")
     
     results = []
     for degree in [1, 2, 3, 4, 5]:
-        # 다항식 맞추기
+        # 다항식 적합하기
         coeffs = np.polyfit(x, y, degree)
         y_pred = np.polyval(coeffs, x)
         
-        # 로그 가능도 셈하기(σ² = 0.25을 안다고 놓고)
+        # 로그가능도 계산하기(σ² = 0.25가 알려졌다고 가정하고)
         residuals = y - y_pred
         sigma_sq = 0.25
         log_lik = -0.5 * n * np.log(2 * np.pi * sigma_sq) - 0.5 * np.sum(residuals**2) / sigma_sq
@@ -1041,7 +1041,7 @@ def demo_bic_approximation():
         
         print(f"Degree {degree}: log-lik = {log_lik:.2f}, BIC = {bic:.2f}")
     
-    # 차수 2(참 모형)에 견준 어림 베이즈 인자 셈하기
+    # 차수 2(참 모형)와 비교한 근사 베이즈 인자 계산하기
     print("\n--- Approximate log Bayes factors vs Degree 2 ---")
     ref_idx = 1  # 차수 2
     
@@ -1084,7 +1084,7 @@ def demo_lindley_paradox():
     print("    but Bayes factors favor the null hypothesis!")
 
 def demo_sequential_evidence():
-    """잇단 증거 쌓임을 보인다."""
+    """순차적 증거 누적을 보인다."""
     
     print("\n" + "=" * 70)
     print("SEQUENTIAL EVIDENCE ACCUMULATION")
@@ -1092,7 +1092,7 @@ def demo_sequential_evidence():
     
     np.random.seed(42)
     
-    # 치우친 동전에서 자료 만들기
+    # 편향된 동전에서 데이터 만들기
     true_theta = 0.65
     n = 200
     data = np.random.binomial(1, true_theta, n)
@@ -1101,9 +1101,9 @@ def demo_sequential_evidence():
     print(f"Comparing: M1 (uniform) vs M2 (fair coin, α=β=20)")
     
     model1 = BetaBernoulliModel(1, 1)        # 균등
-    model2 = BetaBernoulliModel(20, 20)      # 공평한 동전이라는 믿음
+    model2 = BetaBernoulliModel(20, 20)      # 공정한 동전이라는 믿음
     
-    # 핵심 점에서 증거 좇기
+    # 체크포인트에서 증거 추적하기
     checkpoints = [10, 25, 50, 100, 150, 200]
     
     print("\nSequential Bayes factors (M1 vs M2):")
@@ -1265,7 +1265,7 @@ Beta(1,1)과 Beta(50,50)의 비교가 점 귀무가설 검정과 다른 이유�
 </div>
 
 ??? success "풀이"
-    두 모델 모두 θ의 내부 범위 전체에 양의 밀도를 주며 공정성 부근에 배분한 사전 질량이 다르다. Beta(50,50)은 θ=0.5에 확률 1을 두는 점 가설이 아니다. 같은 우도족의 사전분포 비교에는 서로 배타적인 참모델 식별 주장을 적용할 수 없다.
+    두 모델 모두 θ의 내부 범위 전체에 양의 밀도를 주며 공정성 부근에 배분한 사전 질량이 다르다. Beta(50,50)은 θ=0.5에 확률 1을 두는 점 가설이 아니다. 같은 가능도족의 사전분포 비교에는 서로 배타적인 참모델 식별 주장을 적용할 수 없다.
 
 ---
 
@@ -1294,14 +1294,14 @@ Beta(1,1)과 Beta(50,50)의 비교가 점 귀무가설 검정과 다른 이유�
     ```python
     import numpy as np
     # 구현은 주제에 따라 달라진다.
-    # 켤레 모형: 닫힌 형태 뒤확률 새로 고치기.
+    # 켤레 모형: 닫힌 형태의 사후분포 갱신.
     # 켤레가 아닌 모형: MCMC 또는 변분 추론.
-    # 핵심 스텝: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
+    # 핵심 스텝: 사전분포 정하기, 가능도 계산하기, 사후분포 유도/근사.
     ```
 
 ## 정리하며
 
-베이즈 인자는 모델 사전 오즈를 갱신하는 주변 우도 비다. 파라메터 사전분포와 모델 사전확률, 로그 밑과 비의 방향을 명시한다. 순차 계산은 갱신된 조건부 예측을 사용하고, 새비지-디키·BIC·수치 적분은 각각의 성립 조건과 계산 오차를 확인한다. 상대 증거가 모델의 절대 적합성이나 모든 상황의 일관성을 보장하지는 않는다.
+베이즈 인자는 모델 사전 오즈를 갱신하는 주변 가능도 비다. 파라메터 사전분포와 모델 사전확률, 로그 밑과 비의 방향을 명시한다. 순차 계산은 갱신된 조건부 예측을 사용하고, 새비지-디키·BIC·수치 적분은 각각의 성립 조건과 계산 오차를 확인한다. 상대 증거가 모델의 절대 적합성이나 모든 상황의 일관성을 보장하지는 않는다.
 
 **참고 문헌**
 

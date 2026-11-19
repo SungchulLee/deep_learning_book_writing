@@ -1,6 +1,6 @@
 # Split MNIST의 EWC
 
-Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨이트를 저장하는 EWC 예제다. 새 교차 엔트로피 로스에 이전 웨이트 변화의 이차 벌점을 더한다. 중요도 추정과 새 학습의 비용을 구분해 읽는다.
+Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨이트를 저장하는 EWC(Elastic Weight Consolidation, 탄성 웨이트 통합) 예제다. 새 교차 엔트로피 로스에 이전 웨이트 변화의 이차 패널티를 더한다. 중요도 추정과 새 학습의 비용을 구분해 읽는다.
 
 ## 1. 코드
 
@@ -9,17 +9,17 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
     ```python
     """
     57모듈: 연속 학습 - 중급
-    파일 1: 탄성 웨이트 다지기(EWC)
+    파일 1: 탄성 웨이트 통합(EWC)
 
     이 스크립트는 가장 큰 영향을 끼친 연속 학습 방법에 드는
-    탄성 웨이트 다지기를 구현한다. EWC는 중요한 파라메터가 크게 바뀌지 않도록 지켜
-    파국적 잊음을 막는다.
+    탄성 웨이트 통합를 구현한다. EWC는 중요한 파라메터가 크게 바뀌지 않도록 지켜
+    파국적 망각을 막는다.
 
     학습 목표:
     1. 피셔 정보와 그것이 파라메터 중요도를 재는 데 하는 몫을 이해한다
-    2. 이차 벌을 쓰는 EWC 로스를 구현한다
-    3. 피셔 정보를 효율적으로 셈한다
-    4. λ 초파라메터로 말랑함과 안정성의 균형을 잡는다
+    2. 이차 패널티를 쓰는 EWC 로스를 구현한다
+    3. 피셔 정보를 효율적으로 계산한다
+    4. λ 하이퍼파라메터로 가소성과 안정성의 균형을 잡는다
 
     수학적 바탕:
     과제 τ의 EWC 로스는 다음과 같다.
@@ -28,14 +28,14 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
 
     여기서 각 기호는 다음과 같다.
     - L_τ(θ): 지금 과제 τ의 로스
-    - F_i: 파라메터 i의 피셔 정보(중요도 무게)
+    - F_i: 파라메터 i의 피셔 정보(중요도 가중 계수)
     - θ*_{τ-1}: 앞선 과제 뒤의 가장 좋은 파라메터
-    - λ: 벌주기 세기(초파라메터)
+    - λ: 패널티 강도(하이퍼파라메터)
 
     피셔 정보 행렬(대각선):
     F_i = E_{x~D}[(∂log p(y|x,θ)/∂θ_i)²]
 
-    실험 표본을 쓴 어림:
+    경험적 표본을 쓴 근사:
     F_i ≈ (1/N) Σ_{n=1}^N (∂L(x_n, θ)/∂θ_i)²
 
     참고: Kirkpatrick 외, "Overcoming catastrophic forgetting in neural
@@ -62,12 +62,12 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
 
     class EWCLearner:
         """
-        탄성 웨이트 다지기를 쓰는 이어 배우는 학습기.
+        탄성 웨이트 통합를 쓰는 연속 학습기.
 
         EWC 전략:
-        1. 과제를 배운 뒤 피셔 정보 행렬을 셈한다
-        2. 가장 좋은 파라메터와 피셔 값을 담아 둔다
-        3. 새 과제를 배울 때 벌주기 항을 더해
+        1. 과제를 배운 뒤 피셔 정보 행렬을 계산한다
+        2. 가장 좋은 파라메터와 피셔 값을 저장한다
+        3. 새 과제를 배울 때 패널티 항을 더해
            중요한 파라메터가 너무 많이 바뀌지 않게 한다
 
         핵심 통찰은 이것이다. 모든 파라메터가 똑같이 중요하지는 않다.
@@ -86,7 +86,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
             인수:
                 model: 뉴럴 네트워크 모델
                 device: 학습에 쓸 장치
-                ewc_lambda: 벌주기 세기(λ)
+                ewc_lambda: 패널티 강도(λ)
                            값이 클수록 옛 파라메터를 더 세게 지킨다
                            흔한 범위: [100, 10000]
                 learning_rate: 옵티마이저의 러닝레이트
@@ -97,7 +97,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
             self.learning_rate = learning_rate
             self.criterion = nn.CrossEntropyLoss()
 
-            # 과제마다 피셔 정보와 가장 좋은 파라메터를 담아 둔다
+            # 과제마다 피셔 정보와 가장 좋은 파라메터를 저장한다
             # fisher_dict: Dict[task_id -> Dict[param_name -> 피셔 값]]
             # optpar_dict: Dict[task_id -> Dict[param_name -> 가장 좋은 파라메터]]
             self.fisher_dict = {}
@@ -112,9 +112,9 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
                                        task_id: int,
                                        num_samples: Optional[int] = None) -> Dict[str, torch.Tensor]:
             """
-            피셔 정보 행렬을 셈한다(대각 어림).
+            피셔 정보 행렬을 계산한다(대각 근사).
 
-            피셔 정보는 모델의 예측이 파라메터마다에 얼마나 기대는지를
+            피셔 정보는 모델의 예측이 파라메터마다에 얼마나 의존하는지를
             수로 나타낸다. 피셔 값이 크면 그 파라메터가 지금 과제에
             중요하다는 뜻이다.
 
@@ -122,29 +122,29 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
             교차 엔트로피 로스를 쓰는 분류에서는 다음과 같다.
             F_i = E[(∂log p(y|x,θ)/∂θ_i)²]
 
-            이를 실험 표본으로 어림한다.
-            1. 보기 (x, y)마다 다음을 한다.
-               a. 로그 확률을 셈한다: log p(y|x, θ)
-               b. 그래디언트를 셈한다: ∂log p(y|x,θ)/∂θ_i
+            이를 경험적 표본으로 근사한다.
+            1. 표본 (x, y)마다 다음을 한다.
+               a. 로그 확률을 계산한다: log p(y|x, θ)
+               b. 그래디언트를 계산한다: ∂log p(y|x,θ)/∂θ_i
                c. 그래디언트를 제곱한다: (∂log p(y|x,θ)/∂θ_i)²
-            2. 모든 보기에 걸쳐 평균 낸다
+            2. 모든 표본에 걸쳐 평균 낸다
 
-            이로써 온전한 피셔 행렬의 대각 어림을 얻으며,
-            이는 셈으로 다룰 수 있다.
+            이로써 전체 피셔 행렬의 대각 근사을 얻으며,
+            계산상 다룰 수 있는 크기다.
 
             인수:
-                data_loader: 피셔를 셈할 DataLoader
+                data_loader: 피셔를 계산할 DataLoader
                 task_id: 지금 과제의 번호
                 num_samples: 쓸 표본의 개수(None이면 모두)
 
             반환값:
-                파라메터 이름을 피셔 값으로 옮기는 사전
+                파라메터 이름을 피셔 값으로 대응시키는 딕셔너리
             """
             print(f"\n  Computing Fisher information for Task {task_id}...")
 
             self.model.eval()
 
-            # 피셔 정보 사전을 초기화한다
+            # 피셔 정보 딕셔너리를 초기화한다
             fisher = {}
             for name, param in self.model.named_parameters():
                 if param.requires_grad:
@@ -161,28 +161,28 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
 
                 data, target = data.to(self.device), target.to(self.device)
 
-                # 경사 초기화
+                # 그래디언트 초기화
                 self.model.zero_grad()
 
                 # 순전파
                 output = self.model(data)
 
-                # 로그 확률을 셈한다
+                # 로그 확률을 계산한다
                 # 분류에서는 log p(y|x) = log_softmax(output)[y]
                 log_probs = F.log_softmax(output, dim=1)
 
-                # 보기마다 로그 확률의 그래디언트를
-                # 파라메터에 대해 셈한다
+                # 표본마다 로그 확률의 그래디언트를
+                # 파라메터에 대해 계산한다
                 batch_size = data.size(0)
 
                 for i in range(batch_size):
-                    # 이 보기의 그래디언트를 0으로 만든다
+                    # 이 표본의 그래디언트를 0으로 만든다
                     self.model.zero_grad()
 
-                    # 참 부류의 로그 확률을 얻는다
+                    # 참 클래스의 로그 확률을 얻는다
                     log_prob = log_probs[i, target[i]]
 
-                    # 그래디언트를 셈한다: ∂log p(y|x)/∂θ
+                    # 그래디언트를 계산한다: ∂log p(y|x)/∂θ
                     log_prob.backward(retain_graph=(i < batch_size - 1))
 
                     # 그래디언트 제곱 누적
@@ -201,7 +201,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
 
             print(f"  Fisher computed using {total_samples} samples")
 
-            # 피셔 값의 통계를 찍는다
+            # 피셔 값의 통계를 출력한다
             all_fisher_values = torch.cat([f.flatten() for f in fisher.values()])
             print(f"  Fisher statistics:")
             print(f"    Mean: {all_fisher_values.mean().item():.6f}")
@@ -213,11 +213,11 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
 
         def ewc_penalty(self) -> torch.Tensor:
             """
-            EWC 벌주기 항을 셈한다.
+            EWC 패널티 항을 계산한다.
 
-            이 벌은 중요한 파라메터가 너무 많이 바뀌지 않게 한다.
+            이 패널티는 중요한 파라메터가 너무 많이 바뀌지 않게 한다.
 
-            벌 = (λ/2) Σ_{과제} Σ_i F_i(과제) (θ_i - θ*_i(과제))²
+            패널티 = (λ/2) Σ_{과제} Σ_i F_i(과제) (θ_i - θ*_i(과제))²
 
             여기서 각 기호는 다음과 같다.
             - 앞선 모든 과제에 걸쳐 더한다
@@ -227,7 +227,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
             - θ*_i(과제): 그 과제를 배운 뒤의 가장 좋은 값
 
             반환값:
-                EWC 벌 항(스칼라)
+                EWC 패널티 항(스칼라)
             """
             penalty = torch.tensor(0.0).to(self.device)
 
@@ -239,12 +239,12 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
                 # 파라메터마다
                 for name, param in self.model.named_parameters():
                     if name in fisher and param.requires_grad:
-                        # 가장 좋은 값과의 차이를 제곱해 셈한다
-                        # 피셔 정보로 무게를 준다
+                        # 가장 좋은 값과의 차이를 제곱해 계산한다
+                        # 피셔 정보로 가중한다
                         # (λ/2) * F_i * (θ_i - θ*_i)²
                         penalty += (fisher[name] * (param - optpar[name]) ** 2).sum()
 
-            # 벌주기 세기를 씌운다
+            # 패널티 강도를 곱한다
             penalty = (self.ewc_lambda / 2) * penalty
 
             return penalty
@@ -254,14 +254,14 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
                       task_id: int,
                       epochs: int = 5) -> List[float]:
             """
-            EWC 벌주기를 곁들여 과제 하나로 익힌다.
+            EWC 패널티를 더해 과제 하나를 학습한다.
 
             로스 함수:
             L_total = L_current + EWC_penalty
 
             여기서 각 기호는 다음과 같다.
             - L_current: 지금 과제의 교차 엔트로피 로스
-            - EWC_penalty: 파라메터 변화에 대한 이차 벌
+            - EWC_penalty: 파라메터 변화에 대한 이차 패널티
 
             인수:
                 train_loader: 지금 과제의 DataLoader
@@ -269,7 +269,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
                 epochs: 학습 에포크 수
 
             반환값:
-                시대마다의 로스 목록
+                에포크마다의 로스 목록
             """
             optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
@@ -298,7 +298,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
                     # 지금 과제의 로스
                     current_loss = self.criterion(output, target)
 
-                    # EWC 벌(앞선 과제가 있을 때만)
+                    # EWC 패널티(앞선 과제가 있을 때만)
                     ewc_loss = torch.tensor(0.0).to(self.device)
                     if len(self.fisher_dict) > 0:
                         ewc_loss = self.ewc_penalty()
@@ -338,33 +338,33 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
                             train_loader: DataLoader,
                             task_id: int):
             """
-            과제를 배운 뒤 앎을 다진다.
+            과제를 배운 뒤 지식을 통합한다.
 
             여기에는 다음이 든다.
-            1. 피셔 정보 행렬을 셈하기
-            2. 지금의 가장 좋은 파라메터를 담아 두기
+            1. 피셔 정보 행렬을 계산하기
+            2. 지금의 가장 좋은 파라메터를 저장하기
 
             이는 앞으로의 과제를 배울 때 제약으로 쓰인다.
 
             인수:
-                train_loader: 피셔를 셈할 DataLoader
-                task_id: 다질 과제의 번호
+                train_loader: 피셔를 계산할 DataLoader
+                task_id: 통합할 과제의 번호
             """
             print(f"\n{'=' * 60}")
             print(f"Consolidating Task {task_id}")
             print('=' * 60)
 
-            # 피셔 정보를 셈한다
+            # 피셔 정보를 계산한다
             fisher = self.compute_fisher_information(
                 data_loader=train_loader,
                 task_id=task_id,
                 num_samples=1000  # 효율을 위해 부분집합을 쓴다
             )
 
-            # 피셔 정보를 담아 둔다
+            # 피셔 정보를 저장한다
             self.fisher_dict[task_id] = fisher
 
-            # 가장 좋은 파라메터를 담아 둔다
+            # 가장 좋은 파라메터를 저장한다
             optpar = {}
             for name, param in self.model.named_parameters():
                 if param.requires_grad:
@@ -406,11 +406,11 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
                            test_loaders: List[DataLoader],
                            epochs_per_task: int = 5):
             """
-            EWC를 쓰는 연속 학습의 주 회귀.
+            EWC를 쓰는 연속 학습의 주 루프.
 
             과제마다의 절차:
-            1. EWC 벌주기를 곁들여 익힌다
-            2. 다진다: 피셔를 셈하고 파라메터를 담아 둔다
+            1. EWC 패널티를 더해 학습한다
+            2. 통합한다: 피셔를 계산하고 파라메터를 저장한다
             3. 모든 과제에서 평가한다
             """
             num_tasks = len(train_loaders)
@@ -424,14 +424,14 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
             for task_id in range(num_tasks):
                 self.current_task = task_id
 
-                # 지금 과제로 익힌다
+                # 지금 과제를 학습한다
                 self.train_task(
                     train_loader=train_loaders[task_id],
                     task_id=task_id,
                     epochs=epochs_per_task
                 )
 
-                # 다지기: 피셔를 셈하고 파라메터를 담아 둔다
+                # 통합: 피셔를 계산하고 파라메터를 저장한다
                 self.consolidate_task(
                     train_loader=train_loaders[task_id],
                     task_id=task_id
@@ -461,7 +461,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
             return self.calculate_metrics()
 
         def calculate_metrics(self):
-            """연속 학습 지표를 셈한다."""
+            """연속 학습 지표를 계산한다."""
             num_tasks = self.accuracy_matrix.shape[0]
 
             average_accuracy = np.mean(self.accuracy_matrix[:, -1])
@@ -493,7 +493,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
     def create_simple_model(input_size: int = 784,
                            hidden_size: int = 256,
                            num_classes: int = 2) -> nn.Module:
-        """단순한 피드포워드 망을 만든다."""
+        """단순한 피드포워드 네트워크를 만든다."""
         return nn.Sequential(
             nn.Flatten(),
             nn.Linear(input_size, hidden_size),
@@ -529,10 +529,10 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
 
 
     def visualize_ewc_results(ewc_metrics: dict, num_tasks: int):
-        """EWC 결과를 그려 본다."""
+        """EWC 결과를 시각화한다."""
         fig, axes = plt.subplots(1, 3, figsize=(18, 5))
 
-        # 그림 1: 정확도 행렬 열 지도
+        # 그림 1: 정확도 행렬 히트맵
         ax1 = axes[0]
         im = ax1.imshow(ewc_metrics['accuracy_matrix'], cmap='RdYlGn',
                         aspect='auto', vmin=0, vmax=100)
@@ -549,7 +549,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
                     ax1.text(j, i, f'{ewc_metrics["accuracy_matrix"][i, j]:.1f}',
                             ha="center", va="center", color="black", fontsize=9)
 
-        # 그림 2: 과제별 뒤로의 옮김
+        # 그림 2: 과제별 후방 전이
         ax2 = axes[1]
         tasks = list(range(len(ewc_metrics['forgetting_per_task'])))
         colors = ['green' if f >= 0 else 'red' 
@@ -570,7 +570,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
                     f'{val:.1f}%', ha='center',
                     va='bottom' if val >= 0 else 'top', fontsize=9)
 
-        # 그림 3: 러닝 정확도와 마지막 정확도
+        # 그림 3: 학습 정확도와 최종 정확도
         ax3 = axes[2]
         tasks_range = list(range(num_tasks))
         learning_accs = np.diag(ewc_metrics['accuracy_matrix'])
@@ -614,7 +614,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
         epochs_per_task = 5
         batch_size = 128
         learning_rate = 0.001
-        ewc_lambda = 5000  # 핵심 초파라메터 - 잊음과 러닝의 맞바꿈을 다스린다
+        ewc_lambda = 5000  # 핵심 하이퍼파라메터 - 망각과 학습의 트레이드오프를 조절한다
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"\nUsing device: {device}")
@@ -902,11 +902,11 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
 
 ## 2. 논의
 
-과제 종료 후 실제 정답의 로그확률을 표본별로 역전파하고 제곱 경사를 평균 내는 경험적 대각 피셔를 계산한다. 모델이 예측한 라벨 분포에서 기대값을 구하는 모델 피셔와 다르다. num_samples=1000은 배치 시작에서만 검사하므로 배치 크기 128이면 보통 1024개까지 사용한다. 빈 데이터와 비양수 표본 한도는 별도로 처리해야 한다.
+과제 종료 후 실제 정답의 로그확률을 표본별로 역전파하고 제곱 그래디언트를 평균 내는 경험적 대각 피셔를 계산한다. 모델이 예측한 라벨 분포에서 기댓값을 구하는 모델 피셔와 다르다. num_samples=1000은 배치 시작에서만 검사하므로 배치 크기 128이면 보통 1024개까지 사용한다. 빈 데이터와 비양수 표본 한도는 별도로 처리해야 한다.
 
-과제별 기준 웨이트는 clone으로 저장하고 모든 이전 과제의 벌점을 합산한다. P개 파라메터에 T개 과제 통계를 저장하면 추가 메모리와 벌점 계산은 O(TP)다. 마지막 과제 뒤에도 중요도를 계산하므로 시간에는 이후 학습에 쓰이지 않는 마지막 정리 비용도 포함된다. 원본 표본을 이후 저장하지 않는다는 사실만으로 개인정보 보호가 보장되는 것은 아니다.
+과제별 기준 웨이트는 clone으로 저장하고 모든 이전 과제의 패널티를 합산한다. P개 파라메터에 T개 과제 통계를 저장하면 추가 메모리와 패널티 계산은 O(TP)다. 마지막 과제 뒤에도 중요도를 계산하므로 시간에는 이후 학습에 쓰이지 않는 마지막 정리 비용도 포함된다. 원본 표본을 이후 저장하지 않는다는 사실만으로 개인정보 보호가 보장되는 것은 아니다.
 
-기본 과제들은 숫자 쌍마다 라벨을 0·1로 바꾸고 같은 2개 출력 레이어를 쓴다. 정확도 행렬은 행=평가 과제, 열=학습 단계이며 forgetting_per_task는 최종−직후의 변화다. λ=5000은 이 구현의 한 설정이고 다른 피셔 스케일에서 같은 제약을 뜻하지 않는다. 보존된 출력은 이번 편집에서 다시 측정하지 않았다.
+기본 과제들은 숫자 쌍마다 라벨을 0·1로 바꾸고 같은 2개 출력 레이어를 쓴다. 정확도 행렬은 행=평가 과제, 열=학습 단계이며 forgetting_per_task는 최종−직후의 변화다. λ=5000은 이 구현의 한 설정이고 다른 피셔 스케일에서 같은 제약을 뜻하지 않는다.
 
 ## 연습문제
 
@@ -925,12 +925,12 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-첫 과제 학습에서 EWC 벌점은 무엇인가?
+첫 과제 학습에서 EWC 패널티는 무엇인가?
 
 </div>
 
 ??? success "풀이"
-    아직 이전 중요도와 기준점이 없으므로 0이다. 과제 종료에 통계를 저장한 뒤 다음 과제부터 벌점이 적용된다. 첫 과제의 지도 학습을 EWC 항이 직접 개선하는 것은 아니다.
+    아직 이전 중요도와 기준점이 없으므로 0이다. 과제 종료에 통계를 저장한 뒤 다음 과제부터 패널티가 적용된다. 첫 과제의 지도 학습을 EWC 항이 직접 개선하는 것은 아니다.
 
 ---
 
@@ -942,7 +942,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
 </div>
 
 ??? success "풀이"
-    벌점은 λF_i의 곱에 비례한다. 표본 수로 평균 내는지 합산하는지, 레이어별 재스케일을 하는지에 따라 같은 λ의 크기가 달라진다. 독립적인 검증 순서에서 새 학습과 이전 보존을 함께 비교한다.
+    패널티는 λF_i의 곱에 비례한다. 표본 수로 평균 내는지 합산하는지, 레이어별 재스케일을 하는지에 따라 같은 λ의 크기가 달라진다. 독립적인 검증 순서에서 새 학습과 이전 보존을 함께 비교한다.
 
 ---
 
@@ -954,7 +954,7 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
 </div>
 
 ??? success "풀이"
-    아래는 검토용 조각이다. state_dict().copy()는 얕은 사전 복사여서 내부 텐서가 이후 갱신과 함께 바뀔 수 있다. 고정 체크포인트는 deepcopy하거나 각 텐서를 분리해 복사해야 한다.
+    아래는 검토용 조각이다. state_dict().copy()는 얕은 딕셔너리 복사여서 내부 텐서가 이후 갱신과 함께 바뀔 수 있다. 고정 체크포인트는 deepcopy하거나 각 텐서를 분리해 복사해야 한다.
     ```python
     best_loss = float('inf')
     patience_counter = 0
@@ -973,8 +973,8 @@ Split MNIST를 순차 학습하면서 과제별 피셔 중요도와 기준 웨�
             model.load_state_dict(best_state)
             break
     ```
-    현재 과제만의 검증 로스로 조기 종료하면 과거 성능과의 균형을 놓칠 수 있다. 사용할 과제별 검증 지표와 집계 규칙을 정하고 테스트셋은 선택에 사용하지 않는다. 인내 횟수에 도달하지 않고 종료된 경우에도 선택한 최적 상태를 복원하는 경로가 필요하다.
+    현재 과제만의 검증 로스로 조기 종료하면 과거 성능과의 균형을 놓칠 수 있다. 사용할 과제별 검증 지표와 집계 규칙을 정하고 시험 집합은 선택에 사용하지 않는다. 인내 횟수에 도달하지 않고 종료된 경우에도 선택한 최적 상태를 복원하는 경로가 필요하다.
 
 ## 정리하며
 
-EWC는 표본별 경험적 피셔와 고정 기준 웨이트로 이전 변화에 벌점을 준다. 실제 추정 표본 수·과제 누적 비용·λ 스케일을 명시하고 로컬 이진 분류 규약에서의 결과로 해석한다.
+EWC는 표본별 경험적 피셔와 고정 기준 웨이트로 이전 변화에 패널티를 준다. 실제 추정 표본 수·과제 누적 비용·λ 스케일을 명시하고 로컬 이진 분류 규약에서의 결과로 해석한다.

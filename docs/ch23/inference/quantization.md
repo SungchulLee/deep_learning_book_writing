@@ -4,7 +4,7 @@
 
 ## 1. 수치 형식과 메모리
 
-| 형식 | 비트 수 | 피처 |
+| 형식 | 비트 수 | 특징 |
 |---|---:|---|
 | FP32 | 32 | 최대 유한값 약 3.4×10³⁸ |
 | FP16 | 16 | 최대 유한값 65,504 |
@@ -13,7 +13,7 @@
 | INT4 | 4 | 부호 있는 정수 −8~7, 실제 패킹 필요 |
 | FP8 | 8 | 지수·가수 비트 배분에 따라 범위와 정밀도가 다름 |
 
-파라미터 70억 개의 웨이트 데이터만 계산하면 FP32는 28 GB, FP16/BF16은 14 GB, INT8은 7 GB, INT4는 3.5 GB다. GB는 10⁹바이트이며 GiB와 다르다. 양자화 스케일, 영점, 패킹 메타데이터, 높은 정밀도로 남긴 계층과 실행 중 활성화·KV 캐시는 별도다. 따라서 이 수치만으로 필요한 GPU 용량을 확정할 수 없다.
+파라메터 70억 개의 웨이트 데이터만 계산하면 FP32는 28 GB, FP16/BF16은 14 GB, INT8은 7 GB, INT4는 3.5 GB다. GB는 10⁹바이트이며 GiB와 다르다. 양자화 스케일, 영점, 패킹 메타데이터, 높은 정밀도로 남긴 계층과 실행 중 활성화·KV 캐시는 별도다. 따라서 이 수치만으로 필요한 GPU 용량을 확정할 수 없다.
 
 ## 2. 균일 아핀 양자화
 
@@ -46,7 +46,7 @@ def compute_scale_zero(
     symmetric: bool = True
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
-    양자화 파라메터를 셈한다.
+    양자화 파라메터를 계산한다.
     """
     if symmetric:
         max_val = tensor.abs().max()
@@ -66,7 +66,7 @@ def quantize_tensor(
     bits: int = 8
 ) -> torch.Tensor:
     """
-    텐서를 붙박이 소수점 표현으로 양자화한다.
+    텐서를 고정소수점 표현으로 양자화한다.
     """
     q_min = -(2 ** (bits - 1))
     q_max = 2 ** (bits - 1) - 1
@@ -82,13 +82,13 @@ def dequantize_tensor(
     zero_point: torch.Tensor
 ) -> torch.Tensor:
     """
-    다시 뜬소수점으로 되돌린다.
+    다시 부동소수점으로 역양자화한다.
     """
     return scale * (quantized.float() - zero_point)
 
 class QuantizedLinear(nn.Module):
     """
-    무게를 양자화한 선형 레이어.
+    웨이트를 양자화한 선형 레이어.
     """
     
     def __init__(
@@ -104,28 +104,28 @@ class QuantizedLinear(nn.Module):
         self.bits = bits
         self.group_size = group_size or in_features
         
-        # 배치별 양자화의 배치 수
+        # 그룹별 양자화의 그룹 수
         self.num_groups = in_features // self.group_size
         
-        # 양자화한 무게(int8로 담음)
+        # 양자화한 웨이트(int8로 저장)
         self.register_buffer(
             'weight_quantized',
             torch.zeros(out_features, in_features, dtype=torch.int8)
         )
         
-        # 배치마다의 스케일
+        # 그룹마다의 스케일
         self.register_buffer(
             'scale',
             torch.ones(out_features, self.num_groups)
         )
         
-        # 배치마다의 영점
+        # 그룹마다의 영점
         self.register_buffer(
             'zero_point',
             torch.zeros(out_features, self.num_groups)
         )
         
-        # 고를 수 있는 치우침
+        # 선택적 바이어스
         self.bias = nn.Parameter(torch.zeros(out_features))
     
     @classmethod
@@ -136,7 +136,7 @@ class QuantizedLinear(nn.Module):
         group_size: Optional[int] = None
     ) -> 'QuantizedLinear':
         """
-        뜬소수점 레이어로 양자화 레이어를 만든다.
+        부동소수점 레이어로 양자화 레이어를 만든다.
         """
         quant_linear = cls(
             linear.in_features,
@@ -148,7 +148,7 @@ class QuantizedLinear(nn.Module):
         weight = linear.weight.data
         group_size = quant_linear.group_size
         
-        # 배치마다 양자화한다
+        # 그룹마다 양자화한다
         for i in range(quant_linear.num_groups):
             start = i * group_size
             end = (i + 1) * group_size
@@ -168,7 +168,7 @@ class QuantizedLinear(nn.Module):
         return quant_linear
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # 무게의 양자화를 되돌린다
+        # 웨이트를 역양자화한다
         weight = torch.zeros(
             self.out_features, self.in_features,
             device=x.device, dtype=x.dtype
@@ -193,7 +193,7 @@ class QuantizedLinear(nn.Module):
 
 ### GPTQ: 계층 출력의 복원 오차 줄이기
 
-[GPTQ](https://arxiv.org/abs/2210.17323)는 보정 입력 X에서 원래 계층의 출력을 보존하도록 웨이트를 순차 양자화하고 남은 웨이트에 오차를 리워드한다. 열벡터를 입력으로 쓰는 표기에서는 다음 목적을 생각할 수 있다.
+[GPTQ](https://arxiv.org/abs/2210.17323)는 보정 입력 X에서 원래 계층의 출력을 보존하도록 웨이트를 순차 양자화하고 남은 웨이트로 오차를 보상한다. 열벡터를 입력으로 쓰는 표기에서는 다음 목적을 생각할 수 있다.
 
 $$\min_{W_q}\|WX-W_qX\|_F^2.$$
 
@@ -208,8 +208,8 @@ class GPTQ:
     """
     GPTQ 양자화 알고리즘.
     
-    헤세 앎을 써서 내놓기 어긋남을 가장 작게 하며 무게를
-    세로줄마다 양자화한다.
+    헤시안 정보를 써서 출력 오차를 최소화하며 웨이트를
+    열마다 양자화한다.
     """
     
     def __init__(
@@ -227,15 +227,15 @@ class GPTQ:
         self.rows = layer.weight.shape[0]
         self.cols = layer.weight.shape[1]
         
-        # 헤세 쌓개
+        # 헤시안 누적기
         self.H = torch.zeros(self.cols, self.cols, device=layer.weight.device)
         self.nsamples = 0
     
     def add_batch(self, inp: torch.Tensor):
         """
-        들임 배치에서 헤세를 쌓는다.
+        입력 배치에서 헤시안을 누적한다.
         
-        H = X^T X(들임의 바깥 곱)
+        H = X^T X(입력의 외적)
         """
         if len(inp.shape) == 3:
             inp = inp.reshape(-1, inp.shape[-1])
@@ -249,21 +249,21 @@ class GPTQ:
         """
         W = self.layer.weight.data.clone()
         
-        # 헤세를 마무리한다
+        # 헤시안을 표본 수로 나눠 마무리한다
         H = self.H / self.nsamples
         
-        # 수치가 안정되도록 잦아듦을 더한다
+        # 수치가 안정되도록 감쇠(damping) 항을 더한다
         damp = 0.01 * torch.diag(H).mean()
         H += damp * torch.eye(self.cols, device=H.device)
         
-        # 촐레스키 쪼개기
+        # 촐레스키 분해
         H_inv = torch.linalg.cholesky(H)
         H_inv = torch.cholesky_inverse(H_inv)
         
-        # 양자화한 무게
+        # 양자화한 웨이트
         Q = torch.zeros_like(W)
         
-        # 덩이 단위로 처리한다
+        # 블록 단위로 처리한다
         for i1 in range(0, self.cols, self.block_size):
             i2 = min(i1 + self.block_size, self.cols)
             
@@ -276,15 +276,15 @@ class GPTQ:
                 w = W_block[:, i]
                 d = H_inv_block[i, i]
                 
-                # 이 세로줄의 배치를 정한다
+                # 이 열의 그룹을 정한다
                 group_idx = (i1 + i) // self.group_size
                 
-                # 배치의 스케일을 셈한다
+                # 그룹의 스케일을 계산한다
                 group_start = (group_idx * self.group_size) - i1
                 group_end = min(group_start + self.group_size, i2 - i1)
                 
                 if i == max(0, group_start):
-                    # 배치가 시작할 때 스케일을 셈한다
+                    # 그룹이 시작할 때 스케일을 계산한다
                     group_weights = W_block[:, max(0, group_start):group_end]
                     scale, zp = compute_scale_zero(group_weights, self.bits)
                 
@@ -292,10 +292,10 @@ class GPTQ:
                 q = quantize_tensor(w, scale, zp, self.bits)
                 Q_block[:, i] = q.float()
                 
-                # 어긋남을 셈한다
+                # 오차를 계산한다
                 err = (w - dequantize_tensor(q, scale, zp)) / d
                 
-                # 덩이에 남은 무게를 새로 고친다
+                # 블록에 남은 웨이트를 갱신한다
                 W_block[:, i:] -= err.unsqueeze(1) * H_inv_block[i, i:].unsqueeze(0)
             
             Q[:, i1:i2] = Q_block
@@ -316,23 +316,23 @@ def compute_awq_scales(
     bits: int = 4
 ) -> torch.Tensor:
     """
-    AWQ 스케일을 셈한다.
+    AWQ 스케일을 계산한다.
     
-    스케일 = 활성화 크기^alpha. 여기서 alpha가 무게 양자화 어긋남과
-    활성화 양자화 어긋남을 저울질한다.
+    스케일 = 활성화 크기^alpha. 여기서 alpha가 웨이트 양자화 오차와
+    활성화 양자화 오차 사이의 균형을 정한다.
     """
-    # 활성화의 크기를 셈한다
+    # 활성화의 크기를 계산한다
     act_scales = activations.abs().mean(dim=0)
     
-    # 무게의 크기를 셈한다
+    # 웨이트의 크기를 계산한다
     weight_scales = weight.abs().mean(dim=0)
     
-    # 가장 좋은 스케일(무게 어긋남과 활성화 어긋남을 저울질한다)
-    # 활성화가 클수록 더 지킨다
-    alpha = 0.5  # 다듬을 수 있는 웃파라메터
+    # 최적 스케일(웨이트 오차와 활성화 오차의 균형을 맞춘다)
+    # 활성화가 클수록 더 보존한다
+    alpha = 0.5  # 조정할 수 있는 하이퍼파라메터
     scales = act_scales.pow(alpha) / weight_scales.pow(1 - alpha)
     
-    # 스케일을 잘라 낸다
+    # 스케일을 클리핑한다
     scales = torch.clamp(scales, min=1e-5, max=1e5)
     
     return scales
@@ -342,18 +342,18 @@ def compute_awq_scales(
 
 ## 4. 동적·정적 활성화 양자화
 
-동적 양자화는 실행 중 입력에서 활성화의 양자화 파라미터를 정한다. 정적 양자화는 대표 데이터로 미리 보정한 범위를 사용한다. 동적 방식에는 통계 계산 비용이 들고 정적 방식에는 보정 데이터와 실제 입력 분포의 차이가 영향을 준다. 웨이트만 양자화하는 방식과도 구분한다.
+동적 양자화는 실행 중 입력에서 활성화의 양자화 파라메터를 정한다. 정적 양자화는 대표 데이터로 미리 보정한 범위를 사용한다. 동적 방식에는 통계 계산 비용이 들고 정적 방식에는 보정 데이터와 실제 입력 분포의 차이가 영향을 준다. 웨이트만 양자화하는 방식과도 구분한다.
 
 ```python
 class DynamicQuantizedLinear(nn.Module):
     """
-    활성화를 그때그때 양자화하는 선형 레이어.
+    활성화를 동적으로 양자화하는 선형 레이어.
     """
     
     def __init__(self, in_features: int, out_features: int, bits: int = 8):
         super().__init__()
         self.bits = bits
-        # 미리 양자화한 무게
+        # 미리 양자화한 웨이트
         self.weight_scale = nn.Parameter(torch.ones(1))
         self.register_buffer(
             'weight_q', 
@@ -362,15 +362,15 @@ class DynamicQuantizedLinear(nn.Module):
         self.bias = nn.Parameter(torch.zeros(out_features))
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # 들임을 그때그때 양자화한다
+        # 입력을 동적으로 양자화한다
         x_scale, x_zp = compute_scale_zero(x, self.bits)
         x_q = quantize_tensor(x, x_scale, x_zp, self.bits)
         
-        # 정수 행렬 곱하기(흉내)
+        # 정수 행렬 곱(모사)
         # 실전에서는 전용 int8 커널을 쓴다
         out_q = torch.matmul(x_q.float(), self.weight_q.T.float())
         
-        # 내놓기의 양자화를 되돌린다
+        # 출력을 역양자화한다
         out = out_q * (x_scale * self.weight_scale)
         
         return out + self.bias
@@ -381,7 +381,7 @@ class DynamicQuantizedLinear(nn.Module):
 ```python
 class CalibrationCollector:
     """
-    붙박이 양자화를 위해 활성화 통계를 모은다.
+    정적 양자화를 위해 활성화 통계를 모은다.
     """
     
     def __init__(self, method: str = 'minmax'):
@@ -391,17 +391,17 @@ class CalibrationCollector:
         self.histograms = []
     
     def collect(self, tensor: torch.Tensor):
-        """텐서에서 통계를 적는다."""
+        """텐서에서 통계를 기록한다."""
         self.min_vals.append(tensor.min().item())
         self.max_vals.append(tensor.max().item())
         
         if self.method == 'entropy':
-            # 엔트로피 눈금 맞추기를 위한 도수 그림
+            # 엔트로피 보정을 위한 히스토그램
             hist = torch.histc(tensor, bins=2048)
             self.histograms.append(hist)
     
     def compute_scale(self, bits: int = 8) -> Tuple[float, float]:
-        """마지막 스케일과 영점을 셈한다."""
+        """최종 스케일과 영점을 계산한다."""
         if self.method == 'minmax':
             min_val = min(self.min_vals)
             max_val = max(self.max_vals)
@@ -428,7 +428,7 @@ KV 캐시를 저비트로 저장하면 긴 문맥의 메모리를 줄일 수 있
 ```python
 class QuantizedKVCache:
     """
-    양자화해 담는 열쇠-값 곳간.
+    양자화해 저장하는 키-값(KV) 캐시.
     """
     
     def __init__(self, bits: int = 8):
@@ -443,7 +443,7 @@ class QuantizedKVCache:
         new_keys: torch.Tensor,
         new_values: torch.Tensor
     ):
-        """새 열쇠와 값을 곳간에 더한다."""
+        """새 키와 값을 캐시에 더한다."""
         # 새 항목을 양자화한다
         k_scale, k_zp = compute_scale_zero(new_keys, self.bits)
         v_scale, v_zp = compute_scale_zero(new_values, self.bits)
@@ -451,7 +451,7 @@ class QuantizedKVCache:
         new_k_q = quantize_tensor(new_keys, k_scale, k_zp, self.bits)
         new_v_q = quantize_tensor(new_values, v_scale, v_zp, self.bits)
         
-        # 곳간에 덧붙인다
+        # 캐시에 덧붙인다
         if self.keys_q is None:
             self.keys_q = new_k_q
             self.values_q = new_v_q
@@ -463,9 +463,9 @@ class QuantizedKVCache:
         self.value_scales.append((v_scale, v_zp))
     
     def get_keys_values(self) -> Tuple[torch.Tensor, torch.Tensor]:
-        """양자화를 되돌린 열쇠와 값을 가져온다."""
+        """역양자화한 키와 값을 가져온다."""
         # 간단히 하려고 가장 최근 스케일을 쓴다
-        # 실전에서는 토막마다나 배치마다의 스케일을 쓴다
+        # 실전에서는 토큰마다나 그룹마다의 스케일을 쓴다
         k_scale, k_zp = self.key_scales[-1]
         v_scale, v_zp = self.value_scales[-1]
         
@@ -482,13 +482,13 @@ class QuantizedKVCache:
 ```python
 MIXED_PRECISION_CONFIG = {
     'embedding': 8,      # 임베딩: 8비트
-    'attention.qkv': 4,  # QKV 쏘기: 4비트
-    'attention.out': 4,  # 내놓기 쏘기: 4비트
-    'mlp.gate': 4,       # 여러 레이어 인식개 레이어: 4비트
+    'attention.qkv': 4,  # QKV 투영: 4비트
+    'attention.out': 4,  # 출력 투영: 4비트
+    'mlp.gate': 4,       # 다층 퍼셉트론(MLP) 레이어: 4비트
     'mlp.up': 4,
     'mlp.down': 4,
-    'lm_head': 8,        # 내놓는 머리: 8비트(민감함)
-    'layernorm': 32,     # 온전한 정밀도를 지킨다
+    'lm_head': 8,        # 출력 헤드: 8비트(민감함)
+    'layernorm': 32,     # 전체 정밀도를 유지한다
 }
 
 def quantize_model_mixed(
@@ -496,13 +496,13 @@ def quantize_model_mixed(
     config: dict
 ) -> nn.Module:
     """
-    섞인 정밀도 양자화를 적용한다.
+    혼합 정밀도 양자화를 적용한다.
     """
     for name, module in model.named_modules():
         for pattern, bits in config.items():
             if pattern in name:
                 if isinstance(module, nn.Linear) and bits < 32:
-                    # 양자화한 판으로 바꾼다
+                    # 양자화한 모듈로 교체한다
                     parent_name = '.'.join(name.split('.')[:-1])
                     child_name = name.split('.')[-1]
                     parent = model.get_submodule(parent_name)
@@ -527,7 +527,7 @@ $$\frac{\partial L}{\partial w}\approx\frac{\partial L}{\partial\hat{w}}.$$
 ```python
 class STEQuantize(torch.autograd.Function):
     """
-    양자화를 위한 곧바로 지나가기 어림개.
+    양자화를 위한 직선 통과 추정기(STE).
     """
     
     @staticmethod
@@ -539,19 +539,19 @@ class STEQuantize(torch.autograd.Function):
         x_q = torch.round(x / scale)
         x_q = torch.clamp(x_q, q_min, q_max)
         
-        # 양자화를 되돌린다
+        # 역양자화한다
         x_dq = x_q * scale
         
         return x_dq
     
     @staticmethod
     def backward(ctx, grad_output):
-        # 곧바로 지나가기: 그래디언트를 그대로 넘긴다
+        # 직선 통과: 그래디언트를 그대로 넘긴다
         return grad_output, None, None
 
 class QATLinear(nn.Module):
     """
-    양자화를 헤아린 익히기를 하는 선형 레이어.
+    양자화 인지 학습(QAT)을 하는 선형 레이어.
     """
     
     def __init__(self, in_features: int, out_features: int, bits: int = 4):
@@ -560,11 +560,11 @@ class QATLinear(nn.Module):
         self.weight = nn.Parameter(torch.randn(out_features, in_features) * 0.01)
         self.bias = nn.Parameter(torch.zeros(out_features))
         
-        # 배울 수 있는 스케일
+        # 학습 가능한 스케일
         self.weight_scale = nn.Parameter(torch.ones(1))
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # 익히는 동안 무게를 흉내 양자화한다
+        # 학습하는 동안 웨이트를 모사 양자화(fake quantization)한다
         w_q = STEQuantize.apply(self.weight, self.weight_scale, self.bits)
         
         return nn.functional.linear(x, w_q, self.bias)
@@ -574,7 +574,7 @@ class QATLinear(nn.Module):
 
 ## 7. 품질과 속도 평가
 
-퍼플렉서티 변화는 원본 모델, 토크나이저, 평가 전처리, 문맥 길이와 보정 데이터에 따라 달라진다. GPTQ나 AWQ 4비트라는 이름만으로 일정한 로스 폭을 보장할 수 없다. 동일한 모델과 평가 조건에서 기준값과 양자화 후 값을 함께 기록한다.
+퍼플렉서티 변화는 원본 모델, 토크나이저, 평가 전처리, 문맥 길이와 보정 데이터에 따라 달라진다. GPTQ나 AWQ 4비트라는 이름만으로 일정한 품질 저하 폭을 보장할 수 없다. 동일한 모델과 평가 조건에서 기준값과 양자화 후 값을 함께 기록한다.
 
 속도 비교에는 장치, 커널, 배치, 프롬프트 길이, 생성 길이와 정밀도를 명시한다. 프리필과 디코딩의 병목이 다르므로 첫 토큰 지연 시간과 토큰 간 지연 시간, 초당 토큰 수를 구분한다. 웨이트 메모리만을 전체 실행 메모리로 보고하지 않는다.
 
@@ -625,7 +625,7 @@ class QATLinear(nn.Module):
 
 ??? success "풀이"
 
-    첫 조각에서 코드 q가 뜻하던 값은 0.1q지만 0.2q로 복원되어 두 배가 된다. 조각별 스케일과 토큰 범위를 함께 저장해 대응시켜 복원하거나 일관된 다른 스케일 폴리시를 사용해야 한다. 마지막 스케일 하나로는 이전 조각을 정확히 해석할 수 없다.
+    첫 조각에서 코드 q가 뜻하던 값은 0.1q지만 0.2q로 복원되어 두 배가 된다. 조각별 스케일과 토큰 범위를 함께 저장해 대응시켜 복원하거나 일관된 다른 스케일 정책을 사용해야 한다. 마지막 스케일 하나로는 이전 조각을 정확히 해석할 수 없다.
 
 
 

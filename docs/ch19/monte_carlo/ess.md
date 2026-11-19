@@ -14,7 +14,7 @@ MCMC 표본에는 시점 간 자기상관이 있으며 평균의 정확도는 �
 
 $$ESS_w=\frac1{\sum_i\bar w_i^2}=\frac{(\sum_iw_i)^2}{\sum_iw_i^2}$$
 
-범위는 [1,N]이며 모두 같으면 N, 한 웨이트에 전부 집중하면 1이다. 유한 표본에서 웨이트가 비슷했다는 사실이 q=p를 증명하지는 않는다. 보지 못한 영역이나 재표집 중복을 이 값이 감지하지 못할 수 있다.
+범위는 [1,N]이며 모두 같으면 N, 한 웨이트에 전부 집중하면 1이다. 유한 표본에서 웨이트가 비슷했다는 사실이 q=p를 증명하지는 않는다. 보지 못한 영역이나 재샘플링 중복을 이 값이 감지하지 못할 수 있다.
 
 Var_π(f)/ESS_w를 실제 IS·SNIS 분산의 일반 공식으로 사용하지 않는다. 표준 IS에는 E_q[w²f²], SNIS에는 E_q[w²(f−I)²]가 들어가므로 f와 웨이트의 결합이 중요하다. 더 자세한 [웨이트 ESS](importance_sampling/ess.md)를 참고한다.
 
@@ -27,7 +27,7 @@ import torch
 
 def importance_sampling_ess(log_weights: torch.Tensor) -> float:
     """
-    고르게 하지 않은 로그 무게로 ESS 셈하기.
+    정규화하지 않은 로그 웨이트로 ESS 계산하기.
     
     인수:
         log_weights: log w_i을 담은 형태 (N,)의 텐서
@@ -35,7 +35,7 @@ def importance_sampling_ess(log_weights: torch.Tensor) -> float:
     반환값:
         실수로 나타낸 ESS
     """
-    # 수치 안정을 위해 로그 공간에서 고르게 하기
+    # 수치 안정을 위해 로그 공간에서 정규화하기
     log_w_norm = log_weights - torch.logsumexp(log_weights, dim=0)
     
     # ESS = 1 / sum(w_bar^2) = exp(-logsumexp(2 * log_w_norm))
@@ -45,11 +45,11 @@ def importance_sampling_ess(log_weights: torch.Tensor) -> float:
 
 # 예
 N = 1000
-# 경우 1: 좋은 제안(무게가 대체로 고름)
+# 경우 1: 좋은 제안(웨이트가 대체로 균등함)
 log_w_good = torch.randn(N) * 0.5
 print(f"Good proposal ESS: {importance_sampling_ess(log_w_good):.0f} / {N}")
 
-# 경우 2: 나쁜 제안(큰 무게가 몇 개뿐)
+# 경우 2: 나쁜 제안(큰 웨이트가 몇 개뿐)
 log_w_bad = torch.randn(N) * 5.0
 print(f"Poor proposal ESS: {importance_sampling_ess(log_w_bad):.0f} / {N}")
 ```
@@ -75,13 +75,13 @@ $$\operatorname{Var}(\bar f_N)\approx\operatorname{Var}_\pi(f)/ESS_f$$
 
 실제 자기상관 합은 추정 잡음 때문에 안정적인 절단·스펙트럼 방법이 필요하다. 평균·분위수·꼬리 등 관심량별 진단을 사용하고 여러 체인의 수렴과 몬테카를로 표준오차를 함께 보고한다. [MCMC 진단](../mcmc/diagnostics.md)을 참고한다.
 
-## 4. ESS 지켜보고 낫게 하기
+## 4. ESS 모니터링과 개선
 
 중요도 샘플링에서는 지지집합·관심 적분에 맞는 제안·꼬리·다봉 탐색을 검토한다. 적응이나 차원 축소가 항상 ESS와 정확도를 항상 개선하는 것은 아니다.
 
 MCMC에서는 제안 스케일·파라메터화·알고리즘을 목표 기하와 비용에 맞춰 조정한다. 비중심화가 모든 계층 모형에서 낫거나 HMC가 모든 목표에서 랜덤 워크보다 효율적이라고 단정하지 않는다.
 
-ESS/초는 같은 관심 함수와 동일한 진단·컴퓨팅 조건에서 비교한다. 적응·워밍업·경사 평가 등의 비용을 포함하고, 체인 길이를 늘리면 ESS가 선형으로 증가한다는 주장은 정상성·안정적인 자기상관이라는 조건에서의 근사다.
+ESS/초는 같은 관심 함수와 동일한 진단·컴퓨팅 조건에서 비교한다. 적응·워밍업·그래디언트 평가 등의 비용을 포함하고, 체인 길이를 늘리면 ESS가 선형으로 증가한다는 주장은 정상성·안정적인 자기상관이라는 조건에서의 근사다.
 
 ## 연습문제
 

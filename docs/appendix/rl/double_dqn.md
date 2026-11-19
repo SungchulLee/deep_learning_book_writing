@@ -1,26 +1,26 @@
 # Double DQN
 
-Double DQN은 2016년 글 "Deep Reinforcement Learning with Double Q-learning"에서 나왔다. - 이어진 네트워크로 액션을 *고른다* - 타깃 네트워크로 그 액션을 *따진다*.
+Double DQN은 2016년 논문 "Deep Reinforcement Learning with Double Q-learning"에서 나왔다. - 온라인 네트워크로 액션을 *고른다* - 타깃 네트워크로 그 액션을 *평가한다*.
 
-여기 구현은 Double DQN을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 Double DQN을 짧고 학습하기 좋게 보인 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
 ```python
 #!/usr/bin/env python3
 """
-Double DQN - Q 러닝에서 지나치게 높이 어림하는 치우침 줄이기
-글: "겹 Q 러닝을 쓰는 깊은 북돋움 러닝" (2016)
+Double DQN - Q 러닝의 과대추정 편향 줄이기
+논문: "이중 Q 러닝을 쓰는 심층 강화학습" (2016)
 지은이: 하도 판 하셀트, 아르투어 게즈, 데이비드 실버
-핵심 깨침:
-  - 이어진 네트워크로 액션을 *고른다*
-  - 타깃 네트워크로 그 액션을 *따진다*
+핵심 아이디어:
+  - 온라인 네트워크로 액션을 *고른다*
+  - 타깃 네트워크로 그 액션을 *평가한다*
 
 타깃:
   a* = argmax_a Q_online(s', a)
   y  = r + gamma * (1-done) * Q_target(s', a*)
 
-두루마리: appendix/rl/double_dqn.py
+파일: appendix/rl/double_dqn.py
 """
 
 import torch
@@ -34,23 +34,23 @@ import torch.nn.functional as F
 
 def double_dqn_td_loss(q_online: nn.Module, q_target: nn.Module, batch, gamma: float = 0.99):
     """
-    Double DQN의 TD 잃음을 셈한다.
+    Double DQN의 TD 로스를 계산한다.
 
-    DQN과의 다름:
+    DQN과의 차이:
       - DQN은 max_a Q_target(s', a)을 쓴다
-      - Double DQN은 argmax은 이어진 네트워크에서, 값은 타깃 네트워크에서 얻는다
+      - Double DQN은 argmax은 온라인 네트워크에서, 값은 타깃 네트워크에서 얻는다
     """
     s, a, r, s2, done = batch
 
-    # 이제의 Q(s,a)
+    # 현재의 Q(s,a)
     q_values = q_online(s)  # (B, A)
     q_sa = q_values.gather(1, a.long().unsqueeze(1)).squeeze(1)
 
     with torch.no_grad():
-        # 이어진 네트워크가 액션을 고른다
+        # 온라인 네트워크가 액션을 고른다
         a_star = q_online(s2).argmax(dim=1)  # (B,)
 
-        # 타깃 네트워크가 액션을 따진다
+        # 타깃 네트워크가 액션을 평가한다
         q_next_target = q_target(s2)  # (B, A)
         q_s2_astar = q_next_target.gather(1, a_star.unsqueeze(1)).squeeze(1)
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 강화학습의 핵심 깨침을 보인다. 묶음으로 나눈 구조 덕에 몫 하나하나를 살펴보고 다른 일이나 데이터셋에 맞추어 바꾸기 쉽다.
+이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 강화학습의 핵심 아이디어를 보인다. 모듈식 구조 덕분에 구성 요소 하나하나를 살펴보고 다른 과제나 데이터셋에 맞추어 바꾸기 쉽다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -75,56 +75,56 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-코드를 읽고 핵심이 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 강화학습에 알맞은지 밝혀라.
+코드를 읽고 핵심 설계 결정을 짚어라. 구조적 선택 셋을 들고, 각각이 왜 강화학습에 알맞은지 설명하라.
 
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 엑티베이션 함수 고르기 -- ReLU 클래스는 그래디언트가 잦아들지 않아 학습이 빠르다. (2) 잣대 잡는 꾀 -- 배치 잣대 잡기가 안쪽 함께 바뀌는 옮겨감을 줄여 학습을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 고른 것마다 드러내는 힘, 계산 비용, 학습의 든든함 사이의 트레이드오프를 보여 준다.
+    설계 결정은 구현마다 다르나 흔히 이런 것이 있다. (1) 활성화 함수 선택 -- ReLU 계열은 그래디언트가 포화하지 않아 학습이 빠르다. (2) 정규화 전략 -- 배치 정규화가 내부 공변량 이동(internal covariate shift)을 줄여 학습을 안정시킨다. (3) 잔차 연결 -- 있으면 스킵 경로를 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 선택마다 표현력, 계산 비용, 학습 안정성 사이의 트레이드오프를 보여 준다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력의 형태와 데이터 클래스가 바라는 대로인지 살피는 입력 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 입력에는 알아듣기 쉬운 어긋남 알림을 띄워라.
+입력의 형태와 자료형이 기대한 대로인지 확인하는 입력 검증을 주요 함수나 클래스에 더하여라. 올바르지 않은 입력에는 이해하기 쉬운 오류 메시지를 띄워라.
 
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 알맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 형태를 살피려면 중요한 차수를 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 디버깅을 크게 앞당기고 코드를 되쓰기 든든하게 한다.
+    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 더한다. 형태를 검증하려면 핵심 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅을 크게 앞당기고 코드를 재사용하기에 더 강건하게 만든다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현이 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
+이 구현에서 일어날 수 있는 실패 양상(failure mode) 둘을 들고, 각각을 어떻게 탐지하고 고칠지 설명하라.
 
 </div>
 
 ??? success "풀이"
-    흔히 무너지는 결은 이렇다. (1) **그래디언트가 사라지거나 터짐** -- 그래디언트 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 그래디언트 자르기, 더 나은 첫자리 잡기(Xavier/Kaiming), 구조 고치기(나머지 이음, 잣대 잡기)로 고친다. (2) **지나치게 맞추기** -- 학습 로스는 줄어드는데 따짐 로스가 오르면 짚어낸다. 다독임(드롭아웃, 짐 줄이기, 데이터 어그멘테이션)이나 모델 크기 줄이기로 고친다. 학습과 따짐 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
+    흔한 실패 양상은 이렇다. (1) **그래디언트 소실·폭발** -- 그래디언트 노름을 모니터링해 탐지한다(`torch.nn.utils.clip_grad_norm_`이나 레이어마다 `param.grad.norm()` 기록하기). 그래디언트 클리핑, 더 나은 초기화(Xavier/Kaiming), 구조 변경(잔차 연결, 정규화)으로 고친다. (2) **과적합** -- 학습 로스는 줄어드는데 검증 로스가 오르면 탐지한다. 정칙화(드롭아웃, 웨이트 감쇠, 데이터 어그멘테이션)나 모델 크기 줄이기로 고친다. 학습 지표와 검증 지표를 늘 함께 모니터링해 이를 일찍 잡아야 한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-Double DQN 구현이 옳은지 두루 따지는 시험 함수를 써라. 빈 입력, 원소 하나짜리 입력, 아주 큰 입력, 값이 끝으로 치우친 입력(0, 아주 큰 수)까지 금 언저리를 시험하여라.
+Double DQN 구현이 옳은지 종합적으로 검증하는 시험 함수를 작성하라. 빈 입력, 원소 하나짜리 입력, 아주 큰 입력, 극단적인 값(0, 아주 큰 수)을 가진 입력 등 경계 사례를 시험하여라.
 
 </div>
 
 ??? success "풀이"
-    금 언저리 조건을 두루 건드리는 시험 함수를 짓는다.
+    경계 조건을 두루 시험하는 함수를 만든다.
     ```python
-    def test_double dqn():
-        model = Double DQN(...)
-        # 여느 들임
+    def test_double_dqn():
+        model = DoubleDQN(...)
+        # 보통의 입력
         assert model(normal_input).shape == expected_shape
         # 원소 하나짜리 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값(넘침을 살핀다)
+        # 큰 값(오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
         # 그래디언트 흐름
@@ -133,12 +133,12 @@ Double DQN 구현이 옳은지 두루 따지는 시험 함수를 써라. 빈 입
         for p in model.parameters():
             assert p.grad is not None
     ```
-    구조가 끝에서 끝까지 학습을 받치는지 알려면 그래디언트 흐름을 시험하는 것이 특히 중요하다.
+    구조가 엔드투엔드 학습을 지원하는지 확인하려면 그래디언트 흐름을 시험하는 것이 특히 중요하다.
 
 ## 정리하며
 
 **다룬 것** — Double DQN
 
-이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 강화학습의 핵심 깨침을 보인다.
+이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 강화학습의 핵심 아이디어를 보인다.
 
-앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+앞의 연습문제 4개로 스스로 확인해 볼 수 있다.

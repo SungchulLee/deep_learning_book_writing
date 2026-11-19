@@ -91,7 +91,7 @@ def sigmoid_schedule(T, beta_start=1e-4, beta_end=0.02):
     betas = torch.sigmoid(t) * (beta_end - beta_start) + beta_start
     return betas
 
-# 차례표마다 alpha_bar을 셈한다
+# 스케줄마다 alpha_bar를 계산한다
 def compute_alpha_bar(betas):
     alphas = 1 - betas
     return torch.cumprod(alphas, dim=0)

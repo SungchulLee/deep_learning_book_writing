@@ -5,22 +5,22 @@
 ## 1. 코드와 기존 출력
 
 ```python
-"""GPT를 맨바닥부터 미리 익히기."""
+"""GPT를 처음부터 사전 학습하기."""
 # ---
-# title: "GPT 모델을 맨바닥부터 미리 익히기"
-# description: "끝에서 끝까지의 물길: BPE 토큰내개 익히기, 모델 초기화,
-#               ConstantLengthDataset, 흩뿌린 익히기, 퍼플렉서티 평가"
+# title: "GPT 모델을 처음부터 사전 학습하기"
+# description: "엔드투엔드 파이프라인: BPE 토크나이저 학습, 모델 초기화,
+#               ConstantLengthDataset, 분산 학습, 퍼플렉서티 평가"
 # ---
 #
-# 언어 모델을 맨바닥부터 미리 익히는 일은 요즘 자연어 다루기의 바탕이다.
-# 이 각본은 물길의 모든 단계를 짚어 나간다:
+# 언어 모델을 처음부터 사전 학습하는 일은 현대 자연어 처리의 바탕이다.
+# 이 스크립트는 파이프라인의 모든 단계를 짚어 나간다:
 #
-#   1부 – 글 말뭉치로 맞춤 BPE 토큰내개 익히기
-#   2부 – 자리매김에서 GPT-2 모델 초기화(마구잡이 무게)
-#   3부 – 효율적인 인과 언어 모델 익히기를 위한 ConstantLengthDataset
-#   4부 – 그래디언트 쌓기와 중간 저장을 곁들인 익히기 되풀이
-#   5부 – 평가: 퍼플렉서티와 글 만들어 내기
-#   6부 – 규모 키우기에서 헤아릴 점과 흩뿌린 익히기
+#   1부 – 텍스트 말뭉치로 맞춤 BPE 토크나이저 학습
+#   2부 – 설정(config)에서 GPT-2 모델 초기화(무작위 웨이트)
+#   3부 – 효율적인 인과 언어 모델 학습을 위한 ConstantLengthDataset
+#   4부 – 그래디언트 누적과 체크포인트를 곁들인 학습 루프
+#   5부 – 평가: 퍼플렉서티와 텍스트 생성
+#   6부 – 규모 확장에서 고려할 점과 분산 학습
 #
 # 바탕: O'Reilly "NLP with Transformers" 10장
 
@@ -32,7 +32,7 @@ from typing import List, Iterator
 
 
 # =====================================================================
-# 1부 – 맞춤 BPE 토큰내개 익히기
+# 1부 – 맞춤 BPE 토크나이저 학습
 # =====================================================================
 print("=" * 60)
 print("Part 1: Training a BPE Tokenizer from Scratch")
@@ -108,7 +108,7 @@ print("""
 
 
 # =====================================================================
-# 2부 – 자리매김에서 GPT-2 모델 초기화
+# 2부 – 설정에서 GPT-2 모델 초기화
 # =====================================================================
 print("=" * 60)
 print("Part 2: Model Initialization from Config")
@@ -159,7 +159,7 @@ print("=" * 60)
 
 
 class ConstantLengthDataset(IterableDataset):
-    """토큰낸 글을 이어 붙이고 붙박이 길이의 차례로 자르기."""
+    """토큰화한 텍스트를 이어 붙이고 고정 길이 시퀀스로 자르기."""
 
     def __init__(
         self,
@@ -216,19 +216,19 @@ print()
 
 
 # =====================================================================
-# 4부 – 익히기 되풀이
+# 4부 – 학습 루프
 # =====================================================================
 print("=" * 60)
 print("Part 4: Training Loop with Gradient Accumulation")
 print("=" * 60)
 
 print("""
-  익히기 자리매김(GPT-2 Small 보기):
+  학습 설정(GPT-2 Small 예):
     batch_size:                   12
     gradient_accumulation_steps:  1
     effective_batch_size:         12 * num_gpus
     learning_rate:                5e-4
-    lr_scheduler:                 데우기를 곁들인 코사인
+    lr_scheduler:                 워밍업을 곁들인 코사인
     warmup_steps:                 2000
     max_train_steps:              150000
     weight_decay:                 0.1
@@ -238,7 +238,7 @@ print("""
 
 
 # =====================================================================
-# 5부 – 평가: 퍼플렉서티와 만들어 내기
+# 5부 – 평가: 퍼플렉서티와 생성
 # =====================================================================
 print("=" * 60)
 print("Part 5: Evaluation — Perplexity & Generation")
@@ -246,21 +246,21 @@ print("=" * 60)
 
 print("""
   퍼플렉서티 — 언어 모델의 표준 지표
-    PPL = exp(평균 엇갈린 엔트로피 로스)
-    퍼플렉서티가 낮다 = 모델이 남겨 둔 글에 더 높은 확률을 준다
+    PPL = exp(평균 교차 엔트로피 로스)
+    퍼플렉서티가 낮다 = 모델이 홀드아웃 텍스트에 더 높은 확률을 준다
 """)
 
 
 # =====================================================================
-# 6부 – 규모 키우기와 흩뿌린 익히기
+# 6부 – 규모 확장과 분산 학습
 # =====================================================================
 print("=" * 60)
 print("Part 6: Scaling — Distributed Training with Accelerate")
 print("=" * 60)
 
 print("""
-  실제로 미리 익힐 때는 여러 GPU를 쓰려 HuggingFace Accelerate를 쓴다.
-  이렇게 띄운다: accelerate launch --num_processes 4 train.py
+  실제로 사전 학습할 때는 여러 GPU를 쓰려 HuggingFace Accelerate를 쓴다.
+  이렇게 실행한다: accelerate launch --num_processes 4 train.py
 """)
 
 print("Done.")
@@ -312,12 +312,12 @@ Part 3: ConstantLengthDataset
 Part 4: Training Loop with Gradient Accumulation
 ============================================================
 
-  익히기 자리매김(GPT-2 Small 보기):
+  학습 설정(GPT-2 Small 예):
     batch_size:                   12
     gradient_accumulation_steps:  1
     effective_batch_size:         12 * num_gpus
     learning_rate:                5e-4
-    lr_scheduler:                 데우기를 곁들인 코사인
+    lr_scheduler:                 워밍업을 곁들인 코사인
     warmup_steps:                 2000
     max_train_steps:              150000
     weight_decay:                 0.1
@@ -329,15 +329,15 @@ Part 5: Evaluation — Perplexity & Generation
 ============================================================
 
   퍼플렉서티 — 언어 모델의 표준 지표
-    PPL = exp(평균 엇갈린 엔트로피 로스)
-    퍼플렉서티가 낮다 = 모델이 남겨 둔 글에 더 높은 확률을 준다
+    PPL = exp(평균 교차 엔트로피 로스)
+    퍼플렉서티가 낮다 = 모델이 홀드아웃 텍스트에 더 높은 확률을 준다
 
 ============================================================
 Part 6: Scaling — Distributed Training with Accelerate
 ============================================================
 
-  실제로 미리 익힐 때는 여러 GPU를 쓰려 HuggingFace Accelerate를 쓴다.
-  이렇게 띄운다: accelerate launch --num_processes 4 train.py
+  실제로 사전 학습할 때는 여러 GPU를 쓰려 HuggingFace Accelerate를 쓴다.
+  이렇게 실행한다: accelerate launch --num_processes 4 train.py
 
 Done.
 ```
@@ -364,7 +364,7 @@ EOS를 사이에 넣어도 문서 간 어텐션이 자동으로 차단되지는 
 
 그래디언트 누적의 실효 배치는 보통 장치당 microbatch×누적 횟수×장치 수이며 로스 스케일과 마지막 불완전 누적을 일관되게 처리해야 한다. warmup과 코사인 스케줄은 옵티마이저 갱신 횟수를 기준으로 맞춘다. 바이어스·정규화 웨이트의 weight decay 제외는 흔한 선택이지만 모든 설정에서 필수인 법칙은 아니다. AdamW의 분리된 weight decay와 적응형 옵티마이저 로스에 L2 항을 더하는 방식도 일반적으로 같지 않다.
 
-분산 학습·혼합 정밀도·활성화 체크포인팅은 별도 실행 구성이 필요하다. 도구 이름을 출력하는 것만으로 구현되거나 메모리·속도 향상이 검증되지는 않는다. 실제 자료 분리·토큰화·문맥 규칙을 고정한 검증·시험 평가로 학습 상태를 판단한다.
+분산 학습·혼합 정밀도·활성화 체크포인팅은 별도 실행 구성이 필요하다. 도구 이름을 출력하는 것만으로 구현되거나 메모리·속도 향상이 검증되지는 않는다. 실제 데이터 분리·토큰화·문맥 규칙을 고정한 검증·시험 평가로 학습 상태를 판단한다.
 
 ## 연습문제
 
@@ -392,7 +392,7 @@ EOS를 사이에 넣어도 문서 간 어텐션이 자동으로 차단되지는 
 
 ??? success "풀이"
 
-    바이어스는 위치 이동, LayerNorm의 웨이트는 정규화 뒤 스케일을 제어하므로 큰 행렬 웨이트와 다른 정규화 폴리시를 쓸 수 있다. 이들을 제외하는 것은 널리 쓰이는 설정 선택이며 모두 포함하면 언제나 학습이 실패한다는 뜻은 아니다. AdamW의 분리된 감소와 로스의 L2 페널티도 구분하고 동일 자료·검증 기준에서 폴리시를 비교한다. 현재 본문에는 실제 옵티마이저 그룹 구성이 없다.
+    바이어스는 위치 이동, LayerNorm의 웨이트는 정규화 뒤 스케일을 제어하므로 큰 행렬 웨이트와 다른 정칙화 정책을 쓸 수 있다. 이들을 제외하는 것은 널리 쓰이는 설정 선택이며 모두 포함하면 언제나 학습이 실패한다는 뜻은 아니다. AdamW의 분리된 감소와 로스의 L2 패널티도 구분하고 동일 데이터·검증 기준에서 정책을 비교한다. 현재 본문에는 실제 옵티마이저 그룹 구성이 없다.
 
 
 
@@ -407,31 +407,31 @@ EOS를 사이에 넣어도 문서 간 어텐션이 자동으로 차단되지는 
 
 ??? success "풀이"
 
-    0≤t<warmup_steps에서 선형 증가하고 warmup_steps에서 1, total_steps에서 0이 된다. total_steps는 warmup 이후의 추가 길이가 아니라 warmup을 포함한 전체 종료 시점이다. 0<warmup_steps<total_steps를 가정하며 t가 종료를 넘으면 코사인 때문에 다시 증가할 수 있으므로 실제 스케줄은 유효 구간이나 끝점 고정 폴리시를 명시해야 한다. 아래는 배율 계산 예이며 본문 학습 루프에 연결되어 있지 않다.
+    0≤t<warmup_steps에서 선형 증가하고 warmup_steps에서 1, total_steps에서 0이 된다. total_steps는 warmup 이후의 추가 길이가 아니라 warmup을 포함한 전체 종료 시점이다. 0<warmup_steps<total_steps를 가정하며 t가 종료를 넘으면 코사인 때문에 다시 증가할 수 있으므로 실제 스케줄은 유효 구간이나 끝점 고정 정책을 명시해야 한다. 아래는 배율 계산 예이며 본문 학습 루프에 연결되어 있지 않다.
 
     ```python
     import math
     
     def lr_schedule(t, warmup_steps, total_steps):
-        """스텝 t의 러닝 비율 곱셈수 셈하기.
+        """스텝 t의 러닝레이트 배율 계산.
         
         인수:
-            t: 지금 스텝
-            warmup_steps: 몸풀기 스텝의 개수
+            t: 현재 스텝
+            warmup_steps: 워밍업 스텝의 개수
             total_steps: 전체 학습 단계 수
             
         반환값:
-            [0, 1] 안의 러닝 비율 곱셈수
+            [0, 1] 안의 러닝레이트 배율
         """
         if t < warmup_steps:
-            # 한 줄 몸풀기: 0에서 1로 스케일 맞추기
+            # 선형 워밍업: 0에서 1로 증가
             return t / warmup_steps
         else:
-            # 1에서 0으로 코사인 줄이기
+            # 1에서 0으로 코사인 감쇠
             progress = (t - warmup_steps) / (total_steps - warmup_steps)
             return 0.5 * (1.0 + math.cos(math.pi * progress))
     
-    # 쓰는 보기:
+    # 사용 예:
     base_lr = 5e-4
     for step in [0, 1000, 2000, 50000, 150000]:
         multiplier = lr_schedule(step, warmup_steps=2000, total_steps=150000)
@@ -441,4 +441,4 @@ EOS를 사이에 넣어도 문서 간 어텐션이 자동으로 차단되지는 
 
 ## 정리하며
 
-새 웨이트의 모델 생성과 사전 학습 완료는 다르다. 토크나이저·특수 ID·청크 경계와 로스 목표를 맞추고 실제 갱신·검증·분산 자료 분할까지 구성해야 완전한 학습 파이프라인이 된다.
+새 웨이트의 모델 생성과 사전 학습 완료는 다르다. 토크나이저·특수 ID·청크 경계와 로스 목표를 맞추고 실제 갱신·검증·분산 데이터 분할까지 구성해야 완전한 학습 파이프라인이 된다.

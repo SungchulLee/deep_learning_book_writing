@@ -1,6 +1,6 @@
 # 베이즈 네트워크 기초
 
-베이즈 네트워크는 방향 비순환 그래프(DAG)와 각 변수의 부모 조건부분포로 결합분포를 표현한다. 이산 변수에서는 조건부 확률표(CPT)를 사용한다. 화살표에 인과 의미를 부여하려면 추가 가정이 필요하며, 관측 자료의 인수분해만으로 인과 관계가 정해지는 것은 아니다.
+베이즈 네트워크는 방향 비순환 그래프(DAG)와 각 변수의 부모 조건부분포로 결합분포를 표현한다. 이산 변수에서는 조건부 확률표(CPT)를 사용한다. 화살표에 인과 의미를 부여하려면 추가 가정이 필요하며, 관측 데이터의 인수분해만으로 인과 관계가 정해지는 것은 아니다.
 
 ## 1. 코드
 
@@ -8,31 +8,31 @@
 
     ```python
     """
-    베이즈 망 — 기초
+    베이즈 네트워크 — 기초
     ===========================
 
     이 모듈은 인과 관계를 나타내는 데 가장 흔히 쓰이는 확률 그래프
-    모형인 베이즈 망을 들여온다.
+    모델인 베이즈 네트워크를 소개한다.
 
     학습 목표:
     -------------------
-    1. 베이즈 망이 무엇이고 무엇으로 이루어지는지 이해하기
+    1. 베이즈 네트워크가 무엇이고 무엇으로 이루어지는지 이해하기
     2. 조건부 확률표(CPT) 나타내는 법 배우기
-    3. 단순한 베이즈 망을 맨바닥에서 쌓기
-    4. 사슬 규칙으로 결합 확률 셈하기
-    5. 베이즈 망에 기본 물음 던지기
+    3. 단순한 베이즈 네트워크를 처음부터 구성하기
+    4. 연쇄 법칙으로 결합 확률 계산하기
+    5. 베이즈 네트워크에 기본 질의하기
 
-    수학의 바탕:
+    수학적 기초:
     ------------------------
-    베이즈 망은 다음을 만족하는 튜플 (G, P)이다:
-    - G = (V, E)은 방향 비순환 그래프(DAG)이다
-    - P = {P(Xi | Parents(Xi))}은 조건부 확률 분포의 배치다
+    베이즈 네트워크는 다음을 만족하는 튜플 (G, P)다:
+    - G = (V, E)는 방향 비순환 그래프(DAG)다
+    - P = {P(Xi | Parents(Xi))}는 조건부 확률 분포의 집합이다
 
-    이 망은 결합 분포를 다음과 같이 나타낸다:
+    이 네트워크는 결합 분포를 다음과 같이 나타낸다:
         P(X1, ..., Xn) = ∏ P(Xi | Parents(Xi))
 
     지은이: 교육용 ML 팀
-    수준: 첫스텝
+    수준: 입문
     미리 볼 것: 01_pgm_fundamentals.py
     """
 
@@ -43,7 +43,7 @@
     from itertools import product
     import pandas as pd
 
-    # 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+    # 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
     # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
     np.random.seed(0)
 
@@ -56,14 +56,14 @@
         """
         변수의 조건부 확률표(CPT)를 나타낸다.
 
-        CPT은 어버이 값의 모든 조합에 대해 P(변수 | 어버이)을 못 박는다.
-        이것이 베이즈 망의 근본
-        밑돌이다.
+        CPT는 부모 값의 모든 조합에 대해 P(변수 | 부모)를 명시한다.
+        이것이 베이즈 네트워크의 기본
+        구성 요소다.
 
         속성:
-            variable: 이 CPT이 밝히는 변수의 이름
-            parents: 어버이 변수 이름의 목록
-            cardinalities: 모든 변수를 가짓수에 잇는 사전
+            variable: 이 CPT가 정의하는 변수의 이름
+            parents: 부모 변수 이름의 목록
+            cardinalities: 모든 변수를 상태 수에 대응시키는 딕셔너리
             table: 조건부 확률을 담은 NumPy 배열
         """
 
@@ -73,17 +73,17 @@
                      cardinalities: Dict[str, int],
                      table: Optional[np.ndarray] = None):
             """
-            CPT의 첫스텝을 잡는다.
+            CPT를 초기화한다.
 
             인수:
                 variable: 변수의 이름(이를테면 'Rain')
-                parents: 어버이 변수 이름의 목록(이를테면 ['Cloudy'])
-                cardinalities: 모든 변수의 가짓수 사전
-                table: 있어도 되고 없어도 되는 CPT 값. 형태는
-                       (*어버이_가짓수, 변수_가짓수)이어야 한다
-                       None이면 고른 분포로 첫스텝을 잡는다
+                parents: 부모 변수 이름의 목록(이를테면 ['Cloudy'])
+                cardinalities: 모든 변수의 상태 수 딕셔너리
+                table: 선택적인 CPT 값. 형태는
+                       (*부모_상태수, 변수_상태수)이어야 한다
+                       None이면 균등 분포로 초기화한다
 
-            보기:
+            예:
                 # P(Rain | Cloudy)의 CPT
                 # Rain도 이진, Cloudy도 이진
                 cpt = ConditionalProbabilityTable(
@@ -99,13 +99,13 @@
             self.cardinalities = cardinalities
 
             # CPT의 형태 정하기
-            # 형태: (card(어버이1), card(어버이2), ..., card(변수))
+            # 형태: (card(부모1), card(부모2), ..., card(변수))
             parent_cards = [cardinalities[p] for p in parents]
             var_card = cardinalities[variable]
             shape = tuple(parent_cards + [var_card])
 
             if table is None:
-                # 고른 분포로 첫스텝 잡기
+                # 균등 분포로 초기화하기
                 self.table = np.ones(shape) / var_card
             else:
                 self.table = np.array(table)
@@ -119,7 +119,7 @@
             """
             조건부 확률의 합이 1인지 확인한다.
 
-            어버이 값의 형태마다 변수 값에 걸친 확률의
+            부모 값의 조합마다 변수 값에 걸친 확률의
             합이 1이어야 한다.
             """
             # 마지막 축(변수 자신)에 걸쳐 합하기
@@ -132,20 +132,20 @@
                            variable_value: int,
                            parent_values: Dict[str, int]) -> float:
             """
-            P(변수=값 | 어버이=어버이 값)을 얻는다.
+            P(변수=값 | 부모=부모 값)을 얻는다.
 
             인수:
-                variable_value: 변수의 값(정수 첨자)
-                parent_values: 어버이 이름을 값에 잇는 사전
+                variable_value: 변수의 값(정수 인덱스)
+                parent_values: 부모 이름을 값에 대응시키는 딕셔너리
 
             반환값:
                 조건부 확률
 
-            보기:
+            예:
                 # P(Rain=1 | Cloudy=0) 얻기
                 prob = cpt.get_probability(1, {'Cloudy': 0})
             """
-            # 표에 닿을 첨자 튜플 쌓기
+            # 표를 조회할 인덱스 튜플 만들기
             index = []
             for parent in self.parents:
                 index.append(parent_values[parent])
@@ -158,11 +158,11 @@
                            parent_values: Dict[str, int],
                            probability: float):
             """
-            P(변수=값 | 어버이=어버이 값)을 정한다.
+            P(변수=값 | 부모=부모 값)을 정한다.
 
             인수:
                 variable_value: 변수의 값
-                parent_values: 어버이 이름을 값에 잇는 사전
+                parent_values: 부모 이름을 값에 대응시키는 딕셔너리
                 probability: 정할 확률 값
             """
             index = []
@@ -174,43 +174,43 @@
 
         def sample(self, parent_values: Dict[str, int]) -> int:
             """
-            어버이 값이 주어졌을 때 변수의 값을 표집한다.
+            부모 값이 주어졌을 때 변수의 값을 샘플링한다.
 
-            이는 베이즈 망의 피드포워드 표집에 쓸모 있다.
+            이는 베이즈 네트워크의 순방향 샘플링에 유용하다.
 
             인수:
-                parent_values: 어버이 이름을 값에 잇는 사전
+                parent_values: 부모 이름을 값에 대응시키는 딕셔너리
 
             반환값:
-                표집한 값(정수)
+                샘플링한 값(정수)
 
-            보기:
-                # Cloudy=1일 때 Rain 값 표집하기
+            예:
+                # Cloudy=1일 때 Rain 값 샘플링하기
                 rain_value = cpt.sample({'Cloudy': 1})
             """
             # 조건부 분포 얻기
             index = tuple(parent_values[p] for p in self.parents)
             probabilities = self.table[index]
 
-            # 범주 분포에서 표집하기
+            # 범주 분포에서 샘플링하기
             return np.random.choice(len(probabilities), p=probabilities)
 
         def to_dataframe(self) -> pd.DataFrame:
             """
-            CPT을 읽기 좋은 DataFrame으로 바꾼다.
+            CPT를 읽기 좋은 DataFrame으로 바꾼다.
 
-            이는 그려 보기와 벌레잡기에 쓸모 있다.
+            이는 시각화와 디버깅에 유용하다.
 
             반환값:
-                어버이 값과 조건부 확률을 담은 DataFrame
+                부모 값과 조건부 확률을 담은 DataFrame
             """
             rows = []
 
-            # 어버이 값의 모든 조합 만들기
+            # 부모 값의 모든 조합 만들기
             parent_cards = [self.cardinalities[p] for p in self.parents]
 
             if not self.parents:
-                # 어버이 없음 — 앞확률 분포일 뿐이다
+                # 부모 없음 — 사전분포일 뿐이다
                 for var_val in range(self.cardinalities[self.variable]):
                     row = {self.variable: var_val, 'Probability': self.table[var_val]}
                     rows.append(row)
@@ -218,7 +218,7 @@
                 for parent_combo in product(*[range(c) for c in parent_cards]):
                     for var_val in range(self.cardinalities[self.variable]):
                         row = {}
-                        # 어버이 값 더하기
+                        # 부모 값 더하기
                         for parent, pval in zip(self.parents, parent_combo):
                             row[parent] = pval
                         # 변수 값 더하기
@@ -241,35 +241,35 @@
 
     class BayesianNetwork:
         """
-        베이즈 망을 나타낸다. 곧 CPT이 딸린 DAG이다.
+        베이즈 네트워크를 나타낸다. 곧 CPT가 딸린 DAG이다.
 
-        베이즈 망은 다음으로 이루어진다:
-        1. 방향 비순환 그래프(DAG) 짜임
-        2. 마디마다의 조건부 확률표(CPT)
+        베이즈 네트워크는 다음으로 이루어진다:
+        1. 방향 비순환 그래프(DAG) 구조
+        2. 노드마다의 조건부 확률표(CPT)
 
-        이 망은 P(X1,...,Xn) = ∏ P(Xi | Parents(Xi))을 나타낸다
+        이 네트워크는 P(X1,...,Xn) = ∏ P(Xi | Parents(Xi))를 나타낸다
 
         속성:
-            graph: 짜임을 나타내는 NetworkX DiGraph
-            cpts: 변수 이름을 CPT에 잇는 사전
-            cardinalities: 변수 이름을 가짓수에 잇는 사전
+            graph: 구조를 나타내는 NetworkX DiGraph
+            cpts: 변수 이름을 CPT에 대응시키는 딕셔너리
+            cardinalities: 변수 이름을 상태 수에 대응시키는 딕셔너리
         """
 
         def __init__(self):
-            """빈 베이즈 망의 첫스텝을 잡는다."""
+            """빈 베이즈 네트워크를 초기화한다."""
             self.graph = nx.DiGraph()
             self.cpts: Dict[str, ConditionalProbabilityTable] = {}
             self.cardinalities: Dict[str, int] = {}
 
         def add_variable(self, name: str, cardinality: int):
             """
-            망에 변수(마디)를 더한다.
+            네트워크에 변수(노드)를 더한다.
 
             인수:
                 name: 변수 이름(이를테면 'Weather', 'Traffic')
                 cardinality: 있을 수 있는 값의 개수(이진이면 2)
 
-            보기:
+            예:
                 bn = BayesianNetwork()
                 bn.add_variable('Rain', 2)  # 이진 변수
                 bn.add_variable('Season', 4)  # 네 계절
@@ -279,21 +279,21 @@
 
         def add_edge(self, parent: str, child: str):
             """
-            변수 사이에 방향 변(인과 관계)을 더한다.
+            변수 사이에 방향 간선(인과 관계)을 더한다.
 
             인수:
-                parent: 어버이 변수의 이름
+                parent: 부모 변수의 이름
                 child: 자식 변수의 이름
 
-            일으키는 예외:
-                ValueError: 그 변이 고리를 만들 때
+            발생하는 예외:
+                ValueError: 그 간선이 사이클을 만들 때
 
-            보기:
+            예:
                 bn.add_edge('Rain', 'WetGrass')  # 비가 잔디를 적신다
             """
             self.graph.add_edge(parent, child)
 
-            # 고리가 없는지 확인하기
+            # 사이클이 없는지 확인하기
             if not nx.is_directed_acyclic_graph(self.graph):
                 self.graph.remove_edge(parent, child)
                 raise ValueError(f"Adding edge {parent}->{child} creates a cycle!")
@@ -307,15 +307,15 @@
             인수:
                 variable: 변수의 이름
                 table: 조건부 확률을 담은 NumPy 배열
-                       형태는 (card(어버이1), ..., card(어버이N), card(변수))과 맞아야 한다
+                       형태는 (card(부모1), ..., card(부모N), card(변수))와 맞아야 한다
 
-            보기:
-                # 이진 Cloudy을 어버이로 갖는 이진 Rain의 경우
+            예:
+                # 이진 Cloudy를 부모로 갖는 이진 Rain의 경우
                 bn.set_cpt('Rain', np.array([[0.8, 0.2],   # P(Rain | Cloudy=0)
                                              [0.3, 0.7]]))  # P(Rain | Cloudy=1)
             """
             parents = list(self.graph.predecessors(variable))
-            parents.sort()  # 어긋나지 않는 차례
+            parents.sort()  # 일관된 순서
 
             cpt = ConditionalProbabilityTable(
                 variable=variable,
@@ -328,7 +328,7 @@
 
         def get_cpt(self, variable: str) -> ConditionalProbabilityTable:
             """
-            변수의 CPT을 얻는다.
+            변수의 CPT를 얻는다.
 
             인수:
                 variable: 변수의 이름
@@ -342,19 +342,19 @@
 
         def compute_joint_probability(self, assignment: Dict[str, int]) -> float:
             """
-            온전한 대입에 대해 P(X1=x1, X2=x2, ..., Xn=xn)을 셈한다.
+            완전한 대입에 대해 P(X1=x1, X2=x2, ..., Xn=xn)를 계산한다.
 
-            사슬 규칙 쪼개기를 쓴다:
+            연쇄 법칙 인수분해를 쓴다:
             P(X1,...,Xn) = ∏ P(Xi | Parents(Xi))
 
             인수:
-                assignment: 모든 변수에 값을 준 온전한 대입
+                assignment: 모든 변수에 값을 준 완전한 대입
 
             반환값:
                 결합 확률
 
-            보기:
-                # P(Cloudy=1, Rain=1, WetGrass=1) 셈하기
+            예:
+                # P(Cloudy=1, Rain=1, WetGrass=1) 계산하기
                 prob = bn.compute_joint_probability({
                     'Cloudy': 1,
                     'Rain': 1,
@@ -368,13 +368,13 @@
                 cpt = self.get_cpt(variable)
                 parents = list(self.graph.predecessors(variable))
 
-                # 어버이 값 얻기
+                # 부모 값 얻기
                 parent_values = {p: assignment[p] for p in parents}
 
                 # 변수 값 얻기
                 var_value = assignment[variable]
 
-                # P(변수 | 어버이)을 곱하기
+                # P(변수 | 부모)를 곱하기
                 prob = cpt.get_probability(var_value, parent_values)
                 probability *= prob
 
@@ -382,37 +382,37 @@
 
         def forward_sample(self) -> Dict[str, int]:
             """
-            피드포워드 표집으로 결합 분포에서 표본을 만든다.
+            순방향 샘플링으로 결합 분포에서 표본을 만든다.
 
-            피드포워드 표집은 위상 차례를 따른다:
-            1. 변수를 위상 차례로 표집한다
-            2. 이미 표집한 어버이 값으로 P(Xi | Parents(Xi))에서 표집한다
+            순방향 샘플링은 위상 순서를 따른다:
+            1. 변수를 위상 순서로 샘플링한다
+            2. 이미 샘플링한 부모 값으로 P(Xi | Parents(Xi))에서 샘플링한다
 
             반환값:
-                P(X1,...,Xn)에서 표집한 온전한 대입
+                P(X1,...,Xn)에서 샘플링한 완전한 대입
 
-            보기:
-                # 망에서 표본 1000개 만들기
+            예:
+                # 네트워크에서 표본 1000개 만들기
                 samples = [bn.forward_sample() for _ in range(1000)]
             """
             assignment = {}
 
-            # 위상 차례로 표집하기(자식보다 어버이를 먼저)
+            # 위상 순서로 샘플링하기(자식보다 부모를 먼저)
             for variable in nx.topological_sort(self.graph):
                 cpt = self.get_cpt(variable)
                 parents = list(self.graph.predecessors(variable))
 
-                # 이미 표집한 변수에서 어버이 값 얻기
+                # 이미 샘플링한 변수에서 부모 값 얻기
                 parent_values = {p: assignment[p] for p in parents}
 
-                # 이 변수 표집하기
+                # 이 변수 샘플링하기
                 assignment[variable] = cpt.sample(parent_values)
 
             return assignment
 
         def visualize(self, figsize: Tuple[int, int] = (12, 8), show_cpts: bool = False):
             """
-            베이즈 망의 짜임과, 원하면 CPT까지 그려 본다.
+            베이즈 네트워크의 구조와, 원하면 CPT까지 시각화한다.
 
             인수:
                 figsize: 그림 크기
@@ -420,13 +420,13 @@
             """
             plt.figure(figsize=figsize)
 
-            # 배치
+            # 레이아웃
             try:
                 pos = nx.spring_layout(self.graph, k=2, iterations=50)
             except:
                 pos = nx.spring_layout(self.graph)
 
-            # 마디와 변 그리기
+            # 노드와 간선 그리기
             nx.draw(self.graph, pos,
                     with_labels=True,
                     node_color='lightcoral',
@@ -438,7 +438,7 @@
                     edge_color='gray',
                     width=2)
 
-            # 가짓수를 마디 이름표로 붙이기
+            # 상태 수를 노드 라벨로 붙이기
             labels = {node: f"{node}\n(card={self.cardinalities[node]})" 
                      for node in self.graph.nodes()}
             pos_labels = {k: (v[0], v[1] - 0.1) for k, v in pos.items()}
@@ -463,18 +463,18 @@
 
     def build_weather_network() -> BayesianNetwork:
         """
-        단순한 날씨 예측 베이즈 망을 쌓는다.
+        단순한 날씨 예측 베이즈 네트워크를 구성한다.
 
-        망의 짜임:
+        네트워크의 구조:
             Cloudy -> Rain -> WetGrass
             Cloudy -> Sprinkler -> WetGrass
 
-        이는 다음을 보여 주는 고전적인 보기이다:
-        - 함께 낳은 원인(흐림이 비와 물뿌리개에 함께 영향을 준다)
+        이는 다음을 보여 주는 고전적인 예다:
+        - 공통 원인(흐림이 비와 물뿌리개에 함께 영향을 준다)
         - 여러 원인(젖은 잔디는 비 때문일 수도 물뿌리개 때문일 수도 있다)
 
         반환값:
-            CPT을 갖춘 온전한 베이즈 망
+            CPT를 갖춘 완전한 베이즈 네트워크
         """
         print("\nBuilding Weather Network...")
         print("-" * 70)
@@ -487,15 +487,15 @@
         bn.add_variable('Rain', 2)
         bn.add_variable('WetGrass', 2)
 
-        # 변 더하기(인과 관계)
-        bn.add_edge('Cloudy', 'Sprinkler')  # 흐림이 물뿌리개 씀에 영향을 준다
+        # 간선 더하기(인과 관계)
+        bn.add_edge('Cloudy', 'Sprinkler')  # 흐림이 물뿌리개 사용에 영향을 준다
         bn.add_edge('Cloudy', 'Rain')        # 흐림이 비에 영향을 준다
         bn.add_edge('Sprinkler', 'WetGrass') # 물뿌리개가 잔디를 적실 수 있다
         bn.add_edge('Rain', 'WetGrass')      # 비가 잔디를 적실 수 있다
 
         # CPT 정하기
 
-        # P(Cloudy) — 앞확률
+        # P(Cloudy) — 사전확률
         # [P(Cloudy=0), P(Cloudy=1)]
         bn.set_cpt('Cloudy', np.array([0.5, 0.5]))
 
@@ -515,7 +515,7 @@
 
         # P(WetGrass | Sprinkler, Rain)
         # 물뿌리개가 켜졌거나 비가 오면 잔디가 젖는다
-        # 차례: [Sprinkler=0, Rain=0], [Sprinkler=0, Rain=1],
+        # 순서: [Sprinkler=0, Rain=0], [Sprinkler=0, Rain=1],
         #        [Sprinkler=1, Rain=0], [Sprinkler=1, Rain=1]
         bn.set_cpt('WetGrass', np.array([
             [[1.0, 0.0],   # Sprinkler=0, Rain=0: 잔디가 마름
@@ -533,7 +533,7 @@
 
     def demonstrate_joint_probability():
         """
-        베이즈 망에서 결합 확률 셈하기를 보인다.
+        베이즈 네트워크에서 결합 확률 계산하기를 보인다.
         """
         print("\n" + "="*70)
         print("DEMONSTRATION: Computing Joint Probabilities")
@@ -541,7 +541,7 @@
 
         bn = build_weather_network()
 
-        # 결합 확률 몇 개 셈하기
+        # 결합 확률 몇 개 계산하기
         test_cases = [
             {'Cloudy': 0, 'Sprinkler': 0, 'Rain': 0, 'WetGrass': 0},
             {'Cloudy': 1, 'Sprinkler': 0, 'Rain': 1, 'WetGrass': 1},
@@ -561,7 +561,7 @@
             print(f"\nScenario {i}: {desc}")
             print(f"P(assignment) = {prob:.6f}")
 
-            # 쪼개기 보이기
+            # 인수분해 보이기
             print("\nFactorization:")
             print(f"  = P(Cloudy={assignment['Cloudy']})")
             print(f"  × P(Sprinkler={assignment['Sprinkler']} | Cloudy={assignment['Cloudy']})")
@@ -571,9 +571,9 @@
 
     def demonstrate_sampling():
         """
-        베이즈 망에서 피드포워드 표집을 보인다.
+        베이즈 네트워크에서 순방향 샘플링을 보인다.
 
-        피드포워드 표집은 결합 분포를 어림하는
+        순방향 샘플링은 결합 분포를 근사하는
         몬테카를로 방법이다.
         """
         print("\n" + "="*70)
@@ -588,26 +588,26 @@
 
         samples = [bn.forward_sample() for _ in range(num_samples)]
 
-        # 뜯어보려고 DataFrame으로 바꾸기
+        # 분석하려고 DataFrame으로 바꾸기
         df = pd.DataFrame(samples)
 
         print("\nFirst 10 samples:")
         print(df.head(10).to_string(index=False))
 
-        # 경험 확률 셈하기
+        # 경험 확률 계산하기
         print("\n" + "-"*70)
         print("Empirical vs. True Probabilities")
         print("-"*70)
 
-        # P(Cloudy) 살피기
+        # P(Cloudy) 확인하기
         empirical_cloudy = df['Cloudy'].mean()
         print(f"\nP(Cloudy=1):")
         print(f"  True: 0.500")
         print(f"  Empirical: {empirical_cloudy:.3f}")
 
-        # P(WetGrass) 살피기
+        # P(WetGrass) 확인하기
         empirical_wet = df['WetGrass'].mean()
-        # 모든 형태에 걸쳐 합해 참 확률 셈하기
+        # 모든 조합에 걸쳐 합해 참 확률 계산하기
         true_wet = 0.0
         for assignment in [dict(zip(['Cloudy', 'Sprinkler', 'Rain', 'WetGrass'], combo))
                           for combo in product([0,1], repeat=4)
@@ -631,20 +631,20 @@
 
     def build_student_network() -> BayesianNetwork:
         """
-        학생 성적 베이즈 망을 쌓는다.
+        학생 성적 베이즈 네트워크를 구성한다.
 
-        이 망은 학생의 시험 성적에 영향을 주는 요소를 본뜬다:
-        - 시험의 어려움
-        - 학생의 머리 좋음
-        - 학생의 성적(둘 다에 기댄다)
-        - 추천서의 질(성적에 기댄다)
+        이 네트워크는 학생의 시험 성적에 영향을 주는 요소를 모델링한다:
+        - 시험의 난이도
+        - 학생의 지능
+        - 학생의 성적(둘 다에 의존한다)
+        - 추천서의 질(성적에 의존한다)
 
-        망의 짜임:
+        네트워크의 구조:
             Difficulty -> Grade <- Intelligence
             Grade -> Letter
 
         반환값:
-            온전한 베이즈 망
+            완전한 베이즈 네트워크
         """
         print("\nBuilding Student Network...")
         print("-" * 70)
@@ -655,9 +655,9 @@
         bn.add_variable('Difficulty', 2)   # 0=쉬움, 1=어려움
         bn.add_variable('Intelligence', 2)  # 0=낮음, 1=높음
         bn.add_variable('Grade', 3)         # 0=A, 1=B, 2=C
-        bn.add_variable('Letter', 2)        # 0=약함, 1=셈
+        bn.add_variable('Letter', 2)        # 0=약함, 1=강함
 
-        # 변 더하기
+        # 간선 더하기
         bn.add_edge('Difficulty', 'Grade')
         bn.add_edge('Intelligence', 'Grade')
         bn.add_edge('Grade', 'Letter')
@@ -671,8 +671,8 @@
         bn.set_cpt('Intelligence', np.array([0.7, 0.3]))
 
         # P(Grade | Intelligence, Difficulty)
-        # [Difficulty=0, Intelligence=0] -> 대개 B과 C
-        # [Difficulty=0, Intelligence=1] -> 대개 A과 B
+        # [Difficulty=0, Intelligence=0] -> 대개 B와 C
+        # [Difficulty=0, Intelligence=1] -> 대개 A와 B
         # [Difficulty=1, Intelligence=0] -> 대개 C
         # [Difficulty=1, Intelligence=1] -> 대개 B
         bn.set_cpt('Grade', np.array([
@@ -683,9 +683,9 @@
         ]))
 
         # P(Letter | Grade)
-        # 성적이 좋을수록 추천서가 세진다
+        # 성적이 좋을수록 추천서가 강해진다
         bn.set_cpt('Letter', np.array([
-            [0.1, 0.9],  # Grade=A -> 센 추천서
+            [0.1, 0.9],  # Grade=A -> 강한 추천서
             [0.4, 0.6],  # Grade=B -> 보통 추천서
             [0.9, 0.1]   # Grade=C -> 약한 추천서
         ]))
@@ -696,7 +696,7 @@
 
     def main():
         """
-        베이즈 망 개념을 보여 주는 주된 함수.
+        베이즈 네트워크 개념을 보여 주는 메인 함수.
         """
         print("\n" + "="*70)
         print("BAYESIAN NETWORKS - BASICS")
@@ -708,20 +708,20 @@
         print("3. Computing joint probabilities")
         print("4. Forward sampling")
 
-        # 날씨 망을 쌓고 그려 보기
+        # 날씨 네트워크를 구성하고 시각화하기
         print("\n" + "="*70)
         print("Example 1: Weather Network")
         print("="*70)
         bn = build_weather_network()
         bn.visualize(show_cpts=True)
 
-        # 결합 확률 셈하기 보이기
+        # 결합 확률 계산하기 보이기
         demonstrate_joint_probability()
 
-        # 표집 보이기
+        # 샘플링 보이기
         demonstrate_sampling()
 
-        # 학생 망을 쌓고 그려 보기
+        # 학생 네트워크를 구성하고 시각화하기
         print("\n" + "="*70)
         print("Example 2: Student Network")
         print("="*70)
@@ -979,17 +979,17 @@ $$P(X_1,\ldots,X_n)=\prod_iP(X_i\mid Pa(X_i))$$
 
 "베이즈 네트워크"라는 이름은 1985년에 주디아 펄(Judea Pearl)이 붙였다. 인지과학회 학술대회 논문 「Bayesian Networks: A Model of Self-Activated Memory for Evidential Reasoning」이다. 왜 하필 베이즈였는가 하면 세 가지를 함께 가리키려 해서였다 — 넣는 정보가 흔히 **주관적**이라는 것, 갱신이 **베이즈 조건화**로 이루어진다는 것, 그리고 **인과적 추론과 증거적 추론을 구분**한다는 것이다. 1763년에 뒤늦게 실린 토머스 베이즈의 글에 대한 경의이기도 했다.
 
-셋째가 바로 위 문단이 조심하는 그 지점이다. 화살표를 인과로 읽고 싶은 마음은 자연스러운데, 이름을 지은 사람부터 그 둘을 갈라 두려 했다. 자료가 화살표를 얼마나 정해 주는지 재어 보면 까닭이 분명해진다.
+셋째가 바로 위 문단이 조심하는 그 지점이다. 화살표를 인과로 읽고 싶은 마음은 자연스러운데, 이름을 지은 사람부터 그 둘을 갈라 두려 했다. 데이터가 화살표를 얼마나 정해 주는지 재어 보면 까닭이 분명해진다.
 
-![네 개의 DAG가 나란히 놓인 그림이다. 왼쪽부터 X에서 Y로 Y에서 Z로 가는 사슬, Y에서 양쪽으로 가는 포크, Z에서 Y로 Y에서 X로 가는 뒤집은 사슬, 그리고 X와 Z가 함께 Y로 들어가는 충돌점이다. 각 DAG 아래에 자료와의 KL 값이 적혀 있는데 앞의 셋은 모두 0이고 구별되지 않는다고 적혀 있으며, 충돌점만 0.040으로 구별된다고 적혀 있다.](figures/arrows_undetermined.svg)
+![네 개의 DAG가 나란히 놓인 그림이다. 왼쪽부터 X에서 Y로 Y에서 Z로 가는 사슬, Y에서 양쪽으로 가는 포크, Z에서 Y로 Y에서 X로 가는 뒤집은 사슬, 그리고 X와 Z가 함께 Y로 들어가는 충돌점이다. 각 DAG 아래에 데이터와의 KL 값이 적혀 있는데 앞의 셋은 모두 0이고 구별되지 않는다고 적혀 있으며, 충돌점만 0.040으로 구별된다고 적혀 있다.](figures/arrows_undetermined.svg)
 
-사슬 X→Y→Z 로 결합분포를 하나 만들고, 네 가지 DAG 로 각각 적합해 보았다. 사슬·포크·**뒤집은 사슬** 셋은 참 분포를 기계 오차까지 똑같이 되살린다. 화살표를 전부 반대로 돌려 놓아도 자료는 꿈쩍하지 않는다. 오직 충돌점만 KL 0.040 으로 어긋난다.
+사슬 X→Y→Z 로 결합분포를 하나 만들고, 네 가지 DAG 로 각각 적합해 보았다. 사슬·포크·**뒤집은 사슬** 셋은 참 분포를 기계 오차까지 똑같이 복원한다. 화살표를 전부 반대로 돌려 놓아도 데이터는 꿈쩍하지 않는다. 오직 충돌점만 KL 0.040 으로 어긋난다.
 
-**그러니 자료가 정해 주는 것은 화살표가 아니다.** 어느 변수끼리 이어져 있는가, 그리고 어디에 충돌점이 있는가까지다. 그 둘이 같으면 화살표 방향이 달라도 관측으로는 같은 모형이다. 위 예제의 `Cloudy→Rain` 은 그래서 자료에서 읽어 낸 것이 아니라 **우리가 고른 것**이고, 뒤집어도 이 쪽의 어떤 출력도 달라지지 않는다.
+**그러니 데이터가 정해 주는 것은 화살표가 아니다.** 어느 변수끼리 이어져 있는가, 그리고 어디에 충돌점이 있는가까지다. 그 둘이 같으면 화살표 방향이 달라도 관측으로는 같은 모델이다. 위 예제의 `Cloudy→Rain` 은 그래서 데이터에서 읽어 낸 것이 아니라 **우리가 고른 것**이고, 뒤집어도 이 쪽의 어떤 출력도 달라지지 않는다.
 
-달리 말하면 **인과를 말하려면 자료 바깥에서 무언가를 더 가져와야 한다** — 시간 순서든, 개입 실험이든, 영역 지식이든. 그래프를 그렸다는 사실만으로는 아무것도 보태지지 않는다. 아래 순방향 샘플링이 "정의한 결합분포의 표본"을 준다고 적은 것도 같은 말이다. 샘플링은 우리가 적어 넣은 분포를 충실히 되돌려 줄 뿐, 그 분포가 세상을 맞게 적었는지는 묻지 않는다.
+달리 말하면 **인과를 말하려면 데이터 바깥에서 무언가를 더 가져와야 한다** — 시간 순서든, 개입 실험이든, 영역 지식이든. 그래프를 그렸다는 사실만으로는 아무것도 보태지지 않는다. 아래 순방향 샘플링이 "정의한 결합분포의 표본"을 준다고 적은 것도 같은 말이다. 샘플링은 우리가 적어 넣은 분포를 충실히 되돌려 줄 뿐, 그 분포가 세상을 맞게 적었는지는 묻지 않는다.
 
-_확인한 곳 — J. Pearl, "Bayesian Networks: A Model of Self-Activated Memory for Evidential Reasoning", *Proceedings of the 7th Conference of the Cognitive Science Society* (1985). 이름에 담은 세 가지 뜻(주관적 입력, 베이즈 조건화에 의한 갱신, 인과적 추론과 증거적 추론의 구분) 이 그 글에서 밝힌 바다. 그림의 KL 값은 그림을 그리는 코드가 직접 적합해 셈하며, 앞의 셋이 기계 오차 안에서 같다는 것과 충돌점만 다르다는 것을 `assert` 로 확인한 뒤에 그린다._
+_확인한 곳 — J. Pearl, "Bayesian Networks: A Model of Self-Activated Memory for Evidential Reasoning", *Proceedings of the 7th Conference of the Cognitive Science Society* (1985). 이름에 담은 세 가지 뜻(주관적 입력, 베이즈 조건화에 의한 갱신, 인과적 추론과 증거적 추론의 구분) 이 그 글에서 밝힌 바다. 그림의 KL 값은 그림을 그리는 코드가 직접 적합해 계산하며, 앞의 셋이 기계 오차 안에서 같다는 것과 충돌점만 다르다는 것을 `assert` 로 확인한 뒤에 그린다._
 
 </div>
 
@@ -1085,7 +1085,7 @@ DAG를 유지하면서 간선을 추가하면 표현 가능한 분포와 CPT 크
     rain_given_wet = samples[wet_mask, 2].mean()
     print(f'P(Rain=1|WetGrass=1) approx = {rain_given_wet:.4f}')
 
-    # 낱낱 세기로 정확히
+    # 전수 열거로 정확히
     from itertools import product
     p_rain_wet = 0
     p_wet = 0

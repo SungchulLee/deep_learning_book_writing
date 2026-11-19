@@ -26,7 +26,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import numpy as np
-# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
 # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
 torch.manual_seed(0)
 
@@ -52,7 +52,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# 피처 정규화 (회귀에서 중요하다!)
+# 피처 표준화 (회귀에서 중요하다!)
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
@@ -60,10 +60,10 @@ X_test = scaler.transform(X_test)
 # PyTorch 텐서로 바꾸기
 X_train = torch.FloatTensor(X_train)
 # reshape(-1, 1)이 반드시 필요하다. 모델의 출력이 (N, 1)인데 목표가
-# (N,)이면 MSELoss가 오류를 내지 않고 방송을 해 버려, (N, N) 크기의
+# (N,)이면 MSELoss가 오류를 내지 않고 브로드캐스팅을 해 버려, (N, N) 크기의
 # 차이 행렬을 만들고 그 평균을 로스로 내놓는다. 값이 조용히 틀리므로
 # 알아채기 어렵다. 분류에서 쓰는 LongTensor 인덱스와 달리 회귀의
-# 목표는 실수이고 모양까지 맞추어 주어야 한다.
+# 목표는 실수이고 형태까지 맞추어 주어야 한다.
 # 목표를 표준화하지 않은 점도 눈여겨보라. 집값이 10만 달러 단위라
 # 이미 0.15~5 정도의 얌전한 범위이기 때문이며, 그래서 아래에서
 # RMSE에 100000을 곱해 달러로 되돌릴 수 있다
@@ -110,7 +110,7 @@ model = RegressionNet(X_train.shape[1])
 
 # 회귀를 위한 MSE 로스.
 # 교차 엔트로피는 확률 분포를 견주는 로스라 여기에 쓸 수 없다.
-# MSE는 오차를 제곱하므로 크게 빗나간 표본에 훨씬 큰 벌점을 준다.
+# MSE는 오차를 제곱하므로 크게 빗나간 표본에 훨씬 큰 패널티를 준다.
 # 이상치가 많은 데이터라면 그 성질이 독이 되므로, 오차에 비례하는
 # L1Loss나 둘을 섞은 SmoothL1Loss를 쓰기도 한다
 criterion = nn.MSELoss()
@@ -214,14 +214,14 @@ print("\n" + "="*80)
 print("KEY POINTS FOR REGRESSION")
 print("="*80)
 print("""
-회귀의 피처:
+회귀의 특징:
 ✓ MSELoss나 L1Loss를 쓴다(교차 엔트로피가 아니다!)
-✓ 출력 뉴런 하나(엑티베이션 함수 없음)
+✓ 출력 뉴런 하나(활성화 함수 없음)
 ✓ 입력 피처를 정규화하거나 표준화하라
 ✓ RMSE, MAE, R² 점수로 평가하라
 
 로스 함수:
-- MSELoss: 큰 오차에 더 큰 벌점을 준다
+- MSELoss: 큰 오차에 더 큰 패널티를 준다
 - L1Loss: 이상치에 더 강건하다
 - SmoothL1Loss: 혼합형 접근
 
@@ -288,14 +288,14 @@ Plots saved!
 KEY POINTS FOR REGRESSION
 ================================================================================
 
-회귀의 피처:
+회귀의 특징:
 ✓ MSELoss나 L1Loss를 쓴다(교차 엔트로피가 아니다!)
-✓ 출력 뉴런 하나(엑티베이션 함수 없음)
+✓ 출력 뉴런 하나(활성화 함수 없음)
 ✓ 입력 피처를 정규화하거나 표준화하라
 ✓ RMSE, MAE, R² 점수로 평가하라
 
 로스 함수:
-- MSELoss: 큰 오차에 더 큰 벌점을 준다
+- MSELoss: 큰 오차에 더 큰 패널티를 준다
 - L1Loss: 이상치에 더 강건하다
 - SmoothL1Loss: 혼합형 접근
 
@@ -317,7 +317,7 @@ TIPS:
 
 RegressionNet은 8→64→32→16→1 구조이며 마지막 레이어 뒤에 시그모이드가 없다. 목표값의 가능한 범위를 모델 출력에서 강제로 제한하지 않는 회귀 설계이다.
 
-StandardScaler는 학습 입력에 fit하고 테스트 입력에는 transform만 수행한다. 복원한 모델을 사용할 때도 같은 scaler가 필요하다. 모델 웨이트만으로 원래 입력의 전처리가 복원되지는 않는다.
+StandardScaler는 학습 입력에 fit하고 시험 입력에는 transform만 수행한다. 복원한 모델을 사용할 때도 같은 scaler가 필요하다. 모델 웨이트만으로 원래 입력의 전처리가 복원되지는 않는다.
 
 MSE는 목표 단위의 제곱이고 RMSE와 MAE는 목표와 같은 단위이다. 이 데이터의 금액 환산은 데이터셋 목표의 단위를 반영한 것이다. 무작위 분할의 성능을 다른 시기나 지역에 대한 예측 성능으로 바로 일반화하지 않는다.
 
@@ -343,7 +343,7 @@ scaler를 전체 데이터에 fit하면 왜 문제가 되는가?
 </div>
 
 ??? success "풀이"
-    테스트 입력의 평균과 분산이 학습 변환에 반영된다. 목표값을 쓰지 않더라도 평가 데이터의 분포가 새어 들어간다. 훈련 분할 안에서 fit하고 검증·테스트에는 같은 변환만 적용한다.
+    시험 입력의 평균과 분산이 학습 변환에 반영된다. 목표값을 쓰지 않더라도 평가 데이터의 분포가 새어 들어간다. 학습 분할 안에서 fit하고 검증·시험에는 같은 변환만 적용한다.
 
 ---
 

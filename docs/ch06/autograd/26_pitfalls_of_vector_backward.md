@@ -4,7 +4,7 @@
 
 **들어가는 이야기** — 터져 주는 쪽이 고마운 쪽이다
 
-벡터를 되짚을 때 `backward(v)`에 함께 넘기는 `v`가 있다 — **벡터-야코비 곱**이
+벡터 출력을 역전파할 때 `backward(v)`에 함께 넘기는 `v`가 있다 — **벡터-야코비 곱**이
 어느 방향으로 눌러 줄지를 정하는 값이다. 그 `v`를 어긋나게 주는 방법이
 다섯 가지인데, **둘만 터지고 셋은 조용하다.**
 
@@ -47,7 +47,7 @@
 - v 의 모양이 출력과 다르면
 
 조용한 쪽
-- v 를 비우지 않고 여러 번 부르면 (경사가 쌓인다)
+- v 를 비우지 않고 여러 번 부르면 (그래디언트가 쌓인다)
 - v 에 requires_grad 를 켜면 (아무 일도 안 일어난다)
 - v 의 자료형이 다르면 (말없이 맞춰 준다)
 
@@ -114,13 +114,13 @@ def accumulates():
 # ========================================================================
 
 def v_requires_grad():
-    header("3. 조용한 것 — v 에 깃발을 켜면")
+    header("3. 조용한 것 — v 에 플래그를 켜면")
     x = torch.randn(3, requires_grad=True)
     v = torch.ones(3, requires_grad=True)
     (x ** 2).backward(v)
     print("  통과한다. x.grad :", [round(t, 4) for t in x.grad.tolist()])
     print("  그런데 v.grad    :", v.grad)
-    print("  v 는 '가중치' 일 뿐 미분 대상이 아니다. 깃발은 무시된다")
+    print("  v 는 '가중치' 일 뿐 미분 대상이 아니다. 플래그는 무시된다")
     print("  v 에 대한 민감도가 필요하면 식을 다시 세워야 한다")
     x2 = torch.randn(3, requires_grad=True)
     v2 = torch.ones(3, requires_grad=True)
@@ -217,10 +217,10 @@ if __name__ == "__main__":
     둘째 줄 = A[0]+A[1] 인가: True
   모양도 맞고 첫 줄도 맞아서 검산이 쉽게 속는다
 
-=== 3. 조용한 것 — v 에 깃발을 켜면 ===
+=== 3. 조용한 것 — v 에 플래그를 켜면 ===
   통과한다. x.grad : [0.2454, -1.1326, 0.7462]
   그런데 v.grad    : None
-  v 는 '가중치' 일 뿐 미분 대상이 아니다. 깃발은 무시된다
+  v 는 '가중치' 일 뿐 미분 대상이 아니다. 플래그는 무시된다
   v 에 대한 민감도가 필요하면 식을 다시 세워야 한다
   (v*y).sum() 으로 적으면 v.grad 도 온다: [0.7957, 2.2774, 0.1372]
 
@@ -329,7 +329,7 @@ autograd.grad 로 모은 J == A : True
 x.grad 는 그대로 : None
 ```
 
-`torch.autograd.grad(y, x, v)`는 경사를 **돌려주고** `.grad`를 건드리지 않는다.
+`torch.autograd.grad(y, x, v)`는 그래디언트를 **돌려주고** `.grad`를 건드리지 않는다.
 
 ```python
 g, = torch.autograd.grad(y, x, v, retain_graph=True)
@@ -354,7 +354,7 @@ v=-1 (경사 상승)  3.0 -> 7.4650
 걷는 것이니 당연하다.
 
 실수로 뒤집으면 로스가 올라가므로 금방 알아챈다. 그런데 **일부러 뒤집는 자리**도
-있다 — GAN의 생성자처럼 어떤 로스를 올리고 싶을 때다. 대개는 로스에 음수를
+있다 — GAN의 제너레이터처럼 어떤 로스를 올리고 싶을 때다. 대개는 로스에 음수를
 붙이는 쪽이 읽기 좋지만, 같은 일이다.
 
 ## 연습문제
@@ -407,7 +407,7 @@ v=-1 (경사 상승)  3.0 -> 7.4650
     torch.manual_seed(0)
     A = torch.randn(4, 3)
     def vjp(v):
-        torch.manual_seed(1)                 # 같은 x 에서 재려고 씨앗을 고정
+        torch.manual_seed(1)                 # 같은 x 에서 재려고 시드를 고정
         x = torch.randn(3, requires_grad=True)
         (A @ x).backward(v)
         return x.grad.clone()
@@ -443,7 +443,7 @@ v=-1 (경사 상승)  3.0 -> 7.4650
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
 6절의 `autograd.grad`가 `.grad`를 안 건드린다고 했다. 그렇다면 **학습 루프
-한가운데서** 그것을 써도 되는가? 쌓여 있던 경사가 어떻게 되는지 확인하라.
+한가운데서** 그것을 써도 되는가? 쌓여 있던 그래디언트가 어떻게 되는지 확인하라.
 
 </div>
 
@@ -455,30 +455,30 @@ v=-1 (경사 상승)  3.0 -> 7.4650
 
     torch.nn.functional.mse_loss(m(x), y).backward()
     saved = m.weight.grad.clone()
-    print("  backward 로 쌓인 경사:", [round(t, 5) for t in saved.flatten().tolist()])
+    print("  backward 로 쌓인 그래디언트:", [round(t, 5) for t in saved.flatten().tolist()])
 
     probe, = torch.autograd.grad(m(x).sum(), m.weight, retain_graph=True)
     print("  autograd.grad 로 딴 것:", [round(t, 5) for t in probe.flatten().tolist()])
-    print("  쌓여 있던 경사가 그대로인가:",
+    print("  쌓여 있던 그래디언트가 그대로인가:",
           torch.allclose(m.weight.grad, saved))
     ```
 
     ```
-      backward 로 쌓인 경사: [0.25892, 0.79127, -0.2553]
+      backward 로 쌓인 그래디언트: [0.25892, 0.79127, -0.2553]
       autograd.grad 로 딴 것: [-0.31461, -1.96776, -0.77923]
-      쌓여 있던 경사가 그대로인가: True
+      쌓여 있던 그래디언트가 그대로인가: True
     ```
 
-    **써도 된다.** 쌓여 있던 경사가 그대로다.
+    **써도 된다.** 쌓여 있던 그래디언트가 그대로다.
 
     그래서 학습 루프 한가운데서 **다른 양을 들여다보는 데** 쓸 수 있다.
-    경사의 노름을 재거나, 특정 층의 기여를 보거나, 적대적 예제를 만들거나.
-    「torch.no_grad 사용하기」 연습문제 2에서 입력에 대한 경사를 딴 것도
-    같은 형태.
+    그래디언트의 노름을 재거나, 특정 레이어의 기여를 보거나, 적대적 예제를 만들거나.
+    「torch.no_grad 사용하기」 연습문제 2에서 입력에 대한 그래디언트를 딴 것도
+    같은 형태다.
 
     다만 `retain_graph=True`가 필요하다. 그 뒤에 `opt.step()`을 부를 것이라면
     이미 `backward()`가 끝났으므로 상관없지만, 순서가 반대라면 그래프를
     남겨야 한다.
 
-    값이 공짜는 아니다. 그래프를 한 번 더 걷는 것이므로 역전파 한 번만큼 든다.
+    공짜는 아니다. 그래프를 한 번 더 걷는 것이므로 역전파 한 번만큼 든다.
     걸음마다 하면 학습이 두 배 느려진다 — 몇 걸음마다 한 번 보는 쪽이 보통이다.

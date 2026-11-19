@@ -46,7 +46,7 @@ def create_model_with_dropout(input_dim, dropout_rate=0.5):
     """드롭아웃 레이어가 있는 뉴럴 네트워크를 만든다."""
     return nn.Sequential(
         # 선형 → 활성화 → 드롭아웃 차례다. 활성화 뒤에 두어야
-        # 엑티베이션을 끄는 것이 된다
+        # 활성화 값을 끄는 것이 된다
         nn.Linear(input_dim, 128),
         nn.ReLU(),
         nn.Dropout(dropout_rate),
@@ -118,7 +118,7 @@ def main():
     X, y = make_classification(n_samples=1000, n_features=20, n_informative=15,
                                 n_redundant=5, random_state=42)
     
-    # 데이터 나누고 척도 맞추기
+    # 데이터 나누고 표준화하기
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     scaler = StandardScaler()
     # 학습 집합에는 fit_transform, 시험 집합에는 transform이다. 시험
@@ -128,7 +128,7 @@ def main():
     X_test = scaler.transform(X_test)
 
     # 텐서로 옮긴다. 목표는 (N, 1) 모양이어야 한다. (N,)으로 두면
-    # BCEWithLogitsLoss가 (N, 1)인 출력과 방송되어 조용히 틀린 값을 낸다
+    # BCEWithLogitsLoss가 (N, 1)인 출력과 브로드캐스팅되어 조용히 틀린 값을 낸다
     X_train_t = torch.FloatTensor(X_train)
     y_train_t = torch.FloatTensor(y_train).reshape(-1, 1)
     X_test_t = torch.FloatTensor(X_test)
@@ -146,9 +146,9 @@ def main():
     val_loader = DataLoader(val_ds, batch_size=32)
     test_loader = DataLoader(test_ds, batch_size=32)
 
-    # 모델을 만들기 직전마다 씨앗을 다시 심는다. 이렇게 해야 두 모델이
+    # 모델을 만들기 직전마다 시드를 다시 설정한다. 이렇게 해야 두 모델이
     # 같은 초기 웨이트에서 출발해, 결과의 차이를 드롭아웃 하나로
-    # 돌릴 수 있다. 씨앗을 한 번만 심으면 초기화 운이 섞여 든다
+    # 돌릴 수 있다. 시드를 한 번만 설정하면 초기화 운이 섞여 든다
     print("Training model WITHOUT dropout...")
     torch.manual_seed(42)
     model_no_dropout = create_model_without_dropout(X_train.shape[1])
@@ -226,7 +226,7 @@ Plot saved as 'dropout_comparison.png'
 
 두 모델은 로짓을 내며 BCEWithLogitsLoss를 사용한다. 목표는 출력과 같은 `(N, 1)` 부동소수점 텐서로 맞춘다. 이 로스는 `(N,)` 목표를 조용히 브로드캐스팅해 처리하는 대신 모양 불일치 오류를 낼 수 있다.
 
-코드는 외부 학습·테스트를 나누고 학습 부분을 표준화한 다음 내부 검증을 떼어 둔다. 따라서 최종 테스트 통계는 쓰지 않았지만 내부 검증의 입력 통계가 scaler 학습에 포함된다. 엄격한 검증을 하려면 내부 분할도 먼저 하고 실제 학습 부분에서만 scaler를 fit해야 한다.
+코드는 외부 학습·시험을 나누고 학습 부분을 표준화한 다음 내부 검증을 떼어 둔다. 따라서 최종 시험 통계는 쓰지 않았지만 내부 검증의 입력 통계가 scaler 학습에 포함된다. 엄격한 검증을 하려면 내부 분할도 먼저 하고 실제 학습 부분에서만 scaler를 fit해야 한다.
 
 학습 중 드롭아웃의 무작위 마스크가 지표를 바꾸므로 검증과 직접 비교할 때 모드 차이를 반영한다. 같은 시드로 모델을 생성해도 데이터 순서와 마스크가 모든 실행에서 같아지는 것은 아니다.
 
@@ -252,7 +252,7 @@ BCEWithLogitsLoss의 입력과 목표 모양을 설명하라.
 </div>
 
 ??? success "풀이"
-    외부 테스트를 나눈 뒤 학습 부분을 다시 실제 학습·검증으로 나누고, 실제 학습 입력에만 scaler를 fit한다. 같은 변환을 검증과 테스트에 적용한다.
+    외부 시험 집합을 나눈 뒤 학습 부분을 다시 실제 학습·검증으로 나누고, 실제 학습 입력에만 scaler를 fit한다. 같은 변환을 검증과 시험에 적용한다.
 
 ---
 
@@ -284,17 +284,17 @@ BCEWithLogitsLoss의 입력과 목표 모양을 설명하라.
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 
-드롭아웃 효과를 비교할 때 출력·로스 규약, 전처리의 분할 순서와 모드 차이를 함께 확인한다. 최종 테스트 지표로 반복해서 설정을 선택하지 않는다.
+드롭아웃 효과를 비교할 때 출력·로스 규약, 전처리의 분할 순서와 모드 차이를 함께 확인한다. 최종 시험 지표로 반복해서 설정을 선택하지 않는다.

@@ -1,6 +1,6 @@
-# 이미지을 위한 위치 임베딩
+# 이미지를 위한 위치 임베딩
 
-위치 정보가 없는 셀프 어텐션은 패치 순열에 따라 출력도 함께 재배열되는 순열 동변성을 갖는다. 토큰 출력이 순서와 무관하게 그대로인 것은 아니다. 위치 임베딩·상대 바이어스는 이미지의 공간 관계를 모델에 반영하는 방법이다.
+위치 정보가 없는 셀프 어텐션은 패치 순열에 따라 출력도 함께 재배열되는 순열 등변성(permutation equivariance)을 갖는다. 토큰 출력이 순서와 무관하게 그대로인 것은 아니다. 위치 임베딩·상대 바이어스는 이미지의 공간 관계를 모델에 반영하는 방법이다.
 
 ## 1. 위치 정보가 왜 중요한가
 
@@ -53,23 +53,23 @@ import torch.nn as nn
 
 class LearnablePositionEmbedding(nn.Module):
     """
-    비전 트랜스포머에서 쓰는 표준 학습형 자리 임베딩.
+    비전 트랜스포머에서 쓰는 표준 학습형 위치 임베딩.
     
-    자리마다 고유한 학습 벡터를 얻어 그 자리의 조각 임베딩에
-    더해진다.
+    위치마다 고유한 학습 벡터를 두어 그 위치의 패치 임베딩에
+    더한다.
     """
     def __init__(self, n_patches: int, embed_dim: int, include_cls: bool = True):
         super().__init__()
         n_positions = n_patches + 1 if include_cls else n_patches
         
-        # 학습되는 자리 임베딩
+        # 학습되는 위치 임베딩
         self.pos_embed = nn.Parameter(torch.zeros(1, n_positions, embed_dim))
         
-        # 자른 정규 분포로 초기화한다
+        # 절단 정규분포로 초기화한다
         nn.init.trunc_normal_(self.pos_embed, std=0.02)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """입력에 자리 임베딩을 더한다."""
+        """입력에 위치 임베딩을 더한다."""
         return x + self.pos_embed
 ```
 
@@ -84,7 +84,7 @@ import torch.nn as nn
 
 class SinusoidalPositionEmbedding2D(nn.Module):
     """
-    2차원 사인파 자리 임베딩.
+    2차원 사인파 위치 임베딩.
     
     x 좌표와 y 좌표의 임베딩을 따로 만들어 이어 붙여
     1차원 사인파 방식을 2차원으로 넓힌다.
@@ -99,16 +99,16 @@ class SinusoidalPositionEmbedding2D(nn.Module):
         self.register_buffer('pe', pe)
         
     def _make_2d_sincos(self, h: int, w: int, d: int, temp: float) -> torch.Tensor:
-        """2차원 사인파 자리 임베딩을 만든다."""
+        """2차원 사인파 위치 임베딩을 만든다."""
         # 좌표 격자를 만든다
         y_pos = torch.arange(h).unsqueeze(1).repeat(1, w)
         x_pos = torch.arange(w).unsqueeze(0).repeat(h, 1)
         
-        # 차원 색인
+        # 차원 인덱스
         dim_t = torch.arange(d // 4)
         omega = 1.0 / (temp ** (dim_t / (d // 4)))
         
-        # 임베딩을 셈한다
+        # 임베딩을 계산한다
         # 좌표마다 sin 값 d/4개와 cos 값 d/4개를 보탠다
         y_embed = y_pos.flatten().unsqueeze(1) * omega.unsqueeze(0)
         x_embed = x_pos.flatten().unsqueeze(1) * omega.unsqueeze(0)
@@ -123,7 +123,7 @@ class SinusoidalPositionEmbedding2D(nn.Module):
         return pe.unsqueeze(0)  # (1, h*w, d)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """입력에 자리 임베딩을 더한다."""
+        """입력에 위치 임베딩을 더한다."""
         return x + self.pe[:, :x.size(1)]
 ```
 
@@ -134,9 +134,9 @@ RelativePositionBias는 한 변 M인 정사각 윈도의 오프셋마다 헤드�
 ```python
 class RelativePositionBias(nn.Module):
     """
-    스윈 트랜스포머에서 쓰는 상대 자리 바이어스.
+    스윈 트랜스포머에서 쓰는 상대 위치 바이어스.
     
-    절대 자리 대신 조각 자리 사이의 상대 거리를
+    절대 위치 대신 패치 위치 사이의 상대 거리를
     담는다.
     """
     def __init__(self, window_size: int, n_heads: int):
@@ -144,14 +144,14 @@ class RelativePositionBias(nn.Module):
         self.window_size = window_size
         self.n_heads = n_heads
         
-        # 상대 자리 바이어스 표
-        # 차원마다 (2*window-1)가지의 상대 자리가 있다
+        # 상대 위치 바이어스 표
+        # 차원마다 (2*window-1)가지의 상대 위치가 있다
         self.relative_position_bias_table = nn.Parameter(
             torch.zeros((2 * window_size - 1) ** 2, n_heads)
         )
         nn.init.trunc_normal_(self.relative_position_bias_table, std=0.02)
         
-        # 쌍마다의 상대 자리 색인을 셈한다
+        # 쌍마다의 상대 위치 인덱스를 계산한다
         coords = torch.stack(torch.meshgrid(
             torch.arange(window_size),
             torch.arange(window_size),
@@ -168,7 +168,7 @@ class RelativePositionBias(nn.Module):
         self.register_buffer("relative_position_index", relative_position_index)
         
     def forward(self) -> torch.Tensor:
-        """주의를 위한 상대 자리 바이어스를 돌려준다."""
+        """어텐션에 더할 상대 위치 바이어스를 돌려준다."""
         bias = self.relative_position_bias_table[
             self.relative_position_index.view(-1)
         ].view(
@@ -185,17 +185,17 @@ class RelativePositionBias(nn.Module):
 
 학습한 절대 위치 표를 새 패치 격자에 맞추는 방법으로 2차원 보간을 사용할 수 있다. 이는 가능한 방법 중 하나이며 모든 위치 방식에 필요한 것은 아니다.
 
-아래 함수는 CLS 하나와 정사각 격자, 정수 patch_size 속성을 가정한다. old_size 메타데이터와 실제 표 길이가 맞아야 한다. 반환 텐서를 만드는 것만으로 model.pos_embed가 바뀌지는 않는다. Parameter를 교체하면 옵티마이저가 참조하는 계수와 모델의 패치 수·입력 검증도 함께 갱신해야 한다.
+아래 함수는 CLS 하나와 정사각 격자, 정수 patch_size 속성을 가정한다. old_size 메타데이터와 실제 표 길이가 맞아야 한다. 반환 텐서를 만드는 것만으로 model.pos_embed가 바뀌지는 않는다. Parameter를 교체하면 옵티마이저가 참조하는 파라메터와 모델의 패치 수·입력 검증도 함께 갱신해야 한다.
 
 ```python
 def interpolate_pos_embed(model, new_size: int, old_size: int = 224):
     """
-    다른 그림 크기를 위해 자리 임베딩의 사이를 채운다.
+    다른 이미지 크기에 맞게 위치 임베딩을 보간한다.
     
     인수:
-        model: pos_embed 파라메터를 가진 비전 트랜스포머 모형
-        new_size: 새 그림 크기
-        old_size: 본디 그림 크기(기본 224)
+        model: pos_embed 파라메터를 가진 비전 트랜스포머 모델
+        new_size: 새 이미지 크기
+        old_size: 원래 이미지 크기(기본 224)
     """
     pos_embed = model.pos_embed
     n_patches_new = (new_size // model.patch_embed.patch_size) ** 2
@@ -204,7 +204,7 @@ def interpolate_pos_embed(model, new_size: int, old_size: int = 224):
     if n_patches_new == n_patches_old:
         return pos_embed
     
-    # CLS 토큰과 조각 임베딩을 가른다
+    # CLS 토큰과 패치 임베딩을 분리한다
     cls_pos = pos_embed[:, :1]
     patch_pos = pos_embed[:, 1:]
     
@@ -232,7 +232,7 @@ def interpolate_pos_embed(model, new_size: int, old_size: int = 224):
 
 ## 5. 위치 표현 시각화
 
-시각화는 CLS 행 하나를 제외한 위치 표를 가정한다. 코사인 정규화에서 0 노름을 처리하지 않아 영벡터에는 NaN이 생길 수 있다. 공간 시각화는 패치 수가 grid_size²와 같아야 하며 유사도 무늬만으로 인과적 공간 이해나 정확도를 판정할 수 없다.
+시각화는 CLS 행 하나를 제외한 위치 표를 가정한다. 코사인 정규화에서 0 노름을 처리하지 않아 영벡터에는 NaN이 생길 수 있다. 공간 시각화는 패치 수가 grid_size²와 같아야 하며 유사도 패턴만으로 인과적 공간 이해나 정확도를 판정할 수 없다.
 
 ### 위치 임베딩 눈으로 보기
 
@@ -242,25 +242,25 @@ import numpy as np
 
 def visualize_position_embeddings(pos_embed: torch.Tensor, grid_size: int = 14):
     """
-    학습된 자리 임베딩을 그려 본다.
+    학습된 위치 임베딩을 그려 본다.
     
     보이는 것:
-    1. 자리 임베딩 벡터를 열지도로
-    2. 자리 사이의 비슷함 행렬
+    1. 위치 임베딩 벡터를 히트맵으로
+    2. 위치 사이의 유사도 행렬
     """
     # CLS 토큰을 없앤다
     pos_embed = pos_embed[0, 1:].detach().cpu()
     
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
-    # 임베딩의 열지도
+    # 임베딩의 히트맵
     im1 = axes[0].imshow(pos_embed.T, aspect='auto', cmap='coolwarm')
     axes[0].set_xlabel('Patch Position')
     axes[0].set_ylabel('Embedding Dimension')
     axes[0].set_title('Position Embedding Vectors')
     plt.colorbar(im1, ax=axes[0])
     
-    # 비슷함 행렬
+    # 유사도 행렬
     pos_norm = pos_embed / pos_embed.norm(dim=1, keepdim=True)
     similarity = (pos_norm @ pos_norm.T).numpy()
     
@@ -275,9 +275,9 @@ def visualize_position_embeddings(pos_embed: torch.Tensor, grid_size: int = 14):
 
 def visualize_spatial_similarity(pos_embed: torch.Tensor, grid_size: int = 14):
     """
-    자리마다 다른 자리와 공간적으로 어떻게 얽히는지 보인다.
+    위치마다 다른 위치와 공간적으로 어떻게 관련되는지 보인다.
     
-    기준 자리마다 다른 모든 자리와의 비슷함을 보인다.
+    기준 위치마다 다른 모든 위치와의 유사도를 보인다.
     """
     pos_embed = pos_embed[0, 1:].detach().cpu()
     pos_norm = pos_embed / pos_embed.norm(dim=1, keepdim=True)
@@ -285,14 +285,14 @@ def visualize_spatial_similarity(pos_embed: torch.Tensor, grid_size: int = 14):
     
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     
-    # 그려 볼 기준 자리
+    # 그려 볼 기준 위치
     refs = [
         (0, 0),                          # 왼쪽 위
         (0, grid_size // 2),             # 위 가운데
         (grid_size // 2, grid_size // 2),# Center
         (grid_size // 2, 0),             # 왼쪽 가운데
         (grid_size - 1, grid_size - 1),  # 오른쪽 아래
-        (grid_size // 4, grid_size // 4) # 4분의 1 자리
+        (grid_size // 4, grid_size // 4) # 4분의 1 위치
     ]
     
     for ax, (row, col) in zip(axes.flatten(), refs):
@@ -313,7 +313,7 @@ def visualize_spatial_similarity(pos_embed: torch.Tensor, grid_size: int = 14):
 
 ## 6. 여러 방식 비교
 
-| 방식 | 추가 위치 계수 | 새 해상도에서 확인할 점 |
+| 방식 | 추가 위치 파라메터 | 새 해상도에서 확인할 점 |
 |---|---|---|
 | 학습 절대 위치 | 위치 수×D | 새 격자와 표의 보간·재학습 |
 | 고정 1차원 사인·코사인 | 0 | 저장 길이와 펼침 순서 |
@@ -332,11 +332,11 @@ def visualize_spatial_similarity(pos_embed: torch.Tensor, grid_size: int = 14):
 
 ## 8. 구현 시 확인할 점
 
-먼저 패치 펼침 순서와 위치 좌표를 맞춘다. 초기화·드롭아웃·보간은 모델의 학습 설정과 함께 선택하며, 아래 PositionEmbedding도 저장된 위치 수를 넘으면 덧셈 모양이 맞지 않는다. 드롭아웃의 학습·평가 모드도 구분한다.
+먼저 패치 펼침 순서와 위치 좌표를 맞춘다. 초기화·드롭아웃·보간은 모델의 학습 설정과 함께 선택하며, 아래 PositionEmbedding도 저장된 위치 수를 넘으면 덧셈 형태가 맞지 않는다. 드롭아웃의 학습·평가 모드도 구분한다.
 
 ```python
 class PositionEmbedding(nn.Module):
-    """좋은 방법을 갖춘 온전한 자리 임베딩 모듈."""
+    """모범 관행을 갖춘 완전한 위치 임베딩 모듈."""
     def __init__(self, n_patches: int, embed_dim: int, dropout: float = 0.1):
         super().__init__()
         # CLS 토큰 몫으로 +1
@@ -369,12 +369,12 @@ class PositionEmbedding(nn.Module):
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-2차원 위치 표현의 격자 표와 행·열 분리 표현의 계수·제약을 비교하라.
+2차원 위치 표현의 격자 표와 행·열 분리 표현의 파라메터·제약을 비교하라.
 
 </div>
 
 ??? success "풀이"
-    H×W 격자에서 독립 D차원 표는 HWD개, D차원 행·열 표를 더하면 (H+W)D개다. 분리형은 계수를 줄이지만 임의 격자 표를 그대로 표현하는 자유도는 없다. 사인·코사인 연결형은 행·열 차원의 합을 D로 맞춰 좌표별로 계산한다.
+    H×W 격자에서 독립 D차원 표는 HWD개, D차원 행·열 표를 더하면 (H+W)D개다. 분리형은 파라메터를 줄이지만 임의 격자 표를 그대로 표현하는 자유도는 없다. 사인·코사인 연결형은 행·열 차원의 합을 D로 맞춰 좌표별로 계산한다.
 
 ---
 
@@ -412,4 +412,4 @@ class PositionEmbedding(nn.Module):
 
 ## 정리하며
 
-공간 위치를 넣는 위치·규약과 패치 격자 모양을 일치시킨다. 고정 수식 계산·표 보간·상대 바이어스의 거리 범위는 서로 다른 문제이며, 새로운 해상도에서의 품질과 모델 전체의 이동 성질은 별도로 확인한다.
+공간 위치를 넣는 위치·규약과 패치 격자 형태를 일치시킨다. 고정 수식 계산·표 보간·상대 바이어스의 거리 범위는 서로 다른 문제이며, 새로운 해상도에서의 품질과 모델 전체의 이동 성질은 별도로 확인한다.

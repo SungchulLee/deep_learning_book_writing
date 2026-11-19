@@ -49,11 +49,11 @@ $$\boxed{\sigma^2 = \frac{2}{n_{\text{in}}}}$$
 
 ### 역전파 조건
 
-경사 신호에 같은 분석을 적용하면 다음을 얻는다.
+그래디언트 신호에 같은 분석을 적용하면 다음을 얻는다.
 
 $$\sigma^2 = \frac{2}{n_{\text{out}}}$$
 
-역전파 경사의 안정성이 더 중요할 때(예: 건너뛰기 연결이 없는 아주 깊은 뉴럴 네트워크) 팬아웃 방식을 쓰기도 한다.
+역전파 그래디언트의 안정성이 더 중요할 때(예: 스킵 연결이 없는 아주 깊은 뉴럴 네트워크) 팬아웃 방식을 쓰기도 한다.
 
 ### Xavier와의 비교
 
@@ -122,7 +122,7 @@ $$n_{\text{in}}\,\sigma^2 \cdot \frac{1 + a^2}{2} = 1$$
 
 $$\boxed{\sigma^2 = \frac{2}{(1 + a^2)\,n_{\text{in}}}}$$
 
-표준 ReLU($a = 0$)에서는 $2/n_{\text{in}}$을 되찾는다. $a = 0.01$인 Leaky ReLU에서는 보정이 무시할 만하다($1 + 0.0001 \approx 1$). PReLU의 음수 그래디언트를 $a=0.25$로 초기화한다면 $\sigma^2 \approx 2/(1.0625 \cdot n_{\text{in}})$이 된다.
+표준 ReLU($a = 0$)에서는 $2/n_{\text{in}}$을 되찾는다. $a = 0.01$인 Leaky ReLU에서는 보정이 무시할 만하다($1 + 0.0001 \approx 1$). PReLU의 음수 쪽 기울기를 $a=0.25$로 초기화한다면 $\sigma^2 \approx 2/(1.0625 \cdot n_{\text{in}})$이 된다.
 
 ```python
 # 기울기가 0.2인 Leaky ReLU
@@ -156,7 +156,7 @@ def compare_init_relu(n_layers=50, hidden=512, n_samples=1024):
         # fan_in 방식은 순전파의 분산을 지키는 쪽이다
         ('He Normal (fan_in)', lambda w: init.kaiming_normal_(w, mode='fan_in', nonlinearity='relu')),
         # fan_out 방식은 역전파의 분산을 지키는 쪽이다. 정사각 레이어에서는
-        # fan_in과 fan_out이 같아 둘이 겹치지만, 너비가 바뀌는 망에서는 갈린다
+        # fan_in과 fan_out이 같아 둘이 겹치지만, 너비가 바뀌는 네트워크에서는 갈린다
         ('He Normal (fan_out)', lambda w: init.kaiming_normal_(w, mode='fan_out', nonlinearity='relu')),
     ]:
         h = x.clone()   # 세 방식 모두 같은 입력에서 시작해야 견줄 수 있다
@@ -189,7 +189,7 @@ def compare_init_relu(n_layers=50, hidden=512, n_samples=1024):
 compare_init_relu()
 ```
 
-### 경사 크기 비교
+### 그래디언트 크기 비교
 
 ```python
 def compare_gradient_flow(n_layers=30, hidden=256, n_samples=256):
@@ -240,7 +240,7 @@ def compare_gradient_flow(n_layers=30, hidden=256, n_samples=256):
     ax.set_ylabel('Gradient Norm')
     ax.set_title('Gradient Magnitude vs Distance from Output')
     # 로그 축이라야 한다. 레이어마다 일정 배수로 줄어들면 로그 축에서
-    # 직선이 되고, 그 그래디언트가 곧 레이어당 감쇠율이다.
+    # 직선이 되고, 그 기울기가 곧 레이어당 감쇠율이다.
     # 선형 축으로 그리면 앞쪽 몇 레이어 말고는 모두 0에 붙어 보인다
     ax.set_yscale('log')
     ax.legend()
@@ -312,7 +312,7 @@ linear = nn.Linear(256, 256, bias=False)
 init.orthogonal_(linear.weight, gain=2 ** 0.5)  # ReLU에는 gain=√2
 ```
 
-`gain` 파라메터는 He 초기화의 인수 2와 마찬가지로 엑티베이션 함수의 효과를 반영한다.
+`gain` 파라메터는 He 초기화의 인수 2와 마찬가지로 활성화 함수의 효과를 반영한다.
 
 ### LSUV (레이어 순차 단위 분산)
 
@@ -322,8 +322,8 @@ init.orthogonal_(linear.weight, gain=2 ** 0.5)  # ReLU에는 gain=√2
 def lsuv_init(model, data_batch, target_std=1.0, max_iter=10, tol=0.05):
     """레이어 순차 단위 분산(LSUV) 초기화."""
     # He 초기화는 "이런 분포에서 뽑으면 분산이 유지될 것"이라는 이론값이다.
-    # LSUV는 여기서 한 스텝 더 나아가, 실제 데이터를 흘려 보고 활성의
-    # 표준편차를 재어 1이 될 때까지 웨이트를 직접 다시 재는 방식이다.
+    # LSUV는 여기서 한 걸음 더 나아가, 실제 데이터를 흘려 보고 활성의
+    # 표준편차를 재어 1이 될 때까지 웨이트의 스케일을 직접 다시 맞추는 방식이다.
     # 이론이 가정한 조건이 어긋나는 구조에서도 통한다는 것이 장점이다.
     model.eval()   # 드롭아웃과 배치 정규화를 꺼야 잰 값이 흔들리지 않는다
     hooks = []
@@ -339,7 +339,7 @@ def lsuv_init(model, data_batch, target_std=1.0, max_iter=10, tol=0.05):
             # 출력 표준편차를 잡아내려고 훅 등록.
             # name=name 으로 기본 인자를 묶는 것이 중요하다. 이렇게 하지
             # 않으면 모든 훅이 반복문의 마지막 name을 함께 보게 되어
-            # 통계가 한 자리에만 쌓인다(파이썬 클로저의 늦은 묶기)
+            # 통계가 한 자리에만 쌓인다(파이썬 클로저의 늦은 바인딩)
             def hook_fn(mod, inp, out, name=name):
                 activation_stds[name] = out.detach().std().item()
             hooks.append(module.register_forward_hook(hook_fn))
@@ -369,11 +369,11 @@ def lsuv_init(model, data_batch, target_std=1.0, max_iter=10, tol=0.05):
             break   # 모든 레이어가 tol 안에 들면 끝난다
 
     # 훅은 반드시 떼어 낸다. 그대로 두면 학습 내내 순전파마다
-    # 통계를 셈해 느려지고 메모리도 샌다
+    # 통계를 계산해 느려지고 메모리도 샌다
     for h in hooks:
         h.remove()
 
-    model.train()   # 학습 결로 되돌린다
+    model.train()   # 학습 모드로 되돌린다
 ```
 
 ---
@@ -382,9 +382,9 @@ def lsuv_init(model, data_batch, target_std=1.0, max_iter=10, tol=0.05):
 
 금융 데이터를 다루는 ReLU 기반 MLP에도 같은 초기화 원리를 적용할 수 있다. 특정 분야라는 이유로 초기화의 안정성 조건이 달라지지는 않는다.
 
-**시계열과 순환 구조.** 시간에 따라 반복 사용하는 웨이트는 단순한 레이어별 독립성 분석과 다르다. He 초기화만으로 긴 시계열의 경사 소실을 막을 수 없으므로 순환 웨이트의 구조와 별도 초기화도 고려한다.
+**시계열과 순환 구조.** 시간에 따라 반복 사용하는 웨이트는 단순한 레이어별 독립성 분석과 다르다. He 초기화만으로 긴 시계열의 그래디언트 소실을 막을 수 없으므로 순환 웨이트의 구조와 별도 초기화도 고려한다.
 
-**피처 추출기.** ReLU의 활성 비율과 레이어별 신호 크기를 점검한다. He 초기화가 특정 자산의 의미 있는 피처가나 죽은 뉴런 방지를 보장하는 것은 아니다.
+**피처 추출기.** ReLU의 활성 비율과 레이어별 신호 크기를 점검한다. He 초기화가 특정 자산의 의미 있는 피처나 죽은 뉴런 방지를 보장하는 것은 아니다.
 
 ```python
 import torch
@@ -408,7 +408,7 @@ class DeepHedgingNetwork(nn.Module):
         # Leaky ReLU 레이어에 He 초기화
         for m in self.net:
             if isinstance(m, nn.Linear):
-                # a는 Leaky ReLU의 음수 쪽 그래디언트이며, 위에서 준
+                # a는 Leaky ReLU의 음수 쪽 기울기이며, 위에서 준
                 # LeakyReLU(0.01)과 같은 값이어야 한다. He 초기화의
                 # 배율이 sqrt(2 / (1 + a^2))로 이 값에 따라 달라지기
                 # 때문이다. 둘이 어긋나면 레이어마다 분산이 조금씩 밀린다
@@ -418,8 +418,8 @@ class DeepHedgingNetwork(nn.Module):
 
         # 출력 레이어: 처음에 보수적으로 시작하도록 작게 초기화.
         # 위 반복문이 이미 이 레이어까지 He로 초기화했으므로 여기서 덮어쓴다.
-        # 출력 레이어 뒤에는 활성화가 없어 He가 메우려던 ReLU의 로스가
-        # 애초에 없고, 자비에르가 더 좁아 헤지 비율이 0 가까이에서
+        # 출력 레이어 뒤에는 활성화가 없어 He가 메우려던 ReLU의 분산 감소가
+        # 애초에 없고, Xavier가 더 좁아 헤지 비율이 0 가까이에서
         # 출발한다. 곧 학습 초반에 큰 포지션을 잡지 않는다
         init.xavier_normal_(self.net[-1].weight)
         init.zeros_(self.net[-1].bias)
@@ -471,7 +471,7 @@ class DeepHedgingNetwork(nn.Module):
     # fan_out: 역전파의 분산을 보존한다
     nn.init.kaiming_normal_(w, mode='fan_out', nonlinearity='relu')
     ```
-    순전파의 안정성에는 `fan_in`을, 역전파 경사의 안정성이 더 중요할 때는 `fan_out`을 쓴다.
+    순전파의 안정성에는 `fan_in`을, 역전파 그래디언트의 안정성이 더 중요할 때는 `fan_out`을 쓴다.
 
 ---
 
@@ -483,7 +483,7 @@ class DeepHedgingNetwork(nn.Module):
 </div>
 
 ??? success "풀이"
-    웨이트의 분포와 실제 분산, 입력 스케일, 레이어별 활성화의 평균·분산·2차 적률, 0인 활성화 비율, 경사 노름을 기록한다. 같은 구조·데이터 분할·학습 예산에서 여러 시드로 비교한다. 균등분포 자체가 문제인 것은 아니므로 초기 범위를 명시한다. He 초기화의 분산 유지 예측과 실제 학습 성능은 따로 평가한다.
+    웨이트의 분포와 실제 분산, 입력 스케일, 레이어별 활성화의 평균·분산·2차 적률, 0인 활성화 비율, 그래디언트 노름을 기록한다. 같은 구조·데이터 분할·학습 예산에서 여러 시드로 비교한다. 균등분포 자체가 문제인 것은 아니므로 초기 범위를 명시한다. He 초기화의 분산 유지 예측과 실제 학습 성능은 따로 평가한다.
 
 ## 정리하며
 
@@ -491,7 +491,7 @@ class DeepHedgingNetwork(nn.Module):
 |--------|--------|
 | **분산 공식** | $\sigma^2 = \frac{2}{n_{\text{in}}}$ (팬인) 또는 $\frac{2}{n_{\text{out}}}$ (팬아웃) |
 | **핵심 통찰** | 대칭 입력에서 ReLU의 2차 적률이 절반이 되는 효과를 반영한다 |
-| **알맞은 대상** | ReLU 및 음수 그래디언트를 반영한 Leaky ReLU·PReLU |
+| **알맞은 대상** | ReLU 및 음수 쪽 기울기를 반영한 Leaky ReLU·PReLU |
 | **Leaky ReLU로의 확장** | $\sigma^2 = \frac{2}{(1+a^2)\,n_{\text{in}}}$ |
 | **PyTorch** | `init.kaiming_normal_`, `init.kaiming_uniform_` |
 | **잔차 뉴럴 네트워크** | 0 초기화나 $1/\sqrt{2L}$ 배율 조정과 함께 쓴다 |

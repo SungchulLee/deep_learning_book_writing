@@ -8,38 +8,38 @@
 
     ```python
     """
-    변수 없애기 알고리즘
+    변수 제거 알고리즘
     ===============================
 
-    이 모듈은 베이즈 망의 짜임을 써먹는 효율적인 정확 추론 방법인
-    변수 없애기 알고리즘을 구현한다.
+    이 모듈은 베이즈 망의 구조를 활용하는 효율적인 정확 추론 방법인
+    변수 제거 알고리즘을 구현한다.
 
     학습 목표:
     -------------------
-    1. 낱낱 세기가 왜 비효율적인지 이해하기
-    2. 변수 없애기 알고리즘 배우기
+    1. 열거(enumeration)가 왜 비효율적인지 이해하기
+    2. 변수 제거 알고리즘 배우기
     3. 인자 연산(곱, 주변화) 이해하기
-    4. 없애는 차례와 그 영향 배우기
+    4. 제거 순서와 그 영향 배우기
     5. 효율적인 정확 추론 구현하기
 
-    수학의 바탕:
+    수학적 배경:
     ------------------------
-    변수 없애기는 다음과 같이 굴러간다:
-    1. CPT을 인자로 바꾼다
-    2. 없앨 변수마다:
+    변수 제거는 다음과 같이 동작한다:
+    1. CPT를 인자로 바꾼다
+    2. 제거할 변수마다:
        - 그 변수를 담은 인자를 모두 모은다
        - 그것들을 곱한다(인자 곱)
-       - 그 변수를 합으로 지운다(주변화)
-    3. 남은 인자를 곱하고 고르게 한다
+       - 그 변수를 합산해 소거한다(주변화)
+    3. 남은 인자를 곱하고 정규화한다
 
     시간 복잡도: O(n * d^(w+1))이며 여기서:
     - n = 변수의 개수
-    - d = 가장 큰 가짓수
-    - w = 이끌린 너비(없애는 차례에 달렸다)
+    - d = 최대 상태 수(cardinality)
+    - w = 유도 폭(제거 순서에 달렸다)
 
     지은이: 교육용 ML 팀
     수준: 중간
-    미리 볼 것: 첫스텝 수준의 01-04
+    선수 내용: 입문 수준의 01-04
     """
 
     import numpy as np
@@ -56,12 +56,12 @@
 
     class Factor:
         """
-        변수 배치에 걸친 인자(퍼텐셜 함수)를 나타낸다.
+        변수 집합에 걸친 인자(퍼텐셜 함수)를 나타낸다.
 
         인자 φ(X1, ..., Xk)은 (X1, ..., Xk)의 대입마다
-        음이 아닌 수에 잇는 함수이다.
+        음이 아닌 수에 대응시키는 함수이다.
 
-        인자는 변수 없애기의 근본 자료 짜임이다.
+        인자는 변수 제거의 기본 자료구조이다.
         """
 
         def __init__(self,
@@ -69,14 +69,14 @@
                      cardinalities: Dict[str, int],
                      values: Optional[np.ndarray] = None):
             """
-            인자의 첫스텝을 잡는다.
+            인자를 초기화한다.
 
             인수:
                 variables: 이 인자에 든 변수 이름의 목록
-                cardinalities: 모든 변수의 가짓수 사전
+                cardinalities: 모든 변수의 상태 수 딕셔너리
                 values: 인자 값의 NumPy 배열(없어도 된다)
             """
-            self.variables = sorted(variables)  # 어긋나지 않도록 정렬해 둔다
+            self.variables = sorted(variables)  # 축 순서가 일관되도록 정렬해 둔다
             self.cardinalities = cardinalities
 
             shape = tuple(cardinalities[var] for var in self.variables)
@@ -90,12 +90,12 @@
 
         def multiply(self, other: 'Factor') -> 'Factor':
             """
-            인자 곱 φ1 × φ2을 셈한다.
+            인자 곱 φ1 × φ2를 계산한다.
 
-            인자 곱하기는 어긋나지 않는 대입마다 값을 곱해
+            인자 곱은 서로 일관된 대입마다 값을 곱해
             인자 둘을 합친다.
 
-            이를테면 φ1(A,B)과 φ2(B,C)이 있으면 다음과 같다:
+            이를테면 φ1(A,B)와 φ2(B,C)가 있으면 다음과 같다:
             (φ1 × φ2)(A,B,C) = φ1(A,B) × φ2(B,C)
 
             인수:
@@ -123,17 +123,17 @@
 
         def marginalize(self, variables_to_eliminate: List[str]) -> 'Factor':
             """
-            인자에서 변수를 합으로 지운다(주변화한다).
+            인자에서 변수를 합산해 소거한다(주변화한다).
 
-            주변화는 φ'(X) = Σ_Y φ(X, Y)을 셈한다
+            주변화는 φ'(X) = Σ_Y φ(X, Y)를 계산한다
 
             인수:
-                variables_to_eliminate: 합으로 지울 변수
+                variables_to_eliminate: 합산해 소거할 변수
 
             반환값:
-                변수를 없앤 새 인자
+                변수를 제거한 새 인자
             """
-            # 없앤 뒤 남은 변수
+            # 제거한 뒤 남은 변수
             remaining_vars = [v for v in self.variables 
                              if v not in variables_to_eliminate]
 
@@ -147,7 +147,7 @@
 
             # 남은 변수의 대입마다
             for remaining_assignment in result._enumerate_assignments(remaining_vars):
-                # 없앤 변수의 모든 대입에 걸쳐 합하기
+                # 제거한 변수의 모든 대입에 걸쳐 합하기
                 total = 0.0
 
                 elim_cards = [self.cardinalities[v] for v in variables_to_eliminate]
@@ -163,16 +163,16 @@
 
         def reduce(self, evidence: Dict[str, int]) -> 'Factor':
             """
-            증거 변수를 붙박아 인자를 줄인다.
+            증거 변수를 고정해 인자를 축소한다.
 
-            증거와 어긋나지 않는 대입만 헤아리는
+            증거와 일관된 대입만 고려하는
             새 인자를 만든다.
 
             인수:
-                evidence: 관측한 변수 값의 사전
+                evidence: 관측한 변수 값의 딕셔너리
 
             반환값:
-                줄인 인자
+                축소한 인자
             """
             # 증거에 없는 변수
             remaining_vars = [v for v in self.variables if v not in evidence]
@@ -194,7 +194,7 @@
             return result
 
         def normalize(self) -> 'Factor':
-            """값의 합이 1이 되도록 인자를 고르게 한다."""
+            """값의 합이 1이 되도록 인자를 정규화한다."""
             total = np.sum(self.values)
             if total > 0:
                 return Factor(self.variables, self.cardinalities, 
@@ -236,25 +236,25 @@
 
     class VariableElimination:
         """
-        정확 추론을 위한 변수 없애기 알고리즘을 구현한다.
+        정확 추론을 위한 변수 제거 알고리즘을 구현한다.
 
-        이것이 베이즈 망 정확 추론의 일꾼 알고리즘이다.
-        분포의 쪼개진 짜임을 써먹으므로 낱낱 세기보다
+        이것이 베이즈 망 정확 추론의 표준 알고리즘이다.
+        분포의 인수분해 구조를 활용하므로 열거보다
         훨씬 효율적이다.
         """
 
         def __init__(self, bn):
             """
-            변수 없애기의 첫스텝을 잡는다.
+            변수 제거를 초기화한다.
 
             인수:
-                bn: BayesianNetwork 사례
+                bn: BayesianNetwork 인스턴스
             """
             self.bn = bn
 
         def _create_factors_from_cpts(self) -> List[Factor]:
             """
-            망의 모든 CPT을 인자로 바꾼다.
+            망의 모든 CPT를 인자로 바꾼다.
 
             반환값:
                 변수마다 하나씩인 인자의 목록
@@ -265,11 +265,11 @@
                 cpt = self.bn.get_cpt(variable)
                 parents = cpt.parents
 
-                # 변수와 그 어버이에 걸친 인자 만들기
+                # 변수와 그 부모에 걸친 인자 만들기
                 factor_vars = parents + [variable]
                 factor = Factor(factor_vars, self.bn.cardinalities)
 
-                # CPT 값을 인자로 베끼기
+                # CPT 값을 인자로 복사하기
                 for assignment in factor._enumerate_assignments(factor_vars):
                     parent_vals = {p: assignment[p] for p in parents}
                     var_val = assignment[variable]
@@ -284,29 +284,29 @@
                                       variables_to_eliminate: Set[str],
                                       strategy: str = 'min_neighbors') -> List[str]:
             """
-            없애는 차례를 고른다.
+            제거 순서를 고른다.
 
-            없애는 차례가 효율을 크게 좌우한다!
+            제거 순서가 효율을 크게 좌우한다!
             여러 전략:
-            - min_neighbors: 이웃이 가장 적은 변수를 먼저 없앤다
-            - min_fill: 그래프에 더해지는 변을 가장 적게 한다
-            - weighted_min_fill: 변수의 가짓수를 헤아린다
+            - min_neighbors: 이웃이 가장 적은 변수를 먼저 제거한다
+            - min_fill: 그래프에 추가되는 간선(fill-in)을 가장 적게 한다
+            - weighted_min_fill: 변수의 상태 수를 고려한다
 
             인수:
-                variables_to_eliminate: 차례를 매길 변수
-                strategy: 차례 매기기 전략
+                variables_to_eliminate: 순서를 정할 변수
+                strategy: 순서 결정 전략
 
             반환값:
-                없애는 차례로 늘어놓은 변수의 목록
+                제거 순서대로 나열한 변수의 목록
             """
             if strategy == 'min_neighbors':
-                # 단순한 욕심 전략: 이웃이 가장 적은 변수를 없앤다
+                # 단순한 탐욕 전략: 이웃이 가장 적은 변수를 제거한다
                 order = []
                 graph = self.bn.graph.to_undirected()
                 remaining = set(variables_to_eliminate)
 
                 while remaining:
-                    # 남은 배치에서 이웃이 가장 적은 변수 찾기
+                    # 남은 집합에서 이웃이 가장 적은 변수 찾기
                     min_var = min(remaining, 
                                  key=lambda v: len(set(graph.neighbors(v)) & remaining))
                     order.append(min_var)
@@ -314,7 +314,7 @@
 
                 return order
             else:
-                # 기본값: 정렬한 차례를 그대로 쓴다
+                # 기본값: 정렬한 순서를 그대로 쓴다
                 return sorted(variables_to_eliminate)
 
         def query(self,
@@ -323,16 +323,16 @@
                  elimination_order: Optional[List[str]] = None,
                  verbose: bool = True) -> Dict[tuple, float]:
             """
-            변수 없애기로 추론한다.
+            변수 제거로 추론한다.
 
             인수:
-                query_vars: 분포를 셈할 변수
+                query_vars: 분포를 계산할 질의 변수
                 evidence: 관측한 변수 값
-                elimination_order: 손수 정한 없애는 차례(없어도 된다)
+                elimination_order: 직접 지정한 제거 순서(없어도 된다)
                 verbose: 진행 상황을 출력할지 여부
 
             반환값:
-                물음 변수에 걸친 확률 분포
+                질의 변수에 걸친 확률 분포
             """
             if evidence is None:
                 evidence = {}
@@ -356,21 +356,21 @@
                 if verbose:
                     print(f"Step 2: Reduced factors with evidence {evidence}")
 
-            # 스텝 3: 없앨 변수 정하기
+            # 스텝 3: 제거할 변수 정하기
             all_vars = set(self.bn.graph.nodes())
             variables_to_eliminate = all_vars - set(query_vars) - set(evidence.keys())
 
             if verbose:
                 print(f"Step 3: Variables to eliminate: {sorted(variables_to_eliminate)}")
 
-            # 스텝 4: 없애는 차례 고르기
+            # 스텝 4: 제거 순서 고르기
             if elimination_order is None:
                 elimination_order = self._choose_elimination_order(variables_to_eliminate)
 
             if verbose:
                 print(f"Step 4: Elimination order: {elimination_order}")
 
-            # 스텝 5: 변수를 하나씩 없애기
+            # 스텝 5: 변수를 하나씩 제거하기
             if verbose:
                 print(f"\nStep 5: Eliminating variables...")
 
@@ -400,7 +400,7 @@
                     if verbose:
                         print(f"    - Marginalized out {var}: scope = {marginalized_factor.variables}")
 
-                    # 인자 목록 새로 고치기
+                    # 인자 목록 갱신하기
                     factors = other_factors + [marginalized_factor]
                 else:
                     factors = other_factors
@@ -413,13 +413,13 @@
             for f in factors[1:]:
                 result_factor = result_factor.multiply(f)
 
-            # 스텝 7: 고르게 하기
+            # 스텝 7: 정규화하기
             result_factor = result_factor.normalize()
 
             if verbose:
                 print(f"Step 7: Normalized result")
 
-            # 인자를 사전으로 바꾸기
+            # 인자를 딕셔너리로 바꾸기
             result = {}
             for assignment in result_factor._enumerate_assignments(query_vars):
                 key = tuple(assignment[var] for var in query_vars)
@@ -429,12 +429,12 @@
 
 
     def demonstrate_variable_elimination():
-        """단순한 망에서 변수 없애기를 보인다."""
+        """단순한 망에서 변수 제거를 시연한다."""
         print("\n" + "="*70)
         print("DEMONSTRATION: Variable Elimination")
         print("="*70)
 
-        # 날씨 망 들여오고 쌓기
+        # 날씨 망을 불러와 구성하기
         import sys
         sys.path.append('..')
         from beginner.bayesian_networks_basics import build_weather_network
@@ -444,7 +444,7 @@
         # 추론 엔진 만들기
         ve = VariableElimination(bn)
 
-        # 물음 1: 단순한 물음
+        # 질의 1: 단순한 질의
         print("\n" + "="*70)
         print("Query 1: P(Rain | WetGrass=1)")
         print("="*70)
@@ -455,7 +455,7 @@
         print(f"P(Rain=0 | WetGrass=1) = {result[(0,)]:.4f}")
         print(f"P(Rain=1 | WetGrass=1) = {result[(1,)]:.4f}")
 
-        # 물음 2: 물음 변수가 여럿
+        # 질의 2: 질의 변수가 여럿
         print("\n" + "="*70)
         print("Query 2: P(Rain, Sprinkler | WetGrass=1)")
         print("="*70)
@@ -469,7 +469,7 @@
 
     def compare_enumeration_vs_ve():
         """
-        낱낱 세기와 변수 없애기의 효율을 견준다.
+        열거와 변수 제거의 효율을 견준다.
         """
         print("\n" + "="*70)
         print("COMPARISON: Enumeration vs Variable Elimination")
@@ -482,7 +482,7 @@
 
         bn = build_weather_network()
 
-        # 낱낱 세기
+        # 열거
         print("\nEnumeration:")
         enum = InferenceByEnumeration(bn)
         start = time.time()
@@ -490,7 +490,7 @@
         enum_time = time.time() - start
         print(f"Time: {enum_time:.6f} seconds")
 
-        # 변수 없애기
+        # 변수 제거
         print("\nVariable Elimination:")
         ve = VariableElimination(bn)
         start = time.time()
@@ -505,7 +505,7 @@
 
 
     def main():
-        """주된 보여 주기."""
+        """메인 데모."""
         print("\n" + "="*70)
         print("VARIABLE ELIMINATION ALGORITHM")
         print("="*70)
@@ -563,17 +563,17 @@ $$[\phi_1\phi_2](A,B,C)=\phi_1(A,B)\phi_2(B,C),\qquad\phi'(X)=\sum_Y\phi(X,Y)$$
 
 **그림으로 보는 AI 1.** 순서를 잘 골라도 내려가지 않는 바닥
 
-제거 순서가 값을 가른다는 말을 수로 보면 꽤 극적이다. 변수 25개짜리 5×5 격자에서 순서를 무작위로 3,000가지 뽑아 유도 폭을 재어 보았다.
+제거 순서가 비용을 가른다는 말을 수로 보면 꽤 극적이다. 변수 25개짜리 5×5 격자에서 순서를 무작위로 3,000가지 뽑아 유도 폭을 재어 보았다.
 
 ![왼쪽은 변수 25개가 5행 5열로 놓인 격자 그래프이고 어떤 순서로 제거해도 같은 답이 나온다고 적혀 있다. 오른쪽은 무작위 순서 3,000가지의 유도 폭 분포를 그린 막대그림으로, 대부분 8에서 10 사이에 몰려 있고 가장 나쁜 것이 13이다. 최소 차수 휴리스틱이 닿은 5의 자리에 세로선이 그어져 있다. 가장 나쁜 쪽의 표가 256배 크다고 적혀 있다.](figures/elimination_order.svg)
 
-최소 차수 휴리스틱은 폭 5에 닿는다. 무작위 순서는 대개 8에서 10 사이에 몰리고 가장 나쁜 것은 13이었다. 표 크기 $d^{w+1}$ 로 환산하면 **256배** 차이다. 답은 어느 순서로 하든 똑같이 나오는데 값만 그만큼 달라진다. 위 문단이 휴리스틱을 쓰라고 적은 까닭이다.
+최소 차수 휴리스틱은 폭 5에 닿는다. 무작위 순서는 대개 8에서 10 사이에 몰리고 가장 나쁜 것은 13이었다. 표 크기 $d^{w+1}$ 로 환산하면 **256배** 차이다. 답은 어느 순서로 하든 똑같이 나오는데 비용만 그만큼 달라진다. 위 문단이 휴리스틱을 쓰라고 적은 까닭이다.
 
 **그런데 같은 그림이 더 중요한 것을 하나 보여 준다. 5 아래로는 아무것도 내려가지 않았다.** 그 바닥은 순서를 잘못 골라서 생긴 것이 아니라 **격자라는 구조가 정해 둔 것**이고, 순서를 아무리 잘 골라도 치워지지 않는다. 격자를 한 줄씩 쓸어 가려면 어차피 한 줄 전체를 한꺼번에 들고 있어야 한다.
 
-그래서 순서 찾기를 완벽하게 풀어 주는 신탁이 있어도 추론이 쉬워지지는 않는다. 1990년에 그레고리 쿠퍼(Gregory Cooper)가 베이즈 망의 정확 추론이 **NP-난해**임을 보였고, 1993년에 폴 데이검(Paul Dagum)과 마이클 루비(Michael Luby)가 **근사조차 NP-난해**임을 보였다. 탈출구를 둘 다 막은 셈이다.
+그래서 순서 찾기를 완벽하게 풀어 주는 오라클(oracle, 답을 즉시 알려 주는 가상의 장치)이 있어도 추론이 쉬워지지는 않는다. 1990년에 그레고리 쿠퍼(Gregory Cooper)가 베이즈 망의 정확 추론이 **NP-난해**임을 보였고, 1993년에 폴 데이검(Paul Dagum)과 마이클 루비(Michael Luby)가 **근사조차 NP-난해**임을 보였다. 탈출구를 둘 다 막은 셈이다.
 
-**그러니 이 절의 지수 비용은 알고리즘이 서툴러서 생긴 것이 아니다.** 변수 제거가 전체 결합표를 만들지 않고도 답을 내는 것은 분명한 이득이지만, 그 이득은 **그래프가 성글 때**만 나온다. 성글지 않은 문제를 만나면 할 수 있는 일은 정확 추론을 포기하고 **무엇을 포기할지 고르는 것**이며, 그것이 근사 추론이 따로 한 장을 차지하는 까닭이다.
+**그러니 이 절의 지수 비용은 알고리즘이 서툴러서 생긴 것이 아니다.** 변수 제거가 전체 결합표를 만들지 않고도 답을 내는 것은 분명한 이득이지만, 그 이득은 **그래프가 희소할(sparse) 때**만 나온다 — 간선이 적어 유도 폭이 작을 때다. 희소하지 않은 문제를 만나면 할 수 있는 일은 정확 추론을 포기하고 **무엇을 포기할지 고르는 것**이며, 그것이 근사 추론이 따로 한 장을 차지하는 까닭이다.
 
 _확인한 곳 — G. F. Cooper, "The computational complexity of probabilistic inference using Bayesian belief networks", *Artificial Intelligence* **42**(2–3), 393–405 (1990). P. Dagum, M. Luby, "Approximating probabilistic inference in Bayesian belief networks is NP-hard", *Artificial Intelligence* **60**, 141–153 (1993). 그림의 유도 폭은 그림을 그리는 코드가 직접 제거해 가며 재며, 휴리스틱이 무작위 최선보다 나쁘지 않다는 것을 `assert` 로 확인한 뒤에 그린다._
 
@@ -583,7 +583,7 @@ _확인한 곳 — G. F. Cooper, "The computational complexity of probabilistic 
 
 Factor는 변수명을 정렬하므로 외부 values 배열도 그 축 순서로 제공해야 한다. 스칼라 인자의 예상 형태는 ()인데 일부 메서드는 길이 1 배열을 전달하고 values[0]을 사용하므로 빈 변수 인자를 만드는 경로는 일관되지 않다. 모든 변수가 증거로 고정되거나 마지막 변수를 합산하는 경우를 완성된 구현으로 가정하지 않는다.
 
-자동 순서는 DAG의 무방향 뼈대에서 남은 제거 변수 이웃 수만 비교한다. 부모 간 도덕화·실제 인자 스코프·fill-in·유지할 질의 변수 이웃을 반영하지 않으므로 표준적인 동적 최소 차수 순서와 다르다. 정확한 인자 연산이 유지되면 순서의 차이는 결과보다 비용에 영향을 주지만, 사용자 순서에 숨은 변수가 빠지거나 질의 변수가 들어가면 올바른 질의를 보장하지 못한다. 질의와 증거는 겹치지 않게 하고 상태 값과 정규화 합을 확인한다.
+자동 순서는 DAG의 무방향 뼈대에서 남은 제거 변수 이웃 수만 비교한다. 부모 간 도덕화·실제 인자 스코프·fill-in·유지할 질의 변수 이웃을 반영하지 않으므로 표준적인 동적 최소 차수 순서와 다르다. 정확한 인자 연산이 유지되면 순서의 차이는 결과보다 비용에 영향을 주지만, 사용자 순서에 은닉 변수(질의도 증거도 아닌 변수)가 빠지거나 질의 변수가 들어가면 올바른 질의를 보장하지 못한다. 질의와 증거는 겹치지 않게 하고 상태 값과 정규화 합을 확인한다.
 
 ## 연습문제
 
@@ -638,14 +638,14 @@ Factor는 변수명을 정렬하므로 외부 values 배열도 그 축 순서로
     P_D_C = np.array([[0.9, 0.1], [0.2, 0.8]])
 
     # 증거: A=1
-    # B 없애기: f(B) = P(B|A=1), 그다음 f(C) = sum_B P(C|B)*P(B|A=1)
+    # B 제거: f(B) = P(B|A=1), 그다음 f(C) = sum_B P(C|B)*P(B|A=1)
     f_B = P_B_A[1, :]  # [P(B=0|A=1), P(B=1|A=1)]
     f_C = np.zeros(2)
     for c in range(2):
         for b in range(2):
             f_C[c] += P_C_B[b, c] * f_B[b]
 
-    # C 없애기: f(D) = sum_C P(D|C)*f(C)
+    # C 제거: f(D) = sum_C P(D|C)*f(C)
     f_D = np.zeros(2)
     for d in range(2):
         for c in range(2):

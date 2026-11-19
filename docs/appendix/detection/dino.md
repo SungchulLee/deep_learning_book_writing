@@ -1,27 +1,27 @@
 # DINO
 
-DINO은 2022년 글 "DINO: DETR with Improved Denoising Anchor Boxes for End-to-End Object Detection"에서 나왔다.
+DINO는 2022년 논문 "DINO: DETR with Improved Denoising Anchor Boxes for End-to-End Object Detection"에서 나왔다.
 
-여기 구현은 DINO을 짧고 학습하기 좋게 보인 본이다. 코드는 핵심 구조와 앞으로 스텝에 마음을 두어, 핵심 꾸밈새를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 DINO를 짧게 줄인 학습용 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
 ```python
 #!/usr/bin/env python3
 """
-DINO - 잡소리 없애는 앵커 박스를 나아지게 한 DETR
-글: "DINO: 끝에서 끝까지 물체 탐지를 위해 잡소리 없애는 앵커 박스를 나아지게 한 DETR" (2022)
-지은이: IDEA Research (펑 리 외)
-핵심 깨침(크게 보아):
-  1) 잡소리 없애며 익히기(DN): 노이지 참값 물음을 더해 익힘을 든든하게 한다.
-  2) 더 나은 물음 첫자리 잡기(흔히 앵커나 기준 점 형태).
-  3) 여러 잣대의 결(참으로는 흔히 일그러뜨리는 어텐션 클래스를 쓴다).
+DINO - 디노이징 앵커 박스를 개선한 DETR
+논문: "DINO: DETR with Improved Denoising Anchor Boxes for End-to-End Object Detection" (2022)
+저자: IDEA Research (Feng Li 외)
+핵심 아이디어(개략):
+  1) 디노이징 학습(DN): 잡음을 넣은 정답(GT) 쿼리를 더해 학습을 안정시킨다.
+  2) 더 나은 쿼리 초기화(흔히 앵커나 기준점 형태).
+  3) 멀티스케일 피처(실제로는 흔히 디포머블 어텐션 변형을 쓴다).
 
-두루마리: appendix/detection/dino.py
-눈여겨볼 것: 배우기 위한 단순한 구현이다.
-  - "기준 점" 깨침과 DN 결의 물음 불리기 걸개를 보인다.
-  - nn.Transformer을 쓴다(일그러뜨리는 어텐션이 아니다).
-  - 온전한 짝짓기와 잃음의 속내는 건너뛴다.
+파일: appendix/detection/dino.py
+참고: 학습용의 단순한 구현이다.
+  - "기준점" 아이디어와 DN 방식의 쿼리 증강 훅을 보인다.
+  - nn.Transformer를 쓴다(디포머블 어텐션이 아니다).
+  - 완전한 매칭과 로스의 세부는 생략한다.
 """
 
 import torch
@@ -34,7 +34,7 @@ import torch.nn.functional as F
 
 
 class TinyBackbone(nn.Module):
-    """결 그림을 내는 작은 CNN 등뼈(쉽게 하려고 한 잣대만 쓴다)."""
+    """피처 맵을 출력하는 작은 CNN 백본(단순화를 위해 단일 스케일만 쓴다)."""
     def __init__(self, d_model=256):
         super().__init__()
         self.net = nn.Sequential(
@@ -50,20 +50,20 @@ class TinyBackbone(nn.Module):
 
 
 def inverse_sigmoid(x: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
-    """로짓 밭에서 상자를 다듬는, DETR 집안에서 흔한 솜씨."""
+    """로짓 공간에서 상자를 정제하는, DETR 계열에서 흔한 기법."""
     x = x.clamp(min=eps, max=1 - eps)
     return torch.log(x / (1 - x))
 
 
 class DINO(nn.Module):
     """
-    단순하게 만든 DINO 형태 알아내개:
-    - 물체 물음 + "기준 점"(잣대 맞춘 상자)으로 거듭 다듬는 깨침을 보인다
-    - 익힘 결에서 골라 쓰는 잡소리 없애기 물음(DN)
+    단순화한 DINO 방식 탐지기:
+    - 객체 쿼리 + "기준점"(정규화된 상자)으로 반복 정제하는 아이디어를 보인다
+    - 학습 모드에서 선택적으로 쓰는 디노이징 쿼리(DN)
 
-    날임:
+    출력:
       - pred_logits: (B, num_queries, num_classes+1)
-      - pred_boxes : (B, num_queries, 4), 잣대 맞춤
+      - pred_boxes : (B, num_queries, 4), 정규화됨
     """
     def __init__(
         self,
@@ -93,14 +93,14 @@ class DINO(nn.Module):
             batch_first=False,
         )
 
-        # 배울 수 있는 물음(속내 담음)
+        # 학습 가능한 쿼리(콘텐츠 임베딩)
         self.query_embed = nn.Embedding(num_queries, d_model)
 
-        # 기준 점(잣대 맞춘 자리 값에서 앵커처럼 첫자리를 잡는다)
-        # 참 DINO에서는 디코더 켜마다 이를 미루어 보거나 고칠 수 있다.
+        # 기준점(정규화된 좌표에서 앵커처럼 초기화한다)
+        # 실제 DINO에서는 디코더 레이어마다 이를 예측하거나 갱신할 수 있다.
         self.refpoint_embed = nn.Embedding(num_queries, 4)
 
-        # 머리
+        # 헤드
         self.class_head = nn.Linear(d_model, num_classes + 1)
         self.box_head = nn.Sequential(
             nn.Linear(d_model, d_model), nn.ReLU(inplace=True),
@@ -108,36 +108,36 @@ class DINO(nn.Module):
             nn.Linear(d_model, 4),
         )
 
-        # DN 설정(참값이 주어질 때만 쓴다)
+        # DN 설정(정답이 주어질 때만 쓴다)
         self.dn_num_queries = dn_num_queries
         self.dn_noise_scale = dn_noise_scale
 
     def make_denoising_queries(self, gt_boxes: torch.Tensor, gt_labels: torch.Tensor):
         """
-        참값에서 잡소리 없애기(DN) 물음을 짓는다:
-          - 참값 상자에 시끄러움을 더한다
-          - 익히는 동안 덧붙은 물음으로 써서 러닝을 든든하게 한다
+        정답에서 디노이징(DN) 쿼리를 만든다:
+          - 정답 상자에 잡음을 더한다
+          - 학습하는 동안 추가 쿼리로 써서 학습을 안정시킨다
 
-        gt_boxes: (B, M, 4), 잣대 맞춘 (cx,cy,w,h)
+        gt_boxes: (B, M, 4), 정규화된 (cx,cy,w,h)
         gt_labels: (B, M), [0, num_classes-1] 안의 클래스 번호
 
-        돌려주는 것:
+        반환값:
           dn_query_embed: (Tdn, B, C)
           dn_refpoints : (Tdn, B, 4)
         """
         B, M, _ = gt_boxes.shape
         device = gt_boxes.device
 
-        # 배치마다 참값 상자를 dn_num_queries개까지 고른다(단순히 잘라 낸다)
+        # 배치마다 정답 상자를 dn_num_queries개까지 고른다(단순히 잘라 낸다)
         M_use = min(M, self.dn_num_queries)
         boxes = gt_boxes[:, :M_use, :]  # (B, M_use, 4)
 
-        # 잣대 맞춘 밭에서 시끄러움을 더한다(배우기 위함)
+        # 정규화된 좌표 공간에서 잡음을 더한다(학습용)
         noise = (torch.rand_like(boxes) - 0.5) * self.dn_noise_scale
         noisy_boxes = (boxes + noise).clamp(0.0, 1.0)
 
-        # DN 속내 담음을 짓는다:
-        # 참 방법은 이름표와 가림을 담는다. 여기서는 배운 "dn 단어"을 되풀이해 쓸 뿐이다.
+        # DN 콘텐츠 임베딩을 만든다:
+        # 실제 방법은 라벨과 마스크를 인코딩한다. 여기서는 학습된 "dn 토큰"을 되풀이해 쓸 뿐이다.
         dn_token = torch.zeros(B, M_use, self.d_model, device=device)
         dn_token = dn_token.permute(1, 0, 2).contiguous()  # (Tdn=M_use, B, C)
 
@@ -147,37 +147,37 @@ class DINO(nn.Module):
     def forward(self, x, gt_boxes=None, gt_labels=None):
         """
         x: (B, 3, H, W)
-        gt_boxes/gt_labels: 골라 쓴다. 익힘 결에서 DN 물음을 더할 때 쓴다
+        gt_boxes/gt_labels: 선택 인자. 학습 모드에서 DN 쿼리를 더할 때 쓴다
         """
         feat = self.backbone(x)
         B, C, H, W = feat.shape
 
-        # 인코더 들임: 자리 결 그림을 펼친다
+        # 인코더 입력: 공간 피처 맵을 평탄화한다
         src = feat.flatten(2).permute(2, 0, 1)  # (S=H*W, B, C)
 
-        # 여느 배운 물음
+        # 일반 학습된 쿼리
         q_content = self.query_embed.weight.unsqueeze(1).repeat(1, B, 1)  # (T, B, C)
         q_ref = torch.sigmoid(self.refpoint_embed.weight).unsqueeze(1).repeat(1, B, 1)  # (T, B, 4)
 
-        # 골라서 여느 물음 앞에 잡소리 없애기 물음(DN)을 더한다
+        # 선택적으로 일반 쿼리 앞에 디노이징 쿼리(DN)를 덧붙인다
         if (gt_boxes is not None) and (gt_labels is not None):
             dn_content, dn_ref = self.make_denoising_queries(gt_boxes, gt_labels)
             q_content = torch.cat([dn_content, q_content], dim=0)  # (Tdn+T, B, C)
             q_ref = torch.cat([dn_ref, q_ref], dim=0)              # (Tdn+T, B, 4)
 
-        # 디코더 날임 단어
+        # 디코더 출력 토큰
         hs = self.transformer(src=src, tgt=q_content)  # (Ttotal, B, C)
         hs = hs.permute(1, 0, 2)                       # (B, Ttotal, C)
 
-        # 클래스 로짓을 미루어 본다
+        # 클래스 로짓을 예측한다
         pred_logits = self.class_head(hs)  # (B, Ttotal, num_classes+1)
 
-        # 상자 차이를 미루어 본 뒤 기준 점 둘레에서 "다듬는다"(DETR 집안에서 흔한 깨침)
-        # 참으로는 켜마다 다듬는다. 여기서는 한 번에 다듬는다.
+        # 상자 변위를 예측한 뒤 기준점 둘레에서 "정제한다"(DETR 계열에서 흔한 아이디어)
+        # 실제로는 레이어마다 정제한다. 여기서는 한 번에 정제한다.
         delta = self.box_head(hs)                 # (B, Ttotal, 4)
         ref = q_ref.permute(1, 0, 2).contiguous() # (B, Ttotal, 4)
 
-        # 로짓 밭에서 다듬기: inv_sigmoid(ref) + delta -> sigmoid
+        # 로짓 공간에서 정제: inv_sigmoid(ref) + delta -> sigmoid
         pred_boxes = torch.sigmoid(inverse_sigmoid(ref) + delta)  # (B, Ttotal, 4)
 
         return {"pred_logits": pred_logits, "pred_boxes": pred_boxes}
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     print("no-DN pred_logits:", y["pred_logits"].shape)
     print("no-DN pred_boxes :", y["pred_boxes"].shape)
 
-    # 거짓 참값 상자와 이름표로 DN 결을 보이는 보기
+    # 가짜 정답 상자와 라벨로 DN 모드를 보이는 예
     gt_boxes = torch.rand(2, 10, 4)     # (B=2, M=10, 4) normalized
     gt_labels = torch.randint(0, 20, (2, 10))
     y_dn = model(x, gt_boxes=gt_boxes, gt_labels=gt_labels)
@@ -210,7 +210,7 @@ DN pred_boxes : torch.Size([2, 310, 4])
 
 ## 2. 논의
 
-이 구현은 클래스 2개(`TinyBackbone`, `DINO`)를 매기고, 이들이 어울려 온전한 객체 탐지 구조를 이룬다. 클래스마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 계산 그림을 매긴다.
+이 구현은 클래스 2개(`TinyBackbone`, `DINO`)를 정의하고, 이들이 함께 완전한 객체 탐지 구조를 이룬다. 클래스마다 고유한 역할을 맡아 코드를 모듈로 나누고 확장하기 쉽게 한다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -219,59 +219,59 @@ DN pred_boxes : torch.Size([2, 310, 4])
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-`TinyBackbone`의 앞으로 스텝을 따라 텐서의 형태를 좇아라. 기본 파라메터로 입력 보기 4개를 묶어 넣었을 때, 큰 계산(컨볼루션, 모으기, 선형 켜)마다 형태가 어떻게 되는지 적어라.
+`TinyBackbone`의 순전파를 따라 텐서의 형태를 추적하라. 기본 파라메터로 입력 샘플 4개를 한 배치로 넣었을 때, 주요 연산(컨볼루션, 풀링, 선형 레이어)마다 형태가 어떻게 되는지 적어라.
 
 </div>
 
 ??? success "풀이"
-    입력의 형태에서 비롯해 켜를 차례로 건다. `Conv2d(in_c, out_c, k)`마다 자리 차수는 $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌고(덧대기 없이) `padding=k//2`이면 그대로다. 알갱이 2로 모으면 자리 차수가 반이 된다. 선형 켜는 마지막 차수를 바꾼다. 배치 차수는 내내 그대로임을 좇아라. 컨볼루션 켜에서는 $(B, C, H, W)$, 편 뒤에는 $(B, F)$으로 가운데 형태를 적어라.
+    입력의 형태에서 출발해 레이어를 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌고(패딩 없이) `padding=k//2`이면 그대로다. 커널 크기 2로 풀링하면 공간 차원이 반이 된다. 선형 레이어는 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임을 확인하라. 컨볼루션 레이어에서는 $(B, C, H, W)$, 평탄화한 뒤에는 $(B, F)$으로 중간 형태를 적어라.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-구조를 크기 $64 \times 64$의 RGB 그림(입력 형태: $3 \times 64 \times 64$)을 받도록 고쳐라. 켜의 차수를 모두 그에 맞게 손보고 모델이 어긋남 없이 도는지 따져라.
+구조를 크기 $64 \times 64$의 RGB 이미지(입력 형태: $3 \times 64 \times 64$)을 받도록 고쳐라. 레이어의 차원을 모두 그에 맞게 조정하고 모델이 오류 없이 실행되는지 확인하라.
 
 </div>
 
 ??? success "풀이"
-    첫 컨볼루션 켜의 `in_channels`을 이제 값에서 3으로 바꾼다. 컨볼루션과 모으기 켜마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 자리 차수를 다시 계산한다. 첫 선형 켜의 `in_features`을 마지막 컨볼루션/모으기 켜의 편 출력에 맞춘다. `model = TinyBackbone(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 따진다.
+    첫 컨볼루션 레이어의 `in_channels`을 현재 값에서 3으로 바꾼다. 컨볼루션과 풀링 레이어마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 공간 차원을 다시 계산한다. 첫 선형 레이어의 `in_features`을 마지막 컨볼루션/풀링 레이어의 평탄화된 출력에 맞춘다. `model = TinyBackbone(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 확인한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-셀프 어텐션의 계산 복잡도를 이음 길이 $n$과 모델 차수 $d$의 함수로 밝혀라. 이것이 긴 이음에 Longformer이나 Linformer 같은 구조를 이끄는 까닭은 무엇인가?
+셀프 어텐션의 계산 복잡도를 시퀀스 길이 $n$과 모델 차원 $d$의 함수로 구하라. 이것이 긴 시퀀스에 Longformer나 Linformer 같은 구조를 쓰게 되는 까닭은 무엇인가?
 
 </div>
 
 ??? success "풀이"
-    여느 셀프 어텐션은 $n \times n$ 어텐션 행렬을 셈하므로 때는 $O(n^2 d)$, 어텐션 짐의 기억은 $O(n^2)$이다. 이음이 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 그 자리 미닫이 창 어텐션($O(n \cdot w \cdot d)$, $w$은 창 크기)과 고른 단어에 대한 성긴 두루 어텐션을 아울러 쓴다. Linformer는 키와 값을 더 낮은 차수 $k \ll n$으로 되비추어 번거로움을 $O(n \cdot k \cdot d)$으로 줄인다. 둘 다 드러내는 힘을 얼마쯤 내주고 긴 입력에서 잘 들게 한다.
+    일반 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도는 $O(n^2 d)$, 어텐션 웨이트의 메모리는 $O(n^2)$이다. 시퀀스가 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 국소 슬라이딩 윈도 어텐션($O(n \cdot w \cdot d)$, $w$는 윈도 크기)과 선택된 토큰에 대한 희소한 전역 어텐션을 함께 쓴다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 사영하여 복잡도를 $O(n \cdot k \cdot d)$로 줄인다. 둘 다 표현력을 얼마쯤 내주고 긴 입력에서 효율을 얻는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`TinyBackbone`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 파라메터를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 짜라. 켜 2개, 4개, 8개로 시험하여라.
+`TinyBackbone`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 구성하라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
 ??? success "풀이"
-    박아 넣은 켜를 다음으로 갈음한다.
+    하드코딩된 레이어를 다음으로 대체한다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 파라메터를 모두 다듬기에 올린다. `for n in [2, 4, 8]: model = TinyBackbone(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`을 써야 PyTorch가 파라메터를 모두 최적화 대상으로 등록한다. `for n in [2, 4, 8]: model = TinyBackbone(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
 
 ## 정리하며
 
 **다룬 것** — DINO
 
-이 구현은 클래스 2개(`TinyBackbone`, `DINO`)를 매기고, 이들이 어울려 온전한 객체 탐지 구조를 이룬다.
+이 구현은 클래스 2개(`TinyBackbone`, `DINO`)를 정의하고, 이들이 함께 완전한 객체 탐지 구조를 이룬다.
 
-핵심 클래스는 `TinyBackbone`, `DINO`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+핵심 클래스는 `TinyBackbone`, `DINO`이며 앞의 연습문제 4개로 스스로 점검해 볼 수 있다.

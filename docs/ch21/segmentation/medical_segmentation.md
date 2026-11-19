@@ -8,17 +8,17 @@
 
     ```python
     """
-    보기 3: 의료 그림 나누기
+    보기 3: 의료 영상 분할
     ======================================
 
-    이 각본은 그 분야에 맞춘 의료 그림 나누기를 보여 준다
-    피부 확대경 그림의 병터 나누기에 초점을 둔다.
+    이 스크립트는 분야에 특화된 의료 영상 분할을 보여 주며
+    피부경(dermoscopy) 영상의 병변 분할에 초점을 둔다.
 
     핵심 개념:
     - 의료 영상을 위한 다이스 로스
-    - 극단적 클래스 치우침 다루기
-    - 임상 잣대(다이스, 민감도, 특이도)
-    - 의료 영상 앞손질
+    - 극단적 클래스 불균형 다루기
+    - 임상 지표(다이스, 민감도, 특이도)
+    - 의료 영상 전처리
     - 제대로 된 검증 전략
 
     지은이: PyTorch Semantic Segmentation Tutorial
@@ -34,7 +34,7 @@
     from PIL import Image, ImageDraw, ImageFilter
     import time
 
-    # 난수 씨앗을 설정한다
+    # 난수 시드를 설정한다
     torch.manual_seed(42)
     np.random.seed(42)
 
@@ -46,28 +46,28 @@
     print(f"Using device: {device}\n")
 
     # ============================================================================
-    # 2단계: 인공 의료 자료 뭉치
+    # 2단계: 합성 의료 데이터셋
     # ============================================================================
     """
-    피부 병터의 피부 확대경 그림을 흉내낸 인공 자료 뭉치를 만든다.
-    실전에서는 ISIC, DRIVE, BraTS 같은 실제 의료 자료 뭉치를 쓴다.
+    피부 병변의 피부경 영상을 흉내낸 합성 데이터셋을 만든다.
+    실전에서는 ISIC, DRIVE, BraTS 같은 실제 의료 데이터셋을 쓴다.
 
-    의료 그림의 성질:
-    - 극단적 클래스 치우침(병터가 뒷바탕보다 작다)
-    - 들쭉날쭉한 형태
-    - 들쭉날쭉한 대비
-    - 잡음과 찌꺼기
+    의료 영상의 성질:
+    - 극단적 클래스 불균형(병변이 배경보다 작다)
+    - 불규칙한 형태
+    - 다양한 대비
+    - 노이즈와 아티팩트
     """
 
     class SyntheticMedicalDataset(Dataset):
         """
-        병터가 있는 피부 확대경 비슷한 인공 그림을 만든다.
+        병변이 있는 피부경 영상 비슷한 합성 이미지를 만든다.
 
-        다음을 갖춘 피부 병터 나누기 일을 흉내낸다:
-        - 들쭉날쭉한 병터 형태
-        - 들쭉날쭉한 크기(그림 넓이의 5~15%)
-        - 잡음과 흐림(실제 같은 찌꺼기)
-        - 클래스 치우침이 심하다
+        다음을 갖춘 피부 병변 분할 과제를 흉내낸다:
+        - 불규칙한 병변 모양
+        - 다양한 크기(이미지 넓이의 5~15%)
+        - 노이즈와 흐림(실제 같은 아티팩트)
+        - 클래스 불균형이 심하다
         """
 
         def __init__(self, num_samples=1000, image_size=256):
@@ -82,7 +82,7 @@
                 if (i + 1) % 200 == 0:
                     print(f"  Generated {i + 1}/{num_samples} images")
 
-            # 클래스 분포 셈하기
+            # 클래스 분포 계산
             total_pixels = 0
             lesion_pixels = 0
             for _, mask in self.samples:
@@ -97,8 +97,8 @@
             print(f"  Class imbalance ratio: 1:{(1-self.lesion_ratio)/self.lesion_ratio:.1f}")
 
         def _generate_sample(self):
-            """피부 확대경 그림을 닮은 그림-마스크 짝 하나를 만든다."""
-            # 살빛 뒷바탕 만들기
+            """피부경 영상을 닮은 이미지-마스크 쌍 하나를 만든다."""
+            # 피부색 배경 만들기
             skin_color = (
                 np.random.randint(200, 240),  # R
                 np.random.randint(160, 200),  # G
@@ -110,23 +110,23 @@
             draw_img = ImageDraw.Draw(img)
             draw_mask = ImageDraw.Draw(mask)
 
-            # 병터 빛깔(어둡고 갈색기)
+            # 병변 색(어둡고 갈색기)
             lesion_color = (
                 np.random.randint(80, 140),
                 np.random.randint(60, 100),
                 np.random.randint(40, 80)
             )
 
-            # 들쭉날쭉한 병터 형태 만들기
+            # 불규칙한 병변 모양 만들기
             center_x = np.random.randint(64, self.image_size - 64)
             center_y = np.random.randint(64, self.image_size - 64)
 
-            # 여러 번 뒤튼 들쭉날쭉한 타원
+            # 여러 번 뒤튼 불규칙한 타원
             num_points = 20
             angles = np.linspace(0, 2*np.pi, num_points)
             base_radius = np.random.randint(30, 50)
 
-            # 들쭉날쭉한 테두리 만들기
+            # 불규칙한 경계 만들기
             radii = base_radius + np.random.randint(-15, 15, num_points)
             points = [
                 (
@@ -136,15 +136,15 @@
                 for i in range(num_points)
             ]
 
-            # 병터 그리기
+            # 병변 그리기
             draw_img.polygon(points, fill=lesion_color)
             draw_mask.polygon(points, fill=255)
 
-            # 실제 같은 찌꺼기 더하기
-            # 1. 살짝 흐리기(사진기/살결 흉내)
+            # 실제 같은 아티팩트 더하기
+            # 1. 살짝 흐리기(카메라/피부 질감 흉내)
             img = img.filter(ImageFilter.GaussianBlur(radius=1))
 
-            # 2. 그림에 잡음 더하기
+            # 2. 이미지에 노이즈 더하기
             img_array = np.array(img).astype(np.float32)
             noise = np.random.normal(0, 5, img_array.shape)
             img_array = np.clip(img_array + noise, 0, 255).astype(np.uint8)
@@ -168,8 +168,8 @@
             return img_tensor, mask_tensor
 
 
-    # 환자 단위로 나눈 자료 뭉치 만들기
-    # 중요: 실제 의료 인공지능에서는 그림이 아니라 환자 단위로 나눈다!
+    # 데이터셋 만들기(합성 데이터라 환자 단위 분할은 없다)
+    # 중요: 실제 의료 인공지능에서는 이미지가 아니라 환자 단위로 나눈다!
     print("Creating medical imaging datasets...\n")
     train_dataset = SyntheticMedicalDataset(num_samples=800, image_size=256)
     val_dataset = SyntheticMedicalDataset(num_samples=100, image_size=256)
@@ -185,12 +185,12 @@
     # 3단계: 의료 영상을 위한 U-넷
     # ============================================================================
     """
-    U-넷은 의료 그림 나누기의 으뜸 잣대이다.
-    본디 생의학 그림 나누기를 위해 꾸며졌다.
+    U-넷은 의료 영상 분할의 표준(gold standard)이다.
+    원래 생의학 영상 분할을 위해 설계되었다.
     """
 
     class DoubleConv(nn.Module):
-        """겹 컨볼루션 덩이."""
+        """이중 컨볼루션 블록."""
         def __init__(self, in_channels, out_channels):
             super().__init__()
             self.conv = nn.Sequential(
@@ -208,8 +208,8 @@
 
     class MedicalUNet(nn.Module):
         """
-        의료 영상에 맞게 다듬은 U-넷.
-        피처를 더 잘 뽑으려 기본 U-넷보다 조금 깊다.
+        의료 영상에 맞게 조정한 U-넷.
+        피처를 더 잘 추출하려 기본 U-넷보다 조금 깊다.
         """
         def __init__(self, in_channels=3, num_classes=1):
             super().__init__()
@@ -243,7 +243,7 @@
             self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
             self.dec1 = DoubleConv(128, 64)
 
-            # 마지막 내놓음(활성화 없음, BCEWithLogitsLoss를 쓴다)
+            # 마지막 출력(활성화 없음, BCEWithLogitsLoss를 쓴다)
             self.out = nn.Conv2d(64, num_classes, kernel_size=1)
 
         def forward(self, x):
@@ -263,7 +263,7 @@
             # 병목
             x = self.bottleneck(x)
 
-            # 건너뛰는 이음을 갖춘 디코더
+            # 스킵 연결을 갖춘 디코더
             x = self.upconv4(x)
             x = torch.cat([x, enc4], dim=1)
             x = self.dec4(x)
@@ -280,13 +280,13 @@
             x = torch.cat([x, enc1], dim=1)
             x = self.dec1(x)
 
-            # 마지막 내놓음(로짓)
+            # 마지막 출력(로짓)
             x = self.out(x)
 
             return x
 
 
-    model = MedicalUNet(in_channels=3, num_classes=1)  # 두 클래스: 병터와 뒷바탕
+    model = MedicalUNet(in_channels=3, num_classes=1)  # 이진 분할: 병변과 배경
     model = model.to(device)
 
     total_params = sum(p.numel() for p in model.parameters())
@@ -297,27 +297,27 @@
     # 4단계: 의료 영상을 위한 다이스 로스
     # ============================================================================
     """
-    다이스 로스는 의료 그림 나누기의 표준 로스다.
+    다이스 로스는 의료 영상 분할의 표준 로스다.
 
-    엇갈린 엔트로피보다 나은 점:
-    1. 밸류 잣대인 다이스 계수를 곧바로 가장 좋게 한다
-    2. 클래스 치우침을 자연스레 다룬다
-    3. 낱낱의 화소가 아니라 겹침에 초점을 둔다
+    교차 엔트로피보다 나은 점:
+    1. 평가 지표인 다이스 계수를 직접 최적화한다
+    2. 클래스 불균형을 자연스레 다룬다
+    3. 개별 픽셀이 아니라 겹침에 초점을 둔다
     4. 작은 물체에 더 낫다
 
     식:
         Dice = 2 * |A ∩ B| / (|A| + |B|)
-        다이스 잃음 = 1 - 다이스
+        다이스 로스 = 1 - 다이스
     """
 
     class DiceLoss(nn.Module):
         """
-        두 분류를 위한 다이스 로스.
+        이진 분류를 위한 다이스 로스.
         """
         def __init__(self, smooth=1e-6):
             """
             인수:
-                smooth: 0으로 나누지 않도록 하는 부드럽게 하기 상수
+                smooth: 0으로 나누지 않도록 하는 스무딩 상수
             """
             super().__init__()
             self.smooth = smooth
@@ -329,12 +329,12 @@
                 targets: 값이 [0, 1]이고 형태가 (batch, 1, H, W)인 참값
 
             반환값:
-                dice_loss: 홑값 로스
+                dice_loss: 스칼라 로스
             """
             # 로짓을 확률로 바꾸려 시그모이드 쓰기
             predictions = torch.sigmoid(predictions)
 
-            # 어림과 목표 펴기
+            # 예측과 목표 평탄화
             predictions = predictions.view(-1)
             targets = targets.view(-1)
 
@@ -342,7 +342,7 @@
             intersection = (predictions * targets).sum()
             union = predictions.sum() + targets.sum()
 
-            # 다이스 계수 셈하기
+            # 다이스 계수 계산
             dice = (2. * intersection + self.smooth) / (union + self.smooth)
 
             # 다이스 로스는 1 - 다이스
@@ -351,16 +351,16 @@
 
     class CombinedLoss(nn.Module):
         """
-        다이스와 두 클래스 엇갈린 엔트로피를 아우른 로스.
+        다이스와 이진 교차 엔트로피를 결합한 로스.
 
-        두 클래스 엇갈린 엔트로피는 화소 정확도를, 다이스는 겹침을 돕는다.
-        이 아우름이 실전에서 흔히 가장 잘 된다.
+        이진 교차 엔트로피는 픽셀 정확도를, 다이스는 겹침을 돕는다.
+        이 결합이 실전에서 흔히 가장 잘 된다.
         """
         def __init__(self, alpha=0.5, beta=0.5):
             """
             인수:
-                alpha: 두 클래스 엇갈린 엔트로피 로스의 무게
-                beta: 다이스 로스의 무게
+                alpha: 이진 교차 엔트로피 로스의 웨이트
+                beta: 다이스 로스의 웨이트
             """
             super().__init__()
             self.alpha = alpha
@@ -374,7 +374,7 @@
             return self.alpha * bce_loss + self.beta * dice_loss
 
 
-    # 가장 좋은 결과를 위해 아우른 로스 쓰기
+    # 가장 좋은 결과를 위해 결합 로스 쓰기
     criterion = CombinedLoss(alpha=0.5, beta=0.5)
 
     print("\nLoss function: Combined Dice + BCE Loss")
@@ -382,18 +382,18 @@
     print("  BCE Loss: Pixel-wise accuracy")
 
     # ============================================================================
-    # 5단계: 의료 잣대
+    # 5단계: 의료 지표
     # ============================================================================
     """
-    의료 나누기는 일반 나누기와 다른 잣대를 쓴다:
-    - 다이스 계수: 으뜸 잣대
-    - 민감도(재현율): 병터 화소를 얼마나 찾아냈는가?
-    - 특이도: 뒷바탕 화소 가운데 맞은 것이 얼마인가?
-    - 정밀도: 병터로 어림한 화소 가운데 맞은 것이 얼마인가?
+    의료 영상 분할은 일반 분할과 다른 지표를 쓴다:
+    - 다이스 계수: 주 지표
+    - 민감도(재현율): 병변 픽셀을 얼마나 찾아냈는가?
+    - 특이도: 배경 픽셀 가운데 맞은 것이 얼마인가?
+    - 정밀도: 병변으로 예측한 픽셀 가운데 맞은 것이 얼마인가?
     """
 
     def calculate_dice(pred, target, threshold=0.5, smooth=1e-6):
-        """다이스 계수를 셈한다."""
+        """다이스 계수를 계산한다."""
         with torch.no_grad():
             pred = torch.sigmoid(pred)
             pred = (pred > threshold).float()
@@ -410,7 +410,7 @@
 
     def calculate_medical_metrics(pred, target, threshold=0.5):
         """
-        두루 살피는 의료 잣대를 셈한다.
+        종합적인 의료 지표를 계산한다.
 
         반환값:
             다이스, 민감도, 특이도, 정밀도를 담은 사전
@@ -422,18 +422,18 @@
             pred = pred.view(-1)
             target = target.view(-1)
 
-            # 퍼플렉서티 행렬 요소 셈하기
-            tp = ((pred == 1) & (target == 1)).float().sum()  # 참양성
-            tn = ((pred == 0) & (target == 0)).float().sum()  # 참음성
-            fp = ((pred == 1) & (target == 0)).float().sum()  # 헛양성
-            fn = ((pred == 0) & (target == 1)).float().sum()  # 헛음성
+            # 혼동 행렬 요소 계산
+            tp = ((pred == 1) & (target == 1)).float().sum()  # 참 양성
+            tn = ((pred == 0) & (target == 0)).float().sum()  # 참 음성
+            fp = ((pred == 1) & (target == 0)).float().sum()  # 거짓 양성
+            fn = ((pred == 0) & (target == 1)).float().sum()  # 거짓 음성
 
             # 지표를 계산한다
             smooth = 1e-6
 
             dice = (2 * tp + smooth) / (2 * tp + fp + fn + smooth)
-            sensitivity = (tp + smooth) / (tp + fn + smooth)  # 재현율, 참양성 비율
-            specificity = (tn + smooth) / (tn + fp + smooth)  # 참음성 비율
+            sensitivity = (tp + smooth) / (tp + fn + smooth)  # 재현율, 참 양성 비율
+            specificity = (tn + smooth) / (tn + fp + smooth)  # 참 음성 비율
             precision = (tp + smooth) / (tp + fp + smooth)    # 양성 예측도
 
             return {
@@ -445,7 +445,7 @@
 
 
     # ============================================================================
-    # 6단계: 가장 좋게 하개
+    # 6단계: 옵티마이저
     # ============================================================================
 
     optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -458,7 +458,7 @@
     # ============================================================================
 
     def train_one_epoch(model, loader, criterion, optimizer, device):
-        """한 에폭을 학습한다."""
+        """한 에포크를 학습한다."""
         model.train()
         running_loss = 0.0
         running_dice = 0.0
@@ -476,7 +476,7 @@
             loss.backward()
             optimizer.step()
 
-            # 다이스 셈하기
+            # 다이스 계산
             dice = calculate_dice(outputs, masks)
 
             # 통계
@@ -494,7 +494,7 @@
     # ============================================================================
 
     def validate(model, loader, criterion, device):
-        """두루 살피는 의료 잣대로 검증한다."""
+        """종합적인 의료 지표로 검증한다."""
         model.eval()
         running_loss = 0.0
         metrics_sum = {'dice': 0.0, 'sensitivity': 0.0, 'specificity': 0.0, 'precision': 0.0}
@@ -516,7 +516,7 @@
                 for key in metrics_sum:
                     metrics_sum[key] += metrics[key]
 
-        # 잣대 고루내기
+        # 지표 평균 내기
         avg_loss = running_loss / len(loader)
         avg_metrics = {key: val / len(loader) for key, val in metrics_sum.items()}
 
@@ -524,11 +524,11 @@
 
 
     # ============================================================================
-    # 9단계: 그려 보기
+    # 9단계: 시각화
     # ============================================================================
 
     def visualize_medical_predictions(model, dataset, device, num_samples=3):
-        """의료용 겹쳐 놓기 방식으로 어림을 그려 본다."""
+        """의료용 오버레이 방식으로 예측을 시각화한다."""
         model.eval()
 
         fig, axes = plt.subplots(num_samples, 4, figsize=(16, 4 * num_samples))
@@ -542,17 +542,17 @@
                 pred_prob = torch.sigmoid(output).squeeze().cpu().numpy()
                 pred_mask = (pred_prob > 0.5).astype(np.float32)
 
-            # 그려 보려고 바꾸기
+            # 시각화하려고 변환
             image_np = image.permute(1, 2, 0).cpu().numpy()
             mask_np = mask.squeeze().cpu().numpy()
 
-            # 겹쳐 놓기 만들기
+            # 오버레이 만들기
             overlay = image_np.copy()
             # 참값은 초록으로
             overlay[mask_np > 0.5] = [0, 1, 0]
 
             overlay_pred = image_np.copy()
-            # 어림은 빨강으로
+            # 예측은 빨강으로
             overlay_pred[pred_mask > 0.5] = [1, 0, 0]
 
             # 그림
@@ -579,7 +579,7 @@
 
 
     # ============================================================================
-    # 10단계: 익히기 되풀이
+    # 10단계: 학습 루프
     # ============================================================================
 
     NUM_EPOCHS = 30
@@ -626,7 +626,7 @@
     print(f"{'='*70}\n")
 
     # ============================================================================
-    # 11단계: 마지막 시험 밸류
+    # 11단계: 마지막 시험 평가
     # ============================================================================
 
     model.load_state_dict(torch.load('best_medical_segmentation.pth'))
@@ -645,7 +645,7 @@
     print(f"- Sensitivity {test_metrics['sensitivity']:.2%}: Detected {test_metrics['sensitivity']:.1%} of lesion pixels")
     print(f"- Specificity {test_metrics['specificity']:.2%}: Correctly identified {test_metrics['specificity']:.1%} of healthy skin")
 
-    # 어림 그려 보기
+    # 예측 시각화
     print("\nGenerating visualizations...")
     visualize_medical_predictions(model, test_dataset, device, num_samples=5)
 
@@ -687,9 +687,9 @@
 
 `SyntheticMedicalDataset`은 밝은 배경 위 어두운 불규칙 다각형 하나를 그리고 이미지에 blur·노이즈를 더한다. 마스크는0/255로 그린 뒤0/1 float로 반환한다. 이미지와 마스크의 경계는 blur 때문에 시각적으로 완전히 일치하지 않을 수 있지만 정답은 원래 다각형 영역이다. 이 데이터는 실제 피부 병변의 색·구조·촬영 다양성을 모델링한 것이 아니다.
 
-모든 표본을 메모리에 저장하고 이미지3×H×W, 목표1×H×W를 반환하는 Dataset이며 뉴럴 네트워크의 forward를 정의하는 객체가 아니다. 중심은64부터image_size−64 미만에서 표집하므로 image_size>128이 필요하다. 0개 표본이나 전경이 없는 자료에서는 `lesion_ratio`와 비율 출력의 분모도 유효하지 않을 수 있다.
+모든 표본을 메모리에 저장하고 이미지3×H×W, 목표1×H×W를 반환하는 Dataset이며 뉴럴 네트워크의 forward를 정의하는 객체가 아니다. 중심은64부터image_size−64 미만에서 표집하므로 image_size>128이 필요하다. 0개 표본이나 전경이 없는 데이터에서는 `lesion_ratio`와 비율 출력의 분모도 유효하지 않을 수 있다.
 
-훈련·검증·테스트는 같은 생성 규칙의 다른 표본이다. 환자·기관·시점의 차이나 실제 진단 대상의 일반화는 평가하지 않는다. 실제 자료를 다룬다면 같은 환자의 관련 영상이 서로 다른 평가 분할로 섞이지 않는 등 데이터 단위에 맞는 독립성을 설계해야 한다. 여기에는 환자 ID 자체가 없다.
+학습·검증·시험은 같은 생성 규칙의 다른 표본이다. 환자·기관·시점의 차이나 실제 진단 대상의 일반화는 평가하지 않는다. 실제 데이터를 다룬다면 같은 환자의 관련 영상이 서로 다른 평가 분할로 섞이지 않는 등 데이터 단위에 맞는 독립성을 설계해야 한다. 여기에는 환자 ID 자체가 없다.
 
 ### 한 채널 로짓과 결합 로스
 
@@ -707,9 +707,9 @@ $$\mathrm{민감도}=\frac{TP}{TP+FN},\quad\mathrm{특이도}=\frac{TN}{TN+FP},\
 
 이 값의 단위는 **병변 픽셀**이다. 환자·병변 객체 단위의 탐지 민감도나 진단 정확도와 같지 않다. 출력의 ‘clinical’이라는 표시는 이런 단위 차이를 없애지 않으며 임상적 유효성을 입증한 결과도 아니다. 배경이 많으면 특이도가 높아도 작은 병변을 놓칠 수 있다.
 
-코드는 분자·분모에 smooth를 더해 분모0인 경우에도1을 반환할 수 있다. 예를 들어 정답 양성 픽셀이 없으면 민감도는 원래 정의되지 않는데1이 된다. 정밀도·빈 마스크도 이 규칙의 영향을 받으므로 결측·제외 또는 별도 보고 폴리시를 명시해야 한다.
+코드는 분자·분모에 smooth를 더해 분모0인 경우에도1을 반환할 수 있다. 예를 들어 정답 양성 픽셀이 없으면 민감도는 원래 정의되지 않는데1이 된다. 정밀도·빈 마스크도 이 규칙의 영향을 받으므로 결측·제외 또는 별도 보고 정책을 명시해야 한다.
 
-지표는 배치 전체 픽셀을 합쳐 계산한 비율을 다시 배치별로 단순 평균한다. 데이터 전체 혼동행렬의 비율이나 이미지별 macro 평균과 일반적으로 다르다. 검증·테스트100개를 배치16으로 나눠 마지막4개도 다른 배치와 같은 비중을 받는 점을 구분한다.
+지표는 배치 전체 픽셀을 합쳐 계산한 비율을 다시 배치별로 단순 평균한다. 데이터 전체 혼동행렬의 비율이나 이미지별 macro 평균과 일반적으로 다르다. 검증·시험100개를 배치16으로 나눠 마지막4개도 다른 배치와 같은 비중을 받는 점을 구분한다.
 
 ### 구조·체크포인트·시각화
 
@@ -766,7 +766,7 @@ RGB64×64 입력을 모델에 직접 주면 인코더 폭64·128·256·512를 �
 
 ??? success "풀이"
 
-    Dataset에 ModuleList로 뉴럴 네트워크 깊이를 넣는 것은 역할이 맞지 않고 YourBlock·dim도 정의되지 않았다. 모델 깊이는 MedicalUNet의 채널·스킵·decoder에서 설계한다. 로스 비교는 같은 데이터와 초기·학습 예산에서 BCE·softDice·결합을 구분하고, 임계화한 픽셀·객체·환자 지표를 혼동하지 않도록 평가 단위를 명시한다.
+    Dataset에 ModuleList로 뉴럴 네트워크 깊이를 넣는 것은 역할이 맞지 않고 YourBlock·dim도 정의되지 않았다. 모델 깊이는 MedicalUNet의 채널·스킵·디코더에서 설계한다. 로스 비교는 같은 데이터와 초기·학습 예산에서 BCE·softDice·결합을 구분하고, 임계화한 픽셀·객체·환자 지표를 혼동하지 않도록 평가 단위를 명시한다.
 
     ```python
     self.layers = nn.ModuleList()

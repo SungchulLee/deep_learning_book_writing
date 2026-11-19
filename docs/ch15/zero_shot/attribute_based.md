@@ -79,10 +79,10 @@ import torch.nn.functional as F
 
 class DirectAttributePrediction(nn.Module):
     """
-    영 예시 학습을 위한 곧은 속성 예측(DAP).
+    제로샷 학습을 위한 직접 속성 예측(DAP).
     
-    서로 독립인 속성 가려내개를 배우고, 속성 맞추기로
-    못 본 부류를 맞히는 데 쓴다.
+    서로 독립인 속성 분류기를 학습하고, 속성 매칭으로
+    미학습 클래스를 예측하는 데 쓴다.
     """
     
     def __init__(self, visual_dim: int, n_attributes: int, hidden_dim: int = 512):
@@ -90,7 +90,7 @@ class DirectAttributePrediction(nn.Module):
         
         self.n_attributes = n_attributes
         
-        # 함께 쓰는 피처 뽑개
+        # 공유 피처 추출기
         self.feature_extractor = nn.Sequential(
             nn.Linear(visual_dim, hidden_dim),
             nn.BatchNorm1d(hidden_dim),
@@ -109,7 +109,7 @@ class DirectAttributePrediction(nn.Module):
     
     def forward(self, x):
         """
-        속성 확률을 맞힌다.
+        속성 확률을 예측한다.
         
         인수:
             x: 형태가 (batch_size, visual_dim)인 시각 피처
@@ -119,7 +119,7 @@ class DirectAttributePrediction(nn.Module):
         """
         features = self.feature_extractor(x)
         
-        # 속성마다 맞힌다
+        # 속성마다 예측한다
         attr_logits = [head(features) for head in self.attribute_heads]
         attr_logits = torch.cat(attr_logits, dim=1)  # (batch, n_attributes)
         
@@ -127,26 +127,26 @@ class DirectAttributePrediction(nn.Module):
     
     def predict_class(self, x, class_attributes, class_names):
         """
-        DAP으로 부류를 맞힌다.
+        DAP로 클래스를 예측한다.
         
         인수:
             x: 시각 피처 (batch_size, visual_dim)
-            class_attributes: 부류 이름을 속성 벡터로 옮기는 사전
-            class_names: 후보 부류 이름 목록
+            class_attributes: 클래스 이름을 속성 벡터로 옮기는 사전
+            class_names: 후보 클래스 이름 목록
         
         반환값:
-            맞힌 부류 첨자
+            예측한 클래스 인덱스
         """
         # 속성 확률을 얻는다
         attr_probs = self.forward(x)  # (batch, n_attributes)
         
-        # 후보 부류의 속성 행렬을 만든다
+        # 후보 클래스의 속성 행렬을 만든다
         attr_matrix = torch.stack([
             torch.tensor(class_attributes[c], dtype=torch.float32)
             for c in class_names
         ])  # (n_classes, n_attributes)
         
-        # 부류마다 로그 확률을 셈한다
+        # 클래스마다 로그 확률을 계산한다
         # P(c|x) ∝ ∏_m P(a_m|x)^a_c^m * (1-P(a_m|x))^(1-a_c^m)
         log_probs = attr_probs.unsqueeze(1)  # (batch, 1, n_attrs)
         attr_matrix = attr_matrix.unsqueeze(0)  # (1, n_classes, n_attrs)
@@ -162,7 +162,7 @@ class DirectAttributePrediction(nn.Module):
 
 def train_dap_model(model, train_loader, class_attributes, epochs=50, lr=0.001):
     """
-    이진 교차 엔트로피 로스로 DAP 모델을 익힌다.
+    이진 교차 엔트로피 로스로 DAP 모델을 학습시킨다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.BCELoss()
@@ -172,7 +172,7 @@ def train_dap_model(model, train_loader, class_attributes, epochs=50, lr=0.001):
         total_loss = 0
         
         for batch_x, batch_y in train_loader:
-            # 표본마다 목표 속성을 얻는다
+            # 표본마다 타깃 속성을 얻는다
             batch_attrs = torch.stack([
                 torch.tensor(class_attributes[y], dtype=torch.float32)
                 for y in batch_y
@@ -220,10 +220,10 @@ seen_classes 순서는 학습 분류기의 출력 열과 일치해야 하고 반
 ```python
 class IndirectAttributePrediction(nn.Module):
     """
-    영 예시 학습을 위한 에두른 속성 예측(IAP).
+    제로샷 학습을 위한 간접 속성 예측(IAP).
     
-    본 부류 가려내개를 배우고 속성 닮음으로
-    못 본 부류로 옮긴다.
+    학습 클래스 분류기를 학습하고 속성 유사도로
+    미학습 클래스로 전이한다.
     """
     
     def __init__(self, visual_dim: int, n_seen_classes: int, hidden_dim: int = 512):
@@ -243,24 +243,24 @@ class IndirectAttributePrediction(nn.Module):
     
     def forward(self, x):
         """
-        본 부류의 로짓을 셈한다.
+        학습 클래스의 로짓을 계산한다.
         """
         return self.classifier(x)
     
     def predict_class(self, x, seen_classes, unseen_classes, class_attributes,
                      similarity='cosine', temperature=1.0):
         """
-        IAP으로 못 본 부류를 맞힌다.
+        IAP로 미학습 클래스를 예측한다.
         
         인수:
             x: 시각 피처 (batch_size, visual_dim)
-            seen_classes: 본 부류 이름 목록
-            unseen_classes: 못 본 부류 이름 목록
-            class_attributes: 부류 이름을 속성 벡터로 옮기는 사전
+            seen_classes: 학습 클래스 이름 목록
+            unseen_classes: 미학습 클래스 이름 목록
+            class_attributes: 클래스 이름을 속성 벡터로 옮기는 사전
             similarity: 'cosine' 또는 'euclidean'
             temperature: 소프트맥스 온도
         """
-        # 본 부류의 확률을 얻는다
+        # 학습 클래스의 확률을 얻는다
         logits = self.forward(x)
         seen_probs = F.softmax(logits / temperature, dim=1)  # (batch, n_seen)
         
@@ -275,7 +275,7 @@ class IndirectAttributePrediction(nn.Module):
             for c in unseen_classes
         ])  # (n_unseen, n_attrs)
         
-        # 비슷함 행렬을 셈한다
+        # 유사도 행렬을 계산한다
         if similarity == 'cosine':
             seen_norm = F.normalize(seen_attrs, dim=1)
             unseen_norm = F.normalize(unseen_attrs, dim=1)
@@ -284,21 +284,21 @@ class IndirectAttributePrediction(nn.Module):
             # 거리 제곱의 음수
             diff = seen_attrs.unsqueeze(1) - unseen_attrs.unsqueeze(0)
             sim_matrix = -torch.sum(diff ** 2, dim=2)
-            sim_matrix = torch.exp(sim_matrix)  # 닮음으로 바꾼다
+            sim_matrix = torch.exp(sim_matrix)  # 유사도로 바꾼다
         
-        # 확률을 옮긴다: P(unseen|x) = sum_s P(seen_s|x) * sim(seen_s, unseen)
+        # 확률을 전이한다: P(unseen|x) = sum_s P(seen_s|x) * sim(seen_s, unseen)
         unseen_scores = seen_probs @ sim_matrix  # (batch, n_unseen)
         
         return torch.argmax(unseen_scores, dim=1)
 
 def train_iap_model(model, train_loader, seen_classes, epochs=50, lr=0.001):
     """
-    본 부류에서 교차 엔트로피 로스로 IAP 모델을 익힌다.
+    학습 클래스에서 교차 엔트로피 로스로 IAP 모델을 학습시킨다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
     
-    # 이름표 대응을 만든다
+    # 라벨 매핑을 만든다
     class_to_idx = {c: i for i, c in enumerate(seen_classes)}
     
     for epoch in range(epochs):
@@ -308,7 +308,7 @@ def train_iap_model(model, train_loader, seen_classes, epochs=50, lr=0.001):
         total = 0
         
         for batch_x, batch_y in train_loader:
-            # 이름표를 첨자로 바꾼다
+            # 라벨을 인덱스로 바꾼다
             batch_labels = torch.tensor([class_to_idx[y] for y in batch_y])
             
             # 순전파
@@ -352,7 +352,7 @@ compare_dap_iap는 y_train 대신 0부터 표본 수−1까지를 라벨로 넣�
 def compare_dap_iap(X_train, y_train, X_test, y_test, 
                     seen_classes, unseen_classes, class_attributes):
     """
-    같은 데이터셋에서 DAP과 IAP을 견준다.
+    같은 데이터셋에서 DAP와 IAP를 비교한다.
     """
     from torch.utils.data import TensorDataset, DataLoader
     
@@ -368,7 +368,7 @@ def compare_dap_iap(X_train, y_train, X_test, y_test,
     dap_model = DirectAttributePrediction(X_train.shape[1], n_attributes)
     iap_model = IndirectAttributePrediction(X_train.shape[1], len(seen_classes))
     
-    # 두 모델을 모두 익힌다
+    # 두 모델을 모두 학습시킨다
     print("Training DAP...")
     train_dap_model(dap_model, train_loader, class_attributes, epochs=50)
     
@@ -393,7 +393,7 @@ def compare_dap_iap(X_train, y_train, X_test, y_test,
 
 ---
 
-## 5. 속성의 질과 고르기
+## 5. 속성의 품질과 선택
 
 ### 속성 설계 원칙
 
@@ -405,12 +405,12 @@ def compare_dap_iap(X_train, y_train, X_test, y_test,
 
 아래 코드는 클래스 속성의 분산과 평균 차이를 출력한다. 마지막 coverage는 정규화하지 않은 내적의 최댓값이므로 코사인 유사도나 실제 전이 성능을 직접 나타내지 않는다. 모든 클래스 벡터의 차원을 맞추고 빈 클래스 집합을 제외해야 한다.
 
-속성의 질을 뜯어본다.
+속성의 품질을 분석한다.
 
 ```python
 def analyze_attributes(class_attributes, seen_classes, unseen_classes):
     """
-    속성의 가름 힘과 아우름을 뜯어본다.
+    속성의 변별력과 포괄 범위(coverage)를 분석한다.
     """
     import numpy as np
     
@@ -433,7 +433,7 @@ def analyze_attributes(class_attributes, seen_classes, unseen_classes):
               f"Unseen var={unseen_var:.3f}, "
               f"Mean diff={mean_diff:.3f}")
     
-    # 전체 아우름: 못 본 부류의 속성 가운데 얼마나가 본 부류로 덮이는가
+    # 전체 포괄 범위: 미학습 클래스의 속성 가운데 얼마가 학습 클래스로 덮이는가
     similarity_matrix = unseen_attrs @ seen_attrs.T
     max_similarities = similarity_matrix.max(axis=1)
     

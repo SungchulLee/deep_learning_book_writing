@@ -6,9 +6,9 @@
 
 ```python
 """
-기본 어텐션 장치 구현
+기본 어텐션 메커니즘 구현
 =========================================
-이 모듈은 어텐션 장치의 바탕이 되는 개념을 구현한다.
+이 모듈은 어텐션 메커니즘의 바탕이 되는 개념을 구현한다.
 """
 
 import numpy as np
@@ -16,7 +16,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 씨앗을 박는다.
+# 이 쪽이 싣는 수가 돌릴 때마다 달라지지 않게 시드를 박는다.
 torch.manual_seed(0)
 np.random.seed(0)
 
@@ -28,18 +28,18 @@ np.random.seed(0)
 
 class BasicAttention(nn.Module):
     """
-    기본 어텐션 장치 (덧셈형·바다나우 어텐션)
+    기본 어텐션 메커니즘 (가산형(바다나우) 어텐션)
     
-    학습된 정렬 모형으로 어텐션 웨이트를 계산한다.
+    학습된 정렬 모델로 어텐션 웨이트를 계산한다.
     Score(query, key) = v^T * tanh(W_q * query + W_k * key)
     """
     
     def __init__(self, query_dim, key_dim, hidden_dim):
         """
         인수:
-            query_dim: 질의 벡터의 차원
-            key_dim: 열쇠 벡터의 차원
-            hidden_dim: 정렬 모형의 숨은 차원
+            query_dim: 쿼리 벡터의 차원
+            key_dim: 키 벡터의 차원
+            hidden_dim: 정렬 모델의 은닉 차원
         """
         super().__init__()
         self.query_projection = nn.Linear(query_dim, hidden_dim)
@@ -60,7 +60,7 @@ class BasicAttention(nn.Module):
         """
         batch_size, seq_len, _ = keys.shape
         
-        # 질의와 열쇠 사영
+        # 쿼리와 키 투영
         # query: (배치 크기, 1, hidden_dim)
         query_proj = self.query_projection(query).unsqueeze(1)
         
@@ -90,7 +90,7 @@ class BasicAttention(nn.Module):
 
 class ScaledDotProductAttention(nn.Module):
     """
-    배율 조정 내적 어텐션
+    스케일 내적 어텐션
     
     트랜스포머 어텐션의 근본 구성 블록이다.
     Attention(Q, K, V) = softmax(Q*K^T / sqrt(d_k)) * V
@@ -132,7 +132,7 @@ class ScaledDotProductAttention(nn.Module):
 
 
 def demonstrate_basic_attention():
-    """기본 어텐션 장치 시연"""
+    """기본 어텐션 메커니즘 시연"""
     print("=" * 60)
     print("Basic Attention Mechanism Demo")
     print("=" * 60)
@@ -168,7 +168,7 @@ def demonstrate_basic_attention():
 
 
 def demonstrate_scaled_dot_product():
-    """배율 조정 내적 어텐션 시연"""
+    """스케일 내적 어텐션 시연"""
     print("\n" + "=" * 60)
     print("Scaled Dot-Product Attention Demo")
     print("=" * 60)
@@ -252,19 +252,19 @@ BasicAttention은 $(B,d_q)$의 쿼리 하나와 $(B,S,d_k)$의 키를 공통 은
 
 ScaledDotProductAttention은 마지막 두 축을 쿼리·키 위치와 피처로 사용해 여러 쿼리와 헤드를 함께 계산한다. 스케일은 독립적인 단위 분산 성분의 내적 분산 증가를 완화하는 선택이며, 모든 학습 상태의 포화를 방지하거나 분산을 정확히 1로 만드는 보장은 아니다.
 
-마스크는 0이 제외 위치라는 규약이다. 소프트맥스 전에 제외하지만 전부 가려진 행에는 별도 처리가 없어 NaN이 생길 수 있다. 스케일 내적 모듈은 소프트맥스 뒤 드롭아웃을 적용하므로 학습 중 반환 웨이트의 합은 반드시 1이 아니다. 가산 예제의 웨이트 합과 조건이 다르다. 시드가 고정되지 않아 제시된 숫자도 매번 같다고 보장되지 않는다.
+마스크는 0이 제외 위치라는 규약이다. 소프트맥스 전에 제외하지만 전부 가려진 행에는 별도 처리가 없어 NaN이 생길 수 있다. 스케일 내적 모듈은 소프트맥스 뒤 드롭아웃을 적용하므로 학습 중 반환 웨이트의 합은 반드시 1이 아니다. 가산 예제의 웨이트 합과 조건이 다르다. 코드 첫머리에서 시드를 고정했으므로 같은 환경에서는 제시된 숫자가 다시 나온다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-질의 벡터 $q \in \mathbb{R}^4$과 행이 $k_1 = [1, 0, 0, 0]$, $k_2 = [0, 1, 0, 0]$, $k_3 = [0, 0, 1, 0]$인 키 행렬 $K \in \mathbb{R}^{3 \times 4}$, 그리고 $q = [1, 1, 0, 0]$이 주어졌을 때 (마스크 없이) 스케일 내적 어텐션 웨이트를 계산하라. 어느 키가 가장 큰 주목을 받으며 그 까닭은 무엇인가?
+쿼리 벡터 $q \in \mathbb{R}^4$과 행이 $k_1 = [1, 0, 0, 0]$, $k_2 = [0, 1, 0, 0]$, $k_3 = [0, 0, 1, 0]$인 키 행렬 $K \in \mathbb{R}^{3 \times 4}$, 그리고 $q = [1, 1, 0, 0]$이 주어졌을 때 (마스크 없이) 스케일 내적 어텐션 웨이트를 계산하라. 어느 키가 가장 큰 주목을 받으며 그 까닭은 무엇인가?
 
 </div>
 
 ??? success "풀이"
-    날 내적은 $q \cdot k_1 = 1$, $q \cdot k_2 = 1$, $q \cdot k_3 = 0$이다. $1/\sqrt{d_k} = 1/\sqrt{4} = 0.5$을 곱하면 점수가 $[0.5, 0.5, 0]$이다. 소프트맥스를 적용하면 다음과 같다.
+    스케일하기 전의 내적은 $q \cdot k_1 = 1$, $q \cdot k_2 = 1$, $q \cdot k_3 = 0$이다. $1/\sqrt{d_k} = 1/\sqrt{4} = 0.5$을 곱하면 점수가 $[0.5, 0.5, 0]$이다. 소프트맥스를 적용하면 다음과 같다.
 
     $$
     \alpha_i = \frac{e^{s_i}}{\sum_j e^{s_j}} = \frac{e^{0.5}}{2e^{0.5} + e^{0}} \approx \frac{1.6487}{2(1.6487) + 1} \approx \frac{1.6487}{4.2974} \approx 0.3836
@@ -277,7 +277,7 @@ ScaledDotProductAttention은 마지막 두 축을 쿼리·키 위치와 피처�
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-내적 어텐션에 배율 인수 $1/\sqrt{d_k}$이 필요한 까닭을 설명하라. $d_k$이 클 때 그것을 빼면 어떻게 되는가?
+내적 어텐션에 스케일 인수 $1/\sqrt{d_k}$이 필요한 까닭을 설명하라. $d_k$이 클 때 그것을 빼면 어떻게 되는가?
 
 </div>
 
@@ -313,7 +313,7 @@ ScaledDotProductAttention은 마지막 두 축을 쿼리·키 위치와 피처�
             query_proj = self.query_projection(query).unsqueeze(1)
             keys_proj = self.key_projection(keys)
             
-            # 다중 머리를 위해 모양 바꾸기: (배치, seq_len, num_heads, head_dim)
+            # 멀티헤드를 위해 형태 바꾸기: (배치, seq_len, num_heads, head_dim)
             query_proj = query_proj.view(batch_size, 1, self.num_heads, self.head_dim)
             keys_proj = keys_proj.view(batch_size, seq_len, self.num_heads, self.head_dim)
             
@@ -326,14 +326,14 @@ ScaledDotProductAttention은 마지막 두 축을 쿼리·키 위치와 피처�
             
             weights = F.softmax(scores, dim=-1)  # (배치, num_heads, seq_len)
             
-            # 머리마다 가중합
+            # 헤드마다 가중합
             context = torch.bmm(
                 weights.view(batch_size * self.num_heads, 1, seq_len),
                 values.unsqueeze(1).expand(-1, self.num_heads, -1, -1)
                       .reshape(batch_size * self.num_heads, seq_len, -1)
             ).view(batch_size, self.num_heads, -1)
             
-            context = context.mean(dim=1)  # 머리에 걸쳐 평균
+            context = context.mean(dim=1)  # 헤드에 걸쳐 평균
             context = self.output_projection(context)
             return context, weights
 

@@ -69,7 +69,7 @@ top-k는 양의 온도로 나눈 로짓에서 k개를 골라 소프트맥스로 
 
     ```python
     logits = torch.randn(1, 100)
-    logits[0, 42] = 10.0  # 뚜렷한 꼭대기
+    logits[0, 42] = 10.0  # 뚜렷한 최댓값
 
     greedy = greedy_sampling(logits.clone())
     print(f"Greedy: {greedy.item()}")  # 언제나 42
@@ -109,12 +109,12 @@ top-p 마스크를 오른쪽으로 한 칸 미는 이유와 이 구현의 경계
     def top_k_nucleus_sampling(logits, k=50, p=0.9, temperature=1.0):
         scaled = logits / temperature
 
-        # 1단계: 상위 k 거르기
+        # 1단계: 상위 k 필터링
         top_k_values, top_k_indices = torch.topk(scaled, k)
         filtered = torch.full_like(scaled, float('-inf'))
         filtered.scatter_(1, top_k_indices, top_k_values)
 
-        # 2단계: 상위 k 집합에 커널 거르기
+        # 2단계: 상위 k 집합에 뉴클리어스(top-p) 필터링
         sorted_logits, sorted_indices = torch.sort(filtered, descending=True)
         cumulative = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
         remove = cumulative > p

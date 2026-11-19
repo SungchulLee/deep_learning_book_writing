@@ -9,19 +9,19 @@ NumPy로 LSTM 셀의 순전파를 구현하고 게이트와 셀 상태의 변화
 LSTM의 이론과 밑바닥부터의 구현
 ============================================
 
-장단기 기억(LSTM) 뉴럴 네트워크는 문 장치와 세포 상태를 들여와 전통적인 RNN의
+장단기 기억(LSTM) 뉴럴 네트워크는 게이트 메커니즘과 셀 상태를 도입해 전통적인 RNN의
 그래디언트 소실 문제를 푼다.
 
 수식:
 ------------------------
-시각 t에 대해:
+시점 t에 대해:
 
 Forget Gate:    f_t = σ(W_f · [h_{t-1}, x_t] + b_f)
 Input Gate:     i_t = σ(W_i · [h_{t-1}, x_t] + b_i)
-칸 후보: C̃_t = tanh(W_C · [h_{t-1}, x_t] + b_C)
+셀 후보: C̃_t = tanh(W_C · [h_{t-1}, x_t] + b_C)
 Cell State:     C_t = f_t ⊙ C_{t-1} + i_t ⊙ C̃_t
 Output Gate:    o_t = σ(W_o · [h_{t-1}, x_t] + b_o)
-숨은 상태:   h_t = o_t ⊙ tanh(C_t)
+은닉 상태:   h_t = o_t ⊙ tanh(C_t)
 
 여기서 각 기호는 다음과 같다.
 - σ는 시그모이드 함수이다
@@ -39,79 +39,79 @@ import matplotlib.pyplot as plt
 
 
 class LSTMCell:
-    """밑바닥부터 만든 LSTM 세포 하나의 구현."""
+    """밑바닥부터 만든 LSTM 셀 하나의 구현."""
     
     def __init__(self, input_size, hidden_size):
         """
-        LSTM 세포의 파라메터를 초기화한다.
+        LSTM 셀의 파라메터를 초기화한다.
         
         인수:
             input_size: 입력 피처의 차원
-            hidden_size: 숨은 상태의 차원
+            hidden_size: 은닉 상태의 차원
         """
         self.input_size = input_size
         self.hidden_size = hidden_size
         
-        # 자비에르 초기화로 웨이트 초기화
+        # Xavier 초기화로 웨이트 초기화
         scale = 1.0 / np.sqrt(input_size + hidden_size)
         
-        # 망각 문의 웨이트
+        # 망각 게이트의 웨이트
         self.W_f = np.random.randn(hidden_size, input_size + hidden_size) * scale
         self.b_f = np.zeros((hidden_size, 1))
         
-        # 입력 문의 웨이트
+        # 입력 게이트의 웨이트
         self.W_i = np.random.randn(hidden_size, input_size + hidden_size) * scale
         self.b_i = np.zeros((hidden_size, 1))
         
-        # 세포 후보의 웨이트
+        # 셀 후보의 웨이트
         self.W_c = np.random.randn(hidden_size, input_size + hidden_size) * scale
         self.b_c = np.zeros((hidden_size, 1))
         
-        # 출력 문의 웨이트
+        # 출력 게이트의 웨이트
         self.W_o = np.random.randn(hidden_size, input_size + hidden_size) * scale
         self.b_o = np.zeros((hidden_size, 1))
         
     def sigmoid(self, x):
-        """시그모이드 엑티베이션 함수."""
+        """시그모이드 활성화 함수."""
         return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
     
     def tanh(self, x):
-        """쌍곡탄젠트 엑티베이션 함수."""
+        """쌍곡탄젠트 활성화 함수."""
         return np.tanh(x)
     
     def forward(self, x, h_prev, c_prev):
         """
-        LSTM 세포를 지나는 순전파.
+        LSTM 셀을 지나는 순전파.
         
         인수:
-            x: 지금 시각의 입력 (input_size, 1)
-            h_prev: 이전 숨은 상태 (hidden_size, 1)
-            c_prev: 이전 세포 상태 (hidden_size, 1)
+            x: 지금 시점의 입력 (input_size, 1)
+            h_prev: 이전 은닉 상태 (hidden_size, 1)
+            c_prev: 이전 셀 상태 (hidden_size, 1)
             
         반환값:
-            h: 새 숨은 상태
-            c: 새 세포 상태
+            h: 새 은닉 상태
+            c: 새 셀 상태
             cache: 역전파에 필요한 값
         """
-        # 이전 숨은 상태와 지금 입력 이어 붙이기
+        # 이전 은닉 상태와 지금 입력 이어 붙이기
         combined = np.vstack((h_prev, x))
         
-        # 망각 문
+        # 망각 게이트
         f = self.sigmoid(self.W_f @ combined + self.b_f)
         
-        # 입력 문
+        # 입력 게이트
         i = self.sigmoid(self.W_i @ combined + self.b_i)
         
-        # 세포 후보
+        # 셀 후보
         c_tilde = self.tanh(self.W_c @ combined + self.b_c)
         
-        # 새 세포 상태
+        # 새 셀 상태
         c = f * c_prev + i * c_tilde
         
-        # 출력 문
+        # 출력 게이트
         o = self.sigmoid(self.W_o @ combined + self.b_o)
         
-        # 새 숨은 상태
+        # 새 은닉 상태
         h = o * self.tanh(c)
         
         # 역전파를 위한 저장
@@ -129,7 +129,7 @@ class LSTM:
         
         인수:
             input_size: 입력 피처의 차원
-            hidden_size: 숨은 상태의 차원
+            hidden_size: 은닉 상태의 차원
             output_size: 출력의 차원
         """
         self.cell = LSTMCell(input_size, hidden_size)
@@ -142,14 +142,14 @@ class LSTM:
         
     def forward(self, inputs):
         """
-        순차열 전체를 지나는 순전파.
+        시퀀스 전체를 지나는 순전파.
         
         인수:
-            inputs: 모양이 (input_size, 1)인 입력 벡터의 목록
+            inputs: 형태가 (input_size, 1)인 입력 벡터의 목록
             
         반환값:
             outputs: 출력 예측의 목록
-            hidden_states: 그려 보려고 모은 숨은 상태의 목록
+            hidden_states: 그려 보려고 모은 은닉 상태의 목록
         """
         h = np.zeros((self.hidden_size, 1))
         c = np.zeros((self.hidden_size, 1))
@@ -168,21 +168,21 @@ class LSTM:
 
 
 def demonstrate_lstm_gates():
-    """그림으로 LSTM의 문이 어떻게 움직이는지 보인다."""
+    """그림으로 LSTM의 게이트가 어떻게 움직이는지 보인다."""
     print("=" * 60)
     print("LSTM Gate Mechanics Demonstration")
     print("=" * 60)
     
-    # 간단한 LSTM 세포 만들기
+    # 간단한 LSTM 셀 만들기
     input_size = 3
     hidden_size = 4
     lstm_cell = LSTMCell(input_size, hidden_size)
     
-    # 예제 입력 순차열 만들기
+    # 예제 입력 시퀀스 만들기
     sequence_length = 20
     inputs = [np.random.randn(input_size, 1) for _ in range(sequence_length)]
     
-    # 문의 엑티베이션 좇기
+    # 게이트의 활성화 값 추적하기
     forget_gates = []
     input_gates = []
     output_gates = []
@@ -206,7 +206,7 @@ def demonstrate_lstm_gates():
         output_gates.append(o.mean())
         cell_states.append(c.mean())
     
-    # 문의 엑티베이션 그려 보기
+    # 게이트의 활성화 값 그려 보기
     plt.figure(figsize=(12, 8))
     
     plt.subplot(2, 2, 1)
@@ -256,7 +256,7 @@ def sequence_prediction_example():
     t = np.linspace(0, 20, 200)
     data = np.sin(t)
     
-    # 순차열 준비 (지난 10개 점으로 다음 점 예측)
+    # 시퀀스 준비 (지난 10개 점으로 다음 점 예측)
     seq_length = 10
     sequences = []
     targets = []
@@ -268,7 +268,7 @@ def sequence_prediction_example():
     # LSTM 만들기
     lstm = LSTM(input_size=1, hidden_size=20, output_size=1)
     
-    # 첫 순차열로 시연
+    # 첫 시퀀스로 시연
     test_seq = sequences[0]
     inputs = [np.array([[x]]) for x in test_seq]
     
@@ -411,7 +411,7 @@ LSTM 클래스는 매 호출마다 은닉·셀 상태를 0으로 초기화하고
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 모양 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
+아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 형태 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
 
 </div>
 
@@ -424,16 +424,16 @@ LSTM 클래스는 매 호출마다 은닉·셀 상태를 0으로 초기화하고
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 경사의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 경사가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 형태, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

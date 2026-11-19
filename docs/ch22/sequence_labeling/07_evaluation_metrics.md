@@ -9,14 +9,14 @@
 개체명 인식 평가 지표
 ======================
 
-개체명 인식 체계를 두루 살피는 평가 지표.
+개체명 인식 시스템을 종합적으로 평가하는 지표.
 
 지표:
 - 정밀도, 재현율, F1(토큰 수준과 개체 수준)
-- 빡빡한 짝짓기와 느슨한 짝짓기
-- 개체 클래스별 지표
+- 엄격한 일치와 느슨한 일치
+- 개체 유형별 지표
 
-지은이: 러닝 목적
+지은이: 교육 목적
 날짜: 2025
 """
 
@@ -34,18 +34,18 @@ class NERMetrics:
     @staticmethod
     def compute_metrics(y_true: List[List[str]], y_pred: List[List[str]]) -> Dict:
         """
-        토큰 수준의 정밀도, 재현율, F1 셈하기.
+        토큰 수준의 정밀도, 재현율, F1 계산하기.
         
         인수:
-            y_true: 참 레이블
-            y_pred: 예측 레이블
+            y_true: 정답 라벨
+            y_pred: 예측 라벨
             
         반환값:
             정밀도, 재현율, F1 점수를 담은 사전
         """
-        tp = 0  # 참양성
-        fp = 0  # 헛양성
-        fn = 0  # 헛음성
+        tp = 0  # 참 양성
+        fp = 0  # 거짓 양성
+        fn = 0  # 거짓 음성
         
         for true_seq, pred_seq in zip(y_true, y_pred):
             for true_label, pred_label in zip(true_seq, pred_seq):
@@ -75,7 +75,7 @@ class NERMetrics:
     @staticmethod
     def entity_level_f1(true_entities: List[Tuple], pred_entities: List[Tuple]) -> Dict:
         """
-        개체 수준 F1 점수 셈하기.
+        개체 수준 F1 점수 계산하기.
         
         인수:
             true_entities: (text, type, start, end) 튜플의 목록
@@ -130,7 +130,7 @@ F1 Score: 1.000
 
 ## 3. entity_level_f1의 구간 계약
 
-입력 원소는 `(text,type,start,end)` 형태를 가정하고 text를 제외한(type,start,end)을 집합으로 비교한다. span의 경계와 유형이 일치해야TP다. start·end가 토큰인지 문자인지 함수가 정해 주지 않으므로 호출하는 두 자료에서 같은 기준을 사용해야 한다.
+입력 원소는 `(text,type,start,end)` 형태를 가정하고 text를 제외한(type,start,end)을 집합으로 비교한다. span의 경계와 유형이 일치해야TP다. start·end가 토큰인지 문자인지 함수가 정해 주지 않으므로 호출하는 두 입력에서 같은 기준을 사용해야 한다.
 
 문서·문장ID가 없어 여러 문장의 로컬offset을 한 목록에 합치면 서로 다른 언급이 같은집합원소로 합쳐질 수 있다. 표본별로 집계하거나 ID를 포함한 대응을 정의해야 한다. 집합은 중복도 제거하므로 중복 예측을 별도FP로 세는 다른 계약과는 다르다. 원문 문자열은 비교하지 않지만 같은위치가 같은표본을 가리켜야 의미가 있다.
 
@@ -138,7 +138,7 @@ F1 Score: 1.000
 
 ## 4. 결과를 보고하는 방법
 
-시연의 완전 일치 F1은 함수 호출 형식을 보여 줄 뿐 실제 모델 성능이 아니다. 평가 단위·BIO 체계·무효 태그 폴리시·패딩·빈 경우·문서 구분과 micro/macro를 기록한다. 같은 문서의 문장이나 중복 자료가 분할 사이에 섞이는지도 확인한다. 토큰 지표와 span 지표를 같은 성능표의 동일 척도로 바꾸어 인용하지 않는다.
+시연의 완전 일치 F1은 함수 호출 형식을 보여 줄 뿐 실제 모델 성능이 아니다. 평가 단위·BIO 체계·무효 태그 정책·패딩·빈 경우·문서 구분과 micro/macro를 기록한다. 같은 문서의 문장이나 중복 데이터가 분할 사이에 섞이는지도 확인한다. 토큰 지표와 span 지표를 같은 성능표의 동일 척도로 바꾸어 인용하지 않는다.
 
 ## 연습문제
 
@@ -205,10 +205,10 @@ F1 Score: 1.000
         assert model(normal_input).shape == expected_shape
         # 원소가 하나인 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값 (넘침을 확인한다)
+        # 큰 값 (오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # 경사의 흐름
+        # 그래디언트의 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
@@ -218,4 +218,4 @@ F1 Score: 1.000
 
 ## 정리하며
 
-토큰 태그 micro와 정확 개체 span F1은 세는 단위가 다르다. 입력 길이·offset·문서 ID·중복·빈 경우의 폴리시를 맞추고 현재 함수가 구현하지 않는 부분 일치·macro 평가를 구분한다.
+토큰 태그 micro와 정확 개체 span F1은 세는 단위가 다르다. 입력 길이·offset·문서 ID·중복·빈 경우의 정책을 맞추고 현재 함수가 구현하지 않는 부분 일치·macro 평가를 구분한다.
