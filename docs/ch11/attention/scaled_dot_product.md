@@ -323,7 +323,7 @@ Empirical verification of dot-product variance:
 
 ## 7. 마스크 전략
 
-마스크는 어떤 자리가 어떤 자리에 주목할 수 있는지를 다스린다.
+마스크는 어떤 자리가 어떤 자리에 주목할 수 있는지를 조절한다.
 
 ### 마스크의 종류
 

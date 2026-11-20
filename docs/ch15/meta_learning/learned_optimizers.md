@@ -92,7 +92,7 @@ $$\mathbf{m}_t = \beta \mathbf{m}_{t-1} + (1-\beta) \mathbf{g}_t$$
 
 ### 2차 정보
 
-**그래디언트 분산**: 최근 창에 대한 $\text{Var}(\mathbf{g}_{t-k:t})$
+**그래디언트 분산**: 최근 윈도에 대한 $\text{Var}(\mathbf{g}_{t-k:t})$
 
 **로스 곡률 근사**: 헤시안 대각 성분의 근사에서 얻는다
 

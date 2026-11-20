@@ -27,7 +27,7 @@ Q·K·V의 투영, 마스크, 위치 표현과 정규화가 어떻게 연결되�
 **그 앞 세대 — RNN 어텐션**
 
 - [RNN 어텐션 메커니즘](transformer_architecture/attention_mechanisms.md) — Bahdanau 의 가산 점수와 Luong 의 내적 점수
-- [어텐션을 결합한 GRU Seq2Seq](transformer_architecture/seq2seq_with_attention.md) — 견줄 순환 모델이지 셀프 어텐션 구조가 아니다
+- [어텐션을 결합한 GRU Seq2Seq](transformer_architecture/seq2seq_with_attention.md) — 비교용 순환 모델이지 셀프 어텐션 구조가 아니다
 - [번역 학습](transformer_architecture/train_translation.md) — 이름과 달리 **데이터 로딩·로스·갱신을 하지 않는** 준비 예제다
 
 **돌려 보기**

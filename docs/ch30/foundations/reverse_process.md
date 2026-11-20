@@ -182,7 +182,7 @@ B×C×H×W 입력에서 두 반환값의 모양과 역시간 SDE의 시간 부�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 보존된 중요도 샘플링 코드는 역확산을 구현하는가?
+아래 중요도 샘플링 코드는 역확산을 구현하는가?
 
 </div>
 

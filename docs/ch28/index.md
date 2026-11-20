@@ -13,7 +13,7 @@
 ## 2. 시계열·문자 기초 예제
 
 - [선형·비선형 AR 예측기](foundations/ar_model.md): 시차 순서, 재귀 점 예측과 안정성
-- [시계열 데이터 구성](foundations/data.md): 인공 과정, 슬라이딩 창과 시간 분할
+- [시계열 데이터 구성](foundations/data.md): 인공 과정, 슬라이딩 윈도와 시간 분할
 - [시계열 예측기 학습](foundations/train.md): 전체 배치 MSE와 한 스텝·다중 스텝 평가
 - [문자 데이터 구성](foundations/data_2.md): 사전, 문맥당 타깃과 미등록 문자
 - [문자 LSTM과 Transformer](foundations/model.md): 다음 문자 logits와 생성 상태 관리

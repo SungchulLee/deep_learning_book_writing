@@ -61,9 +61,9 @@ def soft_lookup(query, keys, values):
 
 **조합적인 검색.** 두 키 사이에 있는 쿼리는 두 값을 섞어 꺼내 오므로, 모델이 저장된 재료로 새 응답을 빚어낼 수 있다.
 
-### 온도: 부드러움과 딱딱함을 다스리기
+### 온도: 부드러움과 딱딱함을 조절하기
 
-소프트맥스의 온도가 찾기가 얼마나 "딱딱해질지"를 다스린다.
+소프트맥스의 온도가 찾기가 얼마나 "딱딱해질지"를 조절한다.
 
 $$\alpha_i = \frac{\exp(s_i / T)}{\sum_j \exp(s_j / T)}$$
 
@@ -324,7 +324,7 @@ class SoftDictionary(nn.Module):
             query: (배치, query_dim) 또는 (배치, num_queries, query_dim)
             keys: (배치, num_entries, key_dim), None이면 학습된 키를 쓴다
             values: (배치, num_entries, value_dim), None이면 학습된 값을 쓴다
-            temperature: 날카로움을 다스린다 (낮을수록 딱딱한 선택)
+            temperature: 날카로움을 조절한다 (낮을수록 딱딱한 선택)
         """
         if keys is None:
             keys = self.keys.unsqueeze(0).expand(query.size(0), -1, -1)

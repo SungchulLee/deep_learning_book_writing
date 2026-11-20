@@ -94,7 +94,7 @@ $$
 
 ### ReLU 뉴럴 네트워크: 조각별 선형 근사
 
-각 ReLU 뉴런은 "경첩"을 만든다. 꺾이는 점(매듭)이 하나뿐인 조각별 선형 함수이다.
+각 ReLU 뉴런은 "힌지(hinge, 경첩)"를 만든다. 꺾이는 점(매듭)이 하나뿐인 조각별 선형 함수이다.
 
 $$
 \max(0, w x + b) = \begin{cases} 0 & \text{if } wx + b \leq 0 \\ wx + b & \text{if } wx + b > 0 \end{cases}

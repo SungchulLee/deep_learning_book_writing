@@ -460,7 +460,7 @@ def train_prefix_tuning(
 
 train_prefix_tuning은 prefix_encoder를 갱신하지만 eval_dataloader는 사용하지 않는다. 검증·최적 체크포인트·저장·학습 재개는 구현하지 않으며 배치 평균 로스만 출력한다. labels·padding·위치·장치·cache API의 계약이 맞아야 outputs.loss를 얻을 수 있다. 빈 loader와 유효 목표가 없는 배치도 처리해야 한다.
 
-모델 전체 train 호출은 동결 기반의 dropout도 활성화한다. 웨이트 동결과 실행 모드는 다르므로 의도한 학습 폴리시를 명시한다. 이 편집에서는 기반 로딩·학습·평가를 실행하지 않았다.
+모델 전체 train 호출은 동결 기반의 dropout도 활성화한다. 웨이트 동결과 실행 모드는 다르므로 의도한 학습 폴리시를 명시한다.
 
 prefix 길이·MLP 폭·러닝레이트를 늘리면 언제나 품질이 좋아지는 것은 아니다. 같은 과제·데이터·평가 예산에서 prompt·prefix·LoRA·어댑터의 품질·전체 메모리·지연을 비교한다. 단순 파라메터 비율로 표현력이나 모든 과제의 성능 순위를 확정하지 않는다.
 

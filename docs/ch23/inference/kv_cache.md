@@ -207,7 +207,7 @@ Generated: torch.Size([1, 10]) -> torch.Size([1, 30])
 
 GQA·MQA는 KV head 수를 줄이는 구조 선택으로 배치 수만큼 캐시를 줄이는 기법이 아니다. 최근 토큰만 남기는 sliding cache는 원 모델의 어텐션 범위·위치·학습과 맞춰야 하며 임의의 full-attention 모델에 적용해도 출력이 그대로라는 보장은 없다.
 
-[FlashAttention](flash_attention.md)은 어텐션의 중간 행렬·메모리 이동을 줄이는 접근이고 KV cache는 과거 계산을 재사용하는 접근이다. 함께 쓸 수 있지만 같은 최적화는 아니다. 이 편집에서는 생성·시간 측정·그림 재생성을 하지 않았다.
+[FlashAttention](flash_attention.md)은 어텐션의 중간 행렬·메모리 이동을 줄이는 접근이고 KV cache는 과거 계산을 재사용하는 접근이다. 함께 쓸 수 있지만 같은 최적화는 아니다.
 
 ## 연습문제
 

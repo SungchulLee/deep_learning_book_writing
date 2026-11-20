@@ -10,7 +10,7 @@ EBM이 모든 모드를 표현할 수 있다는 것과 실제 사슬이 모든 �
 
 ## 2. ULA와 MALA
 
-이 페이지에서는 drift에 1/2을 두는 규약을 사용한다.
+이 페이지에서는 드리프트(갱신에서 결정적으로 움직이는 항)에 1/2을 두는 규약을 사용한다.
 
 $$x_{k+1}=x_k-\frac\eta2\nabla E(x_k)+\sqrt\eta\xi_k,
 \qquad\xi_k\sim\mathcal N(0,I)$$

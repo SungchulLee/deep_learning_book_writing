@@ -97,7 +97,7 @@ Community Detection
   Spectral clustering accuracy: 0.6800
 ```
 
-출력은 기존 합성 실험의 기록이다. 이번 편집에서는 코드를 실행하거나 두 방법의 성능을 재측정하지 않았다.
+출력은 기존 합성 실험의 기록이다.
 
 ## 2. 합성 그래프와 입력
 

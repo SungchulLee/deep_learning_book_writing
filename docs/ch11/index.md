@@ -51,7 +51,7 @@ LSTM과 GRU는 게이트로 정보의 유지와 갱신을 조절한다. 기본 R
 - [셀 상태와 그래디언트의 흐름](lstm_gru/cell_state.md) — 직접 경로가 있을 뿐 **보존을 보장하지는 않는다**
 - [GRU 구조](lstm_gru/gru_architecture.md) — 셀 상태도 출력 게이트도 없다
 - [GRU와 LSTM 비교](lstm_gru/gru_vs_lstm.md) — 구조·파라메터 수·고르는 기준
-- [Peephole 연결](lstm_gru/peephole.md) — 게이트가 제가 다스릴 셀 상태를 **못 보는** 문제
+- [Peephole 연결](lstm_gru/peephole.md) — 게이트가 제가 조절할 셀 상태를 **못 보는** 문제
 
 **NumPy 로 열어 보기**
 

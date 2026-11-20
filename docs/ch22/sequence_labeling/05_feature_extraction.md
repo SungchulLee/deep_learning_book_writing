@@ -45,7 +45,7 @@ class FeatureExtractor:
         인수:
             tokens: 문장 속 토큰의 목록
             index: 현재 토큰의 인덱스
-            window_size: 맥락 창의 크기
+            window_size: 맥락 윈도의 크기
             
         반환값:
             피처의 사전
@@ -198,7 +198,7 @@ word_shape는 대문자X·소문자x·숫자d·그 밖c의 문자열이다. 예�
 
 이런 피처는 결정적인 유형 판정이 아니다. 대문자는 문장 시작에도 나타나고 숫자·접미사가 같은 서로 다른 개체도 많다. 언어·분야와 토큰화에 맞는 검증이 필요하다. 피처 개수가 많다는 출력도 정보량이나 정확도와 같지 않다.
 
-## 3. 문맥 창과 경계
+## 3. 문맥 윈도와 경계
 
 기본 window_size2는 앞뒤 최대2토큰의 소문자 표기·대문자 여부를 넣는다. 문장 시작·끝에는 존재하는 이웃만 추가하므로 반환 사전의 키 수가 위치에 따라 달라진다. is_first·is_last는 문장 경계의 신호다. 뒤 단어를 참조하므로 미래 텍스트를 사용할 수 없는 스트리밍 계약에는 그대로 적용하지 않는다.
 
@@ -266,7 +266,7 @@ Steve의 word_shape·short_word_shape와 최대 접두·접미 길이를 설명�
 
 ??? success "풀이"
 
-    FeatureExtractor는 nn.Module이 아니고 forward·parameters·역전파가 없다. 아래 미정의 입력의 뉴럴 네트워크 검사는 완성 시험이 아니다. 첫·끝·한 토큰 문장, 빈 토큰·유효하지 않은 index, 문맥 창·Unicode·접두 길이와 반환 피처 타입을 명세로 확인한다.
+    FeatureExtractor는 nn.Module이 아니고 forward·parameters·역전파가 없다. 아래 미정의 입력의 뉴럴 네트워크 검사는 완성 시험이 아니다. 첫·끝·한 토큰 문장, 빈 토큰·유효하지 않은 index, 문맥 윈도·Unicode·접두 길이와 반환 피처 타입을 명세로 확인한다.
 
     ```python
     def test_featureextractor():

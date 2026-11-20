@@ -20,8 +20,8 @@
 
 **배우는 모델로**
 
-- [순방향 뉴럴 언어 모델](language_modeling/tutorial_04_feedforward_lm.md) — Bengio 의 고정 창
-- [RNN 언어 모델](language_modeling/tutorial_05_rnn_language_model.md) · [LSTM 언어 모델](language_modeling/tutorial_06_lstm_language_model.md) — 창을 떼고 은닉 상태로
+- [순방향 뉴럴 언어 모델](language_modeling/tutorial_04_feedforward_lm.md) — Bengio 의 고정 윈도
+- [RNN 언어 모델](language_modeling/tutorial_05_rnn_language_model.md) · [LSTM 언어 모델](language_modeling/tutorial_06_lstm_language_model.md) — 윈도를 떼고 은닉 상태로
 - [트랜스포머 언어 모델](language_modeling/tutorial_07_transformer_lm.md) — 위치 표현과 인과 마스크
 
 **사전 학습·생성·평가**

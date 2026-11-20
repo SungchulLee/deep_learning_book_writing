@@ -33,7 +33,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
         제각기 고침을 쓰는 이진 홉필드 뉴럴 네트워크.
 
         에너지 가장 작게 하기로 이어 떠올림 기억을 짠다.
-        무늬는 에너지 함수의 그 자리 최솟값으로 담긴다.
+        패턴은 에너지 함수의 그 자리 최솟값으로 담긴다.
 
         파라메터
         ----------
@@ -56,7 +56,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
         def train_hebbian(self, patterns: torch.Tensor) -> None:
             """
-            헤브 러닝 규칙으로 무늬를 담는다.
+            헤브 러닝 규칙으로 패턴을 담는다.
 
             "함께 터지는 뉴런은 함께 이어진다"
 
@@ -76,7 +76,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
             for pattern in patterns:
                 self.W += torch.outer(pattern, pattern)
 
-            # 무늬 개수로 고르게 맞춘다
+            # 패턴 개수로 고르게 맞춘다
             self.W /= n_patterns
 
             # 스스로 이음을 없앤다
@@ -145,14 +145,14 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
                      max_iterations: int = 100,
                      track_energy: bool = True) -> Tuple[torch.Tensor, int]:
             """
-            처음의 (망가졌을 수 있는) 상태에서 무늬를 되찾는다.
+            처음의 (망가졌을 수 있는) 상태에서 패턴을 되찾는다.
 
             모일 때까지 제각기 고친다.
 
             파라메터
             ----------
             initial_state : torch.Tensor
-                처음 상태(망가진 무늬)
+                처음 상태(망가진 패턴)
             max_iterations : int
                 최대 고침 바퀴 수
             track_energy : bool
@@ -161,7 +161,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
             반환값
             -------
             final_state : torch.Tensor
-                되찾은 무늬(둘레에서 힘이 가장 낮은 자리)
+                되찾은 패턴(둘레에서 힘이 가장 낮은 자리)
             n_iterations : int
                 모일 때까지의 되풀이 횟수
             """
@@ -191,7 +191,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
         def compute_overlap(self, state: torch.Tensor, pattern: torch.Tensor) -> float:
             """
-            상태와 무늬 사이의 겹침(닮음)을 셈한다.
+            상태와 패턴 사이의 겹침(닮음)을 셈한다.
 
             Overlap = (1/N) Σᵢ sᵢ pᵢ ∈ [-1, 1]
 
@@ -203,9 +203,9 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
 
     def demonstrate_hopfield_retrieval():
         """
-        홉필드 뉴럴 네트워크로 무늬 담기와 되찾기를 보여 준다.
+        홉필드 뉴럴 네트워크로 패턴 담기와 되찾기를 보여 준다.
         """
-        # 단순한 5x5 무늬를 만든다(뉴런 25개로 편다)
+        # 단순한 5x5 패턴을 만든다(뉴런 25개로 편다)
         pattern_A = torch.tensor([
             [-1, +1, +1, +1, -1],
             [+1, -1, -1, -1, +1],
@@ -228,7 +228,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
         network = HopfieldNetwork(n_neurons=25)
         network.train_hebbian(patterns)
 
-        # 무늬 A을 망가뜨린다(아무 비트 5개를 뒤집는다)
+        # 패턴 A을 망가뜨린다(아무 비트 5개를 뒤집는다)
         corrupted = pattern_A.clone()
         flip_indices = torch.randperm(25)[:5]
         corrupted[flip_indices] *= -1
@@ -247,7 +247,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
         # 시각화한다
         fig, axes = plt.subplots(2, 4, figsize=(14, 7))
 
-        # 1줄: 무늬와 되찾기
+        # 1줄: 패턴과 되찾기
         axes[0, 0].imshow(pattern_A.reshape(5, 5), cmap='binary', vmin=-1, vmax=1)
         axes[0, 0].set_title('Original Pattern A')
         axes[0, 0].axis('off')
@@ -275,7 +275,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
         axes[1, 1].set_title('Weight Matrix')
         plt.colorbar(im, ax=axes[1, 1])
 
-        # 담긴 무늬의 에너지
+        # 담긴 패턴의 에너지
         pattern_energies = network.energy(patterns).numpy()
         axes[1, 2].bar(['Pattern A', 'Pattern B'], pattern_energies)
         axes[1, 2].set_ylabel('Energy')
@@ -320,16 +320,16 @@ Overlap with pattern B: 0.520
                                  max_patterns: int = 30,
                                  n_trials: int = 10):
         """
-        무늬 개수가 늘 때 되찾기 성능이 어떻게 나빠지는지 살핀다.
+        패턴 개수가 늘 때 되찾기 성능이 어떻게 나빠지는지 살핀다.
 
         파라메터
         ----------
         n_neurons : int
             뉴럴 네트워크 크기
         max_patterns : int
-            시험할 최대 무늬 개수
+            시험할 최대 패턴 개수
         n_trials : int
-            무늬 개수마다 시도 횟수
+            패턴 개수마다 시도 횟수
         """
         pattern_counts = list(range(1, max_patterns + 1, 2))
         success_rates = []
@@ -342,16 +342,16 @@ Overlap with pattern B: 0.520
             trial_overlaps = []
 
             for trial in range(n_trials):
-                # 아무 무늬를 만든다
+                # 아무 패턴을 만든다
                 patterns = torch.sign(torch.randn(n_patterns, n_neurons))
 
                 # 뉴럴 네트워크를 익힌다
                 network = HopfieldNetwork(n_neurons)
                 network.train_hebbian(patterns)
 
-                # 무늬마다 되찾기를 시험한다
+                # 패턴마다 되찾기를 시험한다
                 for pattern in patterns:
-                    # 무늬를 망가뜨린다(비트의 10%을 뒤집는다)
+                    # 패턴을 망가뜨린다(비트의 10%을 뒤집는다)
                     corrupted = pattern.clone()
                     n_flip = int(0.1 * n_neurons)
                     flip_idx = torch.randperm(n_neurons)[:n_flip]
@@ -583,13 +583,13 @@ Overlap with pattern B: 0.520
 
 오늘 교과서에 실리는 0.138은 세 해 뒤에 다른 사람들이 다른 방법으로 얻은 수다. 아미트(Amit)·구트프로인트(Gutfreund)·좀폴린스키(Sompolinsky)가 1985년에 스핀글라스의 복제법으로 풀어 "For α > α_c = 0.138, there is no solution with m≠0"을 얻었다. 모의실험이 아니라 **N이 무한으로 가는 극한의 해석적 문턱**이다.
 
-![왼쪽과 오른쪽 두 판으로 나뉜 그림이다. 가로축은 알파로 저장 무늬 수를 뉴런 수로 나눈 값이고 0.138 자리에 세로 점선이 있다. 왼쪽은 수렴한 상태가 저장 무늬와 겹치는 정도로, N이 100일 때와 400일 때 모두 점선 왼쪽에서는 1에 거의 붙어 있다가 오른쪽에서 떨어지며 N이 클수록 더 가파르게 떨어진다. 오른쪽은 저장 무늬가 한 비트도 틀리지 않고 고정점인 비율로, 점선보다 한참 왼쪽에서 이미 내려가기 시작해 N이 400일 때 점선 자리에서 0.31밖에 되지 않는다.](figures/capacity_two_questions.svg)
+![왼쪽과 오른쪽 두 판으로 나뉜 그림이다. 가로축은 알파로 저장 패턴 수를 뉴런 수로 나눈 값이고 0.138 자리에 세로 점선이 있다. 왼쪽은 수렴한 상태가 저장 패턴과 겹치는 정도로, N이 100일 때와 400일 때 모두 점선 왼쪽에서는 1에 거의 붙어 있다가 오른쪽에서 떨어지며 N이 클수록 더 가파르게 떨어진다. 오른쪽은 저장 패턴이 한 비트도 틀리지 않고 고정점인 비율로, 점선보다 한참 왼쪽에서 이미 내려가기 시작해 N이 400일 때 점선 자리에서 0.31밖에 되지 않는다.](figures/capacity_two_questions.svg)
 
 같은 뉴럴 네트워크를 같은 실험에서 **두 기준으로** 재어 보면 두 수가 왜 다른지가 그대로 보인다.
 
 왼쪽은 "되찾은 상태가 대체로 맞는가"를 묻는다. 중첩도 m은 0.138 왼쪽에서 1에 거의 붙어 있다가 그 뒤로 떨어지고, N이 400이면 100일 때보다 더 가파르다. **문턱은 실재한다** — 다만 N이 커질수록 또렷해지는 극한의 성질로서 그렇다.
 
-오른쪽은 "저장한 무늬가 하나도 빠짐없이 완전한가"를 묻는다. 이쪽에는 문턱이랄 것이 없다. 0.138에 닿기 **한참 전부터** 내려가기 시작해서, N=400이면 바로 그 문턱 자리에서 완전히 안정한 무늬가 **0.31**뿐이다. 열에 일곱은 이미 어딘가 한 비트가 틀어져 있다.
+오른쪽은 "저장한 패턴이 하나도 빠짐없이 완전한가"를 묻는다. 이쪽에는 문턱이랄 것이 없다. 0.138에 닿기 **한참 전부터** 내려가기 시작해서, N=400이면 바로 그 문턱 자리에서 완전히 안정한 패턴이 **0.31**뿐이다. 열에 일곱은 이미 어딘가 한 비트가 틀어져 있다.
 
 **그러니 두 수는 다투는 것이 아니라 서로 다른 물음에 답한다.** 바로 위 문단이 "저장한 모든 패턴이 안정하다는 주장과 무작위 입력에서 어느 패턴으로 수렴하는지는 서로 다른 질문"이라고 적은 그 구분이, 용량을 가리키는 숫자 자체에도 그대로 들어 있는 셈이다. 어느 쪽 수를 인용하든 **무엇을 성공으로 셌는지를 함께 적지 않으면 뜻이 서지 않는다.** 이 쪽의 코드가 성공을 "overlap>0.9"로 정의해 두고 그것이 완전 일치와 다르다고 굳이 밝혀 둔 까닭이 여기에 있다.
 
@@ -619,7 +619,7 @@ _확인한 곳 — J. J. Hopfield, "Neural networks and physical systems with em
             # 붙박이점으로 모인다
             final, _ = network.retrieve(initial, track_energy=False)
 
-            # 담긴 무늬인지 그 음인지 살핀다
+            # 담긴 패턴인지 그 음인지 살핀다
             is_stored = False
             for pattern in stored_patterns:
                 overlap = abs(network.compute_overlap(final, pattern))
@@ -654,7 +654,7 @@ find_spurious_states는 절댓값 중첩도 0.95를 임계값으로 사용한다
         """
         n_neurons = 6
 
-        # 단순한 무늬
+        # 단순한 패턴
         p1 = torch.tensor([1, 1, 1, -1, -1, -1], dtype=torch.float32)
         p2 = torch.tensor([-1, -1, 1, 1, 1, -1], dtype=torch.float32)
         patterns = torch.stack([p1, p2])
@@ -701,7 +701,7 @@ find_spurious_states는 절댓값 중첩도 0.95를 임계값으로 사용한다
 
         print(f"\nFound {len(local_minima)} local minima:")
         for idx, state, E in local_minima:
-            # 담긴 무늬와의 겹침을 살핀다
+            # 담긴 패턴과의 겹침을 살핀다
             overlap_1 = network.compute_overlap(state, p1)
             overlap_2 = network.compute_overlap(state, p2)
 
@@ -719,7 +719,7 @@ find_spurious_states는 절댓값 중첩도 0.95를 임계값으로 사용한다
         sorted_idx = np.argsort(all_energies)
         ax.plot(all_energies[sorted_idx], 'b-', linewidth=1, alpha=0.7)
 
-        # 담긴 무늬를 표시한다
+        # 담긴 패턴을 표시한다
         for i, pattern in enumerate(patterns):
             pattern_binary = ''.join(['1' if s > 0 else '0' for s in pattern])
             pattern_idx = int(pattern_binary, 2)
@@ -781,12 +781,12 @@ $$q'=M^T\operatorname{softmax}(\beta Mq)$$
             self.patterns = None  # Stored patterns
 
         def store(self, patterns: torch.Tensor):
-            """무늬를 담는다(이어진 값도 된다)."""
+            """패턴을 담는다(이어진 값도 된다)."""
             self.patterns = patterns  # Shape: (n_patterns, pattern_dim)
 
         def retrieve(self, query: torch.Tensor) -> torch.Tensor:
             """
-            소프트맥스 어텐션으로 무늬를 되찾는다.
+            소프트맥스 어텐션으로 패턴을 되찾는다.
 
             x_new = softmax(β * X^T * q)^T * X
             """
@@ -794,7 +794,7 @@ $$q'=M^T\operatorname{softmax}(\beta Mq)$$
             scores = self.beta * torch.matmul(self.patterns, query)
             attention = torch.softmax(scores, dim=0)
 
-            # 무늬의 무게 있는 결합
+            # 패턴의 무게 있는 결합
             return torch.matmul(attention, self.patterns)
     ```
 

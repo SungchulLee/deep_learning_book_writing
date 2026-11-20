@@ -20,7 +20,7 @@ $$J(\theta)=\mathbb E_p\left[\frac12\|s_\theta(x)\|^2+
 
 목적을 세울 때 우리가 맞추려는 상대는 $\nabla_x \log p_{\text{data}}$ 인데, 그것은 **우리가 모르는 것**이다. 2005년 아포 휘바리넨(Aapo Hyvärinen)이 《JMLR》에 낸 글도 그 곤란을 먼저 적는다 — 자료 스코어를 추정하는 일은 "basically a non-parametric estimation problem"이라고. 그리고 바로 뒤집는다. **"However, no such non-parametric estimation is needed."** 부분적분을 한 번 하면 모르는 항이 통째로 사라지고, 남는 것은 모델만으로 셈할 수 있는 양이다. 논문은 이것을 "the remarkable fact"라 부른다.
 
-**다만 부분적분에는 값이 있다.** 경계항이 0이어야 한다는 조건이고, 위 문단이 "경계 항이 사라지고"라고 적은 그 한 줄이다. 논문에서는 각주 하나로 들어가 있다 — $p(\xi)\psi(\xi;\theta)$ 가 $\lVert\xi\rVert\to\infty$ 에서 0으로 가야 한다는 조건이다. 각주로 적혀 있다고 사소한 것은 아니다.
+**다만 부분적분에는 대가가 있다.** 경계항이 0이어야 한다는 조건이고, 위 문단이 "경계 항이 사라지고"라고 적은 그 한 줄이다. 논문에서는 각주 하나로 들어가 있다 — $p(\xi)\psi(\xi;\theta)$ 가 $\lVert\xi\rVert\to\infty$ 에서 0으로 가야 한다는 조건이다. 각주로 적혀 있다고 사소한 것은 아니다.
 
 ![두 판으로 나뉜 그림이다. 왼쪽은 실수 전체에서 정의된 가우시안으로, 스코어 매칭 목적이 mu에 대해 아래로 볼록하고 최소가 1.303으로 참값 1.3과 맞는다. 오른쪽은 반직선 위의 지수분포로, 목적이 lambda에 대해 단조증가해서 최소가 0이고 참값 2는 한참 오른쪽에 있다.](figures/score_matching_boundary.svg)
 

@@ -91,7 +91,7 @@ Deep GCN with Residual Connections
   16 layers: Test Acc = 0.8824
 ```
 
-기존 출력은 Karate Club 한 그래프에서 깊이를 바꾼 실험 기록이다. 이번 편집에서는 재실행하지 않았다. 잔차 없는 모델이나 DropEdge와 비교한 결과는 이 출력에 포함되지 않는다.
+기존 출력은 Karate Club 한 그래프에서 깊이를 바꾼 실험 기록이다. 잔차 없는 모델이나 DropEdge와 비교한 결과는 이 출력에 포함되지 않는다.
 
 ## 2. 잔차 블록의 구조
 
