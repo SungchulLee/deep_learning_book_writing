@@ -8,10 +8,10 @@
 
 ```python
 """
-앞선 레이어: 그래디언트 바탕 어텐션 기여도 매기기
+심화: 그래디언트 기반 어텐션 기여도 분석
 
-어텐션 기여도 매기기와 모형 풀이하기를 위해 쌓은 그래디언트를 비롯한
-그래디언트 바탕 방법을 짜 넣는다.
+어텐션 기여도 분석과 모델 해석을 위해 Integrated Gradients를 비롯한
+그래디언트 기반 방법을 구현한다.
 """
 
 import torch
@@ -25,9 +25,9 @@ from typing import List, Optional, Callable
 
 class GradientAttentionAnalyzer:
     """
-    그래디언트 바탕 어텐션 기여도 매기기 방법.
+    그래디언트 기반 어텐션 기여도 분석 방법.
 
-    이 방법들은 그래디언트를 써서 어느 어텐션 짐이 모형의 미루어 봄에
+    이 방법들은 그래디언트를 써서 어느 어텐션 웨이트가 모델의 예측에
     가장 크게 기여하는지 가려낸다.
     """
 
@@ -36,7 +36,7 @@ class GradientAttentionAnalyzer:
         파라메터:
         ----------
         n_steps : int
-            쌓은 그래디언트의 사이 잡는 스텝 수
+            Integrated Gradients의 보간 스텝 수
         """
         self.n_steps = n_steps
 
@@ -46,28 +46,28 @@ class GradientAttentionAnalyzer:
                                       baseline_ids: Optional[torch.Tensor] = None,
                                       target_idx: Optional[int] = None) -> torch.Tensor:
         """
-        어텐션에 대한 쌓은 그래디언트를 셈한다.
+        어텐션에 대한 Integrated Gradients를 계산한다.
 
-        쌓은 그래디언트:
+        Integrated Gradients:
         --------------------
         IG(x) = (x - x') × ∫[α=0에서 1] ∂F(x' + α(x - x'))/∂x dα
 
         여기서:
-        - x은 들임
-        - x'은 베이스라인
-        - α은 사이 잡는 계수
-        - 적분은 리만 합으로 어림한다
+        - x는 입력
+        - x'는 베이스라인
+        - α는 보간 계수
+        - 적분은 리만 합으로 근사한다
 
         파라메터:
         ----------
         model : callable
-            어텐션 짐을 내놓는 모형
+            어텐션 웨이트를 출력하는 모델
         input_ids : torch.Tensor
-            들임 단어 번호
-        baseline_ids : torch.Tensor, 없어도 됨
-            베이스라인 들임(맡긴 값: 0)
-        target_idx : int, 없어도 됨
-            겨눈 출력 자리
+            입력 토큰 ID
+        baseline_ids : torch.Tensor, 선택
+            베이스라인 입력(기본값: 0)
+        target_idx : int, 선택
+            대상 출력 위치
 
         Returns:
         -------
@@ -77,30 +77,30 @@ class GradientAttentionAnalyzer:
         if baseline_ids is None:
             baseline_ids = torch.zeros_like(input_ids)
 
-        # 사이 들임을 만든다
+        # 보간 입력을 만든다
         alphas = torch.linspace(0, 1, self.n_steps)
 
         attributions = []
 
         for alpha in alphas:
-            # 사이를 잡는다
+            # 보간한다
             interpolated = baseline_ids + alpha * (input_ids - baseline_ids)
             interpolated = interpolated.long()
 
             # 그래디언트를 켠다
             interpolated.requires_grad = True
 
-            # 앞으로 스텝
+            # 순전파
             outputs = model(interpolated, output_attentions=True)
 
-            # 어텐션을 집고 그래디언트를 셈한다
-            attention = outputs.attentions[-1][0, 0]  # 마지막 레이어, 첫 머리
+            # 어텐션을 꺼내 그래디언트를 계산한다
+            attention = outputs.attentions[-1][0, 0]  # 마지막 레이어, 첫 헤드
 
             if target_idx is not None:
-                # 정한 자리에 대한 그래디언트
+                # 지정한 위치에 대한 그래디언트
                 target_attn = attention[target_idx].sum()
             else:
-                # 모든 자리에 대한 그래디언트
+                # 모든 위치에 대한 그래디언트
                 target_attn = attention.sum()
 
             # 역전파
@@ -109,11 +109,11 @@ class GradientAttentionAnalyzer:
 
             target_attn.backward()
 
-            # 그래디언트를 갈무리한다
+            # 그래디언트를 저장한다
             if interpolated.grad is not None:
                 attributions.append(interpolated.grad.detach())
 
-        # 리만 합으로 적분을 어림한다
+        # 리만 합으로 적분을 근사한다
         attributions = torch.stack(attributions)
         integrated_grads = attributions.mean(dim=0)
 
@@ -127,15 +127,15 @@ class GradientAttentionAnalyzer:
                         input_ids: torch.Tensor,
                         target_idx: Optional[int] = None) -> torch.Tensor:
         """
-        단순한 그래디언트 × 들임 기여도 매기기.
+        단순한 그래디언트 × 입력 기여도 분석.
 
-        기여도 = ∂출력/∂들임 × 들임
+        기여도 = ∂출력/∂입력 × 입력
 
-        쌓은 그래디언트를 갈음하는 더 단순한 길이다.
+        Integrated Gradients를 대신하는 더 단순한 방법이다.
         """
         input_ids.requires_grad = True
 
-        # 앞으로
+        # 순전파
         outputs = model(input_ids, output_attentions=True)
         attention = outputs.attentions[-1][0, 0]
 
@@ -158,7 +158,7 @@ class GradientAttentionAnalyzer:
     def visualize_attribution(self,
                              attribution: torch.Tensor,
                              tokens: List[str],
-                             title: str = "어텐션 기여도 매기기",
+                             title: str = "어텐션 기여도 분석",
                              save_path: Optional[str] = None):
         """기여도 점수를 그린다."""
         if isinstance(attribution, torch.Tensor):
@@ -174,14 +174,14 @@ class GradientAttentionAnalyzer:
 
         bars = ax.bar(positions, np.abs(attribution), color=colors, alpha=0.7, edgecolor='black')
 
-        ax.set_xlabel('단어', fontsize=12, fontweight='bold')
+        ax.set_xlabel('토큰', fontsize=12, fontweight='bold')
         ax.set_ylabel('기여도 점수(크기)', fontsize=12, fontweight='bold')
         ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
 
         ax.set_xticks(positions)
         ax.set_xticklabels(tokens, rotation=45, ha='right')
 
-        # 값 이름표를 붙인다
+        # 값 레이블을 붙인다
         for pos, val in zip(positions, attribution):
             ax.text(pos, abs(val) + max(abs(attribution)) * 0.02, 
                    f'{val:.3f}', ha='center', va='bottom', fontsize=9)
@@ -197,67 +197,67 @@ class GradientAttentionAnalyzer:
         plt.show()
 
 def example_gradient_attribution():
-    """보기: 그래디언트 바탕 기여도 매기기(단순하게 줄임)."""
+    """예제: 그래디언트 기반 기여도 분석(단순화한 버전)."""
     print("=" * 70)
-    print("그래디언트 바탕 어텐션 기여도 매기기")
+    print("그래디언트 기반 어텐션 기여도 분석")
     print("=" * 70)
 
-    print("\n짚을 것: 이 보기는 지어낸 자료를 쓴다.")
-    print("참 모형에는 실제 트랜스포머 모형과 함께 쓰라.")
+    print("\n참고: 이 예제는 합성 데이터를 쓴다.")
+    print("실제로는 진짜 트랜스포머 모델과 함께 쓰라.")
 
     tokens = ["The", "cat", "chased", "the", "mouse"]
     seq_len = len(tokens)
 
-    # 기여도 점수를 흉내낸다
+    # 기여도 점수를 흉내 낸다
     attribution = torch.tensor([0.2, 0.8, 0.6, 0.1, 0.9])
 
     analyzer = GradientAttentionAnalyzer()
     analyzer.visualize_attribution(
         attribution,
         tokens,
-        title="단어 기여도 점수(지어낸 것)"
+        title="토큰 기여도 점수(합성)"
     )
 
-    print("\n읽는 법:")
-    print("  - 점수가 클수록 미루어 봄에 더 중요하다")
+    print("\n해석:")
+    print("  - 점수가 클수록 예측에 더 중요하다")
     print("  - 'cat'과 'mouse'의 기여도가 크다")
     print("  - 관사('the')의 기여도는 작다")
 
 if __name__ == "__main__":
     example_gradient_attribution()
 
-    print("\n핵심 생각:")
-    print("  - 쌓은 그래디언트: 강건한 기여도 매기기 방법")
-    print("  - 그래디언트 × 들임: 더 단순한 갈음")
-    print("  - 어느 단어가 미루어 봄을 이끄는지 드러낸다")
-    print("  - 모형 풀이하기에 꼭 있어야 한다")
+    print("\n핵심 정리:")
+    print("  - Integrated Gradients: 강건한 기여도 분석 방법")
+    print("  - 그래디언트 × 입력: 더 단순한 대안")
+    print("  - 어느 토큰이 예측을 이끄는지 드러낸다")
+    print("  - 모델 해석에 꼭 필요하다")
 ```
 
 **출력:**
 
 ```
 ======================================================================
-그래디언트 바탕 어텐션 기여도 매기기
+그래디언트 기반 어텐션 기여도 분석
 ======================================================================
 
-짚을 것: 이 보기는 지어낸 자료를 쓴다.
-참 모형에는 실제 트랜스포머 모형과 함께 쓰라.
+참고: 이 예제는 합성 데이터를 쓴다.
+실제로는 진짜 트랜스포머 모델과 함께 쓰라.
 
-읽는 법:
-  - 점수가 클수록 미루어 봄에 더 중요하다
+해석:
+  - 점수가 클수록 예측에 더 중요하다
   - 'cat'과 'mouse'의 기여도가 크다
   - 관사('the')의 기여도는 작다
 
-핵심 생각:
-  - 쌓은 그래디언트: 강건한 기여도 매기기 방법
-  - 그래디언트 × 들임: 더 단순한 갈음
-  - 어느 단어가 미루어 봄을 이끄는지 드러낸다
-  - 모형 풀이하기에 꼭 있어야 한다
+핵심 정리:
+  - Integrated Gradients: 강건한 기여도 분석 방법
+  - 그래디언트 × 입력: 더 단순한 대안
+  - 어느 토큰이 예측을 이끄는지 드러낸다
+  - 모델 해석에 꼭 필요하다
 ```
 
 ## 2. 논의
 
-실행되는 것은 `example_gradient_attribution` 하나뿐이고, 이 함수는 손으로 적은 점수 `[0.2, 0.8, 0.6, 0.1, 0.9]` 를 막대그래프로 그릴 뿐이다. 출력의 「읽는 법」도 그 지어낸 점수를 풀어 쓴 것이다. 기여도를 실제로 계산하는 두 메서드는 한 번도 불리지 않는데, 불렀다면 두 가지 까닭으로 제대로 돌지 않는다.
+실행되는 것은 `example_gradient_attribution` 하나뿐이고, 이 함수는 손으로 적은 점수 `[0.2, 0.8, 0.6, 0.1, 0.9]` 를 막대그래프로 그릴 뿐이다. 출력의 「해석」도 그 지어낸 점수를 풀어 쓴 것이다. 기여도를 실제로 계산하는 두 메서드는 한 번도 불리지 않는데, 불렀다면 두 가지 까닭으로 제대로 돌지 않는다.
 
 첫째, 토큰 번호에 그래디언트를 걸 수 없다. `integrated_gradients_attention` 은 정수인 토큰 번호를 보간한 뒤 `.long()` 으로 다시 정수로 바꾸고 `requires_grad = True` 를 건다. PyTorch는 부동소수점 텐서에만 그래디언트를 허용하므로 여기서 오류가 난다. 설령 걸리더라도 번호 3과 7 사이의 「4.6번 토큰」은 뜻이 없다. 텍스트에 IG를 쓸 때는 임베딩 벡터를 베이스라인 임베딩에서 입력 임베딩까지 보간한다. `gradient_x_input` 도 같은 문제를 안고 있다.
 
@@ -299,7 +299,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    보통의 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간이 $O(n^2 d)$이고 어텐션 웨이트에 드는 메모리가 $O(n^2)$이다. 시퀀스가 길면(예를 들어 $n = 4096$) 감당할 수 없다. Longformer는 국소 슬라이딩 윈도 어텐션($O(n \cdot w \cdot d)$, $w$는 윈도 크기)과 고른 토큰에 대한 성긴 전역 어텐션을 함께 쓴다. Linformer는 키와 값을 낮은 차원 $k \ll n$으로 사영해 복잡도를 $O(n \cdot k \cdot d)$로 줄인다. 둘 다 표현력을 얼마쯤 내주고 긴 입력에서의 효율을 얻는다.
+    보통의 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간이 $O(n^2 d)$이고 어텐션 웨이트에 드는 메모리가 $O(n^2)$이다. 시퀀스가 길면(예를 들어 $n = 4096$) 감당할 수 없다. Longformer는 국소 슬라이딩 윈도 어텐션($O(n \cdot w \cdot d)$, $w$는 윈도 크기)과 고른 토큰에 대한 희소한 전역 어텐션을 함께 쓴다. Linformer는 키와 값을 낮은 차원 $k \ll n$으로 사영해 복잡도를 $O(n \cdot k \cdot d)$로 줄인다. 둘 다 표현력을 얼마쯤 내주고 긴 입력에서의 효율을 얻는다.
 
 ---
 <div class="drillbox" markdown>
@@ -313,12 +313,12 @@ if __name__ == "__main__":
     경계 조건을 두루 다루는 테스트 함수를 작성한다.
     ```python
     def test_gradientattentionanalyzer():
-        model = 앞선 레이어(...)
-        # 여느 들임
+        model = GradientAttentionAnalyzer(...)
+        # 보통 입력
         assert model(normal_input).shape == expected_shape
         # 원소 하나짜리 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값(넘침을 살핀다)
+        # 큰 값(오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
         # 그래디언트 흐름

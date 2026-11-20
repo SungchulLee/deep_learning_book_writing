@@ -36,7 +36,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 
 class TransformerProbe:
-    """트랜스포머 나타냄을 더듬는 분류기."""
+    """트랜스포머 표현을 프로빙하는 분류기."""
 
     def __init__(self, model, tokenizer, device):
         self.model = model
@@ -44,7 +44,7 @@ class TransformerProbe:
         self.device = device
 
     def extract_representations(self, texts, layer):
-        """정한 레이어의 숨은 상태를 뽑아낸다."""
+        """지정한 레이어의 은닉 상태를 뽑아낸다."""
         self.model.eval()
         representations = []
 
@@ -58,13 +58,13 @@ class TransformerProbe:
                 outputs = self.model(**inputs, output_hidden_states=True)
 
             hidden = outputs.hidden_states[layer]
-            cls_rep = hidden[0, 0].cpu().numpy()  # [CLS] 단어
+            cls_rep = hidden[0, 0].cpu().numpy()  # [CLS] 토큰
             representations.append(cls_rep)
 
         return np.array(representations)
 
     def probe_layer(self, texts, labels, layer, test_size=0.2):
-        """정한 레이어에서 더듬개를 익히고 따진다."""
+        """지정한 레이어에서 프로브를 학습하고 평가한다."""
         from sklearn.model_selection import train_test_split
 
         reps = self.extract_representations(texts, layer)
@@ -80,7 +80,7 @@ class TransformerProbe:
         return accuracy
 
     def probe_all_layers(self, texts, labels):
-        """소식이 어디에 담겼는지 보려고 모든 레이어를 더듬는다."""
+        """정보가 어디에 담겼는지 보려고 모든 레이어를 프로빙한다."""
         n_layers = self.model.config.num_hidden_layers + 1
 
         results = {}
@@ -109,7 +109,7 @@ def visualize_with_bertviz(model, tokenizer, text):
 
     tokens = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
 
-    # 주고받는 그림
+    # 인터랙티브 시각화
     head_view(outputs.attentions, tokens)
     model_view(outputs.attentions, tokens)
 ```
@@ -120,19 +120,19 @@ def visualize_with_bertviz(model, tokenizer, text):
 
 ```python
 def probe_financial_model(model, tokenizer, device):
-    """금융 글 모형이 그 분야의 앎을 지녔는지 더듬는다."""
+    """금융 언어 모델이 도메인 지식을 지녔는지 프로빙한다."""
 
     probe = TransformerProbe(model, tokenizer, device)
 
-    # 평가: 모형이 느낌을 담고 있는가?
-    texts = financial_texts  # 금융 소식 목록
-    sentiment_labels = [0, 1, 1, 0, ...]  # 내림세/오름세
+    # 평가: 모델이 감성을 담고 있는가?
+    texts = financial_texts  # 금융 뉴스 목록
+    sentiment_labels = [0, 1, 1, 0, ...]  # 약세/강세
 
-    print("레이어마다의 느낌 담김:")
+    print("레이어마다의 감성 정보:")
     results = probe.probe_all_layers(texts, sentiment_labels)
 
     best_layer = max(results, key=results.get)
-    print(f"느낌에 가장 나은 레이어: {best_layer} (정확도={results[best_layer]:.3f})")
+    print(f"감성 프로빙에 가장 좋은 레이어: {best_layer} (정확도={results[best_layer]:.3f})")
 ```
 
 ---
@@ -171,7 +171,7 @@ XOR를 계산하는 ReLU 네트워크의 은닉 레이어가 $h(x) = (\text{ReLU
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

@@ -390,12 +390,192 @@ class EWCLearner:
 
 ### 사용 예
 
-train_loaders와 test_loaders는 별도로 준비해야 한다. 예제의 출력 수는 2이므로 각 과제 라벨도 같은 규약에 맞아야 한다. continual_metrics 모듈은 이 책에 따로 없으므로, 「지속 학습의 평가 지표」 쪽의 ContinualLearningMetrics 클래스를 같은 파일에 넣어 쓴다.
+train_loaders와 test_loaders는 별도로 준비해야 한다. 예제의 출력 수는 2이므로 각 과제 라벨도 같은 규약에 맞아야 한다. 정확도 행렬에서 AA·BWT·망각 척도를 계산하는 ContinualLearningMetrics 클래스는 「지속 학습의 평가 지표」 쪽의 것과 같으며, 아래 블록 맨 위에 그대로 실었다.
 
 ```python
 import numpy as np
+import matplotlib.pyplot as plt
 
-# 설정
+
+# === 지표 계산 ===
+
+class ContinualLearningMetrics:
+    """
+    연속 학습의 지표를 한꺼번에 계산한다.
+    
+    이 클래스는 정확도 행렬에서 표준 지표를 모두 계산해 담아 둔다.
+    """
+    
+    def __init__(self, accuracy_matrix, random_init_accuracies=None):
+        """
+        정확도 행렬로 초기화한다.
+        
+        인수:
+            accuracy_matrix: T x T 정확도 넘파이 배열
+            random_init_accuracies: 선택 사항인 베이스라인 정확도
+        """
+        self.accuracy_matrix = accuracy_matrix
+        self.T = accuracy_matrix.shape[0]
+        self.random_init = random_init_accuracies
+        
+        # 모든 지표를 계산한다
+        self._compute_metrics()
+    
+    def _compute_metrics(self):
+        """모든 지표를 계산한다."""
+        # 주요 지표
+        self.average_accuracy = np.mean(self.accuracy_matrix[:, -1])
+        self.learning_accuracy = np.mean(np.diag(self.accuracy_matrix))
+        
+        # 후방 전이
+        if self.T > 1:
+            bwt = sum(self.accuracy_matrix[i, -1] - self.accuracy_matrix[i, i] 
+                     for i in range(self.T - 1))
+            self.backward_transfer = bwt / (self.T - 1)
+        else:
+            self.backward_transfer = 0.0
+        
+        # 전방 전이(베이스라인이 주어지면)
+        if self.random_init is not None and self.T > 1:
+            fwt = sum(self.accuracy_matrix[i, i] - self.random_init[i] 
+                     for i in range(1, self.T))
+            self.forward_transfer = fwt / (self.T - 1)
+        else:
+            self.forward_transfer = None
+        
+        # 망각 척도
+        if self.T > 1:
+            fm = 0.0
+            for i in range(self.T - 1):
+                max_acc = np.max(self.accuracy_matrix[i, i:])
+                fm += max_acc - self.accuracy_matrix[i, -1]
+            self.forgetting_measure = fm / (self.T - 1)
+        else:
+            self.forgetting_measure = 0.0
+        
+        # 과제별 망각
+        self.per_task_forgetting = []
+        for i in range(self.T - 1):
+            self.per_task_forgetting.append(
+                self.accuracy_matrix[i, i] - self.accuracy_matrix[i, -1]
+            )
+        
+        # 기억 안정성
+        if self.T > 1:
+            stability = sum(np.var(self.accuracy_matrix[i, i:]) 
+                           for i in range(self.T - 1))
+            self.memory_stability = stability / (self.T - 1)
+        else:
+            self.memory_stability = 0.0
+    
+    def summary(self):
+        """요약 딕셔너리를 반환한다."""
+        return {
+            'average_accuracy': self.average_accuracy,
+            'learning_accuracy': self.learning_accuracy,
+            'backward_transfer': self.backward_transfer,
+            'forward_transfer': self.forward_transfer,
+            'forgetting_measure': self.forgetting_measure,
+            'memory_stability': self.memory_stability,
+            'per_task_forgetting': self.per_task_forgetting
+        }
+    
+    def print_report(self):
+        """형식을 갖춘 지표 보고서를 출력한다."""
+        print("=" * 60)
+        print("CONTINUAL LEARNING METRICS REPORT")
+        print("=" * 60)
+        
+        print(f"\n📊 Primary Metrics:")
+        print(f"   Average Accuracy (AA):      {self.average_accuracy:.2f}%")
+        print(f"   Learning Accuracy (LA):     {self.learning_accuracy:.2f}%")
+        print(f"   Backward Transfer (BWT):    {self.backward_transfer:+.2f}%")
+        if self.forward_transfer is not None:
+            print(f"   Forward Transfer (FWT):     {self.forward_transfer:+.2f}%")
+        
+        print(f"\n📉 Forgetting Analysis:")
+        print(f"   Forgetting Measure (FM):    {self.forgetting_measure:.2f}%")
+        print(f"   Memory Stability (MS):      {self.memory_stability:.2f}")
+        
+        print(f"\n📋 Per-Task Forgetting:")
+        for i, f in enumerate(self.per_task_forgetting):
+            print(f"   Task {i}: {f:+.2f}%")
+        
+        print("=" * 60)
+    
+    def plot_metrics(self, save_path=None):
+        """지표를 시각화한다."""
+        fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+        
+        # 1. 정확도 행렬 히트맵
+        ax1 = axes[0, 0]
+        im = ax1.imshow(self.accuracy_matrix, cmap='RdYlGn', 
+                        vmin=0, vmax=100, aspect='auto')
+        ax1.set_xlabel('After Training Task')
+        ax1.set_ylabel('Evaluated Task')
+        ax1.set_title('Accuracy Matrix', fontweight='bold')
+        ax1.set_xticks(range(self.T))
+        ax1.set_yticks(range(self.T))
+        plt.colorbar(im, ax=ax1, label='Accuracy (%)')
+        
+        # 텍스트 주석을 추가한다
+        for i in range(self.T):
+            for j in range(self.T):
+                if j >= i:
+                    ax1.text(j, i, f'{self.accuracy_matrix[i,j]:.0f}',
+                            ha='center', va='center', fontsize=9)
+        
+        # 2. 학습 정확도와 최종 정확도
+        ax2 = axes[0, 1]
+        x = np.arange(self.T)
+        width = 0.35
+        learning = np.diag(self.accuracy_matrix)
+        final = self.accuracy_matrix[:, -1]
+        
+        ax2.bar(x - width/2, learning, width, label='Learning Acc', 
+                color='skyblue', alpha=0.8)
+        ax2.bar(x + width/2, final, width, label='Final Acc',
+                color='coral', alpha=0.8)
+        ax2.set_xlabel('Task')
+        ax2.set_ylabel('Accuracy (%)')
+        ax2.set_title('Learning vs Final Accuracy', fontweight='bold')
+        ax2.legend()
+        ax2.set_ylim([0, 105])
+        ax2.grid(True, alpha=0.3, axis='y')
+        
+        # 3. 과제별 망각
+        ax3 = axes[1, 0]
+        colors = ['red' if f > 0 else 'green' for f in self.per_task_forgetting]
+        ax3.bar(range(len(self.per_task_forgetting)), 
+                self.per_task_forgetting, color=colors, alpha=0.7)
+        ax3.axhline(y=0, color='black', linestyle='--', linewidth=1)
+        ax3.set_xlabel('Task')
+        ax3.set_ylabel('Forgetting (%)')
+        ax3.set_title('Per-Task Forgetting', fontweight='bold')
+        ax3.grid(True, alpha=0.3, axis='y')
+        
+        # 4. 정확도 궤적
+        ax4 = axes[1, 1]
+        for i in range(self.T):
+            accs = [self.accuracy_matrix[i, j] if j >= i else np.nan 
+                   for j in range(self.T)]
+            ax4.plot(range(self.T), accs, marker='o', linewidth=2,
+                    label=f'Task {i}')
+        ax4.set_xlabel('Training Stage')
+        ax4.set_ylabel('Accuracy (%)')
+        ax4.set_title('Accuracy Trajectories', fontweight='bold')
+        ax4.legend(loc='best', fontsize=9)
+        ax4.set_ylim([0, 105])
+        ax4.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        plt.show()
+
+
+# === 설정 ===
 num_tasks = 5
 epochs_per_task = 5
 ewc_lambda = 5000.0  # 핵심 하이퍼파라메터
@@ -431,7 +611,6 @@ results = ewc_learner.train_continual(
 )
 
 # 지표를 계산한다
-from continual_metrics import ContinualLearningMetrics
 metrics = ContinualLearningMetrics(results['accuracy_matrix'])
 metrics.print_report()
 ```

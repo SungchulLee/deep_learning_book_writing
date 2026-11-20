@@ -45,7 +45,7 @@ import torch.nn.functional as F
 
 class PrototypeNetwork(nn.Module):
     """
-    풀이되는 본보기 바탕 분류기.
+    해석 가능한 프로토타입 기반 분류기.
     """
 
     def __init__(
@@ -61,27 +61,27 @@ class PrototypeNetwork(nn.Module):
         self.n_prototypes = n_prototypes
         self.n_classes = n_classes
 
-        # 본보기 분야로 쏜다
+        # 프로토타입 공간으로 사영한다
         self.projection = nn.Linear(feature_dim, prototype_dim)
 
-        # 배울 수 있는 본보기
+        # 학습 가능한 프로토타입
         self.prototypes = nn.Parameter(
             torch.randn(n_prototypes, prototype_dim)
         )
 
-        # 본보기 닮음으로 가른다
+        # 프로토타입 유사도로 분류한다
         self.classifier = nn.Linear(n_prototypes, n_classes, bias=False)
 
     def compute_similarities(self, x):
         features = self.backbone(x)
         projected = self.projection(features)
 
-        # 본보기마다의 L2 거리
+        # 프로토타입마다의 L2 거리
         distances = torch.cdist(projected.unsqueeze(1), 
                                self.prototypes.unsqueeze(0))
         distances = distances.squeeze(1)
 
-        # 닮음으로 바꾼다
+        # 유사도로 바꾼다
         similarities = torch.log((distances + 1) / (distances + 1e-4))
         return similarities, distances
 
@@ -92,12 +92,12 @@ class PrototypeNetwork(nn.Module):
 
     def explain(self, x, prototype_images=None):
         """
-        가장 가까운 본보기를 보여 미루어 봄을 풀이한다.
+        가장 가까운 프로토타입을 보여 예측을 설명한다.
         """
         similarities, distances = self.compute_similarities(x)
         prediction = self.classifier(similarities).argmax(dim=1).item()
 
-        # 본보기에 대한 클래스 짐
+        # 프로토타입에 대한 클래스 웨이트
         class_weights = self.classifier.weight[prediction].detach().cpu().numpy()
 
         sim_values = similarities[0].detach().cpu().numpy()
@@ -163,7 +163,7 @@ XOR 문제를 프로토타입 네 개로 푼다. 임베딩은 항등 함수 $g(\
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

@@ -24,7 +24,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class FeatureInversion:
-    """가운데 결에서 들임을 되세운다."""
+    """중간 피처에서 입력을 복원한다."""
 
     def __init__(self, model, target_layer, device):
         self.model = model
@@ -37,7 +37,7 @@ class FeatureInversion:
         )
 
     def total_variation(self, x):
-        """자리를 매끄럽게 하는 온 흔들림 정칙화 항."""
+        """공간적으로 매끄럽게 만드는 전변동(total variation) 정칙화 항."""
         diff_h = torch.abs(x[:, :, 1:, :] - x[:, :, :-1, :])
         diff_w = torch.abs(x[:, :, :, 1:] - x[:, :, :, :-1])
         return diff_h.mean() + diff_w.mean()
@@ -46,7 +46,7 @@ class FeatureInversion:
         self, target_input, n_steps=500, lr=0.05,
         tv_weight=1e-3, l2_weight=1e-5
     ):
-        """레이어의 결에서 들임을 되세운다."""
+        """레이어의 피처에서 입력을 복원한다."""
         self.model.eval()
 
         with torch.no_grad():
@@ -61,7 +61,7 @@ class FeatureInversion:
             optimizer.zero_grad()
             self.model(x)
 
-            # 결을 맞추는 로스
+            # 피처를 맞추는 로스
             feat_loss = F.mse_loss(self.current_features, target_features)
 
             # 정칙화
@@ -117,7 +117,7 @@ XOR를 계산하는 ReLU 네트워크의 은닉 레이어가 $\Phi(\mathbf{x}) =
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

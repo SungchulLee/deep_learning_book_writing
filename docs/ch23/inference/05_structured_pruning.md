@@ -35,6 +35,7 @@
 - 피처 지도에 익숙함
 """
 
+import random
 import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
@@ -42,15 +43,29 @@ from torch.utils.data import DataLoader
 import numpy as np
 
 # ========================================================================
-# 메인
+# 도우미 함수
 # ========================================================================
 
-from utils import (
-    count_parameters,
-    evaluate_accuracy,
-    compare_model_sizes,
-    seed_everything
-)
+def seed_everything(seed: int = 42) -> None:
+    """파이썬·넘파이·토치의 씨앗을 한 번에 고정한다."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def count_parameters(model: nn.Module, trainable_only: bool = False) -> int:
+    """매개변수 개수. trainable_only면 학습되는 것만 센다."""
+    ps = model.parameters()
+    if trainable_only:
+        ps = (p for p in ps if p.requires_grad)
+    return sum(p.numel() for p in ps)
+
+
+# ========================================================================
+# 메인
+# ========================================================================
 
 
 class SimpleCNN(nn.Module):

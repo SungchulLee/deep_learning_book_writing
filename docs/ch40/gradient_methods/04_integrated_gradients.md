@@ -1,6 +1,6 @@
 # 04: Integrated Gradients
 
-Integrated Gradients(IG)를 구현해 베이스라인 선택에 따라 기여도 맵이 어떻게 달라지는지 견주는 쪽이다. IG는 베이스라인에서 입력으로 가는 직선 경로를 따라 그래디언트를 적분해 기여도를 매기는, 공리에 근거한 방법이다.
+Integrated Gradients(IG)를 구현해 베이스라인 선택에 따라 기여도 맵이 어떻게 달라지는지 비교하는 쪽이다. IG는 베이스라인에서 입력으로 가는 직선 경로를 따라 그래디언트를 적분해 기여도를 매기는, 공리에 근거한 방법이다.
 
 뉴럴 네트워크가 무엇을 배우는지 아는 일은 신뢰를 쌓고 모델을 디버깅하는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 처리하고 어떻게 판단하는지 드러내는 그래디언트 기반 설명 기법을 보이며, 네트워크의 행동을 눈으로 보고 수로 재게 해 준다.
 
@@ -8,28 +8,28 @@ Integrated Gradients(IG)를 구현해 베이스라인 선택에 따라 기여도
 
 ```python
 """
-04: 쌓은 그래디언트 - 이치에 닿는 기여도 매기기
+04: Integrated Gradients - 공리에 근거한 기여도 계산
 ================================================
 
-어려움: 가운데
+난이도: 중간
 
 설명:
-쌓은 그래디언트는 베이스라인에서 들임으로 가는 길을 따라 그래디언트를 쌓는다.
-이로써 기여도 매기기의 중요한 공리인 예민함과 짜기에 흔들리지 않음을
-채운다.
+Integrated Gradients는 베이스라인에서 입력으로 가는 경로를 따라 그래디언트를 적분한다.
+이로써 기여도 계산의 중요한 공리인 민감도(sensitivity)와 구현 불변성(implementation invariance)을
+만족한다.
 
-수학 밑바탕:
+수학적 배경:
     IG(x) = (x - x') ⊙ ∫₀¹ (∂f(x' + α(x - x'))/∂x) dα
 
 여기서:
-- x: 들임 그림
-- x': 베이스라인(흔히 0이나 흐린 그림)
-- α ∈ [0,1]: 사이 잡는 계수
-- 적분은 리만 합으로 어림한다
+- x: 입력 이미지
+- x': 베이스라인(흔히 0이나 흐린 이미지)
+- α ∈ [0,1]: 보간 계수
+- 적분은 리만 합으로 근사한다
 
-채우는 공리:
-1. 예민함: 결이 출력을 바꾸면 0이 아닌 기여도를 받는다
-2. 짜기에 흔들리지 않음: 하는 일이 같은 네트워크는 같은 기여도를 받는다
+만족하는 공리:
+1. 민감도: 피처가 출력을 바꾸면 0이 아닌 기여도를 받는다
+2. 구현 불변성: 기능이 같은 네트워크는 같은 기여도를 받는다
 3. 완전성: 기여도의 합이 f(x) - f(x')이 된다
 
 지은이: 교육용 자료
@@ -38,8 +38,139 @@ Integrated Gradients(IG)를 구현해 베이스라인 선택에 따라 기여도
 import torch
 import torch.nn as nn
 import numpy as np
-from utils import *
+import os
+import matplotlib.pyplot as plt
 from PIL import Image, ImageFilter
+# 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
+# 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
+torch.manual_seed(0)
+
+# ========================================================================
+# 도우미 함수
+# ========================================================================
+
+# ImageNet으로 학습한 모델이 쓰는 값. 전처리할 때와 되돌릴 때 같은 값을 써야 한다.
+IMAGENET_MEAN = [0.485, 0.456, 0.406]
+IMAGENET_STD = [0.229, 0.224, 0.225]
+
+
+def get_device():
+    """쓸 수 있는 가장 빠른 장치를 고른다."""
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
+def load_pretrained_model(model_name="resnet50", device=None, eval_mode=True):
+    """torchvision에서 사전 학습된 모델을 불러온다.
+
+    다운로드가 안 되면(네트워크가 없을 때) 학습하지 않은 모델로 대체한다. 그래디언트
+    방법을 보이는 데에는 가중치가 실제로 학습된 것이 아니어도 맵이 나온다.
+    """
+    from torchvision import models
+
+    device = device or get_device()
+    try:
+        model = getattr(models, model_name)(weights="DEFAULT")
+    except Exception:
+        print(f"  사전 학습 가중치를 받지 못했다 — {model_name}을 무작위 초기화 상태로 쓴다.")
+        model = getattr(models, model_name)(weights=None)
+
+    model = model.to(device)
+    if eval_mode:
+        model.eval()
+    return model
+
+
+def preprocess_image(image, size=224, device=None, requires_grad=False):
+    """이미지를 모델이 받는 (1, 3, size, size) 텐서로 전처리한다.
+
+    인수:
+        image: 파일 경로이거나 PIL 이미지
+        size: 자를 크기
+        device: 텐서를 올릴 장치
+        requires_grad: True면 입력에 대한 그래디언트를 받을 수 있게 한다
+
+    파일이 없으면 회색 이미지로 대체한다. 예제가 이미지 하나 때문에
+    통째로 멈추지 않게 하기 위해서다.
+    """
+    from torchvision import transforms
+
+    device = device or get_device()
+
+    if isinstance(image, (str, os.PathLike)):
+        try:
+            image = Image.open(image).convert("RGB")
+        except FileNotFoundError:
+            print(f"  '{image}' 파일을 찾지 못했다 — 단색 회색 이미지로 대신한다.")
+            image = Image.new("RGB", (size, size), (128, 128, 128))
+    elif not isinstance(image, Image.Image):
+        raise TypeError("image는 파일 경로이거나 PIL 이미지여야 한다")
+
+    transform = transforms.Compose([
+        transforms.Resize((size, size)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+    ])
+    tensor = transform(image).unsqueeze(0).to(device)
+    return tensor.requires_grad_(requires_grad)
+
+
+def denormalize(image_tensor):
+    """정규화한 텐서를 [0,1]로 되돌려 시각화할 수 있게 만든다."""
+    t = image_tensor.detach().cpu()
+    if t.dim() == 4:
+        t = t[0]
+    mean = torch.tensor(IMAGENET_MEAN).view(3, 1, 1)
+    std = torch.tensor(IMAGENET_STD).view(3, 1, 1)
+    return (t * std + mean).clamp(0, 1).permute(1, 2, 0).numpy()
+
+
+def _as_map(saliency):
+    """샐리언시를 (H, W) 넘파이 배열로 맞추고 [0,1]로 정규화한다."""
+    s = saliency.detach().cpu() if torch.is_tensor(saliency) else torch.as_tensor(saliency)
+    while s.dim() > 2:
+        s = s.squeeze(0) if s.shape[0] == 1 else s.max(0).values
+    s = s.numpy().astype(np.float32)
+    lo, hi = s.min(), s.max()
+    return (s - lo) / (hi - lo) if hi > lo else np.zeros_like(s)
+
+
+def visualize_multiple_saliencies(image_tensor, saliencies, colormap="jet",
+                                  alpha=0.4, save_path=None):
+    """여러 방법의 샐리언시를 한 줄에 늘어놓아 비교한다.
+
+    인수:
+        saliencies: {이름: 샐리언시} 딕셔너리. 이름은 표준 출력으로 알린다
+    """
+    img = denormalize(image_tensor)
+    names = list(saliencies)
+    fig, axes = plt.subplots(1, len(names) + 1, figsize=(4 * (len(names) + 1), 4))
+    axes[0].imshow(img); axes[0].set_title("Input"); axes[0].axis("off")
+
+    for ax, name in zip(axes[1:], names):
+        sal = _as_map(saliencies[name])
+        if sal.shape != img.shape[:2]:
+            sal = np.array(Image.fromarray((sal * 255).astype(np.uint8))
+                           .resize((img.shape[1], img.shape[0]))) / 255.0
+        ax.imshow(img)
+        ax.imshow(sal, cmap=colormap, alpha=alpha)
+        ax.axis("off")
+    print("  [그림] " + " | ".join(n.replace("\n", " ") for n in names))
+    plt.tight_layout()
+    if save_path:
+        os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
+
+def create_output_dir(path="outputs"):
+    """출력 이미지를 저장할 디렉터리를 만들고 그 경로를 돌려준다."""
+    os.makedirs(path, exist_ok=True)
+    return path
+
 
 # ========================================================================
 # 메인
@@ -54,18 +185,18 @@ def compute_integrated_gradients(
     steps: int = 50
 ) -> torch.Tensor:
     """
-    쌓은 그래디언트를 셈한다.
+    Integrated Gradients를 계산한다.
 
     알고리즘:
     1. 베이스라인 x'을 고른다
-    2. 사이 들임을 만든다: i=0..m에 대해 x^(i) = x' + (i/m)(x - x')
-    3. 자리마다 그래디언트를 셈한다: gᵢ = ∂f(x^(i))/∂x
-    4. 그래디언트를 고르게 한다: ḡ = (1/m) Σᵢ gᵢ
-    5. 들임 차이로 스케일을 맞춘다: IG = (x - x') ⊙ ḡ
+    2. 보간 입력을 만든다: i=0..m에 대해 x^(i) = x' + (i/m)(x - x')
+    3. 각 지점에서 그래디언트를 계산한다: gᵢ = ∂f(x^(i))/∂x
+    4. 그래디언트를 평균한다: ḡ = (1/m) Σᵢ gᵢ
+    5. 입력 차이로 스케일을 맞춘다: IG = (x - x') ⊙ ḡ
 
     Args:
         baseline: 'zeros', 'blur', 'random' 가운데 하나
-        steps: 사이를 잡는 스텝 수(많을수록 더 맞다)
+        steps: 보간 스텝 수(많을수록 더 정확하다)
     """
     model.eval()
     image_tensor = image_tensor.to(device)
@@ -74,7 +205,7 @@ def compute_integrated_gradients(
     if baseline == 'zeros':
         baseline_tensor = torch.zeros_like(image_tensor)
     elif baseline == 'blur':
-        # 그림을 흐리게 해서 베이스라인으로 삼는다
+        # 이미지를 흐리게 해서 베이스라인으로 삼는다
         from torchvision.transforms.functional import gaussian_blur
         baseline_tensor = gaussian_blur(image_tensor, kernel_size=51, sigma=20)
     elif baseline == 'random':
@@ -84,18 +215,18 @@ def compute_integrated_gradients(
 
     baseline_tensor = baseline_tensor.to(device)
 
-    # 길을 셈한다: α ∈ [0,1]에 대해 x' + α(x - x')
+    # 경로를 계산한다: α ∈ [0,1]에 대해 x' + α(x - x')
     accumulated_gradients = torch.zeros_like(image_tensor)
 
     for step in range(steps):
-        # 사이 잡는 계수
+        # 보간 계수
         alpha = (step + 1) / steps
 
-        # 사이 들임
+        # 보간 입력
         interpolated = baseline_tensor + alpha * (image_tensor - baseline_tensor)
         interpolated.requires_grad = True
 
-        # 앞으로 스텝
+        # 순전파 스텝
         output = model(interpolated)
         target_score = output[0, target_class]
 
@@ -103,13 +234,13 @@ def compute_integrated_gradients(
         model.zero_grad()
         target_score.backward()
 
-        # 그래디언트를 쌓는다
+        # 그래디언트를 누적한다
         accumulated_gradients += interpolated.grad
 
-    # 그래디언트를 고르게 한다(적분의 리만 어림)
+    # 그래디언트를 평균한다(적분의 리만 근사)
     avg_gradients = accumulated_gradients / steps
 
-    # 들임 차이로 스케일을 맞춘다
+    # 입력 차이로 스케일을 맞춘다
     integrated_grads = (image_tensor - baseline_tensor) * avg_gradients
 
     # 모은다
@@ -129,16 +260,16 @@ def verify_completeness(model, image_tensor, target_class, device, saliency):
         output_baseline = model(baseline)[0, target_class]
 
     # 기여도의 합이 출력 차이와 ≈ 같아야 한다
-    # 짚을 것: 잘게 나누어 셈하므로 어림값이다
-    print(f"\n완전성 살피기:")
+    # 참고: 이산적으로 나누어 계산하므로 근삿값이다
+    print(f"\n완전성 확인:")
     print(f"f(x) - f(x'): {(output_image - output_baseline).item():.4f}")
-    print("(두드러짐의 합이 이 값에 가까워야 한다)")
+    print("(샐리언시의 합이 이 값에 가까워야 한다)")
 
 
 def example_1_baseline_comparison():
-    """베이스라인을 달리 고른 것들을 견준다."""
+    """베이스라인을 달리 고른 것들을 비교한다."""
     print("\n" + "="*60)
-    print("보기 1: 베이스라인 견주기")
+    print("예제 1: 베이스라인 비교")
     print("="*60)
 
     device = get_device()
@@ -156,7 +287,7 @@ def example_1_baseline_comparison():
     saliencies = {}
 
     for baseline in baselines:
-        print(f"{baseline} 베이스라인으로 셈하는 중...")
+        print(f"{baseline} 베이스라인으로 계산하는 중...")
         sal = compute_integrated_gradients(
             model, image_tensor, target_class, device,
             baseline=baseline, steps=30
@@ -168,16 +299,16 @@ def example_1_baseline_comparison():
         save_path='outputs/04_baseline_comparison.png'
     )
 
-    print("\n베이스라인 고르기:")
-    print("- 0: 단순하고 빠르며 웬만한 자리에서 잘 듣는다")
-    print("- 흐림: 자연 그림에 좋다")
-    print("- 아무렇게나: 쓸 일이 드물다")
+    print("\n베이스라인 선택:")
+    print("- 0: 단순하고 빠르며 대부분의 경우에 잘 작동한다")
+    print("- 흐림: 자연 이미지에 좋다")
+    print("- 무작위: 쓸 일이 드물다")
     print("\n✓ 0 베이스라인이 가장 흔하다!")
 
 
 def main():
     print("\n" + "="*70)
-    print(" "*15 + "쌓은 그래디언트 익히기")
+    print(" "*15 + "Integrated Gradients 튜토리얼")
     print("="*70)
 
     try:
@@ -185,14 +316,14 @@ def main():
 
         print("\n" + "="*70)
         print("핵심:")
-        print("1. IG는 예민함과 짜기에 흔들리지 않음을 채운다")
+        print("1. IG는 민감도와 구현 불변성을 만족한다")
         print("2. 베이스라인을 어떻게 고르느냐가 중요하다(대개 0이 좋다)")
-        print("3. 스텝이 많을수록 더 맞다(흔히 30~50)")
-        print("4. 셈이 비싸지만 이론이 강건하다")
+        print("3. 스텝이 많을수록 더 정확하다(흔히 30~50)")
+        print("4. 계산 비용이 크지만 이론적 근거가 탄탄하다")
         print("\n다음: 꾸러미 05 - Grad-CAM")
         print("="*70)
     except Exception as e:
-        print(f"어긋남: {e}")
+        print(f"오류: {e}")
 
 if __name__ == "__main__":
     main()
@@ -201,19 +332,40 @@ if __name__ == "__main__":
 **출력:**
 
 ```
+
 ======================================================================
-               쌓은 그래디언트 익히기
+               Integrated Gradients 튜토리얼
 ======================================================================
 
 ============================================================
-보기 1: 베이스라인 견주기
+예제 1: 베이스라인 비교
 ============================================================
-어긋남: name 'get_device' is not defined
+zeros 베이스라인으로 계산하는 중...
+blur 베이스라인으로 계산하는 중...
+random 베이스라인으로 계산하는 중...
+  [그림] zeros 베이스라인 | blur 베이스라인 | random 베이스라인
+
+베이스라인 선택:
+- 0: 단순하고 빠르며 대부분의 경우에 잘 작동한다
+- 흐림: 자연 이미지에 좋다
+- 무작위: 쓸 일이 드물다
+
+✓ 0 베이스라인이 가장 흔하다!
+
+======================================================================
+핵심:
+1. IG는 민감도와 구현 불변성을 만족한다
+2. 베이스라인을 어떻게 고르느냐가 중요하다(대개 0이 좋다)
+3. 스텝이 많을수록 더 정확하다(흔히 30~50)
+4. 계산 비용이 크지만 이론적 근거가 탄탄하다
+
+다음: 꾸러미 05 - Grad-CAM
+======================================================================
 ```
 
 ## 2. 논의
 
-위 출력에서 보듯 이 프로그램은 첫 보기에서 멈춘다. `get_device`·`load_pretrained_model` 같은 도우미를 `from utils import *` 로 가져오는데, 그 `utils` 모듈이 없어 `NameError` 가 났다. 그러니 베이스라인별 기여도 맵은 이 쪽에 실리지 않았고, 핵심 계산은 `compute_integrated_gradients` 의 코드로 읽어야 한다.
+위 출력에서 보듯 프로그램은 세 베이스라인(0·흐림·무작위)으로 끝까지 돈다. 그러나 입력이 한 가지 색으로 칠한 합성 이미지이고, 베이스라인별 기여도 맵은 `outputs/` 에 파일로만 저장된다. 「0 베이스라인이 가장 흔하다」 같은 줄은 계산 결과가 아니라 고정 문구이므로, 핵심 계산은 `compute_integrated_gradients` 의 코드로 읽어야 한다.
 
 이 함수는 그래디언트 기반 설명의 핵심 아이디어를 짧은 PyTorch 코드로 보여 준다. 베이스라인 생성, 경로 위 그래디언트 누적, 입력 차이로 스케일 맞추기가 차례로 나뉘어 있어 부분마다 따로 이해하고 다른 과제나 데이터에 맞추어 고치기 쉽다.
 
@@ -229,7 +381,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `compute_integrated_gradients` 에서 셋을 들 수 있다. (1) **베이스라인 선택**(`'zeros'`·`'blur'`·`'random'`) -- IG의 기여도는 「베이스라인에 견주어」 매기는 값이므로 무엇을 정보 없는 입력으로 볼지가 결과를 정한다. (2) **오른쪽 끝점 리만 합**(`alpha = (step + 1) / steps`) -- 적분을 $m$개 점의 평균으로 근사하며, 스텝이 많을수록 완전성 오차가 줄어든다. (3) **채널 축 절댓값 최대**(`torch.max(abs_attr, dim=1)`) -- RGB 세 채널의 기여도를 한 장의 맵으로 모아 보기 쉽게 하되, 부호 정보는 버린다. 각 선택은 정확도, 계산 비용, 해석 용이성 사이의 트레이드오프를 드러낸다.
+    `compute_integrated_gradients` 에서 셋을 들 수 있다. (1) **베이스라인 선택**(`'zeros'`·`'blur'`·`'random'`) -- IG의 기여도는 「베이스라인에 비교해」 매기는 값이므로 무엇을 정보 없는 입력으로 볼지가 결과를 정한다. (2) **오른쪽 끝점 리만 합**(`alpha = (step + 1) / steps`) -- 적분을 $m$개 점의 평균으로 근사하며, 스텝이 많을수록 완전성 오차가 줄어든다. (3) **채널 축 절댓값 최대**(`torch.max(abs_attr, dim=1)`) -- RGB 세 채널의 기여도를 한 장의 맵으로 모아 보기 쉽게 하되, 부호 정보는 버린다. 각 선택은 정확도, 계산 비용, 해석 용이성 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -253,7 +405,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    흔한 실패 유형은 이렇다. (1) **스텝이 모자라 완전성이 깨짐** -- 기여도의 합을 $f(x) - f(x')$ 과 견주어 탐지한다(`verify_completeness` 가 뒤엣것을 찍는다. 다만 이 함수는 절댓값을 취하기 전의 기여도를 받아야 견줄 수 있다). 상대 오차가 5%를 넘으면 스텝을 늘린다. (2) **베이스라인 편향** -- 0 베이스라인에서는 $x_i - x'_i = 0$ 인 검은 픽셀의 기여도가 언제나 0이 되어, 어두운 물체가 중요해도 맵에 나타나지 않는다. 베이스라인 여럿의 맵을 견주어 탐지하고, 흐린 이미지나 여러 베이스라인의 평균(Expected Gradients)으로 고친다.
+    흔한 실패 유형은 이렇다. (1) **스텝이 모자라 완전성이 깨짐** -- 기여도의 합을 $f(x) - f(x')$ 과 비교해 탐지한다(`verify_completeness` 가 뒤엣것을 찍는다. 다만 이 함수는 절댓값을 취하기 전의 기여도를 받아야 비교할 수 있다). 상대 오차가 5%를 넘으면 스텝을 늘린다. (2) **베이스라인 편향** -- 0 베이스라인에서는 $x_i - x'_i = 0$ 인 검은 픽셀의 기여도가 언제나 0이 되어, 어두운 물체가 중요해도 맵에 나타나지 않는다. 베이스라인 여럿의 맵을 비교해 탐지하고, 흐린 이미지나 여러 베이스라인의 평균(Expected Gradients)으로 고친다.
 
 ---
 
@@ -268,12 +420,12 @@ if __name__ == "__main__":
     경계 조건을 두루 다루는 테스트 함수를 작성한다.
     ```python
     def test_04: integrated gradients():
-        model = 04: 쌓은 그래디언트(...)
-        # 여느 들임
+        model = 04: Integrated Gradients(...)
+        # 일반 입력
         assert model(normal_input).shape == expected_shape
         # 원소 하나짜리 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값(넘침을 살핀다)
+        # 큰 값(오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
         # 그래디언트 흐름

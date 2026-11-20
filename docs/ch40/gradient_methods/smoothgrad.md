@@ -1,8 +1,8 @@
 # SmoothGrad
 
-**SmoothGrad**는 그래디언트 기반 Saliency Map에 늘 끼는 눈에 띄는 잡음을 줄이는, 단순하면서도 효과적인 기법이다. 핵심 아이디어는 언뜻 역설적이다. 입력에 **잡음을 더하고** 거기서 나온 그래디언트를 평균 내면 **더 또렷하고 깨끗한** 그림을 얻는다는 것이다.
+**SmoothGrad**는 그래디언트 기반 Saliency Map에 늘 끼는 눈에 띄는 잡음을 줄이는, 단순하면서도 효과적인 기법이다. 핵심 아이디어는 언뜻 역설적이다. 입력에 **잡음을 더하고** 거기서 나온 그래디언트를 평균 내면 **더 또렷하고 깨끗한** 맵을 얻는다는 것이다.
 
-스밀코프 외(2017)가 제안한 SmoothGrad는 바닐라 그래디언트 현저성의 큰 걸림돌 하나, 곧 해석하기 어렵게 만드는 잡음 낀 얼룩덜룩한 모습을 다룬다.
+스밀코프 외(2017)가 제안한 SmoothGrad는 바닐라 그래디언트 샐리언시의 큰 걸림돌 하나, 곧 해석하기 어렵게 만드는 잡음 낀 얼룩덜룩한 모습을 다룬다.
 
 ---
 
@@ -10,7 +10,7 @@
 
 ### SmoothGrad 정의
 
-입력 $\mathbf{x}$, 모델 $f$, 타깃 클래스 $c$가 주어지면 SmoothGrad 현저성은 이렇다.
+입력 $\mathbf{x}$, 모델 $f$, 타깃 클래스 $c$가 주어지면 SmoothGrad 샐리언시는 이렇다.
 
 $$
 \text{SG}(\mathbf{x}) = \frac{1}{n} \sum_{k=1}^{n} \frac{\partial f_c(\mathbf{x} + \boldsymbol{\epsilon}_k)}{\partial \mathbf{x}}
@@ -78,28 +78,28 @@ def compute_smoothgrad(
     noise_level: float = 0.15
 ) -> torch.Tensor:
     """
-    SmoothGrad 두드러짐 그림을 셈한다.
+    SmoothGrad 샐리언시 맵을 계산한다.
 
     Args:
-        model: 평가하는 결로 놓인 뉴럴 네트워크
-        image_tensor: 들임 그림 [1, C, H, W]
-        target_class: 겨눈 클래스 번호
-        device: 셈하는 장치
-        n_samples: 고르게 할 잡음 표본의 수
+        model: 평가 모드로 둔 뉴럴 네트워크
+        image_tensor: 입력 이미지 [1, C, H, W]
+        target_class: 대상 클래스 번호
+        device: 계산할 장치
+        n_samples: 평균할 잡음 표본의 수
         noise_level: 가우스 잡음의 표준편차
-                    (들임 너비에 대한 기여도, 흔히 0.1~0.2)
+                    (입력 값 범위에 대한 비율, 흔히 0.1~0.2)
 
     Returns:
-        두드러짐 그림 [1, H, W]
+        샐리언시 맵 [1, H, W]
     """
     model.eval()
     image_tensor = image_tensor.to(device)
 
-    # 들임 분야에서의 표준편차
-    # 들임은 흔히 고르게 되어 있으므로 noise_level ~0.15이 알맞다
+    # 입력 공간에서의 표준편차
+    # 입력은 흔히 정규화되어 있으므로 noise_level ~0.15가 알맞다
     stdev = noise_level * (image_tensor.max() - image_tensor.min())
 
-    # 그래디언트를 쌓는다
+    # 그래디언트를 누적한다
     accumulated_gradients = torch.zeros_like(image_tensor)
 
     for _ in range(n_samples):
@@ -108,21 +108,21 @@ def compute_smoothgrad(
         noisy_input = image_tensor + noise
         noisy_input.requires_grad_(True)
 
-        # 앞으로 스텝
+        # 순전파
         output = model(noisy_input)
         target_score = output[0, target_class]
 
-        # 역전파 스텝
+        # 역전파
         model.zero_grad()
         target_score.backward()
 
-        # 쌓는다
+        # 누적한다
         accumulated_gradients += noisy_input.grad
 
-    # 그래디언트를 고르게 한다
+    # 그래디언트를 평균한다
     avg_gradients = accumulated_gradients / n_samples
 
-    # 절댓값을 잡고 통로를 가로질러 모은다
+    # 절댓값을 잡고 채널 축으로 최댓값을 모은다
     saliency = torch.abs(avg_gradients).max(dim=1)[0]
 
     return saliency
@@ -141,9 +141,9 @@ def compute_smoothgrad_batched(
     batch_size: int = 10
 ) -> torch.Tensor:
     """
-    배치로 다듬은 SmoothGrad 셈.
+    배치로 처리하는 SmoothGrad 계산.
 
-    잡음 표본 여럿을 함께 다루어 잘 들게 한다.
+    잡음 표본 여럿을 한꺼번에 처리해 효율을 높인다.
     """
     model.eval()
     image_tensor = image_tensor.to(device)
@@ -154,27 +154,27 @@ def compute_smoothgrad_batched(
     for i in range(0, n_samples, batch_size):
         current_batch_size = min(batch_size, n_samples - i)
 
-        # 잡음 섞은 들임의 배치를 만든다
-        # 그림을 배치로 넓힌다: [batch_size, C, H, W]
+        # 잡음 섞은 입력의 배치를 만든다
+        # 이미지를 배치로 확장한다: [batch_size, C, H, W]
         batch = image_tensor.expand(current_batch_size, -1, -1, -1).clone()
         noise = torch.randn_like(batch) * stdev
         noisy_batch = batch + noise
         noisy_batch.requires_grad_(True)
 
-        # 앞으로 스텝
+        # 순전파
         outputs = model(noisy_batch)  # [batch_size, num_classes]
 
-        # 배치 그래디언트를 얻으려고 겨눈 점수를 더한다
+        # 배치 그래디언트를 얻으려고 대상 클래스 점수를 더한다
         target_scores = outputs[:, target_class].sum()
 
-        # 역전파 스텝
+        # 역전파
         model.zero_grad()
         target_scores.backward()
 
-        # 쌓는다(배치 축으로 더한다)
+        # 누적한다(배치 축으로 더한다)
         accumulated_gradients += noisy_batch.grad.sum(dim=0, keepdim=True)
 
-    # 고르게 한다
+    # 평균한다
     avg_gradients = accumulated_gradients / n_samples
     saliency = torch.abs(avg_gradients).max(dim=1)[0]
 
@@ -200,7 +200,7 @@ def analyze_noise_levels(
     model, image_tensor, target_class, device,
     noise_levels=[0.05, 0.10, 0.15, 0.20, 0.25, 0.30]
 ):
-    """잡음 크기를 달리한 SmoothGrad 열매를 견준다."""
+    """잡음 크기를 달리한 SmoothGrad 결과를 비교한다."""
     results = {}
 
     for noise in noise_levels:
@@ -216,7 +216,7 @@ def analyze_noise_levels(
 **잡음 크기 선택 가이드:**
 
 - 기본값으로 **0.15에서 시작한다**
-- 현저성에 여전히 잡음이 많으면 **올린다**
+- 샐리언시에 여전히 잡음이 많으면 **올린다**
 - 중요한 세밀한 패턴이 뭉개지면 **내린다**
 - **입력을 어떻게 정규화했는지**도 고려한다. 입력이 [0, 1]에 있으면 잡음을 ~0.1~0.2로 잡는다
 
@@ -235,7 +235,7 @@ def analyze_sample_convergence(
     model, image_tensor, target_class, device,
     sample_counts=[10, 20, 30, 50, 75, 100]
 ):
-    """표본 수에 따라 SmoothGrad이 어떻게 모이는지 살핀다."""
+    """표본 수에 따라 SmoothGrad가 어떻게 수렴하는지 살핀다."""
     results = {}
 
     for n in sample_counts:
@@ -245,7 +245,7 @@ def analyze_sample_convergence(
         )
         results[n] = saliency.cpu().numpy()
 
-    # 강건성을 셈한다(표본이 가장 많은 것과의 얽힘)
+    # 안정성을 계산한다(표본이 가장 많은 것과의 상관계수)
     reference = results[max(sample_counts)]
 
     correlations = {}
@@ -291,7 +291,7 @@ def compute_smoothgrad_squared(
         output = model(noisy_input)
         output[0, target_class].backward()
 
-        # 쌓기에 앞서 제곱한다
+        # 누적하기 전에 제곱한다
         accumulated_squared += noisy_input.grad ** 2
         model.zero_grad()
 
@@ -318,7 +318,7 @@ def compute_vargrad(
     n_samples: int = 50,
     noise_level: float = 0.15
 ) -> torch.Tensor:
-    """VarGrad: 잡음 표본에 걸친 그래디언트의 흩어짐."""
+    """VarGrad: 잡음 표본에 걸친 그래디언트의 분산."""
     model.eval()
     image_tensor = image_tensor.to(device)
 
@@ -336,7 +336,7 @@ def compute_vargrad(
         gradients_list.append(noisy_input.grad.clone())
         model.zero_grad()
 
-    # 쌓아 올리고 흩어짐을 셈한다
+    # 쌓아 올리고 분산을 계산한다
     all_gradients = torch.stack(gradients_list)  # [n, 1, C, H, W]
     variance = all_gradients.var(dim=0)  # [1, C, H, W]
 
@@ -359,9 +359,9 @@ def smooth_integrated_gradients(
     noise_level: float = 0.1
 ):
     """
-    SmoothGrad과 쌓은 그래디언트를 아우른다.
+    SmoothGrad와 Integrated Gradients를 결합한다.
 
-    잡음 섞은 들임에서 셈한 IG 기여도를 고르게 한다.
+    잡음 섞은 입력에서 계산한 IG 기여도를 평균한다.
     """
     accumulated = torch.zeros_like(image_tensor)
     stdev = noise_level * (image_tensor.max() - image_tensor.min())
@@ -370,7 +370,7 @@ def smooth_integrated_gradients(
         noise = torch.randn_like(image_tensor) * stdev
         noisy_input = image_tensor + noise
 
-        # 잡음 섞은 들임에 IG를 셈한다
+        # 잡음 섞은 입력에 IG를 계산한다
         ig_attr = compute_integrated_gradients(
             model, noisy_input, target_class, device,
             steps=n_ig_steps
@@ -385,7 +385,7 @@ def smooth_gradcam(
     noise_level: float = 0.1
 ):
     """
-    SmoothGrad의 생각을 Grad-CAM에 건다.
+    SmoothGrad의 아이디어를 Grad-CAM에 적용한다.
     """
     gradcam = GradCAM(model, target_layer)
 
@@ -420,9 +420,9 @@ def visualize_smoothgrad_comparison(
     noise_level: float = 0.15,
     n_samples: int = 50
 ):
-    """맨 그래디언트와 SmoothGrad을 나란히 견준다."""
+    """바닐라 그래디언트와 SmoothGrad를 나란히 비교한다."""
 
-    # 맨 그래디언트
+    # 바닐라 그래디언트
     img = image_tensor.clone().requires_grad_(True)
     output = model(img.to(device))
     output[0, target_class].backward()
@@ -434,18 +434,18 @@ def visualize_smoothgrad_comparison(
         n_samples=n_samples, noise_level=noise_level
     )
 
-    # 그림을 되돌려 고른다
+    # 이미지의 정규화를 되돌린다
     image_np = denormalize_image(image_tensor)
 
-    # 그린다
+    # 시각화한다
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
     axes[0].imshow(image_np)
-    axes[0].set_title('본디 그림')
+    axes[0].set_title('원본 이미지')
     axes[0].axis('off')
 
     axes[1].imshow(vanilla.squeeze().cpu().numpy(), cmap='hot')
-    axes[1].set_title('맨 그래디언트\n(잡음 많음)')
+    axes[1].set_title('바닐라 그래디언트\n(잡음 많음)')
     axes[1].axis('off')
 
     axes[2].imshow(smoothgrad.squeeze().cpu().numpy(), cmap='hot')
@@ -462,7 +462,7 @@ def visualize_smoothgrad_comparison(
 def visualize_hyperparameter_effects(
     model, image_tensor, target_class, device
 ):
-    """잡음 크기와 표본 수가 미치는 힘을 그린다."""
+    """잡음 크기와 표본 수가 미치는 영향을 시각화한다."""
 
     noise_levels = [0.05, 0.15, 0.25]
     sample_counts = [10, 50, 100]
@@ -475,7 +475,7 @@ def visualize_hyperparameter_effects(
     image_np = denormalize_image(image_tensor)
 
     for i, noise in enumerate(noise_levels):
-        # 잡음 크기 이름표를 보인다
+        # 잡음 크기 레이블을 표시한다
         axes[i, 0].imshow(image_np)
         axes[i, 0].set_title(f'σ = {noise}' if i == 0 else '')
         axes[i, 0].set_ylabel(f'잡음: {noise}', fontsize=12)
@@ -506,7 +506,7 @@ def visualize_hyperparameter_effects(
 1. **구현이 쉽다**: 잡음 섞은 표본을 뽑아 평균 내기만 하면 된다
 2. **어떤 그래디언트 방법에도 작동한다**: 바닐라 그래디언트, 그래디언트×입력 등을 모두 매끄럽게 할 수 있다
 3. **병렬 계산에 알맞다**: 배치로 구현하면 효율적이다
-4. **눈에 더 깨끗하다**: 해석하기 좋은 그림이 나온다
+4. **눈에 더 깨끗하다**: 해석하기 좋은 맵이 나온다
 5. **구조에 손대지 않는다**: 미분 가능한 모델이면 구조를 고칠 일이 없다
 
 ### 한계
@@ -515,7 +515,7 @@ def visualize_hyperparameter_effects(
 2. **하이퍼파라미터에 민감하다**: 결과가 잡음 크기와 표본 수에 좌우된다
 3. **계산 비용이 늘어난다**: 순전파-역전파를 여러 번 해야 한다
 4. **지나치게 매끄러워질 수 있다**: 중요한 세밀한 패턴을 잃을 수 있다
-5. **근본 문제를 풀지는 않는다**: 그림만 깨끗해질 뿐 기여도 분석 자체의 충실성이 오르지는 않는다
+5. **근본 문제를 풀지는 않는다**: 맵만 깨끗해질 뿐 기여도 분석 자체의 충실성이 오르지는 않는다
 
 ---
 
@@ -533,7 +533,7 @@ def visualize_hyperparameter_effects(
 **다른 방법을 고려할 경우:**
 
 - 이론적 보장이 중요할 때 → Integrated Gradients
-- 영역 단위로 짚어야 할 때 → Grad-CAM
+- 영역 단위로 위치를 파악해야 할 때 → Grad-CAM
 - 계산 여유가 적을 때 → 바닐라 그래디언트
 
 ### 구현 체크리스트
@@ -547,7 +547,7 @@ def visualize_hyperparameter_effects(
 
 ```python
 class SaliencyPipeline:
-    """두드러짐 셈의 온 흐름."""
+    """샐리언시 계산 전체 파이프라인."""
 
     def __init__(self, model, device):
         self.model = model
@@ -561,7 +561,7 @@ class SaliencyPipeline:
         **kwargs
     ) -> torch.Tensor:
         """
-        정한 방법으로 두드러짐을 셈한다.
+        지정한 방법으로 샐리언시를 계산한다.
 
         Args:
             method: 'vanilla', 'smoothgrad', 'smoothgrad_squared', 'vargrad'
@@ -584,7 +584,7 @@ class SaliencyPipeline:
                 **kwargs
             )
         else:
-            raise ValueError(f"모르는 방법: {method}")
+            raise ValueError(f"알 수 없는 방법: {method}")
 ```
 
 ---
@@ -623,7 +623,7 @@ class SaliencyPipeline:
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

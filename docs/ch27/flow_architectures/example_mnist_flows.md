@@ -51,7 +51,7 @@ from typing import Tuple
 
 학습 경로:
 BaseDistribution → Flow → FlowSequence → 단순한 예로 시작하고
-이어 coupling_flows.py의 더 복잡한 변환으로 넘어간다
+이어 커플링 레이어 같은 더 복잡한 변환으로 넘어간다
 
 ================================================================================
 """
@@ -1332,7 +1332,7 @@ def plot_training_loss(losses: list, filename: str = 'training_loss.png'):
 ✓ 최대 가능도 학습 파이프라인
 
 다음 단계:
-1. 더 강력한 변환을 보려면 coupling_flows.py를 공부하라
+1. 더 강력한 변환은 아래의 CouplingLayer·BatchNorm 을 공부하라
    - 커플링 레이어(RealNVP)
    - 배치 정규화 흐름
    - 이미지를 위한 바둑판 패턴
@@ -1361,7 +1361,114 @@ def plot_training_loss(losses: list, filename: str = 'training_loss.png'):
 
 즐겁게 배우기를! 🎓
 """
-from coupling_flows import CouplingLayer, BatchNorm
+
+# ============================================================================
+# 커플링 레이어와 흐름용 배치 정규화
+# ============================================================================
+
+class CouplingLayer(Flow):
+    """RealNVP 방식의 아핀 커플링 레이어.
+
+    인수:
+        dim: 데이터 차원
+        hidden_dim: s와 t를 계산하는 네트워크의 은닉 너비
+        mask: 0/1 텐서, 형태 (dim,). 1인 자리는 그대로 지나가고
+              0인 자리가 스케일되고 이동한다. 레이어마다 뒤집어 쓰면
+              모든 차원이 번갈아 바뀐다.
+    """
+
+    def __init__(self, dim, hidden_dim=256, mask=None):
+        super().__init__()
+        if mask is None:
+            # 기본: 앞 절반은 그대로, 뒤 절반이 바뀐다
+            mask = torch.zeros(dim)
+            mask[: dim // 2] = 1
+        self.register_buffer("mask", mask.float())
+
+        def net():
+            return nn.Sequential(
+                nn.Linear(dim, hidden_dim), nn.ReLU(),
+                nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
+                nn.Linear(hidden_dim, dim),
+            )
+
+        self.scale_net = net()
+        self.shift_net = net()
+        # 처음에는 항등 변환이 되게 두면 학습이 훨씬 안정된다
+        nn.init.zeros_(self.scale_net[-1].weight)
+        nn.init.zeros_(self.scale_net[-1].bias)
+        nn.init.zeros_(self.shift_net[-1].weight)
+        nn.init.zeros_(self.shift_net[-1].bias)
+        # scale이 마구 커지지 않도록 tanh로 묶는다
+        self.scale_cap = nn.Parameter(torch.zeros(1))
+
+    def _s_t(self, x_masked):
+        s = torch.tanh(self.scale_net(x_masked)) * self.scale_cap.exp()
+        t = self.shift_net(x_masked)
+        return s, t
+
+    def forward(self, z):
+        """잠재 공간 → 데이터 공간."""
+        z_keep = z * self.mask
+        s, t = self._s_t(z_keep)
+        s, t = s * (1 - self.mask), t * (1 - self.mask)
+        x = z_keep + (1 - self.mask) * (z * torch.exp(s) + t)
+        return x, s.sum(dim=1)
+
+    def inverse(self, x):
+        """데이터 공간 → 잠재 공간."""
+        x_keep = x * self.mask
+        s, t = self._s_t(x_keep)
+        s, t = s * (1 - self.mask), t * (1 - self.mask)
+        z = x_keep + (1 - self.mask) * ((x - t) * torch.exp(-s))
+        return z, -s.sum(dim=1)
+
+
+class BatchNorm(Flow):
+    """흐름 사이에 끼우는 배치 정규화.
+
+    보통의 BatchNorm과 하는 일은 같지만, 흐름에 쓰려면 야코비 행렬식의
+    로그값을 함께 돌려주어야 한다. 스케일이 1/sqrt(var + eps)이므로
+    로그 행렬식은 -0.5 * sum(log(var + eps)) 이다.
+
+    커플링 레이어를 여러 겹 쌓으면 값의 크기가 레이어마다 흔들리는데, 그 사이에
+    이 레이어를 끼우면 학습이 훨씬 안정된다.
+    """
+
+    def __init__(self, dim, eps=1e-5, momentum=0.1):
+        super().__init__()
+        self.eps = eps
+        self.momentum = momentum
+        self.log_gamma = nn.Parameter(torch.zeros(dim))
+        self.beta = nn.Parameter(torch.zeros(dim))
+        self.register_buffer("running_mean", torch.zeros(dim))
+        self.register_buffer("running_var", torch.ones(dim))
+
+    def _stats(self, x):
+        if self.training:
+            mean = x.mean(dim=0)
+            var = x.var(dim=0, unbiased=False) + self.eps
+            with torch.no_grad():
+                self.running_mean.mul_(1 - self.momentum).add_(self.momentum * mean)
+                self.running_var.mul_(1 - self.momentum).add_(self.momentum * var)
+        else:
+            mean, var = self.running_mean, self.running_var
+        return mean, var
+
+    def forward(self, z):
+        """잠재 공간 → 데이터 공간: 정규화를 되돌린다."""
+        mean, var = self._stats(z)
+        x = (z - self.beta) / self.log_gamma.exp() * var.sqrt() + mean
+        log_det = (0.5 * var.log() - self.log_gamma).sum()
+        return x, log_det.expand(z.shape[0])
+
+    def inverse(self, x):
+        """데이터 공간 → 잠재 공간: 정규화한다."""
+        mean, var = self._stats(x)
+        z = (x - mean) / var.sqrt() * self.log_gamma.exp() + self.beta
+        log_det = (self.log_gamma - 0.5 * var.log()).sum()
+        return z, log_det.expand(x.shape[0])
+
 
 
 class MNISTFlow:
@@ -1574,9 +1681,9 @@ if __name__ == "__main__":
     main()
 ```
 
-기본은 커플링 8개와 BatchNorm 8개, 은닉 256, 배치 128, Adam 러닝레이트 0.0001이며 main은 50에포크를 요청한다. flow_utils의 내용은 위 코드에 그대로 들어 있지만 CouplingLayer·BatchNorm은 로컬 coupling_flows에서 import하므로 실행 환경에서 이 모듈이 검색되어야 한다. numpy는 클래스 정의 아래에서 import하지만 main 실행 전에 수행되므로 그 위치 자체가 np 참조 오류를 만들지는 않는다.
+기본은 커플링 8개와 BatchNorm 8개, 은닉 256, 배치 128, Adam 러닝레이트 0.0001이며 main은 50에포크를 요청한다. 기저 분포·흐름 합성 도구와 CouplingLayer·BatchNorm이 모두 위 코드 안에 정의되어 있어 다른 모듈을 import하지 않는다. numpy는 클래스 정의 아래에서 import하지만 main 실행 전에 수행되므로 그 위치 자체가 np 참조 오류를 만들지는 않는다.
 
-입력은 `(B,1,28,28)`에서 `(B,784)`로 펼친다. 로컬 CouplingLayer는 전체 784차원을 받는 스케일·이동 MLP 두 개를 사용하고 한쪽 좌표를 마스크로 0 처리한다. 앞 절의 절반 차원 MLP 구현과 다르다. 기본 전체 학습 파라메터는 7,504,392개이며 마스크·running 통계 버퍼는 제외한 값이다.
+입력은 `(B,1,28,28)`에서 `(B,784)`로 펼친다. 이 쪽의 CouplingLayer는 전체 784차원을 받는 스케일·이동 MLP 두 개를 사용하고 한쪽 좌표를 마스크로 0 처리한다. 앞 절의 절반 차원 MLP 구현과 다르다. 기본 전체 학습 파라메터는 7,504,392개이며 마스크·running 통계 버퍼는 제외한 값이다.
 
 ## 2. Dequantization과 bits/dim
 
@@ -1588,7 +1695,7 @@ if __name__ == "__main__":
 
 ## 3. 학습 모드 정규화의 한계
 
-로컬 BatchNorm.inverse는 학습 모드에서 현재 입력 배치의 평균·분산을 계산해 정규화한다. 이 통계를 상수로 취급한 로그 스케일을 반환하지만 실제 통계가 배치에 의존하는 연산 전체의 표본별 야코비안을 나타내지는 않는다. 배치 평균을 제거하는 연산은 배치 전체의 공통 이동 정보를 잃기도 한다. 따라서 이 학습 로스를 엄밀한 독립 표본의 정확한 로그가능도로 단정할 수 없다.
+이 쪽의 BatchNorm.inverse는 학습 모드에서 현재 입력 배치의 평균·분산을 계산해 정규화한다. 이 통계를 상수로 취급한 로그 스케일을 반환하지만 실제 통계가 배치에 의존하는 연산 전체의 표본별 야코비안을 나타내지는 않는다. 배치 평균을 제거하는 연산은 배치 전체의 공통 이동 정보를 잃기도 한다. 따라서 이 학습 로스를 엄밀한 독립 표본의 정확한 로그가능도로 단정할 수 없다.
 
 평가 모드에서는 고정 running 통계를 사용하므로 양의 분산과 유한 스케일 아래 가역 선형 변환으로 해석할 수 있다. 그러나 학습 모드의 통계를 양방향에서 새로 계산하면 같은 통계가 보장되지 않아 왕복 복원도 일반적으로 성립하지 않는다. BatchNorm이라는 이름이 같다고 흐름용 정규화의 가역성이 보장되는 것은 아니다.
 

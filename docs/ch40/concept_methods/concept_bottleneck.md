@@ -11,7 +11,7 @@
 ### 일반 CBM
 
 ```
-들임 x → 개념 미루개 → [c₁, c₂, ..., cₖ] → 일감 미루개 → y
+입력 x → 개념 예측기 → [c₁, c₂, ..., cₖ] → 태스크 예측기 → y
 ```
 
 입력 $\mathbf{x}$가 주어지면 모델이 먼저 개념 값을 예측한다.
@@ -29,7 +29,7 @@ $$
 ### 학습 목표
 
 $$
-\mathcal{L} = \underbrace{\mathcal{L}_{\text{task}}(\hat{y}, y)}_{\text{일감 로스}} + \lambda \underbrace{\sum_{i=1}^{k} \mathcal{L}_{\text{concept}}(\hat{c}_i, c_i)}_{\text{개념 로스}}
+\mathcal{L} = \underbrace{\mathcal{L}_{\text{task}}(\hat{y}, y)}_{\text{태스크 로스}} + \lambda \underbrace{\sum_{i=1}^{k} \mathcal{L}_{\text{concept}}(\hat{c}_i, c_i)}_{\text{개념 로스}}
 $$
 
 여기서 $c_i$는 정답 개념 레이블이다.
@@ -44,7 +44,7 @@ import torch.nn as nn
 
 class ConceptBottleneckModel(nn.Module):
     """
-    개념 머리와 일감 머리를 따로 둔 개념 목 모형.
+    개념 헤드와 태스크 헤드를 따로 둔 개념 병목 모델.
     """
 
     def __init__(
@@ -59,7 +59,7 @@ class ConceptBottleneckModel(nn.Module):
         self.backbone = backbone
         self.concept_names = concept_names or [f'c_{i}' for i in range(n_concepts)]
 
-        # 개념 미루개
+        # 개념 예측기
         self.concept_head = nn.Sequential(
             nn.Linear(backbone_dim, 256),
             nn.ReLU(),
@@ -67,7 +67,7 @@ class ConceptBottleneckModel(nn.Module):
             nn.Sigmoid()
         )
 
-        # 일감 미루개(개념만 쓴다)
+        # 태스크 예측기(개념만 쓴다)
         self.task_head = nn.Sequential(
             nn.Linear(n_concepts, 64),
             nn.ReLU(),
@@ -84,13 +84,13 @@ class ConceptBottleneckModel(nn.Module):
         return output
 
     def explain(self, x):
-        """사람이 읽을 수 있는 풀이를 만든다."""
+        """사람이 읽을 수 있는 설명을 만든다."""
         output, concepts = self.forward(x, return_concepts=True)
 
         concept_values = concepts[0].detach().cpu().numpy()
         prediction = output.argmax(dim=1).item()
 
-        # 일감 머리의 짐이 개념 → 미루어 봄의 얽힘을 보인다
+        # 태스크 헤드의 웨이트가 개념 → 예측의 관계를 보인다
         task_weights = self.task_head[0].weight.data[prediction].cpu().numpy()
         contributions = concept_values * task_weights
 
@@ -107,8 +107,8 @@ class ConceptBottleneckModel(nn.Module):
 
     def intervene(self, x, concept_idx, new_value):
         """
-        되돌려 세워 따진다: 개념 값이 달랐다면 어땠을까?
-        이는 CBM만이 지닌 나은 점이다.
+        반사실적 개입: 개념 값이 달랐다면 어땠을까?
+        이는 CBM만이 지닌 장점이다.
         """
         _, concepts = self.forward(x, return_concepts=True)
         concepts_modified = concepts.clone()
@@ -123,11 +123,11 @@ class ConceptBottleneckModel(nn.Module):
 ### 신용 점수 매기기 CBM
 
 ```python
-# 개념: 빚 비율 높음, 벌이 강건성, 신용 이력 긺,
-#       씀씀이 낮음, 요즘 밀린 적 없음
+# 개념: 높은 부채 비율, 안정적인 소득, 긴 신용 이력,
+#       낮은 신용 사용률, 최근 연체 없음, 다양한 신용 구성
 concept_names = [
-    '높은 빚 비율', '강건한 벌이', '긴 신용 이력',
-    '낮은 씀씀이', '요즘 밀린 적 없음', '고루 섞인 신용'
+    '높은 부채 비율', '안정적인 소득', '긴 신용 이력',
+    '낮은 신용 사용률', '최근 연체 없음', '다양한 신용 구성'
 ]
 
 model = ConceptBottleneckModel(
@@ -138,9 +138,9 @@ model = ConceptBottleneckModel(
     concept_names=concept_names
 )
 
-# 판단을 풀이한다
+# 결정을 설명한다
 pred, explanation = model.explain(applicant_features)
-print(f"판단: {'받아들임' if pred == 0 else '물리침'}")
+print(f"결정: {'승인' if pred == 0 else '거절'}")
 for item in explanation[:4]:
     print(f"  {item['concept']}: {item['value']:.2f} "
           f"(기여: {item['contribution']:+.3f})")
@@ -182,7 +182,7 @@ for item in explanation[:4]:
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

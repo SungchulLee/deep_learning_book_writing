@@ -16,21 +16,428 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from tqdm import tqdm
+import torch.nn as nn
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
+
+# ========================================================================
+# 모델
+# ========================================================================
+
+class BetaVAE(nn.Module):
+    def __init__(self, input_dim=784, hidden_dim=256, latent_dim=32, beta=4.0):
+        super().__init__()
+        self.input_dim, self.latent_dim, self.beta = input_dim, latent_dim, beta
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim), nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim), nn.ReLU()
+        )
+        self.fc_mu = nn.Linear(hidden_dim, latent_dim)
+        self.fc_logvar = nn.Linear(hidden_dim, latent_dim)
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim, hidden_dim), nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
+            nn.Linear(hidden_dim, input_dim), nn.Sigmoid()
+        )
+
+    def encode(self, x):
+        h = self.encoder(x)
+        return self.fc_mu(h), self.fc_logvar(h)
+
+    def reparameterize(self, mu, logvar):
+        return mu + torch.exp(0.5 * logvar) * torch.randn_like(mu)
+
+    def forward(self, x):
+        mu, logvar = self.encode(x)
+        z = self.reparameterize(mu, logvar)
+        return self.decoder(z), mu, logvar
+
+    def loss_function(self, reconstruction, x, mu, logvar):
+        BCE = F.binary_cross_entropy(reconstruction, x, reduction='sum')
+        KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        return BCE + self.beta * KLD, BCE, KLD
+
+    def traverse_latent_dimension(self, dim_idx, num_steps=10, range_limit=3.0, device='cpu'):
+        z = torch.zeros(num_steps, self.latent_dim).to(device)
+        z[:, dim_idx] = torch.linspace(-range_limit, range_limit, num_steps).to(device)
+        return self.decoder(z)
+
+
+class ConvVAE(nn.Module):
+    """
+    이미지 데이터를 위한 컨볼루션 변분 오토인코더.
+    
+    인수:
+        latent_dim (int): 잠재 공간 차원
+        img_channels (int): 입력 이미지 채널 수(회색조 1, RGB 3)
+        img_size (int): 입력 이미지 크기(정사각형 이미지로 가정한다)
+    """
+    
+    def __init__(self, latent_dim=128, img_channels=1, img_size=28):
+        super(ConvVAE, self).__init__()
+        
+        self.latent_dim = latent_dim
+        self.img_channels = img_channels
+        self.img_size = img_size
+        
+        # 인코더
+        self.encoder = nn.Sequential(
+            # 28x28 -> 14x14
+            nn.Conv2d(img_channels, 32, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            
+            # 14x14 -> 7x7
+            nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            
+            # 7x7 -> 4x4
+            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            
+            nn.Flatten()
+        )
+        
+        # 펼친 크기를 계산한다
+        self.flatten_size = 128 * 4 * 4
+        
+        # 잠재 공간 파라메터
+        self.fc_mu = nn.Linear(self.flatten_size, latent_dim)
+        self.fc_logvar = nn.Linear(self.flatten_size, latent_dim)
+        
+        # 디코더 입력
+        self.decoder_input = nn.Linear(latent_dim, self.flatten_size)
+        
+        # 디코더
+        self.decoder = nn.Sequential(
+            nn.Unflatten(1, (128, 4, 4)),
+            
+            # 4x4 -> 7x7
+            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            
+            # 7x7 -> 14x14
+            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            
+            # 14x14 -> 28x28
+            nn.ConvTranspose2d(32, img_channels, kernel_size=4, stride=2, padding=1),
+            nn.Sigmoid()
+        )
+    
+    def encode(self, x):
+        """
+        입력 이미지를 잠재 분포 파라메터로 인코딩한다.
+        
+        인수:
+            x: 입력 이미지 텐서 [배치 크기, 채널, 높이, 너비]
+            
+        반환값:
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+        """
+        h = self.encoder(x)
+        mu = self.fc_mu(h)
+        logvar = self.fc_logvar(h)
+        return mu, logvar
+    
+    def reparameterize(self, mu, logvar):
+        """
+        샘플링을 위한 리파라메리제이션 기법.
+        
+        인수:
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+            
+        반환값:
+            z: 샘플링한 잠재 벡터
+        """
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
+    
+    def decode(self, z):
+        """
+        잠재 표현을 이미지로 디코딩한다.
+        
+        인수:
+            z: 잠재 벡터
+            
+        반환값:
+            reconstruction: 복원한 이미지
+        """
+        h = self.decoder_input(z)
+        reconstruction = self.decoder(h)
+        return reconstruction
+    
+    def forward(self, x):
+        """
+        전체 순전파.
+        
+        인수:
+            x: 입력 이미지 텐서
+            
+        반환값:
+            reconstruction: 복원한 이미지
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+        """
+        mu, logvar = self.encode(x)
+        z = self.reparameterize(mu, logvar)
+        reconstruction = self.decode(z)
+        return reconstruction, mu, logvar
+    
+    def loss_function(self, reconstruction, x, mu, logvar, beta=1.0):
+        """
+        변분 오토인코더 로스 함수.
+        
+        인수:
+            reconstruction: 복원한 출력
+            x: 원래 입력
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+            beta: KL 발산 항의 웨이트
+            
+        반환값:
+            loss: 전체 변분 오토인코더 로스
+            bce: 복원 로스
+            kld: KL 발산
+        """
+        # 복원 로스
+        BCE = F.binary_cross_entropy(reconstruction, x, reduction='sum')
+        
+        # KL 발산
+        KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        
+        return BCE + beta * KLD, BCE, KLD
+    
+    def sample(self, num_samples, device='cpu'):
+        """
+        잠재 공간에서 표본을 생성한다.
+        
+        인수:
+            num_samples: 생성할 표본의 개수
+            device: 표본을 생성할 장치
+            
+        반환값:
+            samples: 생성한 이미지 표본
+        """
+        z = torch.randn(num_samples, self.latent_dim).to(device)
+        samples = self.decode(z)
+        return samples
+
+
+class ConvBetaVAE(ConvVAE):
+    """컨볼루션 beta-VAE.
+
+    구조는 ConvVAE와 같고, 로스에서 KL 항에 주는 가중치 beta만 다르다.
+    beta를 키우면 잠재 축이 서로 분리되는 쪽으로 더 세게 밀리는 대신
+    복원이 흐려진다.
+    """
+
+    def __init__(self, latent_dim=128, img_channels=1, beta=4.0):
+        super().__init__(latent_dim=latent_dim, img_channels=img_channels)
+        self.beta = beta
+
+
+# ========================================================================
+# 로스
+# ========================================================================
+
+def vae_loss(reconstruction, target, mu, logvar, beta=1.0, reduction="sum"):
+    """VAE의 로스를 계산한다.
+
+    인수:
+        reconstruction: 디코더가 내놓은 값. [0,1]이어야 한다(시그모이드를 거친 것)
+        target: 원래 입력. 마찬가지로 [0,1]이어야 한다
+        mu, logvar: 인코더가 내놓은 잠재 분포의 평균과 로그 분산
+        beta: KL 항의 가중치. 1이면 보통의 VAE
+        reduction: 'sum'이면 배치 전체의 합, 'mean'이면 표본마다의 평균
+
+    반환값:
+        (전체 로스, 복원 로스, KL 로스)
+    """
+    # 목표가 [0,1] 밖이면 BCE가 거부한다. 미리 일러 주는 편이 낫다.
+    if target.min() < 0 or target.max() > 1:
+        raise ValueError(
+            "target은 [0,1] 안에 있어야 한다. 픽셀을 정규화할 때 "
+            "Normalize로 음수를 만들지 않았는지 살펴보라."
+        )
+
+    recon_loss = F.binary_cross_entropy(
+        reconstruction.reshape(target.shape[0], -1),
+        target.reshape(target.shape[0], -1),
+        reduction="sum",
+    )
+
+    # KL(N(mu, sigma^2) || N(0, 1)) 의 닫힌 형태
+    kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+
+    if reduction == "mean":
+        n = target.shape[0]
+        recon_loss, kl_loss = recon_loss / n, kl_loss / n
+
+    return recon_loss + beta * kl_loss, recon_loss, kl_loss
+
+def beta_vae_loss(reconstruction, target, mu, logvar, beta=4.0, reduction="sum"):
+    """beta-VAE의 로스. vae_loss에 beta를 크게 준 것과 같다.
+
+    beta를 키우면 잠재 축이 서로 분리되는 쪽으로 더 세게 밀리지만, 그만큼
+    복원이 흐려진다. 이 트레이드오프가 beta-VAE의 요점이다.
+    """
+    return vae_loss(reconstruction, target, mu, logvar, beta=beta, reduction=reduction)
+
+
+# ========================================================================
+# 시각화 도우미
+# ========================================================================
+
+def _to_image(t):
+    """텐서를 matplotlib이 받는 형태로 바꾼다.
+
+    완전 연결 오토인코더는 펼친 벡터를 내놓으므로, 1차원으로 들어오면
+    정사각형 이미지로 되접어 준다. 그러지 않으면 imshow가
+    "Invalid shape (784,) for image data" 로 거부한다.
+    """
+    import math
+
+    t = t.detach().cpu()
+    if t.dim() == 1:                          # 펼친 벡터 -> 정사각형
+        side = int(math.isqrt(t.numel()))
+        if side * side == t.numel():
+            t = t.view(side, side)
+        return t, "gray"
+    if t.dim() == 3 and t.shape[0] == 1:      # 회색조
+        return t.squeeze(0), "gray"
+    if t.dim() == 3:                          # 컬러: (C,H,W) -> (H,W,C)
+        return t.permute(1, 2, 0), None
+    return t, "gray"
+
+
+def visualize_reconstruction(model, data_loader, num_images=10, device="cpu",
+                             conditional=False, save_path=None):
+    """원본 이미지와 복원 이미지를 위아래로 나란히 놓는다.
+
+    인수:
+        model: forward가 (복원 값, mu, logvar)를 돌려주는 오토인코더
+        data_loader: 볼 데이터를 주는 로더
+        num_images: 보여 줄 이미지 수
+        device: 모델이 올라가 있는 장치
+        conditional: 조건부 모델이면 True. 라벨도 함께 넣어 준다
+        save_path: 주면 그림을 그 경로로 저장한다
+    """
+    model.eval()
+    images, labels = next(iter(data_loader))
+    images = images[:num_images].to(device)
+    labels = labels[:num_images].to(device)
+
+    with torch.no_grad():
+        # 완전 연결 오토인코더는 펼친 입력을 받고, 컨볼루션 쪽은 이미지
+        # 형태 그대로를 받는다. 어느 쪽인지 모르므로 이미지 형태로 먼저
+        # 넣어 보고, 거부하면 펼쳐서 다시 넣는다.
+        try:
+            out = model(images, labels) if conditional else model(images)
+        except RuntimeError:
+            flat = images.view(images.size(0), -1)
+            out = model(flat, labels) if conditional else model(flat)
+    # forward가 (recon, mu, logvar)를 돌려주기도 하고 recon만 돌려주기도 한다
+    recon = out[0] if isinstance(out, (tuple, list)) else out
+    recon = recon.view_as(images)
+
+    fig, axes = plt.subplots(2, num_images, figsize=(num_images * 1.2, 3))
+    for i in range(num_images):
+        img, cmap = _to_image(images[i])
+        axes[0, i].imshow(img, cmap=cmap)
+        axes[0, i].axis("off")
+        rec, cmap = _to_image(recon[i])
+        axes[1, i].imshow(rec, cmap=cmap)
+        axes[1, i].axis("off")
+    axes[0, 0].set_ylabel("Original")
+    axes[1, 0].set_ylabel("Reconstruction")
+    fig.suptitle("Top: original    Bottom: reconstruction")
+    plt.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
+def visualize_samples(model, latent_dim, num_samples=10, device="cpu",
+                      class_label=None, save_path=None):
+    """잠재 공간에서 무작위로 뽑아 디코더에 넣어 본다.
+
+    복원과 달리 이쪽은 모델이 정말로 생성할 줄 아는지를 본다.
+    사전분포 N(0, I)에서 뽑으므로, 학습이 잘되었다면 그럴듯한 이미지가 나와야 한다.
+    """
+    model.eval()
+    with torch.no_grad():
+        z = torch.randn(num_samples, latent_dim, device=device)
+        if class_label is not None:
+            labels = torch.full((num_samples,), int(class_label),
+                                dtype=torch.long, device=device)
+            samples = model.decode(z, labels)
+        else:
+            samples = model.decode(z)
+
+    fig, axes = plt.subplots(1, num_samples, figsize=(num_samples * 1.2, 1.6))
+    if num_samples == 1:
+        axes = [axes]
+    for i in range(num_samples):
+        img, cmap = _to_image(samples[i])
+        axes[i].imshow(img, cmap=cmap)
+        axes[i].axis("off")
+    title = "Samples from the latent space"
+    if class_label is not None:
+        title += f" (class {class_label})"
+    fig.suptitle(title)
+    plt.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
+def _decode(model, z):
+    """잠재 벡터 z를 이미지로 디코딩한다.
+
+    VAE·ConvVAE·ConvBetaVAE는 decode 메서드가 있고, 완전 연결 BetaVAE는
+    decoder 모듈만 있다. 둘 다 받아 준다.
+    """
+    return model.decode(z) if hasattr(model, "decode") else model.decoder(z)
+
+
+
+def visualize_latent_traversal(model, dim_idx, num_steps=10, range_limit=3.0,
+                               device="cpu", save_path=None):
+    """잠재 축 하나만 -range_limit에서 +range_limit까지 움직이고 나머지는 0에 둔다.
+
+    축 하나가 한 가지 변이 요인(굵기·기울기 따위)만 맡는다면, 그 축을 따라
+    이미지가 그 요인만 바뀌며 이어져야 한다. 이것이 표현 분리를 눈으로 보는 길이다.
+    """
+    model.eval()
+    with torch.no_grad():
+        if hasattr(model, "traverse_latent_dimension"):
+            images = model.traverse_latent_dimension(dim_idx, num_steps, range_limit, device)
+        else:
+            z = torch.zeros(num_steps, model.latent_dim, device=device)
+            z[:, dim_idx] = torch.linspace(-range_limit, range_limit, num_steps, device=device)
+            images = _decode(model, z)
+
+    fig, axes = plt.subplots(1, num_steps, figsize=(num_steps * 1.2, 1.6))
+    for i in range(num_steps):
+        img, cmap = _to_image(images[i])
+        axes[i].imshow(img, cmap=cmap)
+        axes[i].axis("off")
+    fig.suptitle(f"Latent dimension {dim_idx}: {-range_limit:+.1f} to {range_limit:+.1f}")
+    plt.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
 
 # ========================================================================
 # 메인
 # ========================================================================
-
-import sys
-sys.path.append('..')
-from models.beta_vae import BetaVAE, ConvBetaVAE
-from utils.losses import beta_vae_loss
-from utils.visualization import (
-    visualize_reconstruction,
-    visualize_samples,
-    visualize_latent_traversal
-)
-
 
 def train_epoch(model, train_loader, optimizer, device):
     """한 에포크 동안 학습한다"""
@@ -244,13 +651,13 @@ if __name__ == '__main__':
     main(args)
 ```
 
-기본값은 완전 연결 모델, 잠재 10, 은닉 256, β=4, 배치 128, Adam 러닝레이트 0.001, 20에포크다. 입력에는 ToTensor를 적용하며 완전 연결 모델은 이미지를 펼친다. 로스는 모델의 loss_function을 호출하고 에포크 기록은 배치 합을 누적해 데이터셋 크기로 나눈 표본 평균이다. beta_vae_loss도 import하지만 실제 루프에서는 사용하지 않는다.
+기본값은 완전 연결 모델, 잠재 10, 은닉 256, β=4, 배치 128, Adam 러닝레이트 0.001, 20에포크다. 입력에는 ToTensor를 적용하며 완전 연결 모델은 이미지를 펼친다. 로스는 모델의 loss_function을 호출하고 에포크 기록은 배치 합을 누적해 데이터셋 크기로 나눈 표본 평균이다. beta_vae_loss도 정의해 두지만 실제 루프에서는 사용하지 않는다.
 
 ## 2. 현재 코드의 연결 상태
 
-현재 로컬 utils.visualization에는 visualize_latent_traversal이 정의되어 있지 않다. 따라서 표시된 import는 그대로라면 학습 시작 전에 실패한다. 아래 설명은 필요한 보조 함수가 연결되었다는 전제의 학습 흐름이다. 구현되지 않은 함수를 호출한다고 잠재 축 그림이 자동으로 만들어지는 것은 아니다.
+잠재 축 탐색은 `visualize_latent_traversal`이 맡는다. 축 하나만 $-3$에서 $+3$까지 움직이고 나머지 축은 0에 둔 잠재 벡터를 디코딩한다. 완전 연결 BetaVAE는 자기 `traverse_latent_dimension`을 쓰고, `decode` 메서드만 있는 ConvBetaVAE는 같은 잠재 벡터를 직접 만들어 디코딩한다. 그림은 축마다 하나씩 열 장이 나온다. 축이 정말 한 요인만 맡는지는 그림을 보고 판단할 일이고, 함수가 그것을 보장하지는 않는다.
 
-로컬 ConvBetaVAE는 ConvVAE를 상속하고 self.beta만 저장한다. 그런데 상속한 loss_function의 기본 인수는 beta=1이고 이 학습 루프는 β를 전달하지 않는다. 따라서 이 컨볼루션 경로에서는 명령행 β가 저장·출력되어도 실제 로스는 기본 β=1로 계산된다. 완전 연결 BetaVAE는 self.beta를 로스에 사용한다. 두 경로가 같은 방식으로 β를 적용한다고 해석하면 안 된다.
+위 ConvBetaVAE는 ConvVAE를 상속하고 self.beta만 저장한다. 그런데 상속한 loss_function의 기본 인수는 beta=1이고 이 학습 루프는 β를 전달하지 않는다. 따라서 이 컨볼루션 경로에서는 명령행 β가 저장·출력되어도 실제 로스는 기본 β=1로 계산된다. 완전 연결 BetaVAE는 self.beta를 로스에 사용한다. 두 경로가 같은 방식으로 β를 적용한다고 해석하면 안 된다.
 
 ## 3. 평가·선택·재현 조건
 
@@ -434,4 +841,4 @@ if __name__ == '__main__':
 
 ## 정리하며
 
-β 탐색은 실제 로스에 적용된 웨이트부터 확인해야 한다. 이 스크립트에는 빠진 시각화 import와 컨볼루션 경로의 β 전달 문제가 있다. 코드의 연결 상태를 이해한 뒤 공통 ELBO·생성·표현 평가와 검증셋으로 설정을 비교한다.
+β 탐색은 실제 로스에 적용된 웨이트부터 확인해야 한다. 이 스크립트에는 정의되지 않은 시각화 함수 호출과 컨볼루션 경로의 β 전달 문제가 있다. 코드의 연결 상태를 이해한 뒤 공통 ELBO·생성·표현 평가와 검증셋으로 설정을 비교한다.

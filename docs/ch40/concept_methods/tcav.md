@@ -28,7 +28,7 @@ TCAV 점수가 0.8이면 클래스 $c$ 입력의 80%가 개념 $k$에 양의 민
 
 Kim 등(2018)은 개념 CAV도 음성 집합을 바꿔 가며 여러 번 학습해 점수의 분포를 얻고, 그 분포가 무작위 CAV 점수의 분포와 유의하게 다를 때 그 개념을 유의하다고 본다. 무작위 CAV의 점수는 0.5(우연) 근처에 모일 것으로 기대된다.
 
-아래 구현은 이를 크게 간추렸다. 개념 점수 하나와 무작위 점수들을 한데 묶어 0.5와 견주는 단일 표본 t 검정을 쓰므로, 무작위 점수가 많을수록 이 검정은 사실상 「무작위 CAV의 점수가 0.5에서 벗어났는가」를 묻게 된다. 논문의 두 표본 검정과 같은 것이 아니다.
+아래 구현은 이를 크게 간추렸다. 개념 점수 하나와 무작위 점수들을 한데 묶어 0.5와 비교하는 단일 표본 t 검정을 쓰므로, 무작위 점수가 많을수록 이 검정은 사실상 「무작위 CAV의 점수가 0.5에서 벗어났는가」를 묻게 된다. 논문의 두 표본 검정과 같은 것이 아니다.
 
 ---
 
@@ -40,7 +40,7 @@ import numpy as np
 from scipy.stats import ttest_1samp
 
 class TCAV:
-    """개념 살아남 벡터로 평가."""
+    """개념 활성화 벡터로 하는 테스트(TCAV)."""
 
     def __init__(self, model, target_layer, device):
         self.model = model
@@ -54,7 +54,7 @@ class TCAV:
         cav: np.ndarray,
         target_class: int
     ) -> float:
-        """개념과 클래스에 대한 TCAV 점수를 셈한다."""
+        """개념과 클래스에 대한 TCAV 점수를 계산한다."""
         positive_count = 0
         total = len(class_inputs)
 
@@ -77,23 +77,23 @@ class TCAV:
         alpha: float = 0.05
     ) -> dict:
         """
-        통계로 뜻있음을 평가하며 TCAV 점수를 셈한다.
+        통계적 유의성 검정과 함께 TCAV 점수를 계산한다.
 
         Args:
-            class_inputs: 겨눈 클래스의 들임
-            concept_examples: 그 개념의 보기
-            random_example_sets: 영 가설에 쓸 아무 보기 모둠의 목록
-            target_class: 따질 클래스
-            alpha: 뜻있음 임계
+            class_inputs: 대상 클래스의 입력
+            concept_examples: 그 개념의 예시
+            random_example_sets: 귀무가설에 쓸 무작위 예시 집합의 리스트
+            target_class: 평가할 클래스
+            alpha: 유의수준
         """
-        # 개념 CAV를 익힌다
+        # 개념 CAV를 학습한다
         random_neg = random_example_sets[0]
         concept_cav = self.cav_module.train_cav(concept_examples, random_neg)
         concept_score = self.compute_tcav_score(
             class_inputs, concept_cav, target_class
         )
 
-        # 영 가설에 쓸 아무 CAV를 익힌다
+        # 귀무가설에 쓸 무작위 CAV를 학습한다
         random_scores = []
         for i in range(0, len(random_example_sets) - 1, 2):
             random_cav = self.cav_module.train_cav(
@@ -126,7 +126,7 @@ TCAV로 금융 모델이 경제적으로 의미 있는 개념을 배웠는지 �
 
 ```python
 def test_financial_concepts(model, layer, device):
-    """돌아옴을 미루어 보는 모형이 금융 개념을 쓰는지 따진다."""
+    """수익률 예측 모델이 금융 개념을 쓰는지 검정한다."""
 
     tcav = TCAV(model, layer, device)
 
@@ -142,10 +142,10 @@ def test_financial_concepts(model, layer, device):
             class_inputs=positive_return_samples,
             concept_examples=examples,
             random_example_sets=random_sets,
-            target_class=1  # 양수 돌아옴 클래스
+            target_class=1  # 양의 수익률 클래스
         )
 
-        sig = "***" if result['significant'] else "뜻없음"
+        sig = "***" if result['significant'] else "유의하지 않음"
         print(f"{concept_name:20s}: TCAV={result['tcav_score']:.3f} "
               f"p={result['p_value']:.4f} {sig}")
 ```
@@ -186,7 +186,7 @@ def test_financial_concepts(model, layer, device):
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

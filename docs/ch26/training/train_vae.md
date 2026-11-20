@@ -15,18 +15,473 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from tqdm import tqdm
+import torch.nn as nn
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
+
+# ========================================================================
+# 모델
+# ========================================================================
+
+class VAE(nn.Module):
+    """
+    가우시안 잠재 공간을 가진 표준 변분 오토인코더.
+    
+    인수:
+        input_dim (int): 입력 차원(예컨대 MNIST는 784)
+        hidden_dim (int): 은닉 레이어 차원
+        latent_dim (int): 잠재 공간 차원
+    """
+    
+    def __init__(self, input_dim=784, hidden_dim=256, latent_dim=32):
+        super(VAE, self).__init__()
+        
+        self.input_dim = input_dim
+        self.latent_dim = latent_dim
+        
+        # 인코더: 잠재 분포의 파라메터를 출력한다
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU()
+        )
+        
+        # 잠재 분포의 평균과 로그 분산
+        self.fc_mu = nn.Linear(hidden_dim, latent_dim)
+        self.fc_logvar = nn.Linear(hidden_dim, latent_dim)
+        
+        # 디코더
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, input_dim),
+            nn.Sigmoid()
+        )
+    
+    def encode(self, x):
+        """
+        입력을 잠재 분포 파라메터로 인코딩한다.
+        
+        인수:
+            x: 입력 텐서
+            
+        반환값:
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+        """
+        h = self.encoder(x)
+        mu = self.fc_mu(h)
+        logvar = self.fc_logvar(h)
+        return mu, logvar
+    
+    def reparameterize(self, mu, logvar):
+        """
+        리파라메리제이션 기법: z = mu + sigma * epsilon
+        여기서 epsilon ~ N(0, 1)
+        
+        그러면 역전파를 위해 샘플링을 미분할 수 있다.
+        
+        인수:
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+            
+        반환값:
+            z: 샘플링한 잠재 벡터
+        """
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        z = mu + eps * std
+        return z
+    
+    def decode(self, z):
+        """
+        잠재 표현을 출력으로 디코딩한다.
+        
+        인수:
+            z: 잠재 벡터
+            
+        반환값:
+            reconstruction: 복원한 출력
+        """
+        return self.decoder(z)
+    
+    def forward(self, x):
+        """
+        전체 순전파: 인코딩 -> 리파라메리제이션 -> 디코딩
+        
+        인수:
+            x: 입력 텐서
+            
+        반환값:
+            reconstruction: 복원한 출력
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+        """
+        mu, logvar = self.encode(x)
+        z = self.reparameterize(mu, logvar)
+        reconstruction = self.decode(z)
+        return reconstruction, mu, logvar
+    
+    def loss_function(self, reconstruction, x, mu, logvar, beta=1.0):
+        """
+        변분 오토인코더 로스 = 복원 로스 + β * KL 발산
+        
+        인수:
+            reconstruction: 복원한 출력
+            x: 원래 입력
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+            beta: KL 발산 항의 웨이트
+            
+        반환값:
+            loss: 전체 변분 오토인코더 로스
+            bce: 복원 로스
+            kld: KL 발산
+        """
+        # 복원 로스(이진 교차 엔트로피)
+        BCE = F.binary_cross_entropy(reconstruction, x, reduction='sum')
+        
+        # KL 발산: -0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+        KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        
+        return BCE + beta * KLD, BCE, KLD
+    
+    def sample(self, num_samples, device='cpu'):
+        """
+        잠재 공간에서 표본을 생성한다.
+        
+        인수:
+            num_samples: 생성할 표본의 개수
+            device: 표본을 생성할 장치
+            
+        반환값:
+            samples: 생성한 표본
+        """
+        z = torch.randn(num_samples, self.latent_dim).to(device)
+        samples = self.decode(z)
+        return samples
+
+
+class ConvVAE(nn.Module):
+    """
+    이미지 데이터를 위한 컨볼루션 변분 오토인코더.
+    
+    인수:
+        latent_dim (int): 잠재 공간 차원
+        img_channels (int): 입력 이미지 채널 수(회색조 1, RGB 3)
+        img_size (int): 입력 이미지 크기(정사각형 이미지로 가정한다)
+    """
+    
+    def __init__(self, latent_dim=128, img_channels=1, img_size=28):
+        super(ConvVAE, self).__init__()
+        
+        self.latent_dim = latent_dim
+        self.img_channels = img_channels
+        self.img_size = img_size
+        
+        # 인코더
+        self.encoder = nn.Sequential(
+            # 28x28 -> 14x14
+            nn.Conv2d(img_channels, 32, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            
+            # 14x14 -> 7x7
+            nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            
+            # 7x7 -> 4x4
+            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            
+            nn.Flatten()
+        )
+        
+        # 펼친 크기를 계산한다
+        self.flatten_size = 128 * 4 * 4
+        
+        # 잠재 공간 파라메터
+        self.fc_mu = nn.Linear(self.flatten_size, latent_dim)
+        self.fc_logvar = nn.Linear(self.flatten_size, latent_dim)
+        
+        # 디코더 입력
+        self.decoder_input = nn.Linear(latent_dim, self.flatten_size)
+        
+        # 디코더
+        self.decoder = nn.Sequential(
+            nn.Unflatten(1, (128, 4, 4)),
+            
+            # 4x4 -> 7x7
+            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            
+            # 7x7 -> 14x14
+            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            
+            # 14x14 -> 28x28
+            nn.ConvTranspose2d(32, img_channels, kernel_size=4, stride=2, padding=1),
+            nn.Sigmoid()
+        )
+    
+    def encode(self, x):
+        """
+        입력 이미지를 잠재 분포 파라메터로 인코딩한다.
+        
+        인수:
+            x: 입력 이미지 텐서 [배치 크기, 채널, 높이, 너비]
+            
+        반환값:
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+        """
+        h = self.encoder(x)
+        mu = self.fc_mu(h)
+        logvar = self.fc_logvar(h)
+        return mu, logvar
+    
+    def reparameterize(self, mu, logvar):
+        """
+        샘플링을 위한 리파라메리제이션 기법.
+        
+        인수:
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+            
+        반환값:
+            z: 샘플링한 잠재 벡터
+        """
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
+    
+    def decode(self, z):
+        """
+        잠재 표현을 이미지로 디코딩한다.
+        
+        인수:
+            z: 잠재 벡터
+            
+        반환값:
+            reconstruction: 복원한 이미지
+        """
+        h = self.decoder_input(z)
+        reconstruction = self.decoder(h)
+        return reconstruction
+    
+    def forward(self, x):
+        """
+        전체 순전파.
+        
+        인수:
+            x: 입력 이미지 텐서
+            
+        반환값:
+            reconstruction: 복원한 이미지
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+        """
+        mu, logvar = self.encode(x)
+        z = self.reparameterize(mu, logvar)
+        reconstruction = self.decode(z)
+        return reconstruction, mu, logvar
+    
+    def loss_function(self, reconstruction, x, mu, logvar, beta=1.0):
+        """
+        변분 오토인코더 로스 함수.
+        
+        인수:
+            reconstruction: 복원한 출력
+            x: 원래 입력
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+            beta: KL 발산 항의 웨이트
+            
+        반환값:
+            loss: 전체 변분 오토인코더 로스
+            bce: 복원 로스
+            kld: KL 발산
+        """
+        # 복원 로스
+        BCE = F.binary_cross_entropy(reconstruction, x, reduction='sum')
+        
+        # KL 발산
+        KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        
+        return BCE + beta * KLD, BCE, KLD
+    
+    def sample(self, num_samples, device='cpu'):
+        """
+        잠재 공간에서 표본을 생성한다.
+        
+        인수:
+            num_samples: 생성할 표본의 개수
+            device: 표본을 생성할 장치
+            
+        반환값:
+            samples: 생성한 이미지 표본
+        """
+        z = torch.randn(num_samples, self.latent_dim).to(device)
+        samples = self.decode(z)
+        return samples
+
+
+# ========================================================================
+# 로스
+# ========================================================================
+
+def vae_loss(reconstruction, target, mu, logvar, beta=1.0, reduction="sum"):
+    """VAE의 로스를 계산한다.
+
+    인수:
+        reconstruction: 디코더가 내놓은 값. [0,1]이어야 한다(시그모이드를 거친 것)
+        target: 원래 입력. 마찬가지로 [0,1]이어야 한다
+        mu, logvar: 인코더가 내놓은 잠재 분포의 평균과 로그 분산
+        beta: KL 항의 가중치. 1이면 보통의 VAE
+        reduction: 'sum'이면 배치 전체의 합, 'mean'이면 표본마다의 평균
+
+    반환값:
+        (전체 로스, 복원 로스, KL 로스)
+    """
+    # 목표가 [0,1] 밖이면 BCE가 거부한다. 미리 일러 주는 편이 낫다.
+    if target.min() < 0 or target.max() > 1:
+        raise ValueError(
+            "target은 [0,1] 안에 있어야 한다. 픽셀을 정규화할 때 "
+            "Normalize로 음수를 만들지 않았는지 살펴보라."
+        )
+
+    recon_loss = F.binary_cross_entropy(
+        reconstruction.reshape(target.shape[0], -1),
+        target.reshape(target.shape[0], -1),
+        reduction="sum",
+    )
+
+    # KL(N(mu, sigma^2) || N(0, 1)) 의 닫힌 형태
+    kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+
+    if reduction == "mean":
+        n = target.shape[0]
+        recon_loss, kl_loss = recon_loss / n, kl_loss / n
+
+    return recon_loss + beta * kl_loss, recon_loss, kl_loss
+
+
+# ========================================================================
+# 시각화 도우미
+# ========================================================================
+
+def _to_image(t):
+    """텐서를 matplotlib이 받는 형태로 바꾼다.
+
+    완전 연결 오토인코더는 펼친 벡터를 내놓으므로, 1차원으로 들어오면
+    정사각형 이미지로 되접어 준다. 그러지 않으면 imshow가
+    "Invalid shape (784,) for image data" 로 거부한다.
+    """
+    import math
+
+    t = t.detach().cpu()
+    if t.dim() == 1:                          # 펼친 벡터 -> 정사각형
+        side = int(math.isqrt(t.numel()))
+        if side * side == t.numel():
+            t = t.view(side, side)
+        return t, "gray"
+    if t.dim() == 3 and t.shape[0] == 1:      # 회색조
+        return t.squeeze(0), "gray"
+    if t.dim() == 3:                          # 컬러: (C,H,W) -> (H,W,C)
+        return t.permute(1, 2, 0), None
+    return t, "gray"
+
+
+def visualize_reconstruction(model, data_loader, num_images=10, device="cpu",
+                             conditional=False, save_path=None):
+    """원본 이미지와 복원 이미지를 위아래로 나란히 놓는다.
+
+    인수:
+        model: forward가 (복원 값, mu, logvar)를 돌려주는 오토인코더
+        data_loader: 볼 데이터를 주는 로더
+        num_images: 보여 줄 이미지 수
+        device: 모델이 올라가 있는 장치
+        conditional: 조건부 모델이면 True. 라벨도 함께 넣어 준다
+        save_path: 주면 그림을 그 경로로 저장한다
+    """
+    model.eval()
+    images, labels = next(iter(data_loader))
+    images = images[:num_images].to(device)
+    labels = labels[:num_images].to(device)
+
+    with torch.no_grad():
+        # 완전 연결 오토인코더는 펼친 입력을 받고, 컨볼루션 쪽은 이미지
+        # 형태 그대로를 받는다. 어느 쪽인지 모르므로 이미지 형태로 먼저
+        # 넣어 보고, 거부하면 펼쳐서 다시 넣는다.
+        try:
+            out = model(images, labels) if conditional else model(images)
+        except RuntimeError:
+            flat = images.view(images.size(0), -1)
+            out = model(flat, labels) if conditional else model(flat)
+    # forward가 (recon, mu, logvar)를 돌려주기도 하고 recon만 돌려주기도 한다
+    recon = out[0] if isinstance(out, (tuple, list)) else out
+    recon = recon.view_as(images)
+
+    fig, axes = plt.subplots(2, num_images, figsize=(num_images * 1.2, 3))
+    for i in range(num_images):
+        img, cmap = _to_image(images[i])
+        axes[0, i].imshow(img, cmap=cmap)
+        axes[0, i].axis("off")
+        rec, cmap = _to_image(recon[i])
+        axes[1, i].imshow(rec, cmap=cmap)
+        axes[1, i].axis("off")
+    axes[0, 0].set_ylabel("Original")
+    axes[1, 0].set_ylabel("Reconstruction")
+    fig.suptitle("Top: original    Bottom: reconstruction")
+    plt.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
+def visualize_samples(model, latent_dim, num_samples=10, device="cpu",
+                      class_label=None, save_path=None):
+    """잠재 공간에서 무작위로 뽑아 디코더에 넣어 본다.
+
+    복원과 달리 이쪽은 모델이 정말로 생성할 줄 아는지를 본다.
+    사전분포 N(0, I)에서 뽑으므로, 학습이 잘되었다면 그럴듯한 이미지가 나와야 한다.
+    """
+    model.eval()
+    with torch.no_grad():
+        z = torch.randn(num_samples, latent_dim, device=device)
+        if class_label is not None:
+            labels = torch.full((num_samples,), int(class_label),
+                                dtype=torch.long, device=device)
+            samples = model.decode(z, labels)
+        else:
+            samples = model.decode(z)
+
+    fig, axes = plt.subplots(1, num_samples, figsize=(num_samples * 1.2, 1.6))
+    if num_samples == 1:
+        axes = [axes]
+    for i in range(num_samples):
+        img, cmap = _to_image(samples[i])
+        axes[i].imshow(img, cmap=cmap)
+        axes[i].axis("off")
+    title = "Samples from the latent space"
+    if class_label is not None:
+        title += f" (class {class_label})"
+    fig.suptitle(title)
+    plt.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
 
 # ========================================================================
 # 메인
 # ========================================================================
-
-import sys
-sys.path.append('..')
-from models.vae import VAE
-from models.conv_vae import ConvVAE
-from utils.losses import vae_loss
-from utils.visualization import visualize_reconstruction, visualize_samples
-
 
 def train_epoch(model, train_loader, optimizer, device, beta=1.0):
     """한 에포크 동안 학습한다"""
@@ -217,13 +672,13 @@ if __name__ == '__main__':
     main(args)
 ```
 
-모델은 이 디렉터리의 models 모듈에서, 로스와 시각화는 utils에서 가져온다. 모듈 검색 경로와 실행 작업 디렉터리에 따라 import·상대 데이터 경로가 달라질 수 있다. 기본 장치는 CUDA 사용 가능 시 CUDA, 아니면 CPU다. 학습 데이터는 다운로드를 요청하지만 시험 데이터 생성에는 download=True를 지정하지 않으므로 필요한 파일이 준비되어 있어야 한다.
+모델(`VAE`·`ConvVAE`)과 로스(`vae_loss`)·시각화 도우미는 모두 같은 코드 블록 안에 정의되어 있다. 데이터 경로 `./data`는 실행 작업 디렉터리에 따라 달라진다. 기본 장치는 CUDA 사용 가능 시 CUDA, 아니면 CPU다. 학습 데이터는 다운로드를 요청하지만 시험 데이터 생성에는 download=True를 지정하지 않으므로 필요한 파일이 준비되어 있어야 한다.
 
 기본 설정은 잠재 32, 완전 연결 은닉 256, 배치 128, Adam 러닝레이트 0.001, β=1, 20에포크다. ToTensor로 입력을 0~1 범위로 바꾸고 별도 표준화나 이진화는 하지 않는다. 완전 연결 VAE만 `(B,784)`로 펼치며 컨볼루션 모델은 `(B,1,28,28)`을 받는다. isinstance 분기는 이 두 구체적 클래스에 맞춘 방식이지 모든 VAE 구조에 대한 일반적인 입력 판별 방법은 아니다.
 
 ## 2. 로스 기록의 단위
 
-가져온 vae_loss는 기본적으로 픽셀·잠재 차원·배치에 대해 합산한 BCE와 KL을 반환한다. 학습 루프는 배치 로스 합으로 역전파하고, 기록에서는 합을 누적한 뒤 데이터셋 표본 수로 나눈다. 따라서 출력은 표본당 픽셀 BCE 합과 표본당 잠재 KL 합이다. 픽셀별 평균 BCE와 같은 수치가 아니다.
+위 vae_loss는 기본적으로 픽셀·잠재 차원·배치에 대해 합산한 BCE와 KL을 반환한다. 학습 루프는 배치 로스 합으로 역전파하고, 기록에서는 합을 누적한 뒤 데이터셋 표본 수로 나눈다. 따라서 출력은 표본당 픽셀 BCE 합과 표본당 잠재 KL 합이다. 픽셀별 평균 BCE와 같은 수치가 아니다.
 
 현재 로더는 전체 데이터를 한 번씩 사용하므로 len(dataset)이 분모와 맞는다. 샘플러·drop_last 등을 바꾸면 실제 처리한 표본 수를 세어야 한다. 배치 합으로 역전파하므로 배치 크기를 바꾸면 그래디언트 스케일도 달라진다. β가 1이 아닌 기록의 Loss는 표준 음의 ELBO가 아니며 비교용 표준 ELBO를 따로 기록할 수 있다.
 

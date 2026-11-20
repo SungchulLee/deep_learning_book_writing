@@ -54,16 +54,16 @@ import seaborn as sns
 
 def compute_shap_interactions(model, X, feature_names, n_samples=100):
     """
-    나무 모형의 SHAP 서로 미침 값을 셈한다.
+    트리 모델의 SHAP 상호작용 값을 계산한다.
 
-    형태가 [표본 수, 결 수, 결 수]인 interaction_values을 내놓는다.
+    형태가 [표본 수, 피처 수, 피처 수]인 interaction_values를 내놓는다.
     """
     explainer = shap.TreeExplainer(model)
     interaction_values = explainer.shap_interaction_values(X[:n_samples])
     return interaction_values
 
 def top_interactions(interaction_values, feature_names, k=10):
-    """고른 크기로 앞선 k개의 결 서로 미침을 찾는다."""
+    """평균 크기로 상위 k개의 피처 상호작용을 찾는다."""
     mean_interactions = np.abs(interaction_values).mean(axis=0)
     n_features = len(feature_names)
 
@@ -84,7 +84,7 @@ def top_interactions(interaction_values, feature_names, k=10):
 
 ```python
 def plot_interaction_matrix(interaction_values, feature_names):
-    """고른 서로 미침을 열 그림으로 그린다."""
+    """평균 상호작용을 히트맵으로 그린다."""
     mean_interactions = np.abs(interaction_values).mean(axis=0)
 
     fig, ax = plt.subplots(figsize=(10, 8))
@@ -95,7 +95,7 @@ def plot_interaction_matrix(interaction_values, feature_names):
         cmap='Blues',
         ax=ax
     )
-    ax.set_title('SHAP 결 서로 미침')
+    ax.set_title('SHAP 피처 상호작용')
     plt.tight_layout()
     return fig
 
@@ -103,7 +103,7 @@ def plot_interaction_dependence(
     interaction_values, X, feature_names, feature_i, feature_j
 ):
     """
-    두 결 사이의 서로 미침이 그 값에 따라 어떻게 바뀌는지
+    두 피처 사이의 상호작용이 그 값에 따라 어떻게 바뀌는지
     그린다.
     """
     i = feature_names.index(feature_i)
@@ -111,7 +111,7 @@ def plot_interaction_dependence(
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-    # 서로 미침 값 대 feature_i, feature_j으로 빛깔을 준다
+    # 상호작용 값 대 feature_i, 색은 feature_j
     scatter = axes[0].scatter(
         X[:len(interaction_values), i],
         interaction_values[:, i, j],
@@ -119,10 +119,10 @@ def plot_interaction_dependence(
         cmap='coolwarm', alpha=0.6, s=20
     )
     axes[0].set_xlabel(feature_i)
-    axes[0].set_ylabel(f'서로 미침 ({feature_i} × {feature_j})')
+    axes[0].set_ylabel(f'상호작용 ({feature_i} × {feature_j})')
     plt.colorbar(scatter, ax=axes[0], label=feature_j)
 
-    # 서로 미침 값 대 feature_j, feature_i으로 빛깔을 준다
+    # 상호작용 값 대 feature_j, 색은 feature_i
     scatter = axes[1].scatter(
         X[:len(interaction_values), j],
         interaction_values[:, i, j],
@@ -130,7 +130,7 @@ def plot_interaction_dependence(
         cmap='coolwarm', alpha=0.6, s=20
     )
     axes[1].set_xlabel(feature_j)
-    axes[1].set_ylabel(f'서로 미침 ({feature_i} × {feature_j})')
+    axes[1].set_ylabel(f'상호작용 ({feature_i} × {feature_j})')
     plt.colorbar(scatter, ax=axes[1], label=feature_i)
 
     plt.tight_layout()
@@ -150,17 +150,17 @@ def analyze_factor_interactions(
     factor_names: list
 ):
     """
-    금융 인자끼리 서로 미치는 힘을 살핀다.
+    금융 인자 사이의 상호작용을 분석한다.
 
-    금융에서 중요한 서로 미침:
-    - 밀림 × 출렁임 (출렁이는 저자에서 밀림이 무너진다)
-    - 값어치 × 됨됨이 (값싼 덫 대 알맞은 값의 좋은 회사)
-    - 크기 × 사고팔기 쉬움 (작은 회사의 사고팔기 어려움 웃돈)
+    금융에서 중요한 상호작용:
+    - 모멘텀 × 변동성 (변동성이 큰 장세에서 모멘텀이 무너진다)
+    - 가치 × 품질 (가치 함정 대 적정 가격의 우량 기업)
+    - 규모 × 유동성 (소형주의 비유동성 프리미엄)
     """
     explainer = shap.TreeExplainer(model)
     interactions = explainer.shap_interaction_values(factor_data[:200])
 
-    # 홑 힘 대 서로 미침
+    # 주효과 대 상호작용
     n_factors = len(factor_names)
     main_effects = np.zeros(n_factors)
     interaction_effects = np.zeros((n_factors, n_factors))
@@ -171,14 +171,14 @@ def analyze_factor_interactions(
             if i != j:
                 interaction_effects[i, j] = np.abs(interactions[:, i, j]).mean()
 
-    # 서로 미침 대 홑 힘의 비
-    print("인자의 홑 힘 대 서로 미침:")
+    # 상호작용 대 주효과의 비
+    print("인자의 주효과 대 상호작용:")
     print("-" * 60)
     for i in range(n_factors):
         total_interaction = interaction_effects[i].sum()
         ratio = total_interaction / (main_effects[i] + 1e-10)
-        print(f"{factor_names[i]:20s}: 홑={main_effects[i]:.4f}, "
-              f"서로 미침={total_interaction:.4f}, 비={ratio:.2f}")
+        print(f"{factor_names[i]:20s}: 주효과={main_effects[i]:.4f}, "
+              f"상호작용={total_interaction:.4f}, 비={ratio:.2f}")
 
     return interactions
 ```
@@ -192,9 +192,9 @@ def detect_risk_concentrations(
     feature_names: list
 ):
     """
-    서로 미침으로 숨은 무릅씀 쏠림을 찾는다.
+    상호작용으로 숨은 위험 집중을 찾는다.
 
-    무릅씀 인자끼리 크게 서로 미치면 나누어 담아 얻는 이로움을
+    위험 인자끼리 상호작용이 크면 분산 투자로 얻는 효과를
     너무 크게 본 것일 수 있다.
     """
     interactions = compute_shap_interactions(
@@ -203,11 +203,11 @@ def detect_risk_concentrations(
 
     top = top_interactions(interactions, feature_names, k=5)
 
-    print("무릅씀 쏠림 확률(앞선 서로 미침):")
+    print("위험 집중 후보(상위 상호작용):")
     print("-" * 60)
     for inter in top:
         print(f"  {inter['feature_i']} × {inter['feature_j']}: "
-              f"셈={inter['strength']:.4f}")
+              f"강도={inter['strength']:.4f}")
 
     return top
 ```
@@ -248,7 +248,7 @@ XOR $f(x) = x_1 \oplus x_2$를 정확히 계산하는 모델이 있고, 모르�
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 표본마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 표본마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

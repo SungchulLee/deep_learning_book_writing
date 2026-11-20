@@ -29,7 +29,7 @@ $$
 Guided Backpropagation은 조건을 하나 더 건다. 양수 그래디언트만 전파하는 것이다.
 
 $$
-\frac{\partial L}{\partial x}\bigg|_{\text{이끈}} = \frac{\partial L}{\partial y} \cdot \mathbf{1}[x > 0] \cdot \mathbf{1}\left[\frac{\partial L}{\partial y} > 0\right]
+\frac{\partial L}{\partial x}\bigg|_{\text{guided}} = \frac{\partial L}{\partial y} \cdot \mathbf{1}[x > 0] \cdot \mathbf{1}\left[\frac{\partial L}{\partial y} > 0\right]
 $$
 
 이는 다음 두 마스크를 합친 것이다.
@@ -49,7 +49,7 @@ import torch.nn as nn
 from torch.autograd import Function
 
 class GuidedReLU(Function):
-    """Guided Backpropagation를 지닌 ReLU."""
+    """Guided Backpropagation을 적용한 ReLU."""
 
     @staticmethod
     def forward(ctx, input):
@@ -59,7 +59,7 @@ class GuidedReLU(Function):
     @staticmethod
     def backward(ctx, grad_output):
         input, = ctx.saved_tensors
-        # 앞으로 마스크: input > 0
+        # 순전파 마스크: input > 0
         # 역전파 마스크: grad_output > 0
         return grad_output * (input > 0).float() * (grad_output > 0).float()
 
@@ -72,7 +72,7 @@ class GuidedBackpropagation:
         self._register_hooks()
 
     def _register_hooks(self):
-        """ReLU 앞으로 스텝을 이끈 클래스로 갈음한다."""
+        """ReLU 레이어마다 역전파 훅을 걸어 음수 그래디언트를 잘라 낸다."""
         def guided_relu_hook(module, grad_in, grad_out):
             return (torch.clamp(grad_in[0], min=0),)
 
@@ -82,7 +82,7 @@ class GuidedBackpropagation:
                 self.hooks.append(hook)
 
     def __call__(self, image_tensor, target_class, device):
-        """Guided Backpropagation 두드러짐을 셈한다."""
+        """Guided Backpropagation 샐리언시를 계산한다."""
         self.model.eval()
         image_tensor = image_tensor.to(device).requires_grad_(True)
 
@@ -94,7 +94,7 @@ class GuidedBackpropagation:
         return saliency
 
     def remove_hooks(self):
-        """걸어 둔 갈고리를 치운다."""
+        """걸어 둔 훅을 제거한다."""
         for hook in self.hooks:
             hook.remove()
         self.hooks = []
@@ -103,24 +103,24 @@ class GuidedBackpropagation:
 ### 사용 예
 
 ```python
-# 차림
+# 설정
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = models.resnet50(pretrained=True).to(device).eval()
 
-# Guided Backpropagation 것을 만든다
+# Guided Backpropagation 객체를 만든다
 guided_bp = GuidedBackpropagation(model)
 
-# 그림을 부르고 미리 다듬는다
+# 이미지를 불러와 전처리한다
 image_tensor = preprocess_image('dog.jpg').unsqueeze(0)
 
-# 미루어 봄을 얻는다
+# 예측 클래스를 얻는다
 with torch.no_grad():
     pred_class = model(image_tensor.to(device)).argmax(dim=1).item()
 
-# Guided Backpropagation를 셈한다
+# Guided Backpropagation을 계산한다
 saliency = guided_bp(image_tensor, pred_class, device)
 
-# 치운다
+# 훅을 제거한다
 guided_bp.remove_hooks()
 ```
 
@@ -134,19 +134,19 @@ Guided Backpropagation과 Grad-CAM을 결합하면 두 방법의 장점을 함�
 - **Guided Backpropagation**: 해상도가 높고 세밀한 패턴
 
 $$
-\text{이끈 Grad-CAM} = \text{Guided Backpropagation} \odot \text{키운}(\text{Grad-CAM})
+\text{Guided Grad-CAM} = \text{Guided Backpropagation} \odot \text{Upsample}(\text{Grad-CAM})
 $$
 
 ```python
 def compute_guided_gradcam(
     model, target_layer, image_tensor, target_class, device
 ):
-    """이끈 Grad-CAM을 셈한다."""
+    """Guided Grad-CAM을 계산한다."""
     # Grad-CAM
     gradcam = GradCAM(model, target_layer)
     cam = gradcam(image_tensor, target_class, device)
 
-    # 들임 크기로 키운다
+    # 입력 크기로 업샘플링한다
     cam_upsampled = F.interpolate(
         cam.unsqueeze(0).unsqueeze(0),
         size=image_tensor.shape[2:],
@@ -219,7 +219,7 @@ def compute_guided_gradcam(
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -240,7 +240,7 @@ Guided Backpropagation은 역전파하는 동안 음수 그래디언트를 막�
 **핵심 식:**
 
 $$
-\frac{\partial L}{\partial x}\bigg|_{\text{이끈}} = \frac{\partial L}{\partial y} \cdot \mathbf{1}[x > 0] \cdot \mathbf{1}\left[\frac{\partial L}{\partial y} > 0\right]
+\frac{\partial L}{\partial x}\bigg|_{\text{guided}} = \frac{\partial L}{\partial y} \cdot \mathbf{1}[x > 0] \cdot \mathbf{1}\left[\frac{\partial L}{\partial y} > 0\right]
 $$
 
 **참고 문헌**

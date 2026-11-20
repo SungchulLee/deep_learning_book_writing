@@ -41,8 +41,72 @@ def describe(dist):
     if hasattr(dist, "dist"):                  # scipy 의 고정된(frozen) 분포
         return f"{dist.dist.name}{dist.args}"
     return str(dist)                           # 그냥 목록이면 그대로
-from utils import (load_sample_dataset, print_results,
-                   plot_parameter_importance)
+# ========================================================================
+# 도우미 함수
+# ========================================================================
+from sklearn.datasets import load_iris, load_wine, make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+
+def load_sample_dataset(name="iris", test_size=0.3, random_state=42, scale=True):
+    """예제가 함께 쓰는 자료를 불러와 학습/시험으로 나눈다.
+
+    인수:
+        name: 'iris', 'wine', 'synthetic' 가운데 하나
+        test_size: 시험 집합의 비율
+        random_state: 씨앗. 예제끼리 견주려면 같은 값을 써야 한다
+        scale: 특징을 평균 0, 표준편차 1로 맞출지 여부.
+               SVM처럼 크기에 민감한 모델에는 반드시 필요하다
+
+    반환값:
+        X_train, X_test, y_train, y_test
+    """
+    if name == "iris":
+        data = load_iris()
+        X, y = data.data, data.target
+    elif name == "wine":
+        data = load_wine()
+        X, y = data.data, data.target
+    elif name == "synthetic":
+        X, y = make_classification(
+            n_samples=500, n_features=20, n_informative=10,
+            n_redundant=5, n_classes=3, random_state=random_state,
+        )
+    else:
+        raise ValueError(
+            f"모르는 자료 이름: {name!r}. 'iris', 'wine', 'synthetic' 가운데 하나를 쓴다."
+        )
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state, stratify=y
+    )
+
+    if scale:
+        # 고르게 맞추는 값은 반드시 학습 집합에서만 구한다.
+        # 전체에서 구하면 시험 자료의 정보가 학습에 새어 든다.
+        scaler = StandardScaler().fit(X_train)
+        X_train = scaler.transform(X_train)
+        X_test = scaler.transform(X_test)
+
+    return X_train, X_test, y_train, y_test
+
+
+def print_results(method_name, best_params, best_score, search_time, test_score=None):
+    """찾기 결과를 절 전체에서 같은 모양으로 알린다.
+
+    방법마다 형식이 다르면 나란히 견주기 어려우므로 여기서 한 번에 정한다.
+    """
+    print("\n" + "=" * 60)
+    print(f"{method_name}")
+    print("=" * 60)
+    print(f"  가장 좋은 조절 값:")
+    for key, value in sorted(best_params.items()):
+        print(f"    {key:<24} {value}")
+    print(f"  맞대 보기 점수 : {best_score:.4f}")
+    if test_score is not None:
+        print(f"  시험 점수      : {test_score:.4f}")
+    print(f"  걸린 값        : {search_time:.2f}초")
 
 # ========================================================================
 # 메인
@@ -620,7 +684,7 @@ scipy.stats.randint는 이산 분포이고 uniform은 연속 분포이다. 러�
 
 출력을 읽을 때 두 가지를 조심한다. 첫째, 예제 3에서는 n_iter를 10에서 100으로 늘려도 CV 점수(0.9619)와 시험 점수(0.8889)가 그대로이고 시간만 늘어난다. 코드가 찍는 「More iterations generally lead to better scores」는 이 실행에서는 성립하지 않았다. 예제 4에서도 격자와 무작위 탐색의 최고 CV 점수가 0.9758로 같다. 둘째, 「Top 5」 목록의 `Rank` 번호는 `cv_results_`의 행 번호에 1을 더한 것이지 순위가 아니다. 다섯 후보 모두 0.9753으로 공동 1위이다.
 
-코드는 격자 탐색 쪽과 마찬가지로 같은 폴더의 `utils.py`에서 데이터 로딩과 결과 출력 도우미를 가져온다. 출력의 「가장 좋은 조절 값」·「맞대 보기 점수」·「걸린 값」은 그 도우미가 찍는 표시로, 각각 최적 하이퍼파라메터·교차 검증 점수·걸린 시간이다.
+데이터 로딩과 결과 출력은 격자 탐색 쪽과 같은 도우미 함수가 맡으며, 그 함수들은 코드 앞머리에 있다. 출력의 「가장 좋은 조절 값」·「맞대 보기 점수」·「걸린 값」은 그 도우미가 찍는 표시로, 각각 최적 하이퍼파라메터·교차 검증 점수·걸린 시간이다.
 
 ## 연습문제
 

@@ -8,113 +8,112 @@
 
 ```python
 """
-09: 앞선 두드러짐 기법
+09: 고급 샐리언시 기법
 ==============================
 
-어려움: 높음
+난이도: 높음
 
 설명:
-가장 앞선 두드러짐 방법 들머리:
-- 레이어마다의 쓸모 전파(LRP)
-- 어텐션 굴리기(트랜스포머에 씀)
+가장 발전된 샐리언시 방법 소개:
+- Layer-wise Relevance Propagation(LRP)
+- Attention Rollout(트랜스포머에 씀)
 - DeepLIFT
 - 딥러닝을 위한 SHAP
 
-이 방법들은 그래디언트 바탕 길의 한계를 다룬다.
+이 방법들은 그래디언트 기반 방법의 한계를 다룬다.
 
 지은이: 교육용 자료
 """
 
 import torch
-from utils import *
 
 # ========================================================================
 # 메인
 # ========================================================================
 
 def overview_advanced_methods():
-    """앞선 기법 살펴보기."""
+    """고급 기법 개관."""
 
     print("\n" + "="*70)
-    print(" "*15 + "앞선 두드러짐 기법")
+    print(" "*15 + "고급 샐리언시 기법")
     print("="*70)
 
-    print("\n1. 레이어마다의 쓸모 전파(LRP)")
+    print("\n1. Layer-wise Relevance Propagation(LRP)")
     print("-" * 70)
-    print("생각: 쓸모를 거꾸로 퍼뜨려 미루어 봄을 쪼갠다")
-    print("형태: R_i = Σ_j (z_ij / Σ_k z_kj) R_j")
-    print("나은 점: 지켜짐 됨됨이를 채운다")
-    print("쓰일 자리: 쓸모를 정확히 쪼개야 할 때")
+    print("아이디어: 관련도를 거꾸로 전파해 예측을 분해한다")
+    print("식: R_i = Σ_j (z_ij / Σ_k z_kj) R_j")
+    print("장점: 보존 성질을 만족한다")
+    print("쓰임: 관련도를 정확히 분해해야 할 때")
 
-    print("\n2. 어텐션 굴리기(트랜스포머)")
+    print("\n2. Attention Rollout(트랜스포머)")
     print("-" * 70)
-    print("생각: 레이어마다의 어텐션 그림을 한데 모은다")
-    print("형태: Att = Π_l Att^(l), Att^(l)은 레이어마다의 어텐션")
-    print("나은 점: 트랜스포머가 어디를 보는지 그린다")
-    print("쓰일 자리: 눈 트랜스포머, BERT 등")
+    print("아이디어: 레이어마다의 어텐션 맵을 한데 결합한다")
+    print("식: Att = Π_l Att^(l), Att^(l)은 레이어마다의 어텐션")
+    print("장점: 트랜스포머가 어디를 보는지 시각화한다")
+    print("쓰임: 비전 트랜스포머, BERT 등")
 
     print("\n3. DEEPLIFT")
     print("-" * 70)
-    print("생각: 살아남을 견줌 살아남과 견준다")
-    print("형태: 베이스라인과의 차이로 기여도를 매긴다")
-    print("나은 점: 그래디언트가 잦아든 자리를 더 잘 다룬다")
-    print("쓰일 자리: 그래디언트가 사라지거나 터질 때")
+    print("아이디어: 활성값을 기준 활성값과 비교한다")
+    print("방식: 베이스라인과의 차이로 기여도를 매긴다")
+    print("장점: 그래디언트가 포화된 영역을 더 잘 다룬다")
+    print("쓰임: 그래디언트가 소실되거나 폭발할 때")
 
-    print("\n4. SHAP(더해지는 섀플리 풀이)")
+    print("\n4. SHAP(SHapley Additive exPlanations)")
     print("-" * 70)
-    print("생각: 놀이 이론으로 기여도를 매긴다")
-    print("형태: 함께 하는 놀이 이론의 섀플리 값")
-    print("나은 점: 이론으로 가장 좋고 고르게 기여도를 매긴다")
-    print("쓰일 자리: 고름을 증명할 수 있는 풀이가 있어야 할 때")
+    print("아이디어: 게임 이론으로 기여도를 매긴다")
+    print("방식: 협력 게임 이론의 섀플리 값")
+    print("장점: 이론적으로 최적이고 공정하게 기여도를 매긴다")
+    print("쓰임: 공정성이 증명된 설명이 필요할 때")
 
     print("\n5. DECONVNET")
     print("-" * 70)
-    print("생각: Guided Backpropagation와 비슷하되 ReLU 다루기가 다르다")
-    print("쓰일 자리: Guided Backpropagation를 갈음할 때")
+    print("아이디어: Guided Backpropagation과 비슷하되 ReLU 처리가 다르다")
+    print("쓰임: Guided Backpropagation을 대신할 때")
 
     print("\n" + "="*70)
-    print("짜기에 도움 되는 곳:")
+    print("구현에 도움 되는 자료:")
     print("-" * 70)
     print("• Captum (PyTorch): https://captum.ai/")
     print("• SHAP: https://github.com/slundberg/shap")
     print("• LRP Toolbox: https://github.com/sebastian-lapuschkin/lrp_toolbox")
-    print("• 트랜스포머 풀이하기: 어텐션 굴리기 논문")
+    print("• 트랜스포머 해석: Attention Rollout 논문")
     print("="*70)
 
 
 def example_1_when_to_use_what():
-    """알맞은 방법을 고르는 길잡이."""
+    """알맞은 방법을 고르는 가이드."""
 
     print("\n" + "="*60)
-    print("판단 나무: 어느 방법을 쓸까?")
+    print("의사결정 트리: 어느 방법을 쓸까?")
     print("="*60)
 
     print("\n질문 1: 무엇을 하려는가?")
-    print("  A) 빠른 벌레잡기 → 맨 그래디언트")
-    print("  B) 논문에 실을 그림 → 이끈 Grad-CAM")
-    print("  C) 이론 보장 → 쌓은 그래디언트나 SHAP")
-    print("  D) 트랜스포머 알아보기 → 어텐션 굴리기")
+    print("  A) 빠른 디버깅 → 바닐라 그래디언트")
+    print("  B) 논문에 실을 그림 → Guided Grad-CAM")
+    print("  C) 이론적 보장 → Integrated Gradients나 SHAP")
+    print("  D) 트랜스포머 해석 → Attention Rollout")
 
-    print("\n질문 2: 모형 클래스는?")
-    print("  A) CNN → Grad-CAM, 이끈 Grad-CAM")
-    print("  B) 트랜스포머 → 어텐션 굴리기")
-    print("  C) 아무거나 → 쌓은 그래디언트, SHAP")
+    print("\n질문 2: 모델 종류는?")
+    print("  A) CNN → Grad-CAM, Guided Grad-CAM")
+    print("  B) 트랜스포머 → Attention Rollout")
+    print("  C) 무엇이든 → Integrated Gradients, SHAP")
 
-    print("\n질문 3: 무엇에 매였는가?")
-    print("  A) 빠르기 → 맨 그래디언트")
-    print("  B) 됨됨이 → SmoothGrad, 쌓은 그래디언트")
-    print("  C) 결 고움 → 이끈 방법들")
+    print("\n질문 3: 제약은 무엇인가?")
+    print("  A) 속도 → 바닐라 그래디언트")
+    print("  B) 품질 → SmoothGrad, Integrated Gradients")
+    print("  C) 세밀한 디테일 → Guided 방법들")
 
     print("\n질문 4: 어디에 쓰는가?")
-    print("  A) 학술 논문 → 쌓은 그래디언트(인용이 많다)")
-    print("  B) 보임/발표 → 이끈 Grad-CAM(눈에 잘 든다)")
-    print("  C) 서비스에 올림 → Grad-CAM(빠르다)")
-    print("  D) 벌레잡기 → 맨 그래디언트(빨리 되풀이한다)")
+    print("  A) 학술 논문 → Integrated Gradients(인용이 많다)")
+    print("  B) 데모/발표 → Guided Grad-CAM(눈에 잘 띈다)")
+    print("  C) 서비스 배포 → Grad-CAM(빠르다)")
+    print("  D) 디버깅 → 바닐라 그래디언트(빨리 반복한다)")
 
 
 def main():
     print("\n" + "="*70)
-    print(" "*15 + "앞선 기법 살펴보기")
+    print(" "*15 + "고급 기법 개관")
     print("="*70)
 
     try:
@@ -124,28 +123,28 @@ def main():
         print("\n" + "="*70)
         print("잘하셨습니다!")
         print("="*70)
-        print("\n두드러짐 그림 익히기 배치를 다 마쳤습니다!")
+        print("\nSaliency Map 튜토리얼 시리즈를 모두 마쳤습니다!")
         print("\n배운 것:")
-        print("✓ 그래디언트 바탕 방법(맨 그래디언트, 그래디언트×들임)")
+        print("✓ 그래디언트 기반 방법(바닐라 그래디언트, 그래디언트×입력)")
         print("✓ 잡음 줄이기(SmoothGrad)")
-        print("✓ 길 따라 쌓기(쌓은 그래디언트)")
-        print("✓ 자리 짚기(Grad-CAM)")
-        print("✓ 결 고움(Guided Backpropagation)")
-        print("✓ 아우른 방법(이끈 Grad-CAM)")
-        print("✓ 방법 고르기와 견주기")
-        print("✓ 앞선 기법 살펴보기")
+        print("✓ 경로 적분(Integrated Gradients)")
+        print("✓ 위치 파악(Grad-CAM)")
+        print("✓ 세밀한 디테일(Guided Backpropagation)")
+        print("✓ 결합 방법(Guided Grad-CAM)")
+        print("✓ 방법 선택과 비교")
+        print("✓ 고급 기법 개관")
 
         print("\n다음 스텝:")
-        print("1. 제 모형에 이 방법들을 걸어 본다")
-        print("2. Captum 곳집에서 더 많은 기법을 살핀다")
-        print("3. 처음 논문을 읽어 더 깊이 안다")
-        print("4. 여러 구조로 해 본다")
+        print("1. 자신의 모델에 이 방법들을 적용해 본다")
+        print("2. Captum 라이브러리에서 더 많은 기법을 살핀다")
+        print("3. 원 논문을 읽어 더 깊이 이해한다")
+        print("4. 여러 구조로 실험해 본다")
 
-        print("\n즐겁게 풀이하시길! 🎉")
+        print("\n즐겁게 해석하시길! 🎉")
         print("="*70)
 
     except Exception as e:
-        print(f"어긋남: {e}")
+        print(f"오류: {e}")
 
 if __name__ == "__main__":
     main()
@@ -156,108 +155,106 @@ if __name__ == "__main__":
     ```
 
     ======================================================================
-                   앞선 기법 살펴보기
+                   고급 기법 개관
     ======================================================================
 
     ======================================================================
-                   앞선 두드러짐 기법
+                   고급 샐리언시 기법
     ======================================================================
 
-    1. 레이어마다의 쓸모 전파(LRP)
+    1. Layer-wise Relevance Propagation(LRP)
     ----------------------------------------------------------------------
-    생각: 쓸모를 거꾸로 퍼뜨려 미루어 봄을 쪼갠다
-    형태: R_i = Σ_j (z_ij / Σ_k z_kj) R_j
-    나은 점: 지켜짐 됨됨이를 채운다
-    쓰일 자리: 쓸모를 정확히 쪼개야 할 때
+    아이디어: 관련도를 거꾸로 전파해 예측을 분해한다
+    식: R_i = Σ_j (z_ij / Σ_k z_kj) R_j
+    장점: 보존 성질을 만족한다
+    쓰임: 관련도를 정확히 분해해야 할 때
 
-    2. 어텐션 굴리기(트랜스포머)
+    2. Attention Rollout(트랜스포머)
     ----------------------------------------------------------------------
-    생각: 레이어마다의 어텐션 그림을 한데 모은다
-    형태: Att = Π_l Att^(l), Att^(l)은 레이어마다의 어텐션
-    나은 점: 트랜스포머가 어디를 보는지 그린다
-    쓰일 자리: 눈 트랜스포머, BERT 등
+    아이디어: 레이어마다의 어텐션 맵을 한데 결합한다
+    식: Att = Π_l Att^(l), Att^(l)은 레이어마다의 어텐션
+    장점: 트랜스포머가 어디를 보는지 시각화한다
+    쓰임: 비전 트랜스포머, BERT 등
 
     3. DEEPLIFT
     ----------------------------------------------------------------------
-    생각: 살아남을 견줌 살아남과 견준다
-    형태: 베이스라인과의 차이로 기여도를 매긴다
-    나은 점: 그래디언트가 잦아든 자리를 더 잘 다룬다
-    쓰일 자리: 그래디언트가 사라지거나 터질 때
+    아이디어: 활성값을 기준 활성값과 비교한다
+    방식: 베이스라인과의 차이로 기여도를 매긴다
+    장점: 그래디언트가 포화된 영역을 더 잘 다룬다
+    쓰임: 그래디언트가 소실되거나 폭발할 때
 
-    4. SHAP(더해지는 섀플리 풀이)
+    4. SHAP(SHapley Additive exPlanations)
     ----------------------------------------------------------------------
-    생각: 놀이 이론으로 기여도를 매긴다
-    형태: 함께 하는 놀이 이론의 섀플리 값
-    나은 점: 이론으로 가장 좋고 고르게 기여도를 매긴다
-    쓰일 자리: 고름을 증명할 수 있는 풀이가 있어야 할 때
+    아이디어: 게임 이론으로 기여도를 매긴다
+    방식: 협력 게임 이론의 섀플리 값
+    장점: 이론적으로 최적이고 공정하게 기여도를 매긴다
+    쓰임: 공정성이 증명된 설명이 필요할 때
 
     5. DECONVNET
     ----------------------------------------------------------------------
-    생각: Guided Backpropagation와 비슷하되 ReLU 다루기가 다르다
-    쓰일 자리: Guided Backpropagation를 갈음할 때
+    아이디어: Guided Backpropagation과 비슷하되 ReLU 처리가 다르다
+    쓰임: Guided Backpropagation을 대신할 때
 
     ======================================================================
-    짜기에 도움 되는 곳:
+    구현에 도움 되는 자료:
     ----------------------------------------------------------------------
     • Captum (PyTorch): https://captum.ai/
     • SHAP: https://github.com/slundberg/shap
     • LRP Toolbox: https://github.com/sebastian-lapuschkin/lrp_toolbox
-    • 트랜스포머 풀이하기: 어텐션 굴리기 논문
+    • 트랜스포머 해석: Attention Rollout 논문
     ======================================================================
 
     ============================================================
-    판단 나무: 어느 방법을 쓸까?
+    의사결정 트리: 어느 방법을 쓸까?
     ============================================================
 
     질문 1: 무엇을 하려는가?
-      A) 빠른 벌레잡기 → 맨 그래디언트
-      B) 논문에 실을 그림 → 이끈 Grad-CAM
-      C) 이론 보장 → 쌓은 그래디언트나 SHAP
-      D) 트랜스포머 알아보기 → 어텐션 굴리기
+      A) 빠른 디버깅 → 바닐라 그래디언트
+      B) 논문에 실을 그림 → Guided Grad-CAM
+      C) 이론적 보장 → Integrated Gradients나 SHAP
+      D) 트랜스포머 해석 → Attention Rollout
 
-    질문 2: 모형 클래스는?
-      A) CNN → Grad-CAM, 이끈 Grad-CAM
-      B) 트랜스포머 → 어텐션 굴리기
-      C) 아무거나 → 쌓은 그래디언트, SHAP
+    질문 2: 모델 종류는?
+      A) CNN → Grad-CAM, Guided Grad-CAM
+      B) 트랜스포머 → Attention Rollout
+      C) 무엇이든 → Integrated Gradients, SHAP
 
-    질문 3: 무엇에 매였는가?
-      A) 빠르기 → 맨 그래디언트
-      B) 됨됨이 → SmoothGrad, 쌓은 그래디언트
-      C) 결 고움 → 이끈 방법들
+    질문 3: 제약은 무엇인가?
+      A) 속도 → 바닐라 그래디언트
+      B) 품질 → SmoothGrad, Integrated Gradients
+      C) 세밀한 디테일 → Guided 방법들
 
     질문 4: 어디에 쓰는가?
-      A) 학술 논문 → 쌓은 그래디언트(인용이 많다)
-      B) 보임/발표 → 이끈 Grad-CAM(눈에 잘 든다)
-      C) 서비스에 올림 → Grad-CAM(빠르다)
-      D) 벌레잡기 → 맨 그래디언트(빨리 되풀이한다)
+      A) 학술 논문 → Integrated Gradients(인용이 많다)
+      B) 데모/발표 → Guided Grad-CAM(눈에 잘 띈다)
+      C) 서비스 배포 → Grad-CAM(빠르다)
+      D) 디버깅 → 바닐라 그래디언트(빨리 반복한다)
 
     ======================================================================
     잘하셨습니다!
     ======================================================================
 
-    두드러짐 그림 익히기 배치를 다 마쳤습니다!
+    Saliency Map 튜토리얼 시리즈를 모두 마쳤습니다!
 
     배운 것:
-    ✓ 그래디언트 바탕 방법(맨 그래디언트, 그래디언트×들임)
+    ✓ 그래디언트 기반 방법(바닐라 그래디언트, 그래디언트×입력)
     ✓ 잡음 줄이기(SmoothGrad)
-    ✓ 길 따라 쌓기(쌓은 그래디언트)
-    ✓ 자리 짚기(Grad-CAM)
-    ✓ 결 고움(Guided Backpropagation)
-    ✓ 아우른 방법(이끈 Grad-CAM)
-    ✓ 방법 고르기와 견주기
-    ✓ 앞선 기법 살펴보기
+    ✓ 경로 적분(Integrated Gradients)
+    ✓ 위치 파악(Grad-CAM)
+    ✓ 세밀한 디테일(Guided Backpropagation)
+    ✓ 결합 방법(Guided Grad-CAM)
+    ✓ 방법 선택과 비교
+    ✓ 고급 기법 개관
 
     다음 스텝:
-    1. 제 모형에 이 방법들을 걸어 본다
-    2. Captum 곳집에서 더 많은 기법을 살핀다
-    3. 처음 논문을 읽어 더 깊이 안다
-    4. 여러 구조로 해 본다
+    1. 자신의 모델에 이 방법들을 적용해 본다
+    2. Captum 라이브러리에서 더 많은 기법을 살핀다
+    3. 원 논문을 읽어 더 깊이 이해한다
+    4. 여러 구조로 실험해 본다
 
-    즐겁게 풀이하시길! 🎉
+    즐겁게 해석하시길! 🎉
     ======================================================================
     ```
-
-
 ## 2. 논의
 
 이 프로그램은 모델을 부르지 않고 문장만 찍으므로 끝까지 돈다. 출력에 적힌 식 두 개는 읽을 때 짚어 둘 것이 있다. LRP의 `R_i = Σ_j (z_ij / Σ_k z_kj) R_j` 는 가장 단순한 LRP-0 규칙으로, 위 레이어의 관련도 $R_j$ 를 아래 뉴런의 기여 $z_{ij}$ 비율대로 나누어 주므로 레이어마다 관련도의 합이 보존된다. Attention Rollout의 `Att = Π_l Att^(l)` 은 레이어마다의 어텐션 행렬을 곱한 것인데, 원래 방법은 잔차 연결을 반영하려고 각 행렬에 단위행렬을 더해 다시 정규화한 뒤 곱한다. 출력의 식은 그 단계를 생략했다.
@@ -298,7 +295,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    보통의 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간이 $O(n^2 d)$이고 어텐션 웨이트에 드는 메모리가 $O(n^2)$이다. 시퀀스가 길면(예를 들어 $n = 4096$) 감당할 수 없다. Longformer는 국소 슬라이딩 윈도 어텐션($O(n \cdot w \cdot d)$, $w$는 윈도 크기)과 고른 토큰에 대한 성긴 전역 어텐션을 함께 쓴다. Linformer는 키와 값을 낮은 차원 $k \ll n$으로 사영해 복잡도를 $O(n \cdot k \cdot d)$로 줄인다. 둘 다 표현력을 얼마쯤 내주고 긴 입력에서의 효율을 얻는다.
+    보통의 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간이 $O(n^2 d)$이고 어텐션 웨이트에 드는 메모리가 $O(n^2)$이다. 시퀀스가 길면(예를 들어 $n = 4096$) 감당할 수 없다. Longformer는 국소 슬라이딩 윈도 어텐션($O(n \cdot w \cdot d)$, $w$는 윈도 크기)과 고른 토큰에 대한 희소 전역 어텐션을 함께 쓴다. Linformer는 키와 값을 낮은 차원 $k \ll n$으로 사영해 복잡도를 $O(n \cdot k \cdot d)$로 줄인다. 둘 다 표현력을 얼마쯤 내주고 긴 입력에서의 효율을 얻는다.
 
 ---
 <div class="drillbox" markdown>
@@ -313,11 +310,11 @@ if __name__ == "__main__":
     ```python
     def test_advanced techniques():
         model = 앞선 기법(...)
-        # 여느 들임
+        # 일반 입력
         assert model(normal_input).shape == expected_shape
         # 원소 하나짜리 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값(넘침을 살핀다)
+        # 큰 값(오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
         # 그래디언트 흐름

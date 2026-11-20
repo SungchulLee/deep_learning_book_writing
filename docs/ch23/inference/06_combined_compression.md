@@ -33,6 +33,8 @@
 - 모델 익히기 경험
 """
 
+import random
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -41,15 +43,62 @@ from torch.utils.data import DataLoader
 import copy
 
 # ========================================================================
-# 메인
+# 도우미 함수
 # ========================================================================
 
-from utils import (
-    count_parameters,
-    get_model_size,
-    evaluate_accuracy,
-    seed_everything
-)
+def seed_everything(seed: int = 42) -> None:
+    """파이썬·넘파이·토치의 씨앗을 한 번에 고정한다."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+@torch.no_grad()
+def evaluate_accuracy(model: nn.Module, dataloader, device=None) -> float:
+    """시험 정확도를 %로 돌려준다."""
+    if device is None:
+        device = next(model.parameters()).device
+    model.eval()
+    correct = total = 0
+    for x, y in dataloader:
+        x, y = x.to(device), y.to(device)
+        pred = model(x).argmax(dim=1)
+        correct += (pred == y).sum().item()
+        total += y.numel()
+    return 100.0 * correct / max(total, 1)
+
+
+def count_parameters(model: nn.Module, trainable_only: bool = False) -> int:
+    """매개변수 개수. trainable_only면 학습되는 것만 센다."""
+    ps = model.parameters()
+    if trainable_only:
+        ps = (p for p in ps if p.requires_grad)
+    return sum(p.numel() for p in ps)
+
+
+def get_model_size(model: nn.Module) -> dict:
+    """가중치와 버퍼가 차지하는 바이트를 잰다.
+
+    매개변수 **수**가 아니라 **바이트**라는 점이 중요하다. 양자화는 개수를
+    그대로 두고 자료형만 float32에서 int8로 바꾸므로, 개수로 재면 아무것도
+    아낀 것이 없어 보인다.
+    """
+    param_bytes = sum(p.numel() * p.element_size() for p in model.parameters())
+    buffer_bytes = sum(b.numel() * b.element_size() for b in model.buffers())
+    total = param_bytes + buffer_bytes
+    return {
+        "bytes": total,
+        "kb": total / 1024,
+        "mb": total / (1024 ** 2),
+        "params": count_parameters(model),
+    }
+
+
+# ========================================================================
+# 메인
+# ========================================================================
 
 
 class LargeTeacher(nn.Module):
@@ -368,7 +417,7 @@ $$L=0.3\,\operatorname{CE}(z_s,y)+0.7\,T^2D_{KL}(p_t^{(T)}\|p_s^{(T)}),\qquad T=
 
 ## 6. 정확도 단위와 공정한 평가
 
-이 디렉터리의 `utils.evaluate_accuracy`는 0~100 백분율을 반환한다. 호출부가 다시 100을 곱해 출력하므로 표시 정확도가 잘못된다. 두 백분율의 차이도 이미 퍼센트포인트인데, 요약에서 다시 100을 곱한다. 본문의 품질 판단에는 이 단위 문제를 고려해야 한다.
+위 코드의 도우미 `evaluate_accuracy`는 0~100 백분율을 반환한다. 호출부가 다시 100을 곱해 출력하므로 표시 정확도가 잘못된다. 두 백분율의 차이도 이미 퍼센트포인트인데, 요약에서 다시 100을 곱한다. 본문의 품질 판단에는 이 단위 문제를 고려해야 한다.
 
 `get_model_size()['mb']`는 파라미터와 버퍼 바이트를 1024²로 나눈 MiB이며 직렬화 파일이나 최대 실행 메모리가 아니다. 마스크·양자화 메타데이터와 실제 저장 형식을 포함한 비교도 별도로 필요하다.
 

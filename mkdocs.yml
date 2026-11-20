@@ -1499,7 +1499,7 @@ nav:
         - 어텐션 쪽:
           - "어텐션 시각화": ch40/gradient_methods/attention_visualization.md
           - "어텐션 예제": ch40/gradient_methods/example_attention.md
-        - 견주고 넓히기:
+        - 비교와 확장:
           - "비교 분석": ch40/gradient_methods/08_comparative_analysis.md
           - "고급 기법": ch40/gradient_methods/09_advanced_techniques.md
       - "41.3 어텐션 시각화":

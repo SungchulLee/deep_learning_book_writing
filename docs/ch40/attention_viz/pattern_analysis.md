@@ -51,16 +51,16 @@ def visualize_all_heads(
     figsize: tuple = (20, 16)
 ) -> plt.Figure:
     """
-    한 레이어의 모든 머리의 어텐션 결을 그린다.
+    한 레이어의 모든 헤드의 어텐션 패턴을 그린다.
 
     Args:
-        attention_weights: [배치, 머리 수, 열 길이, 열 길이]
-        tokens: 단어 목록
+        attention_weights: [배치, 헤드 수, 시퀀스 길이, 시퀀스 길이]
+        tokens: 토큰 목록
         layer: 그릴 레이어 번호
-        figsize: 그림 크기
+        figsize: figure 크기
 
     Returns:
-        Matplotlib 그림
+        Matplotlib figure
     """
     attn = attention_weights[0].detach().cpu().numpy()
     num_heads = attn.shape[0]
@@ -82,13 +82,13 @@ def visualize_all_heads(
             vmin=0, vmax=1,
             cbar=False
         )
-        ax.set_title(f'머리 {head_idx}', fontsize=10)
+        ax.set_title(f'헤드 {head_idx}', fontsize=10)
         ax.tick_params(labelsize=7)
 
     for idx in range(num_heads, len(axes)):
         axes[idx].set_visible(False)
 
-    fig.suptitle(f'레이어 {layer} - 모든 어텐션 머리', fontsize=14)
+    fig.suptitle(f'레이어 {layer} - 모든 어텐션 헤드', fontsize=14)
     plt.tight_layout()
     return fig
 ```
@@ -102,19 +102,19 @@ def compute_head_diversity(
     attention_weights: torch.Tensor
 ) -> dict:
     """
-    어텐션 머리 사이의 다름을 살핀다.
+    어텐션 헤드 사이의 다양성을 분석한다.
 
     Args:
-        attention_weights: [배치, 머리 수, 열 길이, 열 길이]
+        attention_weights: [배치, 헤드 수, 시퀀스 길이, 시퀀스 길이]
 
     Returns:
-        다름 자를 담은 사전
+        다양성 지표를 담은 딕셔너리
     """
     attn = attention_weights[0].detach().cpu()
     num_heads = attn.shape[0]
     seq_len = attn.shape[1]
 
-    # 머리마다의 엔트로피
+    # 헤드마다의 엔트로피
     entropies = []
     for h in range(num_heads):
         head_attn = attn[h]
@@ -122,12 +122,12 @@ def compute_head_diversity(
         entropy = -(head_attn * torch.log(head_attn + eps)).sum(dim=-1).mean()
         entropies.append(entropy.item())
 
-    # 머리끼리의 코사인 닮음
+    # 헤드끼리의 코사인 유사도
     flat_heads = attn.reshape(num_heads, -1)
     flat_normed = flat_heads / flat_heads.norm(dim=1, keepdim=True)
     similarity_matrix = (flat_normed @ flat_normed.T).numpy()
 
-    # 대각선 밖의 고른 닮음
+    # 대각선 밖의 평균 유사도
     mask = ~np.eye(num_heads, dtype=bool)
     avg_similarity = similarity_matrix[mask].mean()
 
@@ -152,13 +152,13 @@ def compute_head_importance(
     device: torch.device
 ) -> np.ndarray:
     """
-    그래디언트 바탕 점수로 머리의 중요함을 셈한다.
+    그래디언트 기반 점수로 헤드의 중요도를 계산한다.
 
     미셸 외(2019)의 방법을 쓴다:
-    중요함 = E[|grad(L) * 어텐션|]
+    중요도 = E[|grad(L) * 어텐션|]
 
     Returns:
-        importance_matrix: [레이어 수, 머리 수]
+        importance_matrix: [레이어 수, 헤드 수]
     """
     importance = torch.zeros(num_layers, num_heads).to(device)
 
@@ -207,11 +207,11 @@ def compare_layers(
     layers_to_compare: list = None
 ) -> plt.Figure:
     """
-    트랜스포머 레이어를 가로질러 어텐션 결을 견준다.
+    트랜스포머 레이어에 걸쳐 어텐션 패턴을 비교한다.
 
     Args:
-        attention_weights_by_layer: 레이어마다의 [배치, 머리, 열, 열] 목록
-        tokens: 단어 목록
+        attention_weights_by_layer: 레이어마다의 [배치, 헤드, 시퀀스, 시퀀스] 목록
+        tokens: 토큰 목록
         layers_to_compare: 보일 레이어
     """
     if layers_to_compare is None:
@@ -239,9 +239,9 @@ def compare_layers(
 
 def compute_locality_score(attention_weights: torch.Tensor, window: int = 3) -> float:
     """
-    어텐션이 그 자리에 머무는지 멀리 미치는지 잰다.
+    어텐션이 국소적인지 멀리 미치는지 잰다.
 
-    그 자리 셈 = 대각선에서 ±창 안에 든 어텐션 무게의 기여도.
+    국소성 점수 = 대각선에서 ±윈도 안에 든 어텐션 웨이트의 비율.
     """
     attn = attention_weights[0].mean(dim=0).detach().cpu().numpy()
     seq_len = attn.shape[0]
@@ -292,20 +292,20 @@ def visualize_cross_attention(
     head: int = None
 ) -> plt.Figure:
     """
-    인코더-푸는 개의 엇갈린 어텐션을 그린다.
+    인코더-디코더의 크로스 어텐션을 그린다.
 
     Args:
-        cross_attention: [배치, 머리, 받는 열 길이, 보내는 열 길이]
-        source_tokens: 인코더 들임 단어
-        target_tokens: 푸는 개 출력 단어
-        head: 정한 머리(None이면 모든 머리를 고르게 한다)
+        cross_attention: [배치, 헤드, 타깃 길이, 소스 길이]
+        source_tokens: 인코더 입력 토큰
+        target_tokens: 디코더 출력 토큰
+        head: 지정한 헤드(None이면 모든 헤드를 평균한다)
     """
     if head is not None:
         attn = cross_attention[0, head].detach().cpu().numpy()
-        title = f'엇갈린 어텐션 (머리 {head})'
+        title = f'크로스 어텐션 (헤드 {head})'
     else:
         attn = cross_attention[0].mean(dim=0).detach().cpu().numpy()
-        title = '엇갈린 어텐션 (고르게 함)'
+        title = '크로스 어텐션 (헤드 평균)'
 
     fig, ax = plt.subplots(figsize=(10, 8))
 
@@ -317,8 +317,8 @@ def visualize_cross_attention(
         cmap='Blues',
         vmin=0, vmax=1
     )
-    ax.set_xlabel('보내는 쪽 (인코더)')
-    ax.set_ylabel('받는 쪽 (푸는 개)')
+    ax.set_xlabel('소스 (인코더)')
+    ax.set_ylabel('타깃 (디코더)')
     ax.set_title(title)
 
     plt.tight_layout()
@@ -330,21 +330,21 @@ def analyze_cross_attention_alignment(
     target_tokens: list
 ) -> dict:
     """
-    엇갈린 어텐션에서 맞춤의 됨됨이를 살핀다.
+    크로스 어텐션에서 정렬의 품질을 분석한다.
 
-    맞춤이 얼마나 또렷하고 얼마나 덮는지를 자로 내놓는다.
+    정렬이 얼마나 뚜렷하고 소스를 얼마나 덮는지 지표로 내놓는다.
     """
     attn = cross_attention[0].mean(dim=0).detach().cpu()
 
-    # 맞춤 엔트로피(작을수록 맞춤이 또렷하다)
+    # 정렬 엔트로피(작을수록 정렬이 뚜렷하다)
     eps = 1e-10
     entropy = -(attn * torch.log(attn + eps)).sum(dim=-1).mean().item()
 
-    # 덮음: 임계를 넘게 어텐션을 받은 보내는 쪽 단어의 기여도
+    # 커버리지: 임계값을 넘는 어텐션을 받은 소스 토큰의 비율
     max_attn_per_source = attn.max(dim=0)[0]
     coverage = (max_attn_per_source > 0.1).float().mean().item()
 
-    # 한 방향으로 감: 맞춤이 얼마나 한 방향인가
+    # 단조성: 정렬이 얼마나 한 방향으로 나아가는가
     argmax_positions = attn.argmax(dim=-1).float()
     diffs = argmax_positions[1:] - argmax_positions[:-1]
     monotonicity = (diffs >= 0).float().mean().item()
@@ -382,7 +382,7 @@ def interactive_attention_visualization(
     text_pair: str = None
 ):
     """
-    주고받는 BertViz 그림을 만든다.
+    인터랙티브 BertViz 시각화를 만든다.
     """
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModel.from_pretrained(model_name, output_attentions=True)
@@ -400,10 +400,10 @@ def interactive_attention_visualization(
     attention = outputs.attentions
     tokens = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
 
-    # 머리 봄 - 머리 하나를 촘촘히 살핀다
+    # 헤드 뷰 - 헤드 하나를 자세히 본다
     head_view(attention, tokens)
 
-    # 모형 봄 - 모든 머리, 모든 레이어
+    # 모델 뷰 - 모든 헤드, 모든 레이어
     model_view(attention, tokens)
 ```
 
@@ -418,7 +418,7 @@ def create_attention_heatmap_grid(
     figsize: tuple = (24, 20)
 ) -> plt.Figure:
     """
-    레이어 × 머리의 어텐션 격자를 두루 만든다.
+    레이어 × 헤드의 전체 어텐션 격자를 만든다.
     """
     fig, axes = plt.subplots(num_layers, num_heads, figsize=figsize)
 
@@ -435,7 +435,7 @@ def create_attention_heatmap_grid(
             if head_idx == 0:
                 ax.set_ylabel(f'L{layer_idx}', fontsize=8)
 
-    fig.suptitle('어텐션 결: 레이어(가로줄) × 머리(세로줄)', fontsize=14)
+    fig.suptitle('어텐션 패턴: 레이어(행) × 헤드(열)', fontsize=14)
     plt.tight_layout()
     return fig
 
@@ -446,8 +446,8 @@ def create_attention_flow_sankey(
     top_k: int = 5
 ):
     """
-    정한 단어에서 어텐션이 어디로 흐르는지 보이는
-    생키 결의 흐름 그림을 만든다.
+    지정한 토큰에서 어텐션이 어디로 흐르는지 보이는
+    생키 다이어그램용 흐름 데이터를 만든다.
     """
     attn = attention_weights[0].detach().cpu().numpy()
     num_heads = attn.shape[0]
@@ -513,17 +513,17 @@ def compare_attention_and_attribution(
     device: torch.device = None
 ) -> dict:
     """
-    어텐션 짐과 그래디언트 바탕 기여도를 견준다.
+    어텐션 웨이트와 그래디언트 기반 기여도를 비교한다.
     """
     model.eval()
     input_ids = input_ids.to(device)
 
-    # 어텐션 짐을 얻는다
+    # 어텐션 웨이트를 얻는다
     with torch.no_grad():
         outputs = model(input_ids, output_attentions=True)
         attention = outputs.attentions[layer][0].mean(dim=0)
 
-    # 그래디언트 바탕 기여도를 얻는다
+    # 그래디언트 기반 기여도를 얻는다
     embeddings = model.get_input_embeddings()(input_ids)
     embeddings.requires_grad_(True)
 
@@ -533,15 +533,15 @@ def compare_attention_and_attribution(
 
     gradient_attr = embeddings.grad.abs().sum(dim=-1)[0]
 
-    # [CLS] 단어에서 뻗는 어텐션(흔히 고른다)
+    # [CLS] 토큰에서 나가는 어텐션(흔히 이것을 쓴다)
     attn_scores = attention[0].detach().cpu().numpy()
     grad_scores = gradient_attr.detach().cpu().numpy()
 
-    # 고르게 한다
+    # 합이 1이 되게 정규화한다
     attn_scores = attn_scores / attn_scores.sum()
     grad_scores = grad_scores / grad_scores.sum()
 
-    # 얽힘
+    # 상관
     from scipy.stats import spearmanr
     correlation, p_value = spearmanr(attn_scores, grad_scores)
 
@@ -559,7 +559,7 @@ def compare_attention_and_attribution(
 |--------|----------|------------|
 | **어텐션 웨이트** | 모델의 행동 둘러보기, 구조 알기, 가설 세우기 | 믿을 만한 기여도가 아니고 값 벡터에 따라 달라진다 |
 | **Attention Rollout** | 레이어를 가로지르는 정보 흐름 좇기 | 어텐션 ≈ 정보 흐름이라고 가정한다 |
-| **Attention Flow** | 여러 레이어에 걸쳐 더 믿을 만한 기여도 분석 | 계산이 비싸다 |
+| **Attention Flow** | 여러 레이어에 걸쳐 더 믿을 만한 기여도 분석 | 계산 비용이 크다 |
 | **그래디언트 기여도 분석** | 믿을 만한 중요도 재기 | 어텐션만의 통찰을 놓친다 |
 | **함께 쓰기** | 가장 폭넓은 이해 | 해석하기가 더 까다롭다 |
 
@@ -575,14 +575,14 @@ def comprehensive_attention_analysis(
     device: torch.device
 ) -> dict:
     """
-    여러 기법을 아우른 두루 갖춘 어텐션 살피기.
+    여러 기법을 결합한 종합 어텐션 분석.
     """
-    # 단어로 쪼갠다
+    # 토큰화한다
     inputs = tokenizer(text, return_tensors='pt', padding=True)
     input_ids = inputs['input_ids'].to(device)
     tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
 
-    # 어텐션을 곁들인 앞으로 스텝
+    # 어텐션을 함께 출력하는 순전파
     model.eval()
     with torch.no_grad():
         outputs = model(**{k: v.to(device) for k, v in inputs.items()},
@@ -597,7 +597,7 @@ def comprehensive_attention_analysis(
         'analyses': {}
     }
 
-    # 레이어마다 살핀다
+    # 레이어마다 분석한다
     for layer_idx, attn in enumerate(attentions):
         diversity = compute_head_diversity(attn)
         locality = compute_locality_score(attn)
@@ -608,7 +608,7 @@ def comprehensive_attention_analysis(
             'locality_score': locality
         }
 
-    # 레이어를 가로지르는 그 자리 머묾의 흐름
+    # 레이어에 따른 국소성의 변화
     localities = [
         results['analyses'][f'layer_{i}']['locality_score']
         for i in range(len(attentions))
@@ -654,7 +654,7 @@ def comprehensive_attention_analysis(
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

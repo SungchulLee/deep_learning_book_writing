@@ -38,24 +38,24 @@ import shap
 import matplotlib.pyplot as plt
 
 class FactorModelExplainer:
-    """인자 모형의 미루어 봄을 풀이한다."""
+    """인자 모델의 예측을 설명한다."""
 
     def __init__(self, model, factor_names):
         self.model = model
         self.factor_names = factor_names
 
     def explain_return_forecast(self, factor_exposures):
-        """미루어 본 돌아옴의 쪼갬을 풀이한다."""
+        """예측 수익률의 분해를 설명한다."""
         predicted_return = self.model.predict(
             factor_exposures.reshape(1, -1)
         )[0]
 
         if hasattr(self.model, 'coef_'):
-            # 선형 모형: 그대로 읽는다
+            # 선형 모델: 계수를 그대로 읽는다
             factor_contributions = self.model.coef_ * factor_exposures
             intercept = self.model.intercept_
         else:
-            # 선형이 아닌 모형: SHAP을 쓴다
+            # 비선형 모델: SHAP을 쓴다
             explainer = shap.Explainer(self.model)
             shap_values = explainer(factor_exposures.reshape(1, -1))
             factor_contributions = shap_values.values[0]
@@ -70,7 +70,7 @@ class FactorModelExplainer:
         }
 
     def visualize_decomposition(self, explanation):
-        """돌아옴 쪼갬을 폭포 그림으로 만든다."""
+        """수익률 분해를 워터폴 차트로 만든다."""
         factors = list(explanation['factor_contributions'].keys())
         contributions = list(explanation['factor_contributions'].values())
 
@@ -96,29 +96,29 @@ class FactorModelExplainer:
 
         ax.set_yticks(range(len(sorted_idx)))
         ax.set_yticklabels(positions)
-        ax.set_xlabel('돌아옴에 대한 기여')
-        ax.set_title(f'돌아옴 쪼갬 (모두: {explanation["predicted_return"]:.2%})')
+        ax.set_xlabel('수익률에 대한 기여')
+        ax.set_title(f'수익률 분해 (합계: {explanation["predicted_return"]:.2%})')
         ax.axvline(x=0, color='black', linestyle='-')
 
         return fig
 
     def factor_interaction_analysis(self, factor_data):
-        """인자끼리 서로 미치는 힘을 살핀다."""
+        """인자 사이의 상호작용을 분석한다."""
         explainer = shap.TreeExplainer(self.model)
         interactions = explainer.shap_interaction_values(factor_data[:100])
 
         mean_interactions = np.abs(interactions).mean(axis=0)
 
-        # 대각선 밖: 서로 미침, 대각선: 홑 힘
+        # 대각선 밖: 상호작용, 대각선: 주효과
         main_effects = np.diag(mean_interactions)
 
-        print("인자의 홑 힘 대 서로 미치는 힘:")
+        print("인자의 주효과 대 상호작용:")
         print("-" * 60)
         for i, name in enumerate(self.factor_names):
             interaction_total = mean_interactions[i].sum() - main_effects[i]
             ratio = interaction_total / (main_effects[i] + 1e-10)
-            print(f"{name:20s}: 홑={main_effects[i]:.4f}, "
-                  f"서로 미침={interaction_total:.4f}, 비={ratio:.2f}")
+            print(f"{name:20s}: 주효과={main_effects[i]:.4f}, "
+                  f"상호작용={interaction_total:.4f}, 비={ratio:.2f}")
 
         return interactions
 ```
@@ -127,11 +127,11 @@ class FactorModelExplainer:
 
 ## 3. 시간에 따라 바뀌는 기여도
 
-인자의 기여는 시간에 따라 바뀐다. 시점마다 SHAP 값을 계산해 시계열로 이어 보면 레짐 전환이 드러난다. 아래 구현은 모델과 설명기를 하나로 고정하고 첫 `window`개 시점 뒤의 각 시점을 설명한다. 윈도마다 모델을 다시 학습하는 롤링 분석은 아니므로, 바뀐 것이 모델의 판단인지 입력인지 가르려면 윈도마다 다시 학습해 견주어야 한다.
+인자의 기여는 시간에 따라 바뀐다. 시점마다 SHAP 값을 계산해 시계열로 이어 보면 레짐 전환이 드러난다. 아래 구현은 모델과 설명기를 하나로 고정하고 첫 `window`개 시점 뒤의 각 시점을 설명한다. 윈도마다 모델을 다시 학습하는 롤링 분석은 아니므로, 바뀐 것이 모델의 판단인지 입력인지 가르려면 윈도마다 다시 학습해 비교해야 한다.
 
 ```python
 def rolling_factor_attribution(model, factor_data, factor_names, window=60):
-    """때에 따라 바뀌는 인자 기여도를 셈한다."""
+    """시간에 따라 바뀌는 인자 기여도를 계산한다."""
     n_periods = len(factor_data) - window
     attributions = np.zeros((n_periods, len(factor_names)))
 
@@ -180,7 +180,7 @@ def rolling_factor_attribution(model, factor_data, factor_names, window=60):
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

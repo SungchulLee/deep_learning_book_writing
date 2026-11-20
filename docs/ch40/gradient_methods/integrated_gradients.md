@@ -104,7 +104,7 @@ Integrated Gradients는 순다라라잔 외가 어떤 기여도 분석 방법이
 
 **엄밀히**: 모든 $\mathbf{x}$에 대해 $f(\mathbf{x}) = g(\mathbf{x})$이면 $\text{IG}^f_i(\mathbf{x}) = \text{IG}^g_i(\mathbf{x})$이다.
 
-**왜 중요한가**: 시그모이드를 $\sigma(x)$로 짜든 $1 - \sigma(-x)$로 짜든 수학적으로 같은 함수이므로 기여도가 달라져서는 안 된다.
+**왜 중요한가**: 시그모이드를 $\sigma(x)$로 구현하든 $1 - \sigma(-x)$로 구현하든 수학적으로 같은 함수이므로 기여도가 달라져서는 안 된다.
 
 **DeepLIFT는 왜 어기는가**: DeepLIFT는 계산 그래프를 따라 기여를 전파하므로, 함수가 같아도 그래프 구조가 다르면 다른 기여도가 나올 수 있다.
 
@@ -149,18 +149,18 @@ def compute_integrated_gradients(
     steps: int = 50
 ) -> torch.Tensor:
     """
-    쌓은 그래디언트 기여도를 셈한다.
+    Integrated Gradients 기여도를 계산한다.
 
     Args:
-        model: 평가하는 결로 놓인 뉴럴 네트워크
-        image_tensor: 들임 그림 [1, C, H, W]
-        target_class: 겨눈 클래스 번호
-        device: 셈하는 장치
-        baseline_type: 베이스라인의 클래스('zeros', 'blur', 'random', 'mean')
-        steps: 사이를 잡는 스텝 수(많을수록 더 맞다)
+        model: 평가 모드로 둔 뉴럴 네트워크
+        image_tensor: 입력 이미지 [1, C, H, W]
+        target_class: 대상 클래스 번호
+        device: 계산할 장치
+        baseline_type: 베이스라인의 종류('zeros', 'blur', 'random', 'mean')
+        steps: 보간 스텝 수(많을수록 더 정확하다)
 
     Returns:
-        기여도 그림 [1, H, W]
+        기여도 맵 [1, H, W]
     """
     model.eval()
     image_tensor = image_tensor.to(device)
@@ -168,38 +168,38 @@ def compute_integrated_gradients(
     # 베이스라인을 만든다
     baseline = create_baseline(image_tensor, baseline_type, device)
 
-    # 들임과 베이스라인의 차이
+    # 입력과 베이스라인의 차이
     delta = image_tensor - baseline  # (x - x')
 
-    # 길을 따라 그래디언트를 쌓는다
+    # 경로를 따라 그래디언트를 누적한다
     accumulated_gradients = torch.zeros_like(image_tensor)
 
     for step in range(1, steps + 1):
-        # 사이 잡는 계수: α = k/m
+        # 보간 계수: α = k/m
         alpha = step / steps
 
-        # 사이 들임: x' + α(x - x')
+        # 보간 입력: x' + α(x - x')
         interpolated = baseline + alpha * delta
         interpolated = interpolated.clone().detach().requires_grad_(True)
 
-        # 앞으로 스텝
+        # 순전파
         output = model(interpolated)
         target_score = output[0, target_class]
 
-        # 역전파 스텝
+        # 역전파
         model.zero_grad()
         target_score.backward()
 
-        # 쌓는다: 이 사이 자리에서의 ∂f/∂x
+        # 누적한다: 이 보간점에서의 ∂f/∂x
         accumulated_gradients += interpolated.grad
 
-    # 그래디언트를 고르게 한다(리만 합 어림)
+    # 그래디언트를 평균한다(리만 합 근사)
     avg_gradients = accumulated_gradients / steps  # (1/m) Σ_k ∇f
 
-    # 들임 차이로 스케일을 맞춘다: (x - x') * avg_gradients
+    # 입력 차이로 스케일을 맞춘다: (x - x') * avg_gradients
     integrated_grads = delta * avg_gradients
 
-    # 통로를 가로질러 모은다(그리려고 절댓값을 잡는다)
+    # 채널 방향으로 집계한다(시각화하려고 절댓값을 취한다)
     attribution = torch.abs(integrated_grads)
     saliency = attribution.max(dim=1)[0]  # [1, H, W]
 
@@ -211,60 +211,60 @@ def create_baseline(
     device: torch.device
 ) -> torch.Tensor:
     """
-    쌓은 그래디언트에 쓸 베이스라인을 만든다.
+    Integrated Gradients에 쓸 베이스라인을 만든다.
 
     Args:
-        image_tensor: 들임 그림
+        image_tensor: 입력 이미지
         baseline_type: 'zeros', 'blur', 'random', 'mean' 가운데 하나
-        device: 셈하는 장치
+        device: 계산할 장치
 
     Returns:
-        들임과 형태가 같은 베이스라인 텐서
+        입력과 형태가 같은 베이스라인 텐서
     """
     if baseline_type == 'zeros':
-        # 검은 그림(그림에 가장 흔히 고른다)
+        # 검은 이미지(이미지에 가장 흔히 쓴다)
         baseline = torch.zeros_like(image_tensor)
 
     elif baseline_type == 'blur':
-        # 들임을 세게 흐리게 한 것(낮은 잦기 구조를 남긴다)
+        # 입력을 세게 흐리게 한 것(저주파 구조를 남긴다)
         from torchvision.transforms.functional import gaussian_blur
         baseline = gaussian_blur(image_tensor, kernel_size=51, sigma=20)
 
     elif baseline_type == 'random':
-        # 아무렇게나 만든 잡음([0, 0.1]에 고루)
+        # 무작위 잡음([0, 0.1]에서 균등분포)
         baseline = torch.rand_like(image_tensor) * 0.1
 
     elif baseline_type == 'mean':
-        # 자료의 평균(ImageNet으로 고르게 한 그림에 쓴다)
+        # 데이터의 평균(ImageNet 통계로 정규화한 이미지에 쓴다)
         mean = torch.tensor([0.485, 0.456, 0.406], device=device)
         mean = mean.view(1, 3, 1, 1).expand_as(image_tensor)
         baseline = mean
 
     elif baseline_type == 'max_entropy':
-        # 엔트로피가 가장 큰 베이스라인(그림이면 잿빛)
+        # 엔트로피가 가장 큰 베이스라인(이미지면 회색)
         baseline = torch.ones_like(image_tensor) * 0.5
 
     else:
-        raise ValueError(f"모르는 베이스라인 클래스: {baseline_type}")
+        raise ValueError(f"알 수 없는 베이스라인 종류: {baseline_type}")
 
     return baseline.to(device)
 ```
 
-### 클래스로 짜기
+### 클래스로 구현하기
 
 ```python
 class IntegratedGradients:
     """
-    쌓은 그래디언트 기여도 매기기 방법.
+    Integrated Gradients 기여도 분석 방법.
 
-    살펴볼 거리: Sundararajan et al., "Axiomatic Attribution for 
+    참고 문헌: Sundararajan et al., "Axiomatic Attribution for 
     Deep Networks"(ICML 2017)
     """
 
     def __init__(self, model: nn.Module):
         """
         Args:
-            model: PyTorch 모형
+            model: PyTorch 모델
         """
         self.model = model
 
@@ -277,68 +277,68 @@ class IntegratedGradients:
         return_convergence_delta: bool = False
     ) -> torch.Tensor:
         """
-        쌓은 그래디언트 기여도를 셈한다.
+        Integrated Gradients 기여도를 계산한다.
 
         Args:
-            input_tensor: (1, *들임 차원) 형태 들임 텐서
+            input_tensor: (1, *입력 차원) 형태 입력 텐서
             baseline: 형태가 같은 베이스라인 텐서. None이면 0을 쓴다.
-            target_class: 기여도를 매길 겨눈 클래스. None이면 argmax을 쓴다.
-            n_steps: 적분 스텝 수(많을수록 더 맞다)
-            return_convergence_delta: True이면 어림 어긋남도 내놓는다
+            target_class: 기여도를 매길 대상 클래스. None이면 argmax를 쓴다.
+            n_steps: 적분 스텝 수(많을수록 더 정확하다)
+            return_convergence_delta: True이면 근사 오차도 반환한다
 
         Returns:
-            들임과 형태가 같은 기여도 텐서
+            입력과 형태가 같은 기여도 텐서
         """
         self.model.eval()
         device = input_tensor.device
 
-        # 맡긴 베이스라인: 0(그림이면 검은 그림)
+        # 기본 베이스라인: 0(이미지면 검은 이미지)
         if baseline is None:
             baseline = torch.zeros_like(input_tensor)
 
-        # 겨눈 클래스를 정한다
+        # 대상 클래스를 정한다
         if target_class is None:
             with torch.no_grad():
                 output = self.model(input_tensor)
                 target_class = output.argmax(dim=1).item()
 
-        # 차이를 셈한다
+        # 차이를 계산한다
         diff = input_tensor - baseline
 
-        # 사이 스텝을 만든다: k = 1, ..., m에 대해 α_k = k/m
+        # 보간 스텝을 만든다: k = 1, ..., m에 대해 α_k = k/m
         scaled_inputs = [
             baseline + (float(i) / n_steps) * diff 
             for i in range(1, n_steps + 1)
         ]
 
-        # 배치로 셈하려고 사이 들임을 모두 쌓는다
+        # 배치로 계산하려고 보간 입력을 모두 이어 붙인다
         scaled_inputs = torch.cat(scaled_inputs, dim=0)
         scaled_inputs.requires_grad_(True)
 
-        # 모든 스텝을 한꺼번에 앞으로 보낸다(배치)
+        # 모든 스텝을 한꺼번에 순전파한다(배치)
         outputs = self.model(scaled_inputs)
 
-        # 겨눈 클래스 점수를 뽑는다
+        # 대상 클래스 점수를 뽑는다
         target_scores = outputs[:, target_class]
 
-        # 역전파 스텝
+        # 역전파
         self.model.zero_grad()
 
-        # 그래디언트를 셈한다
+        # 그래디언트를 계산한다
         grads = torch.autograd.grad(
             outputs=target_scores.sum(),
             inputs=scaled_inputs,
             create_graph=False
         )[0]
 
-        # 스텝에 걸쳐 그래디언트를 고르게 한다
+        # 스텝에 걸쳐 그래디언트를 평균한다
         avg_grads = grads.mean(dim=0, keepdim=True)
 
-        # 쌓은 그래디언트 = (들임 - 베이스라인) * 고른 그래디언트
+        # Integrated Gradients = (입력 - 베이스라인) * 평균 그래디언트
         attributions = diff * avg_grads
 
         if return_convergence_delta:
-            # 완전성을 살핀다: 기여도의 합 ≈ f(x) - f(x')
+            # 완전성을 확인한다: 기여도의 합 ≈ f(x) - f(x')
             with torch.no_grad():
                 f_x = self.model(input_tensor)[0, target_class]
                 f_baseline = self.model(baseline)[0, target_class]
@@ -359,10 +359,10 @@ class IntegratedGradients:
         noise_level: float = 0.1
     ) -> torch.Tensor:
         """
-        잡음에 강건한 쌓은 그래디언트(기댓값 그래디언트)를 셈한다.
+        잡음에 강건한 Integrated Gradients(Expected Gradients)를 계산한다.
 
-        잡음 섞은 베이스라인 여럿에 걸쳐 IG를 고르게 해 더 강건한 기여도를 낸다.
-        이는 SHAP의 기댓값 그래디언트 구성과 이어진다.
+        잡음 섞은 베이스라인 여럿에 걸쳐 IG를 평균해 더 강건한 기여도를 낸다.
+        이는 SHAP의 Expected Gradients 구성과 이어진다.
         """
         attributions = torch.zeros_like(input_tensor)
 
@@ -383,9 +383,9 @@ class IntegratedGradients:
         return attributions / n_samples
 ```
 
-### 배치로 다듬은 구현
+### 배치로 최적화한 구현
 
-효율적으로 하려고 사이 스텝 여럿을 한 배치로 다룬다.
+효율적으로 하려고 보간 스텝 여럿을 한 배치로 다룬다.
 
 ```python
 def compute_integrated_gradients_batched(
@@ -398,10 +398,10 @@ def compute_integrated_gradients_batched(
     batch_size: int = 10
 ) -> torch.Tensor:
     """
-    배치로 다듬은 쌓은 그래디언트 셈.
+    배치로 최적화한 Integrated Gradients 계산.
 
-    배치마다 사이 스텝 여럿을 다루어 잘 들게 한다.
-    모든 스텝을 한꺼번에 다루는 것보다 GPU 기억을 덜 쓴다.
+    배치마다 보간 스텝 여럿을 다루어 효율을 높인다.
+    모든 스텝을 한꺼번에 다루는 것보다 GPU 메모리를 덜 쓴다.
     """
     model.eval()
     image_tensor = image_tensor.to(device)
@@ -418,30 +418,30 @@ def compute_integrated_gradients_batched(
         batch_alphas = alphas[i:i+batch_size]
         current_batch_size = len(batch_alphas)
 
-        # 사이 들임의 배치를 만든다
+        # 보간 입력의 배치를 만든다
         # 형태: [batch_size, C, H, W]
         batch_alphas = batch_alphas.view(-1, 1, 1, 1)
         interpolated_batch = baseline + batch_alphas * delta
         interpolated_batch.requires_grad_(True)
 
-        # 배치를 앞으로 보낸다
+        # 배치를 순전파한다
         outputs = model(interpolated_batch)  # [batch_size, num_classes]
 
-        # 그래디언트를 셈하려고 겨눈 점수를 더한다
+        # 그래디언트를 계산하려고 대상 점수를 더한다
         target_scores = outputs[:, target_class].sum()
 
-        # 역전파 스텝
+        # 역전파
         model.zero_grad()
         target_scores.backward()
 
-        # 그래디언트를 쌓는다(배치 축으로 더한다)
+        # 그래디언트를 누적한다(배치 축으로 더한다)
         accumulated_gradients += interpolated_batch.grad.sum(dim=0, keepdim=True)
 
-    # 고르게 하고 스케일을 맞춘다
+    # 평균하고 스케일을 맞춘다
     avg_gradients = accumulated_gradients / steps
     integrated_grads = delta * avg_gradients
 
-    # 통로를 가로질러 모은다
+    # 채널 방향으로 집계한다
     saliency = torch.abs(integrated_grads).max(dim=1)[0]
 
     return saliency
@@ -473,20 +473,20 @@ def compare_baselines(
     device: torch.device,
     baselines: list = ['zeros', 'blur', 'random', 'mean']
 ):
-    """베이스라인을 달리한 쌓은 그래디언트를 견준다."""
+    """베이스라인을 달리한 Integrated Gradients를 비교한다."""
     import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(2, len(baselines) + 1, figsize=(4 * (len(baselines) + 1), 8))
 
-    # 본디 그림
+    # 원본 이미지
     image_np = denormalize_image(image_tensor)
     axes[0, 0].imshow(image_np)
-    axes[0, 0].set_title('본디')
+    axes[0, 0].set_title('원본')
     axes[0, 0].axis('off')
     axes[1, 0].axis('off')
 
     for idx, baseline_type in enumerate(baselines):
-        # IG를 셈한다
+        # IG를 계산한다
         attr = compute_integrated_gradients(
             model, image_tensor, target_class, device,
             baseline_type=baseline_type, steps=50
@@ -535,29 +535,29 @@ def verify_completeness(
     steps: int = 50
 ) -> dict:
     """
-    IG 기여도의 합이 f(x) - f(x')이 되는지 살핀다.
+    IG 기여도의 합이 f(x) - f(x')가 되는지 확인한다.
 
     Returns:
-        완전성 살핌 열매를 담은 사전
+        완전성 확인 결과를 담은 딕셔너리
     """
     model.eval()
     image_tensor = image_tensor.to(device)
     baseline = create_baseline(image_tensor, baseline_type, device)
 
-    # 모형 출력을 셈한다
+    # 모델 출력을 계산한다
     with torch.no_grad():
         output_input = model(image_tensor)[0, target_class].item()
         output_baseline = model(baseline)[0, target_class].item()
 
     output_difference = output_input - output_baseline
 
-    # IG를 셈한다(더하려고 통로 축을 남긴다)
+    # IG를 계산한다(더하려고 채널 축을 남긴다)
     ig = IntegratedGradients(model)
     attributions = ig.attribute(image_tensor, baseline, target_class, steps)
 
     attribution_sum = attributions.sum().item()
 
-    # 어긋남을 셈한다
+    # 오차를 계산한다
     absolute_error = abs(attribution_sum - output_difference)
     relative_error = absolute_error / (abs(output_difference) + 1e-8)
 
@@ -568,7 +568,7 @@ def verify_completeness(
         'sum(IG)': attribution_sum,
         'absolute_error': absolute_error,
         'relative_error': relative_error,
-        'completeness_satisfied': relative_error < 0.05  # 5% 너그러움
+        'completeness_satisfied': relative_error < 0.05  # 허용 오차 5%
     }
 ```
 
@@ -586,7 +586,7 @@ def analyze_steps_convergence(
     device: torch.device,
     step_counts: list = [5, 10, 20, 50, 100, 200, 500]
 ):
-    """스텝이 늘수록 기여도가 어떻게 모이는지 살핀다."""
+    """스텝이 늘수록 기여도가 어떻게 수렴하는지 살핀다."""
     import matplotlib.pyplot as plt
 
     errors = []
@@ -596,14 +596,14 @@ def analyze_steps_convergence(
             model, image_tensor, target_class, device, steps=steps
         )
         errors.append(result['relative_error'])
-        print(f"스텝: {steps:4d}, 견준 어긋남: {result['relative_error']:.6f}")
+        print(f"스텝: {steps:4d}, 상대 오차: {result['relative_error']:.6f}")
 
-    # 모여 가는 모습을 그린다
+    # 수렴 양상을 그린다
     plt.figure(figsize=(10, 6))
     plt.plot(step_counts, errors, 'bo-', linewidth=2, markersize=8)
     plt.xlabel('스텝 수', fontsize=12)
-    plt.ylabel('견준 완전성 어긋남', fontsize=12)
-    plt.title('쌓은 그래디언트가 모여 가는 모습', fontsize=14)
+    plt.ylabel('완전성 상대 오차', fontsize=12)
+    plt.title('Integrated Gradients의 수렴', fontsize=14)
     plt.yscale('log')
     plt.grid(True, alpha=0.3)
     plt.show()
@@ -633,24 +633,24 @@ import matplotlib.pyplot as plt
 def visualize_integrated_gradients(
     image: np.ndarray,
     attribution: np.ndarray,
-    title: str = "쌓은 그래디언트"
+    title: str = "Integrated Gradients"
 ):
     """
-    쌓은 그래디언트 기여도를 그린다.
+    Integrated Gradients 기여도를 시각화한다.
 
     Args:
-        image: [0, 1] 너비의 본디 그림 [H, W, 3]
-        attribution: 기여도 그림 [H, W]
-        title: 그림 이름
+        image: [0, 1] 범위의 원본 이미지 [H, W, 3]
+        attribution: 기여도 맵 [H, W]
+        title: 그림 제목
     """
     fig, axes = plt.subplots(1, 4, figsize=(16, 4))
 
-    # 본디 그림
+    # 원본 이미지
     axes[0].imshow(image)
-    axes[0].set_title('본디')
+    axes[0].set_title('원본')
     axes[0].axis('off')
 
-    # 부호 있는 기여도(갈라지는 빛깔 그림)
+    # 부호 있는 기여도(발산형 컬러맵)
     vmax = np.abs(attribution).max()
     im = axes[1].imshow(attribution, cmap='seismic', vmin=-vmax, vmax=vmax)
     axes[1].set_title('부호 있는 기여도')
@@ -662,14 +662,14 @@ def visualize_integrated_gradients(
     axes[2].set_title('절댓값 기여도')
     axes[2].axis('off')
 
-    # 겹쳐 보이기
+    # 겹쳐 보기
     overlay = image.copy()
     mask = np.abs(attribution)
     mask = (mask - mask.min()) / (mask.max() - mask.min() + 1e-8)
 
     axes[3].imshow(image)
     axes[3].imshow(mask, cmap='jet', alpha=0.5)
-    axes[3].set_title('겹쳐 보이기')
+    axes[3].set_title('겹쳐 보기')
     axes[3].axis('off')
 
     plt.suptitle(title, fontsize=14)
@@ -694,17 +694,17 @@ def ig_for_tabular(
     device: torch.device = None
 ):
     """
-    표로 된 금융 자료에 쌓은 그래디언트를 건다.
+    표 형식의 금융 데이터에 Integrated Gradients를 적용한다.
 
     Args:
-        model: 신용 무릅씀이나 돌아옴을 미루어 보는 모형
-        features: 들임 결 텐서 [1, n_features]
-        feature_names: 결 이름 목록
-        target_class: 겨눈 클래스(가름일 때)
+        model: 신용 위험이나 수익률을 예측하는 모델
+        features: 입력 피처 텐서 [1, n_features]
+        feature_names: 피처 이름 목록
+        target_class: 대상 클래스(분류일 때)
         baseline_type: 'zero'나 'mean'
 
     Returns:
-        결마다의 기여도 값
+        피처마다의 기여도 값
     """
     if device is None:
         device = features.device
@@ -715,33 +715,33 @@ def ig_for_tabular(
     if baseline_type == 'zero':
         baseline = torch.zeros_like(features)
     else:
-        # 익힘 자료의 평균을 쓴다(참으로는 넘겨받아야 한다)
+        # 학습 데이터의 평균을 쓴다(실제로는 인자로 받아야 한다)
         baseline = features.mean(dim=0, keepdim=True)
 
-    # 기여도를 셈한다
+    # 기여도를 계산한다
     attributions = ig.attribute(features, baseline, target_class, n_steps=100)
 
     # 값을 뽑는다
     attr_values = attributions.squeeze().cpu().numpy()
 
-    # 기여도의 절댓값으로 줄 세운다
+    # 기여도의 절댓값 순으로 정렬한다
     sorted_idx = np.argsort(np.abs(attr_values))[::-1]
 
-    print("결 기여도 매기기(|기여도|으로 줄 세움):")
+    print("피처 기여도(|기여도| 순으로 정렬):")
     print("-" * 50)
     for i in sorted_idx[:15]:
         print(f"{feature_names[i]:30s}: {attr_values[i]:+.4f}")
 
     return attr_values, feature_names
 
-# 보기: 신용 무릅씀 모형
+# 예: 신용 위험 모델
 feature_names = [
     'credit_score', 'debt_to_income', 'loan_amount', 
     'employment_years', 'num_credit_lines', 'payment_history',
     'total_debt', 'income', 'age', 'months_since_delinquent'
 ]
 
-# 신용 부도를 미루어 보는 모형이면:
+# 신용 부도를 예측하는 모델이면:
 # attributions, names = ig_for_tabular(credit_model, applicant_features, feature_names)
 ```
 
@@ -756,42 +756,42 @@ def ig_for_time_series(
     n_steps: int = 100
 ):
     """
-    금융 때 열에 쌓은 그래디언트를 건다.
+    금융 시계열에 Integrated Gradients를 적용한다.
 
     Args:
-        model: 열 모형(LSTM, 트랜스포머 등)
-        sequence: 들임 열 (배치, 열 길이, 결)이나 (배치, 열 길이)
-        baseline: 베이스라인 열(맡긴 값: 0)
-        target_class: 가름 모형의 겨눈 클래스
+        model: 시퀀스 모델(LSTM, 트랜스포머 등)
+        sequence: 입력 시퀀스 (배치, 시퀀스 길이, 피처)나 (배치, 시퀀스 길이)
+        baseline: 베이스라인 시퀀스(기본값: 0)
+        target_class: 분류 모델의 대상 클래스
 
     Returns:
-        어느 때 스텝이 중요한지 보이는 때 기여도
+        어느 타임스텝이 중요한지 보이는 시간축 기여도
     """
     import matplotlib.pyplot as plt
 
     ig = IntegratedGradients(model)
 
-    # 맡긴 베이스라인: 0
+    # 기본 베이스라인: 0
     if baseline is None:
         baseline = torch.zeros_like(sequence)
 
-    # 기여도를 셈한다
+    # 기여도를 계산한다
     attributions = ig.attribute(sequence, baseline, target_class, n_steps=n_steps)
 
-    # 때 스텝마다 결이 여럿이면 결 축으로 더한다
+    # 타임스텝마다 피처가 여럿이면 피처 축으로 더한다
     if attributions.dim() == 3:
         temporal_attr = attributions.abs().sum(dim=-1).squeeze()
     else:
         temporal_attr = attributions.abs().squeeze()
 
-    # 그림으로 보인다
+    # 시각화한다
     temporal_attr_np = temporal_attr.cpu().numpy()
 
     plt.figure(figsize=(14, 4))
     plt.bar(range(len(temporal_attr_np)), temporal_attr_np, color='steelblue')
-    plt.xlabel('때 스텝 (가장 오래됨 → 가장 최근)', fontsize=12)
+    plt.xlabel('타임스텝 (가장 오래됨 → 가장 최근)', fontsize=12)
     plt.ylabel('기여도', fontsize=12)
-    plt.title('때 기여도 매기기: 어느 때 스텝이 미루어 봄을 흔드는가?', fontsize=14)
+    plt.title('시간축 기여도: 어느 타임스텝이 예측을 좌우하는가?', fontsize=14)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
@@ -822,14 +822,14 @@ def ig_for_time_series(
 | 민감도 공리 | ❌ 어김 | ✅ 채움 |
 | 완전성 | ❌ 보장 없음 | ✅ 정확(근사 오차 안에서) |
 | 포화 다루기 | ❌ 나쁨 | ✅ 좋음 |
-| 해석 | 국소 민감도 | 경로를 따라 쌓은 기여 |
+| 해석 | 국소 민감도 | 경로를 따라 누적한 기여 |
 | 베이스라인 필요 | 아니오 | 예 |
 
 ### 다른 방법과 결합하기
 
 **IG + SmoothGrad:** 잡음 섞은 입력에 걸쳐 IG를 평균해 더 매끄러운 맵을 얻는다
 ```python
-# 매끄럽게 한 쌓은 그래디언트
+# 매끄럽게 한 Integrated Gradients
 smooth_ig = ig.attribute_with_noise(input_tensor, n_samples=10, noise_level=0.1)
 ```
 
@@ -867,7 +867,7 @@ $$
 \gamma: [0, 1] \rightarrow \mathbb{R}^n, \quad \gamma(0) = \mathbf{x}', \gamma(1) = \mathbf{x}
 $$
 
-**짚을 것:** 직선 경로가 가장 자연스럽고 널리 쓰이며, 경로 방법 가운데 대칭성을 지키는 것은 이것뿐이다.
+**참고:** 직선 경로가 가장 자연스럽고 널리 쓰이며, 경로 방법 가운데 대칭성을 지키는 것은 이것뿐이다.
 
 ### 4. 국소 선형성 가정
 
@@ -883,7 +883,7 @@ IG는 모델이 국소적으로 거의 선형일 때 가장 잘 작동한다. �
 
 3. 계산이 맞는지 보려면 **완전성을 확인한다**(오차 5% 아래)
 
-4. 서로 보완하는 관점으로 **Grad-CAM과 견준다**(IG는 픽셀 단위, Grad-CAM은 영역 단위)
+4. 서로 보완하는 관점으로 **Grad-CAM과 비교한다**(IG는 픽셀 단위, Grad-CAM은 영역 단위)
 
 5. 이미지가 크거나 설명을 많이 만들어야 하면 **배치 계산을 고려한다**
 
@@ -927,7 +927,7 @@ IG는 모델이 국소적으로 거의 선형일 때 가장 잘 작동한다. �
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -965,7 +965,7 @@ $$
 - 바닐라 그래디언트가 무너지는 경우(포화, ReLU 네트워크)
 - 완전성이 중요할 때
 - 원리적인 설명을 요구하는 규제나 감사
-- 서로 다른 모델의 기여도를 공정하게 견줄 때
+- 서로 다른 모델의 기여도를 공정하게 비교할 때
 
 **참고 문헌**
 

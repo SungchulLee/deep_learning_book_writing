@@ -63,25 +63,25 @@ from sklearn.linear_model import LinearRegression
 
 class KernelSHAP:
     """
-    커널 SHAP - 모형을 가리지 않는 SHAP 어림.
+    커널 SHAP - 모델에 구애받지 않는(model-agnostic) SHAP 근사.
 
-    SHAP 커널로 짐 실은 선형 회귀를 풀어 섀플리 값에 다가간다.
+    SHAP 커널로 가중 선형 회귀를 풀어 섀플리 값을 근사한다.
     """
 
     def __init__(self, model, background_data):
         """
         Args:
-            model: 미루어 보는 함수 (numpy 배열 -> 미루어 봄)
-            background_data: 기댓값을 셈할 견줌 자료
+            model: 예측 함수 (numpy 배열 -> 예측값)
+            background_data: 기댓값을 계산할 배경 데이터
         """
         self.model = model
         self.background_data = background_data
         self.base_value = model(background_data).mean()
 
     def _shap_kernel(self, n_features, coalition_size):
-        """주어진 크기의 뭉치에 주는 SHAP 커널 짐."""
+        """주어진 크기의 연합에 주는 SHAP 커널 웨이트."""
         if coalition_size == 0 or coalition_size == n_features:
-            return 1e6  # 금 언저리 뭉치에는 큰 짐
+            return 1e6  # 경계의 연합(빈 연합·전체 연합)에는 큰 웨이트
 
         return (n_features - 1) / (
             comb(n_features, coalition_size) * 
@@ -90,15 +90,15 @@ class KernelSHAP:
 
     def _compute_coalition_value(self, instance, coalition, background):
         """
-        뭉치에 대한 모형 출력의 기댓값을 셈한다.
+        연합에 대한 모델 출력의 기댓값을 계산한다.
 
-        뭉치에 든 결은 이 들임의 값을 쓰고,
-        들지 않은 결은 바탕 자료로 가장자리로 밀어낸다.
+        연합에 든 피처는 이 입력의 값을 쓰고,
+        들지 않은 피처는 배경 데이터로 주변화한다.
         """
         n_samples = len(background)
         samples = np.tile(instance, (n_samples, 1))
 
-        # 뭉치에 들지 않은 결을 바탕 값으로 갈음한다
+        # 연합에 들지 않은 피처를 배경 값으로 바꾼다
         mask = np.ones(len(instance), dtype=bool)
         mask[list(coalition)] = False
         samples[:, mask] = background[:, mask]
@@ -111,18 +111,18 @@ class KernelSHAP:
         num_samples: int = 2048
     ) -> np.ndarray:
         """
-        들임 하나의 SHAP 값을 셈한다.
+        입력 하나의 SHAP 값을 계산한다.
 
         Args:
-            instance: 풀이할 들임(1차원 배열)
-            num_samples: 뽑을 뭉치의 수
+            instance: 설명할 입력(1차원 배열)
+            num_samples: 뽑을 연합의 수
 
         Returns:
-            결마다의 SHAP 값
+            피처마다의 SHAP 값
         """
         n_features = len(instance)
 
-        # 뭉치를 뽑고 값을 셈한다
+        # 연합을 뽑고 값을 계산한다
         coalitions = []
         coalition_values = []
         weights = []
@@ -141,12 +141,12 @@ class KernelSHAP:
                 coalition_values.append(value)
                 weights.append(self._shap_kernel(n_features, len(coalition)))
 
-        # 두 값 뭉치 행렬을 만든다
+        # 이진 연합 행렬을 만든다
         Z = np.zeros((len(coalitions), n_features))
         for i, coalition in enumerate(coalitions):
             Z[i, list(coalition)] = 1
 
-        # 짐 실은 선형 회귀
+        # 가중 선형 회귀
         W = np.diag(np.clip(weights, 0, 1e10))
         y = np.array(coalition_values) - self.base_value
         ZtWZ = Z.T @ W @ Z + 1e-6 * np.eye(n_features)
@@ -164,21 +164,21 @@ import shap
 
 def kernel_shap_explain(model, X_train, X_test, feature_names):
     """
-    shap 곳집으로 하는 서비스 품질의 커널 SHAP.
+    shap 라이브러리로 하는 실무용 커널 SHAP.
     """
-    # 바탕 자료로 풀이개를 만든다
+    # 배경 데이터로 설명기(explainer)를 만든다
     explainer = shap.KernelExplainer(
         model.predict, 
-        shap.sample(X_train, 100)  # 잘 들게 바탕 자료를 솎아 낸다
+        shap.sample(X_train, 100)  # 효율을 위해 배경 데이터를 샘플링한다
     )
 
-    # SHAP 값을 셈한다
+    # SHAP 값을 계산한다
     shap_values = explainer.shap_values(X_test[:100])
 
-    # 간추린 그림
+    # 요약 플롯(summary plot)
     shap.summary_plot(shap_values, X_test[:100], feature_names=feature_names)
 
-    # 들임 하나의 힘 그림
+    # 입력 하나의 포스 플롯(force plot)
     shap.force_plot(
         explainer.expected_value, 
         shap_values[0], 
@@ -198,10 +198,10 @@ def kernel_shap_explain(model, X_train, X_test, feature_names):
 정확한 섀플리 값을 얻으려면 $2^d$개의 연합을 모두 따져야 한다. 커널 SHAP은 연합을 표본으로 뽑아 이를 추정하며 복잡도는 이렇다.
 
 $$
-O(N_{\text{뽑음}} \cdot N_{\text{바탕}} \cdot C_{\text{모형}})
+O(N_{\text{표본}} \cdot N_{\text{배경}} \cdot C_{\text{모델}})
 $$
 
-여기서 $C_{\text{모형}}$은 모델을 한 번 돌리는 비용이다.
+여기서 $C_{\text{모델}}$은 모델을 한 번 돌리는 비용이다.
 
 ### 분산 줄이기
 
@@ -236,7 +236,7 @@ def explain_portfolio_allocation(
     background_data
 ):
     """
-    커널 SHAP으로 밑천 나누기 판단을 풀이한다.
+    커널 SHAP으로 포트폴리오 배분 결정을 설명한다.
     """
     explainer = shap.KernelExplainer(
         allocation_model.predict, 
@@ -245,12 +245,12 @@ def explain_portfolio_allocation(
 
     shap_values = explainer.shap_values(market_features)
 
-    print("밑천 나누기 풀이:")
+    print("포트폴리오 배분 설명:")
     print("-" * 50)
 
     sorted_idx = np.argsort(np.abs(shap_values[0]))[::-1]
     for idx in sorted_idx[:10]:
-        direction = "↑ 더 담음" if shap_values[0][idx] > 0 else "↓ 덜 담음"
+        direction = "↑ 비중 확대" if shap_values[0][idx] > 0 else "↓ 비중 축소"
         print(f"{feature_names[idx]:30s}: {shap_values[0][idx]:+.4f} ({direction})")
 
     return shap_values
@@ -292,7 +292,7 @@ def explain_portfolio_allocation(
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

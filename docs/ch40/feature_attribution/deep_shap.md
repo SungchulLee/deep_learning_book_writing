@@ -8,7 +8,7 @@
 
 ### 토대가 되는 DeepLIFT
 
-DeepLIFT(슈리쿠마르 외, 2017)는 뉴런의 활성화를 그 "비교" 활성화와 견주어 뉴럴 네트워크의 예측을 해석한다. 입력 $\mathbf{x}$와 비교점 $\mathbf{x}^0$에 대해
+DeepLIFT(슈리쿠마르 외, 2017)는 뉴런의 활성화를 비교점(reference)의 활성화와 비교해 뉴럴 네트워크의 예측을 해석한다. 입력 $\mathbf{x}$와 비교점 $\mathbf{x}^0$에 대해
 
 $$
 \Delta y = f(\mathbf{x}) - f(\mathbf{x}^0)
@@ -60,15 +60,15 @@ import numpy as np
 
 class DeepSHAP:
     """
-    DeepLIFT 결의 역전파를 여러 바탕 표본에 걸쳐 고르게 한
-    깊은 SHAP.
+    DeepLIFT 방식의 역전파를 여러 배경 표본에 걸쳐 평균한
+    Deep SHAP.
     """
 
     def __init__(self, model: nn.Module, background: torch.Tensor):
         """
         Args:
             model: PyTorch 뉴럴 네트워크
-            background: 견줌 분포로 쓸 바탕 표본 [N, 결]
+            background: 비교 분포로 쓸 배경 표본 [N, 피처 수]
         """
         self.model = model
         self.background = background
@@ -77,7 +77,7 @@ class DeepSHAP:
             self.base_output = model(background).mean(dim=0)
 
     def _deep_lift_gradient(self, x, baseline, target_class):
-        """베이스라인 하나에 대한 DeepLIFT 결의 기여도를 셈한다."""
+        """베이스라인 하나에 대한 DeepLIFT 방식의 기여도를 계산한다."""
         x = x.clone().requires_grad_(True)
         baseline = baseline.clone().requires_grad_(True)
 
@@ -90,7 +90,7 @@ class DeepSHAP:
             diff.sum(), x, create_graph=False
         )[0]
 
-        # 기여도 = 그래디언트 * (들임 - 베이스라인)
+        # 기여도 = 그래디언트 * (입력 - 베이스라인)
         attr = grads_x * (x - baseline)
 
         return attr
@@ -102,15 +102,15 @@ class DeepSHAP:
         n_samples: int = 100
     ) -> torch.Tensor:
         """
-        깊은 SHAP 값을 셈한다.
+        Deep SHAP 값을 계산한다.
 
         Args:
-            instance: 들임 텐서 [1, 결]
-            target_class: 풀이할 겨눈 클래스
-            n_samples: 고르게 할 바탕 표본의 수
+            instance: 입력 텐서 [1, 피처 수]
+            target_class: 설명할 대상 클래스
+            n_samples: 평균할 배경 표본의 수
 
         Returns:
-            SHAP 값 텐서 [1, 결]
+            SHAP 값 텐서 [1, 피처 수]
         """
         self.model.eval()
 
@@ -119,11 +119,11 @@ class DeepSHAP:
                 output = self.model(instance)
                 target_class = output.argmax(dim=1).item()
 
-        # 바탕에서 뽑는다
+        # 배경에서 뽑는다
         idx = torch.randperm(len(self.background))[:n_samples]
         baselines = self.background[idx]
 
-        # 베이스라인에 걸쳐 기여도를 고르게 한다
+        # 베이스라인에 걸쳐 기여도를 평균한다
         shap_values = torch.zeros_like(instance)
 
         for baseline in baselines:
@@ -144,7 +144,7 @@ class DeepSHAP:
         target_class: int
     ) -> float:
         """
-        SHAP 값의 합이 미루어 봄 - 밑값이 되는지 살핀다.
+        SHAP 값의 합이 예측 - 기준값이 되는지 확인한다.
         """
         with torch.no_grad():
             prediction = self.model(instance)[0, target_class].item()
@@ -154,11 +154,11 @@ class DeepSHAP:
         expected_sum = prediction - base
 
         error = abs(shap_sum - expected_sum)
-        print(f"미루어 봄: {prediction:.4f}")
-        print(f"밑값:     {base:.4f}")
+        print(f"예측:     {prediction:.4f}")
+        print(f"기준값:   {base:.4f}")
         print(f"SHAP 합:  {shap_sum:.4f}")
-        print(f"바란 값:  {expected_sum:.4f}")
-        print(f"어긋남:   {error:.6f}")
+        print(f"기대 합:  {expected_sum:.4f}")
+        print(f"오차:     {error:.6f}")
 
         return error
 ```
@@ -173,9 +173,9 @@ import torch
 
 def deep_shap_with_library(model, background, test_samples):
     """
-    shap 곳집의 잘 다듬은 깊은 SHAP 구현을 쓴다.
+    shap 라이브러리의 잘 최적화된 Deep SHAP 구현을 쓴다.
     """
-    # DeepExplainer이 깊은 SHAP을 짜 넣은 것이다
+    # DeepExplainer가 Deep SHAP을 구현한 것이다
     explainer = shap.DeepExplainer(model, background)
     shap_values = explainer.shap_values(test_samples)
 
@@ -183,7 +183,7 @@ def deep_shap_with_library(model, background, test_samples):
 
 def gradient_shap_alternative(model, test_samples, baselines):
     """
-    Captum의 GradientSHAP - 뉴럴 네트워크 SHAP의 또 다른 길.
+    Captum의 GradientSHAP - 뉴럴 네트워크 SHAP의 또 다른 방법.
     """
     from captum.attr import GradientShap
 
@@ -191,7 +191,7 @@ def gradient_shap_alternative(model, test_samples, baselines):
     attribution = gradient_shap.attribute(
         test_samples,
         baselines=baselines,
-        target=0  # 겨눈 클래스
+        target=0  # 대상 클래스
     )
 
     return attribution
@@ -261,13 +261,13 @@ def explain_neural_risk_model(
     feature_names: list
 ):
     """
-    깊은 SHAP으로 뉴럴 네트워크 무릅씀 미루어 봄을 풀이한다.
+    Deep SHAP으로 뉴럴 네트워크 리스크 예측을 설명한다.
     """
     explainer = DeepSHAP(risk_model, background)
 
     shap_values = explainer.explain(
         portfolio_features.unsqueeze(0),
-        target_class=0,  # 무릅씀 점수
+        target_class=0,  # 리스크 점수
         n_samples=200
     )
 
@@ -275,10 +275,10 @@ def explain_neural_risk_model(
 
     sorted_idx = np.argsort(np.abs(values))[::-1]
 
-    print("무릅씀 인자 기여도 매기기(깊은 SHAP):")
+    print("리스크 요인 기여도 분석(Deep SHAP):")
     print("-" * 50)
     for idx in sorted_idx[:10]:
-        direction = "↑ 무릅씀" if values[idx] > 0 else "↓ 무릅씀"
+        direction = "↑ 리스크" if values[idx] > 0 else "↓ 리스크"
         print(f"{feature_names[idx]:30s}: {values[idx]:+.6f} ({direction})")
 
     return shap_values
@@ -320,7 +320,7 @@ def explain_neural_risk_model(
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

@@ -29,6 +29,8 @@
 - 익히기 되풀이에 익숙함
 """
 
+import random
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.quantization as quant
@@ -37,15 +39,36 @@ from torch.utils.data import DataLoader
 import copy
 
 # ========================================================================
-# 메인
+# 도우미 함수
 # ========================================================================
 
-from utils import (
-    evaluate_accuracy,
-    compare_model_sizes,
-    compare_accuracies,
-    seed_everything
-)
+def seed_everything(seed: int = 42) -> None:
+    """파이썬·넘파이·토치의 씨앗을 한 번에 고정한다."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+@torch.no_grad()
+def evaluate_accuracy(model: nn.Module, dataloader, device=None) -> float:
+    """시험 정확도를 %로 돌려준다."""
+    if device is None:
+        device = next(model.parameters()).device
+    model.eval()
+    correct = total = 0
+    for x, y in dataloader:
+        x, y = x.to(device), y.to(device)
+        pred = model(x).argmax(dim=1)
+        correct += (pred == y).sum().item()
+        total += y.numel()
+    return 100.0 * correct / max(total, 1)
+
+
+# ========================================================================
+# 메인
+# ========================================================================
 
 
 class SimpleResNet(nn.Module):
@@ -233,7 +256,7 @@ if __name__ == "__main__":
 
 ## 5. 비교 결과의 해석
 
-이 코드는 무작위 초기화 모델을 QAT 방식으로 학습하며, 별도의 FP32 기준 모델이나 PTQ 모델을 학습·평가하지 않는다. 출력문의 “PTQ보다 1~2% 개선”은 이 실행에서 얻은 비교 결과가 아니다. 또한 같은 디렉터리의 `utils.evaluate_accuracy`는 이미 0~100의 백분율을 반환하지만 호출부는 여기에 다시 100을 곱한다. 따라서 표시되는 정확도에는 단위 오류가 있다. INT8 웨이트 데이터의 이상적인 4배 감소도 전체 직렬화 파일과 실행 중 메모리의 감소율을 뜻하지 않는다.
+이 코드는 무작위 초기화 모델을 QAT 방식으로 학습하며, 별도의 FP32 기준 모델이나 PTQ 모델을 학습·평가하지 않는다. 출력문의 “PTQ보다 1~2% 개선”은 이 실행에서 얻은 비교 결과가 아니다. 또한 위 코드의 도우미 `evaluate_accuracy`는 이미 0~100의 백분율을 반환하지만 호출부는 여기에 다시 100을 곱한다. 따라서 표시되는 정확도에는 단위 오류가 있다. INT8 웨이트 데이터의 이상적인 4배 감소도 전체 직렬화 파일과 실행 중 메모리의 감소율을 뜻하지 않는다.
 
 품질 비교에서는 같은 데이터 분할과 전처리, 공정한 학습 예산을 사용하고 기준 모델·PTQ·QAT를 구분한다. 이 예제는 테스트 세트를 주기적으로 조회하므로 설정 선택에 그 결과를 사용한다면 별도의 검증 세트가 필요하다. 출력 정확도만으로 지연 시간이나 배포 성공 여부까지 판단할 수는 없다.
 

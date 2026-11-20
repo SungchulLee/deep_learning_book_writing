@@ -8,30 +8,70 @@ Guided Grad-CAM으로 두 방법의 장점을 결합하는 쪽이다. 클래스�
 
 ```python
 """
-07: 이끈 Grad-CAM - 두 세계의 좋은 것을 아우르기
+07: Guided Grad-CAM - 두 방법의 장점을 결합하기
 ==================================================
 
-어려움: 높음
+난이도: 높음
 
 설명:
-이끈 Grad-CAM은 Grad-CAM(클래스를 가려내되 성김)과 Guided Backpropagation(결이
-고움)를 아울러 둘의 좋은 점을 함께 얻는다.
+Guided Grad-CAM은 Grad-CAM(클래스 판별적이지만 거침)과 Guided Backpropagation(세밀함)을
+결합해 둘의 장점을 함께 얻는다.
 
 형태:
-    이끈 Grad-CAM = Guided Backpropagation ⊙ 키운 Grad-CAM
+    Guided Grad-CAM = Guided Backpropagation ⊙ 업샘플한 Grad-CAM
 
-나은 점:
-- 결이 곱다(Guided Backpropagation에서 옴)
-- 클래스를 가려낸다(Grad-CAM에서 옴)
-- 그림 됨됨이가 가장 좋다
+장점:
+- 세밀하다(Guided Backpropagation에서 옴)
+- 클래스 판별적이다(Grad-CAM에서 옴)
+- 맵 품질이 가장 좋다
 
 지은이: 교육용 자료
 """
 
 import torch
 import torch.nn.functional as F
-from utils import *
+import os
 from PIL import Image
+
+# ========================================================================
+# 도우미 함수
+# ========================================================================
+
+def get_device():
+    """쓸 수 있는 가장 빠른 장치를 고른다."""
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
+def load_pretrained_model(model_name="resnet50", device=None, eval_mode=True):
+    """torchvision에서 사전 학습된 모델을 불러온다.
+
+    다운로드가 안 되면(네트워크가 없을 때) 학습하지 않은 모델로 대체한다. 그래디언트
+    방법을 보이는 데에는 가중치가 실제로 학습된 것이 아니어도 맵이 나온다.
+    """
+    from torchvision import models
+
+    device = device or get_device()
+    try:
+        model = getattr(models, model_name)(weights="DEFAULT")
+    except Exception:
+        print(f"  사전 학습 가중치를 받지 못했다 — {model_name}을 무작위 초기화 상태로 쓴다.")
+        model = getattr(models, model_name)(weights=None)
+
+    model = model.to(device)
+    if eval_mode:
+        model.eval()
+    return model
+
+
+def create_output_dir(path="outputs"):
+    """출력 이미지를 저장할 디렉터리를 만들고 그 경로를 돌려준다."""
+    os.makedirs(path, exist_ok=True)
+    return path
+
 
 # ========================================================================
 # 메인
@@ -39,14 +79,14 @@ from PIL import Image
 
 def compute_guided_gradcam(gradcam_map, guided_backprop_map):
     """
-    Grad-CAM과 Guided Backpropagation를 아우른다.
+    Grad-CAM과 Guided Backpropagation을 결합한다.
 
     Args:
-        gradcam_map: 성긴 Grad-CAM 열 그림 [H, W]
-        guided_backprop_map: 결이 고운 Guided Backpropagation [H, W]
+        gradcam_map: 거친 Grad-CAM 히트맵 [H, W]
+        guided_backprop_map: 세밀한 Guided Backpropagation 맵 [H, W]
 
     Returns:
-        아우른 그림 [H, W]
+        결합한 맵 [H, W]
     """
     # 크기를 맞춘다
     if gradcam_map.shape != guided_backprop_map.shape:
@@ -60,16 +100,16 @@ def compute_guided_gradcam(gradcam_map, guided_backprop_map):
     # 원소마다 곱한다
     combined = gradcam_map * guided_backprop_map
 
-    # 고르게 한다
+    # 정규화한다
     combined = combined / (combined.max() + 1e-8)
 
     return combined
 
 
 def example_1_complete_pipeline():
-    """이끈 Grad-CAM의 온 흐름을 보인다."""
+    """Guided Grad-CAM의 전체 흐름을 보인다."""
     print("\n" + "="*60)
-    print("보기 1: 온전한 이끈 Grad-CAM")
+    print("예제 1: 전체 Guided Grad-CAM")
     print("="*60)
 
     device = get_device()
@@ -78,17 +118,17 @@ def example_1_complete_pipeline():
     model = load_pretrained_model('resnet50', device)
     test_image = Image.new('RGB', (224, 224), color=(150, 100, 130))
 
-    print("\n이끈 Grad-CAM이 아우르는 것:")
-    print("1. Grad-CAM → 클래스를 가려내는 자리 짚기")
-    print("2. Guided Backpropagation → 결이 고운 잔 무늬")
-    print("3. 원소마다의 곱 → 둘의 좋은 점을 함께!")
+    print("\nGuided Grad-CAM이 결합하는 것:")
+    print("1. Grad-CAM → 클래스 판별적인 위치 파악")
+    print("2. Guided Backpropagation → 세밀한 디테일")
+    print("3. 원소별 곱 → 둘의 장점을 함께!")
 
-    print("\n✓ 이끈 Grad-CAM: 가장 앞선 시각화")
+    print("\n✓ Guided Grad-CAM: 가장 정교한 시각화")
 
 
 def main():
     print("\n" + "="*70)
-    print(" "*18 + "이끈 GRAD-CAM 익히기")
+    print(" "*18 + "GUIDED GRAD-CAM 튜토리얼")
     print("="*70)
 
     try:
@@ -96,14 +136,14 @@ def main():
 
         print("\n" + "="*70)
         print("핵심:")
-        print("1. Grad-CAM + Guided Backpropagation를 아우른다")
-        print("2. 클래스를 가려내면서 결도 곱다")
-        print("3. 두루 보아 그림 됨됨이가 가장 좋다")
-        print("4. 두 조각을 모두 짜야 한다")
-        print("\n다음: 꾸러미 08 - 견주어 살피기")
+        print("1. Grad-CAM + Guided Backpropagation을 결합한다")
+        print("2. 클래스 판별적이면서 세밀하다")
+        print("3. 전반적으로 맵 품질이 가장 좋다")
+        print("4. 두 구성 요소를 모두 구현해야 한다")
+        print("\n다음: 꾸러미 08 - 비교 분석")
         print("="*70)
     except Exception as e:
-        print(f"어긋남: {e}")
+        print(f"오류: {e}")
 
 if __name__ == "__main__":
     main()
@@ -112,19 +152,36 @@ if __name__ == "__main__":
 **출력:**
 
 ```
+
 ======================================================================
-                  이끈 GRAD-CAM 익히기
+                  GUIDED GRAD-CAM 튜토리얼
 ======================================================================
 
 ============================================================
-보기 1: 온전한 이끈 Grad-CAM
+예제 1: 전체 Guided Grad-CAM
 ============================================================
-어긋남: name 'get_device' is not defined
+
+Guided Grad-CAM이 결합하는 것:
+1. Grad-CAM → 클래스 판별적인 위치 파악
+2. Guided Backpropagation → 세밀한 디테일
+3. 원소별 곱 → 둘의 장점을 함께!
+
+✓ Guided Grad-CAM: 가장 정교한 시각화
+
+======================================================================
+핵심:
+1. Grad-CAM + Guided Backpropagation을 결합한다
+2. 클래스 판별적이면서 세밀하다
+3. 전반적으로 맵 품질이 가장 좋다
+4. 두 구성 요소를 모두 구현해야 한다
+
+다음: 꾸러미 08 - 비교 분석
+======================================================================
 ```
 
 ## 2. 논의
 
-위 출력에서 보듯 이 프로그램은 첫 보기에서 멈춘다. `get_device` 같은 도우미를 `from utils import *` 로 가져오는데, 그 `utils` 모듈이 없어 `NameError` 가 났다. 게다가 `example_1_complete_pipeline` 은 모델과 이미지를 준비한 뒤 설명 문장만 찍을 뿐, `compute_guided_gradcam` 을 부르지 않는다. 실제 계산은 이 함수 하나에 들어 있다.
+위 출력에서 보듯 프로그램은 끝까지 돌고, 찍히는 것은 설명 문장뿐이다. `example_1_complete_pipeline` 은 모델과 이미지를 준비한 뒤 설명 문장만 찍을 뿐, `compute_guided_gradcam` 을 부르지 않는다. 실제 계산은 이 함수 하나에 들어 있다.
 
 `compute_guided_gradcam` 은 Guided Grad-CAM의 정의를 그대로 옮긴다. 두 맵의 크기가 다르면 Grad-CAM 맵을 쌍선형 보간으로 키우고, 원소별로 곱한 뒤 최댓값으로 나누어 [0, 1] 범위로 맞춘다. Grad-CAM 맵과 Guided Backpropagation 맵을 만드는 일은 앞의 두 쪽(Grad-CAM, Guided Backpropagation)의 코드에 맡긴다.
 
@@ -164,7 +221,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    흔한 실패 유형은 이렇다. (1) **두 맵의 클래스가 어긋남** -- Grad-CAM과 Guided Backpropagation을 서로 다른 타깃 클래스로 계산하면 곱이 무의미해진다. 두 호출에 같은 `target_class` 를 넘겼는지 확인해 탐지하고, 한 함수 안에서 클래스를 한 번 정해 둘 다에 넘겨 고친다. (2) **Guided Backpropagation 훅이 Grad-CAM을 오염시킴** -- 같은 모델에 ReLU 역전파 훅을 건 채로 Grad-CAM을 계산하면 Grad-CAM의 그래디언트도 수정된 규칙을 따른다. Grad-CAM 맵이 훅 유무에 따라 달라지는지 견주어 탐지하고, Grad-CAM을 먼저 계산하거나 Guided Backpropagation 계산이 끝나면 훅을 바로 지워 고친다.
+    흔한 실패 유형은 이렇다. (1) **두 맵의 클래스가 어긋남** -- Grad-CAM과 Guided Backpropagation을 서로 다른 타깃 클래스로 계산하면 곱이 무의미해진다. 두 호출에 같은 `target_class` 를 넘겼는지 확인해 탐지하고, 한 함수 안에서 클래스를 한 번 정해 둘 다에 넘겨 고친다. (2) **Guided Backpropagation 훅이 Grad-CAM을 오염시킴** -- 같은 모델에 ReLU 역전파 훅을 건 채로 Grad-CAM을 계산하면 Grad-CAM의 그래디언트도 수정된 규칙을 따른다. Grad-CAM 맵이 훅 유무에 따라 달라지는지 비교해 탐지하고, Grad-CAM을 먼저 계산하거나 Guided Backpropagation 계산이 끝나면 훅을 바로 지워 고친다.
 
 ---
 
@@ -179,12 +236,12 @@ if __name__ == "__main__":
     경계 조건을 두루 다루는 테스트 함수를 작성한다.
     ```python
     def test_07: guided grad-cam():
-        model = 07: 이끈 Grad-CAM(...)
-        # 여느 들임
+        model = 07: Guided Grad-CAM(...)
+        # 일반 입력
         assert model(normal_input).shape == expected_shape
         # 원소 하나짜리 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값(넘침을 살핀다)
+        # 큰 값(오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
         # 그래디언트 흐름

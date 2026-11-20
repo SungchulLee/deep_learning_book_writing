@@ -36,7 +36,7 @@ def comprehensiveness_sufficiency(
     model, input_tensor, attribution, target_class,
     k_values=[0.1, 0.2, 0.3, 0.5]
 ):
-    """임계를 달리하며 두루 갖춤과 넉넉함을 셈한다."""
+    """비율 k를 달리하며 포괄성과 충분성을 계산한다."""
     model.eval()
 
     with torch.no_grad():
@@ -51,13 +51,13 @@ def comprehensiveness_sufficiency(
         n_top = int(k * n_features)
         top_indices = sorted_idx[:n_top]
 
-        # 두루 갖춤: 앞선 k개를 없앤다
+        # 포괄성: 상위 k개를 없앤다
         removed = input_tensor.clone().flatten()
         removed[top_indices] = 0
         with torch.no_grad():
             removed_score = torch.softmax(model(removed.reshape(input_tensor.shape)), dim=1)[0, target_class].item()
 
-        # 넉넉함: 앞선 k개만 남긴다
+        # 충분성: 상위 k개만 남긴다
         kept = torch.zeros_like(input_tensor).flatten()
         kept[top_indices] = input_tensor.flatten()[top_indices]
         with torch.no_grad():
@@ -113,7 +113,7 @@ XOR 문제에서 클래스 0의 점수가 $f(x) = 1 - |x_1 - x_2|$인 ReLU 네�
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

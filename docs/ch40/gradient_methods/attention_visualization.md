@@ -8,8 +8,8 @@
 
 ```python
 """
-트랜스포머 모형을 위한 어텐션 시각화
-트랜스포머 구조의 제 어텐션 결을 그린다
+트랜스포머 모델을 위한 어텐션 시각화
+트랜스포머 구조의 셀프 어텐션 결을 그린다
 """
 
 import torch
@@ -27,15 +27,15 @@ import warnings
 
 class AttentionVisualizer:
     """
-    트랜스포머 모형의 어텐션 짐을 그린다.
+    트랜스포머 모델의 어텐션 웨이트를 그린다.
     """
 
     def __init__(self, model: nn.Module):
         """
-        어텐션 그리개의 첫자리를 잡는다.
+        어텐션 시각화 도구를 초기화한다.
 
         Args:
-            model: 트랜스포머 모형(보기로 BERT, GPT, ViT)
+            model: 트랜스포머 모델(예: BERT, GPT, ViT)
         """
         self.model = model
         self.attention_maps = {}
@@ -43,42 +43,42 @@ class AttentionVisualizer:
 
     def register_hooks(self, layer_names: Optional[List[str]] = None):
         """
-        어텐션 짐을 붙들려고 앞으로 스텝 갈고리를 건다.
+        어텐션 웨이트를 붙잡으려고 순전파 훅을 건다.
 
         Args:
-            layer_names: 갈고리를 걸 레이어 이름 목록. None이면 모든 어텐션 레이어에 건다.
+            layer_names: 훅을 걸 레이어 이름 목록. None이면 모든 어텐션 레이어에 건다.
         """
         def hook_fn(name):
             def hook(module, input, output):
-                # 어텐션 짐을 갈무리한다
-                # 출력 형태는 모형 구조마다 다르다
+                # 어텐션 웨이트를 저장한다
+                # 출력 형태는 모델 구조마다 다르다
                 if isinstance(output, tuple) and len(output) > 1:
-                    # 흔히 (출력, 어텐션 짐)
+                    # 흔히 (출력, 어텐션 웨이트)
                     self.attention_maps[name] = output[1].detach()
                 else:
                     self.attention_maps[name] = output.detach()
             return hook
 
-        # 어텐션 꾸러미를 찾아 갈고리를 건다
+        # 어텐션 모듈을 찾아 훅을 건다
         for name, module in self.model.named_modules():
-            # 흔한 어텐션 꾸러미 이름
+            # 흔한 어텐션 모듈 이름
             if any(x in name.lower() for x in ['attention', 'attn', 'self_attn']):
                 if layer_names is None or name in layer_names:
                     handle = module.register_forward_hook(hook_fn(name))
                     self.hooks.append(handle)
 
     def remove_hooks(self):
-        """걸어 둔 갈고리를 모두 치운다."""
+        """걸어 둔 훅을 모두 제거한다."""
         for hook in self.hooks:
             hook.remove()
         self.hooks = []
 
     def get_attention_maps(self) -> Dict[str, torch.Tensor]:
         """
-        붙든 어텐션 그림을 내놓는다.
+        붙잡은 어텐션 맵을 돌려준다.
 
         Returns:
-            레이어 이름을 어텐션 텐서에 이어 주는 사전
+            레이어 이름을 어텐션 텐서에 대응시키는 딕셔너리
         """
         return self.attention_maps
 
@@ -87,18 +87,18 @@ class AttentionVisualizer:
                                 head_idx: int = 0,
                                 figsize: Tuple[int, int] = (10, 8)) -> plt.Figure:
         """
-        정한 머리의 어텐션 짐을 그린다.
+        지정한 헤드의 어텐션 웨이트를 그린다.
 
         Args:
-            attention_weights: (배치, 머리, 열 길이, 열 길이) 형태 어텐션 텐서
-            tokens: 이름표로 쓸 단어 목록
-            head_idx: 그릴 어텐션 머리의 번호
-            figsize: 그림 크기
+            attention_weights: (배치, 헤드, 시퀀스 길이, 시퀀스 길이) 형태 어텐션 텐서
+            tokens: 레이블로 쓸 토큰 목록
+            head_idx: 그릴 어텐션 헤드의 번호
+            figsize: Figure 크기
 
         Returns:
-            Matplotlib 그림
+            Matplotlib Figure
         """
-        # 머리 하나를 뽑는다
+        # 헤드 하나를 뽑는다
         if attention_weights.dim() == 4:
             attn = attention_weights[0, head_idx].cpu().numpy()
         elif attention_weights.dim() == 3:
@@ -106,21 +106,21 @@ class AttentionVisualizer:
         else:
             attn = attention_weights.cpu().numpy()
 
-        # 그림을 만든다
+        # Figure를 만든다
         fig, ax = plt.subplots(figsize=figsize)
 
-        # 열 그림을 그린다
+        # 히트맵을 그린다
         sns.heatmap(attn, annot=False, cmap='viridis', square=True,
-                   cbar_kws={'label': '어텐션 짐'}, ax=ax)
+                   cbar_kws={'label': '어텐션 웨이트'}, ax=ax)
 
-        # 단어가 있으면 이름표를 붙인다
+        # 토큰이 있으면 레이블을 붙인다
         if tokens:
             ax.set_xticklabels(tokens, rotation=90)
             ax.set_yticklabels(tokens, rotation=0)
 
-        ax.set_xlabel('열쇠 자리')
-        ax.set_ylabel('질문 자리')
-        ax.set_title(f'어텐션 머리 {head_idx}')
+        ax.set_xlabel('키 위치')
+        ax.set_ylabel('쿼리 위치')
+        ax.set_title(f'어텐션 헤드 {head_idx}')
 
         plt.tight_layout()
         return fig
@@ -130,16 +130,16 @@ class AttentionVisualizer:
                            max_heads: int = 8,
                            figsize: Tuple[int, int] = (16, 12)) -> plt.Figure:
         """
-        어텐션 머리 여럿을 격자로 그린다.
+        어텐션 헤드 여럿을 격자로 그린다.
 
         Args:
-            attention_weights: (배치, 머리, 열 길이, 열 길이) 형태 어텐션 텐서
-            tokens: 단어 목록
-            max_heads: 보일 머리의 가장 큰 수
-            figsize: 그림 크기
+            attention_weights: (배치, 헤드, 시퀀스 길이, 시퀀스 길이) 형태 어텐션 텐서
+            tokens: 토큰 목록
+            max_heads: 표시할 헤드의 최대 수
+            figsize: Figure 크기
 
         Returns:
-            Matplotlib 그림
+            Matplotlib Figure
         """
         if attention_weights.dim() == 4:
             attn = attention_weights[0].cpu().numpy()
@@ -157,7 +157,7 @@ class AttentionVisualizer:
             ax = axes[i]
             sns.heatmap(attn[i], annot=False, cmap='viridis',
                        square=True, cbar=False, ax=ax)
-            ax.set_title(f'머리 {i}')
+            ax.set_title(f'헤드 {i}')
 
             if tokens and len(tokens) <= 20:
                 ax.set_xticklabels(tokens, rotation=90, fontsize=8)
@@ -170,7 +170,7 @@ class AttentionVisualizer:
         for i in range(num_heads, len(axes)):
             axes[i].axis('off')
 
-        plt.suptitle('여러 머리 어텐션 결', fontsize=16)
+        plt.suptitle('멀티헤드 어텐션 결', fontsize=16)
         plt.tight_layout()
         return fig
 
@@ -179,24 +179,24 @@ class AttentionVisualizer:
                                   average_heads: bool = True,
                                   figsize: Tuple[int, int] = (10, 8)) -> plt.Figure:
         """
-        정한 레이어의 어텐션을 그린다.
+        지정한 레이어의 어텐션을 그린다.
 
         Args:
             layer_name: 레이어 이름
-            tokens: 단어 목록
-            average_heads: 머리를 가로질러 고르게 할지
-            figsize: 그림 크기
+            tokens: 토큰 목록
+            average_heads: 헤드에 걸쳐 평균할지
+            figsize: Figure 크기
 
         Returns:
-            Matplotlib 그림
+            Matplotlib Figure
         """
         if layer_name not in self.attention_maps:
-            raise ValueError(f"어텐션 그림에 레이어 {layer_name}이 없다")
+            raise ValueError(f"어텐션 맵에 레이어 {layer_name}이 없다")
 
         attn = self.attention_maps[layer_name]
 
         if average_heads and attn.dim() >= 3:
-            # 머리를 가로질러 고르게 한다
+            # 헤드에 걸쳐 평균한다
             if attn.dim() == 4:
                 attn = attn[0].mean(dim=0).cpu().numpy()
             else:
@@ -204,19 +204,19 @@ class AttentionVisualizer:
         else:
             return self.visualize_all_heads(attn, tokens, figsize=figsize)
 
-        # 그림을 만든다
+        # Figure를 만든다
         fig, ax = plt.subplots(figsize=figsize)
 
         sns.heatmap(attn, annot=False, cmap='viridis', square=True,
-                   cbar_kws={'label': '고른 어텐션'}, ax=ax)
+                   cbar_kws={'label': '평균 어텐션'}, ax=ax)
 
         if tokens:
             ax.set_xticklabels(tokens, rotation=90)
             ax.set_yticklabels(tokens, rotation=0)
 
-        ax.set_xlabel('열쇠 자리')
-        ax.set_ylabel('질문 자리')
-        ax.set_title(f'레이어: {layer_name} (고른 어텐션)')
+        ax.set_xlabel('키 위치')
+        ax.set_ylabel('쿼리 위치')
+        ax.set_title(f'레이어: {layer_name} (평균 어텐션)')
 
         plt.tight_layout()
         return fig
@@ -226,19 +226,19 @@ class AttentionVisualizer:
                            query_idx: int,
                            figsize: Tuple[int, int] = (12, 6)) -> plt.Figure:
         """
-        정한 질문 단어에서 뻗는 어텐션 흐름을 그린다.
+        지정한 쿼리 토큰에서 뻗는 어텐션 흐름을 그린다.
 
         Args:
             attention_weights: 어텐션 텐서
-            tokens: 단어 목록
-            query_idx: 질문 단어의 번호
-            figsize: 그림 크기
+            tokens: 토큰 목록
+            query_idx: 쿼리 토큰의 번호
+            figsize: Figure 크기
 
         Returns:
-            Matplotlib 그림
+            Matplotlib Figure
         """
         if attention_weights.dim() == 4:
-            # 배치와 머리를 가로질러 고르게 한다
+            # 배치의 첫 표본을 골라 헤드에 걸쳐 평균한다
             attn = attention_weights[0].mean(dim=0)[query_idx].cpu().numpy()
         elif attention_weights.dim() == 3:
             attn = attention_weights.mean(dim=0)[query_idx].cpu().numpy()
@@ -251,8 +251,8 @@ class AttentionVisualizer:
         ax.bar(positions, attn, color='steelblue', alpha=0.7)
         ax.set_xticks(positions)
         ax.set_xticklabels(tokens, rotation=45, ha='right')
-        ax.set_ylabel('어텐션 짐')
-        ax.set_title(f'"{tokens[query_idx]}"에서 다른 단어로 가는 어텐션')
+        ax.set_ylabel('어텐션 웨이트')
+        ax.set_title(f'"{tokens[query_idx]}"에서 다른 토큰으로 가는 어텐션')
         ax.grid(axis='y', alpha=0.3)
 
         plt.tight_layout()
@@ -261,15 +261,15 @@ class AttentionVisualizer:
 
 class BERTAttentionVisualizer(AttentionVisualizer):
     """
-    BERT 결 모형에 맞춘 그리개.
+    BERT 계열 모델에 맞춘 시각화 도구.
     """
 
     def extract_attention_from_output(self, outputs):
         """
-        BERT 모형의 출력에서 어텐션 짐을 뽑아낸다.
+        BERT 모델의 출력에서 어텐션 웨이트를 뽑아낸다.
 
         Args:
-            outputs: BERT(transformers 곳집) 모형의 출력
+            outputs: BERT(transformers 라이브러리) 모델의 출력
 
         Returns:
             레이어마다 하나씩인 어텐션 텐서 목록
@@ -277,8 +277,8 @@ class BERTAttentionVisualizer(AttentionVisualizer):
         if hasattr(outputs, 'attentions') and outputs.attentions is not None:
             return outputs.attentions
         else:
-            warnings.warn("모형 출력에 어텐션 짐이 없다. "
-                        "모형을 output_attentions=True로 부르라")
+            warnings.warn("모델 출력에 어텐션 웨이트가 없다. "
+                        "모델을 output_attentions=True로 호출하라")
             return []
 
 
@@ -287,16 +287,16 @@ def visualize_token_attention(attention_weights: torch.Tensor,
                               layer_idx: int = -1,
                               save_path: Optional[str] = None) -> plt.Figure:
     """
-    단어에 대한 어텐션을 빠르게 그리는 도움 함수.
+    토큰 어텐션을 빠르게 그리는 헬퍼 함수.
 
     Args:
-        attention_weights: 어텐션 텐서 (레이어, 배치, 머리, 열, 열)
-        tokens: 단어 목록
+        attention_weights: 어텐션 텐서 (레이어, 배치, 헤드, 시퀀스, 시퀀스)
+        tokens: 토큰 목록
         layer_idx: 그릴 레이어 번호(-1이면 마지막 레이어)
-        save_path: 그림을 갈무리할 길
+        save_path: Figure를 저장할 경로
 
     Returns:
-        Matplotlib 그림
+        Matplotlib Figure
     """
     # 레이어를 고른다
     if isinstance(attention_weights, (list, tuple)):
@@ -304,7 +304,7 @@ def visualize_token_attention(attention_weights: torch.Tensor,
     else:
         attn = attention_weights
 
-    # 배치와 머리를 가로질러 고르게 한다
+    # 배치의 첫 표본을 골라 헤드에 걸쳐 평균한다
     if attn.dim() == 4:
         attn = attn[0].mean(dim=0)
     elif attn.dim() == 3:
@@ -312,14 +312,14 @@ def visualize_token_attention(attention_weights: torch.Tensor,
 
     attn = attn.cpu().numpy()
 
-    # 그림을 만든다
+    # Figure를 만든다
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(attn, xticklabels=tokens, yticklabels=tokens,
                cmap='viridis', square=True,
-               cbar_kws={'label': '어텐션 짐'})
+               cbar_kws={'label': '어텐션 웨이트'})
 
-    ax.set_xlabel('열쇠 자리')
-    ax.set_ylabel('질문 자리')
+    ax.set_xlabel('키 위치')
+    ax.set_ylabel('쿼리 위치')
     ax.set_title(f'어텐션 결 (레이어 {layer_idx})')
     plt.xticks(rotation=90)
     plt.yticks(rotation=0)
@@ -351,7 +351,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `AttentionVisualizer` 에서 셋을 들 수 있다. (1) **순전파 훅으로 웨이트 붙잡기** -- `register_forward_hook` 으로 모델 코드를 고치지 않고 어텐션 웨이트를 얻는다. 대신 모듈이 `(출력, 어텐션 웨이트)` 튜플을 돌려준다고 가정하므로, 그렇지 않은 모델에서는 엉뚱한 텐서가 저장된다. (2) **머리 평균**(`average_heads`) -- 머리 여럿을 한 장으로 요약해 읽기 쉽게 하지만, 머리마다 다른 패턴이 평균에 묻힌다. 그래서 `visualize_all_heads` 를 따로 둔다. (3) **행은 쿼리, 열은 키인 히트맵** -- 소프트맥스 뒤의 웨이트는 행마다 합이 1이므로 히트맵을 행 단위로 읽어야 한다. 각 선택은 범용성, 정보량, 읽기 쉬움 사이의 트레이드오프를 드러낸다.
+    `AttentionVisualizer` 에서 셋을 들 수 있다. (1) **순전파 훅으로 웨이트 붙잡기** -- `register_forward_hook` 으로 모델 코드를 고치지 않고 어텐션 웨이트를 얻는다. 대신 모듈이 `(출력, 어텐션 웨이트)` 튜플을 돌려준다고 가정하므로, 그렇지 않은 모델에서는 엉뚱한 텐서가 저장된다. (2) **헤드 평균**(`average_heads`) -- 헤드 여럿을 한 장으로 요약해 읽기 쉽게 하지만, 헤드마다 다른 패턴이 평균에 묻힌다. 그래서 `visualize_all_heads` 를 따로 둔다. (3) **행은 쿼리, 열은 키인 히트맵** -- 소프트맥스 뒤의 웨이트는 행마다 합이 1이므로 히트맵을 행 단위로 읽어야 한다. 각 선택은 범용성, 정보량, 읽기 쉬움 사이의 트레이드오프를 드러낸다.
 
 ---
 
@@ -375,7 +375,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    보통의 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간이 $O(n^2 d)$이고 어텐션 웨이트에 드는 메모리가 $O(n^2)$이다. 시퀀스가 길면(예를 들어 $n = 4096$) 감당할 수 없다. Longformer는 국소 슬라이딩 윈도 어텐션($O(n \cdot w \cdot d)$, $w$는 윈도 크기)과 고른 토큰에 대한 성긴 전역 어텐션을 함께 쓴다. Linformer는 키와 값을 낮은 차원 $k \ll n$으로 사영해 복잡도를 $O(n \cdot k \cdot d)$로 줄인다. 둘 다 표현력을 얼마쯤 내주고 긴 입력에서의 효율을 얻는다.
+    보통의 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간이 $O(n^2 d)$이고 어텐션 웨이트에 드는 메모리가 $O(n^2)$이다. 시퀀스가 길면(예를 들어 $n = 4096$) 감당할 수 없다. Longformer는 국소 슬라이딩 윈도 어텐션($O(n \cdot w \cdot d)$, $w$는 윈도 크기)과 고른 토큰에 대한 희소 전역 어텐션을 함께 쓴다. Linformer는 키와 값을 낮은 차원 $k \ll n$으로 사영해 복잡도를 $O(n \cdot k \cdot d)$로 줄인다. 둘 다 표현력을 얼마쯤 내주고 긴 입력에서의 효율을 얻는다.
 
 ---
 <div class="drillbox" markdown>
@@ -389,12 +389,12 @@ if __name__ == "__main__":
     경계 조건을 두루 다루는 테스트 함수를 작성한다.
     ```python
     def test_attentionvisualizer():
-        model = 어텐션 시각화(...)
-        # 여느 들임
+        model = AttentionVisualizer(...)
+        # 보통 입력
         assert model(normal_input).shape == expected_shape
         # 원소 하나짜리 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값(넘침을 살핀다)
+        # 큰 값(오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
         # 그래디언트 흐름
@@ -409,6 +409,6 @@ if __name__ == "__main__":
 
 **다룬 것** — 어텐션 시각화
 
-어텐션 웨이트를 훅으로 붙잡아 머리별·레이어별 히트맵과 한 토큰의 어텐션 막대그래프로 그리는 도구를 보았다.
+어텐션 웨이트를 훅으로 붙잡아 헤드별·레이어별 히트맵과 한 토큰의 어텐션 막대그래프로 그리는 도구를 보았다.
 
 핵심 클래스는 `AttentionVisualizer`, `BERTAttentionVisualizer`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.

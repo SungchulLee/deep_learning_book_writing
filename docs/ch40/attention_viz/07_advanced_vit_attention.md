@@ -8,10 +8,10 @@ Vision Transformer(ViT)의 어텐션을 그리는 심화 예제다. ViT는 이�
 
 ```python
 """
-앞선 레이어: 눈 트랜스포머(ViT)의 어텐션 그리기
+심화: 비전 트랜스포머(ViT)의 어텐션 시각화
 
-눈 트랜스포머에 맞춘 시각화로, 그림 조각에 걸친 자리 어텐션
-결을 보인다.
+비전 트랜스포머에 맞춘 시각화로, 이미지 패치에 걸친 공간 어텐션
+패턴을 보인다.
 """
 
 import torch
@@ -34,10 +34,10 @@ except ImportError:
 
 class ViTAttentionVisualizer:
     """
-    눈 트랜스포머의 어텐션 결을 그리는 개.
+    비전 트랜스포머의 어텐션 패턴을 시각화하는 클래스.
 
-    ViT은 그림을 조각으로 나누고 트랜스포머를 건다. 이 클래스는 모형이
-    자리마다 어떻게 어텐션을 두는지 그리도록 돕는다.
+    ViT는 이미지를 패치로 나누고 트랜스포머를 적용한다. 이 클래스는 모델이
+    위치마다 어떻게 어텐션을 두는지 그리도록 돕는다.
     """
 
     def __init__(self, image_size: int = 224, patch_size: int = 16):
@@ -45,9 +45,9 @@ class ViTAttentionVisualizer:
         파라메터:
         ----------
         image_size : int
-            들임 그림 크기(네모라고 여긴다)
+            입력 이미지 크기(정사각형이라고 가정한다)
         patch_size : int
-            조각 하나의 크기
+            패치 하나의 크기
         """
         self.image_size = image_size
         self.patch_size = patch_size
@@ -59,40 +59,40 @@ class ViTAttentionVisualizer:
                                   focus_patch: int = 0,
                                   save_path: Optional[str] = None):
         """
-        조각 하나가 다른 모든 조각을 어떻게 보는지 그린다.
+        패치 하나가 다른 모든 패치를 어떻게 보는지 그린다.
 
         파라메터:
         ----------
         attention : torch.Tensor
-            어텐션 행렬, 형태: (조각 수+1, 조각 수+1)
-            (+1은 CLS 단어)
-        image : torch.Tensor, 없어도 됨
-            본디 그림 텐서, 형태: (3, H, W)
+            어텐션 행렬, 형태: (패치 수+1, 패치 수+1)
+            (+1은 CLS 토큰)
+        image : torch.Tensor, 선택
+            원본 이미지 텐서, 형태: (3, H, W)
         focus_patch : int
-            눈여겨볼 조각(0이면 CLS 단어)
+            살펴볼 패치(0이면 CLS 토큰)
         """
         if isinstance(attention, torch.Tensor):
             attention = attention.cpu().numpy()
 
-        # 눈여겨보는 조각에서 뻗는 어텐션을 뽑는다
+        # 살펴보는 패치에서 나가는 어텐션을 뽑는다
         patch_attention = attention[focus_patch, :]
 
-        # 2차원 격자로 형태를 바꾼다(CLS 단어는 뺀다)
+        # 2차원 격자로 형태를 바꾼다(CLS 토큰은 뺀다)
         grid_size = int(np.sqrt(self.num_patches))
 
-        if focus_patch == 0:  # CLS 단어
-            # 그릴 때 CLS 단어는 건너뛴다
+        if focus_patch == 0:  # CLS 토큰
+            # 그릴 때 CLS 토큰은 건너뛴다
             spatial_attention = patch_attention[1:].reshape(grid_size, grid_size)
-            title = "CLS 단어가 조각에 두는 어텐션"
+            title = "CLS 토큰이 패치에 두는 어텐션"
         else:
             spatial_attention = patch_attention[1:].reshape(grid_size, grid_size)
-            title = f"조각 {focus_patch-1}의 어텐션"
+            title = f"패치 {focus_patch-1}의 어텐션"
 
-        # 그림을 만든다
+        # figure를 만든다
         if image is not None:
             fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
-            # 본디 그림을 보인다
+            # 원본 이미지를 보인다
             if isinstance(image, torch.Tensor):
                 img_np = image.cpu().numpy()
                 if img_np.shape[0] == 3:  # CHW 형태
@@ -102,13 +102,13 @@ class ViTAttentionVisualizer:
                 img_np = image
 
             axes[0].imshow(img_np)
-            axes[0].set_title('본디 그림', fontsize=12, fontweight='bold')
+            axes[0].set_title('원본 이미지', fontsize=12, fontweight='bold')
             axes[0].axis('off')
 
-            # 어텐션 그림을 겹쳐 보인다
+            # 어텐션 맵을 겹쳐 보인다
             axes[1].imshow(img_np, alpha=0.5)
 
-            # 어텐션 그림을 그림 크기로 키운다
+            # 어텐션 맵을 이미지 크기로 키운다
             attn_resized = F.interpolate(
                 torch.tensor(spatial_attention).unsqueeze(0).unsqueeze(0),
                 size=(self.image_size, self.image_size),
@@ -126,9 +126,9 @@ class ViTAttentionVisualizer:
             fig, ax = plt.subplots(figsize=(8, 7))
             im = ax.imshow(spatial_attention, cmap='viridis', aspect='auto')
             ax.set_title(title, fontsize=13, fontweight='bold', pad=15)
-            ax.set_xlabel('조각 세로줄', fontsize=11)
-            ax.set_ylabel('조각 가로줄', fontsize=11)
-            plt.colorbar(im, ax=ax, label='어텐션 짐')
+            ax.set_xlabel('패치 열', fontsize=11)
+            ax.set_ylabel('패치 행', fontsize=11)
+            plt.colorbar(im, ax=ax, label='어텐션 웨이트')
 
         plt.tight_layout()
 
@@ -142,12 +142,12 @@ class ViTAttentionVisualizer:
                                layer_idx: int = -1,
                                head_idx: int = 0):
         """
-        정한 레이어와 머리의 온 어텐션 그림을 그린다.
+        지정한 레이어와 헤드의 전체 어텐션 맵을 그린다.
 
-        자리 어텐션 결을 보이는 격자를 만든다.
+        공간 어텐션 패턴을 보이는 격자를 만든다.
         """
-        if attention.dim() == 4:  # (배치, 머리, 열, 열)
-            attention = attention[0, head_idx]  # 정한 머리를 집는다
+        if attention.dim() == 4:  # (배치, 헤드, 시퀀스, 시퀀스)
+            attention = attention[0, head_idx]  # 지정한 헤드를 고른다
 
         attention = attention.cpu().numpy()
 
@@ -155,50 +155,50 @@ class ViTAttentionVisualizer:
         fig, ax = plt.subplots(figsize=(10, 9))
 
         im = ax.imshow(attention, cmap='viridis', aspect='auto')
-        ax.set_xlabel('열쇠 조각', fontsize=12, fontweight='bold')
-        ax.set_ylabel('질문 조각', fontsize=12, fontweight='bold')
-        ax.set_title(f'ViT 어텐션 - 레이어 {layer_idx}, 머리 {head_idx}',
+        ax.set_xlabel('키 패치', fontsize=12, fontweight='bold')
+        ax.set_ylabel('쿼리 패치', fontsize=12, fontweight='bold')
+        ax.set_title(f'ViT 어텐션 - 레이어 {layer_idx}, 헤드 {head_idx}',
                     fontsize=14, fontweight='bold', pad=20)
 
-        plt.colorbar(im, ax=ax, label='어텐션 짐')
+        plt.colorbar(im, ax=ax, label='어텐션 웨이트')
         plt.tight_layout()
         plt.show()
 
 def example_vit_attention():
-    """보기: ViT 자리 어텐션 그리기."""
+    """예제: ViT 공간 어텐션 시각화."""
     print("=" * 70)
-    print("눈 트랜스포머 어텐션 그리기")
+    print("비전 트랜스포머 어텐션 시각화")
     print("=" * 70)
 
-    # 지어낸 ViT 어텐션을 만든다
+    # 합성한 ViT 어텐션을 만든다
     image_size = 224
     patch_size = 16
     num_patches = (image_size // patch_size) ** 2
 
-    # 지어낸 어텐션을 만든다(CLS 단어 기여도로 조각 수+1)
+    # 합성한 어텐션을 만든다(CLS 토큰 때문에 패치 수+1)
     seq_len = num_patches + 1
     attention = torch.zeros(seq_len, seq_len)
 
-    # CLS 단어는 모든 조각을 본다
+    # CLS 토큰은 모든 패치를 본다
     attention[0, 1:] = torch.softmax(torch.randn(num_patches), dim=0)
     attention[0, 0] = 0.1
 
-    # 다른 조각은 그 자리를 본다
+    # 다른 패치는 주변을 본다
     for i in range(1, seq_len):
-        # 그 자리 어텐션 결을 만든다
+        # 국소 어텐션 패턴을 만든다
         distances = torch.abs(torch.arange(1, seq_len) - i)
         attn_logits = -distances.float() * 0.5
         attention[i, 1:] = torch.softmax(attn_logits, dim=0) * 0.9
-        attention[i, 0] = 0.05  # CLS에도 얼마쯤 어텐션
-        attention[i, i] = 0.05  # 제 어텐션
+        attention[i, 0] = 0.05  # CLS에도 약간의 어텐션
+        attention[i, i] = 0.05  # 자기 자신에 대한 어텐션
 
-    # 그림으로 보인다
+    # 시각화한다
     viz = ViTAttentionVisualizer(image_size=image_size, patch_size=patch_size)
 
-    print("\nCLS 단어의 어텐션을 그린다(모형이 어디에 어텐션을 두는가):")
+    print("\nCLS 토큰의 어텐션을 그린다(모델이 어디에 어텐션을 두는가):")
     viz.visualize_patch_attention(attention, focus_patch=0)
 
-    print("\n가운데 조각의 어텐션을 그린다:")
+    print("\n가운데 패치의 어텐션을 그린다:")
     center_patch = num_patches // 2
     viz.visualize_patch_attention(attention, focus_patch=center_patch)
 
@@ -206,36 +206,36 @@ if __name__ == "__main__":
     torch.manual_seed(42)
     example_vit_attention()
 
-    print("\n핵심 깨침:")
-    print("  - CLS 단어가 모든 조각의 소식을 한데 모은다")
-    print("  - 자리 어텐션이 그림의 어느 자리가 중요한지 드러낸다")
-    print("  - 그 자리 조각은 흔히 가까운 자리를 본다")
-    print("  - 어텐션 그림이 두드러진 물체를 짚어 줄 수 있다")
+    print("\n핵심 정리:")
+    print("  - CLS 토큰이 모든 패치의 정보를 한데 모은다")
+    print("  - 공간 어텐션이 이미지의 어느 영역이 중요한지 드러낸다")
+    print("  - 패치는 흔히 가까운 위치를 본다")
+    print("  - 어텐션 맵이 눈에 띄는 물체의 위치를 알려 줄 수 있다")
 ```
 
 **출력:**
 
 ```
 ======================================================================
-눈 트랜스포머 어텐션 그리기
+비전 트랜스포머 어텐션 시각화
 ======================================================================
 
-CLS 단어의 어텐션을 그린다(모형이 어디에 어텐션을 두는가):
+CLS 토큰의 어텐션을 그린다(모델이 어디에 어텐션을 두는가):
 
-가운데 조각의 어텐션을 그린다:
+가운데 패치의 어텐션을 그린다:
 
-핵심 깨침:
-  - CLS 단어가 모든 조각의 소식을 한데 모은다
-  - 자리 어텐션이 그림의 어느 자리가 중요한지 드러낸다
-  - 그 자리 조각은 흔히 가까운 자리를 본다
-  - 어텐션 그림이 두드러진 물체를 짚어 줄 수 있다
+핵심 정리:
+  - CLS 토큰이 모든 패치의 정보를 한데 모은다
+  - 공간 어텐션이 이미지의 어느 영역이 중요한지 드러낸다
+  - 패치는 흔히 가까운 위치를 본다
+  - 어텐션 맵이 눈에 띄는 물체의 위치를 알려 줄 수 있다
 ```
 
 ## 2. 논의
 
-출력에는 그림을 그린다는 안내와 핵심 문장만 찍힌다. 그림은 `plt.show()` 로 띄울 뿐 파일로 저장하지 않고, 어텐션도 학습된 ViT에서 나온 것이 아니라 코드가 지어낸 것이다. 그러니 출력 끝의 「핵심 깨침」 네 줄은 이 실행이 보여 준 결과가 아니라 미리 적어 둔 문장이다.
+출력에는 그림을 그린다는 안내와 핵심 문장만 찍힌다. 그림은 `plt.show()` 로 띄울 뿐 파일로 저장하지 않고, 어텐션도 학습된 ViT에서 나온 것이 아니라 코드가 지어낸 것이다. 그러니 출력 끝의 「핵심 정리」 네 줄은 이 실행이 보여 준 결과가 아니라 미리 적어 둔 문장이다.
 
-지어낸 어텐션을 읽을 때 짚을 점이 셋 있다. 첫째, 「가까운 패치를 본다」는 패턴은 패치 번호를 한 줄로 늘어놓은 뒤의 거리 `|j - i|` 로 만들었다. 14×14 격자에서 번호가 이웃한 두 패치는 대개 옆 칸이지만, 한 줄의 끝과 다음 줄의 처음도 번호로는 이웃이고, 바로 위아래 칸은 번호가 14나 떨어진다. 그래서 격자로 되돌려 그리면 둥근 이웃이 아니라 가로로 길게 번진 띠가 나온다. 둘째, 각 행은 소프트맥스에 0.9를 곱한 뒤 CLS와 자기 칸을 0.05로 덮어써서 합이 정확히 1이 아니고, 자기 자신에 대한 어텐션이 바로 옆 패치보다 오히려 작다. 셋째, `focus_patch=center_patch` 는 98번째 토큰이고 CLS가 0번이므로 제목에는 「조각 97」이 찍힌다. 실제 ViT라면 `output_attentions=True` 로 얻은 웨이트를 같은 함수에 넘기면 된다.
+지어낸 어텐션을 읽을 때 짚을 점이 셋 있다. 첫째, 「가까운 패치를 본다」는 패턴은 패치 번호를 한 줄로 늘어놓은 뒤의 거리 `|j - i|` 로 만들었다. 14×14 격자에서 번호가 이웃한 두 패치는 대개 옆 칸이지만, 한 줄의 끝과 다음 줄의 처음도 번호로는 이웃이고, 바로 위아래 칸은 번호가 14나 떨어진다. 그래서 격자로 되돌려 그리면 둥근 이웃이 아니라 가로로 길게 번진 띠가 나온다. 둘째, 각 행은 소프트맥스에 0.9를 곱한 뒤 CLS와 자기 칸을 0.05로 덮어써서 합이 정확히 1이 아니고, 자기 자신에 대한 어텐션이 바로 옆 패치보다 오히려 작다. 셋째, `focus_patch=center_patch` 는 98번째 토큰이고 CLS가 0번이므로 제목에는 「패치 97」이 찍힌다. 실제 ViT라면 `output_attentions=True` 로 얻은 웨이트를 같은 함수에 넘기면 된다.
 
 여기서 보인 기법은 더 까다로운 상황으로도 자연스럽게 확장된다. 하이퍼파라미터, 구조의 종류, 여러 데이터를 바꿔 가며 해 보면 이해가 깊어지고 모델 해석에 대한 감이 생긴다.
 
@@ -273,7 +273,7 @@ CLS 단어의 어텐션을 그린다(모형이 어디에 어텐션을 두는가)
 </div>
 
 ??? success "풀이"
-    보통의 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간이 $O(n^2 d)$이고 어텐션 웨이트에 드는 메모리가 $O(n^2)$이다. 시퀀스가 길면(예를 들어 $n = 4096$) 감당할 수 없다. Longformer는 국소 슬라이딩 윈도 어텐션($O(n \cdot w \cdot d)$, $w$는 윈도 크기)과 고른 토큰에 대한 성긴 전역 어텐션을 함께 쓴다. Linformer는 키와 값을 낮은 차원 $k \ll n$으로 사영해 복잡도를 $O(n \cdot k \cdot d)$로 줄인다. 둘 다 표현력을 얼마쯤 내주고 긴 입력에서의 효율을 얻는다.
+    보통의 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간이 $O(n^2 d)$이고 어텐션 웨이트에 드는 메모리가 $O(n^2)$이다. 시퀀스가 길면(예를 들어 $n = 4096$) 감당할 수 없다. Longformer는 국소 슬라이딩 윈도 어텐션($O(n \cdot w \cdot d)$, $w$는 윈도 크기)과 고른 토큰에 대한 희소한 전역 어텐션을 함께 쓴다. Linformer는 키와 값을 낮은 차원 $k \ll n$으로 사영해 복잡도를 $O(n \cdot k \cdot d)$로 줄인다. 둘 다 표현력을 얼마쯤 내주고 긴 입력에서의 효율을 얻는다.
 
 ---
 <div class="drillbox" markdown>
@@ -287,12 +287,12 @@ CLS 단어의 어텐션을 그린다(모형이 어디에 어텐션을 두는가)
     경계 조건을 두루 다루는 테스트 함수를 작성한다.
     ```python
     def test_vitattentionvisualizer():
-        model = 앞선 레이어(...)
-        # 여느 들임
+        model = ViTAttentionVisualizer(...)
+        # 보통 입력
         assert model(normal_input).shape == expected_shape
         # 원소 하나짜리 배치
         assert model(single_input).shape == (1, ...)
-        # 큰 값(넘침을 살핀다)
+        # 큰 값(오버플로를 확인한다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
         # 그래디언트 흐름

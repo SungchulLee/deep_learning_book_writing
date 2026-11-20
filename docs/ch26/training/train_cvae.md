@@ -15,18 +15,420 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from tqdm import tqdm
+import torch.nn as nn
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
+
+# ========================================================================
+# 모델
+# ========================================================================
+
+class ConditionalVAE(nn.Module):
+    def __init__(self, input_dim=784, hidden_dim=256, latent_dim=32, num_classes=10):
+        super().__init__()
+        self.input_dim, self.latent_dim, self.num_classes = input_dim, latent_dim, num_classes
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim + num_classes, hidden_dim), nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim), nn.ReLU()
+        )
+        self.fc_mu = nn.Linear(hidden_dim, latent_dim)
+        self.fc_logvar = nn.Linear(hidden_dim, latent_dim)
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim + num_classes, hidden_dim), nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
+            nn.Linear(hidden_dim, input_dim), nn.Sigmoid()
+        )
+
+    def encode(self, x, c):
+        return self.fc_mu(self.encoder(torch.cat([x, c], dim=1))), \
+               self.fc_logvar(self.encoder(torch.cat([x, c], dim=1)))
+
+    def reparameterize(self, mu, logvar):
+        return mu + torch.exp(0.5 * logvar) * torch.randn_like(mu)
+
+    def decode(self, z, c):
+        return self.decoder(torch.cat([z, c], dim=1))
+
+    def forward(self, x, labels):
+        c = F.one_hot(labels, self.num_classes).float() if len(labels.shape) == 1 else labels
+        mu, logvar = self.encode(x, c)
+        z = self.reparameterize(mu, logvar)
+        return self.decode(z, c), mu, logvar
+
+    def sample(self, class_label, num_samples, device='cpu'):
+        z = torch.randn(num_samples, self.latent_dim).to(device)
+        labels = torch.tensor([class_label] * num_samples).to(device)
+        c = F.one_hot(labels, self.num_classes).float()
+        return self.decode(z, c)
+
+
+class ConvConditionalVAE(nn.Module):
+    """
+    조건부 이미지 생성을 위한 컨볼루션 조건부 변분 오토인코더.
+    
+    인수:
+        latent_dim (int): 잠재 공간 차원
+        num_classes (int): 조건으로 줄 클래스의 수
+        img_channels (int): 입력 이미지 채널 수
+        img_size (int): 입력 이미지 크기(정사각형 이미지로 가정한다)
+    """
+    
+    def __init__(self, latent_dim=128, num_classes=10, img_channels=1, img_size=28):
+        super(ConvConditionalVAE, self).__init__()
+        
+        self.latent_dim = latent_dim
+        self.num_classes = num_classes
+        self.img_channels = img_channels
+        self.img_size = img_size
+        
+        # 공간 조건화를 위한 라벨 임베딩
+        self.label_embedding = nn.Embedding(num_classes, img_size * img_size)
+        
+        # 인코더 - 이미지 + 임베딩한 라벨을 채널 하나로 더 받는다
+        self.encoder = nn.Sequential(
+            # 입력: img_channels + 1(임베딩한 라벨용)
+            nn.Conv2d(img_channels + 1, 32, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(0.2),
+            
+            nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(0.2),
+            
+            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(128),
+            nn.LeakyReLU(0.2),
+            
+            nn.Flatten()
+        )
+        
+        # 펼친 크기를 계산한다
+        self.flatten_size = 128 * 4 * 4
+        
+        # 잠재 분포 파라메터
+        self.fc_mu = nn.Linear(self.flatten_size, latent_dim)
+        self.fc_logvar = nn.Linear(self.flatten_size, latent_dim)
+        
+        # 디코더 입력: 잠재 표현 + 원핫 클래스
+        self.decoder_input = nn.Linear(latent_dim + num_classes, self.flatten_size)
+        
+        # 디코더
+        self.decoder = nn.Sequential(
+            nn.Unflatten(1, (128, 4, 4)),
+            
+            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            
+            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            
+            nn.ConvTranspose2d(32, img_channels, kernel_size=4, stride=2, padding=1),
+            nn.Sigmoid()
+        )
+    
+    def encode(self, x, labels):
+        """
+        클래스 라벨을 조건으로 입력 이미지를 인코딩한다.
+        
+        인수:
+            x: 입력 이미지 텐서 [배치 크기, 채널, 높이, 너비]
+            labels: 클래스 라벨 [배치 크기]
+            
+        반환값:
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+        """
+        batch_size = x.size(0)
+        
+        # 라벨을 임베딩하고 공간 형태로 바꾼다
+        c_embedded = self.label_embedding(labels)
+        c_embedded = c_embedded.view(batch_size, 1, self.img_size, self.img_size)
+        
+        # 이미지와 임베딩한 라벨을 연결한다
+        x_combined = torch.cat([x, c_embedded], dim=1)
+        
+        # 인코딩
+        h = self.encoder(x_combined)
+        mu = self.fc_mu(h)
+        logvar = self.fc_logvar(h)
+        return mu, logvar
+    
+    def reparameterize(self, mu, logvar):
+        """
+        리파라메리제이션 기법.
+        
+        인수:
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+            
+        반환값:
+            z: 샘플링한 잠재 벡터
+        """
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
+    
+    def decode(self, z, labels):
+        """
+        클래스 라벨을 조건으로 잠재 표현을 디코딩한다.
+        
+        인수:
+            z: 잠재 벡터 [배치 크기, 잠재 차원]
+            labels: 클래스 라벨 [배치 크기]
+            
+        반환값:
+            reconstruction: 복원한 이미지
+        """
+        # 라벨을 원핫 인코딩한다
+        c_onehot = F.one_hot(labels, num_classes=self.num_classes).float()
+        
+        # 잠재 표현과 조건을 연결한다
+        z_combined = torch.cat([z, c_onehot], dim=1)
+        
+        # 디코딩
+        h = self.decoder_input(z_combined)
+        reconstruction = self.decoder(h)
+        return reconstruction
+    
+    def forward(self, x, labels):
+        """
+        조건을 포함한 전체 순전파.
+        
+        인수:
+            x: 입력 이미지 텐서
+            labels: 클래스 라벨
+            
+        반환값:
+            reconstruction: 복원한 이미지
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+        """
+        mu, logvar = self.encode(x, labels)
+        z = self.reparameterize(mu, logvar)
+        reconstruction = self.decode(z, labels)
+        return reconstruction, mu, logvar
+    
+    def loss_function(self, reconstruction, x, mu, logvar, beta=1.0):
+        """
+        변분 오토인코더 로스 함수.
+        
+        인수:
+            reconstruction: 복원한 출력
+            x: 원래 입력
+            mu: 잠재 분포의 평균
+            logvar: 잠재 분포의 로그 분산
+            beta: KL 발산 항의 웨이트
+            
+        반환값:
+            loss: 전체 변분 오토인코더 로스
+            bce: 복원 로스
+            kld: KL 발산
+        """
+        BCE = F.binary_cross_entropy(reconstruction, x, reduction='sum')
+        KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        return BCE + beta * KLD, BCE, KLD
+    
+    def sample(self, class_label, num_samples, device='cpu'):
+        """
+        특정 클래스를 조건으로 표본을 생성한다.
+        
+        인수:
+            class_label: 생성할 클래스(int)
+            num_samples: 생성할 표본의 개수
+            device: 표본을 생성할 장치
+            
+        반환값:
+            samples: 생성한 이미지 표본
+        """
+        z = torch.randn(num_samples, self.latent_dim).to(device)
+        labels = torch.tensor([class_label] * num_samples).to(device)
+        samples = self.decode(z, labels)
+        return samples
+    
+    def interpolate_classes(self, z, class1, class2, num_steps=10):
+        """
+        잠재 표현을 고정한 채 두 클래스 사이를 보간한다.
+        
+        인수:
+            z: 고정한 잠재 표현 [1, 잠재 차원]
+            class1: 시작 클래스
+            class2: 끝 클래스
+            num_steps: 보간 스텝 수
+            
+        반환값:
+            interpolations: 보간한 표본
+        """
+        device = z.device
+        interpolations = []
+        
+        for i in range(num_steps):
+            alpha = i / (num_steps - 1)
+            
+            # 보간을 위한 소프트 라벨을 만든다
+            c1_onehot = F.one_hot(torch.tensor([class1]), num_classes=self.num_classes).float().to(device)
+            c2_onehot = F.one_hot(torch.tensor([class2]), num_classes=self.num_classes).float().to(device)
+            c_interpolated = (1 - alpha) * c1_onehot + alpha * c2_onehot
+            
+            # 디코딩
+            z_combined = torch.cat([z, c_interpolated], dim=1)
+            h = self.decoder_input(z_combined)
+            sample = self.decoder(h)
+            interpolations.append(sample)
+        
+        return torch.cat(interpolations, dim=0)
+
+
+# ========================================================================
+# 로스
+# ========================================================================
+
+def vae_loss(reconstruction, target, mu, logvar, beta=1.0, reduction="sum"):
+    """VAE의 로스를 계산한다.
+
+    인수:
+        reconstruction: 디코더가 내놓은 값. [0,1]이어야 한다(시그모이드를 거친 것)
+        target: 원래 입력. 마찬가지로 [0,1]이어야 한다
+        mu, logvar: 인코더가 내놓은 잠재 분포의 평균과 로그 분산
+        beta: KL 항의 가중치. 1이면 보통의 VAE
+        reduction: 'sum'이면 배치 전체의 합, 'mean'이면 표본마다의 평균
+
+    반환값:
+        (전체 로스, 복원 로스, KL 로스)
+    """
+    # 목표가 [0,1] 밖이면 BCE가 거부한다. 미리 일러 주는 편이 낫다.
+    if target.min() < 0 or target.max() > 1:
+        raise ValueError(
+            "target은 [0,1] 안에 있어야 한다. 픽셀을 정규화할 때 "
+            "Normalize로 음수를 만들지 않았는지 살펴보라."
+        )
+
+    recon_loss = F.binary_cross_entropy(
+        reconstruction.reshape(target.shape[0], -1),
+        target.reshape(target.shape[0], -1),
+        reduction="sum",
+    )
+
+    # KL(N(mu, sigma^2) || N(0, 1)) 의 닫힌 형태
+    kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+
+    if reduction == "mean":
+        n = target.shape[0]
+        recon_loss, kl_loss = recon_loss / n, kl_loss / n
+
+    return recon_loss + beta * kl_loss, recon_loss, kl_loss
+
+
+# ========================================================================
+# 시각화 도우미
+# ========================================================================
+
+def _to_image(t):
+    """텐서를 matplotlib이 받는 형태로 바꾼다.
+
+    완전 연결 오토인코더는 펼친 벡터를 내놓으므로, 1차원으로 들어오면
+    정사각형 이미지로 되접어 준다. 그러지 않으면 imshow가
+    "Invalid shape (784,) for image data" 로 거부한다.
+    """
+    import math
+
+    t = t.detach().cpu()
+    if t.dim() == 1:                          # 펼친 벡터 -> 정사각형
+        side = int(math.isqrt(t.numel()))
+        if side * side == t.numel():
+            t = t.view(side, side)
+        return t, "gray"
+    if t.dim() == 3 and t.shape[0] == 1:      # 회색조
+        return t.squeeze(0), "gray"
+    if t.dim() == 3:                          # 컬러: (C,H,W) -> (H,W,C)
+        return t.permute(1, 2, 0), None
+    return t, "gray"
+
+
+def visualize_reconstruction(model, data_loader, num_images=10, device="cpu",
+                             conditional=False, save_path=None):
+    """원본 이미지와 복원 이미지를 위아래로 나란히 놓는다.
+
+    인수:
+        model: forward가 (복원 값, mu, logvar)를 돌려주는 오토인코더
+        data_loader: 볼 데이터를 주는 로더
+        num_images: 보여 줄 이미지 수
+        device: 모델이 올라가 있는 장치
+        conditional: 조건부 모델이면 True. 라벨도 함께 넣어 준다
+        save_path: 주면 그림을 그 경로로 저장한다
+    """
+    model.eval()
+    images, labels = next(iter(data_loader))
+    images = images[:num_images].to(device)
+    labels = labels[:num_images].to(device)
+
+    with torch.no_grad():
+        # 완전 연결 오토인코더는 펼친 입력을 받고, 컨볼루션 쪽은 이미지
+        # 형태 그대로를 받는다. 어느 쪽인지 모르므로 이미지 형태로 먼저
+        # 넣어 보고, 거부하면 펼쳐서 다시 넣는다.
+        try:
+            out = model(images, labels) if conditional else model(images)
+        except RuntimeError:
+            flat = images.view(images.size(0), -1)
+            out = model(flat, labels) if conditional else model(flat)
+    # forward가 (recon, mu, logvar)를 돌려주기도 하고 recon만 돌려주기도 한다
+    recon = out[0] if isinstance(out, (tuple, list)) else out
+    recon = recon.view_as(images)
+
+    fig, axes = plt.subplots(2, num_images, figsize=(num_images * 1.2, 3))
+    for i in range(num_images):
+        img, cmap = _to_image(images[i])
+        axes[0, i].imshow(img, cmap=cmap)
+        axes[0, i].axis("off")
+        rec, cmap = _to_image(recon[i])
+        axes[1, i].imshow(rec, cmap=cmap)
+        axes[1, i].axis("off")
+    axes[0, 0].set_ylabel("Original")
+    axes[1, 0].set_ylabel("Reconstruction")
+    fig.suptitle("Top: original    Bottom: reconstruction")
+    plt.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
+def visualize_samples(model, latent_dim, num_samples=10, device="cpu",
+                      class_label=None, save_path=None):
+    """잠재 공간에서 무작위로 뽑아 디코더에 넣어 본다.
+
+    복원과 달리 이쪽은 모델이 정말로 생성할 줄 아는지를 본다.
+    사전분포 N(0, I)에서 뽑으므로, 학습이 잘되었다면 그럴듯한 이미지가 나와야 한다.
+    """
+    model.eval()
+    with torch.no_grad():
+        z = torch.randn(num_samples, latent_dim, device=device)
+        if class_label is not None:
+            labels = torch.full((num_samples,), int(class_label),
+                                dtype=torch.long, device=device)
+            samples = model.decode(z, labels)
+        else:
+            samples = model.decode(z)
+
+    fig, axes = plt.subplots(1, num_samples, figsize=(num_samples * 1.2, 1.6))
+    if num_samples == 1:
+        axes = [axes]
+    for i in range(num_samples):
+        img, cmap = _to_image(samples[i])
+        axes[i].imshow(img, cmap=cmap)
+        axes[i].axis("off")
+    title = "Samples from the latent space"
+    if class_label is not None:
+        title += f" (class {class_label})"
+    fig.suptitle(title)
+    plt.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
 
 # ========================================================================
 # 메인
 # ========================================================================
-
-import sys
-sys.path.append('..')
-from models.conditional_vae import ConditionalVAE
-from models.conv_cvae import ConvConditionalVAE
-from utils.losses import vae_loss
-from utils.visualization import visualize_reconstruction, visualize_samples
-
 
 def train_epoch(model, train_loader, optimizer, device, beta=1.0):
     """한 에포크 동안 학습한다"""
@@ -238,7 +640,7 @@ if __name__ == '__main__':
 
 기본값은 완전 연결 모델, 잠재 32, 은닉 256, 클래스 10, β=1, 배치 128, Adam 러닝레이트 0.001과 20에포크다. MNIST 이미지는 ToTensor로 0~1 범위로 변환하고, 완전 연결 모델만 `(B,784)`로 펼친다. 라벨은 정수 인덱스 그대로 모델의 forward에 전달한다. num_classes만 바꾸어 데이터의 실제 라벨 범위가 바뀌는 것은 아니다.
 
-가져온 vae_loss는 기본적으로 배치 전체의 BCE와 KL 합을 계산한다. 매 배치 이 합으로 역전파하고 에포크 기록은 데이터셋 표본 수로 나눈다. 따라서 재구성 기록은 픽셀당 평균이 아닌 표본당 픽셀 BCE 합이다. 조건에 무관한 표준정규 사전분포를 사용하므로 별도 조건부 사전분포 네트워크는 없다.
+위 vae_loss는 기본적으로 배치 전체의 BCE와 KL 합을 계산한다. 매 배치 이 합으로 역전파하고 에포크 기록은 데이터셋 표본 수로 나눈다. 따라서 재구성 기록은 픽셀당 평균이 아닌 표본당 픽셀 BCE 합이다. 조건에 무관한 표준정규 사전분포를 사용하므로 별도 조건부 사전분포 네트워크는 없다.
 
 ## 2. 평가·선택과 생성 호출
 

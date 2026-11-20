@@ -4,7 +4,7 @@
 
 ## 1. 코드
 
-??? note "코드 (435줄)"
+??? note "코드 (483줄)"
 
     ```python
     """
@@ -45,7 +45,55 @@
         OPTUNA_AVAILABLE = False
         print("Optuna not available. Install with: pip install optuna")
 
-    from utils import load_sample_dataset, plot_search_results
+    # ========================================================================
+    # 도우미 함수
+    # ========================================================================
+    from sklearn.datasets import load_iris, load_wine, make_classification
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+
+    def load_sample_dataset(name="iris", test_size=0.3, random_state=42, scale=True):
+        """예제가 함께 쓰는 자료를 불러와 학습/시험으로 나눈다.
+
+        인수:
+            name: 'iris', 'wine', 'synthetic' 가운데 하나
+            test_size: 시험 집합의 비율
+            random_state: 씨앗. 예제끼리 견주려면 같은 값을 써야 한다
+            scale: 특징을 평균 0, 표준편차 1로 맞출지 여부.
+                   SVM처럼 크기에 민감한 모델에는 반드시 필요하다
+
+        반환값:
+            X_train, X_test, y_train, y_test
+        """
+        if name == "iris":
+            data = load_iris()
+            X, y = data.data, data.target
+        elif name == "wine":
+            data = load_wine()
+            X, y = data.data, data.target
+        elif name == "synthetic":
+            X, y = make_classification(
+                n_samples=500, n_features=20, n_informative=10,
+                n_redundant=5, n_classes=3, random_state=random_state,
+            )
+        else:
+            raise ValueError(
+                f"모르는 자료 이름: {name!r}. 'iris', 'wine', 'synthetic' 가운데 하나를 쓴다."
+            )
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=random_state, stratify=y
+        )
+
+        if scale:
+            # 고르게 맞추는 값은 반드시 학습 집합에서만 구한다.
+            # 전체에서 구하면 시험 자료의 정보가 학습에 새어 든다.
+            scaler = StandardScaler().fit(X_train)
+            X_train = scaler.transform(X_train)
+            X_test = scaler.transform(X_test)
+
+        return X_train, X_test, y_train, y_test
 
 
     def run_grid_search(X_train, y_train):

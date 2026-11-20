@@ -15,16 +15,119 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from tqdm import tqdm
+import torch.nn as nn
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
+
+# ========================================================================
+# 모델
+# ========================================================================
+
+class SimpleAutoencoder(nn.Module):
+    def __init__(self, input_dim=784, hidden_dim=256, latent_dim=32):
+        super().__init__()
+        self.input_dim = input_dim
+        self.latent_dim = latent_dim
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim), nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
+            nn.Linear(hidden_dim, latent_dim)
+        )
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim, hidden_dim), nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
+            nn.Linear(hidden_dim, input_dim), nn.Sigmoid()
+        )
+
+    def encode(self, x):
+        return self.encoder(x)
+
+    def decode(self, z):
+        return self.decoder(z)
+
+    def forward(self, x):
+        return self.decode(self.encode(x))
+
+    def loss_function(self, reconstruction, x):
+        return F.mse_loss(reconstruction, x, reduction='sum')
+
+
+# ========================================================================
+# 시각화 도우미
+# ========================================================================
+
+def _to_image(t):
+    """텐서를 matplotlib이 받는 형태로 바꾼다.
+
+    완전 연결 오토인코더는 펼친 벡터를 내놓으므로, 1차원으로 들어오면
+    정사각형 이미지로 되접어 준다. 그러지 않으면 imshow가
+    "Invalid shape (784,) for image data" 로 거부한다.
+    """
+    import math
+
+    t = t.detach().cpu()
+    if t.dim() == 1:                          # 펼친 벡터 -> 정사각형
+        side = int(math.isqrt(t.numel()))
+        if side * side == t.numel():
+            t = t.view(side, side)
+        return t, "gray"
+    if t.dim() == 3 and t.shape[0] == 1:      # 회색조
+        return t.squeeze(0), "gray"
+    if t.dim() == 3:                          # 컬러: (C,H,W) -> (H,W,C)
+        return t.permute(1, 2, 0), None
+    return t, "gray"
+
+
+def visualize_reconstruction(model, data_loader, num_images=10, device="cpu",
+                             conditional=False, save_path=None):
+    """원본 이미지와 복원 이미지를 위아래로 나란히 놓는다.
+
+    인수:
+        model: forward가 (복원 값, mu, logvar)를 돌려주는 오토인코더
+        data_loader: 볼 데이터를 주는 로더
+        num_images: 보여 줄 이미지 수
+        device: 모델이 올라가 있는 장치
+        conditional: 조건부 모델이면 True. 라벨도 함께 넣어 준다
+        save_path: 주면 그림을 그 경로로 저장한다
+    """
+    model.eval()
+    images, labels = next(iter(data_loader))
+    images = images[:num_images].to(device)
+    labels = labels[:num_images].to(device)
+
+    with torch.no_grad():
+        # 완전 연결 오토인코더는 펼친 입력을 받고, 컨볼루션 쪽은 이미지
+        # 형태 그대로를 받는다. 어느 쪽인지 모르므로 이미지 형태로 먼저
+        # 넣어 보고, 거부하면 펼쳐서 다시 넣는다.
+        try:
+            out = model(images, labels) if conditional else model(images)
+        except RuntimeError:
+            flat = images.view(images.size(0), -1)
+            out = model(flat, labels) if conditional else model(flat)
+    # forward가 (recon, mu, logvar)를 돌려주기도 하고 recon만 돌려주기도 한다
+    recon = out[0] if isinstance(out, (tuple, list)) else out
+    recon = recon.view_as(images)
+
+    fig, axes = plt.subplots(2, num_images, figsize=(num_images * 1.2, 3))
+    for i in range(num_images):
+        img, cmap = _to_image(images[i])
+        axes[0, i].imshow(img, cmap=cmap)
+        axes[0, i].axis("off")
+        rec, cmap = _to_image(recon[i])
+        axes[1, i].imshow(rec, cmap=cmap)
+        axes[1, i].axis("off")
+    axes[0, 0].set_ylabel("Original")
+    axes[1, 0].set_ylabel("Reconstruction")
+    fig.suptitle("Top: original    Bottom: reconstruction")
+    plt.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
 
 # ========================================================================
 # 메인
 # ========================================================================
-
-import sys
-sys.path.append('..')
-from models.autoencoder import SimpleAutoencoder
-from utils.visualization import visualize_reconstruction
-
 
 def train_epoch(model, train_loader, optimizer, device):
     """한 에포크 동안 학습한다"""
@@ -166,15 +269,15 @@ if __name__ == '__main__':
     main(args)
 ```
 
-## 2. 입력·모듈·실행 환경
+## 2. 입력·모델·실행 환경
 
-입력은 `ToTensor`로 [0,1]에 맞춘 B×1×28×28 이미지이고 모델에는 B×784로 펼쳐 전달한다. 모델의 기본 은닉 너비는 256, 잠재 차원은 32다. 구조는 [오토인코더 모듈](../architecture/autoencoder.md)에서 설명하며 실제 import 대상은 이 디렉터리의 `models/autoencoder.py`다.
+입력은 `ToTensor`로 [0,1]에 맞춘 B×1×28×28 이미지이고 모델에는 B×784로 펼쳐 전달한다. 모델의 기본 은닉 너비는 256, 잠재 차원은 32다. 구조는 [오토인코더 모듈](../architecture/autoencoder.md)에서 설명하며, 위 코드의 `SimpleAutoencoder`는 그 쪽의 클래스를 그대로 옮긴 것이다. 복원 그림을 그리는 `visualize_reconstruction`도 같은 코드 블록 안에 있다.
 
-상대 경로 `sys.path.append('..')`는 현재 작업 디렉터리에 의존한다. 코드가 패키지와 도구를 찾을 수 있는 실행 환경을 준비해야 한다. 시험 데이터셋에는 `download=True`가 없어 학습 파일만 존재하는 경우 시험 파일이 자동으로 준비된다고 가정할 수 없다. 체크포인트 경로에 부모 디렉터리가 없는 파일명만 주면 `os.path.dirname`이 빈 문자열이 되는 것도 처리해야 한다.
+데이터 경로 `./data`는 현재 작업 디렉터리에 의존한다. 시험 데이터셋에는 `download=True`가 없어 학습 파일만 존재하는 경우 시험 파일이 자동으로 준비된다고 가정할 수 없다. 체크포인트 경로에 부모 디렉터리가 없는 파일명만 주면 `os.path.dirname`이 빈 문자열이 되는 것도 처리해야 한다.
 
 ## 3. 로스의 단위와 에포크 집계
 
-가져온 모델은 복원 MSE를 `reduction='sum'`으로 반환한다. 한 배치의 모든 표본·픽셀 제곱 오차를 더하고 에포크에는 그 합을 데이터셋 표본 수로 나눈다. 따라서 출력 로스는 **표본당 784픽셀 제곱 오차 합의 평균**이다. 원소별 MSE로 읽으려면 784로 더 나눈다.
+이 모델은 복원 MSE를 `reduction='sum'`으로 반환한다. 한 배치의 모든 표본·픽셀 제곱 오차를 더하고 에포크에는 그 합을 데이터셋 표본 수로 나눈다. 따라서 출력 로스는 **표본당 784픽셀 제곱 오차 합의 평균**이다. 원소별 MSE로 읽으려면 784로 더 나눈다.
 
 마지막 배치 크기가 작아도 배치 합을 합산하므로 기본 로더가 전체 데이터를 한 번씩 처리하는 조건에서는 표본 가중 에포크 평균이 맞는다. 학습에 사용하는 배치 로스 자체는 표본 수로 나누지 않아 배치 크기에 따라 그래디언트 스케일이 달라진다. 로깅에서 나누는 것과 역전파 전에 나누는 것을 구분한다.
 
@@ -285,7 +388,7 @@ zero_grad를 제거하면 무엇이 바뀌는지 설명하라.
 
 ??? success "풀이"
 
-    입력 평탄화·피처 수, forward 반환형과 loss_function 인수·평균 축을 맞춘다. import 경로와 패키지 구조도 명시한다. 구조를 바꾸어 VAE 튜플을 반환하면 현재 단일 복원값 학습 루프는 그대로 호환되지 않는다. 한 곳의 구조 정의를 재사용해 중복 불일치를 줄일 수 있다.
+    입력 평탄화·피처 수, forward 반환형과 loss_function 인수·평균 축을 맞춘다. 구조를 바꾸어 VAE 튜플을 반환하면 현재 단일 복원값 학습 루프는 그대로 호환되지 않는다. 한 곳의 구조 정의를 재사용해 중복 불일치를 줄일 수 있다.
 
 
 

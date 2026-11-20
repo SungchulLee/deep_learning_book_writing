@@ -102,24 +102,24 @@ $$
 
 ```
 알고리즘: Grad-CAM++
-들임: 그림 I, CNN 모형 f, 겨눈 클래스 c, 겨눈 레이어 l
-출력: 열 그림 L_GradCAM++
+입력: 이미지 I, CNN 모델 f, 대상 클래스 c, 대상 레이어 l
+출력: 히트맵 L_GradCAM++
 
-1. 앞으로 스텝: 레이어 l의 살아남 A^k을 셈한다
-2. 앞으로 스텝: 클래스 점수 y^c(또는 소프트맥스 S^c)을 셈한다
-3. 역전파 스텝: 그래디언트 g = ∂y^c/∂A^k을 셈한다
-4. 그래디언트의 거듭제곱을 셈한다:
-   g² = g ⊙ g (원소마다의 제곱)
-   g³ = g ⊙ g ⊙ g (원소마다의 세제곱)
-5. 결 그림 k마다:
-   a. 자리 합을 셈한다: sum_A = Σ_{a,b} A^k_{ab}
-   b. 픽셀마다의 짐을 셈한다:
+1. 순전파: 레이어 l의 활성값 A^k를 계산한다
+2. 순전파: 클래스 점수 y^c(또는 소프트맥스 S^c)를 계산한다
+3. 역전파: 그래디언트 g = ∂y^c/∂A^k를 계산한다
+4. 그래디언트의 거듭제곱을 계산한다:
+   g² = g ⊙ g (원소별 제곱)
+   g³ = g ⊙ g ⊙ g (원소별 세제곱)
+5. 피처 맵 k마다:
+   a. 공간 합을 계산한다: sum_A = Σ_{a,b} A^k_{ab}
+   b. 픽셀별 웨이트를 계산한다:
       α_{ij}^{kc} = g²_{ij} / (2·g²_{ij} + sum_A · g³_{ij} + ε)
-   c. 통로 짐을 셈한다:
+   c. 채널 웨이트를 계산한다:
       w_k^c = Σ_{i,j} α_{ij}^{kc} · ReLU(g_{ij}^{kc})
-6. 열 그림을 셈한다: L = ReLU(Σ_k w_k^c · A^k)
-7. 고르게 하고 들임 결 고움으로 키운다
-8. L을 내놓는다
+6. 히트맵을 계산한다: L = ReLU(Σ_k w_k^c · A^k)
+7. 정규화하고 입력 해상도로 업샘플링한다
+8. L을 돌려준다
 ```
 
 ---
@@ -136,33 +136,33 @@ import numpy as np
 
 class GradCAMPlusPlus:
     """
-    CNN 시각화를 낫게 하는 Grad-CAM++ 구현.
+    CNN 시각화를 개선하는 Grad-CAM++ 구현.
 
-    Grad-CAM보다 자리를 잘 짚는데 특히 다음에서 그렇다:
-    - 같은 클래스의 물체가 여럿일 때
-    - 물체가 작을 때
-    - 얼마쯤 가려졌을 때
+    Grad-CAM보다 위치 파악이 나은데 특히 다음에서 그렇다:
+    - 같은 클래스의 객체가 여럿일 때
+    - 객체가 작을 때
+    - 일부가 가려졌을 때
 
-    살펴볼 거리: Chattopadhyay et al., "Grad-CAM++: Improved Visual Explanations
+    참고 문헌: Chattopadhyay et al., "Grad-CAM++: Improved Visual Explanations
     for Deep Convolutional Networks" (WACV 2018)
     """
 
     def __init__(self, model: nn.Module, target_layer: nn.Module):
         """
         Args:
-            model: PyTorch CNN 모형
-            target_layer: 그릴 겨눈 겹치는 레이어
+            model: PyTorch CNN 모델
+            target_layer: 시각화할 대상 컨볼루션 레이어
         """
         self.model = model
         self.target_layer = target_layer
         self.gradients = None
         self.activations = None
 
-        # 갈고리를 건다
+        # 훅을 건다
         self._register_hooks()
 
     def _register_hooks(self):
-        """겨눈 레이어에 앞으로 스텝과 역전파 갈고리를 건다."""
+        """대상 레이어에 순전파 훅과 역전파 훅을 건다."""
 
         def forward_hook(module, input, output):
             self.activations = output.detach()
@@ -180,15 +180,15 @@ class GradCAMPlusPlus:
         device: torch.device = None
     ) -> torch.Tensor:
         """
-        Grad-CAM++ 열 그림을 만든다.
+        Grad-CAM++ 히트맵을 만든다.
 
         Args:
-            input_tensor: 들임 그림 텐서 (1, C, H, W)
-            target_class: 겨눈 클래스 번호. None이면 미루어 본 클래스를 쓴다.
-            device: 셈하는 장치
+            input_tensor: 입력 이미지 텐서 (1, C, H, W)
+            target_class: 대상 클래스 번호. None이면 예측 클래스를 쓴다.
+            device: 계산할 장치
 
         Returns:
-            [0, 1]으로 고르게 한 열 그림 텐서 [H, W]
+            [0, 1]로 정규화한 히트맵 텐서 [H, W]
         """
         if device is None:
             device = next(self.model.parameters()).device
@@ -196,37 +196,37 @@ class GradCAMPlusPlus:
         self.model.eval()
         input_tensor = input_tensor.to(device)
 
-        # 앞으로 스텝
+        # 순전파
         output = self.model(input_tensor)
 
-        # 겨눈 클래스를 정한다
+        # 대상 클래스를 정한다
         if target_class is None:
             target_class = output.argmax(dim=1).item()
 
-        # 그래디언트가 더 잘 굴러가도록 소프트맥스 점수를 쓴다
+        # 그래디언트가 더 안정적이도록 소프트맥스 점수를 쓴다
         score = F.softmax(output, dim=1)[0, target_class]
 
-        # 역전파 스텝
+        # 역전파
         self.model.zero_grad()
         score.backward(retain_graph=True)
 
-        # 살아남과 그래디언트를 집는다
+        # 활성값과 그래디언트를 가져온다
         A = self.activations  # [1, K, H', W']
         g = self.gradients    # [1, K, H', W']
 
-        # 그래디언트의 거듭제곱을 셈한다
-        g_squared = g.pow(2)  # 이차 어림
-        g_cubed = g.pow(3)    # 삼차 어림
+        # 그래디언트의 거듭제곱을 계산한다
+        g_squared = g.pow(2)  # 이차 근사
+        g_cubed = g.pow(3)    # 삼차 근사
 
-        # (A * g³)을 자리 축으로 더한다
+        # (A * g³)을 공간 축으로 더한다
         # 곧: Σ_{a,b} A^k_{ab} · (g^k_{ab})³
         sum_Ag3 = (A * g_cubed).sum(dim=(2, 3), keepdim=True)  # [1, K, 1, 1]
 
-        # 픽셀마다의 알파 짐을 셈한다
+        # 픽셀별 알파 웨이트를 계산한다
         # α_{ij}^{kc} = g² / (2·g² + Σ(A·g³) + ε)
         denominator = 2 * g_squared + sum_Ag3 + 1e-8
 
-        # 셈이 흔들리지 않게 다룬다
+        # 수치 안정성을 위해 0을 피한다
         denominator = torch.where(
             denominator != 0,
             denominator,
@@ -235,21 +235,21 @@ class GradCAMPlusPlus:
 
         alpha = g_squared / denominator  # [1, K, H', W']
 
-        # 통로 짐을 셈한다: w_k = Σ_{i,j} α_{ij} · ReLU(g_{ij})
+        # 채널 웨이트를 계산한다: w_k = Σ_{i,j} α_{ij} · ReLU(g_{ij})
         positive_gradients = F.relu(g)
         weights = (alpha * positive_gradients).sum(dim=(2, 3), keepdim=True)  # [1, K, 1, 1]
 
-        # 살아남 그림을 짐 실어 아우른다
+        # 활성값 맵을 가중 결합한다
         heatmap = (weights * A).sum(dim=1, keepdim=True)  # [1, 1, H', W']
 
-        # ReLU을 건다(양수 기여에만 어텐션)
+        # ReLU를 건다(양수 기여만 남긴다)
         heatmap = F.relu(heatmap)
 
-        # [0, 1]으로 고르게 한다
+        # [0, 1]로 정규화한다
         heatmap = heatmap - heatmap.min()
         heatmap = heatmap / (heatmap.max() + 1e-8)
 
-        # 들임 결 고움으로 키운다
+        # 입력 해상도로 업샘플링한다
         heatmap = F.interpolate(
             heatmap,
             size=input_tensor.shape[2:],
@@ -265,14 +265,14 @@ class GradCAMPlusPlus:
         target_class: int = None
     ) -> np.ndarray:
         """
-        Grad-CAM++ 열 그림을 numpy 배열로 만든다.
+        Grad-CAM++ 히트맵을 numpy 배열로 만든다.
 
         Args:
-            input_tensor: 들임 그림 텐서 (1, C, H, W)
-            target_class: 겨눈 클래스 번호
+            input_tensor: 입력 이미지 텐서 (1, C, H, W)
+            target_class: 대상 클래스 번호
 
         Returns:
-            numpy 배열 열 그림 [H', W'] (결 그림 결 고움)
+            numpy 배열 히트맵 [H, W] (입력 해상도)
         """
         device = next(self.model.parameters()).device
         heatmap = self(input_tensor.to(device), target_class, device)
@@ -286,16 +286,16 @@ class GradCAMPlusPlus:
         alpha: float = 0.4
     ) -> np.ndarray:
         """
-        열 그림을 겹쳐 그린 그림을 만든다.
+        히트맵을 겹쳐 그린 이미지를 만든다.
 
         Args:
-            input_tensor: 들임 그림 텐서
-            original_image: [0, 255] 너비의 numpy 배열 (H, W, 3) 본디 그림
-            target_class: 겨눈 클래스 번호
-            alpha: 겹침의 비침 정도
+            input_tensor: 입력 이미지 텐서
+            original_image: [0, 255] 범위의 numpy 배열 (H, W, 3) 원본 이미지
+            target_class: 대상 클래스 번호
+            alpha: 겹친 히트맵의 투명도
 
         Returns:
-            [0, 255] 너비의 numpy 배열 (H, W, 3) 그림
+            [0, 255] 범위의 numpy 배열 (H, W, 3) 이미지
         """
         import cv2
 
@@ -350,7 +350,7 @@ import numpy as np
 
 def compare_gradcam_methods(model, input_tensor, target_class=None):
     """
-    Grad-CAM과 Grad-CAM++ 그림을 나란히 견준다.
+    Grad-CAM과 Grad-CAM++ 히트맵을 나란히 비교한다.
     """
     target_layer = model.layer4[-1]
 
@@ -362,10 +362,10 @@ def compare_gradcam_methods(model, input_tensor, target_class=None):
     gradcam_pp = GradCAMPlusPlus(model, target_layer)
     cam_gcpp = gradcam_pp.generate_cam(input_tensor, target_class)
 
-    # 견줌을 그린다
+    # 비교 결과를 그린다
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
-    # 보여 주려고 들임을 되돌려 고른다
+    # 표시하려고 입력의 정규화를 되돌린다
     img = input_tensor[0].permute(1, 2, 0).cpu().numpy()
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
@@ -373,7 +373,7 @@ def compare_gradcam_methods(model, input_tensor, target_class=None):
     img = np.clip(img, 0, 1)
 
     axes[0].imshow(img)
-    axes[0].set_title('본디 그림', fontsize=12)
+    axes[0].set_title('원본 이미지', fontsize=12)
     axes[0].axis('off')
 
     axes[1].imshow(cam_gc, cmap='jet')
@@ -387,13 +387,13 @@ def compare_gradcam_methods(model, input_tensor, target_class=None):
     plt.tight_layout()
     return fig
 
-# 쓰임
+# 사용 예
 model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
 model.eval()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
 
-# 제 그림 텐서를 부른다
+# 자기 이미지 텐서를 불러온다
 input_tensor = torch.randn(1, 3, 224, 224).to(device)
 fig = compare_gradcam_methods(model, input_tensor, target_class=281)  # 얼룩 고양이
 ```
@@ -415,7 +415,7 @@ fig = compare_gradcam_methods(model, input_tensor, target_class=281)  # 얼룩 �
 ```python
 def multi_instance_demonstration(model, image_tensor, target_class):
     """
-    물체가 여럿인 그림에서 Grad-CAM++이 나음을 보인다.
+    객체가 여럿인 이미지에서 Grad-CAM++가 나음을 보인다.
     """
     target_layer = model.layer4[-1]
 
@@ -427,17 +427,17 @@ def multi_instance_demonstration(model, image_tensor, target_class):
     gcpp = GradCAMPlusPlus(model, target_layer)
     cam_gcpp = gcpp.generate_cam(image_tensor, target_class)
 
-    # 임계를 달리하며 덮는 만큼을 잰다
+    # 임계값을 달리하며 커버리지를 잰다
     thresholds = [0.3, 0.5, 0.7]
 
-    print("덮는 만큼 살피기(그림에서 짚어 준 기여도):")
+    print("커버리지 분석(히트맵이 강조한 영역의 비율):")
     print("-" * 50)
     for thresh in thresholds:
         coverage_gc = (cam_gc > thresh).sum() / cam_gc.size
         coverage_gcpp = (cam_gcpp > thresh).sum() / cam_gcpp.size
-        print(f"임계 {thresh}: Grad-CAM={coverage_gc:.2%}, Grad-CAM++={coverage_gcpp:.2%}")
+        print(f"임계값 {thresh}: Grad-CAM={coverage_gc:.2%}, Grad-CAM++={coverage_gcpp:.2%}")
 
-    # 물체가 여럿이면 Grad-CAM++이 흔히 더 잘 덮는다
+    # 객체가 여럿이면 Grad-CAM++가 흔히 더 잘 덮는다
     return cam_gc, cam_gcpp
 ```
 
@@ -452,14 +452,14 @@ def multi_instance_demonstration(model, image_tensor, target_class):
 ```python
 def pointing_game(cam: np.ndarray, bbox: tuple) -> int:
     """
-    가장 큰 살아남이 테두리 상자 안에 드는지 따진다.
+    가장 큰 활성값이 바운딩 박스 안에 드는지 평가한다.
 
     Args:
-        cam: [0, 1]으로 고르게 한 클래스 살아남 그림 (H, W)
-        bbox: 테두리 상자 [x_min, y_min, x_max, y_max]
+        cam: [0, 1]로 정규화한 클래스 활성화 맵 (H, W)
+        bbox: 바운딩 박스 [x_min, y_min, x_max, y_max]
 
     Returns:
-        가장 큰 점이 상자 안이면 1, 아니면 0
+        최댓값 위치가 박스 안이면 1, 아니면 0
     """
     max_idx = np.unravel_index(cam.argmax(), cam.shape)
     y, x = max_idx
@@ -471,15 +471,15 @@ def pointing_game(cam: np.ndarray, bbox: tuple) -> int:
 
 def pointing_game_evaluation(model, dataloader, method='gradcam++'):
     """
-    자료 전체에 걸쳐 짚기 놀이 정확도를 따진다.
+    데이터셋 전체에 걸쳐 포인팅 게임 정확도를 평가한다.
 
     Args:
-        model: CNN 모형
-        dataloader: 그림과 테두리 상자를 지닌 DataLoader
+        model: CNN 모델
+        dataloader: 이미지와 바운딩 박스를 내놓는 DataLoader
         method: 'gradcam'이나 'gradcam++'
 
     Returns:
-        짚기 놀이 정확도
+        포인팅 게임 정확도
     """
     target_layer = model.layer4[-1]
 
@@ -514,56 +514,56 @@ def average_drop_increase(
     device: torch.device
 ) -> tuple:
     """
-    고른 떨어짐과 고른 오름 자를 셈한다.
+    Average Drop과 Increase in Confidence 지표를 계산한다.
 
-    고른 떨어짐: 짚어 주지 않은 자리를 가릴 때 확신도가
-                 얼마나 떨어지는가?
-    고른 오름: 짚어 준 자리만 남길 때 확신도가 오르는 일이
-               얼마나 잦은가?
+    Average Drop: 맵이 강조하지 않은 영역을 가릴 때 확신도가
+                  얼마나 떨어지는가?
+    Increase in Confidence: 맵이 강조한 영역만 남길 때 확신도가
+                            오르는 경우가 얼마나 잦은가?
 
     Args:
-        model: 분류기 모형
-        input_tensor: 본디 들임
-        cam: 클래스 살아남 그림
-        target_class: 겨눈 클래스 번호
-        device: 셈하는 장치
+        model: 분류기 모델
+        input_tensor: 원본 입력
+        cam: 클래스 활성화 맵
+        target_class: 대상 클래스 번호
+        device: 계산할 장치
 
     Returns:
-        (고른 떨어짐, 고른 오름)
+        (Average Drop, Increase in Confidence)
     """
     import cv2
 
     model.eval()
     input_tensor = input_tensor.to(device)
 
-    # 본디 미루어 봄
+    # 원본 입력의 예측
     with torch.no_grad():
         orig_output = model(input_tensor)
         orig_conf = F.softmax(orig_output, dim=1)[0, target_class].item()
 
-    # 가린 들임을 만든다(짚어 준 자리만 남긴다)
+    # 마스크를 씌운 입력을 만든다(맵이 강조한 영역만 남긴다)
     h, w = input_tensor.shape[2:]
     cam_resized = cv2.resize(cam, (w, h))
     mask = torch.tensor(cam_resized, device=device).unsqueeze(0).unsqueeze(0)
     masked_input = input_tensor * mask
 
-    # 가린 미루어 봄
+    # 마스크를 씌운 입력의 예측
     with torch.no_grad():
         masked_output = model(masked_input)
         masked_conf = F.softmax(masked_output, dim=1)[0, target_class].item()
 
-    # 자를 셈한다
-    # 고른 떨어짐: (본디 - 가림) / 본디, [0, 1]으로 자른다
+    # 지표를 계산한다
+    # Average Drop: (원본 - 마스크) / 원본, 음수는 0으로 자른다
     drop = max(0, orig_conf - masked_conf) / (orig_conf + 1e-8)
 
-    # 고른 오름: masked_conf > orig_conf이면 1, 아니면 0
+    # Increase in Confidence: masked_conf > orig_conf이면 1, 아니면 0
     increase = 1 if masked_conf > orig_conf else 0
 
     return drop, increase
 
 def evaluate_faithfulness(model, dataloader, cam_method, device):
     """
-    자료 전체에 걸쳐 신뢰성 자를 따진다.
+    데이터셋 전체에 걸쳐 충실성 지표를 평가한다.
     """
     total_drop = 0
     total_increase = 0
@@ -585,8 +585,8 @@ def evaluate_faithfulness(model, dataloader, cam_method, device):
     avg_drop = total_drop / n_samples
     avg_increase = total_increase / n_samples
 
-    print(f"고른 떨어짐: {avg_drop:.2%} (작을수록 좋다)")
-    print(f"고른 오름: {avg_increase:.2%} (작을수록 좋다)")
+    print(f"Average Drop: {avg_drop:.2%} (작을수록 좋다)")
+    print(f"Increase in Confidence: {avg_increase:.2%} (클수록 좋다)")
 
     return avg_drop, avg_increase
 ```
@@ -688,7 +688,7 @@ $\alpha_{ij}^{kc}$를 계산할 때의 나눗셈이 불안정할 수 있다.
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -739,7 +739,7 @@ $$
 
 1. Grad-CAM이 부족한 **객체가 여럿인 상황에 쓴다**
 2. 알맞은 엡실론 값으로 **수치 안정성을 확보한다**
-3. 자기 문제에서 실제로 나아지는지 **Grad-CAM과 견준다**
+3. 자기 문제에서 실제로 나아지는지 **Grad-CAM과 비교한다**
 4. 포인팅 게임과 충실성 지표로 **정량 평가한다**
 5. 실시간 응용에서는 **계산 비용의 트레이드오프를 고려한다**
 

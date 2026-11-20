@@ -20,7 +20,7 @@
 
 **바닐라 그래디언트에서 시작**
 
-- [Saliency Map과 기본 그래디언트](gradient_methods/saliency_maps.md) — 그래디언트 기반 현저성의 수학적 기초. 뒤의 모든 방법이 **이것의 한계를 고치는** 것이다
+- [Saliency Map과 기본 그래디언트](gradient_methods/saliency_maps.md) — 그래디언트 기반 샐리언시의 수학적 기초. 뒤의 모든 방법이 **이것의 한계를 고치는** 것이다
 
 **잡음을 줄이고 기준을 두기**
 
@@ -40,7 +40,7 @@
 
 - [어텐션 시각화](gradient_methods/attention_visualization.md) · [어텐션 예제](gradient_methods/example_attention.md) — 트랜스포머의 어텐션 웨이트를 그린다
 
-**견주고 넓히기**
+**비교와 확장**
 
 - [비교 분석](gradient_methods/08_comparative_analysis.md) — 방법들을 나란히 놓는다 · [고급 기법](gradient_methods/09_advanced_techniques.md)
 

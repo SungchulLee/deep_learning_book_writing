@@ -57,53 +57,53 @@ import xgboost as xgb
 from sklearn.datasets import make_classification
 
 def tree_shap_example():
-    """XGBoost으로 하는 온전한 나무 SHAP 보기."""
+    """XGBoost로 하는 Tree SHAP 전체 예제."""
 
-    # 보기 자료를 만든다
+    # 예제 데이터를 만든다
     X, y = make_classification(
         n_samples=1000, n_features=20,
         n_informative=10, random_state=42
     )
     feature_names = [f'feature_{i}' for i in range(20)]
 
-    # XGBoost 모형을 익힌다
+    # XGBoost 모델을 학습한다
     model = xgb.XGBClassifier(
         n_estimators=100, max_depth=6, random_state=42
     )
     model.fit(X[:800], y[:800])
 
-    # 나무 SHAP 풀이개 - 꼭 맞고 빠르다
+    # Tree SHAP 설명기 - 정확하고 빠르다
     explainer = shap.TreeExplainer(model)
 
-    # 시험 자료의 SHAP 값을 셈한다
+    # 테스트 데이터의 SHAP 값을 계산한다
     shap_values = explainer.shap_values(X[800:])
 
-    # 밑값(바라는 미루어 봄)
-    print(f"밑값: {explainer.expected_value:.4f}")
+    # 기준값(예측의 기댓값)
+    print(f"기준값: {explainer.expected_value:.4f}")
 
-    # 첫 표본의 완전성을 살핀다
+    # 첫 표본의 완전성을 확인한다
     prediction = model.predict_proba(X[800:801])[0, 1]
     from scipy.special import expit
     shap_sum = shap_values[0].sum() + explainer.expected_value
-    print(f"미루어 봄(확률):  {prediction:.4f}")
-    print(f"SHAP으로 되세움: {expit(shap_sum):.4f}")
+    print(f"예측(확률):      {prediction:.4f}")
+    print(f"SHAP으로 복원:   {expit(shap_sum):.4f}")
 
     return shap_values, explainer
 
 def tree_shap_for_lightgbm(model, X_train, X_test, feature_names):
-    """LightGBM 모형의 나무 SHAP."""
+    """LightGBM 모델의 Tree SHAP."""
     import lightgbm as lgb
 
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(X_test)
 
-    # 클래스가 여럿이면 shap_values이 클래스마다의 목록이다
+    # 클래스가 여럿이면 shap_values가 클래스마다의 리스트다
     if isinstance(shap_values, list):
         print(f"클래스의 수: {len(shap_values)}")
         for c, sv in enumerate(shap_values):
             importance = np.abs(sv).mean(axis=0)
             top_idx = np.argsort(importance)[::-1][:5]
-            print(f"\n클래스 {c}의 앞선 결:")
+            print(f"\n클래스 {c}의 상위 피처:")
             for idx in top_idx:
                 print(f"  {feature_names[idx]}: {importance[idx]:.4f}")
 
@@ -123,20 +123,20 @@ $$
 ```python
 def compute_tree_shap_interactions(model, X_test, feature_names):
     """
-    나무 모형의 SHAP 서로 미침 값을 셈한다.
+    트리 모델의 SHAP 상호작용 값을 계산한다.
 
-    interaction_values[i, j, k] = 표본 i에서 결 j와 k 사이의
-    서로 미침.
+    interaction_values[i, j, k] = 표본 i에서 피처 j와 k 사이의
+    상호작용.
     """
     explainer = shap.TreeExplainer(model)
 
-    # 서로 미침 값 - 홑 힘보다 비싸다
+    # 상호작용 값 - 주효과보다 계산 비용이 크다
     interaction_values = explainer.shap_interaction_values(X_test[:100])
 
-    # 절댓값 서로 미침의 고른 값
+    # 상호작용 절댓값의 평균
     mean_interactions = np.abs(interaction_values).mean(axis=0)
 
-    # 앞선 서로 미침
+    # 상위 상호작용
     n_features = len(feature_names)
     interactions = []
     for i in range(n_features):
@@ -149,7 +149,7 @@ def compute_tree_shap_interactions(model, X_test, feature_names):
 
     interactions.sort(key=lambda x: x['strength'], reverse=True)
 
-    print("앞선 결 서로 미침:")
+    print("상위 피처 상호작용:")
     print("-" * 50)
     for inter in interactions[:10]:
         print(f"{inter['feature_i']:20s} × {inter['feature_j']:20s}: "
@@ -162,28 +162,28 @@ def compute_tree_shap_interactions(model, X_test, feature_names):
 
 ## 3. 시각화
 
-### 간추린 그림
+### 요약 플롯
 
 ```python
 def tree_shap_visualization(shap_values, X_test, feature_names):
-    """나무 모형에 쓰는 여느 SHAP 그림."""
+    """트리 모델에 쓰는 표준 SHAP 플롯."""
 
-    # 벌떼 간추림 - 결마다 SHAP 값의 스프레드를 보인다
+    # beeswarm 요약 - 피처마다 SHAP 값의 스프레드를 보인다
     shap.summary_plot(
         shap_values, X_test,
         feature_names=feature_names,
         plot_type='dot'
     )
 
-    # 막대 그림 - 절댓값 SHAP 값의 고른 값
+    # 막대 플롯 - SHAP 절댓값의 평균
     shap.summary_plot(
         shap_values, X_test,
         feature_names=feature_names,
         plot_type='bar'
     )
 
-    # 매임 그림 - SHAP 값 대 결 값
-    # 서로 미치는 결을 저절로 찾아 준다
+    # 의존성 플롯(dependence plot) - SHAP 값 대 피처 값
+    # 상호작용하는 피처를 자동으로 찾아 준다
     top_feature_idx = np.abs(shap_values).mean(axis=0).argmax()
     shap.dependence_plot(
         top_feature_idx, shap_values, X_test,
@@ -191,15 +191,15 @@ def tree_shap_visualization(shap_values, X_test, feature_names):
     )
 ```
 
-### 폭포 그림
+### 워터폴 플롯
 
 ```python
 def explain_single_prediction(explainer, X_instance, feature_names):
-    """미루어 봄 하나를 폭포 그림으로 촘촘히 풀이한다."""
+    """예측 하나를 워터폴 플롯으로 자세히 설명한다."""
 
     shap_values = explainer.shap_values(X_instance.reshape(1, -1))
 
-    # 폭포 그림
+    # 워터폴 플롯
     shap.waterfall_plot(
         shap.Explanation(
             values=shap_values[0],
@@ -245,37 +245,37 @@ explainer = shap.TreeExplainer(model, X_background, feature_perturbation='interv
 
 ```python
 def explain_credit_tree_model(
-    model,  # XGBoost/LightGBM 신용 점수 모형
+    model,  # XGBoost/LightGBM 신용 점수 모델
     applicant_features: np.ndarray,
     feature_names: list,
     X_train: np.ndarray
 ):
     """
-    신용 판단에 대한 규정에 맞는 풀이를 만든다.
+    신용 결정에 대해 규제에 맞는 설명을 만든다.
     """
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(applicant_features.reshape(1, -1))
 
-    # 두 클래스 가름이면 shap_values이 목록일 수 있다
+    # 이진 분류면 shap_values가 리스트일 수 있다
     if isinstance(shap_values, list):
-        shap_values = shap_values[1]  # 맡긴 클래스
+        shap_values = shap_values[1]  # 양성 클래스
 
     values = shap_values[0]
 
-    # 불리한 처분 까닭(규정이 바라는 것)
+    # 불리한 처분 사유(규제가 요구하는 것)
     negative_factors = []
     for idx in np.argsort(values)[::-1]:
-        if values[idx] > 0:  # 부도 무릅씀을 올린다
+        if values[idx] > 0:  # 부도 위험을 올린다
             negative_factors.append({
                 'factor': feature_names[idx],
                 'impact': values[idx],
                 'value': applicant_features[idx]
             })
 
-    print("불리한 처분 까닭:")
+    print("불리한 처분 사유:")
     for i, factor in enumerate(negative_factors[:4], 1):
         print(f"  {i}. {factor['factor']}: 값={factor['value']:.2f}, "
-              f"미침={factor['impact']:+.4f}")
+              f"영향={factor['impact']:+.4f}")
 
     return shap_values
 ```
@@ -316,7 +316,7 @@ def explain_credit_tree_model(
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 표본마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 표본마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

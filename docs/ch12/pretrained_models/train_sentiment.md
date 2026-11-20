@@ -5,9 +5,45 @@
 ## 1. 코드
 
 ```python
+import math
+
 import torch
 import torch.nn as nn
-from utils.positional_encoding import PositionalEncoding
+
+
+# === 위치 인코딩 ===
+
+class PositionalEncoding(nn.Module):
+    """사인과 코사인으로 만든 위치 인코딩을 입력에 더한다.
+
+    인수:
+        d_model: 임베딩 차원
+        max_len: 미리 만들어 둘 가장 긴 시퀀스 길이
+        dropout: 더한 뒤 걸 드롭아웃 비율
+    """
+
+    def __init__(self, d_model, max_len=5000, dropout=0.1):
+        super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        # 10000^(2i/d) 를 로그 공간에서 계산한다. 그대로 거듭제곱하면
+        # d가 클 때 값이 넘쳐 흐른다.
+        div_term = torch.exp(
+            torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)
+        )
+        pe[:, 0::2] = torch.sin(position * div_term)
+        # d_model이 홀수이면 코사인 쪽이 한 칸 적다
+        pe[:, 1::2] = torch.cos(position * div_term[: pe[:, 1::2].shape[1]])
+
+        # 학습하지 않지만 state_dict에는 들어가야 하므로 buffer로 둔다
+        self.register_buffer("pe", pe.unsqueeze(0))
+
+    def forward(self, x):
+        """x: (배치, 시퀀스 길이, d_model)"""
+        x = x + self.pe[:, : x.size(1)]
+        return self.dropout(x)
 
 
 class BERTClassifier(nn.Module):

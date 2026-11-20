@@ -33,7 +33,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class GNNExplainer:
-    """마디 가름과 그래프 가름을 위한 GNNExplainer."""
+    """노드 분류와 그래프 분류를 위한 GNNExplainer."""
 
     def __init__(self, model, num_hops=3, lr=0.01, epochs=100):
         self.model = model
@@ -63,13 +63,13 @@ class GNNExplainer:
             out = self.model(x, edge_index, edge_weight=masked_edge_weight)
             log_prob = F.log_softmax(out[node_idx], dim=0)
 
-            # 미루어 봄의 확률을 가장 크게 한다
+            # 예측 확률을 최대화한다
             pred_loss = -log_prob[target]
 
-            # 성기게 하는 정칙화
+            # 희소성 정칙화
             size_loss = mask.sum() * 0.01
 
-            # 마스크를 또렷이 가르는 엔트로피
+            # 마스크를 0이나 1로 뚜렷이 가르는 엔트로피 항
             entropy = -mask * torch.log(mask + 1e-10) - (1-mask) * torch.log(1-mask + 1e-10)
             entropy_loss = entropy.mean() * 0.1
 
@@ -92,13 +92,13 @@ GNN 설명은 금융 네트워크에 잘 맞는다.
 
 ```python
 def explain_financial_network(model, node_idx, x, edge_index):
-    """금융 네트워크의 미루어 봄을 풀이한다."""
+    """금융 네트워크의 예측을 설명한다."""
     explainer = GNNExplainer(model)
     edge_importance = explainer.explain_node(node_idx, x, edge_index)
 
-    # 앞선 이음
+    # 상위 엣지
     top_edges = edge_importance.argsort(descending=True)[:10]
-    print(f"마디 {node_idx}에 가장 중요한 이음:")
+    print(f"노드 {node_idx}에 가장 중요한 엣지:")
     for idx in top_edges:
         src, dst = edge_index[:, idx]
         print(f"  {src.item()} -> {dst.item()}: {edge_importance[idx]:.3f}")
@@ -142,7 +142,7 @@ def explain_financial_network(model, node_idx, x, edge_index):
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 

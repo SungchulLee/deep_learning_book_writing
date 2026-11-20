@@ -549,17 +549,34 @@ def compare_fid_and_pr():
 이 함수도 고정 숫자를 출력하는 가상 비교이며 실제 모델을 평가하지 않는다.
 
 ```python
+from scipy import linalg
+
+
+def compute_statistics(features: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """피처 [N, D]의 평균 [D]과 공분산 [D, D]. FID 쪽의 FIDCalculator 와 같은 식이다."""
+    return np.mean(features, axis=0), np.cov(features, rowvar=False)
+
+
+def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps: float = 1e-6) -> float:
+    """FID = ||μ₁ - μ₂||² + Tr(Σ₁ + Σ₂ - 2(Σ₁Σ₂)^{1/2})"""
+    diff = mu1 - mu2
+    covmean, _ = linalg.sqrtm(sigma1 @ sigma2, disp=False)
+    if not np.isfinite(covmean).all():
+        offset = np.eye(sigma1.shape[0]) * eps
+        covmean = linalg.sqrtm((sigma1 + offset) @ (sigma2 + offset))
+    if np.iscomplexobj(covmean):
+        covmean = covmean.real
+    return float(diff @ diff + np.trace(sigma1) + np.trace(sigma2) - 2 * np.trace(covmean))
+
+
 def comprehensive_evaluation(real_features, gen_features):
     """
     여러 지표를 쓴 종합 평가.
     """
-    from fid_calculator import FIDCalculator
-    
     # FID
-    fid_calc = FIDCalculator()
-    mu_r, sigma_r = fid_calc.compute_statistics(real_features)
-    mu_g, sigma_g = fid_calc.compute_statistics(gen_features)
-    fid = fid_calc.calculate_frechet_distance(mu_r, sigma_r, mu_g, sigma_g)
+    mu_r, sigma_r = compute_statistics(real_features)
+    mu_g, sigma_g = compute_statistics(gen_features)
+    fid = calculate_frechet_distance(mu_r, sigma_r, mu_g, sigma_g)
     
     # 정밀도와 재현율
     pr_calc = ImprovedPrecisionRecall(k=3)
@@ -586,7 +603,7 @@ def comprehensive_evaluation(real_features, gen_features):
     return fid, precision, recall
 ```
 
-종합 평가 예시는 외부 `fid_calculator` 모듈을 전제로 한다. FID 계산 클래스와 import 경로가 준비되어야 하며, if문의 고정 임계값은 검증된 자동 진단 기준이 아니다. 수치를 근거로 문제를 조사하되 모드 붕괴나 시각적 실패를 확정하지 않는다.
+FID 계산에 필요한 두 함수는 [FID 쪽](fid.md)의 `FIDCalculator` 에서 같은 식을 옮겨 이 블록 안에 두었다. if문의 고정 임계값은 검증된 자동 진단 기준이 아니다. 수치를 근거로 문제를 조사하되 모드 붕괴나 시각적 실패를 확정하지 않는다.
 
 ## 6. density, coverage와 F 점수
 

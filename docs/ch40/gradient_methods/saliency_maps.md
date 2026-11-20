@@ -1,10 +1,10 @@
 # Saliency Map과 기본 그래디언트
 
-**Saliency Map**은 뉴럴 네트워크의 예측에 입력의 어느 부분이 가장 중요한지 드러내는 시각화 기법이다. 근본적으로 현저성(saliency) 방법은 다음 질문에 답한다. *"모델은 이 판단을 내리는 데 어떤 입력 피처에 기대는가?"*
+**Saliency Map**은 뉴럴 네트워크의 예측에 입력의 어느 부분이 가장 중요한지 드러내는 시각화 기법이다. 근본적으로 샐리언시(saliency) 방법은 다음 질문에 답한다. *"모델은 이 판단을 내리는 데 어떤 입력 피처에 기대는가?"*
 
 가장 단순하고 기본적인 방법은 **바닐라 그래디언트**를 쓰는 것이다. 곧 모델의 출력을 입력으로 미분한다. 기본 아이디어는 단순하다. **어떤 픽셀 값을 바꾸었을 때 예측이 크게 달라지면 그 픽셀이 중요하다.**
 
-이 쪽은 그래디언트 기반 현저성 방법의 수학적 기초, 구현의 세부, 그리고 실제로 쓸 때 고려할 점을 다룬다. 바닐라 그래디언트는 단순하고 직관적이지만, 더 정교한 설명 방법의 개념적 기초가 되므로 꼭 알아 두어야 한다.
+이 쪽은 그래디언트 기반 샐리언시 방법의 수학적 기초, 구현의 세부, 그리고 실제로 쓸 때 고려할 점을 다룬다. 바닐라 그래디언트는 단순하고 직관적이지만, 더 정교한 설명 방법의 개념적 기초가 되므로 꼭 알아 두어야 한다.
 
 ---
 
@@ -31,7 +31,7 @@ $$
 
 ### 테일러 전개로 읽기
 
-그래디언트 기반 현저성은 일차 테일러 전개로 자연스레 읽을 수 있다. 작은 섭동 $\boldsymbol{\epsilon}$에 대해
+그래디언트 기반 샐리언시는 일차 테일러 전개로 자연스레 읽을 수 있다. 작은 섭동 $\boldsymbol{\epsilon}$에 대해
 
 $$
 f_c(\mathbf{x} + \boldsymbol{\epsilon}) \approx f_c(\mathbf{x}) + \boldsymbol{\epsilon}^\top \nabla_{\mathbf{x}} f_c(\mathbf{x})
@@ -65,7 +65,7 @@ $$
 
 ## 2. PyTorch 구현
 
-### 기본 바닐라 그래디언트 현저성
+### 기본 바닐라 그래디언트 샐리언시
 
 ```python
 import torch
@@ -80,39 +80,39 @@ def compute_saliency_map(
     device: torch.device = None
 ) -> np.ndarray:
     """
-    맨 그래디언트 두드러짐 그림을 셈한다.
+    바닐라 그래디언트 Saliency Map을 계산한다.
 
     Args:
-        model: 평가하는 결로 놓인 뉴럴 네트워크 모형
-        input_tensor: (1, C, H, W) 형태 들임 텐서
-        target_class: 겨눈 클래스 번호(None이면 미루어 본 클래스를 쓴다)
-        device: 셈하는 장치
+        model: 평가 모드로 둔 뉴럴 네트워크 모델
+        input_tensor: (1, C, H, W) 형태 입력 텐서
+        target_class: 대상 클래스 번호(None이면 예측 클래스를 쓴다)
+        device: 계산할 장치
 
     Returns:
-        (H, W) 형태 numpy 배열 두드러짐 그림
+        (H, W) 형태 numpy 배열 Saliency Map
     """
     if device is None:
         device = next(model.parameters()).device
 
-    # 들임에 그래디언트 셈을 켠다
+    # 입력에 그래디언트 계산을 켠다
     input_tensor = input_tensor.clone().to(device).requires_grad_(True)
 
-    # 앞으로 스텝
+    # 순전파
     model.eval()
     output = model(input_tensor)
 
-    # 겨눈 클래스를 정한다
+    # 대상 클래스를 정한다
     if target_class is None:
         target_class = output.argmax(dim=1).item()
 
-    # 역전파 스텝: ∂y_c/∂x을 셈한다
+    # 역전파: ∂y_c/∂x를 계산한다
     model.zero_grad()
     output[0, target_class].backward()
 
-    # 들임에 대한 그래디언트를 집는다
+    # 입력에 대한 그래디언트를 꺼낸다
     saliency = input_tensor.grad.data.abs()
 
-    # 빛깔 통로를 가로질러 가장 큰 것을 잡는다
+    # 색 채널 방향으로 최댓값을 취한다
     saliency, _ = saliency.max(dim=1)
     saliency = saliency.squeeze().cpu().numpy()
 
@@ -125,44 +125,44 @@ def compute_vanilla_gradient_saliency(
     device: torch.device
 ) -> torch.Tensor:
     """
-    맨 그래디언트 두드러짐 그림을 셈한다(텐서를 내놓는다).
+    바닐라 그래디언트 Saliency Map을 계산한다(텐서를 반환한다).
 
     Args:
-        model: 평가하는 결로 놓인 미리 익힌 뉴럴 네트워크
-        image_tensor: 들임 그림 [1, 3, H, W]
-        target_class: 두드러짐을 셈할 클래스 번호
-        device: 셈하는 장치(CPU/GPU)
+        model: 평가 모드로 둔 사전 학습된 뉴럴 네트워크
+        image_tensor: 입력 이미지 [1, 3, H, W]
+        target_class: 샐리언시를 계산할 클래스 번호
+        device: 계산할 장치(CPU/GPU)
 
     Returns:
-        두드러짐 그림 텐서 [1, H, W]
+        Saliency Map 텐서 [1, H, W]
     """
     model.eval()
     image_tensor = image_tensor.to(device)
 
-    # 그래디언트가 들임까지 흐르게 한다
+    # 그래디언트가 입력까지 흐르게 한다
     if image_tensor.grad is not None:
         image_tensor.grad.zero_()
 
-    # 앞으로 스텝
+    # 순전파
     output = model(image_tensor)  # [1, num_classes]
 
-    # 겨눈 클래스 점수를 고른다
+    # 대상 클래스 점수를 고른다
     target_score = output[0, target_class]
 
-    # 역전파 스텝
+    # 역전파
     target_score.backward()
 
-    # 그래디언트를 집고 절댓값을 잡는다
+    # 그래디언트를 꺼내 절댓값을 취한다
     gradients = image_tensor.grad  # [1, 3, H, W]
     abs_gradients = torch.abs(gradients)
 
-    # 빛깔 통로를 가로질러 모은다(가장 큰 것 고르기)
+    # 색 채널 방향으로 집계한다(최댓값)
     saliency = torch.max(abs_gradients, dim=1)[0]  # [1, H, W]
 
     return saliency
 ```
 
-### 부호 있는 현저성(양수와 음수 기여)
+### 부호 있는 샐리언시(양수와 음수 기여)
 
 ```python
 def compute_signed_saliency(
@@ -171,11 +171,11 @@ def compute_signed_saliency(
     target_class: int = None
 ) -> tuple:
     """
-    양수와 음수 기여를 보이는 부호 있는 두드러짐을 셈한다.
+    양수와 음수 기여를 보이는 부호 있는 샐리언시를 계산한다.
 
     Returns:
-        positive_saliency: 올리면 클래스 점수를 올리는 결
-        negative_saliency: 올리면 클래스 점수를 내리는 결
+        positive_saliency: 올리면 클래스 점수를 올리는 피처
+        negative_saliency: 올리면 클래스 점수를 내리는 피처
     """
     input_tensor = input_tensor.clone().requires_grad_(True)
 
@@ -190,11 +190,11 @@ def compute_signed_saliency(
 
     gradient = input_tensor.grad.data
 
-    # 양수 그래디언트와 음수 그래디언트를 가른다
+    # 양수 그래디언트와 음수 그래디언트를 나눈다
     positive = gradient.clamp(min=0)
     negative = gradient.clamp(max=0).abs()
 
-    # 통로를 가로질러 가장 큰 것
+    # 채널 방향 최댓값
     positive_saliency = positive.max(dim=1)[0].squeeze().cpu().numpy()
     negative_saliency = negative.max(dim=1)[0].squeeze().cpu().numpy()
 
@@ -206,7 +206,7 @@ def compute_signed_saliency(
 그래디언트에 입력 값을 곱하면 입력에 실제로 **값이 있으면서** 출력에 **민감한** 피처를 짚어 기여도 분석을 또렷하게 할 수 있다. 값이 0인 피처는 그래디언트가 아무리 커도 기여도가 0이 된다.
 
 $$
-\text{그래디언트} \times \text{들임} = \mathbf{x} \odot \frac{\partial f_c}{\partial \mathbf{x}}
+\text{그래디언트} \times \text{입력} = \mathbf{x} \odot \frac{\partial f_c}{\partial \mathbf{x}}
 $$
 
 ```python
@@ -216,9 +216,9 @@ def gradient_times_input(
     target_class: int = None
 ) -> np.ndarray:
     """
-    그래디언트 × 들임 두드러짐을 셈한다.
+    그래디언트 × 입력 샐리언시를 계산한다.
 
-    그래디언트에 들임 값으로 짐을 실어, 있으면서 중요한 결이
+    그래디언트에 입력 값을 웨이트로 곱해, 값이 있으면서 중요한 피처가
     무엇인지 보인다.
     """
     input_tensor = input_tensor.clone().requires_grad_(True)
@@ -232,10 +232,10 @@ def gradient_times_input(
     model.zero_grad()
     output[0, target_class].backward()
 
-    # 그래디언트 × 들임
+    # 그래디언트 × 입력
     grad_input = input_tensor.grad.data * input_tensor.data
 
-    # 절댓값을 잡고 통로를 가로질러 가장 큰 것
+    # 절댓값을 취하고 채널 방향 최댓값
     saliency = grad_input.abs().max(dim=1)[0].squeeze().cpu().numpy()
 
     return saliency
@@ -250,7 +250,7 @@ def compute_all_aggregations(
     target_class: int,
     device: torch.device
 ) -> dict:
-    """그래디언트 모으기 방법을 견준다."""
+    """그래디언트 집계 방법을 비교한다."""
     model.eval()
     input_tensor = input_tensor.clone().to(device).requires_grad_(True)
 
@@ -281,15 +281,15 @@ from torchvision import models, transforms
 from PIL import Image
 import numpy as np
 
-# 차림
+# 설정
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# 미리 익힌 모형을 부른다
+# 사전 학습된 모델을 불러온다
 model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
 model = model.to(device)
 model.eval()
 
-# 미리 다듬기(ImageNet으로 고르게 하기)
+# 전처리(ImageNet 통계로 정규화)
 preprocess = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
@@ -299,29 +299,29 @@ preprocess = transforms.Compose([
     )
 ])
 
-# 그림을 부르고 미리 다듬는다
+# 이미지를 불러와 전처리한다
 image = Image.open('dog.jpg').convert('RGB')
 image_tensor = preprocess(image).unsqueeze(0)  # [1, 3, 224, 224]
 image_tensor.requires_grad = True
 
-# 모형의 미루어 봄을 얻는다
+# 모델의 예측을 얻는다
 with torch.no_grad():
     output = model(image_tensor.to(device))
     pred_class = output.argmax(dim=1).item()
     confidence = torch.softmax(output, dim=1)[0, pred_class].item()
 
-print(f"미루어 본 클래스: {pred_class}, 확신도: {confidence:.2%}")
+print(f"예측 클래스: {pred_class}, 확신도: {confidence:.2%}")
 
-# 여러 두드러짐 그림을 셈한다
+# 여러 Saliency Map을 계산한다
 saliency = compute_saliency_map(model, image_tensor, pred_class, device)
 pos_saliency, neg_saliency = compute_signed_saliency(model, image_tensor, pred_class)
 grad_input = gradient_times_input(model, image_tensor, pred_class)
 
-# 그리려고 본디 그림을 채비한다
+# 시각화하려고 원본 이미지를 준비한다
 original = np.array(image.resize((224, 224))) / 255.0
 
-print(f"두드러짐 형태: {saliency.shape}")
-print(f"값 너비: [{saliency.min():.6f}, {saliency.max():.6f}]")
+print(f"샐리언시 형태: {saliency.shape}")
+print(f"값 범위: [{saliency.min():.6f}, {saliency.max():.6f}]")
 ```
 
 ---
@@ -335,7 +335,7 @@ print(f"값 너비: [{saliency.min():.6f}, {saliency.max():.6f}]")
 ```python
 def normalize_saliency(saliency: np.ndarray) -> np.ndarray:
     """
-    그리려고 두드러짐 그림을 [0, 1]으로 고르게 한다.
+    시각화하려고 Saliency Map을 [0, 1]로 정규화한다.
     """
     if isinstance(saliency, torch.Tensor):
         saliency = saliency.detach().cpu().numpy()
@@ -359,34 +359,34 @@ def normalize_saliency(saliency: np.ndarray) -> np.ndarray:
 def visualize_saliency(
     original_image: np.ndarray,
     saliency_map: np.ndarray,
-    title: str = "두드러짐 그림"
+    title: str = "Saliency Map"
 ) -> plt.Figure:
     """
-    본디 그림과 나란히 두드러짐 그림을 그린다.
+    원본 이미지와 나란히 Saliency Map을 그린다.
 
     Args:
-        original_image: [0, 1] 너비의 본디 그림 (H, W, 3)
-        saliency_map: 두드러짐 값 (H, W)
-        title: 그림 이름
+        original_image: [0, 1] 범위의 원본 이미지 (H, W, 3)
+        saliency_map: 샐리언시 값 (H, W)
+        title: 그림 제목
 
     Returns:
         Matplotlib 그림
     """
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
-    # 본디 그림
+    # 원본 이미지
     axes[0].imshow(original_image)
-    axes[0].set_title('본디 그림')
+    axes[0].set_title('원본 이미지')
     axes[0].axis('off')
 
-    # 두드러짐 그림
+    # Saliency Map
     saliency_norm = normalize_saliency(saliency_map)
     im = axes[1].imshow(saliency_norm, cmap='hot')
     axes[1].set_title(title)
     axes[1].axis('off')
     plt.colorbar(im, ax=axes[1], fraction=0.046)
 
-    # 겹쳐 보이기
+    # 겹쳐 보기
     if original_image.ndim == 3:
         gray_img = np.mean(original_image, axis=2)
     else:
@@ -394,14 +394,14 @@ def visualize_saliency(
 
     axes[2].imshow(gray_img, cmap='gray')
     axes[2].imshow(saliency_norm, cmap='jet', alpha=0.5)
-    axes[2].set_title('겹쳐 보이기')
+    axes[2].set_title('겹쳐 보기')
     axes[2].axis('off')
 
     plt.tight_layout()
     return fig
 ```
 
-### 부호 있는 현저성 그리기
+### 부호 있는 샐리언시 그리기
 
 ```python
 def visualize_signed_saliency(
@@ -410,15 +410,15 @@ def visualize_signed_saliency(
     negative_saliency: np.ndarray
 ) -> plt.Figure:
     """
-    양수 두드러짐과 음수 두드러짐을 따로 그린다.
+    양수 샐리언시와 음수 샐리언시를 따로 그린다.
 
-    - 빨강: 올리면 클래스 점수를 올리는 결
-    - 파랑: 올리면 클래스 점수를 내리는 결
+    - 빨강: 올리면 클래스 점수를 올리는 피처
+    - 파랑: 올리면 클래스 점수를 내리는 피처
     """
     fig, axes = plt.subplots(1, 4, figsize=(20, 5))
 
     axes[0].imshow(original_image)
-    axes[0].set_title('본디')
+    axes[0].set_title('원본')
     axes[0].axis('off')
 
     axes[1].imshow(positive_saliency, cmap='Reds')
@@ -429,13 +429,13 @@ def visualize_signed_saliency(
     axes[2].set_title('음수 (점수를 내림)')
     axes[2].axis('off')
 
-    # 아우른 봄: 빨강 = 양수, 파랑 = 음수
+    # 결합한 보기: 빨강 = 양수, 파랑 = 음수
     combined = np.zeros((*positive_saliency.shape, 3))
     combined[:, :, 0] = positive_saliency / (positive_saliency.max() + 1e-8)
     combined[:, :, 2] = negative_saliency / (negative_saliency.max() + 1e-8)
 
     axes[3].imshow(combined)
-    axes[3].set_title('아우름 (빨강+, 파랑-)')
+    axes[3].set_title('결합 (빨강+, 파랑-)')
     axes[3].axis('off')
 
     plt.tight_layout()
@@ -455,9 +455,9 @@ def compare_class_saliencies(
     device: torch.device = None
 ) -> dict:
     """
-    여러 겨눈 클래스의 두드러짐 그림을 셈해 견준다.
+    여러 대상 클래스의 Saliency Map을 계산해 비교한다.
 
-    클래스가 다르면 다른 자리를 짚는다는 것을 보인다.
+    클래스가 다르면 다른 영역을 강조한다는 것을 보인다.
     """
     if device is None:
         device = next(model.parameters()).device
@@ -475,7 +475,7 @@ def compare_class_saliencies(
 
     return saliencies
 
-# 보기: 앞선 3개 미루어 본 클래스를 견준다
+# 예: 상위 3개 예측 클래스를 비교한다
 with torch.no_grad():
     output = model(image_tensor.to(device))
     top_classes = output[0].topk(3).indices.tolist()
@@ -487,11 +487,11 @@ saliencies = compare_class_saliencies(model, image_tensor, top_classes, device=d
 
 ## 5. 통계로 살피기
 
-현저성 값의 분포를 알면 진단에 도움이 된다.
+샐리언시 값의 분포를 알면 진단에 도움이 된다.
 
 ```python
 def analyze_saliency_statistics(saliency: np.ndarray) -> dict:
-    """두드러짐 스프레드에 대한 셈속을 두루 셈한다."""
+    """샐리언시 분포의 통계량을 두루 계산한다."""
     s = saliency.flatten()
 
     stats = {
@@ -534,18 +534,18 @@ def analyze_saliency_statistics(saliency: np.ndarray) -> dict:
 
 ```python
 def demonstrate_noise():
-    """아무 들임에도 두드러짐 그림에 잡음이 낄 수 있음을 보인다."""
+    """무작위 입력에도 Saliency Map에 잡음이 낄 수 있음을 보인다."""
     model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
     model.eval()
 
-    # 아무 들임
+    # 무작위 입력
     input_tensor = torch.randn(1, 3, 224, 224)
 
     saliency = compute_saliency_map(model, input_tensor)
 
-    # 아무 들임에도 두드러짐이 흩어져 보이는 일이 잦다
+    # 무작위 입력에도 샐리언시가 흩어져 보이는 일이 잦다
     print(f"0이 아닌 픽셀: {(saliency > 0.01 * saliency.max()).sum()}")
-    print(f"이는 그래디언트 바탕 두드러짐에 잡음이 있음을 알린다")
+    print(f"이는 그래디언트 기반 샐리언시에 잡음이 있음을 알린다")
 ```
 
 ### 2. 그래디언트 포화
@@ -562,11 +562,11 @@ $$
 
 ### 3. 클래스를 잘 가려내지 못함
 
-그래디언트를 특정 클래스에 대해 계산하는데도, 바닐라 현저성은 클래스가 달라도 비슷한 영역을 짚는 일이 잦다.
+그래디언트를 특정 클래스에 대해 계산하는데도, 바닐라 샐리언시는 클래스가 달라도 비슷한 영역을 짚는 일이 잦다.
 
 ```python
 def class_discrimination_test(model, input_tensor, device):
-    """클래스마다의 두드러짐 그림을 견준다."""
+    """클래스마다의 Saliency Map을 비교한다."""
     with torch.no_grad():
         output = model(input_tensor.to(device))
         _, top_classes = output.topk(5)
@@ -578,7 +578,7 @@ def class_discrimination_test(model, input_tensor, device):
         )
 
     # 앞선 레이어의 그래디언트를 모든 클래스가 함께 쓰므로
-    # 클래스마다의 두드러짐이 꽤 비슷해 보일 때가 많다
+    # 클래스마다의 샐리언시가 꽤 비슷해 보일 때가 많다
     return saliencies
 ```
 
@@ -588,19 +588,19 @@ def class_discrimination_test(model, input_tensor, device):
 
 ```python
 def sensitivity_test(model, input_tensor, device, noise_scale=0.01):
-    """두드러짐이 들임 잡음에 얼마나 예민한지 시험한다."""
+    """샐리언시가 입력 잡음에 얼마나 민감한지 시험한다."""
     saliency_original = compute_saliency_map(model, input_tensor, device=device)
 
     # 작은 잡음을 더한다
     noisy_input = input_tensor + noise_scale * torch.randn_like(input_tensor)
     saliency_noisy = compute_saliency_map(model, noisy_input, device=device)
 
-    # 차이를 셈한다
+    # 차이를 계산한다
     diff = np.abs(saliency_original - saliency_noisy)
 
-    print(f"고른 절댓값 차이: {diff.mean():.4f}")
+    print(f"평균 절댓값 차이: {diff.mean():.4f}")
     print(f"가장 큰 차이: {diff.max():.4f}")
-    print(f"얽힘: {np.corrcoef(saliency_original.flatten(), saliency_noisy.flatten())[0,1]:.4f}")
+    print(f"상관계수: {np.corrcoef(saliency_original.flatten(), saliency_noisy.flatten())[0,1]:.4f}")
 
     return diff
 ```
@@ -625,18 +625,18 @@ def smoothgrad(
     device: torch.device = None
 ) -> np.ndarray:
     """
-    SmoothGrad 두드러짐 그림을 셈한다.
+    SmoothGrad Saliency Map을 계산한다.
 
     Args:
         model: 뉴럴 네트워크
-        input_tensor: 들임 텐서
-        target_class: 겨눈 클래스
+        input_tensor: 입력 텐서
+        target_class: 대상 클래스
         n_samples: 잡음 표본의 수
-        noise_level: 잡음의 표준편차(들임 너비에 대한 기여도)
-        device: 셈하는 장치
+        noise_level: 잡음의 표준편차(입력 범위에 대한 비율)
+        device: 계산할 장치
 
     Returns:
-        매끄럽게 한 두드러짐 그림
+        매끄럽게 한 Saliency Map
     """
     if device is None:
         device = next(model.parameters()).device
@@ -649,7 +649,7 @@ def smoothgrad(
             output = model(input_tensor)
             target_class = output.argmax(dim=1).item()
 
-    # 잡음 스케일을 맞추으려고 들임 셈속을 셈한다
+    # 잡음 스케일을 맞추려고 입력의 범위를 계산한다
     stdev = noise_level * (input_tensor.max() - input_tensor.min())
 
     accumulated_grad = torch.zeros_like(input_tensor)
@@ -659,18 +659,18 @@ def smoothgrad(
         noise = torch.randn_like(input_tensor) * stdev
         noisy_input = (input_tensor + noise).requires_grad_(True)
 
-        # 앞으로와 역전파
+        # 순전파와 역전파
         output = model(noisy_input)
         model.zero_grad()
         output[0, target_class].backward()
 
-        # 그래디언트를 쌓는다
+        # 그래디언트를 누적한다
         accumulated_grad += noisy_input.grad.data.abs()
 
-    # 고르게 한다
+    # 평균한다
     smoothed_grad = accumulated_grad / n_samples
 
-    # 통로를 가로질러 가장 큰 것
+    # 채널 방향 최댓값
     saliency = smoothed_grad.max(dim=1)[0].squeeze().cpu().numpy()
 
     return saliency
@@ -680,9 +680,9 @@ def smoothgrad(
 
 ## 8. 금융 응용
 
-### 시계열 현저성
+### 시계열 샐리언시
 
-순차 금융 데이터에서는 현저성이 어느 타임스텝이 중요한지 드러낸다.
+순차 금융 데이터에서는 샐리언시가 어느 타임스텝이 중요한지 드러낸다.
 
 ```python
 def time_series_saliency(
@@ -691,17 +691,17 @@ def time_series_saliency(
     target_class: int = None
 ) -> np.ndarray:
     """
-    때 열 미루어 봄의 두드러짐을 셈한다.
+    시계열 예측의 샐리언시를 계산한다.
 
-    지난 어느 때 자리가 미루어 봄에 가장 크게 미치는지 보인다.
+    과거의 어느 타임스텝이 예측에 가장 크게 영향을 주는지 보인다.
 
     Args:
-        model: 열 모형(LSTM, 트랜스포머 등)
-        sequence: 들임 열 [1, 열 길이, 결]이나 [1, 열 길이]
-        target_class: 가름 모형의 겨눈 클래스
+        model: 시퀀스 모델(LSTM, 트랜스포머 등)
+        sequence: 입력 시퀀스 [1, 시퀀스 길이, 피처]나 [1, 시퀀스 길이]
+        target_class: 분류 모델의 대상 클래스
 
     Returns:
-        때 축에 걸친 두드러짐
+        시간 축에 걸친 샐리언시
     """
     sequence = sequence.clone().requires_grad_(True)
 
@@ -716,12 +716,12 @@ def time_series_saliency(
     model.zero_grad()
     output.backward()
 
-    # 때 축에 걸친 두드러짐
+    # 시간 축에 걸친 샐리언시
     saliency = sequence.grad.abs().squeeze().cpu().numpy()
 
-    # 결이 여럿이면 모은다
+    # 피처가 여럿이면 합친다
     if saliency.ndim == 2:
-        saliency = saliency.sum(axis=1)  # 결 축으로 더한다
+        saliency = saliency.sum(axis=1)  # 피처 축으로 더한다
 
     return saliency
 ```
@@ -738,16 +738,16 @@ def tabular_saliency(
     target_class: int = None
 ) -> np.ndarray:
     """
-    그래디언트로 결 중요함을 셈하고 그린다.
+    그래디언트로 피처 중요도를 계산하고 출력한다.
 
     Args:
-        model: 가름이나 회귀 모형
-        features: 결 텐서 [1, n_features]
-        feature_names: 결 이름 목록
-        target_class: 겨눈 클래스(가름일 때)
+        model: 분류나 회귀 모델
+        features: 피처 텐서 [1, n_features]
+        feature_names: 피처 이름 목록
+        target_class: 대상 클래스(분류일 때)
 
     Returns:
-        결마다의 중요함 점수
+        피처마다의 중요도 점수
     """
     features = features.clone().requires_grad_(True)
 
@@ -764,10 +764,10 @@ def tabular_saliency(
 
     importance = features.grad.abs().squeeze().cpu().numpy()
 
-    # 중요함으로 줄 세운다
+    # 중요도 순으로 정렬한다
     sorted_idx = np.argsort(importance)[::-1]
 
-    print("결 중요함(그래디언트 크기로):")
+    print("피처 중요도(그래디언트 크기 기준):")
     print("-" * 50)
     for i in sorted_idx[:10]:
         print(f"{feature_names[i]:30s}: {importance[i]:.6f}")
@@ -786,7 +786,7 @@ def tabular_saliency(
 | **그래디언트 × 입력** | 입력 값을 곱한다 | 기여도를 또렷하게 한다 |
 | **SmoothGrad** | 잡음 표본에 걸쳐 평균 낸다 | 잡음을 줄인다 |
 | **Integrated Gradients** | 베이스라인에서 입력까지의 경로를 따라 적분한다 | 공리를 만족한다 |
-| **Guided Backpropagation** | ReLU 역전파 규칙을 고친다 | 그림이 깨끗해진다 |
+| **Guided Backpropagation** | ReLU 역전파 규칙을 고친다 | 맵이 깨끗해진다 |
 | **Grad-CAM** | 피처 맵의 그래디언트를 쓴다 | 클래스를 가려낸다 |
 
 ### 비교 표
@@ -795,7 +795,7 @@ def tabular_saliency(
 |--------|------|------|
 | 바닐라 그래디언트 | 단순하고 빠르며 기초가 된다 | 잡음이 많고 클래스를 잘 못 가려낸다 |
 | 그래디언트 × 입력 | 기여도가 더 또렷하다 | 여전히 잡음이 많다 |
-| SmoothGrad | 잡음이 준다 | 계산이 비싸다 |
+| SmoothGrad | 잡음이 준다 | 계산 비용이 크다 |
 | Grad-CAM | 깨끗하고 클래스를 가려낸다 | 해상도가 낮다 |
 | Integrated Gradients | 이론적 보장이 있다 | 느리고 베이스라인 선택에 좌우된다 |
 
@@ -809,7 +809,7 @@ def tabular_saliency(
 
 - 빠른 디버깅과 새니티 체크
 - 그래디언트 흐름 확인
-- 다른 방법과 견줄 베이스라인
+- 다른 방법과 비교할 베이스라인
 - 교육용
 - 초기 탐색
 
@@ -866,7 +866,7 @@ def tabular_saliency(
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -882,17 +882,17 @@ def tabular_saliency(
 
 ## 정리하며
 
-바닐라 그래디언트 현저성은 그래디언트 기반 설명 방법을 이해하는 개념적 기초를 준다. 단순하고 직관적이지만, 눈에 띄는 잡음과 약한 클래스 구별력 탓에 실제 쓸모는 좁다. 뒤따르는 방법들이 이 기초 위에서 더 깨끗하고 의미 있는 기여도 분석을 낸다.
+바닐라 그래디언트 샐리언시는 그래디언트 기반 설명 방법을 이해하는 개념적 기초를 준다. 단순하고 직관적이지만, 눈에 띄는 잡음과 약한 클래스 구별력 탓에 실제 쓸모는 좁다. 뒤따르는 방법들이 이 기초 위에서 더 깨끗하고 의미 있는 기여도 분석을 낸다.
 
 ### 핵심 식
 
-**기본 현저성:**
+**기본 샐리언시:**
 
 $$
 S(\mathbf{x}) = \left| \frac{\partial f_c(\mathbf{x})}{\partial \mathbf{x}} \right|
 $$
 
-**집계한 현저성(다채널 입력):**
+**집계한 샐리언시(다채널 입력):**
 
 $$
 S_{i,j} = \max_{k} |G_{k,i,j}| \quad \text{또는} \quad \sqrt{\sum_k G_{k,i,j}^2}

@@ -850,6 +850,16 @@ old words. `verify_outputs.py` only reads the `.md`, so the drift is invisible t
 > a module two pages share, put the code in both — duplication across pages is the price of
 > each page standing alone, and it is the price this book pays.
 
-Separate from all of this, a few directories hold genuine importable packages with no page of
-their own (`ch26/training/models/vae.py`, `ch12/pretrained_models/utils/positional_encoding.py`,
-`*/\_\_init\_\_.py`). Those are libraries, not page companions, and are out of scope here.
+> **No importable packages either.** The last 21 modules pages still imported — `utils.py`
+> folders in ch09/ch23/ch40, the ch25/ch26 `training/models` and `training/utils` packages,
+> ch22's NER packages, `fid_calculator.py` and four others — were inlined on 2026-11-20 the
+> same way. Where a page's code had a twin on a sibling page (ch22, ch25/26 architecture
+> pages), the sibling's version was copied, because its comments had already been retermed
+> and the `.py` copy still carried old coinages. Pages whose output block had been recorded
+> while the import failed (ch22 `demo_complete_ner`, ch40 `gradient_methods/03~08`) were rerun
+> and re-recorded; ch40 then hit a second, hidden error (`preprocess_image(requires_grad=…)`
+> that the old helper never accepted), so **inlining is not finished until the page has run
+> once** — a missing module masks every error behind it.
+>
+> The only `.py` left under `docs/` is figure tooling: `figures/make_figures.py`, plus
+> `ch04/figures/{make_backbone_figures,trace_backbones}.py` and `ch25/ae/figures/anomaly.py`.

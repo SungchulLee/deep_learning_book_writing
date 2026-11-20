@@ -30,6 +30,108 @@
 
 ```python
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+# === 공격 ===
+
+class FGSM:
+    """Fast Gradient Sign Method — 그래디언트의 부호로 한 스텝.
+
+        x_adv = clip(x + epsilon * sign(grad_x loss))
+
+    한 번만 계산하므로 싸다. 다만 로스가 그 자리에서 선형이라고 보는 것이라,
+    굽은 자리에서는 약하다. 그것이 PGD가 여러 스텝을 밟는 까닭이다.
+    """
+
+    def __init__(self, model: nn.Module, epsilon: float = 0.03,
+                 clip_min: float = 0.0, clip_max: float = 1.0):
+        self.model = model
+        self.epsilon = epsilon
+        self.clip_min = clip_min
+        self.clip_max = clip_max
+
+    def generate(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        was_training = self.model.training
+        self.model.eval()                     # 드롭아웃 등이 그래디언트를 흔들지 않게
+
+        x_adv = x.clone().detach().requires_grad_(True)
+        loss = F.cross_entropy(self.model(x_adv), y)
+        grad, = torch.autograd.grad(loss, x_adv)
+
+        out = x + self.epsilon * grad.sign()
+        out = out.clamp(self.clip_min, self.clip_max)
+
+        if was_training:
+            self.model.train()
+        return out.detach()
+
+
+class PGD:
+    """Projected Gradient Descent — 작은 스텝을 여러 번 밟고 매번 볼 안으로 투영한다.
+
+        x_0   = x + U(-epsilon, epsilon)          (무작위로 시작한다)
+        x_t+1 = proj_ball( x_t + alpha * sign(grad) )
+
+    무작위로 시작하는 것이 중요하다. 늘 x에서 출발하면 그래디언트가 0인 자리에
+    걸려 공격이 실패하는 것을 "강건성"으로 잘못 읽게 된다.
+    """
+
+    def __init__(self, model: nn.Module, epsilon: float = 0.03,
+                 alpha: float = None, num_iter: int = 40,
+                 random_start: bool = True,
+                 clip_min: float = 0.0, clip_max: float = 1.0):
+        self.model = model
+        self.epsilon = epsilon
+        # 스텝 크기를 따로 주지 않으면 볼을 두어 번 건널 만큼으로 잡는다
+        self.alpha = alpha if alpha is not None else max(epsilon / 4, 2.5 * epsilon / num_iter)
+        self.num_iter = num_iter
+        self.random_start = random_start
+        self.clip_min = clip_min
+        self.clip_max = clip_max
+
+    def generate(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        was_training = self.model.training
+        self.model.eval()
+
+        if self.random_start:
+            delta = torch.empty_like(x).uniform_(-self.epsilon, self.epsilon)
+            x_adv = (x + delta).clamp(self.clip_min, self.clip_max)
+        else:
+            x_adv = x.clone()
+        x_adv = x_adv.detach()
+
+        for _ in range(self.num_iter):
+            x_adv.requires_grad_(True)
+            loss = F.cross_entropy(self.model(x_adv), y)
+            grad, = torch.autograd.grad(loss, x_adv)
+            x_adv = x_adv.detach() + self.alpha * grad.sign()
+            # epsilon 볼 안으로 투영한 뒤, 이미지가 가질 수 있는 값으로 자른다
+            x_adv = torch.min(torch.max(x_adv, x - self.epsilon), x + self.epsilon)
+            x_adv = x_adv.clamp(self.clip_min, self.clip_max).detach()
+
+        if was_training:
+            self.model.train()
+        return x_adv
+
+
+# === 진단 ===
+
+@torch.no_grad()
+def evaluate_success(model, x_adv, y):
+    """공격 성공률 — 적대적 입력에서 예측이 정답과 달라진 비율(0~1).
+
+    처음부터 틀린 표본도 「성공」으로 센다. 그래서 깨끗한 입력의 오류율이
+    이 값의 바닥이 된다.
+    """
+    was_training = model.training
+    model.eval()
+    pred = model(x_adv).argmax(dim=1)
+    if was_training:
+        model.train()
+    return (pred != y).float().mean().item()
+
 
 def check_gradient_masking(model, x, y, epsilon=8/255):
     """
@@ -40,7 +142,6 @@ def check_gradient_masking(model, x, y, epsilon=8/255):
     results = {}
     
     # 시험 1: FGSM과 PGD
-    from attacks import FGSM, PGD
     fgsm = FGSM(model, epsilon=epsilon)
     pgd = PGD(model, epsilon=epsilon, num_iter=40)
     

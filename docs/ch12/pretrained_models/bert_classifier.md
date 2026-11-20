@@ -5,12 +5,45 @@ BERT의 첫 토큰 분류 방식에서 아이디어를 얻은 트랜스포머 �
 ## 1. 코드
 
 ```python
+import math
+
 import torch
 import torch.nn as nn
-import sys
 
-sys.path.append('..')
-from utils.positional_encoding import PositionalEncoding
+
+# === 위치 인코딩 ===
+
+class PositionalEncoding(nn.Module):
+    """사인과 코사인으로 만든 위치 인코딩을 입력에 더한다.
+
+    인수:
+        d_model: 임베딩 차원
+        max_len: 미리 만들어 둘 가장 긴 시퀀스 길이
+        dropout: 더한 뒤 걸 드롭아웃 비율
+    """
+
+    def __init__(self, d_model, max_len=5000, dropout=0.1):
+        super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        # 10000^(2i/d) 를 로그 공간에서 계산한다. 그대로 거듭제곱하면
+        # d가 클 때 값이 넘쳐 흐른다.
+        div_term = torch.exp(
+            torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)
+        )
+        pe[:, 0::2] = torch.sin(position * div_term)
+        # d_model이 홀수이면 코사인 쪽이 한 칸 적다
+        pe[:, 1::2] = torch.cos(position * div_term[: pe[:, 1::2].shape[1]])
+
+        # 학습하지 않지만 state_dict에는 들어가야 하므로 buffer로 둔다
+        self.register_buffer("pe", pe.unsqueeze(0))
+
+    def forward(self, x):
+        """x: (배치, 시퀀스 길이, d_model)"""
+        x = x + self.pe[:, : x.size(1)]
+        return self.dropout(x)
 
 
 class BERTClassifier(nn.Module):
@@ -51,7 +84,7 @@ if __name__ == "__main__":
 
 첫 위치가 [CLS]가 되도록 토큰을 구성하는 일은 호출자의 책임이다. mask는 (B,L)의 key_padding_mask이며 불리언 True가 패딩을 뜻한다. Hugging Face에서 흔한 1=유효 attention_mask와 그대로 교환해서는 안 된다. 첫 위치가 패딩이거나 모든 키가 제외된 입력도 따로 다뤄야 한다.
 
-분류기는 E→E→C의 두 선형 레이어 사이에 ReLU와 드롭아웃을 사용하고 (B,C) 로짓을 반환한다. 교차 엔트로피에는 로짓을 직접 전달한다. 위치 표현은 utils.positional_encoding에서 가져오므로 모듈 검색 경로가 실행 위치에 의존한다는 점도 확인한다.
+분류기는 E→E→C의 두 선형 레이어 사이에 ReLU와 드롭아웃을 사용하고 (B,C) 로짓을 반환한다. 교차 엔트로피에는 로짓을 직접 전달한다. 위치 표현은 같은 블록 위쪽의 PositionalEncoding이 더하며, 학습하지 않는 버퍼라 파라메터 수에 들어가지 않는다.
 
 ## 연습문제
 

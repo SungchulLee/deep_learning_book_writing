@@ -44,7 +44,7 @@ $$
 중요도 웨이트 $\alpha^c_k$는 그래디언트를 **전역 평균 풀링해** 계산한다.
 
 $$
-\alpha^c_k = \underbrace{\frac{1}{Z} \sum_i \sum_j}_{\text{온 세상 고르게 모으기}} \underbrace{\frac{\partial y^c}{\partial A^k_{ij}}}_{\text{그래디언트}}
+\alpha^c_k = \underbrace{\frac{1}{Z} \sum_i \sum_j}_{\text{전역 평균 풀링}} \underbrace{\frac{\partial y^c}{\partial A^k_{ij}}}_{\text{그래디언트}}
 $$
 
 여기서
@@ -71,7 +71,7 @@ $$
 
 - 고수준 의미 정보
 - 클래스를 구별하는 피처
-- 위치를 짚을 만큼의 공간 해상도
+- 위치를 파악할 만큼의 공간 해상도
 
 ### 수학적 유도
 
@@ -119,18 +119,18 @@ $$
 
 ```
 알고리즘: Grad-CAM
-들임: 그림 I, CNN 모형 f, 겨눈 클래스 c, 겨눈 레이어 l
-출력: 열 그림 L_GradCAM
+입력: 이미지 I, CNN 모델 f, 대상 클래스 c, 대상 레이어 l
+출력: 히트맵 L_GradCAM
 
-1. 앞으로 스텝: 레이어 l의 결 그림 A^k을 셈한다
-2. 앞으로 스텝: 클래스 점수 y^c을 셈한다
-3. 역전파 스텝: 그래디언트 ∂y^c/∂A^k을 셈한다
-4. 결 그림 k마다:
-   α_k^c = 온세상고르게모으기(∂y^c/∂A^k)
-5. 짐 실은 아우름을 셈한다:
+1. 순전파: 레이어 l의 피처 맵 A^k를 계산한다
+2. 순전파: 클래스 점수 y^c를 계산한다
+3. 역전파: 그래디언트 ∂y^c/∂A^k를 계산한다
+4. 피처 맵 k마다:
+   α_k^c = 전역평균풀링(∂y^c/∂A^k)
+5. 가중합을 계산한다:
    L_GradCAM = ReLU(Σ_k α_k^c * A^k)
-6. L_GradCAM을 들임 결 고움으로 키운다
-7. L_GradCAM을 내놓는다
+6. L_GradCAM을 입력 해상도로 키운다
+7. L_GradCAM을 반환한다
 ```
 
 ---
@@ -150,10 +150,10 @@ class GradCAM:
     어떤 CNN 구조에도 쓰는 Grad-CAM 구현.
 
     Args:
-        model: PyTorch CNN 모형
-        target_layer: 그릴 겹치는 레이어
+        model: PyTorch CNN 모델
+        target_layer: 시각화할 컨볼루션 레이어
 
-    쓰임:
+    사용 예:
         gradcam = GradCAM(model, model.layer4[-1])  # ResNet에 쓸 때
         heatmap = gradcam(image_tensor, target_class, device)
     """
@@ -164,16 +164,16 @@ class GradCAM:
         self.gradients = None
         self.activations = None
 
-        # 갈고리를 건다
+        # 훅을 건다
         self.target_layer.register_forward_hook(self._save_activation)
         self.target_layer.register_full_backward_hook(self._save_gradient)
 
     def _save_activation(self, module, input, output):
-        """앞으로 스텝의 살아남을 붙드는 갈고리."""
+        """순전파의 활성값을 저장하는 훅."""
         self.activations = output.detach()
 
     def _save_gradient(self, module, grad_input, grad_output):
-        """역전파 스텝의 그래디언트를 붙드는 갈고리."""
+        """역전파의 그래디언트를 저장하는 훅."""
         self.gradients = grad_output[0].detach()
 
     def __call__(
@@ -183,15 +183,15 @@ class GradCAM:
         device: torch.device = None
     ) -> torch.Tensor:
         """
-        Grad-CAM 열 그림을 셈한다.
+        Grad-CAM 히트맵을 계산한다.
 
         Args:
-            image_tensor: 들임 그림 [1, C, H, W]
-            target_class: 겨눈 클래스 번호. None이면 미루어 본 클래스를 쓴다.
-            device: 셈하는 장치
+            image_tensor: 입력 이미지 [1, C, H, W]
+            target_class: 대상 클래스 번호. None이면 예측 클래스를 쓴다.
+            device: 계산할 장치
 
         Returns:
-            [0, 1] 너비의 열 그림 텐서 [H, W]
+            [0, 1] 범위의 히트맵 텐서 [H, W]
         """
         if device is None:
             device = next(self.model.parameters()).device
@@ -199,41 +199,41 @@ class GradCAM:
         self.model.eval()
         image_tensor = image_tensor.to(device)
 
-        # 앞으로 스텝 - 앞으로 갈고리를 당긴다
+        # 순전파 - 순전파 훅이 호출된다
         output = self.model(image_tensor)
 
-        # 겨눈 클래스를 정한다
+        # 대상 클래스를 정한다
         if target_class is None:
             target_class = output.argmax(dim=1).item()
 
-        # 겨눈 클래스의 점수를 집는다
+        # 대상 클래스의 점수를 고른다
         target_score = output[0, target_class]
 
-        # 역전파 스텝 - 역전파 갈고리를 당긴다
+        # 역전파 - 역전파 훅이 호출된다
         self.model.zero_grad()
         target_score.backward()
 
-        # 그래디언트와 살아남을 집는다
+        # 그래디언트와 활성값을 꺼낸다
         gradients = self.gradients[0]    # 형태: [K, H', W']
         activations = self.activations[0] # 형태: [K, H', W']
 
-        # 중요함 짐을 셈한다: α_k = 온세상고르게모으기(그래디언트)
+        # 중요도 웨이트를 계산한다: α_k = 전역평균풀링(그래디언트)
         # α_k^c = (1/Z) Σ_i Σ_j (∂y^c / ∂A^k_ij)
         weights = gradients.mean(dim=(1, 2))  # 형태: [K]
 
-        # 짐 실은 아우름: L = Σ_k α_k^c * A^k
+        # 가중합: L = Σ_k α_k^c * A^k
         cam = torch.zeros(activations.shape[1:], dtype=torch.float32, device=device)
         for k, w in enumerate(weights):
             cam += w * activations[k]
 
-        # ReLU을 건다
+        # ReLU를 적용한다
         cam = F.relu(cam)
 
-        # [0, 1]으로 고르게 한다
+        # [0, 1]로 정규화한다
         cam = cam - cam.min()
         cam = cam / (cam.max() + 1e-8)
 
-        # 들임 결 고움으로 키운다
+        # 입력 해상도로 키운다
         cam = F.interpolate(
             cam.unsqueeze(0).unsqueeze(0),
             size=image_tensor.shape[2:],
@@ -251,16 +251,16 @@ class GradCAM:
         alpha: float = 0.4
     ) -> np.ndarray:
         """
-        본디 그림 위에 겹쳐 보이는 Grad-CAM 그림을 만든다.
+        원본 이미지 위에 겹친 Grad-CAM 시각화를 만든다.
 
         Args:
-            image_tensor: 들임 그림 텐서
-            original_image: [0, 255] 너비의 numpy 배열 (H, W, 3) 본디 그림
-            target_class: 겨눈 클래스 번호
-            alpha: 겹침의 비침 정도(0이면 그림만, 1이면 열 그림만)
+            image_tensor: 입력 이미지 텐서
+            original_image: [0, 255] 범위의 numpy 배열 (H, W, 3) 원본 이미지
+            target_class: 대상 클래스 번호
+            alpha: 겹침의 투명도(0이면 이미지만, 1이면 히트맵만)
 
         Returns:
-            [0, 255] 너비의 numpy 배열 (H, W, 3) 그림
+            [0, 255] 범위의 numpy 배열 (H, W, 3) 이미지
         """
         import cv2
 
@@ -268,7 +268,7 @@ class GradCAM:
         cam = self(image_tensor, target_class)
         cam_np = cam.cpu().numpy()
 
-        # 들임 크기로 맞춘다
+        # 입력 크기로 맞춘다
         if original_image is not None:
             h, w = original_image.shape[:2]
         else:
@@ -276,14 +276,14 @@ class GradCAM:
 
         cam_resized = cv2.resize(cam_np, (w, h))
 
-        # 열 그림으로 바꾼다(OpenCV은 BGR)
+        # 히트맵으로 바꾼다(OpenCV는 BGR)
         heatmap = cv2.applyColorMap(
             np.uint8(255 * cam_resized), 
             cv2.COLORMAP_JET
         )
         heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
 
-        # 본디 그림 위에 겹친다
+        # 원본 이미지 위에 겹친다
         if original_image is not None:
             if original_image.max() <= 1.0:
                 original_image = (original_image * 255).astype(np.uint8)
@@ -301,14 +301,14 @@ class GradCAM:
 ```python
 def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
     """
-    Grad-CAM에 알맞은 겨눈 레이어를 집는다.
+    Grad-CAM에 알맞은 대상 레이어를 고른다.
 
     Args:
-        model: 미리 익힌 모형
-        architecture: 모형 구조 이름
+        model: 사전 학습된 모델
+        architecture: 모델 구조 이름
 
     Returns:
-        겨눈 겹치는 레이어
+        대상 컨볼루션 레이어
     """
     architecture = architecture.lower()
 
@@ -317,19 +317,19 @@ def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
         return model.layer4[-1]
 
     elif 'vgg' in architecture:
-        # VGG: 분류기 앞의 마지막 겹치는 레이어
+        # VGG: 분류기 앞의 마지막 컨볼루션 레이어
         return model.features[-1]
 
     elif 'densenet' in architecture:
-        # DenseNet: 마지막 빽빽한 덩이
+        # DenseNet: 마지막 덴스 블록
         return model.features.denseblock4
 
     elif 'efficientnet' in architecture:
-        # EfficientNet: 마지막 겹치는 레이어
+        # EfficientNet: 마지막 컨볼루션 레이어
         return model.features[-1]
 
     elif 'mobilenet' in architecture:
-        # MobileNet: 마지막 겹치는 레이어
+        # MobileNet: 마지막 컨볼루션 레이어
         return model.features[-1]
 
     elif 'inception' in architecture:
@@ -337,7 +337,7 @@ def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
         return model.Mixed_7c
 
     else:
-        raise ValueError(f"모르는 구조: {architecture}")
+        raise ValueError(f"알 수 없는 구조: {architecture}")
 ```
 
 ### 전체 사용 예
@@ -349,19 +349,19 @@ import torchvision.transforms as transforms
 from PIL import Image
 import matplotlib.pyplot as plt
 
-# 미리 익힌 ResNet을 부른다
+# 사전 학습된 ResNet을 불러온다
 model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
 model.eval()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
 
-# 마지막 겹치는 레이어를 겨눈다
+# 마지막 컨볼루션 레이어를 대상으로 삼는다
 target_layer = model.layer4[-1]
 
-# Grad-CAM의 첫자리를 잡는다
+# Grad-CAM을 초기화한다
 grad_cam = GradCAM(model, target_layer)
 
-# 들임을 채비한다
+# 입력을 전처리한다
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
@@ -374,14 +374,14 @@ transform = transforms.Compose([
 image = Image.open('cat.jpg').convert('RGB')
 input_tensor = transform(image).unsqueeze(0).to(device)
 
-# 미루어 본 클래스에 대한 Grad-CAM을 만든다
+# 예측 클래스에 대한 Grad-CAM을 만든다
 cam = grad_cam(input_tensor)
 print(f"CAM 형태: {cam.shape}")  # torch.Size([224, 224])
 
-# 정한 클래스에 대한 Grad-CAM을 만든다(보기로 클래스 281 = 얼룩 고양이)
+# 지정한 클래스에 대한 Grad-CAM을 만든다(예: 클래스 281 = 얼룩 고양이)
 cam_tabby = grad_cam(input_tensor, target_class=281)
 
-# 그림을 만든다
+# 시각화를 만든다
 original_image = np.array(image.resize((224, 224)))
 visualization = grad_cam.generate_visualization(
     input_tensor, 
@@ -393,17 +393,17 @@ visualization = grad_cam.generate_visualization(
 plt.figure(figsize=(12, 4))
 plt.subplot(1, 3, 1)
 plt.imshow(original_image)
-plt.title('본디')
+plt.title('원본')
 plt.axis('off')
 
 plt.subplot(1, 3, 2)
 plt.imshow(cam_tabby.cpu().numpy(), cmap='jet')
-plt.title('Grad-CAM 열 그림')
+plt.title('Grad-CAM 히트맵')
 plt.axis('off')
 
 plt.subplot(1, 3, 3)
 plt.imshow(visualization)
-plt.title('겹쳐 보이기')
+plt.title('겹쳐 보기')
 plt.axis('off')
 
 plt.tight_layout()
@@ -427,7 +427,7 @@ plt.show()
 | 클래스 판별력 | 강하다 | - |
 
 ```python
-# 구조마다의 겨눈 레이어
+# 구조마다의 대상 레이어
 target_layers = {
     'resnet': model.layer4[-1],
     'vgg': model.features[-1],
@@ -453,7 +453,7 @@ target_layers = {
 
 ```python
 def multi_layer_gradcam(model, image_tensor, layers, target_class=None, device=None):
-    """여러 레이어에서 Grad-CAM을 만들어 아우른다."""
+    """여러 레이어에서 Grad-CAM을 만들어 결합한다."""
     import cv2
 
     cams = []
@@ -462,7 +462,7 @@ def multi_layer_gradcam(model, image_tensor, layers, target_class=None, device=N
         cam = gc(image_tensor, target_class, device)
         cams.append(cam.cpu().numpy())
 
-    # 모든 CAM을 같은 크기로 맞추고 고르게 한다
+    # 모든 CAM을 같은 크기로 맞추고 평균한다
     target_size = (224, 224)
     combined = np.zeros(target_size)
     for cam in cams:
@@ -474,7 +474,7 @@ def multi_layer_gradcam(model, image_tensor, layers, target_class=None, device=N
 
     return combined
 
-# 보기: layer3과 layer4을 아우른다
+# 예: layer3과 layer4를 결합한다
 layers = [model.layer3[-1], model.layer4[-1]]
 multi_cam = multi_layer_gradcam(model, input_tensor, layers, target_class=281)
 ```
@@ -497,44 +497,44 @@ def compare_gradcam_classes(
     device: torch.device
 ):
     """
-    여러 겨눈 클래스의 Grad-CAM 열 그림을 견준다.
+    여러 대상 클래스의 Grad-CAM 히트맵을 비교한다.
 
-    클래스가 다르면 다른 자리를 짚는다는 것을 보인다.
+    클래스가 다르면 다른 영역을 강조한다는 것을 보인다.
     """
     n_classes = len(class_indices)
     fig, axes = plt.subplots(2, n_classes + 1, figsize=(4 * (n_classes + 1), 8))
 
-    # 보여 주려고 그림을 되돌려 고른다
+    # 보여 주려고 이미지의 정규화를 되돌린다
     image_np = denormalize_image(image_tensor)
 
-    # 본디 그림
+    # 원본 이미지
     axes[0, 0].imshow(image_np)
-    axes[0, 0].set_title('본디', fontsize=11)
+    axes[0, 0].set_title('원본', fontsize=11)
     axes[0, 0].axis('off')
     axes[1, 0].axis('off')
 
     for idx, (class_idx, class_name) in enumerate(zip(class_indices, class_names)):
-        # 이 클래스의 Grad-CAM을 셈한다
+        # 이 클래스의 Grad-CAM을 계산한다
         heatmap = gradcam(image_tensor, class_idx, device)
         heatmap_np = heatmap.cpu().numpy()
 
-        # 열 그림
+        # 히트맵
         axes[0, idx + 1].imshow(heatmap_np, cmap='jet')
         axes[0, idx + 1].set_title(f'{class_name}\n(클래스 {class_idx})', fontsize=10)
         axes[0, idx + 1].axis('off')
 
-        # 겹쳐 보이기
+        # 겹쳐 보기
         overlay = create_overlay(image_np, heatmap_np, alpha=0.5)
         axes[1, idx + 1].imshow(overlay)
-        axes[1, idx + 1].set_title('겹쳐 보이기', fontsize=10)
+        axes[1, idx + 1].set_title('겹쳐 보기', fontsize=10)
         axes[1, idx + 1].axis('off')
 
     plt.tight_layout()
     return fig
 
-# 보기: 고양이와 개가 함께 있는 그림
-# cam_cat은 고양이 자리를 짚는다
-# cam_dog은 개 자리를 짚는다
+# 예: 고양이와 개가 함께 있는 이미지
+# cam_cat은 고양이 영역을 강조한다
+# cam_dog은 개 영역을 강조한다
 ```
 
 ### 음수 Grad-CAM
@@ -544,9 +544,9 @@ def compare_gradcam_classes(
 ```python
 def negative_gradcam(gradcam, image_tensor, target_class, device):
     """
-    겨눈 클래스일 확률을 떨어뜨리는 자리를 셈한다.
+    대상 클래스일 확률을 떨어뜨리는 영역을 계산한다.
 
-    모형이 무엇을 겨눈 클래스가 '아니라고' 여기는지 아는 데 쓸모 있다.
+    모델이 무엇을 대상 클래스가 '아니라고' 여기는지 아는 데 쓸모 있다.
     """
     model = gradcam.model
     model.eval()
@@ -558,14 +558,14 @@ def negative_gradcam(gradcam, image_tensor, target_class, device):
     model.zero_grad()
     target_score.backward()
 
-    # 음수 짐을 쓴다(클래스 점수를 떨어뜨리는 자리)
+    # 음수 웨이트를 쓴다(클래스 점수를 떨어뜨리는 영역)
     weights = -gradcam.gradients.mean(dim=(2, 3), keepdim=True)
 
     weighted = weights * gradcam.activations
     heatmap = weighted.sum(dim=1, keepdim=True)
     heatmap = F.relu(heatmap)
 
-    # 고르게 한다
+    # 정규화한다
     heatmap = heatmap / (heatmap.max() + 1e-8)
 
     return F.interpolate(
@@ -578,13 +578,13 @@ def negative_gradcam(gradcam, image_tensor, target_class, device):
 ```python
 def analyze_layer_gradcam(model, image_tensor, target_class, device):
     """
-    레이어마다의 Grad-CAM을 견주어 결의 레이어 구조를 알아본다.
+    레이어마다의 Grad-CAM을 비교해 피처의 계층 구조를 알아본다.
     """
-    # ResNet이면 layer2, layer3, layer4을 견준다
+    # ResNet이면 layer2, layer3, layer4를 비교한다
     layers = {
-        'layer2 (가운데 레이어)': model.layer2[-1],
-        'layer3 (높은 레이어)': model.layer3[-1],
-        'layer4 (뜻 레이어)': model.layer4[-1]
+        'layer2 (중간 레이어)': model.layer2[-1],
+        'layer3 (깊은 레이어)': model.layer3[-1],
+        'layer4 (의미 레이어)': model.layer4[-1]
     }
 
     results = {}
@@ -666,12 +666,12 @@ Grad-CAM이 **해상도가 낮은 위치 맵**을 내는 까닭은 이렇다.
 이미지에 객체가 여럿이면 Grad-CAM이 지정한 클래스의 영역을 짚기는 하나 엉뚱한 활성화가 함께 보일 수 있다.
 
 ```python
-# 그림에 고양이와 개가 함께 있다
+# 이미지에 고양이와 개가 함께 있다
 cam_cat = grad_cam(input_tensor, target_class=281)  # 고양이 클래스
 cam_dog = grad_cam(input_tensor, target_class=235)  # 개 클래스
 
-# CAM을 견주면 클래스마다 어느 자리에 어텐션을 두는지 드러난다
-# 다만 겹치거나 헛된 살아남이 있을 수 있다
+# CAM을 비교하면 클래스마다 어느 영역에 어텐션을 두는지 드러난다
+# 다만 겹치거나 엉뚱한 활성값이 있을 수 있다
 ```
 
 ### 3. 전역 평균 풀링이라는 가정
@@ -687,9 +687,9 @@ Grad-CAM은 피처 맵의 중요도가 위치마다 같다고 가정한다. 다�
 확신도가 아주 큰 예측에서는 그래디언트가 포화되어 설명이 약해질 수 있다.
 
 ```python
-# 확신도가 아주 큰 미루어 봄(소프트맥스 ≈ 1.0)은 기울기가 0에 가깝다
-# 푸는 길: 소프트맥스 뒤가 아니라 앞의 점수(로짓)를 쓴다
-# 이 구현은 이미 그렇게 맡겨 두었다
+# 확신도가 아주 큰 예측(소프트맥스 ≈ 1.0)은 기울기가 0에 가깝다
+# 해결책: 소프트맥스 뒤가 아니라 앞의 점수(로짓)를 쓴다
+# 이 구현은 이미 그렇게 한다
 ```
 
 ### 5. 적대적 섭동에 취약함
@@ -707,7 +707,7 @@ Grad-CAM 설명은 적대적 섭동으로 조작할 수 있다.
 ### 컴퓨터 비전
 
 ```python
-# 여느 그림 가름 풀이
+# 일반적인 이미지 분류 해석
 cam = grad_cam(image_tensor, target_class=predicted_class)
 ```
 
@@ -716,9 +716,9 @@ cam = grad_cam(image_tensor, target_class=predicted_class)
 금융 문서(차트, 표, 텍스트)의 어느 영역이 분류를 좌우하는지 짚는다.
 
 ```python
-# 문서 그림 분류기에 쓴다
+# 문서 이미지 분류기에 쓴다
 cam = grad_cam(document_image, target_class=class_map["quarterly_report"])
-# 모형이 어느 마디(표, 그림표, 서명)에 어텐션을 두는지 그린다
+# 모델이 어느 부분(표, 차트, 서명)에 어텐션을 두는지 시각화한다
 ```
 
 ### 기술적 분석
@@ -726,9 +726,9 @@ cam = grad_cam(document_image, target_class=class_map["quarterly_report"])
 CNN 기반 거래 모델이 차트의 어느 패턴에 주목하는지 시각화한다.
 
 ```python
-# 촛대 결 알아보개에 쓴다
+# 캔들스틱 패턴 인식기에 쓴다
 cam = grad_cam(chart_image, target_class=class_map["bullish_engulfing"])
-# 모형이 그 결을 이루는 옳은 촛대를 보는지 살핀다
+# 모델이 그 패턴을 이루는 올바른 캔들을 보는지 확인한다
 ```
 
 ### 인공위성/대체 데이터
@@ -736,9 +736,9 @@ cam = grad_cam(chart_image, target_class=class_map["bullish_engulfing"])
 경제 지표를 추정하는 모델이 위성 이미지에서 무엇을 보는지 확인한다.
 
 ```python
-# 주차장 그림으로 가게 오감을 미루어 볼 때
-cam = grad_cam(parking_lot_image, target_class=0)  # 오감 많음 클래스
-# 모형이 그림자 같은 엉뚱한 결이 아니라 주차 자리를 보는지 살핀다
+# 주차장 이미지로 매장 방문객 수를 추정할 때
+cam = grad_cam(parking_lot_image, target_class=0)  # 방문객 많음 클래스
+# 모델이 그림자 같은 엉뚱한 패턴이 아니라 주차 공간을 보는지 확인한다
 ```
 
 ### 의료 영상
@@ -746,7 +746,7 @@ cam = grad_cam(parking_lot_image, target_class=0)  # 오감 많음 클래스
 ```python
 # X선 진단에 쓴다
 cam = grad_cam(xray_image, target_class=class_map["pneumonia"])
-# 모형이 자국이나 이름표가 아니라 허파 자리를 보는지 살핀다
+# 모델이 표시나 라벨이 아니라 폐 영역을 보는지 확인한다
 ```
 
 ---
@@ -798,7 +798,7 @@ cam = grad_cam(xray_image, target_class=class_map["pneumonia"])
 </div>
 
 ??? success "풀이"
-    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법에 견준다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+    절차는 이렇다. (1) 시험 이미지마다 피처 기여도를 계산한다. (2) 삭제: 기여도가 큰 차례로 피처를 하나씩 가리며 모델의 확신도가 떨어지는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 떨어진다. (3) 삽입: 빈 베이스라인에서 시작해 기여도가 큰 차례로 피처를 하나씩 드러내며 확신도가 오르는 모습을 기록한다. 믿을 만한 설명이면 확신도가 빠르게 오른다. (4) 두 곡선 아래 넓이를 계산한다. (5) 무작위 순서(베이스라인)와 다른 방법과 비교한다. 믿을 만한 방법이면 삭제 곡선의 넓이가 작고 삽입 곡선의 넓이가 커야 한다. 통계적으로 믿을 만하려면 시험 표본 1000개 넘게 되풀이한다. $\square$
 
 ---
 
@@ -842,7 +842,7 @@ $$
 
 1. 의미 정보가 풍부하고 클래스를 구별하는 설명을 얻으려면 **마지막 컨볼루션 레이어를 타깃으로 삼는다**
 2. 그래디언트 포화를 피하려면 **소프트맥스 이전의 점수(로짓)를 쓴다**
-3. 클래스를 구별하는지 보려면 **클래스끼리 견준다**
+3. 클래스를 구별하는지 보려면 **클래스끼리 비교한다**
 4. 세밀하게 들여다보려면 **픽셀 단위 방법과 결합한다**(Guided Grad-CAM)
 5. **그 분야 전문가와 함께 검토한다** — 짚어 준 영역이 말이 되는지 확인한다
 6. 재현할 수 있도록 **타깃 클래스와 레이어를 적는다**
@@ -858,7 +858,7 @@ $$
 
 **다른 방법을 고려할 때:**
 
-- 픽셀 단위까지 위치를 짚어야 할 때 → Guided Grad-CAM
+- 픽셀 단위까지 위치를 파악해야 할 때 → Guided Grad-CAM
 - 이론적 보장이 필요할 때 → Integrated Gradients
 - CNN이 아닌 구조일 때 → 어텐션 시각화, SHAP
 

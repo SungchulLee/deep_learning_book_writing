@@ -4,7 +4,7 @@
 
 ## 1. 코드
 
-??? note "코드 (533줄)"
+??? note "코드 (1208줄)"
 
     ```python
     """
@@ -48,6 +48,690 @@
     import networkx as nx
     import matplotlib.pyplot as plt
     import time
+    from collections import defaultdict
+    import pandas as pd
+
+    # ========================================================================
+    # 도우미 클래스
+    # ========================================================================
+
+
+    class ConditionalProbabilityTable:
+        """
+        변수의 조건부 확률표(CPT)를 나타낸다.
+
+        CPT는 부모 값의 모든 조합에 대해 P(변수 | 부모)를 명시한다.
+        이것이 베이즈 네트워크의 기본
+        구성 요소다.
+
+        속성:
+            variable: 이 CPT가 정의하는 변수의 이름
+            parents: 부모 변수 이름의 목록
+            cardinalities: 모든 변수를 상태 수에 대응시키는 딕셔너리
+            table: 조건부 확률을 담은 NumPy 배열
+        """
+
+        def __init__(self,
+                     variable: str,
+                     parents: List[str],
+                     cardinalities: Dict[str, int],
+                     table: Optional[np.ndarray] = None):
+            """
+            CPT를 초기화한다.
+
+            인수:
+                variable: 변수의 이름(이를테면 'Rain')
+                parents: 부모 변수 이름의 목록(이를테면 ['Cloudy'])
+                cardinalities: 모든 변수의 상태 수 딕셔너리
+                table: 선택적인 CPT 값. 형태는
+                       (*부모_상태수, 변수_상태수)이어야 한다
+                       None이면 균등 분포로 초기화한다
+
+            예:
+                # P(Rain | Cloudy)의 CPT
+                # Rain도 이진, Cloudy도 이진
+                cpt = ConditionalProbabilityTable(
+                    variable='Rain',
+                    parents=['Cloudy'],
+                    cardinalities={'Rain': 2, 'Cloudy': 2},
+                    table=np.array([[0.8, 0.2],  # P(Rain | Cloudy=0)
+                                   [0.2, 0.8]])  # P(Rain | Cloudy=1)
+                )
+            """
+            self.variable = variable
+            self.parents = parents
+            self.cardinalities = cardinalities
+
+            # CPT의 형태 정하기
+            # 형태: (card(부모1), card(부모2), ..., card(변수))
+            parent_cards = [cardinalities[p] for p in parents]
+            var_card = cardinalities[variable]
+            shape = tuple(parent_cards + [var_card])
+
+            if table is None:
+                # 균등 분포로 초기화하기
+                self.table = np.ones(shape) / var_card
+            else:
+                self.table = np.array(table)
+                # 형태 확인하기
+                assert self.table.shape == shape, \
+                    f"Table shape {self.table.shape} doesn't match expected {shape}"
+                # 조건부 분포마다 합이 1인지 확인하기
+                self._verify_normalized()
+
+        def _verify_normalized(self):
+            """
+            조건부 확률의 합이 1인지 확인한다.
+
+            부모 값의 조합마다 변수 값에 걸친 확률의
+            합이 1이어야 한다.
+            """
+            # 마지막 축(변수 자신)에 걸쳐 합하기
+            sums = np.sum(self.table, axis=-1)
+            if not np.allclose(sums, 1.0):
+                print(f"Warning: CPT for {self.variable} is not normalized!")
+                print(f"Sums: {sums}")
+
+        def get_probability(self, 
+                           variable_value: int,
+                           parent_values: Dict[str, int]) -> float:
+            """
+            P(변수=값 | 부모=부모 값)을 얻는다.
+
+            인수:
+                variable_value: 변수의 값(정수 인덱스)
+                parent_values: 부모 이름을 값에 대응시키는 딕셔너리
+
+            반환값:
+                조건부 확률
+
+            예:
+                # P(Rain=1 | Cloudy=0) 얻기
+                prob = cpt.get_probability(1, {'Cloudy': 0})
+            """
+            # 표를 조회할 인덱스 튜플 만들기
+            index = []
+            for parent in self.parents:
+                index.append(parent_values[parent])
+            index.append(variable_value)
+
+            return self.table[tuple(index)]
+
+        def set_probability(self,
+                           variable_value: int,
+                           parent_values: Dict[str, int],
+                           probability: float):
+            """
+            P(변수=값 | 부모=부모 값)을 정한다.
+
+            인수:
+                variable_value: 변수의 값
+                parent_values: 부모 이름을 값에 대응시키는 딕셔너리
+                probability: 정할 확률 값
+            """
+            index = []
+            for parent in self.parents:
+                index.append(parent_values[parent])
+            index.append(variable_value)
+
+            self.table[tuple(index)] = probability
+
+        def sample(self, parent_values: Dict[str, int]) -> int:
+            """
+            부모 값이 주어졌을 때 변수의 값을 샘플링한다.
+
+            이는 베이즈 네트워크의 순방향 샘플링에 유용하다.
+
+            인수:
+                parent_values: 부모 이름을 값에 대응시키는 딕셔너리
+
+            반환값:
+                샘플링한 값(정수)
+
+            예:
+                # Cloudy=1일 때 Rain 값 샘플링하기
+                rain_value = cpt.sample({'Cloudy': 1})
+            """
+            # 조건부 분포 얻기
+            index = tuple(parent_values[p] for p in self.parents)
+            probabilities = self.table[index]
+
+            # 범주 분포에서 샘플링하기
+            return np.random.choice(len(probabilities), p=probabilities)
+
+        def to_dataframe(self) -> pd.DataFrame:
+            """
+            CPT를 읽기 좋은 DataFrame으로 바꾼다.
+
+            이는 시각화와 디버깅에 유용하다.
+
+            반환값:
+                부모 값과 조건부 확률을 담은 DataFrame
+            """
+            rows = []
+
+            # 부모 값의 모든 조합 만들기
+            parent_cards = [self.cardinalities[p] for p in self.parents]
+
+            if not self.parents:
+                # 부모 없음 — 사전분포일 뿐이다
+                for var_val in range(self.cardinalities[self.variable]):
+                    row = {self.variable: var_val, 'Probability': self.table[var_val]}
+                    rows.append(row)
+            else:
+                for parent_combo in product(*[range(c) for c in parent_cards]):
+                    for var_val in range(self.cardinalities[self.variable]):
+                        row = {}
+                        # 부모 값 더하기
+                        for parent, pval in zip(self.parents, parent_combo):
+                            row[parent] = pval
+                        # 변수 값 더하기
+                        row[self.variable] = var_val
+                        # 확률 더하기
+                        index = parent_combo + (var_val,)
+                        row['Probability'] = self.table[index]
+                        rows.append(row)
+
+            return pd.DataFrame(rows)
+
+        def __str__(self) -> str:
+            """CPT의 문자열 표현."""
+            if not self.parents:
+                return f"P({self.variable})\n{self.to_dataframe().to_string(index=False)}"
+            else:
+                parent_str = ', '.join(self.parents)
+                return f"P({self.variable} | {parent_str})\n{self.to_dataframe().to_string(index=False)}"
+
+
+    class BayesianNetwork:
+        """
+        베이즈 네트워크를 나타낸다. 곧 CPT가 딸린 DAG이다.
+
+        베이즈 네트워크는 다음으로 이루어진다:
+        1. 방향 비순환 그래프(DAG) 구조
+        2. 노드마다의 조건부 확률표(CPT)
+
+        이 네트워크는 P(X1,...,Xn) = ∏ P(Xi | Parents(Xi))를 나타낸다
+
+        속성:
+            graph: 구조를 나타내는 NetworkX DiGraph
+            cpts: 변수 이름을 CPT에 대응시키는 딕셔너리
+            cardinalities: 변수 이름을 상태 수에 대응시키는 딕셔너리
+        """
+
+        def __init__(self):
+            """빈 베이즈 네트워크를 초기화한다."""
+            self.graph = nx.DiGraph()
+            self.cpts: Dict[str, ConditionalProbabilityTable] = {}
+            self.cardinalities: Dict[str, int] = {}
+
+        def add_variable(self, name: str, cardinality: int):
+            """
+            네트워크에 변수(노드)를 더한다.
+
+            인수:
+                name: 변수 이름(이를테면 'Weather', 'Traffic')
+                cardinality: 있을 수 있는 값의 개수(이진이면 2)
+
+            예:
+                bn = BayesianNetwork()
+                bn.add_variable('Rain', 2)  # 이진 변수
+                bn.add_variable('Season', 4)  # 네 계절
+            """
+            self.graph.add_node(name)
+            self.cardinalities[name] = cardinality
+
+        def add_edge(self, parent: str, child: str):
+            """
+            변수 사이에 방향 간선(인과 관계)을 더한다.
+
+            인수:
+                parent: 부모 변수의 이름
+                child: 자식 변수의 이름
+
+            발생하는 예외:
+                ValueError: 그 간선이 사이클을 만들 때
+
+            예:
+                bn.add_edge('Rain', 'WetGrass')  # 비가 잔디를 적신다
+            """
+            self.graph.add_edge(parent, child)
+
+            # 사이클이 없는지 확인하기
+            if not nx.is_directed_acyclic_graph(self.graph):
+                self.graph.remove_edge(parent, child)
+                raise ValueError(f"Adding edge {parent}->{child} creates a cycle!")
+
+        def set_cpt(self, 
+                    variable: str,
+                    table: np.ndarray):
+            """
+            변수의 조건부 확률표를 정한다.
+
+            인수:
+                variable: 변수의 이름
+                table: 조건부 확률을 담은 NumPy 배열
+                       형태는 (card(부모1), ..., card(부모N), card(변수))와 맞아야 한다
+
+            예:
+                # 이진 Cloudy를 부모로 갖는 이진 Rain의 경우
+                bn.set_cpt('Rain', np.array([[0.8, 0.2],   # P(Rain | Cloudy=0)
+                                             [0.3, 0.7]]))  # P(Rain | Cloudy=1)
+            """
+            parents = list(self.graph.predecessors(variable))
+            parents.sort()  # 일관된 순서
+
+            cpt = ConditionalProbabilityTable(
+                variable=variable,
+                parents=parents,
+                cardinalities=self.cardinalities,
+                table=table
+            )
+
+            self.cpts[variable] = cpt
+
+        def get_cpt(self, variable: str) -> ConditionalProbabilityTable:
+            """
+            변수의 CPT를 얻는다.
+
+            인수:
+                variable: 변수의 이름
+
+            반환값:
+                조건부 확률표
+            """
+            if variable not in self.cpts:
+                raise ValueError(f"No CPT defined for variable {variable}")
+            return self.cpts[variable]
+
+        def compute_joint_probability(self, assignment: Dict[str, int]) -> float:
+            """
+            완전한 대입에 대해 P(X1=x1, X2=x2, ..., Xn=xn)를 계산한다.
+
+            연쇄 법칙 인수분해를 쓴다:
+            P(X1,...,Xn) = ∏ P(Xi | Parents(Xi))
+
+            인수:
+                assignment: 모든 변수에 값을 준 완전한 대입
+
+            반환값:
+                결합 확률
+
+            예:
+                # P(Cloudy=1, Rain=1, WetGrass=1) 계산하기
+                prob = bn.compute_joint_probability({
+                    'Cloudy': 1,
+                    'Rain': 1,
+                    'WetGrass': 1
+                })
+            """
+            probability = 1.0
+
+            # 변수마다 조건부 확률 곱하기
+            for variable in self.graph.nodes():
+                cpt = self.get_cpt(variable)
+                parents = list(self.graph.predecessors(variable))
+
+                # 부모 값 얻기
+                parent_values = {p: assignment[p] for p in parents}
+
+                # 변수 값 얻기
+                var_value = assignment[variable]
+
+                # P(변수 | 부모)를 곱하기
+                prob = cpt.get_probability(var_value, parent_values)
+                probability *= prob
+
+            return probability
+
+        def forward_sample(self) -> Dict[str, int]:
+            """
+            순방향 샘플링으로 결합 분포에서 표본을 만든다.
+
+            순방향 샘플링은 위상 순서를 따른다:
+            1. 변수를 위상 순서로 샘플링한다
+            2. 이미 샘플링한 부모 값으로 P(Xi | Parents(Xi))에서 샘플링한다
+
+            반환값:
+                P(X1,...,Xn)에서 샘플링한 완전한 대입
+
+            예:
+                # 네트워크에서 표본 1000개 만들기
+                samples = [bn.forward_sample() for _ in range(1000)]
+            """
+            assignment = {}
+
+            # 위상 순서로 샘플링하기(자식보다 부모를 먼저)
+            for variable in nx.topological_sort(self.graph):
+                cpt = self.get_cpt(variable)
+                parents = list(self.graph.predecessors(variable))
+
+                # 이미 샘플링한 변수에서 부모 값 얻기
+                parent_values = {p: assignment[p] for p in parents}
+
+                # 이 변수 샘플링하기
+                assignment[variable] = cpt.sample(parent_values)
+
+            return assignment
+
+        def visualize(self, figsize: Tuple[int, int] = (12, 8), show_cpts: bool = False):
+            """
+            베이즈 네트워크의 구조와, 원하면 CPT까지 시각화한다.
+
+            인수:
+                figsize: 그림 크기
+                show_cpts: CPT 값을 보일지 여부
+            """
+            plt.figure(figsize=figsize)
+
+            # 레이아웃
+            try:
+                pos = nx.spring_layout(self.graph, k=2, iterations=50)
+            except:
+                pos = nx.spring_layout(self.graph)
+
+            # 노드와 간선 그리기
+            nx.draw(self.graph, pos,
+                    with_labels=True,
+                    node_color='lightcoral',
+                    node_size=3000,
+                    font_size=12,
+                    font_weight='bold',
+                    arrows=True,
+                    arrowsize=20,
+                    edge_color='gray',
+                    width=2)
+
+            # 상태 수를 노드 라벨로 붙이기
+            labels = {node: f"{node}\n(card={self.cardinalities[node]})" 
+                     for node in self.graph.nodes()}
+            pos_labels = {k: (v[0], v[1] - 0.1) for k, v in pos.items()}
+            nx.draw_networkx_labels(self.graph, pos_labels, labels, 
+                                   font_size=9, font_color='darkred')
+
+            plt.title("Bayesian Network Structure", fontsize=14, fontweight='bold')
+            plt.axis('off')
+            plt.tight_layout()
+            plt.show()
+
+            # 요청하면 CPT 보이기
+            if show_cpts:
+                print("\n" + "="*70)
+                print("CONDITIONAL PROBABILITY TABLES")
+                print("="*70)
+                for variable in nx.topological_sort(self.graph):
+                    cpt = self.get_cpt(variable)
+                    print(f"\n{cpt}")
+                    print("-"*70)
+
+
+    def build_weather_network() -> BayesianNetwork:
+        """
+        단순한 날씨 예측 베이즈 네트워크를 구성한다.
+
+        네트워크의 구조:
+            Cloudy -> Rain -> WetGrass
+            Cloudy -> Sprinkler -> WetGrass
+
+        이는 다음을 보여 주는 고전적인 예다:
+        - 공통 원인(흐림이 비와 물뿌리개에 함께 영향을 준다)
+        - 여러 원인(젖은 잔디는 비 때문일 수도 물뿌리개 때문일 수도 있다)
+
+        반환값:
+            CPT를 갖춘 완전한 베이즈 네트워크
+        """
+        print("\nBuilding Weather Network...")
+        print("-" * 70)
+
+        bn = BayesianNetwork()
+
+        # 변수 더하기(모두 이진: 0=거짓, 1=참)
+        bn.add_variable('Cloudy', 2)
+        bn.add_variable('Sprinkler', 2)
+        bn.add_variable('Rain', 2)
+        bn.add_variable('WetGrass', 2)
+
+        # 간선 더하기(인과 관계)
+        bn.add_edge('Cloudy', 'Sprinkler')  # 흐림이 물뿌리개 사용에 영향을 준다
+        bn.add_edge('Cloudy', 'Rain')        # 흐림이 비에 영향을 준다
+        bn.add_edge('Sprinkler', 'WetGrass') # 물뿌리개가 잔디를 적실 수 있다
+        bn.add_edge('Rain', 'WetGrass')      # 비가 잔디를 적실 수 있다
+
+        # CPT 정하기
+
+        # P(Cloudy) — 사전확률
+        # [P(Cloudy=0), P(Cloudy=1)]
+        bn.set_cpt('Cloudy', np.array([0.5, 0.5]))
+
+        # P(Sprinkler | Cloudy)
+        # 흐리면 물뿌리개를 쓸 가능성이 낮다
+        bn.set_cpt('Sprinkler', np.array([
+            [0.5, 0.5],  # P(Sprinkler | Cloudy=0)
+            [0.9, 0.1]   # P(Sprinkler | Cloudy=1) — 흐리면 잘 안 쓴다
+        ]))
+
+        # P(Rain | Cloudy)
+        # 흐리면 비가 올 가능성이 높다
+        bn.set_cpt('Rain', np.array([
+            [0.8, 0.2],  # P(Rain | Cloudy=0) — 흐리지 않으면 잘 안 온다
+            [0.2, 0.8]   # P(Rain | Cloudy=1) — 흐리면 잘 온다
+        ]))
+
+        # P(WetGrass | Sprinkler, Rain)
+        # 물뿌리개가 켜졌거나 비가 오면 잔디가 젖는다
+        # 순서: [Sprinkler=0, Rain=0], [Sprinkler=0, Rain=1],
+        #        [Sprinkler=1, Rain=0], [Sprinkler=1, Rain=1]
+        bn.set_cpt('WetGrass', np.array([
+            [[1.0, 0.0],   # Sprinkler=0, Rain=0: 잔디가 마름
+             [0.1, 0.9]],  # Sprinkler=0, Rain=1: 잔디가 젖음(비)
+            [[0.1, 0.9],   # Sprinkler=1, Rain=0: 잔디가 젖음(물뿌리개)
+             [0.01, 0.99]] # Sprinkler=1, Rain=1: 잔디가 매우 젖음(둘 다)
+        ]))
+
+        print("Network built successfully!")
+        print(f"Variables: {list(bn.graph.nodes())}")
+        print(f"Edges: {list(bn.graph.edges())}")
+
+        return bn
+
+
+
+    class InferenceByEnumeration:
+        """
+        가능한 모든 조합을 전수 열거해 정확히 추론한다.
+
+        이것이 가장 직접적인 추론 방법이다:
+        1. 모든 변수의 가능한 대입을 열거한다
+        2. 증거와 일치하는 대입의 확률을 합한다
+        3. 정규화하여 조건부 확률을 얻는다
+
+        시간 복잡도: 이진 변수 n개에 대해 O(2^n)(지수이다!)
+        공간 복잡도: O(2^n)
+
+        효율은 낮지만 이 방법은 다음과 같다:
+        - 정확하다(근사가 아니다)
+        - 이해하기 쉽다
+        - 작은 네트워크에 유용하다
+        - 다른 알고리즘을 시험하는 좋은 기준이다
+        """
+
+        def __init__(self, bn: BayesianNetwork):
+            """
+            추론 엔진을 초기화한다.
+
+            인수:
+                bn: 추론할 베이즈 네트워크
+            """
+            self.bn = bn
+            self.query_cache = {}  # 반복되는 질의를 위한 캐시
+
+        def query_marginal(self, 
+                          query_vars: List[str],
+                          evidence: Optional[Dict[str, int]] = None,
+                          use_cache: bool = True) -> Dict[tuple, float]:
+            """
+            전수 열거로 P(query_vars | evidence)를 계산한다.
+
+            인수:
+                query_vars: 확률 분포를 계산할 변수
+                evidence: 관측한 변수 값의 딕셔너리(None일 수 있다)
+                use_cache: 캐시한 결과를 쓸지 여부
+
+            반환값:
+                query_vars의 대입마다 확률에 대응시키는 딕셔너리
+
+            예:
+                # P(Rain | Cloudy=1) 계산하기
+                result = inference.query_marginal(
+                    query_vars=['Rain'],
+                    evidence={'Cloudy': 1}
+                )
+                # 반환값: {(0,): 0.2, (1,): 0.8}
+            """
+            if evidence is None:
+                evidence = {}
+
+            # 캐시 키 만들기
+            query_key = (tuple(sorted(query_vars)), tuple(sorted(evidence.items())))
+            if use_cache and query_key in self.query_cache:
+                return self.query_cache[query_key]
+
+            print(f"\nComputing P({', '.join(query_vars)}" + 
+                  (f" | {', '.join(f'{k}={v}' for k, v in evidence.items())})" if evidence else ")"))
+            print("-" * 60)
+
+            # 네트워크의 모든 변수 얻기
+            all_vars = list(self.bn.graph.nodes())
+
+            # 변수를 질의, 증거, 숨은 변수로 나누기
+            hidden_vars = [v for v in all_vars if v not in query_vars and v not in evidence]
+
+            print(f"Query variables: {query_vars}")
+            print(f"Evidence variables: {list(evidence.keys())}")
+            print(f"Hidden variables: {hidden_vars}")
+
+            # 결과 딕셔너리 초기화하기
+            result = defaultdict(float)
+
+            # 상태 수 얻기
+            query_cards = [self.bn.cardinalities[v] for v in query_vars]
+            hidden_cards = [self.bn.cardinalities[v] for v in hidden_vars]
+
+            total_configurations = np.prod(query_cards) * np.prod(hidden_cards)
+            print(f"\nEnumerating {int(total_configurations)} configurations...")
+
+            # 질의 변수와 숨은 변수의 모든 대입 열거하기
+            for query_values in product(*[range(c) for c in query_cards]):
+                # 질의 대입마다 숨은 변수의 모든 대입에 걸쳐 합하기
+                query_assignment = dict(zip(query_vars, query_values))
+
+                for hidden_values in product(*[range(c) for c in hidden_cards]):
+                    hidden_assignment = dict(zip(hidden_vars, hidden_values))
+
+                    # 완전한 대입
+                    full_assignment = {**query_assignment, **hidden_assignment, **evidence}
+
+                    # 베이즈 네트워크로 P(완전한 대입) 계산하기
+                    prob = self.bn.compute_joint_probability(full_assignment)
+
+                    # 이 질의 대입의 결과에 더하기
+                    result[query_values] += prob
+
+            # 조건부 확률 P(질의 | 증거)를 얻으려고 정규화하기
+            total = sum(result.values())
+
+            if total > 0:
+                result = {k: v/total for k, v in result.items()}
+            else:
+                print("Warning: Evidence has probability 0!")
+                # 균등 분포
+                result = {k: 1.0/len(result) for k in result.keys()}
+
+            # 결과 캐시에 담기
+            if use_cache:
+                self.query_cache[query_key] = dict(result)
+
+            return dict(result)
+
+        def query_single_variable(self, 
+                                 variable: str,
+                                 evidence: Optional[Dict[str, int]] = None) -> np.ndarray:
+            """
+            변수 하나만 질의하는 편의 메서드.
+
+            인수:
+                variable: 질의할 변수
+                evidence: 증거 딕셔너리
+
+            반환값:
+                변수의 값마다의 확률을 담은 NumPy 배열
+
+            예:
+                # P(Rain | Cloudy=1) 계산하기
+                probs = inference.query_single_variable('Rain', {'Cloudy': 1})
+                print(f"P(Rain=0|Cloudy=1) = {probs[0]}")
+                print(f"P(Rain=1|Cloudy=1) = {probs[1]}")
+            """
+            result_dict = self.query_marginal([variable], evidence)
+
+            # 배열로 바꾸기
+            cardinality = self.bn.cardinalities[variable]
+            probs = np.zeros(cardinality)
+
+            for value_tuple, prob in result_dict.items():
+                probs[value_tuple[0]] = prob
+
+            return probs
+
+        def most_probable_explanation(self, 
+                                      evidence: Dict[str, int]) -> Dict[str, int]:
+            """
+            증거가 주어졌을 때 가장 그럴듯한 완전한 대입을 찾는다.
+
+            이를 MAP(최대 사후확률) 추론이라고도 한다.
+            argmax_X P(X | evidence)를 찾는다.
+
+            인수:
+                evidence: 관측한 변수
+
+            반환값:
+                증거가 아닌 모든 변수에 대한 가장 그럴듯한 대입
+
+            예:
+                # 잔디가 젖었다면 가장 그럴듯한 설명은 무엇인가?
+                mpe = inference.most_probable_explanation({'WetGrass': 1})
+                # 반환될 수 있는 값: {'Cloudy': 1, 'Rain': 1, 'Sprinkler': 0}
+            """
+            print(f"\nFinding Most Probable Explanation given evidence:")
+            print(f"Evidence: {evidence}")
+            print("-" * 60)
+
+            # 증거가 아닌 변수 모두 얻기
+            all_vars = list(self.bn.graph.nodes())
+            query_vars = [v for v in all_vars if v not in evidence]
+
+            # 모든 대입 열거하기
+            best_assignment = None
+            best_prob = -1
+
+            query_cards = [self.bn.cardinalities[v] for v in query_vars]
+
+            for query_values in product(*[range(c) for c in query_cards]):
+                assignment = dict(zip(query_vars, query_values))
+                full_assignment = {**assignment, **evidence}
+
+                prob = self.bn.compute_joint_probability(full_assignment)
+
+                if prob > best_prob:
+                    best_prob = prob
+                    best_assignment = assignment
+
+            print(f"\nMost probable assignment: {best_assignment}")
+            print(f"Probability: {best_prob:.6f}")
+
+            return best_assignment
+
+
 
     # ========================================================================
     # 메인
@@ -434,11 +1118,7 @@
         print("DEMONSTRATION: Variable Elimination")
         print("="*70)
 
-        # 날씨 망을 불러와 구성하기
-        import sys
-        sys.path.append('..')
-        from beginner.bayesian_networks_basics import build_weather_network
-
+        # 날씨 망 구성하기
         bn = build_weather_network()
 
         # 추론 엔진 만들기
@@ -474,11 +1154,6 @@
         print("\n" + "="*70)
         print("COMPARISON: Enumeration vs Variable Elimination")
         print("="*70)
-
-        import sys
-        sys.path.append('..')
-        from beginner.bayesian_networks_basics import build_weather_network
-        from beginner.simple_inference import InferenceByEnumeration
 
         bn = build_weather_network()
 
