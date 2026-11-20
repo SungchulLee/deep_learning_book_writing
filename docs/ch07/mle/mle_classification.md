@@ -60,7 +60,7 @@ $$
 \text{BCE}(y, z) = \max(z, 0) - yz + \log(1 + e^{-|z|})
 $$
 
-여기서 $z = f_\theta(x)$은 로짓이다. 이것이 바로 `nn.BCEWithLogitsLoss`이 구현하는 것이다.
+여기서 $z = f_\theta(x)$은 로짓이다. 이것이 바로 `nn.BCEWithLogitsLoss`가 구현하는 것이다.
 
 ---
 
@@ -118,7 +118,7 @@ $$
 \log \text{softmax}(z)_k = z_k - \log\sum_{j=1}^{K} e^{z_j} = z_k - \left(m + \log\sum_{j=1}^{K} e^{z_j - m}\right)
 $$
 
-여기서 $m = \max_j z_j$이다. PyTorch의 `nn.CrossEntropyLoss`은 로그 소프트맥스와 NLL 로스를 수치적으로 안정한 하나의 연산으로 합친다.
+여기서 $m = \max_j z_j$이다. PyTorch의 `nn.CrossEntropyLoss`는 로그 소프트맥스와 NLL 로스를 수치적으로 안정한 하나의 연산으로 합친다.
 
 ---
 
@@ -308,7 +308,7 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-10개 클래스 문제에서 파라메터 $\epsilon = 0.1$인 라벨 스무딩을 구현하고, 신뢰도 다이어그램으로 하드 라벨과 보정 정도를 비교하라.
+10개 클래스 문제에서 파라메터 $\epsilon = 0.1$인 라벨 스무딩을 구현하고, 하드 라벨로 학습한 모델과 보정 정도를 신뢰도 다이어그램으로 비교하라.
 
 </div>
 
@@ -327,7 +327,7 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
         smooth = -log_probs.mean(dim=-1)
         return ((1 - epsilon) * nll + epsilon * smooth).mean()
     ```
-    제시한 코드는 스무딩한 로스를 계산하는 부분이다. 보정 정도를 비교하려면 같은 조건에서 두 모델을 학습하고 독립 검증셋의 예측 확률과 실제 정답 빈도로 신뢰도 다이어그램을 추가해야 한다. 보정 개선을 미리 결론내리지 않는다.
+    제시한 코드는 스무딩한 로스를 계산하는 부분이다. 보정 정도를 비교하려면 같은 조건에서 두 모델을 학습하고 독립 검증셋의 예측 확률과 실제 정답 빈도로 신뢰도 다이어그램을 추가해야 한다. 보정이 나아진다고 미리 결론 내리지 않는다.
 
 ---
 
@@ -352,7 +352,7 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-누적 연결 확률을 사용하여 순서를 존중하는 순서형 분류(평점 1--5)의 로스 함수를 설계하라.
+누적 연결 확률을 사용하여 순서를 존중하는 순서형 분류(평점 1~5)의 로스 함수를 설계하라.
 
 </div>
 

@@ -393,7 +393,7 @@ loss.backward()
 
 compute_fisher는 outputs.logits와 labels를 받는 모델을 가정하지만 위 FullFineTuning은 labels 인수가 없고 Tensor를 반환한다. 그대로 연결할 수 없다. 배치 평균 로스의 그래디언트를 제곱해 표본 수로 나누는 방식도 표본별 점수 그래디언트 제곱의 평균 Fisher 추정과 다르다. 빈 데이터·샘플 상한·장치와 기준 상태의 독립 복사도 처리해야 한다.
 
-penalty는 앞 수식의 lambda/2와 달리 lambda를 그대로 곱하므로 계수 관례가 다르다. Fisher가 크면 기존 과제에 중요하다는 해석 역시 추정 데이터·근사 조건에 따른다.
+penalty는 아래 수식의 lambda/2와 달리 lambda를 그대로 곱하므로 계수 관례가 다르다. Fisher가 크면 기존 과제에 중요하다는 해석 역시 추정 데이터·근사 조건에 따른다.
 
 피셔 정보로 중요한 파라메터에 더 큰 웨이트를 준다.
 

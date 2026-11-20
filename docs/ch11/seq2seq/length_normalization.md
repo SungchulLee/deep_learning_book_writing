@@ -59,7 +59,7 @@ $$lp(Y) = \frac{(5 + |Y|)^\alpha}{(5 + 1)^\alpha}$$
 
 $$\text{score}_{norm} = \frac{\text{score}}{lp(Y)}$$
 
-상수 5는 아주 짧은 시퀀스를 매끄럽게 하여 $|Y|$가 작을 때 극단적인 정규화를 막는다. 지수 $\alpha$가 정규화의 세기를 조절한다.
+상수 5는 $|Y|$가 작을 때 분모가 급하게 변하지 않게 하여 아주 짧은 시퀀스에서 극단적인 정규화를 막는다. 지수 $\alpha$가 정규화의 세기를 조절한다.
 
 ```python
 def google_length_penalty(length: int, alpha: float = 0.6) -> float:
@@ -87,7 +87,7 @@ def normalized_score(log_prob_sum: float, length: int, alpha: float = 0.6) -> fl
 
 이동 상수가 없는 $T^\alpha$ 방식은 $\alpha=1$에서 토큰당 평균이 된다. 그러나 위 GNMT 식은 $\alpha=1$일 때 분모가 $(5+T)/6$이므로 정확한 토큰당 평균과 같지 않다. 두 함수를 구분해야 한다.
 
-$\alpha=0$이면 보정이 없고 양수 값을 키우면 긴 후보의 음수 점수가 상대적으로 덜 불리해질 수 있다. 적절한 범위는 길이 정의, 모델과 검색 조건에 따라 달라진다. 특정 수치가 대부분의 Seq2Seq 과제에 최적이라고 가정하지 않는다.
+$\alpha=0$이면 보정이 없고, $\alpha$를 키울수록 긴 후보의 음수 점수가 상대적으로 덜 불리해질 수 있다. 적절한 범위는 길이 정의, 모델과 검색 조건에 따라 달라진다. 특정 수치가 대부분의 Seq2Seq 과제에 최적이라고 가정하지 않는다.
 
 ```python
 import numpy as np

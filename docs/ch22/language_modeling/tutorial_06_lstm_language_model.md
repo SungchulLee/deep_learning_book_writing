@@ -2,7 +2,7 @@
 
 LSTM은 셀 상태와 게이트로 정보를 유지·갱신하는 순환 뉴럴 네트워크다. 단순 tanh RNN보다 장기 의존성의 학습을 돕도록 설계되었지만 그래디언트 사라짐이나 기억 손실을 항상 없애 주지는 않는다. 이 예제는 단어 임베딩·다층 LSTM·출력 선형 레이어로 다음 단어 로짓을 만드는 구조다.
 
-## 1. 코드와 기존 출력
+## 1. 코드와 출력
 
 ```python
 """
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     print(f"LSTM LM parameters: {params:,}")
 ```
 
-**기존 출력:**
+**출력:**
 
 ```
 LSTM LM parameters: 11,368,208
@@ -119,7 +119,7 @@ f_t=0, i_t=1이면 셀 상태와 직접 기억 경로에 어떤 일이 생기며
 
 ??? success "풀이"
 
-    embedding.weight와 fc.weight는 모두 V×dim이며 같은 Parameter를 참조한다. LSTM 출력 차원도 dim으로 맞추므로 직접 공유가 가능하다. 비공유 모델의 출력 웨이트 Vdim개가 줄지만 fc.bias의 V개와 LSTM 파라메터는 남는다. 입력 임베딩 차원과 출력 차원이 다르면 별도 사영 등 구조 변경 없이 직접 공유할 수 없다. 이 예제는 학습 성능을 비교하지 않는다.
+    embedding.weight와 fc.weight는 모두 V×dim이며 같은 Parameter를 참조한다. LSTM 출력 차원도 dim으로 맞추므로 직접 공유가 가능하다. 비공유 모델의 출력 웨이트 V×dim개가 줄지만 fc.bias의 V개와 LSTM 파라메터는 남는다. 입력 임베딩 차원과 출력 차원이 다르면 별도 사영 등 구조 변경 없이 직접 공유할 수 없다. 이 예제는 학습 성능을 비교하지 않는다.
 
     ```python
     class TiedLSTMLanguageModel(nn.Module):

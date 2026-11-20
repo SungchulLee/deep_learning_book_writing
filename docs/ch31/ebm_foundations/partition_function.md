@@ -89,7 +89,7 @@ for T in [0.5, 1.0, 2.0, 5.0]:
     print(f"{T:5.1f} {q['avg_E']:10.3f} {q['F']:10.3f} {q['S']:10.3f} {q['C']:10.3f}")
 ```
 
-**보존된 출력:**
+**출력:**
 
 ```
 Thermodynamic quantities for double-well potential:

@@ -229,13 +229,13 @@ replay buffer는 이전 음의 상태에서 이어 시작하는 방법이다. �
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-아래 안정화 코드의 적용 범위와 에너지 규제의 평균 순서를 검토하라.
+아래 안정화 코드의 적용 범위와 에너지 정칙화 항의 평균 순서를 검토하라.
 
 </div>
 
 ??? success "풀이"
 
-    StableConvEnergyNetwork를 생성해 학습 루프에 연결하는 부분이 없고 마지막 loss 식의 두 에너지는 해당 범위에 정의되어 있지 않다. 기존 학습 함수처럼 두 값을 먼저 mean하면 규제는 (mean E+)²+(mean E−)²다. 의도한 mean(E+²)+mean(E−²)와 달리 배치 내 양·음 에너지가 상쇄될 수 있다. 스펙트럴 정규화도 전체 CNN의 정확한 1-Lipschitz나 분포 정규화를 보장하는 기능으로 설명하지 않는다.
+    StableConvEnergyNetwork를 생성해 학습 루프에 연결하는 부분이 없고 마지막 loss 식의 두 에너지는 해당 범위에 정의되어 있지 않다. 기존 학습 함수처럼 두 값을 먼저 mean하면 정칙화 항은 (mean E+)²+(mean E−)²다. 의도한 mean(E+²)+mean(E−²)와 달리 배치 내 양·음 에너지가 상쇄될 수 있다. 스펙트럴 정규화도 전체 CNN의 정확한 1-Lipschitz나 분포 정규화를 보장하는 기능으로 설명하지 않는다.
 
     ```python
     from torch.nn.utils import spectral_norm

@@ -1,6 +1,6 @@
 # 반복자 방식 최소 예제
 
-PyTorch의 map-style Dataset과 IterableDataset을 비교한다. 보존된 코드 블록은 주석과 빈 main만 담은 안내이며 실제 스트리밍 데이터셋 클래스는 구현하지 않는다.
+PyTorch의 map-style Dataset과 IterableDataset을 비교한다. 이 쪽의 코드 블록은 주석과 빈 main만 담은 안내이며 실제 스트리밍 데이터셋 클래스는 구현하지 않는다.
 
 ## 1. 코드
 

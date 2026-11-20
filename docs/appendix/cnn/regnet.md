@@ -1,6 +1,6 @@
 # RegNet
 
-RegNet은 2020년 페이스북 AI 연구소가 발표했으며, 뉴럴 네트워크 구조를 만드는 데 설계 공간(design space)이라는 접근을 쓴다. 가장 좋은 네트워크 하나를 찾는 대신, RegNet은 소수의 변수(깊이, 초기 너비, 기울기, 그룹 너비)로 파라메터화되는 체계적인 설계 공간을 정의한다. 이 공간에서 뽑은 네트워크는 스테이지를 지나며 너비가 단순한 선형 함수로 정해지고, 빠르고 메모리 효율적이며 성능이 높은 모델이 나온다.
+RegNet은 2020년 페이스북 AI 연구소가 발표했으며, 뉴럴 네트워크 구조를 만드는 데 설계 공간(design space)이라는 접근을 쓴다. 가장 좋은 네트워크 하나를 찾는 대신, RegNet은 소수의 변수(깊이, 초기 너비, 너비 증가의 기울기(slope), 그룹 너비)로 파라메터화되는 체계적인 설계 공간을 정의한다. 이 공간에서 뽑은 네트워크는 블록을 지나며 너비가 선형 함수를 양자화한 값으로 정해지고, 빠르고 메모리 효율적이며 성능이 높은 모델이 나온다.
 
 ## 1. 코드
 
@@ -76,7 +76,7 @@ Parameters: 156,872
 
 ## 2. 논의
 
-이 구현은 클래스 2개(`RegNetBlock`, `RegNet`)를 정의하며, 이들이 함께 하나의 컨볼루션 뉴럴 네트워크 구조를 이룬다. 클래스마다 역할이 나뉘어 있어 코드가 모듈화되고 확장하기 쉽다. `forward` 메서드는 PyTorch가 자동 미분에 쓰는 계산 그래프를 정의한다.
+이 구현은 클래스 2개(`RegNetBlock`, `RegNet`)를 정의하며, 이들이 함께 하나의 컨볼루션 뉴럴 네트워크 구조를 이룬다. 다만 스테이지가 하나뿐이고 너비를 64로 고정했으므로, 설계 공간에서 너비를 정하는 선형 규칙 자체는 코드에 들어 있지 않다. 클래스마다 역할이 나뉘어 있어 코드가 모듈화되고 확장하기 쉽다. `forward` 메서드는 PyTorch가 자동 미분에 쓰는 계산 그래프를 정의한다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -90,7 +90,7 @@ Parameters: 156,872
 </div>
 
 ??? success "풀이"
-    입력의 형태에서 출발해 레이어를 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌고(패딩이 없을 때) `padding=k//2`이면 그대로다. 커널 크기 2로 풀링하면 공간 차원이 반이 된다. 선형 레이어는 마지막 차원을 바꾼다. 배치 차원은 끝까지 그대로임을 확인하여라. 컨볼루션 레이어에서는 $(B, C, H, W)$, 평탄화한 뒤에는 $(B, F)$로 중간 형태를 적어라.
+    입력의 형태에서 출발해 레이어를 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 $H_{\text{out}} = H_{\text{in}} - k + 1$로 바뀌고(패딩이 없을 때) `padding=k//2`이면 그대로다. 커널 크기 2로 풀링하면 공간 차원이 반이 된다. 선형 레이어는 마지막 차원을 바꾼다. 배치 차원은 끝까지 그대로임을 확인하여라. 컨볼루션 레이어에서는 $(B, C, H, W)$, 평탄화한 뒤에는 $(B, F)$로 중간 형태를 적어라.
 
 ---
 
@@ -102,7 +102,7 @@ Parameters: 156,872
 </div>
 
 ??? success "풀이"
-    첫 컨볼루션 레이어의 `in_channels`를 현재 값에서 3으로 바꾼다. 컨볼루션과 풀링 레이어마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 공간 차원을 다시 계산한다. 첫 선형 레이어의 `in_features`를 마지막 컨볼루션/풀링 레이어의 평탄화된 출력에 맞춘다. `model = RegNetBlock(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 확인한다.
+    첫 컨볼루션 레이어(`stem`)는 이미 입력 채널이 3이다. 컨볼루션 레이어마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$로 공간 차원을 다시 계산하면 $64 \to 32$(`stem`, 스트라이드 2) $\to 16$(`layer1`의 첫 블록, 스트라이드 2)이다. 마지막에 적응형 평균 풀링이 공간 크기를 $1 \times 1$로 모으므로 선형 레이어 `head`의 입력 차원은 64 그대로이고, 사실 고칠 것이 없다. `model = RegNetBlock(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`로 확인한다.
 
 ---
 
@@ -114,7 +114,7 @@ Parameters: 156,872
 </div>
 
 ??? success "풀이"
-    표준 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별 분리 컨볼루션은 이를 (1) 깊이별(depthwise): $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나)와 (2) 점별(pointwise): $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터 수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$이 모두 클 때 가장 크게 절약한다.
+    표준 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별 분리 컨볼루션은 이를 (1) 깊이별(depthwise): $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나)와 (2) 점별(pointwise): $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터 수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$가 모두 클 때 가장 크게 절약한다.
 
 ---
 
@@ -132,7 +132,7 @@ Parameters: 156,872
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 그 안의 파라메터를 모두 모듈에 등록하여 옵티마이저가 갱신할 수 있다. `for n in [2, 4, 8]: model = RegNetBlock(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 그 안의 파라메터를 모두 모듈에 등록하여 옵티마이저가 갱신할 수 있다. `for n in [2, 4, 8]: model = RegNetBlock(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
 
 ## 정리하며
 

@@ -19,13 +19,13 @@ $$\text{MMD}^2(P, Q) = \left\| \mathbb{E}_{\mathbf{x} \sim P}[\phi(\mathbf{x})] 
 
 여기서 각 기호는 다음과 같다.
 
-- $\phi(\cdot)$은 재생 커널 힐베르트 공간(RKHS)으로 가는 피처 사상(feature map)이다
-- $\|\cdot\|_H$은 RKHS의 노름이다
-- $\mathbb{E}$은 기댓값을 나타낸다
+- $\phi(\cdot)$는 재생 커널 힐베르트 공간(RKHS)으로 가는 피처 사상(feature map)이다
+- $\|\cdot\|_H$는 RKHS의 노름이다
+- $\mathbb{E}$는 기댓값을 나타낸다
 
 ### 커널 표현
 
-커널 함수 $k(\mathbf{x}, \mathbf{y}) = \langle \phi(\mathbf{x}), \phi(\mathbf{y}) \rangle_H$을 쓰면 MMD가 다음으로 펼쳐진다.
+커널 함수 $k(\mathbf{x}, \mathbf{y}) = \langle \phi(\mathbf{x}), \phi(\mathbf{y}) \rangle_H$를 쓰면 MMD가 다음으로 펼쳐진다.
 
 $$\text{MMD}^2(P, Q) = \mathbb{E}_{x,x' \sim P}[k(\mathbf{x}, \mathbf{x}')] - 2\mathbb{E}_{x \sim P, y \sim Q}[k(\mathbf{x}, \mathbf{y})] + \mathbb{E}_{y,y' \sim Q}[k(\mathbf{y}, \mathbf{y}')]$$
 
@@ -82,9 +82,9 @@ $$\mathcal{L} = \mathcal{L}_{\text{task}} + \lambda \cdot \text{MMD}^2(\mathbf{f
 
 여기서 각 기호는 다음과 같다.
 
-- $\mathcal{L}_{\text{task}}$은 소스 레이블에 대한 지도 로스다
-- $\mathbf{f}_s, \mathbf{f}_t$은 학습된 표현이다
-- $\lambda$은 과제 성능과 분포 정렬의 균형을 잡는다
+- $\mathcal{L}_{\text{task}}$는 소스 레이블에 대한 지도 로스다
+- $\mathbf{f}_s, \mathbf{f}_t$는 학습된 표현이다
+- $\lambda$는 과제 성능과 분포 정렬의 균형을 잡는다
 
 ### 구조 설계
 
@@ -124,7 +124,7 @@ $$
 
 $$O(N^2 d)$$
 
-여기서 $N = m + n$은 전체 표본 크기이고 $d$은 피처 차원이다.
+여기서 $N = m + n$은 전체 표본 크기이고 $d$는 피처 차원이다.
 
 !!! note "미니배치 근사"
     미니배치를 써서 복잡도를 줄인다. $k \ll N$일 때 $O(k^2 d)$이다.

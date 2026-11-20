@@ -73,8 +73,8 @@
 
 ## 3. MCMC와 HMC
 
-- [메트로폴리스-헤이스팅스](mcmc/metropolis_hastings.md): 정·역 흐름비와 미지 정규화 상수
-- [깁스 샘플링](mcmc/gibbs_sampling.md): 완전조건부 생성·블록·스캔과 상관
+- [메트로폴리스-헤이스팅스](mcmc/metropolis_hastings.md): 정방향·역방향 흐름의 비와 알 수 없는 정규화 상수
+- [깁스 샘플링](mcmc/gibbs_sampling.md): 완전 조건부 분포에서의 생성·블록·스캔 순서와 상관
 - [MCMC 진단](mcmc/diagnostics.md): 여러 체인·R-hat·함수별 ESS·MCSE
 - [HMC 개요](mcmc/hmc/overview.md): 확장 목표와 에너지 차이 보정
 - [해밀턴 동역학](mcmc/hmc/hamiltonian_dynamics.md): 정확 흐름의 보존 구조

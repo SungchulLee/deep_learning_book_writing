@@ -386,7 +386,7 @@ AttentionDecoder는 최상위 은닉 상태를 쿼리로 삼고 BahdanauAttentio
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-어휘 V, 임베딩 E, 은닉 H, 레이어수 L인 기본 LSTM 디코더의 파라메터를 계산하는 식을 구하라.
+어휘 V, 임베딩 E, 은닉 H, 레이어 수 L인 기본 LSTM 디코더의 파라메터를 계산하는 식을 구하라.
 
 </div>
 
@@ -433,7 +433,7 @@ AttentionDecoder는 최상위 은닉 상태를 쿼리로 삼고 BahdanauAttentio
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에도 `num_layers` 인수가 있지만 그것은 `nn.LSTM`·`nn.GRU` 안에 쌓을 순환 레이어 수를 정하는 값이다. 같은 이름으로 블록 수까지 정하려면 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 

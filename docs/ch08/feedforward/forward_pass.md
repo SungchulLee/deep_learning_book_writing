@@ -79,7 +79,7 @@ $$
 \mathbf{A}^{[l]} = \sigma^{[l]}\!\left(\mathbf{Z}^{[l]}\right) \in \mathbb{R}^{B \times n^{[l]}}
 $$
 
-여기서 바이어스 항은 $B$개의 행 전체에 브로드캐스팅된다. PyTorch에서는 `nn.Linear`이 자동 브로드캐스팅과 함께 `output = input @ weight.T + bias`으로 이를 처리한다.
+여기서 바이어스 항은 $B$개의 행 전체에 브로드캐스팅된다. PyTorch에서는 `nn.Linear`가 자동 브로드캐스팅과 함께 `output = input @ weight.T + bias`로 이를 처리한다.
 
 !!! tip "배치 처리가 효율적인 이유"
     행렬 곱 $\mathbf{A}^{[l-1]} (\mathbf{W}^{[l]})^\top$은 고도로 최적화된 BLAS/cuBLAS 루틴으로 $B$개의 표본을 한꺼번에 계산한다. 반복 호출의 비용을 줄일 수 있지만 실제 속도 향상은 배치 크기와 장치에 따라 달라진다.
@@ -136,13 +136,13 @@ $$
 $$
 z^{[2]} = \mathbf{W}^{[2]} \mathbf{a}^{[1]} + b^{[2]}
 = 0.7(0.00) + (-0.4)(0.08) + 0.3(0.23) + (-0.1)
-= -0.069
+= -0.063
 $$
 
 **4단계 — 출력 레이어의 활성화 (시그모이드):**
 
 $$
-\hat{y} = \sigma(z^{[2]}) = \frac{1}{1 + e^{0.069}} = \frac{1}{2.0714} \approx 0.4828
+\hat{y} = \sigma(z^{[2]}) = \frac{1}{1 + e^{0.063}} = \frac{1}{2.0650} \approx 0.4843
 $$
 
 $\hat{y} < 0.5$이므로 예측은 클래스 0이다.
@@ -209,9 +209,9 @@ $$
 
 ### 소프트맥스의 오버플로
 
-**문제:** $z_i$이 크면(예: $z_i = 1000$) $e^{z_i}$이 부동소수점의 표현 범위를 넘어(오버플로) `inf`가 된다.
+**문제:** $z_i$가 크면(예: $z_i = 1000$) $e^{z_i}$가 부동소수점의 표현 범위를 넘어(오버플로) `inf`가 된다.
 
-**해결 — log-sum-exp 기법:** 지수를 취하기 전에 $\max_j z_j$을 뺀다.
+**해결 — log-sum-exp 기법:** 지수를 취하기 전에 $\max_j z_j$를 뺀다.
 
 $$
 \text{softmax}(\mathbf{z})_i = \frac{e^{z_i - z_{\max}}}{\sum_{j} e^{z_j - z_{\max}}}
@@ -231,21 +231,21 @@ def stable_softmax(z: torch.Tensor) -> torch.Tensor:
 
 ### 로짓을 쓰는 교차 엔트로피
 
-**문제:** `log(softmax(z))`을 계산하면 `log(exp(...))`이 들어가 정밀도를 잃을 수 있다.
+**문제:** `log(softmax(z))`를 계산하면 `log(exp(...))`가 들어가 정밀도를 잃을 수 있다.
 
-**해결:** PyTorch의 `nn.CrossEntropyLoss`은 log-sum-exp 항등식을 써서 로그 소프트맥스와 음의 로그가능도(negative log-likelihood; 가능도는 우도라고도 한다)를 수치적으로 안정한 하나의 연산으로 융합한다.
+**해결:** PyTorch의 `nn.CrossEntropyLoss`는 log-sum-exp 항등식을 써서 로그 소프트맥스와 음의 로그가능도(negative log-likelihood; 가능도는 우도라고도 한다)를 수치적으로 안정한 하나의 연산으로 융합한다.
 
 $$
 \log \text{softmax}(\mathbf{z})_i = z_i - \log \sum_{j} e^{z_j} = z_i - z_{\max} - \log \sum_{j} e^{z_j - z_{\max}}
 $$
 
-`nn.CrossEntropyLoss`을 쓸 때 출력 레이어가 (소프트맥스 없이) **날것의 로짓**을 내야 하는 이유가 여기 있다.
+`nn.CrossEntropyLoss`를 쓸 때 출력 레이어가 (소프트맥스 없이) **날것의 로짓**을 내야 하는 이유가 여기 있다.
 
 ### 시그모이드 + BCE의 안정성
 
-**문제:** $\hat{y} = \sigma(z)$이 0이나 1에 아주 가까우면 $\log(\hat{y})$이나 $\log(1 - \hat{y})$이 발산한다.
+**문제:** $\hat{y} = \sigma(z)$가 0이나 1에 아주 가까우면 $\log(\hat{y})$나 $\log(1 - \hat{y})$가 발산한다.
 
-**해결:** 내부에서 수치적 안전장치와 함께 시그모이드를 적용하는 `nn.BCEWithLogitsLoss`을 쓴다.
+**해결:** 내부에서 수치적 안전장치와 함께 시그모이드를 적용하는 `nn.BCEWithLogitsLoss`를 쓴다.
 
 $$
 \text{BCE}(z, y) = \max(z, 0) - z \cdot y + \log(1 + e^{-|z|})
@@ -443,7 +443,7 @@ Intermediate shapes:
   a3: torch.Size([32, 10])
 ```
 
-### `torch.no_grad()`으로 효율적인 추론하기
+### `torch.no_grad()`로 효율적인 추론하기
 
 ```python
 model = TrackedMLP([784, 256, 128, 10])
@@ -552,7 +552,7 @@ plt.show()
     3. 순전파는 역전파를 위해 연산을 기록하는 **계산 그래프**를 만든다
     4. 학습 중에는 역전파를 위해 **중간값을 저장해 두어야 한다**. 추론에서는 버려도 된다
     5. **수치적 안정성**을 위해 소프트맥스에는 log-sum-exp 기법이, 로스에는 융합된 함수(`CrossEntropyLoss`, `BCEWithLogitsLoss`)가 필요하다
-    6. **시간 복잡도**는 $O(B \cdot |\boldsymbol{\theta}|)$이고, 학습 중 **메모리**는 $O(B \sum_l n^{[l]})$으로 늘어난다
+    6. **시간 복잡도**는 $O(B \cdot |\boldsymbol{\theta}|)$이고, 학습 중 **메모리**는 $O(B \sum_l n^{[l]})$로 늘어난다
 
 ---
 
@@ -578,7 +578,7 @@ plt.show()
 </div>
 
 ??? success "풀이"
-    각 레이어가 행렬-벡터 곱 $O(d^2)$과 활성화 $O(d)$을 수행한다. 합계는 $O(Ld^2)$이다.
+    각 레이어가 행렬-벡터 곱 $O(d^2)$와 활성화 $O(d)$를 수행한다. 합계는 $O(Ld^2)$이다.
 
 ---
 

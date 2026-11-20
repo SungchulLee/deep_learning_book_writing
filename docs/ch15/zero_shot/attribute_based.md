@@ -10,7 +10,7 @@
 
 $$\mathbf{a}_c = [a_c^{(1)}, a_c^{(2)}, \ldots, a_c^{(M)}]$$
 
-여기서 $M$은 속성의 개수이고 $a_c^{(m)}$은 클래스 $c$에서 속성 $m$의 있음과 세기를 나타낸다.
+여기서 $M$은 속성의 개수이고 $a_c^{(m)}$은 클래스 $c$에서 속성 $m$의 유무와 세기를 나타낸다.
 
 ### 속성의 종류
 
@@ -342,7 +342,7 @@ def train_iap_model(model, train_loader, seen_classes, epochs=50, lr=0.001):
 | 미학습 클래스 비교 | 속성 서명과 비교 | 추정한 속성 확률을 서명과 비교 |
 | 주요 오차 경로 | 속성 추정·독립 근사 | 클래스 예측·속성 전이·독립 근사 |
 
-두 방법은 속성이 시각적으로 예측 가능하고 미학습 클래스 구분에 도움이 되는지에 영향을 받는다. 아래 점수 전이 구현의 결과를 원 IAP의 성능이라고 보고하지 않는다.
+두 방법은 속성이 시각적으로 예측 가능하고 미학습 클래스 구분에 도움이 되는지에 영향을 받는다. 앞의 점수 전이 구현의 결과를 원 IAP의 성능이라고 보고하지 않는다.
 
 ### 실험 성능
 
@@ -405,8 +405,6 @@ def compare_dap_iap(X_train, y_train, X_test, y_test,
 
 아래 코드는 클래스 속성의 분산과 평균 차이를 출력한다. 마지막 coverage는 정규화하지 않은 내적의 최댓값이므로 코사인 유사도나 실제 전이 성능을 직접 나타내지 않는다. 모든 클래스 벡터의 차원을 맞추고 빈 클래스 집합을 제외해야 한다.
 
-속성의 품질을 분석한다.
-
 ```python
 def analyze_attributes(class_attributes, seen_classes, unseen_classes):
     """
@@ -461,7 +459,7 @@ DAP의 확률 곱과 로그 점수의 관계를 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-원 IAP와 아래 IndirectAttributePrediction의 차이를 설명하라.
+원 IAP와 3절의 IndirectAttributePrediction의 차이를 설명하라.
 
 </div>
 

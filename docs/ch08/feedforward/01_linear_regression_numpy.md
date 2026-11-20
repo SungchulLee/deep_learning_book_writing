@@ -79,7 +79,7 @@ Final loss: 0.2601
 
 ## 2. 논의
 
-순전파는 선형 모델 $\hat{y} = Xw + b$으로 예측을 계산하며, 여기서 `@` 연산자가 행렬 곱을 수행한다. MSE 로스 함수 $L = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2$은 예측과 참값의 평균 제곱 편차를 잰다. $w$과 $b$에 대해 미분하면 그래디언트 $\frac{\partial L}{\partial w} = \frac{2}{n}X^T(\hat{y} - y)$과 $\frac{\partial L}{\partial b} = \frac{2}{n}\sum(\hat{y} - y)$을 얻는다.
+순전파는 선형 모델 $\hat{y} = Xw + b$로 예측을 계산하며, 여기서 `@` 연산자가 행렬 곱을 수행한다. MSE 로스 함수 $L = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2$은 예측과 참값의 평균 제곱 편차를 잰다. $w$와 $b$에 대해 미분하면 그래디언트 $\frac{\partial L}{\partial w} = \frac{2}{n}X^T(\hat{y} - y)$와 $\frac{\partial L}{\partial b} = \frac{2}{n}\sum(\hat{y} - y)$를 얻는다.
 
 경사 하강법은 $w\leftarrow w-\alpha\nabla_wL$처럼 계수를 갱신한다. 적절한 러닝레이트의 전체 배치 선형 최소제곱에서는 로스가 감소하지만, 러닝레이트가 너무 크면 진동하거나 발산할 수 있다. 유한한 반복과 관측 잡음 때문에 계수가 데이터 생성의 참값과 정확히 같아질 필요는 없다.
 
@@ -125,7 +125,7 @@ Final loss: 0.2601
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-MSE 로스에 대한 그래디언트 $\frac{\partial L}{\partial w}$을 제일원리에서 유도하라. 유도의 각 단계를 보여라.
+MSE 로스에 대한 그래디언트 $\frac{\partial L}{\partial w}$를 정의에서부터 유도하라. 유도의 각 단계를 보여라.
 
 </div>
 
@@ -149,7 +149,7 @@ MSE 로스에 대한 그래디언트 $\frac{\partial L}{\partial w}$을 제일�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-입력 피처가 3개인 다변량 선형 회귀를 수행하도록 코드를 확장하라. $y = 2x_1 + 3x_2 - x_3 + 5 + \text{noise}$으로 데이터를 생성하고 경사 하강법이 참 계수를 되찾는지 확인하라.
+입력 피처가 3개인 다변량 선형 회귀를 수행하도록 코드를 확장하라. $y = 2x_1 + 3x_2 - x_3 + 5 + \text{noise}$로 데이터를 생성하고 경사 하강법이 참 계수를 되찾는지 확인하라.
 
 </div>
 

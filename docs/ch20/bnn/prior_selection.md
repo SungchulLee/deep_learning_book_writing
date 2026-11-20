@@ -62,7 +62,7 @@ $$w_j|\lambda_j,\tau\sim\mathcal N(0,\tau^2\lambda_j^2),\qquad\lambda_j\sim\math
 
 $$p(w_j)=(1-\pi)\delta_0(w_j)+\pi\mathcal N(0,\sigma_{slab}^2).$$
 
-라벨 변수를 도입한 이산 선택과 연속 수축은 계산법도 다르다. 일반적인 연속 가우스 변분분포는 δ₀의 선택 확률을 직접 표현하지 못하므로 근사족과 목적을 맞춰야 한다. 상세한 사전 정의는 [horseshoe 원 논문](https://proceedings.mlr.press/v5/carvalho09a.html)을 참고한다.
+지시 변수(indicator variable — 그 웨이트를 켤지 끌지 정하는 0/1 변수)를 도입한 이산 선택과 연속 수축은 계산법도 다르다. 일반적인 연속 가우스 변분분포는 δ₀의 선택 확률을 직접 표현하지 못하므로 근사족과 목적을 맞춰야 한다. 상세한 사전 정의는 [horseshoe 원 논문](https://proceedings.mlr.press/v5/carvalho09a.html)을 참고한다.
 
 ## 5. 경험적 베이즈와 ARD
 

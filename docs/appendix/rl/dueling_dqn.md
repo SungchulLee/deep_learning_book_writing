@@ -1,8 +1,8 @@
 # Dueling DQN
 
-Dueling DQN은 2016년 논문 "Dueling Network Architectures for Deep Reinforcement Learning"에서 나왔다. - V(s)과 A(s,a)을 따로 학습한 뒤 Q(s,a)으로 결합한다 - 밸류가 비슷한 액션이 많을 때 도움이 된다.
+Dueling DQN은 2016년 논문 "Dueling Network Architectures for Deep Reinforcement Learning"에서 나왔다. 상태 밸류 $V(s)$와 어드밴티지 $A(s,a)$를 따로 학습한 뒤 $Q(s,a)$로 결합한다. $V(s)$는 그 상태 자체가 얼마나 좋은지, $A(s,a)$는 그 상태에서 액션 $a$가 다른 액션보다 얼마나 나은지를 뜻한다. 밸류가 비슷한 액션이 많을 때 도움이 된다 — 어느 액션을 골라도 비슷한 상태에서는 $V(s)$만 잘 배우면 되고, 그 학습이 모든 액션의 Q 값에 함께 반영되기 때문이다.
 
-여기 구현은 Dueling DQN을 짧고 학습하기 좋게 보인 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 Dueling DQN을 짧게 줄인 학습용 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -87,12 +87,12 @@ Q: torch.Size([3, 4])
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 설정으로 초기화한 `DuelingQNetwork`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
+이 쪽의 예제 설정(`obs_dim=8`, `num_actions=4`, `hidden=128`)으로 만든 `DuelingQNetwork`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
 
 </div>
 
 ??? success "풀이"
-    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`으로 확인할 수 있다.
+    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다. 공유 백본이 8 × 128 + 128 = 1,152개와 128 × 128 + 128 = 16,512개, 밸류 헤드가 128 + 1 = 129개, 어드밴티지 헤드가 128 × 4 + 4 = 516개로 모두 18,309개다.
 
 ---
 
@@ -104,7 +104,7 @@ Q: torch.Size([3, 4])
 </div>
 
 ??? success "풀이"
-    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 더한다. 형태를 검증하려면 핵심 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅을 크게 앞당기고 코드를 재사용하기에 더 강건하게 만든다.
+    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 더한다. 형태를 검증하려면 핵심 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅 시간을 크게 줄여 주고, 코드를 다른 곳에서 다시 쓸 때도 잘못된 입력을 일찍 걸러 준다.
 
 ---
 
@@ -123,7 +123,7 @@ Q: torch.Size([3, 4])
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`DuelingQNetwork`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 인자를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하여라.
+`DuelingQNetwork`를 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 인자를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -134,7 +134,7 @@ Q: torch.Size([3, 4])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 파라메터를 옵티마이저에 등록한다. `for n in [2, 4, 8]: model = DuelingQNetwork(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 모든 파라메터를 옵티마이저에 등록한다. `for n in [2, 4, 8]: model = DuelingQNetwork(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험한다.
 
 ## 정리하며
 

@@ -2,7 +2,7 @@
 
 자주 쓰는 비선형 활성화 함수를 모았다. 포함한 항목은 코드 첫머리의 독스트링에 적혀 있다.
 
-이 쪽의 구현은 Activation Functions의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
+이 쪽의 구현은 활성화 함수의 핵심만 남긴 교육용 예시다. ReLU·LeakyReLU·GELU·SiLU는 PyTorch 내장 구현을 쓰라는 메모로 두고, 직접 구현한 것은 게이트 활성화 함수 GLU와 SwiGLU 둘이다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다. `GLU`는 `dim_in`과 `dim_out`에 기본값이 없으므로 두 값을 $m$, $n$이라 하면, 레이어는 바이어스가 있는 `nn.Linear(dim_in, dim_out * 2)` 하나뿐이라 웨이트 $2mn$개와 바이어스 $2n$개, 모두 $2mn + 2n$개다. 출력을 값과 게이트로 반씩 나누어 쓰므로 같은 출력 크기의 보통 선형 레이어보다 파라메터가 두 배다.
 
 ---
 
@@ -118,7 +118,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`GLU`을 레이어나 블록의 수를 설정할 수 있게 확장하여라. `__init__`에 `num_layers` 인자를 추가하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 구현하여라. 레이어 2개, 4개, 8개로 시험하여라.
+`GLU`를 레이어나 블록의 수를 설정할 수 있게 확장하여라. `__init__`에 `num_layers` 인자를 추가하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 구현하여라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 

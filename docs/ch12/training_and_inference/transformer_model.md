@@ -48,7 +48,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 페이지 기본 모델과 두 기준 모델의 출력·파라메터 수를 비교하고 공정성의 조건을 설명하라.
+이 페이지 기본 모델과 두 기준 모델의 출력·파라메터 수를 비교하고 공정한 비교의 조건을 설명하라.
 
 </div>
 
@@ -73,15 +73,15 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    위치 슬라이스가 범위 밖을 읽는 것이 아니라 길이 100에 멈춰 임베딩과 더할 때 형태가 맞지 않는다. 표를 늘리면 새 위치 파라메터는 별도 초기화·학습이 필요하다. 고정 사인·코사인 수식으로 바꾸어도 모델에 더하는 코드와 저장·장치를 연결해야 하며, 긴 입력 품질을 보장하지 않는다. 아래는 math·seq_len·d_model 등이 외부에 있는 위치 표 생성 조각이지 완성된 모델 수정이 아니다.
+    위치 슬라이스가 범위 밖을 읽는 것이 아니라 길이 100에 멈춰 임베딩과 더할 때 형태가 맞지 않는다. 표를 늘리면 새 위치 파라메터는 별도 초기화·학습이 필요하다. 고정 사인·코사인 수식으로 바꾸어도 모델에 더하는 코드와 버퍼 등록·장치 이동을 따로 처리해야 하며, 긴 입력 품질을 보장하지 않는다. 아래는 math·seq_len·d_model 등이 외부에 있는 위치 표 생성 조각이지 완성된 모델 수정이 아니다.
 
-```python
-pe = torch.zeros(seq_len, d_model)
-pos = torch.arange(0, seq_len).unsqueeze(1).float()
-div = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000) / d_model))
-pe[:, 0::2] = torch.sin(pos * div)
-pe[:, 1::2] = torch.cos(pos * div)
-```
+    ```python
+    pe = torch.zeros(seq_len, d_model)
+    pos = torch.arange(0, seq_len).unsqueeze(1).float()
+    div = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000) / d_model))
+    pe[:, 0::2] = torch.sin(pos * div)
+    pe[:, 1::2] = torch.cos(pos * div)
+    ```
 
 ---
 
@@ -118,7 +118,7 @@ pe[:, 1::2] = torch.cos(pos * div)
             x = self.transformer(x)
             return self.classifier(x[0])  # CLS 토큰의 출력
     ```
-    [CLS]를 붙여 입력 길이 L에서 L+1개 토큰이 되고 학습 위치 표는 101개다. 기존 최대 원문 길이는 100개로 유지된다. 이 변형도 패딩 마스크가 없어 유효 입력 길이를 처리하려면 확장이 필요하다. [CLS]가 처음부터 좋은 요약인 것은 아니며 분류 로스로 학습한다.
+    [CLS]를 붙여 입력 길이 L에서 L+1개 토큰이 되고 학습 위치 표는 101개다. 원래 입력의 최대 길이는 100으로 유지된다. 이 변형도 패딩 마스크가 없어 유효 입력 길이를 처리하려면 확장이 필요하다. [CLS]가 처음부터 좋은 요약인 것은 아니며 분류 로스로 학습한다.
 
 ## 정리하며
 

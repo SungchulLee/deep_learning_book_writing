@@ -4,7 +4,7 @@
 
 ## 1. 프레임 수와 실제 시간
 
-고정 프레임률 f에서 T개 프레임의 재생 길이는 대략 T/f초다. 첫 프레임과 마지막 프레임 timestamp 사이 간격은 보통 (T−1)/f이며 두 표현의 기준이 다르다. 가변 프레임률이나 디코딩 누락이 있으면 실제 timestamp를 확인해야 한다. 같은 프레임 수여도 stride s에 따라 관찰 간격 s/f와 전체 시간 범위가 달라진다.
+고정 프레임률 f에서 T개 프레임의 재생 길이는 대략 T/f초다. 첫 프레임과 마지막 프레임의 타임스탬프(timestamp, 각 프레임이 표시되는 시각) 사이 간격은 보통 (T−1)/f이며 두 표현의 기준이 다르다. 가변 프레임률이나 디코딩 누락이 있으면 실제 타임스탬프를 확인해야 한다. 같은 프레임 수여도 stride s에 따라 관찰 간격 s/f와 전체 시간 범위가 달라진다.
 
 비디오 하나는 THWC·TCHW·CTHW, 배치는 BTCHW·BCTHW 등으로 표현할 수 있다. ‘PyTorch의 비디오는 항상 BTCHW’라는 고정 규칙은 없다. Conv3d는 일반적으로 BCTHW이고 아래 전처리 함수는 TCHW를 기준으로 한다. 축의 이름과 입력 모델의 계약을 함께 기록한다.
 
@@ -61,7 +61,7 @@ class VideoLoader:
         return frames, info
 ```
 
-OpenCV의 프레임은 BGR이므로 RGB로 바꾸어 T×H×W×3 NumPy 배열로 모은다. 이 구현에는 파일 열기·빈 프레임·fps0 검사나 메타데이터와 실제 프레임 수의 일치 확인이 없다. 전체 프레임을 메모리에 올리므로 긴 영상은 디코딩·저장 비용도 고려한다. 고정 fps 메타데이터로 계산한 duration을 모든 파일의 정확한 timestamp 길이라고 가정하지 않는다.
+OpenCV의 프레임은 BGR이므로 RGB로 바꾸어 T×H×W×3 NumPy 배열로 모은다. 이 구현에는 파일 열기 실패·빈 프레임·fps가 0인 경우의 검사나 메타데이터와 실제 프레임 수의 일치 확인이 없다. 전체 프레임을 메모리에 올리므로 긴 영상은 디코딩·저장 비용도 고려한다. 고정 fps 메타데이터로 계산한 duration을 모든 파일의 정확한 타임스탬프 길이라고 가정하지 않는다.
 
 ```python
 from torchvision.io import read_video, write_video
@@ -83,7 +83,7 @@ def load_video_torchvision(video_path: str):
     return video, audio, info
 ```
 
-이 torchvision I/O 형식은 기본 THWC 비디오와 오디오·정보를 반환하는 API를 가정한다. 지원 API·코덱 의존성은 설치된 버전에서 확인한다. 이 메서드와 OpenCV 메서드의 정보 딕셔너리 키·오디오 처리도 같지 않다. 읽기 backend를 바꿀 때 반환 형태까지 같은 것으로 취급하면 안 된다.
+이 torchvision I/O 형식은 기본 THWC 비디오와 오디오·정보를 반환하는 API를 가정한다. 지원 API·코덱 의존성은 설치된 버전에서 확인한다. 이 메서드와 OpenCV 메서드의 정보 딕셔너리 키·오디오 처리도 같지 않다. 읽기 백엔드를 바꿀 때 반환 형태까지 같은 것으로 취급하면 안 된다.
 
 ```python
 def convert_to_pytorch_format(frames: np.ndarray) -> torch.Tensor:
@@ -108,7 +108,7 @@ def convert_to_pytorch_format(frames: np.ndarray) -> torch.Tensor:
     return video_tensor
 ```
 
-`convert_to_pytorch_format`은 uint8 RGB THWC를 float TCHW로 옮기고255로 나누는 함수다. 이미0~1인 입력에 다시 적용하면 값이255분의1로 줄어든다. BGR변환은 포함하지 않고, 채널·차원 검증도 없다. permute로 축을 옮기는 것과 reshape로 모양만 바꾸는 것은 다르다.
+`convert_to_pytorch_format`은 uint8 RGB THWC를 float TCHW로 옮기고 255로 나누는 함수다. 이미 0~1인 입력에 다시 적용하면 값이 255분의 1로 줄어든다. BGR 변환은 포함하지 않고, 채널·차원 검증도 없다. permute로 축을 옮기는 것과 reshape로 모양만 바꾸는 것은 다르다.
 
 ## 3. 전체 구간 샘플링과 stride
 
@@ -275,7 +275,7 @@ def spatial_crop(video: torch.Tensor,
     return video[:, :, top:top+crop_h, left:left+crop_w]
 ```
 
-한 crop 위치를 모든 프레임에 적용해 우발적 흔들림을 줄인다. crop이 원본보다 크면 random 범위가 유효하지 않거나 슬라이싱이 예상과 다르게 작동한다. 시간 범위·공간 크기와 지원 position을 검증해야 한다. 목표 상자·마스크·flow가 있다면 같은 기하 변환과 각각의 라벨·벡터 규칙도 필요하다.
+한 crop 위치를 모든 프레임에 적용하므로 프레임마다 위치가 달라 생기는 흔들림이 없다. crop이 원본보다 크면 random 범위가 유효하지 않거나 슬라이싱이 예상과 다르게 작동한다. 시간 범위·공간 크기와 지원 position을 검증해야 한다. 목표 상자·마스크·flow가 있다면 같은 기하 변환과 각각의 라벨·벡터 규칙도 필요하다.
 
 ```python
 import torch.nn.functional as F

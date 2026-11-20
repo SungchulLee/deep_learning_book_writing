@@ -58,7 +58,7 @@ BERT, GPT와 T5는 공통 구성 요소를 사용하지만 접근 가능한 문�
 - [GPT](pretrained_models/09_gpt.md) — 학습 위치 임베딩 + 인과 셀프 어텐션
 - [GPT 모델](pretrained_models/gpt_model.md) — 샘플링 루프를 붙였으나 위 디코더의 문제를 물려받는다
 - [GPT 생성기](pretrained_models/gpt_generator.md) — 마스킹 없는 교차 어텐션 메모리로 **미래 토큰이 샌다**
-- [샘플링 방법](pretrained_models/sampling_strategies.md) — greedy·top-k·top-p. 분포는 바뀌어도 **사실성은 아니다**
+- [샘플링 방법](pretrained_models/sampling_strategies.md) — greedy·top-k·top-p. 분포는 바꾸어도 **사실성을 보장하지는 않는다**
 
 **둘을 합친 블록**
 

@@ -1,6 +1,6 @@
 # EfficientNet V2
 
-EfficientNetV2는 2021년 논문 "EfficientNetV2: Smaller Models and Faster Training"에서 나왔으며, Fused-MBConv 레이어와 점진적 학습(progressive learning) 전략으로 원래의 EfficientNet을 개선한다. 이로써 정확도는 유지하거나 올리면서 학습 시간은 크게 준다. 구조는 뉴럴 아키텍처 탐색(NAS)과 스케일링을 결합해 찾아냈으며, 학습 속도와 파라메터 효율을 함께 최적화했다.
+EfficientNetV2는 2021년 논문 "EfficientNetV2: Smaller Models and Faster Training"에서 나왔으며, Fused-MBConv 레이어와 점진적 학습(progressive learning) 전략으로 원래의 EfficientNet을 개선한다. 이로써 정확도는 유지하거나 올리면서 학습 시간은 크게 줄인다. 구조는 뉴럴 아키텍처 탐색(NAS)과 스케일링을 결합해 찾아냈으며, 학습 속도와 파라메터 효율을 함께 최적화했다.
 
 ## 1. 코드
 
@@ -62,7 +62,7 @@ EfficientNetV2의 핵심 구조 혁신은 Fused-MBConv 블록이다. 앞쪽 스�
 
 점진적 학습 전략도 핵심 기여다. 학습하는 동안 이미지 해상도와 정칙화 강도(드롭아웃, 데이터 어그멘테이션)를 차츰 올린다. 초기 에포크에는 작은 이미지와 약한 어그멘테이션을 써서 거친 피처를 빨리 학습하게 하고, 후기 에포크에는 전체 해상도의 이미지와 강한 정칙화를 쓴다. 이 적응적 방식은 해상도를 고정한 학습보다 학습 시간을 최대 11배까지 줄일 수 있다.
 
-EfficientNetV2는 전체에 걸쳐 SiLU(Swish) 활성화 함수를 쓰는데, 여러 상황에서 ReLU보다 낫다고 알려졌다. SiLU 함수 $f(x) = x \cdot \sigma(x)$은 매끄럽고 단조가 아니어서 학습하는 동안 그래디언트가 더 잘 흐른다.
+EfficientNetV2는 전체에 걸쳐 SiLU(Swish) 활성화 함수를 쓰는데, 여러 상황에서 ReLU보다 낫다고 알려졌다. SiLU 함수 $f(x) = x \cdot \sigma(x)$는 매끄럽고 단조가 아니어서 학습하는 동안 그래디언트가 더 잘 흐른다.
 
 ## 연습문제
 

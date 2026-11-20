@@ -1,14 +1,14 @@
-# 34.3.1 신뢰 영역 폴리시 최적화(TRPO)
+# 신뢰 영역 폴리시 최적화(TRPO)
 
-TRPO(슐먼 외, 2015)는 폴리시 경사 방법의 근본 어려움, 곧 갱신 스텝을 얼마나 크게 잡아야 하는가를 다룬다. 스텝이 너무 크면 폴리시가 파국적으로 무너지고, 너무 작으면 계산을 낭비한다. TRPO는 폴리시 최적화를 쿨백-라이블러 발산 신뢰 영역으로 갱신을 제한하는 제약 최적화 문제로 세워 이를 푼다.
+**신뢰 영역 폴리시 최적화**(TRPO; 슐먼 외, 2015)는 폴리시 경사 방법의 근본 어려움, 곧 갱신 스텝을 얼마나 크게 잡아야 하는가를 다룬다. 스텝이 너무 크면 폴리시가 파국적으로 무너지고, 너무 작으면 샘플과 계산을 낭비한다. TRPO 는 옛 폴리시와 새 폴리시 사이의 쿨백-라이블러(KL) 발산 — 두 확률 분포가 얼마나 다른지 재는 양 — 이 정해 둔 값을 넘지 않는 범위, 곧 **신뢰 영역** 안에서만 갱신하도록 제약 최적화 문제를 세워 이를 푼다.
 
 ---
 
 ## 1. 동기
 
-일반 폴리시 경사 갱신 $\theta \leftarrow \theta + \alpha \nabla_\theta J(\theta)$은 폴리시가 얼마나 바뀌는지에 아무 보장이 없다. 파라미터 $\theta$의 작은 바뀜이, 특히 민감한 영역에서는 폴리시 $\pi_\theta$의 큰 바뀜을 낳을 수 있다.
+일반 폴리시 경사 갱신 $\theta \leftarrow \theta + \alpha \nabla_\theta J(\theta)$ 는 폴리시가 얼마나 바뀌는지에 아무 보장이 없다. 파라미터 $\theta$ 의 작은 변화가, 특히 민감한 영역에서는 폴리시 $\pi_\theta$ 의 큰 변화를 낳을 수 있다.
 
-TRPO는 갱신마다 폴리시 분포가 얼마나 바뀔 수 있는지를 제한해 단조로운 개선을 보장한다.
+TRPO 는 갱신마다 폴리시 분포가 얼마나 바뀔 수 있는지를 제한한다. 출발점은 그렇게 하면 성능이 단조롭게 개선된다는 이론이다 — 다만 아래 그림 상자가 보이듯 실제 알고리즘은 그 이론을 그대로 풀지 않는다.
 
 ---
 
@@ -16,19 +16,19 @@ TRPO는 갱신마다 폴리시 분포가 얼마나 바뀔 수 있는지를 제�
 
 ### 대리 목표
 
-TRPO는 실제 개선의 하한이 되는 대리 목표를 최대화한다.
+TRPO 는 옛 폴리시 근처에서 실제 성능을 근사하는 대리 목표를 최대화한다.
 
 $$L_{\pi_{\theta_\text{옛}}}(\theta) = \mathbb{E}_{s \sim d^{\pi_{\theta_\text{옛}}}, a \sim \pi_{\theta_\text{옛}}}\left[\frac{\pi_\theta(a|s)}{\pi_{\theta_\text{옛}}(a|s)} A^{\pi_{\theta_\text{옛}}}(s, a)\right]$$
 
-중요도 샘플링을 쓰는 이 목표는 옛 폴리시 $\pi_{\theta_\text{옛}}$의 데이터로 새 폴리시 $\pi_\theta$을 평가할 수 있게 한다.
+중요도 샘플링을 쓰는 이 목표는 옛 폴리시 $\pi_{\theta_\text{옛}}$의 데이터로 새 폴리시 $\pi_\theta$ 를 평가할 수 있게 한다. **중요도 샘플링**은 다른 분포에서 뽑은 표본에 확률의 비를 곱해 원하는 분포의 기댓값을 추정하는 기법이다.
 
 ### 단조로운 개선 정리
 
-카케이드와 랭퍼드(2002)는 실제 성능 개선이 다음을 만족함을 보였다.
+카케이드와 랭퍼드(2002)의 결과를 슐먼 외(2015)가 일반 확률 폴리시로 넓혀, 실제 성능이 다음을 만족함을 보였다. 오른쪽 전체가 하한이므로, 이 하한을 키우면 실제 성능도 그만큼은 오른다.
 
 $$J(\pi_\theta) \geq L_{\pi_{\theta_\text{옛}}}(\theta) - C \cdot D_\text{KL}^{\max}(\pi_{\theta_\text{옛}} \| \pi_\theta)$$
 
-여기서 $C = \frac{2\gamma \epsilon}{(1-\gamma)^2}$이고 $\epsilon = \max_s |A^{\pi}(s, a)|$이다.
+여기서 $C = \frac{4\gamma \epsilon}{(1-\gamma)^2}$이고 $\epsilon = \max_{s,a} |A^{\pi}(s, a)|$이다.
 
 ### TRPO 최적화 문제
 
@@ -38,7 +38,7 @@ $$\max_\theta \quad L_{\pi_{\theta_\text{옛}}}(\theta)$$
 
 $$\text{단} \quad \bar{D}_\text{KL}(\pi_{\theta_\text{옛}} \| \pi_\theta) \leq \delta$$
 
-여기서 $\bar{D}_\text{KL}$은 상태에 걸친 평균 쿨백-라이블러 발산이고 $\delta$은 신뢰 영역 반지름(흔히 $0.01$)이다.
+여기서 $\bar{D}_\text{KL}$ 은 상태에 걸친 평균 쿨백-라이블러 발산이고 $\delta$ 는 신뢰 영역 반지름(흔히 $0.01$)이다.
 
 <div class="storybox" markdown>
 
@@ -58,7 +58,7 @@ $$\text{단} \quad \bar{D}_\text{KL}(\pi_{\theta_\text{옛}} \| \pi_\theta) \leq
 
 **그렇다고 TRPO가 틀린 것은 아니다.** 논문은 최대 KL 버전을 따로 돌려 보고 "the average KL divergence constraint has a similar effect as the theoretically justified maximum KL divergence"라고 적어 두었다 — 다만 그 확인은 카트폴에서만 할 수 있었다고 함께 밝힌다. 요점은 이것이다. 아래 3절부터 보게 될 켤레 그래디언트도 백트래킹 선 탐색도 **정리가 보증한 그 문제를 푸는 것이 아니라, 두 번 갈아 끼운 뒤의 문제를 푼다.** 단조로운 개선이 수학으로 보장된다고 읽으면 안 되는 까닭이 그것이다.
 
-_확인한 곳 — J. Schulman, S. Levine, P. Moritz, M. Jordan, P. Abbeel, "Trust Region Policy Optimization", ICML 2015 (arXiv:1502.05477). 벌점 계수를 쓰면 걸음이 너무 작다는 말과 하드 제약으로 바꾼다는 말은 4절과 5절의 요약, 평균 KL을 "heuristic approximation"이라 부른 것은 4절, 최대 KL 에피소드와 비슷하더라는 실험은 8절이다. 단조로운 개선 경계 자체는 S. Kakade, J. Langford, "Approximately Optimal Approximate Reinforcement Learning" (2002) 에서 온다. 오른쪽 그림의 수는 그림을 그리는 코드가 시드를 박고 직접 재어 얻는다._
+_확인한 곳 — J. Schulman, S. Levine, P. Moritz, M. Jordan, P. Abbeel, "Trust Region Policy Optimization", ICML 2015 (arXiv:1502.05477). 벌점 계수를 쓰면 걸음이 너무 작다는 말과 하드 제약으로 바꾼다는 말은 4절과 5절의 요약, 평균 KL을 "heuristic approximation"이라 부른 것은 4절, 최대 KL 버전과 비슷하더라는 실험은 8절이다. 단조로운 개선 경계 자체는 S. Kakade, J. Langford, "Approximately Optimal Approximate Reinforcement Learning" (2002) 에서 온다. 오른쪽 그림의 수는 그림을 그리는 코드가 시드를 박고 직접 재어 얻는다._
 
 </div>
 
@@ -68,19 +68,19 @@ _확인한 곳 — J. Schulman, S. Levine, P. Moritz, M. Jordan, P. Abbeel, "Tru
 
 ### 켤레 그래디언트 방법
 
-TRPO는 켤레 그래디언트 알고리즘으로 다음을 추정하여 푼다.
+TRPO 는 대리 목표를 일차, KL 제약을 이차로 근사한 뒤 다음 갱신을 계산한다. 방향 $\hat F^{-1}\hat g$ 는 켤레 그래디언트 알고리즘 — 선형 연립방정식 $\hat F x = \hat g$ 를 행렬-벡터 곱만으로 되풀이해 푸는 방법 — 으로 근사한다.
 
 $$\theta_{k+1} = \theta_k + \alpha \hat{F}^{-1} \hat{g}$$
 
 여기서:
 
-- $\hat{g} = \nabla_\theta L(\theta)|_{\theta_k}$은 폴리시 경사다
-- $\hat{F}$은 피셔 정보 행렬(쿨백-라이블러 발산의 헤세 행렬)이다
-- $\alpha$은 쿨백-라이블러 제약을 채우도록 백트래킹 선 탐색으로 정한다
+- $\hat{g} = \nabla_\theta L(\theta)|_{\theta_k}$ 는 폴리시 경사다
+- $\hat{F}$ 는 피셔 정보 행렬(쿨백-라이블러 발산의 헤세 행렬)이다
+- $\alpha$ 는 쿨백-라이블러 제약을 채우도록 백트래킹 선 탐색으로 정한다
 
 ### 피셔-벡터 곱
 
-$\hat{F}^{-1} g$을 직접 계산하는 일은 큰 네트워크에서 다룰 수 없다. 그 대신 켤레 그래디언트 방법은 피셔-벡터 곱 $\hat{F}v$만을 필요로 하며 이는 다음으로 값싸게 계산한다.
+$\hat{F}^{-1} g$ 를 직접 계산하는 일은 큰 네트워크에서 다룰 수 없다 — 파라미터가 $n$ 개면 $\hat F$ 가 $n\times n$ 행렬이다. 그 대신 켤레 그래디언트 방법은 피셔-벡터 곱 $\hat{F}v$만을 필요로 하며 이는 다음으로 값싸게 계산한다.
 
 $$\hat{F}v = \nabla_\theta \left[(\nabla_\theta \bar{D}_\text{KL})^\top v\right]$$
 
@@ -88,11 +88,13 @@ $$\hat{F}v = \nabla_\theta \left[(\nabla_\theta \bar{D}_\text{KL})^\top v\right]
 
 ### 백트래킹 선 탐색
 
-탐색 방향 $s = \hat{F}^{-1}g$을 계산한 뒤 TRPO는 스텝 크기를 정한다.
+탐색 방향 $s = \hat{F}^{-1}g$ 를 계산한 뒤 TRPO는 스텝 크기를 정한다.
 
 1. 가장 큰 스텝을 계산한다: $\alpha_\text{최대} = \sqrt{\frac{2\delta}{s^\top \hat{F} s}}$
-2. $k = 0, 1, 2, \ldots$에 대해 $\alpha = \alpha_\text{최대} \cdot \beta^k$을 시도한다
-3. (a) 쿨백-라이블러 제약과 (b) 대리 목표의 나아짐을 함께 채우는 첫 $\alpha$을 받아들인다
+2. $k = 0, 1, 2, \ldots$에 대해 $\alpha = \alpha_\text{최대} \cdot \beta^k$ 를 시도한다
+3. (a) 쿨백-라이블러 제약과 (b) 대리 목표의 개선을 함께 채우는 첫 $\alpha$ 를 받아들인다
+
+이차 근사로 정한 $\alpha_\text{최대}$ 는 실제 KL 을 넘길 수 있으므로, 선 탐색이 실제 KL 을 다시 재어 확인한다.
 
 ---
 
@@ -122,7 +124,7 @@ $$\hat{F}v = \nabla_\theta \left[(\nabla_\theta \bar{D}_\text{KL})^\top v\right]
 ## 5. 성질
 
 ### 장점
-- (정확히 최적화할 때) 단조로운 개선이 보장된다
+- 이론의 벌점 형태를 정확히 풀면 단조로운 개선이 보장된다(실제 알고리즘은 근사다)
 - 파라미터 선택에 강건하다
 - 여러 둘레에 걸쳐 학습이 강건하다
 - 러닝레이트를 튜닝할 필요가 없다
@@ -157,44 +159,44 @@ $$\hat{F}v = \nabla_\theta \left[(\nabla_\theta \bar{D}_\text{KL})^\top v\right]
 </div>
 
 ??? success "풀이"
-    폴리시 경사는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 형태이며, 여기서 $\hat{A}_t$은 어드밴티지 추정값이다. 로그 확률 그래디언트 $\nabla_\theta \log \pi_\theta$은 자동 미분으로 정확히 계산할 수 있다. 어드밴티지 $\hat{A}_t$은 샘플링한 궤적에서 추정해야 하므로 분산이 들어온다. 기댓값은 궤적 배치에 걸친 평균으로 추정한다. 베이스라인으로 분산을 줄이면 불편성을 지키면서 추정 잡음을 줄인다. $\square$
+    폴리시 경사는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 형태이며, 여기서 $\hat{A}_t$ 는 어드밴티지 추정값이다. 로그 확률 그래디언트 $\nabla_\theta \log \pi_\theta$ 는 자동 미분으로 정확히 계산할 수 있다. 어드밴티지 $\hat{A}_t$ 는 샘플링한 궤적에서 추정해야 하므로 분산이 들어온다. 기댓값은 궤적 배치에 걸친 평균으로 추정한다. TRPO 의 대리 목표 $L(\theta)$ 를 $\theta_\text{old}$ 에서 미분하면 $\nabla_\theta \frac{\pi_\theta}{\pi_{\theta_\text{old}}}\big|_{\theta_\text{old}} = \nabla_\theta\log\pi_\theta$ 이므로 이 폴리시 경사와 같아진다 — 그래서 $\hat g$ 를 대리 목표의 그래디언트로 계산해도 된다. 피셔 행렬 $\hat F$ 도 같은 표본으로 추정한다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-연속 제어 과제에서 이 방법의 샘플 효율을 밸류 기반 방법(예를 들어 DQN)과 비교하여라. 관찰되는 차이의 이론적 까닭을 설명하라.
+KL 제약을 이차로 근사해 $\bar D_\text{KL}(\theta_k \,\|\, \theta_k + \alpha s) \approx \tfrac12 \alpha^2 s^\top \hat F s$ 로 두고, 이것이 $\delta$ 와 같아지는 $\alpha$ 를 구해 3절의 $\alpha_\text{최대}$ 를 유도하라. 근사가 틀리면 무슨 일이 생기며, 선 탐색이 그것을 어떻게 막는가?
 
 </div>
 
 ??? success "풀이"
-    폴리시 기반 방법은 온폴리시 데이터를 쓰므로(궤적마다 한 번씩 쓴다) 밸류 기반 방법보다 샘플 효율이 대체로 낮다. DQN은 경험 리플레이로 데이터를 재사용해서 더 나은 샘플 효율을 얻는다. 그러나 폴리시 방법은 연속 액션을 자연스럽게 다루고(액션 공간에 대한 argmax가 필요 없다), 최적 폴리시가 확률적 폴리시일 때 그리로 수렴하며, 신뢰 영역 아래에서 단조로운 개선을 보장한다. 오프폴리시 Actor-Critic 방법(DDPG, SAC)은 폴리시 최적화와 경험 리플레이를 엮어 이 간극을 메운다. $\square$
+    $\tfrac12\alpha^2 s^\top\hat Fs = \delta$ 를 풀면 $\alpha = \sqrt{2\delta/(s^\top\hat F s)}$ 다. KL 은 $\theta_k$ 에서 값과 그래디언트가 0 이므로 이차 항이 첫 근사가 된다. 그러나 스텝이 크면 삼차 이상의 항이 무시할 수 없어 실제 KL 이 $\delta$ 를 넘을 수 있고, 대리 목표의 일차 근사도 틀려 실제로는 목표가 줄어들 수 있다. 백트래킹 선 탐색은 $\alpha_\text{최대}$ 에서 시작해 $\beta$ 배씩 줄이며 **실제** KL 과 **실제** 대리 목표를 다시 계산해, 둘 다 만족하는 첫 스텝만 받아들인다. 끝내 못 찾으면 그 갱신을 건너뛴다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-간단한 연속 제어 과제(예를 들어 Pendulum-v1)에 이 방법을 구현하라. 러닝레이트와 이 방법 고유의 중요한 하이퍼파라미터에 대해 얼마나 민감한지 보고하라.
+3절의 피셔-벡터 곱 $\hat Fv = \nabla_\theta[(\nabla_\theta\bar D_\text{KL})^\top v]$ 가 왜 $\hat F$ 와 $v$ 의 곱인지 설명하라. 이 식을 $\theta = \theta_\text{old}$ 에서 계산해야 하는 까닭은 무엇인가? 6절 표의 「켤레 그래디언트 감쇠 0.1」은 무엇을 하는가?
 
 </div>
 
 ??? success "풀이"
-    가우스 폴리시를 쓰는 Pendulum-v1에서 전형적인 결과는 이렇다. 러닝레이트 $3 \times 10^{-4}$이면 약 500 에피소드에 수렴하고, $10^{-3}$이면 진동하며, $10^{-5}$이면 너무 더디게 수렴한다. 이 방법 고유의 하이퍼파라미터(예를 들어 PPO의 클리핑 범위, TRPO의 쿨백-라이블러 제약)는 갱신의 공격성과 안정성 사이의 트레이드오프를 조절한다. 너무 공격적이면 성능이 무너지고 너무 보수적이면 샘플을 낭비한다. 최적 지점은 이 둘의 균형을 맞추는 곳이며 흔히 좁은 범위에서 격자 탐색으로 찾는다. $\square$
+    $(\nabla_\theta\bar D_\text{KL})^\top v$ 는 스칼라이고, 그것을 다시 미분하면 $v$ 가 $\theta$ 에 의존하지 않으므로 $(\nabla^2_\theta\bar D_\text{KL})\,v$, 곧 헤세 행렬과 $v$ 의 곱이 된다. 역전파 두 번이면 되고 $n\times n$ 행렬을 만들 필요가 없다. KL 의 헤세 행렬이 피셔 정보 행렬과 같은 것은 $\theta = \theta_\text{old}$ 에서만이다. 그 점에서 KL 은 최솟값 0 을 가지므로 그래디언트가 0 이고, 헤세 행렬이 $\mathbb E[\nabla\log\pi\,\nabla\log\pi^\top]$ 가 된다. 감쇠(damping)는 $\hat F$ 대신 $\hat F + 0.1\,I$ 를 쓰는 것이다. 표본으로 추정한 $\hat F$ 는 특이에 가깝거나 잡음이 커서 켤레 그래디언트가 아주 큰 스텝을 내놓을 수 있는데, $0.1\,I$ 를 더하면 고윳값이 0.1 아래로 내려가지 않아 계산이 안정된다. $\square$
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-액션 공간이 단체(합이 1인 자본 웨이트)이고 리워드가 위험 조정 리턴인 포트폴리오 배분 최적화에 이 방법을 어떻게 쓸 수 있을지 논하라.
+2절의 벌점 계수 $C = 2\gamma\epsilon/(1-\gamma)^2$ 을 $\gamma = 0.99$, $\epsilon = 1$ 로 계산하라. 대리 목표를 0.1 개선하는 스텝이 하한을 실제로 올리려면 최대 KL 이 얼마 아래여야 하는가? 그림 상자의 「이론이 준 $C$ 를 쓰면 걸음이 너무 작다」는 말과 견주어 보라.
 
 </div>
 
 ??? success "풀이"
-    액션 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 폴리시는 디리클레 분포나 소프트맥스로 변환한 가우스 분포를 쓸 수 있다. 리워드는 그 포트폴리오 배분의 샤프 비율이나 미분 샤프 비율이다. 어려움으로는 고차원 액션 공간(자산이 많다), 잦은 리밸런싱에 벌점을 주는 거래 비용, 시장 리턴의 비정상성이 있다. 이 절의 방법은 폴리시를 안정적으로 갱신하는 자체 장치로 이를 다룬다. $\square$
+    $C = 2\cdot0.99/0.01^2 = 19{,}800$ 이다. 하한 $L - C\,D_\text{KL}^{\max}$ 이 옛 폴리시의 값보다 커지려면 $C\,D_\text{KL}^{\max} < 0.1$, 곧 $D_\text{KL}^{\max} < 0.1/19{,}800 \approx 5\times10^{-6}$ 이어야 한다. 흔히 쓰는 $\delta = 0.01$ 보다 2,000 배쯤 작은 신뢰 영역이다. TRPO 논문의 정리는 상수를 $4\gamma\epsilon/(1-\gamma)^2$ 로 적으므로 그 경우 영역은 다시 절반이 된다. 할인이 1 에 가까울수록 $(1-\gamma)^2$ 때문에 $C$ 가 폭발적으로 커져서, 이론을 그대로 따르면 폴리시가 거의 움직이지 못한다. TRPO 가 벌점을 버리고 $\delta$ 를 직접 고르는 하드 제약으로 바꾼 까닭이 이 수에 있다. $\square$
 
 ## 정리하며
 
-TRPO는 제약된 갱신으로 강건한 폴리시 최적화에 이론적 근거가 있는 길을 준다. 단조로운 개선을 이론적으로 보장하고 파라미터에 강건한 덕분에 큰 스텝을 내디뎠다. 구현이 더 쉬운 PPO가 실제로는 TRPO를 거의 대체했으나, TRPO의 이론적 틀은 여전히 기반으로 자리한다.
+TRPO 는 KL 발산으로 갱신의 크기를 묶는 신뢰 영역으로, 폴리시 경사에 스텝 크기를 정하는 원리를 준다. 이론은 벌점 형태의 하한으로 단조로운 개선을 보장하지만, 실제 알고리즘은 그것을 평균 KL 의 하드 제약으로 바꾸고 켤레 그래디언트와 선 탐색으로 근사해 푼다. 구현이 더 쉬운 PPO 가 실제로는 TRPO 를 거의 대체했으나, 신뢰 영역이라는 생각은 여전히 그 바탕에 있다.

@@ -52,7 +52,7 @@ Total predictions per cell: B × 5 + C
 Total output tensor: S × S × (B × 5 + C)
 ```
 
-중심 x,y는 칸 안의 상대 위치, 너비·높이는 전체 이미지에 대한 비율로 표현한다. YOLOv1의 confidence 목표는 객체 존재와 예측·정답 IoU를 결합한 값이다. 이를 후속 YOLO의 모든 objectness 정의와 동일시하지 않는다. 학습 목표가 이러한 좌표 범위여도 임의 raw 네트워크 출력이 자동으로 유효한 좌표 범위 안에 드는 것은 아니다.
+중심 x,y는 칸 안의 상대 위치, 너비·높이는 전체 이미지에 대한 비율로 표현한다. YOLOv1의 confidence 목표는 객체 존재와 예측·정답 IoU를 결합한 값이다. 이를 후속 YOLO의 모든 objectness 정의와 동일시하지 않는다. 학습 목표가 이러한 좌표 범위여도 임의의 원시(raw) 네트워크 출력이 자동으로 유효한 좌표 범위 안에 드는 것은 아니다.
 
 ```python
 import torch
@@ -185,7 +185,7 @@ class YOLOv3Head(nn.Module):
         return out
 ```
 
-입력 B×C×H×W에서 head는 B×A×H×W×(5+K)를 반환한다. 기본 A=3,K=80이면 마지막 차원 85다. 이 값은 raw 예측이므로 앵커·stride·격자와 함께 디코딩하고 objectness·클래스를 해석해야 한다.
+입력 B×C×H×W에서 head는 B×A×H×W×(5+K)를 반환한다. 기본 A=3,K=80이면 마지막 차원 85다. 이 값은 원시 예측이므로 앵커·stride·격자와 함께 디코딩하고 objectness·클래스를 해석해야 한다.
 
 YOLOv4 이후에는 CSP 계열 피처, 피라미드 연결·학습 기법·추론 구조 재매개변수화(re-parameterization) 등 다양한 설계가 제시되었다. YOLO라는 이름을 공유해도 개발 주체와 계보·정의가 모두 같지는 않다. 번호만으로 모든 이전 버전의 엄밀한 상위 집합이나 성능 순서를 뜻하지 않는다.
 
@@ -210,7 +210,7 @@ model.export(format='onnx')
 
 ## 4. YOLOv8 피처 결합과 분리 head
 
-YOLOv8의 구체적인 레이어는 [공식 모델 설정](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/models/v8/yolov8.yaml)을 기준으로 확인한다. C2f·SPPF 및 여러 해상도의 피처 연결을 사용한다. 아래 도식의 `Stem (Focus)`와 640 입력에서 P3=40·P4=20·P5=10 표기는 실제 YOLOv8 설정을 정확히 나타내지 않는다. 통상 stride8·16·32 탐지 피처는 640 입력에서 80·40·20이다. 도식은 CSP·다중 단계의 개념 그림으로만 읽는다.
+YOLOv8의 구체적인 레이어는 [공식 모델 설정](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/models/v8/yolov8.yaml)을 기준으로 확인한다. C2f·SPPF 및 여러 해상도의 피처 연결을 사용한다. 아래 도식의 `Stem (Focus)`와 640 입력에서 P3=40·P4=20·P5=10 표기는 실제 YOLOv8 설정을 정확히 나타내지 않는다. 통상 stride 8·16·32 탐지 피처는 640 입력에서 80·40·20이다. 도식은 CSP·다중 단계의 개념 그림으로만 읽는다.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -248,7 +248,7 @@ YOLOv8의 구체적인 레이어는 [공식 모델 설정](https://raw.githubuse
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-아래 `PANNeck`은 상위 피처의 업샘플링·더하기와 아래 방향의 다운샘플링·연결을 보여 주는 단순 모듈이다. 실제 YOLOv8 neck의 모든 블록을 재현하지 않는다. 입력 피처는 고해상도부터 저해상도 순서이며 두 배씩 크기가 맞아야 한다. 홀수 크기에서는 scale_factor=2 업샘플과 stride2 결과가 맞지 않을 수 있고, 목록 길이가 채널 설정과 같아야 한다.
+아래 `PANNeck`은 상위 피처의 업샘플링·더하기와 아래 방향의 다운샘플링·연결을 보여 주는 단순 모듈이다. 실제 YOLOv8 neck의 모든 블록을 재현하지 않는다. 입력 피처는 고해상도부터 저해상도 순서이며 두 배씩 크기가 맞아야 한다. 홀수 크기에서는 scale_factor=2 업샘플과 stride 2 결과가 맞지 않을 수 있고, 목록 길이가 채널 설정과 같아야 한다.
 
 ```python
 class PANNeck(nn.Module):
@@ -475,7 +475,7 @@ def yolo_loss(
     return total_loss
 ```
 
-`compute_iou`가 정의되어 있지 않다. 입력 좌표가 칸 상대 중심·전체 상대 크기라면 같은 표현을 올바르게 xyxy로 변환해 IoU를 계산해야 한다. 책임 상자는 정답과의 IoU로 정하고 양성 칸의 공유 클래스 로스를 계산한다. 다만 코드의 음성 confidence 항은 배경 칸에만 적용되어 객체가 있는 칸의 비책임 상자는 제외한다. 원래 목적의 비책임 예측 처리와 구분한다. IoU를 confidence의 목표로 쓸 때도 이를 detach하지 않으면 상자 좌표 쪽으로 그래디언트가 흐를 수 있다. 절댓값 안의 제곱근은 잘못된 음수 크기를 유효하게 만드는 모델 제약이 아니다.
+`compute_iou`가 정의되어 있지 않다. 입력 좌표가 칸 상대 중심·전체 상대 크기라면 같은 표현을 올바르게 xyxy로 변환해 IoU를 계산해야 한다. 책임 상자는 정답과의 IoU로 정하고 양성 칸의 공유 클래스 로스를 계산한다. 다만 코드의 음성 confidence 항은 배경 칸에만 적용되어 객체가 있는 칸의 비책임 상자는 제외한다. 객체 칸의 비책임 상자에도 음성 항을 거는 원 논문의 목적 함수와 구분한다. IoU를 confidence의 목표로 쓸 때도 이를 detach하지 않으면 상자 좌표 쪽으로 그래디언트가 흐를 수 있다. 절댓값 안의 제곱근은 잘못된 음수 크기를 유효하게 만드는 모델 제약이 아니다.
 
 다음 `modern_yolo_loss`는 CIoU·objectness BCE·클래스 BCE의 합을 보여 주는 **일반적인 골격**이다. `compute_ciou` 정의, 양성 할당·마스크, 정규화와 웨이트 설계가 필요하다. 모든 입력 상자에 평균을 내므로 호출자가 유효한 회귀 대상을 골라야 한다.
 
@@ -522,11 +522,11 @@ def modern_yolo_loss(
     }
 ```
 
-이 함수는 별도의 objectness를 출력하지 않는 위 YOLOv8Head와 그대로 연결되지 않는다. YOLOv8 계열 학습의 거리 분포 로스(DFL)·목표 할당도 없다. 공식 학습 경로는 [로스 구현](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/utils/loss.py)을 참고하며, 모든 후속 버전이 focal loss나 같은 objectness 항을 기본으로 쓴다고 설명하지 않는다.
+이 함수는 별도의 objectness를 출력하지 않는 위 YOLOv8Head와 그대로 연결되지 않는다. YOLOv8 계열 학습의 분포 초점 로스(DFL, distribution focal loss)·목표 할당도 없다. 공식 학습 경로는 [로스 구현](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/utils/loss.py)을 참고하며, 모든 후속 버전이 focal loss나 같은 objectness 항을 기본으로 쓴다고 설명하지 않는다.
 
 ## 6. 사전 학습 모델의 추론·파인튜닝
 
-아래는 여러 모델 크기를 로드해 추론 결과를 읽는 예다. 모델 파일·이미지 경로·지원 장치와 패키지 버전이 필요하고 웨이트를 처음 받을 때 다운로드가 생길 수 있다. 모델별 반복 로드는 메모리를 사용하므로 다섯 크기를 모두 로드해야만 추론할 수 있는 것은 아니다.
+아래는 여러 모델 크기를 로드해 추론 결과를 읽는 예다. 모델 파일·이미지 경로·지원 장치와 패키지 버전이 필요하고 웨이트를 처음 받을 때 다운로드가 생길 수 있다. 다섯 크기를 모두 로드하면 그만큼 메모리를 쓰며, 추론에는 실제로 쓸 모델 하나만 로드하면 된다.
 
 ```python
 from ultralytics import YOLO
@@ -664,13 +664,13 @@ YOLOv8Head의 기본 회귀 64채널과 objectness 출력 여부를 설명하라
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-아래 NMS에 넣기 전 YOLO raw 출력에 필요한 변환과 함수 의존성을 설명하라.
+아래 NMS에 넣기 전 YOLO 원시 출력에 필요한 변환과 함수 의존성을 설명하라.
 
 </div>
 
 ??? success "풀이"
 
-    버전별 좌표 디코딩으로 같은 이미지의 xyxy 상자를 만들고 클래스·objectness 규칙에 맞게 점수를 계산한다. 클래스·이미지별 NMS와 resize 역변환을 정의한다. 아래 compute_iou는 별도 정의가 필요하며 본문의 v1 loss용 좌표 IoU 함수와 요구 입력이 같은지 확인해야 한다.
+    버전별 좌표 디코딩으로 같은 이미지의 xyxy 상자를 만들고 클래스·objectness 규칙에 맞게 점수를 계산한다. 클래스·이미지별 NMS와 크기 조정의 역변환을 정의한다. 아래 compute_iou는 별도 정의가 필요하며 본문의 v1 로스용 좌표 IoU 함수와 요구 입력이 같은지 확인해야 한다.
 
     ```python
     import numpy as np
@@ -702,7 +702,7 @@ YOLOv8Head의 기본 회귀 64채널과 objectness 출력 여부를 설명하라
 
 ??? success "풀이"
 
-    stride8·16·32이면 피처 크기는 80·40·20이다. 본문 도식의 40·20·10 및 Focus 표기를 실제 YOLOv8 설정으로 사용하지 않는다. A100 TensorRT의 모델 추론 지연시간을 T4나 전체 애플리케이션 지연시간으로 바꿔 인용할 수 없다.
+    stride 8·16·32이면 피처 크기는 80·40·20이다. 본문 도식의 40·20·10 및 Focus 표기를 실제 YOLOv8 설정으로 사용하지 않는다. A100 TensorRT의 모델 추론 지연시간을 T4나 전체 애플리케이션 지연시간으로 바꿔 인용할 수 없다.
 
 
 

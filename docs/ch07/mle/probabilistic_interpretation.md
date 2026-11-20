@@ -121,6 +121,8 @@ $$
 \mathcal{L}_{\text{MAP}} = -\log p(\text{data} | \theta) + \lambda \|\theta\|_1
 $$
 
+여기서 $\lambda = 1/b$이다.
+
 라플라스 사전분포는 (매끄러운 가우스와 달리) 0에서 날카로운 봉우리를 가지며, 이것이 **희소성**을 유도한다. 많은 파라메터가 정확히 0으로 밀려난다.
 
 ### 기하학적 직관
@@ -320,7 +322,7 @@ def loss_function_comparison():
 ??? success "풀이"
     음이항분포의 확률질량함수는 $P(y|r,p) = \binom{y+r-1}{y} p^r (1-p)^y$이다.
 
-    평균 $\mu = r(1-p)/p$과 산포 $r$으로 재매개변수화한다. NLL은 다음과 같다.
+    평균 $\mu = r(1-p)/p$과 산포 $r$으로 재파라메터화한다. NLL은 다음과 같다.
 
     $$
     -\log P(y|\mu,r) = -\log\Gamma(y+r) + \log\Gamma(r) + \log(y!) - r\log\frac{r}{r+\mu} - y\log\frac{\mu}{r+\mu}
@@ -364,7 +366,7 @@ def loss_function_comparison():
     -\log p(\theta|\mu,\kappa) = -\kappa\cos(\theta - \mu) + \log(2\pi I_0(\kappa))
     $$
 
-    뉴럴 네트워크는 $\mu$(평균 방향)과 $\kappa > 0$(집중도)을 예측한다. 양수를 보장하려면 $\kappa = \text{softplus}(\hat{\kappa})$을 쓴다.
+    뉴럴 네트워크는 $\mu$(평균 방향)과 $\kappa > 0$(집중도)를 예측한다. 양수를 보장하려면 $\kappa = \text{softplus}(\hat{\kappa})$을 쓴다.
 
     ```python
     def von_mises_nll(pred_mu, pred_kappa, target_angle):

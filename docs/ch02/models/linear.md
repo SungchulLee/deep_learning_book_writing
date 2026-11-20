@@ -1,6 +1,6 @@
 # 선형 모델
 
-선형 모델은 지도 학습의 기초이자 뉴럴 네트워크의 기본 구성 요소이다. 완전 연결 레이어는 입력의 선형 변환을 수행하며, 여러 레이어 사이에 비선형 활성화 함수를 넣어 표현력을 높이므로, 선형 회귀와 로지스틱 회귀를 이해하는 것은 딥러닝을 이해하기 위한 선결 조건이다.
+선형 모델은 지도학습의 기초이자 뉴럴 네트워크의 기본 구성 요소이다. 완전 연결 레이어는 입력의 선형 변환을 수행하며, 여러 레이어 사이에 비선형 활성화 함수를 넣어 표현력을 높이므로, 선형 회귀와 로지스틱 회귀를 이해하는 것은 딥러닝을 이해하기 위한 선결 조건이다.
 
 ---
 
@@ -102,7 +102,7 @@ y_t = torch.tensor(y_np, dtype=torch.float32)
 # bias=False: 데이터를 절편 없이 만들었으므로 바이어스 항을 두지 않는다
 model = nn.Linear(d, 1, bias=False)
 
-# weight_decay가 곧 L2(릿지) 정칙화이다. 로스에 alpha*||w||^2 를 더하는 것과 같다
+# weight_decay가 곧 L2(릿지) 정칙화이다. 로스에 (alpha/2)*||w||^2 를 더하는 것과 같다
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)
 loss_fn = nn.MSELoss()
 
@@ -161,7 +161,7 @@ MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-선형 회귀에서 L2 정칙화가 SGD의 `weight_decay`와 동등함을 보여라. 구체적으로 감쇠 계수 $\lambda$인 웨이트 감쇠의 갱신이 $\alpha = \lambda$인 L2 정칙화 로스의 그래디언트로 한 갱신과 일치함을 보여라.
+선형 회귀에서 L2 정칙화가 SGD의 `weight_decay`와 동등함을 보여라. 구체적으로 감쇠 계수 $\lambda$인 웨이트 감쇠의 갱신이 $\alpha = \lambda$인 L2 정칙화 로스의 그래디언트로 한 갱신과 일치함을 보여라. 여기서는 그래디언트가 깔끔하도록 패널티를 2절과 달리 $\frac{\alpha}{2}\|\boldsymbol{\beta}\|^2$ 로 둔다.
 
 </div>
 
@@ -202,6 +202,6 @@ MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 
 정칙화는 큰 웨이트에 패널티를 걸어 과적합을 막는다. L2(릿지)는 계수를 0 쪽으로 줄이되 0으로 만들지 않고, L1(라쏘)은 일부를 정확히 0으로 만들어 피처를 고른다. **L2 패널티와 SGD의 `weight_decay`는 계수 정의를 맞추면 같은 갱신을 준다**(연습문제 3). 다만 Adam에서는 그 동등성이 깨져 AdamW가 따로 있다.
 
-`nn.Linear` 레이어 하나가 곧 이 모델이다. [3장](../../ch03/index.md)의 스텝2가 이것을 MNIST에 걸어 92%를 얻고, 나머지 두 스텝이 그 위에 비선형성과 이웃 관계를 얹는다.
+`nn.Linear` 레이어 하나가 곧 이 모델이다. [3장](../../ch03/index.md)의 스텝 2가 이것을 MNIST에 걸어 92%를 얻고, 나머지 두 스텝이 그 위에 비선형성과 이웃 관계를 얹는다.
 
 앞의 연습문제 5개로 직접 확인할 수 있다.

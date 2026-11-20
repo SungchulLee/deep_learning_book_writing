@@ -93,7 +93,7 @@ batch_size, seq_len, num_features = 32, 10, 5
 batched = torch.randn(batch_size, seq_len, num_features)  # (배치, seq_len, 피처)
 ```
 
-`batch_first=True`과 함께 쓰는 `(batch, seq_len, features)` 규약이 가장 직관적이다.
+`batch_first=True`와 함께 쓰는 `(batch, seq_len, features)` 규약이 가장 직관적이다.
 
 ### 슬라이딩 윈도
 
@@ -155,7 +155,7 @@ RNN의 순환식 $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$을 적고 각 항을 �
 </div>
 
 ??? success "풀이"
-    $W_h$은 시간적 의존(과거 은닉 상태가 지금에 주는 영향)을 담고, $W_x$은 지금 입력을 잠재공간으로 보내며, $b$은 바이어스고, $\tanh$은 은닉 상태를 $[-1, 1]$으로 묶는다. 은닉 상태 $h_t$은 시각 $t$까지의 입력 시퀀스를 압축한 요약이다.
+    $W_h$는 시간적 의존(과거 은닉 상태가 지금에 주는 영향)을 담고, $W_x$는 지금 입력을 은닉 공간으로 보내며, $b$는 바이어스이고, $\tanh$는 은닉 상태를 $[-1, 1]$로 묶는다. 은닉 상태 $h_t$는 시각 $t$까지의 입력 시퀀스를 압축한 요약이다.
 
 ---
 

@@ -162,7 +162,7 @@ def euler_integrate(f, y0: torch.Tensor, t_span: tuple, dt: float):
 
 ## 4. RK4와 적응형 적분
 
-고전 RK4는 시작·중간 두 번·끝에서 네 그래디언트를 계산하고 (1,2,2,1)/6의 웨이트를 사용한다. 충분히 매끄러운 문제에서 한 스텝 오차 O(h⁵), 전역 오차 O(h⁴)를 얻는다.
+고전 RK4는 시작·중간 두 번·끝에서 네 기울기(벡터장 값)를 계산하고 (1,2,2,1)/6의 웨이트를 사용한다. 충분히 매끄러운 문제에서 한 스텝 오차 O(h⁵), 전역 오차 O(h⁴)를 얻는다.
 
 ```python
 def rk4_step(f, y: torch.Tensor, t: float, dt: float) -> torch.Tensor:
@@ -393,7 +393,7 @@ analyze_fixed_point는 중심 차분으로 Jacobian을 근사하지만 먼저 f(
 
 ## 7. torchdiffeq 인터페이스
 
-아래는 기존 설치 명령이다. 여기서는 설치·실행을 수행하지 않는다. API의 세부 옵션은 [공식 문서](https://github.com/rtqichen/torchdiffeq)와 실제 사용하는 버전을 확인한다.
+torchdiffeq는 아래 명령으로 설치한다. API의 세부 옵션은 [공식 문서](https://github.com/rtqichen/torchdiffeq)와 실제 사용하는 버전을 확인한다.
 
 ```bash
 pip install torchdiffeq
@@ -727,11 +727,11 @@ def train_neural_ode_classifier():
     return model
 ```
 
-학습 함수는 Adam·교차 엔트로피를 사용하고 에포크마다 테스트 정확도를 계산한다. 60,000개·배치128에서 마지막96개를 포함해 469회, 10에포크에 4,690회 업데이트한다. 함수는 정의되어 있지만 맨 아래 main은 이 분류 학습을 호출하지 않는다. 보존된 출력은 뒤의 고전 ODE 데모이며 MNIST 정확도를 입증하지 않는다.
+학습 함수는 Adam·교차 엔트로피를 사용하고 에포크마다 테스트 정확도를 계산한다. 60,000개·배치 128에서 마지막 96개를 포함해 에포크마다 469회, 10에포크에 4,690회 업데이트한다. 함수는 정의되어 있지만 맨 아래 main은 이 분류 학습을 호출하지 않는다. 이 쪽에 실린 출력은 뒤의 고전 ODE 데모이며 MNIST 정확도를 입증하지 않는다.
 
 이 코드는 **odeint로 직접 역전파**한다. odeint_adjoint를 가져오지 않으므로 수치 스텝 수와 무관한 adjoint 메모리 절약을 이미 구현했다고 설명할 수 없다. 수치 솔버 내부 연산의 그래프를 통해 미분하는 방식과 연속 adjoint를 별도로 적분하는 방식을 구분한다.
 
-## 10. 허용 오차와 정규화
+## 10. 허용 오차와 정칙화
 
 ```python
 class NeuralODEWithAdaptiveTolerance(nn.Module):
@@ -807,7 +807,7 @@ def init_neural_ode_weights(module):
             nn.init.zeros_(module.bias)
 ```
 
-이 함수는 작은 Xavier gain과 0 bias를 설정하는 초기화 도구다. 정의한 것만으로 기존 모델에 적용되는 것은 아니다. 초기화·정규화·허용 오차는 강성이나 비용을 줄이는 데 도움이 될 수 있으나 안정성을 보장하는 일괄 처방은 아니다.
+이 함수는 작은 Xavier gain과 0 bias를 설정하는 초기화 도구다. 정의한 것만으로 기존 모델에 적용되는 것은 아니다. 초기화·정칙화·허용 오차는 강성이나 비용을 줄이는 데 도움이 될 수 있으나 안정성을 보장하는 일괄 처방은 아니다.
 
 ## 11. 여러 경로와 이산 변환
 
@@ -865,7 +865,7 @@ class HybridNeuralODE(nn.Module):
 
 HybridNeuralODE는 ODE 두 구간 사이에 잔차 변환을 넣는다. 각 블록의 자체 시간은 0부터 시작하며 사건 시각을 자동 탐지하는 하이브리드 솔버는 아니다. 중간 이산 변환은 단사성·가역성을 보장하지 않으므로 전체 모델을 순수 ODE 흐름과 동일시하지 않는다.
 
-## 12. 진단 코드와 보존된 데모
+## 12. 진단 코드와 데모
 
 ```python
 def debug_neural_ode(model, sample_input):
@@ -1039,7 +1039,7 @@ if __name__ == "__main__":
     demonstrate_ode_fundamentals()
 ```
 
-**보존된 출력:**
+**출력:**
 
 ```
 ======================================================================

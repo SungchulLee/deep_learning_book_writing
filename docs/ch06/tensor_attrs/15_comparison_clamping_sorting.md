@@ -375,8 +375,8 @@ NaN은 기본으로 같지 않다고 본다. `equal_nan=True`를 주면 NaN끼�
     바꿔 평균내면 비율이 되므로, 정확도를 구하는 코드가 거의 언제나 이 형태 —
     `(pred == target).float().mean()`.
 
-    `.float()`를 빼먹으면 어떻게 되는가. `bool` 텐서에 `.mean()`을 부르면 「축약과
-    통계」에서 본 것처럼 `mean(): could not infer output dtype`로 거절한다.
+    `.float()`를 빼먹으면 어떻게 되는가. `bool` 텐서에 `.mean()`을 부르면
+    `mean(): could not infer output dtype`로 거절한다.
     다행히 터져 주는 쪽이다.
 
 ---

@@ -344,7 +344,7 @@ All augmentation tests passed!
 
 ## 2. 논의
 
-SimCLRAugmentation은 같은 PIL 이미지를 두 번 독립적으로 변환한다. 이 구현은 RandomResizedCrop·좌우 뒤집기·확률적 색 변화·흑백 변환과 항상 적용되는 GaussianBlur를 사용한다. 같은 변환 객체를 두 번 호출해도 난수가 새로 뽑혀 두 결과가 같다는 뜻은 아니다. MoCoAugmentation의 query_transform과 key_transform도 같은 객체를 공유하며 매 호출 별도 표본을 만든다.
+SimCLRAugmentation은 같은 PIL 이미지를 두 번 독립적으로 변환한다. 이 구현은 RandomResizedCrop·좌우 뒤집기·확률적 색 변화·흑백 변환과 항상 적용되는 GaussianBlur를 사용한다. 같은 변환 객체를 두 번 호출해도 호출마다 난수가 새로 뽑히므로 두 결과는 대개 다르다. MoCoAugmentation의 query_transform과 key_transform도 같은 객체를 공유하며 매 호출 별도 표본을 만든다.
 
 MoCoV3Augmentation은 두 뷰의 흐리기 확률과 둘째 뷰의 솔라리제이션을 다르게 한다. BYOLAugmentation은 둘째 뷰의 흐리기를 생략한다. 이는 이 페이지의 레시피이며 모든 공식 구현·버전과 동일한 것은 아니다. MoCo v3는 음성 없는 방식도 아니며 어그멘테이션의 비대칭만으로 붕괴 방지가 보장되지는 않는다.
 

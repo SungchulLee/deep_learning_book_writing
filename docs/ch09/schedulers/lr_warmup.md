@@ -268,7 +268,7 @@ base_lr=0.001, warmup_steps=1000인 LinearWarmup에서 step 0과 999의 값은 �
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-누적 배치 수를 바꾼 뒤 같은 워밍업 길이를 유지하려면 무엇을 기준으로 해야 하는가?
+그래디언트 누적 횟수를 바꾼 뒤 같은 워밍업 길이를 유지하려면 무엇을 기준으로 해야 하는가?
 
 </div>
 

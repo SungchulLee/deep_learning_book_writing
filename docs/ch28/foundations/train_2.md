@@ -61,7 +61,7 @@ class CharRNN(nn.Module):
                  hidden_dim: int = 128,
                  n_layers: int = 2):
         """
-        문자 순환 뉴럴 네트워크을 초기화한다.
+        문자 순환 뉴럴 네트워크를 초기화한다.
         
         인수:
             vocab_size: 어휘 속 서로 다른 문자의 수
@@ -191,7 +191,7 @@ class CharRNN(nn.Module):
 
 class SimpleCharTransformer(nn.Module):
     """
-    문자 수준 언어 모델링를 위한 단순한 트랜스포머.
+    문자 수준 언어 모델링을 위한 단순한 트랜스포머.
     
     이는 순환 대신 셀프 어텐션을 쓰는, 순환 뉴럴 네트워크의 더 현대적인 대안이다.
     트랜스포머는 GPT 같은 모델의 바탕 구조이다.
@@ -307,7 +307,7 @@ if __name__ == "__main__":
     print(f"Output shape: {output.shape}")
     print(f"Output represents scores for {vocab_size} possible next characters")
     
-    # 생성를 시험한다
+    # 생성을 시험한다
     seed = torch.randint(0, vocab_size, (10,))
     generated = rnn_model.generate(seed, length=20, temperature=1.0)
     print(f"\nGenerated sequence length: {len(generated)}")
@@ -674,7 +674,7 @@ if __name__ == "__main__":
 
 main은 문맥 길이 50, 배치 64, 임베딩 128, LSTM 은닉 256, 2레이어, Adam 0.001과 50에포크를 설정한다. 기본 모델은 CharRNN이며 SimpleCharTransformer는 import하고 헬퍼에서 지원하지만 main에서 실제로 선택하지 않는다. 자료는 문맥당 정수 타깃 하나이고 모델 logits는 `(B,V)`다. LSTM hidden은 배치마다 새로 시작하며 배치 사이로 이어 가지 않는다.
 
-현재 디렉터리에는 model.py는 있지만 data.py는 없다. import하는 CharacterDataset·load_sample_text·train_test_split을 [문자 데이터 절](data_2.md) 등의 실제 모듈로 제공해야 한다. 해당 데이터 예시 자체에도 표본·sample 변수 불일치가 있어 연결을 준비하지 않으면 실행되지 않는다. 이 페이지의 코드를 단독 실행 가능한 완성된 학습 결과로 설명하지 않는다.
+model의 내용은 위 코드에 그대로 들어 있지만 데이터 도구는 data 모듈에서 import하며, 이 디렉터리에는 data.py가 없다. import하는 CharacterDataset·load_sample_text·train_test_split을 [문자 데이터 절](data_2.md) 등의 실제 모듈로 제공해야 한다. 해당 데이터 예시 자체에도 표본·sample 변수 불일치가 있어 연결을 준비하지 않으면 실행되지 않는다. 이 페이지의 코드를 단독 실행 가능한 완성된 학습 결과로 설명하지 않는다.
 
 ## 2. 로스 기록과 평가 범위
 
@@ -682,7 +682,7 @@ CrossEntropyLoss는 배치의 다음 문자 NLL 평균이며 softmax를 미리 �
 
 학습에서는 dropout과 매 배치 업데이트가 있고 평가는 종료 모델의 eval·no_grad 경로다. 따라서 train·test 곡선의 차이가 과적합 하나만을 뜻하지 않는다. 짧고 겹치는 텍스트 윈도의 순서 분할은 독립 문서 평가와도 다르다. 설정·중단 기준에는 별도 검증 자료를 사용하고 최종 테스트 자료를 분리해야 한다.
 
-매 배치 그래디언트 노름을 1로 클리핑하지만 이것이 과적합·조건 누출·생성 오류를 해결하는 것은 아니다. 체크포인트 저장이나 최적 모델 복원은 현재 main에 없다. 모델 웨이트 외에 문자 사전·전처리·문맥 길이와 생성 규칙도 보존해야 한다.
+매 배치 그래디언트 노름을 1로 클리핑하지만 이것이 과적합·데이터 누출·생성 오류를 해결하는 것은 아니다. 체크포인트 저장이나 최적 모델 복원은 현재 main에 없다. 모델 웨이트 외에 문자 사전·전처리·문맥 길이와 생성 규칙도 보존해야 한다.
 
 ## 3. 두 생성 경로의 차이
 
@@ -690,7 +690,7 @@ CharRNN 경로는 model.generate를 호출한다. [모델 절](model.md)에서 �
 
 Transformer 경로는 마지막 sequence_length개 문자만 잘라 매 스텝 새로 계산한다. 위치 인덱스도 윈도마다 0에서 다시 시작하며 KV cache는 없다. 이 문맥 길이는 위치 임베딩 최대 길이 이하여야 한다. 두 생성 폴리시의 차이를 두 구조의 고유한 언어 생성 품질 차이로 혼동하지 않는다.
 
-시드 텍스트는 비어 있지 않고 사전에 있어야 하며 temperature는 유한한 양수여야 한다. 반환 텍스트에는 시드와 추가 생성 length개가 함께 포함된다. 낮은 온도가 항상 좋은 글이나 적절한 반복을, 0.8이 균형 잡힌 창의성을 보장하는 것은 아니다. 출력 안내문은 이런 경험적 결과를 입증하지 않는다. 이 편집에서는 학습·생성을 실행하지 않았다.
+시드 텍스트는 비어 있지 않고 사전에 있어야 하며 temperature는 유한한 양수여야 한다. 반환 텍스트에는 시드와 추가 생성 length개가 함께 포함된다. 낮은 온도가 항상 좋은 글이나 적절한 반복을, 0.8이 균형 잡힌 창의성을 보장하는 것은 아니다. 출력 안내문은 이런 경험적 결과를 입증하지 않으며, 이 페이지에는 학습·생성 실행 결과가 실려 있지 않다.
 
 ## 연습문제
 

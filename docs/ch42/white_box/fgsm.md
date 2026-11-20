@@ -1,20 +1,20 @@
 # FGSM
 
-**빠른 그래디언트 부호 방법(FGSM)**은 굿펠로 등(2015)이 내놓은, 그래디언트에 기댄 적대적 공격의 기초다. 그래디언트를 한 번만 셈하면 되는 단순함 덕에 계산이 효율적이고, 더 정교한 공격의 벽돌이 된다.
+**빠른 그래디언트 부호 방법(FGSM)**은 Goodfellow 등(2015)이 제안한, 그래디언트 기반 적대적 공격의 기본형이다. 그래디언트를 한 번만 계산하면 되는 단순함 덕에 계산이 효율적이고, 더 정교한 공격의 구성 요소가 된다.
 
 ---
 
-## 1. 수학 기초
+## 1. 수학적 기초
 
-### 선형 짐작
+### 선형성 가설
 
-FGSM은 뉴럴 네트워크가 고차원 공간에서 거의 선형으로 움직인다는 살핌에서 비롯한다. 선형 모델을 보자.
+FGSM은 뉴럴 네트워크가 고차원 공간에서 거의 선형으로 동작한다는 관찰에서 출발한다. 선형 모델을 보자.
 
 $$
 f(\mathbf{x}) = \mathbf{w}^\top \mathbf{x}
 $$
 
-섭동 $\boldsymbol{\delta}$에 대해 출력의 바뀜은
+섭동 $\boldsymbol{\delta}$에 대해 출력의 변화는
 
 $$
 f(\mathbf{x} + \boldsymbol{\delta}) - f(\mathbf{x}) = \mathbf{w}^\top \boldsymbol{\delta}
@@ -26,7 +26,7 @@ $$
 \delta_i^* = \varepsilon \cdot \text{sign}(w_i)
 $$
 
-그러면 가장 큰 바뀜은
+그러면 최대 변화는
 
 $$
 \mathbf{w}^\top \boldsymbol{\delta}^* = \varepsilon \|\mathbf{w}\|_1
@@ -34,7 +34,7 @@ $$
 
 차원이 높으면 작은 $\varepsilon$으로도 $\varepsilon \|\mathbf{w}\|_1$이 꽤 커진다.
 
-### 뉴럴 네트워크로 넓히기
+### 뉴럴 네트워크로 확장하기
 
 로스 함수 $\mathcal{L}$을 지닌 뉴럴 네트워크 $f_\theta$에서 일차 테일러 전개로 선형화한다.
 
@@ -42,7 +42,7 @@ $$
 \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y) \approx \mathcal{L}(f_\theta(\mathbf{x}), y) + \boldsymbol{\delta}^\top \nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y)
 $$
 
-그래디언트 $\nabla_\mathbf{x} \mathcal{L}$이 선형 어림에서 "짐" 노릇을 한다. 같은 이치를 쓰면
+그래디언트 $\nabla_\mathbf{x} \mathcal{L}$이 이 선형 근사에서 웨이트 $\mathbf{w}$ 노릇을 한다. 같은 논리를 쓰면
 
 $$
 \boxed{\mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y))}
@@ -50,9 +50,9 @@ $$
 
 이것이 **FGSM 공격**이다.
 
-### 느낌으로 알기
+### 직관
 
-그래디언트 $\nabla_\mathbf{x} \mathcal{L}$은 입력 분야에서 로스를 가장 크게 올리는 방향을 알려 준다. 부호 함수는 자리마다 방향($+1$ 또는 $-1$)만 뽑아내고, 우리는 그 방향으로 받아 주는 가장 큰 스텝($\varepsilon$)을 밟는다.
+그래디언트 $\nabla_\mathbf{x} \mathcal{L}$은 입력 공간에서 로스를 가장 크게 올리는 방향을 알려 준다. 부호 함수는 성분마다 방향($+1$ 또는 $-1$)만 뽑아내고, 우리는 그 방향으로 허용된 가장 큰 스텝($\varepsilon$)을 밟는다.
 
 **그림으로 보기:**
 
@@ -69,7 +69,7 @@ $$
 
 ## 2. 알고리즘
 
-### 타깃 없는 FGSM
+### 비표적 FGSM
 
 **입력:** 클린 샘플 $\mathbf{x}$, 참 레이블 $y$, 모델 $f_\theta$, 엡실론 $\varepsilon$
 
@@ -80,9 +80,9 @@ $$
 3. 섭동을 계산한다: $\boldsymbol{\delta} = \varepsilon \cdot \text{sign}(\mathbf{g})$
 4. 적대적 샘플을 만든다: $\mathbf{x}_{\text{adv}} = \text{clip}(\mathbf{x} + \boldsymbol{\delta}, 0, 1)$
 
-**번거로움:** $O(1)$ — 앞으로-되돌아 스텝 한 번
+**계산 복잡도:** $O(1)$ — 순전파-역전파 한 번
 
-### 타깃 있는 FGSM
+### 표적 FGSM
 
 클래스 $y_{\text{target}}$을 노린 표적 공격에서는
 
@@ -90,23 +90,23 @@ $$
 \mathbf{x}_{\text{adv}} = \mathbf{x} - \varepsilon \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y_{\text{target}}))
 $$
 
-**빼기 부호**에 눈여겨보라. 로스를 내려가며 추론을 타깃 쪽으로 끌어당긴다.
+**빼기 부호**에 주목하라. 로스를 줄이는 방향으로 움직여 예측을 타깃 쪽으로 끌어당긴다.
 
-### L2 FGSM 클래스
+### L2 FGSM 변형
 
-$\ell_\infty$ 대신 $\ell_2$으로 옭아매면
+$\ell_\infty$ 대신 $\ell_2$로 제약하면
 
 $$
 \mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \frac{\nabla_\mathbf{x} \mathcal{L}}{\|\nabla_\mathbf{x} \mathcal{L}\|_2}
 $$
 
-그래디언트를 길이 1로 맞춘 뒤 $\varepsilon$으로 스케일을 맞춘다.
+그래디언트를 길이 1로 맞춘 뒤 $\varepsilon$을 곱한다.
 
 ---
 
 ## 3. PyTorch로 구현하기
 
-### 온전한 FGSM 클래스
+### 전체 FGSM 클래스
 
 ```python
 import torch
@@ -446,7 +446,7 @@ class FGSM:
         return fig
 ```
 
-### 쓰는 보기
+### 사용 예
 
 ```python
 import torch
@@ -488,20 +488,20 @@ plt.savefig('fgsm_visualization.png', dpi=150, bbox_inches='tight')
 
 ---
 
-## 4. 살피기와 피처
+## 4. 분석과 성질
 
-### 엡실론에 예민함
+### 엡실론 민감도
 
-$\varepsilon$을 어떻게 고르느냐가 공격이 먹히는 데 크게 걸린다.
+$\varepsilon$을 어떻게 고르느냐가 공격 성공에 크게 영향을 준다.
 
-| 엡실론(8비트) | 엡실론(뜨는 소수) | 미침 |
+| 엡실론(8비트) | 엡실론(부동소수점) | 효과 |
 |-----------------|-----------------|--------|
-| 1/255 | 0.004 | 알아챌 수 없고 효과가 적음 |
-| 4/255 | 0.016 | 은근하고 어느 정도 효과가 있음 |
-| 8/255 | 0.031 | **여느 값**, 효과가 좋음 |
+| 1/255 | 0.004 | 지각할 수 없고 효과가 적음 |
+| 4/255 | 0.016 | 미묘하고 어느 정도 효과가 있음 |
+| 8/255 | 0.031 | **표준값**, 효과가 좋음 |
 | 16/255 | 0.063 | 눈에 띄고 아주 효과가 좋음 |
 
-**해 봄: 엡실론과 공격이 먹힌 비율**
+**실험: 엡실론과 공격 성공률**
 
 ```python
 def epsilon_sensitivity_study(
@@ -528,25 +528,25 @@ def epsilon_sensitivity_study(
     return results
 ```
 
-### 센 데와 한계
+### 장점과 한계
 
-**센 데:**
+**장점:**
 
 - 아주 빠르다(그래디언트 계산 한 번)
 - 강건성을 평가하는 쓸 만한 베이스라인이다
-- 짜기도 알기도 쉽다
-- 방어 없는 모델에는 거의 다 먹힌다
+- 구현하기도 이해하기도 쉽다
+- 방어 없는 모델에는 거의 다 통한다
 
 **한계:**
 
-- 한 스텝 공격라 가장 좋지는 않다
-- 적대적 학습로 쉽게 막힌다
-- 그래디언트를 가린 모델에는 듣지 않을 수 있다
+- 한 스텝 공격이라 최적이 아니다
+- 적대적 학습으로 쉽게 막힌다
+- 그래디언트 마스킹을 쓴 모델에는 통하지 않을 수 있다
 - 가장 작은 섭동을 찾는 데는 맞지 않다
 
-### 아무 잡음과 비교
+### 무작위 잡음과 비교
 
-같은 크기의 아무 잡음보다 FGSM이 훨씬 잘 먹힌다.
+같은 크기의 무작위 잡음보다 FGSM이 훨씬 잘 통한다.
 
 ```python
 def compare_fgsm_to_random(model, x, y, epsilon):
@@ -577,14 +577,14 @@ def compare_fgsm_to_random(model, x, y, epsilon):
     return fgsm_success, random_success
 ```
 
-CIFAR-10에서 $\varepsilon = 8/255$일 때의 흔한 피처와는
+CIFAR-10에서 $\varepsilon = 8/255$일 때 흔히 보고되는 값은 다음과 같다(이 쪽에서 잰 값이 아니다).
 
-- FGSM: 먹힌 비율 약 60~80%
-- 아무 잡음: 먹힌 비율 약 5~10%
+- FGSM: 공격 성공률 약 60~80%
+- 무작위 잡음: 공격 성공률 약 5~10%
 
 ---
 
-## 5. 클래스와 넓힘
+## 5. 변형과 확장
 
 ### 빠른 그래디언트 방법(FGM)
 
@@ -594,11 +594,11 @@ $$
 \mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \nabla_\mathbf{x} \mathcal{L}
 $$
 
-기준을 맞추지 않으므로 $\ell_\infty$ 제약을 어길 수 있다.
+정규화하지 않으므로 $\ell_\infty$ 제약을 어길 수 있다.
 
-### 무작위로 비롯하는 FGSM
+### 무작위 시작 FGSM
 
-FGSM에 앞서 초기화를 무작위로 잡는다.
+FGSM 스텝에 앞서 시작점을 무작위로 옮긴다.
 
 $$
 \begin{aligned}
@@ -607,11 +607,11 @@ $$
 \end{aligned}
 $$
 
-이는 그 자리의 나쁜 봉우리를 벗어나게 도우며 적대적 학습에 쓰인다.
+이는 데이터 점 바로 근처의 날카로운 곡률(그래디언트 마스킹)을 피하게 도우며 적대적 학습에 쓰인다.
 
-### 모멘텀을 곁들인 FGSM
+### 모멘텀 FGSM
 
-그래디언트의 이력을 쌓는다(PGD 절에서 다룰 MI-FGSM으로 이어진다).
+그래디언트의 이력을 누적한다(PGD 절에서 다룰 MI-FGSM으로 이어진다).
 
 $$
 \mathbf{g}_t = \mu \cdot \mathbf{g}_{t-1} + \frac{\nabla_\mathbf{x} \mathcal{L}}{\|\nabla_\mathbf{x} \mathcal{L}\|_1}
@@ -619,9 +619,9 @@ $$
 
 ---
 
-## 6. 적대적 학습와의 이어짐
+## 6. 적대적 학습과의 관계
 
-FGSM은 적대적 학습의 핵심이다. 가장 작게-최대화
+FGSM은 적대적 학습의 핵심이다. 최소-최대(min-max) 문제
 
 $$
 \min_\theta \mathbb{E}_{(\mathbf{x},y)}[\max_{\|\boldsymbol{\delta}\| \leq \varepsilon} \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y)]
@@ -633,7 +633,7 @@ $$
 \boldsymbol{\delta}^{\text{FGSM}} = \varepsilon \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y))
 $$
 
-FGSM 적대적 샘플로 학습하면 기초 강건성을 얻는다. 다만 PGD에 기댄 학습이 더 세다.
+FGSM 적대적 샘플로 학습하면 기본적인 강건성을 얻는다. 다만 PGD 기반 학습이 더 강건하다.
 
 ---
 
@@ -647,7 +647,7 @@ FGSM 적대적 샘플로 학습하면 기초 강건성을 얻는다. 다만 PGD�
 </div>
 
 ??? success "풀이"
-    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 국소 선형 근사 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 통하는지를 설명해 준다. 차원이 높은 모델이 취약한 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
+    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 국소 선형 근사 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$가 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 통하는지를 설명해 준다. 차원이 높은 모델이 취약한 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
@@ -671,7 +671,7 @@ FGSM 적대적 샘플로 학습하면 기초 강건성을 얻는다. 다만 PGD�
 </div>
 
 ??? success "풀이"
-    두 클래스의 서포트가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 기초 트레이드오프다. 겹치는 서포트의 비중이 피할 수 없는 정확도 손실을 정한다. 자연 이미지 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 관찰되는 10~15%의 정확도 하락을 설명해 준다. 모델 용량을 키우면(더 넓은 네트워크) 복잡한 강건 결정 경계를 더 잘 그려 트레이드오프를 어느 정도 완화할 수 있다. $\square$
+    두 클래스의 서포트가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$가 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 근본적인 트레이드오프다. 겹치는 서포트의 비중이 피할 수 없는 정확도 손실을 정한다. 자연 이미지 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 관찰되는 10~15%의 정확도 하락을 설명해 준다. 모델 용량을 키우면(더 넓은 네트워크) 복잡한 강건 결정 경계를 더 잘 그려 트레이드오프를 어느 정도 완화할 수 있다. $\square$
 
 ---
 
@@ -687,15 +687,15 @@ FGSM 적대적 샘플로 학습하면 기초 강건성을 얻는다. 다만 PGD�
 
 ## 정리하며
 
-| 피처 | FGSM |
+| 항목 | FGSM |
 |--------|------|
 | **식** | $\mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L})$ |
-| **번거로움** | $O(1)$ — 앞으로-되돌아 스텝 한 번 |
-| **세기** | 가운데(베이스라인) |
-| **여느 $\varepsilon$** | CIFAR-10에서 $8/255$ |
+| **계산 복잡도** | $O(1)$ — 순전파-역전파 한 번 |
+| **세기** | 중간(베이스라인) |
+| **표준 $\varepsilon$** | CIFAR-10에서 $8/255$ |
 | **핵심 한계** | 한 스텝이라 쉽게 막힌다 |
 
-FGSM은 적대적 공격을 알아보는 통찰의 기초를 준다. PGD과 C&W 같은 더 센 공격이 있지만, FGSM은 잘 드는 평가와 적대적 학습에 여전히 값지다.
+FGSM은 적대적 공격을 이해하는 기본 통찰을 준다. PGD와 C&W 같은 더 센 공격이 있지만, FGSM은 빠른 평가와 적대적 학습에 여전히 쓸모가 크다.
 
 **살펴볼 거리**
 

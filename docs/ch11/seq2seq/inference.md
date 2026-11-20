@@ -655,7 +655,7 @@ class Seq2Seq(nn.Module):
     
     def generate(self, src, max_len=50, sos_idx=1, eos_idx=2, src_lengths=None):
         """
-        탐욕 디코딩로 시퀀스를 만든다
+        탐욕 디코딩으로 시퀀스를 만든다
         
         인수:
             src: 원본 시퀀스 (배치 크기, src_len)
@@ -786,7 +786,7 @@ class Seq2SeqAttention(nn.Module):
     
     def generate(self, src, max_len=50, sos_idx=1, eos_idx=2, src_lengths=None):
         """
-        어텐션과 함께 탐욕 디코딩로 시퀀스를 만든다
+        어텐션과 함께 탐욕 디코딩으로 시퀀스를 만든다
         
         인수:
             src: 원본 시퀀스 (배치 크기, src_len)
@@ -1058,7 +1058,7 @@ class Seq2SeqInference:
     
     def greedy_decode(self, src_text, max_len=50):
         """
-        탐욕 디코딩로 번역을 만든다
+        탐욕 디코딩으로 번역을 만든다
         
         인수:
             src_text: 원본 텍스트 문자열이나 토큰의 목록
@@ -1407,12 +1407,12 @@ greedy, beam과 translate_batch의 역할을 구분하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 형태 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
+풀이 첫머리에 실린 테스트 코드 조각을 검토하라. 이 페이지의 클래스와 맞지 않는 호출, 쓸 수 없는 이름, 입력 형태 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
 
 </div>
 
 ??? success "풀이"
-    아래 조각은 실제 실행 가능한 테스트가 아니다. 함수 이름과 모델 이름부터 이 예제에 맞게 작성해야 한다.
+    아래 조각은 실제로 실행되는 테스트가 아니다. 이 페이지의 `Seq2SeqInference` 는 `nn.Module` 이 아니라 학습된 모델과 사전을 감싸는 래퍼다. `__call__` 이 없어 `model(...)` 처럼 부를 수 없고 `greedy_decode(src_text)` 나 `beam_search_decode(src_text)` 로 불러야 하며, 돌려주는 것도 텐서가 아니라 `(번역 문자열, 어텐션 또는 점수)` 쌍이다. 래퍼 자체에는 `parameters()` 가 없다.
     ```python
     def test_seq2seqinference():
         model = Seq2SeqInference(...)
@@ -1429,7 +1429,7 @@ greedy, beam과 translate_batch의 역할을 구분하라.
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 형태, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
+    추론은 `no_grad` 안에서 돌므로 그래디언트 항목은 해당하지 않는다. 대신 반환 문자열에 SOS·PAD 가 섞이지 않는지, 첫 EOS 에서 멈추는지, 사전에 없는 단어가 `<unk>` 로 가는지, 어텐션 행렬의 형태가 (생성 길이, 입력 길이) 인지를 검사한다. 빈 문자열은 길이 0 입력이 되어 패킹에서 실패할 수 있으므로, 실패하는 것이 맞는지 미리 걸러야 하는지를 정해 두고 검사한다.
 
 ## 정리하며
 

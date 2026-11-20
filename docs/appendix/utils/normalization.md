@@ -2,7 +2,7 @@
 
 딥러닝에서 자주 쓰는 정규화 레이어를 모았다. 포함한 항목은 코드 첫머리의 독스트링에 적혀 있다.
 
-이 쪽의 구현은 Normalization Layers의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
+이 쪽의 구현은 정규화 레이어의 핵심만 남긴 교육용 예시다. BatchNorm·LayerNorm·GroupNorm은 PyTorch 내장 구현을 쓰라는 메모로 두고, 직접 구현한 것은 RMSNorm 하나다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -79,7 +79,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 활성화 함수 선택 -- ReLU 계열은 양수 구간에서 그래디언트가 포화하지 않아 학습이 빠르다. (2) 정규화 전략 -- 배치 정규화가 내부 공변량 이동(internal covariate shift, 학습 중 레이어 입력의 분포가 바뀌는 현상)을 줄여 학습을 안정시킨다. (3) 잔차 연결 -- 있으면 스킵 경로를 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 선택마다 표현력, 계산 비용, 학습 안정성 사이의 트레이드오프를 보여 준다.
+    `RMSNorm`에서는 이런 셋을 들 수 있다. (1) 평균을 빼지 않고 RMS로만 나눈다 -- 레이어 정규화에서 평균 계산과 바이어스(이동) 파라메터를 덜어 내 계산이 가벼워진다. 크기를 맞추는 효과(재스케일 불변성)만으로도 학습이 충분히 안정된다는 것이 RMSNorm의 주장이다. (2) `eps`를 제곱근 안에 더한다 -- 한 벡터의 원소가 모두 0이어도 0으로 나누지 않는다. (3) 마지막 차원(`dim=-1`)을 따라 샘플마다 정규화하고, 학습 가능한 `weight`를 1로 초기화한다 -- 배치 정규화와 달리 배치 통계를 쓰지 않으므로 배치 크기와 상관없고 학습과 추론에서 동작이 같다. 처음에는 순수한 정규화로 시작하고, 차원마다 스케일은 학습이 되찾는다. 셋 다 대형 언어 모델처럼 시퀀스 길이와 배치 크기가 들쭉날쭉한 곳에 쓰기 좋은 선택이다.
 
 ---
 
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 추가한다. 형태를 검사하려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅을 크게 앞당기고 코드를 재사용하기에 더 견고하게 만든다.
+    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 추가한다. 형태를 검사하려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅을 크게 앞당기고 코드를 재사용하기에 더 견고하게 만든다. `RMSNorm`은 입력이 `(..., dim)` 형태라 차원 수는 자유롭고, 확인할 것은 `x.size(-1) == self.weight.numel()` 하나다.
 
 ---
 
@@ -115,7 +115,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    하드코딩한 레이어를 다음으로 대체한다.
+    `RMSNorm`은 그 자체로 레이어 하나라 깊이를 가질 수 없다. 그래서 `RMSNorm`을 담은 블록(예: `RMSNorm` → `nn.Linear` → 활성화 함수)을 아래의 `YourBlock` 자리에 넣어 쌓는다. 하드코딩한 레이어를 다음으로 대체한다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):

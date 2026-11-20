@@ -10,7 +10,7 @@ $$
 P(x_1, x_2, \ldots, x_n) = \prod_{t=1}^{n} P(x_t | x_1, \ldots, x_{t-1})
 $$
 
-이 인수분해는 $x_t$을 맞힐 때 $x_1, \ldots, x_{t-1}$의 정보만 쓸 것을 요구한다. 마스크 어텐션이 병렬 학습 중에 이 제약을 지키게 한다.
+이 인수분해는 $x_t$를 맞힐 때 $x_1, \ldots, x_{t-1}$의 정보만 쓸 것을 요구한다. 마스크 어텐션이 병렬 학습 중에 이 제약을 지키게 한다.
 
 ---
 
@@ -109,7 +109,7 @@ Position 4  │ ✓ │ ✓ │ ✓ │ ✓ │ ✗ │
 
 이 클래스의 불리언 마스크는 True가 차단을 뜻한다. 입력은 (B,L,E), padding_mask는 (B,L)이고 저장된 max_len 이내여야 한다. 패딩 마스크는 키 위치만 제외하며 패딩 쿼리의 출력을 자동으로 0으로 만들지 않는다.
 
-모든 키가 가려진 행의 NaN 웨이트를 0으로 치환하지만 출력 투영의 바이어스 때문에 최종 출력이 반드시 0인 것은 아니다. 반환 웨이트는 드롭아웃 뒤 값이어서 학습 모드에서는 행 합이 정확히 1이 아닐 수 있다. 예제의 행 합 출력도 이 조건으로 읽는다.
+모든 키가 가려진 행의 NaN 웨이트를 0으로 치환하지만 출력 투영의 바이어스 때문에 최종 출력이 반드시 0인 것은 아니다. 반환 웨이트는 드롭아웃 뒤 값이어서 학습 모드에서는 행 합이 정확히 1이 아닐 수 있다. 아래 예제는 `eval()`로 드롭아웃을 끈 뒤 행 합을 찍으므로 1.0이 나온다.
 
 ```python
 import torch
@@ -257,7 +257,7 @@ class MaskedSelfAttention(nn.Module):
         return output, None
 
 def visualize_causal_attention(seq_len: int = 10):
-    """인과 어텐션 패턴를 그려 본다."""
+    """인과 어텐션 패턴을 그려 본다."""
     import matplotlib.pyplot as plt
     import numpy as np
     
@@ -336,7 +336,7 @@ if __name__ == "__main__":
     
     print("\n✓ Causality verified: No attention to future positions")
     
-    # 첫 헤드의 어텐션 패턴를 보인다
+    # 첫 헤드의 어텐션 패턴을 보인다
     print("\nAttention pattern (first batch, first head):")
     pattern = attn_weights[0, 0].detach()
     # 끝자리까지 찍으면 0.9999998807907104 처럼 스레드 스케줄링에 따라 흔들리는 수가
@@ -368,9 +368,7 @@ Visualization saved to 'causal_attention_pattern.png'
 
 ## 5. 인과 마스크와 패딩 마스크 결합하기
 
-아래 함수는 True가 차단인 두 불리언 마스크를 OR로 합쳐 (B,1,L,L)을 반환한다. 마스크를 생성하는 장치와 padding_mask의 장치가 같아야 한다.
-
-실제로는 인과 마스크와 패딩 마스크를 자주 함께 쓴다.
+실제로는 인과 마스크와 패딩 마스크를 자주 함께 쓴다. 아래 함수는 True가 차단인 두 불리언 마스크를 OR로 합쳐 (B,1,L,L)을 반환한다. 마스크를 생성하는 장치와 `padding_mask`의 장치가 같아야 한다.
 
 ```python
 def create_combined_mask(
@@ -447,7 +445,7 @@ def efficient_causal_attention(
 
 접두부는 양방향으로 읽고 그 뒤는 인과적으로 생성하는 목적을 prefix LM이라고 한다. 일반적인 T5 디코더 전체가 이 마스크를 사용한다는 뜻은 아니다.
 
-아래 함수는 접두부 행이 접미부 키를 보지 못하게 가리지 않아 접미부 정답이 접두부를 통해 유출될 수 있다. 의도한 prefix LM이라면 접두부 쿼리에서 접미부 키로 가는 블록도 차단해야 한다. 0≤prefix_len≤total_len 조건도 필요하다.
+아래 함수는 접두부 행이 접미부 키를 보는 것을 막지 않아 접미부 정답이 접두부를 통해 유출될 수 있다. 의도한 prefix LM이라면 접두부 쿼리에서 접미부 키로 가는 블록도 차단해야 한다. 0≤prefix_len≤total_len 조건도 필요하다.
 
 ```python
 def create_prefix_lm_mask(
@@ -545,7 +543,7 @@ for t in range(max_tokens):
     generated_tokens = torch.cat([generated_tokens, next_token], dim=1)
 ```
 
-아래 추론 조각은 매번 전체 generated_tokens를 모델에 넘기며 KV 캐시를 실제로 사용하지 않는다. 캐시 구현은 각 레이어의 과거 K·V를 저장하고 새 쿼리와 결합해야 한다. 캐시 길이를 반영한 위치 ID와 인과 마스크 정렬도 필요하다.
+위 추론 조각은 매번 전체 `generated_tokens`를 모델에 넘기며 KV 캐시를 실제로 사용하지 않는다. 캐시 구현은 각 레이어의 과거 K·V를 저장하고 새 쿼리와 결합해야 한다. 캐시 길이를 반영한 위치 ID와 인과 마스크 정렬도 필요하다.
 
 ---
 

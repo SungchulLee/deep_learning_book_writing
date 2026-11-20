@@ -56,7 +56,7 @@ $$\ell(\theta_{t+1})\geq\mathcal L(q_t,\theta_{t+1})\geq\mathcal L(q_t,\theta_t)
 
 **그림으로 보는 AI 1.** 이름이 붙기 전에 정리가 먼저 있었다
 
-EM이라는 이름은 1977년에 생겼다. 하버드의 아서 템프스터(Arthur Dempster)·낸 레어드(Nan Laird)와 교육평가원의 도널드 루빈(Donald Rubin)이 《왕립통계학회지 B》에 실은 글이고, 이름의 유래는 글 첫머리에 그대로 적혀 있다.
+EM이라는 이름은 1977년에 생겼다. 하버드의 아서 뎀프스터(Arthur Dempster)·낸 레어드(Nan Laird)와 교육평가원의 도널드 루빈(Donald Rubin)이 《왕립통계학회지 B》에 실은 글이고, 이름의 유래는 글 첫머리에 그대로 적혀 있다.
 
 > "Since each iteration of the algorithm consists of an expectation step followed by a maximization step **we call it the EM algorithm.**"
 

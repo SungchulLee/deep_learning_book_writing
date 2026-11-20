@@ -50,7 +50,7 @@ _확인한 곳 — R. O. Michaud, "The Markowitz Optimization Enigma: Is 'Optimi
 
 </div>
 
-## 2. 사후확률 예측 수익률
+## 2. 사후예측 수익률
 
 ### 단일 자산
 

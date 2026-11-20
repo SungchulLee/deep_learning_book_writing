@@ -1,6 +1,6 @@
 # GIN
 
-GIN은 2019년 논문 "How Powerful are Graph Neural Networks?"에서 나왔다. 합 집계(sum aggregation)와 MLP를 쓰며, 갱신식은 h'_i = MLP( (1 + eps) * h_i + sum_{j in N(i)} h_j )이다. (몇 가지 가정 아래) 바이스파일러-레만(WL) 검사만큼 표현력이 강하다고 밝혀졌다.
+GIN은 2019년 논문 "How Powerful are Graph Neural Networks?"에서 나왔다. 합 집계(sum aggregation)와 MLP를 쓰며, 갱신식은 $h'_i = \mathrm{MLP}\left((1 + \epsilon)\, h_i + \sum_{j \in N(i)} h_j\right)$이다. (몇 가지 가정 아래) 바이스파일러-레만(WL) 검사만큼 표현력이 강하다고 밝혀졌다. WL 검사는 두 그래프가 동형(같은 구조)인지 가리는 고전적인 방법으로, 노드마다 이웃의 라벨을 모아 새 라벨을 붙이기를 되풀이한다. 평균이나 최댓값과 달리 합은 이웃의 개수까지 구별하므로, 합 집계가 이 검사의 힘을 따라갈 수 있다.
 
 여기 구현은 GIN을 짧게 줄인 학습용 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -110,12 +110,12 @@ logits: torch.Size([4, 3])
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 설정으로 초기화한 `MLP`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 함께 레이어마다 나누어 적어라.
+이 쪽의 예제 설정(`in_dim=6`, `hidden_dim=16`)에서 첫 레이어 `gin1` 안에 든 `MLP`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 함께 레이어마다 나누어 적어라.
 
 </div>
 
 ??? success "풀이"
-    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 레이어를 모두 더한다. `sum(p.numel() for p in model.parameters())`으로 확인할 수 있다.
+    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 레이어를 모두 더한다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다. `GINLayer`가 은닉 차원을 `2 * out_dim` = 32로 주므로, 이 `MLP`는 6 × 32 + 32 = 224개와 32 × 16 + 16 = 528개로 모두 752개다. `gin1` 전체를 세면 여기에 `eps` 한 개가 더해진다.
 
 ---
 
@@ -127,7 +127,7 @@ logits: torch.Size([4, 3])
 </div>
 
 ??? success "풀이"
-    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 추가한다. 형태를 검사하려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아보기 쉬운 오류 메시지는 디버깅을 크게 앞당기고 코드를 재사용하기에 강건하게 만든다.
+    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 추가한다. 형태를 검사하려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아보기 쉬운 오류 메시지는 디버깅 시간을 크게 줄여 주고, 코드를 다른 곳에서 다시 쓸 때도 잘못된 입력을 일찍 걸러 준다.
 
 ---
 
@@ -146,7 +146,7 @@ logits: torch.Size([4, 3])
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`MLP`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 구성하라. 레이어 2개, 4개, 8개로 시험하여라.
+`MLP`를 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 구성하라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -157,7 +157,7 @@ logits: torch.Size([4, 3])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`을 써야 PyTorch가 파라메터를 모두 최적화 대상으로 등록한다. `for n in [2, 4, 8]: model = MLP(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 파라메터를 모두 최적화 대상으로 등록한다. `for n in [2, 4, 8]: model = MLP(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험한다.
 
 ## 정리하며
 

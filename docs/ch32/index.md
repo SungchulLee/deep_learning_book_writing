@@ -4,7 +4,7 @@
 
 ## 1. 기초와 최소 예제
 
-[상미분방정식 기초](neural_ode_foundations/fundamentals.md)는 초기값 문제의 해 조건, 고전 벡터장과 수치 적분에서 시작한다. ResNet과의 연결, torchdiffeq 인터페이스, 분류기·정규화 예제와 adjoint의 가정을 다룬다. 코드의 직접 역전파와 adjoint를 구분하고 실제로 호출하는 데모 범위도 확인한다.
+[상미분방정식 기초](neural_ode_foundations/fundamentals.md)는 초기값 문제의 해 조건, 고전 벡터장과 수치 적분에서 시작한다. ResNet과의 연결, torchdiffeq 인터페이스, 분류기·정칙화 예제와 adjoint의 가정을 다룬다. 코드의 직접 역전파와 adjoint를 구분하고 실제로 호출하는 데모 범위도 확인한다.
 
 [간단한 뉴럴 ODE](neural_ode_foundations/50_neural_ode.md)는 공유 벡터장을 오일러로 반복하는 최소 분류 구조다. 적응형 방법이나 adjoint를 사용하지 않으며, 미사용 method 옵션과 부동소수점 누적의 끝점 문제를 설명한다. 벡터장 깊이와 적분 스텝 수는 다른 개념이다.
 

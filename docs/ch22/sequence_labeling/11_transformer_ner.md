@@ -126,9 +126,9 @@ if __name__ == "__main__":
 
 ## 2. 생성과 입력·출력 계약
 
-기본 모델 이름은 bert-base-cased이고9개 라벨을 출력하도록 선언한다. 그러나 PER·ORG·LOC·MISC의BIO9개처럼 구체적인 id2label 매핑은 없다. 같은9클래스라도 순서·의미가 다르면 모델·정답·출력 해석이 맞지 않는다. tokenizer는 사전 학습 모델과 같은 이름에서 로드하지만 forward는 텍스트가 아니라 정수 input_ids와 attention_mask를 받는다.
+기본 모델 이름은 bert-base-cased이고 9개 라벨을 출력하도록 선언한다. 그러나 PER·ORG·LOC·MISC의 BIO 9개처럼 구체적인 id2label 매핑은 없다. 같은 9클래스라도 순서·의미가 다르면 모델·정답·출력 해석이 맞지 않는다. tokenizer는 사전 학습 모델과 같은 이름에서 로드하지만 forward는 텍스트가 아니라 정수 input_ids와 attention_mask를 받는다.
 
-출력 피처는 B×L×H이고 dropout 뒤 선형 head는 B×L×K 로짓을 반환한다. 기본 BERT의 H768에서 새 head는(768+1)×9=6921개 파라메터다. 전체 수는 로드한 인코더와 head를 합하며 모델 이름·설정이 바뀌면 달라진다. 여기서 사전 학습 웨이트를 다운로드·실행할 필요는 없다.
+출력 피처는 B×L×H이고 dropout 뒤 선형 head는 B×L×K 로짓을 반환한다. 기본 BERT의 H=768에서 새 head는 (768+1)×9=6,921개 파라메터다. 전체 수는 로드한 인코더와 head를 합하며 모델 이름·설정이 바뀌면 달라진다.
 
 현재 import에는 List·Dict만 있고 predict의 반환 annotation에 사용하는 **Tuple이 없다**. 지연 annotation을 켜지 않은 일반 Python 환경에서는 클래스 정의 중 NameError가 날 수 있어 이 파일을 그대로 실행 가능한 템플릿으로 설명하지 않는다. 실제 반환도 `(토큰 문자열,정수 예측 ID)`의 목록이라 `Tuple[str,str]` 선언과 의미가 다르다.
 
@@ -136,32 +136,32 @@ if __name__ == "__main__":
 
 predict는 토큰화된 모든 위치의 argmax를 반환한다. 특수 토큰·padding을 제외하거나 서브워드를 단어·개체 span으로 합치는 처리가 없다. continuation 서브워드에 붙인 태그와 단어 라벨의 관계를 정의하고 tokenizer의 offset·word_ids를 이용해 원문 span으로 정렬해야 한다. CRF나 BIO 강제 제약도 없다.
 
-truncation=True는 모델 한도를 넘는 텍스트를 자를 수 있다. 긴 문서 전체를 자동 처리하거나 잘린 개체를 복원하는 기능은 아니다. 윈도별 입력·겹침·경계·중복 합치기와 원문 offset을 명시해야 한다. 학습에도 특수·패딩·무시 서브워드를 loss의 유효 위치에 맞춰 처리한다.
+truncation=True는 모델 한도를 넘는 텍스트를 자를 수 있다. 긴 문서 전체를 자동 처리하거나 잘린 개체를 복원하는 기능은 아니다. 윈도별 입력·겹침·경계·중복 합치기와 원문 offset을 명시해야 한다. 학습에도 특수·패딩·무시 서브워드를 로스의 유효 위치에 맞춰 처리한다.
 
 ## 4. 모델 모드와 장치
 
 predict는 no_grad를 쓰지만 eval로 전환하지 않는다. 모델이 train 모드이면 인코더와 새 head의 dropout이 남는다. 생성된 토큰 텐서는 CPU이며 모델을 CUDA·MPS로 옮긴 경우 입력도 같은 장치에 맞춰야 한다. no_grad는 평가 모드나 장치 이동을 대신하지 않는다.
 
-이 클래스의 dropout0.1은 인코더 출력 뒤 피처 dropout이다. 내부 softmax attention 웨이트 dropout을 새로 추가한 것이 아니다. 기존 사전 학습 인코더의 attention 설정과 학습 head의 정칙화를 구분한다. 어떤 dropout도 자동으로 attention을 균등하게 하거나 NER 정확도를 보장하지 않는다.
+이 클래스의 dropout=0.1은 인코더 출력 뒤 피처 dropout이다. 내부 softmax attention 웨이트 dropout을 새로 추가한 것이 아니다. 기존 사전 학습 인코더의 attention 설정과 학습 head의 정칙화를 구분한다. 어떤 dropout도 자동으로 attention을 균등하게 하거나 NER 정확도를 보장하지 않는다.
 
 ## 5. 학습과 비교의 범위
 
 토큰별 로짓에는 단일 라벨 교차 엔트로피 등을 연결할 수 있지만 이 코드에는 labels·로스·최적화가 없다. 사전 학습과 파인튜닝·평가 데이터를 구분하고 정확 span 평가를 사용한다. 레이어 수를 임의로 바꾸는 것은 사전 학습 인코더의 구조·웨이트 호환성 문제를 포함하므로 generic ModuleList 반복만으로 처리할 수 없다.
 
-길이L의 dense attention 쌍별 연산은 O(L²H), projection은 O(LH²)이며 전체 인코더의 MLP·레이어 수와 구현도 비용에 영향을 준다. 토큰 수·관찰 문서 범위·padding·사전 학습 조건을 맞춰 다른 NER 구조와 비교한다.
+길이 L의 dense attention 쌍별 연산은 O(L²H), projection은 O(LH²)이며 전체 인코더의 MLP·레이어 수와 구현도 비용에 영향을 준다. 토큰 수·관찰 문서 범위·padding·사전 학습 조건을 맞춰 다른 NER 구조와 비교한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 BERT hidden_size768·num_labels9에서 새 분류 head의 파라메터를 계산하라.
+기본 BERT hidden_size=768·num_labels=9에서 새 분류 head의 파라메터를 계산하라.
 
 </div>
 
 ??? success "풀이"
 
-    웨이트768×9와 bias9를 합해6921개다. 전체 모델 수는 사전 학습 인코더의 파라메터를 추가해야 한다. 모델 이름·설정에 따라 달라지며 tokenizer는 뉴럴 네트워크 파라메터가 아니다.
+    웨이트 768×9와 bias 9를 합해 6,921개다. 전체 모델 수는 사전 학습 인코더의 파라메터를 추가해야 한다. 모델 이름·설정에 따라 달라지며 tokenizer는 뉴럴 네트워크 파라메터가 아니다.
 
 
 

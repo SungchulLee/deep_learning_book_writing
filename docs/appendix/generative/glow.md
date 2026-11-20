@@ -1,6 +1,6 @@
 # Glow
 
-Glow는 2018년 논문 "Glow: Generative Flow with Invertible 1x1 Convolutions"에서 나왔다. 학습되는 가역(invertible) 1x1 컨볼루션으로 RealNVP를 개선한다.
+Glow는 2018년 논문 "Glow: Generative Flow with Invertible 1x1 Convolutions"에서 나왔다. 학습되는 가역(invertible) 1x1 컨볼루션으로 RealNVP를 개선한다. RealNVP는 커플링 레이어 사이에서 채널의 순서를 고정된 방식으로 섞는데, Glow는 그 자리에 채널끼리 섞는 $c \times c$ 행렬을 두고 그것을 학습한다. 1x1 컨볼루션은 픽셀마다 같은 행렬을 채널 벡터에 곱하는 것과 같다. 이 쪽의 축약 구현은 채널 대신 평탄화한 784차원 벡터 전체에 $784 \times 784$ 행렬을 곱한다.
 
 여기 구현은 Glow를 짧게 줄인 학습용 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 결정은 구현마다 다르나 흔히 이런 것이 있다. (1) 활성화 함수 선택 -- ReLU 계열은 그래디언트가 포화되지 않아 학습이 빠르다. (2) 정규화 전략 -- 배치 정규화가 내부 공변량 이동(internal covariate shift)을 줄여 학습을 안정시킨다. (3) 잔차 연결 -- 있으면 스킵 경로를 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 선택마다 표현력, 계산 비용, 학습 안정성 사이의 트레이드오프를 보여 준다.
+    이 코드에서 읽을 수 있는 결정은 셋이다. (1) 직교 행렬로 초기화한다 -- `torch.qr`로 얻은 직교 행렬은 행렬식의 절댓값이 1이라, 학습을 시작할 때 확실히 가역이고 부피도 바꾸지 않는다. 흐름 기반 모델은 모든 변환이 가역이어야 가능도를 계산할 수 있다. (2) 웨이트를 학습되는 파라메터로 둔다 -- 채널을 섞는 방식을 고정된 순열로 정하지 않고 데이터에서 배운다. (3) 선형 변환으로 둔다 -- 역변환은 역행렬을 곱하는 것 하나이고, 가능도에 들어가는 로그 행렬식도 $\log\lvert\det W\rvert$ 하나다. 다만 이 계산은 행렬 크기 $d$에 대해 $O(d^3)$이라, 원래 Glow는 작은 채널 수 $c$에 대한 $c \times c$ 행렬만 쓰고 LU 분해로 더 줄인다. 선택마다 표현력, 계산 비용, 학습 안정성 사이의 트레이드오프를 보여 준다.
 
 ---
 
@@ -68,7 +68,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 추가한다. 형태를 검사하려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아보기 쉬운 오류 메시지는 디버깅을 크게 앞당기고 코드를 재사용하기에 강건하게 만든다.
+    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 추가한다. 형태를 검사하려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아보기 쉬운 오류 메시지는 디버깅 시간을 크게 줄여 주고, 코드를 다른 곳에서 다시 쓸 때도 잘못된 입력을 일찍 걸러 준다.
 
 ---
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`Invertible1x1Conv`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 구성하라. 레이어 2개, 4개, 8개로 시험하여라.
+`Invertible1x1Conv`를 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 구성하라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`을 써야 PyTorch가 파라메터를 모두 최적화 대상으로 등록한다. `for n in [2, 4, 8]: model = Invertible1x1Conv(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 파라메터를 모두 최적화 대상으로 등록한다. `for n in [2, 4, 8]: model = Invertible1x1Conv(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험한다.
 
 ## 정리하며
 

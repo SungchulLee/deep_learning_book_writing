@@ -292,7 +292,7 @@ $$\Delta E=-(s_i'-s_i)h_i\leq0$$
     network = demonstrate_hopfield_retrieval()
     ```
 
-**보존된 출력:**
+**출력:**
 
 ```
 Stored 2 patterns via Hebbian learning
@@ -307,7 +307,7 @@ Overlap with pattern B: 0.520
 
 첫 데모는 25개 뉴런에 두 5×5 패턴을 저장하고 A의 5개 비트를 뒤집어 검색한다. retrieve의 한 iteration은 무작위 순서로 전체 뉴런을 한 번 갱신한 sweep이다. 에너지 이력도 뉴런마다가 아니라 sweep마다 기록한다. 갱신 규칙은 결정적이어도 순서가 무작위이므로 가능한 경로와 최종 basin은 달라질 수 있다.
 
-출력과 그림 제목은 기존 실행의 예시다. 새 입력에서도 항상 A를 복구하거나 B를 선택하지 않는다는 보장은 없다. 최대 반복 수에 도달한 반환값이 반드시 고정점이라는 보장도 별도로 확인해야 한다.
+출력은 시드 0에서 뒤집은 다섯 비트 한 가지에 대한 결과다. 다른 손상 입력에서도 항상 B가 아니라 A를 복구한다는 보장은 없다. 최대 반복 수에 도달한 반환값이 반드시 고정점이라는 보장도 별도로 확인해야 한다.
 
 ## 3. 중첩도와 저장 용량
 
@@ -399,7 +399,7 @@ Overlap with pattern B: 0.520
     analyze_network_capacity(n_neurons=100, max_patterns=30, n_trials=5)
     ```
 
-??? note "보존된 실험 출력"
+??? note "실험 출력"
 
     ```
     Stored 1 patterns via Hebbian learning
@@ -742,7 +742,7 @@ find_spurious_states는 절댓값 중첩도 0.95를 임계값으로 사용한다
     visualize_energy_landscape()
     ```
 
-**보존된 출력:**
+**출력:**
 
 ```
 Stored 2 patterns via Hebbian learning
@@ -800,7 +800,7 @@ $$q'=M^T\operatorname{softmax}(\beta Mq)$$
 
 코드는 패턴 행렬에 대한 점수와 가중 평균을 한 번 계산한다. beta는 점수 스케일이며 고전 비트 갱신과 다르다. 한 번의 평균이 항상 저장 패턴 하나를 정확히 반환하지는 않는다. 연구의 용량·오차 결과에는 패턴의 분리도와 차원 등의 조건이 있으므로 임의 데이터의 지수적 저장 보장으로 읽지 않는다.
 
-pattern_dim 인수는 저장만 하거나 검증하는 데 쓰이지 않으며 실제 코드에는 해당 차원 검사가 없다. patterns는 Parameter나 buffer로 등록되지 않아 model.to(device)가 이를 자동으로 옮기지 않는다. 이 클래스는 완전한 트랜스포머나 학습·용량 비교 실험을 구현하지 않는다.
+pattern_dim 인수는 저장되지도 검증에 쓰이지도 않으며, 실제 코드에는 해당 차원 검사가 없다. patterns는 Parameter나 buffer로 등록되지 않아 model.to(device)가 이를 자동으로 옮기지 않는다. 이 클래스는 완전한 트랜스포머나 학습·용량 비교 실험을 구현하지 않는다.
 
 ## 연습문제
 

@@ -333,7 +333,7 @@ NumPy 코드의 running_var는 분모 B인 배치 분산을 그대로 누적한�
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-NumPy 구현의 `(4, C)` 입력에서 통계량과 출력 모양을 구하라.
+NumPy 구현의 `(4, C)` 입력에서 통계량과 출력의 형태(shape)를 구하라.
 
 </div>
 

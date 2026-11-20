@@ -1,8 +1,8 @@
 # Double DQN
 
-Double DQN은 2016년 논문 "Deep Reinforcement Learning with Double Q-learning"에서 나왔다. - 온라인 네트워크로 액션을 *고른다* - 타깃 네트워크로 그 액션을 *평가한다*.
+Double DQN은 2016년 논문 "Deep Reinforcement Learning with Double Q-learning"에서 나왔다. DQN의 타깃 $\max_{a'} Q_{\text{target}}(s', a')$는 같은 네트워크로 액션을 고르고 그 값을 평가하므로, 추정 잡음 때문에 우연히 크게 나온 값이 뽑혀 Q 값을 체계적으로 부풀린다(과대추정 편향). Double DQN은 이 두 일을 나눈다 — 온라인 네트워크로 액션을 *고르고*, 타깃 네트워크로 그 액션을 *평가한다*.
 
-여기 구현은 Double DQN을 짧고 학습하기 좋게 보인 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 Double DQN을 짧게 줄인 학습용 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 강화학습의 핵심 아이디어를 보인다. 모듈식 구조 덕분에 구성 요소 하나하나를 살펴보고 다른 과제나 데이터셋에 맞추어 바꾸기 쉽다.
+이 구현은 Double DQN의 TD 로스 함수 `double_dqn_td_loss` 하나다. DQN과 다른 곳은 `torch.no_grad()` 안의 두 줄뿐이다 — `q_online(s2).argmax(dim=1)`로 액션을 고르고, `q_target(s2)`에서 그 액션의 값을 `gather`로 꺼낸다. Q 네트워크, 리플레이 버퍼, 환경 루프는 DQN 쪽의 것을 그대로 쓰면 된다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -80,7 +80,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 결정은 구현마다 다르나 흔히 이런 것이 있다. (1) 활성화 함수 선택 -- ReLU 계열은 그래디언트가 포화하지 않아 학습이 빠르다. (2) 정규화 전략 -- 배치 정규화가 내부 공변량 이동(internal covariate shift)을 줄여 학습을 안정시킨다. (3) 잔차 연결 -- 있으면 스킵 경로를 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 선택마다 표현력, 계산 비용, 학습 안정성 사이의 트레이드오프를 보여 준다.
+    이 코드에서 읽을 수 있는 결정은 셋이다. (1) 액션 선택과 평가를 두 네트워크로 나눈다 -- 고르는 네트워크와 평가하는 네트워크의 추정 잡음이 서로 다르므로, 한 네트워크에서 우연히 부풀려진 값이 그대로 타깃에 들어가지 않아 과대추정 편향이 줄어든다. (2) 타깃을 `torch.no_grad()` 안에서 계산한다 -- 타깃을 상수로 다루어 그래디언트가 $Q(s,a)$ 쪽으로만 흐르게 하므로, 네트워크가 타깃까지 움직여 로스를 줄이는 일을 막는다. (3) `(1.0 - done)`을 곱한다 -- 에피소드가 끝난 전이에서는 다음 상태의 값을 더하지 않아, 없는 미래를 부트스트랩하지 않는다. 선택마다 편향, 분산, 학습 안정성 사이의 트레이드오프를 보여 준다.
 
 ---
 
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 더한다. 형태를 검증하려면 핵심 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅을 크게 앞당기고 코드를 재사용하기에 더 강건하게 만든다.
+    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 더한다. 형태를 검증하려면 핵심 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅 시간을 크게 줄여 주고, 코드를 다른 곳에서 다시 쓸 때도 잘못된 입력을 일찍 걸러 준다.
 
 ---
 
@@ -139,6 +139,6 @@ Double DQN 구현이 옳은지 종합적으로 검증하는 시험 함수를 작
 
 **다룬 것** — Double DQN
 
-이 구현은 깔끔하고 읽기 쉬운 PyTorch 코드로 강화학습의 핵심 아이디어를 보인다.
+이 구현은 Double DQN의 TD 로스 함수 `double_dqn_td_loss` 하나다.
 
 앞의 연습문제 4개로 스스로 확인해 볼 수 있다.

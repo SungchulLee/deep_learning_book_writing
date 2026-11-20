@@ -308,7 +308,7 @@ $$X \perp\!\!\!\perp Y \mid Z$$
 X --> Z <-- Y
 ```
 
-세 노드만 있는 충돌점 X→Z←Y에서는 X와 Y가 주변적으로 독립이다. Z 또는 그 자손에 조건을 두면 경로가 열려 종속이 생길 수 있다. 이는 특정 수치에서의 필연적 종속은 아니며 다음 식은 explaining away가 발생하는 경우를 나타낸다.
+세 노드만 있는 충돌점 X→Z←Y에서는 X와 Y가 주변적으로 독립이다. Z 또는 그 자손에 조건을 두면 경로가 열려 종속이 생길 수 있다. 이 종속이 모든 수치에서 필연적인 것은 아니며, 다음 식은 explaining away — 한 원인이 확인되면 같은 결과의 다른 원인이 덜 그럴듯해지는 현상 — 가 일어나는 경우를 나타낸다.
 
 $$X \perp\!\!\!\perp Y \quad \text{(marginal)}, \qquad X \not\perp\!\!\!\perp Y \mid Z \quad \text{(explaining away)}$$
 

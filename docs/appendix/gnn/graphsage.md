@@ -1,8 +1,8 @@
 # GraphSAGE
 
-GraphSAGE은 2017년 논문 "Inductive Representation Learning on Large Graphs"에서 나왔다. - 이웃을 샘플링해 집계한다 - 귀납적(inductive) 설정: 본 적 없는 노드나 그래프에도 일반화한다 - 대표적인 갱신 식: h'_i = sigma( W [h_i || AGG({h_j, j in N(i)})] ).
+GraphSAGE는 2017년 논문 "Inductive Representation Learning on Large Graphs"에서 나왔다. 이웃을 샘플링해 집계하고, 귀납적(inductive) 설정을 노린다 — 노드마다 따로 임베딩을 외우지 않고 이웃을 모으는 함수를 배우므로, 학습 때 본 적 없는 노드나 그래프에도 그대로 쓸 수 있다. 대표적인 갱신 식은 $h'_i = \sigma\left(W\,[\,h_i \,\|\, \mathrm{AGG}(\{h_j : j \in N(i)\})\,]\right)$이다. 자기 피처 $h_i$와 이웃을 모은 값을 이어 붙인 뒤 선형 변환한다. 이 쪽의 구현은 샘플링하지 않고 이웃 전체의 평균을 쓴다.
 
-여기 구현은 GraphSAGE을 짧고 학습하기 좋게 보인 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 GraphSAGE를 짧게 줄인 학습용 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -104,12 +104,12 @@ logits: torch.Size([5, 4])
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 설정으로 초기화한 `MeanAggregator`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
+`GraphSAGELayer(in_dim=8, out_dim=16)`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
 
 </div>
 
 ??? success "풀이"
-    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`으로 확인할 수 있다.
+    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다. `MeanAggregator`는 평균만 내므로 파라메터가 없고, 선형 레이어가 자기 피처와 이웃 평균을 이어 붙인 16차원을 받으므로 16 × 16 + 16 = 272개다.
 
 ---
 
@@ -121,7 +121,7 @@ logits: torch.Size([5, 4])
 </div>
 
 ??? success "풀이"
-    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 더한다. 형태를 검증하려면 핵심 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅을 크게 앞당기고 코드를 재사용하기에 더 강건하게 만든다.
+    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 더한다. 형태를 검증하려면 핵심 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅 시간을 크게 줄여 주고, 코드를 다른 곳에서 다시 쓸 때도 잘못된 입력을 일찍 걸러 준다.
 
 ---
 
@@ -140,7 +140,7 @@ logits: torch.Size([5, 4])
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`MeanAggregator`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 인자를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하여라.
+`MeanAggregator`를 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 인자를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -151,7 +151,7 @@ logits: torch.Size([5, 4])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 파라메터를 옵티마이저에 등록한다. `for n in [2, 4, 8]: model = MeanAggregator(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 모든 파라메터를 옵티마이저에 등록한다. `for n in [2, 4, 8]: model = MeanAggregator(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험한다.
 
 ## 정리하며
 

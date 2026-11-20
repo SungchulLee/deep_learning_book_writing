@@ -869,12 +869,13 @@ compute_accuracy와 신뢰구간 함수에 필요한 입력 조건을 설명하�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 형태 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
+풀이 상자 안의 테스트 코드 조각을 검토하라. 정의되지 않은 변수, 평가기를 모델처럼 호출하는 잘못된 사용, 입력 형태 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
 
 </div>
 
 ??? success "풀이"
     아래 조각은 실제 실행 가능한 테스트가 아니다. 함수 이름과 모델 이름부터 이 예제에 맞게 작성해야 한다.
+
     ```python
     def test_fewshotevaluator():
         model = FewShotEvaluator(...)

@@ -45,7 +45,7 @@ RoIPool은 RoI 경계와 bin 등을 피처 격자에 양자화할 때 위치 오
 
 ## 3. 마스크 헤드와 클래스 선택
 
-아래 헤드는 영역 피처 N×256×h×w에 공간 크기를 유지하는 컨볼루션 네 개와 stride2 전치 컨볼루션, 클래스별 1×1을 적용한다. 출력은 N×K×2h×2w의 **로짓**이다. 입력이14×14이면28×28이 되지만 `mask_size` 인수는 사용하지 않으므로 어떤 입력에서도 지정 해상도를 만드는 함수는 아니다.
+아래 헤드는 영역 피처 N×256×h×w에 공간 크기를 유지하는 컨볼루션 네 개와 stride 2 전치 컨볼루션, 클래스별 1×1을 적용한다. 출력은 N×K×2h×2w의 **로짓**이다. 입력이 14×14이면 28×28이 되지만 `mask_size` 인수는 사용하지 않으므로 어떤 입력에서도 지정 해상도를 만드는 함수는 아니다.
 
 ```python
 import torch
@@ -94,7 +94,7 @@ class MaskHead(nn.Module):
         return self.mask_pred(x)
 ```
 
-정답 클래스 k인 양성 RoI에는 해당 채널의 픽셀별 BCE를 적용한다. 다른 클래스 마스크와 softmax 경쟁을 시키지 않고 sigmoid 기반 이진 문제로 학습한다. 추론에서는 예측한 클래스의 마스크를 선택해 경계 상자 좌표로 옮긴다. 한 채널의 class-agnostic 헤드도 다른 설계로 가능하지만 아래 코드는 클래스별 헤드다.
+정답 클래스 k인 양성 RoI에는 해당 채널의 픽셀별 BCE를 적용한다. 다른 클래스 마스크와 softmax 경쟁을 시키지 않고 sigmoid 기반 이진 문제로 학습한다. 추론에서는 예측한 클래스의 마스크를 선택해 경계 상자 좌표로 옮긴다. 한 채널의 class-agnostic 헤드도 다른 설계로 가능하지만 위 코드는 클래스별 헤드다.
 
 $$L_{mask}=-\frac1{m^2}\sum_{i,j}\left[y_{ij}\log p_{ij}^{(k)}+(1-y_{ij})\log(1-p_{ij}^{(k)})\right].$$
 
@@ -129,9 +129,9 @@ def mask_rcnn_loss(mask_logits: torch.Tensor, gt_masks: torch.Tensor,
 
 아래 함수는 legacy `pretrained=True` 인수를 사용한다. 라이브러리 버전의 웨이트 API와 입력 규약을 확인해야 한다. 모델은 호출마다 새로 구성되며 필요한 웨이트가 없으면 다운로드가 필요할 수 있다. CPU에 만든 모델과 입력의 장치도 맞아야 한다.
 
-일반적인 torchvision 탐지 입력은 [C,H,W] 부동소수점 이미지의 리스트이며 값 범위는0~1이다. 전처리는 해당 모델의 내부 변환 규약에 맞추고, 분류 모델용 정규화를 중복 적용하지 않는다. 출력은 객체별 boxes·labels·scores와 N×1×H×W의 soft mask다.
+일반적인 torchvision 탐지 입력은 [C,H,W] 부동소수점 이미지의 리스트이며 값 범위는 0~1이다. 전처리는 해당 모델의 내부 변환 규약에 맞추고, 분류 모델용 정규화를 중복 적용하지 않는다. 출력은 객체별 boxes·labels·scores와 N×1×H×W의 soft mask다.
 
-코드의 `threshold`는 검출 score 필터이고 마스크의 임계값은 별도로0.5에 고정한다. 두 값은 다른 기준이다. 빈 검출이 가능하며 이 함수는 마스크 합성·시각화나 전체 장면의 중첩 충돌 해결까지 수행하지 않는다.
+코드의 `threshold`는 검출 score 필터이고 마스크의 임계값은 별도로 0.5에 고정한다. 두 값은 다른 기준이다. 빈 검출이 가능하며 이 함수는 마스크 합성·시각화나 전체 장면의 중첩 충돌 해결까지 수행하지 않는다.
 
 ```python
 import torchvision
@@ -166,7 +166,7 @@ def load_and_run_maskrcnn(image: torch.Tensor, threshold: float = 0.5):
 
 ## 5. 사용자 클래스의 파인튜닝
 
-다음 함수는 box predictor와 mask predictor의 출력 수를 함께 바꾼다. 여기서 `num_classes`는 torchvision 규약의 **배경을 포함한** 클래스 수다. 양성 라벨은 배경0과 구분되며 데이터 라벨과 predictor 채널을 일관되게 매핑해야 한다. COCO의 실질80개 클래스와 배경·범주 ID를 반영한 모델 출력 수를 단순히 같은 수로 취급하면 안 된다.
+다음 함수는 box predictor와 mask predictor의 출력 수를 함께 바꾼다. 여기서 `num_classes`는 torchvision 규약의 **배경을 포함한** 클래스 수다. 양성 라벨은 배경 0과 구분되며 데이터 라벨과 predictor 채널을 일관되게 매핑해야 한다. COCO의 실질 80개 클래스와 배경·범주 ID를 반영한 모델 출력 수를 단순히 같은 수로 취급하면 안 된다.
 
 학습 데이터에는 이미지별 boxes, 정수 labels와 인스턴스별 masks 등이 필요하다. 이 함수는 모델 헤드를 구성할 뿐 데이터 매칭·학습 루프·검증·라벨 변환을 구현하지 않는다. 교체한 predictor는 새로 학습해야 한다. 입력·배경 규약은 [torchvision의 모델 설명](https://docs.pytorch.org/vision/0.12/generated/torchvision.models.detection.maskrcnn_resnet50_fpn.html)을 참고한다.
 
@@ -195,11 +195,11 @@ def get_custom_maskrcnn(num_classes: int):
 
 ## 6. 다른 인스턴스 분할 접근과의 비교
 
-YOLACT의 prototype 조합, SOLOv2의 위치 기반 마스크 예측과 Mask R-CNN의 RoI별 예측은 다른 구성이다. PointRend는 거친 마스크의 일부 위치를 정교하게 다듬는 모듈이며 독립적인 동일 종류 탐지기와 같은 항목으로 비교하면 안 된다.
+YOLACT의 prototype 조합, SOLOv2의 위치 기반 마스크 예측과 Mask R-CNN의 RoI별 예측은 다른 구성이다. PointRend는 거친 마스크의 일부 위치를 정교하게 다듬는 모듈이므로 독립된 인스턴스 분할 모델과 같은 항목으로 비교하면 안 된다.
 
 FPS·mask AP는 백본·입력 해상도·학습·평가 split·장치·배치·후처리를 명시해야 비교 가능하다. 출처와 조건이 없는 수치표로 두 단계가 항상 더 정확하고 한 단계가 항상 더 빠르다고 결론 내리지 않는다. 경계 품질·작은 객체·검출 누락과 전체 비용을 과제에 맞춰 살핀다.
 
-설계와 ablation은 [Mask R-CNN 원 논문](https://openaccess.thecvf.com/content_iccv_2017/html/He_Mask_R-CNN_ICCV_2017_paper.html)을 참고한다. 코드·출력·그림은 이번 편집에서 실행하거나 재생성하지 않았다.
+설계와 ablation은 [Mask R-CNN 원 논문](https://openaccess.thecvf.com/content_iccv_2017/html/He_Mask_R-CNN_ICCV_2017_paper.html)을 참고한다.
 
 ## 연습문제
 
@@ -218,12 +218,12 @@ FPS·mask AP는 백본·입력 해상도·학습·평가 split·장치·배치·
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-mask_size=28을 지정하면 모든 입력 RoI에서28×28이 되는가?
+mask_size=28을 지정하면 모든 입력 RoI에서 28×28이 되는가?
 
 </div>
 
 ??? success "풀이"
-    아니다. 이 인수는 저장·사용하지 않으며 컨볼루션은 공간을 유지하고 전치 컨볼루션이2배 키운다.14×14 입력에서28×28이고 다른 h×w에서는2h×2w다. 헤드의 실제 연산으로 출력 크기를 추적해야 한다.
+    아니다. 이 인수는 저장·사용하지 않으며 컨볼루션은 공간을 유지하고 전치 컨볼루션이 2배 키운다. 14×14 입력에서 28×28이고 다른 h×w에서는 2h×2w다. 헤드의 실제 연산으로 출력 크기를 추적해야 한다.
 
 ---
 

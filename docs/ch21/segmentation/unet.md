@@ -274,7 +274,7 @@ class UNet(nn.Module):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 ```
 
-코드는 요청대로 유지했다. 실제 학습 설명은 채널·공간 조건이 맞는 모델을 전제로 읽는다. 네 번 풀링할 수 있는 입력 크기와 가장 작은 단계의 BN 표본 수도 필요하다.
+아래 학습 설명은 채널·공간 조건이 맞는 모델을 전제로 읽는다. 네 번 풀링할 수 있는 입력 크기와 가장 작은 단계의 BN 표본 수도 필요하다.
 
 ## 3. 스킵의 연결과 덧셈
 
@@ -288,9 +288,9 @@ fused = encoder_features + decoder_features
 fused = torch.cat([encoder_features, decoder_features], dim=1)
 ```
 
-선형 후속레이어에서 연결하면 W_E E+W_D D처럼 두 부분의 웨이트를 다르게 둘 수 있다. 같은 폭의 덧셈 뒤 하나의 W를 적용한 W(E+D)보다 조합의 자유도가 늘 수 있지만 채널·파라메터·비용이 다르다. 모든 덧셈 기반 구조보다 엄격히 더 정확하거나 항상 정보를 보존한다는 결론은 아니다.
+선형 후속 레이어에서 연결하면 W_E E+W_D D처럼 두 부분의 웨이트를 다르게 둘 수 있다. 같은 폭의 덧셈 뒤 하나의 W를 적용한 W(E+D)보다 조합의 자유도가 늘 수 있지만 채널·파라메터·비용이 다르다. 모든 덧셈 기반 구조보다 엄격히 더 정확하거나 항상 정보를 보존한다는 결론은 아니다.
 
-다음 시각화 함수는 평균 활성화 맵을 그리며, 모델의 의미적 설명이나 분할 정확도를 검증하지 않는다. `layer_names`는 사용되지 않고 hook handle을 제거하지 않아 반복 호출하면 hook이 누적된다. 기본 bilinear 경로의 채널 문제도 그대로 영향을 준다. 함수는 실행하거나 그림을 재생성하지 않았다.
+다음 시각화 함수는 평균 활성화 맵을 그리며, 모델의 의미적 설명이나 분할 정확도를 검증하지 않는다. `layer_names`는 사용되지 않고 hook handle을 제거하지 않아 반복 호출하면 hook이 누적된다. 기본 bilinear 경로의 채널 문제도 그대로 영향을 준다.
 
 ```python
 def visualize_unet_activations(model, image, layer_names=None):
@@ -436,9 +436,9 @@ def get_validation_transforms(image_size: int = 256):
 
 아래 루프는 BCE 기반 이진 분할을 전제로 한다. 입력 마스크를 자동으로 float·N×1×H×W로 변환하지 않고, CUDA의 가용성이나 라이브러리 버전별 scheduler 인수도 일반화하지 않는다. 올바른 모델·데이터와 실행 환경을 외부에서 구성해야 한다.
 
-`calculate_dice`는 확률을 0.5로 임계화하고 배치 전체 픽셀을 합친 Dice를 구한다. 배치별 Dice를 단순 평균한 값은 데이터 전체의 교집합·분모를 누적한 Dice와 일반적으로 다르며 배치 구성에 따라 달라질 수 있다. 빈 양쪽 마스크는 smooth 규칙으로1이 된다. 로스 평균 역시 마지막 배치 크기가 다르면 전체 관측당 평균과 다를 수 있다.
+`calculate_dice`는 확률을 0.5로 임계화하고 배치 전체 픽셀을 합친 Dice를 구한다. 배치별 Dice를 단순 평균한 값은 데이터 전체의 교집합·분모를 누적한 Dice와 일반적으로 다르며 배치 구성에 따라 달라질 수 있다. 빈 양쪽 마스크는 smooth 규칙으로 1이 된다. 로스 평균 역시 마지막 배치 크기가 다르면 전체 관측당 평균과 다를 수 있다.
 
-best_dice는0에서 시작하고 엄격한 개선에서만 저장하므로 평가값이 계속0이면 체크포인트가 없을 수 있다. 반환값은 최선 Dice이며 최선 웨이트를 반환하거나 자동으로 다시 불러오지 않는다. 학습·평가 기준을 이 구현에 맞춰 해석한다.
+best_dice는 0에서 시작하고 엄격한 개선에서만 저장하므로 평가값이 계속 0이면 체크포인트가 없을 수 있다. 반환값은 최선 Dice이며 최선 웨이트를 반환하거나 자동으로 다시 불러오지 않는다. 학습·평가 기준을 이 구현에 맞춰 해석한다.
 
 ```python
 def train_unet(model, train_loader, val_loader, num_epochs=50,
@@ -661,7 +661,7 @@ def estimate_memory(batch_size: int, image_size: int, base_features: int = 64):
 print(f"Estimated memory: {estimate_memory(8, 512):.2f} GB")
 ```
 
-다음은 기존 출력이며 실측 메모리가 아니다.
+다음은 이 추정 함수의 출력이며 실측 메모리가 아니다.
 
 ```
 Estimated memory: 1.94 GB
@@ -702,7 +702,7 @@ class MemoryEfficientUNet(UNet):
 </div>
 
 ??? success "풀이"
-    원 도식은 padding 없는 컨볼루션과 crop 스킵으로 출력이 줄어드는 예다. 이 코드는 padding=1과 BN으로 컨볼루션 공간을 유지하고 업샘플 뒤 padding으로 정렬한다. 원 도식의572→388 크기를 현재 코드의 출력 규칙으로 적용하면 안 된다.
+    원 도식은 padding 없는 컨볼루션과 crop 스킵으로 출력이 줄어드는 예다. 이 코드는 padding=1과 BN으로 컨볼루션 공간을 유지하고 업샘플 뒤 padding으로 정렬한다. 원 도식의 572→388 크기를 현재 코드의 출력 규칙으로 적용하면 안 된다.
 
 ---
 
@@ -714,7 +714,7 @@ class MemoryEfficientUNet(UNet):
 </div>
 
 ??? success "풀이"
-    factor=2로 병목은512채널인데 첫 DecoderBlock은 in_channels=1024로 생성된다. bilinear 업샘플 뒤 1×1이1024입력을 기대해512입력과 맞지 않는다. 공간 padding은 이 오류를 고치지 못한다. 전치 컨볼루션 경로와 같은 폭 계산을 자동으로 공유할 수는 없다.
+    factor=2로 병목은 512채널인데 첫 DecoderBlock은 in_channels=1024로 생성된다. bilinear 업샘플 뒤 1×1이 1024입력을 기대해 512입력과 맞지 않는다. 공간 padding은 이 오류를 고치지 못한다. 전치 컨볼루션 경로와 같은 폭 계산을 자동으로 공유할 수는 없다.
 
 ---
 
@@ -726,7 +726,7 @@ class MemoryEfficientUNet(UNet):
 </div>
 
 ??? success "풀이"
-    BCE는 N×1×H×W 로짓과 같은 형태의 float0/1 마스크를 사용한다. 두 클래스 CE는 N×2×H×W 로짓과 N×H×W의 정수0/1 라벨을 사용한다. 기본 num_classes=2와 BCE 루프는 별도 조정 없이 같은 설정이 아니다. sigmoid/softmax를 logits 로스에 중복 적용하지 않는다.
+    BCE는 N×1×H×W 로짓과 같은 형태의 float 0/1 마스크를 사용한다. 두 클래스 CE는 N×2×H×W 로짓과 N×H×W의 정수 0/1 라벨을 사용한다. 기본 num_classes=2와 BCE 루프는 별도 조정 없이 같은 설정이 아니다. sigmoid/softmax를 logits 로스에 중복 적용하지 않는다.
 
 ---
 

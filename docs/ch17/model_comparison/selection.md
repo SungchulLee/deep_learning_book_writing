@@ -2,7 +2,7 @@
 
 모델 증거 또는 주변 가능도(marginal likelihood; 가능도는 우도라고도 한다)는 가능도를 파라메터의 사전분포에 대해 평균한 값이다. 연속 데이터에서는 관측 데이터의 확률밀도에 해당한다. 베이즈 모델 비교와 순차 예측에 어떻게 사용되는지 살펴보고, 해석적 공식과 수치 근사의 성립 조건을 구분한다.
 
-## 1. 왜 필요한가: 왜 모델 증거인가?
+## 1. 왜 모델 증거인가?
 
 모델을 고정한 파라메터 추론은 다음 사후분포를 구한다.
 
@@ -68,7 +68,7 @@ $$
 p(\mathcal{M}_k \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \mathcal{M}_k) \, p(\mathcal{M}_k)}{\sum_j p(\mathcal{D} \mid \mathcal{M}_j) \, p(\mathcal{M}_j)}
 $$
 
-모델 증거가 데이터가 우리의 모델 믿음을 얼마나 고치는지를 곧바로 정한다.
+데이터를 본 뒤 각 모델에 대한 믿음이 얼마나 바뀌는지를 모델 증거가 곧바로 정한다.
 
 ### 사후 오즈
 
@@ -174,11 +174,11 @@ $$
 
 ### 라플라스 근사
 
-적절한 내부 사후 최빈값 θ̂와 음의 로그 사후 헤시안 H가 양의 정부호인 경우 다음과 같다.
+사후 최빈값(MAP) θ̂가 파라메터 공간의 내부에 있고, 그 점에서 음의 로그 사후밀도의 헤시안 H가 양의 정부호이면 다음과 같다.
 
 $$\log p(D\mid M)\approx\log p(D\mid\hat\theta,M)+\log p(\hat\theta\mid M)+\frac d2\log(2\pi)-\frac12\log|H|$$
 
-최적화 결과뿐 아니라 곡률과 국소 정규 근사의 적절성이 중요하다. 다봉성·경계·특이성이 있으면 부정확할 수 있다. BIC는 정규적 고정 차원·큰 표본 조건에서 최대 가능도와 d log n 항만 남긴 추가 근사이며 사전 관련 상수까지 정확히 복원하지는 않는다.
+최적화 결과뿐 아니라 곡률과 국소 정규 근사의 적절성이 중요하다. 다봉성·경계·특이성이 있으면 부정확할 수 있다. BIC는 정칙 조건(regularity condition)을 만족하는 고정 차원 모형의 큰 표본에서 최대 가능도와 d log n 항만 남긴 추가 근사이며 사전 관련 상수까지 정확히 복원하지는 않는다.
 
 ### 조화평균 추정
 
@@ -220,7 +220,7 @@ $$\hat Z=\frac1S\sum_s\frac{p(D\mid\theta^{(s)})p(\theta^{(s)})}{q(\theta^{(s)})
 
 ### 어닐링 중요도 샘플링과 네스티드 샘플링
 
-AIS는 정규화된 사전에서 시작해 $p_t(\theta)\propto\pi(\theta)L(\theta)^{\beta_t}$, 0=β₀<…<β_T=1인 경로를 따른다. 중간 분포를 보존하는 전이와 경로 웨이트로 정규화 상수의 비를 추정하며 온도 간 간격과 혼합이 중요하다.
+AIS는 정규화된 사전에서 시작해 $p_t(\theta)\propto\pi(\theta)L(\theta)^{\beta_t}$, 0=β₀<…<β_T=1인 경로를 따른다. 각 중간 분포를 불변으로 두는 MCMC 전이와 경로 웨이트로 정규화 상수의 비를 추정하며 온도 간 간격과 혼합이 중요하다.
 
 네스티드 샘플링은 적절한 사전 질량 $X(\lambda)=\int_{L(\theta)>\lambda}\pi(\theta)d\theta$와 그에 대응하는 가능도 함수 L(X)로 증거를 $Z=\int_0^1L(X)dX$로 나타낸다. 적분 차원이 1로 표현되더라도 가능도 제약 아래의 표본 추출은 어려울 수 있으므로 다봉 탐색과 수치 오차를 점검한다.
 
@@ -660,7 +660,7 @@ def bic_approximation(
     n_samples: int
 ) -> float:
     """
-    로그 증거의 BIC 근사을 계산한다.
+    로그 증거의 BIC 근사를 계산한다.
     
     log p(D) ≈ log p(D|θ̂_MLE) - (d/2) log(n)
     
@@ -1016,7 +1016,7 @@ def demo_conjugate_evidence():
     print(f"  Log evidence: {log_ev_unknown:.4f}")
 
 def demo_laplace_approximation():
-    """증거의 라플라스 근사을 보인다."""
+    """증거의 라플라스 근사를 보인다."""
     
     print("\n" + "=" * 70)
     print("LAPLACE APPROXIMATION")

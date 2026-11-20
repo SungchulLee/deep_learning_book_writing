@@ -219,7 +219,7 @@ loss = nn.CrossEntropyLoss()(logits, targets)
 
 - 불균형한 분류라면 Focal Loss나 클래스 웨이트를 쓰라
 - 분할이라면 BCE에 다이스 로스를 더하라
-- 이분산 잡음이 있는 회귀라면 분산을 학습하는 방법을 고려하라($\sigma$을 출력하는 음의 로그가능도)
+- 이분산 잡음이 있는 회귀라면 분산을 학습하는 방법을 고려하라($\sigma$를 출력하는 음의 로그가능도)
 
 **모델이 이상치에 과적합할 때:**
 
@@ -236,7 +236,7 @@ loss = nn.CrossEntropyLoss()(logits, targets)
 | MSE | `nn.MSELoss` | 회귀 | 매끄러운 그래디언트, 정규 최대가능도 |
 | MAE | `nn.L1Loss` | 회귀 | 이상치에 강건, 라플라스 최대가능도 |
 | 후버 | `nn.HuberLoss` | 회귀 | MSE와 MAE의 혼합 |
-| Smooth L1 | `nn.SmoothL1Loss` | 회귀 | 객체 탐지의 표준 |
+| Smooth L1 | `nn.SmoothL1Loss` | 회귀 | 객체 탐지의 상자 회귀에서 흔히 쓴다 |
 | BCE | `nn.BCEWithLogitsLoss` | 이진 분류 | 베르누이 최대가능도 |
 | 교차 엔트로피 | `nn.CrossEntropyLoss` | 다중 클래스 분류 | 범주형 최대가능도 |
 | NLL | `nn.NLLLoss` | 다중 클래스 | 정규화된 로그 확률을 입력으로 받음 |

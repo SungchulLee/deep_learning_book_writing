@@ -80,7 +80,7 @@ Input: torch.Size([32, 10, 100]), Output: torch.Size([32, 10])
 </div>
 
 ??? success "풀이"
-    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`으로 확인할 수 있다.
+    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
 
 ---
 
@@ -99,19 +99,19 @@ Input: torch.Size([32, 10, 100]), Output: torch.Size([32, 10])
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-은닉 크기 $h$과 입력 크기 $x$이 같을 때 LSTM 셀과 GRU 셀의 파라메터 수를 비교하여라. 어느 쪽이 더 적고 왜 그런가?
+입력 크기가 $x$, 은닉 크기가 $h$일 때 LSTM 셀과 GRU 셀의 파라메터 수를 비교하여라. 어느 쪽이 더 적고 왜 그런가?
 
 </div>
 
 ??? success "풀이"
-    LSTM에는 게이트가 넷(입력, 망각, 셀, 출력) 있고 각각 입력과 은닉 상태의 웨이트 행렬을 지니므로 파라메터는 $4 \times (x \cdot h + h \cdot h + h) = 4(xh + h^2 + h)$개다. GRU에는 게이트가 셋(리셋, 업데이트, 후보) 있어 $3 \times (x \cdot h + h \cdot h + h) = 3(xh + h^2 + h)$개다. GRU은 게이트가 넷이 아니라 셋이고 셀 상태와 은닉 상태를 하나로 합치므로 LSTM의 75%이다. 실제로는 파라메터가 적어도 GRU이 LSTM과 비슷한 성능을 내는 일이 잦다.
+    LSTM에는 게이트가 넷(입력, 망각, 셀, 출력) 있고 각각 입력과 은닉 상태의 웨이트 행렬을 지니므로 파라메터는 $4 \times (x \cdot h + h \cdot h + h) = 4(xh + h^2 + h)$개다. GRU에는 게이트가 셋(리셋, 업데이트, 후보) 있어 $3 \times (x \cdot h + h \cdot h + h) = 3(xh + h^2 + h)$개다. GRU는 게이트가 넷이 아니라 셋이고 셀 상태와 은닉 상태를 하나로 합치므로 LSTM의 75%다. 실제로는 파라메터가 적어도 GRU가 LSTM과 비슷한 성능을 내는 일이 잦다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`LSTMModel`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 인자를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하여라.
+`LSTMModel`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 인자를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -122,7 +122,7 @@ Input: torch.Size([32, 10, 100]), Output: torch.Size([32, 10])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 파라메터를 옵티마이저에 등록한다. `for n in [2, 4, 8]: model = LSTMModel(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 모든 파라메터를 옵티마이저에 등록한다. `for n in [2, 4, 8]: model = LSTMModel(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험한다.
 
 ## 정리하며
 

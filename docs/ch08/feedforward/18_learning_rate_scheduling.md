@@ -174,7 +174,7 @@ RECOMMENDATIONS:
 
 ## 2. 논의
 
-코드는 StepLR, ExponentialLR, CosineAnnealingLR와 ReduceLROnPlateau 객체를 생성한다. 그래프에 쓰는 값은 각 스케줄러를 실제 학습에서 step한 결과가 아니라 식과 조건문으로 만든 값이다. 따라서 곡선만으로 수렴 속도나 최종 정확도를 비교할 수 없다.
+코드는 StepLR, ExponentialLR, CosineAnnealingLR, ReduceLROnPlateau 객체를 생성한다. 그래프에 쓰는 값은 각 스케줄러를 실제 학습에서 step한 결과가 아니라 식과 조건문으로 만든 값이다. 따라서 곡선만으로 수렴 속도나 최종 정확도를 비교할 수 없다.
 
 StepLR 등은 정한 호출 주기에 따라 갱신한다. ReduceLROnPlateau는 검증 로스 같은 지표를 전달해야 한다. 여러 스케줄러가 하나의 옵티마이저를 공유하는 이 시연을 그대로 복사해 모두 동시에 적용하지 않는다.
 
@@ -197,12 +197,12 @@ StepLR 등은 정한 호출 주기에 따라 갱신한다. ReduceLROnPlateau는 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-ReduceLROnPlateau가 StepLR와 다른 입력을 요구하는 이유를 설명하라.
+ReduceLROnPlateau가 StepLR과 다른 입력을 요구하는 이유를 설명하라.
 
 </div>
 
 ??? success "풀이"
-    StepLR는 호출 횟수를 기준으로 줄이고 ReduceLROnPlateau는 지정한 지표의 개선 여부를 기준으로 줄인다. 검증 로스를 줄이는 설정이라면 매 평가 후 그 로스를 전달한다.
+    StepLR은 호출 횟수를 기준으로 줄이고 ReduceLROnPlateau는 지정한 지표의 개선 여부를 기준으로 줄인다. 검증 로스를 줄이는 설정이라면 매 평가 후 그 로스를 전달한다.
 
 ---
 

@@ -373,7 +373,7 @@ ImageFolder의 클래스 인덱스는 폴더 이름의 정렬 순서다. 이 예
 
 실제 사용하는 방식은 shuffle=True 배치와 역빈도 가중 CrossEntropyLoss다. WeightedRandomSampler는 import만 하고 사용하지 않는다. w_k=N/(K n_k)는 소수 클래스 로스의 상대 비중을 높이는 선택이지만 클래스별 성능·확률 보정을 자동으로 같게 만들지는 않는다.
 
-모델은 layer3·layer4와 새 fc를 학습한다. 기반에는 lr=1e-4, 헤드에는 1e-3을 주며 이것이 망각을 보장해 막는 것은 아니다. model.train은 동결한 앞부분의 BatchNorm 이동 통계도 갱신한다. 검증 로스로 스케줄을 조정하지만 최고 웨이트는 검증 정확도로 선택하므로 선택 기준이 다르다.
+모델은 layer3·layer4와 새 fc를 학습한다. 기반에는 lr=1e-4, 헤드에는 1e-3을 주지만 이것으로 망각이 막힌다는 보장은 없다. model.train은 동결한 앞부분의 BatchNorm 이동 통계도 갱신한다. 검증 로스로 스케줄을 조정하지만 최고 웨이트는 검증 정확도로 선택하므로 선택 기준이 다르다.
 
 배치 가중 로스의 단순 평균은 전체 표본 가중 평균과 다르다. classification_report·confusion_matrix의 클래스 목록·빈 클래스·zero_division 정책을 명시한다. ReduceLROnPlateau의 verbose 인수는 사용하는 PyTorch 버전에서 지원되는지 확인해야 한다. 이 페이지는 모듈 상단에서 데이터 생성·학습을 수행하므로 import만 해도 해당 작업이 시작될 수 있다.
 

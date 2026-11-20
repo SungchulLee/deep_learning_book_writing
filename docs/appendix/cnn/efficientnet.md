@@ -1,6 +1,6 @@
 # EfficientNet
 
-EfficientNet은 2019년 논문 "EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks"에서 나왔으며, 깊이, 너비, 해상도의 세 차원을 한꺼번에 스케일링하는 원칙 있는 방법을 제시했다. 복합 스케일링 계수(compound coefficient)를 써서, 앞선 모델보다 파라메터와 FLOPs(부동소수점 연산 횟수)가 훨씬 적으면서도 최고 수준의 정확도를 이룬다. 기본 구조인 EfficientNet-B0은 뉴럴 아키텍처 탐색(NAS)으로 찾아냈다.
+EfficientNet은 2019년 논문 "EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks"에서 나왔으며, 깊이, 너비, 해상도의 세 차원을 한꺼번에 스케일링하는 원칙 있는 방법을 제시했다. 복합 스케일링 계수(compound coefficient)를 써서, 앞선 모델보다 파라메터와 FLOPs(부동소수점 연산 횟수)가 훨씬 적으면서도 최고 수준의 정확도를 이룬다. 기본 구조인 EfficientNet-B0는 뉴럴 아키텍처 탐색(NAS)으로 찾아냈다.
 
 ## 1. 코드
 
@@ -90,18 +90,18 @@ Parameters: 1,352,888
 
 ## 2. 논의
 
-MBConv(Mobile Inverted Bottleneck Convolution, 모바일 역 병목 컨볼루션) 블록이 EfficientNet의 기본 구성 요소다. 역 잔차(inverted residual) 구조를 따른다. 먼저 채널 차원을 몇 배(흔히 6배)로 확장하고, 확장한 차원에서 깊이별 분리 컨볼루션을 적용한 뒤, 더 작은 출력 차원으로 사영한다. 입력과 출력의 차원이 같으면 잔차 연결이 블록을 통째로 건너뛰어 그래디언트가 잘 흐르게 한다. ReLU 대신 SiLU(Swish) 활성화 함수를 써서 그래디언트가 더 매끄럽다.
+MBConv(Mobile Inverted Bottleneck Convolution, 모바일 역 병목 컨볼루션) 블록이 EfficientNet의 기본 구성 요소다. 역 잔차(inverted residual) 구조를 따른다. 먼저 채널 차원을 몇 배(흔히 6배)로 확장하고, 확장한 차원에서 깊이별 컨볼루션을 적용한 뒤, 더 작은 출력 차원으로 사영한다. 입력과 출력의 차원이 같으면 잔차 연결이 블록을 통째로 건너뛰어 그래디언트가 잘 흐르게 한다. ReLU 대신 SiLU(Swish) 활성화 함수를 써서 그래디언트가 더 매끄럽다.
 
-복합 스케일링 방법이 EfficientNet의 핵심 이론적 기여다. 깊이(레이어 늘리기), 너비(채널 늘리기), 해상도(이미지 키우기)를 따로따로 스케일링하는 대신, 복합 계수 $\phi$로 셋을 함께 스케일링한다. 깊이 $d = \alpha^\phi$, 너비 $w = \beta^\phi$, 해상도 $r = \gamma^\phi$이고 $\alpha \cdot \beta^2 \cdot \gamma^2 \approx 2$을 만족시킨다. 이 제약 덕에 $\phi$가 1 오를 때마다 FLOPs가 대략 두 배가 되고, 세 차원 사이의 비율이 B0에서 B7까지 그대로 유지된다.
+복합 스케일링 방법이 EfficientNet의 핵심 이론적 기여다. 깊이(레이어 늘리기), 너비(채널 늘리기), 해상도(이미지 키우기)를 따로따로 스케일링하는 대신, 복합 계수 $\phi$로 셋을 함께 스케일링한다. 깊이 $d = \alpha^\phi$, 너비 $w = \beta^\phi$, 해상도 $r = \gamma^\phi$이고 $\alpha \cdot \beta^2 \cdot \gamma^2 \approx 2$를 만족시킨다. 이 제약 덕에 $\phi$가 1 오를 때마다 FLOPs가 대략 두 배가 되고, 세 차원 사이의 비율이 B0에서 B7까지 그대로 유지된다.
 
-복합 스케일링의 실제 효과는 크다. EfficientNet-B7은 파라메터 6600만 개로 이미지넷에서 톱-1 정확도 84.3%을 이루는데, GPipe은 같은 84.3%에 5억 5700만 개가 든다. 차원을 균형 있게 스케일링하는 편이 한 차원만 극단적으로 키우는 것보다 훨씬 효율적이라는 뜻이다.
+복합 스케일링의 실제 효과는 크다. EfficientNet-B7은 파라메터 6600만 개로 이미지넷에서 톱-1 정확도 84.3%를 이루는데, GPipe는 같은 84.3%에 5억 5700만 개가 든다. 차원을 균형 있게 스케일링하는 편이 한 차원만 극단적으로 키우는 것보다 훨씬 효율적이라는 뜻이다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-복합 스케일링 파라메터 $\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$과 $\phi = 2$이 주어졌을 때 스케일링된 깊이, 너비, 해상도의 배율을 계산하여라.
+복합 스케일링 파라메터 $\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$와 $\phi = 2$가 주어졌을 때 스케일링된 깊이, 너비, 해상도의 배율을 계산하여라.
 
 </div>
 

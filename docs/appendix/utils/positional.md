@@ -2,7 +2,7 @@
 
 시퀀스 모델에서 자주 쓰는 위치 인코딩을 모았다. 포함한 항목은 코드 첫머리의 독스트링에 적혀 있다.
 
-이 쪽의 구현은 Positional Encodings의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
+이 쪽의 구현은 위치 인코딩의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    설계 판단은 구현마다 다르나 흔히 이런 것이 있다. (1) 활성화 함수 선택 -- ReLU 계열은 양수 구간에서 그래디언트가 포화하지 않아 학습이 빠르다. (2) 정규화 전략 -- 배치 정규화가 내부 공변량 이동(internal covariate shift, 학습 중 레이어 입력의 분포가 바뀌는 현상)을 줄여 학습을 안정시킨다. (3) 잔차 연결 -- 있으면 스킵 경로를 주어 깊은 네트워크에서 그래디언트가 흐르게 한다. 선택마다 표현력, 계산 비용, 학습 안정성 사이의 트레이드오프를 보여 준다.
+    이 코드에서는 이런 셋을 들 수 있다. (1) 사인파 표를 생성자에서 한 번 계산해 `register_buffer`로 등록한다 -- 학습되지 않는 값이지만 `state_dict`에 저장되고 `.to(device)`를 따라 옮겨지므로, 순전파마다 다시 계산하지 않아도 된다. (2) 주파수 $1/10000^{2i/d}$를 거듭제곱 대신 `exp`와 `log`로 계산한다 -- 지수가 큰 거듭제곱을 직접 구하지 않아 수치적으로 안정하고, 모든 차원을 한 번에 벡터 연산으로 만든다. (3) 위치를 입력에 더하는 방식(사인파·학습형)과 쿼리·키를 회전시키는 방식(RoPE)을 함께 둔다 -- 앞의 둘은 임베딩에 절대 위치를 더하는 반면, RoPE는 쿼리와 키의 내적이 두 위치의 차이에만 의존하게 만들어 상대 위치를 담는다. 학습형 임베딩은 `max_len`을 넘는 위치를 다룰 수 없지만 사인파와 RoPE는 식으로 어떤 위치든 계산할 수 있다는 차이도 있다. 단, 이 코드의 사인파 표는 `max_len`까지만 미리 만들어 둔다.
 
 ---
 
@@ -149,13 +149,13 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    하드코딩한 레이어를 다음으로 대체한다.
+    `SinusoidalPositionalEncoding`은 학습하는 파라메터가 하나도 없고(표는 버퍼다), 위치 인코딩은 보통 입력에 한 번만 더한다. 그래서 깊이를 늘리는 대상은 위치 인코딩 자체가 아니라 그 뒤에 쌓는 블록이다. 위치 인코딩을 맨 앞에 한 번 두고 그 뒤의 블록을 아래처럼 `num_layers`개 쌓는다. 하드코딩한 레이어를 다음으로 대체한다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 순회한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 그 안의 파라메터를 모델에 등록하고, 옵티마이저가 그것들을 갱신할 수 있다. `for n in [2, 4, 8]: model = SinusoidalPositionalEncoding(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 순회한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 그 안의 파라메터를 모델에 등록하고, 옵티마이저가 그것들을 갱신할 수 있다. `for n in [2, 4, 8]: model = SinusoidalPositionalEncoding(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다. 위치 인코딩만 담은 모듈이라면 이 수는 늘 0이 나온다.
 
 ## 정리하며
 

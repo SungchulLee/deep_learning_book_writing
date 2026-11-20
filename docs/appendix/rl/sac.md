@@ -1,8 +1,8 @@
 # SAC
 
-SAC은 2018년 논문 "Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning"에서 나왔다. - 액터가 기대 리턴 + 엔트로피(탐색)를 최대화한다 - Q 네트워크 둘(이중 Q)로 과대추정 편향을 줄인다 - 학습 안정성을 위해 타깃 Q 네트워크를 쓴다.
+SAC은 2018년 논문 "Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning"에서 나왔다. 액터는 기대 리턴에 엔트로피를 더한 값을 최대화하고(엔트로피가 크다는 것은 폴리시가 여러 액션을 고루 시도한다는 뜻이라 탐색이 유지된다), Q 네트워크 둘(이중 Q) 가운데 작은 값을 써서 과대추정 편향을 줄이며, 학습을 안정시키려고 타깃 Q 네트워크를 쓴다.
 
-여기 구현은 SAC을 짧고 학습하기 좋게 보인 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 SAC을 짧고 공부하기 좋게 보인 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -115,7 +115,9 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 구현은 클래스 2개(`GaussianPolicy`, `QNetwork`)를 정의하고, 이들이 함께 완전한 강화학습 구조를 이룬다. 클래스마다 고유한 역할을 맡아 코드를 모듈화하고 확장하기 쉽게 한다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정의한다.
+이 구현은 클래스 2개(`GaussianPolicy`, `QNetwork`)와 타깃 계산 함수 `sac_target`을 정의하고, 이들이 함께 SAC의 액터와 크리틱, 그리고 크리틱이 맞출 타깃을 이룬다. 클래스마다 고유한 역할을 맡아 코드를 모듈화하고 확장하기 쉽게 한다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정의한다.
+
+다만 완전한 SAC은 아니다. `sample`이 `log_prob`으로 `None`을 돌려주므로 `sac_target`은 엔트로피 항 $-\alpha \log \pi(a'|s')$을 빼고 계산한다. 이대로는 최대 엔트로피 타깃이 아니라 두 Q 가운데 작은 값을 쓰는 보통의 타깃일 뿐이며, 액터·크리틱 갱신 루프와 타깃 네트워크의 소프트 갱신도 들어 있지 않다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -129,7 +131,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`으로 확인할 수 있다.
+    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다. `GaussianPolicy`는 `obs_dim`과 `act_dim`에 기본값이 없으므로 두 값을 $o$, $a$라 하고 `hidden=256`으로 세면, 첫 `nn.Linear`가 $256o + 256$, 둘째가 $256 \cdot 256 + 256 = 65{,}792$, `mu`와 `log_std`가 저마다 $256a + a$개라 모두 $256o + 514a + 66{,}048$개다.
 
 ---
 
@@ -153,14 +155,14 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    흔한 실패 양상은 이렇다. (1) **그래디언트 소실·폭발** -- 그래디언트 노름을 모니터링해 탐지한다(`torch.nn.utils.clip_grad_norm_`이나 레이어마다 `param.grad.norm()` 기록하기). 그래디언트 클리핑, 더 나은 초기화(Xavier/Kaiming), 구조 변경(잔차 연결, 정규화)으로 고친다. (2) **과적합** -- 학습 로스는 줄어드는데 검증 로스가 오르면 탐지한다. 정칙화(드롭아웃, 웨이트 감쇠, 데이터 어그멘테이션)나 모델 크기 줄이기로 고친다. 학습 지표와 검증 지표를 늘 함께 모니터링해 이를 일찍 잡아야 한다.
+    흔한 실패 양상은 이렇다. (1) **그래디언트 소실·폭발** -- 그래디언트 노름을 모니터링해 탐지한다(`torch.nn.utils.clip_grad_norm_`이나 레이어마다 `param.grad.norm()` 기록하기). 그래디언트 클리핑, 더 나은 초기화(Xavier/Kaiming), 구조 변경(잔차 연결, 정규화)으로 고친다. (2) **과적합** -- 학습 로스는 줄어드는데 검증 로스가 오르면 탐지한다. 정칙화(드롭아웃, 웨이트 감쇠, 데이터 어그멘테이션)나 모델 크기 줄이기로 고친다. 학습 지표와 검증 지표를 늘 함께 모니터링해 이를 일찍 잡아야 한다. 다만 강화학습에는 고정된 검증 집합이 없으므로, SAC에서는 다음 둘이 더 흔하다. (3) **Q 값 발산** -- 크리틱이 내놓는 Q 값이 실제 리턴보다 계속 커지면 탐지한다. 타깃 네트워크의 소프트 갱신 계수를 줄이거나 보상 스케일을 낮춘다. (4) **엔트로피 항 누락이나 잘못된 $\alpha$** -- 이 쪽의 코드처럼 `log_prob`이 빠지면 폴리시가 일찍 결정론적으로 굳어 탐색이 멈춘다. 폴리시의 표준편차가 0 가까이 줄어드는 것으로 탐지하고, tanh 보정을 넣은 `log_prob`을 계산하거나 $\alpha$를 자동으로 조절해 고친다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`GaussianPolicy`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 인자를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하여라.
+`GaussianPolicy`를 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 인자를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -171,12 +173,12 @@ if __name__ == "__main__":
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 파라메터를 옵티마이저에 등록한다. `for n in [2, 4, 8]: model = GaussianPolicy(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 모든 파라메터를 옵티마이저에 등록한다. `for n in [2, 4, 8]: model = GaussianPolicy(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
 
 ## 정리하며
 
 **다룬 것** — SAC
 
-이 구현은 클래스 2개(`GaussianPolicy`, `QNetwork`)를 정의하고, 이들이 함께 완전한 강화학습 구조를 이룬다.
+이 구현은 클래스 2개(`GaussianPolicy`, `QNetwork`)와 `sac_target`으로 SAC의 액터, 크리틱, 타깃 계산을 보인다. 엔트로피 항은 빠져 있다.
 
 핵심 클래스는 `GaussianPolicy`, `QNetwork`이며 앞의 연습문제 4개로 스스로 확인해 볼 수 있다.

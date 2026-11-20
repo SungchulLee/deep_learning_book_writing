@@ -2,7 +2,7 @@
 
 자주 쓰는 어텐션 구성 요소를 모았다. 포함한 항목은 코드 첫머리의 독스트링에 적혀 있다.
 
-이 쪽의 구현은 Attention Mechanisms의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
+이 쪽의 구현은 어텐션 메커니즘의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 구현은 클래스 2개(`MultiHeadAttention`, `AdditiveAttention`)를 정의하고, 이들이 함께 하나의 유틸리티 모듈을 이룬다. 클래스마다 고유한 역할을 맡아 코드가 모듈로 나뉘고 확장하기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
+이 구현은 함수 `scaled_dot_product_attention`과 클래스 2개(`MultiHeadAttention`, `AdditiveAttention`)를 정의하고, 이들이 함께 하나의 유틸리티 모듈을 이룬다. 클래스마다 고유한 역할을 맡아 코드가 모듈로 나뉘고 확장하기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -175,7 +175,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다.
+    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다. `MultiHeadAttention`은 `d_model`과 `nhead`에 기본값이 없으므로 `d_model`을 $D$라 하면, `q_proj`·`k_proj`·`v_proj`·`out_proj` 넷이 모두 `bias=False`인 $D \times D$ 웨이트라 저마다 $D^2$개, 모두 $4D^2$개다. 헤드 수 `nhead`는 이 수에 영향을 주지 않는다 — 같은 $D \times D$ 투영을 헤드로 나누어 쓸 뿐이다.
 
 ---
 

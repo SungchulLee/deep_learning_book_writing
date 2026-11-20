@@ -49,7 +49,7 @@ tau를 러닝레이트/데이터셋 크기만으로 결정하는 보편적인 �
 
 ## 5. EMA 교사를 쓰는 학습 프레임워크
 
-### 두 가지 구조
+### 두 갈래 구조
 
 ```
 Input
@@ -60,7 +60,7 @@ Input
                          EMA Update
 ```
 
-### 순방향 알고리즘
+### 한 스텝의 알고리즘
 
 ```
 1. Forward through student: z_s = Student(x)

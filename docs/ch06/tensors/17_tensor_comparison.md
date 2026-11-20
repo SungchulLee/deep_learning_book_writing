@@ -405,7 +405,7 @@ values, preds = logits.max(dim=1)      # preds 가 예측 라벨이다
     unsqueeze 없이: The size of tensor a (3) must match the size of tensor b (6)
     ```
 
-    여기서는 오류가 나 주어 다행이다. $N$과 $k$가 우연히 같으면 — 이를테면 데이터가 세
+    여기서는 오류가 나 주어 다행이다. $N$과 $k$가 우연히 같으면 — 이를테면 표본이 세
     개이고 $k = 3$이면 — 오류 없이 엉뚱한 값이 나온다.
 
     `.any(dim=1)`은 "세 예측 가운데 하나라도 맞았는가"를 줄마다 묻는다. `.all()`이 아니라

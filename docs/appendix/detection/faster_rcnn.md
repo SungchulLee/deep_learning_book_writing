@@ -1,6 +1,6 @@
 # Faster R-CNN
 
-Faster R-CNN은 2015년 논문 "Faster R-CNN: Towards Real-Time Object Detection"에서 나왔다. 영역 제안(region proposal)을 내는 RPN을 두어 엔드투엔드로 학습할 수 있다.
+Faster R-CNN은 2015년 논문 "Faster R-CNN: Towards Real-Time Object Detection"에서 나왔다. 영역 제안(region proposal, 물체가 있을 법한 상자 후보)을 내는 영역 제안 네트워크(RPN)를 탐지 네트워크와 같은 피처 위에 두어, 제안부터 분류까지를 하나의 네트워크로 학습할 수 있다.
 
 여기 구현은 Faster R-CNN을 짧게 줄인 학습용 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -76,7 +76,7 @@ Parameters: 30,385,567
 
 ## 2. 논의
 
-`FasterRCNN` 클래스는 PyTorch의 `nn.Module` 인터페이스를 써서 모델 구조를 담는다. `forward` 메서드가 계산 그래프를 정의하므로 학습하는 동안 PyTorch의 autograd가 그래디언트 계산을 자동으로 처리한다. 이렇게 모듈로 나눈 설계 덕에 구성 요소 하나하나를 고치거나 더 큰 파이프라인에 넣기가 쉽다.
+`FasterRCNN` 클래스는 PyTorch의 `nn.Module` 인터페이스를 써서 모델 구조를 담는다. 다만 `forward`는 피처 추출기와 RPN까지만 계산해 딕셔너리로 돌려준다. RPN은 피처 맵의 위치마다 앵커(anchor, 미리 정한 크기와 비율의 기준 상자) 9개에 대해 물체일 점수 2개(`rpn_cls`)와 상자 보정값 4개(`rpn_reg`)를 낸다. ROI 풀링, 두 완전 연결 레이어, 분류와 경계 상자 회귀 레이어는 정의만 되어 있고 쓰이지 않는다. 제안 상자를 골라 피처를 잘라 내는 단계가 없기 때문이다. 출력의 파라메터 30,385,567개 가운데 약 2,963만 개(97.5%)가 순전파에 쓰이지 않는 두 완전 연결 레이어에 있다. `forward` 메서드가 계산 그래프를 정의하므로 학습하는 동안 PyTorch의 autograd가 그래디언트 계산을 자동으로 처리한다. 이렇게 모듈로 나눈 설계 덕에 구성 요소 하나하나를 고치거나 더 큰 파이프라인에 넣기가 쉽다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -90,19 +90,19 @@ Parameters: 30,385,567
 </div>
 
 ??? success "풀이"
-    입력의 형태에서 출발해 레이어를 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌고(패딩 없이) `padding=k//2`이면 그대로다. 커널 크기 2로 풀링하면 공간 차원이 반이 된다. 선형 레이어는 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임을 확인하라. 컨볼루션 레이어에서는 $(B, C, H, W)$, 평탄화한 뒤에는 $(B, F)$으로 중간 형태를 적어라.
+    입력의 형태에서 출발해 레이어를 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 $H_{\text{out}} = H_{\text{in}} - k + 1$로 바뀌고(패딩 없이) `padding=k//2`이면 그대로다. 커널 크기 2로 풀링하면 공간 차원이 반이 된다. 선형 레이어는 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임을 확인하라. 컨볼루션 레이어에서는 $(B, C, H, W)$, 평탄화한 뒤에는 $(B, F)$로 중간 형태를 적어라. `forward`가 실제로 지나는 것은 피처 추출기와 RPN뿐이다. $224 \times 224$ 입력이면 컨볼루션 뒤 $(4, 64, 224, 224)$, 최대 풀링 뒤 $(4, 64, 112, 112)$가 `features`이고, `rpn` 뒤 $(4, 512, 112, 112)$, `rpn_cls`는 $(4, 18, 112, 112)$, `rpn_reg`는 $(4, 36, 112, 112)$이다. 선형 레이어는 순전파에 들어가지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-구조를 크기 $64 \times 64$의 RGB 이미지(입력 형태: $3 \times 64 \times 64$)을 받도록 고쳐라. 레이어의 차원을 모두 그에 맞게 조정하고 모델이 오류 없이 실행되는지 확인하라.
+구조를 크기 $64 \times 64$의 RGB 이미지(입력 형태: $3 \times 64 \times 64$)를 받도록 고쳐라. 레이어의 차원을 모두 그에 맞게 조정하고 모델이 오류 없이 실행되는지 확인하라.
 
 </div>
 
 ??? success "풀이"
-    첫 컨볼루션 레이어의 `in_channels`을 현재 값에서 3으로 바꾼다. 컨볼루션과 풀링 레이어마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 공간 차원을 다시 계산한다. 첫 선형 레이어의 `in_features`을 마지막 컨볼루션/풀링 레이어의 평탄화된 출력에 맞춘다. `model = FasterRCNN(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`으로 확인한다.
+    피처 추출기의 첫 컨볼루션 레이어는 이미 입력 채널이 3이다. 컨볼루션과 풀링 레이어마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$로 공간 차원을 다시 계산하면 $64 \to 64 \to 32$이고, RPN은 크기를 유지한다. 첫 선형 레이어는 `roi_pool`이 $7 \times 7$로 맞춘 피처를 받도록 되어 있어 입력 크기와 무관하므로 고칠 차원은 없다. `model = FasterRCNN(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`처럼 확인하되, `forward`가 딕셔너리를 돌려주므로 `.shape`는 값마다 따로 본다. `features`는 $(1, 64, 32, 32)$, `rpn_cls`는 $(1, 18, 32, 32)$, `rpn_reg`는 $(1, 36, 32, 32)$이다.
 
 ---
 
@@ -114,14 +114,14 @@ Parameters: 30,385,567
 </div>
 
 ??? success "풀이"
-    일반 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별 분리 컨볼루션은 이를 (1) 깊이별(depthwise): $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나)와 (2) 점별(pointwise): $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터 수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$이 모두 클 때 가장 크게 절약된다.
+    일반 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별 분리 컨볼루션은 이를 (1) 깊이별(depthwise): $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나)와 (2) 점별(pointwise): $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터 수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$가 모두 클 때 가장 크게 절약된다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`FasterRCNN`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 구성하라. 레이어 2개, 4개, 8개로 시험하여라.
+`FasterRCNN`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 구성하라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -132,7 +132,7 @@ Parameters: 30,385,567
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`을 써야 PyTorch가 파라메터를 모두 최적화 대상으로 등록한다. `for n in [2, 4, 8]: model = FasterRCNN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 그 안의 파라메터를 모두 모듈에 등록하여 옵티마이저가 갱신할 수 있다. `for n in [2, 4, 8]: model = FasterRCNN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
 
 ## 정리하며
 

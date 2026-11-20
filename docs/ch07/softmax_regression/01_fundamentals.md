@@ -16,7 +16,7 @@ $$\mathbf{z} = \mathbf{x}A + \mathbf{b}$$
 
 $$\mathbf{x} \in \mathbb{R}^{1 \times D},\quad A \in \mathbb{R}^{D \times K},\quad \mathbf{b} \in \mathbb{R}^{K},\quad \mathbf{z} \in \mathbb{R}^{1 \times K}$$
 
-여기에는 은닉 레이어나 중간 비선형 활성화가 없다. 확률 변환에 소프트맥스를 사용한다. 이 레이어 하나가 모델의 전부이며, 그래서 앞 절에서 본 대로 결정 경계가 초평면으로 묶인다.
+여기에는 은닉 레이어나 중간 비선형 활성화가 없고, 확률 변환에만 소프트맥스를 쓴다. 이 레이어 하나가 모델의 전부이므로, 앞 절에서 본 대로 두 클래스 사이의 결정 경계는 초평면이 된다.
 
 이 페이지는 행벡터 입력과 $A\in\mathbb R^{D\times K}$를 사용해 $xA+b$로 쓴다. PyTorch의 `nn.Linear(D,K)`는 $W\in\mathbb R^{K\times D}$를 저장하고 $xW^\top+b$를 계산하므로 $A=W^\top$다. 같은 기호 $A$를 두 형태에 동시에 사용하지 않는다. 프레임워크 전체를 행벡터·열벡터 관례 하나로 단정하기보다 각 연산의 형태를 확인한다.
 
@@ -28,7 +28,7 @@ $$\underbrace{D \times K}_{A} + \underbrace{K}_{\mathbf{b}} = K(D + 1)$$
 
 !!! note "MNIST에서는 어떤 값이 되는가"
     784차원 입력에 클래스가 10개이면 $10 \times (784 + 1) = 7850$개이다.
-    이 값으로 실제 학습을 돌려 92.51%를 얻는 과정은 [3.2 구현과 결과](../../ch03/linear_softmax/06_implementation.md)에 있다. 이 절은 그 특수한 경우가 아니라 모델 자체의 정의를 다룬다.
+    이 값으로 실제 학습을 돌려 92.35%를 얻는 과정은 [3.2 구현과 결과](../../ch03/linear_softmax/06_implementation.md)에 있다. 이 절은 그 특수한 경우가 아니라 모델 자체의 정의를 다룬다.
 
 ### 점수를 확률로 바꾸기
 

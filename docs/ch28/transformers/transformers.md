@@ -115,7 +115,7 @@ class CausalSelfAttention(nn.Module):
         return output
 ```
 
-입력 `(B,T,d_model)`에서 Q·K·V는 `(B,H,T,d_k)`, 점수는 `(B,H,T,T)`다. d_model은 양의 n_heads로 나누어져야 하며 T는 미리 만든 causal_mask 범위 이하여야 한다. attention_mask는 `(B,T)`의 0인 **키 위치**를 차단한다. 쿼리 위치의 로스를 제외하거나 출력 자체를 0으로 만들지는 않는다.
+입력 `(B,T,d_model)`에서 Q·K·V는 `(B,H,T,d_k)`, 점수는 `(B,H,T,T)`다. d_model은 양의 n_heads로 나누어떨어져야 하며 T는 미리 만든 causal_mask 범위 이하여야 한다. attention_mask는 `(B,T)`의 0인 **키 위치**를 차단한다. 쿼리 위치의 로스를 제외하거나 출력 자체를 0으로 만들지는 않는다.
 
 어떤 쿼리의 모든 키가 가려지면 −∞만 있는 행에 softmax를 적용해 NaN이 생길 수 있다. 특히 왼쪽 패딩·빈 문맥을 고려한 처리 규칙이 필요하다. 드롭아웃은 attention 확률 뒤에 적용되므로 학습 중 각 행 합이 반드시 1인 것은 아니며 eval에서 비활성화된다.
 
@@ -892,7 +892,7 @@ class TimeSeriesTransformer(nn.Module):
         return mean, F.softplus(log_std)
 ```
 
-TimeSeriesTransformer는 마지막 피처에서 다음 벡터의 평균과 양의 스케일 후보를 출력한다. 두 번째 projection의 이름은 log_std지만 반환은 exp가 아닌 softplus를 적용한 값이다. 이를 표준편차로 해석하려면 확률분포·로스를 별도로 정의하고 수치적으로 양수 하한도 검토해야 한다. forecast_horizon은 저장만 되어 실제 여러 스텝 예측을 하지 않으며 위치 표현·시계열 분할·타깃 정렬·롤아웃도 별도다. 시간상 사용할 수 없는 미래 정보가 전처리나 입력에 새지 않도록 해야 한다.
+TimeSeriesTransformer는 마지막 위치의 피처에서 다음 벡터의 평균과 양의 스케일 후보를 출력한다. 두 번째 projection의 이름은 log_std지만 반환은 exp가 아닌 softplus를 적용한 값이다. 이를 표준편차로 해석하려면 확률분포·로스를 별도로 정의하고 수치적으로 양수 하한도 검토해야 한다. forecast_horizon은 저장만 되어 실제 여러 스텝 예측을 하지 않으며 위치 표현·시계열 분할·타깃 정렬·롤아웃도 별도다. 시간상 사용할 수 없는 미래 정보가 전처리나 입력에 새지 않도록 해야 한다.
 
 ## 연습문제
 

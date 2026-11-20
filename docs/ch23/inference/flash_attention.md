@@ -442,7 +442,7 @@ FlashAttention 클래스는 이름과 달리 [PyTorch SDPA](https://docs.pytorch
 
 SDPA는 지정한 dropout_p를 적용하므로 이 래퍼가 eval에서 0으로 바꾸는 것이 중요하다. is_causal과 별도 마스크의 조합은 설치 버전의 제약을 확인한다. FlashAttentionWithKVCache는 과거가 있으면 is_causal을 끈다. 새 토큰 하나에는 맞을 수 있지만 여러 새 토큰을 동시에 넣으면 그 구간의 미래를 볼 수 있어 별도 오프셋 마스크가 필요하다. padding 마스크도 제공하지 않는다.
 
-**기존 출력:**
+**출력:**
 
 ```
 Flash Attention Demo

@@ -10,8 +10,8 @@
 
 - [적대적 강건성 입문](foundations/introduction.md) -- 적대적 샘플이 발견된 경위, 그것이 존재하는 까닭에 대한 여러 가설, 딥러닝에 주는 함의
 - [위협 모델](foundations/threat_models.md) -- 화이트박스, 블랙박스, 현실 세계에 걸쳐 적대자의 지식, 능력, 목표를 형식화하기
-- [강건성 정의](foundations/definitions.md) -- 점별 강건성, 최소 적대적 섭동, 재사용할 수 있는 PyTorch 공격 기반 클래스
 - [섭동 유형](foundations/perturbations.md) -- L-무한, L-2, L-1 노름의 제약과 그 형태, 그리고 투영 연산
+- [강건성 정의](foundations/definitions.md) -- 점별 강건성, 최소 적대적 섭동, 재사용할 수 있는 PyTorch 공격 기반 클래스
 
 ---
 
@@ -52,7 +52,7 @@
 모델 내부를 직접 보지 못한 채 질의 응답이나 전이만으로 하는 공격.
 
 - [전이 기반 공격](black_box/transfer.md) -- 적대적 섭동이 모델을 넘나들며 전이되는 것을 쓰는 질의 없는 공격
-- [쿼리 기반 공격](black_box/query_based.md) -- 스코어 기반과 결정 기반으로 나뉘는, 모델에 질의하며 반복하는 공격
+- [쿼리 기반 공격](black_box/query_based.md) -- 점수 기반과 결정 기반으로 나뉘는, 모델에 질의하며 반복하는 공격
 - [점수 기반 공격](black_box/score_based.md) -- 모델 내부를 보지 않고 출력 확률 분포로 그래디언트를 근사하기
 - [결정 기반 공격](black_box/decision_based.md) -- 하드 레이블만 얻는 가장 제한된 블랙박스 환경에서의 공격
 
@@ -72,7 +72,7 @@
 
 학습할 때 적대적 샘플을 섞는 방어.
 
-- [여느 적대적 학습](adversarial_training/standard.md) -- 적대적 공격에 가장 잘 듣는 방어인 PGD 기반의 강건 학습
+- [적대적 학습](adversarial_training/standard.md) -- 적대적 공격에 가장 잘 듣는 방어인 PGD 기반의 강건 학습
 - [TRADES](adversarial_training/trades.md) -- 클린 정확도와 적대적 강건성 사이의 트레이드오프를 이론에 근거해 조절하기
 - [Free Adversarial Training](adversarial_training/free_at.md) -- 그래디언트를 재사용해 일반 학습에 가까운 비용으로 맞먹는 강건성 얻기
 - [Fast Adversarial Training](adversarial_training/fast_at.md) -- 무작위 초기화로 파국적 과적합을 막는 한 스텝 FGSM 학습
@@ -115,9 +115,9 @@
 
 금융 머신러닝 시스템에서의 적대적 강건성.
 
-- [시장 조작 탐지](finance/manipulation.md) -- 허수 주문(스푸핑), 통정 거래, 신호 조작을 적대적 공격으로 보고 탐지
 - [사기 탐지 모델의 강건성](finance/fraud.md) -- 회피 전략을 바꿔 가며 적응하는 적대자에게도 버티는 사기 탐지기 만들기
-- [금융 구조의 모델 보안](finance/security.md) -- 모델 추출, 데이터 포이즈닝, 강건한 배포를 아우르는 엔드투엔드 보안
+- [시장 조작 탐지](finance/manipulation.md) -- 허수 주문(스푸핑), 통정 거래, 신호 조작을 적대적 공격으로 보고 탐지
+- [금융 시스템의 모델 보안](finance/security.md) -- 모델 추출, 데이터 포이즈닝, 강건한 배포를 아우르는 엔드투엔드 보안
 
 ---
 
@@ -132,4 +132,4 @@
 
 ## 정리하며
 
-이 절에서는 기초, 화이트박스 공격, 블랙박스 공격, 현실 세계 공격을 살펴보았다.
+이 장은 기초에서 출발해 화이트박스·블랙박스·현실 세계 공격, 적대적 학습과 인증 가능한 방어, 탐지, 정직한 평가 관행, 그리고 금융 응용까지를 살펴본다.

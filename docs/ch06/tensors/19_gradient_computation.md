@@ -240,14 +240,14 @@ _확인한 곳 — W. Baur, V. Strassen, "The complexity of partial derivatives"
     gradcheck(fn, (a,))     # GradcheckError — 코드는 맞는데도 실패한다
     ```
 
-    그래서 경고가 먼저 뜬다 — `Input #0 requires gradient and is not a double precision floating point`. 제공된 예제는 `float64`에서 통과한 기록이다. 다만 이중 정밀도로 바꾼다고 잘못된 미분이나 비미분점의 문제가 해결되는 것은 아니다.
+    그래서 경고가 먼저 뜬다 — `Input #0 requires gradient and is not a double precision floating point`. 같은 함수를 `float64`로 넣으면 통과한다. 다만 이중 정밀도로 바꾼다고 잘못된 미분이나 비미분점의 문제가 해결되는 것은 아니다.
 
     ```python
     b = torch.tensor([1., 2.], dtype=torch.float64, requires_grad=True)
     gradcheck(fn, (b,))     # True
     ```
 
-    곧 **`gradcheck`가 실패했다고 해서 내 미분이 틀린 것이 아니다.** 자료형부터 확인한다. 확인용으로만 `float64`를 쓰고 학습은 `float32`로 하는 것이 보통이다.
+    곧 **`gradcheck`가 실패했다고 해서 내 미분이 틀렸다고 단정할 수는 없다.** 자료형부터 확인한다. 확인용으로만 `float64`를 쓰고 학습은 `float32`로 하는 것이 보통이다.
 
 ## 연습문제
 
@@ -348,7 +348,7 @@ $y = x^3$의 1차·2차 미분을 $x = 3$에서 autograd로 구하라. `create_g
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-`fn = lambda t: (t**3).sum()`에 대해 `torch.autograd.gradcheck`를 `float32` 입력과 `float64` 입력으로 각각 돌려라. 제공된 기록에서는 `float32` 검사가 실패한다. **미분 식이 맞아도 검사가 실패할 수 있는** 까닭을 수치 미분의 계산식으로 설명하라.
+`fn = lambda t: (t**3).sum()`에 대해 `torch.autograd.gradcheck`를 `float32` 입력과 `float64` 입력으로 각각 돌려라. 아래 풀이의 출력에서는 `float32` 검사가 실패한다. **미분 식이 맞아도 검사가 실패할 수 있는** 까닭을 수치 미분의 계산식으로 설명하라.
 
 </div>
 
@@ -403,4 +403,4 @@ $y = x^3$의 1차·2차 미분을 $x = 3$에서 autograd로 구하라. `create_g
 - **스칼라가 아닌 출력** — 출력이 여럿이면 미분도 여럿인데 담을 자리는 하나다. 그래서 **섞을 비율**(`grad_outputs`)을 밝혀야 한다. 로스를 `mean()`이나 `sum()`으로 줄이는 관행이 바로 그 비율을 정하는 일이고, 그래서 둘이 그래디언트의 크기를 다르게 만든다.
 - **야코비안** — 역전파 한 번은 VJP를 준다. 기저 벡터로 선택하면 야코비안 한 행이 된다. 전체가 필요하면 출력 수만큼 반복해야 하므로 비싸고, 작은 함수를 확인할 때만 쓴다.
 
-확인에는 `gradcheck`를 쓰되 **`float64`로** 쓴다. 수치 미분은 두 값의 차이를 아주 작은 수로 나누는 계산이라, `float32`의 유효숫자로는 쓸 만한 $h$가 없다. 그래서 코드가 맞아도 실패한다 — **실패를 보면 자료형부터 확인한다.**
+확인에는 `gradcheck`를 쓰되 **`float64`로** 쓴다. 수치 미분은 두 값의 차이를 아주 작은 수로 나누는 계산이라, `float32`의 유효숫자로는 기본 허용오차를 맞출 만한 $h$를 찾기 어렵다. 그래서 코드가 맞아도 실패할 수 있다 — **실패를 보면 자료형부터 확인한다.**

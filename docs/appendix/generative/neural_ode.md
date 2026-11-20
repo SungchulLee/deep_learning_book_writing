@@ -1,6 +1,6 @@
 # Neural ODEs
 
-Neural ODE는 2018년 논문 "Neural Ordinary Differential Equations"에서 나왔다. 깊이가 연속인(continuous-depth) 모델이며 메모리 효율적인 역전파를 쓴다.
+Neural ODE는 2018년 논문 "Neural Ordinary Differential Equations"에서 나왔다. 깊이가 연속인(continuous-depth) 모델이며 메모리 효율적인 역전파를 쓴다. 잔차 연결 $h_{t+1} = h_t + f(h_t)$를 스텝이 아주 작은 극한으로 보면 상미분 방정식 $dh/dt = f(h, t)$가 되는데, Neural ODE는 이 $f$를 뉴럴 네트워크로 두고 ODE 솔버로 적분한 결과를 레이어의 출력으로 쓴다. 논문은 역전파에 수반 방법(adjoint method)을 써서 중간 상태를 저장하지 않는다. 이 쪽의 구현은 고정 스텝 오일러 적분을 autograd로 그대로 역전파하므로 그 메모리 이점은 없고, 이미지를 분류하는 모델로 쓴다.
 
 여기 구현은 Neural ODE를 짧게 줄인 학습용 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -90,7 +90,7 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
 
 ## 2. 논의
 
-이 구현은 클래스 3개(`ODEFunc`, `ODEBlock`, `NeuralODE`)를 정의하고, 이들이 함께 완전한 생성 모델 구조를 이룬다. 클래스마다 고유한 역할을 맡아 코드를 모듈로 나누고 확장하기 쉽게 한다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
+이 구현은 클래스 3개(`ODEFunc`, `ODEBlock`, `NeuralODE`)를 정의하고, 이들이 함께 완전한 분류 모델 구조를 이룬다 — 인코더가 784차원 입력을 64차원으로 줄이고, `ODEBlock`이 그 상태를 $t=0$에서 $t=1$ 언저리까지 오일러 스텝으로 적분하고, 분류기가 10개 클래스의 로짓을 낸다. 출력의 `torch.Size([32, 10])`이 그것이다. 클래스마다 고유한 역할을 맡아 코드를 모듈로 나누고 확장하기 쉽게 한다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -99,12 +99,12 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 설정으로 초기화한 `ODEFunc`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 함께 레이어마다 나누어 적어라.
+기본 설정의 `NeuralODE` 안에 든 `ODEFunc`(`dim=64`)의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 함께 레이어마다 나누어 적어라.
 
 </div>
 
 ??? success "풀이"
-    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 레이어를 모두 더한다. `sum(p.numel() for p in model.parameters())`으로 확인할 수 있다.
+    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 레이어를 모두 더한다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다. `ODEFunc(64)`는 선형 레이어 둘이 저마다 64 × 64 + 64 = 4,160개라 모두 8,320개다. 여기에 인코더 50,240개와 분류기 650개를 더하면 출력의 59,210개가 된다.
 
 ---
 
@@ -116,7 +116,7 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
 </div>
 
 ??? success "풀이"
-    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 추가한다. 형태를 검사하려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아보기 쉬운 오류 메시지는 디버깅을 크게 앞당기고 코드를 재사용하기에 강건하게 만든다.
+    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 추가한다. 형태를 검사하려면 중요한 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아보기 쉬운 오류 메시지는 디버깅 시간을 크게 줄여 주고, 코드를 다른 곳에서 다시 쓸 때도 잘못된 입력을 일찍 걸러 준다.
 
 ---
 
@@ -135,7 +135,7 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`ODEFunc`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 구성하라. 레이어 2개, 4개, 8개로 시험하여라.
+`ODEFunc`를 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 구성하라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -146,12 +146,12 @@ Input: torch.Size([32, 784]), Output: torch.Size([32, 10])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`을 써야 PyTorch가 파라메터를 모두 최적화 대상으로 등록한다. `for n in [2, 4, 8]: model = ODEFunc(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 파라메터를 모두 최적화 대상으로 등록한다. `for n in [2, 4, 8]: model = ODEFunc(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험한다.
 
 ## 정리하며
 
 **다룬 것** — Neural ODEs
 
-이 구현은 클래스 3개(`ODEFunc`, `ODEBlock`, `NeuralODE`)를 정의하고, 이들이 함께 완전한 생성 모델 구조를 이룬다.
+이 구현은 클래스 3개(`ODEFunc`, `ODEBlock`, `NeuralODE`)를 정의하고, 이들이 함께 완전한 분류 모델 구조를 이룬다.
 
 핵심 클래스는 `ODEFunc`, `ODEBlock`, `NeuralODE`이며 앞의 연습문제 4개로 스스로 점검해 볼 수 있다.

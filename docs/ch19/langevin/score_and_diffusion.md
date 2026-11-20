@@ -142,7 +142,7 @@ GAN·VAE·정규화 플로·스코어 모형은 학습 목적과 표현·생성 
 
 sigmas=torch.logspace(−2,1,10)는 작은 값부터 큰 값 순서다. 현재 샘플러는 입력 순서대로 진행하므로 의도한 큰 노이즈→작은 노이즈의 annealed Langevin과 반대다. 초기화도 첫 번째 작은 σ를 사용하고 마지막 값은 가장 큰 σ이므로 최종 데이터 노이즈 제거 결과로 해석할 수 없다.
 
-샘플 함수의 스텝 크기 비율과 기준값, 분포별 안정성을 따로 검토해야 한다. torch.tensor(sigma)의 재생성은 기기·자료형을 의도치 않게 바꿀 수 있고, 추론에서 그래프를 끊지 않아 긴 반복의 계산 그래프가 누적될 수 있다. ScoreNetwork는 스칼라 또는 일괄 공유 σ를 전제로 하며 표본별 σ 벡터에는 그대로 맞지 않을 수 있다. 코드와 출력은 보존한 설명 자료다.
+샘플 함수의 스텝 크기 비율과 기준값, 분포별 안정성을 따로 검토해야 한다. torch.tensor(sigma)의 재생성은 기기·자료형을 의도치 않게 바꿀 수 있고, 추론에서 그래프를 끊지 않아 긴 반복의 계산 그래프가 누적될 수 있다. ScoreNetwork는 스칼라 또는 일괄 공유 σ를 전제로 하며 표본별 σ 벡터에는 그대로 맞지 않을 수 있다.
 
 ```python
 import torch
@@ -167,7 +167,7 @@ class ScoreNetwork(nn.Module):
         return self.net(inp)
 
 def train_score_model(data, sigmas, epochs=1000):
-    """디노이징 스코어 매칭로 스코어 네트워크 학습하기"""
+    """디노이징 스코어 매칭으로 스코어 네트워크 학습하기"""
     model = ScoreNetwork(data.shape[1])
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     

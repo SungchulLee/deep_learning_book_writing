@@ -10,7 +10,7 @@
 
 ### 어텐션 함수
 
-쿼리 $\mathbf{Q} \in \mathbb{R}^{n \times d_k}$, 키 $\mathbf{K} \in \mathbb{R}^{m \times d_k}$, 값 $\mathbf{V} \in \mathbb{R}^{m \times d_v}$이 주어지면 스케일 내적 어텐션은 다음을 계산한다.
+쿼리 $\mathbf{Q} \in \mathbb{R}^{n \times d_k}$, 키 $\mathbf{K} \in \mathbb{R}^{m \times d_k}$, 값 $\mathbf{V} \in \mathbb{R}^{m \times d_v}$가 주어지면 스케일 내적 어텐션은 다음을 계산한다.
 
 $$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}}\right)\mathbf{V}$$
 
@@ -20,7 +20,7 @@ $$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\fr
 
 $$\mathbf{S} = \mathbf{Q}\mathbf{K}^T \in \mathbb{R}^{n \times m}$$
 
-성분 $s_{ij}$은 쿼리 $i$과 키 $j$의 유사도를 잰다.
+성분 $s_{ij}$는 쿼리 $i$와 키 $j$의 유사도를 잰다.
 
 $$s_{ij} = \mathbf{q}_i^T \mathbf{k}_j = \sum_{l=1}^{d_k} q_{il} k_{jl}$$
 
@@ -78,19 +78,19 @@ $$\mathbf{o}_i = \sum_{j=1}^{m} \alpha_{ij} \mathbf{v}_j$$
 | $\mathbf{V}$ | $(B, H, m, d_v)$ | 배치 멀티헤드 값 |
 | $\mathbf{O}$ | $(B, H, n, d_v)$ | 배치 멀티헤드 출력 |
 
-여기서 $B$은 배치 크기이고 $H$은 어텐션 헤드의 수이다.
+여기서 $B$는 배치 크기이고 $H$는 어텐션 헤드의 수이다.
 
 ---
 
 ## 2. 왜 내적인가
 
-내적 $\mathbf{q}^T \mathbf{k}$은 관련성을 재기에 알맞은 좋은 성질을 지닌다.
+내적 $\mathbf{q}^T \mathbf{k}$는 관련성을 재기에 알맞은 좋은 성질을 지닌다.
 
 ### 기하학적 해석
 
 $$\mathbf{q}^T \mathbf{k} = \|\mathbf{q}\| \|\mathbf{k}\| \cos\theta$$
 
-여기서 $\theta$은 두 벡터 사이의 각이다. 벡터가 비슷한 방향을 가리키거나($\theta$이 작거나) 크기가 크면 내적이 크다. 이는 직관적인 유사도를 준다. 임베딩 공간에서 "정렬된" 쿼리와 키가 높은 어텐션 점수를 낸다.
+여기서 $\theta$는 두 벡터 사이의 각이다. 벡터가 비슷한 방향을 가리키거나($\theta$가 작거나) 크기가 크면 내적이 크다. 이는 직관적인 유사도를 준다. 임베딩 공간에서 "정렬된" 쿼리와 키가 높은 어텐션 점수를 낸다.
 
 ### 계산 효율
 
@@ -144,7 +144,7 @@ q와 k의 모든 성분이 서로 독립이고 평균 0·분산 1이면 내적�
 
 **쓰기** $(k, v)$: 기억 창고에 키-값 쌍을 더한다.
 
-쿼리 $q$으로 **읽기**: $\text{output} = \sum_j \text{similarity}(q, k_j) \cdot v_j$
+쿼리 $q$로 **읽기**: $\text{output} = \sum_j \text{similarity}(q, k_j) \cdot v_j$
 
 이는 내용으로 찾는 방식이다. 어디에 담겼는지가 아니라 *무엇을* 찾는지로 꺼내 온다. 이산적인 기억 찾기와 달리 연산 전체로 그래디언트가 흘러 처음부터 끝까지 학습할 수 있다.
 
@@ -390,9 +390,7 @@ class BalancedScaledAttention(nn.Module):
 
 ### 학습되는 온도
 
-아래 temperature는 제한 없는 파라메터여서 학습 중 0이나 음수가 될 수 있다. 양수 온도라는 해석을 유지하려면 softplus나 지수 변환 등의 파라메터화가 필요하다.
-
-어떤 모델은 학습되는 스케일 인수를 쓴다.
+어떤 모델은 학습되는 스케일 인수를 쓴다. 아래 `temperature`는 제한 없는 파라메터여서 학습 중 0이나 음수가 될 수 있다. 양수 온도라는 해석을 유지하려면 softplus나 지수 변환 등의 파라메터화가 필요하다.
 
 ```python
 class TemperatureScaledAttention(nn.Module):
@@ -445,7 +443,7 @@ $n = m$인 셀프 어텐션에서는 시간이 $O(n^2d)$, 공간이 $O(n^2)$이�
 
 ### 수치적 안정성
 
-PyTorch의 `F.softmax`은 log-sum-exp 기법을 자동으로 적용한다.
+PyTorch의 `F.softmax`는 최댓값을 빼는 안정화(log-sum-exp 기법과 같은 원리)를 자동으로 적용한다.
 
 $$\text{softmax}(\mathbf{x})_i = \frac{\exp(x_i - \max(\mathbf{x}))}{\sum_j \exp(x_j - \max(\mathbf{x}))}$$
 
@@ -455,9 +453,7 @@ $$\text{softmax}(\mathbf{x})_i = \frac{\exp(x_i - \max(\mathbf{x}))}{\sum_j \exp
 
 ### 청크로 나눈 어텐션
 
-아래 함수는 쿼리 축을 나누므로 한 번의 점수 배열은 줄지만 학습 자동 미분이 청크별 중간값을 모두 보관하면 전체 학습 메모리가 같은 비율로 줄지는 않는다. 마스크·드롭아웃은 없고 출력 버퍼는 장치만 맞추므로 입력 자료형과 맞출 필요가 있다.
-
-어텐션을 청크로 나누어 처리하여 최대 메모리를 줄인다.
+어텐션을 청크로 나누어 처리하여 최대 메모리를 줄인다. 아래 함수는 쿼리 축을 나누므로 한 번에 만드는 점수 배열은 작아지지만, 학습 중 자동 미분이 청크별 중간값을 모두 보관하면 전체 학습 메모리는 같은 비율로 줄지 않는다. 마스크·드롭아웃은 없고, 출력 버퍼는 장치만 입력에 맞추고 자료형은 맞추지 않으므로 필요하면 따로 맞춰야 한다.
 
 ```python
 def chunked_attention(query, key, value, chunk_size=64):
@@ -562,11 +558,11 @@ $d_k = 2$일 때 $Q = [[1,0],[0,1]]$, $K = [[1,0],[0,1]]$, $V = [[1,2],[3,4]]$�
 </div>
 
 ??? success "풀이"
-    $QK^\top$을 계산하는 데 $O(n^2 d)$, 소프트맥스에 $O(n^2)$, $V$을 곱하는 데 $O(n^2 d)$이 들어 모두 $O(n^2 d)$이다. $n$에 대한 이차 의존이 긴 시퀀스에서 가장 큰 병목이며, 그 때문에 선형 어텐션이나 희소 어텐션 같은 효율적인 변형이 나왔다.
+    $QK^\top$를 계산하는 데 $O(n^2 d)$, 소프트맥스에 $O(n^2)$, $V$를 곱하는 데 $O(n^2 d)$가 들어 모두 $O(n^2 d)$이다. $n$에 대한 이차 의존이 긴 시퀀스에서 가장 큰 병목이며, 그 때문에 선형 어텐션이나 희소 어텐션 같은 효율적인 변형이 나왔다.
 
 ## 정리하며
 
-스케일 내적 어텐션은 Q·K 내적을 차원에 맞춰 조절한 뒤 V를 결합한다. 스케일의 분산 설명에는 통계 가정이 필요하다. 마스크 의미와 평가 드롭아웃, 전체 행 마스킹과 메모리 구현을 확인해야 한다.
+스케일 내적 어텐션은 Q·K 내적을 차원에 맞춰 조절한 뒤 V를 결합한다. 스케일의 분산 설명에는 통계 가정이 필요하다. 구현할 때는 마스크 값의 의미, 평가 때의 드롭아웃, 모든 위치가 가려진 행의 처리, 메모리 사용을 확인해야 한다.
 
 **참고 문헌**
 

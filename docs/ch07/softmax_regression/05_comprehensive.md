@@ -1100,7 +1100,7 @@
 
 ### 구성요소의 역할
 
-`DatasetManager`는 데이터와 로더를 준비하고 `ModelFactory`는 입력 모양과 클래스 수에 맞는 모델을 만든다. `Trainer`는 학습·검증·시험을 담당하며 `ExperimentRunner`는 여러 설정의 결과를 모은다. 관리용 클래스가 모두 `nn.Module`이거나 `forward()`로 계산 그래프를 만드는 것은 아니다.
+`DatasetManager`는 데이터와 로더를 준비하고 `ModelFactory`는 입력 모양과 클래스 수에 맞는 모델을 만든다. `Trainer`는 학습·검증·시험을 담당하며 `ExperimentRunner`는 여러 설정의 결과를 모은다. 관리용 클래스가 모두 `nn.Module`이거나 `forward()`로 계산 그래프를 만드는 것은 아니다. `ModelFactory`의 세 모델은 모두 은닉 레이어를 둔 완전 연결 네트워크이며, 출력 레이어의 로짓에 소프트맥스(교차 엔트로피 안에서)를 쓰는 점만 소프트맥스 회귀와 같다.
 
 ### 비교 단위와 평가
 
@@ -1127,12 +1127,12 @@ DatasetManager의 역할과 실제 학습 모델의 파라메터 수를 구분�
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-옵티마이저를 Adam으로 바꾸고(`torch.optim.Adam`에 `lr=0.001`을 쓴다) 원래 옵티마이저와 학습 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
+이 쪽의 `run_experiment`는 `optim.Adam`에 `lr=0.001`을 쓴다. 옵티마이저를 `torch.optim.SGD`(`lr=0.01`, `momentum=0.9`)로 바꾸고 원래 옵티마이저와 학습 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
 
 </div>
 
 ??? success "풀이"
-    옵티마이저를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 바꾼다. Adam은 그래디언트와 그래디언트 제곱의 이동 평균으로 성분별 업데이트를 조정한다. 어느 옵티마이저가 더 빨리 수렴하는지는 문제와 러닝레이트에 달려 있다. 같은 초기 웨이트와 데이터 순서, 평가 기준을 사용하고 각 러닝레이트를 조정해 비교한다. 여러 시드의 변동과 검증 성능도 확인한다.
+    `run_experiment` 안의 옵티마이저를 만드는 줄을 `optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)`로 바꾸고 `lr=0.01`을 넘긴다. Adam은 그래디언트와 그래디언트 제곱의 이동 평균으로 성분별 업데이트를 조정한다. 어느 옵티마이저가 더 빨리 수렴하는지는 문제와 러닝레이트에 달려 있다. 같은 초기 웨이트와 데이터 순서, 평가 기준을 사용하고 각 러닝레이트를 조정해 비교한다. 여러 시드의 변동과 검증 성능도 확인한다.
 
 ---
 
@@ -1144,14 +1144,14 @@ DatasetManager의 역할과 실제 학습 모델의 파라메터 수를 구분�
 </div>
 
 ??? success "풀이"
-    같은 평가 분할과 지표 정의, 데이터 전처리와 학습 예산을 확인하고 시드 변동을 기록한다. 제공된 얕은 복사 체크포인트가 과거 웨이트를 보존하는지 점검해야 하며, 시험셋을 선택에 재사용하면 독립적인 성능 평가가 아니다.
+    같은 평가 분할과 지표 정의, 데이터 전처리와 학습 예산을 확인하고 시드 변동을 기록한다. 이 코드의 얕은 복사 체크포인트가 과거 웨이트를 보존하는지 점검해야 하며, 시험셋을 선택에 재사용하면 독립적인 성능 평가가 아니다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-제시된 ModuleList 확장 패턴을 현재 코드에 적용하려면 어떤 새 모델 정의가 필요한지 설명하라. NumPy 구현 또는 데이터 관리자와 학습 모델을 구분하라.
+풀이에 실린 `nn.ModuleList` 확장 패턴을 현재 코드에 적용하려면 어떤 새 모델 정의가 필요한지 설명하라. 데이터 관리자(`DatasetManager`)와 학습 모델을 구분하라.
 
 </div>
 
@@ -1162,7 +1162,7 @@ DatasetManager의 역할과 실제 학습 모델의 파라메터 수를 구분�
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    PyTorch 모델 클래스를 별도로 정의하고 생성자·forward·출력 모양을 함께 맞춰야 한다. NumPy 클래스나 DatasetManager에 ModuleList를 붙인다고 자동으로 모델이 바뀌지 않는다. 비선형 은닉 레이어를 추가하면 원래 단일 선형 소프트맥스 회귀와 다른 가설 공간이 된다.
+    PyTorch 모델 클래스를 별도로 정의하고 생성자·forward·출력 모양을 함께 맞춰야 한다. `DatasetManager`나 `Trainer`에 ModuleList를 붙인다고 자동으로 모델이 바뀌지 않는다. `ModelFactory`에 새 모델 종류를 더하는 것이 이 코드의 구조에 맞다. 비선형 은닉 레이어를 더 쌓으면 기존 모델과 다른 가설 공간이 된다.
 
 ## 정리하며
 

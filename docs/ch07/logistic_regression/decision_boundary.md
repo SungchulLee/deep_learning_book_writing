@@ -129,7 +129,7 @@ float32에서는 극단적인 로짓에서 확률이 0이나 1로 반올림될 �
 
 ### 안정한 정식화
 
-**BCEWithLogitsLoss**은 시그모이드와 BCE를 수치적으로 안정한 하나의 연산으로 합친다. 로짓이 $z$이고 라벨이 $y$인 표본 하나의 로스에서 출발한다.
+**BCEWithLogitsLoss**는 시그모이드와 BCE를 수치적으로 안정한 하나의 연산으로 합친다. 로짓이 $z$이고 라벨이 $y$인 표본 하나의 로스에서 출발한다.
 
 $$
 \ell = -[y \log \sigma(z) + (1-y) \log(1-\sigma(z))]
@@ -587,7 +587,7 @@ Final loss (BCEWithLogitsLoss): 0.344025
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`pos_weight`을 쓰는 `BCEWithLogitsLoss`을 구현하고, 불균형 데이터(음성 90%, 양성 10%)에서 결정 경계에 미치는 효과를 보여라.
+`pos_weight`를 쓰는 `BCEWithLogitsLoss`를 구현하고, 불균형 데이터(음성 90%, 양성 10%)에서 결정 경계에 미치는 효과를 보여라.
 
 </div>
 
@@ -625,4 +625,4 @@ Final loss (BCEWithLogitsLoss): 0.344025
 | 안정한 BCE | $\max(z,0) - yz + \log(1+e^{-\|z\|})$ | 수치적으로 안정한 형태 |
 | PyTorch | `BCEWithLogitsLoss` | 로짓을 직접 출력하는 이진 분류의 기본 선택 |
 
-비영 웨이트의 선형 로지스틱 모델은 임곗값에 따라 초평면 경계를 갖는다. 경계의 기하, 확률의 크기와 수치 안정성은 연결되어 있지만 같은 정보는 아니며 정칙화의 효과도 검증해야 한다.
+웨이트가 0이 아닌 선형 로지스틱 모델은 임곗값에 따라 초평면 경계를 갖는다. 경계의 기하, 확률의 크기와 수치 안정성은 연결되어 있지만 같은 정보는 아니며 정칙화의 효과도 검증해야 한다.

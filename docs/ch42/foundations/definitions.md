@@ -1,20 +1,20 @@
 # 강건성 정의
 
-강건성을 엄밀히 뜻매김해야 방어 방법을 뜻있게 평가하고 견줄 수 있다. 이 절은 핵심 지표를 형태로 적고, 적대적 취약성을 재는 수학 틀을 세우며, 공격을 짜는 데 다시 쓸 수 있는 PyTorch 밑 클래스를 준다.
+강건성을 엄밀히 정의해야 방어 방법을 의미 있게 평가하고 비교할 수 있다. 이 절은 핵심 지표를 형식화하고, 적대적 취약성을 재는 수학적 틀을 세우며, 공격을 구현하는 데 다시 쓸 수 있는 PyTorch 기반 클래스를 제시한다.
 
 ---
 
 ## 1. 핵심 정의
 
-### 점마다의 강건성
+### 점별 강건성
 
-분류기 $f$이 레이블 $y$인 입력 $\mathbf{x}$에서 반지름 $\varepsilon$의 $\ell_p$ 노름 아래 다음을 채우면 **점마다 강건하다**고 한다.
+분류기 $f$가 레이블 $y$인 입력 $\mathbf{x}$에서 반지름 $\varepsilon$의 $\ell_p$ 노름 아래 다음을 만족하면 **점별로 강건하다**(pointwise robust)고 한다.
 
 $$
 \forall \boldsymbol{\delta} \in \mathbb{R}^d, \quad \|\boldsymbol{\delta}\|_p \leq \varepsilon \implies f(\mathbf{x} + \boldsymbol{\delta}) = y
 $$
 
-분류기가 $\mathbf{x}$ 둘레 $\varepsilon$ 공의 모든 점을 옳게 가른다는 뜻이다.
+분류기가 $\mathbf{x}$ 둘레 $\varepsilon$ 공의 모든 점을 올바르게 분류한다는 뜻이다.
 
 ### 가장 작은 적대적 섭동
 
@@ -24,17 +24,17 @@ $$
 \varepsilon^*(\mathbf{x}) = \min \left\{ \|\boldsymbol{\delta}\|_p : f(\mathbf{x} + \boldsymbol{\delta}) \neq y \right\}
 $$
 
-이는 "결정 경계까지의 거리"를 재며, 보기 하나하나의 강건성을 재는 가장 기초가 되는 자다.
+이는 "결정 경계까지의 거리"를 재며, 샘플 하나하나의 강건성을 재는 가장 기본적인 척도다.
 
 ### 강건성 위험
 
-**강건성 위험**(적대적 위험)은 여느 분류의 위험을 가장 나쁜 자리로 넓힌 것이다.
+**강건성 위험**(적대적 위험)은 표준 분류 위험을 최악의 경우로 확장한 것이다.
 
 $$
 R_{\text{rob}}(f, \varepsilon) = \mathbb{E}_{(\mathbf{x},y) \sim \mathcal{D}}\left[\max_{\|\boldsymbol{\delta}\|_p \leq \varepsilon} \mathbf{1}[f(\mathbf{x} + \boldsymbol{\delta}) \neq y]\right]
 $$
 
-여느 위험은 $\varepsilon = 0$인 남다른 자리다.
+표준 위험은 $\varepsilon = 0$인 특수한 경우다.
 
 $$
 R_{\text{std}}(f) = \mathbb{E}_{(\mathbf{x},y) \sim \mathcal{D}}[\mathbf{1}[f(\mathbf{x}) \neq y]]
@@ -42,11 +42,11 @@ $$
 
 ---
 
-## 2. 공격이 먹힌 정도를 재는 자
+## 2. 공격 성공을 재는 척도
 
-### 공격이 먹힌 비율(ASR)
+### 공격 성공률(ASR)
 
-공격이 오분류하게 만든 보기의 기여도다.
+공격이 오분류하게 만든 샘플의 비율이다.
 
 $$
 \text{ASR} = \frac{1}{N} \sum_{i=1}^N \mathbf{1}[f_\theta(\mathbf{x}_i + \boldsymbol{\delta}_i^*) \neq y_i]
@@ -60,27 +60,27 @@ $$
 
 ### 강건 정확도
 
-섭동 예산 안에서 있을 수 있는 가장 센 적대적 공격 아래의 정확도다.
+섭동 예산 안에서 가능한 가장 센 적대적 공격 아래의 정확도다.
 
 $$
 \text{Robust Acc}(\varepsilon) = \frac{1}{N} \sum_{i=1}^N \min_{\|\boldsymbol{\delta}\|_p \leq \varepsilon} \mathbf{1}[f_\theta(\mathbf{x}_i + \boldsymbol{\delta}) = y_i]
 $$
 
-**ASR과의 사이:** 비표적 공격에서는 $\text{ASR} = 1 - \text{Robust Acc}$이다.
+**ASR과의 관계:** 비표적 공격에서 모든 샘플을 분모로 두면 $\text{ASR} = 1 - \text{Robust Acc}$이다.
 
-실제로는 정확한 강건 정확도를 다룰 수 없다(안쪽의 어려운 최대화를 풀어야 한다). 그래서 PGD이나 AutoAttack 같은 센 공격으로 근사한다.
+실제로는 정확한 강건 정확도를 계산할 수 없다(안쪽의 어려운 최대화 문제를 풀어야 한다). 그래서 PGD나 AutoAttack 같은 센 공격으로 근사한다.
 
-### 섭동의 크기를 재는 자
+### 섭동의 크기를 재는 척도
 
-**먹힌 공격의 평균 $\ell_p$ 거리:**
+**성공한 공격의 평균 $\ell_p$ 거리:**
 
 $$
 \bar{d}_p = \frac{1}{|\mathcal{S}|} \sum_{i \in \mathcal{S}} \|\boldsymbol{\delta}_i^*\|_p
 $$
 
-여기서 $\mathcal{S} = \{i : f_\theta(\mathbf{x}_i + \boldsymbol{\delta}_i^*) \neq y_i\}$은 먹힌 공격의 모임이다.
+여기서 $\mathcal{S} = \{i : f_\theta(\mathbf{x}_i + \boldsymbol{\delta}_i^*) \neq y_i\}$은 성공한 공격의 집합이다.
 
-**보기마다 있어야 할 가장 작은 섭동:**
+**샘플마다 필요한 가장 작은 섭동:**
 
 $$
 \varepsilon^*_i = \min \{\varepsilon : \exists \boldsymbol{\delta}, \|\boldsymbol{\delta}\|_p \leq \varepsilon, f_\theta(\mathbf{x}_i + \boldsymbol{\delta}) \neq y_i\}
@@ -94,11 +94,11 @@ $$
 \text{Certified Acc}(r) = \frac{1}{N} \sum_{i=1}^N \mathbf{1}[f(\mathbf{x}_i) = y_i \text{ and } R_i \geq r]
 $$
 
-여기서 $R_i$은 보기 $i$에서 강건성 인증의 반지름이다. 이는 참 강건 정확도의 **아래끝**이다.
+여기서 $R_i$는 샘플 $i$에서 인증된 강건 반지름이다. 이는 참 강건 정확도의 **하한**이다.
 
 ---
 
-## 3. PyTorch로 구현하기: 공격 밑 클래스
+## 3. PyTorch로 구현하기: 공격 기반 클래스
 
 ```python
 import torch
@@ -268,15 +268,15 @@ class AdversarialAttack(ABC):
 
 ---
 
-## 4. 강건성 굽이
+## 4. 강건성 곡선
 
-**강건성 굽이**은 강건 정확도를 섭동 예산 $\varepsilon$의 함수로 그린다.
+**강건성 곡선**은 강건 정확도를 섭동 예산 $\varepsilon$의 함수로 그린다.
 
 $$
 \varepsilon \mapsto \text{Robust Acc}(\varepsilon)
 $$
 
-이 굽이는 늘 오르지 않으며(예산이 클수록 공격자가 세진다) $\varepsilon \to \infty$이면 0에 다가간다. 강건성 굽이 아래 넓이는 모든 섭동 레이어에 걸친 강건성을 값 하나로 간추려 준다.
+이 곡선은 단조 비증가하며(예산이 클수록 공격자가 세진다) $\varepsilon \to \infty$이면 0에 다가간다. 강건성 곡선 아래 넓이는 모든 섭동 크기에 걸친 강건성을 값 하나로 요약해 준다.
 
 ```python
 def compute_robustness_curve(
@@ -327,7 +327,7 @@ def compute_robustness_curve(
 </div>
 
 ??? success "풀이"
-    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 국소 선형 근사 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 통하는지를 설명해 준다. 차원이 높은 모델이 취약한 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
+    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 국소 선형 근사 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$가 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 통하는지를 설명해 준다. 차원이 높은 모델이 취약한 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
@@ -351,7 +351,7 @@ def compute_robustness_curve(
 </div>
 
 ??? success "풀이"
-    두 클래스의 서포트가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 기초 트레이드오프다. 겹치는 서포트의 비중이 피할 수 없는 정확도 손실을 정한다. 자연 이미지 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 관찰되는 10~15%의 정확도 하락을 설명해 준다. 모델 용량을 키우면(더 넓은 네트워크) 복잡한 강건 결정 경계를 더 잘 그려 트레이드오프를 어느 정도 완화할 수 있다. $\square$
+    두 클래스의 서포트가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$가 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 근본적인 트레이드오프다. 겹치는 서포트의 비중이 피할 수 없는 정확도 손실을 정한다. 자연 이미지 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 관찰되는 10~15%의 정확도 하락을 설명해 준다. 모델 용량을 키우면(더 넓은 네트워크) 복잡한 강건 결정 경계를 더 잘 그려 트레이드오프를 어느 정도 완화할 수 있다. $\square$
 
 ---
 
@@ -367,11 +367,11 @@ def compute_robustness_curve(
 
 ## 정리하며
 
-| 자 | 식 | 재는 것 |
+| 척도 | 식 | 재는 것 |
 |--------|---------|----------|
-| 공격이 먹힌 비율 | $\frac{1}{N}\sum \mathbf{1}[f(\mathbf{x}_i + \boldsymbol{\delta}_i) \neq y_i]$ | 공격이 잘 먹히는 정도 |
+| 공격 성공률 | $\frac{1}{N}\sum \mathbf{1}[f(\mathbf{x}_i + \boldsymbol{\delta}_i) \neq y_i]$ | 공격이 성공하는 정도 |
 | 강건 정확도 | $\frac{1}{N}\sum \min_\delta \mathbf{1}[f(\mathbf{x}_i + \boldsymbol{\delta}_i) = y_i]$ | 모델이 버티는 정도 |
-| 인증 정확도 | 증명할 수 있는 보장을 지닌 강건 정확도 | 가장 나쁜 자리에서 버티는 정도 |
+| 인증 정확도 | 증명할 수 있는 보장을 지닌 강건 정확도 | 최악의 경우에도 버티는 정도 |
 | 가장 작은 섭동 | $\min\{\varepsilon : \exists \boldsymbol{\delta}, f(\mathbf{x}+\boldsymbol{\delta}) \neq y\}$ | 결정 경계까지의 거리 |
 
 이 정의들이 이어지는 절의 모든 공격과 방어 평가의 기초가 된다.

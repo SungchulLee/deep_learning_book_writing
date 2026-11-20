@@ -86,7 +86,7 @@ class SpatialStream(nn.Module):
         return features
 ```
 
-SpatialStream은 ResNet-50 또는101의 이미지 피처를 사용하고 새 액션 분류 head를 붙인다. 배치 이미지는 B×3×H×W, 비디오는 B×T×3×H×W를 받는다. 비디오의 프레임 로짓을 평균하므로 eval에서 프레임 순서에 불변이다. extract_features는 비디오일 때 B×T×2048을 반환하며 아직 시간 요약을 하지 않는다. 사전 학습된 RGB 통계·입력 범위와 새 분류 head의 학습을 구분한다.
+SpatialStream은 ResNet-50 또는 101의 이미지 피처를 사용하고 새 액션 분류 head를 붙인다. 배치 이미지는 B×3×H×W, 비디오는 B×T×3×H×W를 받는다. 비디오의 프레임 로짓을 평균하므로 eval에서 프레임 순서에 불변이다. extract_features는 비디오일 때 B×T×2048을 반환하며 아직 시간 요약을 하지 않는다. 사전 학습된 RGB 통계·입력 범위와 새 분류 head의 학습을 구분한다.
 
 ```python
 def sample_frames_spatial(video: torch.Tensor, 
@@ -186,13 +186,13 @@ class TemporalStream(nn.Module):
         return self.classifier(x)
 ```
 
-TemporalStream은 L개의 프레임 쌍을 수평·수직 두 채널씩 연결한 B×2L×H×W를 받는다. 기본 L10에서20채널이다. 첫 컨볼루션만 RGB 사전 학습 필터를 평균·복제해 초기화하고 나머지 ResNet은 pretrained=False의 무작위 초기값이다. 전체 시간 가지가 ImageNet 사전 학습 웨이트를 이어받은 것으로 설명하지 않는다.
+TemporalStream은 L개의 프레임 쌍을 수평·수직 두 채널씩 연결한 B×2L×H×W를 받는다. 기본 L=10에서 20채널이다. 첫 컨볼루션만 RGB 사전 학습 필터를 평균·복제해 초기화하고 나머지 ResNet은 pretrained=False의 무작위 초기값이다. 전체 시간 가지가 ImageNet 사전 학습 웨이트를 이어받은 것으로 설명하지 않는다.
 
-코드는 RGB 필터의 채널 평균을2L번 복제한 뒤2L로 나눈다. 동일한 입력을 모든 채널에 넣었을 때 총 반응은 원 RGB 필터의 **합**이 아니라 **평균**에 해당한다. 원래 RGB 응답 크기를 자동 보존하는 초기화는 아니다. flow의 단위·범위는 RGB와 다르므로 분포까지 같아지는 것도 아니다. `if True` 때문에 이 초기화와 사전 학습 웨이트 로드가 항상 수행된다.
+코드는 RGB 필터의 채널 평균을 2L번 복제한 뒤 2L로 나눈다. 동일한 입력을 모든 채널에 넣었을 때 총 반응은 원 RGB 필터의 **합**이 아니라 **평균**에 해당한다. 원래 RGB 응답 크기를 자동 보존하는 초기화는 아니다. flow의 단위·범위는 RGB와 다르므로 분포까지 같아지는 것도 아니다. `if True` 때문에 이 초기화와 사전 학습 웨이트 로드가 항상 수행된다.
 
 ## 3. 이동량과 flow 추출
 
-첫 프레임의 위치(x,y)가 다음 프레임의(x+Δx,y+Δy)에 대응한다고 할 때 flow는 그 프레임 쌍의 이동량이다. 물리적 속도와 같지 않으며 시간 간격·투영·카메라 운동이 영향을 준다. 밝기 보존을 작은 변화로 근사하면 I_xΔx+I_yΔy+ΔI≈0이며, 속도 u=Δx/Δt,v=Δy/Δt와 시간 미분 I_t를 쓰면 I_xu+I_yv+I_t≈0이다. 이동량과 속도의 표기를 섞지 않는다.
+첫 프레임의 위치(x,y)가 다음 프레임의 (x+Δx,y+Δy)에 대응한다고 할 때 flow는 그 프레임 쌍의 이동량이다. 물리적 속도와 같지 않으며 시간 간격·투영·카메라 운동이 영향을 준다. 밝기 보존을 작은 변화로 근사하면 I_xΔx+I_yΔy+ΔI≈0이며, 속도 u=Δx/Δt,v=Δy/Δt와 시간 미분 I_t를 쓰면 I_xu+I_yv+I_t≈0이다. 이동량과 속도의 표기를 섞지 않는다.
 
 ```python
 import cv2
@@ -286,9 +286,9 @@ def extract_flow_stack(video: torch.Tensor,
     return flow_stack
 ```
 
-이 함수는0~1 RGB 프레임을255배해 grayscale uint8로 바꾼다. uint8 입력이나 이미 정규화된 모델 입력을 그대로 넣으면 맞지 않는다. Farnebäck와 TV-L1은 다른 추정기이며 후자는 `cv2.optflow`를 제공하는 설치 구성이 필요하다. 밝기 변화·가림·큰 이동·반복 무늬에서 오차가 생길 수 있다.
+이 함수는 0~1 RGB 프레임에 255를 곱해 그레이스케일 uint8로 바꾼다. uint8 입력이나 이미 정규화된 모델 입력을 그대로 넣으면 맞지 않는다. Farnebäck와 TV-L1은 다른 추정기이며 후자는 `cv2.optflow`를 제공하는 설치 구성이 필요하다. 밝기 변화·가림·큰 이동·반복 무늬에서 오차가 생길 수 있다.
 
-extract_flow_stack은 CPU·그래디언트 없는 T×3×H×W에서 처음 L쌍을 계산한다. .numpy()전에 장치 이동·detach가 없으므로 GPU나 requires_grad 입력에는 그대로 쓸 수 없다. normalize=True는 성분을20으로 나누어−1~1로 자르므로20픽셀보다 큰 이동량의 구분이 사라진다. 이 값은 확률도 표준편차 정규화도 아니다. L쌍에는 적어도 L+1프레임이 필요하고 이 과정은 미분 가능한 흐름 추정 경로가 아니다.
+extract_flow_stack은 CPU에 있고 그래디언트를 추적하지 않는 T×3×H×W 텐서에서 처음 L쌍을 계산한다. .numpy() 전에 장치 이동·detach가 없으므로 GPU나 requires_grad 입력에는 그대로 쓸 수 없다. normalize=True는 성분을 20으로 나누어 −1~1로 자르므로 20픽셀보다 큰 이동량의 구분이 사라진다. 이 값은 확률도 표준편차 정규화도 아니다. L쌍에는 적어도 L+1프레임이 필요하고 이 과정은 미분 가능한 흐름 추정 경로가 아니다.
 
 ```python
 def visualize_flow(flow: np.ndarray) -> np.ndarray:
@@ -322,7 +322,7 @@ def visualize_flow(flow: np.ndarray) -> np.ndarray:
     return rgb
 ```
 
-방향·크기의 HSV 그림은 영상별 min-max 밝기를 사용한다. 다른 그림의 밝기로 절대 속도를 비교할 수 없고 일정한 크기장도 어둡게 표시될 수 있다. flow를 resize·반사하면 벡터 크기·부호도 해당 변환에 맞춰 바꿔야 한다.
+방향·크기의 HSV 그림은 영상별 min-max 밝기를 사용한다. 다른 그림의 밝기로 절대 속도를 비교할 수 없고 일정한 크기장도 어둡게 표시될 수 있다. flow의 크기를 조정하거나 반사하면 벡터 크기·부호도 해당 변환에 맞춰 바꿔야 한다.
 
 ## 4. 점수 결합과 피처 결합
 
@@ -392,7 +392,7 @@ class TwoStreamNetwork(nn.Module):
         return fused
 ```
 
-위 모델은 확률이 아닌 **로짓**을 결합한다. average는 로짓 평균이고 weighted는 sigmoid(alpha)로 제한한 가중 평균이다. 기본 spatial_weight0.4는 실제 웨이트0.4가 아니라 sigmoid0.4≈0.599로 시작한다. learned는 연결한 로짓을 MLP로 변환한다. 클래스 순서가 같아야 하고 로짓 평균 뒤 softmax와 확률 평균은 일반적으로 다르다. 잘못된 fusion 문자열에는 반환 fused가 정의되지 않는 점도 현재 코드의 한계다.
+위 모델은 확률이 아닌 **로짓**을 결합한다. average는 로짓 평균이고 weighted는 sigmoid(alpha)로 제한한 가중 평균이다. 기본 spatial_weight 0.4는 실제 웨이트 0.4가 아니라 sigmoid(0.4)≈0.599로 시작한다. learned는 연결한 로짓을 MLP로 변환한다. 클래스 순서가 같아야 하고 로짓 평균 뒤 softmax와 확률 평균은 일반적으로 다르다. 잘못된 fusion 문자열에는 반환 fused가 정의되지 않는 점도 현재 코드의 한계다.
 
 ```python
 class FeatureFusionTwoStream(nn.Module):
@@ -496,11 +496,11 @@ def train_two_stream_e2e(model, train_loader, optimizer, epochs):
             optimizer.step()
 ```
 
-공동 학습 루프는 입력·라벨만 CUDA로 옮기므로 모델의 장치를 맞춰야 하고 `.train()` 호출도 없다. 호출 전에 eval로 두었다면 dropout·BN이 학습 모드로 자동 전환되지 않는다. flow 텐서를 입력으로 받는 네트워크의 공동 최적화이지 OpenCV flow 추정까지 역전파하는 end-to-end 학습은 아니다.
+공동 학습 루프는 입력·라벨만 CUDA로 옮기므로 모델의 장치를 맞춰야 하고 `.train()` 호출도 없다. 호출 전에 eval로 두었다면 dropout·BN이 학습 모드로 자동 전환되지 않는다. flow 텐서를 입력으로 받는 네트워크의 공동 최적화이지 OpenCV flow 추정까지 역전파하는 엔드투엔드 학습은 아니다.
 
 ## 6. 성능을 비교하는 조건
 
-이 페이지에는 실제 학습·평가 결과를 만드는 데이터나 실험이 없다. 특정 UCF-101 정확도를 원 논문의 backbone·split·flow·사전 학습·평가 조건 없이 ‘흔한 정확도’로 제시하지 않는다. RGB 단독·flow 단독·결합을 같은 조건에서 비교하고 전체 시스템 비용에 흐름 추정·저장·읽기도 포함한다.
+이 페이지에는 실제 학습·평가 결과를 만드는 데이터나 실험이 없다. 특정 UCF-101 정확도를 원 논문의 backbone·데이터 분할·flow·사전 학습·평가 조건 없이 ‘흔한 정확도’로 제시하지 않는다. RGB 단독·flow 단독·결합을 같은 조건에서 비교하고 전체 시스템 비용에 흐름 추정·저장·읽기도 포함한다.
 
 두 네트워크의 비용은 채널 수·프레임 수·fusion과 backbone에 따라 달라 정확히 두 배로 고정되지 않는다. 흐름이 외형 정보를 전혀 담지 않는 것도 아니고 짧은 스택이 모든 장기 시간 관계를 해결하지도 않는다. 이후의 시간 모델·3D CNN·SlowFast와 비교할 때 관찰 구간과 사전 학습을 맞춘다.
 
@@ -515,7 +515,7 @@ RGB와 flow를 결합하는 이유와 RGB 시간 모델이 불가능하다는 �
 
 ??? success "풀이"
 
-    RGB의 외형과 명시적으로 추정한 이동량이 상호 보완적인 입력이 될 수 있다. 그러나 RGB도 여러 프레임의3D CNN·순환·attention으로 시간 관계를 배울 수 있다. 두 가지의 성능 이점은 같은 조건의 실험으로 확인해야 한다.
+    RGB의 외형과 명시적으로 추정한 이동량이 상호 보완적인 입력이 될 수 있다. 그러나 RGB도 여러 프레임의 3D CNN·순환·attention으로 시간 관계를 배울 수 있다. 두 가지의 성능 이점은 같은 조건의 실험으로 확인해야 한다.
 
 
 
@@ -530,7 +530,7 @@ TemporalStream이 전체 사전 학습 웨이트를 쓰는가? 첫 필터의 복
 
 ??? success "풀이"
 
-    나머지 ResNet은 무작위 초기값이고 첫 필터만 RGB 사전 필터에서 가져온다. 채널 평균을 복제하고2L로 나누어 동일 채널 입력의 합성 응답은 원 RGB 필터의 평균과 같다. 원 RGB 합 응답을 보존한다고 설명하지 않는다.
+    나머지 ResNet은 무작위 초기값이고 첫 필터만 RGB 사전 필터에서 가져온다. 채널 평균을 복제하고 2L로 나누어 동일 채널 입력의 합성 응답은 원 RGB 필터의 평균과 같다. 원 RGB 합 응답을 보존한다고 설명하지 않는다.
 
 
 
@@ -545,7 +545,7 @@ FeatureFusionTwoStream의 두 연결 문제를 설명하라.
 
 ??? success "풀이"
 
-    TemporalStream에 features속성이 없어 호출이 실패한다. RGB 비디오 피처도B×T×2048이므로B×2048흐름 피처와 곧바로 연결할 수 없다. 명시적인 시간 피처 추출과 RGB 시간 요약·정렬이 필요하다.
+    TemporalStream에 features 속성이 없어 호출이 실패한다. RGB 비디오 피처도 B×T×2048이므로 B×2048 흐름 피처와 곧바로 연결할 수 없다. 명시적인 시간 피처 추출과 RGB 시간 요약·정렬이 필요하다.
 
 
 
@@ -554,13 +554,13 @@ FeatureFusionTwoStream의 두 연결 문제를 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-공동 학습 코드가 OpenCV 흐름 추정까지 학습하는가? weighted 초기값0.4의 실제 RGB 웨이트는 얼마인가?
+공동 학습 코드가 OpenCV 흐름 추정까지 학습하는가? weighted 초기값 0.4의 실제 RGB 웨이트는 얼마인가?
 
 </div>
 
 ??? success "풀이"
 
-    flow를 이미 계산한 입력으로 받으므로 OpenCV 과정에는 역전파하지 않는다. 실제 RGB 로짓 웨이트는sigmoid0.4≈0.599다. 모델의train모드·장치·Fimport와 목표 텐서의 정의도 별도로 맞춰야 한다.
+    flow를 이미 계산한 입력으로 받으므로 OpenCV 과정에는 역전파하지 않는다. 실제 RGB 로짓 웨이트는 sigmoid(0.4)≈0.599다. 모델의 train 모드·장치·F import와 목표 텐서의 정의도 별도로 맞춰야 한다.
 
 
 

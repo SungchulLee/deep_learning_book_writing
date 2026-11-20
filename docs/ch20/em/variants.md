@@ -16,7 +16,7 @@ M 단계에 경사 상승, Newton 또는 준 Newton 방법을 사용할 수 있�
 
 **그림으로 보는 AI 1.** 첫 변형은 원래 논문 안에 있었다
 
-이 장의 변형들 가운데 첫째인 GEM은 뒤에 누가 붙인 것이 아니다. 1977년 템프스터·레어드·루빈의 그 논문 3절에 **정의와 이름이 함께** 들어 있다.
+이 쪽의 변형들 가운데 첫째인 GEM은 뒤에 누가 붙인 것이 아니다. 1977년 뎀프스터·레어드·루빈의 그 논문 3절에 **정의와 이름이 함께** 들어 있다.
 
 > "Definition. An iterative algorithm with mapping $M(\phi)$ is a **generalized EM algorithm (a GEM algorithm)** if $Q(M(\phi)|\phi) \ge Q(\phi|\phi)$ for every $\phi$ in $\Omega$."
 

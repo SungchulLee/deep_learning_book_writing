@@ -152,7 +152,7 @@ class DecoderOnly(nn.Module):
 
 **사전 학습**: 인과 언어 모델링(CLM)은 앞선 토큰을 조건으로 다음 토큰을 예측한다. 각 유효 위치에 로스를 줄 수 있지만 다른 목표보다 항상 데이터 효율이 좋다는 뜻은 아니다.
 
-**코드의 범위**: 아래처럼 nn.TransformerEncoder에 인과 마스크를 주면 디코더 전용 블록을 구성하는 출발점이 된다. 다만 이 짧은 구현에는 위치 표현과 패딩 처리가 없고, 고정 마스크의 길이는 2048이다. 이 코드가 GPT의 전체 구조·사전 학습을 재현하는 것은 아니다.
+**코드의 범위**: 위처럼 `nn.TransformerEncoder`에 인과 마스크를 주면 디코더 전용 블록을 구성하는 출발점이 된다. 다만 이 짧은 구현에는 위치 표현과 패딩 처리가 없고, 고정 마스크의 길이는 2048이다. 이 코드가 GPT의 전체 구조·사전 학습을 재현하는 것은 아니다.
 
 ---
 
@@ -240,7 +240,7 @@ $$\text{FFN}(\mathbf{x}) = f(\mathbf{x}\mathbf{W}_1)\mathbf{W}_2$$
 
 상세 예제의 입력 attention_mask는 1이 유효, 0이 패딩이며 내부 key_padding_mask는 True가 차단이다. 모든 키가 패딩이면 소프트맥스에서 NaN이 발생할 수 있다. 패딩 쿼리의 출력까지 자동으로 0으로 만들지는 않는다.
 
-Pre-LN의 all_hidden_states는 최종 정규화 전의 마지막 블록 출력까지 담지만 last_hidden_state에는 최종 정규화가 적용된다. 두 값을 곧바로 같다고 비교하면 안 된다. 어텐션 웨이트는 드롭아웃 이후이므로 학습 모드의 행 합은 항상 1이 아니다. 예제의 108,890,112개는 학습 전 구조의 파라메터 수다.
+Pre-LN의 all_hidden_states는 최종 정규화 전의 마지막 블록 출력까지 담지만 last_hidden_state에는 최종 정규화가 적용된다. 두 값을 곧바로 같다고 비교하면 안 된다. 어텐션 웨이트는 드롭아웃 이후이므로 학습 모드에서는 행 합이 1이라는 보장이 없다. 예제의 108,890,112개는 학습 전 구조의 파라메터 수다.
 
 ### 개요
 
@@ -272,7 +272,7 @@ $$
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
 $$
 
-셀프 어텐션에서는 $Q$, $K$, $V$이 모두 같은 입력에서 나온다.
+셀프 어텐션에서는 $Q$, $K$, $V$가 모두 같은 입력에서 나온다.
 
 $$
 Q = XW^Q, \quad K = XW^K, \quad V = XW^V
@@ -284,7 +284,7 @@ $$
 
 **1단계 — 토큰화**: 입력 문장을 토큰(단어나 서브워드)으로 나눈다. 이를테면 "The cat sat"은 토큰 시퀀스 $[\text{The}, \text{cat}, \text{sat}]$이 된다.
 
-**2단계 — 임베딩 조회**: 임베딩 행렬 $E \in \mathbb{R}^{V \times d_{\text{model}}}$으로 토큰마다 밀집 벡터(dense vector)를 대응시켜, $n$이 시퀀스의 길이일 때 행렬 $X_{\text{embed}} \in \mathbb{R}^{n \times d_{\text{model}}}$을 만든다. 임베딩에는 $\sqrt{d_{\text{model}}}$을 곱한다.
+**2단계 — 임베딩 조회**: 임베딩 행렬 $E \in \mathbb{R}^{V \times d_{\text{model}}}$로 토큰마다 밀집 벡터(dense vector)를 대응시켜, $n$이 시퀀스의 길이일 때 행렬 $X_{\text{embed}} \in \mathbb{R}^{n \times d_{\text{model}}}$을 만든다. 이 임베딩에는 다음 단계에서 $\sqrt{d_{\text{model}}}$을 곱한다.
 
 **3단계 — 위치 인코딩**: 사인·코사인 위치 인코딩을 성분별로 더한다.
 
@@ -294,7 +294,7 @@ $$
 
 그 결과 $X \in \mathbb{R}^{n \times d_{\text{model}}}$은 (임베딩에서 온) 뜻과 위치 정보를 함께 지닌다.
 
-**4단계 — Q, K, V로의 선형 투영**: 서로 다른 웨이트 행렬 셋이 $X$을 쿼리, 키, 값 공간으로 투영한다.
+**4단계 — Q, K, V로의 선형 투영**: 서로 다른 웨이트 행렬 셋이 $X$를 쿼리, 키, 값 공간으로 투영한다.
 
 $$
 Q = XW^Q, \quad K = XW^K, \quad V = XW^V
@@ -308,13 +308,13 @@ $$
 Q_i, K_i, V_i \in \mathbb{R}^{n \times d_k} \quad \text{for } i = 1, \ldots, h
 $$
 
-**6단계 — 헤드마다 스케일 조정 내적 어텐션**: 헤드마다 따로 어텐션을 계산한다.
+**6단계 — 헤드마다 스케일 내적 어텐션**: 헤드마다 따로 어텐션을 계산한다.
 
 $$
 \text{head}_i = \text{softmax}\left(\frac{Q_i K_i^T}{\sqrt{d_k}}\right) V_i
 $$
 
-$\sqrt{d_k}$으로 나누는 것은 내적의 크기가 너무 커져 소프트맥스가 그래디언트가 매우 작은 영역으로 밀려나는 일을 막는다.
+$\sqrt{d_k}$로 나누는 것은 내적의 크기가 너무 커져 소프트맥스가 그래디언트가 매우 작은 영역으로 밀려나는 일을 막는다.
 
 **7단계 — 이어 붙이고 투영하기**: 헤드들의 출력을 이어 붙이고 선형으로 투영한다.
 
@@ -361,7 +361,7 @@ $$
 - 은닉 레이어: $d_{ff} = 4 \times d_{\text{model}}$
 - 출력: $d_{\text{model}}$
 
-### Pre-LN와 Post-LN
+### Pre-LN과 Post-LN
 
 ### Post-LN (원래 트랜스포머)
 
@@ -640,7 +640,7 @@ class TransformerEncoder(nn.Module):
     1. 토큰 임베딩
     2. 위치 인코딩
     3. 인코더 블록 N개의 스택
-    4. 선택으로 두는 마지막 레이어 정규화(Pre-LN를 위해)
+    4. 선택으로 두는 마지막 레이어 정규화(Pre-LN을 위해)
     """
     
     def __init__(
@@ -925,7 +925,7 @@ $$
 
 상세 TransformerDecoder는 교차 어텐션이 없는 디코더 전용 모델이다. labels는 내부에서 한 토큰 시프트하며, attention_mask만으로 패딩 정답을 로스에서 제외하지는 않는다. 제외할 labels는 -100으로 표시해야 한다. 길이가 1이면 시프트 후 유효 정답이 없어 평균 로스가 정의되지 않을 수 있다.
 
-generate는 no_grad를 사용하지만 eval 모드로 전환하지 않는다. 예제 그대로라면 드롭아웃이 켜져 있다. EOS 종료·길이 초과 처리·패딩 마스크 전달과 KV 캐시가 없으므로 매번 전체 접두를 재계산한다. temperature>0, 1≤top_k≤어휘 크기와 0<top_p≤1 조건도 호출자가 확인해야 한다. 예제의 무작위 토큰 로스·생성 길이는 언어 품질 평가가 아니다.
+generate는 no_grad를 사용하지만 eval 모드로 전환하지 않는다. 예제 그대로라면 드롭아웃이 켜져 있다. EOS 종료·길이 초과 처리·패딩 마스크 전달과 KV 캐시가 없으므로 매 단계 지금까지의 시퀀스 전체를 다시 계산한다. temperature>0, 1≤top_k≤어휘 크기와 0<top_p≤1 조건도 호출자가 확인해야 한다. 예제의 무작위 토큰 로스·생성 길이는 언어 품질 평가가 아니다.
 
 ### 개요
 
@@ -1171,7 +1171,7 @@ class TransformerDecoder(nn.Module):
     """
     온전한 트랜스포머 디코더(GPT 방식, 디코더만).
     
-    언어 모델링와 텍스트 생성을 위한 것이다.
+    언어 모델링과 텍스트 생성을 위한 것이다.
     """
     
     def __init__(
@@ -1209,7 +1209,7 @@ class TransformerDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         
-        # 마지막 레이어 정규화 (Pre-LN를 위해)
+        # 마지막 레이어 정규화 (Pre-LN을 위해)
         self.final_norm = nn.LayerNorm(d_model) if pre_norm else None
         
         # 출력 투영 (임베딩과 웨이트 묶기)
@@ -1413,7 +1413,7 @@ class CausalSelfAttentionWithCache(nn.Module):
             k = torch.cat([past_k, k], dim=2)
             v = torch.cat([past_v, v], dim=2)
         
-        # 다음 반복를 위해 담아 둔다
+        # 다음 반복을 위해 담아 둔다
         present_kv = (k, v) if use_cache else None
         
         # 어텐션 (토큰 하나에 캐시를 쓸 때는 인과 마스크가 필요 없다)
@@ -1440,7 +1440,7 @@ class CausalSelfAttentionWithCache(nn.Module):
 
 ### KV 캐시가 없을 때
 
-맥락이 $C$일 때 토큰 $T$개를 만드는 데 다음과 같다.
+맥락 길이가 $C$일 때 토큰 $T$개를 만드는 비용은 다음과 같다.
 
 $$
 \text{Complexity} = O(T \cdot (C + T)^2 \cdot d)

@@ -225,7 +225,7 @@ Total                                                       1,145,408        96.
 
 $$\text{FLOPs} \propto C \times C \times K^2 \times H \times W$$
 
-$C$을 두 배로 하고 $H$과 $W$을 각각 절반으로 하면 다음과 같다.
+$C$를 두 배로 하고 $H$와 $W$를 각각 절반으로 하면 다음과 같다.
 
 $$2C \times 2C \times K^2 \times \frac{H}{2} \times \frac{W}{2} = C^2 K^2 HW$$
 

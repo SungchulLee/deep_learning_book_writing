@@ -1,6 +1,6 @@
 # RoBERTa
 
-RoBERTa는 2019년 논문 "RoBERTa: A Robustly Optimized BERT Pretraining Approach"에서 나왔다.
+RoBERTa는 2019년 논문 "RoBERTa: A Robustly Optimized BERT Pretraining Approach"에서 나왔다. 구조는 BERT와 같은 인코더 전용 트랜스포머이고, 사전 학습 방식만 바꾸었다 — 더 큰 배치와 더 많은 데이터로 더 오래 학습하고, 다음 문장 예측(NSP)을 빼고, 마스크할 토큰을 에폭마다 새로 고르는 동적 마스킹을 쓴다.
 
 이 쪽의 구현은 RoBERTa의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
 
@@ -127,7 +127,7 @@ logits: torch.Size([2, 8, 1000])
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`RoBERTa`을 레이어나 블록의 수를 설정할 수 있게 확장하여라. `__init__`에 `num_layers` 인자를 추가하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 구현하여라. 레이어 2개, 4개, 8개로 시험하여라.
+`RoBERTa`를 레이어나 블록의 수를 설정할 수 있게 확장하여라. `__init__`에 `num_layers` 인자를 추가하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 구현하여라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -138,7 +138,7 @@ logits: torch.Size([2, 8, 1000])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 순회한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 그 안의 파라메터를 모델에 등록하고, 옵티마이저가 그것들을 갱신할 수 있다. `for n in [2, 4, 8]: model = RoBERTa(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 순회한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 그 안의 파라메터를 모델에 등록하고, 옵티마이저가 그것들을 갱신할 수 있다. `for n in [2, 4, 8]: model = RoBERTa(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험한다.
 
 ## 정리하며
 

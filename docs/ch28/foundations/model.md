@@ -172,7 +172,7 @@ class CharRNN(nn.Module):
 
 class SimpleCharTransformer(nn.Module):
     """
-    문자 수준 언어 모델링를 위한 단순한 트랜스포머.
+    문자 수준 언어 모델링을 위한 단순한 트랜스포머.
     
     이는 순환 대신 셀프 어텐션을 쓰는, 순환 뉴럴 네트워크의 더 현대적인 대안이다.
     트랜스포머는 GPT 같은 모델의 바탕 구조이다.
@@ -288,7 +288,7 @@ if __name__ == "__main__":
     print(f"Output shape: {output.shape}")
     print(f"Output represents scores for {vocab_size} possible next characters")
     
-    # 생성를 시험한다
+    # 생성을 시험한다
     seed = torch.randint(0, vocab_size, (10,))
     generated = rnn_model.generate(seed, length=20, temperature=1.0)
     print(f"\nGenerated sequence length: {len(generated)}")
@@ -318,9 +318,9 @@ if __name__ == "__main__":
 
 입력은 어휘 범위 안의 int64 ID `(B,T)`다. T는 1 이상이어야 한다. LSTM은 임베딩 `(B,T,E)`를 순환 처리하고 마지막 위치를 선형 분류한다. 반환값은 logits와 `(h,c)` 상태이며 각 상태 모양은 `(n_layers,B,H)`다. 상태를 전달하지 않으면 새 윈도를 기본 초기 상태에서 처리한다.
 
-Transformer는 토큰 임베딩에 학습 가능한 위치 임베딩을 더하고 상삼각 bool 마스크로 미래 위치를 차단한다. 여기의 mask=True는 해당 attention 연결을 금지한다. embedding_dim은 n_heads로 나누어져야 하고 T≤max_seq_length여야 한다. 모든 위치의 피처를 계산하지만 마지막 위치의 logits만 반환하며 별도 generate 메서드는 없다.
+Transformer는 토큰 임베딩에 학습 가능한 위치 임베딩을 더하고 상삼각 bool 마스크로 미래 위치를 차단한다. 여기의 mask=True는 해당 attention 연결을 금지한다. embedding_dim은 n_heads로 나누어떨어져야 하고 T≤max_seq_length여야 한다. 모든 위치의 피처를 계산하지만 마지막 위치의 logits만 반환하며 별도 generate 메서드는 없다.
 
-**기존 출력 기록:**
+**출력:**
 
 ```
 ============================================================
@@ -349,11 +349,11 @@ Output shape: torch.Size([16, 50])
 
 현재 generate는 매 스텝 이미 생성한 **전체 접두사**를 forward에 전달하면서 직전 hidden도 재사용한다. 첫 호출에서 abc를 읽고 다음 문자가 d라면, 다음 호출은 abc 뒤에 d만 이어 읽는 대신 이전 상태에서 abcd 전체를 다시 읽는다. 이는 학습에서 사용한 접두사 조건과 다른 은닉 상태를 만든다.
 
-올바른 두 방식은 전체 접두사를 매번 초기 상태에서 다시 계산하거나, 시드를 한 번 처리한 뒤 새 토큰만 전달하며 상태를 이어 가는 것이다. 이 둘을 혼합하면 안 된다. 따라서 현재 메서드를 표준 LSTM 조상 샘플러로 설명하지 않는다.
+올바른 두 방식은 전체 접두사를 매번 초기 상태에서 다시 계산하거나, 시드를 한 번 처리한 뒤 새 토큰만 전달하며 상태를 이어 가는 것이다. 이 둘을 혼합하면 안 된다. 따라서 현재 메서드를 표준 LSTM 조상 샘플링(ancestral sampling, 앞에서 뽑은 토큰을 조건으로 다음 토큰을 차례로 뽑는 것) 구현으로 설명하지 않는다.
 
 생성은 eval·no_grad를 사용하고 온도로 logits를 나눈 뒤 범주형 표본을 뽑는다. 온도는 유한한 양수여야 하며 length는 추가할 문자 수다. EOS 중단·음수 길이 검사·문맥 길이 제한은 없다. 초기 시드의 장치와 ID 범위를 모델과 맞춰야 한다.
 
-## 3. 정규화와 계산비용
+## 3. 정칙화와 계산비용
 
 LSTM은 레이어 수가 2 이상일 때 레이어 사이 dropout=0.2를 사용한다. 마지막 레이어의 모든 출력이나 순환 상태에 동일하게 dropout을 거는 설계와 다르다. TransformerEncoderLayer는 dropout=0.1을 설정하므로 attention·후속 경로의 내장 드롭아웃을 이미 포함한다. 평가 모드에서 드롭아웃은 비활성화된다.
 
@@ -385,7 +385,7 @@ CharRNN의 파라미터 수를 계산하라.
 
 ??? success "풀이"
 
-    TransformerEncoderLayer(dropout=0.1)은 내장 attention 드롭아웃을 이미 설정한다. 별도 레이어를 무조건 더하면 중복 적용일 수 있다. 소프트맥스 뒤 드롭아웃은 일부 웨이트를 0으로 하고 남은 값을 보정해 기대값을 유지하지만 각 실행의 행 합이 반드시 1인 것은 아니다. 특정 연결에 대한 의존을 줄이는 정규화일 수 있어도 더 균일한 attention이나 성능 개선을 보장하지 않는다. LSTM의 레이어간 드롭아웃과도 구분한다.
+    TransformerEncoderLayer(dropout=0.1)은 내장 attention 드롭아웃을 이미 설정한다. 별도 레이어를 무조건 더하면 중복 적용일 수 있다. 소프트맥스 뒤 드롭아웃은 일부 웨이트를 0으로 하고 남은 값을 보정해 기대값을 유지하지만 각 실행의 행 합이 반드시 1인 것은 아니다. 특정 연결에 대한 의존을 줄이는 정칙화일 수 있어도 더 균일한 attention이나 성능 개선을 보장하지 않는다. LSTM의 레이어간 드롭아웃과도 구분한다.
 
 
 
@@ -400,7 +400,7 @@ Transformer의 문맥 길이 한계와 attention 비용을 구분하라.
 
 ??? success "풀이"
 
-    본문에는 최대 길이 100의 위치 단어 임베딩 표가 있어 T>100이면 계산비용 이전에 인덱스 범위 문제가 생긴다. 표를 늘리면 길이 범위를 확장할 수 있지만 학습·일반화는 별도다. Dense attention은 O(T²E), 선형 projection·feed-forward는 O(TE²)의 계산이 들며 단순 attention 웨이트 저장은 헤드별 T²에 비례한다. 일부 최적화 커널은 전체 행렬 저장을 피하지만 dense 곱셈의 의존 구조 자체를 희소 attention으로 바꾸는 것과는 다르다.
+    본문에는 최대 길이 100의 위치 임베딩 표가 있어 T>100이면 계산비용 이전에 인덱스 범위 문제가 생긴다. 표를 늘리면 길이 범위를 확장할 수 있지만 학습·일반화는 별도다. Dense attention은 O(T²E), 선형 projection·feed-forward는 O(TE²)의 계산이 들며 단순 attention 웨이트 저장은 헤드별 T²에 비례한다. 일부 최적화 커널은 전체 행렬 저장을 피하지만 dense 곱셈의 의존 구조 자체를 희소 attention으로 바꾸는 것과는 다르다.
 
 
 

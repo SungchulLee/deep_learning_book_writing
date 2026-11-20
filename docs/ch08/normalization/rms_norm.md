@@ -26,7 +26,7 @@ $$\text{RMSNorm}(\mathbf{x}) = \gamma\odot\frac{\mathbf{x}}{\sqrt{\frac1n\sum_i 
 
 - $\gamma \in \mathbb{R}^n$은 학습 가능한 스케일(배율) 파라메터이다
 - $\epsilon$은 수치적 안정성을 위한 작은 상수이다
-- (설계상) 바이어스 항 $\beta$이 없고 평균을 빼지도 않는다
+- (설계상) 바이어스 항 $\beta$가 없고 평균을 빼지도 않는다
 
 ### 핵심 차이
 
@@ -243,7 +243,7 @@ $$\frac{\partial\mathcal{L}}{\partial x_i}=\frac{\gamma_i g_i}{r}-\frac{x_i}{nr^
 
 ### 사용자 정의 역전파 예제
 
-아래 보존된 구현의 `grad_x` 두 번째 항에는 `rms`로 나누는 인수가 하나 빠져 있어 위의 미분식과 일치하지 않는다. 사용자 정의 backward의 설명용 코드로 읽고, 실제 사용 전에는 자동 미분으로 계산한 그래디언트와 대조해야 한다.
+아래 구현의 `grad_x` 두 번째 항에는 `rms`로 나누는 인수가 하나 빠져 있어 위의 미분식과 일치하지 않는다. 사용자 정의 backward의 설명용 코드로 읽고, 실제 사용 전에는 자동 미분으로 계산한 그래디언트와 대조해야 한다.
 
 ```python
 class RMSNormWithGradientAnalysis(torch.autograd.Function):
@@ -292,7 +292,7 @@ class RMSNormWithGradientAnalysis(torch.autograd.Function):
 | 분산/RMS 계산 | O(n) | O(n) |
 | 평균 빼기 | O(n) | **0** |
 | 나눗셈 | O(n) | O(n) |
-| **통계량 연산 합계** | **축약 2n번** | **축약 1n번** |
+| **통계량 연산 합계** | **축약 두 번 (평균, 분산)** | **축약 한 번 (제곱 평균)** |
 
 ### 성능 측정
 
@@ -341,7 +341,7 @@ def benchmark_normalization(batch_size=32, seq_len=512, dim=4096, num_iterations
 # benchmark_normalization()
 ```
 
-실제 속도는 융합 커널, 자료형, 텐서 크기, 장치에 달려 있다. 위 비교는 사용자 정의 구현과 레이어 정규화 구현을 비교하므로 연산 수만의 차이를 재는 것은 아니다. 워밍업, 동기화, 그래디언트 기록 여부와 측정 범위를 맞춰 해석한다.
+실제 속도는 융합 커널, 자료형, 텐서 크기, 장치에 달려 있다. 위 비교는 파이썬으로 짠 RMSNorm과 PyTorch에 내장된 LayerNorm 커널을 비교하므로 연산 수만의 차이를 재는 것은 아니다. 워밍업, 동기화, 그래디언트 기록 여부와 측정 범위를 맞춰 해석한다.
 
 ---
 

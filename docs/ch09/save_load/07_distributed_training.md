@@ -23,7 +23,7 @@ DataParallel이나 DistributedDataParallel을 쓸 때 모델을 제대로
 
 import torch
 import torch.nn as nn
-# 무작위로 뽑는 값이 아래에 나온다. 씨앗을 고정해야 이 쪽에 실린
+# 무작위로 뽑는 값이 아래에 나온다. 시드를 고정해야 이 쪽에 실린
 # 수가 다시 나온다 — 고정하지 않으면 돌릴 때마다 다른 수가 찍힌다
 torch.manual_seed(0)
 

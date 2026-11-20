@@ -1,6 +1,6 @@
-# CROWN: 볼록 완화에 기댄 밝히기
+# CROWN: 볼록 완화에 기반한 인증
 
-**CROWN**(장 등, 2018)과 그 클래스는 곧지 않은 엑티베이션 함수를 **선형으로 완화해** IBP보다 촘촘한 설명 바운드를 준다. IBP은 아래끝과 위끝을 따로 퍼뜨리지만, CROWN은 입력에 매인 바운드를 셈해 알맞은 계산 비용으로 훨씬 촘촘한 설명을 낸다.
+**CROWN**(장 등, 2018)과 그 계열은 비선형 활성화 함수를 **선형으로 완화해** IBP보다 타이트한 인증 바운드를 준다. IBP는 아래끝과 위끝을 레이어마다 따로 전파하지만, CROWN은 바운드를 입력의 선형 함수로 계산해 적당한 계산 비용으로 훨씬 타이트한 인증을 낸다.
 
 ---
 
@@ -8,45 +8,45 @@
 
 ### ReLU의 선형 완화
 
-바운드를 퍼뜨릴 때 어려운 대목은 곧지 않은 활성화를 다루는 일이다. 바운드가 $x \in [\underline{x}, \overline{x}]$인 ReLU $z = \max(0, x)$에 CROWN은 **선형 완화**을 쓴다.
+바운드를 전파할 때 어려운 대목은 비선형 활성화를 다루는 일이다. 바운드가 $x \in [\underline{x}, \overline{x}]$인 ReLU $z = \max(0, x)$에 CROWN은 **선형 완화**를 쓴다.
 
-**자리 1:** $\underline{x} \geq 0$(늘 살아 있음): 꼭 $z = x$
+**자리 1:** $\underline{x} \geq 0$(늘 활성): 정확히 $z = x$
 
-**자리 2:** $\overline{x} \leq 0$(늘 죽어 있음): 꼭 $z = 0$
+**자리 2:** $\overline{x} \leq 0$(늘 비활성): 정확히 $z = 0$
 
-**자리 3:** $\underline{x} < 0 < \overline{x}$(흔들리는 뉴럴 유닛):
+**자리 3:** $\underline{x} < 0 < \overline{x}$(불안정한 뉴런):
 
 $$
 \alpha x \leq z \leq \frac{\overline{x}}{\overline{x} - \underline{x}}(x - \underline{x})
 $$
 
-여기서 $\alpha \in [0, 1]$은 아래끝의 그래디언트 파라메터로, 배우거나 근사로 정한다.
+여기서 $\alpha \in [0, 1]$은 아래 바운드 직선의 기울기 파라메터로, 학습해서 정하거나 경험 규칙으로 정한다(α-CROWN은 이것을 최적화한다). 위 바운드는 두 끝점 $(\underline{x}, 0)$과 $(\overline{x}, \overline{x})$를 잇는 직선이다.
 
 ### 바운드 전파
 
-CROWN은 마지막 레이어의 바운드를 입력의 **선형 함수**으로 적는다.
+CROWN은 마지막 레이어의 바운드를 입력의 **선형 함수**로 적는다.
 
 $$
 \underline{z}_L = \mathbf{A}^L \mathbf{x} + \mathbf{b}^L_\text{lower}, \quad \overline{z}_L = \mathbf{A}^U \mathbf{x} + \mathbf{b}^U_\text{upper}
 $$
 
-레이어를 거슬러 대입하면 마지막 바운드가 입력에 선형으로 매이므로, 입력 섭동 모임에 걸쳐 효율적인 최적화를 할 수 있다.
+출력에서 입력 쪽으로 레이어를 거슬러 가며 대입하면 마지막 바운드가 입력의 선형 함수가 되므로, 입력 섭동 집합 전체에 걸친 최솟값·최댓값을 닫힌 형태로 효율적으로 구할 수 있다.
 
 ### CROWN-IBP
 
-**CROWN-IBP**은 CROWN의 촘촘함과 IBP의 잘 듦을 아우른다.
+**CROWN-IBP**는 CROWN의 타이트함과 IBP의 효율을 결합한다.
 
 $$
 \mathcal{L} = \beta \cdot \mathcal{L}_{\text{CROWN}} + (1 - \beta) \cdot \mathcal{L}_{\text{IBP}}
 $$
 
-학습하는 동안 $\beta$을 1(CROWN, 촘촘하나 느림)에서 0(IBP, 빠름)으로 차츰 낮추어 두 길의 나은 점을 함께 얻는다.
+학습하는 동안 $\beta$를 1(CROWN, 타이트하나 느림)에서 0(IBP, 빠름)으로 차츰 낮추어 두 방법의 장점을 함께 얻는다.
 
 ---
 
 ## 2. Auto-LiRPA
 
-**Auto-LiRPA**(쉬 등, 2020)은 어떤 계산 그림에도 선형 완화에 기댄 섭동 살피기를 저절로 해 주는 두루 쓰는 틀로, CROWN을 단순한 순방향 네트워크 너머로 넓힌다.
+**Auto-LiRPA**(쉬 등, 2020)는 임의의 계산 그래프에 선형 완화 기반 섭동 분석을 자동으로 적용해 주는 범용 프레임워크로, CROWN을 단순한 순방향 네트워크 너머로 넓힌다.
 
 ```python
 # auto_LiRPA 배치를 쓴다
@@ -70,15 +70,15 @@ lb, ub = bounded_model.compute_bounds(
 
 ---
 
-## 3. 밝히는 방법 비교
+## 3. 인증 방법 비교
 
-| 방법 | 바운드의 타이트함 | 계산 비용 | 크게 늘리기 |
+| 방법 | 바운드의 타이트함 | 계산 비용 | 확장성 |
 |--------|----------------|-------------------|-------------|
 | IBP | 헐거움 | 낮음 | 좋음 |
-| CROWN | 촘촘함 | 높음 | 가운데 |
-| CROWN-IBP | 가운데 | 가운데 | 좋음 |
-| α-CROWN | 가장 촘촘함 | 가장 높음 | 마디 있음 |
-| SDP 완화 | 아주 촘촘함 | 아주 높음 | 작은 네트워크만 |
+| CROWN | 타이트함 | 높음 | 중간 |
+| CROWN-IBP | 중간 | 중간 | 좋음 |
+| α-CROWN | 가장 타이트함 | 가장 높음 | 제한적 |
+| SDP 완화 | 아주 타이트함 | 아주 높음 | 작은 네트워크만 |
 
 ---
 
@@ -116,7 +116,7 @@ lb, ub = bounded_model.compute_bounds(
 </div>
 
 ??? success "풀이"
-    두 클래스의 서포트가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 기초 트레이드오프다. 겹치는 서포트의 비중이 피할 수 없는 정확도 손실을 정한다. 자연 이미지 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 관찰되는 10~15%의 정확도 하락을 설명해 준다. 모델 용량을 키우면(더 넓은 네트워크) 복잡한 강건 결정 경계를 더 잘 그려 트레이드오프를 어느 정도 완화할 수 있다. $\square$
+    두 클래스의 서포트가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 근본적인 트레이드오프다. 겹치는 서포트의 비중이 피할 수 없는 정확도 손실을 정한다. 자연 이미지 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 관찰되는 10~15%의 정확도 하락을 설명해 준다. 모델 용량을 키우면(더 넓은 네트워크) 복잡한 강건 결정 경계를 더 잘 그려 트레이드오프를 어느 정도 완화할 수 있다. $\square$
 
 ---
 
@@ -132,10 +132,10 @@ lb, ub = bounded_model.compute_bounds(
 
 ## 정리하며
 
-CROWN과 그 클래스는 고정된 강건성 인증에서 가장 앞선 것으로, 계산 비용을 더 들여 IBP보다 타이트한 바운드를 준다. CROWN-IBP을 아우르면 인증 가능하게 강건한 네트워크를 학습하는 데 실제로 가장 좋은 트레이드오프가 되고, Auto-LiRPA은 이 통찰을 두루 쓰이는 구조로 넓힌다.
+CROWN 계열은 결정론적 강건성 인증에서 가장 앞선 방법으로, 계산 비용을 더 들여 IBP보다 타이트한 바운드를 준다. CROWN-IBP는 인증 가능하게 강건한 네트워크를 학습할 때 실용적으로 좋은 트레이드오프를 주고, Auto-LiRPA는 이 통찰을 임의의 구조로 넓힌다.
 
 **살펴볼 거리**
 
 1. Zhang, H., et al. (2018). "Efficient Neural Network Robustness Certification with General Activation Functions." NeurIPS.
 2. Xu, K., et al. (2020). "Automatic Perturbation Analysis for Scalable Certified Robustness and Beyond." NeurIPS.
-3. Zhang, H., et al. (2020). "General Cutting Planes for Bound-Propagation-Based Neural Network Verification." NeurIPS.
+3. Zhang, H., et al. (2022). "General Cutting Planes for Bound-Propagation-Based Neural Network Verification." NeurIPS.

@@ -121,7 +121,7 @@ $$\pi_k = P(Y = k \mid \mathbf{x}) = \frac{\exp(\mathbf{w}_k^T \mathbf{x} + b_k)
 
 소프트맥스 함수는 다음을 보장한다.
 
-1. **음이 아님:** 모든 $k$에 대해 $\pi_k > 0$이다 (지수함수는 언제나 양수이다)
+1. **양수:** 모든 $k$에 대해 $\pi_k > 0$이다 (지수함수는 언제나 양수이다)
 2. **정규화:** $\sum_{k=1}^{K} \pi_k = 1$이다 (구성상 그렇다)
 3. **단조성:** 로짓이 클수록 확률이 크다
 4. **미분 가능성:** 최적화에 쓸 매끄러운 그래디언트를 준다
@@ -383,7 +383,7 @@ Class counts: [4954 3032 2014]
 </div>
 
 ??? success "풀이"
-    어떤 정규화 상수에 대해 $\log p(y=k|\mathbf{x}) = \mathbf{w}_k^\top\mathbf{x} + c$이라 가정하자. 그러면 $p(y=k|\mathbf{x}) = \frac{e^{\mathbf{w}_k^\top\mathbf{x}}}{\sum_{j=1}^K e^{\mathbf{w}_j^\top\mathbf{x}}}$이며, 이것이 소프트맥스 함수이다. 이는 자연 파라메터가 $\eta_k = \mathbf{w}_k^\top\mathbf{x}$인 범주형 분포의 지수족 형태에서 따라 나온다.
+    클래스 $k$에 따라 달라지지 않는 정규화 상수 $c$(입력 $\mathbf{x}$에는 의존할 수 있다)에 대해 $\log p(y=k|\mathbf{x}) = \mathbf{w}_k^\top\mathbf{x} + c$이라 가정하자. 그러면 $p(y=k|\mathbf{x}) = \frac{e^{\mathbf{w}_k^\top\mathbf{x}}}{\sum_{j=1}^K e^{\mathbf{w}_j^\top\mathbf{x}}}$이며, 이것이 소프트맥스 함수이다. 이는 자연 파라메터가 $\eta_k = \mathbf{w}_k^\top\mathbf{x}$인 범주형 분포의 지수족 형태에서 따라 나온다.
 
 ---
 

@@ -32,11 +32,11 @@ $$\nabla_\theta \mathcal{L}_{\mathcal{T}_i}(\theta'_i) = \nabla_\theta \mathcal{
 
 $$\nabla_\theta L_{Q_i}(\theta'_i)=\left(\frac{\partial\theta'_i}{\partial\theta}\right)^\top\nabla_{\theta'_i}L_{Q_i}(\theta'_i)$$
 
-여기서 각 기호는 다음과 같다.
+여기서 내부 갱신의 야코비안은 다음과 같다.
 
 $$\frac{\partial \theta'_i}{\partial \theta} = I - \alpha \nabla^2_\theta \mathcal{L}_{\mathcal{T}_i}(\theta)$$
 
-여기에는 서포트 로스의 헤시안이 포함된다. 자동 미분으로 필요한 헤시안·벡터 곱을 계산할 수 있으므로 전체 헤시안 행렬을 직접 만들 필요는 없다. 2차 미분을 사용한다는 점과 뉴턴법처럼 헤시안의 역행렬로 갱신한다는 것은 다르다.
+여기에는 서포트 로스의 헤시안이 포함된다. 자동 미분으로 필요한 헤시안·벡터 곱을 계산할 수 있으므로 전체 헤시안 행렬을 직접 만들 필요는 없다. 2차 미분을 쓴다고 해서 뉴턴법처럼 헤시안의 역행렬로 갱신하는 것은 아니다.
 
 ---
 
@@ -58,9 +58,9 @@ FOMAML은 내부 그래디언트의 웨이트 의존성을 생략하고 적응 �
 
 $$\nabla_\theta \mathcal{L}(\theta'_i) \approx \nabla_{\theta'_i} \mathcal{L}(\theta'_i)$$
 
-이 근사는 $\frac{\partial \theta'_i}{\partial \theta} \approx I$을 가정하는데, 다음 조건에서 타당하다.
+이 근사는 $\frac{\partial \theta'_i}{\partial \theta} \approx I$를 가정하는데, 다음 조건에서 타당하다.
 
-- $\alpha$이 작다
+- $\alpha$가 작다
 - 로스 지형이 그 근방에서 평평하다(헤시안 행렬이 작다)
 
 근사의 오차는 내부 러닝레이트와 곡률, 적응 경로에 따라 달라진다. 여러 단계를 누적하면 각 단계의 작은 차이가 커질 수 있으므로 FOMAML과 MAML의 성능 차이는 실제 검증 과제에서 비교한다.
@@ -700,7 +700,7 @@ class TaskAdaptiveMAML(MAML):
 
 ### 적응 후 로스를 최적화하기
 
-MAML은 보통의 여러 과제 학습과 달리 각 과제에서 적응한 뒤의 로스를 최적화한다.
+MAML은 보통의 다중 과제 학습(multi-task learning)과 달리 각 과제에서 적응한 뒤의 로스를 최적화한다.
 
 $$\min_\theta\mathbb E_\tau L_{Q_\tau}(U_{S_\tau}(\theta))$$
 
@@ -781,7 +781,7 @@ MAML의 2차 미분과 FOMAML 근사를 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-아래 내부 루프 조각에서 갱신된 params가 실제 모델 예측에 사용되는지 검토하라.
+풀이 상자 안의 내부 루프 조각에서 갱신된 params가 실제 모델 예측에 사용되는지 검토하라.
 
 </div>
 

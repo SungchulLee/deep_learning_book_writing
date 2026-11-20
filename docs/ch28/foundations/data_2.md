@@ -95,7 +95,7 @@ class CharacterDataset:
         sequences = []
         targets = []
         
-        # 텍스트 위로 슬라이딩 윈도을 옮겨 간다
+        # 텍스트 위로 슬라이딩 윈도를 옮겨 간다
         for i in range(len(encoded_text) - self.sequence_length):
             # 입력: i에서 i+sequence_length까지의 문자
             seq = encoded_text[i:i + self.sequence_length]
@@ -121,7 +121,7 @@ def load_sample_text() -> str:
         예시 문자열
     """
     # 예시 텍스트: 셰익스피어풍 문장
-    표본 = """
+    sample = """
     To be, or not to be, that is the question:
     Whether 'tis nobler in the mind to suffer
     The slings and arrows of outrageous fortune,
@@ -234,9 +234,9 @@ chars는 텍스트의 고유 문자를 정렬한 목록이며 두 사전이 문�
 
 길이 N의 텍스트와 문맥 길이 L에서 N−L개의 윈도를 만든다. i번째 입력은 위치 i부터 i+L−1까지이고 타깃은 위치 i+L의 문자 하나다. 출력은 CPU int64 X `(N−L,L)`와 y `(N−L,)`이다. 모든 위치의 다음 문자 타깃을 동시에 반환하는 shifted sequence 방식과는 다르다.
 
-## 2. 제공된 실행 예의 문제
+## 2. 실행 예의 문제
 
-load_sample_text는 본문 문자열을 변수 표본에 저장하지만 return에서는 정의되지 않은 sample을 참조한다. 따라서 표시된 main은 이 단계에서 NameError가 나며 이후 인코딩·윈도 출력이 그대로 실행된 결과라고 설명할 수 없다.
+main은 인코딩 시험에서 멈춘다. 시험 문자열 "Hello, World!"의 대문자 `H`와 `!`는 예시 텍스트에 없는 문자라서 사전에 없고, encode가 KeyError를 낸다. 그래서 그 뒤의 윈도 생성·분할 출력은 이 코드 그대로는 나오지 않으며, 이 쪽에 출력 블록을 싣지 않은 것도 그 때문이다. 시험 문자열을 텍스트 안의 문자로 바꾸면(예: "To be") 끝까지 돈다.
 
 또한 예시 문자열 Hello, World!에는 제공 코퍼스에 없는 느낌표 등이 있다. 로더의 변수 문제를 고쳐도 이 문자열 전체가 현재 사전에 들어 있다고 가정하면 encode가 실패할 수 있다. 코퍼스에서 뽑은 문자만으로 왕복 인코딩을 검사하거나 미등록 문자 폴리시를 먼저 정해야 한다.
 
@@ -289,7 +289,7 @@ train_test_split은 윈도의 앞부분·뒷부분을 순서대로 나눈다. �
 
 ??? success "풀이"
 
-    load_sample_text의 저장 변수 표본과 반환 변수 sample이 일치하지 않아 먼저 NameError가 난다. 그 문제를 해결해도 사전에 없는 문자를 encode하면 KeyError가 난다. 둘 다 학습 발산·과적합과 다른 데이터 계약 문제다. 실행 순서와 예시 문자열의 사전 포함 여부를 정적으로 확인하고, 오류 원인을 뉴럴 네트워크 하이퍼파라미터로 해결하려 하지 않는다.
+    시험 문자열의 `H`와 `!`가 사전에 없어 encode에서 KeyError가 난다. 이것은 학습 발산·과적합과 다른 데이터 계약 문제다. 실행 순서와 예시 문자열의 사전 포함 여부를 정적으로 확인하고, 오류 원인을 뉴럴 네트워크 하이퍼파라미터로 해결하려 하지 않는다.
 
 
 
@@ -304,7 +304,7 @@ train_test_split은 윈도의 앞부분·뒷부분을 순서대로 나눈다. �
 
 ??? success "풀이"
 
-    아래 골격은 CharacterDataset을 nn.Module처럼 호출하고 parameters·backward를 사용해 맞지 않는다. 대신 코퍼스 문자에 대한 decode(encode(text))의 왕복, ID 사전의 일대일 대응, 작은 텍스트의 윈도·타깃 정렬을 확인한다. 예를 들어 ababa,L=2이면 입력 ab,ba,ab와 타깃 a,b,a가 되어야 한다. 빈 자료·짧은 자료·미등록 문자에 어떤 폴리시를 적용할지도 정한다. 경사 흐름은 데이터를 받은 실제 학습 모듈의 별도 검증이다.
+    아래 골격은 CharacterDataset을 nn.Module처럼 호출하고 parameters·backward를 사용해 맞지 않는다. 대신 코퍼스 문자에 대한 decode(encode(text))의 왕복, ID 사전의 일대일 대응, 작은 텍스트의 윈도·타깃 정렬을 확인한다. 예를 들어 ababa,L=2이면 입력 ab,ba,ab와 타깃 a,b,a가 되어야 한다. 빈 자료·짧은 자료·미등록 문자에 어떤 폴리시를 적용할지도 정한다. 그래디언트 흐름은 데이터를 받은 실제 학습 모듈의 별도 검증이다.
 
     ```python
     def test_characterdataset():

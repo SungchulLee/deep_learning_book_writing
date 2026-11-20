@@ -1,8 +1,8 @@
 # DQN
 
-DQN은 2015년 논문 "Human-level control through deep reinforcement learning"에서 나왔다. - 뉴럴 네트워크로 Q(s,a)을 근사한다 - *타깃 네트워크*을 쓰는 TD 타깃으로 학습한다 - 경험 리플레이(experience replay)로 표본 사이의 상관을 끊는다.
+DQN은 2015년 논문 "Human-level control through deep reinforcement learning"에서 나왔다. 뉴럴 네트워크로 행동 가치 함수 $Q(s,a)$를 근사한다 — 상태 $s$에서 액션 $a$를 고른 뒤 얻을 할인된 보상 합의 기댓값이다. 학습은 *타깃 네트워크*를 쓰는 TD 타깃 $r + \gamma \max_{a'} Q_{\text{target}}(s', a')$로 한다. 타깃 네트워크는 주기적으로만 갱신하는 $Q$ 네트워크의 사본이라, 쫓아가는 목표가 매 스텝 흔들리지 않는다. 경험 리플레이(experience replay)는 지나간 전이를 버퍼에 쌓아 두고 무작위로 뽑아 학습하는 방법으로, 연속된 표본 사이의 상관을 끊는다.
 
-여기 구현은 DQN을 짧고 학습하기 좋게 보인 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 DQN을 짧게 줄인 학습용 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -140,7 +140,7 @@ loss: 1.1922111511230469
 
 ## 2. 논의
 
-이 구현은 클래스 3개(`QNetwork`, `Transition`, `ReplayBuffer`)를 정의하고, 이들이 함께 완전한 강화학습 구조를 이룬다. 클래스마다 고유한 역할을 맡아 코드를 모듈화하고 확장하기 쉽게 한다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정의한다.
+이 구현은 클래스 3개(`QNetwork`, `Transition`, `ReplayBuffer`)를 정의하고, TD 로스를 계산하는 함수 `dqn_td_loss`와 함께 DQN 학습의 부품을 이룬다. 환경과 상호작용하는 루프, ε-탐욕 액션 선택, 타깃 네트워크를 주기적으로 복사하는 부분은 빠져 있다(독스트링이 밝힌 대로다). 출력의 로스 값은 가짜 배치로 한 번 계산한 것이라 그 크기에 뜻은 없다. 클래스마다 고유한 역할을 맡아 코드를 모듈화하고 확장하기 쉽게 한다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정의한다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -149,12 +149,12 @@ loss: 1.1922111511230469
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 설정으로 초기화한 `QNetwork`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
+이 쪽의 예제 설정(`obs_dim=8`, `num_actions=4`, `hidden=128`)으로 만든 `QNetwork`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
 
 </div>
 
 ??? success "풀이"
-    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`으로 확인할 수 있다.
+    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 모든 레이어의 값을 더한다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다. 8 × 128 + 128 = 1,152개, 128 × 128 + 128 = 16,512개, 128 × 4 + 4 = 516개로 모두 18,180개다.
 
 ---
 
@@ -166,7 +166,7 @@ loss: 1.1922111511230469
 </div>
 
 ??? success "풀이"
-    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 더한다. 형태를 검증하려면 핵심 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅을 크게 앞당기고 코드를 재사용하기에 더 강건하게 만든다.
+    `forward` 메서드(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 더한다. 형태를 검증하려면 핵심 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이해하기 쉬운 오류 메시지는 디버깅 시간을 크게 줄여 주고, 코드를 다른 곳에서 다시 쓸 때도 잘못된 입력을 일찍 걸러 준다.
 
 ---
 
@@ -185,7 +185,7 @@ loss: 1.1922111511230469
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`QNetwork`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 인자를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하여라.
+`QNetwork`를 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 인자를 더하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -196,12 +196,12 @@ loss: 1.1922111511230469
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 파라메터를 옵티마이저에 등록한다. `for n in [2, 4, 8]: model = QNetwork(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 모든 파라메터를 옵티마이저에 등록한다. `for n in [2, 4, 8]: model = QNetwork(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험한다.
 
 ## 정리하며
 
 **다룬 것** — DQN
 
-이 구현은 클래스 3개(`QNetwork`, `Transition`, `ReplayBuffer`)를 정의하고, 이들이 함께 완전한 강화학습 구조를 이룬다.
+이 구현은 클래스 3개(`QNetwork`, `Transition`, `ReplayBuffer`)를 정의하고, TD 로스 함수 `dqn_td_loss`와 함께 DQN 학습의 부품을 이룬다.
 
 핵심 클래스는 `QNetwork`, `Transition`, `ReplayBuffer`이며 앞의 연습문제 4개로 스스로 확인해 볼 수 있다.

@@ -89,7 +89,7 @@ $$\mathcal L(x,y)=\mathbb E_{q_\phi(z|x,y)}\log p_\theta(x|z,y)-D_{KL}(q_\phi(z|
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-숫자별 표본 격자를 만들 때 아래 코드의 전제와 평가 한계를 설명하라.
+숫자별 표본 격자를 만들 때 풀이에 실린 코드의 전제와 평가 한계를 설명하라.
 
 </div>
 

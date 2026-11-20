@@ -1,24 +1,24 @@
 # Guided Backpropagation
 
-**Guided Backpropagation**는 그래디언트가 ReLU 엑티베이션 함수를 거꾸로 지나는 길을 고쳐 피처가 세밀하고 선명한 Saliency Map을 내는 시각화 기법이다. 일반 역전파와 달리, Guided Backpropagation는 앞으로 스텝에서 깨어 있던 뉴런을 지나는 양수 그래디언트만 전파한다.
+**Guided Backpropagation**은 그래디언트가 ReLU 활성화 함수를 거꾸로 지나는 방식을 바꾸어 세밀하고 선명한 Saliency Map을 내는 시각화 기법이다. Saliency Map은 입력 픽셀마다 예측에 대한 중요도를 칠한 맵이다. 일반 역전파와 달리, Guided Backpropagation은 순전파에서 활성화되었던 뉴런을 지나는 양수 그래디언트만 전파한다.
 
-슈프링엔베르크 외(2015)가 들여온 이 방법은 추론에 걸린 잔 피처를 짚어 주는, 보기 좋고 촘촘한 그림을 낸다.
+슈프링엔베르크 외(2015)가 내놓은 이 방법은 예측에 관여한 세밀한 피처를 짚어 주는, 보기 좋고 선명한 맵을 낸다.
 
 ---
 
 ## 1. 수학 기초
 
-### 일반 ReLU 역전파 스텝
+### 일반 ReLU 역전파
 
 ReLU 레이어를 지나는 일반 역전파에서는
 
-**앞으로 스텝:**
+**순전파:**
 
 $$
 y = \text{ReLU}(x) = \max(0, x)
 $$
 
-**일반 역전파 스텝:**
+**일반 역전파:**
 
 $$
 \frac{\partial L}{\partial x} = \frac{\partial L}{\partial y} \cdot \mathbf{1}[x > 0]
@@ -26,22 +26,22 @@ $$
 
 ### Guided Backpropagation의 수정
 
-Guided Backpropagation는 조건을 하나 더 건다. 양수 그래디언트만 전파하는 것이다.
+Guided Backpropagation은 조건을 하나 더 건다. 양수 그래디언트만 전파하는 것이다.
 
 $$
 \frac{\partial L}{\partial x}\bigg|_{\text{이끈}} = \frac{\partial L}{\partial y} \cdot \mathbf{1}[x > 0] \cdot \mathbf{1}\left[\frac{\partial L}{\partial y} > 0\right]
 $$
 
-이는 다음 둘을 아우른다.
+이는 다음 두 마스크를 합친 것이다.
 
-1. **앞으로 마스크**: 뉴런이 깨어 있던 자리만
+1. **순전파 마스크**: 순전파에서 뉴런이 활성화된 자리만
 2. **역전파 마스크**: 양수 그래디언트만
 
 ---
 
 ## 2. PyTorch 구현
 
-### Guided Backpropagation를 지닌 손수 만든 ReLU
+### Guided Backpropagation을 적용한 사용자 정의 ReLU
 
 ```python
 import torch
@@ -100,7 +100,7 @@ class GuidedBackpropagation:
         self.hooks = []
 ```
 
-### 쓰는 보기
+### 사용 예
 
 ```python
 # 차림
@@ -128,10 +128,10 @@ guided_bp.remove_hooks()
 
 ## 3. Guided Grad-CAM
 
-Guided Backpropagation와 Grad-CAM을 아우르면 두 세계의 좋은 점을 함께 얻는다.
+Guided Backpropagation과 Grad-CAM을 결합하면 두 방법의 장점을 함께 얻는다.
 
-- **Grad-CAM**: 성기지만 클래스를 가려내는 위치 특정
-- **Guided Backpropagation**: 피처가 곱고 세밀한 패턴
+- **Grad-CAM**: 해상도는 낮지만 클래스를 구별하는 위치 파악
+- **Guided Backpropagation**: 해상도가 높고 세밀한 패턴
 
 $$
 \text{이끈 Grad-CAM} = \text{Guided Backpropagation} \odot \text{키운}(\text{Grad-CAM})
@@ -168,20 +168,20 @@ def compute_guided_gradcam(
 
 ## 4. 다른 방법과 비교
 
-| 방법 | 피처 해상도 | 클래스 판별력 | 그림 성능 |
+| 방법 | 해상도 | 클래스 판별력 | 시각적 품질 |
 |--------|------------|---------------------|----------------|
 | 바닐라 그래디언트 | 높음 | 낮음 | 잡음 많음 |
-| Grad-CAM | 낮음 | 높음 | 매끄럽되 성김 |
-| Guided Backpropagation | 높음 | 낮음 | 또렷하고 세밀함 |
-| Guided Grad-CAM | 높음 | 높음 | 두루 보아 가장 좋음 |
+| Grad-CAM | 낮음 | 높음 | 매끄럽지만 거침 |
+| Guided Backpropagation | 높음 | 낮음 | 선명하고 세밀함 |
+| Guided Grad-CAM | 높음 | 높음 | 전반적으로 가장 좋음 |
 
 ---
 
 ## 5. 한계
 
-1. **혼자서는 클래스를 가려내지 못한다**: 클래스가 달라도 비슷한 피처가 나온다
-2. **새니티 체크에 걸린다**: 참된 기여도 분석이 아니라 에지 검출기처럼 굴 수 있다
-3. **ReLU에 매인다**: ReLU 활성화에만 작동한다
+1. **혼자서는 클래스를 구별하지 못한다**: 클래스가 달라도 비슷한 맵이 나온다
+2. **새니티 체크를 통과하지 못한다**: 참된 기여도 분석이 아니라 에지 검출기처럼 동작할 수 있다
+3. **ReLU에 묶인다**: ReLU 활성화에만 작동한다
 
 ---
 
@@ -207,7 +207,7 @@ def compute_guided_gradcam(
 </div>
 
 ??? success "풀이"
-    완전성 공리(섀플리 값 이론에서는 효율성이라고도 한다)는 기여도의 합이 입력에서의 모델 출력과 베이스라인에서의 출력의 차이와 같다는 것이다. 이 방법이 완전성을 만족하는지는 그 구성에 달렸다. 그래디언트 방법은 완전성을 만족하지 못한다(그래디언트는 한 점의 국소적인 양이고 경로를 따라 적분한 것이 아니다). Integrated Gradients는 구성 자체로 완전성을 만족한다(경로를 따라 미적분의 기본정리를 쓴다). SHAP 값은 섀플리 공리로 효율성을 만족한다. 완전성을 어기는 방법은 기여도를 너무 크거나 작게 매길 수 있어, 기여도 전체를 전역 설명으로 믿기 어렵게 만든다. $\square$
+    완전성 공리(섀플리 값 이론에서는 효율성이라고도 한다)는 기여도의 합이 입력에서의 모델 출력과 베이스라인에서의 출력의 차이와 같다는 것이다. 이 방법이 완전성을 만족하는지는 그 구성에 달렸다. 그래디언트 방법은 완전성을 만족하지 못한다(그래디언트는 한 점의 국소적인 양이고 경로를 따라 적분한 것이 아니다). Integrated Gradients는 구성 자체로 완전성을 만족한다(경로를 따라 미적분의 기본정리를 쓴다). SHAP 값은 섀플리 공리로 효율성을 만족한다. Guided Backpropagation은 한 점에서 음수 그래디언트까지 잘라 낸 값이라 경로 적분도 아니므로 완전성을 만족하지 못한다. 완전성을 어기는 방법은 기여도를 너무 크거나 작게 매길 수 있어, 기여도 전체를 전역 설명으로 믿기 어렵게 만든다. $\square$
 
 ---
 
@@ -235,7 +235,7 @@ def compute_guided_gradcam(
 
 ## 정리하며
 
-Guided Backpropagation는 되짚는 동안 음수 그래디언트를 가려 또렷하고 촘촘한 그림을 낸다. Grad-CAM과 아우르면 Guided Grad-CAM이 되어 피처 해상도와 클래스 판별력을 함께 준다.
+Guided Backpropagation은 역전파하는 동안 음수 그래디언트를 막아 선명하고 세밀한 맵을 낸다. Grad-CAM과 결합하면 Guided Grad-CAM이 되어 높은 해상도와 클래스 판별력을 함께 준다.
 
 **핵심 식:**
 
@@ -243,7 +243,7 @@ $$
 \frac{\partial L}{\partial x}\bigg|_{\text{이끈}} = \frac{\partial L}{\partial y} \cdot \mathbf{1}[x > 0] \cdot \mathbf{1}\left[\frac{\partial L}{\partial y} > 0\right]
 $$
 
-**살펴볼 거리**
+**참고 문헌**
 
 1. Springenberg, J.T., et al. (2015). *Striving for Simplicity: The All Convolutional Net*. ICLR Workshop.
 

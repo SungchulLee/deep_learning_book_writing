@@ -66,7 +66,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-**기존 출력:**
+**출력:**
 
 ```
 Parameters: 30,385,567

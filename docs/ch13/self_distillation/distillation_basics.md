@@ -45,18 +45,18 @@ $$\mathcal{L}_{\text{KD}} = \alpha \mathcal{L}_{\text{CE}}(\mathbf{y}_s, \mathbf
 
 여기서 각 기호는 다음과 같다.
 
-- $\mathcal{L}_{\text{CE}}$은 정답 라벨 $\mathbf{y}$에 대한 교차 엔트로피 로스다
+- $\mathcal{L}_{\text{CE}}$는 정답 라벨 $\mathbf{y}$에 대한 교차 엔트로피 로스다
 - $\mathcal{L}_{\text{KL}}$은 교사의 출력에서 학생의 출력으로 잰 쿨백-라이블러 발산이다. KL은 비대칭이라 자리가 뜻을 바꾼다 — 교사가 앞에 선다
-- $\mathbf{p}_s, \mathbf{p}_t$은 온도로 변환한 확률 분포이다
-- $\alpha$은 두 지도 신호의 비중을 정하는 가중 계수다
+- $\mathbf{p}_s, \mathbf{p}_t$는 온도로 변환한 확률 분포이다
+- $\alpha$는 두 지도 신호의 비중을 정하는 가중 계수다
 
 ### 온도에 따른 분포
 
-온도로 변환한 확률 분포는 온도 파라메터 $T$을 쓴다.
+온도로 변환한 확률 분포는 온도 파라메터 $T$를 쓴다.
 
 $$\mathbf{p}_i = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}$$
 
-여기서 $z_i$은 로짓 값을 나타낸다.
+여기서 $z_i$는 로짓 값을 나타낸다.
 
 온도로 변환한 분포 사이의 KL 발산은 다음과 같다.
 
@@ -88,7 +88,7 @@ $$\mathcal{L}_{\text{response}}=T^2D_{\mathrm{KL}}(\operatorname{softmax}(z_t/T)
 
 $$\mathcal{L}_{\text{feature}} = \|F_s(\mathbf{x}) - F_t(\mathbf{x})\|_2^2$$
 
-여기서 $F_s, F_t$은 학생과 교사의 중간 피처다.
+여기서 $F_s, F_t$는 학생과 교사의 중간 피처다.
 
 **장점**: 지도 신호가 더 풍부하고 피처가 더 잘 전이된다
 

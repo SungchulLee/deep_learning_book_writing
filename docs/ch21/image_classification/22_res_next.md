@@ -110,7 +110,7 @@ Parameters: 472,360
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-B=4, 입력 64×56×56, out_channels=64인 기본 블록의 형태를 추적하라.
+배치 크기 4, 입력 64×56×56, out_channels=64인 기본 블록의 형태를 추적하라.
 
 </div>
 

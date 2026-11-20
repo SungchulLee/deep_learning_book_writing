@@ -39,7 +39,7 @@
 - [모델 압축 개요](inference/model_compression_overview.md): 양자화·가지치기·증류의 역할과 측정 기준
 - [언어 모델 양자화](inference/quantization.md): 정수 표현과 스케일, PTQ·QAT, KV 캐시와 혼합 정밀도
 - [양자화 인지 학습](inference/04_quantization_aware_training.md): fake quantization 학습과 정수 모델 변환의 차이
-- [구조적 가지치기](inference/05_structured_pruning.md): 필터 선택과 연결된 계층의 재구성
+- [구조적 가지치기](inference/05_structured_pruning.md): 필터 선택과 연결된 레이어의 재구성
 - [압축 방법 결합](inference/06_combined_compression.md): 교사 학습, 마스킹과 학생 증류를 연결하는 예제
 - [Hugging Face 증류와 벤치마크](inference/07_hf_distillation_benchmark.md): 맞춤 로스와 품질·저장 공간·지연 시간 측정
 

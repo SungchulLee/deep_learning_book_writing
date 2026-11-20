@@ -30,7 +30,7 @@ $$z^{(l)} = W^{(l)} h^{(l-1)} + b^{(l)}$$
 
 $$h^{(l)} = f\bigl(z^{(l)}\bigr)$$
 
-여기서 $f$은 어떤 비선형 함수이다.
+여기서 $f$는 어떤 비선형 함수이다.
 
 웨이트를 $W_{ij}^{(l)} \sim \mathcal{N}(0, \sigma^2)$에서 뽑고 바이어스를 0으로 두면, (입력이 평균 0의 i.i.d.이고 웨이트와 독립이라는 가정 아래) 활성화 전 단위 하나의 분산은 다음과 같다.
 
@@ -64,7 +64,7 @@ $$n_{\text{in}}\,\sigma^2\,c_{\text{fwd}} \approx 1 \qquad \text{(forward stabil
 
 $$n_{\text{out}}\,\sigma^2\,c_{\text{bwd}} \approx 1 \qquad \text{(backward stability)}$$
 
-여기서 $c_{\text{fwd}}$과 $c_{\text{bwd}}$은 활성화 함수에 따라 달라진다.
+여기서 $c_{\text{fwd}}$와 $c_{\text{bwd}}$는 활성화 함수에 따라 달라진다.
 
 ---
 
@@ -310,7 +310,7 @@ Xavier(Glorot) 초기화 $W \sim \mathcal{U}(-\sqrt{6/(n_{\text{in}}+n_{\text{ou
 </div>
 
 ??? success "풀이"
-    분산을 보존하려면 $\text{Var}(y) = n_{\text{in}} \cdot \text{Var}(w) \cdot \text{Var}(x)$이다. $\text{Var}(y) = \text{Var}(x)$으로 두면 $\text{Var}(w) = 1/n_{\text{in}}$이다. 팬인과 팬아웃의 평균을 분모에 두어 절충하면 $\text{Var}(w) = 2/(n_{\text{in}}+n_{\text{out}})$이다. 균등분포 $[-a, a]$에서는 $\text{Var} = a^2/3$이므로 $a = \sqrt{6/(n_{\text{in}}+n_{\text{out}})}$을 얻는다.
+    선형 레이어에서는 $\text{Var}(y) = n_{\text{in}} \cdot \text{Var}(w) \cdot \text{Var}(x)$이다. 분산을 보존하도록 $\text{Var}(y) = \text{Var}(x)$로 두면 $\text{Var}(w) = 1/n_{\text{in}}$이다. 팬인과 팬아웃의 평균을 분모에 두어 절충하면 $\text{Var}(w) = 2/(n_{\text{in}}+n_{\text{out}})$이다. 균등분포 $[-a, a]$에서는 $\text{Var} = a^2/3$이므로 $a = \sqrt{6/(n_{\text{in}}+n_{\text{out}})}$을 얻는다.
 
 ---
 

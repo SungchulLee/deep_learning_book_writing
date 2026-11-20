@@ -843,7 +843,7 @@ temperature는 양수여야 하고 T=1에서도 교사 목표는 일반적으로
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 조기 종료 조각의 체크포인트 저장·복원과 지속 학습 검증 기준을 검토하라.
+풀이에 실린 조기 종료 조각의 체크포인트 저장·복원과 지속 학습 검증 기준을 검토하라.
 
 </div>
 

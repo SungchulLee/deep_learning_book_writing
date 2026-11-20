@@ -1,6 +1,6 @@
 # MobileNetV2
 
-MobileNetV2는 2018년 논문 "MobileNetV2: Inverted Residuals and Linear Bottlenecks"에서 나왔으며, 모바일이나 임베디드 기기를 위해 설계한 경량 컨볼루션 뉴럴 네트워크다. 역 잔차(inverted residual) 블록을 제시했는데, 입력을 먼저 더 높은 차원으로 확장하고 깊이별 분리 컨볼루션으로 처리한 뒤 더 낮은 차원으로 사영한다. 선형 병목(linear bottleneck) 설계는 좁은 레이어에서 비선형 활성화 함수를 없애 정보를 보존한다.
+MobileNetV2는 2018년 논문 "MobileNetV2: Inverted Residuals and Linear Bottlenecks"에서 나왔으며, 모바일이나 임베디드 기기를 위해 설계한 경량 컨볼루션 뉴럴 네트워크다. 역 잔차(inverted residual) 블록을 제시했는데, 입력을 먼저 더 높은 차원으로 확장하고 깊이별 컨볼루션으로 처리한 뒤 더 낮은 차원으로 사영한다. 선형 병목(linear bottleneck) 설계는 좁은 레이어에서 비선형 활성화 함수를 없애 정보를 보존한다.
 
 ## 1. 코드
 
@@ -111,7 +111,7 @@ Parameters: 1,281,928
 </div>
 
 ??? success "풀이"
-    표준 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별 분리 컨볼루션은 이를 (1) 깊이별(depthwise): $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나)와 (2) 점별(pointwise): $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터 수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$이 모두 클 때 가장 크게 절약한다.
+    표준 `Conv2d(C_in, C_out, k)`의 파라메터는 $C_{{\text{{in}}}} \times C_{{\text{{out}}}} \times k^2$개다. 깊이별 분리 컨볼루션은 이를 (1) 깊이별(depthwise): $C_{{\text{{in}}}} \times k^2$개(입력 채널마다 필터 하나)와 (2) 점별(pointwise): $C_{{\text{{in}}}} \times C_{{\text{{out}}}}$개(1x1 컨볼루션)로 나눈다. 파라메터 수의 비는 대략 $1/C_{{\text{{out}}}} + 1/k^2$이다. $k=3$이고 $C_{{\text{{out}}}}=256$이면 파라메터가 약 $8{-}9\times$ 적다. $C_{{\text{{out}}}}$과 $k$가 모두 클 때 가장 크게 절약한다.
 
 ---
 

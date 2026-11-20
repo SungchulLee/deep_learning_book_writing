@@ -1,6 +1,6 @@
 # Longformer
 
-Longformer는 2020년 논문 "Longformer: The Long-Document Transformer"에서 나왔다. 모든 토큰 쌍을 보는 O(S^2) 어텐션을 두 가지로 대체한다: (a) 슬라이딩 윈도 국소 어텐션(O(S * 윈도)) — 각 토큰이 가까운 이웃만 본다 — 과 (b) 선택한 토큰에만 주는 전역 어텐션(예: [CLS], 질문 토큰).
+Longformer는 2020년 논문 "Longformer: The Long-Document Transformer"에서 나왔다. 모든 토큰 쌍을 보는 $O(S^2)$ 어텐션을 두 가지로 대체한다. (a) 각 토큰이 앞뒤 윈도 안의 이웃만 보는 슬라이딩 윈도 국소 어텐션($O(S \cdot w)$, $w$는 윈도 크기)과 (b) 선택한 토큰(예: [CLS], 질문 토큰)에만 주는 전역 어텐션이다. 이 쪽의 코드는 (a)만 구현한다.
 
 이 쪽의 구현은 Longformer의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
 
@@ -187,7 +187,7 @@ logits: torch.Size([2, 20, 1000])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 순회한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 그 안의 파라메터를 모델에 등록하고, 옵티마이저가 그것들을 갱신할 수 있다. `for n in [2, 4, 8]: model = WindowSelfAttention(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 순회한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 그 안의 파라메터를 모델에 등록하고, 옵티마이저가 그것들을 갱신할 수 있다. `for n in [2, 4, 8]: model = WindowSelfAttention(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험한다.
 
 ## 정리하며
 

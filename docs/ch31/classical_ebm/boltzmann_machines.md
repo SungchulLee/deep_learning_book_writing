@@ -15,7 +15,7 @@ $$P(s_i=+1\mid s_{-i})=\operatorname{sigmoid}(2h_i/T)$$
 
 반면 0·1 변수 b 자체에 E(b)=−0.5bᵀWb−aᵀb를 정의하면 sigmoid((ΣWᵢⱼbⱼ+aᵢ)/T)가 나온다. **같은 W·바이어스를 그대로 두고 변수 표현만 바꾸면 같은 에너지 모델이 되지 않는다.**
 
-## 2. 구현과 보존된 비교 출력
+## 2. 구현과 비교 출력
 
 ```python
 import torch
@@ -338,7 +338,7 @@ def compare_deterministic_vs_stochastic():
 compare_deterministic_vs_stochastic()
 ```
 
-**보존된 출력:**
+**출력:**
 
 ```
 ======================================================================
@@ -476,7 +476,7 @@ def verify_equilibrium_distribution():
 correlation = verify_equilibrium_distribution()
 ```
 
-**보존된 출력:**
+**출력:**
 
 ```
 ======================================================================
@@ -580,7 +580,7 @@ def analyze_temperature_effects():
 analyze_temperature_effects()
 ```
 
-**보존된 출력:**
+**출력:**
 
 ```
 Observations:
@@ -593,7 +593,7 @@ Observations:
 
 ## 6. 은닉변수와 학습 원리
 
-가시변수 v와 은닉변수 h를 합쳐 s라 두면 대칭 결합 에너지를 그대로 적용할 수 있다. 같은 레이어 결합의 행렬식에는 1/2 계수가 들어가고 두 레이어 사이 항은 한 번만 센다. 주어진 v에서 은닉변수를 합해 자유 에너지를 정의한다.
+가시변수 v와 은닉변수 h를 합쳐 s라 두면 대칭 결합 에너지를 그대로 적용할 수 있다. 같은 레이어 결합을 행렬로 쓴 이차형식에는 1/2 계수가 들어가고 두 레이어 사이 항은 한 번만 센다. 주어진 v에서 은닉변수를 합해 자유 에너지를 정의한다.
 
 $$F_T(v)=-T\log\sum_h e^{-E(v,h)/T},\qquad
 p(v)=e^{-F_T(v)/T}/Z$$

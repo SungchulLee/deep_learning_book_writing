@@ -154,7 +154,7 @@ Non-numeric Series error: can't convert np.ndarray of type numpy.object_. The on
 
 둘째 줄은 오류가 나므로 금방 안다. **위험한 것은 첫째 줄이다.** 라벨로 쓰려던 정수 열이 실수가 되어도 아무 말이 없다. 열을 따로 꺼내 각각 텐서로 만들면 피할 수 있다.
 
-**이 예시에서 추론한 실수 자료형은 `float64`다. 명시적으로 다른 자료형을 사용할 수도 있다.** `Series[float]`를 텐서로 만들면 `torch.float64`가 나온다. 그런데 기본 설정으로 만든 PyTorch의 실수형 계층은 보통 `float32`를 사용하므로, 그대로 넣으면 자료형이 어긋났다는 오류를 만난다. 둘 중 하나로 미리 맞춘다.
+**이 예시에서 추론한 실수 자료형은 `float64`다. 명시적으로 다른 자료형을 사용할 수도 있다.** `Series[float]`를 텐서로 만들면 `torch.float64`가 나온다. 그런데 기본 설정으로 만든 PyTorch 레이어의 웨이트는 보통 `float32`이므로, 그대로 넣으면 자료형이 어긋났다는 오류를 만난다. 둘 중 하나로 미리 맞춘다.
 
 ```python
 torch.tensor(s.values, dtype=torch.float32)      # 텐서로 만들 때 맞춘다

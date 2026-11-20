@@ -14,7 +14,7 @@
 
 확률 모델
 $y_i \mid \mathbf{x}_i \sim \mathcal{N}(\mathbf{w}^\top\mathbf{x}_i + b,\,\sigma^2)$
-아래에서 $n$개 관측의 로그가능도는 다음과 같다. **가능도**(likelihood, 우도라고도 한다)는 관측한 데이터가 나올 확률을 파라메터의 함수로 읽은 것이다.
+아래에서 $n$개 관측의 로그가능도는 다음과 같다. 여기서 **가능도**(likelihood, 우도라고도 한다)는 관측한 데이터가 나올 확률(밀도)을 파라메터의 함수로 읽은 것이다.
 
 $$
 \ell(\mathbf{w}, b, \sigma^2)
@@ -483,7 +483,7 @@ model2.eval()
 
 !!! warning "`torch.save(model)` 대 `torch.save(model.state_dict())`"
     일반적인 모델 객체 저장은 pickle과 클래스 정의 경로에 의존하므로,
-    코드를 리팩터링하면 깨진다. 언제나 `state_dict()`를 저장하고 불러오라.
+    코드를 리팩터링하면 불러오기가 깨질 수 있다. 언제나 `state_dict()`를 저장하고 불러오라.
 
 ---
 

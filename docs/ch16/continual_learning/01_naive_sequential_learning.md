@@ -869,12 +869,13 @@ BWT가 음수일 때 forgetting_per_task의 부호를 어떻게 읽는가?
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 조기 종료 조각의 체크포인트 저장·복원과 지속 학습 검증 기준을 검토하라.
+풀이 상자 안의 조기 종료 조각의 체크포인트 저장·복원과 지속 학습 검증 기준을 검토하라.
 
 </div>
 
 ??? success "풀이"
     아래는 검토용 조각이다. state_dict().copy()는 얕은 딕셔너리 복사여서 내부 텐서가 이후 갱신과 함께 바뀔 수 있다. 고정 체크포인트는 deepcopy하거나 각 텐서를 분리해 복사해야 한다.
+
     ```python
     best_loss = float('inf')
     patience_counter = 0

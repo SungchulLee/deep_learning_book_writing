@@ -26,7 +26,7 @@ def generate_sine_wave(n_samples: int = 1000,
                        noise_std: float = 0.1,
                        seed: int = 42) -> np.ndarray:
     """
-    정규 분포 잡음을 더한 사인파을 만든다.
+    정규 분포 잡음을 더한 사인파를 만든다.
     
     이는 주기적인 거동을 보이는 단순한 시계열이다.
     자기 회귀 모델은 이 패턴을 학습해 예측할 수 있어야 한다.
@@ -45,7 +45,7 @@ def generate_sine_wave(n_samples: int = 1000,
     # 시점을 만든다
     t = np.arange(n_samples)
     
-    # 깨끗한 사인파을 만든다
+    # 깨끗한 사인파를 만든다
     signal = np.sin(2 * np.pi * frequency * t)
     
     # 가우스 잡음을 더한다
@@ -125,7 +125,7 @@ def create_sequences(data: np.ndarray,
     """
     X, y = [], []
     
-    # 시계열 위로 슬라이딩 윈도을 옮겨 간다
+    # 시계열 위로 슬라이딩 윈도를 옮겨 간다
     for i in range(len(data) - sequence_length):
         # 입력: 지난 'sequence_length'개 값
         X.append(data[i:i + sequence_length])
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     """
     import matplotlib.pyplot as plt
     
-    # 사인파을 만든다
+    # 사인파를 만든다
     sine_data = generate_sine_wave(n_samples=200, frequency=0.05, noise_std=0.2)
     
     # 참 자기 회귀 과정을 만든다
@@ -215,7 +215,7 @@ AR 생성기는 첫 p개 값을 작은 가우시안으로 초기화하고 x_t=Σ
 
 두 함수는 np.random.seed로 전역 난수 상태를 재설정한다. 같은 인수·시드의 재현에는 도움이 되지만 이후 다른 NumPy 난수 호출에도 영향을 준다. 독립 실험의 난수 스트림을 분리하려면 별도 생성기를 사용하는 설계를 고려한다.
 
-**기존 출력 기록:**
+**출력:**
 
 ```
 Created 195 training sequences
@@ -278,7 +278,7 @@ train_test_split_temporal은 이미 시간순으로 만든 윈도의 앞부분�
 
 ??? success "풀이"
 
-    전자는 겹치는 윈도의 무작위 분할, 전체 자료로 계산한 전처리 통계, 타깃 정렬과 평가 시 사용할 수 없는 미래 정보가 들어갔는지 확인한다. 후자는 AR 계수의 안정성·자료 스케일·초기 과도 상태를 점검한다. 생성 함수에는 경사 계산이 없으므로 뉴럴 네트워크의 경사 클리핑을 데이터 생성 문제의 직접 해결책으로 제시하지 않는다.
+    전자는 겹치는 윈도의 무작위 분할, 전체 자료로 계산한 전처리 통계, 타깃 정렬과 평가 시 사용할 수 없는 미래 정보가 들어갔는지 확인한다. 후자는 AR 계수의 안정성·자료 스케일·초기 과도 상태를 점검한다. 생성 함수에는 그래디언트 계산이 없으므로 뉴럴 네트워크의 그래디언트 클리핑을 데이터 생성 문제의 직접 해결책으로 제시하지 않는다.
 
 
 

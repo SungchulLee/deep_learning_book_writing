@@ -2,7 +2,7 @@
 
 이 페이지는 GRU 인코더와 가산 어텐션 디코더를 이용한 프랑스어→영어 번역의 구조를 설명한다. 코드가 여러 조각으로 제시되어 있으며, 데이터 로딩·배치 생성과 디코더의 _step 등 일부 정의는 빠져 있다. 본문만으로 독립 실행 가능한 전체 시스템이 완성된 것은 아니다.
 
-**출처.** [PyTorch seq2seq 번역 실습](https://github.com/pytorch/tutorials/blob/main/intermediate_source/seq2seq_translation_tutorial.py)을 고쳐 쓴 것으로, 자세한 주석을 붙여 하나의 독립된 스크립트로 다시 짰다.
+**출처.** [PyTorch seq2seq 번역 실습](https://github.com/pytorch/tutorials/blob/main/intermediate_source/seq2seq_translation_tutorial.py)을 고쳐 쓴 것으로, 자세한 주석을 붙여 다시 짰다. 이 쪽에는 그 가운데 핵심 부분만 싣는다.
 
 ---
 
@@ -49,7 +49,7 @@ $$\mathbf{e}_t = \text{Embed}(x_t) \in \mathbb{R}^H$$
 
 $$\mathbf{h}_t^{enc} = \text{GRU}(\mathbf{e}_t, \mathbf{h}_{t-1}^{enc}) \in \mathbb{R}^H$$
 
-**어텐션.** 디코더의 $t$번째 스텝에서 바다나우 덧셈 어텐션은 갱신 전 디코더 상태 $\mathbf{s}_{t-1}$와 인코더 상태 $\mathbf{h}_j^{enc}$ 사이의 정렬 점수를 계산한다.
+**어텐션.** 디코더의 $t$번째 스텝에서 바다나우 덧셈 어텐션은 갱신 전 디코더 상태 $\mathbf{s}_{t-1}$과 인코더 상태 $\mathbf{h}_j^{enc}$ 사이의 정렬 점수를 계산한다.
 
 $$\text{score}(\mathbf{s}_{t-1}, \mathbf{h}_j) = \mathbf{v}_a^T \tanh(\mathbf{W}_a \mathbf{s}_{t-1} + \mathbf{U}_a \mathbf{h}_j)$$
 
@@ -302,7 +302,7 @@ def evaluate_sentence(encoder, decoder, sentence, input_lang, output_lang):
 
 ### 어텐션 시각화
 
-어텐션 웨이트 행렬 $\boldsymbol{\alpha} \in \mathbb{R}^{T' \times T}$은 디코더가 생성 스텝마다 어떤 원본 토큰에 주목하는지 드러낸다. 이 행렬을 히트맵으로 그리면 모델의 정렬 거동을 해석할 수 있는 증거가 된다.
+어텐션 웨이트 행렬 $\boldsymbol{\alpha} \in \mathbb{R}^{T' \times T}$는 디코더가 생성 스텝마다 어떤 원본 토큰에 주목하는지 드러낸다. 이 행렬을 히트맵으로 그리면 모델의 정렬 거동을 해석할 수 있는 증거가 된다.
 
 ```python
 def show_attention(input_sentence, output_words, attentions):
@@ -371,7 +371,7 @@ Example pair: ['je suis pret .', 'i m ready .']
 
 - **단어 임베딩 ([6장](../../embeddings/index.md))**: 인코더와 디코더 모두 토큰 인덱스를 조밀한 벡터로 보내는 학습된 `nn.Embedding` 레이어를 쓴다. 이 임베딩은 사전 학습 벡터를 쓰지 않고 나머지 모델과 함께 학습한다.
 - **RNN과 은닉 상태 (12.1절)**: 인코더와 디코더의 GRU 셀이 순차 정보를 쌓는 은닉 상태를 지니며, RNN 절의 순환식을 그대로 구현한다.
-- **LSTM과 GRU의 게이트 (12.2절)**: GRU의 갱신 게이트와 재설정 게이트가 시퀀스에 걸쳐 기억을 골라 지키게 해 주어, 이런 번역 시퀀스에서 기본 RNN을 괴롭혔을 그래디언트 소실을 누그러뜨린다.
+- **LSTM과 GRU의 게이트 (12.2절)**: GRU의 업데이트 게이트와 리셋 게이트가 시퀀스에 걸쳐 기억을 골라 지키게 해 주어, 이런 번역 시퀀스에서 기본 RNN을 괴롭혔을 그래디언트 소실을 누그러뜨린다.
 - **바다나우 어텐션 (12.4절)**: 덧셈 어텐션 메커니즘이 고정된 문맥 벡터의 정보 병목을 없애, 디코더가 생성 스텝마다 쓸모 있는 인코더 상태에 물어볼 수 있게 한다.
 - **인코더-디코더 틀 (12.3절)**: 전체 구조가 어텐션으로 보강한 문맥 벡터와 함께 인코더-디코더 틀을 실현한다.
 - **티처 포싱 (12.3절)**: 학습은 수렴 속도와 노출 편향의 균형을 잡으려고 확률적인 티처 포싱을 쓴다.

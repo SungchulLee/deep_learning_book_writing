@@ -4,9 +4,9 @@
 
 ## 1. 시간 비율과 채널 비율
 
-같은 관찰 구간에서 Fast 프레임 수를 Slow의 α배, Fast 채널 수를 Slow의 β배로 둔다. α>1,0<β<1이 대표적인 구성이다. 예를 들어 Fast32프레임에서 α=8이면 Slow4프레임, Slow64채널에서 β=1/8이면 Fast8채널이다. 이는 특정 입력의 프레임 수·채널이지 항상 고정된4FPS·32FPS를 뜻하지 않는다. 실제 시간 간격은 원본 fps·stride로 결정한다.
+같은 관찰 구간에서 Fast 프레임 수를 Slow의 α배, Fast 채널 수를 Slow의 β배로 둔다. α>1, 0<β<1이 대표적인 구성이다. 예를 들어 Fast 32프레임에서 α=8이면 Slow 4프레임, Slow 64채널에서 β=1/8이면 Fast 8채널이다. 이는 특정 입력의 프레임 수·채널이지 항상 고정된 4 FPS·32 FPS를 뜻하지 않는다. 실제 시간 간격은 원본 fps·stride로 결정한다.
 
-입력은 B×3×T×H×W다. 아래 코드의 Slow 입력은 `::alpha`로 고르므로 길이가 ceil(T/α)가 될 수 있다. `num_frames`는 저장만 하며 입력 길이를 강제하거나 샘플링하지 않는다. α는 유효한 양의 정수이고 int(slow_channels×β)는 적어도1이어야 한다.
+입력은 B×3×T×H×W다. 아래 코드의 Slow 입력은 `::alpha`로 고르므로 길이가 ceil(T/α)가 될 수 있다. `num_frames`는 저장만 하며 입력 길이를 강제하거나 샘플링하지 않는다. α는 유효한 양의 정수이고 int(slow_channels×β)는 적어도 1이어야 한다.
 
 ## 2. 구조 코드와 실행상의 연결 누락
 
@@ -241,13 +241,13 @@ class ResBlock3D(nn.Module):
 
 코드는 stem·stage·lateral과 분류 head의 골격을 보여 주지만 현재 상태로 완성된 SlowFast가 아니다. `forward`가 호출하는 `_forward_stem` 메서드가 정의되어 있지 않아 그대로는 실행할 수 없다. 두 stem의 호출 경로를 추가해도 아래의 채널·시간 연결 문제를 별도로 해결해야 한다.
 
-Fast 피처를 lateral로 바꾸어 Slow와 채널 연결하면 입력 채널이 증가한다. 기본 첫 단계에서 Slow64채널과 lateral16채널을 연결하면80채널인데 첫 slow_block은64채널만 기대한다. 다음 단계도 lateral을 포함한 입력 채널을 stage 정의에 반영하지 않는다. 연결 연산을 썼다는 사실만으로 모델의 차원이 맞는 것은 아니다.
+Fast 피처를 lateral로 바꾸어 Slow와 채널 연결하면 입력 채널이 증가한다. 기본 첫 단계에서 Slow 64채널과 lateral 16채널을 연결하면 80채널인데 첫 slow_block은 64채널만 기대한다. 다음 단계도 lateral을 포함한 입력 채널을 stage 정의에 반영하지 않는다. 연결 연산을 썼다는 사실만으로 모델의 차원이 맞는 것은 아니다.
 
-시간 정렬도 다르다. 두 번째 Fast stage는 temporal_stride=2인데 대응 Slow stage는1이다. 각 lateral이 계속 고정 α로 다운샘플링하므로 같은 단계의 시간 길이가 더 이상 맞지 않을 수 있다. stage마다 두 경로가 이미 사용한 시간 stride와 lateral의 stride·padding을 함께 추적해야 한다. LateralConnection의 slow_channels 인수는 저장·변환에 사용하지 않으며 출력 채널은 fast_channels×2로 정해진다.
+시간 정렬도 다르다. 두 번째 Fast stage는 temporal_stride=2인데 대응 Slow stage는 1이다. 각 lateral이 계속 고정 α로 다운샘플링하므로 같은 단계의 시간 길이가 더 이상 맞지 않을 수 있다. stage마다 두 경로가 이미 사용한 시간 stride와 lateral의 stride·padding을 함께 추적해야 한다. LateralConnection의 slow_channels 인수는 저장·변환에 사용하지 않으며 출력 채널은 fast_channels×2로 정해진다.
 
 ## 3. 잔차 블록과 모델 이름
 
-여기 ResBlock3D는 두3×3×3 컨볼루션과 필요시 projection shortcut을 사용하는 기본 블록이다. 공간 stride는1이고 시간 stride만 선택적으로 바뀐다. 표준 ResNet-50·101의 bottleneck 구조와 같은 블록이 아니며 단계 숫자만으로 원 SlowFast 모델의 재현이라고 할 수 없다.
+여기 ResBlock3D는 두 3×3×3 컨볼루션과 필요할 때의 projection shortcut을 사용하는 기본 블록이다. 공간 stride는 1이고 시간 stride만 선택적으로 바뀐다. 표준 ResNet-50·101의 bottleneck 구조와 같은 블록이 아니며 단계 숫자만으로 원 SlowFast 모델의 재현이라고 할 수 없다.
 
 ```python
 def slowfast_4x16_r50():
@@ -280,7 +280,7 @@ def slowfast_8x8_r101():
     )
 ```
 
-두 factory는 같은 클래스·같은 stage 반복 수3·4·6·3을 사용하고 α만8과4로 바꾼다. `slowfast_8x8_r101`이라는 이름이 실제 R101 backbone을 구성하지 않는다. 또한 원 논문의 T×τ 표기에서 T는 Slow 프레임 수, τ는 원본의 샘플링 간격이다. 현재 코드에는 그 τ를 입력 비디오에서 선택하는 과정이 없어 factory 이름만으로 관찰 구간을 확정할 수 없다.
+두 factory는 같은 클래스·같은 stage 반복 수 3·4·6·3을 사용하고 α만 8과 4로 바꾼다. `slowfast_8x8_r101`이라는 이름이 실제 R101 backbone을 구성하지 않는다. 또한 원 논문의 T×τ 표기에서 T는 Slow 프레임 수, τ는 원본의 샘플링 간격이다. 현재 코드에는 그 τ를 입력 비디오에서 선택하는 과정이 없어 factory 이름만으로 관찰 구간을 확정할 수 없다.
 
 최종 head는 두 경로가 각각 slow_channels×8과 fast_channels×8의 피처를 반환한다고 가정해 평균 후 연결한다. 현재의 중간 연결 문제 때문에 이 출력까지 정상적으로 이어지는 구현으로 설명하면 안 된다.
 
@@ -332,13 +332,13 @@ def train_slowfast(model, train_loader, epochs=196):
 
 루프는 분류 로짓·정수 정답의 교차 엔트로피와 SGD를 사용하려는 골격이다. `F` import가 없고 loader·데이터 전처리는 별도로 필요하다. 비디오·라벨은 무조건 CUDA로 옮기지만 모델을 옮기는 줄은 없으므로 호출자가 모델 장치까지 맞춰야 한다. CPU·MPS 환경에 그대로 적용되지 않는다.
 
-warm-up34epoch 이후 cosine scheduler를 호출하지만 T_max는 전체196epoch로 정한다. 기본 설정에서 실제 cosine step은162번뿐이라 학습 끝에 cosine 최솟값까지 도달하는 일정이 아니다. warm-up 이후 남은 기간과 스케줄러 step 기준을 맞춰 읽는다. 검증·최고 체크포인트·정확도 측정도 이 함수에는 없다.
+warm-up 34 epoch 이후 cosine scheduler를 호출하지만 T_max는 전체 196 epoch로 정한다. 기본 설정에서 실제 cosine step은 162번뿐이라 학습 끝에 cosine 최솟값까지 도달하는 일정이 아니다. warm-up 이후 남은 기간과 스케줄러 step 기준을 맞춰 읽는다. 검증·최고 체크포인트·정확도 측정도 이 함수에는 없다.
 
 ## 5. 원 논문 결과와 축약 구현의 구분
 
 논문의 Kinetics 결과는 backbone·관찰 구간·사전 학습·평가 clip/crop·non-local 여부 등 특정 조건의 실험이다. 이 미완성 코드의 실행 결과나 일반적인 정확도·FLOPs 순위로 제시하지 않는다. 특히 R50·R101 이름과 모델 구조가 맞지 않는 상태에서 논문 수치를 연결하면 안 된다.
 
-Fast 비용은 일부 채널-채널 컨볼루션에서 대략 αβ²에 비례할 수 있지만 첫 RGB레이어·서로 다른 시간 커널·lateral·활성 메모리를 모두 설명하는 식은 아니다. 두 경로가 항상 더 정확하거나 Fast가 전체 비용의 고정20%라는 보장도 없다. 올바르게 연결한 모델에서 같은 평가 조건으로 비교해야 한다.
+Fast 비용은 일부 채널-채널 컨볼루션에서 대략 αβ²에 비례할 수 있지만 첫 RGB 레이어·서로 다른 시간 커널·lateral·활성 메모리를 모두 설명하는 식은 아니다. 두 경로가 항상 더 정확하거나 Fast가 전체 비용의 고정 20%라는 보장도 없다. 올바르게 연결한 모델에서 같은 평가 조건으로 비교해야 한다.
 
 ## 연습문제
 
@@ -351,7 +351,7 @@ Fast 비용은 일부 채널-채널 컨볼루션에서 대략 αβ²에 비례�
 
 ??? success "풀이"
 
-    Slow stem64채널과 Fast8→lateral16채널을 연결하면80이다. 첫 Slow stage는64입력을 기대하므로 맞지 않는다. lateral을 포함한 입력 채널을 stage 설계에 반영해야 한다. 그 전에 미정의 _forward_stem 호출도 해결되어야 한다.
+    Slow stem 64채널과 Fast 8 → lateral 16채널을 연결하면 80이다. 첫 Slow stage는 64채널 입력을 기대하므로 맞지 않는다. lateral을 포함한 입력 채널을 stage 설계에 반영해야 한다. 그 전에 미정의 _forward_stem 호출도 해결되어야 한다.
 
 
 
@@ -360,13 +360,13 @@ Fast 비용은 일부 채널-채널 컨볼루션에서 대략 αβ²에 비례�
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-Fast32프레임·α8에서 첫 시간 정렬과 다음 stage의 문제를 설명하라.
+Fast 32프레임·α=8에서 첫 시간 정렬과 다음 stage의 문제를 설명하라.
 
 </div>
 
 ??? success "풀이"
 
-    입력 Slow길이는4다. Fast길이32를 lateral stride8로 줄이면4가 될 수 있지만 다음 Fast stage는시간을2배줄이고 Slow는유지한다. 같은 stride8lateral을 계속 쓰면2대4로 어긋날 수 있다. 누적 stride를 단계마다 추적해야 한다.
+    입력 Slow 길이는 4다. Fast 길이 32를 lateral stride 8로 줄이면 4가 되지만, 다음 Fast stage는 시간을 2배 줄이고 Slow는 유지한다. 같은 stride 8 lateral을 계속 쓰면 2 대 4로 어긋난다. 누적 stride를 단계마다 추적해야 한다.
 
 
 
@@ -381,7 +381,7 @@ Fast32프레임·α8에서 첫 시간 정렬과 다음 stage의 문제를 설명
 
 ??? success "풀이"
 
-    아니다. 같은 기본 블록과3·4·6·3반복을 사용하고 α만 다르다. bottleneck 구조·stage깊이·샘플링 간격의 구현을 확인해야 하며 이름과 논문 정확도를 직접 연결하지 않는다.
+    아니다. 같은 기본 블록과 3·4·6·3 반복을 사용하고 α만 다르다. bottleneck 구조·stage 깊이·샘플링 간격의 구현을 확인해야 하며 이름과 논문 정확도를 직접 연결하지 않는다.
 
 
 
@@ -396,7 +396,7 @@ Fast32프레임·α8에서 첫 시간 정렬과 다음 stage의 문제를 설명
 
 ??? success "풀이"
 
-    196epoch중34epochwarm-up 뒤162번cosine step을 하지만 T_max196이다. 따라서 cosine최솟값까지 도달하는196step일정이 아니다. 검증·체크포인트와 지표 계산도 없어 학습 완료만으로 논문 정확도를 주장할 수 없다.
+    196 epoch 중 34 epoch warm-up 뒤 162번 cosine step을 하지만 T_max는 196이다. 따라서 cosine 최솟값까지 도달하는 일정이 아니다. 검증·체크포인트와 지표 계산도 없어 학습 완료만으로 논문 정확도를 주장할 수 없다.
 
 
 

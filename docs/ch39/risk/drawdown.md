@@ -1,8 +1,6 @@
 # 낙폭(Drawdown)
 
-35.4.2장: 낙폭 관리. 포지션 크기 조절과 서킷 브레이커를 곁들인, 낙폭을 고려하는 강화학습.
-
-계량 금융에 딥러닝을 올리려면 강건한 서비스 기초가 있어야 한다. 이 꾸러미는 지켜보기, 위험 관리, 서비스에 올리는 전략을 아우르는 위험 관리 설계 결을 다룬다.
+낙폭(drawdown)은 포트폴리오 가치가 직전 고점에서 얼마나 떨어졌는지를 비율로 잰 것이다. 이 쪽은 낙폭을 실시간으로 추적하고, 낙폭에 따라 포지션 크기를 줄이고, 낙폭이 한도를 넘으면 거래를 멈추는 서킷 브레이커를 거는 구성 요소를 구현한다. 낙폭 상태를 입력에 덧붙인 폴리시 네트워크와 낙폭 벌점을 더한 리워드도 함께 적고, 모의 일간 수익률 200 스텝에 적용해 본다.
 
 ## 1. 코드
 
@@ -464,52 +462,54 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 구현은 클래스 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 위험 관리 구조를 함께 이룬다. 클래스마다 남다른 조각을 감싸므로 코드가 조각조각 나뉘어 늘리기 쉽다. `forward` 방법이 파이토치가 저절로 미분할 때 쓰는 계산 그래프를 정한다.
+이 구현은 클래스 여섯으로 이루어진다. 설정을 담는 `DrawdownConfig`, 낙폭과 그 지속 기간을 재는 `DrawdownTracker`, 낙폭이 경고 문턱(5%)과 한도(10%) 사이일 때 포지션 크기를 선형으로 줄이는 `DrawdownPositionScaler`, 낙폭이 15%를 넘으면 걸리고 3% 아래로 돌아와야 풀리는 `CircuitBreaker`, 낙폭 상태 세 값을 입력에 덧붙인 `DrawdownConstrainedPolicy`, 그리고 경고 문턱을 넘은 몫의 제곱에 벌점을 매기는 `DrawdownRewardWrapper` 다.
 
-여기서 보인 결은 더 얽힌 자리로 자연스럽게 넓어진다. 파라미터와 구조 클래스와 데이터셋을 바꿔 가며 해 보면 이해가 깊어지고 계량 금융 과제에 대한 실제 감이 쌓인다.
+출력을 보면 낙폭은 16 스텝에 처음 경고 문턱을 넘고(5.57%), 37 스텝에 10%를 넘어 포지션 스케일이 0이 되며, 95 스텝에 16.09%로 서킷 브레이커가 걸린다. 그 뒤로 낙폭이 3% 아래로 돌아오지 않으므로 서킷 브레이커는 끝까지 풀리지 않는다. 최대 낙폭은 153 스텝의 32.19%, 최대 낙폭 지속 기간은 190 스텝이다. 주의할 점은 이 데모가 스케일과 서킷 브레이커를 **계산만 하고 수익률에 적용하지는 않는다**는 것이다. 가치 경로는 통제 없이 원래 수익률을 그대로 따르므로, 서킷 브레이커가 걸린 뒤에도 손실이 계속 쌓인다. 실제 둘레라면 `scale_weights` 로 줄인 웨이트로 다음 스텝의 수익률을 계산해야 한다.
+
+포지션 스케일 표는 낙폭 5%까지 1.000, 7%에서 0.600, 8%에서 0.400, 10% 이상에서 0.000으로, 두 문턱 사이를 선형으로 잇는다. 폴리시 네트워크는 파라미터가 20,614개이고, 학습하지 않았으므로 출력 웨이트가 0.168~0.228로 균등 배분(0.2) 근처에 머문다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 첫 값으로 만든 `DrawdownConfig`에서 배우는 파라미터의 온 개수를 계산하여라. 가중치와 바이어스를 모두 넣어 켜마다 나누어 적어라.
+기본값으로 만든 `DrawdownConfig`에서 학습되는 파라미터의 총 개수를 계산하여라. 웨이트와 바이어스를 모두 넣어 레이어마다 나누어 적어라.
 
 </div>
 
 ??? success "풀이"
-    `nn.Linear(in_features, out_features)`마다 가중치 파라미터가 `in_features * out_features`개, 바이어스 파라미터가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 가중치가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 `num * dim`개다. 모든 레이어에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 살펴볼 수 있다.
+    `nn.Linear(in_features, out_features)`마다 가중치 파라미터가 `in_features * out_features`개, 바이어스 파라미터가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 가중치가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 `num * dim`개다. 모든 레이어에 걸쳐 더한다. `sum(p.numel() for p in model.parameters())`으로 확인할 수 있다. 다만 `DrawdownConfig` 는 설정값만 담은 데이터클래스라 파라미터가 없고, 이 쪽에서 파라미터를 가진 것은 `DrawdownConstrainedPolicy` 하나다. 데모의 설정(입력 20 + 낙폭 상태 3 = 23, 은닉 128, 자산 5)으로 세면 첫 `Linear` 23×128 + 128 = 3,072, `LayerNorm` 128 + 128 = 256, 둘째 `Linear` 128×128 + 128 = 16,512, 폴리시 헤드 128×5 + 5 = 645, 밸류 헤드 128 + 1 = 129로, 합이 출력의 `Parameters: 20,614` 와 같다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-으뜸 함수나 클래스에 입력이 바라는 형태와 자료형인지 살피는 검사를 더하라. 옳지 않은 입력에는 알기 쉬운 잘못 알림을 내어라.
+주요 함수나 클래스에 입력이 기대한 형태와 자료형인지 확인하는 검사를 더하라. 잘못된 입력에는 알기 쉬운 오류 메시지를 내어라.
 
 </div>
 
 ??? success "풀이"
-    `forward` 방법(또는 걸맞은 함수)의 소개에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살피기를 더한다. 형태를 살필 때에는 중요한 차원을 짚는다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알기 쉬운 잘못 알림은 디버깅을 크게 빠르게 하고 코드를 되쓰기 좋게 만든다.
+    `forward` 메서드(또는 해당 함수)의 앞부분에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 검사를 더한다. 형태를 검사할 때에는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 이 쪽의 `DrawdownConstrainedPolicy` 라면 `dd_state` 의 마지막 차원이 3인지 확인하는 것이 가장 쓸모 있다. 알기 쉬운 오류 메시지는 디버깅을 크게 빠르게 하고 코드를 재사용하기 좋게 만든다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 구현이 어그러질 수 있는 결 둘을 밝히고, 저마다 어떻게 짚어 내고 고칠지 풀어라.
+이 구현이 실패할 수 있는 경우 둘을 밝히고, 저마다 어떻게 탐지하고 고칠지 설명하라.
 
 </div>
 
 ??? success "풀이"
-    흔한 어그러짐은 이렇다. (1) **그래디언트가 사라지거나 터짐** -- 그래디언트 노름을 지켜보아(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기) 짚어 낸다. 그래디언트 클리핑, 더 나은 초기화(자비에/카이밍), 구조 바꾸기(잔차 연결, 정규화 레이어)로 고친다. (2) **과적합** -- 학습 로스는 줄어드는데 살피기 로스가 늘면 짚어 낸다. 정규화(드롭아웃, 웨이트 감쇠, 데이터 증강)나 모델 그릇 줄이기로 고친다. 학습 재기와 살피기 재기를 늘 함께 지켜보아 이런 걸림돌을 일찍 잡아야 한다.
+    흔한 실패는 이렇다. (1) **그래디언트가 사라지거나 폭발함** -- 그래디언트 노름을 모니터링해(`torch.nn.utils.clip_grad_norm_`이나 레이어마다 `param.grad.norm()` 기록) 탐지한다. 그래디언트 클리핑, 더 나은 초기화(자비에/카이밍), 구조 바꾸기(잔차 연결, 정규화 레이어)로 고친다. (2) **과적합** -- 학습 로스는 줄어드는데 검증 로스가 늘면 탐지한다. 정칙화(드롭아웃, 웨이트 감쇠, 데이터 증강)나 모델 용량 줄이기로 고친다. 학습 지표와 검증 지표를 늘 함께 모니터링해 이런 문제를 일찍 잡아야 한다. 이 쪽에 특유한 실패도 있다. 출력에서 보듯 서킷 브레이커는 낙폭이 복구 문턱 3% 아래로 돌아와야 풀리므로, 95 스텝에 걸린 뒤 끝까지 풀리지 않는다. 낙폭 이력을 함께 기록해 이런 상태를 탐지하고, 복구 조건을 시간 기준(예를 들어 일정 기간 뒤 축소된 크기로 재개)으로 바꾸는 식으로 고친다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`DrawdownConfig`을 켜나 덩이의 개수를 마음대로 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 파라미터를 더하고 `nn.ModuleList`으로 깊이가 들쭉날쭉한 구조를 만들어라. 켜 2, 4, 8개로 시험해 보라.
+`DrawdownConfig`을 레이어나 블록의 개수를 자유롭게 정할 수 있게 확장하라. `__init__`에 `num_layers` 파라미터를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 만들어라. 레이어 2, 4, 8개로 시험해 보라.
 
 </div>
 
@@ -520,12 +520,10 @@ if __name__ == "__main__":
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 회귀한다. `for layer in self.layers: x = layer(x)`. (그냥 파이썬 목록이 아니라) `nn.ModuleList`을 쓰면 파이토치가 온 파라미터를 최적화에 등록한다. 시험: `for n in [2, 4, 8]: model = DrawdownConfig(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 메서드에서 차례로 적용한다. `for layer in self.layers: x = layer(x)`. (그냥 파이썬 리스트가 아니라) `nn.ModuleList`을 쓰면 파이토치가 모든 파라미터를 최적화에 등록한다. 실제로 레이어를 가진 것은 `DrawdownConstrainedPolicy` 의 `encoder` 이므로, 바꿀 자리도 그곳이다. 시험: `for n in [2, 4, 8]: model = DrawdownConfig(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
 
 ## 정리하며
 
 **다룬 것** — 낙폭
 
-이 구현은 클래스 여섯(`DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`과 둘 더)을 두어 온전한 위험 관리 구조를 함께 이룬다.
-
-핵심 클래스는 `DrawdownConfig`, `DrawdownTracker`, `DrawdownPositionScaler`, `CircuitBreaker`이며 앞의 연습문제 4개로 스스로 따져 볼 수 있다.
+이 구현은 낙폭 추적, 포지션 크기 조절, 서킷 브레이커, 낙폭 벌점 리워드, 낙폭 상태를 입력으로 받는 폴리시 네트워크를 클래스 여섯으로 나누어 담는다. 데모가 보여 주듯 이 장치들은 계산하는 것만으로는 손실을 막지 못하고, 그 결과를 실제 포지션에 적용해야 효과가 있다. 앞의 연습문제 네 개로 이 구성 요소들을 직접 바꿔 보며 확인할 수 있다.

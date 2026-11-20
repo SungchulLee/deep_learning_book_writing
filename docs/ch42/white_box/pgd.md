@@ -1,30 +1,30 @@
 # PGD 공격
 
-**투영 경사 하강법(PGD)**은 FGSM을 여러 스텝 반복 공격으로 넓혀 훨씬 세게 만든다. 매드리 등(2018)이 내놓았으며, 적대적 강건성을 평가하는 사실상의 기준으로 여겨지고 강건한 적대적 학습의 기초가 된다.
+**투영 경사 하강법(PGD)**은 FGSM을 여러 스텝의 반복 공격으로 확장해 훨씬 세게 만든다. Madry 등(2018)이 제안했으며, 적대적 강건성을 평가하는 사실상의 표준으로 여겨지고 강건한 적대적 학습의 기초가 된다.
 
 ---
 
-## 1. 수학 기초
+## 1. 수학적 기초
 
 ### FGSM에서 반복 공격으로
 
-FGSM은 그래디언트 방향으로 큰 스텝을 한 번 밟는다. 이는 다음 까닭에 가장 좋지 않다.
+FGSM은 그래디언트 방향으로 큰 스텝을 한 번 밟는다. 이는 다음 까닭에 최적이 아니다.
 
 1. $\mathbf{x}$에서 멀어지면 선형 근사가 나빠진다
-2. 한 스텝이면 가장 좋은 자리를 지나치거나 못 미칠 수 있다
-3. 로스의 터는 볼록하지 않다
+2. 한 스텝으로는 최적점을 지나치거나 못 미칠 수 있다
+3. 로스 지형은 볼록하지 않다
 
-PGD은 **작은 스텝을 여러 번** 밟고 반복마다 그래디언트를 다시 셈해 이를 푼다.
+PGD는 **작은 스텝을 여러 번** 밟고 반복마다 그래디언트를 다시 계산해 이를 해결한다.
 
-### PGD 형태
+### PGD의 정식화
 
-PGD은 제약된 최적화 문제
+PGD는 제약된 최적화 문제
 
 $$
 \max_{\|\boldsymbol{\delta}\|_p \leq \varepsilon} \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y)
 $$
 
-를 투영 경사 상승법으로 푼다. 반복마다의 고침은
+를 투영 경사 상승법으로 푼다. 반복마다의 갱신은
 
 $$
 \mathbf{x}^{(t+1)} = \Pi_{\mathbf{x} + \mathcal{S}}\left( \mathbf{x}^{(t)} + \alpha \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}^{(t)}), y)) \right)
@@ -32,24 +32,24 @@ $$
 
 여기서
 
-- $\Pi_{\mathbf{x} + \mathcal{S}}$은 $\mathbf{x}$ 둘레 $\varepsilon$ 공으로 투영한다
-- $\alpha$은 스텝 크기
-- $\mathcal{S} = \{\boldsymbol{\delta} : \|\boldsymbol{\delta}\|_p \leq \varepsilon\}$은 받아 주는 섭동의 모임
+- $\Pi_{\mathbf{x} + \mathcal{S}}$는 $\mathbf{x}$ 둘레 $\varepsilon$ 공으로 투영한다
+- $\alpha$는 스텝 크기
+- $\mathcal{S} = \{\boldsymbol{\delta} : \|\boldsymbol{\delta}\|_p \leq \varepsilon\}$는 허용되는 섭동의 집합
 
 ### 알고리즘
 
 **알고리즘: PGD 공격**
 
-**입력:** 클린 샘플 $\mathbf{x}$, 레이블 $y$, 모델 $f_\theta$, 엡실론 $\varepsilon$, 스텝 크기 $\alpha$, 회귀 $T$
+**입력:** 클린 샘플 $\mathbf{x}$, 레이블 $y$, 모델 $f_\theta$, 엡실론 $\varepsilon$, 스텝 크기 $\alpha$, 반복 횟수 $T$
 
 **출력:** 적대적 샘플 $\mathbf{x}_{\text{adv}}$
 
 1. **초기화:** $\mathbf{u} \sim \text{Uniform}[-\varepsilon, \varepsilon]^d$일 때 $\mathbf{x}^{(0)} = \mathbf{x} + \mathbf{u}$
 2. $t = 0, 1, \ldots, T-1$**마다**:
    - 그래디언트를 계산한다: $\mathbf{g} = \nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}^{(t)}), y)$
-   - 고친다: $\tilde{\mathbf{x}}^{(t+1)} = \mathbf{x}^{(t)} + \alpha \cdot \text{sign}(\mathbf{g})$
+   - 갱신한다: $\tilde{\mathbf{x}}^{(t+1)} = \mathbf{x}^{(t)} + \alpha \cdot \text{sign}(\mathbf{g})$
    - 투영한다: $\mathbf{x}^{(t+1)} = \Pi_{\varepsilon}(\tilde{\mathbf{x}}^{(t+1)}, \mathbf{x})$
-   - 옳은 자리로 잘라 낸다: $\mathbf{x}^{(t+1)} = \text{clip}(\mathbf{x}^{(t+1)}, 0, 1)$
+   - 유효 범위로 잘라 낸다: $\mathbf{x}^{(t+1)} = \text{clip}(\mathbf{x}^{(t+1)}, 0, 1)$
 3. **돌려준다:** $\mathbf{x}_{\text{adv}} = \mathbf{x}^{(T)}$
 
 ### 투영 연산
@@ -72,11 +72,11 @@ $$
 
 ### 스텝 크기 고르기
 
-| 전략 | 식 | 붙임말 |
+| 전략 | 식 | 비고 |
 |----------|---------|-------|
-| **곧게** | $\alpha = \varepsilon / T$ | 조심스럽다 |
-| **기준 잡은 곧게** | $\alpha = 2\varepsilon / T$ | 여느 값(매드리 등) |
-| **세게** | $\alpha = 2.5\varepsilon / T$ | 더 빨리 모인다 |
+| **선형** | $\alpha = \varepsilon / T$ | 보수적이다 |
+| **표준** | $\alpha = 2\varepsilon / T$ | 흔히 쓰는 값 |
+| **공격적** | $\alpha = 2.5\varepsilon / T$ | 더 빨리 수렴한다 |
 
 ---
 
@@ -216,16 +216,16 @@ class PGD:
 
 ## 3. 비교: FGSM과 PGD
 
-| 피처 | FGSM | PGD |
+| 항목 | FGSM | PGD |
 |--------|------|-----|
 | 스텝 | 1 | $T$(10~100) |
-| 초기화 | 없음 | 무작위로 |
-| 세기 | 여림 | 계산 |
-| 빠르기 | 빠름 | $T$배 느림 |
+| 초기화 | 없음 | 무작위 |
+| 세기 | 약함 | 강함 |
+| 속도 | 빠름 | $T$배 느림 |
 
-**흔한 피처와(CIFAR-10, ε=8/255):**
+**흔히 보고되는 값(CIFAR-10, ε=8/255, 이 쪽에서 잰 값이 아니다):**
 
-| 방법 | 먹힌 비율 |
+| 방법 | 공격 성공률 |
 |--------|--------------|
 | FGSM | 약 65% |
 | PGD-10 | 약 85% |
@@ -233,7 +233,7 @@ class PGD:
 
 ---
 
-## 4. 클래스
+## 4. 변형
 
 ### 모멘텀 반복 FGSM(MI-FGSM)
 
@@ -241,23 +241,23 @@ $$
 \mathbf{g}^{(t)} = \mu \cdot \mathbf{g}^{(t-1)} + \frac{\nabla_\mathbf{x} \mathcal{L}}{\|\nabla_\mathbf{x} \mathcal{L}\|_1}
 $$
 
-그래디언트의 모멘텀을 쌓아 전이를 낫게 한다.
+그래디언트의 모멘텀을 누적해 전이성을 높인다.
 
 ### 오토-PGD(APGD)
 
-로스가 나아지는 정도에 따라 스텝 크기를 맞춘다. AutoAttack의 핵심 기여도다.
+로스가 개선되는 정도에 따라 스텝 크기를 조절한다. AutoAttack의 핵심 구성 요소다.
 
 ---
 
-## 5. 적대적 학습와의 이어짐
+## 5. 적대적 학습과의 관계
 
-PGD은 강건하게 학습하는 데 쓰는 여느 공격이다.
+PGD는 강건 학습에 쓰는 표준 공격이다.
 
 $$
 \min_\theta \mathbb{E}_{(\mathbf{x},y)}\left[\max_{\|\boldsymbol{\delta}\|_\infty \leq \varepsilon} \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y)\right]
 $$
 
-안쪽의 최대화를 PGD으로 근사한다.
+안쪽의 최대화를 PGD로 근사한다.
 
 ---
 
@@ -271,7 +271,7 @@ $$
 </div>
 
 ??? success "풀이"
-    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 국소 선형 근사 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 통하는지를 설명해 준다. 차원이 높은 모델이 취약한 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
+    선형 분류기에서 $\ell_\infty$ 노름으로 잰 결정 경계까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 섭동은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 뉴럴 네트워크에서는 국소 선형 근사 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$가 FGSM(그래디언트의 부호를 쓴다)이 왜 잘 통하는지를 설명해 준다. 차원이 높은 모델이 취약한 까닭은 $\|w\|_1$은 차원과 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 강건성의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
@@ -295,7 +295,7 @@ $$
 </div>
 
 ??? success "풀이"
-    두 클래스의 서포트가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 기초 트레이드오프다. 겹치는 서포트의 비중이 피할 수 없는 정확도 손실을 정한다. 자연 이미지 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 관찰되는 10~15%의 정확도 하락을 설명해 준다. 모델 용량을 키우면(더 넓은 네트워크) 복잡한 강건 결정 경계를 더 잘 그려 트레이드오프를 어느 정도 완화할 수 있다. $\square$
+    두 클래스의 서포트가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{클래스 1}, x_2 \in \text{클래스 2}$가 있으면), $x_1$과 $x_2$ 둘 다에서 강건한 분류기는 적어도 하나를 틀리게 가를 수밖에 없다(섭동 공이 겹치기 때문이다). 이것이 정확도와 강건성의 근본적인 트레이드오프다. 겹치는 서포트의 비중이 피할 수 없는 정확도 손실을 정한다. 자연 이미지 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 관찰되는 10~15%의 정확도 하락을 설명해 준다. 모델 용량을 키우면(더 넓은 네트워크) 복잡한 강건 결정 경계를 더 잘 그려 트레이드오프를 어느 정도 완화할 수 있다. $\square$
 
 ---
 
@@ -311,7 +311,7 @@ $$
 
 ## 정리하며
 
-이 절에서는 수학 기초, PyTorch로 구현하기, 비교: FGSM과 PGD, 클래스를 살펴보았다.
+이 절에서는 PGD의 수학적 기초와 PyTorch 구현을 보고, FGSM과 비교한 뒤 주요 변형(MI-FGSM, APGD)을 살펴보았다.
 
 **살펴볼 거리**
 

@@ -1,6 +1,6 @@
 # LLaMA
 
-LLaMA는 2023년 논문 "LLaMA: Open and Efficient Foundation Language Models"에서 나왔다.
+LLaMA는 2023년 논문 "LLaMA: Open and Efficient Foundation Language Models"에서 나왔다. GPT와 같은 디코더 전용 트랜스포머에 RMSNorm(평균을 빼지 않고 제곱 평균의 제곱근으로만 나누는 정규화), SwiGLU 피드포워드, 회전 위치 임베딩(RoPE)을 얹었다. 이 쪽의 코드는 RoPE를 빼고 앞의 둘과 인과 어텐션만 구현한다.
 
 이 쪽의 구현은 LLaMA의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
 
@@ -171,7 +171,7 @@ logits: torch.Size([2, 12, 1000])
 
 ## 2. 논의
 
-이 구현은 클래스 5개(`RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock` 외 1개)를 정의하고, 이들이 함께 완전한 트랜스포머 구조를 이룬다. 클래스마다 고유한 역할을 맡아 코드가 모듈로 나뉘고 확장하기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
+이 구현은 클래스 5개(`RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`, `LLaMA`)를 정의하고, 이들이 함께 완전한 트랜스포머 구조를 이룬다. 클래스마다 고유한 역할을 맡아 코드가 모듈로 나뉘고 확장하기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -227,12 +227,12 @@ logits: torch.Size([2, 12, 1000])
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 순회한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 그 안의 파라메터를 모델에 등록하고, 옵티마이저가 그것들을 갱신할 수 있다. `for n in [2, 4, 8]: model = RMSNorm(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 순회한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 그 안의 파라메터를 모델에 등록하고, 옵티마이저가 그것들을 갱신할 수 있다. `for n in [2, 4, 8]: model = RMSNorm(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험한다.
 
 ## 정리하며
 
 **다룬 것** — LLaMA
 
-이 구현은 클래스 5개(`RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock` 외 1개)를 정의하고, 이들이 함께 완전한 트랜스포머 구조를 이룬다.
+이 구현은 클래스 5개(`RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`, `LLaMA`)를 정의하고, 이들이 함께 완전한 트랜스포머 구조를 이룬다.
 
-핵심 클래스는 `RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`이며 앞의 연습문제 4개로 스스로 확인할 수 있다.
+핵심 클래스는 `RMSNorm`, `SwiGLU`, `CausalSelfAttention`, `LLaMABlock`, `LLaMA`이며 앞의 연습문제 4개로 스스로 확인할 수 있다.

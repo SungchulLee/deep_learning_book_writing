@@ -2,7 +2,7 @@
 
 [Neural ODE](https://arxiv.org/abs/1806.07366)는 뉴럴 네트워크로 은닉상태의 시간 미분을 정의한다. 이 짧은 예제는 그 아이디어를 고정 스텝 오일러 반복으로 보여 준다. 적응형 솔버나 adjoint를 구현한 코드는 아니며, 반복의 끝점 처리에도 주의가 필요하다.
 
-## 1. 코드와 보존된 출력
+## 1. 코드와 출력
 
 ```python
 #!/usr/bin/env python3
@@ -158,13 +158,13 @@ forward에 필요한 입력 조건과 step_size 조건을 설계하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 ModuleList 골격을 ODEFunc의 깊이 옵션으로 완성하려면 무엇을 정의해야 하는가? 이것은 적분 스텝 수와 같은가?
+ModuleList에 블록을 num_layers번 붙이는 골격(풀이 끝의 코드)으로 ODEFunc에 깊이 옵션을 주려면 무엇을 정의해야 하는가? 이것은 적분 스텝 수와 같은가?
 
 </div>
 
 ??? success "풀이"
 
-    YourBlock, num_layers와 dim이 정의되지 않아 아래는 실행 가능한 확장 코드가 아니다. 입력 dim→hidden, 내부 hidden→hidden과 출력 hidden→dim의 차원·활성화 배치를 정하고 ModuleList의 순방향 순회를 정의해야 한다. num_layers 인수도 기존 생성자에는 없다. 벡터장 MLP의 깊이는 한 번의 f 계산 구조이고, 적분 스텝 수는 그 f를 몇 번 호출하는지이므로 서로 다르다. 여러 스텝에 별도 MLP를 만들면 원래의 파라미터 공유도 바뀐다.
+    YourBlock, num_layers와 dim이 정의되지 않아 아래 골격은 실행 가능한 확장 코드가 아니다. 입력 dim→hidden, 내부 hidden→hidden과 출력 hidden→dim의 차원·활성화 배치를 정하고 ModuleList의 순방향 순회를 정의해야 한다. num_layers 인수도 기존 생성자에는 없다. 벡터장 MLP의 깊이는 한 번의 f 계산 구조이고, 적분 스텝 수는 그 f를 몇 번 호출하는지이므로 서로 다르다. 여러 스텝에 별도 MLP를 만들면 원래의 파라미터 공유도 바뀐다.
 
     ```python
     self.layers = nn.ModuleList()

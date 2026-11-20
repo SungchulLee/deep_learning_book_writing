@@ -1,6 +1,6 @@
 # GAN
 
-GAN은 2014년 논문 "Generative Adversarial Networks"에서 나왔다. 네트워크 둘(제너레이터와 디스크리미네이터)이 적대적으로 학습된다.
+GAN은 2014년 논문 "Generative Adversarial Networks"에서 나왔다. 네트워크 둘(제너레이터와 디스크리미네이터)이 적대적으로 학습된다 — 제너레이터는 잡음에서 가짜 이미지를 만들고, 디스크리미네이터는 진짜와 가짜를 가려내려 하며, 둘이 서로를 상대로 실력을 키운다.
 
 여기 구현은 GAN을 짧게 줄인 학습용 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -162,19 +162,19 @@ Discriminator Parameters: 533,505
 </div>
 
 ??? success "풀이"
-    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 레이어를 모두 더한다. `sum(p.numel() for p in model.parameters())`으로 확인할 수 있다.
+    `nn.Linear(in_features, out_features)`마다 웨이트 파라메터가 `in_features * out_features`개이고 바이어스가 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 웨이트가 `in_c * out_c * k * k`개, 바이어스가 `out_c`개다. `nn.Embedding(num, dim)`은 파라메터가 `num * dim`개다. 레이어를 모두 더한다. `sum(p.numel() for p in model.parameters())`로 확인할 수 있다. 위 출력의 1,510,032개가 기본 설정 `Generator`의 답이다(`BatchNorm1d`의 스케일과 시프트도 학습 가능한 파라메터로 들어간다).
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-옵티마이저를 Adam(`torch.optim.Adam`에 `lr=0.001`)으로 바꾸고 원래 옵티마이저와 학습의 수렴 양상을 비교하여라. 둘의 로스 곡선을 한 그림에 그려라.
+`train_gan`의 두 옵티마이저를 Adam 기본 설정(`lr=0.001`, `betas=(0.9, 0.999)`)으로 바꾸고, 이 코드의 설정(`lr=0.0002`, `betas=(0.5, 0.999)`)과 학습의 수렴 양상을 비교하여라. 둘의 로스 곡선을 한 그림에 그려라.
 
 </div>
 
 ??? success "풀이"
-    옵티마이저를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 바꾼다. Adam은 파라메터마다 적응적 러닝레이트와 모멘텀 추정치를 지니므로 초기 에포크에서 대체로 더 빨리 수렴한다. Adam의 로스 곡선은 흔히 첫 몇 에포크에서 더 가파르게 떨어지지만, 최종 값 언저리에서는 모멘텀을 쓰는 SGD보다 조금 더 흔들릴 수 있다. 공정하게 견주려면 둘을 같은 시드와 같은 에포크 수로 돌려라.
+    옵티마이저를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`처럼 바꾼다(`model` 자리에 `net_D`와 `net_G`를 넣고, `betas`는 기본값으로 둔다). 러닝레이트가 다섯 배 커지고 1차 모멘텀 계수가 0.5에서 0.9로 커지면, 두 네트워크가 상대의 변화에 더 크게 반응해 D 로스와 G 로스가 진동하거나 한쪽이 무너지기 쉽다. DCGAN 논문이 `lr=0.0002`와 `betas=(0.5, 0.999)`를 권한 까닭이 이것이다. 공정하게 견주려면 둘을 같은 시드와 같은 에포크 수로 돌려라.
 
 ---
 
@@ -193,7 +193,7 @@ Discriminator Parameters: 533,505
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`Generator`을 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 구조를 구성하라. 레이어 2개, 4개, 8개로 시험하여라.
+`Generator`를 레이어나 블록의 수를 설정할 수 있게 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`로 깊이를 바꿀 수 있는 구조를 구성하라. 레이어 2개, 4개, 8개로 시험하여라.
 
 </div>
 
@@ -204,7 +204,7 @@ Discriminator Parameters: 533,505
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`으로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`을 써야 PyTorch가 파라메터를 모두 최적화 대상으로 등록한다. `for n in [2, 4, 8]: model = Generator(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`로 반복한다. 일반 파이썬 리스트가 아니라 `nn.ModuleList`를 써야 PyTorch가 파라메터를 모두 최적화 대상으로 등록한다. `for n in [2, 4, 8]: model = Generator(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`로 시험한다.
 
 ## 정리하며
 

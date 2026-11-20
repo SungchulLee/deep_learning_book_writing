@@ -434,7 +434,7 @@ class FGSMAttack:
 
 함수형 `fgsm_attack`은 입력 복사본에서 그래디언트를 구하지만 모델 모드는 바꾸지 않는다. 반환 perturbation은 clipping 전 값이다. 클래스형 공격은 eval을 사용하되 이전 모드를 복원하지 않고, 입력을 복제·분리하지도 않아 입력이 leaf 텐서인지와 기존 .grad 상태에 주의해야 한다. 두 방식 모두 backward로 모델 파라메터의 그래디언트도 계산하지만 optimizer.step을 호출하지 않아 파라메터를 업데이트하지는 않는다. 공격을 생성하는 구간 전체를 no_grad로 감싸면 필요한 입력 그래디언트를 구할 수 없다.
 
-`FGSMAttack.evaluate`의 `(clean_correct-adv_correct)/clean_correct`는 정확도 감소를 나눈 값이다. 원래 오분류를 공격 후 맞힌 표본이 있으면 위에서 정의한 조건부 성공률과 달라진다. 빈 평가나 clean_correct=0도 처리하지 않는다.
+`FGSMAttack.evaluate`의 `(clean_correct-adv_correct)/clean_correct`는 맞힌 개수의 감소를 원래 맞힌 개수로 나눈 값이다. 원래 오분류를 공격 후 맞힌 표본이 있으면 위에서 정의한 조건부 성공률과 달라진다. 빈 평가나 clean_correct=0도 처리하지 않는다.
 
 ```python
 def untargeted_fgsm(model, images, labels, epsilon):
@@ -536,7 +536,7 @@ def run_targeted_attack(model, dataloader, target_class, epsilon, device='cpu'):
     }
 ```
 
-표적 FGSM은 목표 라벨에 대한 교차 엔트로피를 **줄이는** 방향이므로 부호 앞에 마이너스가 붙는다. `run_targeted_attack`은 원래 목표 클래스인 표본과 원래 오분류된 표본도 포함해 목표 도달 비율을 계산한다. 그 값을 새롭게 유도한 표적 오분류율이라고 그대로 해석하지 않는다.
+표적 FGSM은 목표 라벨에 대한 교차 엔트로피를 **줄이는** 방향이므로 부호 앞에 마이너스가 붙는다. `run_targeted_attack`은 원래 목표 클래스인 표본과 원래 오분류된 표본도 포함해 목표 도달 비율을 계산한다. 그 값을 공격이 새로 일으킨 표적 오분류의 비율로 그대로 해석하지 않는다.
 
 ## 6. 첫 번째 MNIST 예제의 전처리 불일치
 
@@ -1181,7 +1181,7 @@ Testing Targeted Attacks:
    Success: True
 ```
 
-두 번째 main은 ToTensor의 0~1 이미지를 쓰므로 공격의 clipping 범위와 맞는다. 그러나 **새로 초기화한 CNN을 학습하거나 체크포인트에서 불러오지 않는다**. 따라서 한 이미지의 FGSM 실패·PGD 성공 출력은 학습된 MNIST 분류기의 강건성 비교가 아니다. 표본을 하나 골라 시각화한 결과만으로 성공률이나 방법 간 일반적인 순위를 주장할 수도 없다.
+두 번째 main은 ToTensor의 0~1 이미지를 쓰므로 공격의 clipping 범위와 맞는다. 그러나 **CNN을 새로 초기화만 하고, 학습하거나 체크포인트에서 불러오지 않는다**. 따라서 한 이미지의 FGSM 실패·PGD 성공 출력은 학습된 MNIST 분류기의 강건성 비교가 아니다. 표본을 하나 골라 시각화한 결과만으로 성공률이나 방법 간 일반적인 순위를 주장할 수도 없다.
 
 ## 11. 강건성을 평가하는 기준
 

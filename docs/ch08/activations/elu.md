@@ -24,7 +24,7 @@ $$\operatorname{ELU}(x) = \begin{cases} x & \text{if } x > 0 \\ \alpha(e^x - 1) 
 
 $$\operatorname{ELU}'(x) = \begin{cases} 1 & \text{if } x > 0 \\ \alpha e^x & \text{if } x < 0 \end{cases}$$
 
-$x \leq 0$일 때 도함수를 $\operatorname{ELU}(x) + \alpha$으로도 쓸 수 있어, 순전파의 출력만으로 효율적으로 계산할 수 있음에 유의하라.
+$x \leq 0$일 때 도함수를 $\operatorname{ELU}(x) + \alpha$로도 쓸 수 있어, 순전파의 출력만으로 효율적으로 계산할 수 있음에 유의하라.
 
 $$\operatorname{ELU}'(x) = \begin{cases} 1 & \text{if } x > 0 \\ \operatorname{ELU}(x) + \alpha & \text{if } x < 0 \end{cases}$$
 
@@ -110,7 +110,7 @@ Output: ['-0.8647', '-0.6321', '0.0000', '1.0000', '2.0000']
 
 ### alpha 고르기
 
-파라메터 $\alpha$은 포화의 바닥을 정한다.
+파라메터 $\alpha$는 포화의 바닥을 정한다.
 
 | $\alpha$ | 포화하는 값 | 효과 |
 |----------|---------------|--------|

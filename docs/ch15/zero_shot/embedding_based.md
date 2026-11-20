@@ -34,7 +34,7 @@ GloVe는 단어가 함께 나오는 통계를 최적화한다.
 
 $$J = \sum_{i,j} f(X_{ij}) (\mathbf{v}_i^\top \mathbf{v}_j + b_i + b_j - \log X_{ij})^2$$
 
-여기서 $X_{ij}$은 함께 나온 횟수이고 $f$은 가중 함수이다.
+여기서 $X_{ij}$는 함께 나온 횟수이고 $f$는 가중 함수이다.
 
 ### FastText
 
@@ -169,7 +169,7 @@ $$\mathcal{L} = \sum_{(\mathbf{x}, y)} \sum_{c \neq y} \max(0, \Delta + F(\phi(\
 
 ### PyTorch 구현
 
-predict_unseen은 unseen_classes 목록의 인덱스를 반환한다. 의미 벡터와 projected를 CPU에 생성하므로 CUDA 입력에 그대로 적용할 수 없다. train_conse_classifier는 원본 라벨을 class_to_idx로 변환하므로 라벨 자료형과 사전 키를 일치시켜야 한다.
+VisualSemanticEmbedding은 시각 피처와 의미 벡터를 각각 인코딩해 L2 정규화한 뒤 내적, 곧 코사인 유사도로 호환성 점수를 낸다. train_vse_model은 batch_y의 원본 라벨을 class_embeddings 사전의 키로 그대로 쓰므로 라벨 자료형과 사전 키를 일치시켜야 한다. 음성 클래스는 학습 클래스에서 무작위로 하나씩 뽑으며, 클래스 임베딩 텐서를 CPU에 만들므로 CUDA 입력에는 장치를 맞춰야 한다.
 
 ```python
 import torch

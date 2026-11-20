@@ -22,7 +22,7 @@ Input: [w_{t-n+1}, ..., w_{t-1}]  (context words)
 Output: P(w_t | context)
 ```
 
-문맥 m개·embedding 차원D이면 연결은 mD차원이고, tanh 은닉을 선형 변환해 어휘 크기V의 로짓을 만든다. 출력 softmax의 비용에는 보통 은닉H와 어휘V의 곱도 들어간다. 고정 m개 밖의 입력은 직접 보지 못한다.
+문맥 m개·embedding 차원 D이면 연결은 mD차원이고, tanh 은닉을 선형 변환해 어휘 크기 V의 로짓을 만든다. 출력 softmax의 비용에는 보통 은닉 차원 H와 어휘 크기 V의 곱이 들어간다. 고정 m개 밖의 입력은 직접 보지 못한다.
 
 ```python
 import torch
@@ -348,7 +348,7 @@ def collate_sequences(batch):
     return torch.stack(padded_inputs), torch.stack(padded_targets)
 ```
 
-RNNLMDataset은 시작·종료를 포함한 각 문장을 max_len 길이 구간으로 나누고 입력 seq[:-1], 목표 seq[1:]을 만든다. collate는 PAD ID0으로 길이를 맞춘다. 긴 문장의 다음 구간에서도 상태를 초기화하면 이전 구간의 문맥은 잃는다. 독립 문장을 무작위 배치로 섞는 방식과 연속 스트림의 같은 배치 행에 상태를 이어 주는 방식은 다르다.
+RNNLMDataset은 시작·종료를 포함한 각 문장을 max_len 길이 구간으로 나누고 입력 seq[:-1], 목표 seq[1:]을 만든다. collate는 PAD ID 0으로 길이를 맞춘다. 긴 문장의 다음 구간에서도 상태를 초기화하면 이전 구간의 문맥은 잃는다. 독립 문장을 무작위 배치로 섞는 방식과 연속 스트림의 같은 배치 행에 상태를 이어 주는 방식은 다르다.
 
 ```python
 def train_rnn_truncated_bptt(model, data, hidden, seq_len=35):
@@ -376,7 +376,7 @@ def train_rnn_truncated_bptt(model, data, hidden, seq_len=35):
     return hidden
 ```
 
-잘린 BPTT는 상태 값은 다음 구간에 전달하되 detach로 그래디언트 연결을 자른다. 위 함수는 RNN의 단일 hidden 텐서를 가정하며 LSTM의(h,c) 튜플에는 그대로 적용되지 않는다. criterion·optimizer·vocab_size도 외부 정의가 필요하다. targets는 배치의 열 구간 slicing이라 비연속일 수 있어 view(-1)가 실패할 수 있다. 배치 행이 같은 스트림을 계속 나타내는지와 경계에서의 상태 초기화도 필요하다. RNN init_hidden은 CPU 기본 dtype 텐서를 만들므로 모델의 장치·dtype과 맞춰야 한다.
+잘린 BPTT는 상태 값은 다음 구간에 전달하되 detach로 그래디언트 연결을 자른다. 위 함수는 RNN의 단일 hidden 텐서를 가정하며 LSTM의 (h, c) 튜플에는 그대로 적용되지 않는다. criterion·optimizer·vocab_size도 외부 정의가 필요하다. targets는 배치의 열 구간 slicing이라 비연속일 수 있어 view(-1)가 실패할 수 있다. 배치 행이 같은 스트림을 계속 나타내는지와 경계에서의 상태 초기화도 필요하다. RNN init_hidden은 CPU 기본 dtype 텐서를 만들므로 모델의 장치·dtype과 맞춰야 한다.
 
 ## 3. LSTM과 weight tying
 
@@ -513,11 +513,11 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
     return model, vocab
 ```
 
-LSTMLanguageModel은 embedding·LSTM·dropout·출력 head다. tie_weights=True여도 embedding_dim과 hidden_dim이 같을 때만 실제 웨이트를 공유한다. 학습 함수의 기본256·512는 달라 기본 호출에서는 tying이 일어나지 않는다. 공유가 일어나면 embedding과 출력 웨이트는 같은 Parameter이며 두 번 세지 않는다.
+LSTMLanguageModel은 embedding·LSTM·dropout·출력 head다. tie_weights=True여도 embedding_dim과 hidden_dim이 같을 때만 실제 웨이트를 공유한다. 학습 함수의 기본값 256·512는 서로 달라 기본 호출에서는 tying이 일어나지 않는다. 공유가 일어나면 embedding과 출력 웨이트는 같은 Parameter이며 두 번 세지 않는다.
 
-이 구현의 일반 dropout은 [AWD-LSTM 연구](https://arxiv.org/abs/1708.02182)의 recurrent weight dropout·embedding dropout·시간에 공유하는 locked mask 전체를 구현한 것이 아니다. AWD-LSTM이라는 이름의 성능과 이 단순 구조를 동일시하지 않는다. 해당 연구의 ICLR 발표는2018년이며 preprint는2017년이다.
+이 구현의 일반 dropout은 [AWD-LSTM 연구](https://arxiv.org/abs/1708.02182)의 recurrent weight dropout·embedding dropout·시간에 공유하는 locked mask 전체를 구현한 것이 아니다. AWD-LSTM이라는 이름의 성능과 이 단순 구조를 동일시하지 않는다. 해당 연구의 ICLR 발표는 2018년이며 preprint는 2017년이다.
 
-학습 루프는 배치마다(h,c)를 새로 초기화하므로 잘라 나눈 문장 구간 사이의 상태도 이어지지 않는다. PAD 목표0을 CE에서 제외하지만 출력 후보에서 PAD를 제거하는 것은 아니다. 기록한 배치 평균 로스의 exp도 유효 토큰별 전체 NLL에서 계산한 PPL과 다를 수 있다. 검증·시험 분할이나 최고 체크포인트 평가도 포함하지 않는다.
+학습 루프는 배치마다 (h, c)를 새로 초기화하므로 잘라 나눈 문장 구간 사이의 상태도 이어지지 않는다. PAD 목표 0을 CE에서 제외하지만 출력 후보에서 PAD를 제거하는 것은 아니다. 기록한 배치 평균 로스의 exp도 유효 토큰별 전체 NLL에서 계산한 PPL과 다를 수 있다. 검증·시험 분할이나 최고 체크포인트 평가도 포함하지 않는다.
 
 ## 4. 인과 attention과 decoder memory
 
@@ -765,11 +765,11 @@ def generate_text(model, vocab, max_length: int = 50,
 
 generate_text는 모든 구조를 지원하는 함수처럼 보이지만 서로 다른 호출 계약을 섞는다. LSTM에서는 이전 hidden을 유지하면서 매번 늘어난 prefix를 다시 입력해 과거 토큰을 중복 처리한다. 상태를 유지하면 새 토큰만, 전체 prefix를 다시 넣으면 초기 상태에서 계산하는 일관된 정책이 필요하다.
 
-RNN에는 lstm 속성이 없어 else로 가지만 반환값은(logits,hidden) 튜플이라 뒤의 텐서 인덱싱과 맞지 않는다. FeedforwardLM은 고정 context_size와 B×V 출력을 기대하는데 이 함수는 가변 prefix와 B×L×V를 가정한다. Transformer도 위 인과 누출 문제가 남고 최대50토큰으로 자르면 원래 관찰 범위·위치 인덱스가 달라진다.
+RNN에는 lstm 속성이 없어 else로 가지만 반환값은 (logits, hidden) 튜플이라 뒤의 텐서 인덱싱과 맞지 않는다. FeedforwardLM은 고정 context_size와 B×V 출력을 기대하는데 이 함수는 가변 prefix와 B×L×V를 가정한다. Transformer도 위 인과 누출 문제가 남고 최대 50토큰으로 자르면 원래 관찰 범위·위치 인덱스가 달라진다.
 
 생성 입력은 CPU에서 만들어 모델 장치가 바뀌면 맞지 않을 수 있다. 온도 양수·top-k 범위·top-p 범위, 허용 특수 토큰·종료와 최대 길이를 검증하는 기능도 제한적이다. 한 함수에 구조 이름만 바꿔 넣으면 동일한 확률 모델의 생성이 된다고 가정하지 않는다.
 
-## 8. 사전 학습 모델과 비교 기준
+## 6. 사전 학습 모델과 비교 기준
 
 ```python
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
@@ -793,21 +793,21 @@ output = model.generate(
 print(tokenizer.decode(output[0]))
 ```
 
-마지막은 앞의 단어 모델과 별개의 GPT-2 모델·토크나이저를 불러 샘플링하는 예다. 웨이트·패키지·환경이 필요하며 로컬 모델을 이 코드에서 사전 학습한 것은 아니다. max_length는 프롬프트를 포함한 길이이고 토큰화도 앞의 공백 단어와 다르다. 이 편집에서는 다운로드·추론·학습을 실행하지 않는다.
+마지막은 앞의 단어 모델과 별개의 GPT-2 모델·토크나이저를 불러 샘플링하는 예다. 웨이트·패키지·환경이 필요하며 로컬 모델을 이 코드에서 사전 학습한 것은 아니다. max_length는 프롬프트를 포함한 길이이고 토큰화도 앞의 공백 단어와 다르다. 샘플링 결과는 실행마다 달라지므로 이 쪽에는 출력을 싣지 않는다.
 
-순방향·RNN·LSTM·트랜스포머의 문맥·속도·메모리를 고정 순위로 제시하지 않는다. RNN은 길이에 순차적인 상태 갱신을 하고 attention은 학습 위치를 병렬 계산할 수 있지만 자기회귀 생성은 다음 토큰에 의존한다. dense attention의 쌍별O(L²D)·projection O(LD²), recurrent 활성 저장·BPTT·cache와 구현도 구분한다.
+순방향·RNN·LSTM·트랜스포머의 문맥·속도·메모리를 고정 순위로 제시하지 않는다. RNN은 길이에 순차적인 상태 갱신을 하고 attention은 학습 위치를 병렬 계산할 수 있지만 자기회귀 생성은 다음 토큰에 의존한다. dense attention의 쌍별 O(L²D)·projection O(LD²), recurrent 활성 저장·BPTT·cache와 구현도 구분한다.
 
 PPL은 같은 평가 데이터·어휘·토큰화·UNK·경계·사전 학습 조건에서 비교한다. 서로 다른 조건의 Penn Treebank나 GPT-2 숫자를 한 표의 구조 순위로 제시하지 않는다. 큰 모델의 구체적 구조·파라메터가 공개되지 않았을 때 특정 상용 모델을 일률적인 크기·구조의 예로 단정하지 않는다.
 
 ## 연습문제
 
-1. **입력·목표 이동**: seq=[시작,a,b,종료]에서 입력과 목표를 적어라. → 입력은[시작,a,b], 목표는[a,b,종료]다. 각 출력은 처리한 입력의 다음 토큰을 예측한다.
+1. **입력·목표 이동**: seq=[시작,a,b,종료]에서 입력과 목표를 적어라. → 입력은 [시작,a,b], 목표는 [a,b,종료]다. 각 출력은 처리한 입력의 다음 토큰을 예측한다.
 
 2. **상태와 prefix**: hidden을 유지한 LSTM에 매번 전체 prefix를 다시 넣으면 무엇이 달라지는가? → 이미 처리한 토큰을 다시 상태에 누적한다. 새 토큰만 넣거나 초기 상태에서 prefix를 다시 계산해야 한다.
 
 3. **인과 마스크**: 현재 Transformer의 tgt_mask만으로 충분한가? → 아니다. x를 memory로도 넣어 unmasked cross-attention이 미래 입력을 읽는다. 모델 전체 경로에서 미래 비참조를 보장해야 한다.
 
-4. **웨이트 공유**: 학습 함수의 기본256차원 embedding·512차원 hidden에서 tie_weights가 적용되는가? → 코드 조건이 같지 않아 적용되지 않는다. 구조·차원과 실제 Parameter 공유를 확인한다.
+4. **웨이트 공유**: 학습 함수의 기본값인 256차원 embedding·512차원 hidden에서 tie_weights가 적용되는가? → 코드 조건이 같지 않아 적용되지 않는다. 구조·차원과 실제 Parameter 공유를 확인한다.
 
 5. **PPL 집계**: 길이가 다른 배치 로스를 같은 웨이트로 평균한 exp는 토큰 PPL인가? → 일반적으로 아니다. 무시하지 않은 토큰의 NLL 합을 같은 사건 수로 나눈 뒤 exp해야 한다. 독립 검증 데이터와 인과성도 필요하다.
 

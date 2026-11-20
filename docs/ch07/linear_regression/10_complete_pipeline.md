@@ -718,7 +718,7 @@
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-선형 모델을 2레이어 MLP로 바꾸도록 `Config` 클래스에 `hidden_sizes=[64, 32]` 설정을 추가하라. California Housing 데이터셋에서 선형 모델과 MLP의 시험 $R^2$을 비교하라.
+`Config` 클래스의 `hidden_sizes`를 `[64, 32]`로 바꾸어 선형 모델을 은닉 레이어가 둘인 MLP로 바꾸어라. California Housing 데이터셋에서 선형 모델과 MLP의 시험 $R^2$을 비교하라.
 
 </div>
 

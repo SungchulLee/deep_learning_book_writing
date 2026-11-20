@@ -1504,7 +1504,7 @@ nav:
           - "고급 기법": ch40/gradient_methods/09_advanced_techniques.md
       - "41.3 어텐션 시각화":
         - "어텐션 패턴 분석": ch40/attention_viz/pattern_analysis.md
-        - "중간레이어 크로스 어텐션": ch40/attention_viz/06_intermediate_cross_attention.md
+        - "크로스 어텐션 중급": ch40/attention_viz/06_intermediate_cross_attention.md
         - "ViT 어텐션 심화": ch40/attention_viz/07_advanced_vit_attention.md
         - "어텐션 흐름 분석 심화": ch40/attention_viz/08_advanced_attention_flow.md
         - "그래디언트 기반 어텐션 심화": ch40/attention_viz/09_advanced_gradient_attention.md

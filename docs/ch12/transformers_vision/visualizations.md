@@ -340,7 +340,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-**어텐션 추출의 미완성:** AttentionVisualizer는 model.blocks의 block.attn에 훅을 달고 m.attn 속성을 읽는다. 하지만 이 폴더 MultiHeadAttention은 확률을 지역 변수 attn에만 두고 속성에 저장하지 않는다. 따라서 목록에 None이 들어가고 visualize_attention의 mean·인덱싱이 실패할 수 있다. 별도로 정의한 hook_fn은 실제 등록에 사용되지 않는다.
+**어텐션 추출의 미완성:** AttentionVisualizer는 model.blocks의 block.attn에 훅을 달고 m.attn 속성을 읽는다. 하지만 이 폴더의 MultiHeadAttention(비전 트랜스포머 모델 쪽)은 확률을 지역 변수 attn에만 두고 속성에 저장하지 않는다. 따라서 목록에 None이 들어가고 visualize_attention의 mean·인덱싱이 실패할 수 있다. 별도로 정의한 hook_fn은 실제 등록에 사용되지 않는다.
 
 훅 핸들을 저장·제거하지 않아 같은 모델에 시각화 객체를 반복 생성하면 훅이 누적될 수 있다. 실제 확률을 반환하거나 저장하는 명시적 인터페이스와 장치·detach·훅 수명 관리가 필요하다. 기본 장치 CUDA의 사용 가능 여부도 확인한다.
 
@@ -411,7 +411,7 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 형태, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
+    이 쪽은 모델 클래스를 제공하지 않는다. `AttentionVisualizer`는 nn.Module이 아니라 모델을 감싸는 도구여서 `model(...)`처럼 호출하거나 `parameters()`를 부를 수 없다. 실제 함수의 입력·출력 형태, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

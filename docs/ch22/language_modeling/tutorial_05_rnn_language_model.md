@@ -2,7 +2,7 @@
 
 RNN 언어 모델은 단어를 순서대로 읽고 은닉 상태에 이전 문맥의 정보를 전달한다. 동일한 순환 파라메터를 각 시점에서 공유하므로 고정 윈도를 연결하는 모델과 달리 입력 길이에 맞추어 반복할 수 있다. 다만 길이를 처리할 수 있다는 사실과 먼 문맥을 정확히 기억한다는 성능 보장은 다르다.
 
-## 1. 코드와 기존 출력
+## 1. 코드와 출력
 
 ```python
 """
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     print("Challenge: vanishing/exploding gradients")
 ```
 
-**기존 출력:**
+**출력:**
 
 ```
 RNN Language Model: handles variable-length sequences

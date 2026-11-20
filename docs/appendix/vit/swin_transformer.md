@@ -1,6 +1,6 @@
 # Swin Transformer
 
-Swin Transformer는 2021년 논문 "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows"에서 나왔다. 효율을 위해 이동 윈도(shifted window) 어텐션과 계층적 피처 맵을 쓴다.
+Swin Transformer는 2021년 논문 "Swin Transformer: Hierarchical Vision Transformer using Shifted Windows"에서 나왔다. 효율을 위해 이동 윈도(shifted window) 어텐션과 계층적 피처 맵을 쓴다. 어텐션을 이미지 전체가 아니라 작은 윈도 안에서만 계산하고, 레이어마다 윈도를 어긋나게 옮겨 이웃 윈도끼리도 정보가 섞이게 하는 방식이다.
 
 이 쪽의 구현은 Swin Transformer의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
 
@@ -66,7 +66,7 @@ Parameters: 773,704
 
 ## 2. 논의
 
-이 구현은 클래스 2개(`WindowAttention`, `SwinTransformer`)를 정의하고, 이들이 함께 완전한 비전 트랜스포머 구조를 이룬다. 클래스마다 고유한 역할을 맡아 코드가 모듈로 나뉘고 확장하기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
+이 구현은 클래스 2개(`WindowAttention`, `SwinTransformer`)를 정의한다. 다만 완전한 Swin Transformer는 아니다. `SwinTransformer`는 $4 \times 4$ 패치 임베딩 뒤에 곧바로 평균 풀링을 하고 분류 헤드로 넘길 뿐, `WindowAttention`을 쓰지 않으며 `depths`와 `num_heads` 인자도 받기만 하고 쓰지 않는다. 윈도 분할, 윈도 이동, 패치 병합(patch merging)으로 해상도를 줄이는 계층 구조는 들어 있지 않다. 또 헤드는 `embed_dim * 8`차원을 받도록 되어 있는데 풀링한 출력은 `embed_dim`차원이라, 지금 코드로는 순전파가 오류를 낸다(출력은 파라메터 수만 센 것이다). `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
 
 이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
@@ -80,7 +80,7 @@ Parameters: 773,704
 </div>
 
 ??? success "풀이"
-    입력의 형태에서 시작해 레이어를 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 $H_{\text{out}} = H_{\text{in}} - k + 1$으로 바뀌고(패딩 없이) `padding=k//2`이면 그대로다. 커널 크기 2로 풀링하면 공간 차원이 반이 된다. 선형 레이어는 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임을 확인하여라. 컨볼루션 레이어에서는 $(B, C, H, W)$, 평탄화한 뒤에는 $(B, F)$로 중간 형태를 적어라.
+    입력의 형태에서 시작해 레이어를 차례로 적용한다. `Conv2d(in_c, out_c, k)`마다 공간 차원은 $H_{\text{out}} = H_{\text{in}} - k + 1$로 바뀌고(패딩 없이) `padding=k//2`이면 그대로다. 커널 크기 2로 풀링하면 공간 차원이 반이 된다. 선형 레이어는 마지막 차원을 바꾼다. 배치 차원은 내내 그대로임을 확인하여라. 컨볼루션 레이어에서는 $(B, C, H, W)$, 평탄화한 뒤에는 $(B, F)$로 중간 형태를 적어라. `WindowAttention`은 이미지가 아니라 토큰 시퀀스 $(B, N, C)$를 받고 컨볼루션도 풀링도 없다. 첫 스테이지처럼 `dim=96`, `num_heads=3`이고 윈도 하나($7 \times 7 = 49$ 토큰)를 넣으면 입력 $(4, 49, 96)$이 `qkv`를 지나 $(4, 49, 288)$, 재배열 뒤 $(3, 4, 3, 49, 32)$가 되어 $q, k, v$가 저마다 $(4, 3, 49, 32)$다. 어텐션 행렬은 $(4, 3, 49, 49)$, 값과 곱해 헤드를 합치면 $(4, 49, 96)$이고 `proj`가 형태를 유지한다.
 
 ---
 
@@ -92,7 +92,7 @@ Parameters: 773,704
 </div>
 
 ??? success "풀이"
-    첫 컨볼루션 레이어의 `in_channels`를 현재 값에서 3으로 바꾼다. 컨볼루션과 풀링 레이어마다 $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$으로 공간 차원을 다시 계산한다. 첫 선형 레이어의 `in_features`를 마지막 컨볼루션/풀링 레이어의 평탄화된 출력에 맞춘다. `model = WindowAttention(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`로 확인한다.
+    `SwinTransformer`의 패치 임베딩 컨볼루션은 이미 입력 채널이 3이다. $H_{\text{out}} = \lfloor(H_{\text{in}} + 2p - k) / s\rfloor + 1$로 계산하면 $64 \times 64$ 입력은 $16 \times 16$ 패치 격자, 곧 토큰 256개가 되고, 평균 풀링이 이를 96차원 벡터 하나로 모으므로 입력 크기 때문에 고칠 것은 없다. 오류를 내는 것은 헤드다. 선형 레이어 `head`의 `in_features`가 `embed_dim * 8`인데 들어오는 것은 `embed_dim`차원이므로, 이를 `embed_dim`으로 맞추거나 패치 병합 스테이지를 넣어 채널을 8배로 늘려야 한다. 마지막 검사는 `WindowAttention`이 아니라 `SwinTransformer`로 한다. `model = WindowAttention(...); x = torch.randn(1, 3, 64, 64); print(model(x).shape)`로 확인한다.
 
 ---
 
@@ -128,6 +128,6 @@ Parameters: 773,704
 
 **다룬 것** — Swin Transformer
 
-이 구현은 클래스 2개(`WindowAttention`, `SwinTransformer`)를 정의하고, 이들이 함께 완전한 비전 트랜스포머 구조를 이룬다.
+이 구현은 클래스 2개(`WindowAttention`, `SwinTransformer`)를 정의하지만, 윈도 이동과 패치 병합은 담지 않은 뼈대다.
 
 핵심 클래스는 `WindowAttention`, `SwinTransformer`이며 앞의 연습문제 4개로 스스로 확인할 수 있다.

@@ -171,7 +171,7 @@ weights_only=True 로 읽는다 — 숫자만 받아들이므로 피클에 든 �
 
 1절이 보이듯 `state_dict`는 **이름과 텐서의 사전**이다. 학습하는 파라메터(`weight`, `bias`)만이 아니라 **버퍼**도 들어간다 — 배치 정규화의 `running_mean`·`running_var`·`num_batches_tracked`가 그것이다.
 
-버퍼가 들어가는 것이 중요하다. 그 수들은 학습으로 정해지지만 그래디언트로 정해지지는 않으므로, 빠뜨리면 **복원한 모델이 추론에서 다른 값을 낸다.** [21쪽](21_simple_neural_network.md)에서 `register_buffer`가 `state_dict`에 들어간다고 적은 것이 여기서 쓰인다.
+버퍼가 들어가는 것이 중요하다. 그 수들은 학습으로 정해지지만 그래디언트로 정해지지는 않으므로, 빠뜨리면 **복원한 모델이 추론에서 다른 값을 낸다.** [「간단한 뉴럴 네트워크」 쪽](21_simple_neural_network.md)에서 `register_buffer`가 `state_dict`에 들어간다고 적은 것이 여기서 쓰인다.
 
 ## 3. 빠지는 것 — 모드
 
@@ -211,7 +211,7 @@ AttributeError: Can't get attribute 'MyNet' on <module '__main__'>
 
 `torch.load`는 본디 파이썬의 피클(pickle)을 그대로 풀었다 — 피클은 파이썬 객체를 바이트열로 바꾸어 저장하는 직렬화 형식이다. 피클은 **푸는 동안 코드를 돌릴 수 있으므로**, 남이 준 파일을 그렇게 여는 것은 그 사람의 코드를 돌리는 것과 같다.
 
-그래서 `weights_only=True`가 생겼다. 텐서와 몇 가지 기본 자료형만 받아들이고 나머지는 거절한다. torch 2.5에서는 이것을 켜지 않으면 `FutureWarning`이 나고, 앞으로는 이쪽이 기본이 된다. 이 책의 다른 쪽들이 모두 `weights_only=True`로 읽는 까닭이다.
+그래서 `weights_only=True`가 생겼다. 텐서와 몇 가지 기본 자료형만 받아들이고 나머지는 거절한다. torch 2.4~2.5에서는 이것을 켜지 않으면 `FutureWarning`이 났고, 2.6부터는 이쪽이 기본값이다. 이 책의 다른 쪽들이 모두 `weights_only=True`로 읽는 까닭이다.
 
 <div class="storybox" markdown>
 

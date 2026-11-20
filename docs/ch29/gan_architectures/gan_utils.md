@@ -440,7 +440,7 @@ if __name__ == "__main__":
     pass
 ```
 
-weights_init는 클래스 이름에 Conv가 있는 레이어의 웨이트를 N(0,0.02²),BatchNorm의 스케일을 N(1,0.02²), 바이어스를 0으로 초기화한다. Linear나 Conv 바이어스는 여기서 초기화하지 않는다. 해당 속성을 갖춘 기본 affine 정규화 레이어를 가정하며 모든 모듈에 무조건 적용 가능한 함수는 아니다. 이 초기화가 붕괴·그래디언트 문제를 자동 방지하지도 않는다.
+weights_init는 클래스 이름에 Conv가 있는 레이어의 웨이트를 N(0,0.02²), BatchNorm의 스케일을 N(1,0.02²), 바이어스를 0으로 초기화한다. Linear나 Conv 바이어스는 여기서 초기화하지 않는다. 해당 속성을 갖춘 기본 affine 정규화 레이어를 가정하며 모든 모듈에 무조건 적용 가능한 함수는 아니다. 이 초기화가 붕괴·그래디언트 문제를 자동 방지하지도 않는다.
 
 ## 2. 표시 함수와 모델 상태
 
@@ -456,7 +456,7 @@ GANLosses.vanilla_gan_loss의 D 모드는 실제·생성 평균 BCE의 합이다
 
 확률 BCE에는 0~1의 D 출력이 필요하다. Wasserstein 모드는 실수 critic의 평균 차이와 생성 점수 목적이며 Sigmoid 확률 BCE와 다른 계약이다. Lipschitz 제어·critic 최적화가 함수 안에 자동 포함되지는 않는다. 수치적으로 안정적인 logits 목적과 원래·비포화 부호는 [로스 절](../gan_losses/original.md)을 따른다.
 
-label_smoothing은 labels×(1−s)+s/2다. s=0.1이면 1→0.95,0→0.05로 **양쪽**을 가운데로 옮긴다. 실제 타깃만 0.9로 만드는 one-sided 방식과 다르다. s의 범위를 정하고 실제 적용한 타깃을 기록해야 한다. add_noise_to_inputs는 제한 없는 가우시안 잡음을 더하므로 원래 데이터 범위를 넘을 수 있고 이것이 항상 학습에 유리한 것은 아니다.
+label_smoothing은 labels×(1−s)+s/2다. s=0.1이면 1→0.95, 0→0.05로 **양쪽**을 가운데로 옮긴다. 실제 타깃만 0.9로 만드는 one-sided 방식과 다르다. s의 범위를 정하고 실제 적용한 타깃을 기록해야 한다. add_noise_to_inputs는 제한 없는 가우시안 잡음을 더하므로 원래 데이터 범위를 넘을 수 있고 이것이 항상 학습에 유리한 것은 아니다.
 
 ## 4. 이미지용 gradient penalty
 
@@ -633,7 +633,7 @@ FixedNoise 예시가 본문 표시 함수보다 개선하는 상태 관리와 �
 
 ??? success "풀이"
 
-    반환값 fid·is_·entropy는 ...인 Ellipsis이고 ref·net도 실제 피처 계산에 사용되지 않는다. g.k도 본문 DCGANGenerator의 latent_dim과 다른 속성 계약이다. 난수 분리·eval·finally 복원 구조는 유용하지만 실제 샘플링·범위 변환·피처·통계·평가 지표를 구현해야 한다. 모델의 자료형·장치·잠재 모양도 맞춰야 하며 함수 이름만으로 숫자 평가가 완료되지는 않는다.
+    반환값 fid·is_·entropy는 ...인 Ellipsis이고 ref·net도 실제 피처 계산에 사용되지 않는다. g.k도 앞 쪽들의 DCGANGenerator가 쓰는 latent_dim과 다른 속성 계약이다. 난수 분리·eval·finally 복원 구조는 유용하지만 실제 샘플링·범위 변환·피처·통계·평가 지표를 구현해야 한다. 모델의 자료형·장치·잠재 모양도 맞춰야 하며 함수 이름만으로 숫자 평가가 완료되지는 않는다.
 
     ```python
     @torch.no_grad()

@@ -39,8 +39,8 @@ $$\mathcal{L} = \sum_{(\mathbf{x}, y)} \sum_{j \neq y} \max(0, \gamma - \mathbf{
 
 여기서 각 기호는 다음과 같다.
 
-- $\hat{\mathbf{v}} = M \cdot \phi(\mathbf{x})$은 투영한 시각 임베딩이다
-- $\gamma$은 마진 파라메터이다
+- $\hat{\mathbf{v}} = M \cdot \phi(\mathbf{x})$는 투영한 시각 임베딩이다
+- $\gamma$는 마진 파라메터이다
 - $j \neq y$에 대한 합은 음성 표본을 샘플링해 근사할 수 있다
 
 ### PyTorch 구현
@@ -136,7 +136,7 @@ class DeViSE(nn.Module):
 
 ### 개념
 
-쌍선형 모델은 시각 차원과 의미 차원 사이의 쌍마다의 호환성을 잡아낸다.
+쌍선형 모델은 시각 차원과 의미 차원의 모든 쌍에 대해 호환성을 잡아낸다.
 
 $$F(\mathbf{v}, \mathbf{s}) = \mathbf{v}^\top W \mathbf{s}$$
 

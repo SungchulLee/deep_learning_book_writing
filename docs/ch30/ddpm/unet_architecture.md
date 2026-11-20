@@ -988,7 +988,7 @@ ResidualBlock은 GroupNorm→SiLU→3×3 컨볼루션 뒤에 타임스텝 임베
 
 이 시간 주입은 다른 페이지의 scale·shift 방식과 달리 **덧셈 방식**이다. GroupNorm의 입력·출력 채널은 그룹 수 8로 나누어져야 한다. 기본 채널 폭은 조건을 만족하지만 임의의 폭을 지원하는 것은 아니다.
 
-SinusoidalPositionEmbedding은 diffusion_utils에서 가져온다. 실제 반환 폭이 2×floor(dim/2)이고 작은 폭에는 분모 문제가 있으므로 기본 base_channels=32처럼 4 이상인 짝수와 계층별 나눗셈 조건을 함께 맞춘다.
+SinusoidalPositionEmbedding은 코드 앞부분에 옮겨 둔 diffusion_utils 부분에 정의되어 있다. 실제 반환 폭이 2×floor(dim/2)이고 작은 폭에는 분모 문제가 있으므로 기본 base_channels=32처럼 4 이상인 짝수와 계층별 나눗셈 조건을 함께 맞춘다.
 
 ## 3. 공간 어텐션
 
@@ -1011,7 +1011,7 @@ main이 먼저 만드는 SimpleUNet은 공간 연산을 잔차 블록 사이에 
 | x2 연결 후 res5 | B×32×28×28 |
 | 최종 출력 | B×1×28×28 |
 
-up1·up2는 전치 컨볼루션으로 공간을 두 배 키운다. SimpleUNet에는 AttentionBlock이 없으며 생성기 로스나 샘플링 함수도 없다. 다른 이미지 크기에서는 두 번의 올림 축소와 두 배 확대가 skip 크기와 맞는지 확인해야 한다.
+up1·up2는 전치 컨볼루션으로 공간을 두 배 키운다. SimpleUNet에는 AttentionBlock이 없으며 학습 로스나 샘플링 함수도 없다. 다른 이미지 크기에서는 두 번의 올림 축소와 두 배 확대가 skip 크기와 맞는지 확인해야 한다.
 
 ## 5. 일반 UNet의 실행 순서 불일치
 
@@ -1070,7 +1070,7 @@ attention_resolutions와 dropout을 바꾸면 현재 UNet의 구조가 어떻게
 
 ??? success "풀이"
 
-    둘 다 사용되지 않아 그 인수만 바꾸어서는 구조가 달라지지 않는다. 어텐션은 bottleneck에 고정되고 Dropout 계층은 없다. 해당 옵션의 효과나 노이즈 스케줄·학습 품질을 비교하는 실험도 이 페이지에는 구현되어 있지 않다.
+    둘 다 사용되지 않아 그 인수만 바꾸어서는 구조가 달라지지 않는다. 어텐션은 bottleneck에 고정되고 Dropout 계층은 없다. 해당 옵션의 효과나 학습 품질을 비교하는 실험도 이 페이지에는 구현되어 있지 않다.
 
 
 

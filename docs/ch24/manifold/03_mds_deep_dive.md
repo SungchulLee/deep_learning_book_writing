@@ -191,7 +191,7 @@ n×n float64 거리 행렬은 n=60,000일 때 28.8 GB이고 복사·고유분해
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-아래 MNIST 비교 코드와 문제의 데이터·방법 조건이 일치하는지 설명하라.
+"MNIST 2,000개에서 고전 MDS와 t-SNE의 거리 보존을 비교하라"는 과제에 아래 코드를 쓰려 한다. 코드의 데이터·방법이 과제의 조건과 일치하는지 설명하라.
 
 </div>
 
