@@ -103,7 +103,7 @@ $$
 $$
 
 !!! tip "핵심 통찰"
-    고정 양의 분산을 가진 독립 가우스 오차 모델에서는 MSE 최소화와 NLL 최소화가 같은 파라메터 해를 준다. MSE를 사용하는 데 가우스 가정이 필수는 아니며, 추정의 일치성·효율성에는 설계와 오차에 관한 별도 조건이 필요하다.
+    분산이 고정된 양수인 독립 가우시안 오차 모델에서는 MSE 최소화와 NLL(음의 로그가능도) 최소화가 같은 파라메터 해를 준다. MSE를 사용하는 데 가우시안 가정이 필수는 아니며, 추정의 일치성·효율성에는 설계와 오차에 관한 별도 조건이 필요하다.
 
 ### 2.3 잡음 분산의 MLE
 
@@ -114,7 +114,7 @@ $$
 = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2
 $$
 
-설계 행렬이 열 전체 랭크이고 조건부 오차 공분산이 $\sigma^2I$일 때, OLS 잔차제곱합을 $n-p-1$로 나누면 분산의 불편 추정량을 얻는다. 이때 $n>p+1$을 가정한다. 랭크가 다르면 유효 자유도도 달라진다.
+설계 행렬이 열 전체 랭크이고 조건부 오차 공분산이 $\sigma^2I$일 때, 보통최소제곱(OLS, ordinary least squares — 잔차제곱합을 최소화하는 적합)의 잔차제곱합을 $n-p-1$로 나누면 분산의 불편 추정량을 얻는다. 이때 $n>p+1$을 가정한다. 랭크가 다르면 유효 자유도도 달라진다.
 
 ---
 
@@ -180,7 +180,7 @@ $$
 
 ### 4.1 최적 파라메터
 
-편도함수를 0으로 두면 다음을 얻는다.
+편도함수를 0으로 두면 다음을 얻는다. $\bar{x}$와 $\bar{y}$는 표본 평균이다.
 
 $$
 b^* = \bar{y} - w^*\bar{x},
@@ -250,7 +250,7 @@ def simple_linear_regression(x: np.ndarray, y: np.ndarray):
 
     파라메터
     --------
-    x, y : 모양이 (n,)인 1차원 배열
+    x, y : 형태가 (n,)인 1차원 배열
 
     반환값
     ------
@@ -285,9 +285,9 @@ $$
 
 이는 위에서 유도한 스칼라 공식의 $p$차원 일반화이다. 여기서 두 가지 해법이 따라 나온다.
 
-| 해법 | 페이지 | 언제 쓰는가 |
+| 해법 | 쪽 | 언제 쓰는가 |
 |----------|------|-------------|
-| 닫힌 형태(정규 방정식) | [해석적 해](closed_form.md) | $p < 10{,}000$이고 정확한 해가 필요할 때 |
+| 닫힌 형태(정규 방정식) | [해석적 해](closed_form.md) | $p$가 그리 크지 않고 정확한 해가 필요할 때 |
 | 경사 하강법 | [경사 하강법을 이용한 해](gd_solution.md) | $p$나 $n$이 클 때, 미니배치 트레인 |
 
 ---
@@ -311,7 +311,7 @@ $$
 = \frac{1}{nq}\|\mathbf{Y} - \hat{\mathbf{Y}}\|_F^2
 $$
 
-정규 방정식의 해는 열 단위로 확장된다.
+설계 행렬에 다시 1로 채운 열을 붙이고, $\mathbf{b}^\top$와 $\mathbf{W}$를 위아래로 쌓은 $(p+1)\times q$ 행렬을 $\mathbf{B}$라 하면 정규 방정식의 해는 열 단위로 확장된다.
 
 $$
 \mathbf{B}^*
@@ -341,7 +341,7 @@ W_true = torch.tensor([[2.0, -1.0], [0.5, 1.5], [-0.3, 0.8]])
 b_true = torch.tensor([1.0, -2.0])
 Y = X @ W_true + b_true + 0.2 * torch.randn(n, q)
 
-model = nn.Linear(p, q)   # 웨이트 모양: (q, p) = (2, 3)
+model = nn.Linear(p, q)   # 웨이트 형태: (q, p) = (2, 3)
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 loader = DataLoader(TensorDataset(X, Y), batch_size=32, shuffle=True)
 
@@ -373,7 +373,7 @@ X_test_scaled = scaler.transform(X_test)  # 트레인 데이터의 통계량을 
 !!! warning "정칙화된 모델"
     릿지·라쏘·엘라스틱 넷은 계수의 크기에 패널티를 주므로 피처의 단위에 영향을 받는다. 효과가 비슷해도 척도가 큰 피처는 작은 계수로 표현되어 상대적으로 약한 패널티를 받을 수 있다. 비교 가능한 기준이 필요하면 트레인 데이터에서 스케일을 정하되, 피처 단위를 의도적으로 유지하는 선택도 가능하다.
 
-### 7.2 PyTorch에서의 텐서 모양
+### 7.2 PyTorch에서의 텐서 형태
 
 ```python
 # X: (n_samples, n_features) — 언제나 2차원
@@ -382,7 +382,7 @@ X_test_scaled = scaler.transform(X_test)  # 트레인 데이터의 통계량을 
 X = torch.randn(100, 8)
 y = torch.randn(100, 1)
 
-# 흔한 실수: y를 (100,) 모양으로 두면 브로드캐스팅 문제가 생긴다
+# 흔한 실수: y를 (100,) 형태로 두면 브로드캐스팅 문제가 생긴다
 y_flat = torch.randn(100)
 y_correct = y_flat.reshape(-1, 1)
 ```
@@ -421,7 +421,7 @@ def plot_residual_diagnostics(y_true, y_pred):
 
 ## 9. 절 안내도
 
-| 페이지 | 내용 |
+| 쪽 | 내용 |
 |------|---------|
 | [해석적 해](closed_form.md) | 벡터 미적분 예비 지식, 정규 방정식, 기하학적 해석, QR/SVD 해법 |
 | [경사 하강법을 이용한 해](gd_solution.md) | MSE–NLL 관계, 배치/미니배치/SGD, autograd, `nn.Linear` 파이프라인 |
@@ -437,7 +437,7 @@ def plot_residual_diagnostics(y_true, y_pred):
 
 $$R_{\mathrm{WMT}}-R_f=\alpha+\beta(R_{\mathrm{SPY}}-R_f)+\varepsilon$$
 
-원수익률을 그대로 사용하는 코드는 시장모형 회귀로 구분한다. SPY는 시장수익률의 대용치다. 베타는 회귀의 민감도이며 종목의 총변동성과 같지 않다. 베타가 1보다 작거나 음수여도 개별 잔차 위험이 크면 총변동성은 클 수 있다. 추정값은 기간, 빈도와 데이터 처리에 따라 달라지므로 특정 종목의 고정 속성처럼 해석하지 않는다. 구현은 [WMT와 SPY 회귀](wmt_on_spy.md)에서 살펴본다.
+원수익률을 그대로 사용하는 코드는 시장모형 회귀로 구분한다. SPY는 시장수익률의 대용치다. 베타는 회귀의 민감도이며 종목의 총변동성과 같지 않다. 베타가 1보다 작거나 음수여도 개별 잔차 위험이 크면 총변동성은 클 수 있다. 추정값은 기간, 빈도와 데이터 처리에 따라 달라지므로 특정 종목의 고정 속성처럼 해석하지 않는다. 구현은 [SPY에 대한 WMT 회귀](wmt_on_spy.md)에서 살펴본다.
 
 ## 연습문제
 
@@ -460,12 +460,12 @@ MSE 로스 $L(\mathbf{w}) = \frac{1}{2N}\|\mathbf{Xw} - \mathbf{y}\|^2$의 $\mat
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-$\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \mathbf{w}^\top\mathbf{x} + \epsilon$에서 선형 회귀의 확률적 해석을 설명하라.
+$\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우시안 잡음을 가정한 $y = \mathbf{w}^\top\mathbf{x} + \epsilon$에서 선형 회귀의 확률적 해석을 설명하라.
 
 </div>
 
 ??? success "풀이"
-    가우스 잡음 아래에서 $p(y|\mathbf{x}, \mathbf{w}) = \mathcal{N}(\mathbf{w}^\top\mathbf{x}, \sigma^2)$이다. 음의 로그가능도(NLL)는 $-\log p(\mathbf{y}|\mathbf{X},\mathbf{w}) = \frac{N}{2}\log(2\pi\sigma^2) + \frac{1}{2\sigma^2}\|\mathbf{Xw}-\mathbf{y}\|^2$이다. NLL을 최소화하는 것은 MSE를 최소화하는 것과 같으므로, MSE 로스는 가우스 잡음 아래의 MLE에 대응한다.
+    가우시안 잡음 아래에서 $p(y|\mathbf{x}, \mathbf{w}) = \mathcal{N}(\mathbf{w}^\top\mathbf{x}, \sigma^2)$이다. 음의 로그가능도(NLL)는 $-\log p(\mathbf{y}|\mathbf{X},\mathbf{w}) = \frac{N}{2}\log(2\pi\sigma^2) + \frac{1}{2\sigma^2}\|\mathbf{Xw}-\mathbf{y}\|^2$이다. NLL을 최소화하는 것은 MSE를 최소화하는 것과 같으므로, MSE 로스는 가우시안 잡음 아래의 MLE에 대응한다.
 
 ---
 
@@ -505,7 +505,7 @@ $\epsilon \sim \mathcal{N}(0, \sigma^2)$인 가우스 잡음을 가정한 $y = \
 
 ## 정리하며
 
-선형 회귀는 파라메터에 대한 선형 모델이며 최소제곱과 가우스 가능도 해석을 연결할 수 있다. 해의 유일성, 통계 추론의 가정과 새 데이터의 성능은 서로 다른 조건이므로 나누어 확인한다.
+선형 회귀는 파라메터에 대한 선형 모델이며 최소제곱과 가우시안 가능도 해석을 연결할 수 있다. 해의 유일성, 통계 추론의 가정과 새 데이터의 성능은 서로 다른 조건이므로 나누어 확인한다.
 
 **참고 문헌**
 

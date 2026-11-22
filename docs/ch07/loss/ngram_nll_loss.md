@@ -321,7 +321,7 @@ $e^{-800} \approx 10^{-348}$은 이 코드가 쓰는 단정밀도(float32)는 �
 </div>
 
 ??? success "풀이"
-    모델 입력은 $(B,C)$ 형태의 정수 인덱스이며 각 값은 $0$ 이상 $V$ 미만이어야 한다. 이 예제에서는 `torch.long`을 사용한다. 정답은 $(B,)$ 형태의 long 텐서이며 클래스 범위에 있어야 한다. 로스에 전달하는 모델 출력은 $(B,V)$의 로그 확률이다. 입력을 float 이미지 텐서로 검사하는 것은 이 모델에 맞지 않는다.
+    모델 입력은 $(B,C)$ 형태의 정수 인덱스이며 각 값은 $0$ 이상 $V$ 미만이어야 한다. 이 예제에서는 `torch.long`을 사용한다. 정답은 $(B,)$ 형태의 long 텐서이며 클래스 범위에 있어야 한다. 로스에 전달하는 모델 출력은 $(B,V)$의 로그 확률이다. `nn.Embedding`은 정수 인덱스로 행을 조회하므로 입력에 float 텐서를 넣으면 오류가 난다.
 
 ---
 
@@ -340,18 +340,61 @@ $e^{-800} \approx 10^{-348}$은 이 코드가 쓰는 단정밀도(float32)는 �
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
+「어느 쪽을 쓸까」에서 말한 「소프트맥스를 두 번 걸었다」는 실수를 재어 보라. (가) `train(NGramLogProbs, nn.CrossEntropyLoss())`의 로스 곡선은 기준선 `train(NGramLogits, nn.CrossEntropyLoss())`와 같은가, 다른가? 돌리기 전에 식으로 예측하라. (나) `F.softmax`로 확률을 내놓는 모델 `NGramProbs`를 만들어 `nn.CrossEntropyLoss`에 넣으면 로스가 어떻게 되는가? 이때 로스가 완벽한 예측에서도 내려갈 수 없는 하한을 어휘 크기 $V$로 구하라.
 
 </div>
 
 ??? success "풀이"
-    아래 코드는 깊이를 설정하는 아이디어를 위한 조각이다. 원래 모델의 생성자와 텐서 차원을 반영한 완성 구현은 아니다.
+    **(가) 같다.** `CrossEntropyLoss`는 받은 값에 `log_softmax`를 건다. 받은 값이 이미 로그 확률 $\log p_i$라면
+
+    $$
+    \log p_i-\log\sum_j e^{\log p_j}=\log p_i-\log\sum_j p_j=\log p_i
+    $$
+
+    이다. 확률의 합이 1이라 둘째 항이 0이 된다. 곧 `log_softmax`는 두 번 걸어도 한 번 건 것과 같다.
+
+    **(나) 다르다.** 확률 $p_i$를 로짓 자리에 넣으면 로스는 $-p_y+\log\sum_j e^{p_j}$가 된다. 모든 $p_j$가 0과 1 사이에 갇혀 있어 로짓 사이의 차이가 1을 넘지 못한다. 가장 좋은 경우는 $p_y=1$이고 나머지가 0일 때이며, 그때의 로스가 하한이다.
+
+    $$
+    -1+\log\bigl(e+(V-1)\bigr)
+    $$
+
     ```python
-    self.layers = nn.ModuleList()
-    for i in range(num_layers):
-        self.layers.append(YourBlock(dim, ...))
+    import math
+
+    class NGramProbs(NGramLogits):
+        """확률을 내놓는다 — CrossEntropyLoss 에 넣으면 안 되는 출력."""
+
+        def forward(self, inputs):
+            return F.softmax(super().forward(inputs), dim=1)
+
+
+    base = train(NGramLogits, nn.CrossEntropyLoss())
+    log_twice = train(NGramLogProbs, nn.CrossEntropyLoss())
+    prob_in = train(NGramProbs, nn.CrossEntropyLoss())
+
+    print(f"(가) 기준선과의 최대 차이  {max(abs(a - b) for a, b in zip(base, log_twice)):.3e}")
+    print(f"(나) 기준선   {base[0]:.6f} -> {base[-1]:.6f}")
+    print(f"     확률 입력 {prob_in[0]:.6f} -> {prob_in[-1]:.6f}")
+
+    V = ARGS.vocab_size
+    perfect = torch.zeros(1, V)
+    perfect[0, 3] = 1.0
+    print(f"     log V = {math.log(V):.6f}")
+    print(f"     하한 식 {math.log(V - 1 + math.e) - 1:.6f}, "
+          f"완벽한 확률을 넣은 로스 {F.cross_entropy(perfect, torch.tensor([3])).item():.6f}")
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    돌려서 얻은 값은 다음과 같다.
+
+    | | 첫 에포크 | 열째 에포크 |
+    |---|---|---|
+    | 기준선 (`NGramLogits`) | 4.099797 | 4.097057 |
+    | `NGramLogProbs` + `CrossEntropyLoss` | 기준선과의 최대 차이 0 | |
+    | `NGramProbs` + `CrossEntropyLoss` | 4.043526 | 4.043525 |
+
+    (가)는 열 에포크 내내 기준선과 한 자리도 다르지 않다. (나)는 첫 로스부터 다르고, $\log 57=4.043051$에 붙어서 거의 움직이지 않는다 — 확률 57개가 모두 작아 로짓으로 읽으면 사실상 균등 분포이기 때문이다. $V=57$에서 하한은 $3.072751$이고, 정답 자리에만 1을 둔 확률을 넣은 로스가 정확히 그 값이다. 정답을 완벽히 맞혀도 로스가 3.07 아래로 내려가지 않는다.
+
+    두 실수의 결과가 다르다. 로그 확률을 `CrossEntropyLoss`에 넣는 것은 계산을 한 번 더 할 뿐 값이 같고, **확률을 넣는 것은 오류 없이 돌면서 다른 목적 함수를 최소화한다.** 모델이 원시 로짓을 내놓게 두면 둘 다 생기지 않는다.
 
 ## 정리하며
 

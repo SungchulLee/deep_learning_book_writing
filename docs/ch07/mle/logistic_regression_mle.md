@@ -375,7 +375,7 @@ def main():
 
 2. 보통: 정칙화한 로지스틱 회귀
    - L2 정칙화를 더한다: 로스 + λ||w||²
-   - 이는 가우스 사전분포를 쓴 MAP 추정과 같다!
+   - 이는 가우시안 사전분포를 쓴 MAP 추정과 같다!
    - 정칙화한 것과 안 한 것을 견준다
 
 3. 어려움: 피처 엔지니어링
@@ -452,27 +452,35 @@ LOGISTIC REGRESSION MLE - Binary Classification
 
 ### 로짓에서 확률로
 
-모델은 $z=x^\top w+b$, $p=\sigma(z)$를 계산한다. 입력 피처가 두 개이므로 웨이트 두 개와 바이어스 하나, 총 세 개의 트레인 파라메터가 있다. 출력 확률을 0.5와 비교하면 선형 결정 경계를 얻는다.
+모델은 $z=x^\top w+b$, $p=\sigma(z)$를 계산한다. 시그모이드에 넣기 전의 선형 점수 $z$를 **로짓**이라 부르고, $\sigma(z)=1/(1+e^{-z})$가 그것을 0과 1 사이의 확률로 바꾼다. 입력 피처가 두 개이므로 웨이트 두 개와 바이어스 하나, 총 세 개의 트레인 가능한 파라메터가 있다. 출력 확률을 0.5와 비교하면 선형 결정 경계를 얻는다.
 
 ### 로스와 가능도 비교
+
+라벨 $y_i\in\{0,1\}$가 확률 $p_i=\sigma(z_i)$의 베르누이 분포를 따른다고 보면, 표본 하나의 확률은 $p_i^{y_i}(1-p_i)^{1-y_i}$이고 로그가능도는 그 로그의 합이다.
+
+$$
+\ell(w,b)=\sum_{i=1}^n\bigl[y_i\log p_i+(1-y_i)\log(1-p_i)\bigr]
+$$
+
+이진 교차 엔트로피(BCE)는 이 식에 음의 부호를 붙이고 $n$으로 나눈 것, 곧 $\text{BCE}=-\ell/n$이다. 그래서 BCE를 최소화하는 것과 가능도를 최대화하는 것이 같은 일이다.
 
 코드는 확률 출력에 `BCELoss`를 적용한다. 같은 확률을 넣고 BCE를 평균이 아니라 합으로 모으면(`reduction='sum'`) 베르누이 음의 로그가능도와 같다. 출력에서도 평균 BCE 0.0004에 표본 수 200을 곱하면 로그가능도 $-0.09$와 거의 맞는다. 별도 로그가능도 함수가 로그 안에 작은 상수를 더하면 원래 가능도와 수치적으로 완전히 같은 함수는 아니다. 큰 로짓을 다룰 때는 로짓을 직접 받는 `BCEWithLogitsLoss`가 안정적인 대안이다.
 
 ### 최적해와 평가의 해석
 
-선형 점수의 로지스틱 로스는 파라메터에 대해 볼록하지만, 완전히 선형 분리되는 표본에서는 정칙화하지 않은 유한한 MLE가 존재하지 않는다. 이 예제가 그런 경우다 — 정확도는 200번째 에폭에 이미 100%인데 로스는 0.0025에서 0.0004로 계속 줄어든다. 정확도가 높아진 뒤에도 웨이트 크기가 계속 커질 수 있으므로 분류 정확도만으로 파라메터 수렴을 판단하지 않는다. 예제의 혼동 행렬과 지표는 사용한 트레인 데이터의 성능이며 독립 시험 성능이 아니다.
+선형 점수의 로지스틱 로스는 파라메터에 대해 볼록하지만, 완전히 선형 분리되는 표본에서는 정칙화하지 않은 유한한 MLE가 존재하지 않는다. 이 예제가 그런 경우다 — 정확도는 200번째 에포크에 이미 100%인데 로스는 0.0025에서 0.0004로 계속 줄어든다. 정확도가 높아진 뒤에도 웨이트 크기가 계속 커질 수 있으므로 분류 정확도만으로 파라메터 수렴을 판단하지 않는다. 예제의 혼동 행렬과 지표는 사용한 트레인 데이터의 성능이며 독립 시험 성능이 아니다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-기본 예제의 로지스틱 회귀 모델에는 트레인 파라메터가 몇 개 있는가?
+기본 예제의 로지스틱 회귀 모델에는 트레인 가능한 파라메터가 몇 개 있는가?
 
 </div>
 
 ??? success "풀이"
-    입력 피처 두 개에서 출력 하나를 만드는 선형 레이어이므로 웨이트 2개와 바이어스 1개, 총 3개다. 시그모이드에는 트레인 파라메터가 없다.
+    입력 피처 두 개에서 출력 하나를 만드는 선형 레이어이므로 웨이트 2개와 바이어스 1개, 총 3개다. 시그모이드에는 트레인 가능한 파라메터가 없다.
 
 ---
 
@@ -503,18 +511,44 @@ LOGISTIC REGRESSION MLE - Binary Classification
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-레이어나 블록의 개수를 설정할 수 있도록 `LogisticRegressionModel`을 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`로 깊이가 변하는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하라.
+이 쪽의 데이터는 완전히 선형 분리된다. `train_logistic_regression`으로 얻은 웨이트 `w`와 바이어스 `b`에 같은 양수 $c$를 곱해 `compute_log_likelihood`를 재면 로그가능도가 $c$에 따라 어떻게 변하는가? $c=0.5, 1, 2, 4, 8$로 재고, 그 결과가 「유한한 MLE가 없다」는 말과 어떻게 이어지는지 식으로 설명하라. 같은 로짓을 `nn.BCEWithLogitsLoss(reduction='sum')`에 넣은 값과도 비교하라.
 
 </div>
 
 ??? success "풀이"
-    고정되어 있던 레이어들을 다음으로 바꾼다.
+    라벨을 $t_i=2y_i-1\in\{-1,+1\}$로 바꾸어 적으면 로그가능도는 $\ell(w,b)=-\sum_i\log\bigl(1+e^{-t_iz_i}\bigr)$이다. 트레인 정확도가 100%이므로 모든 표본에서 $t_iz_i>0$이고, $(w,b)$에 $c$를 곱하면
+
+    $$
+    \ell(cw,cb)=-\sum_i\log\bigl(1+e^{-c\,t_iz_i}\bigr)
+    $$
+
+    이 된다. 각 항이 $c$에 대해 단조 증가하고 $c\to\infty$에서 0으로 다가가지만 닿지는 않는다. 어떤 $(w,b)$를 잡아도 그것을 키운 쪽이 더 낫다. 그래서 로그가능도를 최대로 만드는 유한한 파라메터가 없다.
     ```python
-    self.layers = nn.ModuleList()
-    for i in range(num_layers):
-        self.layers.append(YourBlock(dim, ...))
+    X, y = generate_classification_data(n_samples=200)
+    model, history = train_logistic_regression(X, y, learning_rate=0.1, n_epochs=1000)
+    w = model.linear.weight.data.T
+    b = model.linear.bias.data
+
+    with_logits = nn.BCEWithLogitsLoss(reduction='sum')
+    for c in [0.5, 1.0, 2.0, 4.0, 8.0]:
+        log_lik = compute_log_likelihood(X, y, c * w, c * b).item()
+        logits = X @ (c * w) + c * b
+        print(f"c={c:>3}: compute_log_likelihood={log_lik:.3e}, "
+              f"-BCEWithLogits={-with_logits(logits, y).item():.3e}")
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 순회한다. (평범한 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 PyTorch가 모든 파라메터를 최적화 대상으로 등록한다. 시험은 다음과 같이 한다. `for n in [2, 4, 8]: model = LogisticRegressionModel(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    돌려서 얻은 값은 다음과 같다.
+
+    | $c$ | `compute_log_likelihood` | `-BCEWithLogitsLoss` (합) |
+    |---|---|---|
+    | 0.5 | $-1.567$ | $-1.567$ |
+    | 1 | $-8.898\times10^{-2}$ | $-8.897\times10^{-2}$ |
+    | 2 | $-1.175\times10^{-3}$ | $-1.174\times10^{-3}$ |
+    | 4 | $-4.172\times10^{-7}$ | $-3.413\times10^{-7}$ |
+    | 8 | $0$ | $-6.086\times10^{-14}$ |
+
+    $c=1$의 값이 출력의 `Final Log-Likelihood: -0.09`다. $c$가 커질수록 로그가능도가 0을 향해 올라가므로, Adam이 에포크를 더 돌수록 웨이트가 커지는 쪽으로 움직이는 것이 당연하다.
+
+    두 열은 $c$가 커질수록 갈린다. `compute_log_likelihood`는 **확률을 먼저 만들고** 로그를 취하는데, float32에서는 로짓이 충분히 크면 `torch.sigmoid`가 정확히 1이 된다. 그래서 $c=8$에서 로그가능도가 정확히 0으로 찍힌다 — 식으로는 닿을 수 없는 값이다. 로짓을 직접 받는 `BCEWithLogitsLoss`는 확률을 거치지 않아 $-6.086\times10^{-14}$이라는 작은 음수를 그대로 지킨다. 논의에서 「큰 로짓에는 `BCEWithLogitsLoss`가 안정적」이라고 한 것이 이 차이다.
 
 ## 정리하며
 

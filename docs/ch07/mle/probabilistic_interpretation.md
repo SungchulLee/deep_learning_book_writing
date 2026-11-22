@@ -5,18 +5,18 @@
 !!! abstract "핵심 명제"
     | 트레인 목표 | 확률적 해석 |
     |:-------------------|:-----------------------------|
-    | MSE 최소화 | 가우스 잡음 아래의 MLE |
+    | MSE 최소화 | 가우시안 잡음 아래의 MLE |
     | 교차 엔트로피 최소화 | 범주형 가능도 아래의 MLE |
-    | L2 정칙화 추가 | 가우스 사전분포 아래의 MAP |
+    | L2 정칙화 추가 | 가우시안 사전분포 아래의 MAP |
     | L1 정칙화 추가 | 라플라스 사전분포 아래의 MAP |
     | 드롭아웃 추가 | 특정 가정 아래 변분 베이즈 근사와 연결 |
-    | 평균과 분산을 함께 예측 | 이분산 가우스 MLE |
+    | 평균과 분산을 함께 예측 | 이분산 가우시안 MLE |
 
 ---
 
 ## 1. 근본적인 관계
 
-데이터 $\{(x_i, y_i)\}_{i=1}^n$과 확률 모델 $p(y|x, \theta)$이 주어졌을 때 다음이 성립한다.
+데이터 $\{(x_i, y_i)\}_{i=1}^n$과 확률 모델 $p(y|x, \theta)$가 주어졌을 때 다음이 성립한다.
 
 **최대가능도**: $\hat{\theta} = \arg\max_\theta \prod_{i=1}^{n} p(y_i | x_i, \theta)$
 
@@ -28,7 +28,7 @@ $$
 \mathcal{L}(\theta) = -\frac{1}{n}\sum_{i=1}^{n} \log p(y_i | x_i, \theta)
 $$
 
-$p(y|x, \theta)$을 무엇으로 고르느냐에 따라 다른 로스 함수가 나온다. 거꾸로 로스에서 분포를 만들려면 지수화한 함수가 적분 가능해야 하고, 정규화 상수가 트레인 파라메터에 의존하는지도 확인해야 한다. 임의의 로스를 그대로 NLL이라고 부를 수는 없다.
+$p(y|x, \theta)$를 무엇으로 고르느냐에 따라 다른 로스 함수가 나온다. 거꾸로 로스에서 분포를 만들려면 지수화한 함수가 적분 가능해야 하고, 정규화 상수가 트레인 파라메터에 의존하는지도 확인해야 한다. 임의의 로스를 그대로 NLL이라고 부를 수는 없다.
 
 ### 로스–분포 대응 전체 표
 
@@ -53,9 +53,9 @@ $$
 H(p, q) = H(p) + D_{\text{KL}}(p \| q)
 $$
 
-여기서 $H(p, q) = -\mathbb{E}_p[\log q]$은 교차 엔트로피, $H(p) = -\mathbb{E}_p[\log p]$은 참 분포의 엔트로피, $D_{\text{KL}}(p \| q) = \mathbb{E}_p[\log \frac{p}{q}]$은 KL 발산이다.
+여기서 $p$는 참 분포, $q$는 모델 분포이고, $H(p, q) = -\mathbb{E}_p[\log q]$는 교차 엔트로피, $H(p) = -\mathbb{E}_p[\log p]$는 참 분포의 엔트로피, $D_{\text{KL}}(p \| q) = \mathbb{E}_p[\log \frac{p}{q}]$는 KL 발산이다.
 
-$H(p)$은 모델 파라메터에 대해 상수이므로 다음이 성립한다.
+$H(p)$는 모델 파라메터에 대해 상수이므로 다음이 성립한다.
 
 $$
 \text{Minimizing Cross-Entropy} \equiv \text{Minimizing KL Divergence}
@@ -83,7 +83,7 @@ $$
 
 ### MLE에서 MAP으로
 
-최대 사후확률(MAP) 추정은 베이즈 정리를 통해 MLE에 사전분포 $p(\theta)$을 더한다.
+최대 사후확률(MAP) 추정은 베이즈 정리를 통해 MLE에 사전분포 $p(\theta)$를 더한다. 사전분포는 데이터를 보기 전에 파라메터가 어떤 값일 법한지를 적은 분포다.
 
 $$
 \hat{\theta}_{\text{MAP}} = \arg\max_\theta \, p(\theta | \text{data}) = \arg\max_\theta \left[\log p(\text{data} | \theta) + \log p(\theta)\right]
@@ -91,7 +91,7 @@ $$
 
 첫째 항은 로그가능도(데이터 적합)이고 둘째 항은 로그 사전분포(정칙화)이다. MAP 추정은 빈도주의 MLE와 베이즈 추론을 잇는 다리이다.
 
-### L2 정칙화 = 가우스 사전분포
+### L2 정칙화 = 가우시안 사전분포
 
 $\theta \sim \mathcal{N}(0, \tau^2 I)$이면 다음과 같다.
 
@@ -123,7 +123,7 @@ $$
 
 여기서 $\lambda = 1/b$이다.
 
-라플라스 사전분포는 (매끄러운 가우스와 달리) 0에서 날카로운 봉우리를 가지며, 이것이 **희소성**을 유도한다. 많은 파라메터가 정확히 0으로 밀려난다.
+라플라스 사전분포는 (매끄러운 가우시안과 달리) 0에서 날카로운 봉우리를 가지며, 이것이 **희소성**을 유도한다. 많은 파라메터가 정확히 0으로 밀려난다.
 
 ### 기하학적 직관
 
@@ -137,16 +137,16 @@ L1 사전분포(마름모 모양의 등고선)는 MAP 추정값을 일부 좌표
 
 특정 문제에 맞는 로스 함수를 설계하려면 다음과 같이 한다.
 
-1. **분포 모델을 정한다**: $y|x$이 어떤 분포를 따르는가?
+1. **분포 모델을 정한다**: $y|x$가 어떤 분포를 따르는가?
 2. **로그가능도를 쓴다**: $\log p(y|x, \theta)$
 3. **음수를 취하고 평균한다**: $\mathcal{L} = -\frac{1}{n}\sum \log p(y_i | x_i, \theta)$
-4. **정칙화를 더한다** (선택): 사전분포 $p(\theta)$을 고른다
+4. **정칙화를 더한다** (선택): 사전분포 $p(\theta)$를 고른다
 
 이 원리에 기반한 접근은 로스 함수가 이론적으로 근거를 갖게 하고 임시방편적인 선택을 피하게 해 준다.
 
 ### 예: 포아송 회귀
 
-카운트 데이터 $y \in \{0, 1, 2, \ldots\}$에 대해 $y | x \sim \text{Poisson}(\exp(f_\theta(x)))$으로 모델링하면 다음과 같다.
+카운트 데이터 $y \in \{0, 1, 2, \ldots\}$에 대해 $y | x \sim \text{Poisson}(\exp(f_\theta(x)))$로 모델링하면 다음과 같다.
 
 $$
 \log p(y|x, \theta) = y \cdot f_\theta(x) - \exp(f_\theta(x)) - \log(y!)
@@ -302,7 +302,7 @@ def loss_function_comparison():
 
 2. **정칙화 설계**: "파라메터에 대해 어떤 사전 믿음을 가지고 있는가?"를 물어 정칙화를 고른다.
 
-3. **불확실성의 정량화**: 확률 모델은 점 예측뿐 아니라 분포로서의 예측(평균, 분산, 신뢰구간)을 준다.
+3. **불확실성의 정량화**: 확률 모델은 점 예측뿐 아니라 분포로서의 예측(평균, 분산, 예측 구간)을 준다.
 
 4. **사용자 정의 로스 설계**: 새로운 문제라도 분포 모델을 정하고 그에 대응하는 NLL을 유도하면 다룰 수 있다.
 
@@ -315,14 +315,14 @@ def loss_function_comparison():
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-음이항분포를 사용하여 과대산포가 있는 카운트를 예측하는 모델의 로스 함수를 유도하라.
+음이항분포를 사용하여 과대산포(분산이 평균보다 큰 것)가 있는 카운트를 예측하는 모델의 로스 함수를 유도하라.
 
 </div>
 
 ??? success "풀이"
     음이항분포의 확률질량함수는 $P(y|r,p) = \binom{y+r-1}{y} p^r (1-p)^y$이다.
 
-    평균 $\mu = r(1-p)/p$과 산포 $r$으로 재파라메터화한다. NLL은 다음과 같다.
+    평균 $\mu = r(1-p)/p$와 산포 $r$로 재파라메터화한다. 그러면 $p = r/(r+\mu)$이다. NLL은 다음과 같다.
 
     $$
     -\log P(y|\mu,r) = -\log\Gamma(y+r) + \log\Gamma(r) + \log(y!) - r\log\frac{r}{r+\mu} - y\log\frac{\mu}{r+\mu}
@@ -343,10 +343,10 @@ def loss_function_comparison():
     Gal과 Ghahramani(2016)는 특정 사전분포, 변분족과 근사를 사용해 드롭아웃 트레인을 변분 추론과 연결한다. 이는 임의의 드롭아웃 구현이 정확한 사후추론이라는 뜻은 아니다. 다음 식은 근사 웨이트를 샘플링하는 구성을 나타낸다.
 
     $$
-    q(\mathbf{W}_l) = \mathbf{M}_l \cdot \text{diag}(\mathbf{z}_l), \quad z_{l,i} \sim \text{Bernoulli}(1-p)
+    \mathbf{W}_l = \mathbf{M}_l \cdot \text{diag}(\mathbf{z}_l), \quad z_{l,i} \sim \text{Bernoulli}(1-p)
     $$
 
-    여기서 $\mathbf{M}_l$은 트레인할 웨이트다. 적절한 스케일과 L2 계수 아래에서 드롭아웃 목적을 변분 하한의 근사와 연결한다. 추론 시 드롭아웃을 켜고 여러 번 예측하는 MC 드롭아웃은 이 근사 모델의 예측 변동을 살펴보는 방법이며, 불확실성의 정확한 보정을 보장하지는 않는다. [원 논문](https://proceedings.mlr.press/v48/gal16.html)에서 가정을 확인할 수 있다.
+    근사 사후분포 $q(\mathbf{W}_l)$은 이렇게 뽑은 $\mathbf{W}_l$의 분포다. 여기서 $\mathbf{M}_l$은 트레인할 웨이트이고 $p$는 유닛을 끄는 확률이다. 적절한 스케일과 L2 계수 아래에서 드롭아웃 목적을 변분 하한의 근사와 연결한다. 추론 시 드롭아웃을 켜고 여러 번 예측하는 MC 드롭아웃은 이 근사 모델의 예측 변동을 살펴보는 방법이며, 불확실성의 정확한 보정을 보장하지는 않는다. [원 논문](https://proceedings.mlr.press/v48/gal16.html)에서 가정을 확인할 수 있다.
 
 ---
 
@@ -407,11 +407,11 @@ def loss_function_comparison():
 
 ## 정리하며
 
-확률적 해석을 적용할 때는 분포의 정규화, 로스의 합·평균, 사전분포의 스케일을 함께 확인한다. MAP는 사후분포 전체가 아니라 한 점을 추정하므로 그 자체로 모든 예측 불확실성을 설명하지는 않는다.
+확률적 해석을 적용할 때는 분포의 정규화, 로스의 합·평균, 사전분포의 스케일을 함께 확인한다. MAP은 사후분포 전체가 아니라 한 점을 추정하므로 그 자체로 모든 예측 불확실성을 설명하지는 않는다.
 
 **참고 문헌**
 
 - Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Chapter 4
 - Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. Chapter 5
-- Kendall, A. & Gal, Y. (2018). "What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision?" *NeurIPS*
+- Kendall, A. & Gal, Y. (2017). "What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision?" *NeurIPS*
 - Murphy, K. P. (2022). *Probabilistic Machine Learning: An Introduction*. Chapter 5

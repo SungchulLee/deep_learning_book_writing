@@ -1,6 +1,6 @@
 # 심화
 
-NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 스케줄링, 조기 종료, 그래디언트 클리핑과 라벨 스무딩을 살펴본다. 각각은 서로 다른 목적의 도구이므로 한 가지 기법으로 묶어 해석하지 않는다.
+NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 네 가지 트레인 기법을 살펴본다. **러닝레이트 스케줄링**은 트레인 도중에 러닝레이트를 정해 둔 규칙대로 바꾸는 것이고, **조기 종료**는 검증 로스가 더 줄지 않으면 트레인을 멈추는 것이다. **그래디언트 클리핑**은 그래디언트의 노름(크기)이 상한을 넘으면 그 상한으로 줄이는 것이고, **라벨 스무딩**은 정답 클래스에 1, 나머지에 0을 주는 목표 분포를 조금 고르게 펴는 것이다. 각각은 서로 다른 목적의 도구이므로 한 가지 기법으로 묶어 해석하지 않는다.
 
 ## 1. 코드
 
@@ -25,6 +25,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
     ===============================================================================
     """
 
+    import copy
     import torch
     import torch.nn as nn
     import torch.optim as optim
@@ -79,10 +80,10 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
             z의 행마다 소프트맥스 값을 계산한다.
 
             Args:
-                z: 모양이 (batch_size, num_classes)인 로짓
+                z: 형태가 (batch_size, num_classes)인 로짓
 
             Returns:
-                모양이 (batch_size, num_classes)인 확률
+                형태가 (batch_size, num_classes)인 확률
             """
             # 수치적 안정성을 위해 최댓값을 뺀다
             z_shifted = z - np.max(z, axis=1, keepdims=True)
@@ -94,10 +95,10 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
             순전파: 클래스 확률을 계산한다.
 
             Args:
-                X: 모양이 (batch_size, input_dim)인 입력 피처
+                X: 형태가 (batch_size, input_dim)인 입력 피처
 
             Returns:
-                모양이 (batch_size, num_classes)인 확률
+                형태가 (batch_size, num_classes)인 확률
             """
             logits = np.dot(X, self.W) + self.b
             probs = self.softmax(logits)
@@ -509,7 +510,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
             """
             if self.best_loss is None:
                 self.best_loss = val_loss
-                self.best_model = model.state_dict().copy()
+                self.best_model = copy.deepcopy(model.state_dict())
             elif val_loss > self.best_loss - self.min_delta:
                 self.counter += 1
                 if self.verbose:
@@ -520,7 +521,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
                 if self.verbose:
                     print(f"  Validation loss improved: {self.best_loss:.4f} → {val_loss:.4f}")
                 self.best_loss = val_loss
-                self.best_model = model.state_dict().copy()
+                self.best_model = copy.deepcopy(model.state_dict())
                 self.counter = 0
 
             return self.early_stop
@@ -785,7 +786,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
     • 순환 뉴럴 네트워크나 불안정한 트레인에서는 그래디언트를 클리핑한다
     • 일반화를 높이려면 라벨 스무딩을 살펴본다
 
-    다음 스텝:
+    다음 단계:
     -----------
     → 5단계: 여러 데이터셋과 구조를 견주기
     → 여러 기법을 뒤섞어 실험해 보기
@@ -1038,7 +1039,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
     • 순환 뉴럴 네트워크나 불안정한 트레인에서는 그래디언트를 클리핑한다
     • 일반화를 높이려면 라벨 스무딩을 살펴본다
 
-    다음 스텝:
+    다음 단계:
     -----------
     → 5단계: 여러 데이터셋과 구조를 견주기
     → 여러 기법을 뒤섞어 실험해 보기
@@ -1047,8 +1048,6 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
     🎉 잘했다! 고급 기법을 익혔다!
 
     ```
-
-
 ## 2. 논의
 
 ### 수동 미분과 비선형 모델
@@ -1063,7 +1062,7 @@ NumPy 소프트맥스 회귀와 비선형 PyTorch 분류기를 비교하면서 �
 
 ### 체크포인트의 실제 보존
 
-위 코드의 `model.state_dict().copy()`는 사전의 얕은 복사다. 값 텐서의 저장 공간이 모델과 공유될 수 있으므로 이후 트레인 중 “최고 모델” 값도 바뀔 수 있다. 독립 텐서 복제나 깊은 복사, 그 시점의 파일 저장이 필요하다. 따라서 4부의 조기 종료가 최적 검증 시점의 웨이트를 확실히 복원한다고 읽으면 안 된다.
+위 코드는 최고 모델을 `copy.deepcopy(model.state_dict())`로 담는다. `model.state_dict().copy()`라고 쓰면 안 된다 — 그것은 사전의 얕은 복사라서 열쇠와 값의 짝만 새로 만들고 값인 텐서는 복제하지 않는다. 그 텐서는 모델의 파라메터와 저장 공간을 공유하고 옵티마이저는 파라메터를 제자리에서 고치므로, 트레인이 이어지면 “최고 모델”로 담아 둔 값도 함께 바뀐다. 그러면 조기 종료가 끝에 복원하는 것은 최적 검증 시점이 아니라 마지막 에포크의 웨이트다. 깊은 복사나 텐서별 `clone()`, 또는 그 시점의 파일 저장이라야 그때의 값이 남는다.
 
 ## 연습문제
 
@@ -1075,14 +1074,14 @@ NumPy 선형 소프트맥스 모델의 파라메터 수를 어떻게 계산하�
 </div>
 
 ??? success "풀이"
-    입력 $D$개, 클래스 $K$개이면 웨이트 $DK$개와 바이어스 $K$개, 총 $K(D+1)$개다. NumPy 클래스는 nn.Module이 아니므로 `.parameters()`로 자동 등록된 목록을 얻는 구조가 아니다. 배열의 모양과 원소 수로 직접 확인한다.
+    입력 $D$개, 클래스 $K$개이면 웨이트 $DK$개와 바이어스 $K$개, 총 $K(D+1)$개다. NumPy 클래스는 nn.Module이 아니므로 `.parameters()`로 자동 등록된 목록을 얻는 구조가 아니다. 배열의 형태와 원소 수로 직접 확인한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 쪽의 PyTorch 모델은 `torch.optim.Adam`에 `lr=0.001`을 쓴다. 2부의 옵티마이저를 `torch.optim.SGD`(`lr=0.01`, `momentum=0.9`)로 바꾸고 원래 옵티마이저와 트레인 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
+2부의 PyTorch 모델은 `torch.optim.Adam`에 `lr=0.001`을 쓴다. 이 옵티마이저를 `torch.optim.SGD`(`lr=0.01`, `momentum=0.9`)로 바꾸고 원래 옵티마이저와 트레인 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
 
 </div>
 
@@ -1094,30 +1093,64 @@ NumPy 선형 소프트맥스 모델의 파라메터 수를 어떻게 계산하�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-`state_dict().copy()`가 독립적인 최고 모델 스냅숏이 되지 않을 수 있는 이유를 설명하라.
+4부의 조기 종료는 최고 모델을 `copy.deepcopy(model.state_dict())`로 담는다. 이를 `model.state_dict().copy()`로 바꾸면 독립적인 스냅숏이 되지 않는 이유를 설명하라.
 
 </div>
 
 ??? success "풀이"
-    사전의 매핑만 복사하고 값 텐서는 원래 저장 공간을 공유할 수 있다. 트레인이 값을 수정하면 복사 사전이 가리키는 값도 바뀔 수 있으므로 각 텐서 복제나 깊은 복사·당시 파일 저장이 필요하다.
+    사전의 매핑만 복사하고 값 텐서는 모델의 파라메터와 저장 공간을 공유한다. 트레인이 파라메터를 제자리에서 수정하면 복사한 사전이 가리키는 값도 함께 바뀌므로 각 텐서 복제나 깊은 복사·당시 파일 저장이 필요하다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-풀이에 실린 `nn.ModuleList` 확장 패턴을 현재 코드에 적용하려면 어떤 새 모델 정의가 필요한지 설명하라. NumPy 구현과 PyTorch 트레인 모델을 구분하라.
+6부의 `LabelSmoothingCrossEntropy(num_classes, smoothing)`과 PyTorch 내장 `nn.CrossEntropyLoss(label_smoothing=...)`은 스무딩된 목표 분포를 서로 다르게 만든다. 클래스 수를 $K$, 이 쪽 클래스의 `smoothing`을 $s$, 내장 로스의 `label_smoothing`을 $\varepsilon$이라 하자. (a) 두 구현이 참 클래스와 나머지 클래스에 주는 확률을 각각 적어라. (b) 두 로스가 같아지는 $s$와 $\varepsilon$의 관계를 구하라. (c) 6부의 설정($K=3$, $s=0.1$)에서 같은 로짓에 두 로스를 계산해 (b)의 관계를 확인하라.
 
 </div>
 
 ??? success "풀이"
-    아래 코드는 일반적인 PyTorch 레이어 구성 패턴의 일부이며 원래 클래스의 완성된 대체 구현은 아니다.
+    (a) 이 쪽의 `forward`는 목표를 먼저 `smoothing / (num_classes - 1)`로 채운 뒤 참 클래스 자리에 `confidence = 1 - smoothing`을 덮어쓴다. 즉 덜어 낸 $s$를 **참 클래스를 뺀** $K-1$개에 나눈다. 내장 로스는 원핫 목표와 균등분포를 $(1-\varepsilon) : \varepsilon$으로 섞으므로, $\varepsilon$을 **참 클래스까지 포함한** $K$개에 나눈다.
+
+    | | 참 클래스 | 나머지 클래스 각각 |
+    |---|---|---|
+    | 이 쪽의 클래스 | $1-s$ | $s/(K-1)$ |
+    | 내장 `label_smoothing` | $1-\varepsilon+\varepsilon/K$ | $\varepsilon/K$ |
+
+    (b) 나머지 클래스의 확률을 같게 놓으면 $s/(K-1)=\varepsilon/K$, 곧
+
+    $$
+    \varepsilon = \frac{K}{K-1}\,s
+    $$
+
+    이다. 이때 참 클래스도 $1-\varepsilon+\varepsilon/K = 1-\varepsilon\,(K-1)/K = 1-s$로 맞는다. 두 로스 모두 목표 분포와 로그 소프트맥스의 교차 엔트로피를 배치 평균한 것이므로, 목표 분포가 같으면 로스도 같다. 같은 수 0.1을 넣어도 두 구현은 같은 로스가 아니며, 내장 쪽이 참 클래스에 확률을 더 남긴다($K=3$이면 0.9 대 0.9333).
+
+    (c) $K=3$, $s=0.1$이면 $\varepsilon=0.15$다. 이 쪽 코드의 `LabelSmoothingCrossEntropy` 정의 뒤에 아래를 붙여 돌린다.
+
     ```python
-    self.layers = nn.ModuleList()
-    for i in range(num_layers):
-        self.layers.append(YourBlock(dim, ...))
+    torch.manual_seed(0)
+    K, s = 3, 0.1
+    logits = torch.randn(8, K)
+    targets = torch.randint(0, K, (8,))
+
+    ours = LabelSmoothingCrossEntropy(K, smoothing=s)(logits, targets)
+    same_number = nn.CrossEntropyLoss(label_smoothing=s)(logits, targets)
+    matched = nn.CrossEntropyLoss(label_smoothing=s * K / (K - 1))(logits, targets)
+
+    print(f"이 쪽의 클래스 (smoothing=0.1)  : {ours.item():.6f}")
+    print(f"내장 label_smoothing=0.1        : {same_number.item():.6f}")
+    print(f"내장 label_smoothing=0.15       : {matched.item():.6f}")
+    print(torch.allclose(ours, matched))
     ```
-    PyTorch 모델 클래스를 별도로 정의하고 생성자·forward·출력 모양을 함께 맞춰야 한다. NumPy 클래스에 ModuleList를 붙인다고 자동으로 모델이 바뀌지 않는다. 비선형 은닉 레이어를 추가하면 원래 단일 선형 소프트맥스 회귀와 다른 가설 공간이 된다.
+
+    ```
+    이 쪽의 클래스 (smoothing=0.1)  : 1.330512
+    내장 label_smoothing=0.1        : 1.331096
+    내장 label_smoothing=0.15       : 1.330512
+    True
+    ```
+
+    같은 0.1을 넣은 둘째 줄은 소수 셋째 자리에서 어긋나고, $\varepsilon=0.15$로 맞춘 셋째 줄은 첫 줄과 같다. $K$가 크면 $K/(K-1)$이 1에 가까워 두 관례의 차이가 작아지지만, 클래스가 셋뿐인 이 쪽에서는 내장 로스로 바꿔 끼울 때 값을 1.5배로 환산해야 같은 실험이 된다.
 
 ## 정리하며
 

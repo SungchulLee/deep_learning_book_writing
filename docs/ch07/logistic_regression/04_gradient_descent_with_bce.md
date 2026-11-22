@@ -1,6 +1,6 @@
 # BCE를 쓰는 경사 하강법
 
-표준화한 피처로 로지스틱 회귀를 트레인하고 확률 출력에 BCE를 적용한다. 다음 페이지의 로짓 로스와 비교할 기준을 만든다.
+표준화한 피처로 로지스틱 회귀를 트레인하고 확률 출력에 BCE(이진 교차 엔트로피) 로스를 적용한다. 다음 쪽 「BCEWithLogitsLoss를 쓰는 경사 하강법」의 로짓 로스와 비교할 기준을 만든다. 로짓은 시그모이드에 넣기 전의 선형 점수 $w^\top x+b$다.
 
 ## 1. 코드
 
@@ -200,11 +200,13 @@ accuracy: 0.9649
 
 ### 전처리와 파라메터
 
-피처 30개와 바이어스로 총 31개 파라메터를 트레인한다. StandardScaler는 트레인 데이터에서만 적합하고 시험 집합에는 같은 변환을 적용한다. 결과 확률은 클래스 1일 확률이며, 이 데이터에서 클래스 1은 양성(benign) 종양이다. 출력의 `Positive Cases`도 악성이 아니라 이 클래스 1(357개)을 센 것이다.
+피처 30개와 바이어스로 총 31개 파라메터를 트레인한다. `StandardScaler`는 피처마다 평균을 빼고 표준편차로 나누는 표준화다. 평균과 표준편차는 트레인 데이터에서만 구하고 시험 집합에는 같은 변환을 적용한다. 모델이 내는 확률은 클래스 1일 확률이며, 이 데이터에서 클래스 1은 양성(benign, 악성이 아닌) 종양이다. 출력의 `Positive Cases`도 악성이 아니라 이 클래스 1(357개)을 센 것이다.
 
 ### 수치 안정성과 트레인 상태
 
-확률을 만든 뒤 로그 로스를 계산하면 큰 로짓에서 포화와 정밀도 문제가 생길 수 있다. 다음 절의 `BCEWithLogitsLoss`는 이를 합친 안정적인 계산을 제공한다. 로스와 정확도를 함께 관찰하되 시험 집합을 반복 튜닝에 사용하면 별도 최종 평가가 필요하다.
+확률을 만든 뒤 로그 로스를 계산하면 절댓값이 큰 로짓에서 시그모이드가 0이나 1에 붙어(포화) 로그를 취할 때 정밀도 문제가 생길 수 있다. 다음 쪽의 `BCEWithLogitsLoss`는 시그모이드와 로그를 하나로 합쳐 안정적으로 계산한다. 로스와 정확도를 함께 관찰하되, 시험 집합을 보면서 하이퍼파라메터를 거듭 고쳤다면 최종 평가는 따로 떼어 둔 데이터로 해야 한다.
+
+이 쪽의 러닝레이트 10은 설명을 위해 일부러 크게 잡은 값이다. 이 설정에서 로스는 100에포크 뒤 0.0245까지 내려가고 시험 정확도는 0.9649다.
 
 ## 연습문제
 
@@ -240,25 +242,49 @@ accuracy: 0.9649
 </div>
 
 ??? success "풀이"
-    같지 않다. 로짓 로스에는 시그모이드 이전 점수를 전달해야 한다. 모델의 확률 출력을 그대로 전달하면 이를 로짓으로 해석해 다른 목적과 그래디언트를 계산한다.
+    같지 않다. 로짓 로스에는 시그모이드 이전 점수를 전달해야 한다. 모델의 확률 출력을 그대로 전달하면 이를 로짓으로 해석해 시그모이드를 한 번 더 적용하므로, 다른 목적 함수와 다른 그래디언트를 계산한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-`nn.ModuleList`로 레이어를 여러 개 쌓는 일반적인 패턴(풀이의 코드 조각)이 이 쪽의 `Model` 클래스에 그대로 적용되는지 검토하라. 모델과 데이터셋의 역할, 생성자 인수, 입력·출력 형태와 비선형성에서 필요한 수정 사항을 설명하라.
+트레인을 마친 뒤 `y_pred = model(X_train)`으로 BCE를 식 $-\frac{1}{N}\sum_i\left[y_i\log p_i+(1-y_i)\log(1-p_i)\right]$ 그대로 계산해 `criterion(y_pred, y_train)`과 견주어라. 두 값이 다르면 까닭을 찾아 고쳐라. 이어서 `loss.backward()`가 채운 `model.linear.weight.grad`와 `model.linear.bias.grad`가 해석적 그래디언트 $\frac{1}{N}X^\top(p-y)$, $\frac{1}{N}\sum_i(p_i-y_i)$와 같은지 확인하라.
 
 </div>
 
 ??? success "풀이"
-    아래 코드는 일반적인 ModuleList 구성 패턴의 일부이며 이 페이지 클래스의 완성된 대체 구현은 아니다.
+    아래 코드는 이 쪽의 프로그램 끝에 이어 붙여 돌린다.
     ```python
-    self.layers = nn.ModuleList()
-    for i in range(num_layers):
-        self.layers.append(YourBlock(dim, ...))
+    y_pred = model(X_train)                         # (455, 1) 확률
+    loss = criterion(y_pred, y_train)               # nn.BCELoss
+
+    naive = -(y_train * torch.log(y_pred)
+              + (1 - y_train) * torch.log(1 - y_pred)).mean()
+    log_p = torch.log(y_pred).clamp(min=-100)
+    log_1mp = torch.log(1 - y_pred).clamp(min=-100)
+    clamped = -(y_train * log_p + (1 - y_train) * log_1mp).mean()
+    print(f"BCELoss {loss.item():.6f} | 식 그대로 {naive.item():.6f} | 로그를 -100에서 자름 {clamped.item():.6f}")
+    print(f"확률이 정확히 0 또는 1인 표본: {((y_pred == 0) | (y_pred == 1)).sum().item()} / {y_pred.shape[0]}")
+
+    optimizer.zero_grad()
+    loss.backward()
+    with torch.no_grad():
+        grad_w = (y_pred - y_train).T @ X_train / X_train.shape[0]   # (1, 30)
+        grad_b = (y_pred - y_train).mean().reshape(1)                # (1,)
+    print(torch.allclose(model.linear.weight.grad, grad_w, atol=1e-6),
+          torch.allclose(model.linear.bias.grad, grad_b, atol=1e-6))
     ```
-    적용하려면 생성자와 `forward`를 함께 정의하고 마지막 출력 형태와 로스의 입력 조건을 유지해야 한다. 선형 레이어만 여러 개 합성하면 여전히 하나의 선형 사상이므로 표현력을 늘리려면 적절한 비선형성이 필요하다. Dataset은 표본 접근 인터페이스이므로 레이어를 등록할 대상이 아니며 별도 모델 클래스에 이 구성을 적용한다.
+    ```
+    BCELoss 0.024369 | 식 그대로 nan | 로그를 -100에서 자름 0.024369
+    확률이 정확히 0 또는 1인 표본: 217 / 455
+    True True
+    ```
+    식을 그대로 옮기면 `nan`이 나온다. 러닝레이트 10으로 트레인한 이 모델은 트레인 표본 455개 가운데 217개에서 시그모이드가 float32로 정확히 0이나 1이 된다(포화). 그런 표본에서는 $\log 0=-\infty$에 0이 곱해져 $0\cdot(-\infty)=$ `nan`이 되고, 평균을 내면 전체가 `nan`이다. `nn.BCELoss`는 로그 값을 $-100$ 아래로 내려가지 않게 잘라 이 문제를 피한다. 같은 처리를 넣으면 0.024369로 일치한다.
+
+    그래디언트는 두 식 모두 일치한다. 시그모이드와 BCE를 합쳐 미분하면 로짓에 대한 그래디언트가 $p-y$로 간단해지고, 여기에 입력 $X$를 곱해 평균한 것이 웨이트의 그래디언트다. 형태는 `weight.grad`가 $(1,30)$, `bias.grad`가 $(1,)$이다.
+
+    포화 때문에 손으로 잘라 주어야 한다는 것이 확률을 먼저 만드는 방식의 약점이다. 다음 쪽 「BCEWithLogitsLoss를 쓰는 경사 하강법」은 로짓에서 바로 로스를 계산해 이 자르기가 필요 없다.
 
 ## 정리하며
 

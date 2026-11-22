@@ -1,7 +1,7 @@
 # 해석적 해
 
 반복적 최적화가 필요한 대부분의 기계 학습 문제와 달리, 선형 회귀에는 **정규 방정식**이라
-불리는 **닫힌 형태**의 해가 있다. 이 페이지에서는 제일원리에서부터 해를 전개한다.
+불리는 **닫힌 형태**의 해가 있다. 이 쪽에서는 제일원리에서부터 해를 전개한다.
 필요한 벡터 미적분 항등식, 유도 과정 자체, 직교 사영으로서의 기하학적 해석, 그리고
 NumPy와 PyTorch에서의 효율적인 수치 구현을 차례로 다룬다.
 
@@ -47,7 +47,8 @@ $\boldsymbol{\theta}^\top\mathbf{A}\boldsymbol{\theta}
 다음과 같다.
 
 $$
-\frac{\partial}{\partial \theta_i}
+\frac{\partial}{\partial \theta_i}\,
+\boldsymbol{\theta}^\top\mathbf{A}\boldsymbol{\theta}
 = \sum_k A_{ik}\theta_k + \sum_j A_{ji}\theta_j
 = (\mathbf{A}\boldsymbol{\theta})_i
   + (\mathbf{A}^\top\boldsymbol{\theta})_i
@@ -58,8 +59,8 @@ $$
 
 !!! warning "비대칭인 경우"
     $\mathbf{A}$가 대칭이 아니면 그래디언트는
-    $(\mathbf{A} + \mathbf{A}^\top)\boldsymbol{\theta}$이 된다. 그람 행렬
-    $\mathbf{X}^\top\mathbf{X}$은 언제나 대칭이므로 보통최소제곱에서는 이 구분이
+    $(\mathbf{A} + \mathbf{A}^\top)\boldsymbol{\theta}$가 된다. 그람 행렬
+    $\mathbf{X}^\top\mathbf{X}$은 언제나 대칭이므로 보통최소제곱(OLS)에서는 이 구분이
     문제되지 않는다.
 
 ### 1.4 대각합 항등식
@@ -71,7 +72,7 @@ MLE 유도와 정칙화된 로스에서는 여러 대각합 항등식이 등장�
 | 순환 성질 | $\mathrm{tr}(\mathbf{ABC}) = \mathrm{tr}(\mathbf{CAB}) = \mathrm{tr}(\mathbf{BCA})$ |
 | 스칼라를 대각합으로 | $\mathbf{v}^\top\mathbf{v} = \mathrm{tr}(\mathbf{v}\mathbf{v}^\top)$ |
 | 대각합의 도함수 | $\frac{\partial}{\partial \mathbf{A}}\mathrm{tr}(\mathbf{BA}) = \mathbf{B}^\top$ |
-| 로그 행렬식의 도함수 | $\frac{\partial}{\partial \mathbf{A}}\ln\|\det\mathbf{A}\| = (\mathbf{A}^{-1})^\top$ |
+| 로그 행렬식의 도함수 | $\frac{\partial}{\partial \mathbf{A}}\ln\lvert\det\mathbf{A}\rvert = (\mathbf{A}^{-1})^\top$ |
 
 스칼라를 대각합으로 쓰는 항등식 덕분에 MSE 로스를 다음과 같이 쓸 수 있다.
 
@@ -105,7 +106,7 @@ $$
 
 ### 2.2 그래디언트 계산하기
 
-§1의 항등식을 적용하면 다음과 같다.
+1절의 두 그래디언트 항등식을 적용하면 다음과 같다.
 
 $$
 \nabla_{\boldsymbol{\theta}}\mathcal{L}
@@ -189,7 +190,7 @@ $$
 
 ### 4.2 사영 행렬 (햇 행렬)
 
-다음 식은 $\mathbf X$의 열들이 선형 독립일 때의 사영 행렬이다. 랭크가 부족하면 $\mathbf P=\mathbf X\mathbf X^+$를 사용한다. 예측의 사영은 유일하지만 이를 나타내는 파라메터는 여러 개일 수 있다.
+다음 식은 $\mathbf X$의 열들이 선형 독립일 때의 사영 행렬이다. 랭크가 부족하면 $\mathbf P=\mathbf X\mathbf X^+$를 사용한다($\mathbf X^+$는 유사역행렬이다). 예측의 사영은 유일하지만 이를 나타내는 파라메터는 여러 개일 수 있다.
 
 $$
 \mathbf{P}
@@ -251,7 +252,7 @@ $$
 
 #### 지렛값은 영향력이 아니다
 
-5.4절의 데이터로 세 성질을 확인하면 그대로 맞는다. 트레인 표본 160개, 바이어스를 포함한 열 4개에서 $\sum_i h_{ii} = 4.000000$이고, $h_{ii}$는 $0.00675$에서 $0.10654$ 사이이며 하한 $1/n = 0.00625$를 지킨다. 경험칙 $2(p+1)/n = 0.050$은 160개 가운데 10개를 표시한다.
+이 쪽 5.4의 전 과정 예제 데이터로 세 성질을 확인하면 그대로 맞는다. 트레인 표본 160개, 바이어스를 포함한 열 4개에서 $\sum_i h_{ii} = 4.000000$이고, $h_{ii}$는 $0.00675$에서 $0.10654$ 사이이며 하한 $1/n = 0.00625$를 지킨다. 경험칙 $2(p+1)/n = 0.050$은 160개 가운데 10개를 표시한다.
 
 그런데 **표시된 10개가 정말로 적합을 흔드는 점인가?** 재는 방법은 간단하다. 점을 하나씩 빼고 정규 방정식을 다시 풀어 $\boldsymbol\theta$가 얼마나 움직이는지 보면 된다.
 
@@ -289,11 +290,11 @@ def make_design_matrix(x: np.ndarray) -> np.ndarray:
 
     파라메터
     --------
-    x : 모양이 (n, p) 또는 (n,)인 ndarray
+    x : 형태가 (n, p) 또는 (n,)인 ndarray
 
     반환값
     ------
-    X : 모양이 (n, p+1)인 ndarray
+    X : 형태가 (n, p+1)인 ndarray
     """
     x = np.atleast_2d(x) if x.ndim == 1 else x
     return np.hstack([np.ones((x.shape[0], 1)), x])
@@ -384,7 +385,7 @@ def normal_equations(X: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         y: 목표 벡터 (n,) 또는 (n, 1).
 
     반환값:
-        모양이 (p+1,) 또는 (p+1, 1)인 파라메터 벡터 θ.
+        형태가 (p+1,) 또는 (p+1, 1)인 파라메터 벡터 θ.
     """
     if y.dim() == 1:
         y = y.reshape(-1, 1)

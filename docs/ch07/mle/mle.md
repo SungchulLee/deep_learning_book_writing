@@ -17,7 +17,7 @@ MLE는 이렇게 묻는다. **"내 관측이 주어졌을 때, 어떤 파라메�
 
 ### 형식적 정의
 
-$\mathbf{X} = \{x_1, x_2, \ldots, x_n\}$을 미지의 파라메터 $\theta$을 갖는 확률분포에서 나온 $n$개의 독립적인 관측이라 하자. **가능도 함수**는 다음과 같이 정의된다.
+$\mathbf{X} = \{x_1, x_2, \ldots, x_n\}$을 미지의 파라메터 $\theta$를 갖는 확률분포에서 나온 $n$개의 독립적인 관측이라 하자. **가능도 함수**는 다음과 같이 정의된다.
 
 $$
 L(\theta | \mathbf{X}) = p(\mathbf{X} | \theta) = \prod_{i=1}^{n} p(x_i | \theta)
@@ -42,7 +42,7 @@ $$
     1. **수치적 안정성**: 작은 확률을 여러 번 곱하면 언더플로로 0이 될 수 있다
     2. **계산의 편의**: 관측별 로그 항을 더하는 형태로 나누어 계산할 수 있다
     3. **수학적 편의**: 합의 미분이 곱의 미분보다 간단하다
-    4. **단조성**: $\log$은 단조증가하므로 $\ell(\theta)$을 최대화하는 것은 $L(\theta)$을 최대화하는 것과 같다
+    4. **단조성**: $\log$는 단조증가하므로 $\ell(\theta)$를 최대화하는 것은 $L(\theta)$를 최대화하는 것과 같다
 
 ---
 
@@ -50,13 +50,13 @@ $$
 
 ### 가능도 함수
 
-모수 모델 $p(x|\theta)$에서 가능도 함수는 데이터를 고정된 것으로, 파라메터를 변수로 취급한다.
+모수 모델(파라메터 몇 개로 분포가 정해지는 모델) $p(x|\theta)$에서 가능도 함수는 데이터를 고정된 것으로, 파라메터를 변수로 취급한다.
 
 $$
 L: \Theta \to \mathbb{R}^+, \quad \theta \mapsto \prod_{i=1}^{n} p(x_i | \theta)
 $$
 
-여기서 $\Theta$은 파라메터 공간이다. 유념할 핵심 성질은 다음과 같다. 가능도는 $\theta$에 대한 확률분포가 아니며, $\int L(\theta | \mathbf{X}) d\theta$은 일반적으로 1이 아니다. 가능도는 서로 다른 파라메터 값들이 상대적으로 얼마나 그럴듯한지를 알려 준다.
+여기서 $\Theta$는 파라메터 공간, 곧 $\theta$가 가질 수 있는 값 전체의 집합이다. 유념할 핵심 성질은 다음과 같다. 가능도는 $\theta$에 대한 확률분포가 아니며, $\int L(\theta | \mathbf{X}) d\theta$는 일반적으로 1이 아니다. 가능도는 서로 다른 파라메터 값들이 상대적으로 얼마나 그럴듯한지를 알려 준다.
 
 ### MLE 찾기
 
@@ -75,7 +75,7 @@ $$
 s(\theta) = \nabla_\theta \ell(\theta | \mathbf{X}) = \sum_{i=1}^{n} \nabla_\theta \log p(x_i | \theta)
 $$
 
-정칙 조건 아래에서 참 파라메터에서의 스코어의 기댓값은 0이다.
+정칙 조건(미분과 적분의 순서를 바꿀 수 있게 해 주는 매끄러움 조건으로, 6절에 적는다) 아래에서, 데이터를 만든 참 파라메터 $\theta_0$에서 스코어의 기댓값은 0이다.
 
 $$
 \mathbb{E}[s(\theta_0)] = 0
@@ -85,7 +85,7 @@ $$
 
 ## 3. 풀이 예제: 베르누이 분포
 
-가장 단순한 경우, 즉 베르누이 분포의 성공 확률 $p$을 추정하는 문제에서 MLE를 유도해 보자.
+가장 단순한 경우, 즉 베르누이 분포의 성공 확률 $p$를 추정하는 문제에서 MLE를 유도해 보자.
 
 **설정**: 모델은 $X \sim \text{Bernoulli}(p)$, 데이터는 각 $x_i \in \{0, 1\}$인 $\mathbf{X} = \{x_1, \ldots, x_n\}$, 파라메터는 $p \in [0, 1]$이다.
 
@@ -95,7 +95,7 @@ $$
 L(p | \mathbf{X}) = \prod_{i=1}^{n} p^{x_i}(1-p)^{1-x_i} = p^{k}(1-p)^{n - k}
 $$
 
-여기서 $k = \sum_{i=1}^{n} x_i$은 성공의 횟수이다.
+여기서 $k = \sum_{i=1}^{n} x_i$는 성공의 횟수이다.
 
 **2단계 — 로그가능도.**
 
@@ -109,7 +109,7 @@ $$
 \frac{d\ell}{dp} = \frac{k}{p} - \frac{n-k}{1-p} = 0
 $$
 
-**4단계 — 풀이.** 교차 곱하면 $k(1-p) = p(n-k)$이 되고, 정리하면 다음과 같다.
+**4단계 — 풀이.** 분모를 없애면 $k(1-p) = p(n-k)$가 되고, 정리하면 다음과 같다.
 
 $$
 \boxed{\hat{p}_{\text{MLE}} = \frac{k}{n} = \frac{\sum_{i=1}^{n} x_i}{n}}
@@ -176,22 +176,22 @@ $$
 \ell(\lambda) = n \log \lambda - \lambda \sum x_i \implies \hat{\lambda} = \frac{1}{\bar{x}}
 $$
 
-**균등분포** $X \sim \text{Uniform}(a, b)$ — 가능도는 $a \leq x_{(1)}$이고 $x_{(n)} \leq b$일 때 $L(a,b) = (b-a)^{-n}$이며 그 밖에서는 0이다. 최대화하려면 구간을 최대한 좁힌다.
+**균등분포** $X \sim \text{Uniform}(a, b)$ — 가장 작은 관측을 $x_{(1)}$, 가장 큰 관측을 $x_{(n)}$이라 적으면, 가능도는 $a \leq x_{(1)}$이고 $x_{(n)} \leq b$일 때 $L(a,b) = (b-a)^{-n}$이며 그 밖에서는 0이다. 최대화하려면 구간을 최대한 좁힌다.
 
 $$
 \hat{a} = x_{(1)} = \min_i x_i, \quad \hat{b} = x_{(n)} = \max_i x_i
 $$
 
 !!! note "정칙이 아닌 MLE"
-    균등분포는 지지집합이 파라메터에 의존하므로 "정칙이 아닌" 경우이다. MLE는 존재하지만 통상적인 정칙 조건을 만족하지 않는다(예: 피셔 정보가 표준적인 방식으로는 잘 정의되지 않는다).
+    균등분포는 지지집합(밀도가 0이 아닌 $x$의 범위)이 파라메터에 의존하므로 "정칙이 아닌" 경우이다. MLE는 존재하지만 통상적인 정칙 조건을 만족하지 않는다(예: 피셔 정보가 표준적인 방식으로는 잘 정의되지 않는다).
 
-**감마분포** $X \sim \text{Gamma}(\alpha, \beta)$ — 두 파라메터 모두에 대한 해석적 해는 없다. $\alpha$이 주어지면 $\beta$의 MLE는 $\hat{\beta} = \alpha / \bar{x}$이다. $\alpha$은 다음 방정식을 수치적으로 풀어 얻는다.
+**감마분포** $X \sim \text{Gamma}(\alpha, \beta)$ — 두 파라메터 모두에 대한 해석적 해는 없다. $\alpha$가 주어지면 $\beta$의 MLE는 $\hat{\beta} = \alpha / \bar{x}$이다. $\alpha$는 다음 방정식을 수치적으로 풀어 얻는다.
 
 $$
 \log \alpha - \psi(\alpha) = \log \bar{x} - \overline{\log x}
 $$
 
-여기서 $\beta$는 척도가 아니라 비율(rate) 파라메터다. $\psi(\alpha) = \frac{d}{d\alpha}\log\Gamma(\alpha)$은 디감마 함수이다.
+여기서 $\beta$는 척도가 아니라 비율(rate) 파라메터다. $\overline{\log x}$는 $\log x_i$의 표본평균이고, $\psi(\alpha) = \frac{d}{d\alpha}\log\Gamma(\alpha)$는 디감마 함수이다.
 
 **다변량 정규분포** $\mathbf{X} \sim \mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\Sigma})$:
 
@@ -215,7 +215,7 @@ $$
 
 ### 반복되는 패턴 알아보기
 
-MLE 유도에서 반복되는 패턴에 주목하라. 위치 파라메터에는 표본평균이 자주 나타나고, MLE는 충분통계량을 통해서만 데이터에 의존하며, 확률 벡터의 제약은 라그랑주 승수로 다루고, 비율 파라메터의 MLE는 흔히 $1/\bar{x}$의 형태를 갖는다.
+MLE 유도에서 반복되는 패턴에 주목하라. 위치 파라메터에는 표본평균이 자주 나타나고, MLE는 충분통계량(파라메터에 관한 데이터의 정보를 모두 담은 요약값으로, 베르누이에서는 성공 횟수 $k$가 그것이다)을 통해서만 데이터에 의존하며, 확률 벡터의 제약은 라그랑주 승수로 다루고, 비율 파라메터의 MLE는 흔히 $1/\bar{x}$의 형태를 갖는다.
 
 ---
 
@@ -223,7 +223,7 @@ MLE 유도에서 반복되는 패턴에 주목하라. 위치 파라메터에는 
 
 ### 정의
 
-스코어 함수 $s(\theta) = \frac{\partial}{\partial \theta} \log p(X|\theta)$을 떠올리자. **피셔 정보**는 스코어의 분산이다.
+관측 하나의 스코어 함수 $s(\theta) = \frac{\partial}{\partial \theta} \log p(X|\theta)$를 떠올리자. **피셔 정보**는 스코어의 분산이다. 스코어의 기댓값이 0이므로 분산은 곧 제곱의 기댓값이다.
 
 $$
 I(\theta) = \text{Var}_\theta[s(\theta)] = \mathbb{E}_\theta\left[\left(\frac{\partial \log p(X|\theta)}{\partial \theta}\right)^2\right]
@@ -239,7 +239,7 @@ $$
 
 ### 직관적인 해석
 
-피셔 정보가 크다는 것은 로그가능도가 $\theta$ 주변에서 날카로운 봉우리를 이룬다는 뜻이다. $\theta$이 조금만 바뀌어도 가능도가 크게 달라지므로 데이터가 $\theta$에 대해 많은 정보를 준다. 피셔 정보가 작다는 것은 로그가능도가 평평하다는 뜻이며, 데이터가 서로 다른 파라메터 값을 잘 구별하지 못한다.
+피셔 정보가 크다는 것은 로그가능도가 $\theta$ 주변에서 날카로운 봉우리를 이룬다는 뜻이다. $\theta$가 조금만 바뀌어도 가능도가 크게 달라지므로 데이터가 $\theta$에 대해 많은 정보를 준다. 피셔 정보가 작다는 것은 로그가능도가 평평하다는 뜻이며, 데이터가 서로 다른 파라메터 값을 잘 구별하지 못한다.
 
 ### 봉우리가 날카로워지는 모습
 
@@ -294,17 +294,17 @@ $$
 \end{pmatrix}
 $$
 
-대각 구조는 $\mu$과 $\sigma^2$이 **직교**함을 뜻한다. 이는 기대 스코어의 교차 공분산이 0이라는 뜻이다. 추정값의 독립성이나 한 파라메터를 알 때 다른 파라메터의 추정이 전혀 달라지지 않는다는 뜻은 아니다.
+대각 구조는 $\mu$와 $\sigma^2$이 **직교**함을 뜻한다. 이는 기대 스코어의 교차 공분산이 0이라는 뜻이다. 추정값의 독립성이나 한 파라메터를 알 때 다른 파라메터의 추정이 전혀 달라지지 않는다는 뜻은 아니다.
 
 ### 성질
 
-**가법성.** i.i.d. 관측 $n$개에 대해 $I_n(\theta) = n \cdot I(\theta)$이다. 데이터가 많을수록 추정이 정밀해진다.
+**가법성.** i.i.d.(서로 독립이고 같은 분포를 따르는) 관측 $n$개에 대해 $I_n(\theta) = n \cdot I(\theta)$이다. 데이터가 많을수록 추정이 정밀해진다.
 
-**재파라메터화.** $\eta = g(\theta)$이 일대일 변환이면 $I_\eta(\eta) = I_\theta(\theta) \cdot (d\theta/d\eta)^2$이다. 파라메터가 여럿이면 $\mathbf{J}$을 야코비안 행렬이라 할 때 $\mathbf{I}_\eta = \mathbf{J}^T \mathbf{I}_\theta \mathbf{J}$이다.
+**재파라메터화.** $\eta = g(\theta)$가 일대일 변환이면 $I_\eta(\eta) = I_\theta(\theta) \cdot (d\theta/d\eta)^2$이다. 파라메터가 여럿이면 $\mathbf{J}$를 야코비안 행렬 $\partial\boldsymbol{\theta}/\partial\boldsymbol{\eta}$라 할 때 $\mathbf{I}_\eta = \mathbf{J}^T \mathbf{I}_\theta \mathbf{J}$이다.
 
 ### 크라메르–라오 하한
 
-피셔 정보는 어떤 불편 추정량도 넘을 수 없는 정밀도의 근본적인 한계를 정한다.
+피셔 정보는 어떤 불편 추정량(기댓값이 참값과 같은 추정량)도 넘을 수 없는 정밀도의 근본적인 한계를 정한다.
 
 **정리.** 크라메르–라오 부등식의 정칙 조건을 만족하는 모델에서 $\theta$의 불편 추정량 $\hat{\theta}$에 대해 다음이 성립한다.
 
@@ -314,11 +314,11 @@ $$
 
 이 하한은 **효율 추정량**이 달성하며, MLE는 점근적으로 효율적이다.
 
-i.i.d. 표본이 $n$개이면 하한은 $\text{Var}(\hat{\theta}) \geq 1/(nI(\theta))$이 된다.
+i.i.d. 표본이 $n$개이면 하한은 $\text{Var}(\hat{\theta}) \geq 1/(nI(\theta))$가 된다.
 
 ### 관측 피셔 정보와 기대 피셔 정보
 
-**기대** 피셔 정보 $I(\theta) = -\mathbb{E}[\partial^2 \ell / \partial \theta^2]$은 참 파라메터에서 계산하며 이론적 분석에 쓴다. **관측** 피셔 정보 $J(\hat{\theta}) = -\partial^2 \ell / \partial \theta^2 \big|_{\theta = \hat{\theta}}$은 MLE에서 계산하며 실무에서 신뢰구간을 구할 때 쓴다.
+**기대** 피셔 정보 $I(\theta) = -\mathbb{E}[\partial^2 \ell / \partial \theta^2]$은 참 파라메터에서 계산하며 이론적 분석에 쓴다. **관측** 피셔 정보 $J(\hat{\theta}) = -\partial^2 \ell / \partial \theta^2 \big|_{\theta = \hat{\theta}}$는 MLE에서 계산하며 실무에서 신뢰구간을 구할 때 쓴다.
 
 ---
 
@@ -340,12 +340,12 @@ i.i.d. 표본이 $n$개이면 하한은 $\text{Var}(\hat{\theta}) \geq 1/(nI(\th
 
 1. **식별 가능성**: $\theta_1 \neq \theta_2 \implies p(x|\theta_1) \neq p(x|\theta_2)$
 2. **공통 지지집합**: $p(x|\theta)$의 지지집합이 $\theta$에 의존하지 않는다
-3. **미분 가능성**: $\log p(x|\theta)$이 $\theta$에 대해 세 번 미분 가능하다
+3. **미분 가능성**: $\log p(x|\theta)$가 $\theta$에 대해 세 번 미분 가능하다
 4. **유계인 도함수**: 삼계도함수가 적분 가능한 함수로 유계이다
 5. **열린 파라메터 공간**: 참 파라메터 $\theta_0$이 $\Theta$의 내부에 있다
 
 !!! warning "정칙성이 깨질 때"
-    중요한 분포들 중 일부는 이 조건을 어긴다. 균등분포 $[0, \theta]$(지지집합이 $\theta$에 의존), 혼합 모델(국소 최댓값이 여럿), 경계 사례(파라메터가 $\Theta$의 경계에 있음) 등이다.
+    중요한 분포들 중 일부는 이 조건을 어긴다. 균등분포 $[0, \theta]$(지지집합이 $\theta$에 의존), 혼합 모델(성분의 이름표를 서로 바꾸어도 같은 분포라서 식별 가능성이 깨진다), 경계 사례(파라메터가 $\Theta$의 경계에 있음) 등이다.
 
 ### 일치성
 
@@ -355,7 +355,7 @@ $$
 \frac{1}{n}\sum_{i=1}^{n} \log p(x_i | \theta) \xrightarrow{p} \mathbb{E}_{\theta_0}[\log p(X | \theta)]
 $$
 
-그리고 $\mathbb{E}_{\theta_0}[\log p(X | \theta)]$은 $\theta = \theta_0$에서 최대가 된다(정보 부등식).
+그리고 $\mathbb{E}_{\theta_0}[\log p(X | \theta)]$는 $\theta = \theta_0$에서 최대가 된다(정보 부등식).
 
 ### 점근 정규성
 
@@ -369,7 +369,7 @@ $$
 
     1. 스코어를 $\theta_0$ 주변에서 **테일러 전개**한다: $s(\hat{\theta}) = s(\theta_0) + (\hat{\theta} - \theta_0) s'(\tilde{\theta})$
     2. **MLE에서** $s(\hat{\theta}) = 0$이므로 $\sqrt{n}(\hat{\theta} - \theta_0) = -\frac{\sqrt{n} \cdot s(\theta_0)/n}{s'(\tilde{\theta})/n}$이다
-    3. **중심극한정리에 의해**: $\sqrt{n} \cdot \bar{s}(\theta_0) \xrightarrow{d} \mathcal{N}(0, I(\theta_0))$
+    3. **중심극한정리에 의해**: $\bar{s}(\theta_0) = s(\theta_0)/n$이라 적으면 $\sqrt{n} \cdot \bar{s}(\theta_0) \xrightarrow{d} \mathcal{N}(0, I(\theta_0))$
     4. **큰 수의 법칙에 의해**: $s'(\tilde{\theta})/n \xrightarrow{p} -I(\theta_0)$
     5. **슬러츠키 정리에 의해**: 그 비는 $\mathcal{N}(0, I(\theta_0)^{-1})$으로 수렴한다
 
@@ -416,10 +416,10 @@ $$
 \text{Loss}(\theta) = -\ell(\theta | \mathbf{X}) = -\log L(\theta | \mathbf{X})
 $$
 
-즉 로스 최소화 = 가능도 최대화이고, 로스에 대한 경사 하강 = 로그가능도에 대한 경사 상승이며, 교차 엔트로피 로스 = 분류에서의 음의 로그가능도, MSE 로스 = 가우스 회귀에서의 음의 로그가능도이다.
+즉 로스 최소화 = 가능도 최대화이고, 로스에 대한 경사 하강 = 로그가능도에 대한 경사 상승이며, 교차 엔트로피 로스 = 분류에서의 음의 로그가능도, MSE 로스 = 가우시안 회귀에서의 음의 로그가능도이다.
 
 !!! warning "딥러닝과의 연결"
-    교차 엔트로피나 MSE를 최소화하여 뉴럴 네트워크를 트레인시키는 것은 곧 최대가능도 추정이다. 유일한 차이는 모델 $p(y|x, \theta)$이 뉴럴 네트워크로 파라메터화되어 있다는 점뿐이다.
+    교차 엔트로피나 MSE를 최소화하여 뉴럴 네트워크를 트레인하는 것은 곧 최대가능도 추정이다. 유일한 차이는 모델 $p(y|x, \theta)$가 뉴럴 네트워크로 파라메터화되어 있다는 점뿐이다.
 
 딥러닝에서 MLE 해석은 트레인 목표를 설명하지만, 고전적 점근 정리가 대규모 뉴럴 네트워크의 일반화나 불확실성 보정을 자동으로 보장하지는 않는다. 유한 표본, 모델 오지정, 과파라메터화와 최적화 오차를 별도로 고려해야 한다.
 
@@ -428,8 +428,10 @@ $$
 **자연 경사 하강법**은 피셔 정보 행렬을 써서 파라메터 공간의 기하를 고려한다.
 
 $$
-\theta \leftarrow \theta - \alpha \mathbf{I}(\theta)^{-1} \nabla_\theta L
+\theta \leftarrow \theta - \alpha \mathbf{I}(\theta)^{-1} \nabla_\theta \text{Loss}(\theta)
 $$
+
+여기서 $\alpha$는 러닝레이트이고 $\text{Loss}(\theta)$는 위의 음의 로그가능도다.
 
 정칙 모델에서 기대 음의 로그가능도의 곡률은 피셔 정보와 연결된다. 다만 개별 데이터의 관측 헤세 행렬, 모델 분포의 피셔 정보, 표본별 그래디언트의 외적으로 만든 경험적 피셔는 일반적으로 서로 다르다. K-FAC 같은 방법은 필요한 곡률 구조를 근사해 계산 비용을 줄인다.
 
@@ -741,7 +743,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 
     로그가능도: $\ell(p) = k\log p + (n-k)\log(1-p)$.
 
-    $\frac{d\ell}{dp} = \frac{k}{p} - \frac{n-k}{1-p} = 0$으로 두고 풀면 $k(1-p) = (n-k)p$이 되어 표본 비율 $\hat{p}_{\text{MLE}} = k/n$을 얻는다.
+    $\frac{d\ell}{dp} = \frac{k}{p} - \frac{n-k}{1-p} = 0$으로 두고 풀면 $k(1-p) = (n-k)p$가 되어 표본 비율 $\hat{p}_{\text{MLE}} = k/n$을 얻는다.
 
     이계도함수가 $\frac{d^2\ell}{dp^2} = -\frac{k}{p^2} - \frac{n-k}{(1-p)^2} < 0$이므로 최댓값임이 확인된다. $\square$
 
@@ -779,7 +781,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 ??? success "풀이"
     로그가능도는 $\ell(\mu) = -n\log(2b) - \frac{1}{b}\sum_{i=1}^n |x_i - \mu|$이다.
 
-    $\ell$을 최대화하는 것은 절대 편차의 합 $\sum|x_i - \mu|$을 최소화하는 것과 같다. 서브그래디언트(subgradient)는 $\frac{\partial}{\partial\mu}\sum|x_i-\mu| = -\sum\text{sign}(x_i - \mu)$이다.
+    $\ell$을 최대화하는 것은 절대 편차의 합 $\sum|x_i - \mu|$를 최소화하는 것과 같다. 서브그래디언트(subgradient)는 $\frac{\partial}{\partial\mu}\sum|x_i-\mu| = -\sum\text{sign}(x_i - \mu)$이다.
 
     미분이 존재하지 않는 관측값에서는 이 서브그래디언트를 사용한다. 최적 조건은 $\mu$보다 작은 관측과 큰 관측이 각각 전체의 절반을 넘지 않는 것이다. 따라서 표본 중앙값이 해이며, 표본 수가 짝수이면 두 중앙 순서통계량 사이의 모든 값이 위치 MLE가 된다. $\square$
 

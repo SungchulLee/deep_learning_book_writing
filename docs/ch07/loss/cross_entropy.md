@@ -4,17 +4,17 @@
 
 ## 1. 학습 목표
 
-이 절을 마치면 다음을 할 수 있게 된다.
+이 쪽을 마치면 다음을 할 수 있게 된다.
 
 - 최대가능도 추정의 원리에서 교차 엔트로피 로스 유도하기
 - 교차 엔트로피의 정보 이론적 해석 이해하기
 - 다중 클래스 분류에서 NLL과 교차 엔트로피가 동등함을 증명하기
 - KL 발산을 교차 엔트로피 최적화와 연결하기
 - 모델 파라메터에 대한 교차 엔트로피 로스의 그래디언트를 완전히 유도하기
-- 로짓에 대한 그래디언트 공식 $\nabla_\mathbf{z}\mathcal{L} = \hat{\boldsymbol{\pi}} - \mathbf{y}$을 PyTorch로 확인하기
+- 로짓에 대한 그래디언트 공식 $\nabla_\mathbf{z}\mathcal{L} = \hat{\boldsymbol{\pi}} - \mathbf{y}$를 PyTorch로 확인하기
 
 !!! note "함께 볼 것"
-    교차 엔트로피는 **2.7절 소프트맥스 회귀**에도 등장한다. 거기서는 소프트맥스 분류기의 자연스러운 로스로 쓰고, 같은 2.8절의 [N-그램으로 보는 NLL 로스](ngram_nll_loss.md)는 PyTorch의 세 인터페이스(`nn.CrossEntropyLoss`, `F.cross_entropy`, `nn.NLLLoss`)를 N-그램 언어 모델로 보여준다. 이 절은 더 폭넓게 다룬다. 정보 이론적 토대, 행렬 형태를 포함한 전체 배치 그래디언트 유도, NumPy로 바닥부터 만드는 구현, 그리고 Focal Loss와의 관계를 살펴본다.
+    교차 엔트로피는 **2.7절 소프트맥스 회귀**에도 등장한다. 거기서는 소프트맥스 분류기의 자연스러운 로스로 쓰고, 같은 2.8절의 [N-그램으로 보는 NLL 로스](ngram_nll_loss.md)는 PyTorch의 세 인터페이스(`nn.CrossEntropyLoss`, `F.cross_entropy`, `nn.NLLLoss`)를 N-그램 언어 모델로 보여준다. 이 쪽은 더 폭넓게 다룬다. 정보 이론적 토대, 행렬 형태를 포함한 전체 배치 그래디언트 유도, NumPy로 바닥부터 만드는 구현, 그리고 Focal Loss와의 관계를 살펴본다.
 
 ---
 
@@ -25,8 +25,8 @@
 클래스가 $K$개인 다중 클래스 분류에서는 다음을 갖는다.
 
 - **데이터:** $y^{(i)} \in \{1, \ldots, K\}$인 $\mathcal{D} = \{(\mathbf{x}^{(i)}, y^{(i)})\}_{i=1}^{N}$
-- **모델:** 확률 $\hat{\pi}_k^{(i)} = P(Y = k \mid \mathbf{x}^{(i)};\, \boldsymbol{\theta})$을 예측한다
-- **목표:** 관측된 데이터의 가능도(likelihood, 우도라고도 한다)를 최대로 만드는 파라메터 $\boldsymbol{\theta}$을 찾는다
+- **모델:** 확률 $\hat{\pi}_k^{(i)} = P(Y = k \mid \mathbf{x}^{(i)};\, \boldsymbol{\theta})$를 예측한다
+- **목표:** 관측된 데이터의 가능도(likelihood, 우도라고도 한다)를 최대로 만드는 파라메터 $\boldsymbol{\theta}$를 찾는다
 
 ### 가능도 함수
 
@@ -34,7 +34,7 @@
 
 $$\mathcal{L}(\boldsymbol{\theta}) = \prod_{i=1}^{N} P\bigl(Y = y^{(i)} \mid \mathbf{x}^{(i)};\, \boldsymbol{\theta}\bigr) = \prod_{i=1}^{N} \hat{\pi}_{y^{(i)}}^{(i)}$$
 
-$y_k^{(i)} = \mathbb{1}[y^{(i)} = k]$인 원핫 벡터 $\mathbf{y}^{(i)}$을 쓰면 다음과 같다.
+$y_k^{(i)} = \mathbb{1}[y^{(i)} = k]$인 원핫 벡터 $\mathbf{y}^{(i)}$(정답 클래스 자리만 1이고 나머지는 0인 벡터)를 쓰면 다음과 같다.
 
 $$\mathcal{L}(\boldsymbol{\theta}) = \prod_{i=1}^{N} \prod_{k=1}^{K} \bigl(\hat{\pi}_k^{(i)}\bigr)^{y_k^{(i)}}$$
 
@@ -64,7 +64,7 @@ $$H(\mathbf{p}) = -\sum_{k=1}^{K} p_k \log p_k = \mathbb{E}_{X \sim \mathbf{p}}[
 
 ### 교차 엔트로피의 정의
 
-참 분포 $\mathbf{p}$과 예측 분포 $\mathbf{q}$ 사이의 **교차 엔트로피**는 다음과 같다.
+참 분포 $\mathbf{p}$와 예측 분포 $\mathbf{q}$ 사이의 **교차 엔트로피**는 다음과 같다.
 
 $$H(\mathbf{p}, \mathbf{q}) = -\sum_{k=1}^{K} p_k \log q_k = \mathbb{E}_{X \sim \mathbf{p}}[-\log q_X]$$
 
@@ -107,7 +107,7 @@ $$\boxed{\text{Cross-Entropy Loss} = \frac{1}{N} \text{NLL} = -\frac{1}{N} \sum_
 
 ### KL 발산의 정의
 
-$\mathbf{p}$에서 $\mathbf{q}$으로의 **쿨백-라이블러 발산**(상대 엔트로피)은 다음과 같다.
+$\mathbf{p}$에서 $\mathbf{q}$로의 **쿨백–라이블러 발산**(상대 엔트로피)은 다음과 같다.
 
 $$D_{KL}(\mathbf{p} \| \mathbf{q}) = \sum_{k=1}^{K} p_k \log \frac{p_k}{q_k} = H(\mathbf{p}, \mathbf{q}) - H(\mathbf{p})$$
 
@@ -115,11 +115,11 @@ $$D_{KL}(\mathbf{p} \| \mathbf{q}) = \sum_{k=1}^{K} p_k \log \frac{p_k}{q_k} = H
 
 $$\boxed{H(\mathbf{p}, \mathbf{q}) = H(\mathbf{p}) + D_{KL}(\mathbf{p} \| \mathbf{q})}$$
 
-교차 엔트로피는 $\mathbf{p}$에 내재한 불확실성(엔트로피)에 $\mathbf{p}$ 대신 $\mathbf{q}$을 쓰는 "추가 비용"(KL 발산)을 더한 것과 같다.
+교차 엔트로피는 $\mathbf{p}$에 내재한 불확실성(엔트로피)에 $\mathbf{p}$ 대신 $\mathbf{q}$를 쓰는 "추가 비용"(KL 발산)을 더한 것과 같다.
 
 ### 분류에서 (원핫 라벨)
 
-$\mathbf{y}$이 원핫이면 $H(\mathbf{y}) = 0$이다. 이는 관측된 라벨을 점질량으로 표현했다는 뜻이며, 실제 조건부 라벨 분포에 불확실성이 없다는 뜻은 아니다. 따라서 다음이 성립한다.
+$\mathbf{y}$가 원핫이면 $H(\mathbf{y}) = 0$이다. 이는 관측된 라벨을 점질량으로 표현했다는 뜻이며, 실제 조건부 라벨 분포에 불확실성이 없다는 뜻은 아니다. 따라서 다음이 성립한다.
 
 $$H(\mathbf{y}, \hat{\boldsymbol{\pi}}) = D_{KL}(\mathbf{y} \| \hat{\boldsymbol{\pi}})$$
 
@@ -129,11 +129,11 @@ $$H(\mathbf{y}, \hat{\boldsymbol{\pi}}) = D_{KL}(\mathbf{y} \| \hat{\boldsymbol{
 
 ## 6. 기하학적 해석
 
-참 클래스가 $c$인 표본 하나에 대해 교차 엔트로피 로스는 다음과 같다.
+참 클래스가 $c$인 표본 하나에 대해 교차 엔트로피 로스는 다음과 같다. 여기부터 $\mathcal{L}$은 2절의 가능도가 아니라 로스를 가리킨다.
 
 $$\mathcal{L} = -\log \hat{\pi}_c$$
 
-여기서 $\hat{\pi}_c = \sigma(\mathbf{z})_c$은 소프트맥스 확률이다.
+여기서 $\hat{\pi}_c = \sigma(\mathbf{z})_c$는 로짓 벡터 $\mathbf{z}$에 소프트맥스 $\sigma$를 적용해 얻은 참 클래스의 확률이다. 로짓은 소프트맥스에 넣기 전의 점수이며, 식은 7절에 있다.
 
 **성질:**
 
@@ -186,17 +186,19 @@ $$\mathcal{L} = -\log \hat{\pi}_c = -\sum_{k=1}^{K} y_k \log \hat{\pi}_k$$
 
 ### 1단계: 로짓에 대한 그래디언트
 
-연쇄 법칙으로 $\frac{\partial \mathcal{L}}{\partial z_j}$을 계산한다.
+사슬 규칙으로 $\frac{\partial \mathcal{L}}{\partial z_j}$를 계산한다.
 
 $$\frac{\partial \mathcal{L}}{\partial z_j} = \sum_{k=1}^{K} \frac{\partial \mathcal{L}}{\partial \hat{\pi}_k} \cdot \frac{\partial \hat{\pi}_k}{\partial z_j}$$
 
-**$\frac{\partial \mathcal{L}}{\partial \hat{\pi}_k}$을 계산하면:**
+**$\frac{\partial \mathcal{L}}{\partial \hat{\pi}_k}$를 계산하면:**
 
 $$\frac{\partial \mathcal{L}}{\partial \hat{\pi}_k} = -\frac{y_k}{\hat{\pi}_k}$$
 
 **소프트맥스의 야코비안 행렬을 쓰면:**
 
 $$\frac{\partial \hat{\pi}_k}{\partial z_j} = \hat{\pi}_k(\delta_{kj} - \hat{\pi}_j)$$
+
+여기서 $\delta_{kj}$는 크로네커 델타로, $k = j$이면 1이고 아니면 0이다.
 
 **합치면:**
 
@@ -222,7 +224,7 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{z}} = \hat{\boldsymbol{\pi
 
 ### 2단계: 웨이트에 대한 그래디언트
 
-$z_k = \sum_d w_{kd} x_d + b_k$에 연쇄 법칙을 쓰면 다음과 같다.
+$z_k = \sum_d w_{kd} x_d + b_k$에 사슬 규칙을 쓰면 다음과 같다.
 
 $$\frac{\partial \mathcal{L}}{\partial w_{kd}} = \frac{\partial \mathcal{L}}{\partial z_k} \cdot \frac{\partial z_k}{\partial w_{kd}} = (\hat{\pi}_k - y_k) \cdot x_d$$
 
@@ -246,11 +248,11 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \hat{\boldsymbol{\pi
 
 $$\mathcal{L}_{\text{total}} = \frac{1}{N} \sum_{i=1}^{N} \mathcal{L}^{(i)}$$
 
-$\mathbf{X} \in \mathbb{R}^{N \times D}$(표본이 행), $\hat{\mathbf{P}} \in \mathbb{R}^{N \times K}$(예측 확률), $\mathbf{Y} \in \mathbb{R}^{N \times K}$(원핫 라벨)이라 하자.
+$\mathbf{X} \in \mathbb{R}^{N \times D}$(표본이 행), $\hat{\mathbf{P}} \in \mathbb{R}^{N \times K}$(예측 확률), $\mathbf{Y} \in \mathbb{R}^{N \times K}$(원핫 라벨)이라 하자. 표본 하나의 그래디언트를 평균하면 다음을 얻는다.
 
-$$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{W}} = \frac{1}{N} (\hat{\mathbf{P}} - \mathbf{Y})^T \mathbf{X}}$$
+$$\boxed{\frac{\partial \mathcal{L}_{\text{total}}}{\partial \mathbf{W}} = \frac{1}{N} (\hat{\mathbf{P}} - \mathbf{Y})^T \mathbf{X}}$$
 
-$$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \frac{1}{N} (\hat{\mathbf{P}} - \mathbf{Y})^T \mathbf{1}}$$
+$$\boxed{\frac{\partial \mathcal{L}_{\text{total}}}{\partial \mathbf{b}} = \frac{1}{N} (\hat{\mathbf{P}} - \mathbf{Y})^T \mathbf{1}}$$
 
 ### 그래디언트의 성질과 직관
 
@@ -278,7 +280,7 @@ $$\text{BCE} = -\frac{1}{N} \sum_{i=1}^{N} \left[ y^{(i)} \log \hat{p}^{(i)} + (
 
 ### 가중 교차 엔트로피
 
-클래스 불균형이나 오분류 비용을 반영하기 위해 클래스별 웨이트를 줄 수 있다. 아래 식은 표본 수로 나눈 한 가지 정의이다. 클래스 인덱스 목표를 쓰는 PyTorch `CrossEntropyLoss(weight=..., reduction="mean")`은 유효한 표본의 정답 클래스 웨이트 합으로 나누므로 분모가 다를 수 있다.
+클래스 불균형이나 오분류 비용을 반영하기 위해 클래스별 가중치 $w_k$를 줄 수 있다. 아래 식은 표본 수로 나눈 한 가지 정의이다. 클래스 인덱스 목표를 쓰는 PyTorch `CrossEntropyLoss(weight=..., reduction="mean")`은 유효한 표본의 정답 클래스 가중치 합으로 나누므로 분모가 다를 수 있다.
 
 $$\text{Weighted CE} = -\frac{1}{N} \sum_{i=1}^{N} w_{y^{(i)}} \log \hat{\pi}_{y^{(i)}}^{(i)}$$
 
@@ -291,7 +293,7 @@ $$\tilde{y}_k = \begin{cases}
 \frac{\epsilon}{K-1} & \text{otherwise}
 \end{cases}$$
 
-위 식은 정답 클래스의 질량을 $1-\epsilon$으로 두는 관례이다. PyTorch의 `label_smoothing`은 균등분포와의 혼합 $(1-\epsilon)y_k+\epsilon/K$을 사용하므로 같은 $\epsilon$에서도 목표값이 다르다.
+위 식은 정답 클래스의 질량을 $1-\epsilon$으로 두는 관례이다. PyTorch의 `label_smoothing`은 균등분포와의 혼합 $(1-\epsilon)y_k+\epsilon/K$를 사용하므로 같은 $\epsilon$에서도 목표값이 다르다.
 
 ### Focal Loss
 
@@ -299,7 +301,7 @@ $$\tilde{y}_k = \begin{cases}
 
 $$\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$$
 
-여기서 $\gamma > 0$은 초점 파라메터이고 $\alpha_t$은 가중 인수이다.
+여기서 $p_t$는 모델이 참 클래스에 준 확률이고, $\gamma > 0$은 초점 파라메터, $\alpha_t$는 가중 인수이다.
 
 ---
 
@@ -643,9 +645,15 @@ class SoftmaxRegressionNumPy:
 </div>
 
 ??? success "풀이"
-    $H(p,q) - H(p) = -\sum p_i \log q_i + \sum p_i \log p_i = \sum p_i \log\frac{p_i}{q_i} = D_{\text{KL}}(p\|q) \geq 0$이다.
+    $H(p,q) - H(p) = -\sum p_i \log q_i + \sum p_i \log p_i = \sum p_i \log\frac{p_i}{q_i} = D_{\text{KL}}(p\|q)$이므로 $D_{\text{KL}}(p\|q) \geq 0$을 보이면 된다.
 
-    KL 발산의 성질에 의해 등호는 $p = q$일 때에만 성립한다. $\square$
+    모든 $x > 0$에서 $\log x \leq x - 1$이고 등호는 $x = 1$일 때뿐이다. $p_i > 0$인 항에 $x = q_i/p_i$를 넣으면 다음과 같다.
+
+    $$
+    -D_{\text{KL}}(p\|q) = \sum_{i:\,p_i>0} p_i \log\frac{q_i}{p_i} \leq \sum_{i:\,p_i>0} p_i\left(\frac{q_i}{p_i} - 1\right) = \sum_{i:\,p_i>0} q_i - 1 \leq 0
+    $$
+
+    등호가 되려면 $p_i > 0$인 모든 $i$에서 $q_i = p_i$여야 하고, 그러면 $q$의 질량이 그 밖에 남지 않으므로 $p = q$이다. $\square$
 
 ---
 
@@ -657,7 +665,7 @@ $K$개 클래스 분류 문제에서 로짓(소프트맥스 이전의 값)에 �
 </div>
 
 ??? success "풀이"
-    $z_k$을 로짓, $p_k = \text{softmax}(z)_k$이라 하자. 교차 엔트로피는 $L = -\sum_k y_k \log p_k$이다.
+    $z_k$를 로짓, $p_k = \text{softmax}(z)_k$라 하자. 교차 엔트로피는 $L = -\sum_k y_k \log p_k$이다.
 
     $$
     \frac{\partial L}{\partial z_j} = p_j - y_j
@@ -691,12 +699,12 @@ PyTorch에서 `nn.CrossEntropyLoss`와 `nn.LogSoftmax` + `nn.NLLLoss`가 동등�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-$-\log(\text{softmax}(z)_k)$을 곧바로 계산할 때 생기는 수치적 안정성 문제와, log-sum-exp 기법이 그것을 어떻게 해결하는지 설명하라.
+$-\log(\text{softmax}(z)_k)$를 곧바로 계산할 때 생기는 수치적 안정성 문제와, log-sum-exp 기법이 그것을 어떻게 해결하는지 설명하라.
 
 </div>
 
 ??? success "풀이"
-    곧바로 계산하면 $\text{softmax}(z)_k = \frac{e^{z_k}}{\sum_j e^{z_j}}$은 $z_j$이 클 때 지수가 부동소수점 범위를 넘는 오버플로가 날 수 있다. log-sum-exp 기법은 $m = \max_j z_j$을 빼 준다.
+    곧바로 계산하면 $\text{softmax}(z)_k = \frac{e^{z_k}}{\sum_j e^{z_j}}$는 $z_j$가 클 때 지수가 부동소수점 범위를 넘는 오버플로가 날 수 있다. log-sum-exp 기법은 $m = \max_j z_j$를 빼 준다.
 
     $$
     \log\sum_j e^{z_j} = m + \log\sum_j e^{z_j - m}

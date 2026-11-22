@@ -1,13 +1,13 @@
 # 사용자 정의 데이터셋
 
-분류 데이터를 CSV, 개별 파일, 메모리 텐서에서 읽는 여러 Dataset 구현을 비교한다. 데이터 접근과 모델의 순전파는 서로 다른 역할이다.
+분류 데이터를 CSV, 개별 파일, 메모리 텐서에서 읽는 여러 `Dataset` 구현을 비교한다. `Dataset`은 표본이 몇 개인지(`__len__`)와 번호 하나로 표본 하나를 꺼내는 법(`__getitem__`)만 정하는 PyTorch의 클래스이고, 이것을 `DataLoader`가 배치로 묶어 모델에 넘긴다. 데이터 접근과 모델의 순전파는 서로 다른 역할이다.
 
 ## 1. 코드
 
 ```python
 """
 ================================================================================
-01_custom_dataset.py - 사용자 정의 Dataset 클래스 만들기
+사용자 정의 Dataset 클래스 만들기
 ================================================================================
 
 학습 목표:
@@ -235,7 +235,7 @@ class AugmentedDataset(Dataset):
         
         # 트레인 중에 어그멘테이션을 적용한다
         if self.augment:
-            # 가우스 잡음을 더한다
+            # 가우시안 잡음을 더한다
             noise = torch.randn_like(features) * self.noise_std
             features = features + noise
             
@@ -389,7 +389,7 @@ print("""
 """)
 
 print("\n" + "="*80)
-print("NEXT: 02_multiclass_classification.py - Beyond binary classification")
+print("다음: 「다중 클래스 분류」 쪽 - 이진 분류를 넘어서")
 print("="*80)
 
 
@@ -539,24 +539,25 @@ if __name__ == "__main__":
 
 
     ================================================================================
-    NEXT: 02_multiclass_classification.py - Beyond binary classification
+    다음: 「다중 클래스 분류」 쪽 - 이진 분류를 넘어서
     ================================================================================
     ```
+
 ## 2. 논의
 
 ### 표본의 구조를 통일하기
 
-각 데이터셋은 `__len__`과 `__getitem__`으로 표본 수와 표본 접근을 정의한다. 피처와 정답을 같은 인덱스로 반환하고, DataLoader로 묶인 정답이 모델 출력과 같은 $(B,1)$ 형태인지 확인한다. CSV 열 이름과 결측값, 파일별 피처 수 등은 데이터 읽기 단계에서 검증한다.
+각 데이터셋은 `__len__`과 `__getitem__`으로 표본 수와 표본 접근을 정의한다. 피처와 정답을 같은 인덱스로 반환하고, DataLoader로 묶인 정답이 모델 출력과 같은 $(B,1)$ 형태인지 확인한다($B$는 배치 크기다 — 출력의 `torch.Size([32, 1])`이 그것이다). CSV 열 이름과 결측값, 파일별 피처 수 등은 데이터 읽기 단계에서 검증한다.
 
-5부의 트레인에서 로스가 0.69(= $\ln 2$) 근처, 정확도가 0.53 근처에 머무는 것은 정상이다. 예시 CSV의 정답을 `np.random.randint`로 피처와 무관하게 만들었으므로 배울 관계가 없다. 이 예제가 보이는 것은 Dataset이 트레인 루프에 제대로 물린다는 것이지 분류 성능이 아니다.
+5부의 트레인에서 로스가 0.69 근처, 정확도가 0.53 근처에 머무는 것은 정상이다. 예시 CSV의 정답을 `np.random.randint`로 피처와 무관하게 만들었으므로 배울 관계가 없다. 그럴 때 모델이 할 수 있는 최선은 어느 표본에나 확률 0.5를 내는 것이고, 그때의 이진 교차 엔트로피가 $-\ln 0.5 = \ln 2 \approx 0.693$이다. 이 예제가 보이는 것은 Dataset이 트레인 루프에 제대로 물린다는 것이지 분류 성능이 아니다.
 
 ### 메모리와 디스크 접근
 
-CSV 구현은 데이터를 미리 읽고, 파일 기반 구현은 표본에 접근할 때 파일을 읽는다. 지연 로딩은 메모리 사용을 줄일 수 있지만 디스크 I/O와 워커 프로세스 관리 비용이 생긴다. 파일마다 같은 형태와 자료형을 반환해야 배치를 구성할 수 있다.
+CSV 구현(`CSVDataset`)은 데이터를 생성자에서 미리 다 읽고, 파일 기반 구현(`MemoryEfficientDataset`)은 표본에 접근할 때 그 파일만 읽는다. 뒤엣것처럼 필요한 순간까지 읽기를 미루는 것을 지연 로딩(lazy loading)이라 한다. 지연 로딩은 메모리 사용을 줄일 수 있지만 디스크 I/O와 워커 프로세스 관리 비용이 생긴다. 파일마다 같은 형태와 자료형을 반환해야 배치를 구성할 수 있다.
 
 ### 어그멘테이션과 원본 보존
 
-`AugmentedDataset`은 피처를 복사한 뒤 잡음을 더해 원본을 덮어쓰지 않는다. 잡음을 더해도 정답이 유지된다는 가정이 타당한지 확인하고, 평가용 데이터에는 트레인용 확률적 어그멘테이션을 그대로 적용하지 않는다. Dataset 자체를 트레인 파라메터를 가진 `nn.Module`로 취급하면 안 된다.
+어그멘테이션은 표본을 조금씩 변형해 트레인 데이터를 늘리는 기법이다. `AugmentedDataset`은 피처를 복사한 뒤 가우시안 잡음을 더해 원본을 덮어쓰지 않는다. 잡음을 더해도 정답이 유지된다는 가정이 타당한지 확인하고, 평가용 데이터에는 트레인용 확률적 어그멘테이션을 그대로 적용하지 않는다. Dataset 자체를 트레인 가능한 파라메터를 가진 `nn.Module`로 취급하면 안 된다.
 
 ## 연습문제
 
@@ -568,7 +569,7 @@ Dataset 구현과 `nn.Module` 모델의 차이를 설명하라. `CustomDataset` 
 </div>
 
 ??? success "풀이"
-    Dataset은 데이터 접근 인터페이스이며 그 자체가 트레인 레이어는 아니다. 예제의 별도 로지스틱 모델은 입력 피처 수가 $d$일 때 웨이트 $d$개와 바이어스 1개를 가진다. 데이터셋 길이는 트레인 파라메터 수와 다르다.
+    Dataset은 데이터 접근 인터페이스이며 그 자체가 트레인되는 레이어는 아니다. 예제의 별도 로지스틱 모델은 입력 피처 수가 $d$일 때 웨이트 $d$개와 바이어스 1개를 가진다. 데이터셋 길이는 트레인 가능한 파라메터 수와 다르다.
 
 ---
 
@@ -592,25 +593,46 @@ Dataset 구현과 `nn.Module` 모델의 차이를 설명하라. `CustomDataset` 
 </div>
 
 ??? success "풀이"
-    파일 간 피처 수·정답 위치가 다르면 배치가 틀어질 수 있다. 잡음을 더한 피처가 원래 정답을 유지하는지 확인하고 평가셋에는 의도하지 않은 어그멘테이션을 적용하지 않는다. 원본 텐서의 제자리 수정도 피한다.
+    파일 간 피처 수·정답 위치가 다르면 배치가 틀어질 수 있다. 잡음을 더한 피처가 원래 정답을 유지하는지 확인하고 평가 집합에는 의도하지 않은 어그멘테이션을 적용하지 않는다. 원본 텐서의 제자리 수정도 피한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-풀이에 실린 일반적인 레이어 확장 코드(`nn.ModuleList`)가 이 페이지의 원래 클래스에 그대로 적용되는지 검토하라. 모델과 데이터셋의 역할, 생성자 인수, 입력·출력 형태와 비선형성에서 필요한 수정 사항을 설명하라.
+`CSVDataset.__getitem__`은 정답을 `torch.FloatTensor([self.y[idx]])`처럼 대괄호로 감싸 형태 $(1,)$로 돌려준다. 감싸지 않고 형태 $()$인 스칼라로 돌려주면 `DataLoader`가 묶은 배치의 정답 형태는 어떻게 되는가? 그 배치를 5부의 `LogisticRegression(3)`과 `nn.BCELoss()`에 넣으면 무슨 일이 생기며, 정확도를 세는 줄 `(predicted_classes == batch_y)`는 왜 오류 없이 틀린 값을 내는가?
 
 </div>
 
 ??? success "풀이"
-    아래 코드는 일반적인 ModuleList 구성 패턴의 일부이며 이 페이지 클래스의 완성된 대체 구현은 아니다.
+    `DataLoader`는 표본들을 새 맨 앞 축으로 쌓는다. 표본의 정답이 $(1,)$이면 배치는 $(B,1)$이 되어 모델 출력 $(B,1)$과 맞지만, 정답이 스칼라 $()$이면 배치는 $(B,)$가 된다. `nn.BCELoss`는 예측과 정답의 형태가 다르면 `ValueError`를 내므로 이 어긋남은 로스에서 바로 드러난다.
+
+    위험한 쪽은 오류가 나지 않는 줄이다. `predicted_classes`는 $(B,1)$, `batch_y`는 $(B,)$이므로 `==`가 브로드캐스팅으로 $(B,B)$ 표를 만든다. 표본 $i$의 예측을 **모든** 표본 $j$의 정답과 견준 표이고, `.sum()`은 그 $B^2$칸을 다 세므로 `correct`가 맞힌 표본 수가 아니게 된다. 로스에 넘기는 정답만 `batch_y.unsqueeze(1)`로 고쳐 오류를 없애고 이 줄을 그대로 두면 정확도가 조용히 틀린다. 형태를 Dataset 경계에서 맞추는 까닭이다.
+
+    아래 코드는 이 쪽의 코드를 돌린 뒤에 이어 돌린다(`CSVDataset`, `csv_path`, `feature_cols`, `target_col`, `LogisticRegression`을 그대로 쓴다).
+
     ```python
-    self.layers = nn.ModuleList()
-    for i in range(num_layers):
-        self.layers.append(YourBlock(dim, ...))
+    class ScalarTargetCSVDataset(CSVDataset):
+        """정답을 (1,)이 아니라 스칼라 ()로 돌려주는 변형"""
+        def __getitem__(self, idx):
+            features, target = super().__getitem__(idx)
+            return features, target.squeeze(0)       # (1,) -> ()
+
+    scalar_dataset = ScalarTargetCSVDataset(csv_path, feature_cols, target_col)
+    batch_X, batch_y = next(iter(DataLoader(scalar_dataset, batch_size=32)))
+    print(batch_X.shape, batch_y.shape)   # torch.Size([32, 3]) torch.Size([32])
+
+    model = LogisticRegression(3)
+    predictions = model(batch_X)          # (32, 1)
+    try:
+        nn.BCELoss()(predictions, batch_y)
+    except ValueError as e:
+        print("ValueError:", e)           # 형태가 다르다는 오류
+
+    predicted_classes = (predictions >= 0.5).float()
+    print((predicted_classes == batch_y).shape)               # torch.Size([32, 32])
+    print((predicted_classes == batch_y.unsqueeze(1)).shape)  # torch.Size([32, 1])
     ```
-    적용하려면 생성자와 `forward`를 함께 정의하고 마지막 출력 형태와 로스의 입력 조건을 유지해야 한다. 선형 레이어만 여러 개 합성하면 여전히 하나의 선형 사상이므로 표현력을 늘리려면 적절한 비선형성이 필요하다. Dataset은 표본 접근 인터페이스이므로 레이어를 등록할 대상이 아니며 별도 모델 클래스에 이 구성을 적용한다.
 
 ## 정리하며
 

@@ -16,9 +16,9 @@ $$\mathbf{z} = \mathbf{x}A + \mathbf{b}$$
 
 $$\mathbf{x} \in \mathbb{R}^{1 \times D},\quad A \in \mathbb{R}^{D \times K},\quad \mathbf{b} \in \mathbb{R}^{K},\quad \mathbf{z} \in \mathbb{R}^{1 \times K}$$
 
-여기에는 은닉 레이어나 중간 비선형 활성화가 없고, 확률 변환에만 소프트맥스를 쓴다. 이 레이어 하나가 모델의 전부이므로, 앞 절에서 본 대로 두 클래스 사이의 결정 경계는 초평면이 된다.
+여기에는 은닉 레이어나 중간 비선형 활성화가 없고, 확률 변환에만 소프트맥스를 쓴다. 이 레이어 하나가 모델의 전부이므로, 앞 절(2.6 로지스틱 회귀)에서 본 대로 두 클래스 사이의 결정 경계는 초평면이 된다.
 
-이 페이지는 행벡터 입력과 $A\in\mathbb R^{D\times K}$를 사용해 $xA+b$로 쓴다. PyTorch의 `nn.Linear(D,K)`는 $W\in\mathbb R^{K\times D}$를 저장하고 $xW^\top+b$를 계산하므로 $A=W^\top$다. 같은 기호 $A$를 두 형태에 동시에 사용하지 않는다. 프레임워크 전체를 행벡터·열벡터 관례 하나로 단정하기보다 각 연산의 형태를 확인한다.
+이 쪽은 행벡터 입력과 $A\in\mathbb R^{D\times K}$를 사용해 $\mathbf{x}A+\mathbf{b}$로 쓴다. PyTorch의 `nn.Linear(D,K)`는 $W\in\mathbb R^{K\times D}$를 저장하고 $\mathbf{x}W^\top+\mathbf{b}$를 계산하므로 $A=W^\top$다. 같은 기호 $A$를 두 형태에 동시에 사용하지 않는다. 프레임워크 전체를 행벡터·열벡터 관례 하나로 단정하기보다 각 연산의 형태를 확인한다.
 
 ### 파라메터 세어 보기
 
@@ -28,7 +28,7 @@ $$\underbrace{D \times K}_{A} + \underbrace{K}_{\mathbf{b}} = K(D + 1)$$
 
 !!! note "MNIST에서는 어떤 값이 되는가"
     784차원 입력에 클래스가 10개이면 $10 \times (784 + 1) = 7850$개이다.
-    이 값으로 실제 트레인을 돌려 92.35%를 얻는 과정은 [3.2 구현과 결과](../../ch03/linear_softmax/06_implementation.md)에 있다. 이 절은 그 특수한 경우가 아니라 모델 자체의 정의를 다룬다.
+    이 값으로 실제 트레인을 돌려 92.35%를 얻는 과정은 [3.2 구현과 결과](../../ch03/linear_softmax/06_implementation.md)에 있다. 이 쪽은 그 특수한 경우가 아니라 모델 자체의 정의를 다룬다.
 
 ### 점수를 확률로 바꾸기
 
@@ -48,7 +48,7 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
 
 여기까지가 모델이고, 남은 물음은 $K(D+1)$개의 수를 어떻게 정하느냐이다. 답은 최대가능도 추정이며, 거기서 교차 엔트로피 로스와 경사 하강법이 따라 나온다.
 
-그 사슬을 처음부터 끝까지 따라가는 것은 [2.4절 최대가능도 추정](../mle/mle.md)이고, 가능도(likelihood, 우도라고도 한다)라는 개념 자체는 [표지-재포획 MLE](../mle/capture_recapture_mle.md)가 파라메터 하나짜리 예제로 보인다. 이 절은 모델의 정의와 소프트맥스의 계산에 집중한다.
+그 사슬을 처음부터 끝까지 따라가는 것은 [2.4절 최대가능도 추정](../mle/mle.md)이고, 가능도(likelihood, 우도라고도 한다)라는 개념 자체는 [표지-재포획 MLE](../mle/capture_recapture_mle.md)가 파라메터 하나짜리 예제로 보인다. 이 쪽은 모델의 정의와 소프트맥스의 계산에 집중한다.
 
 ---
 
@@ -171,7 +171,7 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
     # 배치 데이터에 대해 (여러 표본을 한꺼번에)
     print("\n\nBatched Example (3 samples, 3 classes each):")
     print("-" * 80)
-    # 모양: (batch_size, num_classes) = (3, 3)
+    # 형태: (batch_size, num_classes) = (3, 3)
     batch_logits = torch.tensor([
         [2.0, 1.0, 0.1],   # Sample 1
         [0.5, 2.5, 1.0],   # Sample 2
@@ -290,7 +290,7 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
     y_true = torch.tensor([0])  # Shape: (1,) - true class is 0
 
     # 예측 (로짓) - 소프트맥스를 적용하지 말 것!
-    # 모양: (1, 3) - 표본 1개, 클래스 3개
+    # 형태: (1, 3) - 표본 1개, 클래스 3개
     y_pred_good = torch.tensor([[3.0, 1.0, 0.5]])   # High score on class 0
     y_pred_bad = torch.tensor([[0.5, 3.0, 2.0]])    # High score on class 1
 
@@ -354,7 +354,7 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
 
     2. 소프트맥스(CrossEntropyLoss 안에서)
        ↓
-       [0.77, 0.17, 0.08]  ← 확률(합이 1이다)
+       [0.75, 0.17, 0.08]  ← 확률(합이 1이다)
 
     3. 교차 엔트로피 로스
        ↓
@@ -403,11 +403,11 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
     targets = torch.tensor([0, 1])  # 클래스 번호
 
 
-    ❌ 잘못 3: 텐서 모양이 틀린 것
+    ❌ 잘못 3: 텐서 형태가 틀린 것
     --------------------------------------------------
     # 표본 10개, 클래스 5개의 배치에 대해:
-    로짓의 모양은 이래야 한다:  (10, 5)
-    타깃의 모양은 이래야 한다: (10,)이며 (10, 1)이나 (10, 5)가 아니다
+    로짓의 형태는 이래야 한다:  (10, 5)
+    타깃의 형태는 이래야 한다: (10,)이며 (10, 1)이나 (10, 5)가 아니다
 
 
     ✅ 모범 사례:
@@ -416,7 +416,7 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
     2. 트레인에는 CrossEntropyLoss를 쓴다
     3. 확률이 필요하면 추론에서만 소프트맥스를 적용한다
     4. 타깃으로 원핫 벡터가 아니라 클래스 번호를 쓴다
-    5. 텐서 모양을 살핀다: 로짓 (N, C), 타깃 (N,)
+    5. 텐서 형태를 살핀다: 로짓 (N, C), 타깃 (N,)
     """)
 
 
@@ -469,7 +469,7 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
        - 타깃으로 클래스 번호를 받는다(원핫이 아니다)
        - 내부에서 소프트맥스 + 로그 + NLL을 포함한다
 
-    다음 스텝:
+    다음 단계:
     -----------
     → 2단계: 분류를 위한 단순한 뉴럴 네트워크 구성하기
     → 3단계: 실제 데이터셋으로 트레인하기(MNIST)
@@ -595,7 +595,7 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
        
     2. 소프트맥스(CrossEntropyLoss 안에서)
        ↓
-       [0.77, 0.17, 0.08]  ← 확률(합이 1이다)
+       [0.75, 0.17, 0.08]  ← 확률(합이 1이다)
        
     3. 교차 엔트로피 로스
        ↓
@@ -639,11 +639,11 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
     targets = torch.tensor([0, 1])  # 클래스 번호
 
 
-    ❌ 잘못 3: 텐서 모양이 틀린 것
+    ❌ 잘못 3: 텐서 형태가 틀린 것
     --------------------------------------------------
     # 표본 10개, 클래스 5개의 배치에 대해:
-    로짓의 모양은 이래야 한다:  (10, 5)
-    타깃의 모양은 이래야 한다: (10,)이며 (10, 1)이나 (10, 5)가 아니다
+    로짓의 형태는 이래야 한다:  (10, 5)
+    타깃의 형태는 이래야 한다: (10,)이며 (10, 1)이나 (10, 5)가 아니다
 
 
     ✅ 모범 사례:
@@ -652,7 +652,7 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
     2. 트레인에는 CrossEntropyLoss를 쓴다
     3. 확률이 필요하면 추론에서만 소프트맥스를 적용한다
     4. 타깃으로 원핫 벡터가 아니라 클래스 번호를 쓴다
-    5. 텐서 모양을 살핀다: 로짓 (N, C), 타깃 (N,)
+    5. 텐서 형태를 살핀다: 로짓 (N, C), 타깃 (N,)
 
 
     ================================================================================
@@ -688,7 +688,7 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
        - 타깃으로 클래스 번호를 받는다(원핫이 아니다)
        - 내부에서 소프트맥스 + 로그 + NLL을 포함한다
 
-    다음 스텝:
+    다음 단계:
     -----------
     → 2단계: 분류를 위한 단순한 뉴럴 네트워크 구성하기
     → 3단계: 실제 데이터셋으로 트레인하기(MNIST)
@@ -701,10 +701,10 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
 
 ## 3. 같은 모델, 더 어려운 데이터
 
-앞의 코드는 소프트맥스와 교차 엔트로피의 계산을 손으로 따라가려고 작은 데이터를 썼다. 이제 같은 모델을 실제 데이터 두 벌에 그대로 걸어 본다. 바뀌는 것은 오직 **데이터**뿐이다. 모델도, 파라메터 수도, 트레인 설정도 모두 같다.
+앞의 코드는 소프트맥스와 교차 엔트로피의 계산을 손으로 따라가려고 수 몇 개짜리 작은 예를 썼다. 이제 같은 모델을 실제 데이터 두 벌에 그대로 걸어 본다. 바뀌는 것은 오직 **데이터**뿐이다. 모델도, 파라메터 수도, 트레인 설정도 모두 같다.
 
 - **MNIST** — 손으로 쓴 숫자. 획이 굵고 가운데 놓여 있다
-- **Fashion-MNIST** — 옷과 신발 사진. 크기와 모양이 같은 $28 \times 28$ 회색조 10클래스이지만, 패턴과 질감이 훨씬 복잡하다
+- **Fashion-MNIST** — 옷과 신발 사진. MNIST와 형식이 같은 $28 \times 28$ 회색조 10클래스이지만, 패턴과 질감이 훨씬 복잡하다
 
 두 데이터 모두 입력과 클래스 수가 같아 파라메터 수는 7,850개다. 그러나 같은 트레인 설정이 두 데이터에서 같은 정도의 수렴이나 최적 성능을 보장하지는 않는다. 관측한 격차에는 데이터 특성과 이 모델·트레인 설정의 상호작용이 함께 들어 있다.
 
@@ -755,7 +755,7 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
     acc_mnist, n1 = run("MNIST", datasets.MNIST, 0.1307, 0.3081)
     acc_fashion, n2 = run("Fashion-MNIST", datasets.FashionMNIST, 0.2860, 0.3530)
 
-    print(f"{'자료':<16} {'파라메터':>10} {'시험 정확도':>12}")
+    print(f"{'데이터':<16} {'파라메터':>10} {'시험 정확도':>12}")
     print("-" * 42)
     print(f"{'MNIST':<16} {n1:>10,} {acc_mnist:>11.2f}%")
     print(f"{'Fashion-MNIST':<16} {n2:>10,} {acc_fashion:>11.2f}%")
@@ -766,7 +766,7 @@ $$\widehat{y} = \operatorname*{arg\,max}_{k \in \{1,\ldots,K\}} p_k$$
 **출력:**
 
 ```
-자료                     파라메터       시험 정확도
+데이터                    파라메터       시험 정확도
 ------------------------------------------
 MNIST                 7,850       92.11%
 Fashion-MNIST         7,850       84.31%
@@ -781,7 +781,7 @@ Fashion-MNIST         7,850       84.31%
 까닭은 두 데이터의 성격에 있다. 손으로 쓴 숫자는 획이 놓이는 자리가 클래스마다 꽤 일정해서, 픽셀마다 웨이트 하나씩만 두어도 상당히 가려낸다. 반면 셔츠와 외투는 윤곽이 비슷하고 차이가 패턴과 질감에 있는데, 이는 픽셀 하나하나의 밝기를 따로 저울질하는 방식으로는 잡아내기 어렵다. 이웃한 픽셀들이 이루는 패턴을 보아야 하며, 그것이 [11장 컨볼루션 뉴럴 네트워크](../../ch10/index.md)가 하는 일이다.
 
 !!! note "3장의 값과 조금 다른 까닭"
-    3장의 기록과 이 페이지의 수치가 조금 다르다면 데이터 순서, 초기값, 트레인 설정과 실행 환경을 함께 확인해야 한다. 표에 있는 차이를 재실행 변동 하나로 확정할 수는 없다. 다른 데이터셋 간 격차가 크다는 사실도 반복 실험의 분산을 직접 측정한 것과는 다르다.
+    [3.2 구현과 결과](../../ch03/linear_softmax/06_implementation.md)는 같은 모델로 MNIST에서 92.35%를 적고, 이 쪽은 92.11%다. 옵티마이저·러닝레이트·에포크 수·시드는 같지만 배치 크기가 다르고(그쪽 100, 이 쪽 128) 데이터를 섞는 난수의 흐름도 다르다. 0.24%포인트 차이가 그중 어느 것에서 왔는지는 이 한 번의 실행으로 가릴 수 없다. 다른 데이터셋 간 격차가 크다는 사실도 반복 실험의 분산을 직접 측정한 것과는 다르다.
 
 ---
 
@@ -816,7 +816,7 @@ MNIST와 Fashion-MNIST의 수치는 해당 트레인 설정에서의 결과다. 
 </div>
 
 ??? success "풀이"
-    일반 배치 분류에서 로짓은 $(B,K)$의 실수 텐서, 정답은 $(B,)$의 long 텐서이며 값은 0부터 $K-1$까지다. 이 페이지의 인덱스 모드와 실수형 확률 목표 모드는 구분한다.
+    일반 배치 분류에서 로짓은 $(B,K)$의 실수 텐서, 정답은 $(B,)$의 long 텐서이며 값은 0부터 $K-1$까지다. 이 쪽이 쓰는 인덱스 모드와 실수형 확률 목표 모드는 구분한다.
 
 ---
 
@@ -835,29 +835,45 @@ MNIST와 Fashion-MNIST의 수치는 해당 트레인 설정에서의 결과다. 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-기초 구현을 검증하는 종합적인 시험 함수를 작성하라. 빈 입력, 원소가 하나뿐인 입력, 아주 큰 입력, 그리고 극단적인 값(0, 아주 큰 수)을 가진 입력 등 경계 사례를 시험하라.
+코드 1의 `softmax_numpy`와 `cross_entropy_numpy`를 검증하는 시험 함수를 작성하라. (1) 배치 예 `y_pred_batch`, `y_true_batch`에서 두 함수를 표본마다 불러 평균한 값이 `criterion`의 값과 같은지, (2) 클래스가 하나뿐인 입력, (3) 아주 큰 로짓 `[1000, 999, 998]`, (4) 극단적으로 틀린 예측(로짓 `[1000, 0, 0]`, 참 클래스 1)을 시험하라. 넘파이 구현과 `nn.CrossEntropyLoss`가 갈리는 자리가 있으면 까닭을 설명하라.
 
 </div>
 
 ??? success "풀이"
-    경계 조건을 두루 시험하는 함수를 만든다.
+    코드 1 뒤에 이어 붙여 돌린다.
     ```python
     def test_fundamentals():
-        model = Fundamentals(...)
-        # 보통의 입력
-        assert model(normal_input).shape == expected_shape
-        # 원소가 하나인 배치
-        assert model(single_input).shape == (1, ...)
-        # 큰 값 (오버플로를 확인한다)
-        out = model(torch.ones(...) * 1000)
-        assert torch.isfinite(out).all()
-        # 그래디언트의 흐름
-        out = model(normal_input)
-        out.sum().backward()
-        for p in model.parameters():
-            assert p.grad is not None
+        # (1) 표본마다 넘파이 두 함수를 불러 평균하면 CrossEntropyLoss와 같다
+        losses = [cross_entropy_numpy(int(k), softmax_numpy(row.numpy()))
+                  for row, k in zip(y_pred_batch, y_true_batch)]
+        assert np.isclose(np.mean(losses),
+                          criterion(y_pred_batch, y_true_batch).item(), atol=1e-6)
+
+        # (2) 클래스가 하나뿐이면 확률은 1, 로스는 0이다
+        one = softmax_numpy(np.array([3.0]))
+        assert np.isclose(one[0], 1.0)
+        assert np.isclose(cross_entropy_numpy(0, one), 0.0, atol=1e-12)
+
+        # (3) 아주 큰 로짓: 최댓값을 빼므로 넘치지 않고, 같은 만큼 옮긴 로짓과 답이 같다
+        big = softmax_numpy(np.array([1000.0, 999.0, 998.0]))
+        assert np.all(np.isfinite(big)) and np.isclose(big.sum(), 1.0)
+        assert np.allclose(big, softmax_numpy(np.array([2.0, 1.0, 0.0])))
+
+        # (4) 극단적으로 틀린 예측: 두 구현이 갈린다
+        logits = np.array([1000.0, 0.0, 0.0])
+        loss_np = cross_entropy_numpy(1, softmax_numpy(logits))
+        loss_pt = criterion(torch.tensor(logits, dtype=torch.float32).unsqueeze(0),
+                            torch.tensor([1])).item()
+        print(f"numpy: {loss_np:.4f}   PyTorch: {loss_pt:.4f}")
+        assert np.isclose(loss_np, -np.log(1e-15))
+        assert np.isclose(loss_pt, 1000.0)
+
+    test_fundamentals()
     ```
-    그래디언트의 흐름을 시험하는 것은 그 구조가 처음부터 끝까지 이어지는 트레인을 지원하는지 확인하는 데 특히 중요하다.
+    ```
+    numpy: 34.5388   PyTorch: 1000.0000
+    ```
+    (1)~(3)은 통과한다. (3)은 `softmax_numpy`가 `np.max(x)`를 빼기 때문이며, 소프트맥스가 모든 로짓에 같은 상수를 더해도 변하지 않는다는 성질을 그대로 쓴 것이다. 갈리는 자리는 (4)다. 참 클래스의 확률은 $e^{-1000}$이라 배정밀도에서 0이 되고, `cross_entropy_numpy`는 그것을 `eps = 1e-15`로 잘라 올려 로스를 $-\log 10^{-15} \approx 34.54$에서 멈춘다. `nn.CrossEntropyLoss`는 확률을 거치지 않고 로짓에서 로그 소프트맥스를 바로 계산하므로 참값 1000을 낸다. 확률을 먼저 만든 뒤 로그를 취하면 로스가 `eps`가 정하는 값에서 포화하고, 그 구간에서는 예측이 얼마나 크게 틀렸는지가 로스에 드러나지 않는다. 한편 빈 배열은 `np.max`가 `ValueError`를 내므로 `softmax_numpy`의 입력으로 쓸 수 없다.
 
 ## 정리하며
 

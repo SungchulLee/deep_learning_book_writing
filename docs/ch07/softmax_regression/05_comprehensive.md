@@ -1,6 +1,6 @@
 # 종합 프로젝트
 
-여러 이미지 데이터셋과 분류 모델을 같은 실험 인터페이스로 관리한다. 데이터 준비, 모델 생성, 트레인과 결과 집계를 나누어 재사용하는 방법을 살펴본다.
+여러 이미지 데이터셋과 분류 모델을 같은 실험 인터페이스로 관리한다. 데이터 준비, 모델 생성, 트레인과 결과 집계를 나누어 재사용하는 방법을 살펴본다. 코드는 MNIST·Fashion-MNIST·CIFAR-10 세 데이터셋과 세 가지 모델을 지원하지만, 실제로 돌려 출력에 실은 것은 MNIST와 Fashion-MNIST에 `simple`·`medium` 두 모델을 쓴 실험 넷이다.
 
 ## 1. 코드
 
@@ -25,6 +25,7 @@
     ===============================================================================
     """
 
+    import copy
     import torch
     import torch.nn as nn
     import torch.optim as optim
@@ -174,7 +175,7 @@
             return None
 
         def _get_input_shape(self):
-            """데이터셋의 입력 모양을 얻는다."""
+            """데이터셋의 입력 형태를 얻는다."""
             # 표본 배치를 하나 얻는다
             sample_batch = next(iter(self.train_loader))[0]
             return sample_batch.shape[1:]  # Remove batch dimension
@@ -211,7 +212,7 @@
 
             Args:
                 model_type: 'simple', 'medium', 'deep' 가운데 하나
-                input_shape: 입력 텐서의 모양 (C, H, W)
+                input_shape: 입력 텐서의 형태 (C, H, W)
                 num_classes: 출력 클래스의 수
                 **kwargs: 추가 모델 파라메터
 
@@ -502,7 +503,7 @@
                 # 최고 성능 모델 저장
                 if val_acc > self.best_val_acc:
                     self.best_val_acc = val_acc
-                    self.best_model_state = self.model.state_dict().copy()
+                    self.best_model_state = copy.deepcopy(self.model.state_dict())
                     patience_counter = 0
                 else:
                     patience_counter += 1
@@ -655,7 +656,7 @@
             print("BEST MODEL PER DATASET")
             print(f"{'='*80}\n")
 
-            datasets = set(r['dataset'] for r in self.results)
+            datasets = sorted(set(r['dataset'] for r in self.results))
             for dataset in datasets:
                 dataset_results = [r for r in self.results if r['dataset'] == dataset]
                 best = max(dataset_results, key=lambda x: x['test_acc'])
@@ -774,7 +775,7 @@
     4. 모델을 공정하게 견주어라(같은 데이터, 장치, 시드)
     5. 모든 하이퍼파라메터와 설정을 적어 두어라
 
-    다음 스텝:
+    다음 단계:
     -----------
     → 데이터셋을 더 넓힌다(CIFAR-100, ImageNet, 사용자 정의)
     → 컨볼루션 구조를 더한다
@@ -868,9 +869,9 @@
 
     ================================================================================
     Training Complete!
-      Time: 28.84s
+      Time: 34.95s
       Best Val Acc: 0.9793
-      Test Acc: 0.9792
+      Test Acc: 0.9791
     ================================================================================
 
 
@@ -909,9 +910,9 @@
 
     ================================================================================
     Training Complete!
-      Time: 29.72s
+      Time: 41.23s
       Best Val Acc: 0.9825
-      Test Acc: 0.9846
+      Test Acc: 0.9840
     ================================================================================
 
 
@@ -950,9 +951,9 @@
 
     ================================================================================
     Training Complete!
-      Time: 28.53s
+      Time: 35.20s
       Best Val Acc: 0.8920
-      Test Acc: 0.8778
+      Test Acc: 0.8811
     ================================================================================
 
 
@@ -991,9 +992,9 @@
 
     ================================================================================
     Training Complete!
-      Time: 29.99s
+      Time: 40.14s
       Best Val Acc: 0.9000
-      Test Acc: 0.8965
+      Test Acc: 0.8954
     ================================================================================
 
 
@@ -1003,23 +1004,23 @@
 
     Rank   Experiment                          Val Acc    Test Acc   Time(s)   
     --------------------------------------------------------------------------------
-    1      mnist_medium_lr0.001                0.9825     0.9846     29.72
-    2      mnist_simple_lr0.001                0.9793     0.9792     28.84
-    3      fashion_mnist_medium_lr0.001        0.9000     0.8965     29.99
-    4      fashion_mnist_simple_lr0.001        0.8920     0.8778     28.53
+    1      mnist_medium_lr0.001                0.9825     0.9840     41.23
+    2      mnist_simple_lr0.001                0.9793     0.9791     34.95
+    3      fashion_mnist_medium_lr0.001        0.9000     0.8954     40.14
+    4      fashion_mnist_simple_lr0.001        0.8920     0.8811     35.20
 
     ================================================================================
     BEST MODEL PER DATASET
     ================================================================================
 
-    mnist:
-      Best model: medium
-      Test accuracy: 0.9846
-      Parameters: 235,914
-
     fashion_mnist:
       Best model: medium
-      Test accuracy: 0.8965
+      Test accuracy: 0.8954
+      Parameters: 235,914
+
+    mnist:
+      Best model: medium
+      Test accuracy: 0.9840
       Parameters: 235,914
 
 
@@ -1075,7 +1076,7 @@
     4. 모델을 공정하게 견주어라(같은 데이터, 장치, 시드)
     5. 모든 하이퍼파라메터와 설정을 적어 두어라
 
-    다음 스텝:
+    다음 단계:
     -----------
     → 데이터셋을 더 넓힌다(CIFAR-100, ImageNet, 사용자 정의)
     → 컨볼루션 구조를 더한다
@@ -1095,20 +1096,21 @@
     배우고 실험하기를 이어 가라! 🚀
 
     ```
-
 ## 2. 논의
 
 ### 구성요소의 역할
 
-`DatasetManager`는 데이터와 로더를 준비하고 `ModelFactory`는 입력 모양과 클래스 수에 맞는 모델을 만든다. `Trainer`는 트레인·검증·시험을 담당하며 `ExperimentRunner`는 여러 설정의 결과를 모은다. 관리용 클래스가 모두 `nn.Module`이거나 `forward()`로 계산 그래프를 만드는 것은 아니다. `ModelFactory`의 세 모델은 모두 은닉 레이어를 둔 완전 연결 네트워크이며, 출력 레이어의 로짓에 소프트맥스(교차 엔트로피 안에서)를 쓰는 점만 소프트맥스 회귀와 같다.
+`DatasetManager`는 데이터와 로더를 준비하고 `ModelFactory`는 입력 형태와 클래스 수에 맞는 모델을 만든다. `Trainer`는 트레인·검증·시험을 담당하며 `ExperimentRunner`는 여러 설정의 결과를 모은다. 관리용 클래스가 모두 `nn.Module`이거나 `forward()`로 계산 그래프를 만드는 것은 아니다. `ModelFactory`의 세 모델은 모두 은닉 레이어를 둔 완전 연결 네트워크이며, 출력 레이어의 로짓에 소프트맥스(교차 엔트로피 안에서)를 쓰는 점만 소프트맥스 회귀와 같다.
 
 ### 비교 단위와 평가
 
-데이터셋이 다르면 클래스의 난이도와 입력 해상도도 달라진다. 하나의 정확도 표로 알고리즘의 보편적인 우열을 정하지 않는다. 같은 데이터에서 모델을 비교할 때는 초기값, 배치 순서, 러닝레이트와 예산을 기록하고 여러 실행의 변동도 확인한다. 검증셋은 모델 선택에, 시험셋은 최종 평가에 사용한다.
+데이터셋이 다르면 클래스의 난이도와 입력 해상도도 달라진다. 하나의 정확도 표로 알고리즘의 보편적인 우열을 정하지 않는다. 같은 데이터에서 모델을 비교할 때는 초기값, 배치 순서, 러닝레이트와 예산(에포크 수 같은 계산량)을 기록하고 여러 실행의 변동도 확인한다. 검증셋은 모델 선택에, 시험셋은 최종 평가에 사용한다.
+
+출력의 비교 표에서는 두 데이터셋 모두 `medium`이 `simple`보다 시험 정확도가 높다 — MNIST에서 0.9840 대 0.9791, Fashion-MNIST에서 0.8954 대 0.8811이다. 그러나 이 차이를 모델 크기만의 효과로 읽을 수는 없다. `medium` 실험에만 `StepLR` 스케줄러를 켰으므로 모델과 스케줄러 두 가지가 한꺼번에 바뀌었고, 실험마다 시드 하나로 한 번씩만 돌렸기 때문이다. 코드 요약의 「데이터셋이 다르면 구조도 달라야 한다」도 이 실행으로는 뒷받침되지 않는다 — 두 데이터셋에서 같은 모델이 가장 좋았다.
 
 ### 최고 모델과 스케줄러 주의점
 
-이 코드의 최고 상태 저장도 `state_dict().copy()`를 사용하므로 텐서가 독립적인 과거 값으로 보존되는지 보장되지 않는다. 마지막에 `load_state_dict()`를 호출했다는 사실만으로 가장 좋은 검증 시점을 복원했다고 판단할 수 없다. 또한 인수 없이 호출하는 스케줄러와 검증 지표를 요구하는 스케줄러는 인터페이스가 다르므로 모든 종류를 그대로 교체할 수는 없다.
+이 코드는 최고 상태를 `copy.deepcopy(self.model.state_dict())`로 담는다. `state_dict().copy()`는 사전의 얕은 복사라서 값인 텐서가 모델의 파라메터와 저장 공간을 공유하고, 트레인이 이어지면 담아 둔 값도 함께 바뀐다. 깊은 복사라야 마지막의 `load_state_dict()`가 가장 좋은 검증 시점의 웨이트를 되돌린다. 그래서 출력의 `Test Acc`는 `Best Val Acc`를 낸 에포크의 웨이트로 잰 값이다. 또한 인수 없이 호출하는 스케줄러와 검증 지표를 요구하는 스케줄러는 인터페이스가 다르므로 모든 종류를 그대로 교체할 수는 없다.
 
 ## 연습문제
 
@@ -1120,7 +1122,7 @@ DatasetManager의 역할과 실제 트레인 모델의 파라메터 수를 구�
 </div>
 
 ??? success "풀이"
-    데이터 관리 객체 자체의 표본 수나 설정은 트레인 웨이트가 아니다. 생성된 nn.Module에 대해 파라메터를 합산하고 동결 여부도 확인한다. 모델 종류와 입력·출력 모양이 달라지면 같은 데이터 관리자라도 트레인 파라메터 수는 달라진다.
+    데이터 관리 객체 자체의 표본 수나 설정은 트레인 웨이트가 아니다. 생성된 nn.Module에 대해 파라메터를 합산하고 동결 여부도 확인한다. 모델 종류와 입력·출력 형태가 달라지면 같은 데이터 관리자라도 트레인 파라메터 수는 달라진다.
 
 ---
 
@@ -1144,25 +1146,69 @@ DatasetManager의 역할과 실제 트레인 모델의 파라메터 수를 구�
 </div>
 
 ??? success "풀이"
-    같은 평가 분할과 지표 정의, 데이터 전처리와 트레인 예산을 확인하고 시드 변동을 기록한다. 이 코드의 얕은 복사 체크포인트가 과거 웨이트를 보존하는지 점검해야 하며, 시험셋을 선택에 재사용하면 독립적인 성능 평가가 아니다.
+    같은 평가 분할과 지표 정의, 데이터 전처리와 트레인 예산을 확인하고 시드 변동을 기록한다. 체크포인트가 깊은 복사로 그 시점의 웨이트를 보존하는지 점검해야 하며, 시험셋을 선택에 재사용하면 독립적인 성능 평가가 아니다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-풀이에 실린 `nn.ModuleList` 확장 패턴을 현재 코드에 적용하려면 어떤 새 모델 정의가 필요한지 설명하라. 데이터 관리자(`DatasetManager`)와 트레인 모델을 구분하라.
+5부의 `experiments` 목록과 `generate_report`로는 「`medium`이 `simple`보다 낫다」를 주장할 수 없다. (a) 그 까닭을 `experiments`의 다섯째 칸(`use_sched`)과 `generate_report`가 최고 모델을 고르는 열쇠에서 각각 찾아라. (b) 모델과 스케줄러의 효과를 따로 읽을 수 있고 시드의 변동도 보이도록 `experiments`를 다시 설계하라. `run_experiment`에 무엇을 더해야 하는가? (c) `runner.results`를 받아 설정마다 시드에 걸친 평균과 표준편차를 내고, 데이터셋별 최고 설정을 **검증 정확도**로 고르는 함수를 써라.
 
 </div>
 
 ??? success "풀이"
-    아래 코드는 일반적인 PyTorch 레이어 구성 패턴의 일부이며 원래 클래스의 완성된 대체 구현은 아니다.
+    (a) 결함은 둘이다. 첫째, `experiments`에서 `simple`은 언제나 `use_sched=False`, `medium`은 언제나 `True`다. 모델과 스케줄러가 함께 바뀌므로 정확도의 차이를 어느 쪽 탓으로도 돌릴 수 없다. 게다가 설정마다 한 번씩만 돌려, 그 차이가 시드를 바꿨을 때의 변동보다 큰지도 알 수 없다. 둘째, `generate_report`는 `sorted(..., key=lambda x: x['test_acc'])`로 순위를 매기고 「BEST MODEL PER DATASET」도 `max(..., key=lambda x: x['test_acc'])`로 고른다. 시험셋으로 고른 모델의 시험 정확도는 고르는 데 이미 쓰인 수라 낙관적으로 치우친다. `Trainer`는 에포크를 `val_acc`로 골랐는데 보고서는 모델을 `test_acc`로 고르는 셈이다.
+
+    (b) 모델 2 × 스케줄러 2의 네 칸을 모두 채우고, 칸마다 시드를 여럿 돌린다.
+
     ```python
-    self.layers = nn.ModuleList()
-    for i in range(num_layers):
-        self.layers.append(YourBlock(dim, ...))
+    experiments = [
+        (dataset, model_type, 15, 0.001, use_sched, seed)
+        for dataset in ('mnist', 'fashion_mnist')
+        for model_type in ('simple', 'medium')
+        for use_sched in (False, True)
+        for seed in (0, 1, 2)
+    ]
     ```
-    PyTorch 모델 클래스를 별도로 정의하고 생성자·forward·출력 모양을 함께 맞춰야 한다. `DatasetManager`나 `Trainer`에 ModuleList를 붙인다고 자동으로 모델이 바뀌지 않는다. `ModelFactory`에 새 모델 종류를 더하는 것이 이 코드의 구조에 맞다. 비선형 은닉 레이어를 더 쌓으면 기존 모델과 다른 가설 공간이 된다.
+
+    `run_experiment`에는 `seed` 인수를 더해 **모델을 만들기 전에** `torch.manual_seed(seed)`를 부르고, 결과에 `result['seed'] = seed`를 적는다. 실험을 도는 `for` 루프도 여섯 값을 풀어 `seed`를 넘기게 고친다. 지금 코드는 시드를 쪽 맨 위에서 한 번만 박으므로, 뒤에 도는 실험의 초기값과 배치 순서는 앞 실험이 난수를 얼마나 썼는지에 따라 정해진다 — 실험의 순서를 바꾸면 결과도 바뀐다. 검증 분할은 `DatasetManager`가 `torch.Generator().manual_seed(42)`로 따로 고정하므로 시드를 바꿔도 같은 분할이 유지된다. 실험 수는 4에서 24로 늘어난다.
+
+    (c) 설정 `(dataset, model_type, use_scheduler)`로 묶어 시드에 걸쳐 모으고, 고르는 열쇠를 검증 평균으로 바꾼다. 시험 정확도는 고른 뒤에 **읽기만** 한다.
+
+    ```python
+    from collections import defaultdict
+    import numpy as np
+
+    def best_per_dataset(results):
+        """설정마다 시드에 걸쳐 모으고, 데이터셋별 최고 설정을 검증 평균으로 고른다."""
+        groups = defaultdict(list)
+        for r in results:
+            groups[(r['dataset'], r['model_type'], r['use_scheduler'])].append(r)
+
+        summary = defaultdict(list)
+        for (dataset, model_type, use_sched), runs in sorted(groups.items()):
+            val = np.array([r['best_val_acc'] for r in runs])
+            test = np.array([r['test_acc'] for r in runs])
+            many = len(runs) > 1
+            summary[dataset].append({
+                'model_type': model_type, 'use_scheduler': use_sched, 'runs': len(runs),
+                'val_mean': val.mean(), 'val_std': val.std(ddof=1) if many else float('nan'),
+                'test_mean': test.mean(), 'test_std': test.std(ddof=1) if many else float('nan'),
+            })
+
+        for dataset, rows in summary.items():
+            best = max(rows, key=lambda row: row['val_mean'])      # 고르는 것은 검증으로
+            print(f"{dataset}:")
+            for row in rows:
+                mark = "*" if row is best else " "
+                print(f" {mark} {row['model_type']:<7} sched={row['use_scheduler']!s:<5} n={row['runs']}"
+                      f"  val {row['val_mean']:.4f}±{row['val_std']:.4f}"
+                      f"  test {row['test_mean']:.4f}±{row['test_std']:.4f}")
+        return summary
+    ```
+
+    `best_per_dataset(runner.results)`로 부른다. 함수가 쓰는 열쇠(`dataset`, `model_type`, `use_scheduler`, `best_val_acc`, `test_acc`)는 모두 `run_experiment`가 결과 사전에 이미 적는 것이다. 이 함수는 손으로 적은 결과 사전 넷으로 돌려 동작만 확인했고, 실제 실험 24개의 수는 돌려서 확인한다. 표를 읽을 때는 두 설정의 평균 차이를 `±` 뒤의 표준편차와 견준다 — 차이가 그 폭보다 작으면 우열이라고 적지 않는다. 스케줄러의 효과는 같은 모델의 `sched=False`와 `sched=True` 줄을, 모델의 효과는 같은 `sched` 값의 `simple`과 `medium` 줄을 견주어 읽는다.
 
 ## 정리하며
 

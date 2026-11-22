@@ -1,12 +1,12 @@
-# 분류에서의 MLE
+# 분류에서의 최대가능도
 
-분류의 로스 함수는 이산 확률분포의 음의 로그가능도(log-likelihood, 로그우도라고도 한다)이다. **이진 교차 엔트로피는 베르누이 모델의 NLL**이고 **범주형 교차 엔트로피는 범주형 모델의 NLL**이다. 이 절은 이 관계를 정확히 밝히고, 소프트맥스와 시그모이드 함수가 MLE의 틀에서 어떻게 자연스럽게 나오는지 보여준다.
+분류의 로스 함수는 이산 확률분포의 음의 로그가능도(log-likelihood, 로그우도라고도 한다)이다. **이진 교차 엔트로피는 베르누이 모델의 NLL**이고 **범주형 교차 엔트로피는 범주형 모델의 NLL**이다. 이 쪽은 이 관계를 정확히 밝히고, 소프트맥스와 시그모이드 함수가 MLE의 틀에서 어떻게 자연스럽게 나오는지 보여준다.
 
 !!! success "핵심 통찰"
 
     $$\text{Cross-Entropy Loss} = \text{Negative Log-Likelihood of Categorical Distribution}$$
     
-    교차 엔트로피 로스로 분류기를 트레인시키는 것은 범주형 가능도 아래에서 최대가능도 추정을 하는 것이다.
+    교차 엔트로피 로스로 분류기를 트레인하는 것은 범주형 가능도 아래에서 최대가능도 추정을 하는 것이다.
 
 ---
 
@@ -20,7 +20,7 @@ $$
 y | x \sim \text{Bernoulli}(\sigma(f_\theta(x)))
 $$
 
-여기서 $f_\theta(x)$은 모델의 로짓 출력이고 $\sigma(z) = 1/(1+e^{-z})$은 로짓을 확률로 보내는 시그모이드 함수이다.
+여기서 $f_\theta(x)$는 모델의 로짓 출력이고 $\sigma(z) = 1/(1+e^{-z})$는 로짓을 확률로 보내는 시그모이드 함수이다.
 
 ### 유도
 
@@ -44,23 +44,23 @@ $$
 
 ### 왜 시그모이드인가?
 
-시그모이드 함수는 로그 오즈(로짓) 파라메터화에서 자연스럽게 나온다. 로그 오즈를 선형 함수로 모델링하면 다음과 같다.
+시그모이드 함수는 로그 오즈(로짓) 파라메터화에서 — 오즈 $p/(1-p)$는 일어날 확률을 일어나지 않을 확률로 나눈 값이다 — 자연스럽게 나온다. 로그 오즈를 선형 함수로 모델링하면 다음과 같다.
 
 $$
 \log \frac{p}{1-p} = f_\theta(x) \implies p = \sigma(f_\theta(x))
 $$
 
-이는 실숫값 $f_\theta(x)$이 무엇이든 $p \in (0, 1)$임을 보장한다. 로지스틱 회귀가 시그모이드를 쓰는 이유가 여기 있다. 베르누이 GLM의 정준 연결 함수는 로짓이며, 시그모이드는 그 역함수다.
+이는 실숫값 $f_\theta(x)$가 무엇이든 $p \in (0, 1)$임을 보장한다. 로지스틱 회귀가 시그모이드를 쓰는 이유가 여기 있다. 베르누이 GLM(일반화 선형 모델)의 정준 연결 함수는 로짓이며, 시그모이드는 그 역함수다.
 
 ### 수치적 안정성
 
-$\sigma(z)$을 계산한 뒤 $\log(\sigma(z))$을 취해 BCE를 구하는 것은 수치적으로 불안정하다. **log-sum-exp** 기법이 안정한 정식화를 준다.
+$\sigma(z)$를 계산한 뒤 $\log(\sigma(z))$를 취해 BCE를 구하는 것은 수치적으로 불안정하다. **log-sum-exp** 기법이 안정한 정식화를 준다.
 
 $$
 \text{BCE}(y, z) = \max(z, 0) - yz + \log(1 + e^{-|z|})
 $$
 
-여기서 $z = f_\theta(x)$은 로짓이다. 이것이 바로 `nn.BCEWithLogitsLoss`가 구현하는 것이다.
+여기서 $z = f_\theta(x)$는 로짓이다. 이것이 바로 `nn.BCEWithLogitsLoss`가 구현하는 것이다.
 
 ---
 
@@ -82,7 +82,7 @@ $$
 
 ### 유도
 
-정답 클래스에서 $y_k = 1$인 원핫 라벨 $\mathbf{y} = (y_1, \ldots, y_K)$에 대해 다음이 성립한다.
+정답 클래스에서 $y_k = 1$인 원핫 라벨 $\mathbf{y} = (y_1, \ldots, y_K)$와 모델의 클래스 확률 $\hat{p}_k = \text{softmax}(f_\theta(x))_k$에 대해 다음이 성립한다.
 
 $$
 p(\mathbf{y} | x, \theta) = \prod_{k=1}^{K} \hat{p}_k^{y_k}
@@ -94,7 +94,7 @@ $$
 -\log p(\mathbf{y} | x, \theta) = -\sum_{k=1}^{K} y_k \log \hat{p}_k
 $$
 
-$c_i$이 정답 클래스인 하드 라벨에서는 이것이 $-\log \hat{p}_{c_i}$으로 간단해진다. **범주형 교차 엔트로피** 로스는 다음과 같다.
+$c_i$가 $i$번째 관측의 정답 클래스인 하드 라벨에서는 이것이 $-\log \hat{p}_{i, c_i}$로 간단해진다. **범주형 교차 엔트로피** 로스는 다음과 같다.
 
 $$
 \boxed{\mathcal{L}_{\text{CE}} = -\frac{1}{n}\sum_{i=1}^{n} \log \hat{p}_{i, c_i}}
@@ -112,7 +112,7 @@ $$
 
 ### 수치적 안정성
 
-$\exp(z_k) / \sum \exp(z_j)$을 곧바로 계산하면 로짓이 클 때 오버플로가 생긴다. **로그 소프트맥스** 기법은 최댓값을 빼 준다.
+$\exp(z_k) / \sum \exp(z_j)$를 곧바로 계산하면 로짓이 클 때 오버플로가 생긴다. **로그 소프트맥스** 기법은 최댓값을 빼 준다.
 
 $$
 \log \text{softmax}(z)_k = z_k - \log\sum_{j=1}^{K} e^{z_j} = z_k - \left(m + \log\sum_{j=1}^{K} e^{z_j - m}\right)
@@ -148,7 +148,7 @@ $$
 p(\mathbf{y} | x, \theta) = \prod_{k=1}^{K} \hat{p}_k^{y_k}(1 - \hat{p}_k)^{1-y_k}
 $$
 
-로스는 독립인 BCE 로스 $K$개의 합이다.
+로스는 독립인 BCE 로스 $K$개의 평균이다.
 
 $$
 \mathcal{L}_{\text{multi-label}} = -\frac{1}{nK}\sum_{i=1}^{n}\sum_{k=1}^{K}\left[y_{ik}\log\hat{p}_{ik} + (1-y_{ik})\log(1-\hat{p}_{ik})\right]
@@ -288,20 +288,20 @@ def train_classification_mle_perspective():
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고, $\gamma = 0$일 때 표준 교차 엔트로피로 환원됨을 보여라.
+Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$를 유도하고, $\gamma = 0$일 때 표준 교차 엔트로피로 환원됨을 보여라.
 
 </div>
 
 ??? success "풀이"
-    정답 클래스 확률 $p_t$에 대한 표준 교차 엔트로피는 $\text{CE}(p_t) = -\log(p_t)$이다. Focal Loss는 여기에 조절 인수를 더한다.
+    정답 클래스 확률 $p_t$에 대한 표준 교차 엔트로피는 $\text{CE}(p_t) = -\log(p_t)$이다. Focal Loss는 여기에 조절 인수 $(1-p_t)^\gamma$와 클래스별 가중치 $\alpha_t$를 곱한다.
 
     $$
     \text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)
     $$
 
-    $\gamma = 0$이면 $(1-p_t)^0 = 1$이므로 $\text{FL} = -\alpha_t \log(p_t)$이 되어 가중 교차 엔트로피가 된다. $\alpha_t = 1$이면 정확히 표준 교차 엔트로피이다.
+    $\gamma = 0$이면 $(1-p_t)^0 = 1$이므로 $\text{FL} = -\alpha_t \log(p_t)$가 되어 가중 교차 엔트로피가 된다. $\alpha_t = 1$이면 정확히 표준 교차 엔트로피이다.
 
-    인수 $(1-p_t)^\gamma$은 잘 분류된 예($p_t$이 1에 가까운 경우)의 비중을 낮추어, 로스가 어렵고 잘못 분류된 예에 집중하게 만든다.
+    인수 $(1-p_t)^\gamma$는 잘 분류된 예($p_t$가 1에 가까운 경우)의 비중을 낮추어, 로스가 어렵고 잘못 분류된 예에 집중하게 만든다.
 
 ---
 
@@ -313,7 +313,7 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
 </div>
 
 ??? success "풀이"
-    라벨 스무딩을 쓰면 목표 분포가 $y_k' = (1-\epsilon)y_k + \epsilon/K$이 된다. 여기서 $K$은 클래스의 개수이다.
+    라벨 스무딩을 쓰면 목표 분포가 $y_k' = (1-\epsilon)y_k + \epsilon/K$가 된다. 여기서 $K$는 클래스의 개수이다.
 
     ```python
     import torch
@@ -327,7 +327,7 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
         smooth = -log_probs.mean(dim=-1)
         return ((1 - epsilon) * nll + epsilon * smooth).mean()
     ```
-    제시한 코드는 스무딩한 로스를 계산하는 부분이다. 보정 정도를 비교하려면 같은 조건에서 두 모델을 트레인하고 독립 검증셋의 예측 확률과 실제 정답 빈도로 신뢰도 다이어그램을 추가해야 한다. 보정이 나아진다고 미리 결론 내리지 않는다.
+    제시한 코드는 스무딩한 로스를 계산하는 부분이다. 보정 정도를 비교하려면 같은 조건에서 두 모델을 트레인하고 따로 떼어 둔 검증 집합의 예측 확률과 실제 정답 빈도로 신뢰도 다이어그램을 추가해야 한다. 보정이 나아진다고 미리 결론 내리지 않는다.
 
 ---
 
@@ -339,13 +339,13 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
 </div>
 
 ??? success "풀이"
-    경험적 분포 $q$에서 모델 $p_\theta$으로의 KL 발산은 다음과 같다.
+    경험적 분포 $q$에서 모델 $p_\theta$로의 KL 발산은 다음과 같다.
 
     $$
     D_{\text{KL}}(q \| p_\theta) = \sum_k q_k \log \frac{q_k}{p_{\theta,k}} = \underbrace{-H(q)}_{\text{constant}} + \underbrace{\left(-\sum_k q_k \log p_{\theta,k}\right)}_{\text{cross-entropy}}
     $$
 
-    $H(q)$은 $\theta$에 의존하지 않으므로 $D_{\text{KL}}(q\|p_\theta)$을 최소화하는 것은 교차 엔트로피 $H(q, p_\theta) = -\sum_k q_k \log p_{\theta,k}$을 최소화하는 것과 같다. $\square$
+    $H(q)$는 $\theta$에 의존하지 않으므로 $D_{\text{KL}}(q\|p_\theta)$를 최소화하는 것은 교차 엔트로피 $H(q, p_\theta) = -\sum_k q_k \log p_{\theta,k}$를 최소화하는 것과 같다. $\square$
 
 ---
 

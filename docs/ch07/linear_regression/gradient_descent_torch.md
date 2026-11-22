@@ -1,6 +1,6 @@
 # PyTorch로 만드는 경사 하강법
 
-이 스크립트는 `nn.Module`도 autograd도 쓰지 않고 PyTorch 텐서로 그래디언트를 직접 계산하며 미니배치 경사 하강법을 구현한다. 그래디언트 공식 $g = \frac{2}{B} X^T(X w + b - y)$을 텐서 연산으로 곧바로 계산하고 배치에는 `TensorDataset` / `DataLoader`를 씀으로써, 순수 NumPy와 완전한 PyTorch 추상화 사이의 중간 지점을 보여준다.
+이 스크립트는 `nn.Module`도 autograd도 쓰지 않고 PyTorch 텐서로 그래디언트를 직접 계산하며 미니배치 경사 하강법을 구현한다. 그래디언트 공식 $g = \frac{2}{B} X^T(X w + b - y)$를 텐서 연산으로 곧바로 계산하고 배치에는 `TensorDataset` / `DataLoader`를 씀으로써, 순수 NumPy와 완전한 PyTorch 추상화 사이의 중간 지점을 보여준다.
 
 ## 1. 코드
 

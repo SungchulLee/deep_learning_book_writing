@@ -7,7 +7,7 @@
 ```python
 """
 ==============================================================================
-02_linear_regression_numpy.py
+NumPy로 만드는 선형 회귀
 ==============================================================================
 난이도: ⭐ (입문)
 
@@ -25,7 +25,7 @@ DESCRIPTION:
 PREREQUISITES:
     - 기본 선형대수(벡터, 행렬)
     - 기본 미적분(도함수)
-    - 튜토리얼 01(도움이 되지만 꼭 필요하지는 않다)
+    - 1.4절 「텐서」(도움이 되지만 꼭 필요하지는 않다)
 
 학습 목표:
     - 선형 모델 y = wx + b을 이해한다
@@ -146,7 +146,7 @@ Final Results:
 
 선형 모델 $y = wx + b$는 웨이트 $w$(기울기)와 바이어스 $b$(절편)를 통해 입력 $x$를 예측으로 대응시킨다. 평균제곱오차(MSE) 로스는 예측이 목표값에서 평균적으로 얼마나 벗어나는지를 재며, 이를 최소화하면 해당 표본에서 제곱오차가 작은 파라메터를 얻는다. 생성 규칙과의 일치나 새 데이터의 성능은 표본 수, 잡음과 모델 가정에 따라 달라진다. 경사 하강법은 로스를 줄이는 방향으로 파라메터를 반복적으로 옮기며, 러닝레이트가 이동 폭을 조절한다.
 
-그래디언트를 직접 계산하려면 기초 미적분을 적용하면 된다. $\hat{y}_i = wx_i + b$인 MSE 로스 $L = \frac{1}{n}\sum (y_i - \hat{y}_i)^2$에 대해 편도함수는 $\frac{\partial L}{\partial w} = \frac{2}{n}\sum (\hat{y}_i - y_i)x_i$과 $\frac{\partial L}{\partial b} = \frac{2}{n}\sum (\hat{y}_i - y_i)$이다. 갱신 규칙 $w \leftarrow w - \alpha \frac{\partial L}{\partial w}$($b$도 마찬가지)은 각 파라메터를 최급강하(steepest descent) 방향으로 옮긴다.
+그래디언트를 직접 계산하려면 기초 미적분을 적용하면 된다. $\hat{y}_i = wx_i + b$인 MSE 로스 $L = \frac{1}{n}\sum (y_i - \hat{y}_i)^2$에 대해 편도함수는 $\frac{\partial L}{\partial w} = \frac{2}{n}\sum (\hat{y}_i - y_i)x_i$와 $\frac{\partial L}{\partial b} = \frac{2}{n}\sum (\hat{y}_i - y_i)$이다. 갱신 규칙 $w \leftarrow w - \alpha \frac{\partial L}{\partial w}$($b$도 마찬가지)은 각 파라메터를 최급강하(steepest descent) 방향으로 옮긴다.
 
 출력을 보면 두 파라메터의 빠르기가 크게 다르다. $w$는 10 에포크 만에 1.94에 닿지만 $b$는 100 에포크 뒤에도 0.83으로 아직 오르고 있다. $x$가 $[-10, 10]$에 퍼져 있어 $w$ 방향의 곡률($\frac{2}{n}\sum x_i^2$)이 $b$ 방향의 곡률(2)보다 서른 배쯤 크기 때문이다. 러닝레이트는 하나뿐이라 가파른 $w$ 방향에 맞추면 완만한 $b$ 방향은 느리게 움직인다.
 
@@ -197,14 +197,14 @@ Final Results:
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-연쇄 법칙을 사용하여 MSE 로스 $L = \frac{1}{n}\sum_{i=1}^n (y_i - (wx_i + b))^2$에 대한 그래디언트 $\frac{\partial L}{\partial w}$를 단계별로 유도하라.
+사슬 규칙을 사용하여 MSE 로스 $L = \frac{1}{n}\sum_{i=1}^n (y_i - (wx_i + b))^2$에 대한 그래디언트 $\frac{\partial L}{\partial w}$를 단계별로 유도하라.
 
 </div>
 
 ??? success "풀이"
     $L = \frac{1}{n}\sum_{i=1}^n (y_i - wx_i - b)^2$이라 하자. $e_i = y_i - wx_i - b$로 두면 $L = \frac{1}{n}\sum e_i^2$이다.
 
-    연쇄 법칙에 의해 다음과 같다.
+    사슬 규칙에 의해 다음과 같다.
 
     $$
     \frac{\partial L}{\partial w} = \frac{1}{n}\sum_{i=1}^n 2 e_i \cdot \frac{\partial e_i}{\partial w}
@@ -216,7 +216,7 @@ Final Results:
     \frac{\partial L}{\partial w} = \frac{1}{n}\sum_{i=1}^n 2(y_i - wx_i - b)(-x_i) = \frac{2}{n}\sum_{i=1}^n (wx_i + b - y_i) x_i
     $$
 
-    이는 코드에서 쓴 공식 `grad_w = (2/n) * sum((y_pred - y_true) * X)`과 일치한다.
+    이는 코드에서 쓴 공식 `grad_w = (2/n) * sum((y_pred - y_true) * X)`와 일치한다.
 
 ---
 

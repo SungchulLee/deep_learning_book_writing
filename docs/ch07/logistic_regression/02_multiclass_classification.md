@@ -1,6 +1,6 @@
 # 다중 클래스 분류
 
-다중 클래스 중 하나를 예측하는 선형 분류기를 구성한다. 트레인용 로짓과 해석용 확률, 클래스 인덱스 정답의 입력 조건을 구분한다.
+여러 클래스 중 하나를 예측하는 선형 분류기를 구성한다. 모델은 클래스마다 **로짓**(확률로 바꾸기 전의 실수 점수)을 하나씩 내고, **소프트맥스**가 이 로짓들을 합이 1인 확률로 바꾼다. 트레인용 로짓과 해석용 확률, 클래스 인덱스 정답의 입력 조건을 구분한다.
 
 ## 1. 코드
 
@@ -9,14 +9,14 @@
     ```python
     """
     ==============================================================================
-    02_multiclass_classification.py - 소프트맥스와 다중 클래스 문제
+    소프트맥스와 다중 클래스 문제
     ================================================================================
 
     학습 목표:
     - 로지스틱 회귀를 다중 클래스로 확장한다
     - 소프트맥스 활성화 함수를 이해한다
     - CrossEntropyLoss를 쓴다
-    - 원핫 인코딩을 다룬다
+    - 정답을 원핫이 아닌 클래스 인덱스(Long)로 준다
     - 다중 클래스 모델을 평가한다
 
     소요 시간: 1시간 반쯤
@@ -460,8 +460,8 @@
     2. 보통: top-k 정확도를 구현하라.
        - 참 클래스가 상위 2개나 상위 3개 예측에 드는지 확인한다
 
-    3. 보통: 클래스 불균형을 다루도록 클래스 웨이트를 더하여라.
-       - CrossEntropyLoss의 class_weight 파라메터를 쓴다
+    3. 보통: 클래스 불균형을 다루도록 클래스 가중치를 더하여라.
+       - CrossEntropyLoss의 weight 인자를 쓴다
 
     4. 어려움: 일대다(one-vs-rest) 방식을 구현하라.
        - 이진 분류기 K개를 트레인한다
@@ -473,7 +473,7 @@
     """)
 
     print("\n" + "="*80)
-    print("NEXT: 03_regularization.py - Preventing overfitting")
+    print("다음: 「정칙화된 로지스틱 회귀」 쪽 - 과적합 막기")
     print("="*80)
 
 
@@ -640,8 +640,8 @@
     2. 보통: top-k 정확도를 구현하라.
        - 참 클래스가 상위 2개나 상위 3개 예측에 드는지 확인한다
 
-    3. 보통: 클래스 불균형을 다루도록 클래스 웨이트를 더하여라.
-       - CrossEntropyLoss의 class_weight 파라메터를 쓴다
+    3. 보통: 클래스 불균형을 다루도록 클래스 가중치를 더하여라.
+       - CrossEntropyLoss의 weight 인자를 쓴다
 
     4. 어려움: 일대다(one-vs-rest) 방식을 구현하라.
        - 이진 분류기 K개를 트레인한다
@@ -653,7 +653,7 @@
 
 
     ================================================================================
-    NEXT: 03_regularization.py - Preventing overfitting
+    다음: 「정칙화된 로지스틱 회귀」 쪽 - 과적합 막기
     ================================================================================
     ```
 
@@ -662,11 +662,11 @@
 
 ### 모델 출력과 로스
 
-`nn.Linear(input_dim, num_classes)`는 표본마다 클래스 수만큼 로짓을 만든다. `CrossEntropyLoss`에 원핫이 아닌 정수 클래스 인덱스를 줄 때 정답 형태는 $(B,)$, 자료형은 `long`이다. 트레인 경로에 Softmax를 추가할 필요가 없으며 확률을 볼 때만 `predict_proba()`를 사용한다.
+`nn.Linear(input_dim, num_classes)`는 표본마다 클래스 수만큼 로짓을 만든다. 이 쪽에서는 피처 20개, 클래스 3개라 파라메터가 $3\times(20+1)=63$개다. `CrossEntropyLoss`에 원핫이 아닌 정수 클래스 인덱스를 줄 때 정답 형태는 배치 크기 $B$에 대해 $(B,)$, 자료형은 `long`이다. `CrossEntropyLoss`가 안에서 소프트맥스를 적용하므로 트레인 경로에 소프트맥스를 추가하면 안 되며, 확률을 볼 때만 `predict_proba()`를 사용한다.
 
 ### 클래스별 평가
 
-최대 로짓의 인덱스가 예측 클래스이며 정확도는 표본별 정답 일치를 집계한다. 혼동 행렬과 클래스별 정밀도·재현율을 보면 전체 정확도가 가리는 오차를 찾을 수 있다. 예측 확률의 순위가 같아도 교차 엔트로피와 보정 상태는 다를 수 있다.
+최대 로짓의 인덱스가 예측 클래스이며 정확도는 맞힌 표본의 비율이다. 혼동 행렬(행이 참 클래스, 열이 예측 클래스인 횟수 표)과 클래스별 정밀도·재현율을 보면 전체 정확도가 가리는 오차를 찾을 수 있다. 이 쪽의 시험 정확도는 0.9233(300개 가운데 277개)인데, 혼동 행렬을 보면 틀린 23개 가운데 11개가 클래스 0을 클래스 2로 본 것이다. 예측 확률의 순위가 같아도 교차 엔트로피와 확률 보정 상태는 다를 수 있다.
 
 ### 선형 분류기의 범위
 
@@ -682,7 +682,7 @@
 </div>
 
 ??? success "풀이"
-    웨이트가 $(K,d)$로 $Kd$개, 바이어스가 $(K,)$로 $K$개이므로 총 $K(d+1)$개다. Softmax는 별도 트레인 파라메터가 없으며 트레인 로스는 로짓을 직접 받는다.
+    웨이트가 $(K,d)$로 $Kd$개, 바이어스가 $(K,)$로 $K$개이므로 총 $K(d+1)$개다. 이 쪽의 $d=20$, $K=3$이면 63개로, 출력의 `Parameters: 63`과 맞는다. 소프트맥스에는 트레인 파라메터가 없으며 트레인 로스는 로짓을 직접 받는다.
 
 ---
 
@@ -706,25 +706,53 @@
 </div>
 
 ??? success "풀이"
-    로짓은 $(B,K)$, 정답 인덱스는 $(B,)$이고 0부터 $K-1$ 범위의 정수여야 한다. 확률 목표 분포를 사용하는 다른 모드와 혼동하지 않는다. 트레인 전에 Softmax를 추가하지 않는다.
+    로짓은 $(B,K)$, 정답 인덱스는 $(B,)$이고 0부터 $K-1$ 범위의 정수여야 한다. `CrossEntropyLoss`에는 정답으로 $(B,K)$ 형태의 확률 분포를 받는 모드도 있으므로 그것과 혼동하지 않는다. 로스에 넣기 전에 소프트맥스를 적용하지 않는다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-풀이에 실린 일반적인 레이어 확장 코드(`nn.ModuleList`)가 이 페이지의 원래 클래스에 그대로 적용되는지 검토하라. 모델과 데이터셋의 역할, 생성자 인수, 입력·출력 형태와 비선형성에서 필요한 수정 사항을 설명하라.
+이 쪽의 출력은 `CrossEntropyLoss`가 「LogSoftmax와 NLLLoss를 합친 것」이라고 말한다. (가) `MultiClassLogisticRegression(20, 3)`의 로짓으로 이 말을 수치로 확인하라. (나) 트레인 루프에서 `criterion(logits, batch_y)` 대신 `criterion(model.predict_proba(batch_X), batch_y)`를 쓰면 소프트맥스가 두 번 걸린다. 이때 클래스가 3개이면 로스가 아무리 잘 맞혀도 $\ln(1+2/e)\approx 0.551$ 아래로 내려가지 못함을 보여라.
 
 </div>
 
 ??? success "풀이"
-    아래 코드는 일반적인 ModuleList 구성 패턴의 일부이며 이 페이지 클래스의 완성된 대체 구현은 아니다.
+    (가) 로짓에 `log_softmax`를 건 뒤 `NLLLoss`에 넣은 값, 그리고 `predict_proba()`가 준 확률에서 정답 클래스의 확률만 골라 $-\ln$의 평균을 낸 값이 `CrossEntropyLoss`의 값과 같은지 본다.
+
+    (나) `predict_proba()`의 출력은 0과 1 사이의 수이고, `CrossEntropyLoss`는 그것을 로짓으로 여겨 소프트맥스를 한 번 더 건다. 정답 클래스의 값을 $p_y$, 나머지를 $p_j$라 하면 표본 하나의 로스는
+
+    $$
+    -\ln\frac{e^{p_y}}{\sum_j e^{p_j}} = \ln\Bigl(1+\sum_{j\ne y} e^{\,p_j-p_y}\Bigr)
+    $$
+
+    이다. 모든 값이 $[0,1]$에 있으므로 $p_j-p_y\ge -1$이고, 클래스가 3개이면 로스는 $\ln(1+2e^{-1})$ 이상이다. 등호는 $p_y=1$, 나머지가 0일 때, 곧 모델이 정답을 완벽히 확신할 때 성립한다. 완벽한 예측의 로스가 0이 아니라 0.551에서 멈추므로 로스 값이 예측의 좋고 나쁨을 제대로 재지 못한다. 그래서 트레인 경로에는 로짓을 그대로 넣고 `predict_proba()`는 확률을 볼 때만 쓴다.
+
     ```python
-    self.layers = nn.ModuleList()
-    for i in range(num_layers):
-        self.layers.append(YourBlock(dim, ...))
+    import math
+    import torch
+    import torch.nn as nn
+
+    torch.manual_seed(0)
+    model = MultiClassLogisticRegression(20, 3)   # 이 쪽의 클래스
+    x = torch.randn(8, 20)
+    t = torch.randint(0, 3, (8,))
+    criterion = nn.CrossEntropyLoss()
+
+    # (가) 세 가지 계산이 같은 값을 낸다
+    logits = model(x)
+    ce = criterion(logits, t)
+    two_step = nn.NLLLoss()(torch.log_softmax(logits, dim=1), t)
+    by_hand = -torch.log(model.predict_proba(x)[torch.arange(8), t]).mean()
+    print(torch.allclose(ce, two_step), torch.allclose(ce, by_hand))   # True True
+
+    # (나) 확률을 로짓 자리에 넣으면 하한에 막힌다
+    bound = math.log(1 + 2 / math.e)
+    doubled = criterion(model.predict_proba(x), t)
+    print(doubled.item() >= bound)                 # True
+    perfect = torch.eye(3)[t]                      # 정답에 확률 1을 준 완벽한 예측
+    print(criterion(perfect, t).item(), bound)     # 둘 다 0.5514…
     ```
-    적용하려면 생성자와 `forward`를 함께 정의하고 마지막 출력 형태와 로스의 입력 조건을 유지해야 한다. 선형 레이어만 여러 개 합성하면 여전히 하나의 선형 사상이므로 표현력을 늘리려면 적절한 비선형성이 필요하다. Dataset은 표본 접근 인터페이스이므로 레이어를 등록할 대상이 아니며 별도 모델 클래스에 이 구성을 적용한다.
 
 ## 정리하며
 

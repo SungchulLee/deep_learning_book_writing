@@ -412,8 +412,9 @@ def fig_gd_lr_bound():
              color="#b45309")
     axR.text(36, 1.5e6, f"1.2 x bound\neta = {1.2 * bound:.3f}", fontsize=10,
              color="#dc2626")
+    inf_step = next(i for i, v in enumerate(hist[2.0]) if not np.isfinite(v))
     axR.annotate("2.0 x bound = what the helper returns:\n"
-                 f"eta = {2 * bound:.3f} overflows to infinity by step 25",
+                 f"eta = {2 * bound:.3f} overflows float32 at step {inf_step}",
                  (15, 8e13), (34, 26), textcoords="offset points",
                  fontsize=10, color="#7f1d1d",
                  arrowprops=dict(arrowstyle="->", color="#7f1d1d", lw=1.2))

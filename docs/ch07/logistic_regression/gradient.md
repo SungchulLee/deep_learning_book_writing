@@ -6,7 +6,7 @@
 
 ## 1. 학습 목표
 
-이 절을 마치면 다음을 할 수 있게 된다.
+이 쪽을 마치면 다음을 할 수 있게 된다.
 
 - 모델 파라메터에 대한 BCE 로스의 그래디언트 유도하기
 - 로지스틱 회귀의 그래디언트를 간단하게 만드는 우아한 상쇄 이해하기
@@ -18,19 +18,19 @@
 
 ## 2. 최적화 문제
 
-우리는 BCE 로스를 최소화하는 파라메터 $\boldsymbol{\beta}$을 찾고자 한다.
+우리는 BCE 로스를 최소화하는 파라메터 $\boldsymbol{\beta}$를 찾고자 한다.
 
 $$
 \mathcal{L}(\boldsymbol{\beta}) = -\frac{1}{n}\sum_{i=1}^{n} \left[ y_i \log(\sigma(z_i)) + (1-y_i) \log(1-\sigma(z_i)) \right]
 $$
 
-여기서 $z_i = \mathbf{x}_i^\top \boldsymbol{\beta}$은 선형 예측자이고 $\sigma(z) = \frac{1}{1+e^{-z}}$은 시그모이드 함수이다.
+여기서 $z_i = \mathbf{x}_i^\top \boldsymbol{\beta}$는 선형 예측자이고 $\sigma(z) = \frac{1}{1+e^{-z}}$는 시그모이드 함수이다.
 
 ---
 
 ## 3. 단계별 그래디언트 유도
 
-### 1단계: 연쇄 법칙 준비
+### 1단계: 사슬 규칙 준비
 
 표본 하나 $i$가 로스에 기여하는 몫은 다음과 같다.
 
@@ -38,7 +38,7 @@ $$
 \ell_i = -y_i \log(p_i) - (1-y_i) \log(1-p_i)
 $$
 
-여기서 $p_i = \sigma(z_i)$이고 $z_i = \mathbf{x}_i^\top \boldsymbol{\beta}$이다. 연쇄 법칙에 의해 다음과 같다.
+여기서 $p_i = \sigma(z_i)$이고 $z_i = \mathbf{x}_i^\top \boldsymbol{\beta}$이다. 사슬 규칙(합성함수의 도함수는 각 단계 도함수의 곱이라는 규칙)에 의해 다음과 같다.
 
 $$
 \frac{\partial \ell_i}{\partial \boldsymbol{\beta}} = \frac{\partial \ell_i}{\partial p_i} \cdot \frac{\partial p_i}{\partial z_i} \cdot \frac{\partial z_i}{\partial \boldsymbol{\beta}}
@@ -66,7 +66,7 @@ $$
 
 ### 5단계: 우아한 상쇄
 
-연쇄 법칙으로 합치면 다음과 같다.
+사슬 규칙으로 합치면 다음과 같다.
 
 $$
 \frac{\partial \ell_i}{\partial \boldsymbol{\beta}} = \frac{p_i - y_i}{p_i(1-p_i)} \cdot p_i(1-p_i) \cdot \mathbf{x}_i
@@ -94,13 +94,13 @@ $$
 
 ### 행렬 형태
 
-$\mathbf{X} \in \mathbb{R}^{n \times d}$을 설계 행렬(행이 표본), $\mathbf{p} = \sigma(\mathbf{X}\boldsymbol{\beta}) \in \mathbb{R}^n$을 예측 확률, $\mathbf{y} \in \{0,1\}^n$을 정답 라벨이라 하자. 그러면 다음이 성립한다.
+$\mathbf{X} \in \mathbb{R}^{n \times d}$를 설계 행렬(행이 표본), $\mathbf{p} = \sigma(\mathbf{X}\boldsymbol{\beta}) \in \mathbb{R}^n$을 예측 확률, $\mathbf{y} \in \{0,1\}^n$을 정답 라벨이라 하자. 그러면 다음이 성립한다.
 
 $$
 \boxed{\nabla_{\boldsymbol{\beta}} \mathcal{L} = \frac{1}{n}\mathbf{X}^\top(\mathbf{p} - \mathbf{y})}
 $$
 
-이 우아한 형태는 **오차로 가중된 피처**이다. 각 표본의 피처 벡터 $\mathbf{x}_i$에 예측 오차 $(p_i - y_i)$이 곱해진다.
+이 우아한 형태는 **오차로 가중된 피처**이다. 각 표본의 피처 벡터 $\mathbf{x}_i$에 예측 오차 $(p_i - y_i)$가 곱해진다.
 
 ### 선형 회귀와의 비교
 
@@ -109,7 +109,7 @@ $$
 | 선형 회귀(절반 제곱오차) | $(\hat{y}_i-y_i)\mathbf{x}_i$ |
 | 로지스틱 회귀 | $(\hat{p}_i - y_i)\mathbf{x}_i$ |
 
-두 행 모두 하강법에 사용하는 그래디언트의 부호를 맞춘 표기다. 연속적인 예측 $\hat{y}_i$ 대신 확률 $\hat{p}_i$을 쓴다는 점만 빼면 형태가 동일하다.
+두 행 모두 하강법에 사용하는 그래디언트의 부호를 맞춘 표기다. 연속적인 예측 $\hat{y}_i$ 대신 확률 $\hat{p}_i$를 쓴다는 점만 빼면 형태가 동일하다.
 
 ---
 
@@ -164,10 +164,10 @@ $$
 
 ### 표본별 이계도함수
 
-표본 $i$이 그래디언트에 기여하는 몫은 $(p_i - y_i)\mathbf{x}_i$이다. $y_i$은 상수이므로 $p_i$ 항만 미분한다.
+표본 $i$가 그래디언트에 기여하는 몫은 $(p_i - y_i)\mathbf{x}_i$이다. $y_i$는 상수이므로 $p_i$ 항만 미분한다.
 
 $$
-\frac{\partial^2 \mathcal{L}}{\partial \boldsymbol{\beta} \partial \boldsymbol{\beta}^{\top}} \bigg|_{\text{sample } i} = \mathbf{x}_i \frac{\partial p_i}{\partial \boldsymbol{\beta}^{\top}} = p_i(1-p_i) \, \mathbf{x}_i \mathbf{x}_i^{\top}
+\frac{\partial^2 \ell_i}{\partial \boldsymbol{\beta} \partial \boldsymbol{\beta}^{\top}} = \mathbf{x}_i \frac{\partial p_i}{\partial \boldsymbol{\beta}^{\top}} = p_i(1-p_i) \, \mathbf{x}_i \mathbf{x}_i^{\top}
 $$
 
 ### 전체 헤세 행렬
@@ -178,7 +178,7 @@ $$
 \mathbf{H} = \nabla^2_{\boldsymbol{\beta}} S = \sum_{i=1}^{n} p_i(1-p_i) \, \mathbf{x}_i \mathbf{x}_i^{\top}
 $$
 
-대각 웨이트 행렬 $\mathbf{B} = \operatorname{diag}(p_1(1-p_1), \ldots, p_n(1-p_n))$을 정의하자. 그러면 다음이 성립한다.
+대각 가중치 행렬 $\mathbf{B} = \operatorname{diag}(p_1(1-p_1), \ldots, p_n(1-p_n))$을 정의하자. 그러면 다음이 성립한다.
 
 $$
 \boxed{\mathbf{H} = \mathbf{X}^{\top} \mathbf{B} \mathbf{X}}
@@ -198,7 +198,7 @@ $$
 \mathbf{v}^{\top} \mathbf{H} \mathbf{v} \geq 0 \quad \forall \, \mathbf{v}
 $$
 
-따라서 $\mathbf{H}$은 **양의 준정부호**이며, 이는 음의 로그가능도(log-likelihood, 로그우도라고도 한다)가 **볼록**함을 뜻한다. $\mathbf{X}$이 열 전체 랭크를 가지면 헤세 행렬이 엄격히 양의 정부호가 되어 로스가 엄격히 볼록해지고, 유한한 최솟값이 존재한다면 유일하다. 완전히 분리되는 데이터에서는 열 전체 랭크여도 유한 MLE가 없을 수 있다.
+따라서 $\mathbf{H}$는 **양의 준정부호**이며, 이는 음의 로그가능도(log-likelihood, 로그우도라고도 한다)가 **볼록**함을 뜻한다. $\mathbf{X}$가 열 전체 랭크를 가지면 헤세 행렬이 엄격히 양의 정부호가 되어 로스가 엄격히 볼록해지고, 유한한 최솟값이 존재한다면 유일하다. 완전히 분리되는 데이터에서는 열 전체 랭크여도 유한 MLE가 없을 수 있다.
 
 ---
 
@@ -224,7 +224,7 @@ $$
 |----------|-----------------|-----------------|
 | 갱신 | $\boldsymbol{\beta} - \eta \mathbf{g}$ | $\boldsymbol{\beta} - \mathbf{H}^{-1}\mathbf{g}$ |
 | 수렴 속도 | 선형 | 이차 (최적점 근처에서) |
-| 단계당 비용 | $O(nd)$ | $O(nd^2 + d^3)$ |
+| 반복당 비용 | $O(nd)$ | $O(nd^2 + d^3)$ |
 | 하이퍼파라메터 | 러닝레이트 $\eta$ | 없음 (또는 감쇠 인수) |
 | 메모리 | $O(d)$ | 헤세 행렬에 $O(d^2)$ |
 
@@ -236,19 +236,19 @@ $$
 
 ### 뉴턴 방법으로부터의 유도
 
-뉴턴 갱신에서 출발하여 정규 방정식의 형태로 정리한다. 양변에 $(\mathbf{X}^{\top}\mathbf{B}\mathbf{X})$을 곱한다.
+뉴턴 갱신에서 출발하여 정규 방정식의 형태로 정리한다. 양변에 $(\mathbf{X}^{\top}\mathbf{B}\mathbf{X})$를 곱한다.
 
 $$
 (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})\boldsymbol{\beta}^{(t)} - \mathbf{X}^{\top}(\mathbf{p} - \mathbf{y})
 $$
 
-우변에서 $\mathbf{X}^{\top}$을 묶어내면 다음과 같다.
+우변에서 $\mathbf{X}^{\top}$를 묶어내면 다음과 같다.
 
 $$
 (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})\boldsymbol{\beta}^{(t+1)} = \mathbf{X}^{\top}\bigl[\mathbf{B}\mathbf{X}\boldsymbol{\beta}^{(t)} - (\mathbf{p} - \mathbf{y})\bigr]
 $$
 
-$\mathbf{B}$은 가역이므로 $(\mathbf{p} - \mathbf{y}) = \mathbf{B}\mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$으로 쓴다.
+$\mathbf{B}$는 가역이므로 $(\mathbf{p} - \mathbf{y}) = \mathbf{B}\mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$로 쓴다.
 
 $$
 (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})\boldsymbol{\beta}^{(t+1)} = \mathbf{X}^{\top}\mathbf{B}\bigl[\mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})\bigr]
@@ -278,18 +278,18 @@ $$
 
 매 반복마다 다음과 같은 가중 최소제곱 문제를 푼다.
 
-- **반응** $\mathbf{z}$은 비선형 모델을 선형화한 것이다
-- **웨이트** $\mathbf{B}$은 현재 파라메터 아래에서 각 관측의 분산을 반영한다
-- $\mathbf{z}$과 $\mathbf{B}$은 모두 $\boldsymbol{\beta}^{(t)}$에 의존하므로 반복마다 다시 계산해야 한다
+- **반응** $\mathbf{z}$는 비선형 모델을 선형화한 것이다
+- **가중치** $\mathbf{B}$는 현재 파라메터 아래에서 각 관측의 분산을 반영한다
+- $\mathbf{z}$와 $\mathbf{B}$는 모두 $\boldsymbol{\beta}^{(t)}$에 의존하므로 반복마다 다시 계산해야 한다
 
-웨이트 행렬 $\mathbf{B}$이 매 단계 바뀌므로 이 절차를 **반복 재가중 최소제곱(IRLS)**이라고 부른다.
+가중치 행렬 $\mathbf{B}$가 반복마다 바뀌므로 이 절차를 **반복 재가중 최소제곱(IRLS)**이라고 부른다.
 
 ### IRLS 알고리즘
 
 1. $\boldsymbol{\beta}^{(0)}$을 초기화한다 (예: 0)
 2. 수렴할 때까지 **반복한다**.
     - 예측을 계산한다: $\mathbf{p} = \sigma(\mathbf{X}\boldsymbol{\beta}^{(t)})$
-    - 웨이트를 계산한다: $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$
+    - 가중치를 계산한다: $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$
     - 작업 반응을 계산한다: $\mathbf{z} = \mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$
     - 푼다: $\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{B}\mathbf{z}$
 3. $\boldsymbol{\beta}^{(t+1)}$을 반환한다
@@ -302,7 +302,7 @@ $$
 z_i = \mathbf{x}_i^{\top}\boldsymbol{\beta}^{(t)} - \frac{p_i - y_i}{p_i(1-p_i)}
 $$
 
-이는 평균 $p_i$ 주변에서 연결 함수 $g(p)=\log(p/(1-p))$를 일차 근사해 만든 작업 반응이다. $g\prime(p_i)=1/[p_i(1-p_i)]$는 시그모이드 도함수의 역수다. $y_i$ 자체에 로그 오즈를 대입하면 0·1에서 발산하므로 그 식을 직접 계산하는 절차로 해석하지 않는다.
+이는 평균 $p_i$ 주변에서 연결 함수 $g(p)=\log(p/(1-p))$를 일차 근사해 만든 작업 반응이다. $g'(p_i)=1/[p_i(1-p_i)]$는 시그모이드 도함수의 역수다. $y_i$ 자체에 로그 오즈를 대입하면 0·1에서 발산하므로 그 식을 직접 계산하는 절차로 해석하지 않는다.
 
 ### GLM의 관점
 
@@ -312,7 +312,7 @@ $$
 \boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{W}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{W}\mathbf{z}
 $$
 
-여기서 $\mathbf{W}$과 $\mathbf{z}$은 구체적인 분포와 연결 함수에 따라 달라진다.
+여기서 $\mathbf{W}$와 $\mathbf{z}$는 구체적인 분포와 연결 함수에 따라 달라진다.
 
 ---
 
@@ -638,7 +638,7 @@ Max difference: 1.27e+01
 
 데이터를 만든 줄을 보자. `make_classification(..., n_informative=4, n_redundant=1, ...)`에서 **`n_redundant=1`은 다른 열들의 선형 결합인 열을 하나 만든다.** 여기에 바이어스 열을 붙였으므로 $\mathbf X$는 열이 6개인데 랭크가 5다. 실제로 특잇값을 구하면 20.63, 15.23, 12.65, 9.79, 6.84, 그리고 **0**이다.
 
-7절은 이 경우를 미리 적어 두었다. 「$\mathbf{X}$이 열 전체 랭크를 가지면 헤세 행렬이 엄격히 양의 정부호가 되어 로스가 엄격히 볼록해지고, 유한한 최솟값이 존재한다면 유일하다.」 **여기서는 열 전체 랭크가 아니다.** 그래서 최솟값은 점이 아니라 **직선**이고, 그 직선 위의 어느 점이든 똑같이 좋은 답이다.
+7절은 이 경우를 미리 적어 두었다. 「$\mathbf{X}$가 열 전체 랭크를 가지면 헤세 행렬이 엄격히 양의 정부호가 되어 로스가 엄격히 볼록해지고, 유한한 최솟값이 존재한다면 유일하다.」 **여기서는 열 전체 랭크가 아니다.** 그래서 로스를 최소로 만드는 $\boldsymbol\beta$는 한 점이 아니라 **직선**을 이루고, 그 직선 위의 어느 점이든 똑같이 좋은 답이다.
 
 뉴턴과 IRLS는 그 직선 위의 서로 다른 점에 멈췄을 뿐이다. 확인하는 방법은 간단하다. 두 답의 차이를 $\mathbf X$에 통과시켜 보면 된다.
 
@@ -648,7 +648,7 @@ $$
 
 **차이가 전부 $\mathbf X$의 영공간 안에 있다.** 파라메터는 12.7만큼 다른데 **예측은 한 표본도 다르지 않다.** 로스가 같은 것이 우연이 아니라 당연한 까닭이 이것이다.
 
-그러니 `torch.allclose(beta_newton, beta_irls)`가 `False`라는 것은 9절의 유도가 틀렸다는 뜻이 아니다. **파라메터를 비교한 것이 잘못된 비교**다. 랭크가 부족한 설계에서 두 해법이 같은지 보려면 파라메터가 아니라 예측 $\mathbf X\boldsymbol\beta$을 견주어야 한다. 열 하나를 빼거나 작은 L2를 더해 랭크를 채우면 최솟값이 유일해지고 두 답도 일치한다.
+그러니 `torch.allclose(beta_newton, beta_irls)`가 `False`라는 것은 9절의 유도가 틀렸다는 뜻이 아니다. **파라메터를 비교한 것이 잘못된 비교**다. 랭크가 부족한 설계에서 두 해법이 같은지 보려면 파라메터가 아니라 예측 $\mathbf X\boldsymbol\beta$를 견주어야 한다. 열 하나를 빼거나 작은 L2를 더해 랭크를 채우면 최소점이 유일해지고 두 답도 일치한다.
 
 **왼쪽 그림은 8절의 다른 주장을 그대로 확인해 준다.** 뉴턴과 IRLS는 **세 스텝** 만에 최솟값에 닿아 두 선이 포개어지는 반면, 러닝레이트 1.0의 경사 하강법은 50스텝을 걸어도 0.492159로 아직 0.0035만큼 위에 있다. 8절의 비교 표에서 「수렴 속도: 선형 대 이차」가 이 간격이다.
 
@@ -659,18 +659,18 @@ $$
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-데이터가 선형 분리 가능하면 $\|\boldsymbol{\beta}\| \to \infty$이 되어 MLE가 존재하지 않음을 보여라.
+데이터가 선형 분리 가능하면 $\|\boldsymbol{\beta}\| \to \infty$가 되어 MLE가 존재하지 않음을 보여라.
 
 </div>
 
 ??? success "풀이"
-    데이터가 선형 분리 가능하면 모든 $i$에 대해 $(2y_i-1)\mathbf{x}_i^\top\boldsymbol{\beta} > 0$인 $\boldsymbol{\beta}$이 존재한다. 로그가능도는 다음과 같다.
+    데이터가 선형 분리 가능하면 모든 $i$에 대해 $(2y_i-1)\mathbf{x}_i^\top\boldsymbol{\beta} > 0$인 $\boldsymbol{\beta}$가 존재한다. 로그가능도는 다음과 같다.
 
     $$
     \ell(\boldsymbol{\beta}) = \sum_i [y_i \mathbf{x}_i^\top\boldsymbol{\beta} - \log(1+e^{\mathbf{x}_i^\top\boldsymbol{\beta}})]
     $$
 
-    $c \to \infty$으로 $\boldsymbol{\beta} \to c\boldsymbol{\beta}$처럼 배율을 키우면 각 $\sigma(c \cdot \mathbf{x}_i^\top\boldsymbol{\beta}) \to y_i$이 되어 $\ell \to 0$(상한)이다. 그러나 유한한 $\boldsymbol{\beta}$에서는 $\ell = 0$에 결코 도달하지 못하므로 MLE가 존재하지 않는다. 모든 $i$에 대해 $\sigma_i(1-\sigma_i) \to 0$이 되면서 헤세 행렬은 특이해진다. $\square$
+    $c \to \infty$로 $\boldsymbol{\beta} \to c\boldsymbol{\beta}$처럼 배율을 키우면 각 $\sigma(c \cdot \mathbf{x}_i^\top\boldsymbol{\beta}) \to y_i$가 되어 $\ell \to 0$(상한)이다. 그러나 유한한 $\boldsymbol{\beta}$에서는 $\ell = 0$에 결코 도달하지 못하므로 MLE가 존재하지 않는다. 모든 $i$에 대해 $\sigma_i(1-\sigma_i) \to 0$이 되면서 헤세 행렬은 특이해진다. $\square$
 
 ---
 
@@ -682,7 +682,7 @@ $$
 </div>
 
 ??? success "풀이"
-    $\mu_i = e^{\mathbf{x}_i^\top\boldsymbol{\beta}}$(로그 연결)인 포아송의 경우, $\text{Var}(y_i) = \mu_i$이고 $\frac{d\mu}{d\eta} = \mu$이므로 웨이트 행렬은 $\mathbf{B} = \text{diag}(\mu_1, \ldots, \mu_n)$이다.
+    $\mu_i = e^{\mathbf{x}_i^\top\boldsymbol{\beta}}$(로그 연결)인 포아송의 경우, $\text{Var}(y_i) = \mu_i$이고 $\frac{d\mu}{d\eta} = \mu$이므로 가중치 행렬은 $\mathbf{B} = \text{diag}(\mu_1, \ldots, \mu_n)$이다.
 
     작업 반응은 $z_i = \mathbf{x}_i^\top\boldsymbol{\beta} + \frac{y_i - \mu_i}{\mu_i}$이다.
 
@@ -699,7 +699,7 @@ $$
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-예측의 확신이 커짐에 따라 그래디언트의 크기 $\|(\sigma(\mathbf{x}^\top\boldsymbol{\beta}) - y)\mathbf{x}\|$이 어떻게 변하는지 분석하고, 이를 그래디언트 소실과 연결하라.
+예측의 확신이 커짐에 따라 그래디언트의 크기 $\|(\sigma(\mathbf{x}^\top\boldsymbol{\beta}) - y)\mathbf{x}\|$가 어떻게 변하는지 분석하고, 이를 그래디언트 소실과 연결하라.
 
 </div>
 
@@ -755,7 +755,7 @@ $$
 | 배치 그래디언트 | $\frac{1}{n}\mathbf{X}^\top(\mathbf{p} - \mathbf{y})$ |
 | 핵심 상쇄 | $\frac{p-y}{p(1-p)} \cdot p(1-p) = p - y$ |
 | 헤세 행렬 | $\mathbf{H} = \mathbf{X}^{\top}\mathbf{B}\mathbf{X}$ |
-| 웨이트 행렬 | $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$ |
+| 가중치 행렬 | $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$ |
 | 뉴턴 갱신 | $\boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \mathbf{H}^{-1}\mathbf{g}$ |
 | IRLS 갱신 | $\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{B}\mathbf{z}$ |
 | 작업 반응 | $\mathbf{z} = \mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$ |

@@ -9,23 +9,23 @@ scikit-learn의 유방암 데이터로 이진 로지스틱 회귀의 분할, 표
     ```python
     """
     ==============================================================================
-    03_with_sklearn_data.py - 실제 데이터셋 다루기
+    실제 데이터셋 다루기
     ================================================================================
 
     학습 목표:
     - 실제 데이터셋을 불러와 다룬다
     - 데이터 전처리(표준화)를 이해한다
-    - 트레인/검증/시험 분할을 제대로 다룬다
+    - 트레인/시험 분할을 제대로 다룬다
     - 여러 지표로 모델을 평가한다
 
     PREREQUISITES:
-    - 02_simple_binary_classification.py을 마쳤을 것
+    - 「간단한 이진 분류」 쪽을 마쳤을 것
     - 평균과 표준편차 이해
     - 기본 통계 지식
 
     소요 시간: 1시간쯤
 
-    어려움: ⭐⭐☆☆☆ (쉬움~보통)
+    난이도: ⭐⭐☆☆☆ (쉬움~보통)
     ================================================================================
     """
 
@@ -400,7 +400,7 @@ scikit-learn의 유방암 데이터로 이진 로지스틱 회귀의 분할, 표
 
     4. 어려움: 가중 로스 함수를 짜라
        거짓 음성에 더 큰 패널티를 주어라
-       힌트: BCELoss의 pos_weight 파라메터를 써라
+       힌트: BCEWithLogitsLoss의 pos_weight 인자를 써라
 
     5. 어려움: 피처 중요도 살피기
        어떤 피처가 가장 중요한가?
@@ -408,7 +408,7 @@ scikit-learn의 유방암 데이터로 이진 로지스틱 회귀의 분할, 표
     """)
 
     print("\n" + "="*80)
-    print("NEXT: 04_bce_vs_bcewithlogits.py")
+    print("다음: 「BCEWithLogitsLoss를 쓰는 경사 하강법」 쪽")
     print("Learn about numerical stability and better loss functions!")
     print("="*80)
 
@@ -582,7 +582,7 @@ scikit-learn의 유방암 데이터로 이진 로지스틱 회귀의 분할, 표
 
     4. 어려움: 가중 로스 함수를 짜라
        거짓 음성에 더 큰 패널티를 주어라
-       힌트: BCELoss의 pos_weight 파라메터를 써라
+       힌트: BCEWithLogitsLoss의 pos_weight 인자를 써라
 
     5. 어려움: 피처 중요도 살피기
        어떤 피처가 가장 중요한가?
@@ -590,7 +590,7 @@ scikit-learn의 유방암 데이터로 이진 로지스틱 회귀의 분할, 표
 
 
     ================================================================================
-    NEXT: 04_bce_vs_bcewithlogits.py
+    다음: 「BCEWithLogitsLoss를 쓰는 경사 하강법」 쪽
     Learn about numerical stability and better loss functions!
     ================================================================================
     ```
@@ -600,39 +600,39 @@ scikit-learn의 유방암 데이터로 이진 로지스틱 회귀의 분할, 표
 
 ### 데이터의 라벨 의미
 
-이 데이터의 기본 인코딩은 0이 악성, 1이 양성이다. 따라서 시그모이드 출력의 클래스 1 확률은 이 인코딩에서 **양성 종양(benign)** 확률이다. 통계 지표의 positive class와 의학적 악성 판정을 같은 단어로 혼동하지 않는다. 이 예제는 분류 구현을 위한 교육용 분석이다.
+이 데이터의 기본 인코딩은 0이 악성, 1이 양성이다. 따라서 시그모이드 출력의 클래스 1 확률은 이 인코딩에서 **양성 종양(benign)** 확률이다. 한국어로는 benign도 「양성」, 통계 지표의 positive도 「양성」이라 더 헷갈리기 쉽다. 이 쪽에서는 benign을 「양성 종양」, 지표의 기준 클래스를 positive로 적어 가른다. 통계 지표의 positive class와 의학적 악성 판정을 혼동하지 않는다. 이 예제는 분류 구현을 위한 교육용 분석이다.
 
 ### 트레인 데이터로 정한 변환
 
-피처 30개의 단위가 다르므로 StandardScaler를 트레인 집합에 적합한 뒤 시험 집합에 적용한다. 계수 크기를 비교할 때도 이 표준화 기준을 명시한다. 시험 데이터의 통계를 미리 사용하면(데이터 누수) 평가가 낙관적으로 바뀔 수 있다.
+피처 30개의 단위가 다르므로 StandardScaler를 트레인 집합에만 맞춘(fit) 뒤 시험 집합에 적용한다. 웨이트의 크기로 피처의 중요도를 견줄 때도 표준화한 피처에 대한 값임을 밝힌다. 시험 데이터의 통계를 미리 사용하면(데이터 누수) 평가가 낙관적으로 바뀔 수 있다.
 
 ### 지표의 기준 클래스
 
-정밀도와 재현율, ROC 곡선을 계산할 때 어느 클래스를 양성으로 정했는지 확인한다. 높은 전체 정확도만으로 악성 사례를 놓치는 일(거짓 음성)이 적다고 판단할 수 없다. 이 쪽의 출력에서 악성 42개 가운데 양성으로 잘못 예측한 것은 1개인데, 클래스 1(양성 종양)을 positive로 두는 sklearn 표기에서는 이것이 거짓 음성이 아니라 **FP**로 찍힌다. 분할과 초기값에 따른 변동을 고려하고 독립적인 최종 평가와 설정 선택을 구분한다.
+정밀도는 positive로 예측한 것 가운데 맞은 비율이고 재현율은 실제 positive 가운데 찾아낸 비율이다. 이 쪽의 출력에서는 각각 69/70 = 0.9857, 69/72 = 0.9583이다. 정밀도와 재현율, ROC 곡선을 계산할 때 어느 클래스를 positive로 정했는지 확인한다. 높은 전체 정확도만으로 악성 사례를 놓치는 일(거짓 음성)이 적다고 판단할 수 없다. 이 쪽의 출력에서 악성 42개 가운데 양성 종양으로 잘못 예측한 것은 1개인데, 클래스 1(양성 종양)을 positive로 두는 sklearn 표기에서는 이것이 거짓 음성이 아니라 **FP**로 찍힌다. 분할과 초기값에 따른 변동을 고려하고 독립적인 최종 평가와 설정 선택을 구분한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
-**연습문제 1.** <span class="diff med" title="중간"></span>
+**연습문제 1.** <span class="diff easy" title="쉬움"></span>
 입력 피처 수가 $d$인 단일 선형 이진 분류기의 파라메터 수와 출력 형태를 설명하라.
 
 </div>
 
 ??? success "풀이"
-    웨이트 $d$개와 바이어스 1개로 총 $d+1$개다. 배치 입력 $(B,d)$에 대한 출력은 $(B,1)$이다. 시그모이드에는 트레인 파라메터가 없다. 유방암 데이터의 피처 30개를 쓰는 경우에는 31개다.
+    웨이트 $d$개와 바이어스 1개로 총 $d+1$개다. 배치 입력 $(B,d)$에 대한 출력은 $(B,1)$이다. 시그모이드에는 트레인 가능한 파라메터가 없다. 유방암 데이터의 피처 30개를 쓰는 경우에는 31개다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-옵티마이저를 Adam으로 바꾸고(`torch.optim.Adam`에 `lr=0.001`을 쓴다) 원래 옵티마이저와 트레인 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
+이 쪽은 `torch.optim.SGD`에 `lr=0.1`을 쓴다. 옵티마이저를 `torch.optim.Adam`(`lr=0.001`)으로 바꾸고 원래 옵티마이저와 트레인 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
 
 </div>
 
 ??? success "풀이"
-    옵티마이저를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 바꾼다. Adam은 그래디언트와 그래디언트 제곱의 이동 평균으로 성분별 업데이트를 조정한다. 어느 옵티마이저가 더 빨리 수렴하는지는 문제와 러닝레이트에 달려 있다. 같은 초기 웨이트와 데이터 순서, 평가 기준을 사용하고 각 러닝레이트를 조정해 비교한다. 여러 시드의 변동과 검증 성능도 확인한다.
+    옵티마이저를 만드는 줄을 `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`으로 바꾼다. Adam은 그래디언트와 그래디언트 제곱의 이동 평균으로 성분별 업데이트를 조정한다. 어느 옵티마이저가 더 빨리 수렴하는지는 문제와 러닝레이트에 달려 있다. 같은 초기 웨이트와 평가 기준을 사용하고 각 러닝레이트를 조정해 비교한다. 여러 시드의 변동과 검증 성능도 확인한다.
 
 ---
 
@@ -651,18 +651,41 @@ scikit-learn의 유방암 데이터로 이진 로지스틱 회귀의 분할, 표
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-풀이에 실린 일반적인 레이어 확장 코드(`nn.ModuleList`)가 이 페이지의 원래 클래스에 그대로 적용되는지 검토하라. 모델과 데이터셋의 역할, 생성자 인수, 입력·출력 형태와 비선형성에서 필요한 수정 사항을 설명하라.
+코드가 끝에 찍는 연습 4는 `BCEWithLogitsLoss`의 `pos_weight`로 「거짓 음성에 더 큰 패널티」를 주라고 한다. 이 쪽의 인코딩(0 = 악성, 1 = 양성 종양)에서 `pos_weight`가 어느 오류의 패널티를 키우는지 설명하라. 그런 다음 `LogisticRegressionModel`을 `pos_weight` 1.0 · 0.25 · 4.0으로 각각 트레인해, 시험 집합 혼동 행렬의 FP(악성을 양성 종양으로 예측)와 FN이 어떻게 움직이는지 확인하라.
 
 </div>
 
 ??? success "풀이"
-    아래 코드는 일반적인 ModuleList 구성 패턴의 일부이며 이 페이지 클래스의 완성된 대체 구현은 아니다.
+    `pos_weight`는 정답이 1인 표본의 로스 항에 곱해진다. 이 쪽에서 클래스 1은 양성 종양이므로, `pos_weight`를 1보다 크게 잡으면 **양성 종양을 악성으로 잘못 예측하는 오류**(sklearn 표기의 FN)의 패널티가 커진다. 놓친 악성은 정답이 0인 표본이어서 이 표기에서는 FP이고, 그쪽 패널티를 상대적으로 키우려면 `pos_weight`를 1보다 작게 잡거나 라벨을 `1 - y`로 뒤집어 악성을 클래스 1로 두어야 한다. 「거짓 음성」이라는 말만 보고 `pos_weight`를 키우면 의도와 반대쪽을 누르게 된다.
+
+    `BCEWithLogitsLoss`는 확률이 아니라 로짓을 받으므로 `model(X_train)` 대신 시그모이드를 거치기 전의 `model.linear(X_train)`을 넘긴다. 이 쪽의 코드 뒤에 이어 붙여 돌린다.
     ```python
-    self.layers = nn.ModuleList()
-    for i in range(num_layers):
-        self.layers.append(YourBlock(dim, ...))
+    def train_weighted(pos_weight):
+        torch.manual_seed(0)
+        model = LogisticRegressionModel(n_features)
+        criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([pos_weight]))
+        optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+        for epoch in range(num_epochs):
+            logits = model.linear(X_train)      # 시그모이드를 거치지 않은 로짓
+            loss = criterion(logits, y_train)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        with torch.no_grad():
+            y_pred_class = (model(X_test) >= 0.5).float()
+        return confusion_matrix(y_test.numpy().flatten(),
+                                y_pred_class.numpy().flatten())
+
+    for pos_weight in [1.0, 0.25, 4.0]:
+        tn, fp, fn, tp = train_weighted(pos_weight).ravel()
+        print(f"pos_weight={pos_weight}: FP={fp}  FN={fn}")
     ```
-    적용하려면 생성자와 `forward`를 함께 정의하고 마지막 출력 형태와 로스의 입력 조건을 유지해야 한다. 선형 레이어만 여러 개 합성하면 여전히 하나의 선형 사상이므로 표현력을 늘리려면 적절한 비선형성이 필요하다. Dataset은 표본 접근 인터페이스이므로 레이어를 등록할 대상이 아니며 별도 모델 클래스에 이 구성을 적용한다.
+    ```
+    pos_weight=1.0: FP=1  FN=3
+    pos_weight=0.25: FP=1  FN=8
+    pos_weight=4.0: FP=2  FN=1
+    ```
+    `pos_weight=1.0`은 본문의 혼동 행렬(FP 1, FN 3)과 같다. 4.0에서는 FN이 3에서 1로 줄지만 놓친 악성(FP)이 1에서 2로 는다. 0.25에서는 FN이 8로 늘고 FP는 1에서 더 줄지 않았다. 시험 집합의 악성이 42개뿐이고 분할과 시드가 하나씩이므로, 한두 개의 차이는 방향을 보이는 정도로만 읽는다.
 
 ## 정리하며
 

@@ -1,13 +1,13 @@
 # 모델 체크포인트
 
-모델의 추론 상태를 저장하는 경우와 중단한 트레인을 이어가는 경우를 비교한다. 웨이트 외에 함께 보존해야 할 상태를 확인한다.
+체크포인트는 트레인 도중의 상태를 파일로 떠 둔 것이다. 추론에 쓸 모델만 저장하는 경우와 중단한 트레인을 이어가려고 저장하는 경우를 비교한다. 웨이트 외에 함께 보존해야 할 상태를 확인한다.
 
 ## 1. 코드
 
 ```python
 """
 ================================================================================
-03_model_checkpointing.py - 모델 저장하고 불러오기
+모델 저장하고 불러오기
 ================================================================================
 
 학습 목표:
@@ -584,13 +584,13 @@ if __name__ == "__main__":
 
 ### 상태 사전과 모델 구조
 
-`state_dict()`는 등록된 파라메터와 영속 버퍼를 담는다. 복원할 때는 호환되는 모델 구조를 만들고 상태를 불러온다. 전처리 통계와 피처 순서, 클래스 인코딩도 같아야 같은 예측을 얻을 수 있다.
+`state_dict()`는 등록된 파라메터와 영속 버퍼를 담는다 — 버퍼는 배치 정규화의 이동 평균처럼 트레인되지는 않지만 모델과 함께 저장되는 텐서다. 복원할 때는 호환되는 모델 구조를 만들고 상태를 불러온다. 전처리 통계와 피처 순서, 클래스 인코딩도 같아야 같은 예측을 얻을 수 있다.
 
 ### 트레인 재개와 최적 체크포인트
 
-옵티마이저의 이동 평균과 단계 수는 파라메터 값과 별개다. 트레인 재개에는 이 상태와 에포크, 필요한 스케줄러·정밀도 스케일러·난수 상태도 고려한다. 검증 지표가 가장 좋았던 웨이트를 별도로 저장하는 목적과 마지막 실행을 이어가는 목적을 구분한다.
+옵티마이저의 이동 평균과 스텝 수는 파라메터 값과 별개다(Adam은 그래디언트의 이동 평균을 들고 다닌다). 트레인 재개에는 이 상태와 에포크, 필요하면 러닝레이트 스케줄러·혼합 정밀도 트레인의 `GradScaler`·난수 상태도 고려한다. 검증 지표가 가장 좋았던 웨이트를 별도로 저장하는 목적과 마지막 실행을 이어가는 목적을 구분한다.
 
-출력에서 두 가지를 눈여겨본다. 첫째, 코드는 0부터 센 에포크 번호를 저장하므로 `checkpoint_epoch_20.pt`에는 `Epoch: 19`가 들어 있고, 재개 루프는 이미 마친 20번째 에포크를 다시 `Epoch [20]`으로 찍는다. 저장하는 번호가 「마친 에포크」인지 「다음에 할 에포크」인지 정해 두어야 이런 한 칸 어긋남이 생기지 않는다. 둘째, `best_model.pt`는 시험 데이터의 정확도로 고른다. 그렇게 고른 모델의 0.9000은 시험 데이터를 선택에 이미 쓴 값이므로 편향 없는 일반화 성능이 아니다. 고르는 데는 검증 데이터를 따로 쓴다.
+출력에서 두 가지를 눈여겨본다. 첫째, 코드는 0부터 센 에포크 번호를 저장하므로 `checkpoint_epoch_20.pt`에는 `Epoch: 19`가 들어 있고, 재개 루프는 그 19에서 다시 세기 시작해 스물한 번째로 도는 에포크를 `Epoch [20]`으로 찍는다 — 20이라는 번호가 두 번 나온다. 저장하는 번호가 「마친 에포크」인지 「다음에 할 에포크」인지 정해 두어야 이런 한 칸 어긋남이 생기지 않는다. 둘째, `best_model.pt`는 시험 데이터의 정확도로 고른다. 그렇게 고른 모델의 0.9000은 시험 데이터를 선택에 이미 쓴 값이므로 편향 없는 일반화 성능이 아니다. 고르는 데는 검증 데이터를 따로 쓴다.
 
 ### 저장과 평가의 경계
 
@@ -606,7 +606,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    웨이트 $d$개와 바이어스 1개로 총 $d+1$개다. 배치 입력 $(B,d)$에 대한 출력은 $(B,1)$이다. 시그모이드에는 트레인 파라메터가 없다. 이 쪽의 `make_classification` 데이터는 피처가 20개이므로 21개다.
+    웨이트 $d$개와 바이어스 1개로 총 $d+1$개다. 배치 입력 $(B,d)$에 대한 출력은 $(B,1)$이다. 시그모이드에는 트레인 가능한 파라메터가 없다. 이 쪽의 `make_classification` 데이터는 피처가 20개이므로 21개다.
 
 ---
 
@@ -637,18 +637,56 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-풀이에 실린 일반적인 레이어 확장 코드(`nn.ModuleList`)가 이 페이지의 원래 클래스에 그대로 적용되는지 검토하라. 모델과 데이터셋의 역할, 생성자 인수, 입력·출력 형태와 비선형성에서 필요한 수정 사항을 설명하라.
+`load_checkpoint(filepath, model)`처럼 `optimizer`를 넘기지 않고 불러오면 웨이트만 복원된다. (가) 이 쪽의 `torch.optim.Adam`이 `state_dict()`에 무엇을 들고 있는지 꺼내 보고, 새로 만든 옵티마이저와 무엇이 다른지 확인하라. (나) 출력에서 `Epoch [20]`이 두 번 찍히는 한 칸 어긋남을 없애도록 `save_checkpoint`를 부르는 줄과 재개 루프를 고쳐라.
 
 </div>
 
 ??? success "풀이"
-    아래 코드는 일반적인 ModuleList 구성 패턴의 일부이며 이 페이지 클래스의 완성된 대체 구현은 아니다.
+    (가) Adam은 파라메터마다 스텝 수 `step`, 그래디언트의 이동 평균 `exp_avg`, 그래디언트 제곱의 이동 평균 `exp_avg_sq`를 들고 있다. `LogisticRegression`의 파라메터는 웨이트와 바이어스 둘이므로 이 묶음도 둘이다. 새로 만든 옵티마이저는 이 상태가 비어 있어서, 웨이트만 복원하고 이어 가면 두 이동 평균이 0에서 다시 시작하고 스텝 수도 0으로 돌아가 Adam의 바이어스 보정이 처음부터 다시 걸린다. 웨이트는 이어지지만 업데이트 크기는 끊기지 않은 트레인과 달라진다. `new_optimizer.load_state_dict(...)`가 이것을 되돌려 놓는다.
+
     ```python
-    self.layers = nn.ModuleList()
-    for i in range(num_layers):
-        self.layers.append(YourBlock(dim, ...))
+    import torch
+    import torch.nn as nn
+
+    torch.manual_seed(0)
+    model = LogisticRegression(20)        # 이 쪽의 클래스
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    print(len(optimizer.state_dict()['state']))    # 0 — 아직 한 스텝도 안 갔다
+
+    x = torch.randn(64, 20)
+    y = torch.randint(0, 2, (64, 1)).float()
+    loss = nn.BCELoss()(model(x), y)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    state = optimizer.state_dict()['state']
+    print(len(state))                     # 2 — 웨이트와 바이어스
+    print(sorted(state[0].keys()))        # ['exp_avg', 'exp_avg_sq', 'step']
+    print(state[0]['exp_avg'].shape)      # torch.Size([1, 20]) — 웨이트와 같은 형태
+
+    new_optimizer = torch.optim.Adam(LogisticRegression(20).parameters(), lr=0.001)
+    print(len(new_optimizer.state_dict()['state']))       # 0
+    new_optimizer.load_state_dict(optimizer.state_dict())
+    print(new_optimizer.state_dict()['state'][0]['step']) # tensor(1.)
     ```
-    적용하려면 생성자와 `forward`를 함께 정의하고 마지막 출력 형태와 로스의 입력 조건을 유지해야 한다. 선형 레이어만 여러 개 합성하면 여전히 하나의 선형 사상이므로 표현력을 늘리려면 적절한 비선형성이 필요하다. Dataset은 표본 접근 인터페이스이므로 레이어를 등록할 대상이 아니며 별도 모델 클래스에 이 구성을 적용한다.
+
+    (나) 저장하는 번호의 뜻을 「마친 에포크 수」로 정한다. 저장하는 줄에서 `epoch` 대신 `epoch + 1`을 넘기면 `checkpoint_epoch_20.pt`에 20이 들어가 파일 이름과 맞는다.
+
+    ```python
+    save_checkpoint(model, optimizer, epoch + 1, avg_loss, test_accuracy, checkpoint_path)
+    ```
+
+    재개하는 쪽은 그 수를 「다음에 돌 에포크의 0부터 센 번호」로 그대로 쓴다. 루프 줄은 바꿀 것이 없고, 안내 문구의 `+1`만 뗀다.
+
+    ```python
+    start_epoch = checkpoint_info['epoch']            # 마친 에포크 수 = 20
+    print(f"\nResuming training from epoch {start_epoch + 1}...")   # 21
+    for epoch in range(start_epoch, start_epoch + resume_epochs):
+        ...                                           # 트레인 루프는 그대로
+    ```
+
+    이제 재개한 첫 에포크는 `epoch = 20`, 곧 스물한 번째 에포크이므로 20이라는 번호가 두 번 나오지 않는다. 열 에포크를 더 돌면 21번째부터 30번째까지이고, 다섯 에포크마다 찍는 줄은 `Epoch [25]`와 `Epoch [30]`이 된다.
 
 ## 정리하며
 

@@ -6,7 +6,7 @@
 
 ## 1. 학습 목표
 
-이 절을 마치면 다음을 할 수 있게 된다.
+이 쪽을 마치면 다음을 할 수 있게 된다.
 
 - 베르누이 분포의 일반화로서 범주형 분포 이해하기
 - 다중 클래스 분류의 확률질량함수 유도하기
@@ -47,7 +47,7 @@ $$P(Y = k) = \pi_k$$
 
 **원핫 인코딩**(one-hot encoding)은 범주형 라벨 $y \in \{1, 2, \ldots, K\}$을, 정확히 한 원소만 1이고 나머지는 모두 0인 이진 벡터 $\mathbf{y} \in \{0, 1\}^K$으로 바꾼다.
 
-$$\mathbf{y} = \mathbf{e}_k = (0, \ldots, 0, \underbrace{1}_{k\text{-th position}}, 0, \ldots, 0)^T$$
+$$\mathbf{y} = \mathbf{e}_k = (0, \ldots, 0, \underbrace{1}_{k\text{번째 자리}}, 0, \ldots, 0)^T$$
 
 **예.** 클래스가 $K = 3$개일 때(예: 고양이, 개, 새) 다음과 같다.
 
@@ -69,11 +69,11 @@ $$y_i \cdot y_j = 0 \quad \forall\, i \neq j$$
 
 **성질 3 (지시 함수).**
 
-$$y_k = \mathbb{1}[Y = k] = \begin{cases} 1 & \text{if } Y = k \\ 0 & \text{otherwise} \end{cases}$$
+$$y_k = \mathbb{1}[Y = k] = \begin{cases} 1 & (Y = k\text{일 때}) \\ 0 & (\text{그 밖}) \end{cases}$$
 
 **성질 4 (확률 벡터와의 내적).**
 
-$$\mathbf{y}^T \boldsymbol{\pi} = \pi_k \quad \text{when } Y = k$$
+$$\mathbf{y}^T \boldsymbol{\pi} = \pi_k \quad (Y = k\text{일 때})$$
 
 마지막 성질이 특히 중요하다. 단순한 내적 하나로 참 클래스의 확률을 꺼낼 수 있게 해 주기 때문이다.
 
@@ -280,9 +280,10 @@ labels_indices = torch.tensor([0, 1])
 loss_correct = criterion(logits, labels_indices)
 print(f"Loss with indices: {loss_correct.item():.4f}")
 
-# 주의: 실수형 원핫 벡터는 확률 목표 모드로 받아들여진다
+# 실수형 원핫 벡터는 확률 목표 모드로 받아들여진다
 labels_onehot = F.one_hot(labels_indices, num_classes=3).float()
-# criterion(logits, labels_onehot)                 # 정수형 원핫 텐서를 그대로 넘기면 오류가 난다
+# criterion(logits, labels_onehot)                 # 오류가 아니다 — 인덱스 모드와 같은 0.3854 가 나온다
+# criterion(logits, F.one_hot(labels_indices, 3))  # 오류: .float() 를 뗀 정수형(long) 원핫은 받지 않는다
 ```
 
 **출력:**
@@ -437,7 +438,7 @@ Class counts: [4954 3032 2014]
         print(f"T={T}: {p}")
     # T=0.1: 거의 원핫 [1.0, 0.0, 0.0]
     # T=1.0: 표준 소프트맥스 [0.66, 0.24, 0.10]
-    # T=5.0: 거의 균등 [0.38, 0.34, 0.28]
+    # T=5.0: 거의 균등 [0.40, 0.33, 0.27]
     ```
     온도가 낮으면 분포가 날카로워지고(확신), 온도가 높으면 평평해진다(불확실).
 

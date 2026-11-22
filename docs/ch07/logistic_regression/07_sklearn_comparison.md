@@ -7,7 +7,7 @@
 ```python
 """scikit-learn과의 비교."""
 # ========================================================
-# logistic_regression/main.py
+# 로지스틱 회귀: 약물 반응 열마다 분류
 # ========================================================
 import numpy as np
 import pandas as pd
@@ -160,29 +160,32 @@ PyTorch 구현을 추가할 때는 같은 표본 분할, 피처 스케일, 절�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-scikit-learn과의 비교 구현을 검증하는 종합적인 시험 함수를 작성하라. 빈 입력, 원소가 하나뿐인 입력, 아주 큰 입력, 그리고 극단적인 값(0, 아주 큰 수)을 가진 입력 등 경계 사례를 시험하라.
+출력에는 정확도 1.00인 열이 여럿 있다. 이 수만으로 `LogisticRegression`이 그 약물 반응을 잘 예측한다고 말할 수 있는가? 각 정답 열에 대해 **트레인 집합의 다수 클래스만 찍는 베이스라인**의 시험 정확도를 같은 분할(`test_size=0.3, random_state=0`)에서 계산하고 `records`와 견주어라.
 
 </div>
 
 ??? success "풀이"
-    경계 조건을 두루 시험하는 함수를 만든다.
+    말할 수 없다. 정답 열은 0과 1뿐인 이진 라벨인데, 한 클래스가 거의 전부인 열에서는 피처를 전혀 보지 않고 그 클래스만 찍어도 정확도가 높게 나온다. 정확도는 같은 분할에서 잰 베이스라인과 견줄 때에만 뜻을 가진다. 이 쪽의 반복문에 두 줄을 더한다.
     ```python
-    def test_sklearn_comparison():
-        model = SklearnComparison(...)
-        # 보통의 입력
-        assert model(normal_input).shape == expected_shape
-        # 원소가 하나인 배치
-        assert model(single_input).shape == (1, ...)
-        # 큰 값 (오버플로를 확인한다)
-        out = model(torch.ones(...) * 1000)
-        assert torch.isfinite(out).all()
-        # 그래디언트의 흐름
-        out = model(normal_input)
-        out.sum().backward()
-        for p in model.parameters():
-            assert p.grad is not None
+    records, baseline = [], []
+    for i in range(Y_data.shape[1]):
+        y_data = Y_data.iloc[:, i]
+        X_train, X_test, y_train, y_test = train_test_split(
+            X_data, y_data, test_size=0.3, random_state=0
+        )
+        model = LogisticRegression(max_iter=1000)
+        model.fit(X_train, y_train)
+        records.append(accuracy_score(y_test, model.predict(X_test)))
+
+        majority = y_train.mode()[0]                    # 트레인 집합의 다수 클래스
+        baseline.append((y_test == majority).mean())    # 그것만 찍은 시험 정확도
+
+    records, baseline = np.array(records), np.array(baseline)
+    for i in range(len(records)):
+        print(f"{i:2}-th response: model {records[i]:.2f}  baseline {baseline[i]:.2f}")
+    print((records > baseline).sum(), (records == baseline).sum(), (records < baseline).sum())
     ```
-    그래디언트의 흐름을 시험하는 것은 그 구조가 처음부터 끝까지 이어지는 트레인을 지원하는지 확인하는 데 특히 중요하다.
+    돌려 보면 24개 열 가운데 모델이 베이스라인을 넘는 것은 4개(5 · 9 · 13 · 22번)뿐이고, 13개는 같으며 7개는 오히려 낮다. 정확도 1.00인 다섯 열(4 · 10 · 12 · 16 · 17번)은 베이스라인도 1.00이다 — 시험 집합에 한 클래스만 들어 있었다는 뜻이지 모델이 무엇을 배웠다는 뜻이 아니다. 차이가 가장 큰 열은 13번(0.83 대 0.72)과 22번(0.55 대 0.48)이다. 시험 표본이 87개이고 분할이 하나이므로 0.01~0.03의 차이는 표본 한두 개에 해당한다. 클래스가 치우친 열은 `classification_report`의 클래스별 재현율로 읽어야 한다.
 
 ## 정리하며
 

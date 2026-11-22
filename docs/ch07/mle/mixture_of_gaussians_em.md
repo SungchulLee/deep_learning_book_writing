@@ -1,6 +1,6 @@
 # 가우시안 혼합 EM
 
-각 관측이 어느 가우스 성분에서 나왔는지 모르는 상황에서 혼합비, 평균과 공분산을 추정한다. 이 예제는 경사 하강법 대신 E 단계와 M 단계를 반복한다.
+각 관측이 어느 가우시안 성분에서 나왔는지 모르는 상황에서 혼합 웨이트(성분마다의 비율 $\pi_k$), 평균과 공분산을 추정한다. 이 예제는 경사 하강법 대신 E 단계와 M 단계를 반복한다.
 
 ## 1. 코드
 
@@ -10,7 +10,7 @@
     #!/usr/bin/env python3
     """
     ================================================================================
-    가우스 혼합 최대가능도 — 기댓값-최대화 알고리즘
+    가우시안 혼합 최대가능도 — 기댓값-최대화 알고리즘
     ================================================================================
 
     난이도: ⭐⭐⭐ 심화(3단계)
@@ -21,11 +21,11 @@
     - 소프트 군집화를 구현한다
     - 최대가능도가 결측 데이터와 잠재 데이터를 어떻게 다루는지 본다
 
-    문제: 서로 다른 가우스 분포 K개에서 나온 데이터를 보지만 어떤 점이 어느
+    문제: 서로 다른 가우시안 분포 K개에서 나온 데이터를 보지만 어떤 점이 어느
     분포에서 왔는지는 모른다. 파라메터를 모두 추정하여라!
 
     MODEL:
-    - 평균이 μₖ, 공분산이 Σₖ인 가우스 성분 K개
+    - 평균이 μₖ, 공분산이 Σₖ인 가우시안 성분 K개
     - 혼합 웨이트 πₖ(성분 k일 확률)
     - 잠재변수 zᵢ가 xᵢ를 생성한 성분을 가리킨다
 
@@ -66,7 +66,7 @@
 
 
     def generate_gmm_data(n_samples: int = 300, n_components: int = 3, seed: int = 42):
-        """가우스 혼합 모델에서 데이터를 생성한다"""
+        """가우시안 혼합 모델에서 데이터를 생성한다"""
         torch.manual_seed(seed)
         np.random.seed(seed)
 
@@ -111,7 +111,7 @@
 
 
     class GaussianMixture:
-        """EM 알고리즘을 쓰는 가우스 혼합 모델"""
+        """EM 알고리즘을 쓰는 가우시안 혼합 모델"""
 
         def __init__(self, n_components=3, n_iterations=50):
             self.n_components = n_components
@@ -476,13 +476,13 @@
        - 여러 번의 무작위 재시작
        - 수렴 양상을 견준다
 
-    4. 어려움: 베이즈 가우스 혼합 모델
+    4. 어려움: 베이즈 가우시안 혼합 모델
        - 혼합 웨이트에 디리클레 사전분포를 둔다
-       - 평균과 공분산에 가우스-위샤트 사전분포를 둔다
+       - 평균과 공분산에 가우시안-위샤트 사전분포를 둔다
        - 변분 추론을 구현한다
 
     5. 어려움: 응용
-       - 가우스 혼합 모델로 하는 영상 분할
+       - 가우시안 혼합 모델로 하는 영상 분할
        - 이상 탐지(확률이 낮은 점)
        - 밀도 추정과 샘플링
     """
@@ -548,11 +548,25 @@ MIXTURE OF GAUSSIANS - EM Algorithm
 
 ### 잠재 성분과 책임도
 
-혼합분포는 $p(x)=\sum_k\pi_k\mathcal N(x\mid\mu_k,\Sigma_k)$이다. E 단계는 현재 파라메터로 관측별 성분의 사후확률인 책임도를 계산한다. M 단계는 책임도로 가중한 표본 수, 평균과 공분산을 사용해 파라메터를 다시 추정한다. 두 단계를 반복하는 것이 EM이다.
+혼합분포는 $p(x)=\sum_k\pi_k\mathcal N(x\mid\mu_k,\Sigma_k)$이다. 관측 $x_i$가 어느 성분에서 나왔는지를 가리키는, 보이지 않는 변수를 **잠재변수**라 한다. E 단계는 현재 파라메터로 관측별 성분의 사후확률인 **책임도**를 계산한다.
+
+$$
+\gamma_{ik}=\frac{\pi_k\,\mathcal N(x_i\mid\mu_k,\Sigma_k)}{\sum_j\pi_j\,\mathcal N(x_i\mid\mu_j,\Sigma_j)}
+$$
+
+M 단계는 책임도로 가중한 표본 수 $N_k=\sum_i\gamma_{ik}$, 평균과 공분산을 사용해 파라메터를 다시 추정한다.
+
+$$
+\pi_k=\frac{N_k}{N},\qquad
+\mu_k=\frac{1}{N_k}\sum_i\gamma_{ik}\,x_i,\qquad
+\Sigma_k=\frac{1}{N_k}\sum_i\gamma_{ik}\,(x_i-\mu_k)(x_i-\mu_k)^\top
+$$
+
+여기서 $N$은 관측의 수다. 두 단계를 반복하는 것이 EM(기댓값-최대화)이다.
 
 ### 수렴 보장의 범위
 
-정확한 E·M 단계는 관측 로그가능도(log-likelihood; 가능도는 우도라고도 한다)를 감소시키지 않지만 전역 최댓값을 보장하지 않는다. 초기화가 다른 해를 만들 수 있으며, 가우스 혼합의 비제약 가능도는 한 성분이 표본 하나에 달라붙어 공분산이 0으로 줄어들면 무한히 커질 수 있다. 예제의 대각 보정과 작은 분모 상수는 수치적 안정화이며 이상적인 EM의 정확한 단조성 보장을 그대로 적용하는 근거는 아니다.
+정확한 E·M 단계는 관측 로그가능도(log-likelihood; 가능도는 우도라고도 한다)를 감소시키지 않지만 전역 최댓값을 보장하지 않는다. 초기화가 다른 해를 만들 수 있으며, 가우시안 혼합의 비제약 가능도는 한 성분이 표본 하나에 달라붙어 공분산이 0으로 줄어들면 무한히 커질 수 있다. 예제의 대각 보정과 작은 분모 상수는 수치적 안정화이며 이상적인 EM의 정확한 단조성 보장을 그대로 적용하는 근거는 아니다.
 
 **「초기화가 다른 해를 만들 수 있다」가 이 데이터에서 얼마나 자주 일어나는가.** 위 코드는 한 번만 돌린다. 같은 데이터에 초기화만 바꾸어 서른 번 돌려 보면 여덟 번이 다른 곳에 멈춘다.
 
@@ -602,7 +616,7 @@ EM을 여러 초기값에서 실행할 때 어떤 기준으로 결과를 비교�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-가우스 혼합에서 성분 붕괴와 수치 언더플로를 어떻게 진단하는가?
+가우시안 혼합에서 성분 붕괴와 수치 언더플로를 어떻게 진단하는가?
 
 </div>
 
@@ -614,31 +628,49 @@ EM을 여러 초기값에서 실행할 때 어떤 기준으로 결과를 비교�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-조기 종료를 구현하라. 매 에포크 후 검증 로스를 추적하고, 10 에포크 연속으로 개선이 없으면 트레인을 멈춘다. 가장 좋은 모델 웨이트를 저장하고 복원하라.
+`fit`은 `n_iterations`번을 무조건 돈다. 그런데 출력에서 로그가능도는 30번째 반복 뒤로 $-1134.17$에서 움직이지 않는다. 로그가능도의 증가폭이 `tol`보다 작아지면 멈추는 함수 `fit_until_converged(gmm, X, tol, max_iterations)`를 `initialize_parameters` · `e_step` · `m_step` · `compute_log_likelihood`만으로 작성하라. `tol`을 $10^{-2}$, $10^{-3}$, $10^{-4}$, $10^{-6}$으로 바꾸어 멈추는 반복 수를 재고, 이 기준이 알려 주지 못하는 것을 설명하라.
 
 </div>
 
 ??? success "풀이"
-    인내 횟수 카운터와 최저 로스 추적기를 추가한다.
+    `fit`의 반복문을 그대로 옮기고, 직전 로그가능도와의 차이를 보는 줄만 더한다.
     ```python
-    best_loss = float('inf')
-    patience_counter = 0
-    best_state = None
-    for epoch in range(num_epochs):
-        # ... 트레인 단계 ...
-        val_loss = evaluate(model, val_loader)
-        if val_loss < best_loss:
-            best_loss = val_loss
-            patience_counter = 0
-            best_state = model.state_dict().copy()
-        else:
-            patience_counter += 1
-        if patience_counter >= 10:
-            print(f'Early stopping at epoch {epoch}')
-            model.load_state_dict(best_state)
-            break
+    def fit_until_converged(gmm, X, tol=1e-4, max_iterations=200):
+        """로그가능도 증가폭이 tol 아래로 내려가면 EM 을 멈춘다."""
+        gmm.initialize_parameters(X)
+        prev = -float('inf')
+        for iteration in range(max_iterations):
+            responsibilities = gmm.e_step(X)
+            gmm.m_step(X, responsibilities)
+            log_lik = gmm.compute_log_likelihood(X)
+            gmm.history.append(log_lik)
+            if log_lik - prev < tol:
+                break
+            prev = log_lik
+        return iteration + 1
+
+
+    for tol in [1e-2, 1e-3, 1e-4, 1e-6]:
+        X, labels, true_means, true_covs, true_weights = generate_gmm_data(n_samples=300, n_components=3)
+        gmm = GaussianMixture(n_components=3)
+        n_used = fit_until_converged(gmm, X, tol=tol)
+        print(f"tol={tol:g}: {n_used}번, 로그가능도 {gmm.history[-1]:.2f}, "
+              f"혼합 웨이트 {[round(v, 4) for v in gmm.weights.tolist()]}")
     ```
-    검증 지표가 더 나아지지 않을 때 중단하고 가장 좋은 체크포인트를 복원하면 과적합을 줄이는 데 도움이 될 수 있다. 검증셋을 반복적인 선택에 사용한 결과와 독립 시험 성능은 구분한다.
+    `generate_gmm_data`가 시드를 고정하므로, 그 바로 뒤에 초기화하면 본문의 실행과 같은 초기 평균에서 출발한다. 돌려서 얻은 값은 다음과 같다.
+
+    | `tol` | 멈춘 반복 | 로그가능도 |
+    |---|---|---|
+    | $10^{-2}$ | 22 | $-1134.20$ |
+    | $10^{-3}$ | 30 | $-1134.17$ |
+    | $10^{-4}$ | 32 | $-1134.17$ |
+    | $10^{-6}$ | 32 | $-1134.17$ |
+
+    50번을 다 돌지 않고 30번 남짓에서 같은 로그가능도에 닿는다. 읽을 것이 셋 있다.
+
+    - **`tol`을 $10^{-4}$보다 줄여도 달라지지 않는다.** 이 구현은 로그가능도를 float32로 더하는데, 크기가 1134쯤인 float32 수는 이웃한 두 수의 간격이 약 $1.2\times10^{-4}$이다. 그보다 작은 증가는 0으로 찍히므로 $10^{-4}$와 $10^{-6}$이 같은 자리에서 멈춘다. 허용 오차를 눈금보다 잘게 잡는 것은 뜻이 없다.
+    - **로그가능도가 멈춰도 파라메터는 조금 더 움직인다.** 32번에서 멈춘 혼합 웨이트는 $(0.3106, 0.3894, 0.3000)$이고, 50번을 돈 본문의 출력은 $(0.3090, 0.3910, 0.3000)$이다. 꼭대기 근처에서 로그가능도가 평평하기 때문이다.
+    - **이 기준은 국소 최댓값과 전역 최댓값을 가르지 못한다.** 증가폭이 작다는 것은 그 자리에서 더 올라갈 곳이 없다는 뜻일 뿐이다. 논의에서 본, 성분 하나가 두 군집을 삼킨 실패한 실행도 그 자리에서 로그가능도가 멈추면 똑같이 「수렴」으로 끝난다. 수렴 판정은 여러 초기화로 돌려 가장 높은 로그가능도를 고르는 일을 대신하지 못한다.
 
 ## 정리하며
 

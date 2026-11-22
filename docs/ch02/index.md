@@ -51,7 +51,7 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 | 절 | 분포 가정 | 거기서 나오는 로스 |
 |---|---|---|
 | 2.4 최대가능도 추정 | — | 로스를 **고르는 근거** 자체 |
-| 2.5 선형 회귀 | 고정 분산 가우스 (라플라스면 달라진다) | MSE (MAE) |
+| 2.5 선형 회귀 | 고정 분산 가우시안 (라플라스면 달라진다) | MSE (MAE) |
 | 2.6 로지스틱 회귀 | 베르누이 | BCE |
 | 2.7 소프트맥스 회귀 | 범주형 | 교차 엔트로피 |
 | 2.8 로스 함수 | — | 그 로스들을 다시 모아 본다 |
@@ -63,9 +63,17 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 관측 데이터를 잘 설명하는 파라메터를 찾는 방법이다. 가능도(likelihood, 우도라고도 한다)는 데이터를 고정하고 파라메터의 함수로 읽은 확률이며, 파라메터를 바꾸어 가며 그 값을 비교한다. 추정량의 성질과 수치 최적화의 수렴은 서로 다른 문제이므로 구분해서 읽는다.
 
 - [최대가능도 추정](../ch07/mle/mle.md): 가능도, 로그가능도, 피셔 정보와 점근적 성질
-- [회귀에서의 MLE](../ch07/mle/mle_regression.md): 고정 분산 가우스 모델과 MSE, 라플라스 모델과 MAE
-- [분류에서의 MLE](../ch07/mle/mle_classification.md): 베르누이 모델과 BCE, 범주형 모델과 교차 엔트로피
+- [회귀에서의 최대가능도](../ch07/mle/mle_regression.md): 고정 분산 가우시안 모델과 MSE, 라플라스 모델과 MAE
+- [분류에서의 최대가능도](../ch07/mle/mle_classification.md): 베르누이 모델과 BCE, 범주형 모델과 교차 엔트로피
 - [확률적 해석](../ch07/mle/probabilistic_interpretation.md): 로스와 분포 가정, 사전분포와 MAP 추정
+
+나머지 다섯 쪽은 같은 원리를 예제 하나씩에 써 보는 자리다.
+
+- [표지-재포획 MLE](../ch07/mle/capture_recapture_mle.md): 정수 파라메터의 가능도를 이웃한 값끼리 견주어 손으로 푼다. MLE가 유일하지 않을 수 있다
+- [정규분포 MLE](../ch07/mle/normal_distribution_mle.md): 평균과 표준편차의 해석적 해와 그래디언트 기반 추정, 분산 MLE의 편향
+- [로지스틱 회귀 MLE](../ch07/mle/logistic_regression_mle.md): BCE 최소화가 곧 베르누이 조건부 가능도의 최대화임을 합성 데이터로 본다
+- [가우시안 혼합 EM](../ch07/mle/mixture_of_gaussians_em.md): 경사 하강법 대신 E 단계와 M 단계를 번갈아 돈다
+- [뉴럴 네트워크 MLE](../ch07/mle/neural_network_mle.md): 평균만 예측하는 네트워크와 평균·분산을 함께 예측하는 네트워크를 견준다
 
 ### 2.5 선형 회귀
 
@@ -96,7 +104,7 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 
 **모델을 늘리기**
 
-- [여러 입력을 사용하는 선형 회귀](../ch07/linear_regression/06_multivariate_regression.md) — California Housing, 피처 표준화 · [다중 출력](../ch07/linear_regression/multiple_outputs.md) — `nn.Linear(p, q)`
+- [다변량 회귀](../ch07/linear_regression/06_multivariate_regression.md) — California Housing, 피처 표준화 · [다중 출력](../ch07/linear_regression/multiple_outputs.md) — `nn.Linear(p, q)`
 - [다항 회귀](../ch07/linear_regression/07_polynomial_regression.md) · [다항 피처](../ch07/linear_regression/polynomial_features.md) — **파라메터에 대해** 선형이면 되지 피처까지 선형일 필요는 없다
 
 **과적합을 막기**
@@ -120,14 +128,14 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 - [시그모이드 함수](../ch07/logistic_regression/sigmoid.md) — 로짓·오즈·확률, 그리고 포화와 수치 안정성
 - [결정 경계](../ch07/logistic_regression/decision_boundary.md) — 경계의 기하와 로스가 재는 확신은 다르다
 - [그래디언트 계산](../ch07/logistic_regression/gradient.md) — 그래디언트와 헤세 행렬, 볼록성이 보장하는 것과 **보장하지 않는 것**
-- [정칙화된 로지스틱 회귀](../ch07/logistic_regression/regularized.md) — L1·L2 패널티, 그리고 가우스·라플라스 사전분포로 읽는 길
+- [정칙화된 로지스틱 회귀](../ch07/logistic_regression/regularized.md) — L1·L2 패널티, 그리고 가우시안·라플라스 사전분포로 읽는 길
 
 **차례로 지어 보기** (로스를 바로잡아 가는 순서다)
 
 1. [소개](../ch07/logistic_regression/01_introduction.md) — 텐서와 autograd 복습. 예제가 분류기가 아니라 **이차 함수**이니 1.6절을 읽었다면 건너뛰어도 된다
 2. [간단한 이진 분류](../ch07/logistic_regression/02_simple_binary_classification.md) — `Linear` + 시그모이드 + BCE 를 합성 데이터에
 3. [BCE를 쓰는 경사 하강법](../ch07/logistic_regression/04_gradient_descent_with_bce.md) — **확률**에 BCE 를 건다
-4. [BCEWithLogitsLoss를 쓰는 경사 하강법](../ch07/logistic_regression/05_gradient_descent_with_bcewithlogitsloss.md) — 시그모이드를 모델에서 떼고 **로짓**을 바로 넘긴다. 앞 쪽과 비교 기준이다
+4. [BCEWithLogitsLoss를 쓰는 경사 하강법](../ch07/logistic_regression/05_gradient_descent_with_bcewithlogitsloss.md) — 시그모이드를 모델에서 떼고 **로짓**을 바로 넘긴다. 「BCE를 쓰는 경사 하강법」과 견주는 기준이다
 5. [경사 하강법 심화](../ch07/logistic_regression/06_gradient_descent_advanced.md) — 러닝레이트와 반복 횟수를 돌려 본다
 6. [다중 클래스 분류](../ch07/logistic_regression/02_multiclass_classification.md) — 둘에서 여럿으로. 본격적인 것은 2.7절이다
 
@@ -150,20 +158,23 @@ _확인한 곳 — A. L. Samuel, "Some Studies in Machine Learning Using the Gam
 - [기초](../ch07/softmax_regression/01_fundamentals.md): 소프트맥스와 교차 엔트로피
 - [다중 클래스 분류](../ch07/softmax_regression/multiclass.md): 범주형 모델과 트레인
 - [소프트맥스 회귀의 한계](../ch07/softmax_regression/02_limits.md): 선형 결정 경계와 표현력
+- [심화](../ch07/softmax_regression/04_advanced.md): 러닝레이트 스케줄링, 조기 종료, 그래디언트 클리핑, 라벨 스무딩
+- [종합 프로젝트](../ch07/softmax_regression/05_comprehensive.md): 여러 이미지 데이터셋과 분류 모델을 같은 실험 인터페이스로 관리한다
 
 ### 2.8 로스 함수
 
 로스의 수학적 정의와 라이브러리 입력 조건을 함께 확인한다. 로스를 합할지 평균할지에 따라 그래디언트의 스케일과 정칙화 항의 상대적 비중도 달라진다.
 
-- [교차 엔트로피](../ch07/loss/cross_entropy.md): 분포 적합과 분류 로스
-- [KL 발산](../ch07/loss/kl_divergence.md): 두 분포의 차이와 계산 방향
-- [L2 로스](../ch07/loss/l2_loss.md): 제곱오차와 평균제곱오차
+- [교차 엔트로피 로스](../ch07/loss/cross_entropy.md): 분포 적합과 분류 로스
+- [쿨백–라이블러 발산](../ch07/loss/kl_divergence.md): 두 분포의 차이와 계산 방향
+- [L2 로스 (평균 제곱 오차)](../ch07/loss/l2_loss.md): 제곱오차와 평균제곱오차
+- [N-그램으로 보는 NLL 로스](../ch07/loss/ngram_nll_loss.md): `CrossEntropyLoss` 와 `NLLLoss` 가 같은 로스임을 N-그램 언어 모델로 확인한다
 
 확률 모델은 로스를 고르고 추정값을 해석하는 **근거**를 준다. 다만 좋은 트레인 결과인지는 그것만으로 못 가린다 — 모델 가정, 최적화 상태, 검증 성능을 함께 보아야 한다.
 
 ## 이 장이 뒤에 이어지는 방식
 
-[3장](../ch03/index.md)은 MNIST 하나를 붙들고 템플릿 학습에서 컨볼루션 뉴럴 네트워크까지 네 단계를 걷는다. 그 장의 첫 단계인 템플릿 학습은 사실 이 장에서 다루는 **최근접 이웃**의 사촌이다. 클래스마다 평균 이미지를 만들어 가장 가까운 것을 고르는 규칙이기 때문이다. 그 단순한 규칙이 82%를 맞히고, 나머지 세 스텝은 저마다 무엇을 더해 그 82%를 얼마나 끌어올리는지로 값어치가 매겨진다.
+[3장](../ch03/index.md)은 MNIST 하나를 붙들고 템플릿 학습에서 컨볼루션 뉴럴 네트워크까지 네 단계를 걷는다. 그 장의 첫 단계인 템플릿 학습은 사실 이 장에서 다루는 **최근접 이웃**의 사촌이다. 클래스마다 평균 이미지를 만들어 가장 가까운 것을 고르는 규칙이기 때문이다. 그 단순한 규칙이 82%를 맞히고, 나머지 세 단계는 저마다 무엇을 더해 그 82%를 얼마나 끌어올리는지로 값어치가 매겨진다.
 
 딥러닝의 성과를 제대로 읽으려면 견줄 대상이 있어야 한다. 이 장이 그 대상을 마련한다. 어떤 문제에서 뉴럴 네트워크가 고전 모델을 크게 앞선다면 그 까닭을 물어야 하고, 별로 앞서지 못한다면 뉴럴 네트워크를 쓸 까닭이 없는 것이다.
 

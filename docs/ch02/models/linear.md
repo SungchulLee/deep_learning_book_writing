@@ -50,16 +50,16 @@ $$
 \text{데이터} \longrightarrow \text{모델} \longrightarrow \text{예측}
 $$
 
-한 변수짜리로 적으면 흩어진 점들 사이를 지나는 직선 하나를 찾는 일이다.
+한 변수짜리로 적으면 흩어진 점들 사이를 지나는 직선 하나를 찾는 일이다. 기울기 $\beta_1$과 절편 $\beta_0$, 두 수만 정하면 된다.
 
 $$
-y = \alpha x + \beta
+y = \beta_1 x + \beta_0
 $$
 
 !!! note "통계와 기계학습의 차이"
     이 뼈대는 통계학에서도 똑같다. 데이터를 받아 모델을 세우고 예측한다는 순서가 같으므로, 통계학과 기계학습은 여러 모델과 추정 방법을 공유한다. 통계학에서는 추론과 불확실성에, 기계학습에서는 예측 성능과 계산에 초점을 두는 경우가 많지만, 이는 두 분야를 나누는 절대적인 경계가 아니다. 선형 회귀는 공통된 개념을 이해하기 좋은 출발점이다.
 
-**정칙화(regularization)** 는 큰 웨이트에 패널티를 부과하여 과적합을 막는다.
+**정칙화(regularization)** 는 큰 웨이트에 패널티를 부과하여 과적합 — 트레인 데이터의 잡음까지 따라가 새 데이터에서 틀리는 일 — 을 막는다. 아래 식의 $\alpha \ge 0$은 패널티의 세기를 정하는 수다.
 
 - **릿지(L2)**: $\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \alpha \|\boldsymbol{\beta}\|^2$을 최소화한다. 모든 계수를 0 쪽으로 줄이지만 정확히 0으로 만들지는 않는다. 피처들이 상관되어 있을 때 사용한다.
 - **라쏘(L1)**: $\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \alpha \|\boldsymbol{\beta}\|_1$을 최소화한다. 일부 계수를 정확히 0으로 만들어 피처 선택을 수행한다.
@@ -154,7 +154,7 @@ MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 </div>
 
 ??? success "풀이"
-    릿지 회귀는 $\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \alpha\|\boldsymbol{\beta}\|^2$을 최소화한다. 닫힌 형태 해는 $\hat{\boldsymbol{\beta}}_{\text{ridge}} = (\mathbf{X}^\top\mathbf{X} + \alpha\mathbf{I})^{-1}\mathbf{X}^\top\mathbf{y}$이다. 기하학적으로 릿지는 $\boldsymbol{\beta}$가 $\ell_2$ 공 안에 있도록 제약한다. $\alpha \to 0$이면 릿지는 OLS(정칙화 없음)로 수렴한다. $\alpha \to \infty$이면 패널티가 지배하여 $\hat{\boldsymbol{\beta}} \to \mathbf{0}$이 되고 절편을 정칙화하지 않고 따로 추정하면 모델은 $\mathbf{y}$의 평균을 예측한다. 절편까지 함께 정칙화하면 이 결론은 달라질 수 있다. $\alpha\mathbf{I}$를 더하면 $\mathbf{X}^\top\mathbf{X}$가 특이행렬이어도 가역성이 보장된다.
+    릿지 회귀는 $\|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 + \alpha\|\boldsymbol{\beta}\|^2$을 최소화한다. 닫힌 형태 해는 $\hat{\boldsymbol{\beta}}_{\text{ridge}} = (\mathbf{X}^\top\mathbf{X} + \alpha\mathbf{I})^{-1}\mathbf{X}^\top\mathbf{y}$이다. 기하학적으로 릿지는 $\boldsymbol{\beta}$가 $\ell_2$ 공 안에 있도록 제약한다. $\alpha \to 0$이면 릿지는 OLS(정칙화 없음)로 수렴한다. $\alpha \to \infty$이면 패널티가 지배하여 $\hat{\boldsymbol{\beta}} \to \mathbf{0}$이 되고, 절편을 정칙화하지 않고 따로 추정하면 모델은 $\mathbf{y}$의 평균을 예측한다. 절편까지 함께 정칙화하면 이 결론은 달라질 수 있다. $\alpha\mathbf{I}$를 더하면 $\mathbf{X}^\top\mathbf{X}$가 특이행렬이어도 가역성이 보장된다.
 
 ---
 
@@ -198,7 +198,7 @@ MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 
 선형 모델은 출력을 입력의 선형 결합으로 예측한다. 최소제곱해는 정규방정식으로 **한 번에** 구할 수 있으며, 해석적 해는 추정의 원리를 이해하는 데 유용하다. 실제 계산에서는 역행렬을 직접 구하기보다 수치적으로 안정적인 선형대수 알고리즘을 사용한다. 뒤에 나오는 거의 모든 모델은 닫힌 형태 해가 없어 경사 하강법으로 반복해서 풀어야 한다.
 
-그런데도 이 절이 같은 문제를 경사 하강법으로 한 번 더 푸는 까닭이 있다. **그 절차가 뉴럴 네트워크로 그대로 이어지기 때문**이다. 순전파로 예측하고, 로스를 재고, 역전파로 그래디언트를 구하고, 한 스텝 옮긴다. 모델만 바꾸면 이 뼈대는 그대로다.
+그런데도 이 쪽이 같은 문제를 경사 하강법으로 한 번 더 푸는 까닭이 있다. **그 절차가 뉴럴 네트워크로 그대로 이어지기 때문**이다. 순전파로 예측하고, 로스를 재고, 역전파로 그래디언트를 구하고, 한 스텝 옮긴다. 모델만 바꾸면 이 뼈대는 그대로다.
 
 정칙화는 큰 웨이트에 패널티를 걸어 과적합을 막는다. L2(릿지)는 계수를 0 쪽으로 줄이되 0으로 만들지 않고, L1(라쏘)은 일부를 정확히 0으로 만들어 피처를 고른다. **L2 패널티와 SGD의 `weight_decay`는 계수 정의를 맞추면 같은 갱신을 준다**(연습문제 3). 다만 Adam에서는 그 동등성이 깨져 AdamW가 따로 있다.
 

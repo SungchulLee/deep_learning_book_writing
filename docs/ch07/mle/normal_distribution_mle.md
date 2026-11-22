@@ -13,7 +13,7 @@
 
 난이도: ⭐⭐ 보통(2단계)
 
-가우스 분포의 평균(μ)과 분산(σ²)을 최대가능도로 한꺼번에
+가우시안 분포의 평균(μ)과 분산(σ²)을 최대가능도로 한꺼번에
 추정하는 법을 배운다.
 
 최대가능도 해:
@@ -287,11 +287,30 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
 
 ### 해석적 추정값
 
-평균 MLE는 표본평균이고, 분산 MLE는 $\hat\sigma^2=\frac1n\sum_i(x_i-\bar x)^2$이다. 코드는 `torch.std(..., unbiased=False)`로 그 제곱근인 표준편차를 구한다. 분모 $n-1$을 사용하는 불편 표본분산과는 다르며 표준편차 자체의 불편성도 따로 판단해야 한다.
+독립 표본 $x_1,\dots,x_n$이 $\mathcal N(\mu,\sigma^2)$에서 나왔을 때 로그가능도(log-likelihood; 가능도는 우도라고도 한다)는 밀도의 로그를 모두 더한 것이다.
+
+$$
+\ell(\mu,\sigma^2) = -\frac n2\log(2\pi\sigma^2) - \frac{1}{2\sigma^2}\sum_{i=1}^n (x_i-\mu)^2
+$$
+
+두 파라메터로 각각 미분해 0으로 놓는다.
+
+$$
+\begin{aligned}
+\frac{\partial \ell}{\partial \mu} &= \frac{1}{\sigma^2}\sum_i (x_i-\mu) = 0
+&&\Longrightarrow\quad \hat\mu = \bar x = \frac1n\sum_i x_i, \\
+\frac{\partial \ell}{\partial \sigma^2} &= -\frac{n}{2\sigma^2} + \frac{1}{2\sigma^4}\sum_i (x_i-\mu)^2 = 0
+&&\Longrightarrow\quad \hat\sigma^2 = \frac1n\sum_i (x_i-\bar x)^2 .
+\end{aligned}
+$$
+
+곧 평균 MLE는 표본평균이고, 분산 MLE는 분모가 $n$인 표본분산이다. 코드는 `torch.std(..., unbiased=False)`로 그 제곱근인 표준편차를 구한다.
+
+이 분산 MLE는 **편향**되어 있다 — 추정량의 기댓값이 참값과 어긋난다는 뜻이다. $\mathbb E[\hat\sigma^2] = \frac{n-1}{n}\sigma^2$이어서 참 분산보다 조금 작게 나온다. 분모를 $n-1$로 바꾼 것이 기댓값이 참값과 같은 **불편** 표본분산이다. 위 출력의 `Sample std: 1.9461`은 분모 $n-1$로 구한 값이고(`Tensor.std()`의 기본값), MLE인 $\hat\sigma = 1.9441$은 거기에 $\sqrt{499/500}$을 곱한 값이다. 분산이 불편이어도 그 제곱근인 표준편차까지 불편인 것은 아니므로, 표준편차의 불편성은 따로 판단해야 한다.
 
 ### 양수 조건과 최적화
 
-그래디언트 기반 방식은 `log_sigma`를 트레인하고 지수함수로 $\sigma$를 만든다. 이는 표준편차가 양수라는 조건을 만족시키지만 극단적인 값에서는 수치 문제가 생길 수 있다. 로그가능도(log-likelihood; 가능도는 우도라고도 한다) 계산의 하한 클램프는 수치적 장치이며 분포의 원래 정의와 구분한다.
+그래디언트 기반 방식은 `log_sigma`를 트레인하고 지수함수로 $\sigma$를 만든다. 이는 표준편차가 양수라는 조건을 만족시키지만 극단적인 값에서는 수치 문제가 생길 수 있다. 로그가능도 계산의 하한 클램프(`torch.clamp(sigma, min=1e-6)`)는 수치적 장치이며 분포의 원래 정의와 구분한다.
 
 유한한 반복의 결과가 해석적 값에 가까운지 확인하면 최적화 상태를 평가할 수 있다. 위 실행에서는 400번째 반복에 이미 $\hat\mu=5.0872$, $\hat\sigma=1.9441$로 해석적 MLE와 소수 넷째 자리까지 일치하며, 그 뒤로 로그가능도도 $-1041.87$에서 변하지 않는다. 반면 생성 규칙의 참값과 추정값의 차이에는 표본 변동이 포함된다. 표본이 하나이거나 모든 관측값이 같으면 분산이 0으로 접근하면서 양의 분산 공간의 가능도가 무한히 커질 수 있으므로 일반적인 내부해 유도가 적용되지 않는다.
 
@@ -336,29 +355,51 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-정규분포 MLE 구현을 검증하는 종합적인 시험 함수를 작성하라. 빈 입력, 원소가 하나뿐인 입력, 아주 큰 입력, 그리고 극단적인 값(0, 아주 큰 수)을 가진 입력 등 경계 사례를 시험하라.
+`analytical_mle`와 `gradient_based_mle`를 검증하는 시험 함수를 작성하라. 보통의 입력에서 두 방법이 일치하는지 확인하고, 원소가 하나뿐인 입력, 상수 표본, 빈 입력, 평균이 아주 큰 입력 같은 경계 사례에서 `analytical_mle`가 무엇을 돌려주는지 시험하라. 각 결과가 뜻하는 바도 설명하라.
 
 </div>
 
 ??? success "풀이"
-    경계 조건을 두루 시험하는 함수를 만든다.
+    이 쪽의 함수 셋(`generate_normal_data`, `analytical_mle`, `gradient_based_mle`)을 그대로 불러 시험한다.
     ```python
-    def test_normal_distribution_mle():
-        model = NormalDistributionMLE(...)
-        # 보통의 입력
-        assert model(normal_input).shape == expected_shape
-        # 원소가 하나인 배치
-        assert model(single_input).shape == (1, ...)
-        # 큰 값 (오버플로를 확인한다)
-        out = model(torch.ones(...) * 1000)
-        assert torch.isfinite(out).all()
-        # 그래디언트의 흐름
-        out = model(normal_input)
-        out.sum().backward()
-        for p in model.parameters():
-            assert p.grad is not None
+    import math
+
+    def test_normal_mle():
+        data = generate_normal_data(500, 5.0, 2.0)
+        a_mu, a_sigma = analytical_mle(data)
+
+        # 1) 보통의 입력: 표본평균, 그리고 분모 n-1 표준편차에 sqrt(499/500)을 곱한 값
+        assert abs(a_mu - data.mean().item()) < 1e-6
+        assert abs(a_sigma - data.std().item() * math.sqrt(499 / 500)) < 1e-5
+
+        # 2) 두 방법의 일치: 경사 상승법이 해석적 값에 닿는다
+        g_mu, g_sigma, _ = gradient_based_mle(data, n_iterations=1000)
+        assert abs(g_mu - a_mu) < 1e-4 and abs(g_sigma - a_sigma) < 1e-4
+
+        # 3) 원소 하나 · 상수 표본: 표준편차가 0 으로 퇴화한다
+        assert analytical_mle(torch.tensor([3.0])) == (3.0, 0.0)
+        assert analytical_mle(torch.full((100,), 7.0)) == (7.0, 0.0)
+
+        # 4) 빈 입력: 오류 없이 nan 이 나온다
+        mu, sigma = analytical_mle(torch.tensor([]))
+        assert math.isnan(mu) and math.isnan(sigma)
+
+        # 5) 평균이 아주 큰 입력: float32 는 표준편차를 잃고 float64 는 지킨다
+        _, s32 = analytical_mle(data + 1e6)
+        _, s64 = analytical_mle(data.double() + 1e6)
+        assert abs(s64 - a_sigma) < 1e-6
+        assert abs(s32 - a_sigma) > 1e-3
+
+        print("모든 시험 통과")
+
+    test_normal_mle()
     ```
-    그래디언트의 흐름을 시험하는 것은 그 구조가 처음부터 끝까지 이어지는 트레인을 지원하는지 확인하는 데 특히 중요하다.
+    돌리면 다섯 시험이 모두 통과한다. 통과했다는 것과 결과가 쓸 만하다는 것은 다르므로 하나씩 읽는다.
+
+    - **1·2번**은 이 쪽의 주장 그대로다. 분산 MLE는 분모가 $n$이고, 경사 상승법은 같은 값에 닿는다.
+    - **3번**의 $\hat\sigma=0$은 답이 아니라 **퇴화의 표시**다. 표준편차가 0인 정규분포는 없고, 이때 가능도는 $\sigma\to0$에서 한없이 커져 최댓값을 주는 $\sigma$가 없다.
+    - **4번**은 함수가 빈 입력을 막지 않는다는 뜻이다. `nan`은 오류 없이 뒤의 계산으로 흘러가므로, 부르는 쪽에서 표본 수를 먼저 확인해야 한다.
+    - **5번**은 자료형의 문제다. 같은 데이터에 $10^6$을 더하기만 했으니 표준편차는 $1.9441$ 그대로여야 하는데 float32로는 $1.9463$이 나온다. float32는 $10^6$ 근처에서 이웃한 두 수의 간격이 $0.0625$라서, 더하는 순간 소수 부분이 그 눈금으로 뭉개진다. float64로 바꾸면 $1.9441$이 지켜진다.
 
 ## 정리하며
 

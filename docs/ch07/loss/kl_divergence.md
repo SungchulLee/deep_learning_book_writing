@@ -1,15 +1,15 @@
-# KL 발산
-쿨백–라이블러(Kullback–Leibler, KL) 발산은 목표 분포와 근사 분포의 차이를 기대 로그밀도비로 나타낸다. 대칭인 거리는 아니며, 어느 분포를 앞에 두는지가 중요하다. 이 절에서는 기본 성질, 정규분포의 공식, VAE와 PyTorch에서의 사용법을 연결한다.
+# 쿨백–라이블러 발산
+쿨백–라이블러(Kullback–Leibler, KL) 발산은 목표 분포와 근사 분포의 차이를 기대 로그밀도비로 나타낸다. 대칭인 거리는 아니며, 어느 분포를 앞에 두는지가 중요하다. 이 쪽에서는 기본 성질, 정규분포의 공식, VAE와 PyTorch에서의 사용법을 연결한다.
 
 ---
 
 ## 1. 정의
 
-같은 표본 공간 위의 이산 분포 $p$과 $q$에 대해 다음과 같다.
+같은 표본 공간 위의 이산 분포 $p$와 $q$에 대해 다음과 같다.
 
 $$D_{\text{KL}}(p \| q) = \sum_i p_i \log\frac{p_i}{q_i} = \mathbb{E}_{p}\!\left[\log \frac{p_i}{q_i}\right]$$
 
-밀도가 $f$과 $g$인 연속 분포에 대해 다음과 같다.
+밀도가 $f$와 $g$인 연속 분포에 대해 다음과 같다.
 
 $$D_{\text{KL}}(f \| g) = \int f(x)\log\frac{f(x)}{g(x)}\,dx = \mathbb{E}_{f}\!\left[\log \frac{f(x)}{g(x)}\right]$$
 
@@ -19,9 +19,9 @@ $$D_{\text{KL}}(f \| g) = \int f(x)\log\frac{f(x)}{g(x)}\,dx = \mathbb{E}_{f}\!\
 
 **추가 부호 길이.** 분포를 알고 이상적인 부호 길이를 쓸 때, 목표 분포 대신 근사 분포로 부호화하며 늘어나는 평균 길이이다. 자연로그의 값은 비트가 아니라 나트로 읽는다.
 
-**기대 로그 가능도비.** $D_{\text{KL}}(p \| q) = \mathbb{E}_{p}[\log(p(x)/q(x))]$은 표본이 평균적으로 $q$보다 $p$ 아래에서 얼마나 더 그럴듯한지를 잰다.
+**기대 로그 가능도비.** $D_{\text{KL}}(p \| q) = \mathbb{E}_{p}[\log(p(x)/q(x))]$는 표본이 평균적으로 $q$보다 $p$ 아래에서 얼마나 더 그럴듯한지를 잰다.
 
-**정보 이득.** $D_{\text{KL}}(p \| q)$은 사전분포 $q$에서 사후분포 $p$으로 갱신할 때 얻는 정보량을 수치로 나타낸다.
+**정보 이득.** $D_{\text{KL}}(p \| q)$는 사전분포 $q$에서 사후분포 $p$로 갱신할 때 얻는 정보량을 수치로 나타낸다.
 
 ---
 
@@ -45,7 +45,7 @@ D_{\text{KL}}(f \| g)
 
 KL 발산은 대칭이 **아니다**.
 
-$$D_{\text{KL}}(p \| q) \neq D_{\text{KL}}(q \| p) \quad\text{in general}$$
+$$D_{\text{KL}}(p \| q) \neq D_{\text{KL}}(q \| p) \quad\text{(일반적으로)}$$
 
 ```python
 import numpy as np
@@ -115,8 +115,8 @@ $D(f\|g) - D(g\|f) = \log s + 1/s - s/2 - 1/2$은 $s$에 대해 단조감소하�
 | 2 | 0.3466 | 0.6534 |
 | 4 | 0.4431 | 1.3069 |
 
-**어느 쪽이 큰지도 고정되어 있지 않다.** $s < 1$에서는 $D(f\|g)$이 크고 $s > 1$에서는
-$D(g\|f)$이 크다. 비대칭이라는 말은 "한쪽이 늘 더 크다"가 아니라 **"두 값이 다르고,
+**어느 쪽이 큰지도 고정되어 있지 않다.** $s < 1$에서는 $D(f\|g)$가 크고 $s > 1$에서는
+$D(g\|f)$가 크다. 비대칭이라는 말은 "한쪽이 늘 더 크다"가 아니라 **"두 값이 다르고,
 어느 쪽이 클지는 상황이 정한다"**는 뜻이다.
 
 [VAE](../../ch05/latent_generative/01_vae.md)의 KL 항이 재는 것이 바로 이
@@ -137,7 +137,7 @@ $$D_{\text{KL}}(p(x,y) \| q(x,y)) = D_{\text{KL}}(p(x) \| q(x)) + D_{\text{KL}}(
 
 $$H(P, Q) = H(P) + D_{\text{KL}}(P \| Q)$$
 
-여기서 $H(P) = -\sum_k P(k)\log P(k)$은 $P$의 엔트로피이다. $H(P)$은 $Q$에 대해 상수이므로 교차 엔트로피 $H(P, Q)$을 최소화하는 것은 $D_{\text{KL}}(P \| Q)$을 최소화하는 것과 같다. 분류의 목표로서 교차 엔트로피 로스와 KL 최소화를 바꿔 쓸 수 있는 이유가 여기 있다.
+여기서 $H(P) = -\sum_k P(k)\log P(k)$는 $P$의 엔트로피이다. $H(P)$는 $Q$에 대해 상수이므로 교차 엔트로피 $H(P, Q)$를 최소화하는 것은 $D_{\text{KL}}(P \| Q)$를 최소화하는 것과 같다. 분류의 목표로서 교차 엔트로피 로스와 KL 최소화를 바꿔 쓸 수 있는 이유가 여기 있다.
 
 ---
 
@@ -169,13 +169,13 @@ $$\min_q D_{\text{KL}}(q \| p) = \min_q \mathbb{E}_q[\log q(x) - \log p(x)]$$
 
 ## 6. 거리 함수가 아니다
 
-"발산"이라 불리기는 하지만 KL 발산은 거리 함수가 아니다. 음이 아님과 구별 불가능자의 동일성은 만족하지만 대칭성과 삼각부등식은 어긴다. 대칭성이 깨지는 수치 예는 3절의 정규분포 표에서 보았다.
+"발산"이라 불리기는 하지만 KL 발산은 거리 함수가 아니다. 음이 아님과 구별 불가능자의 동일성(값이 0이면 두 분포가 같다는 성질)은 만족하지만 대칭성과 삼각부등식은 어긴다. 대칭성이 깨지는 수치 예는 3절의 정규분포 표에서 보았다.
 
 ---
 
 ## 7. 국소적 거동: 피셔 정보
 
-$D_{\text{KL}}(f_{\theta_0} \| f_\theta)$을 $\theta = \theta_0$ 주변에서 테일러 전개하면 국소적으로 KL 발산이 이차형식처럼 거동함을 알 수 있다.
+$D_{\text{KL}}(f_{\theta_0} \| f_\theta)$를 $\theta = \theta_0$ 주변에서 테일러 전개하면 국소적으로 KL 발산이 이차형식처럼 거동함을 알 수 있다.
 
 $$D_{\text{KL}}(f_{\theta_0} \| f_\theta) \approx \frac{1}{2}(\theta - \theta_0)^T\, \mathbf{I}(\theta_0)\, (\theta - \theta_0)$$
 
@@ -219,11 +219,11 @@ $$\log p(x) = \underbrace{\mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - D_{\tex
 
 ELBO를 최대화하는 것은 다음을 최소화하는 것과 같다.
 
-$$\mathcal{L}_{\text{VAE}} = \underbrace{\mathbb{E}_{z \sim q_\phi(z|x)}[-\log p_\theta(x|z)]}_{\text{reconstruction}} + \underbrace{D_{\text{KL}}(q_\phi(z|x) \| p(z))}_{\text{regularization}}$$
+$$\mathcal{L}_{\text{VAE}} = \underbrace{\mathbb{E}_{z \sim q_\phi(z|x)}[-\log p_\theta(x|z)]}_{\text{복원}} + \underbrace{D_{\text{KL}}(q_\phi(z|x) \| p(z))}_{\text{정칙화}}$$
 
 ### KL과 복원 사이의 트레이드오프
 
-$\beta$-VAE는 KL 항에 웨이트를 도입한다. $\mathcal{L} = \mathcal{L}_{\text{recon}} + \beta \cdot D_{\text{KL}}$이다.
+$\beta$-VAE는 KL 항에 가중치 $\beta$를 도입한다. $\mathcal{L} = \mathcal{L}_{\text{recon}} + \beta \cdot D_{\text{KL}}$이다.
 
 | KL 값 | 의미 | 효과 |
 |----------|---------|--------|
@@ -237,7 +237,7 @@ $\beta$-VAE는 KL 항에 웨이트를 도입한다. $\mathcal{L} = \mathcal{L}_{
 
 ### VAE를 위한 정규분포 KL
 
-인코더는 각 잠재 차원에 대해 $\mu$과 $\log\sigma^2$을 낸다.
+인코더는 각 잠재 차원에 대해 $\mu$와 $\log\sigma^2$을 낸다.
 
 ```python
 import torch
@@ -306,7 +306,7 @@ def kl_free_bits(mu, logvar, free_bits=0.1):
     return kl_per_dim.sum(dim=1)
 ```
 
-**KL 웨이트 스케줄링(KL annealing).** 트레인 중에 KL 웨이트를 점차 키운다.
+**KL 가중치 스케줄링(KL annealing).** 트레인 중에 KL 가중치를 점차 키운다.
 
 ```python
 def get_beta(epoch, warmup_epochs=10, max_beta=1.0):
@@ -335,7 +335,7 @@ loss = kl_criterion(log_probs, target_probs)
 ```
 
 !!! warning "입력 관례"
-    `nn.KLDivLoss`은 **입력**을 로그 공간으로, **목표**를 확률 공간으로 받는다. 이 관례는 많은 사용자가 예상하는 것과 반대이다. 둘을 바꿔 넣으면 아무 경고 없이 잘못된 결과가 나온다.
+    `nn.KLDivLoss`는 **입력**을 로그 공간으로, **목표**를 확률 공간으로 받는다. 이 관례는 많은 사용자가 예상하는 것과 반대이다. 둘을 바꿔 넣으면 아무 경고 없이 잘못된 결과가 나온다.
 
 `reduction='batchmean'`은 원소별 항의 합을 배치 크기로 나누므로, 각 행이 하나의 분포인 입력에서 표본당 KL 평균에 해당한다. `'sum'`은 합, `'mean'`은 전체 원소 수로 나눈 값, `'none'`은 원소별 항이다. 입력 텐서의 축과 집계 방식을 함께 확인한다. [공식 문서](https://docs.pytorch.org/docs/stable/generated/torch.nn.KLDivLoss.html)에 입력 관례와 집계식이 정리되어 있다.
 
@@ -394,7 +394,7 @@ $p=\operatorname{Bernoulli}(0.3)$과 $q=\operatorname{Bernoulli}(0.7)$의 양방
 </div>
 
 ??? success "풀이"
-    로그밀도비는 $\log(\sigma_2/\sigma_1)+(x-\mu_2)^2/(2\sigma_2^2)-(x-\mu_1)^2/(2\sigma_1^2)$이다. $p$ 아래에서 두 제곱항의 기대값은 각각 $\sigma_1^2+(\mu_1-\mu_2)^2$와 $\sigma_1^2$이다. 대입하면 $D(p\|q)=\log(\sigma_2/\sigma_1)+[\sigma_1^2+(\mu_1-\mu_2)^2]/(2\sigma_2^2)-1/2$를 얻는다.
+    로그밀도비는 $\log(\sigma_2/\sigma_1)+(x-\mu_2)^2/(2\sigma_2^2)-(x-\mu_1)^2/(2\sigma_1^2)$이다. $p$ 아래에서 두 제곱항의 기대값은 각각 $\sigma_1^2+(\mu_1-\mu_2)^2$과 $\sigma_1^2$이다. 대입하면 $D(p\|q)=\log(\sigma_2/\sigma_1)+[\sigma_1^2+(\mu_1-\mu_2)^2]/(2\sigma_2^2)-1/2$을 얻는다.
 
 ---
 
@@ -410,4 +410,4 @@ $p=\operatorname{Bernoulli}(0.3)$과 $q=\operatorname{Bernoulli}(0.7)$의 양방
 
 ## 정리하며
 
-이 절에서는 정의, 음이 아님 (깁스 부등식), 비대칭성, 교차 엔트로피와의 관계를 살펴보았다.
+이 쪽에서는 KL 발산의 정의, 음이 아님(깁스 부등식), 비대칭성, 교차 엔트로피와의 관계, 순방향·역방향 KL의 차이, 정규분포의 공식, VAE와 PyTorch에서의 쓰임을 살펴보았다.

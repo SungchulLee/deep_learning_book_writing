@@ -1,6 +1,6 @@
 # 뉴럴 네트워크 MLE
 
-평균만 예측하는 회귀 뉴럴 네트워크와 평균·분산을 함께 예측하는 이분산 뉴럴 네트워크를 비교한다. 두 모델은 한 시스템의 부품이 아니라, 서로 다른 조건부 분포 가정을 대표하는 두 대안이다.
+평균만 예측하는 회귀 뉴럴 네트워크와 평균·분산을 함께 예측하는 **이분산**(heteroscedastic) 뉴럴 네트워크를 비교한다. 이분산은 잡음의 분산이 입력 $x$에 따라 달라진다는 뜻이고, 분산이 어디서나 같다는 가정은 등분산이라 한다. 두 모델은 한 시스템의 부품이 아니라, 서로 다른 조건부 분포 가정을 대표하는 두 대안이다.
 
 ## 1. 코드
 
@@ -136,7 +136,7 @@
 
     def gaussian_nll_loss(y_true, y_pred_mean, y_pred_logvar):
         """
-        가우스 음의 로그 가능도 로스.
+        가우시안 음의 로그 가능도 로스.
 
         이것이 이분산 회귀의 최대가능도 목표다!
 
@@ -479,7 +479,7 @@
     4. 어려움: 출력이 여럿인 회귀
        - 공분산과 함께 벡터 출력을 예측한다
        - 전체 공분산 행렬과 대각 공분산 행렬을 견준다
-       - 다변량 가우스 가능도
+       - 다변량 가우시안 가능도
 
     5. 어려움: 능동 학습
        - 불확실성을 기준으로 정보량이 큰 표본을 고른다
@@ -558,24 +558,24 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 
 ### 서로 다른 출력과 목적
 
-`StandardNN`은 평균 하나를 출력하고 MSE를 최소화한다. `HeteroscedasticNN`은 공유 피처에서 평균과 로그 분산을 각각 출력하며 가우스 NLL을 최소화한다. 입력에 따라 잡음이 커지는 합성 데이터에서 두 모델의 차이를 살펴본다.
+`StandardNN`은 평균 하나를 출력하고 MSE를 최소화한다. `HeteroscedasticNN`은 공유 피처에서 평균 $\mu$와 로그 분산을 각각 출력하며 가우시안 NLL(음의 로그가능도, negative log-likelihood)을 최소화한다. 데이터는 $|x|$가 클수록 잡음이 커지는 합성 데이터다($\sigma(x)=0.1+0.1|x|$). 출력에서 두 모델의 트레인 MSE는 0.1301과 0.1308로 사실상 같다. 두 모델이 갈리는 자리는 평균의 정확도가 아니라, 잡음의 크기를 입력마다 따로 내놓느냐다.
 
 ### 로그 분산의 역할
 
-로그 분산 $s$를 사용하면 분산은 $e^s>0$이다. 상수를 제외한 NLL은 $\frac12[s+(y-\mu)^2e^{-s}]$로, 오차를 줄이는 일과 분산을 조정하는 일을 함께 평가한다. 정확하게 적합한 관측의 분산을 0으로 보내는 과적합이나 극단적인 지수값도 발생할 수 있으므로 분산의 하한과 검증 성능을 점검해야 한다.
+네트워크가 분산 대신 로그 분산 $s=\log\sigma^2$을 출력하면 분산은 $e^s>0$이라 언제나 양수다. 상수를 제외한 NLL은 $\frac12[s+(y-\mu)^2e^{-s}]$로, 오차를 줄이는 일과 분산을 조정하는 일을 함께 평가한다. 이 값은 확률이 아니라 밀도의 로그라서 음수가 될 수 있다 — 출력의 $-0.7024$가 그렇다. 또 $y=\mu$로 정확히 맞힌 관측에서는 $s$를 작게 할수록 NLL이 한없이 내려가므로, 분산을 0으로 보내는 과적합이나 극단적인 지수값이 생길 수 있다. 분산의 하한과 검증 성능을 점검해야 한다.
 
 ### 그림과 지표의 비교 조건
 
 평균 주위의 표준편차 띠는 가정한 데이터 잡음의 크기를 나타낸다. 이는 평균 추정값의 신뢰구간이나 모든 모델 불확실성을 포함한 구간과 다르다. 트레인 데이터의 표준화 잔차만으로 새 데이터의 보정을 확정할 수는 없다.
 
-제공 코드의 표준 모델 NLL은 상수 항과 분산 1을 사용하고, 이분산 모델의 로스는 같은 상수 항을 생략한다. 두 숫자를 그대로 비교해 우열을 결론 내리면 안 된다. 같은 상수 항, 같은 합·평균 방식, 같은 평가 데이터에서 NLL을 맞춰 비교해야 한다.
+이 쪽 코드가 그림의 비교 표에 적는 표준 모델 NLL은 상수 항과 분산 1을 사용하고, 이분산 모델의 로스는 같은 상수 항을 생략한다. 두 숫자를 그대로 비교해 우열을 결론 내리면 안 된다. 같은 상수 항, 같은 합·평균 방식, 같은 평가 데이터에서 NLL을 맞춰 비교해야 한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 `hidden_size=50`인 `StandardNN`의 트레인 파라메터를 레이어별로 계산하라.
+기본 `hidden_size=50`인 `StandardNN`의 트레인 가능한 파라메터 수를 레이어별로 계산하라.
 
 </div>
 
@@ -611,18 +611,45 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-레이어나 블록의 개수를 설정할 수 있도록 `StandardNN`을 확장하라. `__init__`에 `num_layers` 파라메터를 추가하고 `nn.ModuleList`로 깊이가 변하는 구조를 만들어라. 레이어 2개, 4개, 8개로 시험하라.
+논의의 마지막 문단은 두 모델의 NLL을 그대로 비교하면 안 된다고 했다. 조건을 맞추어 다시 비교하라. (가) `gaussian_nll_loss`가 생략한 상수 항 $\frac12\log 2\pi$를 되돌린 `full_nll`을 쓰고, (나) `StandardNN`에는 트레인 잔차의 평균 제곱을 고정 분산으로 주고, (다) 트레인 데이터와 `generate_heteroscedastic_data(n_samples=300, seed=7)`로 새로 만든 데이터에서 두 모델을 각각 재라. 고정 분산으로 트레인 잔차의 평균 제곱을 쓰는 까닭도 설명하라.
 
 </div>
 
 ??? success "풀이"
-    고정되어 있던 레이어들을 다음으로 바꾼다.
+    `StandardNN`은 평균만 내놓으므로 NLL을 재려면 분산을 정해 주어야 한다. 분산이 입력과 무관한 상수 $\sigma^2$라고 가정하면 로그가능도를 $\sigma^2$로 미분해 0으로 놓은 해가 $\hat\sigma^2=\frac1n\sum_i(y_i-\hat\mu_i)^2$, 곧 트레인 잔차의 평균 제곱이다. 분산을 1로 두는 것보다 이 값이 「고정 분산 모델」에 가장 유리한 선택이므로, 그것과 견주어야 이분산 모델이 얻은 몫만 남는다.
     ```python
-    self.layers = nn.ModuleList()
-    for i in range(num_layers):
-        self.layers.append(YourBlock(dim, ...))
+    import math
+
+    def full_nll(y, mean, logvar):
+        """상수 항까지 넣은 가우시안 NLL (표본 평균)"""
+        return gaussian_nll_loss(y, mean, logvar).item() + 0.5 * math.log(2 * math.pi)
+
+
+    x_train, y_train, _ = generate_heteroscedastic_data(n_samples=300)
+    model_standard, _ = train_standard_nn(x_train, y_train, epochs=1000, lr=0.01)
+    model_hetero, _ = train_heteroscedastic_nn(x_train, y_train, epochs=1000, lr=0.01)
+    x_new, y_new, _ = generate_heteroscedastic_data(n_samples=300, seed=7)
+
+    with torch.no_grad():
+        # 고정 분산: 트레인 잔차의 평균 제곱 하나
+        sigma2 = torch.mean((y_train - model_standard(x_train)) ** 2).item()
+
+        for name, x, y in [("트레인", x_train, y_train), ("새 데이터", x_new, y_new)]:
+            nll_std = full_nll(y, model_standard(x), torch.full_like(y, math.log(sigma2)))
+            mean_het, logvar_het = model_hetero(x)
+            nll_het = full_nll(y, mean_het, logvar_het)
+            print(f"{name}: 고정 분산 {nll_std:.4f}, 이분산 {nll_het:.4f}")
     ```
-    `forward` 메서드에서 `for layer in self.layers: x = layer(x)`처럼 순회한다. (평범한 파이썬 리스트가 아니라) `nn.ModuleList`를 써야 PyTorch가 모든 파라메터를 최적화 대상으로 등록한다. 시험은 다음과 같이 한다. `for n in [2, 4, 8]: model = StandardNN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    돌려서 얻은 값은 다음과 같다. 고정 분산은 $\hat\sigma^2=0.1301$이다.
+
+    | | 고정 분산 `StandardNN` | `HeteroscedasticNN` |
+    |---|---|---|
+    | 트레인 데이터 | 0.3992 | 0.2166 |
+    | 새 데이터 (`seed=7`) | 0.4525 | 0.3948 |
+
+    트레인 데이터의 0.2166은 출력의 `NLL: -0.7024`에 $\frac12\log2\pi\approx0.9189$를 더한 값이다. 같은 상수, 같은 평균 방식, 같은 데이터로 맞추고 나서야 두 수를 나란히 놓을 수 있다.
+
+    조건을 맞춘 뒤에도 이분산 모델의 NLL이 두 데이터 모두에서 낮다. 다만 새 데이터에서는 차이가 0.18에서 0.06으로 줄어든다. 트레인 데이터의 NLL은 분산 헤드가 그 데이터에 맞춘 몫까지 담고 있기 때문이다. 그리고 이것은 **시드 하나, 새 데이터 한 벌**로 잰 값이다. 0.06이 실행마다의 흔들림보다 큰지는 시드를 바꾸어 여러 번 재야 말할 수 있다.
 
 ## 정리하며
 

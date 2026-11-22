@@ -204,7 +204,7 @@ Saved: dataset_from_tensor.png
 
 ## 2. 논의
 
-`LinearRegression` 모델 하위 클래스는 `nn.Linear(in_features, out_features)`로 완전 연결 레이어 하나를 정의한다. forward 메서드의 `squeeze(-1)`은 마지막 차원을 없애 출력 모양을 1차원 목표 텐서와 맞춘다. 이는 `nn.Linear`의 출력이 `(batch, 1)` 모양인데 목표는 `(batch,)` 모양일 때 흔히 쓰는 방식이다. 모델은 `.to(device)`로 알맞은 장치로 옮기며, 모든 데이터 텐서도 같은 장치에 있어야 한다.
+`nn.Module`의 하위 클래스 `LinearRegression`은 `nn.Linear(in_features, out_features)`로 완전 연결 레이어 하나를 정의한다. forward 메서드의 `squeeze(-1)`은 마지막 차원을 없애 출력 형태를 1차원 목표 텐서와 맞춘다. 이는 `nn.Linear`의 출력이 `(batch, 1)` 형태인데 목표는 `(batch,)` 형태일 때 흔히 쓰는 방식이다. 모델은 `.to(device)`로 알맞은 장치로 옮기며, 모든 데이터 텐서도 같은 장치에 있어야 한다.
 
 트레인 루프는 표준 패턴을 따른다. DataLoader의 배치를 순회하며 예측과 로스를 계산하고, `optimizer.zero_grad()`, `loss.backward()`, `optimizer.step()`을 차례로 호출한다. 에포크 평균을 올바르게 가중하기 위해 로스는 `loss.item() * len(y_batch)`로 배치에 걸쳐 누적한다. 마지막 배치의 표본 수가 배치 크기보다 적을 수 있으므로 이런 가중 평균이 중요하다.
 
@@ -227,7 +227,7 @@ Saved: dataset_from_tensor.png
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-트레인 루프에 검증 분할을 추가하라. 80%는 트레인에, 20%는 검증에 쓴다. 매 에포크마다 트레인 MSE와 검증 MSE를 모두 출력하라.
+트레인 루프에 검증 분할을 추가하라. 80%는 트레인에, 20%는 검증에 쓴다. 20 에포크마다 트레인 MSE와 검증 MSE를 함께 출력하라.
 
 </div>
 
@@ -299,4 +299,4 @@ Saved: dataset_from_tensor.png
 
 ## 정리하며
 
-같은 표본 축을 가진 텐서를 묶고 배치 단위로 트레인한다. 마지막 배치의 크기, 출력 모양과 로스의 집계 방식을 일치시킨다.
+같은 표본 축을 가진 텐서를 묶고 배치 단위로 트레인한다. 마지막 배치의 크기, 출력 형태와 로스의 집계 방식을 일치시킨다.
