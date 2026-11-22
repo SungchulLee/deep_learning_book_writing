@@ -1,4 +1,4 @@
-# 레이어 출력하기 — 무엇이 세어지고 무엇이 저장되는가
+# 레이어 출력하기
 
 <div class="leadbox" markdown>
 
@@ -14,7 +14,7 @@
 안 대고, 미분도 받지 않는다. 그런데 순전파를 할 때마다 조용히 갱신되고,
 저장할 때 같이 따라간다. 복원할 때 이것이 빠지면 모델이 다르게 동작한다.
 
-널리 쓰이는 층인 배치 정규화 하나가 그런 수를 셋이나 들고 있다.
+널리 쓰이는 레이어인 배치 정규화 하나가 그런 수를 셋이나 들고 있다.
 
 </div>
 
@@ -26,7 +26,7 @@
 | 파라메터 | `nn.Parameter` | **예** | 예 |
 | 버퍼 | `register_buffer` 로 등록한 텐서 | 아니오 | **예** |
 
-세 번째 열이 잊히는 자리다. 파라메터 수를 세면 버퍼는 빠지는데, **저장 파일에는
+마지막 열이 잊히는 자리다. 파라메터 수를 세면 버퍼는 빠지는데, **저장 파일에는
 들어간다.** 배치 정규화의 `running_mean`이 거기 있다.
 
 ## 1. 코드
@@ -86,7 +86,7 @@ def show_repr(net):
     header("1. print(model)")
     print(net)
     print("  들여쓰기가 중첩을 보여 준다")
-    print("  그런데 파라메터 수도, 출력 모양도, 버퍼도 안 나온다")
+    print("  그런데 파라메터 수도, 출력 형태도, 버퍼도 안 나온다")
 
 
 # ========================================================================
@@ -163,7 +163,7 @@ def real_buffer():
 # ========================================================================
 
 def summary(net):
-    header("5. 층마다 수를 세어 본다")
+    header("5. 레이어마다 수를 세어 본다")
     print(f"  {'이름':24s} {'종류':12s} {'파라메터':>10s}")
     total = 0
     for name, m in net.named_modules():
@@ -172,7 +172,7 @@ def summary(net):
             print(f"  {name or '(root)':24s} {type(m).__name__:12s} {own:>10,}")
             total += own
     print(f"  {'합':24s} {'':12s} {total:>10,}")
-    print("  recurse=False 로 그 층이 '제 몫으로' 가진 것만 센다")
+    print("  recurse=False 로 그 레이어가 '제 몫으로' 가진 것만 센다")
     print("  안 그러면 부모가 자식 것을 다시 세어 합이 부풀어 오른다")
 
 
@@ -209,7 +209,7 @@ Net(
   (head): Linear(in_features=8, out_features=2, bias=True)
 )
   들여쓰기가 중첩을 보여 준다
-  그런데 파라메터 수도, 출력 모양도, 버퍼도 안 나온다
+  그런데 파라메터 수도, 출력 형태도, 버퍼도 안 나온다
 
 === 2. children 과 modules ===
   named_children (바로 아래만): ['stem', 'blocks', 'head']
@@ -262,7 +262,7 @@ Net(
   train 은 쌓기만 하고 안 쓰며, eval 은 쓰기만 하고 안 쌓는다
   뒤집는 것은 train/eval 뿐이다 — no_grad 로 감싸도 안 바뀐다
 
-=== 5. 층마다 수를 세어 본다 ===
+=== 5. 레이어마다 수를 세어 본다 ===
   이름                       종류                 파라메터
   stem                     Linear               40
   blocks.0.fc              Linear               72
@@ -271,7 +271,7 @@ Net(
   blocks.1.act             ReLU                  0
   head                     Linear               18
   합                                            202
-  recurse=False 로 그 층이 '제 몫으로' 가진 것만 센다
+  recurse=False 로 그 레이어가 '제 몫으로' 가진 것만 센다
   안 그러면 부모가 자식 것을 다시 세어 합이 부풀어 오른다
 ```
 
@@ -288,11 +288,12 @@ Net(
     ...
 ```
 
-들여쓰기가 중첩을 그대로 보여 주고, 각 층의 설정도 보인다. 모델을 처음 볼 때
+들여쓰기가 중첩을 그대로 보여 주고, 각 레이어의 설정도 보인다. 모델을 처음 볼 때
 가장 빠른 길이다.
 
-안 나오는 것이 셋이다. **파라메터 수**, **출력 모양**, **버퍼**. 앞의 둘은 따로
-세어야 하고(5절), 셋째는 아예 다른 목록에 있다(4절).
+안 나오는 것이 셋이다. **파라메터 수**, **출력 형태**, **버퍼**. 첫째는 따로
+세어야 하고(5절), 둘째는 입력을 실제로 넣어 보아야 알며, 셋째는 아예 다른 목록에
+있다(4절).
 
 ## 3. 바로 아래만 vs 전부
 
@@ -314,7 +315,7 @@ named_modules  (전부 10개):
 앞부분이 된다. 그래서 **모델의 속성 이름을 바꾸면 옛 체크포인트를 못 읽는다.**
 「모델 체크포인트」에서 구조가 안 저장된다고 한 것의 다른 얼굴이다.
 
-고르는 기준은 간단하다. 층마다 무언가를 하려면 `modules()`, 큰 블록 단위로
+고르는 기준은 간단하다. 레이어마다 무언가를 하려면 `modules()`, 큰 블록 단위로
 다루려면 `children()`.
 
 ## 4. 버퍼 — 트레인되지 않는데 순전파가 고친다
@@ -341,7 +342,7 @@ train()  running_mean 바뀌나 True   출력 평균 [-0.0, -0.0, 0.0]
 eval()   running_mean 바뀌나 False  출력 평균 [5.097, 4.115, 4.784]
 ```
 
-평균이 10 언저리인 입력을 같은 층에 두 번 넣었는데 나온 것이 다르다.
+평균이 10 언저리인 입력을 같은 레이어에 두 번 넣었는데 나온 것이 다르다.
 
 **`train()`은 쌓기만 하고 쓰지 않는다.** 정규화는 **그 배치의 통계**로 하므로
 출력 평균이 0이 되고, `running_mean`은 그동안 조용히 갱신된다.
@@ -358,7 +359,7 @@ eval()   running_mean 바뀌나 False  출력 평균 [5.097, 4.115, 4.784]
     부르면 평가 루프 한가운데서도 배치 통계로 정규화하고 버퍼를 계속 갱신한다.
 
     `torch.no_grad()`로 감싸도 이 동작은 **하나도 안 바뀐다.**
-    [`torch.no_grad`](10_with_torch_no_grad.md)가 재어 둔 대로 둘은 다른
+    [with torch.no_grad()](10_with_torch_no_grad.md)가 재어 둔 대로 둘은 다른
     설정이고, 빼먹었을 때의 결과도 다르다 — `no_grad`를 빼면 느려지고,
     `eval()`을 빼면 **답이 틀린다.**
 
@@ -378,7 +379,7 @@ state_dict 키:
 때는 들어가므로, 둘을 견주려면 버퍼도 더해야 한다. 그림의 **안쪽 테두리가
 바깥보다 좁은 것**이 그 말이다.
 
-## 5. 층마다 세기 — `recurse=False`가 필요하다
+## 5. 레이어마다 세기 — `recurse=False`가 필요하다
 
 ```
 이름                       종류                 파라메터
@@ -395,7 +396,7 @@ head                     Linear               18
 파라메터를 여러 번 센다 — 루트가 전부를, `blocks`가 블록 둘을, 각 블록이 제
 것을 다시.
 
-`recurse=False`를 주면 **그 층이 제 몫으로 가진 것**만 센다. 그러면 합이
+`recurse=False`를 주면 **그 레이어가 제 몫으로 가진 것**만 센다. 그러면 합이
 맞는다. 연습문제 1에서 틀리면 얼마나 부풀어 오르는지 본다.
 
 ## 연습문제
@@ -403,7 +404,7 @@ head                     Linear               18
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-`recurse=False`를 빼면 합이 얼마나 부풀어 오르는가? 세 층짜리 신경망으로 확인하라.
+`recurse=False`를 빼면 합이 얼마나 부풀어 오르는가? 레이어 세 개짜리 뉴럴 네트워크로 확인하라.
 
 </div>
 
@@ -430,8 +431,8 @@ head                     Linear               18
     중첩이 깊으면 배수가 커진다. 블록 안에 블록이 있는 구조라면 세 배, 네 배가
     된다.
 
-    가장 간단한 길은 **층마다 세지 않는 것**이다. 전체 수는
-    `sum(p.numel() for p in net.parameters())` 한 줄이면 맞는다. 층별 내역이
+    가장 간단한 길은 **레이어마다 세지 않는 것**이다. 전체 수는
+    `sum(p.numel() for p in net.parameters())` 한 줄이면 맞는다. 레이어별 내역이
     필요할 때만 `recurse=False`가 필요하다.
 
 ---
@@ -439,7 +440,7 @@ head                     Linear               18
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-층을 리스트에 담아 두면 모델이 알아보는가? 파이썬 리스트와 `nn.ModuleList`를
+레이어를 리스트에 담아 두면 모델이 알아보는가? 파이썬 리스트와 `nn.ModuleList`를
 둘 다 가진 모듈을 만들어 확인하라.
 
 </div>
@@ -461,8 +462,7 @@ head                     Linear               18
     ```
       ModuleList 의 파라메터: 6
       전체 파라메터 수      : 6
-      state_dict 키: ['good.0.weight', 'good.0.bias', 'good.1.weight',
-                      'good.1.bias', 'good.2.weight', 'good.2.bias']
+      state_dict 키: ['good.0.weight', 'good.0.bias', 'good.1.weight', 'good.1.bias', 'good.2.weight', 'good.2.bias']
     ```
 
     **`bad`는 아예 없는 것처럼 취급된다.** 전체 파라메터가 6개뿐이고
@@ -479,7 +479,7 @@ head                     Linear               18
     - `model.to(device)`가 안 옮기므로 **장치가 어긋나 터진다**
     - `state_dict`에 없으므로 **저장도 복원도 안 된다**
 
-    셋 다 한참 뒤에 드러난다. 층을 여럿 담을 때는 `nn.ModuleList`나
+    셋 다 한참 뒤에 드러난다. 레이어를 여럿 담을 때는 `nn.ModuleList`나
     `nn.Sequential`, 사전이면 `nn.ModuleDict`를 써야 한다.
 
 ---
@@ -494,6 +494,7 @@ head                     Linear               18
 
 ??? success "풀이"
     ```python
+    torch.manual_seed(0)
     bn = nn.BatchNorm1d(3)
     print("  처음           :", [round(v, 4) for v in bn.running_mean.tolist()],
           " num_batches:", bn.num_batches_tracked.item())
@@ -502,24 +503,26 @@ head                     Linear               18
         bn(torch.randn(8, 3))
     print("  train 3번 뒤   :", [round(v, 4) for v in bn.running_mean.tolist()],
           " num_batches:", bn.num_batches_tracked.item())
+    after_train = bn.running_mean.clone()
     bn.eval()
     for _ in range(3):
         bn(torch.randn(8, 3))
     print("  eval 3번 뒤    :", [round(v, 4) for v in bn.running_mean.tolist()],
           " num_batches:", bn.num_batches_tracked.item())
+    print("  eval 에서 바뀌었나:", not torch.equal(after_train, bn.running_mean))
     ```
 
     ```
       처음           : [0.0, 0.0, 0.0]  num_batches: 0
-      train 3번 뒤   : [0.0658, 0.1429, -0.027]  num_batches: 3
-      eval 3번 뒤    : [0.0658, 0.1429, -0.027]  num_batches: 3
-      eval 에서는 안 바뀐다
+      train 3번 뒤   : [0.0034, 0.0233, -0.0295]  num_batches: 3
+      eval 3번 뒤    : [0.0034, 0.0233, -0.0295]  num_batches: 3
+      eval 에서 바뀌었나: False
     ```
 
     **`train()`에서만 갱신된다.** `eval()`에서는 쌓아 둔 통계를 **읽기만** 한다.
 
     그래서 `model.eval()`이 하는 일이 둘이다 — 드롭아웃을 끄고, 배치 정규화를
-    "쌓기"에서 "읽기"로 바꾼다. 「torch.no_grad 사용하기」에서 `eval()`을
+    "쌓기"에서 "읽기"로 바꾼다. 「with torch.no_grad()」 쪽에서 `eval()`을
     빼먹으면 답이 틀린다고 한 까닭이 여기까지 이어진다. 평가 중에 `train()`
     모드면 **평가 데이터의 통계가 모델에 스며든다** — 시험 문제를 보고 모델을
     고치는 셈이다.

@@ -4,7 +4,7 @@
 
 ## 1. 학습 목표
 
-이 절을 마치면 다음을 할 수 있게 된다.
+이 쪽을 마치면 다음을 할 수 있게 된다.
 
 - 텐서와 `ndarray`가 같은 점과 다른 점을 말하기
 - 배열과 텐서를 서로 오가며, 메모리를 함께 쓰는지 확인하기
@@ -25,13 +25,13 @@ $$\text{Tensor} = \text{ndarray} + \text{장치}(\texttt{device}) + \text{자동
 |---|---|---|
 | 0으로 채우기 | `np.zeros((2,3))` | `torch.zeros(2,3)` |
 | 정규 난수 | `np.random.randn(2,3)` | `torch.randn(2,3)` |
-| 모양 | `a.shape` | `a.shape` |
-| 모양 바꾸기 | `a.reshape(3,2)` | `a.reshape(3,2)` |
+| 형태 | `a.shape` | `a.shape` |
+| 형태 바꾸기 | `a.reshape(3,2)` | `a.reshape(3,2)` |
 | 행렬 곱 | `A @ B` | `A @ B` |
 | 축 방향 합 | `a.sum(axis=0)` | `a.sum(dim=0)` |
 | 자료형 바꾸기 | `a.astype(np.float32)` | `a.float()` |
 
-이 표의 연산은 문법이 비슷하지만, 두 도구의 모든 동작이 같은 것은 아니다. 자료형, 메모리 공유, 제자리 연산, 미분 지원 여부도 확인해야 한다.
+이 표의 연산은 문법이 비슷하지만, 두 도구의 모든 동작이 같은 것은 아니다. 자료형, 메모리 공유, 제자리 연산(in-place, 새 텐서를 만들지 않고 값을 그 자리에서 고치는 연산), 미분 지원 여부도 확인해야 한다.
 
 ```python
 import numpy as np
@@ -196,7 +196,7 @@ f(x)     = 12.0      (2^3 + 2*2 = 12)
 
 식이 이렇게 단순하면 손으로 미분해도 된다. 그러나 뉴럴 네트워크는 레이어가 수십 개이고 파라메터가 수백만 개이다. 각 연산의 미분을 직접 구현하는 것은 가능하지만, 큰 모델의 계산 그래프를 수작업으로 관리하는 일은 복잡하고 오류가 생기기 쉽다.
 
-**자동 미분이 딥러닝을 실용적으로 만든 장치**이며, 이것이 NumPy 대신 PyTorch를 쓰는 가장 큰 까닭이다. 자세한 원리는 [1.6절 자동 미분](../index.md)에서 다룬다.
+**자동 미분이 딥러닝을 실용적으로 만든 장치**이며, 이것이 NumPy 대신 PyTorch를 쓰는 가장 큰 까닭이다. 자세한 원리는 [1.6절 자동 미분](../../ch06/autograd/gradient_computation.md)에서 다룬다.
 
 ---
 
@@ -226,19 +226,19 @@ y = x @ W
 loss = y.pow(2).mean()
 loss.backward()
 
-print(f"자료   : {tuple(x.shape)} on {x.device}")
+print(f"데이터 : {tuple(x.shape)} on {x.device}")
 print(f"웨이트 : {tuple(W.shape)} on {W.device}")
 print(f"로스   : {loss.item():.4f}")
-print(f"경사   : {tuple(W.grad.shape)}  <- W와 같은 모양")
+print(f"경사   : {tuple(W.grad.shape)}  <- W와 같은 형태")
 ```
 
 **출력:**
 
 ```
-자료   : (1000, 784) on mps:0
+데이터 : (1000, 784) on mps:0
 웨이트 : (784, 10) on mps:0
 로스   : 768.7119
-경사   : (784, 10)  <- W와 같은 모양
+경사   : (784, 10)  <- W와 같은 형태
 ```
 
 이 세 줄이 이 책에 나오는 거의 모든 트레인 코드의 뼈대이다.
@@ -278,7 +278,7 @@ print(f"경사   : {tuple(W.grad.shape)}  <- W와 같은 모양")
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-NumPy만으로 뉴럴 네트워크를 트레인시킬 수 있는가?
+NumPy만으로 뉴럴 네트워크를 트레인할 수 있는가?
 
 </div>
 
@@ -295,4 +295,4 @@ NumPy만으로 뉴럴 네트워크를 트레인시킬 수 있는가?
 
 기억할 것은 셋이다. `from_numpy`와 `.numpy()`는 **메모리를 함께 쓴다**는 것, 계산에 참여하는 텐서는 **같은 장치**에 있어야 한다는 것, 그리고 `requires_grad=True`를 붙인 텐서에는 PyTorch가 미분을 대신 구해 준다는 것이다.
 
-다음 절에서는 장치를 바꾸는 일이 실제로 얼마나 이득인지 재어 본다.
+다음 쪽 「CPU와 GPU 성능 비교」에서는 장치를 바꾸는 일이 실제로 얼마나 이득인지 재어 본다.

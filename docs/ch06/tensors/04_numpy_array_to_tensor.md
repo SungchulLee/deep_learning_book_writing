@@ -1,6 +1,6 @@
 # NumPy 배열을 텐서로
 
-NumPy 배열을 텐서로 바꾸는 길이 셋인데, 겉보기 결과는 모두 같고 **메모리를 공유하는지**가 다르다. 공유하면 한쪽을 고칠 때 다른 쪽도 바뀐다. 그래서 어느 것을 골랐는지가 나중에 멀리 떨어진 자리에서 티가 난다. 이 절에서는 셋을 가려 쓰는 기준을 세운다.
+NumPy 배열을 텐서로 바꾸는 길이 셋인데, 겉보기 결과는 모두 같고 **메모리를 공유하는지**가 다르다. 공유하면 한쪽을 고칠 때 다른 쪽도 바뀐다. 그래서 어느 것을 골랐는지가 나중에 멀리 떨어진 자리에서 티가 난다. 이 쪽에서는 셋을 가려 쓰는 기준을 세운다.
 
 ## 1. 코드
 
@@ -22,7 +22,7 @@ def ptr_numpy(a: np.ndarray) -> int:
     """넘파이 배열의 바탕 데이터 포인터(주소)를 (파이썬 정수로) 돌려준다.
     Notes:
       • 뷰라면 바탕 버퍼의 중간을 가리킬 수도 있다.
-      • 이 주소와 스트라이드/모양이 원소가 어디에 있는지를 온전히 밝힌다.
+      • 이 주소와 스트라이드/형태가 원소가 어디에 있는지를 온전히 밝힌다.
     """
     return a.__array_interface__['data'][0]
 
@@ -101,15 +101,15 @@ def main():
     #   스트라이드 텐서를 PyTorch가 아직 못 다루므로, arr[::-1].copy()로 넘긴다.
     #
     # from_numpy(ndarray)에 대한 참고:
-    #   - from_numpy는 주어진 CPU ndarray와 **항상 공유한다**(수치형, 쓰기 가능, 호환 스트라이드).
+    #   - from_numpy는 주어진 CPU ndarray와 **항상 공유한다**(수치형, 양수 스트라이드. 읽기 전용이면 경고만 낸다).
     #   - from_numpy에는 dtype/device를 넘길 수 없다.
     #   - 다른 dtype이 필요하면 먼저: arr2 = arr.astype(np.float32, copy=True/False)
     #       그다음: t = torch.from_numpy(arr2)  # arr2와 공유한다(arr2 자체는 복사본일 수 있다)
     #   - GPU/MPS가 필요하면: t_cpu = torch.from_numpy(arr); t = t_cpu.to('cuda')  # 장치 이동 = **COPY**
 
     arr3 = np.array([1.1, 2.2, 3.3], dtype=np.float64)
-    # as_tensor는 가능하면 복사를 피한다. CPU에서 수치형, 쓰기 가능, 호환되는 스트라이드/배치일 때이다.
-    t_as = torch.as_tensor(arr3)  # usually **SHARE**; may **COPY** if incompatible
+    # as_tensor는 가능하면 복사를 피한다. dtype과 device를 그대로 두면 공유한다.
+    t_as = torch.as_tensor(arr3)  # **SHARE** here; **COPY** only if dtype/device must change
     print("arr3 (before):", arr3)
     print("t_as (before): ", t_as)
 
@@ -213,7 +213,7 @@ def main():
     ro = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     ro.setflags(write=False)  # make array read-only
     try:
-        _ = torch.from_numpy(ro)  # often errors: cannot write to read-only array
+        _ = torch.from_numpy(ro)  # 오류가 아니라 UserWarning 을 내고 공유한다
         print("from_numpy(readonly) succeeded (behavior may vary)")
     except Exception as e:
         print("from_numpy(readonly) error:", repr(e))
@@ -362,11 +362,11 @@ tensor(np_array)       → **COPY** (always independent)
 
 조금 이상한 일이다. NumPy와 PyTorch는 따로 만들어진 남남이고 서로의 자료 구조를 알지 못한다. 그런데 `from_numpy` 는 복사도 변환도 없이 **같은 메모리를 그대로 읽는다.** 어떻게 가능한가.
 
-운이 아니라 **약속**이 있어서다. 2006년 8월 28일에 트래비스 올리펀트(Travis Oliphant)와 칼 뱅크스(Carl Banks)가 낸 PEP 3118 「Revising the buffer protocol」이 그 약속이다. 제안서는 그때까지의 버퍼 인터페이스가 왜 모자란지를 이렇게 적었다 — "Memory is just a pointer with a length. There is no way to describe what is 'in' the memory", 그리고 "There is no shape information provided for the memory". 포인터와 길이만으로는 **무엇이 들어 있는지도, 어떤 모양인지도** 알 수 없다는 것이다.
+운이 아니라 **약속**이 있어서다. 2006년 8월 28일에 트래비스 올리펀트(Travis Oliphant)와 칼 뱅크스(Carl Banks)가 낸 PEP 3118 「Revising the buffer protocol」이 그 약속이다. 제안서는 그때까지의 버퍼 인터페이스가 왜 모자란지를 이렇게 적었다 — "Memory is just a pointer with a length. There is no way to describe what is 'in' the memory", 그리고 "There is no shape information provided for the memory". 포인터와 길이만으로는 **무엇이 들어 있는지도, 어떤 형태인지도** 알 수 없다는 것이다.
 
-![왼쪽은 numpy 상자와 torch 상자가 가운데의 같은 메모리 블록을 화살표로 가리키는 그림이고, 그 아래에 이 약속이 자료형과 모양과 스트라이드까지 함께 실어 나른다고 적혀 있다. 오른쪽은 가로축이 원소 수, 세로축이 한 번 부르는 데 걸리는 마이크로초인 로그 그래프로, 복사하는 쪽은 곧게 올라가고 공유하는 쪽은 바닥에 평평하게 누워 있다.](figures/buffer_protocol.svg)
+![왼쪽은 numpy 상자와 torch 상자가 가운데의 같은 메모리 블록을 화살표로 가리키는 그림이고, 그 아래에 이 약속이 자료형과 형태와 스트라이드까지 함께 실어 나른다고 적혀 있다. 오른쪽은 가로축이 원소 수, 세로축이 한 번 부르는 데 걸리는 마이크로초인 로그 그래프로, 복사하는 쪽은 곧게 올라가고 공유하는 쪽은 바닥에 평평하게 누워 있다.](figures/buffer_protocol.svg)
 
-그래서 이 약속에 **자료형·모양·스트라이드**가 함께 실리게 되었고, 바로 그 덕분에 위에서 본 일들이 가능하다. `arr2d[:, 0]` 처럼 띄엄띄엄 놓인 열까지 공유할 수 있는 것은 스트라이드가 약속 안에 들어 있기 때문이다. 반대로 `arr[::-1]` 이 복사가 아니라 **오류**인 것도 설명된다 — 음수 스트라이드는 약속으로는 적을 수 있는데 PyTorch가 아직 받아들이지 못한다. 약속의 한계가 아니라 받는 쪽의 한계다.
+그래서 이 약속에 **자료형·형태·스트라이드**(스트라이드는 다음 원소로 가려면 메모리에서 몇 바이트를 건너뛰는지를 적은 수다)가 함께 실리게 되었고, 바로 그 덕분에 위에서 본 일들이 가능하다. `arr2d[:, 0]` 처럼 띄엄띄엄 놓인 열까지 공유할 수 있는 것은 스트라이드가 약속 안에 들어 있기 때문이다. 반대로 `arr[::-1]` 이 복사가 아니라 **오류**인 것도 설명된다 — 음수 스트라이드는 약속으로는 적을 수 있는데 PyTorch가 아직 받아들이지 못한다. 약속의 한계가 아니라 받는 쪽의 한계다.
 
 비용의 차이는 오른쪽 그림이 보여 준다. 원소 수를 열 배로 늘리면 복사하는 쪽은 걸리는 시간도 열 배가 되는데, 공유하는 쪽은 **그대로다.** 데이터를 한 번도 건드리지 않고 설명만 넘겨받기 때문이다. 그림의 마이크로초는 이 기계에서 잰 값이라 다른 기계에서는 다른 수가 나오지만, 한쪽만 기울어진다는 **모양**은 남는다.
 

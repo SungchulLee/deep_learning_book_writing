@@ -1,4 +1,4 @@
-# `detach()`와 `detach_()` — 새 텐서냐 제자리냐
+# detach와 detach_
 
 <div class="leadbox" markdown>
 
@@ -141,7 +141,7 @@ def which_one():
     print("       원본 그래프를 건드리지 않는다:",
           type(loss.grad_fn).__name__)
 
-    # (나) 순환 신경망에서 은닉 상태를 끊는다 — 둘 다 쓰인다
+    # (나) 순환 뉴럴 네트워크에서 은닉 상태를 끊는다 — 둘 다 쓰인다
     h = torch.zeros(2, requires_grad=True)
     for _ in range(3):
         h = (h + x[:2]).tanh()
@@ -226,7 +226,7 @@ h.requires_grad_(False): you can only change requires_grad flags of leaf variabl
 h.detach_()            : 된다. False
 ```
 
-「그래디언트 추적 끄기」에서 본 오류다. `requires_grad_`는 리프 텐서(leaf tensor, 연산의 결과가 아니라 직접 만든 텐서)에만 걸리는데, 그 오류
+「경사 추적 끄기」에서 본 오류다. `requires_grad_`는 리프 텐서(leaf tensor, 연산의 결과가 아니라 직접 만든 텐서)에만 걸리는데, 그 오류
 메시지가 가리키는 대안이 바로 `detach()`다.
 
 그래서 둘의 쓰임이 갈린다. **파라메터를 동결(freeze)하는 것은 `requires_grad_`**이고,
@@ -269,9 +269,9 @@ detach() 뒤 backward: True   (dloss/dx = 8x)
 
 **(가) 기록용으로 값만 꺼낼 때** — `loss.detach()`. 원본 `loss`는 그래프를
 그대로 달고 있으므로 뒤에 `backward()`를 부를 수 있다. 「그래디언트 추적을 멈추는
-시점」의 연습문제에서 이것을 빼먹으면 그래프가 백 개씩 쌓이는 것을 보았다.
+시점」의 연습문제에서 이것을 빼먹으면 백 반복 치 그래프가 전부 살아 있는 것을 보았다.
 
-**(나) 순환 신경망에서 은닉 상태(hidden state)를 끊을 때** — 반복마다 `h = h.detach()`.
+**(나) 순환 뉴럴 네트워크(RNN)에서 은닉 상태(hidden state)를 끊을 때** — 반복마다 `h = h.detach()`.
 안 끊으면 그래프가 시퀀스 길이만큼 길어져, 역전파가 처음까지 거슬러 올라간다
 (이것을 잘라 내는 것을 truncated BPTT라고 부른다).
 
@@ -322,7 +322,7 @@ detach() 뒤 backward: True   (dloss/dx = 8x)
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-순환 신경망에서 `h = h.detach()`를 빼먹으면 그래프가 얼마나 길어지는가? 반복하며 **그래프의 깊이**를 세어라.
+순환 뉴럴 네트워크에서 `h = h.detach()`를 빼먹으면 그래프가 얼마나 길어지는가? 반복하며 **그래프의 깊이**를 세어라.
 
 </div>
 
@@ -400,7 +400,8 @@ detach() 뒤 backward: True   (dloss/dx = 8x)
 
     **같은 한 줄인데 어디에 두느냐로 결과가 갈린다.**
 
-    - **순전파 뒤에 고치면** 버전 카운터가 알아챈다. 역전파가 저장해 둔 값의
+    - **순전파 뒤에 고치면** 버전 카운터(텐서가 제자리에서 고쳐질 때마다 1씩
+      느는 수)가 알아챈다. 역전파가 저장해 둔 값의
       버전이 0인데 지금은 1이므로 어긋난 것을 알고 거절한다
     - **순전파 전에 고치면** 저장되는 값이 **이미 고쳐진 값**이다. 버전이
       어긋나지 않으므로 검사를 통과하고, 99로 계산한 **594**라는 틀린 그래디언트가
@@ -414,7 +415,7 @@ detach() 뒤 backward: True   (dloss/dx = 8x)
 
     4절의 `detach_()`도 식에 따라 갈린다. `(y ** 2).sum()`처럼 `y`를 저장하는
     식이면 터지지만, `y.sum()`처럼 저장할 것이 없는 식이면 **아무 일도 없이
-    통과한다.** 「계산 그래프 재사용」에서 본 것과 같은 갈림이다.
+    통과한다.** 「retain_graph」에서 본 것과 같은 갈림이다.
 
     결론은 짧다. **꺼낸 것을 고칠 작정이면 `detach().clone()`이다.** 어느 쪽이
     잡히고 어느 쪽이 안 잡히는지를 외우는 것보다 싸다.

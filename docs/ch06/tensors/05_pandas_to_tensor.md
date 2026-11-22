@@ -59,7 +59,7 @@ def main():
     # 5) torch.from_numpy를 통한 메모리 공유  (**SHARE**)
     # --------------------------------------------
     # torch.from_numpy(ndarray)는 ndarray와 저장소를 **공유한다**(복사 없음).
-    # 어느 쪽을 바꾸어도 다른 쪽에 반영된다(요구조건: 수치형, 쓰기 가능, 지원되는 배치).
+    # 어느 쪽을 바꾸어도 다른 쪽에 반영된다(요구조건: 수치형, 양수 스트라이드).
     arr = np.array([10.0, 20.0, 30.0], dtype=np.float32)
     s5 = pd.Series(arr)                    # wraps the SAME ndarray (no copy)
     t5 = torch.from_numpy(s5.values)       # SHARE (no copy)
@@ -71,7 +71,7 @@ def main():
 
     # 요령:
     # - 독립성이 필요한가?  t5_ind = torch.from_numpy(s5.values).clone()  # 공유 후 COPY
-    # - Series가 쓰기 가능/연속이 아니면 .from_numpy가 오류를 낼 수 있다 → s.to_numpy(..., copy=True)를 쓴다.
+    # - 읽기 전용 배열이면 from_numpy가 경고만 내고 공유한다 → 지키려면 s.to_numpy(..., copy=True)를 쓴다.
 
     # --------------------------------------------
     # 6) 수치형이 아닌 Series(object dtype) → 오류
@@ -90,8 +90,8 @@ def main():
     # • 넘파이 → 토치:
     #     torch.tensor(ndarray)        → **COPY**(항상 새로운 독립 저장소)
     #     torch.from_numpy(ndarray)    → **SHARE**(복사 없음. 변경이 양쪽에 반영된다)
-    #     torch.as_tensor(ndarray)     → **공유 시도**(호환되면 공유: 수치형, 쓰기 가능,
-    #                                        스트라이드가 지원되면 공유, 아니면 COPY로 되돌아간다)
+    #     torch.as_tensor(ndarray)     → **공유 시도**(dtype과 device를 그대로 두면 공유,
+    #                                        둘 중 하나를 바꿔 달라고 하면 COPY한다)
     #
     # • 파이썬 리스트/튜플을 쓸 때(NumPy가 아닐 때):
     #     torch.tensor(list_like)      → **COPY**
@@ -102,7 +102,7 @@ def main():
     #     역전파를 할 것이라면 실수/복소수 텐서에 requires_grad=True를 설정한다.
     #
     # • 장치/자료형:
-    #     dtype를 명시하는 편이 좋다(예: 트레인에는 float32). 필요하면 장치를 옮긴다:
+    #     dtype을 명시하는 편이 좋다(예: 트레인에는 float32). 필요하면 장치를 옮긴다:
     #         t = torch.from_numpy(arr).to("cuda")   # CPU에서 먼저 공유한 뒤 GPU로 COPY
     #         t = torch.tensor(df.to_numpy(np.float32), device="cuda")  # GPU로 바로 **COPY**
 
@@ -154,7 +154,7 @@ Non-numeric Series error: can't convert np.ndarray of type numpy.object_. The on
 
 둘째 줄은 오류가 나므로 금방 안다. **위험한 것은 첫째 줄이다.** 라벨로 쓰려던 정수 열이 실수가 되어도 아무 말이 없다. 열을 따로 꺼내 각각 텐서로 만들면 피할 수 있다.
 
-**이 예시에서 추론한 실수 자료형은 `float64`다. 명시적으로 다른 자료형을 사용할 수도 있다.** `Series[float]`를 텐서로 만들면 `torch.float64`가 나온다. 그런데 기본 설정으로 만든 PyTorch 레이어의 웨이트는 보통 `float32`이므로, 그대로 넣으면 자료형이 어긋났다는 오류를 만난다. 둘 중 하나로 미리 맞춘다.
+**실수 열은 따로 지정하지 않으면 `float64`로 넘어온다.** `Series[float]`를 텐서로 만들면 `torch.float64`가 나온다. 그런데 기본 설정으로 만든 PyTorch 레이어의 웨이트는 보통 `float32`이므로, 그대로 넣으면 자료형이 어긋났다는 오류를 만난다. 둘 중 하나로 미리 맞춘다.
 
 ```python
 torch.tensor(s.values, dtype=torch.float32)      # 텐서로 만들 때 맞춘다
@@ -332,10 +332,10 @@ s2 = pd.Series([1, 2, None], dtype="Int64")      # 대문자 I
 
 ## 정리하며
 
-pandas에서 텐서로 가는 길은 NumPy를 지난다. `.values`로 배열을 꺼내고 그것을 감싸므로, 앞 쪽의 복사·공유 규칙이 그대로 적용된다. pandas 쪽에서 새로 생기는 어려움은 셋이다.
+pandas에서 텐서로 가는 길은 NumPy를 지난다. `.values`로 배열을 꺼내고 그것을 감싸므로, 「NumPy 배열을 텐서로」 쪽의 복사·공유 규칙이 그대로 적용된다. pandas 쪽에서 새로 생기는 어려움은 셋이다.
 
 - **열마다 자료형이 다르다.** `.values`는 프레임 전체를 담을 하나를 골라야 한다. 정수와 실수가 섞이면 `float64`로 올라가고(조용히), 문자열이 섞이면 `object`가 되어 `TypeError`가 난다(시끄럽게). 자료형이 다른 열은 **따로 꺼낸다.**
-- **이 예시에서 추론한 실수 자료형은 `float64`다. 명시적으로 다른 자료형을 사용할 수도 있다.** 기본 설정에서 만든 실수 웨이트는 보통 `float32`이므로 `dtype=torch.float32`나 `to_numpy(dtype="float32")`로 미리 맞춘다.
+- **실수 열은 따로 지정하지 않으면 `float64`로 넘어온다.** 기본 설정에서 만든 실수 웨이트는 보통 `float32`이므로 `dtype=torch.float32`나 `to_numpy(dtype="float32")`로 미리 맞춘다.
 - **결측값은 조용히 지나간다.** `NaN`은 오류 없이 텐서에 들어앉아 뒤에 가서 로스를 `nan`으로 바꾼다. 확인은 텐서가 되기 전, 열 이름이 아직 남아 있을 때 한다.
 
 대문자 `Int64`는 소문자 `int64`와 다른 자료형이고, 이쪽은 오류를 내 준다.

@@ -1,4 +1,4 @@
-# 불리언 마스킹과 where — 뷰로 오는 것과 베껴 오는 것
+# 불리언 마스킹과 where
 
 텐서에서 일부를 꺼내는 길이 여럿인데, 크게 두 갈래로 갈린다.
 
@@ -28,7 +28,7 @@
 읽을 때는 둘이 같아 보이므로, 고치려 할 때에야 갈린다. 그런데 대입은
 또 다르다 — `a[mask] = 0` 은 베낀 것에 쓰는 것이 아니라 원본을 고친다.
 
-마지막 절이 이 쪽에서 가장 비싼 교훈이다. `torch.where` 는 **고르지 않은
+마지막 두 절이 이 쪽에서 가장 비싼 교훈이다. `torch.where` 는 **고르지 않은
 가지도 계산한다.** 그래서 0 으로 나눈 다음 가리는 것만으로는 역전파의
 NaN 을 막지 못한다.
 
@@ -75,7 +75,7 @@ def masking_copies():
     picked = a[mask]
     print("  a      =", a.tolist())
     print("  a > 0  =", mask.tolist())
-    print("  a[mask]=", picked.tolist(), " 모양", tuple(picked.shape))
+    print("  a[mask]=", picked.tolist(), " 형태", tuple(picked.shape))
     print("  저장소를 나눠 쓰는가:", shares(a, picked))
     picked[0] = 100
     print("  꺼낸 것을 100 으로 고친 뒤 a =", a.tolist(), "(그대로다)")
@@ -232,7 +232,7 @@ tensor([[ 7,  8],
 === 2. 불리언 마스크로 가려 읽으면 베낀다 ===
   a      = [1, -2, 3, -4, 5, -6]
   a > 0  = [True, False, True, False, True, False]
-  a[mask]= [1, 3, 5]  모양 (3,)
+  a[mask]= [1, 3, 5]  형태 (3,)
   저장소를 나눠 쓰는가: False
   꺼낸 것을 100 으로 고친 뒤 a = [1, -2, 3, -4, 5, -6] (그대로다)
   정수 배열로 고른 a[[0,2,4]] 도 베끼는가: True
@@ -304,7 +304,7 @@ a[a > 0]     저장소를 나눠 쓰는가: False
 쓴다. 「메모리 배치와 스트라이드」에서 본 그대로다.
 
 마스킹이 뷰가 될 수 없는 까닭은 분명하다. **몇 개가 나올지 미리 모르고, 나오는
-자리의 간격도 일정하지 않다.** 스트라이드 하나로는 "3번, 7번, 11번 칸"을 가리킬 수 없다. 그러니
+자리의 간격도 일정하지 않다.** 스트라이드 하나로는 "3번, 4번, 9번 칸"을 가리킬 수 없다. 그러니
 새 자리를 잡아 모아 담는 수밖에 없다.
 
 정수 배열로 고르는 `a[[0, 2]]`도 같은 까닭으로 베낀다. 행 두 개가 메모리에 떨어져
@@ -346,7 +346,7 @@ sub[:] = 0          # 사본만 바뀐다. a 는 그대로다
 
 첫 줄이 헷갈리는 자리다. `a[r, c]`에서 `r`과 `c`가 둘 다 길이 3인 벡터면 **행 3개
 × 열 3개 = 9개를 고르는 것이 아니라 짝지어 3개**를 고른다. 격자가 필요하면
-브로드캐스팅이 되도록 모양을 `(3,1)`과 `(1,2)`로 맞춰 주어야 한다.
+브로드캐스팅이 되도록 형태를 `(3,1)`과 `(1,2)`로 맞춰 주어야 한다.
 
 ## 5. `None`과 줄임표
 
@@ -389,7 +389,8 @@ x.grad: [nan, -1.0, -0.25]  <- NaN 이 새어 나온다
 **역전파에서 NaN이 나온다.** `torch.where`는 파이썬의 `if`가 아니다. 조건을 보고
 한쪽만 계산하는 것이 아니라, **`1.0 / x`를 세 자리 모두에 대해 먼저 계산해 놓고**
 그중에서 고른다. $1/0 = \infty$가 이미 만들어졌고 그 미분 $-1/x^2$도 그래프에
-남아 있으므로, 고르지 않은 자리의 미분이 그대로 올라온다.
+남아 있다. 고르지 않은 자리로는 그래디언트 0이 내려가지만, 그것에 $-1/0^2 = -\infty$를
+곱한 $0 \times \infty$가 NaN이다.
 
 고치는 법은 **가리기 전에 입력을 안전하게 만드는 것**이다.
 
@@ -456,18 +457,18 @@ x.grad: [0.0, -1.0, -0.25]  <- 깨끗하다
              ("a[..., None]", lambda t: t[..., None]))
     for name, fn in cases:
         r = fn(a)
-        print(f"  {name:14s} {'뷰  ' if shares(a, r) else '복사'}  모양 {tuple(r.shape)}")
+        print(f"  {name:14s} {'뷰  ' if shares(a, r) else '복사'}  형태 {tuple(r.shape)}")
     ```
 
     ```
-      a[1:3]         뷰    모양 (2, 4)
-      a[:, 1:3]      뷰    모양 (3, 2)
-      a[::2]         뷰    모양 (2, 4)
-      a[1]           뷰    모양 (4,)
-      a[a > 5]       복사  모양 (6,)
-      a[[0, 2]]      복사  모양 (2, 4)
-      a.t()          뷰    모양 (4, 3)
-      a[..., None]   뷰    모양 (3, 4, 1)
+      a[1:3]         뷰    형태 (2, 4)
+      a[:, 1:3]      뷰    형태 (3, 2)
+      a[::2]         뷰    형태 (2, 4)
+      a[1]           뷰    형태 (4,)
+      a[a > 5]       복사  형태 (6,)
+      a[[0, 2]]      복사  형태 (2, 4)
+      a.t()          뷰    형태 (4, 3)
+      a[..., None]   뷰    형태 (3, 4, 1)
     ```
 
     **여덟 중 여섯이 뷰다.** 베끼는 것은 불리언 마스킹과 정수 배열 인덱싱
@@ -497,18 +498,26 @@ x.grad: [0.0, -1.0, -0.25]  <- 깨끗하다
     lengths = torch.tensor([3, 1, 4, 0])
     L = 4
     pad = torch.arange(L)[None, :] >= lengths[:, None]   # 브로드캐스팅으로 한 번에
+    print("  패딩 마스크(X 가 가릴 자리)")
+    for row in pad.tolist():
+        print("    " + " ".join("X" if v else "." for v in row))
+    print()
+
     torch.manual_seed(0)
     scores = torch.randn(4, L)
     p = torch.softmax(scores.masked_fill(pad, float("-inf")), dim=-1)
-    for row in p.tolist():
-        print("   ", [round(v, 4) for v in row])
+    for n, row in zip(lengths.tolist(), p.tolist()):
+        print(f"  {[round(v, 4) for v in row]}"
+              + ("      <- 길이 0" if n == 0 else ""))
+    print()
 
     # 빈 줄은 첫 칸만 열어 준다
     safe = pad.clone()
     safe[pad.all(dim=-1), 0] = False
     p2 = torch.softmax(scores.masked_fill(safe, float("-inf")), dim=-1)
+    print("  빈 줄의 첫 칸만 열어 주면")
     for row in p2.tolist():
-        print("   ", [round(v, 4) for v in row])
+        print(f"  {[round(v, 4) for v in row]}")
     ```
 
     ```
@@ -562,6 +571,7 @@ x.grad: [0.0, -1.0, -0.25]  <- 깨끗하다
         y.sum().backward()
         print(f"  where(x>0, {name:8s}, 0)   x.grad "
               f"{[round(v, 3) if v == v else 'nan' for v in x.grad.tolist()]}")
+    print()
 
     for name, fn in (("1/x", lambda t: 1.0 / t),
                      ("log(x)", lambda t: t.log()),

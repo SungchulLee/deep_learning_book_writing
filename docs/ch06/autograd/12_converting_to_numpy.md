@@ -1,4 +1,4 @@
-# 텐서를 NumPy로 넘기기 — 거절당하는 두 자리와 조용히 공유되는 메모리
+# NumPy로 변환하기
 
 <div class="leadbox" markdown>
 
@@ -16,8 +16,8 @@
 나서 미분을 구하면 **오류 없이 틀린 값**이 나온다 — 참값이 18일 자리에 594가
 적힌다.
 
-파이토치에는 이런 **제자리 연산(in-place)**을 잡아내는 **버전 카운터**가 있는데,
-여기서는 못 잡는다. 넘겨준 순간 그 감시의 바깥으로 나갔기 때문이다.
+파이토치에는 이런 **제자리 연산(in-place)**을 잡아내는 **버전 카운터**가 있는데 —
+텐서가 제자리에서 고쳐질 때마다 1씩 느는 수다 — 여기서는 못 잡는다. 넘겨준 순간 그 감시의 바깥으로 나갔기 때문이다.
 
 </div>
 
@@ -278,7 +278,7 @@ $2 \times 99 \times 3$, 곧 99로 고쳐진 값으로 계산한 것이다.
 `from_numpy`는 공유하고 `torch.tensor`는 베낀다. 그리고 **둘 다 `float64`**가
 된다 — numpy의 기본 실수형이 그렇기 때문이다.
 
-「형상, 자료형, 장치」에서 본 그 함정이다. 그대로 모델에 넣으면
+「데이터 관련 속성」에서 본 그 함정이다. 그대로 모델에 넣으면
 `mat1 and mat2 must have the same dtype, but got Double and Float`로 끝난다.
 `np.float32`로 만들거나 `.float()`를 붙여야 한다.
 
@@ -340,15 +340,15 @@ $2 \times 99 \times 3$, 곧 99로 고쳐진 값으로 계산한 것이다.
     for name, v in (("t", t), ("t.t()", t.t()),
                     ("t[::2]", t[::2]), ("t[:, 1:3]", t[:, 1:3])):
         a = v.numpy()
-        print(f"  {name:10s} -> numpy 모양 {a.shape}  strides {a.strides}  "
+        print(f"  {name:10s} -> numpy 형태 {a.shape}  strides {a.strides}  "
               f"공유 {np.shares_memory(a, t.numpy())}")
     ```
 
     ```
-      t          -> numpy 모양 (3, 4)  strides (32, 8)  공유 True
-      t.t()      -> numpy 모양 (4, 3)  strides (8, 32)  공유 True
-      t[::2]     -> numpy 모양 (2, 4)  strides (64, 8)  공유 True
-      t[:, 1:3]  -> numpy 모양 (3, 2)  strides (32, 8)  공유 True
+      t          -> numpy 형태 (3, 4)  strides (32, 8)  공유 True
+      t.t()      -> numpy 형태 (4, 3)  strides (8, 32)  공유 True
+      t[::2]     -> numpy 형태 (2, 4)  strides (64, 8)  공유 True
+      t[:, 1:3]  -> numpy 형태 (3, 2)  strides (32, 8)  공유 True
     ```
 
     **넷 다 되고 넷 다 공유한다.** 비연속이어도 막지 않는다.

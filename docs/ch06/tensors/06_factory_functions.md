@@ -1,6 +1,6 @@
 # 팩토리 함수
 
-텐서를 처음부터 만들어 주는 함수가 여러 벌 있다. 다 채워 주는 것(`zeros`, `ones`, `full`), 수열을 만드는 것(`arange`, `linspace`), 무작위로 뽑는 것(`rand`, `randn`), 남의 모양을 따르는 것(`*_like`), 그리고 **아무것도 채우지 않는 것**(`empty`)이다. 어느 것을 고르느냐에 따라 자료형이 달라지고, 하나는 값이 아예 정해져 있지 않다.
+텐서를 처음부터 만들어 주는 함수가 여러 벌 있다. 다 채워 주는 것(`zeros`, `ones`, `full`), 수열을 만드는 것(`arange`, `linspace`), 무작위로 뽑는 것(`rand`, `randn`), 남의 형태을 따르는 것(`*_like`), 그리고 **아무것도 채우지 않는 것**(`empty`)이다. 어느 것을 고르느냐에 따라 자료형이 달라지고, 하나는 값이 아예 정해져 있지 않다.
 
 ## 1. 코드
 
@@ -105,12 +105,12 @@ def main():
     print("normal N(5,2):\n", t_norm)
 
     # -------------------------------------------------------------------------
-    # *_like: 다른 텐서의 모양/dtype/device에 맞는 텐서를 만든다
+    # *_like: 다른 텐서의 형태/dtype/device에 맞는 텐서를 만든다
     # -------------------------------------------------------------------------
     header("4) *_like variants: zeros_like / ones_like / full_like")
 
     base = torch.randn((3, 2), dtype=torch.float64, device=device)
-    # *_like는 기본적으로 모양/dtype/device를 복사한다. 키워드 인자로 덮어쓸 수 있다.
+    # *_like는 기본적으로 형태/dtype/device를 복사한다. 키워드 인자로 덮어쓸 수 있다.
     z_like = torch.zeros_like(base)                 # dtype=float64 because base is float64
     o_like = torch.ones_like(base)
     f_like = torch.full_like(base, fill_value=3.14)
@@ -148,7 +148,7 @@ def main():
     b = torch.zeros((2, 2), dtype=fp, device=device, requires_grad=True)
     x = torch.rand((2, 2), dtype=fp, device=device)  # input (no grad)
 
-    # y = sum(w * x + b) → dy/dw = x, dy/db = 1 (b와 같은 모양)
+    # y = sum(w * x + b) → dy/dw = x, dy/db = 1 (b와 같은 형태)
     y = (w * x + b).sum()
     y.backward()  # populates w.grad and b.grad
 
@@ -325,7 +325,7 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-이 절의 출력은 기본 실수 자료형이 `float32`이고 기본 장치를 변경하지 않은 환경의 기록이다. `dtype`·`device`를 명시하거나 기본 설정을 바꾸면 결과가 달라질 수 있다.
+이 쪽의 출력은 기본 실수 자료형이 `float32`이고 기본 장치를 변경하지 않은 환경의 기록이다. `dtype`·`device`를 명시하거나 기본 설정을 바꾸면 결과가 달라질 수 있다.
 
 **기본 자료형이 함수마다 다르다.** 실수를 주는 것과 정수를 주는 것이 갈리는데, 이름만 보고는 알 수 없다.
 
@@ -335,7 +335,7 @@ if __name__ == "__main__":
 
 `full`은 넣는 값을 보고 정한다 — `full((3,), 7)`은 `int64`, `full((3,), 7.0)`은 `float32`다. 인덱스로 쓸 텐서를 `zeros`로 만들면 실수가 되어 인덱스에 쓸 수 없고, 반대로 `arange`로 만든 것을 실수 계산에 섞으면 자료형이 어긋난다.
 
-**`*_like`는 모양만 베끼는 것이 아니다.** 자료형과 장치와 메모리 배치까지 함께 따른다. 그래서 `torch.zeros(x.shape)`와 `torch.zeros_like(x)`는 같지 않다.
+**`*_like`는 형태만 베끼는 것이 아니다.** 자료형과 장치와 메모리 배치까지 함께 따른다. 그래서 `torch.zeros(x.shape)`와 `torch.zeros_like(x)`는 같지 않다.
 
 ```python
 x = torch.ones(2, 3, dtype=torch.float64)
@@ -352,7 +352,7 @@ torch.diag(torch.tensor([1., 2., 3.]))        # (3, 3) 행렬을 만든다
 torch.diag(torch.arange(9.).reshape(3, 3))    # tensor([0., 4., 8.]) — 대각선을 꺼낸다
 ```
 
-만드는 함수와 꺼내는 함수가 이름을 함께 쓰는 셈이다. 모양이 바뀌었는데 오류가 나지 않으니, 차원 수를 잘못 짚으면 한참 뒤에서 드러난다.
+만드는 함수와 꺼내는 함수가 이름을 함께 쓰는 셈이다. 형태가 바뀌었는데 오류가 나지 않으니, 차원 수를 잘못 짚으면 한참 뒤에서 드러난다.
 
 !!! warning "`torch.empty`의 값은 정해져 있지 않다"
     `empty`는 메모리만 받아 오고 **채우지 않는다.** 그래서 그 안에 무엇이 있을지 정해져 있지 않다 — 앞서 다른 텐서가 쓰고 버린 값이 그대로 보일 수 있다.
@@ -446,7 +446,7 @@ torch.randint(0, 5, (3,))       torch.full((3,), 7)      torch.full((3,), 7.0)
     zeros_like(x) : torch.float64
     ```
 
-    `x.shape`는 **모양만** 담고 있다. 자료형도 장치도 거기에 들어 있지 않으므로
+    `x.shape`는 **형태만** 담고 있다. 자료형도 장치도 거기에 들어 있지 않으므로
     `torch.zeros(x.shape)`는 기본값인 `float32`, CPU로 떨어진다. `zeros_like(x)`는
     `x`를 통째로 보고 자료형·장치·메모리 배치까지 따른다.
 
@@ -454,7 +454,7 @@ torch.randint(0, 5, (3,))       torch.full((3,), 7)      torch.full((3,), 7.0)
     자리에서 장치가 다르다는 오류가 난다. `zeros_like(x)`는 같은 GPU에 만들어져
     문제가 없다.
 
-    그래서 남과 짝을 맞출 텐서는 `*_like`로 만든다. 모양만 맞추면 되는 줄 알았던 것이
+    그래서 남과 짝을 맞출 텐서는 `*_like`로 만든다. 형태만 맞추면 되는 줄 알았던 것이
     실은 셋을 맞추는 일이다.
 
 ---
@@ -521,9 +521,9 @@ b = torch.empty(1000)
 텐서를 처음부터 만드는 함수를 고를 때 걸리는 것 셋이다.
 
 - **기본 자료형이 이름에서 드러나지 않는다.** 정수 인수의 `arange`·`randint`·`randperm`은 `int64`를, 나머지는 `float32`를 준다. `full`만 넣는 값을 따른다. 세는 값과 재는 값의 차이다.
-- **`*_like`는 모양만 베끼지 않는다.** 자료형·장치·메모리 배치까지 따른다. 그래서 `zeros(x.shape)`와 `zeros_like(x)`는 다르고, `x`가 GPU에 있으면 앞의 것은 장치가 어긋난다. 남과 짝을 맞출 텐서는 `*_like`로 만든다.
+- **`*_like`는 형태만 베끼지 않는다.** 자료형·장치·메모리 배치까지 따른다. 그래서 `zeros(x.shape)`와 `zeros_like(x)`는 다르고, `x`가 GPU에 있으면 앞의 것은 장치가 어긋난다. 남과 짝을 맞출 텐서는 `*_like`로 만든다.
 - **`empty`의 값은 정해져 있지 않다.** 앞서 그 메모리를 쓰던 값이 그대로 보일 수 있다. 하필 0으로 보이기 쉬운 것이 함정이다. 바로 다음에 전부 덮어쓸 때만 쓴다.
 
 `torch.diag`는 차원 수에 따라 하는 일이 반대라는 것도 기억할 만하다. 1차원을 넣으면 행렬을 만들고, 2차원을 넣으면 대각선을 꺼낸다.
 
-세 가지가 모두 같은 자리를 가리킨다. **텐서를 만들 때 내가 적지 않은 것은 PyTorch가 정하고, 그 기본값이 함수마다 다르다.** 모양만 맞추었다고 끝난 것이 아니다.
+세 가지가 모두 같은 자리를 가리킨다. **텐서를 만들 때 내가 적지 않은 것은 PyTorch가 정하고, 그 기본값이 함수마다 다르다.** 형태만 맞추었다고 끝난 것이 아니다.

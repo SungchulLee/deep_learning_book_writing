@@ -1,11 +1,11 @@
-# 사용자 정의 모듈로 레이어에 이름 붙이기 — `Sequential`로는 못 적는 것들
+# 사용자 정의 Module을 이용한 레이어 이름 짓기
 
 <div class="leadbox" markdown>
 
 **들어가는 이야기** — 한 줄로만 흘러가는 모델
 
-`nn.Sequential`은 층을 차례로 늘어놓기만 하면 되는 틀이다. 앞 층이 내놓은 것을
-다음 층에 넘기고, 그것이 전부다. 짧고 읽기 좋아서 많은 모델이 이 틀로 적힌다.
+`nn.Sequential`은 레이어를 차례로 늘어놓기만 하면 되는 틀이다. 앞 레이어가 내놓은 것을
+다음 레이어에 넘기고, 그것이 전부다. 짧고 읽기 좋아서 많은 모델이 이 틀로 적힌다.
 
 그 틀에는 **적을 수 없는 것**이 있다. 들어온 값을 뒤에서 한 번 더 쓰는 것,
 결과를 둘 내놓는 것, 중간에 지나간 값을 따로 꺼내 보는 것. 어느 것도 「앞의
@@ -14,22 +14,22 @@
 첫째 것이 특히 그렇다. 입력을 **더하기로 한 번 더 얹는** **스킵 연결**(skip connection, 잔차 연결이라고도 한다)은
 아주 작은 변경인데,
 블록 스무 개를 쌓고 재어 보면 맨 앞 블록에 닿는 그래디언트가 **50조 배쯤** 달라진다. 없는
-쪽은 사실상 0이고, 그 층들은 아무리 돌려도 배우지 않는다.
+쪽은 사실상 0이고, 그 레이어들은 아무리 돌려도 배우지 않는다.
 
 그 한 줄을 적으려면 틀에서 나와야 한다.
 
 </div>
 
-속성 이름이 그대로 `state_dict`의 키가 되는 것은 「`OrderedDict`으로 레이어에
-이름 붙이기」와 같다. 다른 것은 **그 사이에 무엇을 끼워 넣을 수 있느냐**다.
+속성 이름이 그대로 `state_dict`의 키가 되는 것은 「OrderedDict를 이용한 레이어 이름 짓기」와
+같다. 다른 것은 **그 사이에 무엇을 끼워 넣을 수 있느냐**다.
 
-`nn.Sequential`은 "한 줄로 지나가는" 모델만 적을 수 있다. 앞 층의 출력이 다음
-층의 입력이고, 그게 전부다. 그 틀을 벗어나는 것 넷을 본다.
+`nn.Sequential`은 "한 줄로 지나가는" 모델만 적을 수 있다. 앞 레이어의 출력이 다음
+레이어의 입력이고, 그게 전부다. 그 틀을 벗어나는 것 넷을 본다.
 
 - **스킵 연결**(skip connection) — 입력을 건너뛰어 출력에 한 번 더 더한다
 - **분기**(branching) — 출력이 둘 이상
 - **중간값 꺼내기** — `forward`가 인자를 더 받는다
-- **파라메터 없는 층을 안 만들기** — `F.relu`로 끝
+- **파라메터 없는 레이어를 안 만들기** — `F.relu`로 끝
 
 ## 1. 코드
 
@@ -40,8 +40,8 @@
 두 갈래로 보내거나, 건너뛰어 더하거나, 중간값을 꺼내 쓰려면
 `forward` 를 손으로 적어야 한다.
 
-속성 이름이 그대로 `state_dict` 의 키가 되는 것은 「OrderedDict 으로
-레이어에 이름 붙이기」와 같다. 다른 것은 **그 사이에 무엇을 끼워 넣을
+속성 이름이 그대로 `state_dict` 의 키가 되는 것은 「OrderedDict를 이용한
+레이어 이름 짓기」와 같다. 다른 것은 **그 사이에 무엇을 끼워 넣을
 수 있느냐**다.
 
 실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
@@ -75,7 +75,7 @@ def names():
     print("  state_dict 키:", list(net.state_dict().keys()))
     print("  ReLU 를 F.relu 로 적어 모듈이 아예 없다")
     print("  모듈 목록:", [n for n, _ in net.named_children()])
-    print("  Sequential 과 달리 파라메터 없는 층을 안 만들어도 된다")
+    print("  Sequential 과 달리 파라메터 없는 레이어를 안 만들어도 된다")
 
 
 # ========================================================================
@@ -101,7 +101,7 @@ def skip():
     x = torch.randn(2, 4)
     print("  입력 형태", tuple(x.shape), "-> 출력", tuple(block(x).shape))
     print("  x 를 한 번 더 쓰는 식은 Sequential 로 적을 수 없다")
-    print("  Sequential 은 앞 층의 출력만 다음 층에 넘기기 때문이다")
+    print("  Sequential 은 앞 레이어의 출력만 다음 레이어에 넘기기 때문이다")
 
     print("  블록 스무 개를 쌓고 첫 블록에 닿는 그래디언트를 재어 본다")
     for use_skip in (True, False):
@@ -214,12 +214,12 @@ if __name__ == "__main__":
   state_dict 키: ['encoder.weight', 'encoder.bias', 'head.weight', 'head.bias']
   ReLU 를 F.relu 로 적어 모듈이 아예 없다
   모듈 목록: ['encoder', 'head']
-  Sequential 과 달리 파라메터 없는 층을 안 만들어도 된다
+  Sequential 과 달리 파라메터 없는 레이어를 안 만들어도 된다
 
 === 2. 스킵 연결 ===
   입력 형태 (2, 4) -> 출력 (2, 4)
   x 를 한 번 더 쓰는 식은 Sequential 로 적을 수 없다
-  Sequential 은 앞 층의 출력만 다음 층에 넘기기 때문이다
+  Sequential 은 앞 레이어의 출력만 다음 레이어에 넘기기 때문이다
   블록 스무 개를 쌓고 첫 블록에 닿는 그래디언트를 재어 본다
     스킵 연결 True  첫 블록 1.177e-01  마지막 블록 5.382e-02  비 2.19e+00
     스킵 연결 False 첫 블록 2.311e-15  마지막 블록 9.248e-04  비 2.50e-12
@@ -255,7 +255,8 @@ state_dict 키: ['encoder.weight', 'encoder.bias', 'head.weight', 'head.bias']
 목록에 안 나타난다.** 파라메터가 없으니 `state_dict`에도 차이가 없다.
 
 둘 중 어느 쪽이든 결과는 같다(연습문제 1). 가르는 것은 **모델을 들여다보거나
-고칠 때**다 — `nn.ReLU`로 두면 `print(model)`에 보이고 훅을 걸 수 있다.
+고칠 때**다 — `nn.ReLU`로 두면 `print(model)`에 보이고 훅(hook, 그 모듈이 불릴 때마다
+함께 불리도록 걸어 두는 함수)을 걸 수 있다.
 
 ## 3. 스킵 연결 — 그래디언트가 살아남는다
 
@@ -264,7 +265,7 @@ def forward(self, x):
     return x + self.fc2(F.relu(self.fc1(x)))
 ```
 
-`x`를 한 번 더 쓴다. `Sequential`로는 적을 수 없다 — 앞 층의 출력만 넘어가니
+`x`를 한 번 더 쓴다. `Sequential`로는 적을 수 없다 — 앞 레이어의 출력만 넘어가니
 원래 `x`에 닿을 길이 없다.
 
 블록 스무 개를 쌓고 **첫 블록에 닿는 그래디언트**를 재어 보면 무엇이 달라지는지
@@ -277,16 +278,16 @@ def forward(self, x):
 
 ![두 칸 그림. 왼쪽은 스킵 연결이 있는 구조와 없는 구조를 나란히 그려, 있는 쪽에서 입력이 한 번 더 쓰이는 길을 보인다. 오른쪽은 로그 스케일 그래프로, 스킵 연결이 있으면 첫 블록과 마지막 블록의 그래디언트가 거의 같은 높이에 있고 없으면 첫 블록이 바닥까지 내려간다.](figures/skip_connection.svg)
 
-스킵 연결이 없으면 첫 블록의 그래디언트가 $10^{-15}$다. **사라졌다.** 앞쪽 층들이
+스킵 연결이 없으면 첫 블록의 그래디언트가 $10^{-15}$다. **사라졌다.** 앞쪽 레이어들이
 사실상 트레인되지 않는다. 로그 스케일에서 회색 선이 **열한 칸 넘게 떨어지는 것**이
 그 말이다.
 
-까닭은 연쇄 법칙이다. 스무 층을 거치며 각 층의 야코비안(출력을 입력으로 미분한 행렬)이 곱해지는데, 그 크기가
+까닭은 사슬 규칙이다. 스무 레이어를 거치며 각 레이어의 야코비 행렬(출력을 입력으로 미분한 행렬)이 곱해지는데, 그 크기가
 1보다 조금만 작아도 스무 번 곱하면 0으로 간다. 스킵 연결이 있으면
 $\frac{\partial}{\partial x}(x + f(x)) = 1 + f'(x)$라 **1이 더해져** 곱해도 안
 줄어든다.
 
-이것이 ResNet이 깊은 신경망을 트레인 가능하게 만든 방법이고, 그것을 적으려면
+이것이 ResNet이 깊은 뉴럴 네트워크를 트레인 가능하게 만든 방법이고, 그것을 적으려면
 `forward`를 손으로 써야 한다.
 
 ## 4. 출력이 둘
@@ -306,9 +307,9 @@ trunk.weight.grad 가 있는가: True
 ![x 가 백본을 지나 두 갈래로 갈라져 분류 헤드와 회귀 헤드로 가고, 둘이 다시 하나의 로스로 모인 뒤 역전파 화살표 하나가 백본으로 돌아오는 그림. 백본 아래에 그래디언트를 받았다는 칸이 채워져 있다.](figures/two_heads.svg)
 
 `Sequential`은 텐서 하나만 돌려줄 수 있다. 객체 탐지(상자와 클래스), 다중
-작업 트레인, VAE(평균과 로그분산)가 전부 이 형태다.
+작업 학습, VAE(평균과 로그분산)가 전부 이 형태다.
 
-`trunk`가 두 헤드 양쪽에서 그래디언트를 받는다 — 「그래디언트 누적」에서 본 대로 한 입력이
+`trunk`가 두 헤드 양쪽에서 그래디언트를 받는다 — 「경사 누적」에서 본 대로 한 입력이
 여러 곳에 쓰이면 **더해져서** 돌아온다.
 
 ## 5. 중간값 꺼내기
@@ -375,8 +376,8 @@ def forward(self, x, return_hidden=False):
               f"모듈 {[k for k, _ in m.named_children()]}")
     torch.manual_seed(0); a = A()
     torch.manual_seed(0); b = B()
-    print("  출력이 같은가:", torch.allclose(a(torch.randn(3, 2)),
-                                        b(torch.randn(3, 2))))
+    x = torch.randn(3, 2)
+    print("  출력이 같은가:", torch.allclose(a(x), b(x)))
     ```
 
     ```
@@ -445,7 +446,7 @@ def forward(self, x, return_hidden=False):
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-`super().__init__()`을 빼먹으면 그 자리에서 터진다. 그런데 **층을 파이썬
+`super().__init__()`을 빼먹으면 그 자리에서 터진다. 그런데 **레이어를 파이썬
 리스트에 담으면** 안 터진다. 무엇이 조용히 깨지는지 전부 찾아라.
 
 </div>
@@ -467,14 +468,14 @@ def forward(self, x, return_hidden=False):
     print("  파라메터 수  :", sum(p.numel() for p in bad.parameters()))
     print("  state_dict   :", list(bad.state_dict().keys()))
     bad.to(torch.float64)
-    print("  to(float64) 뒤 층의 dtype:", bad.layers[0].weight.dtype)
+    print("  to(float64) 뒤 레이어의 dtype:", bad.layers[0].weight.dtype)
     ```
 
     ```
       순전파 되는가: (3, 2)
       파라메터 수  : 0
       state_dict   : []
-      to(float64) 뒤 층의 dtype: torch.float32
+      to(float64) 뒤 레이어의 dtype: torch.float32
     ```
 
     **순전파는 멀쩡히 돈다.** 그리고 나머지가 전부 깨진다.
@@ -496,7 +497,7 @@ def forward(self, x, return_hidden=False):
 
     까닭은 6절과 같다. `nn.Module.__setattr__`이 가로채 등록하는 대상이
     **`nn.Module`과 `nn.Parameter`뿐**이고, 리스트는 그 둘 다 아니다.
-    `nn.ModuleList`는 모듈이므로 등록되고, 그 안의 층들을 제 자식으로
+    `nn.ModuleList`는 모듈이므로 등록되고, 그 안의 레이어들을 제 자식으로
     알려 준다.
 
     사전이면 `nn.ModuleDict`, 파라메터 여럿이면 `nn.ParameterList`가 있다.

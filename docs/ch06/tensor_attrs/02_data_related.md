@@ -1,4 +1,4 @@
-# 데이터 관련 속성 — 꺼낸 값이 원본과 이어져 있는가
+# 데이터 관련 속성
 
 텐서에서 값을 꺼내는 길은 여럿이다. `item()`·`tolist()`·`clone()`·`detach()`·
 `numpy()`. 이 길들은 두 가지에서 갈린다.
@@ -6,7 +6,8 @@
 - **저장소를 나눠 쓰는가** — 꺼낸 것을 고치면 원본도 바뀌는가
 - **그래프에 이어져 있는가** — 그래디언트가 거슬러 올라가는가
 
-이 둘은 따로 움직인다. `clone()`은 저장소를 끊고 그래프는 남기고, `detach()`는
+저장소(storage)는 텐서의 값이 실제로 놓인 메모리이고, 그래프는 autograd가
+역전파하려고 적어 둔 연산의 기록(계산 그래프)이다. 이 둘은 따로 움직인다. `clone()`은 저장소를 끊고 그래프는 남기고, `detach()`는
 그래프를 끊고 저장소는 남긴다. 둘을 하나로 묶어 "복사"라고 생각하면 어느 쪽에서든
 틀린다.
 
@@ -84,7 +85,7 @@ def copies():
     (b.clone() ** 2).sum().backward()
     print("  clone() 을 지나 온 그래디언트  b.grad =", b.grad.tolist(), "(2b)")
 
-    # detach() 는 끊으므로 뒤로 걸을 길이 없다
+    # detach() 는 끊으므로 역전파할 길이 없다
     c = torch.tensor([1.0, 2.0], requires_grad=True)
     try:
         (c.detach() ** 2).sum().backward()
@@ -271,7 +272,7 @@ $b$를 복사해 제곱하고 더해 역전파했는데 $b$가 그래디언트�
 원본의 트레인에 그대로 섞여 들어간다는 뜻이다. 기록용 스냅숏을 `clone()`으로
 떠 두면 이 길이 열린 채 남는다.
 
-`detach()`는 반대다. 미분은 끊었으나 **저장소는 같다.** 그래서 거꾸로 걸으려 하면
+`detach()`는 반대다. 미분은 끊었으나 **저장소는 같다.** 그래서 역전파하려 하면
 길이 없다고 한다.
 
 ```
@@ -431,7 +432,7 @@ numpy 배열에서 텐서를 만드는 길이 둘이다. `torch.from_numpy(a)`�
       torch.tensor  가장 빠른   226.6 us   가장 느린  1842.8 us
     ```
 
-    `from_numpy`는 **같은 메모리에 텐서 헤더(모양·자료형 같은 메타데이터)만 씌운다.** 그래서 배열을 고치면
+    `from_numpy`는 **같은 메모리에 텐서 헤더(형태·자료형 같은 메타데이터)만 씌운다.** 그래서 배열을 고치면
     텐서도 바뀌고, 100만 개를 만드는 데 가장 빠를 때는 1 마이크로초도 안 걸린다.
     크기와 거의 무관한 시간이다.
 
@@ -474,7 +475,7 @@ numpy 배열에서 텐서를 만드는 길이 둘이다. `torch.from_numpy(a)`�
                     w -= 0.1 * w.grad
             else:
                 w.data -= 0.1 * w.grad
-        print(f"  {label} 세 걸음 뒤 w = {[round(v, 6) for v in w.tolist()]}")
+        print(f"  {label} 세 스텝 뒤 w = {[round(v, 6) for v in w.tolist()]}")
 
     print("\n나. 역전파가 저장해 둔 값을 고치면")
     for label in ("no_grad", ".data  "):
@@ -497,8 +498,8 @@ numpy 배열에서 텐서를 만드는 길이 둘이다. `torch.from_numpy(a)`�
 
     ```
     가. 웨이트를 고치는 데 쓰면
-      no_grad 세 걸음 뒤 w = [1.024]
-      .data   세 걸음 뒤 w = [1.024]
+      no_grad 세 스텝 뒤 w = [1.024]
+      .data   세 스텝 뒤 w = [1.024]
 
     나. 역전파가 저장해 둔 값을 고치면
       no_grad _version=1  RuntimeError: one of the variables needed for gradient computation
