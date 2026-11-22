@@ -1,6 +1,6 @@
 # 전이 학습의 미세 조정 방법
 
-사전 학습 모델의 파라메터를 전부 또는 일부 갱신하는 방법과 고정 피처 위의 헤드 학습을 비교한다. 단계적 동결 해제·레이어별 러닝레이트·망각 완화 기법의 조건을 살펴본다. 제시한 조각의 실제 모델 경로·옵티마이저 포함 여부를 먼저 확인해야 한다.
+사전 트레인 모델의 파라메터를 전부 또는 일부 갱신하는 방법과 고정 피처 위의 헤드 트레인을 비교한다. 단계적 동결 해제·레이어별 러닝레이트·망각 완화 기법의 조건을 살펴본다. 제시한 조각의 실제 모델 경로·옵티마이저 포함 여부를 먼저 확인해야 한다.
 
 ## 1. 학습 목표
 
@@ -11,7 +11,7 @@
 
 ## 2. 들어가며
 
-미세 조정은 사전 학습 웨이트를 새 과제에서 갱신한다. 전체 파라메터, 일부 레이어 또는 어댑터 등 추가 파라메터만 학습하는 방식이 있다. 소스·목표 분포와 성능 보존 요구가 달라 어느 한 방식이 항상 최적이지는 않다.
+미세 조정은 사전 트레인 웨이트를 새 과제에서 갱신한다. 전체 파라메터, 일부 레이어 또는 어댑터 등 추가 파라메터만 트레인하는 방식이 있다. 소스·목표 분포와 성능 보존 요구가 달라 어느 한 방식이 항상 최적이지는 않다.
 
 ---
 
@@ -42,11 +42,11 @@ from transformers import AutoModel, AutoConfig
 
 class FullFineTuning(nn.Module):
     """
-    전면 미세 조정: 모든 파라메터를 학습한다.
+    전면 미세 조정: 모든 파라메터를 트레인한다.
     
     다음일 때 가장 좋다.
     - 과제에 맞는 큰 데이터셋이 있을 때
-    - 과제가 사전 학습과 크게 다를 때
+    - 과제가 사전 트레인과 크게 다를 때
     - 최고 성능이 필요할 때
     """
     
@@ -62,7 +62,7 @@ class FullFineTuning(nn.Module):
         pooled = self.dropout(pooled)
         return self.classifier(pooled)
 
-# 모든 파라메터를 학습한다
+# 모든 파라메터를 트레인한다
 model = FullFineTuning("bert-base-uncased", num_labels=2)
 print(f"Trainable parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad):,}")
 
@@ -72,7 +72,7 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5, weight_decay=0.01)
 
 ### 전면 미세 조정의 설정 선택
 
-러닝레이트·배치·에포크·워밍업·감쇠는 모델·과제와 실제 갱신 예산에 맞춰 선택한다. BERT 분류 미세 조정의 수치를 CNN·다른 언어 모델·처음부터 학습에 그대로 적용하지 않는다. 학습·검증·시험 분할의 역할을 분리해 선택한다.
+러닝레이트·배치·에포크·워밍업·감쇠는 모델·과제와 실제 갱신 예산에 맞춰 선택한다. BERT 분류 미세 조정의 수치를 CNN·다른 언어 모델·처음부터 트레인에 그대로 적용하지 않는다. 트레인·검증·시험 분할의 역할을 분리해 선택한다.
 
 ---
 
@@ -80,18 +80,18 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5, weight_decay=0.01)
 
 FeatureExtraction의 헤드는 E→E→C MLP라 선형 프로빙과 다르다. no_grad와 파라메터 동결은 그래디언트만 막으며 model.train()이면 인코더 드롭아웃이 켜진다. 고정 피처 평가에는 인코더 eval 정책도 별도로 정해야 한다.
 
-사전 학습된 웨이트를 동결하고 과제에 맞는 헤드만 학습한다.
+사전 트레인된 웨이트를 동결하고 과제에 맞는 헤드만 트레인한다.
 
 ```python
 class FeatureExtraction(nn.Module):
     """
-    피처 추출: 인코더를 동결하고 분류기만 학습한다.
+    피처 추출: 인코더를 동결하고 분류기만 트레인한다.
     
     다음일 때 가장 좋다.
     - 데이터셋이 아주 작을 때
-    - 과제가 사전 학습과 비슷할 때
+    - 과제가 사전 트레인과 비슷할 때
     - 빠르게 반복 실험해야 할 때
-    - 사전 학습 지식을 지키는 것이 매우 중요할 때
+    - 사전 트레인 지식을 지키는 것이 매우 중요할 때
     """
     
     def __init__(self, model_name: str, num_labels: int):
@@ -102,7 +102,7 @@ class FeatureExtraction(nn.Module):
         for param in self.encoder.parameters():
             param.requires_grad = False
         
-        # 분류기만 학습한다
+        # 분류기만 트레인한다
         hidden_size = self.encoder.config.hidden_size
         self.classifier = nn.Sequential(
             nn.Linear(hidden_size, hidden_size),
@@ -126,7 +126,7 @@ class FeatureExtraction(nn.Module):
 model = FeatureExtraction("bert-base-uncased", num_labels=2)
 print(f"Trainable parameters: {model.num_trainable_params:,}")  # 약 59만 대 전체 1억 900만
 
-# 작은 헤드만 학습하므로 러닝레이트를 더 높일 수 있다
+# 작은 헤드만 트레인하므로 러닝레이트를 더 높일 수 있다
 optimizer = torch.optim.AdamW(model.classifier.parameters(), lr=1e-3)
 ```
 
@@ -136,9 +136,9 @@ optimizer = torch.optim.AdamW(model.classifier.parameters(), lr=1e-3)
 
 이 예제의 model.encoder는 Hugging Face BertModel이고 실제 레이어는 model.encoder.encoder.layer에 있다. GradualUnfreezeScheduler는 model.encoder.layer 또는 layers만 찾아 기본 예제에서 ValueError가 난다. 아래 코드는 경로를 수정하기 전에는 실행 가능한 스케줄이 아니다.
 
-requires_grad를 켜도 옵티마이저가 처음의 학습 파라메터만 필터링해 갖고 있으면 새 파라메터는 갱신되지 않는다. 파라메터 그룹·러닝레이트·모드 정책을 함께 정한다. 예시 루프는 메시지만 출력하며 실제 학습 단계를 호출하지 않는다.
+requires_grad를 켜도 옵티마이저가 처음의 트레인 파라메터만 필터링해 갖고 있으면 새 파라메터는 갱신되지 않는다. 파라메터 그룹·러닝레이트·모드 정책을 함께 정한다. 예시 루프는 메시지만 출력하며 실제 트레인 단계를 호출하지 않는다.
 
-학습 중에 (출력에 가장 가까운) 위에서부터 레이어를 차츰 동결 해제한다.
+트레인 중에 (출력에 가장 가까운) 위에서부터 레이어를 차츰 동결 해제한다.
 
 ```python
 from typing import List
@@ -338,13 +338,13 @@ optimizer = torch.optim.AdamW(param_groups)
 
 ## 8. 파국적 망각
 
-미세 조정의 중심 어려움은 **파국적 망각**이다. 모델이 특정 과제에 맞추어지면서 사전 학습 지식을 잃는 것이다.
+미세 조정의 중심 어려움은 **파국적 망각**이다. 모델이 특정 과제에 맞추어지면서 사전 트레인 지식을 잃는 것이다.
 
 ### 평가와 가능한 원인
 
 기존 과제 성능의 실제 저하를 독립 데이터에서 확인해야 망각을 논할 수 있다. 새 과제 로스만으로 측정할 수 없고, 목표 과제 자체가 악화되는 음의 전이와도 구분한다.
 
-1. **분포 이동**: 미세 조정 데이터가 사전 학습 데이터와 다르다
+1. **분포 이동**: 미세 조정 데이터가 사전 트레인 데이터와 다르다
 2. **그래디언트 간섭**: 과제의 그래디언트가 일반 지식을 덮어쓴다
 3. **용량 재할당**: 모델이 새 과제를 위해 뉴런을 다른 용도로 쓴다
 
@@ -352,9 +352,9 @@ optimizer = torch.optim.AdamW(param_groups)
 
 #### 1. L2-SP
 
-기준 상태는 고정·독립 복사해 보관하고 이름·장치를 맞춘다. 현재 예제는 전체 model.state_dict를 기준으로 삼아 새 분류 헤드의 무작위 초기값에도 패널티를 줄 수 있다. “사전 학습된 파라메터만 보존”하려는 목적과 범위를 맞춰야 한다.
+기준 상태는 고정·독립 복사해 보관하고 이름·장치를 맞춘다. 현재 예제는 전체 model.state_dict를 기준으로 삼아 새 분류 헤드의 무작위 초기값에도 패널티를 줄 수 있다. “사전 트레인된 파라메터만 보존”하려는 목적과 범위를 맞춰야 한다.
 
-사전 학습 웨이트에서 벗어나는 것에 패널티를 준다.
+사전 트레인 웨이트에서 벗어나는 것에 패널티를 준다.
 
 $$
 \mathcal{L}_{\text{total}} = \mathcal{L}_{\text{task}} + \lambda \sum_i \|\theta_i - \theta_i^{\text{pre}}\|^2
@@ -363,7 +363,7 @@ $$
 ```python
 class L2SPRegularizer:
     """
-    L2-SP: (사전 학습 웨이트인) 출발점 쪽으로의 L2 정칙화.
+    L2-SP: (사전 트레인 웨이트인) 출발점 쪽으로의 L2 정칙화.
     """
     
     def __init__(self, model: nn.Module, pretrained_state: dict, lambda_l2sp: float = 0.01):
@@ -372,7 +372,7 @@ class L2SPRegularizer:
         self.lambda_l2sp = lambda_l2sp
     
     def penalty(self) -> torch.Tensor:
-        """사전 학습 웨이트에서의 L2 거리를 계산한다."""
+        """사전 트레인 웨이트에서의 L2 거리를 계산한다."""
         penalty = 0.0
         for name, param in self.model.named_parameters():
             if name in self.pretrained_state:
@@ -383,7 +383,7 @@ class L2SPRegularizer:
 pretrained_state = {k: v.clone() for k, v in model.state_dict().items()}
 regularizer = L2SPRegularizer(model, pretrained_state, lambda_l2sp=0.01)
 
-# 학습 루프 안에서
+# 트레인 루프 안에서
 loss = criterion(outputs, labels)
 loss = loss + regularizer.penalty()
 loss.backward()
@@ -466,14 +466,14 @@ class EWCRegularizer:
 
 #### 3. 리플레이
 
-ReplayDataLoader는 작업 배치마다 확률 replay_ratio로 리플레이 배치를 하나 추가한다. 이는 전체 배치 중 정확히 그 비율이 리플레이라는 뜻은 아니다. 배치 크기·로스 웨이트가 다르면 실제 학습 비중도 달라진다. 빈 replay_loader와 반복기·샘플링 상태도 처리해야 한다.
+ReplayDataLoader는 작업 배치마다 확률 replay_ratio로 리플레이 배치를 하나 추가한다. 이는 전체 배치 중 정확히 그 비율이 리플레이라는 뜻은 아니다. 배치 크기·로스 웨이트가 다르면 실제 트레인 비중도 달라진다. 빈 replay_loader와 반복기·샘플링 상태도 처리해야 한다.
 
-과제 데이터에 사전 학습 분포의 표본을 섞는다.
+과제 데이터에 사전 트레인 분포의 표본을 섞는다.
 
 ```python
 class ReplayDataLoader:
     """
-    과제 데이터에 사전 학습 분포의 리플레이 데이터를 섞는다.
+    과제 데이터에 사전 트레인 분포의 리플레이 데이터를 섞는다.
     """
     
     def __init__(
@@ -531,7 +531,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 
 ### 빠른 참고
 
-피처 추출, 일부 해제, 전체 미세 조정과 추가 파라메터 방식을 같은 검증 예산에서 비교한다. 데이터 크기·분포 거리·기존 지식 보존 요구 외에 전체 추론 비용과 사전 학습 체크포인트의 적합성도 고려한다.
+피처 추출, 일부 해제, 전체 미세 조정과 추가 파라메터 방식을 같은 검증 예산에서 비교한다. 데이터 크기·분포 거리·기존 지식 보존 요구 외에 전체 추론 비용과 사전 트레인 체크포인트의 적합성도 고려한다.
 
 ---
 
@@ -545,7 +545,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 </div>
 
 ??? success "풀이"
-    피처 추출은 기반 파라메터를 고정하고 새 헤드를 학습하며 그 헤드가 MLP일 수도 있다. 선형 프로빙은 동결 피처 위의 선형 분류로 표현을 평가하는 특별한 경우다. 전체 미세 조정은 기반 파라메터도 갱신한다. 성능의 고정 순위는 없고 데이터·분할·모드·학습 예산을 맞춰야 한다.
+    피처 추출은 기반 파라메터를 고정하고 새 헤드를 트레인하며 그 헤드가 MLP일 수도 있다. 선형 프로빙은 동결 피처 위의 선형 분류로 표현을 평가하는 특별한 경우다. 전체 미세 조정은 기반 파라메터도 갱신한다. 성능의 고정 순위는 없고 데이터·분할·모드·트레인 예산을 맞춰야 한다.
 
 ---
 
@@ -557,7 +557,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 </div>
 
 ??? success "풀이"
-    기반 파라메터의 변화를 줄이면서 새 헤드를 더 빠르게 학습하려는 선택이다. 앞 레이어가 모든 과제에서 더 일반적이거나 특정 러닝레이트 비가 최적이라는 법칙은 없다. 옵티마이저 그룹에 모든 필요한 파라메터가 포함됐는지와 실제 그래디언트·갱신을 확인한다.
+    기반 파라메터의 변화를 줄이면서 새 헤드를 더 빠르게 트레인하려는 선택이다. 앞 레이어가 모든 과제에서 더 일반적이거나 특정 러닝레이트 비가 최적이라는 법칙은 없다. 옵티마이저 그룹에 모든 필요한 파라메터가 포함됐는지와 실제 그래디언트·갱신을 확인한다.
 
 ---
 
@@ -576,7 +576,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
         # 다음 레이어 그룹을 동결 해제한다
         for param in model.layer_groups[min(epoch, len(model.layer_groups)-1)].parameters():
             param.requires_grad = True
-        # 지금까지 동결 해제한 레이어를 모두 써서 학습한다
+        # 지금까지 동결 해제한 레이어를 모두 써서 트레인한다
         train_one_epoch(model, optimizer, dataloader)
     ```
 
@@ -590,7 +590,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 </div>
 
 ??? success "풀이"
-    같은 분할·학습 예산에서 새 모델 학습, 동결 피처와 미세 조정을 비교한다. 분포가 다르거나 데이터가 많다는 사실만으로 전이를 배제하지 않는다. 목표 성능·편향·캘리브레이션·비용에서 손해가 있는지 확인하고 다른 체크포인트·전처리·갱신 범위를 검증한다.
+    같은 분할·트레인 예산에서 새 모델 트레인, 동결 피처와 미세 조정을 비교한다. 분포가 다르거나 데이터가 많다는 사실만으로 전이를 배제하지 않는다. 목표 성능·편향·캘리브레이션·비용에서 손해가 있는지 확인하고 다른 체크포인트·전처리·갱신 범위를 검증한다.
 
 ## 정리하며
 

@@ -17,7 +17,7 @@
 이 알고리즘들은 가망 없는 설정을 일찍 버리므로 무작위 탐색이나 격자 탐색보다
 효율적이다.
 
-교육 목적: 10장 - 학습 파이프라인 (하이퍼파라메터 조율)
+교육 목적: 10장 - 트레인 파이프라인 (하이퍼파라메터 조율)
 """
 
 import math
@@ -72,13 +72,13 @@ def create_synthetic_data(n_samples: int = 1000, input_dim: int = 20, num_classe
         num_classes: 출력 클래스의 수
 
     반환값:
-        학습 집합과 검증 집합의 DataLoader
+        트레인 집합과 검증 집합의 DataLoader
     """
     # 무작위 피처와 라벨 생성
     X = torch.randn(n_samples, input_dim)
     y = torch.randint(0, num_classes, (n_samples,))
 
-    # 학습(70%)과 검증(30%)으로 나누기
+    # 트레인(70%)과 검증(30%)으로 나누기
     train_size = int(0.7 * n_samples)
     X_train, X_val = X[:train_size], X[train_size:]
     y_train, y_val = y[:train_size], y[train_size:]
@@ -96,14 +96,14 @@ def train_config_for_budget(
     device: str = 'cpu'
 ) -> float:
     """
-    주어진 설정으로 정해진 에포크 수만큼 모델을 학습시킨다.
+    주어진 설정으로 정해진 에포크 수만큼 모델을 트레인시킨다.
 
     인수:
         config: 러닝레이트, 배치 크기 등을 담은 설정
-        X_train, y_train: 학습 데이터
+        X_train, y_train: 트레인 데이터
         X_val, y_val: 검증 데이터
-        epochs: 학습할 에포크 수
-        device: 학습에 쓸 장치
+        epochs: 트레인할 에포크 수
+        device: 트레인에 쓸 장치
 
     반환값:
         최종 검증 정확도
@@ -117,7 +117,7 @@ def train_config_for_budget(
     train_dataset = TensorDataset(X_train, y_train)
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True)
 
-    # 학습 루프
+    # 트레인 루프
     model.train()
     for epoch in range(epochs):
         for X_batch, y_batch in train_loader:
@@ -177,8 +177,8 @@ class SuccessiveHalvingScheduler:
 
         인수:
             configs: 탐색할 설정의 목록
-            X_train, y_train, X_val, y_val: 학습 데이터와 검증 데이터
-            device: 학습에 쓸 장치
+            X_train, y_train, X_val, y_val: 트레인 데이터와 검증 데이터
+            device: 트레인에 쓸 장치
             verbose: 진행 상황을 출력할지 여부
 
         반환값:
@@ -268,8 +268,8 @@ class Hyperband:
 
         인수:
             configs: 뽑아 쓸 설정의 모음
-            X_train, y_train, X_val, y_val: 학습 데이터와 검증 데이터
-            device: 학습에 쓸 장치
+            X_train, y_train, X_val, y_val: 트레인 데이터와 검증 데이터
+            device: 트레인에 쓸 장치
             verbose: 진행 상황을 출력할지 여부
 
         반환값:
@@ -441,13 +441,13 @@ Hyperband best: Config(lr=1.00e-04, bs=32, id=116739) with accuracy 0.5417
 
 ## 2. 논의
 
-이 구현은 각 단계마다 train_config_for_budget에서 새 모델을 생성한다. 앞 단계의 웨이트와 옵티마이저를 이어서 학습하는 방식이 아니라 예산만 늘려 처음부터 재학습한다. 최후 후보도 r_max 예산으로 새로 학습해 최종 점수를 얻는다.
+이 구현은 각 단계마다 train_config_for_budget에서 새 모델을 생성한다. 앞 단계의 웨이트와 옵티마이저를 이어서 트레인하는 방식이 아니라 예산만 늘려 처음부터 재트레인한다. 최후 후보도 r_max 예산으로 새로 트레인해 최종 점수를 얻는다.
 
 후보 유지 수는 int(n/eta)로 내림하고 최소 하나를 남긴다. eta=2일 때 절반이고 일반 eta에서는 비율이 다르다. 독스트링의 ceil 설명과 코드의 내림은 같지 않다. eta가 1 이하이거나 초기 후보가 비어 있는 경우처럼 진행이 유효하지 않은 설정도 검사해야 한다.
 
 출력을 읽을 때 먼저 데이터를 본다. `create_synthetic_data`는 피처와 라벨을 서로 독립인 난수로 만들므로 배울 신호가 없고, 이진 분류의 우연 수준은 0.5이다. 실제로 모든 정확도가 0.46~0.55 사이에 머물고, 단계마다 순위가 뒤섞이며(Stage 0에서 0.5467로 1위였던 lr=1e-2, bs=128은 Stage 2에서 0.5000으로 탈락한다), 연속 반감법(0.5367)과 하이퍼밴드(0.5417)가 고른 설정도 서로 다르다. 이 예제는 알고리즘이 예산을 어떻게 나누는지를 보여 줄 뿐, 어느 설정이 좋은지는 말해 주지 않는다. 하이퍼밴드는 `verbose=False`로 돌려 브래킷별 진행이 출력되지 않는다.
 
-초기 자원에서의 순위가 최종 성능을 충분히 반영하지 않으면 좋은 후보를 일찍 버릴 수 있다. 단계·브래킷별 재학습 비용과 난수 변동을 포함해 비교하며, 가장 좋은 검증 점수는 선택 결과이지 독립 최종 성능은 아니다.
+초기 자원에서의 순위가 최종 성능을 충분히 반영하지 않으면 좋은 후보를 일찍 버릴 수 있다. 단계·브래킷별 재트레인 비용과 난수 변동을 포함해 비교하며, 가장 좋은 검증 점수는 선택 결과이지 독립 최종 성능은 아니다.
 
 ## 연습문제
 
@@ -467,7 +467,7 @@ Hyperband best: Config(lr=1.00e-04, bs=32, id=116739) with accuracy 0.5417
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-현재 구현에서 예산 2와 4의 단계는 총 4에포크 학습과 같은가?
+현재 구현에서 예산 2와 4의 단계는 총 4에포크 트레인과 같은가?
 
 </div>
 
@@ -489,4 +489,4 @@ Hyperband best: Config(lr=1.00e-04, bs=32, id=116739) with accuracy 0.5417
 
 ## 정리하며
 
-자원 적응형 탐색은 초기 평가로 후보를 줄인다. 구현의 재학습·재개 방식과 내림 규칙, 초기 순위의 신뢰성을 확인하고 선택 후 최종 평가를 따로 유지한다.
+자원 적응형 탐색은 초기 평가로 후보를 줄인다. 구현의 재트레인·재개 방식과 내림 규칙, 초기 순위의 신뢰성을 확인하고 선택 후 최종 평가를 따로 유지한다.

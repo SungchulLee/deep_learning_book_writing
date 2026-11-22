@@ -46,7 +46,7 @@
             self.affine = affine
 
             if self.affine:
-                # 채널마다의 학습 가능한 파라메터
+                # 채널마다의 트레인 가능한 파라메터
                 self.gamma = np.ones((1, num_features, 1, 1))
                 self.beta = np.zeros((1, num_features, 1, 1))
 
@@ -527,9 +527,9 @@
 
 입력이 `(N, C, H, W)`이면 각 `(N, C)` 조합에서 H와 W를 평균낸다. 서로 다른 표본이나 채널의 통계량을 섞지 않고 출력 모양을 유지한다. 이 과정은 표본별 밝기·대비 정보의 일부를 지우므로, 과제에 따라 이로울 수도 있고 필요한 정보를 잃게 만들 수도 있다.
 
-NumPy 구현은 기본 affine=True이고 PyTorch InstanceNorm2d의 기본은 affine=False이므로 비교할 때 설정을 맞춘다. PyTorch는 기본적으로 이동 통계량을 추적하지 않아 학습과 평가 모두 현재 표본의 통계를 사용한다.
+NumPy 구현은 기본 affine=True이고 PyTorch InstanceNorm2d의 기본은 affine=False이므로 비교할 때 설정을 맞춘다. PyTorch는 기본적으로 이동 통계량을 추적하지 않아 트레인과 평가 모두 현재 표본의 통계를 사용한다.
 
-StyleTransferNetwork와 GeneratorWithInstanceNorm은 별도의 구조 예이다. ResidualBlock은 그 안에서 재사용되지만, NumPy 클래스와 세 모듈을 모두 하나의 파이프라인으로 연결하는 것은 아니다. 스타일 로스나 GAN의 전체 학습 과정까지 제공하는 예제로 해석하지 않는다.
+StyleTransferNetwork와 GeneratorWithInstanceNorm은 별도의 구조 예이다. ResidualBlock은 그 안에서 재사용되지만, NumPy 클래스와 세 모듈을 모두 하나의 파이프라인으로 연결하는 것은 아니다. 스타일 로스나 GAN의 전체 트레인 과정까지 제공하는 예제로 해석하지 않는다.
 
 ## 연습문제
 
@@ -565,7 +565,7 @@ RGB 64×64 입력에 NumPy 정규화를 적용하려면 무엇을 지정해야 �
 </div>
 
 ??? success "풀이"
-    학습 중 통계 축은 이 경우 같아질 수 있다. 하지만 affine 기본값과 이동 통계량 추적 설정, 평가 시 통계량이 다르므로 일반적으로 같은 연산이라고 할 수 없다. 모든 관련 설정을 맞춰야 수치 비교가 가능하다.
+    트레인 중 통계 축은 이 경우 같아질 수 있다. 하지만 affine 기본값과 이동 통계량 추적 설정, 평가 시 통계량이 다르므로 일반적으로 같은 연산이라고 할 수 없다. 모든 관련 설정을 맞춰야 수치 비교가 가능하다.
 
 ---
 

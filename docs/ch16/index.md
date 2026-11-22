@@ -7,13 +7,13 @@
 - [파국적 망각](continual_learning/catastrophic_forgetting.md): 순차 갱신의 영향과 그래디언트 간섭
 - [평가 지표](continual_learning/evaluation_metrics.md): 정확도 행렬, 후방·전방 전이와 망각
 
-시험 시 과제 ID를 주는지, 전체 누적 클래스 중에서 예측하는지, 표본을 몇 번 학습하는지에 따라 평가가 달라진다. 아래 Split MNIST 예제는 과제별 숫자 쌍을 로컬 이진 라벨로 다시 매기는 설정이며 전체 10개 클래스 증분 분류와 구별한다.
+시험 시 과제 ID를 주는지, 전체 누적 클래스 중에서 예측하는지, 표본을 몇 번 트레인하는지에 따라 평가가 달라진다. 아래 Split MNIST 예제는 과제별 숫자 쌍을 로컬 이진 라벨로 다시 매기는 설정이며 전체 10개 클래스 증분 분류와 구별한다.
 
 ## 2. 순차 학습 예제
 
 - [망각 관찰](continual_learning/01_catastrophic_forgetting_demo.md): 이전 과제 성능 변화 기록
 - [단순 순차 학습](continual_learning/01_naive_sequential_learning.md): 추가 보존 장치가 없는 기준
-- [경험 리플레이](continual_learning/01_simple_experience_replay.md): 버퍼와 과거 표본 학습
+- [경험 리플레이](continual_learning/01_simple_experience_replay.md): 버퍼와 과거 표본 트레인
 - [EWC](continual_learning/02_elastic_weight_consolidation.md): 경험적 피셔와 가중 이차 패널티
 - [LwF](continual_learning/02_learning_without_forgetting.md): 고정 교사 출력 증류
 - [방법 비교](continual_learning/03_comprehensive_comparison.md): 지표·시간·메모리 측정 범위

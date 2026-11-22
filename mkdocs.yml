@@ -71,7 +71,7 @@ nav:
           - 논리 연산: ch06/tensors/13_logical_operations.md
           - 텐서 비교: ch06/tensors/17_tensor_comparison.md
           - 고윳값과 SVD: ch06/tensors/15_eigenvalues_svd.md
-        - 학습에 쓰기:
+        - 트레인에 쓰기:
           - 야코비안과 고차 미분: ch06/tensors/19_gradient_computation.md
           - 사용자 정의 함수: ch06/tensors/20_custom_functions.md
           - 간단한 뉴럴 네트워크: ch06/tensors/21_simple_neural_network.md
@@ -107,8 +107,8 @@ nav:
           - 스칼라에 대한 기본 역전파: ch06/autograd/01_basic_scalar_backward.md
           - 경사 누적: ch06/autograd/02_gradient_accumulation.md
           - retain_graph: ch06/autograd/03_retain_graph.md
-        - 학습 루프:
-          - 작은 학습 단계: ch06/autograd/04_mini_training_step.md
+        - 트레인 루프:
+          - 작은 트레인 단계: ch06/autograd/04_mini_training_step.md
           - 선형 회귀: ch06/autograd/05_complete_linear_regression.md
           - 옵티마이저 방식의 갱신: ch06/autograd/11_optimizer_like_updates.md
           - 함정과 점검 사항: ch06/autograd/17_pitfalls_and_sanity_checks.md
@@ -127,7 +127,7 @@ nav:
           - 경사를 0으로 만드는 세 가지 방법: ch06/autograd/18_three_ways_to_zero_gradients.md
           - 큰 배치를 위한 경사 누적: ch06/autograd/19_gradient_accumulation_for_large_batches.md
           - 경사 크기 조정이 중요한 이유: ch06/autograd/20_why_gradient_scaling_matters.md
-          - 경사 누적을 쓰는 학습 루프: ch06/autograd/21_training_loop_with_grad_accumulation.md
+          - 경사 누적을 쓰는 트레인 루프: ch06/autograd/21_training_loop_with_grad_accumulation.md
         - 벡터 역전파:
           - v를 이용한 벡터 역전파: ch06/autograd/22_vector_backward_with_v.md
           - 선형 사상의 VJP: ch06/autograd/23_vector_backward_linear_case_1.md
@@ -203,7 +203,7 @@ nav:
           - 릿지 회귀: ch07/linear_regression/ridge_regression.md
           - 라쏘 회귀: ch07/linear_regression/lasso_regression.md
         - 실전으로:
-          - 미니배치 학습: ch07/linear_regression/09_mini_batch_training.md
+          - 미니배치 트레인: ch07/linear_regression/09_mini_batch_training.md
           - 완전한 파이프라인: ch07/linear_regression/10_complete_pipeline.md
           - scikit-learn으로 하는 선형 회귀: ch07/linear_regression/lr_sklearn.md
           - SPY에 대한 WMT 회귀: ch07/linear_regression/wmt_on_spy.md
@@ -323,7 +323,7 @@ nav:
       - "7.1 단어 빈도 기반 분류":
         - "최근접 중심 분류기": imdb/01_counting.md
       - "7.2 선형 분류":
-        - "선형 분류기의 웨이트 학습": imdb/02_linear.md
+        - "선형 분류기의 웨이트 트레인": imdb/02_linear.md
       - "7.3 임베딩을 얹으면":
         - "단어를 벡터로": imdb/03_embedding.md
         - "빌려 온 벡터": imdb/03_frozen.md
@@ -375,7 +375,7 @@ nav:
         - 부품 고르기:
           - 엑티베이션 함수: ch08/feedforward/12_activation_functions.md
           - 로스 함수: ch08/feedforward/13_loss_functions.md
-        - 학습을 다듬기:
+        - 트레인을 다듬기:
           - 웨이트 초기화: ch08/feedforward/19_weight_initialization.md
           - 배치 정규화: ch08/feedforward/16_batch_normalization.md
           - 배치 정규화 상세: ch08/feedforward/17_batch_normalization_detailed.md
@@ -417,11 +417,11 @@ nav:
           - 컷믹스: ch08/regularization/cutmix.md
           - 컷아웃: ch08/regularization/cutout.md
           - 레이블 평활화: ch08/regularization/label_smoothing.md
-        - 학습을 멈추거나 흔들기:
+        - 트레인을 멈추거나 흔들기:
           - 조기 종료: ch08/regularization/early_stopping.md
           - 조기 종료 예제: ch08/regularization/early_stopping_example.md
           - 잡음 주입: ch08/regularization/noise_injection.md
-    - 10 학습 파이프라인:
+    - 10 트레인 파이프라인:
       - 장 개요: ch09/index.md
       - "10.1 기초":
         - 정확성: ch09/foundations/correctness.md
@@ -441,10 +441,10 @@ nav:
         - 데이터로더 변환: ch09/dataloaders/dataloader_transforms.md
         - 배치 이미지 그리기: ch09/dataloaders/draw_batch_images.md
         - 이미지 한 장 그리기: ch09/dataloaders/draw_one_image.md
-      - 10.4 학습 루프:
-        - 실전 학습 요령: ch09/training/training_recipes.md
+      - 10.4 트레인 루프:
+        - 실전 트레인 요령: ch09/training/training_recipes.md
         - TensorBoard MNIST 주석본: ch09/training/tensorboard_mnist_commented.md
-        - 완전한 MNIST 학습: ch09/training/01_complete_mnist_training.md
+        - 완전한 MNIST 트레인: ch09/training/01_complete_mnist_training.md
       - 10.5 고급 로스 함수:
         - 로스 함수 소개: ch09/loss/01_intro_to_loss_functions.md
         - 회귀 로스의 비교: ch09/loss/02_regression_losses_comparison.md
@@ -472,7 +472,7 @@ nav:
           - Adam 실습: ch09/optimizers/adam_optimizer.md
         - 견주기:
           - 기준 함수에서 옵티마이저 비교: ch09/optimizers/optimizer_comparison.md
-          - 뉴럴 네트워크 학습에서 옵티마이저 비교: ch09/optimizers/01_optimizer_comparison.md
+          - 뉴럴 네트워크 트레인에서 옵티마이저 비교: ch09/optimizers/01_optimizer_comparison.md
         - 옵티마이저 둘레:
           - 러닝레이트 스케줄러: ch09/optimizers/02_learning_rate_schedulers.md
           - 그래디언트 관리: ch09/optimizers/03_gradient_management.md
@@ -481,7 +481,7 @@ nav:
         - 러닝레이트 워밍업: ch09/schedulers/lr_warmup.md
       - 10.8 과적합과 일반화:
         - 편향-분산 절충: ch09/overfitting/bias_variance_tradeoff.md
-        - 학습 곡선 시연: ch09/overfitting/learning_curves_demo.md
+        - 트레인 곡선 시연: ch09/overfitting/learning_curves_demo.md
         - 과적합과 과소적합 시연: ch09/overfitting/overfitting_underfitting_demo.md
       - 10.9 평가 지표:
         - 통계적 추론: ch09/evaluation/statistical_inference.md
@@ -508,7 +508,7 @@ nav:
         - 유틸리티: ch09/save_load/5_utilities.md
         - TorchScript 내보내기: ch09/save_load/05_torchscript_export.md
         - 전이 학습: ch09/save_load/06_transfer_learning.md
-        - 분산 학습: ch09/save_load/07_distributed_training.md
+        - 분산 트레인: ch09/save_load/07_distributed_training.md
     - 11 컨볼루션 뉴럴 네트워크:
       - 장 개요: ch10/index.md
       - 11.1 컨볼루션 뉴럴 네트워크:
@@ -536,7 +536,7 @@ nav:
       - 11.2 잔차 연결:
         - 기본 잔차 블록: ch10/residual/01_basic_residual_block.md
         - ResNet 구현: ch10/residual/02_resnet_implementation.md
-        - 학습 비교: ch10/residual/03_training_comparison.md
+        - 트레인 비교: ch10/residual/03_training_comparison.md
         - 실전 예제: ch10/residual/06_practical_example.md
         - 항등 사상: ch10/residual/identity_mapping.md
       - 11.3 CNN에서 ViT로:
@@ -592,7 +592,7 @@ nav:
         - 번역 예제: ch11/seq2seq/example_translation.md
         - 추론: ch11/seq2seq/inference.md
         - Seq2Seq 모델: ch11/seq2seq/seq2seq_model.md
-        - 학습: ch11/seq2seq/train.md
+        - 트레인: ch11/seq2seq/train.md
       - 12.4 어텐션:
         - 어텐션의 기초: ch11/attention/attention_fundamentals.md
         - "셀프 어텐션": ch11/attention/self_attention.md
@@ -620,11 +620,11 @@ nav:
         - 그 앞 세대 — RNN 어텐션:
           - "어텐션 메커니즘": ch12/transformer_architecture/attention_mechanisms.md
           - 어텐션을 쓰는 Seq2Seq: ch12/transformer_architecture/seq2seq_with_attention.md
-          - 번역 학습: ch12/transformer_architecture/train_translation.md
+          - 번역 트레인: ch12/transformer_architecture/train_translation.md
         - 돌려 보기:
           - 데모: ch12/transformer_architecture/demo.md
-      - 13.2 사전 학습 모델:
-        - 무엇을 어떻게 사전 학습하나:
+      - 13.2 사전 트레인 모델:
+        - 무엇을 어떻게 사전 트레인하나:
           - BERT: ch12/pretrained_models/bert.md
           - GPT: ch12/pretrained_models/gpt.md
           - T5: ch12/pretrained_models/t5.md
@@ -634,7 +634,7 @@ nav:
           - BERT: ch12/pretrained_models/08_bert.md
           - BERT 모델: ch12/pretrained_models/bert_model.md
           - BERT 분류기: ch12/pretrained_models/bert_classifier.md
-          - 감성 분석 학습: ch12/pretrained_models/train_sentiment.md
+          - 감성 분석 트레인: ch12/pretrained_models/train_sentiment.md
         - 디코더 쪽을 손으로:
           - 트랜스포머 디코더: ch12/pretrained_models/transformer_decoder.md
           - GPT: ch12/pretrained_models/09_gpt.md
@@ -646,16 +646,16 @@ nav:
         - 비전 쪽:
           - 비전 트랜스포머 ViT: ch12/pretrained_models/18_vision_transformer_vit.md
           - 스윈 트랜스포머: ch12/pretrained_models/19_swin_transformer.md
-        - 사전 학습 웨이트를 실제로 쓰기:
+        - 사전 트레인 웨이트를 실제로 쓰기:
           - 허깅페이스 빠른 시작: ch12/pretrained_models/huggingface_quickstart.md
           - "제로샷·퓨샷 텍스트 분류": ch12/pretrained_models/zero_shot_text_classification.md
-      - 13.3 학습과 추론:
+      - 13.3 트레인과 추론:
         - 속도 성능 시험: ch12/training_and_inference/benchmark_speed.md
         - 컨볼루션 뉴럴 네트워크 기준선: ch12/training_and_inference/cnn_baseline.md
         - 순환 뉴럴 네트워크 기준선: ch12/training_and_inference/rnn_baseline.md
         - 트랜스포머 모델: ch12/training_and_inference/transformer_model.md
-        - 학습과 추론: ch12/training_and_inference/training_inference.md
-        - 학습 최적화: ch12/training_and_inference/training_optimization.md
+        - 트레인과 추론: ch12/training_and_inference/training_inference.md
+        - 트레인 최적화: ch12/training_and_inference/training_optimization.md
       - 13.4 비전 트랜스포머:
         - ViT 란 무엇인가:
           - "ViT 개요": ch12/transformers_vision/vit.md
@@ -668,9 +668,9 @@ nav:
           - ViT 모델: ch12/transformers_vision/vit_model.md
         - 변형:
           - 스윈 트랜스포머: ch12/transformers_vision/swin.md
-        - 학습시키기:
-          - 이미지 분류 학습: ch12/transformers_vision/train_image_classification.md
-          - ViT 학습: ch12/transformers_vision/train_vit.md
+        - 트레인시키기:
+          - 이미지 분류 트레인: ch12/transformers_vision/train_image_classification.md
+          - ViT 트레인: ch12/transformers_vision/train_vit.md
         - 들여다보기:
           - 예제: ch12/transformers_vision/examples.md
           - 시각화: ch12/transformers_vision/visualizations.md
@@ -705,8 +705,8 @@ nav:
         - "수축 오토인코더": ch25/variants/contractive.md
       - 26.3 주성분 분석에서 오토인코더로:
         - "오토인코더와 주 매니폴드": ch25/architecture/04_ae_principal_manifold.md
-      - "26.4 학습":
-        - "오토인코더 학습": ch25/training/train_autoencoder.md
+      - "26.4 트레인":
+        - "오토인코더 트레인": ch25/training/train_autoencoder.md
       - 26.5 한계:
         - "잠재공간 샘플링의 한계": ch25/limits/latent_sampling.md
     - 27 변분 오토인코더(VAE):
@@ -722,12 +722,12 @@ nav:
         - "컨볼루션 조건부 VAE": ch26/architecture/conv_cvae.md
         - "컨볼루션 VAE": ch26/architecture/conv_vae.md
         - 변분 오토인코더 모듈: ch26/architecture/vae.md
-      - "27.3 학습":
+      - "27.3 트레인":
         - "Free Bits": ch26/training/free_bits.md
         - "샘플 생성": ch26/training/generate_samples.md
-        - "β-VAE 학습": ch26/training/train_beta_vae.md
-        - "조건부 VAE 학습": ch26/training/train_cvae.md
-        - "VAE 학습": ch26/training/train_vae.md
+        - "β-VAE 트레인": ch26/training/train_beta_vae.md
+        - "조건부 VAE 트레인": ch26/training/train_cvae.md
+        - "VAE 트레인": ch26/training/train_vae.md
     - "28 정규화 흐름(Normalizing Flows)":
       - "장 개요": ch27/index.md
       - "28.1 정규화 흐름 아키텍처":
@@ -741,11 +741,11 @@ nav:
         - "데이터": ch28/foundations/data.md
         - "데이터 2": ch28/foundations/data_2.md
         - 모델: ch28/foundations/model.md
-        - "학습": ch28/foundations/train.md
-        - "학습 2": ch28/foundations/train_2.md
+        - "트레인": ch28/foundations/train.md
+        - "트레인 2": ch28/foundations/train_2.md
       - 29.2 PixelCNN:
         - PixelCNN: ch28/pixelcnn/pixelcnn.md
-        - "학습": ch28/pixelcnn/train.md
+        - "트레인": ch28/pixelcnn/train.md
       - "29.3 확률분포의 인수분해":
         - "확률분포의 인수분해": ch28/factorization/factorization.md
       - 29.4 WaveNet:
@@ -753,13 +753,13 @@ nav:
         - "WaveNet 게이트 잔차 블록": ch28/wavenet/02_wavenet_gated.md
       - "29.5 트랜스포머 자기회귀 모델":
         - "트랜스포머": ch28/transformers/transformers.md
-      - "29.6 학습":
+      - "29.6 트레인":
         - "Teacher Forcing": ch28/training/teacher_forcing.md
         - "Scheduled Sampling": ch28/training/scheduled_sampling.md
     - "30 생성적 적대 뉴럴 네트워크(GAN)":
       - "장 개요": ch29/index.md
       - "30.1 GAN 기초":
-        - "적대적 학습": ch29/gan_foundations/adversarial.md
+        - "적대적 트레인": ch29/gan_foundations/adversarial.md
         - 내시 균형: ch29/gan_foundations/nash.md
       - "30.2 GAN 아키텍처":
         - "GAN": ch29/gan_architectures/45_gan.md
@@ -825,7 +825,7 @@ nav:
           - "DDPM 간단한 예제": ch30/ddpm/01_ddpm_toy.md
         - MNIST 파이프라인:
           - MNIST 확산: ch30/ddpm/mnist_diffusion.md
-          - "학습 예제": ch30/ddpm/example_train.md
+          - "트레인 예제": ch30/ddpm/example_train.md
           - "샘플링 예제": ch30/ddpm/example_sample.md
         - 키우고 조건 걸기:
           - DDPM: ch30/ddpm/02_ddpm.md
@@ -973,7 +973,7 @@ nav:
         - 단순한 추론: ch18/pgm_foundations/04_simple_inference.md
       - 19.2 추론:
         - "변수 제거": ch18/pgm_inference/01_variable_elimination.md
-      - "19.3 학습":
+      - "19.3 트레인":
         - "그래프 모델의 EM 알고리즘": ch18/pgm_learning/em_for_pgms.md
         - "구조 학습": ch18/pgm_learning/02_structure_learning.md
     - "20 샘플링과 추론":
@@ -1127,7 +1127,7 @@ nav:
           - PSPNet: ch21/segmentation/34_pspnet.md
           - "Mask R-CNN": ch21/segmentation/mask_rcnn.md
         - 실제로 돌려 보기:
-          - "사전 학습 모델을 이용한 이미지 분할": ch21/segmentation/pretrained_segmentation.md
+          - "사전 트레인 모델을 이용한 이미지 분할": ch21/segmentation/pretrained_segmentation.md
           - "의료 이미지 분할": ch21/segmentation/medical_segmentation.md
           - "이미지 분할 심화": ch21/segmentation/advanced_segmentation.md
       - "22.3 객체 탐지":
@@ -1185,11 +1185,11 @@ nav:
           - "튜토리얼 05 RNN 언어 모델": ch22/language_modeling/tutorial_05_rnn_language_model.md
           - "튜토리얼 06 LSTM 언어 모델": ch22/language_modeling/tutorial_06_lstm_language_model.md
           - "튜토리얼 07 트랜스포머 언어 모델": ch22/language_modeling/tutorial_07_transformer_lm.md
-        - 사전 학습·생성·평가:
-          - "튜토리얼 08 사전 학습 언어 모델": ch22/language_modeling/tutorial_08_pretrained_lm.md
+        - 사전 트레인·생성·평가:
+          - "튜토리얼 08 사전 트레인 언어 모델": ch22/language_modeling/tutorial_08_pretrained_lm.md
           - "튜토리얼 09 조건부 생성": ch22/language_modeling/tutorial_09_conditional_generation.md
           - "튜토리얼 10 언어 모델 평가": ch22/language_modeling/tutorial_10_lm_evaluation.md
-          - "GPT 사전 학습 직접 구현": ch22/language_modeling/pretrain_gpt_from_scratch.md
+          - "GPT 사전 트레인 직접 구현": ch22/language_modeling/pretrain_gpt_from_scratch.md
         - 곁가지 — 음성:
           - Wav2Vec: ch22/language_modeling/10_wav2vec.md
       - "23.2 시퀀스 레이블링":
@@ -1201,7 +1201,7 @@ nav:
           - "BIO 태깅": ch22/sequence_labeling/bio_tagging.md
           - "개체명 인식 기초": ch22/sequence_labeling/01_ner_basics.md
           - "IOB 태깅": ch22/sequence_labeling/02_iob_tagging.md
-        - 학습 없이 — 규칙과 사전:
+        - 트레인 없이 — 규칙과 사전:
           - "규칙 기반 개체명 인식": ch22/sequence_labeling/03_rule_based_ner.md
           - "사전 기반 개체명 인식": ch22/sequence_labeling/04_dictionary_ner.md
         - 고전 — 피처와 CRF:
@@ -1235,7 +1235,7 @@ nav:
     - "24 대규모 언어 모델(LLM)":
       - "장 개요": ch23/index.md
       - "24.1 LLM 기초":
-        - "사전 학습 목표": ch23/llm_foundations/pretraining_objectives.md
+        - "사전 트레인 목표": ch23/llm_foundations/pretraining_objectives.md
         - "평가 지표": ch23/llm_foundations/evaluation_metrics.md
         - "주요 과제": ch23/llm_foundations/challenges.md
       - "24.2 LLM 아키텍처":
@@ -1263,13 +1263,13 @@ nav:
         - "FlashAttention": ch23/inference/flash_attention.md
         - 양자화: ch23/inference/quantization.md
         - "Speculative Decoding": ch23/inference/speculative_decoding.md
-        - "양자화 인식 학습(QAT)": ch23/inference/04_quantization_aware_training.md
+        - "양자화 인식 트레인(QAT)": ch23/inference/04_quantization_aware_training.md
         - "구조적 가지치기": ch23/inference/05_structured_pruning.md
         - "통합 모델 압축": ch23/inference/06_combined_compression.md
         - "Hugging Face 지식 증류와 벤치마크": ch23/inference/07_hf_distillation_benchmark.md
         - "모델 압축 개요": ch23/inference/model_compression_overview.md
       - "24.9 모델 정렬(Alignment)":
-        - "학습 파이프라인": ch23/alignment/training_pipeline.md
+        - "트레인 파이프라인": ch23/alignment/training_pipeline.md
   - "VII 고급 아키텍처":
     - "33 뉴럴 상미분방정식(Neural ODE)":
       - "장 개요": ch32/index.md
@@ -1390,7 +1390,7 @@ nav:
         - "Noisy Networks": ch37/improvements/noisy_networks.md
         - "분포적 강화학습": ch37/improvements/distributional.md
         - "Rainbow": ch37/improvements/rainbow.md
-      - "38.3 다단계 학습":
+      - "38.3 다단계 트레인":
         - "n-step 리턴": ch37/multi_step/n_step_returns.md
         - "Retrace": ch37/multi_step/retrace.md
         - "V-trace": ch37/multi_step/v_trace.md
@@ -1403,7 +1403,7 @@ nav:
         - "Batch-Constrained Q-Learning(BCQ)": ch37/offline/bcq.md
         - "Implicit Q-Learning(IQL)": ch37/offline/iql.md
       - "38.6 평가":
-        - "학습 곡선": ch37/evaluation/training_curves.md
+        - "트레인 곡선": ch37/evaluation/training_curves.md
         - "벤치마크": ch37/evaluation/benchmarks.md
         - "통계적 검정": ch37/evaluation/statistical.md
       - "38.7 금융 응용":
@@ -1556,7 +1556,7 @@ nav:
           - "DeepFool": ch42/white_box/deepfool.md
           - "AutoAttack": ch42/white_box/autoattack.md
         - 막는 쪽:
-          - "적대적 학습": ch42/adversarial/04_adversarial_training.md
+          - "적대적 트레인": ch42/adversarial/04_adversarial_training.md
           - "인증 가능한 방어": ch42/adversarial/05_certified_defenses.md
         - 글에 거는 공격:
           - "자연어 모델에 대한 적대적 공격": ch42/adversarial/nlp_adversarial.md
@@ -1569,8 +1569,8 @@ nav:
         - "적대적 패치": ch42/physical/patches.md
         - "3차원 적대적 공격": ch42/physical/3d_attacks.md
         - "실제 환경에서의 강건성": ch42/physical/real_world.md
-      - "43.5 적대적 학습":
-        - "적대적 학습": ch42/adversarial_training/standard.md
+      - "43.5 적대적 트레인":
+        - "적대적 트레인": ch42/adversarial_training/standard.md
         - TRADES: ch42/adversarial_training/trades.md
         - MART: ch42/adversarial_training/mart.md
         - "Free Adversarial Training": ch42/adversarial_training/free_at.md

@@ -1,6 +1,6 @@
 # 트랜스포머 프로빙
 
-**프로빙 분류기**는 동결된(frozen) 활성화 위에 단순한(흔히 선형) 분류기를 학습해, 트랜스포머의 잠재 표현에 어떤 정보가 담겼는지 알아낸다. **BertViz** 같은 시각화 도구와 함께 쓰면 트랜스포머가 레이어마다 무엇을 배우는지 폭넓게 그려 볼 수 있다.
+**프로빙 분류기**는 동결된(frozen) 활성화 위에 단순한(흔히 선형) 분류기를 트레인해, 트랜스포머의 잠재 표현에 어떤 정보가 담겼는지 알아낸다. **BertViz** 같은 시각화 도구와 함께 쓰면 트랜스포머가 레이어마다 무엇을 배우는지 폭넓게 그려 볼 수 있다.
 
 ---
 
@@ -8,7 +8,7 @@
 
 ### 선형 프로브
 
-레이어 $l$의 동결된 표현 $h_l(x)$가 있을 때, 언어적 속성이나 과제별 속성 $y$를 예측하는 선형 분류기를 학습한다.
+레이어 $l$의 동결된 표현 $h_l(x)$가 있을 때, 언어적 속성이나 과제별 속성 $y$를 예측하는 선형 분류기를 트레인한다.
 
 $$
 \hat{y} = \sigma(W h_l(x) + b)
@@ -64,7 +64,7 @@ class TransformerProbe:
         return np.array(representations)
 
     def probe_layer(self, texts, labels, layer, test_size=0.2):
-        """지정한 레이어에서 프로브를 학습하고 평가한다."""
+        """지정한 레이어에서 프로브를 트레인하고 평가한다."""
         from sklearn.model_selection import train_test_split
 
         reps = self.extract_representations(texts, layer)
@@ -142,7 +142,7 @@ def probe_financial_model(model, tokenizer, device):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-XOR를 계산하는 ReLU 네트워크의 은닉 레이어가 $h(x) = (\text{ReLU}(x_1 - x_2), \text{ReLU}(x_2 - x_1))$이라 하자. 네 입력 $\{0,1\}^2$에 대해 속성 「$x_1 \ne x_2$」를 맞히는 선형 프로브를 입력 레이어($h_0 = x$)와 은닉 레이어 $h$ 위에 각각 학습하면 정확도는 최대 얼마인가? $x = [1, 1]$은 각 레이어에서 어디에 놓이는가?
+XOR를 계산하는 ReLU 네트워크의 은닉 레이어가 $h(x) = (\text{ReLU}(x_1 - x_2), \text{ReLU}(x_2 - x_1))$이라 하자. 네 입력 $\{0,1\}^2$에 대해 속성 「$x_1 \ne x_2$」를 맞히는 선형 프로브를 입력 레이어($h_0 = x$)와 은닉 레이어 $h$ 위에 각각 트레인하면 정확도는 최대 얼마인가? $x = [1, 1]$은 각 레이어에서 어디에 놓이는가?
 
 </div>
 

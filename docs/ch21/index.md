@@ -1,6 +1,6 @@
 # 22장: 컴퓨터 비전
 
-컴퓨터 비전의 이미지 분류·분할·객체 탐지·비디오 이해를 다룬다. 각 과제가 예측하는 대상과 입력·출력의 차이를 먼저 이해하고, 구조의 아이디어를 코드의 실제 호출 경로와 연결한다. 전체 모델, 일부 구성 요소를 보여 주는 축약 예제, 안내 문구만 있는 시작용 코드는 구현 범위가 다르다. 코드 이름이나 출력 메시지만으로 학습·성능·배포가 검증되었다고 해석하지 않는다.
+컴퓨터 비전의 이미지 분류·분할·객체 탐지·비디오 이해를 다룬다. 각 과제가 예측하는 대상과 입력·출력의 차이를 먼저 이해하고, 구조의 아이디어를 코드의 실제 호출 경로와 연결한다. 전체 모델, 일부 구성 요소를 보여 주는 축약 예제, 안내 문구만 있는 시작용 코드는 구현 범위가 다르다. 코드 이름이나 출력 메시지만으로 트레인·성능·배포가 검증되었다고 해석하지 않는다.
 
 ## 1. 이미지 분류
 
@@ -27,7 +27,7 @@
 **크기를 설계하기**
 
 - [EfficientNet](image_classification/07_efficientnet.md) · [심화 EfficientNet](image_classification/04_efficientnet_advanced.md) — 깊이·폭·해상도를 **함께** 조절하는 복합 스케일링
-- [EfficientNet V2](image_classification/17_efficient_net_v2.md) — 학습 속도까지 넣고 다시 탐색한다
+- [EfficientNet V2](image_classification/17_efficient_net_v2.md) — 트레인 속도까지 넣고 다시 탐색한다
 - [NASNet](image_classification/16_nas_net.md) — 작은 과제에서 찾은 셀을 옮긴다
 - [RegNet](image_classification/21_regnet.md) — 모델 하나가 아니라 **설계 공간의 규칙**을 찾는다
 
@@ -45,9 +45,9 @@
 **CNN 을 현대화하기**
 
 - [ConvNeXt](image_classification/06_convnext.md) — 큰 depthwise 커널과 LayerNorm 으로 ResNet 을 다시 짠다
-- [ConvNeXt V2](image_classification/20_convnext_v2.md) — 마스크드 오토인코더 사전 학습과 GRN 을 함께 설계한다
+- [ConvNeXt V2](image_classification/20_convnext_v2.md) — 마스크드 오토인코더 사전 트레인과 GRN 을 함께 설계한다
 
-여러 구조의 파라메터·MAC·활성화 메모리와 실제 지연시간은 같은 지표가 아니다. 출력 클래스 수와 입력 해상도·장치·학습 조건을 맞춰 비교한다. 이 장의 개별 구조 페이지는 설계 원리를 설명하며 모두 동일한 성능 실험을 제공하지는 않는다.
+여러 구조의 파라메터·MAC·활성화 메모리와 실제 지연시간은 같은 지표가 아니다. 출력 클래스 수와 입력 해상도·장치·트레인 조건을 맞춰 비교한다. 이 장의 개별 구조 페이지는 설계 원리를 설명하며 모두 동일한 성능 실험을 제공하지는 않는다.
 
 ## 2. 이미지 분할
 
@@ -61,7 +61,7 @@
 
 - [U-Net](segmentation/unet.md) — 줄였다 복원하고 스킵 연결로 잇는다
 - [U-Net 구현](segmentation/31_u_net.md) — `padding=1` 과 BN 을 써서 **원 논문의 valid 컨볼루션과 다르다**
-- [U-Net 이미지 분할 기초](segmentation/basic_unet_segmentation.md) — 합성 도형으로 학습·검증·체크포인트까지
+- [U-Net 이미지 분할 기초](segmentation/basic_unet_segmentation.md) — 합성 도형으로 트레인·검증·체크포인트까지
 
 **다른 구조들**
 
@@ -71,7 +71,7 @@
 
 **실제로 돌려 보기**
 
-- [사전 학습 모델을 이용한 이미지 분할](segmentation/pretrained_segmentation.md) — ResNet-50 인코더로 VOC2012 파인튜닝
+- [사전 트레인 모델을 이용한 이미지 분할](segmentation/pretrained_segmentation.md) — ResNet-50 인코더로 VOC2012 파인튜닝
 - [의료 이미지 분할](segmentation/medical_segmentation.md) — **합성 영상**이다. 실제 환자 영상도 임상 검증도 아니다
 - [이미지 분할 심화](segmentation/advanced_segmentation.md) — CBAM·로스 결합·해상도 변경·혼합 정밀도·TTA
 
@@ -88,7 +88,7 @@
 - [FCOS](detection/fcos.md): 위치별 거리·centerness와 목표 할당
 - [탐지 기초 예제](detection/basic_object_detection.md): 직접 지정한 후보의 좌표·후처리
 - [YOLO 추론 예제](detection/yolo_detection.md): Results의 상자·점수·클래스 읽기
-- [합성 데이터 학습 구성](detection/custom_object_detection.md): 이미지·정규화 라벨·데이터 분할
+- [합성 데이터 트레인 구성](detection/custom_object_detection.md): 이미지·정규화 라벨·데이터 분할
 - [추론 설정과 export](detection/advanced_detection.md): 크기 변경·배치·임계값·ONNX의 의미
 
 평가 매칭 IoU·NMS IoU·신뢰도 임계값은 서로 다른 기준이다. 탐지 개수나 짧은 시간 측정으로 AP·정확도·실시간 성능을 대신하지 않는다.
@@ -128,8 +128,8 @@
 - [액션 인식의 과제·입력·평가 설계](video/08_action_recognition.md) — 클립 분류·동시 예측·시작과 끝은 다른 과제다
 - [비디오 이해 프로젝트의 설계와 검토](video/12_video_understanding_project.md) — 구조를 고르는 것만으로 시스템이 되지 않는다
 
-같은 원본에서 잘라낸 겹친 clip이 분할 사이에 섞이지 않도록 한다. clip과 비디오의 평가 단위, 여러 crop의 집계·비용, 온라인 추론의 관찰 지연과 미래 프레임 사용 여부도 명시한다. 일부 페이지는 개념 설계와 시작용 파일을 제공하므로 완성된 학습 시스템으로 해석하지 않는다.
+같은 원본에서 잘라낸 겹친 clip이 분할 사이에 섞이지 않도록 한다. clip과 비디오의 평가 단위, 여러 crop의 집계·비용, 온라인 추론의 관찰 지연과 미래 프레임 사용 여부도 명시한다. 일부 페이지는 개념 설계와 시작용 파일을 제공하므로 완성된 트레인 시스템으로 해석하지 않는다.
 
 ## 정리하며
 
-비전 모델을 읽을 때는 과제의 정답 단위와 입력·출력·좌표·로스·평가가 일치하는지 확인한다. 구조 아이디어와 제공된 축약 코드, 원 논문의 성능을 구분하고 동일한 데이터·학습·장치·평가 조건에서 비교한다.
+비전 모델을 읽을 때는 과제의 정답 단위와 입력·출력·좌표·로스·평가가 일치하는지 확인한다. 구조 아이디어와 제공된 축약 코드, 원 논문의 성능을 구분하고 동일한 데이터·트레인·장치·평가 조건에서 비교한다.

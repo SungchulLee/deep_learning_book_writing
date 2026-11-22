@@ -1,6 +1,6 @@
 # 과적합과 과소적합 시연
 
-잡음을 더한 사인 함수 데이터에 차수가 다른 다항 회귀를 적합한다. 모델의 유연성이 학습 오차와 별도 데이터의 오차에 미치는 영향을 비교한다.
+잡음을 더한 사인 함수 데이터에 차수가 다른 다항 회귀를 적합한다. 모델의 유연성이 트레인 오차와 별도 데이터의 오차에 미치는 영향을 비교한다.
 
 ## 1. 코드
 
@@ -33,9 +33,9 @@ def generate_data(n_samples=100, noise=0.5):
     y = np.sin(X) + np.random.normal(0, noise, n_samples)
     return X.reshape(-1, 1), y
 
-# 다항 회귀 모델 학습
+# 다항 회귀 모델 트레인
 def train_polynomial_models(X_train, y_train, X_test, y_test, degrees):
-    """차수를 달리한 다항 회귀 모델을 학습시킨다"""
+    """차수를 달리한 다항 회귀 모델을 트레인시킨다"""
     results = {}
     
     for degree in degrees:
@@ -44,7 +44,7 @@ def train_polynomial_models(X_train, y_train, X_test, y_test, degrees):
         X_train_poly = poly_features.fit_transform(X_train)
         X_test_poly = poly_features.transform(X_test)
         
-        # 모델을 학습시킨다
+        # 모델을 트레인시킨다
         model = LinearRegression()
         model.fit(X_train_poly, y_train)
         
@@ -85,7 +85,7 @@ def plot_results(X_train, y_train, X_test, y_test, results, degrees):
         sort_idx_train = np.argsort(X_train.ravel())
         sort_idx_test = np.argsort(X_test.ravel())
         
-        # 학습 데이터 그리기
+        # 트레인 데이터 그리기
         ax.scatter(X_train, y_train, alpha=0.5, label='Train data', color='blue')
         ax.plot(X_train[sort_idx_train], result['y_train_pred'][sort_idx_train], 
                 'b-', label='Train prediction', linewidth=2)
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     # 여러 다항식 차수로 시험
     degrees = [1, 2, 3, 5, 10, 15]
     
-    # 모델 학습
+    # 모델 트레인
     print("Training polynomial regression models...")
     results = train_polynomial_models(X_train, y_train, X_test, y_test, degrees)
     
@@ -205,7 +205,7 @@ Key Takeaways:
 
 1차 다항식은 직선이므로 사인 함수의 굴곡을 표현할 수 없다. 차수를 늘리면 더 다양한 모양을 표현할 수 있지만, 유한한 표본의 잡음에 민감해지거나 수치 조건이 나빠질 수 있다. 어느 차수가 가장 좋은지는 표본 수, 입력 범위, 잡음과 정칙화에 따라 달라진다.
 
-10차나 15차라는 이유만으로 모든 학습점을 보간하거나 학습 오차가 0이 되는 것은 아니다. n개의 서로 다른 입력에서 임의의 목표값을 일반적으로 보간하려면 n−1차 다항식이 필요하다. 이 코드처럼 학습점(70개)이 차수보다 훨씬 많으면 고차 모델도 잔차를 남긴다. 실제로 출력에서 10차와 15차의 시험 MSE(0.1913, 0.1864)는 학습 MSE와 비슷하여 과적합 표시가 하나도 나오지 않는다.
+10차나 15차라는 이유만으로 모든 트레인점을 보간하거나 트레인 오차가 0이 되는 것은 아니다. n개의 서로 다른 입력에서 임의의 목표값을 일반적으로 보간하려면 n−1차 다항식이 필요하다. 이 코드처럼 트레인점(70개)이 차수보다 훨씬 많으면 고차 모델도 잔차를 남긴다. 실제로 출력에서 10차와 15차의 시험 MSE(0.1913, 0.1864)는 트레인 MSE와 비슷하여 과적합 표시가 하나도 나오지 않는다.
 
 예제는 여러 차수의 결과를 test라는 분할에서 나란히 보여 준다. 그 값을 보고 차수를 고르면 해당 분할은 모델 선택에 사용한 검증셋 역할을 한다. 최종 성능 보고에는 별도의 시험셋이 필요하다. 코드의 과소적합·과적합 표시는 MSE 임계값과 오차 비율에 따른 예시 판단이며 보편적인 판정식이 아니다. 예측선은 정렬된 관측 입력에서의 예측값을 이어 그린 것이므로 촘촘한 전체 구간에서의 함수 모양과도 구분한다.
 
@@ -214,7 +214,7 @@ Key Takeaways:
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-15차 다항식이 70개 학습점을 항상 정확히 지나는가?
+15차 다항식이 70개 트레인점을 항상 정확히 지나는가?
 
 </div>
 
@@ -227,12 +227,12 @@ Key Takeaways:
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-학습 MSE가 작다는 사실만으로 좋은 모델이라고 판단할 수 없는 이유는 무엇인가?
+트레인 MSE가 작다는 사실만으로 좋은 모델이라고 판단할 수 없는 이유는 무엇인가?
 
 </div>
 
 ??? success "풀이"
-    학습셋에 대한 적합만 측정하기 때문이다. 잡음을 따라간 모델이나 수치적으로 불안정한 모델도 학습 오차는 작을 수 있다. 배포 조건을 반영한 별도 데이터에서의 성능이 필요하다.
+    트레인셋에 대한 적합만 측정하기 때문이다. 잡음을 따라간 모델이나 수치적으로 불안정한 모델도 트레인 오차는 작을 수 있다. 배포 조건을 반영한 별도 데이터에서의 성능이 필요하다.
 
 ---
 
@@ -249,4 +249,4 @@ Key Takeaways:
 
 ## 정리하며
 
-모델의 유연성을 높이는 효과는 학습 오차와 일반화 오차를 구분해 판단한다. 특정 차수를 항상 과적합이라고 부르거나, 모델 선택에 사용한 분할을 독립 시험으로 해석하지 않는다.
+모델의 유연성을 높이는 효과는 트레인 오차와 일반화 오차를 구분해 판단한다. 특정 차수를 항상 과적합이라고 부르거나, 모델 선택에 사용한 분할을 독립 시험으로 해석하지 않는다.

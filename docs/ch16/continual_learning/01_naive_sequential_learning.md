@@ -1,6 +1,6 @@
 # 단순 순차 학습 기준 모델
 
-단순 순차 학습은 망각 방지 항 없이 새 과제의 교차 엔트로피만 최적화하는 베이스라인이다. Split MNIST의 로컬 이진 분류 규약에서 평균 정확도와 학습 직후 성능, 후방 전이를 계산한다.
+단순 순차 학습은 망각 방지 항 없이 새 과제의 교차 엔트로피만 최적화하는 베이스라인이다. Split MNIST의 로컬 이진 분류 규약에서 평균 정확도와 트레인 직후 성능, 후방 전이를 계산한다.
 
 ## 1. 코드
 
@@ -25,7 +25,7 @@
     1. 평균 정확도(AA): (1/T) Σ Acc_{i,T}
     2. 후방 전이(BWT): (1/(T-1)) Σ (Acc_{i,T} - Acc_{i,i})
     3. 전방 전이(FWT): (1/(T-1)) Σ (Acc_{i,i-1} - Acc_{i,init})
-    4. 학습 직후 정확도(LA): (1/T) Σ Acc_{i,i}
+    4. 트레인 직후 정확도(LA): (1/T) Σ Acc_{i,i}
     """
 
     import torch
@@ -92,7 +92,7 @@
 
             인수:
                 model: 뉴럴 네트워크 모델
-                device: 학습할 장치(CPU나 GPU)
+                device: 트레인할 장치(CPU나 GPU)
                 learning_rate: 옵티마이저의 러닝레이트
             """
             self.model = model
@@ -111,7 +111,7 @@
                        task_id: int,
                        epochs: int = 5) -> List[float]:
             """
-            과제 하나로 학습한다.
+            과제 하나로 트레인한다.
 
             이것이 단순한 방법이다. 그저 지금 과제의 데이터로
             보통의 지도 학습을 한다. 망각을 막을 특별한 기법은
@@ -120,7 +120,7 @@
             인수:
                 train_loader: 지금 과제의 DataLoader
                 task_id: 지금 과제의 번호
-                epochs: 학습 에포크 수
+                epochs: 트레인 에포크 수
 
             반환값:
                 에포크마다의 로스 목록
@@ -217,16 +217,16 @@
 
             과정:
             1. 과제마다 차례로 다음을 한다.
-               a. 과제 데이터로 학습한다
+               a. 과제 데이터로 트레인한다
                b. 모든 과제(앞선 것까지)에서 평가한다
                c. 정확도를 적는다
             2. 지속 학습 지표를 계산한다
             3. 종합 결과를 반환한다
 
             인수:
-                train_loaders: 학습용 DataLoader 목록
+                train_loaders: 트레인용 DataLoader 목록
                 test_loaders: 시험용 DataLoader 목록
-                epochs_per_task: 과제마다 학습할 에포크 수
+                epochs_per_task: 과제마다 트레인할 에포크 수
 
             반환값:
                 지표를 모두 담은 ContinualLearningMetrics 객체
@@ -236,10 +236,10 @@
             self.task_test_loaders = test_loaders
 
             # 정확도 행렬을 초기화한다
-            # accuracy_matrix[i,j] = 과제 j까지 학습한 뒤 과제 i의 정확도
+            # accuracy_matrix[i,j] = 과제 j까지 트레인한 뒤 과제 i의 정확도
             self.accuracy_matrix = np.zeros((num_tasks, num_tasks))
 
-            # 처음 무작위 정확도를 추적한다(학습 전)
+            # 처음 무작위 정확도를 추적한다(트레인 전)
             print("\n" + "=" * 70)
             print("INITIAL EVALUATION (Before Any Training)")
             print("=" * 70)
@@ -247,9 +247,9 @@
                 acc, _ = self.evaluate_task(test_loaders[task_id], task_id)
                 print(f"Task {task_id}: {acc:.2f}% (random guess ~ {100/2:.1f}%)")
 
-            # 과제마다 차례로 학습한다
+            # 과제마다 차례로 트레인한다
             for task_id in range(num_tasks):
-                # 지금 과제로 학습한다
+                # 지금 과제로 트레인한다
                 self.train_task(
                     train_loader=train_loaders[task_id],
                     task_id=task_id,
@@ -300,10 +300,10 @@
 
             3. 전방 전이(FWT):
                과거 지식을 새 과제에 활용하는 능력을 측정한다
-               과제 i를 학습하기 전 그 과제의 정확도를 측정한다
+               과제 i를 트레인하기 전 그 과제의 정확도를 측정한다
                FWT = (1/(T-1)) Σ_{i=2}^T (Acc_{i,i-1} - 베이스라인)
 
-            4. 학습 직후 정확도(LA):
+            4. 트레인 직후 정확도(LA):
                과제를 막 배운 직후의 평균 정확도
                LA = (1/T) Σ_{i=1}^T Acc_{i,i}
 
@@ -331,12 +331,12 @@
             if num_tasks > 1:
                 backward_transfer /= (num_tasks - 1)
 
-            # 3. 전방 전이(단순 학습에는 해당 없음)
-            # 단순 학습에는 전방 전이를 측정할 절차가 없다
-            # 그러려면 과제 i를 학습하기 전에 그 과제에서 평가해야 한다
+            # 3. 전방 전이(단순 트레인에는 해당 없음)
+            # 단순 트레인에는 전방 전이를 측정할 절차가 없다
+            # 그러려면 과제 i를 트레인하기 전에 그 과제에서 평가해야 한다
             forward_transfer = 0.0  # 단순 베이스라인을 위한 자리 표시자
 
-            # 4. 학습 직후 정확도(행렬의 대각선)
+            # 4. 트레인 직후 정확도(행렬의 대각선)
             learning_accuracy = np.mean(np.diag(self.accuracy_matrix))
 
             return ContinualLearningMetrics(
@@ -507,7 +507,7 @@
                     f'{val:.1f}%', ha='center', 
                     va='bottom' if val >= 0 else 'top', fontsize=9)
 
-        # 그림 3: 학습 직후 정확도와 마지막 정확도
+        # 그림 3: 트레인 직후 정확도와 마지막 정확도
         ax3 = plt.subplot(1, 3, 3)
         tasks = list(range(num_tasks))
         learning_accs = np.diag(metrics.accuracy_matrix)
@@ -822,9 +822,9 @@
 
 ## 2. 논의
 
-각 과제의 숫자 쌍을 0·1로 다시 매겨 같은 출력 레이어를 사용한다. task_id는 평가 함수에 전달되지만 모델 계산에 사용되지 않는다. 전체 10개 숫자의 클래스 증분 학습과 구별한다. 각 과제 시작마다 Adam을 새로 만들고 모델을 학습 모드로 바꾼다.
+각 과제의 숫자 쌍을 0·1로 다시 매겨 같은 출력 레이어를 사용한다. task_id는 평가 함수에 전달되지만 모델 계산에 사용되지 않는다. 전체 10개 숫자의 클래스 증분 학습과 구별한다. 각 과제 시작마다 Adam을 새로 만들고 모델을 트레인 모드로 바꾼다.
 
-행렬은 행=평가 과제, 열=학습 단계다. forgetting_per_task는 이름과 달리 최종 정확도−학습 직후 정확도를 저장하므로 음수가 성능 저하다. backward_transfer는 그 평균이다. forward_transfer는 0.0 상수이며 측정한 전방 전이가 아니다. 초기 평가는 출력하지만 저장하지 않고, 각 새 과제 직전의 사전 평가도 하지 않는다.
+행렬은 행=평가 과제, 열=트레인 단계다. forgetting_per_task는 이름과 달리 최종 정확도−트레인 직후 정확도를 저장하므로 음수가 성능 저하다. backward_transfer는 그 평균이다. forward_transfer는 0.0 상수이며 측정한 전방 전이가 아니다. 초기 평가는 출력하지만 저장하지 않고, 각 새 과제 직전의 사전 평가도 하지 않는다.
 
 AA는 최종 열 평균, LA는 대각선 평균이며 T개 과제에서 AA=LA+(T−1)BWT/T가 성립한다. 코드의 로스는 배치 평균을 다시 평균 내고, 정확도는 표본 수로 평균 낸다. 모델 선택을 추가한다면 독립적인 검증 로더를 사용해야 한다.
 
@@ -850,7 +850,7 @@ forward_transfer=0.0을 성능 결과로 해석할 수 있는가?
 </div>
 
 ??? success "풀이"
-    측정값이 아니라 자리 표시자다. 전방 전이는 새 과제를 학습하기 직전 성능과 같은 과제의 학습 전 기준을 비교해야 한다. 현재 코드는 필요한 단계별 사전 평가를 저장하지 않는다.
+    측정값이 아니라 자리 표시자다. 전방 전이는 새 과제를 학습하기 직전 성능과 같은 과제의 트레인 전 기준을 비교해야 한다. 현재 코드는 필요한 단계별 사전 평가를 저장하지 않는다.
 
 ---
 
@@ -881,7 +881,7 @@ BWT가 음수일 때 forgetting_per_task의 부호를 어떻게 읽는가?
     patience_counter = 0
     best_state = None
     for epoch in range(num_epochs):
-        # ... 학습 단계 ...
+        # ... 트레인 단계 ...
         val_loss = evaluate(model, val_loader)
         if val_loss < best_loss:
             best_loss = val_loss

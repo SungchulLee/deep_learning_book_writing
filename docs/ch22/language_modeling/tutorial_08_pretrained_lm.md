@@ -1,26 +1,26 @@
-# 사전 학습 언어 모델의 파인튜닝
+# 사전 트레인 언어 모델의 파인튜닝
 
-사전 학습한 언어 모델은 기존 웨이트에서 출발해 새 데이터의 다음 토큰 예측을 학습할 수 있다. 이 페이지는 GPT-2와 토크나이저를 불러오고 Trainer로 전체 파인튜닝하는 함수, 프롬프트에서 이어 쓰는 함수를 소개한다. 전체 파인튜닝과 LoRA·어댑터·프롬프트 튜닝은 서로 다른 갱신 방식이며, 이 코드가 구현하는 것은 전체 파인튜닝뿐이다.
+사전 트레인한 언어 모델은 기존 웨이트에서 출발해 새 데이터의 다음 토큰 예측을 학습할 수 있다. 이 페이지는 GPT-2와 토크나이저를 불러오고 Trainer로 전체 파인튜닝하는 함수, 프롬프트에서 이어 쓰는 함수를 소개한다. 전체 파인튜닝과 LoRA·어댑터·프롬프트 튜닝은 서로 다른 갱신 방식이며, 이 코드가 구현하는 것은 전체 파인튜닝뿐이다.
 
 ## 1. 코드
 
 ```python
 """
-튜토리얼 08: 사전 학습 언어 모델 파인튜닝
+튜토리얼 08: 사전 트레인 언어 모델 파인튜닝
 ====================================================
 
-GPT-2 같은 사전 학습 모델을 다운스트림 과제에 활용하는 법을 배운다.
-전이 학습 덕분에 대규모 사전 학습으로 얻은 지식을 쓸 수 있다.
+GPT-2 같은 사전 트레인 모델을 다운스트림 과제에 활용하는 법을 배운다.
+전이 학습 덕분에 대규모 사전 트레인으로 얻은 지식을 쓸 수 있다.
 
 핵심 개념:
-- 사전 학습 모델(GPT-2, BERT, RoBERTa)
+- 사전 트레인 모델(GPT-2, BERT, RoBERTa)
 - 파인튜닝과 피처 추출
 - 도메인 적응
 - 퓨샷 학습
 
-사전 학습 모델의 이점:
-1. 학습된 언어 지식
-2. 학습 시간과 데이터가 줄어든다
+사전 트레인 모델의 이점:
+1. 트레인된 언어 지식
+2. 트레인 시간과 데이터가 줄어든다
 3. 일반화가 더 낫다
 4. 최고 수준(SOTA)의 성능
 """
@@ -36,7 +36,7 @@ from torch.utils.data import Dataset
 
 
 class TextDataset(Dataset):
-    """사전 학습 모델을 파인튜닝하기 위한 데이터셋."""
+    """사전 트레인 모델을 파인튜닝하기 위한 데이터셋."""
     
     def __init__(self, texts, tokenizer, max_length=512):
         self.tokenizer = tokenizer
@@ -68,14 +68,14 @@ def finetune_gpt2(train_texts, model_name='gpt2', epochs=3):
     사용자 텍스트 데이터로 GPT-2 파인튜닝하기.
     
     인수:
-        train_texts: 학습 텍스트의 목록
-        model_name: 사전 학습 모델 이름('gpt2', 'gpt2-medium' 등)
-        epochs: 학습 에포크 수
+        train_texts: 트레인 텍스트의 목록
+        model_name: 사전 트레인 모델 이름('gpt2', 'gpt2-medium' 등)
+        epochs: 트레인 에포크 수
     """
     print(f"Fine-tuning {model_name}")
     print("=" * 60)
     
-    # 사전 학습 모델과 토크나이저 불러오기
+    # 사전 트레인 모델과 토크나이저 불러오기
     tokenizer = GPT2Tokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
     
@@ -84,7 +84,7 @@ def finetune_gpt2(train_texts, model_name='gpt2', epochs=3):
     # 데이터셋 갖추기
     train_dataset = TextDataset(train_texts, tokenizer)
     
-    # 학습 인자
+    # 트레인 인자
     training_args = TrainingArguments(
         output_dir='./results',
         num_train_epochs=epochs,
@@ -143,7 +143,7 @@ def generate_from_pretrained(model, tokenizer, prompt, max_length=50,
 
 
 def demonstrate_pretrained():
-    """사전 학습 GPT-2 사용 시연."""
+    """사전 트레인 GPT-2 사용 시연."""
     
     print("Loading pretrained GPT-2...")
     tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
@@ -165,11 +165,11 @@ def demonstrate_pretrained():
 
 if __name__ == "__main__":
     print("""
-사전 학습 언어 모델
+사전 트레인 언어 모델
 ==========================
 
 널리 쓰이는 모델:
-1. GPT(생성형 사전 학습 트랜스포머)
+1. GPT(생성형 사전 트레인 트랜스포머)
    - 자기회귀, 왼쪽에서 오른쪽
    - 생성 과제에 좋다
    
@@ -183,15 +183,15 @@ if __name__ == "__main__":
 
 파인튜닝 전략:
 1. 전체 파인튜닝: 모든 파라메터를 갱신한다
-2. 어댑터 모듈: 작은 학습 가능한 레이어 더하기
+2. 어댑터 모듈: 작은 트레인 가능한 레이어 더하기
 3. 프롬프트 튜닝: 연속 프롬프트를 최적화한다
 4. LoRA: 웨이트의 저랭크 적응
 
 좋은 관행:
-- 사전 학습 때보다 작은 러닝레이트 쓰기
+- 사전 트레인 때보다 작은 러닝레이트 쓰기
 - 데이터셋이 작으면 앞쪽 레이어 동결하기
 - 큰 모델을 위한 그래디언트 누적 구현하기
-- 혼합 정밀도 학습 쓰기
+- 혼합 정밀도 트레인 쓰기
 - 파국적 망각 지켜보기
 
 학습 문제:
@@ -213,13 +213,13 @@ TextDataset은 각 문서를 max_length까지 자르고 같은 길이로 padding
 
 [GPT-2의 언어 모델 head](https://huggingface.co/docs/transformers/model_doc/gpt2)는 labels를 내부에서 한 위치 이동한다. 따라서 labels에 input_ids를 넣는 방식 자체는 맞다. 다만 로스에서 제외할 위치는 −100이어야 한다. 현재 코드는 padding의 labels도 EOS ID로 남겨 두므로 attention_mask만으로 padding 목표의 로스가 제외되지 않는다.
 
-PAD와 EOS를 같은 ID로 쓰더라도 실제 문장 종료와 padding의 역할은 구분해야 한다. padding은 attention_mask를 기준으로 목표에서 제외하고, 학습할 실제 EOS는 남기는 정책이 필요하다. 현재 토큰화는 문서 끝에 실제 EOS를 명시적으로 추가하지 않으므로, 모델이 보는 EOS 목표는 모두 padding에서 생긴 것이다. 그래서 문서 경계 학습과 padding 학습이 한데 섞인다.
+PAD와 EOS를 같은 ID로 쓰더라도 실제 문장 종료와 padding의 역할은 구분해야 한다. padding은 attention_mask를 기준으로 목표에서 제외하고, 트레인할 실제 EOS는 남기는 정책이 필요하다. 현재 토큰화는 문서 끝에 실제 EOS를 명시적으로 추가하지 않으므로, 모델이 보는 EOS 목표는 모두 padding에서 생긴 것이다. 그래서 문서 경계 트레인과 padding 트레인이 한데 섞인다.
 
 ## 3. 파인튜닝과 검증
 
-finetune_gpt2는 사전 학습 웨이트를 불러오고 동결이나 어댑터 설정 없이 Trainer에 넘긴다. 러닝레이트·배치 크기·warmup은 예시 설정이며 모든 데이터에 적합한 값은 아니다. 검증 데이터셋이나 검증 지표·최적 체크포인트 선택은 구성하지 않는다. 작은 데이터에서도 무조건 앞쪽 레이어를 동결해야 한다는 규칙은 없다.
+finetune_gpt2는 사전 트레인 웨이트를 불러오고 동결이나 어댑터 설정 없이 Trainer에 넘긴다. 러닝레이트·배치 크기·warmup은 예시 설정이며 모든 데이터에 적합한 값은 아니다. 검증 데이터셋이나 검증 지표·최적 체크포인트 선택은 구성하지 않는다. 작은 데이터에서도 무조건 앞쪽 레이어를 동결해야 한다는 규칙은 없다.
 
-데이터는 문서 단위로 학습·검증·시험을 분리하고 중복·누출을 확인한다. 검증 로스와 생성 결과, 기존 분야 성능의 변화를 함께 보아 과적합과 망각을 판단한다. 토큰화한 텐서를 모두 미리 저장하는 방식은 데이터 규모에 따라 메모리 부담도 달라진다.
+데이터는 문서 단위로 트레인·검증·시험을 분리하고 중복·누출을 확인한다. 검증 로스와 생성 결과, 기존 분야 성능의 변화를 함께 보아 과적합과 망각을 판단한다. 토큰화한 텐서를 모두 미리 저장하는 방식은 데이터 규모에 따라 메모리 부담도 달라진다.
 
 ## 4. 프롬프트에서 생성하기
 
@@ -238,7 +238,7 @@ generate_from_pretrained는 eval·no_grad를 사용하고 temperature·top-k·to
 
 ??? success "풀이"
 
-    사전 학습 웨이트를 전체 갱신하며 LoRA·어댑터를 추가하지 않는다. 문서별 truncation·고정 길이 padding을 사용하고 모든 텐서를 미리 저장한다. labels는 입력 ID를 복사하지만 padding을 −100으로 바꾸지 않아 로스 제외가 누락되어 있다. 이 선택들은 각각 갱신 범위·문맥/메모리·학습 목표에 영향을 준다.
+    사전 트레인 웨이트를 전체 갱신하며 LoRA·어댑터를 추가하지 않는다. 문서별 truncation·고정 길이 padding을 사용하고 모든 텐서를 미리 저장한다. labels는 입력 ID를 복사하지만 padding을 −100으로 바꾸지 않아 로스 제외가 누락되어 있다. 이 선택들은 각각 갱신 범위·문맥/메모리·트레인 목표에 영향을 준다.
 
 
 
@@ -268,7 +268,7 @@ attention_mask와 labels의 −100이 각각 무엇을 제어하며 PAD=EOS일 �
 
 ??? success "풀이"
 
-    학습에 쓰지 않은 문서를 동일한 토크나이저·문맥 길이·경계 규칙으로 평가한다. padding과 제외 목표를 뺀 음의 로그가능도(log-likelihood, 로그우도라고도 한다) 합을 실제 예측 토큰 수로 나눈 뒤 지수화한다. 배치별 평균을 다시 단순 평균하면 토큰 수가 다른 배치가 같은 비중을 받아 값이 달라질 수 있다. 생성의 유창성·관련성·사실성은 별도 기준으로 평가한다.
+    트레인에 쓰지 않은 문서를 동일한 토크나이저·문맥 길이·경계 규칙으로 평가한다. padding과 제외 목표를 뺀 음의 로그가능도(log-likelihood, 로그우도라고도 한다) 합을 실제 예측 토큰 수로 나눈 뒤 지수화한다. 배치별 평균을 다시 단순 평균하면 토큰 수가 다른 배치가 같은 비중을 받아 값이 달라질 수 있다. 생성의 유창성·관련성·사실성은 별도 기준으로 평가한다.
 
 
 
@@ -283,7 +283,7 @@ attention_mask와 labels의 −100이 각각 무엇을 제어하며 PAD=EOS일 �
 
 ??? success "풀이"
 
-    TextDataset은 nn.Module이 아니므로 model(x)·parameters·backward를 적용하는 대상이 아니다. 아래 함수의 입력과 expected_shape도 자리표시자라 완성된 테스트가 아니다. 확인할 계약은 len과 인덱스 접근, 정수 ID와 어휘 범위, 각 항목의 길이, attention_mask와 padding 목표의 대응, truncation·빈 문서·길이 1 처리다. 실제 학습·그래디언트 검증은 별도의 언어 모델과 로스에 대해 설계해야 한다.
+    TextDataset은 nn.Module이 아니므로 model(x)·parameters·backward를 적용하는 대상이 아니다. 아래 함수의 입력과 expected_shape도 자리표시자라 완성된 테스트가 아니다. 확인할 계약은 len과 인덱스 접근, 정수 ID와 어휘 범위, 각 항목의 길이, attention_mask와 padding 목표의 대응, truncation·빈 문서·길이 1 처리다. 실제 트레인·그래디언트 검증은 별도의 언어 모델과 로스에 대해 설계해야 한다.
 
     ```python
     def test_textdataset():
@@ -305,4 +305,4 @@ attention_mask와 labels의 −100이 각각 무엇을 제어하며 PAD=EOS일 �
 
 ## 정리하며
 
-사전 학습 웨이트를 사용해도 토큰화·목표 이동·padding 로스 제외·데이터 분리의 책임은 남는다. 이 예제는 전체 파인튜닝과 생성 함수를 정의하지만 main에서 실행하지 않으며, padding 목표와 장치·검증 구성을 보완해야 실제 성능을 해석할 수 있다.
+사전 트레인 웨이트를 사용해도 토큰화·목표 이동·padding 로스 제외·데이터 분리의 책임은 남는다. 이 예제는 전체 파인튜닝과 생성 함수를 정의하지만 main에서 실행하지 않으며, padding 목표와 장치·검증 구성을 보완해야 실제 성능을 해석할 수 있다.

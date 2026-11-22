@@ -24,7 +24,7 @@ $$\text{RMSNorm}(\mathbf{x}) = \gamma\odot\frac{\mathbf{x}}{\sqrt{\frac1n\sum_i 
 
 여기서 각 기호는 다음과 같다.
 
-- $\gamma \in \mathbb{R}^n$은 학습 가능한 스케일(배율) 파라메터이다
+- $\gamma \in \mathbb{R}^n$은 트레인 가능한 스케일(배율) 파라메터이다
 - $\epsilon$은 수치적 안정성을 위한 작은 상수이다
 - (설계상) 바이어스 항 $\beta$가 없고 평균을 빼지도 않는다
 
@@ -34,7 +34,7 @@ $$\text{RMSNorm}(\mathbf{x}) = \gamma\odot\frac{\mathbf{x}}{\sqrt{\frac1n\sum_i 
 |-----------|-----------|---------|
 | 평균 빼기 | 있음 | **없음** |
 | 분산 정규화 | 있음 | 대신 RMS를 쓴다 |
-| 학습 가능한 바이어스 | 있음 ($\beta$) | **없음** |
+| 트레인 가능한 바이어스 | 있음 ($\beta$) | **없음** |
 | 점근적 계산 복잡도 | $O(n)$ | $O(n)$ |
 
 ---
@@ -64,7 +64,7 @@ class RMSNorm(nn.Module):
         super().__init__()
         
         self.eps = eps
-        # 레이어 정규화와 달리 학습되는 파라메터가 weight 하나뿐이다.
+        # 레이어 정규화와 달리 트레인되는 파라메터가 weight 하나뿐이다.
         # 평균을 빼지 않으므로 되돌릴 이동도 없어 bias(beta)가 없다.
         # 1로 시작해 처음에는 정규화한 값을 그대로 통과시킨다
         self.weight = nn.Parameter(torch.ones(dim))
@@ -78,7 +78,7 @@ class RMSNorm(nn.Module):
         # 평균을 구하는 연산 한 번이 빠지므로 더 빠르고, 실제로
         # 성능이 떨어지지 않는다는 것이 RMSNorm 논문의 관찰이다.
         # dim=-1은 마지막 축, 곧 피처 축이다. 표본마다 따로 정규화하므로
-        # 배치 크기와 무관하고 추론에서도 학습과 똑같이 동작한다.
+        # 배치 크기와 무관하고 추론에서도 트레인과 똑같이 동작한다.
         # eps가 제곱근 "안"에 있다는 점에 주의하라. 밖에 두는 구현도
         # 있는데 값이 미세하게 달라진다
         rms = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + self.eps)
@@ -94,7 +94,7 @@ class RMSNorm(nn.Module):
         """
         # 정규화하고 배율 조정.
         # float()으로 올렸다가 type_as로 되돌리는 것이 요령이다. 반정밀도
-        # (fp16, bf16)로 학습할 때 x^2의 합이 오버플로를 내거나 정밀도를 잃기
+        # (fp16, bf16)로 트레인할 때 x^2의 합이 오버플로를 내거나 정밀도를 잃기
         # 쉬운데, 정규화만 32비트로 계산하고 결과를 원래 자료형으로
         # 되돌리면 그 위험을 피하면서 메모리는 그대로 아낀다.
         # 대규모 언어 모델 구현에서 흔히 보이는 형태다
@@ -164,7 +164,7 @@ class LayerNormBaseline(nn.Module):
 
 $$\text{RMSNorm}(a \cdot \mathbf{x}) = \text{sign}(a) \cdot \text{RMSNorm}(\mathbf{x})$$
 
-이 성질은 입력 스케일에 덜 민감한 변환을 설명하지만, 전체 뉴럴 네트워크의 그래디언트나 학습 안정성을 단독으로 보장하지는 않는다.
+이 성질은 입력 스케일에 덜 민감한 변환을 설명하지만, 전체 뉴럴 네트워크의 그래디언트나 트레인 안정성을 단독으로 보장하지는 않는다.
 
 ### 실험적 증거
 
@@ -198,7 +198,7 @@ def compare_normalization_effects():
         # 출력의 평균을 나란히 찍는 것이 이 비교의 요점이다.
         # LayerNorm의 평균은 어떤 입력에서도 0에 가깝게 나오지만,
         # RMSNorm은 입력이 밀려 있으면 출력도 밀린 채로 남는다.
-        # 그런데도 트랜스포머에서 잘 도는 까닭은, 학습된 웨이트가
+        # 그런데도 트랜스포머에서 잘 도는 까닭은, 트레인된 웨이트가
         # 그 밀림을 흡수할 수 있어 중심 맞추기가 굳이 필요 없기 때문이다
         print(f"\n{name} input (mean={x.mean():.2f}, std={x.std():.2f}):")
         print(f"  LayerNorm: mean={ln_out.mean():.4f}, std={ln_out.std():.4f}")
@@ -373,7 +373,7 @@ class LLaMABlock(nn.Module):
         # 정규화했다(사후 정규화). 사전 정규화가 이긴 까닭은 잔차
         # 경로에 정규화가 끼어들지 않아 x가 그대로 흐르고, 그 덕에
         # 아주 깊은 모델에서도 그래디언트가 살아남기 때문이다.
-        # 사후 정규화 모델이 학습 초반에 워밍업 없이는 발산하곤 하는
+        # 사후 정규화 모델이 트레인 초반에 워밍업 없이는 발산하곤 하는
         # 문제도 이것으로 크게 줄었다
         h = x + self.attention(
             self.attention_norm(x),
@@ -461,7 +461,7 @@ class GroupedQueryAttention(nn.Module):
 
 ### RMSNorm을 사용하는 간략한 언어 모델
 
-아래는 정규화 위치를 보여 주는 구조 예이다. RoPE 보조 함수는 별도로 정의해야 하며, 자기회귀 학습에는 미래 토큰을 가리는 인과 마스크도 전달해야 한다. 본문의 `forward`는 그 마스크를 구성하지 않는다. 또한 클래스별 바이어스는 소프트맥스 확률을 바꿀 수 있으므로, 출력 레이어의 `bias=False`는 소프트맥스가 바이어스를 없애 주기 때문이 아니라 해당 구조의 선택이다.
+아래는 정규화 위치를 보여 주는 구조 예이다. RoPE 보조 함수는 별도로 정의해야 하며, 자기회귀 트레인에는 미래 토큰을 가리는 인과 마스크도 전달해야 한다. 본문의 `forward`는 그 마스크를 구성하지 않는다. 또한 클래스별 바이어스는 소프트맥스 확률을 바꿀 수 있으므로, 출력 레이어의 `bias=False`는 소프트맥스가 바이어스를 없애 주기 때문이 아니라 해당 구조의 선택이다.
 
 ```python
 class LLaMA(nn.Module):
@@ -491,7 +491,7 @@ class LLaMA(nn.Module):
         self.output = nn.Linear(dim, vocab_size, bias=False)
 
         # 회전 임베딩(RoPE)의 회전각을 미리 계산해 둔다. 위치에만 달린 값이라
-        # 학습되지 않으므로 한 번 만들어 두고 모든 레이어가 나눠 쓴다.
+        # 트레인되지 않으므로 한 번 만들어 두고 모든 레이어가 나눠 쓴다.
         # dim // n_heads: RoPE는 헤드마다 따로 걸리므로 헤드 하나의 차원이 필요하다
         self.freqs_cis = precompute_freqs_cis(dim // n_heads, max_seq_len)
 
@@ -601,7 +601,7 @@ Parameter count:
 
 ❌ 모델이 작을 때 (절감이 미미하다)  
 ❌ 그 과제에서 평균 중심화의 이점이 알려져 있을 때  
-❌ 기존 사전학습 모델과의 호환이 중요할 때
+❌ 기존 사전트레인 모델과의 호환이 중요할 때
 
 ---
 
@@ -610,7 +610,7 @@ Parameter count:
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-$\epsilon=0$일 때 RMS 정규화된 벡터의 평균 제곱이 1임을 보여라. 학습 가능한 배율을 적용하면 어떻게 달라지는가?
+$\epsilon=0$일 때 RMS 정규화된 벡터의 평균 제곱이 1임을 보여라. 트레인 가능한 배율을 적용하면 어떻게 달라지는가?
 
 </div>
 
@@ -655,16 +655,16 @@ RMSNorm을 PyTorch로 구현하고 공식과 일치하는지 확인하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff easy" title="쉬움"></span>
-사전학습 모델의 레이어 정규화를 RMSNorm으로 바로 교체해도 되는가?
+사전트레인 모델의 레이어 정규화를 RMSNorm으로 바로 교체해도 되는가?
 
 </div>
 
 ??? success "풀이"
-    평균을 제거하는지와 파라메터 구성이 달라져 같은 웨이트에서 함수가 바뀐다. 따라서 별도의 학습과 검증 없이 동등한 변환으로 볼 수 없다. 원래 구조와 체크포인트의 규약을 유지하거나 교체 효과를 검증해야 한다.
+    평균을 제거하는지와 파라메터 구성이 달라져 같은 웨이트에서 함수가 바뀐다. 따라서 별도의 트레인과 검증 없이 동등한 변환으로 볼 수 없다. 원래 구조와 체크포인트의 규약을 유지하거나 교체 효과를 검증해야 한다.
 
 ## 정리하며
 
-RMSNorm은 평균 중심화 없이 평균 제곱의 제곱근으로 입력을 스케일링한다. 이 페이지의 코드와 [PyTorch의 RMSNorm](https://docs.pytorch.org/docs/stable/generated/torch.nn.RMSNorm.html)은 epsilon을 제곱근 안에 더하는 형태이다. 레이어 정규화와 점근적 복잡도는 같으며 실제 효율과 성능은 구현·모델 조건에 따라 달라진다. 사전학습 모델에서는 구조와 정규화 규약을 함께 유지한다.
+RMSNorm은 평균 중심화 없이 평균 제곱의 제곱근으로 입력을 스케일링한다. 이 페이지의 코드와 [PyTorch의 RMSNorm](https://docs.pytorch.org/docs/stable/generated/torch.nn.RMSNorm.html)은 epsilon을 제곱근 안에 더하는 형태이다. 레이어 정규화와 점근적 복잡도는 같으며 실제 효율과 성능은 구현·모델 조건에 따라 달라진다. 사전트레인 모델에서는 구조와 정규화 규약을 함께 유지한다.
 
 **참고 문헌**
 

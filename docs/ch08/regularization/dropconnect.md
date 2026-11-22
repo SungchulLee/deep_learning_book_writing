@@ -1,6 +1,6 @@
 # 드롭커넥트
 
-드롭커넥트는 학습 중에 뉴런의 활성화 전체가 아니라 개별 *웨이트*(연결)를 무작위로 0으로 만드는, 드롭아웃의 일반화이다. Wan 등(2013)이 제안했으며 웨이트 수준에서 작동하여 더 세밀한 확률적 정칙화를 제공한다. 드롭아웃이 활성화를 가려 사실상 뉴런 전체를 순전파에서 빼는 반면, 드롭커넥트는 웨이트 행렬의 개별 원소를 가려 각 뉴런이 매 순전파에 부분적으로 참여하게 한다.
+드롭커넥트는 트레인 중에 뉴런의 활성화 전체가 아니라 개별 *웨이트*(연결)를 무작위로 0으로 만드는, 드롭아웃의 일반화이다. Wan 등(2013)이 제안했으며 웨이트 수준에서 작동하여 더 세밀한 확률적 정칙화를 제공한다. 드롭아웃이 활성화를 가려 사실상 뉴런 전체를 순전파에서 빼는 반면, 드롭커넥트는 웨이트 행렬의 개별 원소를 가려 각 뉴런이 매 순전파에 부분적으로 참여하게 한다.
 
 ---
 
@@ -18,7 +18,7 @@ $$
 
 ### 드롭커넥트의 순전파
 
-학습 중에 드롭커넥트는 각 항목을 독립적으로 뽑아 이진 마스크 $M \in \{0, 1\}^{d_{\text{out}} \times d_{\text{in}}}$을 만든다.
+트레인 중에 드롭커넥트는 각 항목을 독립적으로 뽑아 이진 마스크 $M \in \{0, 1\}^{d_{\text{out}} \times d_{\text{in}}}$을 만든다.
 
 $$
 M_{ij} \sim \text{Bernoulli}(1 - p)
@@ -34,7 +34,7 @@ $$
 
 ### 역 드롭커넥트
 
-역 드롭아웃과 마찬가지로 학습 중에 $\frac{1}{1-p}$로 배율을 조정하여 추론에서는 다시 조정할 필요가 없게 한다.
+역 드롭아웃과 마찬가지로 트레인 중에 $\frac{1}{1-p}$로 배율을 조정하여 추론에서는 다시 조정할 필요가 없게 한다.
 
 $$
 y_{\text{train}} = \sigma\left(\frac{M \odot W}{1-p} \, x + b\right)
@@ -130,7 +130,7 @@ import torch.nn.functional as F
 
 class DropConnect(nn.Module):
     """
-    드롭커넥트: 학습 중에 개별 웨이트를 무작위로 0으로 만든다.
+    드롭커넥트: 트레인 중에 개별 웨이트를 무작위로 0으로 만든다.
     
     역 배율 조정을 쓰므로 추론에서는 손댈 것이 없다.
     
@@ -138,14 +138,14 @@ class DropConnect(nn.Module):
         in_features: 각 입력 표본의 크기
         out_features: 각 출력 표본의 크기
         p: 각 웨이트를 떨어뜨릴 확률 (기본값: 0.5)
-        bias: True이면 학습 가능한 바이어스를 더한다 (기본값: True)
+        bias: True이면 트레인 가능한 바이어스를 더한다 (기본값: True)
     """
     
     def __init__(self, in_features: int, out_features: int, 
                  p: float = 0.5, bias: bool = True):
         super().__init__()
         # p=1 을 막는 까닭은 아래에서 1-p 로 나누기 때문이다.
-        # 0으로 나누면 무한대가 되어 학습이 곧바로 터진다
+        # 0으로 나누면 무한대가 되어 트레인이 곧바로 터진다
         if not 0 <= p < 1:
             raise ValueError(f"drop probability must be in [0, 1), got {p}")
 
@@ -167,7 +167,7 @@ class DropConnect(nn.Module):
 
             # 역 배율 조정(inverted dropout).
             # 웨이트의 (1-p)만 살아남아 출력의 기댓값이 그만큼 작아지므로
-            # 학습할 때 미리 1/(1-p) 배로 키워 둔다. 그래서 아래 평가 경로에서는
+            # 트레인할 때 미리 1/(1-p) 배로 키워 둔다. 그래서 아래 평가 경로에서는
             # 아무 보정 없이 원래 웨이트를 그대로 쓸 수 있다
             effective_weight = self.linear.weight * mask / (1 - self.p)
 
@@ -223,7 +223,7 @@ def apply_dropconnect(model: nn.Module, p: float = 0.5) -> nn.Module:
     for name, module in model.named_children():
         if isinstance(module, nn.Linear):
             # 원래 레이어를 감싼 것으로 갈아 끼운다. 래퍼가 원래 레이어를
-            # 그대로 품으므로 학습된 웨이트는 잃지 않는다
+            # 그대로 품으므로 트레인된 웨이트는 잃지 않는다
             setattr(model, name, DropConnectWrapper(module, p=p))
         else:
             # nn.Linear가 아니면 그 안으로 내려가 같은 일을 되풀이한다.
@@ -391,7 +391,7 @@ class DropConnectConv2d(nn.Module):
 
 ---
 
-## 5. 학습 예제
+## 5. 트레인 예제
 
 ```python
 import torch.optim as optim
@@ -400,14 +400,14 @@ from torch.utils.data import DataLoader
 def train_with_dropconnect(
     model, train_loader, val_loader, epochs=100, lr=0.001
 ):
-    """드롭커넥트 모델을 학습시키고 드롭아웃 기준선과 비교한다."""
+    """드롭커넥트 모델을 트레인시키고 드롭아웃 기준선과 비교한다."""
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     
     history = {'train_loss': [], 'val_loss': [], 'val_acc': []}
     
     for epoch in range(epochs):
-        # ── 학습 — 드롭커넥트 켜짐 ───────────────────────────────────
+        # ── 트레인 — 드롭커넥트 켜짐 ───────────────────────────────────
         # 에포크마다 train()을 다시 부른다. 아래 검증에서 eval()로 바꿔
         # 두었으므로, 이 줄이 없으면 둘째 에포크부터 정칙화가 사라진다
         model.train()
@@ -548,7 +548,7 @@ def train_with_dropconnect(
 </div>
 
 ??? success "풀이"
-    아니다. 마스크 개수는 연결 패턴의 수이며 독립적으로 학습한 모델의 수나 성능 보장이 아니다. 확률, 구조, 공유 방식과 학습 데이터가 함께 영향을 주므로 같은 검증 예산에서 비교해야 한다.
+    아니다. 마스크 개수는 연결 패턴의 수이며 독립적으로 트레인한 모델의 수나 성능 보장이 아니다. 확률, 구조, 공유 방식과 트레인 데이터가 함께 영향을 주므로 같은 검증 예산에서 비교해야 한다.
 
 ## 정리하며
 

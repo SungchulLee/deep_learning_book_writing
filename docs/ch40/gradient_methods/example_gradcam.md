@@ -1,6 +1,6 @@
 # Grad-CAM 예제
 
-사전 학습된 PyTorch 모델에 Grad-CAM을 적용하는 예제다. Grad-CAM으로 CNN의 예측 근거를 시각화하고, Grad-CAM++와 비교하고, 여러 클래스와 여러 구조에 걸어 보는 법을 보인다.
+사전 트레인된 PyTorch 모델에 Grad-CAM을 적용하는 예제다. Grad-CAM으로 CNN의 예측 근거를 시각화하고, Grad-CAM++와 비교하고, 여러 클래스와 여러 구조에 걸어 보는 법을 보인다.
 
 뉴럴 네트워크가 무엇을 배우는지 아는 일은 신뢰를 쌓고 모델을 디버깅하는 데 중요하다. 이 모듈은 모델이 입력을 어떻게 처리하고 어떻게 판단하는지 드러내는 그래디언트 기반 설명 기법을 보이며, 네트워크의 행동을 눈으로 보고 수로 재게 해 준다.
 
@@ -178,7 +178,7 @@ def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
     Grad-CAM에 알맞은 대상 레이어를 고른다.
 
     Args:
-        model: 사전 학습된 모델
+        model: 사전 트레인된 모델
         architecture: 모델 구조 이름
 
     Returns:
@@ -415,7 +415,7 @@ def example_resnet_gradcam():
     print("예제 1: ResNet50에 적용하는 Grad-CAM")
     print("=" * 60)
 
-    # 사전 학습된 ResNet50을 불러온다
+    # 사전 트레인된 ResNet50을 불러온다
     model = models.resnet50(pretrained=True)
     model.eval()
 
@@ -735,12 +735,12 @@ if __name__ == "__main__":
         for p in model.parameters():
             assert p.grad is not None
     ```
-    구조가 엔드투엔드 학습을 지원하는지 알려면 그래디언트 흐름을 테스트하는 것이 특히 중요하다.
+    구조가 엔드투엔드 트레인을 지원하는지 알려면 그래디언트 흐름을 테스트하는 것이 특히 중요하다.
 
 ## 정리하며
 
 **다룬 것** — Grad-CAM 예제
 
-사전 학습된 CNN에 Grad-CAM과 Grad-CAM++를 걸어 예측 근거를 시각화하는 법을 보았다. 두 방법은 중요도 웨이트를 매기는 방식만 다르다.
+사전 트레인된 CNN에 Grad-CAM과 Grad-CAM++를 걸어 예측 근거를 시각화하는 법을 보았다. 두 방법은 중요도 웨이트를 매기는 방식만 다르다.
 
 앞의 연습문제 4개로 스스로 점검해 볼 수 있다.

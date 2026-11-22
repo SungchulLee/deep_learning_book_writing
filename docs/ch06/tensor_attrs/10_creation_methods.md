@@ -340,7 +340,7 @@ like dtype float64  device cpu  requires_grad False
 ```
 
 `dtype`과 `device`는 따라가고 **`requires_grad`는 안 따라간다.** 대개 이것이 원하는
-바다 — `zeros_like(w)`로 만든 것은 보통 버퍼나 마스크이지 학습할 파라메터가
+바다 — `zeros_like(w)`로 만든 것은 보통 버퍼나 마스크이지 트레인할 파라메터가
 아니다.
 
 `*_like`를 쓰는 진짜 이점은 **장치를 안 틀린다**는 데 있다. 모델이 GPU에 있을 때

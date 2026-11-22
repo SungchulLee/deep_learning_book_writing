@@ -12,7 +12,7 @@
 
 $$p(Y\mid X)=\frac{\exp s(X,Y)}{\sum_{Y'\in\mathcal Y(X)}\exp s(X,Y')}.$$
 
-가능한 태그 열의 집합과 금지 전이·시작·종료 제약을 명시한다. 학습에서는 정답 열의 음의 로그가능도(log-likelihood, 로그우도라고도 한다)를, 추론에서는 가장 높은 점수의 열을 구할 수 있다. Viterbi의 최적성은 선택한 점수·경로 집합 아래의 것이지 의미적으로 정확한 개체라는 보장은 아니다.
+가능한 태그 열의 집합과 금지 전이·시작·종료 제약을 명시한다. 트레인에서는 정답 열의 음의 로그가능도(log-likelihood, 로그우도라고도 한다)를, 추론에서는 가장 높은 점수의 열을 구할 수 있다. Viterbi의 최적성은 선택한 점수·경로 집합 아래의 것이지 의미적으로 정확한 개체라는 보장은 아니다.
 
 ## 2. 유형·문맥과 경계
 
@@ -127,7 +127,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class NERExample:
-    """개체명 인식의 학습/추론 예제 하나."""
+    """개체명 인식의 트레인/추론 예제 하나."""
     tokens: List[str]
     labels: Optional[List[str]] = None
     entities: List[Entity] = field(default_factory=list)
@@ -154,7 +154,7 @@ class NERExample:
             'attention_mask': torch.tensor(attention_mask, dtype=torch.long),
         }
         
-        # 있으면 라벨 더하기(학습 모드)
+        # 있으면 라벨 더하기(트레인 모드)
         if self.labels is not None:
             label_ids = [label_to_idx.get(l, label_to_idx['O']) 
                         for l in self.labels[:max_length]]
@@ -207,9 +207,9 @@ class NERDataset(torch.utils.data.Dataset):
         return token_to_idx, label_to_idx
 ```
 
-NERExample은 토큰·라벨·Entity를 보관하지만 to_tensor는 entities를 이용해 라벨을 만들지 않는다. 토큰 사전·라벨 사전과 이미 맞춰 둔 labels가 필요하다. 반환 input_ids·attention_mask·labels는 정수 텐서이며 모델·로스·학습 루프는 구현하지 않는다.
+NERExample은 토큰·라벨·Entity를 보관하지만 to_tensor는 entities를 이용해 라벨을 만들지 않는다. 토큰 사전·라벨 사전과 이미 맞춰 둔 labels가 필요하다. 반환 input_ids·attention_mask·labels는 정수 텐서이며 모델·로스·트레인 루프는 구현하지 않는다.
 
-토큰은 max_length로 자르고 남은 위치에 PAD를 넣는다. 라벨도 같은 길이·순서여야 하는데 이를 검사하지 않아 길이가 다르면 목표 텐서 길이도 어긋날 수 있다. 모르는 라벨을 O로 바꾸어 오류를 조용히 배경으로 처리하므로 실제 데이터 검증을 대신하지 않는다. 어휘는 학습 분할에서만 만들고 검증·시험 정보가 들어가지 않도록 한다.
+토큰은 max_length로 자르고 남은 위치에 PAD를 넣는다. 라벨도 같은 길이·순서여야 하는데 이를 검사하지 않아 길이가 다르면 목표 텐서 길이도 어긋날 수 있다. 모르는 라벨을 O로 바꾸어 오류를 조용히 배경으로 처리하므로 실제 데이터 검증을 대신하지 않는다. 어휘는 트레인 분할에서만 만들고 검증·시험 정보가 들어가지 않도록 한다.
 
 패딩 라벨도 O를 넣으므로 attention_mask가 있다고 로스에서 자동 제외되는 것은 아니다. 토큰 로스의 ignore_index나 CRF의 유효 마스크에 연결해야 한다. 잘림이 개체를 중간에서 끊으면 경계·평가 정책도 정한다. 토큰과 라벨 인덱스는 정렬된 목록에서 생성되므로 O나 PAD가 특정 번호라고 외부 코드에서 가정하지 않는다.
 

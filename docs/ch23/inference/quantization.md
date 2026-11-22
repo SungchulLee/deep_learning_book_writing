@@ -33,7 +33,7 @@ z=\operatorname{clip}\left(\operatorname{round}(q_{\min}-x_{\min}/\Delta),q_{\mi
 
 ## 3. 웨이트 양자화와 복원 오차
 
-학습 후 양자화(PTQ)는 사전 학습된 웨이트에 추가 그래디언트 학습 없이 적용한다. 다음 코드는 그룹별 스케일을 구하고 양자화한 값을 순전파에서 실수로 복원한다.
+트레인 후 양자화(PTQ)는 사전 트레인된 웨이트에 추가 그래디언트 트레인 없이 적용한다. 다음 코드는 그룹별 스케일을 구하고 양자화한 값을 순전파에서 실수로 복원한다.
 
 ```python
 import torch
@@ -376,7 +376,7 @@ class DynamicQuantizedLinear(nn.Module):
         return out + self.bias
 ```
 
-`DynamicQuantizedLinear`는 기본 대칭 설정으로 입력을 양자화하지만 행렬곱 전에 두 정수 텐서를 `float()`로 변환한다. 실제 INT8 누산 커널을 구현한 것은 아니다. 웨이트 버퍼가 0으로 초기화되고 사전 학습된 웨이트를 채우는 절차도 없다. `weight_scale`의 양수 제약과 스케일 추정은 별도로 필요하다.
+`DynamicQuantizedLinear`는 기본 대칭 설정으로 입력을 양자화하지만 행렬곱 전에 두 정수 텐서를 `float()`로 변환한다. 실제 INT8 누산 커널을 구현한 것은 아니다. 웨이트 버퍼가 0으로 초기화되고 사전 트레인된 웨이트를 채우는 절차도 없다. `weight_scale`의 양수 제약과 스케일 추정은 별도로 필요하다.
 
 ```python
 class CalibrationCollector:
@@ -516,9 +516,9 @@ def quantize_model_mixed(
 
 이 함수는 이름 패턴에 맞는 `nn.Linear`만 교체한다. 설정에 `embedding`이나 `layernorm`이 있어도 임베딩과 정규화 모듈 자체를 양자화하지 않는다. 실제 모듈 이름이 패턴과 맞는지 확인해야 하며, 앞서 본 `QuantizedLinear`의 저장·장치·그룹 처리 제한도 그대로 적용된다.
 
-## 6. 양자화 인지 학습과 STE
+## 6. 양자화 인지 트레인과 STE
 
-양자화 인지 학습(QAT)은 순전파에서 양자화·복원된 값을 사용하고 역전파에는 미분 불가능한 반올림을 대신할 근사 그래디언트를 사용한다. 직선 통과 추정기(STE)의 한 선택은 다음과 같다.
+양자화 인지 트레인(QAT)은 순전파에서 양자화·복원된 값을 사용하고 역전파에는 미분 불가능한 반올림을 대신할 근사 그래디언트를 사용한다. 직선 통과 추정기(STE)의 한 선택은 다음과 같다.
 
 $$\frac{\partial L}{\partial w}\approx\frac{\partial L}{\partial\hat{w}}.$$
 
@@ -551,7 +551,7 @@ class STEQuantize(torch.autograd.Function):
 
 class QATLinear(nn.Module):
     """
-    양자화 인지 학습(QAT)을 하는 선형 레이어.
+    양자화 인지 트레인(QAT)을 하는 선형 레이어.
     """
     
     def __init__(self, in_features: int, out_features: int, bits: int = 4):
@@ -560,17 +560,17 @@ class QATLinear(nn.Module):
         self.weight = nn.Parameter(torch.randn(out_features, in_features) * 0.01)
         self.bias = nn.Parameter(torch.zeros(out_features))
         
-        # 학습 가능한 스케일
+        # 트레인 가능한 스케일
         self.weight_scale = nn.Parameter(torch.ones(1))
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # 학습하는 동안 웨이트를 모사 양자화(fake quantization)한다
+        # 트레인하는 동안 웨이트를 모사 양자화(fake quantization)한다
         w_q = STEQuantize.apply(self.weight, self.weight_scale, self.bits)
         
         return nn.functional.linear(x, w_q, self.bias)
 ```
 
-`STEQuantize.backward`는 모든 위치에서 입력 그래디언트를 그대로 통과시키고 스케일에는 `None`을 반환한다. 따라서 `weight_scale`이 `nn.Parameter`여도 이 경로로 학습되지 않는다. 초기 스케일 1은 0.01 수준으로 초기화한 웨이트 대부분을 0으로 반올림할 수 있다. 이 예제는 웨이트의 fake quantization만 보여 주며 활성화 양자화, 학습 루프와 실제 저비트 커널로의 변환은 포함하지 않는다.
+`STEQuantize.backward`는 모든 위치에서 입력 그래디언트를 그대로 통과시키고 스케일에는 `None`을 반환한다. 따라서 `weight_scale`이 `nn.Parameter`여도 이 경로로 트레인되지 않는다. 초기 스케일 1은 0.01 수준으로 초기화한 웨이트 대부분을 0으로 반올림할 수 있다. 이 예제는 웨이트의 fake quantization만 보여 주며 활성화 양자화, 트레인 루프와 실제 저비트 커널로의 변환은 포함하지 않는다.
 
 ## 7. 품질과 속도 평가
 
@@ -640,7 +640,7 @@ PTQ와 QAT의 차이를 설명하고 이 절의 STE가 스케일을 학습하는
 
 ??? success "풀이"
 
-    PTQ는 추가 그래디언트 학습 없이 사전 학습된 모델을 변환하고, QAT는 학습 중 양자화 오차를 모사해 웨이트를 적응시킨다. QAT는 전체 사전 학습을 반드시 반복하는 방식이 아니며 파인튜닝으로 적용할 수도 있다. 여기서는 backward가 scale에 None을 반환하므로 해당 스케일은 이 경로에서 학습되지 않는다. QAT가 언제나 PTQ보다 우수하다는 보장도 없다.
+    PTQ는 추가 그래디언트 트레인 없이 사전 트레인된 모델을 변환하고, QAT는 트레인 중 양자화 오차를 모사해 웨이트를 적응시킨다. QAT는 전체 사전 트레인을 반드시 반복하는 방식이 아니며 파인튜닝으로 적용할 수도 있다. 여기서는 backward가 scale에 None을 반환하므로 해당 스케일은 이 경로에서 트레인되지 않는다. QAT가 언제나 PTQ보다 우수하다는 보장도 없다.
 
 
 

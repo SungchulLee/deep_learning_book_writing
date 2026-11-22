@@ -1,26 +1,26 @@
 # 일반화된 제로샷 학습
 
-일반화된 제로샷 학습(GZSL)은 학습 클래스와 미학습 클래스를 모두 후보로 두고 예측한다. 학습 클래스에 대한 높은 점수 때문에 미학습 클래스를 놓칠 수 있으므로, 두 그룹의 정확도와 균형을 함께 평가한다. 점수 보정, 게이팅, 피처 생성과 트랜스덕티브 학습의 역할을 구분한다.
+일반화된 제로샷 학습(GZSL)은 트레인 클래스와 미트레인 클래스를 모두 후보로 두고 예측한다. 트레인 클래스에 대한 높은 점수 때문에 미트레인 클래스를 놓칠 수 있으므로, 두 그룹의 정확도와 균형을 함께 평가한다. 점수 보정, 게이팅, 피처 생성과 트랜스덕티브 트레인의 역할을 구분한다.
 
 ## 1. 문제 정식화
 
 ### 예측 후보의 차이
 
-기존 ZSL은 미학습 클래스 $\mathcal Y^u$만 후보로 두고, GZSL은 $\mathcal Y^s\cup\mathcal Y^u$에서 예측한다. 두 집합은 겹치지 않으며 모든 후보 클래스의 의미 표현을 제공한다. GZSL도 후보 밖의 임의 클래스를 자동으로 처리하는 오픈셋 인식과는 구별한다.
+기존 ZSL은 미트레인 클래스 $\mathcal Y^u$만 후보로 두고, GZSL은 $\mathcal Y^s\cup\mathcal Y^u$에서 예측한다. 두 집합은 겹치지 않으며 모든 후보 클래스의 의미 표현을 제공한다. GZSL도 후보 밖의 임의 클래스를 자동으로 처리하는 오픈셋 인식과는 구별한다.
 
-### 학습 클래스 편향
+### 트레인 클래스 편향
 
-학습 클래스의 로스로만 학습하면 그 클래스의 점수가 상대적으로 높아질 수 있다. 미학습 클래스 정답이 학습 클래스로 잘못 예측되는 비율과 각 그룹의 정확도를 확인한다. 학습 클래스 정확도가 높고 미학습 클래스 정확도가 낮다는 사실만으로 모든 오차가 이 편향(학습 클래스 쪽으로 예측이 치우치는 현상) 때문이라고 단정할 수는 없다.
+트레인 클래스의 로스로만 트레인하면 그 클래스의 점수가 상대적으로 높아질 수 있다. 미트레인 클래스 정답이 트레인 클래스로 잘못 예측되는 비율과 각 그룹의 정확도를 확인한다. 트레인 클래스 정확도가 높고 미트레인 클래스 정확도가 낮다는 사실만으로 모든 오차가 이 편향(트레인 클래스 쪽으로 예측이 치우치는 현상) 때문이라고 단정할 수는 없다.
 
 ## 2. 평가 지표
 
 ### 그룹별 정확도
 
-모든 후보 클래스에서 예측한 결과를 정답이 학습 클래스인 그룹과 미학습 클래스인 그룹으로 나눠 평가한다. GZSL 벤치마크에서는 그룹 안의 클래스별 정확도를 평균 내는 매크로 정확도를 흔히 사용한다.
+모든 후보 클래스에서 예측한 결과를 정답이 트레인 클래스인 그룹과 미트레인 클래스인 그룹으로 나눠 평가한다. GZSL 벤치마크에서는 그룹 안의 클래스별 정확도를 평균 내는 매크로 정확도를 흔히 사용한다.
 
 $$A_s=\frac1{|\mathcal Y^s|}\sum_{c\in\mathcal Y^s}\frac{\sum_{i:y_i=c}\mathbf1[\hat y_i=c]}{n_c}$$
 
-A_u도 미학습 클래스에서 같은 방식으로 계산한다. 아래 코드는 그룹 안의 모든 표본을 합친 마이크로 정확도를 반환하므로 클래스별 표본 수가 다르면 매크로 값과 다르다. 표본이 없는 클래스·그룹은 미관측으로 처리하는 규칙이 필요하다.
+A_u도 미트레인 클래스에서 같은 방식으로 계산한다. 아래 코드는 그룹 안의 모든 표본을 합친 마이크로 정확도를 반환하므로 클래스별 표본 수가 다르면 매크로 값과 다르다. 표본이 없는 클래스·그룹은 미관측으로 처리하는 규칙이 필요하다.
 
 ### 조화 평균
 
@@ -28,7 +28,7 @@ $$H=\frac{2A_sA_u}{A_s+A_u}$$
 
 어느 한쪽이 낮으면 H도 낮아지므로 두 그룹의 균형을 드러낸다. 둘 다 0일 때는 H=0으로 정의한다. H만 제시하지 말고 A_s와 A_u도 함께 보고한다. 실제 적용의 클래스 빈도나 오차 비용은 이 균등 웨이트와 다를 수 있다.
 
-### 학습·미학습 정확도 곡선의 면적
+### 트레인·미트레인 정확도 곡선의 면적
 
 점수 보정 계수를 변화시키면 A_s와 A_u의 트레이드오프 곡선을 얻는다. AUSUC는 이 곡선이 실제로 도달한 범위의 면적이다. 임의로 0~1 전체 구간에 함수를 정의한 것처럼 해석하지 않는다. 아래 코드에는 AUSUC 적분 구현이 없다.
 
@@ -47,8 +47,8 @@ def evaluate_gzsl(predictions, labels, seen_classes, unseen_classes):
     인수:
         predictions: 예측한 클래스 이름
         labels: 정답 클래스 이름
-        seen_classes: 학습 클래스 이름 목록
-        unseen_classes: 미학습 클래스 이름 목록
+        seen_classes: 트레인 클래스 이름 목록
+        unseen_classes: 미트레인 클래스 이름 목록
     
     반환값:
         모든 지표를 담은 사전
@@ -56,7 +56,7 @@ def evaluate_gzsl(predictions, labels, seen_classes, unseen_classes):
     predictions = np.array(predictions)
     labels = np.array(labels)
     
-    # 학습 클래스와 미학습 클래스 시험 표본의 마스크
+    # 트레인 클래스와 미트레인 클래스 시험 표본의 마스크
     seen_mask = np.isin(labels, seen_classes)
     unseen_mask = np.isin(labels, unseen_classes)
     
@@ -94,9 +94,9 @@ def evaluate_gzsl(predictions, labels, seen_classes, unseen_classes):
 
 ### 상수 점수 보정
 
-미학습 클래스 전체에 γ를 더하는 것은 학습 클래스 전체에서 γ를 빼는 것과 같은 argmax를 만든다. 아래 calibrated_prediction은 두 그룹의 로컬 인덱스를 반환하므로 predict_unseen과 함께 원본 클래스 목록으로 복원해야 한다. 이 인덱스를 그대로 합치면 서로 다른 클래스가 같은 번호로 충돌한다.
+미트레인 클래스 전체에 γ를 더하는 것은 트레인 클래스 전체에서 γ를 빼는 것과 같은 argmax를 만든다. 아래 calibrated_prediction은 두 그룹의 로컬 인덱스를 반환하므로 predict_unseen과 함께 원본 클래스 목록으로 복원해야 한다. 이 인덱스를 그대로 합치면 서로 다른 클래스가 같은 번호로 충돌한다.
 
-미학습 클래스의 점수에 상수를 더한다.
+미트레인 클래스의 점수에 상수를 더한다.
 
 $$\text{score}^{calib}_c = \begin{cases}
 \text{score}_c & (c \in \mathcal{Y}^s) \\
@@ -111,12 +111,12 @@ def calibrated_prediction(scores_seen, scores_unseen, calibration):
     보정(calibration)을 적용해 예측한다.
     
     인수:
-        scores_seen: (batch, n_seen) 학습 클래스의 점수
-        scores_unseen: (batch, n_unseen) 미학습 클래스의 점수
-        calibration: 미학습 클래스 점수에 더하는 값
+        scores_seen: (batch, n_seen) 트레인 클래스의 점수
+        scores_unseen: (batch, n_unseen) 미트레인 클래스의 점수
+        calibration: 미트레인 클래스 점수에 더하는 값
     
     반환값:
-        predictions, domain(학습 클래스/미학습 클래스)
+        predictions, domain(트레인 클래스/미트레인 클래스)
     """
     # 보정을 적용한다
     scores_unseen_calib = scores_unseen + calibration
@@ -139,18 +139,18 @@ def calibrated_prediction(scores_seen, scores_unseen, calibration):
 
 ### 온도 스케일 조절
 
-학습 클래스의 점수를 온도 $T > 1$로 나눈다.
+트레인 클래스의 점수를 온도 $T > 1$로 나눈다.
 
 $$\text{score}^{scaled}_c = \begin{cases}
 \text{score}_c / T & (c \in \mathcal{Y}^s) \\
 \text{score}_c & (c \in \mathcal{Y}^u)
 \end{cases}$$
 
-학습 클래스 내부의 소프트맥스는 T>1에서 더 완만해진다. 하지만 두 그룹을 함께 비교할 때 학습 클래스의 점수를 나누는 것이 항상 그쪽 예측을 줄이지는 않는다. 음의 점수는 0에 가까워지며 오히려 커진다. 상수 보정과 같은 작동이라고 볼 수 없다.
+트레인 클래스 내부의 소프트맥스는 T>1에서 더 완만해진다. 하지만 두 그룹을 함께 비교할 때 트레인 클래스의 점수를 나누는 것이 항상 그쪽 예측을 줄이지는 않는다. 음의 점수는 0에 가까워지며 오히려 커진다. 상수 보정과 같은 작동이라고 볼 수 없다.
 
 ### 검증 데이터에서 보정 선택
 
-최종 시험 클래스와 분리한 검증용 가상 미학습 클래스로 γ를 선택한다. 모델은 (배치 크기, 후보 클래스 수)의 전체 점수 행렬을 반환해야 한다. 입력 행 수로 대응 쌍 여부를 추정하는 모델에는 이 조건을 명시해야 한다. CPU에서 생성하는 임베딩과 numpy 변환도 GPU 평가에 맞춰야 한다.
+최종 시험 클래스와 분리한 검증용 가상 미트레인 클래스로 γ를 선택한다. 모델은 (배치 크기, 후보 클래스 수)의 전체 점수 행렬을 반환해야 한다. 입력 행 수로 대응 쌍 여부를 추정하는 모델에는 이 조건을 명시해야 한다. CPU에서 생성하는 임베딩과 numpy 변환도 GPU 평가에 맞춰야 한다.
 
 ```python
 def find_optimal_calibration(model, val_loader, class_embeddings,
@@ -168,14 +168,14 @@ def find_optimal_calibration(model, val_loader, class_embeddings,
     
     with torch.no_grad():
         for batch_x, batch_y in val_loader:
-            # 학습 클래스의 점수를 계산한다
+            # 트레인 클래스의 점수를 계산한다
             seen_embs = torch.stack([
                 torch.tensor(class_embeddings[c], dtype=torch.float32)
                 for c in seen_classes
             ])
             scores_seen = model(batch_x, seen_embs)
             
-            # 미학습 클래스의 점수를 계산한다
+            # 미트레인 클래스의 점수를 계산한다
             unseen_embs = torch.stack([
                 torch.tensor(class_embeddings[c], dtype=torch.float32)
                 for c in unseen_classes
@@ -228,18 +228,18 @@ def find_optimal_calibration(model, val_loader, class_embeddings,
 
 ### 개념
 
-게이트는 입력이 학습 클래스 그룹에 속하는지 미학습 클래스 그룹에 속하는지 추정하고 해당 그룹 안에서 분류한다. 게이트의 학습에는 두 그룹을 구별할 감독 신호나 적절한 대체 과제가 필요하다.
+게이트는 입력이 트레인 클래스 그룹에 속하는지 미트레인 클래스 그룹에 속하는지 추정하고 해당 그룹 안에서 분류한다. 게이트의 트레인에는 두 그룹을 구별할 감독 신호나 적절한 대체 과제가 필요하다.
 
-$$g(\mathbf{x}) = P(\text{영역} = \text{미학습 클래스} | \mathbf{x})$$
+$$g(\mathbf{x}) = P(\text{영역} = \text{미트레인 클래스} | \mathbf{x})$$
 
 그런 다음 예측의 길을 나눈다.
 
-- $g(\mathbf{x}) > 0.5$이면 미학습 클래스에서 예측한다
-- 그렇지 않으면 학습 클래스에서 예측한다
+- $g(\mathbf{x}) > 0.5$이면 미트레인 클래스에서 예측한다
+- 그렇지 않으면 트레인 클래스에서 예측한다
 
 ### 구현
 
-아래 train_gated_gzsl은 게이트 정답을 모두 0으로 주므로 학습 클래스만 선택하도록 학습한다. unseen_classes 인수도 학습에 사용되지 않아 미학습 그룹을 알아내는 게이트가 완성되지 않는다. 음성 클래스가 양성과 같을 수도 있다. gated_predict의 squeeze는 배치 1에서 스칼라가 되며, compatibility는 배치·클래스 수가 같을 때 전체 점수 행렬을 만들지 않는 한계도 있다. F 임포트는 별도로 필요하다.
+아래 train_gated_gzsl은 게이트 정답을 모두 0으로 주므로 트레인 클래스만 선택하도록 트레인한다. unseen_classes 인수도 트레인에 사용되지 않아 미트레인 그룹을 알아내는 게이트가 완성되지 않는다. 음성 클래스가 양성과 같을 수도 있다. gated_predict의 squeeze는 배치 1에서 스칼라가 되며, compatibility는 배치·클래스 수가 같을 때 전체 점수 행렬을 만들지 않는 한계도 있다. F 임포트는 별도로 필요하다.
 
 ```python
 import torch
@@ -248,7 +248,7 @@ import torch.nn as nn
 
 class GatedGZSL(nn.Module):
     """
-    학습된 게이팅 메커니즘을 갖춘 GZSL 모델.
+    트레인된 게이팅 메커니즘을 갖춘 GZSL 모델.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int,
@@ -266,7 +266,7 @@ class GatedGZSL(nn.Module):
         
         self.semantic_encoder = nn.Linear(semantic_dim, embedding_dim)
         
-        # 게이트 네트워크: 학습 클래스인지 미학습 클래스인지 예측한다
+        # 게이트 네트워크: 트레인 클래스인지 미트레인 클래스인지 예측한다
         self.gate = nn.Sequential(
             nn.Linear(visual_dim, 512),
             nn.ReLU(),
@@ -292,7 +292,7 @@ class GatedGZSL(nn.Module):
         return torch.sum(v_enc * s_enc, dim=1)
     
     def predict_gate(self, visual):
-        """미학습 클래스 영역일 확률을 예측한다."""
+        """미트레인 클래스 영역일 확률을 예측한다."""
         return self.gate(visual)
     
     def gated_predict(self, visual, seen_embeddings, unseen_embeddings,
@@ -311,11 +311,11 @@ class GatedGZSL(nn.Module):
         predictions = []
         for i in range(len(visual)):
             if gate_prob[i] > 0.5:
-                # 미학습 클래스에서 예측한다
+                # 미트레인 클래스에서 예측한다
                 pred_idx = scores_unseen[i].argmax().item()
                 predictions.append(unseen_classes[pred_idx])
             else:
-                # 학습 클래스에서 예측한다
+                # 트레인 클래스에서 예측한다
                 pred_idx = scores_seen[i].argmax().item()
                 predictions.append(seen_classes[pred_idx])
         
@@ -324,9 +324,9 @@ class GatedGZSL(nn.Module):
 def train_gated_gzsl(model, train_loader, class_embeddings, 
                      seen_classes, unseen_classes, epochs=50):
     """
-    게이트를 갖춘 GZSL 모델을 학습시킨다.
+    게이트를 갖춘 GZSL 모델을 트레인시킨다.
     
-    참고: 게이트를 학습시키려면 미학습 클래스 표본이 조금 필요하며,
+    참고: 게이트를 트레인시키려면 미트레인 클래스 표본이 조금 필요하며,
     대개 검증 분할이나 생성한 피처에서 얻는다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -357,7 +357,7 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
             
             ranking_loss = torch.clamp(0.2 - pos_score + neg_score, min=0).mean()
             
-            # 게이트 로스(학습 표본은 모두 학습 클래스 영역에서 온다)
+            # 게이트 로스(트레인 표본은 모두 트레인 클래스 영역에서 온다)
             gate_pred = model.predict_gate(batch_x)
             gate_loss = F.binary_cross_entropy(gate_pred, torch.zeros_like(gate_pred))
             
@@ -380,7 +380,7 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
 
 ### 개념
 
-의미 벡터와 잠재 잡음을 조건으로 미학습 클래스의 시각 피처를 생성하고, 실제 학습 클래스 피처와 합쳐 분류기를 학습할 수 있다. 생성기는 학습 클래스 데이터에서 학습한 관계를 새 의미 벡터로 일반화해야 하므로 생성 표본이 실제 분포를 보장하지는 않는다.
+의미 벡터와 잠재 잡음을 조건으로 미트레인 클래스의 시각 피처를 생성하고, 실제 트레인 클래스 피처와 합쳐 분류기를 트레인할 수 있다. 생성기는 트레인 클래스 데이터에서 트레인한 관계를 새 의미 벡터로 일반화해야 하므로 생성 표본이 실제 분포를 보장하지는 않는다.
 
 $$G: \mathcal{S} \times \mathcal{Z} \rightarrow \mathcal{V}$$
 
@@ -388,7 +388,7 @@ $$G: \mathcal{S} \times \mathcal{Z} \rightarrow \mathcal{V}$$
 
 ### VAE로 피처 생성하기
 
-FeatureVAE는 시각 피처와 의미 벡터에서 잠재 분포를 추정하고 조건부 복원을 학습한다. 코드의 MSE는 전체 원소 평균, KL은 배치당 잠재 차원 합이므로 피처·잠재 차원에 따라 상대 스케일이 달라진다. 생성용 잡음과 의미 벡터를 CPU에 만들기 때문에 모델과 장치를 맞춰야 한다. 생성 후 최종 GZSL 분류기를 학습하는 단계는 포함되지 않는다.
+FeatureVAE는 시각 피처와 의미 벡터에서 잠재 분포를 추정하고 조건부 복원을 학습한다. 코드의 MSE는 전체 원소 평균, KL은 배치당 잠재 차원 합이므로 피처·잠재 차원에 따라 상대 스케일이 달라진다. 생성용 잡음과 의미 벡터를 CPU에 만들기 때문에 모델과 장치를 맞춰야 한다. 생성 후 최종 GZSL 분류기를 트레인하는 단계는 포함되지 않는다.
 
 ```python
 class FeatureVAE(nn.Module):
@@ -445,7 +445,7 @@ class FeatureVAE(nn.Module):
         return self.decode(z, semantic_expanded)
 
 def train_feature_vae(vae, train_loader, class_embeddings, epochs=100):
-    """피처 VAE를 학습시킨다."""
+    """피처 VAE를 트레인시킨다."""
     optimizer = torch.optim.Adam(vae.parameters(), lr=0.001)
     
     for epoch in range(epochs):
@@ -480,7 +480,7 @@ def train_feature_vae(vae, train_loader, class_embeddings, epochs=100):
 
 def generate_unseen_features(vae, class_embeddings, unseen_classes, 
                               n_per_class=100):
-    """미학습 클래스의 피처를 생성한다."""
+    """미트레인 클래스의 피처를 생성한다."""
     vae.eval()
     
     X_gen = []
@@ -503,20 +503,20 @@ def generate_unseen_features(vae, class_embeddings, unseen_classes,
 
 ### 개념
 
-트랜스덕티브(transductive) 설정은 평가할 타깃 집합의 입력을 라벨 없이 학습에 활용한다. 개별 쿼리를 처음 보는 인덕티브(inductive, 귀납적) 평가와 조건이 다르므로 따로 보고한다. 타깃 정답으로 임계값이나 반복 수를 고르면 평가 정보가 누출된다.
+트랜스덕티브(transductive) 설정은 평가할 타깃 집합의 입력을 라벨 없이 트레인에 활용한다. 개별 쿼리를 처음 보는 인덕티브(inductive, 귀납적) 평가와 조건이 다르므로 따로 보고한다. 타깃 정답으로 임계값이나 반복 수를 고르면 평가 정보가 누출된다.
 
-### 의사 라벨 자기 학습
+### 의사 라벨 자기 트레인
 
-아래 함수의 train_model은 정의되어 있지 않다. 또한 고신뢰 의사 라벨을 모아 개수만 출력하고 모델을 재학습하지 않는다. 따라서 반복해도 의사 라벨 적응을 구현한 것이 아니다. 실제 자기 학습에는 의사 라벨을 이용한 갱신과 오류 증폭을 점검할 독립적인 검증 절차가 필요하다.
+아래 함수의 train_model은 정의되어 있지 않다. 또한 고신뢰 의사 라벨을 모아 개수만 출력하고 모델을 재트레인하지 않는다. 따라서 반복해도 의사 라벨 적응을 구현한 것이 아니다. 실제 자기 트레인에는 의사 라벨을 이용한 갱신과 오류 증폭을 점검할 독립적인 검증 절차가 필요하다.
 
 ```python
 def transductive_gzsl(model, train_loader, test_loader, 
                       class_embeddings, seen_classes, unseen_classes,
                       iterations=5, confidence_threshold=0.9):
     """
-    자기 학습을 쓰는 전이적 GZSL.
+    자기 트레인을 쓰는 전이적 GZSL.
     """
-    # 학습 클래스로 초기 학습
+    # 트레인 클래스로 초기 트레인
     train_model(model, train_loader, class_embeddings, seen_classes)
     
     for iteration in range(iterations):
@@ -541,7 +541,7 @@ def transductive_gzsl(model, train_loader, test_loader,
                 
                 max_probs, pred_indices = probs.max(dim=1)
                 
-                # 미학습 클래스에 대한 신뢰도 높은 예측만 남긴다
+                # 미트레인 클래스에 대한 신뢰도 높은 예측만 남긴다
                 for i in range(len(batch_x)):
                     if max_probs[i] > confidence_threshold:
                         pred_class = all_classes[pred_indices[i]]
@@ -552,8 +552,8 @@ def transductive_gzsl(model, train_loader, test_loader,
         if len(pseudo_X) > 0:
             print(f"  Added {len(pseudo_X)} pseudo-labeled unseen samples")
             
-            # 학습 데이터와 합친다
-            # ... (합친 데이터셋을 만들고 다시 학습시킨다)
+            # 트레인 데이터와 합친다
+            # ... (합친 데이터셋을 만들고 다시 트레인시킨다)
         else:
             print("  No confident predictions on unseen classes")
             break
@@ -590,7 +590,7 @@ A_s=0.8, A_u=0.2일 때 산술 평균과 조화 평균을 계산하라.
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-미학습 클래스에 γ를 더하는 보정이 학습 클래스에서 γ를 빼는 것과 같은 이유를 설명하라.
+미트레인 클래스에 γ를 더하는 보정이 트레인 클래스에서 γ를 빼는 것과 같은 이유를 설명하라.
 
 </div>
 
@@ -602,13 +602,13 @@ A_s=0.8, A_u=0.2일 때 산술 평균과 조화 평균을 계산하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff easy" title="쉬움"></span>
-모든 게이트 학습 정답을 0으로 주면 미학습 클래스를 구분할 수 있는가?
+모든 게이트 트레인 정답을 0으로 주면 미트레인 클래스를 구분할 수 있는가?
 
 </div>
 
 ??? success "풀이"
-    그 로스는 모든 입력에 학습 클래스 그룹을 선택하도록 유도한다. 새 그룹을 구별하는 감독 신호가 없으므로 게이팅 설명의 목표와 맞지 않는다. 검증용 가상 미학습 클래스나 적절한 생성·이상 탐지 목표 등을 설계해 따로 평가해야 한다.
+    그 로스는 모든 입력에 트레인 클래스 그룹을 선택하도록 유도한다. 새 그룹을 구별하는 감독 신호가 없으므로 게이팅 설명의 목표와 맞지 않는다. 검증용 가상 미트레인 클래스나 적절한 생성·이상 탐지 목표 등을 설계해 따로 평가해야 한다.
 
 ## 정리하며
 
-GZSL은 학습·미학습 클래스를 함께 예측하므로 그룹별 성능과 점수 편향을 평가한다. 매크로·마이크로 정확도를 구분하고 보정 계수는 독립적인 검증 데이터에서 선택한다. 게이팅·생성·트랜스덕티브 방법은 필요한 학습 신호와 데이터 사용 조건이 서로 다르다.
+GZSL은 트레인·미트레인 클래스를 함께 예측하므로 그룹별 성능과 점수 편향을 평가한다. 매크로·마이크로 정확도를 구분하고 보정 계수는 독립적인 검증 데이터에서 선택한다. 게이팅·생성·트랜스덕티브 방법은 필요한 트레인 신호와 데이터 사용 조건이 서로 다르다.

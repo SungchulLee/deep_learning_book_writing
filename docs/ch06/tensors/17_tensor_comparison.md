@@ -194,7 +194,7 @@ torch.allclose(torch.tensor([1.0]), torch.tensor([1.000001]))   # True
 torch.allclose(torch.tensor([1.0]), torch.tensor([1.00001]))    # False
 ```
 
-여섯째 자리에서 갈린다. 학습한 모델의 출력을 비교하는 자리에서는 기본값이 너무 좁은 일이 많으므로 `rtol`을 직접 준다.
+여섯째 자리에서 갈린다. 트레인한 모델의 출력을 비교하는 자리에서는 기본값이 너무 좁은 일이 많으므로 `rtol`을 직접 준다.
 
 !!! warning "`nan`은 자기 자신과도 같지 않다"
     IEEE 754는 `nan`을 어떤 값과도 — 자기 자신과도 — 같지 않게 정했다. 그래서 세 함수가 모두 `False`를 돌려준다.

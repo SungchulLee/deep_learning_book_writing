@@ -1,6 +1,6 @@
 # 프로토타입 네트워크
 
-프로토타입 네트워크는 서포트 표본의 임베딩을 클래스별로 평균 내고, 쿼리를 가장 가까운 평균에 배정한다. 에피소드마다 새 분류 기준을 계산하므로 시험 클래스마다 별도의 출력 레이어를 학습할 필요가 없다. Snell 등의 「Prototypical Networks for Few-shot Learning」(2017)에 기반한 간단한 예제다.
+프로토타입 네트워크는 서포트 표본의 임베딩을 클래스별로 평균 내고, 쿼리를 가장 가까운 평균에 배정한다. 에피소드마다 새 분류 기준을 계산하므로 시험 클래스마다 별도의 출력 레이어를 트레인할 필요가 없다. Snell 등의 「Prototypical Networks for Few-shot Learning」(2017)에 기반한 간단한 예제다.
 
 ## 1. 코드
 
@@ -133,7 +133,7 @@ class PrototypicalNetwork(nn.Module):
 
 def train_step(model, support, support_labels, query, query_labels, optimizer):
     """
-    프로토타입 네트워크의 학습 스텝 하나.
+    프로토타입 네트워크의 트레인 스텝 하나.
     """
     model.train()
     optimizer.zero_grad()
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     logits = model(support, support_labels, query)
     print(f"Logits shape: {logits.shape}")  # (15, 5)이어야 한다
     
-    # 학습 예
+    # 트레인 예
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss, acc = train_step(model, support, support_labels, query, query_labels, optimizer)
     print(f"Loss: {loss:.4f}, Accuracy: {acc:.4f}")
@@ -205,11 +205,11 @@ Loss: 10.5765, Accuracy: 0.0667
 
 ## 2. 논의
 
-클래스 $c$의 서포트 집합을 $S_c$라 하면 프로토타입은 $p_c=|S_c|^{-1}\sum_{x\in S_c}f_\theta(x)$다. 쿼리 $q$의 로짓은 $-\|f_\theta(q)-p_c\|^2$이며, 클래스 축 소프트맥스로 확률을 얻는다. 학습 중에는 쿼리 로스의 그래디언트가 쿼리 임베딩과 서포트 평균을 거쳐 인코더에 전달된다.
+클래스 $c$의 서포트 집합을 $S_c$라 하면 프로토타입은 $p_c=|S_c|^{-1}\sum_{x\in S_c}f_\theta(x)$다. 쿼리 $q$의 로짓은 $-\|f_\theta(q)-p_c\|^2$이며, 클래스 축 소프트맥스로 확률을 얻는다. 트레인 중에는 쿼리 로스의 그래디언트가 쿼리 임베딩과 서포트 평균을 거쳐 인코더에 전달된다.
 
 코드는 고유 라벨의 개수를 센 다음 0부터 순회한다. 따라서 에피소드 라벨은 빈 클래스 없이 0부터 N−1까지 다시 매겨야 한다. 예를 들어 원래 라벨 3과 8을 그대로 전달하면 빈 집합의 평균을 계산하게 된다. 예제의 쿼리 15개는 클래스당 15개가 아니라 에피소드 전체 개수다.
 
-28×28 입력은 네 번 풀링한 뒤 1×1이 되므로 임베딩 차원은 64다. 서포트와 쿼리를 합쳐 인코딩하므로 학습 모드의 BatchNorm 통계는 쿼리 집합에도 의존한다. 평가 모드에서는 저장된 통계를 사용한다. 이 차이를 평가 프로토콜에 명시해야 한다. 무작위 이미지와 라벨로 수행한 한 번의 갱신은 데이터 흐름을 보여 주며, 실제 퓨샷 분류 성능을 측정하지 않는다.
+28×28 입력은 네 번 풀링한 뒤 1×1이 되므로 임베딩 차원은 64다. 서포트와 쿼리를 합쳐 인코딩하므로 트레인 모드의 BatchNorm 통계는 쿼리 집합에도 의존한다. 평가 모드에서는 저장된 통계를 사용한다. 이 차이를 평가 프로토콜에 명시해야 한다. 무작위 이미지와 라벨로 수행한 한 번의 갱신은 데이터 흐름을 보여 주며, 실제 퓨샷 분류 성능을 측정하지 않는다.
 
 ## 연습문제
 

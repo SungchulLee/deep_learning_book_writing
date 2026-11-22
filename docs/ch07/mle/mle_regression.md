@@ -3,7 +3,7 @@
 회귀의 대표적인 로스는 조건부 분포를 가정하면 음의 로그가능도(log-likelihood, 로그우도라고도 한다)에서 유도할 수 있다. 고정 분산 가우스 모델은 MSE, 고정 척도 라플라스 모델은 MAE와 연결된다. 평균과 분산을 함께 예측하면 입력에 따른 잡음의 크기도 모델링할 수 있다.
 
 !!! success "핵심 통찰"
-    MSE 로스로 뉴럴 네트워크를 학습시키는 것은 목표값이 모델의 예측을 중심으로 하는 정규분포를 따른다는 가정 아래에서 MLE를 수행하는 것이다.
+    MSE 로스로 뉴럴 네트워크를 트레인시키는 것은 목표값이 모델의 예측을 중심으로 하는 정규분포를 따른다는 가정 아래에서 MLE를 수행하는 것이다.
 
 ---
 
@@ -223,14 +223,14 @@ def mae_vs_mse_robustness():
     outlier_idx = [10, 30, 50, 70, 90]
     y[outlier_idx] += 15
     
-    # MSE로 학습한다
+    # MSE로 트레인한다
     model_mse = nn.Linear(1, 1)
     optimizer_mse = torch.optim.Adam(model_mse.parameters(), lr=0.1)
     for _ in range(1000):
         loss = nn.MSELoss()(model_mse(x), y)
         optimizer_mse.zero_grad(); loss.backward(); optimizer_mse.step()
     
-    # MAE로 학습한다
+    # MAE로 트레인한다
     model_mae = nn.Linear(1, 1)
     optimizer_mae = torch.optim.Adam(model_mae.parameters(), lr=0.1)
     for _ in range(1000):
@@ -276,7 +276,7 @@ def heteroscedastic_nll(y: torch.Tensor,
     return 0.5 * (np.log(2 * np.pi) + log_var + (y - mean)**2 / torch.exp(log_var))
 
 def train_heteroscedastic():
-    """잡음이 달라지는 데이터에서 이분산 모델을 학습시킨다."""
+    """잡음이 달라지는 데이터에서 이분산 모델을 트레인시킨다."""
     torch.manual_seed(42)
     
     # 잡음이 점점 커지는 데이터를 생성한다
@@ -302,11 +302,11 @@ def train_heteroscedastic():
     return model
 ```
 
-### MLE의 관점에서 본 완전한 회귀 학습
+### MLE의 관점에서 본 완전한 회귀 트레인
 
 ```python
 def train_regression_mle_perspective():
-    """회귀 학습의 MLE 해석을 보여주는 완전한 예제."""
+    """회귀 트레인의 MLE 해석을 보여주는 완전한 예제."""
     torch.manual_seed(42)
     
     # 데이터를 생성한다
@@ -368,7 +368,7 @@ def train_regression_mle_perspective():
     p(r) \propto \begin{cases} e^{-r^2/2} & |r| \leq \delta \\ e^{-\delta|r| + \delta^2/2} & |r| > \delta \end{cases}
     $$
 
-    중심부는 가우스형, 꼬리는 라플라스형인 하나의 조각별 밀도이며 두 분포의 혼합밀도와는 다르다. $\delta>0$를 고정하면 정규화 상수는 $Z_\delta=\sqrt{2\pi}\,[2\Phi(\delta)-1]+2e^{-\delta^2/2}/\delta$다. 따라서 $p(r)=e^{-L_\delta(r)}/Z_\delta$이며, $\Phi$는 표준정규 누적분포함수다. $\delta$나 척도까지 학습한다면 정규화 상수의 변화도 로스에 포함해야 한다.
+    중심부는 가우스형, 꼬리는 라플라스형인 하나의 조각별 밀도이며 두 분포의 혼합밀도와는 다르다. $\delta>0$를 고정하면 정규화 상수는 $Z_\delta=\sqrt{2\pi}\,[2\Phi(\delta)-1]+2e^{-\delta^2/2}/\delta$다. 따라서 $p(r)=e^{-L_\delta(r)}/Z_\delta$이며, $\Phi$는 표준정규 누적분포함수다. $\delta$나 척도까지 트레인한다면 정규화 상수의 변화도 로스에 포함해야 한다.
 
 ---
 
@@ -456,7 +456,7 @@ $y|x \sim \text{Poisson}(\exp(f_\theta(x)))$인 포아송 회귀의 로스 함�
 
 ## 정리하며
 
-MSE와 MAE의 확률적 해석은 각각 분산과 척도를 고정했을 때 단순해진다. 분산까지 학습하는 모델에서는 로그 분산 항과 오차 항을 함께 최적화하고, 예측 불확실성의 의미와 보정을 별도로 평가한다.
+MSE와 MAE의 확률적 해석은 각각 분산과 척도를 고정했을 때 단순해진다. 분산까지 트레인하는 모델에서는 로그 분산 항과 오차 항을 함께 최적화하고, 예측 불확실성의 의미와 보정을 별도로 평가한다.
 
 **참고 문헌**
 

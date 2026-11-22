@@ -1,13 +1,13 @@
-# 학습
+# 트레인
 
-Seq2Seq의 배치 패딩, 로스 계산, 그래디언트 클리핑과 체크포인트 관리를 모은 예제다. 실행부는 무작위 정수 시퀀스를 사용하므로 실제 번역 학습의 품질을 보여 주지 않는다. 모델의 반환값과 평가 목적을 공통 학습 함수에 맞춰야 한다.
+Seq2Seq의 배치 패딩, 로스 계산, 그래디언트 클리핑과 체크포인트 관리를 모은 예제다. 실행부는 무작위 정수 시퀀스를 사용하므로 실제 번역 트레인의 품질을 보여 주지 않는다. 모델의 반환값과 평가 목적을 공통 트레인 함수에 맞춰야 한다.
 
 ## 1. 코드
 
 ```python
 """
-Seq2Seq 모델을 위한 학습 스크립트
-학습 반복문, 평가, 체크포인트 저장을 담고 있다
+Seq2Seq 모델을 위한 트레인 스크립트
+트레인 반복문, 평가, 체크포인트 저장을 담고 있다
 """
 
 import torch
@@ -993,7 +993,7 @@ if __name__ == "__main__":
 
 class Seq2SeqDataset(Dataset):
     """
-    Seq2Seq 학습을 위한 사용자 정의 데이터셋
+    Seq2Seq 트레인을 위한 사용자 정의 데이터셋
     
     인수:
         src_data: 원문 시퀀스의 목록 (토큰 인덱스)
@@ -1048,7 +1048,7 @@ class Seq2SeqTrainer:
         model: Seq2Seq 모델
         optimizer: 옵티마이저
         criterion: 로스 함수
-        device: 학습에 쓸 장치
+        device: 트레인에 쓸 장치
         pad_idx: 패딩 토큰의 인덱스
         clip: 그래디언트 클리핑 임계값(노름 상한)
     """
@@ -1063,10 +1063,10 @@ class Seq2SeqTrainer:
         
     def train_epoch(self, dataloader, teacher_forcing_ratio=0.5):
         """
-        한 에포크 학습시킨다
+        한 에포크 트레인시킨다
         
         인수:
-            dataloader: 학습 데이터로더
+            dataloader: 트레인 데이터로더
             teacher_forcing_ratio: 티처 포싱을 쓸 확률
             
         반환값:
@@ -1153,18 +1153,18 @@ class Seq2SeqTrainer:
     def train(self, train_loader, val_loader, num_epochs, checkpoint_dir='checkpoints', 
               teacher_forcing_ratio=0.5, save_every=1):
         """
-        여러 에포크에 걸쳐 모델을 학습시킨다
+        여러 에포크에 걸쳐 모델을 트레인시킨다
         
         인수:
-            train_loader: 학습 데이터 로더
+            train_loader: 트레인 데이터 로더
             val_loader: 검증 데이터 로더
-            num_epochs: 학습할 에포크 수
+            num_epochs: 트레인할 에포크 수
             checkpoint_dir: 체크포인트를 저장할 디렉터리
             teacher_forcing_ratio: 처음의 티처 포싱 비율
             save_every: N에포크마다 체크포인트 저장
             
         반환값:
-            train_losses: 학습 로스의 목록
+            train_losses: 트레인 로스의 목록
             val_losses: 검증 로스의 목록
         """
         checkpoint_dir = Path(checkpoint_dir)
@@ -1177,7 +1177,7 @@ class Seq2SeqTrainer:
         for epoch in range(num_epochs):
             start_time = time.time()
             
-            # 학습
+            # 트레인
             train_loss = self.train_epoch(train_loader, teacher_forcing_ratio)
             
             # 평가한다
@@ -1240,7 +1240,7 @@ def initialize_weights(model):
 
 
 def count_parameters(model):
-    """학습 가능한 파라메터를 센다"""
+    """트레인 가능한 파라메터를 센다"""
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
@@ -1321,7 +1321,7 @@ if __name__ == "__main__":
         collate_fn=lambda b: collate_fn(b, PAD_IDX)
     )
     
-    # 모델을 학습시킨다
+    # 모델을 트레인시킨다
     print("\nStarting training...")
     train_losses, val_losses = trainer.train(
         train_loader, 
@@ -1340,11 +1340,11 @@ collate_fn은 원문·타깃을 각각 배치 최대 길이로 패딩하고 길�
 
 모델에 encoder 속성이 있으면 반환값을 `(output, _)`로 분해하지만, 기본 Seq2Seq도 encoder를 가지면서 텐서만 반환한다. 따라서 이 분기는 두 모델을 올바르게 구별하지 못한다. 반환 계약을 명시적으로 맞추어야 하며 배치 크기에 따라 텐서가 잘못 분해되는 경우도 주의한다.
 
-검증은 teacher_forcing_ratio=0으로 이전 예측을 입력하면서 정답 위치별 교차 엔트로피를 계산한다. 이는 정답 문맥에 조건을 두는 일반적인 언어 모델의 음의 로그가능도(negative log-likelihood, 가능도는 우도라고도 한다)와 다르다. 따라서 표시된 exp(val_loss)를 표준 퍼플렉시티로 해석하면 안 된다. 학습 역시 티처 포싱 비율을 바꾸므로 에포크 간 로스의 입력 조건이 달라진다.
+검증은 teacher_forcing_ratio=0으로 이전 예측을 입력하면서 정답 위치별 교차 엔트로피를 계산한다. 이는 정답 문맥에 조건을 두는 일반적인 언어 모델의 음의 로그가능도(negative log-likelihood, 가능도는 우도라고도 한다)와 다르다. 따라서 표시된 exp(val_loss)를 표준 퍼플렉시티로 해석하면 안 된다. 트레인 역시 티처 포싱 비율을 바꾸므로 에포크 간 로스의 입력 조건이 달라진다.
 
 기록 로스는 배치 로스의 단순 평균이며 배치 크기와 유효 토큰 수가 다르면 전체 토큰 평균이 아니다. 데이터는 원문·타깃이 독립적인 무작위 ID이고 SOS·EOS도 넣지 않으므로 형식과 동작을 살펴보는 시연으로 읽는다.
 
-체크포인트에는 모델·옵티마이저와 에포크·로스를 저장하지만 난수 상태, 사전·전처리와 티처 포싱 비율은 없다. 최고 검증 모델을 저장해도 마지막에 자동 복원하지는 않는다. load_checkpoint는 저장된 에포크와 두 로스를 반환할 뿐 나머지 학습 설정까지 복원하지 않는다.
+체크포인트에는 모델·옵티마이저와 에포크·로스를 저장하지만 난수 상태, 사전·전처리와 티처 포싱 비율은 없다. 최고 검증 모델을 저장해도 마지막에 자동 복원하지는 않는다. load_checkpoint는 저장된 에포크와 두 로스를 반환할 뿐 나머지 트레인 설정까지 복원하지 않는다.
 
 ## 연습문제
 
@@ -1375,12 +1375,12 @@ collate_fn은 원문·타깃을 각각 배치 최대 길이로 패딩하고 길�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-최고 체크포인트를 저장한 것과 학습을 정확히 재개할 수 있는 것은 어떻게 다른가?
+최고 체크포인트를 저장한 것과 트레인을 정확히 재개할 수 있는 것은 어떻게 다른가?
 
 </div>
 
 ??? success "풀이"
-    선택한 모델의 웨이트를 복원하는 것과 같은 데이터 순서·난수 상태로 이후 업데이트를 재현하는 것은 다르다. 정확한 재개에는 옵티마이저 외에도 난수·로더 상태와 스케줄, 티처 포싱 비율 등 현재 학습 상태가 필요하다. 사전과 구조 설정도 함께 관리해야 한다.
+    선택한 모델의 웨이트를 복원하는 것과 같은 데이터 순서·난수 상태로 이후 업데이트를 재현하는 것은 다르다. 정확한 재개에는 옵티마이저 외에도 난수·로더 상태와 스케줄, 티처 포싱 비율 등 현재 트레인 상태가 필요하다. 사전과 구조 설정도 함께 관리해야 한다.
 
 ---
 
@@ -1398,7 +1398,7 @@ collate_fn은 원문·타깃을 각각 배치 최대 길이로 패딩하고 길�
     patience_counter = 0
     best_state = None
     for epoch in range(num_epochs):
-        # ... 학습 단계 ...
+        # ... 트레인 단계 ...
         val_loss = evaluate(model, val_loader)
         if val_loss < best_loss:
             best_loss = val_loss
@@ -1415,4 +1415,4 @@ collate_fn은 원문·타깃을 각각 배치 최대 길이로 패딩하고 길�
 
 ## 정리하며
 
-Seq2Seq 학습에서는 반환 형식, 타깃 이동과 PAD 로스 제외를 맞춘다. 이전 예측으로 입력을 만드는 검증과 정답 문맥의 가능도 평가를 구분하고, 배치 로스 평균과 체크포인트 복원 범위를 명시해야 한다.
+Seq2Seq 트레인에서는 반환 형식, 타깃 이동과 PAD 로스 제외를 맞춘다. 이전 예측으로 입력을 만드는 검증과 정답 문맥의 가능도 평가를 구분하고, 배치 로스 평균과 체크포인트 복원 범위를 명시해야 한다.

@@ -1,6 +1,6 @@
 # 체크포인트를 이용한 MNIST 샘플링
 
-학습된 확산 모델을 생성에 사용하려면 웨이트뿐 아니라 모델 구조와 노이즈 스케줄도 학습 당시와 맞아야 한다. 이 예제는 저장 파일을 찾아 EMA 모델로 이미지 격자를 만들고 초기 노이즈 사이의 보간을 시도한다. 보간 루프와 파일 이름에는 실제 동작을 따로 확인해야 하는 부분이 있다.
+트레인된 확산 모델을 생성에 사용하려면 웨이트뿐 아니라 모델 구조와 노이즈 스케줄도 트레인 당시와 맞아야 한다. 이 예제는 저장 파일을 찾아 EMA 모델로 이미지 격자를 만들고 초기 노이즈 사이의 보간을 시도한다. 보간 루프와 파일 이름에는 실제 동작을 따로 확인해야 하는 부분이 있다.
 
 ## 1. 코드
 
@@ -8,7 +8,7 @@
 """
 샘플링 스크립트 예제
 
-학습된 확산 모델에서 표본을 생성한다.
+트레인된 확산 모델에서 표본을 생성한다.
 이 스크립트는 체크포인트를 불러와 새 MNIST 숫자를 생성한다.
 """
 
@@ -42,7 +42,7 @@ from tqdm import tqdm
 3. 정방향 확산: 닫힌 형태 공식으로 노이즈 더하기
    x_t = √ᾱ_t · x_0 + √(1-ᾱ_t) · ε
 4. 역방향 확산: 노이즈를 반복해 제거한다(생성)
-5. 학습 도구: 학습을 위한 로스 계산
+5. 트레인 도구: 트레인을 위한 로스 계산
 6. 시각화 도구: 확산을 눈으로 이해하기
 
 수학적 기초:
@@ -110,7 +110,7 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008) -> torch.Tensor:
     장점:
     ---------
     1. 매끄러운 전이: 스텝마다 비슷한 양의 노이즈를 제거한다
-    2. 더 나은 그래디언트: 타임스텝에 걸쳐 학습 신호가 고르다
+    2. 더 나은 그래디언트: 타임스텝에 걸쳐 트레인 신호가 고르다
     3. 아티팩트가 적다: 급격한 변화가 덜하다
     4. 경험적 성공: 최고 수준의 모델이 이것을 쓴다
     
@@ -149,7 +149,7 @@ def get_diffusion_parameters(betas: torch.Tensor) -> dict:
     
     왜 미리 계산하는가?
     ---------------
-    학습할 때 이 값이 반복해서 쓰인다. 한 번만 계산하면 O(T)이고,
+    트레인할 때 이 값이 반복해서 쓰인다. 한 번만 계산하면 O(T)이고,
     반복마다 O(T) 대신 O(1) 조회 → 엄청나게 빨라진다!
     
     T=1000, 반복 1만 번이면 계산 1000번 + 조회 1만 번 대 계산 1000만 번이다
@@ -323,7 +323,7 @@ def p_sample(model: nn.Module, x_t: torch.Tensor, t: int, t_tensor: torch.Tensor
     핵심: 더한 노이즈 < 제거한 노이즈 → 전체로는 노이즈가 줄어든다!
     
     인수:
-        model: 학습된 디노이징 모델
+        model: 트레인된 디노이징 모델
         x_t: 타임스텝 t의 노이즈 섞인 데이터
         t: 현재 타임스텝(정수)
         t_tensor: 텐서로 나타낸 타임스텝, 형태 (batch_size,)
@@ -379,9 +379,9 @@ def sample(model: nn.Module, shape: tuple, timesteps: int,
     흔한 값: T=100(빠름), T=1000(표준 값), T=4000(고품질)
     
     인수:
-        model: 학습된 디노이징 모델(평가 모드)
+        model: 트레인된 디노이징 모델(평가 모드)
         shape: 표본의 형태. 보기로 (32, 2)이나 (16, 3, 256, 256)
-        timesteps: 디노이징 스텝 수(학습 때와 맞아야 한다!)
+        timesteps: 디노이징 스텝 수(트레인 때와 맞아야 한다!)
         diffusion_params: 미리 계산한 상수
         device: 'cpu' 또는 'cuda'
     
@@ -401,15 +401,15 @@ def sample(model: nn.Module, shape: tuple, timesteps: int,
     return x_t  # x_0: 깨끗한 생성 표본
 
 # ============================================================================
-# 학습 로스
+# 트레인 로스
 # ============================================================================
 
 def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
             diffusion_params: dict, noise: torch.Tensor = None) -> torch.Tensor:
     """
-    확산 모델의 학습 로스를 계산한다.
+    확산 모델의 트레인 로스를 계산한다.
     
-    DDPM 학습 목표:
+    DDPM 트레인 목표:
     ------------------------
     L_simple = E_{t,x_0,ε}[||ε - ε_θ(x_t,t)||²]
     
@@ -418,7 +418,7 @@ def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
     왜 노이즈를 예측하는가?
     ------------------
     - 노이즈의 분포는 고정되어 있다: 모든 타임스텝에서 N(0,I)이다
-    - t에 걸쳐 학습 목표가 고르다
+    - t에 걸쳐 트레인 목표가 고르다
     - 경험적으로 표본 품질이 가장 높다
     - 요즘 확산 모델의 표준 방식이다
     
@@ -429,7 +429,7 @@ def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
     → 특정 타임스텝에 과적합하는 것을 막는다
     
     인수:
-        model: 학습할 디노이징 모델
+        model: 트레인할 디노이징 모델
         x_0: 깨끗한 데이터의 배치, 형태 (batch_size, *data_dims)
         t: 무작위 타임스텝, 형태 (batch_size,)
         diffusion_params: 미리 계산한 상수
@@ -912,7 +912,7 @@ class UNet(nn.Module):
 
 class SimpleUNet(nn.Module):
     """
-    MNIST 같은 작은 데이터셋에서 더 빨리 학습하기 위한 단순한 U-Net.
+    MNIST 같은 작은 데이터셋에서 더 빨리 트레인하기 위한 단순한 U-Net.
     배우기에 좋은 출발점이다.
     """
     
@@ -1013,7 +1013,7 @@ MNIST 숫자 생성을 위한 확산 모델의 완전한 구현.
 
 class MNISTDiffusion:
     """
-    MNIST 확산 모델의 학습과 샘플링을 감싸는 클래스.
+    MNIST 확산 모델의 트레인과 샘플링을 감싸는 클래스.
     """
     
     def __init__(self, 
@@ -1024,9 +1024,9 @@ class MNISTDiffusion:
         """
         인수:
             timesteps: 확산 타임스텝 수
-            batch_size: 학습 배치 크기
+            batch_size: 트레인 배치 크기
             learning_rate: 옵티마이저의 러닝레이트
-            device: 학습할 장치('cuda' 또는 'cpu')
+            device: 트레인할 장치('cuda' 또는 'cpu')
         """
         self.timesteps = timesteps
         self.batch_size = batch_size
@@ -1085,7 +1085,7 @@ class MNISTDiffusion:
         MNIST 데이터 로더를 만든다.
         
         인수:
-            train: 학습 배치를 불러올지 시험 배치를 불러올지
+            train: 트레인 배치를 불러올지 시험 배치를 불러올지
         
         반환값:
             MNIST용 DataLoader
@@ -1111,7 +1111,7 @@ class MNISTDiffusion:
         )
     
     def train_epoch(self, dataloader):
-        """한 에포크를 학습한다."""
+        """한 에포크를 트레인한다."""
         self.model.train()
         total_loss = 0
         num_batches = 0
@@ -1172,10 +1172,10 @@ class MNISTDiffusion:
     
     def train(self, epochs: int, save_interval: int = 10):
         """
-        확산 모델을 학습한다.
+        확산 모델을 트레인한다.
         
         인수:
-            epochs: 학습 에포크 수
+            epochs: 트레인 에포크 수
             save_interval: N에포크마다 표본을 저장한다
         """
         dataloader = self.get_dataloader(train=True)
@@ -1191,7 +1191,7 @@ class MNISTDiffusion:
         for epoch in range(1, epochs + 1):
             print(f"\nEpoch {epoch}/{epochs}")
             
-            # 학습
+            # 트레인
             avg_loss = self.train_epoch(dataloader)
             losses.append(avg_loss)
             
@@ -1211,7 +1211,7 @@ class MNISTDiffusion:
             if epoch % 50 == 0:
                 self.save_checkpoint(f'checkpoint_epoch_{epoch}.pt')
         
-        # 학습 로스 그리기
+        # 트레인 로스 그리기
         plt.figure(figsize=(10, 5))
         plt.plot(losses)
         plt.xlabel('Epoch')
@@ -1247,7 +1247,7 @@ class MNISTDiffusion:
 
 def main():
     """
-    MNIST 확산의 주 학습 스크립트.
+    MNIST 확산의 주 트레인 스크립트.
     """
     print("=" * 50)
     print("MNIST Diffusion Model Training")
@@ -1260,7 +1260,7 @@ def main():
         learning_rate=2e-4
     )
     
-    # 학습
+    # 트레인
     mnist_diffusion.train(epochs=100, save_interval=10)
     
     # 마지막 표본을 만든다
@@ -1404,13 +1404,13 @@ Please train a model first using example_train.py
 Looking for one of: ['mnist_diffusion_model.pt', 'mnist_diffusion_final.pt', 'checkpoint_epoch_100.pt']
 ```
 
-이 출력은 후보 체크포인트가 없어 생성 전에 종료한 경우다. 학습 완료나 샘플 생성 성공을 보여 주지 않는다.
+이 출력은 후보 체크포인트가 없어 생성 전에 종료한 경우다. 트레인 완료나 샘플 생성 성공을 보여 주지 않는다.
 
 ## 2. 체크포인트 선택
 
-작업 디렉터리에서 mnist_diffusion_model.pt, mnist_diffusion_final.pt, checkpoint_epoch_100.pt 순으로 존재 여부를 확인하고 첫 파일을 선택한다. 수정 시각이나 학습 성능을 비교해 최신·최상 모델을 고르는 방식은 아니다. 모두 없으면 안내 메시지와 함께 반환한다.
+작업 디렉터리에서 mnist_diffusion_model.pt, mnist_diffusion_final.pt, checkpoint_epoch_100.pt 순으로 존재 여부를 확인하고 첫 파일을 선택한다. 수정 시각이나 트레인 성능을 비교해 최신·최상 모델을 고르는 방식은 아니다. 모두 없으면 안내 메시지와 함께 반환한다.
 
-로드할 객체는 T=1000과 기본 코사인 스케줄, 같은 SimpleUNet 구조로 생성한다. load_checkpoint는 학습·EMA 웨이트와 optimizer 상태를 복원하지만 저장된 diffusion_params는 사용하지 않는다. 따라서 다른 스케줄로 학습한 파일을 선택하면 생성 조건이 어긋날 수 있다.
+로드할 객체는 T=1000과 기본 코사인 스케줄, 같은 SimpleUNet 구조로 생성한다. load_checkpoint는 트레인·EMA 웨이트와 optimizer 상태를 복원하지만 저장된 diffusion_params는 사용하지 않는다. 따라서 다른 스케줄로 트레인한 파일을 선택하면 생성 조건이 어긋날 수 있다.
 
 ## 3. 이미지 격자와 표시 범위
 
@@ -1420,7 +1420,7 @@ generate_grid는 EMA 모델로 지정 수량을 생성하지만 nrow는 항상 8
 
 ## 4. 초기 노이즈 보간의 의미
 
-두 독립 표준정규 텐서 z₁, z₂에 대해 z(a)=(1−a)z₁+az₂를 만든다. 보간점의 좌표별 분산은 (1−a)²+a²이고, 중간점 a=1/2에서는 1/2이다. 따라서 선형 보간 경로 전체가 학습 시 가정한 단위 분산 초기 분포를 유지하지는 않는다.
+두 독립 표준정규 텐서 z₁, z₂에 대해 z(a)=(1−a)z₁+az₂를 만든다. 보간점의 좌표별 분산은 (1−a)²+a²이고, 중간점 a=1/2에서는 1/2이다. 따라서 선형 보간 경로 전체가 트레인 시 가정한 단위 분산 초기 분포를 유지하지는 않는다.
 
 또한 각 a에 대해 역과정의 모든 중간 단계에서 **새 노이즈를 독립적으로 뽑는다**. 이웃 결과의 차이는 초기점 변화와 역과정 난수 변화가 섞인 결과다. 출력 문구의 “Smooth interpolation”처럼 숫자의 의미가 매끄럽게 변한다고 보장할 수 없다. 조건을 분리하려면 초기점과 역과정 난수의 제어 방법을 함께 설계해야 한다.
 

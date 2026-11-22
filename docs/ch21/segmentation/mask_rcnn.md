@@ -4,7 +4,7 @@ Mask R-CNN은 Faster R-CNN의 객체 탐지에 객체별 이진 마스크 예측
 
 ## 1. 제안 영역과 병렬 헤드
 
-백본·FPN에서 피처를 만들고 RPN으로 제안 영역을 얻는다. 영역별 피처를 RoIAlign으로 추출한 뒤 분류·상자 회귀와 마스크 예측을 수행한다. 각 헤드의 기능은 분리되지만 백본 등 웨이트를 공유하므로 학습 그래디언트가 서로 완전히 독립적인 것은 아니다.
+백본·FPN에서 피처를 만들고 RPN으로 제안 영역을 얻는다. 영역별 피처를 RoIAlign으로 추출한 뒤 분류·상자 회귀와 마스크 예측을 수행한다. 각 헤드의 기능은 분리되지만 백본 등 웨이트를 공유하므로 트레인 그래디언트가 서로 완전히 독립적인 것은 아니다.
 
 ```
 Input Image
@@ -94,7 +94,7 @@ class MaskHead(nn.Module):
         return self.mask_pred(x)
 ```
 
-정답 클래스 k인 양성 RoI에는 해당 채널의 픽셀별 BCE를 적용한다. 다른 클래스 마스크와 softmax 경쟁을 시키지 않고 sigmoid 기반 이진 문제로 학습한다. 추론에서는 예측한 클래스의 마스크를 선택해 경계 상자 좌표로 옮긴다. 한 채널의 class-agnostic 헤드도 다른 설계로 가능하지만 위 코드는 클래스별 헤드다.
+정답 클래스 k인 양성 RoI에는 해당 채널의 픽셀별 BCE를 적용한다. 다른 클래스 마스크와 softmax 경쟁을 시키지 않고 sigmoid 기반 이진 문제로 트레인한다. 추론에서는 예측한 클래스의 마스크를 선택해 경계 상자 좌표로 옮긴다. 한 채널의 class-agnostic 헤드도 다른 설계로 가능하지만 위 코드는 클래스별 헤드다.
 
 $$L_{mask}=-\frac1{m^2}\sum_{i,j}\left[y_{ij}\log p_{ij}^{(k)}+(1-y_{ij})\log(1-p_{ij}^{(k)})\right].$$
 
@@ -123,9 +123,9 @@ def mask_rcnn_loss(mask_logits: torch.Tensor, gt_masks: torch.Tensor,
     )
 ```
 
-탐지·마스크 헤드 수준에서는 L_cls+L_box+L_mask를 합한다. RPN까지 학습하는 전체 모델은 RPN objectness와 상자 회귀 로스도 포함한다. 헤드의 RoI 크기나 분기 구조는 구현에 따라 다를 수 있어 모든 헤드가 완전히 같은 형태의 RoI 피처를 그대로 쓴다고 가정하지 않는다.
+탐지·마스크 헤드 수준에서는 L_cls+L_box+L_mask를 합한다. RPN까지 트레인하는 전체 모델은 RPN objectness와 상자 회귀 로스도 포함한다. 헤드의 RoI 크기나 분기 구조는 구현에 따라 다를 수 있어 모든 헤드가 완전히 같은 형태의 RoI 피처를 그대로 쓴다고 가정하지 않는다.
 
-## 4. 사전 학습 모델의 입력·출력
+## 4. 사전 트레인 모델의 입력·출력
 
 아래 함수는 legacy `pretrained=True` 인수를 사용한다. 라이브러리 버전의 웨이트 API와 입력 규약을 확인해야 한다. 모델은 호출마다 새로 구성되며 필요한 웨이트가 없으면 다운로드가 필요할 수 있다. CPU에 만든 모델과 입력의 장치도 맞아야 한다.
 
@@ -139,7 +139,7 @@ from torchvision.models.detection import maskrcnn_resnet50_fpn
 
 def load_and_run_maskrcnn(image: torch.Tensor, threshold: float = 0.5):
     """
-    입력 이미지에 사전 학습된 마스크 R-CNN을 돌린다.
+    입력 이미지에 사전 트레인된 마스크 R-CNN을 돌린다.
     
     인수:
         image: 입력 텐서 (3, H, W), 값은 [0, 1]
@@ -168,7 +168,7 @@ def load_and_run_maskrcnn(image: torch.Tensor, threshold: float = 0.5):
 
 다음 함수는 box predictor와 mask predictor의 출력 수를 함께 바꾼다. 여기서 `num_classes`는 torchvision 규약의 **배경을 포함한** 클래스 수다. 양성 라벨은 배경 0과 구분되며 데이터 라벨과 predictor 채널을 일관되게 매핑해야 한다. COCO의 실질 80개 클래스와 배경·범주 ID를 반영한 모델 출력 수를 단순히 같은 수로 취급하면 안 된다.
 
-학습 데이터에는 이미지별 boxes, 정수 labels와 인스턴스별 masks 등이 필요하다. 이 함수는 모델 헤드를 구성할 뿐 데이터 매칭·학습 루프·검증·라벨 변환을 구현하지 않는다. 교체한 predictor는 새로 학습해야 한다. 입력·배경 규약은 [torchvision의 모델 설명](https://docs.pytorch.org/vision/0.12/generated/torchvision.models.detection.maskrcnn_resnet50_fpn.html)을 참고한다.
+트레인 데이터에는 이미지별 boxes, 정수 labels와 인스턴스별 masks 등이 필요하다. 이 함수는 모델 헤드를 구성할 뿐 데이터 매칭·트레인 루프·검증·라벨 변환을 구현하지 않는다. 교체한 predictor는 새로 트레인해야 한다. 입력·배경 규약은 [torchvision의 모델 설명](https://docs.pytorch.org/vision/0.12/generated/torchvision.models.detection.maskrcnn_resnet50_fpn.html)을 참고한다.
 
 ```python
 from torchvision.models.detection import maskrcnn_resnet50_fpn
@@ -197,7 +197,7 @@ def get_custom_maskrcnn(num_classes: int):
 
 YOLACT의 prototype 조합, SOLOv2의 위치 기반 마스크 예측과 Mask R-CNN의 RoI별 예측은 다른 구성이다. PointRend는 거친 마스크의 일부 위치를 정교하게 다듬는 모듈이므로 독립된 인스턴스 분할 모델과 같은 항목으로 비교하면 안 된다.
 
-FPS·mask AP는 백본·입력 해상도·학습·평가 split·장치·배치·후처리를 명시해야 비교 가능하다. 출처와 조건이 없는 수치표로 두 단계가 항상 더 정확하고 한 단계가 항상 더 빠르다고 결론 내리지 않는다. 경계 품질·작은 객체·검출 누락과 전체 비용을 과제에 맞춰 살핀다.
+FPS·mask AP는 백본·입력 해상도·트레인·평가 split·장치·배치·후처리를 명시해야 비교 가능하다. 출처와 조건이 없는 수치표로 두 단계가 항상 더 정확하고 한 단계가 항상 더 빠르다고 결론 내리지 않는다. 경계 품질·작은 객체·검출 누락과 전체 비용을 과제에 맞춰 살핀다.
 
 설계와 ablation은 [Mask R-CNN 원 논문](https://openaccess.thecvf.com/content_iccv_2017/html/He_Mask_R-CNN_ICCV_2017_paper.html)을 참고한다.
 

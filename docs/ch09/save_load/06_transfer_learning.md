@@ -1,6 +1,6 @@
 # 전이 학습
 
-사전 학습 모델의 분류기 교체, 학습할 파라메터 선택과 상태 사전의 부분 복원을 설명한다. 예제의 실제 초기화와 학습 범위를 확인하며 전이 학습의 구성 방식을 읽는다.
+사전 트레인 모델의 분류기 교체, 트레인할 파라메터 선택과 상태 사전의 부분 복원을 설명한다. 예제의 실제 초기화와 트레인 범위를 확인하며 전이 학습의 구성 방식을 읽는다.
 
 ## 1. 코드
 
@@ -8,14 +8,14 @@
 #!/usr/bin/env python3
 """
 ============================================================
-전이 학습: 미리 학습된 모델의 저장과 불러오기
+전이 학습: 미리 트레인된 모델의 저장과 불러오기
 ============================================================
 
-미리 학습된 모델을 다루고, 미세 조정하고, 일부만 저장하는
+미리 트레인된 모델을 다루고, 미세 조정하고, 일부만 저장하는
 좋은 관행을 배운다.
 
 주제:
-- 미리 학습된 모델 불러오기
+- 미리 트레인된 모델 불러오기
 - 레이어 동결과 해제
 - 미세 조정한 모델 저장하기
 - 상태 사전 부분적으로 불러오기
@@ -33,7 +33,7 @@ print("TRANSFER LEARNING SAVE/LOAD TUTORIAL")
 print("=" * 70)
 
 # ============================================================
-# 미리 학습된 모델 불러오기
+# 미리 트레인된 모델 불러오기
 # ============================================================
 
 print("\n" + "=" * 70)
@@ -42,7 +42,7 @@ print("=" * 70)
 
 print("\nLoading ResNet18 with pre-trained weights...")
 
-# 미리 학습된 ResNet18 불러오기
+# 미리 트레인된 ResNet18 불러오기
 model = models.resnet18(pretrained=False)  # 시연을 위해 False로 둔다
 print("Model loaded")
 
@@ -86,7 +86,7 @@ for param in model.parameters():
 for param in model.fc.parameters():
     param.requires_grad = True
 
-# 학습 가능한 파라메터 세기
+# 트레인 가능한 파라메터 세기
 trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print(f"Trainable parameters: {trainable_params:,}")
 print(f"Frozen parameters: {total_params - trainable_params:,}")
@@ -99,7 +99,7 @@ print("\n" + "=" * 70)
 print("SAVING FINE-TUNED MODEL")
 print("=" * 70)
 
-# 학습 가능한 파라메터에만 옵티마이저 만들기
+# 트레인 가능한 파라메터에만 옵티마이저 만들기
 optimizer = torch.optim.Adam(
     filter(lambda p: p.requires_grad, model.parameters()),
     lr=0.001
@@ -144,7 +144,7 @@ model.load_state_dict(checkpoint['model_state_dict'])
 print("\nModel state loaded")
 
 # 동결 설정을 먼저 복원한다.
-# 저장할 때의 옵티마이저는 '학습할 파라메터'만 들고 있었으므로, 같은 구성으로
+# 저장할 때의 옵티마이저는 '트레인할 파라메터'만 들고 있었으므로, 같은 구성으로
 # 다시 만들어야 상태를 받을 수 있다. 동결을 나중에 하면 파라메터 그룹의 크기가 어긋나
 # ValueError: loaded state dict contains a parameter group that doesn't match
 # 가 난다.
@@ -155,7 +155,7 @@ if checkpoint.get('frozen_layers', False):
         param.requires_grad = True
     print("Layer freezing applied")
 
-# 옵티마이저 다시 만들기 — 저장할 때와 똑같이 학습할 파라메터만 준다
+# 옵티마이저 다시 만들기 — 저장할 때와 똑같이 트레인할 파라메터만 준다
 optimizer = torch.optim.Adam(
     filter(lambda p: p.requires_grad, model.parameters())
 )
@@ -185,7 +185,7 @@ pretrained_dict = {k: v for k, v in full_state.items() if 'fc' not in k}
 # 현재 상태 얻기
 model_dict = new_model.state_dict()
 
-# 미리 학습된 웨이트로 갱신
+# 미리 트레인된 웨이트로 갱신
 model_dict.update(pretrained_dict)
 
 # 새 상태 사전 불러오기
@@ -336,9 +336,9 @@ Key Takeaways:
 
 ## 2. 논의
 
-코드는 모든 ResNet-18 생성에서 pretrained=False를 사용한다. 따라서 출력 문구와 달리 사전 학습된 피처를 불러오지 않으며, 실제 데이터로 미세 조정하는 학습 루프도 없다. 전이 학습의 성능 실험이 아니라 분류기 교체·동결·저장과 복원 방식의 시연이다.
+코드는 모든 ResNet-18 생성에서 pretrained=False를 사용한다. 따라서 출력 문구와 달리 사전 트레인된 피처를 불러오지 않으며, 실제 데이터로 미세 조정하는 트레인 루프도 없다. 전이 학습의 성능 실험이 아니라 분류기 교체·동결·저장과 복원 방식의 시연이다.
 
-512차원 피처를 10개 클래스로 보내는 새 분류기에는 512×10+10=5130개의 학습 파라메터가 있다. 다른 파라메터의 requires_grad를 False로 해도 BatchNorm의 이동 통계 버퍼까지 동결되지는 않는다. 실제 학습에서는 백본의 모드와 전처리, 사용할 사전 학습 웨이트의 입력 규약도 함께 정해야 한다.
+512차원 피처를 10개 클래스로 보내는 새 분류기에는 512×10+10=5130개의 트레인 파라메터가 있다. 다른 파라메터의 requires_grad를 False로 해도 BatchNorm의 이동 통계 버퍼까지 동결되지는 않는다. 실제 트레인에서는 백본의 모드와 전처리, 사용할 사전 트레인 웨이트의 입력 규약도 함께 정해야 한다.
 
 strict=False는 누락되거나 추가된 키를 허용하지만 같은 키의 텐서 형태(shape) 불일치를 무시하지 않는다. 코드처럼 형태가 호환되는 항목만 걸러 내고 반환된 누락·추가 키를 확인한다. 키에서 fc라는 부분 문자열을 제외하는 방법은 이 모델의 이름에 의존한다. 단계적으로 동결을 해제한다면 새 파라메터가 옵티마이저 그룹에 실제로 포함되는지도 확인해야 한다.
 
@@ -347,12 +347,12 @@ strict=False는 누락되거나 추가된 키를 허용하지만 같은 키의 �
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-이 코드가 사전 학습된 ResNet의 전이 성능을 보여 주는가?
+이 코드가 사전 트레인된 ResNet의 전이 성능을 보여 주는가?
 
 </div>
 
 ??? success "풀이"
-    아니다. pretrained=False로 무작위 초기화하며 실제 미세 조정 학습을 수행하지 않는다. 저장과 구조 변경의 시연으로 해석해야 한다.
+    아니다. pretrained=False로 무작위 초기화하며 실제 미세 조정 트레인을 수행하지 않는다. 저장과 구조 변경의 시연으로 해석해야 한다.
 
 ---
 
@@ -378,8 +378,8 @@ requires_grad=False로 백본을 동결한 뒤에도 BatchNorm 상태가 달라�
 </div>
 
 ??? success "풀이"
-    학습 모드에서는 이동 평균·분산 버퍼가 갱신될 수 있다. 그래디언트 동결과 모드 설정을 구분하고 의도한 통계 사용 방식에 맞춰 설정한다.
+    트레인 모드에서는 이동 평균·분산 버퍼가 갱신될 수 있다. 그래디언트 동결과 모드 설정을 구분하고 의도한 통계 사용 방식에 맞춰 설정한다.
 
 ## 정리하며
 
-전이 학습에서는 사전 학습 웨이트 사용 여부, 분류기 차원과 동결 범위를 명확히 한다. 부분 복원의 키 허용과 형태 호환성은 별도 조건이다.
+전이 학습에서는 사전 트레인 웨이트 사용 여부, 분류기 차원과 동결 범위를 명확히 한다. 부분 복원의 키 허용과 형태 호환성은 별도 조건이다.

@@ -1,6 +1,6 @@
 # Grad-CAM: 그래디언트 가중 클래스 활성화 맵
 
-**그래디언트 가중 클래스 활성화 맵(Grad-CAM)**은 CNN 기반 모델의 판단을 시각적으로 해석하는 기법이다. 특정 구조를 요구하던 이전의 클래스 활성화 맵(CAM) 방법과 달리, Grad-CAM은 구조를 고치거나 다시 학습하지 않고도 어떤 CNN 구조에나 작동한다.
+**그래디언트 가중 클래스 활성화 맵(Grad-CAM)**은 CNN 기반 모델의 판단을 시각적으로 해석하는 기법이다. 특정 구조를 요구하던 이전의 클래스 활성화 맵(CAM) 방법과 달리, Grad-CAM은 구조를 고치거나 다시 트레인하지 않고도 어떤 CNN 구조에나 작동한다.
 
 Grad-CAM은 기본적인 질문에 답한다. **입력 이미지의 어느 영역이 어떤 클래스를 예측하는 데 가장 중요한가?**
 
@@ -304,7 +304,7 @@ def get_target_layer(model: nn.Module, architecture: str) -> nn.Module:
     Grad-CAM에 알맞은 대상 레이어를 고른다.
 
     Args:
-        model: 사전 학습된 모델
+        model: 사전 트레인된 모델
         architecture: 모델 구조 이름
 
     Returns:
@@ -349,7 +349,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 import matplotlib.pyplot as plt
 
-# 사전 학습된 ResNet을 불러온다
+# 사전 트레인된 ResNet을 불러온다
 model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
 model.eval()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -617,7 +617,7 @@ Grad-CAM은 저우 외(2016)의 **클래스 활성화 맵(CAM)**을 일반화한
 | 항목 | CAM | Grad-CAM |
 |--------|-----|----------|
 | 구조 | GAP + FC가 있어야 함 | 아무 CNN |
-| 재학습 | GAP이 없는 모델에는 필요 | 필요 없음 |
+| 재트레인 | GAP이 없는 모델에는 필요 | 필요 없음 |
 | 타깃 레이어 | 고정(마지막 컨볼루션 레이어) | 아무 컨볼루션 레이어 |
 | 웨이트 계산 | FC 레이어의 웨이트 | 그래디언트 기반 |
 | 설명 품질 | 높음 | 높음 |
@@ -774,7 +774,7 @@ cam = grad_cam(xray_image, target_class=class_map["pneumonia"])
 </div>
 
 ??? success "풀이"
-    웨이트가 $W_1, b_1, W_2, b_2$인 학습된 XOR 네트워크에서 출력은 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 설명 방법은 입력 피처마다 기여도를 내놓는다. $x = [1, 1]$(클래스 0)이면 두 피처 모두 음수 쪽 분류에 기여한다. 기여도 값은 방법마다 다르다. 그래디언트 기반 방법은 $\partial f / \partial x_i$을 계산하고, 섭동 기반 방법은 피처를 가렸을 때 출력이 얼마나 바뀌는지 잰다. XOR 문제는 결정 경계가 선형이 아니므로 선형 설명 방법이 틀릴 수 있음을 보여 준다. $\square$
+    웨이트가 $W_1, b_1, W_2, b_2$인 트레인된 XOR 네트워크에서 출력은 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 설명 방법은 입력 피처마다 기여도를 내놓는다. $x = [1, 1]$(클래스 0)이면 두 피처 모두 음수 쪽 분류에 기여한다. 기여도 값은 방법마다 다르다. 그래디언트 기반 방법은 $\partial f / \partial x_i$을 계산하고, 섭동 기반 방법은 피처를 가렸을 때 출력이 얼마나 바뀌는지 잰다. XOR 문제는 결정 경계가 선형이 아니므로 선형 설명 방법이 틀릴 수 있음을 보여 준다. $\square$
 
 ---
 
@@ -836,7 +836,7 @@ $$
 - **구조에 구애받지 않는다**: 어떤 CNN에도 작동한다
 - **거친 위치 파악**: "무엇"이 아니라 "어디"를 보인다
 - **빠르게 계산한다**: 순전파·역전파 한 번이면 된다
-- **재학습이 필요 없다**: 사전 학습된 모델에 그대로 쓴다
+- **재트레인이 필요 없다**: 사전 트레인된 모델에 그대로 쓴다
 
 ### 모범 사례
 

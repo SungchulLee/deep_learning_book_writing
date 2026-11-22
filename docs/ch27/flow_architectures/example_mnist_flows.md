@@ -1,8 +1,8 @@
 # MNIST 정규화 흐름 예제
 
-이 예제는 MNIST 이미지를 784차원 벡터로 펼치고 아핀 커플링과 흐름용 정규화 레이어를 쌓아 학습하는 절차를 보여 준다. 가역 흐름에서 밀도를 계산하려면 레이어의 방향·통계 처리·이미지 전처리의 확률적 의미까지 맞아야 한다. 표시된 코드의 학습 로스와 이미지 파일이 이 조건을 자동으로 충족하는 것은 아니다.
+이 예제는 MNIST 이미지를 784차원 벡터로 펼치고 아핀 커플링과 흐름용 정규화 레이어를 쌓아 트레인하는 절차를 보여 준다. 가역 흐름에서 밀도를 계산하려면 레이어의 방향·통계 처리·이미지 전처리의 확률적 의미까지 맞아야 한다. 표시된 코드의 트레인 로스와 이미지 파일이 이 조건을 자동으로 충족하는 것은 아니다.
 
-## 1. 학습·생성 코드
+## 1. 트레인·생성 코드
 
 ```python
 """
@@ -41,7 +41,7 @@ from typing import Tuple
 2. 흐름 변환(분포를 바꾸는 법)
 3. 야코비안 행렬식(부피 변화 추적)
 4. 여러 변환의 합성
-5. 최대 가능도 학습
+5. 최대 가능도 트레인
 
 선수 지식:
 - 확률 분포에 대한 이해
@@ -49,7 +49,7 @@ from typing import Tuple
 - 다변수 미적분(야코비안)
 - 선형대수의 기초
 
-학습 경로:
+트레인 경로:
 BaseDistribution → Flow → FlowSequence → 단순한 예로 시작하고
 이어 커플링 레이어 같은 더 복잡한 변환으로 넘어간다
 
@@ -208,9 +208,9 @@ class Flow(nn.Module):
     ============================================================================
     왜 가역성이 중요한가
     ============================================================================
-    학습과 샘플링에서:
+    트레인과 샘플링에서:
     
-    학습(역방향):
+    트레인(역방향):
         실제 데이터 x → 흐름⁻¹ → 잠재 z → log p(z) 계산
         실제 데이터의 확률을 평가하려면 역변환이 필요하다
     
@@ -279,7 +279,7 @@ class Flow(nn.Module):
         
         인수:
             x (torch.Tensor): 데이터 공간의 표본, 형태 (batch_size, dim)
-                             흔히 학습 데이터이다
+                             흔히 트레인 데이터이다
         
         반환값:
             다음을 담은 튜플:
@@ -382,7 +382,7 @@ class FlowSequence(nn.Module):
         """
         super().__init__()
         
-        # PyTorch가 학습 가능한 파라메터임을 알도록 ModuleList를 쓴다
+        # PyTorch가 트레인 가능한 파라메터임을 알도록 ModuleList를 쓴다
         self.flows = nn.ModuleList(flows)
         
         # 기저 분포를 담는다
@@ -513,7 +513,7 @@ class FlowSequence(nn.Module):
             torch.Tensor: 로그 확률, 형태 (batch_size,)
                          값이 클수록 학습된 분포에서 더 그럴듯하다
         
-        학습에서 쓰기:
+        트레인에서 쓰기:
             >>> model = FlowSequence([...], BaseDistribution(2))
             >>> real_data = load_data()
             >>> log_probs = model.log_prob(real_data)
@@ -541,12 +541,12 @@ class FlowSequence(nn.Module):
         """
         학습된 분포에서 새 표본을 만든다.
         
-        학습한 뒤 새 데이터를 생성하는 방법이다!
+        트레인한 뒤 새 데이터를 생성하는 방법이다!
         
         과정:
             1. 단순한 기저 분포(정규 분포)에서 z를 뽑는다
             2. z를 모든 흐름에 통과시켜 변환한다
-            3. 출력 x가 학습 데이터를 닮아야 한다
+            3. 출력 x가 트레인 데이터를 닮아야 한다
         
         인수:
             n_samples (int): 만들 표본의 수
@@ -555,8 +555,8 @@ class FlowSequence(nn.Module):
         반환값:
             torch.Tensor: 생성한 표본, 형태 (n_samples, dim)
         
-        학습한 뒤의 예:
-            >>> # 이미지로 모델을 학습한다
+        트레인한 뒤의 예:
+            >>> # 이미지로 모델을 트레인한다
             >>> model = FlowSequence([...], BaseDistribution(784))
             >>> train(model, mnist_data)
             >>> 
@@ -565,8 +565,8 @@ class FlowSequence(nn.Module):
             >>> # new_images가 실제 같은 MNIST 숫자로 보여야 한다
         
         품질 확인:
-            학습한 뒤 표본은 다음이어야 한다:
-            - 학습 데이터 분포를 닮는다
+            트레인한 뒤 표본은 다음이어야 한다:
+            - 트레인 데이터 분포를 닮는다
             - 다양하다(모두 같지 않다)
             - 모델에서 로그 확률이 높다
         """
@@ -636,7 +636,7 @@ class AffineTransform(Flow):
         인수:
             dim (int): 데이터의 차원
         
-        학습되는 파라메터:
+        트레인되는 파라메터:
             - log_scale: 차원마다 늘이기와 줄이기를 조절한다
             - shift: 차원마다 이동을 조절한다
         
@@ -646,7 +646,7 @@ class AffineTransform(Flow):
         """
         super().__init__()
         
-        # 학습 가능한 파라메터
+        # 트레인 가능한 파라메터
         # 수치 안정을 위해 log(scale)을 배운다
         # 초기 스케일 = exp(0) = 1(바뀜 없음)
         self.log_scale = nn.Parameter(torch.zeros(dim))
@@ -776,7 +776,7 @@ class PlanarFlow(Flow):
         인수:
             dim (int): 공간의 차원
         
-        학습되는 파라메터:
+        트레인되는 파라메터:
             - weight (w): "평면"의 방향을 정한다, 형태 (dim,)
             - bias (b): 평면을 옮긴다, 형태 (1,)
             - u: 변환의 방향, 형태 (dim,)
@@ -901,33 +901,33 @@ def visualize_2d_transformation(flow_model: nn.Module, n_points: int = 1000,
     
     이 그림은 다음을 이해하는 데 결정적이다:
     - 흐름이 공간을 어떻게 휘게 하는지
-    - 학습이 잘 되고 있는지
+    - 트레인이 잘 되고 있는지
     - 흐름이 어떤 패턴을 학습했는지
     
     ============================================================================
     해석 가이드
     ============================================================================
-    학습 전:
+    트레인 전:
         - 왼쪽: 깔끔한 정규 분포 덩어리
         - 오른쪽: 조금 휜 정규 분포(무작위 초기화)
     
-    학습하는 동안:
+    트레인하는 동안:
         - 오른쪽이 차츰 데이터 분포에 맞게 바뀐다
         - 복잡도와 구조가 늘어나는지 확인하라
     
-    학습한 뒤:
+    트레인한 뒤:
         - 왼쪽: 여전히 정규 분포(결코 바뀌지 않는다)
         - 오른쪽: 목표 분포와 맞아야 한다(예컨대 달 모양, 동그라미)
     
     문제 해결:
-        - 오른쪽이 그대로인가? → 모델이 학습되지 않고 있다
+        - 오른쪽이 그대로인가? → 모델이 트레인되지 않고 있다
         - 오른쪽이 어지러운가? → 러닝레이트가 너무 크다
         - 오른쪽이 뭉쳐 있는가? → 레이어나 용량이 모자란다
     
     ============================================================================
     
     인수:
-        flow_model (nn.Module): 시각화할 학습된 흐름 모델
+        flow_model (nn.Module): 시각화할 트레인된 흐름 모델
         n_points (int): 뽑아 그릴 점의 수
         xlim (tuple): 두 그림의 x축 범위
         ylim (tuple): 두 그림의 y축 범위
@@ -935,7 +935,7 @@ def visualize_2d_transformation(flow_model: nn.Module, n_points: int = 1000,
     
     사용 예:
         >>> model = build_realnvp_model(dim=2, n_layers=6)
-        >>> train(model, data)  # 2차원 데이터로 학습한다
+        >>> train(model, data)  # 2차원 데이터로 트레인한다
         >>> visualize_2d_transformation(model, n_points=2000)
         >>> # 결과를 보려면 transformation.png를 열어라!
     """
@@ -988,7 +988,7 @@ def visualize_2d_density(flow_model: nn.Module, xlim: tuple = (-3, 3),
                         ylim: tuple = (-3, 3), n_grid: int = 200,
                         filename: str = 'density.png'):
     """
-    2차원 흐름이 학습한 확률 밀도를 그려 본다.
+    2차원 흐름이 트레인한 확률 밀도를 그려 본다.
     
     ============================================================================
     목적
@@ -1003,12 +1003,12 @@ def visualize_2d_density(flow_model: nn.Module, xlim: tuple = (-3, 3),
     ============================================================================
     해석 가이드
     ============================================================================
-    잘 학습된 모델:
+    잘 트레인된 모델:
         - 봉우리가 데이터 군집과 맞는다
         - 매끄럽고 이어진 확률 풍경
         - 봉우리 사이가 또렷이 갈린다
     
-    잘못 학습된 모델:
+    잘못 트레인된 모델:
         - 어디나 평평하다(구조를 학습하지 못했다)
         - 봉우리가 엉뚱한 곳에 있다
         - 봉우리가 지나치게 뾰족하다(과적합)
@@ -1029,7 +1029,7 @@ def visualize_2d_density(flow_model: nn.Module, xlim: tuple = (-3, 3),
     ============================================================================
     
     인수:
-        flow_model (nn.Module): 학습된 흐름 모델
+        flow_model (nn.Module): 트레인된 흐름 모델
         xlim (tuple): 밀도 격자의 x축 범위
         ylim (tuple): 밀도 격자의 y축 범위
         n_grid (int): 밀도 격자의 해상도(n_grid × n_grid 점)
@@ -1093,18 +1093,18 @@ def visualize_2d_density(flow_model: nn.Module, xlim: tuple = (-3, 3),
 def train_flow(flow_model: nn.Module, dataloader, optimizer, 
               n_epochs: int = 100, device: str = 'cpu') -> list:
     """
-    최대 가능도 추정으로 정규화 흐름 모델을 학습한다.
+    최대 가능도 추정으로 정규화 흐름 모델을 트레인한다.
     
     ============================================================================
     개념 개요
     ============================================================================
-    학습 목표: 학습 데이터의 가능도 최대화
+    트레인 목표: 트레인 데이터의 가능도 최대화
     
     달리 말해 학습된 분포에서 실제 데이터의 확률이 높아지도록
     모델 파라메터를 조정한다.
     
     로스 함수:
-        로스 = 학습 데이터의 x에 대해 -mean(log p(x))
+        로스 = 트레인 데이터의 x에 대해 -mean(log p(x))
         
     음의 로그 가능도를 최소화한다(= 가능도를 최대화한다)
     
@@ -1126,9 +1126,9 @@ def train_flow(flow_model: nn.Module, dataloader, optimizer,
                - 갱신한다: θ ← θ - lr × ∇Loss
     
     ============================================================================
-    학습 모니터링
+    트레인 모니터링
     ============================================================================
-    정상적인 학습:
+    정상적인 트레인:
         - 로스가 꾸준히 줄어든다
         - 마침내 평평해진다
         - 심하게 흔들리지 않는다
@@ -1144,7 +1144,7 @@ def train_flow(flow_model: nn.Module, dataloader, optimizer,
     ============================================================================
     러닝레이트:
         - 시작: 1e-3이나 1e-4
-        - 학습이 불안정하면 낮춘다
+        - 트레인이 불안정하면 낮춘다
         - 러닝레이트 스케줄을 쓸 수 있다
     
     배치 크기:
@@ -1160,14 +1160,14 @@ def train_flow(flow_model: nn.Module, dataloader, optimizer,
     ============================================================================
     
     인수:
-        flow_model (nn.Module): 학습할 흐름 모델
-        dataloader: 학습 데이터를 담은 PyTorch DataLoader
+        flow_model (nn.Module): 트레인할 흐름 모델
+        dataloader: 트레인 데이터를 담은 PyTorch DataLoader
         optimizer: PyTorch 옵티마이저(예컨대 Adam)
-        n_epochs (int): 학습 에포크 수
+        n_epochs (int): 트레인 에포크 수
         device (str): 'cpu'나 'cuda'
     
     반환값:
-        list: 에포크마다의 학습 로스
+        list: 에포크마다의 트레인 로스
     
     사용 예:
         >>> from torch.utils.data import DataLoader, TensorDataset
@@ -1181,20 +1181,20 @@ def train_flow(flow_model: nn.Module, dataloader, optimizer,
         >>> model = build_realnvp_model(dim=2, n_layers=6)
         >>> optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
         >>> 
-        >>> # 학습한다!
+        >>> # 트레인한다!
         >>> losses = train_flow(model, dataloader, optimizer, n_epochs=500)
         >>> 
-        >>> # 학습 곡선을 그린다
+        >>> # 트레인 곡선을 그린다
         >>> plot_training_loss(losses)
     """
-    # 모델을 학습 모드로
+    # 모델을 트레인 모드로
     # 그러면 드롭아웃과 배치 정규화 갱신 같은 것이 켜진다
     flow_model.train()
     
     # 그리려 로스 값을 담는 목록
     losses = []
     
-    # 학습 루프
+    # 트레인 루프
     for epoch in range(n_epochs):
         epoch_loss = 0.0  # 이 에포크의 누적값
         n_batches = 0     # 배치를 센다
@@ -1253,27 +1253,27 @@ def train_flow(flow_model: nn.Module, dataloader, optimizer,
 
 def plot_training_loss(losses: list, filename: str = 'training_loss.png'):
     """
-    학습 로스 곡선을 그린다.
+    트레인 로스 곡선을 그린다.
     
     ============================================================================
     목적
     ============================================================================
     로스 곡선을 그려 보면 다음을 알 수 있다:
-    - 학습이 잘 되는가?(로스가 줄어야 한다)
-    - 학습이 수렴했는가?(로스가 평평해진다)
+    - 트레인이 잘 되는가?(로스가 줄어야 한다)
+    - 트레인이 수렴했는가?(로스가 평평해진다)
     - 문제가 있는가?(진동, 발산)
     
     ============================================================================
     해석 가이드
     ============================================================================
-    좋은 학습 곡선:
+    좋은 트레인 곡선:
         - 매끄럽게 줄어든다
         - 마침내 평평해진다
         - 갑자기 치솟지 않는다
         보기: \___  (높이 시작해 떨어지고 평평해진다)
     
     문제:
-        - 평평한 선 → 모델이 학습하지 못한다(러닝레이트와 모델 용량을 확인하라)
+        - 평평한 선 → 모델이 트레인하지 못한다(러닝레이트와 모델 용량을 확인하라)
         - 증가 → 발산한다(러닝레이트를 줄여라)
         - 진동 → 불안정하다(러닝레이트나 배치 크기를 줄여라)
         - 뚝 떨어진 뒤 평평 → 에포크를 더 돌리거나 더 나은 초기화가 필요하다
@@ -1281,13 +1281,13 @@ def plot_training_loss(losses: list, filename: str = 'training_loss.png'):
     ============================================================================
     
     인수:
-        losses (list): 학습에서 나온 로스 값의 목록
+        losses (list): 트레인에서 나온 로스 값의 목록
         filename (str): 그림을 갈무리할 곳
     
     사용 예:
         >>> losses = train_flow(model, dataloader, optimizer, n_epochs=500)
         >>> plot_training_loss(losses)
-        >>> # 학습이 잘 됐는지 training_loss.png로 확인하라
+        >>> # 트레인이 잘 됐는지 training_loss.png로 확인하라
     """
     plt.figure(figsize=(10, 5))
     
@@ -1329,7 +1329,7 @@ def plot_training_loss(losses: list, filename: str = 'training_loss.png'):
 ✓ AffineTransform: 가장 단순한 흐름
 ✓ PlanarFlow: 비선형성 더하기
 ✓ 2차원 흐름 시각화 도구
-✓ 최대 가능도 학습 파이프라인
+✓ 최대 가능도 트레인 파이프라인
 
 다음 단계:
 1. 더 강력한 변환은 아래의 CouplingLayer·BatchNorm 을 공부하라
@@ -1338,9 +1338,9 @@ def plot_training_loss(losses: list, filename: str = 'training_loss.png'):
    - 이미지를 위한 바둑판 패턴
 
 2. 모두 도는 것을 보려면 example_2d_flows.py를 돌려라
-   - 장난감 2차원 데이터셋으로 학습한다
+   - 장난감 2차원 데이터셋으로 트레인한다
    - 변환을 그려 본다
-   - 학습 동역학을 이해한다
+   - 트레인 동역학을 이해한다
 
 3. 네 데이터로 실험해 보라!
    - 2차원 장난감 문제로 시작하라
@@ -1355,7 +1355,7 @@ def plot_training_loss(losses: list, filename: str = 'training_loss.png'):
 잘하는 요령:
 - 늘 그려 보라! 준비된 시각화 도구를 써라
 - 단순하게 시작하라: 2차원 데이터, 적은 레이어
-- 학습 로스를 꼼꼼히 지켜보라
+- 트레인 로스를 꼼꼼히 지켜보라
 - 하이퍼파라메터를 실험하라
 - 가역성을 확인하라: x → z → x가 x를 돌려주어야 한다
 
@@ -1394,7 +1394,7 @@ class CouplingLayer(Flow):
 
         self.scale_net = net()
         self.shift_net = net()
-        # 처음에는 항등 변환이 되게 두면 학습이 훨씬 안정된다
+        # 처음에는 항등 변환이 되게 두면 트레인이 훨씬 안정된다
         nn.init.zeros_(self.scale_net[-1].weight)
         nn.init.zeros_(self.scale_net[-1].bias)
         nn.init.zeros_(self.shift_net[-1].weight)
@@ -1432,7 +1432,7 @@ class BatchNorm(Flow):
     로그 행렬식은 -0.5 * sum(log(var + eps)) 이다.
 
     커플링 레이어를 여러 겹 쌓으면 값의 크기가 레이어마다 흔들리는데, 그 사이에
-    이 레이어를 끼우면 학습이 훨씬 안정된다.
+    이 레이어를 끼우면 트레인이 훨씬 안정된다.
     """
 
     def __init__(self, dim, eps=1e-5, momentum=0.1):
@@ -1472,7 +1472,7 @@ class BatchNorm(Flow):
 
 
 class MNISTFlow:
-    """MNIST 흐름 학습의 래퍼 클래스."""
+    """MNIST 흐름 트레인의 래퍼 클래스."""
     
     def __init__(self, n_layers: int = 8, hidden_dim: int = 256,
                  batch_size: int = 128, lr: float = 1e-4, device: str = None):
@@ -1534,7 +1534,7 @@ class MNISTFlow:
         )
     
     def train_epoch(self, dataloader):
-        """한 에포크를 학습한다."""
+        """한 에포크를 트레인한다."""
         self.model.train()
         total_loss = 0
         num_batches = 0
@@ -1576,7 +1576,7 @@ class MNISTFlow:
         return samples
     
     def train(self, n_epochs: int = 50, save_interval: int = 10):
-        """흐름 모델을 학습한다."""
+        """흐름 모델을 트레인한다."""
         dataloader = self.get_dataloader(train=True)
         
         os.makedirs('samples', exist_ok=True)
@@ -1603,7 +1603,7 @@ class MNISTFlow:
             if epoch % 25 == 0:
                 self.save_checkpoint(f'checkpoint_epoch_{epoch}.pt')
         
-        # 학습 로스 그리기
+        # 트레인 로스 그리기
         plt.figure(figsize=(10, 5))
         plt.plot(losses)
         plt.xlabel('Epoch')
@@ -1650,7 +1650,7 @@ class MNISTFlow:
 import numpy as np
 
 def main():
-    """메인 학습 스크립트."""
+    """메인 트레인 스크립트."""
     print("=" * 50)
     print("MNIST Normalizing Flow Training")
     print("=" * 50)
@@ -1663,7 +1663,7 @@ def main():
         lr=1e-4
     )
     
-    # 학습
+    # 트레인
     mnist_flow.train(n_epochs=50, save_interval=10)
     
     # 마지막 표본을 만든다
@@ -1683,7 +1683,7 @@ if __name__ == "__main__":
 
 기본은 커플링 8개와 BatchNorm 8개, 은닉 256, 배치 128, Adam 러닝레이트 0.0001이며 main은 50에포크를 요청한다. 기저 분포·흐름 합성 도구와 CouplingLayer·BatchNorm이 모두 위 코드 안에 정의되어 있어 다른 모듈을 import하지 않는다. numpy는 클래스 정의 아래에서 import하지만 main 실행 전에 수행되므로 그 위치 자체가 np 참조 오류를 만들지는 않는다.
 
-입력은 `(B,1,28,28)`에서 `(B,784)`로 펼친다. 이 쪽의 CouplingLayer는 전체 784차원을 받는 스케일·이동 MLP 두 개를 사용하고 한쪽 좌표를 마스크로 0 처리한다. 앞 절의 절반 차원 MLP 구현과 다르다. 기본 전체 학습 파라메터는 7,504,392개이며 마스크·running 통계 버퍼는 제외한 값이다.
+입력은 `(B,1,28,28)`에서 `(B,784)`로 펼친다. 이 쪽의 CouplingLayer는 전체 784차원을 받는 스케일·이동 MLP 두 개를 사용하고 한쪽 좌표를 마스크로 0 처리한다. 앞 절의 절반 차원 MLP 구현과 다르다. 기본 전체 트레인 파라메터는 7,504,392개이며 마스크·running 통계 버퍼는 제외한 값이다.
 
 ## 2. Dequantization과 bits/dim
 
@@ -1693,13 +1693,13 @@ if __name__ == "__main__":
 
 [RealNVP 논문](https://arxiv.org/abs/1605.08803)과 [정규화 흐름 리뷰](https://jmlr.org/papers/v22/19-1028.html)는 연속 밀도와 이미지 가능도 평가의 관계를 다룬다. 로그밀도는 좌표 스케일에 의존하므로 전처리와 보정 항을 함께 보고한다.
 
-## 3. 학습 모드 정규화의 한계
+## 3. 트레인 모드 정규화의 한계
 
-이 쪽의 BatchNorm.inverse는 학습 모드에서 현재 입력 배치의 평균·분산을 계산해 정규화한다. 이 통계를 상수로 취급한 로그 스케일을 반환하지만 실제 통계가 배치에 의존하는 연산 전체의 표본별 야코비안을 나타내지는 않는다. 배치 평균을 제거하는 연산은 배치 전체의 공통 이동 정보를 잃기도 한다. 따라서 이 학습 로스를 엄밀한 독립 표본의 정확한 로그가능도로 단정할 수 없다.
+이 쪽의 BatchNorm.inverse는 트레인 모드에서 현재 입력 배치의 평균·분산을 계산해 정규화한다. 이 통계를 상수로 취급한 로그 스케일을 반환하지만 실제 통계가 배치에 의존하는 연산 전체의 표본별 야코비안을 나타내지는 않는다. 배치 평균을 제거하는 연산은 배치 전체의 공통 이동 정보를 잃기도 한다. 따라서 이 트레인 로스를 엄밀한 독립 표본의 정확한 로그가능도로 단정할 수 없다.
 
-평가 모드에서는 고정 running 통계를 사용하므로 양의 분산과 유한 스케일 아래 가역 선형 변환으로 해석할 수 있다. 그러나 학습 모드의 통계를 양방향에서 새로 계산하면 같은 통계가 보장되지 않아 왕복 복원도 일반적으로 성립하지 않는다. BatchNorm이라는 이름이 같다고 흐름용 정규화의 가역성이 보장되는 것은 아니다.
+평가 모드에서는 고정 running 통계를 사용하므로 양의 분산과 유한 스케일 아래 가역 선형 변환으로 해석할 수 있다. 그러나 트레인 모드의 통계를 양방향에서 새로 계산하면 같은 통계가 보장되지 않아 왕복 복원도 일반적으로 성립하지 않는다. BatchNorm이라는 이름이 같다고 흐름용 정규화의 가역성이 보장되는 것은 아니다.
 
-CouplingLayer의 로그 스케일은 tanh에 학습 가능한 exp(scale_cap)을 곱한다. 초기에는 제한되지만 이 배율 자체가 커질 수 있으므로 전체 학습에서 고정된 스케일 상한이 있는 것은 아니다. 그래디언트 클리핑도 이 문제나 위 밀도 계약을 자동 해결하지 않는다.
+CouplingLayer의 로그 스케일은 tanh에 트레인 가능한 exp(scale_cap)을 곱한다. 초기에는 제한되지만 이 배율 자체가 커질 수 있으므로 전체 트레인에서 고정된 스케일 상한이 있는 것은 아니다. 그래디언트 클리핑도 이 문제나 위 밀도 계약을 자동 해결하지 않는다.
 
 ## 4. 기록·생성과 체크포인트
 
@@ -1707,20 +1707,20 @@ CouplingLayer의 로그 스케일은 tanh에 학습 가능한 exp(scale_cap)을 
 
 sample_images는 eval·no_grad로 생성한 연속 출력을 0~1로 clipping한다. 이는 표시용 후처리이며 clipping 전 연속 흐름의 표본과 다르다. clipping한 픽셀은 경계에 질량을 만들 수 있어 원래 log_prob로 그 후처리 분포의 밀도를 평가할 수 없다. 다음 train_epoch는 다시 train 모드를 설정한다.
 
-체크포인트는 모델·옵티마이저 상태만 저장하고 구조·전처리·에포크·난수 상태는 저장하지 않는다. 복원 전에 같은 구조를 만들어야 하며 재학습 재현에 필요한 설정은 별도 기록해야 한다. 이 절은 새 성능 수치·그림을 제시하지 않는다.
+체크포인트는 모델·옵티마이저 상태만 저장하고 구조·전처리·에포크·난수 상태는 저장하지 않는다. 복원 전에 같은 구조를 만들어야 하며 재트레인 재현에 필요한 설정은 별도 기록해야 한다. 이 절은 새 성능 수치·그림을 제시하지 않는다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-매 배치 zero_grad가 필요한 이유와 누적 학습의 차이를 설명하라.
+매 배치 zero_grad가 필요한 이유와 누적 트레인의 차이를 설명하라.
 
 </div>
 
 ??? success "풀이"
 
-    현재 루프는 매 배치 step하므로 기존 그래디언트를 초기화하지 않으면 이전 배치 그래디언트가 계속 더해져 원래와 다른 업데이트가 된다. 단순한 러닝레이트 배수나 반드시 발산하는 과정이라고 설명할 수는 없다. 의도한 누적은 여러 배치 로스의 스케일을 맞춰 backward한 뒤 한 번 step하고 초기화한다. 정규화 레이어의 배치 통계도 바뀌므로 누적만으로 큰 배치와 완전히 같은 학습이 되는 것은 아니다.
+    현재 루프는 매 배치 step하므로 기존 그래디언트를 초기화하지 않으면 이전 배치 그래디언트가 계속 더해져 원래와 다른 업데이트가 된다. 단순한 러닝레이트 배수나 반드시 발산하는 과정이라고 설명할 수는 없다. 의도한 누적은 여러 배치 로스의 스케일을 맞춰 backward한 뒤 한 번 step하고 초기화한다. 정규화 레이어의 배치 통계도 바뀌므로 누적만으로 큰 배치와 완전히 같은 트레인이 되는 것은 아니다.
 
 
 
@@ -1750,7 +1750,7 @@ sample_images는 eval·no_grad로 생성한 연속 출력을 0~1로 clipping한�
 
 ??? success "풀이"
 
-    첫째, 학습 배치 통계를 새로 계산하는 BatchNorm의 반환값을 독립 표본의 정확한 야코비안 로그값으로 읽을 수 없다. 둘째, k/255+u/256 전처리와 보정 없는 bpd는 표준 정수 MNIST bits/dim과 다르다. 평가 모드의 고정 통계에서 모형 밀도를 정의하고, 정수 픽셀 구간·연속화·야코비안 보정을 일관되게 정해야 한다. 밝은 샘플 격자나 감소한 학습 로스만으로 두 문제가 사라지지는 않는다.
+    첫째, 트레인 배치 통계를 새로 계산하는 BatchNorm의 반환값을 독립 표본의 정확한 야코비안 로그값으로 읽을 수 없다. 둘째, k/255+u/256 전처리와 보정 없는 bpd는 표준 정수 MNIST bits/dim과 다르다. 평가 모드의 고정 통계에서 모형 밀도를 정의하고, 정수 픽셀 구간·연속화·야코비안 보정을 일관되게 정해야 한다. 밝은 샘플 격자나 감소한 트레인 로스만으로 두 문제가 사라지지는 않는다.
 
 
 
@@ -1772,7 +1772,7 @@ sample_images는 eval·no_grad로 생성한 연속 출력을 0~1로 clipping한�
     patience_counter = 0
     best_state = None
     for epoch in range(num_epochs):
-        # ... 학습 단계 ...
+        # ... 트레인 단계 ...
         val_loss = evaluate(model, val_loader)
         if val_loss < best_loss:
             best_loss = val_loss
@@ -1789,4 +1789,4 @@ sample_images는 eval·no_grad로 생성한 연속 출력을 0~1로 clipping한�
 
 ## 정리하며
 
-MNIST 흐름 예제는 학습·생성의 연결을 보여 주지만 전처리·bits/dim·배치 정규화의 밀도 해석에 주의가 필요하다. 고정 통계의 평가 모형과 학습 중 연산을 구분하고 출력 clipping·체크포인트 설정도 명시해야 결과를 비교할 수 있다.
+MNIST 흐름 예제는 트레인·생성의 연결을 보여 주지만 전처리·bits/dim·배치 정규화의 밀도 해석에 주의가 필요하다. 고정 통계의 평가 모형과 트레인 중 연산을 구분하고 출력 clipping·체크포인트 설정도 명시해야 결과를 비교할 수 있다.

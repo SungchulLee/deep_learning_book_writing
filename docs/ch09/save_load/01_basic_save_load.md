@@ -1,6 +1,6 @@
 # 기본적인 저장과 불러오기
 
-PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저장하고 복원하는 방법을 비교한다. 추론에 필요한 정보와 학습 재개에 필요한 상태를 구분하는 것이 핵심이다.
+PyTorch 모델의 상태 사전, 전체 객체와 트레인 체크포인트를 저장하고 복원하는 방법을 비교한다. 추론에 필요한 정보와 트레인 재개에 필요한 상태를 구분하는 것이 핵심이다.
 
 ## 1. 코드
 
@@ -158,7 +158,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
         print(f"{name}: shape {param.shape}")
         print(f"  Values: {param.data.flatten()[:5]}...")  # 처음 값 5개 보이기
 
-    # 실제로는 여기서 모델을 학습시킬 것이다
+    # 실제로는 여기서 모델을 트레인시킬 것이다
     # 시연이므로 무작위로 초기화된 웨이트를 쓴다
     print("\n🔧 (In production: Train your model here)")
 
@@ -260,7 +260,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
 
 
     # ============================================================
-    # 방법 3: 학습 체크포인트를 저장하고 불러오기
+    # 방법 3: 트레인 체크포인트를 저장하고 불러오기
     # ============================================================
 
     print("\n" + "=" * 60)
@@ -268,16 +268,16 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     print("=" * 60)
 
     """
-    체크포인트는 학습 상태 전체를 저장하여 다음을 할 수 있게 해 준다:
-    - 멈춘 곳에서 학습을 이어 간다
-    - 학습 중 가장 좋은 모델을 저장한다
+    체크포인트는 트레인 상태 전체를 저장하여 다음을 할 수 있게 해 준다:
+    - 멈춘 곳에서 트레인을 이어 간다
+    - 트레인 중 가장 좋은 모델을 저장한다
     - 프로세스가 죽거나 끊겨도 복구할 수 있다
 
     체크포인트에 흔히 담는 것:
     1. 모델의 상태 사전
     2. 옵티마이저의 상태 사전
     3. 현재 에포크 번호
-    4. 학습 로스 이력
+    4. 트레인 로스 이력
     5. 러닝레이트 스케줄러의 상태
     6. 난수 생성기의 상태 (재현성을 위해)
     """
@@ -287,7 +287,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     learning_rate = 0.01
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
-    # 학습 진행 시뮬레이션
+    # 트레인 진행 시뮬레이션
     print("\n🏋️  Simulating training progress...")
     print(f"   Current epoch: 90")
     print(f"   Learning rate: {learning_rate}")
@@ -319,7 +319,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
         else:
             print(f"  {key}: {checkpoint[key]}")
 
-    # 불러오기: 학습 상태 복원
+    # 불러오기: 트레인 상태 복원
     print(f"\n📂 Loading checkpoint from '{FILE}'...")
 
     # 1단계: 모델과 옵티마이저 다시 만들기
@@ -335,7 +335,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     # 4단계: 옵티마이저의 상태 복원
     optimizer.load_state_dict(checkpoint['optim_state'])
 
-    # 5단계: 그 밖의 학습 파라메터 복원
+    # 5단계: 그 밖의 트레인 파라메터 복원
     epoch = checkpoint['epoch']
     loss = checkpoint.get('loss', None)  # 선택적인 키에는 .get()을 쓴다
     accuracy = checkpoint.get('accuracy', None)
@@ -356,7 +356,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     model.eval()
     print("   Current mode: EVAL")
 
-    # 또는 학습을 이어 갈 때
+    # 또는 트레인을 이어 갈 때
     # model.train()
     # print("   Current mode: TRAIN")
 
@@ -383,7 +383,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     print("\n📱 Scenario 1: Save on GPU, Load on CPU")
     print("-" * 60)
     print("""
-    # GPU에서 학습
+    # GPU에서 트레인
     device = torch.device("cuda")
     model.to(device)
     torch.save(model.state_dict(), PATH)
@@ -398,7 +398,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     print("\n🖥️  Scenario 2: Save on GPU, Load on GPU")
     print("-" * 60)
     print("""
-    # GPU에서 학습
+    # GPU에서 트레인
     device = torch.device("cuda")
     model.to(device)
     torch.save(model.state_dict(), PATH)
@@ -415,7 +415,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     print("\n🔄 Scenario 3: Save on CPU, Load on GPU")
     print("-" * 60)
     print("""
-    # CPU에서 학습
+    # CPU에서 트레인
     torch.save(model.state_dict(), PATH)
 
     # GPU에서 추론
@@ -424,14 +424,14 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     model.load_state_dict(torch.load(PATH, map_location="cuda:0"))  # GPU 지정
     model.to(device)
 
-    # GPU 없는 로컬 기계에서 학습하고 GPU 서버에 배포할 때
+    # GPU 없는 로컬 기계에서 트레인하고 GPU 서버에 배포할 때
     # 흔히 있는 일이다
     """)
 
     print("\n🎯 Scenario 4: Multi-GPU Considerations")
     print("-" * 60)
     print("""
-    # 모델을 DataParallel이나 DistributedDataParallel으로 학습시켰다면:
+    # 모델을 DataParallel이나 DistributedDataParallel으로 트레인시켰다면:
 
     # 저장: 'module.' 접두사가 있으면 없앤다
     state_dict = model.state_dict()
@@ -470,7 +470,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     --------
     1. 실서비스에서는 .state_dict() 방식으로 모델을 저장하라
     2. 추론 앞에서 늘 model.eval()을 부르라
-    3. 데이터 손실을 막으려면 학습 중에 체크포인트를 저장하라
+    3. 데이터 손실을 막으려면 트레인 중에 체크포인트를 저장하라
     4. 버전과 에포크 정보를 담은 뜻 있는 파일 이름을 써라
        예: 'model_epoch50_acc0.95.pth'
     5. 체크포인트와 함께 하이퍼파라메터를 저장하라
@@ -494,10 +494,10 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     2. 불러올 때 CUDA 메모리 부족
        → 먼저 CPU로 불러오려면 map_location='cpu'를 쓰라
 
-    3. 추론할 때와 학습할 때 동작이 다르다
+    3. 추론할 때와 트레인할 때 동작이 다르다
        → model.eval()을 부르지 않았다
 
-    4. 학습을 제대로 이어 갈 수 없다
+    4. 트레인을 제대로 이어 갈 수 없다
        → 옵티마이저 상태를 저장하거나 불러오기를 잊었다
 
     5. DataParallel의 모듈 접두사가 맞지 않음
@@ -629,7 +629,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     📱 Scenario 1: Save on GPU, Load on CPU
     ------------------------------------------------------------
 
-    # GPU에서 학습
+    # GPU에서 트레인
     device = torch.device("cuda")
     model.to(device)
     torch.save(model.state_dict(), PATH)
@@ -644,7 +644,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     🖥️  Scenario 2: Save on GPU, Load on GPU
     ------------------------------------------------------------
 
-    # GPU에서 학습
+    # GPU에서 트레인
     device = torch.device("cuda")
     model.to(device)
     torch.save(model.state_dict(), PATH)
@@ -661,7 +661,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     🔄 Scenario 3: Save on CPU, Load on GPU
     ------------------------------------------------------------
 
-    # CPU에서 학습
+    # CPU에서 트레인
     torch.save(model.state_dict(), PATH)
 
     # GPU에서 추론
@@ -670,14 +670,14 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     model.load_state_dict(torch.load(PATH, map_location="cuda:0"))  # GPU 지정
     model.to(device)
 
-    # GPU 없는 로컬 기계에서 학습하고 GPU 서버에 배포할 때
+    # GPU 없는 로컬 기계에서 트레인하고 GPU 서버에 배포할 때
     # 흔히 있는 일이다
 
 
     🎯 Scenario 4: Multi-GPU Considerations
     ------------------------------------------------------------
 
-    # 모델을 DataParallel이나 DistributedDataParallel으로 학습시켰다면:
+    # 모델을 DataParallel이나 DistributedDataParallel으로 트레인시켰다면:
 
     # 저장: 'module.' 접두사가 있으면 없앤다
     state_dict = model.state_dict()
@@ -710,7 +710,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     --------
     1. 실서비스에서는 .state_dict() 방식으로 모델을 저장하라
     2. 추론 앞에서 늘 model.eval()을 부르라
-    3. 데이터 손실을 막으려면 학습 중에 체크포인트를 저장하라
+    3. 데이터 손실을 막으려면 트레인 중에 체크포인트를 저장하라
     4. 버전과 에포크 정보를 담은 뜻 있는 파일 이름을 써라
        예: 'model_epoch50_acc0.95.pth'
     5. 체크포인트와 함께 하이퍼파라메터를 저장하라
@@ -734,10 +734,10 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
     2. 불러올 때 CUDA 메모리 부족
        → 먼저 CPU로 불러오려면 map_location='cpu'를 쓰라
        
-    3. 추론할 때와 학습할 때 동작이 다르다
+    3. 추론할 때와 트레인할 때 동작이 다르다
        → model.eval()을 부르지 않았다
        
-    4. 학습을 제대로 이어 갈 수 없다
+    4. 트레인을 제대로 이어 갈 수 없다
        → 옵티마이저 상태를 저장하거나 불러오기를 잊었다
        
     5. DataParallel의 모듈 접두사가 맞지 않음
@@ -773,7 +773,7 @@ PyTorch 모델의 상태 사전, 전체 객체와 학습 체크포인트를 저�
 
 state_dict에는 파라메터와 영속 버퍼가 담기며 모델의 파이썬 구조나 입력 전처리는 포함하지 않는다. 복원할 모델을 먼저 만들고 키와 텐서 형태를 맞춰 load_state_dict에 전달한다. map_location은 저장된 텐서의 장치 매핑을 지정하며, 입력과 모델을 같은 장치로 옮기는 작업까지 대신하지는 않는다.
 
-학습 재개에는 옵티마이저의 모멘텀·모멘트, 스케줄러, 혼합 정밀도 스케일러와 반복 위치 등이 추가로 필요할 수 있다. 정확한 경로 재현에는 난수 상태와 데이터 순서도 고려한다. state_dict()는 텐서 참조를 담는 얕은 복사이므로, 메모리에 최적 상태를 보관할 때는 deepcopy나 실제 직렬화가 필요하다. 평가 모드와 자동 미분 비활성화는 불러오기와 별도로 설정한다.
+트레인 재개에는 옵티마이저의 모멘텀·모멘트, 스케줄러, 혼합 정밀도 스케일러와 반복 위치 등이 추가로 필요할 수 있다. 정확한 경로 재현에는 난수 상태와 데이터 순서도 고려한다. state_dict()는 텐서 참조를 담는 얕은 복사이므로, 메모리에 최적 상태를 보관할 때는 deepcopy나 실제 직렬화가 필요하다. 평가 모드와 자동 미분 비활성화는 불러오기와 별도로 설정한다.
 
 ## 연습문제
 
@@ -798,7 +798,7 @@ best_state=model.state_dict()만으로 최적 웨이트를 메모리에 보관�
 </div>
 
 ??? success "풀이"
-    사전에 담긴 텐서가 모델의 저장 공간을 참조하므로 이후 학습에 따라 값이 바뀔 수 있다. deepcopy로 독립 복사하거나 그 시점에 파일로 저장한다.
+    사전에 담긴 텐서가 모델의 저장 공간을 참조하므로 이후 트레인에 따라 값이 바뀔 수 있다. deepcopy로 독립 복사하거나 그 시점에 파일로 저장한다.
 
 ---
 
@@ -806,13 +806,13 @@ best_state=model.state_dict()만으로 최적 웨이트를 메모리에 보관�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-추론은 맞는데 학습 재개 후 경로가 달라진다면 어떤 상태를 점검해야 하는가?
+추론은 맞는데 트레인 재개 후 경로가 달라진다면 어떤 상태를 점검해야 하는가?
 
 </div>
 
 ??? success "풀이"
-    옵티마이저와 스케줄러 상태, 스케일러, 에포크·배치 위치, 난수 상태와 데이터 순서를 점검한다. 모델·입력의 장치, 자료형과 학습 모드도 확인한다.
+    옵티마이저와 스케줄러 상태, 스케일러, 에포크·배치 위치, 난수 상태와 데이터 순서를 점검한다. 모델·입력의 장치, 자료형과 트레인 모드도 확인한다.
 
 ## 정리하며
 
-저장 형식은 복원 목적에 맞춰 선택한다. 구조와 전처리, 텐서 상태, 학습 상태의 저장 범위를 명시하고 사용 버전의 torch.load 동작을 확인해야 한다.
+저장 형식은 복원 목적에 맞춰 선택한다. 구조와 전처리, 텐서 상태, 트레인 상태의 저장 범위를 명시하고 사용 버전의 torch.load 동작을 확인해야 한다.

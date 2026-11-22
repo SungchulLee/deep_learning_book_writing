@@ -156,7 +156,7 @@ $$
 
 ```python
 def visualize_filters(model, layer_name):
-    """학습된 컨볼루션 필터를 그린다."""
+    """트레인된 컨볼루션 필터를 그린다."""
     for name, module in model.named_modules():
         if name == layer_name and isinstance(module, nn.Conv2d):
             weights = module.weight.data.cpu()

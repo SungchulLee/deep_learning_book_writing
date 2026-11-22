@@ -80,7 +80,7 @@ class Example1_BinaryClassification:
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
         
-        # 모델 학습
+        # 모델 트레인
         print("\n3. TRAINING MODELS")
         print("-" * 80)
         
@@ -188,7 +188,7 @@ class Example2_MulticlassClassification:
             X, y, test_size=0.3, stratify=y, random_state=42
         )
         
-        # 모델을 학습시킨다
+        # 모델을 트레인시킨다
         print("\n3. TRAINING MODEL")
         print("-" * 80)
         model = RandomForestClassifier(n_estimators=100, random_state=42)
@@ -269,7 +269,7 @@ class Example3_Regression:
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
         
-        # 모델 학습
+        # 모델 트레인
         print("\n3. TRAINING MODELS")
         print("-" * 80)
         
@@ -567,7 +567,7 @@ if __name__ == "__main__":
 
 이진 분류는 make_classification으로 만든 불균형 합성 데이터이며 실제 거래 데이터가 아니다. 회귀도 make_regression으로 생성한 목표를 200,000~700,000 범위로 선형 변환해 금액처럼 보이게 했을 뿐이므로 RMSE를 실제 주택 가격이나 달러 오차로 해석할 수 없다.
 
-이진 분류와 회귀는 외부 학습 부분 전체를 표준화한 뒤 내부 교차 검증을 수행한다. 외부 시험 집합을 scaler에 fit하지는 않았지만 내부 검증 입력의 통계가 전처리에 반영된다. 엄격한 내부 평가에는 scaler와 모델을 Pipeline으로 함께 검증해야 한다.
+이진 분류와 회귀는 외부 트레인 부분 전체를 표준화한 뒤 내부 교차 검증을 수행한다. 외부 시험 집합을 scaler에 fit하지는 않았지만 내부 검증 입력의 통계가 전처리에 반영된다. 엄격한 내부 평가에는 scaler와 모델을 Pipeline으로 함께 검증해야 한다.
 
 여러 모델의 최종 시험 지표를 비교해 가장 좋은 모델을 고르면 시험 집합이 선택에 쓰인다. 선택 기준은 검증에서 정하고 마지막 시험 평가를 독립적으로 해석한다. 불균형 분류의 F1, 재현율과 확률 지표는 각각 다른 질문에 답한다.
 

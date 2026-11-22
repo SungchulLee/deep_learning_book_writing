@@ -10,7 +10,7 @@
 
 그런데 위로 올라오는 단어가 통째로 바뀐다.
 
-![두 줄로 나란히 적은 단어 열두 개씩. 왼쪽 평균 쪽은 and, is, of, great, in, as, the, his, very, a, best, love 인데 그 가운데 아홉이 뜻 없는 흔한 말이라 흐리게 적혀 있다. 오른쪽 학습 쪽은 great, excellent, wonderful, best, love, perfect, amazing, well, beautiful, loved, highly, favorite 로 열둘이 모두 좋고 나쁨을 말하는 말이다](figures/lead_words.svg)
+![두 줄로 나란히 적은 단어 열두 개씩. 왼쪽 평균 쪽은 and, is, of, great, in, as, the, his, very, a, best, love 인데 그 가운데 아홉이 뜻 없는 흔한 말이라 흐리게 적혀 있다. 오른쪽 트레인 쪽은 great, excellent, wonderful, best, love, perfect, amazing, well, beautiful, loved, highly, favorite 로 열둘이 모두 좋고 나쁨을 말하는 말이다](figures/lead_words.svg)
 
 **왼쪽 열둘 가운데 아홉이 뜻 없는 말이다.** `and`, `is`, `the`, `a` 따위가 위로 올라와 있다. 평균을 내면 **자주 나오는 말이 이긴다**. 좋은 평에도 나쁜 평에도 `the`는 잔뜩 들어 있는데, 평균은 그 사실을 알 길이 없다.
 
@@ -20,26 +20,26 @@
 
 </div>
 
-[스텝1](01_counting.md)은 단어 세기 벡터를 클래스마다 평균 냈다. 이 절은 **같은 벡터를 그대로 쓰되 웨이트를 학습한다.**
+[스텝1](01_counting.md)은 단어 세기 벡터를 클래스마다 평균 냈다. 이 절은 **같은 벡터를 그대로 쓰되 웨이트를 트레인한다.**
 
 바뀌는 것이 그것 하나뿐이다. 피처도 같고 파라메터 수도 사실상 같다.
 
 | | 파라메터 | 그 값을 어떻게 정하는가 |
 |---|---|---|
 | [스텝1 최근접 중심](01_counting.md) | 40,000 | 클래스마다 **평균**을 낸다 |
-| 스텝2 선형 학습 | 40,002 | 데이터에 맞추어 **학습한다** |
+| 스텝2 선형 학습 | 40,002 | 데이터에 맞추어 **트레인한다** |
 
-둘 늘어난 것은 바이어스(bias)이다. [3장 1→스텝2](../ch03/mnist/01_template_learning.md)가 7,850개로 똑같았던 것과 같은 자리이며, 묻는 것도 같다. **평균 대신 학습하면 얼마를 버는가.**
+둘 늘어난 것은 바이어스(bias)이다. [3장 1→스텝2](../ch03/mnist/01_template_learning.md)가 7,850개로 똑같았던 것과 같은 자리이며, 묻는 것도 같다. **평균 대신 트레인하면 얼마를 버는가.**
 
 ---
 
 ## 1. 코드
 
 ```python
-"""스텝2: 같은 단어 세기 벡터에 웨이트를 학습시킨다.
+"""스텝2: 같은 단어 세기 벡터에 웨이트를 트레인시킨다.
 
 스텝1과 피처가 같고 파라메터 수도 사실상 같다(40,000 대 40,002 — 치우침 둘).
-다른 것은 그 수를 평균으로 못박느냐 자료에 맞추어 학습하느냐뿐이다.
+다른 것은 그 수를 평균으로 못박느냐 자료에 맞추어 트레인하느냐뿐이다.
 3장 1→스텝2와 같은 실험이며, 자료 손질 부분은 스텝1과 같다.
 """
 import re
@@ -75,7 +75,7 @@ def load(split):
 
 train_docs, train_y = load("train")
 test_docs,  test_y  = load("test")
-print(f"자료 학습 {len(train_docs):,}편  시험 {len(test_docs):,}편")
+print(f"자료 트레인 {len(train_docs):,}편  시험 {len(test_docs):,}편")
 print(f"평 하나의 단어 수: 가운뎃값 {int(np.median([len(d) for d in train_docs]))}  "
       f"가장 짧은 것 {min(len(d) for d in train_docs)}  가장 긴 것 {max(len(d) for d in train_docs)}")
 
@@ -109,7 +109,7 @@ def normalize(X):
 Xtr_n, Xte_n = normalize(Xtr), normalize(Xte)
 
 # =============================================================================
-# 스텝2: 웨이트를 학습한다
+# 스텝2: 웨이트를 트레인한다
 # =============================================================================
 device = torch.device("cpu")          # 선형 모형 하나라 CPU로 넉넉하다
 EPOCHS, BATCH, LR = 5, 100, 1e-3      # 3장과 같은 규약
@@ -146,17 +146,17 @@ for s in range(5):
 print(f"\n스텝2 선형 학습  평균 {sum(accs)/len(accs):.2f}%  스프레드 {max(accs)-min(accs):.2f} "
       f"({min(accs):.2f}~{max(accs):.2f})  파라메터 {n_par:,}")
 
-# 학습이 어떤 단어를 골랐는가. 좋은 쪽 웨이트에서 나쁜 쪽을 뺀다
+# 트레인이 어떤 단어를 골랐는가. 좋은 쪽 웨이트에서 나쁜 쪽을 뺀다
 W = model.weight.detach().numpy()
 score = W[1] - W[0]
-print("\n학습이 고른 좋은 쪽 단어:", ", ".join(vocab[i] for i in np.argsort(score)[-12:][::-1]))
-print("학습이 고른 나쁜 쪽 단어:", ", ".join(vocab[i] for i in np.argsort(score)[:12]))
+print("\n트레인이 고른 좋은 쪽 단어:", ", ".join(vocab[i] for i in np.argsort(score)[-12:][::-1]))
+print("트레인이 고른 나쁜 쪽 단어:", ", ".join(vocab[i] for i in np.argsort(score)[:12]))
 ```
 
 **출력:**
 
 ```
-자료 학습 25,000편  시험 25,000편
+자료 트레인 25,000편  시험 25,000편
 평 하나의 단어 수: 가운뎃값 173  가장 짧은 것 10  가장 긴 것 2462
 단어 85,680가지 가운데 20,000개를 쓴다
   시드 0  78.69%
@@ -167,8 +167,8 @@ print("학습이 고른 나쁜 쪽 단어:", ", ".join(vocab[i] for i in np.args
 
 스텝2 선형 학습  평균 78.80%  스프레드 0.23 (78.69~78.92)  파라메터 40,002
 
-학습이 고른 좋은 쪽 단어: great, excellent, wonderful, best, love, perfect, amazing, well, beautiful, loved, highly, favorite
-학습이 고른 나쁜 쪽 단어: worst, bad, awful, waste, no, poor, worse, boring, nothing, terrible, even, money
+트레인이 고른 좋은 쪽 단어: great, excellent, wonderful, best, love, perfect, amazing, well, beautiful, loved, highly, favorite
+트레인이 고른 나쁜 쪽 단어: worst, bad, awful, waste, no, poor, worse, boring, nothing, terrible, even, money
 ```
 
 ---
@@ -195,16 +195,16 @@ print("학습이 고른 나쁜 쪽 단어:", ", ".join(vocab[i] for i in np.args
 | | 위쪽 단어 열둘 |
 |---|---|
 | [스텝1 평균](01_counting.md) | **and, is, of,** great, **in, as, the, his,** very, **a,** best, love |
-| 스텝2 학습 | great, excellent, wonderful, best, love, perfect, amazing, well, beautiful, loved, highly, favorite |
+| 스텝2 트레인 | great, excellent, wonderful, best, love, perfect, amazing, well, beautiful, loved, highly, favorite |
 
-**굵게 칠한 것이 사라졌다.** 평균이 위로 올린 `and`, `is`, `of`, `the`, `a`가 학습에서는 하나도 남지 않는다. 열두 자리가 전부 뜻을 가진 단어다. 나쁜 쪽도 마찬가지다 — `this`, `was`, `to`, `i`, `have`가 빠지고 `awful`, `waste`, `poor`, `boring`, `terrible`이 들어온다.
+**굵게 칠한 것이 사라졌다.** 평균이 위로 올린 `and`, `is`, `of`, `the`, `a`가 트레인에서는 하나도 남지 않는다. 열두 자리가 전부 뜻을 가진 단어다. 나쁜 쪽도 마찬가지다 — `this`, `was`, `to`, `i`, `have`가 빠지고 `awful`, `waste`, `poor`, `boring`, `terrible`이 들어온다.
 
-까닭은 학습이 **웨이트를 낮출 수 있기** 때문이다. 평균은 모든 단어를 똑같이 세어 더할 뿐이라, 자주 나오는 단어가 판정을 좌우하는 것을 막을 방법이 없었다. 학습은 `the`의 웨이트를 0 가까이 두고 `excellent`의 웨이트를 키운다.
+까닭은 트레인이 **웨이트를 낮출 수 있기** 때문이다. 평균은 모든 단어를 똑같이 세어 더할 뿐이라, 자주 나오는 단어가 판정을 좌우하는 것을 막을 방법이 없었다. 트레인은 `the`의 웨이트를 0 가까이 두고 `excellent`의 웨이트를 키운다.
 
 !!! note "3장에서도 같은 일이 있었다"
-    [3장 스텝2](../ch03/linear_softmax/06_implementation.md)에서 학습된 웨이트에 **음수**가 섞여 있는 것을 보았다. 클래스 평균은 "3은 이렇게 생겼다"만 담을 수 있는데 학습은 **"여기가 켜져 있으면 3이 아니다"**를 담는다.
+    [3장 스텝2](../ch03/linear_softmax/06_implementation.md)에서 트레인된 웨이트에 **음수**가 섞여 있는 것을 보았다. 클래스 평균은 "3은 이렇게 생겼다"만 담을 수 있는데 트레인은 **"여기가 켜져 있으면 3이 아니다"**를 담는다.
 
-    여기서도 같다. 평균은 "좋은 평에는 이런 단어가 있다"만 담고, 학습은 **"이 단어는 아무 평에나 있으니 무시하라"**를 담는다. 둘 다 평균이 표현할 수 없는 것이다.
+    여기서도 같다. 평균은 "좋은 평에는 이런 단어가 있다"만 담고, 트레인은 **"이 단어는 아무 평에나 있으니 무시하라"**를 담는다. 둘 다 평균이 표현할 수 없는 것이다.
 
 ---
 
@@ -232,7 +232,7 @@ print("학습이 고른 나쁜 쪽 단어:", ", ".join(vocab[i] for i in np.args
 
     스텝1의 40,000개는 **두 중심의 좌표**다. 모두 0 이상이다. 단어를 세어 평균을 냈으므로 음수가 나올 수 없다.
 
-    스텝2는 웨이트와 바이어스를 분류 목적에 맞춰 학습한다. 최근접 중심도 두 거리의 차이를 전개하면 중심 차이로 만든 선형 점수가 되고 음수 계수를 가질 수 있다. 따라서 음수의 가능성 자체보다, 클래스 평균으로 제한된 계수를 교차 엔트로피에 맞춰 자유롭게 조정하는 것이 차이다.
+    스텝2는 웨이트와 바이어스를 분류 목적에 맞춰 트레인한다. 최근접 중심도 두 거리의 차이를 전개하면 중심 차이로 만든 선형 점수가 되고 음수 계수를 가질 수 있다. 따라서 음수의 가능성 자체보다, 클래스 평균으로 제한된 계수를 교차 엔트로피에 맞춰 자유롭게 조정하는 것이 차이다.
 
     수는 같지만 스텝1은 그 수의 **부분집합**만 쓸 수 있는 계산이다. 이것이 두 스텝의 차이를 설명하는 한 가지 까닭이며, [3장 스텝2](../ch03/linear_softmax/06_implementation.md)가 같은 이야기를 그림으로 보인다.
 
@@ -248,7 +248,7 @@ print("학습이 고른 나쁜 쪽 단어:", ", ".join(vocab[i] for i in np.args
 ??? success "풀이"
     **단어 주머니로는 정말 같다.** 두 문장에 나오는 단어가 같고 횟수도 같으므로 세기 벡터가 한 칸도 다르지 않다.
 
-    그러므로 이 모델은 둘을 **원리적으로** 가를 수 없다. 더 오래 학습하거나 단어를 더 많이 넣어도 안 된다. 두 입력이 같은 벡터이면 같은 출력이 나온다.
+    그러므로 이 모델은 둘을 **원리적으로** 가를 수 없다. 더 오래 트레인하거나 단어를 더 많이 넣어도 안 된다. 두 입력이 같은 벡터이면 같은 출력이 나온다.
 
     이런 예가 데이터에 얼마나 있는지가 실제 손해를 정한다. 확인하려면 세기 벡터가 같으면서 정답이 다른 평의 짝을 세어 보면 된다. IMDB에서 완전히 같은 짝은 드물지만, **거의 같은** 짝은 흔하다 — "재미없지 않다"와 "재미없다"는 단어 하나 차이다.
 
@@ -261,7 +261,7 @@ print("학습이 고른 나쁜 쪽 단어:", ", ".join(vocab[i] for i in np.args
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
 본문은 "단어를 세는 한 이 벽을 넘을 수 없다"고 말한다. 그 벽이 얼마나 많은 평에 걸리는지 재어라.
 
-학습이 고른 좋은 쪽 단어 열두 개와 나쁜 쪽 단어 열두 개를 집합으로 두고, 시험 평 25,000편을 넷으로 나누어라 — **양쪽이 함께 있는 평**, 좋은 쪽만, 나쁜 쪽만, 어느 쪽도 없음. 그리고 한쪽만 있는 평에서 그 신호가 정답과 맞는 비율도 계산하라.
+트레인이 고른 좋은 쪽 단어 열두 개와 나쁜 쪽 단어 열두 개를 집합으로 두고, 시험 평 25,000편을 넷으로 나누어라 — **양쪽이 함께 있는 평**, 좋은 쪽만, 나쁜 쪽만, 어느 쪽도 없음. 그리고 한쪽만 있는 평에서 그 신호가 정답과 맞는 비율도 계산하라.
 
 </div>
 

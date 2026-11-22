@@ -36,7 +36,7 @@ from PIL import Image
 # 도우미 함수
 # ========================================================================
 
-# ImageNet으로 학습한 모델이 쓰는 값. 전처리할 때와 되돌릴 때 같은 값을 써야 한다.
+# ImageNet으로 트레인한 모델이 쓰는 값. 전처리할 때와 되돌릴 때 같은 값을 써야 한다.
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
@@ -51,10 +51,10 @@ def get_device():
 
 
 def load_pretrained_model(model_name="resnet50", device=None, eval_mode=True):
-    """torchvision에서 사전 학습된 모델을 불러온다.
+    """torchvision에서 사전 트레인된 모델을 불러온다.
 
-    다운로드가 안 되면(네트워크가 없을 때) 학습하지 않은 모델로 대체한다. 그래디언트
-    방법을 보이는 데에는 가중치가 실제로 학습된 것이 아니어도 맵이 나온다.
+    다운로드가 안 되면(네트워크가 없을 때) 트레인하지 않은 모델로 대체한다. 그래디언트
+    방법을 보이는 데에는 가중치가 실제로 트레인된 것이 아니어도 맵이 나온다.
     """
     from torchvision import models
 
@@ -62,7 +62,7 @@ def load_pretrained_model(model_name="resnet50", device=None, eval_mode=True):
     try:
         model = getattr(models, model_name)(weights="DEFAULT")
     except Exception:
-        print(f"  사전 학습 가중치를 받지 못했다 — {model_name}을 무작위 초기화 상태로 쓴다.")
+        print(f"  사전 트레인 가중치를 받지 못했다 — {model_name}을 무작위 초기화 상태로 쓴다.")
         model = getattr(models, model_name)(weights=None)
 
     model = model.to(device)
@@ -259,7 +259,7 @@ Guided Backpropagation을 설정한다...
 </div>
 
 ??? success "풀이"
-    (1) **ReLU만 바꾸고 나머지 레이어는 그대로 둔다** -- Guided Backpropagation의 차이는 ReLU를 지나는 역전파 규칙 하나뿐이므로, 모델의 ReLU 모듈만 찾아 바꾸면(`replace_relu_with_guided`) 사전 학습된 웨이트를 그대로 쓸 수 있다. (2) **두 마스크의 곱** -- `(∂L/∂y > 0)` 과 `(x > 0)` 을 곱해 순전파에서 꺼진 뉴런과 음수 그래디언트를 함께 막는다. 이것이 맵을 선명하게 만드는 원인이다. (3) **채널 축 절댓값 최대**(`torch.max(torch.abs(guided_grads), dim=1)`) -- RGB 세 채널을 한 장의 맵으로 모은다. 다만 (1)은 `nn.Module` 의 `backward` 를 autograd가 부르지 않아 이 코드에서는 실제로 적용되지 않는다는 점을 위 논의에서 짚었다.
+    (1) **ReLU만 바꾸고 나머지 레이어는 그대로 둔다** -- Guided Backpropagation의 차이는 ReLU를 지나는 역전파 규칙 하나뿐이므로, 모델의 ReLU 모듈만 찾아 바꾸면(`replace_relu_with_guided`) 사전 트레인된 웨이트를 그대로 쓸 수 있다. (2) **두 마스크의 곱** -- `(∂L/∂y > 0)` 과 `(x > 0)` 을 곱해 순전파에서 꺼진 뉴런과 음수 그래디언트를 함께 막는다. 이것이 맵을 선명하게 만드는 원인이다. (3) **채널 축 절댓값 최대**(`torch.max(torch.abs(guided_grads), dim=1)`) -- RGB 세 채널을 한 장의 맵으로 모은다. 다만 (1)은 `nn.Module` 의 `backward` 를 autograd가 부르지 않아 이 코드에서는 실제로 적용되지 않는다는 점을 위 논의에서 짚었다.
 
 ---
 

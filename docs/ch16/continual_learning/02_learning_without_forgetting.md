@@ -1,6 +1,6 @@
 # Split MNIST의 LwF
 
-새 과제 입력에서 이전 모델의 출력 분포를 맞추는 LwF(Learning without Forgetting, 망각 없는 학습) 예제다. 각 과제 학습 후 모델을 고정 교사로 복사하고 다음 과제의 지도 로스에 출력 증류를 더한다. 과거 원본 데이터의 재학습과는 다른 보존 방식이다.
+새 과제 입력에서 이전 모델의 출력 분포를 맞추는 LwF(Learning without Forgetting, 망각 없는 트레인) 예제다. 각 과제 학습 후 모델을 고정 교사로 복사하고 다음 과제의 지도 로스에 출력 증류를 더한다. 과거 원본 데이터의 재트레인과는 다른 보존 방식이다.
 
 ## 1. 코드
 
@@ -9,10 +9,10 @@
     ```python
     """
     57모듈: 연속 학습 - 중급
-    파일 2: 망각 없는 학습(LWF)
+    파일 2: 망각 없는 트레인(LWF)
 
     이 스크립트는 표본을 하나도 저장하지 않고 지식 증류로 앞선 과제의 지식을 지키는
-    연속 학습 방법인 망각 없는 학습을
+    연속 학습 방법인 망각 없는 트레인을
     구현한다.
 
     학습 목표:
@@ -35,7 +35,7 @@
 
     여기서 각 기호는 다음과 같다.
     - z_old: 옛 모델(동결한 것)의 로짓
-    - z_new: 새 모델(학습 중)의 로짓
+    - z_new: 새 모델(트레인 중)의 로짓
     - T: 온도(T가 클수록 확률이 부드럽다)
     - KL: 쿨백-라이블러 발산
 
@@ -66,7 +66,7 @@
 
     class LWFLearner:
         """
-        망각 없는 학습을 쓰는 연속 학습기.
+        망각 없는 트레인을 쓰는 연속 학습기.
 
         LWF 전략:
         1. 새 과제를 배우기 전에 지금 모델의 사본을 저장한다
@@ -102,7 +102,7 @@
 
             인수:
                 model: 뉴럴 네트워크 모델
-                device: 학습에 쓸 장치
+                device: 트레인에 쓸 장치
                 distill_lambda: 증류 로스의 가중 계수
                                값이 클수록 옛 지식을 더 많이 지킨다
                                흔한 범위: [0.5, 5.0]
@@ -181,7 +181,7 @@
                       task_id: int,
                       epochs: int = 5) -> List[float]:
             """
-            LWF를 적용해 과제 하나를 학습한다.
+            LWF를 적용해 과제 하나를 트레인한다.
 
             과제 τ > 0의 로스 함수:
             L = L_new + λ * L_distill
@@ -192,7 +192,7 @@
             인수:
                 train_loader: 지금 과제의 DataLoader
                 task_id: 지금 과제의 번호
-                epochs: 학습 에포크 수
+                epochs: 트레인 에포크 수
 
             반환값:
                 에포크마다의 로스 목록
@@ -341,7 +341,7 @@
             LWF를 쓰는 연속 학습의 주 루프.
 
             과제마다의 절차:
-            1. 증류 로스를 더해 학습한다(첫 과제가 아니면)
+            1. 증류 로스를 더해 트레인한다(첫 과제가 아니면)
             2. 다음 과제를 위해 옛 모델을 갱신한다
             3. 모든 과제에서 평가한다
             """
@@ -500,7 +500,7 @@
                     f'{val:.1f}%', ha='center',
                     va='bottom' if val >= 0 else 'top', fontsize=9)
 
-        # 그림 3: 학습 정확도와 최종 정확도
+        # 그림 3: 트레인 정확도와 최종 정확도
         ax3 = axes[2]
         learning_accs = np.diag(lwf_metrics['accuracy_matrix'])
         final_accs = lwf_metrics['accuracy_matrix'][:, -1]
@@ -854,7 +854,7 @@ temperature는 양수여야 하고 T=1에서도 교사 목표는 일반적으로
     patience_counter = 0
     best_state = None
     for epoch in range(num_epochs):
-        # ... 학습 단계 ...
+        # ... 트레인 단계 ...
         val_loss = evaluate(model, val_loader)
         if val_loss < best_loss:
             best_loss = val_loss

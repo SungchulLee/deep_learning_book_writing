@@ -1,6 +1,6 @@
 # Noisy Networks
 
-Noisy Networks는 DQN 개선의 중요한 개념이다. $\varepsilon$-그리디는 정해진 확률로 무작위 행동을 섞어 탐험하지만, Noisy Networks 는 선형 레이어의 웨이트에 학습 가능한 크기의 노이즈를 더해 네트워크 자신이 탐험을 만들게 한다. 웨이트를 $w = \mu + \sigma \odot \varepsilon$ 로 두고 평균 $\mu$ 와 노이즈 크기 $\sigma$ 를 둘 다 경사 하강법으로 배우므로, 탐험이 얼마나 필요한지를 에이전트가 상태와 학습 단계에 맞춰 스스로 조절한다. 이 쪽은 그 레이어인 `NoisyLinear` 와, 그것으로 만든 Q 네트워크를 다룬다.
+Noisy Networks는 DQN 개선의 중요한 개념이다. $\varepsilon$-그리디는 정해진 확률로 무작위 행동을 섞어 탐험하지만, Noisy Networks 는 선형 레이어의 웨이트에 트레인 가능한 크기의 노이즈를 더해 네트워크 자신이 탐험을 만들게 한다. 웨이트를 $w = \mu + \sigma \odot \varepsilon$ 로 두고 평균 $\mu$ 와 노이즈 크기 $\sigma$ 를 둘 다 경사 하강법으로 배우므로, 탐험이 얼마나 필요한지를 에이전트가 상태와 트레인 단계에 맞춰 스스로 조절한다. 이 쪽은 그 레이어인 `NoisyLinear` 와, 그것으로 만든 Q 네트워크를 다룬다.
 
 ## 1. 코드
 
@@ -42,7 +42,7 @@ class NoisyLinear(nn.Module):
         self.in_features = in_features
         self.out_features = out_features
 
-        # 학습 가능한 파라메터
+        # 트레인 가능한 파라메터
         self.mu_weight = nn.Parameter(torch.empty(out_features, in_features))
         self.sigma_weight = nn.Parameter(torch.empty(out_features, in_features))
         self.mu_bias = nn.Parameter(torch.empty(out_features))
@@ -289,14 +289,14 @@ if __name__ == "__main__":
 
 이 구현의 중심은 `NoisyLinear` 다. 노이즈를 웨이트마다 따로 뽑지 않고 **인수분해 가우스 노이즈**를 쓴다. 입력 쪽 노이즈 $\varepsilon_i$ ($p$ 개)와 출력 쪽 노이즈 $\varepsilon_j$ ($q$ 개)만 뽑고, 웨이트 노이즈를 $\varepsilon_{ij} = f(\varepsilon_i) f(\varepsilon_j)$, $f(x) = \operatorname{sign}(x)\sqrt{|x|}$ 로 만든다. `IndependentNoisyLinear` 는 웨이트마다 노이즈를 따로 뽑는 비교용 레이어다. 둘 다 `eval()` 모드에서는 노이즈를 끄고 $\mu$ 만 쓴다. `NoisyQNetwork` 는 첫 레이어는 일반 `nn.Linear` 로 두고 그 뒤 두 레이어를 `NoisyLinear` 로 바꾼 Q 네트워크다.
 
-데모 함수는 두 부분이다. 먼저 `NoisyLinear` 하나에 같은 입력을 넣고 노이즈를 열 번 다시 뽑아 출력 분산과 $\sigma$ 의 평균 크기를 찍는다. 이 부분은 시드를 고정하기 전에 실행되므로 돌릴 때마다 값이 조금씩 다르다. 다음으로 시드 42 로 $\varepsilon$-그리디 없이 NoisyNet DQN 을 CartPole 에서 250 에피소드 학습하며, 50 에피소드마다 평균 리워드와 $\sigma$ 의 평균 크기를 찍고, 끝에서 $\sigma$ 가 처음보다 몇 % 줄었는지 보인다. $\sigma$ 가 줄어든다는 것은 에이전트가 학습이 진행되며 노이즈, 곧 탐험을 스스로 줄였다는 뜻이다.
+데모 함수는 두 부분이다. 먼저 `NoisyLinear` 하나에 같은 입력을 넣고 노이즈를 열 번 다시 뽑아 출력 분산과 $\sigma$ 의 평균 크기를 찍는다. 이 부분은 시드를 고정하기 전에 실행되므로 돌릴 때마다 값이 조금씩 다르다. 다음으로 시드 42 로 $\varepsilon$-그리디 없이 NoisyNet DQN 을 CartPole 에서 250 에피소드 트레인하며, 50 에피소드마다 평균 리워드와 $\sigma$ 의 평균 크기를 찍고, 끝에서 $\sigma$ 가 처음보다 몇 % 줄었는지 보인다. $\sigma$ 가 줄어든다는 것은 에이전트가 트레인이 진행되며 노이즈, 곧 탐험을 스스로 줄였다는 뜻이다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-데모의 `NoisyQNetwork(4, 2)`(은닉 128, `sigma_init=0.5`)에서 학습 전 `noise_magnitude` 를 손으로 계산하라. 데모가 찍는 `Initial σ` 가 이 값과 같아야 하는 까닭은 무엇인가?
+데모의 `NoisyQNetwork(4, 2)`(은닉 128, `sigma_init=0.5`)에서 트레인 전 `noise_magnitude` 를 손으로 계산하라. 데모가 찍는 `Initial σ` 가 이 값과 같아야 하는 까닭은 무엇인가?
 
 </div>
 
@@ -308,19 +308,19 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-입력 $p$, 출력 $q$ 인 레이어에서 `NoisyLinear`(인수분해)와 `IndependentNoisyLinear`(독립)가 노이즈를 한 번 다시 뽑을 때 만드는 가우스 난수의 개수를 견주어라. 데모의 128→128 레이어에서는 각각 몇 개인가? 학습할 파라메터 수는 다른가?
+입력 $p$, 출력 $q$ 인 레이어에서 `NoisyLinear`(인수분해)와 `IndependentNoisyLinear`(독립)가 노이즈를 한 번 다시 뽑을 때 만드는 가우스 난수의 개수를 견주어라. 데모의 128→128 레이어에서는 각각 몇 개인가? 트레인할 파라메터 수는 다른가?
 
 </div>
 
 ??? success "풀이"
-    독립 노이즈는 웨이트마다 하나, 바이어스마다 하나라 $pq + q$ 개다. 인수분해 노이즈는 입력 쪽 $p$ 개와 출력 쪽 $q$ 개만 뽑고 웨이트 노이즈는 바깥곱으로, 바이어스 노이즈는 출력 쪽 노이즈를 그대로 쓰므로 $p + q$ 개다. 128→128 이면 독립이 $16{,}384 + 128 = 16{,}512$ 개, 인수분해가 256 개로 약 64분의 1 이다. 학습할 파라메터는 둘 다 $\mu_w, \sigma_w, \mu_b, \sigma_b$ 로 $2(pq + q)$ 개이며 같다. 차이는 난수 생성 비용과 노이즈의 상관 구조뿐이다. Fortunato 등은 DQN 처럼 계산이 빠듯한 알고리즘에는 인수분해를, A3C 처럼 비동기 알고리즘에는 독립 노이즈를 권했다.
+    독립 노이즈는 웨이트마다 하나, 바이어스마다 하나라 $pq + q$ 개다. 인수분해 노이즈는 입력 쪽 $p$ 개와 출력 쪽 $q$ 개만 뽑고 웨이트 노이즈는 바깥곱으로, 바이어스 노이즈는 출력 쪽 노이즈를 그대로 쓰므로 $p + q$ 개다. 128→128 이면 독립이 $16{,}384 + 128 = 16{,}512$ 개, 인수분해가 256 개로 약 64분의 1 이다. 트레인할 파라메터는 둘 다 $\mu_w, \sigma_w, \mu_b, \sigma_b$ 로 $2(pq + q)$ 개이며 같다. 차이는 난수 생성 비용과 노이즈의 상관 구조뿐이다. Fortunato 등은 DQN 처럼 계산이 빠듯한 알고리즘에는 인수분해를, A3C 처럼 비동기 알고리즘에는 독립 노이즈를 권했다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-데모의 학습 루프는 에피소드를 시작할 때 `online.reset_noise()` 를 부르고 주석에 「에피소드마다 노이즈를 다시 뽑는다」는 뜻을 적었다. 그런데 버퍼가 500 개를 넘은 뒤 행동을 고를 때 쓰는 노이즈는 실제로 얼마나 자주 바뀌는가? 이것이 탐험의 성질에 어떤 차이를 만드는지 설명하라.
+데모의 트레인 루프는 에피소드를 시작할 때 `online.reset_noise()` 를 부르고 주석에 「에피소드마다 노이즈를 다시 뽑는다」는 뜻을 적었다. 그런데 버퍼가 500 개를 넘은 뒤 행동을 고를 때 쓰는 노이즈는 실제로 얼마나 자주 바뀌는가? 이것이 탐험의 성질에 어떤 차이를 만드는지 설명하라.
 
 </div>
 

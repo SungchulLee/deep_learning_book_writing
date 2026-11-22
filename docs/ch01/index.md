@@ -14,7 +14,7 @@
 
 - 왜 `.to(device)` 같은 줄을 써야 하는가
 - 왜 배치 크기를 늘리면 메모리가 모자란다고 하는가
-- 왜 GPU가 있는데도 학습이 느린가
+- 왜 GPU가 있는데도 트레인이 느린가
 - 왜 텐서 연산을 Python 반복문보다 우선하는가
 
 이 물음들은 뒤에서 코드를 만나는 순간 곧바로 닥친다. 그때마다 멈추어 설명하는 대신, 여기서 한 번에 정리하고 넘어간다.
@@ -55,7 +55,7 @@ CPU는 적은 수의 똑똑한 일꾼이고 GPU는 아주 많은 수의 단순�
 
 - **NumPy** — 수치 배열을 다루는 라이브러리. 반복문으로 작성한 계산을 배열 연산으로 표현하는 방법을 익힌다
 - **Pandas** — 표로 된 데이터를 읽고 다듬어 숫자 배열로 넘겨준다
-- **Matplotlib** — 결과를 눈으로 확인한다. 학습이 잘못되어도 프로그램은 오류를 내지 않으므로, 그려 보는 일이 곧 검사이다
+- **Matplotlib** — 결과를 눈으로 확인한다. 트레인이 잘못되어도 프로그램은 오류를 내지 않으므로, 그려 보는 일이 곧 검사이다
 
 ## 1.3 PyTorch
 
@@ -83,7 +83,7 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 - [텐서 비교](../ch06/tensors/17_tensor_comparison.md) — `==`, `equal`, `allclose` 가 다른 질문에 답한다
 - [고윳값과 SVD](../ch06/tensors/15_eigenvalues_svd.md)
 
-**학습에 쓰기**
+**트레인에 쓰기**
 
 - [야코비안과 고차 미분](../ch06/tensors/19_gradient_computation.md) · [사용자 정의 함수](../ch06/tensors/20_custom_functions.md)
 - [간단한 뉴럴 네트워크](../ch06/tensors/21_simple_neural_network.md) · [최적화 기초](../ch06/tensors/22_optimization_basics.md)
@@ -92,7 +92,7 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 
 - [GPU 연산](../ch06/tensors/23_gpu_operations.md) · [혼합 정밀도](../ch06/tensors/24_mixed_precision.md) · [메모리 관리](../ch06/tensors/25_memory_management.md)
 - [데이터 적재](../ch06/tensors/26_data_loading.md) · [모델 체크포인트](../ch06/tensors/27_model_checkpoint.md)
-- [실전 예제](../ch06/tensors/28_real_world_example.md) — 제대로 돌아가는 학습 하나를 네 가지로 망가뜨려 본다
+- [실전 예제](../ch06/tensors/28_real_world_example.md) — 제대로 돌아가는 트레인 하나를 네 가지로 망가뜨려 본다
 
 ---
 
@@ -123,7 +123,7 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 
 ## 1.6 자동 미분
 
-그래디언트 기반 학습을 떠받치는 엔진. 이 장에서 가장 긴 절이고, 그만큼 걸려 넘어질 자리가 많다.
+그래디언트 기반 트레인을 떠받치는 엔진. 이 장에서 가장 긴 절이고, 그만큼 걸려 넘어질 자리가 많다.
 
 **엔진의 규칙**
 
@@ -132,9 +132,9 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 - [경사 누적](../ch06/autograd/02_gradient_accumulation.md) — 기본값이 더하기인 까닭
 - [retain_graph](../ch06/autograd/03_retain_graph.md) — 그래프를 남기는 것과 그래디언트를 남기는 것은 다른 일이다
 
-**학습 루프**
+**트레인 루프**
 
-- [작은 학습 단계](../ch06/autograd/04_mini_training_step.md) · [선형 회귀](../ch06/autograd/05_complete_linear_regression.md)
+- [작은 트레인 단계](../ch06/autograd/04_mini_training_step.md) · [선형 회귀](../ch06/autograd/05_complete_linear_regression.md)
 - [옵티마이저 방식의 갱신](../ch06/autograd/11_optimizer_like_updates.md)
 - [함정과 점검 사항](../ch06/autograd/17_pitfalls_and_sanity_checks.md)
 
@@ -151,7 +151,7 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 **경사 누적과 배치**
 
 - [경사를 0으로 만드는 세 가지 방법](../ch06/autograd/18_three_ways_to_zero_gradients.md)
-- [큰 배치를 위한 경사 누적](../ch06/autograd/19_gradient_accumulation_for_large_batches.md) · [경사 누적을 쓰는 학습 루프](../ch06/autograd/21_training_loop_with_grad_accumulation.md)
+- [큰 배치를 위한 경사 누적](../ch06/autograd/19_gradient_accumulation_for_large_batches.md) · [경사 누적을 쓰는 트레인 루프](../ch06/autograd/21_training_loop_with_grad_accumulation.md)
 - [경사 크기 조정이 중요한 이유](../ch06/autograd/20_why_gradient_scaling_matters.md) — 배치를 키웠는데 더 나빠지는 자리
 
 **벡터 역전파**
@@ -168,7 +168,7 @@ PyTorch의 기본 자료구조. 만드는 법부터 GPU에 올리고 저장하�
 
 ## 1.7 경사 하강법
 
-뉴럴 네트워크 학습의 한가운데에 있는 최적화 알고리즘.
+뉴럴 네트워크 트레인의 한가운데에 있는 최적화 알고리즘.
 
 **원리**
 

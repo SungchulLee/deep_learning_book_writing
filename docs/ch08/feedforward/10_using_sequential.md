@@ -127,7 +127,7 @@
     print(f"\nNumber of layers: {len(list(modular_model.children()))}")
 
     # ================================================================================
-    # 4부: MNIST로 학습하기
+    # 4부: MNIST로 트레인하기
     # ================================================================================
     print("\n" + "=" * 80)
     print("PART 4: Training Sequential Model on MNIST")
@@ -159,16 +159,16 @@
         test_dataset, batch_size=128, shuffle=False, num_workers=0
     )
 
-    # 학습에는 간단한 모델을 쓴다
+    # 트레인에는 간단한 모델을 쓴다
     model = simple_model.to(device)
 
     # 로스와 옵티마이저
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    # 학습 함수
+    # 트레인 함수
     def train_epoch(model, loader, criterion, optimizer, device):
-        """한 에포크를 학습한다."""
+        """한 에포크를 트레인한다."""
         model.train()
         total_loss = 0
         correct = 0
@@ -219,7 +219,7 @@
 
         return total_loss / len(loader), 100 * correct / total
 
-    # 학습 루프
+    # 트레인 루프
     print("\nTraining...")
     num_epochs = 5
     train_losses, train_accs = [], []
@@ -353,7 +353,7 @@
        → 이런 경우에는 사용자 정의 nn.Module을 쓰라
 
     4. Sequential 모델은 다음과 온전히 호환된다.
-       ✓ 모든 PyTorch 학습 API
+       ✓ 모든 PyTorch 트레인 API
        ✓ 모델 저장과 불러오기
        ✓ 전이 학습
        ✓ 모델 점검 도구
@@ -527,7 +527,7 @@
        → 이런 경우에는 사용자 정의 nn.Module을 쓰라
 
     4. Sequential 모델은 다음과 온전히 호환된다.
-       ✓ 모든 PyTorch 학습 API
+       ✓ 모든 PyTorch 트레인 API
        ✓ 모델 저장과 불러오기
        ✓ 전이 학습
        ✓ 모델 점검 도구
@@ -563,7 +563,7 @@
 
 `simple_model`, `named_model`, `modular_model`은 구성 방식과 너비·드롭아웃이 서로 다른 모델이다. 이름을 붙이거나 블록을 재사용한다고 계산이 자동으로 같아지는 것은 아니다. 동일성을 비교하려면 레이어와 상태를 맞춰야 한다.
 
-평탄화가 모델 안에 있는지 학습 루프에 있는지 확인한다. `nn.Linear`는 마지막 축에 작용하므로 28×28 이미지를 784차원으로 바꾸는 책임이 어디에 있는지가 중요하다.
+평탄화가 모델 안에 있는지 트레인 루프에 있는지 확인한다. `nn.Linear`는 마지막 축에 작용하므로 28×28 이미지를 784차원으로 바꾸는 책임이 어디에 있는지가 중요하다.
 
 순차 모델은 단일 경로에 편리하다. 분기와 합산, 여러 출력을 다루려면 사용자 정의 `forward`가 더 명확할 수 있다. 이 예제는 매 에포크 시험 지표를 확인하므로 그 결과로 설정을 조정할 때는 별도의 검증 집합을 마련한다.
 
@@ -601,14 +601,14 @@
 </div>
 
 ??? success "풀이"
-    기존 모듈 객체를 새 Sequential에 넣으면 같은 웨이트를 공유할 수 있다. 새 모델을 학습할 때 원래 모델의 상태도 바뀔 수 있으므로 독립 비교에는 별도 모델과 복사한 상태를 사용한다.
+    기존 모듈 객체를 새 Sequential에 넣으면 같은 웨이트를 공유할 수 있다. 새 모델을 트레인할 때 원래 모델의 상태도 바뀔 수 있으므로 독립 비교에는 별도 모델과 복사한 상태를 사용한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-조기 종료를 구현하라. 매 에포크 후 검증 로스를 추적하고, 10 에포크 연속으로 개선이 없으면 학습을 멈춘다. 가장 좋은 모델 웨이트를 저장하고 복원하라.
+조기 종료를 구현하라. 매 에포크 후 검증 로스를 추적하고, 10 에포크 연속으로 개선이 없으면 트레인을 멈춘다. 가장 좋은 모델 웨이트를 저장하고 복원하라.
 
 </div>
 
@@ -619,7 +619,7 @@
     patience_counter = 0
     best_state = None
     for epoch in range(num_epochs):
-        # ... 학습 단계 ...
+        # ... 트레인 단계 ...
         val_loss = evaluate(model, val_loader)
         if val_loss < best_loss:
             best_loss = val_loss

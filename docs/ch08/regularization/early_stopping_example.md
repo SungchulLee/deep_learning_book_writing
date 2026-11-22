@@ -1,6 +1,6 @@
 # 조기 종료 예제
 
-고정 횟수 학습과 검증 로스 기반 조기 종료를 비교한다. 검증으로 종료 시점을 선택하고 별도 시험 집합에서 평가한다.
+고정 횟수 트레인과 검증 로스 기반 조기 종료를 비교한다. 검증으로 종료 시점을 선택하고 별도 시험 집합에서 평가한다.
 
 ## 1. 코드
 
@@ -8,7 +8,7 @@
 """
 조기 종료 예제
 =========================
-검증 성능이 나빠지기 시작할 때 학습을 멈춰 과적합을 막는 방식을 보인다.
+검증 성능이 나빠지기 시작할 때 트레인을 멈춰 과적합을 막는 방식을 보인다.
 """
 
 import copy
@@ -44,9 +44,9 @@ def create_model(input_dim):
 
 
 class EarlyStopping:
-    """검증 로스가 나아지지 않으면 학습을 멈춘다.
+    """검증 로스가 나아지지 않으면 트레인을 멈춘다.
 
-    학습 루프에서 에포크마다 이 객체에 물어보고, True가 돌아오면 멈춘다.
+    트레인 루프에서 에포크마다 이 객체에 물어보고, True가 돌아오면 멈춘다.
     """
 
     def __init__(self, patience=10, min_delta=1e-4, restore_best_weights=True):
@@ -70,14 +70,14 @@ class EarlyStopping:
                 self.best_weights = copy.deepcopy(model.state_dict())
             return False
 
-        # 나아지지 않은 에포크를 센다. patience는 "학습을 시작한 뒤"가
+        # 나아지지 않은 에포크를 센다. patience는 "트레인을 시작한 뒤"가
         # 아니라 "마지막 개선 뒤" 몇 에포크인지를 뜻한다
         self.counter += 1
         return self.counter >= self.patience
 
     def restore(self, model):
         """가장 좋았던 웨이트로 되돌린다."""
-        # 학습이 인내를 다 채우지 못하고 에포크 수를 소진해 끝났더라도
+        # 트레인이 인내를 다 채우지 못하고 에포크 수를 소진해 끝났더라도
         # 부르는 쪽에서 이것을 불러 주어야 최선의 웨이트를 되찾는다
         if self.restore_best_weights and self.best_weights is not None:
             model.load_state_dict(self.best_weights)
@@ -85,7 +85,7 @@ class EarlyStopping:
 
 def run_epoch(model, loader, criterion, optimizer=None):
     """한 에포크를 돌고 (로스, 정확도)를 돌려준다."""
-    # optimizer를 주었는지로 학습과 평가를 가른다. 모드 전환을
+    # optimizer를 주었는지로 트레인과 평가를 가른다. 모드 전환을
     # 빠뜨리면 드롭아웃이나 배치 정규화가 있는 모델에서 평가가 틀어진다
     model.train() if optimizer is not None else model.eval()
     total_loss, correct, total = 0.0, 0, 0
@@ -105,7 +105,7 @@ def run_epoch(model, loader, criterion, optimizer=None):
 
 
 def make_loaders(X_train, y_train, X_val, y_val, batch_size=32):
-    """학습과 검증 데이터로더를 만든다."""
+    """트레인과 검증 데이터로더를 만든다."""
     train_ds = TensorDataset(X_train, y_train)
     val_ds = TensorDataset(X_val, y_val)
     return (DataLoader(train_ds, batch_size=batch_size, shuffle=True),
@@ -113,7 +113,7 @@ def make_loaders(X_train, y_train, X_val, y_val, batch_size=32):
 
 
 def train_without_early_stopping(X_train, y_train, X_val, y_val, epochs=200):
-    """조기 종료 없이 모델을 학습시킨다."""
+    """조기 종료 없이 모델을 트레인시킨다."""
     print("Training WITHOUT early stopping...")
     torch.manual_seed(42)
     model = create_model(X_train.shape[1])
@@ -122,7 +122,7 @@ def train_without_early_stopping(X_train, y_train, X_val, y_val, epochs=200):
     optimizer = optim.Adam(model.parameters())
 
     history = {'loss': [], 'accuracy': [], 'val_loss': [], 'val_accuracy': []}
-    # 200 에포크를 끝까지 돈다. 검증 로스가 돌아선 뒤에도 계속 학습하므로
+    # 200 에포크를 끝까지 돈다. 검증 로스가 돌아선 뒤에도 계속 트레인하므로
     # 아래 조기 종료 버전과 견주면 과적합이 눈에 들어온다
     for _ in range(epochs):
         tl, ta = run_epoch(model, train_loader, criterion, optimizer)
@@ -136,7 +136,7 @@ def train_without_early_stopping(X_train, y_train, X_val, y_val, epochs=200):
 
 def train_with_early_stopping(X_train, y_train, X_val, y_val,
                               patience=10, epochs=200):
-    """조기 종료와 함께 모델을 학습시킨다."""
+    """조기 종료와 함께 모델을 트레인시킨다."""
     print(f"Training WITH early stopping (patience={patience})...")
     torch.manual_seed(42)
     model = create_model(X_train.shape[1])
@@ -156,7 +156,7 @@ def train_with_early_stopping(X_train, y_train, X_val, y_val,
 
         # 이력을 기록한 "뒤"에 묻는다. 앞에서 물으면 멈추는 에포크의
         # 로스가 history에서 빠진다.
-        # 감시하는 것은 학습 로스가 아니라 검증 로스다. 학습 로스는
+        # 감시하는 것은 트레인 로스가 아니라 검증 로스다. 트레인 로스는
         # 과적합이 시작된 뒤에도 계속 내려가 멈출 때를 알려 주지 못한다
         if early_stop(vl, model):
             print(f"  Stopped early at epoch {epoch + 1}")
@@ -166,7 +166,7 @@ def train_with_early_stopping(X_train, y_train, X_val, y_val,
 
 
 def train_with_advanced_early_stopping(X_train, y_train, X_val, y_val, epochs=200):
-    """러닝레이트 감소와 체크포인트 저장을 함께 쓰는 학습."""
+    """러닝레이트 감소와 체크포인트 저장을 함께 쓰는 트레인."""
     print("Training with ADVANCED early stopping (multiple callbacks)...")
     torch.manual_seed(42)
     model = create_model(X_train.shape[1])
@@ -177,7 +177,7 @@ def train_with_advanced_early_stopping(X_train, y_train, X_val, y_val, epochs=20
     # 인내 값이 15와 5로 다른 것이 이 조합의 핵심이다. 러닝레이트 감소가
     # 5에서 먼저 걸려 모델에게 한 번 더 기회를 주고, 그래도 나아지지
     # 않으면 15에서 조기 종료가 걸린다. 두 값을 거꾸로 두면 러닝레이트를
-    # 낮춰 보기도 전에 학습이 끝나 버린다
+    # 낮춰 보기도 전에 트레인이 끝나 버린다
     early_stop = EarlyStopping(patience=15, restore_best_weights=True)
     # ReduceLROnPlateau는 PyTorch에 내장된 스케줄러다. 코사인 감소처럼
     # 미리 짜 둔 일정과 달리, 실제로 나아지지 않을 때만 반응한다
@@ -233,7 +233,7 @@ def evaluate(model, X, y):
 
 
 def plot_comparison(histories, labels):
-    """비교를 위해 학습 이력을 그린다."""
+    """비교를 위해 트레인 이력을 그린다."""
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
 
     metrics = [
@@ -304,7 +304,7 @@ def main():
     X_test = torch.FloatTensor(X_test)
     y_test = torch.FloatTensor(y_test).reshape(-1, 1)
 
-    # 모델 학습
+    # 모델 트레인
     model_no_es, history_no_es = train_without_early_stopping(
         X_train, y_train, X_val, y_val, epochs=200
     )
@@ -432,7 +432,7 @@ EarlyStopping은 이전 에포크보다 좋아졌는지가 아니라 저장한 b
 
 최선 상태는 deepcopy로 별도 저장한다. restore를 호출해야 그 상태로 돌아가며, 단순히 루프에서 break하는 것만으로 복원이 되지는 않는다. min_delta를 넘지 않은 작은 개선은 이 기준에서 개선으로 치지 않으므로 저장되지 않는다.
 
-데이터는 학습·검증·시험으로 분리하고 scaler는 학습 입력으로만 맞춘다. 검증 지표는 선택에 사용되므로 마지막 시험 결과와 역할이 다르다. 스케줄러와 조합할 때는 러닝레이트 변경 후 회복할 시간을 patience가 허용하는지도 살핀다.
+데이터는 트레인·검증·시험으로 분리하고 scaler는 트레인 입력으로만 맞춘다. 검증 지표는 선택에 사용되므로 마지막 시험 결과와 역할이 다르다. 스케줄러와 조합할 때는 러닝레이트 변경 후 회복할 시간을 patience가 허용하는지도 살핀다.
 
 ## 연습문제
 
@@ -468,7 +468,7 @@ best_score=0.50, min_delta=0.01일 때 0.495는 개선으로 인정되는가?
 </div>
 
 ??? success "풀이"
-    종료 시점은 학습된 모델을 선택하는 하이퍼파라메터이다. 같은 데이터에서 선택과 최종 평가를 반복하면 선택 효과가 성능 추정에 들어간다. 별도 시험 집합은 선택을 마친 모델에 사용한다.
+    종료 시점은 트레인된 모델을 선택하는 하이퍼파라메터이다. 같은 데이터에서 선택과 최종 평가를 반복하면 선택 효과가 성능 추정에 들어간다. 별도 시험 집합은 선택을 마친 모델에 사용한다.
 
 ---
 
@@ -501,4 +501,4 @@ best_score=0.50, min_delta=0.01일 때 0.495는 개선으로 인정되는가?
 
 ## 정리하며
 
-조기 종료의 결과는 개선 판정, 대기 횟수와 복원 상태에 달려 있다. 이 구현의 깊은 복사와 명시적인 복원을 확인하고 학습·검증·시험의 역할을 유지한다.
+조기 종료의 결과는 개선 판정, 대기 횟수와 복원 상태에 달려 있다. 이 구현의 깊은 복사와 명시적인 복원을 확인하고 트레인·검증·시험의 역할을 유지한다.

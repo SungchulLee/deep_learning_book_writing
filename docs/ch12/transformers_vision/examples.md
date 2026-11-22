@@ -1,6 +1,6 @@
 # 예제
 
-ViT의 순전파·패치·어텐션, 모델 크기와 전이 학습 설정을 살펴보는 예제 모음이다. 대부분 무작위 모델·입력을 사용하며 메시지에 사전 학습·성능 개선이 언급되어도 실제 코드가 그 작업을 수행하는지 구분해야 한다.
+ViT의 순전파·패치·어텐션, 모델 크기와 전이 학습 설정을 살펴보는 예제 모음이다. 대부분 무작위 모델·입력을 사용하며 메시지에 사전 트레인·성능 개선이 언급되어도 실제 코드가 그 작업을 수행하는지 구분해야 한다.
 
 ## 1. 코드
 
@@ -380,14 +380,14 @@ def visualize_positional_encoding(n_patches: int = 196, embed_dim: int = 768):
 
 def plot_training_comparison(cnn_history: dict, vit_history: dict):
     """
-    컨볼루션 뉴럴 네트워크와 비전 트랜스포머를 견주는 학습 곡선을 그린다.
+    컨볼루션 뉴럴 네트워크와 비전 트랜스포머를 견주는 트레인 곡선을 그린다.
     """
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     
     epochs_cnn = range(1, len(cnn_history['train_loss']) + 1)
     epochs_vit = range(1, len(vit_history['train_loss']) + 1)
     
-    # 학습 로스
+    # 트레인 로스
     axes[0, 0].plot(epochs_cnn, cnn_history['train_loss'], 'b-', label='CNN')
     axes[0, 0].plot(epochs_vit, vit_history['train_loss'], 'r-', label='ViT')
     axes[0, 0].set_xlabel('Epoch')
@@ -405,7 +405,7 @@ def plot_training_comparison(cnn_history: dict, vit_history: dict):
     axes[0, 1].legend()
     axes[0, 1].grid(True, alpha=0.3)
     
-    # 학습 정확도
+    # 트레인 정확도
     axes[1, 0].plot(epochs_cnn, cnn_history['train_acc'], 'b-', label='CNN')
     axes[1, 0].plot(epochs_vit, vit_history['train_acc'], 'r-', label='ViT')
     axes[1, 0].set_xlabel('Epoch')
@@ -592,10 +592,10 @@ class VisionTransformer(nn.Module):
         self.patch_embed = PatchEmbedding(img_size, patch_size, in_channels, embed_dim)
         n_patches = self.patch_embed.n_patches
         
-        # 분류 토큰 (학습되며 시퀀스 앞에 붙인다)
+        # 분류 토큰 (트레인되며 시퀀스 앞에 붙인다)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         
-        # 위치 임베딩 (학습되는 것)
+        # 위치 임베딩 (트레인되는 것)
         self.pos_embed = nn.Parameter(torch.zeros(1, n_patches + 1, embed_dim))
         self.pos_drop = nn.Dropout(dropout)
         
@@ -836,7 +836,7 @@ def example_5_transfer_learning():
     print("Example 5: Transfer Learning Setup")
     print("="*60 + "\n")
     
-    # 사전 학습된 모델을 불러온다 (흉내만 낸다)
+    # 사전 트레인된 모델을 불러온다 (흉내만 낸다)
     model = create_vit_base(n_classes=1000)  # ImageNet 클래스
     
     print("Step 1: Load pretrained model")
@@ -859,7 +859,7 @@ def example_5_transfer_learning():
     print(f"\nStep 3: Freeze backbone layers")
     print(f"  - Only train classification head")
     
-    # 학습 가능한 파라메터 세기
+    # 트레인 가능한 파라메터 세기
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
     
@@ -989,11 +989,11 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-예제 1은 무작위 Tiny 모델과 이미지에서 (1,10) 로짓을 계산한다. 소프트맥스 최댓값은 실제 클래스 정확도나 보정된 신뢰도를 뜻하지 않는다. 예제 2·6의 파라메터·출력 형태 비교에도 학습·정확도·속도 측정은 없다.
+예제 1은 무작위 Tiny 모델과 이미지에서 (1,10) 로짓을 계산한다. 소프트맥스 최댓값은 실제 클래스 정확도나 보정된 신뢰도를 뜻하지 않는다. 예제 2·6의 파라메터·출력 형태 비교에도 트레인·정확도·속도 측정은 없다.
 
-예제 3의 패치 토큰은 정수의 이산 토큰 ID가 아니라 실수 피처 벡터다. 16×16 RGB 패치는 256개의 픽셀 위치, 768개의 채널 값을 갖는다. 패치 투영은 이를 임베딩 공간에 매핑한다. 예제 4는 어텐션 모듈이 학습 모드라 드롭아웃도 켜져 있고 의미 관계를 학습한 결과가 아니다.
+예제 3의 패치 토큰은 정수의 이산 토큰 ID가 아니라 실수 피처 벡터다. 16×16 RGB 패치는 256개의 픽셀 위치, 768개의 채널 값을 갖는다. 패치 투영은 이를 임베딩 공간에 매핑한다. 예제 4는 어텐션 모듈이 트레인 모드라 드롭아웃도 켜져 있고 의미 관계를 학습한 결과가 아니다.
 
-**전이 설정의 한계:** 예제 5는 create_vit_base로 새 모델을 생성하며 사전 학습 웨이트를 불러오지 않는다. patch_embed와 blocks만 동결해 cls_token·pos_embed·최종 norm은 계속 학습 가능하다. 따라서 “분류기만 학습”도 실제 동작과 다르다. 동결과 eval 전환은 별개의 설정이다.
+**전이 설정의 한계:** 예제 5는 create_vit_base로 새 모델을 생성하며 사전 트레인 웨이트를 불러오지 않는다. patch_embed와 blocks만 동결해 cls_token·pos_embed·최종 norm은 계속 트레인 가능하다. 따라서 “분류기만 트레인”도 실제 동작과 다르다. 동결과 eval 전환은 별개의 설정이다.
 
 예제 7의 메시지는 HybridCNNViT의 실제 구조와 다르다. 이 쪽 코드의 HybridCNNViT는 224→14 해상도, 기본 192채널, 패치 196개에 CLS 하나를 붙이며 CLS 출력으로 분류한다. 메시지의 28×28×384·784토큰·전역 평균은 이 구현에 해당하지 않는다. CNN 피처를 쓰면 데이터 효율이 더 좋다는 주장도 이 예제에서 평가하지 않는다.
 
@@ -1004,7 +1004,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-예제의 “사전 학습 모델 불러오기”와 “분류기만 학습” 메시지가 코드와 다른 이유를 설명하라.
+예제의 “사전 트레인 모델 불러오기”와 “분류기만 트레인” 메시지가 코드와 다른 이유를 설명하라.
 
 </div>
 
@@ -1016,7 +1016,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-패치와 어텐션 시연이 언어 토큰·학습된 시각 관계와 다른 점을 설명하라.
+패치와 어텐션 시연이 언어 토큰·트레인된 시각 관계와 다른 점을 설명하라.
 
 </div>
 
@@ -1066,4 +1066,4 @@ if __name__ == "__main__":
 
 ## 정리하며
 
-예제의 출력 메시지를 수행 사실로 그대로 읽지 않는다. 새 모델 생성과 사전 학습 로드, 일부 동결과 분류기 전용 학습, 메시지가 말하는 구조와 실제 코드의 구조를 구분한다.
+예제의 출력 메시지를 수행 사실로 그대로 읽지 않는다. 새 모델 생성과 사전 트레인 로드, 일부 동결과 분류기 전용 트레인, 메시지가 말하는 구조와 실제 코드의 구조를 구분한다.

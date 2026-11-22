@@ -1,6 +1,6 @@
 # 완전한 예제
 
-영어·프랑스어의 작은 병렬 문장 목록을 사용해 전처리, 모델 구성과 학습·추론 도구를 연결하는 예제다. 앞 쪽들의 모듈(전처리·인코더·디코더·모델·학습·추론)을 한 파일에 이어 붙였으므로, 모듈 사이의 입력·반환 계약이 서로 맞는지 함께 확인해야 한다.
+영어·프랑스어의 작은 병렬 문장 목록을 사용해 전처리, 모델 구성과 트레인·추론 도구를 연결하는 예제다. 앞 쪽들의 모듈(전처리·인코더·디코더·모델·트레인·추론)을 한 파일에 이어 붙였으므로, 모듈 사이의 입력·반환 계약이 서로 맞는지 함께 확인해야 한다.
 
 ## 1. 코드
 
@@ -293,11 +293,11 @@ def normalize_text(text):
 
 def split_data(data, train_ratio=0.8, val_ratio=0.1):
     """
-    데이터를 학습·검증·시험 집합으로 나눈다
+    데이터를 트레인·검증·시험 집합으로 나눈다
     
     인수:
         data: 데이터의 목록이나 쌍
-        train_ratio: 학습 데이터의 비율
+        train_ratio: 트레인 데이터의 비율
         val_ratio: 검증 데이터의 비율
         
     반환값:
@@ -1368,8 +1368,8 @@ if __name__ == "__main__":
 
 # --- train ---
 """
-Seq2Seq 모델을 위한 학습 스크립트
-학습 반복문, 평가, 체크포인트 저장을 담고 있다
+Seq2Seq 모델을 위한 트레인 스크립트
+트레인 반복문, 평가, 체크포인트 저장을 담고 있다
 """
 
 
@@ -1380,7 +1380,7 @@ Seq2Seq 모델을 위한 학습 스크립트
 
 class Seq2SeqDataset(Dataset):
     """
-    Seq2Seq 학습을 위한 사용자 정의 데이터셋
+    Seq2Seq 트레인을 위한 사용자 정의 데이터셋
     
     인수:
         src_data: 소스 시퀀스의 목록 (토큰 인덱스)
@@ -1435,7 +1435,7 @@ class Seq2SeqTrainer:
         model: Seq2Seq 모델
         optimizer: 옵티마이저
         criterion: 로스 함수
-        device: 학습에 쓸 장치
+        device: 트레인에 쓸 장치
         pad_idx: 패딩 토큰의 인덱스
         clip: 그래디언트 클리핑의 최대 노름
     """
@@ -1450,10 +1450,10 @@ class Seq2SeqTrainer:
         
     def train_epoch(self, dataloader, teacher_forcing_ratio=0.5):
         """
-        한 에포크 학습시킨다
+        한 에포크 트레인시킨다
         
         인수:
-            dataloader: 학습 데이터로더
+            dataloader: 트레인 데이터로더
             teacher_forcing_ratio: 티처 포싱을 쓸 확률
             
         반환값:
@@ -1540,18 +1540,18 @@ class Seq2SeqTrainer:
     def train(self, train_loader, val_loader, num_epochs, checkpoint_dir='checkpoints', 
               teacher_forcing_ratio=0.5, save_every=1):
         """
-        여러 에포크에 걸쳐 모델을 학습시킨다
+        여러 에포크에 걸쳐 모델을 트레인시킨다
         
         인수:
-            train_loader: 학습 데이터 로더
+            train_loader: 트레인 데이터 로더
             val_loader: 검증 데이터 로더
-            num_epochs: 학습할 에포크 수
+            num_epochs: 트레인할 에포크 수
             checkpoint_dir: 체크포인트를 저장할 디렉터리
             teacher_forcing_ratio: 처음의 티처 포싱 비율
             save_every: N에포크마다 체크포인트 저장
             
         반환값:
-            train_losses: 학습 로스의 목록
+            train_losses: 트레인 로스의 목록
             val_losses: 검증 로스의 목록
         """
         checkpoint_dir = Path(checkpoint_dir)
@@ -1564,7 +1564,7 @@ class Seq2SeqTrainer:
         for epoch in range(num_epochs):
             start_time = time.time()
             
-            # 학습
+            # 트레인
             train_loss = self.train_epoch(train_loader, teacher_forcing_ratio)
             
             # 평가한다
@@ -1627,7 +1627,7 @@ def initialize_weights(model):
 
 
 def count_parameters(model):
-    """학습 가능한 파라메터를 센다"""
+    """트레인 가능한 파라메터를 센다"""
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
@@ -1708,7 +1708,7 @@ if __name__ == "__main__":
         collate_fn=lambda b: collate_fn(b, PAD_IDX)
     )
     
-    # 모델을 학습시킨다
+    # 모델을 트레인시킨다
     print("\nStarting training...")
     train_losses, val_losses = trainer.train(
         train_loader, 
@@ -1738,7 +1738,7 @@ class Seq2SeqInference:
     Seq2Seq 모델을 위한 추론 도구
     
     인수:
-        model: 학습된 Seq2Seq 모델
+        model: 트레인된 Seq2Seq 모델
         src_vocab: 소스 어휘 (토큰을 인덱스로)
         trg_vocab: 타깃 어휘 (토큰을 인덱스로)
         device: 추론을 돌릴 장치
@@ -2096,7 +2096,7 @@ if __name__ == "__main__":
 
 
 def main():
-    """주된 학습과 평가의 흐름"""
+    """주된 트레인과 평가의 흐름"""
     
     print("=" * 60)
     print("Seq2Seq Translation Example: English to French")
@@ -2295,12 +2295,12 @@ def main():
     
     print(f"Model created with {count_parameters(model):,} trainable parameters")
     
-    # ========== 5단계: 모델 학습시키기 ==========
+    # ========== 5단계: 모델 트레인시키기 ==========
     print("\n" + "=" * 60)
     print("Step 5: Training Model")
     print("=" * 60)
     
-    # 학습 설정
+    # 트레인 설정
     LEARNING_RATE = 0.001
     N_EPOCHS = 20
     CLIP = 1.0
@@ -2312,7 +2312,7 @@ def main():
     # 학습기 만들기
     trainer = Seq2SeqTrainer(model, optimizer, criterion, device, PAD_IDX, CLIP)
     
-    # 모델을 학습시킨다
+    # 모델을 트레인시킨다
     train_losses, val_losses = trainer.train(
         train_loader,
         val_loader,
@@ -2392,13 +2392,13 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-30개 문장을 앞에서부터 21개 학습, 4개 검증, 5개 시험으로 나눈다. 어휘는 학습 구간에서만 만들므로 검증·시험 집합에는 OOV(out-of-vocabulary, 어휘에 없는 단어)가 생길 수 있다. 매우 작은 데이터의 결과를 일반 번역 성능으로 해석할 수 없다. torch와 NumPy 시드는 설정하지만 티처 포싱(teacher forcing, 디코더의 다음 입력으로 정답 토큰을 넣어 주는 학습 방식)에서 쓰는 Python random은 설정하지 않는다.
+30개 문장을 앞에서부터 21개 트레인, 4개 검증, 5개 시험으로 나눈다. 어휘는 트레인 구간에서만 만들므로 검증·시험 집합에는 OOV(out-of-vocabulary, 어휘에 없는 단어)가 생길 수 있다. 매우 작은 데이터의 결과를 일반 번역 성능으로 해석할 수 없다. torch와 NumPy 시드는 설정하지만 티처 포싱(teacher forcing, 디코더의 다음 입력으로 정답 토큰을 넣어 주는 트레인 방식)에서 쓰는 Python random은 설정하지 않는다.
 
 현재 ParallelDataset은 정수 목록을 반환하지만 collate_fn은 pad_sequence에 텐서 목록을 전달하는 것을 기대한다. 따라서 이 두 모듈을 그대로 연결하면 배치 구성 단계에서 맞지 않는다. 데이터셋이나 collate 단계에서 long 텐서로 변환하는 계약이 필요하다.
 
-양방향 인코더의 최종 상태는 2H로 이어 붙여지므로 디코더도 그 은닉 크기에 맞춰 설정한다. 학습은 검증 최고 체크포인트를 저장하지만 이 예제는 이를 다시 불러오지 않고 마지막 모델로 시험 집합을 평가한다. 최고 검증 모델의 성능으로 보고해서는 안 된다.
+양방향 인코더의 최종 상태는 2H로 이어 붙여지므로 디코더도 그 은닉 크기에 맞춰 설정한다. 트레인은 검증 최고 체크포인트를 저장하지만 이 예제는 이를 다시 불러오지 않고 마지막 모델로 시험 집합을 평가한다. 최고 검증 모델의 성능으로 보고해서는 안 된다.
 
-학습 토큰화는 구두점을 분리하지만 추론은 소문자·공백만 사용해 불일치한다. BLEU 도구에는 n-그램 분모 오류가 있고, 참조·출력의 대소문자·구두점 처리도 맞추지 않는다. 문장 BLEU를 평균한 값은 코퍼스 BLEU와 다르다. 따라서 이 코드에 보고되는 점수를 표준 번역 성능으로 사용하면 안 된다.
+트레인 토큰화는 구두점을 분리하지만 추론은 소문자·공백만 사용해 불일치한다. BLEU 도구에는 n-그램 분모 오류가 있고, 참조·출력의 대소문자·구두점 처리도 맞추지 않는다. 문장 BLEU를 평균한 값은 코퍼스 BLEU와 다르다. 따라서 이 코드에 보고되는 점수를 표준 번역 성능으로 사용하면 안 된다.
 
 ## 연습문제
 
@@ -2410,7 +2410,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    학습 21개, 검증 4개, 시험 5개다. 비율에 따른 정수 절삭을 사용하고 데이터를 섞지 않는다. 작은 수와 문장 순서 때문에 분포 차이가 클 수 있으며 학습 어휘에 없는 단어도 발생할 수 있다.
+    트레인 21개, 검증 4개, 시험 5개다. 비율에 따른 정수 절삭을 사용하고 데이터를 섞지 않는다. 작은 수와 문장 순서 때문에 분포 차이가 클 수 있으며 트레인 어휘에 없는 단어도 발생할 수 있다.
 
 ---
 
@@ -2422,7 +2422,7 @@ ParallelDataset과 collate_fn 사이의 불일치를 설명하라.
 </div>
 
 ??? success "풀이"
-    데이터셋은 ID의 파이썬 목록을 반환하고 pad_sequence는 텐서를 요구한다. 배치 패딩 전에 long 텐서로 바꾸어야 하며 빈 입력과 PAD ID도 검사한다. 모델 구조가 맞아도 데이터 계약이 다르면 학습까지 도달하지 못한다.
+    데이터셋은 ID의 파이썬 목록을 반환하고 pad_sequence는 텐서를 요구한다. 배치 패딩 전에 long 텐서로 바꾸어야 하며 빈 입력과 PAD ID도 검사한다. 모델 구조가 맞아도 데이터 계약이 다르면 트레인까지 도달하지 못한다.
 
 ---
 
@@ -2434,7 +2434,7 @@ ParallelDataset과 collate_fn 사이의 불일치를 설명하라.
 </div>
 
 ??? success "풀이"
-    평가할 체크포인트가 선택한 상태인지 확인하고, 학습·추론의 토큰화를 맞춘다. 표준 BLEU의 n-그램 발생 수·토큰화와 코퍼스 집계 방식을 사용한다. 현재 작은 예제의 점수로 일반화나 다른 모델 대비 우열을 확정하지 않는다.
+    평가할 체크포인트가 선택한 상태인지 확인하고, 트레인·추론의 토큰화를 맞춘다. 표준 BLEU의 n-그램 발생 수·토큰화와 코퍼스 집계 방식을 사용한다. 현재 작은 예제의 점수로 일반화나 다른 모델 대비 우열을 확정하지 않는다.
 
 ---
 

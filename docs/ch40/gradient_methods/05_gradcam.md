@@ -48,7 +48,7 @@ from PIL import Image
 # 도우미 함수
 # ========================================================================
 
-# ImageNet으로 학습한 모델이 쓰는 값. 전처리할 때와 되돌릴 때 같은 값을 써야 한다.
+# ImageNet으로 트레인한 모델이 쓰는 값. 전처리할 때와 되돌릴 때 같은 값을 써야 한다.
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
@@ -63,10 +63,10 @@ def get_device():
 
 
 def load_pretrained_model(model_name="resnet50", device=None, eval_mode=True):
-    """torchvision에서 사전 학습된 모델을 불러온다.
+    """torchvision에서 사전 트레인된 모델을 불러온다.
 
-    다운로드가 안 되면(네트워크가 없을 때) 학습하지 않은 모델로 대체한다. 그래디언트
-    방법을 보이는 데에는 가중치가 실제로 학습된 것이 아니어도 맵이 나온다.
+    다운로드가 안 되면(네트워크가 없을 때) 트레인하지 않은 모델로 대체한다. 그래디언트
+    방법을 보이는 데에는 가중치가 실제로 트레인된 것이 아니어도 맵이 나온다.
     """
     from torchvision import models
 
@@ -74,7 +74,7 @@ def load_pretrained_model(model_name="resnet50", device=None, eval_mode=True):
     try:
         model = getattr(models, model_name)(weights="DEFAULT")
     except Exception:
-        print(f"  사전 학습 가중치를 받지 못했다 — {model_name}을 무작위 초기화 상태로 쓴다.")
+        print(f"  사전 트레인 가중치를 받지 못했다 — {model_name}을 무작위 초기화 상태로 쓴다.")
         model = getattr(models, model_name)(weights=None)
 
     model = model.to(device)
@@ -527,7 +527,7 @@ Grad-CAM을 계산하는 중...
         for p in model.parameters():
             assert p.grad is not None
     ```
-    구조가 엔드투엔드 학습을 지원하는지 알려면 그래디언트 흐름을 테스트하는 것이 특히 중요하다.
+    구조가 엔드투엔드 트레인을 지원하는지 알려면 그래디언트 흐름을 테스트하는 것이 특히 중요하다.
 
 ## 정리하며
 

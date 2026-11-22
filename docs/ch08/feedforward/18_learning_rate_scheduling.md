@@ -1,6 +1,6 @@
 # 러닝레이트 스케줄링
 
-러닝레이트 스케줄러의 종류와 스케줄을 비교한다. 본문 코드는 학습 성능 실험 대신 러닝레이트 곡선을 수동 계산해 그리는 시연이다.
+러닝레이트 스케줄러의 종류와 스케줄을 비교한다. 본문 코드는 트레인 성능 실험 대신 러닝레이트 곡선을 수동 계산해 그리는 시연이다.
 
 ## 1. 코드
 
@@ -8,7 +8,7 @@
 """
 10_learning_rate_scheduling.py - 동적 러닝레이트
 
-더 나은 수렴을 위해 학습 중에 러닝레이트를 조정하는 법을 배운다.
+더 나은 수렴을 위해 트레인 중에 러닝레이트를 조정하는 법을 배운다.
 처음에는 높은 러닝레이트로 빠르게 나아가고, 나중에는 줄여 세밀하게 다듬는다.
 
 소요 시간: 30~40분 | 난이도: ⭐⭐⭐⭐☆
@@ -101,10 +101,10 @@ print("""
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
 
-# 학습 루프
+# 트레인 루프
 for epoch in range(num_epochs):
     for batch in train_loader:
-        # 학습 단계
+        # 트레인 단계
         loss.backward()
         optimizer.step()
     
@@ -119,7 +119,7 @@ RECOMMENDATIONS:
 - 기준선을 잡으려면 고정 러닝레이트로 시작하라
 - 단순한 감쇠에는 StepLR을 쓰라
 - 적응적 조정에는 ReduceLROnPlateau를 쓰라
-- 순환 학습에는 CosineAnnealing을 쓰라
+- 순환 트레인에는 CosineAnnealing을 쓰라
 """)
 plt.show()
 
@@ -151,10 +151,10 @@ USAGE PATTERN
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
 
-# 학습 루프
+# 트레인 루프
 for epoch in range(num_epochs):
     for batch in train_loader:
-        # 학습 단계
+        # 트레인 단계
         loss.backward()
         optimizer.step()
     
@@ -169,12 +169,12 @@ RECOMMENDATIONS:
 - 기준선을 잡으려면 고정 러닝레이트로 시작하라
 - 단순한 감쇠에는 StepLR을 쓰라
 - 적응적 조정에는 ReduceLROnPlateau를 쓰라
-- 순환 학습에는 CosineAnnealing을 쓰라
+- 순환 트레인에는 CosineAnnealing을 쓰라
 ```
 
 ## 2. 논의
 
-코드는 StepLR, ExponentialLR, CosineAnnealingLR, ReduceLROnPlateau 객체를 생성한다. 그래프에 쓰는 값은 각 스케줄러를 실제 학습에서 step한 결과가 아니라 식과 조건문으로 만든 값이다. 따라서 곡선만으로 수렴 속도나 최종 정확도를 비교할 수 없다.
+코드는 StepLR, ExponentialLR, CosineAnnealingLR, ReduceLROnPlateau 객체를 생성한다. 그래프에 쓰는 값은 각 스케줄러를 실제 트레인에서 step한 결과가 아니라 식과 조건문으로 만든 값이다. 따라서 곡선만으로 수렴 속도나 최종 정확도를 비교할 수 없다.
 
 StepLR 등은 정한 호출 주기에 따라 갱신한다. ReduceLROnPlateau는 검증 로스 같은 지표를 전달해야 한다. 여러 스케줄러가 하나의 옵티마이저를 공유하는 이 시연을 그대로 복사해 모두 동시에 적용하지 않는다.
 
@@ -221,7 +221,7 @@ ReduceLROnPlateau가 StepLR과 다른 입력을 요구하는 이유를 설명하
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-조기 종료를 구현하라. 매 에포크 후 검증 로스를 추적하고, 10 에포크 연속으로 개선이 없으면 학습을 멈춘다. 가장 좋은 모델 웨이트를 저장하고 복원하라.
+조기 종료를 구현하라. 매 에포크 후 검증 로스를 추적하고, 10 에포크 연속으로 개선이 없으면 트레인을 멈춘다. 가장 좋은 모델 웨이트를 저장하고 복원하라.
 
 </div>
 
@@ -232,7 +232,7 @@ ReduceLROnPlateau가 StepLR과 다른 입력을 요구하는 이유를 설명하
     patience_counter = 0
     best_state = None
     for epoch in range(num_epochs):
-        # ... 학습 단계 ...
+        # ... 트레인 단계 ...
         val_loss = evaluate(model, val_loader)
         if val_loss < best_loss:
             best_loss = val_loss
@@ -249,4 +249,4 @@ ReduceLROnPlateau가 StepLR과 다른 입력을 요구하는 이유를 설명하
 
 ## 정리하며
 
-스케줄러의 호출 주기와 입력 규약을 확인한다. 이 페이지의 수동 러닝레이트 곡선과 실제 학습 결과는 구분해야 한다.
+스케줄러의 호출 주기와 입력 규약을 확인한다. 이 페이지의 수동 러닝레이트 곡선과 실제 트레인 결과는 구분해야 한다.

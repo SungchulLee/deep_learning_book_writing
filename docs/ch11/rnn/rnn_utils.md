@@ -1,6 +1,6 @@
 # RNN 유틸리티
 
-RNN 실습에 사용하는 모델, 학습·평가 함수와 텍스트·저장 도구를 모은 참조 페이지다. 네 모델은 서로 다른 대안이며 하나의 모델로 연결되어 있지 않다. 공통 함수가 모든 모델의 반환값과 과제에 바로 호환되는지 확인해야 한다.
+RNN 실습에 사용하는 모델, 트레인·평가 함수와 텍스트·저장 도구를 모은 참조 페이지다. 네 모델은 서로 다른 대안이며 하나의 모델로 연결되어 있지 않다. 공통 함수가 모든 모델의 반환값과 과제에 바로 호환되는지 확인해야 한다.
 
 ## 1. 코드
 
@@ -14,7 +14,7 @@ RNN 실습을 위한 종합 유틸리티 모듈
 - 인자 파싱
 - 데이터 적재와 전처리
 - RNN 모델 구조
-- 학습과 평가
+- 트레인과 평가
 - 시각화
 - 텍스트 처리 도구
 
@@ -35,10 +35,10 @@ from torch.utils.data import Dataset, DataLoader
 # =============================================================================
 
 def parse_args():
-    """RNN 학습을 위한 명령줄 인자 파싱"""
+    """RNN 트레인을 위한 명령줄 인자 파싱"""
     parser = argparse.ArgumentParser(description='PyTorch RNN Training')
     
-    # 학습 하이퍼파라메터
+    # 트레인 하이퍼파라메터
     parser.add_argument('--batch-size', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--lr', type=float, default=0.001)
@@ -167,11 +167,11 @@ class BiLSTM(nn.Module):
         return out
 
 # =============================================================================
-# 학습과 평가
+# 트레인과 평가
 # =============================================================================
 
 def train_epoch(model, dataloader, criterion, optimizer, device, clip=None):
-    """한 에포크 동안 학습한다"""
+    """한 에포크 동안 트레인한다"""
     model.train()
     total_loss = 0
     correct = 0
@@ -280,7 +280,7 @@ def text_to_sequence(text, vocab, max_length=None):
 # =============================================================================
 
 def plot_training_curves(train_losses, val_losses, train_accs=None, val_accs=None):
-    """학습 곡선 그리기"""
+    """트레인 곡선 그리기"""
     fig, axes = plt.subplots(1, 2 if train_accs else 1, figsize=(15 if train_accs else 10, 5))
     
     if train_accs is None:
@@ -358,7 +358,7 @@ if __name__ == "__main__":
 
 `train_epoch`와 `evaluate`는 모델 반환값을 텐서로 가정한다. 따라서 튜플을 반환하는 SimpleRNN에는 그대로 사용할 수 없고 로짓을 분리해야 한다. 출력 차원이 2 이상이면 argmax 정확도를 계산하므로 여러 회귀 타깃이나 길이별 출력에는 적합한 지표가 아니다. 단일 이진 로짓에는 정확도가 0으로 보고될 수 있으므로 출력에 맞춘 평가가 필요하다.
 
-로스는 배치 로스의 단순 평균이다. 마지막 배치가 작으면 표본 평균과 다르며 빈 로더에서는 0으로 나누게 된다. `evaluate`는 평가 모드를 유지하므로 이후 학습에서는 다시 train 모드를 설정해야 한다. 모델들은 길이 정보를 받지 않으므로 패딩 위치까지 그대로 계산에 넣는다.
+로스는 배치 로스의 단순 평균이다. 마지막 배치가 작으면 표본 평균과 다르며 빈 로더에서는 0으로 나누게 된다. `evaluate`는 평가 모드를 유지하므로 이후 트레인에서는 다시 train 모드를 설정해야 한다. 모델들은 길이 정보를 받지 않으므로 패딩 위치까지 그대로 계산에 넣는다.
 
 저장 함수는 모델 state_dict와 선택적인 어휘 객체를 저장한다. 구조 인수와 전처리 규칙, 옵티마이저·스케줄러 상태와 난수 상태는 따로 관리해야 한다. 사용자 정의 Vocabulary 객체를 저장하면 최신 PyTorch의 기본 weights_only 로드에서 허용되지 않을 수 있다. 사전 데이터를 기본 자료형으로 저장하는 방식과 신뢰할 수 있는 객체 복원을 구분한다.
 
@@ -381,7 +381,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-공통 학습 함수를 네 모델에 적용하기 전에 확인할 반환값과 과제 조건을 설명하라.
+공통 트레인 함수를 네 모델에 적용하기 전에 확인할 반환값과 과제 조건을 설명하라.
 
 </div>
 

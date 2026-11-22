@@ -426,7 +426,7 @@ _확인한 곳 — S. Kakade, "A Natural Policy Gradient", NIPS 2001/2002, Gatsb
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-연습문제 1의 결함을 고친 뒤, 작은 네트워크(예: `hidden_dim=8`)에서 `compute_empirical_fisher` 로 피셔 행렬을 직접 만들어 $F^{-1}g$ 를 정확히 풀고, 켤레 그래디언트가 10 번 되풀이로 얻은 해와 견주어라(두 벡터 사이의 각도와 상대 오차). 다만 `compute_empirical_fisher` 는 **뽑힌 액션**의 점수로 만든 경험적 피셔이고, 피셔-벡터 곱은 분포 전체에 대한 기댓값을 쓴다는 차이를 함께 논하라. 그다음 $\delta$ 를 0.001, 0.01, 0.05 로 바꾸며 시드 여럿으로 학습 곡선을 견주어라.
+연습문제 1의 결함을 고친 뒤, 작은 네트워크(예: `hidden_dim=8`)에서 `compute_empirical_fisher` 로 피셔 행렬을 직접 만들어 $F^{-1}g$ 를 정확히 풀고, 켤레 그래디언트가 10 번 되풀이로 얻은 해와 견주어라(두 벡터 사이의 각도와 상대 오차). 다만 `compute_empirical_fisher` 는 **뽑힌 액션**의 점수로 만든 경험적 피셔이고, 피셔-벡터 곱은 분포 전체에 대한 기댓값을 쓴다는 차이를 함께 논하라. 그다음 $\delta$ 를 0.001, 0.01, 0.05 로 바꾸며 시드 여럿으로 트레인 곡선을 견주어라.
 
 </div>
 

@@ -108,11 +108,11 @@ class BiLSTMNER(nn.Module):
             return torch.argmax(outputs['logits'], dim=-1)
 ```
 
-입력은 B×L 토큰 ID와 선택적 attention_mask·labels다. 기본 hidden_dim=256이면 방향별 128, 연결 256차원에서 B×L×K 로짓을 만든다. hidden_dim이 홀수이면 양방향 합은 2·floor(hidden_dim/2)라 선형 입력과 맞지 않는다. 단어 임베딩은 무작위 초기화이며 사전 학습 임베딩을 로드하는 코드가 없다.
+입력은 B×L 토큰 ID와 선택적 attention_mask·labels다. 기본 hidden_dim=256이면 방향별 128, 연결 256차원에서 B×L×K 로짓을 만든다. hidden_dim이 홀수이면 양방향 합은 2·floor(hidden_dim/2)라 선형 입력과 맞지 않는다. 단어 임베딩은 무작위 초기화이며 사전 트레인 임베딩을 로드하는 코드가 없다.
 
 mask가 있으면 유효 길이로 pack한다. 양의 길이·오른쪽 연속 패딩을 가정하며 unpack은 배치의 최대 유효 길이로 줄어들 수 있다. labels가 원래 고정 패딩 길이를 유지하면 펼친 logits와 원소 수가 달라 CE에서 실패할 수 있다. total_length 또는 목표·마스크 정렬 규칙이 필요하다.
 
-로스는 −100 라벨만 무시한다. attention_mask만 0으로 두고 패딩 labels를 O로 채우면 CE에서 자동으로 제외되지 않는다. 모든 라벨이 −100일 때 평균의 유효 분모도 고려해야 한다. predict는 no_grad를 쓰지만 eval로 전환하지 않아 호출자가 학습 모드이면 dropout이 남는다. 반환 argmax에는 패딩 위치를 제거하는 별도 절차도 없다.
+로스는 −100 라벨만 무시한다. attention_mask만 0으로 두고 패딩 labels를 O로 채우면 CE에서 자동으로 제외되지 않는다. 모든 라벨이 −100일 때 평균의 유효 분모도 고려해야 한다. predict는 no_grad를 쓰지만 eval로 전환하지 않아 호출자가 트레인 모드이면 dropout이 남는다. 반환 argmax에는 패딩 위치를 제거하는 별도 절차도 없다.
 
 ## 3. 문자 피처를 결합하는 모델
 
@@ -233,7 +233,7 @@ CharLSTM은 B×L×M 문자 ID를 단어별 시퀀스로 펼쳐 방향별 최종 
 
 BiLSTMCharNER는 attention_mask를 인수로 받지만 실제 단어 LSTM의 packing·피처·로스 마스크에 사용하지 않는다. 단어 임베딩에도 padding_idx가 없다. 양방향 문맥이 패딩 길이에 영향을 받을 수 있어 입력 mask가 있다는 사실만으로 패딩 처리가 완성되었다고 설명하면 안 된다. 문자 피처는 접두·접미·철자 패턴을 학습할 수 있지만 규칙을 자동으로 정확히 인식하거나 모든 희귀 개체를 해결하지는 않는다.
 
-## 4. BiLSTMCRF의 학습·디코딩 구분
+## 4. BiLSTMCRF의 트레인·디코딩 구분
 
 ```python
 class BiLSTMCRF(nn.Module):
@@ -366,7 +366,7 @@ class BiLSTMCRF(nn.Module):
         return best_tags
 ```
 
-이 페이지의 CRF는 정답 점수와 forward 알고리즘에서 모두 `transitions[next,prev]`를 사용한다. 그러나 `_viterbi_decode`는 broadcast 방식으로 `transitions[prev,next]`를 사용해 **학습한 분포와 다른 방향의 점수로 디코딩**한다. [별도 CRF 절](crf.md)의 구현과도 오류 위치가 같지 않으므로 각각의 경로를 확인해야 한다.
+이 페이지의 CRF는 정답 점수와 forward 알고리즘에서 모두 `transitions[next,prev]`를 사용한다. 그러나 `_viterbi_decode`는 broadcast 방식으로 `transitions[prev,next]`를 사용해 **트레인한 분포와 다른 방향의 점수로 디코딩**한다. [별도 CRF 절](crf.md)의 구현과도 오류 위치가 같지 않으므로 각각의 경로를 확인해야 한다.
 
 이 BiLSTMCRF의 인코더는 attention_mask를 받아도 packing하지 않는다. CRF의 오른쪽 패딩 mask가 태그 점수를 제외해도 BiLSTM의 역방향 상태가 패딩을 읽는 문제를 자동 해결하지는 않는다. CRF는 첫 위치가 유효한 비어 있지 않은 연속 prefix를 가정하고 패딩 tags도 유효 ID가 필요하다. CE용 −100은 gather 전에 마스킹되지 않는다.
 
@@ -374,9 +374,9 @@ decode는 eval·no_grad를 자체 적용하지 않으며 BIO 강제 제약도 �
 
 ## 5. 다른 모델과 비교하기
 
-BiLSTM과 트랜스포머의 데이터 요구·속도·정확도를 하나의 고정 순위로 정할 수 없다. 사전 학습 규모·모델 크기·시퀀스 길이·장치·배치·토큰화·도메인이 영향을 준다. 무작위 BiLSTM과 대규모 사전 학습 인코더를 비교하면 구조뿐 아니라 사전 학습의 효과도 섞인다.
+BiLSTM과 트랜스포머의 데이터 요구·속도·정확도를 하나의 고정 순위로 정할 수 없다. 사전 트레인 규모·모델 크기·시퀀스 길이·장치·배치·토큰화·도메인이 영향을 준다. 무작위 BiLSTM과 대규모 사전 트레인 인코더를 비교하면 구조뿐 아니라 사전 트레인의 효과도 섞인다.
 
-문자 피처·dropout·그래디언트 클리핑·CRF·임베딩 초기화는 선택 가능한 설계다. 검증 데이터에서 목적에 맞게 선택하고 최고 체크포인트와 독립 평가를 사용한다. 이 페이지는 구조 조각을 제공할 뿐 여러 모델을 학습한 통제 실험 결과를 제공하지 않는다.
+문자 피처·dropout·그래디언트 클리핑·CRF·임베딩 초기화는 선택 가능한 설계다. 검증 데이터에서 목적에 맞게 선택하고 최고 체크포인트와 독립 평가를 사용한다. 이 페이지는 구조 조각을 제공할 뿐 여러 모델을 트레인한 통제 실험 결과를 제공하지 않는다.
 
 ## 연습문제
 
@@ -428,16 +428,16 @@ hidden_dim=255와 char_hidden_dim=51을 그대로 넣을 때 생길 수 있는 �
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff easy" title="쉬움"></span>
-이 페이지의 CRF 학습과 Viterbi의 전이 방향을 비교하라.
+이 페이지의 CRF 트레인과 Viterbi의 전이 방향을 비교하라.
 
 </div>
 
 ??? success "풀이"
 
-    정답·forward는 [next,prev]로 일치하지만 Viterbi는 [prev,next]로 계산한다. 비대칭 전이면 학습한 분포의 최적 경로를 구하지 않는다. 방향을 통일하고 eval·no_grad와 BIO 제약도 필요에 맞게 적용해야 한다.
+    정답·forward는 [next,prev]로 일치하지만 Viterbi는 [prev,next]로 계산한다. 비대칭 전이면 트레인한 분포의 최적 경로를 구하지 않는다. 방향을 통일하고 eval·no_grad와 BIO 제약도 필요에 맞게 적용해야 한다.
 
 
 
 ## 정리하며
 
-BiLSTM은 양방향 문맥을 만들고 문자 피처·CRF와 결합할 수 있다. 그러나 차원·packing·목표 마스크·모드와 전이 방향이 맞아야 의미 있는 모델이 된다. 현재 코드의 패딩·디코딩 한계와 실제 학습·평가 범위를 구분한다.
+BiLSTM은 양방향 문맥을 만들고 문자 피처·CRF와 결합할 수 있다. 그러나 차원·packing·목표 마스크·모드와 전이 방향이 맞아야 의미 있는 모델이 된다. 현재 코드의 패딩·디코딩 한계와 실제 트레인·평가 범위를 구분한다.

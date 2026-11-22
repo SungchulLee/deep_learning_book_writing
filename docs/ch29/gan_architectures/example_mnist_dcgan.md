@@ -1,14 +1,14 @@
-# MNIST DCGAN 학습 파이프라인
+# MNIST DCGAN 트레인 파이프라인
 
-이 예제는 데이터 로딩, 교대 업데이트, 고정 잠재 표본 표시와 체크포인트를 하나의 클래스에 묶는다. 다만 함께 실린 모델 정의와 학습 스크립트의 해상도·출력·로스 계약이 서로 다르다. 코드를 실행해 얻은 완성 실험으로 설명하기보다 의도한 흐름과 실제 연결 상태를 구분해야 한다.
+이 예제는 데이터 로딩, 교대 업데이트, 고정 잠재 표본 표시와 체크포인트를 하나의 클래스에 묶는다. 다만 함께 실린 모델 정의와 트레인 스크립트의 해상도·출력·로스 계약이 서로 다르다. 코드를 실행해 얻은 완성 실험으로 설명하기보다 의도한 흐름과 실제 연결 상태를 구분해야 한다.
 
-## 1. 학습 스크립트
+## 1. 트레인 스크립트
 
 ```python
 """
-MNIST에서 DCGAN 학습하기
+MNIST에서 DCGAN 트레인하기
 
-MNIST 데이터셋에서 DCGAN을 학습하는 전체 스크립트.
+MNIST 데이터셋에서 DCGAN을 트레인하는 전체 스크립트.
 """
 
 import torch
@@ -119,7 +119,7 @@ def weights_init(m: nn.Module) -> None:
 """
 GAN 유틸리티
 
-이 모듈은 GAN을 학습하고 시각화하고 평가하는 유틸리티 함수를 담는다.
+이 모듈은 GAN을 트레인하고 시각화하고 평가하는 유틸리티 함수를 담는다.
 """
 
 
@@ -429,7 +429,7 @@ def label_smoothing(labels: torch.Tensor, smoothing: float = 0.1) -> torch.Tenso
 
 def add_noise_to_inputs(data: torch.Tensor, noise_std: float = 0.1) -> torch.Tensor:
     """
-    디스크리미네이터 입력에 잡음을 더한다(학습이 안정된다).
+    디스크리미네이터 입력에 잡음을 더한다(트레인이 안정된다).
     
     인수:
         data: 입력 데이터
@@ -542,7 +542,7 @@ def load_checkpoint(generator: nn.Module, discriminator: nn.Module,
 
 
 class DCGAN_MNIST:
-    """MNIST에서 DCGAN을 학습하는 래퍼 클래스."""
+    """MNIST에서 DCGAN을 트레인하는 래퍼 클래스."""
     
     def __init__(self, latent_dim: int = 100, feature_maps: int = 64,
                  batch_size: int = 128, lr: float = 0.0002, beta1: float = 0.5,
@@ -553,10 +553,10 @@ class DCGAN_MNIST:
         인수:
             latent_dim: 잠재 벡터의 차원
             feature_maps: 피처 맵의 기본 수
-            batch_size: 학습 배치 크기
+            batch_size: 트레인 배치 크기
             lr: 러닝레이트
             beta1: Adam 옵티마이저의 beta1
-            device: 학습에 쓸 장치
+            device: 트레인에 쓸 장치
         """
         self.latent_dim = latent_dim
         self.batch_size = batch_size
@@ -633,7 +633,7 @@ class DCGAN_MNIST:
     
     def train_discriminator(self, real_images: torch.Tensor) -> float:
         """
-        디스크리미네이터를 한 스텝 학습한다.
+        디스크리미네이터를 한 스텝 트레인한다.
         
         인수:
             real_images: 실제 그림 배치
@@ -649,11 +649,11 @@ class DCGAN_MNIST:
         real_labels = torch.ones(batch_size, 1, device=self.device)
         fake_labels = torch.zeros(batch_size, 1, device=self.device)
         
-        # 실제 그림으로 학습한다
+        # 실제 그림으로 트레인한다
         d_real = self.discriminator(real_images)
         real_loss = self.criterion(d_real, real_labels)
         
-        # 가짜 그림으로 학습한다
+        # 가짜 그림으로 트레인한다
         noise = torch.randn(batch_size, self.latent_dim, device=self.device)
         fake_images = self.generator(noise)
         d_fake = self.discriminator(fake_images.detach())
@@ -668,7 +668,7 @@ class DCGAN_MNIST:
     
     def train_generator(self) -> float:
         """
-        제너레이터를 한 스텝 학습한다.
+        제너레이터를 한 스텝 트레인한다.
         
         반환값:
             제너레이터 로스
@@ -692,10 +692,10 @@ class DCGAN_MNIST:
     def train(self, n_epochs: int = 50, save_interval: int = 5,
              d_steps: int = 1):
         """
-        DCGAN을 학습한다.
+        DCGAN을 트레인한다.
         
         인수:
-            n_epochs: 학습 에포크 수
+            n_epochs: 트레인 에포크 수
             save_interval: N에포크마다 표본을 저장한다
             d_steps: 제너레이터 한 스텝마다 디스크리미네이터 스텝 수
         """
@@ -722,11 +722,11 @@ class DCGAN_MNIST:
             for i, (real_images, _) in enumerate(pbar):
                 real_images = real_images.to(self.device)
                 
-                # 디스크리미네이터를 학습한다
+                # 디스크리미네이터를 트레인한다
                 for _ in range(d_steps):
                     d_loss = self.train_discriminator(real_images)
                 
-                # 제너레이터를 학습한다
+                # 제너레이터를 트레인한다
                 g_loss = self.train_generator()
                 
                 # 로스 기록
@@ -778,7 +778,7 @@ class DCGAN_MNIST:
             filename='final_samples.png'
         )
         
-        # 학습 진행을 그린다
+        # 트레인 진행을 그린다
         plot_training_progress(g_losses, d_losses)
         
         # 마지막 체크포인트를 저장한다
@@ -792,7 +792,7 @@ class DCGAN_MNIST:
         return g_losses, d_losses
     
     def generate_samples(self, n_samples: int = 64):
-        """학습한 제너레이터에서 표본을 만든다."""
+        """트레인한 제너레이터에서 표본을 만든다."""
         self.generator.eval()
         
         with torch.no_grad():
@@ -822,7 +822,7 @@ class DCGAN_MNIST:
 
 
 def main():
-    """메인 학습 스크립트."""
+    """메인 트레인 스크립트."""
     print("=" * 60)
     print("DCGAN Training on MNIST")
     print("=" * 60)
@@ -854,7 +854,7 @@ def main():
         beta1=config['beta1']
     )
     
-    # 학습
+    # 트레인
     g_losses, d_losses = dcgan.train(
         n_epochs=config['n_epochs'],
         save_interval=config['save_interval'],
@@ -879,7 +879,7 @@ if __name__ == "__main__":
     main()
 ```
 
-main의 설정은 잠재 100, feature_maps=64, 배치 128, Adam 러닝레이트 0.0002·betas=(0.5,0.999), 50에포크와 D:G=1:1이다. MNIST 학습셋을 ToTensor와 Normalize(0.5,0.5)로 −1~1로 바꾸지만 Resize는 없다. 라벨은 버리는 무조건부 모델이며 라벨 스무딩·FID·IS 계산은 현재 학습 루프에 없다.
+main의 설정은 잠재 100, feature_maps=64, 배치 128, Adam 러닝레이트 0.0002·betas=(0.5,0.999), 50에포크와 D:G=1:1이다. MNIST 트레인셋을 ToTensor와 Normalize(0.5,0.5)로 −1~1로 바꾸지만 Resize는 없다. 라벨은 버리는 무조건부 모델이며 라벨 스무딩·FID·IS 계산은 현재 트레인 루프에 없다.
 
 ## 2. 함께 실린 모델과의 불일치
 
@@ -895,15 +895,15 @@ main의 설정은 잠재 100, feature_maps=64, 배치 128, Adam 러닝레이트 
 
 d_steps>1이면 같은 실제 배치를 반복 사용하고 생성 잡음은 매번 새로 뽑는다. 로그에는 마지막 D 로스만 기록하며 여러 D step의 평균이 아니다. d_steps는 양수여야 하고 0이면 d_loss가 정의되지 않는다. G는 마지막 실제 배치가 작아도 설정된 self.batch_size개를 생성한다.
 
-두 모델은 생성 시 기본 train 모드지만 train 메서드 시작에서 모드를 명시적으로 재설정하지 않는다. 다른 생성 메서드가 eval 상태를 남긴 뒤 재학습하면 동작이 달라질 수 있어 호출 순서를 확인한다. 초기화 도구는 Conv·BatchNorm을 처리하며 실제 적용 범위는 모델 구조에 따른다.
+두 모델은 생성 시 기본 train 모드지만 train 메서드 시작에서 모드를 명시적으로 재설정하지 않는다. 다른 생성 메서드가 eval 상태를 남긴 뒤 재트레인하면 동작이 달라질 수 있어 호출 순서를 확인한다. 초기화 도구는 Conv·BatchNorm을 처리하며 실제 적용 범위는 모델 구조에 따른다.
 
 ## 4. 저장·표시와 평가의 범위
 
 고정 잡음 64개를 첫 에포크와 save_interval 간격에 표시하고, 25에포크마다 두 모델·두 optimizer 상태를 저장한다. 종료 때도 최종 표본·로스 곡선·체크포인트를 저장하는 구조다. save_samples·interpolate_latent는 G를 무조건 train으로 돌리는 보조 함수여서 원래 모드 복원이 아니다. generate_samples는 eval 상태를 남긴다.
 
-체크포인트에는 구조·전처리·평가 설정·난수 상태 전체가 없고 이 클래스에 학습 재개 메서드도 없다. 같은 모델을 구성하고 필요한 상태를 복원하는 별도 절차가 필요하다. 학습셋만 사용하며 검증·독립 시험·최적 모델 선택은 없다.
+체크포인트에는 구조·전처리·평가 설정·난수 상태 전체가 없고 이 클래스에 트레인 재개 메서드도 없다. 같은 모델을 구성하고 필요한 상태를 복원하는 별도 절차가 필요하다. 트레인셋만 사용하며 검증·독립 시험·최적 모델 선택은 없다.
 
-이 페이지에는 실제 FID·IS·클래스 엔트로피 측정이 없어 다른 완전 연결 실험의 수치를 이 DCGAN의 결과로 제시할 수 없다. 표시·격자·보간의 품질도 실험으로 확인해야 한다. 이 쪽은 다운로드·학습·샘플링·그림 생성의 결과를 싣지 않는다.
+이 페이지에는 실제 FID·IS·클래스 엔트로피 측정이 없어 다른 완전 연결 실험의 수치를 이 DCGAN의 결과로 제시할 수 없다. 표시·격자·보간의 품질도 실험으로 확인해야 한다. 이 쪽은 다운로드·트레인·샘플링·그림 생성의 결과를 싣지 않는다.
 
 ## 연습문제
 
@@ -925,13 +925,13 @@ D 로스가 log4에 가깝다는 사실은 분포 일치의 증명인가?
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-아래 EMA 골격을 학습에 연결할 때 무엇을 보완해야 하는가?
+아래 EMA 골격을 트레인에 연결할 때 무엇을 보완해야 하는가?
 
 </div>
 
 ??? success "풀이"
 
-    copy import와 실제 generator 정의가 필요하다. EMA 모델은 학습 시작 시 한 번 만들고 매 G 업데이트 뒤 정한 일정으로 파라메터를 평균해야 한다. 아래 코드는 한 번의 평균만 보이며 BatchNorm running 통계 등 버퍼는 처리하지 않는다. EMA 버퍼를 복사·평균·재추정할 정책과 평가 모드·장치를 정해야 한다. 평균이 항상 더 좋은 생성 품질을 주는 것은 아니므로 같은 평가 조건에서 비교한다.
+    copy import와 실제 generator 정의가 필요하다. EMA 모델은 트레인 시작 시 한 번 만들고 매 G 업데이트 뒤 정한 일정으로 파라메터를 평균해야 한다. 아래 코드는 한 번의 평균만 보이며 BatchNorm running 통계 등 버퍼는 처리하지 않는다. EMA 버퍼를 복사·평균·재추정할 정책과 평가 모드·장치를 정해야 한다. 평균이 항상 더 좋은 생성 품질을 주는 것은 아니므로 같은 평가 조건에서 비교한다.
 
     ```python
     ema_decay = 0.999
@@ -976,7 +976,7 @@ D 로스가 log4에 가깝다는 사실은 분포 일치의 증명인가?
 <div class="drillbox" markdown>
 
 **연습문제 5.** <span class="diff med" title="중간"></span>
-이 코드에서 가장 먼저 확인할 학습 실패 원인은 무엇인가?
+이 코드에서 가장 먼저 확인할 트레인 실패 원인은 무엇인가?
 
 </div>
 
@@ -991,13 +991,13 @@ D 로스가 log4에 가깝다는 사실은 분포 일치의 증명인가?
 <div class="drillbox" markdown>
 
 **연습문제 6.** <span class="diff med" title="중간"></span>
-학습을 오래 하면 품질이 반드시 좋아지는가?
+트레인을 오래 하면 품질이 반드시 좋아지는가?
 
 </div>
 
 ??? success "풀이"
 
-    보장할 수 없다. 초기 학습 부족이 개선될 수도 있고 붕괴·과적합·진동·다양성 저하가 나타날 수도 있다. 현재 스크립트는 최종 웨이트만 최종 결과로 쓰며 검증 기준의 최적 선택은 없다. 평가 빈도·표본 수·검증 목적을 미리 정해 체크포인트를 비교하고 독립 최종 데이터를 분리한다. 실행하지 않은 30 대 60에포크의 특정 수치를 이 예제 결과라고 주장하지 않는다.
+    보장할 수 없다. 초기 트레인 부족이 개선될 수도 있고 붕괴·과적합·진동·다양성 저하가 나타날 수도 있다. 현재 스크립트는 최종 웨이트만 최종 결과로 쓰며 검증 기준의 최적 선택은 없다. 평가 빈도·표본 수·검증 목적을 미리 정해 체크포인트를 비교하고 독립 최종 데이터를 분리한다. 실행하지 않은 30 대 60에포크의 특정 수치를 이 예제 결과라고 주장하지 않는다.
 
 
 
@@ -1050,7 +1050,7 @@ VAE와 이 GAN을 비교하려면 어떤 공통 조건이 필요한가?
 
 ??? success "풀이"
 
-    평가 피처·전처리·표본 수·참조·선택 예산·시드를 맞추고 구조·학습 시간·파라메터·관측 모델 차이를 보고한다. 같은 파라메터 비교와 같은 시간 비교도 다른 질문이다. 현재 코드의 실행 계약이 맞지 않으므로 다른 실험의 숫자를 빌려 우열을 단정할 수 없다. GAN에는 입력을 복원(reconstruction)하는 인코더가 기본으로 없고 통상 계산 가능한 밀도도 없어 비교 목적 자체를 명확히 정해야 한다.
+    평가 피처·전처리·표본 수·참조·선택 예산·시드를 맞추고 구조·트레인 시간·파라메터·관측 모델 차이를 보고한다. 같은 파라메터 비교와 같은 시간 비교도 다른 질문이다. 현재 코드의 실행 계약이 맞지 않으므로 다른 실험의 숫자를 빌려 우열을 단정할 수 없다. GAN에는 입력을 복원(reconstruction)하는 인코더가 기본으로 없고 통상 계산 가능한 밀도도 없어 비교 목적 자체를 명확히 정해야 한다.
 
 
 
@@ -1072,7 +1072,7 @@ VAE와 이 GAN을 비교하려면 어떤 공통 조건이 필요한가?
         # 모델
         latent_dim=64, g_hidden=(256,512,1024), d_hidden=(512,256),
         batchnorm_g=True, dropout_d=0.3,
-        # 학습
+        # 트레인
         epochs=30, batch_size=128, lr_g=2e-4, lr_d=2e-4, betas=(0.5,0.999),
         label_smoothing=0.1, seed=42,
         # 평가
@@ -1085,4 +1085,4 @@ VAE와 이 GAN을 비교하려면 어떤 공통 조건이 필요한가?
 
 ## 정리하며
 
-학습 파이프라인은 모델·데이터·로스 계약이 맞아야 동작한다. 현재 64×64 logits 디스크리미네이터와 28×28 확률 BCE 스크립트는 서로 맞지 않는다. 의도한 교대 학습·저장 흐름과 실제 실행 상태를 구분하고 검증·생성 평가를 별도로 설계해야 한다.
+트레인 파이프라인은 모델·데이터·로스 계약이 맞아야 동작한다. 현재 64×64 logits 디스크리미네이터와 28×28 확률 BCE 스크립트는 서로 맞지 않는다. 의도한 교대 트레인·저장 흐름과 실제 실행 상태를 구분하고 검증·생성 평가를 별도로 설계해야 한다.

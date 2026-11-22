@@ -97,7 +97,7 @@ $$\frac{\partial h_t}{\partial h_{t-1}}=\operatorname{diag}(1-z_t)+\operatorname
 
 ## 4. PyTorch로 밑바닥부터 구현하기
 
-### GRU 셀 (학습용 버전)
+### GRU 셀 (트레인용 버전)
 
 ```python
 import torch
@@ -106,7 +106,7 @@ import numpy as np
 
 class GRUCell(nn.Module):
     """
-    학습용으로 직접 만든 GRU 셀 구현.
+    트레인용으로 직접 만든 GRU 셀 구현.
     
     알아보기 쉽도록 웨이트 행렬을 따로 두고 표준 GRU 식을 구현한다.
     실전 구현은 효율을 위해 행렬을 합친다.
@@ -429,7 +429,7 @@ class BiGRUEncoder(nn.Module):
 ```python
 def init_gru_weights(gru: nn.GRU):
     """
-    안정된 학습을 위해 GRU의 웨이트를 초기화한다.
+    안정된 트레인을 위해 GRU의 웨이트를 초기화한다.
     
     - 입력에서 은닉 상태로 가는 웨이트: Xavier 균등
     - 은닉 상태끼리의 웨이트: 직교 (그래디언트의 노름을 지킨다)

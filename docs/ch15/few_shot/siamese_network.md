@@ -1,6 +1,6 @@
 # 샴 네트워크
 
-샴 네트워크는 웨이트를 공유하는 인코더로 두 입력을 임베딩하고, 같은 클래스는 가깝게 다른 클래스는 멀게 배치하도록 학습한다. 여기서는 대조 로스와 트리플렛 로스, 서포트의 최근접 이웃을 이용하는 원샷 분류를 살펴본다.
+샴 네트워크는 웨이트를 공유하는 인코더로 두 입력을 임베딩하고, 같은 클래스는 가깝게 다른 클래스는 멀게 배치하도록 트레인한다. 여기서는 대조 로스와 트리플렛 로스, 서포트의 최근접 이웃을 이용하는 원샷 분류를 살펴본다.
 
 ## 1. 코드
 
@@ -109,7 +109,7 @@ class SiameseNetwork(nn.Module):
 
 class ContrastiveLoss(nn.Module):
     """
-    샴 네트워크를 학습하는 대조 로스.
+    샴 네트워크를 트레인하는 대조 로스.
     
     로스 = (1-Y) * 0.5 * D^2 + Y * 0.5 * max(margin - D, 0)^2
     
@@ -157,7 +157,7 @@ class TripletLoss(nn.Module):
 
 def train_siamese(model, x1, x2, labels, optimizer, criterion):
     """
-    대조 로스를 쓰는 샴 네트워크의 학습 스텝.
+    대조 로스를 쓰는 샴 네트워크의 트레인 스텝.
     
     인수:
         x1, x2: 입력 쌍
@@ -184,7 +184,7 @@ def train_siamese(model, x1, x2, labels, optimizer, criterion):
 
 def one_shot_classification(model, support_set, support_labels, query):
     """
-    학습한 샴 네트워크로 원샷 분류를 한다.
+    트레인한 샴 네트워크로 원샷 분류를 한다.
     
     인수:
         support_set: (n_classes, *input_shape) - 클래스마다 표본 하나
@@ -231,11 +231,11 @@ if __name__ == "__main__":
     encoder = SiameseEncoder(input_channels=1, hidden_dim=64, embedding_dim=128)
     model = SiameseNetwork(encoder)
     
-    # 대조 로스로 학습하기
+    # 대조 로스로 트레인하기
     criterion = ContrastiveLoss(margin=1.0)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     
-    # 학습 배치 예
+    # 트레인 배치 예
     batch_size = 32
     # Koch의 샴 네트워크는 105x105 Omniglot 이미지를 바탕으로 한다
     x1 = torch.randn(batch_size, 1, 105, 105)
@@ -255,7 +255,7 @@ if __name__ == "__main__":
     predictions = one_shot_classification(model, support_set, support_labels, query)
     print(f"Predictions: {predictions}")
     
-    # 대안: 트리플렛 로스로 학습하기
+    # 대안: 트리플렛 로스로 트레인하기
     triplet_criterion = TripletLoss(margin=1.0)
     anchor = torch.randn(batch_size, 1, 105, 105)
     positive = torch.randn(batch_size, 1, 105, 105)
@@ -279,11 +279,11 @@ Triplet loss: 0.9965
 
 ## 2. 논의
 
-학습 함수는 두 임베딩의 유클리드 거리 $d$를 계산한다. 이 코드의 라벨 규약은 0=같은 클래스, 1=다른 클래스이며 대조 로스는 $(1-y)d^2+y\max(m-d,0)^2$다. 다른 클래스 쌍은 거리가 마진 이상이면 로스가 0이 된다. 트리플렛 로스는 $\max(d(a,p)-d(a,n)+m,0)$이며, 여기서는 제곱 거리가 아닌 거리를 사용한다.
+트레인 함수는 두 임베딩의 유클리드 거리 $d$를 계산한다. 이 코드의 라벨 규약은 0=같은 클래스, 1=다른 클래스이며 대조 로스는 $(1-y)d^2+y\max(m-d,0)^2$다. 다른 클래스 쌍은 거리가 마진 이상이면 로스가 0이 된다. 트리플렛 로스는 $\max(d(a,p)-d(a,n)+m,0)$이며, 여기서는 제곱 거리가 아닌 거리를 사용한다.
 
-SiameseNetwork.forward는 스칼라 거리 대신 성분별 절댓값 차이를 반환한다. predict_similarity는 그 합에 sigmoid를 적용하므로 차이가 클수록 값이 커지고 최소값도 0.5다. 이름과 달리 같은 클래스일 확률로 해석할 수 없다. 학습 함수와 원샷 분류 함수는 이 메서드를 사용하지 않고 인코더의 유클리드 거리를 직접 계산한다.
+SiameseNetwork.forward는 스칼라 거리 대신 성분별 절댓값 차이를 반환한다. predict_similarity는 그 합에 sigmoid를 적용하므로 차이가 클수록 값이 커지고 최소값도 0.5다. 이름과 달리 같은 클래스일 확률로 해석할 수 없다. 트레인 함수와 원샷 분류 함수는 이 메서드를 사용하지 않고 인코더의 유클리드 거리를 직접 계산한다.
 
-주 예제는 105×105 흑백 입력에 맞춰져 있다. 큰 커널의 패딩 없는 컨볼루션 때문에 64×64 입력은 중간에 공간 크기가 부족해진다. 원샷 분류는 각 쿼리에서 가장 가까운 서포트의 라벨을 고르며, 여러 샷을 넣으면 클래스 평균이 아닌 표본 최근접 이웃 분류가 된다. 무작위 쌍과 무작위 라벨의 한 번 갱신으로 실제 유사도 학습 성능을 판단할 수는 없다.
+주 예제는 105×105 흑백 입력에 맞춰져 있다. 큰 커널의 패딩 없는 컨볼루션 때문에 64×64 입력은 중간에 공간 크기가 부족해진다. 원샷 분류는 각 쿼리에서 가장 가까운 서포트의 라벨을 고르며, 여러 샷을 넣으면 클래스 평균이 아닌 표본 최근접 이웃 분류가 된다. 무작위 쌍과 무작위 라벨의 한 번 갱신으로 실제 유사도 트레인 성능을 판단할 수는 없다.
 
 ## 연습문제
 
@@ -319,7 +319,7 @@ input_channels=3만 바꾸어 64×64 RGB 입력을 처리할 수 있는지 설�
 </div>
 
 ??? success "풀이"
-    같은 클래스는 y=0이므로 0.04, 다른 클래스는 y=1이므로 0.64다. 이 규약을 반대로 주면 학습 목적도 반대가 된다. 실제 데이터로 쌍을 만들 때 각 라벨과 원본 클래스의 관계를 확인한다.
+    같은 클래스는 y=0이므로 0.04, 다른 클래스는 y=1이므로 0.64다. 이 규약을 반대로 주면 트레인 목적도 반대가 된다. 실제 데이터로 쌍을 만들 때 각 라벨과 원본 클래스의 관계를 확인한다.
 
 ---
 

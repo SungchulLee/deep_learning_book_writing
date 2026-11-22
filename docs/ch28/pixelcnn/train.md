@@ -1,15 +1,15 @@
-# 이진 MNIST의 PixelCNN 학습
+# 이진 MNIST의 PixelCNN 트레인
 
-이 절은 [이진 PixelCNN](pixelcnn.md)에 MNIST를 학습하는 절차다. 회색조를 임계로 이진화하고 픽셀별 베르누이 음의 로그확률을 최소화한다. 학습은 모든 픽셀의 logits를 함께 계산하지만 새 이미지 생성은 래스터 순서로 진행한다.
+이 절은 [이진 PixelCNN](pixelcnn.md)에 MNIST를 트레인하는 절차다. 회색조를 임계로 이진화하고 픽셀별 베르누이 음의 로그확률을 최소화한다. 트레인은 모든 픽셀의 logits를 함께 계산하지만 새 이미지 생성은 래스터 순서로 진행한다.
 
-## 1. 학습 코드
+## 1. 트레인 코드
 
 ```python
 """
-PixelCNN 이미지 생성을 위한 학습 스크립트
+PixelCNN 이미지 생성을 위한 트레인 스크립트
 
 이 스크립트는 다음을 보인다.
-1. MNIST 데이터셋으로 PixelCNN 학습
+1. MNIST 데이터셋으로 PixelCNN 트레인
 2. 자기회귀 이미지 생성
 3. 생성한 표본 시각화
 """
@@ -70,7 +70,7 @@ class MaskedConv2d(nn.Conv2d):
         assert mask_type in ['A', 'B'], "mask_type must be 'A' or 'B'"
         self.mask_type = mask_type
         
-        # 마스크를 버퍼로 등록한다(학습 중에 갱신되지 않는다)
+        # 마스크를 버퍼로 등록한다(트레인 중에 갱신되지 않는다)
         self.register_buffer('mask', torch.zeros_like(self.weight))
         self.create_mask()
     
@@ -339,13 +339,13 @@ def train_epoch(model: nn.Module,
                 optimizer: optim.Optimizer,
                 device: str) -> float:
     """
-    한 에포크를 학습한다.
+    한 에포크를 트레인한다.
     
     인수:
         model: PixelCNN 모델
-        dataloader: 학습 데이터로더
+        dataloader: 트레인 데이터로더
         optimizer: 옵티마이저
-        device: 학습에 쓸 장치
+        device: 트레인에 쓸 장치
         
     반환값:
         에포크의 평균 로스
@@ -414,7 +414,7 @@ def visualize_samples(model: nn.Module,
     표본을 생성해 시각화한다.
     
     인수:
-        model: 학습된 PixelCNN
+        model: 트레인된 PixelCNN
         real_images: 견주기 위한 실제 이미지
         device: 생성에 쓸 장치
         n_samples: 생성할 표본의 개수
@@ -458,7 +458,7 @@ def visualize_samples(model: nn.Module,
 
 def main():
     """
-    메인 학습 파이프라인
+    메인 트레인 파이프라인
     """
     print("=" * 70)
     print("PixelCNN: Autoregressive Image Generation")
@@ -475,7 +475,7 @@ def main():
     
     # 하이퍼파라메터
     BATCH_SIZE = 64
-    N_EPOCHS = 20  # CPU에서 학습하면 줄인다
+    N_EPOCHS = 20  # CPU에서 트레인하면 줄인다
     LEARNING_RATE = 0.001
     N_CHANNELS = 64
     N_RESIDUAL_BLOCKS = 5
@@ -549,7 +549,7 @@ def main():
     # 옵티마이저
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
-    # ==================== 학습 ====================
+    # ==================== 트레인 ====================
     print(f"\n{'='*70}")
     print("Step 3: Training PixelCNN...")
     print(f"{'='*70}")
@@ -561,7 +561,7 @@ def main():
     test_losses = []
     
     for epoch in tqdm(range(N_EPOCHS), desc="Training"):
-        # 학습
+        # 트레인
         train_loss = train_epoch(model, train_loader, optimizer, device)
         
         # 평가한다
@@ -585,7 +585,7 @@ def main():
     print("Step 4: Creating visualizations...")
     print(f"{'='*70}")
     
-    # 학습 곡선을 그린다
+    # 트레인 곡선을 그린다
     plt.figure(figsize=(10, 5))
     plt.plot(train_losses, label='Train Loss', alpha=0.7)
     plt.plot(test_losses, label='Test Loss', alpha=0.7)
@@ -668,7 +668,7 @@ if __name__ == "__main__":
     main()
 ```
 
-기본 설정은 64채널·잔차 블록 5개, 배치 64, Adam 0.001과 20에포크다. 입력에 ToTensor를 적용한 뒤 x>0.5인 픽셀만 1로 바꾼다. 0.5 자체는 0이며 확률적으로 이진화하는 방법과 다르다. 학습·평가·실제 이미지 표시에 같은 변환을 적용한다.
+기본 설정은 64채널·잔차 블록 5개, 배치 64, Adam 0.001과 20에포크다. 입력에 ToTensor를 적용한 뒤 x>0.5인 픽셀만 1로 바꾼다. 0.5 자체는 0이며 확률적으로 이진화하는 방법과 다르다. 트레인·평가·실제 이미지 표시에 같은 변환을 적용한다.
 
 PixelCNN 정의는 위 코드에 그대로 들어 있어 별도 로컬 모듈을 import하지 않으며, 모델·입력은 선택한 CUDA 또는 CPU에 둔다. 기본 파라메터 수는 78,785개다. 마스크의 인과성이 지켜지므로 현재 이미지를 입력과 타깃으로 함께 주어도 현재 픽셀 값을 직접 복사하는 일반 오토인코더 로스와 다르다.
 
@@ -676,9 +676,9 @@ PixelCNN 정의는 위 코드에 그대로 들어 있어 별도 로컬 모듈을
 
 BCEWithLogitsLoss는 Sigmoid를 포함한 안정적인 BCE 계산으로 이진 타깃을 평가한다. 기본 mean은 배치·채널·공간 원소 전체 평균이라 반환은 **픽셀당 NLL의 nat 단위**다. 28×28 표본당 NLL 합은 이 값에 784를 곱하고, 이진 bits/pixel은 ln 2로 나눈다. 8비트 연속화 보정 8을 여기에 더하는 것은 맞지 않는다.
 
-에포크 함수는 배치 평균들을 단순 평균하므로 마지막 배치 크기가 다르면 전체 표본·픽셀 평균과 다르다. 정확한 데이터셋 지표에는 처리 표본 수 가중이 필요하다. train 곡선은 학습 도중 바뀌는 모델, test 곡선은 종료 모델의 평가값이다.
+에포크 함수는 배치 평균들을 단순 평균하므로 마지막 배치 크기가 다르면 전체 표본·픽셀 평균과 다르다. 정확한 데이터셋 지표에는 처리 표본 수 가중이 필요하다. train 곡선은 트레인 도중 바뀌는 모델, test 곡선은 종료 모델의 평가값이다.
 
-코드 출력 안내문은 “각 픽셀 의존성 때문에 학습이 순차적”이라는 인상을 주지만, 마스크 CNN의 학습 forward는 알려진 이미지에서 모든 위치를 병렬 계산한다. 생성은 784번의 전체 이미지 forward를 반복하므로 느릴 수 있다. 학습 속도와 생성 병목을 구분해야 한다.
+코드 출력 안내문은 “각 픽셀 의존성 때문에 트레인이 순차적”이라는 인상을 주지만, 마스크 CNN의 트레인 forward는 알려진 이미지에서 모든 위치를 병렬 계산한다. 생성은 784번의 전체 이미지 forward를 반복하므로 느릴 수 있다. 트레인 속도와 생성 병목을 구분해야 한다.
 
 ## 3. 평가·표본 격자
 
@@ -718,7 +718,7 @@ visualize_samples는 고정 4×8 격자에 실제 16장과 생성 16장을 표�
 
 ??? success "풀이"
 
-    이미 Adam 0.001을 쓰므로 같은 설정으로 다시 지정하는 것은 새 비교가 아니다. 다른 옵티마이저·러닝레이트에는 동일한 데이터 이진화·분할·구조와 같은 튜닝 예산을 적용한다. 검증 픽셀당 NLL을 표본 가중 평균하고 생성의 품질·다양성·비용도 따로 비교한다. 학습 로스나 단일 시드의 이미지로 일반적인 우열을 정하지 않는다.
+    이미 Adam 0.001을 쓰므로 같은 설정으로 다시 지정하는 것은 새 비교가 아니다. 다른 옵티마이저·러닝레이트에는 동일한 데이터 이진화·분할·구조와 같은 튜닝 예산을 적용한다. 검증 픽셀당 NLL을 표본 가중 평균하고 생성의 품질·다양성·비용도 따로 비교한다. 트레인 로스나 단일 시드의 이미지로 일반적인 우열을 정하지 않는다.
 
 
 
@@ -748,14 +748,14 @@ visualize_samples는 고정 4×8 격자에 실제 16장과 생성 16장을 표�
 
 ??? success "풀이"
 
-    현재 evaluate는 model·dataloader·device를 받으므로 아래 두 인수 호출은 맞지 않는다. 학습 데이터에서 검증셋을 만들고 동일 이진화·로스 단위로 평가한다. state_dict().copy는 얕은 복사여서 독립 웨이트 보존에 부족하며 파일 저장이나 깊은 복제가 필요하다. 정상 종료에도 최적 모델을 복원하고 구조·전처리·선택 규칙을 기록해야 한다. 최종 시험셋은 선택에 반복 사용하지 않는다.
+    현재 evaluate는 model·dataloader·device를 받으므로 아래 두 인수 호출은 맞지 않는다. 트레인 데이터에서 검증셋을 만들고 동일 이진화·로스 단위로 평가한다. state_dict().copy는 얕은 복사여서 독립 웨이트 보존에 부족하며 파일 저장이나 깊은 복제가 필요하다. 정상 종료에도 최적 모델을 복원하고 구조·전처리·선택 규칙을 기록해야 한다. 최종 시험셋은 선택에 반복 사용하지 않는다.
 
     ```python
     best_loss = float('inf')
     patience_counter = 0
     best_state = None
     for epoch in range(num_epochs):
-        # ... 학습 단계 ...
+        # ... 트레인 단계 ...
         val_loss = evaluate(model, val_loader)
         if val_loss < best_loss:
             best_loss = val_loss
@@ -772,4 +772,4 @@ visualize_samples는 고정 4×8 격자에 실제 16장과 생성 16장을 표�
 
 ## 정리하며
 
-이진 PixelCNN은 모든 위치의 베르누이 logits를 병렬로 학습하고 픽셀별로 표본을 생성한다. 로스의 픽셀당 단위·이진화·검증 분할을 맞추고, 고정 격자·프레임 수 같은 시각화 계약도 확인해야 한다. 생성 품질은 완료 문구나 학습 로스와 별도로 평가한다.
+이진 PixelCNN은 모든 위치의 베르누이 logits를 병렬로 트레인하고 픽셀별로 표본을 생성한다. 로스의 픽셀당 단위·이진화·검증 분할을 맞추고, 고정 격자·프레임 수 같은 시각화 계약도 확인해야 한다. 생성 품질은 완료 문구나 트레인 로스와 별도로 평가한다.

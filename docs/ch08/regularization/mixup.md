@@ -1,12 +1,12 @@
 # 믹스업
 
-믹스업은 두 입력과 목표의 볼록 결합을 학습에 사용하는 어그멘테이션 기법이다. 입력 사이의 보간에 맞춰 목표도 섞어 선형적인 반응을 유도한다. 이 가정이 과제에 맞을 때 정칙화 효과를 얻을 수 있지만 일반화나 보정의 개선이 보장되는 것은 아니다.
+믹스업은 두 입력과 목표의 볼록 결합을 트레인에 사용하는 어그멘테이션 기법이다. 입력 사이의 보간에 맞춰 목표도 섞어 선형적인 반응을 유도한다. 이 가정이 과제에 맞을 때 정칙화 효과를 얻을 수 있지만 일반화나 보정의 개선이 보장되는 것은 아니다.
 
 ## 1. 수학적 정식화
 
 ### 핵심 연산
 
-두 학습 예 $(x_i, y_i)$와 $(x_j, y_j)$가 주어지면 믹스업은 가상의 예를 만든다.
+두 트레인 예 $(x_i, y_i)$와 $(x_j, y_j)$가 주어지면 믹스업은 가상의 예를 만든다.
 
 $$
 \tilde{x} = \lambda x_i + (1 - \lambda) x_j
@@ -26,13 +26,13 @@ $$
 
 ### 근방 위험 최소화
 
-표준적인 경험적 위험 최소화(ERM)는 학습 분포가 학습 점을 중심으로 하는 델타 함수의 모임이라고 가정한다.
+표준적인 경험적 위험 최소화(ERM)는 트레인 분포가 트레인 점을 중심으로 하는 델타 함수의 모임이라고 가정한다.
 
 $$
 \mathcal{L}_{\text{ERM}} = \frac{1}{n} \sum_{i=1}^{n} \ell\left(f(x_i), y_i\right)
 $$
 
-믹스업은 각 학습 점 둘레에 근방 분포를 정의하는 **근방 위험 최소화(VRM)**를 구현한다. 믹스업의 근방은 모든 볼록 결합의 모임이다.
+믹스업은 각 트레인 점 둘레에 근방 분포를 정의하는 **근방 위험 최소화(VRM)**를 구현한다. 믹스업의 근방은 모든 볼록 결합의 모임이다.
 
 $$
 \mathcal{L}_{\text{Mixup}} = \mathbb{E}_{\lambda \sim \text{Beta}(\alpha, \alpha)} \left[ \frac{1}{n^2} \sum_{i=1}^{n} \sum_{j=1}^{n} \ell\left(f(\lambda x_i + (1-\lambda) x_j), \; \lambda y_i + (1-\lambda) y_j\right) \right]
@@ -73,17 +73,17 @@ $$
 
 ### 선형 보간이라는 사전 지식
 
-믹스업은 모델이 학습 예 사이에서 근사적으로 선형으로 동작해야 한다는 사전 지식을 강제한다.
+믹스업은 모델이 트레인 예 사이에서 근사적으로 선형으로 동작해야 한다는 사전 지식을 강제한다.
 
 $$
 f(\lambda x_i + (1-\lambda) x_j) \approx \lambda f(x_i) + (1-\lambda) f(x_j)
 $$
 
-이는 강한 귀납 편향(inductive bias, 데이터만으로 정해지지 않는 부분을 메우는 가정)으로, 과제에 맞으면 결정 경계를 더 매끄럽게 하고 학습 점 사이의 진동을 줄인다.
+이는 강한 귀납 편향(inductive bias, 데이터만으로 정해지지 않는 부분을 메우는 가정)으로, 과제에 맞으면 결정 경계를 더 매끄럽게 하고 트레인 점 사이의 진동을 줄인다.
 
 ### 정칙화 효과
 
-믹스업은 개별 학습 예를 외우는 모델의 능력을 줄여 정칙화 장치로 작동한다. 뉴럴 네트워크는 의미 있는 보간을 뒷받침하는 표현을 배워야 하며, 이는 더 단순하고 더 잘 일반화되는 피처를 선호하게 만든다.
+믹스업은 개별 트레인 예를 외우는 모델의 능력을 줄여 정칙화 장치로 작동한다. 뉴럴 네트워크는 의미 있는 보간을 뒷받침하는 표현을 배워야 하며, 이는 더 단순하고 더 잘 일반화되는 피처를 선호하게 만든다.
 
 ### 보정의 개선
 
@@ -166,7 +166,7 @@ def mixup_criterion(criterion: nn.Module, pred: torch.Tensor,
     return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 ```
 
-### 완전한 학습 루프
+### 완전한 트레인 루프
 
 ```python
 import torch.optim as optim
@@ -181,18 +181,18 @@ def train_with_mixup(
     lr: float = 0.001
 ) -> dict:
     """
-    믹스업 어그멘테이션으로 모델을 학습시킨다.
+    믹스업 어그멘테이션으로 모델을 트레인시킨다.
     
     인수:
         model: 뉴럴 네트워크
-        train_loader: 학습 데이터
+        train_loader: 트레인 데이터
         val_loader: 검증 데이터
         alpha: 믹스업 보간의 세기
-        epochs: 학습 에포크 수
+        epochs: 트레인 에포크 수
         lr: 러닝레이트
         
     반환값:
-        학습 이력
+        트레인 이력
     """
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2)
@@ -200,7 +200,7 @@ def train_with_mixup(
     history = {'train_loss': [], 'val_loss': [], 'val_acc': []}
     
     for epoch in range(epochs):
-        # 믹스업을 쓰는 학습
+        # 믹스업을 쓰는 트레인
         model.train()
         train_loss = 0
         
@@ -208,7 +208,7 @@ def train_with_mixup(
             optimizer.zero_grad()
             
             # 믹스업 적용.
-            # 컷믹스의 학습 루프와 달리 확률로 켜고 끄지 않고 모든
+            # 컷믹스의 트레인 루프와 달리 확률로 켜고 끄지 않고 모든
             # 배치에 건다. 다만 베타분포에서 뽑은 lam이 0이나 1에
             # 가까운 배치는 사실상 원본이므로, 깨끗한 이미지도
             # 자연히 섞여 들어간다
@@ -224,7 +224,7 @@ def train_with_mixup(
             train_loss += loss.item()
         
         # 검증 (믹스업 없음).
-        # 믹스업은 학습에만 건다. 시험에서 만날 것은 섞이지 않은
+        # 믹스업은 트레인에만 건다. 시험에서 만날 것은 섞이지 않은
         # 이미지이므로, 평가는 그 조건에서 해야 뜻이 있다
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
@@ -302,7 +302,7 @@ class ManifoldMixupModel(nn.Module):
 
 def train_step_manifold_mixup(model, X_batch, y_batch, criterion, 
                                optimizer, alpha=0.2):
-    """매니폴드 믹스업을 쓰는 학습 단계 하나."""
+    """매니폴드 믹스업을 쓰는 트레인 단계 하나."""
     optimizer.zero_grad()
     
     # 섞을 레이어를 무작위로 고르기
@@ -524,7 +524,7 @@ def mixup_or_cutmix(x, y, mixup_alpha=0.2, cutmix_alpha=1.0,
 
 ### 믹스업을 쓸 때
 
-1. **학습 데이터가 적을 때**: 데이터가 부족할 때 믹스업이 가장 이롭다
+1. **트레인 데이터가 적을 때**: 데이터가 부족할 때 믹스업이 가장 이롭다
 2. **지나치게 확신하는 모델**: 모델의 예측 보정이 나쁠 때
 3. **클래스가 많은 분류**: 부드러운 목표가 세밀한 구분에 도움이 된다
 4. **강건성을 비교할 때**: 특정 변동에 대한 효과를 검증한다. 적대적 공격에 대한 보장은 아니다
@@ -546,19 +546,19 @@ def mixup_or_cutmix(x, y, mixup_alpha=0.2, cutmix_alpha=1.0,
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-믹스업의 학습 목적 함수를 유도하고 왜 $\lambda \sim \text{Beta}(\alpha, \alpha)$인지 설명하라.
+믹스업의 트레인 목적 함수를 유도하고 왜 $\lambda \sim \text{Beta}(\alpha, \alpha)$인지 설명하라.
 
 </div>
 
 ??? success "풀이"
-    믹스업은 가상의 학습 예를 만든다. $\lambda \sim \text{Beta}(\alpha, \alpha)$일 때 $\tilde{x} = \lambda x_i + (1-\lambda)x_j$, $\tilde{y} = \lambda y_i + (1-\lambda)y_j$이다. 베타분포는 대칭이며 $\alpha$로 조절된다. $\alpha \to 0$이면 섞이지 않고, $\alpha = 1$이면 균등하며, $\alpha \to \infty$이면 언제나 반반으로 섞인다.
+    믹스업은 가상의 트레인 예를 만든다. $\lambda \sim \text{Beta}(\alpha, \alpha)$일 때 $\tilde{x} = \lambda x_i + (1-\lambda)x_j$, $\tilde{y} = \lambda y_i + (1-\lambda)y_j$이다. 베타분포는 대칭이며 $\alpha$로 조절된다. $\alpha \to 0$이면 섞이지 않고, $\alpha = 1$이면 균등하며, $\alpha \to \infty$이면 언제나 반반으로 섞인다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-PyTorch 학습 루프에서 믹스업을 구현하라.
+PyTorch 트레인 루프에서 믹스업을 구현하라.
 
 </div>
 
@@ -584,7 +584,7 @@ PyTorch 학습 루프에서 믹스업을 구현하라.
 </div>
 
 ??? success "풀이"
-    표준적인 ERM은 경험적 분포(학습 점에 놓인 점질량)에 대한 위험을 최소화한다. 믹스업은 점질량을 '근방'(쌍의 볼록 결합)으로 바꾸어 경험적 분포를 매끄럽게 한다. 이는 학습 점 사이에서 선형적인 동작을 이끌어 학습된 함수의 복잡도를 줄인다.
+    표준적인 ERM은 경험적 분포(트레인 점에 놓인 점질량)에 대한 위험을 최소화한다. 믹스업은 점질량을 '근방'(쌍의 볼록 결합)으로 바꾸어 경험적 분포를 매끄럽게 한다. 이는 트레인 점 사이에서 선형적인 동작을 이끌어 학습된 함수의 복잡도를 줄인다.
 
 ---
 

@@ -178,7 +178,7 @@ MSE 로스 $\ell(\boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X}\boldsymbol{\bet
 </div>
 
 ??? success "풀이"
-    정규방정식은 $(100 \times 100)$ 행렬인 $\mathbf{X}^\top\mathbf{X}$의 역행렬을 필요로 한다. 표본이 $n = 50$개뿐이므로 $\text{rank}(\mathbf{X}) \leq 50 < 100$이고 따라서 $\mathbf{X}^\top\mathbf{X}$는 특이행렬(비가역)이다. 해결책: (1) **릿지 회귀**: $\alpha\mathbf{I}$를 더하면 임의의 $\alpha > 0$에 대해 $(\mathbf{X}^\top\mathbf{X} + \alpha\mathbf{I})$가 가역이 된다. (2) **의사역행렬**: SVD로 최소 노름 최소제곱해를 구한다. (3) **PCA/피처 선택**: 학습 데이터로 차원을 줄인 뒤 적합한다. 차원을 줄였더라도 남은 열들이 선형 독립인지 확인해야 한다.
+    정규방정식은 $(100 \times 100)$ 행렬인 $\mathbf{X}^\top\mathbf{X}$의 역행렬을 필요로 한다. 표본이 $n = 50$개뿐이므로 $\text{rank}(\mathbf{X}) \leq 50 < 100$이고 따라서 $\mathbf{X}^\top\mathbf{X}$는 특이행렬(비가역)이다. 해결책: (1) **릿지 회귀**: $\alpha\mathbf{I}$를 더하면 임의의 $\alpha > 0$에 대해 $(\mathbf{X}^\top\mathbf{X} + \alpha\mathbf{I})$가 가역이 된다. (2) **의사역행렬**: SVD로 최소 노름 최소제곱해를 구한다. (3) **PCA/피처 선택**: 트레인 데이터로 차원을 줄인 뒤 적합한다. 차원을 줄였더라도 남은 열들이 선형 독립인지 확인해야 한다.
 
 ---
 

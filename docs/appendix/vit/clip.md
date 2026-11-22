@@ -1,6 +1,6 @@
 # CLIP
 
-CLIP은 2021년 논문 "Learning Transferable Visual Models From Natural Language Supervision"에서 나왔다. 이미지 인코더와 텍스트 인코더를 함께 학습하며, 둘이 공유하는 임베딩 공간에서 대조 로스(짝인 이미지와 텍스트는 가깝게, 짝이 아닌 것은 멀게 하는 로스)로 둘을 정렬한다.
+CLIP은 2021년 논문 "Learning Transferable Visual Models From Natural Language Supervision"에서 나왔다. 이미지 인코더와 텍스트 인코더를 함께 트레인하며, 둘이 공유하는 임베딩 공간에서 대조 로스(짝인 이미지와 텍스트는 가깝게, 짝이 아닌 것은 멀게 하는 로스)로 둘을 정렬한다.
 
 이 쪽의 구현은 CLIP의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
 
@@ -9,11 +9,11 @@ CLIP은 2021년 논문 "Learning Transferable Visual Models From Natural Languag
 ```python
 #!/usr/bin/env python3
 """
-CLIP - 언어-이미지 대조 사전 학습
+CLIP - 언어-이미지 대조 사전 트레인
 논문: "Learning Transferable Visual Models From Natural Language Supervision" (2021)
 저자: 알렉 래드퍼드 외
 핵심 아이디어:
-  - 이미지 인코더와 텍스트 인코더를 함께 학습한다
+  - 이미지 인코더와 텍스트 인코더를 함께 트레인한다
   - 공유 임베딩 공간에서 대조 로스로 둘을 정렬한다
 
 파일: appendix/vit/clip.py
@@ -64,7 +64,7 @@ class CLIP(nn.Module):
         self.image_encoder = ImageEncoder(embed_dim)
         self.text_encoder = TextEncoder(embed_dim=embed_dim)
 
-        # 온도 파라메터(학습된다)
+        # 온도 파라메터(트레인된다)
         self.logit_scale = nn.Parameter(torch.ones([]) * 2.659)
 
     def forward(self, image_feat, text_tokens):
@@ -90,14 +90,14 @@ if __name__ == "__main__":
 
 이 구현은 클래스 3개(`ImageEncoder`, `TextEncoder`, `CLIP`)를 정의하고, 이들이 함께 이미지와 텍스트를 같은 임베딩 공간에 놓는 듀얼 인코더(dual encoder)를 이룬다. 이미지 인코더는 비전 트랜스포머가 아니라, 미리 뽑아 풀링한 768차원 피처를 512차원으로 사영하는 선형 레이어 하나로 줄였다. `CLIP.forward`는 배치 안의 모든 이미지-텍스트 쌍의 코사인 유사도에 스케일을 곱한 로짓 행렬을 돌려줄 뿐이고, 대조 로스는 따로 계산해야 한다. 이 행렬의 대각선이 짝인 쌍이므로, 행 방향과 열 방향으로 각각 정답이 대각선인 크로스 엔트로피를 구해 평균하면 CLIP의 대조 로스가 된다. `logit_scale`의 초깃값 2.659는 $\ln(1/0.07)$로, 온도(temperature) 0.07에 해당한다. 온도가 낮을수록 소프트맥스가 뾰족해진다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
 
-이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
+이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 트레인에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 트레인, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 설정으로 만든 `ImageEncoder`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
+기본 설정으로 만든 `ImageEncoder`의 트레인 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
 
 </div>
 
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    흔한 실패 유형은 이렇다. (1) **그래디언트 소실 또는 폭발** -- 그래디언트 크기를 관찰해 탐지한다(`torch.nn.utils.clip_grad_norm_`이나 레이어마다 `param.grad.norm()` 기록하기). 그래디언트 클리핑, 더 나은 초기화(Xavier/Kaiming), 구조 변경(잔차 연결, 정규화 레이어)으로 고친다. (2) **과적합** -- 학습 로스는 줄어드는데 검증 로스가 오르면 탐지한다. 정칙화(드롭아웃, 웨이트 감쇠, 데이터 어그멘테이션)나 모델 크기 줄이기로 고친다. 학습 지표와 검증 지표를 늘 함께 관찰해 이를 일찍 잡아야 한다.
+    흔한 실패 유형은 이렇다. (1) **그래디언트 소실 또는 폭발** -- 그래디언트 크기를 관찰해 탐지한다(`torch.nn.utils.clip_grad_norm_`이나 레이어마다 `param.grad.norm()` 기록하기). 그래디언트 클리핑, 더 나은 초기화(Xavier/Kaiming), 구조 변경(잔차 연결, 정규화 레이어)으로 고친다. (2) **과적합** -- 트레인 로스는 줄어드는데 검증 로스가 오르면 탐지한다. 정칙화(드롭아웃, 웨이트 감쇠, 데이터 어그멘테이션)나 모델 크기 줄이기로 고친다. 트레인 지표와 검증 지표를 늘 함께 관찰해 이를 일찍 잡아야 한다.
 
 ---
 

@@ -1,8 +1,8 @@
 # Prefix tuning과 prompt tuning
 
-[Prefix tuning](https://arxiv.org/abs/2101.00190)은 기반 모델을 동결하고 각 레이어가 참조할 연속 prefix 표현을 학습하는 방법이다. [Prompt tuning](https://arxiv.org/abs/2104.08691)은 주로 입력 임베딩 앞에 학습 벡터를 추가한다. 일반 텍스트 프롬프팅과 달리 두 방식은 학습 자료·로스·역전파로 새 파라메터를 최적화한다. prefix 언어 모델링이라는 사전 학습 마스크와도 다른 개념이다.
+[Prefix tuning](https://arxiv.org/abs/2101.00190)은 기반 모델을 동결하고 각 레이어가 참조할 연속 prefix 표현을 학습하는 방법이다. [Prompt tuning](https://arxiv.org/abs/2104.08691)은 주로 입력 임베딩 앞에 트레인 벡터를 추가한다. 일반 텍스트 프롬프팅과 달리 두 방식은 트레인 자료·로스·역전파로 새 파라메터를 최적화한다. prefix 언어 모델링이라는 사전 트레인 마스크와도 다른 개념이다.
 
-## 1. 텍스트 지시와 학습 벡터
+## 1. 텍스트 지시와 트레인 벡터
 
 ```
 "Translate English to French: The cat sat on the mat"
@@ -20,7 +20,7 @@ P1 등의 표시는 가상 벡터의 개념도이며 어휘의 실제 토큰 ID�
 
 각 레이어에서 K'=[P_K;K], V'=[P_V;V]로 연결하고 Q가 이 추가 위치를 참조하게 할 수 있다. prefix는 단어의 출력 목표가 아니라 추가 조건이다. 마스크·위치·cache 형식을 해당 기반 모델과 맞춰야 한다.
 
-MHA의 L레이어·모델 차원 d·prefix 길이 l에서 직접 저장하는 KV 값은 2lLd개다. GQA·MQA에서는 쿼리 head 수가 아니라 실제 KV head 수에 따른다. 예를 들어 L=24, d=1024, l=10이면 직접 KV는 491,520개다. 이는 MLP로 리파라메리제이션한 학습 모듈의 전체 파라메터 수가 아니다.
+MHA의 L레이어·모델 차원 d·prefix 길이 l에서 직접 저장하는 KV 값은 2lLd개다. GQA·MQA에서는 쿼리 head 수가 아니라 실제 KV head 수에 따른다. 예를 들어 L=24, d=1024, l=10이면 직접 KV는 491,520개다. 이는 MLP로 리파라메리제이션한 트레인 모듈의 전체 파라메터 수가 아니다.
 
 ## 3. PrefixEncoder와 기반 연결
 
@@ -180,7 +180,7 @@ class PrefixTuningModel(nn.Module):
         return tuple(past_key_values)
 ```
 
-PrefixEncoder는 embedding과 두 Linear의 MLP로 모든 레이어의 KV를 만든다. 출력 K·V는 각각 B×L×H×l×d_h다. 은닉 폭 h, F=2LHd_h이면 학습 파라메터는 lh+(h²+h)+(hF+F)개다. L=24, d=1024, l=10, h=512면 25,482,752개로 직접 KV의 491,520개보다 훨씬 많다.
+PrefixEncoder는 embedding과 두 Linear의 MLP로 모든 레이어의 KV를 만든다. 출력 K·V는 각각 B×L×H×l×d_h다. 은닉 폭 h, F=2LHd_h이면 트레인 파라메터는 lh+(h²+h)+(hF+F)개다. L=24, d=1024, l=10, h=512면 25,482,752개로 직접 KV의 491,520개보다 훨씬 많다.
 
 리파라메리제이션이 최적화를 도울 수 있지만 항상 더 작은 공간·적은 파라메터·안정성을 보장하는 것은 아니다. 추론에서 고정된 prefix 값을 미리 계산해 둘 수도 있으나 현재 클래스는 매번 MLP를 호출한다.
 
@@ -279,7 +279,7 @@ class PrefixAttention(nn.Module):
         return attn_output
 ```
 
-PrefixAttention은 새 Q·K·V·출력 사영을 만드는 독립 부품이며 사전 학습 어텐션을 이식·동결하는 클래스가 아니다. 인과 마스크도 없으므로 자기회귀 모델에 그대로 넣으면 미래 토큰을 볼 수 있다.
+PrefixAttention은 새 Q·K·V·출력 사영을 만드는 독립 부품이며 사전 트레인 어텐션을 이식·동결하는 클래스가 아니다. 인과 마스크도 없으므로 자기회귀 모델에 그대로 넣으면 미래 토큰을 볼 수 있다.
 
 코드는 prefix가 있고 2차원 마스크를 받은 경우에만 B×1×1×길이로 확장한다. prefix가 없는 일반 B×T 마스크는 score의 head·query 축에 올바르게 broadcast되지 않을 수 있다. prefix K·V는 둘 다 제공하고 길이·head·장치를 맞춰야 하며, 모두 차단된 행의 softmax도 처리해야 한다. 1=유효라는 마스크 규칙을 다른 API의 bool 차단 규칙과 구분한다.
 
@@ -323,7 +323,7 @@ class DirectPrefixEncoder(nn.Module):
         return prefix[..., 0].contiguous(), prefix[..., 1].contiguous()
 ```
 
-DirectPrefixEncoder는 KV 값을 직접 학습한다. 비교 시 같은 길이뿐 아니라 리파라메리제이션 여부·KV head 수·추가 학습 모듈을 포함해 학습/배포 저장량을 구분한다.
+DirectPrefixEncoder는 KV 값을 직접 학습한다. 비교 시 같은 길이뿐 아니라 리파라메리제이션 여부·KV head 수·추가 트레인 모듈을 포함해 트레인/배포 저장량을 구분한다.
 
 ```python
 class PromptTuning(nn.Module):
@@ -393,11 +393,11 @@ class PromptTuning(nn.Module):
         )
 ```
 
-PromptTuning은 입력 임베딩 앞에 l×d 학습 벡터를 연결한다. embedding_dim이 기반 임베딩과 같아야 한다. _init_from_text는 pass라 텍스트 기반 초기화가 실제로 구현되어 있지 않다.
+PromptTuning은 입력 임베딩 앞에 l×d 트레인 벡터를 연결한다. embedding_dim이 기반 임베딩과 같아야 한다. _init_from_text는 pass라 텍스트 기반 초기화가 실제로 구현되어 있지 않다.
 
 현재 forward는 kwargs의 labels를 확장하지 않는다. 인과 모델의 입력 길이는 l+T가 되었는데 목표를 원래 T 길이로 넘기면 정렬이 맞지 않는다. 가상 입력 위치의 목표를 −100으로 제외하는 등 모델별 로스 계약을 구성해야 한다. KV prefix는 입력 토큰을 직접 늘리는 방식과 목표 정렬이 다르다. 위치 한도·추가 KV·어텐션 비용도 함께 검토한다.
 
-## 6. 학습 함수와 평가
+## 6. 트레인 함수와 평가
 
 ```python
 def train_prefix_tuning(
@@ -435,7 +435,7 @@ def train_prefix_tuning(
         weight_decay=0.01
     )
     
-    # 학습 루프
+    # 트레인 루프
     for epoch in range(num_epochs):
         model.train()
         total_loss = 0
@@ -458,9 +458,9 @@ def train_prefix_tuning(
     return model
 ```
 
-train_prefix_tuning은 prefix_encoder를 갱신하지만 eval_dataloader는 사용하지 않는다. 검증·최적 체크포인트·저장·학습 재개는 구현하지 않으며 배치 평균 로스만 출력한다. labels·padding·위치·장치·cache API의 계약이 맞아야 outputs.loss를 얻을 수 있다. 빈 loader와 유효 목표가 없는 배치도 처리해야 한다.
+train_prefix_tuning은 prefix_encoder를 갱신하지만 eval_dataloader는 사용하지 않는다. 검증·최적 체크포인트·저장·트레인 재개는 구현하지 않으며 배치 평균 로스만 출력한다. labels·padding·위치·장치·cache API의 계약이 맞아야 outputs.loss를 얻을 수 있다. 빈 loader와 유효 목표가 없는 배치도 처리해야 한다.
 
-모델 전체 train 호출은 동결 기반의 dropout도 활성화한다. 웨이트 동결과 실행 모드는 다르므로 의도한 학습 폴리시를 명시한다.
+모델 전체 train 호출은 동결 기반의 dropout도 활성화한다. 웨이트 동결과 실행 모드는 다르므로 의도한 트레인 폴리시를 명시한다.
 
 prefix 길이·MLP 폭·러닝레이트를 늘리면 언제나 품질이 좋아지는 것은 아니다. 같은 과제·데이터·평가 예산에서 prompt·prefix·LoRA·어댑터의 품질·전체 메모리·지연을 비교한다. 단순 파라메터 비율로 표현력이나 모든 과제의 성능 순위를 확정하지 않는다.
 
@@ -475,7 +475,7 @@ prefix 길이·MLP 폭·러닝레이트를 늘리면 언제나 품질이 좋아�
 
 ??? success "풀이"
 
-    MHA 직접 KV는 2lLd다. 현재 MLP는 lh+h²+h+hF+F이며 F=2Ld다. L=24,d=1024,l=10,h=512면 직접 값은 491,520개지만 MLP는 25,482,752개다. 생성된 KV 저장량과 학습 모듈 파라메터 수는 같지 않다.
+    MHA 직접 KV는 2lLd다. 현재 MLP는 lh+h²+h+hF+F이며 F=2Ld다. L=24,d=1024,l=10,h=512면 직접 값은 491,520개지만 MLP는 25,482,752개다. 생성된 KV 저장량과 트레인 모듈 파라메터 수는 같지 않다.
 
 
 
@@ -490,7 +490,7 @@ prefix tuning·prompt tuning·prefix 언어 모델링을 구분하라.
 
 ??? success "풀이"
 
-    prefix tuning은 주로 레이어별 KV 조건, prompt tuning은 입력 임베딩의 가상 벡터를 학습한다. prefix 언어 모델링은 prefix 내부 양방향·suffix 인과 어텐션과 목표를 정하는 사전 학습 방식이다. 이름이 비슷해도 무엇이 학습되고 어느 위치에서 로스를 계산하는지가 다르다.
+    prefix tuning은 주로 레이어별 KV 조건, prompt tuning은 입력 임베딩의 가상 벡터를 학습한다. prefix 언어 모델링은 prefix 내부 양방향·suffix 인과 어텐션과 목표를 정하는 사전 트레인 방식이다. 이름이 비슷해도 무엇이 트레인되고 어느 위치에서 로스를 계산하는지가 다르다.
 
 
 
@@ -514,7 +514,7 @@ PromptTuning에서 T 길이 labels를 그대로 넘길 때의 문제를 설명�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-train_prefix_tuning이 완성된 범용 인코더·디코더 학습 예제가 아닌 이유를 설명하라.
+train_prefix_tuning이 완성된 범용 인코더·디코더 트레인 예제가 아닌 이유를 설명하라.
 
 </div>
 
@@ -526,7 +526,7 @@ train_prefix_tuning이 완성된 범용 인코더·디코더 학습 예제가 �
 
 ## 정리하며
 
-학습 prefix·입력 prompt·사전 학습의 prefix 마스크는 구분해야 한다. KV와 MLP의 파라메터 수, cache·마스크·위치·목표 정렬을 맞추고 실제 품질과 운영 비용으로 방법을 비교한다.
+트레인 prefix·입력 prompt·사전 트레인의 prefix 마스크는 구분해야 한다. KV와 MLP의 파라메터 수, cache·마스크·위치·목표 정렬을 맞추고 실제 품질과 운영 비용으로 방법을 비교한다.
 
 **참고 문헌**
 

@@ -37,7 +37,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 def load_sample_dataset(name="iris", test_size=0.3, random_state=42, scale=True):
-    """예제가 함께 쓰는 자료를 불러와 학습/시험으로 나눈다.
+    """예제가 함께 쓰는 자료를 불러와 트레인/시험으로 나눈다.
 
     인수:
         name: 'iris', 'wine', 'synthetic' 가운데 하나
@@ -70,8 +70,8 @@ def load_sample_dataset(name="iris", test_size=0.3, random_state=42, scale=True)
     )
 
     if scale:
-        # 고르게 맞추는 값은 반드시 학습 집합에서만 구한다.
-        # 전체에서 구하면 시험 자료의 정보가 학습에 새어 든다.
+        # 고르게 맞추는 값은 반드시 트레인 집합에서만 구한다.
+        # 전체에서 구하면 시험 자료의 정보가 트레인에 새어 든다.
         scaler = StandardScaler().fit(X_train)
         X_train = scaler.transform(X_train)
         X_test = scaler.transform(X_test)
@@ -350,7 +350,7 @@ def nested_grid_search():
     print(f"Mean Score: {outer_scores.mean():.4f} (+/- {outer_scores.std() * 2:.4f})")
     print(f"Search Time: {search_time:.2f} seconds")
     
-    # 가장 좋은 모델을 얻으려고 학습 집합 전체에 적합
+    # 가장 좋은 모델을 얻으려고 트레인 집합 전체에 적합
     inner_cv.fit(X_train, y_train)
     test_score = inner_cv.score(X_test, y_test)
     
@@ -512,9 +512,9 @@ if __name__ == "__main__":
 
 ## 2. 논의
 
-랜덤 포레스트 격자는 3×4×3×3×2=216개 조합이다. 5폴드이면 후보 평가 적합이 1080회이고, 기본 refit=True에서는 최선 설정을 전체 학습 데이터에 다시 적합하는 한 번이 추가된다. 후보에 따라 적합 시간은 다를 수 있다.
+랜덤 포레스트 격자는 3×4×3×3×2=216개 조합이다. 5폴드이면 후보 평가 적합이 1080회이고, 기본 refit=True에서는 최선 설정을 전체 트레인 데이터에 다시 적합하는 한 번이 추가된다. 후보에 따라 적합 시간은 다를 수 있다.
 
-중첩 검증은 안쪽에서 설정을 고르고 바깥에서 선택 절차를 평가한다. 바깥 점수는 안쪽 최고 점수의 선택 효과를 줄이는 데 유용하지만 모든 데이터 조건에서 완전히 불편한 추정이라고 단정하지 않는다. 전처리도 안쪽 학습 부분에서만 맞춰야 한다.
+중첩 검증은 안쪽에서 설정을 고르고 바깥에서 선택 절차를 평가한다. 바깥 점수는 안쪽 최고 점수의 선택 효과를 줄이는 데 유용하지만 모든 데이터 조건에서 완전히 불편한 추정이라고 단정하지 않는다. 전처리도 안쪽 트레인 부분에서만 맞춰야 한다.
 
 데이터 로딩과 결과 출력은 코드 앞머리의 도우미 함수가 맡는다. 출력의 「격자 살펴보기」·「가장 좋은 조절 값」·「맞대 보기 점수」·「걸린 값」 같은 표시도 그 도우미가 찍은 것으로, 각각 격자 요약·최적 하이퍼파라메터·교차 검증 점수·걸린 시간을 뜻한다. 큰 병렬 탐색은 메모리와 내부 모델의 병렬화를 함께 고려한다. 성긴 격자를 좁혀 가는 방식도 추가 선택 절차이므로 검증 비용을 기록한다.
 

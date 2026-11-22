@@ -1,6 +1,6 @@
 # RoBERTa
 
-RoBERTa는 2019년 논문 "RoBERTa: A Robustly Optimized BERT Pretraining Approach"에서 나왔다. 구조는 BERT와 같은 인코더 전용 트랜스포머이고, 사전 학습 방식만 바꾸었다 — 더 큰 배치와 더 많은 데이터로 더 오래 학습하고, 다음 문장 예측(NSP)을 빼고, 마스크할 토큰을 에폭마다 새로 고르는 동적 마스킹을 쓴다.
+RoBERTa는 2019년 논문 "RoBERTa: A Robustly Optimized BERT Pretraining Approach"에서 나왔다. 구조는 BERT와 같은 인코더 전용 트랜스포머이고, 사전 트레인 방식만 바꾸었다 — 더 큰 배치와 더 많은 데이터로 더 오래 트레인하고, 다음 문장 예측(NSP)을 빼고, 마스크할 토큰을 에폭마다 새로 고르는 동적 마스킹을 쓴다.
 
 이 쪽의 구현은 RoBERTa의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
 
@@ -9,11 +9,11 @@ RoBERTa는 2019년 논문 "RoBERTa: A Robustly Optimized BERT Pretraining Approa
 ```python
 #!/usr/bin/env python3
 """
-RoBERTa - 강건하게 최적화한 BERT 사전 학습 방법
+RoBERTa - 강건하게 최적화한 BERT 사전 트레인 방법
 논문: "RoBERTa: A Robustly Optimized BERT Pretraining Approach" (2019)
 저자: 인한 류 외
 BERT와의 핵심 차이(개략):
-  - 더 오래, 더 큰 배치와 더 많은 데이터로 학습한다
+  - 더 오래, 더 큰 배치와 더 많은 데이터로 트레인한다
   - 다음 문장 예측(NSP)을 뺀다
   - 동적 마스킹을 쓴다
 
@@ -43,7 +43,7 @@ class RoBERTa(nn.Module):
     def __init__(self, vocab_size=50265, d_model=768, nhead=12, num_layers=12):
         super().__init__()
 
-        # 토큰 임베딩(RoBERTa는 학습되는 위치 임베딩도 쓰지만 짧게 하려고 뺐다)
+        # 토큰 임베딩(RoBERTa는 트레인되는 위치 임베딩도 쓰지만 짧게 하려고 뺐다)
         self.embed = nn.Embedding(vocab_size, d_model)
 
         # 인코더 스택
@@ -82,16 +82,16 @@ logits: torch.Size([2, 8, 1000])
 
 ## 2. 논의
 
-`RoBERTa` 클래스는 PyTorch의 `nn.Module` 인터페이스를 써서 모델 구조를 담는다. `forward` 메서드가 계산 그래프를 정의하므로 학습하는 동안 PyTorch의 autograd가 그래디언트 계산을 자동으로 처리한다. 이렇게 모듈로 나눈 설계 덕에 구성 요소 하나하나를 고치거나 더 큰 파이프라인에 넣기가 쉽다.
+`RoBERTa` 클래스는 PyTorch의 `nn.Module` 인터페이스를 써서 모델 구조를 담는다. `forward` 메서드가 계산 그래프를 정의하므로 트레인하는 동안 PyTorch의 autograd가 그래디언트 계산을 자동으로 처리한다. 이렇게 모듈로 나눈 설계 덕에 구성 요소 하나하나를 고치거나 더 큰 파이프라인에 넣기가 쉽다.
 
-이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
+이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 트레인에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 트레인, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 설정으로 만든 `RoBERTa`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
+기본 설정으로 만든 `RoBERTa`의 트레인 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
 
 </div>
 
@@ -103,12 +103,12 @@ logits: torch.Size([2, 8, 1000])
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-어텐션 웨이트 뒤(값과 곱하기 앞)에 드롭아웃 레이어를 추가하여라. 학습하는 동안 드롭아웃 비율 0.1을 써라. 어텐션 드롭아웃이 정칙화에 왜 도움이 되는지 설명하여라.
+어텐션 웨이트 뒤(값과 곱하기 앞)에 드롭아웃 레이어를 추가하여라. 트레인하는 동안 드롭아웃 비율 0.1을 써라. 어텐션 드롭아웃이 정칙화에 왜 도움이 되는지 설명하여라.
 
 </div>
 
 ??? success "풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 추가하고 소프트맥스 뒤에 적용한다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 학습하는 동안 어텐션 웨이트 일부를 무작위로 0으로 만들어, 모델이 토큰 사이의 특정 관계에만 의존하는 것을 막는다. 그래서 모델이 어텐션을 더 고르게 분산하고 더 강건한 표현을 학습하게 되는데, 이는 일반 드롭아웃이 뉴런끼리의 공적응(co-adaptation, 서로에게 지나치게 의존하게 되는 것)을 막는 것과 같다.
+    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 추가하고 소프트맥스 뒤에 적용한다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 트레인하는 동안 어텐션 웨이트 일부를 무작위로 0으로 만들어, 모델이 토큰 사이의 특정 관계에만 의존하는 것을 막는다. 그래서 모델이 어텐션을 더 고르게 분산하고 더 강건한 표현을 학습하게 되는데, 이는 일반 드롭아웃이 뉴런끼리의 공적응(co-adaptation, 서로에게 지나치게 의존하게 되는 것)을 막는 것과 같다.
 
 ---
 

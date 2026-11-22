@@ -291,7 +291,7 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
 
 ### 양수 조건과 최적화
 
-그래디언트 기반 방식은 `log_sigma`를 학습하고 지수함수로 $\sigma$를 만든다. 이는 표준편차가 양수라는 조건을 만족시키지만 극단적인 값에서는 수치 문제가 생길 수 있다. 로그가능도(log-likelihood; 가능도는 우도라고도 한다) 계산의 하한 클램프는 수치적 장치이며 분포의 원래 정의와 구분한다.
+그래디언트 기반 방식은 `log_sigma`를 트레인하고 지수함수로 $\sigma$를 만든다. 이는 표준편차가 양수라는 조건을 만족시키지만 극단적인 값에서는 수치 문제가 생길 수 있다. 로그가능도(log-likelihood; 가능도는 우도라고도 한다) 계산의 하한 클램프는 수치적 장치이며 분포의 원래 정의와 구분한다.
 
 유한한 반복의 결과가 해석적 값에 가까운지 확인하면 최적화 상태를 평가할 수 있다. 위 실행에서는 400번째 반복에 이미 $\hat\mu=5.0872$, $\hat\sigma=1.9441$로 해석적 MLE와 소수 넷째 자리까지 일치하며, 그 뒤로 로그가능도도 $-1041.87$에서 변하지 않는다. 반면 생성 규칙의 참값과 추정값의 차이에는 표본 변동이 포함된다. 표본이 하나이거나 모든 관측값이 같으면 분산이 0으로 접근하면서 양의 분산 공간의 가능도가 무한히 커질 수 있으므로 일반적인 내부해 유도가 적용되지 않는다.
 
@@ -300,7 +300,7 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-해석적 추정에서 `unbiased=False`를 사용하고 수치 최적화에서 `log_sigma`를 학습하는 이유를 설명하라.
+해석적 추정에서 `unbiased=False`를 사용하고 수치 최적화에서 `log_sigma`를 트레인하는 이유를 설명하라.
 
 </div>
 
@@ -358,7 +358,7 @@ NORMAL DISTRIBUTION MLE - Parameter Estimation
         for p in model.parameters():
             assert p.grad is not None
     ```
-    그래디언트의 흐름을 시험하는 것은 그 구조가 처음부터 끝까지 이어지는 학습을 지원하는지 확인하는 데 특히 중요하다.
+    그래디언트의 흐름을 시험하는 것은 그 구조가 처음부터 끝까지 이어지는 트레인을 지원하는지 확인하는 데 특히 중요하다.
 
 ## 정리하며
 

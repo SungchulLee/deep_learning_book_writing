@@ -1,6 +1,6 @@
-# 뉴럴 네트워크 언어 모델의 문맥·학습·생성
+# 뉴럴 네트워크 언어 모델의 문맥·트레인·생성
 
-뉴럴 네트워크 언어 모델은 embedding과 공유된 함수로 다음 토큰의 로짓을 계산한다. 빈도표의 각 문맥을 독립적으로 저장하는 방식과 달리 여러 단어·문맥 사이에서 파라메터를 공유할 수 있다. 하지만 학습한 표현이 항상 의미적 유사성을 정확히 반영하거나 미관측 데이터에서 일반화를 보장하는 것은 아니다. 문맥 길이·어휘·시간 상태·인과성은 구조와 구현에서 각각 확인해야 한다.
+뉴럴 네트워크 언어 모델은 embedding과 공유된 함수로 다음 토큰의 로짓을 계산한다. 빈도표의 각 문맥을 독립적으로 저장하는 방식과 달리 여러 단어·문맥 사이에서 파라메터를 공유할 수 있다. 하지만 트레인한 표현이 항상 의미적 유사성을 정확히 반영하거나 미관측 데이터에서 일반화를 보장하는 것은 아니다. 문맥 길이·어휘·시간 상태·인과성은 구조와 구현에서 각각 확인해야 한다.
 
 ## 1. 고정 문맥의 순방향 모델
 
@@ -76,7 +76,7 @@ class Vocabulary:
         return len(self.word2idx)
 
 class FeedforwardLMDataset(Dataset):
-    """피드포워드 언어 모델 학습용 데이터셋."""
+    """피드포워드 언어 모델 트레인용 데이터셋."""
     
     def __init__(self, corpus: List[str], vocab: Vocabulary, context_size: int):
         self.vocab = vocab
@@ -127,7 +127,7 @@ class FeedforwardLM(nn.Module):
         self._init_weights()
     
     def _init_weights(self):
-        """학습을 돕는 Xavier 초기화."""
+        """트레인을 돕는 Xavier 초기화."""
         nn.init.xavier_uniform_(self.embedding.weight)
         nn.init.xavier_uniform_(self.fc1.weight)
         nn.init.xavier_uniform_(self.fc2.weight)
@@ -170,7 +170,7 @@ def train_feedforward_lm(corpus: List[str], context_size: int = 3,
                          embedding_dim: int = 64, hidden_dim: int = 128,
                          epochs: int = 20, batch_size: int = 32,
                          learning_rate: float = 0.001):
-    """피드포워드 언어 모델 학습."""
+    """피드포워드 언어 모델 트레인."""
     
     # 어휘 만들기
     vocab = Vocabulary()
@@ -191,7 +191,7 @@ def train_feedforward_lm(corpus: List[str], context_size: int = 3,
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     
-    # 학습 루프
+    # 트레인 루프
     for epoch in range(epochs):
         model.train()
         total_loss = 0
@@ -216,13 +216,13 @@ def train_feedforward_lm(corpus: List[str], context_size: int = 3,
     return model, vocab
 ```
 
-Vocabulary는 PAD·UNK·시작·종료를 먼저 등록하고 소문자 공백 토큰으로 어휘를 만든다. 데이터는 문장 앞에 m개 시작 토큰, 뒤에 종료를 넣어 고정 문맥과 다음 단어 목표를 만든다. 어휘는 학습 분할에서만 구성하고 평가의 미등록 단어는 같은 UNK 규칙을 적용한다. 모델 출력에는 PAD·시작 같은 특수 토큰도 있어 생성 시 허용 정책이 필요하다.
+Vocabulary는 PAD·UNK·시작·종료를 먼저 등록하고 소문자 공백 토큰으로 어휘를 만든다. 데이터는 문장 앞에 m개 시작 토큰, 뒤에 종료를 넣어 고정 문맥과 다음 단어 목표를 만든다. 어휘는 트레인 분할에서만 구성하고 평가의 미등록 단어는 같은 UNK 규칙을 적용한다. 모델 출력에는 PAD·시작 같은 특수 토큰도 있어 생성 시 허용 정책이 필요하다.
 
-학습은 CE에 raw 로짓을 넣고 Adam으로 갱신한다. 출력 PPL은 학습 배치 로스를 단순 평균한 exp이며 마지막 배치 크기·평가 토큰 수를 가중한 독립 검증 PPL과 다르다. 빈 loader도 처리하지 않는다. get_next_word_probs는 CPU 입력을 만들고 eval로 바꾼 채 돌려주므로 장치·모드의 부수 효과를 확인한다.
+트레인은 CE에 raw 로짓을 넣고 Adam으로 갱신한다. 출력 PPL은 트레인 배치 로스를 단순 평균한 exp이며 마지막 배치 크기·평가 토큰 수를 가중한 독립 검증 PPL과 다르다. 빈 loader도 처리하지 않는다. get_next_word_probs는 CPU 입력을 만들고 eval로 바꾼 채 돌려주므로 장치·모드의 부수 효과를 확인한다.
 
 ## 2. RNN 상태와 잘린 역전파
 
-RNN은 단어를 순서대로 읽으며 이전 은닉 상태를 갱신한다. h_t를 w_t까지 처리한 상태로 정의했다면 그 출력은 다음 w_{t+1} 예측에 사용한다. 입력·목표를 한 칸 이동하는 계약을 명확히 해야 한다. 유한한 상태와 실제 학습 길이가 있어 ‘모든 과거를 제한 없이 정확히 기억한다’는 뜻은 아니다.
+RNN은 단어를 순서대로 읽으며 이전 은닉 상태를 갱신한다. h_t를 w_t까지 처리한 상태로 정의했다면 그 출력은 다음 w_{t+1} 예측에 사용한다. 입력·목표를 한 칸 이동하는 계약을 명확히 해야 한다. 유한한 상태와 실제 트레인 길이가 있어 ‘모든 과거를 제한 없이 정확히 기억한다’는 뜻은 아니다.
 
 ```
 For each time step t:
@@ -313,7 +313,7 @@ class RNNLMDataset(Dataset):
             words = [vocab.START] + words + [vocab.END]
             indices = [vocab.encode(w) for w in words]
             
-            # 학습을 위해 청크로 나누기
+            # 트레인을 위해 청크로 나누기
             for i in range(0, len(indices) - 1, max_len):
                 seq = indices[i:i + max_len + 1]
                 if len(seq) > 1:
@@ -352,7 +352,7 @@ RNNLMDataset은 시작·종료를 포함한 각 문장을 max_len 길이 구간�
 
 ```python
 def train_rnn_truncated_bptt(model, data, hidden, seq_len=35):
-    """잘린 BPTT(truncated backpropagation through time)로 학습."""
+    """잘린 BPTT(truncated backpropagation through time)로 트레인."""
     model.train()
     
     for i in range(0, data.size(1) - 1, seq_len):
@@ -462,7 +462,7 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
                   hidden_dim: int = 512, num_layers: int = 2,
                   epochs: int = 30, batch_size: int = 32,
                   learning_rate: float = 0.001):
-    """LSTM 언어 모델 학습."""
+    """LSTM 언어 모델 트레인."""
     
     vocab = Vocabulary()
     vocab.build(corpus)
@@ -513,15 +513,15 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
     return model, vocab
 ```
 
-LSTMLanguageModel은 embedding·LSTM·dropout·출력 head다. tie_weights=True여도 embedding_dim과 hidden_dim이 같을 때만 실제 웨이트를 공유한다. 학습 함수의 기본값 256·512는 서로 달라 기본 호출에서는 tying이 일어나지 않는다. 공유가 일어나면 embedding과 출력 웨이트는 같은 Parameter이며 두 번 세지 않는다.
+LSTMLanguageModel은 embedding·LSTM·dropout·출력 head다. tie_weights=True여도 embedding_dim과 hidden_dim이 같을 때만 실제 웨이트를 공유한다. 트레인 함수의 기본값 256·512는 서로 달라 기본 호출에서는 tying이 일어나지 않는다. 공유가 일어나면 embedding과 출력 웨이트는 같은 Parameter이며 두 번 세지 않는다.
 
 이 구현의 일반 dropout은 [AWD-LSTM 연구](https://arxiv.org/abs/1708.02182)의 recurrent weight dropout·embedding dropout·시간에 공유하는 locked mask 전체를 구현한 것이 아니다. AWD-LSTM이라는 이름의 성능과 이 단순 구조를 동일시하지 않는다. 해당 연구의 ICLR 발표는 2018년이며 preprint는 2017년이다.
 
-학습 루프는 배치마다 (h, c)를 새로 초기화하므로 잘라 나눈 문장 구간 사이의 상태도 이어지지 않는다. PAD 목표 0을 CE에서 제외하지만 출력 후보에서 PAD를 제거하는 것은 아니다. 기록한 배치 평균 로스의 exp도 유효 토큰별 전체 NLL에서 계산한 PPL과 다를 수 있다. 검증·시험 분할이나 최고 체크포인트 평가도 포함하지 않는다.
+트레인 루프는 배치마다 (h, c)를 새로 초기화하므로 잘라 나눈 문장 구간 사이의 상태도 이어지지 않는다. PAD 목표 0을 CE에서 제외하지만 출력 후보에서 PAD를 제거하는 것은 아니다. 기록한 배치 평균 로스의 exp도 유효 토큰별 전체 NLL에서 계산한 PPL과 다를 수 있다. 검증·시험 분할이나 최고 체크포인트 평가도 포함하지 않는다.
 
 ## 4. 인과 attention과 decoder memory
 
-자기회귀 모델은 현재까지의 입력에서 다음 토큰을 예측해야 한다. causal self-attention에서는 i위치가 j≤i의 입력만 볼 수 있게 한다. 학습 목표를 다음 토큰으로 이동한 상태에서 현재 입력을 보는 것은 적절하지만 다음 입력 위치를 보면 정답이 누출될 수 있다.
+자기회귀 모델은 현재까지의 입력에서 다음 토큰을 예측해야 한다. causal self-attention에서는 i위치가 j≤i의 입력만 볼 수 있게 한다. 트레인 목표를 다음 토큰으로 이동한 상태에서 현재 입력을 보는 것은 적절하지만 다음 입력 위치를 보면 정답이 누출될 수 있다.
 
 ```python
 import math
@@ -637,7 +637,7 @@ class TransformerLM(nn.Module):
 def train_transformer_lm(corpus: List[str], d_model: int = 256,
                          nhead: int = 4, num_layers: int = 4,
                          epochs: int = 30, batch_size: int = 32):
-    """트랜스포머 언어 모델 학습."""
+    """트랜스포머 언어 모델 트레인."""
     
     vocab = Vocabulary()
     vocab.build(corpus)
@@ -684,9 +684,9 @@ def train_transformer_lm(corpus: List[str], d_model: int = 256,
     return model, vocab
 ```
 
-현재 TransformerLM은 **TransformerDecoder에 x를 target과 memory로 동시에 전달하면서 tgt_mask만 지정**한다. [Decoder API](https://docs.pytorch.org/docs/stable/generated/torch.nn.TransformerDecoder.html)에서 target self-attention 마스크와 memory cross-attention 마스크는 별개다. 이 코드의 cross-attention은 뒤 위치의 x도 읽을 수 있어, 학습 때 다음 토큰 정답이 memory에 있는 미래 입력에서 누출될 수 있다. 따라서 올바른 causal decoder-only LM 구현으로 설명할 수 없다.
+현재 TransformerLM은 **TransformerDecoder에 x를 target과 memory로 동시에 전달하면서 tgt_mask만 지정**한다. [Decoder API](https://docs.pytorch.org/docs/stable/generated/torch.nn.TransformerDecoder.html)에서 target self-attention 마스크와 memory cross-attention 마스크는 별개다. 이 코드의 cross-attention은 뒤 위치의 x도 읽을 수 있어, 트레인 때 다음 토큰 정답이 memory에 있는 미래 입력에서 누출될 수 있다. 따라서 올바른 causal decoder-only LM 구현으로 설명할 수 없다.
 
-입력·memory padding 마스크도 없어 학습 로스에서 PAD를 무시한다고 attention이 패딩을 자동 제외하는 것은 아니다. 위치 embedding은 max_len까지이고 현재 sin/cos 할당은 홀수 d_model에서 차원이 맞지 않을 수 있다. head 수로 나누어지는 d_model 조건도 필요하다. 이러한 인과성·입력 계약을 해결하기 전의 낮은 학습 로스는 적절한 자기회귀 성능의 근거가 아니다.
+입력·memory padding 마스크도 없어 트레인 로스에서 PAD를 무시한다고 attention이 패딩을 자동 제외하는 것은 아니다. 위치 embedding은 max_len까지이고 현재 sin/cos 할당은 홀수 d_model에서 차원이 맞지 않을 수 있다. head 수로 나누어지는 d_model 조건도 필요하다. 이러한 인과성·입력 계약을 해결하기 전의 낮은 트레인 로스는 적절한 자기회귀 성능의 근거가 아니다.
 
 ## 5. 공통 생성 함수의 인터페이스 한계
 
@@ -695,10 +695,10 @@ def generate_text(model, vocab, max_length: int = 50,
                   temperature: float = 1.0, top_k: int = None,
                   top_p: float = None) -> str:
     """
-    학습한 언어 모델로 텍스트 생성.
+    트레인한 언어 모델로 텍스트 생성.
     
     인수:
-        model: 학습한 언어 모델(LSTM 또는 트랜스포머)
+        model: 트레인한 언어 모델(LSTM 또는 트랜스포머)
         vocab: 어휘 객체
         max_length: 생성할 최대 토큰 수
         temperature: 샘플링 온도
@@ -769,12 +769,12 @@ RNN에는 lstm 속성이 없어 else로 가지만 반환값은 (logits, hidden) 
 
 생성 입력은 CPU에서 만들어 모델 장치가 바뀌면 맞지 않을 수 있다. 온도 양수·top-k 범위·top-p 범위, 허용 특수 토큰·종료와 최대 길이를 검증하는 기능도 제한적이다. 한 함수에 구조 이름만 바꿔 넣으면 동일한 확률 모델의 생성이 된다고 가정하지 않는다.
 
-## 6. 사전 학습 모델과 비교 기준
+## 6. 사전 트레인 모델과 비교 기준
 
 ```python
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
-# 사전 학습된 GPT-2 불러오기
+# 사전 트레인된 GPT-2 불러오기
 model = GPT2LMHeadModel.from_pretrained('gpt2')
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
@@ -793,11 +793,11 @@ output = model.generate(
 print(tokenizer.decode(output[0]))
 ```
 
-마지막은 앞의 단어 모델과 별개의 GPT-2 모델·토크나이저를 불러 샘플링하는 예다. 웨이트·패키지·환경이 필요하며 로컬 모델을 이 코드에서 사전 학습한 것은 아니다. max_length는 프롬프트를 포함한 길이이고 토큰화도 앞의 공백 단어와 다르다. 샘플링 결과는 실행마다 달라지므로 이 쪽에는 출력을 싣지 않는다.
+마지막은 앞의 단어 모델과 별개의 GPT-2 모델·토크나이저를 불러 샘플링하는 예다. 웨이트·패키지·환경이 필요하며 로컬 모델을 이 코드에서 사전 트레인한 것은 아니다. max_length는 프롬프트를 포함한 길이이고 토큰화도 앞의 공백 단어와 다르다. 샘플링 결과는 실행마다 달라지므로 이 쪽에는 출력을 싣지 않는다.
 
-순방향·RNN·LSTM·트랜스포머의 문맥·속도·메모리를 고정 순위로 제시하지 않는다. RNN은 길이에 순차적인 상태 갱신을 하고 attention은 학습 위치를 병렬 계산할 수 있지만 자기회귀 생성은 다음 토큰에 의존한다. dense attention의 쌍별 O(L²D)·projection O(LD²), recurrent 활성 저장·BPTT·cache와 구현도 구분한다.
+순방향·RNN·LSTM·트랜스포머의 문맥·속도·메모리를 고정 순위로 제시하지 않는다. RNN은 길이에 순차적인 상태 갱신을 하고 attention은 트레인 위치를 병렬 계산할 수 있지만 자기회귀 생성은 다음 토큰에 의존한다. dense attention의 쌍별 O(L²D)·projection O(LD²), recurrent 활성 저장·BPTT·cache와 구현도 구분한다.
 
-PPL은 같은 평가 데이터·어휘·토큰화·UNK·경계·사전 학습 조건에서 비교한다. 서로 다른 조건의 Penn Treebank나 GPT-2 숫자를 한 표의 구조 순위로 제시하지 않는다. 큰 모델의 구체적 구조·파라메터가 공개되지 않았을 때 특정 상용 모델을 일률적인 크기·구조의 예로 단정하지 않는다.
+PPL은 같은 평가 데이터·어휘·토큰화·UNK·경계·사전 트레인 조건에서 비교한다. 서로 다른 조건의 Penn Treebank나 GPT-2 숫자를 한 표의 구조 순위로 제시하지 않는다. 큰 모델의 구체적 구조·파라메터가 공개되지 않았을 때 특정 상용 모델을 일률적인 크기·구조의 예로 단정하지 않는다.
 
 ## 연습문제
 
@@ -807,13 +807,13 @@ PPL은 같은 평가 데이터·어휘·토큰화·UNK·경계·사전 학습 �
 
 3. **인과 마스크**: 현재 Transformer의 tgt_mask만으로 충분한가? → 아니다. x를 memory로도 넣어 unmasked cross-attention이 미래 입력을 읽는다. 모델 전체 경로에서 미래 비참조를 보장해야 한다.
 
-4. **웨이트 공유**: 학습 함수의 기본값인 256차원 embedding·512차원 hidden에서 tie_weights가 적용되는가? → 코드 조건이 같지 않아 적용되지 않는다. 구조·차원과 실제 Parameter 공유를 확인한다.
+4. **웨이트 공유**: 트레인 함수의 기본값인 256차원 embedding·512차원 hidden에서 tie_weights가 적용되는가? → 코드 조건이 같지 않아 적용되지 않는다. 구조·차원과 실제 Parameter 공유를 확인한다.
 
 5. **PPL 집계**: 길이가 다른 배치 로스를 같은 웨이트로 평균한 exp는 토큰 PPL인가? → 일반적으로 아니다. 무시하지 않은 토큰의 NLL 합을 같은 사건 수로 나눈 뒤 exp해야 한다. 독립 검증 데이터와 인과성도 필요하다.
 
 ## 정리하며
 
-뉴럴 언어 모델은 표현을 공유하지만 문맥·상태·패딩·인과성의 계약이 필요하다. 이 코드의 decoder memory 누출과 구조별 생성 인터페이스 차이를 이해하고, 실제 웨이트 공유·학습 범위·토큰별 평가를 확인해야 한다.
+뉴럴 언어 모델은 표현을 공유하지만 문맥·상태·패딩·인과성의 계약이 필요하다. 이 코드의 decoder memory 누출과 구조별 생성 인터페이스 차이를 이해하고, 실제 웨이트 공유·트레인 범위·토큰별 평가를 확인해야 한다.
 
 **참고 문헌**
 

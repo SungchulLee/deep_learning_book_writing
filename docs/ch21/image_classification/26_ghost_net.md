@@ -123,7 +123,7 @@ Parameters: 989,680
 
 ### 병목과 축약 본체
 
-병목은 첫 Ghost 모듈, 필요하면 stride depthwise, 두 번째 Ghost 모듈과 스킵 연결을 합한다. 두 모듈 모두 ReLU를 쓰므로 선형 출력 투영을 사용하는 원 병목과도 구분해야 한다. 본체에는 병목 세 개만 있고 전체 GhostNet의 단계·SE·학습 레시피를 재현하지 않는다.
+병목은 첫 Ghost 모듈, 필요하면 stride depthwise, 두 번째 Ghost 모듈과 스킵 연결을 합한다. 두 모듈 모두 ReLU를 쓰므로 선형 출력 투영을 사용하는 원 병목과도 구분해야 한다. 본체에는 병목 세 개만 있고 전체 GhostNet의 단계·SE·트레인 레시피를 재현하지 않는다.
 
 RGB 64×64 입력은 stem에서 16×32×32가 되고, 의도한 채널 흐름은 16→16→24→24이며 stride2 뒤 공간은 16×16이다. head는 960채널과 전역 풀링을 사용하지만 이 의도된 형태가 ratio=1의 실제 오류를 없애지는 않는다. [원 논문](https://openaccess.thecvf.com/content_CVPR_2020/html/Han_GhostNet_More_Features_From_Cheap_Operations_CVPR_2020_paper.html)의 결과와 예제 골격을 구분한다.
 

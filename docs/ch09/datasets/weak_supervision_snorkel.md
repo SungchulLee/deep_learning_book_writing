@@ -1,6 +1,6 @@
 # Snorkel을 쓰는 약지도 학습
 
-약지도 학습(weak supervision)은 휴리스틱(경험 규칙) 라벨링 함수의 불완전한 신호를 결합해 학습 목표를 만드는 방법이다. 이 페이지는 규칙, 다수결과 분석 지표를 구현하고 Snorkel 사용법을 예시 문자열로 소개한다.
+약지도 학습(weak supervision)은 휴리스틱(경험 규칙) 라벨링 함수의 불완전한 신호를 결합해 트레인 목표를 만드는 방법이다. 이 페이지는 규칙, 다수결과 분석 지표를 구현하고 Snorkel 사용법을 예시 문자열로 소개한다.
 
 ## 1. 코드
 
@@ -10,13 +10,13 @@
     """Snorkel을 쓰는 약지도 학습."""
     # ---
     # title: "Snorkel을 쓰는 약지도 학습"
-    # description: "라벨링 함수, 라벨 집계, 잡음을 고려한 학습으로 하는
+    # description: "라벨링 함수, 라벨 집계, 잡음을 고려한 트레인으로 하는
     #               프로그램적 데이터 라벨링 — 수작업 주석이 필요 없다"
     # ---
     #
     # 수작업 주석은 비싸다. 약지도 학습은 이를 휴리스틱, 패턴, 분야 지식을
     # 담은 프로그램적 라벨링 함수(LF)로 대신한다. Snorkel은 이 잡음 섞인
-    # 라벨을 모아 확률적 학습 라벨로 만든다.
+    # 라벨을 모아 확률적 트레인 라벨로 만든다.
     #
     #
     #   1부 – 라벨링 함수라는 추상
@@ -397,9 +397,9 @@
     #   1. 라벨링 함수를 쓴다 (휴리스틱, 패턴, 모델)
     #   2. 라벨 없는 데이터에 라벨링 함수를 적용한다 → 라벨 행렬 L
     #   3. 라벨링 함수를 분석한다 (적용률, 충돌, 개발 집합에서의 정확도)
-    #   4. 집계를 위해 라벨 모델을 학습시킨다 → 확률적 라벨
+    #   4. 집계를 위해 라벨 모델을 트레인시킨다 → 확률적 라벨
     #   5. 확신이 낮은 표본을 걸러 낸다
-    #   6. 확률적 라벨로 최종 모델(예: BERT)을 학습시킨다
+    #   6. 확률적 라벨로 최종 모델(예: BERT)을 트레인시킨다
 
     print("""
       Snorkel 전체 파이프라인:
@@ -419,7 +419,7 @@
       from snorkel.labeling import LFAnalysis
       LFAnalysis(L=L_train, lfs=lfs).lf_summary()
 
-      # 4단계: 라벨 모델 학습
+      # 4단계: 라벨 모델 트레인
       from snorkel.labeling.model import LabelModel
       label_model = LabelModel(cardinality=2, verbose=True)
       label_model.fit(L_train=L_train, n_epochs=500, seed=42)
@@ -440,7 +440,7 @@
       )
       preds_filtered = probs_to_preds(probs=probs_filtered)
 
-      # 6단계: 최종 분류기 학습
+      # 6단계: 최종 분류기 트레인
       from sklearn.feature_extraction.text import CountVectorizer
       from sklearn.linear_model import LogisticRegression
 
@@ -456,7 +456,7 @@
       #   다수결:           89.6%
       #   라벨 모델:      92.4%
       #   최종 모델 (LR):   93.5%
-      # 손으로 라벨을 붙인 학습 예가 하나도 없이!
+      # 손으로 라벨을 붙인 트레인 예가 하나도 없이!
     """)
 
 
@@ -550,7 +550,7 @@
 
       @labeling_function()
       def lf_finbert_positive(x):
-          # 미리 학습된 FinBERT를 약한 라벨러로 쓰기
+          # 미리 트레인된 FinBERT를 약한 라벨러로 쓰기
           score = finbert_pipeline(x.text)[0]
           if score["label"] == "positive" and score["score"] > 0.8:
               return BULLISH
@@ -757,7 +757,7 @@
       from snorkel.labeling import LFAnalysis
       LFAnalysis(L=L_train, lfs=lfs).lf_summary()
 
-      # 4단계: 라벨 모델 학습
+      # 4단계: 라벨 모델 트레인
       from snorkel.labeling.model import LabelModel
       label_model = LabelModel(cardinality=2, verbose=True)
       label_model.fit(L_train=L_train, n_epochs=500, seed=42)
@@ -778,7 +778,7 @@
       )
       preds_filtered = probs_to_preds(probs=probs_filtered)
 
-      # 6단계: 최종 분류기 학습
+      # 6단계: 최종 분류기 트레인
       from sklearn.feature_extraction.text import CountVectorizer
       from sklearn.linear_model import LogisticRegression
 
@@ -794,7 +794,7 @@
       #   다수결:           89.6%
       #   라벨 모델:      92.4%
       #   최종 모델 (LR):   93.5%
-      # 손으로 라벨을 붙인 학습 예가 하나도 없이!
+      # 손으로 라벨을 붙인 트레인 예가 하나도 없이!
 
       Simplified demo with synthetic data:
       Coverage: 87.4% of samples have ≥1 label
@@ -842,7 +842,7 @@
 
       @labeling_function()
       def lf_finbert_positive(x):
-          # 미리 학습된 FinBERT를 약한 라벨러로 쓰기
+          # 미리 트레인된 FinBERT를 약한 라벨러로 쓰기
           score = finbert_pipeline(x.text)[0]
           if score["label"] == "positive" and score["score"] > 0.8:
               return BULLISH
@@ -887,7 +887,7 @@
 
 겹침(overlap)은 여러 함수가 동시에 기권하지 않은 표본의 비율로, 서로 일치한 비율과 다르다. 충돌(conflict)은 그중 서로 다른 라벨을 준 경우를 다룬다. 적용률과 충돌만으로 개별 규칙의 정확도를 알 수는 없다.
 
-이 쪽의 코드는 Snorkel LabelModel을 실제로 학습시키는 완전한 실행 파이프라인이 아니다 — LabelModel 부분은 예시 문자열로 찍을 뿐이다. 실제로 돌리려면 따로 구현해야 하며, 최종 성능을 평가하려면 수작업으로 검수한 독립 라벨 데이터가 유용하다. 학습용 약한 라벨과 평가용 기준 라벨을 구분한다.
+이 쪽의 코드는 Snorkel LabelModel을 실제로 트레인시키는 완전한 실행 파이프라인이 아니다 — LabelModel 부분은 예시 문자열로 찍을 뿐이다. 실제로 돌리려면 따로 구현해야 하며, 최종 성능을 평가하려면 수작업으로 검수한 독립 라벨 데이터가 유용하다. 트레인용 약한 라벨과 평가용 기준 라벨을 구분한다.
 
 ## 연습문제
 
@@ -929,4 +929,4 @@
 
 ## 정리하며
 
-약지도 신호는 규칙의 적용 범위와 의존성에 따라 품질이 달라진다. 기권·겹침·충돌을 구분하고, 다수결 구현과 실제 Snorkel 학습 예시의 범위를 정확히 읽는다.
+약지도 신호는 규칙의 적용 범위와 의존성에 따라 품질이 달라진다. 기권·겹침·충돌을 구분하고, 다수결 구현과 실제 Snorkel 트레인 예시의 범위를 정확히 읽는다.

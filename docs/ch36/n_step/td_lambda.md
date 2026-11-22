@@ -93,7 +93,7 @@ _확인한 곳 — R. S. Sutton, "Learning to Predict by the Methods of Temporal
 
 - **$\lambda \approx 0.9$**가 흔히 좋은 기본값이다
 - 가장 좋은 $\lambda$는 문제에 따라 다르다
-- 낮은 $\lambda$: 값 추정이 믿을 만한 마르코프 결정 과정에서 학습이 빠르다
+- 낮은 $\lambda$: 값 추정이 믿을 만한 마르코프 결정 과정에서 트레인이 빠르다
 - 높은 $\lambda$: 리워드가 성기거나 잡음이 섞인 마르코프 결정 과정에서 낫다
 - 교차 검증이나 메타 학습으로 튜닝할 수 있다
 

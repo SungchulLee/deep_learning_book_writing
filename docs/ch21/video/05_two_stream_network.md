@@ -1,6 +1,6 @@
 # Two-Stream 네트워크: RGB와 옵티컬 플로우 결합
 
-Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 정보를 서로 다른 가지에서 처리해 결합하는 방식이다. [원 논문](https://arxiv.org/abs/1406.2199)의 아이디어를 바탕으로 이 예제는 ResNet-50 두 가지와 세 로짓 결합 방법을 보여 준다. 원 논문의 구조·학습·흐름 추정을 그대로 재현한 구현은 아니다.
+Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 정보를 서로 다른 가지에서 처리해 결합하는 방식이다. [원 논문](https://arxiv.org/abs/1406.2199)의 아이디어를 바탕으로 이 예제는 ResNet-50 두 가지와 세 로짓 결합 방법을 보여 준다. 원 논문의 구조·트레인·흐름 추정을 그대로 재현한 구현은 아니다.
 
 ## 1. 코드
 
@@ -73,7 +73,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
             인수:
                 num_classes: 액션 클래스의 개수
-                pretrained: ImageNet에서 사전 학습된 웨이트를 쓸지 여부
+                pretrained: ImageNet에서 사전 트레인된 웨이트를 쓸지 여부
                 dropout: 드롭아웃 확률
             """
             super().__init__()
@@ -302,7 +302,7 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
                 fused_logits = (spatial_logits + temporal_logits) / 2
 
             elif self.fusion_type == 'weighted':
-                # 학습 가능한 웨이트로 융합
+                # 트레인 가능한 웨이트로 융합
                 alpha = torch.sigmoid(self.fusion_weight)
                 fused_logits = alpha * spatial_logits + (1 - alpha) * temporal_logits
 
@@ -515,8 +515,8 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
         3. 융합 전략:
            - 평균: 단순하지만 잘 된다(웨이트가 같음)
-           - 가중: 학습 가능한 융합 웨이트 α
-           - 학습: 다층 퍼셉트론이 가장 좋은 결합을 학습한다
+           - 가중: 트레인 가능한 융합 웨이트 α
+           - 트레인: 다층 퍼셉트론이 가장 좋은 결합을 학습한다
 
         4. 성능에서 얻은 통찰:
            - Two-Stream >> RGB 단일 스트림(과거 결과들)
@@ -552,13 +552,13 @@ Two-Stream은 RGB의 외형 정보와 프레임 사이 optical flow의 이동 �
 
 ## 2. RGB 가지와 프레임별 예측
 
-`SpatialStream`은 ImageNet 사전 학습 ResNet-50의 분류 레이어를 제거하고 새 K클래스 head를 붙인다. backbone을 사전 학습했다는 사실과 새 액션 분류 head가 학습되었다는 것은 다르다. 입력의 RGB 정규화와 분포는 사전 학습 웨이트가 기대하는 것에 맞춰야 한다. `pretrained` 인수는 과거 API 형식이므로 설치한 torchvision 버전과 호환되는지 확인한다.
+`SpatialStream`은 ImageNet 사전 트레인 ResNet-50의 분류 레이어를 제거하고 새 K클래스 head를 붙인다. backbone을 사전 트레인했다는 사실과 새 액션 분류 head가 트레인되었다는 것은 다르다. 입력의 RGB 정규화와 분포는 사전 트레인 웨이트가 기대하는 것에 맞춰야 한다. `pretrained` 인수는 과거 API 형식이므로 설치한 torchvision 버전과 호환되는지 확인한다.
 
-4차원 입력은 B×3×H×W이고, 5차원은 **B×T×3×H×W**다. 프레임별 2048차원 피처에서 로짓을 만든 뒤 시간 평균을 낸다. Conv3d의 B×C×T×H×W와 축 순서가 다르다. 시간 평균은 순서를 보지 않으므로 프레임을 재배열해도 eval 모드의 결과는 같다. 학습 중에는 BN·dropout 같은 확률적·배치 효과를 따로 고려한다.
+4차원 입력은 B×3×H×W이고, 5차원은 **B×T×3×H×W**다. 프레임별 2048차원 피처에서 로짓을 만든 뒤 시간 평균을 낸다. Conv3d의 B×C×T×H×W와 축 순서가 다르다. 시간 평균은 순서를 보지 않으므로 프레임을 재배열해도 eval 모드의 결과는 같다. 트레인 중에는 BN·dropout 같은 확률적·배치 효과를 따로 고려한다.
 
 ## 3. 흐름 스택과 시간 가지
 
-L개의 연속 프레임 쌍의 수평·수직 flow를 연결하면 B×2L×H×W다. 기본 L=10이면 20채널을 받아야 하며 원본은 적어도 11프레임이 필요하다. `TemporalStream`은 첫 컨볼루션을 이 채널 수에 맞추고, ResNet 본체도 pretrained=False로 시작한다. RGB와 달리 시간 가지는 사전 학습 웨이트를 사용하지 않는다.
+L개의 연속 프레임 쌍의 수평·수직 flow를 연결하면 B×2L×H×W다. 기본 L=10이면 20채널을 받아야 하며 원본은 적어도 11프레임이 필요하다. `TemporalStream`은 첫 컨볼루션을 이 채널 수에 맞추고, ResNet 본체도 pretrained=False로 시작한다. RGB와 달리 시간 가지는 사전 트레인 웨이트를 사용하지 않는다.
 
 `extract_flow_stack`은 BTCHW의 처음 L개 쌍만 사용하고 뒤 프레임은 사용하지 않는다. 각 프레임을 CPU NumPy로 옮겨 Farnebäck를 계산한 뒤 flow를 CPU float32 텐서로 반환한다. 이 과정은 원래 RGB에 대한 미분 가능한 경로가 아니며 GPU 모델에 넣으려면 장치도 맞춰야 한다. 입력이 requires_grad이면 detach 없이 .numpy()를 호출하는 문제도 남는다.
 
@@ -566,15 +566,15 @@ flow 계산 함수는 0~1 RGB 또는 grayscale을 가정해 255를 곱한다. �
 
 ## 4. 세 로짓 결합 방식
 
-각 가지는 B×K 로짓을 반환한다. average는 두 로짓의 산술 평균이고, weighted는 α=sigmoid(a)로 αz_RGB+(1−α)z_flow를 만든다. 초기 a=0.5이므로 α는 약 0.622이며 정확히 반반이 아니다. learned는 연결한 2K차원을 MLP에 넣는다. 학습 가능한 결합이라고 자동으로 최적의 조합을 찾는 것은 아니다.
+각 가지는 B×K 로짓을 반환한다. average는 두 로짓의 산술 평균이고, weighted는 α=sigmoid(a)로 αz_RGB+(1−α)z_flow를 만든다. 초기 a=0.5이므로 α는 약 0.622이며 정확히 반반이 아니다. learned는 연결한 2K차원을 MLP에 넣는다. 트레인 가능한 결합이라고 자동으로 최적의 조합을 찾는 것은 아니다.
 
-로짓 평균 뒤 softmax와 확률을 먼저 구해 평균하는 것은 일반적으로 다르다. 동일 클래스 순서를 공유하고 두 가지의 스케일·학습 상태를 고려해야 한다. 기본 시연의 B=4, K=400에서는 분리·결합 출력이 모두 4×400이며 return_separate=True는 이 세 텐서의 튜플이다.
+로짓 평균 뒤 softmax와 확률을 먼저 구해 평균하는 것은 일반적으로 다르다. 동일 클래스 순서를 공유하고 두 가지의 스케일·트레인 상태를 고려해야 한다. 기본 시연의 B=4, K=400에서는 분리·결합 출력이 모두 4×400이며 return_separate=True는 이 세 텐서의 튜플이다.
 
 ## 5. 시연 결과와 실제 비용
 
-시연은 무작위 RGB·flow 입력에 새 액션 head의 출력을 계산할 뿐 액션 인식 학습이나 검증을 하지 않는다. 실제 프레임의 flow도 추출하지 않는다. 따라서 top3 값이나 요약 문구의 10~15% 개선을 이 코드의 실험 결과로 인용할 수 없다. 세 fusion 모델도 각각 새로 초기화되어 결합 방식만 통제한 성능 비교가 아니다.
+시연은 무작위 RGB·flow 입력에 새 액션 head의 출력을 계산할 뿐 액션 인식 트레인이나 검증을 하지 않는다. 실제 프레임의 flow도 추출하지 않는다. 따라서 top3 값이나 요약 문구의 10~15% 개선을 이 코드의 실험 결과로 인용할 수 없다. 세 fusion 모델도 각각 새로 초기화되어 결합 방식만 통제한 성능 비교가 아니다.
 
-두 가지 backbone과 추가 head·flow 계산 때문에 비용이 늘지만 모든 설정에서 정확히 두 배는 아니다. 시간 가지의 입력 채널과 결합 방식도 파라메터 수를 바꾼다. flow를 미리 저장하면 학습 시 추정 비용을 줄일 수 있으나 저장·전처리·배포 비용은 남는다. RGB·flow 시간 구간과 crop 좌표의 정렬도 필수다.
+두 가지 backbone과 추가 head·flow 계산 때문에 비용이 늘지만 모든 설정에서 정확히 두 배는 아니다. 시간 가지의 입력 채널과 결합 방식도 파라메터 수를 바꾼다. flow를 미리 저장하면 트레인 시 추정 비용을 줄일 수 있으나 저장·전처리·배포 비용은 남는다. RGB·flow 시간 구간과 crop 좌표의 정렬도 필수다.
 
 ## 연습문제
 
@@ -626,13 +626,13 @@ weighted fusion이 처음부터 두 가지를 반씩 반영하는가? 확률 평
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 ModuleList 확장만으로 Two-Stream의 시간 표현과 학습이 완성되는가?
+아래 ModuleList 확장만으로 Two-Stream의 시간 표현과 트레인이 완성되는가?
 
 </div>
 
 ??? success "풀이"
 
-    YourBlock 정의와 각 backbone 채널·stride를 맞추는 것 외에 흐름 스택의 순서·RGB 구간 정렬·입력 정규화·분류 학습이 필요하다. RGB 시간 평균만으로 순서 모델링이 추가되지는 않는다. 무작위 입력의 모양 확인은 액션 인식 평가가 아니다.
+    YourBlock 정의와 각 backbone 채널·stride를 맞추는 것 외에 흐름 스택의 순서·RGB 구간 정렬·입력 정규화·분류 트레인이 필요하다. RGB 시간 평균만으로 순서 모델링이 추가되지는 않는다. 무작위 입력의 모양 확인은 액션 인식 평가가 아니다.
 
     ```python
     self.layers = nn.ModuleList()

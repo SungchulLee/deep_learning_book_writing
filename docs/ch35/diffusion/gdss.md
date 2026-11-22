@@ -34,7 +34,7 @@ $$
 
 ## 2. 스코어 매칭 로스
 
-학습은 디노이징 스코어 매칭 로스를 최소화한다.
+트레인은 디노이징 스코어 매칭 로스를 최소화한다.
 
 $$
 \mathcal{L} = \mathbb{E}_{t, \mathcal{G}_0, \boldsymbol{\epsilon}} \left[ \lambda_X(t) \left\| \mathbf{s}_\theta^X(\mathcal{G}_t, t) + \frac{\boldsymbol{\epsilon}_X}{\sqrt{1-\bar{\alpha}_t}} \right\|^2 + \lambda_A(t) \left\| \mathbf{s}_\theta^A(\mathcal{G}_t, t) + \frac{\boldsymbol{\epsilon}_A}{\sqrt{1-\bar{\alpha}_t}} \right\|^2 \right]
@@ -394,7 +394,7 @@ if __name__ == "__main__":
 
     print("=== GDSS Demo ===\n")
 
-    # 학습 데이터
+    # 트레인 데이터
     train_x, train_a = [], []
     for _ in range(100):
         n = torch.randint(4, max_n + 1, (1,)).item()
@@ -411,7 +411,7 @@ if __name__ == "__main__":
     train_x = torch.stack(train_x)
     train_a = torch.stack(train_a)
 
-    # 학습
+    # 트레인
     model = GDSS(max_n, feat_dim, hidden_dim=64, num_layers=2)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
@@ -508,7 +508,7 @@ Graph 7: 5 nodes, 4 edges, density=0.400
 </div>
 
 ??? success "풀이"
-    분포 지표(차수 분포, 군집 계수)를 넘어 다음을 평가한다. (1) 화학적 유효성 -- 원자가 제약을 만족하는 분자의 몫(RDKit으로 확인), (2) 고유성 -- 서로 다른 유효한 분자의 몫, (3) 참신성 -- 학습 집합에 없는 몫, (4) 약물 유사성 -- QED 점수, 리핀스키의 다섯 규칙 준수, (5) 합성 용이성 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 최적화 -- 목표 성질과 얻은 성질의 상관. 여러 번 만들어 얻은 신뢰 구간과 함께 모든 지표를 알린다. $\square$
+    분포 지표(차수 분포, 군집 계수)를 넘어 다음을 평가한다. (1) 화학적 유효성 -- 원자가 제약을 만족하는 분자의 몫(RDKit으로 확인), (2) 고유성 -- 서로 다른 유효한 분자의 몫, (3) 참신성 -- 트레인 집합에 없는 몫, (4) 약물 유사성 -- QED 점수, 리핀스키의 다섯 규칙 준수, (5) 합성 용이성 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 최적화 -- 목표 성질과 얻은 성질의 상관. 여러 번 만들어 얻은 신뢰 구간과 함께 모든 지표를 알린다. $\square$
 
 ## 정리하며
 

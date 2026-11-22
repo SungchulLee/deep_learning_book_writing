@@ -109,7 +109,7 @@ L2 정칙화(릿지):
   - 옵티마이저의 'weight_decay'로 구현한다
 """)
 
-# 여러 L2 패널티 강도로 학습한다
+# 여러 L2 패널티 강도로 트레인한다
 l2_lambdas = [0.0, 0.001, 0.01, 0.1, 1.0]
 l2_models = {}
 
@@ -148,7 +148,7 @@ L1 정칙화(라쏘):
 """)
 
 def train_with_l1(lambda_l1, n_epochs=500):
-    """L1 정칙화로 모델을 학습시킨다"""
+    """L1 정칙화로 모델을 트레인시킨다"""
     model = nn.Linear(n_features, 1)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
     
@@ -166,7 +166,7 @@ def train_with_l1(lambda_l1, n_epochs=500):
     
     return model
 
-# 여러 L1 패널티 강도로 학습한다
+# 여러 L1 패널티 강도로 트레인한다
 l1_lambdas = [0.0, 0.001, 0.01, 0.1, 1.0]
 l1_models = {}
 
@@ -294,7 +294,7 @@ PyTorch 구현:
   l1_loss = lambda_l1 * torch.sum(torch.abs(model.weight))
   total_loss = mse_loss + l1_loss
 
-다음: 튜토리얼 09 - DataLoader로 하는 미니배치 학습!
+다음: 튜토리얼 09 - DataLoader로 하는 미니배치 트레인!
 """)
 
 
@@ -401,7 +401,7 @@ if __name__ == "__main__":
       l1_loss = lambda_l1 * torch.sum(torch.abs(model.weight))
       total_loss = mse_loss + l1_loss
 
-    다음: 튜토리얼 09 - DataLoader로 하는 미니배치 학습!
+    다음: 튜토리얼 09 - DataLoader로 하는 미니배치 트레인!
 
     ```
 
@@ -414,7 +414,7 @@ L2 목적을 $\text{MSE}+\lambda\|w\|_2^2$로 쓰면 패널티의 그래디언�
 
 ### 희소 목적과 수치 알고리즘
 
-L1 목적의 최적해는 일부 계수를 정확히 0으로 만들 수 있다. 하지만 `abs()` 항을 더해 보통의 SGD나 Adam으로 유한 번 학습하면, 계수가 0 근처에서 진동하거나 0이 아닌 작은 값으로 남을 수 있다. 정확한 희소 해에는 좌표 하강법이나 근접 경사법 같은 알고리즘이 적합하다. 출력의 “0에 가까움” 기준과 수학적인 0을 구분한다.
+L1 목적의 최적해는 일부 계수를 정확히 0으로 만들 수 있다. 하지만 `abs()` 항을 더해 보통의 SGD나 Adam으로 유한 번 트레인하면, 계수가 0 근처에서 진동하거나 0이 아닌 작은 값으로 남을 수 있다. 정확한 희소 해에는 좌표 하강법이나 근접 경사법 같은 알고리즘이 적합하다. 출력의 “0에 가까움” 기준과 수학적인 0을 구분한다.
 
 ### 정칙화 강도 선택
 
@@ -437,7 +437,7 @@ L2 강도를 높일 때 전체 웨이트 크기와 개별 계수가 어떻게 �
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-L1과 L2 패널티를 결합하여 엘라스틱 넷 정칙화를 구현하라. $L = \text{MSE} + \alpha \sum |w_i| + \beta \sum w_i^2$. 모델을 학습시키고 0에 가까운 웨이트의 개수를 순수 L1 및 순수 L2와 비교하라.
+L1과 L2 패널티를 결합하여 엘라스틱 넷 정칙화를 구현하라. $L = \text{MSE} + \alpha \sum |w_i| + \beta \sum w_i^2$. 모델을 트레인시키고 0에 가까운 웨이트의 개수를 순수 L1 및 순수 L2와 비교하라.
 
 </div>
 
@@ -476,7 +476,7 @@ L1과 L2 패널티를 결합하여 엘라스틱 넷 정칙화를 구현하라. $
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-20개 중 5개만 유용한 피처를 가진 데이터셋에서 $\lambda = 0.1$인 L1 정칙화로 학습한 웨이트를 막대그래프로 그리고, 0이 아닌 웨이트가 처음 5개 피처에 대응하는지 확인하라.
+20개 중 5개만 유용한 피처를 가진 데이터셋에서 $\lambda = 0.1$인 L1 정칙화로 트레인한 웨이트를 막대그래프로 그리고, 0이 아닌 웨이트가 처음 5개 피처에 대응하는지 확인하라.
 
 </div>
 

@@ -1,6 +1,6 @@
 # 대규모 언어 모델의 구조 변형
 
-정규화 위치, FFN, 위치 표현과 키·값 head 공유는 트랜스포머의 계산·메모리·학습에 영향을 준다. 여러 모델이 이 선택들을 조합하지만 모든 대규모 언어 모델이 같은 구성을 사용하는 것은 아니다. 구조의 이론적 이점과 아래 부분 구현에서 실제 얻는 효과도 구분한다.
+정규화 위치, FFN, 위치 표현과 키·값 head 공유는 트랜스포머의 계산·메모리·트레인에 영향을 준다. 여러 모델이 이 선택들을 조합하지만 모든 대규모 언어 모델이 같은 구성을 사용하는 것은 아니다. 구조의 이론적 이점과 아래 부분 구현에서 실제 얻는 효과도 구분한다.
 
 ## 1. 정규화 위치와 RMSNorm
 
@@ -29,7 +29,7 @@ class RMSNorm(nn.Module):
         return x_normed * self.weight
 ```
 
-현재 구현의 학습 파라메터는 d개의 γ이며 바이어스는 없다. 평균 0을 보장하는 정규화가 아니고 저정밀 x²의 overflow나 누적 dtype도 검토해야 한다. 평균을 빼지 않아 연산이 단순하다는 이점은 있지만 ‘늘 15% 빠르다’ 같은 고정된 속도 향상을 말할 수는 없다. 실제 커널·dtype·모양에서 비교해야 한다.
+현재 구현의 트레인 파라메터는 d개의 γ이며 바이어스는 없다. 평균 0을 보장하는 정규화가 아니고 저정밀 x²의 overflow나 누적 dtype도 검토해야 한다. 평균을 빼지 않아 연산이 단순하다는 이점은 있지만 ‘늘 15% 빠르다’ 같은 고정된 속도 향상을 말할 수는 없다. 실제 커널·dtype·모양에서 비교해야 한다.
 
 ## 2. SwiGLU와 FFN 폭
 
@@ -108,7 +108,7 @@ class RotaryEmbedding(nn.Module):
         return rotated.flatten(-2)
 ```
 
-회전 차원은 짝수여야 하고 positions는 미리 계산한 표의 유효 인덱스여야 한다. B×L×H×d 같은 head 축이 있으면 cos·sin의 broadcast 축을 명시적으로 맞춰야 한다. 현재 forward는 그 축을 자동 삽입하지 않는다. 위치 표를 계산할 수 있다는 사실만으로 학습 길이 밖 성능이 보장되지는 않는다.
+회전 차원은 짝수여야 하고 positions는 미리 계산한 표의 유효 인덱스여야 한다. B×L×H×d 같은 head 축이 있으면 cos·sin의 broadcast 축을 명시적으로 맞춰야 한다. 현재 forward는 그 축을 자동 삽입하지 않는다. 위치 표를 계산할 수 있다는 사실만으로 트레인 길이 밖 성능이 보장되지는 않는다.
 
 ```python
 def ntk_scaled_rope(dim: int, max_seq_len: int, base: int = 10000, scale: float = 2.0):
@@ -119,7 +119,7 @@ def ntk_scaled_rope(dim: int, max_seq_len: int, base: int = 10000, scale: float 
     return inv_freq
 ```
 
-ntk_scaled_rope는 base'=base·scale^(d/(d−2))로 주파수를 바꾸는 예다. max_seq_len은 사용하지 않고 d=2이면 분모가 0이다. 유효 d>2와 양의 base·scale이 필요하다. 주파수 재조정은 실제 학습·평가와 함께 검토할 선택이며 단순히 캐시 길이를 늘리는 것과도 다르다.
+ntk_scaled_rope는 base'=base·scale^(d/(d−2))로 주파수를 바꾸는 예다. max_seq_len은 사용하지 않고 d=2이면 분모가 0이다. 유효 d>2와 양의 base·scale이 필요하다. 주파수 재조정은 실제 트레인·평가와 함께 검토할 선택이며 단순히 캐시 길이를 늘리는 것과도 다르다.
 
 ## 4. MHA·MQA·GQA
 
@@ -205,7 +205,7 @@ class GroupedQueryAttention(nn.Module):
 
 모델 차원 d는 쿼리 head 수 H로 나누어져야 하며 H는 KV head 수 H_kv로 나누어져야 한다. H_kv=H면 MHA, H_kv=1이면 MQA다. 이 코드는 두 어텐션 모두 인과·padding 마스크와 KV cache가 없어 전체 입력을 양방향으로 본다. 그대로 자기회귀 언어 모델에 사용하면 미래 정보가 누출된다.
 
-길이 T·배치 B·레이어 수 L·head 차원 d_h에서 KV 원소 수는 2LBTH_kv d_h다. 실제 바이트는 dtype당 바이트를 곱한다. MHA 대비 H_kv/H 비율로 저장량을 줄일 수 있지만 GQA 코드의 repeat_interleave는 계산 시 head를 다시 복제한다. 캐시를 작은 head 수로 실제 저장하는 구현과 구분해야 한다. 품질·속도 우열은 학습·실행 조건에 달려 있다.
+길이 T·배치 B·레이어 수 L·head 차원 d_h에서 KV 원소 수는 2LBTH_kv d_h다. 실제 바이트는 dtype당 바이트를 곱한다. MHA 대비 H_kv/H 비율로 저장량을 줄일 수 있지만 GQA 코드의 repeat_interleave는 계산 시 head를 다시 복제한다. 캐시를 작은 head 수로 실제 저장하는 구현과 구분해야 한다. 품질·속도 우열은 트레인·실행 조건에 달려 있다.
 
 ## 5. 슬라이딩 윈도 어텐션
 

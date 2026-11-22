@@ -54,7 +54,7 @@
 
 
     def load_sample_dataset(name="iris", test_size=0.3, random_state=42, scale=True):
-        """예제가 함께 쓰는 자료를 불러와 학습/시험으로 나눈다.
+        """예제가 함께 쓰는 자료를 불러와 트레인/시험으로 나눈다.
 
         인수:
             name: 'iris', 'wine', 'synthetic' 가운데 하나
@@ -87,8 +87,8 @@
         )
 
         if scale:
-            # 고르게 맞추는 값은 반드시 학습 집합에서만 구한다.
-            # 전체에서 구하면 시험 자료의 정보가 학습에 새어 든다.
+            # 고르게 맞추는 값은 반드시 트레인 집합에서만 구한다.
+            # 전체에서 구하면 시험 자료의 정보가 트레인에 새어 든다.
             scaler = StandardScaler().fit(X_train)
             X_train = scaler.transform(X_train)
             X_test = scaler.transform(X_test)
@@ -187,7 +187,7 @@
         study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
         elapsed_time = time.time() - start_time
 
-        # 최종 모델 학습
+        # 최종 모델 트레인
         best_rf = RandomForestClassifier(**study.best_params, random_state=42, n_jobs=-1)
         best_rf.fit(X_train, y_train)
 
@@ -436,7 +436,7 @@
           - 파라메터 공간이 중간 크기일 때
           - 준비의 복잡함을 감당할 수 있을 때
        ❌ 쓰지 말아야 할 때:
-          - 모델 학습이 아주 빠를 때
+          - 모델 트레인이 아주 빠를 때
           - 공간이 극도로 클 때
           - 단순함이 필요할 때
 
@@ -572,7 +572,7 @@
           - 파라메터 공간이 중간 크기일 때
           - 준비의 복잡함을 감당할 수 있을 때
        ❌ 쓰지 말아야 할 때:
-          - 모델 학습이 아주 빠를 때
+          - 모델 트레인이 아주 빠를 때
           - 공간이 극도로 클 때
           - 단순함이 필요할 때
 
@@ -628,7 +628,7 @@
 </div>
 
 ??? success "풀이"
-    후보 수가 다르고 각 모델의 학습 비용도 다를 수 있다. 총 시간·적합 횟수·자원 중 무엇을 맞출지 정해야 한다.
+    후보 수가 다르고 각 모델의 트레인 비용도 다를 수 있다. 총 시간·적합 횟수·자원 중 무엇을 맞출지 정해야 한다.
 
 ---
 

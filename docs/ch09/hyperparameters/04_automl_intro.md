@@ -58,7 +58,7 @@ AutoML은 전처리와 모델·하이퍼파라메터 선택의 일부를 자동�
 
 
     def load_sample_dataset(name="iris", test_size=0.3, random_state=42, scale=True):
-        """예제가 함께 쓰는 자료를 불러와 학습/시험으로 나눈다.
+        """예제가 함께 쓰는 자료를 불러와 트레인/시험으로 나눈다.
 
         인수:
             name: 'iris', 'wine', 'synthetic' 가운데 하나
@@ -91,8 +91,8 @@ AutoML은 전처리와 모델·하이퍼파라메터 선택의 일부를 자동�
         )
 
         if scale:
-            # 고르게 맞추는 값은 반드시 학습 집합에서만 구한다.
-            # 전체에서 구하면 시험 자료의 정보가 학습에 새어 든다.
+            # 고르게 맞추는 값은 반드시 트레인 집합에서만 구한다.
+            # 전체에서 구하면 시험 자료의 정보가 트레인에 새어 든다.
             scaler = StandardScaler().fit(X_train)
             X_train = scaler.transform(X_train)
             X_test = scaler.transform(X_test)
@@ -165,7 +165,7 @@ AutoML은 전처리와 모델·하이퍼파라메터 선택의 일부를 자동�
         best_result = results[0]
         best_pipeline = best_result['pipeline']
 
-        # 학습 집합 전체로 학습한 뒤 평가
+        # 트레인 집합 전체로 트레인한 뒤 평가
         best_pipeline.fit(X_train, y_train)
         test_score = best_pipeline.score(X_test, y_test)
 
@@ -420,7 +420,7 @@ AutoML은 전처리와 모델·하이퍼파라메터 선택의 일부를 자동�
         ensemble_scores = cross_val_score(voting_clf, X_train, y_train, cv=5, scoring='accuracy')
         ensemble_time = time.time() - start_time
 
-        # 전체 데이터로 학습한 뒤 시험
+        # 전체 데이터로 트레인한 뒤 시험
         voting_clf.fit(X_train, y_train)
         test_score = voting_clf.score(X_test, y_test)
 
@@ -660,7 +660,7 @@ AutoML은 전처리와 모델·하이퍼파라메터 선택의 일부를 자동�
 
 ## 2. 논의
 
-간단한 AutoML은 후보 모델을 같은 교차 검증 기준에서 비교한다. 파이프라인에 scaler를 포함하면 각 폴드 학습 부분에서 전처리를 맞출 수 있다. 모든 후보에 표준화가 반드시 필요한 것은 아니지만 데이터 누출을 막는 구조는 유지해야 한다.
+간단한 AutoML은 후보 모델을 같은 교차 검증 기준에서 비교한다. 파이프라인에 scaler를 포함하면 각 폴드 트레인 부분에서 전처리를 맞출 수 있다. 모든 후보에 표준화가 반드시 필요한 것은 아니지만 데이터 누출을 막는 구조는 유지해야 한다.
 
 모델 선택과 하이퍼파라메터 탐색을 함께 하면 후보 수와 비용이 커진다. 자동화가 데이터 의미, 분할·지표·누출 검증까지 대신하는 것은 아니다. 최선 점수에는 선택 편향(selection bias)도 남는다 — 여러 후보 가운데 가장 높은 점수를 골랐기 때문에 그 점수가 실제 성능보다 낙관적으로 치우치는 현상이다.
 
@@ -676,7 +676,7 @@ scaler를 Pipeline 안에 넣는 이유를 설명하라.
 </div>
 
 ??? success "풀이"
-    교차 검증의 각 학습 부분에서만 scaler를 fit하고 해당 검증 부분에 변환을 적용하기 위해서이다. 전체 데이터를 미리 표준화하는 것과 다르다.
+    교차 검증의 각 트레인 부분에서만 scaler를 fit하고 해당 검증 부분에 변환을 적용하기 위해서이다. 전체 데이터를 미리 표준화하는 것과 다르다.
 
 ---
 

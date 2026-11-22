@@ -1,6 +1,6 @@
 # 비전 트랜스포머 모델
 
-패치 투영, 멀티헤드 어텐션, GELU MLP와 Pre-LN 블록으로 ViT 분류 모델을 구성한다. Tiny·Small·Base·Large 함수는 크기를 정하는 팩터리이며 사전 학습 체크포인트를 불러오지는 않는다.
+패치 투영, 멀티헤드 어텐션, GELU MLP와 Pre-LN 블록으로 ViT 분류 모델을 구성한다. Tiny·Small·Base·Large 함수는 크기를 정하는 팩터리이며 사전 트레인 체크포인트를 불러오지는 않는다.
 
 ## 1. 코드
 
@@ -161,10 +161,10 @@ class VisionTransformer(nn.Module):
         self.patch_embed = PatchEmbedding(img_size, patch_size, in_channels, embed_dim)
         n_patches = self.patch_embed.n_patches
         
-        # 분류 토큰 (학습되며 시퀀스 앞에 붙인다)
+        # 분류 토큰 (트레인되며 시퀀스 앞에 붙인다)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         
-        # 위치 임베딩 (학습되는 것)
+        # 위치 임베딩 (트레인되는 것)
         self.pos_embed = nn.Parameter(torch.zeros(1, n_patches + 1, embed_dim))
         self.pos_drop = nn.Dropout(dropout)
         
@@ -278,7 +278,7 @@ Number of parameters: 85,806,346
 
 기본 패치 16과 224 해상도에서 196개 패치에 CLS를 더해 197개 토큰을 사용한다. MultiHeadAttention은 $(B,N,E)$를 $(B,H,N,E/H)$로 나누고 점수·가중합 뒤 원래 임베딩 차원으로 합친다. E는 H로 나누어떨어져야 한다.
 
-TransformerBlock은 입력을 정규화한 뒤 어텐션·MLP를 실행하고 잔차를 더하는 Pre-LN이다. 스택 끝에도 LayerNorm을 적용한다. 어텐션 확률·출력과 MLP 등에 드롭아웃이 있어 학습·평가 모드를 구분한다. 클래스 다섯 개의 역할은 PatchEmbedding, MultiHeadAttention, MLP, TransformerBlock과 VisionTransformer다.
+TransformerBlock은 입력을 정규화한 뒤 어텐션·MLP를 실행하고 잔차를 더하는 Pre-LN이다. 스택 끝에도 LayerNorm을 적용한다. 어텐션 확률·출력과 MLP 등에 드롭아웃이 있어 트레인·평가 모드를 구분한다. 클래스 다섯 개의 역할은 PatchEmbedding, MultiHeadAttention, MLP, TransformerBlock과 VisionTransformer다.
 
 정사각 img_size로 위치 표를 고정하며 입력 해상도 자동 보간과 패딩 마스크는 없다. 마지막 head는 로짓을 반환한다. 초기화는 Linear·LayerNorm과 CLS·위치 표를 다루지만 Conv2d는 기본 초기화를 유지한다. main은 Base의 출력 클래스를 10으로 바꾼 무작위 순전파 예제다.
 
@@ -292,7 +292,7 @@ main의 패치·CLS·최종 출력 형태와 파라메터 수를 설명하라.
 </div>
 
 ??? success "풀이"
-    입력 (2,3,224,224)에서 패치 (2,196,768), CLS 포함 (2,197,768), 출력 (2,10)이다. 파라메터는 85,806,346개이며 학습 결과가 아니라 구조의 수다.
+    입력 (2,3,224,224)에서 패치 (2,196,768), CLS 포함 (2,197,768), 출력 (2,10)이다. 파라메터는 85,806,346개이며 트레인 결과가 아니라 구조의 수다.
 
 ---
 
@@ -338,4 +338,4 @@ RGB 64×64, 패치 16으로 구성하려면 무엇을 맞춰야 하는가?
 
 ## 정리하며
 
-직접 구현한 Pre-LN ViT의 각 모듈을 텐서 축과 연결해 이해한다. 크기 팩터리는 사전 학습을 뜻하지 않으며 해상도·패치 변경은 위치 표와 연산량도 함께 바꾼다.
+직접 구현한 Pre-LN ViT의 각 모듈을 텐서 축과 연결해 이해한다. 크기 팩터리는 사전 트레인을 뜻하지 않으며 해상도·패치 변경은 위치 표와 연산량도 함께 바꾼다.

@@ -105,7 +105,7 @@ $$
 f(\mathbf{x}; \boldsymbol{\theta}) = \sigma^{[L]} \circ g^{[L]} \circ \sigma^{[L-1]} \circ g^{[L-1]} \circ \cdots \circ \sigma^{[1]} \circ g^{[1]}(\mathbf{x})
 $$
 
-여기서 $g^{[l]}(\mathbf{a}) = \mathbf{W}^{[l]} \mathbf{a} + \mathbf{b}^{[l]}$은 레이어 $l$의 아핀 사상이고 $\boldsymbol{\theta} = \{\mathbf{W}^{[l]}, \mathbf{b}^{[l]}\}_{l=1}^L$은 학습 가능한 모든 파라메터를 나타낸다.
+여기서 $g^{[l]}(\mathbf{a}) = \mathbf{W}^{[l]} \mathbf{a} + \mathbf{b}^{[l]}$은 레이어 $l$의 아핀 사상이고 $\boldsymbol{\theta} = \{\mathbf{W}^{[l]}, \mathbf{b}^{[l]}\}_{l=1}^L$은 트레인 가능한 모든 파라메터를 나타낸다.
 
 !!! warning "비선형성이 반드시 필요한 이유"
     활성화 함수가 없으면 아핀 사상의 합성은 그 자체로 아핀이다.
@@ -137,7 +137,7 @@ $$
 1. **아핀 사상** (선형 변환 + 바이어스): $\mathbf{z}^{[l]} = \mathbf{W}^{[l]} \mathbf{a}^{[l-1]} + \mathbf{b}^{[l]}$
 2. **비선형 활성화**: $\mathbf{a}^{[l]} = \sigma^{[l]}(\mathbf{z}^{[l]})$
 
-은닉 레이어는 입력을 과제에 유용한 표현으로 변환한다. 이미지 모델에서 레이어별로 모서리와 복잡한 패턴이 나타나는 경우가 있지만, 모든 MLP가 이런 계층을 자동으로 배우는 것은 아니다. 학습 데이터와 목적함수에 따라 표현이 달라진다.
+은닉 레이어는 입력을 과제에 유용한 표현으로 변환한다. 이미지 모델에서 레이어별로 모서리와 복잡한 패턴이 나타나는 경우가 있지만, 모든 MLP가 이런 계층을 자동으로 배우는 것은 아니다. 트레인 데이터와 목적함수에 따라 표현이 달라진다.
 
 ### 출력 레이어
 
@@ -301,9 +301,9 @@ class MLP(nn.Module):
         return self.network(x)
     
     def count_parameters(self) -> int:
-        """학습 가능한 전체 파라메터의 수를 센다."""
+        """트레인 가능한 전체 파라메터의 수를 센다."""
         # requires_grad로 거르면 동결한 레이어가 집계에서 빠진다. 전이 학습에서
-        # 앞쪽을 동결해 두었을 때 "지금 실제로 학습되는 수"를 얻는다
+        # 앞쪽을 동결해 두었을 때 "지금 실제로 트레인되는 수"를 얻는다
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
 # ── 예: MNIST 다중 클래스 분류 ──
@@ -377,7 +377,7 @@ Layer 5 (   Dropout): torch.Size([1, 128])
 Layer 6 (    Linear): torch.Size([1, 10])
 ```
 
-### 완전한 학습 예제
+### 완전한 트레인 예제
 
 ```python
 import torch
@@ -414,7 +414,7 @@ model = MLP(
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-# ── 학습 루프 ──
+# ── 트레인 루프 ──
 for epoch in range(EPOCHS):
     model.train()
     total_loss, correct, total = 0.0, 0, 0
@@ -433,8 +433,8 @@ for epoch in range(EPOCHS):
         # 배치가 과하게 무거워지지 않는다
         total_loss += loss.item() * data.size(0)
         # 주의: output은 갱신 전 웨이트의 출력이고 드롭아웃도 켜져 있다.
-        # 그래서 여기서 나오는 학습 정확도는 실제보다 낮게 잡힌다.
-        # 아래 시험 정확도가 학습 정확도보다 높게 나와도 이상이 아니다
+        # 그래서 여기서 나오는 트레인 정확도는 실제보다 낮게 잡힌다.
+        # 아래 시험 정확도가 트레인 정확도보다 높게 나와도 이상이 아니다
         correct += output.argmax(dim=1).eq(target).sum().item()
         total += data.size(0)
     
@@ -544,7 +544,7 @@ MLP는 완전 연결이어서 모든 뉴런이 이웃한 레이어의 모든 뉴
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-`nn.Sequential`을 써서 2레이어 MLP를 PyTorch로 구현하고 간단한 분류 과제로 학습시켜라.
+`nn.Sequential`을 써서 2레이어 MLP를 PyTorch로 구현하고 간단한 분류 과제로 트레인시켜라.
 
 </div>
 
@@ -571,7 +571,7 @@ MLP는 완전 연결이어서 모든 뉴런이 이웃한 레이어의 모든 뉴
 
 ## 정리하며
 
-MLP의 각 레이어는 선형 변환과 활성화를 조합한다. 웨이트와 바이어스의 개수는 레이어별 입력·출력 차원으로 계산하며, 표본을 행으로 둘 때 `nn.Linear`는 `input @ weight.T + bias`를 수행한다. 분류 학습에서는 로스 함수가 로짓을 받는지 확률을 받는지 확인한다. 예를 들어 `BCEWithLogitsLoss`와 `CrossEntropyLoss` 앞에는 각각 시그모이드와 소프트맥스를 따로 붙이지 않는다.
+MLP의 각 레이어는 선형 변환과 활성화를 조합한다. 웨이트와 바이어스의 개수는 레이어별 입력·출력 차원으로 계산하며, 표본을 행으로 둘 때 `nn.Linear`는 `input @ weight.T + bias`를 수행한다. 분류 트레인에서는 로스 함수가 로짓을 받는지 확률을 받는지 확인한다. 예를 들어 `BCEWithLogitsLoss`와 `CrossEntropyLoss` 앞에는 각각 시그모이드와 소프트맥스를 따로 붙이지 않는다.
 
 **참고 문헌**
 

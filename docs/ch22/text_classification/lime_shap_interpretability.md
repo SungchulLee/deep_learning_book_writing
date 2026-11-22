@@ -73,7 +73,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     texts, labels, test_size=0.2, random_state=42
 )
 
-# 단순한 TF-IDF + 로지스틱 회귀 파이프라인 학습
+# 단순한 TF-IDF + 로지스틱 회귀 파이프라인 트레인
 vectorizer = TfidfVectorizer(max_features=500, stop_words="english")
 X_train_tfidf = vectorizer.fit_transform(X_train)
 X_test_tfidf = vectorizer.transform(X_test)
@@ -257,7 +257,7 @@ def encode_texts(text_list, max_len=MAX_LEN):
 X_encoded = encode_texts(texts)
 y_tensor = torch.tensor(labels, dtype=torch.long)
 
-# LSTM 학습
+# LSTM 트레인
 model = TextLSTM(len(word2idx) + 1, embed_dim=32, hidden_dim=32, num_classes=2)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
@@ -279,7 +279,7 @@ print("""
   # PyTorch LSTM에 SHAP DeepExplainer 쓰기:
   import shap
 
-  # 학습 데이터의 일부를 배경으로 쓰기
+  # 트레인 데이터의 일부를 배경으로 쓰기
   background = X_encoded[:20]
 
   explainer = shap.DeepExplainer(model, background)
@@ -491,7 +491,7 @@ Part 3: SHAP DeepExplainer for PyTorch Models
   # PyTorch LSTM에 SHAP DeepExplainer 쓰기:
   import shap
 
-  # 학습 데이터의 일부를 배경으로 쓰기
+  # 트레인 데이터의 일부를 배경으로 쓰기
   background = X_encoded[:20]
 
   explainer = shap.DeepExplainer(model, background)
@@ -582,11 +582,11 @@ Done.
 
 ## 2. 실제로 계산하는 설명
 
-첫 모델은 TF-IDF와 로지스틱 회귀다. LIME 라이브러리 호출은 안내 문자열로 출력하고 실제 코드는 단어를 하나씩 삭제한 뒤 positive 확률 차이를 계산한다. 이 leave-one-out 민감도는 국소 가중 대리모델을 학습하는 LIME 알고리즘과 같지 않다.
+첫 모델은 TF-IDF와 로지스틱 회귀다. LIME 라이브러리 호출은 안내 문자열로 출력하고 실제 코드는 단어를 하나씩 삭제한 뒤 positive 확률 차이를 계산한다. 이 leave-one-out 민감도는 국소 가중 대리모델을 트레인하는 LIME 알고리즘과 같지 않다.
 
 Δ_i=P(pos|원문)−P(pos|단어 i 삭제)이므로 양수면 삭제 후 positive 확률이 낮아졌다는 뜻이다. 출력에서 Revenue만 +0.0228이고, declined는 −0.0556으로 지우면 P(pos)가 가장 크게 오른다. 삭제가 문법·의미를 바꾸거나 TF-IDF 전체 정규화를 바꾸기 때문에 원래 단어 하나의 독립적 인과 효과로 해석하지 않는다. 반복 단어의 위치를 삭제하는 규칙과 LIME의 피처 표현도 다를 수 있다.
 
-학습·시험 데이터는 10개의 고유 문장을 반복한 뒤 항목별로 나누므로 같은 문장이 양쪽에 들어갈 수 있다. 해당 정확도는 새로운 데이터에 대한 신뢰성의 근거가 아니다. 설명이 그럴듯하다는 이유로 이 평가 누출을 무시할 수도 없다.
+트레인·시험 데이터는 10개의 고유 문장을 반복한 뒤 항목별로 나누므로 같은 문장이 양쪽에 들어갈 수 있다. 해당 정확도는 새로운 데이터에 대한 신뢰성의 근거가 아니다. 설명이 그럴듯하다는 이유로 이 평가 누출을 무시할 수도 없다.
 
 ## 3. 회귀 계수와 SHAP의 차이
 
@@ -598,7 +598,7 @@ SHAP의 가산성은 정의한 출력과 배경에 대한 성질이지 현실 �
 
 ## 4. LSTM과 DeepExplainer 안내
 
-TextLSTM은 단어 임베딩과 단층 LSTM의 마지막 상태를 분류한다. 어휘는 전체 데이터에서 만들고 같은 전체 데이터로 학습·정확도 계산을 수행하므로 출력은 학습 정확도다. PAD와 미등록 단어를 모두 ID 0으로 매핑하며 패딩 길이를 LSTM에 전달하지 않아 마지막 상태가 패딩을 처리한 영향을 받는다.
+TextLSTM은 단어 임베딩과 단층 LSTM의 마지막 상태를 분류한다. 어휘는 전체 데이터에서 만들고 같은 전체 데이터로 트레인·정확도 계산을 수행하므로 출력은 트레인 정확도다. PAD와 미등록 단어를 모두 ID 0으로 매핑하며 패딩 길이를 LSTM에 전달하지 않아 마지막 상태가 패딩을 처리한 영향을 받는다.
 
 [DeepExplainer](https://shap.readthedocs.io/en/latest/generated/shap.DeepExplainer.html)는 미분 가능한 경로에 대한 근사 설명을 사용한다. 정수 단어 ID를 일반 연속 입력처럼 직접 미분할 수 없으므로 안내의 DeepExplainer(model, background)만으로 유효한 텍스트 설명이 완성된다고 볼 수 없다. 임베딩 레이어의 입력·출력에 대한 설명이나 텍스트 마스킹 등 설명 대상을 명확히 해야 한다. 지원 연산과 반환 차원도 확인해야 한다.
 

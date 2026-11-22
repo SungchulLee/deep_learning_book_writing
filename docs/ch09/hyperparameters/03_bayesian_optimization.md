@@ -57,7 +57,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 def load_sample_dataset(name="iris", test_size=0.3, random_state=42, scale=True):
-    """예제가 함께 쓰는 자료를 불러와 학습/시험으로 나눈다.
+    """예제가 함께 쓰는 자료를 불러와 트레인/시험으로 나눈다.
 
     인수:
         name: 'iris', 'wine', 'synthetic' 가운데 하나
@@ -90,8 +90,8 @@ def load_sample_dataset(name="iris", test_size=0.3, random_state=42, scale=True)
     )
 
     if scale:
-        # 고르게 맞추는 값은 반드시 학습 집합에서만 구한다.
-        # 전체에서 구하면 시험 자료의 정보가 학습에 새어 든다.
+        # 고르게 맞추는 값은 반드시 트레인 집합에서만 구한다.
+        # 전체에서 구하면 시험 자료의 정보가 트레인에 새어 든다.
         scaler = StandardScaler().fit(X_train)
         X_train = scaler.transform(X_train)
         X_test = scaler.transform(X_test)
@@ -185,7 +185,7 @@ def bayesian_optimization_rf():
     best_params = study.best_params
     best_score = study.best_value
     
-    # 가장 좋은 파라메터로 최종 모델 학습
+    # 가장 좋은 파라메터로 최종 모델 트레인
     best_rf = RandomForestClassifier(**best_params, random_state=42, n_jobs=-1)
     best_rf.fit(X_train, y_train)
     test_score = best_rf.score(X_test, y_test)
@@ -271,7 +271,7 @@ def bayesian_optimization_gb():
     study.optimize(objective, n_trials=50, show_progress_bar=False)
     search_time = time.time() - start_time
     
-    # 최종 모델 학습
+    # 최종 모델 트레인
     best_gb = GradientBoostingClassifier(**study.best_params, random_state=42)
     best_gb.fit(X_train, y_train)
     test_score = best_gb.score(X_test, y_test)
@@ -467,7 +467,7 @@ if __name__ == "__main__":
 
 TPE는 성능이 좋은 후보와 나머지 후보의 분포를 구분해 다음 후보를 제안한다. 평가를 활용한다는 장점이 있지만 탐색 공간·초기 탐색·관측 잡음에 따라 무작위 탐색보다 낫지 않을 수도 있다.
 
-가지치기 예제는 cross_validate를 먼저 끝내 모든 폴드 점수를 얻은 뒤 report와 should_prune을 호출한다. 따라서 이미 지출한 교차 검증 계산을 줄이지 못한다. 실제 절약을 얻으려면 학습이나 폴드 계산 중간에 순차 보고하고 남은 계산 전에 중단해야 한다. [Optuna 안내](https://optuna.readthedocs.io/en/stable/tutorial/10_key_features/003_efficient_optimization_algorithms.html)의 중간값 보고 흐름을 구분한다.
+가지치기 예제는 cross_validate를 먼저 끝내 모든 폴드 점수를 얻은 뒤 report와 should_prune을 호출한다. 따라서 이미 지출한 교차 검증 계산을 줄이지 못한다. 실제 절약을 얻으려면 트레인이나 폴드 계산 중간에 순차 보고하고 남은 계산 전에 중단해야 한다. [Optuna 안내](https://optuna.readthedocs.io/en/stable/tutorial/10_key_features/003_efficient_optimization_algorithms.html)의 중간값 보고 흐름을 구분한다.
 
 TPE·CMA-ES·무작위 샘플러는 지원하는 변수와 병렬화 조건이 다르다. 후보 수뿐 아니라 총 시간과 자원, 중단된 후보를 포함한 탐색 기록을 함께 비교한다.
 
@@ -481,7 +481,7 @@ TPE·CMA-ES·무작위 샘플러는 지원하는 변수와 병렬화 조건이 �
 </div>
 
 ??? success "풀이"
-    중간 점수 보고 전에 cross_validate가 모든 폴드의 학습·평가를 끝낸다. TrialPruned로 기록해도 이미 수행한 계산은 돌아오지 않는다.
+    중간 점수 보고 전에 cross_validate가 모든 폴드의 트레인·평가를 끝낸다. TrialPruned로 기록해도 이미 수행한 계산은 돌아오지 않는다.
 
 ---
 

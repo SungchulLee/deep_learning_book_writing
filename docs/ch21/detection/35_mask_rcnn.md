@@ -86,7 +86,7 @@ RGB 입력 4×3×64×64를 가정하면 stride 2 컨볼루션은 4×64×32×32, 
 
 `roi_head`의 첫 선형 레이어는 영역마다 64×7×7 피처를 펼친 입력을 가정한다. backbone 전체를 임의로 펼쳐 넣는 레이어가 아니며 이 코드에는 그 입력을 만드는 RoIAlign이 없다. `cls_score`는 영역별 클래스 로짓, `bbox_pred`는 클래스별 네 좌표 보정값을 만들도록 선언했다. 기본 81클래스는 배경 1개와 연속 인덱스로 재매핑한 객체 클래스 80개를 가정할 수 있지만, 데이터셋의 원래 클래스 ID와 자동으로 일치하지는 않는다.
 
-마스크 모듈의 컨볼루션은 입력 영역의 공간 크기를 유지하고 클래스별 채널을 만든다. 업샘플링이나 원본 이미지로의 배치도 없으며 실제 순전파에서 사용하지 않는다. 마스크 학습에는 양성 RoI와 대응하는 정답 객체, 같은 좌표계로 정렬한 목표 마스크와 로스가 필요하다. [Mask R-CNN 원 논문](https://openaccess.thecvf.com/content_iccv_2017/html/He_Mask_R-CNN_ICCV_2017_paper.html)의 전체 구조와 이 축약 코드를 구분한다.
+마스크 모듈의 컨볼루션은 입력 영역의 공간 크기를 유지하고 클래스별 채널을 만든다. 업샘플링이나 원본 이미지로의 배치도 없으며 실제 순전파에서 사용하지 않는다. 마스크 트레인에는 양성 RoI와 대응하는 정답 객체, 같은 좌표계로 정렬한 목표 마스크와 로스가 필요하다. [Mask R-CNN 원 논문](https://openaccess.thecvf.com/content_iccv_2017/html/He_Mask_R-CNN_ICCV_2017_paper.html)의 전체 구조와 이 축약 코드를 구분한다.
 
 ## 연습문제
 
@@ -144,7 +144,7 @@ rpn_cls의 18채널과 bbox_pred의 4×num_classes 출력의 의미를 비교하
 
 ??? success "풀이"
 
-    ModuleList는 모듈을 등록하지만 아래 YourBlock은 정의되지 않은 자리 표시자다. backbone 깊이를 바꾸면 RPN·RoI head가 기대하는 채널과 피처 stride를 맞춰야 한다. 여기에 앵커·영역 제안, RoIAlign, 영역별 분류·상자·마스크 예측과 학습·후처리 연결이 필요하다. 단순 반복만으로 빠진 탐지 절차가 완성되지는 않는다.
+    ModuleList는 모듈을 등록하지만 아래 YourBlock은 정의되지 않은 자리 표시자다. backbone 깊이를 바꾸면 RPN·RoI head가 기대하는 채널과 피처 stride를 맞춰야 한다. 여기에 앵커·영역 제안, RoIAlign, 영역별 분류·상자·마스크 예측과 트레인·후처리 연결이 필요하다. 단순 반복만으로 빠진 탐지 절차가 완성되지는 않는다.
 
     ```python
     self.layers = nn.ModuleList()

@@ -1,6 +1,6 @@
 # 종합 프로젝트
 
-여러 이미지 데이터셋과 분류 모델을 같은 실험 인터페이스로 관리한다. 데이터 준비, 모델 생성, 학습과 결과 집계를 나누어 재사용하는 방법을 살펴본다.
+여러 이미지 데이터셋과 분류 모델을 같은 실험 인터페이스로 관리한다. 데이터 준비, 모델 생성, 트레인과 결과 집계를 나누어 재사용하는 방법을 살펴본다.
 
 ## 1. 코드
 
@@ -17,7 +17,7 @@
       - 실제 데이터셋 여럿을 다룬다
       - 범용 모델 팩토리를 만든다
       - 실험 추적 구조를 짠다
-      - 재사용할 수 있는 학습 파이프라인을 만든다
+      - 재사용할 수 있는 트레인 파이프라인을 만든다
       - 자세한 성능 보고서를 만든다
       - 아키텍처를 체계적으로 견준다
 
@@ -66,7 +66,7 @@
             Args:
                 dataset_name: 'mnist', 'fashion_mnist', 'cifar10' 가운데 하나
                 batch_size: 데이터 로더의 배치 크기
-                val_split: 학습 데이터 가운데 검증에 쓸 몫
+                val_split: 트레인 데이터 가운데 검증에 쓸 몫
             """
             self.dataset_name = dataset_name.lower()
             self.batch_size = batch_size
@@ -143,8 +143,8 @@
             return self._create_loaders(train_dataset, test_dataset)
 
         def _create_loaders(self, train_dataset, test_dataset):
-            """학습, 검증, 시험 로더를 만든다."""
-            # 학습 데이터를 나눈다
+            """트레인, 검증, 시험 로더를 만든다."""
+            # 트레인 데이터를 나눈다
             val_size = int(len(train_dataset) * self.val_split)
             train_size = len(train_dataset) - val_size
 
@@ -349,7 +349,7 @@
 
     class Trainer:
         """
-        실험 추적을 갖춘 종합 학습 파이프라인.
+        실험 추적을 갖춘 종합 트레인 파이프라인.
         """
 
         def __init__(self, model, train_loader, val_loader, test_loader,
@@ -362,7 +362,7 @@
                 train_loader, val_loader, test_loader: 데이터 로더
                 criterion: 로스 함수
                 optimizer: 옵티마이저
-                device: 학습에 쓸 장치
+                device: 트레인에 쓸 장치
                 experiment_name: 결과를 저장할 이름
             """
             self.model = model.to(device)
@@ -386,7 +386,7 @@
             self.best_model_state = None
 
         def train_epoch(self):
-            """한 에포크를 학습한다."""
+            """한 에포크를 트레인한다."""
             self.model.train()
             running_loss = 0.0
             correct = 0
@@ -463,15 +463,15 @@
 
         def train(self, num_epochs, scheduler=None, early_stopping_patience=None):
             """
-            주요 학습 루프.
+            주요 트레인 루프.
 
             Args:
-                num_epochs: 학습할 에포크 수
+                num_epochs: 트레인할 에포크 수
                 scheduler: 러닝레이트 스케줄러(선택)
                 early_stopping_patience: 조기 종료의 patience(선택)
 
             Returns:
-                학습 결과를 담은 사전
+                트레인 결과를 담은 사전
             """
             print(f"\n{'='*80}")
             print(f"Training: {self.experiment_name}")
@@ -481,7 +481,7 @@
             patience_counter = 0
 
             for epoch in range(num_epochs):
-                # 학습하고 검증한다
+                # 트레인하고 검증한다
                 train_loss, train_acc = self.train_epoch()
                 val_loss, val_acc = self.validate()
 
@@ -571,7 +571,7 @@
             Args:
                 dataset_name: 데이터셋의 이름
                 model_type: 모델의 종류
-                num_epochs: 학습 에포크 수
+                num_epochs: 트레인 에포크 수
                 lr: 러닝레이트
                 use_scheduler: 러닝레이트 스케줄링을 쓸지 여부
             """
@@ -599,7 +599,7 @@
             print(f"\nModel: {model_type}")
             print(f"  Total parameters: {total_params:,}")
 
-            # 학습 준비
+            # 트레인 준비
             criterion = nn.CrossEntropyLoss()
             optimizer = optim.Adam(model.parameters(), lr=lr)
 
@@ -607,7 +607,7 @@
             if use_scheduler:
                 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
-            # 학습
+            # 트레인
             trainer = Trainer(
                 model, dm.train_loader, dm.val_loader, dm.test_loader,
                 criterion, optimizer, self.device, experiment_name
@@ -728,7 +728,7 @@
     print("""
     ✅ 여러 데이터셋을 지원하는 데이터셋 관리자를 만들었다
     ✅ 여러 구조를 위한 모델 팩토리를 만들었다
-    ✅ 완전한 학습 파이프라인을 짰다
+    ✅ 완전한 트레인 파이프라인을 짰다
     ✅ 자세한 지표로 실험을 추적했다
     ✅ 여러 모델과 데이터셋을 체계적으로 견주었다
     ✅ 성능 비교 보고서를 만들었다
@@ -737,7 +737,7 @@
     ------------------
     1. DatasetManager
        - 여러 데이터셋을 위한 통합 인터페이스
-       - 학습/검증/시험 자동 분할
+       - 트레인/검증/시험 자동 분할
        - 배치 크기와 전처리를 설정할 수 있다
 
     2. ModelFactory
@@ -746,7 +746,7 @@
        - 새 모델로 확장하기 쉽다
 
     3. Trainer
-       - 완전한 학습 루프
+       - 완전한 트레인 루프
        - 러닝레이트 스케줄링
        - 조기 종료
        - 최고 모델 추적
@@ -782,14 +782,14 @@
     → 시각화와 텐서보드 로깅을 만든다
     → 가장 좋은 모델을 추론용으로 배포한다
 
-    🎉 잘했다! 학습 과정 모두를 마쳤다!
+    🎉 잘했다! 트레인 과정 모두를 마쳤다!
 
     이제 다음을 할 역량을 갖추었다.
     • 소프트맥스 회귀를 이론에서 실제까지 이해한다
-    • 딥러닝 분류기를 만들고 학습한다
+    • 딥러닝 분류기를 만들고 트레인한다
     • 고급 기법과 모범 사례를 쓴다
     • 체계적인 실험과 비교를 돌린다
-    • 실제로 운영할 수 있는 학습 파이프라인을 만든다
+    • 실제로 운영할 수 있는 트레인 파이프라인을 만든다
 
     배우고 실험하기를 이어 가라! 🚀
     """)
@@ -1029,7 +1029,7 @@
 
     ✅ 여러 데이터셋을 지원하는 데이터셋 관리자를 만들었다
     ✅ 여러 구조를 위한 모델 팩토리를 만들었다
-    ✅ 완전한 학습 파이프라인을 짰다
+    ✅ 완전한 트레인 파이프라인을 짰다
     ✅ 자세한 지표로 실험을 추적했다
     ✅ 여러 모델과 데이터셋을 체계적으로 견주었다
     ✅ 성능 비교 보고서를 만들었다
@@ -1038,7 +1038,7 @@
     ------------------
     1. DatasetManager
        - 여러 데이터셋을 위한 통합 인터페이스
-       - 학습/검증/시험 자동 분할
+       - 트레인/검증/시험 자동 분할
        - 배치 크기와 전처리를 설정할 수 있다
 
     2. ModelFactory
@@ -1047,7 +1047,7 @@
        - 새 모델로 확장하기 쉽다
 
     3. Trainer
-       - 완전한 학습 루프
+       - 완전한 트레인 루프
        - 러닝레이트 스케줄링
        - 조기 종료
        - 최고 모델 추적
@@ -1083,14 +1083,14 @@
     → 시각화와 텐서보드 로깅을 만든다
     → 가장 좋은 모델을 추론용으로 배포한다
 
-    🎉 잘했다! 학습 과정 모두를 마쳤다!
+    🎉 잘했다! 트레인 과정 모두를 마쳤다!
 
     이제 다음을 할 역량을 갖추었다.
     • 소프트맥스 회귀를 이론에서 실제까지 이해한다
-    • 딥러닝 분류기를 만들고 학습한다
+    • 딥러닝 분류기를 만들고 트레인한다
     • 고급 기법과 모범 사례를 쓴다
     • 체계적인 실험과 비교를 돌린다
-    • 실제로 운영할 수 있는 학습 파이프라인을 만든다
+    • 실제로 운영할 수 있는 트레인 파이프라인을 만든다
 
     배우고 실험하기를 이어 가라! 🚀
 
@@ -1100,7 +1100,7 @@
 
 ### 구성요소의 역할
 
-`DatasetManager`는 데이터와 로더를 준비하고 `ModelFactory`는 입력 모양과 클래스 수에 맞는 모델을 만든다. `Trainer`는 학습·검증·시험을 담당하며 `ExperimentRunner`는 여러 설정의 결과를 모은다. 관리용 클래스가 모두 `nn.Module`이거나 `forward()`로 계산 그래프를 만드는 것은 아니다. `ModelFactory`의 세 모델은 모두 은닉 레이어를 둔 완전 연결 네트워크이며, 출력 레이어의 로짓에 소프트맥스(교차 엔트로피 안에서)를 쓰는 점만 소프트맥스 회귀와 같다.
+`DatasetManager`는 데이터와 로더를 준비하고 `ModelFactory`는 입력 모양과 클래스 수에 맞는 모델을 만든다. `Trainer`는 트레인·검증·시험을 담당하며 `ExperimentRunner`는 여러 설정의 결과를 모은다. 관리용 클래스가 모두 `nn.Module`이거나 `forward()`로 계산 그래프를 만드는 것은 아니다. `ModelFactory`의 세 모델은 모두 은닉 레이어를 둔 완전 연결 네트워크이며, 출력 레이어의 로짓에 소프트맥스(교차 엔트로피 안에서)를 쓰는 점만 소프트맥스 회귀와 같다.
 
 ### 비교 단위와 평가
 
@@ -1115,19 +1115,19 @@
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-DatasetManager의 역할과 실제 학습 모델의 파라메터 수를 구분하라.
+DatasetManager의 역할과 실제 트레인 모델의 파라메터 수를 구분하라.
 
 </div>
 
 ??? success "풀이"
-    데이터 관리 객체 자체의 표본 수나 설정은 학습 웨이트가 아니다. 생성된 nn.Module에 대해 파라메터를 합산하고 동결 여부도 확인한다. 모델 종류와 입력·출력 모양이 달라지면 같은 데이터 관리자라도 학습 파라메터 수는 달라진다.
+    데이터 관리 객체 자체의 표본 수나 설정은 트레인 웨이트가 아니다. 생성된 nn.Module에 대해 파라메터를 합산하고 동결 여부도 확인한다. 모델 종류와 입력·출력 모양이 달라지면 같은 데이터 관리자라도 트레인 파라메터 수는 달라진다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-이 쪽의 `run_experiment`는 `optim.Adam`에 `lr=0.001`을 쓴다. 옵티마이저를 `torch.optim.SGD`(`lr=0.01`, `momentum=0.9`)로 바꾸고 원래 옵티마이저와 학습 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
+이 쪽의 `run_experiment`는 `optim.Adam`에 `lr=0.001`을 쓴다. 옵티마이저를 `torch.optim.SGD`(`lr=0.01`, `momentum=0.9`)로 바꾸고 원래 옵티마이저와 트레인 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
 
 </div>
 
@@ -1144,14 +1144,14 @@ DatasetManager의 역할과 실제 학습 모델의 파라메터 수를 구분�
 </div>
 
 ??? success "풀이"
-    같은 평가 분할과 지표 정의, 데이터 전처리와 학습 예산을 확인하고 시드 변동을 기록한다. 이 코드의 얕은 복사 체크포인트가 과거 웨이트를 보존하는지 점검해야 하며, 시험셋을 선택에 재사용하면 독립적인 성능 평가가 아니다.
+    같은 평가 분할과 지표 정의, 데이터 전처리와 트레인 예산을 확인하고 시드 변동을 기록한다. 이 코드의 얕은 복사 체크포인트가 과거 웨이트를 보존하는지 점검해야 하며, 시험셋을 선택에 재사용하면 독립적인 성능 평가가 아니다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-풀이에 실린 `nn.ModuleList` 확장 패턴을 현재 코드에 적용하려면 어떤 새 모델 정의가 필요한지 설명하라. 데이터 관리자(`DatasetManager`)와 학습 모델을 구분하라.
+풀이에 실린 `nn.ModuleList` 확장 패턴을 현재 코드에 적용하려면 어떤 새 모델 정의가 필요한지 설명하라. 데이터 관리자(`DatasetManager`)와 트레인 모델을 구분하라.
 
 </div>
 

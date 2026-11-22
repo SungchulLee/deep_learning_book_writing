@@ -1,16 +1,16 @@
-# 문자 언어 모델의 학습과 생성
+# 문자 언어 모델의 트레인과 생성
 
-이 스크립트는 고정 길이 문자 문맥에서 다음 문자 하나를 예측하는 LSTM을 교차엔트로피로 학습한다. 학습 타깃과 모델 출력이 같은 문자 사전·윈도 정의를 사용해야 하며, 낮은 다음 문자 로스와 자유 생성의 품질은 구분해서 평가한다.
+이 스크립트는 고정 길이 문자 문맥에서 다음 문자 하나를 예측하는 LSTM을 교차엔트로피로 트레인한다. 트레인 타깃과 모델 출력이 같은 문자 사전·윈도 정의를 사용해야 하며, 낮은 다음 문자 로스와 자유 생성의 품질은 구분해서 평가한다.
 
-## 1. 학습 코드와 의존성
+## 1. 트레인 코드와 의존성
 
 ```python
 """
-문자 수준 언어 모델을 위한 학습 스크립트
+문자 수준 언어 모델을 위한 트레인 스크립트
 
 이 스크립트는 다음을 보인다.
 1. 텍스트 데이터를 불러와 전처리한다
-2. 자기 회귀 문자 모델 학습
+2. 자기 회귀 문자 모델 트레인
 3. 새 텍스트 표본 생성
 """
 
@@ -342,14 +342,14 @@ def train_epoch(model: nn.Module,
                 optimizer: optim.Optimizer,
                 device: str) -> float:
     """
-    한 에포크를 학습한다.
+    한 에포크를 트레인한다.
     
     인수:
         model: 언어 모델
-        dataloader: 학습 데이터용 DataLoader
+        dataloader: 트레인 데이터용 DataLoader
         criterion: 로스 함수(CrossEntropyLoss)
         optimizer: 옵티마이저
-        device: 학습할 장치('cpu'나 'cuda')
+        device: 트레인할 장치('cpu'나 'cuda')
         
     반환값:
         에포크의 평균 로스
@@ -432,7 +432,7 @@ def generate_text(model: nn.Module,
     시드에서 텍스트를 자기 회귀로 생성한다.
     
     인수:
-        model: 학습한 언어 모델
+        model: 트레인한 언어 모델
         dataset: 데이터셋(인코딩·디코딩용)
         seed_text: 시작 텍스트
         length: 만들 문자의 수
@@ -478,7 +478,7 @@ def generate_text(model: nn.Module,
 
 def main():
     """
-    메인 학습 파이프라인
+    메인 트레인 파이프라인
     """
     print("=" * 70)
     print("Character-Level Autoregressive Language Model Training")
@@ -495,7 +495,7 @@ def main():
     EMBEDDING_DIM = 128   # 임베딩 차원
     HIDDEN_DIM = 256      # 은닉 차원(순환 뉴럴 네트워크용)
     N_LAYERS = 2          # 레이어의 수
-    N_EPOCHS = 50         # 학습 에포크 수
+    N_EPOCHS = 50         # 트레인 에포크 수
     LEARNING_RATE = 0.001
     
     print(f"\nHyperparameters:")
@@ -581,7 +581,7 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
-    # ==================== 학습 ====================
+    # ==================== 트레인 ====================
     print(f"\n{'='*70}")
     print("Step 3: Training model...")
     print(f"{'='*70}\n")
@@ -590,7 +590,7 @@ def main():
     test_losses = []
     
     for epoch in tqdm(range(N_EPOCHS), desc="Epochs"):
-        # 학습
+        # 트레인
         train_loss = train_epoch(model, train_loader, criterion, optimizer, device)
         
         # 평가한다
@@ -621,7 +621,7 @@ def main():
     print("Step 4: Creating visualizations...")
     print(f"{'='*70}")
     
-    # 학습 곡선을 그린다
+    # 트레인 곡선을 그린다
     plt.figure(figsize=(10, 5))
     plt.plot(train_losses, label='Train Loss', alpha=0.7)
     plt.plot(test_losses, label='Test Loss', alpha=0.7)
@@ -674,30 +674,30 @@ if __name__ == "__main__":
 
 main은 문맥 길이 50, 배치 64, 임베딩 128, LSTM 은닉 256, 2레이어, Adam 0.001과 50에포크를 설정한다. 기본 모델은 CharRNN이며 SimpleCharTransformer는 import하고 헬퍼에서 지원하지만 main에서 실제로 선택하지 않는다. 자료는 문맥당 정수 타깃 하나이고 모델 logits는 `(B,V)`다. LSTM hidden은 배치마다 새로 시작하며 배치 사이로 이어 가지 않는다.
 
-model의 내용은 위 코드에 그대로 들어 있지만 데이터 도구는 data 모듈에서 import하며, 이 디렉터리에는 data.py가 없다. import하는 CharacterDataset·load_sample_text·train_test_split을 [문자 데이터 절](data_2.md) 등의 실제 모듈로 제공해야 한다. 해당 데이터 예시 자체에도 표본·sample 변수 불일치가 있어 연결을 준비하지 않으면 실행되지 않는다. 이 페이지의 코드를 단독 실행 가능한 완성된 학습 결과로 설명하지 않는다.
+model의 내용은 위 코드에 그대로 들어 있지만 데이터 도구는 data 모듈에서 import하며, 이 디렉터리에는 data.py가 없다. import하는 CharacterDataset·load_sample_text·train_test_split을 [문자 데이터 절](data_2.md) 등의 실제 모듈로 제공해야 한다. 해당 데이터 예시 자체에도 표본·sample 변수 불일치가 있어 연결을 준비하지 않으면 실행되지 않는다. 이 페이지의 코드를 단독 실행 가능한 완성된 트레인 결과로 설명하지 않는다.
 
 ## 2. 로스 기록과 평가 범위
 
 CrossEntropyLoss는 배치의 다음 문자 NLL 평균이며 softmax를 미리 적용할 필요가 없다. epoch 로스는 배치 평균들의 단순 평균이므로 마지막 배치가 작으면 전체 타깃당 평균과 다르다. 정확한 문자당 NLL에는 각 배치 타깃 수로 가중해야 한다. 같은 문자 사전·문맥·평가 규칙에서 exp(평균 NLL)를 perplexity로 사용할 수 있다.
 
-학습에서는 dropout과 매 배치 업데이트가 있고 평가는 종료 모델의 eval·no_grad 경로다. 따라서 train·test 곡선의 차이가 과적합 하나만을 뜻하지 않는다. 짧고 겹치는 텍스트 윈도의 순서 분할은 독립 문서 평가와도 다르다. 설정·중단 기준에는 별도 검증 자료를 사용하고 최종 테스트 자료를 분리해야 한다.
+트레인에서는 dropout과 매 배치 업데이트가 있고 평가는 종료 모델의 eval·no_grad 경로다. 따라서 train·test 곡선의 차이가 과적합 하나만을 뜻하지 않는다. 짧고 겹치는 텍스트 윈도의 순서 분할은 독립 문서 평가와도 다르다. 설정·중단 기준에는 별도 검증 자료를 사용하고 최종 테스트 자료를 분리해야 한다.
 
 매 배치 그래디언트 노름을 1로 클리핑하지만 이것이 과적합·데이터 누출·생성 오류를 해결하는 것은 아니다. 체크포인트 저장이나 최적 모델 복원은 현재 main에 없다. 모델 웨이트 외에 문자 사전·전처리·문맥 길이와 생성 규칙도 보존해야 한다.
 
 ## 3. 두 생성 경로의 차이
 
-CharRNN 경로는 model.generate를 호출한다. [모델 절](model.md)에서 설명했듯이 이 메서드는 전체 접두사를 반복 입력하면서 hidden도 재사용해 이전 문맥을 중복 처리한다. 따라서 현재 자유 생성은 학습한 표준 접두사 조건과 다른 상태 경로를 따른다.
+CharRNN 경로는 model.generate를 호출한다. [모델 절](model.md)에서 설명했듯이 이 메서드는 전체 접두사를 반복 입력하면서 hidden도 재사용해 이전 문맥을 중복 처리한다. 따라서 현재 자유 생성은 트레인한 표준 접두사 조건과 다른 상태 경로를 따른다.
 
 Transformer 경로는 마지막 sequence_length개 문자만 잘라 매 스텝 새로 계산한다. 위치 인덱스도 윈도마다 0에서 다시 시작하며 KV cache는 없다. 이 문맥 길이는 위치 임베딩 최대 길이 이하여야 한다. 두 생성 폴리시의 차이를 두 구조의 고유한 언어 생성 품질 차이로 혼동하지 않는다.
 
-시드 텍스트는 비어 있지 않고 사전에 있어야 하며 temperature는 유한한 양수여야 한다. 반환 텍스트에는 시드와 추가 생성 length개가 함께 포함된다. 낮은 온도가 항상 좋은 글이나 적절한 반복을, 0.8이 균형 잡힌 창의성을 보장하는 것은 아니다. 출력 안내문은 이런 경험적 결과를 입증하지 않으며, 이 페이지에는 학습·생성 실행 결과가 실려 있지 않다.
+시드 텍스트는 비어 있지 않고 사전에 있어야 하며 temperature는 유한한 양수여야 한다. 반환 텍스트에는 시드와 추가 생성 length개가 함께 포함된다. 낮은 온도가 항상 좋은 글이나 적절한 반복을, 0.8이 균형 잡힌 창의성을 보장하는 것은 아니다. 출력 안내문은 이런 경험적 결과를 입증하지 않으며, 이 페이지에는 트레인·생성 실행 결과가 실려 있지 않다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-현재 배치 학습에서 그래디언트 초기화와 클리핑은 각각 무엇을 하는가?
+현재 배치 트레인에서 그래디언트 초기화와 클리핑은 각각 무엇을 하는가?
 
 </div>
 
@@ -733,7 +733,7 @@ PyTorch의 한 레이어 단방향 LSTM과 GRU의 파라미터 수를 비교하�
 
 ??? success "풀이"
 
-    입력 크기 E, 은닉 H, bias=True이면 LSTM은 4H(E+H+2), GRU는 3H(E+H+2)개다. 입력·순환 바이어스가 각각 있어 +2가 들어간다. 바이어스를 하나로 합친 관례의 식과 구분한다. 같은 크기에서 GRU 순환 레이어는 LSTM의 75%지만 embedding·출력 레이어까지 포함한 전체 모델 비율은 다르다. 셀 상태는 별도의 학습 파라미터가 아니며 성능 우열은 파라미터 개수만으로 정해지지 않는다.
+    입력 크기 E, 은닉 H, bias=True이면 LSTM은 4H(E+H+2), GRU는 3H(E+H+2)개다. 입력·순환 바이어스가 각각 있어 +2가 들어간다. 바이어스를 하나로 합친 관례의 식과 구분한다. 같은 크기에서 GRU 순환 레이어는 LSTM의 75%지만 embedding·출력 레이어까지 포함한 전체 모델 비율은 다르다. 셀 상태는 별도의 트레인 파라미터가 아니며 성능 우열은 파라미터 개수만으로 정해지지 않는다.
 
 
 
@@ -748,14 +748,14 @@ PyTorch의 한 레이어 단방향 LSTM과 GRU의 파라미터 수를 비교하�
 
 ??? success "풀이"
 
-    본문 evaluate에는 model뿐 아니라 dataloader·criterion·device가 필요하므로 아래의 두 인수 호출과 맞지 않는다. 검증 분할을 만들고 실제 학습 단계에 연결해야 한다. state_dict().copy는 얕은 복사여서 최적 텐서 보존에 충분하지 않으며 독립 복제나 파일 저장이 필요하다. 조기 종료·정상 종료 모두 최적 웨이트를 복원하고 사전·구조·전처리도 함께 기록한다. 최종 테스트 자료는 모델 선택에서 분리한다.
+    본문 evaluate에는 model뿐 아니라 dataloader·criterion·device가 필요하므로 아래의 두 인수 호출과 맞지 않는다. 검증 분할을 만들고 실제 트레인 단계에 연결해야 한다. state_dict().copy는 얕은 복사여서 최적 텐서 보존에 충분하지 않으며 독립 복제나 파일 저장이 필요하다. 조기 종료·정상 종료 모두 최적 웨이트를 복원하고 사전·구조·전처리도 함께 기록한다. 최종 테스트 자료는 모델 선택에서 분리한다.
 
     ```python
     best_loss = float('inf')
     patience_counter = 0
     best_state = None
     for epoch in range(num_epochs):
-        # ... 학습 단계 ...
+        # ... 트레인 단계 ...
         val_loss = evaluate(model, val_loader)
         if val_loss < best_loss:
             best_loss = val_loss
@@ -772,4 +772,4 @@ PyTorch의 한 레이어 단방향 LSTM과 GRU의 파라미터 수를 비교하�
 
 ## 정리하며
 
-문자 모델 학습은 윈도당 다음 문자 타깃과 배치 logits를 연결한다. 의존 데이터 모듈, 로스의 표본 가중 평균과 생성 상태 계약을 확인해야 한다. 검증 NLL·perplexity와 자유 생성은 다른 평가이며 사전·문맥·온도 설정을 맞춰 비교한다.
+문자 모델 트레인은 윈도당 다음 문자 타깃과 배치 logits를 연결한다. 의존 데이터 모듈, 로스의 표본 가중 평균과 생성 상태 계약을 확인해야 한다. 검증 NLL·perplexity와 자유 생성은 다른 평가이며 사전·문맥·온도 설정을 맞춰 비교한다.

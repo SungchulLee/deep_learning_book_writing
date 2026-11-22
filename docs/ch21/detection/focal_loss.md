@@ -130,7 +130,7 @@ focal loss와 아래 NMS의 역할이 어떻게 다른가? 코드의 실행에 �
 
 ??? success "풀이"
 
-    focal loss는 학습 중 예제별 기여를 조절하고 NMS는 추론 후보의 중복을 정리한다. 하나가 다른 하나를 대체하지 않는다. 아래 NumPy 함수는 compute_iou 정의가 별도로 필요하고 이미 디코딩된 상자·점수를 가정한다. 임계값과 같은 IoU는 유지한다.
+    focal loss는 트레인 중 예제별 기여를 조절하고 NMS는 추론 후보의 중복을 정리한다. 하나가 다른 하나를 대체하지 않는다. 아래 NumPy 함수는 compute_iou 정의가 별도로 필요하고 이미 디코딩된 상자·점수를 가정한다. 임계값과 같은 IoU는 유지한다.
 
     ```python
     import numpy as np

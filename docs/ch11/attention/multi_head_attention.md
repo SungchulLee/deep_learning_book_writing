@@ -125,7 +125,7 @@ $$\text{Concat}(\ldots)\mathbf{W}_O = \sum_{j=1}^{h} \mathbf{z}^{(j)} \mathbf{W}
 
 $$[\text{syntax} | \text{semantics} | \text{position}]$$
 
-**$\mathbf{W}_O$ 이후** (학습된 섞음):
+**$\mathbf{W}_O$ 이후** (트레인된 섞음):
 
 $$\text{output} = 0.5 \cdot \text{syntax} + 0.3 \cdot \text{semantics} + 0.2 \cdot \text{position}$$
 
@@ -330,7 +330,7 @@ class MultiHeadAttention(nn.Module):
 
 ## 6. 실험으로 본 헤드의 분업
 
-학습된 트랜스포머를 분석한 연구는 기능의 분업을 확인해 준다.
+트레인된 트랜스포머를 분석한 연구는 기능의 분업을 확인해 준다.
 
 | 헤드의 종류 | 패턴 | 예 |
 |-----------|---------|---------|
@@ -480,7 +480,7 @@ $d_{\text{model}} = 512$이고 헤드가 $h = 8$개인 멀티헤드 어텐션의
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-학습한 모델의 헤드별 어텐션을 비교할 때 어떤 근거를 보고해야 하는가?
+트레인한 모델의 헤드별 어텐션을 비교할 때 어떤 근거를 보고해야 하는가?
 
 </div>
 

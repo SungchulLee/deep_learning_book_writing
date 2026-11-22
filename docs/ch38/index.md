@@ -17,7 +17,7 @@
 
 - [Actor-Critic 기초](actor_critic/fundamentals.md) -- 폴리시 기반 액터와 밸류 기반 크리틱을 엮어 분산이 작은 그래디언트 추정 얻기
 - [어드밴티지 Actor-Critic(A2C)](actor_critic/a2c.md) -- 동기화된 병렬 둘레와 어드밴티지 기반 폴리시 갱신, 공유 Actor-Critic 네트워크
-- [비동기 어드밴티지 Actor-Critic(A3C)](actor_critic/a3c.md) -- 워커 스레드 여럿과 공유 전역 네트워크로 하는 분산 비동기 학습
+- [비동기 어드밴티지 Actor-Critic(A3C)](actor_critic/a3c.md) -- 워커 스레드 여럿과 공유 전역 네트워크로 하는 분산 비동기 트레인
 - [일반화 어드밴티지 추정(GAE)](actor_critic/gae.md) -- 람다로 편향-분산 트레이드오프를 조절할 수 있는, 지수로 웨이트를 준 여러 스텝 어드밴티지 추정
 
 ### 39.3 신뢰 영역 방법
@@ -38,14 +38,14 @@
 
 - [최대 엔트로피 강화학습](advanced/max_entropy.md) -- 엔트로피를 더한 목표, 소프트 벨먼 식, 탐험과 활용의 균형에 대한 이론적 기초
 - [계층적 강화학습](advanced/hierarchical.md) -- 시간적 추상화와 장기 과제를 위한 옵션 프레임워크, 봉건 네트워크, 목표 조건부 폴리시
-- [멀티에이전트 강화학습](advanced/multi_agent.md) -- 마르코프 게임, 독립 학습, 중앙집중식 학습과 분산 실행, 경쟁적 시장 조성
-- [모델 기반 강화학습](advanced/model_based.md) -- 계획을 위한 둘레 동역학 학습, 다이나 형태 방법, 모델 예측 제어
+- [멀티에이전트 강화학습](advanced/multi_agent.md) -- 마르코프 게임, 독립 트레인, 중앙집중식 트레인과 분산 실행, 경쟁적 시장 조성
+- [모델 기반 강화학습](advanced/model_based.md) -- 계획을 위한 둘레 동역학 트레인, 다이나 형태 방법, 모델 예측 제어
 
 ### 39.6 실전 고려 사항
 
 - [리워드 셰이핑](practical/reward_shaping.md) -- 최적 폴리시를 바꾸지 않으면서 더 빨리 배우게 하는, 퍼텐셜 기반 리워드 수정
 - [액션 공간](practical/action_spaces.md) -- 이산 액션과 연속 액션의 설계 선택, 제약된 파라미터화, 다차원 액션 구조
-- [관찰 정규화](practical/normalization.md) -- 학습을 안정적으로 하려고 관찰, 리워드, 어드밴티지에 이동 평균-분산 정규화 적용하기
+- [관찰 정규화](practical/normalization.md) -- 트레인을 안정적으로 하려고 관찰, 리워드, 어드밴티지에 이동 평균-분산 정규화 적용하기
 - [강화학습 디버깅](practical/debugging.md) -- 폴리시 붕괴, 값 발산, 리워드 해킹을 비롯한 흔한 실패를 체계적으로 진단하는 전략
 
 ### 39.7 금융 응용

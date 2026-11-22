@@ -207,7 +207,7 @@ def random_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
     return video[indices]
 ```
 
-random_sampling은 복원 추출한 인덱스를 정렬한다. 중복 없는 부분집합이나 연속 구간 선택이 아니다. 실제 프레임 순서를 유지해도 인접 표본의 간격은 불규칙하며 같은 프레임이 반복될 수 있다. 학습 어그멘테이션과 평가의 고정 샘플링 규칙을 구분한다.
+random_sampling은 복원 추출한 인덱스를 정렬한다. 중복 없는 부분집합이나 연속 구간 선택이 아니다. 실제 프레임 순서를 유지해도 인접 표본의 간격은 불규칙하며 같은 프레임이 반복될 수 있다. 트레인 어그멘테이션과 평가의 고정 샘플링 규칙을 구분한다.
 
 ## 5. 정규화·crop·resize
 
@@ -243,7 +243,7 @@ class VideoPreprocessor:
         return video * std + mean
 ```
 
-정규화는 TCHW의 RGB 각 채널에 (x−μ)/σ를 적용한다. ImageNet 통계가 모든 비디오 사전 학습 모델의 통계와 같지는 않다. mean·std가 CPU에 있어 CUDA 입력과 바로 연산하면 장치 오류가 날 수 있고, 임의 dtype도 확인해야 한다. denormalize는 역선형변환만 하며 표시 범위 clamp는 포함하지 않는다. 정규화 앞뒤의 0 패딩은 서로 다른 값을 뜻한다.
+정규화는 TCHW의 RGB 각 채널에 (x−μ)/σ를 적용한다. ImageNet 통계가 모든 비디오 사전 트레인 모델의 통계와 같지는 않다. mean·std가 CPU에 있어 CUDA 입력과 바로 연산하면 장치 오류가 날 수 있고, 임의 dtype도 확인해야 한다. denormalize는 역선형변환만 하며 표시 범위 clamp는 포함하지 않는다. 정규화 앞뒤의 0 패딩은 서로 다른 값을 뜻한다.
 
 ```python
 def spatial_crop(video: torch.Tensor, 
@@ -309,7 +309,7 @@ def resize_video(video: torch.Tensor,
     return resized
 ```
 
-resize는 T를 이미지 배치처럼 두고 공간 축만 bilinear 보간한다. 시간 프레임 수는 바꾸지 않으며 지정한 가로세로 크기로 늘이면 원본 종횡비가 변형될 수 있다. pad·crop을 사용하는 사전 학습 전처리와 동일하지 않다. 정수 클래스 마스크에는 이 보간을 그대로 적용하지 않는다.
+resize는 T를 이미지 배치처럼 두고 공간 축만 bilinear 보간한다. 시간 프레임 수는 바꾸지 않으며 지정한 가로세로 크기로 늘이면 원본 종횡비가 변형될 수 있다. pad·crop을 사용하는 사전 트레인 전처리와 동일하지 않다. 정수 클래스 마스크에는 이 보간을 그대로 적용하지 않는다.
 
 ## 6. 표시와 다음 단계
 
@@ -341,7 +341,7 @@ def visualize_frames(video: torch.Tensor, num_frames: int = 8):
     plt.show()
 ```
 
-표시할 때 정규화 값을 바로 0~1로 clamp하면 색이 달라질 수 있으므로 필요하면 먼저 역정규화한다. 위 함수는 num_frames=1이면 단일 Axes를 반복하려 해 오류가 날 수 있고, 빈 영상도 검증하지 않는다. 그림 출력은 프레임 선택을 이해하는 자료이며 학습·정확도 평가는 아니다.
+표시할 때 정규화 값을 바로 0~1로 clamp하면 색이 달라질 수 있으므로 필요하면 먼저 역정규화한다. 위 함수는 num_frames=1이면 단일 Axes를 반복하려 해 오류가 날 수 있고, 빈 영상도 검증하지 않는다. 그림 출력은 프레임 선택을 이해하는 자료이며 트레인·정확도 평가는 아니다.
 
 이후 [3D 컨볼루션](02_3d_convolution.md), [Two-Stream](two_stream.md), [SlowFast](slowfast.md)에 연결할 때 각 모델의 축 순서·입력 범위·샘플링 계약을 다시 확인한다. 같은 전처리 이름이라도 다른 절의 짧은 영상 처리·장치 이동 구현이 같다는 보장은 없다.
 

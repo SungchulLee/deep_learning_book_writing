@@ -228,7 +228,7 @@ class ElasticNetRegularizedModel(nn.Module):
         return zeros / total
 ```
 
-### 엘라스틱 넷으로 학습하기
+### 엘라스틱 넷으로 트레인하기
 
 ```python
 def train_elastic_net_model(
@@ -239,17 +239,17 @@ def train_elastic_net_model(
     lr: float = 0.001
 ) -> dict:
     """
-    엘라스틱 넷 정칙화로 모델을 학습시킨다.
+    엘라스틱 넷 정칙화로 모델을 트레인시킨다.
     
     인수:
         model: 엘라스틱 넷이 내장된 모델
-        train_loader: 학습 데이터
+        train_loader: 트레인 데이터
         val_loader: 검증 데이터
         epochs: 에포크 수
         lr: 러닝레이트
         
     반환값:
-        학습 이력
+        트레인 이력
     """
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -260,7 +260,7 @@ def train_elastic_net_model(
     }
     
     for epoch in range(epochs):
-        # 학습
+        # 트레인
         model.train()
         train_loss = 0
         for X_batch, y_batch in train_loader:
@@ -710,7 +710,7 @@ def grouped_feature_selection(X, y, feature_groups, alpha=0.5):
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-PyTorch 학습 루프에서 엘라스틱 넷 정칙화를 구현하라.
+PyTorch 트레인 루프에서 엘라스틱 넷 정칙화를 구현하라.
 
 </div>
 

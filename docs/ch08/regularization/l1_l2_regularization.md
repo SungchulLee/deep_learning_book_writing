@@ -70,7 +70,7 @@ def regularization_penalty(model, l1_factor=0.0, l2_factor=0.0):
 
 def train_mlp(model, X_train, y_train, l1_factor=0.0, l2_factor=0.0,
               epochs=100, batch_size=32, lr=1e-3):
-    """패널티를 걸어 모델을 학습시키고 에포크별 이력을 돌려준다."""
+    """패널티를 걸어 모델을 트레인시키고 에포크별 이력을 돌려준다."""
     # 패널티는 위의 함수로 직접 만들어 로스에 더한다. 손이 조금 더 가는
     # 대신, 무엇이 패널티를 받고 무엇이 받지 않는지가 코드에 그대로 보인다
     n_val = int(0.2 * len(X_train))
@@ -135,7 +135,7 @@ def sklearn_regularization_demo():
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
     
-    # 모델 학습
+    # 모델 트레인
     models = {
         # 강도가 서로 다르다. 두 패널티의 스케일이 달라 같은 alpha를 주면
         # 라쏘가 훨씬 세게 누르기 때문이다. 이 표에서 볼 것은
@@ -233,7 +233,7 @@ def neural_network_regularization_demo():
         print(f"  Train MAE: {train_mae:.4f}")
         print(f"  Test MAE: {test_mae:.4f}")
     
-    # 학습 이력 그리기
+    # 트레인 이력 그리기
     plt.figure(figsize=(12, 5))
     
     plt.subplot(1, 2, 1)
@@ -335,9 +335,9 @@ Key Takeaways:
 
 regularization_penalty는 이름에 weight가 들어간 텐서에 절댓값 합과 제곱합을 적용하고 바이어스는 제외한다. 이는 이 모델의 선택이며 바이어스가 과적합에 영향을 주지 않는다는 일반 명제는 아니다.
 
-뉴럴 네트워크 학습은 Adam에 패널티를 직접 더한다. L2 목적의 패널티와 AdamW의 분리된 감쇠를 같은 갱신으로 해석하지 않는다. L1 항을 Adam으로 최적화한다고 정확한 0이 자동으로 보장되는 것도 아니다.
+뉴럴 네트워크 트레인은 Adam에 패널티를 직접 더한다. L2 목적의 패널티와 AdamW의 분리된 감쇠를 같은 갱신으로 해석하지 않는다. L1 항을 Adam으로 최적화한다고 정확한 0이 자동으로 보장되는 것도 아니다.
 
-MLP의 내부 검증은 외부 학습 데이터를 scaler로 변환한 후 나누므로 검증 입력의 통계가 전처리에 반영된다. 엄격한 설정 선택에는 먼저 내부 분할한 뒤 실제 학습 부분만으로 scaler를 맞춘다. 선형 모델과 뉴럴 네트워크는 로스 집계와 정칙화 계수의 관례가 다를 수 있다.
+MLP의 내부 검증은 외부 트레인 데이터를 scaler로 변환한 후 나누므로 검증 입력의 통계가 전처리에 반영된다. 엄격한 설정 선택에는 먼저 내부 분할한 뒤 실제 트레인 부분만으로 scaler를 맞춘다. 선형 모델과 뉴럴 네트워크는 로스 집계와 정칙화 계수의 관례가 다를 수 있다.
 
 ## 연습문제
 

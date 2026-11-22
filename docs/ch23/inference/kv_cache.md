@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
 코드는 padding mask·가변 길이 요청·EOS 종료를 구현하지 않는다. AttentionWithKVCache의 dropout 모듈도 선언만 하고 적용하지 않는다. generate는 no_grad지만 eval로 자동 전환하지 않으며 temperature>0과 top_k≤어휘 크기 등의 검증이 없다. top-k 경계 동점은 k개보다 많이 남길 수 있다.
 
-매 단계 torch.cat은 기존 cache를 새 텐서로 복사한다. 정적 버퍼나 paged 관리와 같은 효율을 가정하지 않는다. 마지막 토큰을 고른 뒤에도 추가 forward를 수행해 반환에 필요 없는 계산을 한다. main은 무작위 초기화 모델·프롬프트로 모양을 시연하며 학습된 생성 품질을 평가하지 않는다.
+매 단계 torch.cat은 기존 cache를 새 텐서로 복사한다. 정적 버퍼나 paged 관리와 같은 효율을 가정하지 않는다. 마지막 토큰을 고른 뒤에도 추가 forward를 수행해 반환에 필요 없는 계산을 한다. main은 무작위 초기화 모델·프롬프트로 모양을 시연하며 트레인된 생성 품질을 평가하지 않는다.
 
 **출력:**
 
@@ -205,7 +205,7 @@ Generated: torch.Size([1, 10]) -> torch.Size([1, 30])
 
 [PagedAttention](https://arxiv.org/abs/2309.06180)은 논리적 KV를 물리 메모리 블록에 매핑해 할당·단편화·공유 관리를 개선한다. 공유 가능한 동일 prefix와 소유·수명 폴리시가 필요하며 임의의 서로 다른 토큰 캐시를 자유롭게 공유하는 것은 아니다.
 
-GQA·MQA는 KV head 수를 줄이는 구조 선택으로 배치 수만큼 캐시를 줄이는 기법이 아니다. 최근 토큰만 남기는 sliding cache는 원 모델의 어텐션 범위·위치·학습과 맞춰야 하며 임의의 full-attention 모델에 적용해도 출력이 그대로라는 보장은 없다.
+GQA·MQA는 KV head 수를 줄이는 구조 선택으로 배치 수만큼 캐시를 줄이는 기법이 아니다. 최근 토큰만 남기는 sliding cache는 원 모델의 어텐션 범위·위치·트레인과 맞춰야 하며 임의의 full-attention 모델에 적용해도 출력이 그대로라는 보장은 없다.
 
 [FlashAttention](flash_attention.md)은 어텐션의 중간 행렬·메모리 이동을 줄이는 접근이고 KV cache는 과거 계산을 재사용하는 접근이다. 함께 쓸 수 있지만 같은 최적화는 아니다.
 

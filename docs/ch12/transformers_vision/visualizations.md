@@ -1,6 +1,6 @@
 # 시각화
 
-패치 격자·위치 벡터·어텐션과 학습 이력을 시각화하는 도구를 살펴본다. 실제 학습 모델에서 추출한 값과 무작위·도식 예제를 구분하며, 그림만으로 예측의 인과적 근거를 확정하지 않는다.
+패치 격자·위치 벡터·어텐션과 트레인 이력을 시각화하는 도구를 살펴본다. 실제 트레인 모델에서 추출한 값과 무작위·도식 예제를 구분하며, 그림만으로 예측의 인과적 근거를 확정하지 않는다.
 
 ## 1. 코드
 
@@ -279,14 +279,14 @@ def visualize_positional_encoding(n_patches: int = 196, embed_dim: int = 768):
 
 def plot_training_comparison(cnn_history: dict, vit_history: dict):
     """
-    컨볼루션 뉴럴 네트워크와 비전 트랜스포머를 견주는 학습 곡선을 그린다.
+    컨볼루션 뉴럴 네트워크와 비전 트랜스포머를 견주는 트레인 곡선을 그린다.
     """
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     
     epochs_cnn = range(1, len(cnn_history['train_loss']) + 1)
     epochs_vit = range(1, len(vit_history['train_loss']) + 1)
     
-    # 학습 로스
+    # 트레인 로스
     axes[0, 0].plot(epochs_cnn, cnn_history['train_loss'], 'b-', label='CNN')
     axes[0, 0].plot(epochs_vit, vit_history['train_loss'], 'r-', label='ViT')
     axes[0, 0].set_xlabel('Epoch')
@@ -304,7 +304,7 @@ def plot_training_comparison(cnn_history: dict, vit_history: dict):
     axes[0, 1].legend()
     axes[0, 1].grid(True, alpha=0.3)
     
-    # 학습 정확도
+    # 트레인 정확도
     axes[1, 0].plot(epochs_cnn, cnn_history['train_acc'], 'b-', label='CNN')
     axes[1, 0].plot(epochs_vit, vit_history['train_acc'], 'r-', label='ViT')
     axes[1, 0].set_xlabel('Epoch')
@@ -344,9 +344,9 @@ if __name__ == "__main__":
 
 훅 핸들을 저장·제거하지 않아 같은 모델에 시각화 객체를 반복 생성하면 훅이 누적될 수 있다. 실제 확률을 반환하거나 저장하는 명시적 인터페이스와 장치·detach·훅 수명 관리가 필요하다. 기본 장치 CUDA의 사용 가능 여부도 확인한다.
 
-패치 격자 함수는 픽셀 영역의 경계를 그릴 뿐 학습한 패치 임베딩 벡터를 표시하지 않는다. visualize_positional_encoding은 torch.randn으로 새 표를 생성하므로 “Learned”라는 그림 제목과 달리 학습 모델의 위치 표를 추출하지 않는다. compare_receptive_fields도 계산 그래프에서 측정한 리셉티브 필드가 아니라 도식이며 CNN의 뒤 레이어 원이 작게 그려져 깊이별 실제 리셉티브 필드로 해석할 수 없다.
+패치 격자 함수는 픽셀 영역의 경계를 그릴 뿐 트레인한 패치 임베딩 벡터를 표시하지 않는다. visualize_positional_encoding은 torch.randn으로 새 표를 생성하므로 “Learned”라는 그림 제목과 달리 트레인 모델의 위치 표를 추출하지 않는다. compare_receptive_fields도 계산 그래프에서 측정한 리셉티브 필드가 아니라 도식이며 CNN의 뒤 레이어 원이 작게 그려져 깊이별 실제 리셉티브 필드로 해석할 수 없다.
 
-이미지와 어텐션의 min-max 정규화는 상수 입력에서 분모가 0이 된다. 어텐션은 배치 첫 이미지·CLS 하나·정사각 패치 격자를 가정한다. 학습 이력은 키별 길이·정확도 단위와 같은 분할·로스 집계인지 확인해야 비교할 수 있다.
+이미지와 어텐션의 min-max 정규화는 상수 입력에서 분모가 0이 된다. 어텐션은 배치 첫 이미지·CLS 하나·정사각 패치 격자를 가정한다. 트레인 이력은 키별 길이·정확도 단위와 같은 분할·로스 집계인지 확인해야 비교할 수 있다.
 
 ## 연습문제
 
@@ -365,12 +365,12 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-무작위 위치 표와 학습한 위치 표의 시각화를 어떻게 구분하는가?
+무작위 위치 표와 트레인한 위치 표의 시각화를 어떻게 구분하는가?
 
 </div>
 
 ??? success "풀이"
-    해당 함수는 새 난수 표를 만들어 그리므로 학습된 공간 패턴을 검증하지 않는다. 실제 model.pos_embed를 분리해 같은 격자 순서로 분석하고 0 노름·상수 값을 처리해야 한다. 유사도만으로 분류 성능을 판정하지 않는다.
+    해당 함수는 새 난수 표를 만들어 그리므로 트레인된 공간 패턴을 검증하지 않는다. 실제 model.pos_embed를 분리해 같은 격자 순서로 분석하고 0 노름·상수 값을 처리해야 한다. 유사도만으로 분류 성능을 판정하지 않는다.
 
 ---
 
@@ -382,7 +382,7 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
 </div>
 
 ??? success "풀이"
-    상수 이미지의 min-max 분모, CLS를 뺀 패치 수의 정사각 조건, 반환된 None·CPU/GPU 텐서와 numpy 변환을 확인한다. 훅 핸들을 제거하고 그림 객체를 닫는 수명 관리도 필요하다. 시각화 함수에 학습용 그래디언트가 항상 있어야 한다는 가정은 적절하지 않다.
+    상수 이미지의 min-max 분모, CLS를 뺀 패치 수의 정사각 조건, 반환된 None·CPU/GPU 텐서와 numpy 변환을 확인한다. 훅 핸들을 제거하고 그림 객체를 닫는 수명 관리도 필요하다. 시각화 함수에 트레인용 그래디언트가 항상 있어야 한다는 가정은 적절하지 않다.
 
 ---
 
@@ -415,4 +415,4 @@ AttentionVisualizer가 현재 ViT에서 확률을 얻지 못하는 이유를 설
 
 ## 정리하며
 
-시각화의 데이터 출처와 훅 인터페이스를 먼저 확인한다. 이 예제에는 어텐션 추출의 미완성 부분과 무작위·도식 그림이 있으므로 학습된 설명으로 해석하지 않는다. 코드가 저장하는 그림 파일은 이 쪽에 싣지 않는다.
+시각화의 데이터 출처와 훅 인터페이스를 먼저 확인한다. 이 예제에는 어텐션 추출의 미완성 부분과 무작위·도식 그림이 있으므로 트레인된 설명으로 해석하지 않는다. 코드가 저장하는 그림 파일은 이 쪽에 싣지 않는다.

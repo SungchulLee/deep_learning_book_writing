@@ -328,7 +328,7 @@ X_test = torch.FloatTensor(scaler.transform(X_test))
 y_train = torch.FloatTensor(y_train).reshape(-1, 1)
 y_test = torch.FloatTensor(y_test).reshape(-1, 1)
 
-# 모델을 정의하고 학습시킨다
+# 모델을 정의하고 트레인시킨다
 class LogisticRegression(nn.Module):
     def __init__(self, n_features):
         super().__init__()
@@ -352,7 +352,7 @@ for epoch in range(500):
     loss.backward()
     optimizer.step()
 
-# 학습된 계수를 꺼낸다
+# 트레인된 계수를 꺼낸다
 learned_weights = model.linear.weight.data.numpy().flatten()
 learned_bias = model.linear.bias.data.numpy()[0]
 

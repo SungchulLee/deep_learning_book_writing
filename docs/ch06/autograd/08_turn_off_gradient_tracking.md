@@ -4,13 +4,13 @@
 
 **들어가는 이야기** — 「동결한다」는 말이 하는 일
 
-남이 오래 학습시켜 둔 모델을 가져다 내 일에 맞게 조금만 고치는 것을
+남이 오래 트레인시켜 둔 모델을 가져다 내 일에 맞게 조금만 고치는 것을
 **전이 학습**이라 한다. 그때 「앞쪽은 건드리지 말고 뒤쪽만 배우게 하자」는 말을
 하는데, 그 「건드리지 말자」를 **동결한다**(freeze)고 부른다.
 
 코드로는 그 층의 파라메터에 `requires_grad_(False)`를 거는 일이다. 동결한다는
 말에서 떠오르는 그림은 아마 **벽**일 것이다. 거기서 막히고, 그 너머로는
-아무것도 못 가는 벽. 그렇다면 동결한 층은 계산할 것도 줄어서 학습이 빨라져야
+아무것도 못 가는 벽. 그렇다면 동결한 층은 계산할 것도 줄어서 트레인이 빨라져야
 한다.
 
 둘 다 틀렸다. 동결한 층은 **길을 막지 않고 그래디언트를 통과시킨다.** 그래서 그 너머의 층도
@@ -303,7 +303,7 @@ opt = torch.optim.SGD([p for p in net.parameters() if p.requires_grad], lr=0.1)
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-모델의 파라메터 가운데 **학습되는 것의 개수**를 세는 한 줄을 적어라. 앞쪽 층을
+모델의 파라메터 가운데 **트레인되는 것의 개수**를 세는 한 줄을 적어라. 앞쪽 층을
 동결한 전후로 세어 보라.
 
 </div>
@@ -318,18 +318,18 @@ opt = torch.optim.SGD([p for p in net.parameters() if p.requires_grad], lr=0.1)
         trainable = sum(p.numel() for p in m.parameters() if p.requires_grad)
         return total, trainable
 
-    print("  동결 전 : 전체 {:,}  학습 {:,}".format(*count(net)))
+    print("  동결 전 : 전체 {:,}  트레인 {:,}".format(*count(net)))
     for p in net[0].parameters():
         p.requires_grad_(False)
-    print("  앞쪽 동결한 뒤: 전체 {:,}  학습 {:,}".format(*count(net)))
+    print("  앞쪽 동결한 뒤: 전체 {:,}  트레인 {:,}".format(*count(net)))
     ```
 
     ```
-      동결 전 : 전체 101,770  학습 101,770
-      앞쪽 동결한 뒤: 전체 101,770  학습 1,290
+      동결 전 : 전체 101,770  트레인 101,770
+      앞쪽 동결한 뒤: 전체 101,770  트레인 1,290
     ```
 
-    **전체는 그대로이고 학습되는 것만 줄었다.** 101,770개 중 1,290개, 1.3%만
+    **전체는 그대로이고 트레인되는 것만 줄었다.** 101,770개 중 1,290개, 1.3%만
     배운다.
 
     `sum(p.numel() for p in m.parameters() if p.requires_grad)` 한 줄은 모델을
@@ -371,7 +371,7 @@ opt = torch.optim.SGD([p for p in net.parameters() if p.requires_grad], lr=0.1)
         return net
 
     x = torch.randn(128, 512)
-    for label, frozen in (("전부 학습 ", False), ("앞 절반 동결", True)):
+    for label, frozen in (("전부 트레인 ", False), ("앞 절반 동결", True)):
         net = build(frozen)
 
         def step():
@@ -383,7 +383,7 @@ opt = torch.optim.SGD([p for p in net.parameters() if p.requires_grad], lr=0.1)
     ```
 
     ```
-      전부 학습     3.07 ~   5.54 ms
+      전부 트레인     3.07 ~   5.54 ms
       앞 절반 동결    1.89 ~   3.01 ms
     ```
 
@@ -402,7 +402,7 @@ opt = torch.optim.SGD([p for p in net.parameters() if p.requires_grad], lr=0.1)
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-층을 동결한 채로 학습하다가 중간에 **동결을 풀려** 한다. `requires_grad_(True)`만
+층을 동결한 채로 트레인하다가 중간에 **동결을 풀려** 한다. `requires_grad_(True)`만
 되돌리면 되는가? 옵티마이저를 어떻게 해야 하는지 확인하라.
 
 </div>

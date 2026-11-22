@@ -206,7 +206,7 @@ class MultiheadAttentionBlock(nn.Module):
 
 def train_transformer_fewshot(model, support, support_labels, query, query_labels, optimizer):
     """
-    트랜스포머 퓨샷 모델의 학습 스텝.
+    트랜스포머 퓨샷 모델의 트레인 스텝.
     """
     model.train()
     optimizer.zero_grad()
@@ -258,7 +258,7 @@ if __name__ == "__main__":
     logits = model(support, support_labels, query)
     print(f"Logits shape: {logits.shape}")  # (15, 5)
     
-    # 학습
+    # 트레인
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss, acc = train_transformer_fewshot(
         model, support, support_labels, query, query_labels, optimizer
@@ -282,23 +282,23 @@ Set embedding shape: torch.Size([1, 128])
 
 ## 2. 논의
 
-입력 서포트 $(M,D)$와 쿼리 $(Q,D)$를 연결해 $(1,M+Q,d)$로 변환한다. 위치 표현과 트랜스포머를 적용한 뒤 각 쿼리와 클래스별 서포트의 코사인 유사도를 평균 내어 $(Q,N)$ 로짓을 만든다. classifier 선형 레이어는 선언되어 있지만 forward에서 쓰이지 않으므로 이 로스로 학습되지 않는다. 라벨은 0부터 N−1까지 연속적이고 모든 클래스에 서포트가 있어야 한다.
+입력 서포트 $(M,D)$와 쿼리 $(Q,D)$를 연결해 $(1,M+Q,d)$로 변환한다. 위치 표현과 트랜스포머를 적용한 뒤 각 쿼리와 클래스별 서포트의 코사인 유사도를 평균 내어 $(Q,N)$ 로짓을 만든다. classifier 선형 레이어는 선언되어 있지만 forward에서 쓰이지 않으므로 이 로스로 트레인되지 않는다. 라벨은 0부터 N−1까지 연속적이고 모든 클래스에 서포트가 있어야 한다.
 
 어텐션 마스크가 없으므로 한 쿼리의 표현은 다른 쿼리에도 의존한다. 이는 쿼리 집합을 함께 활용하는 트랜스덕티브(transductive) 평가에 해당한다. 쿼리 라벨을 입력하지는 않지만 쿼리를 하나씩 처리하는 평가와 조건이 다르다. 위치 표현도 있으므로 서포트 순서를 바꾸면 결과가 달라질 수 있다. 클래스별로 정렬한 순서가 불필요한 단서가 되는지도 점검한다. 기본 위치 버퍼는 총 100개 표본까지만 지원한다.
 
-SetTransformer에서는 유도점(inducing point) 32개, 곧 학습되는 고정 개수의 쿼리 벡터가 입력 집합에 어텐션하고, 그 결과에 다시 셀프 어텐션을 적용한 뒤 평균을 낸다. 입력 (B,M,D)에 대해 (B,d)를 반환하며 클래스별 분류 로짓은 제공하지 않는다. 위치 표현이 없고 평가 모드에서 입력 순서를 바꾸어도 같은 집합 요약을 얻는 구조다. 원 논문의 모든 블록을 그대로 구현한 것은 아니다.
+SetTransformer에서는 유도점(inducing point) 32개, 곧 트레인되는 고정 개수의 쿼리 벡터가 입력 집합에 어텐션하고, 그 결과에 다시 셀프 어텐션을 적용한 뒤 평균을 낸다. 입력 (B,M,D)에 대해 (B,d)를 반환하며 클래스별 분류 로짓은 제공하지 않는다. 위치 표현이 없고 평가 모드에서 입력 순서를 바꾸어도 같은 집합 요약을 얻는 구조다. 원 논문의 모든 블록을 그대로 구현한 것은 아니다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-PositionalEncoding의 학습 파라메터와 버퍼를 구분하고 입력 조건을 설명하라.
+PositionalEncoding의 트레인 파라메터와 버퍼를 구분하고 입력 조건을 설명하라.
 
 </div>
 
 ??? success "풀이"
-    사인·코사인 위치 표는 register_buffer로 등록되므로 학습 파라메터는 0개다. 모델 이동과 state_dict 저장에는 포함된다. 이 구현은 짝수 d_model을 가정하며 시퀀스 길이는 max_len 이하여야 한다. 트랜스포머에는 별도로 d_model이 nhead로 나누어떨어져야 하는 조건이 있다.
+    사인·코사인 위치 표는 register_buffer로 등록되므로 트레인 파라메터는 0개다. 모델 이동과 state_dict 저장에는 포함된다. 이 구현은 짝수 d_model을 가정하며 시퀀스 길이는 max_len 이하여야 한다. 트랜스포머에는 별도로 d_model이 nhead로 나누어떨어져야 하는 조건이 있다.
 
 ---
 

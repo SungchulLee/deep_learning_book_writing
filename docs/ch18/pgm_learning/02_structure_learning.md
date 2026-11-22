@@ -248,10 +248,10 @@
 
         def __init__(self, data: pd.DataFrame):
             """
-            점수 기반 학습을 초기화한다.
+            점수 기반 트레인을 초기화한다.
 
             인수:
-                data: 학습 데이터
+                data: 트레인 데이터
             """
             self.data = data
             self.variables = list(data.columns)
@@ -348,7 +348,7 @@
                 max_iterations: 반복의 최대 횟수
 
             반환값:
-                학습한 DAG
+                트레인한 DAG
             """
             print(f"\nHill Climbing Structure Learning")
             print(f"Max parents: {max_parents}, Max iterations: {max_iterations}")
@@ -487,7 +487,7 @@
         learner = ScoreBasedLearning(data)
         learned_graph = learner.hill_climbing(max_parents=2, max_iterations=20)
 
-        # 학습한 구조 시각화하기
+        # 트레인한 구조 시각화하기
         plt.figure(figsize=(10, 6))
         pos = nx.spring_layout(learned_graph)
         nx.draw(learned_graph, pos,

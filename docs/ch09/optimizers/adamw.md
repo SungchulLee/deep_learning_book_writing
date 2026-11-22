@@ -52,7 +52,7 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=0.001,
 AdamW는 다음에 권장되는 기본 옵티마이저이다.
 
 - 트랜스포머 모델 (BERT, GPT, 비전 트랜스포머)
-- 미리 학습된 모델의 미세 조정
+- 미리 트레인된 모델의 미세 조정
 - 적응형 최적화와 웨이트 감쇠를 함께 쓰고 싶은 모든 과제
 
 ---

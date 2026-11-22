@@ -262,7 +262,7 @@ $$
 
 이는 모멘텀이 없는 일반 SGD에서, 같은 데이터 로스에 `weight_decay/2`를 계수로 한 제곱 노름 패널티를 더하는 것과 동등하다. AdamW 같은 분리형 감쇠의 일반적인 동등식은 아니다.
 
-### L2를 쓰는 완전한 학습 루프
+### L2를 쓰는 완전한 트레인 루프
 
 ```python
 import torch
@@ -281,11 +281,11 @@ def train_with_l2_regularization(
     use_adamw: bool = True
 ) -> dict:
     """
-    L2 정칙화로 모델을 학습시킨다.
+    L2 정칙화로 모델을 트레인시킨다.
     
     인수:
         model: 뉴럴 네트워크
-        train_loader: 학습 데이터
+        train_loader: 트레인 데이터
         val_loader: 검증 데이터
         lambda_l2: L2 정칙화의 강도
         epochs: 에포크 수
@@ -293,7 +293,7 @@ def train_with_l2_regularization(
         use_adamw: AdamW를 쓸지(True) 직접 L2를 더할지(False)
         
     반환값:
-        학습 이력
+        트레인 이력
     """
     criterion = nn.MSELoss()
     
@@ -319,7 +319,7 @@ def train_with_l2_regularization(
     history = {'train_loss': [], 'val_loss': [], 'weight_norm': []}
     
     for epoch in range(epochs):
-        # 학습 단계
+        # 트레인 단계
         model.train()
         train_loss = 0
         for X_batch, y_batch in train_loader:
@@ -618,8 +618,8 @@ def select_optimal_l2(model_class, X, y, param_grid, cv=5):
         cv=cv,
         # sklearn의 scoring은 "클수록 좋다"는 규약이므로 MSE에 음수를 붙인 이름을 쓴다
         scoring='neg_mean_squared_error',
-        # 학습 점수도 함께 남긴다. 검증 점수만 보면 과적합인지 과소적합인지
-        # 가릴 수 없다. 학습은 좋은데 검증이 나쁘면 alpha를 키워야 하고,
+        # 트레인 점수도 함께 남긴다. 검증 점수만 보면 과적합인지 과소적합인지
+        # 가릴 수 없다. 트레인은 좋은데 검증이 나쁘면 alpha를 키워야 하고,
         # 둘 다 나쁘면 alpha를 줄이거나 모델을 바꿔야 한다
         return_train_score=True
     )
@@ -649,7 +649,7 @@ def select_optimal_l2(model_class, X, y, param_grid, cv=5):
 
 ### 피처의 스케일 조정
 
-같은 계수 크기에 같은 패널티를 주면 피처 단위가 다른 경우 효과도 달라진다. 표준화는 흔한 선택이지만, 단위에 맞는 사전 지식이나 피처별 패널티가 있다면 그 설계를 사용할 수 있다. 전처리 통계량은 학습 분할에서만 구한다.
+같은 계수 크기에 같은 패널티를 주면 피처 단위가 다른 경우 효과도 달라진다. 표준화는 흔한 선택이지만, 단위에 맞는 사전 지식이나 피처별 패널티가 있다면 그 설계를 사용할 수 있다. 전처리 통계량은 트레인 분할에서만 구한다.
 
 ```python
 from sklearn.preprocessing import StandardScaler
@@ -665,8 +665,8 @@ from sklearn.linear_model import Ridge
 # 같은 스케일 위에 놓여 alpha 하나가 모두에 똑같이 걸린다.
 #
 # Pipeline으로 묶는 까닭.
-# 교차 검증을 할 때 폴드(fold)마다 학습 데이터로만 평균과 표준편차를 다시 잰다.
-# 손으로 먼저 표준화해 두면 검증 폴드의 정보가 학습에 새어 들어
+# 교차 검증을 할 때 폴드(fold)마다 트레인 데이터로만 평균과 표준편차를 다시 잰다.
+# 손으로 먼저 표준화해 두면 검증 폴드의 정보가 트레인에 새어 들어
 # 성능이 실제보다 좋게 나온다.
 pipeline = Pipeline([
     ('scaler', StandardScaler()),   # 1단계: 각 피처를 평균 0, 표준편차 1로

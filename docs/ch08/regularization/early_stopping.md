@@ -1,6 +1,6 @@
 # 조기 종료
 
-조기 종료는 검증 지표로 학습 길이를 선택하는 방법이다. 정한 기간 동안 충분한 개선이 없으면 중단하고, 선택 기준에 맞는 체크포인트를 복원한다. 과적합을 완화할 수 있지만 참된 일반화 오차의 최적 시점을 정확히 알아내는 방법은 아니다.
+조기 종료는 검증 지표로 트레인 길이를 선택하는 방법이다. 정한 기간 동안 충분한 개선이 없으면 중단하고, 선택 기준에 맞는 체크포인트를 복원한다. 과적합을 완화할 수 있지만 참된 일반화 오차의 최적 시점을 정확히 알아내는 방법은 아니다.
 
 구현 예제는 [조기 종료 예제](early_stopping_example.md)를 함께 보라.
 
@@ -8,13 +8,13 @@
 
 ### 과적합의 진행 경로
 
-학습 중에 모델은 대체로 예측 가능한 경로를 따른다.
+트레인 중에 모델은 대체로 예측 가능한 경로를 따른다.
 
-1. **초기 단계**: 학습 로스와 검증 로스가 모두 빠르게 줄어든다
-2. **학습 단계**: 학습 로스는 계속 줄지만 검증 로스는 더 느리게 준다
-3. **과적합 단계**: 학습 로스는 줄지만 검증 로스는 늘어난다
+1. **초기 단계**: 트레인 로스와 검증 로스가 모두 빠르게 줄어든다
+2. **트레인 단계**: 트레인 로스는 계속 줄지만 검증 로스는 더 느리게 준다
+3. **과적합 단계**: 트레인 로스는 줄지만 검증 로스는 늘어난다
 
-이 세 단계는 전형적인 설명일 뿐 모든 학습 곡선이 이 순서를 따르지는 않는다. 검증 지표가 흔들리거나 러닝레이트 감소 뒤 다시 좋아질 수 있으므로 patience와 스케줄을 함께 설계한다.
+이 세 단계는 전형적인 설명일 뿐 모든 트레인 곡선이 이 순서를 따르지는 않는다. 검증 지표가 흔들리거나 러닝레이트 감소 뒤 다시 좋아질 수 있으므로 patience와 스케줄을 함께 설계한다.
 
 ### 암묵적 정칙화
 
@@ -52,7 +52,7 @@ $$
 
 ### 일반화 한계의 관점
 
-학습 길이 제한의 정칙화 효과를 선형 모델에서 분석하면 다음 규모의 릿지 강도와 비교할 수 있다. 이는 정확한 등식이나 일반 뉴럴 네트워크에 적용되는 공식이 아니다.
+트레인 길이 제한의 정칙화 효과를 선형 모델에서 분석하면 다음 규모의 릿지 강도와 비교할 수 있다. 이는 정확한 등식이나 일반 뉴럴 네트워크에 적용되는 공식이 아니다.
 
 $$
 \lambda_{\text{eff}} \approx \frac{1}{\eta t}
@@ -74,7 +74,7 @@ import copy
 
 class EarlyStopping:
     """
-    검증 로스가 더 나아지지 않으면 학습을 멈추는 조기 종료.
+    검증 로스가 더 나아지지 않으면 트레인을 멈추는 조기 종료.
     
     인수:
         patience: 마지막 개선 뒤 기다릴 에포크 수
@@ -116,7 +116,7 @@ class EarlyStopping:
     
     def __call__(self, score: float, model: torch.nn.Module, epoch: int) -> bool:
         """
-        학습을 멈춰야 하는지 확인한다.
+        트레인을 멈춰야 하는지 확인한다.
         
         인수:
             score: 현재 검증 점수
@@ -124,7 +124,7 @@ class EarlyStopping:
             epoch: 현재 에포크 번호
             
         반환값:
-            학습을 멈춰야 하면 True
+            트레인을 멈춰야 하면 True
         """
         # 첫 호출은 견줄 대상이 없으므로 기준점만 세우고 물러난다.
         # 인내 카운터는 두 번째 호출부터 세기 시작한다
@@ -139,7 +139,7 @@ class EarlyStopping:
             self.best_score = score
             self.best_epoch = epoch
             # 나아졌으니 인내 카운터를 0으로 되돌린다. 즉 patience는
-            # "학습을 시작한 뒤 몇 에포크"가 아니라 "마지막 개선 뒤
+            # "트레인을 시작한 뒤 몇 에포크"가 아니라 "마지막 개선 뒤
             # 몇 에포크"를 세는 값이다
             self.counter = 0
             if self.restore_best_weights:
@@ -153,7 +153,7 @@ class EarlyStopping:
             if self.counter >= self.patience:
                 self.early_stop = True
                 # 되돌리기는 이 지점에서만 일어난다. 인내가 다 차기 전에
-                # 에포크 수를 다 써서 학습 루프가 끝나면 이 줄을 지나가지
+                # 에포크 수를 다 써서 트레인 루프가 끝나면 이 줄을 지나가지
                 # 못하므로, 모델은 마지막 에포크의 웨이트를 그대로 지닌
                 # 채 남는다. 루프가 끝난 뒤 best_weights를 직접
                 # load_state_dict 해 주어야 안전하다
@@ -170,7 +170,7 @@ class EarlyStopping:
         return self.best_epoch
 ```
 
-### 조기 종료를 쓰는 학습 루프
+### 조기 종료를 쓰는 트레인 루프
 
 ```python
 import torch.nn as nn
@@ -189,21 +189,21 @@ def train_with_early_stopping(
     verbose: bool = True
 ) -> dict:
     """
-    조기 종료와 함께 모델을 학습시킨다.
+    조기 종료와 함께 모델을 트레인시킨다.
     
     인수:
         model: 뉴럴 네트워크
-        train_loader: 학습 데이터 로더
+        train_loader: 트레인 데이터 로더
         val_loader: 검증 데이터 로더
         criterion: 로스 함수
         optimizer: 옵티마이저
-        max_epochs: 최대 학습 에포크 수
+        max_epochs: 최대 트레인 에포크 수
         patience: 조기 종료의 인내
         min_delta: 개선으로 볼 최소 임계값
         verbose: 진행 상황 출력 여부
         
     반환값:
-        학습 이력
+        트레인 이력
     """
     early_stopping = EarlyStopping(
         patience=patience,
@@ -218,7 +218,7 @@ def train_with_early_stopping(
     }
     
     for epoch in range(max_epochs):
-        # 학습 단계
+        # 트레인 단계
         model.train()
         train_loss, train_correct, train_total = 0, 0, 0
         
@@ -243,8 +243,8 @@ def train_with_early_stopping(
         train_acc = train_correct / train_total
         
         # 검증 단계.
-        # 조기 종료가 보는 것은 학습 로스가 아니라 이 검증 로스다.
-        # 학습 로스는 과적합이 시작된 뒤에도 계속 내려가므로 멈출 때를
+        # 조기 종료가 보는 것은 트레인 로스가 아니라 이 검증 로스다.
+        # 트레인 로스는 과적합이 시작된 뒤에도 계속 내려가므로 멈출 때를
         # 알려 주지 못한다. 검증 로스가 돌아서는 지점이 신호다
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
@@ -332,7 +332,7 @@ class MultiMetricEarlyStopping:
     
     def __call__(self, metrics: dict, model: nn.Module, epoch: int) -> bool:
         """
-        학습을 멈춰야 하는지 확인한다.
+        트레인을 멈춰야 하는지 확인한다.
         
         인수:
             metrics: 현재 지표 값의 사전
@@ -369,7 +369,7 @@ class MultiMetricEarlyStopping:
         # any가 아니라 all이라는 점이 이 클래스의 성격을 정한다. 지표
         # 하나만 정체되어도 멈추는 것이 아니라, 감시하는 모든 지표가
         # 다 같이 정체되어야 멈춘다. 즉 너그러운 쪽이며, 지표를 더할수록
-        # 학습이 길어진다
+        # 트레인이 길어진다
         all_exceeded = all(c >= self.patience for c in self.counters.values())
         
         if all_exceeded and self.restore_best_weights:
@@ -408,7 +408,7 @@ class EarlyStoppingWithLRScheduler:
         # 줄일 때를 센다. 아래에서 러닝레이트를 줄인 뒤 lr_counter만 0으로
         # 되돌리고 counter는 그대로 두는 것이 요점이다. 그래서 인내가
         # 다 차기까지 러닝레이트를 여러 번(20/5이므로 최대 네 번) 줄여
-        # 볼 수 있다. 둘 다 되돌리면 학습이 영영 끝나지 않는다
+        # 볼 수 있다. 둘 다 되돌리면 트레인이 영영 끝나지 않는다
         self.counter = 0
         self.lr_counter = 0
         self.num_lr_reductions = 0
@@ -439,7 +439,7 @@ class EarlyStoppingWithLRScheduler:
                 # 파라메터 그룹마다 제 값을 절반으로 줄이려면 아래 반복문 안에서
                 # param_group['lr']을 각각 읽어 고쳐야 한다
                 current_lr = self.optimizer.param_groups[0]['lr']
-                # min_lr에서 멈춘다. 0까지 내려가 학습이 멎는 것을 막는다
+                # min_lr에서 멈춘다. 0까지 내려가 트레인이 멎는 것을 막는다
                 new_lr = max(current_lr * self.lr_factor, self.min_lr)
                 
                 if new_lr < current_lr:
@@ -473,7 +473,7 @@ patience는 다음 사이의 트레이드오프를 조절한다.
 
 - 인내 = 10~20 에포크에서 시작한다
 - 검증 지표가 잡음이 많으면 늘린다
-- 학습 곡선이 매끄럽고 예측 가능하면 줄인다
+- 트레인 곡선이 매끄럽고 예측 가능하면 줄인다
 
 ```python
 def analyze_optimal_patience(history: dict, test_patience_values: list):
@@ -481,14 +481,14 @@ def analyze_optimal_patience(history: dict, test_patience_values: list):
     인내 값에 따라 어느 지점에서 멈추게 되는지 분석한다.
     
     인수:
-        history: 'val_loss'를 담은 학습 이력
+        history: 'val_loss'를 담은 트레인 이력
         test_patience_values: 시험해 볼 인내 값의 목록
         
     반환값:
         인내를 종료 에포크와 최적 val_loss에 대응시키는 사전
     """
-    # 이미 끝난 학습의 이력을 두고 "인내를 다르게 잡았다면 어디서
-    # 멈췄을까"를 되짚어 본다. 학습을 다시 돌릴 필요가 없으므로
+    # 이미 끝난 트레인의 이력을 두고 "인내를 다르게 잡았다면 어디서
+    # 멈췄을까"를 되짚어 본다. 트레인을 다시 돌릴 필요가 없으므로
     # 인내를 고르는 데 드는 비용이 사실상 0이다.
     val_losses = history['val_loss']
     results = {}
@@ -567,16 +567,16 @@ $$
 
 ### 검증 선택의 한계
 
-검증셋에서 고른 시점은 잡음이 섞인 추정에 따른 선택이다. 학습 횟수에 따른 편향·분산의 단조 변화나 최적 시험 성능을 보장하지 않는다. 검증셋에 반복적으로 맞추는 효과를 고려하고, 최종 평가는 독립 시험셋에서 수행한다.
+검증셋에서 고른 시점은 잡음이 섞인 추정에 따른 선택이다. 트레인 횟수에 따른 편향·분산의 단조 변화나 최적 시험 성능을 보장하지 않는다. 검증셋에 반복적으로 맞추는 효과를 고려하고, 최종 평가는 독립 시험셋에서 수행한다.
 
 ## 6. 실무 지침
 
 ### 조기 종료를 쓸 때
 
 1. **검증 선택이 가능할 때**: 반복 평가의 계산 비용과 지표의 변동을 고려한다
-2. **계산 자원이 적을 때**: 불필요한 학습 시간을 아낀다
-3. **적절한 학습 길이를 모를 때**: 최적 에포크 수를 모를 때
-4. **과적합이 보일 때**: 학습 성능과 검증 성능에 차이가 있을 때
+2. **계산 자원이 적을 때**: 불필요한 트레인 시간을 아낀다
+3. **적절한 트레인 길이를 모를 때**: 최적 에포크 수를 모를 때
+4. **과적합이 보일 때**: 트레인 성능과 검증 성능에 차이가 있을 때
 
 ### 좋은 관행
 
@@ -635,7 +635,7 @@ class CheckpointingEarlyStopping(EarlyStopping):
     
     def __call__(self, score, model, epoch):
         # 두 가지 저장이 서로 다른 목적을 가진다.
-        #   (1) 주기적 체크포인트 — 학습이 죽었을 때 이어서 돌리기 위한 것
+        #   (1) 주기적 체크포인트 — 트레인이 죽었을 때 이어서 돌리기 위한 것
         #   (2) 최고 성적 모델 — 배포할 모델을 고르기 위한 것
         # 둘을 헷갈리면 마지막 체크포인트를 배포하는 실수를 하게 되는데,
         # 조기 종료가 걸린 시점의 모델은 이미 나빠지고 있던 모델이다.
@@ -650,8 +650,8 @@ class CheckpointingEarlyStopping(EarlyStopping):
                 'model_state_dict': model.state_dict(),
                 'score': score
             }, path)
-            # 학습을 이어 가려면 옵티마이저 상태도 함께 담아야 한다.
-            # Adam의 모멘텀 통계가 사라지면 이어받은 학습이 흔들린다
+            # 트레인을 이어 가려면 옵티마이저 상태도 함께 담아야 한다.
+            # Adam의 모멘텀 통계가 사라지면 이어받은 트레인이 흔들린다
 
         # 부모 클래스가 최고 성적 갱신과 인내 세기를 맡는다.
         # 성적이 나아졌으면 self.best_weights를 여기서 새로 채운다
@@ -679,7 +679,7 @@ import matplotlib.pyplot as plt
 
 def plot_training_with_early_stopping(history: dict, best_epoch: int):
     """
-    조기 종료 지점과 함께 학습 진행을 시각화한다.
+    조기 종료 지점과 함께 트레인 진행을 시각화한다.
     """
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 
@@ -688,8 +688,8 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
     epochs = range(1, len(history['train_loss']) + 1)
 
     # ── 왼쪽: 로스 곡선 ─────────────────────────────────────────────
-    # 학습과 검증을 반드시 함께 그린다. 검증 로스만 보면 왜 나빠지는지
-    # 알 수 없는데, 학습 로스가 계속 내려가는 동안 검증이 올라가면
+    # 트레인과 검증을 반드시 함께 그린다. 검증 로스만 보면 왜 나빠지는지
+    # 알 수 없는데, 트레인 로스가 계속 내려가는 동안 검증이 올라가면
     # 그것이 과적합의 그림이다
     axes[0].plot(epochs, history['train_loss'], label='Train Loss')
     axes[0].plot(epochs, history['val_loss'], label='Val Loss')
@@ -734,7 +734,7 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
 2. **인내가 너무 작음**: 정상적인 요동 중에 멈춘다
 3. **최적 웨이트를 되돌리지 않기**: 최적 웨이트 대신 마지막 웨이트를 쓴다
 4. **지표를 무시하기**: 과제에 맞지 않는 지표를 쓴다
-5. **데이터 누출**: 검증 집합이 학습 데이터에 오염된다
+5. **데이터 누출**: 검증 집합이 트레인 데이터에 오염된다
 
 ---
 
@@ -748,14 +748,14 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
 </div>
 
 ??? success "풀이"
-    학습 알고리즘이 도달할 해와 학습 길이를 제한하므로 같은 구조에서 다른 추정량을 선택한다. 선형 모델의 초기 반복은 고윳값이 작은 고유벡터 방향을 덜 적합하는 필터로 해석할 수 있다. 반복 횟수만으로 모든 모델의 웨이트 노름을 제한하거나 릿지와 정확히 동등해지는 것은 아니다.
+    학습 알고리즘이 도달할 해와 트레인 길이를 제한하므로 같은 구조에서 다른 추정량을 선택한다. 선형 모델의 초기 반복은 고윳값이 작은 고유벡터 방향을 덜 적합하는 필터로 해석할 수 있다. 반복 횟수만으로 모든 모델의 웨이트 노름을 제한하거나 릿지와 정확히 동등해지는 것은 아니다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-PyTorch 학습 루프에서 patience를 갖는 조기 종료를 구현하라.
+PyTorch 트레인 루프에서 patience를 갖는 조기 종료를 구현하라.
 
 </div>
 
@@ -785,7 +785,7 @@ PyTorch 학습 루프에서 patience를 갖는 조기 종료를 구현하라.
 </div>
 
 ??? success "풀이"
-    표본 변동과 확률적 학습으로 지표가 일시적으로 악화될 수 있다. 현재 값이 직전 값보다 큰 횟수가 아니라, 지금까지의 최선값보다 정한 min_delta 이상 개선되지 않은 평가 횟수를 센다. 정확한 판정 규칙은 구현에서 명시한다.
+    표본 변동과 확률적 트레인으로 지표가 일시적으로 악화될 수 있다. 현재 값이 직전 값보다 큰 횟수가 아니라, 지금까지의 최선값보다 정한 min_delta 이상 개선되지 않은 평가 횟수를 센다. 정확한 판정 규칙은 구현에서 명시한다.
 
 ---
 
@@ -797,11 +797,11 @@ PyTorch 학습 루프에서 patience를 갖는 조기 종료를 구현하라.
 </div>
 
 ??? success "풀이"
-    선형 최소제곱에서도 두 방법의 고유벡터 방향별 축소 인자가 다르다. 비선형 모델에서는 초기값, 러닝레이트 스케줄과 옵티마이저가 학습 궤적에 영향을 준다. 같은 검증 예산에서 종료 시점과 패널티 강도를 각각 선택해 비교해야 한다.
+    선형 최소제곱에서도 두 방법의 고유벡터 방향별 축소 인자가 다르다. 비선형 모델에서는 초기값, 러닝레이트 스케줄과 옵티마이저가 트레인 궤적에 영향을 준다. 같은 검증 예산에서 종료 시점과 패널티 강도를 각각 선택해 비교해야 한다.
 
 ## 정리하며
 
-조기 종료는 개선 기준, patience와 체크포인트 복원 규칙을 함께 정의하는 모델 선택 절차이다. 검증 지표의 최선 시점과 마지막 시점을 구분하고, 학습 길이를 고르는 데이터와 최종 평가 데이터를 분리한다.
+조기 종료는 개선 기준, patience와 체크포인트 복원 규칙을 함께 정의하는 모델 선택 절차이다. 검증 지표의 최선 시점과 마지막 시점을 구분하고, 트레인 길이를 고르는 데이터와 최종 평가 데이터를 분리한다.
 
 **참고 문헌**
 

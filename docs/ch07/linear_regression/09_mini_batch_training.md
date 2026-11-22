@@ -1,6 +1,6 @@
-# 미니배치 학습
+# 미니배치 트레인
 
-가용 메모리를 넘어서는 큰 데이터셋에서는 전체 데이터셋을 한 번의 순전파로 처리하는 것이 비현실적이다. 미니배치 경사 하강법은 데이터를 작은 배치로 나누어 차례로 처리하며 배치마다 파라메터를 갱신한다. PyTorch의 `DataLoader` 클래스가 배치 묶기, 뒤섞기, 병렬 적재를 자동으로 처리한다. 이 튜토리얼은 여러 배치 크기를 비교하고 DataLoader 기반의 표준 학습 루프를 보여준다.
+가용 메모리를 넘어서는 큰 데이터셋에서는 전체 데이터셋을 한 번의 순전파로 처리하는 것이 비현실적이다. 미니배치 경사 하강법은 데이터를 작은 배치로 나누어 차례로 처리하며 배치마다 파라메터를 갱신한다. PyTorch의 `DataLoader` 클래스가 배치 묶기, 뒤섞기, 병렬 적재를 자동으로 처리한다. 이 튜토리얼은 여러 배치 크기를 비교하고 DataLoader 기반의 표준 트레인 루프를 보여준다.
 
 ## 1. 코드
 
@@ -15,14 +15,14 @@
 
     DESCRIPTION:
         PyTorch DataLoader를 쓰는 미니배치 경사 하강법.
-        전체 데이터셋 대신 배치로 효율적으로 학습한다.
+        전체 데이터셋 대신 배치로 효율적으로 트레인한다.
 
     다루는 것:
         - Dataset과 DataLoader 클래스
         - 미니배치 경사 하강법
         - 배치 크기가 미치는 영향
         - 셔플과 샘플링
-        - 학습 효율
+        - 트레인 효율
 
     PREREQUISITES:
         - 튜토리얼 05(nn.Module)
@@ -145,7 +145,7 @@
         break
 
     # ============================================================================
-    # 4부: 학습 방법 비교
+    # 4부: 트레인 방법 비교
     # ============================================================================
     print("\n" + "=" * 70)
     print("PART 4: COMPARE BATCH SIZES")
@@ -160,7 +160,7 @@
             return self.linear(x)
 
     def train_with_batch_size(batch_size, n_epochs=20):
-        """지정한 배치 크기로 모델을 학습시킨다"""
+        """지정한 배치 크기로 모델을 트레인시킨다"""
         # DataLoader를 만든다
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
@@ -196,7 +196,7 @@
 
         return losses, epoch_times, model
 
-    # 여러 배치 크기로 학습한다
+    # 여러 배치 크기로 트레인한다
     batch_sizes = [32, 128, 512, len(dataset)]  # Last one is full batch
     results = {}
 
@@ -234,7 +234,7 @@
     ax.grid(True, alpha=0.3)
     ax.set_yscale('log')
 
-    # 그림 2: 학습 시간
+    # 그림 2: 트레인 시간
     ax = axes[0, 1]
     batch_labels = [f'{bs}' if bs != len(dataset) else 'Full' for bs in batch_sizes]
     times = [results[bs]['avg_time'] for bs in batch_sizes]
@@ -267,7 +267,7 @@
 
     중간 배치(512):
     ✓ 균형이 좋다
-    ✓ 학습이 안정적이다
+    ✓ 트레인이 안정적이다
     ✓ Efficient
 
     전체 배치(경사 하강법):
@@ -293,14 +293,14 @@
     plt.show()
 
     # ============================================================================
-    # 6부: 효율적인 학습 루프 템플릿
+    # 6부: 효율적인 트레인 루프 템플릿
     # ============================================================================
     print("\n" + "=" * 70)
     print("PART 6: EFFICIENT TRAINING LOOP TEMPLATE")
     print("=" * 70)
 
     print("""
-    DataLoader를 쓰는 표준 PyTorch 학습 루프:
+    DataLoader를 쓰는 표준 PyTorch 트레인 루프:
 
     # 준비
     train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
@@ -308,9 +308,9 @@
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters())
 
-    # 학습 루프
+    # 트레인 루프
     for epoch in range(n_epochs):
-        model.train()  # 학습 모드로 둔다
+        model.train()  # 트레인 모드로 둔다
 
         for batch_X, batch_y in train_loader:
             # 순전파
@@ -338,7 +338,7 @@
     print("SUMMARY")
     print("=" * 70)
     print("""
-    미니배치 학습:
+    미니배치 트레인:
 
     1. Dataset 클래스:
        - 데이터(X, y)를 보관한다
@@ -441,7 +441,7 @@
     PART 6: EFFICIENT TRAINING LOOP TEMPLATE
     ======================================================================
 
-    DataLoader를 쓰는 표준 PyTorch 학습 루프:
+    DataLoader를 쓰는 표준 PyTorch 트레인 루프:
 
     # 준비
     train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
@@ -449,9 +449,9 @@
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters())
 
-    # 학습 루프
+    # 트레인 루프
     for epoch in range(n_epochs):
-        model.train()  # 학습 모드로 둔다
+        model.train()  # 트레인 모드로 둔다
         
         for batch_X, batch_y in train_loader:
             # 순전파
@@ -479,7 +479,7 @@
     SUMMARY
     ======================================================================
 
-    미니배치 학습:
+    미니배치 트레인:
 
     1. Dataset 클래스:
        - 데이터(X, y)를 보관한다
@@ -515,7 +515,7 @@
 
 배치 크기는 그래디언트 추정의 변동, 메모리, 업데이트 빈도와 하드웨어 효율에 영향을 준다. 같은 에포크 수에서도 배치가 작으면 업데이트 횟수가 더 많아지므로 로스 곡선을 해석할 때 이 차이를 고려한다. 2의 거듭제곱은 후보값일 뿐 필수 조건이 아니며, 적절한 크기는 실제 처리량과 검증 성능으로 정한다.
 
-DataLoader를 쓰는 안쪽 학습 루프는 전체 데이터셋이 아니라 배치들을 순회한다. 각 반복은 첫 차원이 배치 크기와 같은(마지막 배치는 다를 수 있다) 텐서 튜플 `(batch_X, batch_y)`를 내놓는다. 로스는 배치마다 계산되고 `optimizer.step()`이 배치마다 파라메터를 갱신한다. 모든 배치를 한 번씩 다 도는 것이 한 에포크이다. 이 예제는 배치마다 한 번 업데이트한다. 그래디언트 누적(gradient accumulation)이나 여러 옵티마이저를 사용하는 학습에서는 업데이트 단위가 달라질 수 있다.
+DataLoader를 쓰는 안쪽 트레인 루프는 전체 데이터셋이 아니라 배치들을 순회한다. 각 반복은 첫 차원이 배치 크기와 같은(마지막 배치는 다를 수 있다) 텐서 튜플 `(batch_X, batch_y)`를 내놓는다. 로스는 배치마다 계산되고 `optimizer.step()`이 배치마다 파라메터를 갱신한다. 모든 배치를 한 번씩 다 도는 것이 한 에포크이다. 이 예제는 배치마다 한 번 업데이트한다. 그래디언트 누적(gradient accumulation)이나 여러 옵티마이저를 사용하는 트레인에서는 업데이트 단위가 달라질 수 있다.
 
 ## 연습문제
 
@@ -554,19 +554,19 @@ DataLoader를 쓰는 안쪽 학습 루프는 전체 데이터셋이 아니라 �
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-학습 데이터는 매 에포크마다 뒤섞어야 하지만 시험 데이터는 그럴 필요가 없는 이유를 설명하라.
+트레인 데이터는 매 에포크마다 뒤섞어야 하지만 시험 데이터는 그럴 필요가 없는 이유를 설명하라.
 
 </div>
 
 ??? success "풀이"
-    학습 데이터를 매 에포크마다 뒤섞으면 (예를 들어 표본이 클래스 이름순으로 정렬되어 있을 때) 모델이 표본의 순서에서 허위 패턴을 배우지 않게 된다. 또한 옵티마이저가 순환에 갇히는 것을 막는 데도 도움이 된다. 반면 시험 데이터는 파라메터를 갱신하는 데가 아니라 평가에만 쓰이므로 뒤섞을 필요가 없고, 매번 예측 순서가 바뀌어 디버깅이 어려워질 수도 있다.
+    트레인 데이터를 매 에포크마다 뒤섞으면 (예를 들어 표본이 클래스 이름순으로 정렬되어 있을 때) 모델이 표본의 순서에서 허위 패턴을 배우지 않게 된다. 또한 옵티마이저가 순환에 갇히는 것을 막는 데도 도움이 된다. 반면 시험 데이터는 파라메터를 갱신하는 데가 아니라 평가에만 쓰이므로 뒤섞을 필요가 없고, 매번 예측 순서가 바뀌어 디버깅이 어려워질 수도 있다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-같은 모델 구조를 배치 크기 1, 32, 128, 그리고 전체 데이터셋(10000)으로 학습시켜라. 로스 곡선을 그리고 각각의 에포크당 실제 소요 시간을 측정하라. 관찰한 트레이드오프를 논하라.
+같은 모델 구조를 배치 크기 1, 32, 128, 그리고 전체 데이터셋(10000)으로 트레인시켜라. 로스 곡선을 그리고 각각의 에포크당 실제 소요 시간을 측정하라. 관찰한 트레이드오프를 논하라.
 
 </div>
 

@@ -12,7 +12,7 @@ $$S(X,Y)=s_{y_1}+\sum_{i=1}^{n}E_{i,y_i}
 $$p(Y\mid X)=\exp[S(X,Y)-\log Z(X)],\qquad
 Z(X)=\sum_{Y'\in\mathcal Y(X)}\exp S(X,Y').$$
 
-전이만 이웃 라벨을 연결하더라도 E는 전체 입력 X를 보는 BiLSTM·트랜스포머에서 만들 수 있다. 유효 태그 열 집합에 제한을 두려면 시작·종료·전이 제약을 일관되게 적용한다. 학습용 정답은 같은 집합 안에 있어야 한다.
+전이만 이웃 라벨을 연결하더라도 E는 전체 입력 X를 보는 BiLSTM·트랜스포머에서 만들 수 있다. 유효 태그 열 집합에 제한을 두려면 시작·종료·전이 제약을 일관되게 적용한다. 트레인용 정답은 같은 집합 안에 있어야 한다.
 
 ## 2. 순방향 알고리즘과 로그가능도
 
@@ -317,7 +317,7 @@ class CRF(nn.Module):
         return best_tags_list
 ```
 
-위 코드에는 중요한 전이 방향 불일치가 있다. `_compute_score`의 정답 점수는 `transitions[next,prev]`를 쓰지만 partition·Viterbi는 `transitions[prev,next]`로 계산한다. 비대칭 전이에서는 정답 점수와 정규화가 **다른 모델**이므로 반환값이 올바른 CRF 음의 로그가능도가 아니며 음수가 될 수도 있다. 전이 방향을 한 관례로 통일하기 전에는 이 구현이 정상적인 CRF 학습·추론을 수행한다고 설명할 수 없다.
+위 코드에는 중요한 전이 방향 불일치가 있다. `_compute_score`의 정답 점수는 `transitions[next,prev]`를 쓰지만 partition·Viterbi는 `transitions[prev,next]`로 계산한다. 비대칭 전이에서는 정답 점수와 정규화가 **다른 모델**이므로 반환값이 올바른 CRF 음의 로그가능도가 아니며 음수가 될 수도 있다. 전이 방향을 한 관례로 통일하기 전에는 이 구현이 정상적인 CRF 트레인·추론을 수행한다고 설명할 수 없다.
 
 기본 입력은 B×L×K emission, B×L 태그·bool mask다. batch_first=False일 때 시간·배치 축을 바꾼다. 첫 위치가 유효하고 적어도 1토큰이며 mask는 오른쪽 패딩 형태의 연속 prefix라고 가정한다. 첫 위치는 mask를 확인하지 않고 사용하고, 마지막 태그도 mask 합−1로 고르므로 빈 열·중간이 비는 mask에는 맞지 않는다.
 
@@ -411,7 +411,7 @@ class BiLSTMCRF(nn.Module):
         attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        학습용 로스 계산하기.
+        트레인용 로스 계산하기.
         
         인수:
             input_ids: (batch, seq_len)
@@ -520,9 +520,9 @@ class TransformerCRF(nn.Module):
         return self.crf.decode(emissions, mask=attention_mask.bool())
 ```
 
-TransformerCRF는 사전 학습 인코더의 각 토큰 피처에서 태그 점수를 만든다. 특수 토큰·서브워드 목표를 실제 CRF 태그 열에 어떻게 정렬할지 정해야 한다. Transformer의 attention_mask를 그대로 CRF mask로 쓰면 `[CLS]`·`[SEP]`도 보통 유효 위치가 된다. 뒤 서브워드를 −100으로 무시하는 CE 관례를 이 CRF에 그대로 쓸 수 없다. 유효 단어를 모아 연속 열로 만들거나 그에 맞는 별도 설계가 필요하다.
+TransformerCRF는 사전 트레인 인코더의 각 토큰 피처에서 태그 점수를 만든다. 특수 토큰·서브워드 목표를 실제 CRF 태그 열에 어떻게 정렬할지 정해야 한다. Transformer의 attention_mask를 그대로 CRF mask로 쓰면 `[CLS]`·`[SEP]`도 보통 유효 위치가 된다. 뒤 서브워드를 −100으로 무시하는 CE 관례를 이 CRF에 그대로 쓸 수 없다. 유효 단어를 모아 연속 열로 만들거나 그에 맞는 별도 설계가 필요하다.
 
-freeze_encoder는 인코더 파라메터의 그래디언트를 끌 뿐 model.train()에서 dropout을 자동 고정하지는 않는다. 사전 학습 토큰화·입력과 학습하려는 태그 집합의 계약을 함께 확인한다.
+freeze_encoder는 인코더 파라메터의 그래디언트를 끌 뿐 model.train()에서 dropout을 자동 고정하지는 않는다. 사전 트레인 토큰화·입력과 트레인하려는 태그 집합의 계약을 함께 확인한다.
 
 ## 5. IOB2 제약의 적용
 
@@ -568,9 +568,9 @@ def apply_iob2_constraints(
 
 이 함수는 `transitions[next,prev]` 관례로 금지 전이·시작 점수를 −10000으로 **한 번 대입**한다. partition·Viterbi의 반대 관례와도 맞지 않는다. 또한 유한 패널티는 경로를 수학적으로 제거하지 않으며 optimizer가 이후 값을 바꿀 수 있다. 매 순전파에서 적용하는 고정 마스크 등 지속적인 제약과 구분한다.
 
-진짜 −∞를 적용하는 설계에서도 금지 점수×패딩 0은 NaN이 될 수 있으므로 mask 처리와 수치 연산 순서를 검토해야 한다. 학습 정규화·정답 점수·디코딩에서 같은 경로 집합을 쓰는 것이 핵심이다. IOB2의 종료에는 O·B·I가 가능하고 시작에는 I를 허용하지 않는다.
+진짜 −∞를 적용하는 설계에서도 금지 점수×패딩 0은 NaN이 될 수 있으므로 mask 처리와 수치 연산 순서를 검토해야 한다. 트레인 정규화·정답 점수·디코딩에서 같은 경로 집합을 쓰는 것이 핵심이다. IOB2의 종료에는 O·B·I가 가능하고 시작에는 I를 허용하지 않는다.
 
-## 6. 학습 루프의 인수·평가 계약
+## 6. 트레인 루프의 인수·평가 계약
 
 ```python
 def train_ner_model(
@@ -583,12 +583,12 @@ def train_ner_model(
     scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None
 ):
     """
-    CRF를 갖춘 개체명 인식 모델의 학습 루프.
+    CRF를 갖춘 개체명 인식 모델의 트레인 루프.
     """
     best_f1 = 0.0
     
     for epoch in range(num_epochs):
-        # 학습
+        # 트레인
         model.train()
         total_loss = 0.0
         
@@ -699,7 +699,7 @@ apply_iob2_constraints의 유한 점수 대입은 영구적인 강제 제약인�
 
 ??? success "풀이"
 
-    아니다. −10000은 유한값이고 학습 가능한 웨이트라 갱신될 수 있다. 코드의 전이 방향도 partition과 반대다. 올바른 관례에서 학습·정답·디코딩에 지속적으로 같은 금지 경로를 적용해야 한다.
+    아니다. −10000은 유한값이고 트레인 가능한 웨이트라 갱신될 수 있다. 코드의 전이 방향도 partition과 반대다. 올바른 관례에서 트레인·정답·디코딩에 지속적으로 같은 금지 경로를 적용해야 한다.
 
 
 
@@ -708,7 +708,7 @@ apply_iob2_constraints의 유한 점수 대입은 영구적인 강제 제약인�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff easy" title="쉬움"></span>
-공통 학습 루프에 TransformerCRF를 넣을 때 인수와 서브워드 목표를 점검하라.
+공통 트레인 루프에 TransformerCRF를 넣을 때 인수와 서브워드 목표를 점검하라.
 
 </div>
 
@@ -720,7 +720,7 @@ apply_iob2_constraints의 유한 점수 대입은 영구적인 강제 제약인�
 
 ## 정리하며
 
-CRF는 같은 시퀀스 점수로 정답·정규화·Viterbi를 계산해야 한다. 현재 구현의 전이 방향 불일치와 마스크·패딩·모델 인수 계약은 학습 결과의 의미에 직접 영향을 준다. 유효 BIO 제약과 뉴럴 인코더의 문맥 처리를 구분하고 정확 span 평가를 연결한다.
+CRF는 같은 시퀀스 점수로 정답·정규화·Viterbi를 계산해야 한다. 현재 구현의 전이 방향 불일치와 마스크·패딩·모델 인수 계약은 트레인 결과의 의미에 직접 영향을 준다. 유효 BIO 제약과 뉴럴 인코더의 문맥 처리를 구분하고 정확 span 평가를 연결한다.
 
 **참고 문헌**
 

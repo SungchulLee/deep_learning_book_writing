@@ -1,6 +1,6 @@
 # 속성 기반 제로샷 학습
 
-속성 기반 제로샷 학습은 클래스의 색·형태·기능 등 속성 정보를 사용해 학습 클래스와 미학습 클래스를 연결한다. DAP는 이미지에서 속성을 직접 예측하고, IAP는 학습 클래스의 예측을 통해 속성 확률을 간접적으로 구한다. 아래 구현에는 원래 방법을 단순화하거나 다른 점수로 대체한 부분이 있으므로 수식과 구분해 설명한다.
+속성 기반 제로샷 학습은 클래스의 색·형태·기능 등 속성 정보를 사용해 트레인 클래스와 미트레인 클래스를 연결한다. DAP는 이미지에서 속성을 직접 예측하고, IAP는 트레인 클래스의 예측을 통해 속성 확률을 간접적으로 구한다. 아래 구현에는 원래 방법을 단순화하거나 다른 점수로 대체한 부분이 있으므로 수식과 구분해 설명한다.
 
 ## 1. 속성 표현
 
@@ -52,7 +52,7 @@ $$A \in \mathbb{R}^{C \times M}$$
 
 ### 개념
 
-DAP는 이미지 피처에서 각 속성이 존재할 확률을 예측한다. 여러 속성의 확률을 곱해 클래스 점수를 계산하는 과정에서 조건부 독립 근사를 사용한다. 인코더를 공유하는 여러 출력 헤드를 공동 학습할 수도 있으므로 속성마다 별도 모델을 학습해야 하는 것은 아니다.
+DAP는 이미지 피처에서 각 속성이 존재할 확률을 예측한다. 여러 속성의 확률을 곱해 클래스 점수를 계산하는 과정에서 조건부 독립 근사를 사용한다. 인코더를 공유하는 여러 출력 헤드를 공동 트레인할 수도 있으므로 속성마다 별도 모델을 트레인해야 하는 것은 아니다.
 
 ### 속성 예측과 클래스 점수
 
@@ -70,7 +70,7 @@ $$S_{\mathrm{DAP}}(c,x)=\log P(c)+\sum_m\log\frac{P(a_m=a_{cm}\mid x)}{P(a_m=a_{
 
 ### PyTorch 구현
 
-forward는 속성 확률을 반환하고 predict_class는 class_names의 행 인덱스를 반환한다. 속성 행렬과 학습 타깃을 CPU에 생성하므로 GPU 사용 시 장치를 맞춰야 한다. class_attributes의 키는 batch_y의 원본 라벨과 일치해야 하며, 텐서 스칼라를 사전 키로 그대로 사용하는 방식도 확인한다. 예측 메서드가 eval이나 no_grad를 자동 설정하지 않으므로 평가 모드는 호출자가 지정한다.
+forward는 속성 확률을 반환하고 predict_class는 class_names의 행 인덱스를 반환한다. 속성 행렬과 트레인 타깃을 CPU에 생성하므로 GPU 사용 시 장치를 맞춰야 한다. class_attributes의 키는 batch_y의 원본 라벨과 일치해야 하며, 텐서 스칼라를 사전 키로 그대로 사용하는 방식도 확인한다. 예측 메서드가 eval이나 no_grad를 자동 설정하지 않으므로 평가 모드는 호출자가 지정한다.
 
 ```python
 import torch
@@ -81,8 +81,8 @@ class DirectAttributePrediction(nn.Module):
     """
     제로샷 학습을 위한 직접 속성 예측(DAP).
     
-    서로 독립인 속성 분류기를 학습하고, 속성 매칭으로
-    미학습 클래스를 예측하는 데 쓴다.
+    서로 독립인 속성 분류기를 트레인하고, 속성 매칭으로
+    미트레인 클래스를 예측하는 데 쓴다.
     """
     
     def __init__(self, visual_dim: int, n_attributes: int, hidden_dim: int = 512):
@@ -162,7 +162,7 @@ class DirectAttributePrediction(nn.Module):
 
 def train_dap_model(model, train_loader, class_attributes, epochs=50, lr=0.001):
     """
-    이진 교차 엔트로피 로스로 DAP 모델을 학습시킨다.
+    이진 교차 엔트로피 로스로 DAP 모델을 트레인시킨다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.BCELoss()
@@ -199,7 +199,7 @@ def train_dap_model(model, train_loader, class_attributes, epochs=50, lr=0.001):
 
 ### 원래 IAP의 경로
 
-IAP는 먼저 학습 클래스 확률 P(y|x)를 예측한다. 그다음 클래스별 속성 정보를 이용해 속성 확률을 추정한다.
+IAP는 먼저 트레인 클래스 확률 P(y|x)를 예측한다. 그다음 클래스별 속성 정보를 이용해 속성 확률을 추정한다.
 
 $$P(a_m=1\mid x)=\sum_{y\in\mathcal Y^s}P(a_m=1\mid y)P(y\mid x)$$
 
@@ -207,7 +207,7 @@ $$P(a_m=1\mid x)=\sum_{y\in\mathcal Y^s}P(a_m=1\mid y)P(y\mid x)$$
 
 ### 아래 코드의 단순화
 
-아래 IndirectAttributePrediction은 속성별 확률을 계산하지 않고 학습·미학습 클래스의 속성 유사도로 클래스 점수를 직접 전달한다.
+아래 IndirectAttributePrediction은 속성별 확률을 계산하지 않고 트레인·미트레인 클래스의 속성 유사도로 클래스 점수를 직접 전달한다.
 
 $$S(u,x)=\sum_{s\in\mathcal Y^s}P(s\mid x)\operatorname{sim}(a_s,a_u)$$
 
@@ -215,15 +215,15 @@ $$S(u,x)=\sum_{s\in\mathcal Y^s}P(s\mid x)\operatorname{sim}(a_s,a_u)$$
 
 ### PyTorch 구현
 
-seen_classes 순서는 학습 분류기의 출력 열과 일치해야 하고 반환 인덱스는 unseen_classes의 위치를 뜻한다. temperature는 양수여야 한다. 속성 행렬·라벨의 키와 장치, 평가 모드에 관한 조건은 DAP 예제와 같다.
+seen_classes 순서는 트레인 분류기의 출력 열과 일치해야 하고 반환 인덱스는 unseen_classes의 위치를 뜻한다. temperature는 양수여야 한다. 속성 행렬·라벨의 키와 장치, 평가 모드에 관한 조건은 DAP 예제와 같다.
 
 ```python
 class IndirectAttributePrediction(nn.Module):
     """
     제로샷 학습을 위한 간접 속성 예측(IAP).
     
-    학습 클래스 분류기를 학습하고 속성 유사도로
-    미학습 클래스로 전이한다.
+    트레인 클래스 분류기를 트레인하고 속성 유사도로
+    미트레인 클래스로 전이한다.
     """
     
     def __init__(self, visual_dim: int, n_seen_classes: int, hidden_dim: int = 512):
@@ -243,24 +243,24 @@ class IndirectAttributePrediction(nn.Module):
     
     def forward(self, x):
         """
-        학습 클래스의 로짓을 계산한다.
+        트레인 클래스의 로짓을 계산한다.
         """
         return self.classifier(x)
     
     def predict_class(self, x, seen_classes, unseen_classes, class_attributes,
                      similarity='cosine', temperature=1.0):
         """
-        IAP로 미학습 클래스를 예측한다.
+        IAP로 미트레인 클래스를 예측한다.
         
         인수:
             x: 시각 피처 (batch_size, visual_dim)
-            seen_classes: 학습 클래스 이름 목록
-            unseen_classes: 미학습 클래스 이름 목록
+            seen_classes: 트레인 클래스 이름 목록
+            unseen_classes: 미트레인 클래스 이름 목록
             class_attributes: 클래스 이름을 속성 벡터로 옮기는 사전
             similarity: 'cosine' 또는 'euclidean'
             temperature: 소프트맥스 온도
         """
-        # 학습 클래스의 확률을 얻는다
+        # 트레인 클래스의 확률을 얻는다
         logits = self.forward(x)
         seen_probs = F.softmax(logits / temperature, dim=1)  # (batch, n_seen)
         
@@ -293,7 +293,7 @@ class IndirectAttributePrediction(nn.Module):
 
 def train_iap_model(model, train_loader, seen_classes, epochs=50, lr=0.001):
     """
-    학습 클래스에서 교차 엔트로피 로스로 IAP 모델을 학습시킨다.
+    트레인 클래스에서 교차 엔트로피 로스로 IAP 모델을 트레인시킨다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
@@ -337,16 +337,16 @@ def train_iap_model(model, train_loader, seen_classes, epochs=50, lr=0.001):
 
 | 항목 | 원 DAP | 원 IAP |
 |---|---|---|
-| 첫 예측 목표 | 이미지의 속성 | 학습 클래스 |
+| 첫 예측 목표 | 이미지의 속성 | 트레인 클래스 |
 | 속성 확률 | 직접 예측 | 클래스 확률과 클래스 속성을 합산 |
-| 미학습 클래스 비교 | 속성 서명과 비교 | 추정한 속성 확률을 서명과 비교 |
+| 미트레인 클래스 비교 | 속성 서명과 비교 | 추정한 속성 확률을 서명과 비교 |
 | 주요 오차 경로 | 속성 추정·독립 근사 | 클래스 예측·속성 전이·독립 근사 |
 
-두 방법은 속성이 시각적으로 예측 가능하고 미학습 클래스 구분에 도움이 되는지에 영향을 받는다. 앞의 점수 전이 구현의 결과를 원 IAP의 성능이라고 보고하지 않는다.
+두 방법은 속성이 시각적으로 예측 가능하고 미트레인 클래스 구분에 도움이 되는지에 영향을 받는다. 앞의 점수 전이 구현의 결과를 원 IAP의 성능이라고 보고하지 않는다.
 
 ### 실험 성능
 
-compare_dap_iap는 y_train 대신 0부터 표본 수−1까지를 라벨로 넣는다. 따라서 클래스 라벨과 속성 사전이 맞지 않아 실제 비교에 사용할 수 없다. 학습 후 eval도 호출하지 않아 드롭아웃·BatchNorm이 학습 상태로 남는다. 평가 정답은 미학습 클래스의 로컬 인덱스와 일치시켜야 한다. 이 조각은 검증된 벤치마크 결과를 제공하지 않는다.
+compare_dap_iap는 y_train 대신 0부터 표본 수−1까지를 라벨로 넣는다. 따라서 클래스 라벨과 속성 사전이 맞지 않아 실제 비교에 사용할 수 없다. 트레인 후 eval도 호출하지 않아 드롭아웃·BatchNorm이 트레인 상태로 남는다. 평가 정답은 미트레인 클래스의 로컬 인덱스와 일치시켜야 한다. 이 조각은 검증된 벤치마크 결과를 제공하지 않는다.
 
 ```python
 def compare_dap_iap(X_train, y_train, X_test, y_test, 
@@ -368,7 +368,7 @@ def compare_dap_iap(X_train, y_train, X_test, y_test,
     dap_model = DirectAttributePrediction(X_train.shape[1], n_attributes)
     iap_model = IndirectAttributePrediction(X_train.shape[1], len(seen_classes))
     
-    # 두 모델을 모두 학습시킨다
+    # 두 모델을 모두 트레인시킨다
     print("Training DAP...")
     train_dap_model(dap_model, train_loader, class_attributes, epochs=50)
     
@@ -399,7 +399,7 @@ def compare_dap_iap(X_train, y_train, X_test, y_test,
 
 클래스를 구분하는 데 유용하고 입력에서 관측 가능한 속성을 선택한다. 줄무늬나 색은 직접적인 시각 단서가 될 수 있지만 서식지나 식성은 이미지 한 장에서 바로 확인하기 어려울 수 있다. 클래스 수준의 배경 지식과 이미지에서 보이는 피처를 구분한다.
 
-속성의 상관관계, 누락과 라벨 일관성을 확인한다. 같은 클래스 속성이라도 자세나 가림에 따라 관측 가능성이 달라질 수 있다. 정량적 품질 평가는 학습·검증 분할 안에서 수행한다.
+속성의 상관관계, 누락과 라벨 일관성을 확인한다. 같은 클래스 속성이라도 자세나 가림에 따라 관측 가능성이 달라질 수 있다. 정량적 품질 평가는 트레인·검증 분할 안에서 수행한다.
 
 ### 속성 통계
 
@@ -431,7 +431,7 @@ def analyze_attributes(class_attributes, seen_classes, unseen_classes):
               f"Unseen var={unseen_var:.3f}, "
               f"Mean diff={mean_diff:.3f}")
     
-    # 전체 포괄 범위: 미학습 클래스의 속성 가운데 얼마가 학습 클래스로 덮이는가
+    # 전체 포괄 범위: 미트레인 클래스의 속성 가운데 얼마가 트레인 클래스로 덮이는가
     similarity_matrix = unseen_attrs @ seen_attrs.T
     max_similarities = similarity_matrix.max(axis=1)
     
@@ -464,19 +464,19 @@ DAP의 확률 곱과 로그 점수의 관계를 설명하라.
 </div>
 
 ??? success "풀이"
-    원 IAP는 학습 클래스의 사후확률로 속성별 확률을 추정한 뒤 클래스 속성과 비교한다. 이 코드는 클래스 속성 유사도로 미학습 클래스 점수를 직접 합산한다. 중간 표현과 확률 가정이 다르므로 같은 알고리즘이라고 볼 수 없다.
+    원 IAP는 트레인 클래스의 사후확률로 속성별 확률을 추정한 뒤 클래스 속성과 비교한다. 이 코드는 클래스 속성 유사도로 미트레인 클래스 점수를 직접 합산한다. 중간 표현과 확률 가정이 다르므로 같은 알고리즘이라고 볼 수 없다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-속성별 헤드가 여러 개이면 각각 독립적으로 학습되는가?
+속성별 헤드가 여러 개이면 각각 독립적으로 트레인되는가?
 
 </div>
 
 ??? success "풀이"
-    코드는 피처 추출기를 공유하고 여러 속성의 BCE를 함께 최적화한다. 헤드가 분리되어도 공유 피처를 통해 학습이 연결된다. 속성 확률을 곱하는 단계의 조건부 독립 근사와 파라메터 공유 여부는 다른 개념이다.
+    코드는 피처 추출기를 공유하고 여러 속성의 BCE를 함께 최적화한다. 헤드가 분리되어도 공유 피처를 통해 트레인이 연결된다. 속성 확률을 곱하는 단계의 조건부 독립 근사와 파라메터 공유 여부는 다른 개념이다.
 
 ---
 

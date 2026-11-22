@@ -98,7 +98,7 @@ torch.onnx.export(
     model,                          # 내보낼 모델
     dummy_input,                    # 예시 입력 텐서
     onnx_path,                      # 출력 파일 경로
-    export_params=True,             # 학습된 파라메터 저장
+    export_params=True,             # 트레인된 파라메터 저장
     opset_version=11,               # ONNX opset 버전
     do_constant_folding=True,       # 상수 접기 최적화
     input_names=['input'],          # 입력 텐서의 이름

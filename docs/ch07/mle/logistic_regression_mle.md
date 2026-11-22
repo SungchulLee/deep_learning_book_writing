@@ -35,7 +35,7 @@ Likelihood: L(w, b) = ∏ P(y_i | x_i, w, b)
 
 핵심 통찰: 교차 엔트로피 = 음의 로그 가능도
 
-지은이: PyTorch 최대가능도 학습
+지은이: PyTorch 최대가능도 트레인
 DATE: 2025
 ================================================================================
 """
@@ -115,7 +115,7 @@ class LogisticRegressionModel(nn.Module):
 
 
 def train_logistic_regression(X, y, learning_rate=0.1, n_epochs=1000):
-    """MLE(교차 엔트로피 로스)으로 로지스틱 회귀를 학습시킨다"""
+    """MLE(교차 엔트로피 로스)으로 로지스틱 회귀를 트레인시킨다"""
     
     input_dim = X.shape[1]
     model = LogisticRegressionModel(input_dim)
@@ -126,7 +126,7 @@ def train_logistic_regression(X, y, learning_rate=0.1, n_epochs=1000):
     # 옵티마이저
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     
-    # 학습 기록
+    # 트레인 기록
     history = {'loss': [], 'accuracy': []}
     
     for epoch in range(n_epochs):
@@ -322,7 +322,7 @@ def main():
     print(f"   • Class 0: {(y == 0).sum().item()} samples")
     print(f"   • Class 1: {(y == 1).sum().item()} samples")
     
-    # 모델을 학습시킨다
+    # 모델을 트레인시킨다
     print("\n🔥 Training Logistic Regression via MLE...")
     print("-" * 80)
     model, history = train_logistic_regression(X, y, learning_rate=0.1, n_epochs=1000)
@@ -452,7 +452,7 @@ LOGISTIC REGRESSION MLE - Binary Classification
 
 ### 로짓에서 확률로
 
-모델은 $z=x^\top w+b$, $p=\sigma(z)$를 계산한다. 입력 피처가 두 개이므로 웨이트 두 개와 바이어스 하나, 총 세 개의 학습 파라메터가 있다. 출력 확률을 0.5와 비교하면 선형 결정 경계를 얻는다.
+모델은 $z=x^\top w+b$, $p=\sigma(z)$를 계산한다. 입력 피처가 두 개이므로 웨이트 두 개와 바이어스 하나, 총 세 개의 트레인 파라메터가 있다. 출력 확률을 0.5와 비교하면 선형 결정 경계를 얻는다.
 
 ### 로스와 가능도 비교
 
@@ -460,19 +460,19 @@ LOGISTIC REGRESSION MLE - Binary Classification
 
 ### 최적해와 평가의 해석
 
-선형 점수의 로지스틱 로스는 파라메터에 대해 볼록하지만, 완전히 선형 분리되는 표본에서는 정칙화하지 않은 유한한 MLE가 존재하지 않는다. 이 예제가 그런 경우다 — 정확도는 200번째 에폭에 이미 100%인데 로스는 0.0025에서 0.0004로 계속 줄어든다. 정확도가 높아진 뒤에도 웨이트 크기가 계속 커질 수 있으므로 분류 정확도만으로 파라메터 수렴을 판단하지 않는다. 예제의 혼동 행렬과 지표는 사용한 학습 데이터의 성능이며 독립 시험 성능이 아니다.
+선형 점수의 로지스틱 로스는 파라메터에 대해 볼록하지만, 완전히 선형 분리되는 표본에서는 정칙화하지 않은 유한한 MLE가 존재하지 않는다. 이 예제가 그런 경우다 — 정확도는 200번째 에폭에 이미 100%인데 로스는 0.0025에서 0.0004로 계속 줄어든다. 정확도가 높아진 뒤에도 웨이트 크기가 계속 커질 수 있으므로 분류 정확도만으로 파라메터 수렴을 판단하지 않는다. 예제의 혼동 행렬과 지표는 사용한 트레인 데이터의 성능이며 독립 시험 성능이 아니다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-기본 예제의 로지스틱 회귀 모델에는 학습 파라메터가 몇 개 있는가?
+기본 예제의 로지스틱 회귀 모델에는 트레인 파라메터가 몇 개 있는가?
 
 </div>
 
 ??? success "풀이"
-    입력 피처 두 개에서 출력 하나를 만드는 선형 레이어이므로 웨이트 2개와 바이어스 1개, 총 3개다. 시그모이드에는 학습 파라메터가 없다.
+    입력 피처 두 개에서 출력 하나를 만드는 선형 레이어이므로 웨이트 2개와 바이어스 1개, 총 3개다. 시그모이드에는 트레인 파라메터가 없다.
 
 ---
 
@@ -491,7 +491,7 @@ LOGISTIC REGRESSION MLE - Binary Classification
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-선형 분리되는 표본과 불균형 표본에서 정확도만으로 학습을 평가할 때의 한계를 설명하라.
+선형 분리되는 표본과 불균형 표본에서 정확도만으로 트레인을 평가할 때의 한계를 설명하라.
 
 </div>
 

@@ -1,6 +1,6 @@
 # BCEWithLogitsLoss를 쓰는 경사 하강법
 
-시그모이드를 모델에서 분리하고 로짓을 `BCEWithLogitsLoss`에 직접 전달한다. 확률 변환과 학습 로스를 나누는 이유를 이해한다.
+시그모이드를 모델에서 분리하고 로짓을 `BCEWithLogitsLoss`에 직접 전달한다. 확률 변환과 트레인 로스를 나누는 이유를 이해한다.
 
 ## 1. 코드
 
@@ -38,7 +38,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=1234
 )
 
-# 피처를 표준화한다 (학습 데이터로 적합시켜 둘 다에 적용)
+# 피처를 표준화한다 (트레인 데이터로 적합시켜 둘 다에 적용)
 sc = StandardScaler()
 X_train = sc.fit_transform(X_train)
 X_test  = sc.transform(X_test)
@@ -84,7 +84,7 @@ criterion = nn.BCEWithLogitsLoss()                 # ← stable sigmoid + BCE
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # ---------------------------------------------------------------------------
-# 3) 학습 루프
+# 3) 트레인 루프
 #    반복마다의 형태:
 #      logits = model(X_train)                → (N_train, 1)
 #      loss   = criterion(logits, y_train)    → () scalar
@@ -160,14 +160,14 @@ accuracy: 0.8947
 </div>
 
 ??? success "풀이"
-    웨이트 $d$개와 바이어스 1개로 총 $d+1$개다. 배치 입력 $(B,d)$에 대한 출력은 $(B,1)$이다. 시그모이드에는 학습 파라메터가 없다. 유방암 데이터의 피처 30개를 쓰는 경우에는 31개다.
+    웨이트 $d$개와 바이어스 1개로 총 $d+1$개다. 배치 입력 $(B,d)$에 대한 출력은 $(B,1)$이다. 시그모이드에는 트레인 파라메터가 없다. 유방암 데이터의 피처 30개를 쓰는 경우에는 31개다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-옵티마이저를 Adam으로 바꾸고(`torch.optim.Adam`에 `lr=0.001`을 쓴다) 원래 옵티마이저와 학습 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
+옵티마이저를 Adam으로 바꾸고(`torch.optim.Adam`에 `lr=0.001`을 쓴다) 원래 옵티마이저와 트레인 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
 
 </div>
 
@@ -184,7 +184,7 @@ accuracy: 0.8947
 </div>
 
 ??? success "풀이"
-    확률을 보고 싶을 때 시그모이드를 한 번 적용한다. 확률 0.5 임곗값의 클래스 결정은 로짓을 0과 비교해도 같다. 학습 로스에는 로짓을 직접 전달한다.
+    확률을 보고 싶을 때 시그모이드를 한 번 적용한다. 확률 0.5 임곗값의 클래스 결정은 로짓을 0과 비교해도 같다. 트레인 로스에는 로짓을 직접 전달한다.
 
 ---
 

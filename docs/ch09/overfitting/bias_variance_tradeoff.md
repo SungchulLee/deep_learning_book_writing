@@ -1,6 +1,6 @@
 # 편향-분산 트레이드오프
 
-제곱 오차는 학습 데이터를 바꿔 가며 얻은 평균 예측의 편향 제곱, 예측의 분산, 관측 잡음으로 나누어 해석할 수 있다. 이 예제는 결정 트리 깊이와 부트스트랩 재표집으로 그 관계를 근사적으로 살펴본다.
+제곱 오차는 트레인 데이터를 바꿔 가며 얻은 평균 예측의 편향 제곱, 예측의 분산, 관측 잡음으로 나누어 해석할 수 있다. 이 예제는 결정 트리 깊이와 부트스트랩 재표집으로 그 관계를 근사적으로 살펴본다.
 
 ## 1. 코드
 
@@ -36,7 +36,7 @@ def generate_data(n_samples=200, noise_std=0.3):
 def compute_bias_variance(X_train, y_train, X_test, y_test_true, 
                           max_depth, n_iterations=100):
     """
-    부트스트랩 표본으로 여러 번 학습시켜 모델의 편향과 분산을 계산한다.
+    부트스트랩 표본으로 여러 번 트레인시켜 모델의 편향과 분산을 계산한다.
     
     
     기대 오차 = 편향² + 분산 + 줄일 수 없는 오차
@@ -49,7 +49,7 @@ def compute_bias_variance(X_train, y_train, X_test, y_test_true,
         X_boot = X_train[indices]
         y_boot = y_train[indices]
         
-        # 모델을 학습시킨다
+        # 모델을 트레인시킨다
         model = DecisionTreeRegressor(max_depth=max_depth, random_state=i)
         model.fit(X_boot, y_boot)
         
@@ -161,7 +161,7 @@ def visualize_predictions_by_complexity(X_train, y_train, X_test, y_test_true):
         ax.plot(X_test[sort_idx], y_test_true[sort_idx], 'g-', 
                 label='True Function', linewidth=2)
         
-        # 학습 데이터 그리기
+        # 트레인 데이터 그리기
         ax.scatter(X_train, y_train, alpha=0.3, s=20, c='red', label='Training Data')
         
         ax.set_title(f'Max Depth = {depth}\n'
@@ -329,11 +329,11 @@ Key Concepts:
 
 ## 2. 논의
 
-고정된 입력 x에서 $Y=f(x)+\varepsilon$, $E[\varepsilon\mid x]=0$이고 새 관측 잡음이 학습 과정과 독립이면 기대 제곱 오차는 $(E_D[\hat f_D(x)]-f(x))^2+\operatorname{Var}_D(\hat f_D(x))+\operatorname{Var}(\varepsilon\mid x)$로 분해된다. 이는 제곱 오차에 대한 분해이며 모든 로스에 그대로 적용되는 식은 아니다.
+고정된 입력 x에서 $Y=f(x)+\varepsilon$, $E[\varepsilon\mid x]=0$이고 새 관측 잡음이 트레인 과정과 독립이면 기대 제곱 오차는 $(E_D[\hat f_D(x)]-f(x))^2+\operatorname{Var}_D(\hat f_D(x))+\operatorname{Var}(\varepsilon\mid x)$로 분해된다. 이는 제곱 오차에 대한 분해이며 모든 로스에 그대로 적용되는 식은 아니다.
 
-코드는 하나의 학습셋에서 복원 추출한 표본들로 트리를 학습한다. 변수 bias에는 편향 자체가 아니라 평균 예측과 참 함수 sin(x)의 차이를 제곱해 입력들에 걸쳐 평균한 값이 담긴다. variance는 부트스트랩 예측의 변동이다. expected_error에는 이 둘만 더하므로 새 관측값에 대한 전체 MSE의 잡음 항은 포함하지 않는다.
+코드는 하나의 트레인셋에서 복원 추출한 표본들로 트리를 트레인한다. 변수 bias에는 편향 자체가 아니라 평균 예측과 참 함수 sin(x)의 차이를 제곱해 입력들에 걸쳐 평균한 값이 담긴다. variance는 부트스트랩 예측의 변동이다. expected_error에는 이 둘만 더하므로 새 관측값에 대한 전체 MSE의 잡음 항은 포함하지 않는다.
 
-부트스트랩 변동은 데이터 생성 과정에서 독립적인 학습셋을 반복 추출한 변동의 근사이다. 깊이를 늘릴 때 편향이 반드시 단조 감소하거나 분산이 반드시 단조 증가하지는 않는다. 그림의 최적 깊이는 시도한 깊이 중 이 근사 기준이 가장 작은 값이다. 같은 평가 입력으로 깊이를 고르면 이후의 독립적인 최종 평가가 필요하다. 앙상블 트리 수를 늘리는 경우처럼 복잡도를 늘려 분산을 줄일 수 있는 상황도 있어, 모든 복잡도 변수에 같은 두 곡선 모양을 가정하지 않는다.
+부트스트랩 변동은 데이터 생성 과정에서 독립적인 트레인셋을 반복 추출한 변동의 근사이다. 깊이를 늘릴 때 편향이 반드시 단조 감소하거나 분산이 반드시 단조 증가하지는 않는다. 그림의 최적 깊이는 시도한 깊이 중 이 근사 기준이 가장 작은 값이다. 같은 평가 입력으로 깊이를 고르면 이후의 독립적인 최종 평가가 필요하다. 앙상블 트리 수를 늘리는 경우처럼 복잡도를 늘려 분산을 줄일 수 있는 상황도 있어, 모든 복잡도 변수에 같은 두 곡선 모양을 가정하지 않는다.
 
 ## 연습문제
 
@@ -371,7 +371,7 @@ Key Concepts:
 </div>
 
 ??? success "풀이"
-    각 반복에서 독립적인 학습셋을 새로 만들고 같은 입력 격자에서 예측하면, 학습 데이터 생성 과정에 따른 편향과 분산을 직접 근사한다. 하나의 표본에 조건을 둔 부트스트랩 근사와 구분된다.
+    각 반복에서 독립적인 트레인셋을 새로 만들고 같은 입력 격자에서 예측하면, 트레인 데이터 생성 과정에 따른 편향과 분산을 직접 근사한다. 하나의 표본에 조건을 둔 부트스트랩 근사와 구분된다.
 
 ## 정리하며
 

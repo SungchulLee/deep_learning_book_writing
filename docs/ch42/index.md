@@ -1,6 +1,6 @@
 # 43장: 적대적 강건성
 
-이 장은 딥러닝의 적대적 강건성을 두루 다룬다. 적대적 샘플이 발견된 경위와 그 이론, 화이트박스에서 현실 세계에 이르는 공격 방법, 적대적 학습과 강건성 인증을 아우르는 방어, 그리고 제대로 평가하는 관행을 담는다. 적대적 위협이 시장 조작, 사기 탐지 회피, 모델 추출로 드러나는 금융 응용을 특히 자세히 살핀다.
+이 장은 딥러닝의 적대적 강건성을 두루 다룬다. 적대적 샘플이 발견된 경위와 그 이론, 화이트박스에서 현실 세계에 이르는 공격 방법, 적대적 트레인과 강건성 인증을 아우르는 방어, 그리고 제대로 평가하는 관행을 담는다. 적대적 위협이 시장 조작, 사기 탐지 회피, 모델 추출로 드러나는 금융 응용을 특히 자세히 살핀다.
 
 ---
 
@@ -38,7 +38,7 @@
 
 **막는 쪽**
 
-- [적대적 학습](adversarial/04_adversarial_training.md) — 가장 잘 듣는 방어. 본격적인 것은 **5절**이다
+- [적대적 트레인](adversarial/04_adversarial_training.md) — 가장 잘 듣는 방어. 본격적인 것은 **5절**이다
 - [인증 가능한 방어](adversarial/05_certified_defenses.md) — 증명할 수 있는 보장. 본격적인 것은 **6절**이다
 
 **글에 거는 공격**
@@ -68,15 +68,15 @@
 
 ---
 
-## 5. 적대적 학습
+## 5. 적대적 트레인
 
-학습할 때 적대적 샘플을 섞는 방어.
+트레인할 때 적대적 샘플을 섞는 방어.
 
-- [적대적 학습](adversarial_training/standard.md) -- 적대적 공격에 가장 잘 듣는 방어인 PGD 기반의 강건 학습
+- [적대적 트레인](adversarial_training/standard.md) -- 적대적 공격에 가장 잘 듣는 방어인 PGD 기반의 강건 트레인
 - [TRADES](adversarial_training/trades.md) -- 클린 정확도와 적대적 강건성 사이의 트레이드오프를 이론에 근거해 조절하기
-- [Free Adversarial Training](adversarial_training/free_at.md) -- 그래디언트를 재사용해 일반 학습에 가까운 비용으로 맞먹는 강건성 얻기
-- [Fast Adversarial Training](adversarial_training/fast_at.md) -- 무작위 초기화로 파국적 과적합을 막는 한 스텝 FGSM 학습
-- [MART](adversarial_training/mart.md) -- 오분류된 샘플을 따로 다뤄 어려운 샘플에 방어를 집중하는 학습
+- [Free Adversarial Training](adversarial_training/free_at.md) -- 그래디언트를 재사용해 일반 트레인에 가까운 비용으로 맞먹는 강건성 얻기
+- [Fast Adversarial Training](adversarial_training/fast_at.md) -- 무작위 초기화로 파국적 과적합을 막는 한 스텝 FGSM 트레인
+- [MART](adversarial_training/mart.md) -- 오분류된 샘플을 따로 다뤄 어려운 샘플에 방어를 집중하는 트레인
 
 ---
 
@@ -132,4 +132,4 @@
 
 ## 정리하며
 
-이 장은 기초에서 출발해 화이트박스·블랙박스·현실 세계 공격, 적대적 학습과 인증 가능한 방어, 탐지, 정직한 평가 관행, 그리고 금융 응용까지를 살펴본다.
+이 장은 기초에서 출발해 화이트박스·블랙박스·현실 세계 공격, 적대적 트레인과 인증 가능한 방어, 탐지, 정직한 평가 관행, 그리고 금융 응용까지를 살펴본다.

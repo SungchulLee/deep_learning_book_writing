@@ -1,6 +1,6 @@
 # Retrace
 
-Retrace는 여러 스텝 시간차 학습의 오프폴리시 보정 방법으로, 다른 폴리시가 모은 데이터에서 안전하고 분산이 작은 리턴 추정을 준다. 잘라 낸 중요도 샘플링 비 $c_i = \lambda \min(1, \pi/\mu)$을 써서 행동 폴리시가 타깃 폴리시에서 크게 벗어나면 트레이스(trace, 앞선 스텝의 TD 오차를 이어 붙이는 가중치)를 자동으로 끊는다. 이로써 행동 폴리시와 상관없이 올바른 밸류 함수로 수렴이 보장되어 경험 리플레이와 분산 학습 설정에 특히 쓸모 있다.
+Retrace는 여러 스텝 시간차 학습의 오프폴리시 보정 방법으로, 다른 폴리시가 모은 데이터에서 안전하고 분산이 작은 리턴 추정을 준다. 잘라 낸 중요도 샘플링 비 $c_i = \lambda \min(1, \pi/\mu)$을 써서 행동 폴리시가 타깃 폴리시에서 크게 벗어나면 트레이스(trace, 앞선 스텝의 TD 오차를 이어 붙이는 가중치)를 자동으로 끊는다. 이로써 행동 폴리시와 상관없이 올바른 밸류 함수로 수렴이 보장되어 경험 리플레이와 분산 트레인 설정에 특히 쓸모 있다.
 
 ## 1. 코드
 
@@ -292,9 +292,9 @@ Retrace demo complete!
 
 ## 2. 논의
 
-이 구현의 중심은 `compute_retrace_targets` 다. 궤적 하나에서 TD 오차 $\delta_k = r_k + \gamma(1-d_k)\max_{a'}Q(s_{k+1}, a') - Q(s_k, a_k)$ 를 구하고, 스텝 $t$ 의 타깃을 $Q^{\text{ret}}(s_t, a_t) = Q(s_t, a_t) + \sum_{k \ge t}\gamma^{k-t}\big(\prod_{i=t+1}^{k} c_i\big)\delta_k$ 로 더한다. 트레이스 계수 $c_i = \lambda\min(1, \pi(a_i|s_i)/\mu(a_i|s_i))$ 는 중요도 비를 1 에서 잘라 분산이 커지지 않게 하고, 타깃 폴리시가 고르지 않았을 행동($\pi = 0$)을 만나면 0 이 되어 그 뒤의 TD 오차를 끊는다. 에피소드가 끝난 스텝을 넘어서도 끊는다. `compute_retrace_batch` 와 `TrajectoryBuffer` 는 이 함수를 학습 루프에 붙이기 위한 도구로, 온라인 네트워크의 그리디 행동을 타깃 폴리시로 삼아 $\pi(a_t|s_t)$ 를 0 또는 1 로 만든다. 데모에서는 이 둘을 쓰지 않는다.
+이 구현의 중심은 `compute_retrace_targets` 다. 궤적 하나에서 TD 오차 $\delta_k = r_k + \gamma(1-d_k)\max_{a'}Q(s_{k+1}, a') - Q(s_k, a_k)$ 를 구하고, 스텝 $t$ 의 타깃을 $Q^{\text{ret}}(s_t, a_t) = Q(s_t, a_t) + \sum_{k \ge t}\gamma^{k-t}\big(\prod_{i=t+1}^{k} c_i\big)\delta_k$ 로 더한다. 트레이스 계수 $c_i = \lambda\min(1, \pi(a_i|s_i)/\mu(a_i|s_i))$ 는 중요도 비를 1 에서 잘라 분산이 커지지 않게 하고, 타깃 폴리시가 고르지 않았을 행동($\pi = 0$)을 만나면 0 이 되어 그 뒤의 TD 오차를 끊는다. 에피소드가 끝난 스텝을 넘어서도 끊는다. `compute_retrace_batch` 와 `TrajectoryBuffer` 는 이 함수를 트레인 루프에 붙이기 위한 도구로, 온라인 네트워크의 그리디 행동을 타깃 폴리시로 삼아 $\pi(a_t|s_t)$ 를 0 또는 1 로 만든다. 데모에서는 이 둘을 쓰지 않는다.
 
-데모 함수는 네 부분이며 모두 합성 데이터로 계산만 한다(학습은 하지 않는다). (1) 무작위 Q 값으로 만든 길이 8 의 궤적에서 $\lambda$ 를 0, 0.5, 0.95, 1 로 바꿔 타깃을 찍는다. 이 궤적은 $\pi = 0.8$, $\mu = 0.5$ 라 잘린 비가 늘 1 이고 $c_i = \lambda$ 다. $\lambda = 0$ 이면 한 스텝 타깃 $r_t + \gamma\max_{a'}Q(s_{t+1}, a')$ 과 같다. (2) $\varepsilon = 0.1$, 행동 4 개인 $\varepsilon$-그리디 행동 폴리시에서 그리디 행동은 $c = 0.95$, 그 밖의 행동은 $c = 0$ 임을 보인다. (3) $\lambda$ 와 그리디 행동 비율에 따른 트레이스의 기대 길이 $1/(1 - \lambda p)$ 를 표로 찍는다. (4) 일부 행동이 그리디가 아니었던 궤적에서 Retrace 타깃과, 보정 없이 모든 $c_i = \lambda$ 로 둔 타깃을 견준다. 출력의 「N-step targets」는 이름과 달리 $n$-step 리턴이 아니라 보정하지 않은 $\lambda$-리턴이다(연습문제 3).
+데모 함수는 네 부분이며 모두 합성 데이터로 계산만 한다(트레인은 하지 않는다). (1) 무작위 Q 값으로 만든 길이 8 의 궤적에서 $\lambda$ 를 0, 0.5, 0.95, 1 로 바꿔 타깃을 찍는다. 이 궤적은 $\pi = 0.8$, $\mu = 0.5$ 라 잘린 비가 늘 1 이고 $c_i = \lambda$ 다. $\lambda = 0$ 이면 한 스텝 타깃 $r_t + \gamma\max_{a'}Q(s_{t+1}, a')$ 과 같다. (2) $\varepsilon = 0.1$, 행동 4 개인 $\varepsilon$-그리디 행동 폴리시에서 그리디 행동은 $c = 0.95$, 그 밖의 행동은 $c = 0$ 임을 보인다. (3) $\lambda$ 와 그리디 행동 비율에 따른 트레이스의 기대 길이 $1/(1 - \lambda p)$ 를 표로 찍는다. (4) 일부 행동이 그리디가 아니었던 궤적에서 Retrace 타깃과, 보정 없이 모든 $c_i = \lambda$ 로 둔 타깃을 견준다. 출력의 「N-step targets」는 이름과 달리 $n$-step 리턴이 아니라 보정하지 않은 $\lambda$-리턴이다(연습문제 3).
 
 ## 연습문제
 
@@ -336,6 +336,6 @@ Retrace demo complete!
 
 **다룬 것** — Retrace
 
-이 구현은 잘린 중요도 비 $c_i = \lambda\min(1, \pi/\mu)$ 로 오프폴리시 데이터의 여러 스텝 타깃을 계산하는 `compute_retrace_targets` 와, 그것을 학습에 붙이는 `compute_retrace_batch`·`TrajectoryBuffer` 를 담는다.
+이 구현은 잘린 중요도 비 $c_i = \lambda\min(1, \pi/\mu)$ 로 오프폴리시 데이터의 여러 스텝 타깃을 계산하는 `compute_retrace_targets` 와, 그것을 트레인에 붙이는 `compute_retrace_batch`·`TrajectoryBuffer` 를 담는다.
 
 핵심 함수는 `compute_retrace_targets` 이고 핵심 클래스는 `TrajectoryBuffer` 이며, 앞의 연습문제 3개로 스스로 따져 볼 수 있다.

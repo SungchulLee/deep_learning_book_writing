@@ -1,6 +1,6 @@
 # U-Net: 이미지 분할을 위한 인코더–디코더
 
-U-Net은 해상도를 줄이는 인코더와 복원하는 디코더를 스킵 연결로 결합하는 분할 모델이다. Ronneberger 외의 2015년 논문은 생의학 영상에서 강한 데이터 어그멘테이션과 함께 이 구조를 평가했다. 데이터가 적어도 항상 잘 학습되거나 임상적 정확도가 자동으로 보장된다는 뜻은 아니다. 아래 코드는 원 논문의 valid convolution과 다른 padding·BN 변형이며, 기본 bilinear 경로에는 채널 불일치가 있다.
+U-Net은 해상도를 줄이는 인코더와 복원하는 디코더를 스킵 연결로 결합하는 분할 모델이다. Ronneberger 외의 2015년 논문은 생의학 영상에서 강한 데이터 어그멘테이션과 함께 이 구조를 평가했다. 데이터가 적어도 항상 잘 트레인되거나 임상적 정확도가 자동으로 보장된다는 뜻은 아니다. 아래 코드는 원 논문의 valid convolution과 다른 padding·BN 변형이며, 기본 bilinear 경로에는 채널 불일치가 있다.
 
 ## 1. 원 구조와 패딩 변형
 
@@ -63,7 +63,7 @@ U-Net은 해상도를 줄이는 인코더와 복원하는 디코더를 스킵 �
     └────────────────────────────────────────────┘
 ```
 
-전치 컨볼루션은 학습 가능한 업샘플 연산이며 일반적인 컨볼루션의 역함수는 아니다. 보간과 후속 컨볼루션도 업샘플링을 구성하는 대안이다. 디코더 해상도를 키우는 것과 다운샘플링으로 잃은 정보를 완전히 되찾는 것은 구분한다.
+전치 컨볼루션은 트레인 가능한 업샘플 연산이며 일반적인 컨볼루션의 역함수는 아니다. 보간과 후속 컨볼루션도 업샘플링을 구성하는 대안이다. 디코더 해상도를 키우는 것과 다운샘플링으로 잃은 정보를 완전히 되찾는 것은 구분한다.
 
 ## 2. 구성 블록
 
@@ -156,7 +156,7 @@ class DecoderBlock(nn.Module):
             # 이어 붙인 뒤: in_channels // 2 + in_channels // 2 = in_channels
             self.conv = DoubleConv(in_channels, out_channels, in_channels // 2)
         else:
-            # 전치 컨볼루션(학습 가능한 업샘플링)
+            # 전치 컨볼루션(트레인 가능한 업샘플링)
             self.up = nn.ConvTranspose2d(in_channels, in_channels // 2, 
                                           kernel_size=2, stride=2)
             self.conv = DoubleConv(in_channels, out_channels)
@@ -270,11 +270,11 @@ class UNet(nn.Module):
         return logits
     
     def count_parameters(self) -> int:
-        """학습 가능한 전체 파라메터의 수를 센다."""
+        """트레인 가능한 전체 파라메터의 수를 센다."""
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 ```
 
-아래 학습 설명은 채널·공간 조건이 맞는 모델을 전제로 읽는다. 네 번 풀링할 수 있는 입력 크기와 가장 작은 단계의 BN 표본 수도 필요하다.
+아래 트레인 설명은 채널·공간 조건이 맞는 모델을 전제로 읽는다. 네 번 풀링할 수 있는 입력 크기와 가장 작은 단계의 BN 표본 수도 필요하다.
 
 ## 3. 스킵의 연결과 덧셈
 
@@ -298,7 +298,7 @@ def visualize_unet_activations(model, image, layer_names=None):
     스킵 연결을 이해하려 U-Net의 중간 활성화를 시각화한다.
     
     인수:
-        model: 학습된 U-Net 모델
+        model: 트레인된 U-Net 모델
         image: 입력 이미지 텐서 (1, C, H, W)
         layer_names: 시각화할 레이어의 목록(선택)
     """
@@ -383,13 +383,13 @@ def segmentation_cross_entropy(logits: torch.Tensor, targets: torch.Tensor,
     return F.cross_entropy(logits, targets, ignore_index=ignore_index)
 ```
 
-기본 `UNet(num_classes=2)`의 두 채널 출력에 이진 한 채널 학습 루프를 그대로 연결하면 목표의 형태와 의미가 맞지 않는다. 한 로짓의 이진 모델 또는 두 클래스 CE 중 일관된 설계를 선택해야 한다. 로스를 바꾸었다고 올바른 목표 인코딩이 자동으로 생기지는 않는다.
+기본 `UNet(num_classes=2)`의 두 채널 출력에 이진 한 채널 트레인 루프를 그대로 연결하면 목표의 형태와 의미가 맞지 않는다. 한 로짓의 이진 모델 또는 두 클래스 CE 중 일관된 설계를 선택해야 한다. 로스를 바꾸었다고 올바른 목표 인코딩이 자동으로 생기지는 않는다.
 
 ## 5. 이미지와 마스크의 어그멘테이션
 
 회전·crop·resize 등 기하 변환은 이미지와 마스크의 좌표·난수를 동기화한다. 정수 클래스 마스크에는 라벨을 보존하는 보간을 사용하고 밝기·색상·노이즈 변환은 일반적으로 이미지에만 적용한다. ‘모든 어그멘테이션을 이미지와 마스크에 똑같이 적용’하는 것은 부정확하다. 입력의 의미를 바꾸지 않는 변환인지도 데이터에 맞춰 확인한다.
 
-아래 코드는 Albumentations 호출 규약에 의존한다. 예를 들어 현재 [RandomResizedCrop 문서](https://albumentations.ai/explore/transform/RandomResizedCrop/docs/)는 size=(height,width)를 사용하므로 코드의 두 위치 인수 형식과 설치 버전의 호환성을 확인해야 한다. ImageNet 평균·표준편차는 한 전처리 선택이며 모든 영상·학습에 필수인 것은 아니다. 마스크의 채널·자료형은 선택한 BCE/CE 형식에 따로 맞춘다.
+아래 코드는 Albumentations 호출 규약에 의존한다. 예를 들어 현재 [RandomResizedCrop 문서](https://albumentations.ai/explore/transform/RandomResizedCrop/docs/)는 size=(height,width)를 사용하므로 코드의 두 위치 인수 형식과 설치 버전의 호환성을 확인해야 한다. ImageNet 평균·표준편차는 한 전처리 선택이며 모든 영상·트레인에 필수인 것은 아니다. 마스크의 채널·자료형은 선택한 BCE/CE 형식에 따로 맞춘다.
 
 ```python
 import albumentations as A
@@ -397,7 +397,7 @@ from albumentations.pytorch import ToTensorV2
 
 def get_training_transforms(image_size: int = 256):
     """
-    분할을 위한 학습용 어그멘테이션.
+    분할을 위한 트레인용 어그멘테이션.
     
     Albumentations는 이미지와 마스크에 똑같은 변환이 적용되게 한다.
     """
@@ -432,19 +432,19 @@ def get_validation_transforms(image_size: int = 256):
     ])
 ```
 
-## 6. 학습 루프의 평가 단위
+## 6. 트레인 루프의 평가 단위
 
 아래 루프는 BCE 기반 이진 분할을 전제로 한다. 입력 마스크를 자동으로 float·N×1×H×W로 변환하지 않고, CUDA의 가용성이나 라이브러리 버전별 scheduler 인수도 일반화하지 않는다. 올바른 모델·데이터와 실행 환경을 외부에서 구성해야 한다.
 
 `calculate_dice`는 확률을 0.5로 임계화하고 배치 전체 픽셀을 합친 Dice를 구한다. 배치별 Dice를 단순 평균한 값은 데이터 전체의 교집합·분모를 누적한 Dice와 일반적으로 다르며 배치 구성에 따라 달라질 수 있다. 빈 양쪽 마스크는 smooth 규칙으로 1이 된다. 로스 평균 역시 마지막 배치 크기가 다르면 전체 관측당 평균과 다를 수 있다.
 
-best_dice는 0에서 시작하고 엄격한 개선에서만 저장하므로 평가값이 계속 0이면 체크포인트가 없을 수 있다. 반환값은 최선 Dice이며 최선 웨이트를 반환하거나 자동으로 다시 불러오지 않는다. 학습·평가 기준을 이 구현에 맞춰 해석한다.
+best_dice는 0에서 시작하고 엄격한 개선에서만 저장하므로 평가값이 계속 0이면 체크포인트가 없을 수 있다. 반환값은 최선 Dice이며 최선 웨이트를 반환하거나 자동으로 다시 불러오지 않는다. 트레인·평가 기준을 이 구현에 맞춰 해석한다.
 
 ```python
 def train_unet(model, train_loader, val_loader, num_epochs=50,
                lr=1e-4, device='cuda'):
     """
-    U-Net의 전체 학습 루프.
+    U-Net의 전체 트레인 루프.
     
     러닝레이트 스케줄링, 조기 종료, 모델 체크포인트 저장을 담고 있다.
     """
@@ -461,13 +461,13 @@ def train_unet(model, train_loader, val_loader, num_epochs=50,
     # 로스 함수(이진 분류용)
     criterion = nn.BCEWithLogitsLoss()
     
-    # 학습 지표
+    # 트레인 지표
     best_dice = 0.0
     patience_counter = 0
     max_patience = 10
     
     for epoch in range(num_epochs):
-        # 학습 단계
+        # 트레인 단계
         model.train()
         train_loss = 0.0
         
@@ -733,7 +733,7 @@ class MemoryEfficientUNet(UNet):
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-학습 루프의 배치 Dice 평균과 전체 데이터 Dice가 다른 이유를 설명하라.
+트레인 루프의 배치 Dice 평균과 전체 데이터 Dice가 다른 이유를 설명하라.
 
 </div>
 

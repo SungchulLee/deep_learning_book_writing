@@ -1,6 +1,6 @@
 # DeiT
 
-DeiT는 2021년 논문 "Training data-efficient image transformers & distillation through attention"에서 나왔다. 지식 증류(knowledge distillation, 교사 모델의 예측을 학생 모델이 따라 하게 하는 학습)로 더 적은 데이터로 ViT를 학습하며, 클래스 토큰에 더해 *증류 토큰*을 둔다.
+DeiT는 2021년 논문 "Training data-efficient image transformers & distillation through attention"에서 나왔다. 지식 증류(knowledge distillation, 교사 모델의 예측을 학생 모델이 따라 하게 하는 트레인)로 더 적은 데이터로 ViT를 트레인하며, 클래스 토큰에 더해 *증류 토큰*을 둔다.
 
 이 쪽의 구현은 DeiT의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
 
@@ -13,7 +13,7 @@ DeiT - 데이터 효율적인 이미지 트랜스포머
 논문: "Training data-efficient image transformers & distillation through attention" (2021)
 저자: 위고 투브롱 외
 핵심 아이디어:
-  - 지식 증류로 더 적은 데이터로 ViT를 학습한다
+  - 지식 증류로 더 적은 데이터로 ViT를 트레인한다
   - 클래스 토큰에 더해 *증류 토큰*을 둔다
 
 파일: appendix/vit/deit.py
@@ -54,7 +54,7 @@ class DeiT(nn.Module):
 
         self.patch_embed = PatchEmbedding(embed_dim=embed_dim)
 
-        # 학습 가능한 토큰
+        # 트레인 가능한 토큰
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         self.dist_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
 
@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
 이 구현은 클래스 2개(`PatchEmbedding`, `DeiT`)를 정의하고, 이들이 함께 완전한 비전 트랜스포머 구조를 이룬다. 클래스마다 고유한 역할을 맡아 코드가 모듈로 나뉘고 확장하기 쉽다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
 
-이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
+이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 트레인에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 트레인, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
 ## 연습문제
 

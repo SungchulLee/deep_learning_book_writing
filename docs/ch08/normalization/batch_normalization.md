@@ -1,6 +1,6 @@
 # 배치 정규화
 
-배치 정규화의 NumPy 순전파와 PyTorch MLP·CNN 예제를 살펴본다. 벡터와 이미지에서 통계량을 구하는 축, 학습·평가 모드와 이동 통계량을 구분한다.
+배치 정규화의 NumPy 순전파와 PyTorch MLP·CNN 예제를 살펴본다. 벡터와 이미지에서 통계량을 구하는 축, 트레인·평가 모드와 이동 통계량을 구분한다.
 
 ## 1. 코드
 
@@ -10,7 +10,7 @@
 ================================================
 
 배치 정규화는 배치 차원에 걸쳐 입력을 정규화한다.
-학습을 빠르게 하고 더 높은 러닝레이트를 쓸 수 있게 해 준다.
+트레인을 빠르게 하고 더 높은 러닝레이트를 쓸 수 있게 해 준다.
 
 논문: "Batch Normalization: Accelerating Deep Network Training by
        Reducing Internal Covariate Shift"(Ioffe & Szegedy, 2015)
@@ -43,7 +43,7 @@ class BatchNorm1dNumPy:
         self.eps = eps
         self.momentum = momentum
         
-        # 학습 가능한 파라메터
+        # 트레인 가능한 파라메터
         self.gamma = np.ones(num_features)  # 배율 파라메터
         self.beta = np.zeros(num_features)  # 이동 파라메터
         
@@ -213,7 +213,7 @@ def demonstrate_batch_norm():
 
 def compare_with_without_batchnorm():
     """
-    배치 정규화가 있을 때와 없을 때의 학습 거동을 비교한다.
+    배치 정규화가 있을 때와 없을 때의 트레인 거동을 비교한다.
     """
     print("\n" + "=" * 60)
     print("Comparison: With vs Without BatchNorm")
@@ -324,9 +324,9 @@ Additional Notes:
 
 NumPy 구현은 `(B, C)`의 배치 축에서 평균과 분산을 구하고 피처별 gamma와 beta를 적용한다. 이 클래스는 nn.Module이 아니며, 자동 미분이나 파라메터 갱신을 제공하지 않는 순전파 시연이다.
 
-PyTorch BatchNorm1d는 벡터에서 배치 축을, BatchNorm2d는 채널별 배치·공간 축을 함께 사용한다. 기본 설정의 평가에서는 누적된 이동 통계량을 사용하므로 학습과 동작이 다르다.
+PyTorch BatchNorm1d는 벡터에서 배치 축을, BatchNorm2d는 채널별 배치·공간 축을 함께 사용한다. 기본 설정의 평가에서는 누적된 이동 통계량을 사용하므로 트레인과 동작이 다르다.
 
-NumPy 코드의 running_var는 분모 B인 배치 분산을 그대로 누적한다. PyTorch는 학습 출력에는 편향 분산 추정량(분모가 B인 추정량)을 쓰지만 이동 분산 갱신에는 불편추정량을 사용하므로 두 구현의 평가 출력이 항상 일치하지 않는다. [공식 문서](https://docs.pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html)의 규약을 구분한다.
+NumPy 코드의 running_var는 분모 B인 배치 분산을 그대로 누적한다. PyTorch는 트레인 출력에는 편향 분산 추정량(분모가 B인 추정량)을 쓰지만 이동 분산 갱신에는 불편추정량을 사용하므로 두 구현의 평가 출력이 항상 일치하지 않는다. [공식 문서](https://docs.pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html)의 규약을 구분한다.
 
 ## 연습문제
 
@@ -362,7 +362,7 @@ NumPy 구현과 PyTorch의 이동 분산이 다른 이유를 설명하라.
 </div>
 
 ??? success "풀이"
-    NumPy 구현은 배치 분산을 불편 보정하지 않고 누적한다. PyTorch의 이동 분산에는 불편 보정이 들어간다. 학습 시 정규화 식과 이동 통계량 갱신식을 별도로 비교해야 한다.
+    NumPy 구현은 배치 분산을 불편 보정하지 않고 누적한다. PyTorch의 이동 분산에는 불편 보정이 들어간다. 트레인 시 정규화 식과 이동 통계량 갱신식을 별도로 비교해야 한다.
 
 ---
 

@@ -1,6 +1,6 @@
 # L1 정칙화 (라쏘)
 
-라쏘(Least Absolute Shrinkage and Selection Operator)라고도 하는 L1 정칙화는 모델 웨이트의 절댓값에 비례하는 패널티를 로스 함수에 더한다. 이 기법은 학습된 파라메터의 희소성을 북돋우며, 관련 없는 피처의 웨이트를 정확히 0으로 몰아 사실상 자동 피처 선택을 수행한다.
+라쏘(Least Absolute Shrinkage and Selection Operator)라고도 하는 L1 정칙화는 모델 웨이트의 절댓값에 비례하는 패널티를 로스 함수에 더한다. 이 기법은 트레인된 파라메터의 희소성을 북돋우며, 관련 없는 피처의 웨이트를 정확히 0으로 몰아 사실상 자동 피처 선택을 수행한다.
 
 ---
 
@@ -276,18 +276,18 @@ class SparseNN(nn.Module):
 def train_with_l1(model, train_loader, val_loader, 
                   lambda_l1=0.01, epochs=100, lr=0.001):
     """
-    L1 정칙화로 모델을 학습시킨다.
+    L1 정칙화로 모델을 트레인시킨다.
     
     인수:
         model: 뉴럴 네트워크
-        train_loader: 학습 데이터 로더
+        train_loader: 트레인 데이터 로더
         val_loader: 검증 데이터 로더
         lambda_l1: L1 정칙화의 강도
-        epochs: 학습 에포크 수
+        epochs: 트레인 에포크 수
         lr: 러닝레이트
         
     반환값:
-        학습 이력 사전
+        트레인 이력 사전
     """
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -298,7 +298,7 @@ def train_with_l1(model, train_loader, val_loader,
     }
     
     for epoch in range(epochs):
-        # 학습
+        # 트레인
         model.train()
         train_loss = 0
         for X_batch, y_batch in train_loader:
@@ -458,7 +458,7 @@ def lasso_feature_selection(X, y, alphas=None):
     selected_features = np.where(lasso_cv.coef_ != 0)[0]
 
     # scaler를 함께 돌려주는 것이 중요하다. 새 데이터에 이 모델을
-    # 쓰려면 학습 때와 똑같은 평균과 표준편차로 맞춰야 한다
+    # 쓰려면 트레인 때와 똑같은 평균과 표준편차로 맞춰야 한다
     return selected_features, lasso_cv, scaler
 
 def compare_regularization_strengths(X, y, alphas):
@@ -577,7 +577,7 @@ def select_lambda_cv(X, y, lambdas, cv=5):
     """
     from sklearn.linear_model import Lasso
 
-    # lambda는 학습으로 정해지지 않는 하이퍼파라메터다. 학습 데이터에서 고르면
+    # lambda는 트레인으로 정해지지 않는 하이퍼파라메터다. 트레인 데이터에서 고르면
     # 늘 lambda=0(패널티 없음)이 이기므로, 반드시 검증으로 골라야 한다
     cv_scores = []
     for lam in lambdas:
@@ -609,7 +609,7 @@ $$
 \text{BIC} = k\ln(n) - 2\ln(\hat{L})
 $$
 
-AIC·BIC의 $k$는 해당 통계 모델의 자유도이고 $\hat L$은 그 모델의 최대가능도(maximum likelihood; 가능도는 우도라고도 한다)이다. 라쏘의 비영 계수 수를 자유도의 추정값으로 쓰는 데에는 가정이 필요하며, 분산·절편의 추정도 고려한다. 비볼록 뉴럴 네트워크의 임의 L1 학습 결과에 이 식을 그대로 적용하지 않는다.
+AIC·BIC의 $k$는 해당 통계 모델의 자유도이고 $\hat L$은 그 모델의 최대가능도(maximum likelihood; 가능도는 우도라고도 한다)이다. 라쏘의 비영 계수 수를 자유도의 추정값으로 쓰는 데에는 가정이 필요하며, 분산·절편의 추정도 고려한다. 비볼록 뉴럴 네트워크의 임의 L1 트레인 결과에 이 식을 그대로 적용하지 않는다.
 
 ---
 
@@ -716,7 +716,7 @@ L1과 L2의 희소성 경향과 그 한계를 비교하라.
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-L1 정칙화 학습을 위한 근접 경사 하강법을 구현하라.
+L1 정칙화 트레인을 위한 근접 경사 하강법을 구현하라.
 
 </div>
 

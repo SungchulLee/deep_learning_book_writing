@@ -1,6 +1,6 @@
 # BCE를 쓰는 경사 하강법
 
-표준화한 피처로 로지스틱 회귀를 학습하고 확률 출력에 BCE를 적용한다. 다음 페이지의 로짓 로스와 비교할 기준을 만든다.
+표준화한 피처로 로지스틱 회귀를 트레인하고 확률 출력에 BCE를 적용한다. 다음 페이지의 로짓 로스와 비교할 기준을 만든다.
 
 ## 1. 코드
 
@@ -48,7 +48,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 print(f"Number of Positive Cases in {y_train.shape[0]} Patients of Train Data :  {y_train.sum()}")  # e.g., 288
 print(f"Number of Positive Cases in {y_test.shape[0]} Patients of Test Data :  {y_test.sum()}")    # e.g., 69
 
-# 피처 스케일링 (학습 데이터로 적합시켜 둘 다에 적용):
+# 피처 스케일링 (트레인 데이터로 적합시켜 둘 다에 적용):
 # 변환 후:
 # X_train: (N_train, n_features)            float64
 # X_test : (N_test,  n_features)            float64
@@ -115,7 +115,7 @@ criterion = nn.BCELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # ---------------------------------------------------------------------------
-# 3) 학습 루프
+# 3) 트레인 루프
 #    반복마다의 형태:
 #      y_pred = model(X_train)              → (N_train, 1)
 #      loss = criterion(y_pred, y_train)    → () scalar
@@ -142,7 +142,7 @@ for epoch in range(num_epochs):
 
 # ---------------------------------------------------------------------------
 # 4) 평가
-#    학습/평가 동작이 다른 레이어(Dropout/BN)을 쓴다면 평가 모드로 바꾼다:
+#    트레인/평가 동작이 다른 레이어(Dropout/BN)을 쓴다면 평가 모드로 바꾼다:
 #      model.eval()
 #    y_predicted: (N_test, 1) probabilities in [0,1]
 #    y_predicted_cls: (N_test, 1) in {0,1} after thresholding via .round()
@@ -200,9 +200,9 @@ accuracy: 0.9649
 
 ### 전처리와 파라메터
 
-피처 30개와 바이어스로 총 31개 파라메터를 학습한다. StandardScaler는 학습 데이터에서만 적합하고 시험 집합에는 같은 변환을 적용한다. 결과 확률은 클래스 1일 확률이며, 이 데이터에서 클래스 1은 양성(benign) 종양이다. 출력의 `Positive Cases`도 악성이 아니라 이 클래스 1(357개)을 센 것이다.
+피처 30개와 바이어스로 총 31개 파라메터를 트레인한다. StandardScaler는 트레인 데이터에서만 적합하고 시험 집합에는 같은 변환을 적용한다. 결과 확률은 클래스 1일 확률이며, 이 데이터에서 클래스 1은 양성(benign) 종양이다. 출력의 `Positive Cases`도 악성이 아니라 이 클래스 1(357개)을 센 것이다.
 
-### 수치 안정성과 학습 상태
+### 수치 안정성과 트레인 상태
 
 확률을 만든 뒤 로그 로스를 계산하면 큰 로짓에서 포화와 정밀도 문제가 생길 수 있다. 다음 절의 `BCEWithLogitsLoss`는 이를 합친 안정적인 계산을 제공한다. 로스와 정확도를 함께 관찰하되 시험 집합을 반복 튜닝에 사용하면 별도 최종 평가가 필요하다.
 
@@ -216,14 +216,14 @@ accuracy: 0.9649
 </div>
 
 ??? success "풀이"
-    웨이트 $d$개와 바이어스 1개로 총 $d+1$개다. 배치 입력 $(B,d)$에 대한 출력은 $(B,1)$이다. 시그모이드에는 학습 파라메터가 없다. 유방암 데이터의 피처 30개를 쓰는 경우에는 31개다.
+    웨이트 $d$개와 바이어스 1개로 총 $d+1$개다. 배치 입력 $(B,d)$에 대한 출력은 $(B,1)$이다. 시그모이드에는 트레인 파라메터가 없다. 유방암 데이터의 피처 30개를 쓰는 경우에는 31개다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-옵티마이저를 Adam으로 바꾸고(`torch.optim.Adam`에 `lr=0.001`을 쓴다) 원래 옵티마이저와 학습 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
+옵티마이저를 Adam으로 바꾸고(`torch.optim.Adam`에 `lr=0.001`을 쓴다) 원래 옵티마이저와 트레인 수렴을 비교하라. 두 로스 곡선을 같은 그래프에 그려라.
 
 </div>
 

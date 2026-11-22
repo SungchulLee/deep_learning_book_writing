@@ -1,6 +1,6 @@
-# MNIST 확산 모델 학습 실행 예제
+# MNIST 확산 모델 트레인 실행 예제
 
-이 페이지는 [MNIST 확산 모델](mnist_diffusion.md)의 학습 클래스를 설정 사전으로 호출하는 진입점이다. 모델이나 로스를 새로 정의하지 않고 시간 단계 수, 배치 크기, 러닝레이트와 저장 간격을 한곳에 모은다.
+이 페이지는 [MNIST 확산 모델](mnist_diffusion.md)의 트레인 클래스를 설정 사전으로 호출하는 진입점이다. 모델이나 로스를 새로 정의하지 않고 시간 단계 수, 배치 크기, 러닝레이트와 저장 간격을 한곳에 모은다.
 
 ## 1. 코드
 
@@ -1025,7 +1025,7 @@ class MNISTDiffusion:
         인수:
             timesteps: 확산 때 걸음 수
             batch_size: 익히기 배치 크기
-            learning_rate: 옵티마이저의 학습률
+            learning_rate: 옵티마이저의 러닝레이트
             device: 익힐 장치('cuda' 또는 'cpu')
         """
         self.timesteps = timesteps
@@ -1111,7 +1111,7 @@ class MNISTDiffusion:
         )
     
     def train_epoch(self, dataloader):
-        """한 에폭을 학습한다."""
+        """한 에폭을 트레인한다."""
         self.model.train()
         total_loss = 0
         num_batches = 0
@@ -1175,7 +1175,7 @@ class MNISTDiffusion:
         확산 모델을 익힌다.
         
         인수:
-            epochs: 학습 에포크 수
+            epochs: 트레인 에포크 수
             save_interval: N바퀴마다 표본을 갈무리한다
         """
         dataloader = self.get_dataloader(train=True)
@@ -1191,7 +1191,7 @@ class MNISTDiffusion:
         for epoch in range(1, epochs + 1):
             print(f"\nEpoch {epoch}/{epochs}")
             
-            # 학습
+            # 트레인
             avg_loss = self.train_epoch(dataloader)
             losses.append(avg_loss)
             
@@ -1211,7 +1211,7 @@ class MNISTDiffusion:
             if epoch % 50 == 0:
                 self.save_checkpoint(f'checkpoint_epoch_{epoch}.pt')
         
-        # 학습 손실 그리기
+        # 트레인 손실 그리기
         plt.figure(figsize=(10, 5))
         plt.plot(losses)
         plt.xlabel('Epoch')
@@ -1260,7 +1260,7 @@ def main():
         learning_rate=2e-4
     )
     
-    # 학습
+    # 트레인
     mnist_diffusion.train(epochs=100, save_interval=10)
     
     # 마지막 표본을 만든다
@@ -1306,7 +1306,7 @@ def main():
         learning_rate=config['learning_rate']
     )
     
-    # 학습
+    # 트레인
     diffusion.train(
         epochs=config['epochs'],
         save_interval=config['save_interval']
@@ -1325,15 +1325,15 @@ if __name__ == "__main__":
 
 ## 2. 설정이 전달되는 경로
 
-생성자에는 timesteps=1000, batch_size=128, learning_rate=0.0002를 전달한다. epochs=100과 save_interval=10은 이후 train 메서드에 전달한다. 각 인수가 소비되는 위치를 구분하면 생성자의 모델 설정과 학습 반복 설정을 혼동하지 않을 수 있다.
+생성자에는 timesteps=1000, batch_size=128, learning_rate=0.0002를 전달한다. epochs=100과 save_interval=10은 이후 train 메서드에 전달한다. 각 인수가 소비되는 위치를 구분하면 생성자의 모델 설정과 트레인 반복 설정을 혼동하지 않을 수 있다.
 
 MNISTDiffusion은 코사인 스케줄, base_channels=64의 SimpleUNet, Adam과 EMA 모델을 준비한다. 별도 장치를 지정하지 않아 CUDA가 사용 가능하면 CUDA를, 그렇지 않으면 CPU를 선택한다. 이 파일은 장치나 난수 시드, 스케줄 종류를 직접 지정하는 인터페이스를 제공하지 않는다.
 
 ## 3. 실행 시 수행하는 작업
 
-실제로 main을 실행하면 학습 클래스가 MNIST 로더를 만들며 필요한 경우 데이터를 내려받는다. 픽셀을 [−1,1]로 바꾸고 균등하게 뽑은 시간별 노이즈 예측 MSE를 최소화한다. 라벨은 사용하지 않으며 별도 테스트 평가는 없다.
+실제로 main을 실행하면 트레인 클래스가 MNIST 로더를 만들며 필요한 경우 데이터를 내려받는다. 픽셀을 [−1,1]로 바꾸고 균등하게 뽑은 시간별 노이즈 예측 MSE를 최소화한다. 라벨은 사용하지 않으며 별도 테스트 평가는 없다.
 
-60,000개 데이터를 배치 128개씩 마지막 배치까지 사용하므로 한 에포크는 469회, 100에포크는 46,900회의 optimizer 업데이트다. 생성에 쓰는 1,000단계는 **배치당 1,000회 학습한다는 뜻이 아니다**. 각 학습 이미지에는 무작위로 고른 한 단계의 노이즈를 직접 섞는다.
+60,000개 데이터를 배치 128개씩 마지막 배치까지 사용하므로 한 에포크는 469회, 100에포크는 46,900회의 optimizer 업데이트다. 생성에 쓰는 1,000단계는 **배치당 1,000회 트레인한다는 뜻이 아니다**. 각 트레인 이미지에는 무작위로 고른 한 단계의 노이즈를 직접 섞는다.
 
 train은 에포크 1과 이후 10에포크마다 EMA 샘플을 저장하고, 50에포크마다 체크포인트를 남긴다. 종료 시 training_loss.png를 만들며, 이 진입점은 추가로 mnist_diffusion_model.pt를 저장한다. 실행 시간이나 로스 감소, 생성 품질을 확인한 결과가 이 페이지에 제시된 것은 아니다.
 
@@ -1341,7 +1341,7 @@ train은 에포크 1과 이후 10에포크마다 EMA 샘플을 저장하고, 50�
 
 설정 사전을 출력하는 것은 실행 조건을 살피는 데 도움이 되지만 완전한 실험 기록은 아니다. 난수 상태와 소프트웨어 버전, 데이터 처리 조건을 함께 기록해야 재현성을 판단할 수 있다. 기존 파일과 같은 이름으로 저장하므로 반복 실행 결과를 구분할 별도 경로도 필요하다.
 
-이 예제에는 체크포인트를 불러오는 분기가 없어 호출할 때 새 모델로 학습을 시작한다. 클래스의 load_checkpoint를 사용하더라도 저장된 확산 계수와 에포크·난수 상태는 복원하지 않는다. 스케줄 변경 실험은 생성 조건까지 일치시키고 같은 계산 예산에서 별도로 비교해야 한다.
+이 예제에는 체크포인트를 불러오는 분기가 없어 호출할 때 새 모델로 트레인을 시작한다. 클래스의 load_checkpoint를 사용하더라도 저장된 확산 계수와 에포크·난수 상태는 복원하지 않는다. 스케줄 변경 실험은 생성 조건까지 일치시키고 같은 계산 예산에서 별도로 비교해야 한다.
 
 ## 연습문제
 
@@ -1363,7 +1363,7 @@ config의 다섯 항목이 각각 어디로 전달되는지 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-1,000단계와 100에포크가 학습 비용에 미치는 의미를 구분하라.
+1,000단계와 100에포크가 트레인 비용에 미치는 의미를 구분하라.
 
 </div>
 
@@ -1378,7 +1378,7 @@ config의 다섯 항목이 각각 어디로 전달되는지 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-이 진입점이 자동으로 중단 학습을 재개하는가? 공정한 설정 비교에 추가로 필요한 것은 무엇인가?
+이 진입점이 자동으로 중단 트레인을 재개하는가? 공정한 설정 비교에 추가로 필요한 것은 무엇인가?
 
 </div>
 
@@ -1390,4 +1390,4 @@ config의 다섯 항목이 각각 어디로 전달되는지 설명하라.
 
 ## 정리하며
 
-이 파일은 설정 사전과 학습 클래스 호출을 연결하는 진입점이다. 학습 단계와 생성 단계를 구분하고, 저장 파일·검증 범위·재개 기능의 유무를 확인한다.
+이 파일은 설정 사전과 트레인 클래스 호출을 연결하는 진입점이다. 트레인 단계와 생성 단계를 구분하고, 저장 파일·검증 범위·재개 기능의 유무를 확인한다.

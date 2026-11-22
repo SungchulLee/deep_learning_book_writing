@@ -1,13 +1,13 @@
-# 간단한 뉴럴 네트워크 — 텐서에서 학습 한 걸음까지
+# 간단한 뉴럴 네트워크 — 텐서에서 트레인 한 걸음까지
 
-앞의 쪽들이 텐서와 자동 미분을 따로따로 보았다. 이 쪽은 그 둘을 이어 **학습 한 걸음**을 끝까지 따라간다 — 레이어를 쌓고, 파라메터를 세고, 로스를 재고, 그래디언트를 구하고, 웨이트를 옮긴다.
+앞의 쪽들이 텐서와 자동 미분을 따로따로 보았다. 이 쪽은 그 둘을 이어 **트레인 한 걸음**을 끝까지 따라간다 — 레이어를 쌓고, 파라메터를 세고, 로스를 재고, 그래디언트를 구하고, 웨이트를 옮긴다.
 
-마지막 두 절은 처음 쓰는 사람이 거의 반드시 헷갈리는 자리다. `model.eval()`이 무엇을 하고 무엇을 하지 않는지, 그리고 클래스 속성에 넣은 텐서가 왜 학습되지 않는지다.
+마지막 두 절은 처음 쓰는 사람이 거의 반드시 헷갈리는 자리다. `model.eval()`이 무엇을 하고 무엇을 하지 않는지, 그리고 클래스 속성에 넣은 텐서가 왜 트레인되지 않는지다.
 
 ## 1. 코드
 
 ```python
-"""튜토리얼 21: 단순한 뉴럴 네트워크 — 텐서에서 학습 한 걸음까지."""
+"""튜토리얼 21: 단순한 뉴럴 네트워크 — 텐서에서 트레인 한 걸음까지."""
 import torch
 import torch.nn as nn
 
@@ -115,7 +115,7 @@ def main():
     print(f"parameters() 가 세는 수 : {sum(p.numel() for p in t.parameters())}")
     print(f"state_dict() 의 열쇠     : {list(t.state_dict().keys())}")
     print(f"plain.requires_grad      : {t.plain.requires_grad}")
-    print("-> 클래스 속성에 넣었다고 학습되지 않는다. 옵티마이저도 저장도 지나친다.")
+    print("-> 클래스 속성에 넣었다고 트레인되지 않는다. 옵티마이저도 저장도 지나친다.")
 
 
 if __name__ == "__main__":
@@ -177,7 +177,7 @@ no_grad() 안    requires_grad = False, grad_fn = None
 parameters() 가 세는 수 : 3
 state_dict() 의 열쇠     : ['param']
 plain.requires_grad      : False
--> 클래스 속성에 넣었다고 학습되지 않는다. 옵티마이저도 저장도 지나친다.
+-> 클래스 속성에 넣었다고 트레인되지 않는다. 옵티마이저도 저장도 지나친다.
 ```
 
 ## 2. 파라메터는 모양에서 바로 나온다
@@ -188,7 +188,7 @@ plain.requires_grad      : False
 
 ## 3. 한 걸음은 뺄셈 하나다
 
-4절이 재는 것이 학습의 전부다. 옵티마이저가 `step()`에서 하는 일은
+4절이 재는 것이 트레인의 전부다. 옵티마이저가 `step()`에서 하는 일은
 
 $$
 w \leftarrow w - \eta \cdot \frac{\partial L}{\partial w}
@@ -222,9 +222,9 @@ $$
 
 ## 5. 속성에 넣었다고 파라메터가 아니다
 
-6절이 그것을 보인다. `self.plain = torch.ones(3)`은 그냥 속성이다 — `parameters()`가 세지 않고, `state_dict()`에 들어가지 않고, `requires_grad`도 `False`다. 옵티마이저에게 넘어가지 않으니 **학습되지 않고**, 저장에도 빠지고, `.to(device)`도 비껴간다.
+6절이 그것을 보인다. `self.plain = torch.ones(3)`은 그냥 속성이다 — `parameters()`가 세지 않고, `state_dict()`에 들어가지 않고, `requires_grad`도 `False`다. 옵티마이저에게 넘어가지 않으니 **트레인되지 않고**, 저장에도 빠지고, `.to(device)`도 비껴간다.
 
-`nn.Parameter`로 감싸면 셋 다 해결된다. 학습하지는 않되 모델과 함께 다녀야 하는 값이라면 `register_buffer`를 쓴다.
+`nn.Parameter`로 감싸면 셋 다 해결된다. 트레인하지는 않되 모델과 함께 다녀야 하는 값이라면 `register_buffer`를 쓴다.
 
 ## 연습문제
 
@@ -293,7 +293,7 @@ $$
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-학습하지는 않되 모델과 함께 다녀야 하는 값이 있다고 하자(이를테면 정규화 상수). 속성으로 두는 것, `nn.Parameter`로 감싸는 것, `register_buffer`로 등록하는 것 **셋이 어떻게 다른지** 네 가지로 재어라 — `parameters()`에 잡히는가, `state_dict()`에 들어가는가, `requires_grad`가 무엇인가, `.to(device)`를 따라가는가.
+트레인하지는 않되 모델과 함께 다녀야 하는 값이 있다고 하자(이를테면 정규화 상수). 속성으로 두는 것, `nn.Parameter`로 감싸는 것, `register_buffer`로 등록하는 것 **셋이 어떻게 다른지** 네 가지로 재어라 — `parameters()`에 잡히는가, `state_dict()`에 들어가는가, `requires_grad`가 무엇인가, `.to(device)`를 따라가는가.
 
 </div>
 
@@ -305,8 +305,8 @@ $$
         def __init__(self):
             super().__init__()
             self.plain = torch.ones(3)                  # 그냥 속성
-            self.param = nn.Parameter(torch.ones(3))    # 학습한다
-            self.register_buffer("buf", torch.ones(3))  # 함께 다니되 학습하지 않는다
+            self.param = nn.Parameter(torch.ones(3))    # 트레인한다
+            self.register_buffer("buf", torch.ones(3))  # 함께 다니되 트레인하지 않는다
 
     m = Three()
     print("parameters():", [n for n, _ in m.named_parameters()])
@@ -334,12 +334,12 @@ $$
     | `nn.Parameter` | ✓ | ✓ | True | 따라간다 |
     | `register_buffer` | ✗ | ✓ | False | 따라간다 |
 
-    정규화 상수라면 **`register_buffer`가 답이다.** 학습되지 않으면서 저장에 들어가고 장치를 따라간다.
+    정규화 상수라면 **`register_buffer`가 답이다.** 트레인되지 않으면서 저장에 들어가고 장치를 따라간다.
 
     그냥 속성이 가장 고약하다. 넷 가운데 셋을 빠뜨리는데 **오류는 나지 않는다.** CPU에서 짠 코드가 GPU에서 "expected all tensors to be on the same device"로 터지거나, 저장했다 불러온 모델이 그 값만 초깃값으로 돌아가 있거나 한다. 배치 정규화가 `running_mean`을 버퍼로 두는 까닭이 이것이다.
 
 ## 정리하며
 
-학습 한 걸음은 네 줄이다 — 지우고(`zero_grad`), 재고(`forward`, 로스), 미분하고(`backward`), 옮긴다(`step`). 4절이 그 마지막 줄이 정말 $w - \eta \cdot \partial L/\partial w$인지를 수로 확인했다.
+트레인 한 걸음은 네 줄이다 — 지우고(`zero_grad`), 재고(`forward`, 로스), 미분하고(`backward`), 옮긴다(`step`). 4절이 그 마지막 줄이 정말 $w - \eta \cdot \partial L/\partial w$인지를 수로 확인했다.
 
 그 네 줄보다 자주 탈이 나는 것은 **스위치와 등록**이다. `eval()`과 `no_grad()`는 서로 다른 일을 하고 추론할 때는 둘 다 필요하며, 클래스 속성에 넣은 텐서는 옵티마이저도 저장도 장치 이동도 지나친다. 둘 다 **오류 없이** 틀리는 쪽이라 알고 찾지 않으면 드러나지 않는다.

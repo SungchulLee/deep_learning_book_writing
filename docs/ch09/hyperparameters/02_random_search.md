@@ -50,7 +50,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 def load_sample_dataset(name="iris", test_size=0.3, random_state=42, scale=True):
-    """예제가 함께 쓰는 자료를 불러와 학습/시험으로 나눈다.
+    """예제가 함께 쓰는 자료를 불러와 트레인/시험으로 나눈다.
 
     인수:
         name: 'iris', 'wine', 'synthetic' 가운데 하나
@@ -83,8 +83,8 @@ def load_sample_dataset(name="iris", test_size=0.3, random_state=42, scale=True)
     )
 
     if scale:
-        # 고르게 맞추는 값은 반드시 학습 집합에서만 구한다.
-        # 전체에서 구하면 시험 자료의 정보가 학습에 새어 든다.
+        # 고르게 맞추는 값은 반드시 트레인 집합에서만 구한다.
+        # 전체에서 구하면 시험 자료의 정보가 트레인에 새어 든다.
         scaler = StandardScaler().fit(X_train)
         X_train = scaler.transform(X_train)
         X_test = scaler.transform(X_test)
@@ -696,7 +696,7 @@ n_iter=50, cv=3, refit=True이면 후보 평가와 재적합 횟수는 얼마인
 </div>
 
 ??? success "풀이"
-    후보가 충분하다면 평가 적합 150회와 전체 학습 데이터 재적합 한 번이다. 탐색 방법 자체의 시간과 모델마다 다른 학습 비용도 추가로 고려한다.
+    후보가 충분하다면 평가 적합 150회와 전체 트레인 데이터 재적합 한 번이다. 탐색 방법 자체의 시간과 모델마다 다른 트레인 비용도 추가로 고려한다.
 
 ---
 

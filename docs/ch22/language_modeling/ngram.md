@@ -1,6 +1,6 @@
 # n-그램 언어 모델과 평활화
 
-언어 모델은 다음 토큰의 조건부 분포를 통해 텍스트의 확률을 표현한다. n-그램은 최근 n−1토큰의 빈도로 조건부 확률을 추정하는 고전적인 기준 모델이다. 여기서는 소문자화·공백 분리한 단어를 사용하며 Python의 Counter로 구현한다. PyTorch 뉴럴 네트워크나 의미 embedding을 학습하는 예제는 아니다.
+언어 모델은 다음 토큰의 조건부 분포를 통해 텍스트의 확률을 표현한다. n-그램은 최근 n−1토큰의 빈도로 조건부 확률을 추정하는 고전적인 기준 모델이다. 여기서는 소문자화·공백 분리한 단어를 사용하며 Python의 Counter로 구현한다. PyTorch 뉴럴 네트워크나 의미 embedding을 트레인하는 예제는 아니다.
 
 ## 1. 사슬 규칙과 제한된 문맥
 
@@ -32,7 +32,7 @@ class UnigramModel:
         self.vocab = set()
     
     def train(self, corpus: List[str]) -> None:
-        """문장 말뭉치로 학습."""
+        """문장 말뭉치로 트레인."""
         for sentence in corpus:
             words = sentence.lower().split()
             self.word_counts.update(words)
@@ -110,7 +110,7 @@ class BigramModel:
         self.END = "</s>"
     
     def train(self, corpus: List[str]) -> None:
-        """말뭉치로 바이그램 모델 학습."""
+        """말뭉치로 바이그램 모델 트레인."""
         total_bigrams = 0
         
         for sentence in corpus:
@@ -217,7 +217,7 @@ class TrigramModel:
         self.END = "</s>"
     
     def train(self, corpus: List[str]) -> None:
-        """트라이그램 모델 학습."""
+        """트라이그램 모델 트레인."""
         for sentence in corpus:
             words = sentence.lower().split()
             # 트라이그램 문맥을 위한 시작 토큰 둘
@@ -247,7 +247,7 @@ class TrigramModel:
         return trigram_count / bigram_count if bigram_count > 0 else 0.0
 ```
 
-앞의 두 시작 토큰과 마지막 종료 토큰을 포함해 세 단어 빈도/앞 두 단어 문맥 빈도로 계산한다. 이 클래스는 학습 때 소문자화하지만 probability에서는 입력을 소문자로 바꾸지 않아 호출자가 전처리를 맞춰야 한다. 미관측 문맥은 0이다. 문법적으로 가능한 조합이라도 학습에 없으면 MLE는 0을 줄 수 있고, 평가 정답에 0이 하나라도 있으면 정확한 음의 로그가능도(log-likelihood, 로그우도라고도 한다)·퍼플렉서티는 무한대가 된다.
+앞의 두 시작 토큰과 마지막 종료 토큰을 포함해 세 단어 빈도/앞 두 단어 문맥 빈도로 계산한다. 이 클래스는 트레인 때 소문자화하지만 probability에서는 입력을 소문자로 바꾸지 않아 호출자가 전처리를 맞춰야 한다. 미관측 문맥은 0이다. 문법적으로 가능한 조합이라도 트레인에 없으면 MLE는 0을 줄 수 있고, 평가 정답에 0이 하나라도 있으면 정확한 음의 로그가능도(log-likelihood, 로그우도라고도 한다)·퍼플렉서티는 무한대가 된다.
 
 어휘 크기를 고정하면 가능한 n-그램 조합은 |V|^n이지만 모든 조합을 저장해야 하는 것은 아니다. 관측된 조합만 저장할 수 있고 차수·데이터에 따라 메모리가 달라진다. UNK 정책과 평활화는 미관측 단어와 미관측 문맥을 어떻게 처리하는지 구분해야 한다.
 
@@ -273,7 +273,7 @@ class LaplaceBigramModel:
         self.END = "</s>"
     
     def train(self, corpus: List[str], min_freq: int = 1) -> None:
-        """어휘 임계값을 두고 학습."""
+        """어휘 임계값을 두고 트레인."""
         # 1차: 단어 세기
         word_counts = Counter()
         for sentence in corpus:
@@ -342,8 +342,8 @@ class InterpolatedBigramModel:
         self.vocab = set()
     
     def train(self, corpus: List[str]) -> None:
-        """보간 모델 학습."""
-        # ... 위와 비슷한 학습 코드 ...
+        """보간 모델 트레인."""
+        # ... 위와 비슷한 트레인 코드 ...
         pass
     
     def unigram_probability(self, word: str) -> float:
@@ -369,7 +369,7 @@ class InterpolatedBigramModel:
         return self.lambda2 * p_bigram + self.lambda1 * p_unigram
 ```
 
-InterpolatedBigramModel의 train은 pass다. 어휘·빈도·total_words가 채워지지 않아 생성 직후에는 유니그램 분모가 0이 될 수 있다. λ의 합만 확인하고 비음수 조건은 확인하지 않는다. 데이터 학습·미관측 문맥 처리·어휘 계약 없이 이 클래스로 보간 실험이 완성되었다고 설명할 수 없다.
+InterpolatedBigramModel의 train은 pass다. 어휘·빈도·total_words가 채워지지 않아 생성 직후에는 유니그램 분모가 0이 될 수 있다. λ의 합만 확인하고 비음수 조건은 확인하지 않는다. 데이터 트레인·미관측 문맥 처리·어휘 계약 없이 이 클래스로 보간 실험이 완성되었다고 설명할 수 없다.
 
 Kneser–Ney는 높은 차수의 관측 빈도를 discount하고 낮은 차수에서는 단어의 총 빈도 대신 **서로 다른 선행 문맥 수** 같은 continuation 통계를 활용한다. 특정 이름 뒤에만 자주 나오는 단어와 여러 문맥 뒤에 나타나는 단어를 구분하려는 목적이다. 단일·수정 discount와 backoff 규칙의 구체적 구현은 별개이며 이 페이지에는 Kneser–Ney 코드가 없다. [언어 모델 교재](https://web.stanford.edu/~jurafsky/slp3/3.pdf)의 평활화 설명과 대조해 읽는다.
 
@@ -534,9 +534,9 @@ compute_perplexity는 종료를 포함한 각 문장 길이+1개 사건을 센�
 
 ## 9. 비교와 한계
 
-차수·평활화는 동일 말뭉치·학습 어휘·UNK·토큰화·문장 경계에서 검증하고 최종 시험을 분리한다. 데이터 전처리·분할·사전 크기를 모르는 Penn Treebank의 ‘흔한 PPL’ 범위를 고정 순위로 제시하지 않는다. 코드가 구현하지 않은 Kneser–Ney 성능을 이 시연에 연결하지도 않는다.
+차수·평활화는 동일 말뭉치·트레인 어휘·UNK·토큰화·문장 경계에서 검증하고 최종 시험을 분리한다. 데이터 전처리·분할·사전 크기를 모르는 Penn Treebank의 ‘흔한 PPL’ 범위를 고정 순위로 제시하지 않는다. 코드가 구현하지 않은 Kneser–Ney 성능을 이 시연에 연결하지도 않는다.
 
-n-그램은 제한된 문맥과 개별 빈도를 사용해 희소 조합 사이의 파라메터 공유가 약하다. 그러나 낮은 차수 보간·공유 단어 빈도 덕분에 한 문장의 통계가 다른 문장에 전혀 영향을 주지 않는다는 설명도 지나치다. 뉴럴 언어 모델의 분산 표현은 다른 공유 방식을 제공하며 실제 이점은 데이터·학습·평가 조건에서 확인한다.
+n-그램은 제한된 문맥과 개별 빈도를 사용해 희소 조합 사이의 파라메터 공유가 약하다. 그러나 낮은 차수 보간·공유 단어 빈도 덕분에 한 문장의 통계가 다른 문장에 전혀 영향을 주지 않는다는 설명도 지나치다. 뉴럴 언어 모델의 분산 표현은 다른 공유 방식을 제공하며 실제 이점은 데이터·트레인·평가 조건에서 확인한다.
 
 ## 연습문제
 
@@ -546,7 +546,7 @@ n-그램은 제한된 문맥과 개별 빈도를 사용해 희소 조합 사이�
 
 3. **보간의 조건**: λ의 합이 1이라는 것만으로 정규화가 보장되는가? → 비음수 웨이트와 각 구성 분포의 정규화가 필요하다. 미관측 문맥에서 모든 후보에 0을 반환하는 부분 모델은 그 조건을 만족하지 않는다.
 
-4. **생성 계약**: TextGenerator에 Laplace 모델을 넣으면 Laplace 확률로 생성하는가? → 아니다. 저장 빈도를 직접 사용하므로 평활화 함수를 우회한다. 생성 후보와 학습 모델의 확률 정의를 연결해야 한다.
+4. **생성 계약**: TextGenerator에 Laplace 모델을 넣으면 Laplace 확률로 생성하는가? → 아니다. 저장 빈도를 직접 사용하므로 평활화 함수를 우회한다. 생성 후보와 트레인 모델의 확률 정의를 연결해야 한다.
 
 5. **0확률의 평가**: 정답 확률 0을 log2 값 −100으로 치환하면 정확한 PPL인가? → 아니다. 정확한 로그가능도는 −∞, PPL은 ∞다. 임의 치환은 정의를 바꾸며 빈 평가 집합도 별도로 처리해야 한다.
 

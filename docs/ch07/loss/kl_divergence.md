@@ -306,7 +306,7 @@ def kl_free_bits(mu, logvar, free_bits=0.1):
     return kl_per_dim.sum(dim=1)
 ```
 
-**KL 웨이트 스케줄링(KL annealing).** 학습 중에 KL 웨이트를 점차 키운다.
+**KL 웨이트 스케줄링(KL annealing).** 트레인 중에 KL 웨이트를 점차 키운다.
 
 ```python
 def get_beta(epoch, warmup_epochs=10, max_beta=1.0):

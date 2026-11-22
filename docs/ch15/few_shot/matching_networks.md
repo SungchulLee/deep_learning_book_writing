@@ -144,7 +144,7 @@ def cosine_distance(x, y):
 
 def train_matching_network(model, support, support_labels, query, query_labels, optimizer):
     """
-    매칭 네트워크의 학습 스텝.
+    매칭 네트워크의 트레인 스텝.
     """
     model.train()
     optimizer.zero_grad()
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     predictions = model(support, support_labels, query)
     print(f"Predictions shape: {predictions.shape}")  # (15, 5)
     
-    # 학습
+    # 트레인
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss, acc = train_matching_network(model, support, support_labels, query, query_labels, optimizer)
     print(f"Loss: {loss:.4f}, Accuracy: {acc:.4f}")
@@ -230,7 +230,7 @@ Predicted classes: tensor([4, 4, 4, 3, 3, 4, 4, 4, 4, 3, 3, 4, 3, 4, 3])
 
 이 구현은 use_full_context_embeddings 값을 저장하지만 실제 계산에 사용하지 않는다. AttentionEncoder도 주 예제에서 호출되지 않는다. 따라서 양방향 LSTM으로 서포트 문맥을 반영하는 원 논문의 전체 모델로 해석할 수 없다. 주 예제의 SimpleEncoder는 세 번 풀링하여 28×28을 3×3으로 줄이고 576차원 임베딩을 만든다.
 
-학습 함수는 원핫 정답과 예측 확률의 이진 교차 엔트로피를 사용한다. 단일 라벨 다중 클래스 분류의 일반적인 음의 로그가능도(negative log-likelihood, NLL)와는 다른 목적함수다. 주석의 대안처럼 확률을 CrossEntropyLoss에 직접 넣으면 다시 log-softmax가 적용되므로 같은 로스가 되지 않는다. 확률을 이용한 음의 로그가능도는 정답 클래스 확률의 로그로 계산한다. 인덱스 라벨은 0부터 연속적으로 매기고, 원핫 입력은 열 개수가 클래스 수임을 확인한다. 무작위 입력의 출력 예시는 실제 인식 정확도가 아니다.
+트레인 함수는 원핫 정답과 예측 확률의 이진 교차 엔트로피를 사용한다. 단일 라벨 다중 클래스 분류의 일반적인 음의 로그가능도(negative log-likelihood, NLL)와는 다른 목적함수다. 주석의 대안처럼 확률을 CrossEntropyLoss에 직접 넣으면 다시 log-softmax가 적용되므로 같은 로스가 되지 않는다. 확률을 이용한 음의 로그가능도는 정답 클래스 확률의 로그로 계산한다. 인덱스 라벨은 0부터 연속적으로 매기고, 원핫 입력은 열 개수가 클래스 수임을 확인한다. 무작위 입력의 출력 예시는 실제 인식 정확도가 아니다.
 
 ## 연습문제
 

@@ -71,7 +71,7 @@ import torch
 import torch.nn as nn
 
 class GaussianNoise(nn.Module):
-    """학습 중에 입력에 정규 잡음을 더한다."""
+    """트레인 중에 입력에 정규 잡음을 더한다."""
     
     def __init__(self, std: float = 0.1, relative: bool = False):
         """
@@ -102,7 +102,7 @@ class GaussianNoise(nn.Module):
         return x
 
 class UniformNoise(nn.Module):
-    """학습 중에 입력에 균등 잡음을 더한다."""
+    """트레인 중에 입력에 균등 잡음을 더한다."""
     
     def __init__(self, low: float = -0.1, high: float = 0.1):
         super().__init__()
@@ -170,12 +170,12 @@ class NoisyLinear(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # 드롭아웃이 활성을 끄는 데 견주어, 여기서는 웨이트 자체를 흔든다.
-        # 매 스텝 조금씩 다른 웨이트로 학습하는 셈이라, 로스 지형에서
+        # 매 스텝 조금씩 다른 웨이트로 트레인하는 셈이라, 로스 지형에서
         # 좁고 뾰족한 골짜기 대신 넓고 평평한 골짜기를 찾게 된다.
         # 평평한 최소점이 일반화가 낫다는 것이 이 기법의 근거다
         if self.training and self.noise_std > 0:
             # 주의: 잡음을 self.weight에 제자리로 더하지 않고 새 텐서를
-            # 만든다. 제자리로 더하면 학습된 웨이트가 영구히 오염된다
+            # 만든다. 제자리로 더하면 트레인된 웨이트가 영구히 오염된다
             weight_noise = torch.randn_like(self.weight) * self.noise_std
             noisy_weight = self.weight + weight_noise
 
@@ -198,7 +198,7 @@ class NoisyLinear(nn.Module):
 ```python
 class GradientNoiseCallback:
     """
-    학습 중에 그래디언트에 잡음을 더한다.
+    트레인 중에 그래디언트에 잡음을 더한다.
     
     잡음의 스케줄은 보통 sigma_t^2 = eta / (1 + t)^gamma 으로 줄어든다
     """
@@ -227,7 +227,7 @@ class GradientNoiseCallback:
         # 뒤에 부르면 이미 갱신이 끝난 뒤라 잡음이 다음 스텝으로 밀린다
         with torch.no_grad():
             for param in model.parameters():
-                # 학습에 참여하지 않은 파라메터는 grad가 None이다.
+                # 트레인에 참여하지 않은 파라메터는 grad가 None이다.
                 # 걸러 내지 않으면 AttributeError가 난다
                 if param.grad is not None:
                     # 여기서는 제자리 add_가 맞다. 옵티마이저가 읽는 것은
@@ -310,12 +310,12 @@ class NetworkWithActivationNoise(nn.Module):
 
 ```python
 class ScheduledNoise(nn.Module):
-    """학습이 진행되며 크기가 바뀌는 잡음."""
+    """트레인이 진행되며 크기가 바뀌는 잡음."""
     
     def __init__(self, initial_std: float = 0.2, final_std: float = 0.01,
                  decay_steps: int = 10000):
         super().__init__()
-        # 학습 초기에는 잡음을 세게 넣어 넓게 탐색하게 하고, 뒤로 갈수록
+        # 트레인 초기에는 잡음을 세게 넣어 넓게 탐색하게 하고, 뒤로 갈수록
         # 줄여 세밀하게 수렴시킨다. 러닝레이트 스케줄과 같은 발상이다
         self.initial_std = initial_std   # 시작할 때의 잡음 크기
         self.final_std = final_std       # 끝에서의 잡음 크기
@@ -342,7 +342,7 @@ class ScheduledNoise(nn.Module):
             noise = torch.randn_like(x) * self.current_std
 
             # 스텝 세기를 forward 안에서 한다. 옵티마이저와 따로 놀지 않게
-            # 하려면 학습 루프에서 명시적으로 올려 주는 편이 더 안전하지만,
+            # 하려면 트레인 루프에서 명시적으로 올려 주는 편이 더 안전하지만,
             # 이 방식은 레이어를 꽂기만 하면 되어 손이 덜 간다
             self.current_step += 1
             return x + noise
@@ -350,7 +350,7 @@ class ScheduledNoise(nn.Module):
         return x   # 평가할 때는 아무것도 하지 않는다
 ```
 
-### 변분 레이어 (학습 가능한 잡음)
+### 변분 레이어 (트레인 가능한 잡음)
 
 ```python
 class VariationalLayer(nn.Module):
@@ -359,7 +359,7 @@ class VariationalLayer(nn.Module):
     def __init__(self, in_features: int, out_features: int):
         super().__init__()
         # 앞의 NoisyLinear가 잡음 크기를 사람이 정해 주었다면, 여기서는
-        # 그 크기까지 학습한다. 웨이트 하나하나를 값이 아니라 "분포"로
+        # 그 크기까지 트레인한다. 웨이트 하나하나를 값이 아니라 "분포"로
         # 들고 있는 셈이며, 이것이 베이즈 뉴럴 네트워크의 가장 단순한 형태다.
 
         # 분산이 아니라 로그 분산을 파라메터로 둔다. 분산은 반드시
@@ -367,7 +367,7 @@ class VariationalLayer(nn.Module):
         # 돌려주므로 제약 없이 최적화할 수 있다
         self.w_mean = nn.Parameter(torch.randn(out_features, in_features) * 0.1)
         # -10에서 시작한다. exp(-10/2) 는 거의 0이라 처음에는 잡음이 없는
-        # 보통의 레이어처럼 굴다가, 학습이 진행되며 필요한 만큼만 잡음을 키운다
+        # 보통의 레이어처럼 굴다가, 트레인이 진행되며 필요한 만큼만 잡음을 키운다
         self.w_log_var = nn.Parameter(torch.full((out_features, in_features), -10.0))
 
         self.b_mean = nn.Parameter(torch.zeros(out_features))
@@ -378,7 +378,7 @@ class VariationalLayer(nn.Module):
             # 리파라메리제이션 기법(reparameterization trick).
             # w ~ N(mean, std^2) 에서 바로 뽑으면 그 뽑기를 미분할 수 없다.
             # 대신 표준정규에서 뽑아 mean + std * eps 로 만들면, 무작위성이
-            # eps에만 남고 mean과 std로는 그래디언트가 흘러 학습할 수 있다.
+            # eps에만 남고 mean과 std로는 그래디언트가 흘러 트레인할 수 있다.
             # 로그 분산에 0.5를 곱해 exp하면 표준편차가 된다
             w_std = torch.exp(0.5 * self.w_log_var)
             w = self.w_mean + w_std * torch.randn_like(self.w_mean)
@@ -396,7 +396,7 @@ class VariationalLayer(nn.Module):
 
     def kl_divergence(self) -> torch.Tensor:
         """사전분포(표준정규분포)로부터의 KL 발산."""
-        # 이 항을 로스에 더해야 학습이 성립한다. 없으면 모델이 잡음을
+        # 이 항을 로스에 더해야 트레인이 성립한다. 없으면 모델이 잡음을
         # 0으로 줄이는 것이 언제나 이득이라 보통의 레이어로 되돌아간다.
         # KL이 "표준정규에서 너무 멀어지지 말라"는 패널티 노릇을 한다.
         #
@@ -411,7 +411,7 @@ class VariationalLayer(nn.Module):
 
 ---
 
-## 5. 완전한 학습 예제
+## 5. 완전한 트레인 예제
 
 ```python
 import torch.optim as optim
@@ -425,7 +425,7 @@ def train_with_noise_injection(
     gradient_noise_eta: float = 0.01,
     epochs: int = 100
 ) -> dict:
-    """여러 종류의 잡음 주입과 함께 모델을 학습시킨다."""
+    """여러 종류의 잡음 주입과 함께 모델을 트레인시킨다."""
     
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -433,7 +433,7 @@ def train_with_noise_injection(
     # 주의: input_noise는 model 안에 등록된 레이어가 아니라 따로 만든
     # 모듈이다. 그래서 아래 model.train()과 model.eval()이 이 모듈의
     # self.training에는 아무 영향도 주지 않는다. 갓 만든 모듈의
-    # training이 True라 학습에서는 뜻대로 동작하지만, 검증에서도
+    # training이 True라 트레인에서는 뜻대로 동작하지만, 검증에서도
     # 이것을 부르면 잡음이 계속 더해진다. 아래 검증 구간이 잡음을
     # 쓰지 않는 것은 그래서 우연이 아니라 필요한 일이다.
     # 모델 안에 레이어로 넣어 두면 모드가 저절로 따라온다
@@ -505,18 +505,18 @@ def train_with_noise_injection(
 ### 잡음의 종류 고르기
 
 1. **입력 잡음**: 시험 데이터에 자연스러운 변이가 있을 수 있을 때
-2. **웨이트 잡음**: 섭동에 대한 강건성을 보거나, 변분 레이어처럼 잡음 크기까지 학습해 불확실성을 다루려 할 때
+2. **웨이트 잡음**: 섭동에 대한 강건성을 보거나, 변분 레이어처럼 잡음 크기까지 트레인해 불확실성을 다루려 할 때
 3. **그래디언트 잡음**: 아주 깊은 뉴럴 네트워크나 어려운 최적화일 때
 4. **활성화 잡음**: 범용 정칙화
 
 ### 잡음 크기의 선택
 
 - **너무 작으면**: 정칙화 효과가 거의 없다
-- **너무 크면**: 학습을 막고 신호를 없앤다
+- **너무 크면**: 트레인을 막고 신호를 없앤다
 - **지침**:
   - 입력 잡음: 입력 표준편차의 1~10%
   - 웨이트 잡음: 웨이트 크기에 견주어 0.01~0.1
-  - 그래디언트 잡음: eta=0.01에서 시작하여 학습이 진행되며 줄인다
+  - 그래디언트 잡음: eta=0.01에서 시작하여 트레인이 진행되며 줄인다
 
 ### 다른 기법과 결합하기
 
@@ -538,7 +538,7 @@ def train_with_noise_injection(
 </div>
 
 ??? success "풀이"
-    입력 잡음은 모델에 보여 주는 입력을, 웨이트 잡음은 예측 함수를 계산할 파라메터를, 그래디언트 잡음은 갱신에 사용하는 방향을 바꾼다. 서로 다른 목적이나 학습 궤적을 만들며 모두 일반화 개선이나 베이즈 추론을 자동 보장하는 것은 아니다.
+    입력 잡음은 모델에 보여 주는 입력을, 웨이트 잡음은 예측 함수를 계산할 파라메터를, 그래디언트 잡음은 갱신에 사용하는 방향을 바꾼다. 서로 다른 목적이나 트레인 궤적을 만들며 모두 일반화 개선이나 베이즈 추론을 자동 보장하는 것은 아니다.
 
 ---
 

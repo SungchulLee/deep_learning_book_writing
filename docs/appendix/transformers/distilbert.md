@@ -1,6 +1,6 @@
 # DistilBERT
 
-DistilBERT는 2019년 논문 "DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter"에서 나왔다. 이 모델은 **지식 증류**(knowledge distillation)로 만든다 — 더 큰 교사 모델의 출력을 따라 하도록 더 작은 학생 트랜스포머를 학습하는 것이다. 대개 레이어 수는 적고 은닉 크기는 비슷하다.
+DistilBERT는 2019년 논문 "DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter"에서 나왔다. 이 모델은 **지식 증류**(knowledge distillation)로 만든다 — 더 큰 교사 모델의 출력을 따라 하도록 더 작은 학생 트랜스포머를 트레인하는 것이다. 대개 레이어 수는 적고 은닉 크기는 비슷하다.
 
 이 쪽의 구현은 DistilBERT의 핵심만 남긴 교육용 예시다. 코드는 핵심 구조와 순전파(forward pass, 입력에서 출력까지의 계산)에 집중하므로, 주요 구성 요소를 살펴보고 여러 가지로 바꾸어 보기 쉽다.
 
@@ -13,7 +13,7 @@ DistilBERT - 지식 증류로 줄인 BERT
 논문: "DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter" (2019)
 저자: 빅토르 상 외
 핵심 아이디어:
-  - 지식 증류: 더 큰 교사 모델을 따라 하도록 더 작은 학생 트랜스포머를 학습한다
+  - 지식 증류: 더 큰 교사 모델을 따라 하도록 더 작은 학생 트랜스포머를 트레인한다
   - 대개 레이어 수는 적고 은닉 크기는 비슷하다
 
 파일: appendix/transformers/distilbert.py
@@ -33,7 +33,7 @@ class DistilBERT(nn.Module):
     인코더만 있는 DistilBERT 형태 트랜스포머.
 
     BERT나 RoBERTa와 비슷하되 인코더 레이어가 더 적다.
-    지식 증류는 학습 과정에서 일어난다(여기서는 구현하지 않는다).
+    지식 증류는 트레인 과정에서 일어난다(여기서는 구현하지 않는다).
     """
     def __init__(self, vocab_size=30522, d_model=768, nhead=12, num_layers=6):
         super().__init__()
@@ -72,16 +72,16 @@ logits: torch.Size([2, 10, 1000])
 
 ## 2. 논의
 
-`DistilBERT` 클래스는 PyTorch의 `nn.Module` 인터페이스를 써서 모델 구조를 담는다. `forward` 메서드가 계산 그래프를 정의하므로 학습하는 동안 PyTorch의 autograd가 그래디언트 계산을 자동으로 처리한다. 이렇게 모듈로 나눈 설계 덕에 구성 요소 하나하나를 고치거나 더 큰 파이프라인에 넣기가 쉽다.
+`DistilBERT` 클래스는 PyTorch의 `nn.Module` 인터페이스를 써서 모델 구조를 담는다. `forward` 메서드가 계산 그래프를 정의하므로 트레인하는 동안 PyTorch의 autograd가 그래디언트 계산을 자동으로 처리한다. 이렇게 모듈로 나눈 설계 덕에 구성 요소 하나하나를 고치거나 더 큰 파이프라인에 넣기가 쉽다.
 
-이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
+이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 트레인에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 트레인, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 설정으로 만든 `DistilBERT`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
+기본 설정으로 만든 `DistilBERT`의 트레인 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
 
 </div>
 
@@ -93,12 +93,12 @@ logits: torch.Size([2, 10, 1000])
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-어텐션 웨이트 뒤(값과 곱하기 앞)에 드롭아웃 레이어를 추가하여라. 학습하는 동안 드롭아웃 비율 0.1을 써라. 어텐션 드롭아웃이 정칙화에 왜 도움이 되는지 설명하여라.
+어텐션 웨이트 뒤(값과 곱하기 앞)에 드롭아웃 레이어를 추가하여라. 트레인하는 동안 드롭아웃 비율 0.1을 써라. 어텐션 드롭아웃이 정칙화에 왜 도움이 되는지 설명하여라.
 
 </div>
 
 ??? success "풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 추가하고 소프트맥스 뒤에 적용한다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 학습하는 동안 어텐션 웨이트 일부를 무작위로 0으로 만들어, 모델이 토큰 사이의 특정 관계에만 의존하는 것을 막는다. 그래서 모델이 어텐션을 더 고르게 분산하고 더 강건한 표현을 학습하게 되는데, 이는 일반 드롭아웃이 뉴런끼리의 공적응(co-adaptation, 서로에게 지나치게 의존하게 되는 것)을 막는 것과 같다.
+    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 추가하고 소프트맥스 뒤에 적용한다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 트레인하는 동안 어텐션 웨이트 일부를 무작위로 0으로 만들어, 모델이 토큰 사이의 특정 관계에만 의존하는 것을 막는다. 그래서 모델이 어텐션을 더 고르게 분산하고 더 강건한 표현을 학습하게 되는데, 이는 일반 드롭아웃이 뉴런끼리의 공적응(co-adaptation, 서로에게 지나치게 의존하게 되는 것)을 막는 것과 같다.
 
 ---
 

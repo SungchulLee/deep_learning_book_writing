@@ -243,7 +243,7 @@ if __name__ == "__main__":
 
 이 구별이 쓸모 있는 자리가 있다. 긴 평가 루프를 `no_grad`로 감싸 두고, 그 안에서
 미리 만들어 둔 로스를 역전파해도 된다. 반대로 블록 안에서 모델을 돌려 로스를
-만들었다면 그것으로는 학습할 수 없다 — **그 로스는 숫자일 뿐 그래프가 아니다.**
+만들었다면 그것으로는 트레인할 수 없다 — **그 로스는 숫자일 뿐 그래프가 아니다.**
 
 ## 4. 안쪽에서 다시 켤 수 있다
 
@@ -304,7 +304,7 @@ eval() 만          : grad_fn = AddmmBackward0   <- 그래프를 들고 있다
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-`no_grad` 블록 안에서 파라메터를 제자리에서 고칠 수 있는가? 「최소 학습 단계」에서
+`no_grad` 블록 안에서 파라메터를 제자리에서 고칠 수 있는가? 「최소 트레인 단계」에서
 본 것을 확인하라.
 
 </div>
@@ -383,8 +383,8 @@ eval() 만          : grad_fn = AddmmBackward0   <- 그래프를 들고 있다
     플래그가 꺼져 있으므로 그래디언트를 못 받고, 그렇다고 `x` 자체에 플래그를 켜면 평가
     루프의 다른 부분까지 영향을 받는다.
 
-    이 예에서는 한 스텝으로 예측이 안 바뀌었다 — 학습하지 않은 신경망이라 결정
-    경계가 어디 있는지 모르는 상태다. 제대로 학습한 모델에서는 이 정도 흔들림으로
+    이 예에서는 한 스텝으로 예측이 안 바뀌었다 — 트레인하지 않은 신경망이라 결정
+    경계가 어디 있는지 모르는 상태다. 제대로 트레인한 모델에서는 이 정도 흔들림으로
     예측이 뒤집히는 것이 적대적 예제의 요점이다.
 
 ---
@@ -392,7 +392,7 @@ eval() 만          : grad_fn = AddmmBackward0   <- 그래프를 들고 있다
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff hard" title="어려움"></span>
-`no_grad`로 감싼 평가에서 얻은 출력을 **다음 학습의 목표값으로** 쓰려 한다
+`no_grad`로 감싼 평가에서 얻은 출력을 **다음 트레인의 목표값으로** 쓰려 한다
 (지식 증류나 강화학습의 타깃 네트워크가 이렇게 한다). 되는가? `inference_mode`로
 감쌌다면?
 
@@ -409,7 +409,7 @@ eval() 만          : grad_fn = AddmmBackward0   <- 그래프를 들고 있다
         soft = teacher(x)
     loss = nn.functional.mse_loss(student(x), soft)
     loss.backward()
-    print("  no_grad 로 만든 목표값으로 학습:",
+    print("  no_grad 로 만든 목표값으로 트레인:",
           "된다" if student.weight.grad is not None else "안 된다")
     print("    목표값에는 그래디언트가 안 간다:", soft.requires_grad)
 
@@ -418,14 +418,14 @@ eval() 만          : grad_fn = AddmmBackward0   <- 그래프를 들고 있다
         soft2 = teacher(x)
     try:
         nn.functional.mse_loss(student(x), soft2).backward()
-        print("  inference_mode 로 만든 목표값으로 학습: 된다")
+        print("  inference_mode 로 만든 목표값으로 트레인: 된다")
     except RuntimeError as e:
         print("  inference_mode 로 만든 목표값:",
               str(e).splitlines()[0][:60])
     ```
 
     ```
-      no_grad 로 만든 목표값으로 학습: 된다
+      no_grad 로 만든 목표값으로 트레인: 된다
         목표값에는 그래디언트가 안 간다: False
       inference_mode 로 만든 목표값: Inference tensors cannot be saved for backward.
     ```
@@ -447,5 +447,5 @@ eval() 만          : grad_fn = AddmmBackward0   <- 그래프를 들고 있다
     `no_grad` 를 쓰는 편이 간단하다.
 
     교사 모델을 `no_grad`로 감싸는 것 자체는 반드시 해야 한다. 안 감싸면 교사의
-    그래프가 통째로 살아 있어 메모리를 두 배로 쓰고, 실수로 교사까지 학습시킬
+    그래프가 통째로 살아 있어 메모리를 두 배로 쓰고, 실수로 교사까지 트레인시킬
     수도 있다.

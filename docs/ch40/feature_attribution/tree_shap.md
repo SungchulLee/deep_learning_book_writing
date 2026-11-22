@@ -20,7 +20,7 @@ $$
 
 - 피처 $j$로 분할하는 내부 노드마다:
   - $j \in S$이면 $x_j$에 따라 해당 가지를 따라간다
-  - $j \notin S$이면 **두 가지 모두**를 따라가되, 각 가지로 간 학습 표본의 비율로 가중한다
+  - $j \notin S$이면 **두 가지 모두**를 따라가되, 각 가지로 간 트레인 표본의 비율로 가중한다
 
 ### Tree SHAP 알고리즘
 
@@ -30,7 +30,7 @@ $$
 
 1. 경로 $p$에서 분할에 쓰인 피처 집합을 $D_p = \{j_1, j_2, \ldots, j_k\}$라 하자
 2. 피처 $j_i \in D_p$마다 모든 순서를 고려해 한계 기여(marginal contribution)를 계산한다
-3. 이 기여에는 노드마다 그 노드를 지나간 학습 데이터의 비율이 반영된다
+3. 이 기여에는 노드마다 그 노드를 지나간 트레인 데이터의 비율이 반영된다
 
 ### 복잡도
 
@@ -66,7 +66,7 @@ def tree_shap_example():
     )
     feature_names = [f'feature_{i}' for i in range(20)]
 
-    # XGBoost 모델을 학습한다
+    # XGBoost 모델을 트레인한다
     model = xgb.XGBClassifier(
         n_estimators=100, max_depth=6, random_state=42
     )
@@ -287,7 +287,7 @@ def explain_credit_tree_model(
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-학습 데이터가 $\{0,1\}^2$의 네 점을 고르게 담고 있고, 그 XOR 값 $f(x) = x_1 \oplus x_2$를 그대로 외운 깊이 2 결정 트리가 있다. 경로 의존 Tree SHAP의 규칙으로 입력 $x = [1, 1]$의 섀플리 값과 SHAP 상호작용 값을 계산하여라.
+트레인 데이터가 $\{0,1\}^2$의 네 점을 고르게 담고 있고, 그 XOR 값 $f(x) = x_1 \oplus x_2$를 그대로 외운 깊이 2 결정 트리가 있다. 경로 의존 Tree SHAP의 규칙으로 입력 $x = [1, 1]$의 섀플리 값과 SHAP 상호작용 값을 계산하여라.
 
 </div>
 

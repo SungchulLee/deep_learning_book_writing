@@ -1,9 +1,9 @@
 # 경사 하강법을 이용한 해
 
 정규 방정식이 정확한 해석적 해를 주는 반면, **경사 하강법**은 확장성 있는
-반복적 대안을 제공하며 뉴럴 네트워크 학습의 토대가 된다. 이 페이지에서는 MSE 로스의 그래디언트를
+반복적 대안을 제공하며 뉴럴 네트워크 트레인의 토대가 된다. 이 페이지에서는 MSE 로스의 그래디언트를
 유도하고, 이를 음의 로그가능도와 연결한 뒤, 네 단계의 PyTorch 구현을 차례로 밟아
-나간다. 텐서 연산을 직접 다루는 수준에서 시작해 실전에 쓸 수 있는 학습 파이프라인까지
+나간다. 텐서 연산을 직접 다루는 수준에서 시작해 실전에 쓸 수 있는 트레인 파이프라인까지
 이른다.
 
 ---
@@ -339,7 +339,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
 class LinearRegressionPipeline:
-    """전체 파이프라인: 스케일링, 학습/검증 분할, 조기 종료."""
+    """전체 파이프라인: 스케일링, 트레인/검증 분할, 조기 종료."""
 
     def __init__(self, input_dim, lr=0.01, batch_size=32, patience=10):
         self.model = nn.Linear(input_dim, 1)
@@ -374,7 +374,7 @@ class LinearRegressionPipeline:
         best_val, wait, best_state = float("inf"), 0, None
 
         for epoch in range(n_epochs):
-            # --- 학습 ---
+            # --- 트레인 ---
             self.model.train()
             for xb, yb in loader:
                 loss = self.criterion(self.model(xb), yb)
@@ -438,7 +438,7 @@ $\mathbf{X}^\top\mathbf{X} / n$의 **조건수**이다. $\kappa$가 크면(조�
 
 ### 5.2.1 4절의 데이터에서 그 경계는 어디인가
 
-표의 네 줄은 $L$을 알아야 쓸 수 있다. 4절 1단계의 데이터($n=500$, $p=3$, 학습 400개)에 1로 채운 열을 붙여 재면 $\lambda_{\max}(\mathbf{X}^\top\mathbf{X}/n) = 1.13085$이고, 2.3절의 경계 $1/\lambda_{\max}$은 **0.8843**이다. 그 배수로 러닝레이트를 바꾸어 가며 3.1절의 배치 경사 하강법을 60스텝 돌렸다.
+표의 네 줄은 $L$을 알아야 쓸 수 있다. 4절 1단계의 데이터($n=500$, $p=3$, 트레인 400개)에 1로 채운 열을 붙여 재면 $\lambda_{\max}(\mathbf{X}^\top\mathbf{X}/n) = 1.13085$이고, 2.3절의 경계 $1/\lambda_{\max}$은 **0.8843**이다. 그 배수로 러닝레이트를 바꾸어 가며 3.1절의 배치 경사 하강법을 60스텝 돌렸다.
 
 ![칸이 둘인 그림. 왼쪽은 경계보다 작은 러닝레이트 넷의 로스 곡선으로, 0.1배는 스무 스텝쯤 걸려, 0.5배는 두 스텝 만에, 0.9배는 열 스텝 만에 모두 0.0904에 닿는다. 경계와 똑같은 1.0배만 0.5386에서 멈춰 더 내려가지 않는다. 오른쪽은 경계 위쪽으로, 1.2배는 60스텝 만에 10의 16승을 넘고 2.0배는 25스텝 만에 무한대로 오버플로한다](../figures/gd_lr_bound.svg)
 
@@ -493,7 +493,7 @@ model2.eval()
 |--------|----------|------------|
 | 정규 방정식 | 중간 크기의 밀집 최소제곱 문제 | $O(np^2 + p^3)$ |
 | 배치 GD | 중간 크기 데이터셋 | $O(knp)$ |
-| 미니배치 GD | 큰 데이터셋, GPU 학습 | 단계당 $O(Bp)$ |
+| 미니배치 GD | 큰 데이터셋, GPU 트레인 | 단계당 $O(Bp)$ |
 | SGD | 스트리밍 데이터, 아주 큰 $n$ | 단계당 $O(p)$ |
 
 ---
@@ -575,14 +575,14 @@ PyTorch 추상화의 네 단계로 경사 하강법을 구현하라. (1) 그래�
 
 ## 정리하며
 
-### 정석적인 학습 루프
+### 정석적인 트레인 루프
 
 ```
 ┌──────────────────────────────────────────────────────┐
 │  1. 모델 정의          model = nn.Linear(p, 1)       │
 │  2. 로스 정의          criterion = nn.MSELoss()      │
 │  3. 옵티마이저 정의      optim.SGD(model.parameters()) │
-│  4. 학습 루프:                                       │
+│  4. 트레인 루프:                                       │
 │       for batch in loader:                           │
 │           y_pred = model(x)                          │
 │           loss = criterion(y_pred, y)                │

@@ -22,11 +22,11 @@ TCAV 점수가 0.8이면 클래스 $c$ 입력의 80%가 개념 $k$에 양의 민
 
 유의성을 평가하려고 TCAV는 무작위로 만든 CAV를 귀무가설로 쓴다.
 
-1. 무작위 개념(무작위로 고른 이미지 집합)으로 CAV를 여럿 학습한다
+1. 무작위 개념(무작위로 고른 이미지 집합)으로 CAV를 여럿 트레인한다
 2. 무작위 CAV마다 TCAV 점수를 계산한다
 3. 실제 개념의 TCAV 점수가 무작위 CAV의 점수와 유의하게 다른지 검정한다
 
-Kim 등(2018)은 개념 CAV도 음성 집합을 바꿔 가며 여러 번 학습해 점수의 분포를 얻고, 그 분포가 무작위 CAV 점수의 분포와 유의하게 다를 때 그 개념을 유의하다고 본다. 무작위 CAV의 점수는 0.5(우연) 근처에 모일 것으로 기대된다.
+Kim 등(2018)은 개념 CAV도 음성 집합을 바꿔 가며 여러 번 트레인해 점수의 분포를 얻고, 그 분포가 무작위 CAV 점수의 분포와 유의하게 다를 때 그 개념을 유의하다고 본다. 무작위 CAV의 점수는 0.5(우연) 근처에 모일 것으로 기대된다.
 
 아래 구현은 이를 크게 간추렸다. 개념 점수 하나와 무작위 점수들을 한데 묶어 0.5와 비교하는 단일 표본 t 검정을 쓰므로, 무작위 점수가 많을수록 이 검정은 사실상 「무작위 CAV의 점수가 0.5에서 벗어났는가」를 묻게 된다. 논문의 두 표본 검정과 같은 것이 아니다.
 
@@ -86,14 +86,14 @@ class TCAV:
             target_class: 평가할 클래스
             alpha: 유의수준
         """
-        # 개념 CAV를 학습한다
+        # 개념 CAV를 트레인한다
         random_neg = random_example_sets[0]
         concept_cav = self.cav_module.train_cav(concept_examples, random_neg)
         concept_score = self.compute_tcav_score(
             class_inputs, concept_cav, target_class
         )
 
-        # 귀무가설에 쓸 무작위 CAV를 학습한다
+        # 귀무가설에 쓸 무작위 CAV를 트레인한다
         random_scores = []
         for i in range(0, len(random_example_sets) - 1, 2):
             random_cav = self.cav_module.train_cav(

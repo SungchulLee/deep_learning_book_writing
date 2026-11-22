@@ -1,6 +1,6 @@
 # 드롭아웃 예제
 
-같은 이진 분류 MLP에 드롭아웃을 추가해 학습·검증 지표를 비교한다. 과적합 완화 여부는 마스킹 유무만이 아니라 같은 평가 모드의 성능에서 판단한다.
+같은 이진 분류 MLP에 드롭아웃을 추가해 트레인·검증 지표를 비교한다. 과적합 완화 여부는 마스킹 유무만이 아니라 같은 평가 모드의 성능에서 판단한다.
 
 ## 1. 코드
 
@@ -8,7 +8,7 @@
 """
 드롭아웃 정칙화 예제
 ===============================
-학습 중에 뉴런을 무작위로 떨어뜨려 과적합을 막는 방식을 보인다.
+트레인 중에 뉴런을 무작위로 떨어뜨려 과적합을 막는 방식을 보인다.
 """
 
 import numpy as np
@@ -67,7 +67,7 @@ def create_model_with_dropout(input_dim, dropout_rate=0.5):
 def run_epoch(model, loader, criterion, optimizer=None):
     """한 에포크를 돌고 (평균 로스, 정확도)를 돌려준다.
 
-    optimizer가 있으면 학습 모드로, 없으면 평가 모드로 돈다.
+    optimizer가 있으면 트레인 모드로, 없으면 평가 모드로 돈다.
     """
     # 드롭아웃을 켜고 끄는 것은 이 한 줄이다. train()에서는 뉴런을
     # 무작위로 끄고 eval()에서는 끄지 않는다. 이것을 빠뜨리면 평가할
@@ -98,7 +98,7 @@ def run_epoch(model, loader, criterion, optimizer=None):
 
 
 def train_model(model, train_loader, val_loader, epochs=100, lr=1e-3):
-    """모델을 학습시키고 에포크별 이력을 돌려준다."""
+    """모델을 트레인시키고 에포크별 이력을 돌려준다."""
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     history = {'loss': [], 'val_loss': [], 'accuracy': [], 'val_accuracy': []}
@@ -121,8 +121,8 @@ def main():
     # 데이터 나누고 표준화하기
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     scaler = StandardScaler()
-    # 학습 집합에는 fit_transform, 시험 집합에는 transform이다. 시험
-    # 집합에 fit을 부르면 그 평균과 분산이 학습에 새어 들어간다.
+    # 트레인 집합에는 fit_transform, 시험 집합에는 transform이다. 시험
+    # 집합에 fit을 부르면 그 평균과 분산이 트레인에 새어 들어간다.
     # 이 두 메서드를 바꿔 쓰는 것이 데이터 누출의 가장 흔한 통로다
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)
@@ -134,7 +134,7 @@ def main():
     X_test_t = torch.FloatTensor(X_test)
     y_test_t = torch.FloatTensor(y_test).reshape(-1, 1)
 
-    # 학습 집합의 뒤쪽 20%를 검증용으로 떼어 둔다. 앞서
+    # 트레인 집합의 뒤쪽 20%를 검증용으로 떼어 둔다. 앞서
     # train_test_split이 이미 뒤섞어 두었으므로 뒤에서 자르더라도
     # 한쪽으로 치우치지 않는다
     n_val = int(0.2 * len(X_train_t))
@@ -154,7 +154,7 @@ def main():
     model_no_dropout = create_model_without_dropout(X_train.shape[1])
     history_no_dropout = train_model(model_no_dropout, train_loader, val_loader)
 
-    # 드롭아웃과 함께 모델 학습
+    # 드롭아웃과 함께 모델 트레인
     print("Training model WITH dropout...")
     torch.manual_seed(42)
     model_with_dropout = create_model_with_dropout(X_train.shape[1], dropout_rate=0.5)
@@ -170,15 +170,15 @@ def main():
     print(f"\nTest Accuracy without Dropout: {test_acc_no_dropout:.4f}")
     print(f"Test Accuracy with Dropout: {test_acc_with_dropout:.4f}")
     
-    # 학습 이력 그리기
+    # 트레인 이력 그리기
     plt.figure(figsize=(12, 5))
     
     plt.subplot(1, 2, 1)
     # 이 그림에서 볼 것은 최종 로스의 높낮이가 아니라 두 곡선의 벌어짐이다.
-    # 드롭아웃이 없는 쪽은 학습 로스가 계속 내려가는데 검증 로스가
+    # 드롭아웃이 없는 쪽은 트레인 로스가 계속 내려가는데 검증 로스가
     # 돌아서며 간격이 벌어진다. 그 벌어짐이 곧 과적합이고,
     # 드롭아웃을 건 쪽에서 그 간격이 좁아지는 것이 이 예제의 요점이다.
-    # 드롭아웃 쪽 학습 로스가 더 높게 나오는 것도 정상이다.
+    # 드롭아웃 쪽 트레인 로스가 더 높게 나오는 것도 정상이다.
     # 뉴런을 꺼 둔 채 잰 값이기 때문이다
     plt.plot(history_no_dropout['loss'], label='Train Loss (No Dropout)')
     plt.plot(history_no_dropout['val_loss'], label='Val Loss (No Dropout)')
@@ -226,9 +226,9 @@ Plot saved as 'dropout_comparison.png'
 
 두 모델은 로짓을 내며 BCEWithLogitsLoss를 사용한다. 목표는 출력과 같은 `(N, 1)` 부동소수점 텐서로 맞춘다. 이 로스는 `(N,)` 목표를 조용히 브로드캐스팅해 처리하는 대신 모양 불일치 오류를 낼 수 있다.
 
-코드는 외부 학습·시험을 나누고 학습 부분을 표준화한 다음 내부 검증을 떼어 둔다. 따라서 최종 시험 통계는 쓰지 않았지만 내부 검증의 입력 통계가 scaler 학습에 포함된다. 엄격한 검증을 하려면 내부 분할도 먼저 하고 실제 학습 부분에서만 scaler를 fit해야 한다.
+코드는 외부 트레인·시험을 나누고 트레인 부분을 표준화한 다음 내부 검증을 떼어 둔다. 따라서 최종 시험 통계는 쓰지 않았지만 내부 검증의 입력 통계가 scaler 트레인에 포함된다. 엄격한 검증을 하려면 내부 분할도 먼저 하고 실제 트레인 부분에서만 scaler를 fit해야 한다.
 
-학습 중 드롭아웃의 무작위 마스크가 지표를 바꾸므로 검증과 직접 비교할 때 모드 차이를 반영한다. 같은 시드로 모델을 생성해도 데이터 순서와 마스크가 모든 실행에서 같아지는 것은 아니다.
+트레인 중 드롭아웃의 무작위 마스크가 지표를 바꾸므로 검증과 직접 비교할 때 모드 차이를 반영한다. 같은 시드로 모델을 생성해도 데이터 순서와 마스크가 모든 실행에서 같아지는 것은 아니다.
 
 ## 연습문제
 
@@ -247,24 +247,24 @@ BCEWithLogitsLoss의 입력과 목표 모양을 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-내부 검증 분할과 scaler 학습 순서에서 개선할 점을 설명하라.
+내부 검증 분할과 scaler 트레인 순서에서 개선할 점을 설명하라.
 
 </div>
 
 ??? success "풀이"
-    외부 시험 집합을 나눈 뒤 학습 부분을 다시 실제 학습·검증으로 나누고, 실제 학습 입력에만 scaler를 fit한다. 같은 변환을 검증과 시험에 적용한다.
+    외부 시험 집합을 나눈 뒤 트레인 부분을 다시 실제 트레인·검증으로 나누고, 실제 트레인 입력에만 scaler를 fit한다. 같은 변환을 검증과 시험에 적용한다.
 
 ---
 
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-드롭아웃 모델의 학습 정확도보다 검증 정확도가 높은 이유를 하나 제시하라.
+드롭아웃 모델의 트레인 정확도보다 검증 정확도가 높은 이유를 하나 제시하라.
 
 </div>
 
 ??? success "풀이"
-    학습 정확도는 드롭아웃 마스크가 켜진 채로 재어 예측이 흔들리고, 검증 정확도는 마스크를 끈 평가 모드로 재기 때문이다. 분할 난이도 차이도 가능하다. 이 현상만으로 데이터 누출이나 더 나은 일반화를 확정하지 않는다.
+    트레인 정확도는 드롭아웃 마스크가 켜진 채로 재어 예측이 흔들리고, 검증 정확도는 마스크를 끈 평가 모드로 재기 때문이다. 분할 난이도 차이도 가능하다. 이 현상만으로 데이터 누출이나 더 나은 일반화를 확정하지 않는다.
 
 ---
 

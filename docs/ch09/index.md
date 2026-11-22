@@ -1,6 +1,6 @@
-# 10장: 학습 파이프라인
+# 10장: 트레인 파이프라인
 
-이 장에서는 데이터를 읽고 배치로 묶는 단계부터 학습, 검증, 모델 선택과 저장까지 연결한다. 각 구성 요소를 따로 이해하는 것과 함께, 전처리·분할·모드·평가 규약이 전체 과정에서 일관적인지 확인한다.
+이 장에서는 데이터를 읽고 배치로 묶는 단계부터 트레인, 검증, 모델 선택과 저장까지 연결한다. 각 구성 요소를 따로 이해하는 것과 함께, 전처리·분할·모드·평가 규약이 전체 과정에서 일관적인지 확인한다.
 
 ## 1. 정확성과 효율성
 
@@ -8,7 +8,7 @@
 
 ## 2. 데이터셋과 데이터로더
 
-텐서, 이미지 폴더, 좌표 라벨과 순차 데이터에 맞는 인터페이스를 살펴본다. 표본의 대응을 지키고 학습·검증·시험 집합을 먼저 분리한 뒤 필요한 통계량과 변환을 학습한다.
+텐서, 이미지 폴더, 좌표 라벨과 순차 데이터에 맞는 인터페이스를 살펴본다. 표본의 대응을 지키고 트레인·검증·시험 집합을 먼저 분리한 뒤 필요한 통계량과 변환을 학습한다.
 
 - [TensorDataset](datasets/dataset_from_tensor.md)과 [IterableDataset 안내](datasets/11_iterable_style_minimal.md)
 - [MNIST](datasets/mnist.md), [FashionMNIST](datasets/fashion_mnist.md), [CIFAR-10](datasets/cifar10.md)
@@ -16,9 +16,9 @@
 - [텍스트 어그멘테이션](datasets/nlp_augmentation.md)과 [약지도 학습](datasets/weak_supervision_snorkel.md)
 - [균형 샘플링](dataloaders/balanced_dataloader.md), [변환](dataloaders/dataloader_transforms.md), [배치 시각화](dataloaders/draw_batch_images.md)
 
-## 3. 학습 루프와 기록
+## 3. 트레인 루프와 기록
 
-[MNIST 전체 학습](training/01_complete_mnist_training.md)과 [TensorBoard 기록](training/tensorboard_mnist_commented.md)을 통해 순전파, 로스, 역전파와 갱신을 연결한다. [실전 학습 요령](training/training_recipes.md)에서는 초기 점검, 혼합 정밀도와 메모리·처리량을 다룬다.
+[MNIST 전체 트레인](training/01_complete_mnist_training.md)과 [TensorBoard 기록](training/tensorboard_mnist_commented.md)을 통해 순전파, 로스, 역전파와 갱신을 연결한다. [실전 트레인 요령](training/training_recipes.md)에서는 초기 점검, 혼합 정밀도와 메모리·처리량을 다룬다.
 
 ## 4. 로스와 옵티마이저
 
@@ -49,16 +49,16 @@
 **견주기**
 
 - [기준 함수에서 옵티마이저 비교](optimizers/optimizer_comparison.md) — 2변수 목적 함수 넷
-- [뉴럴 네트워크 학습에서 옵티마이저 비교](optimizers/01_optimizer_comparison.md) — 합성 회귀의 **학습 로스**를 본다
+- [뉴럴 네트워크 트레인에서 옵티마이저 비교](optimizers/01_optimizer_comparison.md) — 합성 회귀의 **트레인 로스**를 본다
 
 **옵티마이저 둘레**
 
-- [러닝레이트 스케줄러](optimizers/02_learning_rate_schedulers.md) — 곡선 넷을 만들고 학습 루프에 거는 법
+- [러닝레이트 스케줄러](optimizers/02_learning_rate_schedulers.md) — 곡선 넷을 만들고 트레인 루프에 거는 법
 - [그래디언트 관리](optimizers/03_gradient_management.md) — 클리핑과 누적의 **적용 순서**가 결과를 바꾼다
 
 ## 5. 러닝레이트와 과적합
 
-[워밍업](schedulers/lr_warmup.md)과 [순환 러닝레이트](schedulers/cyclical_lr.md)는 갱신의 시간별 스케일을 바꾼다. 호출 단위와 스케줄러 상태를 확인한다. [편향–분산](overfitting/bias_variance_tradeoff.md), [학습 곡선](overfitting/learning_curves_demo.md), [과적합·과소적합](overfitting/overfitting_underfitting_demo.md)을 함께 보며 학습 부족과 일반화 문제를 구분한다.
+[워밍업](schedulers/lr_warmup.md)과 [순환 러닝레이트](schedulers/cyclical_lr.md)는 갱신의 시간별 스케일을 바꾼다. 호출 단위와 스케줄러 상태를 확인한다. [편향–분산](overfitting/bias_variance_tradeoff.md), [트레인 곡선](overfitting/learning_curves_demo.md), [과적합·과소적합](overfitting/overfitting_underfitting_demo.md)을 함께 보며 트레인 부족과 일반화 문제를 구분한다.
 
 ## 6. 평가와 하이퍼파라메터 선택
 
@@ -72,4 +72,4 @@
 
 ## 정리하며
 
-학습 파이프라인은 데이터를 나누는 기준부터 평가와 복원까지 이어진다. 각 예제의 실행 범위와 가정을 읽고, 한 단계의 올바른 동작이 전체 과정의 신뢰성을 자동으로 보장하지 않는다는 점을 기억한다.
+트레인 파이프라인은 데이터를 나누는 기준부터 평가와 복원까지 이어진다. 각 예제의 실행 범위와 가정을 읽고, 한 단계의 올바른 동작이 전체 과정의 신뢰성을 자동으로 보장하지 않는다는 점을 기억한다.

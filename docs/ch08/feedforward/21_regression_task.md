@@ -1,6 +1,6 @@
 # 회귀 과제
 
-California Housing 데이터의 연속 목표값을 MLP로 예측한다. 학습 데이터로만 입력 표준화 통계량을 구하고, 항등 출력과 MSE를 사용한다.
+California Housing 데이터의 연속 목표값을 MLP로 예측한다. 트레인 데이터로만 입력 표준화 통계량을 구하고, 항등 출력과 MSE를 사용한다.
 
 ## 1. 코드
 
@@ -119,7 +119,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 print("Model created!")
 print("Loss: MSE (Mean Squared Error)")
 
-# 학습
+# 트레인
 epochs = 200
 batch_size = 64
 losses = []
@@ -132,7 +132,7 @@ for epoch in range(epochs):
     model.train()
     epoch_loss = 0
     
-    # 미니배치 학습
+    # 미니배치 트레인
     for i in range(0, len(X_train), batch_size):
         batch_X = X_train[i:i+batch_size]
         batch_y = y_train[i:i+batch_size]
@@ -173,14 +173,14 @@ print(f"Test RMSE: ${test_rmse*100000:.2f}")
 # 시각화
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(14, 10))
 
-# 학습 로스
+# 트레인 로스
 ax1.plot(losses, linewidth=2)
 ax1.set_xlabel('Epoch')
 ax1.set_ylabel('Loss (MSE)')
 ax1.set_title('Training Loss')
 ax1.grid(True, alpha=0.3)
 
-# 예측값과 실제값 비교 (학습)
+# 예측값과 실제값 비교 (트레인)
 ax2.scatter(y_train, train_pred, alpha=0.5)
 ax2.plot([y_train.min(), y_train.max()], 
          [y_train.min(), y_train.max()], 'r--', lw=2)
@@ -317,7 +317,7 @@ TIPS:
 
 RegressionNet은 8→64→32→16→1 구조이며 마지막 레이어 뒤에 활성화 함수가 없다(항등 출력). 목표값의 가능한 범위를 모델 출력에서 강제로 제한하지 않는 회귀 설계이다.
 
-StandardScaler는 학습 입력에 fit하고 시험 입력에는 transform만 수행한다. 복원한 모델을 사용할 때도 같은 scaler가 필요하다. 모델 웨이트만으로 원래 입력의 전처리가 복원되지는 않는다.
+StandardScaler는 트레인 입력에 fit하고 시험 입력에는 transform만 수행한다. 복원한 모델을 사용할 때도 같은 scaler가 필요하다. 모델 웨이트만으로 원래 입력의 전처리가 복원되지는 않는다.
 
 MSE는 목표 단위의 제곱이고 RMSE와 MAE는 목표와 같은 단위이다. 이 데이터의 금액 환산은 데이터셋 목표의 단위를 반영한 것이다. 무작위 분할의 성능을 다른 시기나 지역에 대한 예측 성능으로 바로 일반화하지 않는다.
 
@@ -331,7 +331,7 @@ MSE는 목표 단위의 제곱이고 RMSE와 MAE는 목표와 같은 단위이�
 </div>
 
 ??? success "풀이"
-    각 레이어는 576, 2080, 528, 17개이므로 총 3201개이다. 드롭아웃과 ReLU는 학습 가능한 계수를 추가하지 않는다.
+    각 레이어는 576, 2080, 528, 17개이므로 총 3201개이다. 드롭아웃과 ReLU는 트레인 가능한 계수를 추가하지 않는다.
 
 ---
 
@@ -343,7 +343,7 @@ scaler를 전체 데이터에 fit하면 왜 문제가 되는가?
 </div>
 
 ??? success "풀이"
-    시험 입력의 평균과 분산이 학습 변환에 반영된다. 목표값을 쓰지 않더라도 평가 데이터의 분포가 새어 들어간다. 학습 분할 안에서 fit하고 검증·시험에는 같은 변환만 적용한다.
+    시험 입력의 평균과 분산이 트레인 변환에 반영된다. 목표값을 쓰지 않더라도 평가 데이터의 분포가 새어 들어간다. 트레인 분할 안에서 fit하고 검증·시험에는 같은 변환만 적용한다.
 
 ---
 
@@ -377,4 +377,4 @@ RMSE와 R²를 함께 볼 이유를 설명하라.
 
 ## 정리하며
 
-회귀에서는 출력과 목표의 단위를 일치시키고 전처리를 학습 데이터에만 맞춘다. MSE, RMSE와 R²는 다른 의미의 지표이며 모델 복원에는 전처리 상태도 필요하다.
+회귀에서는 출력과 목표의 단위를 일치시키고 전처리를 트레인 데이터에만 맞춘다. MSE, RMSE와 R²는 다른 의미의 지표이며 모델 복원에는 전처리 상태도 필요하다.

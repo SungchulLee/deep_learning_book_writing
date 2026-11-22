@@ -1,10 +1,10 @@
 # 31장: 확산 모델
 
-확산 모델은 데이터에 노이즈를 더하는 과정을 정의하고 그에 대응하는 역과정으로 새로운 표본을 생성한다. 이 장에서는 로그 밀도의 입력 그래디언트인 스코어에서 출발해 노이즈 예측 학습, DDPM·DDIM 샘플링과 조건부 생성을 연결한다. 이론의 분포·시간 관례와 각 코드가 실제로 구현하는 범위를 함께 읽는 것이 목표다.
+확산 모델은 데이터에 노이즈를 더하는 과정을 정의하고 그에 대응하는 역과정으로 새로운 표본을 생성한다. 이 장에서는 로그 밀도의 입력 그래디언트인 스코어에서 출발해 노이즈 예측 트레인, DDPM·DDIM 샘플링과 조건부 생성을 연결한다. 이론의 분포·시간 관례와 각 코드가 실제로 구현하는 범위를 함께 읽는 것이 목표다.
 
 ## 1. 권장 학습 순서
 
-먼저 [스코어 함수](score_based/01_score_functions_basics.md)와 [스코어 매칭](score_based/02_score_matching_theory.md)을 익힌다. 이어 [DSM 이론](score_based/denoising_score_matching.md)과 [SSM 이론](score_based/sliced_score_matching.md)에서 알려진 노이즈 목표와 무작위 방향 미분이 어떻게 학습 목적을 만드는지 확인한다.
+먼저 [스코어 함수](score_based/01_score_functions_basics.md)와 [스코어 매칭](score_based/02_score_matching_theory.md)을 익힌다. 이어 [DSM 이론](score_based/denoising_score_matching.md)과 [SSM 이론](score_based/sliced_score_matching.md)에서 알려진 노이즈 목표와 무작위 방향 미분이 어떻게 트레인 목적을 만드는지 확인한다.
 
 그다음 [역과정 유도](foundations/reverse_process.md), [노이즈 스케줄](ddpm/noise_schedule.md)과 [DDPM 샘플링](ddpm/sampling.md)을 읽는다. 마지막으로 [DDIM](ddim/fundamentals.md)과 [CFG](conditional/classifier_free.md)를 통해 생성 단계 수와 조건 강도를 조절하는 방법을 살펴본다.
 
@@ -24,7 +24,7 @@
 
 **스코어를 배우는 두 길**
 
-- [디노이징 스코어 매칭의 원리](score_based/denoising_score_matching.md) → [고정 노이즈로 학습](score_based/04_denoising_score_matching.md) → [미니배치 학습 구성](score_based/04_implementing_dsm_practical.md)
+- [디노이징 스코어 매칭의 원리](score_based/denoising_score_matching.md) → [고정 노이즈로 트레인](score_based/04_denoising_score_matching.md) → [미니배치 트레인 구성](score_based/04_implementing_dsm_practical.md)
 - [슬라이스드 스코어 매칭의 원리](score_based/sliced_score_matching.md) → [방향 미분 예제](score_based/05_sliced_score_matching.md) → [가우시안 투영을 쓸 때](score_based/05_sliced_score_matching_2.md) — 단위 구면 방향과 **투영 공분산이 다르다**
 
 **네트워크에 노이즈 수준을 알려 주기**
@@ -38,7 +38,7 @@
 
 **이미지로, 그리고 DDPM 과 잇기**
 
-- [이미지 스코어 학습의 간단한 예제](score_based/09_image_generation.md) · [시간 조건 U-Net과 노이즈 예측](score_based/09_image_generation_unet.md) — 출력이 스코어인지 노이즈인지는 **구조가 아니라 학습 목표**가 정한다
+- [이미지 스코어 트레인의 간단한 예제](score_based/09_image_generation.md) · [시간 조건 U-Net과 노이즈 예측](score_based/09_image_generation_unet.md) — 출력이 스코어인지 노이즈인지는 **구조가 아니라 트레인 목표**가 정한다
 - [스코어 모델과 DDPM의 연결](score_based/10_complete_diffusion_connection.md) — 둘이 **알려진 배율**로 오간다
 - [클래스 조건 생성과 인페인팅의 기초](score_based/10_advanced_applications.md)
 
@@ -59,12 +59,12 @@
 **작게 지어 보기**
 
 - [2차원 데이터로 이해하는 확산 모델](ddpm/simple_diffusion.md) — 산점도로 정방향과 생성을 **눈으로** 견준다
-- [MNIST로 살펴보는 간단한 DDPM](ddpm/01_ddpm_toy.md) — 작은 CNN 으로 학습과 역전이를 잇는다
+- [MNIST로 살펴보는 간단한 DDPM](ddpm/01_ddpm_toy.md) — 작은 CNN 으로 트레인과 역전이를 잇는다
 
 **MNIST 파이프라인**
 
-- [MNIST 확산 모델 학습 파이프라인](ddpm/mnist_diffusion.md) — U-Net 과 유틸리티를 연결하고 EMA 로 생성한다
-- [학습 실행 예제](ddpm/example_train.md) · [체크포인트를 이용한 샘플링](ddpm/example_sample.md) — 웨이트만이 아니라 **구조와 스케줄도** 학습 때와 맞아야 한다
+- [MNIST 확산 모델 트레인 파이프라인](ddpm/mnist_diffusion.md) — U-Net 과 유틸리티를 연결하고 EMA 로 생성한다
+- [트레인 실행 예제](ddpm/example_train.md) · [체크포인트를 이용한 샘플링](ddpm/example_sample.md) — 웨이트만이 아니라 **구조와 스케줄도** 트레인 때와 맞아야 한다
 
 **키우고 조건 걸기**
 
@@ -73,9 +73,9 @@
 
 **빠르게, 그리고 잠재 공간에서**
 
-- [DDIM으로 생성 단계 줄이기](ddpm/04_ddim_fast_sampling.md) — **같은 학습**에 다른 전이. $\eta=0$ 이면 경로가 결정적이다
-- [DDPM과 DDIM의 샘플링 호출 비교](ddpm/compare_methods.md) — 호출 수와 확률성을 견준다. **학습되지 않은 모델**로 루프만 재므로 생성 품질 실험이 아니다
-- [잠재 공간에서 학습하는 확산 모델](ddpm/05_latent_diffusion.md) — 픽셀 대신 압축 표현에서
+- [DDIM으로 생성 단계 줄이기](ddpm/04_ddim_fast_sampling.md) — **같은 트레인**에 다른 전이. $\eta=0$ 이면 경로가 결정적이다
+- [DDPM과 DDIM의 샘플링 호출 비교](ddpm/compare_methods.md) — 호출 수와 확률성을 견준다. **트레인되지 않은 모델**로 루프만 재므로 생성 품질 실험이 아니다
+- [잠재 공간에서 트레인하는 확산 모델](ddpm/05_latent_diffusion.md) — 픽셀 대신 압축 표현에서
 
 ## 4. 평가에서 확인할 질문
 
@@ -85,4 +85,4 @@
 
 ## 정리하며
 
-확산 학습은 무작위 시간의 노이즈 입력으로 예측기를 맞추고, 생성은 그 예측을 시간에 맞는 역전이로 변환한다. 스코어와 노이즈의 스케일, 역시간의 방향, 조건 표현과 깨끗한 끝점을 일치시켜야 두 과정이 연결된다. 구현의 범위와 평가의 의미를 함께 확인한다.
+확산 트레인은 무작위 시간의 노이즈 입력으로 예측기를 맞추고, 생성은 그 예측을 시간에 맞는 역전이로 변환한다. 스코어와 노이즈의 스케일, 역시간의 방향, 조건 표현과 깨끗한 끝점을 일치시켜야 두 과정이 연결된다. 구현의 범위와 평가의 의미를 함께 확인한다.

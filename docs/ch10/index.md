@@ -20,7 +20,7 @@
 - [1차원 컨볼루션](cnn/conv1d.md) — 시계열, 음향, 텍스트 같은 순차 데이터에 컨볼루션 적용하기
 - [팽창 컨볼루션](cnn/dilated_convolutions.md) — 파라메터를 늘리지 않고 리셉티브 필드를 넓히는 아트루스 컨볼루션
 - [깊이별 분리 컨볼루션(Depthwise Separable Convolution)](cnn/depthwise_separable.md) — MobileNet, EfficientNet, ShuffleNet이 쓰는 효율적인 컨볼루션 분해
-- [전치 컨볼루션](cnn/transposed_conv.md) — 인코더-디코더 구조, GAN, 초해상도를 위한 학습 가능한 업샘플링
+- [전치 컨볼루션](cnn/transposed_conv.md) — 인코더-디코더 구조, GAN, 초해상도를 위한 트레인 가능한 업샘플링
 
 **자료부터 보기**
 
@@ -32,7 +32,7 @@
 
 - [Fashion-MNIST 분류기](cnn/05_fashion_mnist_classifier.md) — 앞의 개념을 모아 첫 분류기를 세운다(85.84%)
 - [CIFAR-10 기본](cnn/06_cifar10_basic.md) — 파라메터 62,006개 · [CIFAR-10 심화](cnn/07_cifar10_advanced.md) — 2,168,362개
-- [이진 분류](cnn/08_binary_classification.md) — 숫자 두 개를 고르는 **45가지 조합**을 다 학습해 견준다
+- [이진 분류](cnn/08_binary_classification.md) — 숫자 두 개를 고르는 **45가지 조합**을 다 트레인해 견준다
 
 **공통 도구**
 
@@ -47,7 +47,7 @@
 - [기본 잔차 블록](residual/01_basic_residual_block.md) — 스킵 연결 하나가 무엇을 바꾸는지
 - [항등 사상](residual/identity_mapping.md) — 항등 스킵 연결과 사전 활성화 블록의 그래디언트 전달
 - [ResNet 구현](residual/02_resnet_implementation.md) — 기본 블록과 병목 블록으로 ResNet 계열 세우기
-- [학습 비교](residual/03_training_comparison.md) — 스킵 연결이 있을 때와 없을 때를 나란히 학습시켜 비교
+- [트레인 비교](residual/03_training_comparison.md) — 스킵 연결이 있을 때와 없을 때를 나란히 트레인시켜 비교
 - [실전 예제](residual/06_practical_example.md) — 분류 예제로 잔차 구조의 구성 살펴보기
 
 ---

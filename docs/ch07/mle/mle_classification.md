@@ -6,7 +6,7 @@
 
     $$\text{Cross-Entropy Loss} = \text{Negative Log-Likelihood of Categorical Distribution}$$
     
-    교차 엔트로피 로스로 분류기를 학습시키는 것은 범주형 가능도 아래에서 최대가능도 추정을 하는 것이다.
+    교차 엔트로피 로스로 분류기를 트레인시키는 것은 범주형 가능도 아래에서 최대가능도 추정을 하는 것이다.
 
 ---
 
@@ -227,11 +227,11 @@ def cross_entropy_from_nll():
     print(f"PyTorch CE: {pytorch_ce.item():.6f}")
 ```
 
-### 완전한 분류 학습
+### 완전한 분류 트레인
 
 ```python
 def train_classification_mle_perspective():
-    """분류 학습의 MLE 해석을 보여주는 완전한 예제."""
+    """분류 트레인의 MLE 해석을 보여주는 완전한 예제."""
     torch.manual_seed(42)
     
     # 3개 클래스 데이터를 생성한다
@@ -308,7 +308,7 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-10개 클래스 문제에서 파라메터 $\epsilon = 0.1$인 라벨 스무딩을 구현하고, 하드 라벨로 학습한 모델과 보정 정도를 신뢰도 다이어그램으로 비교하라.
+10개 클래스 문제에서 파라메터 $\epsilon = 0.1$인 라벨 스무딩을 구현하고, 하드 라벨로 트레인한 모델과 보정 정도를 신뢰도 다이어그램으로 비교하라.
 
 </div>
 
@@ -327,7 +327,7 @@ Focal Loss $\text{FL}(p_t) = -\alpha_t(1-p_t)^\gamma \log(p_t)$을 유도하고,
         smooth = -log_probs.mean(dim=-1)
         return ((1 - epsilon) * nll + epsilon * smooth).mean()
     ```
-    제시한 코드는 스무딩한 로스를 계산하는 부분이다. 보정 정도를 비교하려면 같은 조건에서 두 모델을 학습하고 독립 검증셋의 예측 확률과 실제 정답 빈도로 신뢰도 다이어그램을 추가해야 한다. 보정이 나아진다고 미리 결론 내리지 않는다.
+    제시한 코드는 스무딩한 로스를 계산하는 부분이다. 보정 정도를 비교하려면 같은 조건에서 두 모델을 트레인하고 독립 검증셋의 예측 확률과 실제 정답 빈도로 신뢰도 다이어그램을 추가해야 한다. 보정이 나아진다고 미리 결론 내리지 않는다.
 
 ---
 

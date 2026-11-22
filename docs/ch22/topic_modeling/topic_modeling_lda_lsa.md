@@ -1,6 +1,6 @@
 # 토픽 모델링: LSA와 LDA
 
-토픽 모델링은 정답 주제 라벨 없이 문서의 단어 사용 패턴을 요약하는 방법이다. LSA는 행렬의 저차원 구조, LDA는 문서별 토픽 혼합과 토픽별 단어 분포를 추정한다. 뉴럴 토픽 모델은 또 다른 잠재 표현·학습 목적을 사용한다. 사람이 붙인 토픽 이름은 해석이며 모델이 자동으로 얻은 확정적인 의미 분류가 아니다.
+토픽 모델링은 정답 주제 라벨 없이 문서의 단어 사용 패턴을 요약하는 방법이다. LSA는 행렬의 저차원 구조, LDA는 문서별 토픽 혼합과 토픽별 단어 분포를 추정한다. 뉴럴 토픽 모델은 또 다른 잠재 표현·트레인 목적을 사용한다. 사람이 붙인 토픽 이름은 해석이며 모델이 자동으로 얻은 확정적인 의미 분류가 아니다.
 
 ## 1. 코드와 출력
 
@@ -157,7 +157,7 @@ print("""
   dictionary.filter_extremes(no_below=2, no_above=0.5)
   corpus = [dictionary.doc2bow(text) for text in texts]
 
-  # LDA 학습
+  # LDA 트레인
   lda = LdaModel(
       corpus=corpus,
       id2word=dictionary.id2token,
@@ -372,7 +372,7 @@ class NeuralTopicModel(nn.Module):
 
 
 def train_ntm(model, bow_matrix, n_epochs=100, lr=2e-3):
-    """뉴럴 토픽 모델 학습."""
+    """뉴럴 토픽 모델 트레인."""
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     X = torch.tensor(bow_matrix, dtype=torch.float32)
 
@@ -513,7 +513,7 @@ Part 2: LDA with Gensim
   dictionary.filter_extremes(no_below=2, no_above=0.5)
   corpus = [dictionary.doc2bow(text) for text in texts]
 
-  # LDA 학습
+  # LDA 트레인
   lda = LdaModel(
       corpus=corpus,
       id2word=dictionary.id2token,
@@ -622,15 +622,15 @@ $$P(z_i=k\mid z_{-i},w)\propto(n_{dk}^{-i}+\alpha)\frac{n_{kw}^{-i}+\beta}{n_k^{
 
 NeuralTopicModel은 문서 BoW를 인코더에 넣어 μ·logvar를 얻고 그 Gaussian에서 잠재 표현 z를 뽑는다. BatchNorm과 softmax로 토픽 웨이트 θ를 만든 뒤 선형 디코더의 log_softmax로 단어 분포를 얻는다. 로스는 빈도 가중 복원 로스인 음의 로그가능도(가능도는 likelihood, 우도라고도 한다)와 표준 정규분포에 대한 Gaussian KL의 합이다.
 
-이는 LDA의 Dirichlet 혼합을 그대로 구현한 모델도, 코드 제목에 나온 ProdLDA·ETM의 완전한 재현도 아니다. 특히 ETM의 단어·토픽 임베딩 분해는 없다. 학습 시 BatchNorm이 문서 간 통계를 공유하고 KL은 그 이전 z의 Gaussian에 적용되므로 해당 구성의 확률적 가정을 구분해서 읽는다.
+이는 LDA의 Dirichlet 혼합을 그대로 구현한 모델도, 코드 제목에 나온 ProdLDA·ETM의 완전한 재현도 아니다. 특히 ETM의 단어·토픽 임베딩 분해는 없다. 트레인 시 BatchNorm이 문서 간 통계를 공유하고 KL은 그 이전 z의 Gaussian에 적용되므로 해당 구성의 확률적 가정을 구분해서 읽는다.
 
-θ는 합 1이지만 디코더의 개별 웨이트는 확률이 아니다. top 단어로 출력하는 값도 로짓 방향의 학습 웨이트다. eval에서도 reparameterize는 난수를 계속 뽑으므로 forward가 자동으로 결정적이지 않다. BatchNorm의 학습에는 충분한 배치가 필요하며 단일 문서 배치와 빈 데이터를 별도로 처리해야 한다.
+θ는 합 1이지만 디코더의 개별 웨이트는 확률이 아니다. top 단어로 출력하는 값도 로짓 방향의 트레인 웨이트다. eval에서도 reparameterize는 난수를 계속 뽑으므로 forward가 자동으로 결정적이지 않다. BatchNorm의 트레인에는 충분한 배치가 필요하며 단일 문서 배치와 빈 데이터를 별도로 처리해야 한다.
 
 ## 5. 평가와 문서 활용
 
 토픽 수·전처리·사전분포·초기화는 결과에 영향을 준다. 토픽 일관성(coherence)·안정성·사람의 해석 가능성과 독립 문서의 예측 평가를 함께 볼 수 있다. 높은 가능도가 사람이 읽기 좋은 토픽을 보장하지 않고, 단순 상위 단어 목록도 완성된 분류 정확도가 아니다.
 
-현재 시연은 12개 예시 문서에 LSA·깁스 추정·뉴럴 모델 학습을 적용하도록 작성되어 있으며 독립 시험 평가나 시기별 분석은 없다. 출력에 나온 금융 문장은 사실 확인용 데이터가 아니다. 토픽 가중 감성을 거래 신호로 쓰는 부분도 안내일 뿐 학습·검증된 경제적 성과가 아니다.
+현재 시연은 12개 예시 문서에 LSA·깁스 추정·뉴럴 모델 트레인을 적용하도록 작성되어 있으며 독립 시험 평가나 시기별 분석은 없다. 출력에 나온 금융 문장은 사실 확인용 데이터가 아니다. 토픽 가중 감성을 거래 신호로 쓰는 부분도 안내일 뿐 트레인·검증된 경제적 성과가 아니다.
 
 ## 연습문제
 

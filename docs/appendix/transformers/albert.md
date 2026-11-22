@@ -1,12 +1,12 @@
 # ALBERT
 
-ALBERT는 2019년 논문 "ALBERT: A Lite BERT for Self-supervised Learning of Language Representations"에서 나왔다. BERT의 파라메터를 줄이는 장치 둘과 새 사전 학습 과제 하나를 더했다.
+ALBERT는 2019년 논문 "ALBERT: A Lite BERT for Self-supervised Learning of Language Representations"에서 나왔다. BERT의 파라메터를 줄이는 장치 둘과 새 사전 트레인 과제 하나를 더했다.
 
 1. 분해된 임베딩 파라메터화(factorized embedding parameterization): 단어 임베딩 차원 E를 은닉 차원 H보다 작게 두고, 단어를 E차원으로 임베딩한 뒤 E에서 H로 사영한다.
 2. 레이어 간 파라메터 공유: 트랜스포머 레이어 하나의 웨이트를 모든 레이어에서 재사용한다.
 3. 문장 순서 예측(SOP): 두 문장의 순서가 바뀌었는지 맞히는 과제로, BERT의 다음 문장 예측(NSP)을 대신한다.
 
-여기 구현은 앞의 두 가지만 보이고 SOP는 다루지 않는다. ALBERT를 짧고 학습하기 좋게 보인 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
+여기 구현은 앞의 두 가지만 보이고 SOP는 다루지 않는다. ALBERT를 짧고 트레인하기 좋게 보인 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
 ## 1. 코드
 
@@ -101,14 +101,14 @@ logits: torch.Size([2, 9, 1000])
 
 이 구현은 클래스 2개(`SharedTransformerBlock`, `ALBERT`)를 정의하고, 이들이 함께 완전한 트랜스포머 구조를 이룬다. 클래스마다 고유한 역할을 맡아 코드를 모듈화하고 확장하기 쉽게 한다. `forward` 메서드가 PyTorch의 자동 미분에 쓰이는 계산 그래프를 정의한다.
 
-이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
+이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 트레인에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 트레인, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
 ## 연습문제
 
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 설정으로 초기화한 `SharedTransformerBlock`의 학습 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
+기본 설정으로 초기화한 `SharedTransformerBlock`의 트레인 가능한 파라메터를 모두 세어라. 웨이트와 바이어스를 포함해 레이어마다 나누어 적어라.
 
 </div>
 
@@ -120,12 +120,12 @@ logits: torch.Size([2, 9, 1000])
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-어텐션 웨이트 뒤(값과 곱하기 앞)에 드롭아웃 레이어를 더하여라. 학습하는 동안 드롭아웃 비율 0.1을 써라. 어텐션 드롭아웃이 정칙화에 왜 도움이 되는지 설명하라.
+어텐션 웨이트 뒤(값과 곱하기 앞)에 드롭아웃 레이어를 더하여라. 트레인하는 동안 드롭아웃 비율 0.1을 써라. 어텐션 드롭아웃이 정칙화에 왜 도움이 되는지 설명하라.
 
 </div>
 
 ??? success "풀이"
-    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 학습하는 동안 어텐션 웨이트의 일부를 무작위로 0으로 만들어, 모델이 특정 토큰 사이의 관계에만 의존하는 것을 막는다. 그래서 모델이 어텐션을 더 고르게 분산하고 더 강건한 표현을 학습하게 되는데, 이는 표준 드롭아웃이 뉴런들의 공적응(co-adaptation)을 막는 것과 같다.
+    `__init__`에 `self.attn_dropout = nn.Dropout(0.1)`을 더하고 소프트맥스 뒤에 건다. `attn_weights = self.attn_dropout(F.softmax(scores, dim=-1))`. 어텐션 드롭아웃은 트레인하는 동안 어텐션 웨이트의 일부를 무작위로 0으로 만들어, 모델이 특정 토큰 사이의 관계에만 의존하는 것을 막는다. 그래서 모델이 어텐션을 더 고르게 분산하고 더 강건한 표현을 학습하게 되는데, 이는 표준 드롭아웃이 뉴런들의 공적응(co-adaptation)을 막는 것과 같다.
 
 ---
 

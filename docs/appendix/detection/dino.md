@@ -1,6 +1,6 @@
 # DINO
 
-DINO는 2022년 논문 "DINO: DETR with Improved Denoising Anchor Boxes for End-to-End Object Detection"에서 나왔다. DETR 계열의 탐지기로, 잡음을 넣은 정답 상자를 디코더가 원래대로 되돌리게 하는 디노이징 학습과 앵커 상자 형태의 쿼리를 더해 DETR의 느린 수렴을 개선한다.
+DINO는 2022년 논문 "DINO: DETR with Improved Denoising Anchor Boxes for End-to-End Object Detection"에서 나왔다. DETR 계열의 탐지기로, 잡음을 넣은 정답 상자를 디코더가 원래대로 되돌리게 하는 디노이징 트레인과 앵커 상자 형태의 쿼리를 더해 DETR의 느린 수렴을 개선한다.
 
 여기 구현은 DINO를 짧게 줄인 학습용 예제다. 코드는 핵심 구조와 순전파(forward pass)에 초점을 두어, 핵심 구성 요소를 살펴보고 이리저리 바꾸어 보기 쉽다.
 
@@ -13,12 +13,12 @@ DINO - 디노이징 앵커 박스를 개선한 DETR
 논문: "DINO: DETR with Improved Denoising Anchor Boxes for End-to-End Object Detection" (2022)
 저자: IDEA Research (Feng Li 외)
 핵심 아이디어(개략):
-  1) 디노이징 학습(DN): 잡음을 넣은 정답(GT) 쿼리를 더해 학습을 안정시킨다.
+  1) 디노이징 트레인(DN): 잡음을 넣은 정답(GT) 쿼리를 더해 트레인을 안정시킨다.
   2) 더 나은 쿼리 초기화(흔히 앵커나 기준점 형태).
   3) 멀티스케일 피처(실제로는 흔히 디포머블 어텐션 변형을 쓴다).
 
 파일: appendix/detection/dino.py
-참고: 학습용의 단순한 구현이다.
+참고: 트레인용의 단순한 구현이다.
   - "기준점" 아이디어와 DN 방식의 쿼리 증강 훅을 보인다.
   - nn.Transformer를 쓴다(디포머블 어텐션이 아니다).
   - 완전한 매칭과 로스의 세부는 생략한다.
@@ -59,7 +59,7 @@ class DINO(nn.Module):
     """
     단순화한 DINO 방식 탐지기:
     - 객체 쿼리 + "기준점"(정규화된 상자)으로 반복 정제하는 아이디어를 보인다
-    - 학습 모드에서 선택적으로 쓰는 디노이징 쿼리(DN)
+    - 트레인 모드에서 선택적으로 쓰는 디노이징 쿼리(DN)
 
     출력:
       - pred_logits: (B, num_queries, num_classes+1)
@@ -93,7 +93,7 @@ class DINO(nn.Module):
             batch_first=False,
         )
 
-        # 학습 가능한 쿼리(콘텐츠 임베딩)
+        # 트레인 가능한 쿼리(콘텐츠 임베딩)
         self.query_embed = nn.Embedding(num_queries, d_model)
 
         # 기준점(정규화된 좌표에서 앵커처럼 초기화한다)
@@ -116,7 +116,7 @@ class DINO(nn.Module):
         """
         정답에서 디노이징(DN) 쿼리를 만든다:
           - 정답 상자에 잡음을 더한다
-          - 학습하는 동안 추가 쿼리로 써서 학습을 안정시킨다
+          - 트레인하는 동안 추가 쿼리로 써서 트레인을 안정시킨다
 
         gt_boxes: (B, M, 4), 정규화된 (cx,cy,w,h)
         gt_labels: (B, M), [0, num_classes-1] 안의 클래스 번호
@@ -132,12 +132,12 @@ class DINO(nn.Module):
         M_use = min(M, self.dn_num_queries)
         boxes = gt_boxes[:, :M_use, :]  # (B, M_use, 4)
 
-        # 정규화된 좌표 공간에서 잡음을 더한다(학습용)
+        # 정규화된 좌표 공간에서 잡음을 더한다(트레인용)
         noise = (torch.rand_like(boxes) - 0.5) * self.dn_noise_scale
         noisy_boxes = (boxes + noise).clamp(0.0, 1.0)
 
         # DN 콘텐츠 임베딩을 만든다:
-        # 실제 방법은 라벨과 마스크를 인코딩한다. 여기서는 학습된 "dn 토큰"을 되풀이해 쓸 뿐이다.
+        # 실제 방법은 라벨과 마스크를 인코딩한다. 여기서는 트레인된 "dn 토큰"을 되풀이해 쓸 뿐이다.
         dn_token = torch.zeros(B, M_use, self.d_model, device=device)
         dn_token = dn_token.permute(1, 0, 2).contiguous()  # (Tdn=M_use, B, C)
 
@@ -147,7 +147,7 @@ class DINO(nn.Module):
     def forward(self, x, gt_boxes=None, gt_labels=None):
         """
         x: (B, 3, H, W)
-        gt_boxes/gt_labels: 선택 인자. 학습 모드에서 DN 쿼리를 더할 때 쓴다
+        gt_boxes/gt_labels: 선택 인자. 트레인 모드에서 DN 쿼리를 더할 때 쓴다
         """
         feat = self.backbone(x)
         B, C, H, W = feat.shape
@@ -212,7 +212,7 @@ DN pred_boxes : torch.Size([2, 310, 4])
 
 이 구현은 클래스 2개(`TinyBackbone`, `DINO`)를 정의하고, 이들이 함께 완전한 객체 탐지 구조를 이룬다. 클래스마다 고유한 역할을 맡아 코드를 모듈로 나누고 확장하기 쉽게 한다. `forward` 메서드가 PyTorch의 자동 미분이 쓰는 계산 그래프를 정의한다.
 
-이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 학습에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 학습, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
+이 코드는 구조를 이해하기 위한 교육용 구현이다. 실제 트레인에서는 데이터와 하드웨어에 맞춰 혼합 정밀도, 분산 트레인, 데이터 어그멘테이션 등을 검토할 수 있다. 다만 이런 기법의 적용 조건과 효과는 모델별로 확인해야 한다.
 
 ## 연습문제
 

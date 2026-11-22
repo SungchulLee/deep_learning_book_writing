@@ -284,12 +284,12 @@ def slowfast_8x8_r101():
 
 최종 head는 두 경로가 각각 slow_channels×8과 fast_channels×8의 피처를 반환한다고 가정해 평균 후 연결한다. 현재의 중간 연결 문제 때문에 이 출력까지 정상적으로 이어지는 구현으로 설명하면 안 된다.
 
-## 4. 학습 루프의 전제
+## 4. 트레인 루프의 전제
 
 ```python
 def train_slowfast(model, train_loader, epochs=196):
     """
-    논문에 나온 학습 설정.
+    논문에 나온 트레인 설정.
     """
     
     optimizer = torch.optim.SGD(
@@ -332,11 +332,11 @@ def train_slowfast(model, train_loader, epochs=196):
 
 루프는 분류 로짓·정수 정답의 교차 엔트로피와 SGD를 사용하려는 골격이다. `F` import가 없고 loader·데이터 전처리는 별도로 필요하다. 비디오·라벨은 무조건 CUDA로 옮기지만 모델을 옮기는 줄은 없으므로 호출자가 모델 장치까지 맞춰야 한다. CPU·MPS 환경에 그대로 적용되지 않는다.
 
-warm-up 34 epoch 이후 cosine scheduler를 호출하지만 T_max는 전체 196 epoch로 정한다. 기본 설정에서 실제 cosine step은 162번뿐이라 학습 끝에 cosine 최솟값까지 도달하는 일정이 아니다. warm-up 이후 남은 기간과 스케줄러 step 기준을 맞춰 읽는다. 검증·최고 체크포인트·정확도 측정도 이 함수에는 없다.
+warm-up 34 epoch 이후 cosine scheduler를 호출하지만 T_max는 전체 196 epoch로 정한다. 기본 설정에서 실제 cosine step은 162번뿐이라 트레인 끝에 cosine 최솟값까지 도달하는 일정이 아니다. warm-up 이후 남은 기간과 스케줄러 step 기준을 맞춰 읽는다. 검증·최고 체크포인트·정확도 측정도 이 함수에는 없다.
 
 ## 5. 원 논문 결과와 축약 구현의 구분
 
-논문의 Kinetics 결과는 backbone·관찰 구간·사전 학습·평가 clip/crop·non-local 여부 등 특정 조건의 실험이다. 이 미완성 코드의 실행 결과나 일반적인 정확도·FLOPs 순위로 제시하지 않는다. 특히 R50·R101 이름과 모델 구조가 맞지 않는 상태에서 논문 수치를 연결하면 안 된다.
+논문의 Kinetics 결과는 backbone·관찰 구간·사전 트레인·평가 clip/crop·non-local 여부 등 특정 조건의 실험이다. 이 미완성 코드의 실행 결과나 일반적인 정확도·FLOPs 순위로 제시하지 않는다. 특히 R50·R101 이름과 모델 구조가 맞지 않는 상태에서 논문 수치를 연결하면 안 된다.
 
 Fast 비용은 일부 채널-채널 컨볼루션에서 대략 αβ²에 비례할 수 있지만 첫 RGB 레이어·서로 다른 시간 커널·lateral·활성 메모리를 모두 설명하는 식은 아니다. 두 경로가 항상 더 정확하거나 Fast가 전체 비용의 고정 20%라는 보장도 없다. 올바르게 연결한 모델에서 같은 평가 조건으로 비교해야 한다.
 
@@ -390,16 +390,16 @@ Fast 32프레임·α=8에서 첫 시간 정렬과 다음 stage의 문제를 설�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-기본 학습 루프의 warm-up과 cosine 기간을 계산하고 평가 범위를 설명하라.
+기본 트레인 루프의 warm-up과 cosine 기간을 계산하고 평가 범위를 설명하라.
 
 </div>
 
 ??? success "풀이"
 
-    196 epoch 중 34 epoch warm-up 뒤 162번 cosine step을 하지만 T_max는 196이다. 따라서 cosine 최솟값까지 도달하는 일정이 아니다. 검증·체크포인트와 지표 계산도 없어 학습 완료만으로 논문 정확도를 주장할 수 없다.
+    196 epoch 중 34 epoch warm-up 뒤 162번 cosine step을 하지만 T_max는 196이다. 따라서 cosine 최솟값까지 도달하는 일정이 아니다. 검증·체크포인트와 지표 계산도 없어 트레인 완료만으로 논문 정확도를 주장할 수 없다.
 
 
 
 ## 정리하며
 
-SlowFast의 두 시간 해상도는 stage별 정렬과 lateral 채널 계약까지 맞아야 구현된다. 현재 코드에는 stem 호출·연결 차원·모델 이름·학습 일정의 누락이 있다. 구조 아이디어와 원 논문 실험, 실제 제공된 코드의 범위를 구분한다.
+SlowFast의 두 시간 해상도는 stage별 정렬과 lateral 채널 계약까지 맞아야 구현된다. 현재 코드에는 stem 호출·연결 차원·모델 이름·트레인 일정의 누락이 있다. 구조 아이디어와 원 논문 실험, 실제 제공된 코드의 범위를 구분한다.

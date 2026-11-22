@@ -20,7 +20,7 @@
 
 ### 완전 분리 문제
 
-학습 데이터가 **선형 분리 가능**하면 로지스틱 회귀의 최대가능도 추정값이 존재하지 않는다. 모델이 예측을 더 확신에 차게 만들어 언제나 가능도(likelihood, 우도라고도 한다)를 높일 수 있으므로 최적 파라메터가 $\|\boldsymbol{\beta}\| \to \infty$으로 발산한다.
+트레인 데이터가 **선형 분리 가능**하면 로지스틱 회귀의 최대가능도 추정값이 존재하지 않는다. 모델이 예측을 더 확신에 차게 만들어 언제나 가능도(likelihood, 우도라고도 한다)를 높일 수 있으므로 최적 파라메터가 $\|\boldsymbol{\beta}\| \to \infty$으로 발산한다.
 
 수학적으로, ($y_i \in \{-1, +1\}$ 부호화를 쓸 때) 모든 $i$에 대해 $y_i(\mathbf{x}_i^\top \boldsymbol{\beta}^*) > 0$인 $\boldsymbol{\beta}^*$이 존재한다면, $c \to \infty$으로 $\boldsymbol{\beta}^* \to c\boldsymbol{\beta}^*$처럼 배율을 키울 때 모든 예측이 확실성 쪽으로 몰리고 로그가능도가 (상한인) 0에 다가가지만 결코 도달하지는 못한다.
 
@@ -30,7 +30,7 @@
 
 - 피처의 수 $d$이 $n$에 비해 클 때
 - 피처들이 강하게 상관되어 있을 때 (다중공선성)
-- 모델이 학습 데이터의 잡음을 외울 때
+- 모델이 트레인 데이터의 잡음을 외울 때
 
 정칙화는 $\|\boldsymbol{\beta}\|$을 제약하여 지나치게 확신에 찬 예측을 막고 일반화를 개선한다.
 
@@ -151,8 +151,8 @@ $$
 - weight_decay로 하는 L2 정칙화
 - 패널티를 직접 더하는 L1 정칙화
 - 엘라스틱넷 정칙화
-- 학습/검증/시험 분할을 포함한 데이터 처리
-- 조기 종료를 포함한 학습
+- 트레인/검증/시험 분할을 포함한 데이터 처리
+- 조기 종료를 포함한 트레인
 - 종합 평가 지표
 - 정칙화 강도 튜닝
 
@@ -194,7 +194,7 @@ class BinaryClassificationDataset(Dataset):
         X: 형태가 (n_samples, n_features)인 피처 행렬
         y: 형태가 (n_samples,)이고 값이 {0, 1}인 라벨
         scaler: 미리 적합시킨 StandardScaler(선택 사항)
-        fit_scaler: 스케일러를 적합시킬지 여부(학습 데이터에는 True)
+        fit_scaler: 스케일러를 적합시킬지 여부(트레인 데이터에는 True)
     """
 
     def __init__(
@@ -233,7 +233,7 @@ def prepare_data(
     batch_size: int = 32,
     random_state: int = 42,
 ) -> Dict:
-    """층화 분할(stratified split)로 학습/검증/시험 DataLoader를 준비한다."""
+    """층화 분할(stratified split)로 트레인/검증/시험 DataLoader를 준비한다."""
     X_temp, X_test, y_temp, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state, stratify=y
     )
@@ -276,7 +276,7 @@ class LogisticRegression(nn.Module):
 
     구조: 선형 → 시그모이드
 
-    수치적으로 안정하게 학습하려면 BCEWithLogitsLoss를 쓰고
+    수치적으로 안정하게 트레인하려면 BCEWithLogitsLoss를 쓰고
     forward() 대신 logits()를 호출한다.
 
     Args:
@@ -312,7 +312,7 @@ class LogisticRegression(nn.Module):
         return (self.linear.weight ** 2).sum()
 
 # ============================================================================
-# 3부: 정칙화를 적용한 학습
+# 3부: 정칙화를 적용한 트레인
 # ============================================================================
 
 def train_model(
@@ -327,7 +327,7 @@ def train_model(
     verbose: bool = True,
 ) -> Dict:
     """
-    L1/L2 정칙화를 선택적으로 적용해 로지스틱 회귀를 학습한다.
+    L1/L2 정칙화를 선택적으로 적용해 로지스틱 회귀를 트레인한다.
 
     L2 정칙화는 옵티마이저의 weight_decay로 건다.
     L1 정칙화는 로스에 패널티 항을 직접 더해 건다.
@@ -335,9 +335,9 @@ def train_model(
 
     Args:
         model: LogisticRegression 모델
-        train_loader: 학습 DataLoader
+        train_loader: 트레인 DataLoader
         val_loader: 검증 DataLoader
-        num_epochs: 최대 학습 에포크 수
+        num_epochs: 최대 트레인 에포크 수
         learning_rate: 러닝레이트
         l1_lambda: L1 정칙화 강도
         l2_lambda: L2 정칙화 강도(weight_decay)
@@ -345,7 +345,7 @@ def train_model(
         verbose: 진행 상황을 출력한다
 
     Returns:
-        학습 이력 딕셔너리
+        트레인 이력 딕셔너리
     """
     criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.Adam(
@@ -369,7 +369,7 @@ def train_model(
         print("-" * 60)
 
     for epoch in range(num_epochs):
-        # --- 학습 ---
+        # --- 트레인 ---
         model.train()
         total_loss, correct, total = 0.0, 0, 0
 
@@ -588,7 +588,7 @@ for lam in lambdas:
 
 fig, axes = plt.subplots(2, 2, figsize=(13, 10))
 
-# 그림 1: 정칙화 종류별 학습 곡선
+# 그림 1: 정칙화 종류별 트레인 곡선
 ax = axes[0, 0]
 for name, r in results.items():
     ax.plot(r["history"]["val_loss"], label=name)
@@ -781,7 +781,7 @@ L1이 **방향은 맞다.** 가장 작은 계수를 정칙화 없는 0.0371에�
 | `DataLoader` 사용 | 효율적인 배치 묶기, 뒤섞기, 다중 처리 |
 | 피처 표준화 | 더 빠른 수렴, 특정 피처의 지배 방지 |
 | 층화 분할(stratified split) | 클래스 분포를 보존한다 |
-| 학습·검증·시험 3분할 | 학습·선택·최종 평가의 역할을 분리한다 |
+| 트레인·검증·시험 3분할 | 트레인·선택·최종 평가의 역할을 분리한다 |
 
 ### 모델 설계
 
@@ -789,9 +789,9 @@ L1이 **방향은 맞다.** 가장 작은 계수를 정칙화 없는 0.0371에�
 |----------|--------|
 | `nn.Module` 하위 클래스 | 깔끔하고 재사용 가능하며 PyTorch 생태계와 잘 맞는다 |
 | `BCEWithLogitsLoss` | 수치적 안정성 |
-| Xavier 초기화 | 학습의 안정성에 도움이 된다 |
+| Xavier 초기화 | 트레인의 안정성에 도움이 된다 |
 
-### 학습
+### 트레인
 
 | 사례 | 이유 |
 |----------|--------|

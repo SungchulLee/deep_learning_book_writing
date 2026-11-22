@@ -128,7 +128,7 @@ import torch.nn.functional as F
 """
 퓨샷 학습을 위한 에피소드 데이터 로더
 
-퓨샷 학습의 학습과 평가에 쓸 에피소드(과제)를 만든다.
+퓨샷 학습의 트레인과 평가에 쓸 에피소드(과제)를 만든다.
 에피소드마다 클래스 N개에서 뽑은 서포트 집합과 쿼리 집합으로 이루어진다.
 """
 
@@ -538,7 +538,7 @@ class PrototypicalNetwork(nn.Module):
 
 def train_step(model, support, support_labels, query, query_labels, optimizer):
     """
-    프로토타입 네트워크의 학습 스텝 하나.
+    프로토타입 네트워크의 트레인 스텝 하나.
     """
     model.train()
     optimizer.zero_grad()
@@ -595,7 +595,7 @@ if __name__ == "__main__":
     logits = model(support, support_labels, query)
     print(f"Logits shape: {logits.shape}")  # (15, 5)이어야 한다
     
-    # 학습 예
+    # 트레인 예
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss, acc = train_step(model, support, support_labels, query, query_labels, optimizer)
     print(f"Loss: {loss:.4f}, Accuracy: {acc:.4f}")
@@ -627,7 +627,7 @@ def evaluate_cross_domain(model, source_data, source_labels, target_data, target
     """
     교차 도메인(cross-domain) 퓨샷 학습을 평가한다.
     
-    소스 도메인에서 학습하고 타깃 도메인에서 시험하여 일반화를 측정한다.
+    소스 도메인에서 트레인하고 타깃 도메인에서 시험하여 일반화를 측정한다.
     """
     model.eval()
     accuracies = []
@@ -826,7 +826,7 @@ if __name__ == "__main__":
 
 모델 호출은 (support, support_labels, query)이며 반환값을 (쿼리 수, 클래스 수)로 가정한다. FewShotEvaluator는 교차 엔트로피도 계산하므로 로짓이 필요하다. 확률을 반환하는 매칭 네트워크에 그대로 쓰면 로스의 의미가 달라진다. 전체 평가가 no_grad 안에 있으므로 서포트에서 그래디언트 기반 적응을 하는 MAML에는 그대로 적용할 수 없다. 배치 차원 제거는 5차원 이미지와 에피소드 배치 크기 1만 가정한다.
 
-클래스별 정확도에서 쿼리가 없는 클래스는 코드상 0이지만 실제 정확도가 0이라고 관측한 것은 아니다. 또 에피소드 로컬 라벨 0이 매번 다른 원본 클래스를 뜻할 수 있으므로 같은 위치끼리 평균 낸 값을 특정 클래스의 성능으로 부르면 안 된다. evaluate_cross_domain은 source_data와 source_labels를 사용하지 않고 타깃 에피소드만 평가한다. 소스 학습이나 도메인 적응을 수행하는 함수는 아니다. 주 예제는 무작위 데이터이며, create_episode가 요청한 표본 수를 확보하는지도 확인해야 한다.
+클래스별 정확도에서 쿼리가 없는 클래스는 코드상 0이지만 실제 정확도가 0이라고 관측한 것은 아니다. 또 에피소드 로컬 라벨 0이 매번 다른 원본 클래스를 뜻할 수 있으므로 같은 위치끼리 평균 낸 값을 특정 클래스의 성능으로 부르면 안 된다. evaluate_cross_domain은 source_data와 source_labels를 사용하지 않고 타깃 에피소드만 평가한다. 소스 트레인이나 도메인 적응을 수행하는 함수는 아니다. 주 예제는 무작위 데이터이며, create_episode가 요청한 표본 수를 확보하는지도 확인해야 한다.
 
 ## 연습문제
 

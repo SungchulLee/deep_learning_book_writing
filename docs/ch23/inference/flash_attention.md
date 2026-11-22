@@ -436,7 +436,7 @@ if __name__ == "__main__":
         benchmark_attention([512, 1024, 2048, 4096])
 ```
 
-flash_attention_forward_reference는 Python·PyTorch 타일 반복으로 개념을 보여 주는 코드다. SRAM·HBM 배치나 최적화된 전용 역전파를 구현하지 않는다. 일반 autograd로 추적할 때의 저장·in-place 갱신 계약도 별도로 검토해야 하므로 학습 메모리·속도 특성을 원 논문 커널과 같게 볼 수 없다. 현재 참조는 같은 길이의 Q·K·V와 같은 값 차원을 전제로 한다.
+flash_attention_forward_reference는 Python·PyTorch 타일 반복으로 개념을 보여 주는 코드다. SRAM·HBM 배치나 최적화된 전용 역전파를 구현하지 않는다. 일반 autograd로 추적할 때의 저장·in-place 갱신 계약도 별도로 검토해야 하므로 트레인 메모리·속도 특성을 원 논문 커널과 같게 볼 수 없다. 현재 참조는 같은 길이의 Q·K·V와 같은 값 차원을 전제로 한다.
 
 FlashAttention 클래스는 이름과 달리 [PyTorch SDPA](https://docs.pytorch.org/docs/2.14/generated/torch.nn.functional.scaled_dot_product_attention.html)를 호출한다. 실제 backend는 입력·장치·dtype·지원 조건에 따라 선택되므로 호출만으로 Flash 커널 사용을 입증하지 않는다. bool attn_mask의 True는 허용 위치로 MultiheadAttention의 padding mask와 반대이며 broadcast 모양·가산 마스크 규칙도 맞춰야 한다.
 
@@ -491,7 +491,7 @@ with torch.backends.cuda.sdp_kernel(
     output = F.scaled_dot_product_attention(q, k, v)
 ```
 
-위 호출은 API 사용의 짧은 예이며 query·key·value가 정의된 완성 스크립트는 아니다. backend 제어 API와 지원 조건은 설치 버전에 맞춰 확인해야 한다. 특정 커널을 강제하면 지원하지 않는 입력에서 실패할 수 있다. 긴 문맥에서도 전체 모델·KV cache·학습 저장과 이차적 계산 비용은 남는다.
+위 호출은 API 사용의 짧은 예이며 query·key·value가 정의된 완성 스크립트는 아니다. backend 제어 API와 지원 조건은 설치 버전에 맞춰 확인해야 한다. 특정 커널을 강제하면 지원하지 않는 입력에서 실패할 수 있다. 긴 문맥에서도 전체 모델·KV cache·트레인 저장과 이차적 계산 비용은 남는다.
 
 ## 연습문제
 

@@ -1,6 +1,6 @@
 # YOLO: 격자 예측에서 다중 해상도 탐지까지
 
-YOLO는 이미지 전체에서 객체의 위치와 클래스를 예측하는 단일 단계 탐지 계열이다. 최초 YOLO와 후속 구현은 출력 표현·학습 목표·backbone이 다르므로 하나의 격자 공식이나 로스를 모든 버전에 적용하면 안 된다. 이 절은 YOLOv1·v3·Ultralytics YOLOv8을 중심으로 각 코드의 범위를 구분한다.
+YOLO는 이미지 전체에서 객체의 위치와 클래스를 예측하는 단일 단계 탐지 계열이다. 최초 YOLO와 후속 구현은 출력 표현·트레인 목표·backbone이 다르므로 하나의 격자 공식이나 로스를 모든 버전에 적용하면 안 된다. 이 절은 YOLOv1·v3·Ultralytics YOLOv8을 중심으로 각 코드의 범위를 구분한다.
 
 ## 1. 단일 단계 탐지와 이미지 피처
 
@@ -32,7 +32,7 @@ YOLO는 이미지 전체에서 객체의 위치와 클래스를 예측하는 단
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-두 단계 탐지기도 backbone에서 전체 이미지 피처를 만들고 제안 영역별 피처를 사용한다. ‘YOLO는 전체를 보고 Faster R-CNN은 제안만 본다’는 대비는 정확하지 않다. 단일 단계는 별도 영역 제안·영역별 head를 두지 않는다는 구조상의 차이다. 속도와 작은 객체 성능·오탐률은 모델·해상도·학습·하드웨어에 따라 비교한다.
+두 단계 탐지기도 backbone에서 전체 이미지 피처를 만들고 제안 영역별 피처를 사용한다. ‘YOLO는 전체를 보고 Faster R-CNN은 제안만 본다’는 대비는 정확하지 않다. 단일 단계는 별도 영역 제안·영역별 head를 두지 않는다는 구조상의 차이다. 속도와 작은 객체 성능·오탐률은 모델·해상도·트레인·하드웨어에 따라 비교한다.
 
 ## 2. YOLOv1의 격자와 좌표
 
@@ -52,7 +52,7 @@ Total predictions per cell: B × 5 + C
 Total output tensor: S × S × (B × 5 + C)
 ```
 
-중심 x,y는 칸 안의 상대 위치, 너비·높이는 전체 이미지에 대한 비율로 표현한다. YOLOv1의 confidence 목표는 객체 존재와 예측·정답 IoU를 결합한 값이다. 이를 후속 YOLO의 모든 objectness 정의와 동일시하지 않는다. 학습 목표가 이러한 좌표 범위여도 임의의 원시(raw) 네트워크 출력이 자동으로 유효한 좌표 범위 안에 드는 것은 아니다.
+중심 x,y는 칸 안의 상대 위치, 너비·높이는 전체 이미지에 대한 비율로 표현한다. YOLOv1의 confidence 목표는 객체 존재와 예측·정답 IoU를 결합한 값이다. 이를 후속 YOLO의 모든 objectness 정의와 동일시하지 않는다. 트레인 목표가 이러한 좌표 범위여도 임의의 원시(raw) 네트워크 출력이 자동으로 유효한 좌표 범위 안에 드는 것은 아니다.
 
 ```python
 import torch
@@ -119,7 +119,7 @@ def decode_yolo_boxes(
 
 ## 3. 후속 버전에서 바뀐 표현
 
-YOLOv2는 앵커와 크기 군집화, 다중 해상도 학습 등을 사용했고, [YOLOv3](https://arxiv.org/abs/1804.02767)는 잔차 backbone과 세 해상도의 앵커 예측·독립 클래스 sigmoid를 사용한다. 아래는 잔차 블록과 **한 해상도 head**이며 전체 Darknet-53·세 스케일 연결은 아니다.
+YOLOv2는 앵커와 크기 군집화, 다중 해상도 트레인 등을 사용했고, [YOLOv3](https://arxiv.org/abs/1804.02767)는 잔차 backbone과 세 해상도의 앵커 예측·독립 클래스 sigmoid를 사용한다. 아래는 잔차 블록과 **한 해상도 head**이며 전체 Darknet-53·세 스케일 연결은 아니다.
 
 ```python
 import torch.nn as nn
@@ -187,21 +187,21 @@ class YOLOv3Head(nn.Module):
 
 입력 B×C×H×W에서 head는 B×A×H×W×(5+K)를 반환한다. 기본 A=3,K=80이면 마지막 차원 85다. 이 값은 원시 예측이므로 앵커·stride·격자와 함께 디코딩하고 objectness·클래스를 해석해야 한다.
 
-YOLOv4 이후에는 CSP 계열 피처, 피라미드 연결·학습 기법·추론 구조 재매개변수화(re-parameterization) 등 다양한 설계가 제시되었다. YOLO라는 이름을 공유해도 개발 주체와 계보·정의가 모두 같지는 않다. 번호만으로 모든 이전 버전의 엄밀한 상위 집합이나 성능 순서를 뜻하지 않는다.
+YOLOv4 이후에는 CSP 계열 피처, 피라미드 연결·트레인 기법·추론 구조 재매개변수화(re-parameterization) 등 다양한 설계가 제시되었다. YOLO라는 이름을 공유해도 개발 주체와 계보·정의가 모두 같지는 않다. 번호만으로 모든 이전 버전의 엄밀한 상위 집합이나 성능 순서를 뜻하지 않는다.
 
-다음은 2023년에 공개된 Ultralytics YOLOv8 사용 예다. YOLOv8을 ‘최신 세대’라고 고정해 설명하지 않는다. 이 코드는 추론뿐 아니라 학습과 파일 내보내기도 수행하므로 읽을 때 각 호출의 목적을 구분한다.
+다음은 2023년에 공개된 Ultralytics YOLOv8 사용 예다. YOLOv8을 ‘최신 세대’라고 고정해 설명하지 않는다. 이 코드는 추론뿐 아니라 트레인과 파일 내보내기도 수행하므로 읽을 때 각 호출의 목적을 구분한다.
 
 ```python
 # ultralytics YOLOv8 사용
 from ultralytics import YOLO
 
-# 사전 학습된 모델 불러오기
+# 사전 트레인된 모델 불러오기
 model = YOLO('yolov8n.pt')  # 나노 모델
 
 # 추론
 results = model('image.jpg')
 
-# 학습
+# 트레인
 model.train(data='coco.yaml', epochs=100, imgsz=640)
 
 # 내보내기
@@ -522,9 +522,9 @@ def modern_yolo_loss(
     }
 ```
 
-이 함수는 별도의 objectness를 출력하지 않는 위 YOLOv8Head와 그대로 연결되지 않는다. YOLOv8 계열 학습의 분포 초점 로스(DFL, distribution focal loss)·목표 할당도 없다. 공식 학습 경로는 [로스 구현](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/utils/loss.py)을 참고하며, 모든 후속 버전이 focal loss나 같은 objectness 항을 기본으로 쓴다고 설명하지 않는다.
+이 함수는 별도의 objectness를 출력하지 않는 위 YOLOv8Head와 그대로 연결되지 않는다. YOLOv8 계열 트레인의 분포 초점 로스(DFL, distribution focal loss)·목표 할당도 없다. 공식 트레인 경로는 [로스 구현](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/utils/loss.py)을 참고하며, 모든 후속 버전이 focal loss나 같은 objectness 항을 기본으로 쓴다고 설명하지 않는다.
 
-## 6. 사전 학습 모델의 추론·파인튜닝
+## 6. 사전 트레인 모델의 추론·파인튜닝
 
 아래는 여러 모델 크기를 로드해 추론 결과를 읽는 예다. 모델 파일·이미지 경로·지원 장치와 패키지 버전이 필요하고 웨이트를 처음 받을 때 다운로드가 생길 수 있다. 다섯 크기를 모두 로드하면 그만큼 메모리를 쓰며, 추론에는 실제로 쓸 모델 하나만 로드하면 된다.
 
@@ -565,15 +565,15 @@ results = model_nano(
 )
 ```
 
-학습·검증·내보내기는 서로 다른 작업이다. train은 웨이트를 바꾸고 파일을 저장하며 val의 지표는 지정된 검증 분할에 대한 값이다. 검증에 반복 사용한 데이터를 독립 최종 시험 결과로 보고하지 않는다.
+트레인·검증·내보내기는 서로 다른 작업이다. train은 웨이트를 바꾸고 파일을 저장하며 val의 지표는 지정된 검증 분할에 대한 값이다. 검증에 반복 사용한 데이터를 독립 최종 시험 결과로 보고하지 않는다.
 
 ```python
 from ultralytics import YOLO
 
-# 사전 학습된 모델에서 시작
+# 사전 트레인된 모델에서 시작
 model = YOLO('yolov8n.pt')
 
-# 사용자 데이터셋으로 학습
+# 사용자 데이터셋으로 트레인
 results = model.train(
     data='custom_data.yaml',  # 데이터셋 설정
     epochs=100,
@@ -600,7 +600,7 @@ model.export(format='tensorrt', half=True)
 
 위 코드의 `format='tensorrt'`는 [공식 export 형식](https://docs.ultralytics.com/modes/export/)의 TensorRT 지정값 `engine`과 다르다. 지원 backend·정밀도·장치·동적 크기 옵션은 설치 버전과 환경에서 확인해야 한다. 내보냈다는 사실만으로 원래 모델과 동등한 정확도나 목표 지연시간이 검증되는 것은 아니다.
 
-데이터 YAML은 데이터 경로·분할·클래스를 정한다. 실제 이미지마다 별도의 탐지 라벨도 있어야 한다. 일반적인 Ultralytics 탐지 라벨은 클래스 ID와 정규화한 중심 x,y·너비·높이이며 [데이터 형식](https://docs.ultralytics.com/datasets/detect/)과 일치시킨다. 클래스 ID는 names의 0부터 시작하는 인덱스다. 영상·촬영 대상 등 관련 표본이 학습과 검증에 섞이지 않도록 과제에 맞게 분리한다.
+데이터 YAML은 데이터 경로·분할·클래스를 정한다. 실제 이미지마다 별도의 탐지 라벨도 있어야 한다. 일반적인 Ultralytics 탐지 라벨은 클래스 ID와 정규화한 중심 x,y·너비·높이이며 [데이터 형식](https://docs.ultralytics.com/datasets/detect/)과 일치시킨다. 클래스 ID는 names의 0부터 시작하는 인덱스다. 영상·촬영 대상 등 관련 표본이 트레인과 검증에 섞이지 않도록 과제에 맞게 분리한다.
 
 ```yaml
 # custom_data.yaml

@@ -15,7 +15,7 @@ class SpatialStream(nn.Module):
     """
     외형 기반 인식을 위한 공간 스트림.
     
-    전이 학습을 위해 ImageNet에서 사전 학습된 모델을 쓴다.
+    전이 학습을 위해 ImageNet에서 사전 트레인된 모델을 쓴다.
     핵심 통찰: 액션은 흔히 물체 및 장면과 얽혀 있다.
     """
     
@@ -26,7 +26,7 @@ class SpatialStream(nn.Module):
                  dropout: float = 0.5):
         super().__init__()
         
-        # 사전 학습된 백본 불러오기
+        # 사전 트레인된 백본 불러오기
         if backbone == 'resnet50':
             base = models.resnet50(pretrained=pretrained)
             self.feature_dim = 2048
@@ -86,7 +86,7 @@ class SpatialStream(nn.Module):
         return features
 ```
 
-SpatialStream은 ResNet-50 또는 101의 이미지 피처를 사용하고 새 액션 분류 head를 붙인다. 배치 이미지는 B×3×H×W, 비디오는 B×T×3×H×W를 받는다. 비디오의 프레임 로짓을 평균하므로 eval에서 프레임 순서에 불변이다. extract_features는 비디오일 때 B×T×2048을 반환하며 아직 시간 요약을 하지 않는다. 사전 학습된 RGB 통계·입력 범위와 새 분류 head의 학습을 구분한다.
+SpatialStream은 ResNet-50 또는 101의 이미지 피처를 사용하고 새 액션 분류 head를 붙인다. 배치 이미지는 B×3×H×W, 비디오는 B×T×3×H×W를 받는다. 비디오의 프레임 로짓을 평균하므로 eval에서 프레임 순서에 불변이다. extract_features는 비디오일 때 B×T×2048을 반환하며 아직 시간 요약을 하지 않는다. 사전 트레인된 RGB 통계·입력 범위와 새 분류 head의 트레인을 구분한다.
 
 ```python
 def sample_frames_spatial(video: torch.Tensor, 
@@ -128,7 +128,7 @@ class TemporalStream(nn.Module):
         input_channels = 2 * flow_length  # 흐름마다의 u와 v
         
         # 흐름 입력에 맞게 수정한 ResNet
-        # 사전 학습된 웨이트를 쓸 수 없다(입력 채널이 다르다)
+        # 사전 트레인된 웨이트를 쓸 수 없다(입력 채널이 다르다)
         resnet = models.resnet50(pretrained=False)
         
         # 첫 컨볼루션 레이어 교체
@@ -137,7 +137,7 @@ class TemporalStream(nn.Module):
             kernel_size=7, stride=2, padding=3, bias=False
         )
         
-        # 사전 학습된 RGB 웨이트의 평균으로 초기화
+        # 사전 트레인된 RGB 웨이트의 평균으로 초기화
         # 이러면 공간 구조에 대한 지식이 얼마간 전이된다
         if True:  # 선택적인 웨이트 초기화
             pretrained = models.resnet50(pretrained=True)
@@ -186,9 +186,9 @@ class TemporalStream(nn.Module):
         return self.classifier(x)
 ```
 
-TemporalStream은 L개의 프레임 쌍을 수평·수직 두 채널씩 연결한 B×2L×H×W를 받는다. 기본 L=10에서 20채널이다. 첫 컨볼루션만 RGB 사전 학습 필터를 평균·복제해 초기화하고 나머지 ResNet은 pretrained=False의 무작위 초기값이다. 전체 시간 가지가 ImageNet 사전 학습 웨이트를 이어받은 것으로 설명하지 않는다.
+TemporalStream은 L개의 프레임 쌍을 수평·수직 두 채널씩 연결한 B×2L×H×W를 받는다. 기본 L=10에서 20채널이다. 첫 컨볼루션만 RGB 사전 트레인 필터를 평균·복제해 초기화하고 나머지 ResNet은 pretrained=False의 무작위 초기값이다. 전체 시간 가지가 ImageNet 사전 트레인 웨이트를 이어받은 것으로 설명하지 않는다.
 
-코드는 RGB 필터의 채널 평균을 2L번 복제한 뒤 2L로 나눈다. 동일한 입력을 모든 채널에 넣었을 때 총 반응은 원 RGB 필터의 **합**이 아니라 **평균**에 해당한다. 원래 RGB 응답 크기를 자동 보존하는 초기화는 아니다. flow의 단위·범위는 RGB와 다르므로 분포까지 같아지는 것도 아니다. `if True` 때문에 이 초기화와 사전 학습 웨이트 로드가 항상 수행된다.
+코드는 RGB 필터의 채널 평균을 2L번 복제한 뒤 2L로 나눈다. 동일한 입력을 모든 채널에 넣었을 때 총 반응은 원 RGB 필터의 **합**이 아니라 **평균**에 해당한다. 원래 RGB 응답 크기를 자동 보존하는 초기화는 아니다. flow의 단위·범위는 RGB와 다르므로 분포까지 같아지는 것도 아니다. `if True` 때문에 이 초기화와 사전 트레인 웨이트 로드가 항상 수행된다.
 
 ## 3. 이동량과 flow 추출
 
@@ -333,8 +333,8 @@ class TwoStreamNetwork(nn.Module):
     
     융합 방식:
     1. 평균: 소프트맥스 점수의 단순 평균
-    2. 가중: 학습 가능하거나 고정된 웨이트
-    3. 학습: 다층 퍼셉트론이 피처 벡터를 결합한다
+    2. 가중: 트레인 가능하거나 고정된 웨이트
+    3. 트레인: 다층 퍼셉트론이 피처 벡터를 결합한다
     """
     
     def __init__(self,
@@ -349,7 +349,7 @@ class TwoStreamNetwork(nn.Module):
         self.fusion = fusion
         
         if fusion == 'weighted':
-            # 고정 웨이트 또는 학습 가능한 웨이트
+            # 고정 웨이트 또는 트레인 가능한 웨이트
             self.alpha = nn.Parameter(torch.tensor(spatial_weight))
         elif fusion == 'learned':
             # 피처를 연결하고 결합을 학습하기
@@ -385,7 +385,7 @@ class TwoStreamNetwork(nn.Module):
             fused = alpha * spatial_logits + (1 - alpha) * temporal_logits
             
         elif self.fusion == 'learned':
-            # 연결하고 학습하기
+            # 연결하고 트레인하기
             combined = torch.cat([spatial_logits, temporal_logits], dim=1)
             fused = self.fusion_net(combined)
         
@@ -427,21 +427,21 @@ class FeatureFusionTwoStream(nn.Module):
         return self.fusion_layer(combined)
 ```
 
-FeatureFusionTwoStream은 선언된 TemporalStream에 없는 `.features`를 호출하므로 그대로 실행할 수 없다. 또 RGB 비디오의 extract_features는 B×T×2048인데 예상 시간 피처는 B×2048이므로 시간 요약 규칙 없이 바로 연결할 수 없다. 각 가지에서 같은 시간 범위의 B×2048 피처를 얻는 명시적 경로와 집계가 필요하다. 피처 연결을 선언한 것만으로 학습·정렬이 완성되는 것은 아니다.
+FeatureFusionTwoStream은 선언된 TemporalStream에 없는 `.features`를 호출하므로 그대로 실행할 수 없다. 또 RGB 비디오의 extract_features는 B×T×2048인데 예상 시간 피처는 B×2048이므로 시간 요약 규칙 없이 바로 연결할 수 없다. 각 가지에서 같은 시간 범위의 B×2048 피처를 얻는 명시적 경로와 집계가 필요하다. 피처 연결을 선언한 것만으로 트레인·정렬이 완성되는 것은 아니다.
 
-## 5. 분리 학습과 공동 학습의 범위
+## 5. 분리 트레인과 공동 트레인의 범위
 
 ```python
 def train_two_stream_separate():
     """
-    Two-Stream 네트워크의 학습 절차.
+    Two-Stream 네트워크의 트레인 절차.
     
-    1. RGB 프레임으로 공간 스트림 학습하기(ImageNet에서 사전 학습된 것을 쓸 수 있다)
-    2. 옵티컬 플로우 스택으로 시간 스트림 학습하기
+    1. RGB 프레임으로 공간 스트림 트레인하기(ImageNet에서 사전 트레인된 것을 쓸 수 있다)
+    2. 옵티컬 플로우 스택으로 시간 스트림 트레인하기
     3. 시험 때 예측 융합하기
     """
     
-    # 공간 스트림 학습하기
+    # 공간 스트림 트레인하기
     spatial_stream = SpatialStream(num_classes=101)
     spatial_optimizer = torch.optim.SGD(
         spatial_stream.parameters(),
@@ -461,7 +461,7 @@ def train_two_stream_separate():
             loss.backward()
             spatial_optimizer.step()
     
-    # 시간 스트림 학습하기(마찬가지로)
+    # 시간 스트림 트레인하기(마찬가지로)
     temporal_stream = TemporalStream(num_classes=101)
     temporal_optimizer = torch.optim.SGD(
         temporal_stream.parameters(),
@@ -478,11 +478,11 @@ def train_two_stream_separate():
             temporal_optimizer.step()
 ```
 
-분리 학습 조각은 epochs·loader와 F import가 별도로 필요하며 학습한 두 가지를 반환하거나 저장·결합하는 과정도 없다. 한 RGB 프레임을 선택할 때 배치 전체에 같은 시간 인덱스를 쓰는 설계다. 목표 클래스·전처리·분할과 검증·체크포인트를 별도로 구성해야 한다.
+분리 트레인 조각은 epochs·loader와 F import가 별도로 필요하며 트레인한 두 가지를 반환하거나 저장·결합하는 과정도 없다. 한 RGB 프레임을 선택할 때 배치 전체에 같은 시간 인덱스를 쓰는 설계다. 목표 클래스·전처리·분할과 검증·체크포인트를 별도로 구성해야 한다.
 
 ```python
 def train_two_stream_e2e(model, train_loader, optimizer, epochs):
-    """융합한 Two-Stream 네트워크를 엔드투엔드로 학습하기."""
+    """융합한 Two-Stream 네트워크를 엔드투엔드로 트레인하기."""
     
     for epoch in range(epochs):
         for rgb, flow, labels in train_loader:
@@ -496,13 +496,13 @@ def train_two_stream_e2e(model, train_loader, optimizer, epochs):
             optimizer.step()
 ```
 
-공동 학습 루프는 입력·라벨만 CUDA로 옮기므로 모델의 장치를 맞춰야 하고 `.train()` 호출도 없다. 호출 전에 eval로 두었다면 dropout·BN이 학습 모드로 자동 전환되지 않는다. flow 텐서를 입력으로 받는 네트워크의 공동 최적화이지 OpenCV flow 추정까지 역전파하는 엔드투엔드 학습은 아니다.
+공동 트레인 루프는 입력·라벨만 CUDA로 옮기므로 모델의 장치를 맞춰야 하고 `.train()` 호출도 없다. 호출 전에 eval로 두었다면 dropout·BN이 트레인 모드로 자동 전환되지 않는다. flow 텐서를 입력으로 받는 네트워크의 공동 최적화이지 OpenCV flow 추정까지 역전파하는 엔드투엔드 트레인은 아니다.
 
 ## 6. 성능을 비교하는 조건
 
-이 페이지에는 실제 학습·평가 결과를 만드는 데이터나 실험이 없다. 특정 UCF-101 정확도를 원 논문의 backbone·데이터 분할·flow·사전 학습·평가 조건 없이 ‘흔한 정확도’로 제시하지 않는다. RGB 단독·flow 단독·결합을 같은 조건에서 비교하고 전체 시스템 비용에 흐름 추정·저장·읽기도 포함한다.
+이 페이지에는 실제 트레인·평가 결과를 만드는 데이터나 실험이 없다. 특정 UCF-101 정확도를 원 논문의 backbone·데이터 분할·flow·사전 트레인·평가 조건 없이 ‘흔한 정확도’로 제시하지 않는다. RGB 단독·flow 단독·결합을 같은 조건에서 비교하고 전체 시스템 비용에 흐름 추정·저장·읽기도 포함한다.
 
-두 네트워크의 비용은 채널 수·프레임 수·fusion과 backbone에 따라 달라 정확히 두 배로 고정되지 않는다. 흐름이 외형 정보를 전혀 담지 않는 것도 아니고 짧은 스택이 모든 장기 시간 관계를 해결하지도 않는다. 이후의 시간 모델·3D CNN·SlowFast와 비교할 때 관찰 구간과 사전 학습을 맞춘다.
+두 네트워크의 비용은 채널 수·프레임 수·fusion과 backbone에 따라 달라 정확히 두 배로 고정되지 않는다. 흐름이 외형 정보를 전혀 담지 않는 것도 아니고 짧은 스택이 모든 장기 시간 관계를 해결하지도 않는다. 이후의 시간 모델·3D CNN·SlowFast와 비교할 때 관찰 구간과 사전 트레인을 맞춘다.
 
 ## 연습문제
 
@@ -524,7 +524,7 @@ RGB와 flow를 결합하는 이유와 RGB 시간 모델이 불가능하다는 �
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff med" title="중간"></span>
-TemporalStream이 전체 사전 학습 웨이트를 쓰는가? 첫 필터의 복제·나눗셈은 어떤 응답을 만드는가?
+TemporalStream이 전체 사전 트레인 웨이트를 쓰는가? 첫 필터의 복제·나눗셈은 어떤 응답을 만드는가?
 
 </div>
 
@@ -554,7 +554,7 @@ FeatureFusionTwoStream의 두 연결 문제를 설명하라.
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff med" title="중간"></span>
-공동 학습 코드가 OpenCV 흐름 추정까지 학습하는가? weighted 초기값 0.4의 실제 RGB 웨이트는 얼마인가?
+공동 트레인 코드가 OpenCV 흐름 추정까지 트레인하는가? weighted 초기값 0.4의 실제 RGB 웨이트는 얼마인가?
 
 </div>
 
@@ -566,4 +566,4 @@ FeatureFusionTwoStream의 두 연결 문제를 설명하라.
 
 ## 정리하며
 
-Two-Stream을 구현하려면 RGB·flow의 시간 범위·단위·초기화·클래스 순서를 맞추고 로짓·확률·피처 결합을 구분해야 한다. 현재 피처 결합·학습 조각에는 빠진 연결이 있어 완성된 실험으로 볼 수 없다. 원 논문의 아이디어와 실제 제공 코드의 범위를 분리해 읽는다.
+Two-Stream을 구현하려면 RGB·flow의 시간 범위·단위·초기화·클래스 순서를 맞추고 로짓·확률·피처 결합을 구분해야 한다. 현재 피처 결합·트레인 조각에는 빠진 연결이 있어 완성된 실험으로 볼 수 없다. 원 논문의 아이디어와 실제 제공 코드의 범위를 분리해 읽는다.

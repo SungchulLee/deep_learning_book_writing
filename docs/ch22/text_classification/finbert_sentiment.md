@@ -1,6 +1,6 @@
 # FinBERT와 금융 텍스트 감성 분류
 
-[ProsusAI FinBERT](https://huggingface.co/ProsusAI/finbert)는 금융 텍스트로 추가 사전 학습하고 감성 분류에 맞춘 BERT 기반 모델이다. 이 페이지에는 그 사용 안내와 별도로, 작은 무작위 초기화 트랜스포머를 합성 문장에 학습하는 실제 코드가 들어 있다. 두 모델과 각각의 라벨·평가 범위를 구분해서 읽는다.
+[ProsusAI FinBERT](https://huggingface.co/ProsusAI/finbert)는 금융 텍스트로 추가 사전 트레인하고 감성 분류에 맞춘 BERT 기반 모델이다. 이 페이지에는 그 사용 안내와 별도로, 작은 무작위 초기화 트랜스포머를 합성 문장에 트레인하는 실제 코드가 들어 있다. 두 모델과 각각의 라벨·평가 범위를 구분해서 읽는다.
 
 ## 1. 코드와 출력
 
@@ -13,11 +13,11 @@
 # ---
 #
 # FinBERT는 금융 텍스트(10-K 보고서,
-# 분석 보고서, 실적 발표)로 추가 사전 학습한 BERT 모델이다. 일반 BERT가 놓치는
+# 분석 보고서, 실적 발표)로 추가 사전 트레인한 BERT 모델이다. 일반 BERT가 놓치는
 # 분야 용어("bullish", "bearish", "overbought", "short squeeze")를 담아낸다.
 #
 #   1부 – HuggingFace Hub에서 FinBERT 읽어 들이기
-#   2부 – 사전 학습된 감성 헤드로 제로샷 추론
+#   2부 – 사전 트레인된 감성 헤드로 제로샷 추론
 #   3부 – StockTwits 데이터로 FinBERT 파인튜닝(PyTorch)
 #   4부 – 평가와 종목별 분석
 #   5부 – FinBERT, 일반 BERT, 단어집 기반 방법 견주기
@@ -42,10 +42,10 @@ print("=" * 60)
 # 요즘 방식: FinBERT는 HuggingFace Hub에 있다.
 # 널리 쓰이는 변종 둘:
 #   - ProsusAI/finbert         (감성: 긍정/부정/중립)
-#   - yiyanghkust/finbert-tone (같은 과제, 다른 사전 학습 말뭉치)
+#   - yiyanghkust/finbert-tone (같은 과제, 다른 사전 트레인 말뭉치)
 
 print("""
-  # 감성 분석을 위해 사전 학습된 FinBERT 읽어 들이기
+  # 감성 분석을 위해 사전 트레인된 FinBERT 읽어 들이기
   from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
   model_name = "ProsusAI/finbert"
@@ -112,7 +112,7 @@ print("=" * 60)
 # 핵심 단계:
 #   1. BERT 토크나이저로 토큰화한다(max_len=128)
 #   2. 어텐션 마스크를 만든다
-#   3. 학습/검증으로 나눈다
+#   3. 트레인/검증으로 나눈다
 #   4. AdamW와 선형 워밍업으로 파인튜닝한다
 #   5. 에포크마다 평가한다
 
@@ -156,7 +156,7 @@ print(f"  Dataset: {len(texts)} examples ({sum(labels)} bullish, {len(labels)-su
 torch.manual_seed(42)
 
 # 시연용으로 단순한 어휘 기반 부호화를 쓴다
-# 그리고 작은 트랜스포머 비슷한 분류기를 학습한다
+# 그리고 작은 트랜스포머 비슷한 분류기를 트레인한다
 MAX_LEN = 64
 VOCAB_SIZE = 5000
 EMBED_DIM = 128
@@ -230,7 +230,7 @@ def simple_tokenize(texts, max_len=64, vocab_size=5000):
 input_ids, attention_masks = simple_tokenize(texts, MAX_LEN, VOCAB_SIZE)
 labels_tensor = torch.tensor(labels, dtype=torch.long)
 
-# 학습/검증 나누기
+# 트레인/검증 나누기
 from sklearn.model_selection import train_test_split
 
 train_idx, val_idx = train_test_split(
@@ -243,7 +243,7 @@ val_data = TensorDataset(input_ids[val_idx], attention_masks[val_idx], labels_te
 train_loader = DataLoader(train_data, sampler=RandomSampler(train_data), batch_size=32)
 val_loader = DataLoader(val_data, sampler=SequentialSampler(val_data), batch_size=32)
 
-# 학습
+# 트레인
 model = SimpleFinancialClassifier(VOCAB_SIZE, EMBED_DIM, NUM_HEADS, HIDDEN_DIM, NUM_CLASSES, MAX_LEN)
 optimizer = torch.optim.AdamW(model.parameters(), lr=2e-4, weight_decay=0.01)
 
@@ -405,7 +405,7 @@ if __name__ == "__main__":
 Part 1: Loading FinBERT
 ============================================================
 
-  # 감성 분석을 위해 사전 학습된 FinBERT 읽어 들이기
+  # 감성 분석을 위해 사전 트레인된 FinBERT 읽어 들이기
   from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
   model_name = "ProsusAI/finbert"
@@ -570,27 +570,27 @@ Done.
 
 첫 부분의 from_pretrained·pipeline과 뒤의 실제 데이터 파인튜닝은 print 문자열 안에 있다. 이 파일의 실행 코드가 FinBERT를 다운로드하거나 파인튜닝하지는 않는다. 안내의 예측 확률과 모델 비교 표도 실행해 측정한 결과가 아니다.
 
-ProsusAI 체크포인트의 라벨은 0=positive, 1=negative, 2=neutral이다. 본문의 합성 이진 분류 라벨은 0=bearish, 1=bullish로 서로 다르다. 미리 감성 라벨로 학습된 모델을 새 데이터에 추가 학습 없이 적용하는 것을 이 코드에서 ‘zero-shot’이라고 부르지만, 그 모델이 감성 라벨로 지도 학습을 거치지 않았다는 뜻은 아니다.
+ProsusAI 체크포인트의 라벨은 0=positive, 1=negative, 2=neutral이다. 본문의 합성 이진 분류 라벨은 0=bearish, 1=bullish로 서로 다르다. 미리 감성 라벨로 트레인된 모델을 새 데이터에 추가 트레인 없이 적용하는 것을 이 코드에서 ‘zero-shot’이라고 부르지만, 그 모델이 감성 라벨로 지도 학습을 거치지 않았다는 뜻은 아니다.
 
 감성은 텍스트의 태도·표현에 대한 분류다. softmax 최댓값이 실제 정답 확률로 보정되어 있거나 주가 상승 확률이라는 보장은 없다. 금융 용어·수치 비교·부정의 이해 정도는 독립 데이터에서 확인해야 하며 모든 문맥에서 일반 모델을 능가한다고 단정하지 않는다.
 
-## 3. 실제 학습하는 작은 모델
+## 3. 실제 트레인하는 작은 모델
 
-SimpleFinancialClassifier는 CRC32 해시 단어 ID와 학습 가능한 위치 임베딩, 트랜스포머 인코더 레이어 두 개, 패딩을 뺀 평균 풀링과 이진 분류 헤드를 사용한다. 사전 학습 웨이트를 가져오지 않는 모델이며 FinBERT의 축약 체크포인트가 아니다. 해시 충돌로 서로 다른 단어가 같은 ID를 가질 수 있고 문장 길이는 64로 잘린다.
+SimpleFinancialClassifier는 CRC32 해시 단어 ID와 트레인 가능한 위치 임베딩, 트랜스포머 인코더 레이어 두 개, 패딩을 뺀 평균 풀링과 이진 분류 헤드를 사용한다. 사전 트레인 웨이트를 가져오지 않는 모델이며 FinBERT의 축약 체크포인트가 아니다. 해시 충돌로 서로 다른 단어가 같은 ID를 가질 수 있고 문장 길이는 64로 잘린다.
 
 padding_idx=0인 임베딩과 src_key_padding_mask, 평균 풀링의 attention_mask는 각각 입력·어텐션·풀링에서 다른 역할을 한다. 위치 ID는 max_len 범위 안이어야 하며 모든 토큰이 패딩인 입력은 평균 분모를 clamp하는 것만으로 인코더의 전부 마스킹된 계산까지 안전해지지 않는다.
 
-학습은 AdamW와 클리핑으로 8에포크 수행하도록 작성되어 있다. 출력 로스는 배치 평균을 다시 평균한 값으로 마지막 배치 크기에 따라 전체 표본 가중 평균과 다를 수 있다.
+트레인은 AdamW와 클리핑으로 8에포크 수행하도록 작성되어 있다. 출력 로스는 배치 평균을 다시 평균한 값으로 마지막 배치 크기에 따라 전체 표본 가중 평균과 다를 수 있다.
 
 ## 4. 중복 문장과 검증의 한계
 
-합성 데이터는 긍정 8문장·부정 8문장을 각각 15번 반복한 240개다. 반복 항목을 무작위로 분할하므로 같은 문장이 학습·검증에 걸쳐 들어가는 누출이 생길 수 있다. 출력의 val_acc=1.000은 2에포크부터 이미 나온다. 이 정확도가 새로운 기업·표현·시기의 금융 텍스트로 일반화한다는 근거는 아니다.
+합성 데이터는 긍정 8문장·부정 8문장을 각각 15번 반복한 240개다. 반복 항목을 무작위로 분할하므로 같은 문장이 트레인·검증에 걸쳐 들어가는 누출이 생길 수 있다. 출력의 val_acc=1.000은 2에포크부터 이미 나온다. 이 정확도가 새로운 기업·표현·시기의 금융 텍스트로 일반화한다는 근거는 아니다.
 
 원문·재게시·유사 문장의 그룹을 분리하고 시간·출처·주석 기준을 고려해 검증·시험 데이터를 구성한다. 정확도 외에 유형별 정밀도·재현율·F1과 중립·부정·숫자·복합 감성의 오류를 확인한다. 시기별 평가에는 공개된 당시의 정보만 사용해야 한다.
 
 ## 5. 실제 데이터로 확장할 때
 
-안내의 3클래스 체크포인트를 num_labels=2로 가져오는 예는 출력 헤드의 크기 불일치를 자동으로 해결하는 완성 코드가 아니다. 새 헤드 초기화와 올바른 label2id·id2label이 필요하고 라이브러리 버전의 인터페이스도 맞춰야 한다. 종목별 predict에 원래 데이터프레임을 바로 넘기면 필요한 토큰화 입력이 없으며 학습에 쓴 문장까지 평가에 포함될 수 있다.
+안내의 3클래스 체크포인트를 num_labels=2로 가져오는 예는 출력 헤드의 크기 불일치를 자동으로 해결하는 완성 코드가 아니다. 새 헤드 초기화와 올바른 label2id·id2label이 필요하고 라이브러리 버전의 인터페이스도 맞춰야 한다. 종목별 predict에 원래 데이터프레임을 바로 넘기면 필요한 토큰화 입력이 없으며 트레인에 쓴 문장까지 평가에 포함될 수 있다.
 
 출력 표의 TextBlob·VADER·BERT·FinBERT 고정 정확도와 F1은 비교 실험 결과로 취급하지 않는다. 같은 데이터 분할·라벨·전처리·튜닝 예산에서 실제 측정해야 한다. 감성 분류 성능과 거래 성과의 평가는 별개다.
 
@@ -605,7 +605,7 @@ padding_idx=0인 임베딩과 src_key_padding_mask, 평균 풀링의 attention_m
 
 ??? success "풀이"
 
-    단어 임베딩 5,000×128=640,000개, 위치 임베딩 64×128=8,192개다. 인코더 레이어마다 어텐션 66,048개, FFN 65,920개, 두 LayerNorm 512개로 132,480개이며 두 레이어는 264,960개다. 분류 헤드 128×2+2=258개를 더해 총 913,410개다. 무작위 초기화 모델이며 사전 학습한 FinBERT의 파라메터 수가 아니다.
+    단어 임베딩 5,000×128=640,000개, 위치 임베딩 64×128=8,192개다. 인코더 레이어마다 어텐션 66,048개, FFN 65,920개, 두 LayerNorm 512개로 132,480개이며 두 레이어는 264,960개다. 분류 헤드 128×2+2=258개를 더해 총 913,410개다. 무작위 초기화 모델이며 사전 트레인한 FinBERT의 파라메터 수가 아니다.
 
 
 
@@ -620,7 +620,7 @@ padding_idx=0인 임베딩과 src_key_padding_mask, 평균 풀링의 attention_m
 
 ??? success "풀이"
 
-    16개의 고유 문장을 반복한 데이터라 동일 문자열이 학습·검증 양쪽에 나타날 수 있다. 모델이 문장을 외운 결과와 새로운 문맥의 일반화를 구분할 수 없다. 원문·유사 문장 그룹을 나누고 새로운 시기·출처의 독립 시험 데이터로 평가해야 한다.
+    16개의 고유 문장을 반복한 데이터라 동일 문자열이 트레인·검증 양쪽에 나타날 수 있다. 모델이 문장을 외운 결과와 새로운 문맥의 일반화를 구분할 수 없다. 원문·유사 문장 그룹을 나누고 새로운 시기·출처의 독립 시험 데이터로 평가해야 한다.
 
 
 
@@ -635,7 +635,7 @@ FinBERT의 3클래스 라벨과 합성 이진 라벨이 다른 이유 및 헤드
 
 ??? success "풀이"
 
-    체크포인트는 0=positive, 1=negative, 2=neutral이고 합성 모델은 0=bearish, 1=bullish다. 번호를 그대로 옮기면 의미가 뒤집히거나 중립 처리가 사라진다. 이진 과제로 바꿀 때는 출력 크기·새 헤드 학습·라벨 매핑과 중립 데이터의 포함/제외 정책을 명시해야 한다.
+    체크포인트는 0=positive, 1=negative, 2=neutral이고 합성 모델은 0=bearish, 1=bullish다. 번호를 그대로 옮기면 의미가 뒤집히거나 중립 처리가 사라진다. 이진 과제로 바꿀 때는 출력 크기·새 헤드 트레인·라벨 매핑과 중립 데이터의 포함/제외 정책을 명시해야 한다.
 
 
 
@@ -650,7 +650,7 @@ FinBERT의 3클래스 라벨과 합성 이진 라벨이 다른 이유 및 헤드
 
 ??? success "풀이"
 
-    YourBlock·dim은 정의되지 않았고 현재 생성자는 num_layers를 받지 않는다. 실제 깊이는 TransformerEncoder 생성의 num_layers=2에 고정되어 있다. 깊이를 인자로 노출하면 연결·초기화·학습 설정과 파라메터 증가를 함께 검토해야 한다. ModuleList는 모듈 등록 도구일 뿐 그 자체로 forward나 파인튜닝을 완성하지 않는다.
+    YourBlock·dim은 정의되지 않았고 현재 생성자는 num_layers를 받지 않는다. 실제 깊이는 TransformerEncoder 생성의 num_layers=2에 고정되어 있다. 깊이를 인자로 노출하면 연결·초기화·트레인 설정과 파라메터 증가를 함께 검토해야 한다. ModuleList는 모듈 등록 도구일 뿐 그 자체로 forward나 파인튜닝을 완성하지 않는다.
 
     ```python
     self.layers = nn.ModuleList()
@@ -661,4 +661,4 @@ FinBERT의 3클래스 라벨과 합성 이진 라벨이 다른 이유 및 헤드
 
 ## 정리하며
 
-FinBERT 사용 안내와 합성 데이터의 작은 트랜스포머 학습은 다르다. 라벨·체크포인트 헤드·중복 누출을 확인하고 같은 조건의 독립 평가로 분류 성능을 판단해야 한다.
+FinBERT 사용 안내와 합성 데이터의 작은 트랜스포머 트레인은 다르다. 라벨·체크포인트 헤드·중복 누출을 확인하고 같은 조건의 독립 평가로 분류 성능을 판단해야 한다.

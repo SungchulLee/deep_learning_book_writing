@@ -264,7 +264,7 @@ $$\boxed{\frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \frac{1}{N} (\hat{\m
 
 **그래디언트의 방향:** 참 클래스의 그래디언트는 음수여서 로짓을 올리고, 다른 클래스의 그래디언트는 양수여서 로짓을 내린다. 그 결과 참 클래스와 나머지 사이의 간격이 벌어진다.
 
-**로짓 그래디언트의 유계성:** 원핫 목표를 쓰는 표본 하나에 대해 $\|\nabla_\mathbf{z}\mathcal{L}\|_2\leq\sqrt{2}$이다. 웨이트 그래디언트에는 입력 크기가, 깊은 뉴럴 네트워크의 그래디언트에는 앞선 레이어의 야코비안이 곱해지므로 이 부등식만으로 전체 학습의 안정성을 보장할 수 없다.
+**로짓 그래디언트의 유계성:** 원핫 목표를 쓰는 표본 하나에 대해 $\|\nabla_\mathbf{z}\mathcal{L}\|_2\leq\sqrt{2}$이다. 웨이트 그래디언트에는 입력 크기가, 깊은 뉴럴 네트워크의 그래디언트에는 앞선 레이어의 야코비안이 곱해지므로 이 부등식만으로 전체 트레인의 안정성을 보장할 수 없다.
 
 ---
 
@@ -600,7 +600,7 @@ class SoftmaxRegressionNumPy:
         return dW, db
 
     def train_step(self, X: np.ndarray, y: np.ndarray, lr: float) -> float:
-        """학습 한 단계: 순전파, 역전파, 갱신."""
+        """트레인 한 단계: 순전파, 역전파, 갱신."""
         probs = self.forward(X)
         loss = self.compute_loss(probs, y)
         dW, db = self.backward(X, y)

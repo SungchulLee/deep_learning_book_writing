@@ -19,17 +19,17 @@ $$M \cdot \mathbf{v}(\text{이미지}) \approx \mathbf{s}(\text{클래스 이름
 **시각 인코더**: 이미지에서 피처를 추출한다. 원 DeViSE는 당시의 CNN을 사용했으며, 아래 구현은 이미 추출한 피처를 입력받는다. 백본의 동결·미세 조정은 별도로 정해야 한다.
 
 - 끝에서 두 번째 레이어에서 피처를 추출한다
-- 학습 중에 동결하거나 미세 조정한다
+- 트레인 중에 동결하거나 미세 조정한다
 
 **투영 네트워크**: 학습된 변환
 
 - 선형 또는 비선형 변환
 - 시각 피처를 의미 공간으로 투영한다
 
-**의미 임베딩**: 미리 학습된 단어 벡터
+**의미 임베딩**: 미리 트레인된 단어 벡터
 
 - Word2Vec, GloVe 또는 FastText
-- 학습 중에는 (대개) 고정해 둔다
+- 트레인 중에는 (대개) 고정해 둔다
 
 ### 로스 함수
 
@@ -45,7 +45,7 @@ $$\mathcal{L} = \sum_{(\mathbf{x}, y)} \sum_{j \neq y} \max(0, \gamma - \mathbf{
 
 ### PyTorch 구현
 
-아래 DeViSE는 시각·의미 양쪽을 투영하고 L2 정규화하는 변형이다. temperature는 선언만 되고 점수 계산에 사용되지 않는다. predict는 의미 벡터를 CPU에 만들고 인덱스를 바로 numpy로 변환하므로 CUDA 모델에 그대로 적용할 수 없다. BatchNorm1d 때문에 학습 배치 크기도 고려한다.
+아래 DeViSE는 시각·의미 양쪽을 투영하고 L2 정규화하는 변형이다. temperature는 선언만 되고 점수 계산에 사용되지 않는다. predict는 의미 벡터를 CPU에 만들고 인덱스를 바로 numpy로 변환하므로 CUDA 모델에 그대로 적용할 수 없다. BatchNorm1d 때문에 트레인 배치 크기도 고려한다.
 
 ```python
 import torch
@@ -81,7 +81,7 @@ class DeViSE(nn.Module):
         # 의미 투영(선택)
         self.semantic_projection = nn.Linear(semantic_dim, embedding_dim)
         
-        # 소프트맥스의 온도(학습 가능)
+        # 소프트맥스의 온도(트레인 가능)
         self.temperature = nn.Parameter(torch.ones(1))
     
     def project_visual(self, visual_features):
@@ -96,7 +96,7 @@ class DeViSE(nn.Module):
     
     def forward(self, visual_features, semantic_pos, semantic_neg=None):
         """
-        학습용 순전파.
+        트레인용 순전파.
         """
         v_proj = self.project_visual(visual_features)
         s_pos_proj = self.project_semantic(semantic_pos)
@@ -140,7 +140,7 @@ class DeViSE(nn.Module):
 
 $$F(\mathbf{v}, \mathbf{s}) = \mathbf{v}^\top W \mathbf{s}$$
 
-여기서 $W \in \mathbb{R}^{d_v \times d_s}$은 학습된 웨이트 행렬이다.
+여기서 $W \in \mathbb{R}^{d_v \times d_s}$은 트레인된 웨이트 행렬이다.
 
 ### 저랭크 분해
 
@@ -343,7 +343,7 @@ class TwoBranchNetwork(nn.Module):
 
 ---
 
-## 5. 학습 시 고려할 점
+## 5. 트레인 시 고려할 점
 
 ### 하드 네거티브 선택
 
@@ -367,7 +367,7 @@ def hard_negative_mining(model, visual, positive_idx, all_embeddings, seen_class
 
 ### 러닝레이트 스케줄링
 
-0<warmup_epochs<num_epochs를 가정하는 코사인 스케줄 예시다. 반복 단위를 에포크로 정하고 scheduler.step 호출 위치를 일치시킨다. 시작 계수는 0이며, 명시한 학습 기간을 넘겨 호출하면 코사인 값이 다시 커질 수 있다.
+0<warmup_epochs<num_epochs를 가정하는 코사인 스케줄 예시다. 반복 단위를 에포크로 정하고 scheduler.step 호출 위치를 일치시킨다. 시작 계수는 0이며, 명시한 트레인 기간을 넘겨 호출하면 코사인 값이 다시 커질 수 있다.
 
 ```python
 import math
@@ -434,4 +434,4 @@ W=UVᵀ 분해의 차원과 파라메터 절감을 설명하라.
 
 ## 정리하며
 
-시각·의미 정렬은 투영 구조와 순위·대조 로스로 학습한다. 대응 쌍 점수와 전체 클래스 점수 행렬을 구분하고, 의미 정보가 실제 출력에 영향을 주는지 확인한다. 사전 학습·입력 순서·장치와 음성 표본의 정의도 평가에 포함한다.
+시각·의미 정렬은 투영 구조와 순위·대조 로스로 트레인한다. 대응 쌍 점수와 전체 클래스 점수 행렬을 구분하고, 의미 정보가 실제 출력에 영향을 주는지 확인한다. 사전 트레인·입력 순서·장치와 음성 표본의 정의도 평가에 포함한다.

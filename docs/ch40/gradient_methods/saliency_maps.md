@@ -128,7 +128,7 @@ def compute_vanilla_gradient_saliency(
     바닐라 그래디언트 Saliency Map을 계산한다(텐서를 반환한다).
 
     Args:
-        model: 평가 모드로 둔 사전 학습된 뉴럴 네트워크
+        model: 평가 모드로 둔 사전 트레인된 뉴럴 네트워크
         image_tensor: 입력 이미지 [1, 3, H, W]
         target_class: 샐리언시를 계산할 클래스 번호
         device: 계산할 장치(CPU/GPU)
@@ -284,7 +284,7 @@ import numpy as np
 # 설정
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# 사전 학습된 모델을 불러온다
+# 사전 트레인된 모델을 불러온다
 model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
 model = model.to(device)
 model.eval()
@@ -842,7 +842,7 @@ def tabular_saliency(
 </div>
 
 ??? success "풀이"
-    웨이트가 $W_1, b_1, W_2, b_2$인 학습된 XOR 네트워크에서 출력은 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 설명 방법은 입력 피처마다 기여도를 내놓는다. $x = [1, 1]$(클래스 0)이면 두 피처 모두 음수 쪽 분류에 기여한다. 기여도 값은 방법마다 다르다. 그래디언트 기반 방법은 $\partial f / \partial x_i$을 계산하고, 섭동 기반 방법은 피처를 가렸을 때 출력이 얼마나 바뀌는지 잰다. XOR 문제는 결정 경계가 선형이 아니므로 선형 설명 방법이 틀릴 수 있음을 보여 준다. $\square$
+    웨이트가 $W_1, b_1, W_2, b_2$인 트레인된 XOR 네트워크에서 출력은 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 설명 방법은 입력 피처마다 기여도를 내놓는다. $x = [1, 1]$(클래스 0)이면 두 피처 모두 음수 쪽 분류에 기여한다. 기여도 값은 방법마다 다르다. 그래디언트 기반 방법은 $\partial f / \partial x_i$을 계산하고, 섭동 기반 방법은 피처를 가렸을 때 출력이 얼마나 바뀌는지 잰다. XOR 문제는 결정 경계가 선형이 아니므로 선형 설명 방법이 틀릴 수 있음을 보여 준다. $\square$
 
 ---
 

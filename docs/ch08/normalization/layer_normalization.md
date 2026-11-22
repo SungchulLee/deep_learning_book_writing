@@ -43,7 +43,7 @@ class LayerNormNumPy:
         self.normalized_shape = normalized_shape
         self.eps = eps
         
-        # 학습 가능한 파라메터
+        # 트레인 가능한 파라메터
         self.gamma = np.ones(normalized_shape)  # 배율 파라메터
         self.beta = np.zeros(normalized_shape)  # 이동 파라메터
         
@@ -62,7 +62,7 @@ class LayerNormNumPy:
         # 배치 정규화와 갈리는 핵심이다. 배치 정규화는 배치 축을 따라
         # 통계를 내어 표본들이 서로 영향을 주지만, 레이어 정규화는 표본
         # 하나 안에서만 통계를 내므로 옆에 어떤 표본이 있든 결과가 같다.
-        # 그래서 배치 크기가 1이어도 되고, 학습과 추론의 동작이 같아
+        # 그래서 배치 크기가 1이어도 되고, 트레인과 추론의 동작이 같아
         # 이동 통계를 따로 둘 필요도 없다
         axes = tuple(range(-len(self.normalized_shape), 0))
         
@@ -74,7 +74,7 @@ class LayerNormNumPy:
         
         # 배율 조정과 이동.
         # 정규화가 평균 0, 분산 1을 강요하는데 그것이 늘 좋은 것은
-        # 아니므로, 뉴럴 네트워크가 그 제약을 되돌릴 수 있게 학습 가능한 파라메터를 준다.
+        # 아니므로, 뉴럴 네트워크가 그 제약을 되돌릴 수 있게 트레인 가능한 파라메터를 준다.
         # gamma=1, beta=0에서 시작해 필요한 만큼만 배우며,
         # 극단적으로는 원래 분포를 그대로 복원할 수도 있다.
         # RMSNorm에 beta가 없는 것은 애초에 평균을 빼지 않아
@@ -105,7 +105,7 @@ class RNNWithLayerNorm(nn.Module):
         # 섞이면 감당이 되지 않는다. 레이어 정규화는 시점마다 그 표본
         # 하나만 보므로 그런 문제가 없다.
         # 정규화 레이어 하나를 모든 시점에 돌려 쓴다는 점도 눈여겨보라.
-        # 학습되는 것은 gamma와 beta뿐이고 이동 통계가 없어서 가능하다
+        # 트레인되는 것은 gamma와 beta뿐이고 이동 통계가 없어서 가능하다
         self.ln = nn.LayerNorm(hidden_size)
         
     def forward(self, x, hidden=None):
@@ -484,7 +484,7 @@ LayerNormNumPy는 normalized_shape에 해당하는 마지막 축에서 평균·�
 
 RNN 예제는 각 시점의 은닉 피처를 정규화한다. 트랜스포머 예제는 기본 MultiheadAttention의 `(시퀀스, 배치, 피처)` 순서를 사용하고, 잔차 합 뒤에 레이어 정규화를 적용하는 post-norm 구조이다.
 
-레이어 정규화는 현재 표본의 통계량을 학습과 평가에서 모두 사용한다. 이동 평균·분산을 누적하지 않으며, 배치 크기와 상관없이 한 표본의 정규화 통계가 다른 표본에 의존하지 않는다. 모델의 드롭아웃 같은 다른 연산은 여전히 모드에 따라 달라진다.
+레이어 정규화는 현재 표본의 통계량을 트레인과 평가에서 모두 사용한다. 이동 평균·분산을 누적하지 않으며, 배치 크기와 상관없이 한 표본의 정규화 통계가 다른 표본에 의존하지 않는다. 모델의 드롭아웃 같은 다른 연산은 여전히 모드에 따라 달라진다.
 
 ## 연습문제
 
@@ -496,7 +496,7 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
 </div>
 
 ??? success "풀이"
-    gamma와 beta에 각각 $D$개, 합계 $2D$개가 있다. PyTorch에서는 기본 설정에서 학습 파라메터로 등록되지만 NumPy 시연에서는 일반 배열이다. 배치 정규화의 running_mean·running_var와 같은 이동 통계량은 없다.
+    gamma와 beta에 각각 $D$개, 합계 $2D$개가 있다. PyTorch에서는 기본 설정에서 트레인 파라메터로 등록되지만 NumPy 시연에서는 일반 배열이다. 배치 정규화의 running_mean·running_var와 같은 이동 통계량은 없다.
 
 ---
 

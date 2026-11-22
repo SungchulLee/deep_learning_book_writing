@@ -21,7 +21,7 @@
     - 최대가능도 기반의 사용자 정의 로스를 구현한다
     - 이분산 회귀(불확실성 예측)를 배운다
 
-    핵심 통찰: 뉴럴 네트워크 학습이 곧 최대가능도 추정이다!
+    핵심 통찰: 뉴럴 네트워크 트레인이 곧 최대가능도 추정이다!
 
     표준 회귀:
     - 네트워크가 예측한다: ŷ = f(x; θ)
@@ -42,7 +42,7 @@
     - 능동 학습(active learning, 불확실성이 큰 점을 질의한다)
     - 위험을 고려한 의사결정
 
-    지은이: PyTorch 최대가능도 학습
+    지은이: PyTorch 최대가능도 트레인
     DATE: 2025
     ================================================================================
     """
@@ -155,7 +155,7 @@
 
 
     def train_standard_nn(x_train, y_train, epochs=1000, lr=0.01):
-        """MSE 로스로 표준 뉴럴 네트워크를 학습시킨다"""
+        """MSE 로스로 표준 뉴럴 네트워크를 트레인시킨다"""
 
         model = StandardNN(hidden_size=50)
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -182,7 +182,7 @@
 
 
     def train_heteroscedastic_nn(x_train, y_train, epochs=1000, lr=0.01):
-        """사용자 정의 MLE 로스로 이분산 뉴럴 네트워크를 학습시킨다"""
+        """사용자 정의 MLE 로스로 이분산 뉴럴 네트워크를 트레인시킨다"""
 
         model = HeteroscedasticNN(hidden_size=50)
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -281,7 +281,7 @@
         ax3 = plt.subplot(2, 3, 3)
 
         # sigma(x) = 0.1 + 0.1|x| 는 데이터를 만들 때 쓴 참 함수이다.
-        # true_sigma는 학습점 300개에서의 값이므로, 시험 격자 200개에
+        # true_sigma는 트레인점 300개에서의 값이므로, 시험 격자 200개에
         # 맞추어 여기서 다시 계산한다.
         true_sigma_test = (0.1 + 0.1 * x_test.abs()).detach().numpy().flatten()
         true_sigma_sorted = true_sigma_test[sort_idx]
@@ -302,7 +302,7 @@
         ax4 = plt.subplot(2, 3, 4)
 
         residuals_standard = (y - model_standard(x)).detach().numpy().flatten()
-        # 잔차와 보정은 학습점에서 재야 하므로 x_test가 아니라 x로 예측한다.
+        # 잔차와 보정은 트레인점에서 재야 하므로 x_test가 아니라 x로 예측한다.
         # 아래 그림 5도 이 값을 쓴다.
         with torch.no_grad():
             mu_train, logvar_train = model_hetero(x)
@@ -405,12 +405,12 @@
         print(f"   • Training samples: {len(x_train)}")
         print(f"   • Noise varies with x (heteroscedastic)")
 
-        # 표준 뉴럴 네트워크를 학습시킨다
+        # 표준 뉴럴 네트워크를 트레인시킨다
         print("\n🔵 Training Standard NN (MSE Loss)...")
         print("-" * 80)
         model_standard, history_standard = train_standard_nn(x_train, y_train, epochs=1000, lr=0.01)
 
-        # 이분산 뉴럴 네트워크를 학습시킨다
+        # 이분산 뉴럴 네트워크를 트레인시킨다
         print("\n🔴 Training Heteroscedastic NN (MLE Loss)...")
         print("-" * 80)
         model_hetero, history_hetero = train_heteroscedastic_nn(x_train, y_train, epochs=1000, lr=0.01)
@@ -483,9 +483,9 @@
 
     5. 어려움: 능동 학습
        - 불확실성을 기준으로 정보량이 큰 표본을 고른다
-       - 작은 데이터셋으로 학습한다
+       - 작은 데이터셋으로 트레인한다
        - 불확실성이 큰 점을 반복해서 질의한다
-       - 학습 곡선이 더 빨리 개선됨을 보인다
+       - 트레인 곡선이 더 빨리 개선됨을 보인다
     """
 
 
@@ -566,7 +566,7 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 
 ### 그림과 지표의 비교 조건
 
-평균 주위의 표준편차 띠는 가정한 데이터 잡음의 크기를 나타낸다. 이는 평균 추정값의 신뢰구간이나 모든 모델 불확실성을 포함한 구간과 다르다. 학습 데이터의 표준화 잔차만으로 새 데이터의 보정을 확정할 수는 없다.
+평균 주위의 표준편차 띠는 가정한 데이터 잡음의 크기를 나타낸다. 이는 평균 추정값의 신뢰구간이나 모든 모델 불확실성을 포함한 구간과 다르다. 트레인 데이터의 표준화 잔차만으로 새 데이터의 보정을 확정할 수는 없다.
 
 제공 코드의 표준 모델 NLL은 상수 항과 분산 1을 사용하고, 이분산 모델의 로스는 같은 상수 항을 생략한다. 두 숫자를 그대로 비교해 우열을 결론 내리면 안 된다. 같은 상수 항, 같은 합·평균 방식, 같은 평가 데이터에서 NLL을 맞춰 비교해야 한다.
 
@@ -575,7 +575,7 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff easy" title="쉬움"></span>
-기본 `hidden_size=50`인 `StandardNN`의 학습 파라메터를 레이어별로 계산하라.
+기본 `hidden_size=50`인 `StandardNN`의 트레인 파라메터를 레이어별로 계산하라.
 
 </div>
 
@@ -592,7 +592,7 @@ NEURAL NETWORK MLE - Deep Learning with Uncertainty
 </div>
 
 ??? success "풀이"
-    두 모델의 정규분포 상수 항과 합·평균 방식, 분산 가정을 일치시키고 같은 독립 검증 데이터에서 계산한다. 서로 다른 상수를 생략한 로스 숫자나 학습 로스만으로 모델 우열을 판단하지 않는다.
+    두 모델의 정규분포 상수 항과 합·평균 방식, 분산 가정을 일치시키고 같은 독립 검증 데이터에서 계산한다. 서로 다른 상수를 생략한 로스 숫자나 트레인 로스만으로 모델 우열을 판단하지 않는다.
 
 ---
 

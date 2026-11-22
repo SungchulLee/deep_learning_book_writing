@@ -74,7 +74,7 @@ $$
 
 ### 지나친 확신 막기
 
-원핫 목표는 모델이 옳은 클래스에 대해 $p_k = 1$을 내놓도록 이끄는데, 이는 정답 로짓과 나머지 로짓의 차이가 한없이 벌어져야 함을 뜻한다. 그 결과 지나치게 확신하며 일반화가 나쁜 예측을 하게 되고, 학습 데이터에 라벨 잡음이나 모호한 예가 있을 때 특히 그렇다.
+원핫 목표는 모델이 옳은 클래스에 대해 $p_k = 1$을 내놓도록 이끄는데, 이는 정답 로짓과 나머지 로짓의 차이가 한없이 벌어져야 함을 뜻한다. 그 결과 지나치게 확신하며 일반화가 나쁜 예측을 하게 되고, 트레인 데이터에 라벨 잡음이나 모호한 예가 있을 때 특히 그렇다.
 
 ### 개선된 보정
 
@@ -205,7 +205,7 @@ class SoftTargetCrossEntropy(nn.Module):
         return loss.mean()
 ```
 
-### 학습 루프와의 통합
+### 트레인 루프와의 통합
 
 ```python
 import torch.optim as optim
@@ -220,18 +220,18 @@ def train_with_label_smoothing(
     lr: float = 0.001
 ) -> dict:
     """
-    라벨 스무딩으로 모델을 학습시킨다.
+    라벨 스무딩으로 모델을 트레인시킨다.
     
     인수:
         model: 분류 뉴럴 네트워크
-        train_loader: 학습 데이터
+        train_loader: 트레인 데이터
         val_loader: 검증 데이터
         epsilon: 라벨 스무딩 파라메터
-        epochs: 학습 에포크 수
+        epochs: 트레인 에포크 수
         lr: 러닝레이트
         
     반환값:
-        학습 이력
+        트레인 이력
     """
     # PyTorch가 스무딩을 인자 하나로 지원한다. 앞 절에서 손으로 만든
     # 클래스와 하는 일이 같으므로, 실무에서는 이쪽을 쓰면 된다
@@ -248,7 +248,7 @@ def train_with_label_smoothing(
     }
     
     for epoch in range(epochs):
-        # 학습
+        # 트레인
         model.train()
         train_loss, train_correct, train_total = 0, 0, 0
         
@@ -275,7 +275,7 @@ def train_with_label_smoothing(
                 # 스무딩 없는 교차 엔트로피를 쓴다. 스무딩된 로스는
                 # 정답을 완벽히 맞혀도 0으로 내려가지 않고 하한이 epsilon에
                 # 따라 달라지므로, epsilon이 다른 실험끼리 견줄 수 없다.
-                # 그래서 학습 로스와 검증 로스도 서로 다른 함수의 값이며
+                # 그래서 트레인 로스와 검증 로스도 서로 다른 함수의 값이며
                 # 한 그래프에 겹쳐 그리면 안 된다
                 loss = nn.CrossEntropyLoss()(outputs, y_batch)  # 공정한 비교를 위한 딱딱한 교차 엔트로피
                 
@@ -367,7 +367,7 @@ def evaluate_calibration(model, data_loader, device='cpu'):
             X_batch, y_batch = X_batch.to(device), y_batch.to(device)
             outputs = model(X_batch)   # 로짓
             # 모델이 로짓을 내므로 여기서 소프트맥스를 걸어 확률로 만든다.
-            # 학습 때는 CrossEntropyLoss가 안에서 걸어 주므로 필요 없었다
+            # 트레인 때는 CrossEntropyLoss가 안에서 걸어 주므로 필요 없었다
             probs = torch.softmax(outputs, dim=-1)
             # 가장 큰 확률과 그 자리를 함께 얻는다. ECE는 "고른 클래스에
             # 대한 확신도"를 보므로 최댓값만 쓴다
@@ -398,7 +398,7 @@ def evaluate_calibration(model, data_loader, device='cpu'):
 
 ### 트랜스포머
 
-라벨 스무딩은 트랜스포머 학습의 표준 구성 요소이다. 원 논문 "Attention Is All You Need"는 $\varepsilon = 0.1$을 쓴다.
+라벨 스무딩은 트랜스포머 트레인의 표준 구성 요소이다. 원 논문 "Attention Is All You Need"는 $\varepsilon = 0.1$을 쓴다.
 
 ```python
 class TransformerClassifier(nn.Module):
@@ -428,11 +428,11 @@ class TransformerClassifier(nn.Module):
 
         # 길이 축을 평균 내어 문장 하나를 벡터 하나로 줄인다.
         # BERT처럼 [CLS] 자리를 쓰는 방법도 있으나, 그러려면 그 자리가
-        # 문장을 대표하도록 따로 학습시켜야 한다. 평균 풀링은 그 준비가 필요 없다
+        # 문장을 대표하도록 따로 트레인시켜야 한다. 평균 풀링은 그 준비가 필요 없다
         x = x.mean(dim=1)
         return self.classifier(x)
 
-# ── 표준 트랜스포머 학습 설정 ───────────────────────────────────────
+# ── 표준 트랜스포머 트레인 설정 ───────────────────────────────────────
 model = TransformerClassifier(
     vocab_size=30000, d_model=512, n_heads=8,
     n_layers=6, num_classes=1000
@@ -466,7 +466,7 @@ $$
 
 ## 6. 다른 정칙화와 결합하기
 
-라벨 스무딩은 학습 목표를 바꾸는 다른 기법들과 상호작용한다.
+라벨 스무딩은 트레인 목표를 바꾸는 다른 기법들과 상호작용한다.
 
 ```python
 def combined_augmentation_training_step(
@@ -475,7 +475,7 @@ def combined_augmentation_training_step(
     label_smoothing=0.1
 ):
     """
-    라벨 스무딩과 믹스업을 결합한 학습 단계.
+    라벨 스무딩과 믹스업을 결합한 트레인 단계.
     
     믹스업은 이미 부드러운 목표를 만들므로 함께 쓸 때에는
     라벨 스무딩을 줄인다.
@@ -539,12 +539,12 @@ def combined_augmentation_training_step(
 1. **분류 과제**: 스무딩이 없는 기준 모델과 검증 성능을 비교한다
 2. **지나치게 확신하는 모델**: 예측 확률의 보정이 나쁠 때
 3. **잡음이 있는 라벨**: 잘못 붙은 라벨의 영향을 누그러뜨린다
-4. **대규모 학습**: ImageNet과 언어 모델 학습의 표준 관행이다
+4. **대규모 트레인**: ImageNet과 언어 모델 트레인의 표준 관행이다
 
 ### 라벨 스무딩을 쓰지 말아야 할 때
 
 1. **회귀 과제**: 해당되지 않는다(목표가 연속이다)
-2. **클래스 불균형이 극심한 이진 과제**: 드문 클래스의 학습을 방해할 수 있다
+2. **클래스 불균형이 극심한 이진 과제**: 드문 클래스의 트레인을 방해할 수 있다
 3. **정확한 확신도가 필요할 때**: 라벨 스무딩은 확신도를 체계적으로 낮춘다
 4. **뒤이은 증류**: 암묵적 지식의 전달을 해칠 수 있다(Müller 등, 2019)
 

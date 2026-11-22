@@ -70,7 +70,7 @@ if __name__ == "__main__":
     model = nn.Linear(10, 1)
     optimizer = torch.optim.Adadelta(model.parameters(), rho=0.9, eps=1e-6)
 
-    # 학습 루프 (예시)
+    # 트레인 루프 (예시)
     for step in range(100):
         x = torch.randn(32, 10)
         y = torch.randn(32, 1)

@@ -1,6 +1,6 @@
 # 배포 파이프라인
 
-학습, 모델 변환, 간단한 성능 측정과 보고서를 연결하는 교육용 배포 파이프라인이다. 각 단계의 실제 대상 모델과 평가 방식에 남아 있는 한계를 함께 확인한다.
+트레인, 모델 변환, 간단한 성능 측정과 보고서를 연결하는 교육용 배포 파이프라인이다. 각 단계의 실제 대상 모델과 평가 방식에 남아 있는 한계를 함께 확인한다.
 
 ## 1. 코드
 
@@ -11,7 +11,7 @@
     처음부터 끝까지의 모델 배포 파이프라인
 
     이 모듈은 완전한 배포 작업 흐름을 보인다:
-    1. 모델을 학습시킨다
+    1. 모델을 트레인시킨다
     2. 최적화한다 (가지치기, 양자화)
     3. ONNX로 바꾼다
     4. 최적화된 추론으로 배포한다
@@ -102,16 +102,16 @@
             lr: float = 0.001
         ) -> nn.Module:
             """
-            모델을 학습시킨다
+            모델을 트레인시킨다
 
             인수:
-                train_loader: 학습 데이터 로더
+                train_loader: 트레인 데이터 로더
                 val_loader: 검증 데이터 로더
-                num_epochs: 학습 에포크 수
+                num_epochs: 트레인 에포크 수
                 lr: 러닝레이트
 
             반환값:
-                학습된 모델
+                트레인된 모델
             """
             print("\n" + "="*70)
             print("STEP 1: TRAINING MODEL")
@@ -126,7 +126,7 @@
             best_val_acc = 0.0
 
             for epoch in range(num_epochs):
-                # 학습
+                # 트레인
                 self.model.train()
                 train_loss = 0.0
                 train_correct = 0
@@ -473,7 +473,7 @@
 
     def create_synthetic_dataset(num_samples: int = 1000) -> Tuple[DataLoader, DataLoader]:
         """시연을 위한 합성 데이터셋을 만든다"""
-        # 학습 데이터
+        # 트레인 데이터
         X_train = torch.randn(num_samples, 3, 32, 32)
         y_train = torch.randint(0, 10, (num_samples,))
         train_dataset = TensorDataset(X_train, y_train)
@@ -505,7 +505,7 @@
 
         # 파이프라인 실행
         try:
-            # 1. 학습
+            # 1. 트레인
             pipeline.train_model(train_loader, val_loader, num_epochs=5)
 
             # 2. 양자화
@@ -540,7 +540,7 @@
 
 ## 2. 논의
 
-예제의 입력과 라벨은 무작위로 만든 합성 데이터이다. 따라서 정확도는 실제 이미지 분류 성능의 증거가 아니다. main은 학습 뒤 동적 양자화와 ONNX 변환을 각각 수행하며 가지치기 함수는 호출하지 않는다. optimize_onnx는 일반적인 그래프 최적화가 아니라 ONNX 동적 양자화를 적용한다.
+예제의 입력과 라벨은 무작위로 만든 합성 데이터이다. 따라서 정확도는 실제 이미지 분류 성능의 증거가 아니다. main은 트레인 뒤 동적 양자화와 ONNX 변환을 각각 수행하며 가지치기 함수는 호출하지 않는다. optimize_onnx는 일반적인 그래프 최적화가 아니라 ONNX 동적 양자화를 적용한다.
 
 benchmark_model은 인수로 받은 model의 지연·크기를 측정하지만 정확도는 self.evaluate를 호출해 self.model에서 계산한다. 따라서 양자화 모델에 기록된 정확도를 그 모델의 실제 정확도로 해석할 수 없다. 또한 CUDA가 있으면 모델을 일괄적으로 CUDA로 옮기므로 CPU 양자화 커널을 사용하는 경로와 충돌할 수 있다. 이 상태의 자동 추천은 실제 배포 결정을 뒷받침하는 검증 결과가 아니다.
 

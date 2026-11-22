@@ -1,10 +1,10 @@
 # 의미 임베딩 방법
 
-의미 임베딩은 클래스 이름이나 설명을 텍스트에서 학습한 벡터로 나타낸다. 클래스별 속성 표시 비용을 줄일 수 있지만, 언어에서 가까운 개념이 이미지에서도 잘 구분되는 것은 아니다. 시각 피처와의 호환성 학습 및 ConSE의 확률 가중 평균을 비교한다.
+의미 임베딩은 클래스 이름이나 설명을 텍스트에서 트레인한 벡터로 나타낸다. 클래스별 속성 표시 비용을 줄일 수 있지만, 언어에서 가까운 개념이 이미지에서도 잘 구분되는 것은 아니다. 시각 피처와의 호환성 트레인 및 ConSE의 확률 가중 평균을 비교한다.
 
 ## 1. 속성에서 임베딩으로
 
-속성 기반 방법은 공통 속성을 정의하고 클래스별 값을 표시해야 한다. 텍스트 임베딩은 이미 학습한 언어 표현을 활용해 이 비용을 줄인다.
+속성 기반 방법은 공통 속성을 정의하고 클래스별 값을 표시해야 한다. 텍스트 임베딩은 이미 트레인한 언어 표현을 활용해 이 비용을 줄인다.
 
 다만 이름이 중의적이거나 도메인 용어가 코퍼스에 없으면 적절한 표현을 얻기 어렵다. 클래스 이름을 벡터로 바꾸는 것과 시각 분류 성능이 확보되는 것은 별개다. 설명 문구와 언어, 토큰화·풀링 방식도 결과에 영향을 준다.
 
@@ -12,7 +12,7 @@
 
 ### Word2Vec
 
-Word2Vec의 Skip-gram은 중심 단어에서 주변 단어를, CBOW는 주변 단어에서 중심 단어를 예측한다. 아래 소프트맥스 식은 입력용·출력용 임베딩을 구분하지 않은 간단한 표기다. 실제 학습에서는 음성 샘플링 등으로 전체 어휘 정규화의 비용을 줄일 수 있다.
+Word2Vec의 Skip-gram은 중심 단어에서 주변 단어를, CBOW는 주변 단어에서 중심 단어를 예측한다. 아래 소프트맥스 식은 입력용·출력용 임베딩을 구분하지 않은 간단한 표기다. 실제 트레인에서는 음성 샘플링 등으로 전체 어휘 정규화의 비용을 줄일 수 있다.
 
 **Skip-gram**: 중심 단어에서 주변 단어(문맥)를 예측한다
 
@@ -22,11 +22,11 @@ $$P(w_{context} | w_{target}) = \frac{\exp(\mathbf{v}_{context}^\top \mathbf{v}_
 
 $$P(w_{target} | w_{context_1}, \ldots, w_{context_k})$$
 
-일부 벡터 관계가 단어 유추를 표현할 수 있지만 모든 의미 관계에 성립하는 법칙은 아니다. 임베딩 차원과 학습 코퍼스는 사용하는 모델에 따라 달라진다. 서로 다른 모델의 벡터는 차원이 같아도 같은 좌표계가 아니다.
+일부 벡터 관계가 단어 유추를 표현할 수 있지만 모든 의미 관계에 성립하는 법칙은 아니다. 임베딩 차원과 트레인 코퍼스는 사용하는 모델에 따라 달라진다. 서로 다른 모델의 벡터는 차원이 같아도 같은 좌표계가 아니다.
 
 - 의미 관계를 담는다: 왕 - 남자 + 여자 ≈ 여왕
 - 흔한 차원: 100~300
-- 수십억 단어로 미리 학습한다
+- 수십억 단어로 미리 트레인한다
 
 ### GloVe(전역 벡터)
 
@@ -38,7 +38,7 @@ $$J = \sum_{i,j} f(X_{ij}) (\mathbf{v}_i^\top \mathbf{v}_j + b_i + b_j - \log X_
 
 ### FastText
 
-FastText는 단어를 구성하는 문자 n-그램 벡터를 활용한다. 단어 벡터와 서브워드 표현을 결합해 희귀 단어와 미등록 단어의 형태 정보를 활용할 수 있다. 원래 학습한 서브워드 정보를 포함한 모델이 있어야 하며, 미리 내보낸 단어 벡터 표만으로는 새 단어를 합성하지 못할 수 있다.
+FastText는 단어를 구성하는 문자 n-그램 벡터를 활용한다. 단어 벡터와 서브워드 표현을 결합해 희귀 단어와 미등록 단어의 형태 정보를 활용할 수 있다. 원래 트레인한 서브워드 정보를 포함한 모델이 있어야 하며, 미리 내보낸 단어 벡터 표만으로는 새 단어를 합성하지 못할 수 있다.
 
 - 단어를 문자 n-그램의 집합(bag)으로 나타낸다
 - 미등록 단어(OOV, 어휘에 없는 단어)를 다룬다
@@ -61,14 +61,14 @@ $$\mathbf{v}_{word} = \sum_{g \in \text{ngrams}(word)} \mathbf{v}_g$$
 
 ### 클래스 이름 임베딩
 
-아래 조각은 gensim을 통해 GloVe 벡터를 내려받는 예시다. 실제 파일을 준비해야 하며, 단어 벡터를 가져오는 것 자체가 이미지·텍스트 정렬 학습은 아니다.
+아래 조각은 gensim을 통해 GloVe 벡터를 내려받는 예시다. 실제 파일을 준비해야 하며, 단어 벡터를 가져오는 것 자체가 이미지·텍스트 정렬 트레인은 아니다.
 
 이름이 "zebra"인 클래스라면 다음과 같다.
 
 ```python
 import gensim.downloader as api
 
-# 미리 학습된 임베딩을 불러온다
+# 미리 트레인된 임베딩을 불러온다
 word_vectors = api.load("glove-wiki-gigaword-300")
 
 # 클래스 임베딩을 얻는다
@@ -133,7 +133,7 @@ def visualize_semantic_structure(class_names, word_vectors):
 
 ---
 
-## 4. 시각·의미 호환성 학습하기
+## 4. 시각·의미 호환성 트레인하기
 
 ### 문제 정의
 
@@ -151,7 +151,7 @@ $$\hat{y} = \arg\max_{c \in \mathcal{Y}^u} F(\phi(\mathbf{x}), \mathbf{s}_c)$$
 
 $$f_v(\mathbf{v}) \in \mathcal{S}$$
 
-학습: $\min_\theta \sum_{(\mathbf{x}, y)} \|f_\theta(\phi(\mathbf{x})) - \mathbf{s}_y\|^2$
+트레인: $\min_\theta \sum_{(\mathbf{x}, y)} \|f_\theta(\phi(\mathbf{x})) - \mathbf{s}_y\|^2$
 
 **의미를 시각 공간으로 투영**:
 
@@ -169,7 +169,7 @@ $$\mathcal{L} = \sum_{(\mathbf{x}, y)} \sum_{c \neq y} \max(0, \Delta + F(\phi(\
 
 ### PyTorch 구현
 
-VisualSemanticEmbedding은 시각 피처와 의미 벡터를 각각 인코딩해 L2 정규화한 뒤 내적, 곧 코사인 유사도로 호환성 점수를 낸다. train_vse_model은 batch_y의 원본 라벨을 class_embeddings 사전의 키로 그대로 쓰므로 라벨 자료형과 사전 키를 일치시켜야 한다. 음성 클래스는 학습 클래스에서 무작위로 하나씩 뽑으며, 클래스 임베딩 텐서를 CPU에 만들므로 CUDA 입력에는 장치를 맞춰야 한다.
+VisualSemanticEmbedding은 시각 피처와 의미 벡터를 각각 인코딩해 L2 정규화한 뒤 내적, 곧 코사인 유사도로 호환성 점수를 낸다. train_vse_model은 batch_y의 원본 라벨을 class_embeddings 사전의 키로 그대로 쓰므로 라벨 자료형과 사전 키를 일치시켜야 한다. 음성 클래스는 트레인 클래스에서 무작위로 하나씩 뽑으며, 클래스 임베딩 텐서를 CPU에 만들므로 CUDA 입력에는 장치를 맞춰야 한다.
 
 ```python
 import torch
@@ -238,7 +238,7 @@ class VisualSemanticEmbedding(nn.Module):
 
 class RankingLoss(nn.Module):
     """
-    호환성 학습을 위한 마진 기반 순위 로스.
+    호환성 트레인을 위한 마진 기반 순위 로스.
     """
     
     def __init__(self, margin: float = 0.2):
@@ -257,7 +257,7 @@ class RankingLoss(nn.Module):
 def train_vse_model(model, dataloader, class_embeddings, seen_classes, 
                     epochs=50, lr=0.001, margin=0.2):
     """
-    시각-의미 임베딩 모델을 학습시킨다.
+    시각-의미 임베딩 모델을 트레인시킨다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = RankingLoss(margin=margin)
@@ -310,19 +310,19 @@ def train_vse_model(model, dataloader, class_embeddings, seen_classes,
 
 ### 개념
 
-ConSE는 기존 학습 클래스 분류기의 확률로 클래스 의미 벡터를 가중 평균한다. 이 변환 자체에는 별도의 시각·의미 투영 학습이 필요 없다. 다만 사용할 학습 클래스 분류기와 의미 벡터는 미리 준비되어 있어야 한다.
+ConSE는 기존 트레인 클래스 분류기의 확률로 클래스 의미 벡터를 가중 평균한다. 이 변환 자체에는 별도의 시각·의미 투영 트레인이 필요 없다. 다만 사용할 트레인 클래스 분류기와 의미 벡터는 미리 준비되어 있어야 한다.
 
 ### 수식으로 나타내기
 
-**1단계: 학습 클래스의 확률**
+**1단계: 트레인 클래스의 확률**
 
-분류기의 출력 열을 학습 클래스 목록과 일치시킨다. 예측 확률로 의미 벡터를 합산하며, 상위 T개만 사용할 때는 선택한 확률을 다시 정규화한다.
+분류기의 출력 열을 트레인 클래스 목록과 일치시킨다. 예측 확률로 의미 벡터를 합산하며, 상위 T개만 사용할 때는 선택한 확률을 다시 정규화한다.
 
 $$P(y^s | \mathbf{x}) = \text{softmax}(W^\top \phi(\mathbf{x}))$$
 
 **2단계: 투영한 임베딩**
 
-학습 클래스 임베딩의 가중 평균을 계산한다.
+트레인 클래스 임베딩의 가중 평균을 계산한다.
 
 $$\hat{\mathbf{z}} = \sum_{c \in \mathcal{Y}^s} P(c | \mathbf{x}) \cdot \mathbf{s}_c$$
 
@@ -334,7 +334,7 @@ $$\hat{y} = \arg\min_{c \in \mathcal{Y}^u} \|\hat{\mathbf{z}} - \mathbf{s}_c\|$$
 
 ### 상위 T개 클래스 사용하기
 
-학습 클래스의 상위 T개 예측만 사용할 수 있다. 1≤T≤학습 클래스 수를 만족해야 하며 T는 검증 클래스에서 선택한다. 많은 클래스를 포함한다고 항상 더 좋아지지는 않는다.
+트레인 클래스의 상위 T개 예측만 사용할 수 있다. 1≤T≤트레인 클래스 수를 만족해야 하며 T는 검증 클래스에서 선택한다. 많은 클래스를 포함한다고 항상 더 좋아지지는 않는다.
 
 $$\hat{\mathbf{z}} = \sum_{c \in \text{Top}_T(\mathcal{Y}^s | \mathbf{x})} \frac{P(c | \mathbf{x})}{\sum_{c' \in \text{Top}_T} P(c' | \mathbf{x})} \cdot \mathbf{s}_c$$
 
@@ -347,7 +347,7 @@ class ConSE(nn.Module):
     """
     의미 임베딩의 볼록 결합(ConSE).
     
-    학습 클래스의 확률로 의미 공간에 투영한다.
+    트레인 클래스의 확률로 의미 공간에 투영한다.
     """
     
     def __init__(self, visual_dim: int, n_seen_classes: int, hidden_dim: int = 512):
@@ -366,32 +366,32 @@ class ConSE(nn.Module):
         )
     
     def forward(self, x):
-        """학습 클래스의 로짓을 얻는다."""
+        """트레인 클래스의 로짓을 얻는다."""
         return self.classifier(x)
     
     def predict_unseen(self, x, seen_classes, unseen_classes, 
                        class_embeddings, top_t=None):
         """
-        ConSE로 미학습 클래스를 예측한다.
+        ConSE로 미트레인 클래스를 예측한다.
         
         인수:
             x: 시각 피처 (batch_size, visual_dim)
-            seen_classes: 학습 클래스 이름 목록
-            unseen_classes: 미학습 클래스 이름 목록
+            seen_classes: 트레인 클래스 이름 목록
+            unseen_classes: 미트레인 클래스 이름 목록
             class_embeddings: 클래스 이름을 임베딩으로 옮기는 사전
             top_t: 사용할 상위 클래스의 개수(None이면 모두)
         
         반환값:
-            예측한 미학습 클래스의 인덱스
+            예측한 미트레인 클래스의 인덱스
         """
         self.eval()
         
         with torch.no_grad():
-            # 학습 클래스의 확률을 얻는다
+            # 트레인 클래스의 확률을 얻는다
             logits = self.forward(x)
             probs = F.softmax(logits, dim=1)  # (batch, n_seen)
             
-            # 학습 클래스의 임베딩을 얻는다
+            # 트레인 클래스의 임베딩을 얻는다
             seen_embs = torch.stack([
                 torch.tensor(class_embeddings[c], dtype=torch.float32)
                 for c in seen_classes
@@ -412,13 +412,13 @@ class ConSE(nn.Module):
                 # 모든 클래스를 쓴다
                 projected = probs @ seen_embs  # (batch, emb_dim)
             
-            # 미학습 클래스의 임베딩을 얻는다
+            # 미트레인 클래스의 임베딩을 얻는다
             unseen_embs = torch.stack([
                 torch.tensor(class_embeddings[c], dtype=torch.float32)
                 for c in unseen_classes
             ])  # (n_unseen, emb_dim)
             
-            # 가장 가까운 미학습 클래스를 찾는다(코사인 유사도)
+            # 가장 가까운 미트레인 클래스를 찾는다(코사인 유사도)
             projected_norm = F.normalize(projected, dim=1)
             unseen_norm = F.normalize(unseen_embs, dim=1)
             
@@ -429,7 +429,7 @@ class ConSE(nn.Module):
 
 def train_conse_classifier(model, dataloader, seen_classes, epochs=50, lr=0.001):
     """
-    ConSE를 위한 학습 클래스 분류기를 학습시킨다.
+    ConSE를 위한 트레인 클래스 분류기를 트레인시킨다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
@@ -465,21 +465,21 @@ def train_conse_classifier(model, dataloader, seen_classes, epochs=50, lr=0.001)
 
 ---
 
-## 6. 호환성 학습과 ConSE 비교
+## 6. 호환성 트레인과 ConSE 비교
 
-호환성 학습은 이미지·의미 쌍의 점수나 공통 공간을 직접 학습한다. ConSE는 학습 클래스의 분류 확률과 고정 의미 벡터로 새 클래스의 위치를 추정한다. 두 방법 모두 학습 클래스와 미학습 클래스의 관계를 활용하지만 학습 목표와 전이 경로가 다르다.
+호환성 트레인은 이미지·의미 쌍의 점수나 공통 공간을 직접 학습한다. ConSE는 트레인 클래스의 분류 확률과 고정 의미 벡터로 새 클래스의 위치를 추정한다. 두 방법 모두 트레인 클래스와 미트레인 클래스의 관계를 활용하지만 트레인 목표와 전이 경로가 다르다.
 
-ConSE의 성능은 기존 분류기의 예측과 의미 공간의 클래스 배치에 의존한다. 호환성 학습은 표현을 조정할 수 있지만 학습 클래스에 과적합될 수 있다. 데이터 양이나 해석 가능성만으로 우열을 정하지 말고 독립적인 검증 과제로 비교한다.
+ConSE의 성능은 기존 분류기의 예측과 의미 공간의 클래스 배치에 의존한다. 호환성 트레인은 표현을 조정할 수 있지만 트레인 클래스에 과적합될 수 있다. 데이터 양이나 해석 가능성만으로 우열을 정하지 말고 독립적인 검증 과제로 비교한다.
 
 ### 성능 비교
 
-compare_methods는 y_train 대신 표본 순번을 라벨로 넣으므로 원래 클래스 매핑이 사라진다. 이 상태로 학습 결과를 비교할 수 없다. y_test도 미학습 클래스의 로컬 인덱스에 맞춰야 한다. 올바른 라벨과 같은 분할·피처·학습 예산을 사용한 비교가 필요하다.
+compare_methods는 y_train 대신 표본 순번을 라벨로 넣으므로 원래 클래스 매핑이 사라진다. 이 상태로 트레인 결과를 비교할 수 없다. y_test도 미트레인 클래스의 로컬 인덱스에 맞춰야 한다. 올바른 라벨과 같은 분할·피처·트레인 예산을 사용한 비교가 필요하다.
 
 ```python
 def compare_methods(X_train, y_train, X_test, y_test,
                    seen_classes, unseen_classes, class_embeddings):
     """
-    호환성 학습과 ConSE를 비교한다.
+    호환성 트레인과 ConSE를 비교한다.
     """
     from torch.utils.data import DataLoader, TensorDataset
     
@@ -493,7 +493,7 @@ def compare_methods(X_train, y_train, X_test, y_test,
     visual_dim = X_train.shape[1]
     semantic_dim = len(class_embeddings[seen_classes[0]])
     
-    # 방법 1: 호환성 학습
+    # 방법 1: 호환성 트레인
     print("Training Compatibility Model...")
     compat_model = VisualSemanticEmbedding(visual_dim, semantic_dim)
     train_vse_model(compat_model, train_loader, class_embeddings, 
@@ -557,7 +557,7 @@ $$\mathbf{s}_c = \frac{1}{|words_c|} \sum_{w \in words_c} \mathbf{v}_w$$
 
 $$\mathbf{s}_c = \sum_{w \in words_c} \text{tfidf}(w) \cdot \mathbf{v}_w$$
 
-**3. 구 임베딩**: 여러 단어를 하나의 구로 학습했거나 문장 수준 표현을 제공하는 모델을 사용한다. FastText의 문자 n-그램 기능 자체가 모든 복합어·구의 의미를 이해한다는 뜻은 아니다.
+**3. 구 임베딩**: 여러 단어를 하나의 구로 트레인했거나 문장 수준 표현을 제공하는 모델을 사용한다. FastText의 문자 n-그램 기능 자체가 모든 복합어·구의 의미를 이해한다는 뜻은 아니다.
 
 **4. 문맥 임베딩**: 클래스 이름을 설명 문장에 넣고 토큰 평균이나 특정 토큰을 풀링할 수 있다. 아래 함수는 BERT의 첫 토큰을 반환하지만 그것이 시각적 클래스 구분에 적합한지는 검증해야 한다. model.eval()과 장치 설정은 별도이며 CUDA 텐서는 CPU로 이동한 뒤 NumPy로 변환한다.
 
@@ -594,7 +594,7 @@ def get_bert_embedding(class_name, tokenizer, model):
 </div>
 
 ??? success "풀이"
-    이미지 피처와 같은 의미 좌표계에 정렬되어야 한다. 별도의 투영 학습이나 공동 사전 학습된 인코더가 필요하다. 텍스트 벡터는 클래스 설명을 제공하지만 입력 이미지와의 대응을 자동으로 만들지는 않는다.
+    이미지 피처와 같은 의미 좌표계에 정렬되어야 한다. 별도의 투영 트레인이나 공동 사전 트레인된 인코더가 필요하다. 텍스트 벡터는 클래스 설명을 제공하지만 입력 이미지와의 대응을 자동으로 만들지는 않는다.
 
 ---
 
@@ -634,6 +634,6 @@ ConSE의 상위 T개 웨이트가 볼록 결합을 이루는 이유를 설명하
 
 ## 정리하며
 
-텍스트 임베딩은 클래스의 의미 정보를 제공한다. 호환성 학습은 시각·의미 관계를 직접 학습하고 ConSE는 기존 분류 확률로 의미 벡터를 합성한다. 어휘·라벨 매핑과 좌표계 정렬을 확인하고, 시각화나 클래스 이름의 벡터화 자체를 분류 성능으로 해석하지 않는다.
+텍스트 임베딩은 클래스의 의미 정보를 제공한다. 호환성 트레인은 시각·의미 관계를 직접 학습하고 ConSE는 기존 분류 확률로 의미 벡터를 합성한다. 어휘·라벨 매핑과 좌표계 정렬을 확인하고, 시각화나 클래스 이름의 벡터화 자체를 분류 성능으로 해석하지 않는다.
 
 **참고**: [Norouzi 등, Zero-Shot Learning by Convex Combination of Semantic Embeddings](https://arxiv.org/abs/1312.5650).

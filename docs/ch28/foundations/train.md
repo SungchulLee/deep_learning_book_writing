@@ -1,17 +1,17 @@
-# 자기회귀 시계열 예측기의 학습
+# 자기회귀 시계열 예측기의 트레인
 
-이 예제는 잡음이 있는 사인파에서 선형 AR 예측기와 비선형 뉴럴 네트워크 예측기를 평균제곱오차로 학습하는 절차다. 다음 값 한 개의 점 예측을 비교하며 시계열의 확률밀도나 예측 구간을 학습하는 코드는 아니다. 한 스텝 테스트와 재귀 롤아웃 그림도 서로 다른 평가다.
+이 예제는 잡음이 있는 사인파에서 선형 AR 예측기와 비선형 뉴럴 네트워크 예측기를 평균제곱오차로 트레인하는 절차다. 다음 값 한 개의 점 예측을 비교하며 시계열의 확률밀도나 예측 구간을 학습하는 코드는 아니다. 한 스텝 테스트와 재귀 롤아웃 그림도 서로 다른 평가다.
 
-## 1. 학습 코드
+## 1. 트레인 코드
 
 ```python
 """
-자기 회귀 시계열 모델을 위한 학습 스크립트
+자기 회귀 시계열 모델을 위한 트레인 스크립트
 
 이 스크립트는 다음을 보인다.
 1. 인공 시계열 데이터를 만든다
-2. 자기 회귀 모델 학습에 맞게 전처리한다
-3. 선형과 뉴럴 자기 회귀 모델을 모두 학습한다
+2. 자기 회귀 모델 트레인에 맞게 전처리한다
+3. 선형과 뉴럴 자기 회귀 모델을 모두 트레인한다
 4. 결과를 평가하고 시각화한다
 """
 
@@ -289,20 +289,20 @@ def train_model(model: nn.Module,
                 learning_rate: float = 0.01,
                 verbose: bool = True) -> dict:
     """
-    평균제곱오차 로스로 자기 회귀 모델을 학습한다.
+    평균제곱오차 로스로 자기 회귀 모델을 트레인한다.
     
     인수:
-        model: 학습할 자기 회귀 모델(ARModel이나 NeuralARModel)
-        X_train: 학습 입력 시퀀스
-        y_train: 학습 목표 값
+        model: 트레인할 자기 회귀 모델(ARModel이나 NeuralARModel)
+        X_train: 트레인 입력 시퀀스
+        y_train: 트레인 목표 값
         X_test: 시험 입력 시퀀스
         y_test: 시험 목표 값
-        n_epochs: 학습 에포크 수
+        n_epochs: 트레인 에포크 수
         learning_rate: 옵티마이저의 러닝레이트
         verbose: 진행 막대를 보일지 여부
         
     반환값:
-        학습 이력(로스)을 담은 사전
+        트레인 이력(로스)을 담은 사전
     """
     
     # 로스 함수: 평균제곱오차
@@ -316,12 +316,12 @@ def train_model(model: nn.Module,
     train_losses = []
     test_losses = []
     
-    # 학습 루프
+    # 트레인 루프
     iterator = tqdm(range(n_epochs), desc="Training") if verbose else range(n_epochs)
     
     for epoch in iterator:
-        # ==================== 학습 단계 ====================
-        model.train()  # 모델을 학습 모드로
+        # ==================== 트레인 단계 ====================
+        model.train()  # 모델을 트레인 모드로
         
         # 순전파: 예측을 계산한다
         train_predictions = model(X_train)
@@ -373,11 +373,11 @@ def visualize_results(data: np.ndarray,
     
     인수:
         data: 원래 시계열 데이터
-        model: 학습한 자기 회귀 모델
+        model: 트레인한 자기 회귀 모델
         X_test: 시험 입력 시퀀스
         y_test: 시험 목표 값
         sequence_length: 입력 시퀀스의 길이
-        train_size: 학습 표본의 수
+        train_size: 트레인 표본의 수
         n_forecast: 미래로 예측할 스텝의 수
         title: 그림의 제목
     """
@@ -430,7 +430,7 @@ def visualize_results(data: np.ndarray,
 
 def main():
     """
-    메인 학습 파이프라인
+    메인 트레인 파이프라인
     """
     print("=" * 70)
     print("Autoregressive Time Series Model Training")
@@ -439,8 +439,8 @@ def main():
     # ==================== 하이퍼파라메터 ====================
     SEQUENCE_LENGTH = 10  # AR(10) - 지난 값 10개를 쓴다
     N_SAMPLES = 1000      # 시점 1000개를 만든다
-    TRAIN_RATIO = 0.8     # 학습 80%, 시험 20%
-    N_EPOCHS = 200        # 학습 에포크 수
+    TRAIN_RATIO = 0.8     # 트레인 80%, 시험 20%
+    N_EPOCHS = 200        # 트레인 에포크 수
     LEARNING_RATE = 0.01  # 러닝레이트
     
     print(f"\nHyperparameters:")
@@ -483,7 +483,7 @@ def main():
     print(f"  Train: {len(X_train)} sequences")
     print(f"  Test: {len(X_test)} sequences")
     
-    # ==================== 선형 자기 회귀 모델 학습 ====================
+    # ==================== 선형 자기 회귀 모델 트레인 ====================
     print(f"\n{'='*70}")
     print("Step 3a: Training Linear AR Model...")
     print(f"{'='*70}")
@@ -510,7 +510,7 @@ def main():
         print(f"  φ_{i+1} = {coef:.4f}")
     print(f"  Constant c = {coeffs['constant']:.4f}")
     
-    # ==================== 뉴럴 자기 회귀 모델 학습 ====================
+    # ==================== 뉴럴 자기 회귀 모델 트레인 ====================
     print(f"\n{'='*70}")
     print("Step 3b: Training Neural AR Model...")
     print(f"{'='*70}")
@@ -534,7 +534,7 @@ def main():
     print("Step 4: Creating visualizations...")
     print(f"{'='*70}")
     
-    # 학습 곡선을 그린다
+    # 트레인 곡선을 그린다
     plt.figure(figsize=(12, 5))
     
     plt.subplot(1, 2, 1)
@@ -599,9 +599,9 @@ if __name__ == "__main__":
     main()
 ```
 
-기본 main은 표본 1,000개, 주파수 0.05, 잡음 표준편차 0.2인 사인파를 만든다. 윈도 길이 10에서 990개 쌍을 얻고 앞 792개·뒤 198개로 나눈다. 선형 모델은 파라미터 11개, 은닉 64인 비선형 모델은 4,929개다. 두 모델을 Adam 0.01로 각각 200회 학습한다.
+기본 main은 표본 1,000개, 주파수 0.05, 잡음 표준편차 0.2인 사인파를 만든다. 윈도 길이 10에서 990개 쌍을 얻고 앞 792개·뒤 198개로 나눈다. 선형 모델은 파라미터 11개, 은닉 64인 비선형 모델은 4,929개다. 두 모델을 Adam 0.01로 각각 200회 트레인한다.
 
-train_model은 미니배치가 아니라 매 에포크 전체 학습 텐서의 평균 MSE로 한 번 업데이트한다. 모델과 입력을 자동으로 장치에 옮기지 않으므로 현재 main은 기본 CPU 경로다. ar_model의 내용은 위 코드에 그대로 들어 있지만 데이터 함수는 data 모듈에서 import한다. 이 디렉터리에는 data.py가 없으므로 [데이터 절](data.md)의 함수를 실제 import 경로에 준비해야 한다. 표시된 코드가 단독으로 의존성을 모두 갖추었다고 가정하지 않는다.
+train_model은 미니배치가 아니라 매 에포크 전체 트레인 텐서의 평균 MSE로 한 번 업데이트한다. 모델과 입력을 자동으로 장치에 옮기지 않으므로 현재 main은 기본 CPU 경로다. ar_model의 내용은 위 코드에 그대로 들어 있지만 데이터 함수는 data 모듈에서 import한다. 이 디렉터리에는 data.py가 없으므로 [데이터 절](data.md)의 함수를 실제 import 경로에 준비해야 한다. 표시된 코드가 단독으로 의존성을 모두 갖추었다고 가정하지 않는다.
 
 ## 2. 로스와 계수 해석
 
@@ -628,7 +628,7 @@ visualize_results의 첫 그림은 테스트 타깃 순서대로 한 스텝 예�
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-전체 배치 학습에서 zero_grad를 제거하면 무엇이 달라지는가?
+전체 배치 트레인에서 zero_grad를 제거하면 무엇이 달라지는가?
 
 </div>
 
@@ -679,14 +679,14 @@ visualize_results의 첫 그림은 테스트 타깃 순서대로 한 스텝 예�
 
 ??? success "풀이"
 
-    시간순 검증 분할과 평가 함수를 정하고 실제 train_model 업데이트와 연결해야 한다. 아래 evaluate·val_loader는 현재 코드에 없으며 예시만으로 학습이 수행되지 않는다. state_dict().copy는 얕은 복사라 최적 텐서가 고정되지 않으므로 독립 복제나 파일 저장이 필요하다. 인내 횟수에 의한 종료뿐 아니라 정상 종료에서도 최적 모델을 복원하고 최종 테스트는 선택에서 분리한다.
+    시간순 검증 분할과 평가 함수를 정하고 실제 train_model 업데이트와 연결해야 한다. 아래 evaluate·val_loader는 현재 코드에 없으며 예시만으로 트레인이 수행되지 않는다. state_dict().copy는 얕은 복사라 최적 텐서가 고정되지 않으므로 독립 복제나 파일 저장이 필요하다. 인내 횟수에 의한 종료뿐 아니라 정상 종료에서도 최적 모델을 복원하고 최종 테스트는 선택에서 분리한다.
 
     ```python
     best_loss = float('inf')
     patience_counter = 0
     best_state = None
     for epoch in range(num_epochs):
-        # ... 학습 단계 ...
+        # ... 트레인 단계 ...
         val_loss = evaluate(model, val_loader)
         if val_loss < best_loss:
             best_loss = val_loss
@@ -703,4 +703,4 @@ visualize_results의 첫 그림은 테스트 타깃 순서대로 한 스텝 예�
 
 ## 정리하며
 
-이 절은 사인파의 한 스텝 점 예측을 전체 배치 MSE로 학습한다. 계수 순서·로스 평가 시점·의존 모듈과 롤아웃 시간축을 확인해야 한다. 재귀 미래 경로와 rolling 테스트 MSE를 구분하고 검증 자료로 구조·러닝레이트를 선택한다.
+이 절은 사인파의 한 스텝 점 예측을 전체 배치 MSE로 트레인한다. 계수 순서·로스 평가 시점·의존 모듈과 롤아웃 시간축을 확인해야 한다. 재귀 미래 경로와 rolling 테스트 MSE를 구분하고 검증 자료로 구조·러닝레이트를 선택한다.

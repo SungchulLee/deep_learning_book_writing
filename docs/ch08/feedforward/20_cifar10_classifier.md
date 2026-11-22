@@ -48,7 +48,7 @@ print("\n" + "="*80)
 print("STEP 1: Data Loading and Augmentation")
 print("="*80)
 
-# 학습을 위한 데이터 어그멘테이션 (일반화를 개선한다)
+# 트레인을 위한 데이터 어그멘테이션 (일반화를 개선한다)
 transform_train = transforms.Compose([
     # 사방에 4픽셀을 패딩한 뒤 다시 32x32를 잘라 낸다. 결국 이미지를
     # 상하좌우로 최대 4픽셀까지 밀어 보는 셈이라, 물체가 한가운데
@@ -120,7 +120,7 @@ class CIFAR10Net(nn.Module):
             # 선형 → 정규화 → 활성화 → 드롭아웃 차례다. 드롭아웃을
             # 배치 정규화 "뒤"에 두는 것이 권장되는 순서인데, 반대로
             # 두면 드롭아웃이 만든 분산 변화가 정규화 통계를 흔들어
-            # 학습과 평가의 스케일이 어긋난다
+            # 트레인과 평가의 스케일이 어긋난다
             nn.BatchNorm1d(1024),
             nn.ReLU(),
             nn.Dropout(0.3),
@@ -170,7 +170,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)
 
 # 러닝레이트 스케줄러
 # 20 에포크마다 러닝레이트를 절반으로 줄인다. 코사인 어닐링과 달리 계단
-# 모양으로 뚝뚝 떨어지며, 아래 학습 루프에서 에포크마다 한 번씩
+# 모양으로 뚝뚝 떨어지며, 아래 트레인 루프에서 에포크마다 한 번씩
 # scheduler.step()을 불러야 이 스케줄이 진행된다
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
@@ -232,7 +232,7 @@ def evaluate(model, loader, criterion):
     epoch_acc = 100 * correct / total
     return epoch_loss, epoch_acc, all_preds, all_labels
 
-# 학습 루프
+# 트레인 루프
 num_epochs = 50
 best_acc = 0
 train_losses, test_losses = [], []
@@ -296,7 +296,7 @@ print("="*80)
 # 시각화 만들기
 fig = plt.figure(figsize=(18, 5))
 
-# 그림 1: 학습 곡선
+# 그림 1: 트레인 곡선
 ax1 = plt.subplot(1, 3, 1)
 ax1.plot(train_losses, 'b-', label='Train Loss', linewidth=2)
 ax1.plot(test_losses, 'r-', label='Test Loss', linewidth=2)
@@ -336,7 +336,7 @@ print(f"""
 
 보여 준 완전한 파이프라인:
 ✓ 일반화를 높이는 데이터 어그멘테이션
-✓ 알맞은 학습과 시험 분할
+✓ 알맞은 트레인과 시험 분할
 ✓ 정칙화를 곁들인 깊은 구조
 ✓ 러닝레이트 스케줄링
 ✓ 모델 체크포인트(가장 좋은 모델을 저장한다)
@@ -363,7 +363,7 @@ if __name__ == "__main__":
 
 코드는 시험 정확도가 최고일 때 상태를 저장하고 마지막에 그 상태를 다시 불러온다. 이 절차에서는 시험 집합이 체크포인트 선택에 사용되므로 최종 숫자를 독립적인 일반화 평가로 볼 수 없다. 올바른 평가 설계에는 선택용 검증 집합과 한 번 평가할 시험 집합이 따로 필요하다.
 
-배치 로스의 단순 평균은 크기가 다른 배치에 같은 비중을 준다. 학습·평가 모드에 따라 드롭아웃과 배치 정규화도 달라지므로 로스 곡선의 차이를 곧바로 과적합으로 해석하지 않는다.
+배치 로스의 단순 평균은 크기가 다른 배치에 같은 비중을 준다. 트레인·평가 모드에 따라 드롭아웃과 배치 정규화도 달라지므로 로스 곡선의 차이를 곧바로 과적합으로 해석하지 않는다.
 
 ## 연습문제
 
