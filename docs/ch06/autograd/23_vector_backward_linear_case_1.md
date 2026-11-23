@@ -39,18 +39,29 @@ $(m, n)$ 과 $(m,)$ 으로 $(n,)$ 을 만드는 길은 $A^\\top v$ 뿐이다.
 
 실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
+# torch 는 파이토치 본체다. 텐서(파이토치가 다루는 수의 묶음)와 자동 미분이 여기서 온다.
 import torch
 
 
 def header(title):
+    # 절 제목을 한 줄 찍는다. \n 은 줄바꿈이라 제목 앞에 빈 줄이 하나 생긴다.
+    # f"...{title}..." 은 문자열 안에 값을 끼워 넣는 파이썬 문법(f-문자열)이다.
     print(f"\n=== {title} ===")
 
 
+# 출력이 M = 4 개, 입력이 N = 3 개다. 그래서 A 의 형태가 (M, N) = (4, 3) 이다.
 M, N = 4, 3
 
 
 def setup(seed=0):
+    # 행렬 A 와 입력 x 를 만들어 돌려준다. torch.manual_seed(seed) 는 난수 생성기를
+    # 정해진 자리에서 시작시킨다 — 부를 때마다 같은 A 와 x 가 나온다.
     torch.manual_seed(seed)
+    # torch.randn 은 표준정규분포(평균 0, 표준편차 1)에서 뽑은 수로 텐서를 채운다.
+    #   A   형태 (4, 3) 의 행렬. 미분하지 않으므로 그냥 만든다
+    #   x   형태 (3,) 의 벡터. requires_grad=True 는 「이 텐서로 미분할 것이니
+    #       이 텐서가 들어간 계산을 모두 기록해 두라」는 표시다. 이것을 경사 추적이라
+    #       하고, 그 기록이 계산 그래프다
     return torch.randn(M, N), torch.randn(N, requires_grad=True)
 
 
@@ -61,14 +72,25 @@ def setup(seed=0):
 def compare():
     header("1. A^T v 와 맞는가")
     A, x = setup()
+    # v 는 「출력 넷을 얼마씩 중히 볼 것인가」 다. 출력 y 와 같은 형태 (4,) 로 준다.
     v = torch.tensor([1.0, 0.5, -1.0, 2.0])
+    # @ 는 행렬 곱이다. (4, 3) @ (3,) = (4,) — 순전파다.
     y = A @ x
+    # .shape 는 텐서의 형태다. tuple(...) 로 감싸 (4, 3) 처럼 찍히게 한다.
     print("  A 형태", tuple(A.shape), "  x 형태", tuple(x.shape),
           "  y 형태", tuple(y.shape))
+    # 역전파다. y 가 스칼라(수 하나)가 아니므로 backward() 에 v 를 주어야 한다.
+    # backward(v) 는 야코비 행렬 J (y 의 각 원소를 x 의 각 원소로 미분한 표,
+    # 형태 (4, 3)) 를 만들지 않고 벡터-야코비 곱(VJP) v^T J 만 계산해 x.grad 에
+    # 넣는다. x.grad 는 언제나 x 와 같은 형태 (3,) 다.
     y.backward(v)
+    # 손계산 쪽이다. A.t() 는 전치 — 행과 열을 맞바꿔 (4, 3) 을 (3, 4) 로 만든다.
+    # (3, 4) @ (4,) = (3,). 자동 미분을 쓰지 않고 행렬 곱 한 번으로 구한다.
     hand = A.t() @ v
+    # tolist() 는 텐서를 파이썬 리스트로 바꾸고 round(t, 6) 은 여섯 자리 반올림이다.
     print("  x.grad :", [round(t, 6) for t in x.grad.tolist()])
     print("  A^T v  :", [round(t, 6) for t in hand.tolist()])
+    # torch.allclose 는 두 텐서의 모든 자리가 (작은 허용 오차 안에서) 같으면 True 다.
     print("  같은가 :", torch.allclose(x.grad, hand))
 
 
@@ -79,17 +101,27 @@ def compare():
 def shapes_force_it():
     header("2. 형태가 전치를 강요한다")
     A, x = setup()
-    v = torch.randn(M)
+    v = torch.randn(M)                          # 형태 (4,) 의 아무 벡터
     print(f"  A ({M},{N})   v ({M},)   결과는 x 와 같은 ({N},) 여야 한다")
+    # A 와 v 를 곱하는 세 가지 방법을 (이름, 함수) 쌍으로 늘어놓고 하나씩 해 본다.
+    # lambda: ... 는 이름 없는 함수다. 싸 두기만 하고 아래 expr() 에서 실제로 계산한다.
+    #   A @ v       (4, 3) @ (4,)   안쪽 수 3 과 4 가 달라 곱할 수 없다
+    #   A.t() @ v   (3, 4) @ (4,) = (3,)
+    #   v @ A       (4,) @ (4, 3) = (3,)
     for name, expr in (("A @ v  ", lambda: A @ v),
                        ("A.t() @ v", lambda: A.t() @ v),
                        ("v @ A  ", lambda: v @ A)):
+        # try: ... except: 는 오류가 나도 프로그램이 죽지 않게 받아 내는 문법이다.
+        # 곱해지면 결과의 형태를 찍고, RuntimeError 가 나면 오류를 e 로 받아
+        # 글로 바꿔(str) 첫 줄(splitlines()[0])의 앞 50 자([:50])만 찍는다.
         try:
             r = expr()
             print(f"  {name} -> 형태 {tuple(r.shape)}")
         except RuntimeError as e:
             print(f"  {name} -> {str(e).splitlines()[0][:50]}")
     print("  A.t() @ v 와 v @ A 가 둘 다 (3,) 을 준다")
+    # 1 차원 텐서에는 행벡터와 열벡터의 구별이 없다. 그래서 v^T A 와 A^T v 가
+    # 같은 수 셋이다.
     print("  그리고 둘은 같은 값이다:", torch.allclose(A.t() @ v, v @ A))
 
 
@@ -100,14 +132,18 @@ def shapes_force_it():
 def derivation():
     header("3. 유도")
     A, x = setup()
-    v = torch.randn(M)
+    v = torch.randn(M)                          # 형태 (4,)
     print("  y_i = sum_j A_ij x_j 이므로  dy_i/dx_j = A_ij")
     print("  스칼라 s = sum_i v_i y_i 를 만들면")
     print("    ds/dx_j = sum_i v_i * dy_i/dx_j = sum_i v_i A_ij = (A^T v)_j")
+    # 위에 찍은 식을 그대로 코드로 옮긴다. A @ x 가 y(형태 (4,))이고, v * y 는
+    # 같은 자리끼리 곱한 것(형태 (4,))이며, sum() 이 그것을 다 더해 수 하나로 만든다.
     s = (v * (A @ x)).sum()
+    # s 는 스칼라이므로 v 없이 backward() 를 부를 수 있다. x.grad 에 ds/dx 가 들어간다.
     s.backward()
     print("  s = (v*y).sum() 을 역전파한 x.grad:",
           [round(t, 6) for t in x.grad.tolist()])
+    # 견줄 값 — 행렬 곱으로 바로 구한 A^T v 다. 형태 (3,).
     print("  A^T v                            :",
           [round(t, 6) for t in (A.t() @ v).tolist()])
     print("  backward(v) 는 이 s 를 만들어 역전파한 것과 같다")
@@ -120,14 +156,23 @@ def derivation():
 def jacobian_is_A():
     header("4. 야코비 = A")
     A, x = setup()
-    y = A @ x
-    rows = []
-    for i in range(M):
+    y = A @ x                                   # 형태 (4,). 순전파는 한 번만 한다
+    rows = []                                   # 야코비 행렬의 줄을 하나씩 모을 리스트
+    for i in range(M):                          # 출력이 4 개이므로 네 번 부른다
+        # i 번째 자리만 1 이고 나머지는 0 인 단위벡터 e 를 만든다. 형태 (4,).
+        # v = e 로 두면 v^T J 가 J 의 i 번째 줄만 골라낸다.
         e = torch.zeros(M)
         e[i] = 1.0
+        # backward 는 .grad 에 덮어쓰지 않고 「더한다」. 앞 바퀴의 결과를 지워야
+        # i 번째 줄만 남는다.
         x.grad = None
+        # 역전파는 끝나면 계산 그래프에 저장해 둔 값을 지운다. 같은 y 에 대고 네 번
+        # 불러야 하므로 retain_graph=True 로 지우지 말고 남겨 두라고 한다.
         y.backward(e, retain_graph=True)
+        # x.grad (형태 (3,)) 가 J 의 i 번째 줄이다. 다음 바퀴에서 x.grad 를 다시
+        # 쓰므로 clone() 으로 복사해 모은다.
         rows.append(x.grad.clone())
+    # torch.stack 은 길이 3 의 벡터 4 개를 쌓아 형태 (4, 3) 의 행렬로 만든다.
     J = torch.stack(rows)
     print("  단위벡터로 모은 J 가 A 와 같은가:", torch.allclose(J, A))
     print("  그래서 v^T J = v^T A = A^T v 다 (벡터이므로 같다)")
@@ -140,10 +185,17 @@ def jacobian_is_A():
 def grad_wrt_A():
     header("5. A 에 대한 그래디언트")
     torch.manual_seed(0)
-    A = torch.randn(M, N, requires_grad=True)
-    x = torch.randn(N, requires_grad=True)
-    v = torch.randn(M)
+    # 이번에는 A 에도 경사 추적을 건다. 레이어로 치면 A 가 웨이트이고, 트레인에
+    # 필요한 것은 x 가 아니라 A 에 대한 그래디언트다.
+    A = torch.randn(M, N, requires_grad=True)   # 형태 (4, 3)
+    x = torch.randn(N, requires_grad=True)      # 형태 (3,)
+    v = torch.randn(M)                          # 형태 (4,)
+    # backward(v) 한 번이 경사 추적을 건 텐서 모두의 .grad 를 채운다.
+    # A.grad 는 A 와 같은 형태 (4, 3) 이고, (i, j) 자리가 ds/dA_ij = v_i * x_j 다.
     (A @ x).backward(v)
+    # torch.outer(v, x) 는 외적이다. (4,) 와 (3,) 에서 (i, j) 자리가 v_i * x_j 인
+    # 형태 (4, 3) 의 행렬을 만든다. x.detach() 는 x 를 계산 그래프에서 떼어 낸
+    # 것이다 — 견줄 값만 필요하고 이 계산은 기록할 까닭이 없다.
     outer = torch.outer(v, x.detach())
     print("  A.grad 형태:", tuple(A.grad.shape), " = A 와 같다")
     print("  A.grad == outer(v, x) 인가:", torch.allclose(A.grad, outer))
@@ -152,6 +204,7 @@ def grad_wrt_A():
 
 
 def main():
+    # 다섯 절을 차례로 돌린다.
     compare()
     shapes_force_it()
     derivation()
@@ -159,6 +212,8 @@ def main():
     grad_wrt_A()
 
 
+# 이 파일을 직접 돌렸을 때만 main() 을 부른다. 다른 파일이 이 파일을 불러다(import)
+# 쓸 때는 __name__ 이 "__main__" 이 아니므로 아무것도 돌지 않는다.
 if __name__ == "__main__":
     main()
 ```
@@ -285,13 +340,18 @@ $(3,1)$ 열벡터로 두면 어떻게 되는가. **답은 같고 형태만 달�
 
 실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
+# warnings 는 파이썬 표준 라이브러리다. 5 에서 파이토치가 띄우는 경고를 세고 끄는 데 쓴다.
 import warnings
 
+# torch 는 파이토치 본체다. 텐서(파이토치가 다루는 수의 묶음)와 자동 미분이 여기서 온다.
+# torch.nn.functional 은 로스 같은 함수를 모아 둔 곳이고 관례대로 F 로 줄여 부른다.
 import torch
 import torch.nn.functional as F
 
 
 def header(title):
+    # 절 제목을 한 줄 찍는다. \n 은 줄바꿈이고, f"...{title}..." 은 문자열 안에
+    # 값을 끼워 넣는 파이썬 문법(f-문자열)이다.
     print(f"\n=== {title} ===")
 
 
@@ -301,21 +361,38 @@ def header(title):
 
 def same_math():
     header("1. (3,) 와 (3,1)")
+    # torch.manual_seed(0) 은 난수 생성기를 정해진 자리에서 시작시킨다. 앞 프로그램의
+    # setup() 과 같은 시드, 같은 차례라 A 와 x 의 값이 앞 프로그램과 똑같다.
     torch.manual_seed(0)
-    A = torch.randn(4, 3)
-    base = torch.randn(3)
+    A = torch.randn(4, 3)                       # 형태 (4, 3) 의 행렬
+    base = torch.randn(3)                       # 수 셋. 이것을 두 가지 형태로 담는다
+    # 같은 수 셋으로 입력을 둘 만든다. clone() 은 복사본을 만들고,
+    # requires_grad_(True) 는 그 텐서에 경사 추적을 건다 — 이 텐서가 들어간 계산을
+    # 기록해 두어 나중에 이 텐서로 미분할 수 있게 한다. 이름 끝의 _ 는 새 텐서를
+    # 만들지 않고 「제자리에서」 고친다는 파이토치의 표시다.
+    # view(3, 1) 은 값은 그대로 두고 형태만 (3,) 에서 (3, 1) 로 바꿔 본다.
     x1 = base.clone().requires_grad_(True)              # (3,)
     x2 = base.view(3, 1).clone().requires_grad_(True)   # (3,1)
+    # @ 는 행렬 곱이다. 입력의 형태에 따라 출력의 형태가 달라진다.
+    #   (4, 3) @ (3,)   = (4,)       1 차원 벡터
+    #   (4, 3) @ (3, 1) = (4, 1)     열이 하나인 행렬(열벡터)
     print("  x (3,)  -> y", tuple((A @ x1).shape))
     print("  x (3,1) -> y", tuple((A @ x2).shape))
 
-    v = torch.tensor([1.0, 0.5, -1.0, 2.0])
-    (A @ x1).backward(v)
-    (A @ x2).backward(v.view(4, 1))
+    v = torch.tensor([1.0, 0.5, -1.0, 2.0])     # 형태 (4,)
+    # backward(v) 는 야코비 행렬 J (출력의 각 원소를 입력의 각 원소로 미분한 표.
+    # 여기서는 A 자신) 를 만들지 않고 벡터-야코비 곱(VJP) v^T J = A^T v 만 계산해
+    # 입력의 .grad 에 넣는다. v 는 출력과 같은 형태로 주어야 한다.
+    (A @ x1).backward(v)                        # 출력이 (4,) 이므로 v 도 (4,)
+    (A @ x2).backward(v.view(4, 1))             # 출력이 (4, 1) 이므로 v 도 (4, 1)
+    # .grad 는 그 텐서와 같은 형태다. x1.grad 는 (3,), x2.grad 는 (3, 1) 이다.
     print("  x1.grad 형태", tuple(x1.grad.shape),
           " x2.grad 형태", tuple(x2.grad.shape))
+    # tolist() 는 텐서를 파이썬 리스트로 바꾸고 round(t, 6) 은 여섯 자리 반올림이다.
+    # x2.grad 는 flatten() 으로 (3, 1) 을 (3,) 으로 펴서 같은 모양으로 찍는다.
     print("  x1.grad", [round(t, 6) for t in x1.grad.tolist()])
     print("  x2.grad", [round(t, 6) for t in x2.grad.flatten().tolist()])
+    # torch.allclose 는 두 텐서의 모든 자리가 (작은 허용 오차 안에서) 같으면 True 다.
     print("  값이 같은가:", torch.allclose(x1.grad, x2.grad.flatten()))
     print("  그래디언트는 언제나 그 텐서와 같은 형태로 온다")
 
@@ -328,13 +405,23 @@ def strict_v():
     header("2. v 의 형태 검사")
     torch.manual_seed(0)
     A = torch.randn(4, 3)
+    # 출력 A @ x 의 형태는 (4, 1) 이다. v 의 형태를 네 가지로 바꿔 어느 것이 통하는지
+    # 본다. (4,) 는 원소 수가 같고, (1, 1) 과 (1,) 은 브로드캐스팅 — 형태가 다른
+    # 텐서를 자동으로 늘려 맞추는 규칙 — 으로 (4, 1) 까지 늘릴 수 있는 형태다.
     for shape in ((4, 1), (4,), (1, 1), (1,)):
+        # x 를 매번 새로 만든다. 형태 (3, 1), 경사 추적을 건다.
         x = torch.randn(3, 1, requires_grad=True)
+        # try: ... except: 는 오류가 나도 프로그램이 죽지 않게 받아 내는 문법이다.
         try:
+            # torch.ones(shape) 는 1 로 채운 텐서다. v 가 전부 1 이면 v^T J 는
+            # A 의 줄을 모두 더한 것, 곧 열마다의 합이다.
             (A @ x).backward(torch.ones(shape))
+            # 통과하면 x.grad 를 찍는다. {str(shape):8s} 는 형태를 글로 바꿔 여덟 칸에
+            # 맞춰 찍으라는 뜻이다.
             print(f"  v 형태 {str(shape):8s} -> 통과. x.grad "
                   f"{[round(t, 4) for t in x.grad.flatten().tolist()]}")
         except RuntimeError as e:
+            # 거절당하면 오류 글의 첫 줄(splitlines()[0])에서 앞 52 자만 찍는다.
             print(f"  v 형태 {str(shape):8s} -> {str(e).splitlines()[0][:52]}")
     print("  출력이 (4,1) 이므로 v 도 (4,1) 이라야 한다")
     print("  브로드캐스팅으로 넘어가지 않는다 — 터져 주는 쪽이다")
@@ -347,12 +434,15 @@ def strict_v():
 def column_form():
     header("3. 열벡터 형태")
     torch.manual_seed(0)
-    A = torch.randn(4, 3)
-    x = torch.randn(3, 1, requires_grad=True)
-    v = torch.randn(4, 1)
-    (A @ x).backward(v)
+    A = torch.randn(4, 3)                       # 형태 (4, 3)
+    x = torch.randn(3, 1, requires_grad=True)   # 형태 (3, 1) 의 열벡터. 경사 추적을 건다
+    v = torch.randn(4, 1)                       # 형태 (4, 1) — 출력 A @ x 와 같다
+    (A @ x).backward(v)                         # x.grad 에 형태 (3, 1) 의 VJP 가 들어간다
     print("  x.grad    :", [round(t, 6) for t in x.grad.flatten().tolist()])
+    # A.t() 는 전치 — 행과 열을 맞바꿔 (4, 3) 을 (3, 4) 로 만든다.
+    # (3, 4) @ (4, 1) = (3, 1). 수학책의 A^T v 를 형태까지 그대로 옮긴 것이다.
     print("  A^T v     :", [round(t, 6) for t in (A.t() @ v).flatten().tolist()])
+    # 값뿐 아니라 형태도 견준다. 둘 다 (3, 1) 이라 True 다.
     print("  형태도 같은가:", x.grad.shape == (A.t() @ v).shape)
     print("  (3,1) 로 두면 A^T v 의 형태가 그대로 x.grad 다")
     print("  (3,) 로 두면 값은 같고 형태만 (3,) 로 눌린다")
@@ -363,6 +453,7 @@ def column_form():
 # ========================================================================
 
 def which_form():
+    # 재는 것은 없다. 두 형태의 장단점을 글로 찍는다.
     header("4. 고르기")
     print("  (3,) 형태")
     print("    장점: 코드가 짧다. 파이토치의 거의 모든 함수가 이쪽을 받는다")
@@ -380,35 +471,53 @@ def which_form():
 def the_silent_one():
     header("5. 형태가 조용히 무는 자리")
     torch.manual_seed(0)
-    pred = torch.randn(8, 1)
-    targ_col = torch.randn(8, 1)
-    targ_flat = targ_col.flatten()
+    # 표본 8 개짜리 회귀를 흉내 낸다. 모델의 예측이 (8, 1) 로 나왔다고 하고,
+    # 같은 정답을 두 가지 형태로 준비한다.
+    pred = torch.randn(8, 1)                    # 예측. 형태 (8, 1)
+    targ_col = torch.randn(8, 1)                # 정답. 형태 (8, 1) — 예측과 같다
+    targ_flat = targ_col.flatten()              # 같은 값을 (8,) 으로 편 것
     print("  pred", tuple(pred.shape),
           " target 열", tuple(targ_col.shape),
           " target 평평", tuple(targ_flat.shape))
 
+    # F.mse_loss 는 예측과 정답의 차를 제곱해 평균낸 수 하나다. 형태가 같으면
+    # i 번째 예측을 i 번째 정답과 견준 8 개의 평균이다.
     a = F.mse_loss(pred, targ_col)
+    # 형태가 (8, 1) 과 (8,) 로 다르면 오류 대신 브로드캐스팅이 일어난다. 차가
+    # (8, 8) 로 늘어나 모든 예측을 모든 정답과 견준 64 개의 평균이 된다.
+    # 파이토치는 이때 경고만 띄운다. catch_warnings(record=True) 는 이 블록 안에서
+    # 뜬 경고를 화면에 내지 않고 리스트 caught 에 모으고, simplefilter("always") 는
+    # 경고를 빠뜨리지 말고 모두 잡으라는 설정이다.
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         b = F.mse_loss(pred, targ_flat)
+    # .item() 은 수 하나짜리 텐서에서 그 수를 파이썬 실수로 꺼낸다.
+    # :.6f 는 소수점 아래 여섯 자리까지 찍으라는 뜻이다. len(caught) 가 경고의 수다.
     print(f"  (8,1) vs (8,1) 로스 {a.item():.6f}")
     print(f"  (8,1) vs (8,)  로스 {b.item():.6f}   경고 {len(caught)}개")
     print("  (8,1) 과 (8,) 이 브로드캐스팅되어 (8,8) 이 된다")
     print("  표본 여덟 개를 서로 엇갈려 견준 셈이다")
 
+    # 로스만이 아니라 그래디언트도 틀리는지 본다. 예측을 복사해 경사 추적을 걸고
+    # 로스를 역전파하면 .grad 에 「로스를 예측으로 미분한 값」(형태 (8, 1))이 들어간다.
+    # 로스가 스칼라이므로 backward() 에 v 를 주지 않아도 된다.
     p1 = pred.clone().requires_grad_(True)
-    F.mse_loss(p1, targ_col).backward()
+    F.mse_loss(p1, targ_col).backward()         # 바른 짝
     p2 = pred.clone().requires_grad_(True)
+    # 이번에는 simplefilter("ignore") 로 이 블록 안의 경고를 아예 끈다. 화면에
+    # 아무것도 안 뜨고 틀린 그래디언트만 조용히 나온다.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        F.mse_loss(p2, targ_flat).backward()
+        F.mse_loss(p2, targ_flat).backward()    # 어긋난 짝
     print("  그래디언트가 같은가:", torch.allclose(p1.grad, p2.grad))
+    # flatten()[:3] 으로 앞의 세 값만 골라 다섯 자리로 반올림해 찍는다.
     print("  바른 그래디언트:", [round(t, 5) for t in p1.grad.flatten()[:3].tolist()])
     print("  틀린 그래디언트:", [round(t, 5) for t in p2.grad.flatten()[:3].tolist()])
     print("  경고는 뜨지만 터지지는 않는다. 경고를 끄면 아무 표도 없다")
 
 
 def main():
+    # 다섯 절을 차례로 돌린다.
     same_math()
     strict_v()
     column_form()
@@ -416,6 +525,8 @@ def main():
     the_silent_one()
 
 
+# 이 파일을 직접 돌렸을 때만 main() 을 부른다. 다른 파일이 이 파일을 불러다(import)
+# 쓸 때는 __name__ 이 "__main__" 이 아니므로 아무것도 돌지 않는다.
 if __name__ == "__main__":
     main()
 ```
@@ -492,8 +603,10 @@ x1.grad 형태 (3,)    x2.grad 형태 (3, 1)
 | `(1, 1)` | `Mismatch in shape` |
 | `(1,)` | `Mismatch in shape` |
 
-**브로드캐스팅되지 않는다.** $(4,)$는 $(4,1)$로 늘어날 수 있는 형태인데도
-거절한다.
+**브로드캐스팅되지 않는다.** $(1,1)$과 $(1,)$은 보통의 연산에서라면 $(4,1)$로
+늘어나는 형태인데도 거절한다. $(4,)$는 원소가 넷으로 같지만 형태가 달라
+거절한다 — 이쪽은 브로드캐스팅으로도 $(4,1)$이 되지 않는다($(4,1)$과 만나면
+$(4,4)$가 된다).
 
 일부러 그렇게 만들어 둔 것으로 보인다. `v`는 "각 출력을 얼마씩 중히 보는가"라
 출력과 일대일로 맞아야 뜻이 분명하고, 브로드캐스팅을 허용하면 어느 축이
@@ -568,12 +681,19 @@ $v$를 단위벡터로 주면 `x.grad`가 무엇이 되는가? 그리고 전부 
     $i$번째 **줄**이다. 전부 1이면 $A$의 줄들을 다 더한 것이다.
 
     ```python
-    torch.manual_seed(0)
-    A = torch.randn(4, 3)
+    torch.manual_seed(0)                    # 돌릴 때마다 같은 난수가 나오게 한다
+    A = torch.randn(4, 3)                   # 형태 (4, 3). y = A @ x 의 야코비 행렬이다
+    # v 를 세 가지로 준다 — 0 번째 단위벡터, 3 번째 단위벡터, 전부 1.
+    # 1. 은 1.0 이다. 리스트에 실수가 하나라도 있으면 텐서 전체가 실수가 된다.
     for v in ([1., 0, 0, 0], [0, 0, 0, 1.], [1., 1, 1, 1]):
+        # x 를 매번 새로 만든다(형태 (3,), 경사 추적). 값은 바퀴마다 다르지만
+        # 상관없다 — 선형 사상의 야코비 행렬은 x 가 무엇이든 A 이기 때문이다.
         x = torch.randn(3, requires_grad=True)
+        # backward(v) 가 x.grad 에 v^T J = A^T v (형태 (3,)) 를 넣는다.
         (A @ x).backward(torch.tensor(v))
         print(f"  v={str(v):18s} x.grad={[round(t, 4) for t in x.grad.tolist()]}")
+    # 견줄 값들이다. A[0] 은 A 의 0 번 줄, A[3] 은 3 번 줄(번호는 0 부터)이고,
+    # A.sum(0) 은 줄들을 다 더한 것 — 열마다의 합, 형태 (3,) — 이다.
     print("  A[0]     =", [round(t, 4) for t in A[0].tolist()])
     print("  A[3]     =", [round(t, 4) for t in A[3].tolist()])
     print("  A.sum(0) =", [round(t, 4) for t in A.sum(0).tolist()])
@@ -606,31 +726,46 @@ $v$를 단위벡터로 주면 `x.grad`가 무엇이 되는가? 그리고 전부 
 
 ??? success "풀이"
     ```python
+    # time 은 파이썬 표준 라이브러리다. 걸린 시간을 재는 데 쓴다.
     import time
 
 
     def timeit(fn, repeat=20):
         """fn 을 repeat 번 불러 가장 빠른 한 번을 밀리초로 돌려준다."""
-        best = float("inf")
+        best = float("inf")                 # 무한대에서 시작해 더 짧은 값으로 바꿔 간다
         for _ in range(repeat):
+            # time.perf_counter() 는 지금 시각(초)이다. 앞뒤로 읽어 그 차를 잰다.
             t0 = time.perf_counter()
             fn()
             best = min(best, time.perf_counter() - t0)
-        return best * 1000
+        return best * 1000                  # 초를 밀리초(ms)로 바꾼다
 
 
+    # --- 값이 같은가 ---
     torch.manual_seed(0)
-    A1, A2 = torch.randn(5, 4), torch.randn(3, 5)
-    x = torch.randn(4, requires_grad=True)
-    v = torch.randn(3)
+    # 선형 사상 둘을 잇는다. x (4,) → A1 → (5,) → A2 → (3,)
+    A1, A2 = torch.randn(5, 4), torch.randn(3, 5)       # 형태 (5, 4) 와 (3, 5)
+    x = torch.randn(4, requires_grad=True)              # 형태 (4,). 경사 추적을 건다
+    v = torch.randn(3)                                  # 출력과 같은 형태 (3,)
+    # 순전파 A2 @ (A1 @ x) 의 출력은 (3,) 이다. backward(v) 가 x.grad 에 VJP 를 넣는다.
     (A2 @ (A1 @ x)).backward(v)
     print("  x.grad        :", [round(t, 6) for t in x.grad.tolist()])
+    # 순서대로 — v 를 뒤 레이어부터 거꾸로 민다. 행렬-벡터 곱 두 번이다.
+    #   A2.t() @ v      (5, 3) @ (3,) = (5,)
+    #   A1.t() @ 그것   (4, 5) @ (5,) = (4,)
     print("  A1^T (A2^T v) :", [round(t, 6) for t in (A1.t() @ (A2.t() @ v)).tolist()])
+    # 먼저 곱하고 — 전체 야코비 행렬 A2 @ A1 (형태 (3, 4)) 을 만든 뒤 전치해 v 에 곱한다.
+    #   (A2 @ A1).t() @ v   (4, 3) @ (3,) = (4,)
     print("  (A2 A1)^T v   :", [round(t, 6) for t in ((A2 @ A1).t() @ v).tolist()])
 
+    # --- 시간이 같은가 ---
+    # 차이가 보이도록 큰 행렬로 잰다. B1, B2 는 형태 (2048, 2048), vv 는 (2048,) 이다.
+    # 미분은 하지 않고 위의 두 식을 행렬 곱으로만 계산해 시간을 견준다.
     n = 2048
     B1, B2, vv = torch.randn(n, n), torch.randn(n, n), torch.randn(n)
     print()
+    # lambda: ... 는 이름 없는 함수다. 계산을 싸서 timeit 에 넘긴다.
+    # {…:6.3f} 는 여섯 칸에 소수점 아래 세 자리로 찍는다.
     print(f"  순서대로  B1^T (B2^T v)  {timeit(lambda: B1.t() @ (B2.t() @ vv)):6.3f} ms")
     print(f"  먼저 곱하고 (B2 B1)^T v  {timeit(lambda: (B2 @ B1).t() @ vv):6.3f} ms")
     ```
@@ -674,11 +809,17 @@ $v$가 $i$번째 단위벡터일 때 `A.grad`는 어떻게 생겼는가? 5절의
 
     ```python
     torch.manual_seed(0)
-    A = torch.randn(4, 3, requires_grad=True)
-    x = torch.randn(3, requires_grad=True)
-    for v in ([1., 0, 0, 0], [0, 1., 0, 0]):
+    # A 에도 경사 추적을 건다. 그래야 backward 가 A.grad 를 채운다.
+    A = torch.randn(4, 3, requires_grad=True)   # 형태 (4, 3)
+    x = torch.randn(3, requires_grad=True)      # 형태 (3,)
+    for v in ([1., 0, 0, 0], [0, 1., 0, 0]):    # 0 번째, 1 번째 단위벡터
+        # backward 는 .grad 에 「더하기」 때문에 앞 바퀴의 결과를 먼저 지운다.
         A.grad = None
+        # A.grad 는 A 와 같은 형태 (4, 3) 이고 (i, j) 자리가 v_i * x_j 다.
+        # v 가 i 번째 단위벡터이면 i 번째 줄만 x 이고 나머지 줄은 0 이다.
         (A @ x).backward(torch.tensor(v))
+        # 줄마다 0 이 아닌 원소를 센다. abs() > 0 은 자리마다 True/False 를 주고,
+        # sum(1) 은 줄 안에서(열을 따라) 더한다 — True 는 1 로 센다. 결과는 길이 4 다.
         nz = (A.grad.abs() > 0).sum(1).tolist()
         print(f"  v={str(v):16s} A.grad 의 줄마다 0 이 아닌 원소 수: {nz}")
     ```
@@ -710,19 +851,30 @@ $v$가 $i$번째 단위벡터일 때 `A.grad`는 어떻게 생겼는가? 5절의
 
 ??? success "풀이"
     ```python
+    # torch.nn 은 레이어를 모아 둔 곳이다. 관례대로 nn 으로 줄여 부른다.
+    # torch, F, warnings 는 6절 프로그램의 임포트를 그대로 쓴다.
     import torch.nn as nn
 
     torch.manual_seed(0)
+    # nn.Linear(4, 1) 은 수 4 개를 받아 수 1 개를 내는 레이어다. 웨이트와 바이어스를
+    # 무작위로 초기화해 갖고 있다. 출력이 1 개여도 그 차원은 남는다.
     m = nn.Linear(4, 1)
-    x = torch.randn(8, 4)
-    y_col = torch.randn(8, 1)
-    y_flat = y_col.flatten()
-    print("  model(x) 형태:", tuple(m(x).shape))
+    x = torch.randn(8, 4)                   # 표본 8 개짜리 배치. 형태 (8, 4)
+    y_col = torch.randn(8, 1)               # 정답. 형태 (8, 1)
+    y_flat = y_col.flatten()                # 같은 값을 (8,) 으로 편 것
+    print("  model(x) 형태:", tuple(m(x).shape))        # (8, 1)
     for name, t in (("(8,1)", y_col), ("(8,)", y_flat)):
+        # 이 블록 안에서 뜬 경고를 화면에 내지 않고 리스트 w 에 모은다.
+        # simplefilter("always") 는 경고를 빠뜨리지 말고 모두 잡으라는 설정이다.
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
+            # F.mse_loss 는 예측과 정답의 차를 제곱해 평균낸다. 정답이 (8,) 이면
+            # (8, 1) 과 브로드캐스팅되어 차가 (8, 8) 이 되고, 64 개의 평균이 나온다.
             l = F.mse_loss(m(x), t)
         print(f"  target {name:6s} 로스 {l.item():.6f}  경고 {len(w)}개")
+    # 고치는 두 길이다. 둘 다 로스를 계산하기 전에 형태를 맞춘다.
+    #   squeeze(-1)   예측의 마지막 차원(길이 1)을 없앤다.   (8, 1) → (8,)
+    #   view(-1, 1)   정답을 열 하나짜리로 세운다. -1 은 「알아서 맞춰라」다.  (8,) → (8, 1)
     print("  squeeze 쪽:", round(F.mse_loss(m(x).squeeze(-1), y_flat).item(), 6))
     print("  view 쪽   :", round(F.mse_loss(m(x), y_flat.view(-1, 1)).item(), 6))
     ```
@@ -755,9 +907,17 @@ $v$가 $i$번째 단위벡터일 때 `A.grad`는 어떻게 생겼는가? 5절의
 ??? success "풀이"
     ```python
     torch.manual_seed(0)
+    # 표본 N = 8 개, 클래스 C = 3 개짜리 분류를 흉내 낸다.
+    # 로짓은 모델이 클래스마다 내놓는 점수다. 형태 (8, 3).
     logits = torch.randn(8, 3)
+    # torch.randint(0, 3, (8,)) 는 0, 1, 2 가운데 하나를 무작위로 8 개 뽑은 정수
+    # 텐서다(3 은 들어가지 않는다). 형태 (8,) — 표본마다 정답 클래스의 번호 하나다.
     targ = torch.randint(0, 3, (8,))
+    # F.cross_entropy 는 분류에 쓰는 로스다. (N, C) 로짓과 (N,) 번호를 받아
+    # 수 하나를 낸다. 이것이 바른 짝이다.
     print("  (N,C) 와 (N,):", round(F.cross_entropy(logits, targ).item(), 6))
+    # 라벨을 view(-1, 1) 로 (8, 1) 로 세워서 주어 본다. 오류가 나면 받아서
+    # 그 글의 첫 줄에서 앞 70 자만 찍는다.
     try:
         F.cross_entropy(logits, targ.view(-1, 1))
     except Exception as e:
@@ -798,22 +958,31 @@ $v$가 $i$번째 단위벡터일 때 `A.grad`는 어떻게 생겼는가? 5절의
 ??? success "풀이"
     ```python
     torch.manual_seed(0)
-    A = torch.randn(4, 3)
-    x = torch.randn(3, requires_grad=True)
-    y = A @ x
+    A = torch.randn(4, 3)                       # 형태 (4, 3)
+    x = torch.randn(3, requires_grad=True)      # 형태 (3,). 경사 추적을 건다
+    y = A @ x                                   # 출력. 형태 (4,)
+    # 출력이 (4,) 일 때 v 를 세 가지 형태로 준다.
+    #   torch.ones(4)       형태 (4,) — 출력과 같다
+    #   torch.tensor(1.0)   0 차원. 형태가 () 인 수 하나짜리 텐서다
+    #   torch.ones(4, 1)    형태 (4, 1) — 원소 수는 같은데 차원이 하나 많다
     for desc, v in (("정상 (4,)", torch.ones(4)),
                     ("0 차원", torch.tensor(1.0)),
                     ("(4,1)", torch.ones(4, 1))):
-        x.grad = None
+        x.grad = None                           # 앞 바퀴의 결과를 지운다
         try:
+            # 같은 y 에 대고 여러 번 부르므로 retain_graph=True 로 계산 그래프를
+            # 남겨 둔다. 통과하면 x.grad 는 v^T J = A^T v, 여기서는 A 의 열마다의 합이다.
             y.backward(v, retain_graph=True)
             print(f"  {desc:10s} -> 통과  x.grad "
                   f"{[round(t, 4) for t in x.grad.tolist()]}")
         except RuntimeError as e:
+            # 거절당하면 오류 글의 첫 줄에서 앞 56 자만 찍는다.
             print(f"  {desc:10s} -> {str(e).splitlines()[0][:56]}")
 
+    # 이번에는 출력이 스칼라다. sum() 이 (4,) 를 다 더해 0 차원 텐서로 만든다.
     s = (A @ x).sum()
     x.grad = None
+    # torch.ones(1) 은 원소가 하나지만 형태가 (1,) 이라 0 차원인 s 와 형태가 다르다.
     try:
         s.backward(torch.ones(1))
         print("  스칼라에 (1,) 짜리 v -> 통과")

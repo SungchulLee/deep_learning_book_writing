@@ -41,50 +41,105 @@
 
 실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
+# time 은 파이썬 표준 라이브러리다. 걸린 시간을 재는 데 쓴다.
 import time
 
+# torch 는 파이토치 본체다. torch.nn 은 레이어를 객체로 모아 둔 모듈이고(nn.Linear),
+# torch.nn.functional 은 같은 계산을 함수로 모아 둔 모듈이다(F.cross_entropy).
+# 관례대로 nn, F 로 줄여 부른다.
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
 def header(title):
+    # 절 제목을 한 줄 찍는다. f"...{title}..." 은 문자열 안에 변수의 값을 끼워 넣는
+    # 파이썬 문법(f-string)이고, 맨 앞의 \n 은 줄바꿈이라 제목 위에 빈 줄이 생긴다.
     print(f"\n=== {title} ===")
 
 
 def spread(fn, rep=5):
+    # 함수 fn 을 여러 번 불러 걸린 시간의 (가장 짧은 것, 가장 긴 것) 을 밀리초로
+    # 돌려준다. 시간은 잴 때마다 흔들리므로 한 번 재지 않고 폭을 본다.
+    # rep=5 는 기본값이다 — 따로 안 적으면 다섯 번 잰다.
+    #
+    # 먼저 두 번은 재지 않고 그냥 돌린다(예열). 처음 한두 번은 메모리를 잡는 따위의
+    # 준비로 유난히 느려서, 그것을 재면 실제보다 느리게 나온다.
+    # _ 은 「안 쓰는 값」 자리에 관례로 두는 이름이다 — 되풀이만 한다.
     for _ in range(2):          # 예열
         fn()
-    ts = []
+    ts = []                     # 잰 시간(초)을 모아 둘 리스트
     for _ in range(rep):
+        # time.perf_counter() 는 지금 시각을 초로 준다. 부르기 전과 뒤의 차가
+        # fn() 한 번에 걸린 시간이다.
         t0 = time.perf_counter()
         fn()
         ts.append(time.perf_counter() - t0)
+    # 1e3 은 1000 이다. 초에 1000 을 곱해 밀리초(ms)로 바꾼다.
     return min(ts) * 1e3, max(ts) * 1e3
 
 
+# 프로그램 전체가 함께 쓰는 두 수다. 바뀌지 않는 값은 관례로 대문자로 적는다.
+#   BATCH — 배치 크기. 옵티마이저가 한 스텝에 보는 표본의 수다
+#   DIM   — 입력 하나에 든 수의 개수이자 레이어의 폭이다
 BATCH, DIM = 256, 512
 
 
 def setup(seed=0):
+    # 모델·옵티마이저·데이터를 한꺼번에 만들어 돌려준다.
+    # 난수 시드를 고정한다. 레이어의 초기화와 데이터가 난수를 쓰므로, 시드가 같으면
+    # 부를 때마다 같은 모델과 같은 데이터가 나온다.
     torch.manual_seed(seed)
+    # nn.Linear(입력, 출력) 은 선형 레이어다 — y = W x + b. 트레인으로 고칠 파라메터는
+    # weight (웨이트 W, 형태 (출력, 입력)) 와 bias (바이어스 b, 형태 (출력,)) 다.
+    # nn.ReLU() 는 음수를 0 으로 바꾸는 활성화 함수이고 파라메터가 없다.
+    # nn.Sequential 은 레이어를 적은 차례대로 이어 붙여 모델 하나로 만든다.
+    #   512 → 512 → ReLU → 512 → ReLU → 10
+    # 마지막의 10 은 클래스 10 개에 매기는 점수다.
     net = nn.Sequential(nn.Linear(DIM, DIM), nn.ReLU(),
                         nn.Linear(DIM, DIM), nn.ReLU(),
                         nn.Linear(DIM, 10))
+    # 옵티마이저는 그래디언트를 보고 파라메터를 실제로 고치는 물건이다. SGD 는
+    # 「파라메터 ← 파라메터 − lr × 그래디언트」를 한다. net.parameters() 로 모델의
+    # 파라메터를 전부 넘기고, lr 이 러닝레이트(한 스텝의 크기)다.
     opt = torch.optim.SGD(net.parameters(), lr=0.01)
+    # 가짜 데이터다.
+    #   X — torch.randn 은 표준정규분포에서 뽑은 수로 채운다. 형태 (256, 512):
+    #       수 512 개짜리 입력이 256 개
+    #   Y — torch.randint(0, 10, (BATCH,)) 는 0 ~ 9 가운데 정수를 뽑는다(10 은 안
+    #       들어간다). 형태 (256,): 입력마다 정답 클래스 번호 하나
     X = torch.randn(BATCH, DIM)
     Y = torch.randint(0, 10, (BATCH,))
     return net, opt, X, Y
 
 
 def step_fn(net, opt, X, Y, k):
+    # 「배치를 k 조각으로 나눠 경사 누적으로 트레인 한 스텝을 하는 함수」를 만들어
+    # 돌려준다. 함수 안에서 함수 run 을 정의해 그것을 돌려주는 것이다. run 은 인자
+    # 없이 부를 수 있어 spread 에 넘겨 시간을 잴 수 있다.
     def run():
+        # 경사 누적 — 큰 배치를 한 번에 못 넣을 때 작은 조각으로 나눠 역전파를 여러 번
+        # 하고, 그래디언트가 다 쌓인 뒤에 스텝을 한 번만 밟는 방법이다.
+        #
+        # (1) 앞 스텝의 그래디언트를 지운다. 스텝의 맨 앞에서 「한 번만」 한다.
+        #     조각 사이에서는 지우지 않는다 — 지우면 쌓이지 않는다.
         opt.zero_grad()
-        n = BATCH // k
-        for i in range(k):
+        n = BATCH // k                # 조각 크기. // 는 몫이다 — k = 4 면 256 // 4 = 64
+        for i in range(k):            # i = 0, 1, ..., k-1 — 조각마다 한 번
+            # (2) i 번째 조각으로 순전파해 로스를 구한다.
+            #   X[i*n:(i+1)*n]   i*n 번째부터 (i+1)*n 번째 앞까지의 행. 형태 (n, 512)
+            #   net(...)          모델의 출력. 형태 (n, 10) — 클래스 10 개의 점수
+            #   Y[i*n:(i+1)*n]   같은 조각의 정답 번호. 형태 (n,)
+            #   F.cross_entropy   분류 로스. 정답 클래스의 점수가 높을수록 작아지는 수
+            #                     하나이고, 조각 안 n 개의 「평균」이다
+            #   / k               조각마다의 평균을 k 로 나눠 둔다. 그래야 k 개를 다
+            #                     더한 것이 배치 256 개 전체의 평균과 같아진다
             part = F.cross_entropy(net(X[i * n:(i + 1) * n]),
                                    Y[i * n:(i + 1) * n]) / k
+            # (3) 역전파. backward() 는 .grad 를 덮어쓰지 않고 「더해」 넣으므로,
+            #     k 번 부르면 k 조각의 그래디언트가 .grad 에 쌓인다.
             part.backward()
+        # (4) 다 쌓인 그래디언트로 파라메터를 「한 번」 고친다.
         opt.step()
     return run
 
@@ -96,16 +151,24 @@ def step_fn(net, opt, X, Y, k):
 def time_cost():
     header("1. 조각 수와 시간")
     net, opt, X, Y = setup()
-    times = {}
+    times = {}                        # {조각 수: 가장 짧은 시간(ms)} 을 모아 둘 사전
+    # 조각 수 k 를 두 배씩 늘려 가며 한 스텝에 걸리는 시간을 잰다.
+    # k = 1 은 쪼개지 않고 256 개를 통째로 넣는 것이다.
     for k in (1, 2, 4, 8, 16, 32):
+        # spread 가 (가장 짧은 시간, 가장 긴 시간) 을 준다. 여기서는 짧은 쪽만 쓰고
+        # 긴 쪽은 _ 로 받아 버린다. 가장 짧은 시간이 방해를 덜 받은 측정이다.
         lo, _ = spread(step_fn(net, opt, X, Y, k))
         times[k] = lo
+        # 형식 지정: {k:2d} 는 정수를 2 칸에, {lo:6.2f} 는 실수를 6 칸에 소수점 아래
+        # 두 자리까지 찍는다. 칸 수를 주면 줄마다 세로줄이 맞는다.
+        #   lo / times[1]   통째로 할 때(k = 1)의 몇 배인가
+        #   lo / k          조각 하나에 든 시간
         print(f"  {k:2d} 조각  조각 크기 {BATCH // k:3d}  "
               f"{lo:6.2f} ms   통째 대비 {lo / times[1]:5.2f}배   "
               f"조각당 {lo / k:6.3f} ms")
     print("  조각 수에 꼭 비례하지는 않는다 — 조각당 시간이 줄어든다")
     print("  작은 배치는 행렬곱이 덜 효율적이지만 일 자체도 적기 때문이다")
-    return times
+    return times                      # 3 절에서 다시 쓰려고 돌려준다
 
 
 # ========================================================================
@@ -114,14 +177,29 @@ def time_cost():
 
 def memory_cost():
     header("2. 조각 수와 활성값 메모리")
-    print("  활성값은 '조각 크기 x 폭 x 레이어 수 x 4바이트' 쯤이다")
+    # 이 절은 메모리를 재지 않고 「어림」한다. 활성값은 순전파 때 레이어마다 나온
+    # 중간 출력이다. 역전파가 그 값을 다시 쓰므로 backward() 가 끝날 때까지 메모리에
+    # 남아 있어야 하고, 그 크기는 한 번에 넣은 표본 수(조각 크기)에 비례한다.
+    print("  활성값은 '조각 크기 x 폭 x 저장되는 텐서 수 x 4바이트' 쯤이다")
     for k in (1, 4, 16, 32):
-        n = BATCH // k
+        n = BATCH // k                      # 조각 크기 — 256, 64, 16, 8
+        # 어림식이다. 표본 n 개 × 폭 512 짜리 텐서 하나에 수가 n × 512 개 들고,
+        # 그런 텐서가 네 군데쯤 남는다고 보아 4 를 곱하고, float32 수 하나가 4 바이트라
+        # 또 4 를 곱한다. 1e6 (백만) 으로 나눠 MB 로 바꾼다.
+        #   k = 1 일 때   256 * 512 * 4 * 4 = 2,097,152 바이트 → 2.097 MB
         approx = n * DIM * 4 * 4 / 1e6      # 네 군데쯤 저장된다고 보고
         print(f"  {k:2d} 조각  조각 크기 {n:3d}  활성값 대략 {approx:6.3f} MB")
     print("  파라메터와 그래디언트는 조각 수와 무관하다 — 모델 크기가 정한다")
+    # 파라메터 쪽은 어림이 아니라 실제 모델에서 센다. setup() 이 넷을 돌려주는데
+    # 모델만 쓰므로 나머지 셋은 _ 로 받아 버린다.
     net, _, _, _ = setup()
+    # 파라메터마다 numel() (든 수의 개수) × element_size() (수 하나의 바이트, 4) 를
+    # 구해 다 더한다.
+    #   Linear(512, 512) 둘   (512*512 + 512) * 2 = 525,312 개
+    #   Linear(512, 10)        512*10 + 10        =   5,130 개
+    #   합 530,442 개 × 4 바이트 = 2,121,768 바이트 → 2.12 MB
     pbytes = sum(p.numel() * p.element_size() for p in net.parameters())
+    # 그래디언트(.grad)는 파라메터와 형태가 같은 텐서라 같은 크기를 한 벌 더 쓴다.
     print(f"  이 모델의 파라메터 {pbytes / 1e6:.2f} MB (그래디언트도 같은 크기)")
     print("  그래서 누적으로 아끼는 것은 활성값뿐이다")
 
@@ -132,10 +210,16 @@ def memory_cost():
 
 def diminishing(times):
     header("3. 쪼갤수록 이득이 줄어든다")
+    # times 는 1 절이 잰 {조각 수: 시간} 사전이다. 새로 재지 않고 그 수로 계산만 한다.
+    # sorted(사전) 은 열쇠를 작은 것부터 늘어놓은 리스트다 — [1, 2, 4, 8, 16, 32].
     ks = sorted(times)
+    # ks[1:] 은 첫째를 뺀 나머지 [2, 4, 8, 16, 32] 다. zip 으로 짝지으면 이웃한 두
+    # 조각 수 (1, 2), (2, 4), (4, 8), (8, 16), (16, 32) 가 나온다.
+    # times[b] / times[a] 는 조각 수를 두 배로 늘렸을 때 시간이 몇 배가 되는가다.
     ratios = [times[b] / times[a] for a, b in zip(ks, ks[1:])]
     print("  조각 크기를 반으로 줄일 때마다")
     print("    활성값 메모리: 반으로 — 언제나 반")
+    # 비 다섯 개를 소수점 아래 두 자리로 찍어 " -> " 로 잇는다.
     print("    시간:", " -> ".join(f"{r:.2f}" for r in ratios), "배")
     print("  메모리 이득은 일정하고 시간 손해는 쌓인다")
     print("  그래서 '모델이 올라가는 가장 큰 조각' 을 고르는 것이 맞다")
@@ -148,36 +232,59 @@ def diminishing(times):
 
 def versus_checkpointing():
     header("4. 체크포인팅과 견주기")
+    # checkpoint 는 체크포인팅(gradient checkpointing)을 해 주는 함수다. 순전파 때
+    # 그 구간의 활성값을 저장하지 않고, 역전파 때 그 구간의 순전파를 다시 해서 구한다.
+    # 메모리를 아끼고 시간을 더 쓴다. 이 절에서만 쓰므로 함수 안에서 불러온다.
     from torch.utils.checkpoint import checkpoint
     torch.manual_seed(0)
+    # 깊은 모델을 만든다. (Linear → ReLU) 한 묶음이 블록 하나이고, 그런 블록 8 개를
+    # 리스트에 담는다. nn.ModuleList 는 레이어를 담는 리스트인데, 보통의 파이썬
+    # 리스트와 달리 안의 레이어가 파이토치에 등록되어 parameters() 로 꺼낼 수 있다.
+    # Sequential 로 잇지 않고 리스트로 둔 것은 블록을 하나씩 따로 부르기 위해서다.
     blocks = nn.ModuleList([nn.Sequential(nn.Linear(DIM, DIM), nn.ReLU())
                             for _ in range(8)])
-    head = nn.Linear(DIM, 10)
+    head = nn.Linear(DIM, 10)                 # 마지막에 붙는 출력 레이어. 512 → 10
+    # 모델이 blocks 와 head 둘로 나뉘어 있으므로, 두 쪽의 파라메터를 리스트로 바꿔
+    # 이어 붙인 것을 옵티마이저에 넘긴다(리스트끼리의 + 는 이어 붙이기다).
     params = list(blocks.parameters()) + list(head.parameters())
     opt = torch.optim.SGD(params, lr=0.01)
-    X = torch.randn(BATCH, DIM)
-    Y = torch.randint(0, 10, (BATCH,))
+    X = torch.randn(BATCH, DIM)               # 입력. 형태 (256, 512)
+    Y = torch.randint(0, 10, (BATCH,))        # 정답 클래스 번호. 형태 (256,)
 
     def forward(x, use_ckpt):
+        # 순전파를 손으로 적는다. 블록 8 개를 차례로 지나고 마지막에 head 를 지난다.
         for b in blocks:
+            # 「A if 조건 else B」 는 조건이 참이면 A, 거짓이면 B 다.
+            #   use_ckpt 가 참    checkpoint(b, x, ...) — b(x) 와 값은 같은데 블록 안의
+            #                     활성값을 저장하지 않는다. use_reentrant=False 는
+            #                     파이토치가 권하는 새 방식으로 하라는 뜻이다
+            #   use_ckpt 가 거짓  b(x) — 보통대로 부른다
             x = checkpoint(b, x, use_reentrant=False) if use_ckpt else b(x)
-        return head(x)
+        return head(x)                        # 출력. 형태 (표본 수, 10)
 
     def run(k, use_ckpt):
+        # step_fn 과 같은 일을 한다 — k 조각 경사 누적으로 트레인 한 스텝을 하는
+        # 함수 f 를 만들어 돌려준다. 다른 것은 net(...) 대신 위의 forward 를 부르는 것이다.
         def f():
-            opt.zero_grad()
-            n = BATCH // k
+            opt.zero_grad()                   # 스텝의 맨 앞에서 한 번만 지운다
+            n = BATCH // k                    # 조각 크기
             for i in range(k):
+                # i 번째 조각의 로스. k 로 나눠 두어 다 더하면 배치 전체의 평균이 된다.
                 part = F.cross_entropy(forward(X[i * n:(i + 1) * n], use_ckpt),
                                        Y[i * n:(i + 1) * n]) / k
-                part.backward()
-            opt.step()
+                part.backward()               # 그래디언트가 .grad 에 쌓인다
+            opt.step()                        # 다 쌓인 뒤 한 번 고친다
         return f
 
+    # 세 가지를 잰다. 짝마다 (라벨, 조각 수 k, 체크포인팅을 쓰는가) 다.
+    #   통째로       k = 1, 체크포인팅 없음 — 견줄 기준
+    #   8조각 누적   k = 8 — 배치 쪽을 줄인다
+    #   체크포인팅   k = 1, 체크포인팅 켬 — 깊이 쪽을 줄인다
     for label, k, ck in (("통째로", 1, False),
                          ("8조각 누적", 8, False),
                          ("체크포인팅", 1, True)):
-        lo, hi = spread(run(k, ck))
+        lo, hi = spread(run(k, ck))           # (가장 짧은 시간, 가장 긴 시간) ms
+        # 이번에는 폭을 그대로 보인다. {label:12s} 는 라벨을 12 칸에 맞춰 찍는다.
         print(f"  {label:12s} {lo:6.2f} ~ {hi:6.2f} ms")
     print("  둘 다 메모리를 시간과 바꾸는데 체크포인팅이 덜 비쌌다")
     print("  다만 아끼는 축이 다르다 — 누적은 배치 축, 체크포인팅은 깊이 축")
@@ -185,12 +292,14 @@ def versus_checkpointing():
 
 
 def main():
-    times = time_cost()
+    times = time_cost()            # 1 절이 잰 시간을 받아 둔다
     memory_cost()
-    diminishing(times)
+    diminishing(times)             # 3 절이 그 시간을 다시 쓴다
     versus_checkpointing()
 
 
+# 이 파일을 직접 돌렸을 때만 main() 을 부른다. 다른 파일이 import 로 불러 쓸 때는
+# __name__ 이 "__main__" 이 아니어서 아무것도 실행되지 않는다.
 if __name__ == "__main__":
     main()
 ```
@@ -209,7 +318,7 @@ if __name__ == "__main__":
   작은 배치는 행렬곱이 덜 효율적이지만 일 자체도 적기 때문이다
 
 === 2. 조각 수와 활성값 메모리 ===
-  활성값은 '조각 크기 x 폭 x 레이어 수 x 4바이트' 쯤이다
+  활성값은 '조각 크기 x 폭 x 저장되는 텐서 수 x 4바이트' 쯤이다
    1 조각  조각 크기 256  활성값 대략  2.097 MB
    4 조각  조각 크기  64  활성값 대략  0.524 MB
   16 조각  조각 크기  16  활성값 대략  0.131 MB
@@ -326,17 +435,25 @@ if __name__ == "__main__":
 
 ??? success "풀이"
     ```python
+    # 본문 프로그램의 setup() 과 BATCH (= 256) 를 그대로 쓴다.
+    # 모델, 옵티마이저, 입력 X (256, 512), 정답 Y (256,) 를 받는다.
     net, opt, X, Y = setup()
-    for k in (1, 4, 16):
+    for k in (1, 4, 16):                      # 조각 수를 셋으로 바꿔 본다
+        # 횟수를 셀 사전이다. 부를 때마다 += 1 로 하나씩 올린다.
         steps = {"backward": 0, "step": 0}
-        opt.zero_grad()
-        n = BATCH // k
+        opt.zero_grad()                       # 앞 스텝의 그래디언트를 지운다 — 한 번만
+        n = BATCH // k                        # 조각 크기 — 256, 64, 16
         for i in range(k):
+            # i 번째 조각으로 순전파해 분류 로스(F.cross_entropy)를 구하고, k 로 나눈
+            # 다음 곧바로 역전파한다. backward() 는 .grad 에 「더해」 넣으므로 조각마다
+            # 그래디언트가 쌓인다. 전체를 괄호로 싼 것은 나눈 결과에 .backward() 를
+            # 부르기 위해서다.
             (F.cross_entropy(net(X[i * n:(i + 1) * n]),
                              Y[i * n:(i + 1) * n]) / k).backward()
-            steps["backward"] += 1
-        opt.step()
-        steps["step"] += 1
+            steps["backward"] += 1            # 역전파를 한 번 했다
+        opt.step()                            # 쌓인 그래디언트로 파라메터를 한 번 고친다
+        steps["step"] += 1                    # 스텝을 한 번 밟았다
+        # {k:2d} 는 정수를 2 칸에 맞춰 찍는다.
         print(f"  {k:2d} 조각  backward {steps['backward']:2d}번  "
               f"step {steps['step']}번")
     ```
@@ -370,15 +487,33 @@ if __name__ == "__main__":
 
 ??? success "풀이"
     ```python
+    # 네 가지 설정을 차례로 본다. 짝마다 (폭 dim, 깊이 depth, 배치 크기 batch) 다.
+    # 첫째가 기준이고, 둘째는 배치만, 셋째는 폭만, 넷째는 깊이만 키운 것이다.
     for dim, depth, batch in ((512, 3, 256), (512, 3, 4096),
                               (4096, 3, 256), (512, 32, 256)):
-        torch.manual_seed(0)
+        torch.manual_seed(0)                     # 레이어의 초기화를 고정한다
+        # (Linear → ReLU) 를 depth 번 이어 붙인 모델을 만든다. 빈 리스트에서 시작해
+        # 돌 때마다 레이어 둘을 뒤에 붙인다(리스트의 += 는 이어 붙이기다).
         layers = []
         for _ in range(depth):
+            # nn.Linear(dim, dim) 은 수 dim 개 → dim 개인 선형 레이어이고,
+            # nn.ReLU() 는 음수를 0 으로 바꾸는 활성화 함수다(파라메터가 없다).
             layers += [nn.Linear(dim, dim), nn.ReLU()]
+        # nn.Sequential 은 레이어를 차례대로 이어 모델 하나로 만든다. 앞의 * 는
+        # 리스트를 풀어 인자 여럿으로 넘긴다.
         net = nn.Sequential(*layers)
+        # 파라메터가 차지하는 바이트. numel() 은 텐서에 든 수의 개수, element_size()
+        # 는 수 하나의 바이트(float32 는 4)다. 모델에서 실제로 센 값이다.
+        #   기준 설정   (512*512 + 512) * 3 * 4 = 3,151,872 바이트 → 3.2 MB
         pbytes = sum(p.numel() * p.element_size() for p in net.parameters())
+        # 활성값 쪽은 재지 않고 어림한다. 레이어 하나의 출력에 수가 batch × dim 개
+        # 들고, 그런 텐서가 레이어마다 두 군데쯤 남는다고 보아 depth × 2 를 곱하고,
+        # 수 하나가 4 바이트라 4 를 곱한다.
+        #   기준 설정   256 * 512 * 3 * 2 * 4 = 3,145,728 바이트 → 3.1 MB
         act = batch * dim * depth * 2 * 4        # 레이어마다 두 군데쯤
+        # 1e6 (백만) 으로 나눠 MB 로 찍는다. {dim:5d} 는 정수를 5 칸에, {…:7.1f} 는
+        # 실수를 7 칸에 소수점 아래 한 자리까지 찍는다.
+        # 비 = 활성값 ÷ 파라메터. 클수록 경사 누적으로 아낄 몫이 크다.
         print(f"  폭 {dim:5d} 깊이 {depth:2d} 배치 {batch:5d}  "
               f"파라메터 {pbytes / 1e6:7.1f} MB  활성값 {act / 1e6:7.1f} MB  "
               f"비 {act / pbytes:6.2f}")
@@ -414,34 +549,50 @@ if __name__ == "__main__":
 
 ??? success "풀이"
     ```python
+    # 본문 프로그램의 BATCH (= 256), DIM (= 512), spread() 를 그대로 쓴다.
+    # checkpoint 는 순전파 때 그 구간의 활성값을 저장하지 않고 역전파 때 다시 계산하게
+    # 해 주는 함수다(체크포인팅).
     from torch.utils.checkpoint import checkpoint
 
-    torch.manual_seed(0)
+    torch.manual_seed(0)                      # 초기화와 데이터를 고정한다
+    # 본문 4 절과 같은 모델이다. (Linear → ReLU) 블록 8 개를 nn.ModuleList 에 담고
+    # (레이어를 담는 리스트로, 안의 레이어가 파이토치에 등록된다), 끝에 출력 레이어
+    # head (512 → 10) 를 둔다.
     blocks = nn.ModuleList([nn.Sequential(nn.Linear(DIM, DIM), nn.ReLU())
                             for _ in range(8)])
     head = nn.Linear(DIM, 10)
+    # 두 쪽의 파라메터를 리스트로 이어 붙여 옵티마이저 하나에 넘긴다.
     opt = torch.optim.SGD(list(blocks.parameters()) + list(head.parameters()),
                           lr=0.01)
+    # 입력 X 는 형태 (256, 512), 정답 Y 는 0 ~ 9 의 클래스 번호로 형태 (256,) 다.
     X, Y = torch.randn(BATCH, DIM), torch.randint(0, 10, (BATCH,))
 
     def forward(x, ck):
+        # 순전파. 블록을 차례로 지난다. ck 가 참이면 블록을 checkpoint 로 싸서 부르고
+        # (값은 같고 활성값만 저장하지 않는다), 거짓이면 보통대로 b(x) 를 부른다.
         for b in blocks:
             x = checkpoint(b, x, use_reentrant=False) if ck else b(x)
-        return head(x)
+        return head(x)                        # 출력. 형태 (표본 수, 10)
 
     def run(k, ck):
+        # 「k 조각 경사 누적 + 체크포인팅 여부 ck」 로 트레인 한 스텝을 하는 함수 f 를
+        # 만들어 돌려준다. 인자 없는 함수여야 spread 로 시간을 잴 수 있다.
         def f():
-            opt.zero_grad()
-            n = BATCH // k
+            opt.zero_grad()                   # 스텝의 맨 앞에서 한 번만 지운다
+            n = BATCH // k                    # 조각 크기 — k = 8 이면 32
             for i in range(k):
+                # i 번째 조각의 분류 로스를 k 로 나눠 역전파한다. 그래디언트가 쌓인다.
                 (F.cross_entropy(forward(X[i * n:(i + 1) * n], ck),
                                  Y[i * n:(i + 1) * n]) / k).backward()
-            opt.step()
+            opt.step()                        # 다 쌓인 뒤 한 번 고친다
         return f
 
+    # 네 조합 — 조각 수 (1, 8) × 체크포인팅 (끔, 켬) — 을 차례로 잰다.
     for k in (1, 8):
         for ck in (False, True):
-            lo, hi = spread(run(k, ck))
+            lo, hi = spread(run(k, ck))       # (가장 짧은 시간, 가장 긴 시간) ms
+            # str(ck) 는 True/False 를 글자로 바꾸고 :5s 는 5 칸에 맞춘다.
+            # {lo:6.2f} 는 6 칸에 소수점 아래 두 자리까지 찍는다.
             print(f"  {k} 조각, 체크포인팅 {str(ck):5s}  {lo:6.2f} ~ {hi:6.2f} ms")
     ```
 

@@ -47,12 +47,19 @@
 
 실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
+# torch 는 파이토치 본체다. 텐서를 만들고 미분하는 일이 다 여기서 온다.
 import torch
+# torch.nn 은 레이어(nn.Linear)와 그것을 잇는 틀(nn.Sequential)을 모아 둔 곳이다.
+# 이름이 길어 nn 으로 줄여 부른다.
 import torch.nn as nn
+# torch.nn.functional 은 로스 같은 것을 「함수」로 모아 둔 곳이다. 여기서는
+# 평균제곱오차 F.mse_loss 하나만 쓴다.
 import torch.nn.functional as F
 
 
 def header(title):
+    # 절 제목을 한 줄 찍는다. \n 은 줄바꿈이고, f"...{title}..." 은 문자열 안에
+    # 변수의 값을 끼워 넣는 파이썬 문법(f-문자열)이다.
     print(f"\n=== {title} ===")
 
 
@@ -62,19 +69,40 @@ def header(title):
 
 def where_allowed():
     header("1. 플래그를 걸 수 있는 텐서")
+    # 난수의 시드를 고정한다. 아래에서 뽑는 텐서가 돌릴 때마다 같은 값이 된다.
+    torch.manual_seed(0)
+    # torch.randn(3) 은 표준정규분포에서 뽑은 실수 3개짜리 텐서를 만든다. 형태 (3,).
+    # 텐서는 파이토치가 다루는 수의 묶음이다. 이 절은 값이 아니라 플래그만 보므로
+    # 난수를 고정하지 않아도 출력이 같다.
     a = torch.randn(3)
+    # requires_grad 는 「이 텐서로 미분할 것이니, 이 텐서가 들어간 계산을 기록하라」
+    # 는 표시다. 이것을 경사 추적이라 하고, 기본값은 False(끔)다.
+    #
+    # a.requires_grad_(True) 는 a 의 그 표시를 「제자리에서」 켠다. 파이토치에서
+    # 이름 끝의 밑줄 _ 은 새 텐서를 만들지 않고 그 텐서 자체를 고친다는 뜻이다.
+    # 고친 a 를 그대로 돌려주므로 바로 뒤에 .requires_grad 를 붙여 읽을 수 있다.
+    # a 는 사용자가 직접 만든 텐서, 곧 리프 텐서라서 켤 수 있다.
     print("  리프 텐서에 켜기:", a.requires_grad_(True).requires_grad)
+    # 만들 때 requires_grad=True 를 주어도 같다. 켜는 길이 이렇게 둘이다.
     print("  만들 때 켜기:", torch.randn(3, requires_grad=True).requires_grad)
 
+    # b 는 직접 만든 텐서가 아니라 「경사 추적 중인 텐서에 2 를 곱한 결과」다.
+    # 이런 텐서는 리프 텐서가 아니고, 플래그가 재료에 따라 저절로 True 로 정해진다.
     b = torch.randn(3, requires_grad=True) * 2        # 계산으로 생긴 것
+    # try: 안의 줄이 오류를 내면 프로그램이 죽는 대신 except: 로 넘어간다.
+    # 일부러 오류를 내 보고 그 메시지를 찍으려는 것이다.
     try:
-        b.requires_grad_(False)
+        b.requires_grad_(False)                       # 리프가 아니라서 RuntimeError
     except RuntimeError as e:
+        # e 가 그 오류다. str(e) 로 메시지를 꺼내 splitlines()[0] 으로 첫 줄만,
+        # [:66] 으로 앞의 66글자만 잘라 찍는다. 메시지가 길어서다.
         print("  리프가 아닌 것에:", str(e).splitlines()[0][:66])
 
+    # torch.randint(0, 5, (3,)) 은 0 이상 5 미만의 「정수」 3개짜리 텐서다.
+    # (3,) 은 형태이고, 자료형은 정수(int64)다. 라벨이나 인덱스가 이런 텐서다.
     c = torch.randint(0, 5, (3,))
     try:
-        c.requires_grad_(True)
+        c.requires_grad_(True)                        # 리프지만 정수라서 RuntimeError
     except RuntimeError as e:
         print("  정수 텐서에  :", str(e).splitlines()[0][:60])
     print("  미분은 실수에서만 뜻이 있으므로 정수에는 못 건다")
@@ -86,21 +114,50 @@ def where_allowed():
 
 def freezing():
     header("2. 레이어 동결")
+    # 난수 발생기의 시드를 0 으로 고정한다. 레이어의 초기화와 아래 randn 이 난수를
+    # 쓰므로, 고정해 두어야 돌릴 때마다 같은 뉴럴 네트워크와 같은 데이터가 나온다.
     torch.manual_seed(0)
+    # nn.Linear(4, 8) 은 입력 4개를 받아 출력 8개를 내는 레이어다. 웨이트(형태 (8, 4))
+    # 와 바이어스(형태 (8,))라는 파라메터 둘을 가지며, 둘 다 requires_grad=True 로
+    # 만들어진다 — 파라메터는 트레인으로 고칠 값이기 때문이다.
+    # nn.ReLU() 는 음수를 0 으로 바꾸는 함수이고 파라메터가 없다.
+    # nn.Sequential 은 이 셋을 차례로 이어 하나의 뉴럴 네트워크로 만든다.
+    #   net[0] = Linear(4, 8),  net[1] = ReLU,  net[2] = Linear(8, 1)
     net = nn.Sequential(nn.Linear(4, 8), nn.ReLU(), nn.Linear(8, 1))
+    # net[0].parameters() 는 0번 레이어의 파라메터(웨이트, 바이어스)를 차례로 내준다.
+    # 그 하나하나의 경사 추적을 끄는 것이 「동결」의 전부다.
     for p in net[0].parameters():
         p.requires_grad_(False)                       # 앞쪽 레이어를 동결한다
 
+    # 가짜 데이터다. x 는 입력 16개 × 피처 4개(형태 (16, 4)), y 는 맞혀야 할 값
+    # 16개(형태 (16, 1))다. 16 이 배치 크기다.
     x, y = torch.randn(16, 4), torch.randn(16, 1)
+    # 옵티마이저는 그래디언트를 보고 파라메터를 고쳐 주는 도구다. SGD 는
+    # 「파라메터 ← 파라메터 - lr * 그래디언트」를 하고, lr 이 러닝레이트다.
+    # net.parameters() 는 뉴럴 네트워크의 파라메터 넷을 모두 내준다 —
+    # 0번 레이어의 웨이트·바이어스, 2번 레이어의 웨이트·바이어스 차례다.
     opt = torch.optim.SGD(net.parameters(), lr=0.1)   # 전부 넘겨도 된다
+    # 스텝 뒤에 값이 바뀌었는지 보려고 지금 값을 떠 둔다. detach() 는 계산 그래프와
+    # 끊긴 텐서를 주고(메모리는 원본과 같이 쓴다), clone() 이 그것을 따로 복사한다.
+    # [... for p in ...] 는 파라메터마다 그렇게 해 리스트로 모으는 파이썬 문법이다.
     before = [p.detach().clone() for p in net.parameters()]
-    opt.zero_grad()
+    # 트레인 한 스텝이다. 아래 세 줄이 늘 한 묶음으로 나온다.
+    opt.zero_grad()                       # 앞서 쌓인 그래디언트를 지운다
+    # net(x) 가 순전파다 — 출력 형태 (16, 1). F.mse_loss 는 그 출력과 y 의 차이를
+    # 제곱해 평균 낸 로스(수 하나)다. backward() 가 역전파다 — 로스에서 거꾸로
+    # 따라가며, 경사 추적이 켜진 파라메터의 .grad 에 그래디언트를 넣는다.
     F.mse_loss(net(x), y).backward()
-    opt.step()
+    opt.step()                            # .grad 를 보고 파라메터를 고친다
+    # zip 은 지금 파라메터와 떠 둔 옛 값을 짝짓고, enumerate 는 0, 1, 2, 3 번호를 붙인다.
     for i, (p, b0) in enumerate(zip(net.parameters(), before)):
+        # !s 는 True/False 를 문자열로 바꾸고 :5s 는 다섯 칸에 맞춰 찍는다.
+        # p.grad 는 역전파가 그래디언트를 넣어 주지 않았으면 None 이다.
+        # torch.equal 은 두 텐서의 형태와 값이 모두 같으면 True 다.
         print(f"  파라메터 {i}  requires_grad={p.requires_grad!s:5s} "
               f"grad={'None' if p.grad is None else '있음'}  "
               f"바뀌었나 {not torch.equal(p.detach(), b0)}")
+    # 파라메터 0, 1 이 동결한 0번 레이어의 웨이트와 바이어스다. 그래디언트가 None 인
+    # 파라메터는 opt.step() 이 건너뛴다.
     print("  동결한 둘은 그래디언트도 안 받고 값도 안 바뀌었다")
     print("  옵티마이저에 전부 넘겨도 되지만, 거르는 편이 깔끔하다")
 
@@ -111,15 +168,21 @@ def freezing():
 
 def gradient_flows_through():
     header("3. 동결한 레이어를 그래디언트가 지나간다")
+    # 2절과 같은 시드, 같은 뉴럴 네트워크다. 동결하는 자리만 바꾼다.
     torch.manual_seed(0)
     net = nn.Sequential(nn.Linear(4, 8), nn.ReLU(), nn.Linear(8, 1))
     for p in net[2].parameters():                     # 이번엔 뒤쪽을 동결한다
         p.requires_grad_(False)
-    x, y = torch.randn(16, 4), torch.randn(16, 1)
+    x, y = torch.randn(16, 4), torch.randn(16, 1)     # 형태 (16, 4) 와 (16, 1)
+    # 순전파 → 로스 → 역전파. 로스에서 0번 레이어로 가려면 동결한 2번 레이어를
+    # 거꾸로 지나야 한다. 거기서 막힌다면 0번 레이어의 .grad 는 None 으로 남는다.
     F.mse_loss(net(x), y).backward()
     print("  뒤쪽을 동결했을 때")
+    # net[0].weight 는 0번 레이어의 웨이트다. 「A if 조건 else B」 는 조건이 참이면
+    # A, 아니면 B 를 고르는 파이썬 문법이다.
     print("    앞쪽 레이어 grad :",
           "있음" if net[0].weight.grad is not None else "None")
+    # 동결한 레이어의 웨이트는 그래디언트를 쌓지 않으므로 None 이 그대로 찍힌다.
     print("    동결 레이어 grad :", net[2].weight.grad)
     print("  그래디언트가 동결한 레이어를 통과해 앞쪽까지 갔다")
     print("  동결한다는 것은 '안 쌓는다' 이지 '길을 막는다' 가 아니다")
@@ -131,18 +194,25 @@ def gradient_flows_through():
 
 def three_tools_on_a_net():
     header("4. 가운데 레이어에 세 가지를 걸어 본다")
+    # 세 실험이 같은 데이터를 쓰도록 맨 앞에서 한 번만 만든다.
     x, y = torch.randn(16, 4), torch.randn(16, 1)
 
     def fresh():
+        # 실험마다 「똑같이 초기화된 새 뉴럴 네트워크」를 준다. 시드를 매번 0 으로
+        # 되돌리므로 세 번 다 같은 웨이트에서 시작하고, 앞 실험의 .grad 도 안 남는다.
+        # 이번에는 Linear 셋을 이었다 — 4 → 8 → 8 → 1. 가운데가 net[1] 이다.
         torch.manual_seed(0)
         return nn.Sequential(nn.Linear(4, 8), nn.Linear(8, 8), nn.Linear(8, 1))
 
     def report(label, net):
+        # 세 레이어의 웨이트가 그래디언트를 받았는지를 "있음"/"None" 으로 모은다.
         got = ["있음" if p.grad is not None else "None"
                for p in (net[0].weight, net[1].weight, net[2].weight)]
+        # :26s 와 :4s 는 문자열을 26칸, 4칸에 맞춰 찍어 줄을 가지런히 한다.
         print(f"  {label:26s} 0번 레이어 {got[0]:4s}  1번 레이어 {got[1]:4s}  2번 레이어 {got[2]:4s}")
 
     # (가) 가운데 레이어의 플래그만 끈다
+    # 2·3절에서 한 동결이다. 순전파는 평소처럼 net(x) 로 통째로 한다.
     net = fresh()
     for p in net[1].parameters():
         p.requires_grad_(False)
@@ -150,16 +220,23 @@ def three_tools_on_a_net():
     report("(가) requires_grad_(False)", net)
 
     # (나) 가운데 레이어의 출력을 detach 한다
+    # 순전파를 손으로 나눠 적는다. net[0](x) 는 0번 레이어만 지난 값(형태 (16, 8))
+    # 이고, 그것을 net[1] 에 넣은 결과에 .detach() 를 건다. detach() 는 값은 같되
+    # 계산 그래프와 끊긴 텐서를 준다 — h 는 「어떻게 만들어졌는지」를 잊은 텐서다.
     net = fresh()
     h = net[1](net[0](x)).detach()
+    # 로스에서 거꾸로 가면 2번 레이어까지는 가지만 h 에서 기록이 끝난다.
     F.mse_loss(net[2](h), y).backward()
     report("(나) 출력을 detach", net)
 
     # (다) 가운데 레이어를 no_grad 로 돌린다
+    # with torch.no_grad(): 블록 안의 계산은 계산 그래프에 기록되지 않는다. 블록을
+    # 나오면 기록이 다시 켜진다. 0번 레이어는 블록 밖에서 돌렸으니 h0 에는 기록이
+    # 있지만, h 는 기록 없이 만들어져 h0 과 이어지지 않는다.
     net = fresh()
-    h0 = net[0](x)
+    h0 = net[0](x)                # 0번 레이어의 출력, 형태 (16, 8) — 기록된다
     with torch.no_grad():
-        h = net[1](h0)
+        h = net[1](h0)            # 1번 레이어의 출력, 형태 (16, 8) — 기록되지 않는다
     F.mse_loss(net[2](h), y).backward()
     report("(다) no_grad 로 감싸기", net)
 
@@ -169,12 +246,15 @@ def three_tools_on_a_net():
 
 
 def main():
+    # 네 절을 차례로 돌린다.
     where_allowed()
     freezing()
     gradient_flows_through()
     three_tools_on_a_net()
 
 
+# 이 파일을 직접 돌렸을 때만 main() 을 부른다. 다른 파일이 import 로 불러올 때는
+# 돌지 않게 하는 파이썬의 관용구다.
 if __name__ == "__main__":
     main()
 ```
@@ -237,8 +317,9 @@ if __name__ == "__main__":
 ```
 
 ```python
+# 0번 레이어의 파라메터(웨이트, 바이어스)를 하나씩 꺼내 경사 추적을 끈다.
 for p in net[0].parameters():
-    p.requires_grad_(False)
+    p.requires_grad_(False)       # 끝의 _ 는 p 자체를 제자리에서 고친다는 뜻이다
 ```
 
 두 줄로 끝난다. 동결한 파라메터는 **그래디언트를 안 받고**(`grad=None`) 따라서 **값도
@@ -248,6 +329,8 @@ for p in net[0].parameters():
 파라메터는 `step()`이 건너뛴다. 다만 거르는 편이 깔끔하다.
 
 ```python
+# [p for p in ... if 조건] 은 조건이 참인 것만 골라 리스트로 모으는 파이썬 문법이다.
+# 경사 추적이 켜진 파라메터, 곧 동결하지 않은 것만 옵티마이저에 넘긴다.
 opt = torch.optim.SGD([p for p in net.parameters() if p.requires_grad], lr=0.1)
 ```
 
@@ -310,17 +393,28 @@ opt = torch.optim.SGD([p for p in net.parameters() if p.requires_grad], lr=0.1)
 
 ??? success "풀이"
     ```python
-    torch.manual_seed(0)
+    # 본문 코드에 이어서 돌린다 — torch, nn 을 이미 불러온 상태다.
+    torch.manual_seed(0)          # 시드 고정. 개수만 세므로 값은 결과에 닿지 않는다
+    # 입력 784개 → 128개 → 10개. 파라메터 수를 손으로 세면
+    #   0번 레이어: 웨이트 128*784 = 100,352  +  바이어스 128  = 100,480
+    #   2번 레이어: 웨이트 10*128  =   1,280  +  바이어스 10   =   1,290
+    #   합쳐서 101,770 (ReLU 는 파라메터가 없다)
     net = nn.Sequential(nn.Linear(784, 128), nn.ReLU(), nn.Linear(128, 10))
 
     def count(m):
+        # p.numel() 은 텐서 p 에 든 수의 개수다. 형태 (128, 784) 면 100,352 다.
+        # 파라메터마다 그 개수를 내어 sum 으로 모두 더한다.
         total = sum(p.numel() for p in m.parameters())
+        # 같은 합인데 경사 추적이 켜진 것, 곧 트레인되는 파라메터만 센다.
         trainable = sum(p.numel() for p in m.parameters() if p.requires_grad)
         return total, trainable
 
+    # count(net) 이 돌려주는 (전체, 트레인) 을 * 로 풀어 format 의 두 칸에 넣는다.
+    # {:,} 는 수를 세 자리마다 쉼표를 넣어 찍으라는 뜻이다.
     print("  동결 전 : 전체 {:,}  트레인 {:,}".format(*count(net)))
     for p in net[0].parameters():
-        p.requires_grad_(False)
+        p.requires_grad_(False)   # 0번 레이어를 동결한다. 100,480개가 빠진다
+    # 남는 것은 2번 레이어의 1,290개다.
     print("  앞쪽 동결한 뒤: 전체 {:,}  트레인 {:,}".format(*count(net)))
     ```
 
@@ -351,34 +445,48 @@ opt = torch.optim.SGD([p for p in net.parameters() if p.requires_grad], lr=0.1)
 
 ??? success "풀이"
     ```python
-    import time
+    # 본문 코드에 이어서 돌린다 — torch, nn 을 이미 불러온 상태다.
+    import time                     # 시간을 재는 파이썬 표준 모듈
 
     def spread(fn, rep=15):
+        # fn 을 rep 번 돌려 가장 빠른 시간과 가장 느린 시간을 밀리초로 돌려준다.
         for _ in range(3):          # 예열 — 첫 몇 번은 유난히 느리다
             fn()
         ts = []
         for _ in range(rep):
+            # perf_counter() 는 지금 시각(초)이다. fn 을 돌리기 전과 뒤의 차이가
+            # 걸린 시간이다. 한 번만 재면 우연에 흔들리므로 15번 재어 모은다.
             t0 = time.perf_counter(); fn(); ts.append(time.perf_counter() - t0)
-        return min(ts) * 1e3, max(ts) * 1e3
+        return min(ts) * 1e3, max(ts) * 1e3     # 초 → 밀리초 (1e3 은 1000)
 
     def build(freeze_first_half):
-        torch.manual_seed(0)
+        torch.manual_seed(0)        # 두 경우가 같은 웨이트에서 시작하게 한다
+        # Linear(512, 512) 레이어 12개를 리스트로 만들고, * 로 풀어 Sequential 에
+        # 하나씩 넘긴다. net[0] 부터 net[11] 까지다.
         net = nn.Sequential(*[nn.Linear(512, 512) for _ in range(12)])
         if freeze_first_half:
-            for layer in net[:6]:
-                for p in layer.parameters():
-                    p.requires_grad_(False)
+            for layer in net[:6]:                   # 앞의 여섯 레이어 net[0]~net[5]
+                for p in layer.parameters():        # 그 레이어의 웨이트와 바이어스
+                    p.requires_grad_(False)         # 경사 추적을 끈다 = 동결
         return net
 
-    x = torch.randn(128, 512)
+    # 난수의 시드를 고정한다. 아래에서 뽑는 텐서가 돌릴 때마다 같은 값이 된다.
+    torch.manual_seed(0)
+    x = torch.randn(128, 512)       # 입력 128개 × 피처 512개, 형태 (128, 512)
+    # 같은 일을 두 번 한다 — 한 번은 동결 없이(False), 한 번은 앞 절반을 동결해(True).
     for label, frozen in (("전부 트레인 ", False), ("앞 절반 동결", True)):
         net = build(frozen)
 
         def step():
+            # 재려는 한 스텝이다. zero_grad() 는 앞서 쌓인 그래디언트를 지운다.
             net.zero_grad()
+            # net(x) 가 순전파(출력 형태 (128, 512)), .pow(2).mean() 이 그 출력을
+            # 제곱해 평균 낸 수 하나(여기서는 이것을 로스로 삼는다), backward() 가
+            # 역전파다. 재는 시간에는 순전파와 역전파가 다 들어 있다.
             net(x).pow(2).mean().backward()
 
         lo, hi = spread(step)
+        # :6.2f 는 여섯 칸에 소수점 아래 두 자리로 찍으라는 뜻이다.
         print(f"  {label}  {lo:6.2f} ~ {hi:6.2f} ms")
     ```
 
@@ -409,28 +517,43 @@ opt = torch.optim.SGD([p for p in net.parameters() if p.requires_grad], lr=0.1)
 
 ??? success "풀이"
     ```python
-    torch.manual_seed(0)
+    # 본문 코드에 이어서 돌린다 — torch, nn, F 를 이미 불러온 상태다.
+    torch.manual_seed(0)          # 시드 고정 — 같은 초기화, 같은 데이터
+    # 레이어 둘짜리 뉴럴 네트워크다. net[0] = Linear(4, 8), net[1] = Linear(8, 1).
+    # 파라메터는 넷이다 — 레이어마다 웨이트와 바이어스.
     net = nn.Sequential(nn.Linear(4, 8), nn.Linear(8, 1))
-    x, y = torch.randn(16, 4), torch.randn(16, 1)
+    x, y = torch.randn(16, 4), torch.randn(16, 1)     # 입력 (16, 4), 맞혀야 할 값 (16, 1)
 
+    # --- 0번 레이어를 동결하고, 「거른」 옵티마이저를 만든다 ---
     for p in net[0].parameters():
         p.requires_grad_(False)
+    # 경사 추적이 켜진 파라메터만 골라 넘긴다. 지금은 1번 레이어의 둘뿐이다.
     opt = torch.optim.SGD([p for p in net.parameters() if p.requires_grad],
                           lr=0.1)
+    # opt.param_groups 는 옵티마이저가 맡은 파라메터 묶음의 목록이고, 묶음마다
+    # g["params"] 에 그 텐서들이 들어 있다. 그 길이를 더하면 맡은 텐서의 수다.
     print("  옵티마이저가 들고 있는 텐서 수:",
           sum(len(g["params"]) for g in opt.param_groups))
 
+    # --- 플래그만 되돌리고, 옵티마이저는 그대로 쓴다 ---
     for p in net[0].parameters():            # 동결을 푼다
         p.requires_grad_(True)
+    # 0번 레이어의 웨이트를 떠 둔다. detach() 로 계산 그래프와 끊고 clone() 으로
+    # 따로 복사해 두어야, 뒤에 웨이트가 바뀌어도 before 는 옛 값으로 남는다.
     before = net[0].weight.detach().clone()
-    opt.zero_grad()
-    F.mse_loss(net(x), y).backward()
-    opt.step()
+    opt.zero_grad()                          # 쌓인 그래디언트를 지운다
+    F.mse_loss(net(x), y).backward()         # 순전파 → 로스 → 역전파
+    opt.step()                               # opt 가 맡은 파라메터만 고친다
+    # 플래그를 켰으니 역전파는 0번 레이어의 .grad 를 채운다.
     print("  동결을 푼 뒤 0번 레이어 grad:",
           "있음" if net[0].weight.grad is not None else "None")
+    # 그런데 opt 의 목록에는 0번 레이어가 없다. torch.equal 은 두 텐서의 값이
+    # 모두 같으면 True 이므로, not 을 붙이면 「바뀌었나」가 된다.
     print("  그런데 값이 바뀌었나:",
           not torch.equal(net[0].weight.detach(), before))
 
+    # --- 옵티마이저를 다시 만든다 ---
+    # 이번에는 net.parameters() 넷을 모두 넘긴다. 0번 레이어도 목록에 든다.
     opt2 = torch.optim.SGD(net.parameters(), lr=0.1)   # 다시 만든다
     opt2.zero_grad()
     F.mse_loss(net(x), y).backward()

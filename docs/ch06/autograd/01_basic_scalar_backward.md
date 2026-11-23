@@ -53,11 +53,16 @@ $L = \\sum_i x_i^2$ 하나를 끝까지 따라가며 네 가지를 가른다.
 
 실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
+# warnings 는 파이썬 표준 라이브러리다. 4·5·6절에서 파이토치가 띄우는 경고문을
+# 잠깐 끄는 데 쓴다.
 import warnings
 
+# 파이토치를 불러온다. 뒤에 나오는 torch.tensor, torch.randn 이 다 여기서 온다.
 import torch
 
 
+# 절 제목을 찍는 작은 도우미다. f"..." 는 문자열 안의 {title} 자리에 값을 끼워
+# 넣는 파이썬 문법이고, \n 은 줄바꿈이라 제목 위에 빈 줄이 하나 생긴다.
 def header(title):
     print(f"\n=== {title} ===")
 
@@ -65,6 +70,10 @@ def header(title):
 def fn_name(t):
     """grad_fn 은 이름만 적는다. 객체를 그대로 찍으면 메모리 주소가
     따라 나와 돌릴 때마다 달라진다."""
+    # t.grad_fn 은 「이 텐서를 만든 연산」을 가리키는 객체다. 연산으로 생긴 텐서가
+    # 아니면 None 이다. type(...).__name__ 은 그 객체의 클래스 이름
+    # (예: "SumBackward0")만 문자열로 꺼낸다.
+    # 「A if 조건 else B」 는 조건이 참이면 A, 아니면 B 를 돌려주는 한 줄짜리 if 다.
     return type(t.grad_fn).__name__ if t.grad_fn is not None else None
 
 
@@ -74,13 +83,28 @@ def fn_name(t):
 
 def make_leaf():
     header("1. 리프 텐서")
+    # 난수의 시드를 0 으로 고정한다. 이렇게 해 두면 아래 randn 이 돌릴 때마다
+    # 같은 수를 내놓아, 이 쪽에 실린 출력과 같은 값이 나온다.
     torch.manual_seed(0)
+    # 텐서는 파이토치가 다루는 수의 묶음이다. torch.randn(3) 은 표준정규분포에서
+    # 뽑은 수 3개를 담은 텐서를 만든다. 형태는 (3,) — 길이 3인 벡터다.
+    #
+    # requires_grad=True 는 「이 텐서로 미분할 것이니, 이 텐서가 들어간 계산을
+    # 모두 기록해 두라」는 표시다. 이것을 경사 추적이라 한다. 기본값은 False 라
+    # 적지 않으면 기록하지 않는다.
     x = torch.randn(3, requires_grad=True)
+    # x.tolist() 는 텐서를 파이썬 리스트로 바꾼다. [round(v, 4) for v in ...] 는
+    # 그 원소를 하나씩 소수점 아래 넷째 자리로 반올림해 새 리스트를 만든다.
     print("  x              :", [round(v, 4) for v in x.tolist()])
-    print("  x.requires_grad:", x.requires_grad)
+    # 역전파를 하기 전에 네 속성을 차례로 찍는다.
+    print("  x.requires_grad:", x.requires_grad)      # True — 위에서 건 표시다
+    # is_leaf 는 「다른 연산의 결과가 아니라 직접 만든 텐서인가」다. 그런 텐서를
+    # 리프 텐서라 하고, 역전파가 그래디언트를 넣어 주는 것은 리프 텐서뿐이다.
     print("  x.is_leaf      :", x.is_leaf, " <- 내가 직접 만들었다")
     print("  x.grad_fn      :", fn_name(x), " <- 만든 연산이 없다")
+    # .grad 는 역전파가 구한 그래디언트가 담기는 자리다. 아직은 비어 있어 None 이다.
     print("  x.grad         :", x.grad, " <- 아직 역전파를 안 했다")
+    # 뒤의 forward() 와 backward() 가 같은 x 를 이어 쓰도록 돌려준다.
     return x
 
 
@@ -90,9 +114,20 @@ def make_leaf():
 
 def forward(x):
     header("2. 순전파")
+    # 순전파는 식 L = sum_i x_i^2 을 그대로 적으면 된다. x ** 2 는 원소마다 제곱해
+    # 형태 (3,) 인 텐서를 만들고(** 는 거듭제곱), .sum() 은 그 셋을 모두 더해
+    # 수 하나로 만든다.
+    #
+    # x 가 경사 추적 중이므로 파이토치는 값을 계산하는 한편 「x 를 제곱하고 더해
+    # loss 를 만들었다」는 것을 함께 적어 둔다. 이 기록이 계산 그래프다.
     loss = (x ** 2).sum()
+    # .item() 은 수 하나짜리 텐서에서 그 수를 파이썬 실수로 꺼낸다.
     print("  loss = (x**2).sum() =", round(loss.item(), 6))
+    # loss.shape 는 텐서의 형태다. 수 하나짜리(스칼라)는 차원이 없어 빈 튜플 ()
+    # 로 찍힌다.
     print("  loss.shape   :", tuple(loss.shape), " <- 0차원, 스칼라다")
+    # loss 는 연산으로 생긴 텐서라 리프가 아니다(False). 그래서 grad_fn 이 비어
+    # 있지 않고, 마지막 연산 sum 을 가리키는 SumBackward0 이 들어 있다.
     print("  loss.is_leaf :", loss.is_leaf)
     print("  loss.grad_fn :", fn_name(loss))
     print("  x -> pow -> sum -> loss 로 이어진 그래프가 세워졌다")
@@ -105,9 +140,17 @@ def forward(x):
 
 def backward(x, loss):
     header("3. 역전파")
+    # loss.backward() 가 역전파다. 순전파가 적어 둔 계산 그래프를 loss 에서 시작해
+    # 거꾸로 따라가며 사슬 규칙으로 곱해 나가고, 그 결과 dL/dx 를 리프 텐서 x 의
+    # .grad 에 넣어 준다. x.grad 의 형태는 x 와 같은 (3,) 이다.
     loss.backward()
     print("  x.grad     :", [round(v, 4) for v in x.grad.tolist()])
+    # 손으로 미분하면 dL/dx_i = 2 * x_i 다. 그 값을 따로 계산해 견준다.
+    # x.detach() 는 값은 같지만 계산 그래프에서 떼어 낸 텐서를 돌려준다. 견줄 값을
+    # 구하는 일은 모델의 계산이 아니므로 기록에 남기지 않으려고 쓴다.
     print("  손으로 2x  :", [round(v, 4) for v in (2 * x.detach()).tolist()])
+    # torch.allclose(a, b) 는 두 텐서의 모든 원소가 부동소수점 오차 안에서 같으면
+    # True 를 준다.
     print("  같은가     :", torch.allclose(x.grad, 2 * x.detach()))
     print("  스칼라라 backward() 에 아무것도 안 주어도 된다")
     print("  위에서 내려온 그래디언트를 1 로 놓고 시작한다는 뜻이다")
@@ -119,14 +162,21 @@ def backward(x, loss):
 
 def non_leaf():
     header("4. 리프가 아닌 텐서")
+    # 이번에는 손으로 따라가기 쉽게 값을 직접 적어 리프 텐서를 만든다. 형태 (3,).
     x = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
-    y = 2 * x
-    z = (y ** 2).sum()
+    y = 2 * x                 # 중간 텐서  y = [2, 4, 6] — 연산의 결과라 리프가 아니다
+    z = (y ** 2).sum()        # 4 + 16 + 36 = 56 — 수 하나짜리, 로스 노릇을 한다
+    # {값!s:5s} 에서 !s 는 값을 문자열로 바꾸라는 뜻이고 :5s 는 다섯 칸 너비로
+    # 찍으라는 뜻이다. True 와 False 의 글자 수가 달라도 줄이 맞는다.
     print(f"  x  is_leaf={x.is_leaf!s:5s} grad_fn={fn_name(x)}")
     print(f"  y  is_leaf={y.is_leaf!s:5s} grad_fn={fn_name(y)}")
     print(f"  z  is_leaf={z.is_leaf!s:5s} grad_fn={fn_name(z)}")
+    # z 에서 y 를 거쳐 x 까지 거꾸로 간다.   dz/dx = dz/dy * dy/dx = 2y * 2 = 8x
     z.backward()
-    print("  x.grad :", x.grad.tolist(), " <- 받았다")
+    print("  x.grad :", x.grad.tolist(), " <- 받았다")      # 8x = [8, 16, 24]
+    # 리프가 아닌 텐서의 .grad 를 읽으면 파이토치가 경고를 띄우고 None 을 준다.
+    # with warnings.catch_warnings(): 블록 안에서 simplefilter("ignore") 를 부르면
+    # 그 블록 안에서만 경고가 꺼지고, 블록을 나오면 원래대로 돌아온다.
     with warnings.catch_warnings():       # 경고문에 빌드 기계 경로가 붙어 나온다
         warnings.simplefilter("ignore")
         print("  y.grad :", y.grad, " <- 리프가 아니라 못 받는다")
@@ -140,18 +190,25 @@ def non_leaf():
 
 def two_leaves():
     header("5. 리프가 둘")
+    # 리프 텐서를 둘 만든다. 둘 다 경사 추적을 걸었으므로 둘 다 .grad 를 받는다.
     x = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
     w = torch.tensor([4.0, 5.0, 6.0], requires_grad=True)
+    # * 는 같은 자리끼리 곱한다.   y = [1*4, 2*5, 3*6] = [4, 10, 18]
     y = x * w                       # 두 리프가 여기서 만난다
-    z = (y ** 2).sum()
+    z = (y ** 2).sum()              # 16 + 100 + 324 = 440
+    # backward() 한 번이 곱셈 자리에서 두 길로 갈라져 x 와 w 를 한꺼번에 채운다.
     z.backward()
     print("  y = x * w  :", y.detach().tolist())
     print("  z = sum(y^2):", z.item())
     print("  x.grad     :", x.grad.tolist(), " <- 받았다")
     print("  w.grad     :", w.grad.tolist(), " <- 받았다")
+    # y 는 연산의 결과라 이번에도 못 받는다. 4절처럼 경고를 꺼 두고 읽는다.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         print("  y.grad     :", y.grad, " <- 가운데라 못 받는다")
+    # 손으로 구한 값과 견준다. 곱셈 y = x * w 의 미분은 상대편 값이다.
+    #   dz/dx = dz/dy * dy/dx = 2y * w = [2*4*4, 2*10*5, 2*18*6] = [32, 100, 216]
+    #   dz/dw = dz/dy * dy/dw = 2y * x = [2*4*1, 2*10*2, 2*18*3] = [8, 40, 108]
     print("  손으로 2y*w:", (2 * y.detach() * w.detach()).tolist())
     print("  손으로 2y*x:", (2 * y.detach() * x.detach()).tolist())
     print("  같은 y 를 지나왔는데 둘이 받는 값이 다르다")
@@ -165,19 +222,25 @@ def two_leaves():
 def retaining():
     header("6. retain_grad()")
     x = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
-    y = 2 * x
+    y = 2 * x                          # 중간 텐서  y = [2, 4, 6]
+    # retain_grad() 는 리프가 아닌 텐서에게 「이번 역전파에서 네 그래디언트를 버리지
+    # 말고 .grad 에 남겨 달라」고 부탁하는 것이다.
     y.retain_grad()                    # 역전파 전에 불러야 한다
+    # 로스를 변수에 담지 않고 만든 자리에서 바로 역전파한다. 4절의 z.backward() 와
+    # 하는 일이 같다.
     (y ** 2).sum().backward()
-    print("  y.grad      :", y.grad.tolist())
+    print("  y.grad      :", y.grad.tolist())                 # dz/dy = 2y = [4, 8, 12]
     print("  손으로 2y   :", (2 * y.detach()).tolist())
-    print("  x.grad      :", x.grad.tolist())
+    print("  x.grad      :", x.grad.tolist())                 # dz/dx = 8x = [8, 16, 24]
     print("  손으로 8x   :", (8 * x.detach()).tolist(), " (dz/dx = 2y*2 = 8x)")
     print("  retain_grad 는 값을 남기고 retain_graph 는 그래프를 남긴다")
     print("  이름이 한 글자 차이라 섞이기 쉽다")
 
-    late = torch.tensor([1.0], requires_grad=True)
-    w = 2 * late
+    # 차례를 바꿔 본다. 같은 계산을 하되 retain_grad() 를 역전파 「뒤에」 부른다.
+    late = torch.tensor([1.0], requires_grad=True)    # 형태 (1,) 인 리프 텐서
+    w = 2 * late                                      # 중간 텐서  w = [2]
     (w ** 2).sum().backward()
+    # 역전파는 이미 끝났고 w 의 그래디언트는 버려진 뒤다. 남길 것이 없다.
     w.retain_grad()                    # 역전파 뒤에 부르면
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -185,6 +248,7 @@ def retaining():
 
 
 def main():
+    # 1~3절은 같은 x 와 loss 를 이어 쓰고, 4~6절은 저마다 텐서를 새로 만든다.
     x = make_leaf()
     loss = forward(x)
     backward(x, loss)
@@ -193,6 +257,8 @@ def main():
     retaining()
 
 
+# 이 파일을 직접 돌렸을 때만 main() 을 부른다. 다른 파일이 import 로 불러올
+# 때는 함수만 정의되고 아무것도 실행되지 않는다.
 if __name__ == "__main__":
     main()
 ```
@@ -412,12 +478,18 @@ $f(x) = x^3 - 2x^2 + x$에 대해 autograd로 $f'(3)$을 구하고 손으로 미
 
 ??? success "풀이"
     ```python
+    # 본문 코드에 이어서 돌린다(import torch 가 되어 있다).
+    # 수 하나짜리 리프 텐서 x = 3 을 만들고 경사 추적을 건다.
     x = torch.tensor(3.0, requires_grad=True)
+    # 순전파. 식을 그대로 적는다.   f(3) = 27 - 2*9 + 3 = 12
     f = x ** 3 - 2 * x ** 2 + x
+    # 역전파. f 가 수 하나짜리라 인자 없이 부르고, df/dx 가 x.grad 에 담긴다.
     f.backward()
-    print("  f(3)   :", f.item())
+    print("  f(3)   :", f.item())            # .item() 은 텐서에서 파이썬 수를 꺼낸다
     print("  x.grad :", x.grad.item())
+    # 손으로 미분한 f'(x) = 3x^2 - 4x + 1 에 x = 3 을 넣는다.   27 - 12 + 1 = 16
     print("  손으로 3x^2-4x+1 =", 3 * 3 ** 2 - 4 * 3 + 1)
+    # f 는 연산으로 생긴 텐서라 리프가 아니다. 그래서 f.grad 는 채워지지 않는다.
     print("  f.is_leaf :", f.is_leaf)
     ```
 
@@ -448,15 +520,23 @@ $f(x) = x^3 - 2x^2 + x$에 대해 autograd로 $f'(3)$을 구하고 손으로 미
 
 ??? success "풀이"
     ```python
-    x = torch.tensor([1.0, 2.0], requires_grad=True)
+    x = torch.tensor([1.0, 2.0], requires_grad=True)     # 형태 (2,) 인 리프 텐서
+    # x.detach() 는 값은 같지만 계산 그래프에서 떼어 낸 텐서를 돌려준다. 거기에
+    # 2 를 곱한 y = [2, 4] 는 x 와 이어진 기록이 없다.
     y = x.detach() * 2
     print("  y.requires_grad :", y.requires_grad)
     print("  y.is_leaf       :", y.is_leaf)
+    # try 블록 안에서 오류가 나면 프로그램이 멈추지 않고 except 블록으로 넘어간다.
+    # 오류가 안 나면 try 의 다음 줄(「통과」)이 찍힌다. RuntimeError 는 파이토치가
+    # 「이 연산은 할 수 없다」고 거절할 때 내는 오류이고, e 에 그 오류가 담긴다.
     try:
         y.retain_grad()
         print("  retain_grad() 통과")
     except RuntimeError as e:
+        # str(e) 는 오류문이다. splitlines()[0] 으로 첫 줄만, [:60] 으로 그 앞
+        # 60 글자만 잘라 찍는다.
         print("  retain_grad() :", str(e).splitlines()[0][:60])
+    # 같은 방식으로, y 로 만든 로스를 역전파해 본다.
     try:
         (y ** 2).sum().backward()
     except RuntimeError as e:
@@ -503,10 +583,14 @@ $f(x) = x^3 - 2x^2 + x$에 대해 autograd로 $f'(3)$을 구하고 손으로 미
 
 ??? success "풀이"
     ```python
+    # x 는 루프 바깥에서 한 번만 만든다. 세 바퀴가 모두 이 텐서 하나를 쓴다.
     x = torch.tensor([1.0, 2.0], requires_grad=True)
-    for i in range(1, 4):
-        y = 2 * x
-        y.retain_grad()
+    for i in range(1, 4):              # range(1, 4) 는 1, 2, 3 — 세 바퀴 돈다
+        y = 2 * x                      # y = [2, 4] — 바퀴마다 새로 만들어지는 텐서다
+        y.retain_grad()                # 리프가 아닌 y 도 .grad 를 남기게 부탁한다
+        # 로스 sum(y^2) 을 만들어 바로 역전파한다. 한 번의 몫은
+        #   dz/dy = 2y = [4, 8],   dz/dx = 2y * 2 = 8x = [8, 16]
+        # 이다. x.grad 를 지우지 않았으므로 이 몫이 바퀴마다 x.grad 에 더해진다.
         (y ** 2).sum().backward()
         print(f"  {i}번째  x.grad = {x.grad.tolist()}   y.grad = {y.grad.tolist()}")
     ```

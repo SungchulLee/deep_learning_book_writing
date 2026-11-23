@@ -43,24 +43,40 @@ SGD · 모멘텀 · Adam 을 차례로 손으로 짜서 파이토치 것과 견�
 
 실행: 이 쪽의 코드를 파일로 갈무리해 돌린다
 """
+# warnings 는 파이썬의 경고문을 다루는 표준 모듈이다. 맨 끝 4번에서 경고문 하나를
+# 잠깐 끄는 데 쓴다.
 import warnings
 
+# 파이토치를 불러온다. torch.tensor, torch.optim, torch.no_grad 가 다 여기서 온다.
 import torch
 
 
+# 절 제목을 찍는 작은 도우미다. f"...{title}..." 은 문자열 안의 중괄호 자리에
+# 값을 끼워 넣는 파이썬 문법이고, \n 은 줄바꿈이라 제목 앞에 빈 줄이 하나 생긴다.
 def header(title):
     print(f"\n=== {title} ===")
 
 
-def problem(seed=0):
+# 실험할 문제를 새로 만들어 돌려준다. 부를 때마다 w 가 [3, 3] 에서 다시 출발하므로
+# 파이토치 쪽과 손으로 짠 쪽을 같은 자리에서 시작시킬 수 있다.
+def problem():
     """작은 이차함수 하나. 최솟값은 w = [1, -2] 다."""
-    torch.manual_seed(seed)
+    # torch.tensor([...]) 는 적어 준 수를 담은 「텐서」를 만든다. 텐서는 파이토치가
+    # 다루는 수의 묶음이고, 여기서는 수 둘짜리 — 형태가 (2,) 다.
+    # target 은 w 가 가야 할 곳이다. 고칠 값이 아니므로 그냥 만든다.
     target = torch.tensor([1.0, -2.0])
+    # w 는 트레인으로 고칠 값, 곧 파라메터다. requires_grad=True 는 「이 텐서로 미분할
+    # 것이니, 이 텐서가 들어간 계산을 모두 기록해 두라」는 표시다. 이것을 경사 추적이라
+    # 하고, 그 기록을 계산 그래프라 한다. 기본값은 False 라서 target 은 추적하지 않는다.
     w = torch.tensor([3.0, 3.0], requires_grad=True)
     return w, target
 
 
+# 로스. w 가 target 에서 얼마나 먼지를 잰다 — 성분마다 차를 제곱해 모두 더한다.
 def loss_of(w, target):
+    # w - target 은 같은 자리끼리 뺀다. ** 2 는 원소마다 제곱, .sum() 은 다 더해 수
+    # 하나짜리 텐서로 만든다. 처음에는 (3-1)^2 + (3-(-2))^2 = 4 + 25 = 29 다.
+    # w 로 미분한 그래디언트는 2*(w - target) 이고 처음에는 [4, 10] 이다.
     return ((w - target) ** 2).sum()
 
 
@@ -70,56 +86,103 @@ def loss_of(w, target):
 
 def plain_sgd():
     header("1. SGD")
+    # lr 은 러닝레이트(한 스텝에 얼마나 옮길지), steps 는 되풀이 횟수다.
     lr, steps = 0.1, 20
 
+    # --- 파이토치의 옵티마이저로 스무 스텝 ---------------------------------------
+    # t 는 target 이다.
     w, t = problem()
+    # 옵티마이저는 파라메터를 고치는 일을 맡는 객체다. 고칠 텐서들을 리스트로 넘기고
+    # ([w] — 여기서는 하나뿐이다) 러닝레이트를 알려 준다. SGD 는 경사 하강법이다.
     opt = torch.optim.SGD([w], lr=lr)
+    # 스텝 번호를 쓰지 않으므로 변수 이름을 _ 로 둔다. steps 번 되풀이한다는 뜻이다.
     for _ in range(steps):
+        # (1) 지난 스텝의 그래디언트를 지운다. backward() 는 .grad 를 새 값으로 바꾸지
+        # 않고 거기에 「더하므로」, 지우지 않으면 지난 스텝들의 그래디언트가 쌓인다.
         opt.zero_grad()
+        # (2) 순전파와 역전파. loss_of 가 로스를 재고, backward() 가 계산 그래프를 로스에서
+        # 거꾸로 따라가며 로스를 w 로 미분한 값(그래디언트)을 w.grad 에 넣어 준다.
         loss_of(w, t).backward()
+        # (3) 한 스텝. 옵티마이저가 w.grad 를 보고 w 를 옮긴다. 이 한 줄이 속에서 무슨
+        # 일을 하는지가 이 쪽의 물음이다.
         opt.step()
+    # 결과를 따로 떼어 둔다. detach() 는 값은 같고 경사 추적만 끊은 텐서를 주고,
+    # clone() 은 그 값을 새 텐서로 베낀다. 견줄 값만 필요하기 때문이다.
     by_torch = w.detach().clone()
 
+    # --- 같은 일을 옵티마이저 없이 손으로 스무 스텝 --------------------------------
+    # problem() 을 다시 불러 w2 를 [3, 3] 에서 새로 출발시킨다.
     w2, t2 = problem()
     for _ in range(steps):
+        # opt.zero_grad() 의 짝. 첫 스텝에는 아직 backward() 를 부른 적이 없어 .grad 가
+        # None 이므로 건너뛴다. zero_() 처럼 이름이 _ 로 끝나는 메서드는 텐서를 제자리에서
+        # 고친다 — 여기서는 0 으로 채운다.
         if w2.grad is not None:
             w2.grad.zero_()
-        loss_of(w2, t2).backward()
+        loss_of(w2, t2).backward()          # 역전파 — 위와 똑같다
+        # opt.step() 의 짝. 그래디언트는 로스가 가장 빨리 「커지는」 쪽을 가리키므로
+        # 반대쪽으로 러닝레이트만큼 옮긴다.   첫 스텝: [3, 3] - 0.1 * [4, 10] = [2.6, 2.0]
+        #
+        # with torch.no_grad(): 블록 안의 계산은 기록하지 않는다. 파라메터를 고치는 일은
+        # 모델의 계산이 아니므로 계산 그래프에 들어가면 안 된다. -= 는 w2 를 새로 만들지
+        # 않고 「제자리에서」 고친다. 이 둘이 왜 함께 있어야 하는지는 4번이 보여 준다.
         with torch.no_grad():
             w2 -= lr * w2.grad               # 이 한 줄이 step() 이다
+    # tolist() 는 텐서를 파이썬 리스트로 바꾸고, round(v, 8) 은 소수점 아래 여덟
+    # 자리까지 줄인다. [... for v in ...] 는 리스트의 수마다 그 일을 한다.
     print("  torch.optim.SGD :", [round(v, 8) for v in by_torch.tolist()])
     print("  손으로          :", [round(v, 8) for v in w2.detach().tolist()])
-    print("  같은가          :", torch.allclose(by_torch, w2.detach(), atol=0))
+    # torch.equal(a, b) 는 두 텐서가 형태도 같고 모든 원소가 「정확히」 같을 때만
+    # True 다. 허용 오차가 없다 — 끝자리 하나만 달라도 False 가 나온다.
+    print("  같은가          :", torch.equal(by_torch, w2.detach()))
 
 
 # ========================================================================
 # 2. 모멘텀
 # ========================================================================
 
+# 모멘텀 — 이번 그래디언트만 보지 않고 지난 스텝들의 그래디언트를 이어 가며 쓴다.
+# 그 누적을 담아 두는 텐서가 버퍼다.
 def momentum():
     header("2. 모멘텀")
-    lr, mu, steps = 0.1, 0.9, 20
+    lr, mu, steps = 0.1, 0.9, 20  # mu 는 지난 버퍼를 얼마나 남길지 (모멘텀 계수)
 
+    # --- 파이토치 쪽 — momentum=mu 를 주는 것 말고는 1번과 같다 ---------------------
     w, t = problem()
     opt = torch.optim.SGD([w], lr=lr, momentum=mu)
     for _ in range(steps):
         opt.zero_grad()
         loss_of(w, t).backward()
         opt.step()
+    # 견줄 값만 떼어 둔다 (경사 추적을 끊고 베낀다).
     by_torch = w.detach().clone()
 
+    # --- 손으로 — 버퍼 buf 를 스스로 들고 다닌다 -----------------------------------
     w2, t2 = problem()
-    buf = None
+    buf = None                    # 아직 버퍼가 없다는 표시
     for _ in range(steps):
+        # 지난 그래디언트를 지우고 역전파한다 — 1번의 손으로 짠 쪽과 같다.
         if w2.grad is not None:
             w2.grad.zero_()
         loss_of(w2, t2).backward()
         with torch.no_grad():
+            # g 는 w2.grad 에 붙인 다른 이름이다. 베낀 것이 아니라 같은 텐서를 가리킨다.
             g = w2.grad
+            # 버퍼를 갱신한다. 「A if 조건 else B」 는 조건이 참이면 A, 아니면 B 를 고른다.
+            #   첫 스텝       buf = g 의 사본                  [4, 10]
+            #   그 뒤         buf = mu * (지난 buf) + g        둘째 스텝: 0.9*[4, 10] + [3.2, 8]
+            #                                                           = [6.8, 17]
+            # 첫 스텝에 clone() 으로 베끼는 까닭 — 그냥 g 를 넣으면 buf 가 w2.grad 와 같은
+            # 텐서가 되어, 다음 스텝의 zero_() 가 버퍼까지 0 으로 지운다.
             buf = g.clone() if buf is None else mu * buf + g
+            # 그래디언트 대신 버퍼만큼 옮긴다.
+            #   첫 스텝    [3, 3]     - 0.1 * [4, 10]   = [2.6, 2.0]
+            #   둘째 스텝  [2.6, 2.0] - 0.1 * [6.8, 17] = [1.92, 0.3]
             w2 -= lr * buf
     print("  torch 모멘텀 :", [round(v, 8) for v in by_torch.tolist()])
     print("  손으로       :", [round(v, 8) for v in w2.detach().tolist()])
+    # 두 결과의 차에서 절댓값(.abs())이 가장 큰 것(.max())을 찍는다.
+    # :.2e 는 지수 표기다 — 1.79e-07 은 1.79 × 10^-7.
     print("  가장 큰 차이 :", f"{(by_torch - w2.detach()).abs().max():.2e}")
     print("  첫 스텝의 버퍼를 g 로 두는 것이 파이토치의 약속이다")
     print("  0 으로 두고 mu*0 + g 를 해도 같은 값이지만, 구현에 따라 다르다")
@@ -129,34 +192,54 @@ def momentum():
 # 3. Adam
 # ========================================================================
 
+# Adam — 버퍼를 둘 든다. m 은 그래디언트의 이동 평균(1차 모멘트), v 는 그래디언트
+# 제곱의 이동 평균(2차 모멘트)이다. m 을 v 의 제곱근으로 나눈 만큼 옮긴다.
 def adam():
     header("3. Adam")
+    # b1, b2 는 m 과 v 에서 지난 값을 얼마나 남길지, eps 는 0 으로 나누는 일을 막는
+    # 아주 작은 수다. 1e-8 은 0.00000001 이다.
     lr, b1, b2, eps, steps = 0.1, 0.9, 0.999, 1e-8, 20
 
+    # --- 파이토치 쪽 ------------------------------------------------------------
+    # 손으로 짠 쪽과 같은 설정이 되도록 betas 와 eps 를 적어서 넘긴다.
     w, t = problem()
     opt = torch.optim.Adam([w], lr=lr, betas=(b1, b2), eps=eps)
     for _ in range(steps):
         opt.zero_grad()
         loss_of(w, t).backward()
         opt.step()
+    # 견줄 값만 떼어 둔다 (경사 추적을 끊고 베낀다).
     by_torch = w.detach().clone()
 
+    # --- 손으로 -----------------------------------------------------------------
     w2, t2 = problem()
+    # torch.zeros_like(w2) 는 w2 와 형태가 같고 0 으로 채운 텐서다. 경사 추적은 걸리지
+    # 않는다. 두 버퍼 모두 0 에서 출발한다.
     m = torch.zeros_like(w2)
     v = torch.zeros_like(w2)
+    # 이번에는 스텝 번호가 필요하다(편향 보정에 쓴다). 1 부터 steps 까지 센다.
     for step in range(1, steps + 1):
+        # 지난 그래디언트를 지우고 역전파한다 — 1번과 같다.
         if w2.grad is not None:
             w2.grad.zero_()
         loss_of(w2, t2).backward()
         with torch.no_grad():
-            g = w2.grad
+            g = w2.grad                        # 이번 스텝의 그래디언트
+            # 이동 평균 — 지난 값을 b1 만큼 남기고 새 값을 (1 - b1) 만큼 섞는다.
+            # 첫 스텝: m = 0.1 * g,  v = 0.001 * g*g   (g * g 는 원소마다 제곱)
             m = b1 * m + (1 - b1) * g
             v = b2 * v + (1 - b2) * g * g
+            # m, v 가 0 에서 출발했으므로 처음 몇 스텝은 너무 작다. (1 - b ** step) 으로 나눠
+            # 되돌린다(** 는 거듭제곱).   첫 스텝: m_hat = 0.1*g / 0.1 = g,  v_hat = g*g
             m_hat = m / (1 - b1 ** step)       # 편향 보정
             v_hat = v / (1 - b2 ** step)
+            # 한 스텝. .sqrt() 는 원소마다 제곱근이다.
+            # 첫 스텝: lr * g / (|g| + eps) = 0.1 * (g 의 부호) 이므로 [3, 3] → [2.9, 2.9].
+            # 그래디언트가 [4, 10] 으로 달라도 두 성분이 똑같이 0.1 씩만 간다.
             w2 -= lr * m_hat / (v_hat.sqrt() + eps)
     print("  torch.optim.Adam:", [round(v, 8) for v in by_torch.tolist()])
     print("  손으로          :", [round(v, 8) for v in w2.detach().tolist()])
+    # 가장 큰 차이를 지수 표기로 찍는다. 0.00e+00 은 정확히 0 이다.
     print("  가장 큰 차이     :", f"{(by_torch - w2.detach()).abs().max():.2e}")
 
 
@@ -164,28 +247,46 @@ def adam():
 # 4. no_grad 를 빼면
 # ========================================================================
 
+# 갱신을 no_grad() 없이 하면 무슨 일이 생기는지 두 가지로 해 본다.
 def why_no_grad():
     header("4. no_grad 를 빼면")
+    # --- (가) no_grad 없이 제자리에서 고친다 → 오류 --------------------------------
     w, t = problem()
-    loss_of(w, t).backward()
+    loss_of(w, t).backward()      # w.grad 를 채워 둔다 — [4, 10]
+    # try: 안에서 오류가 나면 프로그램이 멈추는 대신 except: 로 넘어간다. 오류가 날
+    # 것을 알고 일부러 해 보는 것이다.
     try:
+        # 경사 추적 중인 리프 텐서(연산의 결과가 아니라 직접 만든 텐서)를 기록이 켜진
+        # 채로 제자리에서 고치려 한다. 파이토치가 RuntimeError 를 낸다.
         w -= 0.1 * w.grad
     except RuntimeError as e:
+        # e 가 그 오류다. str(e) 로 오류문을 꺼내 첫 줄(splitlines()[0])의 앞 62글자
+        # ([:62])만 찍는다.
         print("  제자리로 고치면:", str(e).splitlines()[0][:62])
 
+    # --- (나) 제자리 대신 새 텐서를 만든다 → 통과하지만 다음 스텝이 없다 ------------
     w2, t2 = problem()
-    loss_of(w2, t2).backward()
+    loss_of(w2, t2).backward()    # w2.grad 를 채워 둔다
+    # w2 를 고치지 않고 계산 결과에 w3 이라는 새 이름을 붙였다. 오류는 없다. 다만
+    # 이 뺄셈은 기록되므로 w3 은 「w2 로 만든 연산의 결과」가 된다.
     w3 = w2 - 0.1 * w2.grad                  # 새 텐서를 만들면 통과한다
     print("  새 텐서를 만들면 통과한다. 그런데")
+    # is_leaf 는 리프 텐서인가다. w3 은 연산의 결과라 False 다. requires_grad 는
+    # w2 에서 물려받아 True 다 — 추적은 되는데 리프 텐서는 아니다.
     print("    w3.is_leaf       :", w3.is_leaf)
     print("    w3.requires_grad :", w3.requires_grad)
+    # 둘째 스텝을 흉내 낸다. w3 으로 로스를 재고 역전파한다. backward() 는 리프 텐서의
+    # .grad 만 채우므로 그래디언트는 w2 로 가고 w3.grad 는 None 으로 남는다.
     loss_of(w3, t2).backward()
     with warnings.catch_warnings():        # 경고문에 빌드 기계 경로가 붙는다
+        # 리프 텐서가 아닌 텐서의 .grad 를 읽으면 파이토치가 경고문을 찍는다.
+        # simplefilter("ignore") 가 이 with 블록 안에서만 경고를 끈다.
         warnings.simplefilter("ignore")
         print("    두 번째 스텝의 w3.grad:", w3.grad)
     print("  리프 텐서가 아니라 그래디언트를 못 받는다 — 다음 스텝이 없다")
 
 
+# 네 절을 차례로 돌린다.
 def main():
     plain_sgd()
     momentum()
@@ -193,6 +294,8 @@ def main():
     why_no_grad()
 
 
+# 이 파일을 직접 돌렸을 때만 main() 을 부른다. 다른 파일이 import 로 불러 쓸
+# 때에는 부르지 않는다.
 if __name__ == "__main__":
     main()
 ```
@@ -235,6 +338,9 @@ torch.optim.SGD : [1.02305853, -1.94235396]
 ```
 
 ```python
+# 본문 코드의 손으로 짠 SGD 에서 갱신만 떼어 온 조각이다.
+# no_grad() 블록 안의 계산은 계산 그래프에 기록하지 않는다. -= 는 w 를 새로
+# 만들지 않고 제자리에서 고친다.   w ← w - lr * 그래디언트
 with torch.no_grad():
     w -= lr * w.grad
 ```
@@ -245,6 +351,9 @@ with torch.no_grad():
 ## 3. 모멘텀은 버퍼 하나를 더 든다
 
 ```python
+# 본문 코드의 손으로 짠 모멘텀에서 갱신만 떼어 온 조각이다. g 는 w.grad 다.
+# 첫 스텝이면(buf 가 None) 그래디언트의 사본을 버퍼로 삼고, 그 뒤로는 지난 버퍼에
+# mu 를 곱해 이번 그래디언트를 더한다. 그리고 버퍼만큼 옮긴다.
 buf = g.clone() if buf is None else mu * buf + g
 w -= lr * buf
 ```
@@ -270,10 +379,14 @@ $1.79 \times 10^{-7}$ 차이는 float32의 반올림이다 — 더하는 순서�
 ## 4. Adam은 버퍼 둘과 보정
 
 ```python
+# 본문 코드의 손으로 짠 Adam 에서 갱신만 떼어 온 조각이다. g 는 w.grad, step 은
+# 1 부터 세는 스텝 번호다. b1 ** step 의 ** 는 거듭제곱이다.
 m = b1 * m + (1 - b1) * g              # 1차 모멘트
 v = b2 * v + (1 - b2) * g * g          # 2차 모멘트
 m_hat = m / (1 - b1 ** step)           # 편향 보정
-v_hat = v / (1 - b2 ** step)
+v_hat = v / (1 - b2 ** step)           # v 도 같은 식으로 보정한다
+# 보정한 m 을 보정한 v 의 제곱근으로 나눈 만큼 옮긴다. eps 는 0 으로 나누는 일을
+# 막는다.
 w -= lr * m_hat / (v_hat.sqrt() + eps)
 ```
 
@@ -334,14 +447,23 @@ Adam도 스무 스텝으로는 목표에 못 닿았다($[1.22, 1.06]$ 대 $[1, -
 
 ??? success "풀이"
     ```python
+    # 본문 코드의 problem, loss_of 를 그대로 쓴다. (이름표, 지울지 말지) 짝 둘을 차례로
+    # 꺼내 같은 루프를 두 번 돌린다. 이름표의 빈칸은 줄을 맞추려는 것이다.
     for label, clear in (("지운다  ", True), ("안 지운다", False)):
-        w, t = problem()
+        w, t = problem()   # w = [3, 3] 에서 다시 출발, t 는 목표 [1, -2]
         for _ in range(5):
+            # clear 가 True 일 때만 지난 그래디언트를 지운다. 첫 스텝에는 .grad 가 None 이라
+            # 지울 것이 없다. zero_() 는 텐서를 제자리에서 0 으로 채운다.
             if clear and w.grad is not None:
                 w.grad.zero_()
+            # 역전파. backward() 는 w.grad 에 「더한다」. 그래서 지우지 않는 쪽에서는 w.grad 가
+            # 지금까지의 그래디언트를 모두 더한 값이 된다.
             loss_of(w, t).backward()
+            # SGD 한 스텝. no_grad() 안에서, 제자리에서 고친다.
             with torch.no_grad():
                 w -= 0.1 * w.grad
+        # detach() 로 경사 추적을 끊고 tolist() 로 파이썬 리스트로 바꾼 뒤, round(v, 6)
+        # 으로 수마다 소수점 아래 여섯 자리까지 줄여 찍는다.
         print(f"  {label}  w = {[round(v, 6) for v in w.detach().tolist()]}")
     print("  목표는 [1.0, -2.0]")
     ```
@@ -371,15 +493,23 @@ Adam도 스무 스텝으로는 목표에 못 닿았다($[1.22, 1.06]$ 대 $[1, -
 
 ??? success "풀이"
     ```python
+    # 표의 머리 줄이다. {'mu':>5} 는 글자 mu 를 다섯 칸에 오른쪽으로 붙여 찍는다.
     print(f"  {'mu':>5}  {'20스텝 뒤 w':>26}  {'목표와의 거리':>12}")
+    # 모멘텀 계수 mu 만 바꿔 가며 같은 문제를 스무 스텝씩 돌린다. 0.0 은 모멘텀이
+    # 없는 보통의 SGD 다.
     for mu in (0.0, 0.3, 0.5, 0.7, 0.9, 0.95):
-        w, t = problem()
+        w, t = problem()   # w = [3, 3] 에서 다시 출발
+        # 옵티마이저에 고칠 텐서의 리스트 [w], 러닝레이트, 모멘텀 계수를 넘긴다.
         opt = torch.optim.SGD([w], lr=0.1, momentum=mu)
         for _ in range(20):
-            opt.zero_grad()
-            loss_of(w, t).backward()
-            opt.step()
+            opt.zero_grad()             # 지난 그래디언트를 지운다
+            loss_of(w, t).backward()    # 로스를 재고 역전파한다
+            opt.step()                  # w 를 한 스텝 옮긴다
+        # 목표까지의 거리다. detach() 로 경사 추적을 끊고, 목표와의 차에 .norm() 을 불러
+        # 그 길이(성분 제곱합의 제곱근)를 재고, .item() 으로 파이썬 실수로 꺼낸다.
         d = (w.detach() - t).norm().item()
+        # w 를 소수점 아래 네 자리로 줄인 리스트를 str() 로 글자로 바꿔 26칸에 오른쪽으로
+        # 붙인다. :12.6f 는 열두 칸에 소수점 아래 여섯 자리까지 찍는다.
         print(f"  {mu:>5}  {str([round(v, 4) for v in w.detach().tolist()]):>26}"
               f"  {d:12.6f}")
     ```
@@ -421,39 +551,59 @@ Adam도 스무 스텝으로는 목표에 못 닿았다($[1.22, 1.06]$ 대 $[1, -
 
 ??? success "풀이"
     ```python
+    # 본문 3번과 같은 설정이다. b1, b2 는 이동 평균에서 지난 값을 남기는 비율,
+    # eps 는 0 으로 나누는 일을 막는 작은 수다.
     lr, b1, b2, eps = 0.1, 0.9, 0.999, 1e-8
 
+    # 손으로 짠 Adam. correct 가 True 면 편향 보정을 하고 False 면 뺀다. 스텝마다의
+    # w 의 첫 성분을 리스트로 돌려준다.
     def hand_adam(correct, steps=5):
-        w, t = problem()
+        w, t = problem()      # w = [3, 3] 에서 출발
+        # 두 버퍼를 0 에서 시작한다. zeros_like(w) 는 w 와 형태가 같고 0 으로 채운 텐서다.
         m = torch.zeros_like(w)
         v = torch.zeros_like(w)
-        out = []
+        out = []              # 스텝마다의 w[0] 을 모을 리스트
+        # 편향 보정에 스텝 번호가 필요하므로 1 부터 센다.
         for step in range(1, steps + 1):
+            # 지난 그래디언트를 지우고(첫 스텝에는 None 이라 건너뛴다) 역전파한다.
             if w.grad is not None:
                 w.grad.zero_()
             loss_of(w, t).backward()
+            # 갱신은 계산 그래프에 기록하지 않도록 no_grad() 안에서 한다.
             with torch.no_grad():
                 g = w.grad
+                # m 은 그래디언트의, v 는 그래디언트 제곱의 이동 평균이다.
+                # 첫 스텝: m = 0.1 * g,  v = 0.001 * g*g — 0 에서 출발해 둘 다 너무 작다.
                 m = b1 * m + (1 - b1) * g
                 v = b2 * v + (1 - b2) * g * g
+                # 보정하면 (1 - b ** step) 으로 나눠 되돌린다. 첫 스텝: mh = g, vh = g*g.
+                # 보정하지 않으면 작은 m, v 를 그대로 쓴다.
                 if correct:
                     mh, vh = m / (1 - b1 ** step), v / (1 - b2 ** step)
                 else:
                     mh, vh = m, v
+                # 한 스텝. 첫 스텝에 w[0] 이 움직이는 크기는
+                #   보정 있음  0.1 * g / |g|                   = 0.1    → 3 - 0.1   = 2.9
+                #   보정 없음  0.1 * 0.1*g / (sqrt(0.001)*|g|) ≈ 0.316  → 3 - 0.316 = 2.684
                 w -= lr * mh / (vh.sqrt() + eps)
-                out.append(w[0].item())
+                out.append(w[0].item())    # w 의 첫 성분을 파이썬 실수로 꺼내 모은다
         return out
 
+    # 견줄 기준 — 파이토치의 Adam 으로 다섯 스텝을 가며 w[0] 을 모은다.
     w, t = problem()
     opt = torch.optim.Adam([w], lr=lr, betas=(b1, b2), eps=eps)
     ref = []
+    # 스텝마다 그래디언트를 지우고, 역전파하고, 옵티마이저가 한 스텝 옮긴다.
     for _ in range(5):
         opt.zero_grad()
         loss_of(w, t).backward()
         opt.step()
         ref.append(w[0].item())
 
+    # 표의 머리 줄이다. :>4, :>12 는 그 칸 수에 오른쪽으로 붙여 찍는다.
     print(f"  {'스텝':>4} {'파이토치':>12} {'보정 있음':>12} {'보정 없음':>12}")
+    # zip 이 세 리스트에서 같은 스텝의 값을 하나씩 묶어 (a, b, c) 로 주고,
+    # enumerate(..., 1) 이 거기에 1 부터 번호 i 를 붙인다.
     for i, (a, b, c) in enumerate(zip(ref, hand_adam(True), hand_adam(False)), 1):
         print(f"  {i:>4} {a:12.6f} {b:12.6f} {c:12.6f}")
     ```
