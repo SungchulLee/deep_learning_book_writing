@@ -96,7 +96,7 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008) -> torch.Tensor:
     - 퍼지는 내내 더 매끄럽게 나아간다
     - 끝에서 덜 과감하다
     - 신호 대 잡음비를 더 잘 지킨다
-    - 그림 만들어 내기 품질이 높다
+    - 그림 생성 품질이 높다
     
     수학 뜻매김:
     ------------------------
@@ -295,7 +295,7 @@ def forward_diffusion(x_0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor,
     return sqrt_alpha_t * x_0 + sqrt_one_minus_alpha_t * noise
 
 # ============================================================================
-# 뒤 확산(만들어 내기)
+# 뒤 확산(생성)
 # ============================================================================
 
 @torch.no_grad()
@@ -717,9 +717,9 @@ class AttentionBlock(nn.Module):
         x = self.norm(x)
         qkv = self.qkv(x)
         
-        # 다중 머리 주의에 맞게 형태를 바꾼다
+        # 멀티헤드 어텐션에 맞게 형태를 바꾼다
         qkv = qkv.reshape(batch, 3, self.num_heads, channels // self.num_heads, height * width)
-        qkv = qkv.permute(1, 0, 2, 4, 3)  # (3, 배치, 머리, hw, 차원)
+        qkv = qkv.permute(1, 0, 2, 4, 3)  # (3, 배치, 헤드, hw, 차원)
         q, k, v = qkv[0], qkv[1], qkv[2]
         
         # 어텐션
@@ -727,7 +727,7 @@ class AttentionBlock(nn.Module):
         attn = attn / (channels // self.num_heads) ** 0.5
         attn = F.softmax(attn, dim=-1)
         
-        # 값에 어텐션 적용
+        # 밸류에 어텐션 적용
         out = torch.matmul(attn, v)
         out = out.permute(0, 1, 3, 2).reshape(batch, channels, height, width)
         
@@ -1000,8 +1000,8 @@ if __name__ == "__main__":
 """
 MNIST 확산 모델
 
-MNIST 숫자 만들어 내기를 위한 확산 모델의 온전한 짜기.
-학부생을 위한 그럴듯한 그림 만들어 내기 보기를 준다.
+MNIST 숫자 생성을 위한 확산 모델의 온전한 짜기.
+학부생을 위한 그럴듯한 그림 생성 보기를 준다.
 """
 
 

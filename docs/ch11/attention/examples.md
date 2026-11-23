@@ -86,7 +86,7 @@ class BasicAttention(nn.Module):
         # 어텐션 웨이트 계산
         attention_weights = F.softmax(scores, dim=-1)
         
-        # 값의 가중합으로 문맥 벡터 계산
+        # 밸류의 가중합으로 문맥 벡터 계산
         # (배치 크기, value_dim)
         context = torch.bmm(attention_weights.unsqueeze(1), values).squeeze(1)
         
@@ -130,7 +130,7 @@ class ScaledDotProductAttention(nn.Module):
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         
-        # 값에 어텐션 웨이트 적용
+        # 밸류에 어텐션 웨이트 적용
         output = torch.matmul(attention_weights, value)
         
         return output, attention_weights
@@ -229,7 +229,7 @@ class CrossAttention(nn.Module):
     """
     크로스 어텐션 레이어
     
-    쿼리는 한 시퀀스(디코더 따위)에서, 키와 값은 다른 시퀀스(인코더 따위)에서
+    쿼리는 한 시퀀스(디코더 따위)에서, 키와 밸류는 다른 시퀀스(인코더 따위)에서
     오는 어텐션을 계산한다.
     트랜스포머 디코더 레이어에서 인코더의 출력에 주목할 때 쓴다.
     """
@@ -453,7 +453,7 @@ class SelfAttention(nn.Module):
     """
     셀프 어텐션 레이어
     
-    쿼리와 키와 값이 모두 같은 입력에서 나오는 어텐션을 계산한다.
+    쿼리와 키와 밸류가 모두 같은 입력에서 나오는 어텐션을 계산한다.
     트랜스포머 인코더 레이어에서 쓴다.
     """
     
@@ -509,7 +509,7 @@ class SelfAttention(nn.Module):
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         
-        # 값의 가중합
+        # 밸류의 가중합
         attended = torch.matmul(attention_weights, V)
         
         # 출력 투영
@@ -599,7 +599,7 @@ class CausalSelfAttention(nn.Module):
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         
-        # 값에 어텐션 적용
+        # 밸류에 어텐션 적용
         attended = torch.matmul(attention_weights, V)
         
         # 헤드를 이어 붙이고 다시 투영

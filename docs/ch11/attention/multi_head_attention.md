@@ -43,7 +43,7 @@ $$\mathbf{A} = \text{softmax}\left(\frac{\mathbf{X}\mathbf{W}_Q\mathbf{W}_K^T\ma
 
 $$\mathbf{A}^{(i)} = \text{softmax}\left(\frac{\mathbf{X}\mathbf{W}_Q^{(i)}(\mathbf{W}_K^{(i)})^T\mathbf{X}^T}{\sqrt{d_k}}\right)$$
 
-헤드마다 다른 관련도와 값 표현을 학습할 수 있다. 다음은 가능한 역할 분담을 설명하는 예시이며 헤드 번호별로 이런 기능이 자동 배정되는 것은 아니다.
+헤드마다 다른 관련도와 밸류 표현을 학습할 수 있다. 다음은 가능한 역할 분담을 설명하는 예시이며 헤드 번호별로 이런 기능이 자동 배정되는 것은 아니다.
 
 - $\text{head}_1$: 문법적 의존 (animal)
 - $\text{head}_2$: 의미적 서술 (tired)
@@ -141,7 +141,7 @@ $$\text{output} = 0.5 \cdot \text{syntax} + 0.3 \cdot \text{semantics} + 0.2 \cd
 
 $$\mathbf{z}_i = \sum_{j=1}^{n} A_{ij} \mathbf{v}_j$$
 
-드롭아웃이 없고 유효 위치가 있는 행에서는 웨이트가 음이 아니며 합이 1이므로 출력은 값 벡터들의 볼록 껍질 안에 있다. 어텐션 드롭아웃 뒤에는 이 조건이 성립하지 않을 수 있다. 출력 투영·바이어스·잔차를 더한 최종 출력은 원래 값의 볼록 껍질로 제한되지 않는다.
+드롭아웃이 없고 유효 위치가 있는 행에서는 웨이트가 음이 아니며 합이 1이므로 출력은 밸류 벡터들의 볼록 껍질 안에 있다. 어텐션 드롭아웃 뒤에는 이 조건이 성립하지 않을 수 있다. 출력 투영·바이어스·잔차를 더한 최종 출력은 원래 밸류의 볼록 껍질로 제한되지 않는다.
 
 ### 여러 헤드: 더 풍부한 부분공간
 
@@ -149,7 +149,7 @@ $$\mathbf{z}_i = \sum_{j=1}^{n} A_{ij} \mathbf{v}_j$$
 
 $$\mathbf{z}_i = \left[\sum_j A_{ij}^{(1)} \mathbf{v}_j^{(1)}; \ldots; \sum_j A_{ij}^{(h)} \mathbf{v}_j^{(h)}\right]\mathbf{W}_O$$
 
-헤드별로 서로 다른 값 투영과 웨이트가 있으므로 여러 결합을 독립적으로 계산할 수 있다. 그러나 이어 붙이기만으로 전체 출력 공간을 자유롭게 채운다는 보장은 아니다. 출력 투영은 헤드 차원의 일반 선형 혼합이며 스칼라 계수의 볼록 평균으로 제한되지 않는다.
+헤드별로 서로 다른 밸류 투영과 웨이트가 있으므로 여러 결합을 독립적으로 계산할 수 있다. 그러나 이어 붙이기만으로 전체 출력 공간을 자유롭게 채운다는 보장은 아니다. 출력 투영은 헤드 차원의 일반 선형 혼합이며 스칼라 계수의 볼록 평균으로 제한되지 않는다.
 
 ---
 
@@ -219,7 +219,7 @@ class MultiHeadSelfAttention(nn.Module):
         attn_weights = F.softmax(scores, dim=-1)
         attn_weights = self.dropout(attn_weights)
         
-        # 값에 어텐션 적용
+        # 밸류에 어텐션 적용
         context = torch.matmul(attn_weights, V)
         
         # 형태 바꾸고 투영: (배치, heads, seq, d_k) -> (배치, seq, d_model)
@@ -297,7 +297,7 @@ class MultiHeadAttention(nn.Module):
         인수:
             Q: 쿼리의 출처 (배치, seq_q, d_model)
             K: 키의 출처 (배치, seq_k, d_model)
-            V: 값의 출처 (배치, seq_v, d_model), 대체로 seq_k == seq_v
+            V: 밸류의 출처 (배치, seq_v, d_model), 대체로 seq_k == seq_v
             mask: 선택적인 어텐션 마스크
         """
         batch_size = Q.size(0)
@@ -390,12 +390,12 @@ class MultiHeadAttention(nn.Module):
 
 ### 그룹 쿼리 어텐션 (GQA)
 
-GQA는 여러 쿼리 헤드가 더 적은 키·값 헤드를 공유하는 구조다. 아래 클래스는 투영 레이어 생성자만 있고 forward가 없어 실제 어텐션 계산이나 KV 반복을 구현하지 않는다. `d_model`이 헤드 수로 나누어떨어지는지도 따로 확인하지 않는다.
+GQA는 여러 쿼리 헤드가 더 적은 키·밸류 헤드를 공유하는 구조다. 아래 클래스는 투영 레이어 생성자만 있고 forward가 없어 실제 어텐션 계산이나 KV 반복을 구현하지 않는다. `d_model`이 헤드 수로 나누어떨어지는지도 따로 확인하지 않는다.
 
 ```python
 class GroupedQueryAttention(nn.Module):
     """
-    GQA: 쿼리 헤드 n_heads개가 키-값 헤드 n_kv_heads개를 나누어 쓴다.
+    GQA: 쿼리 헤드 n_heads개가 키-밸류 헤드 n_kv_heads개를 나누어 쓴다.
     추론할 때 KV 캐시의 크기를 줄인다.
     """
     def __init__(self, d_model: int, n_heads: int, n_kv_heads: int):
@@ -415,7 +415,7 @@ class GroupedQueryAttention(nn.Module):
 
 ### 다중 쿼리 어텐션 (MQA)
 
-극단적인 경우로, 모든 쿼리 헤드가 키-값 헤드 하나를 함께 쓴다($n_{kv} = 1$).
+극단적인 경우로, 모든 쿼리 헤드가 키-밸류 헤드 하나를 함께 쓴다($n_{kv} = 1$).
 
 ---
 

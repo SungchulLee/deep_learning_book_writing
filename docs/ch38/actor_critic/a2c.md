@@ -198,7 +198,7 @@
             rollout : 텐서 사전
             episode_rewards : 마친 에피소드 리워드의 목록
             """
-            # 곳간
+            # 버퍼
             mb_obs = np.zeros((self.n_steps, self.n_envs) + self.envs.observation_space.shape)
             mb_actions = np.zeros((self.n_steps, self.n_envs), dtype=np.int64)
             mb_rewards = np.zeros((self.n_steps, self.n_envs))

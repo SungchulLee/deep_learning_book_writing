@@ -38,7 +38,7 @@ $$\mathbf{Y}' = \text{LayerNorm}(\mathbf{Y} + \text{MaskedMultiHead}(\mathbf{Y},
 
 $$\mathbf{Y}'' = \text{LayerNorm}(\mathbf{Y}' + \text{MultiHead}(\mathbf{Y}', \mathbf{M}, \mathbf{M}))$$
 
-쿼리는 디코더에서 오고 키와 값은 인코더의 출력 $\mathbf{M}$에서 온다. 이것이 인코더와 디코더를 잇는 다리이다.
+쿼리는 디코더에서 오고 키와 밸류는 인코더의 출력 $\mathbf{M}$에서 온다. 이것이 인코더와 디코더를 잇는 다리이다.
 
 **하위 레이어 3 — 피드포워드 뉴럴 네트워크:**
 
@@ -214,7 +214,7 @@ class EncoderDecoder(nn.Module):
 
 ### 피드포워드 뉴럴 네트워크의 몫
 
-세 구조의 위치별 피드포워드 레이어는 토큰마다 같은 비선형 변환을 적용한다. 이를 키·값 메모리에 비유하는 분석이 있지만, 모든 사실 지식이 이 레이어에만 저장되거나 검색 결과가 언제나 정확하다는 뜻은 아니다.
+세 구조의 위치별 피드포워드 레이어는 토큰마다 같은 비선형 변환을 적용한다. 이를 키·밸류 메모리에 비유하는 분석이 있지만, 모든 사실 지식이 이 레이어에만 저장되거나 검색 결과가 언제나 정확하다는 뜻은 아니다.
 
 $$\text{FFN}(\mathbf{x}) = f(\mathbf{x}\mathbf{W}_1)\mathbf{W}_2$$
 
@@ -294,13 +294,13 @@ $$
 
 그 결과 $X \in \mathbb{R}^{n \times d_{\text{model}}}$은 (임베딩에서 온) 뜻과 위치 정보를 함께 지닌다.
 
-**4단계 — Q, K, V로의 선형 투영**: 서로 다른 웨이트 행렬 셋이 $X$를 쿼리, 키, 값 공간으로 투영한다.
+**4단계 — Q, K, V로의 선형 투영**: 서로 다른 웨이트 행렬 셋이 $X$를 쿼리, 키, 밸류 공간으로 투영한다.
 
 $$
 Q = XW^Q, \quad K = XW^K, \quad V = XW^V
 $$
 
-여기서 $W^Q, W^K, W^V \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$이다. 이 투영은 (표준 정식화에서 바이어스 항이 없는) 선형이며, 무엇을 찾을지(쿼리), 무엇을 내세울지(키), 어떤 정보를 줄지(값)에 대해 모델이 저마다 다른 표현을 배우게 한다.
+여기서 $W^Q, W^K, W^V \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$이다. 이 투영은 (표준 정식화에서 바이어스 항이 없는) 선형이며, 무엇을 찾을지(쿼리), 무엇을 내세울지(키), 어떤 정보를 줄지(밸류)에 대해 모델이 저마다 다른 표현을 배우게 한다.
 
 **5단계 — 여러 헤드로 나누기**: $Q$, $K$, $V$ 각각을 마지막 차원을 따라 헤드 $h$개로 나누며 헤드마다 차원은 $d_k = d_{\text{model}} / h$이다.
 
@@ -467,7 +467,7 @@ class MultiHeadSelfAttention(nn.Module):
         attn_weights = F.softmax(attn_scores, dim=-1)
         attn_weights = self.attn_dropout(attn_weights)
         
-        # 값에 어텐션 적용
+        # 밸류에 어텐션 적용
         # [batch, heads, seq, head_dim]
         context = torch.matmul(attn_weights, v)
         
@@ -997,7 +997,7 @@ $$
 여기서:
 
 - 쿼리: 디코더에서 ($Z W^Q$)
-- 키와 값: 인코더에서 ($X_{\text{enc}} W^K$, $X_{\text{enc}} W^V$)
+- 키와 밸류: 인코더에서 ($X_{\text{enc}} W^K$, $X_{\text{enc}} W^V$)
 
 ### 파이토치 구현
 
@@ -1083,7 +1083,7 @@ class CausalSelfAttention(nn.Module):
         attn_weights = F.softmax(attn_scores, dim=-1)
         attn_weights = self.attn_dropout(attn_weights)
         
-        # 값에 어텐션 적용
+        # 밸류에 어텐션 적용
         context = torch.matmul(attn_weights, v)
         
         # 형태를 바꾸고 투영한다
@@ -1396,7 +1396,7 @@ class CausalSelfAttentionWithCache(nn.Module):
         
         인수:
             x: 입력 [batch, seq_len, d_model], 캐시를 쓰면 [batch, 1, d_model]
-            past_kv: 앞 단계에서 담아 둔 (키, 값) 텐서
+            past_kv: 앞 단계에서 담아 둔 (키, 밸류) 텐서
             use_cache: 고친 캐시를 돌려줄지 여부
         """
         batch_size, seq_len, _ = x.shape
@@ -1490,7 +1490,7 @@ $$
 </div>
 
 ??? success "풀이"
-    인코더는 패딩을 제외한 원문 문맥을 처리하고 디코더는 한 토큰 이동한 목표 입력을 인과적으로 읽는다. 교차 어텐션의 쿼리는 디코더, 키·값은 인코더 출력에서 만든다. 목표 입력과 정답의 정렬, 원문 패딩과 목표 패딩의 처리를 따로 확인한다.
+    인코더는 패딩을 제외한 원문 문맥을 처리하고 디코더는 한 토큰 이동한 목표 입력을 인과적으로 읽는다. 교차 어텐션의 쿼리는 디코더, 키·밸류는 인코더 출력에서 만든다. 목표 입력과 정답의 정렬, 원문 패딩과 목표 패딩의 처리를 따로 확인한다.
 
 ---
 

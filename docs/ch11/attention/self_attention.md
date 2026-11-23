@@ -38,7 +38,7 @@ $\sqrt{d_k}$로 나누면 분산이 1로 정규화되어 소프트맥스가 얌�
 |------------|---------------|-----------|
 | **쿼리** $\mathbf{q}_i$ | "나는 어떤 정보를 찾는가?" | 토큰이 던지는 물음 |
 | **키** $\mathbf{k}_i$ | "나는 어떤 정보를 주는가?" | 토큰이 제 내용을 알리는 방식 |
-| **값** $\mathbf{v}_i$ | "뽑히면 나는 무엇을 내놓는가?" | 실제로 모아질 정보 |
+| **밸류** $\mathbf{v}_i$ | "뽑히면 나는 무엇을 내놓는가?" | 실제로 모아질 정보 |
 
 이렇게 나누면 토큰이 주는 정보와 찾는 정보가 서로 다를 수 있다. 주어와 동사의 의존처럼 비대칭인 관계를 다루는 데 매우 중요하다.
 
@@ -228,7 +228,7 @@ class SelfAttention(nn.Module):
     """
     셀프 어텐션 레이어
     
-    쿼리와 키와 값이 모두 같은 입력에서 나오는 어텐션을 계산한다.
+    쿼리와 키와 밸류가 모두 같은 입력에서 나오는 어텐션을 계산한다.
     트랜스포머 인코더 레이어에서 쓴다.
     """
     
@@ -284,7 +284,7 @@ class SelfAttention(nn.Module):
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         
-        # 값의 가중합
+        # 밸류의 가중합
         attended = torch.matmul(attention_weights, V)
         
         # 출력 투영
@@ -380,7 +380,7 @@ class CausalSelfAttention(nn.Module):
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         
-        # 값에 어텐션 적용
+        # 밸류에 어텐션 적용
         attended = torch.matmul(attention_weights, V)
         
         # 헤드를 이어 붙이고 다시 투영
@@ -611,7 +611,7 @@ $O(n^2)$의 복잡도 때문에 효율적인 대안이 많이 나왔다.
 </div>
 
 ??? success "풀이"
-    셀프 어텐션은 같은 시퀀스에서 Q·K·V를 각각 투영한다. 출처가 같아도 투영 웨이트가 달라 Q=K=V라고 할 수는 없다. 크로스 어텐션은 쿼리와 키·값의 출처가 다르며 길이도 다를 수 있다. 어느 위치를 볼지는 마스크가 추가로 정한다.
+    셀프 어텐션은 같은 시퀀스에서 Q·K·V를 각각 투영한다. 출처가 같아도 투영 웨이트가 달라 Q=K=V라고 할 수는 없다. 크로스 어텐션은 쿼리와 키·밸류의 출처가 다르며 길이도 다를 수 있다. 어느 위치를 볼지는 마스크가 추가로 정한다.
 
 ---
 

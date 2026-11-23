@@ -414,9 +414,9 @@ class GroupedQueryAttention(nn.Module):
     def __init__(self, dim, n_heads, n_kv_heads):
         super().__init__()
         
-        # 쿼리 헤드는 n_heads개인데 키와 값의 헤드는 n_kv_heads개로
-        # 더 적다. 여러 쿼리 헤드가 키/값 한 벌을 나누어 쓰는 것이다.
-        # 추론에서 캐시해 두어야 할 키/값이 그만큼 줄어드는 것이 요점이며,
+        # 쿼리 헤드는 n_heads개인데 키와 밸류의 헤드는 n_kv_heads개로
+        # 더 적다. 여러 쿼리 헤드가 키/밸류 한 벌을 나누어 쓰는 것이다.
+        # 추론에서 캐시해 두어야 할 키/밸류가 그만큼 줄어드는 것이 요점이며,
         # 긴 문맥에서 메모리를 크게 아낀다.
         # n_kv_heads=n_heads면 보통의 멀티헤드 어텐션이 되고,
         # n_kv_heads=1이면 멀티쿼리 어텐션이 된다

@@ -1,6 +1,6 @@
 # 어텐션의 기초
 
-어텐션은 쿼리와 키의 관련도에서 웨이트를 구하고, 그 웨이트로 값 벡터를 결합한다. 이 예제는 가산 어텐션과 스케일 내적 어텐션의 형태·마스크·출력을 비교한다. 무작위 입력과 초기 모델의 시연이므로 웨이트를 학습된 의미 관계로 해석하지 않는다.
+어텐션은 쿼리와 키의 관련도에서 웨이트를 구하고, 그 웨이트로 밸류 벡터를 결합한다. 이 예제는 가산 어텐션과 스케일 내적 어텐션의 형태·마스크·출력을 비교한다. 무작위 입력과 초기 모델의 시연이므로 웨이트를 학습된 의미 관계로 해석하지 않는다.
 
 ## 1. 코드
 
@@ -81,7 +81,7 @@ class BasicAttention(nn.Module):
         # 어텐션 웨이트 계산
         attention_weights = F.softmax(scores, dim=-1)
         
-        # 값의 가중합으로 문맥 벡터 계산
+        # 밸류의 가중합으로 문맥 벡터 계산
         # (배치 크기, value_dim)
         context = torch.bmm(attention_weights.unsqueeze(1), values).squeeze(1)
         
@@ -125,7 +125,7 @@ class ScaledDotProductAttention(nn.Module):
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         
-        # 값에 어텐션 웨이트 적용
+        # 밸류에 어텐션 웨이트 적용
         output = torch.matmul(attention_weights, value)
         
         return output, attention_weights
@@ -248,7 +248,7 @@ Attention weights (first sample, first head):
 
 ## 2. 논의
 
-BasicAttention은 $(B,d_q)$의 쿼리 하나와 $(B,S,d_k)$의 키를 공통 은닉 차원으로 투영해 가산 점수를 계산한다. 값은 $(B,S,d_v)$이고 결과 문맥은 $(B,d_v)$다. 쿼리·키의 차원이 달라도 되지만 키와 값의 위치 수는 같아야 한다.
+BasicAttention은 $(B,d_q)$의 쿼리 하나와 $(B,S,d_k)$의 키를 공통 은닉 차원으로 투영해 가산 점수를 계산한다. 밸류는 $(B,S,d_v)$이고 결과 문맥은 $(B,d_v)$다. 쿼리·키의 차원이 달라도 되지만 키와 밸류의 위치 수는 같아야 한다.
 
 ScaledDotProductAttention은 마지막 두 축을 쿼리·키 위치와 피처로 사용해 여러 쿼리와 헤드를 함께 계산한다. 스케일은 독립적인 단위 분산 성분의 내적 분산 증가를 완화하는 선택이며, 모든 트레인 상태의 포화를 방지하거나 분산을 정확히 1로 만드는 보장은 아니다.
 
@@ -289,7 +289,7 @@ ScaledDotProductAttention은 마지막 두 축을 쿼리·키 위치와 피처�
 <div class="drillbox" markdown>
 
 **연습문제 3.** <span class="diff med" title="중간"></span>
-아래 멀티헤드 가산 어텐션 조각의 실제 결합 방식을 설명하라. 헤드별 점수·값 처리와 최종 차원을 추적하고, “헤드 결과 이어 붙이기”를 구현했는지 검토하라.
+아래 멀티헤드 가산 어텐션 조각의 실제 결합 방식을 설명하라. 헤드별 점수·밸류 처리와 최종 차원을 추적하고, “헤드 결과 이어 붙이기”를 구현했는지 검토하라.
 
 </div>
 
@@ -347,8 +347,8 @@ ScaledDotProductAttention은 마지막 두 축을 쿼리·키 위치와 피처�
     print(f"Weights shape: {w.shape}")    # (2, 4, 5)
     ```
 
-    풀이 코드는 헤드별 쿼리·키 투영을 나누지만 값은 모든 헤드가 같은 전체 벡터를 사용한다. 마지막에는 헤드 문맥을 이어 붙이지 않고 평균한다. 출력 레이어는 key_dim을 입력 차원으로 가정하므로 값 차원도 그와 같아야 한다. score_projection도 헤드 간 공유한다. 따라서 독립적인 값 투영과 이어 붙이기를 쓰는 일반적인 멀티헤드 구조와는 다르다. permute 뒤의 view는 메모리 배치에 따라 제약이 있으므로 reshape나 contiguous 처리도 확인해야 한다.
+    풀이 코드는 헤드별 쿼리·키 투영을 나누지만 밸류는 모든 헤드가 같은 전체 벡터를 사용한다. 마지막에는 헤드 문맥을 이어 붙이지 않고 평균한다. 출력 레이어는 key_dim을 입력 차원으로 가정하므로 밸류 차원도 그와 같아야 한다. score_projection도 헤드 간 공유한다. 따라서 독립적인 밸류 투영과 이어 붙이기를 쓰는 일반적인 멀티헤드 구조와는 다르다. permute 뒤의 view는 메모리 배치에 따라 제약이 있으므로 reshape나 contiguous 처리도 확인해야 한다.
 
 ## 정리하며
 
-어텐션의 쿼리·키 점수와 값 가중합을 구분한다. 마스크의 유효 행, 키·값 길이와 드롭아웃 이후의 웨이트 합을 확인하고, 멀티헤드 조각의 평균 결합을 표준 이어 붙이기와 혼동하지 않는다.
+어텐션의 쿼리·키 점수와 밸류 가중합을 구분한다. 마스크의 유효 행, 키·밸류 길이와 드롭아웃 이후의 웨이트 합을 확인하고, 멀티헤드 조각의 평균 결합을 표준 이어 붙이기와 혼동하지 않는다.

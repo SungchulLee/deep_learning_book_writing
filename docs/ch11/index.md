@@ -77,11 +77,11 @@ Seq2Seq는 입력 시퀀스를 인코딩한 뒤 디코더로 출력 시퀀스를
 
 ## 5. 어텐션
 
-어텐션은 쿼리와 키의 관련도로 웨이트를 구하고, 그 웨이트로 값을 결합한다. 디코더가 입력의 여러 위치를 참조하게 하거나, 같은 시퀀스 안의 위치 사이에서 정보를 교환하게 한다.
+어텐션은 쿼리와 키의 관련도로 웨이트를 구하고, 그 웨이트로 밸류를 결합한다. 디코더가 입력의 여러 위치를 참조하게 하거나, 같은 시퀀스 안의 위치 사이에서 정보를 교환하게 한다.
 
 - [어텐션의 기초](attention/attention_fundamentals.md)
 - [스케일 내적 어텐션](attention/scaled_dot_product.md): 내적 점수의 크기를 조절하는 이유
-- [셀프 어텐션](attention/self_attention.md)과 [크로스 어텐션](attention/cross_attention.md): 쿼리·키·값의 출처에 따른 구분
+- [셀프 어텐션](attention/self_attention.md)과 [크로스 어텐션](attention/cross_attention.md): 쿼리·키·밸류의 출처에 따른 구분
 - [멀티헤드 어텐션](attention/multi_head_attention.md): 여러 표현 공간에서 정보를 결합하는 방법
 - [예제](attention/examples.md): 어텐션 연산의 구현과 해석
 

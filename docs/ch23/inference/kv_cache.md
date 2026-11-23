@@ -1,6 +1,6 @@
 # KV 캐시와 자기회귀 추론
 
-KV 캐시는 각 레이어에서 이전 토큰의 키·값을 저장해 다음 토큰 처리에 재사용한다. 과거 전체의 상태와 사영을 매번 다시 계산하는 비용을 줄이는 대신 시퀀스 길이에 비례하는 저장 공간을 사용한다. 한 토큰의 계산과 전체 생성의 계산, 어텐션과 모델 전체의 비용을 구분해야 한다.
+KV 캐시는 각 레이어에서 이전 토큰의 키·밸류를 저장해 다음 토큰 처리에 재사용한다. 과거 전체의 상태와 사영을 매번 다시 계산하는 비용을 줄이는 대신 시퀀스 길이에 비례하는 저장 공간을 사용한다. 한 토큰의 계산과 전체 생성의 계산, 어텐션과 모델 전체의 비용을 구분해야 한다.
 
 ## 1. Prefill과 토큰별 디코딩
 
@@ -44,7 +44,7 @@ from dataclasses import dataclass
 
 @dataclass
 class KVCache:
-    """갈무리한 열쇠-값 짝을 담는 그릇."""
+    """갈무리한 키-밸류 짝을 담는 그릇."""
     key: torch.Tensor
     value: torch.Tensor
     
@@ -53,7 +53,7 @@ class KVCache:
         return self.key.size(2)
 
 class AttentionWithKVCache(nn.Module):
-    """열쇠-값 곳간을 곁들인 인과 셀프 어텐션."""
+    """키-밸류 캐시를 곁들인 인과 셀프 어텐션."""
     
     def __init__(self, d_model: int, num_heads: int, dropout: float = 0.0):
         super().__init__()
@@ -80,7 +80,7 @@ class AttentionWithKVCache(nn.Module):
         qkv = qkv.permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
         
-        # 곳간을 새로 고친다
+        # 캐시를 새로 고친다
         if kv_cache is not None:
             k = torch.cat([kv_cache.key, k], dim=2)
             v = torch.cat([kv_cache.value, v], dim=2)
@@ -104,7 +104,7 @@ class AttentionWithKVCache(nn.Module):
         return self.o_proj(output), new_cache
 
 class GPTWithKVCache(nn.Module):
-    """만들어 내기를 위해 열쇠-값 곳간을 갖춘 GPT 모델."""
+    """생성을 위해 키-밸류 캐시를 갖춘 GPT 모델."""
     
     def __init__(self, vocab_size: int, d_model: int, num_heads: int, 
                  num_layers: int, d_ff: int, max_len: int = 2048):

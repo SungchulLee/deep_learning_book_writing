@@ -876,9 +876,9 @@ class SimpleHeteroscedasticNetwork:
     """
     보여 주기용 단순 다른 흩어짐 뉴럴 네트워크.
     
-    등뼈를 나누어 쓰고 날임 머리는 둘이다:
-    - 평균 머리: E[y|x]을 미루어 본다
-    - 로그 흩어짐 머리: log Var[y|x]을 미루어 본다
+    등뼈를 나누어 쓰고 날임 헤드는 둘이다:
+    - 평균 헤드: E[y|x]을 미루어 본다
+    - 로그 흩어짐 헤드: log Var[y|x]을 미루어 본다
     """
     
     def __init__(
@@ -918,14 +918,14 @@ class SimpleHeteroscedasticNetwork:
             weights[f'W{i}'] = np.random.randn(dims[i], dims[i + 1]) * scale
             weights[f'b{i}'] = np.zeros(dims[i + 1])
         
-        # 날임 머리
+        # 날임 헤드
         last_dim = dims[-1]
         
-        # 평균 머리
+        # 평균 헤드
         weights['W_mu'] = np.random.randn(last_dim, 1) * np.sqrt(2.0 / last_dim)
         weights['b_mu'] = np.zeros(1)
         
-        # 로그 흩어짐 머리(조심스레 첫자리를 잡는다)
+        # 로그 흩어짐 헤드(조심스레 첫자리를 잡는다)
         weights['W_logvar'] = np.random.randn(last_dim, 1) * 0.01
         weights['b_logvar'] = np.full(1, self.init_log_var)
         
@@ -949,7 +949,7 @@ class SimpleHeteroscedasticNetwork:
             h = h @ self.weights[f'W{i}'] + self.weights[f'b{i}']
             h = np.maximum(h, 0)  # ReLU
         
-        # 날임 머리
+        # 날임 헤드
         mu = h @ self.weights['W_mu'] + self.weights['b_mu']
         log_var = h @ self.weights['W_logvar'] + self.weights['b_logvar']
         

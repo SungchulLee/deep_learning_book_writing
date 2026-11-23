@@ -1078,7 +1078,7 @@ def sigmoid_annealing(epoch: int, total_epochs: int, midpoint: int, steepness: f
     return 1.0 / (1.0 + np.exp(-steepness * (epoch - midpoint)))
 
 def cyclical_annealing(epoch: int, cycle_length: int, ratio: float = 0.5) -> float:
-    """돌림으로 KL을 올리는 짜임."""
+    """주기로 KL을 올리는 짜임."""
     cycle_position = epoch % cycle_length
     rise_length = int(cycle_length * ratio)
     return min(1.0, cycle_position / rise_length)
@@ -1404,7 +1404,7 @@ def demo_kl_annealing():
     schedules = {
         '곧게 (몸풀기=30)': [linear_annealing(e, n_epochs, 30) for e in epochs],
         '시그모이드 (가운데=30)': [sigmoid_annealing(e, n_epochs, 30, 0.2) for e in epochs],
-        '돌림 (돌림=40)': [cyclical_annealing(e, 40, 0.5) for e in epochs],
+        '주기 (주기=40)': [cyclical_annealing(e, 40, 0.5) for e in epochs],
     }
     
     plt.figure(figsize=(10, 5))

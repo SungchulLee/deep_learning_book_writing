@@ -101,7 +101,7 @@ class CausalSelfAttention(nn.Module):
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         
-        # 값에 어텐션 적용
+        # 밸류에 어텐션 적용
         # [배치, 헤드 수, 시퀀스 길이, d_k]
         context = torch.matmul(attention_weights, V)
         
@@ -571,7 +571,7 @@ def generate(
 
 ```python
 class CausalSelfAttentionWithCache(nn.Module):
-    """효율적인 생성을 위한 키-값(KV) 캐시를 갖춘 셀프 어텐션."""
+    """효율적인 생성을 위한 키-밸류(KV) 캐시를 갖춘 셀프 어텐션."""
     
     def __init__(self, d_model: int, n_heads: int, max_seq_len: int = 2048):
         super().__init__()
@@ -647,7 +647,7 @@ def generate_with_cache(
     temperature: float = 1.0
 ) -> torch.Tensor:
     """
-    키-값(KV) 캐시를 쓴 효율적인 생성.
+    키-밸류(KV) 캐시를 쓴 효율적인 생성.
     
     문맥에는 캐시의 K/V를 쓰고 새 토큰의 어텐션만 계산한다.
     """

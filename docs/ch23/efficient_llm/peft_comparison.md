@@ -319,7 +319,7 @@ class PrefixTuning(nn.Module):
     """
     프리픽스 다듬기: 들임 앞에 붙는 이어진 시킴말을 배운다.
     
-    따로 떨어진 시킴말 토막 대신, 어텐션 레이어마다 열쇠-값 짝 앞에 붙는
+    따로 떨어진 시킴말 토막 대신, 어텐션 레이어마다 키-밸류 짝 앞에 붙는
     이어진 임베딩을 배운다.
     """
     
@@ -336,7 +336,7 @@ class PrefixTuning(nn.Module):
         self.num_layers = num_layers
         self.prefix_length = prefix_length
         
-        # 전체 크기: 레이어 수 * 2(열쇠 + 값) * 머리 수 * 머리 차원
+        # 전체 크기: 레이어 수 * 2(키 + 밸류) * 헤드 수 * 헤드 차원
         prefix_size = num_layers * 2 * num_heads * head_dim
         
         # 배울 수 있는 프리픽스 임베딩
@@ -354,11 +354,11 @@ class PrefixTuning(nn.Module):
     
     def forward(self, batch_size: int) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        프리픽스 열쇠-값 짝을 만든다.
+        프리픽스 키-밸류 짝을 만든다.
         
         반환값:
-            (프리픽스 열쇠, 프리픽스 값)의 짝. 저마다 형태는
-            [배치, 레이어 수, 머리 수, 프리픽스 길이, 머리 차원]
+            (프리픽스 키, 프리픽스 밸류)의 짝. 저마다 형태는
+            [배치, 레이어 수, 헤드 수, 프리픽스 길이, 헤드 차원]
         """
         # 프리픽스 번호를 얻는다
         prefix_ids = torch.arange(self.prefix_length, device=self.prefix_embedding.weight.device)
@@ -368,21 +368,21 @@ class PrefixTuning(nn.Module):
         prefix = self.prefix_embedding(prefix_ids)  # [배치, 프리픽스 길이, 숨은]
         prefix = self.prefix_mlp(prefix)  # [배치, 프리픽스 길이, 프리픽스 크기]
         
-        # [배치, 프리픽스 길이, 레이어 수, 2, 머리 수, 머리 차원] 형태로 바꾼다
+        # [배치, 프리픽스 길이, 레이어 수, 2, 헤드 수, 헤드 차원] 형태로 바꾼다
         prefix = prefix.view(
             batch_size,
             self.prefix_length,
             self.num_layers,
-            2,  # 열쇠와 값
+            2,  # 키와 밸류
             self.num_heads,
             self.head_dim
         )
         
-        # [배치, 레이어 수, 머리 수, 프리픽스 길이, 머리 차원] 형태로 다시 늘어놓는다
-        prefix = prefix.permute(0, 2, 4, 1, 5, 3)  # 레이어와 머리 차원을 옮긴다
+        # [배치, 레이어 수, 헤드 수, 프리픽스 길이, 헤드 차원] 형태로 다시 늘어놓는다
+        prefix = prefix.permute(0, 2, 4, 1, 5, 3)  # 레이어와 헤드 차원을 옮긴다
         
-        prefix_keys = prefix[..., 0]    # [배치, 레이어, 머리, 프리픽스 길이, 머리 차원]
-        prefix_values = prefix[..., 1]  # [배치, 레이어, 머리, 프리픽스 길이, 머리 차원]
+        prefix_keys = prefix[..., 0]    # [배치, 레이어, 헤드, 프리픽스 길이, 헤드 차원]
+        prefix_values = prefix[..., 1]  # [배치, 레이어, 헤드, 프리픽스 길이, 헤드 차원]
         
         return prefix_keys, prefix_values
 
@@ -408,13 +408,13 @@ class PrefixAttention(nn.Module):
         attention_mask: torch.Tensor = None
     ):
         """
-        열쇠와 값 앞에 프리픽스를 붙여 피드포워드한다.
+        키와 밸류 앞에 프리픽스를 붙여 피드포워드한다.
         """
         # 숨은 상태에서 Q, K, V를 셈한다
         # (짜기는 어텐션 구조에 따라 다르다)
         
         # K와 V 앞에 프리픽스를 붙인다
-        # K = [프리픽스 열쇠; K]
+        # K = [프리픽스 키; K]
         # V = [프리픽스 값; V]
         
         # 프리픽스에 맞춰 어텐션 마스크를 넓힌다(프리픽스는 늘 본다)

@@ -389,7 +389,7 @@ class TransformerBlockWithDropout(nn.Module):
         self.dropout2 = nn.Dropout(dropout)
 
     def forward(self, x, mask=None):
-        # 자기 어텐션: 쿼리·키·값에 모두 같은 x를 넣는다
+        # 자기 어텐션: 쿼리·키·밸류에 모두 같은 x를 넣는다
         attn_out, _ = self.attention(x, x, x, attn_mask=mask)
 
         # 순서가 요점이다. 드롭아웃은 잔차로 더하기 "전"에 걸어야 한다.

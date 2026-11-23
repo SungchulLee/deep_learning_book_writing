@@ -98,14 +98,14 @@ def flash_attention_forward_reference(
     실제 플래시 어텐션은 효율을 위해 CUDA로 짠다.
     
     인수:
-        Q: 물음 [배치, 머리, 차례 길이, 머리 차원]
-        K: 열쇠 [배치, 머리, 차례 길이, 머리 차원]
-        V: 값 [배치, 머리, 차례 길이, 머리 차원]
+        Q: 쿼리 [배치, 헤드, 차례 길이, 헤드 차원]
+        K: 키 [배치, 헤드, 차례 길이, 헤드 차원]
+        V: 밸류 [배치, 헤드, 차례 길이, 헤드 차원]
         block_size: 덩이로 나눌 때의 타일 크기
         causal: 인과 마스크를 쓸지 여부
         
     반환값:
-        내놓기 [배치, 머리, 차례 길이, 머리 차원]
+        내놓기 [배치, 헤드, 차례 길이, 헤드 차원]
     """
     batch_size, num_heads, seq_len, head_dim = Q.shape
     scale = head_dim ** -0.5
@@ -120,7 +120,7 @@ def flash_attention_forward_reference(
     
     # 덩이 단위로 처리한다
     for j in range(num_blocks):
-        # 열쇠-값 덩이 번호
+        # 키-밸류 덩이 번호
         kv_start = j * block_size
         kv_end = min((j + 1) * block_size, seq_len)
         
@@ -128,7 +128,7 @@ def flash_attention_forward_reference(
         Vj = V[:, :, kv_start:kv_end, :]
         
         for i in range(num_blocks):
-            # 물음 덩이 번호
+            # 쿼리 덩이 번호
             q_start = i * block_size
             q_end = min((i + 1) * block_size, seq_len)
             
@@ -230,7 +230,7 @@ class FlashAttention(nn.Module):
         k = self.k_proj(x)
         v = self.v_proj(x)
         
-        # 다중 머리 주의에 맞게 형태를 바꾼다
+        # 멀티헤드 어텐션에 맞게 형태를 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -252,7 +252,7 @@ class FlashAttention(nn.Module):
 
 class FlashAttentionWithKVCache(nn.Module):
     """
-    만들어 내기를 위해 열쇠-값 곳간을 받치는 플래시 어텐션.
+    생성을 위해 키-밸류 캐시를 받치는 플래시 어텐션.
     """
     
     def __init__(
@@ -282,7 +282,7 @@ class FlashAttentionWithKVCache(nn.Module):
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """
-        열쇠-값 곳간을 곁들일 수도 있는 피드포워드.
+        키-밸류 캐시를 곁들일 수도 있는 피드포워드.
         """
         batch_size, seq_len, _ = x.shape
         
@@ -304,7 +304,7 @@ class FlashAttentionWithKVCache(nn.Module):
         present_key_value = (k, v) if use_cache else None
         
         # 플래시 어텐션
-        # 곳간을 쓰는 만들어 내기에서는 물음만 짧다
+        # 캐시를 쓰는 생성에서는 쿼리만 짧다
         is_causal = (past_key_value is None and seq_len > 1)
         
         output = F.scaled_dot_product_attention(
@@ -394,7 +394,7 @@ if __name__ == "__main__":
     print(f"Input shape: {x.shape}")
     print(f"Output shape: {output.shape}")
     
-    # 열쇠-값 곳간으로 시험한다
+    # 키-밸류 캐시로 시험한다
     print("\n--- Testing with KV Cache ---")
     flash_attn_cache = FlashAttentionWithKVCache(d_model, num_heads)
     

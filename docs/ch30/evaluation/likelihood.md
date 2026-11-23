@@ -26,7 +26,7 @@ from typing import Tuple, Optional, Union
 
 class NLLEvaluator:
     """
-    만들어 내는 모델의 음의 로그 가능도 따지개.
+    생성 모델의 음의 로그 가능도 따지개.
     
     음의 로그 가능도는 모델이 실제 자료에 확률을 얼마나 매기는지 잰다.
     음의 로그 가능도가 낮을수록 모델이 자료 분포에 잘 맞는다.
@@ -92,10 +92,10 @@ class NLLEvaluator:
                       test_data: torch.Tensor,
                       batch_size: int = 64) -> dict:
         """
-        음의 로그 가능도로 만들어 내는 모델을 따진다.
+        음의 로그 가능도로 생성 모델을 따진다.
         
         인수:
-            .log_prob() 방법을 지닌 만들어 내는 모델
+            .log_prob() 방법을 지닌 생성 모델
             test_data: 시험 자료 [N, ...]
             batch_size: 따질 배치 크기
         
@@ -289,10 +289,10 @@ class BPDCalculator:
                             images: torch.Tensor,
                             batch_size: int = 64) -> dict:
         """
-        차원마다 비트로 그림 만들어 내는 모델을 따진다.
+        차원마다 비트로 그림 생성 모델을 따진다.
         
         인수:
-            .log_prob() 방법을 지닌 만들어 내는 모델
+            .log_prob() 방법을 지닌 생성 모델
             images: 시험 그림 [N, C, H, W]
             batch_size: 배치 크기
         

@@ -169,7 +169,7 @@ class ScoreNetworkGNN(nn.Module):
                 "norm_e": nn.LayerNorm(hidden_dim),
             }))
 
-        # 내놓는 머리
+        # 내놓는 헤드
         self.score_x = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
             nn.SiLU(),

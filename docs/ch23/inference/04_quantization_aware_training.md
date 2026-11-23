@@ -109,7 +109,7 @@ class SimpleResNet(nn.Module):
         x = self.relu(self.bn4(self.conv4(x)))
         x = x + identity
         
-        # 분류 머리
+        # 분류 헤드
         x = self.pool(x)
         x = torch.flatten(x, 1)
         x = self.fc(x)

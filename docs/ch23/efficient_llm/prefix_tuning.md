@@ -16,7 +16,7 @@
 
 P1 등의 표시는 가상 벡터의 개념도이며 어휘의 실제 토큰 ID나 모델 호출이 아니다. prefix를 넣으면 기반 웨이트가 고정이어도 어텐션 점수·출력은 달라진다. ‘어텐션 웨이트를 바꾸지 않는다’는 표현은 고정된 사영 행렬과 입력마다 새로 계산되는 어텐션 확률을 혼동할 수 있다.
 
-## 2. 키·값 prefix의 모양
+## 2. 키·밸류 prefix의 모양
 
 각 레이어에서 K'=[P_K;K], V'=[P_V;V]로 연결하고 Q가 이 추가 위치를 참조하게 할 수 있다. prefix는 단어의 출력 목표가 아니라 추가 조건이다. 마스크·위치·cache 형식을 해당 기반 모델과 맞춰야 한다.
 
@@ -53,7 +53,7 @@ class PrefixEncoder(nn.Module):
         self.head_dim = head_dim
         self.prefix_length = prefix_length
         
-        # 전체 차원: 레이어 수 * 2(K와 V) * 머리 수 * 머리 차원
+        # 전체 차원: 레이어 수 * 2(K와 V) * 헤드 수 * 헤드 차원
         self.total_dim = num_layers * 2 * num_heads * head_dim
         
         # 배울 수 있는 프리픽스 임베딩
@@ -70,11 +70,11 @@ class PrefixEncoder(nn.Module):
     
     def forward(self, batch_size: int) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        모든 레이어의 프리픽스 열쇠-값 짝을 만든다.
+        모든 레이어의 프리픽스 키-밸류 짝을 만든다.
         
         반환값:
-            prefix_keys: [배치, 레이어 수, 머리 수, 프리픽스 길이, 머리 차원]
-            prefix_values: [배치, 레이어 수, 머리 수, 프리픽스 길이, 머리 차원]
+            prefix_keys: [배치, 레이어 수, 헤드 수, 프리픽스 길이, 헤드 차원]
+            prefix_values: [배치, 레이어 수, 헤드 수, 프리픽스 길이, 헤드 차원]
         """
         device = self.prefix_tokens.weight.device
         
@@ -87,7 +87,7 @@ class PrefixEncoder(nn.Module):
         prefix = self.mlp(prefix_emb)  # [배치, 프리픽스 길이, 전체 차원]
         prefix = self.dropout(prefix)
         
-        # 형태 바꾸기: [배치, 프리픽스 길이, 레이어, 2, 머리, 머리 차원]
+        # 형태 바꾸기: [배치, 프리픽스 길이, 레이어, 2, 헤드, 헤드 차원]
         prefix = prefix.view(
             batch_size,
             self.prefix_length,
@@ -97,10 +97,10 @@ class PrefixEncoder(nn.Module):
             self.head_dim
         )
         
-        # [배치, 레이어, 머리, 프리픽스 길이, 머리 차원, 2]로 자리를 바꾼다
+        # [배치, 레이어, 헤드, 프리픽스 길이, 헤드 차원, 2]로 자리를 바꾼다
         prefix = prefix.permute(0, 2, 4, 1, 5, 3)
         
-        # 열쇠와 값으로 쪼갠다
+        # 키와 밸류로 쪼갠다
         prefix_keys = prefix[..., 0].contiguous()
         prefix_values = prefix[..., 1].contiguous()
         
@@ -141,7 +141,7 @@ class PrefixTuningModel(nn.Module):
         )
     
     def get_prefix(self, batch_size: int):
-        """프리픽스 열쇠-값 짝을 얻는다."""
+        """프리픽스 키-밸류 짝을 얻는다."""
         return self.prefix_encoder(batch_size)
     
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor = None, **kwargs):
@@ -171,10 +171,10 @@ class PrefixTuningModel(nn.Module):
     
     def _format_prefix(self, prefix_keys, prefix_values):
         """허깅페이스 형태 past_key_values에 맞게 프리픽스를 꾸민다."""
-        # 레이어마다 하나씩 (열쇠, 값) 짝의 목록을 돌려준다
+        # 레이어마다 하나씩 (키, 밸류) 짝의 목록을 돌려준다
         past_key_values = []
         for layer_idx in range(prefix_keys.size(1)):
-            layer_key = prefix_keys[:, layer_idx]  # [배치, 머리, 프리픽스 길이, 머리 차원]
+            layer_key = prefix_keys[:, layer_idx]  # [배치, 헤드, 프리픽스 길이, 헤드 차원]
             layer_value = prefix_values[:, layer_idx]
             past_key_values.append((layer_key, layer_value))
         return tuple(past_key_values)
@@ -191,9 +191,9 @@ PrefixTuningModel은 기반을 동결하고 과거 KV tuple로 prefix를 전달�
 ```python
 class PrefixAttention(nn.Module):
     """
-    프리픽스를 받치는 여러 머리 어텐션.
+    프리픽스를 받치는 멀티헤드 어텐션.
     
-    어텐션을 셈하기 앞서 열쇠와 값 앞에 프리픽스를 붙인다.
+    어텐션을 셈하기 앞서 키와 밸류 앞에 프리픽스를 붙인다.
     """
     
     def __init__(
@@ -229,8 +229,8 @@ class PrefixAttention(nn.Module):
         인수:
             hidden_states: [배치, 차례 길이, d_model]
             attention_mask: [배치, 차례 길이] 또는 [배치, 1, 차례 길이, 전체 길이]
-            prefix_key: [배치, 머리 수, 프리픽스 길이, 머리 차원]
-            prefix_value: [배치, 머리 수, 프리픽스 길이, 머리 차원]
+            prefix_key: [배치, 헤드 수, 프리픽스 길이, 헤드 차원]
+            prefix_value: [배치, 헤드 수, 프리픽스 길이, 헤드 차원]
         """
         batch_size, seq_len, _ = hidden_states.shape
         
@@ -239,14 +239,14 @@ class PrefixAttention(nn.Module):
         k = self.k_proj(hidden_states)
         v = self.v_proj(hidden_states)
         
-        # [배치, 머리, 차례 길이, 머리 차원] 형태로 바꾼다
+        # [배치, 헤드, 차례 길이, 헤드 차원] 형태로 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         
         # K와 V 앞에 프리픽스를 붙인다
         if prefix_key is not None and prefix_value is not None:
-            k = torch.cat([prefix_key, k], dim=2)  # [배치, 머리, 프리픽스+차례, 머리 차원]
+            k = torch.cat([prefix_key, k], dim=2)  # [배치, 헤드, 프리픽스+차례, 헤드 차원]
             v = torch.cat([prefix_value, v], dim=2)
         
         # 어텐션 계산
@@ -268,7 +268,7 @@ class PrefixAttention(nn.Module):
         attn_weights = torch.softmax(attn_weights, dim=-1)
         attn_weights = self.dropout(attn_weights)
         
-        # 값에 어텐션 적용
+        # 밸류에 어텐션 적용
         attn_output = torch.matmul(attn_weights, v)
         
         # 형태를 바꾸고 사영한다
@@ -308,7 +308,7 @@ class DirectPrefixEncoder(nn.Module):
         self.prefix_length = prefix_length
         
         # 곧바로 배우는 파라메터
-        # 형태: [프리픽스 길이, 레이어, 2, 머리, 머리 차원]
+        # 형태: [프리픽스 길이, 레이어, 2, 헤드, 헤드 차원]
         self.prefix = nn.Parameter(
             torch.randn(prefix_length, num_layers, 2, num_heads, head_dim) * 0.01
         )
@@ -317,7 +317,7 @@ class DirectPrefixEncoder(nn.Module):
         # 배치에 맞춰 넓힌다
         prefix = self.prefix.unsqueeze(0).expand(batch_size, -1, -1, -1, -1, -1)
         
-        # [배치, 레이어, 머리, 프리픽스 길이, 머리 차원, 2]로 자리를 바꾼다
+        # [배치, 레이어, 헤드, 프리픽스 길이, 헤드 차원, 2]로 자리를 바꾼다
         prefix = prefix.permute(0, 2, 4, 1, 5, 3)
         
         return prefix[..., 0].contiguous(), prefix[..., 1].contiguous()
@@ -353,7 +353,7 @@ class PromptTuning(nn.Module):
         # 배울 수 있는 시킴말 임베딩
         self.prompt_embeddings = nn.Embedding(num_virtual_tokens, embedding_dim)
         
-        # 고를 수 있음: 단어 곳간에서 초기화한다
+        # 고를 수 있음: 단어집에서 초기화한다
         if init_from_vocab and init_text is not None:
             self._init_from_text(init_text)
     

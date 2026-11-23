@@ -62,7 +62,7 @@ Input:  Trained noise predictor ε_θ, noise schedule {β_t, ᾱ_t}_{t=1}^T
 """
 DDPM 뽑기
 =============
-조건 없는 만들어 내기, 분류기 이끌기, 분류기 없는 이끌기를 받쳐 주는
+조건 없는 생성, 분류기 이끌기, 분류기 없는 이끌기를 받쳐 주는
 DDPM 조상 뽑기의 온전한 짜기.
 """
 
@@ -515,7 +515,7 @@ samples = sampler.sample(shape=(64, 3, 64, 64), show_progress=True)
 배치 처리는 연산 활용률을 높일 수 있지만 메모리와 모델 구조에 제약을 받는다. 일반 샘플링의 모델 호출 수는 배치당 T회이며 이미지 수만큼 T에 다시 곱한 순차 호출을 수행하는 것은 아니다. 벽시계 시간은 배치 크기·해상도·정밀도·어텐션·장치 등에 따라 측정해야 한다. 파라미터 수만으로 U-Net의 FLOPs나 메모리를 결정할 수 없다.
 
 ```python
-# 되풀이할 수 있는 만들어 내기
+# 되풀이할 수 있는 생성
 generator = torch.Generator(device=device).manual_seed(42)
 x_T = torch.randn(shape, device=device, generator=generator)
 ```

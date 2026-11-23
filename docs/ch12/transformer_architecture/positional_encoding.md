@@ -731,7 +731,7 @@ class ALiBiAttention(nn.Module):
         attn_weights = torch.softmax(scores, dim=-1)
         attn_weights = self.dropout(attn_weights)
         
-        # 값에 어텐션 적용
+        # 밸류에 어텐션 적용
         output = torch.matmul(attn_weights, v)
         
         # 형태를 바꾸고 투영한다
@@ -1481,7 +1481,7 @@ class ALiBiPositionalBias(nn.Module):
         
         인수:
             query_len: 쿼리 위치의 수(대개 1)
-            kv_len: 캐시를 넣은 키·값의 전체 길이
+            kv_len: 캐시를 넣은 키·밸류의 전체 길이
             
         반환값:
             바이어스 텐서 [num_heads, query_len, kv_len]

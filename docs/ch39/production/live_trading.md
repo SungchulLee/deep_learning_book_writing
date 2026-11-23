@@ -238,7 +238,7 @@ def demo_live_trading():
             print(f"\n스텝 {step}: 몫={np.round(result['weights'], 3)}")
 
     print(f"\n마지막 주문 수: {len(system.order_manager.orders)}")
-    print(f"결 곳간의 종목: {list(system.feature_store.feature_cache.keys())}")
+    print(f"결 캐시의 종목: {list(system.feature_store.feature_cache.keys())}")
 
 
 if __name__ == "__main__":
@@ -264,7 +264,7 @@ if __name__ == "__main__":
 스텝 9: 몫=[0.2 0.2 0.2 0.2 0.2]
 
 마지막 주문 수: 5
-결 곳간의 종목: ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'META']
+결 캐시의 종목: ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'META']
 ```
 
 ## 2. 논의

@@ -7,7 +7,7 @@
 ```python
 """
 29.3.6: 그림 눈여겨보기 네트워크(GAT)
-그래프 위의 여러 머리 어텐션.
+그래프 위의 멀티헤드 어텐션.
 """
 
 import torch
@@ -22,7 +22,7 @@ import networkx as nx
 
 
 class GATConvManual(nn.Module):
-    """여러 머리 어텐션을 쓰는 GAT 겹말기 레이어."""
+    """멀티헤드 어텐션을 쓰는 GAT 겹말기 레이어."""
 
     def __init__(self, in_ch, out_ch, heads=1, concat=True,
                  dropout=0.0, negative_slope=0.2):

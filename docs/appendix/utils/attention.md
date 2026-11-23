@@ -56,7 +56,7 @@ def scaled_dot_product_attention(Q, K, V, mask=None):
     # 키 차원을 따라 소프트맥스
     attn = F.softmax(scores, dim=-1)
 
-    # 값의 가중합
+    # 밸류의 가중합
     out = attn @ V
     return out, attn
 
@@ -86,7 +86,7 @@ class MultiHeadAttention(nn.Module):
     def forward(self, x, context=None, mask=None):
         """
         x: (B, Tq, D) 쿼리는 x에서 온다
-        context: (B, Tk, D) 키와 값은 context에서 온다(None이면 셀프 어텐션)
+        context: (B, Tk, D) 키와 밸류는 context에서 온다(None이면 셀프 어텐션)
         mask: (B, H, Tq, Tk)로 브로드캐스트할 수 있는, 선택적 마스크
         """
         if context is None:
@@ -182,7 +182,7 @@ if __name__ == "__main__":
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff hard" title="어려움"></span>
-어텐션 웨이트 뒤(값과 곱하기 앞)에 드롭아웃 레이어를 추가하여라. 트레인하는 동안 드롭아웃 비율 0.1을 써라. 어텐션 드롭아웃이 정칙화에 왜 도움이 되는지 설명하여라.
+어텐션 웨이트 뒤(밸류와 곱하기 앞)에 드롭아웃 레이어를 추가하여라. 트레인하는 동안 드롭아웃 비율 0.1을 써라. 어텐션 드롭아웃이 정칙화에 왜 도움이 되는지 설명하여라.
 
 </div>
 
@@ -199,7 +199,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도는 $O(n^2 d)$, 어텐션 웨이트의 메모리는 $O(n^2)$이다. 시퀀스가 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 슬라이딩 윈도 국소 어텐션($O(n \cdot w \cdot d)$, $w$는 윈도 크기)과 선택한 토큰에 대한 희소한 전역 어텐션을 함께 쓴다. Linformer는 키와 값을 더 낮은 차원 $k \ll n$으로 투영하여 복잡도를 $O(n \cdot k \cdot d)$로 줄인다. 둘 다 표현력을 얼마쯤 내주고 긴 입력에서 효율을 얻는다.
+    표준 셀프 어텐션은 $n \times n$ 어텐션 행렬을 계산하므로 시간 복잡도는 $O(n^2 d)$, 어텐션 웨이트의 메모리는 $O(n^2)$이다. 시퀀스가 길면($n = 4096$ 따위) 감당할 수 없다. Longformer는 슬라이딩 윈도 국소 어텐션($O(n \cdot w \cdot d)$, $w$는 윈도 크기)과 선택한 토큰에 대한 희소한 전역 어텐션을 함께 쓴다. Linformer는 키와 밸류를 더 낮은 차원 $k \ll n$으로 투영하여 복잡도를 $O(n \cdot k \cdot d)$로 줄인다. 둘 다 표현력을 얼마쯤 내주고 긴 입력에서 효율을 얻는다.
 
 ---
 

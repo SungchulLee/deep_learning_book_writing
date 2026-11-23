@@ -33,7 +33,7 @@
 
 ## 5. 추론과 모델 압축
 
-- [KV 캐시](inference/kv_cache.md): 이전 키·값을 재사용하는 디코딩과 캐시 메모리
+- [KV 캐시](inference/kv_cache.md): 이전 키·밸류를 재사용하는 디코딩과 캐시 메모리
 - [FlashAttention](inference/flash_attention.md): 블록 계산과 온라인 소프트맥스로 메모리 입출력 줄이기
 - [Speculative Decoding](inference/speculative_decoding.md): 초안 생성, 병렬 검증과 분포를 보존하는 보정
 - [모델 압축 개요](inference/model_compression_overview.md): 양자화·가지치기·증류의 역할과 측정 기준

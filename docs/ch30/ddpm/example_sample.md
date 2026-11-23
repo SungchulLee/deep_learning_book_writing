@@ -727,7 +727,7 @@ class AttentionBlock(nn.Module):
         attn = attn / (channels // self.num_heads) ** 0.5
         attn = F.softmax(attn, dim=-1)
         
-        # 값에 어텐션 적용
+        # 밸류에 어텐션 적용
         out = torch.matmul(attn, v)
         out = out.permute(0, 1, 3, 2).reshape(batch, channels, height, width)
         

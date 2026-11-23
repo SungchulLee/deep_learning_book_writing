@@ -396,7 +396,7 @@ class InfiniteMixturePrototypes(nn.Module):
 
 ### 어텐션으로 보정하는 프로토타입
 
-이 구현의 어텐션은 프로토타입을 쿼리로, 서포트 임베딩을 키·값으로 사용한다. 변수 이름과 달리 분류할 쿼리 임베딩을 키·값으로 사용하지 않는다. 다만 공동 인코딩의 BatchNorm 통계를 통해 쿼리 배치가 간접 영향을 줄 수 있다.
+이 구현의 어텐션은 프로토타입을 쿼리로, 서포트 임베딩을 키·밸류로 사용한다. 변수 이름과 달리 분류할 쿼리 임베딩을 키·밸류로 사용하지 않는다. 다만 공동 인코딩의 BatchNorm 통계를 통해 쿼리 배치가 간접 영향을 줄 수 있다.
 
 ```python
 class TaskAdaptivePrototypes(nn.Module):
@@ -434,7 +434,7 @@ class TaskAdaptivePrototypes(nn.Module):
         prototypes = torch.stack(prototypes)  # (n_way, embed_dim)
         
         # 어텐션으로 보정한다
-        # 쿼리: 프로토타입, 키와 값: 서포트 전체
+        # 쿼리: 프로토타입, 키와 밸류: 서포트 전체
         refined_prototypes, _ = self.query_attention(
             prototypes.unsqueeze(0),
             support_embeddings.unsqueeze(0),

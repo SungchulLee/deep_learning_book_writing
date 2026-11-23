@@ -428,7 +428,7 @@ KV 캐시를 저비트로 저장하면 긴 문맥의 메모리를 줄일 수 있
 ```python
 class QuantizedKVCache:
     """
-    양자화해 저장하는 키-값(KV) 캐시.
+    양자화해 저장하는 키-밸류(KV) 캐시.
     """
     
     def __init__(self, bits: int = 8):
@@ -443,7 +443,7 @@ class QuantizedKVCache:
         new_keys: torch.Tensor,
         new_values: torch.Tensor
     ):
-        """새 키와 값을 캐시에 더한다."""
+        """새 키와 밸류를 캐시에 더한다."""
         # 새 항목을 양자화한다
         k_scale, k_zp = compute_scale_zero(new_keys, self.bits)
         v_scale, v_zp = compute_scale_zero(new_values, self.bits)
@@ -463,7 +463,7 @@ class QuantizedKVCache:
         self.value_scales.append((v_scale, v_zp))
     
     def get_keys_values(self) -> Tuple[torch.Tensor, torch.Tensor]:
-        """역양자화한 키와 값을 가져온다."""
+        """역양자화한 키와 밸류를 가져온다."""
         # 간단히 하려고 가장 최근 스케일을 쓴다
         # 실전에서는 토큰마다나 그룹마다의 스케일을 쓴다
         k_scale, k_zp = self.key_scales[-1]

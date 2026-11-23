@@ -29,7 +29,7 @@ np.random.seed(0)
 
 class PortfolioActionHead(nn.Module):
     """
-    클래스별 매임을 지닌 밑천 나누기 액션 머리.
+    클래스별 매임을 지닌 밑천 나누기 액션 헤드.
     
     클래스:
     - 'softmax': 사기만 하며 무게 합이 1이다
@@ -111,7 +111,7 @@ def demo_action_spaces():
     print("Action Space Demonstrations")
     print("=" * 60)
     
-    # 밑천 액션 머리
+    # 밑천 액션 헤드
     features = torch.randn(4, 64)  # 배치 크기 4
     n_assets = 5
     

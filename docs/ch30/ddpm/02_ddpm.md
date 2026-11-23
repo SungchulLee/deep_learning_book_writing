@@ -196,7 +196,7 @@
 
     class SelfAttention2d(nn.Module):
         """
-        2차원 피처 지도의 여러 머리 셀프 어텐션.
+        2차원 피처 지도의 멀티헤드 셀프 어텐션.
         멀리 떨어진 공간의 매임을 담는다.
         """
         def __init__(self, channels, num_heads=4):
@@ -226,7 +226,7 @@
             attn = torch.einsum("bhcn,bhcm->bhnm", q, k) * self.scale
             attn = attn.softmax(dim=-1)
 
-            # 값에 어텐션 적용
+            # 밸류에 어텐션 적용
             out = torch.einsum("bhnm,bhcm->bhcn", attn, v)
             out = out.reshape(b, c, h, w)
             out = self.proj(out)
@@ -530,7 +530,7 @@
     class EMA:
         """
         모델 파라메터의 지수 이동 평균을 지킨다.
-        안정되고 품질 높은 만들어 내기에 결정적이다.
+        안정되고 품질 높은 생성에 결정적이다.
         """
         def __init__(self, model, decay=0.9999):
             self.decay = decay

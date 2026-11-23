@@ -603,7 +603,7 @@ class NeuralODEClassifier(nn.Module):
     구조:
         1. 줄이는 컨볼루션(들임 → 피처)
         2. 뉴럴 상미분 방정식 덩이(이어진 바꿈)
-        3. 가름 머리(피처 → 로짓)
+        3. 가름 헤드(피처 → 로짓)
     """
     
     def __init__(self, in_channels: int = 1, 
@@ -634,7 +634,7 @@ class NeuralODEClassifier(nn.Module):
             solver='dopri5'
         )
         
-        # 분류 머리
+        # 분류 헤드
         self.classifier = nn.Sequential(
             nn.ReLU(),
             nn.Linear(hidden_dim, num_classes)

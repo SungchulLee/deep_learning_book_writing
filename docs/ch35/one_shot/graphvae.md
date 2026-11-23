@@ -189,13 +189,13 @@ class GraphDecoder(nn.Module):
             nn.ReLU(),
         )
 
-        # 이웃 행렬 머리
+        # 이웃 행렬 헤드
         self.adj_head = nn.Linear(hidden_dim, n_edges)
 
-        # 마디가 있는지 머리
+        # 마디가 있는지 헤드
         self.node_head = nn.Linear(hidden_dim, max_nodes)
 
-        # 마디 피처 머리
+        # 마디 피처 헤드
         self.feat_head = nn.Linear(hidden_dim, max_nodes * node_feature_dim)
         self.node_feature_dim = node_feature_dim
 

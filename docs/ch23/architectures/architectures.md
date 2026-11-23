@@ -1,6 +1,6 @@
 # 대규모 언어 모델의 구조 변형
 
-정규화 위치, FFN, 위치 표현과 키·값 head 공유는 트랜스포머의 계산·메모리·트레인에 영향을 준다. 여러 모델이 이 선택들을 조합하지만 모든 대규모 언어 모델이 같은 구성을 사용하는 것은 아니다. 구조의 이론적 이점과 아래 부분 구현에서 실제 얻는 효과도 구분한다.
+정규화 위치, FFN, 위치 표현과 키·밸류 head 공유는 트랜스포머의 계산·메모리·트레인에 영향을 준다. 여러 모델이 이 선택들을 조합하지만 모든 대규모 언어 모델이 같은 구성을 사용하는 것은 아니다. 구조의 이론적 이점과 아래 부분 구현에서 실제 얻는 효과도 구분한다.
 
 ## 1. 정규화 위치와 RMSNorm
 
@@ -80,13 +80,13 @@ class RotaryEmbedding(nn.Module):
     
     def forward(self, q: torch.Tensor, k: torch.Tensor, positions: torch.Tensor):
         """
-        물음과 열쇠에 돌림 임베딩을 적용한다.
+        쿼리와 키에 회전 임베딩을 적용한다.
         
         인수:
-            q, k: (배치, 머리, 차례 길이, 머리 차원)
+            q, k: (배치, 헤드, 차례 길이, 헤드 차원)
             positions: (차례 길이,) 자리 번호
         """
-        cos = self.cos_cached[positions]  # (차례 길이, 머리 차원/2)
+        cos = self.cos_cached[positions]  # (차례 길이, 헤드 차원/2)
         sin = self.sin_cached[positions]
         
         q_rotated = self._apply_rotary(q, cos, sin)
@@ -95,7 +95,7 @@ class RotaryEmbedding(nn.Module):
         return q_rotated, k_rotated
     
     def _apply_rotary(self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor):
-        """텐서에 돌림을 적용한다."""
+        """텐서에 회전을 적용한다."""
         # 짝으로 쪼갠다
         x1, x2 = x[..., ::2], x[..., 1::2]
         
@@ -112,7 +112,7 @@ class RotaryEmbedding(nn.Module):
 
 ```python
 def ntk_scaled_rope(dim: int, max_seq_len: int, base: int = 10000, scale: float = 2.0):
-    """맥락을 넓히기 위한 NTK를 헤아린 돌림 자리 임베딩 스케일 맞추기."""
+    """맥락을 넓히기 위한 NTK를 헤아린 회전 위치 임베딩 스케일 맞추기."""
     # 더 긴 차례를 위해 밑을 늘린다
     scaled_base = base * (scale ** (dim / (dim - 2)))
     inv_freq = 1.0 / (scaled_base ** (torch.arange(0, dim, 2).float() / dim))
@@ -123,19 +123,19 @@ ntk_scaled_rope는 base'=base·scale^(d/(d−2))로 주파수를 바꾸는 예�
 
 ## 4. MHA·MQA·GQA
 
-MHA는 각 쿼리 head에 키·값 head를 대응시킨다. MQA는 모든 쿼리가 한 KV head를 공유하고, [GQA](https://arxiv.org/abs/2305.13245)는 그 사이의 개수로 KV head를 공유한다.
+MHA는 각 쿼리 head에 키·밸류 head를 대응시킨다. MQA는 모든 쿼리가 한 KV head를 공유하고, [GQA](https://arxiv.org/abs/2305.13245)는 그 사이의 개수로 KV head를 공유한다.
 
 ```python
 class MultiQueryAttention(nn.Module):
-    """여러 물음 어텐션: 열쇠-값 머리 하나, 물음 머리 여럿."""
+    """멀티 쿼리 어텐션: 키-밸류 헤드 하나, 쿼리 헤드 여럿."""
     
     def __init__(self, dim: int, num_heads: int):
         super().__init__()
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
         
-        self.q_proj = nn.Linear(dim, dim)  # 물음 머리 여럿
-        self.k_proj = nn.Linear(dim, self.head_dim)  # 열쇠-값 머리 하나
+        self.q_proj = nn.Linear(dim, dim)  # 쿼리 헤드 여럿
+        self.k_proj = nn.Linear(dim, self.head_dim)  # 키-밸류 헤드 하나
         self.v_proj = nn.Linear(dim, self.head_dim)
         self.o_proj = nn.Linear(dim, dim)
     
@@ -143,10 +143,10 @@ class MultiQueryAttention(nn.Module):
         B, L, _ = x.shape
         
         q = self.q_proj(x).view(B, L, self.num_heads, self.head_dim)
-        k = self.k_proj(x).view(B, L, 1, self.head_dim)  # 머리 하나
+        k = self.k_proj(x).view(B, L, 1, self.head_dim)  # 헤드 하나
         v = self.v_proj(x).view(B, L, 1, self.head_dim)
         
-        # k, v를 물음 머리에 걸쳐 퍼뜨린다
+        # k, v를 쿼리 헤드에 걸쳐 퍼뜨린다
         k = k.expand(-1, -1, self.num_heads, -1)
         v = v.expand(-1, -1, self.num_heads, -1)
         
@@ -160,13 +160,13 @@ class MultiQueryAttention(nn.Module):
 
 ```python
 class GroupedQueryAttention(nn.Module):
-    """무리 지은 물음 어텐션: 열쇠-값 머리 수 < 물음 머리 수."""
+    """그룹 쿼리 어텐션: 키-밸류 헤드 수 < 쿼리 헤드 수."""
     
     def __init__(
         self, 
         dim: int, 
         num_heads: int, 
-        num_kv_heads: int  # LLaMA-2 70B는 열쇠-값 머리 8개, 물음 머리 64개를 쓴다
+        num_kv_heads: int  # LLaMA-2 70B는 키-밸류 헤드 8개, 쿼리 헤드 64개를 쓴다
     ):
         super().__init__()
         self.num_heads = num_heads
@@ -186,12 +186,12 @@ class GroupedQueryAttention(nn.Module):
         k = self.k_proj(x).view(B, L, self.num_kv_heads, self.head_dim)
         v = self.v_proj(x).view(B, L, self.num_kv_heads, self.head_dim)
         
-        # 물음 머리 수에 맞추려 열쇠-값 머리를 되풀이한다
+        # 쿼리 헤드 수에 맞추려 키-밸류 헤드를 되풀이한다
         k = k.repeat_interleave(self.num_groups, dim=2)
         v = v.repeat_interleave(self.num_groups, dim=2)
         
         # 여느 어텐션 셈하기
-        q = q.transpose(1, 2)  # (배치, 머리, 길이, 차원)
+        q = q.transpose(1, 2)  # (배치, 헤드, 길이, 차원)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
         
@@ -277,13 +277,13 @@ class LLaMABlock(nn.Module):
         self.attention_norm = RMSNorm(dim, eps=norm_eps)
         self.ffn_norm = RMSNorm(dim, eps=norm_eps)
         
-        # 무리 지은 물음 어텐션
+        # 그룹 쿼리 어텐션
         self.attention = GroupedQueryAttention(dim, num_heads, num_kv_heads)
         
         # SwiGLU 피드포워드 네트워크
         self.ffn = SwiGLU(dim, int(dim * ffn_dim_multiplier))
         
-        # 돌림 자리 임베딩
+        # 회전 위치 임베딩
         self.rope = RotaryEmbedding(dim // num_heads)
     
     def forward(

@@ -139,7 +139,7 @@
                 nn.Tanh(),
             )
 
-            # 평균 머리
+            # 평균 헤드
             self.mean_head = layer_init(nn.Linear(hidden_dim, act_dim), std=0.01)
 
             if state_dependent_std:
@@ -343,7 +343,7 @@
         """
         등뼈를 함께 쓰는 액터-크리틱 네트워크.
 
-        함께 쓰는 피처 뽑개에 폴리시 머리와 값 머리를 따로 둔다.
+        함께 쓰는 피처 뽑개에 폴리시 헤드와 밸류 헤드를 따로 둔다.
         따로 떨어진 액션 공간과 이어진 액션 공간을 모두 받쳐 준다.
         """
 
@@ -365,14 +365,14 @@
                 nn.Tanh(),
             )
 
-            # 폴리시 머리
+            # 폴리시 헤드
             if continuous:
                 self.mean_head = layer_init(nn.Linear(hidden_dim, act_dim), std=0.01)
                 self.log_std = nn.Parameter(torch.zeros(act_dim))
             else:
                 self.policy_head = layer_init(nn.Linear(hidden_dim, act_dim), std=0.01)
 
-            # 값 머리
+            # 밸류 헤드
             self.value_head = layer_init(nn.Linear(hidden_dim, 1), std=1.0)
 
         def get_value(self, obs: torch.Tensor) -> torch.Tensor:

@@ -117,7 +117,7 @@ $\frac{1}{\sqrt{2}}$ 값은 대각 몫과 저랭크 몫을 합칠 때 스케일�
 날임: SWAG 파라메터 (θ̄, Σ_diag, D)
 
 1. 첫자리: θ̄ = 0, θ̄² = 0, D = [], n = 0
-2. 러닝 비율을 SWA 짜임(붙박이 또는 돌림)으로 둔다
+2. 러닝 비율을 SWA 짜임(붙박이 또는 주기)으로 둔다
 3. 몸풀기 뒤의 판마다:
    a. SGD으로 c번 되돌아 익힌다
    b. 달리는 자를 고친다:
@@ -424,7 +424,7 @@ class SWAG:
 
 class SWAGTrainer:
     """
-    돌림 러닝 비율을 쓰는 SWAG 익힘개.
+    주기적 러닝 비율을 쓰는 SWAG 익힘개.
     """
     
     def __init__(
@@ -448,7 +448,7 @@ class SWAGTrainer:
         lr_min : float
             가장 작은 러닝 비율
         cycle_length : int
-            돌림 하나의 판 수
+            주기 하나의 판 수
         swa_start : int
             SWAG 모으기를 비롯할 판
         """
@@ -460,12 +460,12 @@ class SWAGTrainer:
         self.swa_start = swa_start
     
     def get_lr(self, epoch: int) -> float:
-        """돌림 러닝 비율 짜임."""
+        """주기적 러닝 비율 짜임."""
         if epoch < self.swa_start:
             # 곧은 몸풀기 또는 붙박이
             return self.lr_init
         
-        # swa_start 뒤로는 돌림
+        # swa_start 뒤로는 주기
         cycle_epoch = (epoch - self.swa_start) % self.cycle_length
         t = cycle_epoch / self.cycle_length
         
@@ -506,7 +506,7 @@ class SWAGTrainer:
             new_params = params - lr * grads
             self.model.set_params(new_params)
         
-        # 돌림 끝(러닝 비율이 낮을 때) SWAG를 고친다
+        # 주기 끝(러닝 비율이 낮을 때) SWAG를 고친다
         if epoch >= self.swa_start:
             cycle_epoch = (epoch - self.swa_start) % self.cycle_length
             if cycle_epoch == self.cycle_length - 1:
@@ -655,14 +655,14 @@ def demo_swag():
     # SWAG 모으기 도막
     print("SWAG 자를 모으는 중...")
     for epoch in range(30):
-        # 돌림 러닝 비율
+        # 주기적 러닝 비율
         t = (epoch % 5) / 5
         lr = 0.001 + 0.009 * (1 + np.cos(np.pi * t)) / 2
         
         _, grads = model.compute_gradients(X, y)
         model.set_params(model.get_params() - lr * grads)
         
-        # 돌림 끝에서 모은다
+        # 주기 끝에서 모은다
         if (epoch + 1) % 5 == 0:
             swag.update(model.get_params())
     
