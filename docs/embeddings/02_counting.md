@@ -459,11 +459,12 @@ Positive Pointwise Mutual Information, 곧 양의 점별 상호정보량의 줄�
 | Pointwise | 모든 쌍에 걸친 평균이 아니라 **쌍 $(a, b)$ 하나**의 값 | 합 $\sum_{a,b}$ 이 없다 |
 | Positive | 음수를 0으로 자른다 | $\max(0, \cdot)$ |
 
+맨 앞의 Positive 를 뗀 것이 **PMI** 다 — Pointwise Mutual Information, 점별 상호정보량.
+
 $$
 \mathrm{PMI}(a, b) \;=\; \log \frac{P(a, b)}{P(a)\,P(b)},
 \qquad
 \mathrm{PPMI}(a, b) \;=\; \max\bigl(0,\; \mathrm{PMI}(a, b)\bigr)
-\;=\; \max\left(0,\; \log \frac{P(a, b)}{P(a)\,P(b)}\right)
 $$
 
 세 확률은 모두 단어 동시 출현 행렬에서 센다. $(a, b)$ 칸의 횟수를 $n(a, b)$ 라 하면

@@ -476,7 +476,7 @@ if __name__ == "__main__":
 
 $$w_i^\top \tilde w_j \;\approx\; \log X_{ij} - \log X_i - \log X_j \;=\; \mathrm{PMI}(i, j) - \log\textstyle\sum X$$
 
-**곧 내적이 PMI가 되어야 한다** — [6.1절의 세는 길 쪽](02_counting.md)이 SVD로 분해한 바로 그 양이다. 세 길이 같은 표에 닿는다는 이야기가 여기서 닫히는 것처럼 보인다.
+**곧 내적이 PMI가 되어야 한다** — PMI 는 Pointwise Mutual Information(점별 상호정보량)이고, [6.1절의 세는 길 쪽](02_counting.md)이 SVD로 분해한 바로 그 양이다. 세 길이 같은 표에 닿는다는 이야기가 여기서 닫히는 것처럼 보인다.
 
 재어 보았다.
 
