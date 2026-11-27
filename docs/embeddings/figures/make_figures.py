@@ -10,6 +10,7 @@ make_figures.py - 6장의 그림을 만든다
     svd_lsa.svg  특잇값 분해의 행렬 크기(얼개)와, awful 로 찾은 글의 코사인 분포
     why_embedding.svg  픽셀 평균과 코드 평균, 번호 그대로 대 임베딩의 정확도
     svd_hand.svg 3 x 2 행렬 하나를 특잇값 분해한 두 조각
+    word_order_lost.svg  순서가 정반대인 두 문장이 Skip-gram 에 같은 짝을 낸다
 
 왜 이 둘인가:
     6.6 쪽의 요점은 **그림이 그럴듯해 보이는 것과 가까움이 지켜진 것은
@@ -321,6 +322,48 @@ def fig_skipgram_task():
     fig.subplots_adjust(left=0.02, right=0.98, top=0.98, bottom=0.02)
     fig.savefig("skipgram_task.svg", transparent=True)
     plt.close(fig); print("wrote skipgram_task.svg")
+
+
+def fig_word_order_lost():
+    """6.1 Skip-gram 쪽 3절 - 순서가 정반대인 두 문장이 같은 짝을 낸다.
+
+    「the dog bit the man」과 「the man bit the dog」을 위아래로 놓고
+    가운데 bit 에서 주위로 화살표를 그린다. 오른쪽의 짝 목록은 그 쪽의
+    프로그램이 센 것과 같다(dog, man, the, the). 지어낸 수는 없다.
+    """
+    sents = [["the", "dog", "bit", "the", "man"],
+             ["the", "man", "bit", "the", "dog"]]
+    centre = 2
+    fig, ax = plt.subplots(figsize=(9.6, 3.6))
+    ax.set_xlim(-0.6, 8.4); ax.set_ylim(-0.2, 3.9); ax.axis("off")
+
+    for row, (sent, y) in enumerate(zip(sents, (2.75, 0.75))):
+        for i, w in enumerate(sent):
+            is_c = i == centre
+            ax.text(i, y, w, ha="center", va="center", fontsize=13,
+                    color="white" if is_c else "#111827",
+                    bbox=dict(boxstyle="round,pad=0.34",
+                              facecolor="#b91c1c" if is_c else "#fee2e2",
+                              edgecolor="#b91c1c" if is_c else "none"))
+            if not is_c:
+                ax.annotate("", (i, y - 0.36), (centre, y - 0.36),
+                            arrowprops=dict(arrowstyle="->", color="#b91c1c",
+                                            lw=1.1, alpha=0.65,
+                                            connectionstyle="arc3,rad=%s"
+                                            % ("-0.45" if i < centre else "0.45")))
+        ctx = sorted(w for i, w in enumerate(sent) if i != centre)
+        ax.text(5.6, y, "pairs of bit:  " + ", ".join(ctx), ha="left",
+                va="center", fontsize=11.5, color="#374151")
+
+    ax.text(7.75, 1.75, "same", ha="right", va="center", fontsize=13,
+            color="#b91c1c", fontweight="bold")
+    ax.annotate("", (7.9, 1.05), (7.9, 2.45),
+                arrowprops=dict(arrowstyle="<->", color="#b91c1c", lw=1.3))
+    ax.text(3.9, 3.7, "who bit whom is opposite - the training pairs are identical",
+            ha="center", fontsize=11, color="#374151")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+    fig.savefig("word_order_lost.svg", transparent=True)
+    plt.close(fig); print("wrote word_order_lost.svg")
 
 
 def fig_negative_sampling_scaling():
@@ -1055,3 +1098,4 @@ if __name__ == "__main__":
     fig_svd_lsa()
     fig_why_embedding()
     fig_svd_hand()
+    fig_word_order_lost()
