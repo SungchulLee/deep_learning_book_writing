@@ -182,7 +182,7 @@ class StableDiscriminator(nn.Module):
         )
 ```
 
-예시는 선형 레이어에 정규화를 걸지만 StableDiscriminator에는 forward가 없어 그대로 호출할 수 없다. nn import도 필요하다. 전체 함수의 Lipschitz 성질은 각 레이어·활성화·잔차 등 전체 합성에 달려 있고 수치 노름 추정도 고려해야 한다. 정규화만으로 모든 GAN의 수렴을 보장하지 않는다.
+예시는 선형 레이어에 정규화를 걸지만 StableDiscriminator에는 forward가 없어 그대로 호출할 수 없다. nn import도 필요하다. 전체 함수의 Lipschitz 성질은 각 레이어·엑티베이션·잔차 등 전체 합성에 달려 있고 수치 노름 추정도 고려해야 한다. 정규화만으로 모든 GAN의 수렴을 보장하지 않는다.
 
 [WGAN-GP](https://arxiv.org/abs/1704.00028)는 critic의 입력 그래디언트 노름을 표본 보간점에서 벌하는 방법을 제안했다.
 

@@ -16,7 +16,7 @@ $$\mathbf{z} = \mathbf{x}A + \mathbf{b}$$
 
 $$\mathbf{x} \in \mathbb{R}^{1 \times D},\quad A \in \mathbb{R}^{D \times K},\quad \mathbf{b} \in \mathbb{R}^{K},\quad \mathbf{z} \in \mathbb{R}^{1 \times K}$$
 
-여기에는 은닉 레이어나 중간 비선형 활성화가 없고, 확률 변환에만 소프트맥스를 쓴다. 이 레이어 하나가 모델의 전부이므로, 앞 절(2.6 로지스틱 회귀)에서 본 대로 두 클래스 사이의 결정 경계는 초평면이 된다.
+여기에는 은닉 레이어나 중간 비선형 엑티베이션이 없고, 확률 변환에만 소프트맥스를 쓴다. 이 레이어 하나가 모델의 전부이므로, 앞 절(2.6 로지스틱 회귀)에서 본 대로 두 클래스 사이의 결정 경계는 초평면이 된다.
 
 이 쪽은 행벡터 입력과 $A\in\mathbb R^{D\times K}$를 사용해 $\mathbf{x}A+\mathbf{b}$로 쓴다. PyTorch의 `nn.Linear(D,K)`는 $W\in\mathbb R^{K\times D}$를 저장하고 $\mathbf{x}W^\top+\mathbf{b}$를 계산하므로 $A=W^\top$다. 같은 기호 $A$를 두 형태에 동시에 사용하지 않는다. 프레임워크 전체를 행벡터·열벡터 관례 하나로 단정하기보다 각 연산의 형태를 확인한다.
 

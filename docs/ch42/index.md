@@ -95,7 +95,7 @@
 
 적대적 입력이 분류기에 닿기 앞서 탐지.
 
-- [통계적 탐지](detection/statistical.md) -- 마할라노비스 거리와 활성화 분포 분석으로 적대적 샘플 탐지
+- [통계적 탐지](detection/statistical.md) -- 마할라노비스 거리와 엑티베이션 분포 분석으로 적대적 샘플 탐지
 - [Feature Squeezing](detection/feature_squeezing.md) -- 원래 입력과 복잡도를 줄인 입력의 예측을 비교하여 적대적 섭동 탐지하기
 - [입력 변환 기반 방어](detection/input_transform.md) -- JPEG 압축, 무작위 크기 변환, 디노이징으로 입력 정화하기
 

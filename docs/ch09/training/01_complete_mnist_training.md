@@ -178,7 +178,7 @@ MNIST 분류의 데이터 로딩, 컨볼루션 모델, 트레인·평가, 체크
             # 완전 연결 레이어
             x = F.relu(self.fc1(x))
             x = self.dropout2(x)
-            x = self.fc2(x)  # 활성화 없음 (CrossEntropyLoss가 소프트맥스를 적용한다)
+            x = self.fc2(x)  # 엑티베이션 없음 (CrossEntropyLoss가 소프트맥스를 적용한다)
 
             return x
 

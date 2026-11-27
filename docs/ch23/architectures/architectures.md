@@ -37,7 +37,7 @@ class RMSNorm(nn.Module):
 
 ```python
 class SwiGLU(nn.Module):
-    """피드포워드 네트워크를 위한 SwiGLU 활성화."""
+    """피드포워드 네트워크를 위한 SwiGLU 엑티베이션."""
     
     def __init__(self, dim: int, hidden_dim: int = None, bias: bool = False):
         super().__init__()

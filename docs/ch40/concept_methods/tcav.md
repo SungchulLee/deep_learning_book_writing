@@ -1,6 +1,6 @@
-# TCAV: 개념 활성화 벡터를 이용한 평가
+# TCAV: 개념 엑티베이션 벡터를 이용한 평가
 
-**CAV를 이용한 검정(TCAV, Testing with CAV)**은 개념 활성화 벡터를 넓혀, 어떤 개념이 모델의 예측에 얼마나 중요한지를 정량적·통계적으로 평가한다. CAV가 활성화 공간에서 개념의 방향을 찾는 데 비해, TCAV는 **어떤 클래스의 입력 가운데 몇 퍼센트가 그 개념에 양의 민감도를 보이는지**를 잰다.
+**CAV를 이용한 검정(TCAV, Testing with CAV)**은 개념 엑티베이션 벡터를 넓혀, 어떤 개념이 모델의 예측에 얼마나 중요한지를 정량적·통계적으로 평가한다. CAV가 엑티베이션 공간에서 개념의 방향을 찾는 데 비해, TCAV는 **어떤 클래스의 입력 가운데 몇 퍼센트가 그 개념에 양의 민감도를 보이는지**를 잰다.
 
 ---
 
@@ -40,7 +40,7 @@ import numpy as np
 from scipy.stats import ttest_1samp
 
 class TCAV:
-    """개념 활성화 벡터로 하는 테스트(TCAV)."""
+    """개념 엑티베이션 벡터로 하는 테스트(TCAV)."""
 
     def __init__(self, model, target_layer, device):
         self.model = model
@@ -157,7 +157,7 @@ def test_financial_concepts(model, layer, device):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-레이어 $l$의 활성화가 2차원 $h = (h_1, h_2)$이고 CAV가 $v_l^k = (1, 1)/\sqrt{2}$, 클래스 점수가 $f_c(h) = h_1^2 - h_2$라 하자. 클래스 $c$의 입력 다섯 개의 활성화에서 $h_1$이 각각 $0.2, 0.4, 0.6, 0.8, 1.0$일 때 TCAV 점수를 계산하여라. 이 점수가 말해 주지 않는 것은 무엇인가?
+레이어 $l$의 엑티베이션이 2차원 $h = (h_1, h_2)$이고 CAV가 $v_l^k = (1, 1)/\sqrt{2}$, 클래스 점수가 $f_c(h) = h_1^2 - h_2$라 하자. 클래스 $c$의 입력 다섯 개의 엑티베이션에서 $h_1$이 각각 $0.2, 0.4, 0.6, 0.8, 1.0$일 때 TCAV 점수를 계산하여라. 이 점수가 말해 주지 않는 것은 무엇인가?
 
 </div>
 

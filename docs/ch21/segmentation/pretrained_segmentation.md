@@ -637,7 +637,7 @@ VOC2012의 기본 segmentation train·val은 각각 1,464장과 1,449장이다. 
 
 ### 사전 트레인 범위와 러닝레이트
 
-`encoder_weights='imagenet'`는 인코더의 사전 트레인 웨이트를 지정한다. 이 설정만으로 VOC에 이미 트레인된 디코더·21클래스 헤드가 제공되는 것은 아니다. 기본 활성화 없는 모델의 출력은 N×21×H×W 로짓이며 CE는 N×H×W의 클래스 라벨과 연결한다. 처음 실행하면 데이터와 웨이트를 내려받을 수 있다. 정의는 [사용 라이브러리의 모델 설명](https://smp.readthedocs.io/en/v0.3.0/_modules/segmentation_models_pytorch/decoders/deeplabv3/model.html)을 해당 설치 버전과 대조한다.
+`encoder_weights='imagenet'`는 인코더의 사전 트레인 웨이트를 지정한다. 이 설정만으로 VOC에 이미 트레인된 디코더·21클래스 헤드가 제공되는 것은 아니다. 기본 엑티베이션 없는 모델의 출력은 N×21×H×W 로짓이며 CE는 N×H×W의 클래스 라벨과 연결한다. 처음 실행하면 데이터와 웨이트를 내려받을 수 있다. 정의는 [사용 라이브러리의 모델 설명](https://smp.readthedocs.io/en/v0.3.0/_modules/segmentation_models_pytorch/decoders/deeplabv3/model.html)을 해당 설치 버전과 대조한다.
 
 코드는 이름에 encoder가 포함된 파라메터의 러닝레이트를 0.0001, 나머지를 0.001로 나눈다. 이는 인코더를 동결한 것이 아니며 `model.train()`은 BN의 이동 통계도 갱신한다. 차등 러닝레이트는 전이학습의 한 선택이며 항상 단일 러닝레이트보다 낫거나 이런 비율이 필수인 것은 아니다. 파라메터 이름에 의존하는 그룹 구분이 실제 의도한 모든 파라메터를 포함하는지도 확인해야 한다.
 

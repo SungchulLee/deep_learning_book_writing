@@ -734,7 +734,7 @@ torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=10.0)
 
 ### 메모리 효율
 
-체크포인팅은 중간 활성화 값 저장을 줄이는 대신 역전파에서 재계산한다. 아래 조각은 params_flat, unflatten과 adaptation_step의 본문이 없어 완성된 구현이 아니다. 내부에서 autograd.grad를 사용하는 계산에 맞는 체크포인트 방식과 난수·상태 처리도 정해야 한다.
+체크포인팅은 중간 엑티베이션 값 저장을 줄이는 대신 역전파에서 재계산한다. 아래 조각은 params_flat, unflatten과 adaptation_step의 본문이 없어 완성된 구현이 아니다. 내부에서 autograd.grad를 사용하는 계산에 맞는 체크포인트 방식과 난수·상태 처리도 정해야 한다.
 
 ```python
 from torch.utils.checkpoint import checkpoint

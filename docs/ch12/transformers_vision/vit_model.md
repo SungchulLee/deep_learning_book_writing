@@ -323,7 +323,7 @@ RGB 64×64, 패치 16으로 구성하려면 무엇을 맞춰야 하는가?
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 엑티베이션, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
@@ -334,7 +334,7 @@ RGB 64×64, 패치 16으로 구성하려면 무엇을 맞춰야 하는가?
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 이 쪽의 VisionTransformer는 이미 `depth` 인수와 `self.blocks`라는 `ModuleList`로 블록을 쌓고 `forward`에서 차례로 호출한다. 조각의 방식은 이미 구현되어 있으며, 인수 이름이 `num_layers`가 아니라 `depth`라는 점만 다르다. 조각을 덧붙이면 블록을 두 번 쌓게 된다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 엑티베이션을 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 이 쪽의 VisionTransformer는 이미 `depth` 인수와 `self.blocks`라는 `ModuleList`로 블록을 쌓고 `forward`에서 차례로 호출한다. 조각의 방식은 이미 구현되어 있으며, 인수 이름이 `num_layers`가 아니라 `depth`라는 점만 다르다. 조각을 덧붙이면 블록을 두 번 쌓게 된다.
 
 ## 정리하며
 

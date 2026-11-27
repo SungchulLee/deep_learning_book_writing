@@ -115,7 +115,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    `RMSNorm`은 그 자체로 레이어 하나라 깊이를 가질 수 없다. 그래서 `RMSNorm`을 담은 블록(예: `RMSNorm` → `nn.Linear` → 활성화 함수)을 아래의 `YourBlock` 자리에 넣어 쌓는다. 하드코딩한 레이어를 다음으로 대체한다.
+    `RMSNorm`은 그 자체로 레이어 하나라 깊이를 가질 수 없다. 그래서 `RMSNorm`을 담은 블록(예: `RMSNorm` → `nn.Linear` → 엑티베이션 함수)을 아래의 `YourBlock` 자리에 넣어 쌓는다. 하드코딩한 레이어를 다음으로 대체한다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):

@@ -48,7 +48,7 @@ $$
 
 ### ReLU를 지나 전파
 
-바운드가 $[\underline{x}, \overline{x}]$인 ReLU 활성화 $z = \max(0, x)$에서
+바운드가 $[\underline{x}, \overline{x}]$인 ReLU 엑티베이션 $z = \max(0, x)$에서
 
 $$
 \underline{z} = \max(0, \underline{x}), \quad \overline{z} = \max(0, \overline{x})

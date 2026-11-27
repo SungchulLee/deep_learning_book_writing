@@ -130,7 +130,7 @@ patch_embed.n_patches로 위치 길이를 생성하므로 실제 입력이 다�
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 엑티베이션, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
@@ -141,7 +141,7 @@ patch_embed.n_patches로 위치 길이를 생성하므로 실제 입력이 다�
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 이 쪽의 VisionTransformer는 이미 `num_layers` 인수로 `nn.TransformerEncoder`의 깊이를 정하므로, 조각을 그대로 덧붙이면 같은 일을 두 번 하게 된다. 블록을 직접 쌓으려면 인코더를 `ModuleList`로 바꾸고 `forward`에서 블록을 차례로 호출하도록 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 엑티베이션을 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 이 쪽의 VisionTransformer는 이미 `num_layers` 인수로 `nn.TransformerEncoder`의 깊이를 정하므로, 조각을 그대로 덧붙이면 같은 일을 두 번 하게 된다. 블록을 직접 쌓으려면 인코더를 `ModuleList`로 바꾸고 `forward`에서 블록을 차례로 호출하도록 함께 수정해야 한다.
 
 ## 정리하며
 

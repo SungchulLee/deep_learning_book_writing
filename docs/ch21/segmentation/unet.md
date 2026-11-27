@@ -79,7 +79,7 @@ class DoubleConv(nn.Module):
     이중 컨볼루션 블록: (Conv → BN → ReLU) × 2
     
     이것이 U-Net의 핵심 구성 블록이다. 인코더와 디코더의
-    단계마다 배치 정규화와 ReLU 활성화를 곁들인
+    단계마다 배치 정규화와 ReLU 엑티베이션을 곁들인
     잇단 3×3 컨볼루션 둘로 이루어진다.
     
     인수:
@@ -290,12 +290,12 @@ fused = torch.cat([encoder_features, decoder_features], dim=1)
 
 선형 후속 레이어에서 연결하면 W_E E+W_D D처럼 두 부분의 웨이트를 다르게 둘 수 있다. 같은 폭의 덧셈 뒤 하나의 W를 적용한 W(E+D)보다 조합의 자유도가 늘 수 있지만 채널·파라메터·비용이 다르다. 모든 덧셈 기반 구조보다 엄격히 더 정확하거나 항상 정보를 보존한다는 결론은 아니다.
 
-다음 시각화 함수는 평균 활성화 맵을 그리며, 모델의 의미적 설명이나 분할 정확도를 검증하지 않는다. `layer_names`는 사용되지 않고 hook handle을 제거하지 않아 반복 호출하면 hook이 누적된다. 기본 bilinear 경로의 채널 문제도 그대로 영향을 준다.
+다음 시각화 함수는 평균 엑티베이션 맵을 그리며, 모델의 의미적 설명이나 분할 정확도를 검증하지 않는다. `layer_names`는 사용되지 않고 hook handle을 제거하지 않아 반복 호출하면 hook이 누적된다. 기본 bilinear 경로의 채널 문제도 그대로 영향을 준다.
 
 ```python
 def visualize_unet_activations(model, image, layer_names=None):
     """
-    스킵 연결을 이해하려 U-Net의 중간 활성화를 시각화한다.
+    스킵 연결을 이해하려 U-Net의 중간 엑티베이션을 시각화한다.
     
     인수:
         model: 트레인된 U-Net 모델
@@ -326,7 +326,7 @@ def visualize_unet_activations(model, image, layer_names=None):
     # 시각화한다
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     
-    # 인코더 활성화 그리기
+    # 인코더 엑티베이션 그리기
     for idx, (name, act) in enumerate(activations.items()):
         ax = axes[idx // 3, idx % 3]
         # 채널에 걸쳐 평균 내기
@@ -348,7 +348,7 @@ class BCEWithLogitsLoss(nn.Module):
     """
     이진 분류를 위한 이진 교차 엔트로피 로스.
     
-    시그모이드 활성화와 이진 교차 엔트로피를 수치적으로 안정한 함수 하나로 합친다.
+    시그모이드 엑티베이션과 이진 교차 엔트로피를 수치적으로 안정한 함수 하나로 합친다.
     """
     def __init__(self, pos_weight: float = None):
         super().__init__()
@@ -631,7 +631,7 @@ class ResidualDoubleConv(nn.Module):
 
 ## 8. 메모리 추정과 체크포인팅
 
-아래 메모리 함수는 각 해상도의 대표 활성화 하나를 세어 ‘두 배·float32’라는 계수를 곱한 거친 추정이다. 실제 decoder 연결·BN 상태·각 컨볼루션의 저장 활성화·파라메터·그래디언트·옵티마이저·작업공간을 모두 합산한 peak 메모리가 아니다. 함수의 1024³ 단위는 GiB이며 코드 출력의 GB 표기는 이 단위로 해석한다.
+아래 메모리 함수는 각 해상도의 대표 엑티베이션 하나를 세어 ‘두 배·float32’라는 계수를 곱한 거친 추정이다. 실제 decoder 연결·BN 상태·각 컨볼루션의 저장 엑티베이션·파라메터·그래디언트·옵티마이저·작업공간을 모두 합산한 peak 메모리가 아니다. 함수의 1024³ 단위는 GiB이며 코드 출력의 GB 표기는 이 단위로 해석한다.
 
 ```python
 # 메모리 요구량 추정

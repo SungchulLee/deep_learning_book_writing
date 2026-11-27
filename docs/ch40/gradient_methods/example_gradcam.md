@@ -47,7 +47,7 @@ class GradCAM:
         self.target_layer.register_full_backward_hook(self._save_gradient)
 
     def _save_activation(self, module, input, output):
-        """순전파의 활성값을 저장하는 훅."""
+        """순전파의 엑티베이션 값을 저장하는 훅."""
         self.activations = output.detach()
 
     def _save_gradient(self, module, grad_input, grad_output):
@@ -91,7 +91,7 @@ class GradCAM:
         self.model.zero_grad()
         target_score.backward()
 
-        # 그래디언트와 활성값을 가져온다
+        # 그래디언트와 엑티베이션 값을 가져온다
         gradients = self.gradients[0]    # 형태: [K, H', W']
         activations = self.activations[0] # 형태: [K, H', W']
 
@@ -682,7 +682,7 @@ if __name__ == "__main__":
 </div>
 
 ??? success "풀이"
-    (1) **훅으로 중간값 붙잡기** -- `register_forward_hook` 과 `register_full_backward_hook` 으로 타깃 레이어의 활성화와 그래디언트를 모델 코드를 고치지 않고 얻는다. 그래서 ResNet·VGG·MobileNet에 같은 클래스를 쓸 수 있다. (2) **상속으로 Grad-CAM++ 만들기** -- `GradCAMPlusPlus` 는 훅과 시각화를 물려받고 웨이트 계산만 바꾼다. 두 방법의 차이가 바로 그 몇 줄이라는 것이 코드에 드러난다. (3) **[0, 1] 정규화와 입력 크기로 보간** -- 서로 다른 레이어·모델의 맵을 같은 색 척도로 비교하고 원본 위에 겹칠 수 있게 한다. 대신 맵의 절대 크기 정보는 잃는다.
+    (1) **훅으로 중간값 붙잡기** -- `register_forward_hook` 과 `register_full_backward_hook` 으로 타깃 레이어의 엑티베이션과 그래디언트를 모델 코드를 고치지 않고 얻는다. 그래서 ResNet·VGG·MobileNet에 같은 클래스를 쓸 수 있다. (2) **상속으로 Grad-CAM++ 만들기** -- `GradCAMPlusPlus` 는 훅과 시각화를 물려받고 웨이트 계산만 바꾼다. 두 방법의 차이가 바로 그 몇 줄이라는 것이 코드에 드러난다. (3) **[0, 1] 정규화와 입력 크기로 보간** -- 서로 다른 레이어·모델의 맵을 같은 색 척도로 비교하고 원본 위에 겹칠 수 있게 한다. 대신 맵의 절대 크기 정보는 잃는다.
 
 ---
 

@@ -105,7 +105,7 @@ $$
 입력: 이미지 I, CNN 모델 f, 대상 클래스 c, 대상 레이어 l
 출력: 히트맵 L_GradCAM++
 
-1. 순전파: 레이어 l의 활성값 A^k를 계산한다
+1. 순전파: 레이어 l의 엑티베이션 값 A^k를 계산한다
 2. 순전파: 클래스 점수 y^c(또는 소프트맥스 S^c)를 계산한다
 3. 역전파: 그래디언트 g = ∂y^c/∂A^k를 계산한다
 4. 그래디언트의 거듭제곱을 계산한다:
@@ -210,7 +210,7 @@ class GradCAMPlusPlus:
         self.model.zero_grad()
         score.backward(retain_graph=True)
 
-        # 활성값과 그래디언트를 가져온다
+        # 엑티베이션 값과 그래디언트를 가져온다
         A = self.activations  # [1, K, H', W']
         g = self.gradients    # [1, K, H', W']
 
@@ -239,7 +239,7 @@ class GradCAMPlusPlus:
         positive_gradients = F.relu(g)
         weights = (alpha * positive_gradients).sum(dim=(2, 3), keepdim=True)  # [1, K, 1, 1]
 
-        # 활성값 맵을 가중 결합한다
+        # 엑티베이션 값 맵을 가중 결합한다
         heatmap = (weights * A).sum(dim=1, keepdim=True)  # [1, 1, H', W']
 
         # ReLU를 건다(양수 기여만 남긴다)
@@ -335,7 +335,7 @@ class GradCAMPlusPlus:
 |--------|----------|------------|
 | 웨이트 계산 | 전역 평균 풀링 | 픽셀별 가중합 |
 | 그래디언트 사용 | 일차만 | 일차, 이차, 삼차 |
-| 객체가 여럿일 때 | 똑같이 기여(희석) | 강한 활성화에 더 큰 웨이트 |
+| 객체가 여럿일 때 | 똑같이 기여(희석) | 강한 엑티베이션에 더 큰 웨이트 |
 | 작은 객체 | 놓치거나 웨이트가 낮음 | 위치를 더 잘 짚음 |
 | 계산 비용 | 낮음 | 높음(그래디언트 거듭제곱) |
 | 수치 안정성 | 더 강건함 | 조심히 다루어야 함 |
@@ -447,15 +447,15 @@ def multi_instance_demonstration(model, image_tensor, target_class):
 
 ### 포인팅 게임 지표
 
-포인팅 게임은 가장 큰 활성화가 정답 영역(바운딩 박스) 안에 드는지를 평가한다.
+포인팅 게임은 가장 큰 엑티베이션이 정답 영역(바운딩 박스) 안에 드는지를 평가한다.
 
 ```python
 def pointing_game(cam: np.ndarray, bbox: tuple) -> int:
     """
-    가장 큰 활성값이 바운딩 박스 안에 드는지 평가한다.
+    가장 큰 엑티베이션 값이 바운딩 박스 안에 드는지 평가한다.
 
     Args:
-        cam: [0, 1]로 정규화한 클래스 활성화 맵 (H, W)
+        cam: [0, 1]로 정규화한 클래스 엑티베이션 맵 (H, W)
         bbox: 바운딩 박스 [x_min, y_min, x_max, y_max]
 
     Returns:
@@ -524,7 +524,7 @@ def average_drop_increase(
     Args:
         model: 분류기 모델
         input_tensor: 원본 입력
-        cam: 클래스 활성화 맵
+        cam: 클래스 엑티베이션 맵
         target_class: 대상 클래스 번호
         device: 계산할 장치
 
@@ -659,7 +659,7 @@ $\alpha_{ij}^{kc}$를 계산할 때의 나눗셈이 불안정할 수 있다.
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 절에서 다룬 설명 방법을, XOR 입력을 분류하는 ReLU 활성화의 두 레이어 뉴럴 네트워크에 적용하라. 입력 $x = [1, 1]$에 대한 설명을 계산하여라.
+이 절에서 다룬 설명 방법을, XOR 입력을 분류하는 ReLU 엑티베이션의 두 레이어 뉴럴 네트워크에 적용하라. 입력 $x = [1, 1]$에 대한 설명을 계산하여라.
 
 </div>
 

@@ -1,6 +1,6 @@
-# Grad-CAM: 그래디언트 가중 클래스 활성화 맵
+# Grad-CAM: 그래디언트 가중 클래스 엑티베이션 맵
 
-**그래디언트 가중 클래스 활성화 맵(Grad-CAM)**은 CNN 기반 모델의 판단을 시각적으로 해석하는 기법이다. 특정 구조를 요구하던 이전의 클래스 활성화 맵(CAM) 방법과 달리, Grad-CAM은 구조를 고치거나 다시 트레인하지 않고도 어떤 CNN 구조에나 작동한다.
+**그래디언트 가중 클래스 엑티베이션 맵(Grad-CAM)**은 CNN 기반 모델의 판단을 시각적으로 해석하는 기법이다. 특정 구조를 요구하던 이전의 클래스 엑티베이션 맵(CAM) 방법과 달리, Grad-CAM은 구조를 고치거나 다시 트레인하지 않고도 어떤 CNN 구조에나 작동한다.
 
 Grad-CAM은 기본적인 질문에 답한다. **입력 이미지의 어느 영역이 어떤 클래스를 예측하는 데 가장 중요한가?**
 
@@ -51,7 +51,7 @@ $$
 
 - $y^c$는 클래스 $c$의 클래스 점수(소프트맥스 이전 값)
 - $Z = H' \times W'$는 공간 위치의 수
-- $\frac{\partial y^c}{\partial A^k_{ij}}$는 위치 $(i, j)$에서 활성화 $A^k$에 대한 클래스 점수의 그래디언트
+- $\frac{\partial y^c}{\partial A^k_{ij}}$는 위치 $(i, j)$에서 엑티베이션 $A^k$에 대한 클래스 점수의 그래디언트
 
 이렇게 그래디언트를 전역 평균하면 피처 맵 $k$와 클래스 $c$에 대한 **뉴런 중요도 웨이트** $\alpha^c_k$가 나온다.
 
@@ -169,7 +169,7 @@ class GradCAM:
         self.target_layer.register_full_backward_hook(self._save_gradient)
 
     def _save_activation(self, module, input, output):
-        """순전파의 활성값을 저장하는 훅."""
+        """순전파의 엑티베이션 값을 저장하는 훅."""
         self.activations = output.detach()
 
     def _save_gradient(self, module, grad_input, grad_output):
@@ -213,7 +213,7 @@ class GradCAM:
         self.model.zero_grad()
         target_score.backward()
 
-        # 그래디언트와 활성값을 꺼낸다
+        # 그래디언트와 엑티베이션 값을 꺼낸다
         gradients = self.gradients[0]    # 형태: [K, H', W']
         activations = self.activations[0] # 형태: [K, H', W']
 
@@ -612,7 +612,7 @@ Grad-CAM의 중요한 성질은 **클래스를 구별한다**는 것이다. 타�
 
 ### CAM과의 관계
 
-Grad-CAM은 저우 외(2016)의 **클래스 활성화 맵(CAM)**을 일반화한 것이다.
+Grad-CAM은 저우 외(2016)의 **클래스 엑티베이션 맵(CAM)**을 일반화한 것이다.
 
 | 항목 | CAM | Grad-CAM |
 |--------|-----|----------|
@@ -663,7 +663,7 @@ Grad-CAM이 **해상도가 낮은 위치 맵**을 내는 까닭은 이렇다.
 
 ### 2. 객체가 여럿일 때의 클래스 혼동
 
-이미지에 객체가 여럿이면 Grad-CAM이 지정한 클래스의 영역을 짚기는 하나 엉뚱한 활성화가 함께 보일 수 있다.
+이미지에 객체가 여럿이면 Grad-CAM이 지정한 클래스의 영역을 짚기는 하나 엉뚱한 엑티베이션이 함께 보일 수 있다.
 
 ```python
 # 이미지에 고양이와 개가 함께 있다
@@ -671,7 +671,7 @@ cam_cat = grad_cam(input_tensor, target_class=281)  # 고양이 클래스
 cam_dog = grad_cam(input_tensor, target_class=235)  # 개 클래스
 
 # CAM을 비교하면 클래스마다 어느 영역에 어텐션을 두는지 드러난다
-# 다만 겹치거나 엉뚱한 활성값이 있을 수 있다
+# 다만 겹치거나 엉뚱한 엑티베이션 값이 있을 수 있다
 ```
 
 ### 3. 전역 평균 풀링이라는 가정
@@ -769,7 +769,7 @@ cam = grad_cam(xray_image, target_class=class_map["pneumonia"])
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 절에서 다룬 설명 방법을, XOR 입력을 분류하는 ReLU 활성화의 두 레이어 뉴럴 네트워크에 적용하라. 입력 $x = [1, 1]$에 대한 설명을 계산하여라.
+이 절에서 다룬 설명 방법을, XOR 입력을 분류하는 ReLU 엑티베이션의 두 레이어 뉴럴 네트워크에 적용하라. 입력 $x = [1, 1]$에 대한 설명을 계산하여라.
 
 </div>
 

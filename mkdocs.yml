@@ -1514,8 +1514,8 @@ nav:
         - "Tree SHAP": ch40/feature_attribution/tree_shap.md
         - "피처 간 상호작용": ch40/feature_attribution/interactions.md
       - "41.5 개념 기반 방법":
-        - "개념 활성화 벡터(CAV)": ch40/concept_methods/cav.md
-        - "TCAV: 개념 활성화 벡터를 이용한 평가": ch40/concept_methods/tcav.md
+        - "개념 엑티베이션 벡터(CAV)": ch40/concept_methods/cav.md
+        - "TCAV: 개념 엑티베이션 벡터를 이용한 평가": ch40/concept_methods/tcav.md
         - "개념 병목 모델": ch40/concept_methods/concept_bottleneck.md
         - "해석을 위한 프로토타입 네트워크": ch40/concept_methods/prototypes.md
       - "41.6 모델별 해석 방법":

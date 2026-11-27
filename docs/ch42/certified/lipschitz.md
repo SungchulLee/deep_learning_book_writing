@@ -120,9 +120,9 @@ class LipschitzNetwork(nn.Module):
 - **케일리 변환**: 반대칭(skew-symmetric) 행렬 $\mathbf{A}$로 $\mathbf{W} = (\mathbf{I} - \mathbf{A})(\mathbf{I} + \mathbf{A})^{-1}$처럼 직교 행렬을 매개화한다
 - **하우스홀더 반사**: 하우스홀더 반사를 여러 번 곱해 직교 행렬을 만든다
 
-### GroupSort 활성화
+### GroupSort 엑티베이션
 
-**GroupSort** 활성화(아닐 등, 2019)는 ReLU보다 정보를 더 많이 보존하는 1-립시츠 활성화로, ReLU를 대신한다.
+**GroupSort** 엑티베이션(아닐 등, 2019)는 ReLU보다 정보를 더 많이 보존하는 1-립시츠 엑티베이션으로, ReLU를 대신한다.
 
 $$
 \text{GroupSort}_{k}(\mathbf{x}) = \text{sort groups of } k \text{ elements}

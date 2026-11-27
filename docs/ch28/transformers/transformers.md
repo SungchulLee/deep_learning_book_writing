@@ -366,7 +366,7 @@ def create_gpt2(config_name: str) -> GPT:
     return GPT(**config)
 ```
 
-설정 사전은 GPT-2 계열의 폭·레이어·헤드·문맥 크기를 참고한 교육용 구조다. 바이어스·활성화·초기화·토크나이저·체크포인트 계약까지 원 모델과 완전히 같다고 볼 수 없고 create_gpt2는 트레인된 GPT-2를 다운로드하는 함수가 아니다. 설정 이름만으로 원 논문 성능을 재현했다고 주장하지 않는다.
+설정 사전은 GPT-2 계열의 폭·레이어·헤드·문맥 크기를 참고한 교육용 구조다. 바이어스·엑티베이션·초기화·토크나이저·체크포인트 계약까지 원 모델과 완전히 같다고 볼 수 없고 create_gpt2는 트레인된 GPT-2를 다운로드하는 함수가 아니다. 설정 이름만으로 원 논문 성능을 재현했다고 주장하지 않는다.
 
 ## 4. 위치 표현의 선택
 
@@ -736,7 +736,7 @@ class GroupedQueryAttention(nn.Module):
 ```python
 class SwiGLU(nn.Module):
     """
-    SwiGLU 활성화: Swish 게이트 선형 유닛.
+    SwiGLU 엑티베이션: Swish 게이트 선형 유닛.
     
     SwiGLU(x) = Swish(xW1) * (xW2)
     여기서 Swish(x) = x * 시그모이드(x)
@@ -776,7 +776,7 @@ class RMSNorm(nn.Module):
 
 LayerNorm과 같은 연산은 아니며 이 구현은 트레인 스케일만 갖고 바이어스는 없다. x.pow(2)의 정밀도와 극단값도 고려해야 한다. 계산 일부를 줄이는 의도와 실제 하드웨어 속도·트레인 성능은 구분한다.
 
-## 8. 러닝레이트와 활성화 체크포인팅
+## 8. 러닝레이트와 엑티베이션 체크포인팅
 
 ```python
 def get_lr_schedule(
@@ -818,7 +818,7 @@ class GPTWithCheckpointing(GPT):
         # ... 출력 사영 ...
 ```
 
-활성화 체크포인팅(activation checkpointing)은 역전파 때 중간 계산을 다시 수행해 메모리와 계산을 교환한다. 웨이트 파일 저장과 다른 개념이다. 위 GPTWithCheckpointing.forward는 x가 정의되지 않고 임베딩·최종 정규화·출력·return도 없어 실행 가능한 완성 예제가 아니다. 실제 적용에는 원래 forward 경로를 유지하고 [PyTorch checkpoint 문서](https://docs.pytorch.org/docs/stable/checkpoint.html)의 use_reentrant·난수 상태·재계산 계약을 맞춰야 한다.
+엑티베이션 체크포인팅(activation checkpointing)은 역전파 때 중간 계산을 다시 수행해 메모리와 계산을 교환한다. 웨이트 파일 저장과 다른 개념이다. 위 GPTWithCheckpointing.forward는 x가 정의되지 않고 임베딩·최종 정규화·출력·return도 없어 실행 가능한 완성 예제가 아니다. 실제 적용에는 원래 forward 경로를 유지하고 [PyTorch checkpoint 문서](https://docs.pytorch.org/docs/stable/checkpoint.html)의 use_reentrant·난수 상태·재계산 계약을 맞춰야 한다.
 
 ## 9. 도메인 확장 골격의 범위
 

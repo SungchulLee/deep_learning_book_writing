@@ -94,7 +94,7 @@ _확인한 곳 — C. Berge, *Graphes et hypergraphes*, Dunod (1970); 영역본 
 <div class="drillbox" markdown>
 
 **연습문제 2.** <span class="diff easy" title="쉬움"></span>
-단일 하이퍼엣지 {1,2,3}, 단위 웨이트, 스칼라 피처 1·2·3에서 활성화·투영 없는 HGNN 전파 결과를 구하라.
+단일 하이퍼엣지 {1,2,3}, 단위 웨이트, 스칼라 피처 1·2·3에서 엑티베이션·투영 없는 HGNN 전파 결과를 구하라.
 
 </div>
 

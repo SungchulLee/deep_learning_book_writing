@@ -149,7 +149,7 @@ class FeedforwardLM(nn.Module):
         # 평탄화: (batch, context_size * embed_dim)
         embeds = embeds.view(x.size(0), -1)
         
-        # tanh 활성화를 갖춘 은닉 레이어
+        # tanh 엑티베이션을 갖춘 은닉 레이어
         hidden = torch.tanh(self.fc1(embeds))
         
         # 출력 로짓

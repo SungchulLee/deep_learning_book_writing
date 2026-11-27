@@ -45,7 +45,7 @@
 잔차 연결은 입력을 뒤의 레이어에 더하는 경로를 만들어 깊은 모델의 최적화를 돕는다. 그래디언트 소실이나 폭발을 자동으로 없애는 것은 아니다.
 
 - [기본 잔차 블록](residual/01_basic_residual_block.md) — 스킵 연결 하나가 무엇을 바꾸는지
-- [항등 사상](residual/identity_mapping.md) — 항등 스킵 연결과 사전 활성화 블록의 그래디언트 전달
+- [항등 사상](residual/identity_mapping.md) — 항등 스킵 연결과 사전 엑티베이션 블록의 그래디언트 전달
 - [ResNet 구현](residual/02_resnet_implementation.md) — 기본 블록과 병목 블록으로 ResNet 계열 세우기
 - [트레인 비교](residual/03_training_comparison.md) — 스킵 연결이 있을 때와 없을 때를 나란히 트레인시켜 비교
 - [실전 예제](residual/06_practical_example.md) — 분류 예제로 잔차 구조의 구성 살펴보기

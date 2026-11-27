@@ -43,7 +43,7 @@ _확인한 곳 — 연표의 일곱 해는 모두 이 장의 해당 쪽에서 �
 
 [Contrastive Divergence](ebm_foundations/05_contrastive_divergence.md)는 데이터에서 시작한 짧은 사슬과 모델 기댓값의 차이를 설명한다. PCD는 사슬을 이어 가지만 혼합과 트레인 중 파라미터 변화의 문제가 자동으로 사라지는 것은 아니다.
 
-[스코어 매칭](ebm_foundations/06_score_matching.md)은 입력 그래디언트 트레인을 다룬다. 에너지의 부호, trace 계수와 활성화의 정규성 조건이 중요하다. [뉴럴 네트워크 EBM](ebm_foundations/07_neural_ebms.md)에서는 CNN 에너지와 짧은 랑주뱅 사슬을 연결하고 실제 업데이트 예산·온도 계수와 평가 범위를 확인한다.
+[스코어 매칭](ebm_foundations/06_score_matching.md)은 입력 그래디언트 트레인을 다룬다. 에너지의 부호, trace 계수와 엑티베이션의 정규성 조건이 중요하다. [뉴럴 네트워크 EBM](ebm_foundations/07_neural_ebms.md)에서는 CNN 에너지와 짧은 랑주뱅 사슬을 연결하고 실제 업데이트 예산·온도 계수와 평가 범위를 확인한다.
 
 ## 4. 생성기와의 결합 및 생성 방법
 

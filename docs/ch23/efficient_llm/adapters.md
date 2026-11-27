@@ -13,7 +13,7 @@ from typing import Optional, List
 
 class Adapter(nn.Module):
     """
-    맞춤개 모듈: 내림 쏘기 → 활성화 → 올림 쏘기 + 남는 이음.
+    맞춤개 모듈: 내림 쏘기 → 엑티베이션 → 올림 쏘기 + 남는 이음.
     
     인수:
         input_dim: 들임/내놓기 차원(모델의 숨은 크기)
@@ -38,7 +38,7 @@ class Adapter(nn.Module):
         # 내림 쏘기
         self.down_proj = nn.Linear(input_dim, bottleneck_dim)
         
-        # 활성화
+        # 엑티베이션
         if activation == 'gelu':
             self.activation = nn.GELU()
         elif activation == 'relu':
@@ -393,7 +393,7 @@ train_with_adapters는 기반의 마지막 표현을 no_grad로 얻고 그 뒤 �
 
 이런 마지막 어댑터는 기반 전체 no_grad로 트레인할 수 있지만 중간 레이어에 트레인 모듈을 삽입한 모델은 뒤쪽 기반 연산을 통해 경사를 전달해야 한다. 동결과 계산 그래프 제외를 혼동하지 않는다. 빈 loader·로스 집계·검증·최적 체크포인트와 재개 상태도 별도로 구성해야 한다.
 
-저장 함수는 어댑터의 state_dict만 기록한다. 기반 버전·차원·활성화·삽입 위치·head·레이블과 기타 설정은 별도로 보존해야 한다.
+저장 함수는 어댑터의 state_dict만 기록한다. 기반 버전·차원·엑티베이션·삽입 위치·head·레이블과 기타 설정은 별도로 보존해야 한다.
 
 ## 7. 비용과 방법 선택
 

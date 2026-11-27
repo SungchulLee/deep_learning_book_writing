@@ -1,6 +1,6 @@
 # MobileNetV2
 
-MobileNetV2는 2018년 논문 "MobileNetV2: Inverted Residuals and Linear Bottlenecks"에서 나왔으며, 모바일이나 임베디드 기기를 위해 설계한 경량 컨볼루션 뉴럴 네트워크다. 역 잔차(inverted residual) 블록을 제시했는데, 입력을 먼저 더 높은 차원으로 확장하고 깊이별 컨볼루션으로 처리한 뒤 더 낮은 차원으로 사영한다. 선형 병목(linear bottleneck) 설계는 좁은 레이어에서 비선형 활성화 함수를 없애 정보를 보존한다.
+MobileNetV2는 2018년 논문 "MobileNetV2: Inverted Residuals and Linear Bottlenecks"에서 나왔으며, 모바일이나 임베디드 기기를 위해 설계한 경량 컨볼루션 뉴럴 네트워크다. 역 잔차(inverted residual) 블록을 제시했는데, 입력을 먼저 더 높은 차원으로 확장하고 깊이별 컨볼루션으로 처리한 뒤 더 낮은 차원으로 사영한다. 선형 병목(linear bottleneck) 설계는 좁은 레이어에서 비선형 엑티베이션 함수를 없애 정보를 보존한다.
 
 ## 1. 코드
 

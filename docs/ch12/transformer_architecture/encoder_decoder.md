@@ -347,7 +347,7 @@ $$
 \text{FFN}(x) = \text{ReLU}(xW_1 + b_1)W_2 + b_2
 $$
 
-또는 (요즘 모델에서 흔한) GELU 활성화 함수로 다음과 같이 한다.
+또는 (요즘 모델에서 흔한) GELU 엑티베이션 함수로 다음과 같이 한다.
 
 $$
 \text{FFN}(x) = \text{GELU}(xW_1 + b_1)W_2 + b_2
@@ -500,7 +500,7 @@ class PositionWiseFeedForward(nn.Module):
             d_model: 모델 차원
             d_ff: 피드포워드의 은닉 차원
             dropout: 드롭아웃 확률
-            activation: 활성화 함수('relu' 또는 'gelu')
+            activation: 엑티베이션 함수('relu' 또는 'gelu')
         """
         super().__init__()
         
@@ -556,7 +556,7 @@ class TransformerEncoderBlock(nn.Module):
             num_heads: 어텐션 헤드의 수
             d_ff: 피드포워드의 은닉 차원
             dropout: 드롭아웃 확률
-            activation: 피드포워드의 활성화 함수
+            activation: 피드포워드의 엑티베이션 함수
             pre_norm: Pre-LN(True)를 쓸지 Post-LN(False)를 쓸지
         """
         super().__init__()
@@ -664,7 +664,7 @@ class TransformerEncoder(nn.Module):
             d_ff: 피드포워드의 은닉 차원
             max_len: 시퀀스의 최대 길이
             dropout: 드롭아웃 확률
-            activation: 피드포워드의 활성화 함수
+            activation: 피드포워드의 엑티베이션 함수
             pre_norm: Pre-LN 구조를 쓸지 여부
         """
         super().__init__()
@@ -908,7 +908,7 @@ $$
 1. **전역 의존을 잡아낸다**: 셀프 어텐션이 모든 자리를 잇는다
 2. **비선형 변환을 적용한다**: 피드포워드 뉴럴 네트워크가 표현 능력을 더한다
 3. **그래디언트 흐름을 지킨다**: 잔차가 깊은 구조를 가능케 한다
-4. **트레인을 안정되게 한다**: 레이어 정규화가 활성화 값의 스케일을 조절한다
+4. **트레인을 안정되게 한다**: 레이어 정규화가 엑티베이션 값의 스케일을 조절한다
 
 인코더 블록을 이해하는 것은 BERT나 RoBERTa 같은 모델과 인코더 기반 구조를 구현하는 데 꼭 필요하다.
 

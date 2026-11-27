@@ -497,7 +497,7 @@ def forward(self, x, return_hidden=False):    # 인자를 하나 더 받는다. 
     | | |
     |---|---|
     | `nn.ReLU` | `print(model)`에 보이고, 훅을 걸 수 있고, `inplace=True`를 줄 수 있다 |
-    | `F.relu` | 코드가 짧고, 같은 활성값을 여러 번 쓰기 좋다 |
+    | `F.relu` | 코드가 짧고, 같은 엑티베이션 값을 여러 번 쓰기 좋다 |
 
     `Sequential`을 쓸 때는 선택지가 없다 — 모듈이어야 한다.
 
@@ -546,7 +546,7 @@ def forward(self, x, return_hidden=False):    # 인자를 하나 더 받는다. 
 
     훅에 기대는 기능이 많다.
 
-    - 중간 활성값을 꺼내는 코드(Grad-CAM, 피처 추출)
+    - 중간 엑티베이션 값을 꺼내는 코드(Grad-CAM, 피처 추출)
     - `torch.jit.trace`나 프로파일러
     - 양자화·가지치기 라이브러리가 끼워 넣는 훅
 

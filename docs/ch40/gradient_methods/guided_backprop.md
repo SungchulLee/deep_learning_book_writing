@@ -1,6 +1,6 @@
 # Guided Backpropagation
 
-**Guided Backpropagation**은 그래디언트가 ReLU 활성화 함수를 거꾸로 지나는 방식을 바꾸어 세밀하고 선명한 Saliency Map을 내는 시각화 기법이다. Saliency Map은 입력 픽셀마다 예측에 대한 중요도를 칠한 맵이다. 일반 역전파와 달리, Guided Backpropagation은 순전파에서 활성화되었던 뉴런을 지나는 양수 그래디언트만 전파한다.
+**Guided Backpropagation**은 그래디언트가 ReLU 엑티베이션 함수를 거꾸로 지나는 방식을 바꾸어 세밀하고 선명한 Saliency Map을 내는 시각화 기법이다. Saliency Map은 입력 픽셀마다 예측에 대한 중요도를 칠한 맵이다. 일반 역전파와 달리, Guided Backpropagation은 순전파에서 활성화되었던 뉴런을 지나는 양수 그래디언트만 전파한다.
 
 슈프링엔베르크 외(2015)가 내놓은 이 방법은 예측에 관여한 세밀한 피처를 짚어 주는, 보기 좋고 선명한 맵을 낸다.
 
@@ -181,7 +181,7 @@ def compute_guided_gradcam(
 
 1. **혼자서는 클래스를 구별하지 못한다**: 클래스가 달라도 비슷한 맵이 나온다
 2. **새니티 체크를 통과하지 못한다**: 참된 기여도 분석이 아니라 에지 검출기처럼 동작할 수 있다
-3. **ReLU에 묶인다**: ReLU 활성화에만 작동한다
+3. **ReLU에 묶인다**: ReLU 엑티베이션에만 작동한다
 
 ---
 
@@ -190,7 +190,7 @@ def compute_guided_gradcam(
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff med" title="중간"></span>
-이 절에서 다룬 설명 방법을, XOR 입력을 분류하는 ReLU 활성화의 두 레이어 뉴럴 네트워크에 적용하라. 입력 $x = [1, 1]$에 대한 설명을 계산하여라.
+이 절에서 다룬 설명 방법을, XOR 입력을 분류하는 ReLU 엑티베이션의 두 레이어 뉴럴 네트워크에 적용하라. 입력 $x = [1, 1]$에 대한 설명을 계산하여라.
 
 </div>
 

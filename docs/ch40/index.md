@@ -76,8 +76,8 @@
 
 원시 피처 기여도 분석을 넘어 사람이 이해할 수 있는 개념 수준의 설명.
 
-- [개념 활성화 벡터(CAV)](concept_methods/cav.md) -- 뉴럴 네트워크가 사람이 이해할 수 있는 개념을 배웠는지 평가
-- [TCAV: 개념 활성화 벡터를 이용한 평가](concept_methods/tcav.md) -- 모델의 예측에서 개념이 얼마나 중요한지 재는 통계 검정
+- [개념 엑티베이션 벡터(CAV)](concept_methods/cav.md) -- 뉴럴 네트워크가 사람이 이해할 수 있는 개념을 배웠는지 평가
+- [TCAV: 개념 엑티베이션 벡터를 이용한 평가](concept_methods/tcav.md) -- 모델의 예측에서 개념이 얼마나 중요한지 재는 통계 검정
 - [개념 병목 모델](concept_methods/concept_bottleneck.md) -- 개념을 명시적으로 예측하는 레이어를 둔, 그 자체로 해석되는 구조
 - [프로토타입 네트워크](concept_methods/prototypes.md) -- 트레인된 프로토타입으로 하는 예시 기반 설명
 

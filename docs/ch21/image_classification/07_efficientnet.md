@@ -1,6 +1,6 @@
 # EfficientNet
 
-이 페이지의 모델은 EfficientNet에서 사용하는 역병목 연산과 SiLU 활성화를 살피는 축약 예제다. stem 뒤 MBConv 3개와 분류 head만 사용하며, SE·단계별 반복·5×5 커널·복합 스케일링을 생략한다. 따라서 EfficientNet-B0 전체 구현이나 그 정확도를 재현한 모델로 읽으면 안 된다.
+이 페이지의 모델은 EfficientNet에서 사용하는 역병목 연산과 SiLU 엑티베이션을 살피는 축약 예제다. stem 뒤 MBConv 3개와 분류 head만 사용하며, SE·단계별 반복·5×5 커널·복합 스케일링을 생략한다. 따라서 EfficientNet-B0 전체 구현이나 그 정확도를 재현한 모델로 읽으면 안 된다.
 
 ## 1. 코드
 

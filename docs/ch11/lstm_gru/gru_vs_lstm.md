@@ -143,16 +143,16 @@ def parameter_scaling_analysis():
 
 아래 함수는 몇 가지 상태·게이트 배열의 크기를 float32로 가정해 합산한 추정치다. 실제 런타임 메모리를 측정하지 않으며 파라메터, 그래디언트와 옵티마이저 상태, 임시 작업 공간도 포함하지 않는다. “33.3% 절감”을 전체 메모리 사용량으로 읽으면 안 된다.
 
-파라메터 말고도 트레인 중의 활성화 값(activation) 메모리를 살펴야 한다.
+파라메터 말고도 트레인 중의 엑티베이션 값(activation) 메모리를 살펴야 한다.
 
 ```python
 def memory_footprint_analysis(batch_size, seq_length, hidden_size):
     """순전파와 역전파 중의 메모리 사용량을 견준다."""
-    # LSTM이 담는 것: 시각마다 h_t, c_t, 그리고 모든 게이트의 활성화 값
+    # LSTM이 담는 것: 시각마다 h_t, c_t, 그리고 모든 게이트의 엑티베이션 값
     lstm_per_step = 6 * hidden_size  # h, c, f, i, o, c_tilde
     lstm_total = batch_size * seq_length * lstm_per_step * 4  # float32
     
-    # GRU가 담는 것: h_t와 게이트의 활성화 값
+    # GRU가 담는 것: h_t와 게이트의 엑티베이션 값
     gru_per_step = 4 * hidden_size  # h, z, r, h_tilde
     gru_total = batch_size * seq_length * gru_per_step * 4
     

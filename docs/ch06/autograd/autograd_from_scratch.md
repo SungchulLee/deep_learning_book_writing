@@ -485,7 +485,7 @@
             )
 
         def relu(self):
-            """ReLU 활성화 함수."""
+            """ReLU 엑티베이션 함수."""
             return TensorWithGrad(
                 # 원소마다 max(x, 0) — 음수는 0 으로, 양수는 그대로 둔다.
                 np.maximum(self.data, 0),
@@ -494,7 +494,7 @@
             )
 
         def sigmoid(self):
-            """시그모이드 활성화 함수."""
+            """시그모이드 엑티베이션 함수."""
             # s(x) = 1 / (1 + e^(-x)). 어떤 실수든 0 과 1 사이로 눌러 담는다.
             # np.exp 는 원소마다 e 의 거듭제곱을 구한다.
             s = 1.0 / (1.0 + np.exp(-self.data))
@@ -794,12 +794,12 @@
         b2 = TensorWithGrad(b2_data.copy())
 
         # 순전파
-        # 레이어 하나는 「행렬 곱 + 바이어스 → 활성화 함수」다. 그것을 두 번 한다.
+        # 레이어 하나는 「행렬 곱 + 바이어스 → 엑티베이션 함수」다. 그것을 두 번 한다.
         # 형태: X (4, 2) → h (4, 4) → out (4, 1). 바이어스는 브로드캐스팅된다.
-        h = X.matmul(W1) + b1          # 은닉 레이어의 활성화 전 값
-        h_act = h.sigmoid()             # 은닉 레이어의 활성화 값
-        out = h_act.matmul(W2) + b2    # 출력의 활성화 전 값
-        pred = out.sigmoid()            # 출력의 활성화 값
+        h = X.matmul(W1) + b1          # 은닉 레이어의 엑티베이션 전 값
+        h_act = h.sigmoid()             # 은닉 레이어의 엑티베이션 값
+        out = h_act.matmul(W2) + b2    # 출력의 엑티베이션 전 값
+        pred = out.sigmoid()            # 출력의 엑티베이션 값
 
         # 제곱 오차 합 로스 = sum((pred - y)^2)  (n 으로 나누지 않는다)
         # TensorWithGrad 에는 뺄셈이 없다. 그래서 pred - y 를 pred + y * (-1) 로
@@ -846,8 +846,8 @@
     b2 = TensorWithGrad(b2_data)
 
     # 트레인 루프의 순전파와 같은 네 줄이다.
-    h = X.matmul(W1) + b1                        # 은닉 레이어의 활성화 전 값
-    h_act = h.sigmoid()                          # 은닉 레이어의 활성화 값
+    h = X.matmul(W1) + b1                        # 은닉 레이어의 엑티베이션 전 값
+    h_act = h.sigmoid()                          # 은닉 레이어의 엑티베이션 값
     out = h_act.matmul(W2) + b2
     pred = out.sigmoid()                         # 0 과 1 사이의 예측, 형태 (4, 1)
 

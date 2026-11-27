@@ -197,7 +197,7 @@ Generated: torch.Size([1, 10]) -> torch.Size([1, 30])
 
 ## 4. 캐시 메모리 계산
 
-레이어 수 L, 배치 B, 길이 T, KV head 수 H_kv, head 차원 d_h, 원소당 b바이트일 때 KV 값 저장량은 2LBTH_kv d_h b다. cache 메타데이터·할당 여유·웨이트·중간 활성화는 별도다. GQA에서는 쿼리 head가 아닌 KV head 수를 사용한다.
+레이어 수 L, 배치 B, 길이 T, KV head 수 H_kv, head 차원 d_h, 원소당 b바이트일 때 KV 값 저장량은 2LBTH_kv d_h b다. cache 메타데이터·할당 여유·웨이트·중간 엑티베이션은 별도다. GQA에서는 쿼리 head가 아닌 KV head 수를 사용한다.
 
 예를 들어 32레이어·32 KV head·head 차원 128·2바이트·배치 1이면 길이 2048에서 1GiB, 8192에서 4GiB, 32768에서 16GiB다. 해당 숫자는 가정한 원소 저장량이며 모든 ‘7B’ 모델의 캐시 크기와 같지 않다. GB와 GiB의 단위도 구분한다.
 

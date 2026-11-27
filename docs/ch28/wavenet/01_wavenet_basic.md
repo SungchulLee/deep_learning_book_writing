@@ -61,7 +61,7 @@ class CausalConv1d(nn.Module):
 
 # ─── 단순한 확장 스택 ──────────────────────────────────────────────────────
 class SimpleDilatedStack(nn.Module):
-    """ReLU 활성화를 갖춘 인과적 확장 컨볼루션 스택.
+    """ReLU 엑티베이션을 갖춘 인과적 확장 컨볼루션 스택.
     dilation이 레이어마다 두 배가 된다: 1, 2, 4, 8, 1, 2, 4, 8, …"""
 
     def __init__(self, in_channels=1, hidden=20, n_layers=8, kernel_size=2):

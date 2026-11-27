@@ -122,7 +122,7 @@ class GuidedBackpropReLU(nn.Module):
         return F.relu(x)
 
     def backward(self, grad_output):
-        # 양수 활성값을 지나는 양수 그래디언트만 역전파한다
+        # 양수 엑티베이션 값을 지나는 양수 그래디언트만 역전파한다
         return grad_output.clamp(min=0) * (self.output > 0).float()
 
 

@@ -134,7 +134,7 @@ class NeuralNet(nn.Module):
     
     구조:
     - 입력 레이어: 뉴런 784개 (28x28 이미지를 펼친 것)
-    - 은닉 레이어: ReLU 활성화를 쓰는 뉴런 500개
+    - 은닉 레이어: ReLU 엑티베이션을 쓰는 뉴런 500개
     - 출력 레이어: 뉴런 10개 (숫자 클래스마다 하나)
     
     인수:
@@ -150,7 +150,7 @@ class NeuralNet(nn.Module):
         # 첫 선형 레이어: input_size -> hidden_size
         self.l1 = nn.Linear(input_size, hidden_size)
         
-        # ReLU 활성화 함수: max(0, x)
+        # ReLU 엑티베이션 함수: max(0, x)
         # 복잡한 패턴을 학습하도록 비선형성을 넣는다
         self.relu = nn.ReLU()
         
@@ -170,7 +170,7 @@ class NeuralNet(nn.Module):
         # 첫 선형 레이어 통과
         out = self.l1(x)
         
-        # ReLU 활성화 적용
+        # ReLU 엑티베이션 적용
         out = self.relu(out)
         
         # 둘째 선형 레이어 통과

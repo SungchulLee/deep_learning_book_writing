@@ -164,7 +164,7 @@ ModuleList에 블록을 num_layers번 붙이는 골격(풀이 끝의 코드)으�
 
 ??? success "풀이"
 
-    YourBlock, num_layers와 dim이 정의되지 않아 아래 골격은 실행 가능한 확장 코드가 아니다. 입력 dim→hidden, 내부 hidden→hidden과 출력 hidden→dim의 차원·활성화 배치를 정하고 ModuleList의 순방향 순회를 정의해야 한다. num_layers 인수도 기존 생성자에는 없다. 벡터장 MLP의 깊이는 한 번의 f 계산 구조이고, 적분 스텝 수는 그 f를 몇 번 호출하는지이므로 서로 다르다. 여러 스텝에 별도 MLP를 만들면 원래의 파라미터 공유도 바뀐다.
+    YourBlock, num_layers와 dim이 정의되지 않아 아래 골격은 실행 가능한 확장 코드가 아니다. 입력 dim→hidden, 내부 hidden→hidden과 출력 hidden→dim의 차원·엑티베이션 배치를 정하고 ModuleList의 순방향 순회를 정의해야 한다. num_layers 인수도 기존 생성자에는 없다. 벡터장 MLP의 깊이는 한 번의 f 계산 구조이고, 적분 스텝 수는 그 f를 몇 번 호출하는지이므로 서로 다르다. 여러 스텝에 별도 MLP를 만들면 원래의 파라미터 공유도 바뀐다.
 
     ```python
     self.layers = nn.ModuleList()

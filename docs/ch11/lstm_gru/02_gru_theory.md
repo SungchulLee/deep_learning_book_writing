@@ -73,11 +73,11 @@ class GRUCell:
         self.b_h = np.zeros((hidden_size, 1))
         
     def sigmoid(self, x):
-        """시그모이드 활성화 함수."""
+        """시그모이드 엑티베이션 함수."""
         return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
     
     def tanh(self, x):
-        """쌍곡탄젠트 활성화 함수."""
+        """쌍곡탄젠트 엑티베이션 함수."""
         return np.tanh(x)
     
     def forward(self, x, h_prev):
@@ -177,7 +177,7 @@ def demonstrate_gru_gates():
     sequence_length = 20
     inputs = [np.random.randn(input_size, 1) for _ in range(sequence_length)]
     
-    # 게이트의 활성화 값 추적하기
+    # 게이트의 엑티베이션 값 추적하기
     reset_gates = []
     update_gates = []
     hidden_states = []
@@ -201,7 +201,7 @@ def demonstrate_gru_gates():
         candidates.append(h_tilde.mean())
         hidden_states.append(h.mean())
     
-    # 게이트의 활성화 값 그려 보기
+    # 게이트의 엑티베이션 값 그려 보기
     plt.figure(figsize=(12, 8))
     
     plt.subplot(2, 2, 1)

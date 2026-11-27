@@ -474,7 +474,7 @@ for n, p in model.named_parameters():
         torch.manual_seed(0)  # 두 경우의 초기값을 같게 맞춘다
         # nn.Linear(32, 32) 열다섯 개를 이어 붙인 깊은 모델이다. [... for _ in range(15)]
         # 가 레이어 15개의 리스트를 만들고, 앞의 * 가 그 리스트를 풀어 하나씩 넘긴다.
-        # 사이에 활성화 함수는 넣지 않았다.
+        # 사이에 엑티베이션 함수는 넣지 않았다.
         net = nn.Sequential(*[nn.Linear(32, 32) for _ in range(15)])
         # 파라메터의 값을 직접 고치므로 no_grad() 안에서 한다. net 을 for 로 돌면
         # 레이어가 하나씩 나온다.
@@ -563,7 +563,7 @@ for n, p in model.named_parameters():
     print("  바이어스를 0 으로 되돌린 뒤:",
           round(net[0].weight.grad.abs().max().item(), 6))
 
-    torch.manual_seed(0)                          # 길 2: 죽인 채로 활성화 함수만 바꾼다
+    torch.manual_seed(0)                          # 길 2: 죽인 채로 엑티베이션 함수만 바꾼다
     # nn.LeakyReLU(0.01) 은 음수를 0 으로 만들지 않고 0.01 배로 줄여 내보낸다.
     # 기울기가 0 이 아니므로 그래디언트가 작게나마 지나간다.
     leaky = nn.Sequential(nn.Linear(4, 8), nn.LeakyReLU(0.01), nn.Linear(8, 2))
@@ -601,5 +601,5 @@ for n, p in model.named_parameters():
 
     뒤쪽이 구조적인 해법이다. ReLU는 **한번 죽으면 스스로 못 돌아온다** —
     출력이 0이면 그래디언트도 0이고, 그래디언트가 0이면 웨이트가 안 바뀌고, 그러면 계속
-    0이다. LeakyReLU나 GELU처럼 음수 쪽이 완전히 평평하지 않은 활성화 함수는
+    0이다. LeakyReLU나 GELU처럼 음수 쪽이 완전히 평평하지 않은 엑티베이션 함수는
     그 덫을 없앤다.

@@ -469,7 +469,7 @@ Max difference between standard and flash: 2.38e-07
 
 benchmark_attention은 무작위 FP32 텐서에 직접 구현과 SDPA를 비교한다. 전용 Flash backend를 강제·확인하지 않고 warmup도 없으므로 출력 이름만으로 FlashAttention의 고정 속도 향상을 주장할 수 없다. GPU 동기화는 하지만 반복·순서·dtype·커널 선택의 영향을 분리해야 한다.
 
-memory_standard는 T²×4만 세어 배치·head 수를 빠뜨린다. 실제 시연은 head 8개이므로 점수 하나도 그 여덟 배이며 확률·출력·기타 활성화는 별도다. SDPA 측정 중 앞의 scores·attn이 참조로 남는 점도 전체 peak memory 해석에 영향을 준다. 이 함수는 실제 peak memory를 측정하지 않는다.
+memory_standard는 T²×4만 세어 배치·head 수를 빠뜨린다. 실제 시연은 head 8개이므로 점수 하나도 그 여덟 배이며 확률·출력·기타 엑티베이션은 별도다. SDPA 측정 중 앞의 scores·attn이 참조로 남는 점도 전체 peak memory 해석에 영향을 준다. 이 함수는 실제 peak memory를 측정하지 않는다.
 
 ## 6. FlashAttention-2와 커널 선택
 
