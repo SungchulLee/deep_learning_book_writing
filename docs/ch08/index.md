@@ -1,21 +1,21 @@
 # 9장: 뉴럴 네트워크의 구성 요소
 
-이 장에서는 다층 퍼셉트론을 구성하고 트레인시키는 데 필요한 요소를 살펴본다. 활성화 함수로 비선형성을 만들고, 순전파와 역전파로 예측과 그래디언트를 계산한다. 이어서 초기화, 정규화 레이어, 과적합을 줄이는 기법이 트레인에 어떤 영향을 주는지 설명한다.
+이 장에서는 다층 퍼셉트론을 구성하고 트레인시키는 데 필요한 요소를 살펴본다. 엑티베이션 함수(레이어의 선형 변환 뒤에 원소마다 적용하는 비선형 함수)로 비선형성을 만들고, 순전파로 예측을, 역전파로 그래디언트를 계산한다. 이어서 초기화, 정규화 레이어, 과적합을 줄이는 기법이 트레인에 어떤 영향을 주는지 설명한다.
 
-## 1. 활성화 함수
+## 1. 엑티베이션 함수
 
-활성화 함수는 선형 변환만으로 표현할 수 없는 관계를 학습하게 한다. 함수의 모양뿐 아니라 도함수, 출력 범위, 로스와의 조합을 함께 살펴본다.
+엑티베이션 함수는 선형 변환만으로 표현할 수 없는 관계를 학습하게 한다. 함수의 모양뿐 아니라 도함수, 출력 범위, 로스와의 조합을 함께 살펴본다.
 
-- [ELU](activations/elu.md): 음수 입력에서도 값을 내는 활성화
-- [회귀 예제](activations/07_regression_with_activations.md): 출력 범위와 활성화 선택
+- [ELU](activations/elu.md): 음수 입력에서도 값을 내는 엑티베이션 함수
+- [회귀 예제](activations/07_regression_with_activations.md): 출력 범위와 엑티베이션 함수 선택
 - [다중 클래스 분류](activations/06_multiclass_classification.md): 로짓과 확률의 구분
-- [활성화 비교](activations/09_activation_comparison.md): 같은 실험 조건에서의 비교
+- [엑티베이션 함수 비교](activations/09_activation_comparison.md): 같은 실험 조건에서의 비교
 
 ## 2. 순방향 뉴럴 네트워크
 
 먼저 각 레이어의 차원과 파라메터 개수를 정리하고, 데이터와 그래디언트가 레이어를 통과하는 과정을 이해한다. 구현 예제는 NumPy의 수동 계산에서 PyTorch의 트레인 루프와 응용으로 이어진다.
 
-이 절이 **이 장에서 가장 길다**(29쪽). 이론 여섯 쪽 뒤로는 **같은 것을 여러 번 짓는** 자리이므로, 아는 도구가 나오면 건너뛰어도 된다.
+이 절이 **이 장에서 가장 길다**(29쪽). 이론 여섯 쪽 뒤로는 **같은 것을 여러 번 구현하는** 자리이므로, 아는 도구가 나오면 건너뛰어도 된다.
 
 **구조와 그 성질**
 
@@ -29,7 +29,7 @@
 
 1. [순수 NumPy로 만드는 선형 회귀](feedforward/01_linear_regression_numpy.md) — 순전파·로스·그래디언트·갱신을 전부 손으로
 2. [PyTorch 텐서로 만드는 선형 회귀](feedforward/02_linear_regression_pytorch.md) — 텐서로 옮기되 autograd 는 아직 끈 채로
-3. [역전파를 직접 구현한 간단한 뉴럴 네트워크](feedforward/03_simple_nn_manual.md) — ReLU 은닉 레이어를 더해 동심원을 가른다
+3. [역전파를 직접 구현한 간단한 뉴럴 네트워크](feedforward/03_simple_nn_manual.md) — ReLU 은닉 레이어를 더해 동심원을 분류한다
 4. [Autograd 소개](feedforward/04_autograd_introduction.md) — 수동 역전파를 `backward()` 로 바꾼다
 5. [간단한 퍼셉트론](feedforward/05_simple_perceptron.md) — `nn.Linear(1, 1)`. 고전 퍼셉트론의 계단 규칙은 **아니다**
 6. [2레이어 뉴럴 네트워크](feedforward/06_two_layer_network.md) — XOR 네 점
@@ -40,13 +40,13 @@
 
 **부품 고르기**
 
-- [엑티베이션 함수](feedforward/12_activation_functions.md) — 여섯을 같은 구간에서 그려 견준다(트레인 성능 비교는 아니다)
-- [로스 함수](feedforward/13_loss_functions.md) — 입력이 로짓인지 확률인지, 목표의 모양과 자료형이 무엇인지
+- [엑티베이션 함수](feedforward/12_activation_functions.md) — 여섯을 같은 구간에서 그려 비교한다(트레인 성능 비교는 아니다)
+- [로스 함수](feedforward/13_loss_functions.md) — 입력이 로짓인지 확률인지, 목표의 형태와 자료형이 무엇인지
 
 **트레인을 다듬기**
 
-- [웨이트 초기화](feedforward/19_weight_initialization.md) — Xavier·He·작은 정규분포·0 을 견준다
-- [배치 정규화](feedforward/16_batch_normalization.md) · [배치 정규화 자세히 보기](feedforward/17_batch_normalization_detailed.md) — 뒤엣것이 분할을 지켜 가며 견준다
+- [웨이트 초기화](feedforward/19_weight_initialization.md) — Xavier·He·작은 정규분포·0 을 비교한다
+- [배치 정규화](feedforward/16_batch_normalization.md) · [배치 정규화 자세히 보기](feedforward/17_batch_normalization_detailed.md) — 뒤엣것이 분할을 지켜 가며 비교한다
 - [드롭아웃 정칙화](feedforward/14_dropout_regularization.md) · [정칙화 기법 자세히 보기](feedforward/15_regularization_techniques_detailed.md)
 - [러닝레이트 일정 조절](feedforward/18_learning_rate_scheduling.md) — 곡선을 그려 보이는 시연이다
 
@@ -62,14 +62,14 @@
 
 ## 3. 웨이트 초기화
 
-초기화는 레이어를 지나는 활성화와 그래디언트의 크기에 영향을 준다. 분산 보존에 관한 근사 가정을 이해하고 활성화에 맞는 방법을 선택한다.
+초기화는 레이어를 지나는 엑티베이션(레이어의 출력값)과 그래디언트의 크기에 영향을 준다. 레이어를 지나도 분산이 유지되게 한다는 분산 보존의 근사 가정을 이해하고 엑티베이션 함수에 맞는 방법을 선택한다.
 
 - [웨이트 초기화의 원리](weight_initialization/weight_initialization.md)
 - [He 초기화](weight_initialization/he_init.md)
 
 ## 4. 정규화 레이어
 
-정규화 레이어(normalization)는 정한 축의 통계량으로 활성화의 크기를 조정한다. 배치 통계량을 쓰는지, 표본마다 계산하는지, 트레인과 평가에서 동작이 달라지는지 구분한다.
+정규화 레이어(normalization)는 정한 축의 통계량으로 엑티베이션의 크기를 조정한다. 배치 통계량을 쓰는지, 표본마다 계산하는지, 트레인과 평가에서 동작이 달라지는지 구분한다.
 
 - [배치 정규화](normalization/batch_normalization.md)
 - [레이어 정규화](normalization/layer_normalization.md)
@@ -93,8 +93,8 @@
 
 **뉴런과 연결을 끄기**
 
-- [드롭아웃](regularization/dropout.md) — 활성화를 끈다 · [드롭커넥트](regularization/dropconnect.md) — 웨이트를 끈다
-- [드롭아웃 예제](regularization/dropout_example.md) — 같은 MLP 로 견준다. 판정은 **같은 평가 모드**에서 해야 한다
+- [드롭아웃](regularization/dropout.md) — 엑티베이션을 끈다 · [드롭커넥트](regularization/dropconnect.md) — 웨이트를 끈다
+- [드롭아웃 예제](regularization/dropout_example.md) — 같은 MLP 로 비교한다. 판정은 **같은 평가 모드**에서 해야 한다
 
 **데이터를 늘리고 섞기**
 
@@ -105,8 +105,8 @@
 **트레인을 멈추거나 흔들기**
 
 - [조기 종료](regularization/early_stopping.md) · [조기 종료 예제](regularization/early_stopping_example.md) — 검증으로 멈출 때를 고르고 **별도 시험 세트**에서 잰다
-- [잡음 주입](regularization/noise_injection.md) — 입력·웨이트·활성화·그래디언트 어디에나 줄 수 있다
+- [잡음 주입](regularization/noise_injection.md) — 입력·웨이트·엑티베이션·그래디언트 어디에나 줄 수 있다
 
 ## 정리하며
 
-뉴럴 네트워크 설계에서는 구조, 활성화, 로스, 초기화, 트레인과 평가 모드를 함께 고려해야 한다. 각 요소의 효과는 데이터와 트레인 조건에 따라 달라지므로 검증 성능과 계산 비용을 기준으로 판단한다.
+뉴럴 네트워크 설계에서는 구조, 엑티베이션 함수, 로스, 초기화, 트레인과 평가 모드를 함께 고려해야 한다. 각 요소의 효과는 데이터와 트레인 조건에 따라 달라지므로 검증 성능과 계산 비용을 기준으로 판단한다.

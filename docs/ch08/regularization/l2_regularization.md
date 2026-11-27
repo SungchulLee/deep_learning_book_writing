@@ -88,7 +88,7 @@ $$
 
 ### 제약 영역
 
-적절한 볼록성·정규성 조건에서 L2 패널티와 노름 제약의 최적해를 대응시킬 수 있다.
+적절한 볼록성·정칙 조건에서 L2 패널티와 노름 제약의 최적해를 대응시킬 수 있다.
 
 $$
 \min_w \mathcal{L}(w) \quad \text{subject to} \quad \|w\|_2^2 \leq t
@@ -102,7 +102,7 @@ $$
 
 ### L2가 수축시키되 희소하게 만들지는 않는 이유
 
-원형의 제약 영역에는 모서리가 없다. 로스 함수의 등고선은 보통 두 좌표가 모두 영이 아닌 점에서 원과 만난다. 그 결과는 다음과 같다.
+원형의 제약 영역에는 꼭짓점이 없다. 로스 함수의 등고선은 보통 두 좌표가 모두 영이 아닌 점에서 원과 만난다. 그 결과는 다음과 같다.
 
 - 전체 노름은 줄어드는 경향이 있지만 상관된 피처에서 모든 개별 계수의 절댓값이 반드시 줄지는 않는다
 - 그러나 정확히 영이 되는 일은 드물다
@@ -116,13 +116,13 @@ $$
 p(w) = \mathcal{N}(0, \sigma^2 I)
 $$
 
-데이터 로스를 **합 NLL**로 정의하면 사전 분산과 아래 관계를 갖는다. 평균 NLL이라면 표본 수 $m$으로 나눈 $\lambda=1/(2m\sigma^2)$가 같은 사전에 대응한다. 앞의 제곱 오차를 정규 가능도(likelihood, 우도라고도 한다)로 읽으려면 관측 잡음 분산과 로스 배율도 맞춰야 한다.
+데이터 로스를 **합 NLL**(음의 로그 가능도를 표본에 걸쳐 평균하지 않고 더한 것)로 정의하면 사전 분산과 아래 관계를 갖는다. 평균 NLL이라면 표본 수 $m$으로 나눈 $\lambda=1/(2m\sigma^2)$가 같은 사전에 대응한다. 앞의 제곱 오차를 정규 가능도(likelihood, 우도라고도 한다)로 읽으려면 관측 잡음 분산과 로스 배율도 맞춰야 한다.
 
 $$
 \lambda = \frac{1}{2\sigma^2}
 $$
 
-이 사전분포를 쓰는 **MAP 추정**은 릿지 회귀의 해를 준다.
+이 사전분포를 쓰는 **MAP 추정**(사후 확률을 최대로 하는 파라메터를 고르는 추정)은 릿지 회귀의 해를 준다.
 
 $$
 w_{\text{MAP}} = \arg\max_w \left[ \log p(y|X, w) + \log p(w) \right]
@@ -192,8 +192,8 @@ def l2_regularization(model: nn.Module, lambda_l2: float) -> torch.Tensor:
     l2_penalty = torch.tensor(0., device=next(model.parameters()).device)
 
     for param in model.parameters():
-        # += 가 아니라 = ... + ... 을 쓴다. += 는 제자리 연산이라
-        # autograd가 되돌아갈 값을 덮어써 역전파가 깨질 수 있다
+        # += 가 아니라 = ... + ... 을 쓴다. += 는 제자리 연산이다. 덧셈은
+        # 제자리로 해도 역전파가 되지만, 제자리 연산을 피해 두는 편이 안전하다
         l2_penalty = l2_penalty + torch.sum(param ** 2)
 
     # 주의: model.parameters()는 바이어스와 정규화 레이어의 감마·베타까지 모두 준다.
@@ -233,7 +233,7 @@ class L2RegularizedModel(nn.Module):
             penalty += torch.sum(param ** 2)
 
         # 쓸 때는 로스에 더한다: loss = criterion(pred, y) + model.l2_penalty()
-        # 옵티마이저의 weight_decay로 거는 것과 수학적으로는 같지만,
+        # 모멘텀 없는 SGD에서는 weight_decay=2*lambda_l2로 거는 것과 같지만,
         # 이렇게 로스에 명시하면 패널티 값을 따로 찍어 볼 수 있어
         # lambda를 고르거나 문제를 찾을 때 편하다
         return lambda_l2 * penalty
@@ -338,7 +338,7 @@ def train_with_l2_regularization(
             optimizer.step()
             # 역전파는 total_loss로 하되 기록은 loss로 한다. 패널티를 뺀
             # 값이라야 lambda_l2가 다른 실험끼리, 또 use_adamw의 두
-            # 방식끼리 로스 곡선을 견줄 수 있다
+            # 방식끼리 로스 곡선을 비교할 수 있다
             train_loss += loss.item()
         
         # 검증 단계
@@ -352,7 +352,7 @@ def train_with_l2_regularization(
         # 웨이트 통계 계산
         # 레이어별 노름을 제곱해 더한 뒤 제곱근을 취해야 전체 노름이 된다.
         # 노름을 그냥 더하면 다른 값이 나온다.
-        # 이 값이 정칙화가 듣고 있는지 보는 지표다. lambda_l2를 키우면
+        # 이 값이 정칙화가 작동하는지 보는 지표다. lambda_l2를 키우면
         # 이 곡선이 더 낮은 자리에서 평평해져야 한다
         total_norm = sum(p.norm().item() ** 2 for p in model.parameters()) ** 0.5
         
@@ -409,7 +409,7 @@ def create_param_groups_with_l2(model, base_lr=0.001,
         # 바이어스는 정칙화하지 않는다 (흔한 관행).
         # 위의 레이어별 설정보다 나중에 오므로 무엇을 지정했든 이 규칙이
         # 이긴다. 바이어스는 과적합의 원인이 아니라 출력의 중심을 옮기는
-        # 자유도라 눌러 둘 까닭이 없다.
+        # 자유도라 패널티를 줄 까닭이 없다.
         # 이 페이지 앞머리의 l2_regularization 함수가 model.parameters()로
         # 바이어스까지 훑던 문제를 여기서는 이름을 보고 갈라 해결한다
         if 'bias' in name:
@@ -475,9 +475,9 @@ def ridge_regression_analysis(X, y, alphas=None):
         alphas = np.logspace(-4, 4, 50)
     
     # 최적 alpha를 찾기 위한 교차 검증.
-    # RidgeCV는 alpha마다 따로 적합시키는 것이 아니라 릿지 해의
-    # 닫힌 형태를 이용해 한꺼번에 푼다. 그래서 GridSearchCV로 같은 일을
-    # 하는 것보다 훨씬 빠르다
+    # cv=5처럼 폴드 수를 주면 RidgeCV는 alpha마다 5-폴드 교차 검증을 돈다.
+    # cv=None(기본값)으로 두면 릿지 해의 닫힌 형태를 이용해 하나 빼기(LOO)
+    # 교차 검증을 한꺼번에 계산하므로 훨씬 빠르다
     ridge_cv = RidgeCV(alphas=alphas, cv=5, scoring='neg_mean_squared_error')
     ridge_cv.fit(X_scaled, y)
     
@@ -533,7 +533,7 @@ $$
 d_i=\frac{\sigma_i^2}{\sigma_i^2+a}
 $$
 
-**해석**: 릿지 회귀는 특잇값이 작은 방향의 계수를 더 세게 수축시킨다. 이는 강한 방향의 신호는 지키면서 잡음이 많은 방향에서의 과적합을 막는다.
+**해석**: 릿지 회귀는 특잇값이 작은 방향의 계수를 더 세게 수축시킨다. 이는 강한 방향의 신호는 지키면서 잡음이 많은 방향에서의 과적합을 막는다. 아래 코드의 `lambda_reg`는 위 식의 $a = 2m\lambda$에 해당한다.
 
 ```python
 def ridge_via_svd(X, y, lambda_reg):
@@ -574,7 +574,7 @@ $$
 | 항목 | L2 (릿지) | L1 (라쏘) |
 |--------|------------|------------|
 | 패널티 | $\lambda \sum w_i^2$ | $\lambda \sum \|w_i\|$ |
-| 제약의 모양 | 원/구 | 마름모/교차다포체 |
+| 제약의 모양 | 원/구 | 마름모/정축체(cross-polytope) |
 | 희소한 해 | 직접 유도하지 않음 | 선호함 |
 | 선형 최소제곱의 해 | 양의 강도에서 닫힌 해 | 일반적으로 반복 계산. 특수한 설계에서는 닫힌 해 |
 | 미분 가능 | 그렇다 | 아니다 (0에서) |
@@ -585,10 +585,10 @@ $$
 
 ## 9. L2 정칙화를 쓸 때
 
-### 알맞은 쓰임새
+### 알맞은 사용처
 
 1. **큰 웨이트를 막을 때**: 극단적인 웨이트가 불안정을 일으킬 때
-2. **상관된 피처**: L2는 다중공선성을 매끄럽게 다룬다
+2. **상관된 피처**: L2는 다중공선성(피처들이 서로 강하게 상관된 상태)을 매끄럽게 다룬다
 3. **모든 피처가 유의미할 때**: 모든 피처가 기여한다고 믿을 때
 4. **수치적 안정성**: $\lambda I$를 더하면 가역성이 보장된다
 5. **딥러닝**: 뉴럴 네트워크의 표준 정칙화 방법이다
@@ -659,7 +659,7 @@ from sklearn.linear_model import Ridge
 # 옳은 방법: 스케일을 맞춘 뒤 정칙화한다.
 #
 # 왜 순서가 중요한가.
-# L2 패널티는 모든 계수를 같은 세기로 누른다. 그런데 피처의 스케일이 제각각이면
+# L2 패널티는 모든 계수를 같은 세기로 줄인다. 그런데 피처의 스케일이 제각각이면
 # 스케일이 큰 피처일수록 계수가 작아지므로 패널티를 덜 받는다. 곧 정칙화의 세기가
 # 피처의 단위에 따라 달라져 버린다. 표준화를 먼저 해 두면 모든 계수가
 # 같은 스케일 위에 놓여 alpha 하나가 모두에 똑같이 걸린다.
@@ -743,9 +743,11 @@ PyTorch에서 `weight_decay` 파라메터를 쓰는 방법과 패널티를 직�
     # 방법 2: 직접 구현
     loss = criterion(model(x), y)
     l2_penalty = sum(p.pow(2).sum() for p in model.parameters())
-    loss = loss + 0.01 * l2_penalty
+    # weight_decay=0.01과 같은 갱신이 되려면 계수는 그 절반이다
+    loss = loss + 0.005 * l2_penalty
     loss.backward()
     ```
+    패널티 $c\|w\|^2$의 그래디언트가 $2cw$이므로, 모멘텀 없는 SGD에서 `weight_decay=0.01`과 같아지는 계수는 $c = 0.005$이다.
 
 ## 정리하며
 

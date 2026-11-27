@@ -1,6 +1,6 @@
 # L1 정칙화 (라쏘)
 
-라쏘(Least Absolute Shrinkage and Selection Operator)라고도 하는 L1 정칙화는 모델 웨이트의 절댓값에 비례하는 패널티를 로스 함수에 더한다. 이 기법은 트레인된 파라메터의 희소성을 북돋우며, 관련 없는 피처의 웨이트를 정확히 0으로 몰아 사실상 자동 피처 선택을 수행한다.
+라쏘(Least Absolute Shrinkage and Selection Operator)라고도 하는 L1 정칙화는 모델 웨이트의 절댓값에 비례하는 패널티를 로스 함수에 더한다. 이 기법은 트레인된 파라메터의 희소성(sparsity, 많은 웨이트가 정확히 0인 성질)을 유도하며, 관련 없는 피처의 웨이트를 정확히 0으로 몰아 사실상 자동 피처 선택을 수행한다.
 
 ---
 
@@ -22,7 +22,7 @@ $$
 
 ### L1을 쓰는 선형 회귀 (라쏘 회귀)
 
-설계 행렬 $X \in \mathbb{R}^{m \times n}$, 목표 $y \in \mathbb{R}^m$, 웨이트 $w \in \mathbb{R}^n$인 선형 회귀에 대해 다음이 성립한다.
+설계 행렬(행이 표본, 열이 피처인 입력 행렬) $X \in \mathbb{R}^{m \times n}$, 목표 $y \in \mathbb{R}^m$, 웨이트 $w \in \mathbb{R}^n$인 선형 회귀에 대해 다음이 성립한다.
 
 $$
 \mathcal{L}_{\text{Lasso}}(w) = \frac{1}{2m} \|Xw - y\|_2^2 + \lambda \|w\|_1
@@ -36,7 +36,7 @@ $$
 
 ### 그래디언트와 부분그래디언트
 
-L1 노름은 $w_i = 0$에서 미분할 수 없다. 부분그래디언트를 쓴다.
+L1 노름은 $w_i = 0$에서 미분할 수 없다. 그래서 부분그래디언트(subgradient)를 쓴다. 볼록 함수의 그래프를 그 점에서 아래로 받치는 직선들의 기울기를 모두 모은 것으로, 미분되는 점에서는 보통의 도함수 하나뿐이고 꺾인 점에서는 구간이 된다.
 
 $$
 \frac{\partial}{\partial w_i} |w_i| = 
@@ -70,13 +70,13 @@ $$
 
 ### 제약 영역
 
-적절한 볼록성·정규성 조건에서 패널티 강도에 대응하는 L1 노름 제약 문제를 구성할 수 있다.
+적절한 볼록성·정칙 조건에서 패널티 강도에 대응하는 L1 노름 제약 문제를 구성할 수 있다.
 
 $$
 \min_w \mathcal{L}(w) \quad \text{subject to} \quad \|w\|_1 \leq t
 $$
 
-2차원에서 L1 공은 축 위에 모서리가 있는 마름모(회전한 정사각형) 모양을 이룬다.
+2차원에서 L1 공은 축 위에 꼭짓점이 있는 마름모(회전한 정사각형) 모양을 이룬다.
 
 $$
 \|w\|_1 = |w_1| + |w_2| \leq t
@@ -84,15 +84,15 @@ $$
 
 ### 기하로부터 나오는 희소성
 
-L1 제약 영역의 마름모 모양은 좌표축 위에 **모서리**를 갖는다. 로스 함수의 등고선이 제약 영역과 만날 때 이 모서리에서 닿을 가능성이 더 크며, 그 결과 어떤 웨이트는 정확히 0인 해가 된다.
+L1 제약 영역의 마름모 모양은 좌표축 위에 **꼭짓점**을 갖는다. 로스 함수의 등고선이 제약 영역과 만날 때 이 꼭짓점에서 닿을 가능성이 더 크며, 꼭짓점은 축 위에 있으므로 그 결과 어떤 웨이트는 정확히 0인 해가 된다.
 
 **L2(원형 제약)와의 비교:**
 
 | 성질 | L1 (마름모) | L2 (원) |
 |----------|--------------|-------------|
-| 모서리 점 | 있음 (축 위) | 없음 |
+| 꼭짓점 | 있음 (축 위) | 없음 |
 | 희소한 해 | 그렇다 | 드물다 |
-| 미분 가능 | 아니다 (모서리에서) | 그렇다 |
+| 미분 가능 | 아니다 (꼭짓점에서) | 그렇다 |
 
 ---
 
@@ -106,7 +106,7 @@ L1 제약 영역의 마름모 모양은 좌표축 위에 **모서리**를 갖는
 2. **영에서**: 부분그래디언트가 구간 $[-\lambda, +\lambda]$를 포함한다
 3. **영에 머무를 조건**: $w_i = 0$에서 원래 로스의 그래디언트가 $[-\lambda, +\lambda]$ 안에 있으면 $w_i = 0$이 최적이다
 
-이는 최적점의 조건이다. 일반 SGD나 Adam에 L1 항을 더하는 것만으로 유한한 반복에서 계수가 정확히 0이 되지는 않을 수 있다. 정확한 희소성이 필요하면 근접 경사 하강법(proximal gradient)이나 좌표 하강법과 같은 알고리즘을 검토한다.
+이는 최적점의 조건이다. 일반 SGD나 Adam에 L1 항을 더하는 것만으로 유한한 반복에서 계수가 정확히 0이 되지는 않을 수 있다. 정확한 희소성이 필요하면 근접 경사 하강법(proximal gradient, 미분되는 로스로 경사 스텝을 한 번 밟은 뒤 패널티는 아래의 소프트 스레숄딩으로 따로 적용하는 방법)이나 좌표 하강법(한 번에 계수 하나씩만 최적화하는 방법)과 같은 알고리즘을 검토한다.
 
 ### 소프트 스레숄딩 연산자
 
@@ -142,7 +142,7 @@ def l1_regularization(model: nn.Module, lambda_l1: float) -> torch.Tensor:
     # requires_grad=True는 사실 필요 없다. 0은 상수이고, 아래에서 더하는
     # param 쪽이 이미 그래디언트를 나르기 때문이다.
     # 주의: device를 맞추지 않아 모델이 GPU에 있으면 덧셈에서 오류가 난다.
-    # 뒤의 l2_regularization은 next(model.parameters()).device로 이를 피한다
+    # L2 정칙화 쪽의 l2_regularization은 next(model.parameters()).device로 이를 피한다
     l1_penalty = torch.tensor(0., requires_grad=True)
     for param in model.parameters():
         l1_penalty = l1_penalty + torch.sum(torch.abs(param))
@@ -176,6 +176,8 @@ class L1RegularizedTrainer:
 ```
 
 ### PyTorch의 내장 정칙화 장치 쓰기
+
+PyTorch 옵티마이저에는 L1 패널티를 걸어 주는 내장 옵션이 없다. 아래 `L1Regularizer`는 웨이트를 그대로 통과시키는 자리표시 모듈일 뿐이고, 실제 패널티는 `add_l1_regularization_to_loss`가 로스에 더한다.
 
 ```python
 import torch.nn as nn
@@ -315,7 +317,7 @@ def train_with_l1(model, train_loader, val_loader,
             loss.backward()
             optimizer.step()
             # 기록하는 것은 loss가 아니라 mse_loss다. 패널티를 빼고 재야
-            # lambda_l1이 다른 실험끼리 로스 곡선을 견줄 수 있다.
+            # lambda_l1이 다른 실험끼리 로스 곡선을 비교할 수 있다.
             # 패널티까지 넣으면 강도가 셀수록 로스가 커 보여 뜻이 흐려진다
             train_loss += mse_loss.item()
         
@@ -350,7 +352,7 @@ def train_with_l1(model, train_loader, val_loader,
 
 ### L1을 위한 근접 경사 하강법
 
-L1로 더 효율적으로 최적화하려면 근접 경사 하강법을 쓴다.
+L1 패널티를 더한 목적 함수를 더 효율적으로, 그리고 정확한 0이 나오게 최적화하려면 근접 경사 하강법을 쓴다.
 
 ```python
 def proximal_l1(weights: torch.Tensor, lambda_l1: float, 
@@ -369,7 +371,7 @@ def proximal_l1(weights: torch.Tensor, lambda_l1: float,
     # 이것이 앞에서 말한 "0에 못박는" 연산이다. 로스에 |w|를 더해
     # 미분해 내려가는 방식은 웨이트를 0 근처로 밀 뿐이지만, 소프트
     # 스레숄딩은 크기가 임계값에 못 미치는 웨이트를 정확히 0으로 만든다.
-    # 그래서 count_zero_weights의 임계값 타령이 여기서는 필요 없다.
+    # 그래서 count_zero_weights의 임계값 문제가 여기서는 생기지 않는다.
     #
     # 식을 뜯어보면, 부호는 그대로 두고 크기에서 threshold만큼을 빼되
     # 음수가 되면 0에서 멈춘다. |w| <= threshold인 웨이트는 모두 0으로
@@ -475,10 +477,9 @@ def compare_regularization_strengths(X, y, alphas):
         results.append({
             'alpha': alpha,
             'n_nonzero': n_nonzero,
-            # .copy()가 반드시 필요하다. lasso.coef_는 다음 회귀에서
-            # 새 Lasso 객체가 만들어지므로 지금은 괜찮아 보이지만,
-            # 같은 객체를 다시 fit하는 형태로 바꾸면 모든 항목이 마지막
-            # 계수를 함께 가리키게 된다. 사본을 뜨는 버릇이 안전하다
+            # .copy()를 해 두는 편이 안전하다. 지금은 반복마다 새 Lasso
+            # 객체를 만들므로 없어도 결과가 같지만, 같은 객체를 다시 fit하는
+            # 형태로 바꾸면 모든 항목이 마지막 계수를 함께 가리킬 수 있다
             'coefficients': lasso.coef_.copy()
         })
 
@@ -515,10 +516,10 @@ def plot_lasso_path(X, y, eps=1e-3, n_alphas=100):
     y_centered = y - y.mean()
     
     # 라쏘 경로 계산
-    # alpha마다 따로 적합시키는 것이 아니라, 라쏘의 해가 alpha에 대해
-    # 조각별 선형이라는 성질을 써서 경로 전체를 한 번에 얻는다.
+    # alpha 격자를 큰 값부터 차례로 좌표 하강법으로 풀되, 앞 alpha의 해를
+    # 다음 alpha의 시작점으로 넘겨(warm start) 경로 전체를 빠르게 얻는다.
     # 그림에서 계수들이 하나씩 0에서 떨어져 나오는 모습이 보이는데,
-    # 그 순서가 곧 피처의 중요도 순위다
+    # 그 순서는 피처가 모델에 들어오는 순서이며 중요도의 어림으로 읽는다
     alphas, coefs, _ = lasso_path(X_scaled, y_centered, eps=eps, n_alphas=n_alphas)
     
     # 그래프 그리기
@@ -631,7 +632,7 @@ class SparseInputNetwork(nn.Module):
         # 이 레이어만 따로 떼어 둔 까닭은 여기에만 패널티를 걸기 위해서다.
         # 입력 피처 하나에 해당하는 것은 weight의 한 "열"이라, 그 열이
         # 통째로 0이 되면 그 피처는 뉴럴 네트워크에 아예 들어오지 못한다.
-        # 곧 피처 선택이다. 은닉 레이어까지 눌러 버리면 표현력만 잃고
+        # 곧 피처 선택이다. 은닉 레이어까지 패널티를 걸면 표현력만 잃고
         # 어느 피처가 쓸모없는지는 알 수 없다
         self.input_layer = nn.Linear(input_dim, hidden_dims[0])
         

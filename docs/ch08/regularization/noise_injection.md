@@ -1,6 +1,6 @@
 # 잡음 주입
 
-잡음 주입은 입력, 웨이트, 활성화나 그래디언트에 확률적 변화를 주는 방법이다. 원하는 변동에 덜 민감한 예측을 학습하도록 유도할 수 있지만, 잡음이 의미를 훼손하거나 너무 크면 성능이 나빠질 수 있다.
+잡음 주입은 입력, 웨이트, 엑티베이션(엑티베이션 함수를 지난 은닉 레이어의 출력값)나 그래디언트에 확률적 변화를 주는 방법이다. 원하는 변동에 덜 민감한 예측을 학습하도록 유도할 수 있지만, 잡음이 의미를 훼손하거나 너무 크면 성능이 나빠질 수 있다.
 
 ## 1. 잡음 주입의 종류
 
@@ -28,9 +28,9 @@ $$
 \tilde{g} = g + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma_t^2 I)
 $$
 
-### 활성화 잡음
+### 엑티베이션 잡음
 
-은닉 레이어의 활성화에 잡음을 더한다.
+은닉 레이어의 엑티베이션에 잡음을 더한다.
 
 $$
 \tilde{h} = h + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2 I)
@@ -42,13 +42,13 @@ $$
 
 ### 정칙화 효과
 
-입력에 잡음을 더하는 선형 회귀에서, 입력에 정규 잡음 $\epsilon \sim \mathcal{N}(0, \sigma^2 I)$를 더하는 것은 L2 정칙화와 동등하다.
+제곱 오차로 맞추는 선형 회귀에서 입력에 가우시안 잡음 $\epsilon \sim \mathcal{N}(0, \sigma^2 I)$를 더하는 것은 기댓값으로 보면 L2 정칙화(웨이트 크기의 제곱 $\|w\|^2$에 패널티를 주는 것)와 동등하다.
 
 $$
 \mathbb{E}_\epsilon[\|y - (x + \epsilon)^T w\|^2] = \|y - x^T w\|^2 + \sigma^2 \|w\|^2
 $$
 
-이는 입력 잡음이 큰 웨이트에 암묵적으로 패널티를 준다는 것을 보여 준다.
+제곱을 펼치면 교차항은 $\mathbb{E}[\epsilon] = 0$이라 사라지고 $\mathbb{E}[(\epsilon^T w)^2] = \sigma^2 \|w\|^2$만 남기 때문이다. 이는 입력 잡음이 큰 웨이트에 암묵적으로 패널티를 준다는 것을 보여 준다.
 
 ### 강건성의 관점에서의 해석
 
@@ -58,11 +58,13 @@ $$
 \mathcal{L}_{\text{smooth}}(w) = \mathbb{E}_\epsilon[\mathcal{L}(w + \epsilon)]
 $$
 
-이 식은 웨이트 잡음의 기대 로스를 나타낸다. 입력 잡음은 입력 공간에서 기댓값을 취하는 별도 목적이다. 가우시안 평균은 목적을 매끄럽게 할 수 있지만 최적화가 항상 쉬워지거나 더 좋은 일반화 해에 도달하는 것은 아니다.
+이 식은 웨이트 잡음의 기대 로스를 나타낸다. 입력 잡음은 입력 공간에서 기댓값을 취하는 별도 목적이다. 가우시안 잡음에 대한 평균은 목적 함수를 매끄럽게 할 수 있지만 최적화가 항상 쉬워지거나 더 좋은 일반화 해에 도달하는 것은 아니다.
 
 ---
 
 ## 3. PyTorch 구현
+
+이 쪽의 코드는 클래스와 함수의 정의만 싣는다. 모델을 트레인하지 않으므로 출력 블록이 없고, 어느 잡음이 성능을 얼마나 바꾸는지에 대한 수치도 이 쪽에서는 재지 않는다.
 
 ### 입력 잡음
 
@@ -71,7 +73,7 @@ import torch
 import torch.nn as nn
 
 class GaussianNoise(nn.Module):
-    """트레인 중에 입력에 정규 잡음을 더한다."""
+    """트레인 중에 입력에 가우시안 잡음을 더한다."""
     
     def __init__(self, std: float = 0.1, relative: bool = False):
         """
@@ -84,7 +86,7 @@ class GaussianNoise(nn.Module):
         self.relative = relative
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # self.training이 문지기다. nn.Module이 model.train()과
+        # self.training이 스위치다. nn.Module이 model.train()과
         # model.eval()에 맞추어 이 값을 뒤집어 준다. 평가할 때까지
         # 잡음을 더하면 같은 입력에 매번 다른 답이 나온다
         if self.training and self.std > 0:
@@ -111,7 +113,7 @@ class UniformNoise(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.training:
-            # 정규 잡음과 달리 균등 잡음은 [low, high] 밖으로 나가지
+            # 가우시안 잡음과 달리 균등 잡음은 [low, high] 밖으로 나가지
             # 않는다. 아주 드물게라도 큰 값이 튀는 것을 막고 싶을 때 쓴다
             noise = torch.empty_like(x).uniform_(self.low, self.high)
             return x + noise
@@ -127,7 +129,7 @@ class SaltAndPepperNoise(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.training and self.prob > 0:
             # 앞의 둘은 값을 흔들지만 이쪽은 값을 통째로 갈아 끼운다.
-            # 균등 난수 하나를 뽑아 양 끝에서 prob/2씩 잘라 내므로,
+            # 균등 난수 하나를 샘플링해 양 끝에서 prob/2씩 잘라 내므로,
             # 소금과 후추를 합쳐 대략 prob 비율의 픽셀이 바뀐다.
             # 하나의 mask를 양쪽에 쓰는 덕에 두 조건은 겹칠 수 없다
             mask = torch.rand_like(x)
@@ -156,7 +158,7 @@ class NoisyLinear(nn.Module):
         super().__init__()
         self.noise_std = noise_std
 
-        # 1/sqrt(fan_in)으로 나누어 초기화한다. 입력이 많을수록 합이
+        # sqrt(fan_in)으로 나누어 초기화한다(fan_in은 입력 수). 입력이 많을수록 합이
         # 커지므로 그만큼 미리 줄여 두어야 출력의 분산이 일정하게 유지된다
         self.weight = nn.Parameter(torch.randn(out_features, in_features) / 
                                    (in_features ** 0.5))
@@ -169,10 +171,10 @@ class NoisyLinear(nn.Module):
             self.register_parameter('bias', None)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # 드롭아웃이 활성을 끄는 데 견주어, 여기서는 웨이트 자체를 흔든다.
+        # 드롭아웃이 엑티베이션을 끄는 데 비해, 여기서는 웨이트 자체를 흔든다.
         # 매 스텝 조금씩 다른 웨이트로 트레인하는 셈이라, 로스 지형에서
-        # 좁고 뾰족한 골짜기 대신 넓고 평평한 골짜기를 찾게 된다.
-        # 평평한 최소점이 일반화가 낫다는 것이 이 기법의 근거다
+        # 좁고 뾰족한 골짜기 대신 넓고 평평한 골짜기를 찾도록 유도한다.
+        # 평평한 최소점이 일반화가 낫다는 가설이 이 기법의 근거다
         if self.training and self.noise_std > 0:
             # 주의: 잡음을 self.weight에 제자리로 더하지 않고 새 텐서를
             # 만든다. 제자리로 더하면 트레인된 웨이트가 영구히 오염된다
@@ -186,7 +188,7 @@ class NoisyLinear(nn.Module):
                 noisy_bias = None
 
             # nn.Linear 대신 functional.linear를 쓰는 까닭은, 매 스텝
-            # 달라지는 웨이트를 인자로 곧바로 넘겨야 하기 때문이다
+            # 달라지는 웨이트를 인수로 곧바로 넘겨야 하기 때문이다
             return nn.functional.linear(x, noisy_weight, noisy_bias)
 
         # 평가할 때는 잡음 없이 배운 웨이트를 그대로 쓴다
@@ -239,11 +241,11 @@ class GradientNoiseCallback:
         self.step += 1
 ```
 
-### 활성화 잡음
+### 엑티베이션 잡음
 
 ```python
 class ActivationNoise(nn.Module):
-    """레이어의 활성화에 잡음을 더한다."""
+    """레이어의 엑티베이션에 잡음을 더한다."""
     
     def __init__(self, std: float = 0.1, additive: bool = True):
         """
@@ -258,12 +260,12 @@ class ActivationNoise(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.training and self.std > 0:
             if self.additive:
-                # 더하기 잡음: 활성의 크기와 상관없이 같은 세기로 흔든다.
-                # 값이 작은 활성일수록 상대적으로 크게 흔들리는 셈이다
+                # 더하기 잡음: 엑티베이션의 크기와 상관없이 같은 세기로 흔든다.
+                # 값이 작은 엑티베이션일수록 상대적으로 크게 흔들리는 셈이다
                 noise = torch.randn_like(x) * self.std
                 return x + noise
             else:
-                # 곱하기 잡음: 평균이 1인 값을 곱한다. 활성에 비례해
+                # 곱하기 잡음: 평균이 1인 값을 곱한다. 엑티베이션에 비례해
                 # 흔들리므로 큰 값은 크게, 작은 값은 작게 바뀐다.
                 # 드롭아웃도 사실 곱하기 잡음의 한 갈래다(0 또는 1/(1-p)를 곱한다).
                 # 다만 여기서는 기댓값이 1이라 따로 스케일을 맞출 필요가 없다
@@ -274,7 +276,7 @@ class ActivationNoise(nn.Module):
         return x
 
 class NetworkWithActivationNoise(nn.Module):
-    """활성화 잡음을 쓰는 뉴럴 네트워크 예제."""
+    """엑티베이션 잡음을 쓰는 뉴럴 네트워크 예제."""
     
     def __init__(self, input_dim, hidden_dims, output_dim, noise_std=0.1):
         super().__init__()
@@ -288,7 +290,7 @@ class NetworkWithActivationNoise(nn.Module):
                 nn.ReLU(),
                 # 잡음을 ReLU "뒤"에 둔다. 앞에 두면 잡음이 ReLU를 거치며
                 # 음수 쪽이 잘려 나가 평균이 0이 아니게 되고, 그만큼
-                # 활성 전체가 위로 밀린다
+                # 엑티베이션 전체가 위로 밀린다
                 ActivationNoise(std=noise_std)
             ])
             prev_dim = hidden_dim
@@ -324,7 +326,7 @@ class ScheduledNoise(nn.Module):
 
     @property
     def current_std(self) -> float:
-        # 다 줄이고 나면 final_std로 붙박는다. 이 가드가 없으면
+        # 다 줄이고 나면 final_std로 고정한다. 이 가드가 없으면
         # progress가 1을 넘어 잡음이 음수 쪽으로 넘어간다
         if self.current_step >= self.decay_steps:
             return self.final_std
@@ -376,8 +378,8 @@ class VariationalLayer(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.training:
             # 리파라메리제이션 기법(reparameterization trick).
-            # w ~ N(mean, std^2) 에서 바로 뽑으면 그 뽑기를 미분할 수 없다.
-            # 대신 표준정규에서 뽑아 mean + std * eps 로 만들면, 무작위성이
+            # w ~ N(mean, std^2) 에서 바로 샘플링하면 그 샘플링을 미분할 수 없다.
+            # 대신 표준정규에서 샘플링해 mean + std * eps 로 만들면, 무작위성이
             # eps에만 남고 mean과 std로는 그래디언트가 흘러 트레인할 수 있다.
             # 로그 분산에 0.5를 곱해 exp하면 표준편차가 된다
             w_std = torch.exp(0.5 * self.w_log_var)
@@ -386,7 +388,7 @@ class VariationalLayer(nn.Module):
             b_std = torch.exp(0.5 * self.b_log_var)
             b = self.b_mean + b_std * torch.randn_like(self.b_mean)
         else:
-            # 평가할 때는 분포의 평균만 쓴다. 여러 번 뽑아 평균 내면
+            # 평가할 때는 분포의 평균만 쓴다. 여러 번 샘플링해 평균 내면
             # 불확실성까지 얻을 수 있으나(MC 드롭아웃과 같은 발상)
             # 그만큼 느려진다
             w = self.w_mean
@@ -400,7 +402,7 @@ class VariationalLayer(nn.Module):
         # 0으로 줄이는 것이 언제나 이득이라 보통의 레이어로 되돌아간다.
         # KL이 "표준정규에서 너무 멀어지지 말라"는 패널티 노릇을 한다.
         #
-        # 두 가우스 사이의 KL을 닫힌 형태로 적은 것이며,
+        # 두 가우시안 사이의 KL을 닫힌 형태로 적은 것이며,
         # -0.5 * sum(1 + log(s^2) - m^2 - s^2) 가 그 식이다
         kl_w = -0.5 * torch.sum(1 + self.w_log_var - self.w_mean.pow(2) - 
                                  self.w_log_var.exp())
@@ -491,12 +493,12 @@ def train_with_noise_injection(
 
 ## 6. 잡음 종류의 비교
 
-| 종류 | 위치 | 효과 | 쓰임새 |
+| 종류 | 위치 | 효과 | 용도 |
 |------|----------|--------|----------|
 | 입력 잡음 | 데이터 | 데이터 어그멘테이션, 강건성 | 데이터가 적을 때, 입력에 잡음이 있을 때 |
-| 웨이트 잡음 | 파라메터 | 섭동에 대한 기대 로스를 바꿈 | 강건성 실험, 별도 변분 목적이 있는 확률 모델 |
+| 웨이트 잡음 | 파라메터 | 섭동(값에 가한 작은 변화)에 대한 기대 로스를 바꿈 | 강건성 실험, 별도 변분 목적이 있는 확률 모델 |
 | 그래디언트 잡음 | 최적화 | 갱신의 확률적 탐색을 바꿈 | 잡음 크기와 스케줄을 검증하는 실험 |
-| 활성화 잡음 | 은닉 레이어 | 드롭아웃과 비슷 | 일반적인 정칙화 |
+| 엑티베이션 잡음 | 은닉 레이어 | 드롭아웃과 비슷 | 일반적인 정칙화 |
 
 ---
 
@@ -507,7 +509,7 @@ def train_with_noise_injection(
 1. **입력 잡음**: 시험 데이터에 자연스러운 변이가 있을 수 있을 때
 2. **웨이트 잡음**: 섭동에 대한 강건성을 보거나, 변분 레이어처럼 잡음 크기까지 트레인해 불확실성을 다루려 할 때
 3. **그래디언트 잡음**: 아주 깊은 뉴럴 네트워크나 어려운 최적화일 때
-4. **활성화 잡음**: 범용 정칙화
+4. **엑티베이션 잡음**: 범용 정칙화
 
 ### 잡음 크기의 선택
 
@@ -515,7 +517,7 @@ def train_with_noise_injection(
 - **너무 크면**: 트레인을 막고 신호를 없앤다
 - **지침**:
   - 입력 잡음: 입력 표준편차의 1~10%
-  - 웨이트 잡음: 웨이트 크기에 견주어 0.01~0.1
+  - 웨이트 잡음: 웨이트 크기에 대한 비율로 0.01~0.1
   - 그래디언트 잡음: eta=0.01에서 시작하여 트레인이 진행되며 줄인다
 
 ### 다른 기법과 결합하기
@@ -564,6 +566,7 @@ Neelakantan 등(2015)의 스케줄 $\sigma_t^2 = \eta/(1+t)^\gamma$를 쓰는 �
 ??? success "풀이"
     ```python
     for t, (x, y) in enumerate(dataloader):
+        optimizer.zero_grad()
         loss = criterion(model(x), y)
         loss.backward()
         sigma = (eta / (1 + t)**gamma)**0.5
@@ -582,7 +585,7 @@ Neelakantan 등(2015)의 스케줄 $\sigma_t^2 = \eta/(1+t)^\gamma$를 쓰는 �
 </div>
 
 ??? success "풀이"
-    해당 과제에서 레이블을 보존할 잡음 종류와 범위를 정하고, 잡음 없는 기준과 같은 데이터 분할·예산으로 비교한다. 목표한 섭동에 대한 강건성과 원래 분포의 성능을 모두 평가한다. 입력 잡음이 레이블 오류나 파국적 망각을 해결한다고 가정하지 않는다.
+    해당 과제에서 라벨을 보존할 잡음 종류와 범위를 정하고, 잡음 없는 기준과 같은 데이터 분할·예산으로 비교한다. 목표한 섭동에 대한 강건성과 원래 분포의 성능을 모두 평가한다. 입력 잡음이 라벨 오류나 파국적 망각을 해결한다고 가정하지 않는다.
 
 ## 정리하며
 

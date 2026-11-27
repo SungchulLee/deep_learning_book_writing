@@ -1,6 +1,6 @@
 # RMSNorm
 
-RMSNorm은 입력 평균을 빼지 않고 RMS(root mean square)를 이용해 스케일을 조정한다. 레이어 정규화의 간소화된 변형으로, LLaMA 등의 구조에 사용된다. 평균 중심화를 생략하는 설계가 적절한지와 실제 속도 향상은 모델·구현·장치 조건에서 판단해야 한다.
+RMSNorm은 입력 평균을 빼지 않고 RMS(root mean square, 제곱평균제곱근 — 성분을 제곱해 평균 낸 뒤 제곱근을 씌운 값)를 이용해 스케일을 조정한다. 레이어 정규화(표본 하나의 피처들에서 평균을 빼고 표준편차로 나누는 정규화)의 간소화된 변형으로, LLaMA 등의 구조에 사용된다. 평균 중심화(평균을 빼서 중심을 0으로 옮기는 일)를 생략하는 설계가 적절한지와 실제 속도 향상은 모델·구현·장치 조건에서 판단해야 한다.
 
 ---
 
@@ -87,10 +87,10 @@ class RMSNorm(nn.Module):
     def forward(self, x):
         """
         인수:
-            x: 모양이 (..., dim)인 입력 텐서
+            x: 형태가 (..., dim)인 입력 텐서
         
         반환값:
-            같은 모양의 정규화된 텐서
+            같은 형태의 정규화된 텐서
         """
         # 정규화하고 배율 조정.
         # float()으로 올렸다가 type_as로 되돌리는 것이 요령이다. 반정밀도
@@ -124,7 +124,7 @@ class RMSNormOptimized(nn.Module):
 class LayerNormBaseline(nn.Module):
     """비교를 위한 표준 LayerNorm.
 
-    RMSNorm과 견주기 위한 기준이다. 두 가지가 다르다.
+    RMSNorm과 비교하기 위한 기준이다. 두 가지가 다르다.
       (1) LayerNorm은 평균을 빼서 중심을 옮기지만 RMSNorm은 옮기지 않는다.
       (2) LayerNorm은 바이어스(bias)를 두지만 RMSNorm은 두지 않는다.
     """
@@ -158,9 +158,9 @@ class LayerNormBaseline(nn.Module):
 
 ### 가설: 재중심화는 필요 없다
 
-원 논문은 LayerNorm의 성공이 (평균을 빼는) 재중심화(re-centering)가 아니라 주로 **재스케일링 불변성**(re-scaling invariance)이라는 성질에서 온다고 가정한다.
+원 논문은 LayerNorm의 성공이 (평균을 빼는) 재중심화(re-centering)가 아니라 주로 **재스케일링 불변성**(re-scaling invariance)이라는 성질에서 온다고 가정한다. 입력 전체에 상수를 곱해도 출력이 (부호를 빼면) 바뀌지 않는다는 성질이다.
 
-**스케일에 대한 성질:** $\epsilon=0$이고 입력과 배율이 0이 아닐 때 다음 식이 성립한다. 실제 구현의 양의 epsilon은 0 근처의 안정성을 위해 이 정확한 불변성을 바꾼다.
+**스케일에 대한 성질:** $\epsilon=0$이고 입력 $\mathbf{x}$와 곱하는 상수 $a$가 0이 아닐 때 다음 식이 성립한다. 실제 구현의 양의 epsilon은 0 근처의 안정성을 위해 이 정확한 불변성을 바꾼다.
 
 $$\text{RMSNorm}(a \cdot \mathbf{x}) = \text{sign}(a) \cdot \text{RMSNorm}(\mathbf{x})$$
 
@@ -170,7 +170,7 @@ $$\text{RMSNorm}(a \cdot \mathbf{x}) = \text{sign}(a) \cdot \text{RMSNorm}(\math
 
 ```python
 def compare_normalization_effects():
-    """LayerNorm과 RMSNorm이 활성화에 미치는 영향을 비교한다."""
+    """LayerNorm과 RMSNorm이 엑티베이션(레이어의 출력값)에 미치는 영향을 비교한다."""
     
     torch.manual_seed(42)
 
@@ -180,7 +180,7 @@ def compare_normalization_effects():
 
     # 네 가지 입력으로 두 정규화의 차이를 드러낸다.
     # 특히 "Shifted"가 핵심이다. 중심이 5만큼 밀려 있을 때
-    # LayerNorm은 그 밀림을 없애지만 RMSNorm은 그대로 둔다
+    # LayerNorm은 그 이동을 없애지만 RMSNorm은 그대로 둔다
     test_cases = [
         ("Normal", torch.randn(32, dim)),            # 평균 0, 표준편차 1
         ("Shifted", torch.randn(32, dim) + 5.0),     # 중심만 옮긴 것
@@ -199,7 +199,7 @@ def compare_normalization_effects():
         # LayerNorm의 평균은 어떤 입력에서도 0에 가깝게 나오지만,
         # RMSNorm은 입력이 밀려 있으면 출력도 밀린 채로 남는다.
         # 그런데도 트랜스포머에서 잘 도는 까닭은, 트레인된 웨이트가
-        # 그 밀림을 흡수할 수 있어 중심 맞추기가 굳이 필요 없기 때문이다
+        # 그 이동을 흡수할 수 있어 중심 맞추기가 굳이 필요 없기 때문이다
         print(f"\n{name} input (mean={x.mean():.2f}, std={x.std():.2f}):")
         print(f"  LayerNorm: mean={ln_out.mean():.4f}, std={ln_out.std():.4f}")
         print(f"  RMSNorm:   mean={rms_out.mean():.4f}, std={rms_out.std():.4f}")
@@ -300,7 +300,7 @@ class RMSNormWithGradientAnalysis(torch.autograd.Function):
 import time
 
 def benchmark_normalization(batch_size=32, seq_len=512, dim=4096, num_iterations=1000):
-    """LayerNorm과 RMSNorm의 성능을 견주어 잰다."""
+    """LayerNorm과 RMSNorm의 속도를 비교해 잰다."""
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
@@ -345,7 +345,7 @@ def benchmark_normalization(batch_size=32, seq_len=512, dim=4096, num_iterations
 
 ---
 
-## 6. 현대 대형 언어 모델에서의 쓰임
+## 6. 현대 대형 언어 모델에서의 사용
 
 ### LLaMA 방식의 구조
 
@@ -368,9 +368,9 @@ class LLaMABlock(nn.Module):
     
     def forward(self, x, freqs_cis=None, mask=None):
         # 사전 정규화 구조.
-        # 정규화가 잔차 덧셈 "안"에, 곧 어텐션 앞에 들어간다. 원조
+        # 정규화가 잔차 덧셈 "안"에, 곧 어텐션 앞에 들어간다. 원래의
         # 트랜스포머는 x + Attention(x)를 먼저 하고 그 결과를
-        # 정규화했다(사후 정규화). 사전 정규화가 이긴 까닭은 잔차
+        # 정규화했다(사후 정규화). 사전 정규화가 표준이 된 까닭은 잔차
         # 경로에 정규화가 끼어들지 않아 x가 그대로 흐르고, 그 덕에
         # 아주 깊은 모델에서도 그래디언트가 살아남기 때문이다.
         # 사후 정규화 모델이 트레인 초반에 워밍업 없이는 발산하곤 하는
@@ -380,7 +380,7 @@ class LLaMABlock(nn.Module):
             freqs_cis=freqs_cis,
             mask=mask
         )
-        # 두 부분 레이어가 같은 형태를 되풀이한다. 정규화 → 부분 레이어 → 잔차 덧셈.
+        # 두 부분 레이어가 같은 형태를 반복한다. 정규화 → 부분 레이어 → 잔차 덧셈.
         # ffn_norm이 x가 아니라 h를 받는다는 점에 주의하라. 앞선
         # 어텐션의 결과 위에서 이어 간다
         out = h + self.feed_forward(self.ffn_norm(h))
@@ -393,8 +393,8 @@ class SwiGLU(nn.Module):
         super().__init__()
         
         # 보통의 순방향 뉴럴 네트워크는 행렬이 둘인데 여기는 셋이다. w1과 w3가
-        # 같은 입력을 나란히 받아 하나는 활성화를 거치고 하나는 게이트
-        # 노릇을 한다. 그래서 같은 파라메터 수를 맞추려면 hidden_dim을
+        # 같은 입력을 나란히 받아 하나는 엑티베이션 함수(SiLU)를 거쳐 게이트
+        # 노릇을 하고 하나는 그대로 통과한다. 그래서 같은 파라메터 수를 맞추려면 hidden_dim을
         # 3분의 2쯤으로 잡는다.
         # bias=False는 LLaMA 계열의 관례다. 바로 앞에 RMSNorm이 있어
         # 바이어스가 할 일이 거의 없고, 파라메터와 계산을 아낀다
@@ -481,7 +481,7 @@ class LLaMA(nn.Module):
             for _ in range(n_layers)
         ])
 
-        # 출력 사영 앞의 마지막 RMSNorm.
+        # 출력 투영 앞의 마지막 RMSNorm.
         # 블록마다 정규화가 입력 쪽에 걸리는(pre-norm) 구조라, 마지막
         # 블록을 나온 값은 아직 정규화되지 않았다. 그래서 여기서 한 번 더 건다
         self.norm = RMSNorm(dim, eps=norm_eps)
@@ -498,7 +498,7 @@ class LLaMA(nn.Module):
     def forward(self, tokens):
         h = self.tok_embeddings(tokens)   # (배치, 길이) -> (배치, 길이, dim)
 
-        # 블록을 차례로 지난다. 모양은 그대로이고 내용만 다듬어진다
+        # 블록을 차례로 지난다. 형태는 그대로이고 내용만 다듬어진다
         for layer in self.layers:
             h = layer(h, freqs_cis=self.freqs_cis)
 
@@ -520,7 +520,7 @@ def comprehensive_comparison():
     batch_size = 8
     seq_len = 128
     
-    # 트랜스포머의 은닉 상태와 같은 모양 (배치, 길이, 차원)
+    # 트랜스포머의 은닉 상태와 같은 형태 (배치, 길이, 차원)
     x = torch.randn(batch_size, seq_len, dim)
 
     # 서로 다른 정규화 방식
@@ -589,7 +589,7 @@ Parameter count:
 
 ## 8. RMSNorm을 언제 쓸 것인가
 
-### 알맞은 쓰임새
+### 알맞은 사용처
 
 ✅ **대형 언어 모델** (LLaMA, Mistral, Gemma)  
 ✅ **계산 효율이 중요할 때**  

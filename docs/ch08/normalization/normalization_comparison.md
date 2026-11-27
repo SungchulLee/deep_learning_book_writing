@@ -1,6 +1,6 @@
 # 정규화 기법 비교
 
-배치·레이어·인스턴스·그룹 정규화의 축과 배치 의존성을 비교한다. 비교 도우미 클래스는 트레인 모델이 아니라 여러 정규화 레이어를 보관하고 측정하는 일반 파이썬 클래스이다.
+배치·레이어·인스턴스·그룹 정규화의 축과 배치 의존성을 비교한다. 네 방법은 모두 평균을 빼고 표준편차로 나누는 같은 계산을 하며, 그 평균과 표준편차를 **어느 축에서 구하는가**만 다르다. 그룹 정규화는 표본 하나의 채널을 몇 그룹으로 나누어 그룹마다 통계량을 구하는 방법이다. 배치 의존성은 한 표본의 출력이 같은 배치에 든 다른 표본에 따라 달라지는 성질을 말한다. 비교 도우미 클래스는 트레인 모델이 아니라 여러 정규화 레이어를 보관하고 측정하는 일반 파이썬 클래스이다.
 
 ## 1. 코드
 
@@ -38,7 +38,7 @@
                 'LayerNorm': nn.LayerNorm([3, 4, 4], elementwise_affine=False),
                 'InstanceNorm': nn.InstanceNorm2d(3, affine=False),
                 # 채널 3개에 대한 그룹 3개.
-                # 그룹 정규화는 채널을 몇 묶음으로 나누어 배치 안에서만
+                # 그룹 정규화는 채널을 몇 그룹으로 나누어 표본 하나 안에서만
                 # 통계를 낸다. 그래서 양 끝이 다른 방법과 만난다.
                 # 그룹 수 = 채널 수이면 채널마다 따로이니 인스턴스 정규화와 같고,
                 # 그룹 수 = 1이면 채널을 통틀어 보니 레이어 정규화와 같다.
@@ -172,7 +172,7 @@
                 for name in self.normalizations:
                     outputs = []
                     for _ in range(n_trials):
-                        # 곁에 놓이는 표본만 매번 새로 뽑는다
+                        # 곁에 놓이는 표본만 매번 새로 샘플링한다
                         others = torch.randn(batch_size - 1, 3, 4, 4)
                         batch = torch.cat([probe, others], dim=0)
 
@@ -220,7 +220,7 @@
                 if norm_type == 'batch':
                     self.norm = nn.BatchNorm2d(out_channels)
                 elif norm_type == 'layer':
-                    # 2차원 데이터에 LayerNorm을 쓰려면 모양을 지정해야 한다
+                    # 2차원 데이터에 LayerNorm을 쓰려면 형태를 지정해야 한다
                     # 이는 간략한 버전이다
                     # 그룹 하나로 묶으면 채널 전체를 함께 보므로 레이어 정규화가 된다.
                     # nn.LayerNorm을 쓰려면 (C, H, W)를 미리 알아야 하는데
@@ -238,7 +238,7 @@
                     # out_channels가 8로 나누어떨어져야 한다. 64와 128은
                     # 괜찮지만 채널 수를 3처럼 바꾸면 오류가 난다.
                     # 8은 널리 쓰이는 경험적 기본값이며, 원 논문은 그룹당 채널
-                    # 16개 언저리를 권한다
+                    # 16개 안팎을 권한다
                     self.norm = nn.GroupNorm(8, out_channels)
                 else:
                     self.norm = nn.Identity()
@@ -246,10 +246,10 @@
                 self.relu = nn.ReLU(inplace=True)
 
             def forward(self, x):
-                # 컨볼루션 → 정규화 → 활성화. 어느 정규화를 골랐든 자리는
-                # 같다. 정규화가 ReLU 앞에 오므로 활성화에 들어가는 값이
-                # 0 언저리에 모이고, 바로 앞 컨볼루션의 바이어스는 곧 지워질
-                # 값이라 사실상 쓸모가 없다
+                # 컨볼루션 → 정규화 → 엑티베이션 함수. 어느 정규화를 골랐든 자리는
+                # 같다. 정규화가 ReLU 앞에 오므로 ReLU에 들어가는 값이
+                # 0 근처에 모인다. 채널마다 평균을 빼는 배치·인스턴스 정규화에서는
+                # 바로 앞 컨볼루션의 바이어스가 곧 지워질 값이라 쓸모가 없다
                 x = self.conv(x)
                 x = self.norm(x)
                 x = self.relu(x)
@@ -373,9 +373,9 @@
            - 배치 정규화는 통계를 내려면 표본이 여럿 필요하다
            - 대신 레이어 정규화나 인스턴스 정규화를 쓰라
 
-        3. 정규화를 활성화 앞에 두는 것
-           - 표준: 컨볼루션 → 정규화 → 활성화
-           - 정규화 → 컨볼루션 → 활성화가 더 낫다는 실험도 있다
+        3. 정규화와 엑티베이션 함수의 순서를 섞어 쓰는 것
+           - 표준: 컨볼루션 → 정규화 → 엑티베이션 함수
+           - 컨볼루션 → 엑티베이션 함수 → 정규화가 더 낫다는 실험도 있다
            - 구조 안에서 일관되게 하라
 
         4. 배치 정규화의 모멘텀을 조정하지 않는 것
@@ -419,7 +419,7 @@
         nn.BatchNorm3d(num_channels)      # 3차원 데이터용
 
         # 레이어 정규화
-        nn.LayerNorm(normalized_shape)    # 정규화할 모양 지정
+        nn.LayerNorm(normalized_shape)    # 정규화할 형태 지정
         nn.LayerNorm([C, H, W])          # 2차원 데이터용
 
         # 인스턴스 정규화
@@ -433,7 +433,7 @@
         공통 파라메터:
         - eps: 수치 안정성을 위한 작은 값 (기본값: 1e-5)
         - momentum: 배치 정규화의 이동 통계용 (기본값: 0.1)
-        - affine: 트레인 가능한 배율/이동 파라메터 (기본값: True)
+        - affine: 트레인 가능한 배율/이동 파라메터 (기본값: True, InstanceNorm만 False)
         - track_running_stats: 배치 정규화용 (기본값: True)
 
         기억할 것:
@@ -461,9 +461,9 @@
 
         print("\n" + "=" * 70)
         print("For more details, see individual files:")
-        print("  - batch_normalization.py")
-        print("  - layer_normalization.py")
-        print("  - instance_normalization.py")
+        print("  - batch_normalization.md")
+        print("  - layer_normalization.md")
+        print("  - instance_normalization.md")
         print("=" * 70)
     ```
 
@@ -623,9 +623,9 @@
            - 배치 정규화는 통계를 내려면 표본이 여럿 필요하다
            - 대신 레이어 정규화나 인스턴스 정규화를 쓰라
         
-        3. 정규화를 활성화 앞에 두는 것
-           - 표준: 컨볼루션 → 정규화 → 활성화
-           - 정규화 → 컨볼루션 → 활성화가 더 낫다는 실험도 있다
+        3. 정규화와 엑티베이션 함수의 순서를 섞어 쓰는 것
+           - 표준: 컨볼루션 → 정규화 → 엑티베이션 함수
+           - 컨볼루션 → 엑티베이션 함수 → 정규화가 더 낫다는 실험도 있다
            - 구조 안에서 일관되게 하라
         
         4. 배치 정규화의 모멘텀을 조정하지 않는 것
@@ -661,7 +661,7 @@
         nn.BatchNorm3d(num_channels)      # 3차원 데이터용
         
         # 레이어 정규화
-        nn.LayerNorm(normalized_shape)    # 정규화할 모양 지정
+        nn.LayerNorm(normalized_shape)    # 정규화할 형태 지정
         nn.LayerNorm([C, H, W])          # 2차원 데이터용
         
         # 인스턴스 정규화
@@ -675,7 +675,7 @@
         공통 파라메터:
         - eps: 수치 안정성을 위한 작은 값 (기본값: 1e-5)
         - momentum: 배치 정규화의 이동 통계용 (기본값: 0.1)
-        - affine: 트레인 가능한 배율/이동 파라메터 (기본값: True)
+        - affine: 트레인 가능한 배율/이동 파라메터 (기본값: True, InstanceNorm만 False)
         - track_running_stats: 배치 정규화용 (기본값: True)
         
         기억할 것:
@@ -686,9 +686,9 @@
 
     ======================================================================
     For more details, see individual files:
-      - batch_normalization.py
-      - layer_normalization.py
-      - instance_normalization.py
+      - batch_normalization.md
+      - layer_normalization.md
+      - instance_normalization.md
     ======================================================================
     ```
 
@@ -701,7 +701,11 @@
 
 표본 비교 함수(`compare_on_sample_data`)는 BatchNorm을 eval 모드로 두고 트레인되지 않은 초기 이동 평균 0과 분산 1을 사용한다. 따라서 이 출력은 현재 배치에서 정규화한 결과가 아니다. 뒤의 배치 민감도 실험은 새 BatchNorm을 트레인 모드로 만들어 같은 표본의 출력이 동반 표본에 따라 달라지는지를 잰다. 두 실험의 모드를 구분한다.
 
-출력 표준편차를 torch.std의 기본 불편 보정으로 재면 정규화에 쓴 분모와 다를 수 있다. epsilon과 아핀 설정도 있어 출력 표준편차가 항상 정확히 1이어야 하는 것은 아니다.
+배치 민감도 표에서 배치 정규화의 흩어짐은 배치 2에서 0.1447, 배치 128에서 0.0245로 배치가 커질수록 줄지만 0이 되지는 않는다. 배치가 클수록 배치 평균과 분산이 덜 흔들리기 때문이다. 나머지 셋은 어느 크기에서도 정확히 0이다.
+
+예제 네트워크 비교도 `net.eval()`로 돌리므로 BatchNorm 네트워크는 초기 이동 통계량(평균 0, 분산 1)을 써서 정규화가 사실상 꺼져 있다. 출력 표준편차가 0.1395로 다른 두 네트워크(0.5846, 0.5849)보다 작은 것은 정규화 방식의 우열이 아니라 이 모드 차이에서 온다.
+
+출력 표준편차를 torch.std의 기본 불편 보정(분모 $n-1$)으로 재면 정규화에 쓴 분모($n$)와 달라, 원소 48개인 레이어 정규화에서 $\sqrt{48/47} \approx 1.0106$, 16개인 인스턴스 정규화에서 $\sqrt{16/15} \approx 1.0328$이 찍힌다. epsilon과 아핀 설정도 있어 출력 표준편차가 항상 정확히 1이어야 하는 것은 아니다.
 
 ## 연습문제
 
@@ -744,7 +748,7 @@ NormalizationComparison을 nn.Module처럼 사용하면 안 되는 이유를 설
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 엑티베이션 함수, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
@@ -755,7 +759,7 @@ NormalizationComparison을 nn.Module처럼 사용하면 안 되는 이유를 설
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 엑티베이션 함수를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 

@@ -1,6 +1,6 @@
 # 러닝레이트 스케줄링
 
-러닝레이트 스케줄러의 종류와 스케줄을 비교한다. 본문 코드는 트레인 성능 실험 대신 러닝레이트 곡선을 수동 계산해 그리는 시연이다.
+러닝레이트 스케줄러는 트레인이 진행되는 동안 러닝레이트를 정해진 규칙에 따라 바꾸는 장치다 — 처음에는 크게 움직이고 나중에는 작게 움직여 다듬으려는 것이다. 이 쪽은 스케줄러의 종류와 스케줄(에포크에 따른 러닝레이트 곡선)을 비교한다. 본문 코드는 트레인 성능 실험 대신 러닝레이트 곡선을 수동 계산해 그리는 시연이다.
 
 ## 1. 코드
 
@@ -116,7 +116,7 @@ for epoch in range(num_epochs):
     print(f"Epoch {epoch}, LR: {current_lr}")
 
 RECOMMENDATIONS:
-- 기준선을 잡으려면 고정 러닝레이트로 시작하라
+- 베이스라인을 잡으려면 고정 러닝레이트로 시작하라
 - 단순한 감쇠에는 StepLR을 쓰라
 - 적응적 조정에는 ReduceLROnPlateau를 쓰라
 - 순환 트레인에는 CosineAnnealing을 쓰라
@@ -166,7 +166,7 @@ for epoch in range(num_epochs):
     print(f"Epoch {epoch}, LR: {current_lr}")
 
 RECOMMENDATIONS:
-- 기준선을 잡으려면 고정 러닝레이트로 시작하라
+- 베이스라인을 잡으려면 고정 러닝레이트로 시작하라
 - 단순한 감쇠에는 StepLR을 쓰라
 - 적응적 조정에는 ReduceLROnPlateau를 쓰라
 - 순환 트레인에는 CosineAnnealing을 쓰라
@@ -175,6 +175,18 @@ RECOMMENDATIONS:
 ## 2. 논의
 
 코드는 StepLR, ExponentialLR, CosineAnnealingLR, ReduceLROnPlateau 객체를 생성한다. 그래프에 쓰는 값은 각 스케줄러를 실제 트레인에서 step한 결과가 아니라 식과 조건문으로 만든 값이다. 따라서 곡선만으로 수렴 속도나 최종 정확도를 비교할 수 없다.
+
+초기 러닝레이트를 $\eta_0 = 0.1$, 에포크를 $t = 0, 1, \dots$ 라 하면 코드가 그리는 세 곡선은 다음과 같다.
+
+$$
+\begin{aligned}
+\text{StepLR:}\quad & \eta_t = \eta_0 \cdot 0.1^{\lfloor t/30 \rfloor} \\
+\text{ExponentialLR:}\quad & \eta_t = \eta_0 \cdot 0.9^{\,t} \\
+\text{CosineAnnealingLR:}\quad & \eta_t = \frac{\eta_0}{2}\left(1 + \cos\frac{\pi t}{100}\right)
+\end{aligned}
+$$
+
+여기서 $\lfloor\cdot\rfloor$ 는 내림이다. StepLR은 30 에포크마다 계단처럼 10분의 1로 떨어지고, ExponentialLR은 매 에포크 0.9배가 되며, CosineAnnealingLR은 코사인 반 주기를 따라 `T_max=100` 에포크에 걸쳐 0으로 내려간다. 코사인 식은 주기 함수라, `T_max`를 넘겨 계속 step하면 러닝레이트가 다시 올라간다 — 출력의 권고가 「순환 트레인」을 말하는 까닭이다.
 
 StepLR 등은 정한 호출 주기에 따라 갱신한다. ReduceLROnPlateau는 검증 로스 같은 지표를 전달해야 한다. 여러 스케줄러가 하나의 옵티마이저를 공유하는 이 시연을 그대로 복사해 모두 동시에 적용하지 않는다.
 
@@ -214,7 +226,7 @@ ReduceLROnPlateau가 StepLR과 다른 입력을 요구하는 이유를 설명하
 </div>
 
 ??? success "풀이"
-    아니다. 초기 러닝레이트, 감쇠 시점, 전체 예산과 데이터에 따라 달라진다. 고정 러닝레이트 기준 모델과 같은 선택 예산에서 비교한다.
+    아니다. 초기 러닝레이트, 감쇠 시점, 전체 예산과 데이터에 따라 달라진다. 고정 러닝레이트를 쓴 베이스라인과 같은 하이퍼파라메터 탐색 예산에서 비교한다.
 
 ---
 
@@ -226,7 +238,7 @@ ReduceLROnPlateau가 StepLR과 다른 입력을 요구하는 이유를 설명하
 </div>
 
 ??? success "풀이"
-    인내 횟수 카운터와 최저 로스 추적기를 추가한다.
+    개선 없이 지나간 에포크 수를 세는 카운터(patience 카운터)와 지금까지의 최저 검증 로스를 추가한다.
     ```python
     best_loss = float('inf')
     patience_counter = 0

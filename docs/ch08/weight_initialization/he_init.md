@@ -1,5 +1,6 @@
 # He (Kaiming) 초기화
-He(Kaiming) 초기화는 ReLU 계열을 쓰는 레이어의 초기 신호 크기를 조절하는 방법이다. 웨이트와 입력에 관한 독립성 가정 아래, ReLU 전후의 2차 적률을 고려해 웨이트 분산을 정한다. 분산 유지에 대한 분석이지 모든 깊이에서 안정적인 트레인을 보장하는 정리는 아니다.
+
+He(Kaiming) 초기화는 ReLU 계열을 쓰는 레이어의 초기 신호 크기를 조절하는 방법이다. 웨이트와 입력에 관한 독립성 가정 아래, ReLU 전후의 2차 적률(제곱의 기댓값 $\mathbb{E}[z^2]$ — 평균이 0이면 분산과 같다)을 고려해 웨이트 분산을 정한다. 분산 유지에 대한 분석이지 모든 깊이에서 안정적인 트레인을 보장하는 정리는 아니다.
 
 ---
 
@@ -7,7 +8,7 @@ He(Kaiming) 초기화는 ReLU 계열을 쓰는 레이어의 초기 신호 크기
 
 ### ReLU의 분산 인수
 
-활성화 전 값이 $z \sim \mathcal{N}(0, \sigma_z^2)$일 때 ReLU의 출력은 다음과 같다.
+엑티베이션 전 값(엑티베이션 함수에 넣기 직전의 값)이 $z \sim \mathcal{N}(0, \sigma_z^2)$일 때 ReLU의 출력은 다음과 같다.
 
 $$h = \text{ReLU}(z) = \max(0, z)$$
 
@@ -31,7 +32,7 @@ $$
 
 ### 순전파 조건
 
-앞 절의 활성화 전 분산과 합치면 다음과 같다.
+[웨이트 초기화](weight_initialization.md) 쪽에서 구한 엑티베이션 전 값의 분산과 합치면 다음과 같다. $n_{\text{in}}$ 은 팬인(뉴런 하나로 들어오는 입력의 수), $\sigma^2$ 은 웨이트의 분산, $h^{(l-1)}$ 은 앞 레이어의 출력이다.
 
 $$\text{Var}(z^{(l)}) = n_{\text{in}}\,\sigma^2\,\mathbb{E}\bigl[(h^{(l-1)})^2\bigr]$$
 
@@ -49,7 +50,7 @@ $$\boxed{\sigma^2 = \frac{2}{n_{\text{in}}}}$$
 
 ### 역전파 조건
 
-그래디언트 신호에 같은 분석을 적용하면 다음을 얻는다.
+그래디언트 신호에 같은 분석을 적용하면 팬인 자리에 팬아웃 $n_{\text{out}}$(뉴런 하나의 출력을 받는 다음 레이어의 뉴런 수)이 들어가 다음을 얻는다.
 
 $$\sigma^2 = \frac{2}{n_{\text{out}}}$$
 
@@ -60,7 +61,7 @@ $$\sigma^2 = \frac{2}{n_{\text{out}}}$$
 | | Xavier | He |
 |---|--------|-----|
 | 순전파 조건 | $n_{\text{in}}\,\sigma^2 = 1$ | $n_{\text{in}}\,\sigma^2 = 2$ |
-| 활성화에 대한 가정 | $\text{Var}(f(z)) \approx \text{Var}(z)$ | $\mathbb{E}[\operatorname{ReLU}(z)^2]=\frac12\mathbb{E}[z^2]$ (대칭 입력) |
+| 엑티베이션 함수에 대한 가정 | $\text{Var}(f(z)) \approx \text{Var}(z)$ | $\mathbb{E}[\operatorname{ReLU}(z)^2]=\frac12\mathbb{E}[z^2]$ (대칭 입력) |
 | 분산 | $\frac{2}{n_{\text{in}} + n_{\text{out}}}$ | $\frac{2}{n_{\text{in}}}$ |
 | 효과 | tanh/시그모이드에 알맞다 | ReLU에 알맞다 |
 
@@ -95,7 +96,7 @@ init.kaiming_uniform_(linear.weight, mode='fan_in', nonlinearity='relu')
 ### 팬인 방식과 팬아웃 방식
 
 ```python
-# 팬인: 순전파 활성화의 크기를 보존한다 (기본값)
+# 팬인: 순전파 엑티베이션의 크기를 보존한다 (기본값)
 init.kaiming_normal_(linear.weight, mode='fan_in', nonlinearity='relu')
 
 # 팬아웃: 역전파 그래디언트의 크기를 보존한다
@@ -108,7 +109,7 @@ init.kaiming_normal_(linear.weight, mode='fan_out', nonlinearity='relu')
 
 ## 3. Leaky ReLU와 PReLU로의 확장
 
-음의 기울기가 $a$인 Leaky ReLU에 대해 다음과 같다.
+음수 쪽 기울기가 $a$인 Leaky ReLU에 대해 다음과 같다.
 
 $$\text{LeakyReLU}(z) = \begin{cases} z & z \geq 0 \\ az & z < 0 \end{cases}$$
 
@@ -142,24 +143,24 @@ import matplotlib.pyplot as plt
 def compare_init_relu(n_layers=50, hidden=512, n_samples=1024):
     """여러 레이어에 걸쳐 ReLU와 함께 Xavier 초기화와 He 초기화를 비교한다."""
     # 트레인은 하지 않는다. 무작위로 초기화한 레이어 50개에 신호를 한 번
-    # 통과시켜, 레이어를 지날수록 활성의 표준편차가 어떻게 되는지만 본다.
+    # 통과시켜, 레이어를 지날수록 엑티베이션의 표준편차가 어떻게 되는지만 본다.
     # 이 값이 0으로 가면 그래디언트도 함께 사라져 트레인 자체가 시작되지 못한다.
     x = torch.randn(n_samples, hidden)
 
     results = {}
     for name, init_fn in [
         # Xavier는 분산을 2/(fan_in+fan_out)으로 잡는다. tanh처럼 원점에서
-        # 기울기가 1인 활성을 가정한 값이라, ReLU와 함께 쓰면 레이어마다
-        # 절반씩 죽는 몫을 메우지 못해 신호가 사그라든다
+        # 기울기가 1인 엑티베이션 함수를 가정한 값이라, ReLU와 함께 쓰면 레이어마다
+        # 2차 적률이 절반이 되는 몫을 메우지 못해 신호가 0으로 줄어든다
         ('Xavier Normal', init.xavier_normal_),
-        # He는 2/fan_in 으로 잡아 ReLU가 죽이는 절반을 미리 메운다.
+        # He는 2/fan_in 으로 잡아 ReLU가 0으로 만드는 절반을 미리 메운다.
         # fan_in 방식은 순전파의 분산을 지키는 쪽이다
         ('He Normal (fan_in)', lambda w: init.kaiming_normal_(w, mode='fan_in', nonlinearity='relu')),
         # fan_out 방식은 역전파의 분산을 지키는 쪽이다. 정사각 레이어에서는
         # fan_in과 fan_out이 같아 둘이 겹치지만, 너비가 바뀌는 네트워크에서는 갈린다
         ('He Normal (fan_out)', lambda w: init.kaiming_normal_(w, mode='fan_out', nonlinearity='relu')),
     ]:
-        h = x.clone()   # 세 방식 모두 같은 입력에서 시작해야 견줄 수 있다
+        h = x.clone()   # 세 방식 모두 같은 입력에서 시작해야 비교할 수 있다
         stds = []
         for _ in range(n_layers):
             # bias=False 로 두는 까닭은 바이어스가 분산에 끼어들어
@@ -178,7 +179,8 @@ def compare_init_relu(n_layers=50, hidden=512, n_samples=1024):
     ax.set_title('Activation Standard Deviation Through 50 ReLU Layers')
     ax.legend()
     ax.set_ylim(0, 3)
-    # 목표선 1.0. He 초기화의 두 곡선은 이 선 언저리에 머무르고
+    # 기준선 1.0. He 초기화의 두 곡선은 이 선 조금 아래(이론값은
+    # sqrt(1 - 1/pi), 약 0.83)에서 오르내리며 머무르고
     # Xavier 곡선은 레이어가 깊어질수록 0으로 내려간다.
     # 주의: 이 axhline은 legend() 뒤에 있어 범례에 나오지 않는다
     ax.axhline(y=1.0, color='gray', linestyle='--', alpha=0.4, label='Target')
@@ -200,8 +202,8 @@ def compare_gradient_flow(n_layers=30, hidden=256, n_samples=256):
         ('Xavier', init.xavier_normal_),
         ('He', lambda w: init.kaiming_normal_(w, nonlinearity='relu')),
     ]:
-        # 앞의 실험이 순전파에서 활성이 사그라드는지 보았다면,
-        # 여기서는 역전파에서 그래디언트가 사그라드는지 본다.
+        # 앞의 실험이 순전파에서 엑티베이션이 줄어드는지 보았다면,
+        # 여기서는 역전파에서 그래디언트가 줄어드는지 본다.
         # 트레인이 멈추는 진짜 원인은 이쪽이다.
         layers = []
         for _ in range(n_layers):
@@ -284,7 +286,7 @@ class ResBlock(nn.Module):
         return torch.relu(x + out)
 ```
 
-**깊이에 따른 분산 배율 조정.** GPT-2를 비롯한 몇몇 트랜스포머 모델은 블록의 수를 $L$이라 할 때 잔차 경로로 들어가는 출력 사영의 초기 웨이트를 $1/\sqrt{2L}$배로 줄인다. 블록마다 잔차 합이 두 번(어텐션과 FFN) 일어나므로 $2L$이다.
+**깊이에 따른 분산 배율 조정.** GPT-2를 비롯한 몇몇 트랜스포머 모델은 블록의 수를 $L$이라 할 때 잔차 경로로 들어가는 출력 투영(블록의 마지막 선형 레이어)의 초기 웨이트의 표준편차를 $1/\sqrt{2L}$배로 줄인다. 블록마다 잔차 합이 두 번(어텐션과 FFN, 곧 피드포워드 네트워크) 일어나므로 $2L$이다.
 
 ```python
 # 트랜스포머식 잔차 배율 조정
@@ -296,7 +298,7 @@ class TransformerBlock(nn.Module):
             nn.GELU(),
             nn.Linear(4 * d_model, d_model),
         )
-        # 출력 사영을 1/√(2L)으로 배율 조정
+        # 출력 투영을 1/√(2L)으로 배율 조정
         init.normal_(self.ffn[2].weight, std=0.02 / (2 * n_layers) ** 0.5)
 
     def forward(self, x):
@@ -305,24 +307,24 @@ class TransformerBlock(nn.Module):
 
 ### 직교 초기화
 
-직교 초기화도 사용할 수 있다. 정방 직교행렬은 선형 변환에서 노름을 보존하지만, 직사각형 행렬은 모든 방향을 보존하지 않을 수 있다. gain을 곱하면 크기도 함께 바뀐다. 비선형 활성화를 통과한 뒤까지 노름이 보존된다고 볼 수는 없다.
+직교 초기화도 사용할 수 있다. 정사각 직교 행렬은 선형 변환에서 노름을 보존하지만, 직사각형 행렬은 모든 방향을 보존하지 않을 수 있다. gain을 곱하면 크기도 함께 바뀐다. 비선형 엑티베이션 함수를 통과한 뒤까지 노름이 보존된다고 볼 수는 없다.
 
 ```python
 linear = nn.Linear(256, 256, bias=False)
 init.orthogonal_(linear.weight, gain=2 ** 0.5)  # ReLU에는 gain=√2
 ```
 
-`gain` 파라메터는 He 초기화의 인수 2와 마찬가지로 활성화 함수의 효과를 반영한다.
+`gain` 파라메터는 He 초기화의 인수 2와 마찬가지로 엑티베이션 함수의 효과를 반영한다.
 
 ### LSUV (레이어 순차 단위 분산)
 
-실제 데이터의 배치에서 잰 출력 분산이 1이 될 때까지 각 레이어의 웨이트를 되풀이해 조정하는, 데이터 기반 초기화이다. 분포에 대한 가정에 기대지 않아도 된다.
+실제 데이터의 배치에서 잰 출력 분산이 1이 될 때까지 각 레이어의 웨이트를 반복해 조정하는, 데이터 기반 초기화이다. 분포에 대한 가정에 기대지 않아도 된다.
 
 ```python
 def lsuv_init(model, data_batch, target_std=1.0, max_iter=10, tol=0.05):
     """레이어 순차 단위 분산(LSUV) 초기화."""
-    # He 초기화는 "이런 분포에서 뽑으면 분산이 유지될 것"이라는 이론값이다.
-    # LSUV는 여기서 한 걸음 더 나아가, 실제 데이터를 흘려 보고 활성의
+    # He 초기화는 "이런 분포에서 샘플링하면 분산이 유지될 것"이라는 이론값이다.
+    # LSUV는 여기서 한 걸음 더 나아가, 실제 데이터를 흘려 보고 레이어 출력의
     # 표준편차를 재어 1이 될 때까지 웨이트의 스케일을 직접 다시 맞추는 방식이다.
     # 이론이 가정한 조건이 어긋나는 구조에서도 통한다는 것이 장점이다.
     model.eval()   # 드롭아웃과 배치 정규화를 꺼야 잰 값이 흔들리지 않는다
@@ -347,16 +349,16 @@ def lsuv_init(model, data_batch, target_std=1.0, max_iter=10, tol=0.05):
     # 배율을 반복적으로 조정.
     # 한 번에 끝나지 않는 까닭은 앞 레이어의 웨이트를 고치면 뒤 레이어가 받는
     # 입력이 달라져 다시 재야 하기 때문이다. 그래서 앞에서 뒤로 훑는
-    # 일을 여러 번 되풀이한다
+    # 일을 여러 번 반복한다
     for iteration in range(max_iter):
         with torch.no_grad():   # 초기화 단계이므로 그래디언트가 필요 없다
-            model(data_batch)   # 훅이 이때 활성 표준편차를 채운다
+            model(data_batch)   # 훅이 이때 출력 표준편차를 채운다
 
         all_close = True
         for name, module in model.named_modules():
             if name in activation_stds:
                 std = activation_stds[name]
-                # std > 1e-8: 활성이 완전히 죽은 레이어는 건드리지 않는다.
+                # std > 1e-8: 출력이 모두 0에 가까운 레이어는 건드리지 않는다.
                 # 0에 가까운 값으로 나누면 웨이트가 폭발한다
                 if abs(std - target_std) > tol and std > 1e-8:
                     # 웨이트를 target/현재 배로 늘이면 출력 표준편차도
@@ -384,7 +386,7 @@ def lsuv_init(model, data_batch, target_std=1.0, max_iter=10, tol=0.05):
 
 **시계열과 순환 구조.** 시간에 따라 반복 사용하는 웨이트는 단순한 레이어별 독립성 분석과 다르다. He 초기화만으로 긴 시계열의 그래디언트 소실을 막을 수 없으므로 순환 웨이트의 구조와 별도 초기화도 고려한다.
 
-**피처 추출기.** ReLU의 활성 비율과 레이어별 신호 크기를 점검한다. He 초기화가 특정 자산의 의미 있는 피처나 죽은 뉴런 방지를 보장하는 것은 아니다.
+**피처 추출기.** ReLU 출력이 0이 아닌 뉴런의 비율과 레이어별 신호 크기를 점검한다. He 초기화가 특정 자산의 의미 있는 피처나 죽은 뉴런(dead ReLU — 어떤 입력에도 출력이 0이라 그래디언트도 0이 되어 더는 갱신되지 않는 뉴런)의 방지를 보장하는 것은 아니다.
 
 ```python
 import torch
@@ -416,11 +418,12 @@ class DeepHedgingNetwork(nn.Module):
                 if m.bias is not None:
                     init.zeros_(m.bias)
 
-        # 출력 레이어: 처음에 보수적으로 시작하도록 작게 초기화.
+        # 출력 레이어: Xavier로 다시 초기화한다.
         # 위 반복문이 이미 이 레이어까지 He로 초기화했으므로 여기서 덮어쓴다.
-        # 출력 레이어 뒤에는 활성화가 없어 He가 메우려던 ReLU의 분산 감소가
-        # 애초에 없고, Xavier가 더 좁아 헤지 비율이 0 가까이에서
-        # 출발한다. 곧 트레인 초반에 큰 포지션을 잡지 않는다
+        # 출력 레이어 뒤에는 엑티베이션 함수가 없어 He가 메우려던 ReLU의 2차 적률
+        # 감소가 애초에 없다. Xavier의 분산 2/(fan_in + fan_out)은 He의
+        # 2/fan_in보다 작지만 0에 가까운 것은 아니다. 헤지 비율을 정말로
+        # 0 가까이에서 출발시키려면 이 웨이트에 작은 배율을 더 곱해야 한다
         init.xavier_normal_(self.net[-1].weight)
         init.zeros_(self.net[-1].bias)
 
@@ -436,12 +439,12 @@ class DeepHedgingNetwork(nn.Module):
 <div class="drillbox" markdown>
 
 **연습문제 1.** <span class="diff hard" title="어려움"></span>
-평균 0의 대칭 활성화 전 값과 독립 웨이트를 가정하고 ReLU용 팬인 초기화 $\operatorname{Var}(W)=2/n_{\mathrm{in}}$을 유도하라.
+평균 0의 대칭 엑티베이션 전 값과 독립 웨이트를 가정하고 ReLU용 팬인 초기화 $\operatorname{Var}(W)=2/n_{\mathrm{in}}$을 유도하라.
 
 </div>
 
 ??? success "풀이"
-    대칭 입력에서 $\mathbb{E}[\operatorname{ReLU}(z)^2]=\mathbb{E}[z^2]/2$이다. 평균 0의 웨이트가 독립이면 다음 레이어의 활성화 전 분산은 $n_{\mathrm{in}}\operatorname{Var}(W)\mathbb{E}[\operatorname{ReLU}(z)^2]$이다. 이전 레이어의 활성화 전 분산과 같게 두면 $n_{\mathrm{in}}\operatorname{Var}(W)/2=1$을 얻는다. ReLU 출력의 분산이 정확히 절반이라고 가정할 필요는 없다.
+    대칭 입력에서 $\mathbb{E}[\operatorname{ReLU}(z)^2]=\mathbb{E}[z^2]/2$이다. 평균 0의 웨이트가 독립이면 다음 레이어의 엑티베이션 전 값의 분산은 $n_{\mathrm{in}}\operatorname{Var}(W)\mathbb{E}[\operatorname{ReLU}(z)^2]$이다. 이전 레이어의 엑티베이션 전 값의 분산과 같게 두면 $n_{\mathrm{in}}\operatorname{Var}(W)/2=1$을 얻는다. ReLU 출력의 분산이 정확히 절반이라고 가정할 필요는 없다.
 
 ---
 
@@ -453,7 +456,7 @@ class DeepHedgingNetwork(nn.Module):
 </div>
 
 ??? success "풀이"
-    팬인과 팬아웃이 같으면 Xavier 분산은 $1/n$, He 분산은 $2/n$이다. 대칭성·독립성 근사 아래 Xavier는 다음 레이어의 활성화 전 분산을 약 절반으로 줄이고 He는 유지하도록 설계된다. 정규화 레이어, 잔차 연결과 트레인 이후의 분포 변화가 있으면 이 예측이 달라질 수 있으므로 Xavier가 항상 트레인에 실패한다고 단정할 수 없다.
+    팬인과 팬아웃이 같으면 Xavier 분산은 $1/n$, He 분산은 $2/n$이다. 대칭성·독립성 근사 아래 Xavier는 다음 레이어의 엑티베이션 전 값의 분산을 약 절반으로 줄이고 He는 유지하도록 설계된다. 정규화 레이어, 잔차 연결과 트레인 이후의 분포 변화가 있으면 이 예측이 달라질 수 있으므로 Xavier가 항상 트레인에 실패한다고 단정할 수 없다.
 
 ---
 
@@ -483,7 +486,7 @@ class DeepHedgingNetwork(nn.Module):
 </div>
 
 ??? success "풀이"
-    웨이트의 분포와 실제 분산, 입력 스케일, 레이어별 활성화의 평균·분산·2차 적률, 0인 활성화 비율, 그래디언트 노름을 기록한다. 같은 구조·데이터 분할·트레인 예산에서 여러 시드로 비교한다. 균등분포 자체가 문제인 것은 아니므로 초기 범위를 명시한다. He 초기화의 분산 유지 예측과 실제 트레인 성능은 따로 평가한다.
+    웨이트의 분포와 실제 분산, 입력 스케일, 레이어별 엑티베이션의 평균·분산·2차 적률, 0인 엑티베이션의 비율, 그래디언트 노름을 기록한다. 같은 구조·데이터 분할·트레인 예산에서 여러 시드로 비교한다. 균등분포 자체가 문제인 것은 아니므로 초기 범위를 명시한다. He 초기화의 분산 유지 예측과 실제 트레인 성능은 따로 평가한다.
 
 ## 정리하며
 

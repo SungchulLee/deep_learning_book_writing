@@ -1,6 +1,6 @@
 # 컷믹스
 
-컷믹스는 한 이미지에서 직사각형 패치를 잘라 다른 이미지에 붙여 트레인 표본을 만들고, 패치의 넓이에 비례하여 라벨을 섞는 데이터 어그멘테이션 겸 정칙화 기법이다. 컷아웃의 공간적 가림 효과와 믹스업의 라벨 섞기 효과를 결합하여, 섞인 목표로부터 배우면서도 모델이 물체의 전체 범위에 주의를 기울이도록 이끈다.
+컷믹스는 한 이미지에서 직사각형 패치를 잘라 다른 이미지에 붙여 트레인 표본을 만들고, 패치의 넓이에 비례하여 라벨을 섞는 데이터 어그멘테이션 겸 정칙화 기법이다. 컷아웃(이미지의 한 영역을 0으로 가리는 기법)의 공간적 가림 효과와 믹스업(두 이미지를 픽셀 단위로 선형 혼합하고 라벨도 같은 비율로 섞는 기법)의 라벨 섞기 효과를 결합하여, 섞인 목표로부터 배우면서도 모델이 물체의 전체 범위에 주의를 기울이도록 이끈다.
 
 ---
 
@@ -28,11 +28,11 @@ $$
 
 ### 경계 상자 샘플링
 
-영역의 중심은 균등하게 뽑고 크기는 베타분포에서 얻은 비율로 정한다. 모든 직사각형을 같은 확률로 뽑는다는 뜻은 아니다. 혼합 비율 $\lambda_0 \sim \text{Beta}(\alpha, \alpha)$가 주어지면 다음과 같이 한다.
+영역의 중심은 균등분포에서 샘플링하고 크기는 베타분포에서 얻은 비율로 정한다. 베타분포 $\text{Beta}(\alpha, \alpha)$는 0과 1 사이의 값을 내는 분포로, $\alpha = 1$이면 균등분포이고 $\alpha$가 클수록 0.5 근처에 몰린다. 모든 직사각형을 같은 확률로 샘플링한다는 뜻은 아니다. 혼합 비율 $\lambda_0 \sim \text{Beta}(\alpha, \alpha)$가 주어지면 다음과 같이 한다.
 
-1. 절단 비율을 계산한다. $r = \sqrt{1 - \lambda_0}$
+1. 절단 비율을 계산한다. $r = \sqrt{1 - \lambda_0}$ (각 변을 $r$배 하면 넓이는 $r^2 = 1 - \lambda_0$배가 된다)
 2. 절단 크기를 정한다. $r_w = r \cdot W$, $r_h = r \cdot H$
-3. 중심을 뽑는다. $c_x \sim \text{Uniform}(0, W)$, $c_y \sim \text{Uniform}(0, H)$
+3. 중심을 샘플링한다. $c_x \sim \text{Uniform}(0, W)$, $c_y \sim \text{Uniform}(0, H)$
 4. (이미지 경계로 잘라 낸) 경계 상자를 계산한다.
 
 $$
@@ -81,6 +81,8 @@ $$
 
 ## 3. PyTorch 구현
 
+이 쪽의 코드는 함수 정의만 싣는다. 모델을 트레인하지 않으므로 출력 블록이 없고, 컷믹스가 정확도를 얼마나 올리는지에 대한 수치도 이 쪽에서는 재지 않는다.
+
 ### 기본적인 컷믹스
 
 ```python
@@ -94,12 +96,12 @@ def rand_bbox(size, lam):
     
     인수:
         size: (batch_size, 채널, 높이, 너비)
-        lam: 베타분포에서 뽑은 혼합 비율
+        lam: 베타분포에서 샘플링한 혼합 비율
         
     반환값:
         경계 상자의 좌표 (x1, y1, x2, y2)
     """
-    # size에서 H, W만 꺼내 쓴다. 즉 상자 하나를 뽑아 배치의 모든 이미지에
+    # size에서 H, W만 꺼내 쓴다. 즉 상자 하나를 샘플링해 배치의 모든 이미지에
     # 똑같은 자리로 적용한다. 표본마다 다른 자리를 오리려면 아래
     # saliency_cutmix처럼 반복문을 돌아야 한다
     H, W = size[2], size[3]
@@ -131,8 +133,8 @@ def cutmix_data(x: torch.Tensor, y: torch.Tensor,
     이미지 배치에 컷믹스를 적용한다.
     
     인수:
-        x: 입력 배치, 모양 (batch_size, C, H, W)
-        y: 라벨(클래스 인덱스), 모양 (batch_size,)
+        x: 입력 배치, 형태 (batch_size, C, H, W)
+        y: 라벨(클래스 인덱스), 형태 (batch_size,)
         alpha: 베타분포의 파라메터
         
     반환값:
@@ -142,7 +144,7 @@ def cutmix_data(x: torch.Tensor, y: torch.Tensor,
         lam: 조정된 혼합 계수 (잘라 낸 뒤)
     """
     # alpha=1이면 베타분포가 [0, 1] 균등분포가 되어 패치 크기가 고르게
-    # 뽑힌다. alpha를 키우면 0.5 근처에 몰려 반반씩 섞이고, 0에 가깝게
+    # 샘플링된다. alpha를 키우면 0.5 근처에 몰려 반반씩 섞이고, 0에 가깝게
     # 하면 양 끝에 몰려 거의 원본이거나 거의 통째로 바뀐다
     if alpha > 0:
         lam = np.random.beta(alpha, alpha)
@@ -160,15 +162,15 @@ def cutmix_data(x: torch.Tensor, y: torch.Tensor,
     x1, y1, x2, y2 = rand_bbox(x.size(), lam)
 
     # 자르고 붙이기.
-    # clone이 없으면 x를 제자리에서 고치게 되는데, 오른쪽에서 패치를
-    # 읽어 오는 대상도 같은 x다. 덮어쓰기와 읽기가 섞여 결과가 망가진다
+    # clone이 없으면 호출한 쪽의 원본 배치 x가 제자리에서 바뀐다.
+    # 원본은 호출한 쪽에서 다시 쓰일 수 있으므로 사본에 덮어쓴다
     x_cutmix = x.clone()
     x_cutmix[:, :, y1:y2, x1:x2] = x[index, :, y1:y2, x1:x2]
 
     # 실제 상자 넓이에 맞추어 lambda 다시 계산.
     # 이 줄이 컷믹스의 정확성을 지킨다. 가장자리에서 상자가 잘렸으면
-    # 뽑아 둔 lam과 실제 넓이가 어긋나므로, 라벨을 섞을 비율은
-    # 뽑은 값이 아니라 정말로 오려진 넓이에서 나와야 한다
+    # 샘플링한 lam과 실제 넓이가 어긋나므로, 라벨을 섞을 비율은
+    # 샘플링한 값이 아니라 정말로 오려진 넓이에서 나와야 한다
     _, _, H, W = x.shape
     lam = 1 - ((x2 - x1) * (y2 - y1)) / (H * W)
 
@@ -256,7 +258,7 @@ def train_with_cutmix(
         
         # 검증 (컷믹스 없음).
         # 어그멘테이션은 트레인에만 건다. 그래서 train_loss와 val_loss는 성격이
-        # 달라, 섞인 이미지의 로스와 깨끗한 이미지의 로스를 견주는 셈이다.
+        # 달라, 섞인 이미지의 로스와 깨끗한 이미지의 로스를 비교하는 셈이다.
         # 컷믹스가 잘 들으면 트레인 로스가 검증 로스보다 높게 나올 수도
         # 있는데, 이는 이상이 아니다
         model.eval()
@@ -352,7 +354,7 @@ def multi_cutmix(x, y, n_patches=4, alpha=1.0):
     """
     B, C, H, W = x.shape
     # 배치에 나타난 가장 큰 라벨로 클래스 수를 짐작한다. 배치에 없는
-    # 클래스가 있으면 이 값이 실제보다 작아지므로, 실무에서는 인자로 받는 편이 낫다
+    # 클래스가 있으면 이 값이 실제보다 작아지므로, 실무에서는 인수로 받는 편이 낫다
     num_classes = y.max().item() + 1
     grid_size = int(np.sqrt(n_patches))   # 4개면 2x2 격자
 
@@ -401,7 +403,7 @@ def multi_cutmix(x, y, n_patches=4, alpha=1.0):
 
 ### 현저도로 이끄는 컷믹스
 
-그래디언트 기반 현저도를 써서 가장 중요한 곳에 절단 영역을 놓는다.
+현저도(saliency)는 입력의 각 픽셀이 모델의 판단에 얼마나 영향을 주는지를 나타내는 값이며, 여기서는 로스를 입력 픽셀로 미분한 그래디언트의 크기로 잰다. 이 그래디언트 기반 현저도를 써서 가장 중요한 곳에 절단 영역을 놓는다.
 
 ```python
 def saliency_cutmix(model, x, y, alpha=1.0):
@@ -433,7 +435,7 @@ def saliency_cutmix(model, x, y, alpha=1.0):
     
     model.train()
     
-    # lambda 뽑기
+    # lambda 샘플링
     lam = np.random.beta(alpha, alpha)
     B, C, H, W = x.shape
     index = torch.randperm(B, device=x.device)
@@ -508,7 +510,7 @@ def get_cutmix_training_pipeline(image_size=32):
         T.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)),
     ])
 
-    # 검증용에는 무작위 변형을 걸지 않는다. 평가는 되풀이해도 같은 값이
+    # 검증용에는 무작위 변형을 걸지 않는다. 평가는 반복해도 같은 값이
     # 나와야 하고, 어그멘테이션은 트레인 데이터를 늘리려는 장치이지 평가의 일부가 아니다.
     # 정규화만 트레인과 똑같이 걸어 두 분포를 맞춘다
     val_transform = T.Compose([
@@ -531,8 +533,8 @@ def mixup_data(x: torch.Tensor, y: torch.Tensor,
     데이터 배치에 믹스업을 적용한다.
     
     인수:
-        x: 입력 배치, 모양 (batch_size, ...)
-        y: 라벨(클래스 인덱스), 모양 (batch_size,)
+        x: 입력 배치, 형태 (batch_size, ...)
+        y: 라벨(클래스 인덱스), 형태 (batch_size,)
         alpha: 베타분포의 파라메터. 클수록 더 많이 섞인다.
         
     반환값:
@@ -541,10 +543,10 @@ def mixup_data(x: torch.Tensor, y: torch.Tensor,
         y_b: 순열을 적용한 라벨
         lam: 혼합 계수
     """
-    # Beta(alpha, alpha)에서 섞는 비율을 뽑는다. 대칭이라 평균은 늘 0.5지만
-    # 모양이 alpha에 달렸다. alpha가 작으면(0.2 따위) 0이나 1 가까이 몰려
+    # Beta(alpha, alpha)에서 섞는 비율을 샘플링한다. 대칭이라 평균은 늘 0.5지만
+    # 분포의 모양이 alpha에 달렸다. alpha가 작으면(0.2 따위) 0이나 1 가까이 몰려
     # "거의 원본"인 표본이 많아지고, alpha가 1이면 균등분포가 되어
-    # 절반씩 섞인 표본이 많아진다
+    # 모든 비율이 고르게 나온다
     if alpha > 0:
         lam = np.random.beta(alpha, alpha)
     else:
@@ -636,7 +638,7 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
     def cutmix(x, y, alpha=1.0):
         lam = torch.distributions.Beta(alpha, alpha).sample()
         idx = torch.randperm(x.size(0))
-        W, H = x.size(2), x.size(3)
+        H, W = x.size(2), x.size(3)
         cut_w = int(W * (1 - lam)**0.5)
         cut_h = int(H * (1 - lam)**0.5)
         cx, cy = torch.randint(W, (1,)), torch.randint(H, (1,))
@@ -671,7 +673,7 @@ def cutmix_or_mixup(x, y, cutmix_alpha=1.0, mixup_alpha=0.2,
 </div>
 
 ??? success "풀이"
-    작은 패치가 객체 전체를 담을 수도 있고 큰 패치가 배경만 담을 수도 있다. 따라서 면적 라벨은 약한 학습 규칙이며 정확한 객체 비율이 아니다. 위치 파악이나 가림 강건성이 개선되는지는 해당 평가 지표로 확인해야 한다.
+    작은 패치가 객체 전체를 담을 수도 있고 큰 패치가 배경만 담을 수도 있다. 따라서 면적 라벨은 근사적인 트레인 규칙이며 정확한 객체 비율이 아니다. 위치 파악이나 가림 강건성이 개선되는지는 해당 평가 지표로 확인해야 한다.
 
 ## 정리하며
 

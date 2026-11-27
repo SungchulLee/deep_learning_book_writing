@@ -1,6 +1,6 @@
 # L1/L2 정칙화
 
-선형 회귀와 회귀 MLP에서 L1·L2 패널티의 효과를 비교한다. 목적 함수에 패널티를 직접 더하고, 어떤 계수가 패널티에 포함되는지 확인한다.
+선형 회귀와 회귀 MLP에서 L1·L2 패널티의 효과를 비교한다. L1 패널티는 웨이트 절댓값의 합, L2 패널티는 웨이트 제곱의 합이며, 이것을 로스에 더해 웨이트가 커지는 것을 막는 것이 정칙화다. 목적 함수에 패널티를 직접 더하고, 어떤 계수가 패널티에 포함되는지 확인한다.
 
 ## 1. 코드
 
@@ -41,7 +41,7 @@ def build_mlp(input_dim):
         nn.ReLU(),
         nn.Linear(64, 32),
         nn.ReLU(),
-        # 출력 레이어에는 활성화가 없다. 회귀이므로 출력이 음수도 될 수 있어야 한다
+        # 출력 레이어에는 엑티베이션이 없다. 회귀이므로 출력이 음수도 될 수 있어야 한다
         nn.Linear(32, 1),
     )
 
@@ -55,8 +55,8 @@ def regularization_penalty(model, l1_factor=0.0, l2_factor=0.0):
     device = next(model.parameters()).device
     l1 = torch.tensor(0.0, device=device)
     l2 = torch.tensor(0.0, device=device)
-    # named_parameters로 이름을 보아 바이어스를 걸러 낸다. 바이어스는 과적합의
-    # 원인이 아니라 출력의 중심을 옮기는 자유도라 눌러 둘 까닭이 없다.
+    # named_parameters로 이름을 보아 바이어스를 걸러 낸다. 바이어스는
+    # 출력의 중심을 옮기는 자유도라 보통 패널티에서 뺀다.
     # model.parameters()를 그냥 훑으면 바이어스까지 패널티를 받는다
     for name, param in model.named_parameters():
         if 'weight' not in name:
@@ -93,7 +93,7 @@ def train_mlp(model, X_train, y_train, l1_factor=0.0, l2_factor=0.0,
             loss.backward()
             optimizer.step()
             # 기록은 패널티를 뺀 mse로 한다. 그래야 패널티의 세기가 다른
-            # 실험끼리 로스 곡선을 견줄 수 있다
+            # 실험끼리 로스 곡선을 비교할 수 있다
             total += mse.item() * xb.size(0)
         history['loss'].append(total / len(train_ds))
 
@@ -123,9 +123,9 @@ def sklearn_regularization_demo():
     # 데이터셋 생성
     # 피처 50개 가운데 정말로 쓸모 있는 것은 20개뿐이다. 나머지 30개는
     # 목표와 아무 관계가 없다. 라쏘가 그 30개의 계수를 0으로 만들어
-    # 스스로 골라내는지 보려고 일부러 이렇게 지었다.
+    # 스스로 골라내는지 보려고 일부러 이렇게 만들었다.
     # 표본이 200개인데 피처가 50개라 비율이 4:1로 낮아, 정칙화 없이는
-    # 잡음까지 외우기 쉬운 조건이기도 하다
+    # 잡음까지 과적합하기 쉬운 조건이기도 하다
     X, y = make_regression(n_samples=200, n_features=50, n_informative=20,
                           noise=10, random_state=42)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -201,7 +201,7 @@ def neural_network_regularization_demo():
     X_test_scaled = scaler.transform(X_test)
     
     # 텐서로 옮긴다. 목표를 (N, 1)로 맞추어야 MSELoss가 (N, 1)인 출력과
-    # 브로드캐스팅되지 않는다. (N,)으로 두면 오류 없이 (N, N) 차이 행렬이 만들어져
+    # 브로드캐스팅되지 않는다. (N,)으로 두면 경고만 내고 (N, N) 차이 행렬이 만들어져
     # 조용히 틀린 로스가 나온다
     X_train_t = torch.FloatTensor(X_train_scaled)
     y_train_t = torch.FloatTensor(y_train).reshape(-1, 1)
@@ -339,6 +339,8 @@ regularization_penalty는 이름에 weight가 들어간 텐서에 절댓값 합�
 
 MLP의 내부 검증은 외부 트레인 데이터를 scaler로 변환한 후 나누므로 검증 입력의 통계가 전처리에 반영된다. 엄격한 설정 선택에는 먼저 내부 분할한 뒤 실제 트레인 부분만으로 scaler를 맞춘다. 선형 모델과 뉴럴 네트워크는 로스 집계와 정칙화 계수의 관례가 다를 수 있다.
 
+출력을 읽으면, 선형 모델 셋의 시험 R²는 0.9897 · 0.9897 · 0.9901로 사실상 같고, 라쏘(`alpha=0.1`)는 계수 50개 가운데 2개만 0으로 만들었다. MLP 네 설정의 시험 MAE도 15.31~15.39에 모여 있고, 트레인 MAE(5.34~5.58)와의 일반화 격차(트레인 성능과 시험 성능의 차이)는 어느 설정에서도 좁혀지지 않았다. 시드 하나로 한 번 잰 값이라 이 정도 차이는 우열로 읽을 수 없다. 곧 이 실험의 패널티 세기(0.001)에서는 정칙화의 효과가 드러나지 않았으며, 코드 끝이 찍는 `Key Takeaways`는 일반론이지 이 출력이 보인 결과가 아니다.
+
 ## 연습문제
 
 <div class="drillbox" markdown>
@@ -380,7 +382,7 @@ L1 뉴럴 네트워크의 희소성을 어떻게 평가해야 하는가?
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 모양 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
+아래의 테스트 코드 조각을 검토하라. 정의되지 않은 클래스와 잘못된 이름, 입력 형태 가정을 찾아 이 페이지의 실제 함수에 맞는 점검 항목을 제안하라.
 
 </div>
 
@@ -402,7 +404,7 @@ L1 뉴럴 네트워크의 희소성을 어떻게 평가해야 하는가?
         for p in model.parameters():
             assert p.grad is not None
     ```
-    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 모양, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
+    이 페이지는 완성된 사용자 정의 모델 클래스를 제공하지 않는다. 실제 함수의 입력·출력 형태, 허용 자료형, 유한한 값과 그래디언트의 유무를 기준으로 검사한다. 빈 입력을 처리하는 방식은 연산마다 다르며, 무조건 정상적인 로스나 그래디언트가 나와야 한다고 가정하지 않는다.
 
 ## 정리하며
 

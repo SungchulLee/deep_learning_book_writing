@@ -1,6 +1,6 @@
 # 레이어 정규화
 
-레이어 정규화는 표본마다 지정한 마지막 축들의 통계량을 사용한다. NumPy 순전파와 MLP, RNN, 트랜스포머 예제를 통해 정규화 축과 구조 안의 위치를 구분한다.
+레이어 정규화는 표본마다 지정한 마지막 축들의 통계량을 사용한다. 곧 표본 하나의 피처들에서 평균과 분산을 구해 그 표본을 표준화하므로, 같은 배치에 든 다른 표본은 결과에 관여하지 않는다. NumPy 순전파와 MLP, RNN, 트랜스포머 예제를 통해 정규화 축과 구조 안의 위치를 구분한다.
 
 ## 1. 코드
 
@@ -34,7 +34,7 @@ class LayerNormNumPy:
     def __init__(self, normalized_shape, eps=1e-5):
         """
         인수:
-            normalized_shape: 정규화할 피처의 모양
+            normalized_shape: 정규화할 피처의 형태
             eps: 수치 안정성을 위한 작은 상수
         """
         if isinstance(normalized_shape, int):
@@ -52,10 +52,10 @@ class LayerNormNumPy:
         레이어 정규화의 순전파.
         
         인수:
-            x: 모양이 (batch_size, *normalized_shape)인 입력
+            x: 형태가 (batch_size, *normalized_shape)인 입력
             
         반환값:
-            입력과 같은 모양의 정규화된 출력
+            입력과 같은 형태의 정규화된 출력
         """
         # 마지막 len(normalized_shape)개 차원에 대해 평균과 분산 계산.
         # 뒤에서부터 세므로 배치 축은 결코 들어가지 않는다. 이것이
@@ -111,7 +111,7 @@ class RNNWithLayerNorm(nn.Module):
     def forward(self, x, hidden=None):
         """
         인수:
-            x: 모양이 (batch_size, seq_len, input_size)인 입력
+            x: 형태가 (batch_size, seq_len, input_size)인 입력
             hidden: 처음 은닉 상태 (batch_size, hidden_size)
             
         반환값:
@@ -129,18 +129,18 @@ class RNNWithLayerNorm(nn.Module):
             x_t = x[:, t, :]
             
             # 새 은닉 상태 계산.
-            # 두 Linear 모두 bias=False인데, 바로 뒤 레이어 정규화가 평균을
-            # 빼 버려 바이어스가 할 일이 없기 때문이다. beta가 그 몫을 한다
+            # 두 Linear 모두 bias=False다. 바로 뒤 레이어 정규화의 beta가
+            # 피처별 이동을 맡으므로 바이어스를 따로 두지 않았다
             hidden = self.W_ih(x_t) + self.W_hh(hidden)
             
             # 레이어 정규화 적용.
-            # 활성화 앞이라는 자리가 중요하다. 순환 뉴럴 네트워크는 같은
-            # 웨이트를 시점마다 되풀이해 곱하므로 은닉 상태의 크기가
-            # 시퀀스가 길어질수록 부풀거나 사그라들기 쉬운데, 매 시점
-            # 크기를 다시 맞추어 주면 그 폭주를 막을 수 있다
+            # 엑티베이션 함수 앞이라는 자리가 중요하다. 순환 뉴럴 네트워크는 같은
+            # 웨이트를 시점마다 반복해 곱하므로 은닉 상태의 크기가
+            # 시퀀스가 길어질수록 폭발하거나 소멸하기 쉬운데, 매 시점
+            # 크기를 다시 맞추어 주면 그것을 막을 수 있다
             hidden = self.ln(hidden)
             
-            # 활성화 적용
+            # 엑티베이션 함수 적용
             hidden = torch.tanh(hidden)
             
             outputs.append(hidden.unsqueeze(1))
@@ -177,10 +177,10 @@ class TransformerBlockWithLayerNorm(nn.Module):
     def forward(self, x, attn_mask=None, key_padding_mask=None):
         """
         인수:
-            x: 모양이 (seq_len, batch_size, d_model)인 입력
+            x: 형태가 (seq_len, batch_size, d_model)인 입력
             
         반환값:
-            입력과 같은 모양의 출력
+            입력과 같은 형태의 출력
         """
         # 잔차 연결과 레이어 정규화를 갖춘 자기 어텐션
         x2 = self.self_attn(x, x, x, attn_mask=attn_mask,
@@ -291,7 +291,7 @@ def compare_batchnorm_layernorm():
     
     # 배치 정규화
     bn = nn.BatchNorm1d(10)
-    bn.eval()  # 이동 통계를 쓰지 않으려고 평가 모드를 쓴다
+    bn.eval()  # 평가 모드: 배치 통계가 아니라 이동 통계(초기값 평균 0, 분산 1)를 쓴다
     x_bn = bn(x)
     
     # 레이어 정규화
@@ -480,9 +480,15 @@ When to use Layer Normalization:
 
 ## 2. 논의
 
-LayerNormNumPy는 normalized_shape에 해당하는 마지막 축에서 평균·분산을 계산한다. gamma와 beta도 그 모양을 가지지만 NumPy 배열이므로 PyTorch의 자동 미분 파라메터는 아니다.
+LayerNormNumPy는 normalized_shape에 해당하는 마지막 축에서 평균·분산을 계산한다. gamma와 beta도 그 형태를 가지지만 NumPy 배열이므로 PyTorch의 자동 미분 파라메터는 아니다.
 
-RNN 예제는 각 시점의 은닉 피처를 정규화한다. 트랜스포머 예제는 기본 MultiheadAttention의 `(시퀀스, 배치, 피처)` 순서를 사용하고, 잔차 합 뒤에 레이어 정규화를 적용하는 post-norm 구조이다.
+첫 실험에서 스케일이 100배 다른 표본 1·2·3이 거의 같은 값($\pm 1.414$, $\pm 0.707$, $0$)으로 정규화된다. 레이어 정규화는 표본 전체에 곱해진 상수를 지우기 때문이다. 표본 3의 표준편차만 0.99975로 조금 작은 것은 분산이 0.02로 작아 $\epsilon = 10^{-5}$가 드러난 것이고, 값이 모두 같은 표본 4는 분산이 0이라 출력이 전부 0이 된다. 이때 0으로 나누지 않게 해 주는 것이 $\epsilon$이다.
+
+둘째 실험의 배치 정규화는 `bn.eval()`로 평가 모드에 둔 새 레이어다. 이동 통계량의 초기값이 평균 0, 분산 1이라 입력이 거의 그대로 나오므로, 「After Batch Normalization」의 피처별 평균(−0.26, 0.83, …)은 입력의 평균 그대로이고 0이 아니다. 배치 통계량으로 정규화하는 모습을 보려면 트레인 모드로 두어야 하며, 그러면 피처별 평균이 0이 된다. 레이어 정규화 쪽은 모드와 무관하게 표본별 평균이 $10^{-8}$ 수준으로 0이고, 피처별 평균은 0이 아니다.
+
+셋째 실험이 찍는 수(배치 정규화 1.0254와 1.0008, 레이어 정규화 1.0260과 1.0008)는 두 방법을 가르지 못한다. 어느 쪽이든 출력의 표준편차는 1 근처이고, 1을 넘는 몫은 `torch.std`가 분모 $n-1$을 쓰는 데서 나온다(원소 20개면 $\sqrt{20/19} \approx 1.026$). 작은 배치에서 배치 정규화가 곤란한 까닭은 표준편차가 아니라 내용에 있다. 표본이 둘뿐이면 피처마다 두 값이 평균의 양쪽에 같은 거리로 놓이므로 정규화한 값이 언제나 $+1$과 $-1$이 되어, 두 값의 차이가 얼마였는지가 지워진다. 출력의 「BatchNorm is sensitive to batch size」는 이 점과 배치 통계량의 추정 잡음을 가리키는 말로 읽어야 하며, 위 네 수가 그것을 보인 것은 아니다.
+
+RNN 예제는 각 시점의 은닉 피처를 정규화한다. 트랜스포머 예제는 기본 MultiheadAttention의 `(시퀀스, 배치, 피처)` 순서를 사용하고, 잔차 합 뒤에 레이어 정규화를 적용하는 post-norm(사후 정규화) 구조이다.
 
 레이어 정규화는 현재 표본의 통계량을 트레인과 평가에서 모두 사용한다. 이동 평균·분산을 누적하지 않으며, 배치 크기와 상관없이 한 표본의 정규화 통계가 다른 표본에 의존하지 않는다. 모델의 드롭아웃 같은 다른 연산은 여전히 모드에 따라 달라진다.
 
@@ -508,7 +514,7 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
 </div>
 
 ??? success "풀이"
-    각 시점과 표본마다 마지막 D개 피처에서 평균과 분산을 구한다. 시간 T나 배치 B 전체를 섞지 않는다. normalized_shape를 바꾸면 정규화 축과 아핀 계수의 모양도 달라진다.
+    각 시점과 표본마다 마지막 D개 피처에서 평균과 분산을 구한다. 시간 T나 배치 B 전체를 섞지 않는다. normalized_shape를 바꾸면 정규화 축과 아핀 계수(gamma와 beta)의 형태도 달라진다.
 
 ---
 
@@ -527,7 +533,7 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
 <div class="drillbox" markdown>
 
 **연습문제 4.** <span class="diff hard" title="어려움"></span>
-아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 활성화, 생성자와 `forward`에서 필요한 수정을 설명하라.
+아래 풀이의 `ModuleList` 코드가 원래 모델에 바로 적용될 수 있는지 검토하라. 입력·출력 차원, 엑티베이션 함수, 생성자와 `forward`에서 필요한 수정을 설명하라.
 
 </div>
 
@@ -538,8 +544,8 @@ normalized_shape=D일 때 배율과 이동 계수의 수와 상태의 종류를 
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 활성화를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
+    `ModuleList`는 하위 모듈을 등록하지만 실행 순서나 엑티베이션 함수를 자동으로 정하지 않는다. 입력 레이어와 출력 레이어는 과제의 차원을 유지하고, 은닉 레이어 사이에 필요한 비선형성을 넣어야 한다. 선형 레이어만 반복하면 아핀 함수 하나로 합쳐진다. 원래 클래스에 없는 `num_layers` 인수를 그대로 넘길 수 없으므로 생성자와 `forward`를 함께 수정해야 한다.
 
 ## 정리하며
 
-레이어 정규화는 배치가 아닌 지정 피처 축을 사용한다. 정규화 축, 아핀 계수의 모양, 잔차 합 전후의 위치를 구분하면 MLP와 시퀀스 모델의 구현을 읽기 쉽다.
+레이어 정규화는 배치가 아닌 지정 피처 축을 사용한다. 정규화 축, 아핀 계수의 형태, 잔차 합 전후의 위치를 구분하면 MLP와 시퀀스 모델의 구현을 읽기 쉽다.

@@ -1,6 +1,6 @@
 # 조기 종료
 
-조기 종료는 검증 지표로 트레인 길이를 선택하는 방법이다. 정한 기간 동안 충분한 개선이 없으면 중단하고, 선택 기준에 맞는 체크포인트를 복원한다. 과적합을 완화할 수 있지만 참된 일반화 오차의 최적 시점을 정확히 알아내는 방법은 아니다.
+조기 종료는 검증 지표로 트레인 길이를 선택하는 방법이다. 정한 기간(이 기간을 patience, 곧 대기 횟수라 한다) 동안 충분한 개선이 없으면 중단하고, 선택 기준에 맞는 체크포인트를 복원한다. 과적합을 완화할 수 있지만 참된 일반화 오차의 최적 시점을 정확히 알아내는 방법은 아니다.
 
 구현 예제는 [조기 종료 예제](early_stopping_example.md)를 함께 보라.
 
@@ -11,7 +11,7 @@
 트레인 중에 모델은 대체로 예측 가능한 경로를 따른다.
 
 1. **초기 단계**: 트레인 로스와 검증 로스가 모두 빠르게 줄어든다
-2. **트레인 단계**: 트레인 로스는 계속 줄지만 검증 로스는 더 느리게 준다
+2. **중간 단계**: 트레인 로스는 계속 줄지만 검증 로스는 더 느리게 준다
 3. **과적합 단계**: 트레인 로스는 줄지만 검증 로스는 늘어난다
 
 이 세 단계는 전형적인 설명일 뿐 모든 트레인 곡선이 이 순서를 따르지는 않는다. 검증 지표가 흔들리거나 러닝레이트 감소 뒤 다시 좋아질 수 있으므로 patience와 스케줄을 함께 설계한다.
@@ -24,7 +24,7 @@
 - 웨이트가 극단적인 값에 이르는 것을 막는다
 - 모델을 초기화에 더 가까운 파라메터 공간의 영역에 머무르게 한다
 
-선형 최소제곱에서는 반복을 일찍 멈추는 것이 $X^\top X$의 고유벡터 방향마다 다른 축소로 해석된다. 릿지와 유사한 효과가 있지만 하나의 고정 강도를 쓰는 릿지와 일반적으로 같은 해는 아니다.
+선형 최소제곱에서는 반복을 일찍 멈추는 것이 $X^\top X$의 고유벡터 방향마다 해의 성분을 다른 비율로 줄이는 것(축소)으로 해석된다. 릿지(로스에 L2 패널티 $\lambda\|w\|^2$를 더한 최소제곱)와 유사한 효과가 있지만 하나의 고정 강도를 쓰는 릿지와 일반적으로 같은 해는 아니다.
 
 ---
 
@@ -32,13 +32,7 @@
 
 ### 검증에 기반한 종료 기준
 
-에포크 $t$에서의 검증 로스를 $\mathcal{L}_{\text{val}}^{(t)}$라 하자. 기본 종료 기준은 다음과 같다.
-
-$$
-\text{Stop if no sufficient improvement over the best monitored value for }k\text{ evaluations}
-$$
-
-여기서 $k$는 **대기 횟수(patience)** 파라메터이다.
+에포크 $t$에서의 검증 로스를 $\mathcal{L}_{\text{val}}^{(t)}$라 하자. 기본 종료 기준은 다음과 같다. 감시하는 값이 지금까지의 최선값보다 충분히(`min_delta` 넘게) 나아지지 않은 평가가 $k$번 이어지면 멈춘다. 여기서 $k$가 **patience(대기 횟수)** 파라메터이다.
 
 ### 최적 모델의 선택
 
@@ -50,7 +44,7 @@ $$
 
 마지막 파라메터 $\theta^{(T)}$가 아니라 파라메터 $\theta^{(t^*)}$를 돌려준다.
 
-### 일반화 한계의 관점
+### 릿지 강도와의 비교
 
 트레인 길이 제한의 정칙화 효과를 선형 모델에서 분석하면 다음 규모의 릿지 강도와 비교할 수 있다. 이는 정확한 등식이나 일반 뉴럴 네트워크에 적용되는 공식이 아니다.
 
@@ -63,6 +57,8 @@ $$
 ---
 
 ## 3. PyTorch 구현
+
+이 쪽의 코드는 클래스와 함수의 정의만 싣는다. 모델을 트레인하지 않으므로 출력 블록이 없다. 실제로 돌린 결과는 「조기 종료 예제」 쪽에 있다.
 
 ### 기본적인 조기 종료
 
@@ -104,7 +100,7 @@ class EarlyStopping:
         # 개선 여부를 판정하는 규칙을 여기서 한 번만 정해 두면,
         # 아래 __call__에서 mode를 다시 갈라볼 필요가 없다.
         # min_delta를 빼거나 더하는 것이 핵심이다. 잡음 수준의 미세한
-        # 흔들림을 "개선"으로 세면 인내 카운터가 계속 초기화되어
+        # 흔들림을 "개선"으로 세면 patience 카운터가 계속 초기화되어
         # 조기 종료가 영영 걸리지 않는다.
         # 주의: 람다가 붙잡는 것은 self.min_delta가 아니라 인수
         # min_delta다. 만든 뒤에 stopper.min_delta를 바꿔도
@@ -126,8 +122,8 @@ class EarlyStopping:
         반환값:
             트레인을 멈춰야 하면 True
         """
-        # 첫 호출은 견줄 대상이 없으므로 기준점만 세우고 물러난다.
-        # 인내 카운터는 두 번째 호출부터 세기 시작한다
+        # 첫 호출은 비교할 대상이 없으므로 기준점만 세우고 물러난다.
+        # patience 카운터는 두 번째 호출부터 세기 시작한다
         if self.best_score is None:
             self.best_score = score
             self.best_epoch = epoch
@@ -138,7 +134,7 @@ class EarlyStopping:
         if self.is_better(score, self.best_score):
             self.best_score = score
             self.best_epoch = epoch
-            # 나아졌으니 인내 카운터를 0으로 되돌린다. 즉 patience는
+            # 나아졌으니 patience 카운터를 0으로 되돌린다. 즉 patience는
             # "트레인을 시작한 뒤 몇 에포크"가 아니라 "마지막 개선 뒤
             # 몇 에포크"를 세는 값이다
             self.counter = 0
@@ -152,7 +148,7 @@ class EarlyStopping:
             self.counter += 1
             if self.counter >= self.patience:
                 self.early_stop = True
-                # 되돌리기는 이 지점에서만 일어난다. 인내가 다 차기 전에
+                # 되돌리기는 이 지점에서만 일어난다. patience가 다 차기 전에
                 # 에포크 수를 다 써서 트레인 루프가 끝나면 이 줄을 지나가지
                 # 못하므로, 모델은 마지막 에포크의 웨이트를 그대로 지닌
                 # 채 남는다. 루프가 끝난 뒤 best_weights를 직접
@@ -198,7 +194,7 @@ def train_with_early_stopping(
         criterion: 로스 함수
         optimizer: 옵티마이저
         max_epochs: 최대 트레인 에포크 수
-        patience: 조기 종료의 인내
+        patience: 조기 종료의 patience(대기 횟수)
         min_delta: 개선으로 볼 최소 임계값
         verbose: 진행 상황 출력 여부
         
@@ -231,7 +227,7 @@ def train_with_early_stopping(
             
             # 배치 크기를 곱해 두었다가 아래에서 표본 수로 나눈다.
             # 배치별 로스를 그냥 평균 내면 마지막 짧은 배치가 앞의
-            # 꽉 찬 배치들과 같은 무게를 얻어 값이 살짝 어긋난다
+            # 꽉 찬 배치들과 같은 비중을 얻어 값이 살짝 어긋난다
             train_loss += loss.item() * X_batch.size(0)
             # max(1)은 (최댓값, 위치)를 돌려주는데 필요한 것은 위치뿐이다.
             # 라벨이 클래스 번호인 분류 과제를 전제한 코드다
@@ -308,13 +304,13 @@ class MultiMetricEarlyStopping:
         인수:
             metrics_config: 지표 이름을 'min' 또는 'max'에 대응시키는 사전
                            예: {'val_loss': 'min', 'val_acc': 'max'}
-            patience: 지표마다의 인내
+            patience: 지표마다의 patience
             restore_best_weights: 가장 좋았던 웨이트로 되돌릴지 여부
         """
         self.patience = patience
         self.restore_best_weights = restore_best_weights
         
-        # 지표마다 최고 기록과 인내 카운터를 따로 둔다. 로스는 내려가야
+        # 지표마다 최고 기록과 patience 카운터를 따로 둔다. 로스는 내려가야
         # 좋고 정확도는 올라가야 좋으니 한 벌로는 셀 수 없다.
         # 앞의 EarlyStopping과 달리 min_delta가 없다는 점에 주의하라.
         # 아주 미세한 개선도 개선으로 세므로 더 늦게 멈춘다
@@ -365,7 +361,7 @@ class MultiMetricEarlyStopping:
             if self.restore_best_weights:
                 self.best_weights = copy.deepcopy(model.state_dict())
         
-        # 모든 지표가 인내를 넘겼으면 멈춘다
+        # 모든 지표가 patience를 넘겼으면 멈춘다
         # any가 아니라 all이라는 점이 이 클래스의 성격을 정한다. 지표
         # 하나만 정체되어도 멈추는 것이 아니라, 감시하는 모든 지표가
         # 다 같이 정체되어야 멈춘다. 즉 너그러운 쪽이며, 지표를 더할수록
@@ -404,9 +400,9 @@ class EarlyStoppingWithLRScheduler:
         
         self.best_score = None
         self.best_weights = None
-        # 계수를 둘 둔다. counter는 멈출 때를, lr_counter는 러닝레이트를
+        # 카운터를 둘 둔다. counter는 멈출 때를, lr_counter는 러닝레이트를
         # 줄일 때를 센다. 아래에서 러닝레이트를 줄인 뒤 lr_counter만 0으로
-        # 되돌리고 counter는 그대로 두는 것이 요점이다. 그래서 인내가
+        # 되돌리고 counter는 그대로 두는 것이 요점이다. 그래서 patience가
         # 다 차기까지 러닝레이트를 여러 번(20/5이므로 최대 네 번) 줄여
         # 볼 수 있다. 둘 다 되돌리면 트레인이 영영 끝나지 않는다
         self.counter = 0
@@ -419,9 +415,9 @@ class EarlyStoppingWithLRScheduler:
             self.best_weights = copy.deepcopy(model.state_dict())
             return False
         
-        # 앞의 EarlyStopping과 달리 mode 인자가 없다. 부등호가 <로
+        # 앞의 EarlyStopping과 달리 mode 인수가 없다. 부등호가 <로
         # 박혀 있어 "작을수록 좋은" 지표, 곧 로스 전용이다.
-        # 정확도를 넘기면 개선을 영영 못 알아채고 첫 인내에 멈춘다
+        # 정확도를 넘기면 개선을 영영 못 알아채고 patience가 처음 다 찼을 때 멈춘다
         if score < self.best_score - self.min_delta:
             self.best_score = score
             self.best_weights = copy.deepcopy(model.state_dict())
@@ -450,7 +446,7 @@ class EarlyStoppingWithLRScheduler:
                 
                 self.lr_counter = 0
         
-        # 인내를 넘겼으면 멈춘다
+        # patience를 넘겼으면 멈춘다
         if self.counter >= self.patience:
             model.load_state_dict(self.best_weights)
             return True
@@ -462,7 +458,7 @@ class EarlyStoppingWithLRScheduler:
 
 ## 4. 하이퍼파라메터에 대한 고려
 
-### 인내 값 고르기
+### patience 값 고르기
 
 patience는 다음 사이의 트레이드오프를 조절한다.
 
@@ -471,25 +467,25 @@ patience는 다음 사이의 트레이드오프를 조절한다.
 
 지침은 다음과 같다.
 
-- 인내 = 10~20 에포크에서 시작한다
+- patience = 10~20 에포크에서 시작한다
 - 검증 지표가 잡음이 많으면 늘린다
 - 트레인 곡선이 매끄럽고 예측 가능하면 줄인다
 
 ```python
 def analyze_optimal_patience(history: dict, test_patience_values: list):
     """
-    인내 값에 따라 어느 지점에서 멈추게 되는지 분석한다.
+    patience 값에 따라 어느 지점에서 멈추게 되는지 분석한다.
     
     인수:
         history: 'val_loss'를 담은 트레인 이력
-        test_patience_values: 시험해 볼 인내 값의 목록
+        test_patience_values: 시험해 볼 patience 값의 목록
         
     반환값:
-        인내를 종료 에포크와 최적 val_loss에 대응시키는 사전
+        patience를 종료 에포크와 최적 val_loss에 대응시키는 사전
     """
-    # 이미 끝난 트레인의 이력을 두고 "인내를 다르게 잡았다면 어디서
-    # 멈췄을까"를 되짚어 본다. 트레인을 다시 돌릴 필요가 없으므로
-    # 인내를 고르는 데 드는 비용이 사실상 0이다.
+    # 이미 끝난 트레인의 이력을 두고 "patience를 다르게 잡았다면 어디서
+    # 멈췄을까"를 다시 계산해 본다. 트레인을 다시 돌릴 필요가 없으므로
+    # patience를 고르는 데 드는 비용이 사실상 0이다.
     val_losses = history['val_loss']
     results = {}
 
@@ -502,7 +498,7 @@ def analyze_optimal_patience(history: dict, test_patience_values: list):
             if loss < best_loss:
                 best_loss = loss
                 best_epoch = epoch
-                counter = 0        # 나아졌으니 인내를 되돌린다
+                counter = 0        # 나아졌으니 카운터를 되돌린다
             else:
                 counter += 1
 
@@ -510,8 +506,8 @@ def analyze_optimal_patience(history: dict, test_patience_values: list):
                 break              # 여기서 조기 종료가 걸렸을 것이다
 
         # stop_epoch 와 best_epoch 를 함께 담는 것이 요점이다.
-        # 둘의 차이가 곧 "헛되이 더 돌린 에포크 수"이며, 인내를 키울수록
-        # 이 간격이 벌어진다. 반대로 인내가 너무 작으면 잠깐 나빠졌다가
+        # 둘의 차이가 곧 "헛되이 더 돌린 에포크 수"이며, patience를 키울수록
+        # 이 간격이 벌어진다. 반대로 patience가 너무 작으면 잠깐 나빠졌다가
         # 다시 좋아지는 구간을 못 넘기고 일찍 끊겨 best_val_loss가 나빠진다.
         #
         # 주의: for가 break 없이 끝나면 epoch는 마지막 값으로 남는다.
@@ -563,11 +559,11 @@ $$
 
 적절한 고정 러닝레이트에서 수렴하면 최소 노름 최소제곱 해를 얻는다. $X$가 열 완전계수(full column rank)이면 $(X^\top X)^{-1}X^\top y$이다. 양의 강도를 쓰는 릿지 해로 수렴하는 것은 아니다.
 
-고윳값 $\mu>0$ 방향에서 조기 종료의 축소 인자는 $1-(1-\eta\mu)^t$이고 릿지의 인자는 $\mu/(\mu+a)$이다. 형태는 유사하지만 서로 같지 않으므로 $a\approx1/(\eta t)$는 규모를 비교하는 근사로 읽는다. MSE의 평균이나 상수배를 바꾸면 $\eta$에 해당하는 배율도 달라진다.
+축소 인자는 그 방향의 최소제곱 해 성분에 곱해지는 0과 1 사이의 수다. $X^\top X$의 고윳값 $\mu>0$ 방향에서 조기 종료의 축소 인자는 $1-(1-\eta\mu)^t$이고 릿지의 인자는 $\mu/(\mu+a)$이다. 형태는 유사하지만 서로 같지 않으므로 $a\approx1/(\eta t)$는 규모를 비교하는 근사로 읽는다. MSE의 평균이나 상수배를 바꾸면 $\eta$에 해당하는 배율도 달라진다.
 
 ### 검증 선택의 한계
 
-검증셋에서 고른 시점은 잡음이 섞인 추정에 따른 선택이다. 트레인 횟수에 따른 편향·분산의 단조 변화나 최적 시험 성능을 보장하지 않는다. 검증셋에 반복적으로 맞추는 효과를 고려하고, 최종 평가는 독립 시험셋에서 수행한다.
+검증 집합에서 고른 시점은 잡음이 섞인 추정에 따른 선택이다. 트레인 횟수에 따른 편향·분산의 단조 변화나 최적 시험 성능을 보장하지 않는다. 검증 집합에 반복적으로 맞추는 효과를 고려하고, 최종 평가는 독립된 시험 집합에서 수행한다.
 
 ## 6. 실무 지침
 
@@ -600,7 +596,7 @@ def recommended_training_setup(model, train_loader, val_loader):
         restore_best_weights=True
     )
     
-    max_epochs = 500  # 상계
+    max_epochs = 500  # 상한
     
     for epoch in range(max_epochs):
         train_loss = train_one_epoch(model, train_loader, criterion, optimizer)
@@ -653,7 +649,7 @@ class CheckpointingEarlyStopping(EarlyStopping):
             # 트레인을 이어 가려면 옵티마이저 상태도 함께 담아야 한다.
             # Adam의 모멘텀 통계가 사라지면 이어받은 트레인이 흔들린다
 
-        # 부모 클래스가 최고 성적 갱신과 인내 세기를 맡는다.
+        # 부모 클래스가 최고 성적 갱신과 patience 세기를 맡는다.
         # 성적이 나아졌으면 self.best_weights를 여기서 새로 채운다
         should_stop = super().__call__(score, model, epoch)
 
@@ -696,7 +692,7 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
 
     # 세로 점선이 되돌릴 지점이다. 조기 종료가 걸린 곳이 아니라
     # 검증 로스가 가장 낮았던 곳을 표시해야 한다. 둘 사이의 간격이
-    # 인내만큼 벌어져 있는 것이 정상이다
+    # patience만큼 벌어져 있는 것이 정상이다
     axes[0].axvline(best_epoch + 1, color='r', linestyle='--', 
                     label=f'Best Epoch ({best_epoch + 1})')
     axes[0].set_xlabel('Epoch')
@@ -722,7 +718,7 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
 
     plt.tight_layout()
     # show()가 아니라 fig를 돌려준다. 부르는 쪽에서 저장할지 띄울지
-    # 정할 수 있고, 시험 코드에서 그림을 띄우지 않고 검사할 수도 있다
+    # 정할 수 있고, 테스트 코드에서 그림을 띄우지 않고 검사할 수도 있다
     return fig
 ```
 
@@ -731,9 +727,9 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
 ## 8. 흔히 빠지는 함정
 
 1. **검증 집합을 쓰지 않기**: 조기 종료에는 따로 떼어 둔 데이터가 필요하다
-2. **인내가 너무 작음**: 정상적인 요동 중에 멈춘다
+2. **patience가 너무 작음**: 정상적인 요동 중에 멈춘다
 3. **최적 웨이트를 되돌리지 않기**: 최적 웨이트 대신 마지막 웨이트를 쓴다
-4. **지표를 무시하기**: 과제에 맞지 않는 지표를 쓴다
+4. **지표를 잘못 고르기**: 과제에 맞지 않는 지표를 감시한다
 5. **데이터 누출**: 검증 집합이 트레인 데이터에 오염된다
 
 ---

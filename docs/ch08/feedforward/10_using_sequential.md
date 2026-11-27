@@ -1,6 +1,6 @@
 # Sequential 사용하기
 
-`nn.Sequential`은 앞 모듈의 출력을 다음 모듈의 입력으로 전달한다. 이 예제는 기본 순차 모델, 이름을 붙인 모델, 재사용 블록을 조합한 모델을 비교한다.
+`nn.Sequential`은 모듈을 적힌 순서대로 이어, 앞 모듈의 출력을 다음 모듈의 입력으로 전달하는 컨테이너다. 이 예제는 기본 순차 모델, 이름을 붙인 모델, 재사용 블록을 조합한 모델을 비교한다.
 
 ## 1. 코드
 
@@ -10,7 +10,7 @@
     from collections import OrderedDict
     """
     ================================================================================
-    04_using_sequential.py - nn.Sequential로 모델 빠르게 만들기
+    nn.Sequential로 모델 빠르게 만들기
     ================================================================================
 
     nn.Sequential은 사용자 정의 클래스를 쓰지 않고 모델을 빠르게 만드는 PyTorch의 방법이다.
@@ -26,7 +26,7 @@
 
     학습 목표:
         1. nn.Sequential로 모델 만들기
-        2. 사용자 정의 nn.Module과의 절충 이해하기
+        2. 사용자 정의 nn.Module과의 장단점 비교하기
         3. Sequential 블록 조립하는 법 배우기
         4. 여러 구조 패턴으로 연습하기
 
@@ -56,9 +56,9 @@
     # 각 레이어가 지정한 순서대로 차례차례 적용된다
     simple_model = nn.Sequential(
         nn.Linear(784, 256),    # 입력 레이어: 784 → 256
-        nn.ReLU(),              # 활성화
+        nn.ReLU(),              # 엑티베이션
         nn.Linear(256, 128),    # 은닉 레이어: 256 → 128
-        nn.ReLU(),              # 활성화
+        nn.ReLU(),              # 엑티베이션
         nn.Linear(128, 10)      # 출력 레이어: 128 → 10
     )
 
@@ -80,10 +80,10 @@
     named_model = nn.Sequential(OrderedDict([
         ('flatten', nn.Flatten()),              # 입력 펼치기
         ('fc1', nn.Linear(784, 256)),           # 첫 완전 연결 레이어
-        ('relu1', nn.ReLU()),                   # 첫 활성화
+        ('relu1', nn.ReLU()),                   # 첫 엑티베이션
         ('dropout1', nn.Dropout(0.2)),          # 정칙화를 위한 드롭아웃
         ('fc2', nn.Linear(256, 128)),           # 둘째 완전 연결 레이어
-        ('relu2', nn.ReLU()),                   # 둘째 활성화
+        ('relu2', nn.ReLU()),                   # 둘째 엑티베이션
         ('dropout2', nn.Dropout(0.2)),          # 드롭아웃 한 번 더
         ('fc3', nn.Linear(128, 10))             # 출력 레이어
     ]))
@@ -119,7 +119,7 @@
         make_fc_block(784, 512, dropout=0.3),  # 블록 1
         make_fc_block(512, 256, dropout=0.3),  # 블록 2
         make_fc_block(256, 128, dropout=0.2),  # 블록 3
-        nn.Linear(128, 10)                     # 출력 (로짓이므로 활성화 없음)
+        nn.Linear(128, 10)                     # 출력 (로짓이므로 엑티베이션 없음)
     )
 
     print("Modular Sequential Model:")
@@ -273,7 +273,7 @@
     print("First layer of simple_model:")
     print(simple_model[0])
 
-    print("\nThird layer (second ReLU):")
+    print("\nFourth layer (second ReLU):")
     print(simple_model[3])
 
     # 레이어를 훑어볼 수 있다
@@ -281,7 +281,7 @@
     for idx, layer in enumerate(simple_model):
         print(f"  Layer {idx}: {layer.__class__.__name__}")
 
-    # Sequential 모델을 잘라 낼 수 있다
+    # Sequential 모델을 슬라이싱할 수 있다
     print("\nFirst 3 layers:")
     feature_extractor = simple_model[:3]  # 처음 세 레이어를 얻는다
     print(feature_extractor)
@@ -290,7 +290,7 @@
     print("\nModifying model by adding a new layer:")
     extended_model = nn.Sequential(
         *simple_model,  # 기존 레이어 펼치기
-        nn.ReLU(),      # 활성화 하나 더 추가
+        nn.ReLU(),      # 엑티베이션 하나 더 추가
         nn.Linear(10, 5)  # 마지막 레이어 추가
     )
     print(f"Original output size: 10")
@@ -343,7 +343,7 @@
 
     2. Sequential을 쓰는 세 가지 방법:
        - 단순: 레이어를 순서대로 넘기기만 한다
-       - 이름 붙이기: 디버깅을 돕도록 튜플을 쓴다
+       - 이름 붙이기: 디버깅을 돕도록 OrderedDict를 쓴다
        - 모듈화: 다시 쓸 수 있는 블록을 조립한다
 
     3. Sequential의 한계:
@@ -358,7 +358,7 @@
        ✓ 전이 학습
        ✓ 모델 점검 도구
 
-    5. Sequential 모델은 접근, 자르기, 고치기가 쉽다
+    5. Sequential 모델은 접근, 슬라이싱, 수정이 쉽다
        - 인덱스로 접근: model[0]
        - Slice: model[:3]
        - 순회: for layer in model
@@ -378,10 +378,10 @@
     1. Sequential로 5~6레이어짜리 더 깊은 모델을 만들어 보라
     2. 레이어 사이에 배치 정규화를 넣어 보라
     3. 드롭아웃 비율을 달리하여 실험해 보라
-    4. "넓은" 뉴럴 네트워크(레이어마다 뉴런이 많다)와 "깊은" 뉴럴 네트워크(레이어가 많다)를 만들어 견주어 보라
+    4. "넓은" 뉴럴 네트워크(레이어마다 뉴런이 많다)와 "깊은" 뉴럴 네트워크(레이어가 많다)를 만들어 비교해 보라
     5. 설정 목록으로 Sequential 모델을 만들어 내는 함수를 짜 보라
-    6. 자르기로 중간 피처를 뽑아 보라
-    7. 여러 활성화 함수(LeakyReLU, ELU 등)를 써 보라
+    6. 슬라이싱으로 중간 피처를 추출해 보라
+    7. 여러 엑티베이션 함수(LeakyReLU, ELU 등)를 써 보라
     8. Sequential 모델의 앙상블을 만들어 보라
     9. 첫 레이어의 웨이트를 시각화해 보라
     10. 레이어를 없애는 방식으로 모델 가지치기를 구현해 보라
@@ -480,7 +480,7 @@
     First layer of simple_model:
     Linear(in_features=784, out_features=256, bias=True)
 
-    Third layer (second ReLU):
+    Fourth layer (second ReLU):
     ReLU()
 
     All layers:
@@ -517,7 +517,7 @@
 
     2. Sequential을 쓰는 세 가지 방법:
        - 단순: 레이어를 순서대로 넘기기만 한다
-       - 이름 붙이기: 디버깅을 돕도록 튜플을 쓴다
+       - 이름 붙이기: 디버깅을 돕도록 OrderedDict를 쓴다
        - 모듈화: 다시 쓸 수 있는 블록을 조립한다
 
     3. Sequential의 한계:
@@ -532,7 +532,7 @@
        ✓ 전이 학습
        ✓ 모델 점검 도구
 
-    5. Sequential 모델은 접근, 자르기, 고치기가 쉽다
+    5. Sequential 모델은 접근, 슬라이싱, 수정이 쉽다
        - 인덱스로 접근: model[0]
        - Slice: model[:3]
        - 순회: for layer in model
@@ -548,10 +548,10 @@
     1. Sequential로 5~6레이어짜리 더 깊은 모델을 만들어 보라
     2. 레이어 사이에 배치 정규화를 넣어 보라
     3. 드롭아웃 비율을 달리하여 실험해 보라
-    4. "넓은" 뉴럴 네트워크(레이어마다 뉴런이 많다)와 "깊은" 뉴럴 네트워크(레이어가 많다)를 만들어 견주어 보라
+    4. "넓은" 뉴럴 네트워크(레이어마다 뉴런이 많다)와 "깊은" 뉴럴 네트워크(레이어가 많다)를 만들어 비교해 보라
     5. 설정 목록으로 Sequential 모델을 만들어 내는 함수를 짜 보라
-    6. 자르기로 중간 피처를 뽑아 보라
-    7. 여러 활성화 함수(LeakyReLU, ELU 등)를 써 보라
+    6. 슬라이싱으로 중간 피처를 추출해 보라
+    7. 여러 엑티베이션 함수(LeakyReLU, ELU 등)를 써 보라
     8. Sequential 모델의 앙상블을 만들어 보라
     9. 첫 레이어의 웨이트를 시각화해 보라
     10. 레이어를 없애는 방식으로 모델 가지치기를 구현해 보라
@@ -561,11 +561,11 @@
 
 ## 2. 논의
 
-`simple_model`, `named_model`, `modular_model`은 구성 방식과 너비·드롭아웃이 서로 다른 모델이다. 이름을 붙이거나 블록을 재사용한다고 계산이 자동으로 같아지는 것은 아니다. 동일성을 비교하려면 레이어와 상태를 맞춰야 한다.
+`simple_model`, `named_model`, `modular_model`은 구성 방식과 너비·드롭아웃이 서로 다른 모델이다. 드롭아웃은 트레인 중에 뉴런 출력의 일부를 무작위로 0으로 만드는 정칙화 기법이다. 출력의 비교 표에서 앞의 둘은 파라메터가 235,146개로 같고(드롭아웃과 평탄화에는 파라메터가 없다), 은닉 너비가 512·256·128인 `modular_model`은 567,434개다. 표의 `Layers` 열은 `nn.Sequential`이 아닌 모듈을 모두 세므로 ReLU·드롭아웃·평탄화까지 들어간 수다. 이름을 붙이거나 블록을 재사용한다고 계산이 자동으로 같아지는 것은 아니다. 동일성을 비교하려면 레이어와 상태를 맞춰야 한다.
 
-평탄화가 모델 안에 있는지 트레인 루프에 있는지 확인한다. `nn.Linear`는 마지막 축에 작용하므로 28×28 이미지를 784차원으로 바꾸는 책임이 어디에 있는지가 중요하다.
+평탄화(flatten, 28×28 이미지를 784칸짜리 벡터 하나로 펴는 일)가 모델 안에 있는지 트레인 루프에 있는지 확인한다. 이 쪽에서 실제로 트레인하는 `simple_model`에는 `nn.Flatten`이 없어서 트레인 루프가 `view`로 펴 준다. `nn.Linear`는 마지막 축에 작용하므로 28×28 이미지를 784차원으로 바꾸는 책임이 어디에 있는지가 중요하다.
 
-순차 모델은 단일 경로에 편리하다. 분기와 합산, 여러 출력을 다루려면 사용자 정의 `forward`가 더 명확할 수 있다. 이 예제는 매 에포크 시험 지표를 확인하므로 그 결과로 설정을 조정할 때는 별도의 검증 집합을 마련한다.
+순차 모델은 단일 경로에 편리하다. 분기와 합산, 여러 출력을 다루려면 사용자 정의 `forward`가 더 명확할 수 있다. `simple_model`은 5 에포크 뒤 시험 정확도 97.55%에 이른다. 다만 이 예제는 매 에포크 시험 지표를 확인하므로 그 결과로 설정을 조정할 때는 별도의 검증 집합을 마련한다.
 
 ## 연습문제
 
@@ -601,7 +601,7 @@
 </div>
 
 ??? success "풀이"
-    기존 모듈 객체를 새 Sequential에 넣으면 같은 웨이트를 공유할 수 있다. 새 모델을 트레인할 때 원래 모델의 상태도 바뀔 수 있으므로 독립 비교에는 별도 모델과 복사한 상태를 사용한다.
+    기존 모듈 객체를 새 Sequential에 넣으면 복사되지 않고 같은 객체가 들어가므로 두 모델이 같은 웨이트를 공유한다. 본문 6부의 `extended_model`과 `simple_model[:3]`이 그런 경우다. 새 모델을 트레인할 때 원래 모델의 상태도 바뀔 수 있으므로 독립 비교에는 별도 모델과 복사한 상태를 사용한다.
 
 ---
 
@@ -613,7 +613,7 @@
 </div>
 
 ??? success "풀이"
-    인내 횟수 카운터와 최저 로스 추적기를 추가한다.
+    조기 종료(early stopping)는 검증 로스가 더 나아지지 않으면 트레인을 멈추는 기법이다. 개선 없이 지나간 에포크 수를 세는 카운터(patience)와 최저 로스 기록을 추가한다.
     ```python
     best_loss = float('inf')
     patience_counter = 0
